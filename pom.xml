@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.cardanofoundation.rosetta-java</groupId>
+    <artifactId>base</artifactId>
+    <version>${revision}</version>
+    <packaging>pom</packaging>
+
+    <scm>
+        <connection>scm:git:https://github.com/cardano-foundation/cardano-rosetta-java</connection>
+        <url>https://github.com/cardano-foundation/cardano-rosetta-java</url>
+    </scm>
+
+    <issueManagement>
+        <url>https://github.com/cardano-foundation/cardano-rosetta-java/issues</url>
+        <system>GitHub Issues</system>
+    </issueManagement>
+
+    <licenses>
+        <license>
+            <name>MPL 2.0</name>
+            <url>https://www.mozilla.org/en-US/MPL/2.0/</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <properties>
+        <revision>1.0.0-SNAPSHOT</revision>
+        <version.cf-metadatatools-core>1.0.0-SNAPSHOT</version.cf-metadatatools-core>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <version.spring-boot>3.0.5</version.spring-boot>
+        <version.springdoc-openapi-ui>1.6.15</version.springdoc-openapi-ui>
+        <version.openapi-generator-maven-plugin>6.4.0</version.openapi-generator-maven-plugin>
+        <version.maven-compiler-plugin>3.10.1</version.maven-compiler-plugin>
+        <verison.maven-surefire-plugin>3.0.0-M7</verison.maven-surefire-plugin>
+        <verison.jacoco-maven-plugin>0.8.8</verison.jacoco-maven-plugin>
+        <version.flatten-maven-plugin>1.3.0</version.flatten-maven-plugin>
+        <version.lombok>1.18.26</version.lombok>
+        <version.swagger-annotations>2.2.8</version.swagger-annotations>
+        <version.log4j>2.20.0</version.log4j>
+        <version.nimbusds>9.25.6</version.nimbusds>
+        <version.bloxbean>0.4.3</version.bloxbean>
+        <version.yaci>0.1.9</version.yaci>
+        <version.commons-io>2.11.0</version.commons-io>
+        <version.javax-validation-api>2.0.1.Final</version.javax-validation-api>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <type>pom</type>
+                <version>${version.spring-boot}</version>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.springdoc</groupId>
+                <artifactId>springdoc-openapi-ui</artifactId>
+                <version>${version.springdoc-openapi-ui}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${version.lombok}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.cardanofoundation.metadatatools</groupId>
+                <artifactId>core</artifactId>
+                <version>${version.cf-metadatatools-core}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.bloxbean.cardano</groupId>
+                <artifactId>cardano-client-lib</artifactId>
+                <version>${version.bloxbean}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.bloxbean.cardano</groupId>
+                <artifactId>yaci</artifactId>
+                <version>${version.yaci}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.nimbusds</groupId>
+                <artifactId>nimbus-jose-jwt</artifactId>
+                <version>${version.nimbusds}</version>
+            </dependency>
+            <dependency>
+                <groupId>javax.validation</groupId>
+                <artifactId>validation-api</artifactId>
+                <version>${version.javax-validation-api}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-core</artifactId>
+                <version>${version.log4j}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-api</artifactId>
+                <version>${version.log4j}</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>${version.commons-io}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.swagger.core.v3</groupId>
+                <artifactId>swagger-annotations</artifactId>
+                <version>${version.swagger-annotations}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <distributionManagement>
+        <repository>
+            <id>github</id>
+            <name>cleanerm5</name> <!-- TODO can we have a service user for those things?-->
+            <url>https://maven.pkg.github.com/cardano-foundation/cardano-rosetta-api</url>
+        </repository>
+    </distributionManagement>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>flatten-maven-plugin</artifactId>
+                <version>${version.flatten-maven-plugin}</version>
+                <configuration>
+                    <updatePomFile>true</updatePomFile>
+                    <flattenMode>resolveCiFriendliesOnly</flattenMode>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>flatten</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>flatten</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>flatten.clean</id>
+                        <phase>clean</phase>
+                        <goals>
+                            <goal>clean</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <modules>
+        <module>api</module>
+        <!--<module>crawler</module>-->
+    </modules>
+
+</project>
