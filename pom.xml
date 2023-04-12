@@ -29,7 +29,6 @@
 
     <properties>
         <revision>1.0.0-SNAPSHOT</revision>
-        <version.cf-metadatatools-core>1.0.0-SNAPSHOT</version.cf-metadatatools-core>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <version.spring-boot>3.0.5</version.spring-boot>
         <version.springdoc-openapi-ui>1.6.15</version.springdoc-openapi-ui>
@@ -46,6 +45,7 @@
         <version.yaci>0.1.9</version.yaci>
         <version.commons-io>2.11.0</version.commons-io>
         <version.javax-validation-api>2.0.1.Final</version.javax-validation-api>
+        <version.bouncycastle>1.72</version.bouncycastle>
     </properties>
 
     <dependencyManagement>
@@ -69,11 +69,6 @@
                 <scope>provided</scope>
             </dependency>
             <dependency>
-                <groupId>org.cardanofoundation.metadatatools</groupId>
-                <artifactId>core</artifactId>
-                <version>${version.cf-metadatatools-core}</version>
-            </dependency>
-            <dependency>
                 <groupId>com.bloxbean.cardano</groupId>
                 <artifactId>cardano-client-lib</artifactId>
                 <version>${version.bloxbean}</version>
@@ -82,6 +77,11 @@
                 <groupId>com.bloxbean.cardano</groupId>
                 <artifactId>yaci</artifactId>
                 <version>${version.yaci}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcprov-jdk18on</artifactId>
+                <version>${version.bouncycastle}</version>
             </dependency>
             <dependency>
                 <groupId>com.nimbusds</groupId>
