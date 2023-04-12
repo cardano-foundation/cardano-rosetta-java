@@ -11,11 +11,11 @@ import org.springframework.stereotype.Component;
 public class AccountApiDelegateImplementation implements AccountApiDelegate {
     @Override
     public ResponseEntity<AccountBalanceResponse> accountBalance(AccountBalanceRequest accountBalanceRequest) {
-        return AccountApiDelegate.super.accountBalance(accountBalanceRequest);
+        return null;
     }
 
     @Override
     public ResponseEntity<AccountCoinsResponse> accountCoins(AccountCoinsRequest accountCoinsRequest) {
-        return AccountApiDelegate.super.accountCoins(accountCoinsRequest);
+        return null;
     }
 }

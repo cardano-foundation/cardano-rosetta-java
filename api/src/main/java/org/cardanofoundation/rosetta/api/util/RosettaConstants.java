@@ -1,7 +1,7 @@
 package org.cardanofoundation.rosetta.api.util;
 
-import org.cardanofoundation.rosetta.api.model.rest.Error;
 import org.cardanofoundation.rosetta.api.model.rest.OperationStatus;
+import org.cardanofoundation.rosetta.api.model.rest.Error;
 
 import java.util.List;
 

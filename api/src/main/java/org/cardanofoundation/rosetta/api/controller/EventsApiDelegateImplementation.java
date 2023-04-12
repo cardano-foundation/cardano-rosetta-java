@@ -11,6 +11,6 @@ import org.springframework.stereotype.Service;
 public class EventsApiDelegateImplementation implements EventsApiDelegate {
     @Override
     public ResponseEntity<EventsBlocksResponse> eventsBlocks(EventsBlocksRequest eventsBlocksRequest) {
-        return EventsApiDelegate.super.eventsBlocks(eventsBlocksRequest);
+        return null;
     }
 }

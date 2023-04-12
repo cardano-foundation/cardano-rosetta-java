@@ -11,6 +11,6 @@ import org.springframework.stereotype.Service;
 public class SearchApiDelegateImplementation implements SearchApiDelegate {
     @Override
     public ResponseEntity<SearchTransactionsResponse> searchTransactions(SearchTransactionsRequest searchTransactionsRequest) {
-        return SearchApiDelegate.super.searchTransactions(searchTransactionsRequest);
+        return null;
     }
 }

@@ -13,11 +13,11 @@ import org.springframework.stereotype.Service;
 public class MempoolApiDelegateImplementation implements MempoolApiDelegate {
     @Override
     public ResponseEntity<MempoolResponse> mempool(NetworkRequest networkRequest) {
-        return MempoolApiDelegate.super.mempool(networkRequest);
+        return null;
     }
 
     @Override
     public ResponseEntity<MempoolTransactionResponse> mempoolTransaction(MempoolTransactionRequest mempoolTransactionRequest) {
-        return MempoolApiDelegate.super.mempoolTransaction(mempoolTransactionRequest);
+        return null;
     }
 }

@@ -48,7 +48,7 @@ public class DefaultNetworkService implements NetworkService {
             final NetworkIdentifier identifier = new NetworkIdentifier();
             identifier.setBlockchain(RosettaConstants.BLOCKCHAIN_NAME);
             identifier.setNetwork(networkConfig.getSanitizedNetworkId());
-            networkListResponse.addNetworkIdentifiersItem(identifier);
+//            networkListResponse.addNetworkIdentifiersItem(identifier);
         }));
         return networkListResponse;
     }
@@ -57,21 +57,21 @@ public class DefaultNetworkService implements NetworkService {
     public NetworkOptionsResponse getNetworkOptions(NetworkRequest networkRequest) {
         final NetworkConfig requestedNetworkConfig = rosettaConfig.networkConfigFromNetworkRequest(networkRequest).orElseThrow();
         final NetworkOptionsResponse networkOptionsResponse = new NetworkOptionsResponse();
-        final Version version = new Version();
-        version.setRosettaVersion(rosettaConfig.getVersion());
-        version.setMiddlewareVersion(rosettaConfig.getImplementationVersion());
-        version.setNodeVersion(requestedNetworkConfig.getNodeVersion());
-        networkOptionsResponse.setVersion(version);
-
-        final Allow allow = new Allow();
-        allow.setOperationStatuses(RosettaConstants.ROSETTA_OPERATION_STATUSES);
-        allow.setOperationTypes(RosettaConstants.ROSETTA_OPERATION_TYPES);
-        allow.setErrors(RosettaConstants.ROSETTA_ERRORS);
-        allow.setHistoricalBalanceLookup(true);
-        allow.setCallMethods(List.of());
-        allow.setMempoolCoins(false);
-        allow.setBalanceExemptions(balanceExemptions);
-        networkOptionsResponse.setAllow(allow);
+//        final Version version = new Version();
+//        version.setRosettaVersion(rosettaConfig.getVersion());
+//        version.setMiddlewareVersion(rosettaConfig.getImplementationVersion());
+//        version.setNodeVersion(requestedNetworkConfig.getNodeVersion());
+//        networkOptionsResponse.setVersion(version);
+//
+//        final Allow allow = new Allow();
+//        allow.setOperationStatuses(RosettaConstants.ROSETTA_OPERATION_STATUSES);
+//        allow.setOperationTypes(RosettaConstants.ROSETTA_OPERATION_TYPES);
+//        allow.setErrors(RosettaConstants.ROSETTA_ERRORS);
+//        allow.setHistoricalBalanceLookup(true);
+//        allow.setCallMethods(List.of());
+//        allow.setMempoolCoins(false);
+//        allow.setBalanceExemptions(balanceExemptions);
+//        networkOptionsResponse.setAllow(allow);
         return networkOptionsResponse;
     }
 

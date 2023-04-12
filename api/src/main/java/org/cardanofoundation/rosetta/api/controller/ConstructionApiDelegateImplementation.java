@@ -10,41 +10,41 @@ import org.springframework.stereotype.Service;
 public class ConstructionApiDelegateImplementation implements ConstructionApiDelegate {
     @Override
     public ResponseEntity<ConstructionCombineResponse> constructionCombine(ConstructionCombineRequest constructionCombineRequest) {
-        return ConstructionApiDelegate.super.constructionCombine(constructionCombineRequest);
+        return null;
     }
 
     @Override
     public ResponseEntity<ConstructionDeriveResponse> constructionDerive(ConstructionDeriveRequest constructionDeriveRequest) {
-        return ConstructionApiDelegate.super.constructionDerive(constructionDeriveRequest);
+        return null;
     }
 
     @Override
     public ResponseEntity<TransactionIdentifierResponse> constructionHash(ConstructionHashRequest constructionHashRequest) {
-        return ConstructionApiDelegate.super.constructionHash(constructionHashRequest);
+        return null;
     }
 
     @Override
     public ResponseEntity<ConstructionMetadataResponse> constructionMetadata(ConstructionMetadataRequest constructionMetadataRequest) {
-        return ConstructionApiDelegate.super.constructionMetadata(constructionMetadataRequest);
+        return null;
     }
 
     @Override
     public ResponseEntity<ConstructionParseResponse> constructionParse(ConstructionParseRequest constructionParseRequest) {
-        return ConstructionApiDelegate.super.constructionParse(constructionParseRequest);
+        return null;
     }
 
     @Override
     public ResponseEntity<ConstructionPayloadsResponse> constructionPayloads(ConstructionPayloadsRequest constructionPayloadsRequest) {
-        return ConstructionApiDelegate.super.constructionPayloads(constructionPayloadsRequest);
+        return null;
     }
 
     @Override
     public ResponseEntity<ConstructionPreprocessResponse> constructionPreprocess(ConstructionPreprocessRequest constructionPreprocessRequest) {
-        return ConstructionApiDelegate.super.constructionPreprocess(constructionPreprocessRequest);
+        return null;
     }
 
     @Override
     public ResponseEntity<TransactionIdentifierResponse> constructionSubmit(ConstructionSubmitRequest constructionSubmitRequest) {
-        return ConstructionApiDelegate.super.constructionSubmit(constructionSubmitRequest);
+        return null;
     }
 }

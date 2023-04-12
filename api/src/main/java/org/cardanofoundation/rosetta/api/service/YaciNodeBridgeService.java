@@ -1,7 +1,6 @@
 package org.cardanofoundation.rosetta.api.service;
 
 import org.cardanofoundation.rosetta.api.config.RosettaConfig;
-import org.cardanofoundation.rosetta.api.model.rest.BlockIdentifier;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

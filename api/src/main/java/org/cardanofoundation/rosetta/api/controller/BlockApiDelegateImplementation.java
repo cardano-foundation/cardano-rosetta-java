@@ -13,11 +13,11 @@ import org.springframework.stereotype.Service;
 public class BlockApiDelegateImplementation implements BlockApiDelegate {
     @Override
     public ResponseEntity<BlockResponse> block(BlockRequest blockRequest) {
-        return BlockApiDelegate.super.block(blockRequest);
+        return null;
     }
 
     @Override
     public ResponseEntity<BlockTransactionResponse> blockTransaction(BlockTransactionRequest blockTransactionRequest) {
-        return BlockApiDelegate.super.blockTransaction(blockTransactionRequest);
+        return null;
     }
 }
