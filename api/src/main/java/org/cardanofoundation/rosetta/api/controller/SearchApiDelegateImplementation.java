@@ -5,9 +5,10 @@ import org.cardanofoundation.rosetta.api.model.rest.SearchTransactionsRequest;
 import org.cardanofoundation.rosetta.api.model.rest.SearchTransactionsResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RestController;
 
-@Service
 @Log4j2
+@RestController
 public class SearchApiDelegateImplementation implements SearchApiDelegate {
     @Override
     public ResponseEntity<SearchTransactionsResponse> searchTransactions(SearchTransactionsRequest searchTransactionsRequest) {

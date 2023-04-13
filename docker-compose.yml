@@ -16,8 +16,8 @@ services:
   bootstrap-db:
     build: ./database
     environment:
-      DBA_USER_SECRET: "${DB_ADMIN_USER_SECRET}"
-      DBA_USER_NAME: "${DB_ADMIN_USER_NAME}"
+      DB_ADMIN_USER_SECRET: "${DB_ADMIN_USER_SECRET}"
+      DB_ADMIN_USER_NAME: "${DB_ADMIN_USER_NAME}"
       SERVICE_USER_SECRET: "${SERVICE_USER_SECRET}"
       SERVICE_USER_NAME: "${SERVICE_USER_NAME}"
       DB_HOST: "db"
@@ -28,11 +28,11 @@ services:
         condition: service_healthy
   api:
     build: ./api
-    platform: linux/arm64
+    platform: linux/amd64
     ports:
       - "${API_LOCAL_BIND_PORT}:${API_EXPOSED_PORT}"
     environment:
-      DB_URL: "jdbc:postgresql://db:${DB_PORT}/${METADATA_DB_NAME}"
+      DB_URL: "jdbc:postgresql://db:${DB_PORT}/${DB_NAME}"
       DB_USER: "${SERVICE_USER_NAME}"
       DB_SECRET: "${SERVICE_USER_SECRET}"
       DB_DRIVER_CLASS_NAME: "${DB_DRIVER_CLASS_NAME}"

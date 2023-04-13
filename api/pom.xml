@@ -107,6 +107,59 @@
             <artifactId>yaci-core</artifactId>
             <version>0.1.8</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp -->
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
+            <version>4.10.0</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/javax.annotation/javax.annotation-api -->
+        <dependency>
+            <groupId>javax.annotation</groupId>
+            <artifactId>javax.annotation-api</artifactId>
+            <version>1.3.2</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.ws.rs</groupId>
+            <artifactId>javax.ws.rs-api</artifactId>
+            <version>2.0.1</version>
+        </dependency>
+        <!-- Thanks for using https://jar-download.com -->
+        <!-- https://mvnrepository.com/artifact/com.google.code.gson/gson -->
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.9.0</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/com.squareup.okhttp3/logging-interceptor -->
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>logging-interceptor</artifactId>
+            <version>4.10.0</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/io.gsonfire/gson-fire -->
+        <dependency>
+            <groupId>io.gsonfire</groupId>
+            <artifactId>gson-fire</artifactId>
+            <version>1.8.5</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.openapitools/jackson-databind-nullable -->
+        <dependency>
+            <groupId>org.openapitools</groupId>
+            <artifactId>jackson-databind-nullable</artifactId>
+            <version>0.2.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>jsr305</artifactId>
+            <version>3.0.2</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>5.9.2</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -159,17 +212,9 @@
                         </goals>
                         <configuration>
                             <inputSpec>${project.basedir}/src/main/resources/rosetta-specifications-1.4.15/api.yaml</inputSpec>
-                            <generatorName>spring</generatorName>
-                            <apiPackage>org.cardanofoundation.rosetta.api.controller</apiPackage>
-                            <modelPackage>org.cardanofoundation.rosetta.api.model.rest</modelPackage>
-                            <supportingFilesToGenerate>ApiUtil.java</supportingFilesToGenerate>
-                            <invokerPackage>org.cardanofoundation.rosetta.api.controller</invokerPackage>
+                            <generatorName>java</generatorName>
                             <configOptions>
-                                <configPackage>org.cardanofoundation.rosetta.api.config</configPackage>
-                                <delegatePattern>true</delegatePattern>
-                                <openApiNullable>false</openApiNullable>
-                                <useSpringBoot3>true</useSpringBoot3>
-                                <enablePostProcessFile>true</enablePostProcessFile>
+                                <sourceFolder>src/gen/java/main</sourceFolder>
                             </configOptions>
                         </configuration>
                     </execution>

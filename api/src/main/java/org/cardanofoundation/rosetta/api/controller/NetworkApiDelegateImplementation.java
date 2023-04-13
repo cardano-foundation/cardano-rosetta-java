@@ -5,10 +5,10 @@ import org.cardanofoundation.rosetta.api.model.rest.*;
 import org.cardanofoundation.rosetta.api.service.NetworkService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RestController;
 
-@Service
 @Log4j2
+@RestController
 public class NetworkApiDelegateImplementation implements NetworkApiDelegate {
 
     @Autowired

@@ -9,6 +9,7 @@ import org.cardanofoundation.rosetta.api.model.rest.BlockResponse;
 import org.cardanofoundation.rosetta.api.model.rest.BlockTransactionRequest;
 import org.cardanofoundation.rosetta.api.model.rest.BlockTransactionResponse;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
  * @author Sotatek-HoangNguyen9
  * @since 12/04/2023 16:54
  */
+@Validated
 @Tag(name = "v1-api", description = "The Cardano Block API")
 public interface BlockApiDelegate {
   @Operation(

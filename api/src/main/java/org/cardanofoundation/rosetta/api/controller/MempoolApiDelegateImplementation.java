@@ -6,10 +6,10 @@ import org.cardanofoundation.rosetta.api.model.rest.MempoolTransactionRequest;
 import org.cardanofoundation.rosetta.api.model.rest.MempoolTransactionResponse;
 import org.cardanofoundation.rosetta.api.model.rest.NetworkRequest;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RestController;
 
-@Service
 @Log4j2
+@RestController
 public class MempoolApiDelegateImplementation implements MempoolApiDelegate {
     @Override
     public ResponseEntity<MempoolResponse> mempool(NetworkRequest networkRequest) {

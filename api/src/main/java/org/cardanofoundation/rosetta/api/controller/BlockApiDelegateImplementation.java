@@ -6,10 +6,10 @@ import org.cardanofoundation.rosetta.api.model.rest.BlockResponse;
 import org.cardanofoundation.rosetta.api.model.rest.BlockTransactionRequest;
 import org.cardanofoundation.rosetta.api.model.rest.BlockTransactionResponse;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RestController;
 
-@Service
 @Log4j2
+@RestController
 public class BlockApiDelegateImplementation implements BlockApiDelegate {
     @Override
     public ResponseEntity<BlockResponse> block(BlockRequest blockRequest) {
@@ -21,3 +21,4 @@ public class BlockApiDelegateImplementation implements BlockApiDelegate {
         return null;
     }
 }
+

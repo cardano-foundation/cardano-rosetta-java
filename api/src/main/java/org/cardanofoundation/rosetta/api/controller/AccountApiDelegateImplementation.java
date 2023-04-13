@@ -6,8 +6,9 @@ import org.cardanofoundation.rosetta.api.model.rest.AccountCoinsRequest;
 import org.cardanofoundation.rosetta.api.model.rest.AccountCoinsResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.RestController;
 
-@Component
+@RestController
 public class AccountApiDelegateImplementation implements AccountApiDelegate {
     @Override
     public ResponseEntity<AccountBalanceResponse> accountBalance(AccountBalanceRequest accountBalanceRequest) {
