@@ -160,6 +160,36 @@
             <artifactId>junit-jupiter-api</artifactId>
             <version>5.9.2</version>
         </dependency>
+        <dependency>
+            <groupId>com.bloxbean.cardano</groupId>
+            <artifactId>cardano-client-lib</artifactId>
+            <version>0.4.3</version>
+        </dependency>
+        <!-- For Blockfrost backend -->
+        <dependency>
+            <groupId>com.bloxbean.cardano</groupId>
+            <artifactId>cardano-client-backend-blockfrost</artifactId>
+            <version>0.4.3</version>
+        </dependency>
+
+        <!-- For Koios backend -->
+        <dependency>
+            <groupId>com.bloxbean.cardano</groupId>
+            <artifactId>cardano-client-backend-koios</artifactId>
+            <version>0.4.3</version>
+        </dependency>
+
+        <!-- For Ogmios / Kupo backend -->
+        <dependency>
+            <groupId>com.bloxbean.cardano</groupId>
+            <artifactId>cardano-client-backend-ogmios</artifactId>
+            <version>0.4.3</version>
+        </dependency>
+        <dependency>
+            <groupId>com.bloxbean.cardano</groupId>
+            <artifactId>yaci-core</artifactId>
+            <version>0.1.8</version>
+        </dependency>
     </dependencies>
 
     <build>

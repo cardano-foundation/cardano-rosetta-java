@@ -1,9 +1,7 @@
-package org.cardanofoundation.rosetta.api.model.rest;
+package org.cardanofoundation.rosetta.api.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
-import org.cardanofoundation.rosetta.api.model.AccountIdentifierMetadata;
-import org.cardanofoundation.rosetta.api.model.SubAccountIdentifier;
 
 import javax.annotation.Generated;
 import javax.validation.Valid;

@@ -8,6 +8,9 @@ import org.cardanofoundation.rosetta.api.model.rest.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.cardanofoundation.rosetta.api.model.ConstructionDeriveRequestMetadata;
+
+import java.io.IOException;
 
 /**
  * @author Sotatek-HoangNguyen9
@@ -45,7 +48,7 @@ public interface ConstructionApiDelegate {
           produces = { "application/json;charset=utf-8" },
           consumes = { "application/json;charset=utf-8" }
   )
-  ResponseEntity<ConstructionDeriveResponse> constructionDerive(ConstructionDeriveRequest constructionDeriveRequest);
+  ResponseEntity<ConstructionDeriveResponse> constructionDerive(ConstructionDeriveRequest constructionDeriveRequest) throws IllegalAccessException;
 
   @Operation(
           operationId = "constructionHash",
@@ -125,7 +128,7 @@ public interface ConstructionApiDelegate {
           produces = { "application/json;charset=utf-8" },
           consumes = { "application/json;charset=utf-8" }
   )
-  ResponseEntity<ConstructionPreprocessResponse> constructionPreprocess(ConstructionPreprocessRequest constructionPreprocessRequest);
+  ResponseEntity<ConstructionPreprocessResponse> constructionPreprocess(ConstructionPreprocessRequest constructionPreprocessRequest) throws IOException;
 
   @Operation(
           operationId = "constructionSubmit",
