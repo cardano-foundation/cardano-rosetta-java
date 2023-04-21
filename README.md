@@ -9,18 +9,43 @@
 # Cardano Rosetta API Java implementation
 This is a RosettaAPI implementation using LedgeSync as a backend and Yaci/Bloxbean library for ledger data serialization and transaction submission.
 
-## Architecture Overview
-```mermaid
-  graph TD;
-      A-->B;
-      A-->C;
-      B-->D;
-      C-->D;
-```
+## Getting Started
 
-## How to build
+### Prerequisites
 
-## How to run
+- Docker && Docker Compose
+
+### Installing
+
+- Clone the repository
+- Copy `./.m2/settings.default.xml` to `./.m2/settings.xml`
+- Fill `{username_github}` and `{token_github}` in `./.m2/settings.xml` with your github username and token. Guide to generate a token with `read:packages` scope [here](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token#creating-a-personal-access-token-classic)
+- Copy `.env.example`  to `.env`
+- Fill the `.env` file with your values (explain below)
+- Create if not exists external network `infrastructure-net-local` with `docker network create infrastructure-net-local`
+- Run `docker-compose -f docker-compose.yml up -d` to start the containers
+
+
+### Environment variables
+
+- `SPRING_PROFILES_ACTIVE` : Spring profile [local, dev, test, prod]. Default is local.
+- `POSTGRES_HOST` : Postgres host. Default is postgres
+- `POSTGRES_PORT` : Postgres port. Default is 5432
+- `POSTGRES_USER` : Postgres user. Default is cardano-master
+- `POSTGRES_PASSWORD` : Postgres password. Default is postgres
+- `POSTGRES_DB` : Postgres database. Default is explorer
+- `SCHEMA` : Postgres schema [testnet, preprod, preview, mainnet]. Default is testnet
+
+- `BOOSTRAP_SERVER_HOST` : Kafka bootstrap server. Default is kafka
+- `BOOSTRAP_SERVER_PORT` : Kafka bootstrap server port. Default is 9092
+
+- `BLOCKS_TOPIC` : Kafka topic for blocks. Default is local.crawler.blocks.
+- `LOG`: Log level [INFO, DEBUG, TRACE]. Default is INFO.
+- `BLOCKS_BATCH_SIZE`: Batch size for bulk insert
+- `COMMIT_THRESHOLD`: Amount of time the consumer has to insert data to database (It depend on time of a new block mining time or kafka and crawler latencies. For now we set COMMIT_THRESHOLD = a new block mining time / 2)
+- `FLYWAY_ENABLE`: Migrate schema, set `true` if this is the first time run app
+- `MAXIMUM_POOL_SIZE`: Consumer select parallel when preparing data before inserting into the database. If you want to consume as fast as possible set the `MAXIMUM_POOL_SIZE` as much as possible (cpu core * 4). This will reduce explorer api performance. When consuming 100% network you can reduce `MAXIMUM_POOL_SIZE` to 16 or 8
+
 
 ## Contributing
 
