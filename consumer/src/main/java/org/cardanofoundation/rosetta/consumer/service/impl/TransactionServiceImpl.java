@@ -4,7 +4,6 @@ import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedBlock;
 import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedTx;
 import com.sotatek.cardano.common.entity.Block;
 import com.sotatek.cardano.common.entity.Tx;
-import org.cardanofoundation.rosetta.consumer.repository.cached.CachedTxRepository;
 import org.cardanofoundation.rosetta.consumer.service.BlockDataService;
 import org.cardanofoundation.rosetta.consumer.service.TransactionService;
 
@@ -33,7 +32,6 @@ import org.springframework.util.CollectionUtils;
 @Service
 public class TransactionServiceImpl implements TransactionService {
 
-  CachedTxRepository cachedTxRepository;
 
   BlockDataService blockDataService;
 
@@ -72,7 +70,6 @@ public class TransactionServiceImpl implements TransactionService {
       return tx;
     }).collect(Collectors.toList());
 
-    cachedTxRepository.saveAll(txList);
 
     return txList.stream().collect(Collectors.toConcurrentMap(Tx::getHash, Function.identity()));
   }

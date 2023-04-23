@@ -2,7 +2,7 @@ spring:
   # Datasource specific configs
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
-    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}?reWriteBatchedInserts=true&currentSchema=${spring.jpa.properties.hibernate.default_schema}
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:rosetta}?reWriteBatchedInserts=true&currentSchema=${spring.jpa.properties.hibernate.default_schema}
     username: ${DB_USER:rosetta_db_admin}
     password: ${DB_SECRET:weakpwd#123_d}
     driver-class-name: org.postgresql.Driver
@@ -99,10 +99,10 @@ kafka:
     block:
       groupId: consumer-rosetta-group
       topics: ${BLOCKS_TOPIC:dev.crawler.testnet.blocks}
-      props: |
-        max.poll.records: 10
-        fetch.min.bytes: 123456
-    prefix: "rosetta-consumer-local"
+#      props: |
+#        max.poll.records: 10
+#        fetch.min.bytes: 123456
+#    prefix: "rosetta-consumer-local"
 logging:
   level:
     com.sotatek: ${LOG:TRACE}

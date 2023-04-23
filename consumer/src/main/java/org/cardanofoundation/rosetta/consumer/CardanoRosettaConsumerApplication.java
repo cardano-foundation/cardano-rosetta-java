@@ -14,9 +14,9 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequiredArgsConstructor
 @Slf4j
-@ComponentScan(basePackages = "com.sotatek")
-@EnableJpaRepositories("com.sotatek")
-@EntityScan("com.sotatek")
+@ComponentScan({"com.sotatek","org.cardanofoundation.rosetta"})
+@EnableJpaRepositories({"com.sotatek","org.cardanofoundation.rosetta"})
+@EntityScan({"com.sotatek","org.cardanofoundation.rosetta"})
 public class CardanoRosettaConsumerApplication {
 
   public static void main(String[] args) {
