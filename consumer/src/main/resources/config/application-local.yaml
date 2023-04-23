@@ -2,9 +2,9 @@ spring:
   # Datasource specific configs
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
-    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:rosetta}?reWriteBatchedInserts=true&currentSchema=${spring.jpa.properties.hibernate.default_schema}
-    username: ${POSTGRES_USER:rosetta_db_admin}
-    password: ${POSTGRES_PASSWORD:weakpwd#123_d}
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}?reWriteBatchedInserts=true&currentSchema=${spring.jpa.properties.hibernate.default_schema}
+    username: ${DB_USER:rosetta_db_admin}
+    password: ${DB_SECRET:weakpwd#123_d}
     driver-class-name: org.postgresql.Driver
     # Hikari specific configs
     hikari:
@@ -28,7 +28,6 @@ spring:
         elideSetAutoCommits: true
         maintainTimeStats: false
   # JPA specific configs
-  # JPA specific configs
   jpa:
     open-in-view: false
     database-platform: org.hibernate.dialect.PostgreSQLDialect
@@ -45,7 +44,7 @@ spring:
           auto: update
   ## Flyway config
   flyway:
-    enabled: true
+    enabled: ${FLYWAY_ENABLE:true}
     url: ${spring.datasource.url}
     user: ${spring.datasource.username}
     password: ${spring.datasource.password}
@@ -95,15 +94,15 @@ kafka:
       allowAutoCreateTopics: false
       concurrency: 10
       pollTimeout: 360000000
-  #      groupId: ${SCHEMA:testnet}
+      groupId: ${SCHEMA:testnet}
   listeners:
     block:
       groupId: consumer-rosetta-group
       topics: ${BLOCKS_TOPIC:dev.crawler.testnet.blocks}
-#      props: |
-#        max.poll.records: 10
-#        fetch.min.bytes: 123456
-#    prefix: "rosetta-consumer-local"
+      props: |
+        max.poll.records: 10
+        fetch.min.bytes: 123456
+    prefix: "rosetta-consumer-local"
 logging:
   level:
     com.sotatek: ${LOG:TRACE}

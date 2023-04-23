@@ -23,7 +23,7 @@ SET row_security = off;
 CREATE SCHEMA IF NOT EXISTS testnet;
 
 
-ALTER SCHEMA testnet OWNER TO "cardano-master";
+ALTER SCHEMA testnet OWNER TO "rosetta_db_admin";
 
 SET default_tablespace = '';
 
@@ -48,7 +48,7 @@ CREATE TABLE testnet.ada_pots (
 );
 
 
-ALTER TABLE testnet.ada_pots OWNER TO "cardano-master";
+ALTER TABLE testnet.ada_pots OWNER TO "rosetta_db_admin";
 
 --
 -- Name: ada_pots_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -62,7 +62,7 @@ CREATE SEQUENCE testnet.ada_pots_id_seq
     CACHE 1;
 
 
-ALTER TABLE testnet.ada_pots_id_seq OWNER TO "cardano-master";
+ALTER TABLE testnet.ada_pots_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: ada_pots_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -96,7 +96,7 @@ CREATE TABLE testnet.block (
 );
 
 
-ALTER TABLE testnet.block OWNER TO "cardano-master";
+ALTER TABLE testnet.block OWNER TO "rosetta_db_admin";
 
 --
 -- Name: block_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -110,7 +110,7 @@ CREATE SEQUENCE testnet.block_id_seq
     CACHE 1;
 
 
-ALTER TABLE testnet.block_id_seq OWNER TO "cardano-master";
+ALTER TABLE testnet.block_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: block_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -132,7 +132,7 @@ CREATE TABLE testnet.cost_model (
 );
 
 
-ALTER TABLE testnet.cost_model OWNER TO "cardano-master";
+ALTER TABLE testnet.cost_model OWNER TO "rosetta_db_admin";
 
 --
 -- Name: cost_model_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -146,7 +146,7 @@ CREATE SEQUENCE testnet.cost_model_id_seq
     CACHE 1;
 
 
-ALTER TABLE testnet.cost_model_id_seq OWNER TO "cardano-master";
+ALTER TABLE testnet.cost_model_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: cost_model_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -169,7 +169,7 @@ CREATE TABLE testnet.datum (
 );
 
 
-ALTER TABLE testnet.datum OWNER TO "cardano-master";
+ALTER TABLE testnet.datum OWNER TO "rosetta_db_admin";
 
 --
 -- Name: datum_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -183,7 +183,7 @@ CREATE SEQUENCE testnet.datum_id_seq
     CACHE 1;
 
 
-ALTER TABLE testnet.datum_id_seq OWNER TO "cardano-master";
+ALTER TABLE testnet.datum_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: datum_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -209,7 +209,7 @@ CREATE TABLE testnet.delegation (
 );
 
 
-ALTER TABLE testnet.delegation OWNER TO "cardano-master";
+ALTER TABLE testnet.delegation OWNER TO "rosetta_db_admin";
 
 --
 -- Name: delegation_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -223,7 +223,7 @@ CREATE SEQUENCE testnet.delegation_id_seq
     CACHE 1;
 
 
-ALTER TABLE testnet.delegation_id_seq OWNER TO "cardano-master";
+ALTER TABLE testnet.delegation_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: delegation_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -243,7 +243,7 @@ CREATE TABLE testnet.delisted_pool (
 );
 
 
-ALTER TABLE testnet.delisted_pool OWNER TO "cardano-master";
+ALTER TABLE testnet.delisted_pool OWNER TO "rosetta_db_admin";
 
 --
 -- Name: delisted_pool_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -257,7 +257,7 @@ CREATE SEQUENCE testnet.delisted_pool_id_seq
     CACHE 1;
 
 
-ALTER TABLE testnet.delisted_pool_id_seq OWNER TO "cardano-master";
+ALTER TABLE testnet.delisted_pool_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: delisted_pool_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -284,7 +284,7 @@ CREATE TABLE testnet.epoch (
 );
 
 
-ALTER TABLE testnet.epoch OWNER TO "cardano-master";
+ALTER TABLE testnet.epoch OWNER TO "rosetta_db_admin";
 
 --
 -- Name: epoch_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -298,7 +298,7 @@ CREATE SEQUENCE testnet.epoch_id_seq
     CACHE 1;
 
 
-ALTER TABLE testnet.epoch_id_seq OWNER TO "cardano-master";
+ALTER TABLE testnet.epoch_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: epoch_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -349,7 +349,7 @@ CREATE TABLE testnet.epoch_param (
 );
 
 
-ALTER TABLE testnet.epoch_param OWNER TO "cardano-master";
+ALTER TABLE testnet.epoch_param OWNER TO "rosetta_db_admin";
 
 --
 -- Name: epoch_param_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -363,7 +363,7 @@ CREATE SEQUENCE testnet.epoch_param_id_seq
     CACHE 1;
 
 
-ALTER TABLE testnet.epoch_param_id_seq OWNER TO "cardano-master";
+ALTER TABLE testnet.epoch_param_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: epoch_param_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -386,7 +386,7 @@ CREATE TABLE testnet.epoch_stake (
 );
 
 
-ALTER TABLE testnet.epoch_stake OWNER TO "cardano-master";
+ALTER TABLE testnet.epoch_stake OWNER TO "rosetta_db_admin";
 
 --
 -- Name: epoch_stake_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -400,7 +400,7 @@ CREATE SEQUENCE testnet.epoch_stake_id_seq
     CACHE 1;
 
 
-ALTER TABLE testnet.epoch_stake_id_seq OWNER TO "cardano-master";
+ALTER TABLE testnet.epoch_stake_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: epoch_stake_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -422,7 +422,7 @@ CREATE TABLE testnet.epoch_sync_time (
 );
 
 
-ALTER TABLE testnet.epoch_sync_time OWNER TO "cardano-master";
+ALTER TABLE testnet.epoch_sync_time OWNER TO "rosetta_db_admin";
 
 --
 -- Name: epoch_sync_time_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -436,7 +436,7 @@ CREATE SEQUENCE testnet.epoch_sync_time_id_seq
     CACHE 1;
 
 
-ALTER TABLE testnet.epoch_sync_time_id_seq OWNER TO "cardano-master";
+ALTER TABLE testnet.epoch_sync_time_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: epoch_sync_time_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -457,7 +457,7 @@ CREATE TABLE testnet.extra_key_witness (
 );
 
 
-ALTER TABLE testnet.extra_key_witness OWNER TO "cardano-master";
+ALTER TABLE testnet.extra_key_witness OWNER TO "rosetta_db_admin";
 
 --
 -- Name: extra_key_witness_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -471,7 +471,7 @@ CREATE SEQUENCE testnet.extra_key_witness_id_seq
     CACHE 1;
 
 
-ALTER TABLE testnet.extra_key_witness_id_seq OWNER TO "cardano-master";
+ALTER TABLE testnet.extra_key_witness_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: extra_key_witness_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -493,7 +493,7 @@ CREATE TABLE testnet.ma_tx_mint (
 );
 
 
-ALTER TABLE testnet.ma_tx_mint OWNER TO "cardano-master";
+ALTER TABLE testnet.ma_tx_mint OWNER TO "rosetta_db_admin";
 
 --
 -- Name: ma_tx_mint_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -507,7 +507,7 @@ CREATE SEQUENCE testnet.ma_tx_mint_id_seq
     CACHE 1;
 
 
-ALTER TABLE testnet.ma_tx_mint_id_seq OWNER TO "cardano-master";
+ALTER TABLE testnet.ma_tx_mint_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: ma_tx_mint_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -529,7 +529,7 @@ CREATE TABLE testnet.ma_tx_out (
 );
 
 
-ALTER TABLE testnet.ma_tx_out OWNER TO "cardano-master";
+ALTER TABLE testnet.ma_tx_out OWNER TO "rosetta_db_admin";
 
 --
 -- Name: ma_tx_out_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -543,7 +543,7 @@ CREATE SEQUENCE testnet.ma_tx_out_id_seq
     CACHE 1;
 
 
-ALTER TABLE testnet.ma_tx_out_id_seq OWNER TO "cardano-master";
+ALTER TABLE testnet.ma_tx_out_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: ma_tx_out_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -565,7 +565,7 @@ CREATE TABLE testnet.meta (
 );
 
 
-ALTER TABLE testnet.meta OWNER TO "cardano-master";
+ALTER TABLE testnet.meta OWNER TO "rosetta_db_admin";
 
 --
 -- Name: meta_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -579,7 +579,7 @@ CREATE SEQUENCE testnet.meta_id_seq
     CACHE 1;
 
 
-ALTER TABLE testnet.meta_id_seq OWNER TO "cardano-master";
+ALTER TABLE testnet.meta_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: meta_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -604,7 +604,7 @@ CREATE TABLE testnet.multi_asset (
 );
 
 
-ALTER TABLE testnet.multi_asset OWNER TO "cardano-master";
+ALTER TABLE testnet.multi_asset OWNER TO "rosetta_db_admin";
 
 --
 -- Name: multi_asset_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -618,7 +618,7 @@ CREATE SEQUENCE testnet.multi_asset_id_seq
     CACHE 1;
 
 
-ALTER TABLE testnet.multi_asset_id_seq OWNER TO "cardano-master";
+ALTER TABLE testnet.multi_asset_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: multi_asset_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -669,7 +669,7 @@ CREATE TABLE testnet.param_proposal (
 );
 
 
-ALTER TABLE testnet.param_proposal OWNER TO "cardano-master";
+ALTER TABLE testnet.param_proposal OWNER TO "rosetta_db_admin";
 
 --
 -- Name: param_proposal_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -683,7 +683,7 @@ CREATE SEQUENCE testnet.param_proposal_id_seq
     CACHE 1;
 
 
-ALTER TABLE testnet.param_proposal_id_seq OWNER TO "cardano-master";
+ALTER TABLE testnet.param_proposal_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: param_proposal_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -706,7 +706,7 @@ CREATE TABLE testnet.pool_hash (
 );
 
 
-ALTER TABLE testnet.pool_hash OWNER TO "cardano-master";
+ALTER TABLE testnet.pool_hash OWNER TO "rosetta_db_admin";
 
 --
 -- Name: pool_hash_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -720,7 +720,7 @@ CREATE SEQUENCE testnet.pool_hash_id_seq
     CACHE 1;
 
 
-ALTER TABLE testnet.pool_hash_id_seq OWNER TO "cardano-master";
+ALTER TABLE testnet.pool_hash_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: pool_hash_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -743,7 +743,7 @@ CREATE TABLE testnet.pool_metadata_ref (
 );
 
 
-ALTER TABLE testnet.pool_metadata_ref OWNER TO "cardano-master";
+ALTER TABLE testnet.pool_metadata_ref OWNER TO "rosetta_db_admin";
 
 --
 -- Name: pool_metadata_ref_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -757,7 +757,7 @@ CREATE SEQUENCE testnet.pool_metadata_ref_id_seq
     CACHE 1;
 
 
-ALTER TABLE testnet.pool_metadata_ref_id_seq OWNER TO "cardano-master";
+ALTER TABLE testnet.pool_metadata_ref_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: pool_metadata_ref_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -782,7 +782,7 @@ CREATE TABLE testnet.pool_offline_data (
 );
 
 
-ALTER TABLE testnet.pool_offline_data OWNER TO "cardano-master";
+ALTER TABLE testnet.pool_offline_data OWNER TO "rosetta_db_admin";
 
 --
 -- Name: pool_offline_data_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -796,7 +796,7 @@ CREATE SEQUENCE testnet.pool_offline_data_id_seq
     CACHE 1;
 
 
-ALTER TABLE testnet.pool_offline_data_id_seq OWNER TO "cardano-master";
+ALTER TABLE testnet.pool_offline_data_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: pool_offline_data_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -820,7 +820,7 @@ CREATE TABLE testnet.pool_offline_fetch_error (
 );
 
 
-ALTER TABLE testnet.pool_offline_fetch_error OWNER TO "cardano-master";
+ALTER TABLE testnet.pool_offline_fetch_error OWNER TO "rosetta_db_admin";
 
 --
 -- Name: pool_offline_fetch_error_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -834,7 +834,7 @@ CREATE SEQUENCE testnet.pool_offline_fetch_error_id_seq
     CACHE 1;
 
 
-ALTER TABLE testnet.pool_offline_fetch_error_id_seq OWNER TO "cardano-master";
+ALTER TABLE testnet.pool_offline_fetch_error_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: pool_offline_fetch_error_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -855,7 +855,7 @@ CREATE TABLE testnet.pool_owner (
 );
 
 
-ALTER TABLE testnet.pool_owner OWNER TO "cardano-master";
+ALTER TABLE testnet.pool_owner OWNER TO "rosetta_db_admin";
 
 --
 -- Name: pool_owner_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -869,7 +869,7 @@ CREATE SEQUENCE testnet.pool_owner_id_seq
     CACHE 1;
 
 
-ALTER TABLE testnet.pool_owner_id_seq OWNER TO "cardano-master";
+ALTER TABLE testnet.pool_owner_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: pool_owner_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -894,7 +894,7 @@ CREATE TABLE testnet.pool_relay (
 );
 
 
-ALTER TABLE testnet.pool_relay OWNER TO "cardano-master";
+ALTER TABLE testnet.pool_relay OWNER TO "rosetta_db_admin";
 
 --
 -- Name: pool_relay_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -908,7 +908,7 @@ CREATE SEQUENCE testnet.pool_relay_id_seq
     CACHE 1;
 
 
-ALTER TABLE testnet.pool_relay_id_seq OWNER TO "cardano-master";
+ALTER TABLE testnet.pool_relay_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: pool_relay_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -931,7 +931,7 @@ CREATE TABLE testnet.pool_retire (
 );
 
 
-ALTER TABLE testnet.pool_retire OWNER TO "cardano-master";
+ALTER TABLE testnet.pool_retire OWNER TO "rosetta_db_admin";
 
 --
 -- Name: pool_retire_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -945,7 +945,7 @@ CREATE SEQUENCE testnet.pool_retire_id_seq
     CACHE 1;
 
 
-ALTER TABLE testnet.pool_retire_id_seq OWNER TO "cardano-master";
+ALTER TABLE testnet.pool_retire_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: pool_retire_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -966,7 +966,7 @@ CREATE TABLE testnet.pool_stake (
 );
 
 
-ALTER TABLE testnet.pool_stake OWNER TO "cardano-master";
+ALTER TABLE testnet.pool_stake OWNER TO "rosetta_db_admin";
 
 --
 -- Name: pool_stake_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -980,7 +980,7 @@ CREATE SEQUENCE testnet.pool_stake_id_seq
     CACHE 1;
 
 
-ALTER TABLE testnet.pool_stake_id_seq OWNER TO "cardano-master";
+ALTER TABLE testnet.pool_stake_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: pool_stake_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -1009,7 +1009,7 @@ CREATE TABLE testnet.pool_update (
 );
 
 
-ALTER TABLE testnet.pool_update OWNER TO "cardano-master";
+ALTER TABLE testnet.pool_update OWNER TO "rosetta_db_admin";
 
 --
 -- Name: pool_update_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -1023,7 +1023,7 @@ CREATE SEQUENCE testnet.pool_update_id_seq
     CACHE 1;
 
 
-ALTER TABLE testnet.pool_update_id_seq OWNER TO "cardano-master";
+ALTER TABLE testnet.pool_update_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: pool_update_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -1046,7 +1046,7 @@ CREATE TABLE testnet.pot_transfer (
 );
 
 
-ALTER TABLE testnet.pot_transfer OWNER TO "cardano-master";
+ALTER TABLE testnet.pot_transfer OWNER TO "rosetta_db_admin";
 
 --
 -- Name: pot_transfer_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -1060,7 +1060,7 @@ CREATE SEQUENCE testnet.pot_transfer_id_seq
     CACHE 1;
 
 
-ALTER TABLE testnet.pot_transfer_id_seq OWNER TO "cardano-master";
+ALTER TABLE testnet.pot_transfer_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: pot_transfer_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -1087,7 +1087,7 @@ CREATE TABLE testnet.redeemer (
 );
 
 
-ALTER TABLE testnet.redeemer OWNER TO "cardano-master";
+ALTER TABLE testnet.redeemer OWNER TO "rosetta_db_admin";
 
 --
 -- Name: redeemer_data; Type: TABLE; Schema: dev; Owner: cardano-master
@@ -1103,7 +1103,7 @@ CREATE TABLE testnet.redeemer_data (
 );
 
 
-ALTER TABLE testnet.redeemer_data OWNER TO "cardano-master";
+ALTER TABLE testnet.redeemer_data OWNER TO "rosetta_db_admin";
 
 --
 -- Name: redeemer_data_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -1117,7 +1117,7 @@ CREATE SEQUENCE testnet.redeemer_data_id_seq
     CACHE 1;
 
 
-ALTER TABLE testnet.redeemer_data_id_seq OWNER TO "cardano-master";
+ALTER TABLE testnet.redeemer_data_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: redeemer_data_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -1138,7 +1138,7 @@ CREATE SEQUENCE testnet.redeemer_id_seq
     CACHE 1;
 
 
-ALTER TABLE testnet.redeemer_id_seq OWNER TO "cardano-master";
+ALTER TABLE testnet.redeemer_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: redeemer_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -1160,7 +1160,7 @@ CREATE TABLE testnet.reference_tx_in (
 );
 
 
-ALTER TABLE testnet.reference_tx_in OWNER TO "cardano-master";
+ALTER TABLE testnet.reference_tx_in OWNER TO "rosetta_db_admin";
 
 --
 -- Name: reference_tx_in_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -1174,7 +1174,7 @@ CREATE SEQUENCE testnet.reference_tx_in_id_seq
     CACHE 1;
 
 
-ALTER TABLE testnet.reference_tx_in_id_seq OWNER TO "cardano-master";
+ALTER TABLE testnet.reference_tx_in_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: reference_tx_in_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -1197,7 +1197,7 @@ CREATE TABLE testnet.reserve (
 );
 
 
-ALTER TABLE testnet.reserve OWNER TO "cardano-master";
+ALTER TABLE testnet.reserve OWNER TO "rosetta_db_admin";
 
 --
 -- Name: reserve_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -1211,7 +1211,7 @@ CREATE SEQUENCE testnet.reserve_id_seq
     CACHE 1;
 
 
-ALTER TABLE testnet.reserve_id_seq OWNER TO "cardano-master";
+ALTER TABLE testnet.reserve_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: reserve_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -1232,7 +1232,7 @@ CREATE TABLE testnet.reserved_pool_ticker (
 );
 
 
-ALTER TABLE testnet.reserved_pool_ticker OWNER TO "cardano-master";
+ALTER TABLE testnet.reserved_pool_ticker OWNER TO "rosetta_db_admin";
 
 --
 -- Name: reserved_pool_ticker_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -1246,7 +1246,7 @@ CREATE SEQUENCE testnet.reserved_pool_ticker_id_seq
     CACHE 1;
 
 
-ALTER TABLE testnet.reserved_pool_ticker_id_seq OWNER TO "cardano-master";
+ALTER TABLE testnet.reserved_pool_ticker_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: reserved_pool_ticker_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -1271,7 +1271,7 @@ CREATE TABLE testnet.reward (
 );
 
 
-ALTER TABLE testnet.reward OWNER TO "cardano-master";
+ALTER TABLE testnet.reward OWNER TO "rosetta_db_admin";
 
 --
 -- Name: reward_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -1285,7 +1285,7 @@ CREATE SEQUENCE testnet.reward_id_seq
     CACHE 1;
 
 
-ALTER TABLE testnet.reward_id_seq OWNER TO "cardano-master";
+ALTER TABLE testnet.reward_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: reward_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -1307,7 +1307,7 @@ CREATE TABLE testnet.schema_version (
 );
 
 
-ALTER TABLE testnet.schema_version OWNER TO "cardano-master";
+ALTER TABLE testnet.schema_version OWNER TO "rosetta_db_admin";
 
 --
 -- Name: schema_version_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -1321,7 +1321,7 @@ CREATE SEQUENCE testnet.schema_version_id_seq
     CACHE 1;
 
 
-ALTER TABLE testnet.schema_version_id_seq OWNER TO "cardano-master";
+ALTER TABLE testnet.schema_version_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: schema_version_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -1346,7 +1346,7 @@ CREATE TABLE testnet.script (
 );
 
 
-ALTER TABLE testnet.script OWNER TO "cardano-master";
+ALTER TABLE testnet.script OWNER TO "rosetta_db_admin";
 
 --
 -- Name: script_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -1360,7 +1360,7 @@ CREATE SEQUENCE testnet.script_id_seq
     CACHE 1;
 
 
-ALTER TABLE testnet.script_id_seq OWNER TO "cardano-master";
+ALTER TABLE testnet.script_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: script_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -1382,7 +1382,7 @@ CREATE TABLE testnet.slot_leader (
 );
 
 
-ALTER TABLE testnet.slot_leader OWNER TO "cardano-master";
+ALTER TABLE testnet.slot_leader OWNER TO "rosetta_db_admin";
 
 --
 -- Name: slot_leader_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -1396,7 +1396,7 @@ CREATE SEQUENCE testnet.slot_leader_id_seq
     CACHE 1;
 
 
-ALTER TABLE testnet.slot_leader_id_seq OWNER TO "cardano-master";
+ALTER TABLE testnet.slot_leader_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: slot_leader_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -1419,7 +1419,7 @@ CREATE TABLE testnet.stake_address (
 );
 
 
-ALTER TABLE testnet.stake_address OWNER TO "cardano-master";
+ALTER TABLE testnet.stake_address OWNER TO "rosetta_db_admin";
 
 --
 -- Name: stake_address_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -1433,7 +1433,7 @@ CREATE SEQUENCE testnet.stake_address_id_seq
     CACHE 1;
 
 
-ALTER TABLE testnet.stake_address_id_seq OWNER TO "cardano-master";
+ALTER TABLE testnet.stake_address_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: stake_address_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -1457,7 +1457,7 @@ CREATE TABLE testnet.stake_deregistration (
 );
 
 
-ALTER TABLE testnet.stake_deregistration OWNER TO "cardano-master";
+ALTER TABLE testnet.stake_deregistration OWNER TO "rosetta_db_admin";
 
 --
 -- Name: stake_deregistration_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -1471,7 +1471,7 @@ CREATE SEQUENCE testnet.stake_deregistration_id_seq
     CACHE 1;
 
 
-ALTER TABLE testnet.stake_deregistration_id_seq OWNER TO "cardano-master";
+ALTER TABLE testnet.stake_deregistration_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: stake_deregistration_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -1494,7 +1494,7 @@ CREATE TABLE testnet.stake_registration (
 );
 
 
-ALTER TABLE testnet.stake_registration OWNER TO "cardano-master";
+ALTER TABLE testnet.stake_registration OWNER TO "rosetta_db_admin";
 
 --
 -- Name: stake_registration_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -1508,7 +1508,7 @@ CREATE SEQUENCE testnet.stake_registration_id_seq
     CACHE 1;
 
 
-ALTER TABLE testnet.stake_registration_id_seq OWNER TO "cardano-master";
+ALTER TABLE testnet.stake_registration_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: stake_registration_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -1531,7 +1531,7 @@ CREATE TABLE testnet.treasury (
 );
 
 
-ALTER TABLE testnet.treasury OWNER TO "cardano-master";
+ALTER TABLE testnet.treasury OWNER TO "rosetta_db_admin";
 
 --
 -- Name: treasury_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -1545,7 +1545,7 @@ CREATE SEQUENCE testnet.treasury_id_seq
     CACHE 1;
 
 
-ALTER TABLE testnet.treasury_id_seq OWNER TO "cardano-master";
+ALTER TABLE testnet.treasury_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: treasury_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -1575,7 +1575,7 @@ CREATE TABLE testnet.tx (
 );
 
 
-ALTER TABLE testnet.tx OWNER TO "cardano-master";
+ALTER TABLE testnet.tx OWNER TO "rosetta_db_admin";
 
 --
 -- Name: tx_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -1589,7 +1589,7 @@ CREATE SEQUENCE testnet.tx_id_seq
     CACHE 1;
 
 
-ALTER TABLE testnet.tx_id_seq OWNER TO "cardano-master";
+ALTER TABLE testnet.tx_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: tx_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -1612,7 +1612,7 @@ CREATE TABLE testnet.tx_in (
 );
 
 
-ALTER TABLE testnet.tx_in OWNER TO "cardano-master";
+ALTER TABLE testnet.tx_in OWNER TO "rosetta_db_admin";
 
 --
 -- Name: tx_in_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -1626,7 +1626,7 @@ CREATE SEQUENCE testnet.tx_in_id_seq
     CACHE 1;
 
 
-ALTER TABLE testnet.tx_in_id_seq OWNER TO "cardano-master";
+ALTER TABLE testnet.tx_in_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: tx_in_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -1649,7 +1649,7 @@ CREATE TABLE testnet.tx_metadata (
 );
 
 
-ALTER TABLE testnet.tx_metadata OWNER TO "cardano-master";
+ALTER TABLE testnet.tx_metadata OWNER TO "rosetta_db_admin";
 
 --
 -- Name: tx_metadata_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -1663,7 +1663,7 @@ CREATE SEQUENCE testnet.tx_metadata_id_seq
     CACHE 1;
 
 
-ALTER TABLE testnet.tx_metadata_id_seq OWNER TO "cardano-master";
+ALTER TABLE testnet.tx_metadata_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: tx_metadata_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -1695,7 +1695,7 @@ CREATE TABLE testnet.tx_out (
 );
 
 
-ALTER TABLE testnet.tx_out OWNER TO "cardano-master";
+ALTER TABLE testnet.tx_out OWNER TO "rosetta_db_admin";
 
 --
 -- Name: failed_tx_out; Type: TABLE; Schema: dev; Owner: cardano-master
@@ -1719,7 +1719,7 @@ CREATE TABLE testnet.failed_tx_out (
 );
 
 
-ALTER TABLE testnet.failed_tx_out OWNER TO "cardano-master";
+ALTER TABLE testnet.failed_tx_out OWNER TO "rosetta_db_admin";
 
 --
 -- Name: failed_tx_out_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -1733,7 +1733,7 @@ CREATE SEQUENCE testnet.failed_tx_out_id_seq
     CACHE 1;
 
 
-ALTER TABLE testnet.failed_tx_out_id_seq OWNER TO "cardano-master";
+ALTER TABLE testnet.failed_tx_out_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: failed_tx_out_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -1754,7 +1754,7 @@ CREATE SEQUENCE testnet.tx_out_id_seq
     CACHE 1;
 
 
-ALTER TABLE testnet.tx_out_id_seq OWNER TO "cardano-master";
+ALTER TABLE testnet.tx_out_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: tx_out_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -1776,7 +1776,7 @@ CREATE TABLE testnet.unconsume_tx_in (
 );
 
 
-ALTER TABLE testnet.unconsume_tx_in OWNER TO "cardano-master";
+ALTER TABLE testnet.unconsume_tx_in OWNER TO "rosetta_db_admin";
 
 --
 -- Name: unconsume_tx_in_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -1790,7 +1790,7 @@ CREATE SEQUENCE testnet.unconsume_tx_in_id_seq
     CACHE 1;
 
 
-ALTER TABLE testnet.unconsume_tx_in_id_seq OWNER TO "cardano-master";
+ALTER TABLE testnet.unconsume_tx_in_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: unconsume_tx_in_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -1813,7 +1813,7 @@ CREATE TABLE testnet.withdrawal (
 );
 
 
-ALTER TABLE testnet.withdrawal OWNER TO "cardano-master";
+ALTER TABLE testnet.withdrawal OWNER TO "rosetta_db_admin";
 
 --
 -- Name: withdrawal_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -1827,7 +1827,7 @@ CREATE SEQUENCE testnet.withdrawal_id_seq
     CACHE 1;
 
 
-ALTER TABLE testnet.withdrawal_id_seq OWNER TO "cardano-master";
+ALTER TABLE testnet.withdrawal_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: withdrawal_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master

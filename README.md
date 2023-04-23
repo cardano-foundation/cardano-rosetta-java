@@ -28,10 +28,10 @@ This is a RosettaAPI implementation using LedgeSync as a backend and Yaci/Bloxbe
 
 ### Environment variables
 
-- `SPRING_PROFILES_ACTIVE` : Spring profile [local, dev, test, prod]. Default is local.
+- `CONSUMER_PROFILES_ACTIVE` : Consumer spring profile [local, dev, test, prod]. Default is local.
 - `POSTGRES_HOST` : Postgres host. Default is postgres
 - `POSTGRES_PORT` : Postgres port. Default is 5432
-- `POSTGRES_USER` : Postgres user. Default is cardano-master
+- `POSTGRES_USER` : Postgres user. Default is rosetta_db_admin
 - `POSTGRES_PASSWORD` : Postgres password. Default is postgres
 - `POSTGRES_DB` : Postgres database. Default is explorer
 - `SCHEMA` : Postgres schema [testnet, preprod, preview, mainnet]. Default is testnet

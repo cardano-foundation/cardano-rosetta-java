@@ -14,12 +14,12 @@
 
   <groupId>org.cardanofoundation.rosetta-java</groupId>
   <artifactId>cardano-rosetta-consumer</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>1.0.0-SNAPSHOT</version>
   <name>cardano-rosetta-consumer</name>
   <description>cardano-rosetta-consumer</description>
 
   <properties>
-    <java.version>11</java.version>
+    <java.version>18</java.version>
     <flyway.version>9.4.0</flyway.version>
     <snakeyaml.version>1.33</snakeyaml.version>
   </properties>
@@ -95,11 +95,11 @@
       <optional>true</optional>
     </dependency>
 
-    <!--    <dependency>-->
-    <!--      <groupId>org.flywaydb</groupId>-->
-    <!--      <artifactId>flyway-core</artifactId>-->
-    <!--      <version>${flyway.version}</version>-->
-    <!--    </dependency>-->
+    <dependency>
+      <groupId>org.flywaydb</groupId>
+      <artifactId>flyway-core</artifactId>
+      <version>${flyway.version}</version>
+    </dependency>
 
     <dependency>
       <groupId>com.bloxbean.cardano</groupId>

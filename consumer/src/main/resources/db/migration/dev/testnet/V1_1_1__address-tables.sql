@@ -13,7 +13,7 @@ create table testnet.address
 );
 
 alter table testnet.address
-    owner to "cardano-master";
+    OWNER TO "rosetta_db_admin";
 
 create table testnet.address_token
 (
@@ -31,7 +31,7 @@ create table testnet.address_token
 );
 
 alter table testnet.address_token
-    owner to "cardano-master";
+    OWNER TO "rosetta_db_admin";
 
 create table testnet.address_tx_balance
 (
@@ -47,7 +47,7 @@ create table testnet.address_tx_balance
 );
 
 alter table testnet.address_tx_balance
-    owner to "cardano-master";
+    OWNER TO "rosetta_db_admin";
 
 create table testnet.asset_metadata
 (
@@ -70,4 +70,4 @@ create table testnet.asset_metadata
 );
 
 alter table testnet.asset_metadata
-    owner to "cardano-master";
+    OWNER TO "rosetta_db_admin";

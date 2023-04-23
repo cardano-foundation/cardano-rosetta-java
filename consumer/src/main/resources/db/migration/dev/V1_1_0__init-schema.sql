@@ -23,7 +23,7 @@ SET row_security = off;
 CREATE SCHEMA IF NOT EXISTS dev;
 
 
-ALTER SCHEMA dev OWNER TO "cardano-master";
+ALTER SCHEMA dev OWNER TO "rosetta_db_admin";
 
 SET default_tablespace = '';
 
@@ -48,7 +48,7 @@ CREATE TABLE dev.ada_pots (
 );
 
 
-ALTER TABLE dev.ada_pots OWNER TO "cardano-master";
+ALTER TABLE dev.ada_pots OWNER TO "rosetta_db_admin";
 
 --
 -- Name: ada_pots_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -62,7 +62,7 @@ CREATE SEQUENCE dev.ada_pots_id_seq
     CACHE 1;
 
 
-ALTER TABLE dev.ada_pots_id_seq OWNER TO "cardano-master";
+ALTER TABLE dev.ada_pots_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: ada_pots_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -96,7 +96,7 @@ CREATE TABLE dev.block (
 );
 
 
-ALTER TABLE dev.block OWNER TO "cardano-master";
+ALTER TABLE dev.block OWNER TO "rosetta_db_admin";
 
 --
 -- Name: block_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -110,7 +110,7 @@ CREATE SEQUENCE dev.block_id_seq
     CACHE 1;
 
 
-ALTER TABLE dev.block_id_seq OWNER TO "cardano-master";
+ALTER TABLE dev.block_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: block_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -132,7 +132,7 @@ CREATE TABLE dev.collateral_tx_in (
 );
 
 
-ALTER TABLE dev.collateral_tx_in OWNER TO "cardano-master";
+ALTER TABLE dev.collateral_tx_in OWNER TO "rosetta_db_admin";
 
 --
 -- Name: collateral_tx_in_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -146,7 +146,7 @@ CREATE SEQUENCE dev.collateral_tx_in_id_seq
     CACHE 1;
 
 
-ALTER TABLE dev.collateral_tx_in_id_seq OWNER TO "cardano-master";
+ALTER TABLE dev.collateral_tx_in_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: collateral_tx_in_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -177,7 +177,7 @@ CREATE TABLE dev.collateral_tx_out (
 );
 
 
-ALTER TABLE dev.collateral_tx_out OWNER TO "cardano-master";
+ALTER TABLE dev.collateral_tx_out OWNER TO "rosetta_db_admin";
 
 --
 -- Name: collateral_tx_out_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -191,7 +191,7 @@ CREATE SEQUENCE dev.collateral_tx_out_id_seq
     CACHE 1;
 
 
-ALTER TABLE dev.collateral_tx_out_id_seq OWNER TO "cardano-master";
+ALTER TABLE dev.collateral_tx_out_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: collateral_tx_out_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -213,7 +213,7 @@ CREATE TABLE dev.cost_model (
 );
 
 
-ALTER TABLE dev.cost_model OWNER TO "cardano-master";
+ALTER TABLE dev.cost_model OWNER TO "rosetta_db_admin";
 
 --
 -- Name: cost_model_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -227,7 +227,7 @@ CREATE SEQUENCE dev.cost_model_id_seq
     CACHE 1;
 
 
-ALTER TABLE dev.cost_model_id_seq OWNER TO "cardano-master";
+ALTER TABLE dev.cost_model_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: cost_model_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -250,7 +250,7 @@ CREATE TABLE dev.datum (
 );
 
 
-ALTER TABLE dev.datum OWNER TO "cardano-master";
+ALTER TABLE dev.datum OWNER TO "rosetta_db_admin";
 
 --
 -- Name: datum_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -264,7 +264,7 @@ CREATE SEQUENCE dev.datum_id_seq
     CACHE 1;
 
 
-ALTER TABLE dev.datum_id_seq OWNER TO "cardano-master";
+ALTER TABLE dev.datum_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: datum_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -290,7 +290,7 @@ CREATE TABLE dev.delegation (
 );
 
 
-ALTER TABLE dev.delegation OWNER TO "cardano-master";
+ALTER TABLE dev.delegation OWNER TO "rosetta_db_admin";
 
 --
 -- Name: delegation_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -304,7 +304,7 @@ CREATE SEQUENCE dev.delegation_id_seq
     CACHE 1;
 
 
-ALTER TABLE dev.delegation_id_seq OWNER TO "cardano-master";
+ALTER TABLE dev.delegation_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: delegation_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -324,7 +324,7 @@ CREATE TABLE dev.delisted_pool (
 );
 
 
-ALTER TABLE dev.delisted_pool OWNER TO "cardano-master";
+ALTER TABLE dev.delisted_pool OWNER TO "rosetta_db_admin";
 
 --
 -- Name: delisted_pool_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -338,7 +338,7 @@ CREATE SEQUENCE dev.delisted_pool_id_seq
     CACHE 1;
 
 
-ALTER TABLE dev.delisted_pool_id_seq OWNER TO "cardano-master";
+ALTER TABLE dev.delisted_pool_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: delisted_pool_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -365,7 +365,7 @@ CREATE TABLE dev.epoch (
 );
 
 
-ALTER TABLE dev.epoch OWNER TO "cardano-master";
+ALTER TABLE dev.epoch OWNER TO "rosetta_db_admin";
 
 --
 -- Name: epoch_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -379,7 +379,7 @@ CREATE SEQUENCE dev.epoch_id_seq
     CACHE 1;
 
 
-ALTER TABLE dev.epoch_id_seq OWNER TO "cardano-master";
+ALTER TABLE dev.epoch_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: epoch_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -430,7 +430,7 @@ CREATE TABLE dev.epoch_param (
 );
 
 
-ALTER TABLE dev.epoch_param OWNER TO "cardano-master";
+ALTER TABLE dev.epoch_param OWNER TO "rosetta_db_admin";
 
 --
 -- Name: epoch_param_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -444,7 +444,7 @@ CREATE SEQUENCE dev.epoch_param_id_seq
     CACHE 1;
 
 
-ALTER TABLE dev.epoch_param_id_seq OWNER TO "cardano-master";
+ALTER TABLE dev.epoch_param_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: epoch_param_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -467,7 +467,7 @@ CREATE TABLE dev.epoch_stake (
 );
 
 
-ALTER TABLE dev.epoch_stake OWNER TO "cardano-master";
+ALTER TABLE dev.epoch_stake OWNER TO "rosetta_db_admin";
 
 --
 -- Name: epoch_stake_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -481,7 +481,7 @@ CREATE SEQUENCE dev.epoch_stake_id_seq
     CACHE 1;
 
 
-ALTER TABLE dev.epoch_stake_id_seq OWNER TO "cardano-master";
+ALTER TABLE dev.epoch_stake_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: epoch_stake_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -503,7 +503,7 @@ CREATE TABLE dev.epoch_sync_time (
 );
 
 
-ALTER TABLE dev.epoch_sync_time OWNER TO "cardano-master";
+ALTER TABLE dev.epoch_sync_time OWNER TO "rosetta_db_admin";
 
 --
 -- Name: epoch_sync_time_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -517,7 +517,7 @@ CREATE SEQUENCE dev.epoch_sync_time_id_seq
     CACHE 1;
 
 
-ALTER TABLE dev.epoch_sync_time_id_seq OWNER TO "cardano-master";
+ALTER TABLE dev.epoch_sync_time_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: epoch_sync_time_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -538,7 +538,7 @@ CREATE TABLE dev.extra_key_witness (
 );
 
 
-ALTER TABLE dev.extra_key_witness OWNER TO "cardano-master";
+ALTER TABLE dev.extra_key_witness OWNER TO "rosetta_db_admin";
 
 --
 -- Name: extra_key_witness_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -552,7 +552,7 @@ CREATE SEQUENCE dev.extra_key_witness_id_seq
     CACHE 1;
 
 
-ALTER TABLE dev.extra_key_witness_id_seq OWNER TO "cardano-master";
+ALTER TABLE dev.extra_key_witness_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: extra_key_witness_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -574,7 +574,7 @@ CREATE TABLE dev.ma_tx_mint (
 );
 
 
-ALTER TABLE dev.ma_tx_mint OWNER TO "cardano-master";
+ALTER TABLE dev.ma_tx_mint OWNER TO "rosetta_db_admin";
 
 --
 -- Name: ma_tx_mint_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -588,7 +588,7 @@ CREATE SEQUENCE dev.ma_tx_mint_id_seq
     CACHE 1;
 
 
-ALTER TABLE dev.ma_tx_mint_id_seq OWNER TO "cardano-master";
+ALTER TABLE dev.ma_tx_mint_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: ma_tx_mint_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -610,7 +610,7 @@ CREATE TABLE dev.ma_tx_out (
 );
 
 
-ALTER TABLE dev.ma_tx_out OWNER TO "cardano-master";
+ALTER TABLE dev.ma_tx_out OWNER TO "rosetta_db_admin";
 
 --
 -- Name: ma_tx_out_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -624,7 +624,7 @@ CREATE SEQUENCE dev.ma_tx_out_id_seq
     CACHE 1;
 
 
-ALTER TABLE dev.ma_tx_out_id_seq OWNER TO "cardano-master";
+ALTER TABLE dev.ma_tx_out_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: ma_tx_out_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -646,7 +646,7 @@ CREATE TABLE dev.meta (
 );
 
 
-ALTER TABLE dev.meta OWNER TO "cardano-master";
+ALTER TABLE dev.meta OWNER TO "rosetta_db_admin";
 
 --
 -- Name: meta_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -660,7 +660,7 @@ CREATE SEQUENCE dev.meta_id_seq
     CACHE 1;
 
 
-ALTER TABLE dev.meta_id_seq OWNER TO "cardano-master";
+ALTER TABLE dev.meta_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: meta_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -684,7 +684,7 @@ CREATE TABLE dev.multi_asset (
 );
 
 
-ALTER TABLE dev.multi_asset OWNER TO "cardano-master";
+ALTER TABLE dev.multi_asset OWNER TO "rosetta_db_admin";
 
 --
 -- Name: multi_asset_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -698,7 +698,7 @@ CREATE SEQUENCE dev.multi_asset_id_seq
     CACHE 1;
 
 
-ALTER TABLE dev.multi_asset_id_seq OWNER TO "cardano-master";
+ALTER TABLE dev.multi_asset_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: multi_asset_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -749,7 +749,7 @@ CREATE TABLE dev.param_proposal (
 );
 
 
-ALTER TABLE dev.param_proposal OWNER TO "cardano-master";
+ALTER TABLE dev.param_proposal OWNER TO "rosetta_db_admin";
 
 --
 -- Name: param_proposal_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -763,7 +763,7 @@ CREATE SEQUENCE dev.param_proposal_id_seq
     CACHE 1;
 
 
-ALTER TABLE dev.param_proposal_id_seq OWNER TO "cardano-master";
+ALTER TABLE dev.param_proposal_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: param_proposal_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -785,7 +785,7 @@ CREATE TABLE dev.pool_hash (
 );
 
 
-ALTER TABLE dev.pool_hash OWNER TO "cardano-master";
+ALTER TABLE dev.pool_hash OWNER TO "rosetta_db_admin";
 
 --
 -- Name: pool_hash_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -799,7 +799,7 @@ CREATE SEQUENCE dev.pool_hash_id_seq
     CACHE 1;
 
 
-ALTER TABLE dev.pool_hash_id_seq OWNER TO "cardano-master";
+ALTER TABLE dev.pool_hash_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: pool_hash_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -822,7 +822,7 @@ CREATE TABLE dev.pool_metadata_ref (
 );
 
 
-ALTER TABLE dev.pool_metadata_ref OWNER TO "cardano-master";
+ALTER TABLE dev.pool_metadata_ref OWNER TO "rosetta_db_admin";
 
 --
 -- Name: pool_metadata_ref_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -836,7 +836,7 @@ CREATE SEQUENCE dev.pool_metadata_ref_id_seq
     CACHE 1;
 
 
-ALTER TABLE dev.pool_metadata_ref_id_seq OWNER TO "cardano-master";
+ALTER TABLE dev.pool_metadata_ref_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: pool_metadata_ref_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -861,7 +861,7 @@ CREATE TABLE dev.pool_offline_data (
 );
 
 
-ALTER TABLE dev.pool_offline_data OWNER TO "cardano-master";
+ALTER TABLE dev.pool_offline_data OWNER TO "rosetta_db_admin";
 
 --
 -- Name: pool_offline_data_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -875,7 +875,7 @@ CREATE SEQUENCE dev.pool_offline_data_id_seq
     CACHE 1;
 
 
-ALTER TABLE dev.pool_offline_data_id_seq OWNER TO "cardano-master";
+ALTER TABLE dev.pool_offline_data_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: pool_offline_data_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -899,7 +899,7 @@ CREATE TABLE dev.pool_offline_fetch_error (
 );
 
 
-ALTER TABLE dev.pool_offline_fetch_error OWNER TO "cardano-master";
+ALTER TABLE dev.pool_offline_fetch_error OWNER TO "rosetta_db_admin";
 
 --
 -- Name: pool_offline_fetch_error_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -913,7 +913,7 @@ CREATE SEQUENCE dev.pool_offline_fetch_error_id_seq
     CACHE 1;
 
 
-ALTER TABLE dev.pool_offline_fetch_error_id_seq OWNER TO "cardano-master";
+ALTER TABLE dev.pool_offline_fetch_error_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: pool_offline_fetch_error_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -934,7 +934,7 @@ CREATE TABLE dev.pool_owner (
 );
 
 
-ALTER TABLE dev.pool_owner OWNER TO "cardano-master";
+ALTER TABLE dev.pool_owner OWNER TO "rosetta_db_admin";
 
 --
 -- Name: pool_owner_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -948,7 +948,7 @@ CREATE SEQUENCE dev.pool_owner_id_seq
     CACHE 1;
 
 
-ALTER TABLE dev.pool_owner_id_seq OWNER TO "cardano-master";
+ALTER TABLE dev.pool_owner_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: pool_owner_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -973,7 +973,7 @@ CREATE TABLE dev.pool_relay (
 );
 
 
-ALTER TABLE dev.pool_relay OWNER TO "cardano-master";
+ALTER TABLE dev.pool_relay OWNER TO "rosetta_db_admin";
 
 --
 -- Name: pool_relay_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -987,7 +987,7 @@ CREATE SEQUENCE dev.pool_relay_id_seq
     CACHE 1;
 
 
-ALTER TABLE dev.pool_relay_id_seq OWNER TO "cardano-master";
+ALTER TABLE dev.pool_relay_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: pool_relay_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -1010,7 +1010,7 @@ CREATE TABLE dev.pool_retire (
 );
 
 
-ALTER TABLE dev.pool_retire OWNER TO "cardano-master";
+ALTER TABLE dev.pool_retire OWNER TO "rosetta_db_admin";
 
 --
 -- Name: pool_retire_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -1024,7 +1024,7 @@ CREATE SEQUENCE dev.pool_retire_id_seq
     CACHE 1;
 
 
-ALTER TABLE dev.pool_retire_id_seq OWNER TO "cardano-master";
+ALTER TABLE dev.pool_retire_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: pool_retire_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -1045,7 +1045,7 @@ CREATE TABLE dev.pool_stake (
 );
 
 
-ALTER TABLE dev.pool_stake OWNER TO "cardano-master";
+ALTER TABLE dev.pool_stake OWNER TO "rosetta_db_admin";
 
 --
 -- Name: pool_stake_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -1059,7 +1059,7 @@ CREATE SEQUENCE dev.pool_stake_id_seq
     CACHE 1;
 
 
-ALTER TABLE dev.pool_stake_id_seq OWNER TO "cardano-master";
+ALTER TABLE dev.pool_stake_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: pool_stake_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -1088,7 +1088,7 @@ CREATE TABLE dev.pool_update (
 );
 
 
-ALTER TABLE dev.pool_update OWNER TO "cardano-master";
+ALTER TABLE dev.pool_update OWNER TO "rosetta_db_admin";
 
 --
 -- Name: pool_update_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -1102,7 +1102,7 @@ CREATE SEQUENCE dev.pool_update_id_seq
     CACHE 1;
 
 
-ALTER TABLE dev.pool_update_id_seq OWNER TO "cardano-master";
+ALTER TABLE dev.pool_update_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: pool_update_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -1125,7 +1125,7 @@ CREATE TABLE dev.pot_transfer (
 );
 
 
-ALTER TABLE dev.pot_transfer OWNER TO "cardano-master";
+ALTER TABLE dev.pot_transfer OWNER TO "rosetta_db_admin";
 
 --
 -- Name: pot_transfer_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -1139,7 +1139,7 @@ CREATE SEQUENCE dev.pot_transfer_id_seq
     CACHE 1;
 
 
-ALTER TABLE dev.pot_transfer_id_seq OWNER TO "cardano-master";
+ALTER TABLE dev.pot_transfer_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: pot_transfer_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -1166,7 +1166,7 @@ CREATE TABLE dev.redeemer (
 );
 
 
-ALTER TABLE dev.redeemer OWNER TO "cardano-master";
+ALTER TABLE dev.redeemer OWNER TO "rosetta_db_admin";
 
 --
 -- Name: redeemer_data; Type: TABLE; Schema: dev; Owner: cardano-master
@@ -1182,7 +1182,7 @@ CREATE TABLE dev.redeemer_data (
 );
 
 
-ALTER TABLE dev.redeemer_data OWNER TO "cardano-master";
+ALTER TABLE dev.redeemer_data OWNER TO "rosetta_db_admin";
 
 --
 -- Name: redeemer_data_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -1196,7 +1196,7 @@ CREATE SEQUENCE dev.redeemer_data_id_seq
     CACHE 1;
 
 
-ALTER TABLE dev.redeemer_data_id_seq OWNER TO "cardano-master";
+ALTER TABLE dev.redeemer_data_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: redeemer_data_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -1217,7 +1217,7 @@ CREATE SEQUENCE dev.redeemer_id_seq
     CACHE 1;
 
 
-ALTER TABLE dev.redeemer_id_seq OWNER TO "cardano-master";
+ALTER TABLE dev.redeemer_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: redeemer_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -1239,7 +1239,7 @@ CREATE TABLE dev.reference_tx_in (
 );
 
 
-ALTER TABLE dev.reference_tx_in OWNER TO "cardano-master";
+ALTER TABLE dev.reference_tx_in OWNER TO "rosetta_db_admin";
 
 --
 -- Name: reference_tx_in_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -1253,7 +1253,7 @@ CREATE SEQUENCE dev.reference_tx_in_id_seq
     CACHE 1;
 
 
-ALTER TABLE dev.reference_tx_in_id_seq OWNER TO "cardano-master";
+ALTER TABLE dev.reference_tx_in_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: reference_tx_in_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -1276,7 +1276,7 @@ CREATE TABLE dev.reserve (
 );
 
 
-ALTER TABLE dev.reserve OWNER TO "cardano-master";
+ALTER TABLE dev.reserve OWNER TO "rosetta_db_admin";
 
 --
 -- Name: reserve_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -1290,7 +1290,7 @@ CREATE SEQUENCE dev.reserve_id_seq
     CACHE 1;
 
 
-ALTER TABLE dev.reserve_id_seq OWNER TO "cardano-master";
+ALTER TABLE dev.reserve_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: reserve_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -1311,7 +1311,7 @@ CREATE TABLE dev.reserved_pool_ticker (
 );
 
 
-ALTER TABLE dev.reserved_pool_ticker OWNER TO "cardano-master";
+ALTER TABLE dev.reserved_pool_ticker OWNER TO "rosetta_db_admin";
 
 --
 -- Name: reserved_pool_ticker_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -1325,7 +1325,7 @@ CREATE SEQUENCE dev.reserved_pool_ticker_id_seq
     CACHE 1;
 
 
-ALTER TABLE dev.reserved_pool_ticker_id_seq OWNER TO "cardano-master";
+ALTER TABLE dev.reserved_pool_ticker_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: reserved_pool_ticker_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -1350,7 +1350,7 @@ CREATE TABLE dev.reward (
 );
 
 
-ALTER TABLE dev.reward OWNER TO "cardano-master";
+ALTER TABLE dev.reward OWNER TO "rosetta_db_admin";
 
 --
 -- Name: reward_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -1364,7 +1364,7 @@ CREATE SEQUENCE dev.reward_id_seq
     CACHE 1;
 
 
-ALTER TABLE dev.reward_id_seq OWNER TO "cardano-master";
+ALTER TABLE dev.reward_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: reward_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -1386,7 +1386,7 @@ CREATE TABLE dev.schema_version (
 );
 
 
-ALTER TABLE dev.schema_version OWNER TO "cardano-master";
+ALTER TABLE dev.schema_version OWNER TO "rosetta_db_admin";
 
 --
 -- Name: schema_version_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -1400,7 +1400,7 @@ CREATE SEQUENCE dev.schema_version_id_seq
     CACHE 1;
 
 
-ALTER TABLE dev.schema_version_id_seq OWNER TO "cardano-master";
+ALTER TABLE dev.schema_version_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: schema_version_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -1425,7 +1425,7 @@ CREATE TABLE dev.script (
 );
 
 
-ALTER TABLE dev.script OWNER TO "cardano-master";
+ALTER TABLE dev.script OWNER TO "rosetta_db_admin";
 
 --
 -- Name: script_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -1439,7 +1439,7 @@ CREATE SEQUENCE dev.script_id_seq
     CACHE 1;
 
 
-ALTER TABLE dev.script_id_seq OWNER TO "cardano-master";
+ALTER TABLE dev.script_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: script_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -1461,7 +1461,7 @@ CREATE TABLE dev.slot_leader (
 );
 
 
-ALTER TABLE dev.slot_leader OWNER TO "cardano-master";
+ALTER TABLE dev.slot_leader OWNER TO "rosetta_db_admin";
 
 --
 -- Name: slot_leader_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -1475,7 +1475,7 @@ CREATE SEQUENCE dev.slot_leader_id_seq
     CACHE 1;
 
 
-ALTER TABLE dev.slot_leader_id_seq OWNER TO "cardano-master";
+ALTER TABLE dev.slot_leader_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: slot_leader_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -1498,7 +1498,7 @@ CREATE TABLE dev.stake_address (
 );
 
 
-ALTER TABLE dev.stake_address OWNER TO "cardano-master";
+ALTER TABLE dev.stake_address OWNER TO "rosetta_db_admin";
 
 --
 -- Name: stake_address_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -1512,7 +1512,7 @@ CREATE SEQUENCE dev.stake_address_id_seq
     CACHE 1;
 
 
-ALTER TABLE dev.stake_address_id_seq OWNER TO "cardano-master";
+ALTER TABLE dev.stake_address_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: stake_address_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -1536,7 +1536,7 @@ CREATE TABLE dev.stake_deregistration (
 );
 
 
-ALTER TABLE dev.stake_deregistration OWNER TO "cardano-master";
+ALTER TABLE dev.stake_deregistration OWNER TO "rosetta_db_admin";
 
 --
 -- Name: stake_deregistration_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -1550,7 +1550,7 @@ CREATE SEQUENCE dev.stake_deregistration_id_seq
     CACHE 1;
 
 
-ALTER TABLE dev.stake_deregistration_id_seq OWNER TO "cardano-master";
+ALTER TABLE dev.stake_deregistration_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: stake_deregistration_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -1573,7 +1573,7 @@ CREATE TABLE dev.stake_registration (
 );
 
 
-ALTER TABLE dev.stake_registration OWNER TO "cardano-master";
+ALTER TABLE dev.stake_registration OWNER TO "rosetta_db_admin";
 
 --
 -- Name: stake_registration_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -1587,7 +1587,7 @@ CREATE SEQUENCE dev.stake_registration_id_seq
     CACHE 1;
 
 
-ALTER TABLE dev.stake_registration_id_seq OWNER TO "cardano-master";
+ALTER TABLE dev.stake_registration_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: stake_registration_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -1610,7 +1610,7 @@ CREATE TABLE dev.treasury (
 );
 
 
-ALTER TABLE dev.treasury OWNER TO "cardano-master";
+ALTER TABLE dev.treasury OWNER TO "rosetta_db_admin";
 
 --
 -- Name: treasury_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -1624,7 +1624,7 @@ CREATE SEQUENCE dev.treasury_id_seq
     CACHE 1;
 
 
-ALTER TABLE dev.treasury_id_seq OWNER TO "cardano-master";
+ALTER TABLE dev.treasury_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: treasury_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -1654,7 +1654,7 @@ CREATE TABLE dev.tx (
 );
 
 
-ALTER TABLE dev.tx OWNER TO "cardano-master";
+ALTER TABLE dev.tx OWNER TO "rosetta_db_admin";
 
 --
 -- Name: tx_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -1668,7 +1668,7 @@ CREATE SEQUENCE dev.tx_id_seq
     CACHE 1;
 
 
-ALTER TABLE dev.tx_id_seq OWNER TO "cardano-master";
+ALTER TABLE dev.tx_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: tx_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -1691,7 +1691,7 @@ CREATE TABLE dev.tx_in (
 );
 
 
-ALTER TABLE dev.tx_in OWNER TO "cardano-master";
+ALTER TABLE dev.tx_in OWNER TO "rosetta_db_admin";
 
 --
 -- Name: tx_in_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -1705,7 +1705,7 @@ CREATE SEQUENCE dev.tx_in_id_seq
     CACHE 1;
 
 
-ALTER TABLE dev.tx_in_id_seq OWNER TO "cardano-master";
+ALTER TABLE dev.tx_in_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: tx_in_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -1728,7 +1728,7 @@ CREATE TABLE dev.tx_metadata (
 );
 
 
-ALTER TABLE dev.tx_metadata OWNER TO "cardano-master";
+ALTER TABLE dev.tx_metadata OWNER TO "rosetta_db_admin";
 
 --
 -- Name: tx_metadata_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -1742,7 +1742,7 @@ CREATE SEQUENCE dev.tx_metadata_id_seq
     CACHE 1;
 
 
-ALTER TABLE dev.tx_metadata_id_seq OWNER TO "cardano-master";
+ALTER TABLE dev.tx_metadata_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: tx_metadata_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -1775,7 +1775,7 @@ CREATE TABLE dev.tx_out (
 );
 
 
-ALTER TABLE dev.tx_out OWNER TO "cardano-master";
+ALTER TABLE dev.tx_out OWNER TO "rosetta_db_admin";
 
 --
 -- Name: tx_out_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -1789,7 +1789,7 @@ CREATE SEQUENCE dev.tx_out_id_seq
     CACHE 1;
 
 
-ALTER TABLE dev.tx_out_id_seq OWNER TO "cardano-master";
+ALTER TABLE dev.tx_out_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: tx_out_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master
@@ -1812,7 +1812,7 @@ CREATE TABLE dev.withdrawal (
 );
 
 
-ALTER TABLE dev.withdrawal OWNER TO "cardano-master";
+ALTER TABLE dev.withdrawal OWNER TO "rosetta_db_admin";
 
 --
 -- Name: withdrawal_id_seq; Type: SEQUENCE; Schema: dev; Owner: cardano-master
@@ -1826,7 +1826,7 @@ CREATE SEQUENCE dev.withdrawal_id_seq
     CACHE 1;
 
 
-ALTER TABLE dev.withdrawal_id_seq OWNER TO "cardano-master";
+ALTER TABLE dev.withdrawal_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: withdrawal_id_seq; Type: SEQUENCE OWNED BY; Schema: dev; Owner: cardano-master

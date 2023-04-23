@@ -1,14 +1,6 @@
-FROM openjdk:11-jdk-slim AS build
-WORKDIR /app
-COPY .m2/settings.xml /root/.m2/settings.xml
-COPY pom.xml /app/pom.xml
-COPY mvnw  /app/mvnw
-COPY .mvn /app/.mvn
-RUN ./mvnw verify clean --fail-never
-COPY ../cardano-consumer /app
-RUN ./mvnw clean package -DskipTests
+FROM openjdk:18-jdk-slim-bullseye AS runtime-consumer
 
-FROM openjdk:11-jdk-slim AS runtime
-COPY --from=build /app/target/*.jar /app/consumer.jar
-WORKDIR /app
-ENTRYPOINT ["java", "-jar", "consumer.jar"]
+WORKDIR /cf-rosetta-consumer
+
+COPY target/*.jar /cf-rosetta-consumer/cf-rosetta-consumer.jar
+ENTRYPOINT ["java", "-jar", "cf-rosetta-consumer.jar"]

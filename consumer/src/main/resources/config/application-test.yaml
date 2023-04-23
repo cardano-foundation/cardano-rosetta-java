@@ -6,13 +6,13 @@ spring:
   # Datasource specific configs
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
-    url: jdbc:postgresql://${infrastructure.host}:54321/explorer?currentSchema=test
-    username: cardano-master
+    url: jdbc:postgresql://${infrastructure.host}:54321/rosetta?currentSchema=test
+    username: rosetta_db_admin
     password: Y2FyZGFuby1kYXRhYmFzZS1tYXN0ZXI=
     driver-class-name: org.postgresql.Driver
     # Hikari specific configs
     hikari:
-      pool-name: explorer-consumer-pool
+      pool-name: rosetta-consumer-pool
       minimum-idle: 10 #minimum number of idle connections maintained by HikariCP in a connection pool
       maximum-pool-size: 20 #maximum pool size
       idle-timeout: 300000 #maximum idle time for connection
@@ -97,12 +97,12 @@ kafka:
       pollTimeout: 3000
   listeners:
     block:
-      groupId: consumer-explorer-group
+      groupId: consumer-rosetta-group
       topics: "dev.crawler.blocks"
       props: |
         max.poll.records: 10
         fetch.min.bytes: 123456
-    prefix: "explorer-consumer-test-"
+    prefix: "rosetta-consumer-test-"
 logging:
   level:
     com.cardano: DEBUG

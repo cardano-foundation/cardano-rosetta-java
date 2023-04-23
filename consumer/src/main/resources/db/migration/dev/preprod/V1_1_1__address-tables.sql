@@ -13,7 +13,7 @@ create table preprod.address
 );
 
 alter table preprod.address
-    owner to "cardano-master";
+    OWNER TO "rosetta_db_admin";
 
 create table preprod.address_token
 (
@@ -31,7 +31,7 @@ create table preprod.address_token
 );
 
 alter table preprod.address_token
-    owner to "cardano-master";
+    OWNER TO "rosetta_db_admin";
 
 create table preprod.address_tx_balance
 (
@@ -47,7 +47,7 @@ create table preprod.address_tx_balance
 );
 
 alter table preprod.address_tx_balance
-    owner to "cardano-master";
+    OWNER TO "rosetta_db_admin";
 
 create table preprod.asset_metadata
 (
@@ -70,4 +70,4 @@ create table preprod.asset_metadata
 );
 
 alter table preprod.asset_metadata
-    owner to "cardano-master";
+    OWNER TO "rosetta_db_admin";

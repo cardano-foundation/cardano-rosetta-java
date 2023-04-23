@@ -15,5 +15,5 @@ create table preprod.rollback_history
 );
 
 alter table preprod.rollback_history
-    owner to "cardano-master";
+    OWNER TO "rosetta_db_admin";
 

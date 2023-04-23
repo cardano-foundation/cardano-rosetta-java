@@ -23,7 +23,6 @@ fi
 if [[ -z "${DB_MIGRATION_LIQUIBASE_ROOT_CHANGELOG}" ]]; then
   DB_MIGRATION_LIQUIBASE_ROOT_CHANGELOG="../liquibase/rosetta.root-changelog.yaml"
 fi
-  echo aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
   echo ${DB_ADMIN_USER_SECRET}
 # fetch secrets from secrets manager
 if [[ -z "${DB_ADMIN_USER_SECRET}" ]]; then

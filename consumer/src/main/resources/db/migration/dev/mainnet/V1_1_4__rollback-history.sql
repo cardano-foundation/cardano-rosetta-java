@@ -15,5 +15,5 @@ create table mainnet.rollback_history
 );
 
 alter table mainnet.rollback_history
-    owner to "cardano-master";
+    OWNER TO "rosetta_db_admin";
 

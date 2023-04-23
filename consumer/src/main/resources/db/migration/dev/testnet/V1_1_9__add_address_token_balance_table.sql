@@ -11,7 +11,7 @@ create table address_token_balance
 );
 
 alter table address_token_balance
-    owner to "cardano-master";
+    OWNER TO "rosetta_db_admin";
 
 insert into address_token_balance(address_id, ident, balance)
 select address_id, ident, sum(balance)

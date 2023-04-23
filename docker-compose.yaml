@@ -24,15 +24,17 @@ services:
       DB_PORT: ${DB_PORT}
       DB_NAME: ${DB_NAME}
     depends_on:
-      db:
-        condition: service_healthy
+        db:
+          condition: service_healthy
   api:
     build: ./api
     platform: linux/amd64
     ports:
-      - "${API_LOCAL_BIND_PORT}:${API_EXPOSED_PORT}"
+      - "${API_BIND_PORT}:${API_EXPOSED_PORT}"
     environment:
-      DB_URL: "jdbc:postgresql://db:${DB_PORT}/${DB_NAME}"
+      DB_HOST: "${DB_HOST}"
+      DB_PORT: "${DB_PORT}"
+      DB_NAME: "${DB_NAME}"
       DB_USER: "${SERVICE_USER_NAME}"
       DB_SECRET: "${SERVICE_USER_SECRET}"
       DB_DRIVER_CLASS_NAME: "${DB_DRIVER_CLASS_NAME}"
@@ -41,6 +43,31 @@ services:
       bootstrap-db:
         condition: service_completed_successfully
     restart: always
+  consumer:
+    build: ./consumer
+    platform: linux/amd64
+    ports:
+      - "${CONSUMER_BIND_PORT}:${CONSUMER_EXPOSED_PORT}"
+    environment:
+      CONSUMER_PROFILES_ACTIVE: "${CONSUMER_PROFILES_ACTIVE}"
+      DB_HOST: "${DB_HOST}"
+      DB_PORT: "${DB_PORT}"
+      DB_NAME: "${DB_NAME}"
+      DB_USER: "${DB_ADMIN_USER_NAME}"
+      DB_SECRET: "${DB_ADMIN_USER_SECRET}"
+      DB_DRIVER_CLASS_NAME: "${DB_DRIVER_CLASS_NAME}"
+      DB_CONNECTION_PARAMS_PROVIDER_TYPE: ${DB_CONNECTION_PARAMS_PROVIDER_TYPE}
+      SCHEMA: "${SCHEMA}"
+      DBLOCKS_BATCH_SIZE: "${BLOCKS_BATCH_SIZE}"
+      BLOCKS_TOPIC: "${BLOCKS_TOPIC}"
+      FLYWAY_ENABLE: "${FLYWAY_ENABLE}"
+      BOOSTRAP_SERVER_HOST: "${BOOSTRAP_SERVER_HOST}"
+      BOOSTRAP_SERVER_PORT: "${BOOSTRAP_SERVER_PORT}"
+      LOG: "${LOG}"
+    depends_on:
+      bootstrap-db:
+        condition: service_completed_successfully
+    restart: on-failure
 
   redis-master:
     hostname: cardano.redis.master
@@ -93,7 +120,6 @@ services:
     depends_on:
       - redis-master
       - redis-slave
-
 
   zookeeper:
     image: confluentinc/cp-zookeeper:5.1.2

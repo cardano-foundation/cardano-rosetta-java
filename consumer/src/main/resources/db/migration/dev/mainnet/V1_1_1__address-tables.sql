@@ -13,7 +13,7 @@ create table mainnet.address
 );
 
 alter table mainnet.address
-    owner to "cardano-master";
+    OWNER TO "rosetta_db_admin";
 
 create table mainnet.address_token
 (
@@ -31,7 +31,7 @@ create table mainnet.address_token
 );
 
 alter table mainnet.address_token
-    owner to "cardano-master";
+    OWNER TO "rosetta_db_admin";
 
 create table mainnet.address_tx_balance
 (
@@ -47,7 +47,7 @@ create table mainnet.address_tx_balance
 );
 
 alter table mainnet.address_tx_balance
-    owner to "cardano-master";
+    OWNER TO "rosetta_db_admin";
 
 create table mainnet.asset_metadata
 (
@@ -70,4 +70,4 @@ create table mainnet.asset_metadata
 );
 
 alter table mainnet.asset_metadata
-    owner to "cardano-master";
+    OWNER TO "rosetta_db_admin";

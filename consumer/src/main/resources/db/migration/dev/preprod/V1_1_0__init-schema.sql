@@ -23,7 +23,7 @@ SET row_security = off;
 CREATE SCHEMA IF NOT EXISTS preprod;
 
 
-ALTER SCHEMA preprod OWNER TO "cardano-master";
+ALTER SCHEMA preprod OWNER TO "rosetta_db_admin";
 
 SET default_tablespace = '';
 
@@ -48,7 +48,7 @@ CREATE TABLE preprod.ada_pots (
 );
 
 
-ALTER TABLE preprod.ada_pots OWNER TO "cardano-master";
+ALTER TABLE preprod.ada_pots OWNER TO "rosetta_db_admin";
 
 --
 -- Name: ada_pots_id_seq; Type: SEQUENCE; Schema: preprod; Owner: cardano-master
@@ -62,7 +62,7 @@ CREATE SEQUENCE preprod.ada_pots_id_seq
     CACHE 1;
 
 
-ALTER TABLE preprod.ada_pots_id_seq OWNER TO "cardano-master";
+ALTER TABLE preprod.ada_pots_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: ada_pots_id_seq; Type: SEQUENCE OWNED BY; Schema: preprod; Owner: cardano-master
@@ -96,7 +96,7 @@ CREATE TABLE preprod.block (
 );
 
 
-ALTER TABLE preprod.block OWNER TO "cardano-master";
+ALTER TABLE preprod.block OWNER TO "rosetta_db_admin";
 
 --
 -- Name: block_id_seq; Type: SEQUENCE; Schema: preprod; Owner: cardano-master
@@ -110,7 +110,7 @@ CREATE SEQUENCE preprod.block_id_seq
     CACHE 1;
 
 
-ALTER TABLE preprod.block_id_seq OWNER TO "cardano-master";
+ALTER TABLE preprod.block_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: block_id_seq; Type: SEQUENCE OWNED BY; Schema: preprod; Owner: cardano-master
@@ -132,7 +132,7 @@ CREATE TABLE preprod.cost_model (
 );
 
 
-ALTER TABLE preprod.cost_model OWNER TO "cardano-master";
+ALTER TABLE preprod.cost_model OWNER TO "rosetta_db_admin";
 
 --
 -- Name: cost_model_id_seq; Type: SEQUENCE; Schema: preprod; Owner: cardano-master
@@ -146,7 +146,7 @@ CREATE SEQUENCE preprod.cost_model_id_seq
     CACHE 1;
 
 
-ALTER TABLE preprod.cost_model_id_seq OWNER TO "cardano-master";
+ALTER TABLE preprod.cost_model_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: cost_model_id_seq; Type: SEQUENCE OWNED BY; Schema: preprod; Owner: cardano-master
@@ -169,7 +169,7 @@ CREATE TABLE preprod.datum (
 );
 
 
-ALTER TABLE preprod.datum OWNER TO "cardano-master";
+ALTER TABLE preprod.datum OWNER TO "rosetta_db_admin";
 
 --
 -- Name: datum_id_seq; Type: SEQUENCE; Schema: preprod; Owner: cardano-master
@@ -183,7 +183,7 @@ CREATE SEQUENCE preprod.datum_id_seq
     CACHE 1;
 
 
-ALTER TABLE preprod.datum_id_seq OWNER TO "cardano-master";
+ALTER TABLE preprod.datum_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: datum_id_seq; Type: SEQUENCE OWNED BY; Schema: preprod; Owner: cardano-master
@@ -209,7 +209,7 @@ CREATE TABLE preprod.delegation (
 );
 
 
-ALTER TABLE preprod.delegation OWNER TO "cardano-master";
+ALTER TABLE preprod.delegation OWNER TO "rosetta_db_admin";
 
 --
 -- Name: delegation_id_seq; Type: SEQUENCE; Schema: preprod; Owner: cardano-master
@@ -223,7 +223,7 @@ CREATE SEQUENCE preprod.delegation_id_seq
     CACHE 1;
 
 
-ALTER TABLE preprod.delegation_id_seq OWNER TO "cardano-master";
+ALTER TABLE preprod.delegation_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: delegation_id_seq; Type: SEQUENCE OWNED BY; Schema: preprod; Owner: cardano-master
@@ -243,7 +243,7 @@ CREATE TABLE preprod.delisted_pool (
 );
 
 
-ALTER TABLE preprod.delisted_pool OWNER TO "cardano-master";
+ALTER TABLE preprod.delisted_pool OWNER TO "rosetta_db_admin";
 
 --
 -- Name: delisted_pool_id_seq; Type: SEQUENCE; Schema: preprod; Owner: cardano-master
@@ -257,7 +257,7 @@ CREATE SEQUENCE preprod.delisted_pool_id_seq
     CACHE 1;
 
 
-ALTER TABLE preprod.delisted_pool_id_seq OWNER TO "cardano-master";
+ALTER TABLE preprod.delisted_pool_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: delisted_pool_id_seq; Type: SEQUENCE OWNED BY; Schema: preprod; Owner: cardano-master
@@ -284,7 +284,7 @@ CREATE TABLE preprod.epoch (
 );
 
 
-ALTER TABLE preprod.epoch OWNER TO "cardano-master";
+ALTER TABLE preprod.epoch OWNER TO "rosetta_db_admin";
 
 --
 -- Name: epoch_id_seq; Type: SEQUENCE; Schema: preprod; Owner: cardano-master
@@ -298,7 +298,7 @@ CREATE SEQUENCE preprod.epoch_id_seq
     CACHE 1;
 
 
-ALTER TABLE preprod.epoch_id_seq OWNER TO "cardano-master";
+ALTER TABLE preprod.epoch_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: epoch_id_seq; Type: SEQUENCE OWNED BY; Schema: preprod; Owner: cardano-master
@@ -349,7 +349,7 @@ CREATE TABLE preprod.epoch_param (
 );
 
 
-ALTER TABLE preprod.epoch_param OWNER TO "cardano-master";
+ALTER TABLE preprod.epoch_param OWNER TO "rosetta_db_admin";
 
 --
 -- Name: epoch_param_id_seq; Type: SEQUENCE; Schema: preprod; Owner: cardano-master
@@ -363,7 +363,7 @@ CREATE SEQUENCE preprod.epoch_param_id_seq
     CACHE 1;
 
 
-ALTER TABLE preprod.epoch_param_id_seq OWNER TO "cardano-master";
+ALTER TABLE preprod.epoch_param_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: epoch_param_id_seq; Type: SEQUENCE OWNED BY; Schema: preprod; Owner: cardano-master
@@ -386,7 +386,7 @@ CREATE TABLE preprod.epoch_stake (
 );
 
 
-ALTER TABLE preprod.epoch_stake OWNER TO "cardano-master";
+ALTER TABLE preprod.epoch_stake OWNER TO "rosetta_db_admin";
 
 --
 -- Name: epoch_stake_id_seq; Type: SEQUENCE; Schema: preprod; Owner: cardano-master
@@ -400,7 +400,7 @@ CREATE SEQUENCE preprod.epoch_stake_id_seq
     CACHE 1;
 
 
-ALTER TABLE preprod.epoch_stake_id_seq OWNER TO "cardano-master";
+ALTER TABLE preprod.epoch_stake_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: epoch_stake_id_seq; Type: SEQUENCE OWNED BY; Schema: preprod; Owner: cardano-master
@@ -422,7 +422,7 @@ CREATE TABLE preprod.epoch_sync_time (
 );
 
 
-ALTER TABLE preprod.epoch_sync_time OWNER TO "cardano-master";
+ALTER TABLE preprod.epoch_sync_time OWNER TO "rosetta_db_admin";
 
 --
 -- Name: epoch_sync_time_id_seq; Type: SEQUENCE; Schema: preprod; Owner: cardano-master
@@ -436,7 +436,7 @@ CREATE SEQUENCE preprod.epoch_sync_time_id_seq
     CACHE 1;
 
 
-ALTER TABLE preprod.epoch_sync_time_id_seq OWNER TO "cardano-master";
+ALTER TABLE preprod.epoch_sync_time_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: epoch_sync_time_id_seq; Type: SEQUENCE OWNED BY; Schema: preprod; Owner: cardano-master
@@ -457,7 +457,7 @@ CREATE TABLE preprod.extra_key_witness (
 );
 
 
-ALTER TABLE preprod.extra_key_witness OWNER TO "cardano-master";
+ALTER TABLE preprod.extra_key_witness OWNER TO "rosetta_db_admin";
 
 --
 -- Name: extra_key_witness_id_seq; Type: SEQUENCE; Schema: preprod; Owner: cardano-master
@@ -471,7 +471,7 @@ CREATE SEQUENCE preprod.extra_key_witness_id_seq
     CACHE 1;
 
 
-ALTER TABLE preprod.extra_key_witness_id_seq OWNER TO "cardano-master";
+ALTER TABLE preprod.extra_key_witness_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: extra_key_witness_id_seq; Type: SEQUENCE OWNED BY; Schema: preprod; Owner: cardano-master
@@ -502,7 +502,7 @@ CREATE TABLE preprod.failed_tx_out (
 );
 
 
-ALTER TABLE preprod.failed_tx_out OWNER TO "cardano-master";
+ALTER TABLE preprod.failed_tx_out OWNER TO "rosetta_db_admin";
 
 --
 -- Name: failed_tx_out_id_seq; Type: SEQUENCE; Schema: preprod; Owner: cardano-master
@@ -516,7 +516,7 @@ CREATE SEQUENCE preprod.failed_tx_out_id_seq
     CACHE 1;
 
 
-ALTER TABLE preprod.failed_tx_out_id_seq OWNER TO "cardano-master";
+ALTER TABLE preprod.failed_tx_out_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: failed_tx_out_id_seq; Type: SEQUENCE OWNED BY; Schema: preprod; Owner: cardano-master
@@ -538,7 +538,7 @@ CREATE TABLE preprod.ma_tx_mint (
 );
 
 
-ALTER TABLE preprod.ma_tx_mint OWNER TO "cardano-master";
+ALTER TABLE preprod.ma_tx_mint OWNER TO "rosetta_db_admin";
 
 --
 -- Name: ma_tx_mint_id_seq; Type: SEQUENCE; Schema: preprod; Owner: cardano-master
@@ -552,7 +552,7 @@ CREATE SEQUENCE preprod.ma_tx_mint_id_seq
     CACHE 1;
 
 
-ALTER TABLE preprod.ma_tx_mint_id_seq OWNER TO "cardano-master";
+ALTER TABLE preprod.ma_tx_mint_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: ma_tx_mint_id_seq; Type: SEQUENCE OWNED BY; Schema: preprod; Owner: cardano-master
@@ -574,7 +574,7 @@ CREATE TABLE preprod.ma_tx_out (
 );
 
 
-ALTER TABLE preprod.ma_tx_out OWNER TO "cardano-master";
+ALTER TABLE preprod.ma_tx_out OWNER TO "rosetta_db_admin";
 
 --
 -- Name: ma_tx_out_id_seq; Type: SEQUENCE; Schema: preprod; Owner: cardano-master
@@ -588,7 +588,7 @@ CREATE SEQUENCE preprod.ma_tx_out_id_seq
     CACHE 1;
 
 
-ALTER TABLE preprod.ma_tx_out_id_seq OWNER TO "cardano-master";
+ALTER TABLE preprod.ma_tx_out_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: ma_tx_out_id_seq; Type: SEQUENCE OWNED BY; Schema: preprod; Owner: cardano-master
@@ -610,7 +610,7 @@ CREATE TABLE preprod.meta (
 );
 
 
-ALTER TABLE preprod.meta OWNER TO "cardano-master";
+ALTER TABLE preprod.meta OWNER TO "rosetta_db_admin";
 
 --
 -- Name: meta_id_seq; Type: SEQUENCE; Schema: preprod; Owner: cardano-master
@@ -624,7 +624,7 @@ CREATE SEQUENCE preprod.meta_id_seq
     CACHE 1;
 
 
-ALTER TABLE preprod.meta_id_seq OWNER TO "cardano-master";
+ALTER TABLE preprod.meta_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: meta_id_seq; Type: SEQUENCE OWNED BY; Schema: preprod; Owner: cardano-master
@@ -649,7 +649,7 @@ CREATE TABLE preprod.multi_asset (
 );
 
 
-ALTER TABLE preprod.multi_asset OWNER TO "cardano-master";
+ALTER TABLE preprod.multi_asset OWNER TO "rosetta_db_admin";
 
 --
 -- Name: multi_asset_id_seq; Type: SEQUENCE; Schema: preprod; Owner: cardano-master
@@ -663,7 +663,7 @@ CREATE SEQUENCE preprod.multi_asset_id_seq
     CACHE 1;
 
 
-ALTER TABLE preprod.multi_asset_id_seq OWNER TO "cardano-master";
+ALTER TABLE preprod.multi_asset_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: multi_asset_id_seq; Type: SEQUENCE OWNED BY; Schema: preprod; Owner: cardano-master
@@ -714,7 +714,7 @@ CREATE TABLE preprod.param_proposal (
 );
 
 
-ALTER TABLE preprod.param_proposal OWNER TO "cardano-master";
+ALTER TABLE preprod.param_proposal OWNER TO "rosetta_db_admin";
 
 --
 -- Name: param_proposal_id_seq; Type: SEQUENCE; Schema: preprod; Owner: cardano-master
@@ -728,7 +728,7 @@ CREATE SEQUENCE preprod.param_proposal_id_seq
     CACHE 1;
 
 
-ALTER TABLE preprod.param_proposal_id_seq OWNER TO "cardano-master";
+ALTER TABLE preprod.param_proposal_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: param_proposal_id_seq; Type: SEQUENCE OWNED BY; Schema: preprod; Owner: cardano-master
@@ -751,7 +751,7 @@ CREATE TABLE preprod.pool_hash (
 );
 
 
-ALTER TABLE preprod.pool_hash OWNER TO "cardano-master";
+ALTER TABLE preprod.pool_hash OWNER TO "rosetta_db_admin";
 
 --
 -- Name: pool_hash_id_seq; Type: SEQUENCE; Schema: preprod; Owner: cardano-master
@@ -765,7 +765,7 @@ CREATE SEQUENCE preprod.pool_hash_id_seq
     CACHE 1;
 
 
-ALTER TABLE preprod.pool_hash_id_seq OWNER TO "cardano-master";
+ALTER TABLE preprod.pool_hash_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: pool_hash_id_seq; Type: SEQUENCE OWNED BY; Schema: preprod; Owner: cardano-master
@@ -788,7 +788,7 @@ CREATE TABLE preprod.pool_metadata_ref (
 );
 
 
-ALTER TABLE preprod.pool_metadata_ref OWNER TO "cardano-master";
+ALTER TABLE preprod.pool_metadata_ref OWNER TO "rosetta_db_admin";
 
 --
 -- Name: pool_metadata_ref_id_seq; Type: SEQUENCE; Schema: preprod; Owner: cardano-master
@@ -802,7 +802,7 @@ CREATE SEQUENCE preprod.pool_metadata_ref_id_seq
     CACHE 1;
 
 
-ALTER TABLE preprod.pool_metadata_ref_id_seq OWNER TO "cardano-master";
+ALTER TABLE preprod.pool_metadata_ref_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: pool_metadata_ref_id_seq; Type: SEQUENCE OWNED BY; Schema: preprod; Owner: cardano-master
@@ -827,7 +827,7 @@ CREATE TABLE preprod.pool_offline_data (
 );
 
 
-ALTER TABLE preprod.pool_offline_data OWNER TO "cardano-master";
+ALTER TABLE preprod.pool_offline_data OWNER TO "rosetta_db_admin";
 
 --
 -- Name: pool_offline_data_id_seq; Type: SEQUENCE; Schema: preprod; Owner: cardano-master
@@ -841,7 +841,7 @@ CREATE SEQUENCE preprod.pool_offline_data_id_seq
     CACHE 1;
 
 
-ALTER TABLE preprod.pool_offline_data_id_seq OWNER TO "cardano-master";
+ALTER TABLE preprod.pool_offline_data_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: pool_offline_data_id_seq; Type: SEQUENCE OWNED BY; Schema: preprod; Owner: cardano-master
@@ -865,7 +865,7 @@ CREATE TABLE preprod.pool_offline_fetch_error (
 );
 
 
-ALTER TABLE preprod.pool_offline_fetch_error OWNER TO "cardano-master";
+ALTER TABLE preprod.pool_offline_fetch_error OWNER TO "rosetta_db_admin";
 
 --
 -- Name: pool_offline_fetch_error_id_seq; Type: SEQUENCE; Schema: preprod; Owner: cardano-master
@@ -879,7 +879,7 @@ CREATE SEQUENCE preprod.pool_offline_fetch_error_id_seq
     CACHE 1;
 
 
-ALTER TABLE preprod.pool_offline_fetch_error_id_seq OWNER TO "cardano-master";
+ALTER TABLE preprod.pool_offline_fetch_error_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: pool_offline_fetch_error_id_seq; Type: SEQUENCE OWNED BY; Schema: preprod; Owner: cardano-master
@@ -900,7 +900,7 @@ CREATE TABLE preprod.pool_owner (
 );
 
 
-ALTER TABLE preprod.pool_owner OWNER TO "cardano-master";
+ALTER TABLE preprod.pool_owner OWNER TO "rosetta_db_admin";
 
 --
 -- Name: pool_owner_id_seq; Type: SEQUENCE; Schema: preprod; Owner: cardano-master
@@ -914,7 +914,7 @@ CREATE SEQUENCE preprod.pool_owner_id_seq
     CACHE 1;
 
 
-ALTER TABLE preprod.pool_owner_id_seq OWNER TO "cardano-master";
+ALTER TABLE preprod.pool_owner_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: pool_owner_id_seq; Type: SEQUENCE OWNED BY; Schema: preprod; Owner: cardano-master
@@ -939,7 +939,7 @@ CREATE TABLE preprod.pool_relay (
 );
 
 
-ALTER TABLE preprod.pool_relay OWNER TO "cardano-master";
+ALTER TABLE preprod.pool_relay OWNER TO "rosetta_db_admin";
 
 --
 -- Name: pool_relay_id_seq; Type: SEQUENCE; Schema: preprod; Owner: cardano-master
@@ -953,7 +953,7 @@ CREATE SEQUENCE preprod.pool_relay_id_seq
     CACHE 1;
 
 
-ALTER TABLE preprod.pool_relay_id_seq OWNER TO "cardano-master";
+ALTER TABLE preprod.pool_relay_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: pool_relay_id_seq; Type: SEQUENCE OWNED BY; Schema: preprod; Owner: cardano-master
@@ -976,7 +976,7 @@ CREATE TABLE preprod.pool_retire (
 );
 
 
-ALTER TABLE preprod.pool_retire OWNER TO "cardano-master";
+ALTER TABLE preprod.pool_retire OWNER TO "rosetta_db_admin";
 
 --
 -- Name: pool_retire_id_seq; Type: SEQUENCE; Schema: preprod; Owner: cardano-master
@@ -990,7 +990,7 @@ CREATE SEQUENCE preprod.pool_retire_id_seq
     CACHE 1;
 
 
-ALTER TABLE preprod.pool_retire_id_seq OWNER TO "cardano-master";
+ALTER TABLE preprod.pool_retire_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: pool_retire_id_seq; Type: SEQUENCE OWNED BY; Schema: preprod; Owner: cardano-master
@@ -1011,7 +1011,7 @@ CREATE TABLE preprod.pool_stake (
 );
 
 
-ALTER TABLE preprod.pool_stake OWNER TO "cardano-master";
+ALTER TABLE preprod.pool_stake OWNER TO "rosetta_db_admin";
 
 --
 -- Name: pool_stake_id_seq; Type: SEQUENCE; Schema: preprod; Owner: cardano-master
@@ -1025,7 +1025,7 @@ CREATE SEQUENCE preprod.pool_stake_id_seq
     CACHE 1;
 
 
-ALTER TABLE preprod.pool_stake_id_seq OWNER TO "cardano-master";
+ALTER TABLE preprod.pool_stake_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: pool_stake_id_seq; Type: SEQUENCE OWNED BY; Schema: preprod; Owner: cardano-master
@@ -1054,7 +1054,7 @@ CREATE TABLE preprod.pool_update (
 );
 
 
-ALTER TABLE preprod.pool_update OWNER TO "cardano-master";
+ALTER TABLE preprod.pool_update OWNER TO "rosetta_db_admin";
 
 --
 -- Name: pool_update_id_seq; Type: SEQUENCE; Schema: preprod; Owner: cardano-master
@@ -1068,7 +1068,7 @@ CREATE SEQUENCE preprod.pool_update_id_seq
     CACHE 1;
 
 
-ALTER TABLE preprod.pool_update_id_seq OWNER TO "cardano-master";
+ALTER TABLE preprod.pool_update_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: pool_update_id_seq; Type: SEQUENCE OWNED BY; Schema: preprod; Owner: cardano-master
@@ -1091,7 +1091,7 @@ CREATE TABLE preprod.pot_transfer (
 );
 
 
-ALTER TABLE preprod.pot_transfer OWNER TO "cardano-master";
+ALTER TABLE preprod.pot_transfer OWNER TO "rosetta_db_admin";
 
 --
 -- Name: pot_transfer_id_seq; Type: SEQUENCE; Schema: preprod; Owner: cardano-master
@@ -1105,7 +1105,7 @@ CREATE SEQUENCE preprod.pot_transfer_id_seq
     CACHE 1;
 
 
-ALTER TABLE preprod.pot_transfer_id_seq OWNER TO "cardano-master";
+ALTER TABLE preprod.pot_transfer_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: pot_transfer_id_seq; Type: SEQUENCE OWNED BY; Schema: preprod; Owner: cardano-master
@@ -1132,7 +1132,7 @@ CREATE TABLE preprod.redeemer (
 );
 
 
-ALTER TABLE preprod.redeemer OWNER TO "cardano-master";
+ALTER TABLE preprod.redeemer OWNER TO "rosetta_db_admin";
 
 --
 -- Name: redeemer_data; Type: TABLE; Schema: preprod; Owner: cardano-master
@@ -1148,7 +1148,7 @@ CREATE TABLE preprod.redeemer_data (
 );
 
 
-ALTER TABLE preprod.redeemer_data OWNER TO "cardano-master";
+ALTER TABLE preprod.redeemer_data OWNER TO "rosetta_db_admin";
 
 --
 -- Name: redeemer_data_id_seq; Type: SEQUENCE; Schema: preprod; Owner: cardano-master
@@ -1162,7 +1162,7 @@ CREATE SEQUENCE preprod.redeemer_data_id_seq
     CACHE 1;
 
 
-ALTER TABLE preprod.redeemer_data_id_seq OWNER TO "cardano-master";
+ALTER TABLE preprod.redeemer_data_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: redeemer_data_id_seq; Type: SEQUENCE OWNED BY; Schema: preprod; Owner: cardano-master
@@ -1183,7 +1183,7 @@ CREATE SEQUENCE preprod.redeemer_id_seq
     CACHE 1;
 
 
-ALTER TABLE preprod.redeemer_id_seq OWNER TO "cardano-master";
+ALTER TABLE preprod.redeemer_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: redeemer_id_seq; Type: SEQUENCE OWNED BY; Schema: preprod; Owner: cardano-master
@@ -1205,7 +1205,7 @@ CREATE TABLE preprod.reference_tx_in (
 );
 
 
-ALTER TABLE preprod.reference_tx_in OWNER TO "cardano-master";
+ALTER TABLE preprod.reference_tx_in OWNER TO "rosetta_db_admin";
 
 --
 -- Name: reference_tx_in_id_seq; Type: SEQUENCE; Schema: preprod; Owner: cardano-master
@@ -1219,7 +1219,7 @@ CREATE SEQUENCE preprod.reference_tx_in_id_seq
     CACHE 1;
 
 
-ALTER TABLE preprod.reference_tx_in_id_seq OWNER TO "cardano-master";
+ALTER TABLE preprod.reference_tx_in_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: reference_tx_in_id_seq; Type: SEQUENCE OWNED BY; Schema: preprod; Owner: cardano-master
@@ -1242,7 +1242,7 @@ CREATE TABLE preprod.reserve (
 );
 
 
-ALTER TABLE preprod.reserve OWNER TO "cardano-master";
+ALTER TABLE preprod.reserve OWNER TO "rosetta_db_admin";
 
 --
 -- Name: reserve_id_seq; Type: SEQUENCE; Schema: preprod; Owner: cardano-master
@@ -1256,7 +1256,7 @@ CREATE SEQUENCE preprod.reserve_id_seq
     CACHE 1;
 
 
-ALTER TABLE preprod.reserve_id_seq OWNER TO "cardano-master";
+ALTER TABLE preprod.reserve_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: reserve_id_seq; Type: SEQUENCE OWNED BY; Schema: preprod; Owner: cardano-master
@@ -1277,7 +1277,7 @@ CREATE TABLE preprod.reserved_pool_ticker (
 );
 
 
-ALTER TABLE preprod.reserved_pool_ticker OWNER TO "cardano-master";
+ALTER TABLE preprod.reserved_pool_ticker OWNER TO "rosetta_db_admin";
 
 --
 -- Name: reserved_pool_ticker_id_seq; Type: SEQUENCE; Schema: preprod; Owner: cardano-master
@@ -1291,7 +1291,7 @@ CREATE SEQUENCE preprod.reserved_pool_ticker_id_seq
     CACHE 1;
 
 
-ALTER TABLE preprod.reserved_pool_ticker_id_seq OWNER TO "cardano-master";
+ALTER TABLE preprod.reserved_pool_ticker_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: reserved_pool_ticker_id_seq; Type: SEQUENCE OWNED BY; Schema: preprod; Owner: cardano-master
@@ -1316,7 +1316,7 @@ CREATE TABLE preprod.reward (
 );
 
 
-ALTER TABLE preprod.reward OWNER TO "cardano-master";
+ALTER TABLE preprod.reward OWNER TO "rosetta_db_admin";
 
 --
 -- Name: reward_id_seq; Type: SEQUENCE; Schema: preprod; Owner: cardano-master
@@ -1330,7 +1330,7 @@ CREATE SEQUENCE preprod.reward_id_seq
     CACHE 1;
 
 
-ALTER TABLE preprod.reward_id_seq OWNER TO "cardano-master";
+ALTER TABLE preprod.reward_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: reward_id_seq; Type: SEQUENCE OWNED BY; Schema: preprod; Owner: cardano-master
@@ -1352,7 +1352,7 @@ CREATE TABLE preprod.schema_version (
 );
 
 
-ALTER TABLE preprod.schema_version OWNER TO "cardano-master";
+ALTER TABLE preprod.schema_version OWNER TO "rosetta_db_admin";
 
 --
 -- Name: schema_version_id_seq; Type: SEQUENCE; Schema: preprod; Owner: cardano-master
@@ -1366,7 +1366,7 @@ CREATE SEQUENCE preprod.schema_version_id_seq
     CACHE 1;
 
 
-ALTER TABLE preprod.schema_version_id_seq OWNER TO "cardano-master";
+ALTER TABLE preprod.schema_version_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: schema_version_id_seq; Type: SEQUENCE OWNED BY; Schema: preprod; Owner: cardano-master
@@ -1391,7 +1391,7 @@ CREATE TABLE preprod.script (
 );
 
 
-ALTER TABLE preprod.script OWNER TO "cardano-master";
+ALTER TABLE preprod.script OWNER TO "rosetta_db_admin";
 
 --
 -- Name: script_id_seq; Type: SEQUENCE; Schema: preprod; Owner: cardano-master
@@ -1405,7 +1405,7 @@ CREATE SEQUENCE preprod.script_id_seq
     CACHE 1;
 
 
-ALTER TABLE preprod.script_id_seq OWNER TO "cardano-master";
+ALTER TABLE preprod.script_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: script_id_seq; Type: SEQUENCE OWNED BY; Schema: preprod; Owner: cardano-master
@@ -1427,7 +1427,7 @@ CREATE TABLE preprod.slot_leader (
 );
 
 
-ALTER TABLE preprod.slot_leader OWNER TO "cardano-master";
+ALTER TABLE preprod.slot_leader OWNER TO "rosetta_db_admin";
 
 --
 -- Name: slot_leader_id_seq; Type: SEQUENCE; Schema: preprod; Owner: cardano-master
@@ -1441,7 +1441,7 @@ CREATE SEQUENCE preprod.slot_leader_id_seq
     CACHE 1;
 
 
-ALTER TABLE preprod.slot_leader_id_seq OWNER TO "cardano-master";
+ALTER TABLE preprod.slot_leader_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: slot_leader_id_seq; Type: SEQUENCE OWNED BY; Schema: preprod; Owner: cardano-master
@@ -1464,7 +1464,7 @@ CREATE TABLE preprod.stake_address (
 );
 
 
-ALTER TABLE preprod.stake_address OWNER TO "cardano-master";
+ALTER TABLE preprod.stake_address OWNER TO "rosetta_db_admin";
 
 --
 -- Name: stake_address_id_seq; Type: SEQUENCE; Schema: preprod; Owner: cardano-master
@@ -1478,7 +1478,7 @@ CREATE SEQUENCE preprod.stake_address_id_seq
     CACHE 1;
 
 
-ALTER TABLE preprod.stake_address_id_seq OWNER TO "cardano-master";
+ALTER TABLE preprod.stake_address_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: stake_address_id_seq; Type: SEQUENCE OWNED BY; Schema: preprod; Owner: cardano-master
@@ -1502,7 +1502,7 @@ CREATE TABLE preprod.stake_deregistration (
 );
 
 
-ALTER TABLE preprod.stake_deregistration OWNER TO "cardano-master";
+ALTER TABLE preprod.stake_deregistration OWNER TO "rosetta_db_admin";
 
 --
 -- Name: stake_deregistration_id_seq; Type: SEQUENCE; Schema: preprod; Owner: cardano-master
@@ -1516,7 +1516,7 @@ CREATE SEQUENCE preprod.stake_deregistration_id_seq
     CACHE 1;
 
 
-ALTER TABLE preprod.stake_deregistration_id_seq OWNER TO "cardano-master";
+ALTER TABLE preprod.stake_deregistration_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: stake_deregistration_id_seq; Type: SEQUENCE OWNED BY; Schema: preprod; Owner: cardano-master
@@ -1539,7 +1539,7 @@ CREATE TABLE preprod.stake_registration (
 );
 
 
-ALTER TABLE preprod.stake_registration OWNER TO "cardano-master";
+ALTER TABLE preprod.stake_registration OWNER TO "rosetta_db_admin";
 
 --
 -- Name: stake_registration_id_seq; Type: SEQUENCE; Schema: preprod; Owner: cardano-master
@@ -1553,7 +1553,7 @@ CREATE SEQUENCE preprod.stake_registration_id_seq
     CACHE 1;
 
 
-ALTER TABLE preprod.stake_registration_id_seq OWNER TO "cardano-master";
+ALTER TABLE preprod.stake_registration_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: stake_registration_id_seq; Type: SEQUENCE OWNED BY; Schema: preprod; Owner: cardano-master
@@ -1576,7 +1576,7 @@ CREATE TABLE preprod.treasury (
 );
 
 
-ALTER TABLE preprod.treasury OWNER TO "cardano-master";
+ALTER TABLE preprod.treasury OWNER TO "rosetta_db_admin";
 
 --
 -- Name: treasury_id_seq; Type: SEQUENCE; Schema: preprod; Owner: cardano-master
@@ -1590,7 +1590,7 @@ CREATE SEQUENCE preprod.treasury_id_seq
     CACHE 1;
 
 
-ALTER TABLE preprod.treasury_id_seq OWNER TO "cardano-master";
+ALTER TABLE preprod.treasury_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: treasury_id_seq; Type: SEQUENCE OWNED BY; Schema: preprod; Owner: cardano-master
@@ -1620,7 +1620,7 @@ CREATE TABLE preprod.tx (
 );
 
 
-ALTER TABLE preprod.tx OWNER TO "cardano-master";
+ALTER TABLE preprod.tx OWNER TO "rosetta_db_admin";
 
 --
 -- Name: tx_id_seq; Type: SEQUENCE; Schema: preprod; Owner: cardano-master
@@ -1634,7 +1634,7 @@ CREATE SEQUENCE preprod.tx_id_seq
     CACHE 1;
 
 
-ALTER TABLE preprod.tx_id_seq OWNER TO "cardano-master";
+ALTER TABLE preprod.tx_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: tx_id_seq; Type: SEQUENCE OWNED BY; Schema: preprod; Owner: cardano-master
@@ -1657,7 +1657,7 @@ CREATE TABLE preprod.tx_in (
 );
 
 
-ALTER TABLE preprod.tx_in OWNER TO "cardano-master";
+ALTER TABLE preprod.tx_in OWNER TO "rosetta_db_admin";
 
 --
 -- Name: tx_in_id_seq; Type: SEQUENCE; Schema: preprod; Owner: cardano-master
@@ -1671,7 +1671,7 @@ CREATE SEQUENCE preprod.tx_in_id_seq
     CACHE 1;
 
 
-ALTER TABLE preprod.tx_in_id_seq OWNER TO "cardano-master";
+ALTER TABLE preprod.tx_in_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: tx_in_id_seq; Type: SEQUENCE OWNED BY; Schema: preprod; Owner: cardano-master
@@ -1694,7 +1694,7 @@ CREATE TABLE preprod.tx_metadata (
 );
 
 
-ALTER TABLE preprod.tx_metadata OWNER TO "cardano-master";
+ALTER TABLE preprod.tx_metadata OWNER TO "rosetta_db_admin";
 
 --
 -- Name: tx_metadata_id_seq; Type: SEQUENCE; Schema: preprod; Owner: cardano-master
@@ -1708,7 +1708,7 @@ CREATE SEQUENCE preprod.tx_metadata_id_seq
     CACHE 1;
 
 
-ALTER TABLE preprod.tx_metadata_id_seq OWNER TO "cardano-master";
+ALTER TABLE preprod.tx_metadata_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: tx_metadata_id_seq; Type: SEQUENCE OWNED BY; Schema: preprod; Owner: cardano-master
@@ -1740,7 +1740,7 @@ CREATE TABLE preprod.tx_out (
 );
 
 
-ALTER TABLE preprod.tx_out OWNER TO "cardano-master";
+ALTER TABLE preprod.tx_out OWNER TO "rosetta_db_admin";
 
 --
 -- Name: tx_out_id_seq; Type: SEQUENCE; Schema: preprod; Owner: cardano-master
@@ -1754,7 +1754,7 @@ CREATE SEQUENCE preprod.tx_out_id_seq
     CACHE 1;
 
 
-ALTER TABLE preprod.tx_out_id_seq OWNER TO "cardano-master";
+ALTER TABLE preprod.tx_out_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: tx_out_id_seq; Type: SEQUENCE OWNED BY; Schema: preprod; Owner: cardano-master
@@ -1776,7 +1776,7 @@ CREATE TABLE preprod.unconsume_tx_in (
 );
 
 
-ALTER TABLE preprod.unconsume_tx_in OWNER TO "cardano-master";
+ALTER TABLE preprod.unconsume_tx_in OWNER TO "rosetta_db_admin";
 
 --
 -- Name: unconsume_tx_in_id_seq; Type: SEQUENCE; Schema: preprod; Owner: cardano-master
@@ -1790,7 +1790,7 @@ CREATE SEQUENCE preprod.unconsume_tx_in_id_seq
     CACHE 1;
 
 
-ALTER TABLE preprod.unconsume_tx_in_id_seq OWNER TO "cardano-master";
+ALTER TABLE preprod.unconsume_tx_in_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: unconsume_tx_in_id_seq; Type: SEQUENCE OWNED BY; Schema: preprod; Owner: cardano-master
@@ -1813,7 +1813,7 @@ CREATE TABLE preprod.withdrawal (
 );
 
 
-ALTER TABLE preprod.withdrawal OWNER TO "cardano-master";
+ALTER TABLE preprod.withdrawal OWNER TO "rosetta_db_admin";
 
 --
 -- Name: withdrawal_id_seq; Type: SEQUENCE; Schema: preprod; Owner: cardano-master
@@ -1827,7 +1827,7 @@ CREATE SEQUENCE preprod.withdrawal_id_seq
     CACHE 1;
 
 
-ALTER TABLE preprod.withdrawal_id_seq OWNER TO "cardano-master";
+ALTER TABLE preprod.withdrawal_id_seq OWNER TO "rosetta_db_admin";
 
 --
 -- Name: withdrawal_id_seq; Type: SEQUENCE OWNED BY; Schema: preprod; Owner: cardano-master
