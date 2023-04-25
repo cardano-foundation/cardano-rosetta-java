@@ -13,11 +13,6 @@ import javax.annotation.Generated;
  * CoinActions are different state changes that a Coin can undergo. When a Coin is created, it is coin_created. When a Coin is spent, it is coin_spent. It is assumed that a single Coin cannot be created or spent more than once.
  */
 
-@Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2023-03-21T15:54:41.273447600+07:00[Asia/Bangkok]")
-@AllArgsConstructor
-@NoArgsConstructor
-@Setter
-@Getter
 public enum CoinAction {
   
   CREATED("coin_created"),

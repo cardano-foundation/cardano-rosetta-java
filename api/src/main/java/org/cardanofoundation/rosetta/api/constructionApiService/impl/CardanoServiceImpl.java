@@ -49,8 +49,8 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
-@Service
 @Slf4j
+@Service
 public class CardanoServiceImpl implements CardanoService {
     @Autowired
     BlockRepository blockRepository;

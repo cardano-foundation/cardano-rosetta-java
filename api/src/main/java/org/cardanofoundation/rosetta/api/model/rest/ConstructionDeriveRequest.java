@@ -2,6 +2,10 @@ package org.cardanofoundation.rosetta.api.model.rest;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.cardanofoundation.rosetta.api.model.ConstructionDeriveRequestMetadata;
 import org.cardanofoundation.rosetta.api.model.PublicKey;
 
@@ -13,6 +17,10 @@ import java.util.Objects;
  * @author Sotatek-HoangNguyen9
  * @since 12/04/2023 17:13
  */
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
 public class ConstructionDeriveRequest {
     @JsonProperty("network_identifier")
     private NetworkIdentifier networkIdentifier;
@@ -22,83 +30,6 @@ public class ConstructionDeriveRequest {
 
     @JsonProperty("metadata")
     private ConstructionDeriveRequestMetadata metadata;
-
-    public ConstructionDeriveRequest networkIdentifier(NetworkIdentifier networkIdentifier) {
-        this.networkIdentifier = networkIdentifier;
-        return this;
-    }
-
-    /**
-     * Get networkIdentifier
-     * @return networkIdentifier
-     */
-    @NotNull
-    @Valid
-    @Schema(name = "network_identifier", requiredMode = Schema.RequiredMode.REQUIRED)
-    public NetworkIdentifier getNetworkIdentifier() {
-        return networkIdentifier;
-    }
-
-    public void setNetworkIdentifier(NetworkIdentifier networkIdentifier) {
-        this.networkIdentifier = networkIdentifier;
-    }
-
-    public ConstructionDeriveRequest publicKey(PublicKey publicKey) {
-        this.publicKey = publicKey;
-        return this;
-    }
-
-    /**
-     * Get publicKey
-     * @return publicKey
-     */
-    @NotNull @Valid
-    @Schema(name = "public_key", requiredMode = Schema.RequiredMode.REQUIRED)
-    public PublicKey getPublicKey() {
-        return publicKey;
-    }
-
-    public void setPublicKey(PublicKey publicKey) {
-        this.publicKey = publicKey;
-    }
-
-    public ConstructionDeriveRequest metadata(ConstructionDeriveRequestMetadata metadata) {
-        this.metadata = metadata;
-        return this;
-    }
-
-    /**
-     * Get metadata
-     * @return metadata
-     */
-    @Valid
-    @Schema(name = "metadata", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
-    public ConstructionDeriveRequestMetadata getMetadata() {
-        return metadata;
-    }
-
-    public void setMetadata(ConstructionDeriveRequestMetadata metadata) {
-        this.metadata = metadata;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        ConstructionDeriveRequest constructionDeriveRequest = (ConstructionDeriveRequest) o;
-        return Objects.equals(this.networkIdentifier, constructionDeriveRequest.networkIdentifier) &&
-                Objects.equals(this.publicKey, constructionDeriveRequest.publicKey) &&
-                Objects.equals(this.metadata, constructionDeriveRequest.metadata);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(networkIdentifier, publicKey, metadata);
-    }
 
     @Override
     public String toString() {

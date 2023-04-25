@@ -9,6 +9,7 @@ import com.bloxbean.cardano.client.exception.CborSerializationException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.cardanofoundation.rosetta.api.addedenum.NetworkIdentifierEnum;
 import org.cardanofoundation.rosetta.api.model.rest.*;
+import org.springframework.stereotype.Repository;
 
 import java.io.IOException;
 

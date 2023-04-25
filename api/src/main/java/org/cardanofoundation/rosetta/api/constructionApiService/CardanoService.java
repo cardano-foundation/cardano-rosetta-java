@@ -21,6 +21,7 @@ import org.cardanofoundation.rosetta.api.model.*;
 import org.cardanofoundation.rosetta.api.model.rest.AccountIdentifier;
 import org.cardanofoundation.rosetta.api.model.rest.NetworkIdentifier;
 import org.cardanofoundation.rosetta.api.model.rest.TransactionIdentifierResponse;
+import org.springframework.stereotype.Repository;
 
 import java.io.IOException;
 import java.net.Inet4Address;
@@ -30,6 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 
 public interface CardanoService {
     String hex(byte[] bytes);

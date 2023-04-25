@@ -22,15 +22,18 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.adabox.util.HexUtil;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 
+import org.aspectj.lang.annotation.DeclareError;
 import org.bouncycastle.util.encoders.Hex;
 import org.cardanofoundation.rosetta.api.addedClass.*;
 import org.cardanofoundation.rosetta.api.addedClass.BlockResponse;
 import org.cardanofoundation.rosetta.api.addedRepo.BlockRepository;
 import org.cardanofoundation.rosetta.api.addedconsotant.Const;
 import org.cardanofoundation.rosetta.api.addedenum.*;
+import org.cardanofoundation.rosetta.api.constructionApiService.CardanoService;
 import org.cardanofoundation.rosetta.api.constructionApiService.ConstructionApiService;
 import org.cardanofoundation.rosetta.api.model.*;
 import org.cardanofoundation.rosetta.api.model.Currency;
@@ -48,18 +51,18 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
-@Service
 @Slf4j
 @RequiredArgsConstructor
+@Service
 public class ConstructionApiServiceImpl implements ConstructionApiService {
 
     @Autowired
-    CardanoServiceImpl cardanoService;
+    CardanoService cardanoService;
 
     @Autowired
     BlockRepository blockRepository;
 
-    private final LocalTxSubmissionClient localTxSubmissionClient;
+//    private final LocalTxSubmissionClient localTxSubmissionClient;
 
     @Override
     public ConstructionDeriveResponse constructionDeriveService(ConstructionDeriveRequest constructionDeriveRequest) throws IllegalAccessException {
@@ -233,12 +236,13 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
 
     @Override
     public TransactionIdentifierResponse constructionSubmitService(ConstructionSubmitRequest constructionSubmitRequest) throws CborDeserializationException, CborSerializationException {
-        byte[] signedTransactionBytes = HexUtil.decodeHexString(constructionSubmitRequest.getSignedTransaction());
-        Transaction parsed = Transaction.deserialize(signedTransactionBytes);
-        TxSubmissionRequest txnRequest = new TxSubmissionRequest(parsed.serialize());
-        localTxSubmissionClient.submitTxCallback(txnRequest);
-        Map map = cardanoService.decodeExtraData(constructionSubmitRequest.getSignedTransaction());
-        String transactionHash = cardanoService.getHashOfSignedTransaction(((UnicodeString) map.get(new UnicodeString("transaction"))).getString());
-        return cardanoService.mapToConstructionHashResponse(transactionHash);
+//        byte[] signedTransactionBytes = HexUtil.decodeHexString(constructionSubmitRequest.getSignedTransaction());
+//        Transaction parsed = Transaction.deserialize(signedTransactionBytes);
+//        TxSubmissionRequest txnRequest = new TxSubmissionRequest(parsed.serialize());
+//        localTxSubmissionClient.submitTxCallback(txnRequest);
+//        Map map = cardanoService.decodeExtraData(constructionSubmitRequest.getSignedTransaction());
+//        String transactionHash = cardanoService.getHashOfSignedTransaction(((UnicodeString) map.get(new UnicodeString("transaction"))).getString());
+//        return cardanoService.mapToConstructionHashResponse(transactionHash);
+        return null;
     }
 }

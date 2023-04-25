@@ -4,16 +4,18 @@ import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.api.addedClass.AddedNetWork;
 import org.cardanofoundation.rosetta.api.addedRepo.BlockRepository;
 import org.cardanofoundation.rosetta.api.addedconsotant.Const;
+import org.cardanofoundation.rosetta.api.constructionApiService.CardanoService;
 import org.cardanofoundation.rosetta.api.constructionApiService.CheckService;
 import org.cardanofoundation.rosetta.api.model.rest.NetworkIdentifier;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-@Service
+
 @Slf4j
+@Service
 public class CheckServiceImpl implements CheckService {
     @Autowired
-    CardanoServiceImpl cardanoService;
+    CardanoService cardanoService;
 
     @Autowired
     BlockRepository blockRepository;
@@ -29,7 +31,7 @@ public class CheckServiceImpl implements CheckService {
             throw new IllegalArgumentException("invalidBlockchainError");
         }
 
-        boolean networkExists = getSupportedNetwork(null, null).getNetworkId().equals(network);
+        boolean networkExists = getSupportedNetwork("mainnet", 764824073).getNetworkId().equals(network);
         if (!networkExists) {
             log.error("[withNetworkValidation] Network parameter {} is not supported: ", network);
             throw new IllegalArgumentException("networkNotFoundError");

@@ -11,9 +11,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.cardanofoundation.rosetta.api.model.rest.*;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Repository;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.cardanofoundation.rosetta.api.model.ConstructionDeriveRequestMetadata;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
 
@@ -21,7 +23,8 @@ import java.io.IOException;
  * @author Sotatek-HoangNguyen9
  * @since 12/04/2023 17:11
  */
-@Tag(name = "v1-api", description = "The Cardano Construction API")
+
+
 public interface ConstructionApiDelegate {
   @Operation(
           operationId = "constructionCombine",

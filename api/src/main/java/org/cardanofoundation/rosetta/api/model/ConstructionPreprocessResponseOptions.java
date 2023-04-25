@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import javax.annotation.Generated;
 import javax.validation.Valid;
@@ -15,10 +16,8 @@ import java.util.Objects;
  * The options that will be sent directly to &#x60;/construction/metadata&#x60; by the caller.
  */
 
-@Schema(name = "ConstructionPreprocessResponse_options", description = "The options that will be sent directly to `/construction/metadata` by the caller.")
-@JsonTypeName("ConstructionPreprocessResponse_options")
-@Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2023-03-21T15:54:41.273447600+07:00[Asia/Bangkok]")
 @AllArgsConstructor
+@NoArgsConstructor
 public class ConstructionPreprocessResponseOptions {
 
   @JsonProperty("relative_ttl")
@@ -26,10 +25,6 @@ public class ConstructionPreprocessResponseOptions {
 
   @JsonProperty("transaction_size")
   private BigDecimal transactionSize;
-
-  public ConstructionPreprocessResponseOptions(Double relativeTtl, Double transactionSize) {
-
-  }
 
   public ConstructionPreprocessResponseOptions relativeTtl(BigDecimal relativeTtl) {
     this.relativeTtl = relativeTtl;
@@ -40,52 +35,6 @@ public class ConstructionPreprocessResponseOptions {
    * Get relativeTtl
    * @return relativeTtl
   */
-  @NotNull @Valid 
-  @Schema(name = "relative_ttl", requiredMode = Schema.RequiredMode.REQUIRED)
-  public BigDecimal getRelativeTtl() {
-    return relativeTtl;
-  }
-
-  public void setRelativeTtl(BigDecimal relativeTtl) {
-    this.relativeTtl = relativeTtl;
-  }
-
-  public ConstructionPreprocessResponseOptions transactionSize(BigDecimal transactionSize) {
-    this.transactionSize = transactionSize;
-    return this;
-  }
-
-  /**
-   * Get transactionSize
-   * @return transactionSize
-  */
-  @NotNull @Valid 
-  @Schema(name = "transaction_size", requiredMode = Schema.RequiredMode.REQUIRED)
-  public BigDecimal getTransactionSize() {
-    return transactionSize;
-  }
-
-  public void setTransactionSize(BigDecimal transactionSize) {
-    this.transactionSize = transactionSize;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    ConstructionPreprocessResponseOptions constructionPreprocessResponseOptions = (ConstructionPreprocessResponseOptions) o;
-    return Objects.equals(this.relativeTtl, constructionPreprocessResponseOptions.relativeTtl) &&
-        Objects.equals(this.transactionSize, constructionPreprocessResponseOptions.transactionSize);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(relativeTtl, transactionSize);
-  }
 
   @Override
   public String toString() {
