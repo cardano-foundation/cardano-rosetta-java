@@ -1,46 +1,41 @@
 package org.cardanofoundation.rosetta.api.model;
 
-import co.nstant.in.cbor.model.Map;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.cardanofoundation.rosetta.api.addedClass.AddedMetadata;
 
 import javax.annotation.Generated;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.util.Objects;
 
+/**
+ * ConstructionPayloadsRequestMetadata
+ */
 
+@JsonTypeName("ConstructionPayloadsRequest_metadata")
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
-public class Amount {
+public class ConstructionPayloadsRequestMetadata {
 
-  @JsonProperty("value")
-  private String value;
+  @JsonProperty("ttl")
+  private String ttl;
 
-  @JsonProperty("currency")
-  private Currency currency;
-
-  @JsonProperty("metadata")
-  private Map metadata;
-
-  public Amount(String value, Currency currency) {
-  }
-
+  @JsonProperty("protocol_parameters")
+  private ProtocolParameters protocolParameters;
 
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
-    sb.append("class Amount {\n");
-    sb.append("    value: ").append(toIndentedString(value)).append("\n");
-    sb.append("    currency: ").append(toIndentedString(currency)).append("\n");
-    sb.append("    metadata: ").append(toIndentedString(metadata)).append("\n");
+    sb.append("class ConstructionPayloadsRequestMetadata {\n");
+    sb.append("    ttl: ").append(toIndentedString(ttl)).append("\n");
+    sb.append("    protocolParameters: ").append(toIndentedString(protocolParameters)).append("\n");
     sb.append("}");
     return sb.toString();
   }

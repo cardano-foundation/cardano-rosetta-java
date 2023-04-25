@@ -1,5 +1,10 @@
 package org.cardanofoundation.rosetta.api.controller;
 
+import co.nstant.in.cbor.CborException;
+import com.bloxbean.cardano.client.exception.AddressExcepion;
+import com.bloxbean.cardano.client.exception.CborDeserializationException;
+import com.bloxbean.cardano.client.exception.CborSerializationException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -32,7 +37,7 @@ public interface ConstructionApiDelegate {
           produces = { "application/json;charset=utf-8" },
           consumes = { "application/json;charset=utf-8" }
   )
-  ResponseEntity<ConstructionCombineResponse> constructionCombine(ConstructionCombineRequest constructionCombineRequest);
+  ResponseEntity<ConstructionCombineResponse> constructionCombine(ConstructionCombineRequest constructionCombineRequest) throws CborException, CborSerializationException, JsonProcessingException;
 
   @Operation(
           operationId = "constructionDerive",
@@ -80,7 +85,7 @@ public interface ConstructionApiDelegate {
           produces = { "application/json;charset=utf-8" },
           consumes = { "application/json;charset=utf-8" }
   )
-  ResponseEntity<ConstructionMetadataResponse> constructionMetadata(ConstructionMetadataRequest constructionMetadataRequest);
+  ResponseEntity<ConstructionMetadataResponse> constructionMetadata(ConstructionMetadataRequest constructionMetadataRequest) throws CborException, CborSerializationException;
 
   @Operation(
           operationId = "constructionParse",
@@ -112,7 +117,7 @@ public interface ConstructionApiDelegate {
           produces = { "application/json;charset=utf-8" },
           consumes = { "application/json;charset=utf-8" }
   )
-  ResponseEntity<ConstructionPayloadsResponse> constructionPayloads(ConstructionPayloadsRequest constructionPayloadsRequest);
+  ResponseEntity<ConstructionPayloadsResponse> constructionPayloads(ConstructionPayloadsRequest constructionPayloadsRequest) throws IOException, CborException, CborSerializationException, AddressExcepion;
 
   @Operation(
           operationId = "constructionPreprocess",
@@ -128,7 +133,7 @@ public interface ConstructionApiDelegate {
           produces = { "application/json;charset=utf-8" },
           consumes = { "application/json;charset=utf-8" }
   )
-  ResponseEntity<ConstructionPreprocessResponse> constructionPreprocess(ConstructionPreprocessRequest constructionPreprocessRequest) throws IOException;
+  ResponseEntity<ConstructionPreprocessResponse> constructionPreprocess(ConstructionPreprocessRequest constructionPreprocessRequest) throws IOException, AddressExcepion, CborSerializationException;
 
   @Operation(
           operationId = "constructionSubmit",
@@ -144,5 +149,5 @@ public interface ConstructionApiDelegate {
           produces = { "application/json;charset=utf-8" },
           consumes = { "application/json;charset=utf-8" }
   )
-  ResponseEntity<TransactionIdentifierResponse> constructionSubmit(ConstructionSubmitRequest constructionSubmitRequest);
+  ResponseEntity<TransactionIdentifierResponse> constructionSubmit(ConstructionSubmitRequest constructionSubmitRequest) throws CborDeserializationException, CborSerializationException;
 }

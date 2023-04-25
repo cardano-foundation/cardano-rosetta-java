@@ -2,20 +2,29 @@ package org.cardanofoundation.rosetta.api.constructionApiService;
 
 
 
+import co.nstant.in.cbor.CborException;
+import com.bloxbean.cardano.client.exception.AddressExcepion;
+import com.bloxbean.cardano.client.exception.CborDeserializationException;
+import com.bloxbean.cardano.client.exception.CborSerializationException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.cardanofoundation.rosetta.api.addedenum.NetworkIdentifierEnum;
 import org.cardanofoundation.rosetta.api.model.rest.*;
 
 import java.io.IOException;
 
 public interface ConstructionApiService {
-    //    <T,R> AccountIdentifier withNetworkValidation(NetworkIdentifier networkIdentifier,T parameters, );
     ConstructionDeriveResponse constructionDeriveService(ConstructionDeriveRequest constructionDeriveRequest) throws IllegalAccessException;
+    ConstructionPreprocessResponse constructionPreprocessService(ConstructionPreprocessRequest constructionPreprocessRequest) throws IOException, AddressExcepion, CborSerializationException;
 
-   // ConstructionDeriveResponse constructionHashService(ConstructionHashRequest constructionHashRequest) throws IllegalAccessException, IOException, CborException;
-    ConstructionPreprocessResponse constructionPreprocessService(ConstructionPreprocessRequest constructionPreprocessRequest) throws IOException;
-    NetworkIdentifierEnum getNetworkIdentifierByRequestParameters(NetworkIdentifier networkRequestParameters);
+    ConstructionMetadataResponse constructionMetadataService(ConstructionMetadataRequest constructionMetadataRequest) throws CborException, CborSerializationException;
 
-    boolean isKeyValid(String publicKeyBytes,String curveType);
+    ConstructionPayloadsResponse constructionPayloadsService(ConstructionPayloadsRequest constructionPayloadsRequest) throws IOException, CborException, CborSerializationException, AddressExcepion;
 
-    boolean isAddressTypeValid(String type);
+    ConstructionParseResponse constructionParseService(ConstructionParseRequest constructionParseRequest);
+
+    ConstructionCombineResponse constructionCombineService(ConstructionCombineRequest constructionCombineRequest) throws CborException, CborSerializationException, JsonProcessingException;
+
+    TransactionIdentifierResponse constructionHashService(ConstructionHashRequest constructionHashRequest);
+
+    TransactionIdentifierResponse constructionSubmitService(ConstructionSubmitRequest constructionSubmitRequest) throws CborDeserializationException, CborSerializationException;
 }

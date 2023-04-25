@@ -2,6 +2,10 @@ package org.cardanofoundation.rosetta.api.model.rest;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.cardanofoundation.rosetta.api.model.AccountIdentifierMetadata;
 import org.cardanofoundation.rosetta.api.model.SubAccountIdentifier;
 
@@ -14,8 +18,10 @@ import java.util.Objects;
  * The account_identifier uniquely identifies an account within a network. All fields in the account_identifier are utilized to determine this uniqueness (including the metadata field, if populated).
  */
 
-@Schema(name = "AccountIdentifier", description = "The account_identifier uniquely identifies an account within a network. All fields in the account_identifier are utilized to determine this uniqueness (including the metadata field, if populated).")
-@Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2023-03-21T15:54:41.273447600+07:00[Asia/Bangkok]")
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+@Setter
 public class AccountIdentifier {
 
   @JsonProperty("address")
@@ -29,77 +35,6 @@ public class AccountIdentifier {
 
   public AccountIdentifier(String address) {
     this.address = address;
-  }
-
-  /**
-   * The address may be a cryptographic public key (or some encoding of it) or a provided username.
-   * @return address
-  */
-  @NotNull 
-  @Schema(name = "address", example = "0x3a065000ab4183c6bf581dc1e55a605455fc6d61", description = "The address may be a cryptographic public key (or some encoding of it) or a provided username.", requiredMode = Schema.RequiredMode.REQUIRED)
-  public String getAddress() {
-    return address;
-  }
-
-  public void setAddress(String address) {
-    this.address = address;
-  }
-
-  public AccountIdentifier subAccount(SubAccountIdentifier subAccount) {
-    this.subAccount = subAccount;
-    return this;
-  }
-
-  /**
-   * Get subAccount
-   * @return subAccount
-  */
-  @Valid 
-  @Schema(name = "sub_account", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
-  public SubAccountIdentifier getSubAccount() {
-    return subAccount;
-  }
-
-  public void setSubAccount(SubAccountIdentifier subAccount) {
-    this.subAccount = subAccount;
-  }
-
-  public AccountIdentifier metadata(AccountIdentifierMetadata metadata) {
-    this.metadata = metadata;
-    return this;
-  }
-
-  /**
-   * Get metadata
-   * @return metadata
-  */
-  @Valid 
-  @Schema(name = "metadata", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
-  public AccountIdentifierMetadata getMetadata() {
-    return metadata;
-  }
-
-  public void setMetadata(AccountIdentifierMetadata metadata) {
-    this.metadata = metadata;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    AccountIdentifier accountIdentifier = (AccountIdentifier) o;
-    return Objects.equals(this.address, accountIdentifier.address) &&
-        Objects.equals(this.subAccount, accountIdentifier.subAccount) &&
-        Objects.equals(this.metadata, accountIdentifier.metadata);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(address, subAccount, metadata);
   }
 
   @Override

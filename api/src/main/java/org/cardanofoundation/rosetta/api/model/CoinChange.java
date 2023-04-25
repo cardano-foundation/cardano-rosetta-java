@@ -2,6 +2,10 @@ package org.cardanofoundation.rosetta.api.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import javax.annotation.Generated;
 import javax.validation.Valid;
@@ -14,69 +18,17 @@ import java.util.Objects;
 
 @Schema(name = "CoinChange", description = "CoinChange is used to represent a change in state of a some coin identified by a coin_identifier. This object is part of the Operation model and must be populated for UTXO-based blockchains. Coincidentally, this abstraction of UTXOs allows for supporting both account-based transfers and UTXO-based transfers on the same blockchain (when a transfer is account-based, don't populate this model).")
 @Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2023-03-21T15:54:41.273447600+07:00[Asia/Bangkok]")
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
 public class CoinChange {
 
   @JsonProperty("coin_identifier")
   private CoinIdentifier coinIdentifier;
 
   @JsonProperty("coin_action")
-  private CoinAction coinAction;
-
-  public CoinChange coinIdentifier(CoinIdentifier coinIdentifier) {
-    this.coinIdentifier = coinIdentifier;
-    return this;
-  }
-
-  /**
-   * Get coinIdentifier
-   * @return coinIdentifier
-  */
-  @NotNull @Valid 
-  @Schema(name = "coin_identifier", requiredMode = Schema.RequiredMode.REQUIRED)
-  public CoinIdentifier getCoinIdentifier() {
-    return coinIdentifier;
-  }
-
-  public void setCoinIdentifier(CoinIdentifier coinIdentifier) {
-    this.coinIdentifier = coinIdentifier;
-  }
-
-  public CoinChange coinAction(CoinAction coinAction) {
-    this.coinAction = coinAction;
-    return this;
-  }
-
-  /**
-   * Get coinAction
-   * @return coinAction
-  */
-  @NotNull @Valid 
-  @Schema(name = "coin_action", requiredMode = Schema.RequiredMode.REQUIRED)
-  public CoinAction getCoinAction() {
-    return coinAction;
-  }
-
-  public void setCoinAction(CoinAction coinAction) {
-    this.coinAction = coinAction;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    CoinChange coinChange = (CoinChange) o;
-    return Objects.equals(this.coinIdentifier, coinChange.coinIdentifier) &&
-        Objects.equals(this.coinAction, coinChange.coinAction);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(coinIdentifier, coinAction);
-  }
+  private String coinAction;
 
   @Override
   public String toString() {

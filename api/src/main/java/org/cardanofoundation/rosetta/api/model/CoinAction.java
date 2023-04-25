@@ -2,6 +2,10 @@ package org.cardanofoundation.rosetta.api.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import javax.annotation.Generated;
 
@@ -10,6 +14,10 @@ import javax.annotation.Generated;
  */
 
 @Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2023-03-21T15:54:41.273447600+07:00[Asia/Bangkok]")
+@AllArgsConstructor
+@NoArgsConstructor
+@Setter
+@Getter
 public enum CoinAction {
   
   CREATED("coin_created"),

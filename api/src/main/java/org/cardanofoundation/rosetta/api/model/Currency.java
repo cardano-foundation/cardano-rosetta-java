@@ -1,6 +1,5 @@
 package org.cardanofoundation.rosetta.api.model;
 
-import co.nstant.in.cbor.model.Map;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -8,38 +7,37 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.cardanofoundation.rosetta.api.addedClass.AddedMetadata;
+import org.openapitools.jackson.nullable.JsonNullable;
 
 import javax.annotation.Generated;
-import javax.validation.Valid;
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
+import java.util.Arrays;
 import java.util.Objects;
 
 
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 @Getter
 @Setter
-public class Amount {
+public class Currency {
 
-  @JsonProperty("value")
-  private String value;
+  @JsonProperty("symbol")
+  private String symbol;
 
-  @JsonProperty("currency")
-  private Currency currency;
+  @JsonProperty("decimals")
+  private Integer decimals;
 
   @JsonProperty("metadata")
-  private Map metadata;
-
-  public Amount(String value, Currency currency) {
-  }
+  private AddedMetadata metadata ;
 
 
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
-    sb.append("class Amount {\n");
-    sb.append("    value: ").append(toIndentedString(value)).append("\n");
-    sb.append("    currency: ").append(toIndentedString(currency)).append("\n");
+    sb.append("class Currency {\n");
+    sb.append("    symbol: ").append(toIndentedString(symbol)).append("\n");
+    sb.append("    decimals: ").append(toIndentedString(decimals)).append("\n");
     sb.append("    metadata: ").append(toIndentedString(metadata)).append("\n");
     sb.append("}");
     return sb.toString();
