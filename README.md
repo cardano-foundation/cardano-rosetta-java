@@ -1,5 +1,7 @@
 [![License](https://img.shields.io/github/license/cardano-foundation/cf-metadata-server)](https://github.com/cardano-foundation/cardano-rosetta-java/blob/main/LICENSE)
 ![GitHub top language](https://img.shields.io/github/languages/top/cardano-foundation/cardano-rosetta-java)
+[![Build](https://github.com/cardano-foundation/cardano-rosetta-java/actions/workflows/main.yaml/badge.svg)](https://github.com/cardano-foundation/cardano-rosetta-java/actions/workflows/main.yaml)
+[![CodeQL](https://github.com/cardano-foundation/cardano-rosetta-java/actions/workflows/codeql.yaml/badge.svg)](https://github.com/cardano-foundation/cardano-rosetta-java/actions/workflows/codeql.yaml)
 ![coverage](https://github.com/cardano-foundation/cardano-rosetta-java/blob/badges/jacoco.svg)
 ![branches](https://github.com/cardano-foundation/cardano-rosetta-java/blob/badges/branches.svg)
 [![Issues](https://img.shields.io/github/issues/cardano-foundation/cardano-rosetta-java)](https://github.com/cardano-foundation/cardano-rosetta-java/issues)
