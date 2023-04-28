@@ -37,25 +37,13 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         jdbc.batch_size: ${JDBC_BATCH_SIZE:500}
-        default_schema: ${SCHEMA:testnet}
+        default_schema: ${DB_SCEMA:testnet}
         show_sql: false
         format_sql: true
         order_inserts: true
         order_updates: true
   #        hbm2ddl:
   #          auto: update
-  ## Flyway config
-  flyway:
-    enabled: ${FLYWAY_ENABLE:true}
-    url: ${spring.datasource.url}
-    user: ${spring.datasource.username}
-    password: ${spring.datasource.password}
-    group: true
-    sql-migration-prefix: V
-    sql-migration-separator: __
-    sql-migration-suffixes: .sql
-    locations: db/migration/dev/${SCHEMA:testnet}
-
 kafka:
   auto-create-topics: false
   admin:

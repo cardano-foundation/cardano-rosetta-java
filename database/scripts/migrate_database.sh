@@ -51,3 +51,4 @@ liquibase --url jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME} --username ${
 
 #echo "Running post migration scripts ..."
 PGPASSWORD="${DB_ADMIN_USER_SECRET}" psql --set=cf_dbname="${DB_NAME}" --set=cf_serviceuser_name="${SERVICE_USER_NAME}" --set=cf_serviceuser_secret="${SERVICE_USER_SECRET}" -U "${DB_ADMIN_USER_NAME}" -h "${DB_HOST}" -p ${DB_PORT} -d ${DB_NAME} -f "${DB_MIGRATION_SCRIPTS_FOLDER}post_migration.sql"
+PGPASSWORD="${DB_ADMIN_USER_SECRET}" psql --set=cf_dbname="${DB_NAME}" --set=cf_serviceuser_name="${SERVICE_USER_NAME}" --set=cf_serviceuser_secret="${SERVICE_USER_SECRET}" -U "${DB_ADMIN_USER_NAME}" -h "${DB_HOST}" -p ${DB_PORT} -d ${DB_NAME} -f "${DB_MIGRATION_SCRIPTS_FOLDER}init-schema.sql"

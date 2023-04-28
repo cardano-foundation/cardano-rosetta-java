@@ -23,18 +23,6 @@ spring:
         format_sql: true
   #        hbm2ddl:
   #          auto: create
-  ## Flyway config
-  flyway:
-    enabled: false
-    url: ${spring.datasource.url}
-    user: ${spring.datasource.username}
-    password: ${spring.datasource.password}
-    group: true
-    sql-migration-prefix: V
-    sql-migration-separator: __
-    sql-migration-suffixes: .sql
-    locations: db/migration/local
-
 kafka:
   auto-create-topics: false
   admin:

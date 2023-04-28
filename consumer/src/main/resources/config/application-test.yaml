@@ -43,17 +43,6 @@ spring:
         default_schema: dev
         show_sql: true
         format_sql: true
-  ## Flyway config
-  flyway:
-    enabled: false
-    url: ${spring.datasource.url}
-    user: ${spring.datasource.username}
-    password: ${spring.datasource.password}
-    group: true
-    sql-migration-prefix: V
-    sql-migration-separator: __
-    sql-migration-suffixes: .sql
-    locations: db/migration/test
 
 kafka:
   auto-create-topics: false

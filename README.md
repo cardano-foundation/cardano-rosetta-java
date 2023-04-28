@@ -22,8 +22,10 @@ This is a RosettaAPI implementation using LedgeSync as a backend and Yaci/Bloxbe
 - Fill `{username_github}` and `{token_github}` in `./.m2/settings.xml` with your github username and token. Guide to generate a token with `read:packages` scope [here](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token#creating-a-personal-access-token-classic)
 - Copy `.env.example`  to `.env`
 - Fill the `.env` file with your values (explain below)
+- From `/consumer` and run `mvn clean install`
+- From `/api` and run `mvn clean install`
 - Create if not exists external network `cardano-rosetta-java` with `docker network create cardano-rosetta-java`
-- Run `docker-compose -f docker-compose.yml up -d` to start the containers
+- From `/cardano-rosetta-java` run `docker-compose -f docker-compose.yml up -d` to start the containers
 
 
 ### Environment variables
