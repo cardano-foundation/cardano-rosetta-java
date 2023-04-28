@@ -6,7 +6,7 @@
 
     <groupId>org.cardanofoundation.rosetta-java</groupId>
     <artifactId>base</artifactId>
-    <version>${revision}</version>
+    <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <scm>
@@ -29,6 +29,7 @@
 
     <properties>
         <revision>1.0.0-SNAPSHOT</revision>
+        <java.version>18</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <version.spring-boot>3.0.5</version.spring-boot>
         <version.springdoc-openapi-ui>1.6.15</version.springdoc-openapi-ui>
@@ -47,7 +48,19 @@
         <version.javax-validation-api>2.0.1.Final</version.javax-validation-api>
         <version.bouncycastle>1.72</version.bouncycastle>
     </properties>
-
+    <repositories>
+        <repository>
+            <id>central</id>
+            <url>https://repo1.maven.org/maven2/</url>
+        </repository>
+        <repository>
+            <id>github</id>
+            <url>https://maven.pkg.github.com/cardano-foundation/cf-metadata-core</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -156,7 +169,8 @@
 
     <modules>
         <module>api</module>
-        <!--<module>crawler</module>-->
+        <module>consumer</module>
+        <module>common</module>
     </modules>
 
 </project>
