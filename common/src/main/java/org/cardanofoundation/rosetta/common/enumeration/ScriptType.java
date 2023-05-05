@@ -1,12 +1,11 @@
 package org.cardanofoundation.rosetta.common.enumeration;
 
+import java.util.HashMap;
+import java.util.Map;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequiredArgsConstructor
@@ -17,8 +16,6 @@ public enum ScriptType {
   PLUTUSV1("plutusv1"),
   PLUTUSV2("plutusv2");
 
-  String value;
-
   private static final Map<String, ScriptType> rewardTypeMap = new HashMap<>();
 
   static {
@@ -26,6 +23,8 @@ public enum ScriptType {
       rewardTypeMap.put(type.value, type);
     }
   }
+
+  String value;
 
   public static ScriptType fromValue(String value) {
     return rewardTypeMap.get(value);

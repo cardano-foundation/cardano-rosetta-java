@@ -1,6 +1,22 @@
 package org.cardanofoundation.rosetta.common.entity;
 
-import lombok.*;
+import java.math.BigInteger;
+import java.sql.Timestamp;
+import java.util.Objects;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
+import jakarta.validation.constraints.Digits;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 import org.cardanofoundation.rosetta.common.enumeration.ScriptPurposeType;
 import org.cardanofoundation.rosetta.common.validation.Hash28Type;
@@ -10,11 +26,6 @@ import org.cardanofoundation.rosetta.common.validation.Word63Type;
 import org.hibernate.Hibernate;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
-
-import javax.persistence.*;
-import javax.validation.constraints.Digits;
-import java.math.BigInteger;
-import java.util.Objects;
 
 @Entity
 @Table(name = "redeemer", uniqueConstraints = {
@@ -65,6 +76,13 @@ public class Redeemer extends BaseEntity {
       foreignKey = @ForeignKey(name = "redeemer_redeemer_data_id_fkey"))
   @EqualsAndHashCode.Exclude
   private RedeemerData redeemerData;
+  @Column(name = "created_at")
+  private Timestamp createdAt;
+  @Column(name = "is_deleted")
+  private Boolean isDeleted;
+
+  @Column(name = "updated_at")
+  private Timestamp updatedAt;
 
   @Override
   public boolean equals(Object o) {

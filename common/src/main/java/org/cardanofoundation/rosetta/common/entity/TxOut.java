@@ -1,8 +1,24 @@
 package org.cardanofoundation.rosetta.common.entity;
 
-import lombok.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
+import jakarta.validation.constraints.Digits;
+import java.math.BigInteger;
+import java.util.List;
+import java.util.Objects;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.SuperBuilder;
-import org.cardanofoundation.rosetta.common.enumeration.TokenType;
 import org.cardanofoundation.rosetta.common.validation.Hash28Type;
 import org.cardanofoundation.rosetta.common.validation.Hash32Type;
 import org.cardanofoundation.rosetta.common.validation.Lovelace;
@@ -10,12 +26,6 @@ import org.cardanofoundation.rosetta.common.validation.TxIndex;
 import org.hibernate.Hibernate;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
-
-import javax.persistence.*;
-import javax.validation.constraints.Digits;
-import java.math.BigInteger;
-import java.util.List;
-import java.util.Objects;
 
 @Entity
 @Table(name = "tx_out", uniqueConstraints = {
@@ -69,8 +79,6 @@ public class TxOut extends BaseEntity {
   @Digits(integer = 20, fraction = 0)
   private BigInteger value;
 
-  @Column(name = "token_type", nullable = false)
-  private TokenType tokenType;
 
   @Column(name = "data_hash", length = 64)
   @Hash32Type

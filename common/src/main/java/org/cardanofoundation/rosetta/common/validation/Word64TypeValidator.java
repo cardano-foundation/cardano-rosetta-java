@@ -1,7 +1,7 @@
 package org.cardanofoundation.rosetta.common.validation;
 
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
 import java.math.BigInteger;
 
 public class Word64TypeValidator implements ConstraintValidator<Word64Type, BigInteger> {
