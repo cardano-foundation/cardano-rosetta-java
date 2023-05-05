@@ -2,9 +2,8 @@ package org.cardanofoundation.rosetta.common.enumeration.converter;
 
 
 import com.bloxbean.cardano.client.util.HexUtil;
-
-import javax.persistence.AttributeConverter;
-import javax.persistence.Converter;
+import jakarta.persistence.AttributeConverter;
+import jakarta.persistence.Converter;
 
 @Converter
 public class ByteConverter implements AttributeConverter<String, byte[]> {

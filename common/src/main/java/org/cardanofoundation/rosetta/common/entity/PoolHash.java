@@ -1,5 +1,11 @@
 package org.cardanofoundation.rosetta.common.entity;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
+import java.sql.Timestamp;
+import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -8,12 +14,6 @@ import lombok.experimental.SuperBuilder;
 import org.cardanofoundation.rosetta.common.validation.Hash28Type;
 import org.hibernate.Hibernate;
 import org.hibernate.annotations.DynamicUpdate;
-
-import javax.persistence.*;
-import javax.validation.constraints.Digits;
-import java.math.BigInteger;
-import java.util.List;
-import java.util.Objects;
 
 @Entity
 @Table(name = "pool_hash", uniqueConstraints = {
@@ -35,15 +35,13 @@ public class PoolHash extends BaseEntity {
   @Column(name = "view", nullable = false)
   private String view;
 
-  @Digits(integer = 20, fraction = 0)
-  @Column(name = "pool_size", nullable = false, precision = 20)
-  private BigInteger poolSize;
+  @Column(name = "created_at")
+  private Timestamp createdAt;
+  @Column(name = "is_deleted")
+  private Boolean isDeleted;
 
-  @OneToMany(mappedBy = "poolHash")
-  private List<Delegation> delegations;
-
-  @Column(name = "epoch_no")
-  private Integer epochNo;
+  @Column(name = "updated_at")
+  private Timestamp updatedAt;
 
   @Override
   public boolean equals(Object o) {

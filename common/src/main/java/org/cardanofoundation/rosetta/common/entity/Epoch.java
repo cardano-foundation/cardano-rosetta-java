@@ -1,25 +1,23 @@
 package org.cardanofoundation.rosetta.common.entity;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
+import jakarta.validation.constraints.Digits;
+import java.math.BigInteger;
+import java.sql.Timestamp;
+import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
-import org.cardanofoundation.rosetta.common.enumeration.EraType;
 import org.cardanofoundation.rosetta.common.validation.Lovelace;
 import org.cardanofoundation.rosetta.common.validation.Word128Type;
 import org.cardanofoundation.rosetta.common.validation.Word31Type;
 import org.hibernate.Hibernate;
 import org.hibernate.annotations.DynamicUpdate;
-
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
-import javax.validation.constraints.Digits;
-import java.math.BigInteger;
-import java.sql.Timestamp;
-import java.util.Objects;
 
 @Entity
 @Table(name = "epoch", uniqueConstraints = {
@@ -62,16 +60,9 @@ public class Epoch extends BaseEntity {
   @Column(name = "end_time")
   private Timestamp endTime;
 
-  @Column(name="max_slot", nullable = false)
-  private Integer maxSlot;
 
-  @Column(name="era", nullable = false)
-  private EraType era;
 
-  @Column(name = "rewards_distributed")
-  @Digits(integer = 20, fraction = 0)
-  @Lovelace
-  private BigInteger rewardsDistributed;
+
 
 /*  @OneToMany(fetch = FetchType.LAZY)
   @JoinColumn(name = "epoch_no" ,insertable =false, updatable = false)

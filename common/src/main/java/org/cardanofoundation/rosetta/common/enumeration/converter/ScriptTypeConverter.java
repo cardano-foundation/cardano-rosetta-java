@@ -1,9 +1,8 @@
 package org.cardanofoundation.rosetta.common.enumeration.converter;
 
+import jakarta.persistence.AttributeConverter;
+import jakarta.persistence.Converter;
 import org.cardanofoundation.rosetta.common.enumeration.ScriptType;
-
-import javax.persistence.AttributeConverter;
-import javax.persistence.Converter;
 
 @Converter(autoApply = true)
 public class ScriptTypeConverter implements AttributeConverter<ScriptType, String> {

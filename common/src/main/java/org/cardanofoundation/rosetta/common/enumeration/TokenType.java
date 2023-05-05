@@ -1,12 +1,11 @@
 package org.cardanofoundation.rosetta.common.enumeration;
 
+import java.util.HashMap;
+import java.util.Map;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequiredArgsConstructor
@@ -16,15 +15,15 @@ public enum TokenType {
   TOKEN(1),
   ALL_TOKEN_TYPE(2);
 
-  int value;
-
   private static final Map<Integer, TokenType> tokenTypeMap = new HashMap<>();
 
   static {
     for (TokenType type : TokenType.values()) {
-      tokenTypeMap.put(type.value,type);
+      tokenTypeMap.put(type.value, type);
     }
   }
+
+  int value;
 
   public static TokenType fromValue(Integer value) {
     return tokenTypeMap.get(value);

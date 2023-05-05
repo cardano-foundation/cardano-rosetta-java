@@ -1,13 +1,12 @@
 package org.cardanofoundation.rosetta.common.enumeration;
 
 
+import java.util.HashMap;
+import java.util.Map;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequiredArgsConstructor
@@ -19,8 +18,6 @@ public enum RewardType {
   TREASURY("treasury"),
   REFUND("refund");
 
-  String value;
-
   private static final Map<String, RewardType> rewardTypeMap = new HashMap<>();
 
   static {
@@ -28,6 +25,8 @@ public enum RewardType {
       rewardTypeMap.put(type.value, type);
     }
   }
+
+  String value;
 
   public static RewardType fromValue(String value) {
     return rewardTypeMap.get(value);
