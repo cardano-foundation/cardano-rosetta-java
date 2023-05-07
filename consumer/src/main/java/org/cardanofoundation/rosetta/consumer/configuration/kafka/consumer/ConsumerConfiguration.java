@@ -1,6 +1,5 @@
 package org.cardanofoundation.rosetta.consumer.configuration.kafka.consumer;
 
-import org.cardanofoundation.rosetta.consumer.configuration.properties.KafkaProperties;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.AccessLevel;
@@ -8,10 +7,12 @@ import lombok.SneakyThrows;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.cardanofoundation.rosetta.consumer.configuration.properties.KafkaProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Profile;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
@@ -21,6 +22,7 @@ import org.springframework.kafka.support.serializer.JsonDeserializer;
 @Configuration
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @Slf4j
+@Profile("!test-integration")
 public class ConsumerConfiguration {
 
   private static final String JSON_CONSUMER = "json-consumer";

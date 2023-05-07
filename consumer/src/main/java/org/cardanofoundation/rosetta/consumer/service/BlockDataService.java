@@ -1,5 +1,6 @@
 package org.cardanofoundation.rosetta.consumer.service;
 
+import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedAddressBalance;
 import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedBlock;
 import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedTx;
 import java.util.Collection;
@@ -14,7 +15,7 @@ public interface BlockDataService {
    *
    * @return a map with key is stake address hex, value is first appeared tx hash
    */
-  Map<String, String> getStakeAddressTxHashMap();
+  Map<String, byte[]> getStakeAddressTxHashMap();
 
   /**
    * Save a stake address's first appeared tx hash
@@ -22,8 +23,33 @@ public interface BlockDataService {
    * @param stakeAddress    target stake address hex string
    * @param txHash          first appeared tx hash
    */
-  void saveFirstAppearedTxHashForStakeAddress(String stakeAddress, String txHash);
+  void saveFirstAppearedTxHashForStakeAddress(String stakeAddress, byte[] txHash);
 
+  /**
+   * Get aggregated address balance object from address string (Base58 or Bech32 form)
+   * If there isn't any, create a new one, push it to aggregated address balance map
+   * and return it
+   *
+   * @param address         address string (Base58 or Bech32 form)
+   * @return                aggregated address balance object
+   */
+  AggregatedAddressBalance getAggregatedAddressBalanceFromAddress(String address);
+
+  /**
+   * Get aggregated address balance map
+   *
+   * @return a map with key is address string (Base58 or Bech32 form)
+   *         and value is associated aggregated address balance object
+   */
+  Map<String, AggregatedAddressBalance> getAggregatedAddressBalanceMap();
+
+  /**
+   * Get an asset fingerprint's first appeared block no and tx idx
+   *
+   * @param fingerprint       target asset fingerprint
+   * @return                  a pair of first appeared block no and that block's tx idx
+   */
+  Pair<Long, Long> getFingerprintFirstAppearedBlockNoAndTxIdx(String fingerprint);
 
   /**
    * Set an asset fingerprint's first appeared block no and tx idx
@@ -32,6 +58,16 @@ public interface BlockDataService {
    * @param blockNo           asset's first appeared block no
    * @param txIdx             asset's first appeared tx idx within specified block no
    */
+  void setFingerprintFirstAppearedBlockNoAndTxIdx(String fingerprint, Long blockNo, Long txIdx);
+
+  /**
+   * Get aggregated block object by its block hash
+   *
+   * @param blockHash         block hash
+   * @return                  aggregated block object
+   */
+  AggregatedBlock getAggregatedBlock(byte[] blockHash);
+
   /**
    * Save aggregated block object
    *

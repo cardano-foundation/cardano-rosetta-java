@@ -1,13 +1,14 @@
 package org.cardanofoundation.rosetta.consumer.repository.impl.cached;
 
-import com.sotatek.cardano.common.entity.Block;
+import org.cardanofoundation.rosetta.common.entity.Block;
 import org.cardanofoundation.rosetta.consumer.repository.BlockRepository;
 import org.cardanofoundation.rosetta.consumer.repository.cached.CachedBlockRepository;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
-
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -31,7 +32,7 @@ public class CachedBlockRepositoryImpl implements CachedBlockRepository {
   }
 
   @Override
-  public Boolean existsBlockByHash(String hash) {
+  public Boolean existsBlockByHash(byte[] hash) {
     if (inMemoryCachedEntities.getBlockMap().containsKey(hash)) {
       return true;
     }
@@ -39,6 +40,13 @@ public class CachedBlockRepositoryImpl implements CachedBlockRepository {
     return blockRepository.existsBlockByHash(hash);
   }
 
+  @Override
+  public Optional<Block> findFirstByEpochNo(Integer epochNo) {
+    return blockRepository.findFirstByEpochNo(epochNo)
+        .or(() -> inMemoryCachedEntities.getBlockMap().values().stream()
+            .filter(block -> Objects.equals(block.getEpochNo(), epochNo))
+            .min(Comparator.comparing(Block::getBlockNo)));
+  }
 
   @Override
   public Block save(Block entity) {

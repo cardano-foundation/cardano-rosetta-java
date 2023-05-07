@@ -1,9 +1,9 @@
 package org.cardanofoundation.rosetta.consumer.aggregate;
 
-import com.sotatek.cardano.ledgersync.common.Amount;
-import com.sotatek.cardano.ledgersync.common.Update;
-import com.sotatek.cardano.ledgersync.common.Witnesses;
-import com.sotatek.cardano.ledgersync.common.certs.Certificate;
+import org.cardanofoundation.rosetta.common.ledgersync.Amount;
+import org.cardanofoundation.rosetta.common.ledgersync.Update;
+import org.cardanofoundation.rosetta.common.ledgersync.Witnesses;
+import org.cardanofoundation.rosetta.common.ledgersync.certs.Certificate;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
@@ -17,13 +17,18 @@ import lombok.experimental.FieldDefaults;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class AggregatedTx {
-  String hash;
-  String blockHash;
+  byte[] hash;
+  byte[] blockHash;
   long blockIndex;
   BigInteger outSum;
   BigInteger fee;
   boolean validContract;
   long deposit;
+  Set<AggregatedTxIn> txInputs;
+  Set<AggregatedTxIn> collateralInputs;
+  Set<AggregatedTxIn> referenceInputs;
+  List<AggregatedTxOut> txOutputs;
+  AggregatedTxOut collateralReturn;
   List<Certificate> certificates;
   Map<String, BigInteger> withdrawals;
   Update update;
