@@ -1,6 +1,6 @@
 package org.cardanofoundation.rosetta.consumer.repository.cached;
 
-import com.sotatek.cardano.common.entity.BaseEntity;
+import org.cardanofoundation.rosetta.common.entity.BaseEntity;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
