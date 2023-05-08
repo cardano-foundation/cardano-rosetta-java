@@ -69,14 +69,6 @@ public class Reward extends BaseEntity {
 
   @Column(name = "pool_id", updatable = false, insertable = false)
   private Long poolId;
-  @Column(name = "created_at")
-  private Timestamp createdAt;
-  @Column(name = "is_deleted")
-  private Boolean isDeleted;
-
-  @Column(name = "updated_at")
-  private Timestamp updatedAt;
-
   @Override
   public boolean equals(Object o) {
     if (this == o) {

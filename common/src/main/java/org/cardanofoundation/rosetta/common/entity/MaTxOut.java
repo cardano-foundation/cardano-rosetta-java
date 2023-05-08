@@ -59,13 +59,6 @@ public class MaTxOut extends BaseEntity {
 
   @Column(name = "tx_out_id", insertable = false, updatable = false)
   private Long txOutId;
-  @Column(name = "created_at")
-  private Timestamp createdAt;
-  @Column(name = "is_deleted")
-  private Boolean isDeleted;
-
-  @Column(name = "updated_at")
-  private Timestamp updatedAt;
 
   @Override
   public boolean equals(Object o) {

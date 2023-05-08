@@ -45,13 +45,6 @@ public class SlotLeader extends BaseEntity {
 
   @Column(name = "description", nullable = false, length = 65535)
   private String description;
-  @Column(name = "created_at")
-  private Timestamp createdAt;
-  @Column(name = "is_deleted")
-  private Boolean isDeleted;
-
-  @Column(name = "updated_at")
-  private Timestamp updatedAt;
 
   @Override
   public boolean equals(Object o) {

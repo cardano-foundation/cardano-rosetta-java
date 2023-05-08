@@ -76,14 +76,6 @@ public class Redeemer extends BaseEntity {
       foreignKey = @ForeignKey(name = "redeemer_redeemer_data_id_fkey"))
   @EqualsAndHashCode.Exclude
   private RedeemerData redeemerData;
-  @Column(name = "created_at")
-  private Timestamp createdAt;
-  @Column(name = "is_deleted")
-  private Boolean isDeleted;
-
-  @Column(name = "updated_at")
-  private Timestamp updatedAt;
-
   @Override
   public boolean equals(Object o) {
     if (this == o) {
