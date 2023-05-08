@@ -175,13 +175,6 @@ public class EpochParam extends BaseEntity {
       foreignKey = @ForeignKey(name = "epoch_param_block_id_fkey"))
   @EqualsAndHashCode.Exclude
   private Block block;
-  @Column(name = "created_at")
-  private Timestamp createdAt;
-  @Column(name = "is_deleted")
-  private Boolean isDeleted;
-
-  @Column(name = "updated_at")
-  private Timestamp updatedAt;
   @Override
   public boolean equals(Object o) {
     if (this == o) {

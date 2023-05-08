@@ -33,13 +33,6 @@ public class CostModel extends BaseEntity {
   @Column(name = "hash", nullable = false, length = 64)
   @Hash32Type
   private String hash;
-  @Column(name = "created_at")
-  private Timestamp createdAt;
-  @Column(name = "is_deleted")
-  private Boolean isDeleted;
-
-  @Column(name = "updated_at")
-  private Timestamp updatedAt;
 
   @Override
   public boolean equals(Object o) {

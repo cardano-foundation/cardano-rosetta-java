@@ -41,13 +41,6 @@ public class StakeAddress extends BaseEntity {
   @Column(name = "script_hash", length = 56)
   @Hash28Type
   private String scriptHash;
-  @Column(name = "created_at")
-  private Timestamp createdAt;
-  @Column(name = "is_deleted")
-  private Boolean isDeleted;
-
-  @Column(name = "updated_at")
-  private Timestamp updatedAt;
 
   @Column(name = "balance", nullable = false, precision = 39)
   @Word128Type

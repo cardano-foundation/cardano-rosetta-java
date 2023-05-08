@@ -90,14 +90,6 @@ public class Tx extends BaseEntity {
   @Column(name = "script_size")
   @Word31Type
   private Integer scriptSize;
-  @Column(name = "created_at")
-  private Timestamp createdAt;
-  @Column(name = "is_deleted")
-  private Boolean isDeleted;
-
-  @Column(name = "updated_at")
-  private Timestamp updatedAt;
-
   @Override
   public boolean equals(Object o) {
     if (this == o) {
