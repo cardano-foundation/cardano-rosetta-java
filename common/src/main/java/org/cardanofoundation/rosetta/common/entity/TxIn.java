@@ -64,13 +64,6 @@ public class TxIn extends BaseEntity {
       foreignKey = @ForeignKey(name = "tx_in_redeemer_id_fkey"))
   @EqualsAndHashCode.Exclude
   private Redeemer redeemer;
-  @Column(name = "created_at")
-  private Timestamp createdAt;
-  @Column(name = "is_deleted")
-  private Boolean isDeleted;
-
-  @Column(name = "updated_at")
-  private Timestamp updatedAt;
 
   @Override
   public boolean equals(Object o) {

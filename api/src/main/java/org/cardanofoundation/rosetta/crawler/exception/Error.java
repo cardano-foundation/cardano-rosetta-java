@@ -1,4 +1,4 @@
-package org.cardanofoundation.rosetta.crawler.model.rest;
+package org.cardanofoundation.rosetta.crawler.exception;
 
 import lombok.*;
 

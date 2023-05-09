@@ -90,13 +90,6 @@ public class Block extends BaseEntity {
 
   @OneToMany(mappedBy = "block")
   private List<Tx> txList;
-  @Column(name = "created_at")
-  private Timestamp createdAt;
-  @Column(name = "is_deleted")
-  private Boolean isDeleted;
-
-  @Column(name = "updated_at")
-  private Timestamp updatedAt;
 
 //  @OneToOne
 //  @JoinColumn(name = "epoch_no", referencedColumnName = "no", nullable=false, insertable=false, updatable=false)
