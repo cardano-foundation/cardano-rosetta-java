@@ -26,7 +26,7 @@ public class CheckServiceImpl implements CheckService {
         String blockchain = networkIdentifier.getBlockchain();
         String network = networkIdentifier.getNetwork();
 
-        if (blockchain.equals(Const.CARDANO)) {
+        if (!blockchain.equals(Const.CARDANO)) {
             log.error("[withNetworkValidation] Blockchain parameter {} is not cardano: ", blockchain);
             throw new IllegalArgumentException("invalidBlockchainError");
         }

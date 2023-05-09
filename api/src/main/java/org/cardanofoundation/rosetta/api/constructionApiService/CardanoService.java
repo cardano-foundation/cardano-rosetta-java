@@ -11,6 +11,7 @@ import com.bloxbean.cardano.client.transaction.spec.cert.Certificate;
 import com.bloxbean.cardano.client.transaction.spec.cert.PoolRegistration;
 import com.bloxbean.cardano.client.transaction.spec.cert.Relay;
 import com.bloxbean.cardano.client.transaction.spec.cert.StakeCredential;
+import com.bloxbean.cardano.client.transaction.spec.script.Script;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.cardanofoundation.rosetta.api.addedClass.*;
 import org.cardanofoundation.rosetta.api.addedenum.AddressType;
@@ -36,17 +37,18 @@ import java.util.Set;
 public interface CardanoService {
     String hex(byte[] bytes);
 
-    String generateAddress(NetworkIdentifierEnum networkIdentifierEnum, String publicKeyString, String stakingCredentialString, AddressType type) throws IllegalAccessException;
+    String generateAddress(NetworkIdentifierEnum networkIdentifierEnum, String publicKeyString, String stakingCredentialString, AddressType type) throws IllegalAccessException, CborSerializationException;
 
-    String generateRewardAddress(NetworkIdentifierEnum networkIdentifierEnum, HdPublicKey paymentCredential);
+    String generateRewardAddress(NetworkIdentifierEnum networkIdentifierEnum, HdPublicKey paymentCredential) throws CborSerializationException;
 
-    String generateBaseAddress(NetworkIdentifierEnum networkIdentifierEnum, HdPublicKey paymentCredential, HdPublicKey stakingCredential);
+    String generateBaseAddress(NetworkIdentifierEnum networkIdentifierEnum, HdPublicKey paymentCredential, HdPublicKey stakingCredential) throws CborSerializationException;
 
-    String generateEnterpriseAddress(HdPublicKey paymentCredential, NetworkIdentifierEnum networkIdentifierEnum);
+    String generateEnterpriseAddress(HdPublicKey paymentCredential, NetworkIdentifierEnum networkIdentifierEnum) throws CborSerializationException;
 
     Double calculateRelativeTtl(Double relativeTtl);
 
-    Double calculateTxSize(NetworkIdentifierEnum networkIdentifierEnum, ArrayList<Operation> operations, Integer ttl, DepositParameters depositParameters) throws IOException, AddressExcepion, CborSerializationException;
+    Double calculateTxSize(NetworkIdentifierEnum networkIdentifierEnum, ArrayList<Operation> operations, Integer ttl, DepositParameters depositParameters)
+        throws IOException, AddressExcepion, CborSerializationException, CborException;
 
     String buildTransaction(String unsignedTransaction, List<AddedSignatures> addedSignaturesList, String transactionMetadata);
 
@@ -58,7 +60,8 @@ public interface CardanoService {
 
     AddedSignatures signatureProcessor(EraAddressType eraAddressType, AddressType addressType, String address);
 
-    UnsignedTransaction createUnsignedTransaction(NetworkIdentifierEnum networkIdentifierEnum, List<Operation> operations, Integer ttl, DepositParameters depositParameters) throws IOException, AddressExcepion, CborSerializationException;
+    UnsignedTransaction createUnsignedTransaction(NetworkIdentifierEnum networkIdentifierEnum, List<Operation> operations, Integer ttl, DepositParameters depositParameters)
+        throws IOException, AddressExcepion, CborSerializationException, CborException;
 
     Map<String, Object> processOperations(NetworkIdentifierEnum networkIdentifierEnum, List<Operation> operations, DepositParameters depositParameters);
 
@@ -67,9 +70,9 @@ public interface CardanoService {
     ProcessOperationsResult convert(NetworkIdentifierEnum networkIdentifierEnum, List<Operation> operations);
 
     ProcessOperationsResult operationProcessor(Operation operation, NetworkIdentifierEnum networkIdentifierEnum,
-                                               ProcessOperationsResult resultAccumulator, String type) throws JsonProcessingException;
+                                               ProcessOperationsResult resultAccumulator, String type) throws JsonProcessingException, CborSerializationException, CborDeserializationException;
 
-    AuxiliaryData processVoteRegistration(Operation operation) throws JsonProcessingException;
+    AuxiliaryData processVoteRegistration(Operation operation) throws JsonProcessingException, CborDeserializationException;
 
     Map<String, Object> validateAndParseVoteRegistrationMetadata(VoteRegistrationMetadata voteRegistrationMetadata);
 
@@ -105,9 +108,9 @@ public interface CardanoService {
 
     Map<String, Object> validateAndParsePoolRegistationParameters(PoolRegistrationParams poolRegistrationParameters);
 
-    Map<String, Object> processWithdrawal(NetworkIdentifierEnum networkIdentifierEnum, Operation operation);
+    Map<String, Object> processWithdrawal(NetworkIdentifierEnum networkIdentifierEnum, Operation operation) throws CborSerializationException;
 
-    Map<String, Object> processOperationCertification(NetworkIdentifierEnum networkIdentifierEnum, Operation operation);
+    Map<String, Object> processOperationCertification(NetworkIdentifierEnum networkIdentifierEnum, Operation operation) throws CborSerializationException;
 
     Certificate processStakeKeyRegistration(Operation operation);
 
@@ -121,7 +124,7 @@ public interface CardanoService {
 
     TransactionOutput validateAndParseTransactionOutput(Operation output);
 
-    Address generateAddress(String address) throws AddressExcepion;
+    Object generateAddress(String address) throws AddressExcepion;
 
     EraAddressType getEraAddressType(String address);
 
@@ -177,11 +180,11 @@ public interface CardanoService {
 
     TransactionParsed parseSignedTransaction(NetworkIdentifierEnum networkIdentifierEnum, String transaction, TransactionExtraData extraData);
 
-    List<String> getSignerFromOperation(NetworkIdentifierEnum networkIdentifierEnum, Operation operation);
+    List<String> getSignerFromOperation(NetworkIdentifierEnum networkIdentifierEnum, Operation operation) throws CborSerializationException;
 
-    List<String> getPoolSigners(NetworkIdentifierEnum networkIdentifierEnum, Operation operation);
+    List<String> getPoolSigners(NetworkIdentifierEnum networkIdentifierEnum, Operation operation) throws CborSerializationException;
 
-    Map<String, Object> validateAndParsePoolRegistrationCert(NetworkIdentifierEnum networkIdentifierEnum, String poolRegistrationCert, String poolKeyHash);
+    Map<String, Object> validateAndParsePoolRegistrationCert(NetworkIdentifierEnum networkIdentifierEnum, String poolRegistrationCert, String poolKeyHash) throws CborSerializationException;
 
     List<AccountIdentifier> getUniqueAccountIdentifiers(List<String> addresses);
 
@@ -197,7 +200,7 @@ public interface CardanoService {
     //need to revise
     Address getAddressFromHexString(String hex);
 
-    void parseWithdrawalsToOperations(List<Operation> withdrawalOps, Integer withdrawalsCount, List<Operation> operations, Integer network);
+    void parseWithdrawalsToOperations(List<Operation> withdrawalOps, Integer withdrawalsCount, List<Operation> operations, Integer network) throws CborSerializationException;
 
     Operation parseWithdrawalToOperation(String value, String hex, Long index, String address);
 
@@ -205,7 +208,7 @@ public interface CardanoService {
 
     Operation parsePoolCertToOperation(Integer network, Certificate cert, Long index, String type) throws UnknownHostException, JsonProcessingException, CborSerializationException, CborException;
 
-    PoolRegistrationParams parsePoolRegistration(Integer network, PoolRegistration poolRegistration) throws UnknownHostException;
+    PoolRegistrationParams parsePoolRegistration(Integer network, PoolRegistration poolRegistration) throws UnknownHostException, CborSerializationException;
 
     PoolMetadata parsePoolMetadata(PoolRegistration poolRegistration);
 
@@ -213,9 +216,9 @@ public interface CardanoService {
 
     List<Relay1> parsePoolRelays(PoolRegistration poolRegistration) throws UnknownHostException;
 
-    List<String> parsePoolOwners(Integer network, PoolRegistration poolRegistration);
+    List<String> parsePoolOwners(Integer network, PoolRegistration poolRegistration) throws CborSerializationException;
 
-    String parsePoolRewardAccount(Integer network, PoolRegistration poolRegistration);
+    String parsePoolRewardAccount(Integer network, PoolRegistration poolRegistration) throws CborSerializationException;
 
     Operation parseCertToOperation(Certificate cert, Long index, String hash, String type, String address);
 

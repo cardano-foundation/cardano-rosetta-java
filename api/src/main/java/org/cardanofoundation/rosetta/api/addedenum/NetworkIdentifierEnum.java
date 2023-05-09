@@ -6,11 +6,11 @@ public enum NetworkIdentifierEnum {
     CARDANO_MAINNET_NETWORK("mainnet",1,764824073L),
     CARDANO_TESTNET_NETWORK("testnet",0,1097911063L);
 
-    String networkId;
+    private String networkId;
     private int value;
     private long protocolMagic;
 
-    NetworkIdentifierEnum(String name,int value,long protocolMagic) {
+    NetworkIdentifierEnum(String networkId,int value,long protocolMagic) {
         this.networkId=networkId;
         this.value = value;
         this.protocolMagic = protocolMagic;
@@ -40,9 +40,9 @@ public enum NetworkIdentifierEnum {
         }
         return null;
     }
-    public static NetworkIdentifierEnum findByName(String name){
+    public static NetworkIdentifierEnum findByName(String networkId){
         for(NetworkIdentifierEnum networkIdentifierEnum :NetworkIdentifierEnum.values()){
-            if(name.equals(networkIdentifierEnum.getNetworkId())){
+            if(networkId.equals(networkIdentifierEnum.getNetworkId())){
                 return networkIdentifierEnum;
             }
         }

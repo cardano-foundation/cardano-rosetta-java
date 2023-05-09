@@ -21,12 +21,12 @@ import java.util.Objects;
 public class ConstructionPreprocessResponseOptions {
 
   @JsonProperty("relative_ttl")
-  private BigDecimal relativeTtl;
+  private Double relativeTtl;
 
   @JsonProperty("transaction_size")
-  private BigDecimal transactionSize;
+  private Double transactionSize;
 
-  public ConstructionPreprocessResponseOptions relativeTtl(BigDecimal relativeTtl) {
+  public ConstructionPreprocessResponseOptions relativeTtl(Double relativeTtl) {
     this.relativeTtl = relativeTtl;
     return this;
   }

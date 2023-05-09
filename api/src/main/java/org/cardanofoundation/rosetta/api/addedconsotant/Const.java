@@ -22,7 +22,7 @@ public class Const {
 
     public static final Integer ADA_DECIMALS = 6;
 
-    public static final String IS_POSITIVE_NUMBER = "/^\\+?\\d+/";
+    public static final String IS_POSITIVE_NUMBER = "^\\+?\\d+";
 
     public static final String Token_Name_Validation = "^[0-9a-fA-F]{0," + ASSET_NAME_LENGTH + "}$";
 
@@ -47,18 +47,18 @@ public class Const {
     public static final String PREVIEW = "preview";
 
     public static final String COIN_SPENT_ACTION = "coin_spent";
-    public static final String SHELLEY_DUMMY_SIGNATURE = new String(new char[SIGNATURE_LENGTH + 1]).replace("\0", "0");
-    public static final String SHELLEY_DUMMY_PUBKEY = new String(new char[PUBLIC_KEY_BYTES_LENGTH + 1]).replace("\0", "0");
+    public static final String SHELLEY_DUMMY_SIGNATURE = new String(new char[SIGNATURE_LENGTH]).replace("\0", "0");
+    public static final String SHELLEY_DUMMY_PUBKEY = new String(new char[PUBLIC_KEY_BYTES_LENGTH]).replace("\0", "0");
 
     // Byron
-    public static final String BYRON_DUMMY_SIGNATURE = new String(new char[SIGNATURE_LENGTH + 1]).replace("\0", "0");
-    public static final String BYRON_DUMMY_PUBKEY = new String(new char[PUBLIC_KEY_BYTES_LENGTH + 1]).replace("\0", "0");
+    public static final String BYRON_DUMMY_SIGNATURE = new String(new char[SIGNATURE_LENGTH]).replace("\0", "0");
+    public static final String BYRON_DUMMY_PUBKEY = new String(new char[PUBLIC_KEY_BYTES_LENGTH]).replace("\0", "0");
 
     // Cold keys
-    public static final String COLD_DUMMY_SIGNATURE = new String(new char[SIGNATURE_LENGTH + 1]).replace("\0", "0");
-    public static final String COLD_DUMMY_PUBKEY = new String(new char[PUBLIC_KEY_BYTES_LENGTH + 1]).replace("\0", "0");
+    public static final String COLD_DUMMY_SIGNATURE = new String(new char[SIGNATURE_LENGTH]).replace("\0", "0");
+    public static final String COLD_DUMMY_PUBKEY = new String(new char[PUBLIC_KEY_BYTES_LENGTH]).replace("\0", "0");
 
-    public static final String CHAIN_CODE_DUMMY = new String(new char[CHAIN_CODE_LENGTH + 1]).replace("\0", "0");
+    public static final String CHAIN_CODE_DUMMY = new String(new char[CHAIN_CODE_LENGTH]).replace("\0", "0");
 
     public static final ArrayList<String> StakingOperations = new ArrayList<>(List.of(OperationType.STAKE_DELEGATION.getValue(),
             OperationType.STAKE_KEY_REGISTRATION.getValue(),

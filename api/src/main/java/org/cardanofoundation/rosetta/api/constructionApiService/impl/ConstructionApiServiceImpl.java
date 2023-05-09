@@ -65,7 +65,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
 //    private final LocalTxSubmissionClient localTxSubmissionClient;
 
     @Override
-    public ConstructionDeriveResponse constructionDeriveService(ConstructionDeriveRequest constructionDeriveRequest) throws IllegalAccessException {
+    public ConstructionDeriveResponse constructionDeriveService(ConstructionDeriveRequest constructionDeriveRequest) throws IllegalAccessException, CborSerializationException {
         PublicKey publicKey = constructionDeriveRequest.getPublicKey();
         NetworkIdentifierEnum networkIdentifier = cardanoService.getNetworkIdentifierByRequestParameters(constructionDeriveRequest.getNetworkIdentifier());
 
@@ -103,10 +103,10 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
                 networkIdentifier,
                 publicKey.getHexBytes(),
                 // eslint-disable-next-line camelcase
-                stakingCredential.getHexBytes(),
+                ObjectUtils.isEmpty(stakingCredential)?null:stakingCredential.getHexBytes(),
                 AddressType.findByValue(addressType)
         );
-        if (address != null) {
+        if (address == null) {
             log.error("[constructionDerive] There was an error generating address");
             throw new IllegalArgumentException("addressGenerationError");
         }
@@ -115,7 +115,8 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
     }
 
     @Override
-    public ConstructionPreprocessResponse constructionPreprocessService(ConstructionPreprocessRequest constructionPreprocessRequest) throws IOException, AddressExcepion, CborSerializationException {
+    public ConstructionPreprocessResponse constructionPreprocessService(ConstructionPreprocessRequest constructionPreprocessRequest)
+        throws IOException, AddressExcepion, CborSerializationException, CborException {
         NetworkIdentifierEnum networkIdentifier = NetworkIdentifierEnum.findByName(constructionPreprocessRequest.getNetworkIdentifier().getNetwork());
         // eslint-disable-next-line camelcase
         Double relativeTtl = cardanoService.calculateRelativeTtl(!ObjectUtils.isEmpty(constructionPreprocessRequest.getMetadata()) ? constructionPreprocessRequest.getMetadata().getRelativeTtl() : null);
@@ -126,7 +127,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
                 ObjectUtils.isEmpty(constructionPreprocessRequest.getMetadata()) ? null : constructionPreprocessRequest.getMetadata().getDepositParameters()
         );
         // eslint-disable-next-line camelcase
-        return new ConstructionPreprocessResponse(new ConstructionPreprocessResponseOptions(BigDecimal.valueOf(relativeTtl), BigDecimal.valueOf(transactionSize)), null);
+        return new ConstructionPreprocessResponse(new ConstructionPreprocessResponseOptions(relativeTtl, transactionSize), null);
     }
 
 

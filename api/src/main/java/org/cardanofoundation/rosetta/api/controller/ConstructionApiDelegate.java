@@ -56,7 +56,7 @@ public interface ConstructionApiDelegate {
           produces = { "application/json;charset=utf-8" },
           consumes = { "application/json;charset=utf-8" }
   )
-  ResponseEntity<ConstructionDeriveResponse> constructionDerive(ConstructionDeriveRequest constructionDeriveRequest) throws IllegalAccessException;
+  ResponseEntity<ConstructionDeriveResponse> constructionDerive(ConstructionDeriveRequest constructionDeriveRequest) throws IllegalAccessException, CborSerializationException;
 
   @Operation(
           operationId = "constructionHash",
@@ -136,7 +136,8 @@ public interface ConstructionApiDelegate {
           produces = { "application/json;charset=utf-8" },
           consumes = { "application/json;charset=utf-8" }
   )
-  ResponseEntity<ConstructionPreprocessResponse> constructionPreprocess(ConstructionPreprocessRequest constructionPreprocessRequest) throws IOException, AddressExcepion, CborSerializationException;
+  ResponseEntity<ConstructionPreprocessResponse> constructionPreprocess(ConstructionPreprocessRequest constructionPreprocessRequest)
+      throws IOException, AddressExcepion, CborSerializationException, CborException;
 
   @Operation(
           operationId = "constructionSubmit",

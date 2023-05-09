@@ -34,12 +34,8 @@ public class ConstructionApiDelegateImplementation implements ConstructionApiDel
         return ResponseEntity.ok(constructionApiService.constructionCombineService(constructionCombineRequest));
     }
 
-    @GetMapping(value = "/")
-    public String get(){
-        return "ok";
-    }
     @Override
-    public ResponseEntity<ConstructionDeriveResponse> constructionDerive(@RequestBody ConstructionDeriveRequest constructionDeriveRequest) throws IllegalAccessException {
+    public ResponseEntity<ConstructionDeriveResponse> constructionDerive(@RequestBody ConstructionDeriveRequest constructionDeriveRequest) throws IllegalAccessException, CborSerializationException {
         checkService.withNetworkValidation(constructionDeriveRequest.getNetworkIdentifier());
         return ResponseEntity.ok(constructionApiService.constructionDeriveService(constructionDeriveRequest));
     }
@@ -69,7 +65,8 @@ public class ConstructionApiDelegateImplementation implements ConstructionApiDel
     }
 
     @Override
-    public ResponseEntity<ConstructionPreprocessResponse> constructionPreprocess(@RequestBody ConstructionPreprocessRequest constructionPreprocessRequest) throws IOException, AddressExcepion, CborSerializationException {
+    public ResponseEntity<ConstructionPreprocessResponse> constructionPreprocess(@RequestBody ConstructionPreprocessRequest constructionPreprocessRequest)
+        throws IOException, AddressExcepion, CborSerializationException, CborException {
         checkService.withNetworkValidation(constructionPreprocessRequest.getNetworkIdentifier());
         return ResponseEntity.ok(constructionApiService.constructionPreprocessService(constructionPreprocessRequest));
     }
