@@ -24,25 +24,25 @@ services:
       DB_PORT: ${DB_PORT}
       DB_NAME: ${DB_NAME}
     depends_on:
-        db:
-          condition: service_healthy
-  api:
-    build: ./api
-    platform: linux/amd64
-    ports:
-      - "${API_BIND_PORT}:${API_EXPOSED_PORT}"
-    environment:
-      DB_HOST: "${DB_HOST}"
-      DB_PORT: "${DB_PORT}"
-      DB_NAME: "${DB_NAME}"
-      DB_USER: "${SERVICE_USER_NAME}"
-      DB_SECRET: "${SERVICE_USER_SECRET}"
-      DB_DRIVER_CLASS_NAME: "${DB_DRIVER_CLASS_NAME}"
-      DB_CONNECTION_PARAMS_PROVIDER_TYPE: ${DB_CONNECTION_PARAMS_PROVIDER_TYPE}
-    depends_on:
-      bootstrap-db:
-        condition: service_completed_successfully
-    restart: always
+      db:
+        condition: service_healthy
+#    api:
+#      build: ./api
+#      platform: linux/amd64
+#      ports:
+#        - "${API_BIND_PORT}:${API_EXPOSED_PORT}"
+#      environment:
+#        DB_HOST: "${DB_HOST}"
+#        DB_PORT: "${DB_PORT}"
+#        DB_NAME: "${DB_NAME}"
+#        DB_USER: "${SERVICE_USER_NAME}"
+#        DB_SECRET: "${SERVICE_USER_SECRET}"
+#        DB_DRIVER_CLASS_NAME: "${DB_DRIVER_CLASS_NAME}"
+#        DB_CONNECTION_PARAMS_PROVIDER_TYPE: ${DB_CONNECTION_PARAMS_PROVIDER_TYPE}
+#      depends_on:
+#        bootstrap-db:
+#          condition: service_completed_successfully
+#      restart: always
   consumer:
     build: ./consumer
     platform: linux/amd64
@@ -53,8 +53,8 @@ services:
       DB_HOST: "${DB_HOST}"
       DB_PORT: "${DB_PORT}"
       DB_NAME: "${DB_NAME}"
-      DB_USER: "${SERVICE_USER_NAME}"
-      DB_SECRET: "${SERVICE_USER_SECRET}"
+      DB_USER: "${DB_ADMIN_USER_NAME}"
+      DB_SECRET: "${DB_ADMIN_USER_SECRET}"
       DB_DRIVER_CLASS_NAME: "${DB_DRIVER_CLASS_NAME}"
       DB_SCEMA: "${DB_SCEMA}"
       DB_CONNECTION_PARAMS_PROVIDER_TYPE: ${DB_CONNECTION_PARAMS_PROVIDER_TYPE}
@@ -68,7 +68,7 @@ services:
     depends_on:
       bootstrap-db:
         condition: service_completed_successfully
-    restart: on-failure
+    restart: no
 
   redis-master:
     hostname: cardano.redis.master
