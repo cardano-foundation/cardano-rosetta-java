@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.web.client.HttpServerErrorException;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = RosettaApiApplication.class)
 @Slf4j
@@ -31,7 +32,7 @@ public class ConstructionApiDelegateImplPreprocessTests extends IntegrationTest{
    void test_valid_ttl() throws IOException {
 
     ConstructionPreprocessRequest request = objectMapper.readValue(new String(Files.readAllBytes(
-            Paths.get("src/test/resources/files/construction_preprocess_request_ttl_valid.json"))),
+            Paths.get("src/test/resources/files/construction/construction_preprocess_request_ttl_valid.json"))),
         ConstructionPreprocessRequest.class);
 
     ConstructionPreprocessResponse constructionPreprocessResponse = restTemplate.postForObject(
@@ -44,7 +45,7 @@ public class ConstructionApiDelegateImplPreprocessTests extends IntegrationTest{
   @Test
   void test_construction_payloads_with_byron_input() throws IOException {
     ConstructionPreprocessRequest request = objectMapper.readValue(new String(Files.readAllBytes(
-            Paths.get("src/test/resources/files/construction_preprocess_request_ttl_valid.json"))),
+            Paths.get("src/test/resources/files/construction/construction_preprocess_request_ttl_valid.json"))),
         ConstructionPreprocessRequest.class);
 
     ConstructionPreprocessResponse constructionPreprocessResponse = restTemplate.postForObject(
@@ -55,7 +56,18 @@ public class ConstructionApiDelegateImplPreprocessTests extends IntegrationTest{
   }
 
   @Test
-  void test_throw_error_when_invalid_outputs_are_sent_as_parameters() {
+  void test_throw_error_when_invalid_outputs_are_sent_as_parameters() throws IOException {
+    ConstructionPreprocessRequest request = objectMapper.readValue(new String(Files.readAllBytes(
+            Paths.get("src/test/resources/files/construction/construction_preprocess_request_invalid_outputs.json"))),
+        ConstructionPreprocessRequest.class);
 
+    try {
+      ConstructionPreprocessResponse constructionPreprocessResponse = restTemplate.postForObject(
+          baseUrl, request, ConstructionPreprocessResponse.class);
+    } catch (HttpServerErrorException e) {
+      String responseBody = e.getResponseBodyAsString();
+      assertTrue(responseBody.contains("ThisIsAnInvalidAddressaddr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpxInvalid"));
+      assertEquals(500, e.getRawStatusCode());
+    }
   }
 }

@@ -10,11 +10,9 @@ import org.cardanofoundation.rosetta.api.model.PublicKey;
 import org.cardanofoundation.rosetta.api.model.rest.ConstructionDeriveRequest;
 import org.cardanofoundation.rosetta.api.model.rest.ConstructionDeriveResponse;
 import org.cardanofoundation.rosetta.api.model.rest.NetworkIdentifier;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.client.HttpServerErrorException;
-import org.springframework.web.client.RestTemplate;
 
 public class ConstructionApiDelegateImplDeriveTests extends IntegrationTest{
   public final String INVALID_PUBLIC_KEY_FORMAT_MESSAGE = "invalidPublicKeyFormat";
@@ -24,11 +22,6 @@ public class ConstructionApiDelegateImplDeriveTests extends IntegrationTest{
 
   public final String MISSING_KEY_ERROR_MESSAGE  = "missingStakingKeyError";
 
-
-  @BeforeAll
-  public static void init() {
-    restTemplate = new RestTemplate();
-  }
 
   @BeforeEach
   public void setUp() {

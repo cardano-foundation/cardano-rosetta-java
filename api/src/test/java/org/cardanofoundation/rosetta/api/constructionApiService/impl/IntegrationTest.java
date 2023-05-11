@@ -2,6 +2,7 @@ package org.cardanofoundation.rosetta.api.constructionApiService.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.cardanofoundation.rosetta.api.RosettaApiApplication;
+import org.junit.jupiter.api.BeforeAll;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.web.client.RestTemplate;
@@ -14,6 +15,11 @@ public abstract class IntegrationTest {
   protected String baseUrl = "http://localhost";
 
   protected static RestTemplate restTemplate;
+
+  @BeforeAll
+  public static void init() {
+    restTemplate = new RestTemplate();
+  }
 
   protected ObjectMapper objectMapper = new ObjectMapper();
 }
