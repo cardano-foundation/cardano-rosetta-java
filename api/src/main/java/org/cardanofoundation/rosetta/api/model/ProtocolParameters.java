@@ -2,6 +2,7 @@ package org.cardanofoundation.rosetta.api.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -24,16 +25,16 @@ import java.util.Objects;
 public class ProtocolParameters {
 
   @JsonProperty("coinsPerUtxoSize")
-  private Double coinsPerUtxoSize;
+  private Long coinsPerUtxoSize;
 
   @JsonProperty("maxTxSize")
   private Integer maxTxSize;
 
   @JsonProperty("maxValSize")
-  private Double maxValSize;
+  private Long maxValSize;
 
   @JsonProperty("keyDeposit")
-  private Double keyDeposit;
+  private Long keyDeposit;
 
   @JsonProperty("maxCollateralInputs")
   private Integer maxCollateralInputs;
@@ -45,10 +46,10 @@ public class ProtocolParameters {
   private Integer minFeeConstant;
 
   @JsonProperty("minPoolCost")
-  private Double minPoolCost;
+  private Long minPoolCost;
 
   @JsonProperty("poolDeposit")
-  private Double poolDeposit;
+  private Long poolDeposit;
 
   @JsonProperty("protocol")
   private Integer protocol;

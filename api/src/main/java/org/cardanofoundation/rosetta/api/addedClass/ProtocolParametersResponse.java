@@ -1,14 +1,14 @@
 package org.cardanofoundation.rosetta.api.addedClass;
 
 public interface ProtocolParametersResponse {
-    Double getCoinsPerUtxoSize();
+    Long getCoinsPerUtxoSize();
     Integer getMaxTxSize();
-    Double getMaxValSize();
-    Double getKeyDeposit();
+    Long getMaxValSize();
+    Long getKeyDeposit();
     Integer getMaxCollateralInputs();
     Integer getMinFeeCoefficient();
     Integer getMinFeeConstant();
-    Double getMinPoolCost();
-    Double getPoolDeposit();
-    Integer getProtocol();
+    Long getMinPoolCost();
+    Long getPoolDeposit();
+    Integer getProtocolMajor();
 }

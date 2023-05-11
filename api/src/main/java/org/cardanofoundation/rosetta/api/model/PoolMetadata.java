@@ -22,10 +22,12 @@ public class PoolMetadata {
   @JsonProperty("hash")
   private String hash;
 
-    public PoolMetadata(String hash, String url) {
-    }
+  public PoolMetadata(String url, String hash) {
+    this.url = url;
+    this.hash = hash;
+  }
 
-    public PoolMetadata url(String url) {
+  public PoolMetadata url(String url) {
     this.url = url;
     return this;
   }

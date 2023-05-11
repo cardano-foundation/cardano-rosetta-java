@@ -134,8 +134,8 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
 
     @Override
     public ConstructionMetadataResponse constructionMetadataService(ConstructionMetadataRequest constructionMetadataRequest) throws CborException, CborSerializationException {
-        BigDecimal ttlOffset = constructionMetadataRequest.getOptions().getRelativeTtl();
-        BigDecimal txSize = constructionMetadataRequest.getOptions().getTransactionSize();
+        Double ttlOffset = constructionMetadataRequest.getOptions().getRelativeTtl();
+        Double txSize = constructionMetadataRequest.getOptions().getTransactionSize();
         log.debug("[constructionMetadata] Calculating ttl based on {} relative ttl", ttlOffset);
         Long ttl = cardanoService.calculateTtl(ttlOffset.longValue());
         log.debug("[constructionMetadata] ttl is {}", ttl);
@@ -159,7 +159,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
         protocol_parameters.setMinFeeCoefficient(protocolParametersResponse.getMinFeeCoefficient());
         protocol_parameters.setMinPoolCost(protocolParametersResponse.getMinPoolCost());
         protocol_parameters.setPoolDeposit(protocolParametersResponse.getPoolDeposit());
-        protocol_parameters.setProtocol(protocolParametersResponse.getProtocol());
+        protocol_parameters.setProtocol(protocolParametersResponse.getProtocolMajor());
         return new ConstructionMetadataResponse(new ConstructionMetadataResponseMetadata(ttl.toString(), protocol_parameters),
                 new ArrayList<>(List.of(cardanoService.mapAmount(suggestedFee.toString(), null, null, null))));
     }

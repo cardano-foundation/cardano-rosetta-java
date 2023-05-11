@@ -2,6 +2,10 @@ package org.cardanofoundation.rosetta.api.model.rest;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.cardanofoundation.rosetta.api.model.ConstructionMetadataRequestOptions;
 import org.cardanofoundation.rosetta.api.model.PublicKey;
 
@@ -16,8 +20,10 @@ import java.util.Objects;
  * A ConstructionMetadataRequest is utilized to get information required to construct a transaction. The Options object used to specify which metadata to return is left purposely unstructured to allow flexibility for implementers. Options is not required in the case that there is network-wide metadata of interest. Optionally, the request can also include an array of PublicKeys associated with the AccountIdentifiers returned in ConstructionPreprocessResponse.
  */
 
-@Schema(name = "ConstructionMetadataRequest", description = "A ConstructionMetadataRequest is utilized to get information required to construct a transaction. The Options object used to specify which metadata to return is left purposely unstructured to allow flexibility for implementers. Options is not required in the case that there is network-wide metadata of interest. Optionally, the request can also include an array of PublicKeys associated with the AccountIdentifiers returned in ConstructionPreprocessResponse.")
-@Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2023-03-21T15:54:41.273447600+07:00[Asia/Bangkok]")
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class ConstructionMetadataRequest {
 
   @JsonProperty("network_identifier")
@@ -35,43 +41,7 @@ public class ConstructionMetadataRequest {
     return this;
   }
 
-  /**
-   * Get networkIdentifier
-   * @return networkIdentifier
-  */
-  @NotNull @Valid 
-  @Schema(name = "network_identifier", requiredMode = Schema.RequiredMode.REQUIRED)
-  public NetworkIdentifier getNetworkIdentifier() {
-    return networkIdentifier;
-  }
 
-  public void setNetworkIdentifier(NetworkIdentifier networkIdentifier) {
-    this.networkIdentifier = networkIdentifier;
-  }
-
-  public ConstructionMetadataRequest options(ConstructionMetadataRequestOptions options) {
-    this.options = options;
-    return this;
-  }
-
-  /**
-   * Get options
-   * @return options
-  */
-  @NotNull @Valid 
-  @Schema(name = "options", requiredMode = Schema.RequiredMode.REQUIRED)
-  public ConstructionMetadataRequestOptions getOptions() {
-    return options;
-  }
-
-  public void setOptions(ConstructionMetadataRequestOptions options) {
-    this.options = options;
-  }
-
-  public ConstructionMetadataRequest publicKeys(List<PublicKey> publicKeys) {
-    this.publicKeys = publicKeys;
-    return this;
-  }
 
   public ConstructionMetadataRequest addPublicKeysItem(PublicKey publicKeysItem) {
     if (this.publicKeys == null) {
@@ -79,16 +49,6 @@ public class ConstructionMetadataRequest {
     }
     this.publicKeys.add(publicKeysItem);
     return this;
-  }
-
-  /**
-   * Get publicKeys
-   * @return publicKeys
-  */
-  @Valid 
-  @Schema(name = "public_keys", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
-  public List<PublicKey> getPublicKeys() {
-    return publicKeys;
   }
 
   public void setPublicKeys(List<PublicKey> publicKeys) {
