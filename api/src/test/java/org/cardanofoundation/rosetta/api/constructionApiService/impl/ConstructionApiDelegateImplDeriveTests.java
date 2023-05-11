@@ -1,7 +1,9 @@
 package org.cardanofoundation.rosetta.api.constructionApiService.impl;
 
-import lombok.extern.slf4j.Slf4j;
-import org.cardanofoundation.rosetta.api.RosettaApiApplication;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+
 import org.cardanofoundation.rosetta.api.model.ConstructionDeriveRequestMetadata;
 import org.cardanofoundation.rosetta.api.model.CurveType;
 import org.cardanofoundation.rosetta.api.model.PublicKey;
@@ -11,27 +13,10 @@ import org.cardanofoundation.rosetta.api.model.rest.NetworkIdentifier;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.cache.CacheManager;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 
-import static org.junit.jupiter.api.Assertions.*;
-
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = RosettaApiApplication.class)
-@Slf4j
-public class ConstructionApiServiceImplTests {
+public class ConstructionApiDelegateImplDeriveTests extends IntegrationTest{
   public final String INVALID_PUBLIC_KEY_FORMAT_MESSAGE = "invalidPublicKeyFormat";
   public final String INVALID_STAKING_KEY_FORMAT_MESSAGE = "invalidStakingKeyFormat";
 
@@ -39,12 +24,6 @@ public class ConstructionApiServiceImplTests {
 
   public final String MISSING_KEY_ERROR_MESSAGE  = "missingStakingKeyError";
 
-  @LocalServerPort
-  protected int serverPort;
-
-  private String baseUrl = "http://localhost";
-
-  private static RestTemplate restTemplate;
 
   @BeforeAll
   public static void init() {
