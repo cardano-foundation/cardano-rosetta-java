@@ -4,6 +4,8 @@ import static org.cardanofoundation.rosetta.consumer.constant.ConsumerConstant.B
 
 import com.google.common.collect.Lists;
 import org.cardanofoundation.rosetta.common.entity.ExtraKeyWitness;
+import org.cardanofoundation.rosetta.consumer.repository.ExtraKeyWitnessRepository;
+import org.cardanofoundation.rosetta.consumer.repository.cached.CachedExtraKeyWitnessRepository;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -13,8 +15,6 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.cardanofoundation.rosetta.consumer.repository.ExtraKeyWitnessRepository;
-import org.cardanofoundation.rosetta.consumer.repository.cached.CachedExtraKeyWitnessRepository;
 import org.springframework.stereotype.Repository;
 
 @Slf4j

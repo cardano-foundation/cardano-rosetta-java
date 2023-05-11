@@ -1,7 +1,6 @@
 package org.cardanofoundation.rosetta.consumer.service.impl;
 
 import com.bloxbean.cardano.client.transaction.spec.RedeemerTag;
-import com.bloxbean.cardano.client.util.HexUtil;
 import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedAddressBalance;
 import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedBlock;
 import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedTx;
@@ -23,6 +22,7 @@ import org.cardanofoundation.rosetta.consumer.service.EpochService;
 import org.cardanofoundation.rosetta.consumer.service.TxInService;
 import org.cardanofoundation.rosetta.consumer.service.TxOutService;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -57,10 +57,10 @@ public class TxInServiceImpl implements TxInService {
   CachedMultiAssetTxOutRepository cachedMultiAssetTxOutRepository;
 
   @Override
-  public void handleTxIns(Collection<AggregatedTx> txs, Map<byte[], Set<AggregatedTxIn>> txInMap,
-      Map<byte[], Tx> txMap, Map<RedeemerReference<?>, Redeemer> redeemersMap) {
+  public void handleTxIns(Collection<AggregatedTx> txs, Map<String, Set<AggregatedTxIn>> txInMap,
+      Map<String, Tx> txMap, Map<RedeemerReference<?>, Redeemer> redeemersMap) {
     AtomicBoolean shouldFindAssets = new AtomicBoolean(false);
-    Map<Pair<byte[], Short>, TxOut> txOutMap = getTxOutFromTxInsMap(txInMap);
+    Map<Pair<String, Short>, TxOut> txOutMap = getTxOutFromTxInsMap(txInMap);
 
     // Calculate tx fee or deposit value then update epoch if needed and
     // check if assets should be taken into account in transaction inputs
@@ -85,7 +85,7 @@ public class TxInServiceImpl implements TxInService {
     Queue<TxIn> txInQueue = new ConcurrentLinkedQueue<>();
     txInMap.entrySet().parallelStream().forEach(entry -> {
       Set<AggregatedTxIn> txInSet = entry.getValue();
-      byte[] txHash = entry.getKey();
+      String txHash = entry.getKey();
       Tx tx = txMap.get(txHash);
 
       txInSet.parallelStream().forEach(txIn -> {
@@ -98,8 +98,8 @@ public class TxInServiceImpl implements TxInService {
     cachedTxInRepository.saveAll(txInQueue);
   }
 
-  private Map<Pair<byte[], Short>, TxOut> getTxOutFromTxInsMap(
-      Map<byte[], Set<AggregatedTxIn>> txInMap) {
+  private Map<Pair<String, Short>, TxOut> getTxOutFromTxInsMap(
+      Map<String, Set<AggregatedTxIn>> txInMap) {
     Set<AggregatedTxIn> txIns = txInMap.values().stream()
         .flatMap(Collection::stream)
         .collect(Collectors.toSet());
@@ -115,7 +115,7 @@ public class TxInServiceImpl implements TxInService {
   }
 
   private void calculateShelleyDeposit(Tx tx, Set<AggregatedTxIn> txIns,
-      Map<Pair<byte[], Short>, TxOut> txOutMap, Map<String, BigInteger> withdrawalsMap) {
+      Map<Pair<String, Short>, TxOut> txOutMap, Map<String, BigInteger> withdrawalsMap) {
     if (Boolean.FALSE.equals(tx.getValidContract())) {
       return;
     }
@@ -134,7 +134,7 @@ public class TxInServiceImpl implements TxInService {
   }
 
   private void calculateByronFee(Tx tx,
-      Set<AggregatedTxIn> txIns, Map<Pair<byte[], Short>, TxOut> txOutMap) {
+      Set<AggregatedTxIn> txIns, Map<Pair<String, Short>, TxOut> txOutMap) {
     if (CollectionUtils.isEmpty(txIns)) {
       return;
     }
@@ -145,7 +145,7 @@ public class TxInServiceImpl implements TxInService {
   }
 
   private static BigInteger getTxInSum(
-      Map<Pair<byte[], Short>, TxOut> txOutMap, Tx tx, Set<AggregatedTxIn> txIns) {
+      Map<Pair<String, Short>, TxOut> txOutMap, Tx tx, Set<AggregatedTxIn> txIns) {
     return txIns.stream()
         .map(txIn -> {
           TxOut txOut = txOutMap.get(Pair.of(txIn.getTxId(), (short) txIn.getIndex()));
@@ -161,7 +161,7 @@ public class TxInServiceImpl implements TxInService {
   }
 
   private TxIn handleTxIn(Tx tx, AggregatedTxIn txInput,
-      Map<Pair<byte[], Short>, TxOut> txOutMap, Redeemer redeemer) {
+      Map<Pair<String, Short>, TxOut> txOutMap, Redeemer redeemer) {
     TxInBuilder<?, ?> txInBuilder = TxIn.builder();
 
     txInBuilder.txInput(tx);
@@ -181,8 +181,8 @@ public class TxInServiceImpl implements TxInService {
     return txInBuilder.build();
   }
 
-  private void handleTxInBalances(Map<byte[], Set<AggregatedTxIn>> txInMap,
-      Map<Pair<byte[], Short>, TxOut> txOutMap, boolean shouldFindAssets) {
+  private void handleTxInBalances(Map<String, Set<AggregatedTxIn>> txInMap,
+      Map<Pair<String, Short>, TxOut> txOutMap, boolean shouldFindAssets) {
     // Byron does not have assets, hence this step is skipped
     Map<String, List<MaTxOut>> maTxOutMap = !shouldFindAssets
         ? Collections.emptyMap()
@@ -197,7 +197,7 @@ public class TxInServiceImpl implements TxInService {
         entry.getValue().parallelStream().forEach(txIn -> {
           Pair<String, Short> txOutKey = Pair.of(txIn.getTxId(), (short) txIn.getIndex());
           TxOut txOut = txOutMap.get(txOutKey);
-          byte[] txHash = entry.getKey();
+          String txHash = entry.getKey();
           String address = txOut.getAddress();
           AggregatedAddressBalance addressBalance = blockDataService
               .getAggregatedAddressBalanceFromAddress(address);
@@ -219,7 +219,7 @@ public class TxInServiceImpl implements TxInService {
     if (cachedTxOutRepository.isNew(txOut)) {
       return String.join(
           ConsumerConstant.UNDERSCORE,
-          HexUtil.encodeHexString(txOut.getTx().getHash()),
+          txOut.getTx().getHash(),
           txOut.getIndex().toString()
       );
     }

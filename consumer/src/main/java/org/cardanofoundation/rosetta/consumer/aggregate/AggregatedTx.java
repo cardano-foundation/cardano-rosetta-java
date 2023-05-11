@@ -17,8 +17,8 @@ import lombok.experimental.FieldDefaults;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class AggregatedTx {
-  byte[] hash;
-  byte[] blockHash;
+  String hash;
+  String blockHash;
   long blockIndex;
   BigInteger outSum;
   BigInteger fee;

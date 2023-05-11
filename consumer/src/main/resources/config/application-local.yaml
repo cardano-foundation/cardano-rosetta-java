@@ -35,7 +35,7 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         jdbc.batch_size: 1000
-        default_schema: ${DB_SCEMA:testnet}
+        default_schema: ${DB_SCEMA:public}
         show_sql: false
         format_sql: true
         order_inserts: true
@@ -87,7 +87,7 @@ kafka:
   listeners:
     block:
       groupId: consumer-rosetta-group
-      topics: ${BLOCKS_TOPIC:dev.crawler.testnet.blocks}
+      topics: ${BLOCKS_TOPIC:preprod.crawler.blocks}
 #      props: |
 #        max.poll.records: 10
 #        fetch.min.bytes: 123456

@@ -40,7 +40,7 @@ public class CachedMultiAssetTxOutRepositoryImpl implements CachedMultiAssetTxOu
     Queue<MaTxOut> maTxOuts = new ConcurrentLinkedQueue<>();
 
     txOuts.parallelStream().forEach(txOut -> {
-      Pair<byte[], Short> txHashIndexPair = txOutToTxHashIndexPair(txOut);
+      Pair<String, Short> txHashIndexPair = txOutToTxHashIndexPair(txOut);
       Collection<MaTxOut> maTxOutList = inMemoryCachedEntities.getMaTxOutMap().get(txHashIndexPair);
       if (!CollectionUtils.isEmpty(maTxOutList)) {
         maTxOuts.addAll(maTxOutList);
@@ -92,7 +92,7 @@ public class CachedMultiAssetTxOutRepositoryImpl implements CachedMultiAssetTxOu
   @Override
   public List<MaTxOut> saveAll(Collection<MaTxOut> entities) {
     entities.parallelStream().forEach(maTxOut -> {
-      Pair<byte[], Short> txHashIndexPair = txOutToTxHashIndexPair(maTxOut.getTxOut());
+      Pair<String, Short> txHashIndexPair = txOutToTxHashIndexPair(maTxOut.getTxOut());
       Queue<MaTxOut> maTxOuts = inMemoryCachedEntities.getMaTxOutMap()
           .computeIfAbsent(txHashIndexPair, p -> new ConcurrentLinkedQueue<>());
       maTxOuts.add(maTxOut);
@@ -100,7 +100,7 @@ public class CachedMultiAssetTxOutRepositoryImpl implements CachedMultiAssetTxOu
     return new ArrayList<>(entities);
   }
 
-  private static Pair<byte[], Short> txOutToTxHashIndexPair(TxOut txOut) {
+  private static Pair<String, Short> txOutToTxHashIndexPair(TxOut txOut) {
     return Pair.of(txOut.getTx().getHash(), txOut.getIndex());
   }
 

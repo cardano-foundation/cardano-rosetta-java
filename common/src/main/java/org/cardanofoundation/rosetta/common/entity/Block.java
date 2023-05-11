@@ -34,7 +34,7 @@ public class Block extends BaseEntity {
 
 
   @Column(name = "hash", nullable = false, length = 64)
-  private byte[] hash;
+  private String hash;
 
   @Column(name = "epoch_no")
   private Integer epochNo;

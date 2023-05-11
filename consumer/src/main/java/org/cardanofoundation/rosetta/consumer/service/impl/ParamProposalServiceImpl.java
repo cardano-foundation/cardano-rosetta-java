@@ -1,13 +1,12 @@
 package org.cardanofoundation.rosetta.consumer.service.impl;
 
-import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedTx;
 import org.cardanofoundation.rosetta.common.entity.CostModel;
 import org.cardanofoundation.rosetta.common.entity.ParamProposal;
 import org.cardanofoundation.rosetta.common.entity.Tx;
 import org.cardanofoundation.rosetta.common.ledgersync.ProtocolParamUpdate;
+import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedTx;
 import org.cardanofoundation.rosetta.consumer.repository.cached.CachedParamProposalRepository;
 import org.cardanofoundation.rosetta.consumer.service.CostModelService;
-import org.cardanofoundation.rosetta.consumer.service.ParamProposalService;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -21,6 +20,7 @@ import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.cardanofoundation.rosetta.consumer.service.ParamProposalService;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -34,7 +34,7 @@ public class ParamProposalServiceImpl implements ParamProposalService {
 
   @Override
   public List<ParamProposal> handleParamProposals(
-      Collection<AggregatedTx> successTxs, Map<byte[], Tx> txMap) {
+      Collection<AggregatedTx> successTxs, Map<String, Tx> txMap) {
 
     successTxs.stream()
         .filter(aggregatedTx -> Objects.nonNull(aggregatedTx.getUpdate()))

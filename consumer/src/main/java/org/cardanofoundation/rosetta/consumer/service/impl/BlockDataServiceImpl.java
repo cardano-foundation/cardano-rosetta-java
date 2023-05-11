@@ -90,12 +90,12 @@ public class BlockDataServiceImpl implements BlockDataService {
   CachedEpochParamRepository cachedEpochParamRepository;
 
   @Override
-  public Map<String, byte[]> getStakeAddressTxHashMap() {
+  public Map<String, String> getStakeAddressTxHashMap() {
     return aggregatedBatchBlockData.getStakeAddressTxHashMap();
   }
 
   @Override
-  public void saveFirstAppearedTxHashForStakeAddress(String stakeAddress, byte[] txHash) {
+  public void saveFirstAppearedTxHashForStakeAddress(String stakeAddress, String txHash) {
     aggregatedBatchBlockData.getStakeAddressTxHashMap().putIfAbsent(stakeAddress, txHash);
   }
 
@@ -125,7 +125,7 @@ public class BlockDataServiceImpl implements BlockDataService {
   }
 
   @Override
-  public AggregatedBlock getAggregatedBlock(byte[] blockHash) {
+  public AggregatedBlock getAggregatedBlock(String blockHash) {
     return aggregatedBatchBlockData.getAggregatedBlockMap().get(blockHash);
   }
 
@@ -173,7 +173,7 @@ public class BlockDataServiceImpl implements BlockDataService {
       return Pair.of(new AggregatedBlock(), new AggregatedBlock());
     }
     first = mBlock.entrySet().iterator().next().getValue();
-    for (Map.Entry<byte[], AggregatedBlock> entry : mBlock.entrySet()) {
+    for (Map.Entry<String, AggregatedBlock> entry : mBlock.entrySet()) {
       last = entry.getValue();
     }
     return Pair.of(first, last);

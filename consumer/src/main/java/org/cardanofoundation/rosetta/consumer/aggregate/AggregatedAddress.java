@@ -2,12 +2,12 @@ package org.cardanofoundation.rosetta.consumer.aggregate;
 
 import com.bloxbean.cardano.client.crypto.Base58;
 import org.cardanofoundation.rosetta.common.ledgersync.address.ShelleyAddress;
-import org.cardanofoundation.rosetta.common.util.HexUtil;
 import java.util.Arrays;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
+import org.cardanofoundation.rosetta.common.util.HexUtil;
 import org.cardanofoundation.rosetta.consumer.constant.ConsumerConstant;
 
 @Getter

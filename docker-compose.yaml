@@ -13,6 +13,8 @@ services:
       timeout: 5s
       retries: 10
     restart: on-failure
+    volumes:
+      - ./data/postgres-data:/var/lib/postgresql/data
   bootstrap-db:
     build: ./database
     environment:
