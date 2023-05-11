@@ -23,10 +23,10 @@ import java.util.Objects;
 public class DepositParameters {
 
   @JsonProperty("keyDeposit")
-  private Double keyDeposit;
+  private Long keyDeposit;
 
   @JsonProperty("poolDeposit")
-  private Double poolDeposit;
+  private Long poolDeposit;
 
 
   @Override

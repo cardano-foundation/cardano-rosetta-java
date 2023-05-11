@@ -7,6 +7,7 @@ import com.bloxbean.cardano.client.address.AddressProvider;
 import com.bloxbean.cardano.client.address.ByronAddress;
 import com.bloxbean.cardano.client.address.util.AddressUtil;
 import com.bloxbean.cardano.client.common.model.Network;
+import com.bloxbean.cardano.client.crypto.Bech32;
 import com.bloxbean.cardano.client.crypto.Blake2bUtil;
 import com.bloxbean.cardano.client.crypto.VerificationKey;
 import com.bloxbean.cardano.client.crypto.bip32.key.HdPublicKey;
@@ -24,6 +25,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
+import org.bouncycastle.math.ec.rfc8032.Ed25519;
 import org.cardanofoundation.rosetta.api.addedClass.*;
 import org.cardanofoundation.rosetta.api.addedRepo.BlockRepository;
 import org.cardanofoundation.rosetta.api.addedconsotant.Const;
@@ -136,6 +138,7 @@ public class CardanoServiceImpl implements CardanoService {
             }
             throw new IllegalArgumentException("invalidAddressError" + address);
         }).collect(Collectors.toList());
+
         String transaction = buildTransaction(unsignedTransaction.getBytes(), addedSignaturesList, unsignedTransaction.getMetadata());
         // eslint-disable-next-line no-magic-numbers
         return (double) (transaction.length() / 2); // transaction is returned as an hex string and we need size in bytes
@@ -317,6 +320,7 @@ public class CardanoServiceImpl implements CardanoService {
         map.put("withdrawals", result.getWithdrawals());
         Set addresses=new HashSet<>();
         result.getAddresses().stream().forEach(a->addresses.add(a));
+        addresses.removeAll(Collections.singleton(null));
         map.put("addresses", addresses);
         map.put("fee", fee);
         map.put("voteRegistrationMetadata", result.getVoteRegistrationMetadata());
@@ -422,13 +426,15 @@ public class CardanoServiceImpl implements CardanoService {
             resultAccumulator.setPoolRegistrationsCount(++poolNumber);
             return resultAccumulator;
         }
-//        if (type.equals(OperationType.POOL_REGISTRATION_WITH_CERT.getValue())) {
-//            const { certificate, addresses } = processPoolRegistrationWithCert(scope, logger, network, operation);
-//            resultAccumulator.certificates.add(certificate);
-//            resultAccumulator.addresses.push(...addresses);
-//            resultAccumulator.poolRegistrationsCount++;
-//            return resultAccumulator;
-//        }
+        if (type.equals(OperationType.POOL_REGISTRATION_WITH_CERT.getValue())) {
+            Map<String,Object>map= processPoolRegistrationWithCert(operation,networkIdentifierEnum );
+            resultAccumulator.getCertificates().add((Certificate) map.get("certificate"));
+            Set<String> set=(Set) map.get("address");
+            resultAccumulator.getAddresses().addAll(set);
+            double poolNumber = resultAccumulator.getPoolRegistrationsCount();
+            resultAccumulator.setPoolRegistrationsCount(++poolNumber);
+            return resultAccumulator;
+        }
         if (type.equals(OperationType.POOL_RETIREMENT.getValue())) {
             Map<String, Object> map = processPoolRetirement(operation);
             resultAccumulator.getCertificates().add((Certificate) map.get("certificate"));
@@ -441,6 +447,56 @@ public class CardanoServiceImpl implements CardanoService {
             return resultAccumulator;
         }
         return null;
+    }
+     Map<String,Object> processPoolRegistrationWithCert(Operation operation,NetworkIdentifierEnum networkIdentifierEnum)
+         throws CborSerializationException {
+         OperationMetadata operationMetadata=ObjectUtils.isEmpty(operation)?null:operation.getMetadata();
+         AccountIdentifier account=ObjectUtils.isEmpty(operation)?null:operation.getAccount();
+        Map<String,Object> map= validateAndParsePoolRegistrationCert(
+             networkIdentifierEnum,
+             ObjectUtils.isEmpty(operationMetadata)?null:operationMetadata.getPoolRegistrationCert(),
+             ObjectUtils.isEmpty(account)?null:account.getAddress()
+  );
+         return map;
+     }
+
+@Override
+public Map<String,Object> validateAndParsePoolRegistrationCert(
+    NetworkIdentifierEnum networkIdentifierEnum, String poolRegistrationCert, String poolKeyHash)
+        throws CborSerializationException {
+        if (ObjectUtils.isEmpty(poolKeyHash)) {
+            log.error("[validateAndParsePoolRegistrationCert] no cold key provided for pool registration");
+            throw new IllegalArgumentException("missingPoolKeyError");
+        }
+        if (ObjectUtils.isEmpty(poolRegistrationCert)) {
+            log.error(
+                "[validateAndParsePoolRegistrationCert] no pool registration certificate provided for pool registration"
+            );
+            throw new IllegalArgumentException("missingPoolCertError");
+        }
+        PoolRegistration parsedCertificate;
+        try {
+            DataItem dataItem=com.bloxbean.cardano.client.common.cbor.CborSerializationUtil.deserialize(HexUtil.decodeHexString(poolRegistrationCert));
+            parsedCertificate = PoolRegistration.deserialize(dataItem);
+        } catch (Exception error) {
+            log.error("[validateAndParsePoolRegistrationCert] invalid pool registration certificate");
+            throw new IllegalArgumentException("invalidPoolRegistrationCert"+error.getMessage());
+        }
+        if (ObjectUtils.isEmpty(parsedCertificate)) {
+            log.error("[validateAndParsePoolRegistrationCert] invalid certificate type");
+            throw new IllegalArgumentException("invalidPoolRegistrationCertType");
+        }
+  List<String> ownersAddresses = parsePoolOwners(networkIdentifierEnum.getValue() ,parsedCertificate);
+  String rewardAddress = parsePoolRewardAccount(networkIdentifierEnum.getValue(), parsedCertificate);
+  Map<String,Object> map=new HashMap();
+  Set<String> addresses=new HashSet<>();
+  addresses.addAll(new HashSet<String>(ownersAddresses));
+        addresses.add(poolKeyHash);
+        addresses.add(rewardAddress);
+  map.put("certificate",parsedCertificate);
+  map.put("address",addresses);
+        return map;
+
     }
 
     @Override
@@ -574,7 +630,8 @@ public class CardanoServiceImpl implements CardanoService {
         }
         byte[] parsedPoolKeyHash = null;
         try {
-            parsedPoolKeyHash = HexUtil.decodeHexString(poolKeyHash);
+                parsedPoolKeyHash = HexUtil.decodeHexString(poolKeyHash);
+
         } catch (Exception error) {
             log.error("[validateAndParsePoolKeyHash] invalid pool key hash");
             throw new IllegalArgumentException("invalidPoolKeyError");
@@ -594,43 +651,40 @@ public class CardanoServiceImpl implements CardanoService {
 
         Map<String, Object> map = validateAndParsePoolRegistationParameters(poolRegistrationParams);
         // eslint-disable-next-line camelcase
-//  const poolKeyHash = validateAndParsePoolKeyHash(scope, logger, operation.account ?.address);
+        byte[] poolKeyHash = validateAndParsePoolKeyHash(ObjectUtils.isEmpty(operation.getAccount())?null:operation.getAccount().getAddress());
 
         log.info("[processPoolRegistration] About to validate and parse reward address");
         Address parsedAddress = validateAndParseRewardAddress(poolRegistrationParams.getRewardAddress());
-
+        Bech32.Bech32Data bech32Data= Bech32.decode(parsedAddress.toBech32());
         log.info("[processPoolRegistration] About to generate pool owners");
-        Optional<byte[]> owners = parsedAddress.getPaymentKeyHash();
-//                validateAndParsePoolOwners(poolRegistrationParams.getPoolOwners());
-
+        Set<String> owners = validateAndParsePoolOwners(poolRegistrationParams.getPoolOwners());
         log.info("[processPoolRegistration] About to generate pool relays");
         List<Relay> parsedRelays = validateAndParsePoolRelays(poolRegistrationParams.getRelays());
 
         log.info("[processPoolRegistration] About to generate pool metadata");
         PoolMetadata poolMetadata = validateAndParsePoolMetadata(poolRegistrationParams.getPoolMetadata());
-        Set<String> set = new HashSet<>();
-        set.add(HexUtil.encodeHexString(owners.get()));
+
         log.info("[processPoolRegistration] About to generate Pool Registration");
         PoolRegistration wasmPoolRegistration = PoolRegistration.builder()
-                .operator(null)
+                .operator(poolKeyHash)
                 .vrfKeyHash(ObjectUtils.isEmpty(operation.getMetadata()) ? null : HexUtil.decodeHexString(operation.getMetadata().getPoolRegistrationParams().getVrfKeyHash()))
                 .pledge((BigInteger) map.get("pledge"))
                 .cost((BigInteger) map.get("cost"))
                 .margin(new UnitInterval((BigInteger) map.get("numerator"), (BigInteger) map.get("denominator")))
-                .rewardAccount(parsedAddress.getAddress())
-                .poolOwners(set)
+                .rewardAccount(HexUtil.encodeHexString(bech32Data.data))
+                .poolOwners(owners)
                 .relays(parsedRelays)
-                .poolMetadataUrl(poolMetadata.getUrl())
-                .poolMetadataHash(poolMetadata.getHash())
+                .poolMetadataUrl(ObjectUtils.isEmpty(poolMetadata)?null:poolMetadata.getUrl())
+                .poolMetadataHash(ObjectUtils.isEmpty(poolMetadata)?null:poolMetadata.getHash())
                 .build();
         log.info("[processPoolRegistration] Generating Pool Registration certificate");
         Certificate certificate = wasmPoolRegistration;
         log.info("[processPoolRegistration] Successfully created Pool Registration certificate");
 
         List<String> totalAddresses = new ArrayList<>();
-        totalAddresses.addAll(set);
-        totalAddresses.add(parsedAddress.getAddress());
-        totalAddresses.add(operation.getAccount().getAddress());
+        if(!ObjectUtils.isEmpty(poolRegistrationParams.getPoolOwners())) totalAddresses.addAll(poolRegistrationParams.getPoolOwners());
+        if(!ObjectUtils.isEmpty(parsedAddress.getAddress())) totalAddresses.add(parsedAddress.getAddress());
+        if(!ObjectUtils.isEmpty(operation.getAccount().getAddress())) totalAddresses.add(operation.getAccount().getAddress());
         map.put("totalAddresses", totalAddresses);
         map.put("certificate", certificate);
         return map;
@@ -638,10 +692,12 @@ public class CardanoServiceImpl implements CardanoService {
 
     @Override
     public PoolMetadata validateAndParsePoolMetadata(PoolMetadata metadata) {
-        PoolMetadata parsedMetadata = new PoolMetadata();
+        PoolMetadata parsedMetadata=null;
         try {
-            if (!ObjectUtils.isEmpty(metadata))
-                parsedMetadata = new PoolMetadata(metadata.getHash(), metadata.getUrl());
+            if (!ObjectUtils.isEmpty(metadata)) {
+                parsedMetadata = new PoolMetadata(metadata.getUrl(),metadata.getHash());
+                return parsedMetadata;
+            }
         } catch (Exception error) {
             log.error("[validateAndParsePoolMetadata] invalid pool metadata");
             throw new IllegalArgumentException("invalidPoolMetadataError");
@@ -694,7 +750,12 @@ public class CardanoServiceImpl implements CardanoService {
     @Override
     public Inet4Address parseIpv4(String ip) throws UnknownHostException {
         if (!ObjectUtils.isEmpty(ip)) {
-            byte[] parsedIp = HexUtil.decodeHexString(ip);
+            String[] ipNew=ip.split("\\.");
+            byte[] bytes=new byte[ipNew.length];
+            for(int i=0;i<ipNew.length;i++){
+                bytes[i]= Byte.parseByte(ipNew[i]);
+            }
+            byte[] parsedIp = bytes;
             return (Inet4Address) Inet4Address.getByAddress(parsedIp);
         }
         return null;
@@ -703,7 +764,8 @@ public class CardanoServiceImpl implements CardanoService {
     @Override
     public Inet6Address parseIpv6(String ip) throws UnknownHostException {
         if (!ObjectUtils.isEmpty(ip)) {
-            byte[] parsedIp = HexUtil.decodeHexString(ip.replace("/:/g", ""));
+            String ipNew=ip.replace(":", "");
+            byte[] parsedIp = HexUtil.decodeHexString(ipNew);
             return (Inet6Address) Inet6Address.getByAddress(parsedIp);
         }
         return null;
@@ -901,7 +963,7 @@ public class CardanoServiceImpl implements CardanoService {
             throw new IllegalArgumentException("transactionOutputsParametersMissingError Output has negative amount value");
         }
         Value value = Value.builder().coin(BigInteger.valueOf(Long.valueOf(outputValue))).build();
-        if (!ObjectUtils.isEmpty(output.getMetadata()) && ObjectUtils.isEmpty(output.getMetadata().getTokenBundle()))
+        if (!ObjectUtils.isEmpty(output.getMetadata()) && !ObjectUtils.isEmpty(output.getMetadata().getTokenBundle()))
             value.setMultiAssets(validateAndParseTokenBundle(output.getMetadata().getTokenBundle()));
         Address address1;
         try {
@@ -943,13 +1005,14 @@ public class CardanoServiceImpl implements CardanoService {
                 throw new IllegalArgumentException("transactionOutputsParametersMissingError PolicyId " + tokenBundleItem.getPolicyId() + "is not valid");
             }
             List<Asset> assets = new ArrayList<>();
+            List<Asset> assetsCheck = new ArrayList<>();
             tokenBundleItem.getTokens().stream().forEach(token -> {
                 if (!isTokenNameValid(token.getCurrency().getSymbol())) {
                     log.error("validateAndParseTokenBundle] Token name {} is not valid", token.getCurrency().getSymbol());
                     throw new IllegalArgumentException("transactionOutputsParametersMissingError Token name " + token.getCurrency().getSymbol() + "is not valid");
                 }
                 String assetName = token.getCurrency().getSymbol();
-                if (assets.stream().anyMatch(asset -> !ObjectUtils.isEmpty(asset.getName()))) {
+                if (assetsCheck.stream().anyMatch(asset -> asset.getName().equals(assetName))) {
                     log.error("[validateAndParseTokenBundle] Token name {} has already been added for policy {}", token.getCurrency().getSymbol(), tokenBundleItem.getPolicyId());
                     throw new IllegalArgumentException("transactionOutputsParametersMissingError Token name " + token.getCurrency().getSymbol() + " has already been added for policy " + tokenBundleItem.getPolicyId() + "and will be overriden");
                 }
@@ -961,7 +1024,14 @@ public class CardanoServiceImpl implements CardanoService {
                     log.error("[validateAndParseTokenBundle] Asset {} has negative or invalid value {}", token.getCurrency().getSymbol(), token.getValue());
                     throw new IllegalArgumentException("transactionOutputsParametersMissingError Asset" + token.getCurrency().getSymbol() + "has negative or invalid value " + token.getValue());
                 }
-                assets.add(new Asset(token.getCurrency().getSymbol(), BigInteger.valueOf(Long.valueOf(token.getValue()))));
+                //revise
+                if(token.getCurrency().getSymbol().equals("\\x")){
+                    token.getCurrency().setSymbol("");
+                }
+                assets.add(new Asset(
+                    token.getCurrency().getSymbol().startsWith("0x") ?
+                    token.getCurrency().getSymbol(): "0x"+token.getCurrency().getSymbol(), BigInteger.valueOf(Long.valueOf(token.getValue()))));
+                assetsCheck.add(new Asset(token.getCurrency().getSymbol(), BigInteger.valueOf(Long.valueOf(token.getValue()))));
             });
             multiAssets.add(new MultiAsset(tokenBundleItem.getPolicyId(), assets));
         });
@@ -1041,7 +1111,7 @@ public class CardanoServiceImpl implements CardanoService {
     public BlockResponse getLatestBlock() {
         log.info("[getLatestBlock] About to look for latest block");
         Long latestBlockNumber = findLatestBlockNumber();
-        log.info("[getLatestBlock] Latest block number is ${latestBlockNumber}");
+        log.info("[getLatestBlock] Latest block number is {}",latestBlockNumber);
         BlockResponse latestBlock = blockRepository.findBlock(latestBlockNumber, null);
         if (ObjectUtils.isEmpty(latestBlock)) {
             log.error("[getLatestBlock] Latest block not found");
@@ -1060,7 +1130,7 @@ public class CardanoServiceImpl implements CardanoService {
     }
 
     @Override
-    public BlockResponse findBlock(Long blockNumber, String blockHash) {
+    public BlockResponse findBlock(Long blockNumber, byte[] blockHash) {
         BlockResponse result = blockRepository.findBlock(blockNumber, blockHash);
         log.debug("[findBlock] Parameters received for run query blockNumber: {}, blockHash: {}", blockNumber, blockHash);
         if (!ObjectUtils.isEmpty(result)) {
@@ -1540,42 +1610,6 @@ public class CardanoServiceImpl implements CardanoService {
     }
 
     @Override
-    public java.util.Map<String, Object> validateAndParsePoolRegistrationCert(NetworkIdentifierEnum networkIdentifierEnum, String poolRegistrationCert, String poolKeyHash) throws CborSerializationException {
-        if (ObjectUtils.isEmpty(poolKeyHash)) {
-            log.error("[validateAndParsePoolRegistrationCert] no cold key provided for pool registration");
-            throw new IllegalArgumentException("missingPoolKeyError");
-        }
-        if (ObjectUtils.isEmpty(poolRegistrationCert)) {
-            log.error(
-                    "[validateAndParsePoolRegistrationCert] no pool registration certificate provided for pool registration"
-            );
-            throw new IllegalArgumentException("missingPoolCertError");
-        }
-        Certificate parsedCertificate;
-        try {
-            parsedCertificate = PoolRegistration.deserialize(new UnicodeString(poolRegistrationCert));
-        } catch (Exception error) {
-            log.error("[validateAndParsePoolRegistrationCert] invalid pool registration certificate");
-            throw new IllegalArgumentException("invalidPoolRegistrationCert");
-        }
-        PoolRegistration poolRegistration = (PoolRegistration) parsedCertificate;
-        if (ObjectUtils.isEmpty(poolRegistration)) {
-            log.error("[validateAndParsePoolRegistrationCert] invalid certificate type");
-            throw new IllegalArgumentException("invalidPoolRegistrationCertType");
-        }
-        List<String> ownersAddresses = parsePoolOwners(networkIdentifierEnum.getValue(), poolRegistration);
-        String rewardAddress = parsePoolRewardAccount(networkIdentifierEnum.getValue(), poolRegistration);
-        java.util.Map<String, Object> map = new HashMap<>();
-        map.put("certificate", parsedCertificate);
-        List<String> list = new ArrayList<>();
-        list.addAll(ownersAddresses);
-        list.add(poolKeyHash);
-        list.add(rewardAddress);
-        map.put("addresses", list);
-        return map;
-    }
-
-    @Override
     public List<AccountIdentifier> getUniqueAccountIdentifiers(List<String> addresses) {
         return addressesToAccountIdentifiers(new HashSet<String>(addresses));
     }
@@ -2030,6 +2064,27 @@ public class CardanoServiceImpl implements CardanoService {
     public TransactionIdentifierResponse mapToConstructionHashResponse(String transactionHash) {
         return new TransactionIdentifierResponse(new TransactionIdentifier(transactionHash));
     }
+
+    @Override
+    public Set<String> validateAndParsePoolOwners(List<String> owners) {
+        Set<String> parsedOwners = new HashSet<>();
+        try {
+            owners.stream().forEach(owner -> {
+                Address address=new Address(owner);
+                Optional<byte[]> bytes =address.getDelegationHash();
+                    if(bytes.isPresent()){
+                        parsedOwners.add(HexUtil.encodeHexString(bytes.get()));
+                    }
+    });
+        } catch (Exception error) {
+            log.error("[validateAndParsePoolOwners] there was an error parsing pool owners");
+            throw new IllegalArgumentException("invalidPoolOwnersError"+error.getMessage());
+        }
+        if (parsedOwners.size() != owners.size())
+            throw new IllegalArgumentException("invalidPoolOwnersError Invalid pool owners addresses provided");
+        return parsedOwners;
+    }
+
     @Override
     public String hex(byte[] bytes) {
         StringBuilder result = new StringBuilder();

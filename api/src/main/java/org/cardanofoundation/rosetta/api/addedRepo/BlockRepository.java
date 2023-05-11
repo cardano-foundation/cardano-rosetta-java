@@ -47,7 +47,7 @@ public interface BlockRepository extends JpaRepository<Block,Long> {
             "  (:blockNumber is null or b.block_no=:blockNumber) AND\n" +
             "  (:blockHash is null or b.hash like :blockHash)\n" +
             "LIMIT 1",nativeQuery = true)
-    BlockResponse findBlock(@Param("blockNumber")Long blockNumber,@Param("blockHash")String blockHash);
+    BlockResponse findBlock(@Param("blockNumber")Long blockNumber,@Param("blockHash")byte[] blockHash);
 
     @Query(value = "  SELECT \n" +
             "    coins_per_utxo_size as coinsPerUtxoSize,\n" +

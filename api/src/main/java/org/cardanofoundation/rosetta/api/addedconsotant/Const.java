@@ -32,9 +32,9 @@ public class Const {
     public static final Integer CHAIN_CODE_LENGTH = 64;
 
     // Shelley
-    public static final Double DEFAULT_POOL_DEPOSIT = 500000000.0;
+    public static final Long DEFAULT_POOL_DEPOSIT = 500000000l;
 
-    public static final Double DEFAULT_KEY_DEPOSIT = 2000000.0;
+    public static final Long DEFAULT_KEY_DEPOSIT = 2000000l;
 
     public static final String SIGNATURE_TYPE = "ed25519";
 

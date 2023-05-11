@@ -13,6 +13,7 @@ import com.bloxbean.cardano.client.transaction.spec.cert.Relay;
 import com.bloxbean.cardano.client.transaction.spec.cert.StakeCredential;
 import com.bloxbean.cardano.client.transaction.spec.script.Script;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import java.util.Optional;
 import org.cardanofoundation.rosetta.api.addedClass.*;
 import org.cardanofoundation.rosetta.api.addedenum.AddressType;
 import org.cardanofoundation.rosetta.api.addedenum.EraAddressType;
@@ -158,7 +159,7 @@ public interface CardanoService {
 
     Long findLatestBlockNumber();
 
-    BlockResponse findBlock(Long blockNumber, String blockHash);
+    BlockResponse findBlock(Long blockNumber, byte[] blockHash);
 
     String encodeExtraData(String transaction, TransactionExtraData extraData) throws JsonProcessingException, CborSerializationException, CborException;
 
@@ -243,4 +244,6 @@ public interface CardanoService {
     String getHashOfSignedTransaction(String signedTransaction);
 
     TransactionIdentifierResponse mapToConstructionHashResponse(String transactionHash);
+
+    Set<String> validateAndParsePoolOwners(List<String> owners);
 }

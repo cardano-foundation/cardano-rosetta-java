@@ -4,7 +4,7 @@ import javax.xml.crypto.Data;
 import java.util.Date;
 
 public interface BlockResponse {
-    String getHash();
+    byte[] getHash();
     Long getNumber();
     Date getCreatedAt();
     String getPreviousBlockHash();

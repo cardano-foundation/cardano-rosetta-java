@@ -9,57 +9,35 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.util.Objects;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * Some blockchains require different metadata for different types of transaction construction (ex: delegation versus a transfer). Instead of requiring a blockchain node to return all possible types of metadata for construction (which may require multiple node fetches), the client can populate an options object to limit the metadata returned to only the subset required.
  */
 
-@Schema(name = "ConstructionMetadataRequest_options", description = "Some blockchains require different metadata for different types of transaction construction (ex: delegation versus a transfer). Instead of requiring a blockchain node to return all possible types of metadata for construction (which may require multiple node fetches), the client can populate an options object to limit the metadata returned to only the subset required.")
-@JsonTypeName("ConstructionMetadataRequest_options")
-@Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2023-03-21T15:54:41.273447600+07:00[Asia/Bangkok]")
+
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class ConstructionMetadataRequestOptions {
 
   @JsonProperty("relative_ttl")
-  private BigDecimal relativeTtl;
+  private Double relativeTtl;
 
   @JsonProperty("transaction_size")
-  private BigDecimal transactionSize;
+  private Double transactionSize;
 
-  public ConstructionMetadataRequestOptions relativeTtl(BigDecimal relativeTtl) {
+  public ConstructionMetadataRequestOptions relativeTtl(Double relativeTtl) {
     this.relativeTtl = relativeTtl;
     return this;
   }
 
-  /**
-   * Get relativeTtl
-   * @return relativeTtl
-  */
-  @NotNull @Valid 
-  @Schema(name = "relative_ttl", requiredMode = Schema.RequiredMode.REQUIRED)
-  public BigDecimal getRelativeTtl() {
-    return relativeTtl;
-  }
-
-  public void setRelativeTtl(BigDecimal relativeTtl) {
-    this.relativeTtl = relativeTtl;
-  }
-
-  public ConstructionMetadataRequestOptions transactionSize(BigDecimal transactionSize) {
-    this.transactionSize = transactionSize;
-    return this;
-  }
-
-  /**
-   * Get transactionSize
-   * @return transactionSize
-  */
-  @NotNull @Valid 
-  @Schema(name = "transaction_size", requiredMode = Schema.RequiredMode.REQUIRED)
-  public BigDecimal getTransactionSize() {
-    return transactionSize;
-  }
-
-  public void setTransactionSize(BigDecimal transactionSize) {
+  public void setTransactionSize(Double transactionSize) {
     this.transactionSize = transactionSize;
   }
 
