@@ -12,9 +12,7 @@ import org.cardanofoundation.rosetta.api.model.rest.ConstructionMetadataResponse
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class ConstructionApiDelegateImplMetadataTests extends IntegrationTest {
-
-  private final double latestBlockSlot = 26912827;
+class ConstructionApiDelegateImplMetadataTests extends IntegrationTest {
 
   @BeforeEach
   public void setUp() {
@@ -34,6 +32,5 @@ public class ConstructionApiDelegateImplMetadataTests extends IntegrationTest {
 
     assertEquals(response.getSuggestedFee().get(0).getCurrency().getSymbol(), "ADA");
     assertEquals(response.getSuggestedFee().get(0).getCurrency().getDecimals(), 6);
-
   }
 }
