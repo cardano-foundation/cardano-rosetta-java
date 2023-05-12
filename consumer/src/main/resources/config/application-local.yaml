@@ -35,13 +35,13 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         jdbc.batch_size: 1000
-        default_schema: ${DB_SCEMA:public}
+        default_schema: ${DB_SCEMA:preprod}
         show_sql: false
         format_sql: true
         order_inserts: true
         order_updates: true
-        hbm2ddl:
-          auto: update
+#        hbm2ddl:
+#          auto: update
 
 kafka:
   auto-create-topics: false
