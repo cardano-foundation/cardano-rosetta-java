@@ -40,7 +40,7 @@ public class OperationMetadata {
   private String poolKeyHash;
 
   @JsonProperty("epoch")
-  private double epoch;
+  private Long epoch;
 
   public OperationMetadata(VoteRegistrationMetadata voteRegistrationMetadata) {
     this.voteRegistrationMetadata = voteRegistrationMetadata;
