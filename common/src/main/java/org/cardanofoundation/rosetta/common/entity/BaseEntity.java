@@ -14,6 +14,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.Hibernate;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Parameter;
+import org.hibernate.id.enhanced.SequenceStyleGenerator;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Getter
@@ -26,14 +29,14 @@ public class BaseEntity implements Serializable {
 
   @Id
   @Column(name = "id", nullable = false, insertable = false, updatable = false)
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-
-//  @GeneratedValue(generator = "seq_generator")
-//  @GenericGenerator(name = "seq_generator", strategy = "sequence", parameters = {
-//      @Parameter(name = SequenceStyleGenerator.CONFIG_PREFER_SEQUENCE_PER_ENTITY, value = "true"),
-//      @Parameter(name = SequenceStyleGenerator.CONFIG_SEQUENCE_PER_ENTITY_SUFFIX, value = "_ID_SEQ")
-//
-//  })
+  @GeneratedValue(generator = "seq_generator")
+  @GenericGenerator(
+      name = "seq_generator",
+      strategy = "org.hibernate.id.enhanced.SequenceStyleGenerator",
+      parameters = {
+          @Parameter(name = SequenceStyleGenerator.CONFIG_SEQUENCE_PER_ENTITY_SUFFIX, value = "_ID_SEQ"),
+          @Parameter(name = SequenceStyleGenerator.INCREMENT_PARAM, value = "1")
+      })
   protected Long id;
 
 /*  @Column(name = "created_at")

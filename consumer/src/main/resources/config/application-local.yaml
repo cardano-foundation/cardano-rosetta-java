@@ -35,7 +35,7 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         jdbc.batch_size: 1000
-        default_schema: ${DB_SCEMA:public}
+        default_schema: ${DB_SCEMA:preprod}
         show_sql: false
         format_sql: true
         order_inserts: true
