@@ -83,7 +83,7 @@ kafka:
       allowAutoCreateTopics: false
       concurrency: 10
       pollTimeout: 360000000
-      groupId: ${SCHEMA:testnet}
+      groupId: ${SCHEMA:preprod}
   listeners:
     block:
       groupId: consumer-rosetta-group
