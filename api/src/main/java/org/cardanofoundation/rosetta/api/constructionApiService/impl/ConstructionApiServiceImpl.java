@@ -178,8 +178,9 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
                 new DepositParameters(protocolParameters.getKeyDeposit(), protocolParameters.getPoolDeposit())
         );
         List<SigningPayload> payloads = cardanoService.constructPayloadsForTransactionBody(unsignedTransaction.getHash(), unsignedTransaction.getAddresses());
-        return new ConstructionPayloadsResponse(cardanoService.encodeExtraData(unsignedTransaction.getBytes(),
-                new TransactionExtraData(constructionPayloadsRequest.getOperations(), unsignedTransaction.getMetadata())), payloads);
+        String unsignedTransactionString=cardanoService.encodeExtraData(unsignedTransaction.getBytes(),
+            new TransactionExtraData(constructionPayloadsRequest.getOperations(), unsignedTransaction.getMetadata()));
+        return new ConstructionPayloadsResponse(unsignedTransactionString, payloads);
     }
 
     @Override

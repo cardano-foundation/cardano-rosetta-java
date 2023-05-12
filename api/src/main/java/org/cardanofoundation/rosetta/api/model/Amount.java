@@ -31,8 +31,9 @@ public class Amount {
   private Map metadata;
 
   public Amount(String value, Currency currency) {
+    this.value = value;
+    this.currency = currency;
   }
-
 
   @Override
   public String toString() {
