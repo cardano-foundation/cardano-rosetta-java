@@ -40,8 +40,8 @@ spring:
         format_sql: true
         order_inserts: true
         order_updates: true
-        hbm2ddl:
-          auto: update
+#        hbm2ddl:
+#          auto: update
 
 kafka:
   auto-create-topics: false
@@ -83,7 +83,7 @@ kafka:
       allowAutoCreateTopics: false
       concurrency: 10
       pollTimeout: 360000000
-      groupId: ${SCHEMA:testnet}
+      groupId: ${SCHEMA:preprod}
   listeners:
     block:
       groupId: consumer-rosetta-group
