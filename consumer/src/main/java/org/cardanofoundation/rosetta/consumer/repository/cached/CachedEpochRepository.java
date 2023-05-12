@@ -1,8 +1,8 @@
 package org.cardanofoundation.rosetta.consumer.repository.cached;
 
+import org.cardanofoundation.rosetta.common.entity.Epoch;
 import java.util.List;
 import java.util.Optional;
-import org.cardanofoundation.rosetta.common.entity.Epoch;
 
 public interface CachedEpochRepository extends BaseCachedRepository<Epoch> {
 

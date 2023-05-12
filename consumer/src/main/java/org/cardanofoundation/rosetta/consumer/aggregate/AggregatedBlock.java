@@ -21,7 +21,7 @@ public class AggregatedBlock {
 
   Era era;
   int network;
-  byte[] hash;
+  String hash;
   Integer epochNo;
   Integer epochSlotNo;
   Long slotNo;

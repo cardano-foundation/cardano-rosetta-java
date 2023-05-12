@@ -1,6 +1,5 @@
 package org.cardanofoundation.rosetta.consumer.factory;
 
-import jakarta.annotation.PostConstruct;
 import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedBlock;
 import org.cardanofoundation.rosetta.common.entity.Redeemer;
 import org.cardanofoundation.rosetta.common.entity.Tx;
@@ -9,6 +8,7 @@ import org.cardanofoundation.rosetta.consumer.service.CertificateSyncService;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Component;
 
 @Component

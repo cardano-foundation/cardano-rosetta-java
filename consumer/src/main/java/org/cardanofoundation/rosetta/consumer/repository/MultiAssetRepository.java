@@ -1,8 +1,8 @@
 package org.cardanofoundation.rosetta.consumer.repository;
 
-import org.cardanofoundation.rosetta.common.entity.MultiAsset;
 import java.util.Collection;
 import java.util.List;
+import org.cardanofoundation.rosetta.common.entity.MultiAsset;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;

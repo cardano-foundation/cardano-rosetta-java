@@ -1,5 +1,6 @@
 package org.cardanofoundation.rosetta.consumer.dto;
 
+import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedTx;
 import org.cardanofoundation.rosetta.common.entity.Datum;
 import org.cardanofoundation.rosetta.common.entity.Tx;
 import org.cardanofoundation.rosetta.common.ledgersync.Witnesses;
@@ -9,7 +10,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
-import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedTx;
 
 @Builder
 @Getter

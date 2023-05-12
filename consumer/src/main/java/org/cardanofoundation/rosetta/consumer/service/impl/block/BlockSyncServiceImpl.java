@@ -40,7 +40,7 @@ public class BlockSyncServiceImpl implements BlockSyncService {
     if(blockDataService.getBlockSize() == 0){
       return;
     }
-    Map<byte[], Tx> txMap = new ConcurrentHashMap<>();
+    Map<String, Tx> txMap = new ConcurrentHashMap<>();
     var firstAndLastBlock = blockDataService.getFirstAndLastBlock();
     log.info("Commit from block {} to block {} ",
         firstAndLastBlock.getFirst().getBlockNo(),

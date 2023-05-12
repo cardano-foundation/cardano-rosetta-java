@@ -29,5 +29,5 @@ public interface RedeemerService {
    * </ul>
    */
   Map<RedeemerReference<?>, Redeemer> handleRedeemers( // NOSONAR
-      Collection<AggregatedTx> txs, Map<byte[], Tx> txMap, Collection<TxOut> newTxOuts);
+      Collection<AggregatedTx> txs, Map<String, Tx> txMap, Collection<TxOut> newTxOuts);
 }

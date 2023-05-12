@@ -7,6 +7,7 @@ import lombok.SneakyThrows;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.cardanofoundation.rosetta.common.ledgersync.kafka.CommonBlock;
 import org.cardanofoundation.rosetta.consumer.configuration.properties.KafkaProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -51,7 +52,8 @@ public class ConsumerConfiguration {
     props.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, configs.getSessionTimeoutMs());
     props.put(ConsumerConfig.ALLOW_AUTO_CREATE_TOPICS_CONFIG, configs.getAllowAutoCreateTopics());
     props.put(JsonDeserializer.TRUSTED_PACKAGES, configs.getTrustedPackages());
-
+    props.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, false);
+    props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, CommonBlock.class);
     return props;
   }
 

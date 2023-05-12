@@ -37,7 +37,7 @@ public class WithdrawalsServiceImpl implements WithdrawalsService {
 
   @Override
   public void handleWithdrawal(Collection<AggregatedTx> successTxs,
-      Map<byte[], Tx> txMap, Map<RedeemerReference<?>, Redeemer> redeemersMap) {
+      Map<String, Tx> txMap, Map<RedeemerReference<?>, Redeemer> redeemersMap) {
     List<AggregatedTx> txWithWithdrawalList = successTxs.stream()
         .filter(aggregatedTx -> !CollectionUtils.isEmpty(aggregatedTx.getWithdrawals()))
         .collect(Collectors.toList());
@@ -57,7 +57,7 @@ public class WithdrawalsServiceImpl implements WithdrawalsService {
     List<Withdrawal> withdrawals = txWithWithdrawalList.stream()
         .flatMap(aggregatedTx -> {
           Map<String, BigInteger> withdrawalMap = aggregatedTx.getWithdrawals();
-          byte[] txHash = aggregatedTx.getHash();
+          String txHash = aggregatedTx.getHash();
           Tx tx = txMap.get(txHash);
 
           return withdrawalMap.entrySet().stream().map(entry -> {

@@ -13,7 +13,7 @@ public interface BlockRepository extends JpaRepository<Block, Long> {
 
   Optional<Block> findBlockByBlockNo(long number);
 
-  boolean existsBlockByHash(byte[] hash);
+  boolean existsBlockByHash(String hash);
 
   List<Block> findAllByBlockNoGreaterThanOrderByBlockNoDesc(Long blockNo);
 

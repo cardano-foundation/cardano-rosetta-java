@@ -17,7 +17,7 @@ public interface TransactionService {
    * @return                  a map with key is tx hash and value is the
    *                          respective tx entity
    */
-  Map<byte[], Tx> prepareTxs(Block block, AggregatedBlock aggregatedBlock);
+  Map<String, Tx> prepareTxs(Block block, AggregatedBlock aggregatedBlock);
 
   /**
    * Handle all tx contents. Everything related to tx that needs to be
@@ -26,5 +26,5 @@ public interface TransactionService {
    * @param txMap             a map with key is tx hash and value is
    *                          the respective tx entity
    */
-  void handleTxs(Map<byte[], Tx> txMap);
+  void handleTxs(Map<String, Tx> txMap);
 }

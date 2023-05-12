@@ -16,7 +16,7 @@ import lombok.ToString;
 public class ByronEbHead implements ByronHead<String, ByronEbBlockCons, String> {
 
   private long protocolMagic;
-  private byte[] blockHash;
+  private String blockHash;
   private String prevBlock;
   private String bodyProof;
   private ByronEbBlockCons consensusData;
