@@ -55,7 +55,7 @@ public class RedeemerServiceImpl implements RedeemerService {
 
   @Override
   public Map<RedeemerReference<?>, Redeemer> handleRedeemers(
-      Collection<AggregatedTx> txs, Map<byte[], Tx> txMap, Collection<TxOut> newTxOuts) {
+      Collection<AggregatedTx> txs, Map<String, Tx> txMap, Collection<TxOut> newTxOuts) {
     List<AggregatedTx> txsWithRedeemers = txs.stream()
         .filter(tx -> Objects.nonNull(tx.getWitnesses()))
         .filter(tx -> !CollectionUtils.isEmpty(tx.getWitnesses().getRedeemers()))
@@ -209,7 +209,7 @@ public class RedeemerServiceImpl implements RedeemerService {
     // Fallback to provided TxOuts
     String scriptHash = newTxOuts.stream()
         .filter(txOut -> {
-          byte[] txHash = txOut.getTx().getHash();
+          String txHash = txOut.getTx().getHash();
           Short index = txOut.getIndex();
           return index == txIn.getIndex() &&
               txHash.equals(txIn.getTxId());

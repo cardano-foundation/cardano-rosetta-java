@@ -1,10 +1,10 @@
 package org.cardanofoundation.rosetta.consumer.configuration.kafka.producer;
 
-import org.cardanofoundation.rosetta.consumer.configuration.properties.KafkaProperties;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.cardanofoundation.rosetta.consumer.configuration.properties.KafkaProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;

@@ -20,12 +20,12 @@ public class AggregatedBatchBlockData {
   Map<String, AggregatedAddressBalance> aggregatedAddressBalanceMap;
 
   // Key is stake address hex, value is first appeared tx hash
-  Map<String,  byte[]> stakeAddressTxHashMap;
+  Map<String, String> stakeAddressTxHashMap;
 
   // Key is asset fingerprint, value is its first minted block no and tx index within that block
   Map<String, Pair<Long, Long>> fingerprintFirstAppearedMap;
 
-  Map<byte[], AggregatedBlock> aggregatedBlockMap;
+  Map<String, AggregatedBlock> aggregatedBlockMap;
   Queue<AggregatedTx> successTxs;
   Queue<AggregatedTx> failedTxs;
 

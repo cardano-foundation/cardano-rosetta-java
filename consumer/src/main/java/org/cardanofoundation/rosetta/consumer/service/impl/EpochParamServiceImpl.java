@@ -1,6 +1,7 @@
 package org.cardanofoundation.rosetta.consumer.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.annotation.PostConstruct;
 import org.cardanofoundation.rosetta.common.entity.Block;
 import org.cardanofoundation.rosetta.common.entity.Epoch;
 import org.cardanofoundation.rosetta.common.entity.EpochParam;
@@ -19,7 +20,6 @@ import java.math.BigInteger;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import jakarta.annotation.PostConstruct;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;

@@ -1,13 +1,13 @@
 package org.cardanofoundation.rosetta.consumer.kafka;
 
 import jakarta.annotation.PostConstruct;
-import org.cardanofoundation.rosetta.common.ledgersync.kafka.CommonBlock;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.cardanofoundation.rosetta.common.ledgersync.kafka.CommonBlock;
 import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedBlock;
 import org.cardanofoundation.rosetta.consumer.factory.BlockAggregatorServiceFactory;
 import org.cardanofoundation.rosetta.consumer.repository.BlockRepository;

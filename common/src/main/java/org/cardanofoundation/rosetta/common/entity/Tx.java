@@ -41,7 +41,7 @@ public class Tx extends BaseEntity {
 
   @Column(name = "hash", nullable = false, length = 64)
 //  @Hash32Type
-  private byte[] hash;
+  private String hash;
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
   @OnDelete(action = OnDeleteAction.CASCADE)
