@@ -14,7 +14,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.client.HttpServerErrorException;
 
-public class ConstructionApiDelegateImplDeriveTests extends IntegrationTest{
+class ConstructionApiDelegateImplDeriveTests extends IntegrationTest{
   public final String INVALID_PUBLIC_KEY_FORMAT_MESSAGE = "invalidPublicKeyFormat";
   public final String INVALID_STAKING_KEY_FORMAT_MESSAGE = "invalidStakingKeyFormat";
 
