@@ -1,17 +1,14 @@
 package org.cardanofoundation.rosetta.common.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.Digits;
-import java.math.BigInteger;
-import java.util.List;
-import java.util.Objects;
 import org.cardanofoundation.rosetta.common.validation.Hash28Type;
 import org.hibernate.Hibernate;
 import org.hibernate.annotations.DynamicUpdate;
+
+import java.math.BigInteger;
+import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Table(

@@ -35,13 +35,13 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         jdbc.batch_size: 1000
-        default_schema: ${DB_SCEMA:preprod}
+        default_schema: ${DB_SCEMA:mainnet}
         show_sql: false
         format_sql: true
         order_inserts: true
         order_updates: true
-#        hbm2ddl:
-#          auto: update
+        hbm2ddl:
+          auto: update
 
 kafka:
   auto-create-topics: false
@@ -83,11 +83,11 @@ kafka:
       allowAutoCreateTopics: false
       concurrency: 10
       pollTimeout: 360000000
-      groupId: ${SCHEMA:preprod}
+      groupId: ${SCHEMA:mainnet}
   listeners:
     block:
       groupId: consumer-rosetta-group
-      topics: ${BLOCKS_TOPIC:preprod.crawler.blocks}
+      topics: ${BLOCKS_TOPIC:mainnet.crawler.blocks}
 #      props: |
 #        max.poll.records: 10
 #        fetch.min.bytes: 123456
@@ -101,3 +101,4 @@ blocks:
   commitThreshold: ${COMMIT_THRESHOLD:3000}
 genesis:
   network: ${NETWORK:764824073}
+  file: ${FILE_GENESIS_PATH:classpath:genesis/}${SCHEMA:mainnet}.genesis.json

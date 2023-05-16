@@ -4,17 +4,14 @@ import co.nstant.in.cbor.CborBuilder;
 import co.nstant.in.cbor.CborDecoder;
 import co.nstant.in.cbor.CborEncoder;
 import co.nstant.in.cbor.CborException;
-import co.nstant.in.cbor.model.ByteString;
-import co.nstant.in.cbor.model.DataItem;
-import co.nstant.in.cbor.model.MajorType;
 import co.nstant.in.cbor.model.Number;
-import co.nstant.in.cbor.model.RationalNumber;
-import co.nstant.in.cbor.model.UnicodeString;
+import co.nstant.in.cbor.model.*;
+import org.cardanofoundation.rosetta.common.exception.CborRuntimeException;
+
 import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Objects;
-import org.cardanofoundation.rosetta.common.exception.CborRuntimeException;
 
 
 public final class CborSerializationUtil {
