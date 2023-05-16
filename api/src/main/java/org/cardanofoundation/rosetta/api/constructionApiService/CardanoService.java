@@ -83,7 +83,7 @@ public interface CardanoService {
 
     String add0xPrefix(String hex);
 
-    HdPublicKey validateAndParseVotingKey(PublicKey votingKey);
+    String validateAndParseVotingKey(PublicKey votingKey);
 
     Map<String, Object> processPoolRetirement(Operation operation);
 
