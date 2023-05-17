@@ -22,7 +22,7 @@ services:
       DB_ADMIN_USER_NAME: "${DB_ADMIN_USER_NAME}"
       SERVICE_USER_SECRET: "${SERVICE_USER_SECRET}"
       SERVICE_USER_NAME: "${SERVICE_USER_NAME}"
-      DB_HOST: "db"
+      DB_HOST: "10.4.20.212"
       DB_PORT: ${DB_PORT}
       DB_NAME: ${DB_NAME}
       DB_SCHEMA: ${DB_SCHEMA}
@@ -135,7 +135,7 @@ services:
     #   - ./kafka/zoo:/var/lib/zookeeper/data
 
   kafka:
-    image: confluentinc/cp-kafka:7.0.0
+    image: confluentinc/cp-kafka:7.0.1
     container_name: kafka
     depends_on:
       - zookeeper
