@@ -39,7 +39,7 @@ public class Block extends AbstractBlock {
   }
 
   @Override
-  public byte[] getBlockHash() {
+  public String getBlockHash() {
     return getHeader().getHeaderBody().getBlockHash();
   }
 

@@ -15,7 +15,7 @@ public interface BlockDataService {
    *
    * @return a map with key is stake address hex, value is first appeared tx hash
    */
-  Map<String, byte[]> getStakeAddressTxHashMap();
+  Map<String, String> getStakeAddressTxHashMap();
 
   /**
    * Save a stake address's first appeared tx hash
@@ -23,7 +23,7 @@ public interface BlockDataService {
    * @param stakeAddress    target stake address hex string
    * @param txHash          first appeared tx hash
    */
-  void saveFirstAppearedTxHashForStakeAddress(String stakeAddress, byte[] txHash);
+  void saveFirstAppearedTxHashForStakeAddress(String stakeAddress, String txHash);
 
   /**
    * Get aggregated address balance object from address string (Base58 or Bech32 form)
@@ -66,7 +66,7 @@ public interface BlockDataService {
    * @param blockHash         block hash
    * @return                  aggregated block object
    */
-  AggregatedBlock getAggregatedBlock(byte[] blockHash);
+  AggregatedBlock getAggregatedBlock(String blockHash);
 
   /**
    * Save aggregated block object

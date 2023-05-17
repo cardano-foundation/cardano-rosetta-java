@@ -27,7 +27,7 @@ public class ByronMainBlock extends AbstractBlock implements ByronBlock {
     }
 
     @Override
-    public byte[] getBlockHash() {
+    public String getBlockHash() {
         return getHeader().getBlockHash();
     }
 

@@ -35,7 +35,7 @@ public class StakeAddressServiceImpl implements StakeAddressService {
 
   @Override
   public void handleStakeAddressesFromTxs(
-      Map<String, byte[]> stakeAddressTxHashMap, Map<byte[], Tx> txMap) {
+      Map<String, String> stakeAddressTxHashMap, Map<String, Tx> txMap) {
     Set<String> stakeAddressesHex = stakeAddressTxHashMap.keySet();
     Map<String, StakeAddress> stakeAddresses = cachedStakeAddressRepository
         .findByHashRawIn(stakeAddressesHex).parallelStream()

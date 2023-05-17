@@ -22,7 +22,7 @@ import lombok.ToString;
 public class TransactionBody {
 
   //Derived
-  private byte[] txHash;
+  private String txHash;
 
   private Set<TransactionInput> inputs;
   private List<TransactionOutput> outputs;
@@ -48,7 +48,7 @@ public class TransactionBody {
   private BigInteger totalCollateral;
   private Set<TransactionInput> referenceInputs;
 
-  public void setTxHash(byte[] txHash) {
+  public void setTxHash(String txHash) {
     this.txHash = txHash;
   }
 }

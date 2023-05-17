@@ -17,7 +17,7 @@ public class ByronBlockHead implements
     ByronHead<ByronBlockProof, ByronBlockCons, ByronBlockExtraData<String>> {
 
   private long protocolMagic;
-  private byte[] blockHash;
+  private String blockHash;
   private String prevBlock;
   private ByronBlockProof bodyProof;
   private ByronBlockCons consensusData;

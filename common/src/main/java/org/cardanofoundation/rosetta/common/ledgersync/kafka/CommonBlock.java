@@ -23,7 +23,7 @@ public interface  CommonBlock {
   String getType();
 
   @JsonIgnore
-  byte[] getBlockHash();
+  String getBlockHash();
 
   @JsonIgnore
   long getSlot();
