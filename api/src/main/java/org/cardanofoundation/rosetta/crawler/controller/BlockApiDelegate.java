@@ -10,7 +10,6 @@ import org.cardanofoundation.rosetta.crawler.model.rest.BlockTransactionRequest;
 import org.cardanofoundation.rosetta.crawler.model.rest.BlockTransactionResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 

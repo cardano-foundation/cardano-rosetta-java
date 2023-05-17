@@ -1,0 +1,16 @@
+package org.cardanofoundation.rosetta.crawler.common.enumeration;
+
+public enum StakeAddressPrefix {
+    MAIN("stake"),
+    TEST("stake_test");
+
+    private String prefix;
+
+    StakeAddressPrefix(String prefix) {
+        this.prefix = prefix;
+    }
+
+    public String getPrefix() {
+        return prefix;
+    }
+}
