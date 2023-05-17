@@ -46,28 +46,28 @@ services:
 #      bootstrap-db:
 #        condition: service_completed_successfully
 #    restart: always
-  consumer:
-    build: ./consumer
-    platform: linux/amd64
-    ports:
-      - "${CONSUMER_BIND_PORT}:${CONSUMER_EXPOSED_PORT}"
-    environment:
-      CONSUMER_PROFILES_ACTIVE: "${CONSUMER_PROFILES_ACTIVE}"
-      DB_HOST: "${DB_HOST}"
-      DB_PORT: "${DB_PORT}"
-      DB_NAME: "${DB_NAME}"
-      DB_USER: "${DB_ADMIN_USER_NAME}"
-      DB_SECRET: "${DB_ADMIN_USER_SECRET}"
-      DB_DRIVER_CLASS_NAME: "${DB_DRIVER_CLASS_NAME}"
-      DB_SCHEMA: "${DB_SCHEMA}"
-      DB_CONNECTION_PARAMS_PROVIDER_TYPE: ${DB_CONNECTION_PARAMS_PROVIDER_TYPE}
-      SCHEMA: "${SCHEMA}"
-      DBLOCKS_BATCH_SIZE: "${BLOCKS_BATCH_SIZE}"
-      BLOCKS_TOPIC: "${BLOCKS_TOPIC}"
-      BOOSTRAP_SERVER_HOST: "${BOOSTRAP_SERVER_HOST}"
-      BOOSTRAP_SERVER_PORT: "${BOOSTRAP_SERVER_PORT}"
-      LOG: "${LOG}"
-    restart: no
+#  consumer:
+#    build: ./consumer
+#    platform: linux/amd64
+#    ports:
+#      - "${CONSUMER_BIND_PORT}:${CONSUMER_EXPOSED_PORT}"
+#    environment:
+#      CONSUMER_PROFILES_ACTIVE: "${CONSUMER_PROFILES_ACTIVE}"
+#      DB_HOST: "${DB_HOST}"
+#      DB_PORT: "${DB_PORT}"
+#      DB_NAME: "${DB_NAME}"
+#      DB_USER: "${DB_ADMIN_USER_NAME}"
+#      DB_SECRET: "${DB_ADMIN_USER_SECRET}"
+#      DB_DRIVER_CLASS_NAME: "${DB_DRIVER_CLASS_NAME}"
+#      DB_SCHEMA: "${DB_SCHEMA}"
+#      DB_CONNECTION_PARAMS_PROVIDER_TYPE: ${DB_CONNECTION_PARAMS_PROVIDER_TYPE}
+#      SCHEMA: "${SCHEMA}"
+#      DBLOCKS_BATCH_SIZE: "${BLOCKS_BATCH_SIZE}"
+#      BLOCKS_TOPIC: "${BLOCKS_TOPIC}"
+#      BOOSTRAP_SERVER_HOST: "${BOOSTRAP_SERVER_HOST}"
+#      BOOSTRAP_SERVER_PORT: "${BOOSTRAP_SERVER_PORT}"
+#      LOG: "${LOG}"
+#    restart: no
 
   redis-master:
     hostname: cardano.redis.master
@@ -142,7 +142,7 @@ services:
     ports:
       - "29092:29092"
     environment:
-      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
+      KAFKA_ZOOKEEPER_CONNECT: "10.4.20.212:2181"
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
