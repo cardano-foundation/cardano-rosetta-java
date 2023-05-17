@@ -13,6 +13,10 @@ import com.bloxbean.cardano.client.transaction.spec.cert.Relay;
 import com.bloxbean.cardano.client.transaction.spec.cert.StakeCredential;
 import com.bloxbean.cardano.client.transaction.spec.script.Script;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SignatureException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.Optional;
 import org.cardanofoundation.rosetta.api.addedClass.*;
 import org.cardanofoundation.rosetta.api.addedenum.AddressType;
@@ -64,18 +68,23 @@ public interface CardanoService {
     UnsignedTransaction createUnsignedTransaction(NetworkIdentifierEnum networkIdentifierEnum, List<Operation> operations, Integer ttl, DepositParameters depositParameters)
         throws IOException, AddressExcepion, CborSerializationException, CborException;
 
-    Map<String, Object> processOperations(NetworkIdentifierEnum networkIdentifierEnum, List<Operation> operations, DepositParameters depositParameters);
+    Map<String, Object> processOperations(NetworkIdentifierEnum networkIdentifierEnum, List<Operation> operations, DepositParameters depositParameters)
+        throws IOException;
 
     Long calculateFee(ArrayList<String> inputAmounts, ArrayList<String> outputAmounts, ArrayList<Long> withdrawalAmounts, Map<String, Double> depositsSumMap);
 
-    ProcessOperationsResult convert(NetworkIdentifierEnum networkIdentifierEnum, List<Operation> operations);
+    ProcessOperationsResult convert(NetworkIdentifierEnum networkIdentifierEnum, List<Operation> operations)
+        throws IOException;
 
     ProcessOperationsResult operationProcessor(Operation operation, NetworkIdentifierEnum networkIdentifierEnum,
-                                               ProcessOperationsResult resultAccumulator, String type) throws JsonProcessingException, CborSerializationException, CborDeserializationException;
+                                               ProcessOperationsResult resultAccumulator, String type)
+        throws IOException, CborSerializationException, CborDeserializationException, NoSuchAlgorithmException, SignatureException, InvalidKeySpecException, InvalidKeyException;
 
-    AuxiliaryData processVoteRegistration(Operation operation) throws JsonProcessingException, CborDeserializationException;
+    AuxiliaryData processVoteRegistration(Operation operation)
+        throws IOException, CborDeserializationException, NoSuchAlgorithmException, SignatureException, InvalidKeySpecException, InvalidKeyException;
 
-    Map<String, Object> validateAndParseVoteRegistrationMetadata(VoteRegistrationMetadata voteRegistrationMetadata);
+    Map<String, Object> validateAndParseVoteRegistrationMetadata(VoteRegistrationMetadata voteRegistrationMetadata)
+        throws IOException, NoSuchAlgorithmException, SignatureException, InvalidKeySpecException, InvalidKeyException;
 
     String bytesToHex(byte[] bytes);
 
