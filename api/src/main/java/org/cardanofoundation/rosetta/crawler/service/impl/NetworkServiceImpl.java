@@ -2,12 +2,8 @@ package org.cardanofoundation.rosetta.crawler.service.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import io.swagger.v3.core.util.Json;
 import jakarta.annotation.PostConstruct;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -31,7 +27,6 @@ import org.cardanofoundation.rosetta.crawler.model.TopologyConfig;
 import org.cardanofoundation.rosetta.crawler.model.Version;
 import org.cardanofoundation.rosetta.crawler.model.rest.BalanceExemption;
 import org.cardanofoundation.rosetta.crawler.model.rest.MetadataRequest;
-import org.cardanofoundation.rosetta.crawler.model.rest.NetworkIdentifier;
 import org.cardanofoundation.rosetta.crawler.model.rest.NetworkListResponse;
 import org.cardanofoundation.rosetta.crawler.model.rest.NetworkOptionsResponse;
 import org.cardanofoundation.rosetta.crawler.model.rest.NetworkRequest;
@@ -40,7 +35,6 @@ import org.cardanofoundation.rosetta.crawler.projection.BlockDto;
 import org.cardanofoundation.rosetta.crawler.projection.GenesisBlockDto;
 import org.cardanofoundation.rosetta.crawler.service.BlockService;
 import org.cardanofoundation.rosetta.crawler.service.NetworkService;
-import org.cardanofoundation.rosetta.crawler.util.RosettaConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -76,14 +70,8 @@ public class NetworkServiceImpl implements NetworkService {
   @Override
   public NetworkListResponse getNetworkList(MetadataRequest metadataRequest) {
     log.info("[networkList] Looking for all supported networks");
-    NetworkListResponse networkListResponse = new NetworkListResponse();
-    rosettaConfig.getNetworks().forEach((networkConfig -> {
-      NetworkIdentifier identifier = new NetworkIdentifier();
-      identifier.setBlockchain(RosettaConstants.BLOCKCHAIN_NAME);
-      identifier.setNetwork(networkConfig.getSanitizedNetworkId());
-      networkListResponse.addNetworkIdentifiersItem(identifier);
-    }));
-    return networkListResponse;
+    Network supportedNetwork = getSupportedNetwork();
+    return DataMapper.mapToNetworkListResponse(supportedNetwork);
   }
 
   @Override

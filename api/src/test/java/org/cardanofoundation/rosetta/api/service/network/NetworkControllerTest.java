@@ -56,12 +56,12 @@ public class NetworkControllerTest {
     MetadataRequest metadataRequest =MetadataRequest.builder()
         .metadata(new HashMap<>())
         .build();
-    NetworkListResponse response = new NetworkListResponse();
 
     //mock data
     NetworkIdentifier identifier = new NetworkIdentifier();
     identifier.setBlockchain(RosettaConstants.BLOCKCHAIN_NAME);
     identifier.setNetwork("mainnet");
+    NetworkListResponse response = new NetworkListResponse();
     response.addNetworkIdentifiersItem(identifier);
 
     String body = objectMapper.writeValueAsString(metadataRequest);
