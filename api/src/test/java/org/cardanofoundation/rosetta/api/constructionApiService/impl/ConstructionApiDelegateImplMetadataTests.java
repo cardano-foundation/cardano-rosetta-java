@@ -19,10 +19,12 @@ class ConstructionApiDelegateImplMetadataTests extends IntegrationTest {
     baseUrl = baseUrl.concat(":").concat(serverPort + "").concat("/construction/metadata");
   }
 
+  private final String BASE_DIRECTORY = "src/test/resources/files/construction/metadata";
+
   @Test
   void test_parameters_are_valid() throws IOException {
     ConstructionMetadataRequest request = objectMapper.readValue(new String(Files.readAllBytes(
-            Paths.get("src/test/resources/files/construction/construction_metadata_request_valid.json"))),
+            Paths.get(BASE_DIRECTORY + "/construction_metadata_request_valid.json"))),
         ConstructionMetadataRequest.class);
 
     request.getOptions().setTransactionSize(TestFixedData.TRANSACTION_SIZE_IN_BYTES);

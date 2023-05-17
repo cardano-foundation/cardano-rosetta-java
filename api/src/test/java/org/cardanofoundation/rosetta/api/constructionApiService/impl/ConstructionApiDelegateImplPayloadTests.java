@@ -90,48 +90,158 @@ class ConstructionApiDelegateImplPayloadTests extends IntegrationTest {
   }
 
   @Test
-  void test_return_a_valid_unsigned_transaction_hash_when_sending_valid_operations_including_stake_key_registration() {
+  void test_return_a_valid_unsigned_transaction_hash_when_sending_valid_operations_including_stake_key_registration() throws IOException {
+    ConstructionPayloadsRequest request = objectMapper.readValue(new String(Files.readAllBytes(
+                    Paths.get(
+                            BASE_DIRECTORY + "/construction_payload_valid_operations_including_stake_key_registration.json"))),
+            ConstructionPayloadsRequest.class);
+
+    ConstructionPayloadsResponse response = restTemplate.postForObject(baseUrl,
+            request, ConstructionPayloadsResponse.class);
+
+    assertEquals(response.getPayloads().get(0).getAccountIdentifier().getAddress(), "addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx");
+    assertEquals(response.getPayloads().get(0).getHexBytes(), "ec6bb1091d68dcb3e4f4889329e143fbb6090b8e78c74e7c8d0903d9eec4eed1");
+  }
+
+  @Test
+  void test_return_a_valid_unsigned_transaction_hash_when_sending_valid_operations_including_stake_delegation() throws IOException {
+    ConstructionPayloadsRequest request = objectMapper.readValue(new String(Files.readAllBytes(
+                    Paths.get(
+                            BASE_DIRECTORY + "/construction_payload_valid_operations_including_stake_delegation.json"))),
+            ConstructionPayloadsRequest.class);
+
+    ConstructionPayloadsResponse response = restTemplate.postForObject(baseUrl,
+            request, ConstructionPayloadsResponse.class);
+
+    assertEquals(response.getPayloads().size(), 2);
+    assertEquals(response.getPayloads().get(0).getAccountIdentifier().getAddress(), "addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx");
+    assertEquals(response.getPayloads().get(0).getHexBytes(), "d4818d5a1ad1163fdb84b1e538d6d2c2fc34a86a91cd13f628dd3a7e4458a7c1");
+    assertEquals(response.getPayloads().get(1).getAccountIdentifier().getAddress(), "stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5");
+    assertEquals(response.getPayloads().get(1).getHexBytes(), "d4818d5a1ad1163fdb84b1e538d6d2c2fc34a86a91cd13f628dd3a7e4458a7c1");
 
   }
 
   @Test
-  void test_return_a_valid_unsigned_transaction_hash_when_sending_valid_operations_including_stake_delegation() {
+  void test_return_a_valid_unsigned_transaction_hash_when_sending_valid_operations_including_stake_key_registration_stake_delegation() throws IOException {
+    ConstructionPayloadsRequest request = objectMapper.readValue(new String(Files.readAllBytes(
+                    Paths.get(
+                            BASE_DIRECTORY + "/construction_payload_valid_operations_including_stake_key_registration_and_stake_delegation.json"))),
+            ConstructionPayloadsRequest.class);
+
+    ConstructionPayloadsResponse response = restTemplate.postForObject(baseUrl,
+            request, ConstructionPayloadsResponse.class);
+
+    assertEquals(response.getPayloads().size(), 2);
+    assertEquals(response.getPayloads().get(0).getAccountIdentifier().getAddress(), "addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx");
+    assertEquals(response.getPayloads().get(0).getHexBytes(), "dbf6479409a59e3e99c79b9c46b6af714de7c8264094b1d38c373b7454acf33d");
+    assertEquals(response.getPayloads().get(1).getAccountIdentifier().getAddress(), "stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5");
+    assertEquals(response.getPayloads().get(1).getHexBytes(), "dbf6479409a59e3e99c79b9c46b6af714de7c8264094b1d38c373b7454acf33d");
 
   }
 
   @Test
-  void test_return_a_valid_unsigned_transaction_hash_when_sending_valid_operations_including_stake_key_registration_stake_delegation() {
+  void test_return_a_valid_unsigned_transaction_hash_when_sending_valid_operations_including_withdraw() throws IOException {
+    ConstructionPayloadsRequest request = objectMapper.readValue(new String(Files.readAllBytes(
+                    Paths.get(
+                            BASE_DIRECTORY + "/construction_payload_valid_operations_including_withdrawal.json"))),
+            ConstructionPayloadsRequest.class);
+
+    ConstructionPayloadsResponse response = restTemplate.postForObject(baseUrl,
+            request, ConstructionPayloadsResponse.class);
+
+    assertEquals(response.getPayloads().size(), 2);
+    assertEquals(response.getPayloads().get(0).getAccountIdentifier().getAddress(), "addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx");
+    assertEquals(response.getPayloads().get(0).getHexBytes(), "da2eb0d62aee9313fc68df0827bd176b55168bc9129aedce92f4e29b1d52de38");
+    assertEquals(response.getPayloads().get(1).getAccountIdentifier().getAddress(), "stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5");
+    assertEquals(response.getPayloads().get(1).getHexBytes(), "da2eb0d62aee9313fc68df0827bd176b55168bc9129aedce92f4e29b1d52de38");
 
   }
 
   @Test
-  void test_return_a_valid_unsigned_transaction_hash_when_sending_valid_operations_including_withdraw() {
+  void test_return_a_valid_unsigned_transaction_hash_when_sending_valid_operations_including_withdraw_and_stake_registration() throws IOException {
+    ConstructionPayloadsRequest request = objectMapper.readValue(new String(Files.readAllBytes(
+                    Paths.get(
+                            BASE_DIRECTORY + "/construction_payload_valid_operations_including_withdrwal_and_stake_registration.json"))),
+            ConstructionPayloadsRequest.class);
+
+    ConstructionPayloadsResponse response = restTemplate.postForObject(baseUrl,
+            request, ConstructionPayloadsResponse.class);
+
+    assertEquals(response.getPayloads().size(), 2);
+    assertEquals(response.getPayloads().get(0).getAccountIdentifier().getAddress(), "addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx");
+    assertEquals(response.getPayloads().get(0).getHexBytes(), "8b47f0f3690167b596f1e7623e1869148f6bea78ebceaa08fe890a2e3e9e4d89");
+    assertEquals(response.getPayloads().get(1).getAccountIdentifier().getAddress(), "stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5");
+    assertEquals(response.getPayloads().get(1).getHexBytes(), "8b47f0f3690167b596f1e7623e1869148f6bea78ebceaa08fe890a2e3e9e4d89");
 
   }
 
   @Test
-  void test_return_a_valid_unsigned_transaction_hash_when_sending_valid_operations_including_withdraw_and_stake_registration() {
+  void test_return_a_valid_unsigned_transaction_hash_when_sending_valid_operations_including_stake_key_deregistration() throws IOException {
+    ConstructionPayloadsRequest request = objectMapper.readValue(new String(Files.readAllBytes(
+                    Paths.get(
+                            BASE_DIRECTORY + "/construction_payload_valid_operations_including_stake_delegation.json"))),
+            ConstructionPayloadsRequest.class);
+
+    ConstructionPayloadsResponse response = restTemplate.postForObject(baseUrl,
+            request, ConstructionPayloadsResponse.class);
+
+    assertEquals(response.getPayloads().size(), 2);
+    assertEquals(response.getPayloads().get(0).getAccountIdentifier().getAddress(), "addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx");
+    assertEquals(response.getPayloads().get(0).getHexBytes(), "9c0f4e7fa746738d3df3665fc7cd11b2e3115e3268a047e0435f2454ed41fdc5");
+    assertEquals(response.getPayloads().get(1).getAccountIdentifier().getAddress(), "stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5");
+    assertEquals(response.getPayloads().get(1).getHexBytes(), "9c0f4e7fa746738d3df3665fc7cd11b2e3115e3268a047e0435f2454ed41fdc5");
 
   }
 
   @Test
-  void test_return_a_valid_unsigned_transaction_hash_when_sending_valid_operations_including_stake_key_deregistration() {
+  void test_return_a_valid_unsigned_transaction_hash_when_sending_valid_operations_including_pool_retirement() throws IOException {
+    ConstructionPayloadsRequest request = objectMapper.readValue(new String(Files.readAllBytes(
+                    Paths.get(
+                            BASE_DIRECTORY + "/construction_payload_valid_operations_including_pool_retirement.json"))),
+            ConstructionPayloadsRequest.class);
+
+    ConstructionPayloadsResponse response = restTemplate.postForObject(baseUrl,
+            request, ConstructionPayloadsResponse.class);
+
+    assertEquals(response.getPayloads().size(), 2);
+    assertEquals(response.getPayloads().get(0).getAccountIdentifier().getAddress(), "addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx");
+    assertEquals(response.getPayloads().get(0).getHexBytes(), "ec44114edfb063ce344797f95328ccfd8bc1c92f71816803803110cfebbb8360");
+    assertEquals(response.getPayloads().get(1).getAccountIdentifier().getAddress(), "153806dbcd134ddee69a8c5204e38ac80448f62342f8c23cfe4b7edf");
+    assertEquals(response.getPayloads().get(1).getHexBytes(), "ec44114edfb063ce344797f95328ccfd8bc1c92f71816803803110cfebbb8360");
 
   }
 
   @Test
-  void test_return_a_valid_unsigned_transaction_hash_when_sending_valid_operations_including_pool_retirement() {
+  void test_should_throw_an_error_when_no_epoch_was_sent_on_pool_retirement_operation() throws IOException {
+    ConstructionPayloadsRequest request = objectMapper.readValue(new String(Files.readAllBytes(
+                    Paths.get(
+                            BASE_DIRECTORY + "/construction_payload_no_epoch_was_sent_on_pool_retirement_operation.json"))),
+            ConstructionPayloadsRequest.class);
 
+    try {
+      restTemplate.postForObject(baseUrl, request, ConstructionDeriveResponse.class);
+      fail("Expected exception");
+    } catch (HttpServerErrorException e) {
+      String responseBody = e.getResponseBodyAsString();
+      assertTrue(responseBody.contains(INVALID_OPERATION_TYPE_ERROR_MESSAGE));
+      assertEquals(500, e.getRawStatusCode());
+    }
   }
 
   @Test
-  void test_should_throw_an_error_when_no_epoch_was_sent_on_pool_retirement_operation() {
+  void test_return_an_error_when_no_staking_key_is_provided_in_staking_key_registration_operation() throws IOException {
+    ConstructionPayloadsRequest request = objectMapper.readValue(new String(Files.readAllBytes(
+                    Paths.get(
+                            BASE_DIRECTORY + "/construction_payload_no_staking_key_is_provided_in_staking_key_registration.json"))),
+            ConstructionPayloadsRequest.class);
 
-  }
-
-  @Test
-  void test_return_an_error_when_no_staking_key_is_provided_in_staking_key_registration_operation() {
-
+    try {
+      restTemplate.postForObject(baseUrl, request, ConstructionDeriveResponse.class);
+      fail("Expected exception");
+    } catch (HttpServerErrorException e) {
+      String responseBody = e.getResponseBodyAsString();
+      assertTrue(responseBody.contains(INVALID_OPERATION_TYPE_ERROR_MESSAGE));
+      assertEquals(500, e.getRawStatusCode());
   }
 
   @Test
