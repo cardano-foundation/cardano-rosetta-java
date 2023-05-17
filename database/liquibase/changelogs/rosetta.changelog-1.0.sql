@@ -2174,366 +2174,367 @@ ALTER TABLE ONLY ${liquibase.cf_db_schema}.withdrawal ALTER COLUMN id SET DEFAUL
 -- Data for Name: block; Type: TABLE DATA; Schema: preprod. Owner: rosetta_db_admin
 --
 
-INSERT INTO ${liquibase.cf_db_schema}.block VALUES (1, NULL, NULL, NULL, 'd4b8de7a11d929a323373cbab6c1a9bdc931beffff11db111cf9d57356ee1937', NULL, NULL, 0, 0, 0, 1, NULL, '2022-06-01 00:00:00', 8, NULL, NULL);
+-- INSERT INTO ${liquibase.cf_db_schema}.block VALUES (1, NULL, NULL, NULL, 'd4b8de7a11d929a323373cbab6c1a9bdc931beffff11db111cf9d57356ee1937', NULL, NULL, 0, 0, 0, 1, NULL, '2022-06-01 00:00:00', 8, NULL, NULL);
+-- 
+-- --
+-- --
+-- -- Data for Name: slot_leader; Type: TABLE DATA; Schema: preprod. Owner: rosetta_db_admin
+-- --
+-- 
+-- INSERT INTO ${liquibase.cf_db_schema}.slot_leader VALUES (1, 'Genesis slot leader', 'd4b8de7a11d929a323373cbab6c1a9bdc931beffff11db111cf9d573', NULL);
+-- 
+-- 
+-- 
+-- --
+-- -- Data for Name: tx; Type: TABLE DATA; Schema: preprod. Owner: rosetta_db_admin
+-- --
+-- 
+-- INSERT INTO ${liquibase.cf_db_schema}.tx VALUES (1, 1, 0, 0, 0, '8e0280beebc3d12626e87b182f4205d75e49981042f54081cd35f3a4a85630b0', NULL, NULL, 0, 0, 0, true);
+-- INSERT INTO ${liquibase.cf_db_schema}.tx VALUES (2, 1, 0, 0, 0, '02e9a39dec6fad8a889a619b71a3cf06fab8475a6d19ea6e949846b5e0ba8747', NULL, NULL, 0, 0, 0, true);
+-- INSERT INTO ${liquibase.cf_db_schema}.tx VALUES (3, 1, 0, 0, 0, '5526b1373acfc774794a62122f95583ff17febb2ca8a0fe948d097e29cf99099', NULL, NULL, 30000000000000000, 0, 0, true);
+-- INSERT INTO ${liquibase.cf_db_schema}.tx VALUES (4, 1, 0, 0, 0, '21184177437666b3d3229e118d000e9eb0e625063610ee707921493bc215fc01', NULL, NULL, 0, 0, 0, true);
+-- INSERT INTO ${liquibase.cf_db_schema}.tx VALUES (5, 1, 0, 0, 0, '84e79ec2eea95464106f80f70989a29c6247119174d16d505d574ab600e7249a', NULL, NULL, 0, 0, 0, true);
+-- INSERT INTO ${liquibase.cf_db_schema}.tx VALUES (6, 1, 0, 0, 0, '91fb5ef738503676d0e5e91565ba3907c30c8a4d9a99cddc9c84205cfb7f3cbe', NULL, NULL, 0, 0, 0, true);
+-- INSERT INTO ${liquibase.cf_db_schema}.tx VALUES (7, 1, 0, 0, 0, 'c0290a97a0c64e5dcc65b7c1eb89fa80d4b94218d15fc938ea5c899ba9d27d6f', NULL, NULL, 0, 0, 0, true);
+-- INSERT INTO ${liquibase.cf_db_schema}.tx VALUES (8, 1, 0, 0, 0, 'b731574b44de062ade1e70d0040abde47a6626c7d8e98816a9d87e6bd6228b45', NULL, NULL, 0, 0, 0, true);
+-- 
+-- --
+-- -- Data for Name: tx_out; Type: TABLE DATA; Schema: preprod. Owner: rosetta_db_admin
+-- --
+-- 
+-- INSERT INTO ${liquibase.cf_db_schema}.tx_out VALUES (1, 'FHnt4NL7yPXhCzCHVywZLqVsvwuG3HvwmjKXQJBrXh3h2aigv6uxkePbpzRNV8q', false, '\x30783832443831383538323438333538314330353644383930374234353330444142454330414237373435364132423543374536393531353044373533343338304138303933303931454131303234313031303031414530414638374445', NULL, 0, NULL, 1, 0, NULL, NULL, NULL);
+-- INSERT INTO ${liquibase.cf_db_schema}.tx_out VALUES (2, 'FHnt4NL7yPXuJGViM3KwSPwrwECD9q5vNetX3QJDYRWgiX3RHi5i5VV32dnETDK', false, '\x30783832443831383538323438333538314335373239454639353931364342383244334437413345434143443333374337464141374345363944333433393743424545333835423535424131303234313031303031413839333934413041', NULL, 0, NULL, 2, 0, NULL, NULL, NULL);
+-- INSERT INTO ${liquibase.cf_db_schema}.tx_out VALUES (3, 'FHnt4NL7yPXuYUxBF33VX5dZMBDAab2kvSNLRzCskvuKNCSDknzrQvKeQhGUw5a', false, '\x30783832443831383538323438333538314335384432313134313834433545443738344343343139454236383041374433334336393844304543393633453245383035453833453236304131303234313031303031413734433032413039', NULL, 0, NULL, 3, 30000000000000000, NULL, NULL, NULL);
+-- INSERT INTO ${liquibase.cf_db_schema}.tx_out VALUES (4, 'FHnt4NL7yPY8exfnuJ8ACyoU7xCN93tKXSv357UrTp1nddGbkWxJpQfrt62xYFX', false, '\x30783832443831383538323438333538314342313734424636433730364536394637423444333946363631454644344641303742393544443133414139323945423832463943434533434131303234313031303031414143344334334145', NULL, 0, NULL, 4, 0, NULL, NULL, NULL);
+-- INSERT INTO ${liquibase.cf_db_schema}.tx_out VALUES (5, 'FHnt4NL7yPYFpVcAXZADrKdsqCAFvcRFYkTcqkn2guGmj8akQMiMVjhSUECvD1F', false, '\x30783832443831383538323438333538314345314533324543374541303836323836343646374136324338343242444343313236464442434234433730424438323038443941413137304131303234313031303031413930333443433136', NULL, 0, NULL, 5, 0, NULL, NULL, NULL);
+-- INSERT INTO ${liquibase.cf_db_schema}.tx_out VALUES (6, 'FHnt4NL7yPYH2vP2FLEfH2pt3K6meM7fgtjRiLBidaqpP5ogPzxLNsZy68e1KdW', false, '\x30783832443831383538323438333538314345413138384237434630464334343939413730314131353038373936454143434331323834344136313930383833443830334144393735314131303234313031303031414542344545414244', NULL, 0, NULL, 6, 0, NULL, NULL, NULL);
+-- INSERT INTO ${liquibase.cf_db_schema}.tx_out VALUES (7, 'FHnt4NL7yPYHrcxPtPufYYFWLhqvHGnZ5NFSz2KZpWQgSq4VLsUgWnkEmfUtd1E', false, '\x30783832443831383538323438333538314345464137433641413535444443414132454631434630364536343139393638443542343536423830364345344531413446424544364639304131303234313031303031414331444646413035', NULL, 0, NULL, 7, 0, NULL, NULL, NULL);
+-- INSERT INTO ${liquibase.cf_db_schema}.tx_out VALUES (8, 'FHnt4NL7yPYJiN5Y8VsQr6LP6YgN51BHBPegNjVwKkq6AooCkbTpfZ2bqkVkfXU', false, '\x30783832443831383538323438333538314346353733464531453046384445343044333936333245453644413644374443354134453433443239373736454239303334394645363330434131303234313031303031414245303237303937', NULL, 0, NULL, 8, 0, NULL, NULL, NULL);
 
---
--- Data for Name: slot_leader; Type: TABLE DATA; Schema: preprod. Owner: rosetta_db_admin
---
 
-INSERT INTO ${liquibase.cf_db_schema}.slot_leader VALUES (1, 'Genesis slot leader', 'd4b8de7a11d929a323373cbab6c1a9bdc931beffff11db111cf9d573', NULL);
-
-
-
---
--- Data for Name: tx; Type: TABLE DATA; Schema: preprod. Owner: rosetta_db_admin
---
-
-INSERT INTO ${liquibase.cf_db_schema}.tx VALUES (1, 1, 0, 0, 0, '8e0280beebc3d12626e87b182f4205d75e49981042f54081cd35f3a4a85630b0', NULL, NULL, 0, 0, 0, true);
-INSERT INTO ${liquibase.cf_db_schema}.tx VALUES (2, 1, 0, 0, 0, '02e9a39dec6fad8a889a619b71a3cf06fab8475a6d19ea6e949846b5e0ba8747', NULL, NULL, 0, 0, 0, true);
-INSERT INTO ${liquibase.cf_db_schema}.tx VALUES (3, 1, 0, 0, 0, '5526b1373acfc774794a62122f95583ff17febb2ca8a0fe948d097e29cf99099', NULL, NULL, 30000000000000000, 0, 0, true);
-INSERT INTO ${liquibase.cf_db_schema}.tx VALUES (4, 1, 0, 0, 0, '21184177437666b3d3229e118d000e9eb0e625063610ee707921493bc215fc01', NULL, NULL, 0, 0, 0, true);
-INSERT INTO ${liquibase.cf_db_schema}.tx VALUES (5, 1, 0, 0, 0, '84e79ec2eea95464106f80f70989a29c6247119174d16d505d574ab600e7249a', NULL, NULL, 0, 0, 0, true);
-INSERT INTO ${liquibase.cf_db_schema}.tx VALUES (6, 1, 0, 0, 0, '91fb5ef738503676d0e5e91565ba3907c30c8a4d9a99cddc9c84205cfb7f3cbe', NULL, NULL, 0, 0, 0, true);
-INSERT INTO ${liquibase.cf_db_schema}.tx VALUES (7, 1, 0, 0, 0, 'c0290a97a0c64e5dcc65b7c1eb89fa80d4b94218d15fc938ea5c899ba9d27d6f', NULL, NULL, 0, 0, 0, true);
-INSERT INTO ${liquibase.cf_db_schema}.tx VALUES (8, 1, 0, 0, 0, 'b731574b44de062ade1e70d0040abde47a6626c7d8e98816a9d87e6bd6228b45', NULL, NULL, 0, 0, 0, true);
-
---
--- Data for Name: tx_out; Type: TABLE DATA; Schema: preprod. Owner: rosetta_db_admin
---
-
-INSERT INTO ${liquibase.cf_db_schema}.tx_out VALUES (1, 'FHnt4NL7yPXhCzCHVywZLqVsvwuG3HvwmjKXQJBrXh3h2aigv6uxkePbpzRNV8q', false, '\x30783832443831383538323438333538314330353644383930374234353330444142454330414237373435364132423543374536393531353044373533343338304138303933303931454131303234313031303031414530414638374445', NULL, 0, NULL, 1, 0, NULL, NULL, NULL);
-INSERT INTO ${liquibase.cf_db_schema}.tx_out VALUES (2, 'FHnt4NL7yPXuJGViM3KwSPwrwECD9q5vNetX3QJDYRWgiX3RHi5i5VV32dnETDK', false, '\x30783832443831383538323438333538314335373239454639353931364342383244334437413345434143443333374337464141374345363944333433393743424545333835423535424131303234313031303031413839333934413041', NULL, 0, NULL, 2, 0, NULL, NULL, NULL);
-INSERT INTO ${liquibase.cf_db_schema}.tx_out VALUES (3, 'FHnt4NL7yPXuYUxBF33VX5dZMBDAab2kvSNLRzCskvuKNCSDknzrQvKeQhGUw5a', false, '\x30783832443831383538323438333538314335384432313134313834433545443738344343343139454236383041374433334336393844304543393633453245383035453833453236304131303234313031303031413734433032413039', NULL, 0, NULL, 3, 30000000000000000, NULL, NULL, NULL);
-INSERT INTO ${liquibase.cf_db_schema}.tx_out VALUES (4, 'FHnt4NL7yPY8exfnuJ8ACyoU7xCN93tKXSv357UrTp1nddGbkWxJpQfrt62xYFX', false, '\x30783832443831383538323438333538314342313734424636433730364536394637423444333946363631454644344641303742393544443133414139323945423832463943434533434131303234313031303031414143344334334145', NULL, 0, NULL, 4, 0, NULL, NULL, NULL);
-INSERT INTO ${liquibase.cf_db_schema}.tx_out VALUES (5, 'FHnt4NL7yPYFpVcAXZADrKdsqCAFvcRFYkTcqkn2guGmj8akQMiMVjhSUECvD1F', false, '\x30783832443831383538323438333538314345314533324543374541303836323836343646374136324338343242444343313236464442434234433730424438323038443941413137304131303234313031303031413930333443433136', NULL, 0, NULL, 5, 0, NULL, NULL, NULL);
-INSERT INTO ${liquibase.cf_db_schema}.tx_out VALUES (6, 'FHnt4NL7yPYH2vP2FLEfH2pt3K6meM7fgtjRiLBidaqpP5ogPzxLNsZy68e1KdW', false, '\x30783832443831383538323438333538314345413138384237434630464334343939413730314131353038373936454143434331323834344136313930383833443830334144393735314131303234313031303031414542344545414244', NULL, 0, NULL, 6, 0, NULL, NULL, NULL);
-INSERT INTO ${liquibase.cf_db_schema}.tx_out VALUES (7, 'FHnt4NL7yPYHrcxPtPufYYFWLhqvHGnZ5NFSz2KZpWQgSq4VLsUgWnkEmfUtd1E', false, '\x30783832443831383538323438333538314345464137433641413535444443414132454631434630364536343139393638443542343536423830364345344531413446424544364639304131303234313031303031414331444646413035', NULL, 0, NULL, 7, 0, NULL, NULL, NULL);
-INSERT INTO ${liquibase.cf_db_schema}.tx_out VALUES (8, 'FHnt4NL7yPYJiN5Y8VsQr6LP6YgN51BHBPegNjVwKkq6AooCkbTpfZ2bqkVkfXU', false, '\x30783832443831383538323438333538314346353733464531453046384445343044333936333245453644413644374443354134453433443239373736454239303334394645363330434131303234313031303031414245303237303937', NULL, 0, NULL, 8, 0, NULL, NULL, NULL);
-
-
-SELECT pg_catalog.setval('preprod.ada_pots_id_seq', 1, false);
+--SELECT pg_catalog.setval('preprod.ada_pots_id_seq', 1, false);
 
 
 --
 -- Name: block_id_seq; Type: SEQUENCE SET; Schema: preprod. Owner: rosetta_db_admin
 --
 
-SELECT pg_catalog.setval('preprod.block_id_seq', 2, false);
+--SELECT pg_catalog.setval('preprod.block_id_seq', 2, false);
 
 
 --
 -- Name: collateral_tx_in_id_seq; Type: SEQUENCE SET; Schema: preprod. Owner: rosetta_db_admin
 --
 
-SELECT pg_catalog.setval('preprod.collateral_tx_in_id_seq', 1, false);
+--SELECT pg_catalog.setval('preprod.collateral_tx_in_id_seq', 1, false);
 
 
 --
 -- Name: collateral_tx_out_id_seq; Type: SEQUENCE SET; Schema: preprod. Owner: rosetta_db_admin
 --
 
-SELECT pg_catalog.setval('preprod.collateral_tx_out_id_seq', 1, false);
+--SELECT pg_catalog.setval('preprod.collateral_tx_out_id_seq', 1, false);
 
 
 --
 -- Name: cost_model_id_seq; Type: SEQUENCE SET; Schema: preprod. Owner: rosetta_db_admin
 --
 
-SELECT pg_catalog.setval('preprod.cost_model_id_seq', 1, true);
+--SELECT pg_catalog.setval('preprod.cost_model_id_seq', 1, true);
 
 
 --
 -- Name: datum_id_seq; Type: SEQUENCE SET; Schema: preprod. Owner: rosetta_db_admin
 --
 
-SELECT pg_catalog.setval('preprod.datum_id_seq', 1, false);
+--SELECT pg_catalog.setval('preprod.datum_id_seq', 1, false);
 
 
 --
 -- Name: delegation_id_seq; Type: SEQUENCE SET; Schema: preprod. Owner: rosetta_db_admin
 --
 
-SELECT pg_catalog.setval('preprod.delegation_id_seq', 1, false);
+--SELECT pg_catalog.setval('preprod.delegation_id_seq', 1, false);
 
 
 --
 -- Name: delisted_pool_id_seq; Type: SEQUENCE SET; Schema: preprod. Owner: rosetta_db_admin
 --
 
-SELECT pg_catalog.setval('preprod.delisted_pool_id_seq', 1, false);
+--SELECT pg_catalog.setval('preprod.delisted_pool_id_seq', 1, false);
 
 
 --
 -- Name: epoch_id_seq; Type: SEQUENCE SET; Schema: preprod. Owner: rosetta_db_admin
 --
 
-SELECT pg_catalog.setval('preprod.epoch_id_seq', 1, false);
+--SELECT pg_catalog.setval('preprod.epoch_id_seq', 1, false);
 
 
 --
 -- Name: epoch_param_id_seq; Type: SEQUENCE SET; Schema: preprod. Owner: rosetta_db_admin
 --
 
-SELECT pg_catalog.setval('preprod.epoch_param_id_seq', 1, false);
+--SELECT pg_catalog.setval('preprod.epoch_param_id_seq', 1, false);
 
 
 --
 -- Name: epoch_stake_id_seq; Type: SEQUENCE SET; Schema: preprod. Owner: rosetta_db_admin
 --
 
-SELECT pg_catalog.setval('preprod.epoch_stake_id_seq', 1, false);
+--SELECT pg_catalog.setval('preprod.epoch_stake_id_seq', 1, false);
 
 
 --
 -- Name: epoch_sync_time_id_seq; Type: SEQUENCE SET; Schema: preprod. Owner: rosetta_db_admin
 --
 
-SELECT pg_catalog.setval('preprod.epoch_sync_time_id_seq', 1, false);
+--SELECT pg_catalog.setval('preprod.epoch_sync_time_id_seq', 1, false);
 
 
 --
 -- Name: extra_key_witness_id_seq; Type: SEQUENCE SET; Schema: preprod. Owner: rosetta_db_admin
 --
 
-SELECT pg_catalog.setval('preprod.extra_key_witness_id_seq', 1, false);
+--SELECT pg_catalog.setval('preprod.extra_key_witness_id_seq', 1, false);
 
 
 --
 -- Name: ma_tx_mint_id_seq; Type: SEQUENCE SET; Schema: preprod. Owner: rosetta_db_admin
 --
 
-SELECT pg_catalog.setval('preprod.ma_tx_mint_id_seq', 1, false);
+--SELECT pg_catalog.setval('preprod.ma_tx_mint_id_seq', 1, false);
 
 
 --
 -- Name: ma_tx_out_id_seq; Type: SEQUENCE SET; Schema: preprod. Owner: rosetta_db_admin
 --
 
-SELECT pg_catalog.setval('preprod.ma_tx_out_id_seq', 1, false);
+--SELECT pg_catalog.setval('preprod.ma_tx_out_id_seq', 1, false);
 
 
 --
 -- Name: meta_id_seq; Type: SEQUENCE SET; Schema: preprod. Owner: rosetta_db_admin
 --
 
-SELECT pg_catalog.setval('preprod.meta_id_seq', 1, false);
+--SELECT pg_catalog.setval('preprod.meta_id_seq', 1, false);
 
 
 --
 -- Name: multi_asset_id_seq; Type: SEQUENCE SET; Schema: preprod. Owner: rosetta_db_admin
 --
 
-SELECT pg_catalog.setval('preprod.multi_asset_id_seq', 1, false);
+--SELECT pg_catalog.setval('preprod.multi_asset_id_seq', 1, false);
 
 
 --
 -- Name: param_proposal_id_seq; Type: SEQUENCE SET; Schema: preprod. Owner: rosetta_db_admin
 --
 
-SELECT pg_catalog.setval('preprod.param_proposal_id_seq', 1, false);
+--SELECT pg_catalog.setval('preprod.param_proposal_id_seq', 1, false);
 
 
 --
 -- Name: pool_hash_id_seq; Type: SEQUENCE SET; Schema: preprod. Owner: rosetta_db_admin
 --
 
-SELECT pg_catalog.setval('preprod.pool_hash_id_seq', 1, false);
+--SELECT pg_catalog.setval('preprod.pool_hash_id_seq', 1, false);
 
 
 --
 -- Name: pool_metadata_ref_id_seq; Type: SEQUENCE SET; Schema: preprod. Owner: rosetta_db_admin
 --
 
-SELECT pg_catalog.setval('preprod.pool_metadata_ref_id_seq', 1, false);
+--SELECT pg_catalog.setval('preprod.pool_metadata_ref_id_seq', 1, false);
 
 
 --
 -- Name: pool_offline_data_id_seq; Type: SEQUENCE SET; Schema: preprod. Owner: rosetta_db_admin
 --
 
-SELECT pg_catalog.setval('preprod.pool_offline_data_id_seq', 1, false);
+--SELECT pg_catalog.setval('preprod.pool_offline_data_id_seq', 1, false);
 
 
 --
 -- Name: pool_offline_fetch_error_id_seq; Type: SEQUENCE SET; Schema: preprod. Owner: rosetta_db_admin
 --
 
-SELECT pg_catalog.setval('preprod.pool_offline_fetch_error_id_seq', 1, false);
+--SELECT pg_catalog.setval('preprod.pool_offline_fetch_error_id_seq', 1, false);
 
 
 --
 -- Name: pool_owner_id_seq; Type: SEQUENCE SET; Schema: preprod. Owner: rosetta_db_admin
 --
 
-SELECT pg_catalog.setval('preprod.pool_owner_id_seq', 1, false);
+--SELECT pg_catalog.setval('preprod.pool_owner_id_seq', 1, false);
 
 
 --
 -- Name: pool_relay_id_seq; Type: SEQUENCE SET; Schema: preprod. Owner: rosetta_db_admin
 --
 
-SELECT pg_catalog.setval('preprod.pool_relay_id_seq', 1, false);
+--SELECT pg_catalog.setval('preprod.pool_relay_id_seq', 1, false);
 
 
 --
 -- Name: pool_retire_id_seq; Type: SEQUENCE SET; Schema: preprod. Owner: rosetta_db_admin
 --
 
-SELECT pg_catalog.setval('preprod.pool_retire_id_seq', 1, false);
+--SELECT pg_catalog.setval('preprod.pool_retire_id_seq', 1, false);
 
 
 --
 -- Name: pool_update_id_seq; Type: SEQUENCE SET; Schema: preprod. Owner: rosetta_db_admin
 --
 
-SELECT pg_catalog.setval('preprod.pool_update_id_seq', 1, false);
+--SELECT pg_catalog.setval('preprod.pool_update_id_seq', 1, false);
 
 
 --
 -- Name: pot_transfer_id_seq; Type: SEQUENCE SET; Schema: preprod. Owner: rosetta_db_admin
 --
 
-SELECT pg_catalog.setval('preprod.pot_transfer_id_seq', 1, false);
+--SELECT pg_catalog.setval('preprod.pot_transfer_id_seq', 1, false);
 
 
 --
 -- Name: redeemer_data_id_seq; Type: SEQUENCE SET; Schema: preprod. Owner: rosetta_db_admin
 --
 
-SELECT pg_catalog.setval('preprod.redeemer_data_id_seq', 1, false);
+--SELECT pg_catalog.setval('preprod.redeemer_data_id_seq', 1, false);
 
 
 --
 -- Name: redeemer_id_seq; Type: SEQUENCE SET; Schema: preprod. Owner: rosetta_db_admin
 --
 
-SELECT pg_catalog.setval('preprod.redeemer_id_seq', 1, false);
+--SELECT pg_catalog.setval('preprod.redeemer_id_seq', 1, false);
 
 
 --
 -- Name: reference_tx_in_id_seq; Type: SEQUENCE SET; Schema: preprod. Owner: rosetta_db_admin
 --
 
-SELECT pg_catalog.setval('preprod.reference_tx_in_id_seq', 1, false);
+--SELECT pg_catalog.setval('preprod.reference_tx_in_id_seq', 1, false);
 
 
 --
 -- Name: reserve_id_seq; Type: SEQUENCE SET; Schema: preprod. Owner: rosetta_db_admin
 --
 
-SELECT pg_catalog.setval('preprod.reserve_id_seq', 1, false);
+--SELECT pg_catalog.setval('preprod.reserve_id_seq', 1, false);
 
 
 --
 -- Name: reserved_pool_ticker_id_seq; Type: SEQUENCE SET; Schema: preprod. Owner: rosetta_db_admin
 --
 
-SELECT pg_catalog.setval('preprod.reserved_pool_ticker_id_seq', 1, false);
+--SELECT pg_catalog.setval('preprod.reserved_pool_ticker_id_seq', 1, false);
 
 
 --
 -- Name: reverse_index_id_seq; Type: SEQUENCE SET; Schema: preprod. Owner: rosetta_db_admin
 --
 
-SELECT pg_catalog.setval('preprod.reverse_index_id_seq', 1, false);
+--SELECT pg_catalog.setval('preprod.reverse_index_id_seq', 1, false);
 
 
 --
 -- Name: reward_id_seq; Type: SEQUENCE SET; Schema: preprod. Owner: rosetta_db_admin
 --
 
-SELECT pg_catalog.setval('preprod.reward_id_seq', 1, false);
+--SELECT pg_catalog.setval('preprod.reward_id_seq', 1, false);
 
 
 --
 -- Name: rollback_history_id_seq; Type: SEQUENCE SET; Schema: preprod. Owner: rosetta_db_admin
 --
 
-SELECT pg_catalog.setval('preprod.rollback_history_id_seq', 1, false);
+--SELECT pg_catalog.setval('preprod.rollback_history_id_seq', 1, false);
 
 
 --
 -- Name: schema_version_id_seq; Type: SEQUENCE SET; Schema: preprod. Owner: rosetta_db_admin
 --
 
-SELECT pg_catalog.setval('preprod.schema_version_id_seq', 1, false);
+--SELECT pg_catalog.setval('preprod.schema_version_id_seq', 1, false);
 
 
 --
 -- Name: script_id_seq; Type: SEQUENCE SET; Schema: preprod. Owner: rosetta_db_admin
 --
 
-SELECT pg_catalog.setval('preprod.script_id_seq', 1, false);
+--SELECT pg_catalog.setval('preprod.script_id_seq', 1, false);
 
 
 --
 -- Name: slot_leader_id_seq; Type: SEQUENCE SET; Schema: preprod. Owner: rosetta_db_admin
 --
 
-SELECT pg_catalog.setval('preprod.slot_leader_id_seq', 2, false);
+--SELECT pg_catalog.setval('preprod.slot_leader_id_seq', 2, false);
 
 
 --
 -- Name: stake_address_id_seq; Type: SEQUENCE SET; Schema: preprod. Owner: rosetta_db_admin
 --
 
-SELECT pg_catalog.setval('preprod.stake_address_id_seq', 1, false);
+--SELECT pg_catalog.setval('preprod.stake_address_id_seq', 1, false);
 
 
 --
 -- Name: stake_deregistration_id_seq; Type: SEQUENCE SET; Schema: preprod. Owner: rosetta_db_admin
 --
 
-SELECT pg_catalog.setval('preprod.stake_deregistration_id_seq', 1, false);
+--SELECT pg_catalog.setval('preprod.stake_deregistration_id_seq', 1, false);
 
 
 --
 -- Name: stake_registration_id_seq; Type: SEQUENCE SET; Schema: preprod. Owner: rosetta_db_admin
 --
 
-SELECT pg_catalog.setval('preprod.stake_registration_id_seq', 1, false);
+--SELECT pg_catalog.setval('preprod.stake_registration_id_seq', 1, false);
 
 
 --
 -- Name: treasury_id_seq; Type: SEQUENCE SET; Schema: preprod. Owner: rosetta_db_admin
 --
 
-SELECT pg_catalog.setval('preprod.treasury_id_seq', 1, false);
+--SELECT pg_catalog.setval('preprod.treasury_id_seq', 1, false);
 
 
 --
 -- Name: tx_id_seq; Type: SEQUENCE SET; Schema: preprod. Owner: rosetta_db_admin
 --
 
-SELECT pg_catalog.setval('preprod.tx_id_seq', 9, false);
+--SELECT pg_catalog.setval('preprod.tx_id_seq', 9, false);
 
 
 --
 -- Name: tx_in_id_seq; Type: SEQUENCE SET; Schema: preprod. Owner: rosetta_db_admin
 --
 
-SELECT pg_catalog.setval('preprod.tx_in_id_seq', 1, false);
+--SELECT pg_catalog.setval('preprod.tx_in_id_seq', 1, false);
 
 
 --
 -- Name: tx_metadata_id_seq; Type: SEQUENCE SET; Schema: preprod. Owner: rosetta_db_admin
 --
 
-SELECT pg_catalog.setval('preprod.tx_metadata_id_seq', 1, false);
+--SELECT pg_catalog.setval('preprod.tx_metadata_id_seq', 1, false);
 
 
 --
 -- Name: tx_out_id_seq; Type: SEQUENCE SET; Schema: preprod. Owner: rosetta_db_admin
 --
 
-SELECT pg_catalog.setval('preprod.tx_out_id_seq', 9, false);
+--SELECT pg_catalog.setval('preprod.tx_out_id_seq', 9, false);
 
 
 --
 -- Name: withdrawal_id_seq; Type: SEQUENCE SET; Schema: preprod. Owner: rosetta_db_admin
 --
 
-SELECT pg_catalog.setval('preprod.withdrawal_id_seq', 1, false);
+--SELECT pg_catalog.setval('preprod.withdrawal_id_seq', 1, false);
 
 
 --
