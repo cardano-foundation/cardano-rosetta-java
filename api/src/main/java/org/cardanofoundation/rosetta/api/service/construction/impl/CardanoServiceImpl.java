@@ -21,14 +21,21 @@ import com.bloxbean.cardano.client.transaction.spec.cert.*;
 import com.bloxbean.cardano.yaci.core.util.CborSerializationUtil;
 import com.bloxbean.cardano.client.util.HexUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.validator.routines.InetAddressValidator;
 import org.bouncycastle.crypto.Signer;
+import org.bouncycastle.crypto.params.AsymmetricKeyParameter;
+import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters;
+import org.bouncycastle.crypto.signers.Ed25519Signer;
 import org.bouncycastle.crypto.signers.Ed25519phSigner;
+import org.bouncycastle.crypto.signers.Ed448phSigner;
+import org.bouncycastle.crypto.util.OpenSSHPublicKeyUtil;
 import org.cardanofoundation.rosetta.api.construction.data.Metadata;
 import org.cardanofoundation.rosetta.api.construction.data.ProcessOperationsDto;
 import org.cardanofoundation.rosetta.api.construction.data.ProtocolParametersResponse;
@@ -688,10 +695,14 @@ public class CardanoServiceImpl implements CardanoService {
     if (ObjectUtils.isEmpty(voteRegistrationMetadata.getVotingSignature())) {
       throw new IllegalArgumentException("Invalid voting signature");
     }
-    Signer verifier = new Ed25519phSigner(
+    AsymmetricKeyParameter publicKeyParameters =
+        OpenSSHPublicKeyUtil.parsePublicKey(voteRegistrationMetadata.getVotingKey().getHexBytes().getBytes(
+        StandardCharsets.UTF_8));
+    Signer verifier = new Ed25519Signer();
+    verifier.init(false,publicKeyParameters);
+    boolean checkSig=verifier.verifySignature(
         HexUtil.decodeHexString(voteRegistrationMetadata.getVotingSignature()));
-    if (!verifier.verifySignature(
-        HexUtil.decodeHexString(voteRegistrationMetadata.getVotingSignature()))) {
+    if (!checkSig) {
       log.error(
           "[validateAndParseVoteRegistrationMetadata] Voting signature has an invalid format");
       throw new IllegalArgumentException("invalidVotingSignature");
@@ -897,12 +908,9 @@ public class CardanoServiceImpl implements CardanoService {
       }
       switch (type) {
         case "single_host_addr": {
-          try {
-            if (relay.getIpv4() != null) {
-              byte[] ipv4Byte = HexUtil.decodeHexString(relay.getIpv4());
-            }
-          } catch (Exception e) {
-            throw new IllegalArgumentException("ipv4 " + e.getMessage());
+          if (relay.getIpv4() != null) {
+            InetAddressValidator validator = InetAddressValidator.getInstance();
+            if(!validator.isValidInet4Address(relay.getIpv4())) throw new IllegalArgumentException("ipv4 "+relay.getIpv4()+" invalid");
           }
           Integer port =
               ObjectUtils.isEmpty(relay.getPort()) ? null : Integer.parseInt(relay.getPort(), 10);
