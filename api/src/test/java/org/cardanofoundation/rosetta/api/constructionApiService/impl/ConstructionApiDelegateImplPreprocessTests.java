@@ -30,6 +30,10 @@ class ConstructionApiDelegateImplPreprocessTests extends IntegrationTest{
 
   private final String BASE_DIRECTORY = "src/test/resources/files/construction/preprocess";
 
+  int sizeInBytes (String hex) {
+    return hex.length() / 2;
+  }
+
   @Test
    void test_should_return_a_valid_ttl_when_the_parameters_are_valid() throws IOException {
 
@@ -71,5 +75,91 @@ class ConstructionApiDelegateImplPreprocessTests extends IntegrationTest{
       assertTrue(responseBody.contains("ThisIsAnInvalidAddressaddr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpxInvalid"));
       assertEquals(500, e.getRawStatusCode());
     }
+  }
+
+  @Test
+  void test_throw_an_error_when_invalid_outputs_are_sent_as_parameters() throws IOException {
+    ConstructionPreprocessRequest request = objectMapper.readValue(new String(Files.readAllBytes(
+            Paths.get(BASE_DIRECTORY + "/construction_preprocess_throw_an_error_when_invalid_inputs_are_sent_as_parameters.json"))),
+        ConstructionPreprocessRequest.class);
+
+    try {
+      ConstructionPreprocessResponse constructionPreprocessResponse = restTemplate.postForObject(
+          baseUrl, request, ConstructionPreprocessResponse.class);
+    } catch (HttpServerErrorException e) {
+      String responseBody = e.getResponseBodyAsString();
+      assertTrue(responseBody.contains("Invalid Hexadecimal Character"));
+      assertEquals(500, e.getRawStatusCode());
+    }
+  }
+
+  @Test
+  void test_should_return_a_valid_TTL_when_the_operations_include_stake_key_registration() throws IOException {
+    ConstructionPreprocessRequest request = objectMapper.readValue(new String(Files.readAllBytes(
+            Paths.get(BASE_DIRECTORY + "/construction_preprocess_return_a_valid_ttl_when_the_operations_include_stake_key_registration.json"))),
+        ConstructionPreprocessRequest.class);
+
+    ConstructionPreprocessResponse constructionPreprocessResponse = restTemplate.postForObject(
+        baseUrl, request, ConstructionPreprocessResponse.class);
+
+    assertEquals(constructionPreprocessResponse.getOptions().getRelativeTtl(), 100);
+    assertEquals(constructionPreprocessResponse.getOptions().getTransactionSize(), sizeInBytes(TestFixedData.SIGNED_TX_WITH_STAKE_KEY_REGISTRATION));
+  }
+
+  @Test
+  void test_should_return_a_valid_ttl_when_the_operations_include_pool_retirement() throws IOException {
+    ConstructionPreprocessRequest request = objectMapper.readValue(new String(Files.readAllBytes(
+            Paths.get(BASE_DIRECTORY + "/construction_preprocess_operations_include_pool_retirement.json"))),
+        ConstructionPreprocessRequest.class);
+
+    ConstructionPreprocessResponse constructionPreprocessResponse = restTemplate.postForObject(
+        baseUrl, request, ConstructionPreprocessResponse.class);
+
+
+    assertEquals(constructionPreprocessResponse.getOptions().getRelativeTtl(), 100);
+    assertEquals(constructionPreprocessResponse.getOptions().getTransactionSize(), sizeInBytes(TestFixedData.SIGNED_TX_WITH_POOL_RETIREMENT));
+  }
+
+  @Test
+  void test_should_return_a_valid_ttl_when_the_operations_include_stake_key_deregistration() throws IOException {
+    ConstructionPreprocessRequest request = objectMapper.readValue(new String(Files.readAllBytes(
+            Paths.get(BASE_DIRECTORY + "/construction_preprocess_operations_include_stake_key_deregistration.json"))),
+        ConstructionPreprocessRequest.class);
+
+    ConstructionPreprocessResponse constructionPreprocessResponse = restTemplate.postForObject(
+        baseUrl, request, ConstructionPreprocessResponse.class);
+
+
+    assertEquals(constructionPreprocessResponse.getOptions().getRelativeTtl(), 100);
+    assertEquals(constructionPreprocessResponse.getOptions().getTransactionSize(), sizeInBytes(TestFixedData.SIGNED_TX_WITH_STAKE_KEY_DEREGISTRATION));
+  }
+
+  @Test
+  void test_should_return_a_valid_ttl_when_the_operations_include_stake_delegation() throws IOException {
+    ConstructionPreprocessRequest request = objectMapper.readValue(new String(Files.readAllBytes(
+            Paths.get(BASE_DIRECTORY + "/construction_preprocess_operations_include_stake_delegation.json"))),
+        ConstructionPreprocessRequest.class);
+
+    ConstructionPreprocessResponse constructionPreprocessResponse = restTemplate.postForObject(
+        baseUrl, request, ConstructionPreprocessResponse.class);
+
+
+    assertEquals(constructionPreprocessResponse.getOptions().getRelativeTtl(), 100);
+    assertEquals(constructionPreprocessResponse.getOptions().getTransactionSize(), sizeInBytes(TestFixedData.SIGNED_TX_WITH_STAKE_DELEGATION));
+  }
+
+  @Test
+  void test_should_return_a_valid_ttl_when_the_operations_include_stake_key_registration_and_stake_delegation() throws IOException {
+    ConstructionPreprocessRequest request = objectMapper.readValue(new String(Files.readAllBytes(
+            Paths.get(BASE_DIRECTORY + "/construction_preprocess_operations_include_stake_key_and_stake_delegation.json"))),
+        ConstructionPreprocessRequest.class);
+
+    ConstructionPreprocessResponse constructionPreprocessResponse = restTemplate.postForObject(
+        baseUrl, request, ConstructionPreprocessResponse.class);
+
+
+    assertEquals(constructionPreprocessResponse.getOptions().getRelativeTtl(), 100);
+    assertEquals(constructionPreprocessResponse.getOptions().getTransactionSize(), sizeInBytes(TestFixedData.SIGNED_TX_WITH_STAKE_KEY_DEREGISTRATION));
+
   }
 }
