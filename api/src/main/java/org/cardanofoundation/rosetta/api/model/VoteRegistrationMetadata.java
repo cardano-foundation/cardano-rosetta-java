@@ -33,7 +33,7 @@ public class VoteRegistrationMetadata {
   private String rewardAddress;
 
   @JsonProperty("votingNonce")
-  private double votingNonce;
+  private Integer votingNonce;
 
   @JsonProperty("votingSignature")
   private String votingSignature;
