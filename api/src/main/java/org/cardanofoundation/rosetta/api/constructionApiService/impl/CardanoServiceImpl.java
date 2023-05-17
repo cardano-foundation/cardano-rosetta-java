@@ -26,9 +26,34 @@ import com.bloxbean.cardano.yaci.core.util.CborSerializationUtil;
 import com.bloxbean.cardano.client.util.HexUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
+import java.security.KeyFactory;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.Security;
+import java.security.SignatureException;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.X509EncodedKeySpec;
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.LocalDateTime;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.aspectj.bridge.Message;
+import org.bouncycastle.asn1.edec.EdECObjectIdentifiers;
+import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
+import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
+import org.bouncycastle.crypto.Signer;
+import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters;
+import org.bouncycastle.crypto.signers.Ed25519Signer;
+import org.bouncycastle.crypto.signers.Ed25519ctxSigner;
+import org.bouncycastle.crypto.signers.Ed25519phSigner;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.math.ec.rfc8032.Ed25519;
 import org.cardanofoundation.rosetta.api.addedClass.*;
 import org.cardanofoundation.rosetta.api.addedRepo.BlockRepository;
@@ -53,7 +78,9 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
+
 import static com.bloxbean.cardano.client.address.util.AddressEncoderDecoderUtil.readAddressType;
+
 
 @Slf4j
 @Service
@@ -328,8 +355,9 @@ public class CardanoServiceImpl implements CardanoService {
       log.info(
           "[createUnsignedTransaction] Hashing vote registration metadata and adding to transaction body");
       AuxiliaryData auxiliaryData = (AuxiliaryData) map.get("voteRegistrationMetadata");
-      byte[] bytes=new byte[]{-120, -54, -122, 84, 88, 46, -125, -109, 120, 115, 35, 11, 102, 70, -94, 33, 1, 52, -45, -28, 30, 11, -55, -126, 76, -25, -66, 78, 11, 40, -88, -106};
-    transactionBody.setAuxiliaryDataHash(auxiliaryData.getAuxiliaryDataHash());
+      byte[] bytes = new byte[]{-120, -54, -122, 84, 88, 46, -125, -109, 120, 115, 35, 11, 102, 70,
+          -94, 33, 1, 52, -45, -28, 30, 11, -55, -126, 76, -25, -66, 78, 11, 40, -88, -106};
+      transactionBody.setAuxiliaryDataHash(auxiliaryData.getAuxiliaryDataHash());
     }
 
     if (!((List<Certificate>) map.get("certificates")).isEmpty()) {
@@ -352,8 +380,8 @@ public class CardanoServiceImpl implements CardanoService {
         hexFormatter(HexUtil.decodeHexString(bodyHash)),
         transactionBytes, (Set<String>) map.get("addresses"), null);
     if (!ObjectUtils.isEmpty((AuxiliaryData) map.get("voteRegistrationMetadata"))) {
-      AuxiliaryData auxiliaryData=(AuxiliaryData) map.get("voteRegistrationMetadata");
-      Array array=new Array();
+      AuxiliaryData auxiliaryData = (AuxiliaryData) map.get("voteRegistrationMetadata");
+      Array array = new Array();
       array.add(auxiliaryData.serialize());
       array.add(new Array());
       toReturn.setMetadata(hex(CborSerializationUtil.serialize(array)));
@@ -365,7 +393,7 @@ public class CardanoServiceImpl implements CardanoService {
 
   @Override
   public Map<String, Object> processOperations(NetworkIdentifierEnum networkIdentifierEnum,
-      List<Operation> operations, DepositParameters depositParameters) {
+      List<Operation> operations, DepositParameters depositParameters) throws IOException {
     log.info("[processOperations] About to calculate fee");
     ProcessOperationsResult result = convert(networkIdentifierEnum, operations);
     double refundsSum =
@@ -422,7 +450,7 @@ public class CardanoServiceImpl implements CardanoService {
 
   @Override
   public ProcessOperationsResult convert(NetworkIdentifierEnum networkIdentifierEnum,
-      List<Operation> operations) {
+      List<Operation> operations) throws IOException {
     ProcessOperationsResult processor = new ProcessOperationsResult();
 
     for (Operation operation : operations) {
@@ -434,6 +462,14 @@ public class CardanoServiceImpl implements CardanoService {
       } catch (CborSerializationException e) {
         throw new RuntimeException(e);
       } catch (CborDeserializationException e) {
+        throw new RuntimeException(e);
+      } catch (NoSuchAlgorithmException e) {
+        throw new RuntimeException(e);
+      } catch (SignatureException e) {
+        throw new RuntimeException(e);
+      } catch (InvalidKeySpecException e) {
+        throw new RuntimeException(e);
+      } catch (InvalidKeyException e) {
         throw new RuntimeException(e);
       }
       if (ObjectUtils.isEmpty(processor)) {
@@ -450,7 +486,7 @@ public class CardanoServiceImpl implements CardanoService {
   public ProcessOperationsResult operationProcessor(Operation operation,
       NetworkIdentifierEnum networkIdentifierEnum,
       ProcessOperationsResult resultAccumulator, String type)
-      throws JsonProcessingException, CborSerializationException, CborDeserializationException {
+      throws IOException, CborSerializationException, CborDeserializationException, NoSuchAlgorithmException, SignatureException, InvalidKeySpecException, InvalidKeyException {
     if (type.equals(OperationType.INPUT.getValue())) {
       resultAccumulator.getTransactionInputs().add(validateAndParseTransactionInput(operation));
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -589,7 +625,7 @@ public class CardanoServiceImpl implements CardanoService {
 
   @Override
   public AuxiliaryData processVoteRegistration(Operation operation)
-      throws JsonProcessingException, CborDeserializationException {
+      throws IOException, CborDeserializationException, NoSuchAlgorithmException, SignatureException, InvalidKeySpecException, InvalidKeyException {
     log.info("[processVoteRegistration] About to process vote registration");
     if (!ObjectUtils.isEmpty(operation) && !ObjectUtils.isEmpty(operation.getMetadata())
         && ObjectUtils.isEmpty(operation.getMetadata().getVoteRegistrationMetadata())) {
@@ -599,36 +635,57 @@ public class CardanoServiceImpl implements CardanoService {
     Map<String, Object> map = validateAndParseVoteRegistrationMetadata(
         operation.getMetadata().getVoteRegistrationMetadata());
 
-    CBORMetadata metadata=new CBORMetadata();
+    CBORMetadata metadata = new CBORMetadata();
 
-    CBORMetadataMap map2=new CBORMetadataMap();
-    byte[] votingKeyByte=HexUtil.decodeHexString(((String)map.get("votingKey")));
+    CBORMetadataMap map2 = new CBORMetadataMap();
+    byte[] votingKeyByte = HexUtil.decodeHexString(((String) map.get("votingKey")));
     map2.put(BigInteger.valueOf(CatalystDataIndexes.VOTING_KEY.getValue()), votingKeyByte);
-    map2.put(BigInteger.valueOf(CatalystDataIndexes.STAKE_KEY.getValue()), HexUtil.decodeHexString(((String)map.get("stakeKey"))));
-    map2.put(BigInteger.valueOf(CatalystDataIndexes.REWARD_ADDRESS.getValue()), HexUtil.decodeHexString(((String)map.get("rewardAddress"))));
-    map2.put(BigInteger.valueOf(CatalystDataIndexes.VOTING_NONCE.getValue()), BigInteger.valueOf(((Integer)map.get("votingNonce"))));
-   metadata.put(BigInteger.valueOf(Long.parseLong(CatalystLabels.DATA.getValue())),map2);
-    CBORMetadataMap map3=new CBORMetadataMap();
-    map3.put(BigInteger.valueOf(1l),HexUtil.decodeHexString(operation.getMetadata().getVoteRegistrationMetadata().getVotingSignature()));
-    metadata.put(BigInteger.valueOf(Long.parseLong(CatalystLabels.SIG.getValue())),map3);
-    AuxiliaryData auxiliaryData=new AuxiliaryData();
+    map2.put(BigInteger.valueOf(CatalystDataIndexes.STAKE_KEY.getValue()),
+        HexUtil.decodeHexString(((String) map.get("stakeKey"))));
+    map2.put(BigInteger.valueOf(CatalystDataIndexes.REWARD_ADDRESS.getValue()),
+        HexUtil.decodeHexString(((String) map.get("rewardAddress"))));
+    map2.put(BigInteger.valueOf(CatalystDataIndexes.VOTING_NONCE.getValue()),
+        BigInteger.valueOf(((Integer) map.get("votingNonce"))));
+    metadata.put(BigInteger.valueOf(Long.parseLong(CatalystLabels.DATA.getValue())), map2);
+    CBORMetadataMap map3 = new CBORMetadataMap();
+    map3.put(BigInteger.valueOf(1l), HexUtil.decodeHexString(
+        operation.getMetadata().getVoteRegistrationMetadata().getVotingSignature()));
+    metadata.put(BigInteger.valueOf(Long.parseLong(CatalystLabels.SIG.getValue())), map3);
+    AuxiliaryData auxiliaryData = new AuxiliaryData();
     auxiliaryData.setMetadata(metadata);
     return auxiliaryData;
   }
 
   @Override
   public Map<String, Object> validateAndParseVoteRegistrationMetadata(
-      VoteRegistrationMetadata voteRegistrationMetadata) {
+      VoteRegistrationMetadata voteRegistrationMetadata)
+      throws IOException, NoSuchAlgorithmException, SignatureException, InvalidKeySpecException, InvalidKeyException {
 
     log.info("[validateAndParseVoteRegistrationMetadata] About to validate and parse voting key");
     String parsedVotingKey = validateAndParseVotingKey(
         voteRegistrationMetadata.getVotingKey());
     log.info("[validateAndParseVoteRegistrationMetadata] About to validate and parse stake key");
+    if (ObjectUtils.isEmpty(voteRegistrationMetadata.getStakeKey().getHexBytes())) {
+      throw new IllegalArgumentException("Staking key is required for this type of address");
+    }
+    if (!isKeyValid(voteRegistrationMetadata.getStakeKey().getHexBytes(),
+        voteRegistrationMetadata.getStakeKey().getCurveType())) {
+      throw new IllegalArgumentException("Invalid staking key format");
+    }
+    ;
     String parsedStakeKey = voteRegistrationMetadata.getStakeKey().getHexBytes();
     log.info(
         "[validateAndParseVoteRegistrationMetadata] About to validate and parse reward address");
-    Address address=new Address(voteRegistrationMetadata.getRewardAddress());
-    String parsedAddress = HexUtil.encodeHexString(address.getBytes());
+    String parsedAddress = null;
+    try {
+      if (voteRegistrationMetadata.getRewardAddress().startsWith("addr")) {
+        throw new IllegalArgumentException("Provided address is invalid");
+      }
+      Address address = new Address(voteRegistrationMetadata.getRewardAddress());
+      parsedAddress = HexUtil.encodeHexString(address.getBytes());
+    } catch (Exception exception) {
+      throw new IllegalArgumentException("Provided address is invalid");
+    }
 
     log.info("[validateAndParseVoteRegistrationMetadata] About to validate voting nonce");
     if (voteRegistrationMetadata.getVotingNonce() <= 0) {
@@ -642,7 +699,17 @@ public class CardanoServiceImpl implements CardanoService {
 //            log.error("[validateAndParseVoteRegistrationMetadata] Voting signature has an invalid format");
 //            throw new IllegalArgumentException("invalidVotingSignature");
 //        }
-
+    if (ObjectUtils.isEmpty(voteRegistrationMetadata.getVotingSignature())) {
+      throw new IllegalArgumentException("Invalid voting signature");
+    }
+    Signer verifier = new Ed25519phSigner(
+        HexUtil.decodeHexString(voteRegistrationMetadata.getVotingSignature()));
+    if (!verifier.verifySignature(
+        HexUtil.decodeHexString(voteRegistrationMetadata.getVotingSignature()))) {
+      log.error(
+          "[validateAndParseVoteRegistrationMetadata] Voting signature has an invalid format");
+      throw new IllegalArgumentException("invalidVotingSignature");
+    }
     String votingKeyHex = add0xPrefix(parsedVotingKey);
     String stakeKeyHex = add0xPrefix(parsedStakeKey);
     String rewardAddressHex = add0xPrefix(parsedAddress);
@@ -713,7 +780,7 @@ public class CardanoServiceImpl implements CardanoService {
       return map;
     }
     log.error("[processPoolRetiring] Epoch operation metadata is missing");
-    throw new IllegalArgumentException("missingMetadataParametersForPoolRetirement"+"Epoch");
+    throw new IllegalArgumentException("missingMetadataParametersForPoolRetirement" + "Epoch");
   }
 
   @Override
@@ -834,21 +901,22 @@ public class CardanoServiceImpl implements CardanoService {
   @Override
   public Relay generateSpecificRelay(Relay1 relay) {
     try {
-      String type=relay.getType();
-      if(type==null){
+      String type = relay.getType();
+      if (type == null) {
         throw new IllegalArgumentException("invalidPoolRelayTypeError");
       }
       switch (type) {
         case "single_host_addr": {
-          try{
-            if(relay.getIpv4()!=null){
+          try {
+            if (relay.getIpv4() != null) {
               byte[] ipv4Byte = HexUtil.decodeHexString(relay.getIpv4());
             }
-          }catch(Exception e){
-            throw new IllegalArgumentException("ipv4 "+e.getMessage());
+          } catch (Exception e) {
+            throw new IllegalArgumentException("ipv4 " + e.getMessage());
           }
-          Integer port=ObjectUtils.isEmpty(relay.getPort()) ? null : Integer.parseInt(relay.getPort(), 10);
-          if(port==null){
+          Integer port =
+              ObjectUtils.isEmpty(relay.getPort()) ? null : Integer.parseInt(relay.getPort(), 10);
+          if (port == null) {
             return new SingleHostAddr(0, parseIpv4(relay.getIpv4()), parseIpv6(relay.getIpv6()));
           }
           return new SingleHostAddr(port, parseIpv4(relay.getIpv4()), parseIpv6(relay.getIpv6()));
@@ -857,11 +925,12 @@ public class CardanoServiceImpl implements CardanoService {
           if (ObjectUtils.isEmpty(relay.getDnsName())) {
             throw new IllegalArgumentException("missingDnsNameError");
           }
-          Integer port=ObjectUtils.isEmpty(relay.getPort()) ? null : Integer.parseInt(relay.getPort(), 10);
-          if(port==null){
+          Integer port =
+              ObjectUtils.isEmpty(relay.getPort()) ? null : Integer.parseInt(relay.getPort(), 10);
+          if (port == null) {
             return new SingleHostName(0, relay.getDnsName());
           }
-        return new SingleHostName(port, relay.getDnsName());
+          return new SingleHostName(port, relay.getDnsName());
         case "multi_host_name":
           if (ObjectUtils.isEmpty(relay.getDnsName())) {
             throw new IllegalArgumentException("missingDnsNameError");
@@ -903,16 +972,16 @@ public class CardanoServiceImpl implements CardanoService {
 
   @Override
   public void validatePort(String port) {
-    try{
+    try {
       Integer parsedPort = Integer.parseInt(port, 10);
       if (!port.matches(Const.IS_POSITIVE_NUMBER) || parsedPort == null) {
         log.error("[validateAndParsePort] Invalid port {} received", port);
         throw new IllegalArgumentException(
             "invalidPoolRelaysError Invalid port {} received" + port);
       }
-    }catch(Exception e){
+    } catch (Exception e) {
       throw new IllegalArgumentException(
-          "invalidPoolRelaysError Invalid port "+port+" received" );
+          "invalidPoolRelaysError Invalid port " + port + " received");
     }
   }
 
@@ -965,25 +1034,27 @@ public class CardanoServiceImpl implements CardanoService {
 //      throw new IllegalArgumentException(
 //          "invalidPoolRegistrationParameters Given value is invalid");
 //    }
-    if (!poolRegistrationParameters.getCost().matches(Const.IS_POSITIVE_NUMBER) ) {
+    if (!poolRegistrationParameters.getCost().matches(Const.IS_POSITIVE_NUMBER)) {
       log.error("[validateAndParsePoolRegistationParameters] Given value is invalid");
       throw new IllegalArgumentException(
-          "invalidPoolRegistrationParameters Given value "+poolRegistrationParameters.getCost()+" is invalid");
+          "invalidPoolRegistrationParameters Given value " + poolRegistrationParameters.getCost()
+              + " is invalid");
     }
-    if (!poolRegistrationParameters.getPledge().matches(Const.IS_POSITIVE_NUMBER) ) {
+    if (!poolRegistrationParameters.getPledge().matches(Const.IS_POSITIVE_NUMBER)) {
       log.error("[validateAndParsePoolRegistationParameters] Given value is invalid");
       throw new IllegalArgumentException(
-          "invalidPoolRegistrationParameters Given value "+poolRegistrationParameters.getPledge()+" is invalid");
+          "invalidPoolRegistrationParameters Given value " + poolRegistrationParameters.getPledge()
+              + " is invalid");
     }
-    if (!numerator.matches(Const.IS_POSITIVE_NUMBER) ) {
+    if (!numerator.matches(Const.IS_POSITIVE_NUMBER)) {
       log.error("[validateAndParsePoolRegistationParameters] Given value is invalid");
       throw new IllegalArgumentException(
-          "invalidPoolRegistrationParameters Given value "+numerator+" is invalid");
+          "invalidPoolRegistrationParameters Given value " + numerator + " is invalid");
     }
-    if (!denominator.matches(Const.IS_POSITIVE_NUMBER) ) {
+    if (!denominator.matches(Const.IS_POSITIVE_NUMBER)) {
       log.error("[validateAndParsePoolRegistationParameters] Given value is invalid");
       throw new IllegalArgumentException(
-          "invalidPoolRegistrationParameters Given value "+denominator+" is invalid");
+          "invalidPoolRegistrationParameters Given value " + denominator + " is invalid");
     }
     try {
       // eslint-disable-next-line unicorn/prevent-abbreviations
@@ -1015,7 +1086,7 @@ public class CardanoServiceImpl implements CardanoService {
     hdPublicKey1.setKeyData(credential.getHash());
     map.put("reward", AddressProvider.getRewardAddress(hdPublicKey1,
         new Network(networkIdentifierEnum.getValue(), networkIdentifierEnum.getProtocolMagic())));
-    map.put("address", operation.getAccount().getAddress());
+    map.put("address", operation.getAccount() == null ? null : operation.getAccount().getAddress());
     return map;
   }
 
@@ -1027,26 +1098,26 @@ public class CardanoServiceImpl implements CardanoService {
         "[processOperationCertification] About to process operation of type ${operation.type}");
     // eslint-disable-next-line camelcase
     HashMap<String, Object> map = new HashMap<>();
-    StakeCredential credential = getStakingCredentialFromHex(
-        ObjectUtils.isEmpty(operation.getMetadata()) ? null
-            : operation.getMetadata().getStakingCredential());
+    PublicKey publicKey=ObjectUtils.isEmpty(operation.getMetadata()) ? null
+        : operation.getMetadata().getStakingCredential();
+    StakeCredential credential = getStakingCredentialFromHex(publicKey);
     HdPublicKey hdPublicKey = new HdPublicKey();
-    hdPublicKey.setKeyData(credential.getHash());
+    hdPublicKey.setKeyData(HexUtil.decodeHexString(publicKey.getHexBytes()));
     String address = generateRewardAddress(networkIdentifierEnum, hdPublicKey);
     if (operation.getType().equals(OperationType.STAKE_DELEGATION.getValue())) {
       // eslint-disable-next-line camelcase
-      if(operation.getMetadata().getPoolKeyHash()==null){
+      if (operation.getMetadata().getPoolKeyHash() == null) {
         throw new IllegalArgumentException("Pool key hash is required to operate");
       }
       Certificate certificate = new StakeDelegation(credential, new StakePoolId(
           ObjectUtils.isEmpty(operation.getMetadata()) ? null
               : HexUtil.decodeHexString(operation.getMetadata().getPoolKeyHash())));
       map.put("certificate", certificate);
-      map.put("address", operation.getAccount().getAddress());
+      map.put("address", address);
       return map;
     }
     map.put("certificate", new StakeDeregistration(credential));
-    map.put("address", operation.getAccount().getAddress());
+    map.put("address", address);
     return map;
   }
 
@@ -1100,13 +1171,13 @@ public class CardanoServiceImpl implements CardanoService {
     }
     String transactionId = null;
     String index = null;
-    try{
+    try {
       if (!ObjectUtils.isEmpty(input.getCoinChange())) {
         String[] array = input.getCoinChange().getCoinIdentifier().getIdentifier().split(":");
         transactionId = array[0];
         index = array[1];
       }
-    }catch(Exception exception){
+    } catch (Exception exception) {
       throw new IllegalArgumentException("Input has invalid coin_identifier field");
     }
     if (ObjectUtils.isEmpty(transactionId) || ObjectUtils.isEmpty(index)) {
@@ -1382,8 +1453,9 @@ public class CardanoServiceImpl implements CardanoService {
         .filter(operation -> {
               String coinAction = ObjectUtils.isEmpty(operation.getCoinChange()) ? null
                   : operation.getCoinChange().getCoinAction();
-              boolean coinActionStatement=ObjectUtils.isEmpty(coinAction)?false:coinAction.equals(Const.COIN_SPENT_ACTION);
-              boolean statement =  coinActionStatement ||
+              boolean coinActionStatement =
+                  ObjectUtils.isEmpty(coinAction) ? false : coinAction.equals(Const.COIN_SPENT_ACTION);
+              boolean statement = coinActionStatement ||
                   Const.StakingOperations.contains(operation.getType()) ||
                   Const.PoolOperations.contains(operation.getType()) ||
                   Const.VoteOperations.contains(operation.getType());
@@ -1399,22 +1471,26 @@ public class CardanoServiceImpl implements CardanoService {
     Array operationArray = new Array();
     extraOperations.stream().forEach(operation -> {
       co.nstant.in.cbor.model.Map operationIdentifierMap = new co.nstant.in.cbor.model.Map();
-      Long index=operation.getOperationIdentifier().getIndex();
-      if(index!=null) operationIdentifierMap.put(new UnicodeString("index"),
-          new UnsignedInteger(operation.getOperationIdentifier().getIndex()));
-      Long networkIndex=operation.getOperationIdentifier().getNetworkIndex();
-      if(networkIndex!=null){
+      Long index = operation.getOperationIdentifier().getIndex();
+      if (index != null) {
+        operationIdentifierMap.put(new UnicodeString("index"),
+            new UnsignedInteger(operation.getOperationIdentifier().getIndex()));
+      }
+      Long networkIndex = operation.getOperationIdentifier().getNetworkIndex();
+      if (networkIndex != null) {
         operationIdentifierMap.put(new UnicodeString("network_index"),
             new UnsignedInteger(networkIndex));
       }
       Array rOperationArray = new Array();
-      if(!ObjectUtils.isEmpty(operation.getRelatedOperations())){
+      if (!ObjectUtils.isEmpty(operation.getRelatedOperations())) {
         operation.getRelatedOperations().stream().forEach(rOperation -> {
           co.nstant.in.cbor.model.Map operationIdentifierMapnew = new co.nstant.in.cbor.model.Map();
-          if(operation.getOperationIdentifier().getIndex()!=null)operationIdentifierMapnew.put(new UnicodeString("index"),
-              new UnsignedInteger(operation.getOperationIdentifier().getIndex()));
-          Long networkIndex2=operation.getOperationIdentifier().getNetworkIndex();
-          if(networkIndex2!=null){
+          if (operation.getOperationIdentifier().getIndex() != null) {
+            operationIdentifierMapnew.put(new UnicodeString("index"),
+                new UnsignedInteger(operation.getOperationIdentifier().getIndex()));
+          }
+          Long networkIndex2 = operation.getOperationIdentifier().getNetworkIndex();
+          if (networkIndex2 != null) {
             operationIdentifierMapnew.put(new UnicodeString("networkIndex"),
                 new UnsignedInteger(networkIndex2));
           }
@@ -1422,7 +1498,7 @@ public class CardanoServiceImpl implements CardanoService {
         });
       }
       co.nstant.in.cbor.model.Map accountIdentifierMap = new co.nstant.in.cbor.model.Map();
-      if(operation.getAccount()!=null){
+      if (operation.getAccount() != null) {
         if (operation.getAccount().getAddress() != null) {
           accountIdentifierMap.put(new UnicodeString("address"),
               new UnicodeString(operation.getAccount().getAddress()));
@@ -1448,59 +1524,79 @@ public class CardanoServiceImpl implements CardanoService {
       co.nstant.in.cbor.model.Map amountMap = getAmountMap(operation.getAmount());
       co.nstant.in.cbor.model.Map coinChangeMap = new co.nstant.in.cbor.model.Map();
       co.nstant.in.cbor.model.Map coinIdentifierMap = new co.nstant.in.cbor.model.Map();
-      CoinChange coinChange=ObjectUtils.isEmpty(operation.getCoinChange())?null:operation.getCoinChange();
-      CoinIdentifier coinIdentifier=ObjectUtils.isEmpty(coinChange)?null:coinChange.getCoinIdentifier();
+      CoinChange coinChange =
+          ObjectUtils.isEmpty(operation.getCoinChange()) ? null : operation.getCoinChange();
+      CoinIdentifier coinIdentifier =
+          ObjectUtils.isEmpty(coinChange) ? null : coinChange.getCoinIdentifier();
       coinIdentifierMap.put(new UnicodeString("identifier"),
-          new UnicodeString(ObjectUtils.isEmpty(coinIdentifier)?null:coinIdentifier.getIdentifier()));
+          new UnicodeString(
+              ObjectUtils.isEmpty(coinIdentifier) ? null : coinIdentifier.getIdentifier()));
       coinChangeMap.put(new UnicodeString("coin_identifier"), coinIdentifierMap);
       coinChangeMap.put(new UnicodeString("coin_action"),
-          new UnicodeString(ObjectUtils.isEmpty(coinChange)?null:coinChange.getCoinAction()));
+          new UnicodeString(ObjectUtils.isEmpty(coinChange) ? null : coinChange.getCoinAction()));
       boolean operationMetadataCheck = ObjectUtils.isEmpty(operation.getMetadata());
       co.nstant.in.cbor.model.Map operationMap = new co.nstant.in.cbor.model.Map();
 
-      if(operation.getOperationIdentifier()!=null) operationMap.put(new UnicodeString("operation_identifier"), operationIdentifierMap);
-      if(!ObjectUtils.isEmpty(operation.getRelatedOperations())) operationMap.put(new UnicodeString("related_operations"), rOperationArray);
-      if(!ObjectUtils.isEmpty(operation.getType())) operationMap.put(new UnicodeString("type"), new UnicodeString(operation.getType()));
-      if(!ObjectUtils.isEmpty(operation.getStatus())) operationMap.put(new UnicodeString("status"), new UnicodeString(operation.getStatus()));
-      if(!ObjectUtils.isEmpty(operation.getAccount())) operationMap.put(new UnicodeString("account"), accountIdentifierMap);
-      if(!ObjectUtils.isEmpty(operation.getAmount())) operationMap.put(new UnicodeString("amount"), amountMap);
-      if(!ObjectUtils.isEmpty(operation.getCoinChange())) operationMap.put(new UnicodeString("coin_change"), coinChangeMap);
+      if (operation.getOperationIdentifier() != null) {
+        operationMap.put(new UnicodeString("operation_identifier"), operationIdentifierMap);
+      }
+      if (!ObjectUtils.isEmpty(operation.getRelatedOperations())) {
+        operationMap.put(new UnicodeString("related_operations"), rOperationArray);
+      }
+      if (!ObjectUtils.isEmpty(operation.getType())) {
+        operationMap.put(new UnicodeString("type"), new UnicodeString(operation.getType()));
+      }
+      if (!ObjectUtils.isEmpty(operation.getStatus())) {
+        operationMap.put(new UnicodeString("status"), new UnicodeString(operation.getStatus()));
+      }
+      if (!ObjectUtils.isEmpty(operation.getAccount())) {
+        operationMap.put(new UnicodeString("account"), accountIdentifierMap);
+      }
+      if (!ObjectUtils.isEmpty(operation.getAmount())) {
+        operationMap.put(new UnicodeString("amount"), amountMap);
+      }
+      if (!ObjectUtils.isEmpty(operation.getCoinChange())) {
+        operationMap.put(new UnicodeString("coin_change"), coinChangeMap);
+      }
 
-      if(!operationMetadataCheck){
+      if (!operationMetadataCheck) {
         co.nstant.in.cbor.model.Map oMetadataMap = new co.nstant.in.cbor.model.Map();
         OperationMetadata operationMetadata =
             ObjectUtils.isEmpty(operation.getMetadata()) ? null : operation.getMetadata();
-        if(operationMetadata.getWithdrawalAmount()!=null){
-          co.nstant.in.cbor.model.Map withdrawalAmount = getAmountMap(operationMetadata.getWithdrawalAmount());
+        if (operationMetadata.getWithdrawalAmount() != null) {
+          co.nstant.in.cbor.model.Map withdrawalAmount = getAmountMap(
+              operationMetadata.getWithdrawalAmount());
           oMetadataMap.put(new UnicodeString("withdrawal_amount"), withdrawalAmount);
         }
-        if(operationMetadata.getDepositAmount()!=null){
-          co.nstant.in.cbor.model.Map depositAmount = getAmountMap(operationMetadata.getDepositAmount());
+        if (operationMetadata.getDepositAmount() != null) {
+          co.nstant.in.cbor.model.Map depositAmount = getAmountMap(
+              operationMetadata.getDepositAmount());
           oMetadataMap.put(new UnicodeString("deposit_amount"), depositAmount);
         }
-        if(operationMetadata.getRefundAmount()!=null){
-          co.nstant.in.cbor.model.Map refundAmount = getAmountMap(operationMetadata.getRefundAmount());
+        if (operationMetadata.getRefundAmount() != null) {
+          co.nstant.in.cbor.model.Map refundAmount = getAmountMap(
+              operationMetadata.getRefundAmount());
           oMetadataMap.put(new UnicodeString("refund_amount"), refundAmount);
         }
 
-        if(operationMetadata.getStakingCredential()!=null){
+        if (operationMetadata.getStakingCredential() != null) {
           co.nstant.in.cbor.model.Map stakingCredentialMap = getPublicKeymap(
-             operationMetadata.getStakingCredential());
+              operationMetadata.getStakingCredential());
           oMetadataMap.put(new UnicodeString("staking_credential"), stakingCredentialMap);
         }
-        if(operationMetadata.getPoolKeyHash()!=null){
+        if (operationMetadata.getPoolKeyHash() != null) {
           oMetadataMap.put(new UnicodeString("pool_key_hash"),
               new UnicodeString(operationMetadata.getPoolKeyHash()));
         }
-        if(operationMetadata.getEpoch()!=null){
-            oMetadataMap.put(new UnicodeString("epoch"),
-                new UnsignedInteger(operationMetadata.getEpoch()));
+        if (operationMetadata.getEpoch() != null) {
+          oMetadataMap.put(new UnicodeString("epoch"),
+              new UnsignedInteger(operationMetadata.getEpoch()));
         }
         if (!operationMetadataCheck) {
-          if(operation.getMetadata().getTokenBundle()!=null){
+          if (operation.getMetadata().getTokenBundle() != null) {
             Array tokenBundleArray = new Array();
             operation.getMetadata().getTokenBundle().stream().forEach(tokenbundle -> {
-              if(tokenbundle!=null){
+              if (tokenbundle != null) {
                 co.nstant.in.cbor.model.Map tokenBundleItemMap = new co.nstant.in.cbor.model.Map();
                 if (tokenbundle.getPolicyId() != null) {
                   tokenBundleItemMap.put(new UnicodeString("policyId"),
@@ -1522,21 +1618,30 @@ public class CardanoServiceImpl implements CardanoService {
             oMetadataMap.put(new UnicodeString("tokenBundle"), tokenBundleArray);
           }
         }
-        if(operationMetadata.getPoolRegistrationCert()!=null){
+        if (operationMetadata.getPoolRegistrationCert() != null) {
           oMetadataMap.put(new UnicodeString("poolRegistrationCert"),
               new UnicodeString(operationMetadata.getPoolRegistrationCert()));
         }
 
-        if(operationMetadata.getPoolRegistrationParams()!=null){
+        if (operationMetadata.getPoolRegistrationParams() != null) {
           co.nstant.in.cbor.model.Map poolRegistrationParamsMap = new co.nstant.in.cbor.model.Map();
-          PoolRegistrationParams poolRegistrationParams =operationMetadata.getPoolRegistrationParams();
-          if(poolRegistrationParams.getVrfKeyHash()!=null) poolRegistrationParamsMap.put(new UnicodeString("vrfKeyHash"),
-              new UnicodeString(poolRegistrationParams.getVrfKeyHash()));
-          if(poolRegistrationParams.getRewardAddress()!=null) poolRegistrationParamsMap.put(new UnicodeString("rewardAddress"), new UnicodeString(poolRegistrationParams.getRewardAddress()));
-          if(poolRegistrationParams.getPledge()!=null) poolRegistrationParamsMap.put(new UnicodeString("pledge"),
-              new UnicodeString(poolRegistrationParams.getPledge()));
-          if(poolRegistrationParams.getCost()!=null) poolRegistrationParamsMap.put(new UnicodeString("cost"),
-              new UnicodeString(poolRegistrationParams.getCost()));
+          PoolRegistrationParams poolRegistrationParams = operationMetadata.getPoolRegistrationParams();
+          if (poolRegistrationParams.getVrfKeyHash() != null) {
+            poolRegistrationParamsMap.put(new UnicodeString("vrfKeyHash"),
+                new UnicodeString(poolRegistrationParams.getVrfKeyHash()));
+          }
+          if (poolRegistrationParams.getRewardAddress() != null) {
+            poolRegistrationParamsMap.put(new UnicodeString("rewardAddress"),
+                new UnicodeString(poolRegistrationParams.getRewardAddress()));
+          }
+          if (poolRegistrationParams.getPledge() != null) {
+            poolRegistrationParamsMap.put(new UnicodeString("pledge"),
+                new UnicodeString(poolRegistrationParams.getPledge()));
+          }
+          if (poolRegistrationParams.getCost() != null) {
+            poolRegistrationParamsMap.put(new UnicodeString("cost"),
+                new UnicodeString(poolRegistrationParams.getCost()));
+          }
           Array poolOwnersArray = new Array();
           if (operationMetadata != null && !ObjectUtils.isEmpty(
               operationMetadata.getPoolRegistrationParams())) {
@@ -1555,7 +1660,7 @@ public class CardanoServiceImpl implements CardanoService {
             if (operationMetadata.getPoolRegistrationParams().getRelays() != null) {
               operation.getMetadata().getPoolRegistrationParams().getRelays().stream()
                   .forEach(r -> {
-                    if(r!=null){
+                    if (r != null) {
                       co.nstant.in.cbor.model.Map relayMap = new co.nstant.in.cbor.model.Map();
                       if (r.getType() != null) {
                         relayMap.put(new UnicodeString("type"), new UnicodeString(r.getType()));
@@ -1580,7 +1685,7 @@ public class CardanoServiceImpl implements CardanoService {
             }
           }
           PoolMargin poolMargin = poolRegistrationParams.getMargin();
-          if(poolMargin!=null){
+          if (poolMargin != null) {
             co.nstant.in.cbor.model.Map marginMap = new co.nstant.in.cbor.model.Map();
             if (poolMargin.getNumerator() != null) {
               marginMap.put(new UnicodeString("numerator"),
@@ -1592,10 +1697,13 @@ public class CardanoServiceImpl implements CardanoService {
             }
             poolRegistrationParamsMap.put(new UnicodeString("margin"), marginMap);
           }
-          if(poolRegistrationParams.getMarginPercentage()!=null) poolRegistrationParamsMap.put(new UnicodeString("marginPercentage"), new UnicodeString(poolRegistrationParams.getMarginPercentage()));
+          if (poolRegistrationParams.getMarginPercentage() != null) {
+            poolRegistrationParamsMap.put(new UnicodeString("marginPercentage"),
+                new UnicodeString(poolRegistrationParams.getMarginPercentage()));
+          }
           co.nstant.in.cbor.model.Map poolMetadataMap = new co.nstant.in.cbor.model.Map();
           PoolMetadata poolMetadata = poolRegistrationParams.getPoolMetadata();
-          if(poolMetadata!=null){
+          if (poolMetadata != null) {
             if (poolMetadata.getUrl() != null) {
               poolMetadataMap.put(new UnicodeString("url"),
                   new UnicodeString(poolMetadata.getUrl()));
@@ -1609,7 +1717,7 @@ public class CardanoServiceImpl implements CardanoService {
           oMetadataMap.put(new UnicodeString("poolRegistrationParams"), poolRegistrationParamsMap);
         }
 
-        if(operationMetadata.getVoteRegistrationMetadata()!=null){
+        if (operationMetadata.getVoteRegistrationMetadata() != null) {
           co.nstant.in.cbor.model.Map voteRegistrationMetadataMap = new co.nstant.in.cbor.model.Map();
           VoteRegistrationMetadata voteRegistrationMetadata =
               operationMetadataCheck ? null : operationMetadata.getVoteRegistrationMetadata();
@@ -1641,19 +1749,23 @@ public class CardanoServiceImpl implements CardanoService {
           oMetadataMap.put(new UnicodeString("voteRegistrationMetadata"),
               voteRegistrationMetadataMap);
         }
-        if(!ObjectUtils.isEmpty(operation.getMetadata())) operationMap.put(new UnicodeString("metadata"), oMetadataMap);
+        if (!ObjectUtils.isEmpty(operation.getMetadata())) {
+          operationMap.put(new UnicodeString("metadata"), oMetadataMap);
+        }
       }
       operationArray.add(operationMap);
     });
     transactionExtraDataMap.put(new UnicodeString("operations"), operationArray);
-    if(toEncode.getTransactionMetadataHex()!=null){
-      transactionExtraDataMap.put(new UnicodeString("transactionMetadataHex"), new UnicodeString(toEncode.getTransactionMetadataHex()));
+    if (toEncode.getTransactionMetadataHex() != null) {
+      transactionExtraDataMap.put(new UnicodeString("transactionMetadataHex"),
+          new UnicodeString(toEncode.getTransactionMetadataHex()));
     }
     Array outputArray = new Array();
     outputArray.add(new UnicodeString(transaction));
     outputArray.add(transactionExtraDataMap);
     return HexUtil.encodeHexString(
-        com.bloxbean.cardano.client.common.cbor.CborSerializationUtil.serialize(outputArray,false));
+        com.bloxbean.cardano.client.common.cbor.CborSerializationUtil.serialize(outputArray,
+            false));
   }
 
   @Override
@@ -1667,31 +1779,41 @@ public class CardanoServiceImpl implements CardanoService {
   public co.nstant.in.cbor.model.Map getPublicKeymap(PublicKey publicKey) {
     co.nstant.in.cbor.model.Map stakingCredentialMap = new co.nstant.in.cbor.model.Map();
     stakingCredentialMap.put(new UnicodeString("hex_bytes"),
-        new UnicodeString(ObjectUtils.isEmpty(publicKey)?null:publicKey.getHexBytes()));
+        new UnicodeString(ObjectUtils.isEmpty(publicKey) ? null : publicKey.getHexBytes()));
     stakingCredentialMap.put(new UnicodeString("curve_type"),
-        new UnicodeString(ObjectUtils.isEmpty(publicKey)?null:publicKey.getCurveType()));
+        new UnicodeString(ObjectUtils.isEmpty(publicKey) ? null : publicKey.getCurveType()));
     return stakingCredentialMap;
   }
 
   @Override
   public co.nstant.in.cbor.model.Map getAmountMap(Amount amount) {
     co.nstant.in.cbor.model.Map amountMap = new co.nstant.in.cbor.model.Map();
-    if(!ObjectUtils.isEmpty(amount)){
-      if(amount.getValue()!=null)amountMap.put(new UnicodeString("value"), new UnicodeString(amount.getValue()));
-      if(amount.getCurrency()!=null){
+    if (!ObjectUtils.isEmpty(amount)) {
+      if (amount.getValue() != null) {
+        amountMap.put(new UnicodeString("value"), new UnicodeString(amount.getValue()));
+      }
+      if (amount.getCurrency() != null) {
         co.nstant.in.cbor.model.Map currencyMap = new co.nstant.in.cbor.model.Map();
-        if(amount.getCurrency().getSymbol()!=null)currencyMap.put(new UnicodeString("symbol"),
-            new UnicodeString(amount.getCurrency().getSymbol()));
-        if(amount.getCurrency().getDecimals()!=null)currencyMap.put(new UnicodeString("decimals"),
-            new UnsignedInteger(amount.getCurrency().getDecimals()));
+        if (amount.getCurrency().getSymbol() != null) {
+          currencyMap.put(new UnicodeString("symbol"),
+              new UnicodeString(amount.getCurrency().getSymbol()));
+        }
+        if (amount.getCurrency().getDecimals() != null) {
+          currencyMap.put(new UnicodeString("decimals"),
+              new UnsignedInteger(amount.getCurrency().getDecimals()));
+        }
         co.nstant.in.cbor.model.Map addedMetadataMap = new co.nstant.in.cbor.model.Map();
         addedMetadataMap.put(new UnicodeString("metadata"),
             new UnicodeString(ObjectUtils.isEmpty(amount.getCurrency().getMetadata()) ? null
                 : amount.getCurrency().getMetadata().getPolicyId()));
-        if(amount.getCurrency().getMetadata()!=null)currencyMap.put(new UnicodeString("metadata"), addedMetadataMap);
+        if (amount.getCurrency().getMetadata() != null) {
+          currencyMap.put(new UnicodeString("metadata"), addedMetadataMap);
+        }
         amountMap.put(new UnicodeString("currency"), currencyMap);
       }
-      if(amount.getMetadata()!=null) amountMap.put(new UnicodeString("metadata"), amount.getMetadata());
+      if (amount.getMetadata() != null) {
+        amountMap.put(new UnicodeString("metadata"), amount.getMetadata());
+      }
     }
     return amountMap;
   }
@@ -2203,7 +2325,8 @@ public class CardanoServiceImpl implements CardanoService {
             CurveType.EDWARDS25519.getValue()),
         rewardAddress.toBech32(),
         ((UnsignedInteger) data.get(
-            new UnsignedInteger(CatalystDataIndexes.VOTING_NONCE.getValue()))).getValue().intValue(),
+            new UnsignedInteger(CatalystDataIndexes.VOTING_NONCE.getValue()))).getValue()
+            .intValue(),
         remove0xPrefix(((UnicodeString) sig.get(
             new UnsignedInteger(CatalystSigIndexes.VOTING_SIGNATURE.getValue()))).getString())
     );
@@ -2434,11 +2557,11 @@ public class CardanoServiceImpl implements CardanoService {
     Integer ownersCount = owners.size();
     for (int i = 0; i < ownersCount; i++) {
       String owner = new ArrayList<String>(owners).get(i);
-      byte[] addressByte=new byte[29];
-      addressByte[0]=-31;
-      byte[] byteCop=HexUtil.decodeHexString(owner);
-      System.arraycopy(byteCop, 0, addressByte, 1, addressByte.length-2);
-      Address address=new Address(addressByte);
+      byte[] addressByte = new byte[29];
+      addressByte[0] = -31;
+      byte[] byteCop = HexUtil.decodeHexString(owner);
+      System.arraycopy(byteCop, 0, addressByte, 1, addressByte.length - 2);
+      Address address = new Address(addressByte);
       poolOwners.add(address.getAddress());
     }
     return poolOwners;
@@ -2447,11 +2570,12 @@ public class CardanoServiceImpl implements CardanoService {
   @Override
   public String parsePoolRewardAccount(Integer network, PoolRegistration poolRegistration)
       throws CborSerializationException {
-    byte[] addressByte=new byte[29];
-    addressByte[0]=97;
-    byte[] byteCop=HexUtil.decodeHexString("bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb");
-    System.arraycopy(byteCop, 0, addressByte, 1, addressByte.length-1);
-    String address=Bech32.encode(addressByte,"addr");
+    byte[] addressByte = new byte[29];
+    addressByte[0] = 97;
+    byte[] byteCop = HexUtil.decodeHexString(
+        "bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb");
+    System.arraycopy(byteCop, 0, addressByte, 1, addressByte.length - 1);
+    String address = Bech32.encode(addressByte, "addr");
     return address;
   }
 
