@@ -812,7 +812,8 @@ public class CardanoServiceImpl implements CardanoService {
     log.info("[processPoolRegistration] About to generate pool owners");
     Set<String> owners = validateAndParsePoolOwners(poolRegistrationParams.getPoolOwners());
     log.info("[processPoolRegistration] About to generate pool relays");
-    List<com.bloxbean.cardano.client.transaction.spec.cert.Relay> parsedRelays = validateAndParsePoolRelays(poolRegistrationParams.getRelays());
+    List<com.bloxbean.cardano.client.transaction.spec.cert.Relay> parsedRelays = validateAndParsePoolRelays(
+        poolRegistrationParams.getRelays());
 
     log.info("[processPoolRegistration] About to generate pool metadata");
     PoolMetadata poolMetadata = validateAndParsePoolMetadata(
@@ -868,7 +869,8 @@ public class CardanoServiceImpl implements CardanoService {
   }
 
   @Override
-  public List<com.bloxbean.cardano.client.transaction.spec.cert.Relay> validateAndParsePoolRelays(List<Relay> relays) {
+  public List<com.bloxbean.cardano.client.transaction.spec.cert.Relay> validateAndParsePoolRelays(
+      List<Relay> relays) {
     if (relays.size() == 0) {
       throw new IllegalArgumentException("invalidPoolRelaysError Empty relays received");
     }
@@ -877,7 +879,8 @@ public class CardanoServiceImpl implements CardanoService {
       if (!ObjectUtils.isEmpty(relay.getPort())) {
         validatePort(relay.getPort());
       }
-      com.bloxbean.cardano.client.transaction.spec.cert.Relay generatedRelay = generateSpecificRelay(relay);
+      com.bloxbean.cardano.client.transaction.spec.cert.Relay generatedRelay = generateSpecificRelay(
+          relay);
       generatedRelays.add(generatedRelay);
     }
 
@@ -885,7 +888,8 @@ public class CardanoServiceImpl implements CardanoService {
   }
 
   @Override
-  public com.bloxbean.cardano.client.transaction.spec.cert.Relay generateSpecificRelay(Relay relay) {
+  public com.bloxbean.cardano.client.transaction.spec.cert.Relay generateSpecificRelay(
+      Relay relay) {
     try {
       String type = relay.getType();
       if (type == null) {
@@ -1065,14 +1069,19 @@ public class CardanoServiceImpl implements CardanoService {
         ObjectUtils.isEmpty(operation.getMetadata()) ? null
             : operation.getMetadata().getStakingCredential());
     HdPublicKey hdPublicKey = new HdPublicKey();
-    hdPublicKey.setKeyData(credential.getHash());
+    if (operation.getMetadata() != null &&
+        operation.getMetadata().getStakingCredential() != null &&
+        operation.getMetadata().getStakingCredential().getHexBytes() != null) {
+      hdPublicKey.setKeyData(
+          HexUtil.decodeHexString(operation.getMetadata().getStakingCredential().getHexBytes()));
+    }
     String address = generateRewardAddress(networkIdentifierType, hdPublicKey);
     HashMap<String, Object> map = new HashMap<>();
     HdPublicKey hdPublicKey1 = new HdPublicKey();
     hdPublicKey1.setKeyData(credential.getHash());
     map.put("reward", AddressProvider.getRewardAddress(hdPublicKey1,
         new Network(networkIdentifierType.getValue(), networkIdentifierType.getProtocolMagic())));
-    map.put("address", operation.getAccount() == null ? null : operation.getAccount().getAddress());
+    map.put("address", address);
     return map;
   }
 
@@ -1084,7 +1093,7 @@ public class CardanoServiceImpl implements CardanoService {
         "[processOperationCertification] About to process operation of type ${operation.type}");
     // eslint-disable-next-line camelcase
     HashMap<String, Object> map = new HashMap<>();
-    PublicKey publicKey=ObjectUtils.isEmpty(operation.getMetadata()) ? null
+    PublicKey publicKey = ObjectUtils.isEmpty(operation.getMetadata()) ? null
         : operation.getMetadata().getStakingCredential();
     StakeCredential credential = getStakingCredentialFromHex(publicKey);
     HdPublicKey hdPublicKey = new HdPublicKey();
