@@ -22,10 +22,11 @@ services:
       DB_ADMIN_USER_NAME: "${DB_ADMIN_USER_NAME}"
       SERVICE_USER_SECRET: "${SERVICE_USER_SECRET}"
       SERVICE_USER_NAME: "${SERVICE_USER_NAME}"
-      DB_HOST: "db"
+      DB_HOST: ${DB_HOST}
       DB_PORT: ${DB_PORT}
       DB_NAME: ${DB_NAME}
       DB_SCHEMA: ${DB_SCHEMA}
+      LIQUIBASE_ENABLE: ${LIQUIBASE_ENABLE}
     depends_on:
       db:
         condition: service_healthy
