@@ -1,19 +1,11 @@
 package org.cardanofoundation.rosetta.api.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.cardanofoundation.rosetta.api.addedClass.AddedMetadata;
-import org.openapitools.jackson.nullable.JsonNullable;
-
-import javax.annotation.Generated;
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotNull;
-import java.util.Arrays;
-import java.util.Objects;
+import org.cardanofoundation.rosetta.api.construction.data.Metadata;
 
 
 @AllArgsConstructor
@@ -29,7 +21,7 @@ public class Currency {
   private Integer decimals;
 
   @JsonProperty("metadata")
-  private AddedMetadata metadata ;
+  private Metadata metadata ;
 
 
   @Override
