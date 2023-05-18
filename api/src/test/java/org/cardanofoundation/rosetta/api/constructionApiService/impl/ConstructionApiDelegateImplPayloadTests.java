@@ -773,169 +773,448 @@ class ConstructionApiDelegateImplPayloadTests extends IntegrationTest {
     return false;
   }
 
+  @Test
+  void test_should_throw_an_error_when_there_are_operations_invalid_code_key_hash()
+      throws IOException {
+    ConstructionPayloadsRequest request = objectMapper.readValue(new String(Files.readAllBytes(
+            Paths.get(
+                BASE_DIRECTORY
+                    + "/construction_payload_operations_invalid_code_key_hash.json"))),
+        ConstructionPayloadsRequest.class);
 
+    try {
+      restTemplate.postForObject(baseUrl, request, ConstructionDeriveResponse.class);
+      fail("Expected exception");
+    } catch (HttpServerErrorException e) {
+      String responseBody = e.getResponseBodyAsString();
+      assertEquals(500, e.getRawStatusCode());
+    }
+  }
+
+  @Test
+  void test_should_throw_error_when_operations_include_pool_registration_with_missing_cold_key_hash()
+      throws IOException {
+    ConstructionPayloadsRequest request = objectMapper.readValue(new String(Files.readAllBytes(
+            Paths.get(
+                BASE_DIRECTORY
+                    + "/construction_payload_operations_include_pool_registration_with_missing_cold_key_hash.json"))),
+        ConstructionPayloadsRequest.class);
+
+    try {
+      restTemplate.postForObject(baseUrl, request, ConstructionDeriveResponse.class);
+      fail("Expected exception");
+    } catch (HttpServerErrorException e) {
+      String responseBody = e.getResponseBodyAsString();
+      assertEquals(500, e.getRawStatusCode());
+    }
+  }
+
+  @Test
+  void test_should_throw_an_error_when_there_are_operations_including_pool_registration_with_empty_pool_relays()
+      throws IOException {
+    ConstructionPayloadsRequest request = objectMapper.readValue(new String(Files.readAllBytes(
+            Paths.get(
+                BASE_DIRECTORY
+                    + "/construction_payload_operations_including_pool_registration_with_empty_pool_relays.json"))),
+        ConstructionPayloadsRequest.class);
+
+    try {
+      restTemplate.postForObject(baseUrl, request, ConstructionDeriveResponse.class);
+      fail("Expected exception");
+    } catch (HttpServerErrorException e) {
+      String responseBody = e.getResponseBodyAsString();
+      assertEquals(500, e.getRawStatusCode());
+    }
+  }
+
+  @Test
+  void test_should_throw_an_error_when_there_are_operations_including_pool_registration_with_invalid_pool_relay_type()
+      throws IOException {
+    ConstructionPayloadsRequest request = objectMapper.readValue(new String(Files.readAllBytes(
+            Paths.get(
+                BASE_DIRECTORY
+                    + "/construction_payload_operations_including_pool_registration_with_invalid_pool_relay_type.json"))),
+        ConstructionPayloadsRequest.class);
+
+    try {
+      restTemplate.postForObject(baseUrl, request, ConstructionDeriveResponse.class);
+      fail("Expected exception");
+    } catch (HttpServerErrorException e) {
+      String responseBody = e.getResponseBodyAsString();
+      assertEquals(500, e.getRawStatusCode());
+    }
+  }
+
+  @Test
+  void test_should_throw_an_error_when_there_are_operations_including_pool_registration_with_missing_pool_relay_type()
+      throws IOException {
+    ConstructionPayloadsRequest request = objectMapper.readValue(new String(Files.readAllBytes(
+            Paths.get(
+                BASE_DIRECTORY
+                    + "/construction_payload_operations_including_pool_registration_with_missing_pool_relay_type.json"))),
+        ConstructionPayloadsRequest.class);
+
+    try {
+      restTemplate.postForObject(baseUrl, request, ConstructionDeriveResponse.class);
+      fail("Expected exception");
+    } catch (HttpServerErrorException e) {
+      String responseBody = e.getResponseBodyAsString();
+      assertEquals(500, e.getRawStatusCode());
+    }
+  }
+
+  @Test
+  void test_should_throw_an_error_when_there_are_operations_including_pool_registration_with_invalid_pool_relays_with_invalid_ipv4()
+      throws IOException {
+    ConstructionPayloadsRequest request = objectMapper.readValue(new String(Files.readAllBytes(
+            Paths.get(
+                BASE_DIRECTORY
+                    + "/construction_payload_operations_including_pool_registration_with_invalid_pool_relays_with_invalid_ipv4.json"))),
+        ConstructionPayloadsRequest.class);
+
+    try {
+      restTemplate.postForObject(baseUrl, request, ConstructionDeriveResponse.class);
+      fail("Expected exception");
+    } catch (HttpServerErrorException e) {
+      String responseBody = e.getResponseBodyAsString();
+      assertEquals(500, e.getRawStatusCode());
+    }
+  }
+
+  @Test
+  void test_should_throw_an_error_when_there_are_operations_including_pool_registration_with_invalid_pool_relays_with_invalid_port()
+      throws IOException {
+    ConstructionPayloadsRequest request = objectMapper.readValue(new String(Files.readAllBytes(
+            Paths.get(
+                BASE_DIRECTORY
+                    + "/construction_payload_operations_including_pool_registration_with_invalid_pool_relays_with_invalid_port.json"))),
+        ConstructionPayloadsRequest.class);
+
+    try {
+      restTemplate.postForObject(baseUrl, request, ConstructionDeriveResponse.class);
+      fail("Expected exception");
+    } catch (HttpServerErrorException e) {
+      String responseBody = e.getResponseBodyAsString();
+      assertEquals(500, e.getRawStatusCode());
+    }
+  }
+
+  @Test
+  void test_should_throw_an_error_when_there_are_operations_including_pool_registration_with_pool_relays_with_invalid_pool_metadata_hash()
+      throws IOException {
+    ConstructionPayloadsRequest request = objectMapper.readValue(new String(Files.readAllBytes(
+            Paths.get(
+                BASE_DIRECTORY
+                    + "/construction_payload_operations_including_pool_registration_with_pool_relays_with_invalid_pool_metadata_hash.json"))),
+        ConstructionPayloadsRequest.class);
+
+    try {
+      restTemplate.postForObject(baseUrl, request, ConstructionDeriveResponse.class);
+      fail("Expected exception");
+    } catch (HttpServerErrorException e) {
+      String responseBody = e.getResponseBodyAsString();
+      assertEquals(500, e.getRawStatusCode());
+    }
+  }
+
+  @Test
+  void test_should_throw_an_error_when_there_are_operations_including_pool_registration_with_pool_relays_with_invalid_pool_owners()
+      throws IOException {
+    ConstructionPayloadsRequest request = objectMapper.readValue(new String(Files.readAllBytes(
+            Paths.get(
+                BASE_DIRECTORY
+                    + "/construction_payload_operations_including_pool_registration_with_pool_relays_with_invalid_pool_owners.json"))),
+        ConstructionPayloadsRequest.class);
+
+    try {
+      restTemplate.postForObject(baseUrl, request, ConstructionDeriveResponse.class);
+      fail("Expected exception");
+    } catch (HttpServerErrorException e) {
+      String responseBody = e.getResponseBodyAsString();
+      assertEquals(500, e.getRawStatusCode());
+    }
+  }
+
+  @Test
+  void test_should_throw_an_error_when_there_are_operations_including_pool_registration_with_negative_cost()
+      throws IOException {
+    ConstructionPayloadsRequest request = objectMapper.readValue(new String(Files.readAllBytes(
+            Paths.get(
+                BASE_DIRECTORY
+                    + "/construction_payload_operations_including_pool_registration_with_negative_cost.json"))),
+        ConstructionPayloadsRequest.class);
+
+    try {
+      restTemplate.postForObject(baseUrl, request, ConstructionDeriveResponse.class);
+      fail("Expected exception");
+    } catch (HttpServerErrorException e) {
+      String responseBody = e.getResponseBodyAsString();
+      assertEquals(500, e.getRawStatusCode());
+    }
+  }
+
+  @Test
+  void test_should_throw_an_error_when_there_are_operations_including_pool_registration_with_pool_relays_with_negative_pledge()
+      throws IOException {
+    ConstructionPayloadsRequest request = objectMapper.readValue(new String(Files.readAllBytes(
+            Paths.get(
+                BASE_DIRECTORY
+                    + "/construction_payload_operations_including_pool_registration_with_pool_relays_with_negative_pledge.json"))),
+        ConstructionPayloadsRequest.class);
+
+    try {
+      restTemplate.postForObject(baseUrl, request, ConstructionDeriveResponse.class);
+      fail("Expected exception");
+    } catch (HttpServerErrorException e) {
+      String responseBody = e.getResponseBodyAsString();
+      assertEquals(500, e.getRawStatusCode());
+    }
+  }
+
+  @Test
+  void test_should_throw_an_error_when_there_are_operations_including_pool_registration_with_pool_relays_with_negative_denominator()
+      throws IOException {
+    ConstructionPayloadsRequest request = objectMapper.readValue(new String(Files.readAllBytes(
+            Paths.get(
+                BASE_DIRECTORY
+                    + "/construction_payload_operations_including_pool_registration_with_pool_relays_with_negative_denominator.json"))),
+        ConstructionPayloadsRequest.class);
+
+    try {
+      restTemplate.postForObject(baseUrl, request, ConstructionDeriveResponse.class);
+      fail("Expected exception");
+    } catch (HttpServerErrorException e) {
+      String responseBody = e.getResponseBodyAsString();
+      assertEquals(500, e.getRawStatusCode());
+    }
+  }
+
+  @Test
+  void test_should_throw_an_error_when_there_are_operations_including_pool_registration_with_pool_relays_with_alphabetical_numerator()
+      throws IOException {
+    ConstructionPayloadsRequest request = objectMapper.readValue(new String(Files.readAllBytes(
+            Paths.get(
+                BASE_DIRECTORY
+                    + "/construction_payload_operations_including_pool_registration_with_pool_relays_with_alphabetical_numerator.json"))),
+        ConstructionPayloadsRequest.class);
+
+    try {
+      restTemplate.postForObject(baseUrl, request, ConstructionDeriveResponse.class);
+      fail("Expected exception");
+    } catch (HttpServerErrorException e) {
+      String responseBody = e.getResponseBodyAsString();
+      assertEquals(500, e.getRawStatusCode());
+    }
+  }
+
+  @Test
+  void test_should_throw_an_error_when_there_are_operations_including_pool_registration_with_no_margin()
+      throws IOException {
+    ConstructionPayloadsRequest request = objectMapper.readValue(new String(Files.readAllBytes(
+            Paths.get(
+                BASE_DIRECTORY
+                    + "/construction_payload_operations_including_pool_registration_with_no_margin.json"))),
+        ConstructionPayloadsRequest.class);
+
+    try {
+      restTemplate.postForObject(baseUrl, request, ConstructionDeriveResponse.class);
+      fail("Expected exception");
+    } catch (HttpServerErrorException e) {
+      String responseBody = e.getResponseBodyAsString();
+      assertEquals(500, e.getRawStatusCode());
+    }
+  }
+
+  @Test
+  void test_should_throw_an_error_when_there_are_operations_including_pool_registration_with_invalid_reward_address()
+      throws IOException {
+    ConstructionPayloadsRequest request = objectMapper.readValue(new String(Files.readAllBytes(
+            Paths.get(
+                BASE_DIRECTORY
+                    + "/construction_payload_operations_including_pool_registration_with_invalid_reward_address.json"))),
+        ConstructionPayloadsRequest.class);
+
+    try {
+      restTemplate.postForObject(baseUrl, request, ConstructionDeriveResponse.class);
+      fail("Expected exception");
+    } catch (HttpServerErrorException e) {
+      String responseBody = e.getResponseBodyAsString();
+      assertEquals(500, e.getRawStatusCode());
+    }
+  }
+
+  @Test
+  void test_should_return_a_valid_unsigned_transaction_hash_when_sending_valid_operations_with_pool_registration_with_cert()
+      throws IOException {
+    ConstructionPayloadsRequest request = objectMapper.readValue(new String(Files.readAllBytes(
+            Paths.get(
+                BASE_DIRECTORY
+                    + "/construction_payload_valid_operations_with_pool_registration_with_cert.json"))),
+        ConstructionPayloadsRequest.class);
+    ConstructionPayloadsResponse response = restTemplate.postForObject(baseUrl,
+        request, ConstructionPayloadsResponse.class);
+
+    String address1 = "addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx";
+    String address2 = "stake1u9af5n26dtr6nkrs9qv05049x0jkcncau9k6vyd8xrhr7qq8tez5p";
+    String address3 = "stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5";
+    String address4 = "1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5";
+    String hexBytes = "36939bdede6c9170adea85911197806bca6a25bb56ef2d09ed7c407a31789eb8";
+
+    boolean found1 = isAddressFoundInPayloads(response.getPayloads(), address1, hexBytes);
+    boolean found2 = isAddressFoundInPayloads(response.getPayloads(), address2, hexBytes);
+    boolean found3 = isAddressFoundInPayloads(response.getPayloads(), address3, hexBytes);
+    boolean found4 = isAddressFoundInPayloads(response.getPayloads(), address4, hexBytes);
+
+    assertThat(found1).isTrue();
+    assertThat(found2).isTrue();
+    assertThat(found3).isTrue();
+    assertThat(found4).isTrue();
+  }
+
+  @Test
+  void test_should_throw_an_error_when_sending_operations_with_pool_registration_with_invalid_cert()
+      throws IOException {
+    ConstructionPayloadsRequest request = objectMapper.readValue(new String(Files.readAllBytes(
+            Paths.get(
+                BASE_DIRECTORY
+                    + "/construction_payload_operations_with_pool_registration_with_invalid_cert.json"))),
+        ConstructionPayloadsRequest.class);
+
+    try {
+      restTemplate.postForObject(baseUrl, request, ConstructionDeriveResponse.class);
+      fail("Expected exception");
+    } catch (HttpServerErrorException e) {
+      String responseBody = e.getResponseBodyAsString();
+      assertEquals(500, e.getRawStatusCode());
+    }
+  }
+
+  @Test
+  void test_should_throw_an_error_when_sending_operations_with_pool_registration_with_invalid_cert_type()
+      throws IOException {
+    ConstructionPayloadsRequest request = objectMapper.readValue(new String(Files.readAllBytes(
+            Paths.get(
+                BASE_DIRECTORY
+                    + "/construction_payload_operations_with_pool_registration_with_invalid_cert_type.json"))),
+        ConstructionPayloadsRequest.class);
+
+    try {
+      restTemplate.postForObject(baseUrl, request, ConstructionDeriveResponse.class);
+      fail("Expected exception");
+    } catch (HttpServerErrorException e) {
+      String responseBody = e.getResponseBodyAsString();
+      assertEquals(500, e.getRawStatusCode());
+    }
+  }
+
+
+  @Test
+  void test_should_return_a_valid_unsigned_transaction_hash_when_sending_valid_operations_with_a_vote_registration() {
+
+  }
+
+  @Test
+  void test_should_throw_an_error_when_the_voting_key_is_empty() throws IOException {
+    ConstructionPayloadsRequest request = objectMapper.readValue(new String(Files.readAllBytes(
+            Paths.get(
+                BASE_DIRECTORY
+                    + "/construction_payload_the_voting_key_is_empty.json"))),
+        ConstructionPayloadsRequest.class);
+
+    try {
+      restTemplate.postForObject(baseUrl, request, ConstructionDeriveResponse.class);
+      fail("Expected exception");
+    } catch (HttpServerErrorException e) {
+      String responseBody = e.getResponseBodyAsString();
+      assertEquals(500, e.getRawStatusCode());
+    }
+  }
+
+  @Test
+  void test_should_throw_an_error_when_the_voting_key_is_not_valid() throws IOException {
+    ConstructionPayloadsRequest request = objectMapper.readValue(new String(Files.readAllBytes(
+            Paths.get(
+                BASE_DIRECTORY
+                    + "/construction_payload_the_voting_key_is_not_valid.json"))),
+        ConstructionPayloadsRequest.class);
+
+    try {
+      restTemplate.postForObject(baseUrl, request, ConstructionDeriveResponse.class);
+      fail("Expected exception");
+    } catch (HttpServerErrorException e) {
+      String responseBody = e.getResponseBodyAsString();
+      assertEquals(500, e.getRawStatusCode());
+    }
+  }
+
+  @Test
+  void test_should_throw_an_error_when_the_reward_address_is_empty() throws IOException {
+    ConstructionPayloadsRequest request = objectMapper.readValue(new String(Files.readAllBytes(
+            Paths.get(
+                BASE_DIRECTORY
+                    + "/construction_payload_when_the_reward_address_is_empty.json"))),
+        ConstructionPayloadsRequest.class);
+
+    try {
+      restTemplate.postForObject(baseUrl, request, ConstructionDeriveResponse.class);
+      fail("Expected exception");
+    } catch (HttpServerErrorException e) {
+      String responseBody = e.getResponseBodyAsString();
+      assertEquals(500, e.getRawStatusCode());
+    }
+  }
+
+  @Test
+  void test_should_throw_an_error_when_the_reward_address_is_not_valid() throws IOException {
+    ConstructionPayloadsRequest request = objectMapper.readValue(new String(Files.readAllBytes(
+            Paths.get(
+                BASE_DIRECTORY
+                    + "/construction_payload_when_the_reward_address_is_not_valid.json"))),
+        ConstructionPayloadsRequest.class);
+
+    try {
+      restTemplate.postForObject(baseUrl, request, ConstructionDeriveResponse.class);
+      fail("Expected exception");
+    } catch (HttpServerErrorException e) {
+      String responseBody = e.getResponseBodyAsString();
+      assertEquals(500, e.getRawStatusCode());
+    }
+  }
+
+  @Test
+  void test_should_throw_an_error_when_the_stake_key_is_empty() {
+
+  }
+
+  @Test
+  void test_should_throw_an_error_when_the_stake_key_is_not_valid() {
+
+  }
+
+  @Test
+  void test_should_throw_an_error_when_the_voting_nonce_is_not_greater_than_zero() {
+
+  }
+
+  @Test
+  void test_should_throw_an_error_when_the_voting_signature_is_empty() {
+
+  }
+
+  @Test
+  void test_should_throw_an_error_when_the_voting_signature_is_not_valid() {
+
+  }
+
+  @Test
+  void test_should_throw_an_error_when_the_transaction_has_no_metadata() {
+
+  }
+
+  @Test
+  void test_should_throw_an_error_when_there_is_no_vote_registration_metadata() {
+
+  }
 }
 
 
-
-
-//
-//  @Test
-//  void test_should_throw_an_error_when_there_are_oprations_in() {
-//
-//  }
-//
-//  @Test
-//  void test_should_throw_error_when_operations_include_pool_registration_with_invalid_cold_key_hash() {
-//    // Test code here
-//  }
-//
-//  @Test
-//  void test_should_throw_error_when_operations_include_pool_registration_with_missing_cold_key_hash() {
-//
-//  }
-//
-//  @Test
-//  void test_should_throw_an_error_when_there_are_operations_including_pool_registration_with_empty_pool_relays() {
-//
-//  }
-//
-//  @Test
-//  void test_should_throw_an_error_when_there_are_operations_including_pool_registration_with_invalid_pool_relay_type() {
-//
-//  }
-//
-//  @Test
-//  void test_should_throw_an_error_when_there_are_operations_including_pool_registration_with_missing_pool_relay_type() {
-//
-//  }
-//
-//  @Test
-//  void test_should_throw_an_error_when_there_are_operations_including_pool_registration_with_invalid_pool_relays_with_invalid_ipv4() {
-//
-//  }
-//
-//  @Test
-//  void test_should_throw_an_error_when_there_are_operations_including_pool_registration_with_invalid_pool_relays_with_invalid_port() {
-//
-//  }
-//
-//  @Test
-//  void test_should_throw_an_error_when_there_are_operations_including_pool_registration_with_pool_relays_with_invalid_pool_metadata_hash() {
-//
-//  }
-//
-//  @Test
-//  void test_should_throw_an_error_when_there_are_operations_including_pool_registration_with_pool_relays_with_invalid_pool_owners() {
-//
-//  }
-//
-//  @Test
-//  void test_should_throw_an_error_when_there_are_operations_including_pool_registration_with_negative_cost() {
-//
-//  }
-//
-//  @Test
-//  void should_throw_an_error_when_there_are_operations_including_pool_registration_with_pool_relays_with_negative_pledge() {
-//
-//  }
-//
-//  @Test
-//  void test_should_throw_an_error_when_there_are_operations_including_pool_registration_with_pool_relays_with_negative_pledge() {
-//
-//  }
-//
-//  @Test
-//  void test_should_throw_an_error_when_there_are_operations_including_pool_registration_with_pool_relays_with_negative_denominator() {
-//
-//  }
-//
-//  @Test
-//  void test_should_throw_an_error_when_there_are_operations_including_pool_registration_with_pool_relays_with_alphabetical_numerator() {
-//
-//  }
-//
-//  @Test
-//  void test_should_throw_an_error_when_there_are_operations_including_pool_registration_with_no_margin() {
-//
-//  }
-//
-//  @Test
-//  void test_should_throw_an_error_when_there_are_operations_including_pool_registration_with_invalid_reward_address() {
-//
-//  }
-//
-//  @Test
-//  void test_should_return_a_valid_unsigned_transaction_hash_when_sending_valid_operations_with_pool_registration_with_cert() {
-//
-//  }
-//
-//  @Test
-//  void test_should_throw_an_error_when_sending_operations_with_pool_registration_with_invalid_cert() {
-//
-//  }
-//
-//  @Test
-//  void test_should_throw_an_error_when_sending_operations_with_pool_registration_with_invalid_cert_type() {
-//
-//  }
-//
-//  @Test
-//  void test_should_return_a_valid_unsigned_transaction_hash_when_sending_valid_operations_with_a_vote_registration() {
-//
-//  }
-//
-//  @Test
-//  void test_should_throw_an_error_when_the_voting_key_is_empty() {
-//
-//  }
-//
-//  @Test
-//  void test_should_throw_an_error_when_the_voting_key_is_not_valid() {
-//
-//  }
-//
-//  @Test
-//  void test_should_throw_an_error_when_the_reward_address_is_empty() {
-//
-//  }
-//
-//  @Test
-//  void test_should_throw_an_error_when_the_reward_address_is_not_valid() {
-//
-//  }
-//
-//  @Test
-//  void test_should_throw_an_error_when_the_stake_key_is_empty() {
-//
-//  }
-//
-//  @Test
-//  void test_should_throw_an_error_when_the_stake_key_is_not_valid() {
-//
-//  }
-//
-//  @Test
-//  void test_should_throw_an_error_when_the_voting_nonce_is_not_greater_than_zero() {
-//
-//  }
-//
-//  @Test
-//  void test_should_throw_an_error_when_the_voting_signature_is_empty() {
-//
-//  }
-//
-//  @Test
-//  void test_should_throw_an_error_when_the_voting_signature_is_not_valid() {
-//
-//  }
-//
-//  @Test
-//  void test_should_throw_an_error_when_the_transaction_has_no_metadata() {
-//
-//  }
-//
-//  @Test
-//  void test_should_throw_an_error_when_there_is_no_vote_registration_metadata() {
-//
-//  }
