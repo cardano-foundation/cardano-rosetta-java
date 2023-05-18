@@ -1,7 +1,7 @@
 package org.cardanofoundation.rosetta.api.util;
 
 import org.cardanofoundation.rosetta.api.model.rest.OperationStatus;
-import org.cardanofoundation.rosetta.api.model.rest.Error;
+import org.cardanofoundation.rosetta.api.exception.Error;
 
 import java.util.List;
 
@@ -28,7 +28,7 @@ public class RosettaConstants {
             "voteRegistration"
     );
 
-    enum RosettaErrorType {
+    public enum RosettaErrorType {
         BLOCK_NOT_FOUND("Block not found", 4001),
         NETWORK_NOT_FOUND("Network not found", 4002),
         NETWORKS_NOT_FOUND("Networks not found", 4003),
@@ -93,15 +93,15 @@ public class RosettaConstants {
             this.message = message;
         }
 
-        Error toRosettaError(final boolean retriable) {
+        public Error toRosettaError(final boolean retriable) {
             return toRosettaError(retriable, null, null);
         }
 
-        Error toRosettaError(final boolean retriable, final Object details) {
+        public Error toRosettaError(final boolean retriable, final Object details) {
             return toRosettaError(retriable, details, null);
         }
 
-        Error toRosettaError(final boolean retriable, final Object details, final String description) {
+        public Error toRosettaError(final boolean retriable, final Object details, final String description) {
             final Error error = new Error();
             error.setCode(code);
             error.setMessage(message);

@@ -7,7 +7,6 @@ import lombok.*;
  * @since 12/04/2023 16:28
  */
 @Data
-@Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder

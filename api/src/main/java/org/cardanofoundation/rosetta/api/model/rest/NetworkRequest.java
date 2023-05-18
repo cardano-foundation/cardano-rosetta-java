@@ -1,5 +1,6 @@
 package org.cardanofoundation.rosetta.api.model.rest;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
 /**
@@ -12,5 +13,6 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class NetworkRequest {
+  @JsonProperty("network_identifier")
   private NetworkIdentifier networkIdentifier;
 }

@@ -1,7 +1,13 @@
 package org.cardanofoundation.rosetta.api.controller;
 
+import java.io.IOException;
 import lombok.extern.log4j.Log4j2;
-import org.cardanofoundation.rosetta.api.model.rest.*;
+import org.cardanofoundation.rosetta.api.exception.ServerException;
+import org.cardanofoundation.rosetta.api.model.rest.MetadataRequest;
+import org.cardanofoundation.rosetta.api.model.rest.NetworkListResponse;
+import org.cardanofoundation.rosetta.api.model.rest.NetworkOptionsResponse;
+import org.cardanofoundation.rosetta.api.model.rest.NetworkRequest;
+import org.cardanofoundation.rosetta.api.model.rest.NetworkStatusResponse;
 import org.cardanofoundation.rosetta.api.service.NetworkService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -27,7 +33,8 @@ public class NetworkApiDelegateImplementation implements NetworkApiDelegate {
     }
 
     @Override
-    public ResponseEntity<NetworkStatusResponse> networkStatus(NetworkRequest networkRequest) {
+    public ResponseEntity<NetworkStatusResponse> networkStatus(NetworkRequest networkRequest)
+        throws ServerException, IOException {
         final NetworkStatusResponse networkStatusResponse = networkService.getNetworkStatus(networkRequest);
         return ResponseEntity.ok(networkStatusResponse);
     }

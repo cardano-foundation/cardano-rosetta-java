@@ -8,6 +8,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @AllArgsConstructor
 @ConfigurationProperties
 public class IndexerConfig {
-    private final String type;
-    private final String endpointUrl;
+  private final String type;
+  private final String endpointUrl;
 }

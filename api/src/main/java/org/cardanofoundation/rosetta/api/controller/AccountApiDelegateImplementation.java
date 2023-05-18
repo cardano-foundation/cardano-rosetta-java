@@ -5,7 +5,6 @@ import org.cardanofoundation.rosetta.api.model.rest.AccountBalanceResponse;
 import org.cardanofoundation.rosetta.api.model.rest.AccountCoinsRequest;
 import org.cardanofoundation.rosetta.api.model.rest.AccountCoinsResponse;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
