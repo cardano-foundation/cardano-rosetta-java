@@ -10,7 +10,6 @@ import lombok.NoArgsConstructor;
 import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
-import org.openapitools.client.model.Coin;
 
 /**
  * @author Sotatek-HoangNguyen9

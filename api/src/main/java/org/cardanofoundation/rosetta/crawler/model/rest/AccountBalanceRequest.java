@@ -7,8 +7,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import javax.validation.Valid;
-import org.openapitools.client.model.Currency;
-import org.openapitools.client.model.PartialBlockIdentifier;
 
 /**
  * @author Sotatek-HoangNguyen9
