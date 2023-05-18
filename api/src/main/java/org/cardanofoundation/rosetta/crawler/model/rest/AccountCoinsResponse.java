@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
+import org.cardanofoundation.rosetta.crawler.model.Coin;
 
 /**
  * @author Sotatek-HoangNguyen9
