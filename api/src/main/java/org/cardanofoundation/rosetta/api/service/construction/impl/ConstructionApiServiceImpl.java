@@ -78,11 +78,11 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
 
         log.info("[constructionDerive] About to generate address");
         String address = cardanoService.generateAddress(
-                networkIdentifier,
-                publicKey.getHexBytes(),
-                // eslint-disable-next-line camelcase
-                ObjectUtils.isEmpty(stakingCredential)?null:stakingCredential.getHexBytes(),
-                AddressType.findByValue(addressType)
+            networkIdentifier,
+            publicKey.getHexBytes(),
+            // eslint-disable-next-line camelcase
+            ObjectUtils.isEmpty(stakingCredential)?null:stakingCredential.getHexBytes(),
+            AddressType.findByValue(addressType)
         );
         if (address == null) {
             log.error("[constructionDerive] There was an error generating address");
@@ -99,10 +99,10 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
         // eslint-disable-next-line camelcase
         Double relativeTtl = cardanoService.calculateRelativeTtl(!ObjectUtils.isEmpty(constructionPreprocessRequest.getMetadata()) ? constructionPreprocessRequest.getMetadata().getRelativeTtl() : null);
         Double transactionSize = cardanoService.calculateTxSize(
-                networkIdentifier,
-                (ArrayList<Operation>) constructionPreprocessRequest.getOperations(),
-                0,
-                ObjectUtils.isEmpty(constructionPreprocessRequest.getMetadata()) ? null : constructionPreprocessRequest.getMetadata().getDepositParameters()
+            networkIdentifier,
+            (ArrayList<Operation>) constructionPreprocessRequest.getOperations(),
+            0,
+            ObjectUtils.isEmpty(constructionPreprocessRequest.getMetadata()) ? null : constructionPreprocessRequest.getMetadata().getDepositParameters()
         );
         // eslint-disable-next-line camelcase
         return new ConstructionPreprocessResponse(new ConstructionPreprocessResponseOptions(relativeTtl, transactionSize), null);
@@ -138,7 +138,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
         protocol_parameters.setPoolDeposit(protocolParametersResponse.getPoolDeposit());
         protocol_parameters.setProtocol(protocolParametersResponse.getProtocolMajor());
         return new ConstructionMetadataResponse(new ConstructionMetadataResponseMetadata(ttl.toString(), protocol_parameters),
-                new ArrayList<>(List.of(cardanoService.mapAmount(suggestedFee.toString(), null, null, null))));
+            new ArrayList<>(List.of(cardanoService.mapAmount(suggestedFee.toString(), null, null, null))));
     }
 
     @Override
@@ -149,10 +149,10 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
         log.info(operations + "[constuctionPayloads] Operations about to be processed");
         ProtocolParameters protocolParameters = constructionPayloadsRequest.getMetadata().getProtocolParameters();
         UnsignedTransaction unsignedTransaction = cardanoService.createUnsignedTransaction(
-                networkIdentifier,
-                operations,
-                Integer.parseInt(ttl),
-                new DepositParameters(protocolParameters.getKeyDeposit(), protocolParameters.getPoolDeposit())
+            networkIdentifier,
+            operations,
+            Integer.parseInt(ttl),
+            new DepositParameters(protocolParameters.getKeyDeposit(), protocolParameters.getPoolDeposit())
         );
         List<SigningPayload> payloads = cardanoService.constructPayloadsForTransactionBody(unsignedTransaction.getHash(), unsignedTransaction.getAddresses());
         String unsignedTransactionString=cardanoService.encodeExtraData(unsignedTransaction.getBytes(),
@@ -182,22 +182,22 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
         Map map = cardanoService.decodeExtraData(constructionCombineRequest.getUnsignedTransaction());
         TransactionExtraData extraData = cardanoService.changeFromMaptoObject((Map) map.get(new UnicodeString("extraData")));
         String signedTransaction = cardanoService.buildTransaction(
-                ((UnicodeString) map.get(new UnicodeString("transaction"))).getString(),
-                constructionCombineRequest.getSignatures().stream().map(signature -> {
-                    String chainCode = null;
-                    String address = null;
-                    AccountIdentifier accountIdentifier = signature.getSigningPayload().getAccountIdentifier();
-                    if (!ObjectUtils.isEmpty(accountIdentifier)) {
-                        AccountIdentifierMetadata accountIdentifierMetadata = accountIdentifier.getMetadata();
-                        if (!ObjectUtils.isEmpty(accountIdentifierMetadata)) {
-                            chainCode = accountIdentifierMetadata.getChainCode();
-                        }
-                        address = accountIdentifier.getAddress();
+            ((UnicodeString) map.get(new UnicodeString("transaction"))).getString(),
+            constructionCombineRequest.getSignatures().stream().map(signature -> {
+                String chainCode = null;
+                String address = null;
+                AccountIdentifier accountIdentifier = signature.getSigningPayload().getAccountIdentifier();
+                if (!ObjectUtils.isEmpty(accountIdentifier)) {
+                    AccountIdentifierMetadata accountIdentifierMetadata = accountIdentifier.getMetadata();
+                    if (!ObjectUtils.isEmpty(accountIdentifierMetadata)) {
+                        chainCode = accountIdentifierMetadata.getChainCode();
                     }
-                    return new Signatures(signature.getHexBytes(), signature.getPublicKey().getHexBytes(),
-                            chainCode, address);
-                }).collect(Collectors.toList()),
-                extraData.getTransactionMetadataHex()
+                    address = accountIdentifier.getAddress();
+                }
+                return new Signatures(signature.getHexBytes(), signature.getPublicKey().getHexBytes(),
+                    chainCode, address);
+            }).collect(Collectors.toList()),
+            extraData.getTransactionMetadataHex()
         );
         log.info(signedTransaction + "[constructionCombine] About to return signed transaction");
         // eslint-disable-next-line camelcase

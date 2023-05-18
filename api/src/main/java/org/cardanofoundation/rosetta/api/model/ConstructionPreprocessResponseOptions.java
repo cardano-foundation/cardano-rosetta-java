@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.annotation.Generated;
@@ -18,6 +19,7 @@ import java.util.Objects;
 
 @AllArgsConstructor
 @NoArgsConstructor
+@Data
 public class ConstructionPreprocessResponseOptions {
 
   @JsonProperty("relative_ttl")

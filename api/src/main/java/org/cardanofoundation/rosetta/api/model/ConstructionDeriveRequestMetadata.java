@@ -7,6 +7,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import javax.annotation.Generated;
 import javax.validation.Valid;
 import java.util.Objects;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 /**
  * ConstructionDeriveRequestMetadata
@@ -14,6 +16,8 @@ import java.util.Objects;
 
 @JsonTypeName("ConstructionDeriveRequest_metadata")
 @Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2023-03-21T15:54:41.273447600+07:00[Asia/Bangkok]")
+@AllArgsConstructor
+@NoArgsConstructor
 public class ConstructionDeriveRequestMetadata {
 
   @JsonProperty("staking_credential")
@@ -21,6 +25,7 @@ public class ConstructionDeriveRequestMetadata {
 
   @JsonProperty("address_type")
   private String addressType;
+
 
   public ConstructionDeriveRequestMetadata stakingCredential(PublicKey stakingCredential) {
     this.stakingCredential = stakingCredential;

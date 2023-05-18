@@ -3,6 +3,7 @@ package org.cardanofoundation.rosetta.api.model.rest;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -21,6 +22,7 @@ import java.util.Objects;
 @NoArgsConstructor
 @Getter
 @Setter
+@Builder
 public class ConstructionDeriveRequest {
     @JsonProperty("network_identifier")
     private NetworkIdentifier networkIdentifier;

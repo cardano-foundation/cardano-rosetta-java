@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import org.cardanofoundation.rosetta.api.model.ProtocolParameters;
 
 import javax.annotation.Generated;
@@ -17,6 +18,7 @@ import java.util.Objects;
 @JsonTypeName("ConstructionMetadataResponse_metadata")
 @Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2023-03-21T15:54:41.273447600+07:00[Asia/Bangkok]")
 @AllArgsConstructor
+@NoArgsConstructor
 public class ConstructionMetadataResponseMetadata {
 
   @JsonProperty("ttl")
