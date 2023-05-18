@@ -620,6 +620,10 @@ public class CardanoServiceImpl implements CardanoService {
   public AuxiliaryData processVoteRegistration(Operation operation)
       throws IOException, CborDeserializationException, NoSuchAlgorithmException, SignatureException, InvalidKeySpecException, InvalidKeyException {
     log.info("[processVoteRegistration] About to process vote registration");
+    if (!ObjectUtils.isEmpty(operation) && ObjectUtils.isEmpty(operation.getMetadata())) {
+      log.error("[processVoteRegistration] Vote registration metadata was not provided");
+      throw new IllegalArgumentException("missingVoteRegistrationMetadata");
+    }
     if (!ObjectUtils.isEmpty(operation) && !ObjectUtils.isEmpty(operation.getMetadata())
         && ObjectUtils.isEmpty(operation.getMetadata().getVoteRegistrationMetadata())) {
       log.error("[processVoteRegistration] Vote registration metadata was not provided");
@@ -695,14 +699,7 @@ public class CardanoServiceImpl implements CardanoService {
     if (ObjectUtils.isEmpty(voteRegistrationMetadata.getVotingSignature())) {
       throw new IllegalArgumentException("Invalid voting signature");
     }
-    AsymmetricKeyParameter publicKeyParameters =
-        OpenSSHPublicKeyUtil.parsePublicKey(voteRegistrationMetadata.getVotingKey().getHexBytes().getBytes(
-        StandardCharsets.UTF_8));
-    Signer verifier = new Ed25519Signer();
-    verifier.init(false,publicKeyParameters);
-    boolean checkSig=verifier.verifySignature(
-        HexUtil.decodeHexString(voteRegistrationMetadata.getVotingSignature()));
-    if (!checkSig) {
+    if (!isEd25519KeyHash(voteRegistrationMetadata.getVotingSignature())) {
       log.error(
           "[validateAndParseVoteRegistrationMetadata] Voting signature has an invalid format");
       throw new IllegalArgumentException("invalidVotingSignature");
