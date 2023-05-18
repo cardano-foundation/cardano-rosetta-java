@@ -11,7 +11,7 @@ import org.springframework.web.context.request.WebRequest;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-  @Value("#{systemProperties['api.exception.isPrintStackTrace'] ?: 'false'}")
+  @Value("${api.exception.isPrintStackTrace:false}")
   private String isPrintStackTrace;
 
 
