@@ -2,24 +2,20 @@ package org.cardanofoundation.rosetta.api.constructionApiService.impl;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.api.RosettaApiApplication;
-import org.cardanofoundation.rosetta.api.model.rest.ConstructionDeriveResponse;
 import org.cardanofoundation.rosetta.api.model.rest.ConstructionPreprocessRequest;
 import org.cardanofoundation.rosetta.api.model.rest.ConstructionPreprocessResponse;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.web.client.HttpServerErrorException;
-import java.util.regex.Pattern;
-import java.util.regex.Matcher;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = RosettaApiApplication.class)
 @Slf4j
 class ConstructionApiDelegateImplPreprocessTests extends IntegrationTest{
