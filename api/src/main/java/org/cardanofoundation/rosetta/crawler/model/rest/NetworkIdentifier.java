@@ -3,7 +3,6 @@ package org.cardanofoundation.rosetta.crawler.model.rest;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import javax.annotation.Nullable;
 import lombok.*;
-import org.openapitools.client.model.SubNetworkIdentifier;
 
 /**
  * @author Sotatek-HoangNguyen9

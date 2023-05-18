@@ -25,7 +25,6 @@ import org.cardanofoundation.rosetta.crawler.construction.data.type.AddressType;
 import org.cardanofoundation.rosetta.crawler.construction.data.type.EraAddressType;
 import org.cardanofoundation.rosetta.crawler.construction.data.type.NetworkIdentifierType;
 import org.cardanofoundation.rosetta.crawler.construction.data.type.StakeAddressPrefix;
-import org.cardanofoundation.rosetta.api.model.*;
 import org.cardanofoundation.rosetta.crawler.model.Amount;
 import org.cardanofoundation.rosetta.crawler.model.DepositParameters;
 import org.cardanofoundation.rosetta.crawler.model.Operation;

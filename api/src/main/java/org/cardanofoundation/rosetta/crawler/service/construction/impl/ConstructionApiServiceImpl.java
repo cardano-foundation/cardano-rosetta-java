@@ -44,8 +44,6 @@ import org.cardanofoundation.rosetta.crawler.model.rest.ConstructionSubmitReques
 import org.cardanofoundation.rosetta.crawler.model.rest.TransactionIdentifierResponse;
 import org.cardanofoundation.rosetta.crawler.service.construction.CardanoService;
 import org.cardanofoundation.rosetta.crawler.service.construction.ConstructionApiService;
-import org.cardanofoundation.rosetta.api.model.*;
-import org.cardanofoundation.rosetta.api.model.rest.*;
 import org.cardanofoundation.rosetta.crawler.model.rest.AccountIdentifier;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

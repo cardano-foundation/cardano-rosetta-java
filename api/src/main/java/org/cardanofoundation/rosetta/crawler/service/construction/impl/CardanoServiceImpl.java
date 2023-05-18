@@ -71,7 +71,6 @@ import org.cardanofoundation.rosetta.crawler.model.TransactionIdentifier;
 import org.cardanofoundation.rosetta.crawler.model.TransactionParsed;
 import org.cardanofoundation.rosetta.crawler.model.VoteRegistrationMetadata;
 import org.cardanofoundation.rosetta.crawler.service.construction.CardanoService;
-import org.cardanofoundation.rosetta.api.model.*;
 import org.cardanofoundation.rosetta.crawler.model.Currency;
 import org.cardanofoundation.rosetta.crawler.model.rest.AccountIdentifier;
 import org.cardanofoundation.rosetta.crawler.model.rest.NetworkIdentifier;

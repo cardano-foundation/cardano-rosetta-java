@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import org.cardanofoundation.rosetta.crawler.config.RosettaConfig;
-import org.cardanofoundation.rosetta.api.model.rest.*;
 import org.cardanofoundation.rosetta.crawler.model.rest.BalanceExemption;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

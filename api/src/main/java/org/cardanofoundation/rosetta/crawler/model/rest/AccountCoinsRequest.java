@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 
 import javax.validation.Valid;
 import java.util.List;
-import org.openapitools.client.model.Currency;
+import org.cardanofoundation.rosetta.crawler.model.Currency;
 
 /**
  * @author Sotatek-HoangNguyen9
