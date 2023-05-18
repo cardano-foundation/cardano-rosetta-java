@@ -348,9 +348,10 @@ public class CardanoServiceImpl implements CardanoService {
       log.info(
           "[createUnsignedTransaction] Hashing vote registration metadata and adding to transaction body");
       AuxiliaryData auxiliaryData = (AuxiliaryData) map.get("voteRegistrationMetadata");
-      byte[] bytes = new byte[]{-120, -54, -122, 84, 88, 46, -125, -109, 120, 115, 35, 11, 102, 70,
-          -94, 33, 1, 52, -45, -28, 30, 11, -55, -126, 76, -25, -66, 78, 11, 40, -88, -106};
-      transactionBody.setAuxiliaryDataHash(auxiliaryData.getAuxiliaryDataHash());
+      Array array=new Array();
+      array.add(auxiliaryData.serialize());
+      array.add(new Array());
+      transactionBody.setAuxiliaryDataHash(Blake2bUtil.blake2bHash256(CborSerializationUtil.serialize(array)));
     }
 
     if (!((List<Certificate>) map.get("certificates")).isEmpty()) {
