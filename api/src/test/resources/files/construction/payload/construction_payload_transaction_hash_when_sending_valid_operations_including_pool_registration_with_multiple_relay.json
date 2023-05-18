@@ -3,22 +3,7 @@
     "blockchain": "cardano",
     "network": "mainnet"
   },
-  "metadata": {
-    "ttl": "1000",
-    "protocol_parameters": {
-      "coinsPerUtxoSize": "0",
-      "maxTxSize": 16384,
-      "maxValSize": 0,
-      "keyDeposit": "2000000",
-      "maxCollateralInputs": 0,
-      "minFeeCoefficient": 44,
-      "minFeeConstant": 155381,
-      "minPoolCost": "340000000",
-      "poolDeposit": "500000000",
-      "protocol": 4
-    }
-  },
-  "operations" : [
+  "operations": [
     {
       "operation_identifier": {
         "index": 0,
@@ -30,7 +15,7 @@
         "address": "addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx"
       },
       "amount": {
-        "value": "-9000000",
+        "value": "-90000000000",
         "currency": {
           "symbol": "ADA",
           "decimals": 6
@@ -91,29 +76,58 @@
       "operation_identifier": {
         "index": 3
       },
-      "type": "stakeKeyRegistration",
+      "type": "poolRegistration",
       "status": "success",
+      "account": {
+        "address": "1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5"
+      },
       "metadata": {
-        "staking_credential": {
-          "hex_bytes": "1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F",
-          "curve_type": "edwards25519"
+        "poolRegistrationParams": {
+          "vrfKeyHash": "8dd154228946bd12967c12bedb1cb6038b78f8b84a1760b1a788fa72a4af3db0",
+          "rewardAddress": "stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5",
+          "pledge": "0",
+          "cost": "3000000",
+          "poolOwners": [
+            "stake1uxly0q2cnpxrjrqm9vpnr9dwkr0j945gulhhgs3dx33l47sweg9er"
+          ],
+          "relays": [
+            {
+              "type": "single_host_addr",
+              "ipv4": "127.0.0.1",
+              "ipv6": "2345:0425:2ca1:0000:0000:0567:5673:23b5",
+              "port": "32"
+            },
+            {
+              "type": "single_host_name",
+              "dnsName": "dnsName",
+              "port": "32"
+            },
+            {
+              "type": "multi_host_name",
+              "dnsName": "dnsName"
+            }
+          ],
+          "margin": {
+            "numerator": "1",
+            "denominator": "1"
+          }
         }
       }
-    },
-    {
-      "operation_identifier": {
-        "index": 3
-      },
-      "type": "stakeDelegation",
-      "status": "success",
-      "metadata": {
-        "staking_credential": {
-          "hex_bytes": "1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F",
-          "curve_type": "edwards25519"
-        },
-        "pool_key_hash": "1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5"
-      }
     }
-  ]
-
+  ],
+  "metadata": {
+    "ttl": "1000",
+    "protocol_parameters": {
+      "coinsPerUtxoSize": "0",
+      "maxTxSize": 16384,
+      "maxValSize": 0,
+      "keyDeposit": "2000000",
+      "maxCollateralInputs": 0,
+      "minFeeCoefficient": 44,
+      "minFeeConstant": 155381,
+      "minPoolCost": "340000000",
+      "poolDeposit": "500000000",
+      "protocol": 4
+    }
+  }
 }
