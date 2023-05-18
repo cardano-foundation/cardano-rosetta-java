@@ -69,7 +69,7 @@ public class ConstructionApiDelegateImplementation implements ConstructionApiDel
 
     @Override
     public ResponseEntity<ConstructionPayloadsResponse> constructionPayloads(@RequestBody ConstructionPayloadsRequest constructionPayloadsRequest) throws IOException, CborException, CborSerializationException, AddressExcepion {
-        checkService.withNetworkValidation(constructionPayloadsRequest.getNetworkIdentifier());
+//        checkService.withNetworkValidation(constructionPayloadsRequest.getNetworkIdentifier());
         return ResponseEntity.ok(constructionApiService.constructionPayloadsService(constructionPayloadsRequest));
     }
 

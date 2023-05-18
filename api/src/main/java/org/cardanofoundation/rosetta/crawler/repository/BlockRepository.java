@@ -1,5 +1,7 @@
 package org.cardanofoundation.rosetta.crawler.repository;
 
+import org.cardanofoundation.rosetta.crawler.construction.data.ProtocolParametersResponse;
+import org.cardanofoundation.rosetta.crawler.construction.data.response.BlockResponse;
 import org.cardanofoundation.rosetta.crawler.projection.BlockProjection;
 import org.cardanofoundation.rosetta.crawler.projection.GenesisBlockProjection;
 import org.cardanofoundation.rosetta.common.entity.Block;
@@ -52,5 +54,21 @@ public interface BlockRepository extends JpaRepository<Block, Long> {
     @Query("SELECT blockNo  FROM Block  " +
             "WHERE blockNo IS NOT NULL ORDER BY blockNo DESC")
     Page<Long> findLatestBlockNumber(Pageable pageable);
+
+    @Query(value = "  SELECT \n" +
+        "    coinsPerUtxoSize as coinsPerUtxoSize,\n" +
+        "    maxTxSize as maxTxSize ,\n" +
+        "    maxValSize as maxValSize,\n" +
+        "    keyDeposit as keyDeposit ,\n" +
+        "    maxCollateralInputs as maxCollateralInputs ,\n" +
+        "    minFeeA as minFeeCoefficient,\n" +
+        "    minFeeB as minFeeConstant,\n" +
+        "    minPoolCost as minPoolCost,\n" +
+        "    poolDeposit as poolDeposit ,\n" +
+        "    protocolMajor as protocolMajor\n" +
+        "  FROM EpochParam  \n" +
+        "  ORDER BY id \n" +
+        "  DESC LIMIT 1")
+    ProtocolParametersResponse findProtocolParameters();
 
 }

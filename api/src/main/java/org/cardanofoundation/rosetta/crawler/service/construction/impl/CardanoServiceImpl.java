@@ -44,7 +44,6 @@ import org.cardanofoundation.rosetta.crawler.construction.data.type.NonStakeAddr
 import org.cardanofoundation.rosetta.crawler.construction.data.type.OperationType;
 import org.cardanofoundation.rosetta.crawler.construction.data.type.RelayType;
 import org.cardanofoundation.rosetta.crawler.construction.data.type.StakeAddressPrefix;
-import org.cardanofoundation.rosetta.crawler.construction.data.repository.BlockRepository;
 import org.cardanofoundation.rosetta.crawler.construction.data.Const;
 
 import org.cardanofoundation.rosetta.crawler.model.AccountIdentifierMetadata;
@@ -70,6 +69,9 @@ import org.cardanofoundation.rosetta.crawler.model.TransactionExtraData;
 import org.cardanofoundation.rosetta.crawler.model.TransactionIdentifier;
 import org.cardanofoundation.rosetta.crawler.model.TransactionParsed;
 import org.cardanofoundation.rosetta.crawler.model.VoteRegistrationMetadata;
+import org.cardanofoundation.rosetta.crawler.projection.BlockDto;
+import org.cardanofoundation.rosetta.crawler.projection.BlockProjection;
+import org.cardanofoundation.rosetta.crawler.service.LedgerDataProviderService;
 import org.cardanofoundation.rosetta.crawler.service.construction.CardanoService;
 import org.cardanofoundation.rosetta.crawler.model.Currency;
 import org.cardanofoundation.rosetta.crawler.model.rest.AccountIdentifier;
@@ -93,7 +95,7 @@ import java.util.stream.Collectors;
 public class CardanoServiceImpl implements CardanoService {
 
   @Autowired
-  BlockRepository blockRepository;
+  LedgerDataProviderService ledgerDataProviderService;
 
   @Override
   public String generateAddress(NetworkIdentifierType networkIdentifierType, String publicKeyString,
@@ -1405,7 +1407,7 @@ public class CardanoServiceImpl implements CardanoService {
   @Override
   public ProtocolParametersResponse getProtocolParameters() {
     log.debug("[getLinearFeeParameters] About to run findProtocolParameters query");
-    ProtocolParametersResponse protocolParametersResponse = blockRepository.findProtocolParameters();
+    ProtocolParametersResponse protocolParametersResponse = ledgerDataProviderService.findProtocolParameters();
     return protocolParametersResponse;
   }
 
@@ -1420,16 +1422,16 @@ public class CardanoServiceImpl implements CardanoService {
 
   @Override
   public Long calculateTtl(Long ttlOffset) {
-    BlockResponse latestBlock = getLatestBlock();
+    BlockDto latestBlock = getLatestBlock();
     return latestBlock.getSlotNo() + ttlOffset;
   }
 
   @Override
-  public BlockResponse getLatestBlock() {
+  public BlockDto getLatestBlock() {
     log.info("[getLatestBlock] About to look for latest block");
     Long latestBlockNumber = findLatestBlockNumber();
     log.info("[getLatestBlock] Latest block number is {}", latestBlockNumber);
-    BlockResponse latestBlock = blockRepository.findBlock(latestBlockNumber, null);
+    BlockDto latestBlock = ledgerDataProviderService.findBlock(latestBlockNumber, null);
     if (ObjectUtils.isEmpty(latestBlock)) {
       log.error("[getLatestBlock] Latest block not found");
       throw new IllegalArgumentException("blockNotFoundError");
@@ -1441,14 +1443,14 @@ public class CardanoServiceImpl implements CardanoService {
   @Override
   public Long findLatestBlockNumber() {
     log.debug("[findLatestBlockNumber] About to run findLatestBlockNumber query");
-    Long latestBlockNumber = blockRepository.findLatestBlockNumber();
+    Long latestBlockNumber = ledgerDataProviderService.findLatestBlockNumber();
     log.debug("[findLatestBlockNumber] Latest block number is {}", latestBlockNumber);
     return latestBlockNumber;
   }
 
   @Override
-  public BlockResponse findBlock(Long blockNumber, byte[] blockHash) {
-    BlockResponse result = blockRepository.findBlock(blockNumber, blockHash);
+  public BlockDto findBlock(Long blockNumber, String blockHash) {
+    BlockDto result = ledgerDataProviderService.findBlock(blockNumber, blockHash);
     log.debug("[findBlock] Parameters received for run query blockNumber: {}, blockHash: {}",
         blockNumber, blockHash);
     if (!ObjectUtils.isEmpty(result)) {

@@ -4,6 +4,7 @@ import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.cardanofoundation.rosetta.crawler.config.RosettaConfig;
+import org.cardanofoundation.rosetta.crawler.construction.data.ProtocolParametersResponse;
 import org.cardanofoundation.rosetta.crawler.model.rest.BlockIdentifier;
 import org.cardanofoundation.rosetta.crawler.projection.BlockDto;
 import org.cardanofoundation.rosetta.crawler.projection.BlockProjection;
@@ -108,6 +109,11 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
             return latestBlockNumberPage.getContent().get(0);
         }
         return null;
+    }
+
+    @Override
+    public ProtocolParametersResponse findProtocolParameters() {
+        return blockRepository.findProtocolParameters();
     }
 
 }

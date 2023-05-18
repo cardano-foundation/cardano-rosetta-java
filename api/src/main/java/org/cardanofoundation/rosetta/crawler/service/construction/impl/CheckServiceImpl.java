@@ -2,7 +2,6 @@ package org.cardanofoundation.rosetta.crawler.service.construction.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.crawler.construction.data.NetWork;
-import org.cardanofoundation.rosetta.crawler.construction.data.repository.BlockRepository;
 import org.cardanofoundation.rosetta.crawler.construction.data.Const;
 import org.cardanofoundation.rosetta.crawler.service.construction.CardanoService;
 import org.cardanofoundation.rosetta.crawler.service.construction.CheckService;
@@ -16,9 +15,6 @@ import org.springframework.stereotype.Service;
 public class CheckServiceImpl implements CheckService {
     @Autowired
     CardanoService cardanoService;
-
-    @Autowired
-    BlockRepository blockRepository;
 
     @Override
     public void withNetworkValidation(NetworkIdentifier networkIdentifier) {

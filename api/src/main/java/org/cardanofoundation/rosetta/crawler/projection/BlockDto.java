@@ -12,13 +12,13 @@ import lombok.NoArgsConstructor;
 public class BlockDto {
 
     private String hash;
-    private long number;
-    private long createdAt;
+    private Long number;
+    private Long createdAt;
     private String previousBlockHash;
-    private long previousBlockNumber;
-    private int transactionsCount;
+    private Long previousBlockNumber;
+    private Long transactionsCount;
     private String createdBy;
-    private int size;
-    private int epochNo;
-    private String slotNo;
+    private Integer size;
+    private Integer epochNo;
+    private Long slotNo;
 }

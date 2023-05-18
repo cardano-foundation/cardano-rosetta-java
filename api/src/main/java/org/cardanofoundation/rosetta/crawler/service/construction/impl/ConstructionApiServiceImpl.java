@@ -16,7 +16,6 @@ import org.cardanofoundation.rosetta.crawler.construction.data.Signatures;
 import org.cardanofoundation.rosetta.crawler.construction.data.UnsignedTransaction;
 import org.cardanofoundation.rosetta.crawler.construction.data.type.AddressType;
 import org.cardanofoundation.rosetta.crawler.construction.data.type.NetworkIdentifierType;
-import org.cardanofoundation.rosetta.crawler.construction.data.repository.BlockRepository;
 import org.cardanofoundation.rosetta.crawler.model.AccountIdentifierMetadata;
 import org.cardanofoundation.rosetta.crawler.model.ConstructionPreprocessResponseOptions;
 import org.cardanofoundation.rosetta.crawler.model.DepositParameters;
@@ -60,8 +59,6 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
     @Autowired
     CardanoService cardanoService;
 
-    @Autowired
-    BlockRepository blockRepository;
 
 //    private final LocalTxSubmissionClient localTxSubmissionClient;
 

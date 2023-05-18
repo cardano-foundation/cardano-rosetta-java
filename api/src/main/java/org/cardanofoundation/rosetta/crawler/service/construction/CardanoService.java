@@ -52,6 +52,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.cardanofoundation.rosetta.crawler.projection.BlockDto;
 
 
 public interface CardanoService {
@@ -181,11 +182,11 @@ public interface CardanoService {
 
     Long calculateTtl(Long ttlOffset);
 
-    BlockResponse getLatestBlock();
+    BlockDto getLatestBlock();
 
     Long findLatestBlockNumber();
 
-    BlockResponse findBlock(Long blockNumber, byte[] blockHash);
+    BlockDto findBlock(Long blockNumber, String blockHash);
 
     String encodeExtraData(String transaction, TransactionExtraData extraData) throws JsonProcessingException, CborSerializationException, CborException;
 

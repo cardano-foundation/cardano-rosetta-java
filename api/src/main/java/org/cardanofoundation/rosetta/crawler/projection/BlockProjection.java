@@ -3,14 +3,14 @@ package org.cardanofoundation.rosetta.crawler.projection;
 import java.sql.Timestamp;
 
 public interface BlockProjection {
-        int getNumber();
+        Long getNumber();
         byte[] getHash();
         Timestamp getCreatedAt();
         byte[] getPreviousBlockHash();
-        int getPreviousBlockNumber();
-        int getTransactionsCount();
+        Long getPreviousBlockNumber();
+        Long getTransactionsCount();
         String getCreatedBy();
-        int getSize();
-        int getEpochNo();
-        String getSlotNo();
+        Integer getSize();
+        Integer getEpochNo();
+        Long getSlotNo();
 }

@@ -1,5 +1,6 @@
 package org.cardanofoundation.rosetta.crawler.service;
 
+import org.cardanofoundation.rosetta.crawler.construction.data.ProtocolParametersResponse;
 import org.cardanofoundation.rosetta.crawler.model.rest.BlockIdentifier;
 
 import org.cardanofoundation.rosetta.crawler.projection.BlockDto;
@@ -19,5 +20,7 @@ public interface LedgerDataProviderService {
     Double findBalanceByAddressAndBlock(String address, String hash);
 
     Long findLatestBlockNumber();
+
+    ProtocolParametersResponse findProtocolParameters();
 
 }
