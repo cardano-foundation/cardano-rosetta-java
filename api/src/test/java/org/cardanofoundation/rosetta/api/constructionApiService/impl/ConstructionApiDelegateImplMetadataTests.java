@@ -7,8 +7,8 @@ import static org.junit.jupiter.api.Assertions.fail;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import org.cardanofoundation.rosetta.api.model.rest.ConstructionMetadataRequest;
-import org.cardanofoundation.rosetta.api.model.rest.ConstructionMetadataResponse;
+import org.cardanofoundation.rosetta.crawler.model.rest.ConstructionMetadataRequest;
+import org.cardanofoundation.rosetta.crawler.model.rest.ConstructionMetadataResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

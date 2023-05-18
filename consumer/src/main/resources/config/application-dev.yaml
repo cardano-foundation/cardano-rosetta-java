@@ -1,0 +1,102 @@
+spring:
+  # Datasource specific configs
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}??reWriteBatchedInserts=true&currentSchema=${spring.jpa.properties.hibernate.default_schema}
+    username: ${DB_USER}
+    password: ${DB_SECRET}
+    driver-class-name: org.postgresql.Driver
+    # Hikari specific configs
+    hikari:
+      pool-name: rosetta-consumer-pool
+      minimum-idle: 8 #minimum number of idle connections maintained by HikariCP in a connection pool
+      maximum-pool-size: ${MAXIMUM_POOL_SIZE:32} #maximum pool size
+      idle-timeout: 30000 #maximum idle time for connection
+      max-lifetime: 900000 #maximum lifetime in milliseconds of a connection in the pool after it is closed.
+      connection-timeout: 50000 #maximum number of milliseconds that a client will wait for a connection
+      auto-commit: true #default auto-commit behavior.
+      connection-init-sql: SELECT 1
+      data-source-properties:
+        cachePrepStmts: true
+        prepStmtCacheSize: 250
+        prepStmtCacheSqlLimit: 2048
+        useServerPrepStmts: true
+        useLocalSessionState: true
+        rewriteBatchedStatements: true
+        cacheResultSetMetadata: true
+        cacheServerConfiguration: true
+        elideSetAutoCommits: true
+        maintainTimeStats: false
+  # JPA specific configs
+  # JPA specific configs
+  jpa:
+    open-in-view: false
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc.batch_size: ${JDBC_BATCH_SIZE:500}
+        default_schema: ${DB_SCEMA:testnet}
+        show_sql: false
+        format_sql: true
+        order_inserts: true
+        order_updates: true
+  #        hbm2ddl:
+  #          auto: update
+kafka:
+  auto-create-topics: false
+  admin:
+    bootstrapServers: ${BOOSTRAP_SERVER_HOST}:${BOOSTRAP_SERVER_PORT:9092}
+  topics:
+    block:
+      name: block
+      partitions: 1
+      replicationFactor: 1
+  #      configs:
+  #        key1: value1
+  #        key2: value2
+  producers:
+    json-producer:
+      clientId: json-producer
+      retries: 3
+      bootstrapServers: ${BOOSTRAP_SERVER_HOST}:${BOOSTRAP_SERVER_PORT:9092}
+      maxInFlightRequestsPerConnection: 1
+      requestTimeoutMs: 30000
+      batchSize: 16384
+      lingerMs: 5
+      bufferMemory: 33554432
+      acks: all
+      enableIdempotence: true
+      keySerializer: org.apache.kafka.common.serialization.StringSerializer
+      valueSerializer: org.springframework.kafka.support.serializer.JsonSerializer
+  consumers:
+    json-consumer:
+      clientId: json-consumer
+      bootstrapServers: ${BOOSTRAP_SERVER_HOST}:${BOOSTRAP_SERVER_PORT:9092}
+      keyDeserializer: org.apache.kafka.common.serialization.StringDeserializer
+      valueDeserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      autoOffsetReset: earliest
+      enableAutoCommit: false
+      autoCommitIntervalMs: 1000
+      sessionTimeoutMs: 30000
+      trustedPackages: "*"
+      allowAutoCreateTopics: false
+      groupId: ${SCHEMA:testnet}
+      concurrency: 10
+      pollTimeout: 3600000
+  listeners:
+    block:
+#      groupId: ${SCHEMA:testnet}
+      topics: ${BLOCKS_TOPIC:dev.crawler.testnet.blocks}
+#      props: |
+#        max.poll.records: 10
+#        fetch.min.bytes: 123456
+#    prefix: "rosetta-consumer-dev"
+logging:
+  level:
+    com.sotatek: ${LOG:INFO}
+
+blocks:
+  batch-size: ${BLOCKS_BATCH_SIZE:200}
+  commitThreshold: ${COMMIT_THRESHOLD:3000}

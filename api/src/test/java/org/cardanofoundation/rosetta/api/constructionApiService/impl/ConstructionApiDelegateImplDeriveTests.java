@@ -4,12 +4,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
-import org.cardanofoundation.rosetta.api.model.ConstructionDeriveRequestMetadata;
-import org.cardanofoundation.rosetta.api.model.CurveType;
-import org.cardanofoundation.rosetta.api.model.PublicKey;
-import org.cardanofoundation.rosetta.api.model.rest.ConstructionDeriveRequest;
-import org.cardanofoundation.rosetta.api.model.rest.ConstructionDeriveResponse;
-import org.cardanofoundation.rosetta.api.model.rest.NetworkIdentifier;
+import org.cardanofoundation.rosetta.crawler.model.ConstructionDeriveRequestMetadata;
+import org.cardanofoundation.rosetta.crawler.model.CurveType;
+import org.cardanofoundation.rosetta.crawler.model.PublicKey;
+import org.cardanofoundation.rosetta.crawler.model.rest.ConstructionDeriveRequest;
+import org.cardanofoundation.rosetta.crawler.model.rest.ConstructionDeriveResponse;
+import org.cardanofoundation.rosetta.crawler.model.rest.NetworkIdentifier;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.client.HttpServerErrorException;
