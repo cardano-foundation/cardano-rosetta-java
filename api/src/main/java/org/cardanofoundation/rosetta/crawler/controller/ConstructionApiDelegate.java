@@ -8,7 +8,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import org.cardanofoundation.rosetta.api.model.rest.*;
 import org.cardanofoundation.rosetta.crawler.model.rest.ConstructionCombineRequest;
 import org.cardanofoundation.rosetta.crawler.model.rest.ConstructionCombineResponse;
 import org.cardanofoundation.rosetta.crawler.model.rest.ConstructionDeriveRequest;
