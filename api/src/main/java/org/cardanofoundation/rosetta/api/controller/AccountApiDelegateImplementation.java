@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class AccountApiDelegateImplementation implements AccountApiDelegate {
+
   @Autowired
   AccountService accountService;
 
@@ -23,8 +24,11 @@ public class AccountApiDelegateImplementation implements AccountApiDelegate {
     return ResponseEntity.ok(response);
 
   }
-    @Override
-    public ResponseEntity<AccountCoinsResponse> accountCoins(AccountCoinsRequest accountCoinsRequest) {
-        return null;
-    }
+
+  @Override
+  public ResponseEntity<AccountCoinsResponse> accountCoins(@Valid @RequestBody
+  AccountCoinsRequest accountCoinsRequest) {
+    AccountCoinsResponse response = accountService.getAccountCoins(accountCoinsRequest);
+    return ResponseEntity.ok(response);
+  }
 }
