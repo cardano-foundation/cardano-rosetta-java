@@ -1,5 +1,7 @@
 package org.cardanofoundation.rosetta.common.entity;
 
+import jakarta.persistence.ConstraintMode;
+import jakarta.persistence.ForeignKey;
 import java.sql.Timestamp;
 import java.util.Objects;
 import jakarta.persistence.Column;
@@ -38,8 +40,8 @@ public class SlotLeader extends BaseEntity {
   private String hash;
 
   @OneToOne(fetch = FetchType.LAZY)
-  @OnDelete(action = OnDeleteAction.CASCADE)
-  @JoinColumn(name = "pool_hash_id")
+  @JoinColumn(name = "pool_hash_id",
+      foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "none"))
   @EqualsAndHashCode.Exclude
   private PoolHash poolHash;
 

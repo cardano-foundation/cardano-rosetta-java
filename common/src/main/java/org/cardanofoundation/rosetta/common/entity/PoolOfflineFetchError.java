@@ -1,5 +1,6 @@
 package org.cardanofoundation.rosetta.common.entity;
 
+import jakarta.persistence.ConstraintMode;
 import java.sql.Timestamp;
 import java.util.Objects;
 import jakarta.persistence.Column;
@@ -34,9 +35,8 @@ import org.hibernate.annotations.OnDeleteAction;
 public class PoolOfflineFetchError extends BaseEntity {
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
-  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "pool_id", nullable = false,
-      foreignKey = @ForeignKey(name = "pool_offline_fetch_error_pool_id_fkey"))
+      foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "none"))
   @EqualsAndHashCode.Exclude
   private PoolHash poolHash;
 
@@ -44,9 +44,8 @@ public class PoolOfflineFetchError extends BaseEntity {
   private Timestamp fetchTime;
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
-  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "pmr_id", nullable = false,
-      foreignKey = @ForeignKey(name = "pool_offline_fetch_error_pmr_id_fkey"))
+      foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "none"))
   @EqualsAndHashCode.Exclude
   private PoolMetadataRef poolMetadataRef;
 
