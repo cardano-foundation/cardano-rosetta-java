@@ -1,17 +1,26 @@
 package org.cardanofoundation.rosetta.crawler.projection;
 
 import java.sql.Timestamp;
-import lombok.ToString;
 
 public interface BlockProjection {
-        int getNumber();
-        byte[] getHash();
-        Timestamp getCreatedAt();
-        byte[] getPreviousBlockHash();
-        int getPreviousBlockNumber();
-        int getTransactionsCount();
-        String getCreatedBy();
-        int getSize();
-        int getEpochNo();
-        String getSlotNo();
+
+  Long getNumber();
+
+  String getHash();
+
+  Timestamp getCreatedAt();
+
+  String getPreviousBlockHash();
+
+  Long getPreviousBlockNumber();
+
+  Long getTransactionsCount();
+
+  String getCreatedBy();
+
+  Integer getSize();
+
+  Integer getEpochNo();
+
+  Long getSlotNo();
 }

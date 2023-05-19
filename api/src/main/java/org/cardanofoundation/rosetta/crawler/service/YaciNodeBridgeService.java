@@ -1,12 +1,11 @@
 package org.cardanofoundation.rosetta.crawler.service;
 
-import org.cardanofoundation.rosetta.crawler.config.RosettaConfig;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import jakarta.annotation.PostConstruct;
 import java.util.HashMap;
 import java.util.Map;
+import org.cardanofoundation.rosetta.crawler.config.RosettaConfig;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 public class YaciNodeBridgeService implements NodeBridgeService {

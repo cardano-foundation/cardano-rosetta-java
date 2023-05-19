@@ -32,19 +32,19 @@ public class ReferenceInputServiceImpl implements ReferenceInputService {
 
   @Override
   public List<ReferenceTxIn> handleReferenceInputs(
-      Map<byte[], Set<AggregatedTxIn>> referenceTxInMap, Map<byte[], Tx> txMap) {
+      Map<String, Set<AggregatedTxIn>> referenceTxInMap, Map<String, Tx> txMap) {
     Set<AggregatedTxIn> allReferenceTxIns = referenceTxInMap.values()
         .stream()
         .flatMap(Collection::stream)
         .collect(Collectors.toSet());
-    Map<Pair<byte[], Integer>, TxOut> txOutMap = txOutService
+    Map<Pair<String, Integer>, TxOut> txOutMap = txOutService
         .getTxOutCanUseByAggregatedTxIns(allReferenceTxIns)
         .stream()
         .collect(Collectors.toMap(this::getTxOutKey, Function.identity()));
     return cachedReferenceInputRepository.saveAll(
         referenceTxInMap.entrySet().stream().flatMap(txHashReferenceTxInsEntry -> {
           Set<AggregatedTxIn> referenceTxIns = txHashReferenceTxInsEntry.getValue();
-          byte[] txHash = txHashReferenceTxInsEntry.getKey();
+          String txHash = txHashReferenceTxInsEntry.getKey();
           Tx tx = txMap.get(txHash);
           return referenceTxIns.stream()
               .map(referInput -> handleReferenceInput(tx, referInput, txOutMap));
@@ -52,12 +52,12 @@ public class ReferenceInputServiceImpl implements ReferenceInputService {
     );
   }
 
-  private Pair<byte[], Integer> getTxOutKey(TxOut txOut) {
+  private Pair<String, Integer> getTxOutKey(TxOut txOut) {
     return Pair.of(txOut.getTx().getHash(), (int) txOut.getIndex());
   }
 
   public ReferenceTxIn handleReferenceInput(Tx tx,
-      AggregatedTxIn referenceInput, Map<Pair<byte[], Integer>, TxOut> txOutMap) {
+      AggregatedTxIn referenceInput, Map<Pair<String, Integer>, TxOut> txOutMap) {
     ReferenceTxInBuilder<?, ?> referenceTxInBuilder = ReferenceTxIn.builder();
     referenceTxInBuilder.txIn(tx);
 

@@ -1,6 +1,10 @@
 package org.cardanofoundation.rosetta.crawler.exception;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 /**
  * @author Sotatek-HoangNguyen9

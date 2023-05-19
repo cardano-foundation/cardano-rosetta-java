@@ -1,13 +1,13 @@
 package org.cardanofoundation.rosetta.consumer.repository.impl.cached;
 
 import org.cardanofoundation.rosetta.common.entity.SlotLeader;
+import org.cardanofoundation.rosetta.consumer.repository.SlotLeaderRepository;
+import org.cardanofoundation.rosetta.consumer.repository.cached.CachedSlotLeaderRepository;
 import java.util.Optional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.cardanofoundation.rosetta.consumer.repository.SlotLeaderRepository;
-import org.cardanofoundation.rosetta.consumer.repository.cached.CachedSlotLeaderRepository;
 import org.springframework.stereotype.Repository;
 
 @Slf4j

@@ -1,12 +1,25 @@
 package org.cardanofoundation.rosetta.crawler.service;
 
-import org.cardanofoundation.rosetta.crawler.projection.BlockDto;
+import java.util.List;
+import org.cardanofoundation.rosetta.crawler.model.rest.AccountBalanceResponse;
+import org.cardanofoundation.rosetta.crawler.model.rest.Currency;
+import org.cardanofoundation.rosetta.crawler.projection.dto.BlockDto;
+import org.cardanofoundation.rosetta.crawler.projection.dto.BlockUtxos;
 import org.cardanofoundation.rosetta.crawler.projection.GenesisBlockDto;
+
 
 public interface BlockService {
 
-    BlockDto findBlock(Long number, String hash);
-    BlockDto getLatestBlock();
+  AccountBalanceResponse findBalanceDataByAddressAndBlock(String address,
+      Long number,
+      String hash);
 
-    GenesisBlockDto getGenesisBlock();
+  BlockUtxos findCoinsDataByAddress(String accountAddress, List<Currency> currenciesRequested);
+
+  BlockDto findBlock(Long number, String hash);
+
+  BlockDto getLatestBlock();
+
+  GenesisBlockDto getGenesisBlock();
+
 }

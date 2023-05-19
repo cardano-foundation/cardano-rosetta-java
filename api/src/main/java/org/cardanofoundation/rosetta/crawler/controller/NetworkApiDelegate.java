@@ -4,8 +4,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import java.io.IOException;
-import org.cardanofoundation.rosetta.crawler.exception.ServerException;
 import org.cardanofoundation.rosetta.crawler.model.rest.MetadataRequest;
 import org.cardanofoundation.rosetta.crawler.model.rest.NetworkListResponse;
 import org.cardanofoundation.rosetta.crawler.model.rest.NetworkOptionsResponse;
@@ -68,6 +66,5 @@ public interface NetworkApiDelegate {
           produces = { "application/json;charset=utf-8" },
           consumes = { "application/json;charset=utf-8" }
   )
-  ResponseEntity<NetworkStatusResponse> networkStatus(NetworkRequest networkRequest)
-      throws ServerException, IOException;
+  ResponseEntity<NetworkStatusResponse> networkStatus(NetworkRequest networkRequest);
 }

@@ -17,7 +17,7 @@ public interface MultiAssetService {
    * @param successTxs success txs collection
    * @param txMap a map with key is tx hash and value is the respective tx entity
    */
-  void handleMultiAssetMint(Collection<AggregatedTx> successTxs, Map<byte[], Tx> txMap);
+  void handleMultiAssetMint(Collection<AggregatedTx> successTxs, Map<String, Tx> txMap);
 
   /**
    * Update multi asset tx outs' idents (ident is the associated multi asset entity)

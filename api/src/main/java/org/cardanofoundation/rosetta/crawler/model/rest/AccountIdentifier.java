@@ -1,9 +1,12 @@
 package org.cardanofoundation.rosetta.crawler.model.rest;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.*;
-
 import java.util.Map;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.openapitools.client.model.SubAccountIdentifier;
 
 /**
@@ -16,12 +19,13 @@ import org.openapitools.client.model.SubAccountIdentifier;
 @AllArgsConstructor
 @Builder
 public class AccountIdentifier {
-    @JsonProperty("address")
-    private String address;
 
-    @JsonProperty("sub_account")
-    private SubAccountIdentifier subAccount;
+  @JsonProperty("address")
+  private String address;
 
-    @JsonProperty("metadata")
-    private Map<String, String> metadata;
+  @JsonProperty("sub_account")
+  private SubAccountIdentifier subAccount;
+
+  @JsonProperty("metadata")
+  private Map<String, String> metadata;
 }

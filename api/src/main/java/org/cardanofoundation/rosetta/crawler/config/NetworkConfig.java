@@ -7,6 +7,7 @@ import org.cardanofoundation.rosetta.crawler.util.CardanoNetworks;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
+
 @Data
 @NoArgsConstructor
 @Configuration

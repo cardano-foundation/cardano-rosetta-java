@@ -57,11 +57,11 @@ public class InMemoryCachedEntities {
 
   Map<String, SlotLeader> slotLeaderMap; // Key is slot leader hash
   Map<Integer, Epoch> epochMap; // Key is epoch number
-  Map<byte[], Block> blockMap; // Key is block hash
-  Map<byte[], Tx> txMap; // Key is txHash
+  Map<String, Block> blockMap; // Key is block hash
+  Map<String, Tx> txMap; // Key is txHash
   Queue<TxIn> txIns;
   List<ReferenceTxIn> referenceTxIns;
-  Map<Pair<byte[], Short>, TxOut> txOutMap; // Key is a pair of txHash and index
+  Map<Pair<String, Short>, TxOut> txOutMap; // Key is a pair of txHash and index
   Map<String, StakeAddress> stakeAddressMap; // Key is stake address hash (stake reference)
   Map<String, PoolHash> poolHashMap; // Key is raw hash
   Set<PoolMetadataRef> poolMetadataRefs;
@@ -78,7 +78,7 @@ public class InMemoryCachedEntities {
   Map<String, Script> scriptMap; // Key is script hash
   Map<String, Datum> datumMap; // Key is datum hash
   Map<String, MultiAsset> multiAssetMap; // Key is fingerprint
-  Map<Pair<byte[], Short>, Queue<MaTxOut>> maTxOutMap; // Key is a pair of txHash and index
+  Map<Pair<String, Short>, Queue<MaTxOut>> maTxOutMap; // Key is a pair of txHash and index
   List<MaTxMint> maTxMints;
   Map<String, ExtraKeyWitness> extraKeyWitnessMap; // Key is hash
   List<Redeemer> redeemers;

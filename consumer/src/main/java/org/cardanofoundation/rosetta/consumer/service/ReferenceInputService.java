@@ -19,5 +19,5 @@ public interface ReferenceInputService {
    * @return                 a list of handled reference input entities
    */
   List<ReferenceTxIn> handleReferenceInputs(
-      Map<byte[], Set<AggregatedTxIn>> referenceTxInMap, Map<byte[], Tx> txMap);
+      Map<String, Set<AggregatedTxIn>> referenceTxInMap, Map<String, Tx> txMap);
 }

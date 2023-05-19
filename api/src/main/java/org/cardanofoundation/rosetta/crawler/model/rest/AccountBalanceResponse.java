@@ -1,12 +1,11 @@
 package org.cardanofoundation.rosetta.crawler.model.rest;
 
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.util.List;
-import org.cardanofoundation.rosetta.common.ledgersync.Amount;
+import org.openapitools.client.model.Amount;
 
 /**
  * @author Sotatek-HoangNguyen9
@@ -17,8 +16,9 @@ import org.cardanofoundation.rosetta.common.ledgersync.Amount;
 @AllArgsConstructor
 @Builder
 public class AccountBalanceResponse {
-    BlockIdentifier blockIdentifier;
-    List<Amount> balances;
-    Object metadata;
+
+  BlockIdentifier blockIdentifier;
+  List<Amount> balances;
+  Object metadata;
 
 }

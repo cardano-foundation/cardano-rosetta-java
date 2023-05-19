@@ -6,23 +6,24 @@ import java.math.BigDecimal;
  * A Projection for the {@link org.openapitools.entity.EpochParam} entity
  */
 public interface EpochParamProjection {
-    BigDecimal getCoinsPerUtxoSize();
 
-    BigDecimal getKeyDeposit();
+  BigDecimal getCoinsPerUtxoSize();
 
-    Integer getMaxCollateralInputs();
+  Integer getMaxTxSize();
 
-    Integer getMaxTxSize();
+  BigDecimal getMaxValSize();
 
-    BigDecimal getMaxValSize();
+  BigDecimal getKeyDeposit();
 
-    Integer getMinFeeA();
+  Integer getMaxCollateralInputs();
 
-    Integer getMinFeeB();
+  Integer getMinFeeA();
 
-    BigDecimal getMinPoolCost();
+  Integer getMinFeeB();
 
-    BigDecimal getPoolDeposit();
+  BigDecimal getMinPoolCost();
 
-    Integer getProtocolMajor();
+  BigDecimal getPoolDeposit();
+
+  Integer getProtocolMajor();
 }

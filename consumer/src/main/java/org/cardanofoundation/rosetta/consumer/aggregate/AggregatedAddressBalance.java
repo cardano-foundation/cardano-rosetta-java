@@ -18,10 +18,10 @@ public class AggregatedAddressBalance {
   AggregatedAddress address;
 
   // Key is tx hash
-  Map<byte[], AtomicReference<BigInteger>> txNativeBalance;
+  Map<String, AtomicReference<BigInteger>> txNativeBalance;
 
   // Key is a pair of tx hash and fingerprint
-  Map<Pair<byte[], String>, AtomicReference<BigInteger>> maBalances;
+  Map<Pair<String, String>, AtomicReference<BigInteger>> maBalances;
 
   public static AggregatedAddressBalance from(String address) {
     AggregatedAddress aggregatedAddress = AggregatedAddress.from(address);
@@ -37,7 +37,7 @@ public class AggregatedAddressBalance {
    * The non-conditional for block uses compare-and-swap technique for atomic calculation
    * Reference: https://en.wikipedia.org/wiki/Compare-and-swap
    */
-  public void addNativeBalance(byte[] txHash, BigInteger balance) {
+  public void addNativeBalance(String txHash, BigInteger balance) {
     AtomicReference<BigInteger> nativeBalanceReference = txNativeBalance
         .computeIfAbsent(txHash, s -> new AtomicReference<>(BigInteger.ZERO));
     for (; ; ) {
@@ -48,7 +48,7 @@ public class AggregatedAddressBalance {
     }
   }
 
-  public void subtractNativeBalance(byte[] txHash, BigInteger balance) {
+  public void subtractNativeBalance(String txHash, BigInteger balance) {
     AtomicReference<BigInteger> nativeBalanceReference = txNativeBalance
         .computeIfAbsent(txHash, s -> new AtomicReference<>(BigInteger.ZERO));
     for (; ; ) {
@@ -59,8 +59,8 @@ public class AggregatedAddressBalance {
     }
   }
 
-  public void addAssetBalance(byte[] txHash, String fingerprint, BigInteger assetBalance) {
-    Pair<byte[], String> key = Pair.of(txHash, fingerprint);
+  public void addAssetBalance(String txHash, String fingerprint, BigInteger assetBalance) {
+    Pair<String, String> key = Pair.of(txHash, fingerprint);
     AtomicReference<BigInteger> maBalanceReference = maBalances
         .computeIfAbsent(key, s -> new AtomicReference<>(BigInteger.ZERO));
     for (; ; ) {
@@ -71,8 +71,8 @@ public class AggregatedAddressBalance {
     }
   }
 
-  public void subtractAssetBalance(byte[] txHash, String fingerprint, BigInteger assetBalance) {
-    Pair<byte[], String> key = Pair.of(txHash, fingerprint);
+  public void subtractAssetBalance(String txHash, String fingerprint, BigInteger assetBalance) {
+    Pair<String, String> key = Pair.of(txHash, fingerprint);
     AtomicReference<BigInteger> maBalanceReference = maBalances
         .computeIfAbsent(key, s -> new AtomicReference<>(BigInteger.ZERO));
     for (; ; ) {

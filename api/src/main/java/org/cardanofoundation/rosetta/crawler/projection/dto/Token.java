@@ -1,4 +1,4 @@
-package org.cardanofoundation.rosetta.crawler.projection;
+package org.cardanofoundation.rosetta.crawler.projection.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,9 +9,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class GenesisBlockDto {
-    private String hash;
-    private Long number;
+public class Token {
 
-
+  private String name;
+  private String quantity;
 }
