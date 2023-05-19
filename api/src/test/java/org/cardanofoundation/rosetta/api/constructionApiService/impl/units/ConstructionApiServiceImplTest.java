@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 import com.bloxbean.cardano.client.exception.CborSerializationException;
-import org.cardanofoundation.rosetta.crawler.construction.data.repository.BlockRepository;
 import org.cardanofoundation.rosetta.crawler.construction.data.type.AddressType;
 import org.cardanofoundation.rosetta.crawler.construction.data.type.NetworkIdentifierType;
 import org.cardanofoundation.rosetta.crawler.model.ConstructionDeriveRequestMetadata;
@@ -14,6 +13,7 @@ import org.cardanofoundation.rosetta.crawler.model.rest.ConstructionDeriveReques
 import org.cardanofoundation.rosetta.crawler.model.rest.ConstructionDeriveResponse;
 import org.cardanofoundation.rosetta.crawler.model.rest.NetworkIdentifier;
 
+import org.cardanofoundation.rosetta.crawler.repository.BlockRepository;
 import org.cardanofoundation.rosetta.crawler.service.construction.CardanoService;
 import org.cardanofoundation.rosetta.crawler.service.construction.impl.ConstructionApiServiceImpl;
 import org.junit.jupiter.api.Test;
@@ -41,7 +41,7 @@ class ConstructionApiServiceImplTest {
 
     //prepare data
     ConstructionDeriveRequest constructionDeriveRequest = new ConstructionDeriveRequest();
-    NetworkIdentifier networkIdentifier = new NetworkIdentifier("cardano", "mainnet");
+    NetworkIdentifier networkIdentifier = new NetworkIdentifier("cardano", "mainnet", null);
     PublicKey publicKey = new PublicKey("hex_bytes", "curve_type");
     ConstructionDeriveRequestMetadata metadata = new ConstructionDeriveRequestMetadata(
         new PublicKey("staking_credential_hex_bytes", "curve_type"),
@@ -75,7 +75,7 @@ class ConstructionApiServiceImplTest {
   void test_throw_exception_when_public_key_invalid() {
     //prepare data
     ConstructionDeriveRequest constructionDeriveRequest = new ConstructionDeriveRequest();
-    NetworkIdentifier networkIdentifier = new NetworkIdentifier("cardano", "mainnet");
+    NetworkIdentifier networkIdentifier = new NetworkIdentifier("cardano", "mainnet", null);
     PublicKey publicKey = new PublicKey("hex_bytes", "curve_type");
     ConstructionDeriveRequestMetadata metadata = new ConstructionDeriveRequestMetadata(
         new PublicKey("staking_credential_hex_bytes", "curve_type"),
@@ -97,7 +97,7 @@ class ConstructionApiServiceImplTest {
   void test_throw_exception_when_staking_credential_invalid() {
     //prepare data
     ConstructionDeriveRequest constructionDeriveRequest = new ConstructionDeriveRequest();
-    NetworkIdentifier networkIdentifier = new NetworkIdentifier("cardano", "mainnet");
+    NetworkIdentifier networkIdentifier = new NetworkIdentifier("cardano", "mainnet", null);
     PublicKey publicKey = new PublicKey("hex_bytes", "curve_type");
     ConstructionDeriveRequestMetadata metadata = new ConstructionDeriveRequestMetadata(
         new PublicKey("staking_credential_hex_bytes", "curve_type"),
@@ -121,7 +121,7 @@ class ConstructionApiServiceImplTest {
   void test_throw_exception_when_address_type_invalid() {
     //prepare data
     ConstructionDeriveRequest constructionDeriveRequest = new ConstructionDeriveRequest();
-    NetworkIdentifier networkIdentifier = new NetworkIdentifier("cardano", "mainnet");
+    NetworkIdentifier networkIdentifier = new NetworkIdentifier("cardano", "mainnet", null);
     PublicKey publicKey = new PublicKey("hex_bytes", "curve_type");
     ConstructionDeriveRequestMetadata metadata = new ConstructionDeriveRequestMetadata(
         new PublicKey("staking_credential_hex_bytes", "curve_type"),
