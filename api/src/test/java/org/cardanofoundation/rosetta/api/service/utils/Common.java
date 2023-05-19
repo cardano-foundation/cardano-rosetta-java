@@ -1,7 +1,7 @@
 package org.cardanofoundation.rosetta.api.service.utils;
 
-import org.cardanofoundation.rosetta.crawler.model.rest.NetworkIdentifier;
-import org.cardanofoundation.rosetta.crawler.model.rest.NetworkRequest;
+import org.cardanofoundation.rosetta.api.model.rest.NetworkIdentifier;
+import org.cardanofoundation.rosetta.api.model.rest.NetworkRequest;
 
 public class Common {
   public static NetworkRequest generateNetworkPayload(String blockchain , String network){
