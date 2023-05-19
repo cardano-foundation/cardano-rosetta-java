@@ -1,6 +1,7 @@
 package org.cardanofoundation.rosetta.common.entity;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.ConstraintMode;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.ForeignKey;
@@ -74,9 +75,8 @@ public class AdaPots extends BaseEntity {
   private BigInteger fees;
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
-  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "block_id", nullable = false, unique = true,
-      foreignKey = @ForeignKey(name = "ada_pots_block_id_fkey"))
+      foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "none"))
   @EqualsAndHashCode.Exclude
   private Block block;
 

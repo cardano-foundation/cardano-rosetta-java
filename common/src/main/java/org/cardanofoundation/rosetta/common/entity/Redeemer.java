@@ -1,5 +1,6 @@
 package org.cardanofoundation.rosetta.common.entity;
 
+import jakarta.persistence.ConstraintMode;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.util.Objects;
@@ -40,9 +41,8 @@ import org.hibernate.annotations.OnDeleteAction;
 public class Redeemer extends BaseEntity {
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
-  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "tx_id", nullable = false,
-      foreignKey = @ForeignKey(name = "redeemer_tx_id_fkey"))
+      foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "none"))
   @EqualsAndHashCode.Exclude
   private Tx tx;
 
@@ -71,9 +71,8 @@ public class Redeemer extends BaseEntity {
   private String scriptHash;
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
-  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "redeemer_data_id", nullable = false,
-      foreignKey = @ForeignKey(name = "redeemer_redeemer_data_id_fkey"))
+      foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "none"))
   @EqualsAndHashCode.Exclude
   private RedeemerData redeemerData;
   @Override

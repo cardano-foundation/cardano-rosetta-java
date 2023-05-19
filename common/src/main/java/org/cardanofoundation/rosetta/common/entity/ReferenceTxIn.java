@@ -1,5 +1,6 @@
 package org.cardanofoundation.rosetta.common.entity;
 
+import jakarta.persistence.ConstraintMode;
 import java.util.Objects;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -33,16 +34,14 @@ import org.hibernate.annotations.OnDeleteAction;
 public class ReferenceTxIn extends BaseEntity {
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
-  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "tx_in_id", nullable = false,
-      foreignKey = @ForeignKey(name = "reference_tx_in_tx_in_id_fkey"))
+      foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "none"))
   @EqualsAndHashCode.Exclude
   private Tx txIn;
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
-  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "tx_out_id", nullable = false,
-      foreignKey = @ForeignKey(name = "reference_tx_in_tx_out_id_fkey"))
+      foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "none"))
   @EqualsAndHashCode.Exclude
   private Tx txOut;
 

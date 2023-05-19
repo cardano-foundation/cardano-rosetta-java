@@ -1,5 +1,6 @@
 package org.cardanofoundation.rosetta.common.entity;
 
+import jakarta.persistence.ConstraintMode;
 import java.math.BigInteger;
 import java.util.Objects;
 import jakarta.persistence.Column;
@@ -36,9 +37,8 @@ import org.hibernate.annotations.OnDeleteAction;
 public class PoolUpdate extends BaseEntity {
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
-  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "hash_id", nullable = false,
-      foreignKey = @ForeignKey(name = "pool_update_hash_id_fkey"))
+      foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "none"))
   @EqualsAndHashCode.Exclude
   private PoolHash poolHash;
 
@@ -58,9 +58,8 @@ public class PoolUpdate extends BaseEntity {
   private BigInteger pledge;
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
-  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "reward_addr_id", nullable = false,
-      foreignKey = @ForeignKey(name = "pool_update_reward_addr_id_fkey"))
+      foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "none"))
   @EqualsAndHashCode.Exclude
   private StakeAddress rewardAddr;
 
@@ -71,9 +70,8 @@ public class PoolUpdate extends BaseEntity {
   private Integer activeEpochNo;
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "meta_id",
-      foreignKey = @ForeignKey(name = "pool_update_meta_id_fkey"))
+      foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "none"))
   @EqualsAndHashCode.Exclude
   private PoolMetadataRef meta;
 
@@ -86,9 +84,8 @@ public class PoolUpdate extends BaseEntity {
   private BigInteger fixedCost;
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
-  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "registered_tx_id", nullable = false,
-      foreignKey = @ForeignKey(name = "pool_update_registered_tx_id_fkey"))
+      foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "none"))
   @EqualsAndHashCode.Exclude
   private Tx registeredTx;
 
