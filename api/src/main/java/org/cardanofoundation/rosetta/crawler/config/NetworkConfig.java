@@ -1,11 +1,10 @@
 package org.cardanofoundation.rosetta.crawler.config;
 
+import java.util.Optional;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.cardanofoundation.rosetta.crawler.util.CardanoNetworks;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-
-import java.util.Optional;
 
 @Data
 @NoArgsConstructor

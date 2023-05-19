@@ -3,16 +3,21 @@ package org.cardanofoundation.rosetta.crawler.service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
-import org.cardanofoundation.rosetta.crawler.config.NetworkConfig;
-import org.cardanofoundation.rosetta.crawler.config.RosettaConfig;
-import org.cardanofoundation.rosetta.crawler.model.rest.*;
-import org.cardanofoundation.rosetta.crawler.util.RosettaConstants;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import org.cardanofoundation.rosetta.crawler.config.NetworkConfig;
+import org.cardanofoundation.rosetta.crawler.config.RosettaConfig;
+import org.cardanofoundation.rosetta.crawler.model.rest.BalanceExemption;
+import org.cardanofoundation.rosetta.crawler.model.rest.MetadataRequest;
+import org.cardanofoundation.rosetta.crawler.model.rest.NetworkIdentifier;
+import org.cardanofoundation.rosetta.crawler.model.rest.NetworkListResponse;
+import org.cardanofoundation.rosetta.crawler.model.rest.NetworkOptionsResponse;
+import org.cardanofoundation.rosetta.crawler.model.rest.NetworkRequest;
+import org.cardanofoundation.rosetta.crawler.model.rest.NetworkStatusResponse;
+import org.cardanofoundation.rosetta.crawler.util.RosettaConstants;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 public class DefaultNetworkService implements NetworkService {

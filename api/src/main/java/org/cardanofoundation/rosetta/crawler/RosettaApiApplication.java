@@ -3,6 +3,7 @@ package org.cardanofoundation.rosetta.crawler;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.info.Info;
 import jakarta.servlet.DispatcherType;
+import java.util.List;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -12,8 +13,6 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.core.Ordered;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.web.filter.ForwardedHeaderFilter;
-
-import java.util.List;
 
 
 @SpringBootApplication
