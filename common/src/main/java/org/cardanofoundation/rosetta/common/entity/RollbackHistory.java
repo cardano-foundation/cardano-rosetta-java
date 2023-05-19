@@ -28,7 +28,7 @@ public class RollbackHistory extends BaseEntity {
       name = "block_hash_start",
       nullable = false
   )
-  private byte[] blockHashStart;
+  private String blockHashStart;
   @Column(
       name = "block_no_end",
       nullable = false
@@ -43,7 +43,7 @@ public class RollbackHistory extends BaseEntity {
       name = "block_hash_end",
       nullable = false
   )
-  private byte[] blockHashEnd;
+  private String blockHashEnd;
   @Column(
       name = "reason"
   )
@@ -93,7 +93,7 @@ public class RollbackHistory extends BaseEntity {
     return this.blockSlotStart;
   }
 
-  public byte[] getBlockHashStart() {
+  public String getBlockHashStart() {
     return this.blockHashStart;
   }
 
@@ -105,7 +105,7 @@ public class RollbackHistory extends BaseEntity {
     return this.blockSlotEnd;
   }
 
-  public byte[] getBlockHashEnd() {
+  public String getBlockHashEnd() {
     return this.blockHashEnd;
   }
 
@@ -129,7 +129,7 @@ public class RollbackHistory extends BaseEntity {
     this.blockSlotStart = blockSlotStart;
   }
 
-  public void setBlockHashStart(final byte[] blockHashStart) {
+  public void setBlockHashStart(final String blockHashStart) {
     this.blockHashStart = blockHashStart;
   }
 
@@ -141,7 +141,7 @@ public class RollbackHistory extends BaseEntity {
     this.blockSlotEnd = blockSlotEnd;
   }
 
-  public void setBlockHashEnd(final byte[] blockHashEnd) {
+  public void setBlockHashEnd(final String blockHashEnd) {
     this.blockHashEnd = blockHashEnd;
   }
 
@@ -160,7 +160,7 @@ public class RollbackHistory extends BaseEntity {
   public RollbackHistory() {
   }
 
-  public RollbackHistory(final Long blockNoStart, final Long blockSlotStart, final byte[] blockHashStart, final Long blockNoEnd, final Long blockSlotEnd, final byte[] blockHashEnd, final String reason, final Timestamp rollbackTime, final BlocksDeletionStatus blocksDeletionStatus) {
+  public RollbackHistory(final Long blockNoStart, final Long blockSlotStart, final String blockHashStart, final Long blockNoEnd, final Long blockSlotEnd, final String blockHashEnd, final String reason, final Timestamp rollbackTime, final BlocksDeletionStatus blocksDeletionStatus) {
     this.blockNoStart = blockNoStart;
     this.blockSlotStart = blockSlotStart;
     this.blockHashStart = blockHashStart;
@@ -188,10 +188,10 @@ public class RollbackHistory extends BaseEntity {
   public abstract static class RollbackHistoryBuilder<C extends RollbackHistory, B extends RollbackHistory.RollbackHistoryBuilder<C, B>> extends BaseEntityBuilder<C, B> {
     private Long blockNoStart;
     private Long blockSlotStart;
-    private byte[] blockHashStart;
+    private String blockHashStart;
     private Long blockNoEnd;
     private Long blockSlotEnd;
-    private byte[] blockHashEnd;
+    private String blockHashEnd;
     private String reason;
     private Timestamp rollbackTime;
     private BlocksDeletionStatus blocksDeletionStatus;
@@ -231,7 +231,7 @@ public class RollbackHistory extends BaseEntity {
       return this.self();
     }
 
-    public B blockHashStart(final byte[] blockHashStart) {
+    public B blockHashStart(final String blockHashStart) {
       this.blockHashStart = blockHashStart;
       return this.self();
     }
@@ -246,7 +246,7 @@ public class RollbackHistory extends BaseEntity {
       return this.self();
     }
 
-    public B blockHashEnd(final byte[] blockHashEnd) {
+    public B blockHashEnd(final String blockHashEnd) {
       this.blockHashEnd = blockHashEnd;
       return this.self();
     }

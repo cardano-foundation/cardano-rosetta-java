@@ -88,7 +88,7 @@ public class TransactionServiceImpl implements TransactionService {
   CertificateSyncServiceFactory certificateSyncServiceFactory;
 
   @Override
-  public Map<byte[], Tx> prepareTxs(Block block, AggregatedBlock aggregatedBlock) {
+  public Map<String, Tx> prepareTxs(Block block, AggregatedBlock aggregatedBlock) {
     List<AggregatedTx> aggregatedTxList = aggregatedBlock.getTxList();
 
     if (CollectionUtils.isEmpty(aggregatedTxList)) {
@@ -147,7 +147,7 @@ public class TransactionServiceImpl implements TransactionService {
   }
 
   @Override
-  public void handleTxs(Map<byte[], Tx> txMap) {
+  public void handleTxs(Map<String, Tx> txMap) {
     Collection<AggregatedTx> successTxs = blockDataService.getSuccessTxs();
     Collection<AggregatedTx> failedTxs = blockDataService.getFailedTxs();
 
@@ -163,7 +163,7 @@ public class TransactionServiceImpl implements TransactionService {
   }
 
   private void handleTxContents(Collection<AggregatedTx> successTxs,
-      Collection<AggregatedTx> failedTxs, Map<byte[], Tx> txMap) {
+      Collection<AggregatedTx> failedTxs, Map<String, Tx> txMap) {
     if (CollectionUtils.isEmpty(successTxs) && CollectionUtils.isEmpty(failedTxs)) {
       return;
     }
@@ -266,13 +266,13 @@ public class TransactionServiceImpl implements TransactionService {
 
   }
 
-  private Map<byte[], Set<AggregatedTxIn>> buildTxInsMap(Collection<AggregatedTx> txList) {
+  private Map<String, Set<AggregatedTxIn>> buildTxInsMap(Collection<AggregatedTx> txList) {
     return txList.stream()
         .collect(Collectors.toConcurrentMap(
             AggregatedTx::getHash, AggregatedTx::getTxInputs, (a, b) -> a));
   }
 
-  private Map<byte[], Set<AggregatedTxIn>> buildCollateralTxInsMap(
+  private Map<String, Set<AggregatedTxIn>> buildCollateralTxInsMap(
       Collection<AggregatedTx> txList) {
     return txList.stream()
         .filter(tx -> !CollectionUtils.isEmpty(tx.getCollateralInputs()))
@@ -280,7 +280,7 @@ public class TransactionServiceImpl implements TransactionService {
             AggregatedTx::getHash, AggregatedTx::getCollateralInputs, (a, b) -> a));
   }
 
-  private Map<byte[], Set<AggregatedTxIn>> buildReferenceTxInsMap(
+  private Map<String, Set<AggregatedTxIn>> buildReferenceTxInsMap(
       Collection<AggregatedTx> txList) {
     return txList.stream()
         .filter(tx -> !CollectionUtils.isEmpty(tx.getReferenceInputs()))
@@ -288,7 +288,7 @@ public class TransactionServiceImpl implements TransactionService {
             AggregatedTx::getHash, AggregatedTx::getReferenceInputs, (a, b) -> a));
   }
 
-  private Map<byte[], List<AggregatedTxOut>> buildAggregatedTxOutMap(
+  private Map<String, List<AggregatedTxOut>> buildAggregatedTxOutMap(
       Collection<AggregatedTx> txList) {
     return txList.stream()
         .filter(tx -> !CollectionUtils.isEmpty(tx.getTxOutputs()))
@@ -296,7 +296,7 @@ public class TransactionServiceImpl implements TransactionService {
             AggregatedTx::getHash, AggregatedTx::getTxOutputs, (a, b) -> a));
   }
 
-  private Map<byte[], List<AggregatedTxOut>> buildCollateralTxOutMap(
+  private Map<String, List<AggregatedTxOut>> buildCollateralTxOutMap(
       Collection<AggregatedTx> txList) {
     return txList.stream()
         .filter(tx -> Objects.nonNull(tx.getCollateralReturn()))
@@ -307,7 +307,7 @@ public class TransactionServiceImpl implements TransactionService {
   }
 
   private void handleCertificates(Collection<AggregatedTx> successTxs,
-      Map<byte[], Tx> txMap, Map<RedeemerReference<?>, Redeemer> redeemersMap) {
+      Map<String, Tx> txMap, Map<RedeemerReference<?>, Redeemer> redeemersMap) {
     successTxs.forEach(aggregatedTx -> {
       Tx tx = txMap.get(aggregatedTx.getHash());
       if (CollectionUtils.isEmpty(aggregatedTx.getCertificates())) {
@@ -329,7 +329,7 @@ public class TransactionServiceImpl implements TransactionService {
   }
 
   public void handleExtraKeyWitnesses(Collection<AggregatedTx> successTxs,
-      Collection<AggregatedTx> failedTxs, Map<byte[], Tx> txMap) {
+      Collection<AggregatedTx> failedTxs, Map<String, Tx> txMap) {
 
     Map<String, Tx> mWitnessTx = new ConcurrentHashMap<>();
     Set<String> hashCollection = new ConcurrentSkipListSet<>();

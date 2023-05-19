@@ -4,15 +4,12 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
-import java.sql.Timestamp;
 import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
-import org.cardanofoundation.rosetta.common.validation.Asset32Type;
-import org.cardanofoundation.rosetta.common.validation.Hash28Type;
 import org.hibernate.Hibernate;
 
 @Entity
@@ -28,13 +25,10 @@ import org.hibernate.Hibernate;
 public class MultiAsset extends BaseEntity {
 
   @Column(name = "policy", nullable = false, length = 56)
-  @Hash28Type
-  private byte[] policy;
+  private String policy;
 
   @Column(name = "name", nullable = false, length = 64)
-  @Asset32Type
-//  @Convert(converter = ByteConverter.class)
-  private byte[] name;
+  private String name;
 
   @Column(name = "fingerprint", nullable = false)
   private String fingerprint;

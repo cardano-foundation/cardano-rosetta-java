@@ -4,7 +4,7 @@ public interface ByronHead<T, S, U> {
 
   long getProtocolMagic();
 
-  byte[] getBlockHash();
+  String getBlockHash();
 
   String getPrevBlock();
 

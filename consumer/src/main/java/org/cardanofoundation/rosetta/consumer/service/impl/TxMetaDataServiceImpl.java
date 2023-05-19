@@ -35,7 +35,7 @@ public class TxMetaDataServiceImpl implements TxMetaDataService {
   private final ObjectMapper mapper;
 
   @Override
-  public List<TxMetadata> handleAuxiliaryDataMaps(Map<byte[], Tx> txMap) {
+  public List<TxMetadata> handleAuxiliaryDataMaps(Map<String, Tx> txMap) {
     List<TxMetadata> txMetadataList = new ArrayList<>();
 
     blockDataService.forEachAggregatedBlock(aggregatedBlock -> {
@@ -50,7 +50,7 @@ public class TxMetaDataServiceImpl implements TxMetaDataService {
           .flatMap(aggregatedTx -> {
             int txIndex = (int) aggregatedTx.getBlockIndex();
             AuxData auxData = auxiliaryDataMap.get(txIndex);
-            byte[] txHash = aggregatedTx.getHash();
+            String txHash = aggregatedTx.getHash();
             Tx tx = txMap.get(txHash);
 
             return handleAuxiliaryData(auxData, tx).stream();

@@ -99,7 +99,7 @@ public class CachedTxOutRepositoryImpl implements CachedTxOutRepository {
 
   @Override
   public TxOut save(TxOut entity) {
-    Pair<byte[], Short> txHashIndexPair = Pair.of(entity.getTx().getHash(), entity.getIndex());
+    Pair<String, Short> txHashIndexPair = Pair.of(entity.getTx().getHash(), entity.getIndex());
     inMemoryCachedEntities.getTxOutMap().put(txHashIndexPair, entity);
     return entity;
   }
@@ -107,7 +107,7 @@ public class CachedTxOutRepositoryImpl implements CachedTxOutRepository {
   @Override
   public List<TxOut> saveAll(Collection<TxOut> entities) {
     entities.forEach(txOut -> {
-      Pair<byte[], Short> txHashIndexPair = Pair.of(txOut.getTx().getHash(), txOut.getIndex());
+      Pair<String, Short> txHashIndexPair = Pair.of(txOut.getTx().getHash(), txOut.getIndex());
       inMemoryCachedEntities.getTxOutMap().put(txHashIndexPair, txOut);
     });
 

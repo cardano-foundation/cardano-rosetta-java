@@ -1,6 +1,7 @@
 package org.cardanofoundation.rosetta.consumer.service.impl;
 
 import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedAddress;
+import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedTx;
 import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedTxIn;
 import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedTxOut;
 import org.cardanofoundation.rosetta.common.entity.Datum;
@@ -10,6 +11,7 @@ import org.cardanofoundation.rosetta.common.entity.StakeAddress;
 import org.cardanofoundation.rosetta.common.entity.Tx;
 import org.cardanofoundation.rosetta.common.entity.TxOut;
 import org.cardanofoundation.rosetta.common.entity.TxOut.TxOutBuilder;
+import org.cardanofoundation.rosetta.common.enumeration.TokenType;
 import org.cardanofoundation.rosetta.consumer.dto.TransactionOutMultiAssets;
 import org.cardanofoundation.rosetta.common.ledgersync.constant.Constant;
 import org.cardanofoundation.rosetta.consumer.repository.cached.CachedMultiAssetTxOutRepository;
@@ -20,6 +22,7 @@ import org.cardanofoundation.rosetta.consumer.service.ScriptService;
 import org.cardanofoundation.rosetta.consumer.service.StakeAddressService;
 import org.cardanofoundation.rosetta.consumer.service.TxOutService;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -34,6 +37,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.util.Pair;
@@ -74,7 +78,7 @@ public class TxOutServiceImpl implements TxOutService {
 
   @Override
   public Collection<TxOut> prepareTxOuts(
-      Map<byte[], List<AggregatedTxOut>> aggregatedTxOutMap, Map<byte[], Tx> txMap) {
+      Map<String, List<AggregatedTxOut>> aggregatedTxOutMap, Map<String, Tx> txMap) {
     if (CollectionUtils.isEmpty(aggregatedTxOutMap)) {
       return Collections.emptyList();
     }
@@ -84,7 +88,7 @@ public class TxOutServiceImpl implements TxOutService {
 
     Queue<TransactionOutMultiAssets> txOutAndMas = new ConcurrentLinkedQueue<>();
     aggregatedTxOutMap.entrySet().parallelStream().forEach(entry -> {
-      byte[] txHash = entry.getKey();
+      String txHash = entry.getKey();
       Tx tx = txMap.get(txHash);
       var txOutputs = entry.getValue();
 

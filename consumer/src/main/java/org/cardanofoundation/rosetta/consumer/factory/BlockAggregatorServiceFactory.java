@@ -1,11 +1,11 @@
 package org.cardanofoundation.rosetta.consumer.factory;
 
+import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedBlock;
 import org.cardanofoundation.rosetta.common.ledgersync.kafka.CommonBlock;
+import org.cardanofoundation.rosetta.consumer.service.BlockAggregatorService;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedBlock;
-import org.cardanofoundation.rosetta.consumer.service.BlockAggregatorService;
 import org.springframework.stereotype.Component;
 
 @Component

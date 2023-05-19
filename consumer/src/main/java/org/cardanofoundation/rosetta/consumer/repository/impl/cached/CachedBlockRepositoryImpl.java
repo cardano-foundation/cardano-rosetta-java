@@ -32,7 +32,7 @@ public class CachedBlockRepositoryImpl implements CachedBlockRepository {
   }
 
   @Override
-  public Boolean existsBlockByHash(byte[] hash) {
+  public Boolean existsBlockByHash(String hash) {
     if (inMemoryCachedEntities.getBlockMap().containsKey(hash)) {
       return true;
     }

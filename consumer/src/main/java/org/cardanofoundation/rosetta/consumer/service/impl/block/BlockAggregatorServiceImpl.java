@@ -167,7 +167,7 @@ public class BlockAggregatorServiceImpl extends BlockAggregatorService<Block> {
    * @param network       network magic of this tx
    */
   private void mapStakeAddressToTxHash(AggregatedTx aggregatedTx, int network) {
-    byte[] txHash = aggregatedTx.getHash();
+    String txHash = aggregatedTx.getHash();
 
     // From txOutputs and collateral return
     List<AggregatedTxOut> txOutputs = aggregatedTx.getTxOutputs();
@@ -209,7 +209,7 @@ public class BlockAggregatorServiceImpl extends BlockAggregatorService<Block> {
    * @param certificate   certificate in process
    */
   private void mapCertificateStakeAddressToTxHash(
-      int network, byte[] txHash, Certificate certificate) {
+      int network, String txHash, Certificate certificate) {
     CertType certType = certificate.getCertType();
     switch (certType) {
       case MOVE_INSTATANEOUS:
@@ -276,7 +276,7 @@ public class BlockAggregatorServiceImpl extends BlockAggregatorService<Block> {
    * @param witnesses         currently processing tx's witnesses data
    * @return                  aggregated tx object
    */
-  private AggregatedTx txToAggregatedTx(byte[] blockHash, boolean validContract,
+  private AggregatedTx txToAggregatedTx(String blockHash, boolean validContract,
       int idx, TransactionBody transactionBody, Witnesses witnesses) {
     AggregatedTxBuilder aggregatedTxBuilder = AggregatedTx.builder();
 

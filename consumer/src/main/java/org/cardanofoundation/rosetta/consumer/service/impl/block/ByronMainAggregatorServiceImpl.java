@@ -107,7 +107,7 @@ public class ByronMainAggregatorServiceImpl extends BlockAggregatorService<Byron
    * @param txPayload         transformed CDDL tx data
    * @return                  aggregated tx object
    */
-  private AggregatedTx txToAggregatedTx(byte[] blockHash, int idx, ByronTxPayload txPayload) {
+  private AggregatedTx txToAggregatedTx(String blockHash, int idx, ByronTxPayload txPayload) {
     ByronTx byronTx = txPayload.getTransaction();
     AggregatedTxBuilder aggregatedTxBuilder = AggregatedTx.builder();
 

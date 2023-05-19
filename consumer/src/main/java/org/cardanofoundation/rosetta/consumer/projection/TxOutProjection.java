@@ -11,7 +11,7 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class TxOutProjection {
   Long id;
-  byte[] txHash;
+  String txHash;
   Long txId;
   Short index;
   BigInteger value;

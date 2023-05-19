@@ -7,7 +7,7 @@ public interface CachedBlockRepository extends BaseCachedRepository<Block> {
 
   Optional<Block> findBlockByHash(String hash);
 
-  Boolean existsBlockByHash(byte[] hash);
+  Boolean existsBlockByHash(String hash);
 
   Optional<Block> findFirstByEpochNo(Integer epochNo);
 

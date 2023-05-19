@@ -30,6 +30,6 @@ public interface TxInService {
    *   </li>
    * </ul>
    */
-  void handleTxIns(Collection<AggregatedTx> txs, Map<byte[], Set<AggregatedTxIn>> txInMap,
-      Map<byte[], Tx> txMap, Map<RedeemerReference<?>, Redeemer> redeemersMap);
+  void handleTxIns(Collection<AggregatedTx> txs, Map<String, Set<AggregatedTxIn>> txInMap,
+      Map<String, Tx> txMap, Map<RedeemerReference<?>, Redeemer> redeemersMap);
 }

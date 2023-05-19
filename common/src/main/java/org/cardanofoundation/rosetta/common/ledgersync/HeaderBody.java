@@ -27,7 +27,7 @@ public class HeaderBody {
   private String blockBodyHash;
   private ProtocolVersion protocolVersion;
   //Derived value
-  private byte[] blockHash;
+  private String blockHash;
   private OperationalCert operationalCert;
 }
 

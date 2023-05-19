@@ -1,8 +1,10 @@
 package org.cardanofoundation.rosetta.consumer.service.impl;
 
 import com.bloxbean.cardano.client.util.HexUtil;
+import org.cardanofoundation.rosetta.common.util.AssetUtil;
 import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedTx;
 import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedTxOut;
+import org.cardanofoundation.rosetta.common.entity.BaseEntity;
 import org.cardanofoundation.rosetta.common.entity.MaTxMint;
 import org.cardanofoundation.rosetta.common.entity.MaTxOut;
 import org.cardanofoundation.rosetta.common.entity.MultiAsset;
@@ -10,11 +12,16 @@ import org.cardanofoundation.rosetta.common.entity.Tx;
 import org.cardanofoundation.rosetta.common.entity.TxOut;
 import org.cardanofoundation.rosetta.common.ledgersync.Amount;
 import org.cardanofoundation.rosetta.common.ledgersync.constant.Constant;
-import org.cardanofoundation.rosetta.common.util.AssetUtil;
+import org.cardanofoundation.rosetta.consumer.projection.MaTxMintProjection;
+import org.cardanofoundation.rosetta.consumer.projection.MultiAssetTotalVolumeProjection;
+import org.cardanofoundation.rosetta.consumer.projection.MultiAssetTxCountProjection;
+import org.cardanofoundation.rosetta.consumer.repository.MaTxMintRepository;
+import org.cardanofoundation.rosetta.consumer.repository.MultiAssetRepository;
 import org.cardanofoundation.rosetta.consumer.repository.cached.CachedMaTxMintRepository;
 import org.cardanofoundation.rosetta.consumer.repository.cached.CachedMultiAssetRepository;
 import org.cardanofoundation.rosetta.consumer.service.BlockDataService;
 import org.cardanofoundation.rosetta.consumer.service.MultiAssetService;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -32,6 +39,7 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -42,15 +50,19 @@ import org.springframework.util.MultiValueMap;
 @Service
 public class MultiAssetServiceImpl implements MultiAssetService {
 
+  private static final long INITIAL_TX_COUNT = 0L;
   private static final String EMPTY_STRING = "";
 
   CachedMultiAssetRepository cachedMultiAssetRepository;
   CachedMaTxMintRepository cachedMaTxMintRepository;
 
+  MaTxMintRepository maTxMintRepository;
+  MultiAssetRepository multiAssetRepository;
+
   BlockDataService blockDataService;
 
   @Override
-  public void handleMultiAssetMint(Collection<AggregatedTx> successTxs, Map<byte[], Tx> txMap) {
+  public void handleMultiAssetMint(Collection<AggregatedTx> successTxs, Map<String, Tx> txMap) {
     List<AggregatedTx> txWithMintAssetsList = successTxs.stream()
         .filter(aggregatedTx -> !CollectionUtils.isEmpty(aggregatedTx.getMint()))
         .collect(Collectors.toList());
@@ -68,7 +80,7 @@ public class MultiAssetServiceImpl implements MultiAssetService {
      * Get all existing minted assets, creating a map with key is a pair of asset's name
      * and policy id, and key is the associated asset entity
      */
-    Map<Pair<byte[], byte[]>, MultiAsset> mintAssetsExists = cachedMultiAssetRepository
+    Map<Pair<String, String>, MultiAsset> mintAssetsExists = cachedMultiAssetRepository
         .findMultiAssetsByFingerprintIn(fingerprints)
         .stream()
         .collect(Collectors.toMap(
@@ -88,13 +100,17 @@ public class MultiAssetServiceImpl implements MultiAssetService {
 
         // Get asset entity from minted existing asset map. If not exists, create a new one
         var ma = getMultiAssetByPolicyAndNameFromList(tx, mintAssetsExists,
-            HexUtil.decodeHexString(amount.getPolicyId()), HexUtil.decodeHexString(Objects.isNull(assetName) ? EMPTY_STRING : assetName));
+            amount.getPolicyId(), Objects.isNull(assetName) ? EMPTY_STRING : assetName);
+
         // Build a new asset mint entity
         MaTxMint maTxMint = MaTxMint.builder()
             .tx(tx)
             .ident(ma)
             .quantity(amount.getQuantity())
             .build();
+
+        // If this asset is new, add it to existing mint assets map for future searches
+        mintAssetsExists.put(Pair.of(ma.getName(), ma.getPolicy()), ma);
         maNeedSave.add(ma);
         maTxMints.add(maTxMint);
       });
@@ -105,14 +121,14 @@ public class MultiAssetServiceImpl implements MultiAssetService {
   }
 
   private MultiAsset getMultiAssetByPolicyAndNameFromList(Tx tx,
-      Map<Pair<byte[], byte[]>, MultiAsset> multiAssetMap, byte[] policy, byte[] name) {
+      Map<Pair<String, String>, MultiAsset> multiAssetMap, String policy, String name) {
     MultiAsset multiAsset = multiAssetMap.get(Pair.of(name, policy));
     if (Objects.isNull(multiAsset)) {
       /*
        * This asset has not been minted before so mark its first appearance at current tx's
        * index and block number
        */
-      String fingerPrint = AssetUtil.getFingerPrint(name, HexUtil.encodeHexString(policy));
+      String fingerPrint = AssetUtil.getFingerPrint(HexUtil.decodeHexString(name), policy);
       blockDataService.setFingerprintFirstAppearedBlockNoAndTxIdx(
           fingerPrint, tx.getBlock().getBlockNo(), tx.getBlockIndex());
 

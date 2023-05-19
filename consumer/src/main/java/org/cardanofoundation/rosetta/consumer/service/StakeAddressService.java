@@ -23,5 +23,5 @@ public interface StakeAddressService {
    *                               respective tx entity
    */
   void handleStakeAddressesFromTxs(
-      Map<String, byte[]> stakeAddressTxHashMap, Map<byte[], Tx> txMap);
+      Map<String, String> stakeAddressTxHashMap, Map<String, Tx> txMap);
 }

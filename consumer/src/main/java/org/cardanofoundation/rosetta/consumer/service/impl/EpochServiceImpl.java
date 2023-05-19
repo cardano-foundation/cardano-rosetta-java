@@ -1,16 +1,17 @@
 package org.cardanofoundation.rosetta.consumer.service.impl;
 
-import org.cardanofoundation.rosetta.common.enumeration.EraType;
 import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedBlock;
 import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedTx;
 import org.cardanofoundation.rosetta.common.entity.Block;
 import org.cardanofoundation.rosetta.common.entity.Epoch;
 import org.cardanofoundation.rosetta.common.entity.Tx;
+import org.cardanofoundation.rosetta.common.enumeration.EraType;
 import org.cardanofoundation.rosetta.consumer.constant.ConsumerConstant;
 import org.cardanofoundation.rosetta.common.ledgersync.Era;
 import org.cardanofoundation.rosetta.consumer.repository.EpochRepository;
 import org.cardanofoundation.rosetta.consumer.repository.TxRepository;
 import org.cardanofoundation.rosetta.consumer.service.EpochService;
+import org.cardanofoundation.rosetta.consumer.service.MultiAssetService;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -35,6 +36,7 @@ public class EpochServiceImpl implements EpochService {
   // Repositories/services for rollback usage
   private final EpochRepository epochRepository;
   private final TxRepository txRepository;
+  private final MultiAssetService multiAssetService;
 
   @Override
   public void handleEpoch(AggregatedBlock aggregatedBlock) {
@@ -77,7 +79,7 @@ public class EpochServiceImpl implements EpochService {
   public void rollbackEpochStats(List<Block> rollbackBlocks) {
     var epochNoBlocksMap = rollbackBlocks.stream()
         .collect(Collectors.groupingBy(
-            Block::getEpochNo, Collectors.toSet()));
+            org.cardanofoundation.rosetta.common.entity.Block::getEpochNo, Collectors.toSet()));
     var epochBlocksMap = epochRepository.findAllByNoIn(epochNoBlocksMap.keySet())
         .stream()
         .collect(Collectors.toMap(

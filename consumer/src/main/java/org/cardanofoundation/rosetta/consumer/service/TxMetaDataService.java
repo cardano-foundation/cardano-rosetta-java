@@ -14,5 +14,5 @@ public interface TxMetaDataService {
    * @param txMap a map with key is tx hash and value is the respective tx entity
    * @return      list of handled tx metadata entities
    */
-  List<TxMetadata> handleAuxiliaryDataMaps(Map<byte[], Tx> txMap);
+  List<TxMetadata> handleAuxiliaryDataMaps(Map<String, Tx> txMap);
 }

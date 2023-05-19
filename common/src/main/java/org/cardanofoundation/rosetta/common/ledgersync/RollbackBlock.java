@@ -18,7 +18,7 @@ public class RollbackBlock extends AbstractBlock {
 
   public static final String TYPE = "Rollback Block";
 
-  private byte[] blockRollbackHash;
+  private String blockRollbackHash;
 
   private long blockNo;
   @Override
@@ -27,7 +27,7 @@ public class RollbackBlock extends AbstractBlock {
   }
 
   @Override
-  public byte[] getBlockHash() {
+  public String getBlockHash() {
     return blockRollbackHash;
   }
 
