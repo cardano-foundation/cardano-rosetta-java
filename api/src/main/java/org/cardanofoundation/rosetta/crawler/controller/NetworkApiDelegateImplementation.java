@@ -1,6 +1,8 @@
 package org.cardanofoundation.rosetta.crawler.controller;
 
+import java.io.IOException;
 import lombok.extern.log4j.Log4j2;
+import org.cardanofoundation.rosetta.crawler.exception.ServerException;
 import org.cardanofoundation.rosetta.crawler.model.rest.MetadataRequest;
 import org.cardanofoundation.rosetta.crawler.model.rest.NetworkListResponse;
 import org.cardanofoundation.rosetta.crawler.model.rest.NetworkOptionsResponse;
@@ -31,7 +33,8 @@ public class NetworkApiDelegateImplementation implements NetworkApiDelegate {
     }
 
     @Override
-    public ResponseEntity<NetworkStatusResponse> networkStatus(NetworkRequest networkRequest) {
+    public ResponseEntity<NetworkStatusResponse> networkStatus(NetworkRequest networkRequest)
+        throws ServerException, IOException {
         final NetworkStatusResponse networkStatusResponse = networkService.getNetworkStatus(networkRequest);
         return ResponseEntity.ok(networkStatusResponse);
     }

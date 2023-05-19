@@ -1,17 +1,13 @@
 package org.cardanofoundation.rosetta.crawler.service;
 
-import static org.cardanofoundation.rosetta.crawler.util.Formatters.hexFormatter;
-import static org.cardanofoundation.rosetta.crawler.util.Formatters.hexStringToBuffer;
-
 import jakarta.annotation.PostConstruct;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.cardanofoundation.rosetta.crawler.config.RosettaConfig;
+import org.cardanofoundation.rosetta.crawler.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.crawler.model.rest.BlockIdentifier;
 import org.cardanofoundation.rosetta.crawler.model.rest.Currency;
 import org.cardanofoundation.rosetta.crawler.model.rest.MaBalance;
@@ -140,5 +136,19 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
   @Override
   public List<MaBalance> findMaBalanceByAddressAndBlock(String address, String hash) {
     return utxoRepository.findMaBalanceByAddressAndBlock(address, hash);
+  }
+
+  @Override
+  public BlockDto findLatestBlock() {
+    log.info("[getLatestBlock] About to look for latest block");
+    Long latestBlockNumber = findLatestBlockNumber();
+    log.info("[getLatestBlock] Latest block number is " + latestBlockNumber);
+    BlockDto latestBlock = findBlock(latestBlockNumber, null);
+    if(latestBlock == null){
+      log.error("[getLatestBlock] Latest block not found");
+      throw ExceptionFactory.blockNotFoundException();
+    }
+    log.debug("[getLatestBlock] Returning latest block " + latestBlock);
+    return latestBlock;
   }
 }

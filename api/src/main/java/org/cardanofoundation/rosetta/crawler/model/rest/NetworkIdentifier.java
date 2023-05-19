@@ -1,12 +1,13 @@
 package org.cardanofoundation.rosetta.crawler.model.rest;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import javax.annotation.Nullable;
+import org.openapitools.client.model.SubNetworkIdentifier;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.openapitools.client.model.SubNetworkIdentifier;
 
 /**
  * @author Sotatek-HoangNguyen9
@@ -18,7 +19,6 @@ import org.openapitools.client.model.SubNetworkIdentifier;
 @AllArgsConstructor
 @Builder
 public class NetworkIdentifier {
-
   @JsonProperty("blockchain")
   private String blockchain;
 
@@ -26,5 +26,6 @@ public class NetworkIdentifier {
   private String network;
 
   @JsonProperty("sub_network_identifier")
+  @Nullable
   private SubNetworkIdentifier subNetworkIdentifier;
 }

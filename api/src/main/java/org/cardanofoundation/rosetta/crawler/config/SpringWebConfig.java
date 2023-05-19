@@ -13,30 +13,31 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 public class SpringWebConfig implements WebMvcConfigurer {
-    @Override
-    public void addFormatters(final FormatterRegistry registry) {
-        registry.addConverter(new Converter<String, Map<String, String>>() {
-            @Override
-            public Map<String, String> convert(@NonNull final String source) {
-                final ObjectMapper objectMapper = new ObjectMapper();
-                try {
-                    return objectMapper.readValue(source, Map.class);
-                } catch (JsonProcessingException e) {
-                    return null;
-                }
-            }
-        });
 
-        registry.addConverter(new Converter<String, LinkedHashMap<String, String>>() {
-            @Override
-            public LinkedHashMap<String, String> convert(@NonNull final String source) {
-                final ObjectMapper objectMapper = new ObjectMapper();
-                try {
-                    return objectMapper.readValue(source, LinkedHashMap.class);
-                } catch (JsonProcessingException e) {
-                    return null;
-                }
-            }
-        });
-    }
+  @Override
+  public void addFormatters(final FormatterRegistry registry) {
+    registry.addConverter(new Converter<String, Map<String, String>>() {
+      @Override
+      public Map<String, String> convert(@NonNull final String source) {
+        final ObjectMapper objectMapper = new ObjectMapper();
+        try {
+          return objectMapper.readValue(source, Map.class);
+        } catch (JsonProcessingException e) {
+          return null;
+        }
+      }
+    });
+
+    registry.addConverter(new Converter<String, LinkedHashMap<String, String>>() {
+      @Override
+      public LinkedHashMap<String, String> convert(@NonNull final String source) {
+        final ObjectMapper objectMapper = new ObjectMapper();
+        try {
+          return objectMapper.readValue(source, LinkedHashMap.class);
+        } catch (JsonProcessingException e) {
+          return null;
+        }
+      }
+    });
+  }
 }

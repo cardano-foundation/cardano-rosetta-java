@@ -8,6 +8,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @AllArgsConstructor
 @ConfigurationProperties
 public class NodeBridgeConfig {
-    private final String type;
-    private final String endpointUrl;
+  private final String type;
+  private final String endpointUrl;
 }

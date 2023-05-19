@@ -23,42 +23,50 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class ConstructionApiDelegateImplementation implements ConstructionApiDelegate {
     @Override
-    public ResponseEntity<ConstructionCombineResponse> constructionCombine(ConstructionCombineRequest constructionCombineRequest) {
+    public ResponseEntity<ConstructionCombineResponse> constructionCombine(
+        ConstructionCombineRequest constructionCombineRequest) {
         return null;
     }
 
     @Override
-    public ResponseEntity<ConstructionDeriveResponse> constructionDerive(ConstructionDeriveRequest constructionDeriveRequest) {
+    public ResponseEntity<ConstructionDeriveResponse> constructionDerive(
+        ConstructionDeriveRequest constructionDeriveRequest) {
         return null;
     }
 
     @Override
-    public ResponseEntity<TransactionIdentifierResponse> constructionHash(ConstructionHashRequest constructionHashRequest) {
+    public ResponseEntity<TransactionIdentifierResponse> constructionHash(
+        ConstructionHashRequest constructionHashRequest) {
         return null;
     }
 
     @Override
-    public ResponseEntity<ConstructionMetadataResponse> constructionMetadata(ConstructionMetadataRequest constructionMetadataRequest) {
+    public ResponseEntity<ConstructionMetadataResponse> constructionMetadata(
+        ConstructionMetadataRequest constructionMetadataRequest) {
         return null;
     }
 
     @Override
-    public ResponseEntity<ConstructionParseResponse> constructionParse(ConstructionParseRequest constructionParseRequest) {
+    public ResponseEntity<ConstructionParseResponse> constructionParse(
+        ConstructionParseRequest constructionParseRequest) {
         return null;
     }
 
     @Override
-    public ResponseEntity<ConstructionPayloadsResponse> constructionPayloads(ConstructionPayloadsRequest constructionPayloadsRequest) {
+    public ResponseEntity<ConstructionPayloadsResponse> constructionPayloads(
+        ConstructionPayloadsRequest constructionPayloadsRequest) {
         return null;
     }
 
     @Override
-    public ResponseEntity<ConstructionPreprocessResponse> constructionPreprocess(ConstructionPreprocessRequest constructionPreprocessRequest) {
+    public ResponseEntity<ConstructionPreprocessResponse> constructionPreprocess(
+        ConstructionPreprocessRequest constructionPreprocessRequest) {
         return null;
     }
 
     @Override
-    public ResponseEntity<TransactionIdentifierResponse> constructionSubmit(ConstructionSubmitRequest constructionSubmitRequest) {
+    public ResponseEntity<TransactionIdentifierResponse> constructionSubmit(
+        ConstructionSubmitRequest constructionSubmitRequest) {
         return null;
     }
 }

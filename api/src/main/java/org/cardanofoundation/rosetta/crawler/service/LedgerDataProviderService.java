@@ -27,4 +27,5 @@ public interface LedgerDataProviderService {
 
   List<MaBalance> findMaBalanceByAddressAndBlock(String address, String hash);
 
+  BlockDto findLatestBlock();
 }

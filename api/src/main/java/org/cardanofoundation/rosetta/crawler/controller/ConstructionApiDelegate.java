@@ -43,7 +43,8 @@ public interface ConstructionApiDelegate {
           produces = { "application/json;charset=utf-8" },
           consumes = { "application/json;charset=utf-8" }
   )
-  ResponseEntity<ConstructionCombineResponse> constructionCombine(ConstructionCombineRequest constructionCombineRequest);
+  ResponseEntity<ConstructionCombineResponse> constructionCombine(
+      ConstructionCombineRequest constructionCombineRequest);
 
   @Operation(
           operationId = "constructionDerive",
@@ -59,7 +60,8 @@ public interface ConstructionApiDelegate {
           produces = { "application/json;charset=utf-8" },
           consumes = { "application/json;charset=utf-8" }
   )
-  ResponseEntity<ConstructionDeriveResponse> constructionDerive(ConstructionDeriveRequest constructionDeriveRequest);
+  ResponseEntity<ConstructionDeriveResponse> constructionDerive(
+      ConstructionDeriveRequest constructionDeriveRequest);
 
   @Operation(
           operationId = "constructionHash",
@@ -75,7 +77,8 @@ public interface ConstructionApiDelegate {
           produces = { "application/json;charset=utf-8" },
           consumes = { "application/json;charset=utf-8" }
   )
-  ResponseEntity<TransactionIdentifierResponse> constructionHash(ConstructionHashRequest constructionHashRequest);
+  ResponseEntity<TransactionIdentifierResponse> constructionHash(
+      ConstructionHashRequest constructionHashRequest);
 
   @Operation(
           operationId = "constructionMetadata",
@@ -91,7 +94,8 @@ public interface ConstructionApiDelegate {
           produces = { "application/json;charset=utf-8" },
           consumes = { "application/json;charset=utf-8" }
   )
-  ResponseEntity<ConstructionMetadataResponse> constructionMetadata(ConstructionMetadataRequest constructionMetadataRequest);
+  ResponseEntity<ConstructionMetadataResponse> constructionMetadata(
+      ConstructionMetadataRequest constructionMetadataRequest);
 
   @Operation(
           operationId = "constructionParse",
@@ -107,7 +111,8 @@ public interface ConstructionApiDelegate {
           produces = { "application/json;charset=utf-8" },
           consumes = { "application/json;charset=utf-8" }
   )
-  ResponseEntity<ConstructionParseResponse> constructionParse(ConstructionParseRequest constructionParseRequest);
+  ResponseEntity<ConstructionParseResponse> constructionParse(
+      ConstructionParseRequest constructionParseRequest);
 
   @Operation(
           operationId = "constructionPayloads",
@@ -123,7 +128,8 @@ public interface ConstructionApiDelegate {
           produces = { "application/json;charset=utf-8" },
           consumes = { "application/json;charset=utf-8" }
   )
-  ResponseEntity<ConstructionPayloadsResponse> constructionPayloads(ConstructionPayloadsRequest constructionPayloadsRequest);
+  ResponseEntity<ConstructionPayloadsResponse> constructionPayloads(
+      ConstructionPayloadsRequest constructionPayloadsRequest);
 
   @Operation(
           operationId = "constructionPreprocess",
@@ -139,7 +145,8 @@ public interface ConstructionApiDelegate {
           produces = { "application/json;charset=utf-8" },
           consumes = { "application/json;charset=utf-8" }
   )
-  ResponseEntity<ConstructionPreprocessResponse> constructionPreprocess(ConstructionPreprocessRequest constructionPreprocessRequest);
+  ResponseEntity<ConstructionPreprocessResponse> constructionPreprocess(
+      ConstructionPreprocessRequest constructionPreprocessRequest);
 
   @Operation(
           operationId = "constructionSubmit",
@@ -155,5 +162,6 @@ public interface ConstructionApiDelegate {
           produces = { "application/json;charset=utf-8" },
           consumes = { "application/json;charset=utf-8" }
   )
-  ResponseEntity<TransactionIdentifierResponse> constructionSubmit(ConstructionSubmitRequest constructionSubmitRequest);
+  ResponseEntity<TransactionIdentifierResponse> constructionSubmit(
+      ConstructionSubmitRequest constructionSubmitRequest);
 }

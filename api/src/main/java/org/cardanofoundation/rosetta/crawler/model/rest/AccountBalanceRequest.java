@@ -2,6 +2,7 @@ package org.cardanofoundation.rosetta.crawler.model.rest;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
+import javax.annotation.Nullable;
 import javax.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

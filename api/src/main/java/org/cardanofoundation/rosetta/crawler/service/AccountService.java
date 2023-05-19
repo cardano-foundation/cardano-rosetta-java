@@ -1,5 +1,6 @@
 package org.cardanofoundation.rosetta.crawler.service;
 
+
 import org.cardanofoundation.rosetta.crawler.model.rest.AccountBalanceRequest;
 import org.cardanofoundation.rosetta.crawler.model.rest.AccountBalanceResponse;
 import org.cardanofoundation.rosetta.crawler.model.rest.AccountCoinsRequest;

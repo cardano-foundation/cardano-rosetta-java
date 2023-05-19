@@ -9,16 +9,12 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.core.Ordered;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.web.filter.ForwardedHeaderFilter;
 
 
 @SpringBootApplication
-@EnableJpaRepositories({"org.cardanofoundation.rosetta", "org.cardanofoundation.rosetta.common"})
-@EntityScan({"org.cardanofoundation.rosetta.common", "org.cardanofoundation.rosetta"})
-@ComponentScan({"org.cardanofoundation.rosetta.common", "org.cardanofoundation.rosetta"})
+@EntityScan({"org.cardanofoundation.rosetta.common"})
 @OpenAPIDefinition(info = @Info(title = "APIs", version = "1.0", description = "Rosetta APIs v1.0"))
 public class RosettaApiApplication {
     public static void main(String[] args) {

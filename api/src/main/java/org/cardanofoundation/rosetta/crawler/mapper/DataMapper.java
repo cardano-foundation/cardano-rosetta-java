@@ -17,18 +17,28 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import org.cardanofoundation.rosetta.crawler.common.constants.Constants;
 import org.cardanofoundation.rosetta.crawler.common.enumeration.CatalystDataIndexes;
 import org.cardanofoundation.rosetta.crawler.common.enumeration.CatalystSigIndexes;
+import org.cardanofoundation.rosetta.crawler.model.Network;
+import org.cardanofoundation.rosetta.crawler.model.NetworkStatus;
+import org.cardanofoundation.rosetta.crawler.model.Peer;
 import org.cardanofoundation.rosetta.crawler.model.rest.AccountBalanceResponse;
 import org.cardanofoundation.rosetta.crawler.model.rest.AccountCoinsResponse;
 import org.cardanofoundation.rosetta.crawler.model.rest.BalanceAtBlock;
 import org.cardanofoundation.rosetta.crawler.model.rest.BlockIdentifier;
 import org.cardanofoundation.rosetta.crawler.model.rest.Coin;
+import org.cardanofoundation.rosetta.crawler.model.rest.NetworkIdentifier;
+import org.cardanofoundation.rosetta.crawler.model.rest.NetworkListResponse;
+import org.cardanofoundation.rosetta.crawler.model.rest.NetworkStatusResponse;
 import org.cardanofoundation.rosetta.crawler.model.rest.TokenBundleItem;
 import org.cardanofoundation.rosetta.crawler.model.rest.Utxo;
+import org.cardanofoundation.rosetta.crawler.projection.dto.BlockDto;
 import org.cardanofoundation.rosetta.crawler.projection.dto.BlockUtxos;
 import org.cardanofoundation.rosetta.crawler.projection.dto.BlockUtxosMultiAssets;
+import org.cardanofoundation.rosetta.crawler.projection.dto.GenesisBlockDto;
 import org.openapitools.client.model.Amount;
 import org.openapitools.client.model.CoinIdentifier;
 import org.openapitools.client.model.Currency;
@@ -39,6 +49,25 @@ public class DataMapper {
 
   public static final String COIN_SPENT_ACTION = "coin_spent";
   public static final String COIN_CREATED_ACTION = "coin_created";
+
+  public static NetworkStatusResponse mapToNetworkStatusResponse(NetworkStatus networkStatus) {
+    BlockDto latestBlock = networkStatus.getLatestBlock();
+    GenesisBlockDto genesisBlock = networkStatus.getGenesisBlock();
+    List<Peer> peers = networkStatus.getPeers();
+    return NetworkStatusResponse.builder()
+        .currentBlockIdentifier(BlockIdentifier.builder().index(latestBlock.getNumber()).hash(latestBlock.getHash()).build())
+        .currentBlockTimeStamp(latestBlock.getCreatedAt())
+        .genesisBlockIdentifier(BlockIdentifier.builder().index(
+                genesisBlock.getNumber() != null ? genesisBlock.getNumber() : 0 )
+            .hash(genesisBlock.getHash()).build())
+        .peers(peers.stream().map(peer -> new Peer(peer.getAddr())).collect(Collectors.toList()))
+        .build();
+  }
+
+  public static NetworkListResponse mapToNetworkListResponse(Network supportedNetwork) {
+    NetworkIdentifier identifier = NetworkIdentifier.builder().blockchain(Constants.CARDANO).network(supportedNetwork.getNetworkId()).build();
+    return NetworkListResponse.builder().networkIdentifiers(List.of(identifier)).build();
+  }
 
   public static boolean isBlockUtxos(Object block) {
     return block instanceof BlockUtxos;

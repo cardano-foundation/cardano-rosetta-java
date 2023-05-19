@@ -1,5 +1,6 @@
 package org.cardanofoundation.rosetta.crawler.model.rest;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,5 +17,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class NetworkRequest {
+  @JsonProperty("network_identifier")
   private NetworkIdentifier networkIdentifier;
 }
