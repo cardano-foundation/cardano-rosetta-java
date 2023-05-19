@@ -1,0 +1,113 @@
+{
+  "network_identifier": {
+    "blockchain": "cardano",
+    "network": "mainnet"
+  },
+  "operations": [
+    {
+      "operation_identifier": {
+        "index": 0,
+        "network_index": 0
+      },
+      "type": "input",
+      "status": "success",
+      "account": {
+        "address": "addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx"
+      },
+      "amount": {
+        "value": "-90000000000",
+        "currency": {
+          "symbol": "ADA",
+          "decimals": 6
+        }
+      },
+      "coin_change": {
+        "coin_identifier": {
+          "identifier": "2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f:1"
+        },
+        "coin_action": "coin_spent"
+      }
+    },
+    {
+      "operation_identifier": {
+        "index": 1
+      },
+      "related_operations": [
+        {
+          "index": 0
+        }
+      ],
+      "type": "output",
+      "status": "success",
+      "account": {
+        "address": "addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx"
+      },
+      "amount": {
+        "value": "10000",
+        "currency": {
+          "symbol": "ADA",
+          "decimals": 6
+        }
+      }
+    },
+    {
+      "operation_identifier": {
+        "index": 2
+      },
+      "related_operations": [
+        {
+          "index": 0
+        }
+      ],
+      "type": "output",
+      "status": "success",
+      "account": {
+        "address": "addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx"
+      },
+      "amount": {
+        "value": "40000",
+        "currency": {
+          "symbol": "ADA",
+          "decimals": 6
+        }
+      }
+    },
+    {
+      "operation_identifier": {
+        "index": 3
+      },
+      "type": "poolRegistration",
+      "status": "success",
+      "account": {
+        "address": "invalidHexString"
+      },
+      "metadata": {
+        "poolRegistrationParams": {
+          "vrfKeyHash": "8dd1542289461c53b7e58a5c55e7e37e4f2b1ce439f2a1f0d70e5c81",
+          "poolName": "My Test Pool",
+          "ticker": "MTP",
+          "homepage": "https://mytestpool.com",
+          "pledge": "1000000000",
+          "cost": "340000000",
+          "margin": "0.2",
+          "rewardAccount": {
+            "address": "addr1qxk8w7k8s0zqhq7c9g3gum2m7eajn68jq6t6c22u4xp2smgkq9f7k2w3duz4wta7f4mflwl0zjzw3gn8h8x7c7n3d0swj7hzz"
+          },
+          "owners": [
+            {
+              "operator": true,
+              "address": "addr1qxk8w7k8s0zqhq7c9g3gum2m7eajn68jq6t6c22u4xp2smgkq9f7k2w3duz4wta7f4mflwl0zjzw3gn8h8x7c7n3d0swj7hzz"
+            }
+          ],
+          "relays": [
+            {
+              "ipv4": "1.2.3.4",
+              "ipv6": "::",
+              "port": 3001
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
