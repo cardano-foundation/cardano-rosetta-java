@@ -1,0 +1,24 @@
+package org.cardanofoundation.rosetta.crawler.projection.dto;
+
+import java.math.BigInteger;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.SuperBuilder;
+
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@SuperBuilder
+public class FindTransactionsOutputs extends FindTransactionInOutResult {
+
+  private Short index;
+
+  public FindTransactionsOutputs(Long id, String address, BigInteger value, byte[] policy,
+      byte[] name, byte[] txHash, BigInteger quantity, Short index) {
+    super(id, address, value, policy, name, txHash, quantity);
+    this.index = index;
+  }
+}

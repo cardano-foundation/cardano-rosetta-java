@@ -1,11 +1,11 @@
-package org.cardanofoundation.rosetta.api.config;
+package org.cardanofoundation.rosetta.crawler.config;
 
 import java.util.List;
 import java.util.Optional;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.cardanofoundation.rosetta.api.model.rest.NetworkRequest;
-import org.cardanofoundation.rosetta.api.util.RosettaConstants;
+import org.cardanofoundation.rosetta.crawler.model.rest.NetworkRequest;
+import org.cardanofoundation.rosetta.crawler.util.RosettaConstants;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
