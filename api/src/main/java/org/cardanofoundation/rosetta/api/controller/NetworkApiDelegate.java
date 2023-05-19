@@ -1,16 +1,16 @@
-package org.cardanofoundation.rosetta.api.controller;
+package org.cardanofoundation.rosetta.crawler.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.io.IOException;
-import org.cardanofoundation.rosetta.api.exception.ServerException;
-import org.cardanofoundation.rosetta.api.model.rest.MetadataRequest;
-import org.cardanofoundation.rosetta.api.model.rest.NetworkListResponse;
-import org.cardanofoundation.rosetta.api.model.rest.NetworkOptionsResponse;
-import org.cardanofoundation.rosetta.api.model.rest.NetworkRequest;
-import org.cardanofoundation.rosetta.api.model.rest.NetworkStatusResponse;
+import org.cardanofoundation.rosetta.crawler.exception.ServerException;
+import org.cardanofoundation.rosetta.crawler.model.rest.MetadataRequest;
+import org.cardanofoundation.rosetta.crawler.model.rest.NetworkListResponse;
+import org.cardanofoundation.rosetta.crawler.model.rest.NetworkOptionsResponse;
+import org.cardanofoundation.rosetta.crawler.model.rest.NetworkRequest;
+import org.cardanofoundation.rosetta.crawler.model.rest.NetworkStatusResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;

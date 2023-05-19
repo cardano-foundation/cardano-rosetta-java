@@ -6,6 +6,7 @@ import org.cardanofoundation.rosetta.crawler.model.rest.Currency;
 import org.cardanofoundation.rosetta.crawler.projection.dto.BlockDto;
 import org.cardanofoundation.rosetta.crawler.projection.dto.BlockUtxos;
 
+
 public interface BlockService {
 
   AccountBalanceResponse findBalanceDataByAddressAndBlock(String address,
@@ -15,5 +16,6 @@ public interface BlockService {
   BlockUtxos findCoinsDataByAddress(String accountAddress, List<Currency> currenciesRequested);
 
   BlockDto findBlock(Long number, String hash);
+
 
 }

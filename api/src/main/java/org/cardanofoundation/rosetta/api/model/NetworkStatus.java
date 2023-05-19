@@ -1,12 +1,12 @@
-package org.cardanofoundation.rosetta.api.model;
+package org.cardanofoundation.rosetta.crawler.model;
 
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.cardanofoundation.rosetta.api.projection.BlockDto;
-import org.cardanofoundation.rosetta.api.projection.GenesisBlockDto;
+import org.cardanofoundation.rosetta.crawler.projection.dto.BlockDto;
+import org.cardanofoundation.rosetta.crawler.projection.dto.GenesisBlockDto;
 
 @Data
 @Builder
