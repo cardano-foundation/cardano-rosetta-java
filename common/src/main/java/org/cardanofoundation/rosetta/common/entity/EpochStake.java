@@ -1,5 +1,6 @@
 package org.cardanofoundation.rosetta.common.entity;
 
+import jakarta.persistence.ConstraintMode;
 import java.math.BigInteger;
 import java.util.Objects;
 import jakarta.persistence.Column;
@@ -36,16 +37,14 @@ import org.hibernate.annotations.OnDeleteAction;
 public class EpochStake extends BaseEntity {
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
-  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "addr_id", nullable = false,
-      foreignKey = @ForeignKey(name = "epoch_stake_addr_id_fkey"))
+      foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "none"))
   @EqualsAndHashCode.Exclude
   private StakeAddress addr;
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
-  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "pool_id", nullable = false,
-      foreignKey = @ForeignKey(name = "epoch_stake_pool_id_fkey"))
+      foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "none"))
   @EqualsAndHashCode.Exclude
   private PoolHash pool;
 
