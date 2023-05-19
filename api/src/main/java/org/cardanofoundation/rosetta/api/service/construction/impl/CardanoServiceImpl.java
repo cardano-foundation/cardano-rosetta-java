@@ -1,5 +1,7 @@
 package org.cardanofoundation.rosetta.api.service.construction.impl;
 
+import co.nstant.in.cbor.CborDecoder;
+import co.nstant.in.cbor.CborEncoder;
 import co.nstant.in.cbor.CborException;
 import co.nstant.in.cbor.model.*;
 import com.bloxbean.cardano.client.address.Address;
@@ -1865,7 +1867,7 @@ public class CardanoServiceImpl implements CardanoService {
           operationIdentifier.setIndex(((UnsignedInteger) operationIdentifierMap.get(new UnicodeString("index"))).getValue()
               .longValue());
         }
-        if(operationIdentifierMap.get(new UnicodeString("index"))!=null){
+        if(operationIdentifierMap.get(new UnicodeString("network_index"))!=null){
           operationIdentifier.setNetworkIndex(((UnsignedInteger) operationIdentifierMap.get(new UnicodeString("network_index"))).getValue()
               .longValue());
         };
@@ -2292,8 +2294,11 @@ public class CardanoServiceImpl implements CardanoService {
       String transaction, TransactionExtraData extraData) {
     try {
       byte[] transactionBuffer = HexUtil.decodeHexString(transaction);
+      List<DataItem> dataItemList = CborDecoder.decode(transactionBuffer);
+      Array array= (Array) dataItemList.get(0);
+      if(dataItemList.size()>=2&&array.getDataItems().size()==3)array.add(dataItemList.get(1));
       log.info("[parseSignedTransaction] About to create signed transaction from bytes");
-      Transaction parsed = Transaction.deserialize(transactionBuffer);
+      Transaction parsed = Transaction.deserialize(CborSerializationUtil.serialize(array));
       log.info("[parseSignedTransaction] About to parse operations from transaction body");
       List<Operation> operations = convert(parsed.getBody(), extraData,
           networkIdentifierType.getValue());
@@ -2430,7 +2435,7 @@ public class CardanoServiceImpl implements CardanoService {
     }
 
     List<Operation> certOps = extraData.getOperations().stream()
-        .filter(o -> Const.StakePoolOperations.contains(o)
+        .filter(o -> Const.StakePoolOperations.contains(o.getType())
         ).collect(Collectors.toList());
     List<Operation> parsedCertOperations = parseCertsToOperations(transactionBody, certOps,
         network);
@@ -2578,15 +2583,15 @@ public class CardanoServiceImpl implements CardanoService {
         String hex = ObjectUtils.isEmpty(certOperation.getMetadata()) ? null
             : (ObjectUtils.isEmpty(certOperation.getMetadata().getStakingCredential()) ? null
                 : certOperation.getMetadata().getStakingCredential().getHexBytes());
-        if (!ObjectUtils.isEmpty(hex)) {
+        if (ObjectUtils.isEmpty(hex)) {
           log.error("[parseCertsToOperations] Staking key not provided");
           throw new IllegalArgumentException("missingStakingKeyError");
         }
-        StakeCredential credential = getStakingCredentialFromHex(
-            ObjectUtils.isEmpty(certOperation.getMetadata()) ? null
-                : certOperation.getMetadata().getStakingCredential());
+//        StakeCredential credential = getStakingCredentialFromHex(
+//            ObjectUtils.isEmpty(certOperation.getMetadata()) ? null
+//                : certOperation.getMetadata().getStakingCredential());
         HdPublicKey hdPublicKey = new HdPublicKey();
-        hdPublicKey.setKeyData(credential.getHash());
+        hdPublicKey.setKeyData(HexUtil.decodeHexString(hex));
         String address = generateRewardAddress(NetworkIdentifierType.find(network), hdPublicKey);
         Certificate cert = ObjectUtils.isEmpty(certs) ? null : certs.get(i);
         if (!ObjectUtils.isEmpty(cert)) {

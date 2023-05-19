@@ -84,7 +84,6 @@ class ConstructionApiDelegateImplDeriveTests extends IntegrationTest{
       assertTrue(responseBody.contains(INVALID_PUBLIC_KEY_FORMAT_MESSAGE));
       assertEquals(500, e.getRawStatusCode());
     }
-
   }
 
   @Test

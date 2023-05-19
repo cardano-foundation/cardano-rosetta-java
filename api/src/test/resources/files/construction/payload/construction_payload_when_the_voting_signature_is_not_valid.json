@@ -15,7 +15,7 @@
         "address": "addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx"
       },
       "amount": {
-        "value": "-90000000000",
+        "value": "-90000",
         "currency": {
           "symbol": "ADA",
           "decimals": 6
@@ -76,51 +76,22 @@
       "operation_identifier": {
         "index": 3
       },
-      "type": "poolRegistration",
+      "type": "voteRegistration",
       "status": "success",
-      "account": {
-        "address": "1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5"
-      },
       "metadata": {
-        "poolRegistrationParams": {
-          "vrfKeyHash": "8dd154228946bd12967c12bedb1cb6038b78f8b84a1760b1a788fa72a4af3db0",
-          "rewardAddress": "stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5",
-          "pledge": "5000000",
-          "cost": "3000000",
-          "poolOwners": [
-            "stake1uxly0q2cnpxrjrqm9vpnr9dwkr0j945gulhhgs3dx33l47sweg9er"
-          ],
-          "relays": [
-            {
-              "type": "invalidType"
-            }
-          ],
-          "margin": {
-            "numerator": "1",
-            "denominator": "1"
+        "voteRegistrationMetadata": {
+          "rewardAddress": "stake1uyqq2a22arunrft3k9ehqc7yjpxtxjmvgndae80xw89mwyge9skyp",
+          "stakeKey": {
+            "hex_bytes": "86870efc99c453a873a16492ce87738ec79a0ebd064379a62e2c9cf4e119219e",
+            "curve_type": "edwards25519"
           },
-          "poolMetadata": {
-            "url": "poolMetadataUrl",
-            "hash": "9ac2217288d1ae0b4e15c41b58d3e05a13206fd9ab81cb15943e4174bf30c90b"
-          }
+          "votingKey": {
+            "hex_bytes": "0036ef3e1f0d3f5989e2d155ea54bdb2a72c4c456ccb959af4c94868f473f5a0",
+            "curve_type": "edwards25519"
+          },
+          "votingNonce": 1234,
+          "votingSignature": "0036ef3e1f0d3f5989e2d155ea54bdb2a72c4c456ccb959af4c94868f473f5a0"
         }
-      }
-    },
-    {
-      "operation_identifier": {
-        "index": 3
-      },
-      "type": "stakeDelegation",
-      "status": "success",
-      "account": {
-        "address": "stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5"
-      },
-      "metadata": {
-        "staking_credential": {
-          "hex_bytes": "1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F",
-          "curve_type": "edwards25519"
-        },
-        "pool_key_hash": "1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5"
       }
     }
   ],
