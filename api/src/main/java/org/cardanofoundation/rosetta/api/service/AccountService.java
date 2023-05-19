@@ -1,9 +1,10 @@
-package org.cardanofoundation.rosetta.crawler.service;
+package org.cardanofoundation.rosetta.api.service;
 
-import org.cardanofoundation.rosetta.crawler.model.rest.AccountBalanceRequest;
-import org.cardanofoundation.rosetta.crawler.model.rest.AccountBalanceResponse;
-import org.cardanofoundation.rosetta.crawler.model.rest.AccountCoinsRequest;
-import org.cardanofoundation.rosetta.crawler.model.rest.AccountCoinsResponse;
+
+import org.cardanofoundation.rosetta.api.model.rest.AccountBalanceRequest;
+import org.cardanofoundation.rosetta.api.model.rest.AccountBalanceResponse;
+import org.cardanofoundation.rosetta.api.model.rest.AccountCoinsRequest;
+import org.cardanofoundation.rosetta.api.model.rest.AccountCoinsResponse;
 
 
 public interface AccountService {

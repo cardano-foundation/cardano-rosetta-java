@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 import java.util.List;
-import org.cardanofoundation.rosetta.crawler.projection.dto.BlockDto;
+import org.cardanofoundation.rosetta.api.projection.dto.BlockDto;
 
 @Data
 @AllArgsConstructor

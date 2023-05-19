@@ -33,6 +33,10 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
     private RewardRepository rewardRepository;
 
     private final Map<String, PostgresLedgerDataProviderClient> clients = new HashMap<>();
+  @Autowired
+  private UtxoRepository utxoRepository;
+  @Autowired
+  private TxRepository txRepository;
 
     @PostConstruct
     void init() {
@@ -116,4 +120,28 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
         return blockRepository.findProtocolParameters();
     }
 
+  @Override
+  public List<Utxo> findUtxoByAddressAndBlock(String address, String hash,
+      List<Currency> currencies) {
+
+    return utxoRepository.findUtxoByAddressAndBlock(address, hash, currencies);
+  }
+  @Override
+  public List<MaBalance> findMaBalanceByAddressAndBlock(String address, String hash) {
+    return utxoRepository.findMaBalanceByAddressAndBlock(address, hash);
+  }
+
+  @Override
+  public BlockDto findLatestBlock() {
+    log.info("[getLatestBlock] About to look for latest block");
+    Long latestBlockNumber = findLatestBlockNumber();
+    log.info("[getLatestBlock] Latest block number is " + latestBlockNumber);
+    BlockDto latestBlock = findBlock(latestBlockNumber, null);
+    if(latestBlock == null){
+      log.error("[getLatestBlock] Latest block not found");
+      throw ExceptionFactory.blockNotFoundException();
+    }
+    log.debug("[getLatestBlock] Returning latest block " + latestBlock);
+    return latestBlock;
+  }
 }

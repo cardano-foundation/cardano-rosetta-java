@@ -1,10 +1,10 @@
-package org.cardanofoundation.rosetta.crawler.service;
+package org.cardanofoundation.rosetta.api.service;
 
 import java.util.List;
-import org.cardanofoundation.rosetta.crawler.model.rest.AccountBalanceResponse;
-import org.cardanofoundation.rosetta.crawler.model.rest.Currency;
-import org.cardanofoundation.rosetta.crawler.projection.dto.BlockDto;
-import org.cardanofoundation.rosetta.crawler.projection.dto.BlockUtxos;
+import org.cardanofoundation.rosetta.api.model.rest.AccountBalanceResponse;
+import org.cardanofoundation.rosetta.api.model.rest.Currency;
+import org.cardanofoundation.rosetta.api.projection.dto.BlockDto;
+import org.cardanofoundation.rosetta.api.projection.dto.BlockUtxos;
 
 
 public interface BlockService {
