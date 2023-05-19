@@ -7,6 +7,7 @@ import com.bloxbean.cardano.client.exception.AddressExcepion;
 import com.bloxbean.cardano.client.exception.CborDeserializationException;
 import com.bloxbean.cardano.client.exception.CborSerializationException;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import java.net.UnknownHostException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
@@ -186,18 +187,19 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
 
     @Override
     public ConstructionParseResponse constructionParseService(
-        ConstructionParseRequest constructionParseRequest) {
+        ConstructionParseRequest constructionParseRequest)
+        throws UnknownHostException, AddressExcepion, CborDeserializationException, JsonProcessingException {
         Boolean signed = constructionParseRequest.getSigned();
         NetworkIdentifierType networkIdentifier = cardanoService.getNetworkIdentifierByRequestParameters(constructionParseRequest.getNetworkIdentifier());
         log.info(constructionParseRequest.getTransaction() + "[constructionParse] Processing");
-        Map map = cardanoService.decodeExtraData(constructionParseRequest.getTransaction());
-        TransactionExtraData extraData = cardanoService.changeFromMaptoObject((Map) map.get(new UnicodeString("extraData")));
-        log.info(map.toString() + "[constructionParse] Decoded");
-        TransactionParsed result = cardanoService.parseSignedTransaction(networkIdentifier, ((UnicodeString) map.get(new UnicodeString("transaction"))).getString(), extraData);
-        if (signed) {
-            return new ConstructionParseResponse(constructionParseRequest.getNetworkIdentifier(), result.getOperations(), result.getAccount_identifier_signers());
+        Array array = cardanoService.decodeExtraData(constructionParseRequest.getTransaction());
+        TransactionExtraData extraData = cardanoService.changeFromMaptoObject((Map) array.getDataItems().get(1));
+        log.info(array.toString() + "[constructionParse] Decoded");
+       if (signed) {
+           TransactionParsed result = cardanoService.parseSignedTransaction(networkIdentifier, ((UnicodeString) array.getDataItems().get(0)).getString(), extraData);
+           return new ConstructionParseResponse(constructionParseRequest.getNetworkIdentifier(), result.getOperations(), result.getAccount_identifier_signers());
         }
-        TransactionParsed result2 = cardanoService.parseSignedTransaction(networkIdentifier, ((UnicodeString) map.get(new UnicodeString("transaction"))).getString(), extraData);
+        TransactionParsed result2 = cardanoService.parseUnsignedTransaction(networkIdentifier, ((UnicodeString) array.getDataItems().get(0)).getString(), extraData);
         return new ConstructionParseResponse(constructionParseRequest.getNetworkIdentifier(), result2.getOperations(), result2.getAccount_identifier_signers());
     }
 
@@ -205,10 +207,10 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
     public ConstructionCombineResponse constructionCombineService(
         ConstructionCombineRequest constructionCombineRequest) throws CborException, CborSerializationException, JsonProcessingException {
         log.info("[constructionCombine] Request received to sign a transaction");
-        Map map = cardanoService.decodeExtraData(constructionCombineRequest.getUnsignedTransaction());
-        TransactionExtraData extraData = cardanoService.changeFromMaptoObject((Map) map.get(new UnicodeString("extraData")));
+        Array array = cardanoService.decodeExtraData(constructionCombineRequest.getUnsignedTransaction());
+        TransactionExtraData extraData = cardanoService.changeFromMaptoObject((Map) array.getDataItems().get(1));
         String signedTransaction = cardanoService.buildTransaction(
-            ((UnicodeString) map.get(new UnicodeString("transaction"))).getString(),
+            ((UnicodeString) array.getDataItems().get(0)).getString(),
             constructionCombineRequest.getSignatures().stream().map(signature -> {
                 String chainCode = null;
                 String address = null;
@@ -233,9 +235,9 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
     @Override
     public TransactionIdentifierResponse constructionHashService(
         ConstructionHashRequest constructionHashRequest) {
-        Map map = cardanoService.decodeExtraData(constructionHashRequest.getSignedTransaction());
+        Array array = cardanoService.decodeExtraData(constructionHashRequest.getSignedTransaction());
         log.info("[constructionHash] About to get hash of signed transaction");
-        String transactionHash = cardanoService.getHashOfSignedTransaction(((UnicodeString) map.get(new UnicodeString("transaction"))).getString());
+        String transactionHash = cardanoService.getHashOfSignedTransaction(((UnicodeString) array.getDataItems().get(0)).getString());
         log.info("[constructionHash] About to return hash of signed transaction");
         // eslint-disable-next-line camelcase
         return cardanoService.mapToConstructionHashResponse(transactionHash);

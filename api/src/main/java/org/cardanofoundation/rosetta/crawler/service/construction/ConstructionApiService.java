@@ -9,6 +9,7 @@ import com.bloxbean.cardano.client.exception.CborSerializationException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
 import java.io.IOException;
+import java.net.UnknownHostException;
 import org.cardanofoundation.rosetta.crawler.model.rest.ConstructionCombineRequest;
 import org.cardanofoundation.rosetta.crawler.model.rest.ConstructionCombineResponse;
 import org.cardanofoundation.rosetta.crawler.model.rest.ConstructionDeriveRequest;
@@ -39,7 +40,8 @@ public interface ConstructionApiService {
         ConstructionPayloadsRequest constructionPayloadsRequest) throws IOException, CborException, CborSerializationException, AddressExcepion;
 
     ConstructionParseResponse constructionParseService(
-        ConstructionParseRequest constructionParseRequest);
+        ConstructionParseRequest constructionParseRequest)
+        throws UnknownHostException, AddressExcepion, CborDeserializationException, JsonProcessingException;
 
     ConstructionCombineResponse constructionCombineService(
         ConstructionCombineRequest constructionCombineRequest) throws CborException, CborSerializationException, JsonProcessingException;

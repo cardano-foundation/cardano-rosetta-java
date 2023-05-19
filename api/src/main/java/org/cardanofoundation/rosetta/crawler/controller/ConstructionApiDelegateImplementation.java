@@ -5,6 +5,7 @@ import com.bloxbean.cardano.client.exception.AddressExcepion;
 import com.bloxbean.cardano.client.exception.CborDeserializationException;
 import com.bloxbean.cardano.client.exception.CborSerializationException;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import java.net.UnknownHostException;
 import org.cardanofoundation.rosetta.crawler.service.construction.CheckService;
 import org.cardanofoundation.rosetta.crawler.service.construction.ConstructionApiService;
 import org.cardanofoundation.rosetta.crawler.model.rest.ConstructionCombineRequest;
@@ -62,14 +63,15 @@ public class ConstructionApiDelegateImplementation implements ConstructionApiDel
     }
 
     @Override
-    public ResponseEntity<ConstructionParseResponse> constructionParse(@RequestBody ConstructionParseRequest constructionParseRequest) {
+    public ResponseEntity<ConstructionParseResponse> constructionParse(@RequestBody ConstructionParseRequest constructionParseRequest)
+        throws UnknownHostException, AddressExcepion, CborDeserializationException, JsonProcessingException {
         checkService.withNetworkValidation(constructionParseRequest.getNetworkIdentifier());
        return ResponseEntity.ok(constructionApiService.constructionParseService(constructionParseRequest));
     }
 
     @Override
     public ResponseEntity<ConstructionPayloadsResponse> constructionPayloads(@RequestBody ConstructionPayloadsRequest constructionPayloadsRequest) throws IOException, CborException, CborSerializationException, AddressExcepion {
-//        checkService.withNetworkValidation(constructionPayloadsRequest.getNetworkIdentifier());
+        checkService.withNetworkValidation(constructionPayloadsRequest.getNetworkIdentifier());
         return ResponseEntity.ok(constructionApiService.constructionPayloadsService(constructionPayloadsRequest));
     }
 

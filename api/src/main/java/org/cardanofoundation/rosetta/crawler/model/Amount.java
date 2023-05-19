@@ -1,6 +1,8 @@
 package org.cardanofoundation.rosetta.crawler.model;
 
 import co.nstant.in.cbor.model.Map;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -21,7 +23,7 @@ public class Amount {
   private Currency currency;
 
   @JsonProperty("metadata")
-  private Map metadata;
+  private Map metadata=null;
 
   public Amount(String value, Currency currency) {
     this.value = value;

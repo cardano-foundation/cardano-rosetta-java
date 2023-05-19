@@ -8,6 +8,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import java.net.UnknownHostException;
 import org.cardanofoundation.rosetta.crawler.model.rest.ConstructionCombineRequest;
 import org.cardanofoundation.rosetta.crawler.model.rest.ConstructionCombineResponse;
 import org.cardanofoundation.rosetta.crawler.model.rest.ConstructionDeriveRequest;
@@ -119,7 +120,8 @@ public interface ConstructionApiDelegate {
           consumes = { "application/json;charset=utf-8" }
   )
   ResponseEntity<ConstructionParseResponse> constructionParse(
-      ConstructionParseRequest constructionParseRequest);
+      ConstructionParseRequest constructionParseRequest)
+      throws UnknownHostException, AddressExcepion, CborDeserializationException, JsonProcessingException;
 
   @Operation(
           operationId = "constructionPayloads",

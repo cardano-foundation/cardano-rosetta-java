@@ -1507,7 +1507,7 @@ public class CardanoServiceImpl implements CardanoService {
           }
           Long networkIndex2 = operation.getOperationIdentifier().getNetworkIndex();
           if (networkIndex2 != null) {
-            operationIdentifierMapnew.put(new UnicodeString("networkIndex"),
+            operationIdentifierMapnew.put(new UnicodeString("network_index"),
                 new UnsignedInteger(networkIndex2));
           }
           rOperationArray.add(operationIdentifierMapnew);
@@ -1527,11 +1527,11 @@ public class CardanoServiceImpl implements CardanoService {
           subAccountIdentifierMap.put(new UnicodeString("metadata"),
               ObjectUtils.isEmpty(operation.getAccount().getSubAccount()) ? null
                   : operation.getAccount().getSubAccount().getMetadata());
-          accountIdentifierMap.put(new UnicodeString("subAccount"), subAccountIdentifierMap);
+          accountIdentifierMap.put(new UnicodeString("sub_account"), subAccountIdentifierMap);
         }
         if (operation.getAccount().getMetadata() != null) {
           co.nstant.in.cbor.model.Map accIdMetadataMap = new co.nstant.in.cbor.model.Map();
-          accIdMetadataMap.put(new UnicodeString("chainCode"),
+          accIdMetadataMap.put(new UnicodeString("chain_code"),
               new UnicodeString(ObjectUtils.isEmpty(operation.getAccount().getMetadata()) ? null
                   : operation.getAccount().getMetadata().getChainCode()));
           accountIdentifierMap.put(new UnicodeString("metadata"), accIdMetadataMap);
@@ -1714,7 +1714,7 @@ public class CardanoServiceImpl implements CardanoService {
             poolRegistrationParamsMap.put(new UnicodeString("margin"), marginMap);
           }
           if (poolRegistrationParams.getMarginPercentage() != null) {
-            poolRegistrationParamsMap.put(new UnicodeString("marginPercentage"),
+            poolRegistrationParamsMap.put(new UnicodeString("margin_percentage"),
                 new UnicodeString(poolRegistrationParams.getMarginPercentage()));
           }
           co.nstant.in.cbor.model.Map poolMetadataMap = new co.nstant.in.cbor.model.Map();
@@ -1785,10 +1785,11 @@ public class CardanoServiceImpl implements CardanoService {
   }
 
   @Override
-  public co.nstant.in.cbor.model.Map decodeExtraData(String encoded) {
-    co.nstant.in.cbor.model.Map map = (co.nstant.in.cbor.model.Map) com.bloxbean.cardano.client.common.cbor.CborSerializationUtil.deserialize(
+  public Array decodeExtraData(String encoded) {
+    DataItem dataItem=com.bloxbean.cardano.client.common.cbor.CborSerializationUtil.deserialize(
         HexUtil.decodeHexString(encoded));
-    return map;
+    Array array = (Array) dataItem ;
+    return array;
   }
 
   @Override
@@ -1847,217 +1848,355 @@ public class CardanoServiceImpl implements CardanoService {
   public TransactionExtraData changeFromMaptoObject(co.nstant.in.cbor.model.Map map) {
     //separator
     TransactionExtraData transactionExtraData = new TransactionExtraData();
-    String transactionMetadataHex = ((UnicodeString) map.get(
-        new UnicodeString("transactionMetadataHex"))).getString();
-    transactionExtraData.setTransactionMetadataHex(transactionMetadataHex);
+    if(map.get(
+        new UnicodeString("transactionMetadataHex"))!=null){
+      String transactionMetadataHex = ((UnicodeString) map.get(
+          new UnicodeString("transactionMetadataHex"))).getString();
+      transactionExtraData.setTransactionMetadataHex(transactionMetadataHex);
+    }
     List<Operation> operations = new ArrayList<>();
     List<DataItem> operationsListMap = ((Array) map.get(
         new UnicodeString("operations"))).getDataItems();
     operationsListMap.stream().forEach(oDataItem -> {
       co.nstant.in.cbor.model.Map operationMap = (co.nstant.in.cbor.model.Map) oDataItem;
       Operation operation = new Operation();
-      co.nstant.in.cbor.model.Map operationIdentifierMap = (co.nstant.in.cbor.model.Map) operationMap.get(
-          new UnicodeString("operationIdentifier"));
-      OperationIdentifier operationIdentifier = new OperationIdentifier(
-          ((UnsignedInteger) operationIdentifierMap.get(new UnicodeString("index"))).getValue()
-              .longValue(),
-          ((UnsignedInteger) operationIdentifierMap.get(
-              new UnicodeString("networkIndex"))).getValue().longValue()
-      );
-      operation.setOperationIdentifier(operationIdentifier);
-      List<OperationIdentifier> relatedOperations = new ArrayList<>();
-      List<DataItem> relatedOperationsDI = ((Array) operationMap.get(
-          new UnicodeString("relatedOperations"))).getDataItems();
-      relatedOperationsDI.stream().forEach(rDI -> {
-        co.nstant.in.cbor.model.Map operationIdentifierMap2 = (co.nstant.in.cbor.model.Map) rDI;
-        OperationIdentifier operationIdentifier2 = new OperationIdentifier(
-            ((UnsignedInteger) operationIdentifierMap2.get(new UnicodeString("index"))).getValue()
-                .longValue(),
-            ((UnsignedInteger) operationIdentifierMap2.get(
-                new UnicodeString("networkIndex"))).getValue().longValue()
-        );
-        relatedOperations.add(operationIdentifier2);
-      });
-      operation.setRelatedOperations(relatedOperations);
-      String type = ((UnicodeString) (operationMap.get(new UnicodeString("type")))).getString();
-      String status = ((UnicodeString) (operationMap.get(new UnicodeString("status")))).getString();
-      operation.setType(type);
-      operation.setStatus(status);
-      AccountIdentifier accountIdentifier = new AccountIdentifier();
-      co.nstant.in.cbor.model.Map accountIdentifierMap = (co.nstant.in.cbor.model.Map) operationMap.get(
-          new UnicodeString("account"));
-      String address = ((UnicodeString) accountIdentifierMap.get(
-          new UnicodeString("address"))).getString();
-      accountIdentifier.setAddress(address);
-      co.nstant.in.cbor.model.Map subAccountIdentifierMap = (co.nstant.in.cbor.model.Map) accountIdentifierMap.get(
-          new UnicodeString("subAccount"));
-      SubAccountIdentifier subAccountIdentifier = new SubAccountIdentifier();
-      String addressSub = ((UnicodeString) (subAccountIdentifierMap.get(
-          new UnicodeString("address")))).getString();
-      co.nstant.in.cbor.model.Map metadataSub = (co.nstant.in.cbor.model.Map) (subAccountIdentifierMap.get(
-          new UnicodeString("metadata")));
-      subAccountIdentifier.setAddress(addressSub);
-      subAccountIdentifier.setMetadata(metadataSub);
-      accountIdentifier.setSubAccount(subAccountIdentifier);
-      co.nstant.in.cbor.model.Map accountIdentifierMetadataMap = (co.nstant.in.cbor.model.Map) accountIdentifierMap.get(
-          new UnicodeString("metadata"));
-      AccountIdentifierMetadata accountIdentifierMetadata = new AccountIdentifierMetadata();
-      String chainCode = ((UnicodeString) (accountIdentifierMetadataMap.get(
-          new UnicodeString("chainCode")))).getString();
-      accountIdentifierMetadata.setChainCode(chainCode);
-      accountIdentifier.setMetadata(accountIdentifierMetadata);
-      operation.setAccount(accountIdentifier);
-      co.nstant.in.cbor.model.Map amountMap = (co.nstant.in.cbor.model.Map) operationMap.get(
-          new UnicodeString("amount"));
-      Amount amount = getAmountFromMap(amountMap);
-      operation.setAmount(amount);
-      co.nstant.in.cbor.model.Map coinChangeMap = (co.nstant.in.cbor.model.Map) operationMap.get(
-          new UnicodeString("coinChange"));
-      CoinChange coinChange = new CoinChange();
-      String coinAction = ((UnicodeString) coinChangeMap.get(
-          new UnicodeString("coinAction"))).getString();
-      coinChange.setCoinAction(coinAction);
-      CoinIdentifier coinIdentifier = new CoinIdentifier();
-      co.nstant.in.cbor.model.Map coinIdentifierMap = (co.nstant.in.cbor.model.Map) coinChangeMap.get(
-          new UnicodeString("coinIdentifier"));
-      String identifier = ((UnicodeString) coinIdentifierMap.get(
-          new UnicodeString("identifier"))).getString();
-      coinIdentifier.setIdentifier(identifier);
-      coinChange.setCoinIdentifier(coinIdentifier);
-      operation.setCoinChange(coinChange);
-      co.nstant.in.cbor.model.Map metadataMap = (co.nstant.in.cbor.model.Map) operationMap.get(
-          new UnicodeString("metadata"));
-      OperationMetadata operationMetadata = new OperationMetadata();
-      co.nstant.in.cbor.model.Map withdrawalAmountMap = (co.nstant.in.cbor.model.Map) metadataMap.get(
-          new UnicodeString("withdrawalAmount"));
-      Amount amountW = getAmountFromMap(withdrawalAmountMap);
-      operationMetadata.setWithdrawalAmount(amountW);
-      co.nstant.in.cbor.model.Map depositAmountMap = (co.nstant.in.cbor.model.Map) metadataMap.get(
-          new UnicodeString("withdrawalAmount"));
-      Amount amountD = getAmountFromMap(depositAmountMap);
-      operationMetadata.setWithdrawalAmount(amountD);
-      co.nstant.in.cbor.model.Map refundAmountMap = (co.nstant.in.cbor.model.Map) metadataMap.get(
-          new UnicodeString("withdrawalAmount"));
-      Amount amountR = getAmountFromMap(refundAmountMap);
-      operationMetadata.setWithdrawalAmount(amountR);
-      co.nstant.in.cbor.model.Map stakingCredentialMap = (co.nstant.in.cbor.model.Map) metadataMap.get(
-          new UnicodeString("stakingCredential"));
-      PublicKey publicKey = getPublicKeyFromMap(stakingCredentialMap);
-      operationMetadata.setStakingCredential(publicKey);
-      String poolKeyHash = ((UnicodeString) metadataMap.get(
-          new UnicodeString("poolKeyHash"))).getString();
-      operationMetadata.setPoolKeyHash(poolKeyHash);
-      Long epoch = ((UnsignedInteger) metadataMap.get(
-          new UnicodeString("epoch"))).getValue().longValue();
-      operationMetadata.setEpoch(epoch);
-      List<DataItem> tokenBundleArray = ((Array) metadataMap.get(
-          new UnicodeString("tokenBundle"))).getDataItems();
-      List<TokenBundleItem> tokenBundleItems = new ArrayList<>();
-      tokenBundleArray.stream().forEach(t -> {
-        co.nstant.in.cbor.model.Map tokenBundleMap = (co.nstant.in.cbor.model.Map) t;
-        TokenBundleItem tokenBundleItem = new TokenBundleItem();
-        String policyIdT = ((UnicodeString) tokenBundleMap.get(
-            new UnicodeString("policyId"))).getString();
-        tokenBundleItem.setPolicyId(policyIdT);
-        List<DataItem> tokensItem = ((Array) tokenBundleMap.get(
-            new UnicodeString("tokens"))).getDataItems();
-        List<Amount> tokenAList = new ArrayList<>();
-        tokensItem.stream().forEach(tk -> {
-          co.nstant.in.cbor.model.Map tokenAmountMap = (co.nstant.in.cbor.model.Map) tk;
-          Amount amount1 = getAmountFromMap(tokenAmountMap);
-          tokenAList.add(amount1);
+      if(operationMap.get(new UnicodeString("operation_identifier"))!=null){
+        co.nstant.in.cbor.model.Map operationIdentifierMap = (co.nstant.in.cbor.model.Map) operationMap.get(
+            new UnicodeString("operation_identifier"));
+        OperationIdentifier operationIdentifier = new OperationIdentifier();
+        if(operationIdentifierMap.get(new UnicodeString("index"))!=null){
+          operationIdentifier.setIndex(((UnsignedInteger) operationIdentifierMap.get(new UnicodeString("index"))).getValue()
+              .longValue());
+        }
+        if(operationIdentifierMap.get(new UnicodeString("index"))!=null){
+          operationIdentifier.setNetworkIndex(((UnsignedInteger) operationIdentifierMap.get(new UnicodeString("network_index"))).getValue()
+              .longValue());
+        };
+        operation.setOperationIdentifier(operationIdentifier);
+      }
+      if(operationMap.get(new UnicodeString("related_operations"))!=null){
+        List<OperationIdentifier> relatedOperations = new ArrayList<>();
+        List<DataItem> relatedOperationsDI = ((Array) operationMap.get(
+            new UnicodeString("related_operations"))).getDataItems();
+        relatedOperationsDI.stream().forEach(rDI -> {
+          co.nstant.in.cbor.model.Map operationIdentifierMap2 = (co.nstant.in.cbor.model.Map) rDI;
+
+          OperationIdentifier operationIdentifier2 = new OperationIdentifier();
+          if(operationIdentifierMap2.get(new UnicodeString("index"))!=null){
+            operationIdentifier2.setIndex(((UnsignedInteger) operationIdentifierMap2.get(new UnicodeString("index"))).getValue()
+                .longValue());
+          }
+          if(operationIdentifierMap2.get(new UnicodeString("index"))!=null){
+            operationIdentifier2.setNetworkIndex(((UnsignedInteger) operationIdentifierMap2.get(new UnicodeString("network_index"))).getValue()
+                .longValue());
+          };
+          relatedOperations.add(operationIdentifier2);
         });
-        tokenBundleItem.setTokens(tokenAList);
-        tokenBundleItems.add(tokenBundleItem);
-      });
-      operationMetadata.setTokenBundle(tokenBundleItems);
-      String poolRegistrationCert = ((UnicodeString) metadataMap.get(
-          new UnicodeString("poolRegistrationCert"))).getString();
-      operationMetadata.setPoolRegistrationCert(poolRegistrationCert);
-      co.nstant.in.cbor.model.Map poolRegistrationParamsMap = (co.nstant.in.cbor.model.Map) metadataMap.get(
-          new UnicodeString("poolRegistrationParams"));
-      PoolRegistrationParams poolRegistrationParams = new PoolRegistrationParams();
-      String vrfKeyHash = ((UnicodeString) poolRegistrationParamsMap.get(
-          new UnicodeString("vrfKeyHash"))).getString();
-      poolRegistrationParams.setVrfKeyHash(vrfKeyHash);
-      String rewardAddress = ((UnicodeString) poolRegistrationParamsMap.get(
-          new UnicodeString("rewardAddress"))).getString();
-      poolRegistrationParams.setRewardAddress(rewardAddress);
-      String pledge = ((UnicodeString) poolRegistrationParamsMap.get(
-          new UnicodeString("pledge"))).getString();
-      poolRegistrationParams.setPledge(pledge);
-      String cost = ((UnicodeString) poolRegistrationParamsMap.get(
-          new UnicodeString("cost"))).getString();
-      poolRegistrationParams.setCost(cost);
-      List<String> stringList = new ArrayList<>();
-      List<DataItem> poolOwners = ((Array) poolRegistrationParamsMap.get(
-          new UnicodeString("poolOwners"))).getDataItems();
-      poolOwners.stream().forEach(p -> {
-        stringList.add(((UnicodeString) p).getString());
-      });
-      poolRegistrationParams.setPoolOwners(stringList);
-      List<Relay> relayList = new ArrayList<>();
-      List<DataItem> relaysArray = ((Array) poolRegistrationParamsMap.get(
-          new UnicodeString("relays"))).getDataItems();
-      relaysArray.stream().forEach(rA -> {
-        co.nstant.in.cbor.model.Map rAMap = (co.nstant.in.cbor.model.Map) rA;
-        Relay relay = new Relay();
-        String typeR = ((UnicodeString) rAMap.get(new UnicodeString("type"))).getString();
-        relay.setType(typeR);
-        String ipv4 = ((UnicodeString) rAMap.get(new UnicodeString("ipv4"))).getString();
-        relay.setIpv4(ipv4);
-        String ipv6 = ((UnicodeString) rAMap.get(new UnicodeString("ipv6"))).getString();
-        relay.setIpv6(ipv6);
-        String dnsName = ((UnicodeString) rAMap.get(new UnicodeString("dnsName"))).getString();
-        relay.setDnsName(dnsName);
-        relayList.add(relay);
-      });
-      poolRegistrationParams.setRelays(relayList);
-      co.nstant.in.cbor.model.Map marginMap = (co.nstant.in.cbor.model.Map) poolRegistrationParamsMap.get(
-          new UnicodeString("margin"));
-      PoolMargin poolMargin = new PoolMargin();
-      String numerator = ((UnicodeString) marginMap.get(
-          new UnicodeString("numerator"))).getString();
-      poolMargin.setNumerator(numerator);
-      String denominator = ((UnicodeString) marginMap.get(
-          new UnicodeString("denominator"))).getString();
-      poolMargin.setNumerator(denominator);
-      poolRegistrationParams.setMargin(poolMargin);
-      String marginPercentage = ((UnicodeString) poolRegistrationParamsMap.get(
-          new UnicodeString("marginPercentage"))).getString();
-      poolRegistrationParams.setMarginPercentage(marginPercentage);
-      PoolMetadata poolMetadata = new PoolMetadata();
-      co.nstant.in.cbor.model.Map poolMetadataMap = (co.nstant.in.cbor.model.Map) poolRegistrationParamsMap.get(
-          new UnicodeString("poolMetadata"));
-      String url = ((UnicodeString) poolMetadataMap.get(new UnicodeString("url"))).getString();
-      poolMetadata.setUrl(url);
-      String hash = ((UnicodeString) poolMetadataMap.get(new UnicodeString("hash"))).getString();
-      poolMetadata.setHash(hash);
-      poolRegistrationParams.setPoolMetadata(poolMetadata);
-      operationMetadata.setPoolRegistrationParams(poolRegistrationParams);
-      VoteRegistrationMetadata voteRegistrationMetadata = new VoteRegistrationMetadata();
-      co.nstant.in.cbor.model.Map voteRegistrationMetadataMap = (co.nstant.in.cbor.model.Map) metadataMap.get(
-          new UnicodeString("voteRegistrationMetadata"));
-      co.nstant.in.cbor.model.Map stakeKeyMap = (co.nstant.in.cbor.model.Map) voteRegistrationMetadataMap.get(
-          new UnicodeString("stakeKey"));
-      PublicKey publicKey1 = getPublicKeyFromMap(stakeKeyMap);
-      voteRegistrationMetadata.setStakeKey(publicKey1);
-      co.nstant.in.cbor.model.Map votingKeyMap = (co.nstant.in.cbor.model.Map) voteRegistrationMetadataMap.get(
-          new UnicodeString("votingKey"));
-      ;
-      PublicKey publicKey2 = getPublicKeyFromMap(votingKeyMap);
-      voteRegistrationMetadata.setVotingKey(publicKey2);
-      String rewardAddress2 = ((UnicodeString) voteRegistrationMetadataMap.get(
-          new UnicodeString("rewardAddress"))).getString();
-      voteRegistrationMetadata.setRewardAddress(rewardAddress2);
-      String votingSignature = ((UnicodeString) voteRegistrationMetadataMap.get(
-          new UnicodeString("votingSignature"))).getString();
-      voteRegistrationMetadata.setVotingSignature(votingSignature);
-      int votingNonce = ((UnsignedInteger) voteRegistrationMetadataMap.get(
-          new UnicodeString("votingSignature"))).getValue().intValue();
-      voteRegistrationMetadata.setVotingNonce(votingNonce);
-      operationMetadata.setVoteRegistrationMetadata(voteRegistrationMetadata);
-      operation.setMetadata(operationMetadata);
+        operation.setRelatedOperations(relatedOperations);
+      }
+      if(operationMap.get(new UnicodeString("type"))!=null){
+        String type = ((UnicodeString) (operationMap.get(new UnicodeString("type")))).getString();
+        operation.setType(type);
+      }
+      if(operationMap.get(new UnicodeString("status"))!=null){
+        String status = ((UnicodeString) (operationMap.get(
+            new UnicodeString("status")))).getString();
+        operation.setStatus(status);
+      }
+      if(operationMap.get(new UnicodeString("account"))!=null){
+        AccountIdentifier accountIdentifier = new AccountIdentifier();
+        co.nstant.in.cbor.model.Map accountIdentifierMap = (co.nstant.in.cbor.model.Map) operationMap.get(
+            new UnicodeString("account"));
+        if(accountIdentifierMap.get(
+            new UnicodeString("address"))!=null){
+          String address = ((UnicodeString) accountIdentifierMap.get(
+              new UnicodeString("address"))).getString();
+          accountIdentifier.setAddress(address);
+        }
+        if(accountIdentifierMap.get(new UnicodeString("sub_account"))!=null){
+          co.nstant.in.cbor.model.Map subAccountIdentifierMap = (co.nstant.in.cbor.model.Map) accountIdentifierMap.get(
+              new UnicodeString("sub_account"));
+          SubAccountIdentifier subAccountIdentifier = new SubAccountIdentifier();
+          if(subAccountIdentifierMap.get(new UnicodeString("address"))!=null){
+            String addressSub = ((UnicodeString) (subAccountIdentifierMap.get(
+                new UnicodeString("address")))).getString();
+            subAccountIdentifier.setAddress(addressSub);
+          }
+          if(subAccountIdentifierMap.get(new UnicodeString("metadata"))!=null){
+            co.nstant.in.cbor.model.Map metadataSub = (co.nstant.in.cbor.model.Map) (subAccountIdentifierMap.get(
+                new UnicodeString("metadata")));
+            subAccountIdentifier.setMetadata(metadataSub);
+          }
+          accountIdentifier.setSubAccount(subAccountIdentifier);
+        }
+        if(accountIdentifierMap.get(new UnicodeString("metadata"))!=null){
+          co.nstant.in.cbor.model.Map accountIdentifierMetadataMap = (co.nstant.in.cbor.model.Map) accountIdentifierMap.get(
+              new UnicodeString("metadata"));
+          AccountIdentifierMetadata accountIdentifierMetadata = new AccountIdentifierMetadata();
+          if(accountIdentifierMetadataMap.get(new UnicodeString("chain_code"))!=null){
+            String chainCode = ((UnicodeString) (accountIdentifierMetadataMap.get(
+                new UnicodeString("chain_code")))).getString();
+            accountIdentifierMetadata.setChainCode(chainCode);
+          }
+          accountIdentifier.setMetadata(accountIdentifierMetadata);
+        }
+        operation.setAccount(accountIdentifier);
+      }
+      if(operationMap.get(new UnicodeString("amount"))!=null){
+        co.nstant.in.cbor.model.Map amountMap = (co.nstant.in.cbor.model.Map) operationMap.get(
+            new UnicodeString("amount"));
+        Amount amount = getAmountFromMap(amountMap);
+        operation.setAmount(amount);
+      }
+      if(operationMap.get(new UnicodeString("coin_change"))!=null){
+        co.nstant.in.cbor.model.Map coinChangeMap = (co.nstant.in.cbor.model.Map) operationMap.get(
+            new UnicodeString("coin_change"));
+        CoinChange coinChange = new CoinChange();
+        if(coinChangeMap.get(new UnicodeString("coin_action"))!=null){
+          String coinAction = ((UnicodeString) coinChangeMap.get(
+              new UnicodeString("coin_action"))).getString();
+          coinChange.setCoinAction(coinAction);
+        }
+        if(coinChangeMap.get(new UnicodeString("coin_identifier"))!=null){
+          CoinIdentifier coinIdentifier = new CoinIdentifier();
+          co.nstant.in.cbor.model.Map coinIdentifierMap = (co.nstant.in.cbor.model.Map) coinChangeMap.get(
+              new UnicodeString("coin_identifier"));
+          String identifier = ((UnicodeString) coinIdentifierMap.get(
+              new UnicodeString("identifier"))).getString();
+          coinIdentifier.setIdentifier(identifier);
+          coinChange.setCoinIdentifier(coinIdentifier);
+        }
+        operation.setCoinChange(coinChange);
+      }
+      if(operationMap.get(new UnicodeString("metadata"))!=null){
+        co.nstant.in.cbor.model.Map metadataMap = (co.nstant.in.cbor.model.Map) operationMap.get(
+            new UnicodeString("metadata"));
+        OperationMetadata operationMetadata = new OperationMetadata();
+        if(metadataMap.get(new UnicodeString("withdrawal_amount"))!=null){
+          co.nstant.in.cbor.model.Map withdrawalAmountMap = (co.nstant.in.cbor.model.Map) metadataMap.get(
+              new UnicodeString("withdrawal_amount"));
+          Amount amountW = getAmountFromMap(withdrawalAmountMap);
+          operationMetadata.setWithdrawalAmount(amountW);
+        }
+        if(metadataMap.get(new UnicodeString("deposit_amount"))!=null){
+          co.nstant.in.cbor.model.Map depositAmountMap = (co.nstant.in.cbor.model.Map) metadataMap.get(
+              new UnicodeString("deposit_amount"));
+          Amount amountD = getAmountFromMap(depositAmountMap);
+          operationMetadata.setWithdrawalAmount(amountD);
+        }
+        if(metadataMap.get(
+            new UnicodeString("refund_amount"))!=null){
+          co.nstant.in.cbor.model.Map refundAmountMap = (co.nstant.in.cbor.model.Map) metadataMap.get(
+              new UnicodeString("refund_amount"));
+          Amount amountR = getAmountFromMap(refundAmountMap);
+          operationMetadata.setWithdrawalAmount(amountR);
+        }
+        if(metadataMap.get(new UnicodeString("staking_credential"))!=null){
+          co.nstant.in.cbor.model.Map stakingCredentialMap = (co.nstant.in.cbor.model.Map) metadataMap.get(
+              new UnicodeString("staking_credential"));
+          PublicKey publicKey = getPublicKeyFromMap(stakingCredentialMap);
+          operationMetadata.setStakingCredential(publicKey);
+        }
+        if(metadataMap.get(
+            new UnicodeString("pool_key_hash"))!=null){
+          String poolKeyHash = ((UnicodeString) metadataMap.get(
+              new UnicodeString("pool_key_hash"))).getString();
+          operationMetadata.setPoolKeyHash(poolKeyHash);
+        }
+        if(metadataMap.get(
+            new UnicodeString("epoch"))!=null){
+          Long epoch = ((UnsignedInteger) metadataMap.get(
+              new UnicodeString("epoch"))).getValue().longValue();
+          operationMetadata.setEpoch(epoch);
+        }
+        if(metadataMap.get(new UnicodeString("tokenBundle"))!=null){
+          List<DataItem> tokenBundleArray = ((Array) metadataMap.get(
+              new UnicodeString("tokenBundle"))).getDataItems();
+          List<TokenBundleItem> tokenBundleItems = new ArrayList<>();
+          tokenBundleArray.stream().forEach(t -> {
+            co.nstant.in.cbor.model.Map tokenBundleMap = (co.nstant.in.cbor.model.Map) t;
+            TokenBundleItem tokenBundleItem = new TokenBundleItem();
+            if(tokenBundleMap.get(
+                new UnicodeString("policyId"))!=null){
+              String policyIdT = ((UnicodeString) tokenBundleMap.get(
+                  new UnicodeString("policyId"))).getString();
+              tokenBundleItem.setPolicyId(policyIdT);
+            }
+
+            List<Amount> tokenAList = new ArrayList<>();
+            if(tokenBundleMap.get(
+                new UnicodeString("tokens"))!=null){
+              List<DataItem> tokensItem = ((Array) tokenBundleMap.get(
+                  new UnicodeString("tokens"))).getDataItems();
+              tokensItem.stream().forEach(tk -> {
+                co.nstant.in.cbor.model.Map tokenAmountMap = (co.nstant.in.cbor.model.Map) tk;
+                Amount amount1 = getAmountFromMap(tokenAmountMap);
+                tokenAList.add(amount1);
+              });
+            }
+            tokenBundleItem.setTokens(tokenAList);
+            tokenBundleItems.add(tokenBundleItem);
+          });
+          operationMetadata.setTokenBundle(tokenBundleItems);
+        }
+        if(metadataMap.get(
+            new UnicodeString("poolRegistrationCert"))!=null){
+          String poolRegistrationCert = ((UnicodeString) metadataMap.get(
+              new UnicodeString("poolRegistrationCert"))).getString();
+          operationMetadata.setPoolRegistrationCert(poolRegistrationCert);
+        }
+        if(metadataMap.get(new UnicodeString("poolRegistrationParams"))!=null){
+          co.nstant.in.cbor.model.Map poolRegistrationParamsMap = (co.nstant.in.cbor.model.Map) metadataMap.get(
+              new UnicodeString("poolRegistrationParams"));
+          PoolRegistrationParams poolRegistrationParams = new PoolRegistrationParams();
+          if(poolRegistrationParamsMap.get(
+              new UnicodeString("vrfKeyHash"))!=null){
+            String vrfKeyHash = ((UnicodeString) poolRegistrationParamsMap.get(
+                new UnicodeString("vrfKeyHash"))).getString();
+            poolRegistrationParams.setVrfKeyHash(vrfKeyHash);
+          }
+          if(poolRegistrationParamsMap.get(
+              new UnicodeString("rewardAddress"))!=null){
+            String rewardAddress = ((UnicodeString) poolRegistrationParamsMap.get(
+                new UnicodeString("rewardAddress"))).getString();
+            poolRegistrationParams.setRewardAddress(rewardAddress);
+          }
+          if(poolRegistrationParamsMap.get(new UnicodeString("pledge"))!=null){
+            String pledge = ((UnicodeString) poolRegistrationParamsMap.get(
+                new UnicodeString("pledge"))).getString();
+            poolRegistrationParams.setPledge(pledge);
+          }
+          if(poolRegistrationParamsMap.get(
+              new UnicodeString("cost"))!=null){
+            String cost = ((UnicodeString) poolRegistrationParamsMap.get(
+                new UnicodeString("cost"))).getString();
+            poolRegistrationParams.setCost(cost);
+          }
+          if(poolRegistrationParamsMap.get(
+              new UnicodeString("poolOwners"))!=null){
+            List<String> stringList = new ArrayList<>();
+            List<DataItem> poolOwners = ((Array) poolRegistrationParamsMap.get(
+                new UnicodeString("poolOwners"))).getDataItems();
+            poolOwners.stream().forEach(p -> {
+              if(p!=null){
+                stringList.add(((UnicodeString) p).getString());
+              }
+            });
+            poolRegistrationParams.setPoolOwners(stringList);
+          }
+          if(poolRegistrationParamsMap.get(new UnicodeString("relays"))!=null){
+            List<Relay> relayList = new ArrayList<>();
+            List<DataItem> relaysArray = ((Array) poolRegistrationParamsMap.get(
+                new UnicodeString("relays"))).getDataItems();
+            relaysArray.stream().forEach(rA -> {
+              co.nstant.in.cbor.model.Map rAMap = (co.nstant.in.cbor.model.Map) rA;
+              Relay relay = new Relay();
+              if(rAMap.get(new UnicodeString("type"))!=null){
+                String typeR = ((UnicodeString) rAMap.get(new UnicodeString("type"))).getString();
+                relay.setType(typeR);
+              }
+              if(rAMap.get(new UnicodeString("ipv4"))!=null){
+                String ipv4 = ((UnicodeString) rAMap.get(new UnicodeString("ipv4"))).getString();
+                relay.setIpv4(ipv4);
+              };
+              if(rAMap.get(new UnicodeString("ipv6"))!=null){
+                String ipv6 = ((UnicodeString) rAMap.get(new UnicodeString("ipv6"))).getString();
+                relay.setIpv6(ipv6);
+              }
+              if(rAMap.get(new UnicodeString("dnsName"))!=null){
+                String dnsName = ((UnicodeString) rAMap.get(
+                    new UnicodeString("dnsName"))).getString();
+                relay.setDnsName(dnsName);
+              }
+              relayList.add(relay);
+            });
+            poolRegistrationParams.setRelays(relayList);
+          }
+          if(poolRegistrationParamsMap.get(new UnicodeString("margin"))!=null){
+            co.nstant.in.cbor.model.Map marginMap = (co.nstant.in.cbor.model.Map) poolRegistrationParamsMap.get(
+                new UnicodeString("margin"));
+            PoolMargin poolMargin = new PoolMargin();
+            if(marginMap.get(
+                new UnicodeString("numerator"))!=null){
+              String numerator = ((UnicodeString) marginMap.get(
+                  new UnicodeString("numerator"))).getString();
+              poolMargin.setNumerator(numerator);
+            }
+            if(marginMap.get(
+                new UnicodeString("denominator"))!=null){
+              String denominator = ((UnicodeString) marginMap.get(
+                  new UnicodeString("denominator"))).getString();
+              poolMargin.setDenominator(denominator);
+            }
+            poolRegistrationParams.setMargin(poolMargin);
+          }
+          if(poolRegistrationParamsMap.get(
+              new UnicodeString("margin_percentage"))!=null){
+            String marginPercentage = ((UnicodeString) poolRegistrationParamsMap.get(
+                new UnicodeString("margin_percentage"))).getString();
+            poolRegistrationParams.setMarginPercentage(marginPercentage);
+          }
+          if(poolRegistrationParamsMap.get(
+              new UnicodeString("poolMetadata"))!=null){
+            PoolMetadata poolMetadata = new PoolMetadata();
+            co.nstant.in.cbor.model.Map poolMetadataMap = (co.nstant.in.cbor.model.Map) poolRegistrationParamsMap.get(
+                new UnicodeString("poolMetadata"));
+            if(poolMetadataMap.get(
+                new UnicodeString("url"))!=null){
+              String url = ((UnicodeString) poolMetadataMap.get(
+                  new UnicodeString("url"))).getString();
+              poolMetadata.setUrl(url);
+            }
+            if(poolMetadataMap.get(
+                new UnicodeString("hash"))!=null){
+              String hash = ((UnicodeString) poolMetadataMap.get(
+                  new UnicodeString("hash"))).getString();
+              poolMetadata.setHash(hash);
+            }
+            poolRegistrationParams.setPoolMetadata(poolMetadata);
+          }
+          operationMetadata.setPoolRegistrationParams(poolRegistrationParams);
+        }
+        if(metadataMap.get(new UnicodeString("voteRegistrationMetadata"))!=null){
+          VoteRegistrationMetadata voteRegistrationMetadata = new VoteRegistrationMetadata();
+          co.nstant.in.cbor.model.Map voteRegistrationMetadataMap = (co.nstant.in.cbor.model.Map) metadataMap.get(
+              new UnicodeString("voteRegistrationMetadata"));
+          if(voteRegistrationMetadataMap.get(new UnicodeString("stakeKey"))!=null){
+            co.nstant.in.cbor.model.Map stakeKeyMap = (co.nstant.in.cbor.model.Map) voteRegistrationMetadataMap.get(
+                new UnicodeString("stakeKey"));
+            PublicKey publicKey1 = getPublicKeyFromMap(stakeKeyMap);
+            voteRegistrationMetadata.setStakeKey(publicKey1);
+          }
+          if(voteRegistrationMetadataMap.get(
+              new UnicodeString("votingKey"))!=null){
+            co.nstant.in.cbor.model.Map votingKeyMap = (co.nstant.in.cbor.model.Map) voteRegistrationMetadataMap.get(
+                new UnicodeString("votingKey"));
+            ;
+            PublicKey publicKey2 = getPublicKeyFromMap(votingKeyMap);
+            voteRegistrationMetadata.setVotingKey(publicKey2);
+          }
+          if(voteRegistrationMetadataMap.get(
+              new UnicodeString("rewardAddress"))!=null){
+            String rewardAddress2 = ((UnicodeString) voteRegistrationMetadataMap.get(
+                new UnicodeString("rewardAddress"))).getString();
+            voteRegistrationMetadata.setRewardAddress(rewardAddress2);
+          }
+          if(voteRegistrationMetadataMap.get(
+              new UnicodeString("votingSignature"))!=null){
+            String votingSignature = ((UnicodeString) voteRegistrationMetadataMap.get(
+                new UnicodeString("votingSignature"))).getString();
+            voteRegistrationMetadata.setVotingSignature(votingSignature);
+          }
+          if(voteRegistrationMetadataMap.get(
+              new UnicodeString("votingNonce"))!=null){
+            int votingNonce = ((UnsignedInteger) voteRegistrationMetadataMap.get(
+                new UnicodeString("votingNonce"))).getValue().intValue();
+            voteRegistrationMetadata.setVotingNonce(votingNonce);
+          }
+          operationMetadata.setVoteRegistrationMetadata(voteRegistrationMetadata);
+        }
+        operation.setMetadata(operationMetadata);
+      }
       operations.add(operation);
     });
     transactionExtraData.setOperations(operations);
@@ -2067,39 +2206,63 @@ public class CardanoServiceImpl implements CardanoService {
   @Override
   public PublicKey getPublicKeyFromMap(co.nstant.in.cbor.model.Map stakingCredentialMap) {
     PublicKey publicKey = new PublicKey();
-    String hexBytes = ((UnicodeString) stakingCredentialMap.get(
-        new UnicodeString("hexBytes"))).getString();
-    publicKey.setHexBytes(hexBytes);
-    String curveType = ((UnicodeString) stakingCredentialMap.get(
-        new UnicodeString("curveType"))).getString();
-    publicKey.setHexBytes(curveType);
+    if(stakingCredentialMap.get(
+        new UnicodeString("hex_bytes"))!=null){
+      String hexBytes = ((UnicodeString) stakingCredentialMap.get(
+          new UnicodeString("hex_bytes"))).getString();
+      publicKey.setHexBytes(hexBytes);
+    }
+    if(stakingCredentialMap.get(
+        new UnicodeString("curveType"))!=null){
+      String curveType = ((UnicodeString) stakingCredentialMap.get(
+          new UnicodeString("curveType"))).getString();
+      publicKey.setHexBytes(curveType);
+    }
     return publicKey;
   }
 
   @Override
   public Amount getAmountFromMap(co.nstant.in.cbor.model.Map amountMap) {
     Amount amount = new Amount();
-    String value = ((UnicodeString) amountMap.get(new UnicodeString("value"))).getString();
-    amount.setValue(value);
-    co.nstant.in.cbor.model.Map metadataAm = (co.nstant.in.cbor.model.Map) amountMap.get(
-        new UnicodeString("metadata"));
-    amount.setMetadata(metadataAm);
-    co.nstant.in.cbor.model.Map currencyMap = (co.nstant.in.cbor.model.Map) amountMap.get(
-        new UnicodeString("currency"));
-    Currency currency = new Currency();
-    String symbol = ((UnicodeString) currencyMap.get(new UnicodeString("symbol"))).getString();
-    currency.setSymbol(symbol);
-    Integer decimals = ((UnsignedInteger) currencyMap.get(new UnicodeString("decimals"))).getValue()
-        .intValue();
-    currency.setDecimals(decimals);
-    Metadata metadata = new Metadata();
-    co.nstant.in.cbor.model.Map addedMetadataMap = (co.nstant.in.cbor.model.Map) currencyMap.get(
-        new UnicodeString("metadata"));
-    String policyId = ((UnicodeString) addedMetadataMap.get(
-        new UnicodeString("policyId"))).getString();
-    metadata.setPolicyId(policyId);
-    currency.setMetadata(metadata);
-    amount.setCurrency(currency);
+    if(amountMap.get(new UnicodeString("value"))!=null){
+      String value = ((UnicodeString) amountMap.get(new UnicodeString("value"))).getString();
+      amount.setValue(value);
+    }
+    if(amountMap.get(new UnicodeString("metadata"))!=null){
+      co.nstant.in.cbor.model.Map metadataAm = (co.nstant.in.cbor.model.Map) amountMap.get(
+          new UnicodeString("metadata"));
+      amount.setMetadata(metadataAm);
+    }
+    if(amountMap.get(
+        new UnicodeString("currency"))!=null){
+      co.nstant.in.cbor.model.Map currencyMap = (co.nstant.in.cbor.model.Map) amountMap.get(
+          new UnicodeString("currency"));
+      Currency currency = new Currency();
+      if(currencyMap.get(new UnicodeString("symbol"))!=null){
+        String symbol = ((UnicodeString) currencyMap.get(new UnicodeString("symbol"))).getString();
+        currency.setSymbol(symbol);
+      }
+      if(currencyMap.get(
+          new UnicodeString("decimals"))!=null){
+        Integer decimals = ((UnsignedInteger) currencyMap.get(
+            new UnicodeString("decimals"))).getValue()
+            .intValue();
+        currency.setDecimals(decimals);
+      }
+
+      if(currencyMap.get(new UnicodeString("metadata"))!=null){
+        Metadata metadata = new Metadata();
+        co.nstant.in.cbor.model.Map addedMetadataMap = (co.nstant.in.cbor.model.Map) currencyMap.get(
+            new UnicodeString("metadata"));
+        if(addedMetadataMap.get(new UnicodeString("policyId"))!=null){
+          String policyId = ((UnicodeString) addedMetadataMap.get(
+              new UnicodeString("policyId"))).getString();
+          metadata.setPolicyId(policyId);
+        }
+        currency.setMetadata(metadata);
+      }
+      amount.setCurrency(currency);
+    }
     return amount;
   }
 
@@ -2620,7 +2783,7 @@ public class CardanoServiceImpl implements CardanoService {
       List<OperationIdentifier> relatedOperations, String address) {
     OperationIdentifier operationIdentifier = new OperationIdentifier(index, null);
     AccountIdentifier account = new AccountIdentifier(address);
-    Amount amount = new Amount(output.getValue().toString(),
+    Amount amount = new Amount(output.getValue().getCoin().toString(),
         new Currency(Const.ADA, Const.ADA_DECIMALS, null), null);
     return new Operation(operationIdentifier, relatedOperations, OperationType.OUTPUT.getValue(),
         "",
@@ -2708,10 +2871,11 @@ public class CardanoServiceImpl implements CardanoService {
 
   @Override
   public String parseAddress(String address, String addressPrefix) throws AddressExcepion {
-    ByronAddress byronAddress = new ByronAddress(
-        AddressUtil.bytesToBase58Address(HexUtil.decodeHexString(address)));
-    return !ObjectUtils.isEmpty(byronAddress) ? byronAddress.toBase58()
-        : (new Address(addressPrefix, HexUtil.decodeHexString(address))).toBech32();
+//    ByronAddress byronAddress = new ByronAddress(
+//        AddressUtil.bytesToBase58Address(HexUtil.decodeHexString(address)));
+//    return !ObjectUtils.isEmpty(byronAddress) ? byronAddress.toBase58()
+//        : (new Address(addressPrefix, HexUtil.decodeHexString(address))).toBech32();
+    return address;
   }
 
   @Override

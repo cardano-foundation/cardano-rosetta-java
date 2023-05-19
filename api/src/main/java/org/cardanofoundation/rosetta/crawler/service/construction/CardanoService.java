@@ -1,6 +1,7 @@
 package org.cardanofoundation.rosetta.crawler.service.construction;
 
 import co.nstant.in.cbor.CborException;
+import co.nstant.in.cbor.model.Array;
 import com.bloxbean.cardano.client.address.Address;
 import com.bloxbean.cardano.client.crypto.bip32.key.HdPublicKey;
 import com.bloxbean.cardano.client.exception.AddressExcepion;
@@ -190,7 +191,7 @@ public interface CardanoService {
 
     String encodeExtraData(String transaction, TransactionExtraData extraData) throws JsonProcessingException, CborSerializationException, CborException;
 
-    co.nstant.in.cbor.model.Map decodeExtraData(String encoded);
+    Array decodeExtraData(String encoded);
 
     co.nstant.in.cbor.model.Map getPublicKeymap(PublicKey publicKey);
 
