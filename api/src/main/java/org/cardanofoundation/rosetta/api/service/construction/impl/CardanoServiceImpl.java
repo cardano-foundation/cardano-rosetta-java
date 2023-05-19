@@ -2273,10 +2273,7 @@ public class CardanoServiceImpl implements CardanoService {
       log.info(transaction
           + "[parseUnsignedTransaction] About to create unsigned transaction from bytes");
       byte[] transactionBuffer = HexUtil.decodeHexString(transaction);
-      co.nstant.in.cbor.model.Map transactionBodyMap = new co.nstant.in.cbor.model.Map();
-      transactionBodyMap.put(new UnicodeString("transactionBuffer"),
-          new ByteString(transactionBuffer));
-      TransactionBody parsed = TransactionBody.deserialize(transactionBodyMap);
+      TransactionBody parsed = TransactionBody.deserialize((co.nstant.in.cbor.model.Map) com.bloxbean.cardano.client.common.cbor.CborSerializationUtil.deserialize(transactionBuffer));
       log.info(
           extraData + "[parseUnsignedTransaction] About to parse operations from transaction body");
       List<Operation> operations = convert(parsed, extraData, networkIdentifierType.getValue());
@@ -2538,10 +2535,8 @@ public class CardanoServiceImpl implements CardanoService {
     for (int i = 0; i < withdrawalsCount; i++) {
       Operation withdrawalOperation = withdrawalOps.get(i);
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      StakeCredential credential = getStakingCredentialFromHex(
-          withdrawalOperation.getMetadata().getStakingCredential());
       HdPublicKey hdPublicKey = new HdPublicKey();
-      hdPublicKey.setKeyData(credential.getHash());
+      hdPublicKey.setKeyData(HexUtil.decodeHexString(withdrawalOperation.getMetadata().getStakingCredential().getHexBytes()));
       String address = generateRewardAddress(NetworkIdentifierType.find(network), hdPublicKey);
       Operation parsedOperation = parseWithdrawalToOperation(
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -2774,8 +2769,7 @@ public class CardanoServiceImpl implements CardanoService {
     }
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     if (!ObjectUtils.isEmpty(delegationCert)) {
-      operation.getMetadata().setPoolKeyHash(HexUtil.decodeHexString(
-          HexUtil.encodeHexString(delegationCert.getStakePoolId().getPoolKeyHash())).toString());
+      operation.getMetadata().setPoolKeyHash(HexUtil.encodeHexString(delegationCert.getStakePoolId().getPoolKeyHash()));
     }
     return operation;
   }
