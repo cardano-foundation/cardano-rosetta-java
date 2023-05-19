@@ -6,18 +6,19 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.crawler.common.constants.Constants;
 import org.cardanofoundation.rosetta.crawler.exception.ExceptionFactory;
-import org.cardanofoundation.rosetta.crawler.model.rest.NetworkIdentifier;
-import org.cardanofoundation.rosetta.crawler.model.rest.NetworkRequest;
+import org.cardanofoundation.rosetta.crawler.filter.wrapper.RequestWrapper;
 import org.cardanofoundation.rosetta.crawler.service.NetworkService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StreamUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 
@@ -37,15 +38,16 @@ public class NetworkValidationFilter extends OncePerRequestFilter {
   @Override
   protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
       FilterChain filterChain) throws ServletException, IOException {
-      String body = request.getReader().lines().collect(Collectors.joining());
+      RequestWrapper wrapper = new RequestWrapper(request);
+      byte[] body = StreamUtils.copyToByteArray(wrapper.getInputStream());
       ObjectMapper mapper = new ObjectMapper();
-      NetworkRequest networkRequest = mapper.readValue(body, NetworkRequest.class);
-      NetworkIdentifier identifier = networkRequest.getNetworkIdentifier();
+      Map<String , Object> networkRequest = mapper.readValue(body, Map.class);
+      Map<String, String> identifier = (LinkedHashMap<String, String>) networkRequest.get("network_identifier");
       log.debug("[networkValidation] About to validate requests network identifier parameter "
           + identifier);
 
-      String blockchain = identifier.getBlockchain();
-      String network = identifier.getNetwork();
+      String blockchain = identifier.get("blockchain");
+      String network = identifier.get("network");
 
       if (!blockchain.equals(Constants.CARDANO)) {
         log.error("[networkValidation] Blockchain parameter is not cardano: " + blockchain);
@@ -58,7 +60,7 @@ public class NetworkValidationFilter extends OncePerRequestFilter {
         throw ExceptionFactory.networkNotFoundError();
       }
       log.debug("[networkValidation] Network parameters are within expected");
-      filterChain.doFilter(request, response);
+      filterChain.doFilter(wrapper, response);
     }
   @Override
   protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {

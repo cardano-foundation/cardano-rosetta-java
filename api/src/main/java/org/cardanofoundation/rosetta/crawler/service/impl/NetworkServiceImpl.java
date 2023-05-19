@@ -31,13 +31,15 @@ import org.cardanofoundation.rosetta.crawler.model.rest.NetworkListResponse;
 import org.cardanofoundation.rosetta.crawler.model.rest.NetworkOptionsResponse;
 import org.cardanofoundation.rosetta.crawler.model.rest.NetworkRequest;
 import org.cardanofoundation.rosetta.crawler.model.rest.NetworkStatusResponse;
-import org.cardanofoundation.rosetta.crawler.projection.BlockDto;
-import org.cardanofoundation.rosetta.crawler.projection.GenesisBlockDto;
+import org.cardanofoundation.rosetta.crawler.projection.dto.BlockDto;
+import org.cardanofoundation.rosetta.crawler.projection.dto.GenesisBlockDto;
 import org.cardanofoundation.rosetta.crawler.service.BlockService;
+import org.cardanofoundation.rosetta.crawler.service.LedgerDataProviderService;
 import org.cardanofoundation.rosetta.crawler.service.NetworkService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ResourceUtils;
 
 @Service
 @Slf4j
@@ -50,6 +52,9 @@ public class NetworkServiceImpl implements NetworkService {
 
   @Value("${cardano.rosetta.TOPOLOGY_FILEPATH}")
   private String topologyFilepath;
+
+  @Autowired
+  private LedgerDataProviderService ledgerDataProviderService;
 
 
   private List<BalanceExemption> balanceExemptions;
@@ -122,10 +127,10 @@ public class NetworkServiceImpl implements NetworkService {
 
   private NetworkStatus networkStatus() throws ServerException {
     log.info("[networkStatus] Looking for latest block");
-    BlockDto latestBlock = blockService.getLatestBlock();
+    BlockDto latestBlock = ledgerDataProviderService.findLatestBlock();
     log.debug("[networkStatus] Latest block found " + latestBlock);
     log.debug("[networkStatus] Looking for genesis block");
-    GenesisBlockDto genesisBlock = blockService.getGenesisBlock();
+    GenesisBlockDto genesisBlock = ledgerDataProviderService.findGenesisBlock();
     log.debug("[networkStatus] Genesis block found " + genesisBlock);
     return NetworkStatus.builder()
         .latestBlock(latestBlock)
@@ -156,8 +161,8 @@ public class NetworkServiceImpl implements NetworkService {
   private TopologyConfig readFromFileConfig(String urlPath) throws ServerException {
     try {
       ObjectMapper  mapper = new ObjectMapper();
-      File topologyFile = new File(urlPath);
-      return mapper.readValue(topologyFile,TopologyConfig.class);
+      File file = ResourceUtils.getFile("classpath:" + urlPath);
+      return mapper.readValue(file,TopologyConfig.class);
 
     } catch (IOException e) {
       throw ExceptionFactory.configNotFoundException();

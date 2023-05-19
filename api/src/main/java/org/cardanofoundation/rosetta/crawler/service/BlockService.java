@@ -5,7 +5,6 @@ import org.cardanofoundation.rosetta.crawler.model.rest.AccountBalanceResponse;
 import org.cardanofoundation.rosetta.crawler.model.rest.Currency;
 import org.cardanofoundation.rosetta.crawler.projection.dto.BlockDto;
 import org.cardanofoundation.rosetta.crawler.projection.dto.BlockUtxos;
-import org.cardanofoundation.rosetta.crawler.projection.GenesisBlockDto;
 
 
 public interface BlockService {
@@ -18,8 +17,5 @@ public interface BlockService {
 
   BlockDto findBlock(Long number, String hash);
 
-  BlockDto getLatestBlock();
-
-  GenesisBlockDto getGenesisBlock();
 
 }

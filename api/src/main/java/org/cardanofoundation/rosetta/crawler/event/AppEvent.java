@@ -9,7 +9,6 @@ import java.net.URISyntaxException;
 import java.util.HashMap;
 import org.apache.tomcat.util.json.JSONParser;
 import org.apache.tomcat.util.json.ParseException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationContext;
@@ -24,9 +23,6 @@ public class AppEvent {
 
   public static String networkId;
   public static BigInteger networkMagic;
-
-  @Autowired
-  private ApplicationContext ctx;
   @EventListener(ApplicationReadyEvent.class)
   public void afterStartApp() throws IOException, ParseException, URISyntaxException {
     File file = ResourceUtils.getFile("classpath:" + genesisPath);

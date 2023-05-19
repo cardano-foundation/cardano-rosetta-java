@@ -5,8 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.cardanofoundation.rosetta.crawler.projection.BlockDto;
-import org.cardanofoundation.rosetta.crawler.projection.GenesisBlockDto;
+import org.cardanofoundation.rosetta.crawler.projection.dto.BlockDto;
+import org.cardanofoundation.rosetta.crawler.projection.dto.GenesisBlockDto;
 
 @Data
 @Builder
