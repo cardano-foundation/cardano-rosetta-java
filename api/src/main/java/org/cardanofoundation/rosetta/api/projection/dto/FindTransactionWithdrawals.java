@@ -14,5 +14,5 @@ public class FindTransactionWithdrawals implements FindTransactionFieldResult {
 
   private String address;
   private BigInteger amount;
-  private byte[] txHash;
+  private String txHash;
 }

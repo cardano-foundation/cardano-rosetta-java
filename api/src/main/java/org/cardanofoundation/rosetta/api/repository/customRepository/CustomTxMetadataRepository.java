@@ -4,6 +4,6 @@ import java.util.List;
 import org.cardanofoundation.rosetta.api.projection.dto.TransactionMetadataDto;
 
 public interface CustomTxMetadataRepository {
-  List<TransactionMetadataDto> findTransactionMetadata(List<byte[]> hashes);
+  List<TransactionMetadataDto> findTransactionMetadata(List<String> hashes);
 
 }

@@ -147,23 +147,11 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
         log.debug("[constructionMetadata] updating tx size from {}", txSize);
         Long updatedTxSize = cardanoService.updateTxSize(txSize.longValue(), 0L, ttl);
         log.debug("[constructionMetadata] updated txSize size is ${updatedTxSize}");
-        ProtocolParametersResponse protocolParametersResponse = cardanoService.getProtocolParameters();
+        ProtocolParameters protocolParametersResponse = cardanoService.getProtocolParameters();
         log.debug("[constructionMetadata] received protocol parameters from block-service {}", protocolParametersResponse);
         Long suggestedFee = cardanoService.calculateTxMinimumFee(updatedTxSize, protocolParametersResponse);
         log.debug("[constructionMetadata] suggested fee is ${suggestedFee}");
-        // eslint-disable-next-line camelcase
-        ProtocolParameters protocol_parameters = new ProtocolParameters();
-        protocol_parameters.setCoinsPerUtxoSize(protocolParametersResponse.getCoinsPerUtxoSize());
-        protocol_parameters.setMaxTxSize(protocolParametersResponse.getMaxTxSize());
-        protocol_parameters.setMaxValSize(protocolParametersResponse.getMaxValSize());
-        protocol_parameters.setKeyDeposit(protocolParametersResponse.getKeyDeposit());
-        protocol_parameters.setMaxCollateralInputs(protocolParametersResponse.getMaxCollateralInputs());
-        protocol_parameters.setMinFeeConstant(protocolParametersResponse.getMinFeeConstant());
-        protocol_parameters.setMinFeeCoefficient(protocolParametersResponse.getMinFeeCoefficient());
-        protocol_parameters.setMinPoolCost(protocolParametersResponse.getMinPoolCost());
-        protocol_parameters.setPoolDeposit(protocolParametersResponse.getPoolDeposit());
-        protocol_parameters.setProtocol(protocolParametersResponse.getProtocolMajor());
-        return new ConstructionMetadataResponse(new ConstructionMetadataResponseMetadata(ttl.toString(), protocol_parameters),
+        return new ConstructionMetadataResponse(new ConstructionMetadataResponseMetadata(ttl.toString(), protocolParametersResponse),
             new ArrayList<>(List.of(cardanoService.mapAmount(suggestedFee.toString(), null, null, null))));
     }
 

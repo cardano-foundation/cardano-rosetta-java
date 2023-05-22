@@ -14,6 +14,6 @@ public class TransactionMetadataDto implements FindTransactionFieldResult {
   private String data;
   private String signature;
 
-  private byte[] txHash;
+  private String txHash;
 
 }

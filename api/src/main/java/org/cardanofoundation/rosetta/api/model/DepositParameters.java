@@ -20,10 +20,10 @@ import javax.annotation.Generated;
 public class DepositParameters {
 
   @JsonProperty("keyDeposit")
-  private Long keyDeposit;
+  private String keyDeposit;
 
   @JsonProperty("poolDeposit")
-  private Long poolDeposit;
+  private String poolDeposit;
 
 
   @Override

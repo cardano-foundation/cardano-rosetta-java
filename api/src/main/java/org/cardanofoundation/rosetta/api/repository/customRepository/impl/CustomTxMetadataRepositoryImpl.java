@@ -22,30 +22,10 @@ public class CustomTxMetadataRepositoryImpl implements CustomTxMetadataRepositor
   private EntityManager entityManager;
 
   @Override
-  public List<TransactionMetadataDto> findTransactionMetadata(List<byte[]> hashes) {
-//    String findTransactionMetadataQuery = "WITH metadata AS ( "
-//        + "  SELECT metadata.json, metadata.key, tx.hash AS txHash, tx.id AS txId "
-//        + "  FROM TxMetadata AS metadata "
-//        + "  JOIN Tx AS tx ON tx.id = metadata.tx.id "
-//        + "  WHERE tx.hash IN :hashList "
-//        + "), "
-//        + "metadata_data AS ( "
-//        + "  SELECT json AS data, metadata.txHash, metadata.txId "
-//        + "  FROM metadata "
-//        + "  WHERE metadata.key = " + CatalystLabels.DATA
-//        + " ), "
-//        + "metadata_sig AS ( "
-//        + "  SELECT json AS signature, metadata.txHash, metadata.txId "
-//        + "  FROM metadata "
-//        + "  WHERE metadata.key =  " + CatalystLabels.SIG
-//        + " ) "
-//        + "SELECT data, signature, metadata_data.txHash "
-//        + "FROM metadata_data "
-//        + "INNER JOIN metadata_sig "
-//        + "  ON metadata_data.tx.id = metadata_sig.tx.id ";
-    byte[][] finalHashes = new byte[hashes.size()][];
+  public List<TransactionMetadataDto> findTransactionMetadata(List<String> hashes) {
+    String[] finalHashes = new String[hashes.size()];
     for (int i = 0; i < hashes.size(); i++) {
-      finalHashes[i] = hashes.get(i);
+      finalHashes[i] = new String(hashes.get(i));
     }
     String findTransactionMetadataQuery = "WITH metadata AS ( "
         + "  SELECT "

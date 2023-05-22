@@ -33,6 +33,7 @@ import org.cardanofoundation.rosetta.api.model.OperationMetadata;
 import org.cardanofoundation.rosetta.api.model.PoolMargin;
 import org.cardanofoundation.rosetta.api.model.PoolMetadata;
 import org.cardanofoundation.rosetta.api.model.PoolRegistrationParams;
+import org.cardanofoundation.rosetta.api.model.ProtocolParameters;
 import org.cardanofoundation.rosetta.api.model.PublicKey;
 import org.cardanofoundation.rosetta.api.model.Relay;
 import org.cardanofoundation.rosetta.api.model.SigningPayload;
@@ -174,9 +175,9 @@ public interface CardanoService {
 
     String hexStringFormatter(String toFormat);
 
-    Long calculateTxMinimumFee(Long transactionSize, ProtocolParametersResponse protocolParameters);
+    Long calculateTxMinimumFee(Long transactionSize, ProtocolParameters protocolParameters);
 
-    ProtocolParametersResponse getProtocolParameters();
+    ProtocolParameters getProtocolParameters();
 
     Long updateTxSize(Long previousTxSize, Long previousTtl, Long updatedTtl) throws CborSerializationException, CborException;
 

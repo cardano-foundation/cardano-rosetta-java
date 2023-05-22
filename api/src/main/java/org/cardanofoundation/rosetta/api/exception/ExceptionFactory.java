@@ -32,4 +32,7 @@ public class ExceptionFactory {
   public static ApiException invalidAddressError(String address) {
     return new ApiException(RosettaErrorType.INVALID_ADDRESS.toRosettaError(true, address));
   }
+  public static ApiException transactionNotFound() {
+    return new ApiException(RosettaErrorType.TRANSACTION_NOT_FOUND.toRosettaError(false));
+  }
 }

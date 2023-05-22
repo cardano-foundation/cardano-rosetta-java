@@ -57,6 +57,7 @@ import org.cardanofoundation.rosetta.api.model.OperationMetadata;
 import org.cardanofoundation.rosetta.api.model.PoolMargin;
 import org.cardanofoundation.rosetta.api.model.PoolMetadata;
 import org.cardanofoundation.rosetta.api.model.PoolRegistrationParams;
+import org.cardanofoundation.rosetta.api.model.ProtocolParameters;
 import org.cardanofoundation.rosetta.api.model.PublicKey;
 import org.cardanofoundation.rosetta.api.model.Relay;
 import org.cardanofoundation.rosetta.api.model.SignatureType;
@@ -176,7 +177,7 @@ public class CardanoServiceImpl implements CardanoService {
         operations,
         ttl,
         !ObjectUtils.isEmpty(depositParameters) ? depositParameters
-            : new DepositParameters(Const.DEFAULT_POOL_DEPOSIT, Const.DEFAULT_KEY_DEPOSIT)
+            : new DepositParameters(Const.DEFAULT_POOL_DEPOSIT.toString(), Const.DEFAULT_KEY_DEPOSIT.toString())
     );
     // eslint-disable-next-line consistent-return
     List<Signatures> signaturesList = (unsignedTransaction.getAddresses()).stream()
@@ -404,11 +405,11 @@ public class CardanoServiceImpl implements CardanoService {
     log.info("[processOperations] About to calculate fee");
     ProcessOperationsDto result = convert(networkIdentifierType, operations);
     double refundsSum =
-        result.getStakeKeyDeRegistrationsCount() * depositParameters.getKeyDeposit().longValue();
+        result.getStakeKeyDeRegistrationsCount() * Double.parseDouble(depositParameters.getKeyDeposit());
     double keyDepositsSum =
-        result.getStakeKeyRegistrationsCount() * depositParameters.getKeyDeposit().longValue();
+        result.getStakeKeyRegistrationsCount() * Double.parseDouble(depositParameters.getKeyDeposit());
     double poolDepositsSum =
-        result.getPoolRegistrationsCount() * depositParameters.getPoolDeposit().longValue();
+        result.getPoolRegistrationsCount() * Double.parseDouble(depositParameters.getPoolDeposit());
     Map<String, Double> depositsSumMap = new HashMap<>();
     depositsSumMap.put("keyRefundsSum", refundsSum);
     depositsSumMap.put("keyDepositsSum", keyDepositsSum);
@@ -1397,16 +1398,15 @@ public class CardanoServiceImpl implements CardanoService {
 
   @Override
   public Long calculateTxMinimumFee(Long transactionSize,
-      ProtocolParametersResponse protocolParameters) {
+      ProtocolParameters protocolParameters) {
     return protocolParameters.getMinFeeCoefficient() * transactionSize
         + protocolParameters.getMinFeeConstant();
   }
 
   @Override
-  public ProtocolParametersResponse getProtocolParameters() {
+  public ProtocolParameters getProtocolParameters() {
     log.debug("[getLinearFeeParameters] About to run findProtocolParameters query");
-    ProtocolParametersResponse protocolParametersResponse = ledgerDataProviderService.findProtocolParameters();
-    return protocolParametersResponse;
+    return ledgerDataProviderService.findProtocolParameters();
   }
 
   @Override
