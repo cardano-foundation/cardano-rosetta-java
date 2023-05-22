@@ -13,11 +13,12 @@ import java.math.BigInteger;
 import java.util.Objects;
 
 @Entity
-@Table(name = "withdrawal", uniqueConstraints = {
-    @UniqueConstraint(name = "unique_slot_leader",
-        columnNames = {"addr_id", "tx_id"}
-    )
-})
+//@Table(name = "withdrawal", uniqueConstraints = {
+//    @UniqueConstraint(name = "unique_slot_leader",
+//        columnNames = {"addr_id", "tx_id"}
+//    )
+//})
+@Table(name = "withdrawal")
 @Getter
 @Setter
 @NoArgsConstructor

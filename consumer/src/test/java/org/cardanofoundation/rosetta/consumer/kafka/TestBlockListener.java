@@ -20,10 +20,11 @@ public class TestBlockListener {
     @Autowired
     private BlockListener blockListener;
 
-    @KafkaListener(topics = "${test.topic1}", groupId = "${spring.kafka.consumer.group-id}",
-            topicPartitions = {
-                    @TopicPartition(topic = "${test.topic1}", partitions = "0")
-            })
+//    @KafkaListener(topics = "${test.topic1}", groupId = "${spring.kafka.consumer.group-id}",
+//            topicPartitions = {
+//                    @TopicPartition(topic = "${test.topic1}", partitions = "0")
+//            })
+    @KafkaListener(topics = "${test.topic1}")
     public void receive(ConsumerRecord<String, CommonBlock> consumerRecord) {
         latch.countDown();
         blockListener.consume(consumerRecord, null);
