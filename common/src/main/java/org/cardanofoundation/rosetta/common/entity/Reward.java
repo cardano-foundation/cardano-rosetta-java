@@ -1,5 +1,6 @@
 package org.cardanofoundation.rosetta.common.entity;
 
+import jakarta.persistence.ConstraintMode;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.util.Objects;
@@ -37,9 +38,8 @@ import org.hibernate.annotations.OnDeleteAction;
 public class Reward extends BaseEntity {
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
-  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "addr_id", nullable = false,
-      foreignKey = @ForeignKey(name = "reward_addr_id_fkey"))
+      foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "none"))
   @EqualsAndHashCode.Exclude
   private StakeAddress addr;
 
@@ -61,9 +61,8 @@ public class Reward extends BaseEntity {
   private Integer spendableEpoch;
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "pool_id",
-      foreignKey = @ForeignKey(name = "reward_pool_id_fkey"))
+      foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "none"))
   @EqualsAndHashCode.Exclude
   private PoolHash pool;
 

@@ -1,5 +1,6 @@
 package org.cardanofoundation.rosetta.api.event;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
@@ -11,6 +12,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ResourceUtils;
 
 @Component
 public class AppEvent {
@@ -21,7 +23,8 @@ public class AppEvent {
   public static BigInteger networkMagic;
   @EventListener(ApplicationReadyEvent.class)
   public void afterStartApp() throws FileNotFoundException, ParseException {
-    InputStream input = new FileInputStream(genesisPath);
+    File file = ResourceUtils.getFile("classpath:" + genesisPath);
+    InputStream input = new FileInputStream(file);
     HashMap<String,Object> object = (HashMap<String,Object>) new JSONParser(input).parse();
     networkId = ((String) object.get("networkId")).toLowerCase();
     networkMagic = (BigInteger) object.get("networkMagic");

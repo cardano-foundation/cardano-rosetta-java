@@ -1,5 +1,6 @@
 package org.cardanofoundation.rosetta.common.entity;
 
+import jakarta.persistence.ConstraintMode;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.util.Objects;
@@ -124,9 +125,8 @@ public class EpochParam extends BaseEntity {
   private BigInteger coinsPerUtxoSize;
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "cost_model_id",
-      foreignKey = @ForeignKey(name = "epoch_param_cost_model_id_fkey"))
+      foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "none"))
   @EqualsAndHashCode.Exclude
   private CostModel costModel;
 
@@ -170,9 +170,8 @@ public class EpochParam extends BaseEntity {
   private Integer maxCollateralInputs;
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
-  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "block_id", nullable = false,
-      foreignKey = @ForeignKey(name = "epoch_param_block_id_fkey"))
+      foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "none"))
   @EqualsAndHashCode.Exclude
   private Block block;
   @Override

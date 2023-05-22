@@ -1,18 +1,18 @@
-package org.cardanofoundation.rosetta.api.projection;
+package org.cardanofoundation.rosetta.api.projection.dto;
 
-import com.bloxbean.cardano.client.api.model.Utxo;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
-
-import java.util.List;
+import org.cardanofoundation.rosetta.api.model.rest.Utxo;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @SuperBuilder
 public class BlockUtxos {
-    BlockDto block;
-    List<Utxo> utxos;
+
+  BlockDto block;
+  List<Utxo> utxos;
 }

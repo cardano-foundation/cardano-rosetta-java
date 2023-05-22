@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
-import org.cardanofoundation.rosetta.common.ledgersync.Amount;
+import org.openapitools.client.model.Amount;
 
 /**
  * @author Sotatek-HoangNguyen9

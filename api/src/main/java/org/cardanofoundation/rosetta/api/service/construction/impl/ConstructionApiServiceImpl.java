@@ -46,6 +46,7 @@ import org.cardanofoundation.rosetta.api.service.construction.CardanoService;
 import org.cardanofoundation.rosetta.api.service.construction.ConstructionApiService;
 import org.cardanofoundation.rosetta.api.model.rest.AccountIdentifier;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -58,6 +59,7 @@ import java.util.stream.Collectors;
 public class ConstructionApiServiceImpl implements ConstructionApiService {
 
     @Autowired
+    @Qualifier("CardanoService")
     CardanoService cardanoService;
 
 

@@ -2,7 +2,6 @@ package org.cardanofoundation.rosetta.api.util;
 
 import com.bloxbean.cardano.client.common.model.Network;
 import com.bloxbean.cardano.client.common.model.Networks;
-
 import java.util.Optional;
 
 public class CardanoNetworks {
