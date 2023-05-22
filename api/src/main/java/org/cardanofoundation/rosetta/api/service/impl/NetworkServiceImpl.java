@@ -2,6 +2,7 @@ package org.cardanofoundation.rosetta.api.service.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.github.cdimascio.dotenv.Dotenv;
 import jakarta.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
@@ -50,8 +51,7 @@ public class NetworkServiceImpl implements NetworkService {
   @Autowired
   private BlockService blockService;
 
-  @Value("${cardano.rosetta.TOPOLOGY_FILEPATH}")
-  private String topologyFilepath;
+  private static  Dotenv dotenv = Dotenv.load();
 
   @Autowired
   private LedgerDataProviderService ledgerDataProviderService;
@@ -135,7 +135,7 @@ public class NetworkServiceImpl implements NetworkService {
     return NetworkStatus.builder()
         .latestBlock(latestBlock)
         .genesisBlock(genesisBlock)
-        .peers(getPeerFromConfig(readFromFileConfig(topologyFilepath)))
+        .peers(getPeerFromConfig(readFromFileConfig()))
         .build();
   }
 
@@ -158,10 +158,11 @@ public class NetworkServiceImpl implements NetworkService {
 
   }
 
-  private TopologyConfig readFromFileConfig(String urlPath) throws ServerException {
+  private TopologyConfig readFromFileConfig() throws ServerException {
+    String topologyFilepath = dotenv.get("TOPOLOGY_FILEPATH");
     try {
       ObjectMapper  mapper = new ObjectMapper();
-      File file = ResourceUtils.getFile("classpath:" + urlPath);
+      File file = ResourceUtils.getFile(topologyFilepath);
       return mapper.readValue(file,TopologyConfig.class);
 
     } catch (IOException e) {
