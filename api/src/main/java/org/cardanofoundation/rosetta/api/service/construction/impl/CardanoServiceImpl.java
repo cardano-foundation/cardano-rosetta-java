@@ -22,6 +22,7 @@ import com.bloxbean.cardano.client.transaction.spec.cert.*;
 import com.bloxbean.cardano.yaci.core.util.CborSerializationUtil;
 import com.bloxbean.cardano.client.util.HexUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import io.swagger.v3.oas.models.security.SecurityScheme.In;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
@@ -2305,7 +2306,8 @@ public class CardanoServiceImpl implements CardanoService {
       extraData.getOperations().stream().forEach(o ->
           {
             try {
-              accum.addAll(getSignerFromOperation(networkIdentifierType, o));
+              List<String> list=getSignerFromOperation(networkIdentifierType, o);
+              accum.addAll(list);
             } catch (CborSerializationException e) {
               throw new RuntimeException(e);
             }
@@ -2333,11 +2335,8 @@ public class CardanoServiceImpl implements CardanoService {
     if (operation.getType().equals(OperationType.VOTE_REGISTRATION.getValue())) {
       return new ArrayList<>();
     }
-    StakeCredential credential = getStakingCredentialFromHex(
-        ObjectUtils.isEmpty(operation.getMetadata()) ? null
-            : operation.getMetadata().getStakingCredential());
     HdPublicKey hdPublicKey = new HdPublicKey();
-    hdPublicKey.setKeyData(credential.getHash());
+    hdPublicKey.setKeyData(HexUtil.decodeHexString(operation.getMetadata().getStakingCredential().getHexBytes()));
     return new ArrayList<>(List.of(generateRewardAddress(networkIdentifierType, hdPublicKey)));
   }
 
@@ -2368,7 +2367,7 @@ public class CardanoServiceImpl implements CardanoService {
             poolCertAsHex,
             ObjectUtils.isEmpty(operation.getAccount()) ? null : operation.getAccount().getAddress()
         );
-        signers.addAll((List<String>) map.get("addresses"));
+        signers.addAll((HashSet<String>) map.get("addresses"));
         break;
       }
       // pool retirement case
@@ -2467,47 +2466,34 @@ public class CardanoServiceImpl implements CardanoService {
       log.error("[parseVoteMetadataToOperation] Missing vote registration metadata");
       throw new IllegalArgumentException("missingVoteRegistrationMetadata");
     }
-    co.nstant.in.cbor.model.Map map = new co.nstant.in.cbor.model.Map();
-    map.put(new UnicodeString("transactionMetadataHex"), new UnicodeString(transactionMetadataHex));
-    AuxiliaryData transactionMetadata = AuxiliaryData.deserialize(map);
-    co.nstant.in.cbor.model.Array metadataList = (co.nstant.in.cbor.model.Array) com.bloxbean.cardano.client.common.cbor.CborSerializationUtil.deserialize(
-        transactionMetadata.getAuxiliaryDataHash());
-    co.nstant.in.cbor.model.Map generalMetadata = (co.nstant.in.cbor.model.Map) metadataList.getDataItems()
-        .get(0);
-    co.nstant.in.cbor.model.Map data = (co.nstant.in.cbor.model.Map) generalMetadata.get(
-        new UnsignedInteger(Long.valueOf(CatalystLabels.DATA.getValue())));
+    Array array = (Array) com.bloxbean.cardano.client.common.cbor.CborSerializationUtil.deserialize(HexUtil.decodeHexString(transactionMetadataHex));
+    AuxiliaryData transactionMetadata = AuxiliaryData.deserialize((co.nstant.in.cbor.model.Map) array.getDataItems().get(0));
+    CBORMetadata metadata= (CBORMetadata) transactionMetadata.getMetadata();
+    CBORMetadataMap data = (CBORMetadataMap) metadata.get(BigInteger.valueOf(Long.parseLong(CatalystLabels.DATA.getValue())));
+    CBORMetadataMap sig = (CBORMetadataMap) metadata.get(BigInteger.valueOf(Long.parseLong(CatalystLabels.SIG.getValue())));
     if (ObjectUtils.isEmpty(data)) {
       throw new IllegalArgumentException("missingVoteRegistrationMetadata");
     }
-    co.nstant.in.cbor.model.Map sig = (co.nstant.in.cbor.model.Map) generalMetadata.get(
-        new UnsignedInteger(Long.valueOf(CatalystLabels.SIG.getValue())));
     if (ObjectUtils.isEmpty(sig)) {
       throw new IllegalArgumentException("invalidVotingSignature");
     }
-    String rewardAddressP = ((UnicodeString) data.get(
-        new UnsignedInteger(CatalystDataIndexes.REWARD_ADDRESS.getValue()))).getString();
+    byte[] rewardAddressP = (byte[]) data.get(BigInteger.valueOf(CatalystDataIndexes.REWARD_ADDRESS.getValue()));
 //need to revise
     Address rewardAddress = getAddressFromHexString(
-        remove0xPrefix(rewardAddressP)
+        remove0xPrefix(HexUtil.encodeHexString(rewardAddressP))
     );
     if (rewardAddress == null) {
       throw new IllegalArgumentException("invalidAddressError");
     }
-
+   BigInteger votingNonce=(BigInteger) data.get(BigInteger.valueOf(CatalystDataIndexes.VOTING_NONCE.getValue()));
     VoteRegistrationMetadata parsedMetadata = new VoteRegistrationMetadata(
-        new PublicKey(remove0xPrefix(((UnicodeString) data.get(
-            new UnsignedInteger(CatalystDataIndexes.VOTING_KEY.getValue()))).getString()),
+        new PublicKey(remove0xPrefix(HexUtil.encodeHexString((byte[])data.get(BigInteger.valueOf(CatalystDataIndexes.STAKE_KEY.getValue())))),
             CurveType.EDWARDS25519.getValue()),
-        new PublicKey(remove0xPrefix(((UnicodeString) data.get(
-            new UnsignedInteger(CatalystDataIndexes.STAKE_KEY.getValue()))).getString()),
+        new PublicKey(remove0xPrefix(HexUtil.encodeHexString((byte[])data.get(BigInteger.valueOf(CatalystDataIndexes.VOTING_KEY.getValue())))),
             CurveType.EDWARDS25519.getValue()),
-        rewardAddress.toBech32(),
-        ((UnsignedInteger) data.get(
-            new UnsignedInteger(CatalystDataIndexes.VOTING_NONCE.getValue()))).getValue()
-            .intValue(),
-        remove0xPrefix(((UnicodeString) sig.get(
-            new UnsignedInteger(CatalystSigIndexes.VOTING_SIGNATURE.getValue()))).getString())
-    );
+        rewardAddress.toBech32(),votingNonce.intValue(),
+        remove0xPrefix(HexUtil.encodeHexString((byte[])sig.get(BigInteger.valueOf(CatalystSigIndexes.VOTING_SIGNATURE.getValue())))
+    ));
 
     return new Operation(
         new OperationIdentifier(index, null),
@@ -2574,7 +2560,7 @@ public class CardanoServiceImpl implements CardanoService {
 
     for (int i = 0; i < certsCount; i++) {
       Operation certOperation = certOps.get(i);
-      if (Const.StakePoolOperations.contains(certOperation.getType())) {
+      if (Const.StakingOperations.contains(certOperation.getType())) {
         String hex = ObjectUtils.isEmpty(certOperation.getMetadata()) ? null
             : (ObjectUtils.isEmpty(certOperation.getMetadata().getStakingCredential()) ? null
                 : certOperation.getMetadata().getStakingCredential().getHexBytes());
@@ -2609,6 +2595,7 @@ public class CardanoServiceImpl implements CardanoService {
               certOperation.getType()
           );
           parsedOperation.setAccount(certOperation.getAccount());
+          parsedOperations.add(parsedOperation);
         }
       }
     }
@@ -2620,7 +2607,7 @@ public class CardanoServiceImpl implements CardanoService {
   public Operation parsePoolCertToOperation(Integer network, Certificate cert, Long index,
       String type)
       throws UnknownHostException, JsonProcessingException, CborSerializationException, CborException {
-    Operation operation = new Operation(new OperationIdentifier(index, null), type, "", null);
+    Operation operation = new Operation(new OperationIdentifier(index, null), type, "", new OperationMetadata());
 
     if (type.equals(OperationType.POOL_RETIREMENT.getValue())) {
       PoolRetirement poolRetirementCert = (PoolRetirement) cert;
@@ -2636,8 +2623,8 @@ public class CardanoServiceImpl implements CardanoService {
       }
       if (!ObjectUtils.isEmpty(poolRegistrationCert)) {
         if (type.equals(OperationType.POOL_REGISTRATION.getValue())) {
-          operation.getMetadata()
-              .setPoolRegistrationParams(parsePoolRegistration(network, poolRegistrationCert));
+          PoolRegistrationParams poolRegistrationParams=parsePoolRegistration(network, poolRegistrationCert);
+          operation.getMetadata().setPoolRegistrationParams(poolRegistrationParams);
         } else {
           String parsedPoolCert = HexUtil.encodeHexString(
               com.bloxbean.cardano.client.common.cbor.CborSerializationUtil.serialize(
@@ -2666,8 +2653,11 @@ public class CardanoServiceImpl implements CardanoService {
 
   @Override
   public PoolMetadata parsePoolMetadata(PoolRegistration poolRegistration) {
-    return new PoolMetadata(poolRegistration.getPoolMetadataHash(),
-        poolRegistration.getPoolMetadataUrl());
+    if(poolRegistration.getPoolMetadataUrl()!=null||poolRegistration.getPoolMetadataHash()!=null){
+      return new PoolMetadata(poolRegistration.getPoolMetadataHash(),
+          poolRegistration.getPoolMetadataUrl());
+    }
+    return null;
   }
 
   @Override
@@ -2716,10 +2706,9 @@ public class CardanoServiceImpl implements CardanoService {
         continue;
       }
       if (!ObjectUtils.isEmpty(singleHostAddr)) {
-        Inet4Address ipv4 = parseIpv4(singleHostAddr.getIpv4().getHostAddress());
-        Inet6Address ipv6 = parseIpv6(singleHostAddr.getIpv6().getHostAddress());
-        poolRelays.add(new Relay(RelayType.SINGLE_HOST_ADDR.getValue(),
-            String.valueOf(singleHostName.getPort())));
+       Relay relay1= new Relay(RelayType.SINGLE_HOST_ADDR.getValue(),singleHostAddr.getIpv4().getHostAddress(),singleHostAddr.getIpv6().getHostAddress(),
+            null,singleHostAddr.getPort()+"");
+        poolRelays.add(relay1);
       }
     }
     return poolRelays;
@@ -2736,7 +2725,7 @@ public class CardanoServiceImpl implements CardanoService {
       byte[] addressByte = new byte[29];
       addressByte[0] = -31;
       byte[] byteCop = HexUtil.decodeHexString(owner);
-      System.arraycopy(byteCop, 0, addressByte, 1, addressByte.length - 2);
+      System.arraycopy(byteCop, 0, addressByte, 1, addressByte.length - 1);
       Address address = new Address(addressByte);
       poolOwners.add(address.getAddress());
     }
@@ -2748,8 +2737,7 @@ public class CardanoServiceImpl implements CardanoService {
       throws CborSerializationException {
     byte[] addressByte = new byte[29];
     addressByte[0] = 97;
-    byte[] byteCop = HexUtil.decodeHexString(
-        "bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb");
+    byte[] byteCop = HexUtil.decodeHexString(poolRegistration.getRewardAccount().substring(2));
     System.arraycopy(byteCop, 0, addressByte, 1, addressByte.length - 1);
     String address = Bech32.encode(addressByte, "addr");
     return address;
@@ -2842,11 +2830,13 @@ public class CardanoServiceImpl implements CardanoService {
     for(Asset a:assets){
       if (a.getName().startsWith("0x")) {
         a.setName(a.getName().substring(2));
+        if(a.getName().equals(""))a.setName("\\x");
       }
     }
     if(key.startsWith("0x")) {
       key=key.substring(2);
     }
+    if(key.equals("")) key="\\x";
     String assetSymbol = key;
     AtomicLong assetValue = new AtomicLong();
     for(Asset a:assets){
