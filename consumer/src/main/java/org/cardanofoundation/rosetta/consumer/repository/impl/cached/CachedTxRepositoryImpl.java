@@ -1,12 +1,11 @@
 package org.cardanofoundation.rosetta.consumer.repository.impl.cached;
 
-import com.sotatek.cardano.common.entity.Tx;
+import org.cardanofoundation.rosetta.common.entity.Tx;
 import org.cardanofoundation.rosetta.consumer.repository.TxRepository;
 import org.cardanofoundation.rosetta.consumer.repository.cached.CachedTxRepository;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;

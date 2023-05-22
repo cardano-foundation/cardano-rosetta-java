@@ -21,9 +21,9 @@ This is a RosettaAPI implementation using LedgeSync as a backend and Yaci/Bloxbe
 
 - Clone the repository
 - Copy `./.m2/settings.default.xml` to `./.m2/settings.xml`
-- Fill `{username_github}` and `{token_github}` in `./.m2/settings.xml` with your github username and token. Guide to generate a token with `read:packages` scope [here](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token#creating-a-personal-access-token-classic)
 - Copy `.env.example`  to `.env`
 - Fill the `.env` file with your values (explain below)
+- From `/common` and run `mvn clean install`
 - From `/consumer` and run `mvn clean install`
 - From `/api` and run `mvn clean install`
 - Create if not exists external network `cardano-rosetta-java` with `docker network create cardano-rosetta-java`
@@ -33,21 +33,26 @@ This is a RosettaAPI implementation using LedgeSync as a backend and Yaci/Bloxbe
 ### Environment variables
 
 - `CONSUMER_PROFILES_ACTIVE` : Consumer spring profile [local, dev, test, prod]. Default is local.
-- `POSTGRES_HOST` : Postgres host. Default is postgres
-- `POSTGRES_PORT` : Postgres port. Default is 5432
-- `POSTGRES_USER` : Postgres user. Default is rosetta_db_admin
-- `POSTGRES_PASSWORD` : Postgres password. Default is postgres
-- `POSTGRES_DB` : Postgres database. Default is explorer
+- `DB_HOST` : Postgres host. Default is db
+- `DB_PORT` : Postgres port. Default is 5432
+- `DB_SCHEMA` : Database schema [testnet, preprod, preview, mainnet]
+- `DB_ADMIN_USER_NAME` : Postgres admin user. Default is rosetta_db_admin
+- `DB_ADMIN_USER_SECRET` : Postgres admin secret. Default is weakpwd#123_d
+- `SERVICE_USER_NAME` : Postgres user service. Default is rosetta_db_service_user
+- `SERVICE_USER_SECRET` : Postgres password service. Default is weakerpwd#123_d
+- `DB_NAME` : Postgres database. Default is rosetta
 - `SCHEMA` : Postgres schema [testnet, preprod, preview, mainnet]. Default is testnet
 
-- `BOOSTRAP_SERVER_HOST` : Kafka bootstrap server. Default is kafka
+- `API_EXPOSED_PORT` : Rosetta api exposed port. Default is 8080
+- `API_BIND_PORT` : Rosetta api bind port. Default is 8080
+- `CONSUMER_EXPOSED_PORT` : Rosetta consumer exposed port. Default is 8081
+- `CONSUMER_BIND_PORT` : Rosetta consumer bind port. Default is 8081
 - `BOOSTRAP_SERVER_PORT` : Kafka bootstrap server port. Default is 9092
 
 - `BLOCKS_TOPIC` : Kafka topic for blocks. Default is local.crawler.blocks.
 - `LOG`: Log level [INFO, DEBUG, TRACE]. Default is INFO.
 - `BLOCKS_BATCH_SIZE`: Batch size for bulk insert
 - `COMMIT_THRESHOLD`: Amount of time the consumer has to insert data to database (It depend on time of a new block mining time or kafka and crawler latencies. For now we set COMMIT_THRESHOLD = a new block mining time / 2)
-- `FLYWAY_ENABLE`: Migrate schema, set `true` if this is the first time run app
 - `MAXIMUM_POOL_SIZE`: Consumer select parallel when preparing data before inserting into the database. If you want to consume as fast as possible set the `MAXIMUM_POOL_SIZE` as much as possible (cpu core * 4). This will reduce explorer api performance. When consuming 100% network you can reduce `MAXIMUM_POOL_SIZE` to 16 or 8
 
 

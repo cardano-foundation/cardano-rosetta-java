@@ -1,7 +1,7 @@
 package org.cardanofoundation.rosetta.consumer.aggregate;
 
-import com.sotatek.cardano.ledgersync.common.AuxData;
-import com.sotatek.cardano.ledgersync.common.Era;
+import org.cardanofoundation.rosetta.common.ledgersync.AuxData;
+import org.cardanofoundation.rosetta.common.ledgersync.Era;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +27,7 @@ public class AggregatedBlock {
   Long slotNo;
   Long blockNo;
   String prevBlockHash;
+  AggregatedSlotLeader slotLeader;
   int blockSize;
   Timestamp blockTime;
   Long txCount;

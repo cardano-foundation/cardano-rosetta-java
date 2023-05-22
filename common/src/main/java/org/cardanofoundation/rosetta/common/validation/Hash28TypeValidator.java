@@ -1,7 +1,7 @@
 package org.cardanofoundation.rosetta.common.validation;
 
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
 
 public class Hash28TypeValidator implements ConstraintValidator<Hash28Type, String> {
 

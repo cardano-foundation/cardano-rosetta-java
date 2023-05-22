@@ -1,6 +1,23 @@
 package org.cardanofoundation.rosetta.common.entity;
 
-import lombok.*;
+import jakarta.persistence.ConstraintMode;
+import java.math.BigInteger;
+import java.sql.Timestamp;
+import java.util.Objects;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
+import jakarta.validation.constraints.Digits;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 import org.cardanofoundation.rosetta.common.validation.Hash32Type;
 import org.cardanofoundation.rosetta.common.validation.Lovelace;
@@ -9,11 +26,6 @@ import org.cardanofoundation.rosetta.common.validation.Word64Type;
 import org.hibernate.Hibernate;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
-
-import javax.persistence.*;
-import javax.validation.constraints.Digits;
-import java.math.BigInteger;
-import java.util.Objects;
 
 @Entity
 @Table(name = "epoch_param", uniqueConstraints = {
@@ -113,9 +125,8 @@ public class EpochParam extends BaseEntity {
   private BigInteger coinsPerUtxoSize;
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "cost_model_id",
-      foreignKey = @ForeignKey(name = "epoch_param_cost_model_id_fkey"))
+      foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "none"))
   @EqualsAndHashCode.Exclude
   private CostModel costModel;
 
@@ -159,12 +170,10 @@ public class EpochParam extends BaseEntity {
   private Integer maxCollateralInputs;
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
-  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "block_id", nullable = false,
-      foreignKey = @ForeignKey(name = "epoch_param_block_id_fkey"))
+      foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "none"))
   @EqualsAndHashCode.Exclude
   private Block block;
-
   @Override
   public boolean equals(Object o) {
     if (this == o) {

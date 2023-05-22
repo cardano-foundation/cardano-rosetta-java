@@ -1,19 +1,21 @@
 package org.cardanofoundation.rosetta.consumer.configuration.kafka.producer;
 
-import org.cardanofoundation.rosetta.consumer.configuration.properties.KafkaProperties;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.cardanofoundation.rosetta.consumer.configuration.properties.KafkaProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Profile;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 
 @Configuration
 @Slf4j
+@Profile("!test-integration")
 public class ProducerConfiguration {
 
   public static final String JSON_SERIALIZER = "json-producer";

@@ -1,5 +1,13 @@
 package org.cardanofoundation.rosetta.common.entity;
 
+import java.math.BigInteger;
+import java.sql.Timestamp;
+import java.util.Objects;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
+import jakarta.validation.constraints.Digits;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -9,14 +17,6 @@ import org.cardanofoundation.rosetta.common.validation.Addr29Type;
 import org.cardanofoundation.rosetta.common.validation.Hash28Type;
 import org.cardanofoundation.rosetta.common.validation.Word128Type;
 import org.hibernate.Hibernate;
-
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
-import javax.validation.constraints.Digits;
-import java.math.BigInteger;
-import java.util.Objects;
 
 @Entity
 @Table(name = "stake_address", uniqueConstraints = {

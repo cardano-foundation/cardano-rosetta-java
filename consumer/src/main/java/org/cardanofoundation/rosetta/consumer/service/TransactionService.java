@@ -1,8 +1,8 @@
 package org.cardanofoundation.rosetta.consumer.service;
 
 import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedBlock;
-import com.sotatek.cardano.common.entity.Block;
-import com.sotatek.cardano.common.entity.Tx;
+import org.cardanofoundation.rosetta.common.entity.Block;
+import org.cardanofoundation.rosetta.common.entity.Tx;
 import java.util.Map;
 
 public interface TransactionService {

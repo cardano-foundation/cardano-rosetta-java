@@ -1,6 +1,6 @@
 package org.cardanofoundation.rosetta.consumer.repository.cached;
 
-import com.sotatek.cardano.common.entity.Block;
+import org.cardanofoundation.rosetta.common.entity.Block;
 import java.util.Optional;
 
 public interface CachedBlockRepository extends BaseCachedRepository<Block> {
@@ -9,5 +9,6 @@ public interface CachedBlockRepository extends BaseCachedRepository<Block> {
 
   Boolean existsBlockByHash(String hash);
 
+  Optional<Block> findFirstByEpochNo(Integer epochNo);
 
 }
