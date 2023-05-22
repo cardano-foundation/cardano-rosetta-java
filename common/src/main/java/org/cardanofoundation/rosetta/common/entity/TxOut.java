@@ -1,6 +1,7 @@
 package org.cardanofoundation.rosetta.common.entity;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.ConstraintMode;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.ForeignKey;
@@ -41,9 +42,8 @@ import org.hibernate.annotations.OnDeleteAction;
 public class TxOut extends BaseEntity {
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
-  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "tx_id", nullable = false,
-      foreignKey = @ForeignKey(name = "tx_out_tx_id_fkey"))
+      foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "none"))
   @EqualsAndHashCode.Exclude
   private Tx tx;
 
@@ -68,9 +68,8 @@ public class TxOut extends BaseEntity {
   private String paymentCred;
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "stake_address_id",
-      foreignKey = @ForeignKey(name = "tx_out_stake_address_id_fkey"))
+      foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "none"))
   @EqualsAndHashCode.Exclude
   private StakeAddress stakeAddress;
 
@@ -85,16 +84,14 @@ public class TxOut extends BaseEntity {
   private String dataHash;
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "inline_datum_id",
-      foreignKey = @ForeignKey(name = "tx_out_inline_datum_id_fkey"))
+      foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "none"))
   @EqualsAndHashCode.Exclude
   private Datum inlineDatum;
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "reference_script_id",
-      foreignKey = @ForeignKey(name = "tx_out_reference_script_id_fkey"))
+      foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "none"))
   @EqualsAndHashCode.Exclude
   private Script referenceScript;
 

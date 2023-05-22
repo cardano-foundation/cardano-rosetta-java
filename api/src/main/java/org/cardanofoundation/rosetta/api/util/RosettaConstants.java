@@ -1,9 +1,8 @@
 package org.cardanofoundation.rosetta.api.util;
 
-import org.cardanofoundation.rosetta.api.model.rest.OperationStatus;
-import org.cardanofoundation.rosetta.api.exception.Error;
-
 import java.util.List;
+import org.cardanofoundation.rosetta.api.exception.Error;
+import org.cardanofoundation.rosetta.api.model.rest.OperationStatus;
 
 public class RosettaConstants {
     public static final String BLOCKCHAIN_NAME = "cardano";

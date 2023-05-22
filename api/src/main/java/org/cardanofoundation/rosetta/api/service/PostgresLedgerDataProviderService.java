@@ -5,13 +5,19 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.cardanofoundation.rosetta.api.config.RosettaConfig;
 import org.cardanofoundation.rosetta.api.construction.data.ProtocolParametersResponse;
+import org.cardanofoundation.rosetta.api.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.api.model.rest.BlockIdentifier;
-import org.cardanofoundation.rosetta.api.projection.BlockDto;
+import org.cardanofoundation.rosetta.api.model.rest.Currency;
+import org.cardanofoundation.rosetta.api.model.rest.MaBalance;
+import org.cardanofoundation.rosetta.api.model.rest.Utxo;
 import org.cardanofoundation.rosetta.api.projection.BlockProjection;
-import org.cardanofoundation.rosetta.api.projection.GenesisBlockDto;
 import org.cardanofoundation.rosetta.api.projection.GenesisBlockProjection;
+import org.cardanofoundation.rosetta.api.projection.dto.BlockDto;
+import org.cardanofoundation.rosetta.api.projection.dto.GenesisBlockDto;
 import org.cardanofoundation.rosetta.api.repository.BlockRepository;
 import org.cardanofoundation.rosetta.api.repository.RewardRepository;
+import org.cardanofoundation.rosetta.api.repository.TxRepository;
+import org.cardanofoundation.rosetta.api.repository.customRepository.UtxoRepository;
 import org.cardanofoundation.rosetta.api.util.Formatters;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -33,6 +39,10 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
     private RewardRepository rewardRepository;
 
     private final Map<String, PostgresLedgerDataProviderClient> clients = new HashMap<>();
+  @Autowired
+  private UtxoRepository utxoRepository;
+  @Autowired
+  private TxRepository txRepository;
 
     @PostConstruct
     void init() {
@@ -61,7 +71,7 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
             GenesisBlockProjection genesis = genesisBlockProjectionPage
                     .getContent()
                     .get(0);
-            return GenesisBlockDto.builder().hash(Formatters.hexFormatter(genesis.getHash()))
+            return GenesisBlockDto.builder().hash(genesis.getHash())
                     .number(genesis.getIndex())
                     .build();
         }
@@ -73,16 +83,16 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
     public BlockDto findBlock(Long blockNumber, String blockHash) {
         log.debug("[findBlock] Parameters received for run query blockNumber: " + blockNumber + " , blockHash: " + blockHash);
 //        log.info("test block hash value " + ArrayUtils.toObject(hexStringToBuffer(blockHash)));
-        byte[] blockHashParam = Objects.nonNull(blockHash) ? Formatters.hexStringToBuffer(blockHash) : null;
-        List<BlockProjection> blockProjections = blockRepository.findBlock(blockNumber, blockHashParam);
+        List<BlockProjection> blockProjections = blockRepository.findBlock(blockNumber, blockHash);
         if (blockProjections.size() == 1) {
             log.debug("[findBlock] Block found!");
             BlockProjection blockProjection = blockProjections.get(0);
             return BlockDto.builder()
                     .number(blockProjection.getNumber())
-                    .hash(Formatters.hexFormatter(blockProjection.getHash()))
+                    .hash(Formatters.hexFormatter(blockProjection.getHash().getBytes()))
                     .createdAt(blockProjection.getCreatedAt().getTime())
-                    .previousBlockHash(Formatters.hexFormatter(blockProjection.getPreviousBlockHash()))
+                    .previousBlockHash(Formatters.hexFormatter(
+                        blockProjection.getPreviousBlockHash().getBytes()))
                     .previousBlockNumber(blockProjection.getPreviousBlockNumber())
                     .transactionsCount(blockProjection.getTransactionsCount())
                     .createdBy(blockProjection.getCreatedBy())
@@ -97,11 +107,11 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
 
     @Override
     public Double findBalanceByAddressAndBlock(String address, String hash) {
-        return rewardRepository.findBalanceByAddressAndBlockSub1(Formatters.hexStringToBuffer(address), hash)
-                - rewardRepository.findBalanceByAddressAndBlockSub2(Formatters.hexStringToBuffer(address), hash);
+        return rewardRepository.findBalanceByAddressAndBlockSub1(address, hash)
+                - rewardRepository.findBalanceByAddressAndBlockSub2(address, hash);
     }
 
-    @Override
+  @Override
     public Long findLatestBlockNumber() {
         Page<Long> latestBlockNumberPage = blockRepository.findLatestBlockNumber(
             PageRequest.of(0, 1));
@@ -116,4 +126,28 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
         return blockRepository.findProtocolParameters();
     }
 
+  @Override
+  public List<Utxo> findUtxoByAddressAndBlock(String address, String hash,
+      List<Currency> currencies) {
+
+    return utxoRepository.findUtxoByAddressAndBlock(address, hash, currencies);
+  }
+  @Override
+  public List<MaBalance> findMaBalanceByAddressAndBlock(String address, String hash) {
+    return utxoRepository.findMaBalanceByAddressAndBlock(address, hash);
+  }
+
+  @Override
+  public BlockDto findLatestBlock() {
+    log.info("[getLatestBlock] About to look for latest block");
+    Long latestBlockNumber = findLatestBlockNumber();
+    log.info("[getLatestBlock] Latest block number is " + latestBlockNumber);
+    BlockDto latestBlock = findBlock(latestBlockNumber, null);
+    if(latestBlock == null){
+      log.error("[getLatestBlock] Latest block not found");
+      throw ExceptionFactory.blockNotFoundException();
+    }
+    log.debug("[getLatestBlock] Returning latest block " + latestBlock);
+    return latestBlock;
+  }
 }

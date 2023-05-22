@@ -1,5 +1,6 @@
 package org.cardanofoundation.rosetta.common.entity;
 
+import jakarta.persistence.ConstraintMode;
 import java.util.Objects;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -33,9 +34,8 @@ import org.hibernate.annotations.OnDeleteAction;
 public class Delegation extends BaseEntity {
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
-  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "addr_id", nullable = false,
-      foreignKey = @ForeignKey(name = "delegation_addr_id_fkey"))
+      foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "none"))
   @EqualsAndHashCode.Exclude
   private StakeAddress address;
 
@@ -43,9 +43,8 @@ public class Delegation extends BaseEntity {
   private Integer certIndex;
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
-  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "pool_hash_id", nullable = false,
-      foreignKey = @ForeignKey(name = "delegation_pool_hash_id_fkey"))
+      foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "none"))
   @EqualsAndHashCode.Exclude
   private PoolHash poolHash;
 
@@ -53,9 +52,8 @@ public class Delegation extends BaseEntity {
   private Long activeEpochNo;
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
-  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "tx_id", nullable = false,
-      foreignKey = @ForeignKey(name = "delegation_tx_id_fkey"))
+      foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "none"))
   @EqualsAndHashCode.Exclude
   private Tx tx;
 
@@ -64,9 +62,8 @@ public class Delegation extends BaseEntity {
   private Long slotNo;
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "redeemer_id",
-      foreignKey = @ForeignKey(name = "delegation_redeemer_id_fkey"))
+      foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "none"))
   @EqualsAndHashCode.Exclude
   private Redeemer redeemer;
 

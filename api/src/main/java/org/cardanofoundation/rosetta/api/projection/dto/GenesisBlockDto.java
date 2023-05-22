@@ -1,4 +1,4 @@
-package org.cardanofoundation.rosetta.api.projection;
+package org.cardanofoundation.rosetta.api.projection.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -10,8 +10,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class GenesisBlockDto {
-    private String hash;
-    private Long number;
+
+  private String hash;
+  private Long number;
 
 
 }

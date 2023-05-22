@@ -7,6 +7,7 @@ import org.cardanofoundation.rosetta.api.service.construction.CardanoService;
 import org.cardanofoundation.rosetta.api.service.construction.CheckService;
 import org.cardanofoundation.rosetta.api.model.rest.NetworkIdentifier;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class CheckServiceImpl implements CheckService {
     @Autowired
+    @Qualifier("CardanoService")
     CardanoService cardanoService;
 
     @Override

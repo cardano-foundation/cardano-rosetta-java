@@ -1,5 +1,6 @@
 package org.cardanofoundation.rosetta.common.entity;
 
+import jakarta.persistence.ConstraintMode;
 import java.math.BigInteger;
 import java.util.Objects;
 import jakarta.persistence.Column;
@@ -47,9 +48,8 @@ public class TxMetadata extends BaseEntity {
   private byte[] bytes;
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
-  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "tx_id", nullable = false,
-      foreignKey = @ForeignKey(name = "tx_metadata_tx_id_fkey"))
+      foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "none"))
   @EqualsAndHashCode.Exclude
   private Tx tx;
 

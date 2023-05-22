@@ -2,12 +2,13 @@ package org.cardanofoundation.rosetta.api.model.rest;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
+import javax.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import javax.validation.Valid;
-import org.cardanofoundation.rosetta.api.model.Currency;
+import org.openapitools.client.model.Currency;
+import org.openapitools.client.model.PartialBlockIdentifier;
 
 /**
  * @author Sotatek-HoangNguyen9
@@ -18,6 +19,7 @@ import org.cardanofoundation.rosetta.api.model.Currency;
 @AllArgsConstructor
 @Builder
 public class AccountBalanceRequest {
+
   @JsonProperty("network_identifier")
 
   private NetworkIdentifier networkIdentifier;

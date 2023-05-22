@@ -6,8 +6,11 @@ import org.cardanofoundation.rosetta.api.model.rest.AccountBalanceResponse;
 import org.cardanofoundation.rosetta.api.model.rest.AccountCoinsRequest;
 import org.cardanofoundation.rosetta.api.model.rest.AccountCoinsResponse;
 
+
 public interface AccountService {
-    AccountBalanceResponse getAccountBalance(AccountBalanceRequest accountBalanceRequest);
-    AccountCoinsResponse getAccountCoins(AccountCoinsRequest accountCoinsResponse);
+
+  AccountBalanceResponse getAccountBalance(AccountBalanceRequest accountBalanceRequest);
+
+  AccountCoinsResponse getAccountCoins(AccountCoinsRequest accountCoinsResponse);
 
 }
