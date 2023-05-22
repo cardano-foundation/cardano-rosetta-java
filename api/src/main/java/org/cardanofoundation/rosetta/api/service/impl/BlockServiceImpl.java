@@ -19,6 +19,7 @@ import org.cardanofoundation.rosetta.api.service.BlockService;
 import org.cardanofoundation.rosetta.api.service.CardanoService;
 import org.cardanofoundation.rosetta.api.service.LedgerDataProviderService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -31,6 +32,7 @@ public class BlockServiceImpl implements BlockService {
   @Autowired
   LedgerDataProviderService ledgerDataProviderService;
   @Autowired
+  @Qualifier("CardanoService1")
   private CardanoService cardanoService;
 
 

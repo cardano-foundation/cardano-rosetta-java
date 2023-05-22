@@ -6,9 +6,10 @@ import org.cardanofoundation.rosetta.api.service.CardanoService;
 import org.cardanofoundation.rosetta.api.service.LedgerDataProviderService;
 import org.cardanofoundation.rosetta.api.util.CardanoAddressUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-@Service
+@Service("CardanoService1")
 @Slf4j
 public class CardanoServiceImpl implements CardanoService {
 

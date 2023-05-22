@@ -67,7 +67,7 @@ import org.cardanofoundation.rosetta.api.model.TransactionExtraData;
 import org.cardanofoundation.rosetta.api.model.TransactionIdentifier;
 import org.cardanofoundation.rosetta.api.model.TransactionParsed;
 import org.cardanofoundation.rosetta.api.model.VoteRegistrationMetadata;
-import org.cardanofoundation.rosetta.api.projection.BlockDto;
+import org.cardanofoundation.rosetta.api.projection.dto.BlockDto;
 import org.cardanofoundation.rosetta.api.service.LedgerDataProviderService;
 import org.cardanofoundation.rosetta.api.service.construction.CardanoService;
 import org.cardanofoundation.rosetta.api.model.Currency;
@@ -75,6 +75,7 @@ import org.cardanofoundation.rosetta.api.model.rest.AccountIdentifier;
 import org.cardanofoundation.rosetta.api.model.rest.NetworkIdentifier;
 import org.cardanofoundation.rosetta.api.model.rest.TransactionIdentifierResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.math.BigInteger;
@@ -88,7 +89,7 @@ import java.util.stream.Collectors;
 
 
 @Slf4j
-@Service
+@Service("CardanoService")
 public class CardanoServiceImpl implements CardanoService {
 
   @Autowired
@@ -1445,18 +1446,6 @@ public class CardanoServiceImpl implements CardanoService {
     return latestBlockNumber;
   }
 
-  @Override
-  public BlockDto findBlock(Long blockNumber, String blockHash) {
-    BlockDto result = ledgerDataProviderService.findBlock(blockNumber, blockHash);
-    log.debug("[findBlock] Parameters received for run query blockNumber: {}, blockHash: {}",
-        blockNumber, blockHash);
-    if (!ObjectUtils.isEmpty(result)) {
-      log.debug("[findBlock] Block found!");
-      return result;
-    }
-    log.debug("[findBlock] No block was found");
-    return null;
-  }
 
   @Override
   public String encodeExtraData(String transaction, TransactionExtraData extraData)

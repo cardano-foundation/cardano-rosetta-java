@@ -49,7 +49,7 @@ public interface BlockRepository extends JpaRepository<Block, Long> {
             "WHERE (:blockNumber IS NULL OR b.blockNo = :blockNumber)  " +
             "AND (:blockHash IS NULL OR b.hash = :blockHash)")
     List<BlockProjection> findBlock(@Param("blockNumber") Long blockNumber,
-                                    @Param("blockHash") byte[] blockHash);
+                                    @Param("blockHash")String blockHash);
     @Query("SELECT blockNo  FROM Block  " +
             "WHERE blockNo IS NOT NULL ORDER BY blockNo DESC")
     Page<Long> findLatestBlockNumber(Pageable pageable);

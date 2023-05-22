@@ -3,8 +3,6 @@ package org.cardanofoundation.rosetta.api.service;
 import org.cardanofoundation.rosetta.api.construction.data.ProtocolParametersResponse;
 import org.cardanofoundation.rosetta.api.model.rest.BlockIdentifier;
 
-import org.cardanofoundation.rosetta.api.projection.BlockDto;
-import org.cardanofoundation.rosetta.api.projection.GenesisBlockDto;
 
 import java.util.List;
 import org.cardanofoundation.rosetta.api.model.rest.BlockIdentifier;
