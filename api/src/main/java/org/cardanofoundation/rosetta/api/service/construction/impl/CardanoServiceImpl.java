@@ -2839,15 +2839,21 @@ public class CardanoServiceImpl implements CardanoService {
   public Amount parseAsset(List<Asset> assets, String key) throws CborException {
 // When getting the key we are obtaining a cbor encoded string instead of the actual name.
     // This might need to be changed in the serialization lib in the future
-    String assetSymbol = hexFormatter(
-        com.bloxbean.cardano.client.common.cbor.CborSerializationUtil.serialize(
-            new ByteString(HexUtil.decodeHexString(key))));
+    for(Asset a:assets){
+      if (a.getName().startsWith("0x")) {
+        a.setName(a.getName().substring(2));
+      }
+    }
+    if(key.startsWith("0x")) {
+      key=key.substring(2);
+    }
+    String assetSymbol = key;
     AtomicLong assetValue = new AtomicLong();
-    assets.forEach(a -> {
+    for(Asset a:assets){
       if (a.getName().equals(key) && !ObjectUtils.isEmpty(a.getValue())) {
         assetValue.addAndGet(a.getValue().longValue());
       }
-    });
+    }
     if (assetValue.get() == 0) {
       log.error("[parseTokenBundle] asset value for symbol: {} not provided", assetSymbol);
       throw new IllegalArgumentException("tokenAssetValueMissingError");
