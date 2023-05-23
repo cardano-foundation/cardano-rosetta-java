@@ -50,7 +50,7 @@ services:
       DB_CONNECTION_PARAMS_PROVIDER_TYPE: ${DB_CONNECTION_PARAMS_PROVIDER_TYPE}
     depends_on:
       base:
-        condition: service_started
+        condition: service_completed_successfully
     restart: no
   consumer:
     build: ./consumer
@@ -75,7 +75,7 @@ services:
       LOG: "${LOG}"
     depends_on:
       base:
-        condition: service_started
+        condition: service_completed_successfully
     restart: no
 
   zookeeper:

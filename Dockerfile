@@ -1,5 +1,3 @@
-
-
 FROM maven:3.8.5-openjdk-18 AS build-common
 WORKDIR /app
 COPY ./pom.xml /app/pom.xml
