@@ -1,10 +1,11 @@
 package org.cardanofoundation.rosetta.common.util;
 
 import com.bloxbean.cardano.client.crypto.Blake2bUtil;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import org.bouncycastle.util.encoders.Hex;
 import org.cardanofoundation.rosetta.common.ledgersync.constant.Constant;
+
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
 public final class SlotLeaderUtils {
 
