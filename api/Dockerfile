@@ -10,4 +10,6 @@ COPY --from=cardano-rosetta-java-base /app/api/target/*.jar /cf-rosetta-api/app.
 
 COPY ./api/run_backend.sh /cf-rosetta-api/run_backend.sh
 
+COPY ./api/src/main/resources/config/* /cf-rosetta-api/config/
+
 ENTRYPOINT ["/bin/sh", "/cf-rosetta-api/run_backend.sh"]
