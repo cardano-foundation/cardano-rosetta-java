@@ -24,10 +24,10 @@ public class BlockListenerErrorHandler {
 
       var headers = message.getHeaders();
 
-      var currentReceivedPartitionId = headers.get("kafka_receivedPartitionId",
+      var currentReceivedPartitionId = headers.get(KafkaHeaders.RECEIVED_PARTITION_ID,
           Integer.class);
 
-      var currentOffset = headers.get("kafka_receivedPartitionId", Long.class);
+      var currentOffset = headers.get(KafkaHeaders.RECEIVED_PARTITION_ID, Long.class);
 
       var receivedTopic = headers.get(KafkaHeaders.RECEIVED_TOPIC, String.class);
 

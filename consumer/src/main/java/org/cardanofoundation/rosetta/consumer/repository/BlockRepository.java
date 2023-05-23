@@ -1,12 +1,11 @@
 package org.cardanofoundation.rosetta.consumer.repository;
 
 import org.cardanofoundation.rosetta.common.entity.Block;
+import java.util.List;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
-
-import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface BlockRepository extends JpaRepository<Block, Long> {
@@ -20,9 +19,6 @@ public interface BlockRepository extends JpaRepository<Block, Long> {
 
   @Query("SELECT MAX(block.blockNo) FROM Block block")
   Optional<Long> getBlockHeight();
-
-  @Query("SELECT MAX(block.id) FROM Block block")
-  Optional<Long> getBlockIdHeight();
 
   Optional<Block> findFirstByEpochNo(Integer epochNo);
 }

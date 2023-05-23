@@ -1,14 +1,27 @@
 package org.cardanofoundation.rosetta.common.entity;
 
-import jakarta.persistence.*;
-import lombok.*;
+import jakarta.persistence.ConstraintMode;
+import java.util.Objects;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 import org.cardanofoundation.rosetta.common.enumeration.ScriptType;
 import org.cardanofoundation.rosetta.common.validation.Hash28Type;
 import org.cardanofoundation.rosetta.common.validation.Word31Type;
 import org.hibernate.Hibernate;
-
-import java.util.Objects;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
 @Table(name = "script", uniqueConstraints = {
@@ -37,7 +50,7 @@ public class Script extends BaseEntity {
   @Column(name = "json", length = 65535)
   private String json;
 
-  @Column(name = "bytes", length = 10000)
+  @Column(name = "bytes")
   private byte[] bytes;
 
   @Column(name = "serialised_size")

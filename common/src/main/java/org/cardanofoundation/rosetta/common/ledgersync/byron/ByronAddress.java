@@ -2,7 +2,12 @@ package org.cardanofoundation.rosetta.common.ledgersync.byron;
 
 import com.bloxbean.cardano.client.crypto.Base58;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Getter
 @AllArgsConstructor

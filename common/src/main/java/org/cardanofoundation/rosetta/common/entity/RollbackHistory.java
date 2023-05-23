@@ -4,11 +4,10 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
-import org.cardanofoundation.rosetta.common.enumeration.BlocksDeletionStatus;
-
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import org.cardanofoundation.rosetta.common.enumeration.BlocksDeletionStatus;
 
 @Entity
 @Table(
