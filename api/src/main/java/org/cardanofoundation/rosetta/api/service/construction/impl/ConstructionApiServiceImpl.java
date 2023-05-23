@@ -6,6 +6,10 @@ import co.nstant.in.cbor.model.Map;
 import com.bloxbean.cardano.client.exception.AddressExcepion;
 import com.bloxbean.cardano.client.exception.CborDeserializationException;
 import com.bloxbean.cardano.client.exception.CborSerializationException;
+import com.bloxbean.cardano.client.transaction.spec.Transaction;
+import com.bloxbean.cardano.client.util.HexUtil;
+import com.bloxbean.cardano.yaci.core.protocol.localtx.model.TxSubmissionRequest;
+import com.bloxbean.cardano.yaci.helper.LocalTxSubmissionClient;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.net.UnknownHostException;
 import lombok.RequiredArgsConstructor;
@@ -60,8 +64,8 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
     @Autowired
     CardanoService cardanoService;
 
-
-//    private final LocalTxSubmissionClient localTxSubmissionClient;
+    @Autowired
+    LocalTxSubmissionClient localTxSubmissionClient;
 
     @Override
     public ConstructionDeriveResponse constructionDeriveService(
@@ -207,29 +211,33 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
     public ConstructionCombineResponse constructionCombineService(
         ConstructionCombineRequest constructionCombineRequest) throws CborException, CborSerializationException, JsonProcessingException {
         log.info("[constructionCombine] Request received to sign a transaction");
-        Array array = cardanoService.decodeExtraData(constructionCombineRequest.getUnsignedTransaction());
-        TransactionExtraData extraData = cardanoService.changeFromMaptoObject((Map) array.getDataItems().get(1));
-        String signedTransaction = cardanoService.buildTransaction(
-            ((UnicodeString) array.getDataItems().get(0)).getString(),
-            constructionCombineRequest.getSignatures().stream().map(signature -> {
-                String chainCode = null;
-                String address = null;
-                AccountIdentifier accountIdentifier = signature.getSigningPayload().getAccountIdentifier();
-                if (!ObjectUtils.isEmpty(accountIdentifier)) {
-                    AccountIdentifierMetadata accountIdentifierMetadata = accountIdentifier.getMetadata();
-                    if (!ObjectUtils.isEmpty(accountIdentifierMetadata)) {
-                        chainCode = accountIdentifierMetadata.getChainCode();
+        Array array = cardanoService.decodeExtraData(
+            constructionCombineRequest.getUnsignedTransaction());
+            TransactionExtraData extraData = cardanoService.changeFromMaptoObject(
+                (Map) array.getDataItems().get(1));
+            String signedTransaction = cardanoService.buildTransaction(
+                ((UnicodeString) array.getDataItems().get(0)).getString(),
+                constructionCombineRequest.getSignatures().stream().map(signature -> {
+                    String chainCode = null;
+                    String address = null;
+                    AccountIdentifier accountIdentifier = signature.getSigningPayload()
+                        .getAccountIdentifier();
+                    if (!ObjectUtils.isEmpty(accountIdentifier)) {
+                        AccountIdentifierMetadata accountIdentifierMetadata = accountIdentifier.getMetadata();
+                        if (!ObjectUtils.isEmpty(accountIdentifierMetadata)) {
+                            chainCode = accountIdentifierMetadata.getChainCode();
+                        }
+                        address = accountIdentifier.getAddress();
                     }
-                    address = accountIdentifier.getAddress();
-                }
-                return new Signatures(signature.getHexBytes(), signature.getPublicKey().getHexBytes(),
-                    chainCode, address);
-            }).collect(Collectors.toList()),
-            extraData.getTransactionMetadataHex()
-        );
-        log.info(signedTransaction + "[constructionCombine] About to return signed transaction");
-        // eslint-disable-next-line camelcase
-        return new ConstructionCombineResponse(cardanoService.encodeExtraData(signedTransaction, extraData));
+                    return new Signatures(signature.getHexBytes(),
+                        signature.getPublicKey().getHexBytes(),
+                        chainCode, address);
+                }).collect(Collectors.toList()),
+                extraData.getTransactionMetadataHex()
+            );
+            log.info(signedTransaction + "[constructionCombine] About to return signed transaction");
+            // eslint-disable-next-line camelcase
+            return new ConstructionCombineResponse(cardanoService.encodeExtraData(signedTransaction, extraData));
     }
 
     @Override
@@ -246,13 +254,12 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
     @Override
     public TransactionIdentifierResponse constructionSubmitService(
         ConstructionSubmitRequest constructionSubmitRequest) throws CborDeserializationException, CborSerializationException {
-//        byte[] signedTransactionBytes = HexUtil.decodeHexString(constructionSubmitRequest.getSignedTransaction());
-//        Transaction parsed = Transaction.deserialize(signedTransactionBytes);
-//        TxSubmissionRequest txnRequest = new TxSubmissionRequest(parsed.serialize());
-//        localTxSubmissionClient.submitTxCallback(txnRequest);
-//        Map map = cardanoService.decodeExtraData(constructionSubmitRequest.getSignedTransaction());
-//        String transactionHash = cardanoService.getHashOfSignedTransaction(((UnicodeString) map.get(new UnicodeString("transaction"))).getString());
-//        return cardanoService.mapToConstructionHashResponse(transactionHash);
-        return null;
+        byte[] signedTransactionBytes = HexUtil.decodeHexString(constructionSubmitRequest.getSignedTransaction());
+        Transaction parsed = Transaction.deserialize(signedTransactionBytes);
+        TxSubmissionRequest txnRequest = new TxSubmissionRequest(parsed.serialize());
+        localTxSubmissionClient.submitTxCallback(txnRequest);
+        Array array = cardanoService.decodeExtraData(constructionSubmitRequest.getSignedTransaction());
+        String transactionHash = cardanoService.getHashOfSignedTransaction(((UnicodeString) array.getDataItems().get(0)).getString());
+        return cardanoService.mapToConstructionHashResponse(transactionHash);
     }
 }

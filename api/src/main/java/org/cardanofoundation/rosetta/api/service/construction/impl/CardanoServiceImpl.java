@@ -210,8 +210,13 @@ public class CardanoServiceImpl implements CardanoService {
     try {
       log.info("[buildTransaction] Instantiating transaction body from unsigned transaction bytes");
       //co.nstant.in.cbor.model.Map transactionBodyMap = new co.nstant.in.cbor.model.Map();
-      DataItem[] dataItems = CborSerializationUtil.deserialize(
-          HexUtil.decodeHexString(unsignedTransaction));
+      DataItem[] dataItems;
+      try{
+        dataItems = CborSerializationUtil.deserialize(
+            HexUtil.decodeHexString(unsignedTransaction));
+      }catch(Exception e){
+        throw new IllegalArgumentException("Cant create signed transaction probably because of unsigned transaction bytes");
+      }
       //transactionBodyMap.put(new UnicodeString("unsignedTransaction"), new UnicodeString(unsignedTransaction));
       TransactionBody transactionBody = TransactionBody.deserialize(
           (co.nstant.in.cbor.model.Map) dataItems[0]);
@@ -220,10 +225,9 @@ public class CardanoServiceImpl implements CardanoService {
       AuxiliaryData auxiliaryData = null;
       if (!ObjectUtils.isEmpty(transactionMetadata)) {
         log.info("[buildTransaction] Adding transaction metadata");
-        co.nstant.in.cbor.model.Map auxiliaryDataMap = new co.nstant.in.cbor.model.Map();
-        auxiliaryDataMap.put(new UnicodeString("transactionMetadata"),
-            new ByteString(hexStringToBuffer(transactionMetadata)));
-        auxiliaryData = AuxiliaryData.deserialize(auxiliaryDataMap);
+        Array array=(Array) com.bloxbean.cardano.client.common.cbor.CborSerializationUtil.deserialize(HexUtil.decodeHexString(transactionMetadata));
+        auxiliaryData = AuxiliaryData.deserialize(
+            (co.nstant.in.cbor.model.Map) array.getDataItems().get(0));
       }
       Transaction transaction = Transaction.builder().auxiliaryData(auxiliaryData)
           .witnessSet(witnesses).build();
@@ -236,12 +240,17 @@ public class CardanoServiceImpl implements CardanoService {
         dataItem1.put(new UnsignedInteger(3), new UnsignedInteger(0));
         array.getDataItems().set(0, dataItem1);
       }
-      ;
+      if(!ObjectUtils.isEmpty(transactionMetadata)){
+        Array metadataArray =new Array();
+        metadataArray.add(array.getDataItems().get(3));
+        metadataArray.add(new Array());
+        array.getDataItems().set(3,metadataArray);
+      }
       return bytesToHex(CborSerializationUtil.serialize(array));
     } catch (Exception error) {
       log.error(
           error.getMessage() + "[buildTransaction] There was an error building signed transaction");
-      throw new IllegalArgumentException("cantBuildSignedTransaction");
+      throw new IllegalArgumentException(error.getMessage()+" cantBuildSignedTransaction");
     }
   }
 
@@ -260,10 +269,9 @@ public class CardanoServiceImpl implements CardanoService {
         //      const ed25519Signature: Ed25519Signature = scope.manage(
 //                    Ed25519Signature.from_bytes(Buffer.from(signature.signature, 'hex'))
 //            );
+        EraAddressType eraAddressType=getEraAddressTypeOrNull(signature.getAddress());
         if (!ObjectUtils.isEmpty(signature)) {
-          if (!ObjectUtils.isEmpty(signature.getAddress())
-              && getEraAddressTypeOrNull(signature.getAddress())
-              == EraAddressType.Byron) {
+          if (!ObjectUtils.isEmpty(signature.getAddress()) && eraAddressType == EraAddressType.Byron) {
             // byron case
             if (ObjectUtils.isEmpty(signature.getChainCode())) {
               log.error(
@@ -299,7 +307,7 @@ public class CardanoServiceImpl implements CardanoService {
     } catch (Exception error) {
       log.error(error.getMessage()
           + "[getWitnessesForTransaction] There was an error building witnesses set for transaction");
-      throw new IllegalArgumentException("cantBuildWitnessesSet");
+      throw new IllegalArgumentException(error.getMessage()+" cantBuildWitnessesSet probably because of provided signatures");
     }
   }
 
@@ -1275,7 +1283,7 @@ public class CardanoServiceImpl implements CardanoService {
       if (address.startsWith("addr") || address.startsWith("stake")) {
         return EraAddressType.Shelley;
       }
-      new Address(address).toBech32();
+      new ByronAddress(address).getAddress();
       return EraAddressType.Byron;
     } catch (Exception e) {
       return null;
@@ -1786,10 +1794,14 @@ public class CardanoServiceImpl implements CardanoService {
 
   @Override
   public Array decodeExtraData(String encoded) {
-    DataItem dataItem=com.bloxbean.cardano.client.common.cbor.CborSerializationUtil.deserialize(
-        HexUtil.decodeHexString(encoded));
-    Array array = (Array) dataItem ;
-    return array;
+    try{
+      DataItem dataItem=com.bloxbean.cardano.client.common.cbor.CborSerializationUtil.deserialize(
+          HexUtil.decodeHexString(encoded));
+      Array array = (Array) dataItem ;
+      return array;
+    }catch (Exception e){
+      throw new IllegalArgumentException("Cant build witnesses set for transaction probably because of provided signatures");
+    }
   }
 
   @Override
@@ -2213,10 +2225,10 @@ public class CardanoServiceImpl implements CardanoService {
       publicKey.setHexBytes(hexBytes);
     }
     if(stakingCredentialMap.get(
-        new UnicodeString("curveType"))!=null){
+        new UnicodeString("curve_type"))!=null){
       String curveType = ((UnicodeString) stakingCredentialMap.get(
-          new UnicodeString("curveType"))).getString();
-      publicKey.setHexBytes(curveType);
+          new UnicodeString("curve_type"))).getString();
+      publicKey.setCurveType(curveType);
     }
     return publicKey;
   }
@@ -2903,8 +2915,8 @@ public class CardanoServiceImpl implements CardanoService {
               == null) {
         hashBuffer = null;
       } else {
-        hashBuffer = com.bloxbean.cardano.client.common.cbor.CborSerializationUtil.serialize(
-            body.serialize());
+        hashBuffer = Blake2bUtil.blake2bHash256(com.bloxbean.cardano.client.common.cbor.CborSerializationUtil.serialize(
+            body.serialize()));
       }
       return hexFormatter(hashBuffer);
     } catch (Exception error) {
