@@ -3240,526 +3240,526 @@ ALTER TABLE ONLY ${liquibase.cf_db_schema}.extra_key_witness
 ALTER TABLE ONLY ${liquibase.cf_db_schema}.withdrawal
     ADD CONSTRAINT withdrawal_pkey PRIMARY KEY (id);
 
-
 --
--- Name: ada_pots ada_pots_block_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
+-- -- Name: ada_pots ada_pots_block_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
 --
-
-ALTER TABLE ONLY ${liquibase.cf_db_schema}.ada_pots
-    ADD CONSTRAINT ada_pots_block_id_fkey FOREIGN KEY (block_id) REFERENCES ${liquibase.cf_db_schema}.block(id) ON DELETE CASCADE;
-
-
+-- ALTER TABLE ONLY ${liquibase.cf_db_schema}.ada_pots
+--     ADD CONSTRAINT ada_pots_block_id_fkey FOREIGN KEY (block_id) REFERENCES ${liquibase.cf_db_schema}.block(id) ON DELETE CASCADE;
 --
--- Name: datum datum_tx_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
 --
-
-ALTER TABLE ONLY ${liquibase.cf_db_schema}.datum
-    ADD CONSTRAINT datum_tx_id_fkey FOREIGN KEY (tx_id) REFERENCES ${liquibase.cf_db_schema}.tx(id) ON DELETE CASCADE;
-
-
+-- --
+-- -- Name: datum datum_tx_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
 --
--- Name: delegation delegation_addr_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- ALTER TABLE ONLY ${liquibase.cf_db_schema}.datum
+--     ADD CONSTRAINT datum_tx_id_fkey FOREIGN KEY (tx_id) REFERENCES ${liquibase.cf_db_schema}.tx(id) ON DELETE CASCADE;
 --
-
-ALTER TABLE ONLY ${liquibase.cf_db_schema}.delegation
-    ADD CONSTRAINT delegation_addr_id_fkey FOREIGN KEY (addr_id) REFERENCES ${liquibase.cf_db_schema}.stake_address(id) ON DELETE CASCADE;
-
-
 --
--- Name: delegation delegation_pool_hash_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
+-- -- Name: delegation delegation_addr_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
 --
-
-ALTER TABLE ONLY ${liquibase.cf_db_schema}.delegation
-    ADD CONSTRAINT delegation_pool_hash_id_fkey FOREIGN KEY (pool_hash_id) REFERENCES ${liquibase.cf_db_schema}.pool_hash(id) ON DELETE CASCADE;
-
-
+-- ALTER TABLE ONLY ${liquibase.cf_db_schema}.delegation
+--     ADD CONSTRAINT delegation_addr_id_fkey FOREIGN KEY (addr_id) REFERENCES ${liquibase.cf_db_schema}.stake_address(id) ON DELETE CASCADE;
 --
--- Name: delegation delegation_redeemer_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
 --
-
-ALTER TABLE ONLY ${liquibase.cf_db_schema}.delegation
-    ADD CONSTRAINT delegation_redeemer_id_fkey FOREIGN KEY (redeemer_id) REFERENCES ${liquibase.cf_db_schema}.redeemer(id) ON DELETE CASCADE;
-
-
+-- --
+-- -- Name: delegation delegation_pool_hash_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
 --
--- Name: delegation delegation_tx_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- ALTER TABLE ONLY ${liquibase.cf_db_schema}.delegation
+--     ADD CONSTRAINT delegation_pool_hash_id_fkey FOREIGN KEY (pool_hash_id) REFERENCES ${liquibase.cf_db_schema}.pool_hash(id) ON DELETE CASCADE;
 --
-
-ALTER TABLE ONLY ${liquibase.cf_db_schema}.delegation
-    ADD CONSTRAINT delegation_tx_id_fkey FOREIGN KEY (tx_id) REFERENCES ${liquibase.cf_db_schema}.tx(id) ON DELETE CASCADE;
-
-
 --
--- Name: epoch_param epoch_param_block_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
+-- -- Name: delegation delegation_redeemer_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
 --
-
-ALTER TABLE ONLY ${liquibase.cf_db_schema}.epoch_param
-    ADD CONSTRAINT epoch_param_block_id_fkey FOREIGN KEY (block_id) REFERENCES ${liquibase.cf_db_schema}.block(id) ON DELETE CASCADE;
-
-
+-- ALTER TABLE ONLY ${liquibase.cf_db_schema}.delegation
+--     ADD CONSTRAINT delegation_redeemer_id_fkey FOREIGN KEY (redeemer_id) REFERENCES ${liquibase.cf_db_schema}.redeemer(id) ON DELETE CASCADE;
 --
--- Name: epoch_param epoch_param_cost_model_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
 --
-
-ALTER TABLE ONLY ${liquibase.cf_db_schema}.epoch_param
-    ADD CONSTRAINT epoch_param_cost_model_id_fkey FOREIGN KEY (cost_model_id) REFERENCES ${liquibase.cf_db_schema}.cost_model(id) ON DELETE CASCADE;
-
-
+-- --
+-- -- Name: delegation delegation_tx_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
 --
--- Name: epoch_stake epoch_stake_addr_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- ALTER TABLE ONLY ${liquibase.cf_db_schema}.delegation
+--     ADD CONSTRAINT delegation_tx_id_fkey FOREIGN KEY (tx_id) REFERENCES ${liquibase.cf_db_schema}.tx(id) ON DELETE CASCADE;
 --
-
-ALTER TABLE ONLY ${liquibase.cf_db_schema}.epoch_stake
-    ADD CONSTRAINT epoch_stake_addr_id_fkey FOREIGN KEY (addr_id) REFERENCES ${liquibase.cf_db_schema}.stake_address(id) ON DELETE CASCADE;
-
-
 --
--- Name: epoch_stake epoch_stake_pool_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
+-- -- Name: epoch_param epoch_param_block_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
 --
-
-ALTER TABLE ONLY ${liquibase.cf_db_schema}.epoch_stake
-    ADD CONSTRAINT epoch_stake_pool_id_fkey FOREIGN KEY (pool_id) REFERENCES ${liquibase.cf_db_schema}.pool_hash(id) ON DELETE CASCADE;
-
-
+-- ALTER TABLE ONLY ${liquibase.cf_db_schema}.epoch_param
+--     ADD CONSTRAINT epoch_param_block_id_fkey FOREIGN KEY (block_id) REFERENCES ${liquibase.cf_db_schema}.block(id) ON DELETE CASCADE;
 --
--- Name: extra_key_witness extra_key_witness_tx_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
 --
-
-ALTER TABLE ONLY ${liquibase.cf_db_schema}.extra_key_witness
-    ADD CONSTRAINT extra_key_witness_tx_id_fkey FOREIGN KEY (tx_id) REFERENCES ${liquibase.cf_db_schema}.tx(id) ON DELETE CASCADE;
-
-
+-- --
+-- -- Name: epoch_param epoch_param_cost_model_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
 --
--- Name: slot_leader slot_leader_pool_hash_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- ALTER TABLE ONLY ${liquibase.cf_db_schema}.epoch_param
+--     ADD CONSTRAINT epoch_param_cost_model_id_fkey FOREIGN KEY (cost_model_id) REFERENCES ${liquibase.cf_db_schema}.cost_model(id) ON DELETE CASCADE;
 --
-
-ALTER TABLE ONLY ${liquibase.cf_db_schema}.slot_leader
-    ADD CONSTRAINT slot_leader_pool_hash_id_fkey FOREIGN KEY (pool_hash_id) REFERENCES ${liquibase.cf_db_schema}.pool_hash(id) ON DELETE CASCADE;
-
-
 --
--- Name: block block_previous_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
+-- -- Name: epoch_stake epoch_stake_addr_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
 --
-
-ALTER TABLE ONLY ${liquibase.cf_db_schema}.block
-    ADD CONSTRAINT block_previous_id_fkey FOREIGN KEY (previous_id) REFERENCES ${liquibase.cf_db_schema}.block(id) ON DELETE CASCADE;
-
-
---
--- Name: block block_slot_leader_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
---
-
-ALTER TABLE ONLY ${liquibase.cf_db_schema}.block
-    ADD CONSTRAINT block_slot_leader_id_fkey FOREIGN KEY (slot_leader_id) REFERENCES ${liquibase.cf_db_schema}.slot_leader(id) ON DELETE CASCADE;
-
-
---
--- Name: ma_tx_mint ma_tx_mint_ident_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
---
-
-ALTER TABLE ONLY ${liquibase.cf_db_schema}.ma_tx_mint
-    ADD CONSTRAINT ma_tx_mint_ident_fkey FOREIGN KEY (ident) REFERENCES ${liquibase.cf_db_schema}.multi_asset(id) ON DELETE CASCADE;
-
-
---
--- Name: ma_tx_mint ma_tx_mint_tx_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
---
-
-ALTER TABLE ONLY ${liquibase.cf_db_schema}.ma_tx_mint
-    ADD CONSTRAINT ma_tx_mint_tx_id_fkey FOREIGN KEY (tx_id) REFERENCES ${liquibase.cf_db_schema}.tx(id) ON DELETE CASCADE;
-
-
---
--- Name: ma_tx_out ma_tx_out_ident_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
---
-
-ALTER TABLE ONLY ${liquibase.cf_db_schema}.ma_tx_out
-    ADD CONSTRAINT ma_tx_out_ident_fkey FOREIGN KEY (ident) REFERENCES ${liquibase.cf_db_schema}.multi_asset(id) ON DELETE CASCADE;
-
-
---
--- Name: ma_tx_out ma_tx_out_tx_out_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
---
-
-ALTER TABLE ONLY ${liquibase.cf_db_schema}.ma_tx_out
-    ADD CONSTRAINT ma_tx_out_tx_out_id_fkey FOREIGN KEY (tx_out_id) REFERENCES ${liquibase.cf_db_schema}.tx_out(id) ON DELETE CASCADE;
-
-
---
--- Name: param_proposal param_proposal_cost_model_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
---
-
-ALTER TABLE ONLY ${liquibase.cf_db_schema}.param_proposal
-    ADD CONSTRAINT param_proposal_cost_model_id_fkey FOREIGN KEY (cost_model_id) REFERENCES ${liquibase.cf_db_schema}.cost_model(id) ON DELETE CASCADE;
-
-
---
--- Name: param_proposal param_proposal_registered_tx_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
---
-
-ALTER TABLE ONLY ${liquibase.cf_db_schema}.param_proposal
-    ADD CONSTRAINT param_proposal_registered_tx_id_fkey FOREIGN KEY (registered_tx_id) REFERENCES ${liquibase.cf_db_schema}.tx(id) ON DELETE CASCADE;
-
-
---
--- Name: pool_metadata_ref pool_metadata_ref_pool_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
---
-
-ALTER TABLE ONLY ${liquibase.cf_db_schema}.pool_metadata_ref
-    ADD CONSTRAINT pool_metadata_ref_pool_id_fkey FOREIGN KEY (pool_id) REFERENCES ${liquibase.cf_db_schema}.pool_hash(id) ON DELETE CASCADE;
-
-
---
--- Name: pool_metadata_ref pool_metadata_ref_registered_tx_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
---
-
-ALTER TABLE ONLY ${liquibase.cf_db_schema}.pool_metadata_ref
-    ADD CONSTRAINT pool_metadata_ref_registered_tx_id_fkey FOREIGN KEY (registered_tx_id) REFERENCES ${liquibase.cf_db_schema}.tx(id) ON DELETE CASCADE;
-
-
---
--- Name: pool_offline_data pool_offline_data_pmr_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
---
-
-ALTER TABLE ONLY ${liquibase.cf_db_schema}.pool_offline_data
-    ADD CONSTRAINT pool_offline_data_pmr_id_fkey FOREIGN KEY (pmr_id) REFERENCES ${liquibase.cf_db_schema}.pool_metadata_ref(id) ON DELETE CASCADE;
-
-
---
--- Name: pool_offline_data pool_offline_data_pool_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
---
-
-ALTER TABLE ONLY ${liquibase.cf_db_schema}.pool_offline_data
-    ADD CONSTRAINT pool_offline_data_pool_id_fkey FOREIGN KEY (pool_id) REFERENCES ${liquibase.cf_db_schema}.pool_hash(id) ON DELETE CASCADE;
-
-
---
--- Name: pool_offline_fetch_error pool_offline_fetch_error_pmr_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
---
-
-ALTER TABLE ONLY ${liquibase.cf_db_schema}.pool_offline_fetch_error
-    ADD CONSTRAINT pool_offline_fetch_error_pmr_id_fkey FOREIGN KEY (pmr_id) REFERENCES ${liquibase.cf_db_schema}.pool_metadata_ref(id) ON DELETE CASCADE;
-
-
---
--- Name: pool_offline_fetch_error pool_offline_fetch_error_pool_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
---
-
-ALTER TABLE ONLY ${liquibase.cf_db_schema}.pool_offline_fetch_error
-    ADD CONSTRAINT pool_offline_fetch_error_pool_id_fkey FOREIGN KEY (pool_id) REFERENCES ${liquibase.cf_db_schema}.pool_hash(id) ON DELETE CASCADE;
-
-
---
--- Name: pool_owner pool_owner_addr_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
---
-
-ALTER TABLE ONLY ${liquibase.cf_db_schema}.pool_owner
-    ADD CONSTRAINT pool_owner_addr_id_fkey FOREIGN KEY (addr_id) REFERENCES ${liquibase.cf_db_schema}.stake_address(id) ON DELETE CASCADE;
-
-
---
--- Name: pool_owner pool_owner_pool_update_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
---
-
-ALTER TABLE ONLY ${liquibase.cf_db_schema}.pool_owner
-    ADD CONSTRAINT pool_owner_pool_update_id_fkey FOREIGN KEY (pool_update_id) REFERENCES ${liquibase.cf_db_schema}.pool_update(id) ON DELETE CASCADE;
-
-
---
--- Name: pool_relay pool_relay_update_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
---
-
-ALTER TABLE ONLY ${liquibase.cf_db_schema}.pool_relay
-    ADD CONSTRAINT pool_relay_update_id_fkey FOREIGN KEY (update_id) REFERENCES ${liquibase.cf_db_schema}.pool_update(id) ON DELETE CASCADE;
-
-
---
--- Name: pool_retire pool_retire_announced_tx_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
---
-
-ALTER TABLE ONLY ${liquibase.cf_db_schema}.pool_retire
-    ADD CONSTRAINT pool_retire_announced_tx_id_fkey FOREIGN KEY (announced_tx_id) REFERENCES ${liquibase.cf_db_schema}.tx(id) ON DELETE CASCADE;
-
-
---
--- Name: pool_retire pool_retire_hash_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
---
-
-ALTER TABLE ONLY ${liquibase.cf_db_schema}.pool_retire
-    ADD CONSTRAINT pool_retire_hash_id_fkey FOREIGN KEY (hash_id) REFERENCES ${liquibase.cf_db_schema}.pool_hash(id) ON DELETE CASCADE;
-
-
---
--- Name: pool_update pool_update_hash_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
---
-
-ALTER TABLE ONLY ${liquibase.cf_db_schema}.pool_update
-    ADD CONSTRAINT pool_update_hash_id_fkey FOREIGN KEY (hash_id) REFERENCES ${liquibase.cf_db_schema}.pool_hash(id) ON DELETE CASCADE;
-
-
---
--- Name: pool_update pool_update_meta_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
---
-
-ALTER TABLE ONLY ${liquibase.cf_db_schema}.pool_update
-    ADD CONSTRAINT pool_update_meta_id_fkey FOREIGN KEY (meta_id) REFERENCES ${liquibase.cf_db_schema}.pool_metadata_ref(id) ON DELETE CASCADE;
-
-
---
--- Name: pool_update pool_update_registered_tx_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
---
-
-ALTER TABLE ONLY ${liquibase.cf_db_schema}.pool_update
-    ADD CONSTRAINT pool_update_registered_tx_id_fkey FOREIGN KEY (registered_tx_id) REFERENCES ${liquibase.cf_db_schema}.tx(id) ON DELETE CASCADE;
-
-
---
--- Name: pool_update pool_update_reward_addr_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
---
-
-ALTER TABLE ONLY ${liquibase.cf_db_schema}.pool_update
-    ADD CONSTRAINT pool_update_reward_addr_id_fkey FOREIGN KEY (reward_addr_id) REFERENCES ${liquibase.cf_db_schema}.stake_address(id) ON DELETE CASCADE;
-
-
---
--- Name: pot_transfer pot_transfer_tx_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
---
-
-ALTER TABLE ONLY ${liquibase.cf_db_schema}.pot_transfer
-    ADD CONSTRAINT pot_transfer_tx_id_fkey FOREIGN KEY (tx_id) REFERENCES ${liquibase.cf_db_schema}.tx(id) ON DELETE CASCADE;
-
-
---
--- Name: redeemer_data redeemer_data_tx_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
---
-
-ALTER TABLE ONLY ${liquibase.cf_db_schema}.redeemer_data
-    ADD CONSTRAINT redeemer_data_tx_id_fkey FOREIGN KEY (tx_id) REFERENCES ${liquibase.cf_db_schema}.tx(id) ON DELETE CASCADE;
-
-
---
--- Name: redeemer redeemer_redeemer_data_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
---
-
-ALTER TABLE ONLY ${liquibase.cf_db_schema}.redeemer
-    ADD CONSTRAINT redeemer_redeemer_data_id_fkey FOREIGN KEY (redeemer_data_id) REFERENCES ${liquibase.cf_db_schema}.redeemer_data(id) ON DELETE CASCADE;
-
-
---
--- Name: redeemer redeemer_tx_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
---
-
-ALTER TABLE ONLY ${liquibase.cf_db_schema}.redeemer
-    ADD CONSTRAINT redeemer_tx_id_fkey FOREIGN KEY (tx_id) REFERENCES ${liquibase.cf_db_schema}.tx(id) ON DELETE CASCADE;
-
-
---
--- Name: reference_tx_in reference_tx_in_tx_in_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
---
-
-ALTER TABLE ONLY ${liquibase.cf_db_schema}.reference_tx_in
-    ADD CONSTRAINT reference_tx_in_tx_in_id_fkey FOREIGN KEY (tx_in_id) REFERENCES ${liquibase.cf_db_schema}.tx(id) ON DELETE CASCADE;
-
-
---
--- Name: reference_tx_in reference_tx_in_tx_out_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
---
-
-ALTER TABLE ONLY ${liquibase.cf_db_schema}.reference_tx_in
-    ADD CONSTRAINT reference_tx_in_tx_out_id_fkey FOREIGN KEY (tx_out_id) REFERENCES ${liquibase.cf_db_schema}.tx(id) ON DELETE CASCADE;
-
-
---
--- Name: reserve reserve_addr_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
---
-
-ALTER TABLE ONLY ${liquibase.cf_db_schema}.reserve
-    ADD CONSTRAINT reserve_addr_id_fkey FOREIGN KEY (addr_id) REFERENCES ${liquibase.cf_db_schema}.stake_address(id) ON DELETE CASCADE;
-
-
---
--- Name: reserve reserve_tx_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
---
-
-ALTER TABLE ONLY ${liquibase.cf_db_schema}.reserve
-    ADD CONSTRAINT reserve_tx_id_fkey FOREIGN KEY (tx_id) REFERENCES ${liquibase.cf_db_schema}.tx(id) ON DELETE CASCADE;
-
-
---
--- Name: reward reward_addr_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
---
-
-ALTER TABLE ONLY ${liquibase.cf_db_schema}.reward
-    ADD CONSTRAINT reward_addr_id_fkey FOREIGN KEY (addr_id) REFERENCES ${liquibase.cf_db_schema}.stake_address(id) ON DELETE CASCADE;
-
-
---
--- Name: reward reward_pool_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
---
-
-ALTER TABLE ONLY ${liquibase.cf_db_schema}.reward
-    ADD CONSTRAINT reward_pool_id_fkey FOREIGN KEY (pool_id) REFERENCES ${liquibase.cf_db_schema}.pool_hash(id) ON DELETE CASCADE;
-
-
---
--- Name: script script_tx_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
---
-
-ALTER TABLE ONLY ${liquibase.cf_db_schema}.script
-    ADD CONSTRAINT script_tx_id_fkey FOREIGN KEY (tx_id) REFERENCES ${liquibase.cf_db_schema}.tx(id) ON DELETE CASCADE;
-
-
---
--- Name: stake_deregistration stake_deregistration_addr_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
---
-
-ALTER TABLE ONLY ${liquibase.cf_db_schema}.stake_deregistration
-    ADD CONSTRAINT stake_deregistration_addr_id_fkey FOREIGN KEY (addr_id) REFERENCES ${liquibase.cf_db_schema}.stake_address(id) ON DELETE CASCADE;
-
-
---
--- Name: stake_deregistration stake_deregistration_redeemer_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
---
-
-ALTER TABLE ONLY ${liquibase.cf_db_schema}.stake_deregistration
-    ADD CONSTRAINT stake_deregistration_redeemer_id_fkey FOREIGN KEY (redeemer_id) REFERENCES ${liquibase.cf_db_schema}.redeemer(id) ON DELETE CASCADE;
-
-
---
--- Name: stake_deregistration stake_deregistration_tx_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
---
-
-ALTER TABLE ONLY ${liquibase.cf_db_schema}.stake_deregistration
-    ADD CONSTRAINT stake_deregistration_tx_id_fkey FOREIGN KEY (tx_id) REFERENCES ${liquibase.cf_db_schema}.tx(id) ON DELETE CASCADE;
-
-
---
--- Name: stake_registration stake_registration_addr_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
---
-
-ALTER TABLE ONLY ${liquibase.cf_db_schema}.stake_registration
-    ADD CONSTRAINT stake_registration_addr_id_fkey FOREIGN KEY (addr_id) REFERENCES ${liquibase.cf_db_schema}.stake_address(id) ON DELETE CASCADE;
-
-
---
--- Name: stake_registration stake_registration_tx_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
---
-
-ALTER TABLE ONLY ${liquibase.cf_db_schema}.stake_registration
-    ADD CONSTRAINT stake_registration_tx_id_fkey FOREIGN KEY (tx_id) REFERENCES ${liquibase.cf_db_schema}.tx(id) ON DELETE CASCADE;
-
-
---
--- Name: treasury treasury_addr_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
---
-
-ALTER TABLE ONLY ${liquibase.cf_db_schema}.treasury
-    ADD CONSTRAINT treasury_addr_id_fkey FOREIGN KEY (addr_id) REFERENCES ${liquibase.cf_db_schema}.stake_address(id) ON DELETE CASCADE;
-
-
---
--- Name: treasury treasury_tx_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
---
-
-ALTER TABLE ONLY ${liquibase.cf_db_schema}.treasury
-    ADD CONSTRAINT treasury_tx_id_fkey FOREIGN KEY (tx_id) REFERENCES ${liquibase.cf_db_schema}.tx(id) ON DELETE CASCADE;
-
-
---
--- Name: tx tx_block_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
---
-
-ALTER TABLE ONLY ${liquibase.cf_db_schema}.tx
-    ADD CONSTRAINT tx_block_id_fkey FOREIGN KEY (block_id) REFERENCES ${liquibase.cf_db_schema}.block(id) ON DELETE CASCADE;
-
-
---
--- Name: tx_in tx_in_redeemer_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
---
-
-ALTER TABLE ONLY ${liquibase.cf_db_schema}.tx_in
-    ADD CONSTRAINT tx_in_redeemer_id_fkey FOREIGN KEY (redeemer_id) REFERENCES ${liquibase.cf_db_schema}.redeemer(id) ON DELETE CASCADE;
-
-
---
--- Name: tx_in tx_in_tx_in_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
---
-
-ALTER TABLE ONLY ${liquibase.cf_db_schema}.tx_in
-    ADD CONSTRAINT tx_in_tx_in_id_fkey FOREIGN KEY (tx_in_id) REFERENCES ${liquibase.cf_db_schema}.tx(id) ON DELETE CASCADE;
-
-
---
--- Name: tx_in tx_in_tx_out_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
---
-
-ALTER TABLE ONLY ${liquibase.cf_db_schema}.tx_in
-    ADD CONSTRAINT tx_in_tx_out_id_fkey FOREIGN KEY (tx_out_id) REFERENCES ${liquibase.cf_db_schema}.tx(id) ON DELETE CASCADE;
-
-
---
--- Name: tx_metadata tx_metadata_tx_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
---
-
-ALTER TABLE ONLY ${liquibase.cf_db_schema}.tx_metadata
-    ADD CONSTRAINT tx_metadata_tx_id_fkey FOREIGN KEY (tx_id) REFERENCES ${liquibase.cf_db_schema}.tx(id) ON DELETE CASCADE;
-
-
---
--- Name: tx_out tx_out_inline_datum_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
---
-
-ALTER TABLE ONLY ${liquibase.cf_db_schema}.tx_out
-    ADD CONSTRAINT tx_out_inline_datum_id_fkey FOREIGN KEY (inline_datum_id) REFERENCES ${liquibase.cf_db_schema}.datum(id) ON DELETE CASCADE;
-
-
---
--- Name: tx_out tx_out_reference_script_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
---
-
-ALTER TABLE ONLY ${liquibase.cf_db_schema}.tx_out
-    ADD CONSTRAINT tx_out_reference_script_id_fkey FOREIGN KEY (reference_script_id) REFERENCES ${liquibase.cf_db_schema}.script(id) ON DELETE CASCADE;
-
-
---
--- Name: tx_out tx_out_stake_address_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
---
-
-ALTER TABLE ONLY ${liquibase.cf_db_schema}.tx_out
-    ADD CONSTRAINT tx_out_stake_address_id_fkey FOREIGN KEY (stake_address_id) REFERENCES ${liquibase.cf_db_schema}.stake_address(id) ON DELETE CASCADE;
-
-
---
--- Name: tx_out tx_out_tx_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
---
-
-ALTER TABLE ONLY ${liquibase.cf_db_schema}.tx_out
-    ADD CONSTRAINT tx_out_tx_id_fkey FOREIGN KEY (tx_id) REFERENCES ${liquibase.cf_db_schema}.tx(id) ON DELETE CASCADE;
-
-
---
--- Name: withdrawal withdrawal_addr_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
---
-
-ALTER TABLE ONLY ${liquibase.cf_db_schema}.withdrawal
-    ADD CONSTRAINT withdrawal_addr_id_fkey FOREIGN KEY (addr_id) REFERENCES ${liquibase.cf_db_schema}.stake_address(id) ON DELETE CASCADE;
-
-
---
--- Name: withdrawal withdrawal_redeemer_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
---
-
-ALTER TABLE ONLY ${liquibase.cf_db_schema}.withdrawal
-    ADD CONSTRAINT withdrawal_redeemer_id_fkey FOREIGN KEY (redeemer_id) REFERENCES ${liquibase.cf_db_schema}.redeemer(id) ON DELETE CASCADE;
-
-
---
--- Name: withdrawal withdrawal_tx_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
---
-
-ALTER TABLE ONLY ${liquibase.cf_db_schema}.withdrawal
-    ADD CONSTRAINT withdrawal_tx_id_fkey FOREIGN KEY (tx_id) REFERENCES ${liquibase.cf_db_schema}.tx(id) ON DELETE CASCADE;
-
+-- ALTER TABLE ONLY ${liquibase.cf_db_schema}.epoch_stake
+--     ADD CONSTRAINT epoch_stake_addr_id_fkey FOREIGN KEY (addr_id) REFERENCES ${liquibase.cf_db_schema}.stake_address(id) ON DELETE CASCADE;
+--
+--
+-- --
+-- -- Name: epoch_stake epoch_stake_pool_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
+--
+-- ALTER TABLE ONLY ${liquibase.cf_db_schema}.epoch_stake
+--     ADD CONSTRAINT epoch_stake_pool_id_fkey FOREIGN KEY (pool_id) REFERENCES ${liquibase.cf_db_schema}.pool_hash(id) ON DELETE CASCADE;
+--
+--
+-- --
+-- -- Name: extra_key_witness extra_key_witness_tx_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
+--
+-- ALTER TABLE ONLY ${liquibase.cf_db_schema}.extra_key_witness
+--     ADD CONSTRAINT extra_key_witness_tx_id_fkey FOREIGN KEY (tx_id) REFERENCES ${liquibase.cf_db_schema}.tx(id) ON DELETE CASCADE;
+--
+--
+-- --
+-- -- Name: slot_leader slot_leader_pool_hash_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
+--
+-- ALTER TABLE ONLY ${liquibase.cf_db_schema}.slot_leader
+--     ADD CONSTRAINT slot_leader_pool_hash_id_fkey FOREIGN KEY (pool_hash_id) REFERENCES ${liquibase.cf_db_schema}.pool_hash(id) ON DELETE CASCADE;
+--
+--
+-- --
+-- -- Name: block block_previous_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
+--
+-- ALTER TABLE ONLY ${liquibase.cf_db_schema}.block
+--     ADD CONSTRAINT block_previous_id_fkey FOREIGN KEY (previous_id) REFERENCES ${liquibase.cf_db_schema}.block(id) ON DELETE CASCADE;
+--
+--
+-- --
+-- -- Name: block block_slot_leader_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
+--
+-- ALTER TABLE ONLY ${liquibase.cf_db_schema}.block
+--     ADD CONSTRAINT block_slot_leader_id_fkey FOREIGN KEY (slot_leader_id) REFERENCES ${liquibase.cf_db_schema}.slot_leader(id) ON DELETE CASCADE;
+--
+--
+-- --
+-- -- Name: ma_tx_mint ma_tx_mint_ident_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
+--
+-- ALTER TABLE ONLY ${liquibase.cf_db_schema}.ma_tx_mint
+--     ADD CONSTRAINT ma_tx_mint_ident_fkey FOREIGN KEY (ident) REFERENCES ${liquibase.cf_db_schema}.multi_asset(id) ON DELETE CASCADE;
+--
+--
+-- --
+-- -- Name: ma_tx_mint ma_tx_mint_tx_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
+--
+-- ALTER TABLE ONLY ${liquibase.cf_db_schema}.ma_tx_mint
+--     ADD CONSTRAINT ma_tx_mint_tx_id_fkey FOREIGN KEY (tx_id) REFERENCES ${liquibase.cf_db_schema}.tx(id) ON DELETE CASCADE;
+--
+--
+-- --
+-- -- Name: ma_tx_out ma_tx_out_ident_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
+--
+-- ALTER TABLE ONLY ${liquibase.cf_db_schema}.ma_tx_out
+--     ADD CONSTRAINT ma_tx_out_ident_fkey FOREIGN KEY (ident) REFERENCES ${liquibase.cf_db_schema}.multi_asset(id) ON DELETE CASCADE;
+--
+--
+-- --
+-- -- Name: ma_tx_out ma_tx_out_tx_out_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
+--
+-- ALTER TABLE ONLY ${liquibase.cf_db_schema}.ma_tx_out
+--     ADD CONSTRAINT ma_tx_out_tx_out_id_fkey FOREIGN KEY (tx_out_id) REFERENCES ${liquibase.cf_db_schema}.tx_out(id) ON DELETE CASCADE;
+--
+--
+-- --
+-- -- Name: param_proposal param_proposal_cost_model_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
+--
+-- ALTER TABLE ONLY ${liquibase.cf_db_schema}.param_proposal
+--     ADD CONSTRAINT param_proposal_cost_model_id_fkey FOREIGN KEY (cost_model_id) REFERENCES ${liquibase.cf_db_schema}.cost_model(id) ON DELETE CASCADE;
+--
+--
+-- --
+-- -- Name: param_proposal param_proposal_registered_tx_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
+--
+-- ALTER TABLE ONLY ${liquibase.cf_db_schema}.param_proposal
+--     ADD CONSTRAINT param_proposal_registered_tx_id_fkey FOREIGN KEY (registered_tx_id) REFERENCES ${liquibase.cf_db_schema}.tx(id) ON DELETE CASCADE;
+--
+--
+-- --
+-- -- Name: pool_metadata_ref pool_metadata_ref_pool_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
+--
+-- ALTER TABLE ONLY ${liquibase.cf_db_schema}.pool_metadata_ref
+--     ADD CONSTRAINT pool_metadata_ref_pool_id_fkey FOREIGN KEY (pool_id) REFERENCES ${liquibase.cf_db_schema}.pool_hash(id) ON DELETE CASCADE;
+--
+--
+-- --
+-- -- Name: pool_metadata_ref pool_metadata_ref_registered_tx_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
+--
+-- ALTER TABLE ONLY ${liquibase.cf_db_schema}.pool_metadata_ref
+--     ADD CONSTRAINT pool_metadata_ref_registered_tx_id_fkey FOREIGN KEY (registered_tx_id) REFERENCES ${liquibase.cf_db_schema}.tx(id) ON DELETE CASCADE;
+--
+--
+-- --
+-- -- Name: pool_offline_data pool_offline_data_pmr_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
+--
+-- ALTER TABLE ONLY ${liquibase.cf_db_schema}.pool_offline_data
+--     ADD CONSTRAINT pool_offline_data_pmr_id_fkey FOREIGN KEY (pmr_id) REFERENCES ${liquibase.cf_db_schema}.pool_metadata_ref(id) ON DELETE CASCADE;
+--
+--
+-- --
+-- -- Name: pool_offline_data pool_offline_data_pool_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
+--
+-- ALTER TABLE ONLY ${liquibase.cf_db_schema}.pool_offline_data
+--     ADD CONSTRAINT pool_offline_data_pool_id_fkey FOREIGN KEY (pool_id) REFERENCES ${liquibase.cf_db_schema}.pool_hash(id) ON DELETE CASCADE;
+--
+--
+-- --
+-- -- Name: pool_offline_fetch_error pool_offline_fetch_error_pmr_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
+--
+-- ALTER TABLE ONLY ${liquibase.cf_db_schema}.pool_offline_fetch_error
+--     ADD CONSTRAINT pool_offline_fetch_error_pmr_id_fkey FOREIGN KEY (pmr_id) REFERENCES ${liquibase.cf_db_schema}.pool_metadata_ref(id) ON DELETE CASCADE;
+--
+--
+-- --
+-- -- Name: pool_offline_fetch_error pool_offline_fetch_error_pool_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
+--
+-- ALTER TABLE ONLY ${liquibase.cf_db_schema}.pool_offline_fetch_error
+--     ADD CONSTRAINT pool_offline_fetch_error_pool_id_fkey FOREIGN KEY (pool_id) REFERENCES ${liquibase.cf_db_schema}.pool_hash(id) ON DELETE CASCADE;
+--
+--
+-- --
+-- -- Name: pool_owner pool_owner_addr_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
+--
+-- ALTER TABLE ONLY ${liquibase.cf_db_schema}.pool_owner
+--     ADD CONSTRAINT pool_owner_addr_id_fkey FOREIGN KEY (addr_id) REFERENCES ${liquibase.cf_db_schema}.stake_address(id) ON DELETE CASCADE;
+--
+--
+-- --
+-- -- Name: pool_owner pool_owner_pool_update_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
+--
+-- ALTER TABLE ONLY ${liquibase.cf_db_schema}.pool_owner
+--     ADD CONSTRAINT pool_owner_pool_update_id_fkey FOREIGN KEY (pool_update_id) REFERENCES ${liquibase.cf_db_schema}.pool_update(id) ON DELETE CASCADE;
+--
+--
+-- --
+-- -- Name: pool_relay pool_relay_update_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
+--
+-- ALTER TABLE ONLY ${liquibase.cf_db_schema}.pool_relay
+--     ADD CONSTRAINT pool_relay_update_id_fkey FOREIGN KEY (update_id) REFERENCES ${liquibase.cf_db_schema}.pool_update(id) ON DELETE CASCADE;
+--
+--
+-- --
+-- -- Name: pool_retire pool_retire_announced_tx_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
+--
+-- ALTER TABLE ONLY ${liquibase.cf_db_schema}.pool_retire
+--     ADD CONSTRAINT pool_retire_announced_tx_id_fkey FOREIGN KEY (announced_tx_id) REFERENCES ${liquibase.cf_db_schema}.tx(id) ON DELETE CASCADE;
+--
+--
+-- --
+-- -- Name: pool_retire pool_retire_hash_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
+--
+-- ALTER TABLE ONLY ${liquibase.cf_db_schema}.pool_retire
+--     ADD CONSTRAINT pool_retire_hash_id_fkey FOREIGN KEY (hash_id) REFERENCES ${liquibase.cf_db_schema}.pool_hash(id) ON DELETE CASCADE;
+--
+--
+-- --
+-- -- Name: pool_update pool_update_hash_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
+--
+-- ALTER TABLE ONLY ${liquibase.cf_db_schema}.pool_update
+--     ADD CONSTRAINT pool_update_hash_id_fkey FOREIGN KEY (hash_id) REFERENCES ${liquibase.cf_db_schema}.pool_hash(id) ON DELETE CASCADE;
+--
+--
+-- --
+-- -- Name: pool_update pool_update_meta_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
+--
+-- ALTER TABLE ONLY ${liquibase.cf_db_schema}.pool_update
+--     ADD CONSTRAINT pool_update_meta_id_fkey FOREIGN KEY (meta_id) REFERENCES ${liquibase.cf_db_schema}.pool_metadata_ref(id) ON DELETE CASCADE;
+--
+--
+-- --
+-- -- Name: pool_update pool_update_registered_tx_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
+--
+-- ALTER TABLE ONLY ${liquibase.cf_db_schema}.pool_update
+--     ADD CONSTRAINT pool_update_registered_tx_id_fkey FOREIGN KEY (registered_tx_id) REFERENCES ${liquibase.cf_db_schema}.tx(id) ON DELETE CASCADE;
+--
+--
+-- --
+-- -- Name: pool_update pool_update_reward_addr_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
+--
+-- ALTER TABLE ONLY ${liquibase.cf_db_schema}.pool_update
+--     ADD CONSTRAINT pool_update_reward_addr_id_fkey FOREIGN KEY (reward_addr_id) REFERENCES ${liquibase.cf_db_schema}.stake_address(id) ON DELETE CASCADE;
+--
+--
+-- --
+-- -- Name: pot_transfer pot_transfer_tx_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
+--
+-- ALTER TABLE ONLY ${liquibase.cf_db_schema}.pot_transfer
+--     ADD CONSTRAINT pot_transfer_tx_id_fkey FOREIGN KEY (tx_id) REFERENCES ${liquibase.cf_db_schema}.tx(id) ON DELETE CASCADE;
+--
+--
+-- --
+-- -- Name: redeemer_data redeemer_data_tx_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
+--
+-- ALTER TABLE ONLY ${liquibase.cf_db_schema}.redeemer_data
+--     ADD CONSTRAINT redeemer_data_tx_id_fkey FOREIGN KEY (tx_id) REFERENCES ${liquibase.cf_db_schema}.tx(id) ON DELETE CASCADE;
+--
+--
+-- --
+-- -- Name: redeemer redeemer_redeemer_data_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
+--
+-- ALTER TABLE ONLY ${liquibase.cf_db_schema}.redeemer
+--     ADD CONSTRAINT redeemer_redeemer_data_id_fkey FOREIGN KEY (redeemer_data_id) REFERENCES ${liquibase.cf_db_schema}.redeemer_data(id) ON DELETE CASCADE;
+--
+--
+-- --
+-- -- Name: redeemer redeemer_tx_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
+--
+-- ALTER TABLE ONLY ${liquibase.cf_db_schema}.redeemer
+--     ADD CONSTRAINT redeemer_tx_id_fkey FOREIGN KEY (tx_id) REFERENCES ${liquibase.cf_db_schema}.tx(id) ON DELETE CASCADE;
+--
+--
+-- --
+-- -- Name: reference_tx_in reference_tx_in_tx_in_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
+--
+-- ALTER TABLE ONLY ${liquibase.cf_db_schema}.reference_tx_in
+--     ADD CONSTRAINT reference_tx_in_tx_in_id_fkey FOREIGN KEY (tx_in_id) REFERENCES ${liquibase.cf_db_schema}.tx(id) ON DELETE CASCADE;
+--
+--
+-- --
+-- -- Name: reference_tx_in reference_tx_in_tx_out_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
+--
+-- ALTER TABLE ONLY ${liquibase.cf_db_schema}.reference_tx_in
+--     ADD CONSTRAINT reference_tx_in_tx_out_id_fkey FOREIGN KEY (tx_out_id) REFERENCES ${liquibase.cf_db_schema}.tx(id) ON DELETE CASCADE;
+--
+--
+-- --
+-- -- Name: reserve reserve_addr_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
+--
+-- ALTER TABLE ONLY ${liquibase.cf_db_schema}.reserve
+--     ADD CONSTRAINT reserve_addr_id_fkey FOREIGN KEY (addr_id) REFERENCES ${liquibase.cf_db_schema}.stake_address(id) ON DELETE CASCADE;
+--
+--
+-- --
+-- -- Name: reserve reserve_tx_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
+--
+-- ALTER TABLE ONLY ${liquibase.cf_db_schema}.reserve
+--     ADD CONSTRAINT reserve_tx_id_fkey FOREIGN KEY (tx_id) REFERENCES ${liquibase.cf_db_schema}.tx(id) ON DELETE CASCADE;
+--
+--
+-- --
+-- -- Name: reward reward_addr_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
+--
+-- ALTER TABLE ONLY ${liquibase.cf_db_schema}.reward
+--     ADD CONSTRAINT reward_addr_id_fkey FOREIGN KEY (addr_id) REFERENCES ${liquibase.cf_db_schema}.stake_address(id) ON DELETE CASCADE;
+--
+--
+-- --
+-- -- Name: reward reward_pool_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
+--
+-- ALTER TABLE ONLY ${liquibase.cf_db_schema}.reward
+--     ADD CONSTRAINT reward_pool_id_fkey FOREIGN KEY (pool_id) REFERENCES ${liquibase.cf_db_schema}.pool_hash(id) ON DELETE CASCADE;
+--
+--
+-- --
+-- -- Name: script script_tx_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
+--
+-- ALTER TABLE ONLY ${liquibase.cf_db_schema}.script
+--     ADD CONSTRAINT script_tx_id_fkey FOREIGN KEY (tx_id) REFERENCES ${liquibase.cf_db_schema}.tx(id) ON DELETE CASCADE;
+--
+--
+-- --
+-- -- Name: stake_deregistration stake_deregistration_addr_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
+--
+-- ALTER TABLE ONLY ${liquibase.cf_db_schema}.stake_deregistration
+--     ADD CONSTRAINT stake_deregistration_addr_id_fkey FOREIGN KEY (addr_id) REFERENCES ${liquibase.cf_db_schema}.stake_address(id) ON DELETE CASCADE;
+--
+--
+-- --
+-- -- Name: stake_deregistration stake_deregistration_redeemer_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
+--
+-- ALTER TABLE ONLY ${liquibase.cf_db_schema}.stake_deregistration
+--     ADD CONSTRAINT stake_deregistration_redeemer_id_fkey FOREIGN KEY (redeemer_id) REFERENCES ${liquibase.cf_db_schema}.redeemer(id) ON DELETE CASCADE;
+--
+--
+-- --
+-- -- Name: stake_deregistration stake_deregistration_tx_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
+--
+-- ALTER TABLE ONLY ${liquibase.cf_db_schema}.stake_deregistration
+--     ADD CONSTRAINT stake_deregistration_tx_id_fkey FOREIGN KEY (tx_id) REFERENCES ${liquibase.cf_db_schema}.tx(id) ON DELETE CASCADE;
+--
+--
+-- --
+-- -- Name: stake_registration stake_registration_addr_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
+--
+-- ALTER TABLE ONLY ${liquibase.cf_db_schema}.stake_registration
+--     ADD CONSTRAINT stake_registration_addr_id_fkey FOREIGN KEY (addr_id) REFERENCES ${liquibase.cf_db_schema}.stake_address(id) ON DELETE CASCADE;
+--
+--
+-- --
+-- -- Name: stake_registration stake_registration_tx_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
+--
+-- ALTER TABLE ONLY ${liquibase.cf_db_schema}.stake_registration
+--     ADD CONSTRAINT stake_registration_tx_id_fkey FOREIGN KEY (tx_id) REFERENCES ${liquibase.cf_db_schema}.tx(id) ON DELETE CASCADE;
+--
+--
+-- --
+-- -- Name: treasury treasury_addr_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
+--
+-- ALTER TABLE ONLY ${liquibase.cf_db_schema}.treasury
+--     ADD CONSTRAINT treasury_addr_id_fkey FOREIGN KEY (addr_id) REFERENCES ${liquibase.cf_db_schema}.stake_address(id) ON DELETE CASCADE;
+--
+--
+-- --
+-- -- Name: treasury treasury_tx_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
+--
+-- ALTER TABLE ONLY ${liquibase.cf_db_schema}.treasury
+--     ADD CONSTRAINT treasury_tx_id_fkey FOREIGN KEY (tx_id) REFERENCES ${liquibase.cf_db_schema}.tx(id) ON DELETE CASCADE;
+--
+--
+-- --
+-- -- Name: tx tx_block_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
+--
+-- ALTER TABLE ONLY ${liquibase.cf_db_schema}.tx
+--     ADD CONSTRAINT tx_block_id_fkey FOREIGN KEY (block_id) REFERENCES ${liquibase.cf_db_schema}.block(id) ON DELETE CASCADE;
+--
+--
+-- --
+-- -- Name: tx_in tx_in_redeemer_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
+--
+-- ALTER TABLE ONLY ${liquibase.cf_db_schema}.tx_in
+--     ADD CONSTRAINT tx_in_redeemer_id_fkey FOREIGN KEY (redeemer_id) REFERENCES ${liquibase.cf_db_schema}.redeemer(id) ON DELETE CASCADE;
+--
+--
+-- --
+-- -- Name: tx_in tx_in_tx_in_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
+--
+-- ALTER TABLE ONLY ${liquibase.cf_db_schema}.tx_in
+--     ADD CONSTRAINT tx_in_tx_in_id_fkey FOREIGN KEY (tx_in_id) REFERENCES ${liquibase.cf_db_schema}.tx(id) ON DELETE CASCADE;
+--
+--
+-- --
+-- -- Name: tx_in tx_in_tx_out_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
+--
+-- ALTER TABLE ONLY ${liquibase.cf_db_schema}.tx_in
+--     ADD CONSTRAINT tx_in_tx_out_id_fkey FOREIGN KEY (tx_out_id) REFERENCES ${liquibase.cf_db_schema}.tx(id) ON DELETE CASCADE;
+--
+--
+-- --
+-- -- Name: tx_metadata tx_metadata_tx_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
+--
+-- ALTER TABLE ONLY ${liquibase.cf_db_schema}.tx_metadata
+--     ADD CONSTRAINT tx_metadata_tx_id_fkey FOREIGN KEY (tx_id) REFERENCES ${liquibase.cf_db_schema}.tx(id) ON DELETE CASCADE;
+--
+--
+-- --
+-- -- Name: tx_out tx_out_inline_datum_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
+--
+-- ALTER TABLE ONLY ${liquibase.cf_db_schema}.tx_out
+--     ADD CONSTRAINT tx_out_inline_datum_id_fkey FOREIGN KEY (inline_datum_id) REFERENCES ${liquibase.cf_db_schema}.datum(id) ON DELETE CASCADE;
+--
+--
+-- --
+-- -- Name: tx_out tx_out_reference_script_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
+--
+-- ALTER TABLE ONLY ${liquibase.cf_db_schema}.tx_out
+--     ADD CONSTRAINT tx_out_reference_script_id_fkey FOREIGN KEY (reference_script_id) REFERENCES ${liquibase.cf_db_schema}.script(id) ON DELETE CASCADE;
+--
+--
+-- --
+-- -- Name: tx_out tx_out_stake_address_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
+--
+-- ALTER TABLE ONLY ${liquibase.cf_db_schema}.tx_out
+--     ADD CONSTRAINT tx_out_stake_address_id_fkey FOREIGN KEY (stake_address_id) REFERENCES ${liquibase.cf_db_schema}.stake_address(id) ON DELETE CASCADE;
+--
+--
+-- --
+-- -- Name: tx_out tx_out_tx_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
+--
+-- ALTER TABLE ONLY ${liquibase.cf_db_schema}.tx_out
+--     ADD CONSTRAINT tx_out_tx_id_fkey FOREIGN KEY (tx_id) REFERENCES ${liquibase.cf_db_schema}.tx(id) ON DELETE CASCADE;
+--
+--
+-- --
+-- -- Name: withdrawal withdrawal_addr_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
+--
+-- ALTER TABLE ONLY ${liquibase.cf_db_schema}.withdrawal
+--     ADD CONSTRAINT withdrawal_addr_id_fkey FOREIGN KEY (addr_id) REFERENCES ${liquibase.cf_db_schema}.stake_address(id) ON DELETE CASCADE;
+--
+--
+-- --
+-- -- Name: withdrawal withdrawal_redeemer_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
+--
+-- ALTER TABLE ONLY ${liquibase.cf_db_schema}.withdrawal
+--     ADD CONSTRAINT withdrawal_redeemer_id_fkey FOREIGN KEY (redeemer_id) REFERENCES ${liquibase.cf_db_schema}.redeemer(id) ON DELETE CASCADE;
+--
+--
+-- --
+-- -- Name: withdrawal withdrawal_tx_id_fkey; Type: FK CONSTRAINT; Schema: preprod. Owner: rosetta_db_admin
+-- --
+--
+-- ALTER TABLE ONLY ${liquibase.cf_db_schema}.withdrawal
+--     ADD CONSTRAINT withdrawal_tx_id_fkey FOREIGN KEY (tx_id) REFERENCES ${liquibase.cf_db_schema}.tx(id) ON DELETE CASCADE;
+--
 
 --
 -- PostgreSQL database dump complete
