@@ -40,8 +40,8 @@ spring:
         format_sql: true
         order_inserts: true
         order_updates: true
-        hbm2ddl:
-          auto: update
+#        hbm2ddl:
+#          auto: update
 
 kafka:
   auto-create-topics: false
@@ -101,4 +101,3 @@ blocks:
   commitThreshold: ${COMMIT_THRESHOLD:3000}
 genesis:
   network: ${NETWORK:764824073}
-  file: ${FILE_GENESIS_PATH:classpath:genesis/}${SCHEMA:preprod}.genesis.json

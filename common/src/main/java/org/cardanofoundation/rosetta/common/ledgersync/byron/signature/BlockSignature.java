@@ -7,10 +7,9 @@ import com.bloxbean.cardano.client.exception.CborDeserializationException;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import lombok.NonNull;
-
 import java.math.BigInteger;
 import java.util.List;
+import lombok.NonNull;
 
 /**
  * https://github.com/input-output-hk/cardano-ledger/blob/master/eras/byron/cddl-spec/byron.cddl

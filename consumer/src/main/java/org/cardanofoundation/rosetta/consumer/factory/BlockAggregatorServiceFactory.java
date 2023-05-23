@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
 @Component
-public class BlockAggregatorServiceFactory extends
+public final class BlockAggregatorServiceFactory extends
     AbstractServiceFactory<BlockAggregatorService<? extends CommonBlock>, BlockAggregatorService> { // NOSONAR
 
   public BlockAggregatorServiceFactory(
