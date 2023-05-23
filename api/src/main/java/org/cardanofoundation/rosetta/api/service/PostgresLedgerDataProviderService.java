@@ -87,6 +87,7 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
   private PoolUpdateRepository poolUpdateRepository;
   @Autowired
   private PoolRetireRepository poolRetireRepository;
+
   @PostConstruct
   void init() {
     rosettaConfig.getNetworks().forEach(networkConfig -> {
@@ -134,10 +135,10 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
       BlockProjection blockProjection = blockProjections.get(0);
       return BlockDto.builder()
           .number(blockProjection.getNumber())
-          .hash(Formatters.hexFormatter(blockProjection.getHash().getBytes()))
+          .hash(blockProjection.getHash())
           .createdAt(blockProjection.getCreatedAt().getTime())
-          .previousBlockHash(Formatters.hexFormatter(
-              blockProjection.getPreviousBlockHash().getBytes()))
+          .previousBlockHash(
+              blockProjection.getPreviousBlockHash())
           .previousBlockNumber(blockProjection.getPreviousBlockNumber())
           .transactionsCount(blockProjection.getTransactionsCount())
           .createdBy(blockProjection.getCreatedBy())
@@ -248,6 +249,7 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
         "[fillTransaction] Since no transactions were given, no inputs and outputs are looked for");
     return null;
   }
+
   @Override
   public List<PopulatedTransaction> populateTransactions(
       Map<String, PopulatedTransaction> transactionsMap) {
@@ -306,11 +308,14 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
   @Override
   public PopulatedTransaction findTransactionByHashAndBlock(String hash,
       Long blockNumber, String blockHash) {
-    log.debug("[findTransactionByHashAndBlock] Parameters received for run query blockNumber: " + blockNumber + " , blockHash: " + blockHash);
-    List<FindTransactionProjection> findTransactions = blockRepository.findTransactionByHashAndBlock(hash, blockNumber, blockHash);
+    log.debug("[findTransactionByHashAndBlock] Parameters received for run query blockNumber: "
+        + blockNumber + " , blockHash: " + blockHash);
+    List<FindTransactionProjection> findTransactions = blockRepository.findTransactionByHashAndBlock(
+        hash, blockNumber, blockHash);
     log.debug("[findTransactionByHashAndBlock] Found " + findTransactions.size() + " transactions");
     if (ObjectUtils.isNotEmpty(findTransactions)) {
-      Map<String, PopulatedTransaction> transactionsMap = mapTransactionsToDict(parseTransactionRows(findTransactions));
+      Map<String, PopulatedTransaction> transactionsMap = mapTransactionsToDict(
+          parseTransactionRows(findTransactions));
       return populateTransactions(transactionsMap).get(0);
     }
     return null;

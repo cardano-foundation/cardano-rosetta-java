@@ -118,15 +118,12 @@ public class UtxoRepositoryImpl implements UtxoRepository {
         + "WHERE " + whereClause;
   }
 
-  public static String decode(String input) {
-    return Arrays.toString(hexStringToBuffer(input));
-  }
 
   public static List<Utxo> mapUtxos(List<FindUtxo> findUtxos) {
     return findUtxos.stream().map(findUtxo -> new Utxo(
         findUtxo.getValue().toString(),
         findUtxo.getTxHash(),
-        findUtxo.getIndex(),
+        Integer.valueOf(findUtxo.getIndex()),
         findUtxo.getName(),
         findUtxo.getPolicy(),
         Objects.nonNull(findUtxo.getQuantity()) ? findUtxo.getQuantity().toString() : null

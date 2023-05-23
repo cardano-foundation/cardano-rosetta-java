@@ -3,7 +3,6 @@ package org.cardanofoundation.rosetta.api.mapper;
 import static org.cardanofoundation.rosetta.api.common.constants.Constants.ADA;
 import static org.cardanofoundation.rosetta.api.common.constants.Constants.ADA_DECIMALS;
 import static org.cardanofoundation.rosetta.api.common.constants.Constants.MULTI_ASSET_DECIMALS;
-import static org.cardanofoundation.rosetta.api.util.Formatters.hexFormatter;
 import static org.cardanofoundation.rosetta.api.util.Formatters.hexStringFormatter;
 import static org.cardanofoundation.rosetta.api.util.Formatters.remove0xPrefix;
 import static org.cardanofoundation.rosetta.api.util.RosettaConstants.INVALID_OPERATION_STATUS;
