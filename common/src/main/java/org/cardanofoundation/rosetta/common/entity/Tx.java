@@ -1,14 +1,6 @@
 package org.cardanofoundation.rosetta.common.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.ConstraintMode;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.ForeignKey;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.Digits;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -17,8 +9,6 @@ import org.cardanofoundation.rosetta.common.validation.Lovelace;
 import org.cardanofoundation.rosetta.common.validation.Word31Type;
 import org.cardanofoundation.rosetta.common.validation.Word64Type;
 import org.hibernate.Hibernate;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
 
 import java.math.BigInteger;
 import java.util.Objects;

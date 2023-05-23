@@ -7,11 +7,9 @@ import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.common.entity.*;
-import org.cardanofoundation.rosetta.common.enumeration.TokenType;
 import org.cardanofoundation.rosetta.common.ledgersync.kafka.CommonBlock;
 import org.cardanofoundation.rosetta.common.util.FileUtil;
 import org.cardanofoundation.rosetta.consumer.kafka.KafkaProducer;
-import org.cardanofoundation.rosetta.consumer.kafka.TestBlockListener;
 import org.cardanofoundation.rosetta.consumer.kafka.TestBlockListener;
 import org.cardanofoundation.rosetta.consumer.repository.*;
 import org.junit.jupiter.api.Assertions;
@@ -23,7 +21,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Profile;
 import org.springframework.kafka.test.context.EmbeddedKafka;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.EnabledIf;
 
 import java.math.BigInteger;
@@ -145,7 +142,6 @@ class BlockSyncServiceIntegrationTest {
                 .tx(tx)
                 .index((short) 0)
                 .dataHash("15461aa490b224fe541f3568e5d7704e0d88460cde9f418f700e2b6864d8d3c9")
-//                .tokenType(TokenType.NATIVE_TOKEN)
                 .addressHasScript(true)
                 .stakeAddress(null)
                 .paymentCred("51936f3c98a04b6609aa9b5c832ba1182cf43a58e534fcc05db09d69")
@@ -179,7 +175,6 @@ class BlockSyncServiceIntegrationTest {
                 .tx(tx)
                 .index((short) 2)
                 .dataHash(null)
-//                .tokenType(TokenType.NATIVE_TOKEN)
                 .addressHasScript(false)
                 .stakeAddress(stakeAddress)
                 .paymentCred("0a0297ac3c9004d38307c8601351df65392952dc0f1ee66694dd2274")
@@ -207,7 +202,6 @@ class BlockSyncServiceIntegrationTest {
                 .tx(tx)
                 .index((short) 0)
                 .dataHash(null)
-//                .tokenType(TokenType.ALL_TOKEN_TYPE)
                 .addressHasScript(true)
                 .stakeAddress(null)
                 .paymentCred("e85ab8fc9feaa85089aeced37ee61a7c201cb2952d40725e85e829c8")
@@ -223,10 +217,6 @@ class BlockSyncServiceIntegrationTest {
                 .policy("b700cb0db84509fe6b35028a6c4a71c1ae11251dddf63cccf35f295d")
                 .name(HexUtil.encodeHexString("treasury".getBytes()))
                 .fingerprint("asset1959pjyfwey3s7h7wzgj5yygssr2ftwajylery9")
-//                .supply(BigInteger.ONE)
-//                .totalVolume(BigInteger.ONE)
-//                .txCount(1L)
-//                .time(block.getTime())
                 .build();
         multiAssetRepository.save(multiAsset);
 
@@ -252,7 +242,6 @@ class BlockSyncServiceIntegrationTest {
                 .tx(tx)
                 .index((short) 0)
                 .dataHash(null)
-//                .tokenType(TokenType.NATIVE_TOKEN)
                 .addressHasScript(false)
                 .stakeAddress(null)
                 .paymentCred("09d12eeb563f8d9ccf83c7e9c6e20105ad2298e2ed6340b6686ee723")
@@ -279,7 +268,6 @@ class BlockSyncServiceIntegrationTest {
                 .tx(tx)
                 .index((short) 0)
                 .dataHash(null)
-//                .tokenType(TokenType.NATIVE_TOKEN)
                 .addressHasScript(false)
                 .stakeAddress(null)
                 .address("Ae2tdPwUPEZ3DdaWu8jn553npu6jwEPAJiahruj3xQjPXxgoxfYDWusJz7x")

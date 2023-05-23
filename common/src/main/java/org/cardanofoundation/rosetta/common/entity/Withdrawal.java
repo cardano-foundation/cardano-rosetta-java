@@ -1,33 +1,16 @@
 package org.cardanofoundation.rosetta.common.entity;
 
-import jakarta.persistence.ConstraintMode;
-import java.math.BigInteger;
-import java.sql.Timestamp;
-import java.util.Objects;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.ForeignKey;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.Digits;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.cardanofoundation.rosetta.common.validation.Lovelace;
 import org.hibernate.Hibernate;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
 
 import java.math.BigInteger;
 import java.util.Objects;
 
 @Entity
-//@Table(name = "withdrawal", uniqueConstraints = {
-//    @UniqueConstraint(name = "unique_slot_leader",
-//        columnNames = {"addr_id", "tx_id"}
-//    )
-//})
 @Table(name = "withdrawal")
 @Getter
 @Setter

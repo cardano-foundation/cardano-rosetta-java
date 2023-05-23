@@ -8,7 +8,6 @@ import org.cardanofoundation.rosetta.common.ledgersync.kafka.CommonBlock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.kafka.annotation.TopicPartition;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -20,10 +19,6 @@ public class TestBlockListener {
     @Autowired
     private BlockListener blockListener;
 
-//    @KafkaListener(topics = "${test.topic1}", groupId = "${spring.kafka.consumer.group-id}",
-//            topicPartitions = {
-//                    @TopicPartition(topic = "${test.topic1}", partitions = "0")
-//            })
     @KafkaListener(topics = "${test.topic1}")
     public void receive(ConsumerRecord<String, CommonBlock> consumerRecord) {
         latch.countDown();

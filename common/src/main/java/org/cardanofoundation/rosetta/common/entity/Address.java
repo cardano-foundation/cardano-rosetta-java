@@ -2,7 +2,10 @@ package org.cardanofoundation.rosetta.common.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Digits;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 import org.cardanofoundation.rosetta.common.validation.Word128Type;
 import org.hibernate.Hibernate;
