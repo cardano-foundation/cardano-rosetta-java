@@ -1,9 +1,10 @@
 package org.cardanofoundation.rosetta.common.ledgersync.mdl;
 
-import java.util.Arrays;
-import java.util.List;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
+
+import java.util.Arrays;
+import java.util.List;
 
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public final class PlutusV1Keys implements CostModelKeys {
