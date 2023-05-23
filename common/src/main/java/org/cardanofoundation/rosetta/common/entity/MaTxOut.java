@@ -1,6 +1,17 @@
 package org.cardanofoundation.rosetta.common.entity;
 
-import jakarta.persistence.*;
+import jakarta.persistence.ConstraintMode;
+import java.math.BigInteger;
+import java.sql.Timestamp;
+import java.util.Objects;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.Digits;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -25,9 +36,8 @@ import java.util.Objects;
 public class MaTxOut extends BaseEntity {
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
-  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "ident", nullable = false,
-      foreignKey = @ForeignKey(name = "ma_tx_out_ident_fkey"))
+      foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "none"))
   @EqualsAndHashCode.Exclude
   private MultiAsset ident;
 
@@ -40,9 +50,8 @@ public class MaTxOut extends BaseEntity {
   private BigInteger quantity;
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
-  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "tx_out_id", nullable = false,
-      foreignKey = @ForeignKey(name = "ma_tx_out_tx_out_id_fkey"))
+      foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "none"))
   @EqualsAndHashCode.Exclude
   private TxOut txOut;
 

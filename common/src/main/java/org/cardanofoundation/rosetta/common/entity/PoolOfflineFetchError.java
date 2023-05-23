@@ -1,7 +1,21 @@
 package org.cardanofoundation.rosetta.common.entity;
 
-import jakarta.persistence.*;
-import lombok.*;
+import jakarta.persistence.ConstraintMode;
+import java.sql.Timestamp;
+import java.util.Objects;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 import org.cardanofoundation.rosetta.common.validation.Word63Type;
 import org.hibernate.Hibernate;
@@ -24,9 +38,8 @@ import java.util.Objects;
 public class PoolOfflineFetchError extends BaseEntity {
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
-  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "pool_id", nullable = false,
-      foreignKey = @ForeignKey(name = "pool_offline_fetch_error_pool_id_fkey"))
+      foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "none"))
   @EqualsAndHashCode.Exclude
   private PoolHash poolHash;
 
@@ -34,9 +47,8 @@ public class PoolOfflineFetchError extends BaseEntity {
   private Timestamp fetchTime;
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
-  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "pmr_id", nullable = false,
-      foreignKey = @ForeignKey(name = "pool_offline_fetch_error_pmr_id_fkey"))
+      foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "none"))
   @EqualsAndHashCode.Exclude
   private PoolMetadataRef poolMetadataRef;
 

@@ -1,6 +1,15 @@
 package org.cardanofoundation.rosetta.common.entity;
 
-import jakarta.persistence.*;
+import jakarta.persistence.ConstraintMode;
+import java.util.Objects;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -26,9 +35,8 @@ import java.util.Objects;
 public class PoolRetire extends BaseEntity {
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
-  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "hash_id", nullable = false,
-      foreignKey = @ForeignKey(name = "pool_retire_hash_id_fkey"))
+      foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "none"))
   private PoolHash poolHash;
 
   @Column(name = "hash_id", updatable = false, insertable = false)
@@ -38,9 +46,8 @@ public class PoolRetire extends BaseEntity {
   private Integer certIndex;
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
-  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "announced_tx_id", nullable = false,
-      foreignKey = @ForeignKey(name = "pool_retire_announced_tx_id_fkey"))
+      foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "none"))
   private Tx announcedTx;
 
   @Column(name = "announced_tx_id", updatable = false, insertable = false)
