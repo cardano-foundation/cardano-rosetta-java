@@ -1,5 +1,6 @@
 package org.cardanofoundation.rosetta.api;
 
+import io.github.cdimascio.dotenv.Dotenv;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.info.Info;
 import jakarta.servlet.DispatcherType;
@@ -19,6 +20,13 @@ import org.springframework.web.filter.ForwardedHeaderFilter;
 public class RosettaApiApplication {
     public static void main(String[] args) {
         SpringApplication.run(RosettaApiApplication.class, args);
+    }
+    @Bean
+    public Dotenv dotenv() {
+        return Dotenv.configure()
+            .directory("./api")
+            .ignoreIfMissing()
+            .load();
     }
 
     @Bean

@@ -1,4 +1,4 @@
-package org.cardanofoundation.rosetta.api.service.network;
+package org.cardanofoundation.rosetta.api.network;
 
 
 
@@ -12,8 +12,8 @@ import org.cardanofoundation.rosetta.api.config.RosettaConfig;
 import org.cardanofoundation.rosetta.api.model.rest.MetadataRequest;
 import org.cardanofoundation.rosetta.api.model.rest.NetworkIdentifier;
 import org.cardanofoundation.rosetta.api.model.rest.NetworkListResponse;
-import org.cardanofoundation.rosetta.api.service.BlockService;
 import org.cardanofoundation.rosetta.api.service.impl.NetworkServiceImpl;
+import org.cardanofoundation.rosetta.api.service.BlockService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
