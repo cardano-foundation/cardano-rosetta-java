@@ -3,10 +3,11 @@ package org.cardanofoundation.rosetta.common.ledgersync.byron.signature;
 import co.nstant.in.cbor.model.Array;
 import co.nstant.in.cbor.model.ByteString;
 import co.nstant.in.cbor.model.DataItem;
-import org.cardanofoundation.rosetta.common.util.HexUtil;
-import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
+import org.cardanofoundation.rosetta.common.util.HexUtil;
+
+import java.util.List;
 
 @Builder
 @Getter

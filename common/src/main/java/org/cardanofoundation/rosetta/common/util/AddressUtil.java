@@ -4,10 +4,10 @@ import com.bloxbean.cardano.client.address.Address;
 import com.bloxbean.cardano.client.address.AddressType;
 import com.bloxbean.cardano.client.crypto.Bech32;
 import org.apache.commons.codec.binary.Hex;
+import org.cardanofoundation.rosetta.common.exception.AddressException;
 import org.cardanofoundation.rosetta.common.ledgersync.certs.StakeCredential;
 import org.cardanofoundation.rosetta.common.ledgersync.certs.StakeCredentialType;
 import org.cardanofoundation.rosetta.common.ledgersync.constant.Constant;
-import org.cardanofoundation.rosetta.common.exception.AddressException;
 
 
 public final class AddressUtil {
