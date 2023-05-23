@@ -49,6 +49,7 @@ import org.cardanofoundation.rosetta.api.model.rest.TransactionIdentifierRespons
 import org.cardanofoundation.rosetta.api.service.construction.CardanoService;
 import org.cardanofoundation.rosetta.api.service.construction.ConstructionApiService;
 import org.cardanofoundation.rosetta.api.model.rest.AccountIdentifier;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -253,12 +254,12 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
 
     @Override
     public TransactionIdentifierResponse constructionSubmitService(
-        ConstructionSubmitRequest constructionSubmitRequest) throws CborDeserializationException, CborSerializationException {
-        byte[] signedTransactionBytes = HexUtil.decodeHexString(constructionSubmitRequest.getSignedTransaction());
+        @NotNull ConstructionSubmitRequest constructionSubmitRequest) throws CborDeserializationException, CborSerializationException {
+        Array array = cardanoService.decodeExtraData(constructionSubmitRequest.getSignedTransaction());
+        byte[] signedTransactionBytes = HexUtil.decodeHexString(((UnicodeString) array.getDataItems().get(0)).getString());
         Transaction parsed = Transaction.deserialize(signedTransactionBytes);
         TxSubmissionRequest txnRequest = new TxSubmissionRequest(parsed.serialize());
         localTxSubmissionClient.submitTxCallback(txnRequest);
-        Array array = cardanoService.decodeExtraData(constructionSubmitRequest.getSignedTransaction());
         String transactionHash = cardanoService.getHashOfSignedTransaction(((UnicodeString) array.getDataItems().get(0)).getString());
         return cardanoService.mapToConstructionHashResponse(transactionHash);
     }
