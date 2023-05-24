@@ -4,11 +4,12 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Digits;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import org.cardanofoundation.rosetta.common.validation.Hash32Type;
 import org.cardanofoundation.rosetta.common.validation.Lovelace;
 import org.cardanofoundation.rosetta.common.validation.Word31Type;
 import org.cardanofoundation.rosetta.common.validation.Word64Type;
 import org.hibernate.Hibernate;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.math.BigInteger;
 import java.util.Objects;
@@ -28,12 +29,13 @@ import java.util.Objects;
 public class Tx extends BaseEntity {
 
   @Column(name = "hash", nullable = false, length = 64)
-  @Hash32Type
+//  @Hash32Type
   private String hash;
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
-  @JoinColumn(nullable = false,
-      foreignKey = @ForeignKey(name = "none", value = ConstraintMode.NO_CONSTRAINT))
+  @OnDelete(action = OnDeleteAction.CASCADE)
+  @JoinColumn(name = "block_id", nullable = false,
+      foreignKey = @ForeignKey(name = "tx_block_id_fkey"))
   @EqualsAndHashCode.Exclude
   private Block block;
 

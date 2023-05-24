@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.Hibernate;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.sql.Timestamp;
 import java.util.List;
@@ -36,14 +38,14 @@ public class Block extends BaseEntity {
   private Long blockNo;
 
   @OneToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "previous_id",
-      foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "none"))
+  @OnDelete(action = OnDeleteAction.CASCADE)
+  @JoinColumn(name = "previous_id")
   @EqualsAndHashCode.Exclude
   private Block previous;
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "slot_leader_id",
-      foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "none"))
+  @OnDelete(action = OnDeleteAction.CASCADE)
+  @JoinColumn(name = "slot_leader_id")
   @EqualsAndHashCode.Exclude
   private SlotLeader slotLeader;
 

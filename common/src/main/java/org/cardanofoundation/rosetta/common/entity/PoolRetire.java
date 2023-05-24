@@ -8,6 +8,8 @@ import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 import org.cardanofoundation.rosetta.common.validation.Word31Type;
 import org.hibernate.Hibernate;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.util.Objects;
 
@@ -24,8 +26,9 @@ import java.util.Objects;
 public class PoolRetire extends BaseEntity {
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "hash_id", nullable = false,
-      foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "none"))
+      foreignKey = @ForeignKey(name = "pool_retire_hash_id_fkey"))
   private PoolHash poolHash;
 
   @Column(name = "hash_id", updatable = false, insertable = false)
@@ -35,8 +38,9 @@ public class PoolRetire extends BaseEntity {
   private Integer certIndex;
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "announced_tx_id", nullable = false,
-      foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "none"))
+      foreignKey = @ForeignKey(name = "pool_retire_announced_tx_id_fkey"))
   private Tx announcedTx;
 
   @Column(name = "announced_tx_id", updatable = false, insertable = false)
