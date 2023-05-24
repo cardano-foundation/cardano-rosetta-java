@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.Hibernate;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.util.Objects;
 
@@ -20,8 +22,9 @@ import java.util.Objects;
 public class PoolRelay extends BaseEntity {
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "update_id", nullable = false,
-      foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "none"))
+      foreignKey = @ForeignKey(name = "pool_relay_update_id_fkey"))
   @EqualsAndHashCode.Exclude
   private PoolUpdate poolUpdate;
 

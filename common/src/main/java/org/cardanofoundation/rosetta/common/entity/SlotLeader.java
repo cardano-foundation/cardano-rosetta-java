@@ -5,6 +5,8 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.cardanofoundation.rosetta.common.validation.Hash28Type;
 import org.hibernate.Hibernate;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.util.Objects;
 
@@ -26,8 +28,8 @@ public class SlotLeader extends BaseEntity {
   private String hash;
 
   @OneToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "pool_hash_id",
-      foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "none"))
+  @OnDelete(action = OnDeleteAction.CASCADE)
+  @JoinColumn(name = "pool_hash_id")
   @EqualsAndHashCode.Exclude
   private PoolHash poolHash;
 

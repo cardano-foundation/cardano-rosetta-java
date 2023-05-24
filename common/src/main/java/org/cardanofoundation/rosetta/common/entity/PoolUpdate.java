@@ -7,6 +7,8 @@ import lombok.experimental.SuperBuilder;
 import org.cardanofoundation.rosetta.common.validation.Hash32Type;
 import org.cardanofoundation.rosetta.common.validation.Lovelace;
 import org.hibernate.Hibernate;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.math.BigInteger;
 import java.util.Objects;
@@ -24,8 +26,9 @@ import java.util.Objects;
 public class PoolUpdate extends BaseEntity {
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "hash_id", nullable = false,
-      foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "none"))
+      foreignKey = @ForeignKey(name = "pool_update_hash_id_fkey"))
   @EqualsAndHashCode.Exclude
   private PoolHash poolHash;
 
@@ -45,8 +48,9 @@ public class PoolUpdate extends BaseEntity {
   private BigInteger pledge;
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "reward_addr_id", nullable = false,
-      foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "none"))
+      foreignKey = @ForeignKey(name = "pool_update_reward_addr_id_fkey"))
   @EqualsAndHashCode.Exclude
   private StakeAddress rewardAddr;
 
@@ -57,8 +61,9 @@ public class PoolUpdate extends BaseEntity {
   private Integer activeEpochNo;
 
   @ManyToOne(fetch = FetchType.LAZY)
+  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "meta_id",
-      foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "none"))
+      foreignKey = @ForeignKey(name = "pool_update_meta_id_fkey"))
   @EqualsAndHashCode.Exclude
   private PoolMetadataRef meta;
 
@@ -71,8 +76,9 @@ public class PoolUpdate extends BaseEntity {
   private BigInteger fixedCost;
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "registered_tx_id", nullable = false,
-      foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "none"))
+      foreignKey = @ForeignKey(name = "pool_update_registered_tx_id_fkey"))
   @EqualsAndHashCode.Exclude
   private Tx registeredTx;
 

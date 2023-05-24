@@ -10,6 +10,8 @@ import org.cardanofoundation.rosetta.common.validation.Lovelace;
 import org.cardanofoundation.rosetta.common.validation.Word31Type;
 import org.cardanofoundation.rosetta.common.validation.Word63Type;
 import org.hibernate.Hibernate;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.math.BigInteger;
 import java.util.Objects;
@@ -27,8 +29,9 @@ import java.util.Objects;
 public class Redeemer extends BaseEntity {
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "tx_id", nullable = false,
-      foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "none"))
+      foreignKey = @ForeignKey(name = "redeemer_tx_id_fkey"))
   @EqualsAndHashCode.Exclude
   private Tx tx;
 
@@ -57,8 +60,9 @@ public class Redeemer extends BaseEntity {
   private String scriptHash;
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "redeemer_data_id", nullable = false,
-      foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "none"))
+      foreignKey = @ForeignKey(name = "redeemer_redeemer_data_id_fkey"))
   @EqualsAndHashCode.Exclude
   private RedeemerData redeemerData;
   @Override

@@ -5,6 +5,8 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.cardanofoundation.rosetta.common.validation.Hash32Type;
 import org.hibernate.Hibernate;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.util.Objects;
 
@@ -21,8 +23,9 @@ import java.util.Objects;
 public class PoolMetadataRef extends BaseEntity {
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "pool_id", nullable = false,
-      foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "none"))
+      foreignKey = @ForeignKey(name = "pool_metadata_ref_pool_id_fkey"))
   @EqualsAndHashCode.Exclude
   private PoolHash poolHash;
 
@@ -34,8 +37,9 @@ public class PoolMetadataRef extends BaseEntity {
   private String hash;
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "registered_tx_id", nullable = false,
-      foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "none"))
+      foreignKey = @ForeignKey(name = "pool_metadata_ref_registered_tx_id_fkey"))
   @EqualsAndHashCode.Exclude
   private Tx registeredTx;
 
