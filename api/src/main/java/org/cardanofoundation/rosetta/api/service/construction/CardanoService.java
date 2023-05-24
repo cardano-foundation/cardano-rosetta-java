@@ -21,6 +21,11 @@ import org.cardanofoundation.rosetta.api.construction.data.ProcessOperationsDto;
 import org.cardanofoundation.rosetta.api.construction.data.ProtocolParametersResponse;
 import org.cardanofoundation.rosetta.api.construction.data.Signatures;
 import org.cardanofoundation.rosetta.api.construction.data.UnsignedTransaction;
+import org.cardanofoundation.rosetta.api.construction.data.dto.PoolRegistationParametersReturnDto;
+import org.cardanofoundation.rosetta.api.construction.data.dto.PoolRegistrationCertReturnDto;
+import org.cardanofoundation.rosetta.api.construction.data.dto.ProcessOperationsReturnDto;
+import org.cardanofoundation.rosetta.api.construction.data.dto.ProcessPoolRegistrationReturnDto;
+import org.cardanofoundation.rosetta.api.construction.data.dto.ProcessWithdrawalReturnDto;
 import org.cardanofoundation.rosetta.api.construction.data.type.AddressType;
 import org.cardanofoundation.rosetta.api.construction.data.type.EraAddressType;
 import org.cardanofoundation.rosetta.api.construction.data.type.NetworkIdentifierType;
@@ -84,7 +89,7 @@ public interface CardanoService {
     UnsignedTransaction createUnsignedTransaction(NetworkIdentifierType networkIdentifierType, List<Operation> operations, Integer ttl, DepositParameters depositParameters)
         throws IOException, AddressExcepion, CborSerializationException, CborException;
 
-    Map<String, Object> processOperations(NetworkIdentifierType networkIdentifierType, List<Operation> operations, DepositParameters depositParameters)
+    ProcessOperationsReturnDto processOperations(NetworkIdentifierType networkIdentifierType, List<Operation> operations, DepositParameters depositParameters)
         throws IOException;
 
     Long calculateFee(ArrayList<String> inputAmounts, ArrayList<String> outputAmounts, ArrayList<Long> withdrawalAmounts, Map<String, Double> depositsSumMap);
@@ -115,7 +120,7 @@ public interface CardanoService {
 
     byte[] validateAndParsePoolKeyHash(String poolKeyHash);
 
-    Map<String, Object> processPoolRegistration(NetworkIdentifierType networkIdentifierType, Operation operation);
+    ProcessPoolRegistrationReturnDto processPoolRegistration(NetworkIdentifierType networkIdentifierType, Operation operation);
 
     PoolMetadata validateAndParsePoolMetadata(PoolMetadata metadata);
 
@@ -133,10 +138,10 @@ public interface CardanoService {
 
     Address parseToRewardAddress(String address);
 
-    Map<String, Object> validateAndParsePoolRegistationParameters(
+    PoolRegistationParametersReturnDto validateAndParsePoolRegistationParameters(
         PoolRegistrationParams poolRegistrationParameters);
 
-    Map<String, Object> processWithdrawal(NetworkIdentifierType networkIdentifierType, Operation operation) throws CborSerializationException;
+    ProcessWithdrawalReturnDto processWithdrawal(NetworkIdentifierType networkIdentifierType, Operation operation) throws CborSerializationException;
 
     Map<String, Object> processOperationCertification(NetworkIdentifierType networkIdentifierType, Operation operation) throws CborSerializationException;
 
@@ -212,7 +217,7 @@ public interface CardanoService {
 
     List<String> getPoolSigners(NetworkIdentifierType networkIdentifierType, Operation operation) throws CborSerializationException;
 
-    Map<String, Object> validateAndParsePoolRegistrationCert(
+    PoolRegistrationCertReturnDto validateAndParsePoolRegistrationCert(
         NetworkIdentifierType networkIdentifierType, String poolRegistrationCert, String poolKeyHash) throws CborSerializationException;
 
     List<AccountIdentifier> getUniqueAccountIdentifiers(List<String> addresses);

@@ -21,6 +21,7 @@ import org.cardanofoundation.rosetta.api.construction.data.Signatures;
 import org.cardanofoundation.rosetta.api.construction.data.UnsignedTransaction;
 import org.cardanofoundation.rosetta.api.construction.data.type.AddressType;
 import org.cardanofoundation.rosetta.api.construction.data.type.NetworkIdentifierType;
+import org.cardanofoundation.rosetta.api.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.api.model.AccountIdentifierMetadata;
 import org.cardanofoundation.rosetta.api.model.ConstructionPreprocessResponseOptions;
 import org.cardanofoundation.rosetta.api.model.DepositParameters;
@@ -77,7 +78,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
         log.info("[constructionDerive] About to check if public key has valid length and curve type");
         if (!cardanoService.isKeyValid(publicKey.getHexBytes(), publicKey.getCurveType())) {
             log.info("[constructionDerive] Public key has an invalid format");
-            throw new IllegalArgumentException("invalidPublicKeyFormat");
+            throw ExceptionFactory.invalidPublicKeyFormat();
         }
         log.info("[constructionDerive] Public key has a valid format");
 
@@ -87,7 +88,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
             log.info("[constructionDerive] About to check if staking credential has valid length and curve type");
             if (!cardanoService.isKeyValid(stakingCredential.getHexBytes(), stakingCredential.getCurveType())) {
                 log.info("[constructionDerive] Staking credential has an invalid format");
-                throw new IllegalArgumentException("invalidStakingKeyFormat");
+                throw ExceptionFactory.invalidStakingKeyFormat();
             }
             log.info("[constructionDerive] Staking credential key has a valid format");
         }
@@ -98,7 +99,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
             log.info("[constructionDerive] About to check if address type is valid");
             if (!cardanoService.isAddressTypeValid(addressType)) {
                 log.info("[constructionDerive] Address type has an invalid value");
-                throw new IllegalArgumentException("invalidAddressTypeError");
+                throw ExceptionFactory.invalidAddressError();
             }
             log.info("[constructionDerive] Address type has a valid value");
         }
@@ -113,7 +114,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
         );
         if (address == null) {
             log.error("[constructionDerive] There was an error generating address");
-            throw new IllegalArgumentException("addressGenerationError");
+            throw ExceptionFactory.addressGenerationError();
         }
         log.info("[constructionDerive] new address is {}", address);
         return new ConstructionDeriveResponse(new AccountIdentifier(address));

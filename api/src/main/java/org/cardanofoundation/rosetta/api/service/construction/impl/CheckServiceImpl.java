@@ -3,6 +3,7 @@ package org.cardanofoundation.rosetta.api.service.construction.impl;
 import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.api.construction.data.NetWork;
 import org.cardanofoundation.rosetta.api.construction.data.Const;
+import org.cardanofoundation.rosetta.api.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.api.service.construction.CardanoService;
 import org.cardanofoundation.rosetta.api.service.construction.CheckService;
 import org.cardanofoundation.rosetta.api.model.rest.NetworkIdentifier;
@@ -24,7 +25,7 @@ public class CheckServiceImpl implements CheckService {
 
         if (!blockchain.equals(Const.CARDANO)) {
             log.error("[withNetworkValidation] Blockchain parameter {} is not cardano: ", blockchain);
-            throw new IllegalArgumentException("invalidBlockchainError");
+            throw ExceptionFactory.invalidBlockchainError();
         }
 
         boolean networkExists = getSupportedNetwork("mainnet", 764824073).getNetworkId().equals(network);
