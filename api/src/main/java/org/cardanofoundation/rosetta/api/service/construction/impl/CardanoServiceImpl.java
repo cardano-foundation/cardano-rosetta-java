@@ -377,7 +377,7 @@ public class CardanoServiceImpl implements CardanoService {
     if (!(processOperationsReturnDto.getCertificates()).isEmpty()) {
       transactionBody.setCerts(processOperationsReturnDto.getCertificates());
     }
-    if (!(processOperationsReturnDto.getWithdrawals()).isEmpty()) {
+    if (!ObjectUtils.isEmpty(processOperationsReturnDto.getWithdrawals())) {
       transactionBody.setWithdrawals(processOperationsReturnDto.getWithdrawals());
     }
     co.nstant.in.cbor.model.Map mapCbor = transactionBody.serialize();
