@@ -88,6 +88,7 @@ services:
       ZOOKEEPER_SERVERS: "zookeeper:22888:23888"
     ports:
       - "2181:2181"
+    tmpfs: "/datalog"
     # volumes:
     #   - ./kafka/zoo:/var/lib/zookeeper/data
 
