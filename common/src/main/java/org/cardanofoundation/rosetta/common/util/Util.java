@@ -1,12 +1,11 @@
 package org.cardanofoundation.rosetta.common.util;
 
-import org.cardanofoundation.rosetta.common.ledgersync.constant.Constant;
-
 import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Map;
+import org.cardanofoundation.rosetta.common.ledgersync.constant.Constant;
 
 
 public final class Util {

@@ -1,7 +1,6 @@
 package org.cardanofoundation.rosetta.common.util;
 
 import com.bloxbean.cardano.client.crypto.Blake2bUtil;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 

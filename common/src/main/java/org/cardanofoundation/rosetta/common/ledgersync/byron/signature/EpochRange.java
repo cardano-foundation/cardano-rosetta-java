@@ -1,8 +1,7 @@
 package org.cardanofoundation.rosetta.common.ledgersync.byron.signature;
 
-import lombok.Builder;
-
 import java.math.BigInteger;
+import lombok.Builder;
 
 @Builder
 public class EpochRange {

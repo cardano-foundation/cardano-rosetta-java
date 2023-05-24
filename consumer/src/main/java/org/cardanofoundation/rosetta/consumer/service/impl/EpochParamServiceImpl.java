@@ -2,17 +2,13 @@ package org.cardanofoundation.rosetta.consumer.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
-import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
-import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.common.entity.Block;
 import org.cardanofoundation.rosetta.common.entity.Epoch;
 import org.cardanofoundation.rosetta.common.entity.EpochParam;
 import org.cardanofoundation.rosetta.common.entity.ParamProposal;
 import org.cardanofoundation.rosetta.common.enumeration.EraType;
-import org.cardanofoundation.rosetta.common.ledgersync.constant.Constant;
 import org.cardanofoundation.rosetta.consumer.constant.ConsumerConstant;
+import org.cardanofoundation.rosetta.common.ledgersync.constant.Constant;
 import org.cardanofoundation.rosetta.consumer.mapper.EpochParamMapper;
 import org.cardanofoundation.rosetta.consumer.repository.cached.CachedBlockRepository;
 import org.cardanofoundation.rosetta.consumer.repository.cached.CachedEpochParamRepository;
@@ -20,13 +16,16 @@ import org.cardanofoundation.rosetta.consumer.repository.cached.CachedEpochRepos
 import org.cardanofoundation.rosetta.consumer.repository.cached.CachedParamProposalRepository;
 import org.cardanofoundation.rosetta.consumer.service.CostModelService;
 import org.cardanofoundation.rosetta.consumer.service.EpochParamService;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-
 import java.math.BigInteger;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
 @Slf4j
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -49,16 +48,6 @@ public class EpochParamServiceImpl implements EpochParamService {
   EpochParam defAlonzoEpochParam;
 
   @Override
-  public void setDefShelleyEpochParam(EpochParam defShelleyEpochParam) {
-    this.defShelleyEpochParam = defShelleyEpochParam;
-  }
-
-  @Override
-  public void setDefAlonzoEpochParam(EpochParam defAlonzoEpochParam) {
-    this.defAlonzoEpochParam = defAlonzoEpochParam;
-  }
-
-  @Override
   public void handleEpochParams() {
     Integer lastEpochParam = cachedEpochParamRepository.findLastEpochParam();
 
@@ -71,7 +60,7 @@ public class EpochParamServiceImpl implements EpochParamService {
   }
 
   /**
-   * Handle epoch param for epochNo. Handle era here
+   * Handle epoch param for epochNo.
    *
    * @param epochNo
    */

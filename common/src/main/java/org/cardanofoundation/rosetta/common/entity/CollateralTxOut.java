@@ -6,11 +6,10 @@ import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotNull;
+import java.math.BigInteger;
 import lombok.Getter;
 import lombok.Setter;
 import org.cardanofoundation.rosetta.common.validation.Lovelace;
-
-import java.math.BigInteger;
 
 @Getter
 @Setter
