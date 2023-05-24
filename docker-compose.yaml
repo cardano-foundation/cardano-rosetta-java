@@ -32,6 +32,7 @@ services:
         condition: service_healthy
   base:
     build: ./
+    image: cardano-rosetta-java-base
     platform: linux/amd64
   api:
     build:
@@ -51,7 +52,6 @@ services:
     depends_on:
       base:
         condition: service_completed_successfully
-    restart: no
   consumer:
     build: ./consumer
     platform: linux/amd64
@@ -76,7 +76,6 @@ services:
     depends_on:
       base:
         condition: service_completed_successfully
-    restart: no
 
   zookeeper:
     image: confluentinc/cp-zookeeper:5.1.2
