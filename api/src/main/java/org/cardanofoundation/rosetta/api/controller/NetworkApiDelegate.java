@@ -52,7 +52,8 @@ public interface NetworkApiDelegate {
           produces = { "application/json;charset=utf-8" },
           consumes = { "application/json;charset=utf-8" }
   )
-  ResponseEntity<NetworkOptionsResponse> networkOptions(NetworkRequest networkRequest);
+  ResponseEntity<NetworkOptionsResponse> networkOptions(NetworkRequest networkRequest)
+      throws IOException, InterruptedException;
 
   @Operation(
           operationId = "networkStatus",

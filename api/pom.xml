@@ -244,7 +244,15 @@
         <artifactId>spring-dotenv</artifactId>
         <version>4.0.0</version>
       </dependency>
+      <!-- https://mvnrepository.com/artifact/io.swagger.parser.v3/swagger-parser -->
+      <dependency>
+        <groupId>io.swagger.parser.v3</groupId>
+        <artifactId>swagger-parser</artifactId>
+        <version>2.1.14</version>
+      </dependency>
+
     </dependencies>
+
 
     <build>
         <resources>
@@ -253,6 +261,7 @@
                 <directory>src/main/resources</directory>
                 <includes>
                     <include>application.properties</include>
+                    <include>rosetta-specifications-1.4.15/*</include>
                 </includes>
             </resource>
         </resources>

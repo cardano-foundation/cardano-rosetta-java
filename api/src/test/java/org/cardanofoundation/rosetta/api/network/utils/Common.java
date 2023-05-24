@@ -1,4 +1,4 @@
-package org.cardanofoundation.rosetta.api.service.utils;
+package org.cardanofoundation.rosetta.api.network.utils;
 
 import org.cardanofoundation.rosetta.api.model.rest.NetworkIdentifier;
 import org.cardanofoundation.rosetta.api.model.rest.NetworkRequest;

@@ -1,5 +1,6 @@
-package org.cardanofoundation.rosetta.api.service;
+package org.cardanofoundation.rosetta.api.network;
 
+import org.cardanofoundation.rosetta.api.service.LedgerDataProviderService;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
