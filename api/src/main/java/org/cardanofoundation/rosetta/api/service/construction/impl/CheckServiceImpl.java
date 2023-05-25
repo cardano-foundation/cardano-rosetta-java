@@ -1,11 +1,11 @@
 package org.cardanofoundation.rosetta.api.service.construction.impl;
 
 import lombok.extern.slf4j.Slf4j;
-import org.cardanofoundation.rosetta.api.construction.data.NetWork;
 import org.cardanofoundation.rosetta.api.construction.data.Const;
+import org.cardanofoundation.rosetta.api.construction.data.NetWork;
+import org.cardanofoundation.rosetta.api.model.rest.NetworkIdentifier;
 import org.cardanofoundation.rosetta.api.service.construction.CardanoService;
 import org.cardanofoundation.rosetta.api.service.construction.CheckService;
-import org.cardanofoundation.rosetta.api.model.rest.NetworkIdentifier;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;

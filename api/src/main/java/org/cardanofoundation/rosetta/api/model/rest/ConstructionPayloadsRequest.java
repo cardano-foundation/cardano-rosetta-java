@@ -1,6 +1,9 @@
 package org.cardanofoundation.rosetta.api.model.rest;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.ArrayList;
+import java.util.List;
+import javax.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -8,10 +11,6 @@ import lombok.Setter;
 import org.cardanofoundation.rosetta.api.model.ConstructionPayloadsRequestMetadata;
 import org.cardanofoundation.rosetta.api.model.Operation;
 import org.cardanofoundation.rosetta.api.model.PublicKey;
-
-import javax.validation.Valid;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author Sotatek-HoangNguyen9

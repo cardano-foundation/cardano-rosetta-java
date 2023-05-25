@@ -10,9 +10,10 @@ public class Formatters {
   private Formatters() {
   }
 
-  public static String hexFormatter(byte[] input) {
-
-    return HexUtil.encodeHexString(input);
+  public static String hexFormatter(String hexString) {
+    if(hexString != null && hexString.startsWith("0x"))
+      hexString = hexString.substring(2);
+    return hexString;
   }
 
   public static byte[] hexStringToBuffer(String input) {

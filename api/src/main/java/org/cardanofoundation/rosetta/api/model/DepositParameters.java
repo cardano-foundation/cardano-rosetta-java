@@ -1,12 +1,11 @@
 package org.cardanofoundation.rosetta.api.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import javax.annotation.Generated;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import javax.annotation.Generated;
 
 /**
  * DepositParameters

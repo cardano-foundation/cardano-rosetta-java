@@ -4,11 +4,18 @@ import static org.cardanofoundation.rosetta.api.mapper.DataMapper.mapToTransacti
 import static org.cardanofoundation.rosetta.api.mapper.DataMapper.mapTransactionsToDict;
 import static org.cardanofoundation.rosetta.api.mapper.DataMapper.parseTransactionRows;
 import static org.cardanofoundation.rosetta.api.mapper.DataMapper.populateTransactionField;
-import static org.cardanofoundation.rosetta.api.util.Formatters.hexStringToBuffer;
 
 import jakarta.annotation.PostConstruct;
 import java.math.BigInteger;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.TimeZone;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.cardanofoundation.rosetta.api.config.RosettaConfig;
@@ -49,16 +56,10 @@ import org.cardanofoundation.rosetta.api.repository.StakeDeregistrationRepositor
 import org.cardanofoundation.rosetta.api.repository.TxMetadataRepository;
 import org.cardanofoundation.rosetta.api.repository.TxRepository;
 import org.cardanofoundation.rosetta.api.repository.customRepository.UtxoRepository;
-import org.cardanofoundation.rosetta.api.util.Formatters;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 
 @Slf4j
 @Component
@@ -128,24 +129,34 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
   public BlockDto findBlock(Long blockNumber, String blockHash) {
     log.debug("[findBlock] Parameters received for run query blockNumber: " + blockNumber
         + " , blockHash: " + blockHash);
-//        log.info("test block hash value " + ArrayUtils.toObject(hexStringToBuffer(blockHash)));
     List<BlockProjection> blockProjections = blockRepository.findBlock(blockNumber, blockHash);
     if (blockProjections.size() == 1) {
       log.debug("[findBlock] Block found!");
       BlockProjection blockProjection = blockProjections.get(0);
-      return BlockDto.builder()
-          .number(blockProjection.getNumber())
-          .hash(blockProjection.getHash())
-          .createdAt(blockProjection.getCreatedAt().getTime())
-          .previousBlockHash(
-              blockProjection.getPreviousBlockHash())
-          .previousBlockNumber(blockProjection.getPreviousBlockNumber())
-          .transactionsCount(blockProjection.getTransactionsCount())
-          .createdBy(blockProjection.getCreatedBy())
-          .size(blockProjection.getSize())
-          .epochNo(blockProjection.getEpochNo())
-          .slotNo(blockProjection.getSlotNo())
-          .build();
+
+      try {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+        Date date = dateFormat.parse(blockProjection.getCreatedAt().toString());
+        log.debug("[findBlock] timestamp: " + blockProjection.getCreatedAt());
+        log.debug("[findBlock] miliseconds " + date.getTime());
+        return BlockDto.builder()
+            .number(blockProjection.getNumber())
+            .hash(blockProjection.getHash())
+            .createdAt(date.getTime())
+            .previousBlockHash(
+                blockProjection.getPreviousBlockHash())
+            .previousBlockNumber(blockProjection.getPreviousBlockNumber())
+            .transactionsCount(blockProjection.getTransactionsCount())
+            .createdBy(blockProjection.getCreatedBy())
+            .size(blockProjection.getSize())
+            .epochNo(blockProjection.getEpochNo())
+            .slotNo(blockProjection.getSlotNo())
+            .build();
+      } catch (ParseException e) {
+        log.error(e.getMessage());
+      }
+
     }
     log.debug("[findBlock] No block was found");
     return null;

@@ -1,10 +1,10 @@
 package org.cardanofoundation.rosetta.api.model.rest;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
-import java.util.List;
 import org.cardanofoundation.rosetta.api.model.Peer;
 
 /**

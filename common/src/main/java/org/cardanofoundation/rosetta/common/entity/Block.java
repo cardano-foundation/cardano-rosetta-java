@@ -1,5 +1,6 @@
 package org.cardanofoundation.rosetta.common.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.Column;
 import jakarta.persistence.ConstraintMode;
 import jakarta.persistence.Entity;
@@ -67,7 +68,7 @@ public class Block extends BaseEntity {
 
   @Column(name = "size")
   private Integer size;
-
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
   @Column(name = "time")
   private Timestamp time;
 
