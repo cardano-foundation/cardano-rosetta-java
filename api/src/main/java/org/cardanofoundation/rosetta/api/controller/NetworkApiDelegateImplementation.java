@@ -1,5 +1,6 @@
 package org.cardanofoundation.rosetta.api.controller;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import lombok.extern.log4j.Log4j2;
 import org.cardanofoundation.rosetta.api.exception.ServerException;
@@ -22,7 +23,8 @@ public class NetworkApiDelegateImplementation implements NetworkApiDelegate {
     private NetworkService networkService;
 
     @Override
-    public ResponseEntity<NetworkListResponse> networkList( @RequestBody MetadataRequest metadataRequest) {
+    public ResponseEntity<NetworkListResponse> networkList( @RequestBody MetadataRequest metadataRequest)
+        throws FileNotFoundException {
         final NetworkListResponse networkListResponse = networkService.getNetworkList(metadataRequest);
         return ResponseEntity.ok(networkListResponse);
     }
