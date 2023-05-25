@@ -10,6 +10,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.api.RosettaApiApplication;
+import org.cardanofoundation.rosetta.api.exception.Error;
 import org.cardanofoundation.rosetta.api.model.rest.ConstructionPreprocessRequest;
 import org.cardanofoundation.rosetta.api.model.rest.ConstructionPreprocessResponse;
 import org.junit.jupiter.api.BeforeEach;

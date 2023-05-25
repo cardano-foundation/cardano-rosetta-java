@@ -27,6 +27,4 @@ public class ProcessOperationsReturnDto {
   private Long fee;
   private AuxiliaryData voteRegistrationMetadata;
 
-  public void setWithdrawals(ArrayList<com.bloxbean.cardano.client.transaction.spec.Withdrawal> withdrawals) {
-  }
 }

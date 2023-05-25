@@ -143,5 +143,8 @@ public class ExceptionFactory {
   public static ApiException invalidPoolOwnersError(Object error) {
     return new ApiException(RosettaErrorType.INVALID_POOL_OWNERS.toRosettaError(false,error));
   }
+  public static ApiException invalidAddressTypeError() {
+    return new ApiException(RosettaErrorType.INVALID_ADDRESS_TYPE.toRosettaError(false));
+  }
 
 }

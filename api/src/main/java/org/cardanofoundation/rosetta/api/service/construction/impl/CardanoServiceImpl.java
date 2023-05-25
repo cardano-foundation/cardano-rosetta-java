@@ -1048,9 +1048,6 @@ public class CardanoServiceImpl implements CardanoService {
       Operation operation){
     log.info("[processWithdrawal] About to process withdrawal");
     // eslint-disable-next-line camelcase
-    StakeCredential credential = getStakingCredentialFromHex(
-        ObjectUtils.isEmpty(operation.getMetadata()) ? null
-            : operation.getMetadata().getStakingCredential());
     HdPublicKey hdPublicKey = new HdPublicKey();
     if (operation.getMetadata() != null &&
         operation.getMetadata().getStakingCredential() != null &&
@@ -1060,7 +1057,7 @@ public class CardanoServiceImpl implements CardanoService {
     }
     String address = generateRewardAddress(networkIdentifierType, hdPublicKey);
     HdPublicKey hdPublicKey1 = new HdPublicKey();
-    hdPublicKey1.setKeyData(credential.getHash());
+    hdPublicKey1.setKeyData(HexUtil.decodeHexString(operation.getMetadata().getStakingCredential().getHexBytes()));
     ProcessWithdrawalReturnDto processWithdrawalReturnDto=new ProcessWithdrawalReturnDto();
     processWithdrawalReturnDto.setReward(AddressProvider.getRewardAddress(hdPublicKey1,
         new Network(networkIdentifierType.getValue(), networkIdentifierType.getProtocolMagic())));

@@ -99,7 +99,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
             log.info("[constructionDerive] About to check if address type is valid");
             if (!cardanoService.isAddressTypeValid(addressType)) {
                 log.info("[constructionDerive] Address type has an invalid value");
-                throw ExceptionFactory.invalidAddressError();
+                throw ExceptionFactory.invalidAddressTypeError();
             }
             log.info("[constructionDerive] Address type has a valid value");
         }
