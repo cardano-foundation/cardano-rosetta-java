@@ -1,9 +1,9 @@
-package org.cardanofoundation.rosetta.api.service.network;
+package org.cardanofoundation.rosetta.api.network;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.given;
 
 
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -13,7 +13,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.HashMap;
 import java.util.List;
-import org.cardanofoundation.rosetta.api.service.utils.Common;
+import org.cardanofoundation.rosetta.api.network.utils.Common;
 import org.cardanofoundation.rosetta.api.controller.NetworkApiDelegateImplementation;
 import org.cardanofoundation.rosetta.api.model.Peer;
 import org.cardanofoundation.rosetta.api.model.rest.BlockIdentifier;
@@ -66,8 +66,9 @@ public class NetworkControllerTest {
 
     String body = objectMapper.writeValueAsString(metadataRequest);
 
-    given(networkService.getNetworkList(any())).willReturn(response);
+    when(networkService.getNetworkList(any())).thenReturn(response);
     mockMvc.perform(post(NETWORK_LIST_ENDPOINT).contentType(MediaType.APPLICATION_JSON)
+            .characterEncoding("utf-8")
             .content(body)
         )
         .andExpect(status().isOk())
@@ -89,26 +90,23 @@ public class NetworkControllerTest {
     BlockIdentifier latestBlock = BlockIdentifier.builder().hash("57857bccde3793808d6d58d0f979d0178b00ba82b50fff9f6eec52a45dae4ad3").index(939262L)
         .build();
     Peer peer = new Peer("relays-new.cardano-mainnet.iohk.io");
-    NetworkStatusResponse responseExpected =NetworkStatusResponse.builder()
-            .genesisBlockIdentifier(genesisBlock)
-            .currentBlockIdentifier(latestBlock)
-            .peers(List.of(peer))
-            .build();
-    String body = objectMapper.writeValueAsString(request);
 
-    given(networkService.getNetworkStatus(any(NetworkRequest.class))).willReturn(responseExpected);
+    NetworkStatusResponse responseExpected = NetworkStatusResponse.builder()
+        .currentBlockIdentifier(latestBlock)
+        .genesisBlockIdentifier(genesisBlock)
+        .peers(List.of(peer))
+        .build();
+
+    String body = objectMapper.writeValueAsString(request);
+    when(networkService.getNetworkStatus(request)).thenReturn(responseExpected);
+//    System.out.println(networkService.getNetworkStatus(request).equals(responseExpected));
     mockMvc.perform(post(NETWORK_STATUS_ENDPOINT)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(body))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.genesis_block_identifier").isNotEmpty())
-            .andExpect(jsonPath("$.genesis_block_identifier").value(genesisBlock))
-            .andExpect(jsonPath("$.current_block_identifier").isNotEmpty())
-            .andExpect(jsonPath("$.current_block_identifier").value(latestBlock))
-            .andExpect(jsonPath("$.peers").isArray())
-            .andExpect(jsonPath("$.peers[0].peer_id").value("relays-new.cardano-mainnet.iohk.io"))
-            .andDo(print())
-    ;
+            .contentType(MediaType.APPLICATION_JSON)
+            .characterEncoding("utf-8")
+            .content(body))
+        .andExpect(status().isOk())
+        .andExpect(content().string(objectMapper.writeValueAsString(responseExpected)))
+        .andDo(print());
   }
 
 

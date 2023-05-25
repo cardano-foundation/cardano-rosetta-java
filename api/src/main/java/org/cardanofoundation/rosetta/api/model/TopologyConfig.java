@@ -1,6 +1,7 @@
 package org.cardanofoundation.rosetta.api.model;
 
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 import javax.annotation.Nullable;
 import lombok.AllArgsConstructor;
@@ -14,7 +15,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class TopologyConfig {
   @Nullable
+  @JsonProperty("Producers")
   private List<Producer> producers;
   @Nullable
+  @JsonProperty("publicRoots")
   private List<PublicRoot> publicRoots;
 }
