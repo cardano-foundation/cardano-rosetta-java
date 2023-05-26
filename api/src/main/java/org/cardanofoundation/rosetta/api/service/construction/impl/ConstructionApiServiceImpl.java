@@ -196,7 +196,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
         log.info(constructionParseRequest.getTransaction() + "[constructionParse] Processing");
         Array array = cardanoService.decodeExtraData(constructionParseRequest.getTransaction());
         TransactionExtraData extraData = cardanoService.changeFromMaptoObject((Map) array.getDataItems().get(1));
-        log.info(array.toString() + "[constructionParse] Decoded");
+        log.info(array+ "[constructionParse] Decoded");
        if (signed) {
            TransactionParsed result = cardanoService.parseSignedTransaction(networkIdentifier, ((UnicodeString) array.getDataItems().get(0)).getString(), extraData);
            return new ConstructionParseResponse(constructionParseRequest.getNetworkIdentifier(), result.getOperations(), result.getAccount_identifier_signers());
