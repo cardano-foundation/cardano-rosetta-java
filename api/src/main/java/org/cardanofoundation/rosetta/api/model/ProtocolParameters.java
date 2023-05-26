@@ -17,7 +17,7 @@ import lombok.Setter;
 public class ProtocolParameters {
 
   @JsonProperty("coinsPerUtxoSize")
-  private Long coinsPerUtxoSize;
+  private String coinsPerUtxoSize;
 
   @JsonProperty("maxTxSize")
   private Integer maxTxSize;
@@ -26,7 +26,7 @@ public class ProtocolParameters {
   private Long maxValSize;
 
   @JsonProperty("keyDeposit")
-  private Long keyDeposit;
+  private String keyDeposit;
 
   @JsonProperty("maxCollateralInputs")
   private Integer maxCollateralInputs;
@@ -38,10 +38,10 @@ public class ProtocolParameters {
   private Integer minFeeConstant;
 
   @JsonProperty("minPoolCost")
-  private Long minPoolCost;
+  private String minPoolCost;
 
   @JsonProperty("poolDeposit")
-  private Long poolDeposit;
+  private String poolDeposit;
 
   @JsonProperty("protocol")
   private Integer protocol;

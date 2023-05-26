@@ -6,10 +6,6 @@ import co.nstant.in.cbor.model.Map;
 import com.bloxbean.cardano.client.exception.AddressExcepion;
 import com.bloxbean.cardano.client.exception.CborDeserializationException;
 import com.bloxbean.cardano.client.exception.CborSerializationException;
-import com.bloxbean.cardano.client.transaction.spec.Transaction;
-import com.bloxbean.cardano.client.util.HexUtil;
-import com.bloxbean.cardano.yaci.core.protocol.localtx.model.TxSubmissionRequest;
-import com.bloxbean.cardano.yaci.helper.LocalTxSubmissionClient;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.net.UnknownHostException;
 import lombok.RequiredArgsConstructor;
@@ -157,15 +153,15 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
         log.debug("[constructionMetadata] suggested fee is ${suggestedFee}");
         // eslint-disable-next-line camelcase
         ProtocolParameters protocol_parameters = new ProtocolParameters();
-        protocol_parameters.setCoinsPerUtxoSize(protocolParametersResponse.getCoinsPerUtxoSize());
+        protocol_parameters.setCoinsPerUtxoSize(protocolParametersResponse.getCoinsPerUtxoSize().toString());
         protocol_parameters.setMaxTxSize(protocolParametersResponse.getMaxTxSize());
         protocol_parameters.setMaxValSize(protocolParametersResponse.getMaxValSize());
-        protocol_parameters.setKeyDeposit(protocolParametersResponse.getKeyDeposit());
+        protocol_parameters.setKeyDeposit(protocolParametersResponse.getKeyDeposit().toString());
         protocol_parameters.setMaxCollateralInputs(protocolParametersResponse.getMaxCollateralInputs());
         protocol_parameters.setMinFeeConstant(protocolParametersResponse.getMinFeeConstant());
         protocol_parameters.setMinFeeCoefficient(protocolParametersResponse.getMinFeeCoefficient());
-        protocol_parameters.setMinPoolCost(protocolParametersResponse.getMinPoolCost());
-        protocol_parameters.setPoolDeposit(protocolParametersResponse.getPoolDeposit());
+        protocol_parameters.setMinPoolCost(protocolParametersResponse.getMinPoolCost().toString());
+        protocol_parameters.setPoolDeposit(protocolParametersResponse.getPoolDeposit().toString());
         protocol_parameters.setProtocol(protocolParametersResponse.getProtocolMajor());
         return new ConstructionMetadataResponse(new ConstructionMetadataResponseMetadata(ttl.toString(), protocol_parameters),
             new ArrayList<>(List.of(cardanoService.mapAmount(suggestedFee.toString(), null, null, null))));
@@ -183,7 +179,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
             networkIdentifier,
             operations,
             Integer.parseInt(ttl),
-            new DepositParameters(protocolParameters.getKeyDeposit(), protocolParameters.getPoolDeposit())
+            new DepositParameters(Long.parseLong(protocolParameters.getKeyDeposit()), Long.parseLong(protocolParameters.getPoolDeposit()))
         );
         List<SigningPayload> payloads = cardanoService.constructPayloadsForTransactionBody(unsignedTransaction.getHash(), unsignedTransaction.getAddresses());
         String unsignedTransactionString=cardanoService.encodeExtraData(unsignedTransaction.getBytes(),
