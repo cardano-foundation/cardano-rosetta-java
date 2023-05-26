@@ -329,7 +329,7 @@ public class DataMapper {
         .genesisBlockIdentifier(BlockIdentifier.builder().index(
                 genesisBlock.getNumber() != null ? genesisBlock.getNumber() : 0)
             .hash(genesisBlock.getHash()).build())
-        .peers(peers.stream().map(peer -> new Peer(peer.getAddr())).collect(Collectors.toList()))
+        .peers(peers.stream().map(peer -> new Peer(peer.getAddr())).toList())
         .build();
   }
 

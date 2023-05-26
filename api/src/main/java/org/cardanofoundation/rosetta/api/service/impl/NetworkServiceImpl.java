@@ -3,27 +3,31 @@ package org.cardanofoundation.rosetta.api.service.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.github.cdimascio.dotenv.Dotenv;
 import io.swagger.parser.OpenAPIParser;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
 import jakarta.annotation.PostConstruct;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.tomcat.util.json.JSONParser;
+import org.apache.tomcat.util.json.ParseException;
 import org.cardanofoundation.rosetta.api.common.constants.Constants;
 import org.cardanofoundation.rosetta.api.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.api.common.enumeration.OperationTypeStatus;
 import org.cardanofoundation.rosetta.api.config.RosettaConfig;
-import org.cardanofoundation.rosetta.api.event.AppEvent;
 import org.cardanofoundation.rosetta.api.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.api.exception.ServerException;
 import org.cardanofoundation.rosetta.api.mapper.DataMapper;
@@ -51,6 +55,7 @@ import org.openapitools.client.model.Error;
 import org.openapitools.client.model.OperationStatus;
 import org.openapitools.client.model.Version;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
 
@@ -63,8 +68,6 @@ public class NetworkServiceImpl implements NetworkService {
   @Autowired
   private BlockService blockService;
 
-  @Autowired
-  private Dotenv dotenv;
 
   @Autowired
   private LedgerDataProviderService ledgerDataProviderService;
@@ -72,9 +75,23 @@ public class NetworkServiceImpl implements NetworkService {
 
   private List<BalanceExemption> balanceExemptions;
 
+  @Value("${cardano.rosetta.EXEMPTION_TYPES_PATH}")
+  private String exemptionPath ;
+
+  @Value("${cardano.rosetta.TOPOLOGY_FILEPATH}")
+  private String topologyFilepath ;
+
+  @Value("${cardano.rosetta.GENESIS_SHELLEY_PATH}")
+  private String genesisPath;
+
+  @Value("${cardano.rosetta.CARDANO_NODE_PATH}")
+  private String cardanoNodePath;
+
+  private String networkId;
+  private BigInteger networkMagic;
+
   @PostConstruct
   private List<BalanceExemption> loadExemptionsFile() {
-    String exemptionPath = dotenv.get("EXEMPTION_TYPES_PATH");
     if (exemptionPath != null) {
       final ObjectMapper objectMapper = new ObjectMapper();
       try {
@@ -92,7 +109,8 @@ public class NetworkServiceImpl implements NetworkService {
   }
 
   @Override
-  public NetworkListResponse getNetworkList(MetadataRequest metadataRequest) {
+  public NetworkListResponse getNetworkList(MetadataRequest metadataRequest)
+      throws FileNotFoundException{
     log.info("[networkList] Looking for all supported networks");
     Network supportedNetwork = getSupportedNetwork();
     return DataMapper.mapToNetworkListResponse(supportedNetwork);
@@ -109,7 +127,7 @@ public class NetworkServiceImpl implements NetworkService {
     String rosettaVersion = openAPI.getInfo().getVersion();
     String implementationVersion = rosettaConfig.getImplementationVersion();
 
-    String cardanoNodeVersion = CardanoNode.getCardanoNodeVersion(AppEvent.cardanoNodePath);
+    String cardanoNodeVersion = CardanoNode.getCardanoNodeVersion(cardanoNodePath);
     OperationStatus success = new OperationStatus().successful(true).status(OperationTypeStatus.SUCCESS.getValue());
     OperationStatus invalid = new OperationStatus().successful(false).status(OperationTypeStatus.INVALID.getValue());
     List<OperationStatus> operationStatuses = List.of(success,invalid);
@@ -147,13 +165,26 @@ public class NetworkServiceImpl implements NetworkService {
   }
 
   @Override
-  public Network getSupportedNetwork() {
-    if(AppEvent.networkId.equals("mainnet")){
-      return Network.builder().networkId(AppEvent.networkId).build();
-    } else if (AppEvent.networkMagic.equals(BigInteger.valueOf(Constants.PREPROD_NETWORK_MAGIC))) {
+  public Network getSupportedNetwork() throws FileNotFoundException {
+
+    File genesisFile;
+    genesisFile = ResourceUtils.getFile(genesisPath);
+    InputStream input = new FileInputStream(genesisFile);
+    HashMap<String,Object> object ;
+    try {
+      object = (HashMap<String,Object>) new JSONParser(input).parse();
+    } catch (ParseException e) {
+      throw new RuntimeException(e);
+    }
+    networkId = ((String) object.get("networkId")).toLowerCase();
+    networkMagic = (BigInteger) object.get("networkMagic");
+
+    if(networkId.equals("mainnet")){
+      return Network.builder().networkId(networkId).build();
+    } else if (networkMagic.equals(BigInteger.valueOf(Constants.PREPROD_NETWORK_MAGIC))) {
       return Network.builder().networkId("preprod").build();
-    } else if (AppEvent.networkMagic.equals(BigInteger.valueOf(Constants.PREVIEW_NETWORK_MAGIC))) {
-      return Network.builder().networkId("preprod").build();
+    } else if (networkMagic.equals(BigInteger.valueOf(Constants.PREVIEW_NETWORK_MAGIC))) {
+      return Network.builder().networkId("preview").build();
     }
     return null;
   }
@@ -192,7 +223,6 @@ public class NetworkServiceImpl implements NetworkService {
   }
 
   private TopologyConfig readFromFileConfig() throws ServerException {
-    String topologyFilepath = dotenv.get("TOPOLOGY_FILE_PATH");
     try {
       ObjectMapper  mapper = new ObjectMapper();
       File file = ResourceUtils.getFile(topologyFilepath);
