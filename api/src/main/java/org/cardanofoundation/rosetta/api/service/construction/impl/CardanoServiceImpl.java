@@ -94,7 +94,7 @@ import java.util.stream.Collectors;
 
 
 @Slf4j
-@Service
+@Service("CardanoService")
 public class CardanoServiceImpl implements CardanoService {
 
   final LedgerDataProviderService ledgerDataProviderService;
