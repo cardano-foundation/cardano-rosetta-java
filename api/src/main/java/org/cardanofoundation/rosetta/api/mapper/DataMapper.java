@@ -160,7 +160,7 @@ public class DataMapper {
   }
 
   public static boolean areEqualUtxos(Utxo firstUtxo, Utxo secondUtxo) {
-    return (firstUtxo.getIndex() == secondUtxo.getIndex())
+    return (Objects.equals(firstUtxo.getIndex(), secondUtxo.getIndex()))
         && (firstUtxo.getTransactionHash().equals(secondUtxo.getTransactionHash()));
   }
 

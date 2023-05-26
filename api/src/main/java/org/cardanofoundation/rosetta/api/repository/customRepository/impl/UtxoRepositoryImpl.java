@@ -32,7 +32,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 @Slf4j
 public class UtxoRepositoryImpl implements UtxoRepository {
-
+  public static final String POLICYID = "policyId";
   public static String utxoQuery = buildUtxoQuery();
   @PersistenceContext
   private EntityManager entityManager;
@@ -166,7 +166,7 @@ public class UtxoRepositoryImpl implements UtxoRepository {
             .symbol(Formatters.isEmptyHexString(currency.getSymbol()) ? ""
                 : currency.getSymbol())
             .policy(Objects.nonNull(currency.getMetadata()) ? (String) currency.getMetadata()
-                .get("policyId") : null)
+                .get(POLICYID) : null)
             .build()
         )
         .collect(Collectors.toList());
@@ -184,8 +184,8 @@ public class UtxoRepositoryImpl implements UtxoRepository {
     if (Objects.nonNull(currencies)) {
       IntStream.range(0, currencies.size())
           .forEach(i -> {
-            query.setParameter("symbol" + i, currencies.get(i).getSymbol());
-            query.setParameter("policy" + i, currencies.get(i).getMetadata().get("policy"));
+            query.setParameter("symbol" + i, currenciesIds.get(i).getSymbol());
+            query.setParameter("policy" + i, currenciesIds.get(i).getPolicy());
 
           });
     }

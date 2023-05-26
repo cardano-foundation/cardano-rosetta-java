@@ -10,7 +10,7 @@ public class Formatters {
   private Formatters() {
   }
 
-  public static String hexFormatter(String hexString) {
+  public static String removePrefixHex(String hexString) {
     if(hexString != null && hexString.startsWith("0x"))
       hexString = hexString.substring(2);
     return hexString;

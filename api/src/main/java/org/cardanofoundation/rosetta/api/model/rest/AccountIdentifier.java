@@ -2,6 +2,7 @@ package org.cardanofoundation.rosetta.api.model.rest;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -16,6 +17,7 @@ import org.cardanofoundation.rosetta.api.model.SubAccountIdentifier;
 @AllArgsConstructor
 @Getter
 @Setter
+@Builder
 public class AccountIdentifier {
 
   @JsonProperty("address")
