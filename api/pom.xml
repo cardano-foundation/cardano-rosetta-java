@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -34,13 +34,6 @@
     </licenses>
 
     <dependencies>
-<!--        test enigne-->
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-api</artifactId>
-            <version>5.9.2</version>
-            <scope>test</scope>
-        </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
@@ -75,11 +68,6 @@
             <groupId>io.swagger.core.v3</groupId>
             <artifactId>swagger-annotations</artifactId>
         </dependency>
-      <dependency>
-        <groupId>org.postgresql</groupId>
-        <artifactId>postgresql</artifactId>
-        <scope>runtime</scope>
-      </dependency>
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
@@ -207,29 +195,16 @@
             <version>1.3.2</version>
         </dependency>
         <dependency>
-          <groupId>org.springframework.boot</groupId>
-          <artifactId>spring-boot-configuration-processor</artifactId>
-          <optional>true</optional>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <optional>true</optional>
         </dependency>
-      <dependency>
-        <groupId>org.junit.jupiter</groupId>
-        <artifactId>junit-jupiter-engine</artifactId>
-        <version>5.8.2</version>
-        <scope>test</scope>
-      </dependency>
-
-      <!-- AssertJ for assertions -->
-      <dependency>
-        <groupId>org.assertj</groupId>
-        <artifactId>assertj-core</artifactId>
-        <version>3.20.2</version>
-        <scope>test</scope>
-      </dependency>
-
-      <dependency>
-            <groupId>com.bloxbean.cardano</groupId>
-            <artifactId>cardano-client-lib</artifactId>
-            <version>0.4.3</version>
+        <!-- AssertJ for assertions -->
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>3.20.2</version>
+            <scope>test</scope>
         </dependency>
         <!-- For Blockfrost backend -->
         <dependency>
@@ -280,20 +255,11 @@
                 <directory>src/main/resources</directory>
                 <includes>
                     <include>application.properties</include>
+                    <include>config/*.json</include>
                 </includes>
             </resource>
         </resources>
         <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.0.0-M5</version>
-                <configuration>
-                    <systemPropertyVariables>
-                        <wiremock.port>8089</wiremock.port>
-                    </systemPropertyVariables>
-                </configuration>
-            </plugin>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>

@@ -5,17 +5,17 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 import com.bloxbean.cardano.client.exception.CborSerializationException;
-import org.cardanofoundation.rosetta.api.construction.data.type.AddressType;
-import org.cardanofoundation.rosetta.api.construction.data.type.NetworkIdentifierType;
+import org.cardanofoundation.rosetta.api.common.enumeration.AddressType;
+import org.cardanofoundation.rosetta.api.common.enumeration.NetworkIdentifierType;
 import org.cardanofoundation.rosetta.api.model.ConstructionDeriveRequestMetadata;
 import org.cardanofoundation.rosetta.api.model.PublicKey;
 import org.cardanofoundation.rosetta.api.model.rest.ConstructionDeriveRequest;
 import org.cardanofoundation.rosetta.api.model.rest.ConstructionDeriveResponse;
 import org.cardanofoundation.rosetta.api.model.rest.NetworkIdentifier;
 
+import org.cardanofoundation.rosetta.api.service.CardanoService;
 import org.cardanofoundation.rosetta.api.service.LedgerDataProviderService;
-import org.cardanofoundation.rosetta.api.service.construction.CardanoService;
-import org.cardanofoundation.rosetta.api.service.construction.impl.ConstructionApiServiceImpl;
+import org.cardanofoundation.rosetta.api.service.impl.ConstructionApiServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;

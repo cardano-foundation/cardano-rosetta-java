@@ -1,5 +1,7 @@
 [![License](https://img.shields.io/github/license/cardano-foundation/cf-metadata-server)](https://github.com/cardano-foundation/cardano-rosetta-java/blob/main/LICENSE)
 ![GitHub top language](https://img.shields.io/github/languages/top/cardano-foundation/cardano-rosetta-java)
+[![Build](https://github.com/cardano-foundation/cardano-rosetta-java/actions/workflows/main.yaml/badge.svg)](https://github.com/cardano-foundation/cardano-rosetta-java/actions/workflows/main.yaml)
+[![CodeQL](https://github.com/cardano-foundation/cardano-rosetta-java/actions/workflows/codeql.yaml/badge.svg)](https://github.com/cardano-foundation/cardano-rosetta-java/actions/workflows/codeql.yaml)
 ![coverage](https://github.com/cardano-foundation/cardano-rosetta-java/blob/badges/jacoco.svg)
 ![branches](https://github.com/cardano-foundation/cardano-rosetta-java/blob/badges/branches.svg)
 [![Issues](https://img.shields.io/github/issues/cardano-foundation/cardano-rosetta-java)](https://github.com/cardano-foundation/cardano-rosetta-java/issues)
@@ -21,11 +23,8 @@ This is a RosettaAPI implementation using LedgeSync as a backend and Yaci/Bloxbe
 - Copy `./.m2/settings.default.xml` to `./.m2/settings.xml`
 - Copy `.env.example`  to `.env`
 - Fill the `.env` file with your values (explain below)
-- From `/common` and run `mvn clean install`
-- From `/consumer` and run `mvn clean install`
-- From `/api` and run `mvn clean install`
 - Create if not exists external network `cardano-rosetta-java` with `docker network create cardano-rosetta-java`
-- From `/cardano-rosetta-java` run `docker-compose -f docker-compose.yml up -d` to start the containers
+- From `/cardano-rosetta-java` run `docker-compose -f docker-compose.yml up --build` to build and start all service
 
 
 ### Environment variables
@@ -40,6 +39,7 @@ This is a RosettaAPI implementation using LedgeSync as a backend and Yaci/Bloxbe
 - `SERVICE_USER_SECRET` : Postgres password service. Default is weakerpwd#123_d
 - `DB_NAME` : Postgres database. Default is rosetta
 - `SCHEMA` : Postgres schema [testnet, preprod, preview, mainnet]. Default is testnet
+- `LIQUIBASE_ENABLE` : "true" only for first time run application and "false" from second run 
 
 - `API_EXPOSED_PORT` : Rosetta api exposed port. Default is 8080
 - `API_BIND_PORT` : Rosetta api bind port. Default is 8080

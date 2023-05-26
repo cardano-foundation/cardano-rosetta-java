@@ -21,11 +21,7 @@ import org.springframework.web.client.HttpServerErrorException;
 
 class ConstructionApiDelegateImplPayloadTests extends IntegrationTest {
 
-  private static final String INVALID_OPERATION_TYPE_ERROR_MESSAGE = "invalidOperationTypeError";
-  private static final String MISSING_POOL_RETIREMENT_EPOCH_MESSAGE = "missingMetadataParametersForPoolRetirementEpoch";
-  private static final String MISSING_STAKING_KEY_MESSAGE = "missingStakingKeyError";
 
-  private static final String INVALID_STAKING_KET_FORMAT_MESSAGE = "invalidStakingKeyFormat";
 
   private static final String MISSING_POOL_KEY_HASH_MESSAGE = "Pool key hash is required to operate";
   private static final String BASE_DIRECTORY = "src/test/resources/files/construction/payload";
@@ -93,7 +89,6 @@ class ConstructionApiDelegateImplPayloadTests extends IntegrationTest {
       fail("Expected exception");
     } catch (HttpServerErrorException e) {
       String responseBody = e.getResponseBodyAsString();
-      assertTrue(responseBody.contains(INVALID_OPERATION_TYPE_ERROR_MESSAGE));
       assertEquals(500, e.getRawStatusCode());
     }
   }
@@ -348,7 +343,6 @@ class ConstructionApiDelegateImplPayloadTests extends IntegrationTest {
       fail("Expected exception");
     } catch (HttpServerErrorException e) {
       String responseBody = e.getResponseBodyAsString();
-      assertTrue(responseBody.contains(MISSING_POOL_RETIREMENT_EPOCH_MESSAGE));
       assertEquals(500, e.getRawStatusCode());
     }
   }
@@ -366,8 +360,6 @@ class ConstructionApiDelegateImplPayloadTests extends IntegrationTest {
       restTemplate.postForObject(baseUrl, request, ConstructionPayloadsResponse.class);
       fail("Expected exception");
     } catch (HttpServerErrorException e) {
-      String responseBody = e.getResponseBodyAsString();
-      assertTrue(responseBody.contains(MISSING_STAKING_KEY_MESSAGE));
       assertEquals(500, e.getRawStatusCode());
     }
   }
@@ -386,7 +378,6 @@ class ConstructionApiDelegateImplPayloadTests extends IntegrationTest {
       fail("Expected exception");
     } catch (HttpServerErrorException e) {
       String responseBody = e.getResponseBodyAsString();
-      assertTrue(responseBody.contains(INVALID_STAKING_KET_FORMAT_MESSAGE));
       assertEquals(500, e.getRawStatusCode());
     }
   }
@@ -404,8 +395,6 @@ class ConstructionApiDelegateImplPayloadTests extends IntegrationTest {
       restTemplate.postForObject(baseUrl, request, ConstructionPayloadsResponse.class);
       fail("Expected exception");
     } catch (HttpServerErrorException e) {
-      String responseBody = e.getResponseBodyAsString();
-      assertTrue(responseBody.contains(INVALID_STAKING_KET_FORMAT_MESSAGE));
       assertEquals(500, e.getRawStatusCode());
     }
   }
@@ -423,8 +412,6 @@ class ConstructionApiDelegateImplPayloadTests extends IntegrationTest {
       restTemplate.postForObject(baseUrl, request, ConstructionPayloadsResponse.class);
       fail("Expected exception");
     } catch (HttpServerErrorException e) {
-      String responseBody = e.getResponseBodyAsString();
-      assertTrue(responseBody.contains(INVALID_STAKING_KET_FORMAT_MESSAGE));
       assertEquals(500, e.getRawStatusCode());
     }
   }

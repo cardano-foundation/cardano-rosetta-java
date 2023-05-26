@@ -3,6 +3,7 @@
   xmlns="http://maven.apache.org/POM/4.0.0"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <artifactId>cardano-common-rosetta</artifactId>
+  <groupId>org.cardanofoundation.rosetta-java</groupId>
 
   <build>
     <plugins>
@@ -116,14 +117,6 @@
     </dependency>
 
   </dependencies>
-  <distributionManagement>
-    <repository>
-      <id>cardano-common-explorer</id>
-      <name>GitHub sotatek-tiendo Apache Maven Packages</name>
-      <url>https://maven.pkg.github.com/sotatek-dev/cardano-common-explorer</url>
-    </repository>
-  </distributionManagement>
-
 
   <modelVersion>4.0.0</modelVersion>
   <parent>

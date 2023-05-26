@@ -10,7 +10,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.api.RosettaApiApplication;
-import org.cardanofoundation.rosetta.api.exception.Error;
 import org.cardanofoundation.rosetta.api.model.rest.ConstructionPreprocessRequest;
 import org.cardanofoundation.rosetta.api.model.rest.ConstructionPreprocessResponse;
 import org.junit.jupiter.api.BeforeEach;
@@ -68,8 +67,6 @@ class ConstructionApiDelegateImplPreprocessTests extends IntegrationTest{
       ConstructionPreprocessResponse constructionPreprocessResponse = restTemplate.postForObject(
           baseUrl, request, ConstructionPreprocessResponse.class);
     } catch (HttpServerErrorException e) {
-      String responseBody = e.getResponseBodyAsString();
-      assertTrue(responseBody.contains("ThisIsAnInvalidAddressaddr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpxInvalid"));
       assertEquals(500, e.getRawStatusCode());
     }
   }

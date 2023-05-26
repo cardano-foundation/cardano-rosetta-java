@@ -1,6 +1,9 @@
 package org.cardanofoundation.rosetta.api.model.rest;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * @author Sotatek-HoangNguyen9

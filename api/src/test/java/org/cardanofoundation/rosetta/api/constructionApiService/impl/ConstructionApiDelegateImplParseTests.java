@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
-import org.cardanofoundation.rosetta.api.construction.data.type.OperationType;
+import org.cardanofoundation.rosetta.api.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.api.model.Operation;
 import org.cardanofoundation.rosetta.api.model.rest.ConstructionParseRequest;
 import org.cardanofoundation.rosetta.api.model.rest.ConstructionParseResponse;
