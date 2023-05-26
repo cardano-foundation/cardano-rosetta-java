@@ -261,8 +261,9 @@
                 <directory>src/main/resources</directory>
                 <includes>
                     <include>application.properties</include>
-                    <include>rosetta-specifications-1.4.15/*</include>
-                    <include>config/</include>
+                    <include>rosetta-specifications-1.4.15/api.yaml</include>
+                    <include>config/*.yaml</include>
+                    <include>network/</include>
                 </includes>
             </resource>
         </resources>

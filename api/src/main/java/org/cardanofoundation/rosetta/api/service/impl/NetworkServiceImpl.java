@@ -90,13 +90,13 @@ public class NetworkServiceImpl implements NetworkService {
   private String networkId;
   private BigInteger networkMagic;
 
-  @PostConstruct
   private List<BalanceExemption> loadExemptionsFile() {
     if (exemptionPath != null) {
       final ObjectMapper objectMapper = new ObjectMapper();
       try {
+        File exemptionFile = ResourceUtils.getFile(exemptionPath);
         balanceExemptions = objectMapper.readValue(
-            new File(exemptionPath),
+            new File(exemptionFile.toURI()),
             new TypeReference<List<BalanceExemption>>() {
             });
       } catch (IOException e) {
