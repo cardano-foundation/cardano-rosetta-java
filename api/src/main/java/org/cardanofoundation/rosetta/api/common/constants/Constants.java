@@ -3,8 +3,8 @@ package org.cardanofoundation.rosetta.api.common.constants;
 public class Constants {
 
     public static final String CARDANO = "cardano";
-    public static final Long PREPROD_NETWORK_MAGIC = 1L;
-    public static final Long PREVIEW_NETWORK_MAGIC = 2L;
+    public static final Integer PREPROD_NETWORK_MAGIC = 1;
+    public static final Integer PREVIEW_NETWORK_MAGIC = 2;
 
     public static final int PREFIX_LENGTH = 10;
 

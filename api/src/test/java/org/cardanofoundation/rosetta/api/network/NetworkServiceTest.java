@@ -2,10 +2,9 @@ package org.cardanofoundation.rosetta.api.network;
 
 
 
-import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
-import org.apache.tomcat.util.json.ParseException;
 import org.cardanofoundation.rosetta.api.RosettaApiApplication;
 import org.cardanofoundation.rosetta.api.config.IndexerConfig;
 import org.cardanofoundation.rosetta.api.config.NetworkConfig;
@@ -73,7 +72,7 @@ public class NetworkServiceTest {
   }
 
   @Test
-  public void testGetNetworkList() throws FileNotFoundException, ParseException {
+  public void testGetNetworkList() throws IOException {
     MetadataRequest metadataRequest = new MetadataRequest(null);
     NetworkListResponse response = networkService.getNetworkList(metadataRequest);
 

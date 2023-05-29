@@ -4,7 +4,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import org.cardanofoundation.rosetta.api.exception.ServerException;
 import org.cardanofoundation.rosetta.api.model.rest.MetadataRequest;
@@ -38,7 +37,7 @@ public interface NetworkApiDelegate {
           consumes = { "application/json;charset=utf-8" }
   )
   ResponseEntity<NetworkListResponse> networkList(MetadataRequest metadataRequest)
-      throws FileNotFoundException;
+      throws IOException;
 
   @Operation(
           operationId = "networkOptions",

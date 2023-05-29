@@ -7,22 +7,17 @@ import io.swagger.parser.OpenAPIParser;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.math.BigInteger;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.tomcat.util.json.JSONParser;
-import org.apache.tomcat.util.json.ParseException;
 import org.cardanofoundation.rosetta.api.common.constants.Constants;
 import org.cardanofoundation.rosetta.api.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.api.common.enumeration.OperationTypeStatus;
@@ -48,6 +43,7 @@ import org.cardanofoundation.rosetta.api.service.LedgerDataProviderService;
 import org.cardanofoundation.rosetta.api.service.NetworkService;
 import org.cardanofoundation.rosetta.api.util.RosettaConstants;
 import org.cardanofoundation.rosetta.api.util.cli.CardanoNode;
+import org.json.JSONObject;
 import org.openapitools.client.model.Allow;
 import org.openapitools.client.model.BalanceExemption;
 import org.openapitools.client.model.Error;
@@ -87,7 +83,7 @@ public class NetworkServiceImpl implements NetworkService {
   private String cardanoNodePath;
 
   private String networkId;
-  private BigInteger networkMagic;
+  private Integer networkMagic;
 
   private List<BalanceExemption> loadExemptionsFile() {
     if (exemptionPath != null) {
@@ -109,7 +105,7 @@ public class NetworkServiceImpl implements NetworkService {
 
   @Override
   public NetworkListResponse getNetworkList(MetadataRequest metadataRequest)
-      throws FileNotFoundException{
+      throws IOException {
     log.info("[networkList] Looking for all supported networks");
     Network supportedNetwork = getSupportedNetwork();
     return DataMapper.mapToNetworkListResponse(supportedNetwork);
@@ -164,25 +160,20 @@ public class NetworkServiceImpl implements NetworkService {
   }
 
   @Override
-  public Network getSupportedNetwork() throws FileNotFoundException {
+  public Network getSupportedNetwork() throws IOException {
 
     File genesisFile;
     genesisFile = ResourceUtils.getFile(genesisPath);
-    InputStream input = new FileInputStream(genesisFile);
-    HashMap<String,Object> object ;
-    try {
-      object = (HashMap<String,Object>) new JSONParser(input).parse();
-    } catch (ParseException e) {
-      throw new RuntimeException(e);
-    }
+    String content = new String(Files.readAllBytes(genesisFile.toPath()));
+    JSONObject object = new JSONObject(content);
     networkId = ((String) object.get("networkId")).toLowerCase();
-    networkMagic = (BigInteger) object.get("networkMagic");
+    networkMagic = (Integer) object.get("networkMagic");
 
     if(networkId.equals("mainnet")){
       return Network.builder().networkId(networkId).build();
-    } else if (networkMagic.equals(BigInteger.valueOf(Constants.PREPROD_NETWORK_MAGIC))) {
+    } else if (Objects.equals(networkMagic, Constants.PREPROD_NETWORK_MAGIC)) {
       return Network.builder().networkId("preprod").build();
-    } else if (networkMagic.equals(BigInteger.valueOf(Constants.PREVIEW_NETWORK_MAGIC))) {
+    } else if (Objects.equals(networkMagic, Constants.PREVIEW_NETWORK_MAGIC)) {
       return Network.builder().networkId("preview").build();
     }
     return null;
