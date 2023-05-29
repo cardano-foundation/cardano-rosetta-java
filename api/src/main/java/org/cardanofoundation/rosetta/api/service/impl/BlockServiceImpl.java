@@ -3,6 +3,7 @@ package org.cardanofoundation.rosetta.api.service.impl;
 import static org.cardanofoundation.rosetta.api.mapper.DataMapper.mapToRosettaBlock;
 import static org.cardanofoundation.rosetta.api.mapper.DataMapper.mapToRosettaTransaction;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -64,7 +65,7 @@ public class BlockServiceImpl implements BlockService {
     if (cardanoService.isStakeAddress(address)) {
       log.debug("[findBalanceDataByAddressAndBlock] Address is StakeAddress");
       log.debug("[findBalanceDataByAddressAndBlock] About to get balance for " + address);
-      Double balance = ledgerDataProviderService.findBalanceByAddressAndBlock(address,
+      Long balance = ledgerDataProviderService.findBalanceByAddressAndBlock(address,
           blockDto.getHash());
       log.debug(
           "[findBalanceDataByAddressAndBlock] Found stake balance of " + balance + " for address "

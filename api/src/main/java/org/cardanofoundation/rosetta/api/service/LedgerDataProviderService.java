@@ -33,7 +33,7 @@ public interface LedgerDataProviderService {
 
     BlockDto findBlock(Long number, String hash);
 
-    Double findBalanceByAddressAndBlock(String address, String hash);
+    Long findBalanceByAddressAndBlock(String address, String hash);
 
     List<Utxo> findUtxoByAddressAndBlock(String address, String hash, List<Currency> currencies);
 

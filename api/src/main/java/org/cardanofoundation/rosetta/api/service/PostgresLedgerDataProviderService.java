@@ -55,7 +55,7 @@ import org.cardanofoundation.rosetta.api.repository.RewardRepository;
 import org.cardanofoundation.rosetta.api.repository.StakeDeregistrationRepository;
 import org.cardanofoundation.rosetta.api.repository.TxMetadataRepository;
 import org.cardanofoundation.rosetta.api.repository.TxRepository;
-import org.cardanofoundation.rosetta.api.repository.customRepository.UtxoRepository;
+import org.cardanofoundation.rosetta.api.repository.customrepository.UtxoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -163,7 +163,7 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
   }
 
   @Override
-  public Double findBalanceByAddressAndBlock(String address, String hash) {
+  public Long findBalanceByAddressAndBlock(String address, String hash) {
     return rewardRepository.findBalanceByAddressAndBlockSub1(address, hash)
         - rewardRepository.findBalanceByAddressAndBlockSub2(address, hash);
   }
