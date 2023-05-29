@@ -1,22 +1,8 @@
 package org.cardanofoundation.rosetta.common.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.ConstraintMode;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.ForeignKey;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.Digits;
-import java.math.BigInteger;
-import java.util.Objects;
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.cardanofoundation.rosetta.common.validation.Lovelace;
 import org.cardanofoundation.rosetta.common.validation.Word31Type;
@@ -24,6 +10,9 @@ import org.cardanofoundation.rosetta.common.validation.Word63Type;
 import org.hibernate.Hibernate;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
+
+import java.math.BigInteger;
+import java.util.Objects;
 
 @Entity
 @Table(name = "ada_pots", uniqueConstraints = {
@@ -75,8 +64,9 @@ public class AdaPots extends BaseEntity {
   private BigInteger fees;
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "block_id", nullable = false, unique = true,
-      foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "none"))
+      foreignKey = @ForeignKey(name = "ada_pots_block_id_fkey"))
   @EqualsAndHashCode.Exclude
   private Block block;
 

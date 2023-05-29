@@ -1,26 +1,14 @@
 package org.cardanofoundation.rosetta.common.entity;
 
-import jakarta.persistence.ConstraintMode;
-import jakarta.persistence.ForeignKey;
-import java.sql.Timestamp;
-import java.util.Objects;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.persistence.*;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.cardanofoundation.rosetta.common.validation.Hash28Type;
 import org.hibernate.Hibernate;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
+
+import java.util.Objects;
 
 @Entity
 @Table(name = "slot_leader", uniqueConstraints = {
@@ -40,8 +28,8 @@ public class SlotLeader extends BaseEntity {
   private String hash;
 
   @OneToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "pool_hash_id",
-      foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "none"))
+  @OnDelete(action = OnDeleteAction.CASCADE)
+  @JoinColumn(name = "pool_hash_id")
   @EqualsAndHashCode.Exclude
   private PoolHash poolHash;
 

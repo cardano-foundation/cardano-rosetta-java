@@ -34,16 +34,16 @@
     </licenses>
 
     <dependencies>
-<!--        test enigne-->
-
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>5.9.2</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
-      <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-test</artifactId>
-      </dependency>
         <dependency>
             <groupId>org.springframework.data</groupId>
             <artifactId>spring-data-commons</artifactId>
@@ -64,7 +64,6 @@
             <groupId>io.swagger.core.v3</groupId>
             <artifactId>swagger-annotations</artifactId>
         </dependency>
-
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-devtools</artifactId>
@@ -168,31 +167,18 @@
             <artifactId>cardano-common-rosetta</artifactId>
             <version>1.0.7-SNAPSHOT</version>
         </dependency>
-
         <dependency>
-          <groupId>org.springframework.boot</groupId>
-          <artifactId>spring-boot-configuration-processor</artifactId>
-          <optional>true</optional>
+
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <optional>true</optional>
         </dependency>
-      <dependency>
-        <groupId>org.junit.jupiter</groupId>
-        <artifactId>junit-jupiter-engine</artifactId>
-        <version>5.8.2</version>
-        <scope>test</scope>
-      </dependency>
-
-      <!-- AssertJ for assertions -->
-      <dependency>
-        <groupId>org.assertj</groupId>
-        <artifactId>assertj-core</artifactId>
-        <version>3.20.2</version>
-        <scope>test</scope>
-      </dependency>
-
-      <dependency>
-            <groupId>com.bloxbean.cardano</groupId>
-            <artifactId>cardano-client-lib</artifactId>
-            <version>0.4.3</version>
+        <!-- AssertJ for assertions -->
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>3.20.2</version>
+            <scope>test</scope>
         </dependency>
         <!-- For Blockfrost backend -->
         <dependency>
@@ -234,25 +220,7 @@
             <artifactId>commons-validator</artifactId>
             <version>1.7</version>
         </dependency>
-      <dependency>
-        <groupId>io.github.cdimascio</groupId>
-        <artifactId>dotenv-java</artifactId>
-        <version>3.0.0</version>
-      </dependency>
-      <dependency>
-        <groupId>me.paulschwarz</groupId>
-        <artifactId>spring-dotenv</artifactId>
-        <version>4.0.0</version>
-      </dependency>
-      <!-- https://mvnrepository.com/artifact/io.swagger.parser.v3/swagger-parser -->
-      <dependency>
-        <groupId>io.swagger.parser.v3</groupId>
-        <artifactId>swagger-parser</artifactId>
-        <version>2.1.14</version>
-      </dependency>
-
     </dependencies>
-
 
     <build>
         <resources>
