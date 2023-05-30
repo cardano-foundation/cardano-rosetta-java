@@ -15,8 +15,8 @@ import org.testcontainers.containers.DockerComposeContainer;
     RosettaApiApplication.class})
 public abstract class IntegrationTest {
 
-  public static final DockerComposeContainer<?> testEnvironment;
   protected static RestTemplate restTemplate;
+  public static final DockerComposeContainer<?> testEnvironment;
 
   static {
     try {
@@ -47,6 +47,7 @@ public abstract class IntegrationTest {
   public static void init() {
     restTemplate = new RestTemplate();
   }
+
   @AfterAll
   public static void teadDown() {
   }

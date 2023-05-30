@@ -17,13 +17,13 @@ import org.springframework.web.client.HttpServerErrorException;
 
 public class AccountBalanceApiTest extends IntegrationTest {
 
-  private static final String ACCOUNT_BALANCE_ENDPOINT = "/account/balance";
+  private static final String ENDPOINT = "/account/balance";
   private static final String NETWORK = "mainnet";
   private final String BASE_DIRECTORY = "src/test/resources/accountBalance";
 
   @BeforeEach
   public void setUp() {
-    baseUrl = baseUrl.concat(":").concat(serverPort + "").concat(ACCOUNT_BALANCE_ENDPOINT);
+    baseUrl = baseUrl.concat(":").concat(serverPort + "").concat(ENDPOINT);
   }
 
   @Test
@@ -111,6 +111,7 @@ public class AccountBalanceApiTest extends IntegrationTest {
     } catch (HttpServerErrorException e) {
       String responseBody = e.getResponseBodyAsString();
       Error error = objectMapper.readValue(responseBody, Error.class);
+      assertEquals(500, e.getStatusCode().value());
       assertEquals(4001, error.getCode());
       assertEquals("Block not found", error.getMessage());
       assertFalse(error.isRetriable());

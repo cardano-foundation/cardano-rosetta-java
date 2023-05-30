@@ -24,13 +24,13 @@ import org.springframework.web.client.HttpServerErrorException;
 
 public class AccountCoinsApiTest extends IntegrationTest {
 
-  private static final String ACCOUNT_BALANCE_ENDPOINT = "/account/coins";
+  private static final String ENDPOINT = "/account/coins";
   private static final String NETWORK = "mainnet";
   private final String BASE_DIRECTORY = "src/test/resources/accountCoins";
 
   @BeforeEach
   public void setUp() {
-    baseUrl = baseUrl.concat(":").concat(serverPort + "").concat(ACCOUNT_BALANCE_ENDPOINT);
+    baseUrl = baseUrl.concat(":").concat(serverPort + "").concat(ENDPOINT);
   }
 
   private AccountCoinsRequest generatePayload(String blockchain, String network, String address,
@@ -75,6 +75,7 @@ public class AccountCoinsApiTest extends IntegrationTest {
     } catch (HttpServerErrorException e) {
       String responseBody = e.getResponseBodyAsString();
       Error error = objectMapper.readValue(responseBody, Error.class);
+      assertEquals(500, e.getStatusCode().value());
       assertEquals(4015, error.getCode());
       assertEquals("Provided address is invalid", error.getMessage());
       assertTrue(error.isRetriable());
@@ -225,6 +226,7 @@ public class AccountCoinsApiTest extends IntegrationTest {
     } catch (HttpServerErrorException e) {
       String responseBody = e.getResponseBodyAsString();
       Error error = objectMapper.readValue(responseBody, Error.class);
+      assertEquals(500, e.getStatusCode().value());
       assertEquals(4024, error.getCode());
       assertEquals("Invalid token name", error.getMessage());
       assertFalse(error.isRetriable());
@@ -243,6 +245,7 @@ public class AccountCoinsApiTest extends IntegrationTest {
     } catch (HttpServerErrorException e) {
       String responseBody = e.getResponseBodyAsString();
       Error error = objectMapper.readValue(responseBody, Error.class);
+      assertEquals(500, e.getStatusCode().value());
       assertEquals(4024, error.getCode());
       assertEquals("Invalid token name", error.getMessage());
       assertFalse(error.isRetriable());
@@ -262,6 +265,7 @@ public class AccountCoinsApiTest extends IntegrationTest {
     } catch (HttpServerErrorException e) {
       String responseBody = e.getResponseBodyAsString();
       Error error = objectMapper.readValue(responseBody, Error.class);
+      assertEquals(500, e.getStatusCode().value());
       assertEquals(4023, error.getCode());
       assertEquals("Invalid policy id", error.getMessage());
       assertFalse(error.isRetriable());
@@ -280,6 +284,7 @@ public class AccountCoinsApiTest extends IntegrationTest {
     } catch (HttpServerErrorException e) {
       String responseBody = e.getResponseBodyAsString();
       Error error = objectMapper.readValue(responseBody, Error.class);
+      assertEquals(500, e.getStatusCode().value());
       assertEquals(4023, error.getCode());
       assertEquals("Invalid policy id", error.getMessage());
       assertFalse(error.isRetriable());
