@@ -61,7 +61,7 @@ import java.util.stream.Collectors;
 public class ConstructionApiServiceImpl implements ConstructionApiService {
 
     @Autowired
-    CardanoService cardanoService;
+    public CardanoService cardanoService;
 
 //    @Autowired
 //    LocalTxSubmissionClient localTxSubmissionClient;
