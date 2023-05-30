@@ -279,14 +279,20 @@ public class CardanoServiceImpl implements CardanoService {
                   "[getWitnessesForTransaction] Missing chain code for byron address signature");
               throw ExceptionFactory.missingChainCodeError();
             }
-//            String byronAddress = null;
+            ByronAddress byronAddress=new ByronAddress(signature.getAddress());
 //            byronAddress = signature.getAddress();
+            String str=HexUtil.encodeHexString(byronAddress.getBytes());
+            String str1=str.substring(72);
+            StringBuffer str2=new StringBuffer(str1);
+            StringBuffer str3=str2.reverse();
+            String str4=str3.substring(12);
+            StringBuffer result=new StringBuffer(str4);
             BootstrapWitness bootstrap = new BootstrapWitness(
                 HexUtil.decodeHexString(vkey.getCborHex()),
                 HexUtil.decodeHexString(signature.getSignature()),
                 //revise
                 hexStringToBuffer(signature.getChainCode()),
-                HexUtil.decodeHexString("a0"));
+                HexUtil.decodeHexString(result.reverse().toString()));
             bootstrapWitnesses.add(bootstrap);
           } else {
             vkeyWitnesses.add(
