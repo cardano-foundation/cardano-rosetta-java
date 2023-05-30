@@ -30,10 +30,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-  base:
-    build: ./
-    image: cardano-rosetta-java-base
-    platform: linux/amd64
   api:
     build:
       context: ./
@@ -48,12 +44,13 @@ services:
       DB_USER: "${SERVICE_USER_NAME}"
       DB_SECRET: "${SERVICE_USER_SECRET}"
       DB_DRIVER_CLASS_NAME: "${DB_DRIVER_CLASS_NAME}"
+      API_SPRING_PROFILES_ACTIVE: ${API_SPRING_PROFILES_ACTIVE}
       DB_CONNECTION_PARAMS_PROVIDER_TYPE: ${DB_CONNECTION_PARAMS_PROVIDER_TYPE}
     depends_on:
-      base:
-        condition: service_completed_successfully
+      db:
+        condition: service_healthy
       cardano-node:
-        condition: service_completed_successfully
+        condition: service_started
   consumer:
     build: ./consumer
     platform: linux/amd64
@@ -76,8 +73,8 @@ services:
       BOOSTRAP_SERVER_PORT: "${BOOSTRAP_SERVER_PORT}"
       LOG: "${LOG}"
     depends_on:
-      base:
-        condition: service_completed_successfully
+      db:
+        condition: service_healthy
   zookeeper:
     image: confluentinc/cp-zookeeper:5.1.2
     restart: always

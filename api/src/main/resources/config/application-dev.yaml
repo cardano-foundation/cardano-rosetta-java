@@ -18,8 +18,8 @@ spring:
       max-request-size: 16MB
   datasource:
     driver-class-name: org.postgresql.Driver
-    username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:12345678}
+    username: ${DB_USER:rosetta_db_admin}
+    password: ${DB_SECRET:weakpwd#123_d}
     url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5433}/${DB_NAME:test}?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC&useLegacyDatetimeCode=false&createDatabaseIfNotExist=true&autoReconnect=true&currentSchema=${DB_SCHEMA:preprod}
   jpa:
     properties:
@@ -56,7 +56,7 @@ cardano:
     version:
       ${ROSETTA_VERSION}
     implementation-version:
-      @project.version@
+      '@project.version@'
     networks:
       [
         {
