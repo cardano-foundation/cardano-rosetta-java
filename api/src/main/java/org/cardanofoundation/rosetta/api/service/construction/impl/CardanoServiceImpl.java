@@ -1,7 +1,11 @@
 package org.cardanofoundation.rosetta.api.service.construction.impl;
 
 import co.nstant.in.cbor.CborException;
-import co.nstant.in.cbor.model.*;
+import co.nstant.in.cbor.model.Array;
+import co.nstant.in.cbor.model.ByteString;
+import co.nstant.in.cbor.model.DataItem;
+import co.nstant.in.cbor.model.UnicodeString;
+import co.nstant.in.cbor.model.UnsignedInteger;
 import com.bloxbean.cardano.client.address.Address;
 import com.bloxbean.cardano.client.address.AddressProvider;
 import com.bloxbean.cardano.client.address.ByronAddress;
@@ -15,21 +19,60 @@ import com.bloxbean.cardano.client.exception.CborDeserializationException;
 import com.bloxbean.cardano.client.exception.CborSerializationException;
 import com.bloxbean.cardano.client.metadata.cbor.CBORMetadata;
 import com.bloxbean.cardano.client.metadata.cbor.CBORMetadataMap;
-import com.bloxbean.cardano.client.transaction.spec.*;
-import com.bloxbean.cardano.client.transaction.spec.cert.*;
-import com.bloxbean.cardano.yaci.core.util.CborSerializationUtil;
+import com.bloxbean.cardano.client.transaction.spec.Asset;
+import com.bloxbean.cardano.client.transaction.spec.AuxiliaryData;
+import com.bloxbean.cardano.client.transaction.spec.BootstrapWitness;
+import com.bloxbean.cardano.client.transaction.spec.MultiAsset;
+import com.bloxbean.cardano.client.transaction.spec.Transaction;
+import com.bloxbean.cardano.client.transaction.spec.TransactionBody;
+import com.bloxbean.cardano.client.transaction.spec.TransactionInput;
+import com.bloxbean.cardano.client.transaction.spec.TransactionOutput;
+import com.bloxbean.cardano.client.transaction.spec.TransactionWitnessSet;
+import com.bloxbean.cardano.client.transaction.spec.UnitInterval;
+import com.bloxbean.cardano.client.transaction.spec.Value;
+import com.bloxbean.cardano.client.transaction.spec.VkeyWitness;
+import com.bloxbean.cardano.client.transaction.spec.Withdrawal;
+import com.bloxbean.cardano.client.transaction.spec.cert.Certificate;
+import com.bloxbean.cardano.client.transaction.spec.cert.MultiHostName;
+import com.bloxbean.cardano.client.transaction.spec.cert.PoolRegistration;
+import com.bloxbean.cardano.client.transaction.spec.cert.PoolRetirement;
+import com.bloxbean.cardano.client.transaction.spec.cert.SingleHostAddr;
+import com.bloxbean.cardano.client.transaction.spec.cert.SingleHostName;
+import com.bloxbean.cardano.client.transaction.spec.cert.StakeCredential;
+import com.bloxbean.cardano.client.transaction.spec.cert.StakeDelegation;
+import com.bloxbean.cardano.client.transaction.spec.cert.StakeDeregistration;
+import com.bloxbean.cardano.client.transaction.spec.cert.StakePoolId;
+import com.bloxbean.cardano.client.transaction.spec.cert.StakeRegistration;
 import com.bloxbean.cardano.client.util.HexUtil;
+import com.bloxbean.cardano.yaci.core.util.CborSerializationUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.net.Inet4Address;
+import java.net.Inet6Address;
+import java.net.UnknownHostException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.validator.routines.InetAddressValidator;
+import org.cardanofoundation.rosetta.api.construction.data.Const;
 import org.cardanofoundation.rosetta.api.construction.data.Metadata;
 import org.cardanofoundation.rosetta.api.construction.data.ProcessOperationsDto;
-import org.cardanofoundation.rosetta.api.construction.data.ProtocolParametersResponse;
 import org.cardanofoundation.rosetta.api.construction.data.Signatures;
 import org.cardanofoundation.rosetta.api.construction.data.UnsignedTransaction;
 import org.cardanofoundation.rosetta.api.construction.data.type.AddressType;
@@ -42,13 +85,12 @@ import org.cardanofoundation.rosetta.api.construction.data.type.NonStakeAddressP
 import org.cardanofoundation.rosetta.api.construction.data.type.OperationType;
 import org.cardanofoundation.rosetta.api.construction.data.type.RelayType;
 import org.cardanofoundation.rosetta.api.construction.data.type.StakeAddressPrefix;
-import org.cardanofoundation.rosetta.api.construction.data.Const;
-
 import org.cardanofoundation.rosetta.api.model.AccountIdentifierMetadata;
 import org.cardanofoundation.rosetta.api.model.Amount;
 import org.cardanofoundation.rosetta.api.model.CoinAction;
 import org.cardanofoundation.rosetta.api.model.CoinChange;
 import org.cardanofoundation.rosetta.api.model.CoinIdentifier;
+import org.cardanofoundation.rosetta.api.model.Currency;
 import org.cardanofoundation.rosetta.api.model.CurveType;
 import org.cardanofoundation.rosetta.api.model.DepositParameters;
 import org.cardanofoundation.rosetta.api.model.Operation;
@@ -57,6 +99,7 @@ import org.cardanofoundation.rosetta.api.model.OperationMetadata;
 import org.cardanofoundation.rosetta.api.model.PoolMargin;
 import org.cardanofoundation.rosetta.api.model.PoolMetadata;
 import org.cardanofoundation.rosetta.api.model.PoolRegistrationParams;
+import org.cardanofoundation.rosetta.api.model.ProtocolParameters;
 import org.cardanofoundation.rosetta.api.model.PublicKey;
 import org.cardanofoundation.rosetta.api.model.Relay;
 import org.cardanofoundation.rosetta.api.model.SignatureType;
@@ -67,25 +110,14 @@ import org.cardanofoundation.rosetta.api.model.TransactionExtraData;
 import org.cardanofoundation.rosetta.api.model.TransactionIdentifier;
 import org.cardanofoundation.rosetta.api.model.TransactionParsed;
 import org.cardanofoundation.rosetta.api.model.VoteRegistrationMetadata;
-import org.cardanofoundation.rosetta.api.projection.dto.BlockDto;
-import org.cardanofoundation.rosetta.api.service.LedgerDataProviderService;
-import org.cardanofoundation.rosetta.api.service.construction.CardanoService;
-import org.cardanofoundation.rosetta.api.model.Currency;
 import org.cardanofoundation.rosetta.api.model.rest.AccountIdentifier;
 import org.cardanofoundation.rosetta.api.model.rest.NetworkIdentifier;
 import org.cardanofoundation.rosetta.api.model.rest.TransactionIdentifierResponse;
+import org.cardanofoundation.rosetta.api.projection.dto.BlockDto;
+import org.cardanofoundation.rosetta.api.service.LedgerDataProviderService;
+import org.cardanofoundation.rosetta.api.service.construction.CardanoService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import java.io.IOException;
-import java.math.BigInteger;
-import java.net.Inet4Address;
-import java.net.Inet6Address;
-import java.net.UnknownHostException;
-import java.util.*;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
 
 
 @Slf4j
@@ -176,7 +208,7 @@ public class CardanoServiceImpl implements CardanoService {
         operations,
         ttl,
         !ObjectUtils.isEmpty(depositParameters) ? depositParameters
-            : new DepositParameters(Const.DEFAULT_POOL_DEPOSIT, Const.DEFAULT_KEY_DEPOSIT)
+            : new DepositParameters(Const.DEFAULT_POOL_DEPOSIT.toString(), Const.DEFAULT_KEY_DEPOSIT.toString())
     );
     // eslint-disable-next-line consistent-return
     List<Signatures> signaturesList = (unsignedTransaction.getAddresses()).stream()
@@ -404,11 +436,11 @@ public class CardanoServiceImpl implements CardanoService {
     log.info("[processOperations] About to calculate fee");
     ProcessOperationsDto result = convert(networkIdentifierType, operations);
     double refundsSum =
-        result.getStakeKeyDeRegistrationsCount() * depositParameters.getKeyDeposit().longValue();
+        result.getStakeKeyDeRegistrationsCount() * Double.parseDouble(depositParameters.getKeyDeposit());
     double keyDepositsSum =
-        result.getStakeKeyRegistrationsCount() * depositParameters.getKeyDeposit().longValue();
+        result.getStakeKeyRegistrationsCount() * Double.parseDouble(depositParameters.getKeyDeposit());
     double poolDepositsSum =
-        result.getPoolRegistrationsCount() * depositParameters.getPoolDeposit().longValue();
+        result.getPoolRegistrationsCount() * Double.parseDouble(depositParameters.getPoolDeposit());
     Map<String, Double> depositsSumMap = new HashMap<>();
     depositsSumMap.put("keyRefundsSum", refundsSum);
     depositsSumMap.put("keyDepositsSum", keyDepositsSum);
@@ -1397,16 +1429,15 @@ public class CardanoServiceImpl implements CardanoService {
 
   @Override
   public Long calculateTxMinimumFee(Long transactionSize,
-      ProtocolParametersResponse protocolParameters) {
+      ProtocolParameters protocolParameters) {
     return protocolParameters.getMinFeeCoefficient() * transactionSize
         + protocolParameters.getMinFeeConstant();
   }
 
   @Override
-  public ProtocolParametersResponse getProtocolParameters() {
+  public ProtocolParameters getProtocolParameters() {
     log.debug("[getLinearFeeParameters] About to run findProtocolParameters query");
-    ProtocolParametersResponse protocolParametersResponse = ledgerDataProviderService.findProtocolParameters();
-    return protocolParametersResponse;
+    return ledgerDataProviderService.findProtocolParameters();
   }
 
   @Override

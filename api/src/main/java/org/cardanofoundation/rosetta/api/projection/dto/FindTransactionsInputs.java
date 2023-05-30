@@ -13,11 +13,11 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 public class FindTransactionsInputs extends FindTransactionInOutResult {
 
-  private byte[] sourceTxHash;
+  private String sourceTxHash;
   private Short sourceTxIndex;
 
-  public FindTransactionsInputs(Long id, String address, BigInteger value, byte[] txHash,
-      byte[] sourceTxHash, Short sourceTxIndex, byte[] policy, byte[] name, BigInteger quantity
+  public FindTransactionsInputs(Long id, String address, BigInteger value, String txHash,
+      String sourceTxHash, Short sourceTxIndex, String policy, String name, BigInteger quantity
   ) {
     super(id, address, value, policy, name, txHash, quantity);
     this.sourceTxHash = sourceTxHash;

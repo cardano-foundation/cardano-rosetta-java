@@ -13,5 +13,5 @@ public class FindTransactionPoolOwners implements FindTransactionFieldResult {
 
   private String owner;
 
-  private byte[] txHash;
+  private String txHash;
 }

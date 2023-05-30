@@ -1,18 +1,21 @@
 package org.cardanofoundation.rosetta.api.service.construction.impl;
 
 import co.nstant.in.cbor.CborException;
-import co.nstant.in.cbor.model.*;
+import co.nstant.in.cbor.model.Array;
 import co.nstant.in.cbor.model.Map;
+import co.nstant.in.cbor.model.UnicodeString;
 import com.bloxbean.cardano.client.exception.AddressExcepion;
 import com.bloxbean.cardano.client.exception.CborDeserializationException;
 import com.bloxbean.cardano.client.exception.CborSerializationException;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import java.io.IOException;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
-
-import org.cardanofoundation.rosetta.api.construction.data.ProtocolParametersResponse;
 import org.cardanofoundation.rosetta.api.construction.data.Signatures;
 import org.cardanofoundation.rosetta.api.construction.data.UnsignedTransaction;
 import org.cardanofoundation.rosetta.api.construction.data.type.AddressType;
@@ -26,6 +29,7 @@ import org.cardanofoundation.rosetta.api.model.PublicKey;
 import org.cardanofoundation.rosetta.api.model.SigningPayload;
 import org.cardanofoundation.rosetta.api.model.TransactionExtraData;
 import org.cardanofoundation.rosetta.api.model.TransactionParsed;
+import org.cardanofoundation.rosetta.api.model.rest.AccountIdentifier;
 import org.cardanofoundation.rosetta.api.model.rest.ConstructionCombineRequest;
 import org.cardanofoundation.rosetta.api.model.rest.ConstructionCombineResponse;
 import org.cardanofoundation.rosetta.api.model.rest.ConstructionDeriveRequest;
@@ -44,14 +48,9 @@ import org.cardanofoundation.rosetta.api.model.rest.ConstructionSubmitRequest;
 import org.cardanofoundation.rosetta.api.model.rest.TransactionIdentifierResponse;
 import org.cardanofoundation.rosetta.api.service.construction.CardanoService;
 import org.cardanofoundation.rosetta.api.service.construction.ConstructionApiService;
-import org.cardanofoundation.rosetta.api.model.rest.AccountIdentifier;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-
-import java.io.IOException;
-import java.util.*;
-import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -147,23 +146,11 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
         log.debug("[constructionMetadata] updating tx size from {}", txSize);
         Long updatedTxSize = cardanoService.updateTxSize(txSize.longValue(), 0L, ttl);
         log.debug("[constructionMetadata] updated txSize size is ${updatedTxSize}");
-        ProtocolParametersResponse protocolParametersResponse = cardanoService.getProtocolParameters();
+        ProtocolParameters protocolParametersResponse = cardanoService.getProtocolParameters();
         log.debug("[constructionMetadata] received protocol parameters from block-service {}", protocolParametersResponse);
         Long suggestedFee = cardanoService.calculateTxMinimumFee(updatedTxSize, protocolParametersResponse);
         log.debug("[constructionMetadata] suggested fee is ${suggestedFee}");
-        // eslint-disable-next-line camelcase
-        ProtocolParameters protocol_parameters = new ProtocolParameters();
-        protocol_parameters.setCoinsPerUtxoSize(protocolParametersResponse.getCoinsPerUtxoSize());
-        protocol_parameters.setMaxTxSize(protocolParametersResponse.getMaxTxSize());
-        protocol_parameters.setMaxValSize(protocolParametersResponse.getMaxValSize());
-        protocol_parameters.setKeyDeposit(protocolParametersResponse.getKeyDeposit());
-        protocol_parameters.setMaxCollateralInputs(protocolParametersResponse.getMaxCollateralInputs());
-        protocol_parameters.setMinFeeConstant(protocolParametersResponse.getMinFeeConstant());
-        protocol_parameters.setMinFeeCoefficient(protocolParametersResponse.getMinFeeCoefficient());
-        protocol_parameters.setMinPoolCost(protocolParametersResponse.getMinPoolCost());
-        protocol_parameters.setPoolDeposit(protocolParametersResponse.getPoolDeposit());
-        protocol_parameters.setProtocol(protocolParametersResponse.getProtocolMajor());
-        return new ConstructionMetadataResponse(new ConstructionMetadataResponseMetadata(ttl.toString(), protocol_parameters),
+        return new ConstructionMetadataResponse(new ConstructionMetadataResponseMetadata(ttl.toString(), protocolParametersResponse),
             new ArrayList<>(List.of(cardanoService.mapAmount(suggestedFee.toString(), null, null, null))));
     }
 

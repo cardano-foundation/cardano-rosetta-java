@@ -1,5 +1,6 @@
 package org.cardanofoundation.rosetta.api.projection;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import java.sql.Timestamp;
 
 public interface BlockProjection {
@@ -8,6 +9,7 @@ public interface BlockProjection {
 
   String getHash();
 
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
   Timestamp getCreatedAt();
 
   String getPreviousBlockHash();

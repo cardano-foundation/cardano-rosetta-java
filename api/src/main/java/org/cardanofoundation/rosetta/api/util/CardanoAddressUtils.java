@@ -31,7 +31,7 @@ public class CardanoAddressUtils {
 
   public static boolean isStakeAddress(String address) {
     String addressPrefix = address.substring(0, Constants.PREFIX_LENGTH);
-    String[] types = {StakeAddressPrefix.MAIN.toString(), StakeAddressPrefix.TEST.toString()};
+    String[] types = {StakeAddressPrefix.MAIN.getPrefix(), StakeAddressPrefix.TEST.getPrefix()};
 
     return Arrays.stream(types)
         .anyMatch(addressPrefix::contains);

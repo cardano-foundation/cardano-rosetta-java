@@ -1,0 +1,143 @@
+server:
+  port: ${API_BIND_PORT:8080}
+  compression:
+    enabled: true
+    mime-types: text/html,text/plain,text/css,application/javascript,application/json
+    min-response-size: 1024
+
+
+
+spring:
+  jackson:
+    default-property-inclusion: NON_NULL
+    serialization:
+      write-dates-as-timestamps: false
+  servlet:
+    multipart:
+      max-file-size: 8MB
+      max-request-size: 16MB
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    username: postgres
+    password: 123456
+    url: jdbc:postgresql://localhost:5437/test?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC&useLegacyDatetimeCode=false&createDatabaseIfNotExist=true&autoReconnect=true
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        jdbc:
+          lob:
+            non-contextual-creation: true
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+  liquibase:
+    enabled: false
+
+logging:
+  level:
+    org:
+      slf4j: DEBUG
+      cardanofoundation:
+        rosetta:
+          api: debug
+      hibernate:
+        SQL: debug
+        type: TRACE
+api:
+  exception:
+    isPrintStackTrace : true
+
+
+
+cardano:
+  rosetta:
+    version:
+      ${ROSETTA_VERSION}
+    implementation-version:
+      @project.version@
+    networks:
+      [
+        {
+          id:
+            mainnet,
+          node-version:
+            cardano node 1.30.1,
+          indexer:
+            {
+              type:
+                ledgersync,
+              endpoint-url:
+                http://localhost:8080
+            },
+          node-bridge:
+            {
+              type:
+                ledgersync,
+              endpoint-url:
+                http://localhost:8080
+            }
+        },
+        {
+          id:
+            preprod,
+          protocol-magic: 1,
+          node-version:
+            cardano node 1.30.1,
+          indexer:
+            {
+              type:
+                ledgersync,
+              endpoint-url:
+                http://localhost:8080
+            },
+          node-bridge:
+            {
+              type:
+                ledgersync,
+              endpoint-url:
+                http://localhost:8080
+            }
+        },
+        {
+          id:
+            preview,
+          protocol-magic: 2,
+          node-version:
+            cardano node 1.30.1,
+          indexer:
+            {
+              type:
+                ledgersync,
+              endpoint-url:
+                http://localhost:8080
+            },
+          node-bridge:
+            {
+              type:
+                ledgersync,
+              endpoint-url:
+                http://localhost:8080
+            }
+        }
+
+      ]
+    TOPOLOGY_FILEPATH: ${TOPOLOGY_FILEPATH:${DEFAULT_TOPOLOGY_FILEPATH}}
+    GENESIS_SHELLEY_PATH: ${GENESIS_SHELLEY_PATH:${DEFAULT_GENESIS_SHELLEY_PATH}}
+    CARDANO_NODE_PATH: ${CARDANO_NODE_PATH:/home/lamhoang/Workspace/cardano-node-8.0.0-linux/cardano-node}
+    EXEMPTION_TYPES_PATH: ${EXEMPTION_TYPES_PATH:${DEFAULT_EXEMPTION_TYPES_PATH}}
+
+DEFAULT_TOPOLOGY_FILEPATH: classpath:network/${NETWORK:mainnet}/cardano-node/topology.json
+DEFAULT_GENESIS_SHELLEY_PATH: classpath:network/${NETWORK:mainnet}/genesis/shelley.json
+DEFAULT_EXEMPTION_TYPES_PATH: classpath:network/exemptions.json
+
+cardano-transaction-submitter:
+  connection:
+    socket:
+      path: /home/sotatek/Desktop/node-ipc/node.socket
+
+  networkMagic: 1
+
+  transaction:
+    ttl: 3000

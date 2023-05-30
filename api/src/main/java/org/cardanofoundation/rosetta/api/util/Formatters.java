@@ -10,9 +10,10 @@ public class Formatters {
   private Formatters() {
   }
 
-  public static String hexFormatter(byte[] input) {
-
-    return HexUtil.encodeHexString(input);
+  public static String removePrefixHex(String hexString) {
+    if(hexString != null && hexString.startsWith("0x"))
+      hexString = hexString.substring(2);
+    return hexString;
   }
 
   public static byte[] hexStringToBuffer(String input) {
@@ -28,6 +29,12 @@ public class Formatters {
 
   public static String hexStringFormatter(String toFormat) {
     return toFormat == null || toFormat.isEmpty() ? EMPTY_HEX : toFormat;
+  }
+  public static String remove0xPrefix(String hex) {
+    if (hex.startsWith("0x")) {
+      return hex.substring(2);
+    }
+    return hex;
   }
 
 }

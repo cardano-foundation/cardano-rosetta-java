@@ -2,11 +2,11 @@ package org.cardanofoundation.rosetta.api.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.api.common.enumeration.EraAddressType;
+import org.cardanofoundation.rosetta.api.model.ProtocolParameters;
 import org.cardanofoundation.rosetta.api.service.CardanoService;
 import org.cardanofoundation.rosetta.api.service.LedgerDataProviderService;
 import org.cardanofoundation.rosetta.api.util.CardanoAddressUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 @Service("CardanoService1")
@@ -16,6 +16,7 @@ public class CardanoServiceImpl implements CardanoService {
 
   @Autowired
   LedgerDataProviderService ledgerDataProviderService;
+
   @Override
   public EraAddressType getEraAddressType(String address) {
     try {
@@ -24,9 +25,16 @@ public class CardanoServiceImpl implements CardanoService {
       return null;
     }
   }
+
   @Override
   public boolean isStakeAddress(String address) {
     return CardanoAddressUtils.isStakeAddress(address);
+  }
+
+  @Override
+  public ProtocolParameters getProtocolParameters() {
+    log.info("[getProtocolParameters] About to get protocol parameters");
+    return ledgerDataProviderService.findProtocolParameters();
   }
 
 

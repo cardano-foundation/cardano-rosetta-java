@@ -7,18 +7,31 @@ import com.bloxbean.cardano.client.crypto.bip32.key.HdPublicKey;
 import com.bloxbean.cardano.client.exception.AddressExcepion;
 import com.bloxbean.cardano.client.exception.CborDeserializationException;
 import com.bloxbean.cardano.client.exception.CborSerializationException;
-import com.bloxbean.cardano.client.transaction.spec.*;
+import com.bloxbean.cardano.client.transaction.spec.Asset;
+import com.bloxbean.cardano.client.transaction.spec.AuxiliaryData;
+import com.bloxbean.cardano.client.transaction.spec.MultiAsset;
+import com.bloxbean.cardano.client.transaction.spec.TransactionBody;
+import com.bloxbean.cardano.client.transaction.spec.TransactionInput;
+import com.bloxbean.cardano.client.transaction.spec.TransactionOutput;
+import com.bloxbean.cardano.client.transaction.spec.TransactionWitnessSet;
 import com.bloxbean.cardano.client.transaction.spec.cert.Certificate;
 import com.bloxbean.cardano.client.transaction.spec.cert.PoolRegistration;
 import com.bloxbean.cardano.client.transaction.spec.cert.StakeCredential;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import java.io.IOException;
+import java.net.Inet4Address;
+import java.net.Inet6Address;
+import java.net.UnknownHostException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.cardanofoundation.rosetta.api.construction.data.Metadata;
 import org.cardanofoundation.rosetta.api.construction.data.ProcessOperationsDto;
-import org.cardanofoundation.rosetta.api.construction.data.ProtocolParametersResponse;
 import org.cardanofoundation.rosetta.api.construction.data.Signatures;
 import org.cardanofoundation.rosetta.api.construction.data.UnsignedTransaction;
 import org.cardanofoundation.rosetta.api.construction.data.type.AddressType;
@@ -33,6 +46,7 @@ import org.cardanofoundation.rosetta.api.model.OperationMetadata;
 import org.cardanofoundation.rosetta.api.model.PoolMargin;
 import org.cardanofoundation.rosetta.api.model.PoolMetadata;
 import org.cardanofoundation.rosetta.api.model.PoolRegistrationParams;
+import org.cardanofoundation.rosetta.api.model.ProtocolParameters;
 import org.cardanofoundation.rosetta.api.model.PublicKey;
 import org.cardanofoundation.rosetta.api.model.Relay;
 import org.cardanofoundation.rosetta.api.model.SigningPayload;
@@ -43,15 +57,6 @@ import org.cardanofoundation.rosetta.api.model.VoteRegistrationMetadata;
 import org.cardanofoundation.rosetta.api.model.rest.AccountIdentifier;
 import org.cardanofoundation.rosetta.api.model.rest.NetworkIdentifier;
 import org.cardanofoundation.rosetta.api.model.rest.TransactionIdentifierResponse;
-
-import java.io.IOException;
-import java.net.Inet4Address;
-import java.net.Inet6Address;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import org.cardanofoundation.rosetta.api.projection.dto.BlockDto;
 
 
@@ -174,9 +179,9 @@ public interface CardanoService {
 
     String hexStringFormatter(String toFormat);
 
-    Long calculateTxMinimumFee(Long transactionSize, ProtocolParametersResponse protocolParameters);
+    Long calculateTxMinimumFee(Long transactionSize, ProtocolParameters protocolParameters);
 
-    ProtocolParametersResponse getProtocolParameters();
+    ProtocolParameters getProtocolParameters();
 
     Long updateTxSize(Long previousTxSize, Long previousTtl, Long updatedTtl) throws CborSerializationException, CborException;
 

@@ -1,9 +1,10 @@
 package org.cardanofoundation.rosetta.api.model.rest;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import java.util.List;
 import org.cardanofoundation.rosetta.api.model.Peer;
 
@@ -11,9 +12,11 @@ import org.cardanofoundation.rosetta.api.model.Peer;
  * @author Sotatek-HoangNguyen9
  * @since 12/04/2023 17:34
  */
+
+@Data
 @Builder
-@Getter
-@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 
 public class NetworkStatusResponse {
     @JsonProperty("current_block_identifier")
