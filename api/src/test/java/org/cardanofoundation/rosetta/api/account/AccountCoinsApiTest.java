@@ -13,20 +13,16 @@ import java.util.List;
 import java.util.Objects;
 import org.cardanofoundation.rosetta.api.constructionApiService.impl.IntegrationTest;
 import org.cardanofoundation.rosetta.api.exception.Error;
-
 import org.cardanofoundation.rosetta.api.model.rest.AccountCoinsRequest;
 import org.cardanofoundation.rosetta.api.model.rest.AccountCoinsResponse;
 import org.cardanofoundation.rosetta.api.model.rest.AccountIdentifier;
 import org.cardanofoundation.rosetta.api.model.rest.Currency;
 import org.cardanofoundation.rosetta.api.model.rest.NetworkIdentifier;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.client.HttpServerErrorException;
 
-
 public class AccountCoinsApiTest extends IntegrationTest {
-
 
   private static final String ACCOUNT_BALANCE_ENDPOINT = "/account/coins";
   private static final String NETWORK = "mainnet";
