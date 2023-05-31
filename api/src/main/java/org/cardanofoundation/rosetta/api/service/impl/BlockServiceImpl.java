@@ -3,7 +3,6 @@ package org.cardanofoundation.rosetta.api.service.impl;
 import static org.cardanofoundation.rosetta.api.mapper.DataMapper.mapToRosettaBlock;
 import static org.cardanofoundation.rosetta.api.mapper.DataMapper.mapToRosettaTransaction;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -29,12 +28,11 @@ import org.cardanofoundation.rosetta.api.projection.dto.BlockUtxosMultiAssets;
 import org.cardanofoundation.rosetta.api.projection.dto.GenesisBlockDto;
 import org.cardanofoundation.rosetta.api.projection.dto.PopulatedTransaction;
 import org.cardanofoundation.rosetta.api.service.BlockService;
-import org.cardanofoundation.rosetta.api.service.CardanoService;
 import org.cardanofoundation.rosetta.api.service.LedgerDataProviderService;
+import org.cardanofoundation.rosetta.api.service.CardanoService;
 import org.openapitools.client.model.Transaction;
 import org.openapitools.client.model.TransactionIdentifier;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -47,7 +45,6 @@ public class BlockServiceImpl implements BlockService {
   @Autowired
   LedgerDataProviderService ledgerDataProviderService;
   @Autowired
-  @Qualifier("CardanoService1")
   private CardanoService cardanoService;
 
 

@@ -1,15 +1,29 @@
 package org.cardanofoundation.rosetta.api.constructionApiService.impl;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import org.cardanofoundation.rosetta.api.common.enumeration.AddressType;
+import org.cardanofoundation.rosetta.api.common.enumeration.NetworkIdentifierType;
+import org.cardanofoundation.rosetta.api.exception.ApiException;
+import org.cardanofoundation.rosetta.api.exception.Error;
 import org.cardanofoundation.rosetta.api.model.ConstructionDeriveRequestMetadata;
 import org.cardanofoundation.rosetta.api.model.CurveType;
 import org.cardanofoundation.rosetta.api.model.PublicKey;
+import org.cardanofoundation.rosetta.api.model.SubNetworkIdentifier;
 import org.cardanofoundation.rosetta.api.model.rest.ConstructionDeriveRequest;
 import org.cardanofoundation.rosetta.api.model.rest.ConstructionDeriveResponse;
 import org.cardanofoundation.rosetta.api.model.rest.NetworkIdentifier;
+import org.cardanofoundation.rosetta.api.service.CardanoService;
+import org.cardanofoundation.rosetta.api.service.impl.ConstructionApiServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.client.HttpServerErrorException;
@@ -21,11 +35,13 @@ class ConstructionApiDelegateImplDeriveTests extends IntegrationTest{
   public final String INVALID_ADDRESS_TYPE_ERROR = "invalidAddressTypeError";
 
   public final String MISSING_KEY_ERROR_MESSAGE  = "missingStakingKeyError";
-
+  private ConstructionApiServiceImpl constructionApiServiceImplUnderTest;
 
   @BeforeEach
   public void setUp() {
     baseUrl = baseUrl.concat(":").concat(serverPort + "").concat("/construction/derive");
+    constructionApiServiceImplUnderTest = new ConstructionApiServiceImpl();
+    constructionApiServiceImplUnderTest.cardanoService = mock(CardanoService.class);
   }
 
   private ConstructionDeriveRequestMetadata generateMetadata(String addressType, String stakingKey, CurveType curveType) {
@@ -73,7 +89,7 @@ class ConstructionApiDelegateImplDeriveTests extends IntegrationTest{
   }
 
   @Test
-  void test_short_key_length() {
+  void test_short_key_length() throws JsonProcessingException {
     ConstructionDeriveRequest request = generatePayload("cardano", "mainnet", "smallPublicKey", null, null, null);
 
     try {
@@ -81,14 +97,15 @@ class ConstructionApiDelegateImplDeriveTests extends IntegrationTest{
       fail("Expected exception");
     } catch (HttpServerErrorException e) {
       String responseBody = e.getResponseBodyAsString();
-      assertTrue(responseBody.contains(INVALID_PUBLIC_KEY_FORMAT_MESSAGE));
-      assertEquals(500, e.getRawStatusCode());
+      Error error=objectMapper.readValue(responseBody,Error.class);
+      assertTrue(!error.isRetriable());
+      assertEquals(4007,error.getCode());
+      assertEquals("Invalid public key format",error.getMessage());
     }
-
   }
 
   @Test
-  void test_long_key_length() {
+  void test_long_key_length() throws JsonProcessingException {
     ConstructionDeriveRequest request = generatePayload("cardano", "mainnet", "ThisIsABiggerPublicKeyForTestingPurposesThisIsABiggerPublicKeyForTestingPurposes", null, null, null);
 
     try {
@@ -96,13 +113,15 @@ class ConstructionApiDelegateImplDeriveTests extends IntegrationTest{
       fail("Expected exception");
     } catch (HttpServerErrorException e) {
       String responseBody = e.getResponseBodyAsString();
-      assertTrue(responseBody.contains(INVALID_PUBLIC_KEY_FORMAT_MESSAGE));
-      assertEquals(500, e.getRawStatusCode());
+      Error error=objectMapper.readValue(responseBody,Error.class);
+      assertTrue(!error.isRetriable());
+      assertEquals(4007,error.getCode());
+      assertEquals("Invalid public key format",error.getMessage());
     }
   }
 
   @Test
-  void test_staking_key_invalid_format() {
+  void test_staking_key_invalid_format() throws JsonProcessingException {
     ConstructionDeriveRequest request = generatePayload("cardano", "mainnet", null, null, "Enterprise", "1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F__");
 
     try {
@@ -110,21 +129,25 @@ class ConstructionApiDelegateImplDeriveTests extends IntegrationTest{
       fail("Expected exception");
     } catch (HttpServerErrorException e) {
       String responseBody = e.getResponseBodyAsString();
-      assertTrue(responseBody.contains(INVALID_STAKING_KEY_FORMAT_MESSAGE));
-      assertEquals(500, e.getRawStatusCode());
+      Error error=objectMapper.readValue(responseBody,Error.class);
+      assertTrue(!error.isRetriable());
+      assertEquals(4017,error.getCode());
+      assertEquals("Invalid staking key format",error.getMessage());
     }
   }
 
   @Test
-  void test_address_type_invalid_format() {
+  void test_address_type_invalid_format() throws JsonProcessingException {
     ConstructionDeriveRequest request = generatePayload("cardano", "mainnet", null, null, "Invalid", "1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F");
     try {
       restTemplate.postForObject(baseUrl, request, ConstructionDeriveResponse.class);
       fail("Expected exception");
     } catch (HttpServerErrorException e) {
       String responseBody = e.getResponseBodyAsString();
-      assertTrue(responseBody.contains(INVALID_ADDRESS_TYPE_ERROR));
-      assertEquals(500, e.getRawStatusCode());
+      Error error=objectMapper.readValue(responseBody,Error.class);
+      assertTrue(!error.isRetriable());
+      assertEquals(4016,error.getCode());
+      assertEquals("Provided address type is invalid",error.getMessage());
     }
 
   }
@@ -145,7 +168,7 @@ class ConstructionApiDelegateImplDeriveTests extends IntegrationTest{
   }
 
   @Test
-  void test_staking_key_missing() {
+  void test_staking_key_missing() throws JsonProcessingException {
     ConstructionDeriveRequest request = generatePayload("cardano",
         "mainnet",
         "159abeeecdf167ccc0ea60b30f9522154a0d74161aeb159fb43b6b0695f057b3",
@@ -158,8 +181,10 @@ class ConstructionApiDelegateImplDeriveTests extends IntegrationTest{
       fail("Expected exception");
     } catch (HttpServerErrorException e) {
       String responseBody = e.getResponseBodyAsString();
-      assertTrue(responseBody.contains(MISSING_KEY_ERROR_MESSAGE));
-      assertEquals(500, e.getRawStatusCode());
+      Error error=objectMapper.readValue(responseBody,Error.class);
+      assertTrue(!error.isRetriable());
+      assertEquals(4018,error.getCode());
+      assertEquals("Staking key is required for this type of address",error.getMessage());
     }
   }
 
@@ -180,7 +205,7 @@ class ConstructionApiDelegateImplDeriveTests extends IntegrationTest{
   }
 
   @Test
-  void test_short_staking_key() {
+  void test_short_staking_key() throws JsonProcessingException {
     ConstructionDeriveRequest request = generatePayload(
         "cardano",
         "mainnet",
@@ -194,13 +219,15 @@ class ConstructionApiDelegateImplDeriveTests extends IntegrationTest{
       fail("Expected exception");
     } catch (HttpServerErrorException e) {
       String responseBody = e.getResponseBodyAsString();
-      assertTrue(responseBody.contains(INVALID_STAKING_KEY_FORMAT_MESSAGE));
-      assertEquals(500, e.getRawStatusCode());
+      Error error=objectMapper.readValue(responseBody,Error.class);
+      assertTrue(!error.isRetriable());
+      assertEquals(4017,error.getCode());
+      assertEquals("Invalid staking key format",error.getMessage());
     }
   }
 
   @Test
-  void test_long_staking_key() {
+  void test_long_staking_key() throws JsonProcessingException {
     ConstructionDeriveRequest request = generatePayload(
         "cardano",
         "mainnet",
@@ -214,9 +241,40 @@ class ConstructionApiDelegateImplDeriveTests extends IntegrationTest{
       fail("Expected exception");
     } catch (HttpServerErrorException e) {
       String responseBody = e.getResponseBodyAsString();
-      assertTrue(responseBody.contains(INVALID_STAKING_KEY_FORMAT_MESSAGE));
-      assertEquals(500, e.getRawStatusCode());
+      Error error=objectMapper.readValue(responseBody,Error.class);
+      assertTrue(!error.isRetriable());
+      assertEquals(4017,error.getCode());
+      assertEquals("Invalid staking key format",error.getMessage());
     }
   }
+  @Test
+  void testConstructionDeriveService_CardanoServiceGenerateAddressReturnsNull() throws Exception {
+    // Setup
+    final ConstructionDeriveRequest request =  ConstructionDeriveRequest.builder()
+        .networkIdentifier(NetworkIdentifier.builder().blockchain("cardano")
+            .network("mainnet")
+            .build())
+        .publicKey(new PublicKey("159abeeecdf167ccc0ea60b30f9522154a0d74161aeb159fb43b6b0695f057b3","edwards25519"))
+        .metadata(new ConstructionDeriveRequestMetadata(null,null))
+        .build();
 
+    // Configure CardanoService.getNetworkIdentifierByRequestParameters(...).
+    when(constructionApiServiceImplUnderTest.cardanoService.getNetworkIdentifierByRequestParameters(
+        any())).thenReturn(NetworkIdentifierType.CARDANO_MAINNET_NETWORK);
+    when(constructionApiServiceImplUnderTest.cardanoService.isKeyValid(anyString(),
+        anyString())).thenReturn(true);
+    when(constructionApiServiceImplUnderTest.cardanoService.isAddressTypeValid(anyString()))
+        .thenReturn(true);
+    when(constructionApiServiceImplUnderTest.cardanoService.generateAddress(
+        eq(NetworkIdentifierType.CARDANO_MAINNET_NETWORK), anyString(), anyString(),
+        eq(AddressType.ENTERPRISE))).thenReturn(null);
+    try {
+      ConstructionDeriveResponse constructionDeriveResponse=  constructionApiServiceImplUnderTest.constructionDeriveService(request);
+    } catch (ApiException e) {
+      Error error=e.getError();
+      assertTrue(!error.isRetriable());
+      assertEquals(5002,error.getCode());
+      assertEquals("Address generation error",error.getMessage());
+    }
+  }
 }

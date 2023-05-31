@@ -1,5 +1,9 @@
 package org.cardanofoundation.rosetta.api.service;
 
+import org.cardanofoundation.rosetta.api.model.ProtocolParametersResponse;
+import org.cardanofoundation.rosetta.api.model.rest.BlockIdentifier;
+
+
 import java.util.List;
 import java.util.Map;
 import org.cardanofoundation.rosetta.api.model.ProtocolParameters;

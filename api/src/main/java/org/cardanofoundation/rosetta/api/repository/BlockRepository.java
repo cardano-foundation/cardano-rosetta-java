@@ -1,6 +1,6 @@
 package org.cardanofoundation.rosetta.api.repository;
 
-import org.cardanofoundation.rosetta.api.construction.data.ProtocolParametersResponse;
+import org.cardanofoundation.rosetta.api.model.ProtocolParametersResponse;
 import org.cardanofoundation.rosetta.api.projection.BlockProjection;
 import org.cardanofoundation.rosetta.api.projection.FindTransactionProjection;
 import org.cardanofoundation.rosetta.api.projection.GenesisBlockProjection;

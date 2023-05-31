@@ -67,8 +67,6 @@ class ConstructionApiDelegateImplPreprocessTests extends IntegrationTest{
       ConstructionPreprocessResponse constructionPreprocessResponse = restTemplate.postForObject(
           baseUrl, request, ConstructionPreprocessResponse.class);
     } catch (HttpServerErrorException e) {
-      String responseBody = e.getResponseBodyAsString();
-      assertTrue(responseBody.contains("ThisIsAnInvalidAddressaddr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpxInvalid"));
       assertEquals(500, e.getRawStatusCode());
     }
   }

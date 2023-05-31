@@ -16,7 +16,6 @@ import org.cardanofoundation.rosetta.api.service.BlockService;
 import org.cardanofoundation.rosetta.api.service.CardanoService;
 import org.cardanofoundation.rosetta.api.util.Validations;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -24,7 +23,6 @@ import org.springframework.stereotype.Service;
 public class AccountServiceImpl implements AccountService {
 
   @Autowired
-  @Qualifier("CardanoService1")
   CardanoService cardanoService;
   @Autowired
   BlockService blockService;

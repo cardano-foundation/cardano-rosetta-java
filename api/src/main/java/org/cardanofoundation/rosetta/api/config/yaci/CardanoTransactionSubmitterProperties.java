@@ -1,4 +1,4 @@
-//package org.cardanofoundation.rosetta.api.addedClass;
+//package org.cardanofoundation.rosetta.api.config.yaci;
 //
 //import lombok.AccessLevel;
 //import lombok.Getter;

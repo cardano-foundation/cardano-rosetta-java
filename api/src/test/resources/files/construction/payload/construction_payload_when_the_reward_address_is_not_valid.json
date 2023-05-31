@@ -1,0 +1,113 @@
+{
+  "network_identifier": {
+    "blockchain": "cardano",
+    "network": "mainnet"
+  },
+  "operations": [
+    {
+      "operation_identifier": {
+        "index": 0,
+        "network_index": 0
+      },
+      "type": "input",
+      "status": "success",
+      "account": {
+        "address": "addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx"
+      },
+      "amount": {
+        "value": "-90000",
+        "currency": {
+          "symbol": "ADA",
+          "decimals": 6
+        }
+      },
+      "coin_change": {
+        "coin_identifier": {
+          "identifier": "2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f:1"
+        },
+        "coin_action": "coin_spent"
+      }
+    },
+    {
+      "operation_identifier": {
+        "index": 1
+      },
+      "related_operations": [
+        {
+          "index": 0
+        }
+      ],
+      "type": "output",
+      "status": "success",
+      "account": {
+        "address": "addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx"
+      },
+      "amount": {
+        "value": "10000",
+        "currency": {
+          "symbol": "ADA",
+          "decimals": 6
+        }
+      }
+    },
+    {
+      "operation_identifier": {
+        "index": 2
+      },
+      "related_operations": [
+        {
+          "index": 0
+        }
+      ],
+      "type": "output",
+      "status": "success",
+      "account": {
+        "address": "addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx"
+      },
+      "amount": {
+        "value": "40000",
+        "currency": {
+          "symbol": "ADA",
+          "decimals": 6
+        }
+      }
+    },
+    {
+      "operation_identifier": {
+        "index": 3
+      },
+      "type": "voteRegistration",
+      "status": "success",
+      "metadata": {
+        "voteRegistrationMetadata": {
+          "rewardAddress": "addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx",
+          "stakeKey": {
+            "hex_bytes": "86870efc99c453a873a16492ce87738ec79a0ebd064379a62e2c9cf4e119219e",
+            "curve_type": "edwards25519"
+          },
+          "votingKey": {
+            "hex_bytes": "0036ef3e1f0d3f5989e2d155ea54bdb2a72c4c456ccb959af4c94868f473f5a0",
+            "curve_type": "edwards25519"
+          },
+          "votingNonce": 1234,
+          "votingSignature": "6c2312cd49067ecf0920df7e067199c55b3faef4ec0bce1bd2cfb99793972478c45876af2bc271ac759c5ce40ace5a398b9fdb0e359f3c333fe856648804780e"
+        }
+      }
+    }
+  ],
+  "metadata": {
+    "ttl": "1000",
+    "protocol_parameters": {
+      "coinsPerUtxoSize": "0",
+      "maxTxSize": 16384,
+      "maxValSize": 0,
+      "keyDeposit": "2000000",
+      "maxCollateralInputs": 0,
+      "minFeeCoefficient": 44,
+      "minFeeConstant": 155381,
+      "minPoolCost": "340000000",
+      "poolDeposit": "500000000",
+      "protocol": 4
+    }
+  }
+}
