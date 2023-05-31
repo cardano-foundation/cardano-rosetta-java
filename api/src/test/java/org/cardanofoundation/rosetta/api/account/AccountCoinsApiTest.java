@@ -11,7 +11,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Objects;
-import org.cardanofoundation.rosetta.api.constructionApiService.impl.IntegrationTest;
+import org.cardanofoundation.rosetta.api.IntegrationTestWithDB;
 import org.cardanofoundation.rosetta.api.exception.Error;
 import org.cardanofoundation.rosetta.api.model.rest.AccountCoinsRequest;
 import org.cardanofoundation.rosetta.api.model.rest.AccountCoinsResponse;
@@ -22,7 +22,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.client.HttpServerErrorException;
 
-public class AccountCoinsApiTest extends IntegrationTest {
+public class AccountCoinsApiTest extends IntegrationTestWithDB {
 
   private static final String ENDPOINT = "/account/coins";
   private static final String NETWORK = "mainnet";

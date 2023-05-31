@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import org.cardanofoundation.rosetta.api.constructionApiService.impl.IntegrationTest;
+import org.cardanofoundation.rosetta.api.IntegrationTestWithDB;
 import org.cardanofoundation.rosetta.api.exception.Error;
 import org.cardanofoundation.rosetta.api.model.rest.BlockRequest;
 import org.cardanofoundation.rosetta.api.model.rest.BlockResponse;
@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.openapitools.client.model.BlockIdentifier;
 import org.springframework.web.client.HttpServerErrorException;
 
-public class BlockApiTest extends IntegrationTest {
+public class BlockApiTest extends IntegrationTestWithDB {
 
   private static final String ENDPOINT = "/block";
   private static final String NETWORK = "mainnet";
