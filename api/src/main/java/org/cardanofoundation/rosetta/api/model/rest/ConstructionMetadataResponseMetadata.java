@@ -3,13 +3,12 @@ package org.cardanofoundation.rosetta.api.model.rest;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.Objects;
+import javax.annotation.Generated;
+import javax.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import org.cardanofoundation.rosetta.api.model.ProtocolParameters;
-
-import javax.annotation.Generated;
-import javax.validation.Valid;
-import java.util.Objects;
 
 /**
  * ConstructionMetadataResponseMetadata

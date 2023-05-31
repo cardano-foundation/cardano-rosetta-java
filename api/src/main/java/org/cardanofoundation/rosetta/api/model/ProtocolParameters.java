@@ -1,7 +1,9 @@
 package org.cardanofoundation.rosetta.api.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.math.BigInteger;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -14,7 +16,8 @@ import lombok.Setter;
 @NoArgsConstructor
 @Getter
 @Setter
-public class ProtocolParameters {
+@Builder
+  public class ProtocolParameters {
 
   @JsonProperty("coinsPerUtxoSize")
   private String coinsPerUtxoSize;
@@ -23,7 +26,7 @@ public class ProtocolParameters {
   private Integer maxTxSize;
 
   @JsonProperty("maxValSize")
-  private Long maxValSize;
+  private BigInteger maxValSize;
 
   @JsonProperty("keyDeposit")
   private String keyDeposit;

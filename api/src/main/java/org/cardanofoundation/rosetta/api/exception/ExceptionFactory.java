@@ -156,4 +156,13 @@ public class ExceptionFactory {
     return new ApiException(RosettaErrorType.INVALID_ADDRESS_TYPE.toRosettaError(false));
   }
 
+  public static ApiException transactionNotFound() {
+    return new ApiException(RosettaErrorType.TRANSACTION_NOT_FOUND.toRosettaError(false));
+  }
+  public static ApiException invalidTokenNameError(String details) {
+    return new ApiException(RosettaErrorType.INVALID_TOKEN_NAME.toRosettaError(false, details));
+  }
+  public static ApiException invalidPolicyIdError(String details) {
+    return new ApiException(RosettaErrorType.INVALID_POLICY_ID.toRosettaError(false, details));
+  }
 }

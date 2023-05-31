@@ -15,11 +15,11 @@ public class FindTransactionPoolRelays implements FindTransactionFieldResult {
   private String ipv6;
   private Integer port;
   private String dnsName;
-  private byte[] txHash;
-  private byte[] vrfKeyHash;
+  private String txHash;
+  private String vrfKeyHash;
 
   public FindTransactionPoolRelays(Long updateId, String ipv4, String ipv6, Integer port,
-      String dnsName, byte[] txHash) {
+      String dnsName, String txHash) {
     this.updateId = updateId;
     this.ipv4 = ipv4;
     this.ipv6 = ipv6;

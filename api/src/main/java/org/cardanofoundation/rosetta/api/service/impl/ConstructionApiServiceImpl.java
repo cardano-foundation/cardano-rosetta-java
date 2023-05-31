@@ -7,6 +7,7 @@ import com.bloxbean.cardano.client.exception.AddressExcepion;
 import com.bloxbean.cardano.client.exception.CborDeserializationException;
 import com.bloxbean.cardano.client.exception.CborSerializationException;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import java.math.BigInteger;
 import java.net.UnknownHostException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -148,7 +149,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
         log.debug("[constructionMetadata] updating tx size from {}", txSize);
         Long updatedTxSize = cardanoService.updateTxSize(txSize.longValue(), 0L, ttl);
         log.debug("[constructionMetadata] updated txSize size is ${updatedTxSize}");
-        ProtocolParametersResponse protocolParametersResponse = cardanoService.getProtocolParameters();
+        ProtocolParameters protocolParametersResponse = cardanoService.getProtocolParameters();
         log.debug("[constructionMetadata] received protocol parameters from block-service {}", protocolParametersResponse);
         Long suggestedFee = cardanoService.calculateTxMinimumFee(updatedTxSize, protocolParametersResponse);
         log.debug("[constructionMetadata] suggested fee is ${suggestedFee}");
@@ -163,7 +164,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
         protocol_parameters.setMinFeeCoefficient(protocolParametersResponse.getMinFeeCoefficient());
         protocol_parameters.setMinPoolCost(protocolParametersResponse.getMinPoolCost().toString());
         protocol_parameters.setPoolDeposit(protocolParametersResponse.getPoolDeposit().toString());
-        protocol_parameters.setProtocol(protocolParametersResponse.getProtocolMajor());
+        protocol_parameters.setProtocol(protocolParametersResponse.getProtocol());
         return new ConstructionMetadataResponse(new ConstructionMetadataResponseMetadata(ttl.toString(), protocol_parameters),
             new ArrayList<>(List.of(cardanoService.mapAmount(suggestedFee.toString(), null, null, null))));
     }
@@ -180,7 +181,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
             networkIdentifier,
             operations,
             Integer.parseInt(ttl),
-            new DepositParameters(Long.parseLong(protocolParameters.getKeyDeposit()), Long.parseLong(protocolParameters.getPoolDeposit()))
+            new DepositParameters(protocolParameters.getKeyDeposit(), protocolParameters.getPoolDeposit())
         );
         List<SigningPayload> payloads = cardanoService.constructPayloadsForTransactionBody(unsignedTransaction.getHash(), unsignedTransaction.getAddresses());
         String unsignedTransactionString=cardanoService.encodeExtraData(unsignedTransaction.getBytes(),

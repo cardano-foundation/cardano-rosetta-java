@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 public class FindTransactionDelegations implements FindTransactionFieldResult {
 
   private String address;
-  private byte[] poolHash;
-  private byte[] txHash;
+  private String poolHash;
+  private String txHash;
 
 }

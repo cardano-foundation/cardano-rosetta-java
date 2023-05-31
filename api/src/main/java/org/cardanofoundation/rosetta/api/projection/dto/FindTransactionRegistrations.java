@@ -13,7 +13,7 @@ public class FindTransactionRegistrations implements FindTransactionFieldResult 
 
   private Long amount;
   private String address;
-  private byte[] txHash;
+  private String txHash;
 
 
 }

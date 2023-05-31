@@ -11,6 +11,7 @@ import org.cardanofoundation.rosetta.api.model.rest.NetworkStatusResponse;
 import org.cardanofoundation.rosetta.api.service.NetworkService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 @Log4j2
@@ -21,19 +22,21 @@ public class NetworkApiDelegateImplementation implements NetworkApiDelegate {
     private NetworkService networkService;
 
     @Override
-    public ResponseEntity<NetworkListResponse> networkList(MetadataRequest metadataRequest) {
+    public ResponseEntity<NetworkListResponse> networkList( @RequestBody MetadataRequest metadataRequest)
+        throws IOException {
         final NetworkListResponse networkListResponse = networkService.getNetworkList(metadataRequest);
         return ResponseEntity.ok(networkListResponse);
     }
 
     @Override
-    public ResponseEntity<NetworkOptionsResponse> networkOptions(NetworkRequest networkRequest) {
+    public ResponseEntity<NetworkOptionsResponse> networkOptions(@RequestBody NetworkRequest networkRequest)
+        throws IOException, InterruptedException {
         final NetworkOptionsResponse networkOptionsResponse = networkService.getNetworkOptions(networkRequest);
         return ResponseEntity.ok(networkOptionsResponse);
     }
 
     @Override
-    public ResponseEntity<NetworkStatusResponse> networkStatus(NetworkRequest networkRequest)
+    public ResponseEntity<NetworkStatusResponse> networkStatus(@RequestBody NetworkRequest networkRequest)
         throws ServerException, IOException {
         final NetworkStatusResponse networkStatusResponse = networkService.getNetworkStatus(networkRequest);
         return ResponseEntity.ok(networkStatusResponse);

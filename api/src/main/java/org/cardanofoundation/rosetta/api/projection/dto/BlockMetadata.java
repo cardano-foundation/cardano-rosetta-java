@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Data
 public class BlockMetadata {
 
-  private Integer transactionsCount;
+  private Long transactionsCount;
   private String createdBy;
   private Integer size;
   private Integer epochNo;

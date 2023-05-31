@@ -14,5 +14,5 @@ public class FindTransactionMetadata implements FindTransactionFieldResult {
 
   private Object data;
   private Object signature;
-  private byte[] txHash;
+  private String txHash;
 }

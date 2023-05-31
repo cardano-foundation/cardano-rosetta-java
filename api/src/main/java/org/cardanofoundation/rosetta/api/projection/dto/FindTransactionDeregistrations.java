@@ -13,6 +13,6 @@ public class FindTransactionDeregistrations implements FindTransactionFieldResul
 
   private String address;
   private Long amount;
-  private byte[] txHash;
+  private String txHash;
 
 }

@@ -36,7 +36,8 @@ public interface NetworkApiDelegate {
           produces = { "application/json;charset=utf-8" },
           consumes = { "application/json;charset=utf-8" }
   )
-  ResponseEntity<NetworkListResponse> networkList(MetadataRequest metadataRequest);
+  ResponseEntity<NetworkListResponse> networkList(MetadataRequest metadataRequest)
+      throws IOException;
 
   @Operation(
           operationId = "networkOptions",
@@ -52,7 +53,8 @@ public interface NetworkApiDelegate {
           produces = { "application/json;charset=utf-8" },
           consumes = { "application/json;charset=utf-8" }
   )
-  ResponseEntity<NetworkOptionsResponse> networkOptions(NetworkRequest networkRequest);
+  ResponseEntity<NetworkOptionsResponse> networkOptions(NetworkRequest networkRequest)
+      throws IOException, InterruptedException;
 
   @Operation(
           operationId = "networkStatus",

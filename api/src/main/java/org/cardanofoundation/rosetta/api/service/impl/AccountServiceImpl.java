@@ -29,18 +29,25 @@ public class AccountServiceImpl implements AccountService {
 
   @Override
   public AccountBalanceResponse getAccountBalance(AccountBalanceRequest accountBalanceRequest) {
+    Long index = null;
+    String hash = null;
     String accountAddress = accountBalanceRequest.getAccountIdentifier().getAddress();
     log.debug("[accountBalance] Request received: " + accountBalanceRequest);
     if (Objects.isNull(cardanoService.getEraAddressType(accountAddress))) {
       throw ExceptionFactory.invalidAddressError(accountAddress);
     }
     log.info("[accountBalance] Looking for block: "
-        + accountBalanceRequest.getBlockIdentifier().toString()
+        + accountBalanceRequest.getBlockIdentifier()
         + "|| 'latest'}");
+    if (Objects.nonNull(accountBalanceRequest.getBlockIdentifier())){
+      index = accountBalanceRequest.getBlockIdentifier().getIndex();
+      hash = accountBalanceRequest.getBlockIdentifier().getHash();
+    }
+    
     AccountBalanceResponse accountBalanceResponse = blockService.findBalanceDataByAddressAndBlock(
         accountAddress,
-        accountBalanceRequest.getBlockIdentifier().getIndex(),
-        accountBalanceRequest.getBlockIdentifier().getHash());
+        index,
+        hash);
     log.debug("[accountBalance] About to return " + accountBalanceResponse);
     return accountBalanceResponse;
 

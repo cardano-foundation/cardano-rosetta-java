@@ -2,7 +2,11 @@ package org.cardanofoundation.rosetta.api.model.rest;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import javax.annotation.Nullable;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.cardanofoundation.rosetta.api.model.SubNetworkIdentifier;
 
 /**

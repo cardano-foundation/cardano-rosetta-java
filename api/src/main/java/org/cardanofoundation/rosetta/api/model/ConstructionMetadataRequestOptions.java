@@ -1,7 +1,6 @@
 package org.cardanofoundation.rosetta.api.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

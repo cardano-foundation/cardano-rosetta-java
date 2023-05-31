@@ -10,12 +10,14 @@ import org.cardanofoundation.rosetta.api.model.rest.NetworkRequest;
 import org.cardanofoundation.rosetta.api.model.rest.NetworkStatusResponse;
 
 public interface NetworkService {
-    NetworkListResponse getNetworkList(final MetadataRequest metadataRequest);
+    NetworkListResponse getNetworkList(final MetadataRequest metadataRequest)
+        throws IOException;
 
-    NetworkOptionsResponse getNetworkOptions(final NetworkRequest networkRequest);
+    NetworkOptionsResponse getNetworkOptions(final NetworkRequest networkRequest)
+        throws IOException, InterruptedException;
 
     NetworkStatusResponse getNetworkStatus(final NetworkRequest networkRequest)
         throws IOException, ServerException;
 
-    Network getSupportedNetwork();
+    Network getSupportedNetwork() throws IOException;
 }

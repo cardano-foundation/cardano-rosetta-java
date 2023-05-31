@@ -8,6 +8,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import java.io.IOException;
 import java.net.UnknownHostException;
 import org.cardanofoundation.rosetta.api.model.rest.ConstructionCombineRequest;
 import org.cardanofoundation.rosetta.api.model.rest.ConstructionCombineResponse;
@@ -27,8 +28,6 @@ import org.cardanofoundation.rosetta.api.model.rest.TransactionIdentifierRespons
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-
-import java.io.IOException;
 
 /**
  * @author Sotatek-HoangNguyen9

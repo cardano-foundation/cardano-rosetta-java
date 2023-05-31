@@ -30,10 +30,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-  base:
-    build: ./
-    image: cardano-rosetta-java-base
-    platform: linux/amd64
   api:
     build:
       context: ./
@@ -48,10 +44,13 @@ services:
       DB_USER: "${SERVICE_USER_NAME}"
       DB_SECRET: "${SERVICE_USER_SECRET}"
       DB_DRIVER_CLASS_NAME: "${DB_DRIVER_CLASS_NAME}"
+      API_SPRING_PROFILES_ACTIVE: ${API_SPRING_PROFILES_ACTIVE}
       DB_CONNECTION_PARAMS_PROVIDER_TYPE: ${DB_CONNECTION_PARAMS_PROVIDER_TYPE}
     depends_on:
-      base:
-        condition: service_completed_successfully
+      db:
+        condition: service_healthy
+      cardano-node:
+        condition: service_started
   consumer:
     build: ./consumer
     platform: linux/amd64
@@ -74,9 +73,8 @@ services:
       BOOSTRAP_SERVER_PORT: "${BOOSTRAP_SERVER_PORT}"
       LOG: "${LOG}"
     depends_on:
-      base:
-        condition: service_completed_successfully
-
+      db:
+        condition: service_healthy
   zookeeper:
     image: confluentinc/cp-zookeeper:5.1.2
     restart: always
@@ -90,7 +88,6 @@ services:
     tmpfs: "/datalog"
     # volumes:
     #   - ./kafka/zoo:/var/lib/zookeeper/data
-
   kafka:
     image: confluentinc/cp-kafka:7.0.0
     container_name: kafka
@@ -112,7 +109,6 @@ services:
       KAFKA_JMX_PORT: 9991
     # volumes:
     #   - ./kafka/data:/var/lib/kafka/data
-
   kafdrop:
     image: obsidiandynamics/kafdrop
     restart: "no"
@@ -122,6 +118,28 @@ services:
       KAFKA_BROKERCONNECT: "kafka:9092"
     depends_on:
       - kafka
+  cardano-node:
+    image: inputoutput/cardano-node
+    environment:
+      NETWORK: ${SCHEMA}
+      CARDANO_NODE_SOCKET_PATH: /ipc/node.socket
+    volumes:
+      - ./node-ipc:/ipc
+    restart: "no"
+    ports:
+      - "3001:3001"
+    healthcheck:
+      # Ping the EKG port to see if it responds.
+      # Assuming if EKG isn't up then the rest of cardano-node isn't either.
+      test: [ "CMD-SHELL", "curl -f 127.0.0.1:12788 || exit 1" ]
+      interval: 60s
+      timeout: 10s
+      retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200k"
+        max-file: "10"
 
 networks:
   default:

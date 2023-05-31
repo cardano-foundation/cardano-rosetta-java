@@ -19,6 +19,7 @@ import java.security.spec.InvalidKeySpecException;
 import org.cardanofoundation.rosetta.api.common.enumeration.EraAddressType;
 import org.cardanofoundation.rosetta.api.common.enumeration.StakeAddressPrefix;
 import org.cardanofoundation.rosetta.api.model.Metadata;
+import org.cardanofoundation.rosetta.api.model.ProtocolParameters;
 import org.cardanofoundation.rosetta.api.projection.dto.ProcessOperationsDto;
 import org.cardanofoundation.rosetta.api.model.ProtocolParametersResponse;
 import org.cardanofoundation.rosetta.api.model.Signatures;
@@ -181,9 +182,9 @@ public interface CardanoService {
 
     String hexStringFormatter(String toFormat);
 
-    Long calculateTxMinimumFee(Long transactionSize, ProtocolParametersResponse protocolParameters);
+    Long calculateTxMinimumFee(Long transactionSize, ProtocolParameters protocolParameters);
 
-    ProtocolParametersResponse getProtocolParameters();
+    ProtocolParameters getProtocolParameters();
 
     Long updateTxSize(Long previousTxSize, Long previousTtl, Long updatedTtl) throws CborSerializationException, CborException;
 

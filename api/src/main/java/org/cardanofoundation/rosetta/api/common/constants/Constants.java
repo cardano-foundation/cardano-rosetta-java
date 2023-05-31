@@ -8,11 +8,14 @@ import org.cardanofoundation.rosetta.api.model.CurveType;
 public class Constants {
 
     public static final String CARDANO = "cardano";
+    public static final Integer PREPROD_NETWORK_MAGIC = 1;
+    public static final Integer PREVIEW_NETWORK_MAGIC = 2;
 
     public static final int PREFIX_LENGTH = 10;
 
     public static final String ADA = "ADA";
     public static final int ASSET_NAME_LENGTH = 64;
+    public static final int POLICY_ID_LENGTH = 56;
     public static final int ADA_DECIMALS = 6;
     public static final int CHAIN_CODE_LENGTH = 64;
     public static final int MULTI_ASSET_DECIMALS = 0;
@@ -21,7 +24,6 @@ public class Constants {
     public static final String VALID_CURVE_TYPE = CurveType.EDWARDS25519.getValue();
     public static final int PUBLIC_KEY_BYTES_LENGTH = 64;
     public static final Double DEFAULT_RELATIVE_TTL = 1000.0;
-    public static final Integer POLICY_ID_LENGTH = 56;
 
     public static final String EMPTY_HEX = "\\x";
 
@@ -37,9 +39,6 @@ public class Constants {
     public static final Long DEFAULT_POOL_DEPOSIT = 500000000L;
 
     public static final Long DEFAULT_KEY_DEPOSIT = 2000000L;
-
-    public static final Integer PREPROD_NETWORK_MAGIC = 1;
-    public static final Integer PREVIEW_NETWORK_MAGIC = 2;
 
     public static final String PREPROD = "preprod";
     public static final String PREVIEW = "preview";

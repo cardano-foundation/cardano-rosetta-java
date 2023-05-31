@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [[ -z "${LIQUIBASE_ENABLE}" ]]; then
+if [[ "${LIQUIBASE_ENABLE}" == true ]]; then
   echo "Bootstrapping the database ..."
   cd scripts
   ./bootstrap_database.sh

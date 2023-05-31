@@ -2,6 +2,7 @@ package org.cardanofoundation.rosetta.api.repository;
 
 import org.cardanofoundation.rosetta.api.model.ProtocolParametersResponse;
 import org.cardanofoundation.rosetta.api.projection.BlockProjection;
+import org.cardanofoundation.rosetta.api.projection.FindTransactionProjection;
 import org.cardanofoundation.rosetta.api.projection.GenesisBlockProjection;
 import org.cardanofoundation.rosetta.common.entity.Block;
 import org.springframework.data.domain.Page;
@@ -69,5 +70,19 @@ public interface BlockRepository extends JpaRepository<Block, Long> {
         "  ORDER BY id \n" +
         "  DESC LIMIT 1")
     ProtocolParametersResponse findProtocolParameters();
+  @Query("SELECT tx.hash as hash, "
+      + "tx.fee as fee, "
+      + "tx.size as size, "
+      + "tx.validContract as validContract, "
+      + "tx.scriptSize as scriptSize, "
+      + "block.hash as blockHash "
+      + "FROM Tx tx JOIN Block block on block.id = tx.block.id "
+      + "WHERE tx.hash = :hash "
+      + "AND (block.blockNo = :blockNumber OR (block.blockNo is null AND :blockNumber = 0)) "
+      + "AND block.hash = :blockHash")
+  List<FindTransactionProjection> findTransactionByHashAndBlock(
+      @Param("hash") String hash,
+      @Param("blockNumber") Long blockNumber,
+      @Param("blockHash") String blockHash);
 
 }
