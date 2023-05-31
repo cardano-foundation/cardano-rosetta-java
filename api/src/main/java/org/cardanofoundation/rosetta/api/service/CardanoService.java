@@ -82,7 +82,9 @@ public interface CardanoService {
 
     EraAddressType getEraAddressTypeOrNull(String address);
 
-    boolean isEd25519KeyHash(String address);
+    boolean isEd25519KeyHash(String hash);
+
+    boolean isEd25519Signature(String hash);
 
     Signatures signatureProcessor(EraAddressType eraAddressType, AddressType addressType, String address);
 

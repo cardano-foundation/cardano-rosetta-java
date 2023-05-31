@@ -73,4 +73,5 @@ public class Constants {
         OperationType.POOL_REGISTRATION_WITH_CERT.getValue()));
     public static final ArrayList<String> VoteOperations = new ArrayList<>(List.of(OperationType.VOTE_REGISTRATION.getValue()));
 
+    public static final Integer Ed25519_Key_Signature_BYTE_LENGTH=64;
 }

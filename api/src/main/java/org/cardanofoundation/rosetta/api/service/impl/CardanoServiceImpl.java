@@ -9,6 +9,7 @@ import com.bloxbean.cardano.client.address.ByronAddress;
 import com.bloxbean.cardano.client.common.model.Network;
 import com.bloxbean.cardano.client.crypto.Bech32;
 import com.bloxbean.cardano.client.crypto.Blake2bUtil;
+import com.bloxbean.cardano.client.crypto.KeyGenUtil;
 import com.bloxbean.cardano.client.crypto.VerificationKey;
 import com.bloxbean.cardano.client.crypto.bip32.key.HdPublicKey;
 import com.bloxbean.cardano.client.exception.AddressExcepion;
@@ -283,10 +284,10 @@ public class CardanoServiceImpl implements CardanoService {
 //            byronAddress = signature.getAddress();
             String str=HexUtil.encodeHexString(byronAddress.getBytes());
             String str1=str.substring(72);
-            StringBuffer str2=new StringBuffer(str1);
-            StringBuffer str3=str2.reverse();
+            StringBuilder str2=new StringBuilder(str1);
+            StringBuilder str3=str2.reverse();
             String str4=str3.substring(12);
-            StringBuffer result=new StringBuffer(str4);
+            StringBuilder result=new StringBuilder(str4);
             BootstrapWitness bootstrap = new BootstrapWitness(
                 HexUtil.decodeHexString(vkey.getCborHex()),
                 HexUtil.decodeHexString(signature.getSignature()),
@@ -327,15 +328,19 @@ public class CardanoServiceImpl implements CardanoService {
   }
 
   @Override
-  public boolean isEd25519KeyHash(String address) {
-//        let edd25519Hash: CardanoWasm.Ed25519KeyHash;
-//        try {
-//            edd25519Hash = scope.manage(CardanoWasm.Ed25519KeyHash.from_bytes(Buffer.from(hash, 'hex')));
-//        } catch (error) {
-//            return false;
-//        }
-//        return !!edd25519Hash;
-    return true;
+  public boolean isEd25519KeyHash(String hash) {
+    try{
+     HexUtil.decodeHexString(KeyGenUtil.getKeyHash(HexUtil.decodeHexString(hash)));
+      return true;
+    }catch (Exception e){
+      return false;
+    }
+  }
+
+  @Override
+  public boolean isEd25519Signature(String hash) {
+    byte[] signatureByte=HexUtil.decodeHexString(hash);
+    return signatureByte.length >= Constants.Ed25519_Key_Signature_BYTE_LENGTH;
   }
 
   @Override
@@ -707,7 +712,7 @@ public class CardanoServiceImpl implements CardanoService {
     if (ObjectUtils.isEmpty(voteRegistrationMetadata.getVotingSignature())) {
       throw ExceptionFactory.invalidVotingSignature();
     }
-    if (!isEd25519KeyHash(voteRegistrationMetadata.getVotingSignature())) {
+    if (!isEd25519Signature(voteRegistrationMetadata.getVotingSignature())) {
       log.error(
           "[validateAndParseVoteRegistrationMetadata] Voting signature has an invalid format");
       throw ExceptionFactory.invalidVotingSignature();
