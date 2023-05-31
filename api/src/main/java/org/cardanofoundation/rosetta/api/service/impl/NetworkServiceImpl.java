@@ -3,11 +3,17 @@ package org.cardanofoundation.rosetta.api.service.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.swagger.models.Swagger;
 import io.swagger.parser.OpenAPIParser;
+import io.swagger.parser.SwaggerParser;
 import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.parser.OpenAPIV3Parser;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -18,6 +24,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
 import org.cardanofoundation.rosetta.api.common.constants.Constants;
 import org.cardanofoundation.rosetta.api.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.api.common.enumeration.OperationTypeStatus;
@@ -51,17 +58,15 @@ import org.openapitools.client.model.OperationStatus;
 import org.openapitools.client.model.Version;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ResourceUtils;
 
 @Service
 @Slf4j
 public class NetworkServiceImpl implements NetworkService {
   @Autowired
   private RosettaConfig rosettaConfig;
-
-  @Autowired
-  private BlockService blockService;
 
 
   @Autowired
@@ -81,6 +86,8 @@ public class NetworkServiceImpl implements NetworkService {
 
   @Value("${cardano.rosetta.CARDANO_NODE_PATH}")
   private String cardanoNodePath;
+  @Autowired
+  private ResourceLoader resourceLoader;
 
   private String networkId;
   private Integer networkMagic;
@@ -89,9 +96,9 @@ public class NetworkServiceImpl implements NetworkService {
     if (exemptionPath != null) {
       final ObjectMapper objectMapper = new ObjectMapper();
       try {
-        File exemptionFile = ResourceUtils.getFile(exemptionPath);
+        String content = fileReader(exemptionPath);
         balanceExemptions = objectMapper.readValue(
-            new File(exemptionFile.toURI()),
+            content,
             new TypeReference<List<BalanceExemption>>() {
             });
       } catch (IOException e) {
@@ -101,6 +108,20 @@ public class NetworkServiceImpl implements NetworkService {
       balanceExemptions = List.of();
     }
     return balanceExemptions;
+  }
+
+  private String fileReader(String path) throws IOException {
+    String content;
+    //check if path exists in file system
+    if(new File(path).exists()){
+      byte[] fileBytes = IOUtils.toByteArray(new FileInputStream(path));
+      content = new String(fileBytes , StandardCharsets.UTF_8);
+    } else {
+      // take file from classpath
+      InputStream inputStream = resourceLoader.getResource(path).getInputStream();
+      content = IOUtils.toString(inputStream,StandardCharsets.UTF_8);
+    }
+    return content;
   }
 
   @Override
@@ -115,10 +136,11 @@ public class NetworkServiceImpl implements NetworkService {
   public NetworkOptionsResponse getNetworkOptions(NetworkRequest networkRequest)
       throws IOException, InterruptedException {
     log.info("[networkOptions] Looking for networkOptions");
-    SwaggerParseResult result = new OpenAPIParser().readLocation("./rosetta-specifications-1.4.15/api.yaml", null,
-        null);
-
-    OpenAPI openAPI = result.getOpenAPI();
+    InputStream openAPIStream = resourceLoader.getResource(
+        "classpath:/rosetta-specifications-1.4.15/api.yaml").getInputStream();
+    OpenAPI openAPI = new OpenAPIV3Parser().readContents(new String(openAPIStream.readAllBytes()) , null,
+            null)
+        .getOpenAPI();
     String rosettaVersion = openAPI.getInfo().getVersion();
     String implementationVersion = rosettaConfig.getImplementationVersion();
 
@@ -162,9 +184,7 @@ public class NetworkServiceImpl implements NetworkService {
   @Override
   public Network getSupportedNetwork() throws IOException {
 
-    File genesisFile;
-    genesisFile = ResourceUtils.getFile(genesisPath);
-    String content = new String(Files.readAllBytes(genesisFile.toPath()));
+    String content = fileReader(genesisPath);
     JSONObject object = new JSONObject(content);
     networkId = ((String) object.get("networkId")).toLowerCase();
     networkMagic = (Integer) object.get("networkMagic");
@@ -215,8 +235,8 @@ public class NetworkServiceImpl implements NetworkService {
   private TopologyConfig readFromFileConfig() throws ServerException {
     try {
       ObjectMapper  mapper = new ObjectMapper();
-      File file = ResourceUtils.getFile(topologyFilepath);
-      return mapper.readValue(file,TopologyConfig.class);
+      String content = fileReader(topologyFilepath);
+      return mapper.readValue(content,TopologyConfig.class);
 
     } catch (IOException e) {
       throw ExceptionFactory.configNotFoundException();
