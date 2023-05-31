@@ -14,12 +14,14 @@ import org.cardanofoundation.rosetta.api.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.api.mapper.DataMapper;
 import org.cardanofoundation.rosetta.api.model.rest.AccountBalanceResponse;
 import org.cardanofoundation.rosetta.api.model.rest.BalanceAtBlock;
+import org.cardanofoundation.rosetta.api.model.rest.BlockIdentifier;
 import org.cardanofoundation.rosetta.api.model.rest.BlockRequest;
 import org.cardanofoundation.rosetta.api.model.rest.BlockResponse;
 import org.cardanofoundation.rosetta.api.model.rest.BlockTransactionRequest;
 import org.cardanofoundation.rosetta.api.model.rest.BlockTransactionResponse;
 import org.cardanofoundation.rosetta.api.model.rest.Currency;
 import org.cardanofoundation.rosetta.api.model.rest.MaBalance;
+import org.cardanofoundation.rosetta.api.model.rest.PartialBlockIdentifier;
 import org.cardanofoundation.rosetta.api.model.rest.TransactionDto;
 import org.cardanofoundation.rosetta.api.model.rest.Utxo;
 import org.cardanofoundation.rosetta.api.projection.dto.BlockDto;
@@ -151,8 +153,9 @@ public class BlockServiceImpl implements BlockService {
 
   @Override
   public BlockResponse getBlockByBlockRequest(BlockRequest blockRequest) {
-    String hash = blockRequest.getBlockIdentifier().getHash();
-    Long index = blockRequest.getBlockIdentifier().getIndex();
+    PartialBlockIdentifier blockIdentifier = blockRequest.getBlockIdentifier();
+    String hash = blockIdentifier.getHash();
+    Long index = blockIdentifier.getIndex();
     log.info("[block] Looking for block: hash={}, index={}", hash, index);
     BlockDto block = this.findBlock(index, hash);
     if (Objects.nonNull(block)) {
