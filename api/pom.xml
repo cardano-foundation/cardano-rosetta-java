@@ -334,6 +334,20 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude>**/dto/*</exclude>
+                        <exclude>**/model/**</exclude>
+                        <exclude>**/mapper/*</exclude>
+                        <exclude>**/cli/*</exclude>
+                        <exclude>**/util/*</exclude>
+                        <exclude>**/exception/*</exclude>
+                        <exclude>**/config/*</exclude>
+                        <exclude>**/filter/**</exclude>
+                        <exclude>**/org/openapitools/client/api/*</exclude>
+                        <exclude>**/enumeration/**</exclude>
+                    </excludes>
+                </configuration>
                 <version>${verison.jacoco-maven-plugin}</version>
                 <executions>
                     <execution>

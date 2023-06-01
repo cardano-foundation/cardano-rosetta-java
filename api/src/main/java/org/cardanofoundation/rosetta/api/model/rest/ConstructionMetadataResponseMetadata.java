@@ -7,7 +7,9 @@ import java.util.Objects;
 import javax.annotation.Generated;
 import javax.validation.Valid;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.cardanofoundation.rosetta.api.model.ProtocolParameters;
 
 /**
@@ -18,6 +20,8 @@ import org.cardanofoundation.rosetta.api.model.ProtocolParameters;
 @Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2023-03-21T15:54:41.273447600+07:00[Asia/Bangkok]")
 @AllArgsConstructor
 @NoArgsConstructor
+@Getter
+@Setter
 public class ConstructionMetadataResponseMetadata {
 
   @JsonProperty("ttl")
