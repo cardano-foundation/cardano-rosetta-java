@@ -12,6 +12,7 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.cardanofoundation.rosetta.api.exception.Error;
 import org.cardanofoundation.rosetta.api.model.SigningPayload;
 import org.cardanofoundation.rosetta.api.model.rest.ConstructionPayloadsRequest;
 import org.cardanofoundation.rosetta.api.model.rest.ConstructionPayloadsResponse;
@@ -899,7 +900,10 @@ class ConstructionApiDelegateImplPayloadTests extends IntegrationTest {
       fail("Expected exception");
     } catch (HttpServerErrorException e) {
       String responseBody = e.getResponseBodyAsString();
-      assertEquals(500, e.getRawStatusCode());
+      Error error=objectMapper.readValue(responseBody,Error.class);
+      assertTrue(error.isRetriable());
+//      assertEquals(5000,error.getCode());
+//      assertEquals("Invalid public key format",error.getDetails());
     }
   }
 

@@ -1326,7 +1326,7 @@ public class CardanoServiceImpl implements CardanoService {
   public NetworkIdentifierType getNetworkIdentifierByRequestParameters(
       NetworkIdentifier networkRequestParameters) {
     if (networkRequestParameters.getNetwork().equals(Constants.MAINNET)) return NetworkIdentifierType.CARDANO_MAINNET_NETWORK;
-    return NetworkIdentifierType.CARDANO_MAINNET_NETWORK;
+    return NetworkIdentifierType.CARDANO_TESTNET_NETWORK;
   }
 
   @Override

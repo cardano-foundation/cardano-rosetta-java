@@ -34,5 +34,8 @@ class ConstructionApiDelegateImplMetadataTests extends IntegrationTest {
 
     assertEquals(response.getSuggestedFee().get(0).getCurrency().getSymbol(), "ADA");
     assertEquals(response.getSuggestedFee().get(0).getCurrency().getDecimals(), 6);
+    assertEquals(response.getMetadata().getProtocolParameters().getMinPoolCost(), "340000000");
+    assertEquals(response.getMetadata().getProtocolParameters().getPoolDeposit(), "500000000");
+    assertEquals(response.getMetadata().getProtocolParameters().getKeyDeposit(), "2000000");
   }
 }
