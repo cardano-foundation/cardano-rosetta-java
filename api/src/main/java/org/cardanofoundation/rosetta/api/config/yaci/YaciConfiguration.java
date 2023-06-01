@@ -13,8 +13,10 @@ import com.bloxbean.cardano.yaci.helper.LocalTxSubmissionClient;
 import com.bloxbean.cardano.yaci.helper.model.Transaction;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.api.config.yaci.CardanoTransactionSubmitterProperties;
 
+import org.cardanofoundation.rosetta.api.exception.ExceptionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -24,6 +26,7 @@ import org.springframework.context.annotation.DependsOn;
 @Configuration
 @EnableConfigurationProperties(value = {CardanoTransactionSubmitterProperties.class})
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@Slf4j
 public class YaciConfiguration {
   CardanoTransactionSubmitterProperties cardanoTransactionSubmitterProperties;
   public YaciConfiguration(
@@ -41,14 +44,14 @@ public class YaciConfiguration {
     localClientProvider.addTxSubmissionListener(new LocalTxSubmissionListener() {
       @Override
       public void txAccepted(TxSubmissionRequest txSubmissionRequest, MsgAcceptTx msgAcceptTx) {
-        System.out.println("TxId : " + txSubmissionRequest.getTxHash());
+        log.info("TxId : " + txSubmissionRequest.getTxHash());
       }
       @Override
       public void txRejected(TxSubmissionRequest txSubmissionRequest, MsgRejectTx msgRejectTx) {
         String reasonCbor = msgRejectTx.getReasonCbor();
         DataItem[] dataItem = CborSerializationUtil.deserialize(
             HexUtil.decodeHexString(reasonCbor));
-        System.out.println("Rejected: " + reasonCbor);
+        log.info("Rejected: " + reasonCbor);
       }
     });
 
