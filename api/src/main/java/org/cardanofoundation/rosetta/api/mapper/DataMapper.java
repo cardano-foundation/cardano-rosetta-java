@@ -796,8 +796,8 @@ public class DataMapper {
   public static PopulatedTransaction parseWithdrawalsRow(PopulatedTransaction transaction,
       FindTransactionWithdrawals withdrawal) {
     List<Withdrawal> withdrawals =
-        Objects.nonNull(transaction.getWithdrawals()) ? transaction.getWithdrawals()
-            : new ArrayList<>();
+        Objects.nonNull(transaction.getWithdrawals()) ?
+            transaction.getWithdrawals() : new ArrayList<>();
     withdrawals.add(new Withdrawal(withdrawal.getAddress(), withdrawal.getAmount().toString()));
     transaction.setWithdrawals(withdrawals);
     return transaction;
@@ -821,8 +821,10 @@ public class DataMapper {
   public static PopulatedTransaction parseDeregistrationsRow(PopulatedTransaction transaction,
       FindTransactionDeregistrations findTransactionDeregistrations) {
     transaction.getDeregistrations()
-        .add(new Deregistration(findTransactionDeregistrations.getAddress(),
-            findTransactionDeregistrations.getAmount().toString()));
+        .add(new Deregistration(
+            findTransactionDeregistrations.getAddress(),
+            findTransactionDeregistrations.getAmount().toString()
+        ));
     return transaction;
   }
 
@@ -864,10 +866,9 @@ public class DataMapper {
       Map<String, Object> mapSignatureString = mapper.readValue(signature, new TypeReference<>() {
       });
 
-      if (isVoteDataValid(mapJsonObject) && isVoteSignatureValid(signature)) {
+      if (isVoteDataValid(mapJsonObject) && isVoteSignatureValid(mapSignatureString)) {
         Address rewardAddress = getAddressFromHexString(
             (String) mapJsonObject.get(CatalystDataIndexes.REWARD_ADDRESS.getValue().toString()));
-        // should consider
         if (Objects.nonNull(rewardAddress)) {
           String votingKey = remove0xPrefix(
               String.valueOf(
@@ -892,8 +893,7 @@ public class DataMapper {
       }
       return transaction;
     } catch (JsonProcessingException exception) {
-      log.info("[isVoteDataValid] Json bug ");
-      System.out.println("isVoteDataValid bug");
+      log.error("[isVoteDataValid] Json bug {}", exception.getMessage());
       return null;
     }
   }

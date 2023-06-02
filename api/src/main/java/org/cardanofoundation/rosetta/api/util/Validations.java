@@ -8,9 +8,6 @@ import static org.cardanofoundation.rosetta.api.util.Formatters.isEmptyHexString
 
 import com.bloxbean.cardano.client.address.Address;
 import com.bloxbean.cardano.client.exception.AddressRuntimeException;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -91,10 +88,7 @@ public class Validations {
             object.get(index.getValue().toString()).toString()));
   }
 
-  public static boolean isVoteSignatureValid(String jsonString) throws JsonProcessingException {
-    ObjectMapper mapper = new ObjectMapper();
-    Map<String, String> mapJsonString = mapper.readValue(jsonString, new TypeReference<>() {
-    });
+  public static boolean isVoteSignatureValid(Map<String, Object> mapJsonString ) {
 
     List<Integer> dataIndexes = Arrays.stream(CatalystSigIndexes.values())
         .map(CatalystSigIndexes::getValue)
