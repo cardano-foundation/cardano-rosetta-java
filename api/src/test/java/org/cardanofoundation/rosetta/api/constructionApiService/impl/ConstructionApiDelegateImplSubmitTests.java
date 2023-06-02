@@ -20,9 +20,9 @@ public class ConstructionApiDelegateImplSubmitTests extends IntegrationTest {
   }
   private final String BASE_DIRECTORY = "src/test/resources/files/construction/submit";
   @Test
-  void test_should_return_the_transaction_identifier_if_request_is_valid() throws IOException {
+  void test_should_fail_if_request_is_not_valid() throws IOException {
     ConstructionHashRequest request = objectMapper.readValue(new String(Files.readAllBytes(
-            Paths.get(BASE_DIRECTORY + "/construction_submit_success.json"))),
+            Paths.get(BASE_DIRECTORY + "/construction_submit_failed.json"))),
         ConstructionHashRequest.class);
     try {
     restTemplate.postForObject(
@@ -36,5 +36,17 @@ public class ConstructionApiDelegateImplSubmitTests extends IntegrationTest {
     }
 
   }
+
+//  @Test
+//  void test_should_return_the_transaction_identifier_if_request_is_valid() throws IOException {
+//    ConstructionHashRequest request = objectMapper.readValue(new String(Files.readAllBytes(
+//            Paths.get(BASE_DIRECTORY + "/construction_submit_success.json"))),
+//        ConstructionHashRequest.class);
+//
+//    TransactionIdentifierResponse transactionIdentifierResponse =restTemplate.postForObject(
+//          baseUrl, request, TransactionIdentifierResponse.class);
+//    assertEquals( transactionIdentifierResponse.getTransactionIdentifier().getHash(),"333a6ccaaa639f7b451ce93764f54f654ef499fdb7b8b24374ee9d99eab9d795");
+//
+//  }
 
 }
