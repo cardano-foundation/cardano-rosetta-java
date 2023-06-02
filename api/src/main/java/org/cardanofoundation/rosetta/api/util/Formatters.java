@@ -10,14 +10,10 @@ public class Formatters {
   private Formatters() {
   }
 
-  public static String removePrefixHex(String hexString) {
-    if(hexString != null && hexString.startsWith("0x"))
-      hexString = hexString.substring(2);
-    return hexString;
-  }
+
 
   public static byte[] hexStringToBuffer(String input) {
-    return HexUtil.decodeHexString(isEmptyHexString(input) ? "" : input);
+    return isEmptyHexString(input) ? HexUtil.decodeHexString("") : HexUtil.decodeHexString(input);
   }
 
   public static boolean isEmptyHexString(String toCheck) {

@@ -22,7 +22,7 @@ public class ExceptionFactory {
   }
 
   public static ApiException networkNotFoundError() {
-    return new ApiException(RosettaErrorType.NETWORKS_NOT_FOUND.toRosettaError(false));
+    return new ApiException(RosettaErrorType.NETWORK_NOT_FOUND.toRosettaError(false));
   }
 
   public static ApiException unspecifiedError(String details) {

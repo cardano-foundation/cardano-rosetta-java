@@ -3,8 +3,12 @@ package org.cardanofoundation.rosetta.api.util;
 
 import static org.cardanofoundation.rosetta.api.exception.ExceptionFactory.invalidPolicyIdError;
 import static org.cardanofoundation.rosetta.api.exception.ExceptionFactory.invalidTokenNameError;
+
+import static org.cardanofoundation.rosetta.api.util.Formatters.hexStringToBuffer;
 import static org.cardanofoundation.rosetta.api.util.Formatters.isEmptyHexString;
 
+import com.bloxbean.cardano.client.address.Address;
+import com.bloxbean.cardano.client.exception.AddressRuntimeException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -52,6 +56,13 @@ public class Validations {
       return currencies;
     } else {
       return Collections.emptyList();
+    }
+  }
+  public static Address getAddressFromHexString(String hex) {
+    try {
+      return new Address(hexStringToBuffer(hex));
+    }catch (AddressRuntimeException e){
+      return null;
     }
   }
 
