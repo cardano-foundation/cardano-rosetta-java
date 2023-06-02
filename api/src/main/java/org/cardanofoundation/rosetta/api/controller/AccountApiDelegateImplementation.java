@@ -18,16 +18,16 @@ public class AccountApiDelegateImplementation implements AccountApiDelegate {
   AccountService accountService;
 
   @Override
-  public ResponseEntity<AccountBalanceResponse> accountBalance(@Valid @RequestBody
-  AccountBalanceRequest accountBalanceRequest) {
+  public ResponseEntity<AccountBalanceResponse> accountBalance(
+      @Valid @RequestBody AccountBalanceRequest accountBalanceRequest) {
     AccountBalanceResponse response = accountService.getAccountBalance(accountBalanceRequest);
     return ResponseEntity.ok(response);
 
   }
 
   @Override
-  public ResponseEntity<AccountCoinsResponse> accountCoins(@Valid @RequestBody
-  AccountCoinsRequest accountCoinsRequest) {
+  public ResponseEntity<AccountCoinsResponse> accountCoins(
+      @Valid @RequestBody AccountCoinsRequest accountCoinsRequest) {
     AccountCoinsResponse response = accountService.getAccountCoins(accountCoinsRequest);
     return ResponseEntity.ok(response);
   }

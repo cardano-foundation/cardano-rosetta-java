@@ -44,8 +44,11 @@ services:
       DB_USER: "${SERVICE_USER_NAME}"
       DB_SECRET: "${SERVICE_USER_SECRET}"
       DB_DRIVER_CLASS_NAME: "${DB_DRIVER_CLASS_NAME}"
+      CARDANO_NODE_PATH: /usr/local/bin/cardano-node
       API_SPRING_PROFILES_ACTIVE: ${API_SPRING_PROFILES_ACTIVE}
       DB_CONNECTION_PARAMS_PROVIDER_TYPE: ${DB_CONNECTION_PARAMS_PROVIDER_TYPE}
+    volumes:
+      - ./node-ipc:/ipc
     depends_on:
       db:
         condition: service_healthy
@@ -120,6 +123,7 @@ services:
       - kafka
   cardano-node:
     image: inputoutput/cardano-node
+    container_name: cardano-node
     environment:
       NETWORK: ${SCHEMA}
       CARDANO_NODE_SOCKET_PATH: /ipc/node.socket

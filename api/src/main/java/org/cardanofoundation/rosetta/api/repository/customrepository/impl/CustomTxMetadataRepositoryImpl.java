@@ -9,6 +9,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.api.common.enumeration.CatalystLabels;
 import org.cardanofoundation.rosetta.api.projection.dto.TransactionMetadataDto;
 import org.cardanofoundation.rosetta.api.repository.customrepository.CustomTxMetadataRepository;
+import org.hibernate.query.TupleTransformer;
+import org.hibernate.transform.ResultTransformer;
 import org.hibernate.transform.Transformers;
 import org.springframework.stereotype.Repository;
 
@@ -57,16 +59,22 @@ public class CustomTxMetadataRepositoryImpl implements CustomTxMetadataRepositor
         + "  SELECT  "
         + "    metadata_sig.signature AS signature , "
         + "    metadata_data.data AS data, "
-        + "    metadata_data.txHash AS txHash "
+        + "    metadata_data.txHash AS txHash"
         + "  FROM metadata_data "
         + "  INNER JOIN metadata_sig "
         + "    ON metadata_data.txId = metadata_sig.txId ";
-    List<TransactionMetadataDto> transactionMetadataDtos = entityManager
+    return entityManager
         .createNativeQuery(findTransactionMetadataQuery)
         .setParameter("hashList", finalHashes)
         .unwrap(org.hibernate.query.NativeQuery.class)
-        .setTupleTransformer(Transformers.aliasToBean(TransactionMetadataDto.class))
+        .setTupleTransformer((tuples, aliases) -> {
+          TransactionMetadataDto transactionMetadataDto = new TransactionMetadataDto();
+          transactionMetadataDto.setSignature((String) tuples[0]);
+          transactionMetadataDto.setData((String) tuples[1]);
+          transactionMetadataDto.setTxHash((String) tuples[2]);
+          return transactionMetadataDto;
+        })
+        .setResultListTransformer(resultList -> resultList)
         .getResultList();
-    return transactionMetadataDtos;
   }
 }

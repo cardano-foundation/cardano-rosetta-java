@@ -10,5 +10,5 @@ import lombok.NoArgsConstructor;
 public class Delegation {
 
   private String stakeAddress;
-  private String amount;
+  private String poolHash;
 }

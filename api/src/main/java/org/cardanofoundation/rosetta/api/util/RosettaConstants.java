@@ -96,7 +96,15 @@ public class RosettaConstants {
             this.message = message;
         }
 
-        public Error toRosettaError(final boolean retriable) {
+        public String getMessage() {
+        return message;
+        }
+
+        public int getCode() {
+        return code;
+        }
+
+      public Error toRosettaError(final boolean retriable) {
             return toRosettaError(retriable, null, null);
         }
 

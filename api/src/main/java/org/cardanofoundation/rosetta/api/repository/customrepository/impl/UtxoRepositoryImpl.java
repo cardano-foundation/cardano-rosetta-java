@@ -83,13 +83,9 @@ public class UtxoRepositoryImpl implements UtxoRepository {
       + "   AND txInTx.id IS NULL")
   public static String buildUtxoQuery() {
     try {
-      log.debug("utxo query is : " + UtxoRepositoryImpl.class
-          .getMethod("buildUtxoQuery", null)
-          .getAnnotation(Query.class).value());
       return UtxoRepositoryImpl.class
           .getMethod("buildUtxoQuery", null)
           .getAnnotation(Query.class).value();
-
     } catch (NoSuchMethodException e) {
 
       throw new RuntimeException(e);
