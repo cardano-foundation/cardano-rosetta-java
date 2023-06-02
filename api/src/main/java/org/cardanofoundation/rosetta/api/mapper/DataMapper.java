@@ -7,16 +7,18 @@ import static org.cardanofoundation.rosetta.api.util.Formatters.hexStringFormatt
 import static org.cardanofoundation.rosetta.api.util.Formatters.remove0xPrefix;
 import static org.cardanofoundation.rosetta.api.util.RosettaConstants.INVALID_OPERATION_STATUS;
 import static org.cardanofoundation.rosetta.api.util.RosettaConstants.SUCCESS_OPERATION_STATUS;
+import static org.cardanofoundation.rosetta.api.util.Validations.areEqualUtxos;
+import static org.cardanofoundation.rosetta.api.util.Validations.getAddressFromHexString;
+import static org.cardanofoundation.rosetta.api.util.Validations.isBlockUtxos;
+import static org.cardanofoundation.rosetta.api.util.Validations.isVoteDataValid;
+import static org.cardanofoundation.rosetta.api.util.Validations.isVoteSignatureValid;
 
 import com.bloxbean.cardano.client.address.Address;
-import com.bloxbean.cardano.client.exception.AddressRuntimeException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.lang.reflect.Field;
 import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -99,24 +101,28 @@ import org.openapitools.client.model.OperationIdentifier;
 import org.openapitools.client.model.PublicKey;
 import org.openapitools.client.model.Transaction;
 import org.openapitools.client.model.TransactionIdentifier;
+import org.springframework.stereotype.Component;
 
 
 @Slf4j
+@Component
+
 public class DataMapper {
 
   public static final String COIN_SPENT_ACTION = "coin_spent";
   public static final String COIN_CREATED_ACTION = "coin_created";
 
-  public static boolean isBlockUtxos(Object block) {
-    return block instanceof BlockUtxos;
+  private DataMapper() {
+
   }
+
 
   public static AccountBalanceResponse mapToAccountBalanceResponse(
       Object blockBalanceData) {
     if (isBlockUtxos(blockBalanceData)) {
       BlockUtxosMultiAssets blockUtxosMultiAssets = (BlockUtxosMultiAssets) blockBalanceData;
       List<Amount> maBalances = new ArrayList<>();
-      if (blockUtxosMultiAssets.getMaBalances().size() > 0) {
+      if (!blockUtxosMultiAssets.getMaBalances().isEmpty()) {
         blockUtxosMultiAssets.getMaBalances().stream()
             .map(utxosMultiAssetsMaBalance -> mapAmount(utxosMultiAssetsMaBalance.getValue(),
                 utxosMultiAssetsMaBalance.getName(),
@@ -159,10 +165,6 @@ public class DataMapper {
     }
   }
 
-  public static boolean areEqualUtxos(Utxo firstUtxo, Utxo secondUtxo) {
-    return (Objects.equals(firstUtxo.getIndex(), secondUtxo.getIndex()))
-        && (firstUtxo.getTransactionHash().equals(secondUtxo.getTransactionHash()));
-  }
 
   public static Amount mapAmount(String value, String symbol, int decimals, String policyId) {
     if (Objects.isNull(value)) {
@@ -189,56 +191,6 @@ public class DataMapper {
     return new Amount().value(value).currency(currency);
   }
 
-
-  public static boolean isHexString(Object value) {
-    if (value instanceof String str) {
-      return str.matches("^(0x)?[0-9a-fA-F]+$");
-    }
-    return false;
-  }
-
-  public static boolean validateVoteDataFields(Map<String, Object> object) {
-    List<CatalystDataIndexes> hexStringIndexes = Arrays.asList(
-        CatalystDataIndexes.REWARD_ADDRESS,
-        CatalystDataIndexes.STAKE_KEY,
-        CatalystDataIndexes.VOTING_KEY
-    );
-    boolean isValidVotingNonce =
-        object.containsKey(CatalystDataIndexes.VOTING_NONCE.getValue().toString())
-            && object.get(CatalystDataIndexes.VOTING_NONCE.getValue().toString()) instanceof Number;
-
-    return isValidVotingNonce
-        && hexStringIndexes.stream().allMatch(index ->
-        object.containsKey(index.getValue().toString()) && isHexString(
-            object.get(index.getValue().toString()).toString()));
-  }
-
-  public static boolean isVoteSignatureValid(Object jsonObject) {
-    boolean isObject = jsonObject instanceof Map;
-    List<String> dataIndexes = Arrays.stream(CatalystSigIndexes.class.getFields())
-        .map(Field::getName)
-        .filter(key -> Integer.parseInt(key) > 0)
-        .toList();
-    return isObject && dataIndexes.stream().allMatch(index ->
-        ((Map<String, Object>) jsonObject).containsKey(index)
-            && isHexString(((Map<String, Object>) jsonObject).get(index)));
-  }
-
-  public static boolean isVoteDataValid(Object jsonObject) {
-    boolean isObject = Objects.nonNull(jsonObject);
-
-    return isObject && validateVoteDataFields((Map<String, Object>) jsonObject);
-
-  }
-
-  public static Address getAddressFromHexString(String hexAddress) {
-    try {
-
-      return new Address(hexAddress);
-    } catch (AddressRuntimeException e) {
-      return null;
-    }
-  }
 
   public static AccountCoinsResponse mapToAccountCoinsResponse(BlockUtxos blockCoinsData) {
     Map<String, Coin> mappedUtxos = blockCoinsData.getUtxos().stream().reduce(
@@ -503,6 +455,21 @@ public class DataMapper {
         }).toList();
     totalOperations.add(deregistrationsAsOperations);
 
+    List<Operation> delegationsAsOperations = IntStream.range(0,
+            transaction.getDelegations().size())
+        .mapToObj(index -> {
+          Delegation delegation = transaction.getDelegations().get(index);
+          return new Operation()
+              .operationIdentifier(new OperationIdentifier().index(
+                  getOperationCurrentIndex(totalOperations, index)))
+              .type(OperationType.STAKE_DELEGATION.getValue())
+              .status(status.getStatus())
+              .account(new AccountIdentifier().address(delegation.getStakeAddress()))
+              .metadata(OperationMetadata.builder()
+                  .poolKeyHash(delegation.getPoolHash())
+                  .build());
+        }).toList();
+    totalOperations.add(delegationsAsOperations);
     List<Operation> poolRegistrationsAsOperations = IntStream.range(0,
             transaction.getPoolRegistrations().size())
         .mapToObj(index -> {
@@ -694,6 +661,7 @@ public class DataMapper {
     }
     return mappedTransactions;
   }
+
   public static <T extends FindTransactionFieldResult> Map<String, PopulatedTransaction> populateTransactionField(
       Map<String, PopulatedTransaction> transactionsMap,
       List<T> queryResults,
@@ -710,6 +678,7 @@ public class DataMapper {
     }
     return updatedTransactionsMap;
   }
+
   public static <T extends TransactionInOut, F extends FindTransactionInOutResult>
   PopulatedTransaction parseInOutRow(F row,
       PopulatedTransaction transaction,
@@ -827,8 +796,8 @@ public class DataMapper {
   public static PopulatedTransaction parseWithdrawalsRow(PopulatedTransaction transaction,
       FindTransactionWithdrawals withdrawal) {
     List<Withdrawal> withdrawals =
-        Objects.nonNull(transaction.getWithdrawals()) ? transaction.getWithdrawals()
-            : new ArrayList<>();
+        Objects.nonNull(transaction.getWithdrawals()) ?
+            transaction.getWithdrawals() : new ArrayList<>();
     withdrawals.add(new Withdrawal(withdrawal.getAddress(), withdrawal.getAmount().toString()));
     transaction.setWithdrawals(withdrawals);
     return transaction;
@@ -852,8 +821,10 @@ public class DataMapper {
   public static PopulatedTransaction parseDeregistrationsRow(PopulatedTransaction transaction,
       FindTransactionDeregistrations findTransactionDeregistrations) {
     transaction.getDeregistrations()
-        .add(new Deregistration(findTransactionDeregistrations.getAddress(),
-            findTransactionDeregistrations.getAmount().toString()));
+        .add(new Deregistration(
+            findTransactionDeregistrations.getAddress(),
+            findTransactionDeregistrations.getAmount().toString()
+        ));
     return transaction;
   }
 
@@ -882,6 +853,7 @@ public class DataMapper {
   public static BiFunction<PopulatedTransaction, FindPoolRetirements, PopulatedTransaction> parsePoolRetirementRowFactory() {
     return DataMapper::parsePoolRetirementRow;
   }
+
   public static PopulatedTransaction parseVoteRow(PopulatedTransaction transaction,
       TransactionMetadataDto findTransactionMetadata) {
     String data = findTransactionMetadata.getData();
@@ -889,20 +861,26 @@ public class DataMapper {
     try {
       Map<String, Object> mapJsonObject = mapper.readValue(data, new TypeReference<>() {
       });
+
       String signature = findTransactionMetadata.getSignature();
-      if (isVoteDataValid(data) && isVoteSignatureValid(signature)) {
-        Address rewardAddress = getAddressFromHexString(remove0xPrefix(
-            (String) mapJsonObject.get(CatalystDataIndexes.REWARD_ADDRESS.getValue().toString())));
-        // should consider
+      Map<String, Object> mapSignatureString = mapper.readValue(signature, new TypeReference<>() {
+      });
+
+      if (isVoteDataValid(mapJsonObject) && isVoteSignatureValid(mapSignatureString)) {
+        Address rewardAddress = getAddressFromHexString(
+            (String) mapJsonObject.get(CatalystDataIndexes.REWARD_ADDRESS.getValue().toString()));
         if (Objects.nonNull(rewardAddress)) {
           String votingKey = remove0xPrefix(
-              (String) mapJsonObject.get(CatalystDataIndexes.VOTING_KEY.getValue().toString()));
+              String.valueOf(
+                  mapJsonObject.get(CatalystDataIndexes.VOTING_KEY.getValue().toString())));
           String stakeKey = remove0xPrefix(
-              (String) mapJsonObject.get(CatalystDataIndexes.STAKE_KEY.getValue().toString()));
-          String votingNonce = (String) mapJsonObject.get(
-              CatalystDataIndexes.VOTING_NONCE.getValue().toString());
-          String votingSignature = remove0xPrefix((String) mapJsonObject.get(
-              CatalystSigIndexes.VOTING_SIGNATURE.getValue().toString()));
+              String.valueOf(
+                  mapJsonObject.get(CatalystDataIndexes.STAKE_KEY.getValue().toString())));
+          String votingNonce = String.valueOf(
+              mapJsonObject.get(CatalystDataIndexes.VOTING_NONCE.getValue().toString()));
+          String votingSignature = remove0xPrefix(
+              String.valueOf(mapSignatureString.get(
+                  CatalystSigIndexes.VOTING_SIGNATURE.getValue().toString())));
           transaction.getVoteRegistrations().add(VoteRegistration.builder()
               .votingKey(votingKey)
               .stakeKey(stakeKey)
@@ -915,8 +893,7 @@ public class DataMapper {
       }
       return transaction;
     } catch (JsonProcessingException exception) {
-      log.info("[isVoteDataValid] Json bug ");
-      System.out.println("isVoteDataValid bug");
+      log.error("[isVoteDataValid] Json bug {}", exception.getMessage());
       return null;
     }
   }
@@ -924,6 +901,7 @@ public class DataMapper {
   public static BiFunction<PopulatedTransaction, TransactionMetadataDto, PopulatedTransaction> parseVoteRowFactory() {
     return DataMapper::parseVoteRow;
   }
+
   public static PopulatedTransaction parsePoolRegistrationsRows(
       PopulatedTransaction transaction,
       TransactionPoolRegistrations poolRegistration

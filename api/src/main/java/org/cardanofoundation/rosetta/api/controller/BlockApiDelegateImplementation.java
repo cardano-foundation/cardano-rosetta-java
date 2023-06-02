@@ -17,7 +17,8 @@ public class BlockApiDelegateImplementation implements BlockApiDelegate {
   @Autowired
   BlockService blockService;
     @Override
-    public ResponseEntity<BlockResponse> block(@RequestBody BlockRequest blockRequest) {
+    public ResponseEntity<BlockResponse> block(
+        @RequestBody BlockRequest blockRequest) {
       BlockResponse response = blockService.getBlockByBlockRequest(blockRequest);
       return ResponseEntity.ok(response);
     }

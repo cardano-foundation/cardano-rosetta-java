@@ -18,9 +18,9 @@ spring:
       max-request-size: 16MB
   datasource:
     driver-class-name: org.postgresql.Driver
-    username: ${DB_USER:rosetta_db_admin}
-    password: ${DB_SECRET:weakpwd#123_d}
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:rosetta}?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC&useLegacyDatetimeCode=false&createDatabaseIfNotExist=true&autoReconnect=true
+    username: ${DB_USER_TEST:postgres}
+    password: ${DB_SECRET_TEST:123456}
+    url: jdbc:postgresql://${DB_HOST_TEST:localhost}:${DB_PORT_TEST:5437}/${DB_NAME_TEST:test}?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC&useLegacyDatetimeCode=false&createDatabaseIfNotExist=true&autoReconnect=true
   jpa:
     properties:
       hibernate:
