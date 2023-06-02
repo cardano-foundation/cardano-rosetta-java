@@ -23,9 +23,9 @@ public class MempoolApiDelegateImplementation implements MempoolApiDelegate {
     return ResponseEntity.ok(mempoolMonitoringService.getAllTransaction(networkRequest));
   }
 
-  @Override
-  public ResponseEntity<MempoolTransactionResponse> mempoolTransaction(
-      MempoolTransactionRequest mempoolTransactionRequest) {
-    return null;
-  }
+    @Override
+    public ResponseEntity<MempoolTransactionResponse> mempoolTransaction(MempoolTransactionRequest mempoolTransactionRequest) {
+        MempoolTransactionResponse mempoolTransactionResponse = mempoolMonitoringService.getDetailTransaction(mempoolTransactionRequest);
+        return ResponseEntity.ok(mempoolTransactionResponse);
+    }
 }

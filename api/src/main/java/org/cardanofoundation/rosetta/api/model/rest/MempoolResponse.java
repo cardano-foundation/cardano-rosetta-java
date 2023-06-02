@@ -17,6 +17,6 @@ import org.cardanofoundation.rosetta.api.model.TransactionIdentifier;
 @AllArgsConstructor
 @NoArgsConstructor
 public class MempoolResponse {
-  @JsonProperty("transaction_identifier")
-  private List<TransactionIdentifier> transactionIdentifierList;
+    @JsonProperty("transaction_identifier")
+    private List<TransactionIdentifier> transactionIdentifierList;
 }
