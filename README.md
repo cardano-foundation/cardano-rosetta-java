@@ -24,7 +24,8 @@ This is a RosettaAPI implementation using LedgeSync as a backend and Yaci/Bloxbe
 - Copy `.env.example`  to `.env`
 - Fill the `.env` file with your values (explain below)
 - Create if not exists external network `cardano-rosetta-java` with `docker network create cardano-rosetta-java`
-- From `/cardano-rosetta-java` run `docker-compose -f docker-compose.yml up --build` to build and start all service
+- From `/cardano-rosetta-java` run `ddocker build -t cardano-rosetta-java-base .` to build jar file for all service
+- From `/cardano-rosetta-java` run `docker-compose up --build` to start all service
 
 
 ### Environment variables
