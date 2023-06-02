@@ -262,15 +262,17 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
     @Override
     public TransactionIdentifierResponse constructionSubmitService(
         @NotNull ConstructionSubmitRequest constructionSubmitRequest)
-        throws CborDeserializationException, CborSerializationException, InterruptedException {
+        throws CborDeserializationException, CborSerializationException {
+
+        System.err.println("Vao day 0: " + Thread.currentThread().getName());
+
         Array array = cardanoService.decodeExtraData(constructionSubmitRequest.getSignedTransaction());
         byte[] signedTransactionBytes = HexUtil.decodeHexString(((UnicodeString) array.getDataItems().get(0)).getString());
         Transaction parsed = Transaction.deserialize(signedTransactionBytes);
         TxSubmissionRequest txnRequest = new TxSubmissionRequest(parsed.serialize());
-        localTxSubmissionClient.submitTxCallback(txnRequest);
-        Thread.sleep(3000);
 
-        if(!Constants.checkSubmit){
+        TxResult txResult = localTxSubmissionClient.submitTx(txnRequest).block();
+        if (!txResult.isAccepted()){
             throw ExceptionFactory.submitRejected();
         }
         String transactionHash = cardanoService.getHashOfSignedTransaction(((UnicodeString) array.getDataItems().get(0)).getString());
