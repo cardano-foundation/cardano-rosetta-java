@@ -53,11 +53,9 @@ public class YaciConfiguration {
       @Override
       public void txAccepted(TxSubmissionRequest txSubmissionRequest, MsgAcceptTx msgAcceptTx) {
         log.info("TxId : " + txSubmissionRequest.getTxHash());
-        Constants.checkSubmit=true;
       }
       @Override
       public void txRejected(TxSubmissionRequest txSubmissionRequest, MsgRejectTx msgRejectTx) {
-        Constants.checkSubmit=false;
         String reasonCbor = msgRejectTx.getReasonCbor();
         log.info("Rejected: " + reasonCbor);
       }

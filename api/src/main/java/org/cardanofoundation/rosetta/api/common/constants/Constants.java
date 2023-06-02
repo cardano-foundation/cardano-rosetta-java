@@ -6,7 +6,6 @@ import org.cardanofoundation.rosetta.api.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.api.model.CurveType;
 
 public class Constants {
-    public static Boolean checkSubmit;
     public static final String CARDANO = "cardano";
     public static final Integer PREPROD_NETWORK_MAGIC = 1;
     public static final Integer PREVIEW_NETWORK_MAGIC = 2;
