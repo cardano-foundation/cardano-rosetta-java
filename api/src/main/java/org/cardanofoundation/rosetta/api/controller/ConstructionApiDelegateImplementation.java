@@ -72,7 +72,8 @@ public class ConstructionApiDelegateImplementation implements ConstructionApiDel
     }
 
     @Override
-    public ResponseEntity<TransactionIdentifierResponse> constructionSubmit(@RequestBody ConstructionSubmitRequest constructionSubmitRequest) throws CborDeserializationException, CborSerializationException {
+    public ResponseEntity<TransactionIdentifierResponse> constructionSubmit(@RequestBody ConstructionSubmitRequest constructionSubmitRequest)
+        throws CborDeserializationException, CborSerializationException, InterruptedException {
         return ResponseEntity.ok(constructionApiService.constructionSubmitService(constructionSubmitRequest));
     }
 }

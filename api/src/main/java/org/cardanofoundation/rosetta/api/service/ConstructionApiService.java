@@ -48,5 +48,6 @@ public interface ConstructionApiService {
         ConstructionHashRequest constructionHashRequest);
 
     TransactionIdentifierResponse constructionSubmitService(
-        ConstructionSubmitRequest constructionSubmitRequest) throws CborDeserializationException, CborSerializationException;
+        ConstructionSubmitRequest constructionSubmitRequest)
+        throws CborDeserializationException, CborSerializationException, InterruptedException;
 }
