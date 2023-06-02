@@ -165,4 +165,7 @@ public class ExceptionFactory {
   public static ApiException invalidPolicyIdError(String details) {
     return new ApiException(RosettaErrorType.INVALID_POLICY_ID.toRosettaError(false, details));
   }
+  public static ApiException submitRejected() {
+    return new ApiException(RosettaErrorType.SUBMIT_TRANSACTION_REJECTED.toRosettaError(false));
+  }
 }

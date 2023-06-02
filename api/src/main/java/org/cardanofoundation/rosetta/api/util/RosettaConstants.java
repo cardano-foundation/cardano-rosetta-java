@@ -87,7 +87,8 @@ public class RosettaConstants {
         TX_HASH_COIN_NOT_MATCH("Transaction hash does not match to given coin identifier", 5015),
         ADDRESS_AND_ACCOUNT_ID_NOT_MATCH("Address and account identifier does not match", 5016),
         BAD_FORMED_COIN_ERROR("Coin identifier has an invalid format", 5017),
-        INVALID_IPV4_ERROR("Ipv4 has an invalid format", 5018);
+        INVALID_IPV4_ERROR("Ipv4 has an invalid format", 5018),
+        SUBMIT_TRANSACTION_REJECTED("The transaction submission has been rejected", 5019);
         final String message;
         final int code;
 

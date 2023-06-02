@@ -172,5 +172,6 @@ public interface ConstructionApiDelegate {
           consumes = { "application/json;charset=utf-8" }
   )
   ResponseEntity<TransactionIdentifierResponse> constructionSubmit(
-      ConstructionSubmitRequest constructionSubmitRequest) throws CborDeserializationException, CborSerializationException;
+      ConstructionSubmitRequest constructionSubmitRequest)
+      throws CborDeserializationException, CborSerializationException, InterruptedException;
 }
