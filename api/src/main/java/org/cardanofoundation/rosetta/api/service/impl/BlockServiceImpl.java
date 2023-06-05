@@ -14,7 +14,6 @@ import org.cardanofoundation.rosetta.api.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.api.mapper.DataMapper;
 import org.cardanofoundation.rosetta.api.model.rest.AccountBalanceResponse;
 import org.cardanofoundation.rosetta.api.model.rest.BalanceAtBlock;
-import org.cardanofoundation.rosetta.api.model.rest.BlockIdentifier;
 import org.cardanofoundation.rosetta.api.model.rest.BlockRequest;
 import org.cardanofoundation.rosetta.api.model.rest.BlockResponse;
 import org.cardanofoundation.rosetta.api.model.rest.BlockTransactionRequest;
@@ -30,19 +29,20 @@ import org.cardanofoundation.rosetta.api.projection.dto.BlockUtxosMultiAssets;
 import org.cardanofoundation.rosetta.api.projection.dto.GenesisBlockDto;
 import org.cardanofoundation.rosetta.api.projection.dto.PopulatedTransaction;
 import org.cardanofoundation.rosetta.api.service.BlockService;
-import org.cardanofoundation.rosetta.api.service.LedgerDataProviderService;
 import org.cardanofoundation.rosetta.api.service.CardanoService;
+import org.cardanofoundation.rosetta.api.service.LedgerDataProviderService;
 import org.openapitools.client.model.Transaction;
 import org.openapitools.client.model.TransactionIdentifier;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class BlockServiceImpl implements BlockService {
-
-  private final Integer PAGE_SIZE = 5;
+  @Value("${page-size:5}")
+  private Integer PAGE_SIZE;
 
   @Autowired
   LedgerDataProviderService ledgerDataProviderService;
@@ -166,7 +166,7 @@ public class BlockServiceImpl implements BlockService {
       log.debug("[poolDeposit] poolDeposit is " + poolDeposit);
       if (transactionsFound.size() > PAGE_SIZE) {
         log.info(
-            "[block] Returning only transactions hashes since the number of them is bigger than PAGE_SIZE");
+            "[block] Returning only transactions hashes since the number of them is bigger than " + PAGE_SIZE);
         return BlockResponse.builder()
             .block(mapToRosettaBlock(block, new ArrayList<>(), poolDeposit))
             .otherTransactions(transactionsFound.stream()

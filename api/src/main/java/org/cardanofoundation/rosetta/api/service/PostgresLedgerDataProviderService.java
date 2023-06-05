@@ -19,7 +19,6 @@ import java.util.TimeZone;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.cardanofoundation.rosetta.api.config.RosettaConfig;
-import org.cardanofoundation.rosetta.api.model.ProtocolParametersResponse;
 import org.cardanofoundation.rosetta.api.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.api.mapper.DataMapper;
 import org.cardanofoundation.rosetta.api.model.ProtocolParameters;
@@ -61,10 +60,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 @Slf4j
 @Component
@@ -189,7 +184,11 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
     Page<EpochParamProjection> epochParamProjectionPage = epochParamRepository.findProtocolParameters(
         PageRequest.of(0, 1));
     if (ObjectUtils.isEmpty(epochParamProjectionPage.getContent())) {
-      return null;
+      return ProtocolParameters.builder()
+          .coinsPerUtxoSize("0")
+          .maxValSize(BigInteger.ZERO)
+          .maxCollateralInputs(0)
+          .build();
     }
     EpochParamProjection epochParamProjection = epochParamProjectionPage.getContent().get(0);
     log.debug(

@@ -131,6 +131,7 @@ cardano:
 DEFAULT_TOPOLOGY_FILEPATH: classpath:network/${NETWORK:mainnet}/cardano-node/topology.json
 DEFAULT_GENESIS_SHELLEY_PATH: classpath:network/${NETWORK:mainnet}/genesis/shelley.json
 DEFAULT_EXEMPTION_TYPES_PATH: classpath:network/exemptions.json
+page-size: ${PAGE_SIZE:5}
 
 cardano-transaction-submitter:
   connection:
