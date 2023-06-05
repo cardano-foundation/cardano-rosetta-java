@@ -22,7 +22,7 @@ services:
       DB_ADMIN_USER_NAME: "${DB_ADMIN_USER_NAME}"
       SERVICE_USER_SECRET: "${SERVICE_USER_SECRET}"
       SERVICE_USER_NAME: "${SERVICE_USER_NAME}"
-      DB_HOST: "10.4.20.212"
+      DB_HOST: ${DB_HOST}
       DB_PORT: ${DB_PORT}
       DB_NAME: ${DB_NAME}
       DB_SCHEMA: ${DB_SCHEMA}
@@ -30,54 +30,54 @@ services:
     depends_on:
       db:
         condition: service_healthy
-#  api:
-#    build:
-#      context: ./
-#      dockerfile: ./api/Dockerfile
-#    platform: linux/amd64
-#    ports:
-#      - "${API_BIND_PORT}:${API_EXPOSED_PORT}"
-#    environment:
-#      DB_HOST: "${DB_HOST}"
-#      DB_PORT: "${DB_PORT}"
-#      DB_NAME: "${DB_NAME}"
-#      DB_USER: "${SERVICE_USER_NAME}"
-#      DB_SECRET: "${SERVICE_USER_SECRET}"
-#      DB_DRIVER_CLASS_NAME: "${DB_DRIVER_CLASS_NAME}"
-#      CARDANO_NODE_PATH: /usr/local/bin/cardano-node
-#      API_SPRING_PROFILES_ACTIVE: ${API_SPRING_PROFILES_ACTIVE}
-#      DB_CONNECTION_PARAMS_PROVIDER_TYPE: ${DB_CONNECTION_PARAMS_PROVIDER_TYPE}
-#    volumes:
-#      - ./node-ipc:/ipc
-#    depends_on:
-#      db:
-#        condition: service_healthy
-#      cardano-node:
-#        condition: service_started
-#  consumer:
-#    build: ./consumer
-#    platform: linux/amd64
-#    ports:
-#      - "${CONSUMER_BIND_PORT}:${CONSUMER_EXPOSED_PORT}"
-#    environment:
-#      CONSUMER_PROFILES_ACTIVE: "${CONSUMER_PROFILES_ACTIVE}"
-#      DB_HOST: "${DB_HOST}"
-#      DB_PORT: "${DB_PORT}"
-#      DB_NAME: "${DB_NAME}"
-#      DB_USER: "${DB_ADMIN_USER_NAME}"
-#      DB_SECRET: "${DB_ADMIN_USER_SECRET}"
-#      DB_DRIVER_CLASS_NAME: "${DB_DRIVER_CLASS_NAME}"
-#      DB_SCHEMA: "${DB_SCHEMA}"
-#      DB_CONNECTION_PARAMS_PROVIDER_TYPE: ${DB_CONNECTION_PARAMS_PROVIDER_TYPE}
-#      SCHEMA: "${SCHEMA}"
-#      DBLOCKS_BATCH_SIZE: "${BLOCKS_BATCH_SIZE}"
-#      BLOCKS_TOPIC: "${BLOCKS_TOPIC}"
-#      BOOSTRAP_SERVER_HOST: "${BOOSTRAP_SERVER_HOST}"
-#      BOOSTRAP_SERVER_PORT: "${BOOSTRAP_SERVER_PORT}"
-#      LOG: "${LOG}"
-#    depends_on:
-#      db:
-#        condition: service_healthy
+  api:
+    build:
+      context: ./
+      dockerfile: ./api/Dockerfile
+    platform: linux/amd64
+    ports:
+      - "${API_BIND_PORT}:${API_EXPOSED_PORT}"
+    environment:
+      DB_HOST: "${DB_HOST}"
+      DB_PORT: "${DB_PORT}"
+      DB_NAME: "${DB_NAME}"
+      DB_USER: "${SERVICE_USER_NAME}"
+      DB_SECRET: "${SERVICE_USER_SECRET}"
+      DB_DRIVER_CLASS_NAME: "${DB_DRIVER_CLASS_NAME}"
+      CARDANO_NODE_PATH: /usr/local/bin/cardano-node
+      API_SPRING_PROFILES_ACTIVE: ${API_SPRING_PROFILES_ACTIVE}
+      DB_CONNECTION_PARAMS_PROVIDER_TYPE: ${DB_CONNECTION_PARAMS_PROVIDER_TYPE}
+    volumes:
+      - ./node-ipc:/ipc
+    depends_on:
+      db:
+        condition: service_healthy
+      cardano-node:
+        condition: service_started
+  consumer:
+    build: ./consumer
+    platform: linux/amd64
+    ports:
+      - "${CONSUMER_BIND_PORT}:${CONSUMER_EXPOSED_PORT}"
+    environment:
+      CONSUMER_PROFILES_ACTIVE: "${CONSUMER_PROFILES_ACTIVE}"
+      DB_HOST: "${DB_HOST}"
+      DB_PORT: "${DB_PORT}"
+      DB_NAME: "${DB_NAME}"
+      DB_USER: "${DB_ADMIN_USER_NAME}"
+      DB_SECRET: "${DB_ADMIN_USER_SECRET}"
+      DB_DRIVER_CLASS_NAME: "${DB_DRIVER_CLASS_NAME}"
+      DB_SCHEMA: "${DB_SCHEMA}"
+      DB_CONNECTION_PARAMS_PROVIDER_TYPE: ${DB_CONNECTION_PARAMS_PROVIDER_TYPE}
+      SCHEMA: "${SCHEMA}"
+      DBLOCKS_BATCH_SIZE: "${BLOCKS_BATCH_SIZE}"
+      BLOCKS_TOPIC: "${BLOCKS_TOPIC}"
+      BOOSTRAP_SERVER_HOST: "${BOOSTRAP_SERVER_HOST}"
+      BOOSTRAP_SERVER_PORT: "${BOOSTRAP_SERVER_PORT}"
+      LOG: "${LOG}"
+    depends_on:
+      db:
+        condition: service_healthy
   zookeeper:
     image: confluentinc/cp-zookeeper:5.1.2
     restart: always
@@ -99,7 +99,7 @@ services:
     ports:
       - "29092:29092"
     environment:
-      KAFKA_ZOOKEEPER_CONNECT: "10.4.20.212:2181"
+      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
