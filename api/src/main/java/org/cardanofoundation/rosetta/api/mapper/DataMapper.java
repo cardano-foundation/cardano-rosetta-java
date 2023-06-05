@@ -131,8 +131,10 @@ public class DataMapper {
             .forEach(maBalances::add);
 
       }
-      BigInteger adaBalance = blockUtxosMultiAssets.getUtxos().stream()
-          .reduce(BigInteger.ZERO, (totalAmount, current) -> {
+      BigInteger adaBalance = blockUtxosMultiAssets.getUtxos()
+          .stream()
+          .reduce(BigInteger.ZERO,
+              (totalAmount, current) -> {
             List<Utxo> utxos = blockUtxosMultiAssets.getUtxos();
             Utxo previous =
                 utxos.indexOf(current) > 0 ? utxos.get(utxos.indexOf(current) - 1) : null;
@@ -184,7 +186,7 @@ public class DataMapper {
     if (Objects.isNull(value)) {
       return null;
     }
-    Map<String, Object> metadata = new HashMap<>();
+
     Currency currency = new Currency()
         .decimals(ADA_DECIMALS)
         .symbol(hexStringFormatter(ADA));
@@ -244,14 +246,12 @@ public class DataMapper {
           .findFirst();
       if (existsPolicyId.isPresent()) {
         TokenBundleItem tokenBundle = existsPolicyId.get();
-        int policyIndex = updatedCoin.getMetadata()
-            .get(coinId)
-            .indexOf(tokenBundle);
+
         tokenBundle.getTokens().add(mapAmount(quantity, name, MULTI_ASSET_DECIMALS, policy));
       } else {
         TokenBundleItem tokenBundle = new TokenBundleItem()
             .policyId(policy)
-            .tokens(new ArrayList<Amount>(Collections.singletonList(
+            .tokens(new ArrayList<>(Collections.singletonList(
                 mapAmount(quantity, name, MULTI_ASSET_DECIMALS, policy))
             ));
         updatedCoin.getMetadata().get(coinId).add(tokenBundle);

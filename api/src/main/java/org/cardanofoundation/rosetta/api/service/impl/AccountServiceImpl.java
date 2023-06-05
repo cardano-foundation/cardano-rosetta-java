@@ -2,6 +2,7 @@ package org.cardanofoundation.rosetta.api.service.impl;
 
 import java.util.List;
 import java.util.Objects;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.api.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.api.mapper.DataMapper;
@@ -15,17 +16,15 @@ import org.cardanofoundation.rosetta.api.service.AccountService;
 import org.cardanofoundation.rosetta.api.service.BlockService;
 import org.cardanofoundation.rosetta.api.service.CardanoService;
 import org.cardanofoundation.rosetta.api.util.Validations;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class AccountServiceImpl implements AccountService {
 
-  @Autowired
-  CardanoService cardanoService;
-  @Autowired
-  BlockService blockService;
+  private final CardanoService cardanoService;
+  private final BlockService blockService;
 
   @Override
   public AccountBalanceResponse getAccountBalance(AccountBalanceRequest accountBalanceRequest) {

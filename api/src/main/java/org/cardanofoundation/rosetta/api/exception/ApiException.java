@@ -1,10 +1,8 @@
 package org.cardanofoundation.rosetta.api.exception;
 
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Builder
 @Data
 @NoArgsConstructor
 public class ApiException extends RuntimeException {

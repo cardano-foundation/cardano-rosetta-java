@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.TimeZone;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.cardanofoundation.rosetta.api.config.RosettaConfig;
@@ -56,38 +57,27 @@ import org.cardanofoundation.rosetta.api.repository.StakeDeregistrationRepositor
 import org.cardanofoundation.rosetta.api.repository.TxMetadataRepository;
 import org.cardanofoundation.rosetta.api.repository.TxRepository;
 import org.cardanofoundation.rosetta.api.repository.customrepository.UtxoRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class PostgresLedgerDataProviderService implements LedgerDataProviderService {
 
   private final Map<String, PostgresLedgerDataProviderClient> clients = new HashMap<>();
-  @Autowired
-  private RosettaConfig rosettaConfig;
-  @Autowired
-  private BlockRepository blockRepository;
-  @Autowired
-  private RewardRepository rewardRepository;
-  @Autowired
-  private UtxoRepository utxoRepository;
-  @Autowired
-  private TxRepository txRepository;
-  @Autowired
-  private EpochParamRepository epochParamRepository;
-  @Autowired
-  private StakeDeregistrationRepository stakeDeregistrationRepository;
-  @Autowired
-  private DelegationRepository delegationRepository;
-  @Autowired
-  private TxMetadataRepository txMetadataRepository;
-  @Autowired
-  private PoolUpdateRepository poolUpdateRepository;
-  @Autowired
-  private PoolRetireRepository poolRetireRepository;
+  private final RosettaConfig rosettaConfig;
+  private final BlockRepository blockRepository;
+  private final RewardRepository rewardRepository;
+  private final UtxoRepository utxoRepository;
+  private final TxRepository txRepository;
+  private final EpochParamRepository epochParamRepository;
+  private final StakeDeregistrationRepository stakeDeregistrationRepository;
+  private final DelegationRepository delegationRepository;
+  private final TxMetadataRepository txMetadataRepository;
+  private final PoolUpdateRepository poolUpdateRepository;
+  private final PoolRetireRepository poolRetireRepository;
 
   @PostConstruct
   void init() {
