@@ -5,15 +5,16 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.Digits;
-import java.math.BigInteger;
-import java.sql.Timestamp;
-import java.util.Objects;
 import org.cardanofoundation.rosetta.common.enumeration.EraType;
 import org.cardanofoundation.rosetta.common.validation.Lovelace;
 import org.cardanofoundation.rosetta.common.validation.Word128Type;
 import org.cardanofoundation.rosetta.common.validation.Word31Type;
 import org.hibernate.Hibernate;
 import org.hibernate.annotations.DynamicUpdate;
+
+import java.math.BigInteger;
+import java.sql.Timestamp;
+import java.util.Objects;
 
 @Entity
 @Table(
