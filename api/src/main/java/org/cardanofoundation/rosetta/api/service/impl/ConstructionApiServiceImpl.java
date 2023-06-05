@@ -1,27 +1,21 @@
 package org.cardanofoundation.rosetta.api.service.impl;
 
 import co.nstant.in.cbor.CborException;
-import co.nstant.in.cbor.model.*;
+import co.nstant.in.cbor.model.Array;
 import co.nstant.in.cbor.model.Map;
+import co.nstant.in.cbor.model.UnicodeString;
 import com.bloxbean.cardano.client.exception.AddressExcepion;
 import com.bloxbean.cardano.client.exception.CborDeserializationException;
 import com.bloxbean.cardano.client.exception.CborSerializationException;
-import com.bloxbean.cardano.client.util.HexUtil;
-import com.bloxbean.cardano.yaci.core.protocol.localtx.model.TxSubmissionRequest;
-import com.bloxbean.cardano.yaci.helper.LocalTxSubmissionClient;
-import com.bloxbean.cardano.yaci.helper.model.TxResult;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import java.math.BigInteger;
+import java.io.IOException;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
-
-import org.cardanofoundation.rosetta.api.common.constants.Constants;
-import org.cardanofoundation.rosetta.api.config.yaci.YaciConfiguration;
-import org.cardanofoundation.rosetta.api.model.ProtocolParametersResponse;
-import org.cardanofoundation.rosetta.api.model.Signatures;
-import org.cardanofoundation.rosetta.api.model.UnsignedTransaction;
 import org.cardanofoundation.rosetta.api.common.enumeration.AddressType;
 import org.cardanofoundation.rosetta.api.common.enumeration.NetworkIdentifierType;
 import org.cardanofoundation.rosetta.api.exception.ExceptionFactory;
@@ -31,10 +25,12 @@ import org.cardanofoundation.rosetta.api.model.DepositParameters;
 import org.cardanofoundation.rosetta.api.model.Operation;
 import org.cardanofoundation.rosetta.api.model.ProtocolParameters;
 import org.cardanofoundation.rosetta.api.model.PublicKey;
+import org.cardanofoundation.rosetta.api.model.Signatures;
 import org.cardanofoundation.rosetta.api.model.SigningPayload;
 import org.cardanofoundation.rosetta.api.model.TransactionExtraData;
 import org.cardanofoundation.rosetta.api.model.TransactionParsed;
-import com.bloxbean.cardano.client.transaction.spec.Transaction;
+import org.cardanofoundation.rosetta.api.model.UnsignedTransaction;
+import org.cardanofoundation.rosetta.api.model.rest.AccountIdentifier;
 import org.cardanofoundation.rosetta.api.model.rest.ConstructionCombineRequest;
 import org.cardanofoundation.rosetta.api.model.rest.ConstructionCombineResponse;
 import org.cardanofoundation.rosetta.api.model.rest.ConstructionDeriveRequest;
@@ -53,16 +49,9 @@ import org.cardanofoundation.rosetta.api.model.rest.ConstructionSubmitRequest;
 import org.cardanofoundation.rosetta.api.model.rest.TransactionIdentifierResponse;
 import org.cardanofoundation.rosetta.api.service.CardanoService;
 import org.cardanofoundation.rosetta.api.service.ConstructionApiService;
-import org.cardanofoundation.rosetta.api.model.rest.AccountIdentifier;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-
-import java.io.IOException;
-import java.util.*;
-import java.util.stream.Collectors;
-import reactor.core.publisher.Mono;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -72,8 +61,8 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
     @Autowired
     public CardanoService cardanoService;
 
-    @Autowired
-    LocalTxSubmissionClient localTxSubmissionClient;
+//    @Autowired
+//    LocalTxSubmissionClient localTxSubmissionClient;
 
     @Override
     public ConstructionDeriveResponse constructionDeriveService(
@@ -264,19 +253,19 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
         @NotNull ConstructionSubmitRequest constructionSubmitRequest)
         throws CborDeserializationException, CborSerializationException {
 
-        System.err.println("Vao day 0: " + Thread.currentThread().getName());
-
-        Array array = cardanoService.decodeExtraData(constructionSubmitRequest.getSignedTransaction());
-        byte[] signedTransactionBytes = HexUtil.decodeHexString(((UnicodeString) array.getDataItems().get(0)).getString());
-        Transaction parsed = Transaction.deserialize(signedTransactionBytes);
-        TxSubmissionRequest txnRequest = new TxSubmissionRequest(parsed.serialize());
-
-        TxResult txResult = localTxSubmissionClient.submitTx(txnRequest).block();
-        if (!txResult.isAccepted()){
-            throw ExceptionFactory.submitRejected();
-        }
-        String transactionHash = cardanoService.getHashOfSignedTransaction(((UnicodeString) array.getDataItems().get(0)).getString());
-        return cardanoService.mapToConstructionHashResponse(transactionHash);
-
+//        System.err.println("Vao day 0: " + Thread.currentThread().getName());
+//
+//        Array array = cardanoService.decodeExtraData(constructionSubmitRequest.getSignedTransaction());
+//        byte[] signedTransactionBytes = HexUtil.decodeHexString(((UnicodeString) array.getDataItems().get(0)).getString());
+//        Transaction parsed = Transaction.deserialize(signedTransactionBytes);
+//        TxSubmissionRequest txnRequest = new TxSubmissionRequest(parsed.serialize());
+//
+//        TxResult txResult = localTxSubmissionClient.submitTx(txnRequest).block();
+//        if (!txResult.isAccepted()){
+//            throw ExceptionFactory.submitRejected();
+//        }
+//        String transactionHash = cardanoService.getHashOfSignedTransaction(((UnicodeString) array.getDataItems().get(0)).getString());
+//        return cardanoService.mapToConstructionHashResponse(transactionHash);
+      return null;
     }
 }
