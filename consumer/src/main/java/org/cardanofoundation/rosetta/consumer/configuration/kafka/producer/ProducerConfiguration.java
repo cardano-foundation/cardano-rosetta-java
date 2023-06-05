@@ -42,7 +42,6 @@ public class ProducerConfiguration {
   private Map<String, Object> jsonProducerConfigs(KafkaProperties.ProducerConfig jsonConfigs) {
     Map<String, Object> props;
     props = new HashMap<>();
-    log.info("jsonProducerConfigs {}", jsonConfigs.getBootstrapServers());
     props.put(org.apache.kafka.clients.producer.ProducerConfig.BOOTSTRAP_SERVERS_CONFIG,
         jsonConfigs.getBootstrapServers());
     props.put(org.apache.kafka.clients.producer.ProducerConfig.CLIENT_ID_CONFIG,
