@@ -3,12 +3,12 @@ package org.cardanofoundation.rosetta.api.common.enumeration;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum CatalystDataIndexes {
-  VOTING_KEY(1l),
-  STAKE_KEY(2l),
-  REWARD_ADDRESS(3l),
-  VOTING_NONCE(4l);
+  VOTING_KEY(1L),
+  STAKE_KEY(2L),
+  REWARD_ADDRESS(3L),
+  VOTING_NONCE(4L);
 
-  private Long value;
+  private final Long value;
 
   CatalystDataIndexes(Long value) {
     this.value = value;

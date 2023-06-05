@@ -220,7 +220,7 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
     Long latestBlockNumber = findLatestBlockNumber();
     log.info("[getLatestBlock] Latest block number is " + latestBlockNumber);
     BlockDto latestBlock = findBlock(latestBlockNumber, null);
-    if (latestBlock == null) {
+    if (Objects.isNull(latestBlock)) {
       log.error("[getLatestBlock] Latest block not found");
       throw ExceptionFactory.blockNotFoundException();
     }

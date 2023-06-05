@@ -9,9 +9,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.api.common.enumeration.CatalystLabels;
 import org.cardanofoundation.rosetta.api.projection.dto.TransactionMetadataDto;
 import org.cardanofoundation.rosetta.api.repository.customrepository.CustomTxMetadataRepository;
-import org.hibernate.query.TupleTransformer;
-import org.hibernate.transform.ResultTransformer;
-import org.hibernate.transform.Transformers;
 import org.springframework.stereotype.Repository;
 
 @Slf4j
@@ -27,7 +24,7 @@ public class CustomTxMetadataRepositoryImpl implements CustomTxMetadataRepositor
   public List<TransactionMetadataDto> findTransactionMetadata(List<String> hashes) {
     String[] finalHashes = new String[hashes.size()];
     for (int i = 0; i < hashes.size(); i++) {
-      finalHashes[i] = new String(hashes.get(i));
+      finalHashes[i] = hashes.get(i);
     }
     String findTransactionMetadataQuery = "WITH metadata AS ( "
         + "  SELECT "

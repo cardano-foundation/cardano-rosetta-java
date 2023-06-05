@@ -2449,7 +2449,7 @@ public class CardanoServiceImpl implements CardanoService {
   //need to revise
   @Override
   public Address getAddressFromHexString(String hex) {
-    return new Address(hexStringToBuffer(hex));
+    return getAddressFromHexString(hex);
   }
 
   @Override
