@@ -136,8 +136,9 @@ public class DataMapper {
           .reduce(BigInteger.ZERO,
               (totalAmount, current) -> {
             List<Utxo> utxos = blockUtxosMultiAssets.getUtxos();
+            int currentIndex = utxos.indexOf(current);
             Utxo previous =
-                utxos.indexOf(current) > 0 ? utxos.get(utxos.indexOf(current) - 1) : null;
+                currentIndex > 0 ? utxos.get(currentIndex - 1) : null;
             if (Objects.isNull(previous) || !areEqualUtxos(previous, current)) {
               return totalAmount.add(new BigInteger(current.getValue()));
             }
