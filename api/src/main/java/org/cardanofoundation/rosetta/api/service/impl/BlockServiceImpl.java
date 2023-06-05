@@ -33,7 +33,6 @@ import org.cardanofoundation.rosetta.api.service.CardanoService;
 import org.cardanofoundation.rosetta.api.service.LedgerDataProviderService;
 import org.openapitools.client.model.Transaction;
 import org.openapitools.client.model.TransactionIdentifier;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -41,14 +40,11 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class BlockServiceImpl implements BlockService {
+
+  private final LedgerDataProviderService ledgerDataProviderService;
+  private final CardanoService cardanoService;
   @Value("${page-size:5}")
-  private Integer PAGE_SIZE;
-
-  @Autowired
-  LedgerDataProviderService ledgerDataProviderService;
-  @Autowired
-  private CardanoService cardanoService;
-
+  private Integer pageSize;
 
   @Override
   public AccountBalanceResponse findBalanceDataByAddressAndBlock(String address, Long number,
@@ -164,9 +160,10 @@ public class BlockServiceImpl implements BlockService {
       log.debug("[block] transactionsFound is " + transactionsFound.toString());
       String poolDeposit = cardanoService.getProtocolParameters().getPoolDeposit();
       log.debug("[poolDeposit] poolDeposit is " + poolDeposit);
-      if (transactionsFound.size() > PAGE_SIZE) {
+      if (transactionsFound.size() > pageSize) {
         log.info(
-            "[block] Returning only transactions hashes since the number of them is bigger than " + PAGE_SIZE);
+            "[block] Returning only transactions hashes since the number of them is bigger than "
+                + pageSize);
         return BlockResponse.builder()
             .block(mapToRosettaBlock(block, new ArrayList<>(), poolDeposit))
             .otherTransactions(transactionsFound.stream()

@@ -30,7 +30,7 @@ import org.springframework.stereotype.Repository;
 @Slf4j
 public class UtxoRepositoryImpl implements UtxoRepository {
   public static final String POLICYID = "policyId";
-  public static String utxoQuery = buildUtxoQuery();
+  public static final String UTXO_QUERY = buildUtxoQuery();
   @PersistenceContext
   private EntityManager entityManager;
 
@@ -55,7 +55,7 @@ public class UtxoRepositoryImpl implements UtxoRepository {
           .getMethod("buildFindMaBalanceByAddressAndBlock", null)
           .getAnnotation(Query.class).value();
       Map<String, Object> values = new HashMap<>();
-      values.put("utxoQuery", utxoQuery);
+      values.put("utxoQuery", UTXO_QUERY);
       return format(query, values);
 
     } catch (NoSuchMethodException e) {
@@ -214,7 +214,7 @@ public class UtxoRepositoryImpl implements UtxoRepository {
           .getMethod("buildFindUtxoByAddressAndBlockQuery", String.class, String.class, List.class)
           .getAnnotation(Query.class).value();
       Map<String, Object> values = new HashMap<>();
-      values.put("utxoQuery", utxoQuery);
+      values.put("utxoQuery", UTXO_QUERY);
       values.put("whereClause", buildWhereCurrenciesClause(currencies));
 
       return format(sb, values);
