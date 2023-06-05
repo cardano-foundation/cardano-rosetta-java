@@ -656,4 +656,68 @@ class ConstructionApiDelegateImplParseTests extends IntegrationTest {
     restTemplate.postForObject(baseUrl,
         request, ConstructionParseResponse.class);
   }
+
+  @Test
+  void test_should_correctly_parse_operations_with_related_operation()
+      throws IOException {
+    ConstructionParseRequest request = objectMapper.readValue(new String(Files.readAllBytes(
+            Paths.get(
+                BASE_DIRECTORY
+                    + "/construction_parse_should_correctly_parse_operations_with_related_operation.json"))),
+        ConstructionParseRequest.class);
+
+    restTemplate.postForObject(baseUrl,
+        request, ConstructionParseResponse.class);
+  }
+
+  @Test
+  void test_should_correctly_parse_operations_with_sub_account()
+      throws IOException {
+    ConstructionParseRequest request = objectMapper.readValue(new String(Files.readAllBytes(
+            Paths.get(
+                BASE_DIRECTORY
+                    + "/construction_parse_should_correctly_parse_operations_with_sub_account.json"))),
+        ConstructionParseRequest.class);
+
+    restTemplate.postForObject(baseUrl,
+        request, ConstructionParseResponse.class);
+  }
+  @Test
+  void test_should_correctly_parse_operations_with_amount_withdrawal_metadata()
+      throws IOException {
+    ConstructionParseRequest request = objectMapper.readValue(new String(Files.readAllBytes(
+            Paths.get(
+                BASE_DIRECTORY
+                    + "/construction_parse_should_correctly_parse_operations_with_withdrawal.json"))),
+        ConstructionParseRequest.class);
+
+    restTemplate.postForObject(baseUrl,
+        request, ConstructionParseResponse.class);
+  }
+
+  @Test
+  void test_should_correctly_parse_operations_with_amount_refund_metadata()
+      throws IOException {
+    ConstructionParseRequest request = objectMapper.readValue(new String(Files.readAllBytes(
+            Paths.get(
+                BASE_DIRECTORY
+                    + "/construction_parse_should_correctly_parse_operations_with_refund.json"))),
+        ConstructionParseRequest.class);
+
+    restTemplate.postForObject(baseUrl,
+        request, ConstructionParseResponse.class);
+  }
+
+  @Test
+  void test_should_correctly_parse_operations_with_amount_deposit_metadata()
+      throws IOException {
+    ConstructionParseRequest request = objectMapper.readValue(new String(Files.readAllBytes(
+            Paths.get(
+                BASE_DIRECTORY
+                    + "/construction_parse_should_correctly_parse_operations_with_deposit.json"))),
+        ConstructionParseRequest.class);
+
+    restTemplate.postForObject(baseUrl,
+        request, ConstructionParseResponse.class);
+  }
 }
