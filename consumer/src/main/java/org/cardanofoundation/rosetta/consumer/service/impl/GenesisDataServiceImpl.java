@@ -2,10 +2,17 @@ package org.cardanofoundation.rosetta.consumer.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.cardanofoundation.rosetta.common.entity.*;
 import org.cardanofoundation.rosetta.common.util.FileUtil;
 import org.cardanofoundation.rosetta.consumer.dto.GenesisData;
@@ -15,6 +22,8 @@ import org.cardanofoundation.rosetta.consumer.service.EpochParamService;
 import org.cardanofoundation.rosetta.consumer.service.GenesisDataService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.io.ResourceLoader;
+import org.springframework.data.domain.Example;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,6 +55,7 @@ public class GenesisDataServiceImpl implements GenesisDataService {
 
   final CostModelService costModelService;
   final EpochParamService epochParamService;
+  final ResourceLoader resourceLoader;
 
   public void test(){
       log.info("Test");
@@ -188,10 +198,18 @@ public class GenesisDataServiceImpl implements GenesisDataService {
   private GenesisData getGenesisData(String fileName) {
     GenesisData data = null;
     try {
-      String genesisJson = FileUtil.readFile(
-          ResourceUtils.getFile(fileName).getAbsolutePath());
-      data = objectMapper.readValue(genesisJson, GenesisData.class);
-    } catch (JsonProcessingException | FileNotFoundException e) {
+      StringBuilder genesisJson = new StringBuilder();
+      try (InputStream fileGenesis = resourceLoader.getResource(fileName).getInputStream()) {
+        byte[] bytes = new byte[500];
+        while (fileGenesis.available() != 0) {
+          fileGenesis.read(bytes);
+          genesisJson.append(new String(bytes));
+        }
+      } catch (Exception exception) {
+        log.error("[readFile] file error {}", fileName);
+      }
+      data = objectMapper.readValue(genesisJson.toString(), GenesisData.class);
+    } catch (JsonProcessingException e) {
       log.error("Genesis data at {} can't parse from json to java object", fileGenesis);
       log.error("{}", e.getMessage());
       System.exit(0);

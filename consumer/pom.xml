@@ -152,6 +152,17 @@
   </dependencies>
 
   <build>
+    <resources>
+      <resource>
+        <filtering>true</filtering>
+        <directory>src/main/resources</directory>
+        <includes>
+          <include>application.properties</include>
+          <include>config/*.yaml</include>
+          <include>genesis/</include>
+        </includes>
+      </resource>
+    </resources>
     <plugins>
       <plugin>
         <groupId>org.springframework.boot</groupId>
