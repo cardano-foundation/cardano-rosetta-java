@@ -11,4 +11,4 @@ COPY ./api /app/api
 COPY ./consumer/pom.xml /app/consumer/pom.xml
 COPY ./consumer /app/consumer
 
-RUN mvn clean install -DskipTests
+RUN --mount=type=cache,target=/root/.m2 mvn clean package -DskipTests

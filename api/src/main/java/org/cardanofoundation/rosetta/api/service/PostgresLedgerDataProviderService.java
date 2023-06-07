@@ -99,9 +99,8 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
   @Override
   public GenesisBlockDto findGenesisBlock() {
     log.debug("[findGenesisBlock] About to run findGenesisBlock query");
-    Page<GenesisBlockProjection> genesisBlockProjectionPage = blockRepository.findGenesisBlock(
-        PageRequest.of(0, 1));
-    log.debug("[GenesisBlockProjectionPage] is " + genesisBlockProjectionPage);
+    Page<GenesisBlockProjection> genesisBlockProjectionPage =
+        blockRepository.findGenesisBlock(PageRequest.of(0, 1));
     genesisBlockProjectionPage.getContent();
     if (!genesisBlockProjectionPage.getContent().isEmpty()) {
       GenesisBlockProjection genesis = genesisBlockProjectionPage
@@ -117,8 +116,9 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
 
   @Override
   public BlockDto findBlock(Long blockNumber, String blockHash) {
-    log.debug("[findBlock] Parameters received for run query blockNumber: " + blockNumber
-        + " , blockHash: " + blockHash);
+    log.debug(
+        "[findBlock] Parameters received for run query blockNumber: {} , blockHash: {}",
+        blockNumber, blockHash);
     List<BlockProjection> blockProjections = blockRepository.findBlock(blockNumber, blockHash);
     if (blockProjections.size() == 1) {
       log.debug("[findBlock] Block found!");
@@ -128,8 +128,6 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
         Date date = dateFormat.parse(blockProjection.getCreatedAt().toString());
-        log.debug("[findBlock] timestamp: " + blockProjection.getCreatedAt());
-        log.debug("[findBlock] miliseconds " + date.getTime());
         return BlockDto.builder()
             .number(blockProjection.getNumber())
             .hash(blockProjection.getHash())
@@ -160,8 +158,8 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
 
   @Override
   public Long findLatestBlockNumber() {
-    Page<Long> latestBlockNumberPage = blockRepository.findLatestBlockNumber(
-        PageRequest.of(0, 1));
+    Page<Long> latestBlockNumberPage =
+        blockRepository.findLatestBlockNumber(PageRequest.of(0, 1));
     if (ObjectUtils.isNotEmpty(latestBlockNumberPage.getContent())) {
       return latestBlockNumberPage.getContent().get(0);
     }
@@ -171,8 +169,8 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
   @Override
   public ProtocolParameters findProtocolParameters() {
     log.debug("[findProtocolParameters] About to run findProtocolParameters query");
-    Page<EpochParamProjection> epochParamProjectionPage = epochParamRepository.findProtocolParameters(
-        PageRequest.of(0, 1));
+    Page<EpochParamProjection> epochParamProjectionPage =
+        epochParamRepository.findProtocolParameters(PageRequest.of(0, 1));
     if (ObjectUtils.isEmpty(epochParamProjectionPage.getContent())) {
       return ProtocolParameters.builder()
           .coinsPerUtxoSize("0")
@@ -184,20 +182,21 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
     log.debug(
         "[findProtocolParameters] epochParamProjection is " + epochParamProjection.toString());
     return ProtocolParameters.builder()
-        .coinsPerUtxoSize(Objects.nonNull(epochParamProjection.getCoinsPerUtxoSize())
-            ? epochParamProjection.getCoinsPerUtxoSize().toString() : "0")
+        .coinsPerUtxoSize(
+            Objects.nonNull(epochParamProjection.getCoinsPerUtxoSize()) ?
+                epochParamProjection.getCoinsPerUtxoSize().toString() : "0")
         .maxTxSize(epochParamProjection.getMaxTxSize())
-        .maxValSize(Objects.nonNull(epochParamProjection.getMaxValSize())
-            ? epochParamProjection.getMaxValSize() : BigInteger.ZERO)
-        .keyDeposit(Objects.nonNull(epochParamProjection.getKeyDeposit())
-            ? epochParamProjection.getKeyDeposit().toString() : null)
+        .maxValSize(Objects.nonNull(epochParamProjection.getMaxValSize()) ?
+            epochParamProjection.getMaxValSize() : BigInteger.ZERO)
+        .keyDeposit(Objects.nonNull(epochParamProjection.getKeyDeposit()) ?
+            epochParamProjection.getKeyDeposit().toString() : null)
         .maxCollateralInputs(epochParamProjection.getMaxCollateralInputs())
         .minFeeCoefficient(epochParamProjection.getMinFeeA())
         .minFeeConstant(epochParamProjection.getMinFeeB())
-        .minPoolCost(Objects.nonNull(epochParamProjection.getMinPoolCost())
-            ? epochParamProjection.getMinPoolCost().toString() : null)
-        .poolDeposit(Objects.nonNull(epochParamProjection.getPoolDeposit())
-            ? epochParamProjection.getPoolDeposit().toString() : null)
+        .minPoolCost(Objects.nonNull(epochParamProjection.getMinPoolCost()) ?
+            epochParamProjection.getMinPoolCost().toString() : null)
+        .poolDeposit(Objects.nonNull(epochParamProjection.getPoolDeposit()) ?
+            epochParamProjection.getPoolDeposit().toString() : null)
         .protocol(epochParamProjection.getProtocolMajor())
         .build();
   }
@@ -218,26 +217,26 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
   public BlockDto findLatestBlock() {
     log.info("[getLatestBlock] About to look for latest block");
     Long latestBlockNumber = findLatestBlockNumber();
-    log.info("[getLatestBlock] Latest block number is " + latestBlockNumber);
+    log.info("[getLatestBlock] Latest block number is {}", latestBlockNumber);
     BlockDto latestBlock = findBlock(latestBlockNumber, null);
     if (Objects.isNull(latestBlock)) {
       log.error("[getLatestBlock] Latest block not found");
       throw ExceptionFactory.blockNotFoundException();
     }
-    log.debug("[getLatestBlock] Returning latest block " + latestBlock);
+    log.debug("[getLatestBlock] Returning latest block {}", latestBlock);
     return latestBlock;
   }
 
   @Override
   public List<TransactionDto> findTransactionsByBlock(Long blockNumber, String blockHash) {
-    log.debug("[findTransactionsByBlock] Parameters received for run query blockNumber: "
-        + blockNumber + "blockHash: " + blockHash);
-    log.debug("[findTransactionsByBlock] About to run findTransactionsByBlock query with params"
-        + blockNumber + " and " + blockHash);
+    log.debug(
+        "[findTransactionsByBlock] Parameters received for run query blockNumber: {} blockHash: {}",
+        blockNumber, blockHash);
+
     List<FindTransactionProjection> findTransactionProjections = txRepository.findTransactionsByBlock(
         blockNumber, blockHash);
-    log.debug("[findTransactionsByBlock] Found " + findTransactionProjections.size()
-        + " transactions");
+    log.debug(
+        "[findTransactionsByBlock] Found {} transactions", findTransactionProjections.size());
     if (ObjectUtils.isNotEmpty(findTransactionProjections)) {
       return parseTransactionRows(findTransactionProjections);
     }
@@ -313,11 +312,11 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
   @Override
   public PopulatedTransaction findTransactionByHashAndBlock(String hash,
       Long blockNumber, String blockHash) {
-    log.debug("[findTransactionByHashAndBlock] Parameters received for run query blockNumber: "
-        + blockNumber + " , blockHash: " + blockHash);
+
     List<FindTransactionProjection> findTransactions = blockRepository.findTransactionByHashAndBlock(
         hash, blockNumber, blockHash);
-    log.debug("[findTransactionByHashAndBlock] Found " + findTransactions.size() + " transactions");
+    log.debug(
+        "[findTransactionByHashAndBlock] Found {} transactions", findTransactions.size());
     if (ObjectUtils.isNotEmpty(findTransactions)) {
       Map<String, PopulatedTransaction> transactionsMap = mapTransactionsToDict(
           parseTransactionRows(findTransactions));
@@ -327,7 +326,7 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
   }
   @Override
   public List<FindTransactionsInputs> getFindTransactionsInputs(List<String> transactionsHashes) {
-    log.debug("[findTransactionsInputs] with parameters " + transactionsHashes);
+    log.debug("[findTransactionsInputs] with parameters {}", transactionsHashes);
     return txRepository.findTransactionsInputs(transactionsHashes);
   }
 

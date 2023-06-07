@@ -11,6 +11,7 @@ public interface CostModelService {
 
   CostModel getGenesisCostModel();
 
+  void setGenesisCostModel(CostModel costModel);
   @Transactional
   void handleCostModel(AggregatedTx tx);
 

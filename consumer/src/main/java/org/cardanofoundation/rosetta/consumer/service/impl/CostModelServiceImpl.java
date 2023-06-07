@@ -2,6 +2,10 @@ package org.cardanofoundation.rosetta.consumer.service.impl;
 
 import com.bloxbean.cardano.client.transaction.spec.Language;
 import jakarta.annotation.PostConstruct;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.common.entity.CostModel;
 import org.cardanofoundation.rosetta.common.ledgersync.ProtocolParamUpdate;
 import org.cardanofoundation.rosetta.common.ledgersync.constant.Constant;
@@ -12,20 +16,17 @@ import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedTx;
 import org.cardanofoundation.rosetta.consumer.repository.BlockRepository;
 import org.cardanofoundation.rosetta.consumer.repository.CostModelRepository;
 import org.cardanofoundation.rosetta.consumer.service.CostModelService;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.ObjectUtils;
+
 import java.math.BigInteger;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.ObjectUtils;
 
 @Slf4j
 @Service
@@ -74,6 +75,18 @@ public class CostModelServiceImpl implements CostModelService {
   @Override
   public CostModel getGenesisCostModel() {
     return this.genesisCostModel;
+  }
+
+  @Override
+  public void setGenesisCostModel(CostModel costModel) {
+    setup(costModel);
+  }
+
+  public void setup(CostModel costModel) {
+    costModelRepository.findByHash(costModel.getHash())
+            .ifPresentOrElse(cm -> genesisCostModel = cm, () ->
+                    costModelRepository.save(costModel)
+            );
   }
 
   @Override

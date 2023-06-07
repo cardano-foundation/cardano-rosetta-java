@@ -1,6 +1,6 @@
 package org.cardanofoundation.rosetta.api.repository;
 
-import org.cardanofoundation.rosetta.api.model.ProtocolParametersResponse;
+import java.util.List;
 import org.cardanofoundation.rosetta.api.projection.BlockProjection;
 import org.cardanofoundation.rosetta.api.projection.FindTransactionProjection;
 import org.cardanofoundation.rosetta.api.projection.GenesisBlockProjection;
@@ -10,8 +10,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-
-import java.util.List;
 
 
 public interface BlockRepository extends JpaRepository<Block, Long> {
@@ -55,21 +53,6 @@ public interface BlockRepository extends JpaRepository<Block, Long> {
             "WHERE blockNo IS NOT NULL ORDER BY blockNo DESC")
     Page<Long> findLatestBlockNumber(Pageable pageable);
 
-    @Query(value = "  SELECT \n" +
-        "    coinsPerUtxoSize as coinsPerUtxoSize,\n" +
-        "    maxTxSize as maxTxSize ,\n" +
-        "    maxValSize as maxValSize,\n" +
-        "    keyDeposit as keyDeposit ,\n" +
-        "    maxCollateralInputs as maxCollateralInputs ,\n" +
-        "    minFeeA as minFeeCoefficient,\n" +
-        "    minFeeB as minFeeConstant,\n" +
-        "    minPoolCost as minPoolCost,\n" +
-        "    poolDeposit as poolDeposit ,\n" +
-        "    protocolMajor as protocolMajor\n" +
-        "  FROM EpochParam  \n" +
-        "  ORDER BY id \n" +
-        "  DESC LIMIT 1")
-    ProtocolParametersResponse findProtocolParameters();
   @Query("SELECT tx.hash as hash, "
       + "tx.fee as fee, "
       + "tx.size as size, "
