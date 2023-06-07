@@ -131,7 +131,7 @@ services:
       - ./node-ipc:/ipc
     restart: "no"
     ports:
-      - "3001:3001"
+      - "3003:3003"
     healthcheck:
       # Ping the EKG port to see if it responds.
       # Assuming if EKG isn't up then the rest of cardano-node isn't either.

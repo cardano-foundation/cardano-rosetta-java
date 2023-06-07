@@ -6,8 +6,6 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.cardanofoundation.rosetta.common.validation.Int65Type;
 import org.hibernate.Hibernate;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
 
 import java.math.BigInteger;
 import java.util.Objects;
@@ -25,9 +23,8 @@ import java.util.Objects;
 public class MaTxMint extends BaseEntity {
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
-  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "ident", nullable = false,
-      foreignKey = @ForeignKey(name = "ma_tx_mint_ident_fkey"))
+      foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "none"))
   @EqualsAndHashCode.Exclude
   private MultiAsset ident;
 
@@ -40,9 +37,8 @@ public class MaTxMint extends BaseEntity {
   private BigInteger quantity;
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
-  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "tx_id", nullable = false,
-      foreignKey = @ForeignKey(name = "ma_tx_mint_tx_id_fkey"))
+      foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "none"))
   @EqualsAndHashCode.Exclude
   private Tx tx;
 
