@@ -2,6 +2,7 @@ version: '3.8'
 services:
   db:
     image: "${DB_IMAGE_NAME}:${DB_IMAGE_TAG}"
+    shm_size: 30g
     ports:
       - "${DB_PORT}:${DB_PORT}"
     environment:
@@ -131,7 +132,7 @@ services:
       - ./node-ipc:/ipc
     restart: "no"
     ports:
-      - "3001:3001"
+      - "3003:3003"
     healthcheck:
       # Ping the EKG port to see if it responds.
       # Assuming if EKG isn't up then the rest of cardano-node isn't either.
