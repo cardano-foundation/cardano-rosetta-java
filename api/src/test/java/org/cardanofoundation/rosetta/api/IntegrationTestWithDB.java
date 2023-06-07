@@ -13,7 +13,7 @@ public class IntegrationTestWithDB extends IntegrationTest {
       // Get absolute path for docker-compose file
       File fileWithAbsolutePath =
           new File(
-              "../api/src/test/resources/testcontainers/docker-compose.yml").getCanonicalFile();
+              "../testcontainers/docker-compose.yml").getCanonicalFile();
       testEnvironment =
           new DockerComposeContainer(fileWithAbsolutePath);
       testEnvironment.start();
