@@ -18,7 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 
 import org.cardanofoundation.rosetta.api.common.constants.Constants;
-//import org.cardanofoundation.rosetta.api.config.yaci.YaciConfiguration;
+import org.cardanofoundation.rosetta.api.config.yaci.YaciConfiguration;
 import org.cardanofoundation.rosetta.api.model.ProtocolParametersResponse;
 import org.cardanofoundation.rosetta.api.model.Signatures;
 import org.cardanofoundation.rosetta.api.model.UnsignedTransaction;
@@ -72,8 +72,8 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
     @Autowired
     public CardanoService cardanoService;
 
-//    @Autowired
-//    LocalTxSubmissionClient localTxSubmissionClient;
+    @Autowired
+    LocalTxSubmissionClient localTxSubmissionClient;
 
     @Override
     public ConstructionDeriveResponse constructionDeriveService(
@@ -264,20 +264,19 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
         @NotNull ConstructionSubmitRequest constructionSubmitRequest)
         throws CborDeserializationException, CborSerializationException {
 
-//        System.err.println("Vao day 0: " + Thread.currentThread().getName());
-//
-//        Array array = cardanoService.decodeExtraData(constructionSubmitRequest.getSignedTransaction());
-//        byte[] signedTransactionBytes = HexUtil.decodeHexString(((UnicodeString) array.getDataItems().get(0)).getString());
-//        Transaction parsed = Transaction.deserialize(signedTransactionBytes);
-//        TxSubmissionRequest txnRequest = new TxSubmissionRequest(parsed.serialize());
-//
-//        TxResult txResult = localTxSubmissionClient.submitTx(txnRequest).block();
-//        if (!txResult.isAccepted()){
-//            throw ExceptionFactory.submitRejected();
-//        }
-//        String transactionHash = cardanoService.getHashOfSignedTransaction(((UnicodeString) array.getDataItems().get(0)).getString());
-//        return cardanoService.mapToConstructionHashResponse(transactionHash);
-        return null;
+        System.err.println("Vao day 0: " + Thread.currentThread().getName());
+
+        Array array = cardanoService.decodeExtraData(constructionSubmitRequest.getSignedTransaction());
+        byte[] signedTransactionBytes = HexUtil.decodeHexString(((UnicodeString) array.getDataItems().get(0)).getString());
+        Transaction parsed = Transaction.deserialize(signedTransactionBytes);
+        TxSubmissionRequest txnRequest = new TxSubmissionRequest(parsed.serialize());
+
+        TxResult txResult = localTxSubmissionClient.submitTx(txnRequest).block();
+        if (!txResult.isAccepted()){
+            throw ExceptionFactory.submitRejected();
+        }
+        String transactionHash = cardanoService.getHashOfSignedTransaction(((UnicodeString) array.getDataItems().get(0)).getString());
+        return cardanoService.mapToConstructionHashResponse(transactionHash);
 
     }
 }
