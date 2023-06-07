@@ -31,23 +31,21 @@ public class AccountServiceImpl implements AccountService {
     Long index = null;
     String hash = null;
     String accountAddress = accountBalanceRequest.getAccountIdentifier().getAddress();
-    log.debug("[accountBalance] Request received: " + accountBalanceRequest);
+    log.debug("[accountBalance] Request received: {}", accountBalanceRequest);
     if (Objects.isNull(cardanoService.getEraAddressType(accountAddress))) {
       throw ExceptionFactory.invalidAddressError(accountAddress);
     }
-    log.info("[accountBalance] Looking for block: "
-        + accountBalanceRequest.getBlockIdentifier()
-        + "|| 'latest'}");
+    log.info(
+        "[accountBalance] Looking for block: {} || latest}", accountBalanceRequest.getBlockIdentifier());
+
     if (Objects.nonNull(accountBalanceRequest.getBlockIdentifier())){
       index = accountBalanceRequest.getBlockIdentifier().getIndex();
       hash = accountBalanceRequest.getBlockIdentifier().getHash();
     }
     
-    AccountBalanceResponse accountBalanceResponse = blockService.findBalanceDataByAddressAndBlock(
-        accountAddress,
-        index,
-        hash);
-    log.debug("[accountBalance] About to return " + accountBalanceResponse);
+    AccountBalanceResponse accountBalanceResponse = blockService
+        .findBalanceDataByAddressAndBlock(accountAddress, index, hash);
+    log.debug("[accountBalance] About to return {}", accountBalanceResponse);
     return accountBalanceResponse;
 
   }
@@ -57,7 +55,7 @@ public class AccountServiceImpl implements AccountService {
     String accountAddress = accountCoinsRequest.getAccountIdentifier().getAddress();
     List<Currency> currencies = accountCoinsRequest.getCurrencies();
 
-    log.debug("[accountCoins] Request received " + accountCoinsRequest);
+    log.debug("[accountCoins] Request received {}", accountCoinsRequest);
     if (Objects.isNull(cardanoService.getEraAddressType(accountAddress))) {
       log.debug("[accountCoins] Address isn't Era");
       throw ExceptionFactory.invalidAddressError(accountAddress);
@@ -67,12 +65,12 @@ public class AccountServiceImpl implements AccountService {
       Validations.validateCurrencies(currencies);
     }
     List<Currency> currenciesRequested = Validations.filterRequestedCurrencies(currencies);
-    log.debug("[accountCoins] Filter currency is " + currenciesRequested);
-    BlockUtxos blockUtxos = blockService.findCoinsDataByAddress(accountAddress,
-        currenciesRequested);
-    log.debug("[accountCoins] blockUtxos is " + blockUtxos);
+    log.debug("[accountCoins] Filter currency is {}", currenciesRequested);
+    BlockUtxos blockUtxos = blockService
+        .findCoinsDataByAddress(accountAddress, currenciesRequested);
+    log.debug("[accountCoins] blockUtxos is {}", blockUtxos);
     AccountCoinsResponse response = DataMapper.mapToAccountCoinsResponse(blockUtxos);
-    log.debug("[accountCoins] About to return " + response);
+    log.debug("[accountCoins] About to return {}", response);
 
     return response;
   }

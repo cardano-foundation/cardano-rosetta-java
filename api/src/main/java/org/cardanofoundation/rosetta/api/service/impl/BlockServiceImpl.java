@@ -55,16 +55,17 @@ public class BlockServiceImpl implements BlockService {
       throw ExceptionFactory.blockNotFoundException();
     }
     log.info(
-        "[findBalanceDataByAddressAndBlock] Looking for utxos for address" + address + " and block "
-            + blockDto.getHash());
+        "[findBalanceDataByAddressAndBlock] Looking for utxos for address {} and block {}",
+        address,
+        blockDto.getHash());
     if (cardanoService.isStakeAddress(address)) {
       log.debug("[findBalanceDataByAddressAndBlock] Address is StakeAddress");
-      log.debug("[findBalanceDataByAddressAndBlock] About to get balance for " + address);
-      Long balance = ledgerDataProviderService.findBalanceByAddressAndBlock(address,
-          blockDto.getHash());
+      log.debug("[findBalanceDataByAddressAndBlock] About to get balance for {}", address);
+      Long balance = ledgerDataProviderService
+          .findBalanceByAddressAndBlock(address, blockDto.getHash());
       log.debug(
-          "[findBalanceDataByAddressAndBlock] Found stake balance of " + balance + " for address "
-              + address);
+          "[findBalanceDataByAddressAndBlock] Found stake balance of {} for address {}", balance,
+          address);
       BalanceAtBlock balanceAtBlock = BalanceAtBlock.builder()
           .block(blockDto)
           .balance(balance.toString())
@@ -74,11 +75,10 @@ public class BlockServiceImpl implements BlockService {
     } else {
       log.debug("[findBalanceDataByAddressAndBlock] Address isn't StakeAddress");
 
-      List<Utxo> utxoDetails = ledgerDataProviderService.findUtxoByAddressAndBlock(address,
-          blockDto.getHash(),
-          null);
-      List<MaBalance> maBalances = ledgerDataProviderService.findMaBalanceByAddressAndBlock(address,
-          blockDto.getHash());
+      List<Utxo> utxoDetails = ledgerDataProviderService
+          .findUtxoByAddressAndBlock(address, blockDto.getHash(), null);
+      List<MaBalance> maBalances = ledgerDataProviderService
+          .findMaBalanceByAddressAndBlock(address, blockDto.getHash());
       BlockUtxosMultiAssets blockUtxosMultiAssets = BlockUtxosMultiAssets.builder()
           .maBalances(maBalances)
           .utxos(utxoDetails)
@@ -97,13 +97,13 @@ public class BlockServiceImpl implements BlockService {
       throw ExceptionFactory.blockNotFoundException();
     }
     log.info(
-        "[findCoinsDataByAddress] Looking for utxos for address " + address + " and "
-            + currencies.size() + "specified currencies"
+        "[findCoinsDataByAddress] Looking for utxos for address {} and {} specified currencies",
+        address,
+        currencies.size()
     );
     List<Utxo> utxoDetails = ledgerDataProviderService.findUtxoByAddressAndBlock(address,
         block.getHash(), currencies);
-    log.debug("[findCoinsByAddress] Found " + utxoDetails.size() + " coin details for address "
-        + address);
+    log.debug("[findCoinsByAddress] Found {} coin details for address {}",utxoDetails.size(), address);
 
     return BlockUtxos.builder()
         .block(block)
@@ -135,10 +135,10 @@ public class BlockServiceImpl implements BlockService {
     }
     boolean searchLatestBlock = (Objects.isNull(hash)) && (Objects.isNull(number));
 
-    log.info("[findBlock] Do we have to look for latestBlock? " + searchLatestBlock);
+    log.info("[findBlock] Do we have to look for latestBlock? {}", searchLatestBlock);
     Long blockNumber =
         searchLatestBlock ? ledgerDataProviderService.findLatestBlockNumber() : number;
-    log.info("[findBlock] Looking for block with blockNumber " + blockNumber);
+    log.info("[findBlock] Looking for block with blockNumber {}", blockNumber);
     BlockDto response = ledgerDataProviderService.findBlock(blockNumber, hash);
     if (Objects.nonNull(response)) {
       log.info("[findBlock] Block was found");
@@ -162,8 +162,8 @@ public class BlockServiceImpl implements BlockService {
       log.debug("[poolDeposit] poolDeposit is " + poolDeposit);
       if (transactionsFound.size() > pageSize) {
         log.info(
-            "[block] Returning only transactions hashes since the number of them is bigger than "
-                + pageSize);
+            "[block] Returning only transactions hashes since the number of them is bigger than {}"
+            ,pageSize);
         return BlockResponse.builder()
             .block(mapToRosettaBlock(block, new ArrayList<>(), poolDeposit))
             .otherTransactions(transactionsFound.stream()
@@ -173,7 +173,7 @@ public class BlockServiceImpl implements BlockService {
       }
       log.info("[block] Looking for blocks transactions full data");
       List<PopulatedTransaction> transactions = this.fillTransactions(transactionsFound);
-      log.info("[block] transactions already filled " + transactions);
+      log.info("[block] transactions already filled {}", transactions);
       return BlockResponse.builder()
           .block(mapToRosettaBlock(block, transactions, poolDeposit))
           .build();
@@ -195,8 +195,8 @@ public class BlockServiceImpl implements BlockService {
   public List<TransactionDto> findTransactionsByBlock(BlockDto block) {
     boolean blockMightContainTransactions =
         block.getTransactionsCount() != 0 || block.getPreviousBlockHash().equals(block.getHash());
-    log.debug("[findTransactionsByBlock] Does requested block contains transactions? : "
-        + blockMightContainTransactions);
+    log.debug("[findTransactionsByBlock] Does requested block contains transactions? : {}"
+        ,blockMightContainTransactions);
     if (blockMightContainTransactions) {
       return ledgerDataProviderService.findTransactionsByBlock(block.getNumber(), block.getHash());
     } else {
@@ -208,10 +208,11 @@ public class BlockServiceImpl implements BlockService {
   public BlockTransactionResponse getBlockTransaction(
       BlockTransactionRequest blockTransactionRequest) {
     String transactionHash = blockTransactionRequest.getTransactionIdentifier().getHash();
-    log.info("[blockTransaction] Looking for transaction for hash" + transactionHash + " and block "
-        + blockTransactionRequest.getBlockIdentifier());
-    PopulatedTransaction transaction = this.findTransaction(
-        blockTransactionRequest.getTransactionIdentifier().getHash(),
+    log.info("[blockTransaction] Looking for transaction for hash {} and block {}",
+        transactionHash,
+        blockTransactionRequest.getBlockIdentifier());
+    PopulatedTransaction transaction = this.
+        findTransaction(blockTransactionRequest.getTransactionIdentifier().getHash(),
         blockTransactionRequest.getBlockIdentifier().getIndex(),
         blockTransactionRequest.getBlockIdentifier().getHash());
     if (Objects.isNull(transaction)) {
@@ -220,7 +221,7 @@ public class BlockServiceImpl implements BlockService {
     }
     String poolDeposit = cardanoService.getProtocolParameters().getPoolDeposit();
     Transaction transactionResponse = mapToRosettaTransaction(transaction, poolDeposit);
-    log.debug("[blockTransaction] Returning response " + transactionResponse);
+    log.debug("[blockTransaction] Returning response {}", transactionResponse);
     return BlockTransactionResponse.builder()
         .transaction(transactionResponse)
         .build();
@@ -228,8 +229,8 @@ public class BlockServiceImpl implements BlockService {
 
   public PopulatedTransaction findTransaction(String transactionHash, Long blockNumber,
       String blockHash) {
-    return ledgerDataProviderService.findTransactionByHashAndBlock(transactionHash, blockNumber,
-        blockHash);
+    return ledgerDataProviderService
+        .findTransactionByHashAndBlock(transactionHash, blockNumber, blockHash);
   }
 
 
