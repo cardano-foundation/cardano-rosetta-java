@@ -8,7 +8,7 @@ import org.cardanofoundation.rosetta.api.model.CurveType;
 public class Constants {
     public static final String CARDANO = "cardano";
     public static final Integer PREPROD_NETWORK_MAGIC = 1;
-    public static final Integer PREVIEW_NETWORK_MAGIC = 2;
+    public static final Integer TESTNET_NETWORK_MAGIC = 1097911063;
 
     public static final int PREFIX_LENGTH = 10;
 

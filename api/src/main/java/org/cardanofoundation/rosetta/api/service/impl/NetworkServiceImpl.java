@@ -7,6 +7,7 @@ import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.parser.OpenAPIV3Parser;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -17,7 +18,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.cardanofoundation.rosetta.api.common.constants.Constants;
@@ -50,20 +51,18 @@ import org.openapitools.client.model.BalanceExemption;
 import org.openapitools.client.model.Error;
 import org.openapitools.client.model.OperationStatus;
 import org.openapitools.client.model.Version;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class NetworkServiceImpl implements NetworkService {
-  @Autowired
-  private RosettaConfig rosettaConfig;
+  private final RosettaConfig rosettaConfig;
 
 
-  @Autowired
-  private LedgerDataProviderService ledgerDataProviderService;
+  private final LedgerDataProviderService ledgerDataProviderService;
 
 
   private List<BalanceExemption> balanceExemptions;
@@ -79,8 +78,7 @@ public class NetworkServiceImpl implements NetworkService {
 
   @Value("${cardano.rosetta.CARDANO_NODE_PATH}")
   private String cardanoNodePath;
-  @Autowired
-  private ResourceLoader resourceLoader;
+  private final ResourceLoader resourceLoader;
 
   private String networkId;
   private Integer networkMagic;
@@ -110,9 +108,7 @@ public class NetworkServiceImpl implements NetworkService {
       byte[] fileBytes = IOUtils.toByteArray(new FileInputStream(path));
       content = new String(fileBytes , StandardCharsets.UTF_8);
     } else {
-      // take file from classpath
-      InputStream inputStream = resourceLoader.getResource(path).getInputStream();
-      content = IOUtils.toString(inputStream,StandardCharsets.UTF_8);
+      throw new FileNotFoundException("Not find path " + path + " in file system");
     }
     return content;
   }
@@ -186,8 +182,8 @@ public class NetworkServiceImpl implements NetworkService {
       return Network.builder().networkId(networkId).build();
     } else if (Objects.equals(networkMagic, Constants.PREPROD_NETWORK_MAGIC)) {
       return Network.builder().networkId("preprod").build();
-    } else if (Objects.equals(networkMagic, Constants.PREVIEW_NETWORK_MAGIC)) {
-      return Network.builder().networkId("preview").build();
+    } else if (Objects.equals(networkMagic, Constants.TESTNET_NETWORK_MAGIC)) {
+      return Network.builder().networkId("testnet").build();
     }
     return null;
   }
@@ -212,7 +208,7 @@ public class NetworkServiceImpl implements NetworkService {
             TopologyConfig::getProducers)
         .orElseGet(() -> getPublicRoots(topologyFile.getPublicRoots()));
     log.debug("[getPeersFromConfig] Found " + producers.size() + " peers");
-    return producers.stream().map(producer -> new Peer(producer.getAddr())).collect(Collectors.toList());
+    return producers.stream().map(producer -> new Peer(producer.getAddr())).toList();
   }
 
   private List<Producer> getPublicRoots(List<PublicRoot> publicRoots) {
@@ -221,7 +217,7 @@ public class NetworkServiceImpl implements NetworkService {
     }
     return publicRoots.stream().flatMap(pr -> pr.getAccessPoints().stream())
         .map(ap -> Producer.builder().addr(ap.getAddress()).build())
-        .collect(Collectors.toList());
+        .toList();
 
   }
 
