@@ -18,7 +18,7 @@ public class IntegrationTestWithDB extends IntegrationTest {
           new DockerComposeContainer(fileWithAbsolutePath);
       testEnvironment.start();
 
-      Thread.sleep(60000); // pause for 1 minutes
+      Thread.sleep(10000); // pause for 1 minutes
     } catch (IOException e) {
       throw new IllegalArgumentException("Cannot initialize testcontainer!", e);
     } catch (InterruptedException e) {

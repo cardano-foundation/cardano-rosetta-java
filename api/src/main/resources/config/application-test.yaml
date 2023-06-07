@@ -35,20 +35,9 @@ spring:
   liquibase:
     enabled: false
 
-logging:
-  level:
-    org:
-      slf4j: DEBUG
-      cardanofoundation:
-        rosetta:
-          api: debug
-      hibernate:
-        SQL: debug
-        type: TRACE
 api:
   exception:
     isPrintStackTrace : true
-
 
 
 cardano:
