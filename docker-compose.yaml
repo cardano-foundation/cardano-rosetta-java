@@ -2,6 +2,7 @@ version: '3.8'
 services:
   db:
     image: "${DB_IMAGE_NAME}:${DB_IMAGE_TAG}"
+    shm_size: 30g
     ports:
       - "${DB_PORT}:${DB_PORT}"
     environment:
@@ -48,7 +49,7 @@ services:
       API_SPRING_PROFILES_ACTIVE: ${API_SPRING_PROFILES_ACTIVE}
       DB_CONNECTION_PARAMS_PROVIDER_TYPE: ${DB_CONNECTION_PARAMS_PROVIDER_TYPE}
       SUBMIT_SOCKET_CONNECTION: ${SUBMIT_SOCKET_CONNECTION}
-      NETWORK_MAGIC: ${NETWORK_MAGIC_NUMBER}
+      NETWORK_MAGIC: ${NETWORK_MAGIC}
       TRANSACTION_TTL: ${TRANSACTION_TTL}
     volumes:
       - ./node-ipc:/ipc
@@ -134,7 +135,7 @@ services:
       - ./node-ipc:/ipc
     restart: "no"
     ports:
-      - "3001:3001"
+      - "3003:3003"
     healthcheck:
       # Ping the EKG port to see if it responds.
       # Assuming if EKG isn't up then the rest of cardano-node isn't either.

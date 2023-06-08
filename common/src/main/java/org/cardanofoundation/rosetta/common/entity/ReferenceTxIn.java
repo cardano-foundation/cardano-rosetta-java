@@ -5,8 +5,6 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.cardanofoundation.rosetta.common.validation.TxIndex;
 import org.hibernate.Hibernate;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
 
 import java.util.Objects;
 
@@ -23,16 +21,14 @@ import java.util.Objects;
 public class ReferenceTxIn extends BaseEntity {
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
-  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "tx_in_id", nullable = false,
-      foreignKey = @ForeignKey(name = "reference_tx_in_tx_in_id_fkey"))
+      foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "none"))
   @EqualsAndHashCode.Exclude
   private Tx txIn;
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
-  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "tx_out_id", nullable = false,
-      foreignKey = @ForeignKey(name = "reference_tx_in_tx_out_id_fkey"))
+      foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "none"))
   @EqualsAndHashCode.Exclude
   private Tx txOut;
 
