@@ -6,6 +6,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Objects;
 import javax.annotation.Generated;
 import javax.validation.Valid;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 /**
  * ConstructionPreprocessRequestMetadata
@@ -13,6 +15,8 @@ import javax.validation.Valid;
 
 @JsonTypeName("ConstructionPreprocessRequest_metadata")
 @Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2023-03-21T15:54:41.273447600+07:00[Asia/Bangkok]")
+@AllArgsConstructor
+@NoArgsConstructor
 public class ConstructionPreprocessRequestMetadata {
 
   @JsonProperty("relative_ttl")
@@ -20,6 +24,8 @@ public class ConstructionPreprocessRequestMetadata {
 
   @JsonProperty("deposit_parameters")
   private DepositParameters depositParameters;
+
+
 
   public ConstructionPreprocessRequestMetadata relativeTtl(Double relativeTtl) {
     this.relativeTtl = relativeTtl;

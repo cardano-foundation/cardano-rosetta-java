@@ -272,8 +272,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
         if (!txResult.isAccepted()){
             throw ExceptionFactory.submitRejected();
         }
-        String transactionHash = cardanoService.getHashOfSignedTransaction(((UnicodeString) array.getDataItems().get(0)).getString());
-        return cardanoService.mapToConstructionHashResponse(transactionHash);
+        return cardanoService.mapToConstructionHashResponse(txResult.getTxHash());
 
     }
 }

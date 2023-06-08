@@ -168,4 +168,7 @@ public class ExceptionFactory {
   public static ApiException submitRejected() {
     return new ApiException(RosettaErrorType.SUBMIT_TRANSACTION_REJECTED.toRosettaError(false));
   }
+  public static ApiException outPutTooLow() {
+    return new ApiException(RosettaErrorType.OUTPUT_AMOUNT_TOO_LOW.toRosettaError(false));
+  }
 }
