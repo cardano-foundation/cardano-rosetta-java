@@ -1,4 +1,4 @@
-package org.cardanofoundation.rosetta.api;
+package org.cardanofoundation.rosetta.api.util;
 
 import static org.cardanofoundation.rosetta.api.util.Validations.isVoteDataValid;
 import static org.cardanofoundation.rosetta.api.util.Validations.isVoteSignatureValid;
