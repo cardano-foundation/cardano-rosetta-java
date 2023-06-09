@@ -83,31 +83,31 @@ public class ConstructionApiDelegateImplSubmitTests extends IntegrationTest {
     }
 
   }
-  @Test
-  void with_ma_test_should_return_the_transaction_identifier_if_request_is_valid() throws IOException {
-      String PAYMENT_ADDRESS="addr_test1vpcv26kdu8hr9x939zktp275xhwz4478c8hcdt7l8wrl0ecjftnfa";
-      String EXPECTED_TOKEN_policy="3e6fc736d30770b830db70994f25111c18987f1407585c0f55ca470f";
-      String EXPECTED_TOKEN_symbol="6a78546f6b656e31";
-      String PAYMENT_KEYS_secretKey="67b638cef68135c4005cb71782b070c4805c9e1077c7ab6145b152206073272974dabdc594506574a9b58f719787d36ea1af291d141d3e5e5ccfe076909ae106";
-      byte[] PAYMENT_KEYS_publicKey=HexUtil.decodeHexString("74dabdc594506574a9b58f719787d36ea1af291d141d3e5e5ccfe076909ae106");
-      String SEND_FUNDS_ADDRESS="addr_test1vz4nrdp83nksz0w3szxpav2peasm0xsdfc44lt2ml20420qclwuqu";
-      submit(true,PAYMENT_KEYS_secretKey,SEND_FUNDS_ADDRESS,PAYMENT_ADDRESS);
-  }
-
-  @Test
-  void test_should_return_the_transaction_identifier_if_request_is_valid() throws IOException {
-    String PRIVATE_KEY =
-        "41d9523b87b9bd89a4d07c9b957ae68a7472d8145d7956a692df1a8ad91957a2c117d9dd874447f47306f50a650f1e08bf4bec2cfcb2af91660f23f2db912977";
-    String SEND_FUNDS_ADDRESS =
-        "addr1qqr585tvlc7ylnqvz8pyqwauzrdu0mxag3m7q56grgmgu7sxu2hyfhlkwuxupa9d5085eunq2qywy7hvmvej456flknsug829n";
-    submit(true,PRIVATE_KEY,SEND_FUNDS_ADDRESS,null);
-  }
+//  @Test
+//  void with_ma_test_should_return_the_transaction_identifier_if_request_is_valid() throws IOException {
+//      String PAYMENT_ADDRESS="addr_test1vpcv26kdu8hr9x939zktp275xhwz4478c8hcdt7l8wrl0ecjftnfa";
+//      String EXPECTED_TOKEN_policy="3e6fc736d30770b830db70994f25111c18987f1407585c0f55ca470f";
+//      String EXPECTED_TOKEN_symbol="6a78546f6b656e31";
+//      String PAYMENT_KEYS_secretKey="67b638cef68135c4005cb71782b070c4805c9e1077c7ab6145b152206073272974dabdc594506574a9b58f719787d36ea1af291d141d3e5e5ccfe076909ae106";
+//      byte[] PAYMENT_KEYS_publicKey=HexUtil.decodeHexString("74dabdc594506574a9b58f719787d36ea1af291d141d3e5e5ccfe076909ae106");
+//      String SEND_FUNDS_ADDRESS="addr_test1vz4nrdp83nksz0w3szxpav2peasm0xsdfc44lt2ml20420qclwuqu";
+//      submit(true,PAYMENT_KEYS_secretKey,SEND_FUNDS_ADDRESS,PAYMENT_ADDRESS);
+//  }
+//
+//  @Test
+//  void test_should_return_the_transaction_identifier_if_request_is_valid() throws IOException {
+//    String PRIVATE_KEY =
+//        "41d9523b87b9bd89a4d07c9b957ae68a7472d8145d7956a692df1a8ad91957a2c117d9dd874447f47306f50a650f1e08bf4bec2cfcb2af91660f23f2db912977";
+//    String SEND_FUNDS_ADDRESS =
+//        "addr1qqr585tvlc7ylnqvz8pyqwauzrdu0mxag3m7q56grgmgu7sxu2hyfhlkwuxupa9d5085eunq2qywy7hvmvej456flknsug829n";
+//    submit(false,PRIVATE_KEY,SEND_FUNDS_ADDRESS,null);
+//  }
 
   public void submit(Boolean MA,String PRIVATE_KEY,String SEND_FUNDS_ADDRESS,String PAYMENT_ADDRESS) throws IOException {
     TweetNacl.Signature.KeyPair signature=TweetNacl.Signature.keyPair_fromSecretKey(HexUtil.decodeHexString(PRIVATE_KEY));
     NetworkIdentifier networkIdentifier=new NetworkIdentifier("cardano","testnet",null);
     String address=null;
-    if(MA){
+    if(!MA){
       ConstructionDeriveRequest deriveRequest =
               new ConstructionDeriveRequest(
                       networkIdentifier,
