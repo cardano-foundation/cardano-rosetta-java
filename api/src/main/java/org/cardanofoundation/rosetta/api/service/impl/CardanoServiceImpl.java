@@ -1180,9 +1180,13 @@ public class CardanoServiceImpl implements CardanoService {
       log.error("[validateAndParseTransactionInput] Input has positive value");
       throw ExceptionFactory.transactionInputsParametersMissingError("Input has positive amount value");
     }
-    return new TransactionInput(
-        transactionId,
-        Integer.parseInt(index));
+    try{
+      return new TransactionInput(
+              HexUtil.encodeHexString(HexUtil.decodeHexString(transactionId)),
+              Integer.parseInt(index));
+    }catch(Exception e){
+      throw ExceptionFactory.deserializationError(e.getMessage());
+    }
   }
 
   @Override

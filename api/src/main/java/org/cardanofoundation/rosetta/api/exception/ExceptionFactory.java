@@ -171,4 +171,8 @@ public class ExceptionFactory {
   public static ApiException outPutTooLow() {
     return new ApiException(RosettaErrorType.OUTPUT_AMOUNT_TOO_LOW.toRosettaError(false));
   }
+
+  public static ApiException deserializationError(String details) {
+    return new ApiException(RosettaErrorType.TRANSACTION_INPUT_DESERIALIZATION_ERROR.toRosettaError(false,Details.builder().message(details).build()));
+  }
 }
