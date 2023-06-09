@@ -113,10 +113,11 @@ cardano:
         }
 
       ]
-    TOPOLOGY_FILEPATH: ${TOPOLOGY_FILEPATH:./config/network/mainnet/cardano-node/topology.json}
-    GENESIS_SHELLEY_PATH: ${GENESIS_SHELLEY_PATH:./config/network/mainnet/genesis/shelley.json}
-    CARDANO_NODE_PATH: ${CARDANO_NODE_PATH:/home/lamhoang/Workspace/cardano-node-8.0.0-linux/cardano-node}
-    EXEMPTION_TYPES_PATH: ${EXEMPTION_TYPES_PATH:./config/network/exemptions.json}
+    TOPOLOGY_FILEPATH: network-config/network/${NETWORK:mainnet}/cardano-node/topology.json
+    GENESIS_SHELLEY_PATH: network-config/network/${NETWORK:mainnet}/genesis/shelley.json
+    CARDANO_NODE_PATH: ${CARDANO_NODE_PATH:/home/lamhoang/Workspace/cardano-node-8.0.0-linux/cardano-nodeee}
+    EXEMPTION_TYPES_PATH: network-config/network/exemptions.json
+
 
 page-size: ${PAGE_SIZE:5}
 cardano-transaction-submitter:

@@ -5,8 +5,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.parser.OpenAPIV3Parser;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -101,16 +99,19 @@ public class NetworkServiceImpl implements NetworkService {
     return balanceExemptions;
   }
 
-  private String fileReader(String path) throws IOException {
-    String content;
-    //check if path exists in file system
-    if(new File(path).exists()){
-      byte[] fileBytes = IOUtils.toByteArray(new FileInputStream(path));
-      content = new String(fileBytes , StandardCharsets.UTF_8);
+  private String fileReader(String path) throws  IOException {
+    String resourcePath = "classpath:" +path;
+    //check if path exists in classpath
+    if(resourceLoader.getResource(resourcePath).exists()){
+      try(
+      InputStream input = resourceLoader.getResource(resourcePath).getInputStream()
+      ){
+        byte[] fileBytes = IOUtils.toByteArray(input);
+        return new String(fileBytes , StandardCharsets.UTF_8);
+      }
     } else {
-      throw new FileNotFoundException("Not find path " + path + " in file system");
+      throw new FileNotFoundException("Not find file in classpath " +resourcePath);
     }
-    return content;
   }
 
   @Override

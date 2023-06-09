@@ -11,18 +11,13 @@ RUN cp -r /dl-bin/. /usr/local/bin
 WORKDIR /
 RUN rm -rf /dl-bin
 
-ARG NETWORK
 WORKDIR /cf-rosetta-api/
 
 RUN addgroup --system spring && adduser --system --ingroup spring spring
 RUN chown spring:spring /cf-rosetta-api
 USER spring:spring
 
-ENV NETWORK ${NETWORK}
-
 COPY --from=cardano-rosetta-java-base /app/api/target/*.jar /cf-rosetta-api/app.jar
-COPY ../config/network/${NETWORK} /cf-rosetta-api/config/
-COPY ../config/network/exemptions.json /cf-rosetta-api/config/exemptions.json
 
 COPY ./api/run_backend.sh /cf-rosetta-api/run_backend.sh
 
