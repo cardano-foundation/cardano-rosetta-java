@@ -1,16 +1,16 @@
 package org.cardanofoundation.rosetta.api.util;
 
+import static org.cardanofoundation.rosetta.api.util.Validations.getAddressFromHexString;
 import static org.cardanofoundation.rosetta.api.util.Validations.isVoteDataValid;
 import static org.cardanofoundation.rosetta.api.util.Validations.isVoteSignatureValid;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
 public class ValidationTest {
 
   @Test
@@ -23,6 +23,11 @@ public class ValidationTest {
     validDataLabel.put("4", 26912766);
 
     assertTrue(isVoteDataValid(validDataLabel));
+  }
+  @Test
+  void test_isVoteDataValid_false_when_jsonObject_is_null() {
+
+    assertFalse(isVoteDataValid(null));
   }
 
   @Test
@@ -103,10 +108,19 @@ public class ValidationTest {
   }
 
   @Test
-  public void test_isVoteSignatureValid_false_when_expected_hex_string_has_invalid_format() {
+  void test_isVoteSignatureValid_false_when_expected_hex_string_has_invalid_format() {
     Map<String, Object> invalidSignatureLabel = new HashMap<>();
     invalidSignatureLabel.put("1", "thisIsNotAHexString");
 
     assertFalse(isVoteSignatureValid(invalidSignatureLabel));
   }
+
+  @Test
+  void test_getAddressFromHexString_throw_exception() {
+    String address = "asdasdasd";
+
+    assertNull(getAddressFromHexString(address));
+  }
+
+
 }

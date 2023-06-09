@@ -7,7 +7,6 @@ import static org.cardanofoundation.rosetta.api.util.Formatters.hexStringToBuffe
 import static org.cardanofoundation.rosetta.api.util.Formatters.isEmptyHexString;
 
 import com.bloxbean.cardano.client.address.Address;
-import com.bloxbean.cardano.client.exception.AddressRuntimeException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -24,9 +23,9 @@ import org.cardanofoundation.rosetta.api.projection.dto.BlockUtxos;
 
 public class Validations {
 
-  private static final Pattern tokenNameValidation = Pattern.compile(
+  private static final Pattern TOKEN_NAME_VALIDATION = Pattern.compile(
       "^[0-9a-fA-F]{0," + Constants.ASSET_NAME_LENGTH + "}$");
-  private static final Pattern policyIdValidation = Pattern.compile(
+  private static final Pattern POLICY_ID_VALIDATION = Pattern.compile(
       "^[0-9a-fA-F]{" + Constants.POLICY_ID_LENGTH + "}$");
 
   private Validations() {
@@ -48,11 +47,11 @@ public class Validations {
   }
 
   public static boolean isTokenNameValid(String name) {
-    return tokenNameValidation.matcher(name).matches() || isEmptyHexString(name);
+    return TOKEN_NAME_VALIDATION.matcher(name).matches() || isEmptyHexString(name);
   }
 
   public static boolean isPolicyIdValid(String policyId) {
-    return policyIdValidation.matcher(policyId).matches();
+    return POLICY_ID_VALIDATION.matcher(policyId).matches();
   }
 
   public static List<Currency> filterRequestedCurrencies(List<Currency> currencies) {
@@ -67,7 +66,7 @@ public class Validations {
   public static Address getAddressFromHexString(String hex) {
     try {
       return new Address(hexStringToBuffer(hex));
-    } catch (AddressRuntimeException e) {
+    } catch (Exception e) {
       return null;
     }
   }
@@ -118,8 +117,8 @@ public class Validations {
   }
 
   public static boolean areEqualUtxos(Utxo firstUtxo, Utxo secondUtxo) {
-    return (Objects.equals(firstUtxo.getIndex(), secondUtxo.getIndex()))
-        && (firstUtxo.getTransactionHash().equals(secondUtxo.getTransactionHash()));
+    return Objects.equals(firstUtxo.getIndex(), secondUtxo.getIndex())
+        && Objects.equals(firstUtxo.getTransactionHash(), secondUtxo.getTransactionHash());
   }
 
 }
