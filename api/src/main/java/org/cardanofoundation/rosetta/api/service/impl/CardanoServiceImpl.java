@@ -612,7 +612,7 @@ public class CardanoServiceImpl implements CardanoService {
       parsedCertificate = PoolRegistration.deserialize(dataItem);
     } catch (Exception error) {
       log.error("[validateAndParsePoolRegistrationCert] invalid pool registration certificate");
-      throw ExceptionFactory.invalidPoolRegistrationCert(error);
+      throw ExceptionFactory.invalidPoolRegistrationCert(error.getMessage());
     }
     if (ObjectUtils.isEmpty(parsedCertificate)) {
       log.error("[validateAndParsePoolRegistrationCert] invalid certificate type");
@@ -947,7 +947,7 @@ public class CardanoServiceImpl implements CardanoService {
       }
     } catch (Exception error) {
       log.error("[validateAndParsePoolRelays] invalid pool relay");
-      throw ExceptionFactory.invalidPoolRelaysError(error);
+      throw ExceptionFactory.invalidPoolRelaysError(error.getMessage());
     }
   }
 
@@ -1051,7 +1051,7 @@ public class CardanoServiceImpl implements CardanoService {
       return poolRegistationParametersReturnDto;
     } catch (Exception error) {
       log.error("[validateAndParsePoolRegistationParameters] Given pool parameters are invalid");
-      throw ExceptionFactory.invalidPoolRegistrationParameters(error);
+      throw ExceptionFactory.invalidPoolRegistrationParameters(error.getMessage());
     }
   }
 
