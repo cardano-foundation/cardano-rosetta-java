@@ -2,16 +2,10 @@ package org.cardanofoundation.rosetta.api.constructionApiService.impl;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
 
-import co.nstant.in.cbor.model.Array;
-import co.nstant.in.cbor.model.UnicodeString;
+
+
 import com.bloxbean.cardano.client.util.HexUtil;
-import com.bloxbean.cardano.yaci.core.protocol.localtx.model.TxSubmissionRequest;
-import com.bloxbean.cardano.yaci.helper.LocalTxSubmissionClient;
-import com.bloxbean.cardano.yaci.helper.model.TxResult;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.iwebpp.crypto.TweetNacl;
 import java.io.IOException;
@@ -40,8 +34,6 @@ import org.cardanofoundation.rosetta.api.model.PublicKey;
 import org.cardanofoundation.rosetta.api.model.Signature;
 import org.cardanofoundation.rosetta.api.model.SignatureType;
 import org.cardanofoundation.rosetta.api.model.SigningPayload;
-import org.cardanofoundation.rosetta.api.model.SubNetworkIdentifier;
-import org.cardanofoundation.rosetta.api.model.TransactionIdentifier;
 import org.cardanofoundation.rosetta.api.model.rest.AccountBalanceRequest;
 import org.cardanofoundation.rosetta.api.model.rest.AccountBalanceResponse;
 import org.cardanofoundation.rosetta.api.model.rest.AccountCoinsRequest;
@@ -62,16 +54,9 @@ import org.cardanofoundation.rosetta.api.model.rest.ConstructionSubmitRequest;
 import org.cardanofoundation.rosetta.api.model.rest.NetworkIdentifier;
 import org.cardanofoundation.rosetta.api.model.rest.TokenBundleItem;
 import org.cardanofoundation.rosetta.api.model.rest.TransactionIdentifierResponse;
-import org.cardanofoundation.rosetta.api.service.CardanoService;
-import org.cardanofoundation.rosetta.api.service.impl.ConstructionApiServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.client.HttpServerErrorException;
-import reactor.core.publisher.Mono;
 
 @Slf4j
 public class ConstructionApiDelegateImplSubmitTests extends IntegrationTest {
@@ -98,93 +83,110 @@ public class ConstructionApiDelegateImplSubmitTests extends IntegrationTest {
     }
 
   }
+  @Test
+  void with_ma_test_should_return_the_transaction_identifier_if_request_is_valid() throws IOException {
+      String PAYMENT_ADDRESS="addr_test1vpcv26kdu8hr9x939zktp275xhwz4478c8hcdt7l8wrl0ecjftnfa";
+      String EXPECTED_TOKEN_policy="3e6fc736d30770b830db70994f25111c18987f1407585c0f55ca470f";
+      String EXPECTED_TOKEN_symbol="6a78546f6b656e31";
+      String PAYMENT_KEYS_secretKey="67b638cef68135c4005cb71782b070c4805c9e1077c7ab6145b152206073272974dabdc594506574a9b58f719787d36ea1af291d141d3e5e5ccfe076909ae106";
+      byte[] PAYMENT_KEYS_publicKey=HexUtil.decodeHexString("74dabdc594506574a9b58f719787d36ea1af291d141d3e5e5ccfe076909ae106");
+      String SEND_FUNDS_ADDRESS="addr_test1vz4nrdp83nksz0w3szxpav2peasm0xsdfc44lt2ml20420qclwuqu";
+      submit(true,PAYMENT_KEYS_secretKey,SEND_FUNDS_ADDRESS,PAYMENT_ADDRESS);
+  }
 
+  @Test
+  void test_should_return_the_transaction_identifier_if_request_is_valid() throws IOException {
+    String PRIVATE_KEY =
+        "41d9523b87b9bd89a4d07c9b957ae68a7472d8145d7956a692df1a8ad91957a2c117d9dd874447f47306f50a650f1e08bf4bec2cfcb2af91660f23f2db912977";
+    String SEND_FUNDS_ADDRESS =
+        "addr1qqr585tvlc7ylnqvz8pyqwauzrdu0mxag3m7q56grgmgu7sxu2hyfhlkwuxupa9d5085eunq2qywy7hvmvej456flknsug829n";
+    submit(true,PRIVATE_KEY,SEND_FUNDS_ADDRESS,null);
+  }
 
-//  @Test
-//  void test_should_return_the_transaction_identifier_if_request_is_valid() throws IOException {
-//    String PRIVATE_KEY =
-//        "41d9523b87b9bd89a4d07c9b957ae68a7472d8145d7956a692df1a8ad91957a2c117d9dd874447f47306f50a650f1e08bf4bec2cfcb2af91660f23f2db912977";
-//    String SEND_FUNDS_ADDRESS =
-//        "addr1qqr585tvlc7ylnqvz8pyqwauzrdu0mxag3m7q56grgmgu7sxu2hyfhlkwuxupa9d5085eunq2qywy7hvmvej456flknsug829n";
-//    TweetNacl.Signature.KeyPair signature=TweetNacl.Signature.keyPair_fromSecretKey(HexUtil.decodeHexString(PRIVATE_KEY));
-//    NetworkIdentifier networkIdentifier=new NetworkIdentifier("cardano","testnet",null);
-//    ConstructionDeriveRequest deriveRequest =
-//        new ConstructionDeriveRequest(
-//                                      networkIdentifier,
-//                                      new PublicKey(
-//                                      HexUtil.encodeHexString(signature.getPublicKey()),
-//                                      "edwards25519"
-//                                      ),
-//                                      null
-//    );
-//
-//    ConstructionDeriveResponse constructionDeriveResponse =restTemplate.postForObject(
-//          baseUrl+"construction/derive", deriveRequest, ConstructionDeriveResponse.class);
-//    String address=constructionDeriveResponse.getAccountIdentifier().getAddress();
-//
-//    AccountCoinsRequest accountCoinsRequest =
-//        new AccountCoinsRequest(
-//            networkIdentifier
-//            ,new AccountIdentifier(address,null,null),false,
-//            null
-//        );
-//
-//    AccountCoinsResponse accountCoinsResponse =restTemplate.postForObject(
-//        baseUrl+"account/coins", accountCoinsRequest, AccountCoinsResponse.class);
-//
-//    AccountBalanceRequest accountBalanceRequest =
-//        new AccountBalanceRequest(
-//            networkIdentifier
-//            ,new AccountIdentifier(address,null,null),null,
-//            null
-//        );
-//
-//    AccountBalanceResponse accountBalanceResponse =restTemplate.postForObject(
-//        baseUrl+"account/balance", accountBalanceRequest, AccountBalanceResponse.class);
-//
-//  List<Operation> builtOperations = buildOperation(
-//        accountCoinsResponse,
-//        accountBalanceResponse,
-//        address,
-//        SEND_FUNDS_ADDRESS,
-//      null,
-//      null
-//    );
-//
-// ConstructionMetadataRequestOptions preprocess = constructionPreprocess(networkIdentifier,
-//        builtOperations,
-//        1000.0,
-//     null
-//    );
-// ConstructionPayloadsRequestMetadata metadata =constructionMetadata(networkIdentifier,preprocess);
-//  ConstructionPayloadsResponse payloads = constructionPayloads(networkIdentifier,
-//        builtOperations,
-//        metadata
-//  );
-//    List<Signature> signatures = signPayloads(payloads.getPayloads(),signature);
-//  ConstructionCombineResponse combined = constructionCombine(networkIdentifier,
-//        payloads.getUnsignedTransaction(),
-//        signatures
-//    );
-//    log.info("[doRun] signed transaction is ${combined.signed_transaction}");
-//    ConstructionSubmitRequest request = new ConstructionSubmitRequest(networkIdentifier,combined.getSignedTransaction());
-//    try {
-//      TransactionIdentifierResponse transactionIdentifierResponse=restTemplate.postForObject(
-//          baseUrl+"construction/submit", request, TransactionIdentifierResponse.class);
-//      log.info("Transaction is submitted successfully ,having the hash :" +transactionIdentifierResponse.getTransactionIdentifier().getHash());
-//
-//    } catch (HttpServerErrorException e) {
-//      String responseBody = e.getResponseBodyAsString();
-//      Error error=objectMapper.readValue(responseBody,Error.class);
-//      assertTrue(!error.isRetriable());
-//      assertEquals(5019,error.getCode());
-//      assertEquals("The transaction submission has been rejected",error.getMessage());
-//    }
-//    log.info(
-//        "[doRun] transaction with hash ${hashResponse.transaction_identifier.hash} sent"
-//  );
-//
-//  }
+  public void submit(Boolean MA,String PRIVATE_KEY,String SEND_FUNDS_ADDRESS,String PAYMENT_ADDRESS) throws IOException {
+    TweetNacl.Signature.KeyPair signature=TweetNacl.Signature.keyPair_fromSecretKey(HexUtil.decodeHexString(PRIVATE_KEY));
+    NetworkIdentifier networkIdentifier=new NetworkIdentifier("cardano","testnet",null);
+    String address=null;
+    if(MA){
+      ConstructionDeriveRequest deriveRequest =
+              new ConstructionDeriveRequest(
+                      networkIdentifier,
+                      new PublicKey(
+                              HexUtil.encodeHexString(signature.getPublicKey()),
+                              "edwards25519"
+                      ),
+                      null
+              );
+
+      ConstructionDeriveResponse constructionDeriveResponse = restTemplate.postForObject(
+              baseUrl + "construction/derive", deriveRequest, ConstructionDeriveResponse.class);
+      address = constructionDeriveResponse.getAccountIdentifier().getAddress();
+    }else{
+      address=PAYMENT_ADDRESS;
+    }
+
+    AccountCoinsRequest accountCoinsRequest =
+            new AccountCoinsRequest(
+                    networkIdentifier
+                    ,new AccountIdentifier(address,null,null),false,
+                    null
+            );
+
+    AccountCoinsResponse accountCoinsResponse =restTemplate.postForObject(
+            baseUrl+"account/coins", accountCoinsRequest, AccountCoinsResponse.class);
+
+    AccountBalanceRequest accountBalanceRequest =
+            new AccountBalanceRequest(
+                    networkIdentifier
+                    ,new AccountIdentifier(address,null,null),null,
+                    null
+            );
+
+    AccountBalanceResponse accountBalanceResponse =restTemplate.postForObject(
+            baseUrl+"account/balance", accountBalanceRequest, AccountBalanceResponse.class);
+
+    List<Operation> builtOperations = buildOperation(
+            accountCoinsResponse,
+            accountBalanceResponse,
+            address,
+            SEND_FUNDS_ADDRESS,
+            null,
+            null
+    );
+
+    ConstructionMetadataRequestOptions preprocess = constructionPreprocess(networkIdentifier,
+            builtOperations,
+            1000.0,
+            null
+    );
+    ConstructionPayloadsRequestMetadata metadata =constructionMetadata(networkIdentifier,preprocess);
+    ConstructionPayloadsResponse payloads = constructionPayloads(networkIdentifier,
+            builtOperations,
+            metadata
+    );
+    List<Signature> signatures = signPayloads(payloads.getPayloads(),signature);
+    ConstructionCombineResponse combined = constructionCombine(networkIdentifier,
+            payloads.getUnsignedTransaction(),
+            signatures
+    );
+    log.info("[doRun] signed transaction is ${combined.signed_transaction}");
+    ConstructionSubmitRequest request = new ConstructionSubmitRequest(networkIdentifier,combined.getSignedTransaction());
+    try {
+      TransactionIdentifierResponse transactionIdentifierResponse=restTemplate.postForObject(
+              baseUrl+"construction/submit", request, TransactionIdentifierResponse.class);
+      log.info("Transaction is submitted successfully ,having the hash :" +transactionIdentifierResponse.getTransactionIdentifier().getHash());
+
+    } catch (HttpServerErrorException e) {
+      String responseBody = e.getResponseBodyAsString();
+      Error error=objectMapper.readValue(responseBody,Error.class);
+      assertTrue(!error.isRetriable());
+      assertEquals(5019,error.getCode());
+      assertEquals("The transaction submission has been rejected",error.getMessage());
+    }
+    log.info(
+            "[doRun] transaction with hash ${hashResponse.transaction_identifier.hash} sent"
+    );
+  }
 public List<Operation> buildOperation(AccountCoinsResponse unspents,
                                       AccountBalanceResponse balances,
                                       String address,
