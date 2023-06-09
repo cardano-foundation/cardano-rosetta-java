@@ -35,12 +35,11 @@ services:
     build:
       context: ./
       dockerfile: ./api/Dockerfile
-      args:
-        NETWORK: "${NETWORK}"
     platform: linux/amd64
     ports:
       - "${API_BIND_PORT}:${API_EXPOSED_PORT}"
     environment:
+      NETWORK: "${NETWORK}"
       DB_HOST: "${DB_HOST}"
       DB_PORT: "${DB_PORT}"
       DB_NAME: "${DB_NAME}"
@@ -48,9 +47,6 @@ services:
       DB_SECRET: "${SERVICE_USER_SECRET}"
       DB_DRIVER_CLASS_NAME: "${DB_DRIVER_CLASS_NAME}"
       CARDANO_NODE_PATH: /usr/local/bin/cardano-node
-      GENESIS_SHELLEY_PATH: ./config/genesis/shelley.json
-      TOPOLOGY_FILEPATH: ./config/cardano-node/topology.json
-      EXEMPTION_TYPES_PATH: ./config/exemptions.json
       API_SPRING_PROFILES_ACTIVE: ${API_SPRING_PROFILES_ACTIVE}
       DB_CONNECTION_PARAMS_PROVIDER_TYPE: ${DB_CONNECTION_PARAMS_PROVIDER_TYPE}
       SUBMIT_SOCKET_CONNECTION: ${SUBMIT_SOCKET_CONNECTION}
@@ -63,73 +59,73 @@ services:
         condition: service_healthy
       cardano-node:
         condition: service_started
-#  consumer:
-#    build: ./consumer
-#    platform: linux/amd64
-#    ports:
-#      - "${CONSUMER_BIND_PORT}:${CONSUMER_EXPOSED_PORT}"
-#    environment:
-#      CONSUMER_PROFILES_ACTIVE: "${CONSUMER_PROFILES_ACTIVE}"
-#      DB_HOST: "${DB_HOST}"
-#      DB_PORT: "${DB_PORT}"
-#      DB_NAME: "${DB_NAME}"
-#      DB_USER: "${DB_ADMIN_USER_NAME}"
-#      DB_SECRET: "${DB_ADMIN_USER_SECRET}"
-#      DB_DRIVER_CLASS_NAME: "${DB_DRIVER_CLASS_NAME}"
-#      DB_SCHEMA: "${DB_SCHEMA}"
-#      DB_CONNECTION_PARAMS_PROVIDER_TYPE: ${DB_CONNECTION_PARAMS_PROVIDER_TYPE}
-#      SCHEMA: "${SCHEMA}"
-#      DBLOCKS_BATCH_SIZE: "${BLOCKS_BATCH_SIZE}"
-#      BLOCKS_TOPIC: "${BLOCKS_TOPIC}"
-#      BOOSTRAP_SERVER_HOST: "${BOOSTRAP_SERVER_HOST}"
-#      BOOSTRAP_SERVER_PORT: "${BOOSTRAP_SERVER_PORT}"
-#      LOG: "${LOG}"
-#    depends_on:
-#      db:
-#        condition: service_healthy
-#  zookeeper:
-#    image: confluentinc/cp-zookeeper:5.1.2
-#    restart: always
-#    environment:
-#      ZOOKEEPER_SERVER_ID: 1
-#      ZOOKEEPER_CLIENT_PORT: "2181"
-#      ZOOKEEPER_TICK_TIME: "2000"
-#      ZOOKEEPER_SERVERS: "zookeeper:22888:23888"
-#    ports:
-#      - "2181:2181"
-#    tmpfs: "/datalog"
-#    # volumes:
-#    #   - ./kafka/zoo:/var/lib/zookeeper/data
-#  kafka:
-#    image: confluentinc/cp-kafka:7.0.0
-#    container_name: kafka
-#    depends_on:
-#      - zookeeper
-#    ports:
-#      - "29092:29092"
-#    environment:
-#      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
-#      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-#      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-#      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
-#      KAFKA_ADVERTISED_HOST_NAME: kafka
-#      KAFKA_BROKER_ID: 1
-#      KAFKA_BROKER_RACK: "r1"
-#      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-#      KAFKA_DELETE_TOPIC_ENABLE: "true"
-#      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
-#      KAFKA_JMX_PORT: 9991
-#    # volumes:
-#    #   - ./kafka/data:/var/lib/kafka/data
-#  kafdrop:
-#    image: obsidiandynamics/kafdrop
-#    restart: "no"
-#    ports:
-#      - "9000:9000"
-#    environment:
-#      KAFKA_BROKERCONNECT: "kafka:9092"
-#    depends_on:
-#      - kafka
+  consumer:
+    build: ./consumer
+    platform: linux/amd64
+    ports:
+      - "${CONSUMER_BIND_PORT}:${CONSUMER_EXPOSED_PORT}"
+    environment:
+      CONSUMER_PROFILES_ACTIVE: "${CONSUMER_PROFILES_ACTIVE}"
+      DB_HOST: "${DB_HOST}"
+      DB_PORT: "${DB_PORT}"
+      DB_NAME: "${DB_NAME}"
+      DB_USER: "${DB_ADMIN_USER_NAME}"
+      DB_SECRET: "${DB_ADMIN_USER_SECRET}"
+      DB_DRIVER_CLASS_NAME: "${DB_DRIVER_CLASS_NAME}"
+      DB_SCHEMA: "${DB_SCHEMA}"
+      DB_CONNECTION_PARAMS_PROVIDER_TYPE: ${DB_CONNECTION_PARAMS_PROVIDER_TYPE}
+      SCHEMA: "${SCHEMA}"
+      DBLOCKS_BATCH_SIZE: "${BLOCKS_BATCH_SIZE}"
+      BLOCKS_TOPIC: "${BLOCKS_TOPIC}"
+      BOOSTRAP_SERVER_HOST: "${BOOSTRAP_SERVER_HOST}"
+      BOOSTRAP_SERVER_PORT: "${BOOSTRAP_SERVER_PORT}"
+      LOG: "${LOG}"
+    depends_on:
+      db:
+        condition: service_healthy
+  zookeeper:
+    image: confluentinc/cp-zookeeper:5.1.2
+    restart: always
+    environment:
+      ZOOKEEPER_SERVER_ID: 1
+      ZOOKEEPER_CLIENT_PORT: "2181"
+      ZOOKEEPER_TICK_TIME: "2000"
+      ZOOKEEPER_SERVERS: "zookeeper:22888:23888"
+    ports:
+      - "2181:2181"
+    tmpfs: "/datalog"
+    # volumes:
+    #   - ./kafka/zoo:/var/lib/zookeeper/data
+  kafka:
+    image: confluentinc/cp-kafka:7.0.0
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "29092:29092"
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_ADVERTISED_HOST_NAME: kafka
+      KAFKA_BROKER_ID: 1
+      KAFKA_BROKER_RACK: "r1"
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_DELETE_TOPIC_ENABLE: "true"
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_JMX_PORT: 9991
+    # volumes:
+    #   - ./kafka/data:/var/lib/kafka/data
+  kafdrop:
+    image: obsidiandynamics/kafdrop
+    restart: "no"
+    ports:
+      - "9000:9000"
+    environment:
+      KAFKA_BROKERCONNECT: "kafka:9092"
+    depends_on:
+      - kafka
   cardano-node:
     image: inputoutput/cardano-node
     container_name: cardano-node
