@@ -22,22 +22,6 @@ ALTER TABLE ONLY block
 
 
 --
--- Name: failed_tx_out unique_col_failed_txout; Type: CONSTRAINT;
---
-
-ALTER TABLE ONLY failed_tx_out
-    ADD CONSTRAINT unique_col_failed_txout UNIQUE (tx_id, index);
-
-
---
--- Name: unconsume_tx_in unique_col_txin; Type: CONSTRAINT;
---
-
-ALTER TABLE ONLY unconsume_tx_in
-    ADD CONSTRAINT unique_col_txin UNIQUE (tx_in_id, tx_out_id, tx_out_index);
-
-
---
 -- Name: cost_model unique_cost_model; Type: CONSTRAINT;
 --
 

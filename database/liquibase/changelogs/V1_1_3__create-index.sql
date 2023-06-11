@@ -99,28 +99,6 @@ CREATE UNIQUE INDEX IF NOT EXISTS multi_asset_fingerprint_uindex ON multi_asset 
 CREATE UNIQUE INDEX IF NOT EXISTS datum_hash_uindex ON datum (hash);
 CREATE UNIQUE INDEX IF NOT EXISTS pool_hash_hash_raw_index ON pool_hash (hash_raw);
 CREATE UNIQUE INDEX IF NOT EXISTS script_hash_uindex ON script (hash);
-CREATE UNIQUE INDEX IF NOT EXISTS asset_metadata_ux ON asset_metadata (ident);
-
-CREATE INDEX IF NOT EXISTS idx_tx_chart_minute ON tx_chart ("minute");
-CREATE INDEX IF NOT EXISTS idx_tx_chart_hour ON tx_chart ("hour");
-CREATE INDEX IF NOT EXISTS idx_tx_chart_day ON tx_chart ("day");
-CREATE INDEX IF NOT EXISTS idx_tx_chart_month ON tx_chart ("month");
-
-CREATE INDEX IF NOT EXISTS report_history_username_idx ON report_history (username);
-
-CREATE INDEX IF NOT EXISTS report_history_status_idx ON report_history (status);
-
-CREATE INDEX IF NOT EXISTS stake_key_report_history_stake_key_idx ON stake_key_report_history (stake_key);
-
-CREATE INDEX IF NOT EXISTS stake_key_report_history_report_id_idx ON stake_key_report_history (report_id);
-
-CREATE INDEX IF NOT EXISTS stake_key_report_history_stake_key_report_id_idx ON stake_key_report_history (stake_key, report_id);
-
-CREATE INDEX IF NOT EXISTS pool_report_history_pool_id_idx ON pool_report_history (pool_id);
-
-CREATE INDEX IF NOT EXISTS pool_report_history_report_id_idx on pool_report_history (report_id);
-
-CREATE INDEX IF NOT EXISTS pool_report_history_pool_id_report_id_idx on pool_report_history (pool_id, report_id);
 
 -- Reward index
 CREATE INDEX IF NOT EXISTS reward_earned_epoch_idx ON reward (earned_epoch);

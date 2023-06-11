@@ -120,17 +120,6 @@ CREATE SEQUENCE extra_key_witness_id_seq
 ALTER SEQUENCE extra_key_witness_id_seq OWNED BY extra_key_witness.id;
 
 --
--- Name: failed_tx_out_id_seq; Type: SEQUENCE; 
---
-
-CREATE SEQUENCE failed_tx_out_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE CACHE 1;
-
-ALTER SEQUENCE failed_tx_out_id_seq OWNED BY failed_tx_out.id;
---
 -- Name: ma_tx_mint_id_seq; Type: SEQUENCE; 
 --
 
@@ -545,18 +534,6 @@ CREATE SEQUENCE address_token_balance_id_seq
 ALTER SEQUENCE address_token_balance_id_seq OWNED BY address_token_balance.id;
 
 --
--- Name: asset_metadata_id_seq; Type: SEQUENCE;
---
-
-CREATE SEQUENCE asset_metadata_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE CACHE 1;
-
-ALTER SEQUENCE asset_metadata_id_seq OWNED BY asset_metadata.id;
-
---
 -- Name: rollback_history_id_seq; Type: SEQUENCE;
 --
 
@@ -567,44 +544,6 @@ CREATE SEQUENCE rollback_history_id_seq
     NO MAXVALUE CACHE 1;
 
 ALTER SEQUENCE rollback_history_id_seq OWNED BY rollback_history.id;
-
---
--- Name: report_history_id_seq; Type: SEQUENCE;
---
-
-CREATE SEQUENCE report_history_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-ALTER SEQUENCE report_history_id_seq OWNED BY report_history.id;
-
---
--- Name: stake_key_report_history_id_seq; Type: SEQUENCE;
---
-
-CREATE SEQUENCE stake_key_report_history_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-ALTER SEQUENCE stake_key_report_history_id_seq OWNED BY stake_key_report_history.id;
-
---
--- Name: pool_report_history_id_seq; Type: SEQUENCE;
---
-CREATE SEQUENCE pool_report_history_id_seq
-    start with 1
-    increment by 1
-    no minvalue
-    no maxvalue
-    cache 1;
-
-alter sequence pool_report_history_id_seq owned by pool_report_history.id;
 
 
 --
@@ -693,14 +632,6 @@ ALTER TABLE ONLY epoch_sync_time
 
 ALTER TABLE ONLY extra_key_witness
     ALTER COLUMN id SET DEFAULT nextval('extra_key_witness_id_seq'::regclass);
-
-
---
--- Name: failed_tx_out id; Type: DEFAULT;
---
-
-ALTER TABLE ONLY failed_tx_out
-    ALTER COLUMN id SET DEFAULT nextval('failed_tx_out_id_seq'::regclass);
 
 
 --
@@ -942,14 +873,6 @@ ALTER TABLE ONLY tx_out
 
 
 --
--- Name: unconsume_tx_in id; Type: DEFAULT;
---
-
-ALTER TABLE ONLY unconsume_tx_in
-    ALTER COLUMN id SET DEFAULT nextval('unconsume_tx_in_id_seq'::regclass);
-
-
---
 -- Name: withdrawal id; Type: DEFAULT;
 --
 
@@ -985,39 +908,12 @@ ALTER TABLE ONLY address_token_balance
     ALTER COLUMN id SET DEFAULT nextval('address_token_balance_id_seq'::regclass);
 
 --
--- Name: asset_metadata id; Type: DEFAULT;
---
-
-ALTER TABLE ONLY asset_metadata
-    ALTER COLUMN id SET DEFAULT nextval('asset_metadata_id_seq'::regclass);
-
---
 -- Name: rollback_history id; Type: DEFAULT;
 --
 
 ALTER TABLE ONLY rollback_history
     ALTER COLUMN id SET DEFAULT nextval('rollback_history_id_seq'::regclass);
 
---
--- Name: report_history id; Type: DEFAULT;
---
-
-ALTER TABLE ONLY report_history
-    ALTER COLUMN id SET DEFAULT nextval('report_history_id_seq'::regclass);
-
---
--- Name: rollback_history id; Type: DEFAULT;
---
-
-ALTER TABLE ONLY stake_key_report_history
-    ALTER COLUMN id SET DEFAULT nextval('stake_key_report_history_id_seq'::regclass);
-
---
--- Name: rollback_history id; Type: DEFAULT;
---
-
-ALTER TABLE ONLY pool_report_history
-    ALTER COLUMN id SET DEFAULT nextval('pool_report_history_id_seq'::regclass);
 
 --
 -- Name: ada_pots ada_pots_pkey; Type: CONSTRAINT;
@@ -1105,14 +1001,6 @@ ALTER TABLE ONLY epoch_sync_time
 
 ALTER TABLE ONLY extra_key_witness
     ADD CONSTRAINT extra_key_witness_pkey PRIMARY KEY (id);
-
-
---
--- Name: failed_tx_out failed_tx_out_pkey; Type: CONSTRAINT;
---
-
-ALTER TABLE ONLY failed_tx_out
-    ADD CONSTRAINT failed_tx_out_pkey PRIMARY KEY (id);
 
 
 --
@@ -1367,12 +1255,6 @@ ALTER TABLE ONLY tx
 ALTER TABLE ONLY withdrawal
     ADD CONSTRAINT withdrawal_pkey PRIMARY KEY (id);
 
---
--- Name: unconsume_tx_in unconsume_tx_in_pkey; Type: CONSTRAINT;
---
-
-ALTER TABLE ONLY unconsume_tx_in
-    ADD CONSTRAINT unconsume_tx_in_pkey PRIMARY KEY (id);
 
 --
 -- Name: address address_pkey; Type: CONSTRAINT;
@@ -1402,13 +1284,6 @@ ALTER TABLE ONLY address_token
 
 ALTER TABLE ONLY address_token_balance
     ADD CONSTRAINT address_token_balance_pkey PRIMARY KEY (id);
-
---
--- Name: asset_metadata asset_metadata_pkey; Type: CONSTRAINT;
---
-
-ALTER TABLE ONLY asset_metadata
-    ADD CONSTRAINT asset_metadata_pkey PRIMARY KEY (id);
 
 --
 -- Name: rollback_history rollback_history_pkey; Type: CONSTRAINT;
