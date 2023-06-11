@@ -2,34 +2,27 @@ package org.cardanofoundation.rosetta.consumer.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.cardanofoundation.rosetta.common.entity.*;
-import org.cardanofoundation.rosetta.common.util.FileUtil;
 import org.cardanofoundation.rosetta.consumer.dto.GenesisData;
 import org.cardanofoundation.rosetta.consumer.repository.*;
 import org.cardanofoundation.rosetta.consumer.service.CostModelService;
 import org.cardanofoundation.rosetta.consumer.service.EpochParamService;
 import org.cardanofoundation.rosetta.consumer.service.GenesisDataService;
+import org.cardanofoundation.rosetta.consumer.util.FileUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.ResourceLoader;
-import org.springframework.data.domain.Example;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ResourceUtils;
 
 import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.math.BigInteger;
 import java.util.*;
 import java.util.function.Function;
@@ -55,11 +48,8 @@ public class GenesisDataServiceImpl implements GenesisDataService {
 
   final CostModelService costModelService;
   final EpochParamService epochParamService;
-  final ResourceLoader resourceLoader;
 
-  public void test(){
-      log.info("Test");
-  }
+  final ResourceLoader resourceLoader;
   @Transactional
   public void setupData() {
     GenesisData genesisData = getGenesisData(fileGenesis);
@@ -157,12 +147,12 @@ public class GenesisDataServiceImpl implements GenesisDataService {
     return addressTxBalanceRepository
         .saveAll(addressTxBalances.stream()
             .map(addressTxBalance -> {
-              addressTxBalance.setAddress(
-                  genesisAddress.get(
-                      addressTxBalance.getAddress()
-                          .getAddress()));
+
+              Address address = addressTxBalance.getAddress();
+              addressTxBalance.setAddress(address);
               return addressTxBalance;
-            }).toList());
+            })
+            .sorted(Comparator.comparing(o -> o.getTx().getId())).toList());
   }
 
   private List<Address> handleGenesisAddress(Collection<AddressTxBalance> addressTxBalances) {

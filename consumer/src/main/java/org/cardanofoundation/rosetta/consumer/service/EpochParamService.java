@@ -6,10 +6,10 @@ import org.springframework.transaction.annotation.Transactional;
 public interface EpochParamService {
 
   void setDefShelleyEpochParam(
-          EpochParam defShelleyEpochParam);
+      EpochParam defShelleyEpochParam);
 
   void setDefAlonzoEpochParam(
-          EpochParam defAlonzoEpochParam);
+      EpochParam defAlonzoEpochParam);
 
   /**
    * Handle epoch params

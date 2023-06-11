@@ -2,8 +2,10 @@ package org.cardanofoundation.rosetta.consumer.service.impl;
 
 import com.bloxbean.cardano.client.transaction.spec.ExUnits;
 import com.bloxbean.cardano.client.transaction.spec.RedeemerTag;
-import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedTx;
-import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedTxIn;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.common.entity.Redeemer;
 import org.cardanofoundation.rosetta.common.entity.Redeemer.RedeemerBuilder;
 import org.cardanofoundation.rosetta.common.entity.RedeemerData;
@@ -11,8 +13,6 @@ import org.cardanofoundation.rosetta.common.entity.RedeemerData.RedeemerDataBuil
 import org.cardanofoundation.rosetta.common.entity.Tx;
 import org.cardanofoundation.rosetta.common.entity.TxOut;
 import org.cardanofoundation.rosetta.common.enumeration.ScriptPurposeType;
-import org.cardanofoundation.rosetta.consumer.dto.RedeemerPointer;
-import org.cardanofoundation.rosetta.consumer.dto.RedeemerReference;
 import org.cardanofoundation.rosetta.common.ledgersync.Amount;
 import org.cardanofoundation.rosetta.common.ledgersync.Datum;
 import org.cardanofoundation.rosetta.common.ledgersync.certs.CertType;
@@ -20,28 +20,23 @@ import org.cardanofoundation.rosetta.common.ledgersync.certs.Certificate;
 import org.cardanofoundation.rosetta.common.ledgersync.certs.StakeDelegation;
 import org.cardanofoundation.rosetta.common.ledgersync.certs.StakeDeregistration;
 import org.cardanofoundation.rosetta.common.util.HexUtil;
-import org.cardanofoundation.rosetta.consumer.repository.cached.CachedRedeemerDataRepository;
-import org.cardanofoundation.rosetta.consumer.repository.cached.CachedRedeemerRepository;
-import org.cardanofoundation.rosetta.consumer.repository.cached.CachedTxOutRepository;
+import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedTx;
+import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedTxIn;
+import org.cardanofoundation.rosetta.consumer.dto.RedeemerPointer;
+import org.cardanofoundation.rosetta.consumer.dto.RedeemerReference;
+import org.cardanofoundation.rosetta.consumer.projection.TxOutProjection;
+import org.cardanofoundation.rosetta.consumer.repository.RedeemerDataRepository;
+import org.cardanofoundation.rosetta.consumer.repository.RedeemerRepository;
+import org.cardanofoundation.rosetta.consumer.repository.TxOutRepository;
 import org.cardanofoundation.rosetta.consumer.service.RedeemerService;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Service
 @RequiredArgsConstructor
@@ -49,13 +44,14 @@ import org.springframework.util.CollectionUtils;
 @Slf4j
 public class RedeemerServiceImpl implements RedeemerService {
 
-  CachedTxOutRepository cachedTxOutRepository;
-  CachedRedeemerRepository cachedRedeemerRepository;
-  CachedRedeemerDataRepository cachedRedeemerDataRepository;
+  TxOutRepository txOutRepository;
+  RedeemerRepository redeemerRepository;
+  RedeemerDataRepository redeemerDataRepository;
 
   @Override
   public Map<RedeemerReference<?>, Redeemer> handleRedeemers(
-      Collection<AggregatedTx> txs, Map<String, Tx> txMap, Collection<TxOut> newTxOuts) {
+      Collection<AggregatedTx> txs, Map<String, Tx> txMap,
+      Map<Pair<String, Short>, TxOut> newTxOutMap) {
     List<AggregatedTx> txsWithRedeemers = txs.stream()
         .filter(tx -> Objects.nonNull(tx.getWitnesses()))
         .filter(tx -> !CollectionUtils.isEmpty(tx.getWitnesses().getRedeemers()))
@@ -68,8 +64,10 @@ public class RedeemerServiceImpl implements RedeemerService {
         .flatMap(tx -> tx.getWitnesses().getRedeemers().stream())
         .map(redeemer -> redeemer.getPlutusData().getHash())
         .collect(Collectors.toSet());
-    Map<String, RedeemerData> existingRedeemerDataMap =
-        cachedRedeemerDataRepository.findAllByHashIn(redeemerDataHash);
+    Map<String, RedeemerData> existingRedeemerDataMap = redeemerDataRepository
+        .findAllByHashIn(redeemerDataHash)
+        .stream()
+        .collect(Collectors.toMap(RedeemerData::getHash, Function.identity()));
     Map<RedeemerReference<?>, Redeemer> redeemersMap = new HashMap<>();
     Map<String, RedeemerData> redeemerDataMap = new HashMap<>();
 
@@ -78,7 +76,8 @@ public class RedeemerServiceImpl implements RedeemerService {
       var redeemers = aggregatedTx.getWitnesses().getRedeemers();
 
       IntStream.range(0, redeemers.size()).forEach(redeemerIndex -> {
-        org.cardanofoundation.rosetta.common.ledgersync.Redeemer redeemerObj = redeemers.get(redeemerIndex);
+        org.cardanofoundation.rosetta.common.ledgersync.Redeemer redeemerObj = redeemers.get(
+            redeemerIndex);
 
         Datum plutusData = redeemerObj.getPlutusData();
         RedeemerData redeemerData = Optional
@@ -97,13 +96,13 @@ public class RedeemerServiceImpl implements RedeemerService {
             });
 
         Pair<RedeemerReference<?>, Redeemer> redeemerPair = buildRedeemer(
-            redeemerObj, redeemerData, tx, aggregatedTx, newTxOuts);
+            redeemerObj, redeemerData, tx, aggregatedTx, newTxOutMap);
         redeemersMap.put(redeemerPair.getFirst(), redeemerPair.getSecond());
       });
     });
 
-    cachedRedeemerDataRepository.saveAll(redeemerDataMap.values());
-    cachedRedeemerRepository.saveAll(redeemersMap.values());
+    redeemerDataRepository.saveAll(redeemerDataMap.values());
+    redeemerRepository.saveAll(redeemersMap.values());
 
     return redeemersMap;
   }
@@ -116,16 +115,17 @@ public class RedeemerServiceImpl implements RedeemerService {
    * @param redeemerData redeemer data
    * @param tx           transaction entity
    * @param aggregatedTx current redeemer's transaction body
-   * @param newTxOuts    newly created txOut entities that are not inserted yet
+   * @param newTxOutMap  a map of newly created txOut entities that are not inserted yet
    * @return
    */
   private Pair<RedeemerReference<?>, Redeemer> buildRedeemer(
       org.cardanofoundation.rosetta.common.ledgersync.Redeemer redeemerObj,
-      RedeemerData redeemerData, Tx tx, AggregatedTx aggregatedTx, Collection<TxOut> newTxOuts) {
+      RedeemerData redeemerData, Tx tx, AggregatedTx aggregatedTx,
+      Map<Pair<String, Short>, TxOut> newTxOutMap) {
     RedeemerBuilder<?, ?> redeemerBuilder = Redeemer.builder();
 
     // This part should never be null
-    RedeemerPointer<?> redeemerPointer = handleRedeemer(aggregatedTx, newTxOuts, redeemerObj);
+    RedeemerPointer<?> redeemerPointer = handleRedeemer(aggregatedTx, newTxOutMap, redeemerObj);
 
     ExUnits exUnits = redeemerObj.getExUnits();
     redeemerBuilder.unitMem(exUnits.getMem().longValue());
@@ -158,12 +158,12 @@ public class RedeemerServiceImpl implements RedeemerService {
    * </ul>
    *
    * @param aggregatedTx transaction body
-   * @param newTxOuts    newly created txOut entities that are not inserted yet
+   * @param newTxOutMap  a map of newly created txOut entities that are not inserted yet
    * @param redeemerObj  redeemer object
    * @return a new pointer with referenced object and script hash
    */
   private RedeemerPointer<?> handleRedeemer(
-      AggregatedTx aggregatedTx, Collection<TxOut> newTxOuts,
+      AggregatedTx aggregatedTx, Map<Pair<String, Short>, TxOut> newTxOutMap,
       org.cardanofoundation.rosetta.common.ledgersync.Redeemer redeemerObj) {
     RedeemerTag tag = redeemerObj.getTag();
     int pointerIndex = redeemerObj.getIndex().intValue();
@@ -181,7 +181,7 @@ public class RedeemerServiceImpl implements RedeemerService {
                   ? txHashComparison
                   : Integer.compare(txIn1.getIndex(), txIn2.getIndex());
             }).collect(Collectors.toList());
-        return handleTxInPtr(sortedTxInputs, pointerIndex, newTxOuts);
+        return handleTxInPtr(sortedTxInputs, pointerIndex, newTxOutMap);
       case Mint:
         return handleMintingPtr(aggregatedTx.getMint(), pointerIndex);
       case Cert:
@@ -193,35 +193,30 @@ public class RedeemerServiceImpl implements RedeemerService {
   }
 
   private RedeemerPointer<AggregatedTxIn> handleTxInPtr(
-      List<AggregatedTxIn> txInputs, int pointerIndex, Collection<TxOut> newTxOuts) {
+      List<AggregatedTxIn> txInputs, int pointerIndex,
+      Map<Pair<String, Short>, TxOut> newTxOutMap) {
     AggregatedTxIn txIn = txInputs.get(pointerIndex);
 
     // Find target TxOut from DB
-    Optional<TxOut> txOutOptional = cachedTxOutRepository
+    Optional<TxOutProjection> txOutOptional = txOutRepository
         .findTxOutByTxHashAndTxOutIndex(txIn.getTxId(), (short) txIn.getIndex());
     if (txOutOptional.isPresent()) {
-      TxOut txOut = txOutOptional.get();
+      TxOutProjection txOut = txOutOptional.get();
       if (txOut.getAddressHasScript().equals(Boolean.TRUE)) {
         return new RedeemerPointer<>(txOut.getPaymentCred(), txIn);
       }
     }
 
     // Fallback to provided TxOuts
-    String scriptHash = newTxOuts.stream()
-        .filter(txOut -> {
-          String txHash = txOut.getTx().getHash();
-          Short index = txOut.getIndex();
-          return index == txIn.getIndex() &&
-              txHash.equals(txIn.getTxId());
-        })
-        .map(TxOut::getPaymentCred)
-        .findFirst()
-        .orElseThrow(() -> {
-          log.error("Can not find payment cred tx id {}, index {}",
-              txIn.getTxId(), txIn.getIndex());
-          throw new IllegalStateException();
-        });
-    return new RedeemerPointer<>(scriptHash, txIn);
+    Pair<String, Short> txOutKey = Pair.of(txIn.getTxId(), (short) txIn.getIndex());
+    TxOut txOut = newTxOutMap.get(txOutKey);
+    if (Objects.isNull(txOut)) {
+      log.error("Can not find payment cred tx id {}, index {}",
+          txIn.getTxId(), txIn.getIndex());
+      throw new IllegalStateException();
+    }
+
+    return new RedeemerPointer<>(txOut.getPaymentCred(), txIn);
   }
 
   private RedeemerPointer<String> handleMintingPtr(List<Amount> mints, int pointerIndex) {

@@ -46,4 +46,4 @@ fi
 
 #echo "Setting up database ..."
 PGPASSWORD="${DB_ADMIN_USER_SECRET}" psql --set=cf_dbname="${DB_NAME}" --set=cf_serviceuser_name="${SERVICE_USER_NAME}" --set=cf_serviceuser_secret="${SERVICE_USER_SECRET}" -U "${DB_ADMIN_USER_NAME}" -h "${DB_HOST}" -p ${DB_PORT} -d ${DEFAULT_DB_NAME} -f "${DB_MIGRATION_SCRIPTS_FOLDER}teardown.sql"
-PGPASSWORD="${DB_ADMIN_USER_SECRET}" psql --set=cf_dbname="${DB_NAME}" --set=cf_serviceuser_name="${SERVICE_USER_NAME}" --set=cf_serviceuser_secret="${SERVICE_USER_SECRET}" -U "${DB_ADMIN_USER_NAME}" -h "${DB_HOST}" -p ${DB_PORT} -d ${DEFAULT_DB_NAME} -f "${DB_MIGRATION_SCRIPTS_FOLDER}bootstrap.sql"
+PGPASSWORD="${DB_ADMIN_USER_SECRET}" psql --set=cf_dbname="${DB_NAME}" --set=cf_db_schema="${DB_SCHEMA}" --set=cf_serviceuser_name="${SERVICE_USER_NAME}" --set=cf_serviceuser_secret="${SERVICE_USER_SECRET}" -U "${DB_ADMIN_USER_NAME}" -h "${DB_HOST}" -p ${DB_PORT} -d ${DEFAULT_DB_NAME} -f "${DB_MIGRATION_SCRIPTS_FOLDER}bootstrap.sql"

@@ -1,30 +1,27 @@
 package org.cardanofoundation.rosetta.consumer.service.impl;
 
 import com.bloxbean.cardano.client.transaction.spec.RedeemerTag;
-import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedTx;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.common.entity.Redeemer;
 import org.cardanofoundation.rosetta.common.entity.StakeAddress;
 import org.cardanofoundation.rosetta.common.entity.Tx;
 import org.cardanofoundation.rosetta.common.entity.Withdrawal;
 import org.cardanofoundation.rosetta.common.entity.Withdrawal.WithdrawalBuilder;
+import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedTx;
 import org.cardanofoundation.rosetta.consumer.dto.RedeemerReference;
-import org.cardanofoundation.rosetta.consumer.repository.cached.CachedStakeAddressRepository;
-import org.cardanofoundation.rosetta.consumer.repository.cached.CachedWithdrawalRepository;
+import org.cardanofoundation.rosetta.consumer.repository.WithdrawalRepository;
 import org.cardanofoundation.rosetta.consumer.service.WithdrawalsService;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+
 import java.math.BigInteger;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 
 @Service
 @RequiredArgsConstructor
@@ -32,27 +29,19 @@ import org.springframework.util.CollectionUtils;
 @Slf4j
 public class WithdrawalsServiceImpl implements WithdrawalsService {
 
-  CachedWithdrawalRepository cachedWithdrawalRepository;
-  CachedStakeAddressRepository cachedStakeAddressRepository;
+  WithdrawalRepository withdrawalRepository;
 
   @Override
   public void handleWithdrawal(Collection<AggregatedTx> successTxs,
-      Map<String, Tx> txMap, Map<RedeemerReference<?>, Redeemer> redeemersMap) {
+                               Map<String, Tx> txMap,
+                               Map<String, StakeAddress> stakeAddressMap,
+                               Map<RedeemerReference<?>, Redeemer> redeemersMap) {
     List<AggregatedTx> txWithWithdrawalList = successTxs.stream()
         .filter(aggregatedTx -> !CollectionUtils.isEmpty(aggregatedTx.getWithdrawals()))
-        .collect(Collectors.toList());
+        .toList();
     if (CollectionUtils.isEmpty(txWithWithdrawalList)) {
       return;
     }
-
-    Set<String> rewardAccounts = txWithWithdrawalList.stream()
-        .map(AggregatedTx::getWithdrawals)
-        .flatMap(withdrawalMap -> withdrawalMap.keySet().stream())
-        .collect(Collectors.toSet());
-    Map<String, StakeAddress> stakeAddressMap = cachedStakeAddressRepository
-        .findByHashRawIn(rewardAccounts)
-        .stream()
-        .collect(Collectors.toMap(StakeAddress::getHashRaw, Function.identity()));
 
     List<Withdrawal> withdrawals = txWithWithdrawalList.stream()
         .flatMap(aggregatedTx -> {
@@ -73,9 +62,9 @@ public class WithdrawalsServiceImpl implements WithdrawalsService {
             return buildWithdrawal(rewardAddress, amount, tx, redeemer);
           });
         })
-        .collect(Collectors.toList());
+        .toList();
 
-    cachedWithdrawalRepository.saveAll(withdrawals);
+    withdrawalRepository.saveAll(withdrawals);
   }
 
   private Withdrawal buildWithdrawal(

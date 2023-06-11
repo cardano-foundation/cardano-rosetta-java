@@ -1,21 +1,22 @@
 package org.cardanofoundation.rosetta.consumer.service.impl;
 
-import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedSlotLeader;
-import org.cardanofoundation.rosetta.common.entity.PoolHash;
-import org.cardanofoundation.rosetta.common.entity.SlotLeader;
-import org.cardanofoundation.rosetta.consumer.constant.ConsumerConstant;
-import org.cardanofoundation.rosetta.common.ledgersync.Block;
-import org.cardanofoundation.rosetta.common.ledgersync.byron.ByronMainBlock;
-import org.cardanofoundation.rosetta.common.util.SlotLeaderUtils;
-import org.cardanofoundation.rosetta.consumer.repository.cached.CachedPoolHashRepository;
-import org.cardanofoundation.rosetta.consumer.repository.cached.CachedSlotLeaderRepository;
-import org.cardanofoundation.rosetta.consumer.service.SlotLeaderService;
-import java.math.BigInteger;
-import java.util.Optional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.cardanofoundation.rosetta.common.entity.PoolHash;
+import org.cardanofoundation.rosetta.common.entity.SlotLeader;
+import org.cardanofoundation.rosetta.common.ledgersync.Block;
+import org.cardanofoundation.rosetta.common.ledgersync.byron.ByronMainBlock;
+import org.cardanofoundation.rosetta.common.util.SlotLeaderUtils;
+import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedSlotLeader;
+import org.cardanofoundation.rosetta.consumer.constant.ConsumerConstant;
+import org.cardanofoundation.rosetta.consumer.repository.PoolHashRepository;
+import org.cardanofoundation.rosetta.consumer.repository.SlotLeaderRepository;
+import org.cardanofoundation.rosetta.consumer.service.SlotLeaderService;
 import org.springframework.stereotype.Service;
+
+import java.math.BigInteger;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -24,8 +25,8 @@ public class SlotLeaderServiceImpl implements SlotLeaderService {
 
   public static final int HASH_LENGTH = 16;
   public static final String DELIMITER = "-";
-  CachedSlotLeaderRepository slotLeaderRepository;
-  CachedPoolHashRepository cachedPoolHashRepository;
+  SlotLeaderRepository slotLeaderRepository;
+  PoolHashRepository poolHashRepository;
 
 
   @Override
@@ -47,7 +48,7 @@ public class SlotLeaderServiceImpl implements SlotLeaderService {
     Optional<SlotLeader> slotLeaderOptional = slotLeaderRepository.findSlotLeaderByHash(hashRaw);
 
     if (slotLeaderOptional.isEmpty()) {
-      Optional<PoolHash> poolHashOptional = cachedPoolHashRepository.findPoolHashByHashRaw(hashRaw);
+      Optional<PoolHash> poolHashOptional = poolHashRepository.findPoolHashByHashRaw(hashRaw);
 
       if (poolHashOptional.isEmpty()) {
         SlotLeader slotLeader = buildSlotLeader(hashRaw, prefix, null);
