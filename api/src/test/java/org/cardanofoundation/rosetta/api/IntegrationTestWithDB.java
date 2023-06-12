@@ -2,12 +2,10 @@ package org.cardanofoundation.rosetta.api;
 
 import java.io.File;
 import java.io.IOException;
-import org.cardanofoundation.rosetta.api.constructionApiService.impl.IntegrationTest;
-import org.junit.jupiter.api.AfterAll;
 import org.testcontainers.containers.DockerComposeContainer;
-import org.testcontainers.containers.DockerComposeContainer.RemoveImages;
 
 public class IntegrationTestWithDB extends IntegrationTest {
+
   public static final DockerComposeContainer<?> testEnvironment;
 
   static {
@@ -28,9 +26,5 @@ public class IntegrationTestWithDB extends IntegrationTest {
       throw new RuntimeException("Cannot sleep Thread!", e);
 
     }
-  }
-  @AfterAll
-  public static void teadDown() {
-//    testEnvironment.withRemoveImages(RemoveImages.LOCAL);
   }
 }

@@ -23,7 +23,7 @@ public class AccountBalanceApiTest extends IntegrationTestWithDB {
 
   @BeforeEach
   public void setUp() {
-    baseUrl = baseUrl.concat(":").concat(serverPort + "").concat(ENDPOINT);
+    baseUrl = baseUrl.concat(":").concat(String.valueOf(serverPort)).concat(ENDPOINT);
   }
 
   @Test
@@ -282,6 +282,7 @@ public class AccountBalanceApiTest extends IntegrationTestWithDB {
     assertEquals(objectMapper.writeValueAsString(expectedResponseAtBlock5406842),
         objectMapper.writeValueAsString(responseAtBlock5406842));
   }
+
   @Test
   void test_should_return_balances_for_ma_with_empty_name() throws IOException {
     AccountBalanceRequest request = objectMapper.readValue(new String(Files.readAllBytes(

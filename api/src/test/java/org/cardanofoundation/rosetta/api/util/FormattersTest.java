@@ -18,12 +18,14 @@ class FormattersTest {
 
     assertTrue(isEmptyHexString(toCheck));
   }
+
   @Test
   void test_isEmptyHexString_false() {
     String toCheck = "isn't empty hex string";
 
     assertFalse(isEmptyHexString(toCheck));
   }
+
   @Test
   void test_isEmptyHexString_true_if_null() {
     String toCheck = null;

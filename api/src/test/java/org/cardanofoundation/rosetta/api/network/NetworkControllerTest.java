@@ -1,19 +1,16 @@
 package org.cardanofoundation.rosetta.api.network;
 
 import static org.mockito.ArgumentMatchers.any;
-
-
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.HashMap;
 import java.util.List;
-import org.cardanofoundation.rosetta.api.network.utils.Common;
 import org.cardanofoundation.rosetta.api.controller.NetworkApiDelegateImplementation;
 import org.cardanofoundation.rosetta.api.model.Peer;
 import org.cardanofoundation.rosetta.api.model.rest.BlockIdentifier;
@@ -22,6 +19,7 @@ import org.cardanofoundation.rosetta.api.model.rest.NetworkIdentifier;
 import org.cardanofoundation.rosetta.api.model.rest.NetworkListResponse;
 import org.cardanofoundation.rosetta.api.model.rest.NetworkRequest;
 import org.cardanofoundation.rosetta.api.model.rest.NetworkStatusResponse;
+import org.cardanofoundation.rosetta.api.network.utils.Common;
 import org.cardanofoundation.rosetta.api.service.NetworkService;
 import org.cardanofoundation.rosetta.api.util.RosettaConstants;
 import org.junit.jupiter.api.Test;
@@ -38,22 +36,19 @@ import org.springframework.test.web.servlet.MockMvc;
 @ExtendWith(MockitoExtension.class)
 @AutoConfigureMockMvc(addFilters = false)
 public class NetworkControllerTest {
-  @Autowired
-  private MockMvc mockMvc;
-
-  @Autowired
-  private ObjectMapper objectMapper;
-
-  @MockBean
-  private NetworkService networkService;
 
   private final String NETWORK_STATUS_ENDPOINT = "/network/status";
   private final String NETWORK_LIST_ENDPOINT = "/network/list";
-
+  @Autowired
+  private MockMvc mockMvc;
+  @Autowired
+  private ObjectMapper objectMapper;
+  @MockBean
+  private NetworkService networkService;
 
   @Test
   void whenCallNetworkList() throws Exception {
-    MetadataRequest metadataRequest =MetadataRequest.builder()
+    MetadataRequest metadataRequest = MetadataRequest.builder()
         .metadata(new HashMap<>())
         .build();
 
@@ -85,9 +80,11 @@ public class NetworkControllerTest {
     NetworkRequest request = Common.generateNetworkPayload("cardano", "preprod");
 
     // mock data
-    BlockIdentifier genesisBlock = BlockIdentifier.builder().hash("d4b8de7a11d929a323373cbab6c1a9bdc931beffff11db111cf9d57356ee1937")
+    BlockIdentifier genesisBlock = BlockIdentifier.builder()
+        .hash("d4b8de7a11d929a323373cbab6c1a9bdc931beffff11db111cf9d57356ee1937")
         .build();
-    BlockIdentifier latestBlock = BlockIdentifier.builder().hash("57857bccde3793808d6d58d0f979d0178b00ba82b50fff9f6eec52a45dae4ad3").index(939262L)
+    BlockIdentifier latestBlock = BlockIdentifier.builder()
+        .hash("57857bccde3793808d6d58d0f979d0178b00ba82b50fff9f6eec52a45dae4ad3").index(939262L)
         .build();
     Peer peer = new Peer("relays-new.cardano-mainnet.iohk.io");
 

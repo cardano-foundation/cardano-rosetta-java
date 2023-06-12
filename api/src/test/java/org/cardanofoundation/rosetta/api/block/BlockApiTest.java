@@ -23,7 +23,7 @@ public class BlockApiTest extends IntegrationTestWithDB {
 
   @BeforeEach
   public void setUp() {
-    baseUrl = baseUrl.concat(":").concat(serverPort + "").concat(ENDPOINT);
+    baseUrl = baseUrl.concat(":").concat(String.valueOf(serverPort)).concat(ENDPOINT);
   }
 
   @Test
@@ -211,8 +211,10 @@ public class BlockApiTest extends IntegrationTestWithDB {
     assertEquals("5f20df933584822601f9e3f8c024eb5eb252fe8cefb24d1317dc3d432e940ebb",
         response.getBlock().getParentBlockIdentifier().getHash());
   }
+
   @Test
-  void test_should_be_able_to_return_multiasset_token_transactions_with_several_tokens_in_the_bundle() throws IOException {
+  void test_should_be_able_to_return_multiasset_token_transactions_with_several_tokens_in_the_bundle()
+      throws IOException {
     BlockRequest request = objectMapper.readValue(new String(Files.readAllBytes(
             Paths.get(BASE_DIRECTORY
                 + "/request/test_should_be_able_to_return_multiasset_token_transactions_with_several_tokens_in_the_bundle_request.json"))),

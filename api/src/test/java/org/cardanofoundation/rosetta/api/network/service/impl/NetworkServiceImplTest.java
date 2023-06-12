@@ -40,104 +40,6 @@ class NetworkServiceImplTest {
         mockLedgerDataProviderService, mockResourceLoader);
   }
 
-//  @Test
-//  void testGetNetworkList() throws Exception {
-//    // Setup
-//    final MetadataRequest metadataRequest = new MetadataRequest("metadata");
-//
-//    // Configure ResourceLoader.getResource(...).
-//    final Resource resource = new ByteArrayResource("content".getBytes());
-//    when(mockResourceLoader.getResource("location")).thenReturn(resource);
-//
-//    // Run the test
-//    final NetworkListResponse result = networkServiceImplUnderTest.getNetworkList(metadataRequest);
-//
-//    // Verify the results
-//  }
-//
-//  @Test
-//  void testGetNetworkOptions() throws Exception {
-//    // Setup
-//    final SubNetworkIdentifier subNetworkIdentifier = new SubNetworkIdentifier();
-//    final NetworkRequest networkRequest = new NetworkRequest(
-//        new NetworkIdentifier("blockchain", "network", subNetworkIdentifier));
-//    final Version version = new Version();
-//    version.rosettaVersion("rosettaVersion");
-//    version.nodeVersion("nodeVersion");
-//    version.middlewareVersion("middlewareVersion");
-//    version.metadata("metadata");
-//    final Allow allow = new Allow();
-//    final OperationStatus operationStatus = new OperationStatus();
-//    operationStatus.status("value");
-//    operationStatus.successful(false);
-//    allow.operationStatuses(List.of(operationStatus));
-//    allow.operationTypes(List.of("value"));
-//    final Error error = new Error();
-//    error.code(0);
-//    error.message("message");
-//    error.description("description");
-//    error.retriable(false);
-//    allow.errors(List.of(error));
-//    allow.historicalBalanceLookup(false);
-//    allow.callMethods(List.of("value"));
-//    final BalanceExemption balanceExemption = new BalanceExemption();
-//    allow.balanceExemptions(List.of(balanceExemption));
-//    allow.mempoolCoins(false);
-//    final NetworkOptionsResponse expectedResult = new NetworkOptionsResponse(version, allow);
-//
-//    // Configure ResourceLoader.getResource(...).
-//    final Resource resource = new ByteArrayResource("content".getBytes());
-//    when(mockResourceLoader.getResource(
-//        "classpath:/rosetta-specifications-1.4.15/api.yaml")).thenReturn(resource);
-//
-//    when(mockRosettaConfig.getImplementationVersion()).thenReturn("middlewareVersion");
-//
-//    // Run the test
-//    final NetworkOptionsResponse result = networkServiceImplUnderTest.getNetworkOptions(
-//        networkRequest);
-//
-//    // Verify the results
-//    assertThat(result).isEqualTo(expectedResult);
-//  }
-//
-//  @Test
-//  void testGetNetworkStatus_thenReturnConfigNotFoundException() throws Exception {
-//    // Setup
-//
-//    NetworkRequest networkRequest = new NetworkRequest(
-//        new NetworkIdentifier("blockchain", "network", null));
-////    final NetworkStatusResponse expectedResult = NetworkStatusResponse.builder()
-////        .currentBlockIdentifier(BlockIdentifier.builder()
-////            .index(0L)
-////            .hash("hash")
-////            .build())
-////        .currentBlockTimeStamp(0L)
-////        .genesisBlockIdentifier(BlockIdentifier.builder()
-////            .index(0L)
-////            .hash("hash")
-////            .build())
-////        .peers(List.of(new Peer()))
-////        .build();
-//
-//    // Configure LedgerDataProviderService.findLatestBlock(...).
-//    final BlockDto blockDto = BlockDto.builder()
-//        .hash("hash")
-//        .number(0L)
-//        .createdAt(0L)
-//        .build();
-//    when(mockLedgerDataProviderService.findLatestBlock()).thenReturn(blockDto);
-//
-//    when(mockLedgerDataProviderService.findGenesisBlock())
-//        .thenReturn(new GenesisBlockDto("hash", 0L));
-//
-//    // Configure ResourceLoader.getResource(...).
-////    when(mockResourceLoader.getResource(any())).th
-//
-//
-//    // Verify the results
-//    assertThrows(ServerException.class, () ->networkServiceImplUnderTest.getNetworkStatus(
-//        networkRequest) ,"Expected ServerException to be thrown");
-//  }
 
   @Test
   void testGetSupportedNetwork_ThenReturnPreProd() throws Exception {
@@ -184,7 +86,7 @@ class NetworkServiceImplTest {
   private String readFile(String path) throws IOException {
     try (InputStream input = new FileInputStream(path)) {
       byte[] fileBytes = input.readAllBytes();
-      return new String(fileBytes , StandardCharsets.UTF_8);
+      return new String(fileBytes, StandardCharsets.UTF_8);
     }
   }
 }

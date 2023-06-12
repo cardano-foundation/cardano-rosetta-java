@@ -24,6 +24,7 @@ public class ValidationTest {
 
     assertTrue(isVoteDataValid(validDataLabel));
   }
+
   @Test
   void test_isVoteDataValid_false_when_jsonObject_is_null() {
 
