@@ -5,6 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    image: cardano-rosetta/db-test
     environment:
       POSTGRES_USER: ${DB_USER_TEST:-postgres}
       POSTGRES_PASSWORD: ${DB_SECRET_TEST:-123456}
