@@ -2,10 +2,10 @@ package org.cardanofoundation.rosetta.api;
 
 import java.io.File;
 import java.io.IOException;
-import org.cardanofoundation.rosetta.api.constructionApiService.impl.IntegrationTest;
 import org.testcontainers.containers.DockerComposeContainer;
 
 public class IntegrationTestWithDB extends IntegrationTest {
+
   public static final DockerComposeContainer<?> testEnvironment;
 
   static {
@@ -13,9 +13,9 @@ public class IntegrationTestWithDB extends IntegrationTest {
       // Get absolute path for docker-compose file
       File fileWithAbsolutePath =
           new File(
-              "../api/src/test/resources/testcontainers/docker-compose.yml").getCanonicalFile();
+              "../testcontainers/docker-compose.yml").getCanonicalFile();
       testEnvironment =
-          new DockerComposeContainer(fileWithAbsolutePath);
+          new DockerComposeContainer<>(fileWithAbsolutePath);
       testEnvironment.start();
 
       Thread.sleep(10000); // pause for 1 minutes

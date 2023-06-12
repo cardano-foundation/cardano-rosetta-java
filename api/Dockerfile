@@ -3,10 +3,9 @@ RUN apt-get update
 RUN apt-get install -y curl
 
 #download cardano-node binary
-#ARG CARDANO_NODE_VERSION=8.0.0
+ARG CARDANO_NODE_VERSION=8.0.0
 WORKDIR /dl-bin
-#RUN curl https://update-cardano-mainnet.iohk.io/cardano-node-releases/cardano-node-${CARDANO_NODE_VERSION}-linux.tar.gz -o cardano-node.tar.gz
-COPY ../tool/cardano-node.tar.gz cardano-node.tar.gz
+RUN curl https://update-cardano-mainnet.iohk.io/cardano-node-releases/cardano-node-${CARDANO_NODE_VERSION}-linux.tar.gz -o cardano-node.tar.gz
 RUN tar -xzf cardano-node.tar.gz && rm cardano-node.tar.gz
 RUN cp -r /dl-bin/. /usr/local/bin
 WORKDIR /

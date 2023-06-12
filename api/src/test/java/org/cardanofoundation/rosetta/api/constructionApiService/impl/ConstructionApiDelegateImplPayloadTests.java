@@ -12,6 +12,7 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.cardanofoundation.rosetta.api.IntegrationTestWithDB;
 import org.cardanofoundation.rosetta.api.exception.Error;
 import org.cardanofoundation.rosetta.api.model.SigningPayload;
 import org.cardanofoundation.rosetta.api.model.rest.ConstructionPayloadsRequest;
@@ -20,16 +21,28 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.client.HttpServerErrorException;
 
-class ConstructionApiDelegateImplPayloadTests extends IntegrationTest {
-
+class ConstructionApiDelegateImplPayloadTests extends IntegrationTestWithDB {
 
 
   private static final String MISSING_POOL_KEY_HASH_MESSAGE = "Pool key hash is required to operate";
   private static final String BASE_DIRECTORY = "src/test/resources/files/construction/payload";
   private static final String INVALID_HEXADECIMAL_CHARACTER_MESSAGE = "Invalid Hexadecimal Character: I";
+
+  private static boolean isAddressFoundInPayloads(List<SigningPayload> payloads, String address,
+      String hexBytes) {
+    for (SigningPayload payload : payloads) {
+      if (payload.getAccountIdentifier().getAddress().equals(address) &&
+          payload.getHexBytes().equals(hexBytes)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   @BeforeEach
   public void setUp() {
-    baseUrl = baseUrl.concat(":").concat(serverPort + "").concat("/construction/payloads");
+    baseUrl = baseUrl.concat(":").concat(String.valueOf(serverPort))
+        .concat("/construction/payloads");
   }
 
   @Test
@@ -472,13 +485,12 @@ class ConstructionApiDelegateImplPayloadTests extends IntegrationTest {
     for (SigningPayload payload : response.getPayloads()) {
       if (payload.getAccountIdentifier().getAddress().equals(address) &&
           payload.getHexBytes().equals(hexBytes)) {
-        found= true;
+        found = true;
         break;
       }
     }
     assertThat(found).isTrue();
   }
-
 
   @Test
   void test_should_fail_if_MultiAsset_policy_id_is_shorter_than_expected() throws IOException {
@@ -639,7 +651,8 @@ class ConstructionApiDelegateImplPayloadTests extends IntegrationTest {
   }
 
   @Test
-  void test_should_return_a_valid_unsigned_transaction_hash_when_sending_valid_operations_including_pool_registration_with_Single_Host_Name_relay() throws IOException{
+  void test_should_return_a_valid_unsigned_transaction_hash_when_sending_valid_operations_including_pool_registration_with_Single_Host_Name_relay()
+      throws IOException {
     ConstructionPayloadsRequest request = objectMapper.readValue(new String(Files.readAllBytes(
             Paths.get(
                 BASE_DIRECTORY
@@ -664,7 +677,6 @@ class ConstructionApiDelegateImplPayloadTests extends IntegrationTest {
     assertThat(found3).isTrue();
     assertThat(found4).isTrue();
   }
-
 
   @Test
   void test_should_return_a_valid_unsigned_transaction_hash_when_sending_valid_operations_including_pool_registration_with_multi_host_name_relay()
@@ -693,7 +705,6 @@ class ConstructionApiDelegateImplPayloadTests extends IntegrationTest {
     assertThat(found3).isTrue();
     assertThat(found4).isTrue();
   }
-
 
   @Test
   void test_should_return_a_valid_unsigned_transaction_hash_when_sending_valid_operations_including_pool_registration_with_no_pool_metadata()
@@ -749,15 +760,6 @@ class ConstructionApiDelegateImplPayloadTests extends IntegrationTest {
     assertThat(found2).isTrue();
     assertThat(found3).isTrue();
     assertThat(found4).isTrue();
-  }
-  private static boolean isAddressFoundInPayloads(List<SigningPayload> payloads, String address, String hexBytes) {
-    for (SigningPayload payload : payloads) {
-      if (payload.getAccountIdentifier().getAddress().equals(address) &&
-          payload.getHexBytes().equals(hexBytes)) {
-        return true;
-      }
-    }
-    return false;
   }
 
   @Test
@@ -900,7 +902,7 @@ class ConstructionApiDelegateImplPayloadTests extends IntegrationTest {
       fail("Expected exception");
     } catch (HttpServerErrorException e) {
       String responseBody = e.getResponseBodyAsString();
-      Error error=objectMapper.readValue(responseBody,Error.class);
+      Error error = objectMapper.readValue(responseBody, Error.class);
       assertTrue(error.isRetriable());
 //      assertEquals(5000,error.getCode());
 //      assertEquals("Invalid public key format",error.getDetails());

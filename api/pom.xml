@@ -245,7 +245,7 @@
                     <include>application.properties</include>
                     <include>rosetta-specifications-1.4.15/api.yaml</include>
                     <include>config/*.yaml</include>
-                    <include>network/</include>
+                    <include>network-config/</include>
                 </includes>
             </resource>
         </resources>
@@ -326,7 +326,6 @@
                         <exclude>**/model/**</exclude>
                         <exclude>**/mapper/*</exclude>
                         <exclude>**/cli/*</exclude>
-                        <exclude>**/util/*</exclude>
                         <exclude>**/exception/*</exclude>
                         <exclude>**/config/*</exclude>
                         <exclude>**/filter/**</exclude>
