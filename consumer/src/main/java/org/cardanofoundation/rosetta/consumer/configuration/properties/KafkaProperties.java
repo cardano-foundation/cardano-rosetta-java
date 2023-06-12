@@ -1,17 +1,20 @@
 package org.cardanofoundation.rosetta.consumer.configuration.properties;
 
-import java.util.HashMap;
-import java.util.Map;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Data
 @Configuration
 @ConfigurationProperties(prefix = "kafka")
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@Profile("!test-integration & !test-unit")
 public class KafkaProperties {
 
   Admin admin;

@@ -1,9 +1,6 @@
 package org.cardanofoundation.rosetta.consumer.kafka;
 
 import jakarta.annotation.PostConstruct;
-import java.util.Objects;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -11,18 +8,23 @@ import org.cardanofoundation.rosetta.common.ledgersync.kafka.CommonBlock;
 import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedBlock;
 import org.cardanofoundation.rosetta.consumer.factory.BlockAggregatorServiceFactory;
 import org.cardanofoundation.rosetta.consumer.repository.BlockRepository;
-import org.cardanofoundation.rosetta.consumer.repository.cached.CachedBlockRepository;
 import org.cardanofoundation.rosetta.consumer.service.BlockDataService;
 import org.cardanofoundation.rosetta.consumer.service.BlockSyncService;
 import org.cardanofoundation.rosetta.consumer.service.RollbackService;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Component;
 
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
+
 @Component
 @Slf4j
 @RequiredArgsConstructor
+@Profile("!test-unit")
 public class BlockListener {
 
   private final BlockAggregatorServiceFactory aggregatorServiceFactory;
@@ -30,7 +32,6 @@ public class BlockListener {
   private final BlockDataService blockDataService;
   private final RollbackService rollbackService;
 
-  private final CachedBlockRepository cachedBlockRepository;
   private final BlockRepository blockRepository;
 
   private final AtomicInteger blockCount = new AtomicInteger(0);
@@ -61,7 +62,7 @@ public class BlockListener {
       topics = "${kafka.listeners.block.topics}"
   )
   public void consume(ConsumerRecord<String, CommonBlock> consumerRecord,
-      Acknowledgment acknowledgment) {
+                      Acknowledgment acknowledgment) {
     try {
       long currentTime = System.currentTimeMillis();
       long lastReceivedTimeElapsed = currentTime - lastMessageReceivedTime.getAndSet(currentTime);
@@ -73,7 +74,7 @@ public class BlockListener {
       }
       if (!eraBlock.isRollback()) {
         if (eraBlock.getBlockNumber() == 0) {//EBB or genesis block
-          boolean isExists = cachedBlockRepository.existsBlockByHash(eraBlock.getBlockHash());
+          boolean isExists = blockRepository.existsBlockByHash(eraBlock.getBlockHash());
           if (isExists) {
             log.warn("Skip existed block : number {}, slot_no {}, hash {}",
                 eraBlock.getBlockNumber(),
@@ -95,18 +96,18 @@ public class BlockListener {
       }
 
       if (eraBlock.isRollback()) {
-        if (Boolean.TRUE.equals(cachedBlockRepository.existsBlockByHash(eraBlock.getBlockHash()))) {
+        if (Boolean.TRUE.equals(blockRepository.existsBlockByHash(eraBlock.getBlockHash()))) {
           //Skip this block as It can be safe block that crawler use to fetch when get rollback message
           log.warn("Skip rollback block no {}, hash {}", eraBlock.getBlockNumber(),
               eraBlock.getBlockHash());
+          if (Objects.nonNull(acknowledgment)) {
+            acknowledgment.acknowledge();
+          }
           return;
         } else {// The real block that need to rollback
           blockSyncService.startBlockSyncing();
           rollbackService.rollBackFrom(eraBlock.getBlockNumber());
           blockCount.set(0);
-          if (Objects.nonNull(acknowledgment)) {
-            acknowledgment.acknowledge();
-          }
         }
       }
 

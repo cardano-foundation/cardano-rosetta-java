@@ -1,9 +1,9 @@
 package org.cardanofoundation.rosetta.consumer.service;
 
-import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedSlotLeader;
 import org.cardanofoundation.rosetta.common.entity.SlotLeader;
 import org.cardanofoundation.rosetta.common.ledgersync.Block;
 import org.cardanofoundation.rosetta.common.ledgersync.byron.ByronMainBlock;
+import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedSlotLeader;
 
 public interface SlotLeaderService {
   /**

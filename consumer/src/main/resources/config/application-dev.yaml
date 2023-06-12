@@ -2,13 +2,13 @@ spring:
   # Datasource specific configs
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
-    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}??reWriteBatchedInserts=true&currentSchema=${spring.jpa.properties.hibernate.default_schema}
-    username: ${DB_USER}
-    password: ${DB_SECRET}
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT:5432}/${DB_NAME:rosetta}?reWriteBatchedInserts=true&currentSchema=${spring.jpa.properties.hibernate.default_schema}
+    username: ${SERVICE_USER_NAME}
+    password: ${SERVICE_USER_SECRET}
     driver-class-name: org.postgresql.Driver
     # Hikari specific configs
     hikari:
-      pool-name: rosetta-consumer-pool
+      pool-name: explorer-consumer-pool
       minimum-idle: 8 #minimum number of idle connections maintained by HikariCP in a connection pool
       maximum-pool-size: ${MAXIMUM_POOL_SIZE:32} #maximum pool size
       idle-timeout: 30000 #maximum idle time for connection
@@ -37,7 +37,7 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         jdbc.batch_size: ${JDBC_BATCH_SIZE:500}
-        default_schema: ${DB_SCEMA:testnet}
+        default_schema: ${SCHEMA:preprod}
         show_sql: false
         format_sql: true
         order_inserts: true
@@ -82,21 +82,24 @@ kafka:
       sessionTimeoutMs: 30000
       trustedPackages: "*"
       allowAutoCreateTopics: false
-      groupId: ${SCHEMA:testnet}
+      groupId: ${SCHEMA:mainnet}
       concurrency: 10
       pollTimeout: 3600000
   listeners:
     block:
-#      groupId: ${SCHEMA:testnet}
-      topics: ${BLOCKS_TOPIC:dev.crawler.testnet.blocks}
+      #      groupId: ${SCHEMA:mainnet}
+      topics: ${BLOCKS_TOPIC:preprod.crawler.blocks}
 #      props: |
 #        max.poll.records: 10
 #        fetch.min.bytes: 123456
-#    prefix: "rosetta-consumer-dev"
+#    prefix: "explorer-consumer-dev"
 logging:
   level:
-    com.sotatek: ${LOG:INFO}
+    org.cardanofoundation: ${LOG:INFO}
 
 blocks:
   batch-size: ${BLOCKS_BATCH_SIZE:200}
   commitThreshold: ${COMMIT_THRESHOLD:3000}
+
+genesis:
+  file: ${FILE_GENESIS_PATH:classpath:genesis/}${SCHEMA:mainnet}.genesis.json

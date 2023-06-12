@@ -1,13 +1,16 @@
 package org.cardanofoundation.rosetta.consumer.service;
 
-import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedTx;
-import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedTxOut;
 import org.cardanofoundation.rosetta.common.entity.MaTxOut;
+import org.cardanofoundation.rosetta.common.entity.MultiAsset;
 import org.cardanofoundation.rosetta.common.entity.Tx;
 import org.cardanofoundation.rosetta.common.entity.TxOut;
+import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedTx;
+import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedTxOut;
+import org.springframework.util.MultiValueMap;
+
 import java.util.Collection;
 import java.util.Map;
-import org.springframework.util.MultiValueMap;
+import java.util.Set;
 
 public interface MultiAssetService {
 
@@ -31,6 +34,14 @@ public interface MultiAssetService {
   Collection<MaTxOut> updateIdentMaTxOuts(MultiValueMap<String, MaTxOut> maTxOuts);
 
   /**
+   * Find all multi asset records by fingerprints
+   *
+   * @param fingerprints multi asset fingerprints
+   * @return a collection of multi assets found
+   */
+  Collection<MultiAsset> findMultiAssetsByFingerprintIn(Set<String> fingerprints);
+
+  /**
    * Build multivalued map of asset outputs
    *
    * @param txOutput  aggregated tx out containing all asset outputs
@@ -40,4 +51,18 @@ public interface MultiAssetService {
    */
   MultiValueMap<String, MaTxOut> buildMaTxOut(AggregatedTxOut txOutput, TxOut txOut);
 
+  /**
+   * Find all multi asset tx outs by their associated tx outs
+   *
+   * @param txOuts tx outs to find multi asset tx outs
+   * @return a collection of multi asset tx outs found
+   */
+  Collection<MaTxOut> findAllByTxOutIn(Collection<TxOut> txOuts);
+
+  /**
+   * Rollback multi assets supply stats or delete them if supply is zero
+   *
+   * @param txs collection of txs being rolled back
+   */
+  void rollbackMultiAssets(Collection<Tx> txs);
 }

@@ -3,34 +3,31 @@ package org.cardanofoundation.rosetta.consumer.service.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedTx;
-import org.cardanofoundation.rosetta.common.entity.Tx;
-import org.cardanofoundation.rosetta.common.entity.TxMetadata;
-import org.cardanofoundation.rosetta.consumer.constant.ConsumerConstant;
-import org.cardanofoundation.rosetta.common.ledgersync.AuxData;
-import org.cardanofoundation.rosetta.common.util.JsonUtil;
-import org.cardanofoundation.rosetta.consumer.repository.cached.CachedTxMetadataRepository;
-import org.cardanofoundation.rosetta.consumer.service.BlockDataService;
-import org.cardanofoundation.rosetta.consumer.service.TxMetaDataService;
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.cardanofoundation.rosetta.common.entity.Tx;
+import org.cardanofoundation.rosetta.common.entity.TxMetadata;
+import org.cardanofoundation.rosetta.common.ledgersync.AuxData;
+import org.cardanofoundation.rosetta.common.util.JsonUtil;
+import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedTx;
+import org.cardanofoundation.rosetta.consumer.constant.ConsumerConstant;
+import org.cardanofoundation.rosetta.consumer.repository.TxMetadataRepository;
+import org.cardanofoundation.rosetta.consumer.service.BlockDataService;
+import org.cardanofoundation.rosetta.consumer.service.TxMetaDataService;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
+
+import java.math.BigDecimal;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class TxMetaDataServiceImpl implements TxMetaDataService {
 
-  private final CachedTxMetadataRepository cachedTxMetadataRepository;
+  private final TxMetadataRepository txMetadataRepository;
   private final BlockDataService blockDataService;
   private final ObjectMapper mapper;
 
@@ -38,7 +35,7 @@ public class TxMetaDataServiceImpl implements TxMetaDataService {
   public List<TxMetadata> handleAuxiliaryDataMaps(Map<String, Tx> txMap) {
     List<TxMetadata> txMetadataList = new ArrayList<>();
 
-    blockDataService.forEachAggregatedBlock(aggregatedBlock -> {
+    blockDataService.getAllAggregatedBlocks().forEach(aggregatedBlock -> {
       if (CollectionUtils.isEmpty(aggregatedBlock.getAuxiliaryDataMap())) {
         return;
       }
@@ -58,7 +55,7 @@ public class TxMetaDataServiceImpl implements TxMetaDataService {
           .forEach(txMetadataList::add);
     });
 
-    return cachedTxMetadataRepository.saveAll(txMetadataList);
+    return txMetadataRepository.saveAll(txMetadataList);
   }
 
   private List<TxMetadata> handleAuxiliaryData(AuxData auxiliaryData, Tx tx) {
@@ -67,6 +64,7 @@ public class TxMetaDataServiceImpl implements TxMetaDataService {
         Map<BigDecimal, Object> json = mapper.readValue(auxiliaryData.getMetadataJson(),
             new TypeReference<>() {
             });
+
         return json.entrySet().stream().map(entry -> {
           String metadataJson = null;
 
@@ -85,7 +83,8 @@ public class TxMetaDataServiceImpl implements TxMetaDataService {
               .build();
         }).distinct().collect(Collectors.toList());
       } catch (Exception ex) {
-        log.error("Tx hash: {}, meta data json: {}, mess: {}", tx.getHash(),auxiliaryData.getMetadataJson(), ex.getMessage());
+        log.error("Tx hash: {}, meta data json: {}, mess: {}", tx.getHash(),
+            auxiliaryData.getMetadataJson(), ex.getMessage());
         throw new IllegalStateException();
       }
     }

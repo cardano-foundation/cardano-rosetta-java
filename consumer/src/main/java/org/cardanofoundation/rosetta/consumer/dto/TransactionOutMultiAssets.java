@@ -1,12 +1,12 @@
 package org.cardanofoundation.rosetta.consumer.dto;
 
-import org.cardanofoundation.rosetta.common.entity.MaTxOut;
-import org.cardanofoundation.rosetta.common.entity.TxOut;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
+import org.cardanofoundation.rosetta.common.entity.MaTxOut;
+import org.cardanofoundation.rosetta.common.entity.TxOut;
 import org.springframework.util.MultiValueMap;
 
 

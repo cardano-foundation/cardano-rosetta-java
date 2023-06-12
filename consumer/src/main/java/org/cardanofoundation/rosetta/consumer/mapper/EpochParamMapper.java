@@ -1,5 +1,6 @@
 package org.cardanofoundation.rosetta.consumer.mapper;
 
+
 import org.cardanofoundation.rosetta.common.entity.EpochParam;
 import org.cardanofoundation.rosetta.common.entity.ParamProposal;
 import org.mapstruct.Mapper;

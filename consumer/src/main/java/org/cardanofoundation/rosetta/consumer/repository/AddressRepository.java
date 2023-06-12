@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
@@ -20,7 +21,7 @@ public interface AddressRepository extends JpaRepository<Address, Long> {
    * be marked as read-only transaction, as the changes will be applied later through
    * JPA save() or saveAll() methods
    */
-  @Transactional(readOnly = true)
+  @Transactional(readOnly = true, propagation = Propagation.REQUIRES_NEW)
   List<Address> findAllByAddressIn(Collection<String> addresses);
 
   @Query("SELECT DISTINCT(a.stakeAddress) FROM Address a WHERE a IN (:addresses)")

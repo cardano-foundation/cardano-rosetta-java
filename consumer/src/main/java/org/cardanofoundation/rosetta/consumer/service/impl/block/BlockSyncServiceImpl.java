@@ -1,25 +1,22 @@
 package org.cardanofoundation.rosetta.consumer.service.impl.block;
 
-import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedBlock;
-import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedSlotLeader;
-import org.cardanofoundation.rosetta.common.entity.Block;
-import org.cardanofoundation.rosetta.common.entity.SlotLeader;
-import org.cardanofoundation.rosetta.common.entity.Tx;
-import org.cardanofoundation.rosetta.consumer.repository.cached.CachedBlockRepository;
-import org.cardanofoundation.rosetta.consumer.service.BlockDataService;
-import org.cardanofoundation.rosetta.consumer.service.BlockSyncService;
-import org.cardanofoundation.rosetta.consumer.service.EpochParamService;
-import org.cardanofoundation.rosetta.consumer.service.EpochService;
-import org.cardanofoundation.rosetta.consumer.service.SlotLeaderService;
-import org.cardanofoundation.rosetta.consumer.service.TransactionService;
-import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
+import io.micrometer.core.annotation.Timed;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.cardanofoundation.rosetta.common.entity.Block;
+import org.cardanofoundation.rosetta.common.entity.SlotLeader;
+import org.cardanofoundation.rosetta.common.entity.Tx;
+import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedBlock;
+import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedSlotLeader;
+import org.cardanofoundation.rosetta.consumer.repository.BlockRepository;
+import org.cardanofoundation.rosetta.consumer.repository.TxRepository;
+import org.cardanofoundation.rosetta.consumer.service.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.*;
 
 @Slf4j
 @Service
@@ -27,7 +24,8 @@ import org.springframework.stereotype.Service;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class BlockSyncServiceImpl implements BlockSyncService {
 
-  CachedBlockRepository cachedBlockRepository;
+  BlockRepository blockRepository;
+  TxRepository txRepository;
 
   TransactionService transactionService;
   BlockDataService blockDataService;
@@ -36,38 +34,39 @@ public class BlockSyncServiceImpl implements BlockSyncService {
   EpochParamService epochParamService;
 
   @Override
+  @Transactional
+  @Timed(value = "block.syncing.time", description = "Time taken to process the method of block syncing")
   public void startBlockSyncing() {
-    if(blockDataService.getBlockSize() == 0){
+    if (blockDataService.getBlockSize() == 0) {
       return;
     }
-    Map<String, Tx> txMap = new ConcurrentHashMap<>();
+
+    Map<String, Block> blockMap = new LinkedHashMap<>();
     var firstAndLastBlock = blockDataService.getFirstAndLastBlock();
     log.info("Commit from block {} to block {} ",
         firstAndLastBlock.getFirst().getBlockNo(),
         firstAndLastBlock.getSecond().getBlockNo());
-    /*
-     * Blocks along with their txs and some of tx contents must be processed sequentially,
-     * hence this code block must run first. This is also used to initialize blocks and tx
-     * entities
-     */
-    blockDataService.forEachAggregatedBlock(aggregatedBlock -> {
-      Block block = handleBlock(aggregatedBlock);
-      txMap.putAll(transactionService.prepareTxs(block, aggregatedBlock));
-    });
 
-    // Handle all tx contents
-    transactionService.handleTxs(txMap);
+    // Initialize block entities
+    Collection<AggregatedBlock> allAggregatedBlocks = blockDataService.getAllAggregatedBlocks();
+    allAggregatedBlocks.forEach(aggregatedBlock -> handleBlock(aggregatedBlock, blockMap));
+    blockRepository.saveAll(blockMap.values());
 
+    // Prepare and handle transaction contents
+    Tx latestSavedTx = txRepository.findFirstByOrderByIdDesc();
+    transactionService.prepareAndHandleTxs(blockMap, allAggregatedBlocks);
+
+    // Handle epoch data
+    epochService.handleEpoch(allAggregatedBlocks);
 
     // Handle epoch param
-
     epochParamService.handleEpochParams();
 
-    // Finally, flush everything into db
-    blockDataService.saveAll();
+    // Finally, clear the aggregated data
+    blockDataService.clearBatchBlockData();
   }
 
-  private Block handleBlock(AggregatedBlock aggregatedBlock) {
+  private void handleBlock(AggregatedBlock aggregatedBlock, Map<String, Block> blockMap) {
     Block block = new Block();
 
     block.setHash(aggregatedBlock.getHash());
@@ -76,7 +75,8 @@ public class BlockSyncServiceImpl implements BlockSyncService {
     block.setSlotNo(aggregatedBlock.getSlotNo());
     block.setBlockNo(aggregatedBlock.getBlockNo());
 
-    cachedBlockRepository.findBlockByHash(aggregatedBlock.getPrevBlockHash())
+    Optional.ofNullable(blockMap.get(aggregatedBlock.getPrevBlockHash()))
+        .or(() -> blockRepository.findBlockByHash(aggregatedBlock.getPrevBlockHash()))
         .ifPresentOrElse(block::setPrevious, () -> {
           log.error(
               "Prev block not found. Block number: {}, block hash: {}, prev hash: {}",
@@ -98,9 +98,7 @@ public class BlockSyncServiceImpl implements BlockSyncService {
     block.setOpCert(aggregatedBlock.getOpCert());
     block.setOpCertCounter(aggregatedBlock.getOpCertCounter());
 
-    cachedBlockRepository.save(block);
-    epochService.handleEpoch(aggregatedBlock);
-    return block;
+    blockMap.put(block.getHash(), block);
   }
 
   private SlotLeader getSlotLeader(AggregatedSlotLeader aggregatedSlotLeader) {
