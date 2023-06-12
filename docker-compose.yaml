@@ -39,6 +39,7 @@ services:
     ports:
       - "${API_BIND_PORT}:${API_EXPOSED_PORT}"
     environment:
+      NETWORK: "${NETWORK}"
       DB_HOST: "${DB_HOST}"
       DB_PORT: "${DB_PORT}"
       DB_NAME: "${DB_NAME}"
