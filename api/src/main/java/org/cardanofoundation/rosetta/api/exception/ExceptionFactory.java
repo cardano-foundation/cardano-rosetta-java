@@ -65,8 +65,8 @@ public class ExceptionFactory {
   public static ApiException missingPoolCertError() {
     return new ApiException(RosettaErrorType.POOL_CERT_MISSING.toRosettaError(false));
   }
-  public static ApiException invalidPoolRegistrationCert(Object error) {
-    return new ApiException(RosettaErrorType.INVALID_POOL_CERT.toRosettaError(false,error));
+  public static ApiException invalidPoolRegistrationCert(String error) {
+    return new ApiException(RosettaErrorType.INVALID_POOL_CERT.toRosettaError(false,Details.builder().message(error).build()));
   }
   public static ApiException invalidPoolRegistrationCertType() {
     return new ApiException(RosettaErrorType.INVALID_POOL_CERT_TYPE.toRosettaError(false));
@@ -116,23 +116,23 @@ public class ExceptionFactory {
   public static ApiException missingDnsNameError() {
     return new ApiException(RosettaErrorType.DNS_NAME_MISSING.toRosettaError(false));
   }
-  public static ApiException invalidPoolRelaysError(Object error) {
-    return new ApiException(RosettaErrorType.INVALID_POOL_RELAYS.toRosettaError(false,error));
+  public static ApiException invalidPoolRelaysError(String error) {
+    return new ApiException(RosettaErrorType.INVALID_POOL_RELAYS.toRosettaError(false,Details.builder().message(error).build()));
   }
-  public static ApiException invalidPoolRegistrationParameters(Object error) {
-    return new ApiException(RosettaErrorType.INVALID_POOL_RELAYS.toRosettaError(false,error));
+  public static ApiException invalidPoolRegistrationParameters(String error) {
+    return new ApiException(RosettaErrorType.INVALID_POOL_RELAYS.toRosettaError(false,Details.builder().message(error).build()));
   }
   public static ApiException addressGenerationError() {
     return new ApiException(RosettaErrorType.ADDRESS_GENERATION_ERROR.toRosettaError(false));
   }
-  public static ApiException transactionInputsParametersMissingError(Object error) {
-    return new ApiException(RosettaErrorType.TRANSACTION_INPUTS_PARAMETERS_MISSING_ERROR.toRosettaError(false,error));
+  public static ApiException transactionInputsParametersMissingError(String error) {
+    return new ApiException(RosettaErrorType.TRANSACTION_INPUTS_PARAMETERS_MISSING_ERROR.toRosettaError(false,Details.builder().message(error).build()));
   }
-  public static ApiException transactionOutputDeserializationError(Object error) {
-    return new ApiException(RosettaErrorType.TRANSACTION_OUTPUT_DESERIALIZATION_ERROR.toRosettaError(false,error));
+  public static ApiException transactionOutputDeserializationError(String details) {
+    return new ApiException(RosettaErrorType.TRANSACTION_OUTPUT_DESERIALIZATION_ERROR.toRosettaError(false,Details.builder().message(details).build()));
   }
-  public static ApiException transactionOutputsParametersMissingError(Object error) {
-    return new ApiException(RosettaErrorType.TRANSACTION_OUTPUTS_PARAMETERS_MISSING_ERROR.toRosettaError(false,error));
+  public static ApiException transactionOutputsParametersMissingError(String error) {
+    return new ApiException(RosettaErrorType.TRANSACTION_OUTPUTS_PARAMETERS_MISSING_ERROR.toRosettaError(false,Details.builder().message(error).build()));
   }
   public static ApiException cantCreateUnsignedTransactionFromBytes() {
     return new ApiException(RosettaErrorType.CANT_CREATE_UNSIGNED_TRANSACTION_ERROR.toRosettaError(false));
@@ -149,8 +149,8 @@ public class ExceptionFactory {
   public static ApiException parseSignedTransactionError() {
     return new ApiException(RosettaErrorType.PARSE_SIGNED_TRANSACTION_ERROR.toRosettaError(false));
   }
-  public static ApiException invalidPoolOwnersError(Object error) {
-    return new ApiException(RosettaErrorType.INVALID_POOL_OWNERS.toRosettaError(false,error));
+  public static ApiException invalidPoolOwnersError(String error) {
+    return new ApiException(RosettaErrorType.INVALID_POOL_OWNERS.toRosettaError(false,Details.builder().message(error).build()));
   }
   public static ApiException invalidAddressTypeError() {
     return new ApiException(RosettaErrorType.INVALID_ADDRESS_TYPE.toRosettaError(false));
@@ -160,12 +160,19 @@ public class ExceptionFactory {
     return new ApiException(RosettaErrorType.TRANSACTION_NOT_FOUND.toRosettaError(false));
   }
   public static ApiException invalidTokenNameError(String details) {
-    return new ApiException(RosettaErrorType.INVALID_TOKEN_NAME.toRosettaError(false, details));
+    return new ApiException(RosettaErrorType.INVALID_TOKEN_NAME.toRosettaError(false, Details.builder().message(details).build()));
   }
   public static ApiException invalidPolicyIdError(String details) {
-    return new ApiException(RosettaErrorType.INVALID_POLICY_ID.toRosettaError(false, details));
+    return new ApiException(RosettaErrorType.INVALID_POLICY_ID.toRosettaError(false, Details.builder().message(details).build()));
   }
   public static ApiException submitRejected() {
     return new ApiException(RosettaErrorType.SUBMIT_TRANSACTION_REJECTED.toRosettaError(false));
+  }
+  public static ApiException outPutTooLow() {
+    return new ApiException(RosettaErrorType.OUTPUT_AMOUNT_TOO_LOW.toRosettaError(false));
+  }
+
+  public static ApiException deserializationError(String details) {
+    return new ApiException(RosettaErrorType.TRANSACTION_INPUT_DESERIALIZATION_ERROR.toRosettaError(false,Details.builder().message(details).build()));
   }
 }

@@ -612,7 +612,7 @@ public class CardanoServiceImpl implements CardanoService {
       parsedCertificate = PoolRegistration.deserialize(dataItem);
     } catch (Exception error) {
       log.error("[validateAndParsePoolRegistrationCert] invalid pool registration certificate");
-      throw ExceptionFactory.invalidPoolRegistrationCert(error);
+      throw ExceptionFactory.invalidPoolRegistrationCert(error.getMessage());
     }
     if (ObjectUtils.isEmpty(parsedCertificate)) {
       log.error("[validateAndParsePoolRegistrationCert] invalid certificate type");
@@ -947,7 +947,7 @@ public class CardanoServiceImpl implements CardanoService {
       }
     } catch (Exception error) {
       log.error("[validateAndParsePoolRelays] invalid pool relay");
-      throw ExceptionFactory.invalidPoolRelaysError(error);
+      throw ExceptionFactory.invalidPoolRelaysError(error.getMessage());
     }
   }
 
@@ -1051,7 +1051,7 @@ public class CardanoServiceImpl implements CardanoService {
       return poolRegistationParametersReturnDto;
     } catch (Exception error) {
       log.error("[validateAndParsePoolRegistationParameters] Given pool parameters are invalid");
-      throw ExceptionFactory.invalidPoolRegistrationParameters(error);
+      throw ExceptionFactory.invalidPoolRegistrationParameters(error.getMessage());
     }
   }
 
@@ -1180,9 +1180,13 @@ public class CardanoServiceImpl implements CardanoService {
       log.error("[validateAndParseTransactionInput] Input has positive value");
       throw ExceptionFactory.transactionInputsParametersMissingError("Input has positive amount value");
     }
-    return new TransactionInput(
-        transactionId,
-        Integer.parseInt(index));
+    try{
+      return new TransactionInput(
+              HexUtil.encodeHexString(HexUtil.decodeHexString(transactionId)),
+              Integer.parseInt(index));
+    }catch(Exception e){
+      throw ExceptionFactory.deserializationError(e.getMessage());
+    }
   }
 
   @Override
@@ -1462,12 +1466,10 @@ public class CardanoServiceImpl implements CardanoService {
         }
         if (operation.getAccount().getSubAccount() != null) {
           co.nstant.in.cbor.model.Map subAccountIdentifierMap = new co.nstant.in.cbor.model.Map();
-          subAccountIdentifierMap.put(new UnicodeString("address"),
-              new UnicodeString(ObjectUtils.isEmpty(operation.getAccount().getSubAccount()) ? null
-                  : operation.getAccount().getSubAccount().getAddress()));
-          subAccountIdentifierMap.put(new UnicodeString("metadata"),
-              ObjectUtils.isEmpty(operation.getAccount().getSubAccount()) ? null
-                  : operation.getAccount().getSubAccount().getMetadata());
+          if(operation.getAccount().getSubAccount().getAddress()!=null) subAccountIdentifierMap.put(new UnicodeString("address"),
+              new UnicodeString(operation.getAccount().getSubAccount().getAddress()));
+          if(operation.getAccount().getSubAccount().getMetadata()!=null) subAccountIdentifierMap.put(new UnicodeString("metadata"),
+              operation.getAccount().getSubAccount().getMetadata());
           accountIdentifierMap.put(new UnicodeString("sub_account"), subAccountIdentifierMap);
         }
         if (operation.getAccount().getMetadata() != null) {
@@ -1520,27 +1522,28 @@ public class CardanoServiceImpl implements CardanoService {
         co.nstant.in.cbor.model.Map oMetadataMap = new co.nstant.in.cbor.model.Map();
         OperationMetadata operationMetadata =
             ObjectUtils.isEmpty(operation.getMetadata()) ? null : operation.getMetadata();
-        if (operationMetadata != null && operationMetadata.getWithdrawalAmount() != null) {
-          co.nstant.in.cbor.model.Map withdrawalAmount = getAmountMap(
-              operationMetadata.getWithdrawalAmount());
-          oMetadataMap.put(new UnicodeString("withdrawal_amount"), withdrawalAmount);
-        }
-        if (operationMetadata != null && operationMetadata.getDepositAmount() != null) {
-          co.nstant.in.cbor.model.Map depositAmount = getAmountMap(
-              operationMetadata.getDepositAmount());
-          oMetadataMap.put(new UnicodeString("deposit_amount"), depositAmount);
-        }
-        if (operationMetadata != null && operationMetadata.getRefundAmount() != null) {
-          co.nstant.in.cbor.model.Map refundAmount = getAmountMap(
-              operationMetadata.getRefundAmount());
-          oMetadataMap.put(new UnicodeString("refund_amount"), refundAmount);
-        }
-
         if (operationMetadata != null && operationMetadata.getStakingCredential() != null) {
           co.nstant.in.cbor.model.Map stakingCredentialMap = getPublicKeymap(
               operationMetadata.getStakingCredential());
           oMetadataMap.put(new UnicodeString("staking_credential"), stakingCredentialMap);
         }
+        if (operationMetadata != null && operationMetadata.getWithdrawalAmount() != null) {
+          co.nstant.in.cbor.model.Map withdrawalAmount = getAmountMap_v2(
+              operationMetadata.getWithdrawalAmount());
+          oMetadataMap.put(new UnicodeString("withdrawalAmount"), withdrawalAmount);
+        }
+        if (operationMetadata != null && operationMetadata.getDepositAmount() != null) {
+          co.nstant.in.cbor.model.Map depositAmount = getAmountMap_v2(
+              operationMetadata.getDepositAmount());
+          oMetadataMap.put(new UnicodeString("depositAmount"), depositAmount);
+        }
+        if (operationMetadata != null && operationMetadata.getRefundAmount() != null) {
+          co.nstant.in.cbor.model.Map refundAmount = getAmountMap(
+              operationMetadata.getRefundAmount());
+          oMetadataMap.put(new UnicodeString("refundAmount"), refundAmount);
+        }
+
+
         if (operationMetadata != null && operationMetadata.getPoolKeyHash() != null) {
           oMetadataMap.put(new UnicodeString("pool_key_hash"),
               new UnicodeString(operationMetadata.getPoolKeyHash()));
@@ -1777,6 +1780,38 @@ public class CardanoServiceImpl implements CardanoService {
     return amountMap;
   }
 
+  public co.nstant.in.cbor.model.Map getAmountMap_v2(Amount amount) {
+    co.nstant.in.cbor.model.Map amountMap = new co.nstant.in.cbor.model.Map();
+    if (!ObjectUtils.isEmpty(amount)) {
+      if (amount.getCurrency() != null) {
+        co.nstant.in.cbor.model.Map currencyMap = new co.nstant.in.cbor.model.Map();
+        if (amount.getCurrency().getSymbol() != null) {
+          currencyMap.put(new UnicodeString("symbol"),
+              new UnicodeString(amount.getCurrency().getSymbol()));
+        }
+        if (amount.getCurrency().getDecimals() != null) {
+          currencyMap.put(new UnicodeString("decimals"),
+              new UnsignedInteger(amount.getCurrency().getDecimals()));
+        }
+        co.nstant.in.cbor.model.Map addedMetadataMap = new co.nstant.in.cbor.model.Map();
+        addedMetadataMap.put(new UnicodeString("metadata"),
+            new UnicodeString(ObjectUtils.isEmpty(amount.getCurrency().getMetadata()) ? null
+                : amount.getCurrency().getMetadata().getPolicyId()));
+        if (amount.getCurrency().getMetadata() != null) {
+          currencyMap.put(new UnicodeString("metadata"), addedMetadataMap);
+        }
+        amountMap.put(new UnicodeString("currency"), currencyMap);
+      }
+      if (amount.getValue() != null) {
+        amountMap.put(new UnicodeString("value"), new UnicodeString(amount.getValue()));
+      }
+      if (amount.getMetadata() != null) {
+        amountMap.put(new UnicodeString("metadata"), amount.getMetadata());
+      }
+    }
+    return amountMap;
+  }
+
   @Override
   public List<SigningPayload> constructPayloadsForTransactionBody(String transactionBodyHash,
       Set<String> addresses) {
@@ -1828,7 +1863,7 @@ public class CardanoServiceImpl implements CardanoService {
             operationIdentifier2.setIndex(((UnsignedInteger) operationIdentifierMap2.get(new UnicodeString("index"))).getValue()
                 .longValue());
           }
-          if(operationIdentifierMap2.get(new UnicodeString("index"))!=null){
+          if(operationIdentifierMap2.get(new UnicodeString("network_index"))!=null){
             operationIdentifier2.setNetworkIndex(((UnsignedInteger) operationIdentifierMap2.get(new UnicodeString("network_index"))).getValue()
                 .longValue());
           }
@@ -1914,24 +1949,24 @@ public class CardanoServiceImpl implements CardanoService {
         co.nstant.in.cbor.model.Map metadataMap = (co.nstant.in.cbor.model.Map) operationMap.get(
             new UnicodeString("metadata"));
         OperationMetadata operationMetadata = new OperationMetadata();
-        if(metadataMap.get(new UnicodeString("withdrawal_amount"))!=null){
+        if(metadataMap.get(new UnicodeString("withdrawalAmount"))!=null){
           co.nstant.in.cbor.model.Map withdrawalAmountMap = (co.nstant.in.cbor.model.Map) metadataMap.get(
-              new UnicodeString("withdrawal_amount"));
+              new UnicodeString("withdrawalAmount"));
           Amount amountW = getAmountFromMap(withdrawalAmountMap);
           operationMetadata.setWithdrawalAmount(amountW);
         }
-        if(metadataMap.get(new UnicodeString("deposit_amount"))!=null){
+        if(metadataMap.get(new UnicodeString("depositAmount"))!=null){
           co.nstant.in.cbor.model.Map depositAmountMap = (co.nstant.in.cbor.model.Map) metadataMap.get(
-              new UnicodeString("deposit_amount"));
+              new UnicodeString("depositAmount"));
           Amount amountD = getAmountFromMap(depositAmountMap);
-          operationMetadata.setWithdrawalAmount(amountD);
+          operationMetadata.setDepositAmount(amountD);
         }
         if(metadataMap.get(
-            new UnicodeString("refund_amount"))!=null){
+            new UnicodeString("refundAmount"))!=null){
           co.nstant.in.cbor.model.Map refundAmountMap = (co.nstant.in.cbor.model.Map) metadataMap.get(
-              new UnicodeString("refund_amount"));
+              new UnicodeString("refundAmount"));
           Amount amountR = getAmountFromMap(refundAmountMap);
-          operationMetadata.setWithdrawalAmount(amountR);
+          operationMetadata.setRefundAmount(amountR);
         }
         if(metadataMap.get(new UnicodeString("staking_credential"))!=null){
           co.nstant.in.cbor.model.Map stakingCredentialMap = (co.nstant.in.cbor.model.Map) metadataMap.get(
@@ -2165,44 +2200,47 @@ public class CardanoServiceImpl implements CardanoService {
   @Override
   public Amount getAmountFromMap(co.nstant.in.cbor.model.Map amountMap) {
     Amount amount = new Amount();
-    if(amountMap.get(new UnicodeString("value"))!=null){
-      String value = ((UnicodeString) amountMap.get(new UnicodeString("value"))).getString();
-      amount.setValue(value);
-    }
-    if(amountMap.get(new UnicodeString("metadata"))!=null){
-      co.nstant.in.cbor.model.Map metadataAm = (co.nstant.in.cbor.model.Map) amountMap.get(
-          new UnicodeString("metadata"));
-      amount.setMetadata(metadataAm);
-    }
-    if(amountMap.get(
-        new UnicodeString("currency"))!=null){
-      co.nstant.in.cbor.model.Map currencyMap = (co.nstant.in.cbor.model.Map) amountMap.get(
-          new UnicodeString("currency"));
-      Currency currency = new Currency();
-      if(currencyMap.get(new UnicodeString("symbol"))!=null){
-        String symbol = ((UnicodeString) currencyMap.get(new UnicodeString("symbol"))).getString();
-        currency.setSymbol(symbol);
+    if(amountMap!=null){
+      if (amountMap.get(new UnicodeString("value")) != null) {
+        String value = ((UnicodeString) amountMap.get(new UnicodeString("value"))).getString();
+        amount.setValue(value);
       }
-      if(currencyMap.get(
-          new UnicodeString("decimals"))!=null){
-        Integer decimals = ((UnsignedInteger) currencyMap.get(
-            new UnicodeString("decimals"))).getValue()
-            .intValue();
-        currency.setDecimals(decimals);
-      }
-
-      if(currencyMap.get(new UnicodeString("metadata"))!=null){
-        Metadata metadata = new Metadata();
-        co.nstant.in.cbor.model.Map addedMetadataMap = (co.nstant.in.cbor.model.Map) currencyMap.get(
+      if (amountMap.get(new UnicodeString("metadata")) != null) {
+        co.nstant.in.cbor.model.Map metadataAm = (co.nstant.in.cbor.model.Map) amountMap.get(
             new UnicodeString("metadata"));
-        if(addedMetadataMap.get(new UnicodeString("policyId"))!=null){
-          String policyId = ((UnicodeString) addedMetadataMap.get(
-              new UnicodeString("policyId"))).getString();
-          metadata.setPolicyId(policyId);
-        }
-        currency.setMetadata(metadata);
+        amount.setMetadata(metadataAm);
       }
-      amount.setCurrency(currency);
+      if (amountMap.get(
+          new UnicodeString("currency")) != null) {
+        co.nstant.in.cbor.model.Map currencyMap = (co.nstant.in.cbor.model.Map) amountMap.get(
+            new UnicodeString("currency"));
+        Currency currency = new Currency();
+        if (currencyMap.get(new UnicodeString("symbol")) != null) {
+          String symbol = ((UnicodeString) currencyMap.get(
+              new UnicodeString("symbol"))).getString();
+          currency.setSymbol(symbol);
+        }
+        if (currencyMap.get(
+            new UnicodeString("decimals")) != null) {
+          Integer decimals = ((UnsignedInteger) currencyMap.get(
+              new UnicodeString("decimals"))).getValue()
+              .intValue();
+          currency.setDecimals(decimals);
+        }
+
+        if (currencyMap.get(new UnicodeString("metadata")) != null) {
+          Metadata metadata = new Metadata();
+          co.nstant.in.cbor.model.Map addedMetadataMap = (co.nstant.in.cbor.model.Map) currencyMap.get(
+              new UnicodeString("metadata"));
+          if (addedMetadataMap.get(new UnicodeString("policyId")) != null) {
+            String policyId = ((UnicodeString) addedMetadataMap.get(
+                new UnicodeString("policyId"))).getString();
+            metadata.setPolicyId(policyId);
+          }
+          currency.setMetadata(metadata);
+        }
+        amount.setCurrency(currency);
+      }
     }
     return amount;
   }
