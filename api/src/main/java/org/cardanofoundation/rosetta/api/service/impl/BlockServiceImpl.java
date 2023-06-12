@@ -103,7 +103,8 @@ public class BlockServiceImpl implements BlockService {
     );
     List<Utxo> utxoDetails = ledgerDataProviderService.findUtxoByAddressAndBlock(address,
         block.getHash(), currencies);
-    log.debug("[findCoinsByAddress] Found {} coin details for address {}",utxoDetails.size(), address);
+    log.debug("[findCoinsByAddress] Found {} coin details for address {}", utxoDetails.size(),
+        address);
 
     return BlockUtxos.builder()
         .block(block)
@@ -163,7 +164,7 @@ public class BlockServiceImpl implements BlockService {
       if (transactionsFound.size() > pageSize) {
         log.info(
             "[block] Returning only transactions hashes since the number of them is bigger than {}"
-            ,pageSize);
+            , pageSize);
         return BlockResponse.builder()
             .block(mapToRosettaBlock(block, new ArrayList<>(), poolDeposit))
             .otherTransactions(transactionsFound.stream()
@@ -196,7 +197,7 @@ public class BlockServiceImpl implements BlockService {
     boolean blockMightContainTransactions =
         block.getTransactionsCount() != 0 || block.getPreviousBlockHash().equals(block.getHash());
     log.debug("[findTransactionsByBlock] Does requested block contains transactions? : {}"
-        ,blockMightContainTransactions);
+        , blockMightContainTransactions);
     if (blockMightContainTransactions) {
       return ledgerDataProviderService.findTransactionsByBlock(block.getNumber(), block.getHash());
     } else {
@@ -213,8 +214,8 @@ public class BlockServiceImpl implements BlockService {
         blockTransactionRequest.getBlockIdentifier());
     PopulatedTransaction transaction = this.
         findTransaction(blockTransactionRequest.getTransactionIdentifier().getHash(),
-        blockTransactionRequest.getBlockIdentifier().getIndex(),
-        blockTransactionRequest.getBlockIdentifier().getHash());
+            blockTransactionRequest.getBlockIdentifier().getIndex(),
+            blockTransactionRequest.getBlockIdentifier().getHash());
     if (Objects.isNull(transaction)) {
       log.error("[blockTransaction] No transaction found");
       throw ExceptionFactory.transactionNotFound();

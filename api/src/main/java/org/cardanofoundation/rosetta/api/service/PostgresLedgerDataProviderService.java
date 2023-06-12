@@ -324,6 +324,7 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
     }
     return null;
   }
+
   @Override
   public List<FindTransactionsInputs> getFindTransactionsInputs(List<String> transactionsHashes) {
     log.debug("[findTransactionsInputs] with parameters {}", transactionsHashes);
@@ -335,58 +336,68 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
     return poolRetireRepository.findPoolRetirements(
         transactionsHashes);
   }
+
   @Override
   public List<FindTransactionPoolRelays> getFindTransactionPoolRelays(
       List<String> transactionsHashes) {
     return poolUpdateRepository.findTransactionPoolRelays(
         transactionsHashes);
   }
+
   @Override
   public List<FindTransactionPoolOwners> getFindTransactionPoolOwners(
       List<String> transactionsHashes) {
     return poolUpdateRepository.findTransactionPoolOwners(
         transactionsHashes);
   }
+
   @Override
   public List<FindTransactionPoolRegistrationsData> getTransactionPoolRegistrationsData(
       List<String> transactionsHashes) {
     return getFindTransactionPoolRegistrationsData(
         transactionsHashes);
   }
+
   @Override
   public List<FindTransactionPoolRegistrationsData> getFindTransactionPoolRegistrationsData(
       List<String> transactionsHashes) {
     return poolUpdateRepository.findTransactionPoolRegistrationsData(
         transactionsHashes);
   }
+
   @Override
   public List<TransactionMetadataDto> getTransactionMetadataDtos(List<String> transactionsHashes) {
     return txMetadataRepository.findTransactionMetadata(
         transactionsHashes);
   }
+
   @Override
   public List<FindTransactionDelegations> getFindTransactionDelegations(
       List<String> transactionsHashes) {
     return delegationRepository.findTransactionDelegations(
         transactionsHashes);
   }
+
   @Override
   public List<FindTransactionDeregistrations> getFindTransactionDeregistrations(
       List<String> transactionsHashes) {
     return stakeDeregistrationRepository.findTransactionDeregistrations(
         transactionsHashes);
   }
+
   @Override
   public List<FindTransactionRegistrations> getFindTransactionRegistrations(
       List<String> transactionsHashes) {
     return stakeDeregistrationRepository.findTransactionRegistrations(
         transactionsHashes);
   }
+
   @Override
   public List<FindTransactionWithdrawals> getFindTransactionWithdrawals(
       List<String> transactionsHashes) {
     return txRepository.findTransactionWithdrawals(transactionsHashes);
   }
+
   @Override
   public List<FindTransactionsOutputs> getFindTransactionsOutputs(
       List<String> transactionsHashes) {

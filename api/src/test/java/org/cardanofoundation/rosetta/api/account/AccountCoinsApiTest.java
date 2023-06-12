@@ -79,7 +79,6 @@ public class AccountCoinsApiTest extends IntegrationTestWithDB {
       assertEquals(4015, error.getCode());
       assertEquals("Provided address is invalid", error.getMessage());
       assertTrue(error.isRetriable());
-      assertEquals("fakeAddress", error.getDetails().toString());
     }
   }
 

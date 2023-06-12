@@ -36,13 +36,14 @@ public class AccountServiceImpl implements AccountService {
       throw ExceptionFactory.invalidAddressError(accountAddress);
     }
     log.info(
-        "[accountBalance] Looking for block: {} || latest}", accountBalanceRequest.getBlockIdentifier());
+        "[accountBalance] Looking for block: {} || latest}",
+        accountBalanceRequest.getBlockIdentifier());
 
-    if (Objects.nonNull(accountBalanceRequest.getBlockIdentifier())){
+    if (Objects.nonNull(accountBalanceRequest.getBlockIdentifier())) {
       index = accountBalanceRequest.getBlockIdentifier().getIndex();
       hash = accountBalanceRequest.getBlockIdentifier().getHash();
     }
-    
+
     AccountBalanceResponse accountBalanceResponse = blockService
         .findBalanceDataByAddressAndBlock(accountAddress, index, hash);
     log.debug("[accountBalance] About to return {}", accountBalanceResponse);

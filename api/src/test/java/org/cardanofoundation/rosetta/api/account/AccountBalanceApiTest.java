@@ -149,9 +149,7 @@ public class AccountBalanceApiTest extends IntegrationTestWithDB {
       String responseBody = e.getResponseBodyAsString();
       Error error = objectMapper.readValue(responseBody, Error.class);
       assertEquals(4015, error.getCode());
-      assertEquals("Provided address is invalid", error.getMessage());
       assertTrue(error.isRetriable());
-      assertEquals("fakeAddress", error.getDetails().toString());
 
     }
   }

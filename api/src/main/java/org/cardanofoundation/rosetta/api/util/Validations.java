@@ -87,7 +87,7 @@ public class Validations {
             object.get(index.getValue().toString()).toString()));
   }
 
-  public static boolean isVoteSignatureValid(Map<String, Object> mapJsonString ) {
+  public static boolean isVoteSignatureValid(Map<String, Object> mapJsonString) {
 
     List<Integer> dataIndexes = Arrays.stream(CatalystSigIndexes.values())
         .map(CatalystSigIndexes::getValue)

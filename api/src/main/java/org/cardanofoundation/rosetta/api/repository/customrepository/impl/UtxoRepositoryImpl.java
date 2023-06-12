@@ -29,6 +29,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 @Slf4j
 public class UtxoRepositoryImpl implements UtxoRepository {
+
   public static final String POLICYID = "policyId";
   public static final String UTXO_QUERY = buildUtxoQuery();
   @PersistenceContext
@@ -143,6 +144,7 @@ public class UtxoRepositoryImpl implements UtxoRepository {
 
     return String.format(formatter.toString(), valueList.toArray());
   }
+
   @Override
   public List<Utxo> findUtxoByAddressAndBlock(String address,
       String blockHash,
@@ -226,6 +228,7 @@ public class UtxoRepositoryImpl implements UtxoRepository {
     }
 
   }
+
   @Override
   public List<MaBalance> findMaBalanceByAddressAndBlock(String address,
       String blockHash) {
