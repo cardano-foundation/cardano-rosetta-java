@@ -466,17 +466,7 @@ CREATE SEQUENCE tx_out_id_seq
     NO MAXVALUE CACHE 1;
 
 ALTER SEQUENCE tx_out_id_seq OWNED BY tx_out.id;
---
--- Name: unconsume_tx_in; Type: SEQUENCE;
---
 
-CREATE SEQUENCE unconsume_tx_in_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE CACHE 1;
-
-ALTER SEQUENCE unconsume_tx_in_id_seq OWNED BY unconsume_tx_in.id;
 --
 -- Name: withdrawal_id_seq; Type: SEQUENCE;
 --
