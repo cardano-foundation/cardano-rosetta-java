@@ -21,8 +21,8 @@ spring:
           validation:
             mode: none
   kafka:
-#    auto-create-topics: false
-#    client-id: test
+    #    auto-create-topics: false
+    #    client-id: test
     producer:
       retries: 10
       bootstrap-servers: localhost:29999
