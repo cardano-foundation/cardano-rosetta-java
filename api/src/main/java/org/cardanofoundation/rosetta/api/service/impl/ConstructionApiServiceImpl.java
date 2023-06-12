@@ -7,6 +7,10 @@ import co.nstant.in.cbor.model.UnicodeString;
 import com.bloxbean.cardano.client.exception.AddressExcepion;
 import com.bloxbean.cardano.client.exception.CborDeserializationException;
 import com.bloxbean.cardano.client.exception.CborSerializationException;
+import com.bloxbean.cardano.client.transaction.spec.Transaction;
+import com.bloxbean.cardano.yaci.core.protocol.localtx.model.TxSubmissionRequest;
+import com.bloxbean.cardano.yaci.helper.LocalTxSubmissionClient;
+import com.bloxbean.cardano.yaci.helper.model.TxResult;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.IOException;
 import java.net.UnknownHostException;
@@ -49,6 +53,7 @@ import org.cardanofoundation.rosetta.api.model.rest.ConstructionSubmitRequest;
 import org.cardanofoundation.rosetta.api.model.rest.TransactionIdentifierResponse;
 import org.cardanofoundation.rosetta.api.service.CardanoService;
 import org.cardanofoundation.rosetta.api.service.ConstructionApiService;
+import org.cardanofoundation.rosetta.common.util.HexUtil;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -61,8 +66,8 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
     @Autowired
     public CardanoService cardanoService;
 
-//    @Autowired
-//    LocalTxSubmissionClient localTxSubmissionClient;
+    @Autowired
+    LocalTxSubmissionClient localTxSubmissionClient;
 
     @Override
     public ConstructionDeriveResponse constructionDeriveService(
@@ -253,19 +258,18 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
         @NotNull ConstructionSubmitRequest constructionSubmitRequest)
         throws CborDeserializationException, CborSerializationException {
 
-//        System.err.println("Vao day 0: " + Thread.currentThread().getName());
-//
-//        Array array = cardanoService.decodeExtraData(constructionSubmitRequest.getSignedTransaction());
-//        byte[] signedTransactionBytes = HexUtil.decodeHexString(((UnicodeString) array.getDataItems().get(0)).getString());
-//        Transaction parsed = Transaction.deserialize(signedTransactionBytes);
-//        TxSubmissionRequest txnRequest = new TxSubmissionRequest(parsed.serialize());
-//
-//        TxResult txResult = localTxSubmissionClient.submitTx(txnRequest).block();
-//        if (!txResult.isAccepted()){
-//            throw ExceptionFactory.submitRejected();
-//        }
-//        String transactionHash = cardanoService.getHashOfSignedTransaction(((UnicodeString) array.getDataItems().get(0)).getString());
-//        return cardanoService.mapToConstructionHashResponse(transactionHash);
-      return null;
+        System.err.println("Vao day 0: " + Thread.currentThread().getName());
+
+        Array array = cardanoService.decodeExtraData(constructionSubmitRequest.getSignedTransaction());
+        byte[] signedTransactionBytes = HexUtil.decodeHexString(((UnicodeString) array.getDataItems().get(0)).getString());
+        Transaction parsed = Transaction.deserialize(signedTransactionBytes);
+        TxSubmissionRequest txnRequest = new TxSubmissionRequest(parsed.serialize());
+
+        TxResult txResult = localTxSubmissionClient.submitTx(txnRequest).block();
+        if (!txResult.isAccepted()){
+            throw ExceptionFactory.submitRejected();
+        }
+        String transactionHash = cardanoService.getHashOfSignedTransaction(((UnicodeString) array.getDataItems().get(0)).getString());
+        return cardanoService.mapToConstructionHashResponse(transactionHash);
     }
 }
