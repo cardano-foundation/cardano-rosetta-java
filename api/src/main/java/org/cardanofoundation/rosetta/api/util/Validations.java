@@ -39,8 +39,9 @@ public class Validations {
       if (!isTokenNameValid(symbol)) {
         throw invalidTokenNameError("Given name is " + symbol);
       }
-      if (!symbol.equals(Constants.ADA) && !isPolicyIdValid(
-          (String) metadata.get("policyId"))) {
+      if (
+          !symbol.equals(Constants.ADA)
+              && !isPolicyIdValid(String.valueOf(metadata.get("policyId")))) {
         throw invalidPolicyIdError("Given policy id is " + metadata.get("policyId"));
       }
     }
