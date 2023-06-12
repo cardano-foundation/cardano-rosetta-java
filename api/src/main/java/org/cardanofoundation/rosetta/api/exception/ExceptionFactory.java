@@ -116,7 +116,8 @@ public class ExceptionFactory {
   public static ApiException missingDnsNameError() {
     return new ApiException(RosettaErrorType.DNS_NAME_MISSING.toRosettaError(false));
   }
-  public static ApiException invalidPoolRelaysError(String error) {
+  public static ApiException invalidPoolRelaysError(String value) {
+    String error="Given value " + value + " is invalid";
     return new ApiException(RosettaErrorType.INVALID_POOL_RELAYS.toRosettaError(false,Details.builder().message(error).build()));
   }
   public static ApiException invalidPoolRegistrationParameters(String error) {

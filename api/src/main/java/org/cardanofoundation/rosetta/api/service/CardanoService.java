@@ -150,7 +150,7 @@ public interface CardanoService {
 
     Certificate processStakeKeyRegistration(Operation operation);
 
-    StakeCredential getStakingCredentialFromHex(PublicKey staking_credential);
+    StakeCredential getStakingCredentialFromHex(PublicKey stakingCredential);
 
     HdPublicKey getPublicKey(PublicKey publicKey);
 
