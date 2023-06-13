@@ -1,6 +1,8 @@
 package org.cardanofoundation.rosetta.api.util;
 
 import java.util.List;
+
+import org.cardanofoundation.rosetta.api.exception.Details;
 import org.cardanofoundation.rosetta.api.exception.Error;
 import org.cardanofoundation.rosetta.api.model.rest.OperationStatus;
 
@@ -189,11 +191,11 @@ public class RosettaConstants {
       return toRosettaError(retriable, null, null);
     }
 
-    public Error toRosettaError(final boolean retriable, final Object details) {
+    public Error toRosettaError(final boolean retriable, final Details details) {
       return toRosettaError(retriable, details, null);
     }
 
-    public Error toRosettaError(final boolean retriable, final Object details,
+    public Error toRosettaError(final boolean retriable, final Details details,
         final String description) {
       final Error error = new Error();
       error.setCode(code);

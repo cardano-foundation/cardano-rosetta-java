@@ -20,5 +20,5 @@ public class Error {
   private String message;
   private boolean retriable;
   private String description;
-  private Object details;
+  private Details details;
 }

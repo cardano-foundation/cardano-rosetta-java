@@ -13,7 +13,7 @@ import org.cardanofoundation.rosetta.api.model.rest.ConstructionMetadataResponse
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class ConstructionApiDelegateImplMetadataTests extends IntegrationTest {
+class ConstructionApiDelegateImplMetadataTests extends IntegrationTestWithDB {
 
   private final String BASE_DIRECTORY = "src/test/resources/files/construction/metadata";
 
