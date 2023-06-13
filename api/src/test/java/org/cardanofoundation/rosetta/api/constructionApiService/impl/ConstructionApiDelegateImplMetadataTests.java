@@ -5,13 +5,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+
+import org.cardanofoundation.rosetta.api.IntegrationTest;
 import org.cardanofoundation.rosetta.api.IntegrationTestWithDB;
 import org.cardanofoundation.rosetta.api.model.rest.ConstructionMetadataRequest;
 import org.cardanofoundation.rosetta.api.model.rest.ConstructionMetadataResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class ConstructionApiDelegateImplMetadataTests extends IntegrationTestWithDB {
+class ConstructionApiDelegateImplMetadataTests extends IntegrationTest {
 
   private final String BASE_DIRECTORY = "src/test/resources/files/construction/metadata";
 
