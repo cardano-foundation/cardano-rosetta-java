@@ -1,16 +1,17 @@
 package org.cardanofoundation.rosetta.consumer.aggregate;
 
-import org.cardanofoundation.rosetta.common.ledgersync.TransactionInput;
-import org.cardanofoundation.rosetta.common.ledgersync.byron.ByronTxIn;
-import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
+import org.cardanofoundation.rosetta.common.ledgersync.TransactionInput;
+import org.cardanofoundation.rosetta.common.ledgersync.byron.ByronTxIn;
+
+import java.util.Objects;
 
 @Getter
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @EqualsAndHashCode
 public class AggregatedTxIn {

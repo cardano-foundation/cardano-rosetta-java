@@ -1,15 +1,18 @@
 package org.cardanofoundation.rosetta.consumer.factory;
 
-import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedBlock;
+import jakarta.annotation.PostConstruct;
 import org.cardanofoundation.rosetta.common.entity.Redeemer;
+import org.cardanofoundation.rosetta.common.entity.StakeAddress;
 import org.cardanofoundation.rosetta.common.entity.Tx;
 import org.cardanofoundation.rosetta.common.ledgersync.certs.Certificate;
+import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedBlock;
 import org.cardanofoundation.rosetta.consumer.service.CertificateSyncService;
+import org.springframework.stereotype.Component;
+
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import jakarta.annotation.PostConstruct;
-import org.springframework.stereotype.Component;
 
 @Component
 public class CertificateSyncServiceFactory extends
@@ -33,8 +36,10 @@ public class CertificateSyncServiceFactory extends
 
   @SuppressWarnings("unchecked")
   public void handle(AggregatedBlock aggregatedBlock,
-      Certificate certificate, int certificateIdx, Tx tx, Redeemer redeemer) {
+      Certificate certificate, int certificateIdx, Tx tx, Redeemer redeemer,
+      Map<String, StakeAddress> stakeAddressMap) {
     serviceMap.get(certificate.getClass()).handle(
-        aggregatedBlock, certificate, certificateIdx, tx, redeemer);
+        aggregatedBlock, certificate, certificateIdx, tx,
+        redeemer, stakeAddressMap);
   }
 }

@@ -1,10 +1,11 @@
 package org.cardanofoundation.rosetta.consumer.projection;
 
-import java.math.BigInteger;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
+
+import java.math.BigInteger;
 
 @Getter
 @AllArgsConstructor

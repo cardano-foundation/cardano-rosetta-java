@@ -2,30 +2,20 @@ package org.cardanofoundation.rosetta.consumer.repository.impl;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.criteria.CompoundSelection;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.Join;
-import jakarta.persistence.criteria.JoinType;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
-import org.cardanofoundation.rosetta.common.entity.BaseEntity_;
-import org.cardanofoundation.rosetta.common.entity.StakeAddress;
-import org.cardanofoundation.rosetta.common.entity.Tx;
-import org.cardanofoundation.rosetta.common.entity.TxOut;
-import org.cardanofoundation.rosetta.common.entity.TxOut_;
-import org.cardanofoundation.rosetta.common.entity.Tx_;
-import org.cardanofoundation.rosetta.consumer.projection.TxOutProjection;
-import org.cardanofoundation.rosetta.consumer.repository.CustomTxOutRepository;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
+import jakarta.persistence.criteria.*;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.cardanofoundation.rosetta.common.entity.*;
+import org.cardanofoundation.rosetta.consumer.projection.TxOutProjection;
+import org.cardanofoundation.rosetta.consumer.repository.CustomTxOutRepository;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Optional;
 
 @Repository
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -37,7 +27,7 @@ public class CustomTxOutRepositoryImpl implements CustomTxOutRepository {
 
   @Override
   @Transactional(readOnly = true, propagation = Propagation.REQUIRES_NEW)
-  public Set<TxOutProjection> findTxOutsByTxHashInAndTxIndexIn(
+  public List<TxOutProjection> findTxOutsByTxHashInAndTxIndexIn(
       List<Pair<String, Short>> txHashIndexPairs) {
     var criteriaBuilder = entityManager.getCriteriaBuilder();
     var txOutQuery = criteriaBuilder.createQuery(TxOutProjection.class);
@@ -52,7 +42,7 @@ public class CustomTxOutRepositoryImpl implements CustomTxOutRepository {
         .toArray(Predicate[]::new);
 
     txOutQuery.select(txOutSelection).where(criteriaBuilder.or(predicates));
-    return entityManager.createQuery(txOutQuery).getResultStream().collect(Collectors.toSet());
+    return entityManager.createQuery(txOutQuery).getResultList();
   }
 
   private static Predicate buildTxOutPredicate(
@@ -81,5 +71,13 @@ public class CustomTxOutRepositoryImpl implements CustomTxOutRepository {
         txOutRoot.get(TxOut_.addressHasScript),
         txOutRoot.get(TxOut_.paymentCred)
     );
+  }
+
+  @Override
+  @Transactional(readOnly = true, propagation = Propagation.REQUIRES_NEW)
+  public Optional<TxOutProjection> findTxOutByTxHashAndTxOutIndex(String txHash, Short index) {
+    return findTxOutsByTxHashInAndTxIndexIn(List.of(Pair.of(txHash, index)))
+        .stream()
+        .findFirst();
   }
 }

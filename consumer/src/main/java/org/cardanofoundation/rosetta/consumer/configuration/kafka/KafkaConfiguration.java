@@ -1,14 +1,10 @@
 package org.cardanofoundation.rosetta.consumer.configuration.kafka;
 
 
-import org.cardanofoundation.rosetta.consumer.configuration.properties.KafkaProperties;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.NewTopic;
+import org.cardanofoundation.rosetta.consumer.configuration.properties.KafkaProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,10 +13,15 @@ import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.config.TopicBuilder;
 import org.springframework.kafka.core.KafkaAdmin;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 @Configuration
 @Slf4j
 @EnableKafka
-@Profile("!test-integration")
+@Profile("!test-integration & !test-unit")
 public class KafkaConfiguration {
 
   private final KafkaProperties kafkaProperties;

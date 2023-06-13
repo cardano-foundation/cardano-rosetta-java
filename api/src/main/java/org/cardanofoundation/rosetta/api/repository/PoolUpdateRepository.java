@@ -10,7 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface PoolUpdateRepository extends JpaRepository<PoolUpdate, Long> {
-  String poolRegistrationQuery = "( SELECT "
+  String POOL_REGISTRATION_QUERY = "( SELECT "
       + "tx.hash AS txHash, "
       + "tx.id AS txId, "
       + "pu.id AS updateId, "
@@ -53,7 +53,7 @@ List<FindTransactionPoolRegistrationsData> findTransactionPoolRegistrationsData(
     + "(po.poolUpdate.id , "
     + "  sa.view , "
     + "  pr.txHash )"
-    + "FROM " + poolRegistrationQuery + " AS pr "
+    + "FROM " + POOL_REGISTRATION_QUERY + " AS pr "
     + "JOIN PoolOwner po ON po.poolUpdate.id = pr.updateId "
     + "JOIN StakeAddress sa ON po.stakeAddress.id = sa.id "
     + "ORDER BY po.id DESC")
@@ -65,7 +65,7 @@ List<FindTransactionPoolOwners> findTransactionPoolOwners(@Param("hashList") Lis
       + "prelay.port , "
       + "prelay.dnsName , "
       + "pr.txHash ) "
-      + "FROM " + poolRegistrationQuery + "AS pr "
+      + "FROM " + POOL_REGISTRATION_QUERY + "AS pr "
       + "JOIN PoolRelay AS prelay ON prelay.poolUpdate.id = pr.updateId ")
   List<FindTransactionPoolRelays> findTransactionPoolRelays(@Param("hashList") List<String> hashes);
 }

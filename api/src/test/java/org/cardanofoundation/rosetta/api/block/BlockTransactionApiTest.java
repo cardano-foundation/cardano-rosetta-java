@@ -16,13 +16,16 @@ import org.junit.jupiter.api.Test;
 import org.springframework.web.client.HttpServerErrorException;
 
 public class BlockTransactionApiTest extends IntegrationTestWithDB {
+
   private static final String ENDPOINT = "/block/transaction";
   private static final String NETWORK = "mainnet";
   private final String BASE_DIRECTORY = "src/test/resources/blockTransaction";
+
   @BeforeEach
   public void setUp() {
-    baseUrl = baseUrl.concat(":").concat(serverPort + "").concat(ENDPOINT);
+    baseUrl = baseUrl.concat(":").concat(String.valueOf(serverPort)).concat(ENDPOINT);
   }
+
   @Test
   void test_should_return_the_transaction_if_a_valid_hash_is_sent()
       throws IOException {
@@ -62,6 +65,7 @@ public class BlockTransactionApiTest extends IntegrationTestWithDB {
       assertFalse(error.isRetriable());
     }
   }
+
   @Test
   void test_should_fail_if_incorrect_network_identifier_is_sent()
       throws IOException {
@@ -82,6 +86,7 @@ public class BlockTransactionApiTest extends IntegrationTestWithDB {
       assertFalse(error.isRetriable());
     }
   }
+
   @Test
   void test_should_fail_if_incorrect_blockchain_identifier_is_sent()
       throws IOException {
@@ -144,6 +149,7 @@ public class BlockTransactionApiTest extends IntegrationTestWithDB {
       assertFalse(error.isRetriable());
     }
   }
+
   @Test
   void test_should_return_transaction_for_genesis_block_when_requested()
       throws IOException {
@@ -163,6 +169,7 @@ public class BlockTransactionApiTest extends IntegrationTestWithDB {
     assertEquals(objectMapper.writeValueAsString(expectedResponse),
         objectMapper.writeValueAsString(response));
   }
+
   @Test
   void test_should_return_transaction_withdrawals()
       throws IOException {
@@ -202,6 +209,7 @@ public class BlockTransactionApiTest extends IntegrationTestWithDB {
     assertEquals(objectMapper.writeValueAsString(expectedResponse),
         objectMapper.writeValueAsString(response));
   }
+
   @Test
   void test_should_return_transaction_delegations()
       throws IOException {
@@ -321,6 +329,7 @@ public class BlockTransactionApiTest extends IntegrationTestWithDB {
     assertEquals(objectMapper.writeValueAsString(expectedResponse),
         objectMapper.writeValueAsString(response));
   }
+
   @Test
   void test_should_return_vote_registration_operations()
       throws IOException {

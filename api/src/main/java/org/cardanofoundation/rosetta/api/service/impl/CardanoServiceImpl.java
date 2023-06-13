@@ -52,7 +52,7 @@ import org.cardanofoundation.rosetta.api.common.enumeration.CatalystDataIndexes;
 import org.cardanofoundation.rosetta.api.common.enumeration.CatalystLabels;
 import org.cardanofoundation.rosetta.api.common.enumeration.NetworkIdentifierType;
 import org.cardanofoundation.rosetta.api.common.enumeration.NonStakeAddressPrefix;
-import org.cardanofoundation.rosetta.api.common.enumeration.RelayType;
+import org.cardanofoundation.rosetta.common.ledgersync.RelayType;
 
 import org.cardanofoundation.rosetta.api.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.api.model.AccountIdentifierMetadata;

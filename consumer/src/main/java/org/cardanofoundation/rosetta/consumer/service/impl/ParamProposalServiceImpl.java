@@ -1,35 +1,30 @@
 package org.cardanofoundation.rosetta.consumer.service.impl;
 
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import org.cardanofoundation.rosetta.common.entity.CostModel;
 import org.cardanofoundation.rosetta.common.entity.ParamProposal;
 import org.cardanofoundation.rosetta.common.entity.Tx;
 import org.cardanofoundation.rosetta.common.ledgersync.ProtocolParamUpdate;
 import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedTx;
-import org.cardanofoundation.rosetta.consumer.repository.cached.CachedParamProposalRepository;
+import org.cardanofoundation.rosetta.consumer.repository.ParamProposalRepository;
 import org.cardanofoundation.rosetta.consumer.service.CostModelService;
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
-import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
 import org.cardanofoundation.rosetta.consumer.service.ParamProposalService;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class ParamProposalServiceImpl implements ParamProposalService {
 
-  CachedParamProposalRepository cachedParamProposalRepository;
+  ParamProposalRepository paramProposalRepository;
   CostModelService costModelService;
 
   @Override
@@ -50,7 +45,7 @@ public class ParamProposalServiceImpl implements ParamProposalService {
       return Collections.emptyList();
     }
 
-    return cachedParamProposalRepository.saveAll(paramProposals);
+    return paramProposalRepository.saveAll(paramProposals);
   }
 
   private List<ParamProposal> handleParamProposal(AggregatedTx aggregatedTx, Tx tx) {

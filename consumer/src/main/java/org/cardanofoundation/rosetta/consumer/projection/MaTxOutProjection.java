@@ -1,12 +1,18 @@
 package org.cardanofoundation.rosetta.consumer.projection;
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.experimental.FieldDefaults;
+
 import java.math.BigInteger;
 
-public interface MaTxOutProjection {
+@Getter
+@AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
+public class MaTxOutProjection {
 
-  String getFingerprint();
-
-  Long getTxOutId();
-
-  BigInteger getQuantity();
+  String fingerprint;
+  Long txOutId;
+  BigInteger quantity;
 }
