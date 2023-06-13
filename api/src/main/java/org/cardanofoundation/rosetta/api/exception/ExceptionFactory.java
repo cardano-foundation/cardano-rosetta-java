@@ -30,7 +30,7 @@ public class ExceptionFactory {
         Details.builder().message(details).build()));
   }
   public static ApiException invalidAddressError(String address) {
-    return new ApiException(RosettaErrorType.INVALID_ADDRESS.toRosettaError(true, address));
+    return new ApiException(RosettaErrorType.INVALID_ADDRESS.toRosettaError(true, Details.builder().message(address).build()));
   }
   public static ApiException missingStakingKeyError() {
     return new ApiException(RosettaErrorType.STAKING_KEY_MISSING.toRosettaError(false));

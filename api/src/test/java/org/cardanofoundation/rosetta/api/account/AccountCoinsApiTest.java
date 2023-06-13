@@ -231,7 +231,7 @@ public class AccountCoinsApiTest extends IntegrationTestWithDB {
       assertEquals(4024, error.getCode());
       assertEquals("Invalid token name", error.getMessage());
       assertFalse(error.isRetriable());
-      assertEquals("Given name is thisIsANonHexString", error.getDetails().toString());
+      assertEquals("Given name is thisIsANonHexString", error.getDetails().getMessage());
     }
   }
 
@@ -254,7 +254,7 @@ public class AccountCoinsApiTest extends IntegrationTestWithDB {
       assertFalse(error.isRetriable());
       assertEquals(
           "Given name is 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
-          error.getDetails().toString());
+          error.getDetails().getMessage());
     }
   }
 
@@ -276,7 +276,7 @@ public class AccountCoinsApiTest extends IntegrationTestWithDB {
       assertEquals("Invalid policy id", error.getMessage());
       assertFalse(error.isRetriable());
       assertEquals("Given policy id is wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
-          error.getDetails().toString());
+          error.getDetails().getMessage());
     }
   }
 
@@ -296,7 +296,7 @@ public class AccountCoinsApiTest extends IntegrationTestWithDB {
       assertEquals(4023, error.getCode());
       assertEquals("Invalid policy id", error.getMessage());
       assertFalse(error.isRetriable());
-      assertEquals("Given policy id is thisIsANonHexString", error.getDetails().toString());
+      assertEquals("Given policy id is thisIsANonHexString", error.getDetails().getMessage());
     }
   }
 }
