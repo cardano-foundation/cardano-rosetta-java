@@ -57,7 +57,7 @@ public class ExceptionFactory {
     return new ApiException(RosettaErrorType.OUTPUTS_BIGGER_THAN_INPUTS_ERROR.toRosettaError(false));
   }
   public static ApiException invalidOperationTypeError() {
-    return new ApiException(RosettaErrorType.INVALID_OPERATION_TYPE.toRosettaError(false));
+    return new ApiException(RosettaErrorType.INVALID_OPERATION_TYPE.toRosettaError(true));
   }
   public static ApiException missingPoolKeyError() {
     return new ApiException(RosettaErrorType.POOL_KEY_MISSING.toRosettaError(false));

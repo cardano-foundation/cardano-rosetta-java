@@ -123,7 +123,7 @@ page-size: ${PAGE_SIZE:5}
 cardano-transaction-submitter:
   connection:
     socket:
-      path: ${SUBMIT_SOCKET_CONNECTION:/home/sotatek/Desktop/node-ipc/node.socket}
+      path: ${SUBMIT_SOCKET_CONNECTION:../testcontainers/node-ipc/node.socket}
 
   networkMagic: ${NETWORK_MAGIC:1}
 
