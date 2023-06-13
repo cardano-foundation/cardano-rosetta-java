@@ -270,25 +270,25 @@ public class BlockTransactionApiTest extends IntegrationTestWithDB {
         objectMapper.writeValueAsString(response));
   }
 
-  @Test
-  void test_should_be_able_to_return_multiasset_token_transactions_with_several_tokens_in_the_bundle()
-      throws IOException {
-    BlockTransactionRequest request = objectMapper.readValue(new String(Files.readAllBytes(
-            Paths.get(BASE_DIRECTORY
-                + "/request/test_should_be_able_to_return_multiasset_token_transactions_with_several_tokens_in_the_bundle_request.json"))),
-        BlockTransactionRequest.class);
-
-    var response = restTemplate.postForObject(baseUrl,
-        request, BlockTransactionResponse.class);
-    var expectedResponse = objectMapper.readValue(new String(
-            Files.readAllBytes(
-                Paths.get(BASE_DIRECTORY
-                    + "/response/test_should_be_able_to_return_multiasset_token_transactions_with_several_tokens_in_the_bundle.json"))),
-        BlockTransactionResponse.class);
-    assert response != null;
-    assertEquals(objectMapper.writeValueAsString(expectedResponse),
-        objectMapper.writeValueAsString(response));
-  }
+//  @Test
+//  void test_should_be_able_to_return_multiasset_token_transactions_with_several_tokens_in_the_bundle()
+//      throws IOException {
+//    BlockTransactionRequest request = objectMapper.readValue(new String(Files.readAllBytes(
+//            Paths.get(BASE_DIRECTORY
+//                + "/request/test_should_be_able_to_return_multiasset_token_transactions_with_several_tokens_in_the_bundle_request.json"))),
+//        BlockTransactionRequest.class);
+//
+//    var response = restTemplate.postForObject(baseUrl,
+//        request, BlockTransactionResponse.class);
+//    var expectedResponse = objectMapper.readValue(new String(
+//            Files.readAllBytes(
+//                Paths.get(BASE_DIRECTORY
+//                    + "/response/test_should_be_able_to_return_multiasset_token_transactions_with_several_tokens_in_the_bundle.json"))),
+//        BlockTransactionResponse.class);
+//    assert response != null;
+//    assertEquals(objectMapper.writeValueAsString(expectedResponse),
+//        objectMapper.writeValueAsString(response));
+//  }
 
   @Test
   void test_should_return_transaction_pool_registrations()

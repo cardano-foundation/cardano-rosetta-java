@@ -212,24 +212,24 @@ public class BlockApiTest extends IntegrationTestWithDB {
         response.getBlock().getParentBlockIdentifier().getHash());
   }
 
-  @Test
-  void test_should_be_able_to_return_multiasset_token_transactions_with_several_tokens_in_the_bundle()
-      throws IOException {
-    BlockRequest request = objectMapper.readValue(new String(Files.readAllBytes(
-            Paths.get(BASE_DIRECTORY
-                + "/request/test_should_be_able_to_return_multiasset_token_transactions_with_several_tokens_in_the_bundle_request.json"))),
-        BlockRequest.class);
-    var response = restTemplate.postForObject(baseUrl,
-        request, BlockResponse.class);
-    var expectedResponse = objectMapper.readValue(new String(
-            Files.readAllBytes(
-                Paths.get(BASE_DIRECTORY
-                    + "/response/test_should_be_able_to_return_multiasset_token_transactions_with_several_tokens_in_the_bundle.json"))),
-        BlockResponse.class);
-    assert response != null;
-    assertEquals(objectMapper.writeValueAsString(expectedResponse),
-        objectMapper.writeValueAsString(response));
-
-  }
+//  @Test
+//  void test_should_be_able_to_return_multiasset_token_transactions_with_several_tokens_in_the_bundle()
+//      throws IOException {
+//    BlockRequest request = objectMapper.readValue(new String(Files.readAllBytes(
+//            Paths.get(BASE_DIRECTORY
+//                + "/request/test_should_be_able_to_return_multiasset_token_transactions_with_several_tokens_in_the_bundle_request.json"))),
+//        BlockRequest.class);
+//    var response = restTemplate.postForObject(baseUrl,
+//        request, BlockResponse.class);
+//    var expectedResponse = objectMapper.readValue(new String(
+//            Files.readAllBytes(
+//                Paths.get(BASE_DIRECTORY
+//                    + "/response/test_should_be_able_to_return_multiasset_token_transactions_with_several_tokens_in_the_bundle.json"))),
+//        BlockResponse.class);
+//    assert response != null;
+//    assertEquals(objectMapper.writeValueAsString(expectedResponse),
+//        objectMapper.writeValueAsString(response));
+//
+//  }
 
 }

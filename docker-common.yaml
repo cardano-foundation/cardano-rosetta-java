@@ -75,49 +75,49 @@ services:
       - cardano_redis_slave
     ports:
       - ${EXTERNAL_REDIS_SENTINEL_PORT}:26379
-  zookeeper:
-    image: confluentinc/cp-zookeeper:5.1.2
-    restart: always
-    environment:
-      ZOOKEEPER_SERVER_ID: 1
-      ZOOKEEPER_CLIENT_PORT: "2181"
-      ZOOKEEPER_TICK_TIME: "2000"
-      ZOOKEEPER_SERVERS: "zookeeper:22888:23888"
-    ports:
-      - "2181:2181"
-    tmpfs: "/datalog"
-    # volumes:
-    #   - ./kafka/zoo:/var/lib/zookeeper/data
-  kafka:
-    image: confluentinc/cp-kafka:7.0.0
-    container_name: kafka
-    depends_on:
-      - zookeeper
-    ports:
-      - "29092:29092"
-    environment:
-      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://${BOOSTRAP_SERVER_HOST}:${BOOSTRAP_SERVER_PORT},PLAINTEXT_HOST://localhost:29092
-      KAFKA_ADVERTISED_HOST_NAME: kafka
-      KAFKA_BROKER_ID: 1
-      KAFKA_BROKER_RACK: "r1"
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_DELETE_TOPIC_ENABLE: "true"
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
-      KAFKA_JMX_PORT: 9991
-    # volumes:
-    #   - ./kafka/data:/var/lib/kafka/data
-  kafdrop:
-    image: obsidiandynamics/kafdrop
-    restart: "no"
-    ports:
-      - "9000:9000"
-    environment:
-      KAFKA_BROKERCONNECT: "kafka:9092"
-    depends_on:
-      - kafka
+#  zookeeper:
+#    image: confluentinc/cp-zookeeper:5.1.2
+#    restart: always
+#    environment:
+#      ZOOKEEPER_SERVER_ID: 1
+#      ZOOKEEPER_CLIENT_PORT: "2181"
+#      ZOOKEEPER_TICK_TIME: "2000"
+#      ZOOKEEPER_SERVERS: "zookeeper:22888:23888"
+#    ports:
+#      - "2181:2181"
+#    tmpfs: "/datalog"
+#    # volumes:
+#    #   - ./kafka/zoo:/var/lib/zookeeper/data
+#  kafka:
+#    image: confluentinc/cp-kafka:7.0.0
+#    container_name: kafka
+#    depends_on:
+#      - zookeeper
+#    ports:
+#      - "29092:29092"
+#    environment:
+#      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
+#      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+#      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+#      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://${BOOSTRAP_SERVER_HOST}:${BOOSTRAP_SERVER_PORT},PLAINTEXT_HOST://localhost:29092
+#      KAFKA_ADVERTISED_HOST_NAME: kafka
+#      KAFKA_BROKER_ID: 1
+#      KAFKA_BROKER_RACK: "r1"
+#      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+#      KAFKA_DELETE_TOPIC_ENABLE: "true"
+#      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+#      KAFKA_JMX_PORT: 9991
+#    # volumes:
+#    #   - ./kafka/data:/var/lib/kafka/data
+#  kafdrop:
+#    image: obsidiandynamics/kafdrop
+#    restart: "no"
+#    ports:
+#      - "9000:9000"
+#    environment:
+#      KAFKA_BROKERCONNECT: "kafka:9092"
+#    depends_on:
+#      - kafka
   cardano-node:
     image: inputoutput/cardano-node
     container_name: cardano-node

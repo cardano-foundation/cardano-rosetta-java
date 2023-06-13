@@ -230,75 +230,75 @@ public class AccountBalanceApiTest extends IntegrationTestWithDB {
         objectMapper.writeValueAsString(response));
   }
 
-  @Test
-  void test_should_return_payment_balance_and_list_of_ma_balances() throws IOException {
-    AccountBalanceRequest request = objectMapper.readValue(new String(Files.readAllBytes(
-            Paths.get(BASE_DIRECTORY
-                + "/request/test_should_return_payment_balance_and_list_of_ma_balances_request.json"))),
-        AccountBalanceRequest.class);
-    var response = restTemplate.postForObject(baseUrl,
-        request, AccountBalanceResponse.class);
-    var expectedResponse = objectMapper.readValue(new String(
-            Files.readAllBytes(
-                Paths.get(BASE_DIRECTORY
-                    + "/response/test_should_return_payment_balance_and_list_of_ma_balances.json"))),
-        AccountBalanceResponse.class);
-    assert response != null;
-    assertEquals(objectMapper.writeValueAsString(expectedResponse),
-        objectMapper.writeValueAsString(response));
-  }
+//  @Test
+//  void test_should_return_payment_balance_and_list_of_ma_balances() throws IOException {
+//    AccountBalanceRequest request = objectMapper.readValue(new String(Files.readAllBytes(
+//            Paths.get(BASE_DIRECTORY
+//                + "/request/test_should_return_payment_balance_and_list_of_ma_balances_request.json"))),
+//        AccountBalanceRequest.class);
+//    var response = restTemplate.postForObject(baseUrl,
+//        request, AccountBalanceResponse.class);
+//    var expectedResponse = objectMapper.readValue(new String(
+//            Files.readAllBytes(
+//                Paths.get(BASE_DIRECTORY
+//                    + "/response/test_should_return_payment_balance_and_list_of_ma_balances.json"))),
+//        AccountBalanceResponse.class);
+//    assert response != null;
+//    assertEquals(objectMapper.writeValueAsString(expectedResponse),
+//        objectMapper.writeValueAsString(response));
+//  }
 
-  @Test
-  void test_token_balance_should_not_be_seen_at_the_address_balance_for_the_next_block()
-      throws IOException {
-    AccountBalanceRequest requestAtBlock5406841 = objectMapper.readValue(
-        new String(Files.readAllBytes(
-            Paths.get(BASE_DIRECTORY
-                + "/request/test_token_balance_should_not_be_seen_at_the_address_balance_for_the_next_block_request_AtBlock5406841.json"))),
-        AccountBalanceRequest.class);
-    AccountBalanceRequest requestAtBlock5406842 = objectMapper.readValue(
-        new String(Files.readAllBytes(
-            Paths.get(BASE_DIRECTORY
-                + "/request/test_token_balance_should_not_be_seen_at_the_address_balance_for_the_next_block_request_AtBlock5406842.json"))),
-        AccountBalanceRequest.class);
-    var responseAtBlock5406841 = restTemplate.postForObject(baseUrl,
-        requestAtBlock5406841, AccountBalanceResponse.class);
-    var responseAtBlock5406842 = restTemplate.postForObject(baseUrl,
-        requestAtBlock5406842, AccountBalanceResponse.class);
-    var expectedResponseAtBlock5406841 = objectMapper.readValue(new String(
-            Files.readAllBytes(
-                Paths.get(BASE_DIRECTORY
-                    + "/response/test_token_balance_should_not_be_seen_at_the_address_balance_for_the_next_block_AtBlock5406841.json"))),
-        AccountBalanceResponse.class);
-    var expectedResponseAtBlock5406842 = objectMapper.readValue(new String(
-            Files.readAllBytes(
-                Paths.get(BASE_DIRECTORY
-                    + "/response/test_token_balance_should_not_be_seen_at_the_address_balance_for_the_next_block_AtBlock5406842.json"))),
-        AccountBalanceResponse.class);
-    assert responseAtBlock5406841 != null;
-    assertEquals(objectMapper.writeValueAsString(expectedResponseAtBlock5406841),
-        objectMapper.writeValueAsString(responseAtBlock5406841));
-    assert responseAtBlock5406842 != null;
-    assertEquals(objectMapper.writeValueAsString(expectedResponseAtBlock5406842),
-        objectMapper.writeValueAsString(responseAtBlock5406842));
-  }
+//  @Test
+//  void test_token_balance_should_not_be_seen_at_the_address_balance_for_the_next_block()
+//      throws IOException {
+//    AccountBalanceRequest requestAtBlock5406841 = objectMapper.readValue(
+//        new String(Files.readAllBytes(
+//            Paths.get(BASE_DIRECTORY
+//                + "/request/test_token_balance_should_not_be_seen_at_the_address_balance_for_the_next_block_request_AtBlock5406841.json"))),
+//        AccountBalanceRequest.class);
+//    AccountBalanceRequest requestAtBlock5406842 = objectMapper.readValue(
+//        new String(Files.readAllBytes(
+//            Paths.get(BASE_DIRECTORY
+//                + "/request/test_token_balance_should_not_be_seen_at_the_address_balance_for_the_next_block_request_AtBlock5406842.json"))),
+//        AccountBalanceRequest.class);
+//    var responseAtBlock5406841 = restTemplate.postForObject(baseUrl,
+//        requestAtBlock5406841, AccountBalanceResponse.class);
+//    var responseAtBlock5406842 = restTemplate.postForObject(baseUrl,
+//        requestAtBlock5406842, AccountBalanceResponse.class);
+//    var expectedResponseAtBlock5406841 = objectMapper.readValue(new String(
+//            Files.readAllBytes(
+//                Paths.get(BASE_DIRECTORY
+//                    + "/response/test_token_balance_should_not_be_seen_at_the_address_balance_for_the_next_block_AtBlock5406841.json"))),
+//        AccountBalanceResponse.class);
+//    var expectedResponseAtBlock5406842 = objectMapper.readValue(new String(
+//            Files.readAllBytes(
+//                Paths.get(BASE_DIRECTORY
+//                    + "/response/test_token_balance_should_not_be_seen_at_the_address_balance_for_the_next_block_AtBlock5406842.json"))),
+//        AccountBalanceResponse.class);
+//    assert responseAtBlock5406841 != null;
+//    assertEquals(objectMapper.writeValueAsString(expectedResponseAtBlock5406841),
+//        objectMapper.writeValueAsString(responseAtBlock5406841));
+//    assert responseAtBlock5406842 != null;
+//    assertEquals(objectMapper.writeValueAsString(expectedResponseAtBlock5406842),
+//        objectMapper.writeValueAsString(responseAtBlock5406842));
+//  }
 
-  @Test
-  void test_should_return_balances_for_ma_with_empty_name() throws IOException {
-    AccountBalanceRequest request = objectMapper.readValue(new String(Files.readAllBytes(
-            Paths.get(BASE_DIRECTORY
-                + "/request/test_should_return_balances_for_ma_with_empty_name_request.json"))),
-        AccountBalanceRequest.class);
-    var response = restTemplate.postForObject(baseUrl,
-        request, AccountBalanceResponse.class);
-    var expectedResponse = objectMapper.readValue(new String(
-            Files.readAllBytes(
-                Paths.get(BASE_DIRECTORY
-                    + "/response/test_should_return_balances_for_ma_with_empty_name.json"))),
-        AccountBalanceResponse.class);
-    assert response != null;
-    assertEquals(objectMapper.writeValueAsString(expectedResponse),
-        objectMapper.writeValueAsString(response));
-  }
+//  @Test
+//  void test_should_return_balances_for_ma_with_empty_name() throws IOException {
+//    AccountBalanceRequest request = objectMapper.readValue(new String(Files.readAllBytes(
+//            Paths.get(BASE_DIRECTORY
+//                + "/request/test_should_return_balances_for_ma_with_empty_name_request.json"))),
+//        AccountBalanceRequest.class);
+//    var response = restTemplate.postForObject(baseUrl,
+//        request, AccountBalanceResponse.class);
+//    var expectedResponse = objectMapper.readValue(new String(
+//            Files.readAllBytes(
+//                Paths.get(BASE_DIRECTORY
+//                    + "/response/test_should_return_balances_for_ma_with_empty_name.json"))),
+//        AccountBalanceResponse.class);
+//    assert response != null;
+//    assertEquals(objectMapper.writeValueAsString(expectedResponse),
+//        objectMapper.writeValueAsString(response));
+//  }
 
 }

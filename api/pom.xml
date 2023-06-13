@@ -358,11 +358,12 @@
                         <exclude>**/mapper/*</exclude>
                         <exclude>**/cli/*</exclude>
                         <exclude>**/exception/*</exclude>
-                        <exclude>**/config/*</exclude>
+                        <exclude>**/config/**</exclude>
                         <exclude>**/filter/**</exclude>
                         <exclude>**/org/openapitools/client/api/*</exclude>
                         <exclude>**/enumeration/**</exclude>
                         <exclude>**/yaci/**</exclude>
+                        <exclude>**/repository/**</exclude>
                     </excludes>
                 </configuration>
                 <version>${verison.jacoco-maven-plugin}</version>

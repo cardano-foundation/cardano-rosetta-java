@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.parser.OpenAPIV3Parser;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -38,7 +39,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -48,6 +48,7 @@ import java.util.*;
 @Slf4j
 @RequiredArgsConstructor
 public class NetworkServiceImpl implements NetworkService {
+
   private final RosettaConfig rosettaConfig;
 
 
@@ -57,10 +58,10 @@ public class NetworkServiceImpl implements NetworkService {
   private List<BalanceExemption> balanceExemptions;
 
   @Value("${cardano.rosetta.EXEMPTION_TYPES_PATH}")
-  private String exemptionPath ;
+  private String exemptionPath;
 
   @Value("${cardano.rosetta.TOPOLOGY_FILEPATH}")
-  private String topologyFilepath ;
+  private String topologyFilepath;
 
   @Value("${cardano.rosetta.GENESIS_SHELLEY_PATH}")
   private String genesisPath;
@@ -71,6 +72,20 @@ public class NetworkServiceImpl implements NetworkService {
 
   private String networkId;
   private Integer networkMagic;
+
+  @PostConstruct
+  public void filePathExistingValidator() throws ServerException {
+    validator("classpath:" , topologyFilepath);
+    validator("classpath:" , genesisPath);
+    validator("file:" , cardanoNodePath);
+  }
+
+  private void validator(String fileType , String path) throws ServerException {
+    String resourcePath = fileType + path;
+    if(!resourceLoader.getResource(resourcePath).exists()) {
+      throw ExceptionFactory.configNotFoundException();
+    }
+  }
 
   private List<BalanceExemption> loadExemptionsFile() {
     if (exemptionPath != null) {
@@ -91,18 +106,14 @@ public class NetworkServiceImpl implements NetworkService {
     return balanceExemptions;
   }
 
-  private String fileReader(String path) throws  IOException {
-    String resourcePath = "classpath:" +path;
+  private String fileReader(String path) throws IOException {
+    String resourcePath = "classpath:" + path;
     //check if path exists in classpath
-    if(resourceLoader.getResource(resourcePath).exists()){
-      try(
-      InputStream input = resourceLoader.getResource(resourcePath).getInputStream()
-      ){
-        byte[] fileBytes = IOUtils.toByteArray(input);
-        return new String(fileBytes , StandardCharsets.UTF_8);
-      }
-    } else {
-      throw new FileNotFoundException("Not find file in classpath " +resourcePath);
+    try (
+        InputStream input = resourceLoader.getResource(resourcePath).getInputStream()
+    ) {
+      byte[] fileBytes = IOUtils.toByteArray(input);
+      return new String(fileBytes, StandardCharsets.UTF_8);
     }
   }
 
@@ -120,16 +131,19 @@ public class NetworkServiceImpl implements NetworkService {
     log.info("[networkOptions] Looking for networkOptions");
     InputStream openAPIStream = resourceLoader.getResource(
         "classpath:/rosetta-specifications-1.4.15/api.yaml").getInputStream();
-    OpenAPI openAPI = new OpenAPIV3Parser().readContents(new String(openAPIStream.readAllBytes()) , null,
+    OpenAPI openAPI = new OpenAPIV3Parser().readContents(new String(openAPIStream.readAllBytes()),
+            null,
             null)
         .getOpenAPI();
     String rosettaVersion = openAPI.getInfo().getVersion();
     String implementationVersion = rosettaConfig.getImplementationVersion();
 
     String cardanoNodeVersion = CardanoNode.getCardanoNodeVersion(cardanoNodePath);
-    OperationStatus success = new OperationStatus().successful(true).status(OperationTypeStatus.SUCCESS.getValue());
-    OperationStatus invalid = new OperationStatus().successful(false).status(OperationTypeStatus.INVALID.getValue());
-    List<OperationStatus> operationStatuses = List.of(success,invalid);
+    OperationStatus success = new OperationStatus().successful(true)
+        .status(OperationTypeStatus.SUCCESS.getValue());
+    OperationStatus invalid = new OperationStatus().successful(false)
+        .status(OperationTypeStatus.INVALID.getValue());
+    List<OperationStatus> operationStatuses = List.of(success, invalid);
 
     return NetworkOptionsResponse.builder()
         .version(new Version().nodeVersion(cardanoNodeVersion)
@@ -137,13 +151,15 @@ public class NetworkServiceImpl implements NetworkService {
             .middlewareVersion(implementationVersion)
             .metadata(new LinkedHashMap<>()))
         .allow(new Allow().operationStatuses(operationStatuses)
-            .operationTypes(Arrays.stream(OperationType.values()).map(OperationType::getValue).toList())
-            .errors(RosettaConstants.ROSETTA_ERRORS.stream().map(error ->
-                  new Error().code(error.getCode())
-                      .message(error.getMessage())
-                      .retriable(error.isRetriable())
-                      .description(error.getDescription())
-                      .code(error.getCode())
+            .operationTypes(
+                Arrays.stream(OperationType.values()).map(OperationType::getValue).toList())
+            .errors(RosettaConstants.ROSETTA_ERRORS.stream()
+                .map(error ->
+                    new Error().code(error.getCode())
+                        .message(error.getMessage())
+                        .retriable(error.isRetriable())
+                        .description(error.getDescription())
+                        .code(error.getCode())
                 )
                 .sorted(Comparator.comparingInt(Error::getCode))
                 .toList())
@@ -156,7 +172,7 @@ public class NetworkServiceImpl implements NetworkService {
 
   @Override
   public NetworkStatusResponse getNetworkStatus(NetworkRequest networkRequest)
-      throws ServerException {
+      throws  IOException {
     log.debug("[networkStatus] Request received:" + networkRequest.toString());
     log.info("[networkStatus] Looking for latest block");
     NetworkStatus networkStatus = networkStatus();
@@ -171,7 +187,7 @@ public class NetworkServiceImpl implements NetworkService {
     networkId = ((String) object.get("networkId")).toLowerCase();
     networkMagic = (Integer) object.get("networkMagic");
 
-    if(networkId.equals("mainnet")){
+    if (networkId.equals("mainnet")) {
       return Network.builder().networkId(networkId).build();
     } else if (Objects.equals(networkMagic, Constants.PREPROD_NETWORK_MAGIC)) {
       return Network.builder().networkId("preprod").build();
@@ -181,17 +197,22 @@ public class NetworkServiceImpl implements NetworkService {
     return null;
   }
 
-  private NetworkStatus networkStatus() throws ServerException {
+  private NetworkStatus networkStatus() throws  IOException {
     log.info("[networkStatus] Looking for latest block");
     BlockDto latestBlock = ledgerDataProviderService.findLatestBlock();
     log.debug("[networkStatus] Latest block found " + latestBlock);
     log.debug("[networkStatus] Looking for genesis block");
     GenesisBlockDto genesisBlock = ledgerDataProviderService.findGenesisBlock();
     log.debug("[networkStatus] Genesis block found " + genesisBlock);
+
+    ObjectMapper mapper = new ObjectMapper();
+    String content = fileReader(topologyFilepath);
+    TopologyConfig topologyConfig = mapper.readValue(content, TopologyConfig.class);
+
     return NetworkStatus.builder()
         .latestBlock(latestBlock)
         .genesisBlock(genesisBlock)
-        .peers(getPeerFromConfig(readFromFileConfig()))
+        .peers(getPeerFromConfig(topologyConfig))
         .build();
   }
 
@@ -214,14 +235,4 @@ public class NetworkServiceImpl implements NetworkService {
 
   }
 
-  private TopologyConfig readFromFileConfig() throws ServerException {
-    try {
-      ObjectMapper  mapper = new ObjectMapper();
-      String content = fileReader(topologyFilepath);
-      return mapper.readValue(content,TopologyConfig.class);
-
-    } catch (IOException e) {
-      throw ExceptionFactory.configNotFoundException();
-    }
-  }
 }
