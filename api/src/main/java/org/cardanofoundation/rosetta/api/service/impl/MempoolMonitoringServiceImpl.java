@@ -4,7 +4,6 @@ import com.bloxbean.cardano.client.transaction.util.TransactionUtil;
 import com.bloxbean.cardano.yaci.helper.LocalTxMonitorClient;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.api.model.TransactionIdentifier;
@@ -20,26 +19,37 @@ public class MempoolMonitoringServiceImpl implements MempoolMonitoringService {
 
   private final LocalTxMonitorClient localTxMonitorClient;
 
+  public static List<TransactionIdentifier> mapByteTransactionsToTransactionIdentifiers(
+      List<byte[]> txBytesList) {
+    return txBytesList.stream()
+        .map(
+            txBytes -> {
+              String txHash = TransactionUtil.getTxHash(txBytes);
+              return new TransactionIdentifier(txHash);
+            }).toList();
+  }
+
   @Override
   public MempoolResponse getAllTransaction(NetworkRequest networkRequest) {
     log.debug("[allTransaction] Request received: " + networkRequest);
 
-    List<byte[]> txBytesList = localTxMonitorClient.acquireAndGetMempoolTransactionsAsMono()
-        .block();
-    if (Objects.isNull(txBytesList)) {
-      txBytesList = Collections.emptyList();
-    }
+    List<byte[]> txBytesList = getAllTransactionsInMempool();
+
     log.info("[allTransaction] Looking for all transaction in mempool" + txBytesList);
-    List<TransactionIdentifier> transactionIdentifierList =
-        txBytesList.stream()
-            .map(txBytes -> {
-              String txHash = TransactionUtil.getTxHash(txBytes);
-              return new TransactionIdentifier(txHash);
-            }).toList();
+    log.info("[allTransaction] Looking for {} transaction in mempool", txBytesList.size());
+    List<TransactionIdentifier>
+        transactionIdentifierList = mapByteTransactionsToTransactionIdentifiers(txBytesList);
     MempoolResponse mempoolResponse = MempoolResponse.builder()
         .transactionIdentifierList(transactionIdentifierList)
         .build();
     log.debug("[allTransaction] About to return " + mempoolResponse);
     return mempoolResponse;
+  }
+
+  @Override
+  public List<byte[]> getAllTransactionsInMempool() {
+    return localTxMonitorClient.acquireAndGetMempoolTransactionsAsMono()
+        .blockOptional()
+        .orElse(Collections.emptyList());
   }
 }
