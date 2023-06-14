@@ -39,6 +39,7 @@ services:
     ports:
       - "${API_BIND_PORT}:${API_EXPOSED_PORT}"
     environment:
+      NETWORK: "${NETWORK}"
       DB_HOST: "${DB_HOST}"
       DB_PORT: "${DB_PORT}"
       DB_NAME: "${DB_NAME}"
@@ -59,29 +60,70 @@ services:
       cardano-node:
         condition: service_started
   consumer:
-    build: ./consumer
-    platform: linux/amd64
-    ports:
-      - "${CONSUMER_BIND_PORT}:${CONSUMER_EXPOSED_PORT}"
+    build:
+      context: ./
+      dockerfile: ./consumer/Dockerfile
     environment:
-      CONSUMER_PROFILES_ACTIVE: "${CONSUMER_PROFILES_ACTIVE}"
-      DB_HOST: "${DB_HOST}"
-      DB_PORT: "${DB_PORT}"
-      DB_NAME: "${DB_NAME}"
-      DB_USER: "${DB_ADMIN_USER_NAME}"
-      DB_SECRET: "${DB_ADMIN_USER_SECRET}"
-      DB_DRIVER_CLASS_NAME: "${DB_DRIVER_CLASS_NAME}"
-      DB_SCHEMA: "${DB_SCHEMA}"
-      DB_CONNECTION_PARAMS_PROVIDER_TYPE: ${DB_CONNECTION_PARAMS_PROVIDER_TYPE}
-      SCHEMA: "${SCHEMA}"
-      DBLOCKS_BATCH_SIZE: "${BLOCKS_BATCH_SIZE}"
-      BLOCKS_TOPIC: "${BLOCKS_TOPIC}"
-      BOOSTRAP_SERVER_HOST: "${BOOSTRAP_SERVER_HOST}"
-      BOOSTRAP_SERVER_PORT: "${BOOSTRAP_SERVER_PORT}"
-      LOG: "${LOG}"
+      - CONSUMER_PROFILES_ACTIVE=${CONSUMER_PROFILES_ACTIVE}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - SERVICE_USER_NAME=${SERVICE_USER_NAME}
+      - SERVICE_USER_SECRET=${SERVICE_USER_SECRET}
+      - DB_NAME=${DB_NAME}
+      - BOOSTRAP_SERVER_HOST=${BOOSTRAP_SERVER_HOST}
+      - BOOSTRAP_SERVER_PORT=${BOOSTRAP_SERVER_PORT}
+      - BLOCKS_TOPIC=${BLOCKS_TOPIC}
+      - SCHEMA=${SCHEMA}
+      - LOG=${LOG}
+      - BLOCKS_BATCH_SIZE=${BLOCKS_BATCH_SIZE}
+      - COMMIT_THRESHOLD=${COMMIT_THRESHOLD}
+      - JDBC_BATCH_SIZE=${JDBC_BATCH_SIZE}
+      - MAXIMUM_POOL_SIZE=${MAXIMUM_POOL_SIZE}
+      - LIQUIBASE_ENABLE=${LIQUIBASE_ENABLE}
+  cardano_redis_master:
+    image: redis:7.0.5
+    hostname: cardano.redis.master
+    environment:
+      - REDIS_REPLICATION_MODE=master
+      - REDIS_PASSWORD=${REDIS_MASTER_PASSWORD:-str0ng_passw0rd}
+    restart: always
+    ports:
+      - ${EXTERNAL_REDIS_MASTER_PORT:-6379}:6379
+    command: redis-server
+
+  cardano_redis_slave:
+    image: redis:7.0.5
+    hostname: cardano.redis.slave
+    environment:
+      - REDIS_REPLICATION_MODE=slave
+      - REDIS_MASTER_HOST=cardano.redis.master
+      - REDIS_MASTER_PASSWORD=${REDIS_MASTER_PASSWORD:-str0ng_passw0rd}
+      - REDIS_PASSWORD=${REDIS_SLAVE_PASSWORD:-str0ng_passw0rd}
+    restart: always
+    ports:
+      - ${EXTERNAL_REDIS_SLAVE_PORT:-6380}:6379
     depends_on:
-      db:
-        condition: service_healthy
+      - cardano_redis_master
+    command: redis-server --slaveof cardano_redis_master 6379
+
+  cardano_redis_sentinel:
+    image: 'bitnami/redis-sentinel:latest'
+    hostname: cardano.redis.sentinel
+    environment:
+      - REDIS_MASTER_PASSWORD=${REDIS_MASTER_PASSWORD:-str0ng_passw0rd}
+      - REDIS_MASTER_SET=${REDIS_MASTER_SET:-mymaster}
+      - REDIS_SENTINEL_DOWN_AFTER_MILLISECONDS=5000
+      - REDIS_SENTINEL_FAILOVER_TIMEOUT=500
+      - REDIS_SENTINEL_QUORUM=2
+      - REDIS_SENTINEL_PASSWORD=${REDIS_SENTINEL_PASSWORD:-str0ng_passw0rd}
+      - REDIS_MASTER_HOST=${EXTERNAL_REDIS_MASTER_HOST:-cardano.redis.master}
+      - REDIS_MASTER_PORT_NUMBER=${EXTERNAL_REDIS_MASTER_PORT:-6379}
+    restart: always
+    depends_on:
+      - cardano_redis_master
+      - cardano_redis_slave
+    ports:
+      - ${EXTERNAL_REDIS_SENTINEL_PORT}:26379
   zookeeper:
     image: confluentinc/cp-zookeeper:5.1.2
     restart: always
@@ -106,7 +148,7 @@ services:
       KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://${BOOSTRAP_SERVER_HOST}:${BOOSTRAP_SERVER_PORT},PLAINTEXT_HOST://localhost:29092
       KAFKA_ADVERTISED_HOST_NAME: kafka
       KAFKA_BROKER_ID: 1
       KAFKA_BROKER_RACK: "r1"

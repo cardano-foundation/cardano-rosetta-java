@@ -1,15 +1,17 @@
 package org.cardanofoundation.rosetta.consumer.service;
 
+
+import lombok.RequiredArgsConstructor;
 import org.cardanofoundation.rosetta.common.ledgersync.constant.Constant;
 import org.cardanofoundation.rosetta.common.ledgersync.kafka.CommonBlock;
 import org.cardanofoundation.rosetta.common.util.AssetUtil;
-import java.math.BigInteger;
-import java.util.List;
-import lombok.RequiredArgsConstructor;
 import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedAddress;
 import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedAddressBalance;
 import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedBlock;
 import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedTxOut;
+
+import java.math.BigInteger;
+import java.util.List;
 
 @RequiredArgsConstructor
 public abstract class BlockAggregatorService<T extends CommonBlock> // NOSONAR

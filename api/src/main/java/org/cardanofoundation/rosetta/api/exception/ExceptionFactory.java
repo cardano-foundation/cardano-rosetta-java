@@ -30,7 +30,7 @@ public class ExceptionFactory {
         Details.builder().message(details).build()));
   }
   public static ApiException invalidAddressError(String address) {
-    return new ApiException(RosettaErrorType.INVALID_ADDRESS.toRosettaError(true, address));
+    return new ApiException(RosettaErrorType.INVALID_ADDRESS.toRosettaError(true, Details.builder().message(address).build()));
   }
   public static ApiException missingStakingKeyError() {
     return new ApiException(RosettaErrorType.STAKING_KEY_MISSING.toRosettaError(false));
@@ -57,7 +57,7 @@ public class ExceptionFactory {
     return new ApiException(RosettaErrorType.OUTPUTS_BIGGER_THAN_INPUTS_ERROR.toRosettaError(false));
   }
   public static ApiException invalidOperationTypeError() {
-    return new ApiException(RosettaErrorType.INVALID_OPERATION_TYPE.toRosettaError(false));
+    return new ApiException(RosettaErrorType.INVALID_OPERATION_TYPE.toRosettaError(true));
   }
   public static ApiException missingPoolKeyError() {
     return new ApiException(RosettaErrorType.POOL_KEY_MISSING.toRosettaError(false));
@@ -116,7 +116,8 @@ public class ExceptionFactory {
   public static ApiException missingDnsNameError() {
     return new ApiException(RosettaErrorType.DNS_NAME_MISSING.toRosettaError(false));
   }
-  public static ApiException invalidPoolRelaysError(String error) {
+  public static ApiException invalidPoolRelaysError(String value) {
+    String error="Given value " + value + " is invalid";
     return new ApiException(RosettaErrorType.INVALID_POOL_RELAYS.toRosettaError(false,Details.builder().message(error).build()));
   }
   public static ApiException invalidPoolRegistrationParameters(String error) {

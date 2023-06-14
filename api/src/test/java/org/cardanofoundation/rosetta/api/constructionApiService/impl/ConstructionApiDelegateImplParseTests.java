@@ -7,6 +7,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
+
+import org.cardanofoundation.rosetta.api.IntegrationTest;
+import org.cardanofoundation.rosetta.api.IntegrationTestWithDB;
 import org.cardanofoundation.rosetta.api.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.api.model.Operation;
 import org.cardanofoundation.rosetta.api.model.rest.ConstructionParseRequest;
@@ -17,12 +20,12 @@ import org.springframework.web.client.HttpServerErrorException;
 
 class ConstructionApiDelegateImplParseTests extends IntegrationTest {
 
+  private final String BASE_DIRECTORY = "src/test/resources/files/construction/parse";
+
   @BeforeEach
   public void setUp() {
-    baseUrl = baseUrl.concat(":").concat(serverPort + "").concat("/construction/parse");
+    baseUrl = baseUrl.concat(":").concat(String.valueOf(serverPort)).concat("/construction/parse");
   }
-
-  private final String BASE_DIRECTORY = "src/test/resources/files/construction/parse";
 
   @Test
   void test_should_return_1_input_2_outputs_and_signers_if_a_valid_signed_transaction_is_set()

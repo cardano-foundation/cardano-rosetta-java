@@ -1,46 +1,33 @@
 package org.cardanofoundation.rosetta.consumer.service.impl;
 
 import com.bloxbean.cardano.client.transaction.spec.RedeemerTag;
-import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedAddressBalance;
-import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedBlock;
-import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedTx;
-import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedTxIn;
-import org.cardanofoundation.rosetta.common.entity.MaTxOut;
-import org.cardanofoundation.rosetta.common.entity.Redeemer;
-import org.cardanofoundation.rosetta.common.entity.Tx;
-import org.cardanofoundation.rosetta.common.entity.TxIn;
-import org.cardanofoundation.rosetta.common.entity.TxIn.TxInBuilder;
-import org.cardanofoundation.rosetta.common.entity.TxOut;
-import org.cardanofoundation.rosetta.consumer.constant.ConsumerConstant;
-import org.cardanofoundation.rosetta.consumer.dto.RedeemerReference;
-import org.cardanofoundation.rosetta.common.ledgersync.Era;
-import org.cardanofoundation.rosetta.consumer.repository.cached.CachedMultiAssetTxOutRepository;
-import org.cardanofoundation.rosetta.consumer.repository.cached.CachedTxInRepository;
-import org.cardanofoundation.rosetta.consumer.repository.cached.CachedTxOutRepository;
-import org.cardanofoundation.rosetta.consumer.service.BlockDataService;
-import org.cardanofoundation.rosetta.consumer.service.EpochService;
-import org.cardanofoundation.rosetta.consumer.service.TxInService;
-import org.cardanofoundation.rosetta.consumer.service.TxOutService;
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Queue;
-import java.util.Set;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.cardanofoundation.rosetta.common.entity.*;
+import org.cardanofoundation.rosetta.common.entity.TxIn.TxInBuilder;
+import org.cardanofoundation.rosetta.common.ledgersync.Era;
+import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedAddressBalance;
+import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedBlock;
+import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedTx;
+import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedTxIn;
+import org.cardanofoundation.rosetta.consumer.dto.RedeemerReference;
+import org.cardanofoundation.rosetta.consumer.repository.TxInRepository;
+import org.cardanofoundation.rosetta.consumer.service.BlockDataService;
+import org.cardanofoundation.rosetta.consumer.service.MultiAssetService;
+import org.cardanofoundation.rosetta.consumer.service.TxInService;
+import org.cardanofoundation.rosetta.consumer.service.TxOutService;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+
+import java.math.BigInteger;
+import java.util.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -50,15 +37,15 @@ public class TxInServiceImpl implements TxInService {
 
   BlockDataService blockDataService;
   TxOutService txOutService;
-  EpochService epochService;
+  MultiAssetService multiAssetService;
 
-  CachedTxInRepository cachedTxInRepository;
-  CachedTxOutRepository cachedTxOutRepository;
-  CachedMultiAssetTxOutRepository cachedMultiAssetTxOutRepository;
+  TxInRepository txInRepository;
 
   @Override
-  public void handleTxIns(Collection<AggregatedTx> txs, Map<String, Set<AggregatedTxIn>> txInMap,
-      Map<String, Tx> txMap, Map<RedeemerReference<?>, Redeemer> redeemersMap) {
+  public void handleTxIns(Collection<AggregatedTx> txs,
+                          Map<String, Set<AggregatedTxIn>> txInMap,
+                          Map<String, Tx> txMap, Map<Pair<String, Short>, TxOut> newTxOutMap,
+                          Map<RedeemerReference<?>, Redeemer> redeemersMap) {
     AtomicBoolean shouldFindAssets = new AtomicBoolean(false);
     Map<Pair<String, Short>, TxOut> txOutMap = getTxOutFromTxInsMap(txInMap);
 
@@ -74,11 +61,10 @@ public class TxInServiceImpl implements TxInService {
           .getAggregatedBlock(aggregatedTx.getBlockHash());
       Tx tx = txMap.get(aggregatedTx.getHash());
       if (aggregatedBlock.getEra() == Era.BYRON) {
-        calculateByronFee(tx, txIns, txOutMap);
-        epochService.addFee(aggregatedBlock, tx.getFee());
+        calculateByronFee(aggregatedTx, tx, txIns, txOutMap, newTxOutMap);
       } else {
         shouldFindAssets.set(true);
-        calculateShelleyDeposit(tx, txIns, txOutMap, aggregatedTx.getWithdrawals());
+        calculateShelleyDeposit(tx, txIns, txOutMap, newTxOutMap, aggregatedTx.getWithdrawals());
       }
     });
 
@@ -90,12 +76,12 @@ public class TxInServiceImpl implements TxInService {
 
       txInSet.parallelStream().forEach(txIn -> {
         Redeemer redeemer = redeemersMap.get(new RedeemerReference<>(RedeemerTag.Spend, txIn));
-        txInQueue.add(handleTxIn(tx, txIn, txOutMap, redeemer));
+        txInQueue.add(handleTxIn(tx, txIn, txOutMap, newTxOutMap, redeemer));
       });
     });
 
-    handleTxInBalances(txInMap, txOutMap, shouldFindAssets.get());
-    cachedTxInRepository.saveAll(txInQueue);
+    handleTxInBalances(txInMap, txOutMap, newTxOutMap, shouldFindAssets.get());
+    txInRepository.saveAll(txInQueue);
   }
 
   private Map<Pair<String, Short>, TxOut> getTxOutFromTxInsMap(
@@ -115,40 +101,51 @@ public class TxInServiceImpl implements TxInService {
   }
 
   private void calculateShelleyDeposit(Tx tx, Set<AggregatedTxIn> txIns,
-      Map<Pair<String, Short>, TxOut> txOutMap, Map<String, BigInteger> withdrawalsMap) {
+                                       Map<Pair<String, Short>, TxOut> txOutMap,
+                                       Map<Pair<String, Short>, TxOut> newTxOutMap,
+                                       Map<String, BigInteger> withdrawalsMap) {
     if (Boolean.FALSE.equals(tx.getValidContract())) {
       return;
     }
 
     Collection<BigInteger> withdrawalsCoin =
         CollectionUtils.isEmpty(withdrawalsMap) ?
-            Collections.emptyList() : withdrawalsMap.values();
+        Collections.emptyList() : withdrawalsMap.values();
     var withdrawalSum = withdrawalsCoin.stream()
         .reduce(BigInteger.ZERO, BigInteger::add)
         .longValue();
-    var inSum = getTxInSum(txOutMap, tx, txIns).longValue();
+    var inSum = getTxInSum(txOutMap, newTxOutMap, tx, txIns).longValue();
     var outSum = tx.getOutSum().longValue();
     var fees = tx.getFee().longValue();
     var deposit = inSum + withdrawalSum - outSum - fees;
     tx.setDeposit(deposit);
   }
 
-  private void calculateByronFee(Tx tx,
-      Set<AggregatedTxIn> txIns, Map<Pair<String, Short>, TxOut> txOutMap) {
+  private void calculateByronFee(AggregatedTx aggregatedTx, Tx tx, Set<AggregatedTxIn> txIns,
+                                 Map<Pair<String, Short>, TxOut> txOutMap,
+                                 Map<Pair<String, Short>, TxOut> newTxOutMap) {
     if (CollectionUtils.isEmpty(txIns)) {
       return;
     }
 
-    BigInteger inSum = getTxInSum(txOutMap, tx, txIns);
+    BigInteger inSum = getTxInSum(txOutMap, newTxOutMap, tx, txIns);
     var fee = inSum.subtract(tx.getOutSum());
     tx.setFee(fee);
+    aggregatedTx.setFee(fee);
   }
 
   private static BigInteger getTxInSum(
-      Map<Pair<String, Short>, TxOut> txOutMap, Tx tx, Set<AggregatedTxIn> txIns) {
+      Map<Pair<String, Short>, TxOut> txOutMap,
+      Map<Pair<String, Short>, TxOut> newTxOutMap,
+      Tx tx, Set<AggregatedTxIn> txIns) {
     return txIns.stream()
         .map(txIn -> {
-          TxOut txOut = txOutMap.get(Pair.of(txIn.getTxId(), (short) txIn.getIndex()));
+          Pair<String, Short> txOutKey = Pair.of(txIn.getTxId(), (short) txIn.getIndex());
+          TxOut txOut = txOutMap.get(txOutKey);
+          if (Objects.isNull(txOut)) {
+            txOut = newTxOutMap.get(txOutKey);
+          }
+
           if (Objects.isNull(txOut)) {
             throw new IllegalStateException(String.format(
                 "Tx in %s, index %d, of tx %s has no tx_out before",
@@ -161,7 +158,8 @@ public class TxInServiceImpl implements TxInService {
   }
 
   private TxIn handleTxIn(Tx tx, AggregatedTxIn txInput,
-      Map<Pair<String, Short>, TxOut> txOutMap, Redeemer redeemer) {
+                          Map<Pair<String, Short>, TxOut> txOutMap,
+                          Map<Pair<String, Short>, TxOut> newTxOutMap, Redeemer redeemer) {
     TxInBuilder<?, ?> txInBuilder = TxIn.builder();
 
     txInBuilder.txInput(tx);
@@ -170,9 +168,12 @@ public class TxInServiceImpl implements TxInService {
     Pair<String, Short> txOutKey = Pair.of(txInput.getTxId(), (short) txInput.getIndex());
     TxOut txOut = txOutMap.get(txOutKey);
     if (Objects.isNull(txOut)) {
-      log.error("Tx in {}, index {}, of tx {}  has no tx_out before",
-          txInput.getTxId(), txInput.getIndex(), tx.getHash());
-      throw new IllegalStateException();
+      txOut = newTxOutMap.get(txOutKey);
+      if (Objects.isNull(txOut)) {
+        log.error("Tx in {}, index {}, of tx {}  has no tx_out before",
+            txInput.getTxId(), txInput.getIndex(), tx.getHash());
+        throw new IllegalStateException();
+      }
     }
 
     txInBuilder.txOut(txOut.getTx());
@@ -182,21 +183,26 @@ public class TxInServiceImpl implements TxInService {
   }
 
   private void handleTxInBalances(Map<String, Set<AggregatedTxIn>> txInMap,
-      Map<Pair<String, Short>, TxOut> txOutMap, boolean shouldFindAssets) {
+                                  Map<Pair<String, Short>, TxOut> txOutMap,
+                                  Map<Pair<String, Short>, TxOut> newTxOutMap,
+                                  boolean shouldFindAssets) {
     // Byron does not have assets, hence this step is skipped
-    Map<String, List<MaTxOut>> maTxOutMap = !shouldFindAssets
-        ? Collections.emptyMap()
-        : cachedMultiAssetTxOutRepository
-            .findAllByTxOutIn(txOutMap.values())
-            .parallelStream()
-            .collect(Collectors.groupingByConcurrent(
-                maTxOut -> txOutKeyAsString(maTxOut.getTxOut()),
-                Collectors.toList()));
+    Map<Long, List<MaTxOut>> maTxOutMap = !shouldFindAssets
+                                          ? Collections.emptyMap()
+                                          : multiAssetService
+                                              .findAllByTxOutIn(txOutMap.values())
+                                              .parallelStream()
+                                              .collect(Collectors.groupingByConcurrent(
+                                                  maTxOut -> maTxOut.getTxOut().getId(),
+                                                  Collectors.toList()));
 
     txInMap.entrySet().parallelStream().forEach(entry ->
         entry.getValue().parallelStream().forEach(txIn -> {
           Pair<String, Short> txOutKey = Pair.of(txIn.getTxId(), (short) txIn.getIndex());
           TxOut txOut = txOutMap.get(txOutKey);
+          if (Objects.isNull(txOut)) {
+            txOut = newTxOutMap.get(txOutKey);
+          }
           String txHash = entry.getKey();
           String address = txOut.getAddress();
           AggregatedAddressBalance addressBalance = blockDataService
@@ -206,24 +212,12 @@ public class TxInServiceImpl implements TxInService {
           addressBalance.subtractNativeBalance(txHash, txOut.getValue());
 
           // Subtract asset balances
-          List<MaTxOut> maTxOuts = maTxOutMap.get(txOutKeyAsString(txOut));
+          List<MaTxOut> maTxOuts = maTxOutMap.get(txOut.getId());
           if (!CollectionUtils.isEmpty(maTxOuts)) {
             maTxOuts.parallelStream().forEach(maTxOut -> addressBalance.subtractAssetBalance(
                 txHash, maTxOut.getIdent().getFingerprint(), maTxOut.getQuantity())
             );
           }
         }));
-  }
-
-  private String txOutKeyAsString(TxOut txOut) {
-    if (cachedTxOutRepository.isNew(txOut)) {
-      return String.join(
-          ConsumerConstant.UNDERSCORE,
-          txOut.getTx().getHash(),
-          txOut.getIndex().toString()
-      );
-    }
-
-    return txOut.getId().toString();
   }
 }

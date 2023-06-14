@@ -1,51 +1,39 @@
 package org.cardanofoundation.rosetta.consumer.service.impl;
 
-import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedAddress;
-import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedTx;
-import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedTxIn;
-import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedTxOut;
-import org.cardanofoundation.rosetta.common.entity.Datum;
-import org.cardanofoundation.rosetta.common.entity.MaTxOut;
-import org.cardanofoundation.rosetta.common.entity.Script;
-import org.cardanofoundation.rosetta.common.entity.StakeAddress;
-import org.cardanofoundation.rosetta.common.entity.Tx;
-import org.cardanofoundation.rosetta.common.entity.TxOut;
-import org.cardanofoundation.rosetta.common.entity.TxOut.TxOutBuilder;
-import org.cardanofoundation.rosetta.common.enumeration.TokenType;
-import org.cardanofoundation.rosetta.consumer.dto.TransactionOutMultiAssets;
-import org.cardanofoundation.rosetta.common.ledgersync.constant.Constant;
-import org.cardanofoundation.rosetta.consumer.repository.cached.CachedMultiAssetTxOutRepository;
-import org.cardanofoundation.rosetta.consumer.repository.cached.CachedTxOutRepository;
-import org.cardanofoundation.rosetta.consumer.service.DatumService;
-import org.cardanofoundation.rosetta.consumer.service.MultiAssetService;
-import org.cardanofoundation.rosetta.consumer.service.ScriptService;
-import org.cardanofoundation.rosetta.consumer.service.StakeAddressService;
-import org.cardanofoundation.rosetta.consumer.service.TxOutService;
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Queue;
-import java.util.Set;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ConcurrentSkipListSet;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
+import com.google.common.collect.Lists;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.cardanofoundation.rosetta.common.entity.*;
+import org.cardanofoundation.rosetta.common.entity.TxOut.TxOutBuilder;
+import org.cardanofoundation.rosetta.common.enumeration.TokenType;
+import org.cardanofoundation.rosetta.common.ledgersync.constant.Constant;
+import org.cardanofoundation.rosetta.common.util.JsonUtil;
+import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedAddress;
+import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedTx;
+import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedTxIn;
+import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedTxOut;
+import org.cardanofoundation.rosetta.consumer.dto.TransactionOutMultiAssets;
+import org.cardanofoundation.rosetta.consumer.repository.MultiAssetTxOutRepository;
+import org.cardanofoundation.rosetta.consumer.repository.TxOutRepository;
+import org.cardanofoundation.rosetta.consumer.service.*;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
+
+import java.math.BigInteger;
+import java.util.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
+
+import static org.cardanofoundation.rosetta.consumer.constant.ConsumerConstant.TX_OUT_BATCH_QUERY_SIZE;
 
 @Slf4j
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -58,14 +46,15 @@ public class TxOutServiceImpl implements TxOutService {
   MultiAssetService multiAssetService;
   StakeAddressService stakeAddressService;
 
-  CachedTxOutRepository cachedTxOutRepository;
-  CachedMultiAssetTxOutRepository cachedMultiAssetTxOutRepository;
+  TxOutRepository txOutRepository;
+  MultiAssetTxOutRepository multiAssetTxOutRepository;
 
   @Override
   public Collection<TxOut> getTxOutCanUseByAggregatedTxIns(Collection<AggregatedTxIn> txIns) {
     if (CollectionUtils.isEmpty(txIns)) {
       return Collections.emptySet();
     }
+    Queue<TxOut> txOuts = new ConcurrentLinkedQueue<>();
 
     var txHashIndexPairs = txIns.stream()
         .map(txIn -> {
@@ -73,14 +62,40 @@ public class TxOutServiceImpl implements TxOutService {
           short index = (short) txIn.getIndex();
           return Pair.of(txHash, index);
         }).sorted(Comparator.comparing(Pair::getFirst)).collect(Collectors.toList());
-    return cachedTxOutRepository.findTxOutsByTxHashInAndTxIndexIn(txHashIndexPairs);
+
+    Lists.partition(txHashIndexPairs, TX_OUT_BATCH_QUERY_SIZE)
+        .parallelStream()
+        .forEach(txHashIndexPairBatch -> txOutRepository
+            .findTxOutsByTxHashInAndTxIndexIn(txHashIndexPairBatch)
+            .parallelStream()
+            .forEach(txOutProjection -> {
+              Tx tx = Tx.builder()
+                  .id(txOutProjection.getTxId())
+                  .hash(txOutProjection.getTxHash())
+                  .build();
+
+              TxOut txOut = TxOut.builder()
+                  .id(txOutProjection.getId())
+                  .index(txOutProjection.getIndex())
+                  .address(txOutProjection.getAddress())
+                  .addressHasScript(txOutProjection.getAddressHasScript())
+                  .paymentCred(txOutProjection.getPaymentCred())
+                  .stakeAddress(
+                      StakeAddress.builder().id(txOutProjection.getStakeAddressId()).build())
+                  .value(txOutProjection.getValue())
+                  .tx(tx)
+                  .build();
+              txOuts.add(txOut);
+            }));
+    return txOuts;
   }
 
   @Override
   public Collection<TxOut> prepareTxOuts(
-      Map<String, List<AggregatedTxOut>> aggregatedTxOutMap, Map<String, Tx> txMap) {
+      Map<String, List<AggregatedTxOut>> aggregatedTxOutMap,
+      Map<String, Tx> txMap, Map<String, StakeAddress> stakeAddressMap) {
     if (CollectionUtils.isEmpty(aggregatedTxOutMap)) {
-      return Collections.emptyList();
+      return new ArrayList<>();
     }
 
     Set<String> scriptHashes = new ConcurrentSkipListSet<>();
@@ -93,7 +108,8 @@ public class TxOutServiceImpl implements TxOutService {
       var txOutputs = entry.getValue();
 
       txOutputs.parallelStream().forEach(aggregatedTxOut -> {
-        TransactionOutMultiAssets txOutAndMa = handleTxOutAndMultiAsset(tx, aggregatedTxOut);
+        TransactionOutMultiAssets txOutAndMa =
+            handleTxOutAndMultiAsset(tx, aggregatedTxOut, stakeAddressMap);
         if (StringUtils.hasText(aggregatedTxOut.getScriptRef())) {
           scriptHashes.add(scriptService.getHashOfReferenceScript(aggregatedTxOut.getScriptRef()));
         }
@@ -129,9 +145,9 @@ public class TxOutServiceImpl implements TxOutService {
           return m1;
         });
 
-    cachedTxOutRepository.saveAll(txOutList);
+    txOutRepository.saveAll(txOutList);
     var maTxOuts = multiAssetService.updateIdentMaTxOuts(pMaTxOuts);
-    cachedMultiAssetTxOutRepository.saveAll(maTxOuts);
+    multiAssetTxOutRepository.saveAll(maTxOuts);
     return txOutList;
   }
 
@@ -168,18 +184,22 @@ public class TxOutServiceImpl implements TxOutService {
     }
   }
 
-  private TransactionOutMultiAssets handleTxOutAndMultiAsset(Tx tx, AggregatedTxOut txOutput) {
+  private TransactionOutMultiAssets handleTxOutAndMultiAsset(
+      Tx tx, AggregatedTxOut txOutput, Map<String, StakeAddress> stakeAddressMap) {
     TxOutBuilder<?, ?> txOutBuilder = TxOut.builder();
 
     txOutBuilder.tx(tx);
     txOutBuilder.index(txOutput.getIndex().shortValue());
     txOutBuilder.dataHash(txOutput.getDatumHash());
+    txOutBuilder.tokenType(TokenType.NATIVE_TOKEN);
     txOutBuilder.addressHasScript(false);
     // stake address
     AggregatedAddress aggregatedAddress = txOutput.getAddress();
-    StakeAddress stakeAddress = stakeAddressService
-        .getStakeAddress(aggregatedAddress.getStakeAddress());
-    txOutBuilder.stakeAddress(stakeAddress);
+    String rawStakeAddress = aggregatedAddress.getStakeAddress();
+    if (StringUtils.hasText(rawStakeAddress)) {
+      StakeAddress stakeAddress = stakeAddressMap.get(rawStakeAddress);
+      txOutBuilder.stakeAddress(stakeAddress);
+    }
 
     // payment cred
     txOutBuilder.paymentCred(aggregatedAddress.getPaymentCred());
@@ -195,12 +215,14 @@ public class TxOutServiceImpl implements TxOutService {
         .filter(amount -> !Constant.isLoveLace(amount.getAssetName()))
         .findAny()
         .ifPresent(amount -> {
+          txOutBuilder.tokenType(TokenType.TOKEN);
           hasMultiAsset.set(true);
         });
 
     BigInteger nativeAmount = txOutput.getNativeAmount();
     txOutBuilder.value(nativeAmount);
     if (nativeAmount.compareTo(BigInteger.valueOf(0)) > 0 && hasMultiAsset.get()) {
+      txOutBuilder.tokenType(TokenType.ALL_TOKEN_TYPE);
     }
 
     //Script

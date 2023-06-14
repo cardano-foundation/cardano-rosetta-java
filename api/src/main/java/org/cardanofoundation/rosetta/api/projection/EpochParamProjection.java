@@ -1,6 +1,5 @@
 package org.cardanofoundation.rosetta.api.projection;
 
-import java.math.BigDecimal;
 import java.math.BigInteger;
 
 /**

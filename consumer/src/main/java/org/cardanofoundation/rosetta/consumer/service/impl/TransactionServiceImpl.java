@@ -1,48 +1,26 @@
 package org.cardanofoundation.rosetta.consumer.service.impl;
 
 import com.bloxbean.cardano.client.transaction.spec.RedeemerTag;
-import com.google.common.collect.Lists;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
+import org.cardanofoundation.rosetta.common.entity.*;
+import org.cardanofoundation.rosetta.common.ledgersync.certs.Certificate;
 import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedBlock;
 import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedTx;
 import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedTxIn;
 import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedTxOut;
-import org.cardanofoundation.rosetta.common.entity.Block;
-import org.cardanofoundation.rosetta.common.entity.ExtraKeyWitness;
-import org.cardanofoundation.rosetta.common.entity.Redeemer;
-import org.cardanofoundation.rosetta.common.entity.Script;
-import org.cardanofoundation.rosetta.common.entity.Tx;
-import org.cardanofoundation.rosetta.common.entity.TxOut;
-import org.cardanofoundation.rosetta.consumer.constant.ConsumerConstant;
-import org.cardanofoundation.rosetta.consumer.dto.DatumDTO;
 import org.cardanofoundation.rosetta.consumer.dto.RedeemerReference;
 import org.cardanofoundation.rosetta.consumer.factory.CertificateSyncServiceFactory;
-import org.cardanofoundation.rosetta.common.ledgersync.Witnesses;
-import org.cardanofoundation.rosetta.common.ledgersync.certs.Certificate;
-import org.cardanofoundation.rosetta.consumer.repository.cached.CachedDatumRepository;
-import org.cardanofoundation.rosetta.consumer.repository.cached.CachedExtraKeyWitnessRepository;
-import org.cardanofoundation.rosetta.consumer.repository.cached.CachedTxRepository;
-import org.cardanofoundation.rosetta.consumer.service.BlockDataService;
-import org.cardanofoundation.rosetta.consumer.service.DatumService;
-import org.cardanofoundation.rosetta.consumer.service.EpochParamService;
-import org.cardanofoundation.rosetta.consumer.service.MultiAssetService;
-import org.cardanofoundation.rosetta.consumer.service.ParamProposalService;
-import org.cardanofoundation.rosetta.consumer.service.RedeemerService;
-import org.cardanofoundation.rosetta.consumer.service.ReferenceInputService;
-import org.cardanofoundation.rosetta.consumer.service.ScriptService;
-import org.cardanofoundation.rosetta.consumer.service.StakeAddressService;
-import org.cardanofoundation.rosetta.consumer.service.TransactionService;
-import org.cardanofoundation.rosetta.consumer.service.TxInService;
-import org.cardanofoundation.rosetta.consumer.service.TxMetaDataService;
-import org.cardanofoundation.rosetta.consumer.service.TxOutService;
-import org.cardanofoundation.rosetta.consumer.service.WithdrawalsService;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import org.cardanofoundation.rosetta.consumer.repository.ExtraKeyWitnessRepository;
+import org.cardanofoundation.rosetta.consumer.repository.TxRepository;
+import org.cardanofoundation.rosetta.consumer.service.*;
+import org.springframework.data.util.Pair;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentSkipListSet;
@@ -50,12 +28,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
-import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 
 
 @Slf4j
@@ -64,15 +36,13 @@ import org.springframework.util.CollectionUtils;
 @Service
 public class TransactionServiceImpl implements TransactionService {
 
-  CachedTxRepository cachedTxRepository;
-
-  CachedDatumRepository cachedDatumRepository;
-  CachedExtraKeyWitnessRepository cachedExtraKeyWitnessRepository;
+  TxRepository txRepository;
+  ExtraKeyWitnessRepository extraKeyWitnessRepository;
 
   MultiAssetService multiAssetService;
   StakeAddressService stakeAddressService;
   ParamProposalService paramProposalService;
-  EpochParamService epochParamService;
+  AddressBalanceService addressBalanceService;
   WithdrawalsService withdrawalsService;
   TxMetaDataService txMetaDataService;
   RedeemerService redeemerService;
@@ -86,74 +56,69 @@ public class TransactionServiceImpl implements TransactionService {
   ReferenceInputService referenceInputService;
 
   CertificateSyncServiceFactory certificateSyncServiceFactory;
+  BatchCertificateDataService batchCertificateDataService;
 
   @Override
-  public Map<String, Tx> prepareTxs(Block block, AggregatedBlock aggregatedBlock) {
-    List<AggregatedTx> aggregatedTxList = aggregatedBlock.getTxList();
+  public void prepareAndHandleTxs(Map<String, Block> blockMap,
+                                  Collection<AggregatedBlock> aggregatedBlocks) {
+    List<AggregatedTx> aggregatedTxList = aggregatedBlocks.stream()
+        .map(AggregatedBlock::getTxList)
+        .flatMap(Collection::stream)
+        .toList();
+    Collection<AggregatedTx> successTxs = new ConcurrentLinkedQueue<>();
+    Collection<AggregatedTx> failedTxs = new ConcurrentLinkedQueue<>();
 
     if (CollectionUtils.isEmpty(aggregatedTxList)) {
-      return Collections.emptyMap();
+      return;
     }
 
-    // Create a script map and datum map for bulk saving
-    Map<String, Script> mScripts = new HashMap<>();
-    DatumDTO datums = DatumDTO.builder()
-        .datums(new HashMap<>())
-        .build();
-
     /*
-     * For each aggregated tx, map it to a new tx entity.
-     * Because script and datum need to be mapped to their first appeared tx, it is easier
-     * to handle them here as the overall processing time for both of them is fast
-     *
-     * Also check if the currently processing aggregated tx's validity and push it to
-     * either a queue of success txs or failed txs
+     * For each aggregated tx, map it to a new tx entity, and check if the currently
+     * processing aggregated tx's validity and push it to either a queue of success
+     * txs or failed txs
      */
-    var txList = aggregatedTxList.stream().map(aggregatedTx -> {
+    var txMap = aggregatedTxList.stream().map(aggregatedTx -> {
       Tx tx = new Tx();
       tx.setHash(aggregatedTx.getHash());
-      tx.setBlock(block);
+      tx.setBlock(blockMap.get(aggregatedTx.getBlockHash()));
       tx.setBlockIndex(aggregatedTx.getBlockIndex());
       tx.setOutSum(aggregatedTx.getOutSum());
       tx.setFee(aggregatedTx.getFee());
       tx.setValidContract(aggregatedTx.isValidContract());
       tx.setDeposit(aggregatedTx.getDeposit());
 
-      Witnesses witnesses = aggregatedTx.getWitnesses();
-      if (Objects.nonNull(witnesses)) {
-        scriptService.getAllScript(witnesses, tx).forEach(mScripts::putIfAbsent);
-        datums.setTransactionWitness(witnesses);
-        datums.setTransactionBody(aggregatedTx);
-        datums.setTx(tx);
-        datumService.handleDatum(datums);
-      }
-
       if (aggregatedTx.isValidContract()) {
-        blockDataService.saveSuccessTx(aggregatedTx);
+        successTxs.add(aggregatedTx);
       } else {
-        blockDataService.saveFailedTx(aggregatedTx);
+        failedTxs.add(aggregatedTx);
       }
       return tx;
-    }).collect(Collectors.toList());
+    }).collect(Collectors.toConcurrentMap(Tx::getHash, Function.identity()));
 
-    cachedTxRepository.saveAll(txList);
-    scriptService.saveNonExistsScripts(mScripts.values());
+    // Transaction records need to be saved in sequential order to ease out future queries
+    txRepository.saveAll(txMap.values()
+        .stream()
+        .sorted((tx1, tx2) -> {
+          Long tx1BlockNo = tx1.getBlock().getBlockNo();
+          Long tx2BlockNo = tx2.getBlock().getBlockNo();
+          Long tx1BlockIndex = tx1.getBlockIndex();
+          Long tx2BlockIndex = tx2.getBlockIndex();
 
-    if (!CollectionUtils.isEmpty(datums.getDatums())) {
-      cachedDatumRepository.saveAll(datums.getDatums().values());
-    }
+          if (Objects.equals(tx1BlockNo, tx2BlockNo)) {
+            return tx1BlockIndex.compareTo(tx2BlockIndex);
+          }
 
-    return txList.stream().collect(Collectors.toConcurrentMap(Tx::getHash, Function.identity()));
+          return tx1BlockNo.compareTo(tx2BlockNo);
+        })
+        .toList());
+
+    scriptService.handleScripts(aggregatedTxList, txMap);
+    datumService.handleDatum(aggregatedTxList, txMap);
+    handleTxs(successTxs, failedTxs, txMap);
   }
 
-  @Override
-  public void handleTxs(Map<String, Tx> txMap) {
-    Collection<AggregatedTx> successTxs = blockDataService.getSuccessTxs();
-    Collection<AggregatedTx> failedTxs = blockDataService.getFailedTxs();
-
-    // Handle stake address and its first appeared tx
-    stakeAddressService.handleStakeAddressesFromTxs(
-        blockDataService.getStakeAddressTxHashMap(), txMap);
+  private void handleTxs(Collection<AggregatedTx> successTxs,
+                         Collection<AggregatedTx> failedTxs, Map<String, Tx> txMap) {
 
     // Handle extra key witnesses from required signers
     handleExtraKeyWitnesses(successTxs, failedTxs, txMap);
@@ -163,7 +128,7 @@ public class TransactionServiceImpl implements TransactionService {
   }
 
   private void handleTxContents(Collection<AggregatedTx> successTxs,
-      Collection<AggregatedTx> failedTxs, Map<String, Tx> txMap) {
+                                Collection<AggregatedTx> failedTxs, Map<String, Tx> txMap) {
     if (CollectionUtils.isEmpty(successTxs) && CollectionUtils.isEmpty(failedTxs)) {
       return;
     }
@@ -172,98 +137,60 @@ public class TransactionServiceImpl implements TransactionService {
     // multi asset mint
     long startTime = System.currentTimeMillis();
     multiAssetService.handleMultiAssetMint(successTxs, txMap);
-    long endTime = System.currentTimeMillis();
-    long totalTime = endTime - startTime;
-    log.trace("Multi asset mint handling time: {} ms, {} seconds", totalTime, totalTime / 1000f);
 
-    /*
-     * Here success txs are split into batches. For each batch, all tx outs are processed and
-     * all tx ins are gathered with their respective tx outs are selected from cache or db.
-     * Every batch is processed asynchronously
-     *
-     * Since the amount of failed txs are not significant, there is no need to split them
-     * into batches
-     */
-    var successTxBatches = Lists.partition(
-        new ArrayList<>(successTxs), ConsumerConstant.TX_BATCH_SIZE);
+    // Handle stake address and its first appeared tx
+    Map<String, StakeAddress> stakeAddressMap = stakeAddressService
+        .handleStakeAddressesFromTxs(blockDataService.getStakeAddressTxHashMap(), txMap);
 
     // tx out
-    Collection<TxOut> txOutCollection = new ConcurrentLinkedQueue<>();
-    successTxBatches.parallelStream().forEach(batch -> txOutCollection.addAll(
-        txOutService.prepareTxOuts(buildAggregatedTxOutMap(batch), txMap)));
-    startTime = endTime;
-    endTime = System.currentTimeMillis();
-    totalTime = endTime - startTime;
-    log.trace("Prepare tx out handling time: {} ms, {} seconds", totalTime, totalTime / 1000f);
+    Collection<TxOut> txOutCollection =
+        txOutService.prepareTxOuts(buildAggregatedTxOutMap(successTxs), txMap, stakeAddressMap);
 
     // handle collateral out as tx out for failed txs
     if (!CollectionUtils.isEmpty(failedTxs)) {
-      txOutService.prepareTxOuts(buildCollateralTxOutMap(failedTxs), txMap);
-      startTime = endTime;
-      endTime = System.currentTimeMillis();
-      totalTime = endTime - startTime;
-      log.trace("Collateral outs handling time: {} ms, {} seconds", totalTime, totalTime / 1000f);
+      txOutCollection.addAll(txOutService.prepareTxOuts(
+          buildCollateralTxOutMap(failedTxs), txMap, stakeAddressMap));
     }
+
+    // Create an uncommitted tx out map to allow other methods to use
+    Map<Pair<String, Short>, TxOut> newTxOutMap = txOutCollection.stream()
+        .collect(Collectors.toMap(
+            txOut -> Pair.of(txOut.getTx().getHash(), txOut.getIndex()),
+            Function.identity()
+        ));
 
     // redeemer
     Map<RedeemerReference<?>, Redeemer> redeemersMap =
-        redeemerService.handleRedeemers(successTxs, txMap, txOutCollection);
-    startTime = endTime;
-    endTime = System.currentTimeMillis();
-    totalTime = endTime - startTime;
-    log.trace("Redeemers handling time: {} ms, {} seconds", totalTime, totalTime / 1000f);
+        redeemerService.handleRedeemers(successTxs, txMap, newTxOutMap);
 
     // tx in
-    successTxBatches.parallelStream().forEach(batch ->
-        txInService.handleTxIns(batch, buildTxInsMap(batch), txMap, redeemersMap));
-    startTime = endTime;
-    endTime = System.currentTimeMillis();
-    totalTime = endTime - startTime;
-    log.trace("Tx ins handling time: {} ms, {} seconds", totalTime, totalTime / 1000f);
+    txInService.handleTxIns(successTxs,
+        buildTxInsMap(successTxs), txMap, newTxOutMap, redeemersMap);
 
     // handle collateral input as tx in
     txInService.handleTxIns(failedTxs,
-        buildCollateralTxInsMap(failedTxs), txMap, Collections.emptyMap());
-    startTime = endTime;
-    endTime = System.currentTimeMillis();
-    totalTime = endTime - startTime;
-    log.trace("Collateral input handling time: {} ms, {} seconds", totalTime, totalTime / 1000f);
+        buildCollateralTxInsMap(failedTxs), txMap, newTxOutMap,
+        Collections.emptyMap());
 
     // auxiliary
     txMetaDataService.handleAuxiliaryDataMaps(txMap);
-    startTime = endTime;
-    endTime = System.currentTimeMillis();
-    totalTime = endTime - startTime;
-    log.trace("AuxData handling time: {} ms, {} seconds", totalTime, totalTime / 1000f);
 
     //param proposal
     paramProposalService.handleParamProposals(successTxs, txMap);
-    startTime = endTime;
-    endTime = System.currentTimeMillis();
-    totalTime = endTime - startTime;
-    log.trace("ParamProposal handling time: {} ms, {} seconds", totalTime, totalTime / 1000f);
 
     // reference inputs
-    referenceInputService.handleReferenceInputs(buildReferenceTxInsMap(successTxs), txMap);
-    startTime = endTime;
-    endTime = System.currentTimeMillis();
-    totalTime = endTime - startTime;
-    log.trace("Reference inputs handling time: {} ms, {} seconds", totalTime, totalTime / 1000f);
+    referenceInputService.handleReferenceInputs(
+        buildReferenceTxInsMap(successTxs), txMap, newTxOutMap);
 
     // certificates
-    handleCertificates(successTxs, txMap, redeemersMap);
-    startTime = endTime;
-    endTime = System.currentTimeMillis();
-    totalTime = endTime - startTime;
-    log.trace("Certificates handling time: {} ms, {} seconds", totalTime, totalTime / 1000f);
+    handleCertificates(successTxs, txMap, redeemersMap, stakeAddressMap);
 
     // Withdrawals
-    withdrawalsService.handleWithdrawal(successTxs, txMap, redeemersMap);
-    startTime = endTime;
-    endTime = System.currentTimeMillis();
-    totalTime = endTime - startTime;
-    log.trace("Withdrawals handling time: {} ms, {} seconds", totalTime, totalTime / 1000f);
+    withdrawalsService.handleWithdrawal(successTxs, txMap, stakeAddressMap, redeemersMap);
 
+    // Handle address balances
+    addressBalanceService.handleAddressBalance(
+        blockDataService.getAggregatedAddressBalanceMap(), stakeAddressMap, txMap);
   }
 
   private Map<String, Set<AggregatedTxIn>> buildTxInsMap(Collection<AggregatedTx> txList) {
@@ -306,8 +233,9 @@ public class TransactionServiceImpl implements TransactionService {
             (a, b) -> a));
   }
 
-  private void handleCertificates(Collection<AggregatedTx> successTxs,
-      Map<String, Tx> txMap, Map<RedeemerReference<?>, Redeemer> redeemersMap) {
+  private void handleCertificates(Collection<AggregatedTx> successTxs, Map<String, Tx> txMap,
+                                  Map<RedeemerReference<?>, Redeemer> redeemersMap,
+                                  Map<String, StakeAddress> stakeAddressMap) {
     successTxs.forEach(aggregatedTx -> {
       Tx tx = txMap.get(aggregatedTx.getHash());
       if (CollectionUtils.isEmpty(aggregatedTx.getCertificates())) {
@@ -323,13 +251,16 @@ public class TransactionServiceImpl implements TransactionService {
         Redeemer redeemer = redeemersMap.get(redeemerReference);
         AggregatedBlock aggregatedBlock = blockDataService
             .getAggregatedBlock(aggregatedTx.getBlockHash());
-        certificateSyncServiceFactory.handle(aggregatedBlock, certificate, idx, tx, redeemer);
+        certificateSyncServiceFactory.handle(
+            aggregatedBlock, certificate, idx, tx, redeemer, stakeAddressMap);
       });
     });
+
+    batchCertificateDataService.saveAllAndClearBatchData();
   }
 
   public void handleExtraKeyWitnesses(Collection<AggregatedTx> successTxs,
-      Collection<AggregatedTx> failedTxs, Map<String, Tx> txMap) {
+                                      Collection<AggregatedTx> failedTxs, Map<String, Tx> txMap) {
 
     Map<String, Tx> mWitnessTx = new ConcurrentHashMap<>();
     Set<String> hashCollection = new ConcurrentSkipListSet<>();
@@ -355,8 +286,7 @@ public class TransactionServiceImpl implements TransactionService {
       return;
     }
 
-    Set<String> existsWitnessKeys =
-        cachedExtraKeyWitnessRepository.findByHashIn(hashCollection);
+    Set<String> existsWitnessKeys = extraKeyWitnessRepository.findByHashIn(hashCollection);
 
     // Opt out all existing hashes
     hashCollection.removeAll(existsWitnessKeys);
@@ -370,7 +300,7 @@ public class TransactionServiceImpl implements TransactionService {
         .collect(Collectors.toList());
 
     if (!CollectionUtils.isEmpty(extraKeyWitnesses)) {
-      cachedExtraKeyWitnessRepository.saveAll(extraKeyWitnesses);
+      extraKeyWitnessRepository.saveAll(extraKeyWitnesses);
     }
   }
 }

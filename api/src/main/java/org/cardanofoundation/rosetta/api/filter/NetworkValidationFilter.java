@@ -55,10 +55,10 @@ public class NetworkValidationFilter extends OncePerRequestFilter {
       }
 
       boolean networkExists = networkService.getSupportedNetwork().getNetworkId().equals(network);
-//      if (!networkExists) {
-//        log.error("[networkValidation] Network parameter is not supported: " + network);
-//        throw ExceptionFactory.networkNotFoundError();
-//      }
+      if (!networkExists) {
+        log.error("[networkValidation] Network parameter is not supported: " + network);
+        throw ExceptionFactory.networkNotFoundError();
+      }
       log.debug("[networkValidation] Network parameters are within expected");
       filterChain.doFilter(wrapper, response);
     }

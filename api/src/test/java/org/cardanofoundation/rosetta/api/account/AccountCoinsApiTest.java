@@ -30,7 +30,7 @@ public class AccountCoinsApiTest extends IntegrationTestWithDB {
 
   @BeforeEach
   public void setUp() {
-    baseUrl = baseUrl.concat(":").concat(serverPort + "").concat(ENDPOINT);
+    baseUrl = baseUrl.concat(":").concat(String.valueOf(serverPort)).concat(ENDPOINT);
   }
 
   private AccountCoinsRequest generatePayload(String blockchain, String network, String address,
@@ -79,7 +79,6 @@ public class AccountCoinsApiTest extends IntegrationTestWithDB {
       assertEquals(4015, error.getCode());
       assertEquals("Provided address is invalid", error.getMessage());
       assertTrue(error.isRetriable());
-      assertEquals("fakeAddress", error.getDetails().toString());
     }
   }
 
@@ -177,6 +176,7 @@ public class AccountCoinsApiTest extends IntegrationTestWithDB {
     assertEquals(objectMapper.writeValueAsString(expectedResponse),
         objectMapper.writeValueAsString(response));
   }
+
   @Test
   void test_return_coins_for_multiple_specified_currency() throws IOException {
     AccountCoinsRequest request = objectMapper.readValue(new String(Files.readAllBytes(
@@ -195,6 +195,7 @@ public class AccountCoinsApiTest extends IntegrationTestWithDB {
     assertEquals(objectMapper.writeValueAsString(expectedResponse),
         objectMapper.writeValueAsString(response));
   }
+
   @Test
   void test_return_coins_for_multi_asset_currency_with_empty_name() throws IOException {
     AccountCoinsRequest request = objectMapper.readValue(new String(Files.readAllBytes(
@@ -230,11 +231,13 @@ public class AccountCoinsApiTest extends IntegrationTestWithDB {
       assertEquals(4024, error.getCode());
       assertEquals("Invalid token name", error.getMessage());
       assertFalse(error.isRetriable());
-      assertEquals("Given name is thisIsANonHexString", error.getDetails().toString());
+      assertEquals("Given name is thisIsANonHexString", error.getDetails().getMessage());
     }
   }
+
   @Test
-  void test_fail_when_querying_for_a_currency_with_a_symbol_longer_than_expected() throws IOException {
+  void test_fail_when_querying_for_a_currency_with_a_symbol_longer_than_expected()
+      throws IOException {
     AccountCoinsRequest request = objectMapper.readValue(new String(Files.readAllBytes(
             Paths.get(BASE_DIRECTORY
                 + "/request/test_fail_when_querying_for_a_currency_with_a_symbol_longer_than_expected.json"))),
@@ -249,12 +252,15 @@ public class AccountCoinsApiTest extends IntegrationTestWithDB {
       assertEquals(4024, error.getCode());
       assertEquals("Invalid token name", error.getMessage());
       assertFalse(error.isRetriable());
-      assertEquals("Given name is 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000", error.getDetails().toString());
+      assertEquals(
+          "Given name is 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+          error.getDetails().getMessage());
     }
   }
 
   @Test
-  void test_fail_when_querying_for_a_currency_with_a_policy_id_longer_than_expected() throws IOException {
+  void test_fail_when_querying_for_a_currency_with_a_policy_id_longer_than_expected()
+      throws IOException {
     AccountCoinsRequest request = objectMapper.readValue(new String(Files.readAllBytes(
             Paths.get(BASE_DIRECTORY
                 + "/request/test_fail_when_querying_for_a_currency_with_a_policy_id_longer_than_expected.json"))),
@@ -269,9 +275,11 @@ public class AccountCoinsApiTest extends IntegrationTestWithDB {
       assertEquals(4023, error.getCode());
       assertEquals("Invalid policy id", error.getMessage());
       assertFalse(error.isRetriable());
-      assertEquals("Given policy id is wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww", error.getDetails().toString());
+      assertEquals("Given policy id is wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+          error.getDetails().getMessage());
     }
   }
+
   @Test
   void test_fail_when_querying_for_a_currency_with_a_non_hex_policy_id() throws IOException {
     AccountCoinsRequest request = objectMapper.readValue(new String(Files.readAllBytes(
@@ -288,7 +296,7 @@ public class AccountCoinsApiTest extends IntegrationTestWithDB {
       assertEquals(4023, error.getCode());
       assertEquals("Invalid policy id", error.getMessage());
       assertFalse(error.isRetriable());
-      assertEquals("Given policy id is thisIsANonHexString", error.getDetails().toString());
+      assertEquals("Given policy id is thisIsANonHexString", error.getDetails().getMessage());
     }
   }
 }

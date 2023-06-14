@@ -11,7 +11,6 @@ public class Formatters {
   }
 
 
-
   public static byte[] hexStringToBuffer(String input) {
     return isEmptyHexString(input) ? HexUtil.decodeHexString("") : HexUtil.decodeHexString(input);
   }
@@ -26,6 +25,7 @@ public class Formatters {
   public static String hexStringFormatter(String toFormat) {
     return toFormat == null || toFormat.isEmpty() ? EMPTY_HEX : toFormat;
   }
+
   public static String remove0xPrefix(String hex) {
     if (hex.startsWith("0x")) {
       return hex.substring(2);

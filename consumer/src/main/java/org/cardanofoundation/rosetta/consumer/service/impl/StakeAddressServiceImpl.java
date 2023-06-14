@@ -1,23 +1,26 @@
 package org.cardanofoundation.rosetta.consumer.service.impl;
 
+import com.google.common.collect.Lists;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.common.entity.StakeAddress;
 import org.cardanofoundation.rosetta.common.entity.StakeAddress.StakeAddressBuilder;
 import org.cardanofoundation.rosetta.common.entity.Tx;
 import org.cardanofoundation.rosetta.common.ledgersync.address.ShelleyAddress;
 import org.cardanofoundation.rosetta.common.util.HexUtil;
-import org.cardanofoundation.rosetta.consumer.repository.cached.CachedStakeAddressRepository;
+import org.cardanofoundation.rosetta.consumer.repository.StakeAddressRepository;
 import org.cardanofoundation.rosetta.consumer.service.StakeAddressService;
+import org.springframework.stereotype.Service;
+
 import java.math.BigInteger;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
+
+import static org.cardanofoundation.rosetta.consumer.constant.ConsumerConstant.BATCH_QUERY_SIZE;
 
 @Service
 @RequiredArgsConstructor
@@ -25,21 +28,16 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class StakeAddressServiceImpl implements StakeAddressService {
 
-  CachedStakeAddressRepository cachedStakeAddressRepository;
-
-
-  @Override
-  public StakeAddress getStakeAddress(String stakeAddressHex) {
-    return cachedStakeAddressRepository.findByHashRaw(stakeAddressHex).orElse(null);
-  }
+  StakeAddressRepository stakeAddressRepository;
 
   @Override
-  public void handleStakeAddressesFromTxs(
+  public Map<String, StakeAddress> handleStakeAddressesFromTxs(
       Map<String, String> stakeAddressTxHashMap, Map<String, Tx> txMap) {
     Set<String> stakeAddressesHex = stakeAddressTxHashMap.keySet();
-    Map<String, StakeAddress> stakeAddresses = cachedStakeAddressRepository
-        .findByHashRawIn(stakeAddressesHex).parallelStream()
+    Map<String, StakeAddress> stakeAddresses = findStakeAddressByHashRawIn(stakeAddressesHex)
+        .parallelStream()
         .collect(Collectors.toConcurrentMap(StakeAddress::getHashRaw, Function.identity()));
+    List<StakeAddress> newStakeAddresses = new ArrayList<>();
 
     /*
      * For each stake address and its first appeared tx hash, check if the stake address
@@ -52,17 +50,32 @@ public class StakeAddressServiceImpl implements StakeAddressService {
         ShelleyAddress shelleyAddress = new ShelleyAddress(addressBytes);
         StakeAddress newStakeAddress = buildStakeAddress(shelleyAddress, txMap.get(txHash));
         stakeAddresses.put(stakeAddressHex, newStakeAddress);
+        newStakeAddresses.add(newStakeAddress);
       }
     });
 
-    // We cache both existing and new records
-    cachedStakeAddressRepository.saveAll(stakeAddresses.values());
+    // Save new stake address records
+    stakeAddressRepository.saveAll(newStakeAddresses);
+    return stakeAddresses;
+  }
+
+  @Override
+  public Collection<StakeAddress> findStakeAddressByHashRawIn(Collection<String> hashRaw) {
+    Collection<StakeAddress> stakeAddressCollection = new ConcurrentLinkedQueue<>();
+
+    var queryBatches = Lists.partition(new ArrayList<>(hashRaw), BATCH_QUERY_SIZE);
+    queryBatches.forEach(batch -> {
+      List<StakeAddress> stakeAddresses = stakeAddressRepository.findByHashRawIn(batch);
+      stakeAddresses.parallelStream().forEach(stakeAddressCollection::add);
+    });
+    return stakeAddressCollection;
   }
 
   private StakeAddress buildStakeAddress(ShelleyAddress address, Tx tx) {
     String stakeReference = HexUtil.encodeHexString(address.getStakeReference());
 
     StakeAddressBuilder<?, ?> stakeAddressBuilder = StakeAddress.builder()
+        //.tx(tx)
         .hashRaw(stakeReference)
         .view(address.getAddress());
 

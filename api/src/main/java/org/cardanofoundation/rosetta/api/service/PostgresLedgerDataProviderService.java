@@ -16,10 +16,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.TimeZone;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.cardanofoundation.rosetta.api.config.RosettaConfig;
-import org.cardanofoundation.rosetta.api.model.ProtocolParametersResponse;
 import org.cardanofoundation.rosetta.api.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.api.mapper.DataMapper;
 import org.cardanofoundation.rosetta.api.model.ProtocolParameters;
@@ -57,42 +57,27 @@ import org.cardanofoundation.rosetta.api.repository.StakeDeregistrationRepositor
 import org.cardanofoundation.rosetta.api.repository.TxMetadataRepository;
 import org.cardanofoundation.rosetta.api.repository.TxRepository;
 import org.cardanofoundation.rosetta.api.repository.customrepository.UtxoRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class PostgresLedgerDataProviderService implements LedgerDataProviderService {
 
   private final Map<String, PostgresLedgerDataProviderClient> clients = new HashMap<>();
-  @Autowired
-  private RosettaConfig rosettaConfig;
-  @Autowired
-  private BlockRepository blockRepository;
-  @Autowired
-  private RewardRepository rewardRepository;
-  @Autowired
-  private UtxoRepository utxoRepository;
-  @Autowired
-  private TxRepository txRepository;
-  @Autowired
-  private EpochParamRepository epochParamRepository;
-  @Autowired
-  private StakeDeregistrationRepository stakeDeregistrationRepository;
-  @Autowired
-  private DelegationRepository delegationRepository;
-  @Autowired
-  private TxMetadataRepository txMetadataRepository;
-  @Autowired
-  private PoolUpdateRepository poolUpdateRepository;
-  @Autowired
-  private PoolRetireRepository poolRetireRepository;
+  private final RosettaConfig rosettaConfig;
+  private final BlockRepository blockRepository;
+  private final RewardRepository rewardRepository;
+  private final UtxoRepository utxoRepository;
+  private final TxRepository txRepository;
+  private final EpochParamRepository epochParamRepository;
+  private final StakeDeregistrationRepository stakeDeregistrationRepository;
+  private final DelegationRepository delegationRepository;
+  private final TxMetadataRepository txMetadataRepository;
+  private final PoolUpdateRepository poolUpdateRepository;
+  private final PoolRetireRepository poolRetireRepository;
 
   @PostConstruct
   void init() {
@@ -114,9 +99,8 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
   @Override
   public GenesisBlockDto findGenesisBlock() {
     log.debug("[findGenesisBlock] About to run findGenesisBlock query");
-    Page<GenesisBlockProjection> genesisBlockProjectionPage = blockRepository.findGenesisBlock(
-        PageRequest.of(0, 1));
-    log.debug("[GenesisBlockProjectionPage] is " + genesisBlockProjectionPage);
+    Page<GenesisBlockProjection> genesisBlockProjectionPage =
+        blockRepository.findGenesisBlock(PageRequest.of(0, 1));
     genesisBlockProjectionPage.getContent();
     if (!genesisBlockProjectionPage.getContent().isEmpty()) {
       GenesisBlockProjection genesis = genesisBlockProjectionPage
@@ -132,8 +116,9 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
 
   @Override
   public BlockDto findBlock(Long blockNumber, String blockHash) {
-    log.debug("[findBlock] Parameters received for run query blockNumber: " + blockNumber
-        + " , blockHash: " + blockHash);
+    log.debug(
+        "[findBlock] Parameters received for run query blockNumber: {} , blockHash: {}",
+        blockNumber, blockHash);
     List<BlockProjection> blockProjections = blockRepository.findBlock(blockNumber, blockHash);
     if (blockProjections.size() == 1) {
       log.debug("[findBlock] Block found!");
@@ -143,8 +128,6 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
         Date date = dateFormat.parse(blockProjection.getCreatedAt().toString());
-        log.debug("[findBlock] timestamp: " + blockProjection.getCreatedAt());
-        log.debug("[findBlock] miliseconds " + date.getTime());
         return BlockDto.builder()
             .number(blockProjection.getNumber())
             .hash(blockProjection.getHash())
@@ -175,8 +158,8 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
 
   @Override
   public Long findLatestBlockNumber() {
-    Page<Long> latestBlockNumberPage = blockRepository.findLatestBlockNumber(
-        PageRequest.of(0, 1));
+    Page<Long> latestBlockNumberPage =
+        blockRepository.findLatestBlockNumber(PageRequest.of(0, 1));
     if (ObjectUtils.isNotEmpty(latestBlockNumberPage.getContent())) {
       return latestBlockNumberPage.getContent().get(0);
     }
@@ -186,29 +169,34 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
   @Override
   public ProtocolParameters findProtocolParameters() {
     log.debug("[findProtocolParameters] About to run findProtocolParameters query");
-    Page<EpochParamProjection> epochParamProjectionPage = epochParamRepository.findProtocolParameters(
-        PageRequest.of(0, 1));
+    Page<EpochParamProjection> epochParamProjectionPage =
+        epochParamRepository.findProtocolParameters(PageRequest.of(0, 1));
     if (ObjectUtils.isEmpty(epochParamProjectionPage.getContent())) {
-      return null;
+      return ProtocolParameters.builder()
+          .coinsPerUtxoSize("0")
+          .maxValSize(BigInteger.ZERO)
+          .maxCollateralInputs(0)
+          .build();
     }
     EpochParamProjection epochParamProjection = epochParamProjectionPage.getContent().get(0);
     log.debug(
         "[findProtocolParameters] epochParamProjection is " + epochParamProjection.toString());
     return ProtocolParameters.builder()
-        .coinsPerUtxoSize(Objects.nonNull(epochParamProjection.getCoinsPerUtxoSize())
-            ? epochParamProjection.getCoinsPerUtxoSize().toString() : "0")
+        .coinsPerUtxoSize(
+            Objects.nonNull(epochParamProjection.getCoinsPerUtxoSize()) ?
+                epochParamProjection.getCoinsPerUtxoSize().toString() : "0")
         .maxTxSize(epochParamProjection.getMaxTxSize())
-        .maxValSize(Objects.nonNull(epochParamProjection.getMaxValSize())
-            ? epochParamProjection.getMaxValSize() : BigInteger.ZERO)
-        .keyDeposit(Objects.nonNull(epochParamProjection.getKeyDeposit())
-            ? epochParamProjection.getKeyDeposit().toString() : null)
+        .maxValSize(Objects.nonNull(epochParamProjection.getMaxValSize()) ?
+            epochParamProjection.getMaxValSize() : BigInteger.ZERO)
+        .keyDeposit(Objects.nonNull(epochParamProjection.getKeyDeposit()) ?
+            epochParamProjection.getKeyDeposit().toString() : null)
         .maxCollateralInputs(epochParamProjection.getMaxCollateralInputs())
         .minFeeCoefficient(epochParamProjection.getMinFeeA())
         .minFeeConstant(epochParamProjection.getMinFeeB())
-        .minPoolCost(Objects.nonNull(epochParamProjection.getMinPoolCost())
-            ? epochParamProjection.getMinPoolCost().toString() : null)
-        .poolDeposit(Objects.nonNull(epochParamProjection.getPoolDeposit())
-            ? epochParamProjection.getPoolDeposit().toString() : null)
+        .minPoolCost(Objects.nonNull(epochParamProjection.getMinPoolCost()) ?
+            epochParamProjection.getMinPoolCost().toString() : null)
+        .poolDeposit(Objects.nonNull(epochParamProjection.getPoolDeposit()) ?
+            epochParamProjection.getPoolDeposit().toString() : null)
         .protocol(epochParamProjection.getProtocolMajor())
         .build();
   }
@@ -229,26 +217,26 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
   public BlockDto findLatestBlock() {
     log.info("[getLatestBlock] About to look for latest block");
     Long latestBlockNumber = findLatestBlockNumber();
-    log.info("[getLatestBlock] Latest block number is " + latestBlockNumber);
+    log.info("[getLatestBlock] Latest block number is {}", latestBlockNumber);
     BlockDto latestBlock = findBlock(latestBlockNumber, null);
-    if (latestBlock == null) {
+    if (Objects.isNull(latestBlock)) {
       log.error("[getLatestBlock] Latest block not found");
       throw ExceptionFactory.blockNotFoundException();
     }
-    log.debug("[getLatestBlock] Returning latest block " + latestBlock);
+    log.debug("[getLatestBlock] Returning latest block {}", latestBlock);
     return latestBlock;
   }
 
   @Override
   public List<TransactionDto> findTransactionsByBlock(Long blockNumber, String blockHash) {
-    log.debug("[findTransactionsByBlock] Parameters received for run query blockNumber: "
-        + blockNumber + "blockHash: " + blockHash);
-    log.debug("[findTransactionsByBlock] About to run findTransactionsByBlock query with params"
-        + blockNumber + " and " + blockHash);
+    log.debug(
+        "[findTransactionsByBlock] Parameters received for run query blockNumber: {} blockHash: {}",
+        blockNumber, blockHash);
+
     List<FindTransactionProjection> findTransactionProjections = txRepository.findTransactionsByBlock(
         blockNumber, blockHash);
-    log.debug("[findTransactionsByBlock] Found " + findTransactionProjections.size()
-        + " transactions");
+    log.debug(
+        "[findTransactionsByBlock] Found {} transactions", findTransactionProjections.size());
     if (ObjectUtils.isNotEmpty(findTransactionProjections)) {
       return parseTransactionRows(findTransactionProjections);
     }
@@ -324,11 +312,11 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
   @Override
   public PopulatedTransaction findTransactionByHashAndBlock(String hash,
       Long blockNumber, String blockHash) {
-    log.debug("[findTransactionByHashAndBlock] Parameters received for run query blockNumber: "
-        + blockNumber + " , blockHash: " + blockHash);
+
     List<FindTransactionProjection> findTransactions = blockRepository.findTransactionByHashAndBlock(
         hash, blockNumber, blockHash);
-    log.debug("[findTransactionByHashAndBlock] Found " + findTransactions.size() + " transactions");
+    log.debug(
+        "[findTransactionByHashAndBlock] Found {} transactions", findTransactions.size());
     if (ObjectUtils.isNotEmpty(findTransactions)) {
       Map<String, PopulatedTransaction> transactionsMap = mapTransactionsToDict(
           parseTransactionRows(findTransactions));
@@ -336,9 +324,10 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
     }
     return null;
   }
+
   @Override
   public List<FindTransactionsInputs> getFindTransactionsInputs(List<String> transactionsHashes) {
-    log.debug("[findTransactionsInputs] with parameters " + transactionsHashes);
+    log.debug("[findTransactionsInputs] with parameters {}", transactionsHashes);
     return txRepository.findTransactionsInputs(transactionsHashes);
   }
 
@@ -347,58 +336,68 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
     return poolRetireRepository.findPoolRetirements(
         transactionsHashes);
   }
+
   @Override
   public List<FindTransactionPoolRelays> getFindTransactionPoolRelays(
       List<String> transactionsHashes) {
     return poolUpdateRepository.findTransactionPoolRelays(
         transactionsHashes);
   }
+
   @Override
   public List<FindTransactionPoolOwners> getFindTransactionPoolOwners(
       List<String> transactionsHashes) {
     return poolUpdateRepository.findTransactionPoolOwners(
         transactionsHashes);
   }
+
   @Override
   public List<FindTransactionPoolRegistrationsData> getTransactionPoolRegistrationsData(
       List<String> transactionsHashes) {
     return getFindTransactionPoolRegistrationsData(
         transactionsHashes);
   }
+
   @Override
   public List<FindTransactionPoolRegistrationsData> getFindTransactionPoolRegistrationsData(
       List<String> transactionsHashes) {
     return poolUpdateRepository.findTransactionPoolRegistrationsData(
         transactionsHashes);
   }
+
   @Override
   public List<TransactionMetadataDto> getTransactionMetadataDtos(List<String> transactionsHashes) {
     return txMetadataRepository.findTransactionMetadata(
         transactionsHashes);
   }
+
   @Override
   public List<FindTransactionDelegations> getFindTransactionDelegations(
       List<String> transactionsHashes) {
     return delegationRepository.findTransactionDelegations(
         transactionsHashes);
   }
+
   @Override
   public List<FindTransactionDeregistrations> getFindTransactionDeregistrations(
       List<String> transactionsHashes) {
     return stakeDeregistrationRepository.findTransactionDeregistrations(
         transactionsHashes);
   }
+
   @Override
   public List<FindTransactionRegistrations> getFindTransactionRegistrations(
       List<String> transactionsHashes) {
     return stakeDeregistrationRepository.findTransactionRegistrations(
         transactionsHashes);
   }
+
   @Override
   public List<FindTransactionWithdrawals> getFindTransactionWithdrawals(
       List<String> transactionsHashes) {
     return txRepository.findTransactionWithdrawals(transactionsHashes);
   }
+
   @Override
   public List<FindTransactionsOutputs> getFindTransactionsOutputs(
       List<String> transactionsHashes) {

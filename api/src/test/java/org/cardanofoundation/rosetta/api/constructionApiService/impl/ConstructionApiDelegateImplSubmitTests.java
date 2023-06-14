@@ -17,6 +17,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import org.cardanofoundation.rosetta.api.IntegrationTest;
 import org.cardanofoundation.rosetta.api.exception.Error;
 import org.cardanofoundation.rosetta.api.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.api.model.Amount;
@@ -326,7 +327,7 @@ public List<Operation> buildOperation(AccountCoinsResponse unspents,
           signing_payload,
           new PublicKey(HexUtil.encodeHexString(keyPair.getPublicKey()),"edwards25519"),
           SignatureType.ED25519,
-          HexUtil.encodeHexString(result)
+          string
           );
     }).collect(Collectors.toList());
   }

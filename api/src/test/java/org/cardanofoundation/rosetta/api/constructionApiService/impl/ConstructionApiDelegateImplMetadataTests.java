@@ -1,25 +1,27 @@
 package org.cardanofoundation.rosetta.api.constructionApiService.impl;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+
+import org.cardanofoundation.rosetta.api.IntegrationTest;
+import org.cardanofoundation.rosetta.api.IntegrationTestWithDB;
 import org.cardanofoundation.rosetta.api.model.rest.ConstructionMetadataRequest;
 import org.cardanofoundation.rosetta.api.model.rest.ConstructionMetadataResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class ConstructionApiDelegateImplMetadataTests extends IntegrationTest {
+class ConstructionApiDelegateImplMetadataTests extends IntegrationTestWithDB {
+
+  private final String BASE_DIRECTORY = "src/test/resources/files/construction/metadata";
 
   @BeforeEach
   public void setUp() {
-    baseUrl = baseUrl.concat(":").concat(serverPort + "").concat("/construction/metadata");
+    baseUrl = baseUrl.concat(":").concat(String.valueOf(serverPort))
+        .concat("/construction/metadata");
   }
-
-  private final String BASE_DIRECTORY = "src/test/resources/files/construction/metadata";
 
   @Test
   void test_parameters_are_valid() throws IOException {

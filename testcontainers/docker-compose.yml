@@ -5,12 +5,13 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    image: cardano-rosetta/db-test
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 123456
-      POSTGRES_DB: test
+      POSTGRES_USER: ${DB_USER_TEST:-postgres}
+      POSTGRES_PASSWORD: ${DB_SECRET_TEST:-123456}
+      POSTGRES_DB: ${DB_NAME_TEST:-test}
     ports:
-      - "5437:5432"
+      - "${DB_PORT_TEST:-5437}:5432"
   cardano-node:
     image: inputoutput/cardano-node
     environment:

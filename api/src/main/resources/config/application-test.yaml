@@ -6,8 +6,9 @@ server:
     min-response-size: 1024
 
 
-
 spring:
+  config:
+    import: optional:/Users/chiendvhust/Intern/cardano-rosetta-java/.env[.properties]
   jackson:
     default-property-inclusion: NON_NULL
     serialization:
@@ -112,19 +113,17 @@ cardano:
         }
 
       ]
-    TOPOLOGY_FILEPATH: ${TOPOLOGY_FILEPATH:${DEFAULT_TOPOLOGY_FILEPATH}}
-    GENESIS_SHELLEY_PATH: ${GENESIS_SHELLEY_PATH:${DEFAULT_GENESIS_SHELLEY_PATH}}
-    CARDANO_NODE_PATH: ${CARDANO_NODE_PATH:/home/lamhoang/Workspace/cardano-node-8.0.0-linux/cardano-node}
-    EXEMPTION_TYPES_PATH: ${EXEMPTION_TYPES_PATH:${DEFAULT_EXEMPTION_TYPES_PATH}}
+    TOPOLOGY_FILEPATH: network-config/network/${NETWORK:mainnet}/cardano-node/topology.json
+    GENESIS_SHELLEY_PATH: network-config/network/${NETWORK:mainnet}/genesis/shelley.json
+    CARDANO_NODE_PATH: ${CARDANO_NODE_PATH}
+    EXEMPTION_TYPES_PATH: network-config/network/exemptions.json
 
-DEFAULT_TOPOLOGY_FILEPATH: classpath:network/${NETWORK:mainnet}/cardano-node/topology.json
-DEFAULT_GENESIS_SHELLEY_PATH: classpath:network/${NETWORK:mainnet}/genesis/shelley.json
-DEFAULT_EXEMPTION_TYPES_PATH: classpath:network/exemptions.json
 
+page-size: ${PAGE_SIZE:5}
 cardano-transaction-submitter:
   connection:
     socket:
-      path: ${SUBMIT_SOCKET_CONNECTION:/home/sotatek/Desktop/node-ipc/node.socket}
+      path: ${SUBMIT_SOCKET_CONNECTION}
 
   networkMagic: ${NETWORK_MAGIC:1}
 
