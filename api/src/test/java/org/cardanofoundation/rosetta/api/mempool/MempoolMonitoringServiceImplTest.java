@@ -9,6 +9,7 @@ import java.util.List;
 import org.cardanofoundation.rosetta.api.model.rest.MempoolResponse;
 import org.cardanofoundation.rosetta.api.model.rest.NetworkIdentifier;
 import org.cardanofoundation.rosetta.api.model.rest.NetworkRequest;
+import org.cardanofoundation.rosetta.api.service.CardanoService;
 import org.cardanofoundation.rosetta.api.service.impl.MempoolMonitoringServiceImpl;
 import org.cardanofoundation.rosetta.api.util.RosettaConstants;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,13 +25,15 @@ public class MempoolMonitoringServiceImplTest {
 
   @Mock
   private LocalTxMonitorClient localTxMonitorClient;
+  @Mock
+  private CardanoService cardanoService;
   private MempoolMonitoringServiceImpl mempoolMonitoringService;
   private NetworkRequest networkRequest;
   private List<byte[]> txBytesList;
 
   @BeforeEach
   void setUp() {
-    mempoolMonitoringService = new MempoolMonitoringServiceImpl(localTxMonitorClient);
+    mempoolMonitoringService = new MempoolMonitoringServiceImpl(localTxMonitorClient, cardanoService);
     NetworkIdentifier identifier = NetworkIdentifier.builder()
         .blockchain(RosettaConstants.BLOCKCHAIN_NAME)
         .network(RosettaConstants.MAINNET).build();
