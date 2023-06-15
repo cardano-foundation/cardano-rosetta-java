@@ -19,15 +19,6 @@ public class MempoolMonitoringServiceImpl implements MempoolMonitoringService {
 
   private final LocalTxMonitorClient localTxMonitorClient;
 
-  public static List<TransactionIdentifier> mapByteTransactionsToTransactionIdentifiers(
-      List<byte[]> txBytesList) {
-    return txBytesList.stream()
-        .map(
-            txBytes -> {
-              String txHash = TransactionUtil.getTxHash(txBytes);
-              return new TransactionIdentifier(txHash);
-            }).toList();
-  }
 
   @Override
   public MempoolResponse getAllTransaction(NetworkRequest networkRequest) {
@@ -37,8 +28,14 @@ public class MempoolMonitoringServiceImpl implements MempoolMonitoringService {
 
     log.info("[allTransaction] Looking for all transaction in mempool" + txBytesList);
     log.info("[allTransaction] Looking for {} transaction in mempool", txBytesList.size());
+
     List<TransactionIdentifier>
-        transactionIdentifierList = mapByteTransactionsToTransactionIdentifiers(txBytesList);
+        transactionIdentifierList = txBytesList.stream()
+        .map(
+            txBytes -> {
+              String txHash = TransactionUtil.getTxHash(txBytes);
+              return new TransactionIdentifier(txHash);
+            }).toList();
     MempoolResponse mempoolResponse = MempoolResponse.builder()
         .transactionIdentifierList(transactionIdentifierList)
         .build();
