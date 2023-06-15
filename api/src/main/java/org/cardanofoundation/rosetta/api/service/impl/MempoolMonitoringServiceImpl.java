@@ -1,15 +1,23 @@
 package org.cardanofoundation.rosetta.api.service.impl;
 
+import co.nstant.in.cbor.CborDecoder;
+import co.nstant.in.cbor.CborException;
 import co.nstant.in.cbor.model.Array;
 import co.nstant.in.cbor.model.DataItem;
+import com.bloxbean.cardano.client.exception.AddressExcepion;
+import com.bloxbean.cardano.client.exception.CborDeserializationException;
+import com.bloxbean.cardano.client.exception.CborSerializationException;
+import com.bloxbean.cardano.client.transaction.spec.Transaction;
 import com.bloxbean.cardano.client.transaction.util.TransactionUtil;
+import com.bloxbean.cardano.yaci.core.util.CborSerializationUtil;
 import com.bloxbean.cardano.yaci.helper.LocalTxMonitorClient;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.cardanofoundation.rosetta.api.config.CachedMemPool;
-import org.cardanofoundation.rosetta.api.model.Transaction;
+import org.cardanofoundation.rosetta.api.common.enumeration.NetworkIdentifierType;
+import org.cardanofoundation.rosetta.api.model.Operation;
+import org.cardanofoundation.rosetta.api.model.TransactionExtraData;
 import org.cardanofoundation.rosetta.api.model.TransactionIdentifier;
-import org.cardanofoundation.rosetta.api.model.TransactionParsed;
 import org.cardanofoundation.rosetta.api.model.rest.MempoolResponse;
 import org.cardanofoundation.rosetta.api.model.rest.MempoolTransactionRequest;
 import org.cardanofoundation.rosetta.api.model.rest.MempoolTransactionResponse;
@@ -18,6 +26,8 @@ import org.cardanofoundation.rosetta.api.service.CardanoService;
 import org.cardanofoundation.rosetta.api.service.MempoolMonitoringService;
 import org.springframework.stereotype.Service;
 
+import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -29,7 +39,6 @@ public class MempoolMonitoringServiceImpl implements MempoolMonitoringService {
 
   private final LocalTxMonitorClient localTxMonitorClient;
   final CardanoService cardanoService;
-  final CachedMemPool cachedMemPool;
   @Override
   public MempoolResponse getAllTransaction(NetworkRequest networkRequest) {
     log.debug("[allTransaction] Request received: " + networkRequest);
@@ -53,38 +62,40 @@ public class MempoolMonitoringServiceImpl implements MempoolMonitoringService {
     return mempoolResponse;
   }
   @Override
-  public MempoolTransactionResponse getDetailTransaction(
-      MempoolTransactionRequest mempoolTransactionRequest){
+  public MempoolTransactionResponse getDetailTransaction(MempoolTransactionRequest mempoolTransactionRequest) throws CborException, CborDeserializationException, UnknownHostException, AddressExcepion, CborSerializationException, JsonProcessingException {
 
     log.debug("[detailTransaction] Request received: " + mempoolTransactionRequest);
-    List<byte[]> txBytesList = localTxMonitorClient.acquireAndGetMempoolTransactionsAsMono()
-        .blockOptional().orElse(Collections.emptyList());
+    List<byte[]> txBytesList = getAllTransactionsInMempool();
     MempoolTransactionResponse mempoolTransactionResponse = new MempoolTransactionResponse();
 
     for (byte[] txBytes : txBytesList) {
       String txHash = TransactionUtil.getTxHash(txBytes);
       if (txHash.equals(mempoolTransactionRequest.getTransactionIdentifier().getHash())) {
         log.info("Get information transaction with hash >> " + txHash);
-        log.info("Operation information {}", cachedMemPool.getCachedMap().get(txHash).toString());
-//        NetworkIdentifierType networkIdentifier = cardanoService.getNetworkIdentifierByRequestParameters(mempoolTransactionRequest.getNetworkIdentifier());
-//        Array array = decodeExtraData(txBytes);
-
-//        TransactionExtraData extraData = cardanoService.changeFromMaptoObject((Map) array.getDataItems().get(1));
-        TransactionParsed result = cachedMemPool.getCachedMap().get(txHash);
+        NetworkIdentifierType networkIdentifier = cardanoService.getNetworkIdentifierByRequestParameters(
+                mempoolTransactionRequest.getNetworkIdentifier()
+        );
+        List<DataItem> dataItemList = CborDecoder.decode(txBytes);
+        Array array = (Array) dataItemList.get(0);
+        if (dataItemList.size() >= 2 && array.getDataItems().size() == 3) {
+          array.add(dataItemList.get(1));
+        }
+        Transaction parsed = Transaction.deserialize(CborSerializationUtil.serialize(array));
+        List<Operation> operations = cardanoService.convert(parsed.getBody(),
+                new TransactionExtraData(new ArrayList<>(),null) ,
+                networkIdentifier.getValue());
         mempoolTransactionResponse = MempoolTransactionResponse.builder().
-            transaction(new Transaction(new TransactionIdentifier(txHash), result.getOperations()))
-            .build();
+                transaction(
+                        new org.cardanofoundation.rosetta.api.model.Transaction(
+                                new TransactionIdentifier(txHash),
+                                operations)
+                )
+                .build();
       }
     }
     log.debug("[detailTransaction] Transaction detail to return " + mempoolTransactionResponse);
     return mempoolTransactionResponse;
   }
-
-  public Array decodeExtraData(byte[] txBytes) {
-    DataItem dataItem = com.bloxbean.cardano.client.common.cbor.CborSerializationUtil.deserialize(txBytes);
-    return (Array) dataItem ;
-  }
-
 
   @Override
   public List<byte[]> getAllTransactionsInMempool() {

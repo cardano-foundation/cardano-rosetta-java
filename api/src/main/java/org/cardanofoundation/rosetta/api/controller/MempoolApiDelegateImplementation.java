@@ -1,5 +1,10 @@
 package org.cardanofoundation.rosetta.api.controller;
 
+import co.nstant.in.cbor.CborException;
+import com.bloxbean.cardano.client.exception.AddressExcepion;
+import com.bloxbean.cardano.client.exception.CborDeserializationException;
+import com.bloxbean.cardano.client.exception.CborSerializationException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.cardanofoundation.rosetta.api.model.rest.MempoolResponse;
@@ -10,6 +15,8 @@ import org.cardanofoundation.rosetta.api.service.MempoolMonitoringService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.net.UnknownHostException;
 
 @Log4j2
 @RestController
@@ -24,8 +31,12 @@ public class MempoolApiDelegateImplementation implements MempoolApiDelegate {
   }
 
     @Override
-    public ResponseEntity<MempoolTransactionResponse> mempoolTransaction(@RequestBody MempoolTransactionRequest mempoolTransactionRequest) {
-        MempoolTransactionResponse mempoolTransactionResponse = mempoolMonitoringService.getDetailTransaction(mempoolTransactionRequest);
+    public ResponseEntity<MempoolTransactionResponse> mempoolTransaction(
+            @RequestBody MempoolTransactionRequest mempoolTransactionRequest
+    ) throws UnknownHostException, CborException, AddressExcepion,
+            CborDeserializationException, CborSerializationException, JsonProcessingException {
+        MempoolTransactionResponse mempoolTransactionResponse = mempoolMonitoringService.getDetailTransaction(
+                mempoolTransactionRequest);
         return ResponseEntity.ok(mempoolTransactionResponse);
     }
 }

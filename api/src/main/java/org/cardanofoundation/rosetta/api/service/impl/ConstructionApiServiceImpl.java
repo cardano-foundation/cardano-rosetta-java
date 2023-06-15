@@ -18,7 +18,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.cardanofoundation.rosetta.api.common.enumeration.AddressType;
 import org.cardanofoundation.rosetta.api.common.enumeration.NetworkIdentifierType;
-import org.cardanofoundation.rosetta.api.config.CachedMemPool;
 import org.cardanofoundation.rosetta.api.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.api.model.*;
 import org.cardanofoundation.rosetta.api.model.rest.*;
@@ -44,8 +43,6 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
 
     @Autowired
     LocalTxSubmissionClient localTxSubmissionClient;
-    @Autowired
-    CachedMemPool cachedMemPool;
 
     @Override
     public ConstructionDeriveResponse constructionDeriveService(
@@ -239,19 +236,11 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
         byte[] signedTransactionBytes = HexUtil.decodeHexString(((UnicodeString) array.getDataItems().get(0)).getString());
         Transaction parsed = Transaction.deserialize(signedTransactionBytes);
         TxSubmissionRequest txnRequest = new TxSubmissionRequest(parsed.serialize());
-        TransactionExtraData extraData = cardanoService.changeFromMaptoObject((Map) array.getDataItems().get(1));
-        log.info(array+ "[constructionParse] Decoded");
-        NetworkIdentifierType networkIdentifier = cardanoService.getNetworkIdentifierByRequestParameters(constructionSubmitRequest.getNetworkIdentifier());
-
-        TransactionParsed result = cardanoService.parseSignedTransaction(networkIdentifier, ((UnicodeString) array.getDataItems().get(0)).getString(), extraData);
 
         TxResult txResult = localTxSubmissionClient.submitTx(txnRequest).block();
         if (!txResult.isAccepted()){
             throw ExceptionFactory.submitRejected();
         }
-        cachedMemPool.getCachedMap().put(txnRequest.getTxHash(), result);
-        log.info("Operation information in submit {}", cachedMemPool.getCachedMap().get(txnRequest.getTxHash()));
-
         return cardanoService.mapToConstructionHashResponse(txResult.getTxHash());
 
     }
