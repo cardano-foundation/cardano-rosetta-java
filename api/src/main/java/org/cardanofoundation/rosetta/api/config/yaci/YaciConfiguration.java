@@ -6,6 +6,7 @@ import com.bloxbean.cardano.yaci.core.protocol.localtx.messages.MsgRejectTx;
 import com.bloxbean.cardano.yaci.core.protocol.localtx.model.TxSubmissionRequest;
 import com.bloxbean.cardano.yaci.helper.LocalClientProvider;
 import com.bloxbean.cardano.yaci.helper.LocalStateQueryClient;
+import com.bloxbean.cardano.yaci.helper.LocalTxMonitorClient;
 import com.bloxbean.cardano.yaci.helper.LocalTxSubmissionClient;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
@@ -23,6 +24,7 @@ import org.springframework.context.annotation.DependsOn;
 public class YaciConfiguration {
 
   CardanoTransactionSubmitterProperties cardanoTransactionSubmitterProperties;
+
   public YaciConfiguration(
       CardanoTransactionSubmitterProperties cardanoTransactionSubmitterProperties) {
     this.cardanoTransactionSubmitterProperties = cardanoTransactionSubmitterProperties;
@@ -35,11 +37,13 @@ public class YaciConfiguration {
 
     LocalClientProvider localClientProvider = new LocalClientProvider(socketPath, networkMagic);
     //Start localClientProvider
+//    LocalClientProvider localClientProvider = new LocalClientProvider("172.16.1.217", 31002, networkMagic);
     localClientProvider.addTxSubmissionListener(new LocalTxSubmissionListener() {
       @Override
       public void txAccepted(TxSubmissionRequest txSubmissionRequest, MsgAcceptTx msgAcceptTx) {
         log.info("TxId : " + txSubmissionRequest.getTxHash());
       }
+
       @Override
       public void txRejected(TxSubmissionRequest txSubmissionRequest, MsgRejectTx msgRejectTx) {
         String reasonCbor = msgRejectTx.getReasonCbor();
@@ -52,13 +56,19 @@ public class YaciConfiguration {
 
   @Bean
   @DependsOn("localClientProvider")
-  LocalStateQueryClient localStateQueryClient(@Autowired LocalClientProvider localClientProvider){
+  LocalStateQueryClient localStateQueryClient(@Autowired LocalClientProvider localClientProvider) {
     return localClientProvider.getLocalStateQueryClient();
   }
 
   @Bean
   @DependsOn("localClientProvider")
-  LocalTxSubmissionClient localTxSubmissionClient(@Autowired LocalClientProvider localClientProvider){
+  LocalTxSubmissionClient localTxSubmissionClient(@Autowired LocalClientProvider localClientProvider) {
     return localClientProvider.getTxSubmissionClient();
+  }
+
+  @Bean
+  @DependsOn("localClientProvider")
+  LocalTxMonitorClient localTxMonitorClient(@Autowired LocalClientProvider localClientProvider) {
+    return localClientProvider.getTxMonitorClient();
   }
 }
