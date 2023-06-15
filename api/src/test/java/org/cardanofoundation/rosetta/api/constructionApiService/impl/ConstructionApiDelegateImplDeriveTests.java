@@ -10,6 +10,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import org.cardanofoundation.rosetta.api.IntegrationTest;
 import org.cardanofoundation.rosetta.api.IntegrationTestWithDB;
 import org.cardanofoundation.rosetta.api.common.enumeration.AddressType;
 import org.cardanofoundation.rosetta.api.common.enumeration.NetworkIdentifierType;
@@ -27,7 +28,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.client.HttpServerErrorException;
 
-class ConstructionApiDelegateImplDeriveTests extends IntegrationTestWithDB {
+class ConstructionApiDelegateImplDeriveTests extends IntegrationTest {
 
   public final String INVALID_PUBLIC_KEY_FORMAT_MESSAGE = "invalidPublicKeyFormat";
   public final String INVALID_STAKING_KEY_FORMAT_MESSAGE = "invalidStakingKeyFormat";

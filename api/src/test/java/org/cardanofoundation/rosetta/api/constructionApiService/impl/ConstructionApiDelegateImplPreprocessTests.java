@@ -9,6 +9,7 @@ import java.nio.file.Paths;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import lombok.extern.slf4j.Slf4j;
+import org.cardanofoundation.rosetta.api.IntegrationTest;
 import org.cardanofoundation.rosetta.api.IntegrationTestWithDB;
 import org.cardanofoundation.rosetta.api.RosettaApiApplication;
 import org.cardanofoundation.rosetta.api.model.rest.ConstructionPreprocessRequest;
@@ -20,7 +21,7 @@ import org.springframework.web.client.HttpServerErrorException;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = RosettaApiApplication.class)
 @Slf4j
-class ConstructionApiDelegateImplPreprocessTests extends IntegrationTestWithDB {
+class ConstructionApiDelegateImplPreprocessTests extends IntegrationTest {
 
   private final String BASE_DIRECTORY = "src/test/resources/files/construction/preprocess";
 

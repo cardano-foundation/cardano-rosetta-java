@@ -1,6 +1,8 @@
 package org.cardanofoundation.rosetta.api.util;
 
 import java.util.List;
+
+import org.cardanofoundation.rosetta.api.exception.Details;
 import org.cardanofoundation.rosetta.api.exception.Error;
 import org.cardanofoundation.rosetta.api.model.rest.OperationStatus;
 
@@ -167,8 +169,9 @@ public class RosettaConstants {
     ADDRESS_AND_ACCOUNT_ID_NOT_MATCH("Address and account identifier does not match", 5016),
     BAD_FORMED_COIN_ERROR("Coin identifier has an invalid format", 5017),
     INVALID_IPV4_ERROR("Ipv4 has an invalid format", 5018),
-    SUBMIT_TRANSACTION_REJECTED("The transaction submission has been rejected", 5019);
-    final String message;
+    SUBMIT_TRANSACTION_REJECTED("The transaction submission has been rejected", 5019),
+      OUTPUT_AMOUNT_TOO_LOW("The outputAmount is too low. Try with more funds.", 5020);
+      final String message;
     final int code;
 
     RosettaErrorType(final String message, final int code) {
@@ -188,11 +191,11 @@ public class RosettaConstants {
       return toRosettaError(retriable, null, null);
     }
 
-    public Error toRosettaError(final boolean retriable, final Object details) {
+    public Error toRosettaError(final boolean retriable, final Details details) {
       return toRosettaError(retriable, details, null);
     }
 
-    public Error toRosettaError(final boolean retriable, final Object details,
+    public Error toRosettaError(final boolean retriable, final Details details,
         final String description) {
       final Error error = new Error();
       error.setCode(code);

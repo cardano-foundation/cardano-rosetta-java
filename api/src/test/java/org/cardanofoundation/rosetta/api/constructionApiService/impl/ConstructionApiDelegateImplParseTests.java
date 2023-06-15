@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
+
+import org.cardanofoundation.rosetta.api.IntegrationTest;
 import org.cardanofoundation.rosetta.api.IntegrationTestWithDB;
 import org.cardanofoundation.rosetta.api.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.api.model.Operation;
@@ -16,7 +18,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.client.HttpServerErrorException;
 
-class ConstructionApiDelegateImplParseTests extends IntegrationTestWithDB {
+class ConstructionApiDelegateImplParseTests extends IntegrationTest {
 
   private final String BASE_DIRECTORY = "src/test/resources/files/construction/parse";
 
@@ -652,6 +654,70 @@ class ConstructionApiDelegateImplParseTests extends IntegrationTestWithDB {
             Paths.get(
                 BASE_DIRECTORY
                     + "/constructionn_parse_should_correctly_parse_operations_with_vote_registration_data_for_unsigned_transactions.json"))),
+        ConstructionParseRequest.class);
+
+    restTemplate.postForObject(baseUrl,
+        request, ConstructionParseResponse.class);
+  }
+
+  @Test
+  void test_should_correctly_parse_operations_with_related_operation()
+      throws IOException {
+    ConstructionParseRequest request = objectMapper.readValue(new String(Files.readAllBytes(
+            Paths.get(
+                BASE_DIRECTORY
+                    + "/construction_parse_should_correctly_parse_operations_with_related_operation.json"))),
+        ConstructionParseRequest.class);
+
+    restTemplate.postForObject(baseUrl,
+        request, ConstructionParseResponse.class);
+  }
+
+  @Test
+  void test_should_correctly_parse_operations_with_sub_account()
+      throws IOException {
+    ConstructionParseRequest request = objectMapper.readValue(new String(Files.readAllBytes(
+            Paths.get(
+                BASE_DIRECTORY
+                    + "/construction_parse_should_correctly_parse_operations_with_sub_account.json"))),
+        ConstructionParseRequest.class);
+
+    restTemplate.postForObject(baseUrl,
+        request, ConstructionParseResponse.class);
+  }
+  @Test
+  void test_should_correctly_parse_operations_with_amount_withdrawal_metadata()
+      throws IOException {
+    ConstructionParseRequest request = objectMapper.readValue(new String(Files.readAllBytes(
+            Paths.get(
+                BASE_DIRECTORY
+                    + "/construction_parse_should_correctly_parse_operations_with_withdrawal.json"))),
+        ConstructionParseRequest.class);
+
+    restTemplate.postForObject(baseUrl,
+        request, ConstructionParseResponse.class);
+  }
+
+  @Test
+  void test_should_correctly_parse_operations_with_amount_refund_metadata()
+      throws IOException {
+    ConstructionParseRequest request = objectMapper.readValue(new String(Files.readAllBytes(
+            Paths.get(
+                BASE_DIRECTORY
+                    + "/construction_parse_should_correctly_parse_operations_with_refund.json"))),
+        ConstructionParseRequest.class);
+
+    restTemplate.postForObject(baseUrl,
+        request, ConstructionParseResponse.class);
+  }
+
+  @Test
+  void test_should_correctly_parse_operations_with_amount_deposit_metadata()
+      throws IOException {
+    ConstructionParseRequest request = objectMapper.readValue(new String(Files.readAllBytes(
+            Paths.get(
+                BASE_DIRECTORY
+                    + "/construction_parse_should_correctly_parse_operations_with_deposit.json"))),
         ConstructionParseRequest.class);
 
     restTemplate.postForObject(baseUrl,

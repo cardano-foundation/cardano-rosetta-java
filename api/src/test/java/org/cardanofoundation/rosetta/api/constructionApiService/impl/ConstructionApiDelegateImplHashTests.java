@@ -6,6 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+
+import org.cardanofoundation.rosetta.api.IntegrationTest;
 import org.cardanofoundation.rosetta.api.IntegrationTestWithDB;
 import org.cardanofoundation.rosetta.api.exception.Error;
 import org.cardanofoundation.rosetta.api.model.rest.ConstructionHashRequest;
@@ -14,7 +16,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.client.HttpServerErrorException;
 
-class ConstructionApiDelegateImplHashTests extends IntegrationTestWithDB {
+class ConstructionApiDelegateImplHashTests extends IntegrationTest {
 
   private final String BASE_DIRECTORY = "src/test/resources/files/construction/hash";
 

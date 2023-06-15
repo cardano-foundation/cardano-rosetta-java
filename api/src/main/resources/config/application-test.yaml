@@ -115,7 +115,7 @@ cardano:
       ]
     TOPOLOGY_FILEPATH: network-config/network/${NETWORK:mainnet}/cardano-node/topology.json
     GENESIS_SHELLEY_PATH: network-config/network/${NETWORK:mainnet}/genesis/shelley.json
-    CARDANO_NODE_PATH: ${CARDANO_NODE_PATH:/home/lamhoang/Workspace/cardano-node-8.0.0-linux/cardano-node}
+    CARDANO_NODE_PATH: ${CARDANO_NODE_PATH}
     EXEMPTION_TYPES_PATH: network-config/network/exemptions.json
 
 
@@ -123,7 +123,7 @@ page-size: ${PAGE_SIZE:5}
 cardano-transaction-submitter:
   connection:
     socket:
-      path: ${SUBMIT_SOCKET_CONNECTION:/home/sotatek/Desktop/node-ipc/node.socket}
+      path: ${SUBMIT_SOCKET_CONNECTION}
 
   networkMagic: ${NETWORK_MAGIC:1}
 
