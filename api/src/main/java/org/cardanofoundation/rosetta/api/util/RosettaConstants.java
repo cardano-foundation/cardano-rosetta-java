@@ -191,11 +191,11 @@ public class RosettaConstants {
       return toRosettaError(retriable, null, null);
     }
 
-    public Error toRosettaError(final boolean retriable, final Details details) {
+    public Error toRosettaError(final boolean retriable, final Object details) {
       return toRosettaError(retriable, details, null);
     }
 
-    public Error toRosettaError(final boolean retriable, final Details details,
+    public Error toRosettaError(final boolean retriable, final Object details,
         final String description) {
       final Error error = new Error();
       error.setCode(code);

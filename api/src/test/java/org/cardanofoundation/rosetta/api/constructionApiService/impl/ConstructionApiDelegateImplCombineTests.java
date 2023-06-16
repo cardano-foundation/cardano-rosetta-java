@@ -80,9 +80,9 @@ class ConstructionApiDelegateImplCombineTests extends IntegrationTest {
       String responseBody = e.getResponseBodyAsString();
       Error error = objectMapper.readValue(responseBody, Error.class);
       assertFalse(error.isRetriable());
-      assertEquals(5005, error.getCode());
+      assertEquals(5004, error.getCode());
       assertEquals(
-          "Cant build witnesses set for transaction probably because of provided signatures",
+          "Cant create signed transaction probably because of unsigned transaction bytes",
           error.getMessage());
     }
   }

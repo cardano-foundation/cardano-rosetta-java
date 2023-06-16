@@ -39,7 +39,7 @@ public interface ConstructionApiService {
 
     ConstructionParseResponse constructionParseService(
         ConstructionParseRequest constructionParseRequest)
-        throws UnknownHostException, AddressExcepion, CborDeserializationException, JsonProcessingException;
+            throws Exception;
 
     ConstructionCombineResponse constructionCombineService(
         ConstructionCombineRequest constructionCombineRequest) throws CborException, CborSerializationException, JsonProcessingException;
