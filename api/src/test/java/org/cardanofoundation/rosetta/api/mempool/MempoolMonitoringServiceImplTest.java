@@ -15,6 +15,7 @@ import org.cardanofoundation.rosetta.api.util.RosettaConstants;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -27,13 +28,13 @@ public class MempoolMonitoringServiceImplTest {
   private LocalTxMonitorClient localTxMonitorClient;
   @Mock
   private CardanoService cardanoService;
+  @InjectMocks
   private MempoolMonitoringServiceImpl mempoolMonitoringService;
   private NetworkRequest networkRequest;
   private List<byte[]> txBytesList;
 
   @BeforeEach
   void setUp() {
-    mempoolMonitoringService = new MempoolMonitoringServiceImpl(localTxMonitorClient, cardanoService);
     NetworkIdentifier identifier = NetworkIdentifier.builder()
         .blockchain(RosettaConstants.BLOCKCHAIN_NAME)
         .network(RosettaConstants.MAINNET).build();
