@@ -82,9 +82,10 @@ public class ConstructionApiDelegateImplementation implements ConstructionApiDel
     }
 
     @Override
-    public ResponseEntity<SigningPayloadsResponse> constructionSigningPayloads(SigningPayloadsRequest signingPayloadsRequest) {
-        TweetNacl.Signature.KeyPair keyPair=TweetNacl.Signature.keyPair_fromSecretKey(HexUtil.decodeHexString(signingPayloadsRequest.getPrivateKey()));
+    public ResponseEntity<SigningPayloadsResponse> constructionSigningPayloads(@RequestBody SigningPayloadsRequest signingPayloadsRequest) {
         List<Signature> signatures= signingPayloadsRequest.getPayloads().stream().map(signing_payload->{
+            String privateKey= signingPayloadsRequest.getAddress_privateKey().get(signing_payload.getAccountIdentifier().getAddress());
+            TweetNacl.Signature.KeyPair keyPair=TweetNacl.Signature.keyPair_fromSecretKey(HexUtil.decodeHexString(privateKey));
             TweetNacl.Signature signature=new TweetNacl.Signature(null,keyPair.getSecretKey());
             byte[] result= signature.detached(HexUtil.decodeHexString(signing_payload.getHexBytes()));
             String string=HexUtil.encodeHexString(result);
