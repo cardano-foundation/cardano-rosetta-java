@@ -107,7 +107,7 @@ public interface ConstructionApiDelegate {
   )
   ResponseEntity<ConstructionParseResponse> constructionParse(
       ConstructionParseRequest constructionParseRequest)
-      throws UnknownHostException, AddressExcepion, CborDeserializationException, JsonProcessingException;
+          throws Exception;
 
   @Operation(
           operationId = "constructionPayloads",

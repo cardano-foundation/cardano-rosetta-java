@@ -1752,7 +1752,7 @@ public class CardanoServiceImpl implements CardanoService {
                     HexUtil.decodeHexString(encoded));
             return (Array) dataItem;
         } catch (Exception e) {
-            throw ExceptionFactory.cantBuildWitnessesSet();
+            throw ExceptionFactory.cantBuildSignedTransaction();
         }
     }
 
@@ -1902,7 +1902,7 @@ public class CardanoServiceImpl implements CardanoService {
                                 new UnicodeString(Constants.ADDRESS)))).getString();
                         subAccountIdentifier.setAddress(addressSub);
                     }
-                    if (subAccountIdentifierMap.get(new UnicodeString(Constants.METADATA)) != null) {
+                    if ( subAccountIdentifierMap.get(new UnicodeString(Constants.METADATA))!=null) {
                         co.nstant.in.cbor.model.Map metadataSub = (co.nstant.in.cbor.model.Map) (subAccountIdentifierMap.get(
                                 new UnicodeString(Constants.METADATA)));
                         subAccountIdentifier.setMetadata(metadataSub);
@@ -1914,8 +1914,13 @@ public class CardanoServiceImpl implements CardanoService {
                             new UnicodeString(Constants.METADATA));
                     AccountIdentifierMetadata accountIdentifierMetadata = new AccountIdentifierMetadata();
                     if (accountIdentifierMetadataMap.get(new UnicodeString(Constants.CHAIN_CODE)) != null) {
-                        String chainCode = ((UnicodeString) (accountIdentifierMetadataMap.get(
+                        String chainCode=null;
+
+                        if(accountIdentifierMetadataMap.get(new UnicodeString(Constants.CHAIN_CODE)).getMajorType().getValue()==MajorType.UNICODE_STRING.getValue()){
+                            chainCode = ((UnicodeString) (accountIdentifierMetadataMap.get(
                                 new UnicodeString(Constants.CHAIN_CODE)))).getString();
+                        }
+
                         accountIdentifierMetadata.setChainCode(chainCode);
                     }
                     accountIdentifier.setMetadata(accountIdentifierMetadata);
