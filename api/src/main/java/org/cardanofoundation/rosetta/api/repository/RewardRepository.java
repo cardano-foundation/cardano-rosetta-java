@@ -12,7 +12,7 @@ public interface RewardRepository extends JpaRepository<Reward, Long> {
       + "   JOIN StakeAddress s ON s.id = r.addr.id "
       + "WHERE s.view = :stakeAddress "
       + "AND r.spendableEpoch <= (SELECT b.epochNo FROM Block b WHERE b.hash = :blockHash)")
-  Long findBalanceByAddressAndBlockSub1(@Param("stakeAddress") String stakeAddress,
+  Long findRewardBalanceByAddressAndBlock(@Param("stakeAddress") String stakeAddress,
       @Param("blockHash") String blockHash);
 
   @Query("SELECT COALESCE(SUM(w.amount), 0) "
@@ -22,7 +22,7 @@ public interface RewardRepository extends JpaRepository<Reward, Long> {
       + "   AND tx.block.id <= (SELECT b2.id FROM Block b2 WHERE b2.hash = :blockHash)"
       + "JOIN StakeAddress s ON s.id = w.addr.id "
       + "WHERE s.view = :stakeAddress ")
-  Long findBalanceByAddressAndBlockSub2(@Param("stakeAddress") String stakeAddress,
+  Long findWithdrwalBalanceByAddressAndBlock(@Param("stakeAddress") String stakeAddress,
       @Param("blockHash") String blockHash);
 
 }
