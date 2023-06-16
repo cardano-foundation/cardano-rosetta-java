@@ -16,9 +16,11 @@ import org.cardanofoundation.rosetta.api.model.rest.*;
 import org.cardanofoundation.rosetta.api.service.ConstructionApiService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.Valid;
 import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -49,8 +51,8 @@ public class ConstructionApiDelegateImplementation implements ConstructionApiDel
     }
 
     @Override
-    public ResponseEntity<ConstructionParseResponse> constructionParse(@RequestBody ConstructionParseRequest constructionParseRequest)
-        throws UnknownHostException, AddressExcepion, CborDeserializationException, JsonProcessingException {
+    public ResponseEntity<ConstructionParseResponse> constructionParse(@RequestBody @Valid ConstructionParseRequest constructionParseRequest)
+            throws Exception {
       return ResponseEntity.ok(constructionApiService.constructionParseService(constructionParseRequest));
     }
 
