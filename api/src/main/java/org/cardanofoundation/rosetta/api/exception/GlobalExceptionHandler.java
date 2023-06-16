@@ -1,12 +1,15 @@
 package org.cardanofoundation.rosetta.api.exception;
 
+import jakarta.servlet.http.HttpServletRequest;
+import java.util.List;
 import org.cardanofoundation.rosetta.api.util.RosettaConstants.RosettaErrorType;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.context.request.WebRequest;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
@@ -17,7 +20,7 @@ public class GlobalExceptionHandler {
 
   @ExceptionHandler(Exception.class)
   public ResponseEntity<Error> handleGlobalException(Exception exception,
-      WebRequest webRequest) {
+      HttpServletRequest request) {
 
     if (isPrintStackTrace.equals("true")) {
       exception.printStackTrace();
@@ -29,10 +32,18 @@ public class GlobalExceptionHandler {
 
       errorResponse = apiException.getError();
 
-    } else {
+    } else if ( exception instanceof MethodArgumentNotValidException methodArgumentNotValidException){
+      List<String> errors = methodArgumentNotValidException.getBindingResult().getFieldErrors()
+          .stream().map(FieldError::getDefaultMessage).toList();
+      errorResponse = RosettaErrorType.REQUEST_BODY_NOT_VALID.toRosettaError(true,
+          Details.builder().message(
+              "An error occurred for request " + request.getRequestId() + ": "
+                  + errors ).build());
+    }
+    else {
       errorResponse = RosettaErrorType.UNSPECIFIED_ERROR.toRosettaError(true,
           Details.builder().message(
-              "An error occurred for request " + webRequest.getSessionId() + ": "
+              "An error occurred for request " + request.getRequestId() + ": "
                   + exception.getMessage()).build());
     }
 

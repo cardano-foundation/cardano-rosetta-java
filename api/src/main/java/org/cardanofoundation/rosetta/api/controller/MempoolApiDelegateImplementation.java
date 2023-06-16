@@ -5,6 +5,7 @@ import com.bloxbean.cardano.client.exception.AddressExcepion;
 import com.bloxbean.cardano.client.exception.CborDeserializationException;
 import com.bloxbean.cardano.client.exception.CborSerializationException;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.cardanofoundation.rosetta.api.model.rest.MempoolResponse;
@@ -32,7 +33,7 @@ public class MempoolApiDelegateImplementation implements MempoolApiDelegate {
 
     @Override
     public ResponseEntity<MempoolTransactionResponse> mempoolTransaction(
-            @RequestBody MempoolTransactionRequest mempoolTransactionRequest
+          @Valid @RequestBody MempoolTransactionRequest mempoolTransactionRequest
     ) throws UnknownHostException, CborException, AddressExcepion,
             CborDeserializationException, CborSerializationException, JsonProcessingException {
         MempoolTransactionResponse mempoolTransactionResponse = mempoolMonitoringService.getDetailTransaction(
