@@ -7,6 +7,7 @@ import com.bloxbean.cardano.client.exception.CborSerializationException;
 import com.bloxbean.cardano.client.util.HexUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.iwebpp.crypto.TweetNacl;
+import java.util.Collections;
 import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.api.model.PublicKey;
 import org.cardanofoundation.rosetta.api.model.Signature;
@@ -85,17 +86,24 @@ public class ConstructionApiDelegateImplementation implements ConstructionApiDel
     public ResponseEntity<SigningPayloadsResponse> constructionSigningPayloads(@RequestBody SigningPayloadsRequest signingPayloadsRequest) {
         List<Signature> signatures= signingPayloadsRequest.getPayloads().stream().map(signing_payload->{
             String privateKey= signingPayloadsRequest.getAddress_privateKey().get(signing_payload.getAccountIdentifier().getAddress());
-            TweetNacl.Signature.KeyPair keyPair=TweetNacl.Signature.keyPair_fromSecretKey(HexUtil.decodeHexString(privateKey));
-            TweetNacl.Signature signature=new TweetNacl.Signature(null,keyPair.getSecretKey());
-            byte[] result= signature.detached(HexUtil.decodeHexString(signing_payload.getHexBytes()));
-            String string=HexUtil.encodeHexString(result);
-            return new Signature(
+            if(privateKey!=null){
+                TweetNacl.Signature.KeyPair keyPair = TweetNacl.Signature.keyPair_fromSecretKey(
+                    HexUtil.decodeHexString(privateKey));
+                TweetNacl.Signature signature = new TweetNacl.Signature(null,
+                    keyPair.getSecretKey());
+                byte[] result = signature.detached(
+                    HexUtil.decodeHexString(signing_payload.getHexBytes()));
+                String string = HexUtil.encodeHexString(result);
+                return new Signature(
                     signing_payload,
-                    new PublicKey(HexUtil.encodeHexString(keyPair.getPublicKey()),"edwards25519"),
+                    new PublicKey(HexUtil.encodeHexString(keyPair.getPublicKey()), "edwards25519"),
                     SignatureType.ED25519,
                     string
-            );
+                );
+            }
+            return null;
         }).collect(Collectors.toList());
+        signatures.removeAll(Collections.singleton(null));
         return ResponseEntity.ok(new SigningPayloadsResponse(signatures));
     }
 }
