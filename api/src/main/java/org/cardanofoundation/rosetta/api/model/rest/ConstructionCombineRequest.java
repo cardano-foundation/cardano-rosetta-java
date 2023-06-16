@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 import org.cardanofoundation.rosetta.api.model.Signature;
 
 /**
@@ -18,6 +19,7 @@ import org.cardanofoundation.rosetta.api.model.Signature;
 @NoArgsConstructor
 @Setter
 @Getter
+@ToString
 public class ConstructionCombineRequest {
     @JsonProperty("network_identifier")
     private NetworkIdentifier networkIdentifier;
