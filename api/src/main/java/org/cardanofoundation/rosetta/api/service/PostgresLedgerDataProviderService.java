@@ -152,8 +152,8 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
 
   @Override
   public Long findBalanceByAddressAndBlock(String address, String hash) {
-    return rewardRepository.findBalanceByAddressAndBlockSub1(address, hash)
-        - rewardRepository.findBalanceByAddressAndBlockSub2(address, hash);
+    return rewardRepository.findRewardBalanceByAddressAndBlock(address, hash)
+        - rewardRepository.findWithdrwalBalanceByAddressAndBlock(address, hash);
   }
 
   @Override
