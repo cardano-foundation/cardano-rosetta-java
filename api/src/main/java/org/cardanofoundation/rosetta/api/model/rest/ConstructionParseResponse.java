@@ -1,14 +1,14 @@
 package org.cardanofoundation.rosetta.api.model.rest;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.cardanofoundation.rosetta.api.model.Operation;
+
+import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
-import javax.validation.Valid;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import org.cardanofoundation.rosetta.api.model.Operation;
 
 /**
  * @author Sotatek-HoangNguyen9
@@ -16,8 +16,7 @@ import org.cardanofoundation.rosetta.api.model.Operation;
  */
 @NoArgsConstructor
 @AllArgsConstructor
-@Getter
-@Setter
+@Data
 public class ConstructionParseResponse {
     @JsonProperty("network_identifier")
     private NetworkIdentifier networkIdentifier;

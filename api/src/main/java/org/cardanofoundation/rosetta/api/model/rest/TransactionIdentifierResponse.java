@@ -2,9 +2,8 @@ package org.cardanofoundation.rosetta.api.model.rest;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.cardanofoundation.rosetta.api.model.TransactionIdentifier;
 
 /**
@@ -12,9 +11,8 @@ import org.cardanofoundation.rosetta.api.model.TransactionIdentifier;
  * @since 12/04/2023 17:13
  */
 @NoArgsConstructor
-@Getter
-@Setter
 @AllArgsConstructor
+@Data
 public class TransactionIdentifierResponse {
     @JsonProperty("transaction_identifier")
     private TransactionIdentifier transactionIdentifier;

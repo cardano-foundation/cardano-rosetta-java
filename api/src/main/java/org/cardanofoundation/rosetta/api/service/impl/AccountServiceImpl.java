@@ -31,7 +31,6 @@ public class AccountServiceImpl implements AccountService {
     Long index = null;
     String hash = null;
     String accountAddress = accountBalanceRequest.getAccountIdentifier().getAddress();
-    log.debug("[accountBalance] Request received: {}", accountBalanceRequest);
     if (Objects.isNull(cardanoService.getEraAddressType(accountAddress))) {
       throw ExceptionFactory.invalidAddressError(accountAddress);
     }
@@ -44,10 +43,7 @@ public class AccountServiceImpl implements AccountService {
       hash = accountBalanceRequest.getBlockIdentifier().getHash();
     }
 
-    AccountBalanceResponse accountBalanceResponse = blockService
-        .findBalanceDataByAddressAndBlock(accountAddress, index, hash);
-    log.debug("[accountBalance] About to return {}", accountBalanceResponse);
-    return accountBalanceResponse;
+    return blockService.findBalanceDataByAddressAndBlock(accountAddress, index, hash);
 
   }
 
@@ -70,9 +66,7 @@ public class AccountServiceImpl implements AccountService {
     BlockUtxos blockUtxos = blockService
         .findCoinsDataByAddress(accountAddress, currenciesRequested);
     log.debug("[accountCoins] blockUtxos is {}", blockUtxos);
-    AccountCoinsResponse response = DataMapper.mapToAccountCoinsResponse(blockUtxos);
-    log.debug("[accountCoins] About to return {}", response);
 
-    return response;
+    return DataMapper.mapToAccountCoinsResponse(blockUtxos);
   }
 }

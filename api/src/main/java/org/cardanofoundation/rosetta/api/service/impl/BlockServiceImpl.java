@@ -167,9 +167,13 @@ public class BlockServiceImpl implements BlockService {
             , pageSize);
         return BlockResponse.builder()
             .block(mapToRosettaBlock(block, new ArrayList<>(), poolDeposit))
-            .otherTransactions(transactionsFound.stream()
-                .map(transactionDto -> new TransactionIdentifier().hash(transactionDto.getHash()))
-                .toList())
+            .otherTransactions(
+                transactionsFound.stream()
+                    .map(
+                        transactionDto ->
+                            new TransactionIdentifier()
+                                .hash(transactionDto.getHash()))
+                    .toList())
             .build();
       }
       log.info("[block] Looking for blocks transactions full data");
@@ -222,7 +226,7 @@ public class BlockServiceImpl implements BlockService {
     }
     String poolDeposit = cardanoService.getProtocolParameters().getPoolDeposit();
     Transaction transactionResponse = mapToRosettaTransaction(transaction, poolDeposit);
-    log.debug("[blockTransaction] Returning response {}", transactionResponse);
+
     return BlockTransactionResponse.builder()
         .transaction(transactionResponse)
         .build();
