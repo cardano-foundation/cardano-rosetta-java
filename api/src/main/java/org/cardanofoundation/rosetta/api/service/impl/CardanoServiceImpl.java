@@ -7,6 +7,7 @@ import com.bloxbean.cardano.client.address.Address;
 import com.bloxbean.cardano.client.address.AddressProvider;
 import com.bloxbean.cardano.client.address.ByronAddress;
 import com.bloxbean.cardano.client.common.model.Network;
+import com.bloxbean.cardano.client.common.model.Networks;
 import com.bloxbean.cardano.client.crypto.Bech32;
 import com.bloxbean.cardano.client.crypto.Blake2bUtil;
 import com.bloxbean.cardano.client.crypto.KeyGenUtil;
@@ -2757,24 +2758,55 @@ public class CardanoServiceImpl implements CardanoService {
         Set<String> owners = poolRegistration.getPoolOwners();
         int ownersCount = owners.size();
         for (int i = 0; i < ownersCount; i++) {
-            String owner = new ArrayList<>(owners).get(i);
-            byte[] addressByte = new byte[29];
-            addressByte[0] = -31;
-            byte[] byteCop = HexUtil.decodeHexString(owner);
-            System.arraycopy(byteCop, 0, addressByte, 1, addressByte.length - 1);
-            Address address = new Address(addressByte);
-            poolOwners.add(address.getAddress());
+           if(network==NetworkIdentifierType.CARDANO_TESTNET_NETWORK.getValue()) {
+                Address address = CardanoAddressUtils.getAddress((byte[]) null,
+                    HexUtil.decodeHexString(new ArrayList<>(owners).get(i)), (byte) -32,
+                    Networks.testnet(), com.bloxbean.cardano.client.address.AddressType.Reward);
+                poolOwners.add(address.getAddress());
+            }
+            if(network==NetworkIdentifierType.CARDANO_PREPROD_NETWORK.getValue()) {
+                Address address = CardanoAddressUtils.getAddress((byte[]) null,
+                    HexUtil.decodeHexString(new ArrayList<>(owners).get(i)), (byte) -32,
+                    Networks.preprod(), com.bloxbean.cardano.client.address.AddressType.Reward);
+                poolOwners.add(address.getAddress());
+            }
+            if(network==NetworkIdentifierType.CARDANO_MAINNET_NETWORK.getValue()) {
+                Address address = CardanoAddressUtils.getAddress((byte[]) null,
+                    HexUtil.decodeHexString(new ArrayList<>(owners).get(i)), (byte) -32,
+                    Networks.mainnet(), com.bloxbean.cardano.client.address.AddressType.Reward);
+                poolOwners.add(address.getAddress());
+            }
         }
         return poolOwners;
     }
 
     @Override
     public String parsePoolRewardAccount(Integer network, PoolRegistration poolRegistration) {
-        byte[] addressByte = new byte[29];
-        addressByte[0] = 97;
-        byte[] byteCop = HexUtil.decodeHexString(poolRegistration.getRewardAccount().substring(2));
-        System.arraycopy(byteCop, 0, addressByte, 1, addressByte.length - 1);
-        return Bech32.encode(addressByte, "addr");
+        String cutRewardAccount=poolRegistration.getRewardAccount();
+        if(poolRegistration.getRewardAccount().length()==58) cutRewardAccount=poolRegistration.getRewardAccount().substring(2);
+            if (network == NetworkIdentifierType.CARDANO_TESTNET_NETWORK.getValue()) {
+                return CardanoAddressUtils.getAddress((byte[]) null,
+                        HexUtil.decodeHexString(cutRewardAccount),
+                        (byte) -32,
+                        Networks.testnet(), com.bloxbean.cardano.client.address.AddressType.Reward)
+                    .getAddress();
+            }
+            if (network == NetworkIdentifierType.CARDANO_PREPROD_NETWORK.getValue()) {
+                return CardanoAddressUtils.getAddress((byte[]) null,
+                        HexUtil.decodeHexString(cutRewardAccount),
+                        (byte) -32,
+                        Networks.preprod(), com.bloxbean.cardano.client.address.AddressType.Reward)
+                    .getAddress();
+            }
+            if (network == NetworkIdentifierType.CARDANO_MAINNET_NETWORK.getValue()) {
+                return CardanoAddressUtils.getAddress((byte[]) null,
+                        HexUtil.decodeHexString(cutRewardAccount),
+                        (byte) -32,
+                        Networks.mainnet(), com.bloxbean.cardano.client.address.AddressType.Reward)
+                    .getAddress();
+            }
+
+        return null;
     }
 
     @Override
