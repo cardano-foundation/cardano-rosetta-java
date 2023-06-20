@@ -171,7 +171,7 @@ public class RosettaConstants {
     INVALID_IPV4_ERROR("Ipv4 has an invalid format", 5018),
     SUBMIT_TRANSACTION_REJECTED("The transaction submission has been rejected", 5019),
     OUTPUT_AMOUNT_TOO_LOW("The outputAmount is too low. Try with more funds.", 5020) ,
-    REQUEST_BODY_NOT_VALID("Request body is not valid " ,5021);
+    REQUEST_BODY_NOT_VALID("Request body is not valid" ,5021);
       final String message;
     final int code;
 
