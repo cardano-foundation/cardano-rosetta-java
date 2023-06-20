@@ -1,4 +1,4 @@
-package org.cardanofoundation.rosetta.consumer.kafka;
+package org.cardanofoundation.rosetta.consumer.integration.kafka;
 
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -20,7 +20,7 @@ public class KafkaProducer {
   private KafkaTemplate<String, Object> kafkaTemplate;
 
   public void send(String topic, CommonBlock payload) {
-    CompletableFuture<SendResult<String, Object>> future = (CompletableFuture<SendResult<String, Object>>) kafkaTemplate.send(topic,
+    CompletableFuture<SendResult<String, Object>> future = kafkaTemplate.send(topic,
             UUID.randomUUID().toString(), payload);
     future.whenComplete((result, ex) -> {
       if (ex != null) {

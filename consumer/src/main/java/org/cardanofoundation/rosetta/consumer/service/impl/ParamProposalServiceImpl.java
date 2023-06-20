@@ -44,7 +44,6 @@ public class ParamProposalServiceImpl implements ParamProposalService {
     if (CollectionUtils.isEmpty(paramProposals)) {
       return Collections.emptyList();
     }
-
     return paramProposalRepository.saveAll(paramProposals);
   }
 
@@ -64,10 +63,12 @@ public class ParamProposalServiceImpl implements ParamProposalService {
           var maxBlockSize = toBigInteger(protocolParamUpdate.getMaxBlockSize());
           var maxTxSize = toBigInteger(protocolParamUpdate.getMaxTxSize());
           var maxBhSize = toBigInteger(protocolParamUpdate.getMaxBlockHeaderSize());
+          var keyDeposit = protocolParamUpdate.getKeyDeposit();
           var optimalPoolCount = toBigInteger(protocolParamUpdate.getOptimalPoolCount());
           var influence = toDouble(protocolParamUpdate.getPoolPledgeInfluence());
           var monetaryExpandRate = toDouble(protocolParamUpdate.getExpansionRate());
           var poolDeposit = protocolParamUpdate.getPoolDeposit();
+          var maxEpoch = toBigInteger(protocolParamUpdate.getMaxEpoch());
           var treasuryGrowthRate = toDouble(protocolParamUpdate.getTreasuryGrowthRate());
           var decentralisation = toDouble(protocolParamUpdate.getDecentralisationParam());
 
@@ -108,10 +109,12 @@ public class ParamProposalServiceImpl implements ParamProposalService {
               .maxBlockSize(maxBlockSize)
               .maxTxSize(maxTxSize)
               .maxBhSize(maxBhSize)
+              .keyDeposit(keyDeposit)
               .optimalPoolCount(optimalPoolCount)
               .influence(influence)
               .monetaryExpandRate(monetaryExpandRate)
               .poolDeposit(poolDeposit)
+              .maxEpoch(maxEpoch)
               .treasuryGrowthRate(treasuryGrowthRate)
               .decentralisation(decentralisation)
               .entropy(entropy)
