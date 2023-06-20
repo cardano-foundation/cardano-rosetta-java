@@ -1,8 +1,9 @@
-package org.cardanofoundation.rosetta.consumer.kafka;
+package org.cardanofoundation.rosetta.consumer.integration.kafka;
 
 import java.util.concurrent.CountDownLatch;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.cardanofoundation.rosetta.common.ledgersync.kafka.CommonBlock;
+import org.cardanofoundation.rosetta.consumer.kafka.BlockListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.kafka.annotation.KafkaListener;

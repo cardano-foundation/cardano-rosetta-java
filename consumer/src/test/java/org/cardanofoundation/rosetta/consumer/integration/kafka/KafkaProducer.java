@@ -1,4 +1,4 @@
-package org.cardanofoundation.rosetta.consumer.kafka;
+package org.cardanofoundation.rosetta.consumer.integration.kafka;
 
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
