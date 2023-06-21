@@ -307,8 +307,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
     Array array = cardanoService.decodeExtraData(constructionSubmitRequest.getSignedTransaction());
     byte[] signedTransactionBytes = HexUtil.decodeHexString(
         ((UnicodeString) array.getDataItems().get(0)).getString());
-    Transaction parsed = Transaction.deserialize(signedTransactionBytes);
-    TxSubmissionRequest txnRequest = new TxSubmissionRequest(parsed.serialize());
+    TxSubmissionRequest txnRequest = new TxSubmissionRequest(signedTransactionBytes);
 
     TxResult txResult = localTxSubmissionClient.submitTx(txnRequest).block();
     if (!txResult.isAccepted()) {
