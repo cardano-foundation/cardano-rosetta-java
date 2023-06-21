@@ -76,7 +76,7 @@ public class Constants {
     public static final String CERTIFICATE = "certificate";
     public static final String ADDRESS = "address";
 
-    public static final String POOL_KEY_HASH="poolKeyHash";
+    public static final String POOL_KEY_HASH="pool_key_hash";
     public static final String VOTING_KEY="votingKey";
     public static final String STAKE_KEY="stakeKey";
     public static final String REWARD_ADDRESS="rewardAddress";
