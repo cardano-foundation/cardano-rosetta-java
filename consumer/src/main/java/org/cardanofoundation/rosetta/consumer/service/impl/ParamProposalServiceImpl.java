@@ -44,6 +44,7 @@ public class ParamProposalServiceImpl implements ParamProposalService {
     if (CollectionUtils.isEmpty(paramProposals)) {
       return Collections.emptyList();
     }
+
     return paramProposalRepository.saveAll(paramProposals);
   }
 
@@ -86,10 +87,12 @@ public class ParamProposalServiceImpl implements ParamProposalService {
           var minPoolCost = protocolParamUpdate.getMinPoolCost();
           var coinsPerUtxoSize = protocolParamUpdate.getAdaPerUtxoByte();
           var costModelRaw = protocolParamUpdate.getCostModels();
+
           CostModel costModel = null;
           if (Objects.nonNull(costModelRaw)) {
             costModel = costModelService.findCostModelByHash(costModelRaw.getHash());
           }
+
           var priceMem = toDouble(protocolParamUpdate.getPriceMem());
           var priceStep = toDouble(protocolParamUpdate.getPriceStep());
           var maxTxExMem = protocolParamUpdate.getMaxTxExMem();

@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.cardanofoundation.rosetta.common.entity.*;
 
+import java.sql.Timestamp;
 import java.util.List;
 
 @Data
@@ -15,11 +16,13 @@ import java.util.List;
 @AllArgsConstructor
 public class GenesisData {
 
-  List<Block> blocks;
+  Block block;
   List<Tx> txs;
   List<TxOut> txOuts;
   List<SlotLeader> slotLeaders;
   CostModel costModel;
   EpochParam shelley;
   EpochParam alonzo;
+  EpochParam babbage;
+  Timestamp startTime;
 }

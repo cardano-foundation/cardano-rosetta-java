@@ -107,6 +107,7 @@ public class BlockAggregatorServiceImpl extends BlockAggregatorService<Block> {
         .opCertCounter(opCertCounter)
         .txList(txList)
         .auxiliaryDataMap(blockCddl.getAuxiliaryDataMap())
+        .isGenesis(Boolean.FALSE)
         .build();
   }
 

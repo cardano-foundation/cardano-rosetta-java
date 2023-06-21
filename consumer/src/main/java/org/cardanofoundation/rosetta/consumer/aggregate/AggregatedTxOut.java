@@ -2,6 +2,7 @@ package org.cardanofoundation.rosetta.consumer.aggregate;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
 import org.cardanofoundation.rosetta.common.ledgersync.Amount;
@@ -18,6 +19,7 @@ import java.util.Objects;
 @Getter
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@Builder
 public class AggregatedTxOut {
   Integer index;
   AggregatedAddress address;

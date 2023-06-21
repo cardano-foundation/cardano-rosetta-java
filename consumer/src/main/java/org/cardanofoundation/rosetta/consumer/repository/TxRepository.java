@@ -2,7 +2,10 @@ package org.cardanofoundation.rosetta.consumer.repository;
 
 import org.cardanofoundation.rosetta.common.entity.Block;
 import org.cardanofoundation.rosetta.common.entity.Tx;
+import org.cardanofoundation.rosetta.common.entity.Tx_;
 import org.cardanofoundation.rosetta.consumer.projection.TxTimeProjection;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -43,4 +46,7 @@ public interface TxRepository extends JpaRepository<Tx, Long> {
       + "WHERE tx IN (:txs) "
       + "GROUP BY txId, txTime")
   List<TxTimeProjection> findTxWithTimeByTxIn(@Param("txs") Collection<Tx> txs);
+
+  @EntityGraph(attributePaths = Tx_.BLOCK)
+  List<Tx> findAllByOrderByBlockIdDescBlockIndexAsc(Pageable pageable);
 }

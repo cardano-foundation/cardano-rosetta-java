@@ -48,6 +48,7 @@ public class ByronEbbAggregatorServiceImpl extends BlockAggregatorService<ByronE
         .protoMinor(0)
         .txList(Collections.emptyList())
         .auxiliaryDataMap(Collections.emptyMap())
+        .isGenesis(Boolean.FALSE)
         .build();
   }
 }
