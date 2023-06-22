@@ -49,8 +49,9 @@ public class ScheduledTasks {
             String txData = Objects.isNull(pendingData) ? redisTemplate.opsForValue().get(Constants.REDIS_PREFIX_MEMPOOL + transactionHash) : pendingData;
             txHashWithData.put(Constants.REDIS_PREFIX_MEMPOOL + transactionHash, txData);
         }
-        redisTemplate.delete(redisTemplate.keys(Constants.REDIS_PREFIX_MEMPOOL + "*"));
+//        redisTemplate.delete(redisTemplate.keys(Constants.REDIS_PREFIX_MEMPOOL + "*"));
         txHashWithData.entrySet().stream().forEach((entry) -> {
+            log.info("Set redis value {} - {}", entry.getKey(), entry.getValue());
             redisTemplate.opsForValue().set(entry.getKey(), entry.getValue());
         });
     }
