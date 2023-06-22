@@ -134,4 +134,6 @@ public class Constants {
     public static final String COST="cost";
     public static final String EMPTY_SYMBOl="0x";
     public static final String SYMBOL_REGEX="\\x";
+    public static final String REDIS_PREFIX_MEMPOOL = "mempool";
+    public static final String REDIS_PREFIX_PENDING = "pending";
 }

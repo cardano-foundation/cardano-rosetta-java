@@ -22,6 +22,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
+import org.cardanofoundation.rosetta.api.common.constants.Constants;
 import org.cardanofoundation.rosetta.api.common.enumeration.AddressType;
 import org.cardanofoundation.rosetta.api.common.enumeration.NetworkIdentifierType;
 import org.cardanofoundation.rosetta.api.exception.ExceptionFactory;
@@ -55,6 +56,7 @@ import org.cardanofoundation.rosetta.api.model.rest.ConstructionSubmitRequest;
 import org.cardanofoundation.rosetta.api.model.rest.TransactionIdentifierResponse;
 import org.cardanofoundation.rosetta.api.service.CardanoService;
 import org.cardanofoundation.rosetta.api.service.ConstructionApiService;
+import org.cardanofoundation.rosetta.common.ledgersync.constant.Constant;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -317,13 +319,13 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
         ((UnicodeString) array.getDataItems().get(0)).getString());
     Transaction parsed = Transaction.deserialize(signedTransactionBytes);
     TxSubmissionRequest txnRequest = new TxSubmissionRequest(signedTransactionBytes);
+      redisTemplate
+              .opsForValue()
+              .set(Constants.REDIS_PREFIX_PENDING + txnRequest.getTxHash(), constructionSubmitRequest.getSignedTransaction());
     TxResult txResult = localTxSubmissionClient.submitTx(txnRequest).block();
     if (!txResult.isAccepted()) {
       throw ExceptionFactory.submitRejected();
     }
-    redisTemplate
-        .opsForValue()
-        .set(txResult.getTxHash(), constructionSubmitRequest.getSignedTransaction());
     return cardanoService.mapToConstructionHashResponse(txResult.getTxHash());
 
   }
