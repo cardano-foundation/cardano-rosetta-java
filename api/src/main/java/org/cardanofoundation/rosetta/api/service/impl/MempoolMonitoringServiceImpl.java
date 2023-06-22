@@ -16,7 +16,6 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.api.common.enumeration.NetworkIdentifierType;
 import org.cardanofoundation.rosetta.api.model.Operation;
@@ -28,15 +27,25 @@ import org.cardanofoundation.rosetta.api.model.rest.MempoolTransactionResponse;
 import org.cardanofoundation.rosetta.api.model.rest.NetworkRequest;
 import org.cardanofoundation.rosetta.api.service.CardanoService;
 import org.cardanofoundation.rosetta.api.service.MempoolMonitoringService;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class MempoolMonitoringServiceImpl implements MempoolMonitoringService {
 
   private final CardanoService cardanoService;
   private final LocalTxMonitorClient localTxMonitorClient;
+  private final RedisTemplate<String, String> redisTemplate;
+
+  public MempoolMonitoringServiceImpl(CardanoService cardanoService,
+      LocalTxMonitorClient localTxMonitorClient,
+      @Qualifier("redisTemplateString") RedisTemplate<String, String> redisTemplate) {
+    this.cardanoService = cardanoService;
+    this.localTxMonitorClient = localTxMonitorClient;
+    this.redisTemplate = redisTemplate;
+  }
 
   @Override
   public MempoolResponse getAllTransaction(NetworkRequest networkRequest) {
