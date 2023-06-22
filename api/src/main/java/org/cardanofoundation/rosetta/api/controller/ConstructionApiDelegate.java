@@ -124,7 +124,7 @@ public interface ConstructionApiDelegate {
           consumes = { "application/json;charset=utf-8" }
   )
   ResponseEntity<ConstructionPayloadsResponse> constructionPayloads(
-      ConstructionPayloadsRequest constructionPayloadsRequest) throws IOException, CborException, CborSerializationException, AddressExcepion;
+      ConstructionPayloadsRequest constructionPayloadsRequest) throws Exception;
 
   @Operation(
           operationId = "constructionPreprocess",

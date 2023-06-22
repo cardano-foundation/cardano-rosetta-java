@@ -35,7 +35,7 @@ public interface ConstructionApiService {
         ConstructionMetadataRequest constructionMetadataRequest) throws CborException, CborSerializationException;
 
     ConstructionPayloadsResponse constructionPayloadsService(
-        ConstructionPayloadsRequest constructionPayloadsRequest) throws IOException, CborException, CborSerializationException, AddressExcepion;
+        ConstructionPayloadsRequest constructionPayloadsRequest) throws Exception;
 
     ConstructionParseResponse constructionParseService(
         ConstructionParseRequest constructionParseRequest)
