@@ -13,6 +13,7 @@ import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 @Configuration
 public class RedisTemplateConfig {
@@ -49,7 +50,8 @@ public class RedisTemplateConfig {
       final LettuceConnectionFactory lettuceConnectionFactory) {
     var redisTemplate = new RedisTemplate<String, String>();
     redisTemplate.setConnectionFactory(lettuceConnectionFactory);
-    redisTemplate.setValueSerializer(new GenericToStringSerializer<>(Object.class));
+    redisTemplate.setDefaultSerializer(new StringRedisSerializer());
+//    redisTemplate.setValueSerializer(new GenericToStringSerializer<>(Object.class));
     return redisTemplate;
   }
 

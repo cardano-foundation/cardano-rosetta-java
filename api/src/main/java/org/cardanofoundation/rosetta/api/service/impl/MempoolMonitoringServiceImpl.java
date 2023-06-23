@@ -63,7 +63,7 @@ public class MempoolMonitoringServiceImpl implements MempoolMonitoringService {
         List<TransactionIdentifier> transactionIdentifierList =
                 txHashes.stream()
                         .map(txHash ->
-                                new TransactionIdentifier(txHash)
+                                new TransactionIdentifier(txHash.substring(Constants.REDIS_PREFIX_MEMPOOL.length()))
                         ).toList();
         MempoolResponse mempoolResponse = MempoolResponse.builder()
                 .transactionIdentifierList(transactionIdentifierList)
@@ -105,6 +105,6 @@ public class MempoolMonitoringServiceImpl implements MempoolMonitoringService {
 
     @Override
     public Set<String> getAllTransactionsInMempool() {
-        return redisTemplate.keys(Constants.REDIS_PREFIX_MEMPOOL + "*");
+        return redisTemplate.keys("mempool*");
     }
 }
