@@ -68,7 +68,6 @@ public class MempoolMonitoringServiceImpl implements MempoolMonitoringService {
         MempoolResponse mempoolResponse = MempoolResponse.builder()
                 .transactionIdentifierList(transactionIdentifierList)
                 .build();
-        log.debug("[allTransaction] About to return " + mempoolResponse);
         return mempoolResponse;
     }
 
@@ -76,8 +75,6 @@ public class MempoolMonitoringServiceImpl implements MempoolMonitoringService {
     public MempoolTransactionResponse getDetailTransaction(
             MempoolTransactionRequest mempoolTransactionRequest)
             throws CborException, CborDeserializationException, UnknownHostException, AddressExcepion, CborSerializationException, JsonProcessingException {
-
-        log.debug("[detailTransaction] Request received: " + mempoolTransactionRequest);
         String txHash = mempoolTransactionRequest.getTransactionIdentifier().getHash();
         String txData = redisTemplate.opsForValue().get(Constants.REDIS_PREFIX_MEMPOOL + txHash);
         if (Objects.isNull(txData)) {

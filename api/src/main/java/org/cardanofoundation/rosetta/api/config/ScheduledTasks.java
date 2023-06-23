@@ -35,9 +35,6 @@ public class ScheduledTasks {
         log.info("Start the cron Job ");
         List<String> transactionHashes = getAllTransactionsInMempool();
         log.info("There are {} transactions in mempool", transactionHashes.size());
-//        if (ObjectUtils.isEmpty(transactionHashes)) {
-//            return;
-//        }
         List<String> transactionInformations = transactionHashes.stream()
                 .map(transactionHash -> redisTemplate.opsForValue().get(transactionHash)).toList();
         if (transactionHashes.size() != transactionInformations.size()) {
@@ -51,10 +48,9 @@ public class ScheduledTasks {
         }
         redisTemplate.delete(redisTemplate.keys(Constants.REDIS_PREFIX_MEMPOOL + "*"));
         txHashWithData.entrySet().stream().forEach((entry) -> {
-            log.info("Set redis value {} - {}", entry.getKey(), entry.getValue());
             redisTemplate.opsForValue().set(entry.getKey(), entry.getValue());
         });
-        log.info("End the cron job");
+        log.info("End the cronjob");
     }
 
     public List<String> getAllTransactionsInMempool() {
