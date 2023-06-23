@@ -6,11 +6,6 @@ server:
     min-response-size: 1024
 
 spring:
-  redis:
-    standalone:
-      host: ${REDIS_STANDALONE_HOST:localhost}
-      port: ${REDIS_STANDALONE_PORT:6379}
-    password: ${REDIS_STANDALONE_PASSWORD:123456}
   jackson:
     default-property-inclusion: NON_NULL
     serialization:

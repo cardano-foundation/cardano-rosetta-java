@@ -56,7 +56,6 @@ public class MempoolMonitoringServiceImpl implements MempoolMonitoringService {
 
     @Override
     public MempoolResponse getAllTransaction(NetworkRequest networkRequest) {
-        log.debug("[allTransaction] Request received: " + networkRequest);
 
         Set<String> txHashes = getAllTransactionsInMempool();
         log.info("[allTransaction] Looking for all transaction in mempool" + txHashes);

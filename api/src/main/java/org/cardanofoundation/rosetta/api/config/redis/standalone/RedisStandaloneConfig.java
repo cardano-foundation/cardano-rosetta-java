@@ -4,11 +4,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 
 @Configuration
-//@Profile("standalone")
+@Profile("standalone")
 @Slf4j
 public class RedisStandaloneConfig {
 
@@ -27,6 +28,7 @@ public class RedisStandaloneConfig {
         hostname, port);
     redisStandaloneConfiguration.setPassword(password);
     log.info("`Connectiong to redis:` {}", hostname);
+    log.info("Connectiong to redis with port {}", port);
     return new LettuceConnectionFactory(redisStandaloneConfiguration);
   }
 }

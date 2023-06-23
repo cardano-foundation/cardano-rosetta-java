@@ -1,0 +1,14 @@
+redis-sentinel:
+  databaseIndex: ${REDIS_DATA_BASE:0}
+  master: ${REDIS_MASTER_NAME:mymaster}
+  password: ${REDIS_SENTINEL_PASS:redis_sentinel_pass}
+  testOnBorrow: false
+  maxTotal: ${REDIS_MAX_POOL_ACTIVE:8}
+  maxIdle: ${REDIS_MAX_POOL_IDLE:6}
+  minIdle: ${REDIS_MIN_POOL_IDLE:2}
+  testOnReturn: false
+  testWhileIdle: false
+  connectTimeOut: 60000
+  sentinels:
+    - host: ${REDIS_SENTINEL_HOST:127.0.0.1}
+      port: ${REDIS_SENTINEL_PORT:26379}
