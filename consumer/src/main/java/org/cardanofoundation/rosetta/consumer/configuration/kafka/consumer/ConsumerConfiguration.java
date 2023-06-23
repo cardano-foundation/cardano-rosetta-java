@@ -24,7 +24,7 @@ import java.util.Map;
 @Configuration
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @Slf4j
-@Profile("!test-integration")
+@Profile("!test-integration & !test-unit")
 public class ConsumerConfiguration {
 
   private static final String JSON_CONSUMER = "json-consumer";

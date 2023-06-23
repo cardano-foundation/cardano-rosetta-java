@@ -8,6 +8,8 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
@@ -29,7 +31,9 @@ import org.cardanofoundation.rosetta.consumer.repository.PoolHashRepository;
 import org.cardanofoundation.rosetta.consumer.repository.StakeAddressRepository;
 import org.cardanofoundation.rosetta.consumer.repository.TxOutRepository;
 import org.cardanofoundation.rosetta.consumer.repository.TxRepository;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -301,15 +305,15 @@ class BlockSyncServiceIntegrationTest {
     poolHashRepository.save(poolHash);
   }
 
-//  @Test
-//  void blockListenerIntegrationTest() throws InterruptedException {
-//    commonBlocks.forEach(commonBlock -> {
-//      log.info("Sending block number: {}", commonBlock.getBlockNumber());
-//      kafkaProducer.send(testTopic, commonBlock);
-//    });
-//
-//    testBlockListener.setCountdown(commonBlocks.size());
-//    boolean consumed = testBlockListener.getLatch().await(60, TimeUnit.SECONDS);
-//    Assertions.assertTrue(consumed);
-//  }
+  @Test
+  void blockListenerIntegrationTest() throws InterruptedException {
+    commonBlocks.forEach(commonBlock -> {
+      log.info("Sending block number: {}", commonBlock.getBlockNumber());
+      kafkaProducer.send(testTopic, commonBlock);
+    });
+
+    testBlockListener.setCountdown(commonBlocks.size());
+    boolean consumed = testBlockListener.getLatch().await(60, TimeUnit.SECONDS);
+    Assertions.assertTrue(consumed);
+  }
 }
