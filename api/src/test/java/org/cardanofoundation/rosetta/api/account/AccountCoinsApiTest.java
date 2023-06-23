@@ -9,6 +9,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Objects;
 import org.cardanofoundation.rosetta.api.IntegrationTestWithDB;
@@ -231,7 +232,8 @@ public class AccountCoinsApiTest extends IntegrationTestWithDB {
       assertEquals(4024, error.getCode());
       assertEquals("Invalid token name", error.getMessage());
       assertFalse(error.isRetriable());
-      assertEquals("Given name is thisIsANonHexString", error.getDetails().getMessage());
+      LinkedHashMap map= (LinkedHashMap) error.getDetails();
+      assertEquals("Given name is thisIsANonHexString", map.get("message"));
     }
   }
 
@@ -252,9 +254,10 @@ public class AccountCoinsApiTest extends IntegrationTestWithDB {
       assertEquals(4024, error.getCode());
       assertEquals("Invalid token name", error.getMessage());
       assertFalse(error.isRetriable());
+      LinkedHashMap map= (LinkedHashMap) error.getDetails();
       assertEquals(
           "Given name is 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
-          error.getDetails().getMessage());
+              map.get("message"));
     }
   }
 
@@ -275,8 +278,8 @@ public class AccountCoinsApiTest extends IntegrationTestWithDB {
       assertEquals(4023, error.getCode());
       assertEquals("Invalid policy id", error.getMessage());
       assertFalse(error.isRetriable());
-      assertEquals("Given policy id is wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
-          error.getDetails().getMessage());
+      LinkedHashMap map= (LinkedHashMap) error.getDetails();
+      assertEquals("Given policy id is wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww", map.get("message"));
     }
   }
 
@@ -296,7 +299,8 @@ public class AccountCoinsApiTest extends IntegrationTestWithDB {
       assertEquals(4023, error.getCode());
       assertEquals("Invalid policy id", error.getMessage());
       assertFalse(error.isRetriable());
-      assertEquals("Given policy id is thisIsANonHexString", error.getDetails().getMessage());
+      LinkedHashMap map= (LinkedHashMap) error.getDetails();
+      assertEquals("Given policy id is thisIsANonHexString", map.get("message"));
     }
   }
 }
