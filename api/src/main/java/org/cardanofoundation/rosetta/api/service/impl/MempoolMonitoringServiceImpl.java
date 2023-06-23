@@ -101,6 +101,6 @@ public class MempoolMonitoringServiceImpl implements MempoolMonitoringService {
 
     @Override
     public Set<String> getAllTransactionsInMempool() {
-        return redisTemplate.keys("mempool*");
+        return redisTemplate.keys(Constants.REDIS_PREFIX_MEMPOOL + "*");
     }
 }

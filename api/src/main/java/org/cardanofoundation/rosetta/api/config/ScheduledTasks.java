@@ -35,11 +35,6 @@ public class ScheduledTasks {
         log.info("Start the cron Job ");
         List<String> transactionHashes = getAllTransactionsInMempool();
         log.info("There are {} transactions in mempool", transactionHashes.size());
-        List<String> transactionInformations = transactionHashes.stream()
-                .map(transactionHash -> redisTemplate.opsForValue().get(transactionHash)).toList();
-        if (transactionHashes.size() != transactionInformations.size()) {
-            log.warn("Maybe there are some error");
-        }
         Map<String, String> txHashWithData = new HashMap<>();
         for (String transactionHash : transactionHashes) {
             String pendingData = redisTemplate.opsForValue().get(Constants.REDIS_PREFIX_PENDING + transactionHash);
