@@ -11,7 +11,6 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.cardanofoundation.rosetta.api.IntegrationTest;
-import org.cardanofoundation.rosetta.api.IntegrationTestWithDB;
 import org.cardanofoundation.rosetta.api.common.enumeration.AddressType;
 import org.cardanofoundation.rosetta.api.common.enumeration.NetworkIdentifierType;
 import org.cardanofoundation.rosetta.api.exception.ApiException;
@@ -24,8 +23,12 @@ import org.cardanofoundation.rosetta.api.model.rest.ConstructionDeriveResponse;
 import org.cardanofoundation.rosetta.api.model.rest.NetworkIdentifier;
 import org.cardanofoundation.rosetta.api.service.CardanoService;
 import org.cardanofoundation.rosetta.api.service.impl.ConstructionApiServiceImpl;
+import org.cardanofoundation.rosetta.api.util.CardanoAddressUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+import org.mockito.MockedStatic.Verification;
+import org.mockito.Mockito;
 import org.springframework.web.client.HttpServerErrorException;
 
 class ConstructionApiDelegateImplDeriveTests extends IntegrationTest {
@@ -37,6 +40,7 @@ class ConstructionApiDelegateImplDeriveTests extends IntegrationTest {
 
   public final String MISSING_KEY_ERROR_MESSAGE = "missingStakingKeyError";
   private ConstructionApiServiceImpl constructionApiServiceImplUnderTest;
+
 
   @BeforeEach
   public void setUp() {
@@ -276,13 +280,15 @@ class ConstructionApiDelegateImplDeriveTests extends IntegrationTest {
     // Configure CardanoService.getNetworkIdentifierByRequestParameters(...).
     when(constructionApiServiceImplUnderTest.cardanoService.getNetworkIdentifierByRequestParameters(
         any())).thenReturn(NetworkIdentifierType.CARDANO_MAINNET_NETWORK);
-    when(constructionApiServiceImplUnderTest.cardanoService.isKeyValid(anyString(),
-        anyString())).thenReturn(true);
+    try (MockedStatic<CardanoAddressUtils> theMock = Mockito.mockStatic(CardanoAddressUtils.class)) {
+      theMock.when(() -> CardanoAddressUtils.isKeyValid(anyString(), anyString()))
+          .thenReturn(true);
+      theMock.when(() -> CardanoAddressUtils.generateAddress(eq(NetworkIdentifierType.CARDANO_MAINNET_NETWORK), anyString(), anyString(), eq(AddressType.ENTERPRISE)))
+          .thenReturn(null);
+    }
     when(constructionApiServiceImplUnderTest.cardanoService.isAddressTypeValid(anyString()))
         .thenReturn(true);
-    when(constructionApiServiceImplUnderTest.cardanoService.generateAddress(
-        eq(NetworkIdentifierType.CARDANO_MAINNET_NETWORK), anyString(), anyString(),
-        eq(AddressType.ENTERPRISE))).thenReturn(null);
+
     try {
       ConstructionDeriveResponse constructionDeriveResponse = constructionApiServiceImplUnderTest.constructionDeriveService(
           request);

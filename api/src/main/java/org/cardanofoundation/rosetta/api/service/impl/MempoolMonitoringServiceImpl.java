@@ -28,6 +28,7 @@ import org.cardanofoundation.rosetta.api.model.rest.MempoolTransactionResponse;
 import org.cardanofoundation.rosetta.api.model.rest.NetworkRequest;
 import org.cardanofoundation.rosetta.api.service.CardanoService;
 import org.cardanofoundation.rosetta.api.service.MempoolMonitoringService;
+import org.cardanofoundation.rosetta.api.util.ConVertConstructionUtil;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -79,7 +80,7 @@ public class MempoolMonitoringServiceImpl implements MempoolMonitoringService {
           array.add(dataItemList.get(1));
         }
         Transaction parsed = Transaction.deserialize(CborSerializationUtil.serialize(array));
-        List<Operation> operations = cardanoService.convert(parsed.getBody(),
+        List<Operation> operations = ConVertConstructionUtil.convert(parsed.getBody(),
             new TransactionExtraData(new ArrayList<>(), null),
             networkIdentifier.getValue());
         mempoolTransactionResponse = MempoolTransactionResponse.builder().

@@ -2,6 +2,8 @@ package org.cardanofoundation.rosetta.api.mempool;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 
 import co.nstant.in.cbor.CborException;
@@ -16,6 +18,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
+import org.cardanofoundation.rosetta.api.common.enumeration.AddressType;
 import org.cardanofoundation.rosetta.api.common.enumeration.NetworkIdentifierType;
 import org.cardanofoundation.rosetta.api.model.Amount;
 import org.cardanofoundation.rosetta.api.model.Currency;
@@ -31,12 +34,15 @@ import org.cardanofoundation.rosetta.api.model.rest.NetworkIdentifier;
 import org.cardanofoundation.rosetta.api.model.rest.NetworkRequest;
 import org.cardanofoundation.rosetta.api.service.CardanoService;
 import org.cardanofoundation.rosetta.api.service.impl.MempoolMonitoringServiceImpl;
+import org.cardanofoundation.rosetta.api.util.CardanoAddressUtils;
+import org.cardanofoundation.rosetta.api.util.ConVertConstructionUtil;
 import org.cardanofoundation.rosetta.api.util.RosettaConstants;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
@@ -48,6 +54,9 @@ public class MempoolMonitoringServiceImplTest {
   private LocalTxMonitorClient localTxMonitorClient;
   @Mock
   private CardanoService cardanoService;
+
+  @Mock
+  private ConVertConstructionUtil conVertConstructionUtil;
   @InjectMocks
   private MempoolMonitoringServiceImpl mempoolMonitoringService;
   private NetworkRequest networkRequest;
@@ -132,9 +141,15 @@ public class MempoolMonitoringServiceImplTest {
     operations.add(o1);
     operations.add(o2);
 
-    doReturn(operations).when(cardanoService).convert(any(TransactionBody.class) ,
+    doReturn(operations).when(conVertConstructionUtil).convert(any(TransactionBody.class) ,
         any(TransactionExtraData.class),
         any());
+    try (MockedStatic<ConVertConstructionUtil> theMock = Mockito.mockStatic(ConVertConstructionUtil.class)) {
+      theMock.when(() -> ConVertConstructionUtil.convert(any(TransactionBody.class) ,
+              any(TransactionExtraData.class),
+              any()))
+          .thenReturn(operations);
+    }
     MempoolTransactionResponse expected = MempoolTransactionResponse.builder().
             transaction(
                     new org.cardanofoundation.rosetta.api.model.Transaction(

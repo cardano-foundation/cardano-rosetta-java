@@ -31,6 +31,7 @@ import org.cardanofoundation.rosetta.api.projection.dto.PopulatedTransaction;
 import org.cardanofoundation.rosetta.api.service.BlockService;
 import org.cardanofoundation.rosetta.api.service.CardanoService;
 import org.cardanofoundation.rosetta.api.service.LedgerDataProviderService;
+import org.cardanofoundation.rosetta.api.util.CardanoAddressUtils;
 import org.openapitools.client.model.Transaction;
 import org.openapitools.client.model.TransactionIdentifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -58,7 +59,7 @@ public class BlockServiceImpl implements BlockService {
         "[findBalanceDataByAddressAndBlock] Looking for utxos for address {} and block {}",
         address,
         blockDto.getHash());
-    if (cardanoService.isStakeAddress(address)) {
+    if (CardanoAddressUtils.isStakeAddress(address)) {
       log.debug("[findBalanceDataByAddressAndBlock] Address is StakeAddress");
       log.debug("[findBalanceDataByAddressAndBlock] About to get balance for {}", address);
       Long balance = ledgerDataProviderService

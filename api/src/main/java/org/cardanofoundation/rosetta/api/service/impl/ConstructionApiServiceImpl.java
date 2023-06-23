@@ -49,6 +49,8 @@ import org.cardanofoundation.rosetta.api.model.rest.TransactionIdentifierRespons
 import org.cardanofoundation.rosetta.api.service.CardanoService;
 import org.cardanofoundation.rosetta.api.service.ConstructionApiService;
 import org.cardanofoundation.rosetta.api.model.rest.AccountIdentifier;
+import org.cardanofoundation.rosetta.api.util.CardanoAddressUtils;
+import org.cardanofoundation.rosetta.api.util.ParseConstructionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -77,7 +79,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
         constructionDeriveRequest.getNetworkIdentifier());
 
     log.info("[constructionDerive] About to check if public key has valid length and curve type");
-    if (Boolean.FALSE.equals(cardanoService.isKeyValid(publicKey.getHexBytes(), publicKey.getCurveType()))) {
+    if (Boolean.FALSE.equals(CardanoAddressUtils.isKeyValid(publicKey.getHexBytes(), publicKey.getCurveType()))) {
       log.info("[constructionDerive] Public key has an invalid format");
       throw ExceptionFactory.invalidPublicKeyFormat();
     }
@@ -90,7 +92,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
     if (stakingCredential!=null) {
       log.info(
           "[constructionDerive] About to check if staking credential has valid length and curve type");
-      if (Boolean.FALSE.equals(cardanoService.isKeyValid(stakingCredential.getHexBytes(),
+      if (Boolean.FALSE.equals(CardanoAddressUtils.isKeyValid(stakingCredential.getHexBytes(),
           stakingCredential.getCurveType()))) {
         log.info("[constructionDerive] Staking credential has an invalid format");
         throw ExceptionFactory.invalidStakingKeyFormat();
@@ -111,7 +113,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
     }
 
     log.info("[constructionDerive] About to generate address");
-    String address = cardanoService.generateAddress(
+    String address = CardanoAddressUtils.generateAddress(
         networkIdentifier,
         publicKey.getHexBytes(),
         // eslint-disable-next-line camelcase
@@ -185,7 +187,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
     return new ConstructionMetadataResponse(
         new ConstructionMetadataResponseMetadata(ttl.toString(), protocolParameters),
         new ArrayList<>(
-            List.of(cardanoService.mapAmount(suggestedFee.toString(), null, null, null))));
+            List.of(CardanoAddressUtils.mapAmount(suggestedFee.toString(), null, null, null))));
   }
 
   @Override
@@ -236,12 +238,12 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
     log.info(array + "[constructionParse] Decoded");
     TransactionParsed result;
     if (signed) {
-      result = cardanoService.parseSignedTransaction(networkIdentifier,
+      result = ParseConstructionUtils.parseSignedTransaction(networkIdentifier,
           ((UnicodeString) array.getDataItems().get(0)).getString(), extraData);
       return new ConstructionParseResponse(null, result.getOperations(),
           result.getAccount_identifier_signers());
     }
-    result = cardanoService.parseUnsignedTransaction(networkIdentifier,
+    result = ParseConstructionUtils.parseUnsignedTransaction(networkIdentifier,
         ((UnicodeString) array.getDataItems().get(0)).getString(), extraData);
     return new ConstructionParseResponse(null, result.getOperations(),
         result.getAccount_identifier_signers());
