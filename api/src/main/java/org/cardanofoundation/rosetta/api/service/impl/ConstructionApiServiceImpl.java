@@ -9,10 +9,6 @@ import com.bloxbean.cardano.client.util.HexUtil;
 import com.bloxbean.cardano.yaci.core.protocol.localtx.model.TxSubmissionRequest;
 import com.bloxbean.cardano.yaci.helper.LocalTxSubmissionClient;
 import com.bloxbean.cardano.yaci.helper.model.TxResult;
-import com.fasterxml.jackson.core.JsonProcessingException;
-
-
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
@@ -50,6 +46,8 @@ import org.cardanofoundation.rosetta.api.service.CardanoService;
 import org.cardanofoundation.rosetta.api.service.ConstructionApiService;
 import org.cardanofoundation.rosetta.api.model.rest.AccountIdentifier;
 import org.cardanofoundation.rosetta.api.util.CardanoAddressUtils;
+import org.cardanofoundation.rosetta.api.util.DataItemDecodeUtil;
+import org.cardanofoundation.rosetta.api.util.DataItemEncodeUtil;
 import org.cardanofoundation.rosetta.api.util.ParseConstructionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,8 +70,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
 
   @Override
   public ConstructionDeriveResponse constructionDeriveService(
-      ConstructionDeriveRequest constructionDeriveRequest)
-      throws IllegalAccessException, CborSerializationException {
+      ConstructionDeriveRequest constructionDeriveRequest){
     PublicKey publicKey = constructionDeriveRequest.getPublicKey();
     NetworkIdentifierType networkIdentifier = cardanoService.getNetworkIdentifierByRequestParameters(
         constructionDeriveRequest.getNetworkIdentifier());
@@ -214,7 +211,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
     );
     List<SigningPayload> payloads = cardanoService.constructPayloadsForTransactionBody(
         unsignedTransaction.getHash(), unsignedTransaction.getAddresses());
-    String unsignedTransactionString = cardanoService.encodeExtraData(
+    String unsignedTransactionString = DataItemEncodeUtil.encodeExtraData(
         unsignedTransaction.getBytes(),
         new TransactionExtraData(constructionPayloadsRequest.getOperations(),
             unsignedTransaction.getMetadata()));
@@ -223,8 +220,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
 
   @Override
   public ConstructionParseResponse constructionParseService(
-      ConstructionParseRequest constructionParseRequest)
-      throws Exception {
+      ConstructionParseRequest constructionParseRequest){
     Boolean signed = constructionParseRequest.getSigned();
     if (signed == null) {
       throw ExceptionFactory.unspecifiedError("body should have required property signed");
@@ -233,7 +229,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
         constructionParseRequest.getNetworkIdentifier());
     log.info(constructionParseRequest.getTransaction() + "[constructionParse] Processing");
     Array array = cardanoService.decodeExtraData(constructionParseRequest.getTransaction());
-    TransactionExtraData extraData = cardanoService.changeFromMaptoObject(
+    TransactionExtraData extraData = DataItemDecodeUtil.changeFromMaptoObject(
         (Map) array.getDataItems().get(1));
     log.info(array + "[constructionParse] Decoded");
     TransactionParsed result;
@@ -252,11 +248,11 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
   @Override
   public ConstructionCombineResponse constructionCombineService(
       ConstructionCombineRequest constructionCombineRequest)
-      throws CborException, CborSerializationException, JsonProcessingException {
+      throws CborException{
     log.info("[constructionCombine] Request received to sign a transaction");
     Array array = cardanoService.decodeExtraData(
         constructionCombineRequest.getUnsignedTransaction());
-    TransactionExtraData extraData = cardanoService.changeFromMaptoObject(
+    TransactionExtraData extraData = DataItemDecodeUtil.changeFromMaptoObject(
         (Map) array.getDataItems().get(1));
     String signedTransaction = cardanoService.buildTransaction(
         ((UnicodeString) array.getDataItems().get(0)).getString(),
@@ -281,7 +277,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
     log.info(signedTransaction + "[constructionCombine] About to return signed transaction");
     // eslint-disable-next-line camelcase
     return new ConstructionCombineResponse(
-        cardanoService.encodeExtraData(signedTransaction, extraData));
+        DataItemEncodeUtil.encodeExtraData(signedTransaction, extraData));
   }
 
   @Override

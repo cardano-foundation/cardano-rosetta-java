@@ -120,7 +120,6 @@ public class ProcessContruction {
 
 
   public static ProcessPoolRegistrationReturnDto processPoolRegistration(
-      NetworkIdentifierType networkIdentifierType,
       Operation operation) {
     log.info("[processPoolRegistration] About to process pool registration operation");
 

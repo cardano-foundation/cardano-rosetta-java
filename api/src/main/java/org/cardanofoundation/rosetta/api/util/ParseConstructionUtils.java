@@ -211,7 +211,7 @@ public class ParseConstructionUtils {
             CardanoAddressUtils.hexFormatter(HexUtil.decodeHexString(input.getTransactionId())) + ":"
                 + input.getIndex()), CoinAction.SPENT.getValue()), null);
   }
-  public static String parseAddress(String address, String addressPrefix) {
+  public static String parseAddress(String address) {
     return address;
   }
   public static Operation parseOutputToOperation(TransactionOutput output, Long index,
@@ -425,7 +425,7 @@ public class ParseConstructionUtils {
     Address rewardAddress = CardanoAddressUtils.getAddressFromHexString(
         CardanoAddressUtils.remove0xPrefix(HexUtil.encodeHexString(rewardAddressP))
     );
-    if (rewardAddress == null) {
+    if (rewardAddress.getAddress() == null) {
       throw ExceptionFactory.invalidAddressError();
     }
     BigInteger votingNonce = (BigInteger) data.get(
@@ -495,12 +495,12 @@ public class ParseConstructionUtils {
       MultiHostName multiHostRelay = getMultiHostRelay(relay);
       SingleHostName singleHostName = getSingleHostName(relay);
       SingleHostAddr singleHostAddr = getSingleHostAddr(relay);
-      if (!ObjectUtils.isEmpty(multiHostRelay) || !ObjectUtils.isEmpty(singleHostName)) {
+      if (multiHostRelay!=null || singleHostName!=null) {
         addRelayToPoolReLayOfTypeMultiHostOrSingleHostName(poolRelays, multiHostRelay,
             singleHostName);
         continue;
       }
-      if (!ObjectUtils.isEmpty(singleHostAddr)) {
+      if (singleHostAddr!=null) {
         addRelayToPoolReLayOfTypeSingleHostAddr(poolRelays, singleHostAddr);
       }
     }
@@ -573,12 +573,8 @@ public class ParseConstructionUtils {
       List<String> accum = new ArrayList<>();
       extraData.getOperations().forEach(o ->
           {
-            try {
-              List<String> list = ConVertConstructionUtil.getSignerFromOperation(networkIdentifierType, o);
-              accum.addAll(list);
-            } catch (CborSerializationException e) {
-              throw ExceptionFactory.cantCreateSignedTransactionFromBytes();
-            }
+            List<String> list = ConVertConstructionUtil.getSignerFromOperation(networkIdentifierType, o);
+            accum.addAll(list);
           }
       );
       List<AccountIdentifier> accountIdentifierSigners = ConVertConstructionUtil.getUniqueAccountIdentifiers(accum);

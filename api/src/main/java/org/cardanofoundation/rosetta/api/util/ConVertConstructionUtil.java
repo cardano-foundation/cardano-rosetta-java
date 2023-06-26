@@ -29,6 +29,9 @@ import org.cardanofoundation.rosetta.api.projection.dto.PoolRegistrationCertRetu
 
 @Slf4j
 public class ConVertConstructionUtil {
+  private ConVertConstructionUtil() {
+
+  }
 
   public static List<Operation> convert(TransactionBody transactionBody,
       TransactionExtraData extraData,
@@ -73,7 +76,7 @@ public class ConVertConstructionUtil {
     List<OperationIdentifier> relatedOperations = getRelatedOperationsFromInputs(operations);
     log.info("[parseOperationsFromTransactionBody] About to parse {} outputs", outputs.size());
     for (TransactionOutput output : outputs) {
-      String address = ParseConstructionUtils.parseAddress(output.getAddress(), CardanoAddressUtils.getAddressPrefix(network, null));
+      String address = ParseConstructionUtils.parseAddress(output.getAddress());
       Operation outputParsed = ParseConstructionUtils.parseOutputToOperation(output, (long) operations.size(),
           relatedOperations, address);
       operations.add(outputParsed);
@@ -111,7 +114,7 @@ public class ConVertConstructionUtil {
         .toList();
   }
   public static List<String> getSignerFromOperation(NetworkIdentifierType networkIdentifierType,
-      Operation operation) throws CborSerializationException {
+      Operation operation) {
     if (Constants.PoolOperations.contains(operation.getType())) {
       return getPoolSigners(networkIdentifierType, operation);
     }

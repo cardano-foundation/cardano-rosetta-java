@@ -97,23 +97,9 @@ public interface CardanoService {
     BlockDto getLatestBlock();
 
     Long findLatestBlockNumber();
-
-
-    String encodeExtraData(String transaction, TransactionExtraData extraData) throws JsonProcessingException, CborSerializationException, CborException;
-
     Array decodeExtraData(String encoded);
 
-    co.nstant.in.cbor.model.Map getPublicKeymap(PublicKey publicKey);
-
-    co.nstant.in.cbor.model.Map getAmountMap(Amount amount);
-
     List<SigningPayload> constructPayloadsForTransactionBody(String transactionBodyHash, Set<String> addresses);
-
-    TransactionExtraData changeFromMaptoObject(co.nstant.in.cbor.model.Map map);
-
-    PublicKey getPublicKeyFromMap(co.nstant.in.cbor.model.Map stakingCredentialMap);
-
-    Amount getAmountFromMap(co.nstant.in.cbor.model.Map amountMap);
 
     String getHashOfSignedTransaction(String signedTransaction);
 

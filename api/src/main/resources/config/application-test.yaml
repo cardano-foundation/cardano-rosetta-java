@@ -17,9 +17,9 @@ spring:
       max-request-size: 16MB
   datasource:
     driver-class-name: org.postgresql.Driver
-    username: ${DB_USER_TEST:postgres}
-    password: ${DB_SECRET_TEST:123456}
-    url: jdbc:postgresql://${DB_HOST_TEST:localhost}:${DB_PORT_TEST:5437}/${DB_NAME_TEST:test}?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC&useLegacyDatetimeCode=false&createDatabaseIfNotExist=true&autoReconnect=true
+    username: ${DB_USER_TEST:rosetta_db_service_user}
+    password: ${DB_SECRET_TEST:weakerpwd#123_d}
+    url: jdbc:postgresql://${DB_HOST_TEST:172.16.1.217}:${DB_PORT_TEST:5432}/${DB_NAME_TEST:rosetta}?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC&useLegacyDatetimeCode=false&createDatabaseIfNotExist=true&autoReconnect=true
   jpa:
     properties:
       hibernate:
@@ -113,7 +113,7 @@ cardano:
       ]
     TOPOLOGY_FILEPATH: network-config/network/${NETWORK:mainnet}/cardano-node/topology.json
     GENESIS_SHELLEY_PATH: network-config/network/${NETWORK:mainnet}/genesis/shelley.json
-    CARDANO_NODE_PATH: ${CARDANO_NODE_PATH}
+    CARDANO_NODE_PATH: ${CARDANO_NODE_PATH:/home/sotatek/Downloads/cardano-node-1.35.4-linux/cardano-node}
     EXEMPTION_TYPES_PATH: network-config/network/exemptions.json
 
 
@@ -121,7 +121,7 @@ page-size: ${PAGE_SIZE:5}
 cardano-transaction-submitter:
   connection:
     socket:
-      path: ${SUBMIT_SOCKET_CONNECTION}
+      path: ${SUBMIT_SOCKET_CONNECTION:/home/sotatek/Desktop/node-ipc/node.socket}
 
   networkMagic: ${NETWORK_MAGIC:1}
 
