@@ -199,6 +199,10 @@ public class AddressBalanceServiceImpl implements AddressBalanceService {
         rolledBackStakeAddressesCount.incrementAndGet();
       }
 
+      String account = Objects.nonNull(stakeAddressId) ?
+                       stakeAddressId.toString() : addressStr;
+      Integer epochNo = addressTxBalance.getEpochNo();
+
       Set<String> txHashes = addressTxHashesMap.computeIfAbsent(addressStr, s -> new HashSet<>());
       String txHash = addressTxBalance.getTxHash();
       if (!txHashes.contains(txHash)) {
@@ -254,7 +258,13 @@ public class AddressBalanceServiceImpl implements AddressBalanceService {
         .map(txNativeBalanceEntry -> {
           String txHash = txNativeBalanceEntry.getKey();
           BigInteger balance = txNativeBalanceEntry.getValue().get();
-          return buildAddressTxBalance(address, stakeAddress, balance, txMap.get(txHash));
+          Tx tx = txMap.get(txHash);
+
+          // Increment this account (address)'s tx count
+          Integer epochNo = tx.getBlock().getEpochNo();
+          String account = Objects.isNull(address.getStakeAddress()) ?
+                           address.getAddress() : address.getStakeAddress().getId().toString();
+          return buildAddressTxBalance(address, stakeAddress, balance, tx);
         });
   }
 

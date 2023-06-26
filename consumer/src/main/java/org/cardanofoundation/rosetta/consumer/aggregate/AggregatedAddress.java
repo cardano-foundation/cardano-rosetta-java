@@ -3,6 +3,7 @@ package org.cardanofoundation.rosetta.consumer.aggregate;
 import com.bloxbean.cardano.client.crypto.Base58;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
 import org.cardanofoundation.rosetta.common.ledgersync.address.ShelleyAddress;
@@ -11,6 +12,7 @@ import org.cardanofoundation.rosetta.consumer.constant.ConsumerConstant;
 
 import java.util.Arrays;
 
+@Builder
 @Getter
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -30,19 +32,19 @@ public class AggregatedAddress {
       }
 
       return new AggregatedAddress(
-          address,
-          shelleyAddress.getBytes(),
-          stakeReference,
-          shelleyAddress.getHexPaymentPart(),
-          shelleyAddress.addressHasScript()
+              address,
+              shelleyAddress.getBytes(),
+              stakeReference,
+              shelleyAddress.getHexPaymentPart(),
+              shelleyAddress.addressHasScript()
       );
     }
 
     return new AggregatedAddress(address,
-        Base58.decode(address),
-        new byte[0],
-        null,
-        false
+            Base58.decode(address),
+            new byte[0],
+            null,
+            false
     );
   }
 
@@ -52,6 +54,7 @@ public class AggregatedAddress {
 
   public String getStakeAddress() {
     return !hasStakeReference() ? null
-        : HexUtil.encodeHexString(stakeReference);
+            : HexUtil.encodeHexString(stakeReference);
   }
 }
+

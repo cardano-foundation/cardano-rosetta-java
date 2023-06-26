@@ -1,7 +1,9 @@
 package org.cardanofoundation.rosetta.consumer.repository;
 
 import org.cardanofoundation.rosetta.common.entity.Address;
+import org.cardanofoundation.rosetta.common.entity.Address_;
 import org.cardanofoundation.rosetta.common.entity.StakeAddress;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -21,6 +23,7 @@ public interface AddressRepository extends JpaRepository<Address, Long> {
    * be marked as read-only transaction, as the changes will be applied later through
    * JPA save() or saveAll() methods
    */
+  @EntityGraph(attributePaths = Address_.STAKE_ADDRESS)
   @Transactional(readOnly = true, propagation = Propagation.REQUIRES_NEW)
   List<Address> findAllByAddressIn(Collection<String> addresses);
 

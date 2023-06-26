@@ -9,4 +9,6 @@ public interface AddressTxBalanceProjection {
   BigInteger getBalance();
 
   String getTxHash();
+
+  Integer getEpochNo();
 }
