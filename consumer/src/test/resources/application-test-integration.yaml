@@ -5,14 +5,12 @@ infrastructure:
 spring:
   # Datasource specific configs
   datasource:
-    type: com.zaxxer.hikari.HikariDataSource
-    url: jdbc:hsqldb:mem:myDb
-    username: cardano-test
-    password: password321
-    driver-class-name: org.hsqldb.jdbc.JDBCDriver
+    url: jdbc:tc:postgresql:12.9-alpine:///spring_boot_testcontainers
+  test:
+    database:
+      replace: none
   jpa:
     open-in-view: false
-    database-platform: org.hibernate.dialect.HSQLDialect
     hibernate:
       ddl-auto: create-drop
     properties:
@@ -50,7 +48,7 @@ spring:
             packages: "*"
     bootstrap-servers: localhost:29999
     listener:
-      ack-mode: record
+      ack-mode: batch
   data:
     redis:
       port: 6739
