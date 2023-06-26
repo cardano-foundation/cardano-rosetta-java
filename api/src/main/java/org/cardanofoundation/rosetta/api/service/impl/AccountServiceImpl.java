@@ -15,6 +15,7 @@ import org.cardanofoundation.rosetta.api.projection.dto.BlockUtxos;
 import org.cardanofoundation.rosetta.api.service.AccountService;
 import org.cardanofoundation.rosetta.api.service.BlockService;
 import org.cardanofoundation.rosetta.api.service.CardanoService;
+import org.cardanofoundation.rosetta.api.util.CardanoAddressUtils;
 import org.cardanofoundation.rosetta.api.util.Validations;
 import org.springframework.stereotype.Service;
 
@@ -31,7 +32,7 @@ public class AccountServiceImpl implements AccountService {
     Long index = null;
     String hash = null;
     String accountAddress = accountBalanceRequest.getAccountIdentifier().getAddress();
-    if (Objects.isNull(cardanoService.getEraAddressType(accountAddress))) {
+    if (Objects.isNull(CardanoAddressUtils.getEraAddressType(accountAddress))) {
       throw ExceptionFactory.invalidAddressError(accountAddress);
     }
     log.info(
@@ -53,7 +54,7 @@ public class AccountServiceImpl implements AccountService {
     List<Currency> currencies = accountCoinsRequest.getCurrencies();
 
     log.debug("[accountCoins] Request received {}", accountCoinsRequest);
-    if (Objects.isNull(cardanoService.getEraAddressType(accountAddress))) {
+    if (Objects.isNull(CardanoAddressUtils.getEraAddressType(accountAddress))) {
       log.debug("[accountCoins] Address isn't Era");
       throw ExceptionFactory.invalidAddressError(accountAddress);
     }

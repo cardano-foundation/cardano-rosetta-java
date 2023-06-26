@@ -5,18 +5,14 @@ import co.nstant.in.cbor.model.Array;
 import co.nstant.in.cbor.model.Map;
 import co.nstant.in.cbor.model.UnicodeString;
 import com.bloxbean.cardano.client.exception.AddressExcepion;
-import com.bloxbean.cardano.client.exception.CborDeserializationException;
 import com.bloxbean.cardano.client.exception.CborSerializationException;
-import com.bloxbean.cardano.client.transaction.spec.Transaction;
 import com.bloxbean.cardano.client.util.HexUtil;
 import com.bloxbean.cardano.yaci.core.protocol.localtx.model.TxSubmissionRequest;
 import com.bloxbean.cardano.yaci.helper.LocalTxSubmissionClient;
 import com.bloxbean.cardano.yaci.helper.model.TxResult;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -56,12 +52,16 @@ import org.cardanofoundation.rosetta.api.model.rest.ConstructionSubmitRequest;
 import org.cardanofoundation.rosetta.api.model.rest.TransactionIdentifierResponse;
 import org.cardanofoundation.rosetta.api.service.CardanoService;
 import org.cardanofoundation.rosetta.api.service.ConstructionApiService;
-import org.cardanofoundation.rosetta.common.ledgersync.constant.Constant;
+import org.cardanofoundation.rosetta.api.util.CardanoAddressUtils;
+import org.cardanofoundation.rosetta.api.util.DataItemDecodeUtil;
+import org.cardanofoundation.rosetta.api.util.DataItemEncodeUtil;
+import org.cardanofoundation.rosetta.api.util.ParseConstructionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+
 
 @Slf4j
 @Service
@@ -71,7 +71,7 @@ import org.springframework.stereotype.Service;
 public class ConstructionApiServiceImpl implements ConstructionApiService {
 
   @Autowired
-  private CardanoService cardanoService;
+  public CardanoService cardanoService;
 
   @Autowired
   private LocalTxSubmissionClient localTxSubmissionClient;
@@ -80,24 +80,16 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
   @Qualifier("redisTemplateString")
   private RedisTemplate<String, String> redisTemplate;
 
-//  public ConstructionApiServiceImpl(CardanoService cardanoService,
-//      LocalTxSubmissionClient localTxSubmissionClient,
-//      @Qualifier("redisTemplateString") RedisTemplate<String, String> redisTemplateString) {
-//    this.cardanoService = cardanoService;
-//    this.localTxSubmissionClient = localTxSubmissionClient;
-//    this.redisTemplate = redisTemplateString;
-//  }
-
   @Override
   public ConstructionDeriveResponse constructionDeriveService(
-      ConstructionDeriveRequest constructionDeriveRequest)
-      throws IllegalAccessException, CborSerializationException {
+      ConstructionDeriveRequest constructionDeriveRequest) {
     PublicKey publicKey = constructionDeriveRequest.getPublicKey();
     NetworkIdentifierType networkIdentifier = cardanoService.getNetworkIdentifierByRequestParameters(
         constructionDeriveRequest.getNetworkIdentifier());
 
     log.info("[constructionDerive] About to check if public key has valid length and curve type");
-    if (!cardanoService.isKeyValid(publicKey.getHexBytes(), publicKey.getCurveType())) {
+    if (Boolean.FALSE.equals(
+        CardanoAddressUtils.isKeyValid(publicKey.getHexBytes(), publicKey.getCurveType()))) {
       log.info("[constructionDerive] Public key has an invalid format");
       throw ExceptionFactory.invalidPublicKeyFormat();
     }
@@ -107,11 +99,11 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
     PublicKey stakingCredential =
         ObjectUtils.isEmpty(constructionDeriveRequest.getMetadata()) ? null
             : constructionDeriveRequest.getMetadata().getStakingCredential();
-    if (!ObjectUtils.isEmpty(stakingCredential)) {
+    if (stakingCredential != null) {
       log.info(
           "[constructionDerive] About to check if staking credential has valid length and curve type");
-      if (!cardanoService.isKeyValid(stakingCredential.getHexBytes(),
-          stakingCredential.getCurveType())) {
+      if (Boolean.FALSE.equals(CardanoAddressUtils.isKeyValid(stakingCredential.getHexBytes(),
+          stakingCredential.getCurveType()))) {
         log.info("[constructionDerive] Staking credential has an invalid format");
         throw ExceptionFactory.invalidStakingKeyFormat();
       }
@@ -131,11 +123,11 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
     }
 
     log.info("[constructionDerive] About to generate address");
-    String address = cardanoService.generateAddress(
+    String address = CardanoAddressUtils.generateAddress(
         networkIdentifier,
         publicKey.getHexBytes(),
         // eslint-disable-next-line camelcase
-        ObjectUtils.isEmpty(stakingCredential) ? null : stakingCredential.getHexBytes(),
+        stakingCredential == null ? null : stakingCredential.getHexBytes(),
         AddressType.findByValue(addressType)
     );
     if (address == null) {
@@ -190,30 +182,36 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
         protocolParametersResponse);
     log.debug("[constructionMetadata] suggested fee is ${suggestedFee}");
     // eslint-disable-next-line camelcase
-    ProtocolParameters protocol_parameters = new ProtocolParameters();
-    protocol_parameters.setCoinsPerUtxoSize(
-        protocolParametersResponse.getCoinsPerUtxoSize().toString());
-    protocol_parameters.setMaxTxSize(protocolParametersResponse.getMaxTxSize());
-    protocol_parameters.setMaxValSize(protocolParametersResponse.getMaxValSize());
-    protocol_parameters.setKeyDeposit(protocolParametersResponse.getKeyDeposit().toString());
-    protocol_parameters.setMaxCollateralInputs(protocolParametersResponse.getMaxCollateralInputs());
-    protocol_parameters.setMinFeeConstant(protocolParametersResponse.getMinFeeConstant());
-    protocol_parameters.setMinFeeCoefficient(protocolParametersResponse.getMinFeeCoefficient());
-    protocol_parameters.setMinPoolCost(protocolParametersResponse.getMinPoolCost().toString());
-    protocol_parameters.setPoolDeposit(protocolParametersResponse.getPoolDeposit().toString());
-    protocol_parameters.setProtocol(protocolParametersResponse.getProtocol());
+    ProtocolParameters protocolParameters = new ProtocolParameters();
+    protocolParameters.setCoinsPerUtxoSize(
+        protocolParametersResponse.getCoinsPerUtxoSize());
+    protocolParameters.setMaxTxSize(protocolParametersResponse.getMaxTxSize());
+    protocolParameters.setMaxValSize(protocolParametersResponse.getMaxValSize());
+    protocolParameters.setKeyDeposit(protocolParametersResponse.getKeyDeposit());
+    protocolParameters.setMaxCollateralInputs(protocolParametersResponse.getMaxCollateralInputs());
+    protocolParameters.setMinFeeConstant(protocolParametersResponse.getMinFeeConstant());
+    protocolParameters.setMinFeeCoefficient(protocolParametersResponse.getMinFeeCoefficient());
+    protocolParameters.setMinPoolCost(protocolParametersResponse.getMinPoolCost());
+    protocolParameters.setPoolDeposit(protocolParametersResponse.getPoolDeposit());
+    protocolParameters.setProtocol(protocolParametersResponse.getProtocol());
     return new ConstructionMetadataResponse(
-        new ConstructionMetadataResponseMetadata(ttl.toString(), protocol_parameters),
+        new ConstructionMetadataResponseMetadata(ttl.toString(), protocolParameters),
         new ArrayList<>(
-            List.of(cardanoService.mapAmount(suggestedFee.toString(), null, null, null))));
+            List.of(CardanoAddressUtils.mapAmount(suggestedFee.toString(), null, null, null))));
   }
 
   @Override
   public ConstructionPayloadsResponse constructionPayloadsService(
       ConstructionPayloadsRequest constructionPayloadsRequest)
-      throws IOException, CborException, CborSerializationException, AddressExcepion {
+      throws Exception {
     String ttl = constructionPayloadsRequest.getMetadata().getTtl();
     List<Operation> operations = constructionPayloadsRequest.getOperations();
+    for (int i = 0; i < operations.size(); i++) {
+      if (operations.get(0).getOperationIdentifier() == null) {
+        throw ExceptionFactory.unspecifiedError(
+            "body[" + i + "]" + " should have required property operation_identifier");
+      }
+    }
     NetworkIdentifierType networkIdentifier = cardanoService.getNetworkIdentifierByRequestParameters(
         constructionPayloadsRequest.getNetworkIdentifier());
     log.info(operations + "[constuctionPayloads] Operations about to be processed");
@@ -228,7 +226,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
     );
     List<SigningPayload> payloads = cardanoService.constructPayloadsForTransactionBody(
         unsignedTransaction.getHash(), unsignedTransaction.getAddresses());
-    String unsignedTransactionString = cardanoService.encodeExtraData(
+    String unsignedTransactionString = DataItemEncodeUtil.encodeExtraData(
         unsignedTransaction.getBytes(),
         new TransactionExtraData(constructionPayloadsRequest.getOperations(),
             unsignedTransaction.getMetadata()));
@@ -237,27 +235,26 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
 
   @Override
   public ConstructionParseResponse constructionParseService(
-      ConstructionParseRequest constructionParseRequest)
-      throws Exception {
+      ConstructionParseRequest constructionParseRequest) {
     Boolean signed = constructionParseRequest.getSigned();
     if (signed == null) {
-      throw new Exception("body should have required property signed");
+      throw ExceptionFactory.unspecifiedError("body should have required property signed");
     }
     NetworkIdentifierType networkIdentifier = cardanoService.getNetworkIdentifierByRequestParameters(
         constructionParseRequest.getNetworkIdentifier());
     log.info(constructionParseRequest.getTransaction() + "[constructionParse] Processing");
     Array array = cardanoService.decodeExtraData(constructionParseRequest.getTransaction());
-    TransactionExtraData extraData = cardanoService.changeFromMaptoObject(
+    TransactionExtraData extraData = DataItemDecodeUtil.changeFromMaptoObject(
         (Map) array.getDataItems().get(1));
     log.info(array + "[constructionParse] Decoded");
     TransactionParsed result;
     if (signed) {
-      result = cardanoService.parseSignedTransaction(networkIdentifier,
+      result = ParseConstructionUtils.parseSignedTransaction(networkIdentifier,
           ((UnicodeString) array.getDataItems().get(0)).getString(), extraData);
       return new ConstructionParseResponse(null, result.getOperations(),
           result.getAccount_identifier_signers());
     }
-    result = cardanoService.parseUnsignedTransaction(networkIdentifier,
+    result = ParseConstructionUtils.parseUnsignedTransaction(networkIdentifier,
         ((UnicodeString) array.getDataItems().get(0)).getString(), extraData);
     return new ConstructionParseResponse(null, result.getOperations(),
         result.getAccount_identifier_signers());
@@ -266,11 +263,11 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
   @Override
   public ConstructionCombineResponse constructionCombineService(
       ConstructionCombineRequest constructionCombineRequest)
-      throws CborException, CborSerializationException, JsonProcessingException {
+      throws CborException {
     log.info("[constructionCombine] Request received to sign a transaction");
     Array array = cardanoService.decodeExtraData(
         constructionCombineRequest.getUnsignedTransaction());
-    TransactionExtraData extraData = cardanoService.changeFromMaptoObject(
+    TransactionExtraData extraData = DataItemDecodeUtil.changeFromMaptoObject(
         (Map) array.getDataItems().get(1));
     String signedTransaction = cardanoService.buildTransaction(
         ((UnicodeString) array.getDataItems().get(0)).getString(),
@@ -289,13 +286,13 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
           return new Signatures(signature.getHexBytes(),
               signature.getPublicKey().getHexBytes(),
               chainCode, address);
-        }).collect(Collectors.toList()),
+        }).toList(),
         extraData.getTransactionMetadataHex()
     );
     log.info(signedTransaction + "[constructionCombine] About to return signed transaction");
     // eslint-disable-next-line camelcase
     return new ConstructionCombineResponse(
-        cardanoService.encodeExtraData(signedTransaction, extraData));
+        DataItemEncodeUtil.encodeExtraData(signedTransaction, extraData));
   }
 
   @Override
@@ -312,19 +309,18 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
 
   @Override
   public TransactionIdentifierResponse constructionSubmitService(
-      @NotNull ConstructionSubmitRequest constructionSubmitRequest)
-      throws CborDeserializationException, CborSerializationException {
+      @NotNull ConstructionSubmitRequest constructionSubmitRequest) {
     Array array = cardanoService.decodeExtraData(constructionSubmitRequest.getSignedTransaction());
     byte[] signedTransactionBytes = HexUtil.decodeHexString(
         ((UnicodeString) array.getDataItems().get(0)).getString());
-    Transaction parsed = Transaction.deserialize(signedTransactionBytes);
     TxSubmissionRequest txnRequest = new TxSubmissionRequest(signedTransactionBytes);
-      redisTemplate
-              .opsForValue()
-              .set(Constants.REDIS_PREFIX_PENDING + txnRequest.getTxHash(), constructionSubmitRequest.getSignedTransaction());
+    redisTemplate
+        .opsForValue()
+        .set(Constants.REDIS_PREFIX_PENDING + txnRequest.getTxHash(),
+            constructionSubmitRequest.getSignedTransaction());
     TxResult txResult = localTxSubmissionClient.submitTx(txnRequest).block();
-    if (!txResult.isAccepted()) {
-      throw ExceptionFactory.submitRejected();
+    if (txResult != null && !txResult.isAccepted()) {
+      throw ExceptionFactory.submitRejected(txResult.getErrorCbor());
     }
     return cardanoService.mapToConstructionHashResponse(txResult.getTxHash());
 
