@@ -2,7 +2,11 @@ package org.cardanofoundation.rosetta.api.service.impl;
 
 import co.nstant.in.cbor.CborDecoder;
 import co.nstant.in.cbor.CborException;
-import co.nstant.in.cbor.model.*;
+import co.nstant.in.cbor.model.Array;
+import co.nstant.in.cbor.model.DataItem;
+import co.nstant.in.cbor.model.MajorType;
+import co.nstant.in.cbor.model.UnicodeString;
+import co.nstant.in.cbor.model.UnsignedInteger;
 import com.bloxbean.cardano.client.address.Address;
 import com.bloxbean.cardano.client.address.AddressProvider;
 import com.bloxbean.cardano.client.address.ByronAddress;
@@ -18,96 +22,121 @@ import com.bloxbean.cardano.client.exception.CborDeserializationException;
 import com.bloxbean.cardano.client.exception.CborSerializationException;
 import com.bloxbean.cardano.client.metadata.cbor.CBORMetadata;
 import com.bloxbean.cardano.client.metadata.cbor.CBORMetadataMap;
-import com.bloxbean.cardano.client.transaction.spec.*;
-import com.bloxbean.cardano.client.transaction.spec.cert.*;
-import com.bloxbean.cardano.yaci.core.util.CborSerializationUtil;
+import com.bloxbean.cardano.client.transaction.spec.Asset;
+import com.bloxbean.cardano.client.transaction.spec.AuxiliaryData;
+import com.bloxbean.cardano.client.transaction.spec.BootstrapWitness;
+import com.bloxbean.cardano.client.transaction.spec.MultiAsset;
+import com.bloxbean.cardano.client.transaction.spec.Transaction;
+import com.bloxbean.cardano.client.transaction.spec.TransactionBody;
+import com.bloxbean.cardano.client.transaction.spec.TransactionInput;
+import com.bloxbean.cardano.client.transaction.spec.TransactionOutput;
+import com.bloxbean.cardano.client.transaction.spec.TransactionWitnessSet;
+import com.bloxbean.cardano.client.transaction.spec.UnitInterval;
+import com.bloxbean.cardano.client.transaction.spec.Value;
+import com.bloxbean.cardano.client.transaction.spec.VkeyWitness;
+import com.bloxbean.cardano.client.transaction.spec.Withdrawal;
+import com.bloxbean.cardano.client.transaction.spec.cert.Certificate;
+import com.bloxbean.cardano.client.transaction.spec.cert.MultiHostName;
+import com.bloxbean.cardano.client.transaction.spec.cert.PoolRegistration;
+import com.bloxbean.cardano.client.transaction.spec.cert.PoolRetirement;
+import com.bloxbean.cardano.client.transaction.spec.cert.SingleHostAddr;
+import com.bloxbean.cardano.client.transaction.spec.cert.SingleHostName;
+import com.bloxbean.cardano.client.transaction.spec.cert.StakeCredential;
+import com.bloxbean.cardano.client.transaction.spec.cert.StakeDelegation;
+import com.bloxbean.cardano.client.transaction.spec.cert.StakeDeregistration;
+import com.bloxbean.cardano.client.transaction.spec.cert.StakePoolId;
+import com.bloxbean.cardano.client.transaction.spec.cert.StakeRegistration;
 import com.bloxbean.cardano.client.util.HexUtil;
+import com.bloxbean.cardano.yaci.core.util.CborSerializationUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
-
+import java.io.IOException;
+import java.math.BigInteger;
+import java.net.Inet4Address;
+import java.net.Inet6Address;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
-
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.validator.routines.InetAddressValidator;
 import org.cardanofoundation.rosetta.api.common.constants.Constants;
-import org.cardanofoundation.rosetta.api.common.enumeration.CatalystSigIndexes;
-import org.cardanofoundation.rosetta.api.common.enumeration.EraAddressType;
-import org.cardanofoundation.rosetta.api.common.enumeration.OperationType;
-import org.cardanofoundation.rosetta.api.common.enumeration.StakeAddressPrefix;
-import org.cardanofoundation.rosetta.api.model.Metadata;
-import org.cardanofoundation.rosetta.api.model.ProtocolParameters;
-import org.cardanofoundation.rosetta.api.projection.dto.ProcessOperationsDto;
-import org.cardanofoundation.rosetta.api.model.Signatures;
-import org.cardanofoundation.rosetta.api.model.UnsignedTransaction;
-import org.cardanofoundation.rosetta.api.projection.dto.PoolRegistationParametersReturnDto;
-import org.cardanofoundation.rosetta.api.projection.dto.PoolRegistrationCertReturnDto;
-import org.cardanofoundation.rosetta.api.projection.dto.ProcessOperationsReturnDto;
-import org.cardanofoundation.rosetta.api.projection.dto.ProcessPoolRegistrationReturnDto;
-import org.cardanofoundation.rosetta.api.projection.dto.ProcessWithdrawalReturnDto;
 import org.cardanofoundation.rosetta.api.common.enumeration.AddressType;
 import org.cardanofoundation.rosetta.api.common.enumeration.CatalystDataIndexes;
 import org.cardanofoundation.rosetta.api.common.enumeration.CatalystLabels;
+import org.cardanofoundation.rosetta.api.common.enumeration.CatalystSigIndexes;
+import org.cardanofoundation.rosetta.api.common.enumeration.EraAddressType;
 import org.cardanofoundation.rosetta.api.common.enumeration.NetworkIdentifierType;
 import org.cardanofoundation.rosetta.api.common.enumeration.NonStakeAddressPrefix;
-import org.cardanofoundation.rosetta.common.ledgersync.RelayType;
-
+import org.cardanofoundation.rosetta.api.common.enumeration.OperationType;
+import org.cardanofoundation.rosetta.api.common.enumeration.StakeAddressPrefix;
 import org.cardanofoundation.rosetta.api.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.api.model.AccountIdentifierMetadata;
 import org.cardanofoundation.rosetta.api.model.Amount;
 import org.cardanofoundation.rosetta.api.model.CoinAction;
 import org.cardanofoundation.rosetta.api.model.CoinChange;
 import org.cardanofoundation.rosetta.api.model.CoinIdentifier;
+import org.cardanofoundation.rosetta.api.model.Currency;
 import org.cardanofoundation.rosetta.api.model.CurveType;
 import org.cardanofoundation.rosetta.api.model.DepositParameters;
+import org.cardanofoundation.rosetta.api.model.Metadata;
 import org.cardanofoundation.rosetta.api.model.Operation;
 import org.cardanofoundation.rosetta.api.model.OperationIdentifier;
 import org.cardanofoundation.rosetta.api.model.OperationMetadata;
 import org.cardanofoundation.rosetta.api.model.PoolMargin;
 import org.cardanofoundation.rosetta.api.model.PoolMetadata;
 import org.cardanofoundation.rosetta.api.model.PoolRegistrationParams;
+import org.cardanofoundation.rosetta.api.model.ProtocolParameters;
 import org.cardanofoundation.rosetta.api.model.PublicKey;
 import org.cardanofoundation.rosetta.api.model.Relay;
 import org.cardanofoundation.rosetta.api.model.SignatureType;
+import org.cardanofoundation.rosetta.api.model.Signatures;
 import org.cardanofoundation.rosetta.api.model.SigningPayload;
 import org.cardanofoundation.rosetta.api.model.SubAccountIdentifier;
 import org.cardanofoundation.rosetta.api.model.TokenBundleItem;
 import org.cardanofoundation.rosetta.api.model.TransactionExtraData;
 import org.cardanofoundation.rosetta.api.model.TransactionIdentifier;
 import org.cardanofoundation.rosetta.api.model.TransactionParsed;
+import org.cardanofoundation.rosetta.api.model.UnsignedTransaction;
 import org.cardanofoundation.rosetta.api.model.VoteRegistrationMetadata;
-import org.cardanofoundation.rosetta.api.projection.dto.BlockDto;
-import org.cardanofoundation.rosetta.api.service.LedgerDataProviderService;
-import org.cardanofoundation.rosetta.api.service.CardanoService;
-import org.cardanofoundation.rosetta.api.model.Currency;
 import org.cardanofoundation.rosetta.api.model.rest.AccountIdentifier;
 import org.cardanofoundation.rosetta.api.model.rest.NetworkIdentifier;
 import org.cardanofoundation.rosetta.api.model.rest.TransactionIdentifierResponse;
+import org.cardanofoundation.rosetta.api.projection.dto.BlockDto;
+import org.cardanofoundation.rosetta.api.projection.dto.PoolRegistationParametersReturnDto;
+import org.cardanofoundation.rosetta.api.projection.dto.PoolRegistrationCertReturnDto;
+import org.cardanofoundation.rosetta.api.projection.dto.ProcessOperationsDto;
+import org.cardanofoundation.rosetta.api.projection.dto.ProcessOperationsReturnDto;
+import org.cardanofoundation.rosetta.api.projection.dto.ProcessPoolRegistrationReturnDto;
+import org.cardanofoundation.rosetta.api.projection.dto.ProcessWithdrawalReturnDto;
+import org.cardanofoundation.rosetta.api.service.CardanoService;
+import org.cardanofoundation.rosetta.api.service.LedgerDataProviderService;
 import org.cardanofoundation.rosetta.api.util.CardanoAddressUtils;
+import org.cardanofoundation.rosetta.common.ledgersync.RelayType;
 import org.springframework.stereotype.Service;
-
-import java.io.IOException;
-import java.math.BigInteger;
-import java.net.Inet4Address;
-import java.net.Inet6Address;
-import java.net.UnknownHostException;
-import java.util.*;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicLong;
 
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class CardanoServiceImpl implements CardanoService {
 
-    final LedgerDataProviderService ledgerDataProviderService;
+    private final LedgerDataProviderService ledgerDataProviderService;
 
-    public CardanoServiceImpl(LedgerDataProviderService ledgerDataProviderService) {
-        this.ledgerDataProviderService = ledgerDataProviderService;
-    }
 
     @Override
     public String generateAddress(NetworkIdentifierType networkIdentifierType, String publicKeyString,

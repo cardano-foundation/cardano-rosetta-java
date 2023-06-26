@@ -12,11 +12,12 @@ import org.cardanofoundation.rosetta.api.model.rest.NetworkRequest;
 
 import java.net.UnknownHostException;
 import java.util.List;
+import java.util.Set;
 
 public interface MempoolMonitoringService {
   MempoolResponse getAllTransaction(NetworkRequest networkRequest);
 
-  List<byte[]> getAllTransactionsInMempool();
+  Set<String> getAllTransactionsInMempool();
   MempoolTransactionResponse getDetailTransaction(MempoolTransactionRequest mempoolTransactionRequest)
           throws CborException, CborDeserializationException, UnknownHostException
           , AddressExcepion, CborSerializationException, JsonProcessingException;
