@@ -20,6 +20,7 @@ import java.util.Objects;
 })
 @Getter
 @Setter
+@ToString
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder(toBuilder = true)
