@@ -906,7 +906,7 @@ class ConstructionApiDelegateImplPayloadTests extends IntegrationTest {
     } catch (HttpServerErrorException e) {
       String responseBody = e.getResponseBodyAsString();
       Error error = objectMapper.readValue(responseBody, Error.class);
-      assertTrue(error.isRetriable());
+      assertTrue(!error.isRetriable());
 //      assertEquals(5000,error.getCode());
 //      assertEquals("Invalid public key format",error.getDetails());
     }

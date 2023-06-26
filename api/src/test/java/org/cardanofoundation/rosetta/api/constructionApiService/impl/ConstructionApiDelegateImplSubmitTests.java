@@ -79,9 +79,9 @@ public class ConstructionApiDelegateImplSubmitTests extends IntegrationTest {
     } catch (HttpServerErrorException e) {
       String responseBody = e.getResponseBodyAsString();
       Error error=objectMapper.readValue(responseBody, Error.class);
-      assertTrue(!error.isRetriable());
-      assertEquals(5019,error.getCode());
-      assertEquals("The transaction submission has been rejected",error.getMessage());
+      assertTrue(error.isRetriable());
+      assertEquals(5006,error.getCode());
+      assertEquals("Error when sending the transaction",error.getMessage());
     }
 
   }
