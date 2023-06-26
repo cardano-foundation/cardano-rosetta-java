@@ -66,9 +66,10 @@ This is a RosettaAPI implementation using LedgeSync as a backend and Yaci/Bloxbe
 - `EXTERNAL_REDIS_MASTER_HOST`: Redis master host. Default is localhost.
 - `EXTERNAL_REDIS_MASTER_PORT`: Redis master port]. Default is 6371.
 - `EXTERNAL_REDIS_SLAVE_PORT`: Redis slave port. Default is 6372.
-- `EXTERNAL_REDIS_SENTINEL_PORT`: Redis sentinel port. Default is 26371.
+- `REDIS_SENTINEL_HOST`: Redis sentinel port. Default is redis-sentinel.
+- `REDIS_SENTINEL_PORT`: Redis sentinel port. Default is 26371.
 
-- `API_SPRING_PROFILES_ACTIVE` : Api spring profile [local, dev, test, prod]. Default is dev.
+- `API_SPRING_PROFILES_ACTIVE` : Api spring profile [local, dev, test, prod]. Default is dev, sentinel.
 - `API_EXPOSED_PORT` : Rosetta api exposed port. Default is 8080
 - `API_BIND_PORT` : Rosetta api bind port. Default is 8080
 - `SUBMIT_SOCKET_CONNECTION` : Submit socket connection. Default is /ipc/node.socket

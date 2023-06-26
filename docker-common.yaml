@@ -57,9 +57,9 @@ services:
       - cardano_redis_master
     command: redis-server --slaveof cardano_redis_master 6379
 
-  cardano_redis_sentinel:
+  redis-sentinel:
     image: 'bitnami/redis-sentinel:latest'
-    hostname: cardano.redis.sentinel
+    hostname: ${REDIS_SENTINEL_HOST}:redis-sentinel
     environment:
       - REDIS_MASTER_PASSWORD=${REDIS_MASTER_PASSWORD:-str0ng_passw0rd}
       - REDIS_MASTER_SET=${REDIS_MASTER_SET:-mymaster}
@@ -74,7 +74,7 @@ services:
       - cardano_redis_master
       - cardano_redis_slave
     ports:
-      - ${EXTERNAL_REDIS_SENTINEL_PORT}:26379
+      - ${REDIS_SENTINEL_PORT}:26371
   zookeeper:
     image: confluentinc/cp-zookeeper:5.1.2
     restart: always
