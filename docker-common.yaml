@@ -74,7 +74,7 @@ services:
       - cardano_redis_master
       - cardano_redis_slave
     ports:
-      - ${REDIS_SENTINEL_PORT}:26371
+      - ${EXTERNAL_REDIS_SENTINEL_PORT}:${INTERNAL_REDIS_SENTINEL_PORT}
   zookeeper:
     image: confluentinc/cp-zookeeper:5.1.2
     restart: always
