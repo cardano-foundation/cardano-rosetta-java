@@ -1,5 +1,5 @@
 server:
-  port: 8085
+  port: ${API_BIND_PORT:8085}
   compression:
     enabled: true
     mime-types: text/html,text/plain,text/css,application/javascript,application/json
