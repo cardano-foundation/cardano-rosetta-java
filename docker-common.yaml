@@ -58,8 +58,8 @@ services:
     command: redis-server --slaveof cardano_redis_master 6379
 
   redis-sentinel:
-    image: 'bitnami/redis-sentinel:latest'
-    hostname: ${REDIS_SENTINEL_HOST}:redis-sentinel
+    image: 'bitnami/redis-sentinel'
+    hostname: ${REDIS_SENTINEL_HOST}
     environment:
       - REDIS_MASTER_PASSWORD=${REDIS_MASTER_PASSWORD:-str0ng_passw0rd}
       - REDIS_MASTER_SET=${REDIS_MASTER_SET:-mymaster}

@@ -11,4 +11,4 @@ redis-sentinel:
   connectTimeOut: 60000
   sentinels:
     - host: ${REDIS_SENTINEL_HOST:127.0.0.1}
-      port: ${REDIS_SENTINEL_PORT:26371}
+      port: ${INTERNAL_REDIS_SENTINEL_PORT:26379}

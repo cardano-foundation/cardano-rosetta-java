@@ -1,4 +1,5 @@
 package org.cardanofoundation.rosetta.api.service.impl;
+
 import co.nstant.in.cbor.model.Array;
 import co.nstant.in.cbor.model.Map;
 import co.nstant.in.cbor.model.UnicodeString;
@@ -20,7 +21,6 @@ import org.cardanofoundation.rosetta.api.service.CardanoService;
 import org.cardanofoundation.rosetta.api.service.MempoolMonitoringService;
 import org.cardanofoundation.rosetta.api.util.DataItemDecodeUtil;
 import org.cardanofoundation.rosetta.api.util.ParseConstructionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -31,8 +31,6 @@ public class MempoolMonitoringServiceImpl implements MempoolMonitoringService {
 
   private final CardanoService cardanoService;
   private final LocalTxMonitorClient localTxMonitorClient;
-  @Autowired
-  @Qualifier("redisTemplateString")
   private final RedisTemplate<String, String> redisTemplate;
 
   public MempoolMonitoringServiceImpl(CardanoService cardanoService,
