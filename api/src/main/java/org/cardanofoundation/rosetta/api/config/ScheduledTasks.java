@@ -2,11 +2,12 @@ package org.cardanofoundation.rosetta.api.config;
 
 import com.bloxbean.cardano.client.transaction.util.TransactionUtil;
 import com.bloxbean.cardano.yaci.helper.LocalTxMonitorClient;
-
-import java.util.*;
-
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ObjectUtils;
 import org.cardanofoundation.rosetta.api.common.constants.Constants;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -30,9 +31,9 @@ public class ScheduledTasks {
         this.redisTemplate = redisTemplate;
     }
 
-    @Scheduled(fixedDelayString = "${scheduler.time:1}")
+    @Scheduled(fixedDelayString = "${scheduler.time:1000}")
     public void scheduleTaskWithFixedRate() {
-        log.info("Start the cron Job ");
+//        log.info("Start the cron Job ");
         List<String> transactionHashes = getAllTransactionsInMempool();
         log.info("There are {} transactions in mempool", transactionHashes.size());
         Map<String, String> txHashWithData = new HashMap<>();
@@ -45,7 +46,7 @@ public class ScheduledTasks {
         txHashWithData.entrySet().stream().forEach((entry) -> {
             redisTemplate.opsForValue().set(entry.getKey(), entry.getValue());
         });
-        log.info("End the cronjob");
+//        log.info("End the cronjob");
     }
 
     public List<String> getAllTransactionsInMempool() {

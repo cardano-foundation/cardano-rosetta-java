@@ -1,14 +1,19 @@
 package org.cardanofoundation.rosetta.api.config.redis.sentinel;
 
+import java.time.Duration;
+import java.util.Arrays;
+import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.cache.RedisCacheManagerBuilderCustomizer;
 import org.springframework.cache.CacheManager;
-import org.springframework.cache.annotation.CachingConfigurerSupport;
+import org.springframework.cache.annotation.CachingConfigurer;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.interceptor.KeyGenerator;
 import org.springframework.context.annotation.Bean;
@@ -23,23 +28,14 @@ import org.springframework.data.redis.connection.RedisPassword;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
-import org.springframework.data.redis.core.*;
-import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
-import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import redis.clients.jedis.JedisPoolConfig;
 
-import java.time.Duration;
-import java.util.Arrays;
-import java.util.UUID;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-@Log4j2
 @Configuration
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @EnableCaching
+@Slf4j
 @Profile("sentinel")
-public class RedisSentinelConfiguration extends CachingConfigurerSupport {
+public class RedisSentinelConfiguration implements CachingConfigurer {
 
     /**
      * Redis properties config
@@ -117,95 +113,6 @@ public class RedisSentinelConfiguration extends CachingConfigurerSupport {
         return new LettuceConnectionFactory(sentinelConfig, clientConfiguration);
     }
 
-    /**
-     * RedisTemplate configuration
-     *
-     * @return redisTemplate
-     */
-    @Bean
-    @Autowired
-    RedisTemplate<String, ?> redisTemplate(//NOSONAR
-                                           final LettuceConnectionFactory lettuceConnectionFactory) {
-        var redisTemplate = new RedisTemplate<String, Object>();
-        redisTemplate.setConnectionFactory(lettuceConnectionFactory);
-        redisTemplate.setValueSerializer(new GenericJackson2JsonRedisSerializer());
-        redisTemplate.setDefaultSerializer(new GenericJackson2JsonRedisSerializer());
-        redisTemplate.setHashValueSerializer(new GenericJackson2JsonRedisSerializer());
-
-        return redisTemplate;
-    }
-
-    @Bean
-    @Autowired
-    RedisTemplate<String, String> redisTemplateString(//NOSONAR // TODO will remove in next version
-                                                      final LettuceConnectionFactory lettuceConnectionFactory) {
-        var redisTemplate = new RedisTemplate<String, String>();
-        redisTemplate.setConnectionFactory(lettuceConnectionFactory);
-        redisTemplate.setValueSerializer(new GenericToStringSerializer<>(Object.class));
-        return redisTemplate;
-    }
-
-    /**
-     * Config bean hashOperations
-     *
-     * @param redisTemplate bean
-     * @param <HK>          hash key type
-     * @param <V>           value type
-     * @return bean hashOperations
-     */
-    @Bean
-    <HK, V> HashOperations<String, HK, V> hashOperations(
-            final RedisTemplate<String, V> redisTemplate) { //NOSONAR
-        return redisTemplate.opsForHash();
-    }
-
-    /**
-     * ListOperations bean configuration
-     *
-     * @param redisTemplate inject bean
-     * @param <V>           value type
-     * @return listOperations
-     */
-    @Bean
-    <V> ListOperations<String, V> listOperations(final RedisTemplate<String, V> redisTemplate) {
-        return redisTemplate.opsForList();
-    }
-
-    /**
-     * ZSetOperations configuration
-     *
-     * @param redisTemplate inject bean
-     * @param <V>           value type
-     * @return ZSetOperations<String, V>
-     */
-    @Bean
-    <V> ZSetOperations<String, V> zSetOperations(final RedisTemplate<String, V> redisTemplate) {
-        return redisTemplate.opsForZSet();
-    }
-
-    /**
-     * SetOperations configuration
-     *
-     * @param redisTemplate inject bean
-     * @param <V>           value type
-     * @return SetOperations<String, V>
-     */
-    @Bean
-    <V> SetOperations<String, V> setOperations(final RedisTemplate<String, V> redisTemplate) {
-        return redisTemplate.opsForSet();
-    }
-
-    /**
-     * ValueOperations configuration
-     *
-     * @param redisTemplate inject bean
-     * @param <V>           value type
-     * @return ValueOperations<String, V>
-     */
-    @Bean
-    <V> ValueOperations<String, V> valueOperations(final RedisTemplate<String, V> redisTemplate) {
-        return redisTemplate.opsForValue();
-    }
 
     /**
      * Customize rules for generating keys
