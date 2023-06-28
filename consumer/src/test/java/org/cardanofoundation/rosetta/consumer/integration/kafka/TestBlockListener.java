@@ -27,7 +27,6 @@ public class TestBlockListener {
       })
   public void receive(ConsumerRecord<String, CommonBlock> consumerRecord) throws InterruptedException {
     latch.countDown();
-    Thread.sleep(500);
     blockListener.consume(consumerRecord, null);
   }
 

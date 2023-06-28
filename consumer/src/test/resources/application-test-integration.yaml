@@ -46,7 +46,7 @@ spring:
               headers: true
           trusted:
             packages: "*"
-    bootstrap-servers: localhost:29999
+    bootstrap-servers: ${spring.embedded.kafka.brokers}
     listener:
       ack-mode: batch
   data:
