@@ -36,7 +36,7 @@ public abstract class BlockAggregatorService<T extends CommonBlock> // NOSONAR
    * @param aggregatedTxOuts all aggregated tx outs within a tx
    * @param txHash           tx hash of tx where the aggregated tx outs associate with
    */
-  protected void mapAggregatedTxOutsToAddressBalanceMap(
+  public void mapAggregatedTxOutsToAddressBalanceMap(
       List<AggregatedTxOut> aggregatedTxOuts, String txHash) {
     // Iterate between all aggregated tx out
     aggregatedTxOuts.forEach(aggregatedTxOut -> {

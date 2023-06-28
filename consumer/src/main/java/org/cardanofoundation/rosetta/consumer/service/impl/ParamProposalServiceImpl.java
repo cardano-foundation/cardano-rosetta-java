@@ -64,10 +64,12 @@ public class ParamProposalServiceImpl implements ParamProposalService {
           var maxBlockSize = toBigInteger(protocolParamUpdate.getMaxBlockSize());
           var maxTxSize = toBigInteger(protocolParamUpdate.getMaxTxSize());
           var maxBhSize = toBigInteger(protocolParamUpdate.getMaxBlockHeaderSize());
+          var keyDeposit = protocolParamUpdate.getKeyDeposit();
           var optimalPoolCount = toBigInteger(protocolParamUpdate.getOptimalPoolCount());
           var influence = toDouble(protocolParamUpdate.getPoolPledgeInfluence());
           var monetaryExpandRate = toDouble(protocolParamUpdate.getExpansionRate());
           var poolDeposit = protocolParamUpdate.getPoolDeposit();
+          var maxEpoch = toBigInteger(protocolParamUpdate.getMaxEpoch());
           var treasuryGrowthRate = toDouble(protocolParamUpdate.getTreasuryGrowthRate());
           var decentralisation = toDouble(protocolParamUpdate.getDecentralisationParam());
 
@@ -85,10 +87,12 @@ public class ParamProposalServiceImpl implements ParamProposalService {
           var minPoolCost = protocolParamUpdate.getMinPoolCost();
           var coinsPerUtxoSize = protocolParamUpdate.getAdaPerUtxoByte();
           var costModelRaw = protocolParamUpdate.getCostModels();
+
           CostModel costModel = null;
           if (Objects.nonNull(costModelRaw)) {
             costModel = costModelService.findCostModelByHash(costModelRaw.getHash());
           }
+
           var priceMem = toDouble(protocolParamUpdate.getPriceMem());
           var priceStep = toDouble(protocolParamUpdate.getPriceStep());
           var maxTxExMem = protocolParamUpdate.getMaxTxExMem();
@@ -108,10 +112,12 @@ public class ParamProposalServiceImpl implements ParamProposalService {
               .maxBlockSize(maxBlockSize)
               .maxTxSize(maxTxSize)
               .maxBhSize(maxBhSize)
+              .keyDeposit(keyDeposit)
               .optimalPoolCount(optimalPoolCount)
               .influence(influence)
               .monetaryExpandRate(monetaryExpandRate)
               .poolDeposit(poolDeposit)
+              .maxEpoch(maxEpoch)
               .treasuryGrowthRate(treasuryGrowthRate)
               .decentralisation(decentralisation)
               .entropy(entropy)

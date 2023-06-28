@@ -22,7 +22,7 @@ import java.util.Collection;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequiredArgsConstructor
 public class CustomAddressTokenBalanceRepositoryImpl implements
-    CustomAddressTokenBalanceRepository {
+        CustomAddressTokenBalanceRepository {
 
   @PersistenceContext
   EntityManager entityManager;

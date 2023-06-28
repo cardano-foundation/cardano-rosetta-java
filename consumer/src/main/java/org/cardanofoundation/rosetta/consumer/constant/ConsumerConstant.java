@@ -17,4 +17,5 @@ public final class ConsumerConstant {
   public static final String BYRON_SLOT_LEADER_PREFIX = "ByronGenesis";
   public static final String ADDR_PREFIX = "addr";
   public static final String BYTE_NULL = "\u0000";
+  public static final String UNDERSCORE = "_";
 }

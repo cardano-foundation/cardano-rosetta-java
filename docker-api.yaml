@@ -1,0 +1,28 @@
+version: '3.8'
+services:
+  api:
+    build:
+      context: ./
+      dockerfile: ./api/Dockerfile
+    platform: linux/amd64
+    ports:
+      - "${API_BIND_PORT}:${API_EXPOSED_PORT}"
+    environment:
+      NETWORK: "${NETWORK}"
+      DB_HOST: "${DB_HOST}"
+      DB_PORT: "${DB_PORT}"
+      DB_NAME: "${DB_NAME}"
+      DB_USER: "${SERVICE_USER_NAME}"
+      DB_SECRET: "${SERVICE_USER_SECRET}"
+      DB_DRIVER_CLASS_NAME: "${DB_DRIVER_CLASS_NAME}"
+      CARDANO_NODE_PATH: /usr/local/bin/cardano-node
+      API_SPRING_PROFILES_ACTIVE: ${API_SPRING_PROFILES_ACTIVE}
+      DB_CONNECTION_PARAMS_PROVIDER_TYPE: ${DB_CONNECTION_PARAMS_PROVIDER_TYPE}
+      SUBMIT_SOCKET_CONNECTION: ${SUBMIT_SOCKET_CONNECTION}
+      NETWORK_MAGIC: ${NETWORK_MAGIC}
+      TRANSACTION_TTL: ${TRANSACTION_TTL}
+    volumes:
+      - ./node-ipc:/ipc
+networks:
+  default:
+    name: cardano-rosetta-java
