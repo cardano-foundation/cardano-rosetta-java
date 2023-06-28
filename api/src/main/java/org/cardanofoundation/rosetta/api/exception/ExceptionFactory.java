@@ -111,7 +111,7 @@ public class ExceptionFactory {
     return new ApiException(RosettaErrorType.INVALID_POOL_RELAY_TYPE.toRosettaError(false));
   }
   public static ApiException invalidIpv4() {
-    return new ApiException(RosettaErrorType.INVALID_IPV4_ERROR.toRosettaError(false));
+    return unspecifiedError("Ipv4 has an invalid format");
   }
   public static ApiException missingDnsNameError() {
     return new ApiException(RosettaErrorType.DNS_NAME_MISSING.toRosettaError(false));
@@ -166,11 +166,11 @@ public class ExceptionFactory {
   public static ApiException invalidPolicyIdError(String details) {
     return new ApiException(RosettaErrorType.INVALID_POLICY_ID.toRosettaError(false, Details.builder().message(details).build()));
   }
-  public static ApiException submitRejected(String details) {
-    return new ApiException(RosettaErrorType.SEND_TRANSACTION_ERROR.toRosettaError(true,Details.builder().message(details).build()));
+  public static ApiException submitRejected() {
+    return unspecifiedError("The transaction submission has been rejected");
   }
   public static ApiException outPutTooLow() {
-    return new ApiException(RosettaErrorType.OUTPUT_AMOUNT_TOO_LOW.toRosettaError(false));
+    return unspecifiedError("The outputAmount is too low. Try with more funds.");
   }
 
   public static ApiException deserializationError(String details) {

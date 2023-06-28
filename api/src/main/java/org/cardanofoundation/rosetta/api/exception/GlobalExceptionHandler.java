@@ -35,7 +35,7 @@ public class GlobalExceptionHandler {
     } else if ( exception instanceof MethodArgumentNotValidException methodArgumentNotValidException){
       List<String> errors = methodArgumentNotValidException.getBindingResult().getFieldErrors()
           .stream().map(FieldError::getDefaultMessage).toList();
-      errorResponse = RosettaErrorType.REQUEST_BODY_NOT_VALID.toRosettaError(true,
+      errorResponse = RosettaErrorType.UNSPECIFIED_ERROR.toRosettaError(true,
           Details.builder().message(
               "An error occurred for request " + request.getRequestId() + ": "
                   + errors ).build());

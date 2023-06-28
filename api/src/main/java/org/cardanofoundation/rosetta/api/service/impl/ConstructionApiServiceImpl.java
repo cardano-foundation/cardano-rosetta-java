@@ -31,6 +31,7 @@ import org.cardanofoundation.rosetta.api.model.PublicKey;
 import org.cardanofoundation.rosetta.api.model.Signatures;
 import org.cardanofoundation.rosetta.api.model.SigningPayload;
 import org.cardanofoundation.rosetta.api.model.TransactionExtraData;
+import org.cardanofoundation.rosetta.api.model.TransactionIdentifier;
 import org.cardanofoundation.rosetta.api.model.TransactionParsed;
 import org.cardanofoundation.rosetta.api.model.UnsignedTransaction;
 import org.cardanofoundation.rosetta.api.model.rest.AccountIdentifier;
@@ -304,7 +305,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
         ((UnicodeString) array.getDataItems().get(0)).getString());
     log.info("[constructionHash] About to return hash of signed transaction");
     // eslint-disable-next-line camelcase
-    return cardanoService.mapToConstructionHashResponse(transactionHash);
+    return new TransactionIdentifierResponse(new TransactionIdentifier(transactionHash));
   }
 
   @Override
@@ -320,9 +321,9 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
             constructionSubmitRequest.getSignedTransaction());
     TxResult txResult = localTxSubmissionClient.submitTx(txnRequest).block();
     if (txResult != null && !txResult.isAccepted()) {
-      throw ExceptionFactory.submitRejected(txResult.getErrorCbor());
+      throw ExceptionFactory.submitRejected();
     }
-    return cardanoService.mapToConstructionHashResponse(txResult.getTxHash());
+    return new TransactionIdentifierResponse(new TransactionIdentifier(txResult.getTxHash()));
 
   }
 }

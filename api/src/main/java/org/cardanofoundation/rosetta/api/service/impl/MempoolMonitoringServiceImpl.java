@@ -3,7 +3,6 @@ package org.cardanofoundation.rosetta.api.service.impl;
 import co.nstant.in.cbor.model.Array;
 import co.nstant.in.cbor.model.Map;
 import co.nstant.in.cbor.model.UnicodeString;
-import com.bloxbean.cardano.yaci.helper.LocalTxMonitorClient;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -30,14 +29,11 @@ import org.springframework.stereotype.Service;
 public class MempoolMonitoringServiceImpl implements MempoolMonitoringService {
 
   private final CardanoService cardanoService;
-  private final LocalTxMonitorClient localTxMonitorClient;
   private final RedisTemplate<String, String> redisTemplate;
 
   public MempoolMonitoringServiceImpl(CardanoService cardanoService,
-      LocalTxMonitorClient localTxMonitorClient,
       @Qualifier("redisTemplateString") RedisTemplate<String, String> redisTemplate) {
     this.cardanoService = cardanoService;
-    this.localTxMonitorClient = localTxMonitorClient;
     this.redisTemplate = redisTemplate;
   }
 
