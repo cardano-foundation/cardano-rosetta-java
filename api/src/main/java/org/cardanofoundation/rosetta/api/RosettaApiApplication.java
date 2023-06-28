@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.info.Info;
 import jakarta.servlet.DispatcherType;
 import java.util.List;
+import org.openapitools.jackson.nullable.JsonNullableModule;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -29,5 +30,9 @@ public class RosettaApiApplication {
         registration.setOrder(Ordered.HIGHEST_PRECEDENCE);
         registration.setUrlPatterns(List.of("/**"));
         return registration;
+    }
+    @Bean
+    public JsonNullableModule jsonNullableModule() {
+        return new JsonNullableModule();
     }
 }
