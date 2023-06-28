@@ -23,7 +23,7 @@ spring:
     #    client-id: test
     producer:
       retries: 10
-      bootstrap-servers: localhost:29999
+      bootstrap-servers: ${spring.embedded.kafka.brokers}
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
       buffer-memory: 335544322
@@ -33,7 +33,7 @@ spring:
       group-id: Testgroup
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-      bootstrap-servers: localhost:29999
+      bootstrap-servers: ${spring.embedded.kafka.brokers}
       sessionTimeoutMs: 30000
       auto-offset-reset: earliest
       auto-commit-interval: 100000
@@ -46,7 +46,7 @@ spring:
               headers: true
           trusted:
             packages: "*"
-    bootstrap-servers: localhost:29999
+    bootstrap-servers: ${spring.embedded.kafka.brokers}
     listener:
       ack-mode: batch
   data:

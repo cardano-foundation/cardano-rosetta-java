@@ -1,22 +1,25 @@
 package org.cardanofoundation.rosetta.consumer.unit.hash;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import co.nstant.in.cbor.model.ByteString;
 import com.bloxbean.cardano.client.crypto.Blake2bUtil;
 import com.bloxbean.cardano.client.exception.CborDeserializationException;
 import com.bloxbean.cardano.client.exception.CborSerializationException;
 import com.bloxbean.cardano.client.transaction.spec.PlutusV1Script;
-import java.nio.ByteBuffer;
 import org.cardanofoundation.rosetta.common.util.HexUtil;
 import org.cardanofoundation.rosetta.consumer.service.ScriptService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Profile;
+import org.springframework.test.context.ActiveProfiles;
+
+import java.nio.ByteBuffer;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest
 @Profile("test-unit")
+@ActiveProfiles("test-unit")
 class ScriptTest {
 
   @Autowired

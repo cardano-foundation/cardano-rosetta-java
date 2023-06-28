@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.kafka.test.context.EmbeddedKafka;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.math.BigInteger;
 import java.sql.Timestamp;
@@ -29,6 +30,7 @@ import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Profile("test-integration")
+@ActiveProfiles("test-integration")
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @EmbeddedKafka(partitions = 1,
     brokerProperties = {"listeners=PLAINTEXT://localhost:29999", "port=29999"})

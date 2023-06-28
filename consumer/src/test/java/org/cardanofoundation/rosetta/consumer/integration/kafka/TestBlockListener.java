@@ -8,11 +8,13 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.annotation.TopicPartition;
 import org.springframework.stereotype.Component;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.util.concurrent.CountDownLatch;
 
 @Component
 @Profile("test-integration")
+@ActiveProfiles("test-integration")
 public class TestBlockListener {
 
   private CountDownLatch latch = new CountDownLatch(5);
@@ -25,7 +27,6 @@ public class TestBlockListener {
       })
   public void receive(ConsumerRecord<String, CommonBlock> consumerRecord) throws InterruptedException {
     latch.countDown();
-    Thread.sleep(500);
     blockListener.consume(consumerRecord, null);
   }
 
