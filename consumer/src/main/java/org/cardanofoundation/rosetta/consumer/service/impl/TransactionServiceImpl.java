@@ -99,8 +99,13 @@ public class TransactionServiceImpl implements TransactionService {
     txRepository.saveAll(txMap.values()
         .stream()
         .sorted((tx1, tx2) -> {
-          Long tx1BlockNo = tx1.getBlock().getBlockNo();
-          Long tx2BlockNo = tx2.getBlock().getBlockNo();
+          Long tx1BlockNo = null;
+          Long tx2BlockNo = null;
+          if (Objects.nonNull(tx1.getBlock()) && Objects.nonNull(tx2.getBlock())) {
+            tx1BlockNo = tx1.getBlock().getBlockNo();
+            tx2BlockNo = tx2.getBlock().getBlockNo();
+          }
+
           Long tx1BlockIndex = tx1.getBlockIndex();
           Long tx2BlockIndex = tx2.getBlockIndex();
 
@@ -135,7 +140,6 @@ public class TransactionServiceImpl implements TransactionService {
 
     // MUST SET FIRST
     // multi asset mint
-    long startTime = System.currentTimeMillis();
     multiAssetService.handleMultiAssetMint(successTxs, txMap);
 
     // Handle stake address and its first appeared tx
@@ -154,7 +158,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     // Create an uncommitted tx out map to allow other methods to use
     Map<Pair<String, Short>, TxOut> newTxOutMap = txOutCollection.stream()
-        .collect(Collectors.toMap(
+        .collect(Collectors.toConcurrentMap(
             txOut -> Pair.of(txOut.getTx().getHash(), txOut.getIndex()),
             Function.identity()
         ));

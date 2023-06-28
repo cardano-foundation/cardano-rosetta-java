@@ -79,7 +79,6 @@ public class MultiAssetServiceImpl implements MultiAssetService {
                 multiAsset -> Pair.of(multiAsset.getName(), multiAsset.getPolicy()),
                 Function.identity()));
 
-    List<MultiAsset> maNeedSave = new ArrayList<>();
     List<MaTxMint> maTxMints = new ArrayList<>();
 
     // Iterate between all aggregated txs with mint assets
@@ -106,12 +105,16 @@ public class MultiAssetServiceImpl implements MultiAssetService {
 
         // If this asset is new, add it to existing mint assets map for future searches
         mintAssetsExists.put(Pair.of(ma.getName(), ma.getPolicy()), ma);
-        maNeedSave.add(ma);
         maTxMints.add(maTxMint);
       });
     });
 
-    multiAssetRepository.saveAll(maNeedSave);
+    Collection<MultiAsset> multiAssets = mintAssetsExists.values();
+    long newTokenCount = multiAssets.stream()
+        .map(BaseEntity::getId)
+        .filter(Objects::isNull)
+        .count();
+    multiAssetRepository.saveAll(multiAssets);
     maTxMintRepository.saveAll(maTxMints);
   }
 

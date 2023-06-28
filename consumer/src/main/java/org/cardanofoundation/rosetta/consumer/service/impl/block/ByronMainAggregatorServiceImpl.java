@@ -81,6 +81,7 @@ public class ByronMainAggregatorServiceImpl extends BlockAggregatorService<Byron
         .protoMinor(protoMinor)
         .txList(txList)
         .auxiliaryDataMap(Collections.emptyMap())
+        .isGenesis(Boolean.FALSE)
         .build();
   }
 

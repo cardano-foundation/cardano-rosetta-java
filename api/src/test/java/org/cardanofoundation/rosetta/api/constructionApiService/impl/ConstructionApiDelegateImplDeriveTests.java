@@ -11,7 +11,6 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.cardanofoundation.rosetta.api.IntegrationTest;
-import org.cardanofoundation.rosetta.api.IntegrationTestWithDB;
 import org.cardanofoundation.rosetta.api.common.enumeration.AddressType;
 import org.cardanofoundation.rosetta.api.common.enumeration.NetworkIdentifierType;
 import org.cardanofoundation.rosetta.api.exception.ApiException;
@@ -42,7 +41,7 @@ class ConstructionApiDelegateImplDeriveTests extends IntegrationTest {
   public void setUp() {
     baseUrl = baseUrl.concat(":").concat(String.valueOf(serverPort)).concat("/construction/derive");
     constructionApiServiceImplUnderTest = new ConstructionApiServiceImpl();
-    constructionApiServiceImplUnderTest.cardanoService = mock(CardanoService.class);
+    constructionApiServiceImplUnderTest.setCardanoService(mock(CardanoService.class)) ;
   }
 
   private ConstructionDeriveRequestMetadata generateMetadata(String addressType, String stakingKey,
@@ -274,13 +273,13 @@ class ConstructionApiDelegateImplDeriveTests extends IntegrationTest {
         .build();
 
     // Configure CardanoService.getNetworkIdentifierByRequestParameters(...).
-    when(constructionApiServiceImplUnderTest.cardanoService.getNetworkIdentifierByRequestParameters(
+    when(constructionApiServiceImplUnderTest.getCardanoService().getNetworkIdentifierByRequestParameters(
         any())).thenReturn(NetworkIdentifierType.CARDANO_MAINNET_NETWORK);
-    when(constructionApiServiceImplUnderTest.cardanoService.isKeyValid(anyString(),
+    when(constructionApiServiceImplUnderTest.getCardanoService().isKeyValid(anyString(),
         anyString())).thenReturn(true);
-    when(constructionApiServiceImplUnderTest.cardanoService.isAddressTypeValid(anyString()))
+    when(constructionApiServiceImplUnderTest.getCardanoService().isAddressTypeValid(anyString()))
         .thenReturn(true);
-    when(constructionApiServiceImplUnderTest.cardanoService.generateAddress(
+    when(constructionApiServiceImplUnderTest.getCardanoService().generateAddress(
         eq(NetworkIdentifierType.CARDANO_MAINNET_NETWORK), anyString(), anyString(),
         eq(AddressType.ENTERPRISE))).thenReturn(null);
     try {

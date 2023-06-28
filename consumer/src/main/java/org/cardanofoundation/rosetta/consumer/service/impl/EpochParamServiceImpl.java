@@ -38,20 +38,23 @@ public class EpochParamServiceImpl implements EpochParamService {
   final EpochParamMapper epochParamMapper;
 
   EpochParam defShelleyEpochParam;
+  EpochParam defAlonzoEpochParam;
+  EpochParam defBabbageEpochParam;
 
   @Override
-  public void setDefShelleyEpochParam(
-      EpochParam defShelleyEpochParam) {
+  public void setDefShelleyEpochParam(EpochParam defShelleyEpochParam) {
     this.defShelleyEpochParam = defShelleyEpochParam;
   }
 
   @Override
-  public void setDefAlonzoEpochParam(
-      EpochParam defAlonzoEpochParam) {
+  public void setDefAlonzoEpochParam(EpochParam defAlonzoEpochParam) {
     this.defAlonzoEpochParam = defAlonzoEpochParam;
   }
 
-  EpochParam defAlonzoEpochParam;
+  @Override
+  public void setDefBabbageEpochParam(EpochParam defBabbageEpochParam) {
+    this.defBabbageEpochParam = defBabbageEpochParam;
+  }
 
   @Override
   public void handleEpochParams() {
@@ -91,9 +94,15 @@ public class EpochParamServiceImpl implements EpochParamService {
     if (curEra == EraType.SHELLEY && prevEra == EraType.BYRON) {
       epochParamMapper.updateByEpochParam(curEpochParam, defShelleyEpochParam);
     }
+
     if (curEra == EraType.ALONZO && prevEra == EraType.MARY) {
       epochParamMapper.updateByEpochParam(curEpochParam, defAlonzoEpochParam);
       curEpochParam.setCostModel(costModelService.getGenesisCostModel());
+      curEpochParam.setMinUtxoValue(null);
+    }
+
+    if(curEra == EraType.BABBAGE && prevEra == EraType.ALONZO ){
+      epochParamMapper.updateByEpochParam(curEpochParam, defBabbageEpochParam);
     }
 
     List<ParamProposal> prevParamProposals = paramProposalRepository

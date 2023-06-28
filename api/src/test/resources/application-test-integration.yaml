@@ -33,6 +33,10 @@ spring:
     show-sql: true
   liquibase:
     enabled: false
+  data:
+    redis:
+      port: 16739
+      host: localhost
 
 api:
   exception:

@@ -1,29 +1,28 @@
 package org.cardanofoundation.rosetta.api.service.impl;
 
 import co.nstant.in.cbor.CborException;
-import co.nstant.in.cbor.model.*;
+import co.nstant.in.cbor.model.Array;
 import co.nstant.in.cbor.model.Map;
+import co.nstant.in.cbor.model.UnicodeString;
 import com.bloxbean.cardano.client.exception.AddressExcepion;
 import com.bloxbean.cardano.client.exception.CborDeserializationException;
 import com.bloxbean.cardano.client.exception.CborSerializationException;
+import com.bloxbean.cardano.client.transaction.spec.Transaction;
 import com.bloxbean.cardano.client.util.HexUtil;
 import com.bloxbean.cardano.yaci.core.protocol.localtx.model.TxSubmissionRequest;
 import com.bloxbean.cardano.yaci.helper.LocalTxSubmissionClient;
 import com.bloxbean.cardano.yaci.helper.model.TxResult;
 import com.fasterxml.jackson.core.JsonProcessingException;
-
-import java.math.BigInteger;
-import java.net.UnknownHostException;
-
-import lombok.RequiredArgsConstructor;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
-
 import org.cardanofoundation.rosetta.api.common.constants.Constants;
-import org.cardanofoundation.rosetta.api.config.yaci.YaciConfiguration;
-import org.cardanofoundation.rosetta.api.model.ProtocolParametersResponse;
-import org.cardanofoundation.rosetta.api.model.Signatures;
-import org.cardanofoundation.rosetta.api.model.UnsignedTransaction;
 import org.cardanofoundation.rosetta.api.common.enumeration.AddressType;
 import org.cardanofoundation.rosetta.api.common.enumeration.NetworkIdentifierType;
 import org.cardanofoundation.rosetta.api.exception.ExceptionFactory;
@@ -33,10 +32,12 @@ import org.cardanofoundation.rosetta.api.model.DepositParameters;
 import org.cardanofoundation.rosetta.api.model.Operation;
 import org.cardanofoundation.rosetta.api.model.ProtocolParameters;
 import org.cardanofoundation.rosetta.api.model.PublicKey;
+import org.cardanofoundation.rosetta.api.model.Signatures;
 import org.cardanofoundation.rosetta.api.model.SigningPayload;
 import org.cardanofoundation.rosetta.api.model.TransactionExtraData;
 import org.cardanofoundation.rosetta.api.model.TransactionParsed;
-import com.bloxbean.cardano.client.transaction.spec.Transaction;
+import org.cardanofoundation.rosetta.api.model.UnsignedTransaction;
+import org.cardanofoundation.rosetta.api.model.rest.AccountIdentifier;
 import org.cardanofoundation.rosetta.api.model.rest.ConstructionCombineRequest;
 import org.cardanofoundation.rosetta.api.model.rest.ConstructionCombineResponse;
 import org.cardanofoundation.rosetta.api.model.rest.ConstructionDeriveRequest;
@@ -55,28 +56,37 @@ import org.cardanofoundation.rosetta.api.model.rest.ConstructionSubmitRequest;
 import org.cardanofoundation.rosetta.api.model.rest.TransactionIdentifierResponse;
 import org.cardanofoundation.rosetta.api.service.CardanoService;
 import org.cardanofoundation.rosetta.api.service.ConstructionApiService;
-import org.cardanofoundation.rosetta.api.model.rest.AccountIdentifier;
+import org.cardanofoundation.rosetta.common.ledgersync.constant.Constant;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import reactor.core.publisher.Mono;
-
 @Slf4j
-@RequiredArgsConstructor
 @Service
+@NoArgsConstructor
+@Setter
+@Getter
 public class ConstructionApiServiceImpl implements ConstructionApiService {
 
   @Autowired
-  public CardanoService cardanoService;
+  private CardanoService cardanoService;
 
   @Autowired
-  LocalTxSubmissionClient localTxSubmissionClient;
+  private LocalTxSubmissionClient localTxSubmissionClient;
+
+  @Autowired
+  @Qualifier("redisTemplateString")
+  private RedisTemplate<String, String> redisTemplate;
+
+//  public ConstructionApiServiceImpl(CardanoService cardanoService,
+//      LocalTxSubmissionClient localTxSubmissionClient,
+//      @Qualifier("redisTemplateString") RedisTemplate<String, String> redisTemplateString) {
+//    this.cardanoService = cardanoService;
+//    this.localTxSubmissionClient = localTxSubmissionClient;
+//    this.redisTemplate = redisTemplateString;
+//  }
 
   @Override
   public ConstructionDeriveResponse constructionDeriveService(
@@ -308,8 +318,10 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
     byte[] signedTransactionBytes = HexUtil.decodeHexString(
         ((UnicodeString) array.getDataItems().get(0)).getString());
     Transaction parsed = Transaction.deserialize(signedTransactionBytes);
-    TxSubmissionRequest txnRequest = new TxSubmissionRequest(parsed.serialize());
-
+    TxSubmissionRequest txnRequest = new TxSubmissionRequest(signedTransactionBytes);
+      redisTemplate
+              .opsForValue()
+              .set(Constants.REDIS_PREFIX_PENDING + txnRequest.getTxHash(), constructionSubmitRequest.getSignedTransaction());
     TxResult txResult = localTxSubmissionClient.submitTx(txnRequest).block();
     if (!txResult.isAccepted()) {
       throw ExceptionFactory.submitRejected();

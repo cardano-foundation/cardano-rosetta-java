@@ -34,7 +34,9 @@ public class EpochServiceImpl implements EpochService {
   @Override
   public void handleEpoch(Collection<AggregatedBlock> aggregatedBlocks) {
     Map<Integer, Epoch> epochMap = new HashMap<>();
-    aggregatedBlocks.forEach(aggregatedBlock -> handleEpoch(aggregatedBlock, epochMap));
+    aggregatedBlocks
+            .stream().filter(aggregatedBlock -> !aggregatedBlock.getIsGenesis())
+            .forEach(aggregatedBlock -> handleEpoch(aggregatedBlock, epochMap));
     epochRepository.saveAll(epochMap.values());
   }
 

@@ -68,8 +68,6 @@ public class RollbackServiceImpl implements RollbackService {
     } else {
       startRollback(blockRollBack.get());
     }
-
-    log.info("---------------------------------------------------------------------");
   }
 
   private void startRollback(Block rollbackBlock) {

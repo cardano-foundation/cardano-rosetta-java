@@ -91,7 +91,7 @@ public class EpochParam extends BaseEntity {
   @Word31Type
   private Integer protocolMinor;
 
-  @Column(name = "min_utxo_value", nullable = false, precision = 20)
+  @Column(name = "min_utxo_value", precision = 20)
   @Lovelace
   @Digits(integer = 20, fraction = 0)
   private BigInteger minUtxoValue;

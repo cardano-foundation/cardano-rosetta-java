@@ -62,7 +62,7 @@ public class BlockSyncServiceImpl implements BlockSyncService {
     // Handle epoch param
     epochParamService.handleEpochParams();
 
-    // Finally, clear the aggregated data
+    // Finally, commit and clear the aggregated data
     blockDataService.clearBatchBlockData();
   }
 
@@ -75,15 +75,17 @@ public class BlockSyncServiceImpl implements BlockSyncService {
     block.setSlotNo(aggregatedBlock.getSlotNo());
     block.setBlockNo(aggregatedBlock.getBlockNo());
 
-    Optional.ofNullable(blockMap.get(aggregatedBlock.getPrevBlockHash()))
-        .or(() -> blockRepository.findBlockByHash(aggregatedBlock.getPrevBlockHash()))
-        .ifPresentOrElse(block::setPrevious, () -> {
-          log.error(
-              "Prev block not found. Block number: {}, block hash: {}, prev hash: {}",
-              aggregatedBlock.getBlockNo(), aggregatedBlock.getHash(),
-              aggregatedBlock.getPrevBlockHash());
-          throw new IllegalStateException();
-        });
+    if (Boolean.FALSE.equals(aggregatedBlock.getIsGenesis())) {
+      Optional.ofNullable(blockMap.get(aggregatedBlock.getPrevBlockHash()))
+          .or(() -> blockRepository.findBlockByHash(aggregatedBlock.getPrevBlockHash()))
+          .ifPresentOrElse(block::setPrevious, () -> {
+            log.error(
+                "Prev block not found. Block number: {}, block hash: {}, prev hash: {}",
+                aggregatedBlock.getBlockNo(), aggregatedBlock.getHash(),
+                aggregatedBlock.getPrevBlockHash());
+            throw new IllegalStateException();
+          });
+    }
 
     AggregatedSlotLeader aggregatedSlotLeader = aggregatedBlock.getSlotLeader();
     SlotLeader slotLeader = getSlotLeader(aggregatedSlotLeader);

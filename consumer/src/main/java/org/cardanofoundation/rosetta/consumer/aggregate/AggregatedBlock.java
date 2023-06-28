@@ -35,4 +35,5 @@ public class AggregatedBlock {
   Long opCertCounter;
   List<AggregatedTx> txList;
   Map<Integer, AuxData> auxiliaryDataMap; // Key is tx index in block
+  Boolean isGenesis;
 }

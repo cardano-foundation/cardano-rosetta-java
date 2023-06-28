@@ -17,7 +17,8 @@ public interface AddressTxBalanceRepository extends JpaRepository<AddressTxBalan
 
   @Query("SELECT atb.address.address as address, "
       + "atb.balance as balance, "
-      + "atb.tx.hash as txHash "
+      + "atb.tx.hash as txHash, "
+      + "atb.tx.block.epochNo as epochNo "
       + "FROM AddressTxBalance atb WHERE atb.tx in (:txs)")
   List<AddressTxBalanceProjection> findAllByTxIn(@Param("txs") Collection<Tx> txs);
 
