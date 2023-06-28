@@ -1,6 +1,7 @@
 package org.cardanofoundation.rosetta.api.service.impl;
 
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.parser.OpenAPIV3Parser;
@@ -81,21 +82,21 @@ public class NetworkServiceImpl implements NetworkService {
   private Integer networkMagic;
 
   private List<BalanceExemption> loadExemptionsFile() {
-//    if (exemptionPath != null) {
-//      final ObjectMapper objectMapper = new ObjectMapper();
-//      try {
-//        String content = fileReader(exemptionPath);
-//        balanceExemptions = objectMapper.readValue(
-//            content,
-//            new TypeReference<List<BalanceExemption>>() {
-//            });
-//      } catch (IOException e) {
-//        return new ArrayList<>();
-//      }
-//    } else {
-//      balanceExemptions = List.of();
-//    }
-    balanceExemptions = List.of();
+    if (exemptionPath != null) {
+      final ObjectMapper objectMapper = new ObjectMapper();
+      try {
+        String content = fileReader(exemptionPath);
+        balanceExemptions = objectMapper.readValue(
+            content,
+            new TypeReference<>() {
+            });
+      } catch (IOException e) {
+        e.printStackTrace();
+        return new ArrayList<>();
+      }
+    } else {
+      balanceExemptions = List.of();
+    }
     return balanceExemptions;
   }
 
