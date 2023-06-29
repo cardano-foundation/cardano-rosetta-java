@@ -1,9 +1,11 @@
 package org.cardanofoundation.rosetta.api.common.constants;
 
-import java.util.ArrayList;
-import java.util.List;
 import org.cardanofoundation.rosetta.api.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.api.model.CurveType;
+
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Constants {
     public static final String CARDANO = "cardano";
@@ -136,4 +138,11 @@ public class Constants {
     public static final String SYMBOL_REGEX="\\x";
     public static final String REDIS_PREFIX_MEMPOOL = "mempool";
     public static final String REDIS_PREFIX_PENDING = "pending";
+    public static final java.time.Duration REDIS_TTL_HOURS = Duration.ofHours(12);
+    public static final java.time.Duration REDIS_TTL_MINUTES = Duration.ofMinutes(12);
+    public static final java.time.Duration REDIS_TTL_SECONDS = Duration.ofSeconds(12);
+    public static final java.time.Duration REDIS_TTL_MEMPOOL = REDIS_TTL_SECONDS;
+
+
+
 }
