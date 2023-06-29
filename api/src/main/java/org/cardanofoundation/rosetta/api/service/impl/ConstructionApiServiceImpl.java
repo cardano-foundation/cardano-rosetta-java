@@ -10,6 +10,9 @@ import com.bloxbean.cardano.client.util.HexUtil;
 import com.bloxbean.cardano.yaci.core.protocol.localtx.model.TxSubmissionRequest;
 import com.bloxbean.cardano.yaci.helper.LocalTxSubmissionClient;
 import com.bloxbean.cardano.yaci.helper.model.TxResult;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -36,6 +39,8 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.cardanofoundation.rosetta.api.common.constants.Constants.REDIS_TTL_MEMPOOL;
 
 
 @Slf4j
@@ -292,7 +297,8 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
     redisTemplate
         .opsForValue()
         .set(Constants.REDIS_PREFIX_PENDING + txnRequest.getTxHash(),
-            constructionSubmitRequest.getSignedTransaction());
+            constructionSubmitRequest.getSignedTransaction(),
+                REDIS_TTL_MEMPOOL);
     TxResult txResult = localTxSubmissionClient.submitTx(txnRequest).block();
     if (txResult != null && !txResult.isAccepted()) {
       throw ExceptionFactory.submitRejected();

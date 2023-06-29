@@ -2,11 +2,6 @@ package org.cardanofoundation.rosetta.api.config;
 
 import com.bloxbean.cardano.client.transaction.util.TransactionUtil;
 import com.bloxbean.cardano.yaci.helper.LocalTxMonitorClient;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.api.common.constants.Constants;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -16,6 +11,10 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
+
+import java.util.*;
+
+import static org.cardanofoundation.rosetta.api.common.constants.Constants.REDIS_TTL_MEMPOOL;
 
 @Configuration
 @EnableScheduling
@@ -46,7 +45,7 @@ public class ScheduledTasks {
         }
         redisTemplate.delete(redisTemplate.keys(Constants.REDIS_PREFIX_MEMPOOL + "*"));
         txHashWithData.entrySet().stream().forEach((entry) -> {
-            redisTemplate.opsForValue().set(entry.getKey(), entry.getValue());
+            redisTemplate.opsForValue().set(entry.getKey(), entry.getValue(), REDIS_TTL_MEMPOOL);
         });
 //        log.info("End the cronjob");
     }
