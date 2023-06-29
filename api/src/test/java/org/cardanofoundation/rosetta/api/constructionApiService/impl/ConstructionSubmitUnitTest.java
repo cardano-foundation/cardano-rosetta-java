@@ -40,7 +40,7 @@ class ConstructionSubmitUnitTest {
 
 
   @Test
-  void testConstructionSubmitService_LocalTxSubmissionClientReturnsError() throws Exception {
+  void testConstructionSubmitService_LocalTxSubmissionClientReturnsSuccess() throws Exception {
     // Setup
     final SubNetworkIdentifier subNetworkIdentifier = new SubNetworkIdentifier();
     final ConstructionSubmitRequest constructionSubmitRequest = new ConstructionSubmitRequest(
