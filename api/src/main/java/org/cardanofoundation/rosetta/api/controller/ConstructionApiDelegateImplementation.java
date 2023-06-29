@@ -7,7 +7,6 @@ import com.bloxbean.cardano.client.exception.CborSerializationException;
 import com.bloxbean.cardano.client.util.HexUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.iwebpp.crypto.TweetNacl;
-import java.util.Collections;
 import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.api.model.PublicKey;
 import org.cardanofoundation.rosetta.api.model.Signature;
@@ -22,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 import java.io.IOException;
-import java.net.UnknownHostException;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 

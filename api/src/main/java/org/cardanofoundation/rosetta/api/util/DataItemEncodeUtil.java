@@ -407,7 +407,6 @@ public class DataItemEncodeUtil {
   }
   public static TransactionExtraData getTxExtraData(TransactionExtraData extraData){
     List<Operation> extraOperations = extraData.getOperations().stream()
-        // eslint-disable-next-line camelcase
         .filter(operation -> {
               String coinAction = ObjectUtils.isEmpty(operation.getCoinChange()) ? null
                   : operation.getCoinChange().getCoinAction();

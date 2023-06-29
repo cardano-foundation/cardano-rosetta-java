@@ -1,9 +1,9 @@
 package org.cardanofoundation.rosetta.consumer.unit.address;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import org.cardanofoundation.rosetta.common.ledgersync.address.ShelleyAddress;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class AddressTest {
   @Test

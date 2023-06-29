@@ -83,6 +83,16 @@ class NetworkServiceImplTest {
     assertNull(result);
   }
 
+//  @Test
+//  void testFilePathExistingValidator_returnServerException() {
+//    String topologyFilepath = "path/to/topologyFile";
+//    ReflectionTestUtils.setField(networkServiceImplUnderTest , "topologyFilepath" , topologyFilepath);
+//    when(mockResourceLoader.getResource(topologyFilepath)).thenReturn(null);
+//
+//    assertThrows(ServerException.class ,() -> networkServiceImplUnderTest.filePathExistingValidator());
+//  }
+
+
   private String readFile(String path) throws IOException {
     try (InputStream input = new FileInputStream(path)) {
       byte[] fileBytes = input.readAllBytes();

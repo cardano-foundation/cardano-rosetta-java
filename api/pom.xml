@@ -255,8 +255,17 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-inline</artifactId>
+            <version>3.8.0</version>
             <scope>test</scope>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/it.ozimov/embedded-redis -->
+        <dependency>
+            <groupId>it.ozimov</groupId>
+            <artifactId>embedded-redis</artifactId>
+            <version>0.7.3</version>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -350,11 +359,12 @@
                         <exclude>**/mapper/*</exclude>
                         <exclude>**/cli/*</exclude>
                         <exclude>**/exception/*</exclude>
-                        <exclude>**/config/*</exclude>
+                        <exclude>**/config/**</exclude>
                         <exclude>**/filter/**</exclude>
                         <exclude>**/org/openapitools/client/api/*</exclude>
                         <exclude>**/enumeration/**</exclude>
                         <exclude>**/yaci/**</exclude>
+                        <exclude>**/repository/**</exclude>
                     </excludes>
                 </configuration>
                 <version>${verison.jacoco-maven-plugin}</version>

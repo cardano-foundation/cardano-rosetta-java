@@ -3,13 +3,13 @@ package org.cardanofoundation.rosetta.api.service.impl;
 import co.nstant.in.cbor.model.Array;
 import co.nstant.in.cbor.model.Map;
 import co.nstant.in.cbor.model.UnicodeString;
-import com.bloxbean.cardano.yaci.helper.LocalTxMonitorClient;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.api.common.constants.Constants;
 import org.cardanofoundation.rosetta.api.common.enumeration.NetworkIdentifierType;
+import org.cardanofoundation.rosetta.api.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.api.model.TransactionExtraData;
 import org.cardanofoundation.rosetta.api.model.TransactionIdentifier;
 import org.cardanofoundation.rosetta.api.model.TransactionParsed;
@@ -30,14 +30,11 @@ import org.springframework.stereotype.Service;
 public class MempoolMonitoringServiceImpl implements MempoolMonitoringService {
 
   private final CardanoService cardanoService;
-  private final LocalTxMonitorClient localTxMonitorClient;
   private final RedisTemplate<String, String> redisTemplate;
 
   public MempoolMonitoringServiceImpl(CardanoService cardanoService,
-      LocalTxMonitorClient localTxMonitorClient,
       @Qualifier("redisTemplateString") RedisTemplate<String, String> redisTemplate) {
     this.cardanoService = cardanoService;
-    this.localTxMonitorClient = localTxMonitorClient;
     this.redisTemplate = redisTemplate;
   }
 
@@ -49,9 +46,8 @@ public class MempoolMonitoringServiceImpl implements MempoolMonitoringService {
     List<TransactionIdentifier> transactionIdentifierList = txHashes.stream().map(
         txHash -> new TransactionIdentifier(
             txHash.substring(Constants.REDIS_PREFIX_MEMPOOL.length()))).toList();
-    MempoolResponse mempoolResponse = MempoolResponse.builder()
+    return MempoolResponse.builder()
         .transactionIdentifierList(transactionIdentifierList).build();
-    return mempoolResponse;
   }
 
   @Override
@@ -60,7 +56,7 @@ public class MempoolMonitoringServiceImpl implements MempoolMonitoringService {
     String txHash = mempoolTransactionRequest.getTransactionIdentifier().getHash();
     String txData = redisTemplate.opsForValue().get(Constants.REDIS_PREFIX_MEMPOOL + txHash);
     if (Objects.isNull(txData)) {
-      return null;
+      throw ExceptionFactory.unspecifiedError("Transaction hash not found in mempool : " + txHash);
     }
     log.info("Tx data for txHash {} is {}", txHash, txData);
     Array array = cardanoService.decodeExtraData(txData);
@@ -72,12 +68,10 @@ public class MempoolMonitoringServiceImpl implements MempoolMonitoringService {
         mempoolTransactionRequest.getNetworkIdentifier());
     result = ParseConstructionUtils.parseSignedTransaction(networkIdentifier,
         ((UnicodeString) array.getDataItems().get(0)).getString(), extraData);
-    MempoolTransactionResponse mempoolTransactionResponse = MempoolTransactionResponse.builder()
+    return MempoolTransactionResponse.builder()
         .transaction(new org.cardanofoundation.rosetta.api.model.Transaction(
             new TransactionIdentifier(txHash), result.getOperations())).build();
-    return mempoolTransactionResponse;
   }
-
   @Override
   public Set<String> getAllTransactionsInMempool() {
     return redisTemplate.keys(Constants.REDIS_PREFIX_MEMPOOL + "*");

@@ -16,8 +16,6 @@ import com.bloxbean.cardano.client.transaction.spec.cert.SingleHostAddr;
 import com.bloxbean.cardano.client.transaction.spec.cert.SingleHostName;
 import com.bloxbean.cardano.client.transaction.spec.cert.StakeCredential;
 import com.bloxbean.cardano.client.util.HexUtil;
-import java.util.Arrays;
-import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.validator.routines.InetAddressValidator;
@@ -27,11 +25,10 @@ import org.cardanofoundation.rosetta.api.common.enumeration.NetworkIdentifierTyp
 import org.cardanofoundation.rosetta.api.common.enumeration.NonStakeAddressPrefix;
 import org.cardanofoundation.rosetta.api.common.enumeration.StakeAddressPrefix;
 import org.cardanofoundation.rosetta.api.exception.ExceptionFactory;
-import org.cardanofoundation.rosetta.api.model.Amount;
-import org.cardanofoundation.rosetta.api.model.Currency;
-import org.cardanofoundation.rosetta.api.model.Metadata;
-import org.cardanofoundation.rosetta.api.model.PublicKey;
-import org.cardanofoundation.rosetta.api.model.Relay;
+import org.cardanofoundation.rosetta.api.model.*;
+
+import java.util.Arrays;
+import java.util.Objects;
 
 @Slf4j
 public class CardanoAddressUtils {

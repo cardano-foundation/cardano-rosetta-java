@@ -134,7 +134,6 @@ public class ProcessContruction {
 
     PoolRegistationParametersReturnDto dto = ValidateOfConstruction.validateAndParsePoolRegistationParameters(
         poolRegistrationParams);
-    // eslint-disable-next-line camelcase
     byte[] poolKeyHash = ValidateOfConstruction.validateAndParsePoolKeyHash(
         ObjectUtils.isEmpty(operation.getAccount()) ? null : operation.getAccount().getAddress());
 
@@ -192,7 +191,6 @@ public class ProcessContruction {
       NetworkIdentifierType networkIdentifierType,
       Operation operation) {
     log.info("[processWithdrawal] About to process withdrawal");
-    // eslint-disable-next-line camelcase
     HdPublicKey hdPublicKey = new HdPublicKey();
     if (operation.getMetadata() != null &&
         operation.getMetadata().getStakingCredential() != null &&
@@ -216,7 +214,6 @@ public class ProcessContruction {
     log.info(
         "[processOperationCertification] About to process operation of type {}",
         operation.getType());
-    // eslint-disable-next-line camelcase
     HashMap<String, Object> map = new HashMap<>();
     PublicKey publicKey = ObjectUtils.isEmpty(operation.getMetadata()) ? null
         : operation.getMetadata().getStakingCredential();
@@ -227,7 +224,6 @@ public class ProcessContruction {
     }
     String address = CardanoAddressUtils.generateRewardAddress(networkIdentifierType, hdPublicKey);
     if (operation.getType().equals(OperationType.STAKE_DELEGATION.getValue())) {
-      // eslint-disable-next-line camelcase
       if (operation.getMetadata().getPoolKeyHash() == null) {
         throw ExceptionFactory.missingPoolKeyError();
       }
@@ -245,7 +241,6 @@ public class ProcessContruction {
 
   public static Certificate processStakeKeyRegistration(Operation operation) {
     log.info("[processStakeKeyRegistration] About to process stake key registration");
-    // eslint-disable-next-line camelcase
     StakeCredential credential = CardanoAddressUtils.getStakingCredentialFromHex(
         ObjectUtils.isEmpty(operation.getMetadata()) ? null
             : operation.getMetadata().getStakingCredential());

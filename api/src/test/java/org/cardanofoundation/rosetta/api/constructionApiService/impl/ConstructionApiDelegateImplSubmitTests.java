@@ -3,8 +3,6 @@ package org.cardanofoundation.rosetta.api.constructionApiService.impl;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-
-
 import com.bloxbean.cardano.client.util.HexUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.iwebpp.crypto.TweetNacl;
@@ -18,6 +16,8 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.api.IntegrationTest;
+import org.cardanofoundation.rosetta.api.IntegrationTestWithDB;
+import org.cardanofoundation.rosetta.api.IntegrationTestWithDbAndRedis;
 import org.cardanofoundation.rosetta.api.exception.Error;
 import org.cardanofoundation.rosetta.api.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.api.model.Amount;
@@ -61,7 +61,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.web.client.HttpServerErrorException;
 
 @Slf4j
-public class ConstructionApiDelegateImplSubmitTests extends IntegrationTest {
+public class ConstructionApiDelegateImplSubmitTests extends IntegrationTestWithDbAndRedis {
 
   @BeforeEach
   public void setUp() {
@@ -182,9 +182,9 @@ public class ConstructionApiDelegateImplSubmitTests extends IntegrationTest {
     } catch (HttpServerErrorException e) {
       String responseBody = e.getResponseBodyAsString();
       Error error=objectMapper.readValue(responseBody, Error.class);
-      assertTrue(!error.isRetriable());
-      assertEquals(5019,error.getCode());
-      assertEquals("The transaction submission has been rejected",error.getMessage());
+      assertTrue(error.isRetriable());
+      assertEquals(5006,error.getCode());
+      assertEquals("Error when sending the transaction",error.getMessage());
     }
     log.info(
         "[doRun] transaction with hash ${hashResponse.transaction_identifier.hash} sent"

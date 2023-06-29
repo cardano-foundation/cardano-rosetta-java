@@ -1,16 +1,8 @@
 package org.cardanofoundation.rosetta.api.constructionApiService.impl;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.fail;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.cardanofoundation.rosetta.api.IntegrationTest;
+import org.cardanofoundation.rosetta.api.IntegrationTestWithDB;
 import org.cardanofoundation.rosetta.api.common.enumeration.AddressType;
 import org.cardanofoundation.rosetta.api.common.enumeration.NetworkIdentifierType;
 import org.cardanofoundation.rosetta.api.exception.ApiException;
@@ -27,11 +19,15 @@ import org.cardanofoundation.rosetta.api.util.CardanoAddressUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
-import org.mockito.MockedStatic.Verification;
 import org.mockito.Mockito;
 import org.springframework.web.client.HttpServerErrorException;
 
-class ConstructionApiDelegateImplDeriveTests extends IntegrationTest {
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+class ConstructionApiDelegateImplDeriveTests extends IntegrationTestWithDB {
 
   public final String INVALID_PUBLIC_KEY_FORMAT_MESSAGE = "invalidPublicKeyFormat";
   public final String INVALID_STAKING_KEY_FORMAT_MESSAGE = "invalidStakingKeyFormat";
