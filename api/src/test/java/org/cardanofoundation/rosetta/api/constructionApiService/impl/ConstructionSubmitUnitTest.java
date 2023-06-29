@@ -1,10 +1,5 @@
 package org.cardanofoundation.rosetta.api.constructionApiService.impl;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
-
 import co.nstant.in.cbor.model.Array;
 import co.nstant.in.cbor.model.UnicodeString;
 import com.bloxbean.cardano.client.util.HexUtil;
@@ -12,7 +7,6 @@ import com.bloxbean.cardano.yaci.core.protocol.localtx.model.TxSubmissionRequest
 import com.bloxbean.cardano.yaci.helper.LocalTxSubmissionClient;
 import com.bloxbean.cardano.yaci.helper.model.TxResult;
 import org.cardanofoundation.rosetta.api.model.SubNetworkIdentifier;
-import org.cardanofoundation.rosetta.api.model.TransactionIdentifier;
 import org.cardanofoundation.rosetta.api.model.rest.ConstructionSubmitRequest;
 import org.cardanofoundation.rosetta.api.model.rest.NetworkIdentifier;
 import org.cardanofoundation.rosetta.api.model.rest.TransactionIdentifierResponse;
@@ -23,7 +17,15 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import reactor.core.publisher.Mono;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class ConstructionSubmitUnitTest {
@@ -34,6 +36,11 @@ class ConstructionSubmitUnitTest {
   @Mock
   LocalTxSubmissionClient localTxSubmissionClient;
 
+  @Mock
+  RedisTemplate<String,String> redisTemplate;
+
+  @Mock
+  private ValueOperations<String , String> valueOperations;
   @InjectMocks
   ConstructionApiServiceImpl service;
 
@@ -52,7 +59,8 @@ class ConstructionSubmitUnitTest {
     final Mono<TxResult> resultMono = Mono.just(new TxResult("f061e62c43e6902169a84f3344a329720cdbf8d75ae3a2845c11249c3e56ce1c",true,null));
     when(cardanoService.decodeExtraData(anyString())).thenReturn(array);
     when(localTxSubmissionClient.submitTx(any(TxSubmissionRequest.class))).thenReturn(resultMono);
-    when(service.constructionSubmitService(constructionSubmitRequest)).thenReturn(new TransactionIdentifierResponse(new TransactionIdentifier("f061e62c43e6902169a84f3344a329720cdbf8d75ae3a2845c11249c3e56ce1c"),null));
+    when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+    doNothing().when(valueOperations).set(anyString(), anyString());
     TransactionIdentifierResponse transactionIdentifierResponse=service.constructionSubmitService(constructionSubmitRequest);
     assertEquals("f061e62c43e6902169a84f3344a329720cdbf8d75ae3a2845c11249c3e56ce1c",transactionIdentifierResponse.getTransactionIdentifier().getHash());
   }

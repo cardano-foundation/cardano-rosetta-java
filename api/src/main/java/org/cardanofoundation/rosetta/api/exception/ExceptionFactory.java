@@ -39,7 +39,7 @@ public class ExceptionFactory {
     return new ApiException(RosettaErrorType.INVALID_BLOCKCHAIN.toRosettaError(false));
   }
   public static ApiException invalidAddressError() {
-    return new ApiException(RosettaErrorType.INVALID_ADDRESS.toRosettaError(false));
+    return new ApiException(RosettaErrorType.INVALID_ADDRESS.toRosettaError(true));
   }
   public static ApiException cantCreateSignTransaction() {
     return new ApiException(RosettaErrorType.CANT_CREATE_SIGN_TRANSACTION.toRosettaError(false));
@@ -95,14 +95,14 @@ public class ExceptionFactory {
   public static ApiException missingMetadataParametersForPoolRetirement() {
     return new ApiException(RosettaErrorType.MISSING_METADATA_PARAMETERS_FOR_POOL_RETIREMENT.toRosettaError(false));
   }
-  public static ApiException invalidPoolKeyError() {
-    return new ApiException(RosettaErrorType.INVALID_POOL_KEY_HASH.toRosettaError(false));
+  public static ApiException invalidPoolKeyError(String error) {
+    return new ApiException(RosettaErrorType.INVALID_POOL_KEY_HASH.toRosettaError(false,Details.builder().message(error).build()));
   }
   public static ApiException missingPoolRegistrationParameters() {
     return new ApiException(RosettaErrorType.POOL_REGISTRATION_PARAMS_MISSING.toRosettaError(false));
   }
-  public static ApiException invalidPoolMetadataError() {
-    return new ApiException(RosettaErrorType.INVALID_POOL_METADATA.toRosettaError(false));
+  public static ApiException invalidPoolMetadataError(String error) {
+    return new ApiException(RosettaErrorType.INVALID_POOL_METADATA.toRosettaError(false,Details.builder().message(error).build()));
   }
   public static ApiException invalidPoolRelaysError() {
     return new ApiException(RosettaErrorType.INVALID_POOL_RELAYS.toRosettaError(false));
@@ -111,7 +111,7 @@ public class ExceptionFactory {
     return new ApiException(RosettaErrorType.INVALID_POOL_RELAY_TYPE.toRosettaError(false));
   }
   public static ApiException invalidIpv4() {
-    return new ApiException(RosettaErrorType.INVALID_IPV4_ERROR.toRosettaError(false));
+    return unspecifiedError("Ipv4 has an invalid format");
   }
   public static ApiException missingDnsNameError() {
     return new ApiException(RosettaErrorType.DNS_NAME_MISSING.toRosettaError(false));
@@ -120,8 +120,8 @@ public class ExceptionFactory {
     String error="Given value " + value + " is invalid";
     return new ApiException(RosettaErrorType.INVALID_POOL_RELAYS.toRosettaError(false,Details.builder().message(error).build()));
   }
-  public static ApiException invalidPoolRegistrationParameters(String error) {
-    return new ApiException(RosettaErrorType.INVALID_POOL_RELAYS.toRosettaError(false,Details.builder().message(error).build()));
+  public static ApiException invalidPoolRegistrationParameters(String value) {
+    return new ApiException(RosettaErrorType.INVALID_POOL_REGISTRATION_PARAMS.toRosettaError(false,Details.builder().message(value).build()));
   }
   public static ApiException addressGenerationError() {
     return new ApiException(RosettaErrorType.ADDRESS_GENERATION_ERROR.toRosettaError(false));
@@ -167,10 +167,10 @@ public class ExceptionFactory {
     return new ApiException(RosettaErrorType.INVALID_POLICY_ID.toRosettaError(false, Details.builder().message(details).build()));
   }
   public static ApiException submitRejected() {
-    return new ApiException(RosettaErrorType.SUBMIT_TRANSACTION_REJECTED.toRosettaError(false));
+    return unspecifiedError("The transaction submission has been rejected");
   }
   public static ApiException outPutTooLow() {
-    return new ApiException(RosettaErrorType.OUTPUT_AMOUNT_TOO_LOW.toRosettaError(false));
+    return unspecifiedError("The outputAmount is too low. Try with more funds.");
   }
 
   public static ApiException deserializationError(String details) {

@@ -1,20 +1,13 @@
 package org.cardanofoundation.rosetta.api.mempool;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.cardanofoundation.rosetta.api.IntegrationTest;
+import org.cardanofoundation.rosetta.api.IntegrationTestWithDB;
 import org.cardanofoundation.rosetta.api.exception.Error;
 import org.cardanofoundation.rosetta.api.model.TransactionIdentifier;
-import org.cardanofoundation.rosetta.api.model.rest.MempoolResponse;
-import org.cardanofoundation.rosetta.api.model.rest.MempoolTransactionRequest;
-import org.cardanofoundation.rosetta.api.model.rest.MempoolTransactionResponse;
-import org.cardanofoundation.rosetta.api.model.rest.NetworkIdentifier;
-import org.cardanofoundation.rosetta.api.model.rest.NetworkRequest;
+import org.cardanofoundation.rosetta.api.model.rest.*;
 import org.cardanofoundation.rosetta.api.service.CardanoService;
 import org.cardanofoundation.rosetta.api.service.impl.MempoolMonitoringServiceImpl;
 import org.cardanofoundation.rosetta.api.util.RosettaConstants;
@@ -32,9 +25,13 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.client.HttpServerErrorException;
 import redis.embedded.RedisServer;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 @ExtendWith(MockitoExtension.class)
 @TestInstance(Lifecycle.PER_CLASS)
-public class MempoolMonitoringServiceImplTest extends IntegrationTest {
+public class MempoolMonitoringServiceImplTest extends IntegrationTestWithDB {
 
   @Autowired
   private CardanoService cardanoService;
@@ -80,7 +77,6 @@ public class MempoolMonitoringServiceImplTest extends IntegrationTest {
   }
   @Test
   void test_MempoolMonitoringService_getAllTransaction_returns_empty_when_dont_have_transactions_in_mempool() {
-//    MempoolResponse mempoolResponse = mempoolMonitoringService.getAllTransaction(networkRequest);
     MempoolResponse mempoolResponse = restTemplate.postForObject(
         baseUrl.concat(":").concat(String.valueOf(serverPort)).concat("/mempool"),
         mempoolTransactionRequest,
@@ -91,8 +87,6 @@ public class MempoolMonitoringServiceImplTest extends IntegrationTest {
 
   @Test
   void test_MempoolMonitoringService_getAllTransaction_returns_transactions_hash_when_have_transactions_in_mempool() {
-//    Mockito.when(redisTemplate.keys("mempool*"))
-//        .thenReturn(txHash);
     redisTemplate.opsForValue().set("mempooledd724b2a96a8a27f176125d25cb296fe301511cc9b2da8bffeef46d8fae794c" ,
         "8279020a383461343030383238323538323039353561663635386135353435353163663638373831653035616532613062666437653362316536653963613464346130613066366665343865636662393664303038323538323064383462306661323737653566306332363339326131323930383537663762656639336131326536323061653134313866393338333661343936643261393739303030313831383235383339303030373433643136636665336334666363306331316332343033626263313064626337656364643434373765303533343831613336386537613036653261653434646666363737306463306634616461336366346366323630353030386532376165636462333332616433343966646137316130313365653861303032316130303130633865303033316130316539356130356131303038313832353832306631626431393865323736386137383837346335366263653938303163313736616631373862383163646530616134663964323864383566333732323038656235383430346130623562393165623534326165346465313666633332626264383133616130326461336532623362613665393739343237333134323039643830303732366638616538646531653364643632633630363331343261383462323363333963306436333534353164323138353265383834633764636333303363313335306366356636a16a6f7065726174696f6e7380") ;
     redisTemplate.opsForValue().set("mempoola1acec653fa426c5a5d8894f40d2b606fd005f43719fb79c9315872803285e08" ,
@@ -106,10 +100,6 @@ public class MempoolMonitoringServiceImplTest extends IntegrationTest {
     );
 
     assertEquals(2, mempoolResponse.getTransactionIdentifierList().size());
-//    assertEquals("a1acec653fa426c5a5d8894f40d2b606fd005f43719fb79c9315872803285e08",
-//        mempoolResponse.getTransactionIdentifierList().get(0).getHash());
-//    assertEquals("edd724b2a96a8a27f176125d25cb296fe301511cc9b2da8bffeef46d8fae794c",
-//        mempoolResponse.getTransactionIdentifierList().get(1).getHash());
     assertThat(mempoolResponse.getTransactionIdentifierList())
         .filteredOn(transactionIdentifier -> transactionIdentifier.getHash()
             .equals("edd724b2a96a8a27f176125d25cb296fe301511cc9b2da8bffeef46d8fae794c")
@@ -136,9 +126,9 @@ public class MempoolMonitoringServiceImplTest extends IntegrationTest {
     } catch (HttpServerErrorException e){
       String responseBody = e.getResponseBodyAsString();
       Error error = objectMapper.readValue(responseBody, Error.class);
-      assertFalse(error.isRetriable());
-      assertEquals(5022, error.getCode());
-      assertEquals("Transaction hash not found in mempool",
+      assertTrue(error.isRetriable());
+      assertEquals(5000, error.getCode());
+      assertEquals("An error occurred",
           error.getMessage());
     }
   }

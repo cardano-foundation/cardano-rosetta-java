@@ -165,14 +165,9 @@ public class RosettaConstants {
     STATUS_SUCCESS_MATCH_ERROR("Given operation status and success state does not match", 5014),
     TX_HASH_COIN_NOT_MATCH("Transaction hash does not match to given coin identifier", 5015),
     ADDRESS_AND_ACCOUNT_ID_NOT_MATCH("Address and account identifier does not match", 5016),
-    BAD_FORMED_COIN_ERROR("Coin identifier has an invalid format", 5017),
-    INVALID_IPV4_ERROR("Ipv4 has an invalid format", 5018),
-    SUBMIT_TRANSACTION_REJECTED("The transaction submission has been rejected", 5019),
-    OUTPUT_AMOUNT_TOO_LOW("The outputAmount is too low. Try with more funds.", 5020) ,
-    REQUEST_BODY_NOT_VALID("Request body is not valid" ,5021),
+    BAD_FORMED_COIN_ERROR("Coin identifier has an invalid format", 5017);
 
-    NOT_FOUND_IN_MEMPOOL("Transaction hash not found in mempool" , 5022);
-      final String message;
+    final String message;
     final int code;
 
     RosettaErrorType(final String message, final int code) {

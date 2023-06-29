@@ -4,9 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.cardanofoundation.rosetta.common.ledgersync.address.ShelleyAddress;
 import org.junit.jupiter.api.Test;
-import org.springframework.context.annotation.Profile;
 
-@Profile("test")
 class AddressTest {
   @Test
   void baseAddressShouldIncludeStakeAddress(){

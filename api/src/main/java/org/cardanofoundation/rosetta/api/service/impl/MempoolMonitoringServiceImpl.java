@@ -9,7 +9,7 @@ import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.api.common.constants.Constants;
 import org.cardanofoundation.rosetta.api.common.enumeration.NetworkIdentifierType;
-import org.cardanofoundation.rosetta.api.exception.ApiException;
+import org.cardanofoundation.rosetta.api.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.api.model.TransactionExtraData;
 import org.cardanofoundation.rosetta.api.model.TransactionIdentifier;
 import org.cardanofoundation.rosetta.api.model.TransactionParsed;
@@ -19,8 +19,8 @@ import org.cardanofoundation.rosetta.api.model.rest.MempoolTransactionResponse;
 import org.cardanofoundation.rosetta.api.model.rest.NetworkRequest;
 import org.cardanofoundation.rosetta.api.service.CardanoService;
 import org.cardanofoundation.rosetta.api.service.MempoolMonitoringService;
-import org.cardanofoundation.rosetta.api.util.RosettaConstants.RosettaErrorType;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.cardanofoundation.rosetta.api.util.DataItemDecodeUtil;
+import org.cardanofoundation.rosetta.api.util.ParseConstructionUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -29,61 +29,51 @@ import org.springframework.stereotype.Service;
 @Service
 public class MempoolMonitoringServiceImpl implements MempoolMonitoringService {
 
-    private final CardanoService cardanoService;
-    @Autowired
-    @Qualifier("redisTemplateString")
-    private final RedisTemplate<String, String> redisTemplate;
+  private final CardanoService cardanoService;
+  private final RedisTemplate<String, String> redisTemplate;
 
-    public MempoolMonitoringServiceImpl(CardanoService cardanoService,
-                                        @Qualifier("redisTemplateString") RedisTemplate<String, String> redisTemplate) {
-        this.cardanoService = cardanoService;
-        this.redisTemplate = redisTemplate;
+  public MempoolMonitoringServiceImpl(CardanoService cardanoService,
+      @Qualifier("redisTemplateString") RedisTemplate<String, String> redisTemplate) {
+    this.cardanoService = cardanoService;
+    this.redisTemplate = redisTemplate;
+  }
+
+  @Override
+  public MempoolResponse getAllTransaction(NetworkRequest networkRequest) {
+
+    Set<String> txHashes = getAllTransactionsInMempool();
+    log.info("[allTransaction] Looking for all transaction in mempool" + txHashes);
+    List<TransactionIdentifier> transactionIdentifierList = txHashes.stream().map(
+        txHash -> new TransactionIdentifier(
+            txHash.substring(Constants.REDIS_PREFIX_MEMPOOL.length()))).toList();
+    return MempoolResponse.builder()
+        .transactionIdentifierList(transactionIdentifierList).build();
+  }
+
+  @Override
+  public MempoolTransactionResponse getDetailTransaction(
+      MempoolTransactionRequest mempoolTransactionRequest) {
+    String txHash = mempoolTransactionRequest.getTransactionIdentifier().getHash();
+    String txData = redisTemplate.opsForValue().get(Constants.REDIS_PREFIX_MEMPOOL + txHash);
+    if (Objects.isNull(txData)) {
+      throw ExceptionFactory.unspecifiedError("Transaction hash not found in mempool : " + txHash);
     }
-
-    @Override
-    public MempoolResponse getAllTransaction(NetworkRequest networkRequest) {
-
-        Set<String> txHashes = getAllTransactionsInMempool();
-        log.info("[allTransaction] Looking for all transaction in mempool" + txHashes);
-        List<TransactionIdentifier> transactionIdentifierList =
-                txHashes.stream()
-                        .map(txHash ->
-                                new TransactionIdentifier(txHash.substring(Constants.REDIS_PREFIX_MEMPOOL.length()))
-                        ).toList();
-        return MempoolResponse.builder()
-                .transactionIdentifierList(transactionIdentifierList)
-                .build();
-    }
-
-    @Override
-    public MempoolTransactionResponse getDetailTransaction(
-            MempoolTransactionRequest mempoolTransactionRequest) {
-        String txHash = mempoolTransactionRequest.getTransactionIdentifier().getHash();
-        String txData = redisTemplate.opsForValue().get(Constants.REDIS_PREFIX_MEMPOOL + txHash);
-        if (Objects.isNull(txData)) {
-            throw new ApiException(RosettaErrorType.NOT_FOUND_IN_MEMPOOL.toRosettaError(false));
-        }
-        log.info("Tx data for txHash {} is {}",txHash, txData);
-        Array array = cardanoService.decodeExtraData(txData);
-        TransactionExtraData extraData = cardanoService.changeFromMaptoObject(
-                (Map) array.getDataItems().get(1));
-        log.info(array + "[constructionParse] Decoded");
-        TransactionParsed result;
-        NetworkIdentifierType networkIdentifier = cardanoService.getNetworkIdentifierByRequestParameters(
-                mempoolTransactionRequest.getNetworkIdentifier());
-        result = cardanoService.parseSignedTransaction(networkIdentifier,
-                ((UnicodeString) array.getDataItems().get(0)).getString(), extraData);
-        return MempoolTransactionResponse.builder().
-                transaction(
-                        new org.cardanofoundation.rosetta.api.model.Transaction(
-                                new TransactionIdentifier(txHash),
-                                result.getOperations())
-                )
-                .build();
-    }
-
-    @Override
-    public Set<String> getAllTransactionsInMempool() {
-        return redisTemplate.keys(Constants.REDIS_PREFIX_MEMPOOL + "*");
-    }
+    log.info("Tx data for txHash {} is {}", txHash, txData);
+    Array array = cardanoService.decodeExtraData(txData);
+    TransactionExtraData extraData = DataItemDecodeUtil.changeFromMaptoObject(
+        (Map) array.getDataItems().get(1));
+    log.info(array + "[constructionParse] Decoded");
+    TransactionParsed result;
+    NetworkIdentifierType networkIdentifier = cardanoService.getNetworkIdentifierByRequestParameters(
+        mempoolTransactionRequest.getNetworkIdentifier());
+    result = ParseConstructionUtils.parseSignedTransaction(networkIdentifier,
+        ((UnicodeString) array.getDataItems().get(0)).getString(), extraData);
+    return MempoolTransactionResponse.builder()
+        .transaction(new org.cardanofoundation.rosetta.api.model.Transaction(
+            new TransactionIdentifier(txHash), result.getOperations())).build();
+  }
+  @Override
+  public Set<String> getAllTransactionsInMempool() {
+    return redisTemplate.keys(Constants.REDIS_PREFIX_MEMPOOL + "*");
+  }
 }

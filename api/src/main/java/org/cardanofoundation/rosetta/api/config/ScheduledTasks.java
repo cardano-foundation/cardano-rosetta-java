@@ -33,9 +33,9 @@ public class ScheduledTasks {
         this.redisTemplate = redisTemplate;
     }
 
-    @Scheduled(fixedDelayString = "${scheduler.time:1}")
+    @Scheduled(fixedDelayString = "${scheduler.time:1000}")
     public void scheduleTaskWithFixedRate() {
-        log.info("Start the cron Job ");
+//        log.info("Start the cron Job ");
         List<String> transactionHashes = getAllTransactionsInMempool();
         log.info("There are {} transactions in mempool", transactionHashes.size());
         Map<String, String> txHashWithData = new HashMap<>();
@@ -48,7 +48,7 @@ public class ScheduledTasks {
         txHashWithData.entrySet().stream().forEach((entry) -> {
             redisTemplate.opsForValue().set(entry.getKey(), entry.getValue());
         });
-        log.info("End the cronjob");
+//        log.info("End the cronjob");
     }
 
     public List<String> getAllTransactionsInMempool() {

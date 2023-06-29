@@ -1,5 +1,10 @@
 package org.cardanofoundation.rosetta.api.config.redis.sentinel;
 
+import java.time.Duration;
+import java.util.Arrays;
+import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
@@ -25,12 +30,6 @@ import org.springframework.data.redis.connection.lettuce.LettuceClientConfigurat
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import redis.clients.jedis.JedisPoolConfig;
 
-import java.time.Duration;
-import java.util.Arrays;
-import java.util.UUID;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
 @Configuration
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @EnableCaching
@@ -47,6 +46,7 @@ public class RedisSentinelConfiguration implements CachingConfigurer {
     RedisSentinelConfiguration(RedisSentinelProperties redisProperties) {
         this.redisProperties = redisProperties;
     }
+
 
     @Bean
     @Primary

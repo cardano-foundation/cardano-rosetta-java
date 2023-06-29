@@ -3,14 +3,17 @@ package org.cardanofoundation.rosetta.api;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.info.Info;
 import jakarta.servlet.DispatcherType;
-import java.util.List;
+import org.openapitools.jackson.nullable.JsonNullableModule;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.Ordered;
 import org.springframework.web.filter.ForwardedHeaderFilter;
+
+import java.util.List;
 
 
 @SpringBootApplication
@@ -29,5 +32,10 @@ public class RosettaApiApplication {
         registration.setOrder(Ordered.HIGHEST_PRECEDENCE);
         registration.setUrlPatterns(List.of("/**"));
         return registration;
+    }
+    @Bean
+    @Profile("!test-integration")
+    public JsonNullableModule jsonNullableModule() {
+        return new JsonNullableModule();
     }
 }

@@ -1,13 +1,20 @@
 package org.cardanofoundation.rosetta.api.constructionApiService.impl;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-
-
 import com.bloxbean.cardano.client.util.HexUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.iwebpp.crypto.TweetNacl;
+import lombok.extern.slf4j.Slf4j;
+import org.cardanofoundation.rosetta.api.IntegrationTest;
+import org.cardanofoundation.rosetta.api.exception.Error;
+import org.cardanofoundation.rosetta.api.exception.ExceptionFactory;
+import org.cardanofoundation.rosetta.api.model.Currency;
+import org.cardanofoundation.rosetta.api.model.*;
+import org.cardanofoundation.rosetta.api.model.rest.TokenBundleItem;
+import org.cardanofoundation.rosetta.api.model.rest.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.web.client.HttpServerErrorException;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -16,49 +23,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
-import lombok.extern.slf4j.Slf4j;
-import org.cardanofoundation.rosetta.api.IntegrationTest;
-import org.cardanofoundation.rosetta.api.exception.Error;
-import org.cardanofoundation.rosetta.api.exception.ExceptionFactory;
-import org.cardanofoundation.rosetta.api.model.Amount;
-import org.cardanofoundation.rosetta.api.model.CoinChange;
-import org.cardanofoundation.rosetta.api.model.CoinIdentifier;
-import org.cardanofoundation.rosetta.api.model.ConstructionMetadataRequestOptions;
-import org.cardanofoundation.rosetta.api.model.ConstructionPayloadsRequestMetadata;
-import org.cardanofoundation.rosetta.api.model.ConstructionPreprocessRequestMetadata;
-import org.cardanofoundation.rosetta.api.model.Currency;
-import org.cardanofoundation.rosetta.api.model.DepositParameters;
-import org.cardanofoundation.rosetta.api.model.Metadata;
-import org.cardanofoundation.rosetta.api.model.Operation;
-import org.cardanofoundation.rosetta.api.model.OperationIdentifier;
-import org.cardanofoundation.rosetta.api.model.OperationMetadata;
-import org.cardanofoundation.rosetta.api.model.PublicKey;
-import org.cardanofoundation.rosetta.api.model.Signature;
-import org.cardanofoundation.rosetta.api.model.SignatureType;
-import org.cardanofoundation.rosetta.api.model.SigningPayload;
-import org.cardanofoundation.rosetta.api.model.rest.AccountBalanceRequest;
-import org.cardanofoundation.rosetta.api.model.rest.AccountBalanceResponse;
-import org.cardanofoundation.rosetta.api.model.rest.AccountCoinsRequest;
-import org.cardanofoundation.rosetta.api.model.rest.AccountCoinsResponse;
-import org.cardanofoundation.rosetta.api.model.rest.AccountIdentifier;
-import org.cardanofoundation.rosetta.api.model.rest.ConstructionCombineRequest;
-import org.cardanofoundation.rosetta.api.model.rest.ConstructionCombineResponse;
-import org.cardanofoundation.rosetta.api.model.rest.ConstructionDeriveRequest;
-import org.cardanofoundation.rosetta.api.model.rest.ConstructionDeriveResponse;
-import org.cardanofoundation.rosetta.api.model.rest.ConstructionHashRequest;
-import org.cardanofoundation.rosetta.api.model.rest.ConstructionMetadataRequest;
-import org.cardanofoundation.rosetta.api.model.rest.ConstructionMetadataResponse;
-import org.cardanofoundation.rosetta.api.model.rest.ConstructionPayloadsRequest;
-import org.cardanofoundation.rosetta.api.model.rest.ConstructionPayloadsResponse;
-import org.cardanofoundation.rosetta.api.model.rest.ConstructionPreprocessRequest;
-import org.cardanofoundation.rosetta.api.model.rest.ConstructionPreprocessResponse;
-import org.cardanofoundation.rosetta.api.model.rest.ConstructionSubmitRequest;
-import org.cardanofoundation.rosetta.api.model.rest.NetworkIdentifier;
-import org.cardanofoundation.rosetta.api.model.rest.TokenBundleItem;
-import org.cardanofoundation.rosetta.api.model.rest.TransactionIdentifierResponse;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.web.client.HttpServerErrorException;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j
 public class ConstructionApiDelegateImplSubmitTests extends IntegrationTest {
@@ -79,9 +46,9 @@ public class ConstructionApiDelegateImplSubmitTests extends IntegrationTest {
     } catch (HttpServerErrorException e) {
       String responseBody = e.getResponseBodyAsString();
       Error error=objectMapper.readValue(responseBody, Error.class);
-      assertTrue(!error.isRetriable());
-      assertEquals(5019,error.getCode());
-      assertEquals("The transaction submission has been rejected",error.getMessage());
+      assertTrue(error.isRetriable());
+      assertEquals(5000,error.getCode());
+      assertEquals("An error occurred",error.getMessage());
     }
 
   }

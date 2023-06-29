@@ -57,9 +57,9 @@ services:
       - cardano_redis_master
     command: redis-server --slaveof cardano_redis_master 6379
 
-  cardano_redis_sentinel:
-    image: 'bitnami/redis-sentinel:latest'
-    hostname: cardano.redis.sentinel
+  redis-sentinel:
+    image: 'bitnami/redis-sentinel'
+    hostname: ${REDIS_SENTINEL_HOST}
     environment:
       - REDIS_MASTER_PASSWORD=${REDIS_MASTER_PASSWORD:-str0ng_passw0rd}
       - REDIS_MASTER_SET=${REDIS_MASTER_SET:-mymaster}
@@ -67,7 +67,7 @@ services:
       - REDIS_SENTINEL_FAILOVER_TIMEOUT=500
       - REDIS_SENTINEL_QUORUM=2
       - REDIS_SENTINEL_PASSWORD=${REDIS_SENTINEL_PASSWORD:-str0ng_passw0rd}
-      - REDIS_MASTER_HOST=${EXTERNAL_REDIS_MASTER_HOST:-cardano.redis.master}
+      - REDIS_MASTER_HOST=cardano.redis.master
       - REDIS_MASTER_PORT_NUMBER=${EXTERNAL_REDIS_MASTER_PORT:-6379}
     restart: always
     depends_on:

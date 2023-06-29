@@ -3,50 +3,39 @@ package org.cardanofoundation.rosetta.consumer.integration.kafka;
 import com.bloxbean.cardano.client.util.HexUtil;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
+import org.cardanofoundation.rosetta.common.entity.*;
+import org.cardanofoundation.rosetta.common.enumeration.TokenType;
+import org.cardanofoundation.rosetta.common.ledgersync.kafka.CommonBlock;
+import org.cardanofoundation.rosetta.common.util.FileUtil;
+import org.cardanofoundation.rosetta.consumer.repository.*;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
+import org.springframework.kafka.test.context.EmbeddedKafka;
+import org.springframework.test.context.ActiveProfiles;
+
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
-import lombok.AccessLevel;
-import lombok.experimental.FieldDefaults;
-import lombok.extern.slf4j.Slf4j;
-import org.cardanofoundation.rosetta.common.entity.Block;
-import org.cardanofoundation.rosetta.common.entity.MaTxOut;
-import org.cardanofoundation.rosetta.common.entity.MultiAsset;
-import org.cardanofoundation.rosetta.common.entity.PoolHash;
-import org.cardanofoundation.rosetta.common.entity.StakeAddress;
-import org.cardanofoundation.rosetta.common.entity.Tx;
-import org.cardanofoundation.rosetta.common.entity.TxOut;
-import org.cardanofoundation.rosetta.common.enumeration.TokenType;
-import org.cardanofoundation.rosetta.common.ledgersync.kafka.CommonBlock;
-import org.cardanofoundation.rosetta.common.util.FileUtil;
-import org.cardanofoundation.rosetta.consumer.CardanoRosettaConsumerApplication;
-import org.cardanofoundation.rosetta.consumer.repository.BlockRepository;
-import org.cardanofoundation.rosetta.consumer.repository.MultiAssetRepository;
-import org.cardanofoundation.rosetta.consumer.repository.MultiAssetTxOutRepository;
-import org.cardanofoundation.rosetta.consumer.repository.PoolHashRepository;
-import org.cardanofoundation.rosetta.consumer.repository.StakeAddressRepository;
-import org.cardanofoundation.rosetta.consumer.repository.TxOutRepository;
-import org.cardanofoundation.rosetta.consumer.repository.TxRepository;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.TestInstance;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Profile;
-import org.springframework.kafka.test.context.EmbeddedKafka;
-import org.springframework.test.context.junit.jupiter.EnabledIf;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Profile("test-integration")
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE, classes = CardanoRosettaConsumerApplication.class)
+@ActiveProfiles("test-integration")
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @EmbeddedKafka(partitions = 1,
     brokerProperties = {"listeners=PLAINTEXT://localhost:29999", "port=29999"})
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@EnabledIf(value = "#{environment['spring.profiles.active'] == 'test-integration'}", loadContext = true)
-class BlockSyncServiceIntegrationTest {
+class BlockSyncServiceIntegrationTest extends DatabaseTest{
 
   @Value("${test.blocks.json-path}")
   String blocksJsonPath;
@@ -301,15 +290,15 @@ class BlockSyncServiceIntegrationTest {
     poolHashRepository.save(poolHash);
   }
 
-//  @Test
-//  void blockListenerIntegrationTest() throws InterruptedException {
-//    commonBlocks.forEach(commonBlock -> {
-//      log.info("Sending block number: {}", commonBlock.getBlockNumber());
-//      kafkaProducer.send(testTopic, commonBlock);
-//    });
-//
-//    testBlockListener.setCountdown(commonBlocks.size());
-//    boolean consumed = testBlockListener.getLatch().await(60, TimeUnit.SECONDS);
-//    Assertions.assertTrue(consumed);
-//  }
+  @Test
+  void blockListenerIntegrationTest() throws InterruptedException {
+    commonBlocks.forEach(commonBlock -> {
+      log.info("Sending block number: {}", commonBlock.getBlockNumber());
+      kafkaProducer.send(testTopic, commonBlock);
+    });
+
+    testBlockListener.setCountdown(commonBlocks.size());
+    boolean consumed = testBlockListener.getLatch().await(60, TimeUnit.SECONDS);
+    Assertions.assertTrue(consumed);
+  }
 }

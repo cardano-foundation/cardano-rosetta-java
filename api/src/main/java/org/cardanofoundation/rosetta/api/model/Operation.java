@@ -17,7 +17,6 @@ public class Operation {
   private OperationIdentifier operationIdentifier;
 
   @JsonProperty("related_operations")
-  @Valid
   private List<OperationIdentifier> relatedOperations = null;
 
   @JsonProperty("type")
