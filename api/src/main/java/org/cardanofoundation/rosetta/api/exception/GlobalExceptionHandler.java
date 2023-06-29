@@ -15,7 +15,7 @@ import java.util.List;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-  @Value("${api.exception.isPrintStackTrace:false}")
+  @Value("${api.exception.isPrintStackTrace:true}")
   private String isPrintStackTrace;
 
 

@@ -71,8 +71,8 @@ public class CardanoServiceImpl implements CardanoService {
         operations,
         ttl,
         !ObjectUtils.isEmpty(depositParameters) ? depositParameters
-            : new DepositParameters(Constants.DEFAULT_POOL_DEPOSIT.toString(),
-                Constants.DEFAULT_KEY_DEPOSIT.toString())
+            : new DepositParameters(Constants.DEFAULT_KEY_DEPOSIT.toString(),
+                Constants.DEFAULT_POOL_DEPOSIT.toString())
     );
     // eslint-disable-next-line consistent-return
     List<Signatures> signaturesList = (unsignedTransaction.getAddresses()).stream()
