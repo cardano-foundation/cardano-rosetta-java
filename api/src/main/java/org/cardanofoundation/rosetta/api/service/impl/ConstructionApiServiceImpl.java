@@ -10,9 +10,6 @@ import com.bloxbean.cardano.client.util.HexUtil;
 import com.bloxbean.cardano.yaci.core.protocol.localtx.model.TxSubmissionRequest;
 import com.bloxbean.cardano.yaci.helper.LocalTxSubmissionClient;
 import com.bloxbean.cardano.yaci.helper.model.TxResult;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -22,34 +19,8 @@ import org.cardanofoundation.rosetta.api.common.constants.Constants;
 import org.cardanofoundation.rosetta.api.common.enumeration.AddressType;
 import org.cardanofoundation.rosetta.api.common.enumeration.NetworkIdentifierType;
 import org.cardanofoundation.rosetta.api.exception.ExceptionFactory;
-import org.cardanofoundation.rosetta.api.model.AccountIdentifierMetadata;
-import org.cardanofoundation.rosetta.api.model.ConstructionPreprocessResponseOptions;
-import org.cardanofoundation.rosetta.api.model.DepositParameters;
-import org.cardanofoundation.rosetta.api.model.Operation;
-import org.cardanofoundation.rosetta.api.model.ProtocolParameters;
-import org.cardanofoundation.rosetta.api.model.PublicKey;
-import org.cardanofoundation.rosetta.api.model.Signatures;
-import org.cardanofoundation.rosetta.api.model.SigningPayload;
-import org.cardanofoundation.rosetta.api.model.TransactionExtraData;
-import org.cardanofoundation.rosetta.api.model.TransactionParsed;
-import org.cardanofoundation.rosetta.api.model.UnsignedTransaction;
-import org.cardanofoundation.rosetta.api.model.rest.AccountIdentifier;
-import org.cardanofoundation.rosetta.api.model.rest.ConstructionCombineRequest;
-import org.cardanofoundation.rosetta.api.model.rest.ConstructionCombineResponse;
-import org.cardanofoundation.rosetta.api.model.rest.ConstructionDeriveRequest;
-import org.cardanofoundation.rosetta.api.model.rest.ConstructionDeriveResponse;
-import org.cardanofoundation.rosetta.api.model.rest.ConstructionHashRequest;
-import org.cardanofoundation.rosetta.api.model.rest.ConstructionMetadataRequest;
-import org.cardanofoundation.rosetta.api.model.rest.ConstructionMetadataResponse;
-import org.cardanofoundation.rosetta.api.model.rest.ConstructionMetadataResponseMetadata;
-import org.cardanofoundation.rosetta.api.model.rest.ConstructionParseRequest;
-import org.cardanofoundation.rosetta.api.model.rest.ConstructionParseResponse;
-import org.cardanofoundation.rosetta.api.model.rest.ConstructionPayloadsRequest;
-import org.cardanofoundation.rosetta.api.model.rest.ConstructionPayloadsResponse;
-import org.cardanofoundation.rosetta.api.model.rest.ConstructionPreprocessRequest;
-import org.cardanofoundation.rosetta.api.model.rest.ConstructionPreprocessResponse;
-import org.cardanofoundation.rosetta.api.model.rest.ConstructionSubmitRequest;
-import org.cardanofoundation.rosetta.api.model.rest.TransactionIdentifierResponse;
+import org.cardanofoundation.rosetta.api.model.*;
+import org.cardanofoundation.rosetta.api.model.rest.*;
 import org.cardanofoundation.rosetta.api.service.CardanoService;
 import org.cardanofoundation.rosetta.api.service.ConstructionApiService;
 import org.cardanofoundation.rosetta.api.util.CardanoAddressUtils;
@@ -61,6 +32,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.cardanofoundation.rosetta.api.common.constants.Constants.REDIS_TTL_MEMPOOL;
 
 
 @Slf4j
@@ -317,7 +294,8 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
     redisTemplate
         .opsForValue()
         .set(Constants.REDIS_PREFIX_PENDING + txnRequest.getTxHash(),
-            constructionSubmitRequest.getSignedTransaction());
+            constructionSubmitRequest.getSignedTransaction(),
+                REDIS_TTL_MEMPOOL);
     TxResult txResult = localTxSubmissionClient.submitTx(txnRequest).block();
     if (txResult != null && !txResult.isAccepted()) {
       throw ExceptionFactory.submitRejected(txResult.getErrorCbor());

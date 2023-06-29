@@ -1,10 +1,5 @@
 package org.cardanofoundation.rosetta.api.config.redis.sentinel;
 
-import java.time.Duration;
-import java.util.Arrays;
-import java.util.UUID;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +24,14 @@ import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import redis.clients.jedis.JedisPoolConfig;
+
+import java.time.Duration;
+import java.util.Arrays;
+import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import static org.cardanofoundation.rosetta.api.common.constants.Constants.REDIS_TTL_HOURS;
 
 @Configuration
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -139,7 +142,7 @@ public class RedisSentinelConfiguration implements CachingConfigurer {
     @Bean
     RedisCacheManagerBuilderCustomizer redisCacheManagerBuilderCustomizer() {
         return builder -> builder.withCacheConfiguration("monolithic",
-                RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofSeconds(5)));
+                RedisCacheConfiguration.defaultCacheConfig().entryTtl(REDIS_TTL_HOURS));
     }
 
     /**
