@@ -5,6 +5,7 @@ import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.cardanofoundation.rosetta.api.IntegrationTest;
 import org.cardanofoundation.rosetta.api.IntegrationTestWithDB;
+import org.cardanofoundation.rosetta.api.IntegrationTestWithDbAndRedis;
 import org.cardanofoundation.rosetta.api.exception.Error;
 import org.cardanofoundation.rosetta.api.model.TransactionIdentifier;
 import org.cardanofoundation.rosetta.api.model.rest.*;
@@ -31,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(MockitoExtension.class)
 @TestInstance(Lifecycle.PER_CLASS)
-public class MempoolMonitoringServiceImplTest extends IntegrationTestWithDB {
+public class MempoolMonitoringServiceImplTest extends IntegrationTestWithDbAndRedis {
 
   @Autowired
   private CardanoService cardanoService;
@@ -43,25 +44,6 @@ public class MempoolMonitoringServiceImplTest extends IntegrationTestWithDB {
   @Autowired
   @Qualifier("redisTemplateString")
   private RedisTemplate<String, String> redisTemplate;
-  private static RedisServer redisServer;
-
-  @Value("${spring.data.redis.port}")
-  private  int port;
-
-  @Value("${spring.data.redis.host}")
-  private   String host;
-
-
-  @PostConstruct
-  public void start() {
-    redisServer = RedisServer.builder().bind(host).port(port).build();
-    redisServer.start();
-  }
-
-  @PreDestroy
-  public void destroy() {
-    redisServer.stop();
-  }
 
 
   @BeforeEach

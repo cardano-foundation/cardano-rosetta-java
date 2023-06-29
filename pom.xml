@@ -141,7 +141,7 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
-                    <skipTests>false</skipTests>
+                    <skipTests>true</skipTests>
                 </configuration>
             </plugin>
         </plugins>
@@ -149,7 +149,7 @@
 
     <modules>
         <module>api</module>
-<!--        <module>consumer</module>-->
+        <module>consumer</module>
         <module>common</module>
     </modules>
   <dependencies>

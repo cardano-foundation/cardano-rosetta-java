@@ -16,6 +16,8 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.api.IntegrationTest;
+import org.cardanofoundation.rosetta.api.IntegrationTestWithDB;
+import org.cardanofoundation.rosetta.api.IntegrationTestWithDbAndRedis;
 import org.cardanofoundation.rosetta.api.exception.Error;
 import org.cardanofoundation.rosetta.api.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.api.model.Amount;
@@ -59,7 +61,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.web.client.HttpServerErrorException;
 
 @Slf4j
-public class ConstructionApiDelegateImplSubmitTests extends IntegrationTest {
+public class ConstructionApiDelegateImplSubmitTests extends IntegrationTestWithDbAndRedis {
 
   @BeforeEach
   public void setUp() {
