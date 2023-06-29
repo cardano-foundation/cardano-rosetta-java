@@ -308,7 +308,7 @@ public class DataMapper {
               .dnsName(relay.getDnsName())
               .ipv4(relay.getIpv4())
               .ipv6(relay.getIpv6())
-              .port(relay.getPort().toString())
+              .port(String.valueOf(relay.getPort()))
               .build())
           .collect(Collectors.toList());
 
