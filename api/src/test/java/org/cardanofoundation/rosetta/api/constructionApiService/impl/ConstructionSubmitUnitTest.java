@@ -1,5 +1,11 @@
 package org.cardanofoundation.rosetta.api.constructionApiService.impl;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.when;
+
 import co.nstant.in.cbor.model.Array;
 import co.nstant.in.cbor.model.UnicodeString;
 import com.bloxbean.cardano.client.util.HexUtil;
@@ -20,12 +26,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import reactor.core.publisher.Mono;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class ConstructionSubmitUnitTest {
@@ -60,7 +60,7 @@ class ConstructionSubmitUnitTest {
     when(cardanoService.decodeExtraData(anyString())).thenReturn(array);
     when(localTxSubmissionClient.submitTx(any(TxSubmissionRequest.class))).thenReturn(resultMono);
     when(redisTemplate.opsForValue()).thenReturn(valueOperations);
-    doNothing().when(valueOperations).set(anyString(), anyString());
+    doNothing().when(valueOperations).set(anyString(), anyString(), any());
     TransactionIdentifierResponse transactionIdentifierResponse=service.constructionSubmitService(constructionSubmitRequest);
     assertEquals("f061e62c43e6902169a84f3344a329720cdbf8d75ae3a2845c11249c3e56ce1c",transactionIdentifierResponse.getTransactionIdentifier().getHash());
   }

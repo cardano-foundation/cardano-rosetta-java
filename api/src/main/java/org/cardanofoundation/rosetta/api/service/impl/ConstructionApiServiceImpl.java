@@ -1,5 +1,7 @@
 package org.cardanofoundation.rosetta.api.service.impl;
 
+import static org.cardanofoundation.rosetta.api.common.constants.Constants.REDIS_TTL_MEMPOOL;
+
 import co.nstant.in.cbor.CborException;
 import co.nstant.in.cbor.model.Array;
 import co.nstant.in.cbor.model.Map;
@@ -22,8 +24,35 @@ import org.cardanofoundation.rosetta.api.common.constants.Constants;
 import org.cardanofoundation.rosetta.api.common.enumeration.AddressType;
 import org.cardanofoundation.rosetta.api.common.enumeration.NetworkIdentifierType;
 import org.cardanofoundation.rosetta.api.exception.ExceptionFactory;
-import org.cardanofoundation.rosetta.api.model.*;
-import org.cardanofoundation.rosetta.api.model.rest.*;
+import org.cardanofoundation.rosetta.api.model.AccountIdentifierMetadata;
+import org.cardanofoundation.rosetta.api.model.ConstructionPreprocessResponseOptions;
+import org.cardanofoundation.rosetta.api.model.DepositParameters;
+import org.cardanofoundation.rosetta.api.model.Operation;
+import org.cardanofoundation.rosetta.api.model.ProtocolParameters;
+import org.cardanofoundation.rosetta.api.model.PublicKey;
+import org.cardanofoundation.rosetta.api.model.Signatures;
+import org.cardanofoundation.rosetta.api.model.SigningPayload;
+import org.cardanofoundation.rosetta.api.model.TransactionExtraData;
+import org.cardanofoundation.rosetta.api.model.TransactionIdentifier;
+import org.cardanofoundation.rosetta.api.model.TransactionParsed;
+import org.cardanofoundation.rosetta.api.model.UnsignedTransaction;
+import org.cardanofoundation.rosetta.api.model.rest.AccountIdentifier;
+import org.cardanofoundation.rosetta.api.model.rest.ConstructionCombineRequest;
+import org.cardanofoundation.rosetta.api.model.rest.ConstructionCombineResponse;
+import org.cardanofoundation.rosetta.api.model.rest.ConstructionDeriveRequest;
+import org.cardanofoundation.rosetta.api.model.rest.ConstructionDeriveResponse;
+import org.cardanofoundation.rosetta.api.model.rest.ConstructionHashRequest;
+import org.cardanofoundation.rosetta.api.model.rest.ConstructionMetadataRequest;
+import org.cardanofoundation.rosetta.api.model.rest.ConstructionMetadataResponse;
+import org.cardanofoundation.rosetta.api.model.rest.ConstructionMetadataResponseMetadata;
+import org.cardanofoundation.rosetta.api.model.rest.ConstructionParseRequest;
+import org.cardanofoundation.rosetta.api.model.rest.ConstructionParseResponse;
+import org.cardanofoundation.rosetta.api.model.rest.ConstructionPayloadsRequest;
+import org.cardanofoundation.rosetta.api.model.rest.ConstructionPayloadsResponse;
+import org.cardanofoundation.rosetta.api.model.rest.ConstructionPreprocessRequest;
+import org.cardanofoundation.rosetta.api.model.rest.ConstructionPreprocessResponse;
+import org.cardanofoundation.rosetta.api.model.rest.ConstructionSubmitRequest;
+import org.cardanofoundation.rosetta.api.model.rest.TransactionIdentifierResponse;
 import org.cardanofoundation.rosetta.api.service.CardanoService;
 import org.cardanofoundation.rosetta.api.service.ConstructionApiService;
 import org.cardanofoundation.rosetta.api.util.CardanoAddressUtils;
@@ -35,12 +64,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.cardanofoundation.rosetta.api.common.constants.Constants.REDIS_TTL_MEMPOOL;
 
 
 @Slf4j
@@ -75,7 +98,6 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
     }
     log.info("[constructionDerive] Public key has a valid format");
 
-    // eslint-disable-next-line camelcase
     PublicKey stakingCredential =
         ObjectUtils.isEmpty(constructionDeriveRequest.getMetadata()) ? null
             : constructionDeriveRequest.getMetadata().getStakingCredential();
@@ -90,7 +112,6 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
       log.info("[constructionDerive] Staking credential key has a valid format");
     }
 
-    // eslint-disable-next-line camelcase
     String addressType = ObjectUtils.isEmpty(constructionDeriveRequest.getMetadata()) ? null
         : constructionDeriveRequest.getMetadata().getAddressType();
     if (addressType != null) {
@@ -103,13 +124,10 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
     }
 
     log.info("[constructionDerive] About to generate address");
-    String address = CardanoAddressUtils.generateAddress(
-        networkIdentifier,
-        publicKey.getHexBytes(),
-        // eslint-disable-next-line camelcase
+    String address = CardanoAddressUtils.generateAddress(networkIdentifier, publicKey.getHexBytes(),
+        
         stakingCredential == null ? null : stakingCredential.getHexBytes(),
-        AddressType.findByValue(addressType)
-    );
+        AddressType.findByValue(addressType));
     if (address == null) {
       log.error("[constructionDerive] There was an error generating address");
       throw ExceptionFactory.addressGenerationError();
@@ -124,18 +142,15 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
       throws IOException, AddressExcepion, CborSerializationException, CborException {
     NetworkIdentifierType networkIdentifier = NetworkIdentifierType.findByName(
         constructionPreprocessRequest.getNetworkIdentifier().getNetwork());
-    // eslint-disable-next-line camelcase
+    
     Double relativeTtl = cardanoService.calculateRelativeTtl(
         !ObjectUtils.isEmpty(constructionPreprocessRequest.getMetadata())
             ? constructionPreprocessRequest.getMetadata().getRelativeTtl() : null);
-    Double transactionSize = cardanoService.calculateTxSize(
-        networkIdentifier,
-        (ArrayList<Operation>) constructionPreprocessRequest.getOperations(),
-        0,
+    Double transactionSize = cardanoService.calculateTxSize(networkIdentifier,
+        (ArrayList<Operation>) constructionPreprocessRequest.getOperations(), 0,
         ObjectUtils.isEmpty(constructionPreprocessRequest.getMetadata()) ? null
-            : constructionPreprocessRequest.getMetadata().getDepositParameters()
-    );
-    // eslint-disable-next-line camelcase
+            : constructionPreprocessRequest.getMetadata().getDepositParameters());
+    
     return new ConstructionPreprocessResponse(
         new ConstructionPreprocessResponseOptions(relativeTtl, transactionSize), null);
   }
@@ -161,10 +176,9 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
     Long suggestedFee = cardanoService.calculateTxMinimumFee(updatedTxSize,
         protocolParametersResponse);
     log.debug("[constructionMetadata] suggested fee is ${suggestedFee}");
-    // eslint-disable-next-line camelcase
+    
     ProtocolParameters protocolParameters = new ProtocolParameters();
-    protocolParameters.setCoinsPerUtxoSize(
-        protocolParametersResponse.getCoinsPerUtxoSize());
+    protocolParameters.setCoinsPerUtxoSize(protocolParametersResponse.getCoinsPerUtxoSize());
     protocolParameters.setMaxTxSize(protocolParametersResponse.getMaxTxSize());
     protocolParameters.setMaxValSize(protocolParametersResponse.getMaxValSize());
     protocolParameters.setKeyDeposit(protocolParametersResponse.getKeyDeposit());
@@ -182,8 +196,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
 
   @Override
   public ConstructionPayloadsResponse constructionPayloadsService(
-      ConstructionPayloadsRequest constructionPayloadsRequest)
-      throws Exception {
+      ConstructionPayloadsRequest constructionPayloadsRequest) throws Exception {
     String ttl = constructionPayloadsRequest.getMetadata().getTtl();
     List<Operation> operations = constructionPayloadsRequest.getOperations();
     for (int i = 0; i < operations.size(); i++) {
@@ -198,12 +211,9 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
     ProtocolParameters protocolParameters = constructionPayloadsRequest.getMetadata()
         .getProtocolParameters();
     UnsignedTransaction unsignedTransaction = cardanoService.createUnsignedTransaction(
-        networkIdentifier,
-        operations,
-        Integer.parseInt(ttl),
+        networkIdentifier, operations, Integer.parseInt(ttl),
         new DepositParameters(protocolParameters.getKeyDeposit(),
-            protocolParameters.getPoolDeposit())
-    );
+            protocolParameters.getPoolDeposit()));
     List<SigningPayload> payloads = cardanoService.constructPayloadsForTransactionBody(
         unsignedTransaction.getHash(), unsignedTransaction.getAddresses());
     String unsignedTransactionString = DataItemEncodeUtil.encodeExtraData(
@@ -242,8 +252,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
 
   @Override
   public ConstructionCombineResponse constructionCombineService(
-      ConstructionCombineRequest constructionCombineRequest)
-      throws CborException {
+      ConstructionCombineRequest constructionCombineRequest) throws CborException {
     log.info("[constructionCombine] Request received to sign a transaction");
     Array array = cardanoService.decodeExtraData(
         constructionCombineRequest.getUnsignedTransaction());
@@ -263,14 +272,11 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
             }
             address = accountIdentifier.getAddress();
           }
-          return new Signatures(signature.getHexBytes(),
-              signature.getPublicKey().getHexBytes(),
+          return new Signatures(signature.getHexBytes(), signature.getPublicKey().getHexBytes(),
               chainCode, address);
-        }).toList(),
-        extraData.getTransactionMetadataHex()
-    );
+        }).toList(), extraData.getTransactionMetadataHex());
     log.info(signedTransaction + "[constructionCombine] About to return signed transaction");
-    // eslint-disable-next-line camelcase
+    
     return new ConstructionCombineResponse(
         DataItemEncodeUtil.encodeExtraData(signedTransaction, extraData));
   }
@@ -283,7 +289,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
     String transactionHash = cardanoService.getHashOfSignedTransaction(
         ((UnicodeString) array.getDataItems().get(0)).getString());
     log.info("[constructionHash] About to return hash of signed transaction");
-    // eslint-disable-next-line camelcase
+    
     return new TransactionIdentifierResponse(new TransactionIdentifier(transactionHash));
   }
 
@@ -294,14 +300,11 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
     byte[] signedTransactionBytes = HexUtil.decodeHexString(
         ((UnicodeString) array.getDataItems().get(0)).getString());
     TxSubmissionRequest txnRequest = new TxSubmissionRequest(signedTransactionBytes);
-    redisTemplate
-        .opsForValue()
-        .set(Constants.REDIS_PREFIX_PENDING + txnRequest.getTxHash(),
-            constructionSubmitRequest.getSignedTransaction(),
-                REDIS_TTL_MEMPOOL);
+    redisTemplate.opsForValue().set(Constants.REDIS_PREFIX_PENDING + txnRequest.getTxHash(),
+        constructionSubmitRequest.getSignedTransaction(), REDIS_TTL_MEMPOOL);
     TxResult txResult = localTxSubmissionClient.submitTx(txnRequest).block();
     if (txResult != null && !txResult.isAccepted()) {
-      throw ExceptionFactory.submitRejected();
+      throw ExceptionFactory.submitRejected(txResult.getErrorCbor());
     }
     return new TransactionIdentifierResponse(new TransactionIdentifier(txResult.getTxHash()));
 

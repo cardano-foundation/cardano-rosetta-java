@@ -166,8 +166,8 @@ public class ExceptionFactory {
   public static ApiException invalidPolicyIdError(String details) {
     return new ApiException(RosettaErrorType.INVALID_POLICY_ID.toRosettaError(false, Details.builder().message(details).build()));
   }
-  public static ApiException submitRejected() {
-    return unspecifiedError("The transaction submission has been rejected");
+  public static ApiException submitRejected(String detail) {
+    return new ApiException(RosettaErrorType.SEND_TRANSACTION_ERROR.toRosettaError(true , Details.builder().message(detail).build()));
   }
   public static ApiException outPutTooLow() {
     return unspecifiedError("The outputAmount is too low. Try with more funds.");

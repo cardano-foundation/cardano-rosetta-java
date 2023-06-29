@@ -1,5 +1,7 @@
 package org.cardanofoundation.rosetta.api.service.impl;
 
+import static java.math.BigInteger.valueOf;
+
 import co.nstant.in.cbor.CborException;
 import co.nstant.in.cbor.model.Array;
 import co.nstant.in.cbor.model.DataItem;
@@ -10,12 +12,30 @@ import com.bloxbean.cardano.client.crypto.VerificationKey;
 import com.bloxbean.cardano.client.exception.AddressExcepion;
 import com.bloxbean.cardano.client.exception.CborDeserializationException;
 import com.bloxbean.cardano.client.exception.CborSerializationException;
+import com.bloxbean.cardano.client.transaction.spec.AuxiliaryData;
+import com.bloxbean.cardano.client.transaction.spec.BootstrapWitness;
 import com.bloxbean.cardano.client.transaction.spec.Transaction;
+import com.bloxbean.cardano.client.transaction.spec.TransactionBody;
+import com.bloxbean.cardano.client.transaction.spec.TransactionWitnessSet;
+import com.bloxbean.cardano.client.transaction.spec.VkeyWitness;
 import com.bloxbean.cardano.client.transaction.spec.Withdrawal;
-import com.bloxbean.cardano.client.transaction.spec.*;
 import com.bloxbean.cardano.client.transaction.spec.cert.Certificate;
 import com.bloxbean.cardano.client.util.HexUtil;
 import com.bloxbean.cardano.yaci.core.util.CborSerializationUtil;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SignatureException;
+import java.security.spec.InvalidKeySpecException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.cardanofoundation.rosetta.api.common.constants.Constants;
@@ -24,27 +44,29 @@ import org.cardanofoundation.rosetta.api.common.enumeration.EraAddressType;
 import org.cardanofoundation.rosetta.api.common.enumeration.NetworkIdentifierType;
 import org.cardanofoundation.rosetta.api.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.api.exception.ExceptionFactory;
-import org.cardanofoundation.rosetta.api.model.*;
+import org.cardanofoundation.rosetta.api.model.DepositParameters;
+import org.cardanofoundation.rosetta.api.model.Operation;
+import org.cardanofoundation.rosetta.api.model.ProtocolParameters;
+import org.cardanofoundation.rosetta.api.model.SignatureType;
+import org.cardanofoundation.rosetta.api.model.Signatures;
+import org.cardanofoundation.rosetta.api.model.SigningPayload;
+import org.cardanofoundation.rosetta.api.model.TransactionIdentifier;
+import org.cardanofoundation.rosetta.api.model.UnsignedTransaction;
 import org.cardanofoundation.rosetta.api.model.rest.AccountIdentifier;
 import org.cardanofoundation.rosetta.api.model.rest.NetworkIdentifier;
 import org.cardanofoundation.rosetta.api.model.rest.TransactionIdentifierResponse;
-import org.cardanofoundation.rosetta.api.projection.dto.*;
+import org.cardanofoundation.rosetta.api.projection.dto.BlockDto;
+import org.cardanofoundation.rosetta.api.projection.dto.PoolRegistrationCertReturnDto;
+import org.cardanofoundation.rosetta.api.projection.dto.ProcessOperationsDto;
+import org.cardanofoundation.rosetta.api.projection.dto.ProcessOperationsReturnDto;
+import org.cardanofoundation.rosetta.api.projection.dto.ProcessPoolRegistrationReturnDto;
+import org.cardanofoundation.rosetta.api.projection.dto.ProcessWithdrawalReturnDto;
 import org.cardanofoundation.rosetta.api.service.CardanoService;
 import org.cardanofoundation.rosetta.api.service.LedgerDataProviderService;
 import org.cardanofoundation.rosetta.api.util.CardanoAddressUtils;
 import org.cardanofoundation.rosetta.api.util.ProcessContruction;
 import org.cardanofoundation.rosetta.api.util.ValidateOfConstruction;
 import org.springframework.stereotype.Service;
-
-import java.io.IOException;
-import java.math.BigInteger;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.SignatureException;
-import java.security.spec.InvalidKeySpecException;
-import java.util.*;
-
-import static java.math.BigInteger.valueOf;
 
 
 @Slf4j
@@ -74,7 +96,6 @@ public class CardanoServiceImpl implements CardanoService {
             : new DepositParameters(Constants.DEFAULT_KEY_DEPOSIT.toString(),
                 Constants.DEFAULT_POOL_DEPOSIT.toString())
     );
-    // eslint-disable-next-line consistent-return
     List<Signatures> signaturesList = (unsignedTransaction.getAddresses()).stream()
         .map(address -> {
           EraAddressType eraAddressType = CardanoAddressUtils.getEraAddressType(address);
@@ -90,9 +111,7 @@ public class CardanoServiceImpl implements CardanoService {
 
     String transaction = buildTransaction(unsignedTransaction.getBytes(), signaturesList,
         unsignedTransaction.getMetadata());
-    // eslint-disable-next-line no-magic-numbers
-    return ((double) transaction.length()
-        / 2); // transaction is returned as a hex string, and we need size in bytes
+    return ((double) transaction.length() / 2);
   }
 
   @Override
@@ -375,10 +394,8 @@ public class CardanoServiceImpl implements CardanoService {
     if (type.equals(OperationType.INPUT.getValue())) {
       resultAccumulator.getTransactionInputs()
           .add(ValidateOfConstruction.validateAndParseTransactionInput(operation));
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       resultAccumulator.getAddresses().add(
           ObjectUtils.isEmpty(operation.getAccount()) ? null : operation.getAccount().getAddress());
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       resultAccumulator.getInputAmounts()
           .add(ValidateOfConstruction.validateValueAmount(operation));
       return resultAccumulator;
@@ -386,7 +403,6 @@ public class CardanoServiceImpl implements CardanoService {
     if (type.equals(OperationType.OUTPUT.getValue())) {
       resultAccumulator.getTransactionOutputs()
           .add(ValidateOfConstruction.validateAndParseTransactionOutput(operation));
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       resultAccumulator.getOutputAmounts()
           .add(ValidateOfConstruction.validateValueAmount(operation));
       return resultAccumulator;

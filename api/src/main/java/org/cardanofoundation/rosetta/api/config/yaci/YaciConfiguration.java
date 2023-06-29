@@ -35,9 +35,9 @@ public class YaciConfiguration {
     var socketPath = cardanoTransactionSubmitterProperties.getConnection().getSocket().getPath();
     var networkMagic = cardanoTransactionSubmitterProperties.getNetworkMagic();
 
-//    LocalClientProvider localClientProvider = new LocalClientProvider(socketPath, networkMagic);
+    LocalClientProvider localClientProvider = new LocalClientProvider(socketPath, networkMagic);
     //Start localClientProvider
-    LocalClientProvider localClientProvider = new LocalClientProvider("172.16.1.217", 31002, networkMagic);
+//    LocalClientProvider localClientProvider = new LocalClientProvider("172.16.1.217", 31002, networkMagic);
     localClientProvider.addTxSubmissionListener(new LocalTxSubmissionListener() {
       @Override
       public void txAccepted(TxSubmissionRequest txSubmissionRequest, MsgAcceptTx msgAcceptTx) {

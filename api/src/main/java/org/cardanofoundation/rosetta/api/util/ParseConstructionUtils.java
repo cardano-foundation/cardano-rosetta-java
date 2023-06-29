@@ -334,7 +334,6 @@ public class ParseConstructionUtils {
     } catch (Exception e) {
       log.info("not a StakeDelegation");
     }
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     if (!ObjectUtils.isEmpty(delegationCert)) {
       operation.getMetadata().setPoolKeyHash(
           HexUtil.encodeHexString(delegationCert.getStakePoolId().getPoolKeyHash()));
@@ -380,16 +379,13 @@ public class ParseConstructionUtils {
     log.info("[parseWithdrawalsToOperations] About to parse {} withdrawals", withdrawalsCount);
     for (int i = 0; i < withdrawalsCount; i++) {
       Operation withdrawalOperation = withdrawalOps.get(i);
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       HdPublicKey hdPublicKey = new HdPublicKey();
       hdPublicKey.setKeyData(HexUtil.decodeHexString(
           withdrawalOperation.getMetadata().getStakingCredential().getHexBytes()));
       String address = CardanoAddressUtils.generateRewardAddress(
           Objects.requireNonNull(NetworkIdentifierType.find(network)), hdPublicKey);
       Operation parsedOperation = parseWithdrawalToOperation(
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           withdrawalOperation.getAmount().getValue(),
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           withdrawalOperation.getMetadata().getStakingCredential().getHexBytes(),
           withdrawalOperation.getOperationIdentifier().getIndex(),
           address
