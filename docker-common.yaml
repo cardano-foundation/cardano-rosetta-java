@@ -89,6 +89,7 @@ services:
     # volumes:
     #   - ./kafka/zoo:/var/lib/zookeeper/data
   kafka:
+    restart: unless-stopped
     image: confluentinc/cp-kafka:7.0.0
     container_name: kafka
     depends_on:
