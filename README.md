@@ -63,8 +63,8 @@ This is a RosettaAPI implementation using LedgeSync as a backend and Yaci/Bloxbe
 - `REDIS_MASTER_SET`: Redis master set. Default is mymaster.
 - `REDIS_SENTINEL_PASSWORD`: Redis sentinel password. Default is redis_sentinel_pw.
 
-- `EXTERNAL_REDIS_MASTER_HOST`: Redis master host. Default is localhost.
-- `EXTERNAL_REDIS_MASTER_PORT`: Redis master port]. Default is 6371.
+- `EXTERNAL_REDIS_MASTER_HOST`: Redis master host. Default is cardano.redis.master.
+- `EXTERNAL_REDIS_MASTER_PORT`: Redis master port]. Default is 6379.
 - `EXTERNAL_REDIS_SLAVE_PORT`: Redis slave port. Default is 6372.
 - `REDIS_SENTINEL_HOST`: Redis sentinel port. Default is redis-sentinel.
 - `REDIS_SENTINEL_PORT`: Redis sentinel port. Default is 26371.
@@ -81,9 +81,10 @@ This is a RosettaAPI implementation using LedgeSync as a backend and Yaci/Bloxbe
 - `DB_DRIVER_CLASS_NAME` : Database driver class name. Default is "org.postgresql.Driver".
 
 - `ROSETTA_VERSION` : Rosetta version. Current is 1.4.13.
-- `TOPOLOGY_FILEPATH` : Topology file path. Default is empty.
-- `CARDANO_NODE_PATH` : Cardano node path. Default is empty.
-- `EXEMPTION_TYPES_PATH` : Exemption types path. Default is empty.
+- `TOPOLOGY_FILEPATH` : Topology file path. Default is ./config/cardano-node/topology.json.
+- `GENESIS_SHELLEY_PATH` : Genesis file path. Default is ./config/genesis/shelley.json.
+- `CARDANO_NODE_PATH` : Cardano node path. Default is /usr/local/bin/cardano-node.
+- `EXEMPTION_TYPES_PATH` : Exemption types path. Default is .
 
 - `PRINT_EXCEPTION` : Print exception. Default is true.
 

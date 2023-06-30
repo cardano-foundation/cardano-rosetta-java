@@ -111,10 +111,10 @@ cardano:
         }
 
       ]
-    TOPOLOGY_FILEPATH: network-config/network/${NETWORK:mainnet}/cardano-node/topology.json
-    GENESIS_SHELLEY_PATH: network-config/network/${NETWORK:mainnet}/genesis/shelley.json
+    TOPOLOGY_FILEPATH: ${TOPOLOGY_FILEPATH}
+    GENESIS_SHELLEY_PATH: ${GENESIS_SHELLEY_PATH}
     CARDANO_NODE_PATH: ${CARDANO_NODE_PATH}
-    EXEMPTION_TYPES_PATH: network-config/network/exemptions.json
+    EXEMPTION_TYPES_PATH: ${EXEMPTION_TYPES_PATH}
 
 
 page-size: ${PAGE_SIZE:5}
