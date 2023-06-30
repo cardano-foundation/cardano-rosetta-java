@@ -4,6 +4,8 @@ services:
     build:
       context: ./
       dockerfile: ./api/Dockerfile
+      args:
+        NETWORK: "${NETWORK}"
     platform: linux/amd64
     ports:
       - "${API_BIND_PORT}:${API_EXPOSED_PORT}"
@@ -15,7 +17,7 @@ services:
       DB_USER: "${SERVICE_USER_NAME}"
       DB_SECRET: "${SERVICE_USER_SECRET}"
       DB_DRIVER_CLASS_NAME: "${DB_DRIVER_CLASS_NAME}"
-      CARDANO_NODE_PATH: /usr/local/bin/cardano-node
+      CARDANO_NODE_PATH: ${CARDANO_NODE_PATH}
       API_SPRING_PROFILES_ACTIVE: ${API_SPRING_PROFILES_ACTIVE}
       DB_CONNECTION_PARAMS_PROVIDER_TYPE: ${DB_CONNECTION_PARAMS_PROVIDER_TYPE}
       SUBMIT_SOCKET_CONNECTION: ${SUBMIT_SOCKET_CONNECTION}
@@ -24,6 +26,8 @@ services:
       REDIS_SENTINEL_HOST: ${REDIS_SENTINEL_HOST}
       INTERNAL_REDIS_SENTINEL_PORT: ${INTERNAL_REDIS_SENTINEL_PORT}
       EXEMPTION_TYPES_PATH: ${EXEMPTION_TYPES_PATH}
+      TOPOLOGY_FILEPATH: ${TOPOLOGY_FILEPATH}
+      GENESIS_SHELLEY_PATH: ${GENESIS_SHELLEY_PATH}
     volumes:
       - ./node-ipc:/ipc
 networks:

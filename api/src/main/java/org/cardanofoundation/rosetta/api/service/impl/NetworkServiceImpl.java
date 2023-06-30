@@ -6,6 +6,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.parser.OpenAPIV3Parser;
 import jakarta.annotation.PostConstruct;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -84,14 +86,13 @@ public class NetworkServiceImpl implements NetworkService {
 
   @PostConstruct
   public void filePathExistingValidator() throws ServerException {
-    validator("classpath:" , topologyFilepath);
-    validator("classpath:" , genesisPath);
-    validator("file:" , cardanoNodePath);
+    validator(topologyFilepath);
+    validator(genesisPath);
+    validator(cardanoNodePath);
   }
 
-  private void validator(String fileType , String path) throws ServerException {
-    String resourcePath = fileType + path;
-    if(!resourceLoader.getResource(resourcePath).exists()) {
+  private void validator( String path) throws ServerException {
+    if(!new File(path).exists()) {
       throw ExceptionFactory.configNotFoundException();
     }
   }
@@ -116,10 +117,9 @@ public class NetworkServiceImpl implements NetworkService {
   }
 
   private String fileReader(String path) throws IOException {
-    String resourcePath = "classpath:" + path;
     //check if path exists in classpath
     try (
-        InputStream input = resourceLoader.getResource(resourcePath).getInputStream()
+        InputStream input = new FileInputStream(path)
     ) {
       byte[] fileBytes = IOUtils.toByteArray(input);
       return new String(fileBytes, StandardCharsets.UTF_8);
