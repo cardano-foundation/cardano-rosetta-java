@@ -25,12 +25,13 @@ This is a RosettaAPI implementation using LedgeSync as a backend and Yaci/Bloxbe
 - Fill the `.env` file with your values (explain below)
 - Create if not exists external network `cardano-rosetta-java` with `docker network create cardano-rosetta-java`
 - From `/cardano-rosetta-java` run `docker build -t cardano-rosetta-java-base .` to build jar file for all service
-- From `/cardano-rosetta-java` run `docker compose -f docker-common.yaml up` to start environment (Kafka, Postges, Redis, Cardano node)
+- From `/cardano-rosetta-java` run `docker compose -f docker-common.yaml up --build` to start environment (Kafka, Postges, Redis, Cardano node)
 - Check all service is up by `docker ps` and run `chmod a+rwx node-ipc/node.socket`
 
 ### How to run
-- From `/cardano-rosetta-java` run `docker compose -f docker-api.yaml up` to start rosetta api service
-- From `/cardano-rosetta-java` run `docker compose -f docker-consumer.yaml up` to start rosetta consumer service
+- From `/cardano-rosetta-java` run `docker compose -f docker-api.yaml up --build` to start rosetta api service <br />
+\*\*\* Note: For the first time when you build the image , it will take a litte bit of your time to build the cardano-node , and next time it will be cached when run . So please be patient
+- From `/cardano-rosetta-java` run `docker compose -f docker-consumer.yaml up --build` to start rosetta consumer service
 * Note: Consumer need to run with an instance of ledger sync crawler on same topic
 ### Environment variables
 
