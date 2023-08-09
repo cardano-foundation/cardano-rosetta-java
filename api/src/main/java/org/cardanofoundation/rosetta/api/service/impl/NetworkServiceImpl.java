@@ -6,6 +6,18 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.parser.OpenAPIV3Parser;
 import jakarta.annotation.PostConstruct;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -16,8 +28,12 @@ import org.cardanofoundation.rosetta.api.config.RosettaConfig;
 import org.cardanofoundation.rosetta.api.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.api.exception.ServerException;
 import org.cardanofoundation.rosetta.api.mapper.DataMapper;
+import org.cardanofoundation.rosetta.api.model.Network;
+import org.cardanofoundation.rosetta.api.model.NetworkStatus;
 import org.cardanofoundation.rosetta.api.model.Peer;
-import org.cardanofoundation.rosetta.api.model.*;
+import org.cardanofoundation.rosetta.api.model.Producer;
+import org.cardanofoundation.rosetta.api.model.PublicRoot;
+import org.cardanofoundation.rosetta.api.model.TopologyConfig;
 import org.cardanofoundation.rosetta.api.model.rest.MetadataRequest;
 import org.cardanofoundation.rosetta.api.model.rest.NetworkListResponse;
 import org.cardanofoundation.rosetta.api.model.rest.NetworkOptionsResponse;
@@ -30,19 +46,14 @@ import org.cardanofoundation.rosetta.api.service.NetworkService;
 import org.cardanofoundation.rosetta.api.util.RosettaConstants;
 import org.cardanofoundation.rosetta.api.util.cli.CardanoNode;
 import org.json.JSONObject;
+import org.openapitools.client.model.Allow;
 import org.openapitools.client.model.BalanceExemption;
 import org.openapitools.client.model.Error;
 import org.openapitools.client.model.OperationStatus;
 import org.openapitools.client.model.Version;
-import org.openapitools.client.model.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
 
 @Service
 @Slf4j
@@ -75,14 +86,13 @@ public class NetworkServiceImpl implements NetworkService {
 
   @PostConstruct
   public void filePathExistingValidator() throws ServerException {
-    validator("classpath:" , topologyFilepath);
-    validator("classpath:" , genesisPath);
-    validator("file:" , cardanoNodePath);
+    validator(topologyFilepath);
+    validator(genesisPath);
+    validator(cardanoNodePath);
   }
 
-  private void validator(String fileType , String path) throws ServerException {
-    String resourcePath = fileType + path;
-    if(!resourceLoader.getResource(resourcePath).exists()) {
+  private void validator( String path) throws ServerException {
+    if(!new File(path).exists()) {
       throw ExceptionFactory.configNotFoundException();
     }
   }
@@ -107,10 +117,9 @@ public class NetworkServiceImpl implements NetworkService {
   }
 
   private String fileReader(String path) throws IOException {
-    String resourcePath = "classpath:" + path;
     //check if path exists in classpath
     try (
-        InputStream input = resourceLoader.getResource(resourcePath).getInputStream()
+        InputStream input = new FileInputStream(path)
     ) {
       byte[] fileBytes = IOUtils.toByteArray(input);
       return new String(fileBytes, StandardCharsets.UTF_8);

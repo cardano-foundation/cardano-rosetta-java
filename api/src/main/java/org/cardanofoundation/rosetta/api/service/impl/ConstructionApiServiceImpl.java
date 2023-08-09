@@ -76,7 +76,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
   @Autowired
   public CardanoService cardanoService;
 
-  @Autowired
+  @Autowired(required = false)
   private LocalTxSubmissionClient localTxSubmissionClient;
 
   @Autowired

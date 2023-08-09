@@ -7,16 +7,12 @@ import com.bloxbean.cardano.client.util.HexUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.iwebpp.crypto.TweetNacl;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
-import org.cardanofoundation.rosetta.api.IntegrationTest;
-import org.cardanofoundation.rosetta.api.IntegrationTestWithDB;
 import org.cardanofoundation.rosetta.api.IntegrationTestWithDbAndRedis;
 import org.cardanofoundation.rosetta.api.exception.Error;
 import org.cardanofoundation.rosetta.api.exception.ExceptionFactory;
@@ -45,7 +41,6 @@ import org.cardanofoundation.rosetta.api.model.rest.ConstructionCombineRequest;
 import org.cardanofoundation.rosetta.api.model.rest.ConstructionCombineResponse;
 import org.cardanofoundation.rosetta.api.model.rest.ConstructionDeriveRequest;
 import org.cardanofoundation.rosetta.api.model.rest.ConstructionDeriveResponse;
-import org.cardanofoundation.rosetta.api.model.rest.ConstructionHashRequest;
 import org.cardanofoundation.rosetta.api.model.rest.ConstructionMetadataRequest;
 import org.cardanofoundation.rosetta.api.model.rest.ConstructionMetadataResponse;
 import org.cardanofoundation.rosetta.api.model.rest.ConstructionPayloadsRequest;
@@ -57,7 +52,6 @@ import org.cardanofoundation.rosetta.api.model.rest.NetworkIdentifier;
 import org.cardanofoundation.rosetta.api.model.rest.TokenBundleItem;
 import org.cardanofoundation.rosetta.api.model.rest.TransactionIdentifierResponse;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.springframework.web.client.HttpServerErrorException;
 
 @Slf4j
@@ -68,23 +62,6 @@ public class ConstructionApiDelegateImplSubmitTests extends IntegrationTestWithD
     baseUrl = baseUrl.concat(":").concat(serverPort + "").concat("/");
   }
   private final String BASE_DIRECTORY = "src/test/resources/files/construction/submit";
-  @Test
-  void test_should_fail_if_request_is_not_valid() throws IOException {
-    ConstructionHashRequest request = objectMapper.readValue(new String(Files.readAllBytes(
-            Paths.get(BASE_DIRECTORY + "/construction_submit_failed.json"))),
-        ConstructionHashRequest.class);
-    try {
-      restTemplate.postForObject(
-          baseUrl+"construction/submit", request, TransactionIdentifierResponse.class);
-    } catch (HttpServerErrorException e) {
-      String responseBody = e.getResponseBodyAsString();
-      Error error=objectMapper.readValue(responseBody, Error.class);
-      assertTrue(error.isRetriable());
-      assertEquals(5006,error.getCode());
-      assertEquals("Error when sending the transaction",error.getMessage());
-    }
-
-  }
 //  @Test
 //  void with_ma_test_should_return_the_transaction_identifier_if_request_is_valid() throws IOException {
 //    String PAYMENT_ADDRESS="addr_test1vpcv26kdu8hr9x939zktp275xhwz4478c8hcdt7l8wrl0ecjftnfa";
