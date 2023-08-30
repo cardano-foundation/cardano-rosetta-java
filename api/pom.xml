@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -34,13 +34,6 @@
     </licenses>
 
     <dependencies>
-<!--        test enigne-->
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-api</artifactId>
-            <version>5.9.2</version>
-            <scope>test</scope>
-        </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
@@ -50,10 +43,6 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.data</groupId>
@@ -76,10 +65,6 @@
             <artifactId>swagger-annotations</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-devtools</artifactId>
             <scope>runtime</scope>
@@ -100,10 +85,7 @@
             <version>4.1.90.Final</version>
             <classifier>osx-aarch_64</classifier>
         </dependency>
-        <dependency>
-            <groupId>com.bloxbean.cardano</groupId>
-            <artifactId>cardano-client-lib</artifactId>
-        </dependency>
+
         <dependency>
             <groupId>com.bloxbean.cardano</groupId>
             <artifactId>yaci</artifactId>
@@ -134,41 +116,30 @@
             <artifactId>lombok</artifactId>
             <scope>provided</scope>
         </dependency>
-        <dependency>
-            <groupId>com.bloxbean.cardano</groupId>
-            <artifactId>yaci-core</artifactId>
-            <version>0.1.8</version>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp -->
-        <dependency>
-            <groupId>com.squareup.okhttp3</groupId>
-            <artifactId>okhttp</artifactId>
-            <version>4.10.0</version>
-        </dependency>
+
+
         <dependency>
             <groupId>javax.ws.rs</groupId>
             <artifactId>javax.ws.rs-api</artifactId>
             <version>2.0.1</version>
         </dependency>
-        <!-- Thanks for using https://jar-download.com -->
-        <!-- https://mvnrepository.com/artifact/com.google.code.gson/gson -->
-        <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-            <version>2.9.0</version>
-        </dependency>
+
+
         <!-- https://mvnrepository.com/artifact/com.squareup.okhttp3/logging-interceptor -->
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>logging-interceptor</artifactId>
             <version>4.10.0</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/io.gsonfire/gson-fire -->
         <dependency>
-            <groupId>io.gsonfire</groupId>
-            <artifactId>gson-fire</artifactId>
-            <version>1.8.5</version>
+          <groupId>com.fasterxml.jackson.dataformat</groupId>
+          <artifactId>jackson-dataformat-yaml</artifactId>
         </dependency>
+        <dependency>
+          <groupId>com.fasterxml.jackson.datatype</groupId>
+          <artifactId>jackson-datatype-jsr310</artifactId>
+        </dependency>
+
         <!-- https://mvnrepository.com/artifact/org.openapitools/jackson-databind-nullable -->
         <dependency>
             <groupId>org.openapitools</groupId>
@@ -187,44 +158,22 @@
             <version>5.9.2</version>
         </dependency>
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>org.cardanofoundation.rosetta-java</groupId>
             <artifactId>cardano-common-rosetta</artifactId>
             <version>1.0.7-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>javax.annotation</groupId>
-            <artifactId>javax.annotation-api</artifactId>
-            <version>1.3.2</version>
+
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <optional>true</optional>
         </dependency>
+        <!-- AssertJ for assertions -->
         <dependency>
-          <groupId>org.springframework.boot</groupId>
-          <artifactId>spring-boot-configuration-processor</artifactId>
-          <optional>true</optional>
-        </dependency>
-      <dependency>
-        <groupId>org.junit.jupiter</groupId>
-        <artifactId>junit-jupiter-engine</artifactId>
-        <version>5.8.2</version>
-        <scope>test</scope>
-      </dependency>
-
-      <!-- AssertJ for assertions -->
-      <dependency>
-        <groupId>org.assertj</groupId>
-        <artifactId>assertj-core</artifactId>
-        <version>3.20.2</version>
-        <scope>test</scope>
-      </dependency>
-
-      <dependency>
-            <groupId>com.bloxbean.cardano</groupId>
-            <artifactId>cardano-client-lib</artifactId>
-            <version>0.4.3</version>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>3.20.2</version>
+            <scope>test</scope>
         </dependency>
         <!-- For Blockfrost backend -->
         <dependency>
@@ -266,6 +215,57 @@
             <artifactId>commons-validator</artifactId>
             <version>1.7</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/io.swagger.parser.v3/swagger-parser -->
+        <dependency>
+            <groupId>io.swagger.parser.v3</groupId>
+            <artifactId>swagger-parser</artifactId>
+            <version>2.1.14</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.json/json -->
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20230227</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.testcontainers/testcontainers -->
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers</artifactId>
+            <version>1.17.6</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-redis</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>redis.clients</groupId>
+            <artifactId>jedis</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.lettuce</groupId>
+            <artifactId>lettuce-core</artifactId>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.purejava/tweetnacl-java -->
+        <dependency>
+            <groupId>org.purejava</groupId>
+            <artifactId>tweetnacl-java</artifactId>
+            <version>1.1.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-inline</artifactId>
+            <version>3.8.0</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/it.ozimov/embedded-redis -->
+        <dependency>
+            <groupId>it.ozimov</groupId>
+            <artifactId>embedded-redis</artifactId>
+            <version>0.7.3</version>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -275,7 +275,9 @@
                 <directory>src/main/resources</directory>
                 <includes>
                     <include>application.properties</include>
-                    <include>config/*.json</include>
+                    <include>rosetta-specifications-1.4.15/api.yaml</include>
+                    <include>config/*.yaml</include>
+                    <include>network-config/</include>
                 </includes>
             </resource>
         </resources>
@@ -297,8 +299,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>${version.maven-compiler-plugin}</version>
                 <configuration>
-                    <source>18</source>
-                    <target>18</target>
+                    <source>17</source>
+                    <target>17</target>
                     <annotationProcessorPaths>
                         <path>
                             <groupId>org.projectlombok</groupId>
@@ -319,10 +321,16 @@
                         </goals>
                         <configuration>
                             <inputSpec>${project.basedir}/src/main/resources/rosetta-specifications-1.4.15/api.yaml</inputSpec>
-                            <generatorName>java</generatorName>
-                            <configOptions>
-                                <sourceFolder>src/gen/java/main</sourceFolder>
-                            </configOptions>
+                            <generatorName>spring</generatorName>
+                            <library>spring-boot</library>
+                            <apiPackage>org.openapitools.client.api</apiPackage>
+                            <modelPackage>org.openapitools.client.model</modelPackage>
+                          <configOptions>
+                              <sourceFolder>src/gen/java/main</sourceFolder>
+                              <useJakartaEe>true</useJakartaEe>
+                              <skipValidateSpec>true</skipValidateSpec>
+                              <interfaceOnly>true</interfaceOnly>
+                          </configOptions>
                         </configuration>
                     </execution>
                 </executions>
@@ -344,6 +352,21 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude>**/dto/*</exclude>
+                        <exclude>**/model/**</exclude>
+                        <exclude>**/mapper/*</exclude>
+                        <exclude>**/cli/*</exclude>
+                        <exclude>**/exception/*</exclude>
+                        <exclude>**/config/**</exclude>
+                        <exclude>**/filter/**</exclude>
+                        <exclude>**/org/openapitools/client/api/*</exclude>
+                        <exclude>**/enumeration/**</exclude>
+                        <exclude>**/yaci/**</exclude>
+                        <exclude>**/repository/**</exclude>
+                    </excludes>
+                </configuration>
                 <version>${verison.jacoco-maven-plugin}</version>
                 <executions>
                     <execution>

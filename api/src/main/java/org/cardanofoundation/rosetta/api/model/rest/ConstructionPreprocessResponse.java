@@ -3,6 +3,7 @@ package org.cardanofoundation.rosetta.api.model.rest;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.cardanofoundation.rosetta.api.model.ConstructionPreprocessResponseOptions;
 
@@ -20,6 +21,7 @@ import java.util.Objects;
 @Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2023-03-21T15:54:41.273447600+07:00[Asia/Bangkok]")
 @AllArgsConstructor
 @NoArgsConstructor
+@Data
 public class ConstructionPreprocessResponse {
 
   @JsonProperty("options")

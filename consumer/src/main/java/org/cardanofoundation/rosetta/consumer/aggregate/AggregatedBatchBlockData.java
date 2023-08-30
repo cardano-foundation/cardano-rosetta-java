@@ -1,15 +1,16 @@
 package org.cardanofoundation.rosetta.consumer.aggregate;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
+
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Getter
 @Component
@@ -25,28 +26,27 @@ public class AggregatedBatchBlockData {
   // Key is asset fingerprint, value is its first minted block no and tx index within that block
   Map<String, Pair<Long, Long>> fingerprintFirstAppearedMap;
 
+  // A set of not minted asset fingerprint and associated tx hash pairs to skip asset operations
+  Set<Pair<String, String>> notMintedAssetFingerprintTxHashSet;
+
   Map<String, AggregatedBlock> aggregatedBlockMap;
-  Queue<AggregatedTx> successTxs;
-  Queue<AggregatedTx> failedTxs;
 
   public AggregatedBatchBlockData() {
     aggregatedAddressBalanceMap = new ConcurrentHashMap<>();
     stakeAddressTxHashMap = new ConcurrentHashMap<>();
+    notMintedAssetFingerprintTxHashSet = new LinkedHashSet<>();
     fingerprintFirstAppearedMap = new ConcurrentHashMap<>();
 
     aggregatedBlockMap = new LinkedHashMap<>();
-    successTxs = new ConcurrentLinkedQueue<>();
-    failedTxs = new ConcurrentLinkedQueue<>();
   }
 
   // This method must be called every batch saving
   public void clear() {
     aggregatedAddressBalanceMap.clear();
     stakeAddressTxHashMap.clear();
+    notMintedAssetFingerprintTxHashSet.clear();
     fingerprintFirstAppearedMap.clear();
 
     aggregatedBlockMap.clear();
-    successTxs.clear();
-    failedTxs.clear();
   }
 }

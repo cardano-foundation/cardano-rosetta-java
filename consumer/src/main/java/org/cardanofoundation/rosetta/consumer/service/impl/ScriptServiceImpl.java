@@ -3,34 +3,31 @@ package org.cardanofoundation.rosetta.consumer.service.impl;
 import co.nstant.in.cbor.model.Array;
 import co.nstant.in.cbor.model.ByteString;
 import co.nstant.in.cbor.model.UnsignedInteger;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.common.entity.Script;
 import org.cardanofoundation.rosetta.common.entity.Tx;
-import org.cardanofoundation.rosetta.consumer.exception.HashScriptException;
-import org.cardanofoundation.rosetta.consumer.factory.NativeScriptFactory;
-import org.cardanofoundation.rosetta.consumer.factory.PlutusScriptFactory;
 import org.cardanofoundation.rosetta.common.ledgersync.Witnesses;
 import org.cardanofoundation.rosetta.common.ledgersync.nativescript.NativeScript;
 import org.cardanofoundation.rosetta.common.ledgersync.plutus.PlutusV1Script;
 import org.cardanofoundation.rosetta.common.ledgersync.plutus.PlutusV2Script;
 import org.cardanofoundation.rosetta.common.util.CborSerializationUtil;
 import org.cardanofoundation.rosetta.common.util.HexUtil;
-import org.cardanofoundation.rosetta.consumer.repository.cached.CachedScriptRepository;
+import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedTx;
+import org.cardanofoundation.rosetta.consumer.exception.HashScriptException;
+import org.cardanofoundation.rosetta.consumer.factory.NativeScriptFactory;
+import org.cardanofoundation.rosetta.consumer.factory.PlutusScriptFactory;
+import org.cardanofoundation.rosetta.consumer.projection.ScriptProjection;
+import org.cardanofoundation.rosetta.consumer.repository.ScriptRepository;
 import org.cardanofoundation.rosetta.consumer.service.ScriptService;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldDefaults;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -42,7 +39,23 @@ public class ScriptServiceImpl implements ScriptService {
 
   PlutusScriptFactory plutusScriptFactory;
 
-  CachedScriptRepository cachedScriptRepository;
+  ScriptRepository scriptRepository;
+
+  @Override
+  public void handleScripts(Collection<AggregatedTx> aggregatedTxs, Map<String, Tx> txMap) {
+    Map<String, Script> scriptMap = new HashMap<>();
+
+    aggregatedTxs
+        .stream()
+        .filter(aggregatedTx -> Objects.nonNull(aggregatedTx.getWitnesses()))
+        .forEach(aggregatedTx -> {
+          Witnesses txWitnesses = aggregatedTx.getWitnesses();
+          getAllScript(txWitnesses, txMap.get(aggregatedTx.getHash()))
+              .forEach(scriptMap::putIfAbsent);
+        });
+
+    saveNonExistsScripts(scriptMap.values());
+  }
 
   @Override
   public Map<String, Script> getAllScript(Witnesses txWitnesses, Tx tx) {
@@ -65,6 +78,7 @@ public class ScriptServiceImpl implements ScriptService {
         .map(plutusScript -> plutusScriptFactory.handle(plutusScript, tx))
         .collect(Collectors.toMap(Script::getHash,
             Function.identity(), (a, b) -> a)));
+
     return mScripts;
   }
 
@@ -78,7 +92,7 @@ public class ScriptServiceImpl implements ScriptService {
         .filter(Objects::nonNull)
         .map(Script::getHash)
         .collect(Collectors.toSet());
-    Map<String, Script> scriptMap = cachedScriptRepository.getScriptByHashes(hashes);
+    Map<String, Script> scriptMap = getScriptsByHashes(hashes);
 
     Map<String, Script> scriptNeedSave = new HashMap<>();
     scripts.forEach(script -> {
@@ -91,7 +105,11 @@ public class ScriptServiceImpl implements ScriptService {
       return Collections.emptyList();
     }
 
-    return cachedScriptRepository.saveAll(scriptNeedSave.values());
+    // Script records need to be saved in sequential order to ease out future queries
+    return scriptRepository.saveAll(scriptNeedSave.values()
+        .stream()
+        .sorted((Comparator.comparing(script -> script.getTx().getId())))
+        .toList());
   }
 
   @Override
@@ -117,13 +135,21 @@ public class ScriptServiceImpl implements ScriptService {
       }
       return script.getPolicyId();
     } catch (Exception e) {
-      log.error("Get hash of script {}, error: {}",hexReferScript,e.getMessage());
+      log.error("Get hash of script {}, error: {}", hexReferScript, e.getMessage());
       throw new HashScriptException(e);
     }
   }
 
   @Override
   public Map<String, Script> getScriptsByHashes(Set<String> hashes) {
-    return cachedScriptRepository.getScriptByHashes(hashes);
+    return scriptRepository.getScriptByHashes(hashes)
+        .stream()
+        .collect(Collectors.toMap(
+            ScriptProjection::getHash,
+            scriptProjection -> Script.builder()
+                .id(scriptProjection.getId())
+                .hash(scriptProjection.getHash())
+                .build())
+        );
   }
 }

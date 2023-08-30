@@ -12,11 +12,11 @@ import lombok.NoArgsConstructor;
 public class FindPoolRetirements implements FindTransactionFieldResult {
 
   private Integer epoch;
-  private byte[] address;
-  private byte[] txHash;
-  private byte[] poolHashKey;
+  private String address;
+  private String txHash;
+  private String poolHashKey;
 
-  public FindPoolRetirements(Integer epoch, byte[] address, byte[] txHash) {
+  public FindPoolRetirements(Integer epoch, String address, String txHash) {
     this.epoch = epoch;
     this.address = address;
     this.txHash = txHash;

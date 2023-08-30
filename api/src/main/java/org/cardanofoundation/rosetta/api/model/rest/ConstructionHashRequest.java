@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 /**
  * @author Sotatek-HoangNguyen9
@@ -14,6 +15,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @AllArgsConstructor
+@ToString
 public class ConstructionHashRequest {
     @JsonProperty("network_identifier")
     private NetworkIdentifier networkIdentifier;

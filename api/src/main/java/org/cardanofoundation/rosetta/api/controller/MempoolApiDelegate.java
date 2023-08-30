@@ -1,5 +1,10 @@
 package org.cardanofoundation.rosetta.api.controller;
 
+import co.nstant.in.cbor.CborException;
+import com.bloxbean.cardano.client.exception.AddressExcepion;
+import com.bloxbean.cardano.client.exception.CborDeserializationException;
+import com.bloxbean.cardano.client.exception.CborSerializationException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -11,6 +16,8 @@ import org.cardanofoundation.rosetta.api.model.rest.NetworkRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+
+import java.net.UnknownHostException;
 
 /**
  * @author Sotatek-HoangNguyen9
@@ -50,5 +57,8 @@ public interface MempoolApiDelegate {
           consumes = { "application/json;charset=utf-8" }
   )
   ResponseEntity<MempoolTransactionResponse> mempoolTransaction(
-      MempoolTransactionRequest mempoolTransactionRequest);
+      MempoolTransactionRequest mempoolTransactionRequest)
+        throws UnknownHostException, CborException, AddressExcepion,
+          CborDeserializationException, CborSerializationException,
+          JsonProcessingException;
 }

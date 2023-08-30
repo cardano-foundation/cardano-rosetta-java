@@ -13,15 +13,15 @@ import lombok.NoArgsConstructor;
 @Builder
 public class TransactionPoolRegistrations implements FindTransactionFieldResult {
 
-  private byte[] txHash;
-  private byte[] vrfKeyHash;
+  private String txHash;
+  private String vrfKeyHash;
   private String pledge;
   private Double margin;
   private BigInteger cost;
   private String address;
-  private byte[] poolHash;
+  private String poolHash;
   private List<String> owners;
   private List<PoolRelay> relays;
   private String metadataUrl;
-  private byte[] metadataHash;
+  private String metadataHash;
 }

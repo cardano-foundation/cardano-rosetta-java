@@ -1,22 +1,28 @@
 package org.cardanofoundation.rosetta.consumer.dto;
 
-import org.cardanofoundation.rosetta.common.entity.Block;
-import org.cardanofoundation.rosetta.common.entity.CostModel;
-import org.cardanofoundation.rosetta.common.entity.SlotLeader;
-import org.cardanofoundation.rosetta.common.entity.Tx;
-import org.cardanofoundation.rosetta.common.entity.TxOut;
-import java.util.List;
+
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.cardanofoundation.rosetta.common.entity.*;
+
+import java.sql.Timestamp;
+import java.util.List;
 
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class GenesisData {
 
-  List<Block> blocks;
+  Block block;
   List<Tx> txs;
   List<TxOut> txOuts;
   List<SlotLeader> slotLeaders;
-
   CostModel costModel;
+  EpochParam shelley;
+  EpochParam alonzo;
+  EpochParam babbage;
+  Timestamp startTime;
 }

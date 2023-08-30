@@ -2,10 +2,9 @@ package org.cardanofoundation.rosetta.api.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
-
+import java.util.Objects;
 import javax.annotation.Generated;
 import javax.validation.constraints.NotNull;
-import java.util.Objects;
 
 /**
  * OperationStatus is utilized to indicate which Operation status are considered successful.

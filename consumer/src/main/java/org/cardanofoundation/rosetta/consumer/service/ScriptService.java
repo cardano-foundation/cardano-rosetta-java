@@ -3,12 +3,22 @@ package org.cardanofoundation.rosetta.consumer.service;
 import org.cardanofoundation.rosetta.common.entity.Script;
 import org.cardanofoundation.rosetta.common.entity.Tx;
 import org.cardanofoundation.rosetta.common.ledgersync.Witnesses;
+import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedTx;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 public interface ScriptService {
+
+  /**
+   * Handle all scripts in an aggregated tx batch
+   *
+   * @param aggregatedTxs aggregated tx batch
+   * @param txMap transaction entity map
+   */
+  void handleScripts(Collection<AggregatedTx> aggregatedTxs, Map<String, Tx> txMap);
 
   /**
    * Get all script entities from tx witnesses

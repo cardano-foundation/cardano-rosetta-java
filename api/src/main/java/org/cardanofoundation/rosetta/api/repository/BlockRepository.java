@@ -1,7 +1,8 @@
 package org.cardanofoundation.rosetta.api.repository;
 
-import org.cardanofoundation.rosetta.api.construction.data.ProtocolParametersResponse;
+import java.util.List;
 import org.cardanofoundation.rosetta.api.projection.BlockProjection;
+import org.cardanofoundation.rosetta.api.projection.FindTransactionProjection;
 import org.cardanofoundation.rosetta.api.projection.GenesisBlockProjection;
 import org.cardanofoundation.rosetta.common.entity.Block;
 import org.springframework.data.domain.Page;
@@ -9,8 +10,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-
-import java.util.List;
 
 
 public interface BlockRepository extends JpaRepository<Block, Long> {
@@ -54,20 +53,19 @@ public interface BlockRepository extends JpaRepository<Block, Long> {
             "WHERE blockNo IS NOT NULL ORDER BY blockNo DESC")
     Page<Long> findLatestBlockNumber(Pageable pageable);
 
-    @Query(value = "  SELECT \n" +
-        "    coinsPerUtxoSize as coinsPerUtxoSize,\n" +
-        "    maxTxSize as maxTxSize ,\n" +
-        "    maxValSize as maxValSize,\n" +
-        "    keyDeposit as keyDeposit ,\n" +
-        "    maxCollateralInputs as maxCollateralInputs ,\n" +
-        "    minFeeA as minFeeCoefficient,\n" +
-        "    minFeeB as minFeeConstant,\n" +
-        "    minPoolCost as minPoolCost,\n" +
-        "    poolDeposit as poolDeposit ,\n" +
-        "    protocolMajor as protocolMajor\n" +
-        "  FROM EpochParam  \n" +
-        "  ORDER BY id \n" +
-        "  DESC LIMIT 1")
-    ProtocolParametersResponse findProtocolParameters();
+  @Query("SELECT tx.hash as hash, "
+      + "tx.fee as fee, "
+      + "tx.size as size, "
+      + "tx.validContract as validContract, "
+      + "tx.scriptSize as scriptSize, "
+      + "block.hash as blockHash "
+      + "FROM Tx tx JOIN Block block on block.id = tx.block.id "
+      + "WHERE tx.hash = :hash "
+      + "AND (block.blockNo = :blockNumber OR (block.blockNo is null AND :blockNumber = 0)) "
+      + "AND block.hash = :blockHash")
+  List<FindTransactionProjection> findTransactionByHashAndBlock(
+      @Param("hash") String hash,
+      @Param("blockNumber") Long blockNumber,
+      @Param("blockHash") String blockHash);
 
 }

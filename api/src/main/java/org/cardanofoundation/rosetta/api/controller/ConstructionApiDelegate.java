@@ -8,27 +8,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import java.io.IOException;
 import java.net.UnknownHostException;
-import org.cardanofoundation.rosetta.api.model.rest.ConstructionCombineRequest;
-import org.cardanofoundation.rosetta.api.model.rest.ConstructionCombineResponse;
-import org.cardanofoundation.rosetta.api.model.rest.ConstructionDeriveRequest;
-import org.cardanofoundation.rosetta.api.model.rest.ConstructionDeriveResponse;
-import org.cardanofoundation.rosetta.api.model.rest.ConstructionHashRequest;
-import org.cardanofoundation.rosetta.api.model.rest.ConstructionMetadataRequest;
-import org.cardanofoundation.rosetta.api.model.rest.ConstructionMetadataResponse;
-import org.cardanofoundation.rosetta.api.model.rest.ConstructionParseRequest;
-import org.cardanofoundation.rosetta.api.model.rest.ConstructionParseResponse;
-import org.cardanofoundation.rosetta.api.model.rest.ConstructionPayloadsRequest;
-import org.cardanofoundation.rosetta.api.model.rest.ConstructionPayloadsResponse;
-import org.cardanofoundation.rosetta.api.model.rest.ConstructionPreprocessRequest;
-import org.cardanofoundation.rosetta.api.model.rest.ConstructionPreprocessResponse;
-import org.cardanofoundation.rosetta.api.model.rest.ConstructionSubmitRequest;
-import org.cardanofoundation.rosetta.api.model.rest.TransactionIdentifierResponse;
+
+import org.cardanofoundation.rosetta.api.model.rest.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-
-import java.io.IOException;
 
 /**
  * @author Sotatek-HoangNguyen9
@@ -121,7 +107,7 @@ public interface ConstructionApiDelegate {
   )
   ResponseEntity<ConstructionParseResponse> constructionParse(
       ConstructionParseRequest constructionParseRequest)
-      throws UnknownHostException, AddressExcepion, CborDeserializationException, JsonProcessingException;
+          throws Exception;
 
   @Operation(
           operationId = "constructionPayloads",
@@ -138,7 +124,7 @@ public interface ConstructionApiDelegate {
           consumes = { "application/json;charset=utf-8" }
   )
   ResponseEntity<ConstructionPayloadsResponse> constructionPayloads(
-      ConstructionPayloadsRequest constructionPayloadsRequest) throws IOException, CborException, CborSerializationException, AddressExcepion;
+      ConstructionPayloadsRequest constructionPayloadsRequest) throws Exception;
 
   @Operation(
           operationId = "constructionPreprocess",
@@ -173,5 +159,15 @@ public interface ConstructionApiDelegate {
           consumes = { "application/json;charset=utf-8" }
   )
   ResponseEntity<TransactionIdentifierResponse> constructionSubmit(
-      ConstructionSubmitRequest constructionSubmitRequest) throws CborDeserializationException, CborSerializationException;
+      ConstructionSubmitRequest constructionSubmitRequest)
+      throws CborDeserializationException, CborSerializationException, InterruptedException;
+
+  @RequestMapping(
+          method = RequestMethod.POST,
+          value = "/construction/signingPayloads",
+          produces = { "application/json;charset=utf-8" },
+          consumes = { "application/json;charset=utf-8" }
+  )
+  ResponseEntity<SigningPayloadsResponse> constructionSigningPayloads(
+          SigningPayloadsRequest constructionSubmitRequest);
 }

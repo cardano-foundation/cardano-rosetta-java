@@ -1,9 +1,6 @@
 package org.cardanofoundation.rosetta.consumer.kafka.handle;
 
 
-import java.text.MessageFormat;
-import java.util.Objects;
-import java.util.Optional;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
@@ -12,6 +9,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.listener.ConsumerAwareListenerErrorHandler;
 import org.springframework.kafka.support.KafkaHeaders;
+
+import java.text.MessageFormat;
+import java.util.Objects;
+import java.util.Optional;
 
 @Configuration
 @Slf4j
@@ -24,10 +25,10 @@ public class BlockListenerErrorHandler {
 
       var headers = message.getHeaders();
 
-      var currentReceivedPartitionId = headers.get(KafkaHeaders.RECEIVED_PARTITION_ID,
+      var currentReceivedPartitionId = headers.get(KafkaHeaders.RECEIVED_PARTITION,
           Integer.class);
 
-      var currentOffset = headers.get(KafkaHeaders.RECEIVED_PARTITION_ID, Long.class);
+      var currentOffset = headers.get(KafkaHeaders.RECEIVED_PARTITION, Long.class);
 
       var receivedTopic = headers.get(KafkaHeaders.RECEIVED_TOPIC, String.class);
 

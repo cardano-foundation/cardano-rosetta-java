@@ -1,21 +1,19 @@
 package org.cardanofoundation.rosetta.api.service;
 
-import java.io.IOException;
-import org.cardanofoundation.rosetta.api.exception.ServerException;
 import org.cardanofoundation.rosetta.api.model.Network;
-import org.cardanofoundation.rosetta.api.model.rest.MetadataRequest;
-import org.cardanofoundation.rosetta.api.model.rest.NetworkListResponse;
-import org.cardanofoundation.rosetta.api.model.rest.NetworkOptionsResponse;
-import org.cardanofoundation.rosetta.api.model.rest.NetworkRequest;
-import org.cardanofoundation.rosetta.api.model.rest.NetworkStatusResponse;
+import org.cardanofoundation.rosetta.api.model.rest.*;
+
+import java.io.IOException;
 
 public interface NetworkService {
-    NetworkListResponse getNetworkList(final MetadataRequest metadataRequest);
+    NetworkListResponse getNetworkList(final MetadataRequest metadataRequest)
+        throws IOException;
 
-    NetworkOptionsResponse getNetworkOptions(final NetworkRequest networkRequest);
+    NetworkOptionsResponse getNetworkOptions(final NetworkRequest networkRequest)
+        throws IOException, InterruptedException;
 
     NetworkStatusResponse getNetworkStatus(final NetworkRequest networkRequest)
-        throws IOException, ServerException;
+        throws IOException;
 
-    Network getSupportedNetwork();
+    Network getSupportedNetwork() throws IOException;
 }

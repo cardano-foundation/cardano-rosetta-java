@@ -1,11 +1,11 @@
 package org.cardanofoundation.rosetta.api.model.rest;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.util.List;
 import org.openapitools.client.model.Amount;
 
 /**
@@ -17,8 +17,14 @@ import org.openapitools.client.model.Amount;
 @AllArgsConstructor
 @Builder
 public class AccountBalanceResponse {
-    BlockIdentifier blockIdentifier;
-    List<Amount> balances;
-    Object metadata;
+
+  @JsonProperty("block_identifier")
+  BlockIdentifier blockIdentifier;
+
+  @JsonProperty("balances")
+  List<Amount> balances;
+
+  @JsonProperty("metadata")
+  Object metadata;
 
 }

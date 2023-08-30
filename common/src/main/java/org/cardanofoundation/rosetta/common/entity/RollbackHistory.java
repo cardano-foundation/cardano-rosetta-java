@@ -1,182 +1,175 @@
 package org.cardanofoundation.rosetta.common.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import org.cardanofoundation.rosetta.common.enumeration.BlocksDeletionStatus;
+
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import org.cardanofoundation.rosetta.common.enumeration.BlocksDeletionStatus;
 
 @Entity
 @Table(
-    name = "rollback_history"
+        name = "rollback_history"
 )
 public class RollbackHistory extends BaseEntity {
   @Column(
-      name = "block_no_start",
-      nullable = false
+          name = "block_no",
+          nullable = false
   )
-  private Long blockNoStart;
+  private Long blockNo;
   @Column(
-      name = "block_slot_start",
-      nullable = false
+          name = "block_hash",
+          nullable = false,
+          length = 64
   )
-  private Long blockSlotStart;
+  private String blockHash;
   @Column(
-      name = "block_hash_start",
-      nullable = false
+          name = "slot_no",
+          nullable = false
   )
-  private String blockHashStart;
-  @Column(
-      name = "block_no_end",
-      nullable = false
+  private Long slotNo;
+  @JsonFormat(
+          shape = JsonFormat.Shape.STRING,
+          pattern = "yyyy-MM-dd HH:mm:ss"
   )
-  private Long blockNoEnd;
   @Column(
-      name = "block_slot_end",
-      nullable = false
-  )
-  private Long blockSlotEnd;
-  @Column(
-      name = "block_hash_end",
-      nullable = false
-  )
-  private String blockHashEnd;
-  @Column(
-      name = "reason"
-  )
-  private String reason;
-  @Column(
-      name = "rollback_time",
-      nullable = false
+          name = "rollback_time",
+          nullable = false
   )
   private Timestamp rollbackTime;
-  @Column(
-      name = "blocks_deletion_status",
-      nullable = false
-  )
-  private BlocksDeletionStatus blocksDeletionStatus;
 
   @PrePersist
   private void prePersist() {
     this.rollbackTime = Timestamp.valueOf(LocalDateTime.now(ZoneOffset.UTC));
   }
 
-  protected RollbackHistory(final RollbackHistory.RollbackHistoryBuilder<?, ?> b) {
+  protected RollbackHistory(RollbackHistoryBuilder<?, ?> b) {
     super(b);
-    this.blockNoStart = b.blockNoStart;
-    this.blockSlotStart = b.blockSlotStart;
-    this.blockHashStart = b.blockHashStart;
-    this.blockNoEnd = b.blockNoEnd;
-    this.blockSlotEnd = b.blockSlotEnd;
-    this.blockHashEnd = b.blockHashEnd;
-    this.reason = b.reason;
+    this.blockNo = b.blockNo;
+    this.blockHash = b.blockHash;
+    this.slotNo = b.slotNo;
     this.rollbackTime = b.rollbackTime;
-    this.blocksDeletionStatus = b.blocksDeletionStatus;
   }
 
-  public static RollbackHistory.RollbackHistoryBuilder<?, ?> builder() {
-    return new RollbackHistory.RollbackHistoryBuilderImpl();
+  public static RollbackHistoryBuilder<?, ?> builder() {
+    return new RollbackHistoryBuilderImpl();
   }
 
-  public RollbackHistory.RollbackHistoryBuilder<?, ?> toBuilder() {
-    return (new RollbackHistory.RollbackHistoryBuilderImpl()).$fillValuesFrom(this);
+  public RollbackHistoryBuilder<?, ?> toBuilder() {
+    return (new RollbackHistoryBuilderImpl()).$fillValuesFrom(this);
   }
 
-  public Long getBlockNoStart() {
-    return this.blockNoStart;
+  public Long getBlockNo() {
+    return this.blockNo;
   }
 
-  public Long getBlockSlotStart() {
-    return this.blockSlotStart;
+  public String getBlockHash() {
+    return this.blockHash;
   }
 
-  public String getBlockHashStart() {
-    return this.blockHashStart;
-  }
-
-  public Long getBlockNoEnd() {
-    return this.blockNoEnd;
-  }
-
-  public Long getBlockSlotEnd() {
-    return this.blockSlotEnd;
-  }
-
-  public String getBlockHashEnd() {
-    return this.blockHashEnd;
-  }
-
-  public String getReason() {
-    return this.reason;
+  public Long getSlotNo() {
+    return this.slotNo;
   }
 
   public Timestamp getRollbackTime() {
     return this.rollbackTime;
   }
 
-  public BlocksDeletionStatus getBlocksDeletionStatus() {
-    return this.blocksDeletionStatus;
+  public void setBlockNo(Long blockNo) {
+    this.blockNo = blockNo;
   }
 
-  public void setBlockNoStart(final Long blockNoStart) {
-    this.blockNoStart = blockNoStart;
+  public void setBlockHash(String blockHash) {
+    this.blockHash = blockHash;
   }
 
-  public void setBlockSlotStart(final Long blockSlotStart) {
-    this.blockSlotStart = blockSlotStart;
+  public void setSlotNo(Long slotNo) {
+    this.slotNo = slotNo;
   }
 
-  public void setBlockHashStart(final String blockHashStart) {
-    this.blockHashStart = blockHashStart;
-  }
-
-  public void setBlockNoEnd(final Long blockNoEnd) {
-    this.blockNoEnd = blockNoEnd;
-  }
-
-  public void setBlockSlotEnd(final Long blockSlotEnd) {
-    this.blockSlotEnd = blockSlotEnd;
-  }
-
-  public void setBlockHashEnd(final String blockHashEnd) {
-    this.blockHashEnd = blockHashEnd;
-  }
-
-  public void setReason(final String reason) {
-    this.reason = reason;
-  }
-
-  public void setRollbackTime(final Timestamp rollbackTime) {
+  @JsonFormat(
+          shape = JsonFormat.Shape.STRING,
+          pattern = "yyyy-MM-dd HH:mm:ss"
+  )
+  public void setRollbackTime(Timestamp rollbackTime) {
     this.rollbackTime = rollbackTime;
-  }
-
-  public void setBlocksDeletionStatus(final BlocksDeletionStatus blocksDeletionStatus) {
-    this.blocksDeletionStatus = blocksDeletionStatus;
   }
 
   public RollbackHistory() {
   }
 
-  public RollbackHistory(final Long blockNoStart, final Long blockSlotStart, final String blockHashStart, final Long blockNoEnd, final Long blockSlotEnd, final String blockHashEnd, final String reason, final Timestamp rollbackTime, final BlocksDeletionStatus blocksDeletionStatus) {
-    this.blockNoStart = blockNoStart;
-    this.blockSlotStart = blockSlotStart;
-    this.blockHashStart = blockHashStart;
-    this.blockNoEnd = blockNoEnd;
-    this.blockSlotEnd = blockSlotEnd;
-    this.blockHashEnd = blockHashEnd;
-    this.reason = reason;
+  public RollbackHistory(Long blockNo, String blockHash, Long slotNo, Timestamp rollbackTime) {
+    this.blockNo = blockNo;
+    this.blockHash = blockHash;
+    this.slotNo = slotNo;
     this.rollbackTime = rollbackTime;
-    this.blocksDeletionStatus = blocksDeletionStatus;
   }
 
-  private static final class RollbackHistoryBuilderImpl extends RollbackHistory.RollbackHistoryBuilder<RollbackHistory, RollbackHistory.RollbackHistoryBuilderImpl> {
+  public abstract static class RollbackHistoryBuilder<C extends RollbackHistory, B extends RollbackHistoryBuilder<C, B>> extends BaseEntity.BaseEntityBuilder<C, B> {
+    private Long blockNo;
+    private String blockHash;
+    private Long slotNo;
+    private Timestamp rollbackTime;
+
+    public RollbackHistoryBuilder() {
+    }
+
+    protected B $fillValuesFrom(C instance) {
+      super.$fillValuesFrom(instance);
+      $fillValuesFromInstanceIntoBuilder(instance, this);
+      return this.self();
+    }
+
+    private static void $fillValuesFromInstanceIntoBuilder(RollbackHistory instance, RollbackHistoryBuilder<?, ?> b) {
+      b.blockNo(instance.blockNo);
+      b.blockHash(instance.blockHash);
+      b.slotNo(instance.slotNo);
+      b.rollbackTime(instance.rollbackTime);
+    }
+
+    public B blockNo(Long blockNo) {
+      this.blockNo = blockNo;
+      return this.self();
+    }
+
+    public B blockHash(String blockHash) {
+      this.blockHash = blockHash;
+      return this.self();
+    }
+
+    public B slotNo(Long slotNo) {
+      this.slotNo = slotNo;
+      return this.self();
+    }
+
+    @JsonFormat(
+            shape = JsonFormat.Shape.STRING,
+            pattern = "yyyy-MM-dd HH:mm:ss"
+    )
+    public B rollbackTime(Timestamp rollbackTime) {
+      this.rollbackTime = rollbackTime;
+      return this.self();
+    }
+
+    protected abstract B self();
+
+    public abstract C build();
+
+    public String toString() {
+      String var10000 = super.toString();
+      return "RollbackHistory.RollbackHistoryBuilder(super=" + var10000 + ", blockNo=" + this.blockNo + ", blockHash=" + this.blockHash + ", slotNo=" + this.slotNo + ", rollbackTime=" + this.rollbackTime + ")";
+    }
+  }
+
+  private static final class RollbackHistoryBuilderImpl extends RollbackHistoryBuilder<RollbackHistory, RollbackHistoryBuilderImpl> {
     private RollbackHistoryBuilderImpl() {
     }
 
-    protected RollbackHistory.RollbackHistoryBuilderImpl self() {
+    protected RollbackHistoryBuilderImpl self() {
       return this;
     }
 
@@ -184,92 +177,4 @@ public class RollbackHistory extends BaseEntity {
       return new RollbackHistory(this);
     }
   }
-
-  public abstract static class RollbackHistoryBuilder<C extends RollbackHistory, B extends RollbackHistory.RollbackHistoryBuilder<C, B>> extends BaseEntityBuilder<C, B> {
-    private Long blockNoStart;
-    private Long blockSlotStart;
-    private String blockHashStart;
-    private Long blockNoEnd;
-    private Long blockSlotEnd;
-    private String blockHashEnd;
-    private String reason;
-    private Timestamp rollbackTime;
-    private BlocksDeletionStatus blocksDeletionStatus;
-
-    public RollbackHistoryBuilder() {
-    }
-
-    protected B $fillValuesFrom(final C instance) {
-      super.$fillValuesFrom(instance);
-      $fillValuesFromInstanceIntoBuilder(instance, this);
-      return this.self();
-    }
-
-    private static void $fillValuesFromInstanceIntoBuilder(final RollbackHistory instance, final RollbackHistory.RollbackHistoryBuilder<?, ?> b) {
-      b.blockNoStart(instance.blockNoStart);
-      b.blockSlotStart(instance.blockSlotStart);
-      b.blockHashStart(instance.blockHashStart);
-      b.blockNoEnd(instance.blockNoEnd);
-      b.blockSlotEnd(instance.blockSlotEnd);
-      b.blockHashEnd(instance.blockHashEnd);
-      b.reason(instance.reason);
-      b.rollbackTime(instance.rollbackTime);
-      b.blocksDeletionStatus(instance.blocksDeletionStatus);
-    }
-
-    protected abstract B self();
-
-    public abstract C build();
-
-    public B blockNoStart(final Long blockNoStart) {
-      this.blockNoStart = blockNoStart;
-      return this.self();
-    }
-
-    public B blockSlotStart(final Long blockSlotStart) {
-      this.blockSlotStart = blockSlotStart;
-      return this.self();
-    }
-
-    public B blockHashStart(final String blockHashStart) {
-      this.blockHashStart = blockHashStart;
-      return this.self();
-    }
-
-    public B blockNoEnd(final Long blockNoEnd) {
-      this.blockNoEnd = blockNoEnd;
-      return this.self();
-    }
-
-    public B blockSlotEnd(final Long blockSlotEnd) {
-      this.blockSlotEnd = blockSlotEnd;
-      return this.self();
-    }
-
-    public B blockHashEnd(final String blockHashEnd) {
-      this.blockHashEnd = blockHashEnd;
-      return this.self();
-    }
-
-    public B reason(final String reason) {
-      this.reason = reason;
-      return this.self();
-    }
-
-    public B rollbackTime(final Timestamp rollbackTime) {
-      this.rollbackTime = rollbackTime;
-      return this.self();
-    }
-
-    public B blocksDeletionStatus(final BlocksDeletionStatus blocksDeletionStatus) {
-      this.blocksDeletionStatus = blocksDeletionStatus;
-      return this.self();
-    }
-
-    public String toString() {
-      String var10000 = super.toString();
-      return "RollbackHistory.RollbackHistoryBuilder(super=" + var10000 + ", blockNoStart=" + this.blockNoStart + ", blockSlotStart=" + this.blockSlotStart + ", blockHashStart=" + this.blockHashStart + ", blockNoEnd=" + this.blockNoEnd + ", blockSlotEnd=" + this.blockSlotEnd + ", blockHashEnd=" + this.blockHashEnd + ", reason=" + this.reason + ", rollbackTime=" + this.rollbackTime + ", blocksDeletionStatus=" + this.blocksDeletionStatus + ")";
-    }
-  }
 }
-

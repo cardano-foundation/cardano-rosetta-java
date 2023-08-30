@@ -7,8 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.openapitools.client.model.Currency;
-import org.openapitools.client.model.PartialBlockIdentifier;
+
 
 /**
  * @author Sotatek-HoangNguyen9

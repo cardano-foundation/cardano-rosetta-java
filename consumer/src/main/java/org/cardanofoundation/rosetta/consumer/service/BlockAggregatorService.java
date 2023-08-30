@@ -1,15 +1,17 @@
 package org.cardanofoundation.rosetta.consumer.service;
 
+
+import lombok.RequiredArgsConstructor;
 import org.cardanofoundation.rosetta.common.ledgersync.constant.Constant;
 import org.cardanofoundation.rosetta.common.ledgersync.kafka.CommonBlock;
 import org.cardanofoundation.rosetta.common.util.AssetUtil;
-import java.math.BigInteger;
-import java.util.List;
-import lombok.RequiredArgsConstructor;
 import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedAddress;
 import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedAddressBalance;
 import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedBlock;
 import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedTxOut;
+
+import java.math.BigInteger;
+import java.util.List;
 
 @RequiredArgsConstructor
 public abstract class BlockAggregatorService<T extends CommonBlock> // NOSONAR
@@ -34,7 +36,7 @@ public abstract class BlockAggregatorService<T extends CommonBlock> // NOSONAR
    * @param aggregatedTxOuts all aggregated tx outs within a tx
    * @param txHash           tx hash of tx where the aggregated tx outs associate with
    */
-  protected void mapAggregatedTxOutsToAddressBalanceMap(
+  public void mapAggregatedTxOutsToAddressBalanceMap(
       List<AggregatedTxOut> aggregatedTxOuts, String txHash) {
     // Iterate between all aggregated tx out
     aggregatedTxOuts.forEach(aggregatedTxOut -> {

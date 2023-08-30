@@ -1,7 +1,8 @@
 package org.cardanofoundation.rosetta.api.model;
 
-import java.util.Objects;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.NotNull;
+import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,6 +19,7 @@ import lombok.Setter;
 public class TransactionIdentifier {
 
   @JsonProperty("hash")
+  @NotNull(message = "Transaction hash must not be null")
   private String hash;
 
   @Override

@@ -12,7 +12,7 @@ public class FindUtxo {
 
   private BigInteger value;
   private String txHash;
-  private Integer index;
+  private Short index;
   private String policy;
   private String name;
   private BigInteger quantity;

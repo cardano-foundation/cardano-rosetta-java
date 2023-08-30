@@ -10,13 +10,9 @@ public class Formatters {
   private Formatters() {
   }
 
-  public static String hexFormatter(byte[] input) {
-
-    return HexUtil.encodeHexString(input);
-  }
 
   public static byte[] hexStringToBuffer(String input) {
-    return HexUtil.decodeHexString(isEmptyHexString(input) ? "" : input);
+    return isEmptyHexString(input) ? HexUtil.decodeHexString("") : HexUtil.decodeHexString(input);
   }
 
   public static boolean isEmptyHexString(String toCheck) {
@@ -28,6 +24,13 @@ public class Formatters {
 
   public static String hexStringFormatter(String toFormat) {
     return toFormat == null || toFormat.isEmpty() ? EMPTY_HEX : toFormat;
+  }
+
+  public static String remove0xPrefix(String hex) {
+    if (hex.startsWith("0x")) {
+      return hex.substring(2);
+    }
+    return hex;
   }
 
 }

@@ -1,12 +1,16 @@
 package org.cardanofoundation.rosetta.consumer.repository;
 
 import org.cardanofoundation.rosetta.common.entity.Epoch;
+import org.cardanofoundation.rosetta.consumer.projection.UniqueAccountTxCountProjection;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 public interface EpochRepository extends JpaRepository<Epoch, Long> {
@@ -15,4 +19,22 @@ public interface EpochRepository extends JpaRepository<Epoch, Long> {
   Optional<Epoch> findEpochByNo(Integer no);
 
   List<Epoch> findAllByNoIn(Collection<Integer> no);
+
+  Optional<Epoch> findFirstByOrderByNoDesc();
+
+  @Query("""
+      SELECT
+          (CASE
+              WHEN a.stakeAddress IS NULL THEN a.address
+              ELSE CAST(a.stakeAddress.id AS STRING)
+          END) AS account,
+      COUNT(atb) AS txCount
+      FROM Block b
+      JOIN Tx tx ON tx.block = b
+      JOIN AddressTxBalance atb on atb.tx = tx
+      JOIN Address a ON atb.address = a
+      WHERE b.epochNo = :epochNo
+      GROUP BY account
+      """)
+  List<UniqueAccountTxCountProjection> findUniqueAccountsInEpoch(@Param("epochNo") Integer epochNo);
 }

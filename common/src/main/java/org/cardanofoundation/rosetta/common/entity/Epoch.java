@@ -5,9 +5,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.Digits;
-import java.math.BigInteger;
-import java.sql.Timestamp;
-import java.util.Objects;
 import org.cardanofoundation.rosetta.common.enumeration.EraType;
 import org.cardanofoundation.rosetta.common.validation.Lovelace;
 import org.cardanofoundation.rosetta.common.validation.Word128Type;
@@ -15,90 +12,99 @@ import org.cardanofoundation.rosetta.common.validation.Word31Type;
 import org.hibernate.Hibernate;
 import org.hibernate.annotations.DynamicUpdate;
 
+import java.math.BigInteger;
+import java.sql.Timestamp;
+import java.util.Objects;
+
 @Entity
 @Table(
-    name = "epoch",
-    uniqueConstraints = {@UniqueConstraint(
-        name = "unique_epoch",
-        columnNames = {"no"}
-    )}
+        name = "epoch",
+        uniqueConstraints = {@UniqueConstraint(
+                name = "unique_epoch",
+                columnNames = {"no"}
+        )}
 )
 @DynamicUpdate
 public class Epoch extends BaseEntity {
   @Column(
-      name = "out_sum",
-      nullable = false,
-      precision = 39
+          name = "out_sum",
+          nullable = false,
+          precision = 39
   )
   @Word128Type
-  @Digits(
-      integer = 39,
-      fraction = 0
-  )
-  private BigInteger outSum;
+  private @Digits(
+          integer = 39,
+          fraction = 0
+  ) BigInteger outSum;
   @Column(
-      name = "fees",
-      nullable = false,
-      precision = 20
+          name = "fees",
+          nullable = false,
+          precision = 20
   )
   @Lovelace
-  @Digits(
-      integer = 20,
-      fraction = 0
-  )
-  private BigInteger fees;
+  private @Digits(
+          integer = 20,
+          fraction = 0
+  ) BigInteger fees;
   @Column(
-      name = "tx_count",
-      nullable = false
+          name = "tx_count",
+          nullable = false
   )
   @Word31Type
   private Integer txCount;
   @Column(
-      name = "blk_count",
-      nullable = false
+          name = "blk_count",
+          nullable = false
   )
   @Word31Type
   private Integer blkCount;
   @Column(
-      name = "no",
-      nullable = false
+          name = "no",
+          nullable = false
   )
   @Word31Type
   private Integer no;
   @Column(
-      name = "start_time"
+          name = "start_time"
   )
   private Timestamp startTime;
   @Column(
-      name = "end_time"
+          name = "end_time"
   )
   private Timestamp endTime;
   @Column(
-      name = "max_slot",
-      nullable = false
+          name = "max_slot",
+          nullable = false
   )
   private Integer maxSlot;
   @Column(
-      name = "era",
-      nullable = false
+          name = "era",
+          nullable = false
   )
   private EraType era;
   @Column(
-      name = "rewards_distributed"
-  )
-  @Digits(
-      integer = 20,
-      fraction = 0
+          name = "rewards_distributed"
   )
   @Lovelace
-  private BigInteger rewardsDistributed;
+  private @Digits(
+          integer = 20,
+          fraction = 0
+  ) BigInteger rewardsDistributed;
 
   public boolean equals(Object o) {
     if (this == o) {
       return true;
     } else if (o != null && Hibernate.getClass(this) == Hibernate.getClass(o)) {
       Epoch epoch = (Epoch)o;
-      return this.id != null && Objects.equals(this.id, epoch.id);
+      if (Objects.nonNull(this.id)) {
+        if (!Objects.equals(this.id, epoch.id)) {
+          return Boolean.FALSE;
+        } else {
+          return Objects.equals(this.outSum, epoch.getOutSum()) && Objects.equals(this.fees, epoch.getFees()) && Objects.equals(this.txCount, epoch.getTxCount()) && Objects.equals(this.blkCount, epoch.getBlkCount()) && Objects.equals(this.no, epoch.getNo()) && Objects.equals(this.startTime, epoch.getStartTime()) && Objects.equals(this.endTime, epoch.getEndTime()) && Objects.equals(this.maxSlot, epoch.getMaxSlot()) && Objects.equals(this.era, epoch.getEra()) && Objects.equals(this.rewardsDistributed, epoch.getRewardsDistributed());
+        }
+      } else {
+        return Boolean.FALSE;
+      }
     } else {
       return false;
     }
@@ -108,7 +114,7 @@ public class Epoch extends BaseEntity {
     return this.getClass().hashCode();
   }
 
-  protected Epoch(final Epoch.EpochBuilder<?, ?> b) {
+  protected Epoch(EpochBuilder<?, ?> b) {
     super(b);
     this.outSum = b.outSum;
     this.fees = b.fees;
@@ -122,12 +128,12 @@ public class Epoch extends BaseEntity {
     this.rewardsDistributed = b.rewardsDistributed;
   }
 
-  public static Epoch.EpochBuilder<?, ?> builder() {
-    return new Epoch.EpochBuilderImpl();
+  public static EpochBuilder<?, ?> builder() {
+    return new EpochBuilderImpl();
   }
 
-  public Epoch.EpochBuilder<?, ?> toBuilder() {
-    return (new Epoch.EpochBuilderImpl()).$fillValuesFrom(this);
+  public EpochBuilder<?, ?> toBuilder() {
+    return (new EpochBuilderImpl()).$fillValuesFrom(this);
   }
 
   public BigInteger getOutSum() {
@@ -170,50 +176,50 @@ public class Epoch extends BaseEntity {
     return this.rewardsDistributed;
   }
 
-  public void setOutSum(final BigInteger outSum) {
+  public void setOutSum(BigInteger outSum) {
     this.outSum = outSum;
   }
 
-  public void setFees(final BigInteger fees) {
+  public void setFees(BigInteger fees) {
     this.fees = fees;
   }
 
-  public void setTxCount(final Integer txCount) {
+  public void setTxCount(Integer txCount) {
     this.txCount = txCount;
   }
 
-  public void setBlkCount(final Integer blkCount) {
+  public void setBlkCount(Integer blkCount) {
     this.blkCount = blkCount;
   }
 
-  public void setNo(final Integer no) {
+  public void setNo(Integer no) {
     this.no = no;
   }
 
-  public void setStartTime(final Timestamp startTime) {
+  public void setStartTime(Timestamp startTime) {
     this.startTime = startTime;
   }
 
-  public void setEndTime(final Timestamp endTime) {
+  public void setEndTime(Timestamp endTime) {
     this.endTime = endTime;
   }
 
-  public void setMaxSlot(final Integer maxSlot) {
+  public void setMaxSlot(Integer maxSlot) {
     this.maxSlot = maxSlot;
   }
 
-  public void setEra(final EraType era) {
+  public void setEra(EraType era) {
     this.era = era;
   }
 
-  public void setRewardsDistributed(final BigInteger rewardsDistributed) {
+  public void setRewardsDistributed(BigInteger rewardsDistributed) {
     this.rewardsDistributed = rewardsDistributed;
   }
 
   public Epoch() {
   }
 
-  public Epoch(final BigInteger outSum, final BigInteger fees, final Integer txCount, final Integer blkCount, final Integer no, final Timestamp startTime, final Timestamp endTime, final Integer maxSlot, final EraType era, final BigInteger rewardsDistributed) {
+  public Epoch(BigInteger outSum, BigInteger fees, Integer txCount, Integer blkCount, Integer no, Timestamp startTime, Timestamp endTime, Integer maxSlot, EraType era, BigInteger rewardsDistributed) {
     this.outSum = outSum;
     this.fees = fees;
     this.txCount = txCount;
@@ -226,20 +232,7 @@ public class Epoch extends BaseEntity {
     this.rewardsDistributed = rewardsDistributed;
   }
 
-  private static final class EpochBuilderImpl extends Epoch.EpochBuilder<Epoch, Epoch.EpochBuilderImpl> {
-    private EpochBuilderImpl() {
-    }
-
-    protected Epoch.EpochBuilderImpl self() {
-      return this;
-    }
-
-    public Epoch build() {
-      return new Epoch(this);
-    }
-  }
-
-  public abstract static class EpochBuilder<C extends Epoch, B extends Epoch.EpochBuilder<C, B>> extends BaseEntityBuilder<C, B> {
+  public abstract static class EpochBuilder<C extends Epoch, B extends EpochBuilder<C, B>> extends BaseEntity.BaseEntityBuilder<C, B> {
     private BigInteger outSum;
     private BigInteger fees;
     private Integer txCount;
@@ -254,13 +247,13 @@ public class Epoch extends BaseEntity {
     public EpochBuilder() {
     }
 
-    protected B $fillValuesFrom(final C instance) {
+    protected B $fillValuesFrom(C instance) {
       super.$fillValuesFrom(instance);
       $fillValuesFromInstanceIntoBuilder(instance, this);
       return this.self();
     }
 
-    private static void $fillValuesFromInstanceIntoBuilder(final Epoch instance, final Epoch.EpochBuilder<?, ?> b) {
+    private static void $fillValuesFromInstanceIntoBuilder(Epoch instance, EpochBuilder<?, ?> b) {
       b.outSum(instance.outSum);
       b.fees(instance.fees);
       b.txCount(instance.txCount);
@@ -273,63 +266,76 @@ public class Epoch extends BaseEntity {
       b.rewardsDistributed(instance.rewardsDistributed);
     }
 
-    protected abstract B self();
-
-    public abstract C build();
-
-    public B outSum(final BigInteger outSum) {
+    public B outSum(BigInteger outSum) {
       this.outSum = outSum;
       return this.self();
     }
 
-    public B fees(final BigInteger fees) {
+    public B fees(BigInteger fees) {
       this.fees = fees;
       return this.self();
     }
 
-    public B txCount(final Integer txCount) {
+    public B txCount(Integer txCount) {
       this.txCount = txCount;
       return this.self();
     }
 
-    public B blkCount(final Integer blkCount) {
+    public B blkCount(Integer blkCount) {
       this.blkCount = blkCount;
       return this.self();
     }
 
-    public B no(final Integer no) {
+    public B no(Integer no) {
       this.no = no;
       return this.self();
     }
 
-    public B startTime(final Timestamp startTime) {
+    public B startTime(Timestamp startTime) {
       this.startTime = startTime;
       return this.self();
     }
 
-    public B endTime(final Timestamp endTime) {
+    public B endTime(Timestamp endTime) {
       this.endTime = endTime;
       return this.self();
     }
 
-    public B maxSlot(final Integer maxSlot) {
+    public B maxSlot(Integer maxSlot) {
       this.maxSlot = maxSlot;
       return this.self();
     }
 
-    public B era(final EraType era) {
+    public B era(EraType era) {
       this.era = era;
       return this.self();
     }
 
-    public B rewardsDistributed(final BigInteger rewardsDistributed) {
+    public B rewardsDistributed(BigInteger rewardsDistributed) {
       this.rewardsDistributed = rewardsDistributed;
       return this.self();
     }
 
+    protected abstract B self();
+
+    public abstract C build();
+
     public String toString() {
       String var10000 = super.toString();
       return "Epoch.EpochBuilder(super=" + var10000 + ", outSum=" + this.outSum + ", fees=" + this.fees + ", txCount=" + this.txCount + ", blkCount=" + this.blkCount + ", no=" + this.no + ", startTime=" + this.startTime + ", endTime=" + this.endTime + ", maxSlot=" + this.maxSlot + ", era=" + this.era + ", rewardsDistributed=" + this.rewardsDistributed + ")";
+    }
+  }
+
+  private static final class EpochBuilderImpl extends EpochBuilder<Epoch, EpochBuilderImpl> {
+    private EpochBuilderImpl() {
+    }
+
+    protected EpochBuilderImpl self() {
+      return this;
+    }
+
+    public Epoch build() {
+      return new Epoch(this);
     }
   }
 }

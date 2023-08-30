@@ -1,18 +1,24 @@
 package org.cardanofoundation.rosetta.consumer.service.impl.block;
 
-import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedBlock;
-import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedTx;
-import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedTx.AggregatedTxBuilder;
-import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedTxIn;
-import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedTxOut;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.common.ledgersync.byron.ByronMainBlock;
 import org.cardanofoundation.rosetta.common.ledgersync.byron.ByronTx;
 import org.cardanofoundation.rosetta.common.ledgersync.byron.ByronTxIn;
 import org.cardanofoundation.rosetta.common.ledgersync.byron.ByronTxOut;
 import org.cardanofoundation.rosetta.common.ledgersync.byron.payload.ByronTxPayload;
+import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedBlock;
+import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedTx;
+import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedTx.AggregatedTxBuilder;
+import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedTxIn;
+import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedTxOut;
 import org.cardanofoundation.rosetta.consumer.service.BlockAggregatorService;
 import org.cardanofoundation.rosetta.consumer.service.BlockDataService;
 import org.cardanofoundation.rosetta.consumer.service.SlotLeaderService;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -22,11 +28,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import lombok.AccessLevel;
-import lombok.experimental.FieldDefaults;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 
 @Slf4j
 @Service
@@ -80,6 +81,7 @@ public class ByronMainAggregatorServiceImpl extends BlockAggregatorService<Byron
         .protoMinor(protoMinor)
         .txList(txList)
         .auxiliaryDataMap(Collections.emptyMap())
+        .isGenesis(Boolean.FALSE)
         .build();
   }
 

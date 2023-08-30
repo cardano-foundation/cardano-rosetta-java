@@ -21,5 +21,5 @@ public class PoolRegistration {
   private List<String> owners;
   private List<PoolRelay> relays;
   private String metadataUrl;
-  private byte[] metadataHash;
+  private String metadataHash;
 }

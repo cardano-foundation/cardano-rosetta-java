@@ -1,15 +1,15 @@
 package org.cardanofoundation.rosetta.api.model.rest;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.ArrayList;
+import java.util.List;
+import javax.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 import org.cardanofoundation.rosetta.api.model.Signature;
-
-import javax.validation.Valid;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author Sotatek-HoangNguyen9
@@ -19,6 +19,7 @@ import java.util.List;
 @NoArgsConstructor
 @Setter
 @Getter
+@ToString
 public class ConstructionCombineRequest {
     @JsonProperty("network_identifier")
     private NetworkIdentifier networkIdentifier;

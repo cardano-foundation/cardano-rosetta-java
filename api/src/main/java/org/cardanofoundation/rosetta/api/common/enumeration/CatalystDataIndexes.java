@@ -1,18 +1,35 @@
 package org.cardanofoundation.rosetta.api.common.enumeration;
 
+import com.fasterxml.jackson.annotation.JsonValue;
+
 public enum CatalystDataIndexes {
-  VOTING_KEY(1),
-  STAKE_KEY(2),
-  REWARD_ADDRESS(3),
-  VOTING_NONCE(4);
+  VOTING_KEY(1L),
+  STAKE_KEY(2L),
+  REWARD_ADDRESS(3L),
+  VOTING_NONCE(4L);
 
-  private final Integer value;
+  private final Long value;
 
-  CatalystDataIndexes(int value) {
+  CatalystDataIndexes(Long value) {
     this.value = value;
   }
 
-  public Integer getValue() {
+  public static CatalystDataIndexes findByValue(Long value) {
+    for (CatalystDataIndexes a : CatalystDataIndexes.values()) {
+      if (a.getValue() == value) {
+        return a;
+      }
+    }
+    return null;
+  }
+
+  @JsonValue
+  public Long getValue() {
     return value;
+  }
+
+  @Override
+  public String toString() {
+    return String.valueOf(value);
   }
 }

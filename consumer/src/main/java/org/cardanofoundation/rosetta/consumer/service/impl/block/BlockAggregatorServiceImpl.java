@@ -1,49 +1,30 @@
 package org.cardanofoundation.rosetta.consumer.service.impl.block;
 
 import com.bloxbean.cardano.client.crypto.Bech32;
+import lombok.AccessLevel;
+import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
+import org.cardanofoundation.rosetta.common.ledgersync.*;
+import org.cardanofoundation.rosetta.common.ledgersync.certs.*;
+import org.cardanofoundation.rosetta.common.ledgersync.constant.Constant;
 import org.cardanofoundation.rosetta.common.util.AddressUtil;
 import org.cardanofoundation.rosetta.common.util.HexUtil;
-import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedAddress;
-import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedBlock;
-import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedTx;
+import org.cardanofoundation.rosetta.consumer.aggregate.*;
 import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedTx.AggregatedTxBuilder;
-import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedTxIn;
-import org.cardanofoundation.rosetta.consumer.aggregate.AggregatedTxOut;
-import org.cardanofoundation.rosetta.common.ledgersync.Block;
-import org.cardanofoundation.rosetta.common.ledgersync.TransactionBody;
-import org.cardanofoundation.rosetta.common.ledgersync.TransactionInput;
-import org.cardanofoundation.rosetta.common.ledgersync.TransactionOutput;
-import org.cardanofoundation.rosetta.common.ledgersync.Witnesses;
-import org.cardanofoundation.rosetta.common.ledgersync.certs.CertType;
-import org.cardanofoundation.rosetta.common.ledgersync.certs.Certificate;
-import org.cardanofoundation.rosetta.common.ledgersync.certs.MoveInstataneous;
-import org.cardanofoundation.rosetta.common.ledgersync.certs.PoolRegistration;
-import org.cardanofoundation.rosetta.common.ledgersync.certs.StakeCredential;
-import org.cardanofoundation.rosetta.common.ledgersync.certs.StakeCredentialType;
-import org.cardanofoundation.rosetta.common.ledgersync.certs.StakeDelegation;
-import org.cardanofoundation.rosetta.common.ledgersync.certs.StakeDeregistration;
-import org.cardanofoundation.rosetta.common.ledgersync.certs.StakeRegistration;
-import org.cardanofoundation.rosetta.common.ledgersync.constant.Constant;
 import org.cardanofoundation.rosetta.consumer.constant.ConsumerConstant;
 import org.cardanofoundation.rosetta.consumer.service.BlockAggregatorService;
 import org.cardanofoundation.rosetta.consumer.service.BlockDataService;
 import org.cardanofoundation.rosetta.consumer.service.SlotLeaderService;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import lombok.AccessLevel;
-import lombok.experimental.FieldDefaults;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 
 
 @Slf4j
@@ -70,11 +51,11 @@ public class BlockAggregatorServiceImpl extends BlockAggregatorService<Block> {
   }
 
   /**
-   * handle mapping {@link Block} to
-   * {@link org.cardanofoundation.rosetta.consumer.aggregate.AggregatedBlock}
+   * handle mapping {@link org.cardanofoundation.rosetta.common.ledgersync.Block} to
+   * {@link AggregatedBlock}
    *
-   * @param blockCddl {@link Block} cddl block
-   * @return {@link org.cardanofoundation.rosetta.consumer.aggregate.AggregatedBlock}
+   * @param blockCddl {@link org.cardanofoundation.rosetta.common.ledgersync.Block} cddl block
+   * @return {@link AggregatedBlock}
    */
   private AggregatedBlock mapBlockCddlToAggregatedBlock(Block blockCddl) {
 
@@ -126,6 +107,7 @@ public class BlockAggregatorServiceImpl extends BlockAggregatorService<Block> {
         .opCertCounter(opCertCounter)
         .txList(txList)
         .auxiliaryDataMap(blockCddl.getAuxiliaryDataMap())
+        .isGenesis(Boolean.FALSE)
         .build();
   }
 

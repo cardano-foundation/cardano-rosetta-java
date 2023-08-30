@@ -1,9 +1,13 @@
 package org.cardanofoundation.rosetta.consumer.repository;
 
+import org.cardanofoundation.rosetta.common.entity.Block;
 import org.cardanofoundation.rosetta.common.entity.EpochParam;
-import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+
+import java.util.Collection;
+import java.util.Optional;
 
 public interface EpochParamRepository extends JpaRepository<EpochParam, Long> {
 
@@ -12,4 +16,7 @@ public interface EpochParamRepository extends JpaRepository<EpochParam, Long> {
   Optional<EpochParam> findLastEpochParam();
 
   Optional<EpochParam> findEpochParamByEpochNo(Integer epochNo);
+
+  @Modifying
+  void deleteAllByBlockIn(Collection<Block> blocks);
 }

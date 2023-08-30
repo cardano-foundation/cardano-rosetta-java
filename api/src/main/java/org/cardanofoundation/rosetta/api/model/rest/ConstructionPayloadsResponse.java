@@ -2,9 +2,8 @@ package org.cardanofoundation.rosetta.api.model.rest;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.cardanofoundation.rosetta.api.model.SigningPayload;
 
 import javax.validation.Valid;
@@ -17,8 +16,7 @@ import java.util.List;
  */
 @AllArgsConstructor
 @NoArgsConstructor
-@Getter
-@Setter
+@Data
 public class ConstructionPayloadsResponse {
     @JsonProperty("unsigned_transaction")
     private String unsignedTransaction;

@@ -10,9 +10,9 @@ public interface FindTransactionProjection {
 
   String getFee();
 
-  byte[] getHash();
+  String getHash();
 
-  byte[] getBlockHash();
+  String getBlockHash();
 
   Long getBlockNo();
 

@@ -1,7 +1,5 @@
 package org.cardanofoundation.rosetta.consumer.configuration.kafka.producer;
 
-import java.util.HashMap;
-import java.util.Map;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.consumer.configuration.properties.KafkaProperties;
@@ -13,9 +11,12 @@ import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Configuration
 @Slf4j
-@Profile("!test-integration")
+@Profile("!test-integration & !test-unit")
 public class ProducerConfiguration {
 
   public static final String JSON_SERIALIZER = "json-producer";

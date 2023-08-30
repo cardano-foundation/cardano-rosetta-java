@@ -1,28 +1,29 @@
 package org.cardanofoundation.rosetta.api.projection;
 
-import java.math.BigDecimal;
+import java.math.BigInteger;
 
 /**
  * A Projection for the {@link org.openapitools.entity.EpochParam} entity
  */
 public interface EpochParamProjection {
-    BigDecimal getCoinsPerUtxoSize();
 
-    BigDecimal getKeyDeposit();
+  BigInteger getCoinsPerUtxoSize();
 
-    Integer getMaxCollateralInputs();
+  BigInteger getKeyDeposit();
 
-    Integer getMaxTxSize();
+  Integer getMaxCollateralInputs();
 
-    BigDecimal getMaxValSize();
+  Integer getMaxTxSize();
 
-    Integer getMinFeeA();
+  BigInteger getMaxValSize();
 
-    Integer getMinFeeB();
+  Integer getMinFeeA();
 
-    BigDecimal getMinPoolCost();
+  Integer getMinFeeB();
 
-    BigDecimal getPoolDeposit();
+  BigInteger getMinPoolCost();
 
-    Integer getProtocolMajor();
+  BigInteger getPoolDeposit();
+
+  Integer getProtocolMajor();
 }

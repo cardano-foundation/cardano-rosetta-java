@@ -8,12 +8,10 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
 public class TransactionMetadataDto implements FindTransactionFieldResult {
 
-  private String data;
   private String signature;
-
-  private byte[] txHash;
+  private String data;
+  private String txHash;
 
 }

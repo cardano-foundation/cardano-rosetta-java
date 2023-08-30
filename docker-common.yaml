@@ -1,0 +1,148 @@
+version: '3.8'
+services:
+  db:
+    image: "${DB_IMAGE_NAME}:${DB_IMAGE_TAG}"
+    shm_size: 30g
+    ports:
+      - "${DB_PORT}:${DB_PORT}"
+    environment:
+      POSTGRES_PASSWORD: "${DB_ADMIN_USER_SECRET}"
+      POSTGRES_USER: "${DB_ADMIN_USER_NAME}"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_ADMIN_USER_NAME}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: on-failure
+    volumes:
+      - ./data/postgres-data:/var/lib/postgresql/data
+  bootstrap-db:
+    build: ./database
+    environment:
+      DB_ADMIN_USER_SECRET: "${DB_ADMIN_USER_SECRET}"
+      DB_ADMIN_USER_NAME: "${DB_ADMIN_USER_NAME}"
+      SERVICE_USER_SECRET: "${SERVICE_USER_SECRET}"
+      SERVICE_USER_NAME: "${SERVICE_USER_NAME}"
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_NAME: ${DB_NAME}
+      DB_SCHEMA: ${DB_SCHEMA}
+      LIQUIBASE_ENABLE: ${LIQUIBASE_ENABLE}
+    depends_on:
+      db:
+        condition: service_healthy
+  cardano_redis_master:
+    image: redis:7.0.5
+    hostname: cardano.redis.master
+    environment:
+      - REDIS_REPLICATION_MODE=master
+      - REDIS_PASSWORD=${REDIS_MASTER_PASSWORD:-str0ng_passw0rd}
+    restart: always
+    ports:
+      - ${EXTERNAL_REDIS_MASTER_PORT:-6379}:6379
+    command: redis-server
+
+  cardano_redis_slave:
+    image: redis:7.0.5
+    hostname: cardano.redis.slave
+    environment:
+      - REDIS_REPLICATION_MODE=slave
+      - REDIS_MASTER_HOST=cardano.redis.master
+      - REDIS_MASTER_PASSWORD=${REDIS_MASTER_PASSWORD:-str0ng_passw0rd}
+      - REDIS_PASSWORD=${REDIS_SLAVE_PASSWORD:-str0ng_passw0rd}
+    restart: always
+    ports:
+      - ${EXTERNAL_REDIS_SLAVE_PORT:-6380}:6379
+    depends_on:
+      - cardano_redis_master
+    command: redis-server --slaveof cardano_redis_master 6379
+
+  redis-sentinel:
+    image: 'bitnami/redis-sentinel'
+    hostname: ${REDIS_SENTINEL_HOST}
+    environment:
+      - REDIS_MASTER_PASSWORD=${REDIS_MASTER_PASSWORD:-str0ng_passw0rd}
+      - REDIS_MASTER_SET=${REDIS_MASTER_SET:-mymaster}
+      - REDIS_SENTINEL_DOWN_AFTER_MILLISECONDS=5000
+      - REDIS_SENTINEL_FAILOVER_TIMEOUT=500
+      - REDIS_SENTINEL_QUORUM=2
+      - REDIS_SENTINEL_PASSWORD=${REDIS_SENTINEL_PASSWORD:-str0ng_passw0rd}
+      - REDIS_MASTER_HOST=localhost
+      - REDIS_MASTER_PORT_NUMBER=${EXTERNAL_REDIS_MASTER_PORT:-6379}
+    restart: always
+    depends_on:
+      - cardano_redis_master
+      - cardano_redis_slave
+    ports:
+      - ${EXTERNAL_REDIS_SENTINEL_PORT}:26379
+  zookeeper:
+    image: confluentinc/cp-zookeeper:5.1.2
+    restart: always
+    environment:
+      ZOOKEEPER_SERVER_ID: 1
+      ZOOKEEPER_CLIENT_PORT: "2181"
+      ZOOKEEPER_TICK_TIME: "2000"
+      ZOOKEEPER_SERVERS: "zookeeper:22888:23888"
+    ports:
+      - "2181:2181"
+    tmpfs: "/datalog"
+    # volumes:
+    #   - ./kafka/zoo:/var/lib/zookeeper/data
+  kafka:
+    restart: unless-stopped
+    image: confluentinc/cp-kafka:7.0.0
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "29092:29092"
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://${BOOSTRAP_SERVER_HOST}:${BOOSTRAP_SERVER_PORT},PLAINTEXT_HOST://localhost:29092
+      KAFKA_ADVERTISED_HOST_NAME: kafka
+      KAFKA_BROKER_ID: 1
+      KAFKA_BROKER_RACK: "r1"
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_DELETE_TOPIC_ENABLE: "true"
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_JMX_PORT: 9991
+    # volumes:
+    #   - ./kafka/data:/var/lib/kafka/data
+  kafdrop:
+    image: obsidiandynamics/kafdrop
+    restart: "no"
+    ports:
+      - "9000:9000"
+    environment:
+      KAFKA_BROKERCONNECT: "kafka:9092"
+    depends_on:
+      - kafka
+  cardano-node:
+    image: inputoutput/cardano-node
+    container_name: cardano-node
+    environment:
+      NETWORK: ${SCHEMA}
+      CARDANO_NODE_SOCKET_PATH: /ipc/node.socket
+    volumes:
+      - ./node-ipc:/ipc
+    restart: "no"
+    ports:
+      - "3003:3003"
+    healthcheck:
+      # Ping the EKG port to see if it responds.
+      # Assuming if EKG isn't up then the rest of cardano-node isn't either.
+      test: [ "CMD-SHELL", "curl -f 127.0.0.1:12788 || exit 1" ]
+      interval: 60s
+      timeout: 10s
+      retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200k"
+        max-file: "10"
+
+networks:
+  default:
+    name: cardano-rosetta-java
