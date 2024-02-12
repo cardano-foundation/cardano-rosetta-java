@@ -72,8 +72,8 @@ public class NetworkServiceImpl implements NetworkService {
   @Value("${cardano.rosetta.GENESIS_SHELLEY_PATH}")
   private String genesisPath;
 
-  @Value("${cardano.rosetta.CARDANO_NODE_PATH}")
-  private String cardanoNodePath;
+  @Value("${cardano.rosetta.CARDANO_NODE_VERSION}")
+  private String cardanoNodeVersion;
   private final ResourceLoader resourceLoader;
 
   private String networkId;
@@ -82,8 +82,8 @@ public class NetworkServiceImpl implements NetworkService {
   @PostConstruct
   public void filePathExistingValidator() throws ServerException {
 //    validator(topologyFilepath);
-    validator(genesisPath);
-//    validator(cardanoNodePath); // TODO Removed to get it working clean
+//    validator(genesisPath);
+//    validator(cardanoNodeVersion);
   }
 
   private void validator( String path) throws ServerException {
@@ -142,7 +142,6 @@ public class NetworkServiceImpl implements NetworkService {
     String rosettaVersion = openAPI.getInfo().getVersion();
     String implementationVersion = rosettaConfig.getImplementationVersion();
 
-    String cardanoNodeVersion = CardanoNode.getCardanoNodeVersion(cardanoNodePath);
     OperationStatus success = new OperationStatus().successful(true)
         .status(OperationTypeStatus.SUCCESS.getValue());
     OperationStatus invalid = new OperationStatus().successful(false)

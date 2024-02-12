@@ -15,9 +15,9 @@ RUN --mount=type=cache,target=/root/.m2 mvn clean package -DskipTests
 
 FROM eclipse-temurin:latest
 RUN apt-get update
-WORKDIR /cf-rosetta-api
-COPY --from=build-common /app/api/target/*.jar /cf-rosetta-api/app.jar
+WORKDIR /cf-rosetta-yaci-indexer
+COPY --from=build-common /app/yaci-indexer/target/*.jar /cf-rosetta-yaci-indexer/app.jar
 
-COPY ./api/run_backend.sh /cf-rosetta-api/run_backend.sh
+COPY ./api/run_backend.sh /cf-rosetta-yaci-indexer/run_backend.sh
 
-ENTRYPOINT ["/bin/sh", "/cf-rosetta-api/run_backend.sh"]
+ENTRYPOINT ["/bin/sh", "/cf-rosetta-yaci-indexer/run_backend.sh"]
