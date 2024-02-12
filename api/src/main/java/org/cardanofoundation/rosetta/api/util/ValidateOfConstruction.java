@@ -50,7 +50,7 @@ public class ValidateOfConstruction {
     try {
       owners.forEach(owner -> {
         Address address = new Address(owner);
-        Optional<byte[]> bytes = address.getDelegationHash();
+        Optional<byte[]> bytes = address.getDelegationCredentialHash();
         bytes.ifPresent(value -> parsedOwners.add(HexUtil.encodeHexString(value)));
       });
     } catch (Exception error) {

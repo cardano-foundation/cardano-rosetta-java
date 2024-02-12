@@ -1,9 +1,11 @@
 package org.cardanofoundation.rosetta.common.ledgersync.mdl;
 
-import com.bloxbean.cardano.client.transaction.spec.Language;
+
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
+
+import com.bloxbean.cardano.client.plutus.spec.Language;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

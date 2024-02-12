@@ -4,6 +4,7 @@ import co.nstant.in.cbor.CborException;
 import co.nstant.in.cbor.model.DataItem;
 import com.bloxbean.cardano.client.crypto.Blake2bUtil;
 import com.bloxbean.cardano.client.exception.CborDeserializationException;
+import com.bloxbean.cardano.client.util.JsonUtil;
 import org.cardanofoundation.rosetta.common.ledgersync.plutus.PlutusData;
 import java.util.Objects;
 import lombok.AllArgsConstructor;
@@ -13,7 +14,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.cardanofoundation.rosetta.common.util.CborSerializationUtil;
 import org.cardanofoundation.rosetta.common.util.HexUtil;
-import org.cardanofoundation.rosetta.common.util.JsonUtil;
+
 
 @Getter
 @NoArgsConstructor

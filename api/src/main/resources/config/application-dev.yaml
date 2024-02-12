@@ -1,5 +1,5 @@
 server:
-  port: ${API_BIND_PORT:8080}
+  port: ${API_BIND_PORT:8081}
   compression:
     enabled: true
     mime-types: text/html,text/plain,text/css,application/javascript,application/json
@@ -113,7 +113,7 @@ cardano:
         }
 
       ]
-    TOPOLOGY_FILEPATH: ${TOPOLOGY_FILEPATH}
+#    TOPOLOGY_FILEPATH: ${TOPOLOGY_FILEPATH}
     GENESIS_SHELLEY_PATH: ${GENESIS_SHELLEY_PATH}
     CARDANO_NODE_PATH: ${CARDANO_NODE_PATH}
     EXEMPTION_TYPES_PATH: ${EXEMPTION_TYPES_PATH}
@@ -121,11 +121,6 @@ cardano:
 page-size: ${PAGE_SIZE:5}
 
 cardano-transaction-submitter:
-  connection:
-    socket:
-      path: ${SUBMIT_SOCKET_CONNECTION}
-
   networkMagic: ${NETWORK_MAGIC:1}
-
   transaction:
     ttl: ${TRANSACTION_TTL:3000}

@@ -3,9 +3,10 @@ package org.cardanofoundation.rosetta.common.ledgersync.plutus;
 import co.nstant.in.cbor.CborException;
 import co.nstant.in.cbor.model.ByteString;
 import com.bloxbean.cardano.client.exception.CborDeserializationException;
-import com.bloxbean.cardano.client.transaction.util.CborSerializationUtil;
+
 import com.bloxbean.cardano.client.util.HexUtil;
 import lombok.experimental.SuperBuilder;
+import org.cardanofoundation.rosetta.common.util.CborSerializationUtil;
 
 @SuperBuilder
 public class PlutusV2Script extends PlutusScript {
@@ -18,11 +19,8 @@ public class PlutusV2Script extends PlutusScript {
         if (plutusScriptDI != null) {
             PlutusV2Script plutusScript = new PlutusV2Script();
             byte[] bytes;
-            try {
-                bytes = CborSerializationUtil.serialize(plutusScriptDI);
-            } catch (CborException e) {
-                throw new CborDeserializationException("CBor deserialization error", e);
-            }
+            bytes = CborSerializationUtil.serialize(plutusScriptDI);
+
             plutusScript.setCborHex(HexUtil.encodeHexString(bytes));
             return plutusScript;
         } else {

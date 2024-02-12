@@ -1,5 +1,6 @@
 package org.cardanofoundation.rosetta.common.ledgersync.kafka;
 
+
 import com.bloxbean.cardano.client.util.JsonUtil;
 
 public class MapKey {

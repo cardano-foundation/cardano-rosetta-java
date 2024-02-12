@@ -1,8 +1,8 @@
 package org.cardanofoundation.rosetta.common.ledgersync.kafka.serializer;
 
-import com.bloxbean.cardano.client.transaction.spec.PlutusScript;
-import com.bloxbean.cardano.client.transaction.spec.PlutusV1Script;
-import com.bloxbean.cardano.client.transaction.spec.PlutusV2Script;
+import com.bloxbean.cardano.client.plutus.spec.PlutusScript;
+import com.bloxbean.cardano.client.plutus.spec.PlutusV1Script;
+import com.bloxbean.cardano.client.plutus.spec.PlutusV2Script;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
@@ -26,10 +26,10 @@ public class PlutusScriptDeserializer extends JsonDeserializer<PlutusScript> {
   private PlutusScript deserialize(JsonNode jsonNode) {
     String type = jsonNode.get("type").asText();
     switch (type) {
-      case PLUTUS_SCRIPT_V_1:
-        return deserializePlutusV1Script(jsonNode);
-      case PLUTUS_SCRIPT_V_2:
-        return deserializePlutusV2Script(jsonNode);
+//      case PLUTUS_SCRIPT_V_1:
+//        return deserializePlutusV1Script(jsonNode);
+//      case PLUTUS_SCRIPT_V_2:
+//        return deserializePlutusV2Script(jsonNode);
       default:
         throw new RuntimeException("Invalid Plutus script version");
     }

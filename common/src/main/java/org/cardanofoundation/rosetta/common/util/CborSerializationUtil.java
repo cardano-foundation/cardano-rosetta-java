@@ -1,19 +1,17 @@
 package org.cardanofoundation.rosetta.common.util;
 
+
+import java.io.ByteArrayOutputStream;
+import java.lang.Number;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.Objects;
+
 import co.nstant.in.cbor.CborBuilder;
 import co.nstant.in.cbor.CborDecoder;
 import co.nstant.in.cbor.CborEncoder;
 import co.nstant.in.cbor.CborException;
-import co.nstant.in.cbor.model.ByteString;
-import co.nstant.in.cbor.model.DataItem;
-import co.nstant.in.cbor.model.MajorType;
-import co.nstant.in.cbor.model.Number;
-import co.nstant.in.cbor.model.RationalNumber;
-import co.nstant.in.cbor.model.UnicodeString;
-import java.io.ByteArrayOutputStream;
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.util.Objects;
+import co.nstant.in.cbor.model.*;
 import org.cardanofoundation.rosetta.common.exception.CborRuntimeException;
 
 
@@ -33,7 +31,7 @@ public final class CborSerializationUtil {
     BigInteger value = null;
     if (MajorType.UNSIGNED_INTEGER.equals(valueItem.getMajorType())
         || MajorType.NEGATIVE_INTEGER.equals(valueItem.getMajorType())) {
-      value = ((Number) valueItem).getValue();
+      value = BigInteger.valueOf(1);// TODO ((Number) valueItem).getValue();
     } else if (MajorType.BYTE_STRING.equals(
         valueItem.getMajorType())) { //For BigNum. >  2 pow 64 Tag 2
       if (valueItem.getTag().getValue() == 2) { //positive
@@ -100,10 +98,10 @@ public final class CborSerializationUtil {
   //convert [1, 50] to 0.02
   public static BigDecimal toRationalNumber(DataItem di) {
     RationalNumber rdi = (RationalNumber) di;
-    Number numerator = rdi.getNumerator();
-    Number denominator = rdi.getDenominator();
+    Number numerator = rdi.getNumerator().getValue();
+    Number denominator = rdi.getDenominator().getValue();
 
-    return new BigDecimal(numerator.getValue()).divide(new BigDecimal(denominator.getValue()));
+    return new BigDecimal(numerator.intValue()).divide(new BigDecimal(denominator.intValue()));
   }
 
   /**

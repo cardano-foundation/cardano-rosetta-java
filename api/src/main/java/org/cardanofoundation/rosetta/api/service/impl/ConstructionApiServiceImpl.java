@@ -62,7 +62,6 @@ import org.cardanofoundation.rosetta.api.util.ParseConstructionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 
@@ -78,10 +77,6 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
 
   @Autowired(required = false)
   private LocalTxSubmissionClient localTxSubmissionClient;
-
-  @Autowired
-  @Qualifier("redisTemplateString")
-  private RedisTemplate<String, String> redisTemplate;
 
   @Override
   public ConstructionDeriveResponse constructionDeriveService(
@@ -292,21 +287,21 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
     
     return new TransactionIdentifierResponse(new TransactionIdentifier(transactionHash));
   }
-
+// TODO
   @Override
   public TransactionIdentifierResponse constructionSubmitService(
       @NotNull ConstructionSubmitRequest constructionSubmitRequest) {
-    Array array = cardanoService.decodeExtraData(constructionSubmitRequest.getSignedTransaction());
-    byte[] signedTransactionBytes = HexUtil.decodeHexString(
-        ((UnicodeString) array.getDataItems().get(0)).getString());
-    TxSubmissionRequest txnRequest = new TxSubmissionRequest(signedTransactionBytes);
-    redisTemplate.opsForValue().set(Constants.REDIS_PREFIX_PENDING + txnRequest.getTxHash(),
-        constructionSubmitRequest.getSignedTransaction(), REDIS_TTL_MEMPOOL);
-    TxResult txResult = localTxSubmissionClient.submitTx(txnRequest).block();
-    if (txResult != null && !txResult.isAccepted()) {
-      throw ExceptionFactory.submitRejected(txResult.getErrorCbor());
-    }
-    return new TransactionIdentifierResponse(new TransactionIdentifier(txResult.getTxHash()));
-
+//    Array array = cardanoService.decodeExtraData(constructionSubmitRequest.getSignedTransaction());
+//    byte[] signedTransactionBytes = HexUtil.decodeHexString(
+//        ((UnicodeString) array.getDataItems().get(0)).getString());
+//    TxSubmissionRequest txnRequest = new TxSubmissionRequest(signedTransactionBytes);
+//    redisTemplate.opsForValue().set(Constants.REDIS_PREFIX_PENDING + txnRequest.getTxHash(),
+//        constructionSubmitRequest.getSignedTransaction(), REDIS_TTL_MEMPOOL);
+//    TxResult txResult = localTxSubmissionClient.submitTx(txnRequest).block();
+//    if (txResult != null && !txResult.isAccepted()) {
+//      throw ExceptionFactory.submitRejected(txResult.getErrorCbor());
+//    }
+//    return new TransactionIdentifierResponse(new TransactionIdentifier(txResult.getTxHash()));
+    return null;
   }
 }

@@ -3,6 +3,8 @@ package org.cardanofoundation.rosetta.api.service.impl;
 import co.nstant.in.cbor.model.Array;
 import co.nstant.in.cbor.model.Map;
 import co.nstant.in.cbor.model.UnicodeString;
+
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -22,7 +24,6 @@ import org.cardanofoundation.rosetta.api.service.MempoolMonitoringService;
 import org.cardanofoundation.rosetta.api.util.DataItemDecodeUtil;
 import org.cardanofoundation.rosetta.api.util.ParseConstructionUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -30,12 +31,9 @@ import org.springframework.stereotype.Service;
 public class MempoolMonitoringServiceImpl implements MempoolMonitoringService {
 
   private final CardanoService cardanoService;
-  private final RedisTemplate<String, String> redisTemplate;
 
-  public MempoolMonitoringServiceImpl(CardanoService cardanoService,
-      @Qualifier("redisTemplateString") RedisTemplate<String, String> redisTemplate) {
+  public MempoolMonitoringServiceImpl(CardanoService cardanoService) {
     this.cardanoService = cardanoService;
-    this.redisTemplate = redisTemplate;
   }
 
   @Override
@@ -54,7 +52,8 @@ public class MempoolMonitoringServiceImpl implements MempoolMonitoringService {
   public MempoolTransactionResponse getDetailTransaction(
       MempoolTransactionRequest mempoolTransactionRequest) {
     String txHash = mempoolTransactionRequest.getTransactionIdentifier().getHash();
-    String txData = redisTemplate.opsForValue().get(Constants.REDIS_PREFIX_MEMPOOL + txHash);
+//    String txData = redisTemplate.opsForValue().get(Constants.REDIS_PREFIX_MEMPOOL + txHash);
+    String txData = ""; // TODO
     if (Objects.isNull(txData)) {
       throw ExceptionFactory.unspecifiedError("Transaction hash not found in mempool : " + txHash);
     }
@@ -74,6 +73,6 @@ public class MempoolMonitoringServiceImpl implements MempoolMonitoringService {
   }
   @Override
   public Set<String> getAllTransactionsInMempool() {
-    return redisTemplate.keys(Constants.REDIS_PREFIX_MEMPOOL + "*");
+    return new HashSet<>(); // TODO
   }
 }

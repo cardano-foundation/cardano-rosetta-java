@@ -2,6 +2,7 @@ package org.cardanofoundation.rosetta.api.util;
 
 
 import com.bloxbean.cardano.client.address.Address;
+
 import com.bloxbean.cardano.client.address.AddressProvider;
 import com.bloxbean.cardano.client.address.AddressType;
 import com.bloxbean.cardano.client.address.ByronAddress;
@@ -10,7 +11,7 @@ import com.bloxbean.cardano.client.common.model.Network;
 import com.bloxbean.cardano.client.crypto.KeyGenUtil;
 import com.bloxbean.cardano.client.crypto.bip32.key.HdPublicKey;
 import com.bloxbean.cardano.client.exception.AddressRuntimeException;
-import com.bloxbean.cardano.client.transaction.spec.NetworkId;
+import com.bloxbean.cardano.client.spec.NetworkId;
 import com.bloxbean.cardano.client.transaction.spec.cert.MultiHostName;
 import com.bloxbean.cardano.client.transaction.spec.cert.SingleHostAddr;
 import com.bloxbean.cardano.client.transaction.spec.cert.SingleHostName;
