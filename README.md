@@ -1,11 +1,24 @@
 
 ---
 
-:construction: This Repository is under active development. :construction:
+# :rotating_light: This Repository is under active development. :rotating_light:
+The latest version from main was backupped in branch [backup-old-architecture](https://github.com/cardano-foundation/cardano-rosetta-java/tree/backup-old-architecture)
 
 # Cardano Rosetta API Java implementation
 This repository provides a lightweight java implementation of the Rosetta API. It uses [Yaci-Store](https://github.com/bloxbean/yaci-store) as an indexer
 to fetch the data from the node. 
+
+## :construction: Current Development status :construction:
+- [x] Architecture clean up for yaci-store
+- [x] Docker-compose setup 
+- API calls
+    - [ ] /network/list
+    - [ ] /network/status
+    - [ ] /network/options
+    - [ ] /block/*
+    - [ ] /mempool/*
+    - [ ] /account/*
+    - [ ] /construction/*
 
 
 ## Getting Started
