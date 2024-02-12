@@ -80,17 +80,6 @@
             <artifactId>validation-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-resolver-dns-native-macos</artifactId>
-            <version>4.1.90.Final</version>
-            <classifier>osx-aarch_64</classifier>
-        </dependency>
-
-        <dependency>
-            <groupId>com.bloxbean.cardano</groupId>
-            <artifactId>yaci</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcprov-jdk18on</artifactId>
         </dependency>
@@ -162,6 +151,7 @@
             <artifactId>cardano-common-rosetta</artifactId>
             <version>1.0.7-SNAPSHOT</version>
         </dependency>
+
         <dependency>
 
             <groupId>org.springframework.boot</groupId>
@@ -175,31 +165,7 @@
             <version>3.20.2</version>
             <scope>test</scope>
         </dependency>
-        <!-- For Blockfrost backend -->
-        <dependency>
-            <groupId>com.bloxbean.cardano</groupId>
-            <artifactId>cardano-client-backend-blockfrost</artifactId>
-            <version>0.4.3</version>
-        </dependency>
 
-        <!-- For Koios backend -->
-        <dependency>
-            <groupId>com.bloxbean.cardano</groupId>
-            <artifactId>cardano-client-backend-koios</artifactId>
-            <version>0.4.3</version>
-        </dependency>
-
-        <!-- For Ogmios / Kupo backend -->
-        <dependency>
-            <groupId>com.bloxbean.cardano</groupId>
-            <artifactId>cardano-client-backend-ogmios</artifactId>
-            <version>0.4.3</version>
-        </dependency>
-        <dependency>
-            <groupId>com.bloxbean.cardano</groupId>
-            <artifactId>yaci-core</artifactId>
-            <version>0.1.8</version>
-        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
@@ -227,44 +193,38 @@
             <artifactId>json</artifactId>
             <version>20230227</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/org.testcontainers/testcontainers -->
         <dependency>
-            <groupId>org.testcontainers</groupId>
-            <artifactId>testcontainers</artifactId>
-            <version>1.17.6</version>
-            <scope>test</scope>
+            <groupId>com.bloxbean.cardano</groupId>
+            <artifactId>cardano-client-lib</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.springframework.data</groupId>
-            <artifactId>spring-data-redis</artifactId>
+            <groupId>com.bloxbean.cardano</groupId>
+            <artifactId>yaci</artifactId>
         </dependency>
-        <dependency>
-            <groupId>redis.clients</groupId>
-            <artifactId>jedis</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.lettuce</groupId>
-            <artifactId>lettuce-core</artifactId>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/org.purejava/tweetnacl-java -->
         <dependency>
             <groupId>org.purejava</groupId>
             <artifactId>tweetnacl-java</artifactId>
             <version>1.1.2</version>
         </dependency>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-inline</artifactId>
-            <version>3.8.0</version>
-            <scope>test</scope>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/it.ozimov/embedded-redis -->
-        <dependency>
-            <groupId>it.ozimov</groupId>
-            <artifactId>embedded-redis</artifactId>
-            <version>0.7.3</version>
-            <scope>test</scope>
-        </dependency>
+<!--        &lt;!&ndash; https://mvnrepository.com/artifact/org.testcontainers/testcontainers &ndash;&gt;-->
+<!--        <dependency>-->
+<!--            <groupId>org.testcontainers</groupId>-->
+<!--            <artifactId>testcontainers</artifactId>-->
+<!--            <version>1.17.6</version>-->
+<!--            <scope>test</scope>-->
+<!--        </dependency>-->
+<!--        &lt;!&ndash; https://mvnrepository.com/artifact/org.purejava/tweetnacl-java &ndash;&gt;-->
+<!--        <dependency>-->
+<!--            <groupId>org.purejava</groupId>-->
+<!--            <artifactId>tweetnacl-java</artifactId>-->
+<!--            <version>1.1.2</version>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>org.mockito</groupId>-->
+<!--            <artifactId>mockito-inline</artifactId>-->
+<!--            <version>3.8.0</version>-->
+<!--            <scope>test</scope>-->
+<!--        </dependency>-->
 
     </dependencies>
 
@@ -299,8 +259,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>${version.maven-compiler-plugin}</version>
                 <configuration>
-                    <source>17</source>
-                    <target>17</target>
+                    <source>21</source>
+                    <target>21</target>
                     <annotationProcessorPaths>
                         <path>
                             <groupId>org.projectlombok</groupId>

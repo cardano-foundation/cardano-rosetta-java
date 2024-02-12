@@ -1,9 +1,10 @@
 package org.cardanofoundation.rosetta.common.util;
 
 import com.bloxbean.cardano.client.api.model.ProtocolParams;
-import com.bloxbean.cardano.client.transaction.spec.CostMdls;
-import com.bloxbean.cardano.client.transaction.spec.CostModel;
-import com.bloxbean.cardano.client.transaction.spec.Language;
+import com.bloxbean.cardano.client.plutus.spec.CostMdls;
+import com.bloxbean.cardano.client.plutus.spec.Language;
+import org.cardanofoundation.rosetta.common.entity.CostModel;
+
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
@@ -358,51 +359,51 @@ public class CostModelUtil {
             20000000000L
     };
 
-    public final static CostModel PlutusV1CostModel = new CostModel(Language.PLUTUS_V1, plutusV1Costs);
-    public final static CostModel PlutusV2CostModel = new CostModel(Language.PLUTUS_V2, plutusV2Costs);
+//    public final static CostModel PlutusV1CostModel = new CostModel(Language.PLUTUS_V1, plutusV1Costs);
+//    public final static CostModel PlutusV2CostModel = new CostModel(Language.PLUTUS_V2, plutusV2Costs);
 
-    /**
-     * Get language view encoding for costmodels
-     * @param costModels
-     * @return Language view encoding in bytes
-     */
-    public static byte[] getLanguageViewsEncoding(CostModel... costModels) {
-        CostMdls costMdls = new CostMdls();
-        for (CostModel cm : costModels) {
-            costMdls.add(cm);
-        }
-
-        return costMdls.getLanguageViewEncoding();
-    }
-
-    /**
-     * Get costmodel for a language from protocol parameters.
-     * @param protocolParams
-     * @param language
-     * @return Optional with costmodel if found, otherwise Optional.empty()
-     */
-    public static Optional<CostModel> getCostModelFromProtocolParams(ProtocolParams protocolParams, Language language) {
-        String languageKey = null;
-        if (language == Language.PLUTUS_V1) {
-            languageKey = "PlutusV1";
-        } else if (language == Language.PLUTUS_V2) {
-            languageKey = "PlutusV2";
-        }
-
-        if (protocolParams.getCostModels() == null)
-            return Optional.empty();
-
-        Map<String, Map<String, Long>> costModels = protocolParams.getCostModels();
-        Map<String, Long> costModelMap = costModels.get(languageKey);
-        if (costModelMap == null)
-            return Optional.empty();
-
-        long[] costModel = costModelMap.entrySet().stream()
-                .sorted(Entry.comparingByKey())
-                .map(Entry::getValue)
-                .mapToLong(x -> x)
-                .toArray();
-
-        return Optional.of(new CostModel(language, costModel));
-    }
+//    /**
+//     * Get language view encoding for costmodels
+//     * @param costModels
+//     * @return Language view encoding in bytes
+//     */
+//    public static byte[] getLanguageViewsEncoding(CostModel... costModels) {
+//        CostMdls costMdls = new CostMdls();
+//        for (CostModel cm : costModels) {
+//            costMdls.add(cm.);
+//        }
+//
+//        return costMdls.getLanguageViewEncoding();
+//    }
+//
+//    /**
+//     * Get costmodel for a language from protocol parameters.
+//     * @param protocolParams
+//     * @param language
+//     * @return Optional with costmodel if found, otherwise Optional.empty()
+//     */
+//    public static Optional<CostModel> getCostModelFromProtocolParams(ProtocolParams protocolParams, Language language) {
+//        String languageKey = null;
+//        if (language == Language.PLUTUS_V1) {
+//            languageKey = "PlutusV1";
+//        } else if (language == Language.PLUTUS_V2) {
+//            languageKey = "PlutusV2";
+//        }
+//
+//        if (protocolParams.getCostModels() == null)
+//            return Optional.empty();
+//
+//        Map<String, Map<String, Long>> costModels = protocolParams.getCostModels();
+//        Map<String, Long> costModelMap = costModels.get(languageKey);
+//        if (costModelMap == null)
+//            return Optional.empty();
+//
+//        long[] costModel = costModelMap.entrySet().stream()
+//                .sorted(Entry.comparingByKey())
+//                .map(Entry::getValue)
+//                .mapToLong(x -> x)
+//                .toArray();
+//
+//        return Optional.of(new CostModel(language, costModel));
+//    }
 }

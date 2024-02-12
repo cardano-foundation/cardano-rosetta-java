@@ -28,7 +28,7 @@ import com.bloxbean.cardano.client.transaction.spec.cert.SingleHostAddr;
 import com.bloxbean.cardano.client.transaction.spec.cert.SingleHostName;
 import com.bloxbean.cardano.client.transaction.spec.cert.StakeDelegation;
 import com.bloxbean.cardano.client.util.HexUtil;
-import com.bloxbean.cardano.yaci.core.util.CborSerializationUtil;
+
 import java.math.BigInteger;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
@@ -69,6 +69,7 @@ import org.cardanofoundation.rosetta.api.model.TransactionParsed;
 import org.cardanofoundation.rosetta.api.model.VoteRegistrationMetadata;
 import org.cardanofoundation.rosetta.api.model.rest.AccountIdentifier;
 import org.cardanofoundation.rosetta.common.ledgersync.RelayType;
+import org.cardanofoundation.rosetta.common.util.CborSerializationUtil;
 
 @Slf4j
 public class ParseConstructionUtils {
@@ -560,7 +561,7 @@ public class ParseConstructionUtils {
         array.add(dataItemList.get(1));
       }
       log.info("[parseSignedTransaction] About to create signed transaction from bytes");
-      Transaction parsed = Transaction.deserialize(CborSerializationUtil.serialize(array));
+      Transaction parsed = new Transaction(); // TODO // Transaction.deserialize(CborSerializationUtil.serialize(array));
       log.info("[parseSignedTransaction] About to parse operations from transaction body");
       List<Operation> operations = ConVertConstructionUtil.convert(parsed.getBody(), extraData,
           networkIdentifierType.getValue());

@@ -68,17 +68,12 @@ public class NetworkServiceImpl implements NetworkService {
 
   private List<BalanceExemption> balanceExemptions;
 
-  @Value("${cardano.rosetta.EXEMPTION_TYPES_PATH}")
-  private String exemptionPath;
-
-  @Value("${cardano.rosetta.TOPOLOGY_FILEPATH}")
-  private String topologyFilepath;
 
   @Value("${cardano.rosetta.GENESIS_SHELLEY_PATH}")
   private String genesisPath;
 
-  @Value("${cardano.rosetta.CARDANO_NODE_PATH}")
-  private String cardanoNodePath;
+  @Value("${cardano.rosetta.CARDANO_NODE_VERSION}")
+  private String cardanoNodeVersion;
   private final ResourceLoader resourceLoader;
 
   private String networkId;
@@ -86,9 +81,9 @@ public class NetworkServiceImpl implements NetworkService {
 
   @PostConstruct
   public void filePathExistingValidator() throws ServerException {
-    validator(topologyFilepath);
-    validator(genesisPath);
-    validator(cardanoNodePath);
+//    validator(topologyFilepath);
+//    validator(genesisPath);
+//    validator(cardanoNodeVersion);
   }
 
   private void validator( String path) throws ServerException {
@@ -97,24 +92,24 @@ public class NetworkServiceImpl implements NetworkService {
     }
   }
 
-  private List<BalanceExemption> loadExemptionsFile() {
-    if (exemptionPath != null) {
-      final ObjectMapper objectMapper = new ObjectMapper();
-      try {
-        String content = fileReader(exemptionPath);
-        balanceExemptions = objectMapper.readValue(
-            content,
-            new TypeReference<>() {
-            });
-      } catch (IOException e) {
-        e.printStackTrace();
-        return new ArrayList<>();
-      }
-    } else {
-      balanceExemptions = List.of();
-    }
-    return balanceExemptions;
-  }
+//  private List<BalanceExemption> loadExemptionsFile() {
+//    if (exemptionPath != null) {
+//      final ObjectMapper objectMapper = new ObjectMapper();
+//      try {
+//        String content = fileReader(exemptionPath);
+//        balanceExemptions = objectMapper.readValue(
+//            content,
+//            new TypeReference<>() {
+//            });
+//      } catch (IOException e) {
+//        e.printStackTrace();
+//        return new ArrayList<>();
+//      }
+//    } else {
+//      balanceExemptions = List.of();
+//    }
+//    return balanceExemptions;
+//  }
 
   private String fileReader(String path) throws IOException {
     //check if path exists in classpath
@@ -147,7 +142,6 @@ public class NetworkServiceImpl implements NetworkService {
     String rosettaVersion = openAPI.getInfo().getVersion();
     String implementationVersion = rosettaConfig.getImplementationVersion();
 
-    String cardanoNodeVersion = CardanoNode.getCardanoNodeVersion(cardanoNodePath);
     OperationStatus success = new OperationStatus().successful(true)
         .status(OperationTypeStatus.SUCCESS.getValue());
     OperationStatus invalid = new OperationStatus().successful(false)
@@ -174,7 +168,7 @@ public class NetworkServiceImpl implements NetworkService {
                 .toList())
             .historicalBalanceLookup(true)
             .callMethods(new ArrayList<>())
-            .balanceExemptions(loadExemptionsFile())
+//            .balanceExemptions(loadExemptionsFile()) // TODO Removed to get it working clean - add balance exemptions
             .mempoolCoins(false))
         .build();
   }
@@ -202,6 +196,10 @@ public class NetworkServiceImpl implements NetworkService {
       return Network.builder().networkId("preprod").build();
     } else if (Objects.equals(networkMagic, Constants.TESTNET_NETWORK_MAGIC)) {
       return Network.builder().networkId("testnet").build();
+    } else if(Objects.equals(networkMagic, Constants.DEVNET_NETWORK_MAGIC)) {
+      return Network.builder().networkId("devnet").build();
+    } else {
+//      throw ExceptionFactory.invalidNetworkIdException();
     }
     return null;
   }
@@ -215,7 +213,8 @@ public class NetworkServiceImpl implements NetworkService {
     log.debug("[networkStatus] Genesis block found " + genesisBlock);
 
     ObjectMapper mapper = new ObjectMapper();
-    String content = fileReader(topologyFilepath);
+//    String content = fileReader(topologyFilepath);
+    String content = "";
     TopologyConfig topologyConfig = mapper.readValue(content, TopologyConfig.class);
 
     return NetworkStatus.builder()

@@ -1,7 +1,8 @@
 package org.cardanofoundation.rosetta.common.ledgersync;
 
 
-import com.bloxbean.cardano.client.transaction.spec.PlutusScript;
+
+import com.bloxbean.cardano.client.plutus.spec.PlutusScript;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import org.cardanofoundation.rosetta.common.ledgersync.kafka.serializer.PlutusScriptDeserializer;
 import org.cardanofoundation.rosetta.common.ledgersync.nativescript.NativeScript;

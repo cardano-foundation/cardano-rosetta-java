@@ -5,10 +5,12 @@ import co.nstant.in.cbor.model.Array;
 import co.nstant.in.cbor.model.DataItem;
 import co.nstant.in.cbor.model.UnsignedInteger;
 import com.bloxbean.cardano.client.exception.CborDeserializationException;
-import com.bloxbean.cardano.client.transaction.spec.ExUnits;
-import com.bloxbean.cardano.client.transaction.spec.RedeemerTag;
+
 import java.math.BigInteger;
 import java.util.List;
+
+import com.bloxbean.cardano.client.plutus.spec.ExUnits;
+import com.bloxbean.cardano.client.plutus.spec.RedeemerTag;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
