@@ -16,5 +16,11 @@ jobs:
         run: docker compose --env-file .env.IntegrationTest -f docker-integration-test-environment.yaml up --build -d
       - name: "Wait for docker to finish building"
         run: sleep 60
-      - name: "Run Postman tests"
-        run: docker run -v ./postmanTests:/etc/newman -t postman/newman:latest run "rosetta-java.postman_collection.json" --reporters="cli"
+      - name: "Install Node"
+        uses: actions/setup-node@v1
+        with:
+          node-version: '12.x'
+      - name: "Install newman"
+        run: npm install -g newman
+      - name: "Run tests"
+        run: newman run ./postmanTests/rosetta-java.postman_collection.json -r cli
