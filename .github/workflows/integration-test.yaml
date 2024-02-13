@@ -1,0 +1,20 @@
+name: "integration-test"
+on:
+  push:
+    branches:
+      - feat/*
+      - main
+  pull_request:
+
+jobs:
+  tests:
+    name: "Integration Test"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: "Set up environment"
+        run: docker-compose --env-file .env.IntegrationTest -f docker-integration-test-environment.yaml up --build -d
+      - name: "Wait for docker to finish building"
+        run: sleep 60
+      - name: "Run Postman tests"
+        run: docker run -v ./postmanTests:/etc/newman -t postman/newman:latest run "rosetta-java.postman_collection.json" --reporters="cli"
