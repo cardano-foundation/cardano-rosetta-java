@@ -13,10 +13,8 @@ services:
       - "${HOST_OGMIOS_PORT}:1337"
       - "${HOST_KUPO_PORT}:1442"
     env_file:
-      - .envIntegrationTest
-    entrypoint:
-      - sleep
-      - infinity
+      - .env.IntegrationTest
+    entrypoint: ["java", "-jar","/app/yaci-cli.jar", "create-node -o --start" ]
 networks:
   default:
     name: cardano-rosetta-java
