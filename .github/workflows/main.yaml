@@ -40,15 +40,3 @@ jobs:
         with:
           name: cardano-rosetta-java
           path: api/target/*.jar
-
-      - name: Generate Jacoco Badge
-        id: jacoco
-        uses: cicirello/jacoco-badge-generator@v2
-        with:
-          badges-directory: badges
-          generate-branches-badge: true
-          jacoco-csv-file: api/target/site/jacoco/jacoco.csv
-      - name: Log coverage percentage
-        run: |
-          echo "coverage = ${{ steps.jacoco.outputs.coverage }}"
-          echo "branches = ${{ steps.jacoco.outputs.branches }}"
