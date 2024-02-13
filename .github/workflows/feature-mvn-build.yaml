@@ -1,14 +1,7 @@
 name: Feature branch
 
 on:
-  push:
-    branches-ignore:
-      - 'main'
-      - 'master'
-      - 'release*'
-      - 'badges'
   pull_request:
-  workflow_dispatch:
 
 jobs:
   build:
