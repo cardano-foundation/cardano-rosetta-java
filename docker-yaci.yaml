@@ -21,11 +21,14 @@ services:
       API_SPRING_PROFILES_ACTIVE: ${API_SPRING_PROFILES_ACTIVE_API}
       DB_CONNECTION_PARAMS_PROVIDER_TYPE: ${DB_CONNECTION_PARAMS_PROVIDER_TYPE}
       SUBMIT_SOCKET_CONNECTION: ${SUBMIT_SOCKET_CONNECTION}
-      NETWORK_MAGIC: ${NETWORK_MAGIC}
+      PROTOCOL_MAGIC: ${PROTOCOL_MAGIC}
       TRANSACTION_TTL: ${TRANSACTION_TTL}
       EXEMPTION_TYPES_PATH: ${EXEMPTION_TYPES_PATH}
       TOPOLOGY_FILEPATH: ${TOPOLOGY_FILEPATH}
       GENESIS_SHELLEY_PATH: ${GENESIS_SHELLEY_PATH}
+    depends_on:
+      db:
+        condition: service_healthy
   yaci-indexer:
     build:
       context: ./
@@ -41,6 +44,12 @@ services:
       CARDANO_NODE_HOST: "cardano-node"
       CARDANO_NODE_PORT: "${CARDANO_NODE_PORT}"
       PROTOCOL_MAGIC: "${PROTOCOL_MAGIC}"
+      NETWORK: "${NETWORK}"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./config:/config
   db:
     image: "${DB_IMAGE_NAME}:${DB_IMAGE_TAG}"
     shm_size: 30g
@@ -50,6 +59,11 @@ services:
       POSTGRES_PASSWORD: "${DB_ADMIN_USER_SECRET}"
       POSTGRES_USER: "${DB_ADMIN_USER_NAME}"
       POSTGRES_DB: "${DB_NAME}"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_ADMIN_USER_NAME}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
     restart: on-failure
     volumes:
       - ./data/postgres-data:/var/lib/postgresql/data
