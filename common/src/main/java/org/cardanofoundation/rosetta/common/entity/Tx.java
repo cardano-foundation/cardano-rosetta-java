@@ -11,6 +11,7 @@ import org.hibernate.Hibernate;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
+import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.Objects;
 
@@ -26,25 +27,18 @@ import java.util.Objects;
 @AllArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 @SuperBuilder(toBuilder = true)
-public class Tx extends BaseEntity {
+public class Tx implements Serializable {
 
-  @Column(name = "hash", nullable = false, length = 64)
+  @Column(name = "tx_hash", nullable = false)
+  @Id
 //  @Hash32Type
   private String hash;
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
   @OnDelete(action = OnDeleteAction.CASCADE)
-  @JoinColumn(name = "block_id", nullable = false,
-          foreignKey = @ForeignKey(name = "tx_block_id_fkey"))
+  @JoinColumn(name = "block_hash", nullable = false)
   @EqualsAndHashCode.Exclude
   private Block block;
-
-  @Column(name = "block_id", updatable = false, insertable = false)
-  private Long blockId;
-
-  @Column(name = "block_index")
-  @Word31Type
-  private Long blockIndex;
 
   @Column(name = "out_sum", precision = 20)
   @Lovelace
@@ -88,7 +82,7 @@ public class Tx extends BaseEntity {
       return false;
     }
     Tx tx = (Tx) o;
-    return id != null && Objects.equals(id, tx.id);
+    return hash != null && Objects.equals(hash, tx.hash);
   }
 
   @Override

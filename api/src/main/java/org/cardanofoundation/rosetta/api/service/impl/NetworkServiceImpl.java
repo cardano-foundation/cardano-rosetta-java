@@ -68,7 +68,8 @@ public class NetworkServiceImpl implements NetworkService {
 
   private List<BalanceExemption> balanceExemptions;
 
-
+  @Value("${cardano.rosetta.TOPOLOGY_FILEPATH}")
+  private String topologyFilepath;
   @Value("${cardano.rosetta.GENESIS_SHELLEY_PATH}")
   private String genesisPath;
 
@@ -81,8 +82,8 @@ public class NetworkServiceImpl implements NetworkService {
 
   @PostConstruct
   public void filePathExistingValidator() throws ServerException {
-//    validator(topologyFilepath);
-//    validator(genesisPath);
+    validator(topologyFilepath);
+    validator(genesisPath);
 //    validator(cardanoNodeVersion);
   }
 
@@ -199,9 +200,8 @@ public class NetworkServiceImpl implements NetworkService {
     } else if(Objects.equals(networkMagic, Constants.DEVNET_NETWORK_MAGIC)) {
       return Network.builder().networkId("devnet").build();
     } else {
-//      throw ExceptionFactory.invalidNetworkIdException();
+      throw ExceptionFactory.invalidNetworkError();
     }
-    return null;
   }
 
   private NetworkStatus networkStatus() throws  IOException {
@@ -213,8 +213,7 @@ public class NetworkServiceImpl implements NetworkService {
     log.debug("[networkStatus] Genesis block found " + genesisBlock);
 
     ObjectMapper mapper = new ObjectMapper();
-//    String content = fileReader(topologyFilepath);
-    String content = "";
+    String content = fileReader(topologyFilepath);
     TopologyConfig topologyConfig = mapper.readValue(content, TopologyConfig.class);
 
     return NetworkStatus.builder()

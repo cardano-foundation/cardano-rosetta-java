@@ -12,9 +12,9 @@ to fetch the data from the node.
 - [x] Architecture clean up for yaci-store
 - [x] Docker-compose setup 
 - API calls
-    - [ ] /network/list
-    - [ ] /network/status
-    - [ ] /network/options
+    - [x] /network/list
+    - [x] /network/status
+    - [x] /network/options
     - [ ] /block/*
     - [ ] /mempool/*
     - [ ] /account/*

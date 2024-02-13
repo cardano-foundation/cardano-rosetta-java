@@ -176,4 +176,8 @@ public class ExceptionFactory {
   public static ApiException deserializationError(String details) {
     return new ApiException(RosettaErrorType.TRANSACTION_INPUT_DESERIALIZATION_ERROR.toRosettaError(false,Details.builder().message(details).build()));
   }
+
+  public static ApiException invalidNetworkError() {
+    return new ApiException(RosettaErrorType.INVALID_NETWORK.toRosettaError(false));
+  }
 }

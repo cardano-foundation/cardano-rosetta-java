@@ -6,6 +6,7 @@ import lombok.experimental.SuperBuilder;
 import org.cardanofoundation.rosetta.common.validation.Hash28Type;
 import org.hibernate.Hibernate;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 @Entity
@@ -19,10 +20,11 @@ import java.util.Objects;
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder(toBuilder = true)
-public class SlotLeader extends BaseEntity {
+public class SlotLeader implements Serializable {
 
   @Column(name = "hash", nullable = false, length = 56)
   @Hash28Type
+  @Id
   private String hash;
 
   @OneToOne(fetch = FetchType.LAZY)
@@ -43,7 +45,7 @@ public class SlotLeader extends BaseEntity {
       return false;
     }
     SlotLeader that = (SlotLeader) o;
-    return id != null && Objects.equals(id, that.id);
+    return hash != null && Objects.equals(hash, that.hash);
   }
 
   @Override

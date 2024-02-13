@@ -57,6 +57,8 @@ import org.cardanofoundation.rosetta.api.repository.StakeDeregistrationRepositor
 import org.cardanofoundation.rosetta.api.repository.TxMetadataRepository;
 import org.cardanofoundation.rosetta.api.repository.TxRepository;
 import org.cardanofoundation.rosetta.api.repository.customrepository.UtxoRepository;
+import org.cardanofoundation.rosetta.common.entity.Block;
+import org.cardanofoundation.rosetta.common.entity.Tx;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
@@ -99,15 +101,11 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
   @Override
   public GenesisBlockDto findGenesisBlock() {
     log.debug("[findGenesisBlock] About to run findGenesisBlock query");
-    Page<GenesisBlockProjection> genesisBlockProjectionPage =
-        blockRepository.findGenesisBlock(PageRequest.of(0, 1));
-    genesisBlockProjectionPage.getContent();
-    if (!genesisBlockProjectionPage.getContent().isEmpty()) {
-      GenesisBlockProjection genesis = genesisBlockProjectionPage
-          .getContent()
-          .get(0);
+    List<Block> blocks = blockRepository.findGenesisBlock();
+    if(!blocks.isEmpty()) {
+      Block genesis = blocks.get(0);
       return GenesisBlockDto.builder().hash(genesis.getHash())
-          .number(genesis.getIndex())
+          .number(genesis.getNumber())
           .build();
     }
     log.debug("[findGenesisBlock] Genesis block was not found");
@@ -119,28 +117,22 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
     log.debug(
         "[findBlock] Parameters received for run query blockNumber: {} , blockHash: {}",
         blockNumber, blockHash);
-    List<BlockProjection> blockProjections = blockRepository.findBlock(blockNumber, blockHash);
-    if (blockProjections.size() == 1) {
+    List<Block> blocks;
+    if(blockHash == null && blockNumber != null) {
+      blocks = blockRepository.findByNumber(blockNumber);
+    } else if(blockHash != null && blockNumber == null){
+      blocks = blockRepository.findByHash(blockHash);
+    } else {
+      blocks = blockRepository.findByNumberAndHash(blockNumber, blockHash);
+    }
+    if (!blocks.isEmpty()) {
       log.debug("[findBlock] Block found!");
-      BlockProjection blockProjection = blockProjections.get(0);
-
+      Block block = blocks.get(0);
       try {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
-        Date date = dateFormat.parse(blockProjection.getCreatedAt().toString());
-        return BlockDto.builder()
-            .number(blockProjection.getNumber())
-            .hash(blockProjection.getHash())
-            .createdAt(date.getTime())
-            .previousBlockHash(
-                blockProjection.getPreviousBlockHash())
-            .previousBlockNumber(blockProjection.getPreviousBlockNumber())
-            .transactionsCount(blockProjection.getTransactionsCount())
-            .createdBy(blockProjection.getCreatedBy())
-            .size(blockProjection.getSize())
-            .epochNo(blockProjection.getEpochNo())
-            .slotNo(blockProjection.getSlotNo())
-            .build();
+        Date date = dateFormat.parse(block.getCreateDatetime().toString());
+        return BlockDto.fromBlock(block);
       } catch (ParseException e) {
         log.error(e.getMessage());
       }
@@ -158,12 +150,7 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
 
   @Override
   public Long findLatestBlockNumber() {
-    Page<Long> latestBlockNumberPage =
-        blockRepository.findLatestBlockNumber(PageRequest.of(0, 1));
-    if (ObjectUtils.isNotEmpty(latestBlockNumberPage.getContent())) {
-      return latestBlockNumberPage.getContent().get(0);
-    }
-    return null;
+        return blockRepository.findLatestBlockNumber();
   }
 
   @Override
@@ -233,12 +220,18 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
         "[findTransactionsByBlock] Parameters received for run query blockNumber: {} blockHash: {}",
         blockNumber, blockHash);
 
-    List<FindTransactionProjection> findTransactionProjections = txRepository.findTransactionsByBlock(
-        blockNumber, blockHash);
+    List<Block> byNumberAndHash = blockRepository.findByNumberAndHash(blockNumber, blockHash);
+    if(byNumberAndHash.isEmpty()) {
+      log.debug(
+          "[findTransactionsByBlock] No block found for blockNumber: {} blockHash: {}",
+          blockNumber, blockHash);
+      return null;
+    }
+    List<Tx> txList = byNumberAndHash.get(0).getTxList();
     log.debug(
-        "[findTransactionsByBlock] Found {} transactions", findTransactionProjections.size());
-    if (ObjectUtils.isNotEmpty(findTransactionProjections)) {
-      return parseTransactionRows(findTransactionProjections);
+        "[findTransactionsByBlock] Found {} transactions", txList.size());
+    if (ObjectUtils.isNotEmpty(txList)) {
+      return parseTransactionRows(txList);
     }
     return null;
   }
@@ -312,17 +305,19 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
   @Override
   public PopulatedTransaction findTransactionByHashAndBlock(String hash,
       Long blockNumber, String blockHash) {
-
-    List<FindTransactionProjection> findTransactions = blockRepository.findTransactionByHashAndBlock(
-        hash, blockNumber, blockHash);
-    log.debug(
-        "[findTransactionByHashAndBlock] Found {} transactions", findTransactions.size());
-    if (ObjectUtils.isNotEmpty(findTransactions)) {
-      Map<String, PopulatedTransaction> transactionsMap = mapTransactionsToDict(
-          parseTransactionRows(findTransactions));
-      return populateTransactions(transactionsMap).get(0);
+    List<Tx> txList = blockRepository.findTransactionByHashAndBlock(hash, blockHash);
+    if(txList.isEmpty()) {
+      log.debug(
+          "[findTransactionByHashAndBlock] No transactions found for hash {} and block {}",
+          hash, blockHash);
+      return null;
     }
-    return null;
+
+    log.debug(
+        "[findTransactionByHashAndBlock] Found {} transactions", txList.size());
+      Map<String, PopulatedTransaction> transactionsMap = mapTransactionsToDict(
+          parseTransactionRows(txList));
+      return populateTransactions(transactionsMap).get(0);
   }
 
   @Override
