@@ -32,8 +32,9 @@ to fetch the data from the node.
 - Clone the repository
 - Copy `./.m2/settings.default.xml` to `./.m2/settings.xml`
 - Copy `.env.docker-compose`  to `.env`
-- Fill the `.env` file with your values (explain below)
+- Fill the `.env` file with your values (explain below) or use the provided for docker-compose setup 
 - Run `docker compose -f docker-yaci.yaml up --build` to start rosetta api service including yaci-store and a cardano node
+  - Using the provided env file `docker-compose --env-file .env.docker-compose -f docker-yaci.yaml up --build`
 * Note: the first time you run the command, it will take a little bit of your time to build the cardano-node, and next time it will be cached when run. So please be patient.
 
 ### Environment variables
