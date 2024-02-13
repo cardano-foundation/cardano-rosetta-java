@@ -5,6 +5,7 @@ import org.cardanofoundation.rosetta.api.projection.BlockProjection;
 import org.cardanofoundation.rosetta.api.projection.FindTransactionProjection;
 import org.cardanofoundation.rosetta.api.projection.GenesisBlockProjection;
 import org.cardanofoundation.rosetta.common.entity.Block;
+import org.cardanofoundation.rosetta.common.entity.Tx;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -26,19 +27,12 @@ public interface BlockRepository extends JpaRepository<Block, Long> {
             "ORDER BY number DESC LIMIT 1")
     Long findLatestBlockNumber();
 
-  @Query("SELECT tx.hash as hash, "
-      + "tx.fee as fee, "
-      + "tx.size as size, "
-      + "tx.validContract as validContract, "
-      + "tx.scriptSize as scriptSize, "
-      + "block.hash as blockHash "
-      + "FROM Tx tx JOIN Block block on block.id = tx.block.id "
+  @Query("SELECT tx "
+      + "FROM Tx tx "
       + "WHERE tx.hash = :hash "
-      + "AND (block.number = :blockNumber OR (block.number is null AND :blockNumber = 0)) "
-      + "AND block.hash = :blockHash")
-  List<FindTransactionProjection> findTransactionByHashAndBlock(
+      + "AND tx.block.hash = :blockHash")
+  List<Tx> findTransactionByHashAndBlock(
       @Param("hash") String hash,
-      @Param("blockNumber") Long blockNumber,
       @Param("blockHash") String blockHash);
 
 }

@@ -88,6 +88,7 @@ import org.cardanofoundation.rosetta.api.projection.dto.TransactionPoolRegistrat
 import org.cardanofoundation.rosetta.api.projection.dto.VoteRegistration;
 import org.cardanofoundation.rosetta.api.projection.dto.VoteRegistrationMetadata;
 import org.cardanofoundation.rosetta.api.projection.dto.Withdrawal;
+import org.cardanofoundation.rosetta.common.entity.Tx;
 import org.openapitools.client.model.AccountIdentifier;
 import org.openapitools.client.model.Amount;
 import org.openapitools.client.model.Block;
@@ -332,17 +333,17 @@ public class DataMapper {
   }
 
   public static List<TransactionDto> parseTransactionRows(
-      List<FindTransactionProjection> findTransactionProjections) {
-    return findTransactionProjections.stream()
-        .map(findTransactionProjection -> TransactionDto.builder()
-            .hash(findTransactionProjection.getHash())
+      List<Tx> findTransactions) {
+    return findTransactions.stream()
+        .map(tx -> TransactionDto.builder()
+            .hash(tx.getHash())
             .blockHash(
-                findTransactionProjection.getBlockHash())
-            .blockNo(findTransactionProjection.getBlockNo())
-            .fee(findTransactionProjection.getFee())
-            .size(findTransactionProjection.getSize())
-            .scriptSize(findTransactionProjection.getScriptSize())
-            .validContract(findTransactionProjection.getValidContract())
+                    tx.getBlock().getHash())
+            .blockNo(tx.getBlock().getNumber())
+            .fee(String.valueOf(tx.getFee()))
+            .size(Long.valueOf(tx.getSize()))
+            .scriptSize(Long.valueOf(tx.getScriptSize()))
+            .validContract(tx.getValidContract())
             .build())
         .collect(Collectors.toList());
   }
