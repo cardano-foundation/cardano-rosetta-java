@@ -100,6 +100,7 @@ public class RosettaConstants {
   }
 
   public enum RosettaErrorType {
+    INVALID_NETWORK("Invalid Network configuration", 4000),
     BLOCK_NOT_FOUND("Block not found", 4001),
     NETWORK_NOT_FOUND("Network not found", 4002),
     NETWORKS_NOT_FOUND("Networks not found", 4003),

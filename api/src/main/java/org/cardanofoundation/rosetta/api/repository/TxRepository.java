@@ -22,8 +22,8 @@ public interface TxRepository extends JpaRepository<Tx, Long> {
       + "FROM Tx tx JOIN Block block on block.id = tx.block.id "
       + "WHERE ("
       + "       :blockNumber IS NULL "
-      + "       OR (block.blockNo = :blockNumber "
-      + "       OR (block.blockNo IS NULL AND :blockNumber = 0))"
+      + "       OR (block.number = :blockNumber "
+      + "       OR (block.number IS NULL AND :blockNumber = 0))"
       + ") "
       + "   AND (:blockHash IS NULL OR block.hash = :blockHash)")
   List<FindTransactionProjection> findTransactionsByBlock(@Param("blockNumber") Long blockNumber,

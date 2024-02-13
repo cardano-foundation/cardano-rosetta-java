@@ -14,7 +14,7 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "ada_pots", uniqueConstraints = {
-    @UniqueConstraint(name = "unique_ada_pots", columnNames = {"block_id"})
+    @UniqueConstraint(name = "unique_ada_pots", columnNames = {"block_hash"})
 })
 @Getter
 @Setter
@@ -62,7 +62,7 @@ public class AdaPots extends BaseEntity {
   private BigInteger fees;
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
-  @JoinColumn(name = "block_id", nullable = false, unique = true,
+  @JoinColumn(name = "block_hash", nullable = false, unique = true,
       foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "none"))
   @EqualsAndHashCode.Exclude
   private Block block;

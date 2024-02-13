@@ -5,82 +5,77 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.Hibernate;
 
+import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Objects;
 
 @Entity
-@Table(name = "block", uniqueConstraints = {
-    @UniqueConstraint(name = "unique_block", columnNames = {"hash"})})
+@Table(name = "block")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder(toBuilder = true)
-public class Block extends BaseEntity {
+public class Block implements Serializable {
 
-
-  @Column(name = "hash", nullable = false, length = 64)
+  @Id
+  @Column(name = "hash", nullable = false)
   private String hash;
 
-  @Column(name = "epoch_no")
-  private Integer epochNo;
+  @Column(name = "epoch")
+  private Integer epoch;
 
-  @Column(name = "slot_no")
-  private Long slotNo;
+  @Column(name = "slot")
+  private Long slot;
 
-  @Column(name = "epoch_slot_no")
-  private Integer epochSlotNo;
+  @Column(name = "epoch_slot")
+  private Integer epochSlot;
 
-  @Column(name = "block_no")
-  private Long blockNo;
+  @Column(name = "number")
+  private Long number;
 
   @OneToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "previous_id",
+  @JoinColumn(name = "prev_hash",
       foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "none"))
   @EqualsAndHashCode.Exclude
   private Block previous;
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "slot_leader_id",
+  @JoinColumn(name = "slot_leader",
       foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "none"))
   @EqualsAndHashCode.Exclude
   private SlotLeader slotLeader;
 
-  @Column(name = "slot_leader_id", updatable = false, insertable = false)
-  private Long slotLeaderId;
+  @Column(name = "body_size")
+  private Integer bodySize;
 
-  @Column(name = "size")
-  private Integer size;
+  @Column(name = "body_hash")
+  private String bodyHash;
 
-  @Column(name = "time")
-  private Timestamp time;
+  @Column(name = "create_datetime")
+  private Timestamp createDatetime;
 
-  @Column(name = "tx_count")
-  private Long txCount;
+  @Column(name = "update_datetime")
+  private Timestamp updateDatetime;
 
-  @Column(name = "proto_major")
-  private Integer protoMajor;
+  @Column(name = "no_of_txs")
+  private Long noOfTxs;
 
-  @Column(name = "proto_minor")
-  private Integer protoMinor;
+  @Column(name = "protocol_version")
+  private String protocolVersion;
 
-  @Column(name = "vrf_key", length = 65535)
-  private String vrfKey;
+  @Column(name = "vrf_vkey", length = 65535)
+  private String vrfVKey;
 
-  @Column(name = "op_cert", length = 64)
-  private String opCert;
+  @Column(name = "op_cert_hot_vkey")
+  private String opCertHotVkey;
 
-  @Column(name = "op_cert_counter")
-  private Long opCertCounter;
-
+  @Column(name = "op_cert_seq_number")
+  private Long opCertSeqNumber;
 
   @OneToMany(mappedBy = "block")
   private List<Tx> txList;
-
-//  @OneToOne
-//  @JoinColumn(name = "epoch_no", referencedColumnName = "no", nullable=false, insertable=false, updatable=false)
-//  private Epoch epoch;
 
   @Override
   public boolean equals(Object o) {
@@ -91,7 +86,7 @@ public class Block extends BaseEntity {
       return false;
     }
     Block block = (Block) o;
-    return id != null && Objects.equals(id, block.id);
+    return hash != null && Objects.equals(hash, block.hash);
   }
 
   @Override

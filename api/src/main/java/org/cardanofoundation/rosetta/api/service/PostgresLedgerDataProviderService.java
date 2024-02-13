@@ -57,6 +57,7 @@ import org.cardanofoundation.rosetta.api.repository.StakeDeregistrationRepositor
 import org.cardanofoundation.rosetta.api.repository.TxMetadataRepository;
 import org.cardanofoundation.rosetta.api.repository.TxRepository;
 import org.cardanofoundation.rosetta.api.repository.customrepository.UtxoRepository;
+import org.cardanofoundation.rosetta.common.entity.Block;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
@@ -99,15 +100,11 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
   @Override
   public GenesisBlockDto findGenesisBlock() {
     log.debug("[findGenesisBlock] About to run findGenesisBlock query");
-    Page<GenesisBlockProjection> genesisBlockProjectionPage =
-        blockRepository.findGenesisBlock(PageRequest.of(0, 1));
-    genesisBlockProjectionPage.getContent();
-    if (!genesisBlockProjectionPage.getContent().isEmpty()) {
-      GenesisBlockProjection genesis = genesisBlockProjectionPage
-          .getContent()
-          .get(0);
+    List<Block> blocks = blockRepository.findGenesisBlock();
+    if(!blocks.isEmpty()) {
+      Block genesis = blocks.get(0);
       return GenesisBlockDto.builder().hash(genesis.getHash())
-          .number(genesis.getIndex())
+          .number(genesis.getNumber())
           .build();
     }
     log.debug("[findGenesisBlock] Genesis block was not found");
@@ -119,27 +116,33 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
     log.debug(
         "[findBlock] Parameters received for run query blockNumber: {} , blockHash: {}",
         blockNumber, blockHash);
-    List<BlockProjection> blockProjections = blockRepository.findBlock(blockNumber, blockHash);
-    if (blockProjections.size() == 1) {
+    List<Block> blocks;
+    if(blockHash == null && blockNumber != null) {
+      blocks = blockRepository.findByNumber(blockNumber);
+    } else if(blockHash != null && blockNumber == null){
+      blocks = blockRepository.findByHash(blockHash);
+    } else {
+      blocks = blockRepository.findByNumberAndHash(blockNumber, blockHash);
+    }
+    if (!blocks.isEmpty()) {
       log.debug("[findBlock] Block found!");
-      BlockProjection blockProjection = blockProjections.get(0);
-
+      Block block = blocks.get(0);
       try {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
-        Date date = dateFormat.parse(blockProjection.getCreatedAt().toString());
+        Date date = dateFormat.parse(block.getCreateDatetime().toString());
         return BlockDto.builder()
-            .number(blockProjection.getNumber())
-            .hash(blockProjection.getHash())
+            .number(block.getNumber())
+            .hash(block.getHash())
             .createdAt(date.getTime())
             .previousBlockHash(
-                blockProjection.getPreviousBlockHash())
-            .previousBlockNumber(blockProjection.getPreviousBlockNumber())
-            .transactionsCount(blockProjection.getTransactionsCount())
-            .createdBy(blockProjection.getCreatedBy())
-            .size(blockProjection.getSize())
-            .epochNo(blockProjection.getEpochNo())
-            .slotNo(blockProjection.getSlotNo())
+                block.getPrevious().getHash())
+            .previousBlockNumber(block.getPrevious().getNumber())
+            .transactionsCount(block.getNoOfTxs())
+//            .createdBy(blockProjection.getCreatedBy())
+            .size(block.getBodySize())
+            .epochNo(block.getEpoch())
+            .slotNo(block.getSlot())
             .build();
       } catch (ParseException e) {
         log.error(e.getMessage());
@@ -158,12 +161,7 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
 
   @Override
   public Long findLatestBlockNumber() {
-    Page<Long> latestBlockNumberPage =
-        blockRepository.findLatestBlockNumber(PageRequest.of(0, 1));
-    if (ObjectUtils.isNotEmpty(latestBlockNumberPage.getContent())) {
-      return latestBlockNumberPage.getContent().get(0);
-    }
-    return null;
+        return blockRepository.findLatestBlockNumber();
   }
 
   @Override

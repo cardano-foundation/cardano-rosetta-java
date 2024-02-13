@@ -11,7 +11,7 @@ public interface RewardRepository extends JpaRepository<Reward, Long> {
       + "FROM Reward r "
       + "   JOIN StakeAddress s ON s.id = r.addr.id "
       + "WHERE s.view = :stakeAddress "
-      + "AND r.spendableEpoch <= (SELECT b.epochNo FROM Block b WHERE b.hash = :blockHash)")
+      + "AND r.spendableEpoch <= (SELECT b.epoch FROM Block b WHERE b.hash = :blockHash)")
   Long findRewardBalanceByAddressAndBlock(@Param("stakeAddress") String stakeAddress,
       @Param("blockHash") String blockHash);
 
