@@ -15,14 +15,9 @@ import org.springframework.data.repository.query.Param;
 public interface BlockRepository extends JpaRepository<Block, Long> {
     @Query(value =
             "SELECT  b " +
-                    "FROM Block b " +
-                    "WHERE b.previous.hash IS NULL")
+            "FROM Block b " +
+            "WHERE b.previous.hash IS NULL")
     List<Block> findGenesisBlock();
-//    @Query("SELECT * FROM Block b " +
-//            "WHERE (:blockNumber IS NULL OR b.number = :blockNumber)  " +
-//            "AND (:blockHash IS NULL OR b.hash = :blockHash)")
-//    Block findBlock(@Param("blockNumber") Long blockNumber,
-//                                    @Param("blockHash")String blockHash);
     List<Block> findByNumber(Long blockNumber);
     List<Block> findByHash(String blockHash);
     List<Block> findByNumberAndHash(Long blockNumber, String blockHash);
