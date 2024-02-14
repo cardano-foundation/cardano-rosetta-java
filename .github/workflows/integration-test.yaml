@@ -22,4 +22,4 @@ jobs:
       - name: "Install newman"
         run: npm install -g newman
       - name: "Run tests"
-        run: newman run ./postmanTests/rosetta-java.postman_collection.json -r cli
+        run: newman run ./postmanTests/rosetta-java.postman_collection.json -e postmanTests/Rosetta-java-env.postman_environment.json -r cli

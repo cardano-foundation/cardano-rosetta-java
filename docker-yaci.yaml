@@ -81,3 +81,6 @@ services:
     restart: "no"
     ports:
       - "${CARDANO_NODE_PORT}:3001"
+networks:
+  default:
+    name: cardano-rosetta-java

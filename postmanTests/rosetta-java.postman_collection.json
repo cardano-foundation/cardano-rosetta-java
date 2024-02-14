@@ -39,11 +39,10 @@
 					}
 				},
 				"url": {
-					"raw": "localhost:8081/network/list",
+					"raw": "{{URL}}/network/list",
 					"host": [
-						"localhost"
+						"{{URL}}"
 					],
-					"port": "8081",
 					"path": [
 						"network",
 						"list"
@@ -77,7 +76,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"devnet\"\n    },\n    \"metadata\": {}\n}",
+					"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"{{networkId}}\"\n    },\n    \"metadata\": {}\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -85,11 +84,10 @@
 					}
 				},
 				"url": {
-					"raw": "localhost:8081/network/status",
+					"raw": "{{URL}}/network/status",
 					"host": [
-						"localhost"
+						"{{URL}}"
 					],
-					"port": "8081",
 					"path": [
 						"network",
 						"status"
@@ -123,7 +121,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"devnet\"\n    },\n    \"metadata\": {}\n}",
+					"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"{{networkId}}\"\n    },\n    \"metadata\": {}\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -131,11 +129,10 @@
 					}
 				},
 				"url": {
-					"raw": "localhost:8081/network/options",
+					"raw": "{{URL}}/network/options",
 					"host": [
-						"localhost"
+						"{{URL}}"
 					],
-					"port": "8081",
 					"path": [
 						"network",
 						"options"
