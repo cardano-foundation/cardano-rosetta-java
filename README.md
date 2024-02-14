@@ -11,6 +11,7 @@ to fetch the data from the node.
 ## :construction: Current Development status :construction:
 - [x] Architecture clean up for yaci-store
 - [x] Docker-compose setup 
+- [x] Integration test setup
 - API calls
     - [x] /network/list
     - [x] /network/status
@@ -25,50 +26,73 @@ to fetch the data from the node.
 
 ### Prerequisites
 
-- Docker && Docker Compose
+- Docker 
+- Docker Compose
+- Java 21
+- For integration tests: Node 14+
 
 ### How to build
 
 - Clone the repository
-- Copy `./.m2/settings.default.xml` to `./.m2/settings.xml`
-- Copy `.env.docker-compose`  to `.env`
-- Fill the `.env` file with your values (explain below)
+- For local environment: 
+  - Copy `.env.docker-compose`  to `.env`
+  - Fill the `.env` file with your values (explain below) or use the provided for docker-compose setup
+  - Start SpringBoot application with `mvn spring-boot:run` within submodule `api` or `yaci-indexer`
 - Run `docker compose -f docker-yaci.yaml up --build` to start rosetta api service including yaci-store and a cardano node
+  - Using the provided env file `docker-compose --env-file .env.docker-compose -f docker-yaci.yaml up --build`
 * Note: the first time you run the command, it will take a little bit of your time to build the cardano-node, and next time it will be cached when run. So please be patient.
 
+### How to run integration tests
+
+- Run `docker compose --env-file .env.IntegrationTest -f docker-integration-test-environment.yaml up --build -d`
+- Using CLI
+  - Install newman `npm install -g newman` (Node version 14+ needed)
+  - Run `newman run ./postmanTests/rosetta-java.postman_collection.json -r cli`
+- Using Postman
+  - Install [Postman](https://www.postman.com)
+  - Import the collection `./postmanTests/rosetta-java.postman_collection.json` 
+  - Import the environment `./postmanTests/Rosetta-java-env.postman_environment.json`
+  - Run the collection
+
 ### Environment variables
+<details>
+<summary>Full list of environment variables and standard values</summary>
 
-- `DB_ADMIN_USER_NAME` : Postgres admin user. Default is rosetta_db_admin
-- `DB_ADMIN_USER_SECRET` : Postgres admin secret. Default is weakpwd#123_d
+| Variable                                  | Description                                        | Default                                                   | 
+|-------------------------------------------|----------------------------------------------------|-----------------------------------------------------------|
+| `NETWORK`                                 | Network                                            | preprod - Options are `mainnet, testnet, preprod, devkit` |
+| `PROTOCOL_MAGIC`                          | Cardano protocol magic                             | 1                                                         |
+| `DB_ADMIN_USER_NAME`                      | Postgres admin user                                | rosetta_db_admin                                          | 
+| `DB_ADMIN_USER_SECRET`                    | Postgres admin secret                              | weakpwd#123_d                                             |
+| `DB_IMAGE_NAME`                           | Postgres docker image name                         | rosetta                                                   |
+| `DB_IMAGE_TAG`                            | Postgres docker image tag                          | latest                                                    |
+| `DB_NAME`                                 | Postgres database                                  | rosetta                                                   |
+| `DB_HOST`                                 | Postgres host                                      | db                                                        |
+| `DB_PORT`                                 | Postgres port                                      | 5432                                                      |
+| `DB_SCHEMA`                               | Database schema                                    | testnet                                                   |
+| `MAXIMUM_POOL_SIZE`                       | Database max pool size                             | 80                                                        |
+| `JDBC_BATCH_SIZE`                         | JDBC batch size                                    | 1000                                                      |
+| `SCHEMA`                                  | Postgres schema                                    | testnet                                                   |
+| `LOG`                                     | Log level                                          | INFO                                                      |
+| `CARDANO_NODE_HOST`                       | Cardano node host                                  | cardano-node                                              |
+| `CARDANO_NODE_PORT`                       | Cardano node port                                  | 3001                                                      |
+| `CARDANO_NODE_VERSION`                    | Cardano node version                               | 8.1.2                                                     |
+| `API_SPRING_PROFILES_ACTIVE_API`          | Api spring profile                                 | dev                                                       |
+| `API_EXPOSED_PORT`                        | Rosetta api exposed port                           | 8080                                                      |
+| `API_BIND_PORT`                           | Rosetta api bind port                              | 8080                                                      |
+| `TRANSACTION_TTL`                         | Transaction ttl                                    | 3000                                                      |
+| `DB_CONNECTION_PARAMS_PROVIDER_TYPE`      | Database connection params provider type           | ENVIRONMENT                                               |
+| `DB_DRIVER_CLASS_NAME`                    | Database driver class name                         | "org.postgresql.Driver"                                   |
+| `ROSETTA_VERSION`                         | Rosetta version                                    | 1.4.13                                                    |
+| `TOPOLOGY_FILEPATH`                       | Topology file path                                 | ./config/${NETWORK}/topology.json                         |
+| `GENESIS_SHELLEY_PATH`                    | Genesis file path                                  | ./config/${NETWORK}/shelley-genesis.json                  |
+| `GENESIS_BYRON_PATH`                      | Genesis file path                                  | ./config/${NETWORK}/byron-genesis.json                    |
+| `PRINT_EXCEPTION`                         | Print exception                                    | true                                                      |
+| `API_SPRING_PROFILES_ACTIVE_YACI_INDEXER` | Yaci indexer spring profile                        | dev,postgres                                              |
+| `INDEXER_NODE_PORT`                       | Cardano node port that the indexer will connect to | 3001                                                      |
 
-- `DB_IMAGE_NAME` : Postgres docker image name. Default is rosetta
-- `DB_IMAGE_TAG` : Postgres docker image tag. Default is latest
-- `DB_NAME` : Postgres database. Default is rosetta
-- `DB_HOST` : Postgres host. Default is db
-- `DB_PORT` : Postgres port. Default is 5432
-- `DB_SCHEMA` : Database schema [testnet, preprod, preview, mainnet]
-- `MAXIMUM_POOL_SIZE` : Database max pool size. Default is 80
-- `JDBC_BATCH_SIZE` : JDBC batch size. Default is 1000
-- `SCHEMA` : Postgres schema [testnet, preprod, preview, mainnet]. Default is testnet
+</details>
 
-
-- `LOG`: Log level [INFO, DEBUG, TRACE]. Default is INFO.
-
-
-- `API_SPRING_PROFILES_ACTIVE_API` : Api spring profile [local, dev, test, prod]. Default is dev
-- `API_EXPOSED_PORT` : Rosetta api exposed port. Default is 8080
-- `API_BIND_PORT` : Rosetta api bind port. Default is 8080
-- `TRANSACTION_TTL` : Transaction ttl. Default is 3000
-- `NETWORK` : Default is preprod
-
-- `DB_CONNECTION_PARAMS_PROVIDER_TYPE` : Database connection params provider type. Default is ENVIRONMENT.
-- `DB_DRIVER_CLASS_NAME` : Database driver class name. Default is "org.postgresql.Driver".
-
-- `ROSETTA_VERSION` : Rosetta version. Current is 1.4.13.
-- `GENESIS_SHELLEY_PATH` : Genesis file path. Default is ./config/genesis/shelley.json.
-
-- `PRINT_EXCEPTION` : Print exception. Default is true.
-- `API_SPRING_PROFILES_ACTIVE_YACI_INDEXER` : Yaci indexer spring profile [dev, staging, h2, postgres] default is "dev,postgres"
 ## Contributing
 
 File an issue or a PR or reach out directly to us if you want to contribute.

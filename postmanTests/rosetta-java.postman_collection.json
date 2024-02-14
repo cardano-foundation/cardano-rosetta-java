@@ -1,0 +1,155 @@
+{
+	"info": {
+		"_postman_id": "f2a51270-0506-4241-843b-268eae9b2bab",
+		"name": "rosetta-java",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "32834089"
+	},
+	"item": [
+		{
+			"name": "/network/list",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Test: Ok\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Contains Json Body\", function() {",
+							"    pm.response.to.have.jsonBody('network_identifiers')",
+							"        .and.to.have.jsonBody('network_identifiers[0].blockchain')",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"metadata\": {}\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{URL}}/network/list",
+					"host": [
+						"{{URL}}"
+					],
+					"path": [
+						"network",
+						"list"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/network/status",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"        pm.response.to.have.status(200);",
+							"    });",
+							"",
+							"pm.test(\"Contains Json Body\", function() {",
+							"    pm.response.to.have.jsonBody('current_block_identifier.index')",
+							"        .and.to.have.jsonBody('peers[0].peer_id')",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"{{networkId}}\"\n    },\n    \"metadata\": {}\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{URL}}/network/status",
+					"host": [
+						"{{URL}}"
+					],
+					"path": [
+						"network",
+						"status"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/network/options",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"        pm.response.to.have.status(200);",
+							"    });",
+							"",
+							"pm.test(\"Contains Json Body\", function() {",
+							"    pm.response.to.have.jsonBody('version.rosetta_version')",
+							"        .and.to.have.jsonBody('allow.operation_statuses[0].status')",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"{{networkId}}\"\n    },\n    \"metadata\": {}\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{URL}}/network/options",
+					"host": [
+						"{{URL}}"
+					],
+					"path": [
+						"network",
+						"options"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "current_block_index",
+			"value": ""
+		},
+		{
+			"key": "current_block_hash",
+			"value": ""
+		}
+	]
+}

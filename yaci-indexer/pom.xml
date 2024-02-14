@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.0</version>
+        <version>3.2.1</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>org.cardanofoundation.rosetta</groupId>
@@ -33,21 +33,26 @@
             <artifactId>yaci-store-spring-boot-starter</artifactId>
             <version>${yaci-store.version}</version>
         </dependency>
-
-        <dependency>
-            <groupId>com.bloxbean.cardano</groupId>
-            <artifactId>yaci-store-account-spring-boot-starter</artifactId>
-            <version>0.0.13-beta1</version>
-        </dependency>
         <dependency>
             <groupId>com.bloxbean.cardano</groupId>
             <artifactId>yaci-store-blocks-spring-boot-starter</artifactId>
-            <version>0.0.13-beta1</version>
+            <version>${yaci-store.version}</version>
         </dependency>
+
+<!--        <dependency>-->
+<!--            <groupId>com.bloxbean.cardano</groupId>-->
+<!--            <artifactId>yaci-store-account-spring-boot-starter</artifactId>-->
+<!--            <version>0.0.13-beta1</version>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>com.bloxbean.cardano</groupId>-->
+<!--            <artifactId>yaci-store-transaction-spring-boot-starter</artifactId>-->
+<!--            <version>0.0.13-beta1</version>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>com.bloxbean.cardano</groupId>
-            <artifactId>yaci-store-transaction-spring-boot-starter</artifactId>
-            <version>0.0.13-beta1</version>
+            <artifactId>yaci-store-metadata-spring-boot-starter</artifactId>
+            <version>${yaci-store.version}</version>
         </dependency>
         <!-- Add mysql or H2 or Postgres dependency based on your database -->
         <dependency>
