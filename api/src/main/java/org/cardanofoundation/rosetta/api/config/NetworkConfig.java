@@ -15,7 +15,6 @@ public class NetworkConfig {
   private String id;
   private Long protocolMagic;
   private String nodeVersion;
-  private IndexerConfig indexer;
   private NodeBridgeConfig nodeBridge;
 
   public boolean correspondsToRosettaNetworkIdentifier(final String rosettaNetworkIdentifier) {

@@ -18,7 +18,6 @@ import org.cardanofoundation.rosetta.api.common.enumeration.CatalystDataIndexes;
 import org.cardanofoundation.rosetta.api.common.enumeration.CatalystSigIndexes;
 import org.cardanofoundation.rosetta.api.model.rest.Currency;
 import org.cardanofoundation.rosetta.api.model.rest.Utxo;
-import org.cardanofoundation.rosetta.api.projection.dto.BlockUtxos;
 
 
 public class Validations {
@@ -113,9 +112,6 @@ public class Validations {
     return false;
   }
 
-  public static boolean isBlockUtxos(Object block) {
-    return block instanceof BlockUtxos;
-  }
 
   public static boolean areEqualUtxos(Utxo firstUtxo, Utxo secondUtxo) {
     return Objects.equals(firstUtxo.getIndex(), secondUtxo.getIndex())
