@@ -8,8 +8,6 @@ import org.cardanofoundation.rosetta.api.model.Network;
 import org.cardanofoundation.rosetta.api.model.rest.NetworkIdentifier;
 import org.cardanofoundation.rosetta.api.model.rest.NetworkRequest;
 import org.cardanofoundation.rosetta.api.model.rest.NetworkStatusResponse;
-import org.cardanofoundation.rosetta.api.projection.dto.BlockDto;
-import org.cardanofoundation.rosetta.api.projection.dto.GenesisBlockDto;
 import org.cardanofoundation.rosetta.api.service.LedgerDataProviderService;
 import org.cardanofoundation.rosetta.api.service.impl.NetworkServiceImpl;
 import org.junit.jupiter.api.Test;
@@ -18,6 +16,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.cardanofoundation.rosetta.api.model.dto.BlockDto;
+import org.cardanofoundation.rosetta.api.model.dto.GenesisBlockDto;
 
 @ExtendWith(MockitoExtension.class)
 class NetworkServiceImplTest {

@@ -34,17 +34,17 @@ import org.cardanofoundation.rosetta.api.model.Peer;
 import org.cardanofoundation.rosetta.api.model.Producer;
 import org.cardanofoundation.rosetta.api.model.PublicRoot;
 import org.cardanofoundation.rosetta.api.model.TopologyConfig;
+import org.cardanofoundation.rosetta.api.model.dto.BlockDto;
+import org.cardanofoundation.rosetta.api.model.dto.GenesisBlockDto;
 import org.cardanofoundation.rosetta.api.model.rest.MetadataRequest;
 import org.cardanofoundation.rosetta.api.model.rest.NetworkListResponse;
 import org.cardanofoundation.rosetta.api.model.rest.NetworkOptionsResponse;
 import org.cardanofoundation.rosetta.api.model.rest.NetworkRequest;
 import org.cardanofoundation.rosetta.api.model.rest.NetworkStatusResponse;
-import org.cardanofoundation.rosetta.api.projection.dto.BlockDto;
-import org.cardanofoundation.rosetta.api.projection.dto.GenesisBlockDto;
 import org.cardanofoundation.rosetta.api.service.LedgerDataProviderService;
 import org.cardanofoundation.rosetta.api.service.NetworkService;
+import org.cardanofoundation.rosetta.api.util.FileUtils;
 import org.cardanofoundation.rosetta.api.util.RosettaConstants;
-import org.cardanofoundation.rosetta.api.util.cli.CardanoNode;
 import org.json.JSONObject;
 import org.openapitools.client.model.Allow;
 import org.openapitools.client.model.BalanceExemption;
@@ -93,34 +93,7 @@ public class NetworkServiceImpl implements NetworkService {
     }
   }
 
-//  private List<BalanceExemption> loadExemptionsFile() {
-//    if (exemptionPath != null) {
-//      final ObjectMapper objectMapper = new ObjectMapper();
-//      try {
-//        String content = fileReader(exemptionPath);
-//        balanceExemptions = objectMapper.readValue(
-//            content,
-//            new TypeReference<>() {
-//            });
-//      } catch (IOException e) {
-//        e.printStackTrace();
-//        return new ArrayList<>();
-//      }
-//    } else {
-//      balanceExemptions = List.of();
-//    }
-//    return balanceExemptions;
-//  }
 
-  private String fileReader(String path) throws IOException {
-    //check if path exists in classpath
-    try (
-        InputStream input = new FileInputStream(path)
-    ) {
-      byte[] fileBytes = IOUtils.toByteArray(input);
-      return new String(fileBytes, StandardCharsets.UTF_8);
-    }
-  }
 
   @Override
   public NetworkListResponse getNetworkList(MetadataRequest metadataRequest)
@@ -186,7 +159,7 @@ public class NetworkServiceImpl implements NetworkService {
   @Override
   public Network getSupportedNetwork() throws IOException {
 
-    String content = fileReader(genesisPath);
+    String content = FileUtils.fileReader(genesisPath);
     JSONObject object = new JSONObject(content);
     networkId = ((String) object.get("networkId")).toLowerCase();
     networkMagic = (Integer) object.get("networkMagic");
@@ -213,7 +186,7 @@ public class NetworkServiceImpl implements NetworkService {
     log.debug("[networkStatus] Genesis block found " + genesisBlock);
 
     ObjectMapper mapper = new ObjectMapper();
-    String content = fileReader(topologyFilepath);
+    String content = FileUtils.fileReader(topologyFilepath);
     TopologyConfig topologyConfig = mapper.readValue(content, TopologyConfig.class);
 
     return NetworkStatus.builder()

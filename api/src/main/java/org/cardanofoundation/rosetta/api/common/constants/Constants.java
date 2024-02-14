@@ -137,12 +137,6 @@ public class Constants {
     public static final String COST="cost";
     public static final String EMPTY_SYMBOl="0x";
     public static final String SYMBOL_REGEX="\\x";
-    public static final String REDIS_PREFIX_MEMPOOL = "mempool";
-    public static final String REDIS_PREFIX_PENDING = "pending";
-    public static final java.time.Duration REDIS_TTL_HOURS = Duration.ofHours(12);
-    public static final java.time.Duration REDIS_TTL_MINUTES = Duration.ofMinutes(12);
-    public static final java.time.Duration REDIS_TTL_SECONDS = Duration.ofSeconds(12);
-    public static final java.time.Duration REDIS_TTL_MEMPOOL = REDIS_TTL_HOURS;
 
 
 
