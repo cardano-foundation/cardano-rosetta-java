@@ -4,15 +4,10 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.cardanofoundation.rosetta.api.model.rest.TransactionDto;
 import org.cardanofoundation.rosetta.common.model.BlockEntity;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.time.Instant;
-import java.time.temporal.TemporalField;
-import java.util.Date;
-import java.util.TimeZone;
-
+import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -29,18 +24,20 @@ public class BlockDto {
   private Integer size;
   private Integer epochNo;
   private Long slotNo;
+  private List<TransactionDto> transactions;
 
   public static BlockDto fromBlock(BlockEntity block) {
       return BlockDto.builder()
             .number(block.getNumber())
             .hash(block.getHash())
             .createdAt(block.getBlockTime())
-            .previousBlockHash(block.getPrev().getHash())
-            .previousBlockNumber(block.getPrev().getNumber())
+            .previousBlockHash(block.getPrev() != null ? block.getPrev().getHash() : "")
+            .previousBlockNumber(block.getPrev() != null ? block.getPrev().getNumber() : -1)
             .transactionsCount(block.getNoOfTxs())
             .size(Math.toIntExact(block.getBlockBodySize()))
             .epochNo(block.getEpochNumber())
             .slotNo(block.getSlot())
+            .transactions(block.getTransactions().stream().map(txnEntity -> TransactionDto.fromTx(txnEntity)).toList())
             .build();
   }
 }

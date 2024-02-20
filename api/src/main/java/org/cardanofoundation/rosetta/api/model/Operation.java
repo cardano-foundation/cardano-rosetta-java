@@ -2,8 +2,8 @@ package org.cardanofoundation.rosetta.api.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
-import javax.validation.Valid;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.cardanofoundation.rosetta.api.model.rest.AccountIdentifier;
@@ -11,6 +11,7 @@ import org.cardanofoundation.rosetta.api.model.rest.AccountIdentifier;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Operation {
 
   @JsonProperty("operation_identifier")

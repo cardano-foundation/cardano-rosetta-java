@@ -60,7 +60,11 @@
 						"exec": [
 							"pm.test(\"Status code is 200\", function () {",
 							"        pm.response.to.have.status(200);",
-							"    });",
+							"});",
+							"    ",
+							"var jsonData = pm.response.json();",
+							"postman.setEnvironmentVariable(\"blockIndex\", jsonData.current_block_identifier.index)",
+							"postman.setEnvironmentVariable(\"blockHash\", jsonData.current_block_identifier.hash)",
 							"",
 							"pm.test(\"Contains Json Body\", function() {",
 							"    pm.response.to.have.jsonBody('current_block_identifier.index')",
@@ -136,6 +140,90 @@
 					"path": [
 						"network",
 						"options"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/block",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"        pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Contains Json Body\", function() {",
+							"    pm.response.to.have.jsonBody('block.block_identifier.index')",
+							"        .and.to.have.jsonBody('block.transactions')",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"{{networkId}}\"\n    },\n    \"block_identifier\": {\n        \"index\": {{blockIndex}},\n        \"hash\": \"{{blockHash}}\"\n    }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{URL}}/block",
+					"host": [
+						"{{URL}}"
+					],
+					"path": [
+						"block"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/block/transaction",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"        pm.response.to.have.status(200);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"{{networkId}}\"\n    },\n    \"block_identifier\": {\n        \"index\": {{blockIndex}},\n        \"hash\": \"{{blockHash}}\"\n    }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{URL}}/block/transaction",
+					"host": [
+						"{{URL}}"
+					],
+					"path": [
+						"block",
+						"transaction"
 					]
 				}
 			},

@@ -211,6 +211,12 @@
             <artifactId>cardano-common-rosetta</artifactId>
             <version>1.0.7-SNAPSHOT</version>
         </dependency>
+        <dependency>
+            <groupId>org.checkerframework</groupId>
+            <artifactId>checker-qual</artifactId>
+            <version>3.41.0</version>
+            <scope>compile</scope>
+        </dependency>
 
         <!--        &lt;!&ndash; https://mvnrepository.com/artifact/org.testcontainers/testcontainers &ndash;&gt;-->
 <!--        <dependency>-->
@@ -231,6 +237,13 @@
 <!--            <version>3.8.0</version>-->
 <!--            <scope>test</scope>-->
 <!--        </dependency>-->
+        <!-- https://mvnrepository.com/artifact/javax.servlet/servlet-api -->
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
+            <version>2.5</version>
+            <scope>provided</scope>
+        </dependency>
 
     </dependencies>
 

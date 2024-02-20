@@ -2,8 +2,7 @@ package org.cardanofoundation.rosetta.common.model;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.Type;
-import org.springframework.cglib.core.Block;
+import java.util.List;
 
 import java.math.BigInteger;
 
@@ -49,23 +48,14 @@ public class BlockEntity extends BaseEntity {
     @EqualsAndHashCode.Exclude
     private BlockEntity prev;
 
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "block")
+    private List<TxnEntity> transactions;
+
     @Column(name = "issuer_vkey")
     private String issuerVkey;
 
     @Column(name = "vrf_vkey")
     private String vrfVkey;
-
-//    @Type(JsonType.class)
-//    @Column(name = "nonce_vrf")
-//    private Vrf nonceVrf;
-//
-//    @Type(JsonType.class)
-//    @Column(name="leader_vrf")
-//    private Vrf leaderVrf;
-//
-//    @Type(JsonType.class)
-//    @Column(name="vrf_result")
-//    private Vrf vrfResult;
 
     @Column(name = "op_cert_hot_vkey")
     private String opCertHotVKey;
