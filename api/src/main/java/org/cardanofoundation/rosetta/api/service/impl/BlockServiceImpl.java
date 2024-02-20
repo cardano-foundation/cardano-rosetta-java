@@ -86,12 +86,13 @@ public class BlockServiceImpl implements BlockService {
   @Override
   public BlockTransactionResponse getBlockTransaction(BlockTransactionRequest blockTransactionRequest) {
     BlockIdentifier blockIdentifier = blockTransactionRequest.getBlockIdentifier();
-    List<TransactionDto> transactionsByBlock = ledgerDataProviderService.findTransactionsByBlock(blockIdentifier.getIndex(), blockIdentifier.getHash());
-    Optional<TransactionDto> first = transactionsByBlock.stream().filter(transactionDto -> transactionDto.getHash().equals(blockTransactionRequest.getTransactionIdentifier().getHash())).findFirst();
     BlockTransactionResponse response = new BlockTransactionResponse();
-    if(first.isPresent())
-      response.setTransaction(DataMapper.mapToRosettaTransaction(first.get()));
-
+    List<TransactionDto> transactionsByBlock = ledgerDataProviderService.findTransactionsByBlock(blockIdentifier.getIndex(), blockIdentifier.getHash());
+    if(transactionsByBlock != null) {
+      Optional<TransactionDto> first = transactionsByBlock.stream().filter(transactionDto -> transactionDto.getHash().equals(blockTransactionRequest.getTransactionIdentifier().getHash())).findFirst();
+      if(first.isPresent())
+        response.setTransaction(DataMapper.mapToRosettaTransaction(first.get()));
+    }
     return response;
   }
 
