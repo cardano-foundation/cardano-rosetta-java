@@ -3,25 +3,26 @@ package org.cardanofoundation.rosetta.api.service;
 import jakarta.annotation.PostConstruct;
 
 import java.text.SimpleDateFormat;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.TimeZone;
+import java.util.*;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.cardanofoundation.rosetta.api.config.RosettaConfig;
 import org.cardanofoundation.rosetta.api.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.api.mapper.DataMapper;
+import org.cardanofoundation.rosetta.api.model.dto.AddressBalanceDTO;
 import org.cardanofoundation.rosetta.api.model.dto.BlockDto;
 import org.cardanofoundation.rosetta.api.model.dto.GenesisBlockDto;
 import org.cardanofoundation.rosetta.api.model.rest.BlockIdentifier;
+import org.cardanofoundation.rosetta.api.model.rest.Currency;
 import org.cardanofoundation.rosetta.api.model.rest.TransactionDto;
+import org.cardanofoundation.rosetta.api.model.rest.Utxo;
+import org.cardanofoundation.rosetta.api.repository.AddressBalanceRepository;
+import org.cardanofoundation.rosetta.api.repository.AddressUtxoRepository;
 import org.cardanofoundation.rosetta.api.repository.BlockRepository;
 import org.cardanofoundation.rosetta.api.repository.TxRepository;
-import org.cardanofoundation.rosetta.common.model.BlockEntity;
-import org.cardanofoundation.rosetta.common.model.TxnEntity;
+import org.cardanofoundation.rosetta.common.model.*;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -32,8 +33,9 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
   private final Map<String, PostgresLedgerDataProviderClient> clients = new HashMap<>();
   private final RosettaConfig rosettaConfig;
   private final BlockRepository blockRepository;
+  private final AddressBalanceRepository addressBalanceRepository;
 //  private final RewardRepository rewardRepository;
-//  private final UtxoRepository utxoRepository;
+  private final AddressUtxoRepository addressUtxoRepository;
   private final TxRepository txRepository;
 //  private final EpochParamRepository epochParamRepository;
 //  private final StakeDeregistrationRepository stakeDeregistrationRepository;
@@ -64,7 +66,7 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
     log.debug("[findGenesisBlock] About to run findGenesisBlock query");
     List<BlockEntity> blocks = blockRepository.findGenesisBlock();
     if(!blocks.isEmpty()) {
-      BlockEntity genesis = blocks.get(0);
+      BlockEntity genesis = blocks.getFirst();
       return GenesisBlockDto.builder().hash(genesis.getHash())
           .number(genesis.getNumber())
           .build();
@@ -88,7 +90,7 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
     }
     if (!blocks.isEmpty()) {
       log.debug("[findBlock] Block found!");
-      BlockEntity block = blocks.get(0);
+      BlockEntity block = blocks.getFirst();
       SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
       dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
       return BlockDto.fromBlock(block);
@@ -98,11 +100,11 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
     return null;
   }
 
-//  @Override
-//  public Long findBalanceByAddressAndBlock(String address, String hash) {
-//    return rewardRepository.findRewardBalanceByAddressAndBlock(address, hash)
-//        - rewardRepository.findWithdrwalBalanceByAddressAndBlock(address, hash);
-//  }
+  @Override
+  public List<AddressBalanceDTO> findBalanceByAddressAndBlock(String address, Long number) {
+    List<AddressBalanceEntity> balances = addressBalanceRepository.findAdressBalanceByAddressAndBlockNumber(address, number);
+    return balances.stream().map(AddressBalanceDTO::fromEntity).toList();
+  }
 
   @Override
   public Long findLatestBlockNumber() {
@@ -144,12 +146,28 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
 //        .build();
 //  }
 
-//  @Override
-//  public List<Utxo> findUtxoByAddressAndBlock(String address, String hash,
-//      List<Currency> currencies) {
-//
-//    return utxoRepository.findUtxoByAddressAndBlock(address, hash, currencies);
-//  }
+  @Override
+  public List<Utxo> findUtxoByAddressAndBlock(String address, String hash, List<Currency> currencies) {
+    List<AddressUtxoEntity> addressUtxoEntities = addressUtxoRepository.findUtxoByAddressAndBlock(address, hash);
+    List<Utxo> utxos = new ArrayList<>();
+    for(AddressUtxoEntity entity : addressUtxoEntities) {
+      for(Amt amt : entity.getAmounts()) {
+        boolean present = currencies.stream().filter(currency -> currency.getSymbol().equals(amt.getUnit())).findFirst().isPresent();
+        if(present) {
+          Utxo utxo = Utxo.builder()
+                  .policy(amt.getPolicyId())
+//                  .value() // TODO
+                  .index(entity.getOutputIndex())
+                  .name(amt.getAssetName())
+                  .quantity(amt.getQuantity().toString())
+                  .transactionHash(entity.getTxHash())
+                  .build();
+          utxos.add(utxo);
+        }
+      }
+    }
+    return utxos;
+  }
 
 //  @Override
 //  public List<MaBalance> findMaBalanceByAddressAndBlock(String address, String hash) {
@@ -183,7 +201,7 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
           blockNumber, blockHash);
       return null;
     }
-    List<TxnEntity> txList = txRepository.findTransactionsByBlockHash(byNumberAndHash.get(0).getHash());
+    List<TxnEntity> txList = txRepository.findTransactionsByBlockHash(byNumberAndHash.getFirst().getHash());
     log.debug(
         "[findTransactionsByBlock] Found {} transactions", txList.size());
     if (ObjectUtils.isNotEmpty(txList)) {
