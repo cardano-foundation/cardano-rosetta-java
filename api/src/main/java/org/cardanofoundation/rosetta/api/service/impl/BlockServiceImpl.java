@@ -154,6 +154,6 @@ public class BlockServiceImpl implements BlockService {
 //              .build();
 //      return DataMapper.mapToAccountBalanceResponse(blockUtxosMultiAssets);
 //    }
-  }
+//  }
 
 }
