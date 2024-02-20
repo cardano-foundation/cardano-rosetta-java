@@ -30,6 +30,11 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>com.bloxbean.cardano</groupId>
             <artifactId>yaci-store-spring-boot-starter</artifactId>
             <version>${yaci-store.version}</version>
@@ -43,11 +48,6 @@
             <groupId>com.bloxbean.cardano</groupId>
             <artifactId>yaci-store-transaction-spring-boot-starter</artifactId>
             <version>${yaci-store.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.bloxbean.cardano</groupId>
@@ -67,6 +67,36 @@
         <dependency>
             <groupId>com.bloxbean.cardano</groupId>
             <artifactId>yaci-store-protocolparams-spring-boot-starter</artifactId>
+            <version>0.0.12.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.bloxbean.cardano</groupId>
+            <artifactId>yaci-store-account-spring-boot-starter</artifactId>
+            <version>0.0.12.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.bloxbean.cardano</groupId>
+            <artifactId>yaci-store-staking-spring-boot-starter</artifactId>
+            <version>0.0.12.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.bloxbean.cardano</groupId>
+            <artifactId>yaci-store-assets-spring-boot-starter</artifactId>
+            <version>0.0.12.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.bloxbean.cardano</groupId>
+            <artifactId>yaci-store-script-spring-boot-starter</artifactId>
+            <version>0.0.12.1</version>
+        </dependency>
+        <dependency>
+        <groupId>com.bloxbean.cardano</groupId>
+        <artifactId>yaci-store-submit-spring-boot-starter</artifactId>
+        <version>0.0.12.1</version>
+    </dependency>
+        <dependency>
+            <groupId>com.bloxbean.cardano</groupId>
+            <artifactId>yaci-store-mir-spring-boot-starter</artifactId>
             <version>0.0.12.1</version>
         </dependency>
         <!-- Add mysql or H2 or Postgres dependency based on your database -->

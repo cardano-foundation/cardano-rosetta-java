@@ -1,11 +1,8 @@
 package org.cardanofoundation.rosetta.api.service;
 
 import jakarta.annotation.PostConstruct;
-import java.math.BigInteger;
-import java.text.ParseException;
+
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,17 +14,14 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.cardanofoundation.rosetta.api.config.RosettaConfig;
 import org.cardanofoundation.rosetta.api.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.api.mapper.DataMapper;
-import org.cardanofoundation.rosetta.api.model.ProtocolParameters;
 import org.cardanofoundation.rosetta.api.model.dto.BlockDto;
 import org.cardanofoundation.rosetta.api.model.dto.GenesisBlockDto;
 import org.cardanofoundation.rosetta.api.model.rest.BlockIdentifier;
-import org.cardanofoundation.rosetta.api.model.rest.Currency;
-import org.cardanofoundation.rosetta.api.model.rest.MaBalance;
 import org.cardanofoundation.rosetta.api.model.rest.TransactionDto;
-import org.cardanofoundation.rosetta.api.model.rest.Utxo;
 import org.cardanofoundation.rosetta.api.repository.BlockRepository;
+import org.cardanofoundation.rosetta.api.repository.TxRepository;
 import org.cardanofoundation.rosetta.common.model.BlockEntity;
-import org.springframework.data.domain.PageRequest;
+import org.cardanofoundation.rosetta.common.model.TxnEntity;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -40,7 +34,7 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
   private final BlockRepository blockRepository;
 //  private final RewardRepository rewardRepository;
 //  private final UtxoRepository utxoRepository;
-//  private final TxRepository txRepository;
+  private final TxRepository txRepository;
 //  private final EpochParamRepository epochParamRepository;
 //  private final StakeDeregistrationRepository stakeDeregistrationRepository;
 //  private final DelegationRepository delegationRepository;
@@ -176,27 +170,27 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
     return latestBlock;
   }
 
-//  @Override
-//  public List<TransactionDto> findTransactionsByBlock(Long blockNumber, String blockHash) {
-//    log.debug(
-//        "[findTransactionsByBlock] Parameters received for run query blockNumber: {} blockHash: {}",
-//        blockNumber, blockHash);
-//
-//    List<Block> byNumberAndHash = blockRepository.findByNumberAndHash(blockNumber, blockHash);
-//    if(byNumberAndHash.isEmpty()) {
-//      log.debug(
-//          "[findTransactionsByBlock] No block found for blockNumber: {} blockHash: {}",
-//          blockNumber, blockHash);
-//      return null;
-//    }
-//    List<Tx> txList = byNumberAndHash.get(0).getTxList();
-//    log.debug(
-//        "[findTransactionsByBlock] Found {} transactions", txList.size());
-//    if (ObjectUtils.isNotEmpty(txList)) {
-//      return parseTransactionRows(txList);
-//    }
-//    return null;
-//  }
+  @Override
+  public List<TransactionDto> findTransactionsByBlock(Long blockNumber, String blockHash) {
+    log.debug(
+        "[findTransactionsByBlock] Parameters received for run query blockNumber: {} blockHash: {}",
+        blockNumber, blockHash);
+
+    List<BlockEntity> byNumberAndHash = blockRepository.findByNumberAndHash(blockNumber, blockHash);
+    if(byNumberAndHash.isEmpty()) {
+      log.debug(
+          "[findTransactionsByBlock] No block found for blockNumber: {} blockHash: {}",
+          blockNumber, blockHash);
+      return null;
+    }
+    List<TxnEntity> txList = txRepository.findTransactionsByBlockHash(byNumberAndHash.get(0).getHash());
+    log.debug(
+        "[findTransactionsByBlock] Found {} transactions", txList.size());
+    if (ObjectUtils.isNotEmpty(txList)) {
+      return DataMapper.parseTransactionRows(txList);
+    }
+    return null;
+  }
 
 //  @Override
 //  public List<PopulatedTransaction> fillTransaction(List<TransactionDto> transactions) {
