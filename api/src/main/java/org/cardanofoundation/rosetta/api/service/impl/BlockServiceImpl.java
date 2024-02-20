@@ -1,25 +1,16 @@
 package org.cardanofoundation.rosetta.api.service.impl;
 
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
-
-import com.github.fge.jsonschema.core.tree.JsonTree;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.ObjectUtils;
 import org.cardanofoundation.rosetta.api.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.api.mapper.DataMapper;
 import org.cardanofoundation.rosetta.api.model.TransactionIdentifier;
 import org.cardanofoundation.rosetta.api.model.rest.*;
 import org.cardanofoundation.rosetta.api.model.dto.BlockDto;
-import org.cardanofoundation.rosetta.api.model.dto.BlockUtxos;
 import org.cardanofoundation.rosetta.api.service.BlockService;
 import org.cardanofoundation.rosetta.api.service.LedgerDataProviderService;
-import org.cardanofoundation.rosetta.api.util.CardanoAddressUtils;
 import org.cardanofoundation.rosetta.api.util.FileUtils;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
@@ -65,13 +56,7 @@ public class BlockServiceImpl implements BlockService {
                 , pageSize);
         return BlockResponse.builder()
                 .block(DataMapper.mapToRosettaBlock(block, poolDeposit))
-                .otherTransactions(
-                        transactionsFound.stream()
-                          .map(
-                            transactionDto ->
-                              new TransactionIdentifier()
-                              .hash(transactionDto.getHash()))
-                          .toList())
+                .otherTransactions(transactionsFound.stream().map(transactionDto -> new org.openapitools.client.model.TransactionIdentifier().hash(transactionDto.getHash())).toList())
                 .build();
       }
       log.info("[block] Looking for blocks transactions full data");
