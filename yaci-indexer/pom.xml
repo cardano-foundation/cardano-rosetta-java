@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.1</version>
+        <version>3.1.0</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
@@ -16,7 +16,7 @@
     <description>yaci-indexer</description>
     <properties>
         <java.version>21</java.version>
-        <yaci-store.version>0.1.0-rc1</yaci-store.version>
+        <yaci-store.version>0.0.12.1</yaci-store.version>
     </properties>
     <dependencies>
         <dependency>
@@ -67,37 +67,37 @@
         <dependency>
             <groupId>com.bloxbean.cardano</groupId>
             <artifactId>yaci-store-protocolparams-spring-boot-starter</artifactId>
-            <version>0.0.12.1</version>
+            <version>${yaci-store.version}</version>
         </dependency>
         <dependency>
             <groupId>com.bloxbean.cardano</groupId>
             <artifactId>yaci-store-account-spring-boot-starter</artifactId>
-            <version>0.0.12.1</version>
+            <version>${yaci-store.version}</version>
         </dependency>
         <dependency>
             <groupId>com.bloxbean.cardano</groupId>
             <artifactId>yaci-store-staking-spring-boot-starter</artifactId>
-            <version>0.0.12.1</version>
+            <version>${yaci-store.version}</version>
         </dependency>
         <dependency>
             <groupId>com.bloxbean.cardano</groupId>
             <artifactId>yaci-store-assets-spring-boot-starter</artifactId>
-            <version>0.0.12.1</version>
+            <version>${yaci-store.version}</version>
         </dependency>
         <dependency>
             <groupId>com.bloxbean.cardano</groupId>
             <artifactId>yaci-store-script-spring-boot-starter</artifactId>
-            <version>0.0.12.1</version>
+            <version>${yaci-store.version}</version>
         </dependency>
         <dependency>
         <groupId>com.bloxbean.cardano</groupId>
         <artifactId>yaci-store-submit-spring-boot-starter</artifactId>
-        <version>0.0.12.1</version>
+        <version>${yaci-store.version}</version>
     </dependency>
         <dependency>
             <groupId>com.bloxbean.cardano</groupId>
             <artifactId>yaci-store-mir-spring-boot-starter</artifactId>
-            <version>0.0.12.1</version>
+            <version>${yaci-store.version}</version>
         </dependency>
         <!-- Add mysql or H2 or Postgres dependency based on your database -->
         <dependency>

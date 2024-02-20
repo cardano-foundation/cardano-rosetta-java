@@ -237,6 +237,13 @@
 <!--            <version>3.8.0</version>-->
 <!--            <scope>test</scope>-->
 <!--        </dependency>-->
+        <!-- https://mvnrepository.com/artifact/javax.servlet/servlet-api -->
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
+            <version>2.5</version>
+            <scope>provided</scope>
+        </dependency>
 
     </dependencies>
 
@@ -288,6 +295,7 @@
                 <version>${version.openapi-generator-maven-plugin}</version>
                 <executions>
                     <execution>
+                        <id>Rosetta</id>
                         <goals>
                             <goal>generate</goal>
                         </goals>
@@ -301,8 +309,27 @@
                               <sourceFolder>src/gen/java/main</sourceFolder>
                               <useJakartaEe>true</useJakartaEe>
                               <skipValidateSpec>true</skipValidateSpec>
-                              <interfaceOnly>true</interfaceOnly>
+                              <library>true</library>
                           </configOptions>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>Yaci-Store</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <inputSpec>${project.basedir}/src/main/resources/yaci-specifications/api.yaml</inputSpec>
+                            <generatorName>spring</generatorName>
+                            <library>spring-boot</library>
+                            <apiPackage>org.openapitools.yaci-store-cient.api</apiPackage>
+                            <modelPackage>org.openapitools.yaci-store-client.model</modelPackage>
+                            <configOptions>
+                                <sourceFolder>src/gen/java/main/yaci-store</sourceFolder>
+                                <useJakartaEe>true</useJakartaEe>
+                                <skipValidateSpec>true</skipValidateSpec>
+                                <interfaceOnly>true</interfaceOnly>
+                            </configOptions>
                         </configuration>
                     </execution>
                 </executions>
