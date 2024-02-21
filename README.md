@@ -16,9 +16,9 @@ to fetch the data from the node.
     - [x] /network/list
     - [x] /network/status
     - [x] /network/options
-    - [ ] /block/*
+    - [x] /block/*
     - [ ] /mempool/*
-    - [ ] /account/*
+    - [x] /account/*
     - [ ] /construction/*
 
 
