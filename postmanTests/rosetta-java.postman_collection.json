@@ -256,9 +256,9 @@
 							"});",
 							"",
 							"pm.test(\"Test account balance\", function () {",
-							"    let jsonData = pm.response.json();",
-							"    let balanceValue = jsonData.balances[0].value;",
-							"    pm.expect(balanceValue).to.equal(\"2000000\");",
+							"    var responseBody = pm.response.json();",
+							"    pm.expect(responseBody).to.be.an('object');",
+							"    pm.expect(responseBody.balances[0].value).to.equal(\"2000000\");",
 							"})"
 						],
 						"type": "text/javascript"
