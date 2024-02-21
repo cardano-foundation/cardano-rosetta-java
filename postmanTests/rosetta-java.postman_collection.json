@@ -20,6 +20,10 @@
 							"pm.test(\"Contains Json Body\", function() {",
 							"    pm.response.to.have.jsonBody('network_identifiers')",
 							"        .and.to.have.jsonBody('network_identifiers[0].blockchain')",
+							"});",
+							"",
+							"pm.test(\"Json Body is cardano\", function () {",
+							"    pm.expect(pm.response.json().network_identifiers[0].blockchain).to.equal(\"cardano\");",
 							"});"
 						],
 						"type": "text/javascript"
@@ -114,6 +118,11 @@
 							"pm.test(\"Contains Json Body\", function() {",
 							"    pm.response.to.have.jsonBody('version.rosetta_version')",
 							"        .and.to.have.jsonBody('allow.operation_statuses[0].status')",
+							"});",
+							"",
+							"pm.test(\"rosetta version is 1.4.13\", function () {",
+							"    pm.expect(pm.response.json()).to.be.an('object');",
+							"    pm.expect(pm.response.json().version.rosetta_version).to.equal('1.4.13');",
 							"});"
 						],
 						"type": "text/javascript"
@@ -159,6 +168,12 @@
 							"pm.test(\"Contains Json Body\", function() {",
 							"    pm.response.to.have.jsonBody('block.block_identifier.index')",
 							"        .and.to.have.jsonBody('block.transactions')",
+							"});",
+							"",
+							"pm.test(\"Parent block has previos index\", function () {",
+							"     var responseBody = pm.response.json();",
+							"     pm.expect(responseBody).to.be.an('object');",
+							"     pm.expect(responseBody.block.parent_block_identifier.index).to.be.a('number').below(responseBody.block.block_identifier.index);",
 							"});"
 						],
 						"type": "text/javascript"
@@ -224,6 +239,52 @@
 					"path": [
 						"block",
 						"transaction"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/account/balance",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"        pm.response.to.have.status(200);",
+							"});",
+							"",
+							"// pm.test(\"Test account balance\", function () {",
+							"//     var responseBody = pm.response.json();",
+							"//     pm.expect(responseBody).to.be.an('object');",
+							"//     pm.expect(responseBody.balances[0].value).to.equal(\"2000000\");",
+							"// })"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"{{networkId}}\"\n    },\n    \"account_identifier\": {\n        \"address\": \"{{address}}\"\n    }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{URL}}/account/balance",
+					"host": [
+						"{{URL}}"
+					],
+					"path": [
+						"account",
+						"balance"
 					]
 				}
 			},

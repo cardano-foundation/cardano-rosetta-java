@@ -3,17 +3,22 @@ package org.cardanofoundation.rosetta.api.mapper;
 import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.api.common.constants.Constants;
 import org.cardanofoundation.rosetta.api.model.*;
+import org.cardanofoundation.rosetta.api.model.dto.AddressBalanceDTO;
 import org.cardanofoundation.rosetta.api.model.dto.BlockDto;
 import org.cardanofoundation.rosetta.api.model.dto.GenesisBlockDto;
 import org.cardanofoundation.rosetta.api.model.dto.UtxoDto;
 import org.cardanofoundation.rosetta.api.model.rest.*;
 import org.cardanofoundation.rosetta.common.model.TxnEntity;
 import org.openapitools.client.model.Block;
+import org.openapitools.client.model.Currency;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
+
+import static org.cardanofoundation.rosetta.api.common.constants.Constants.MULTI_ASSET_DECIMALS;
 
 
 @Slf4j
@@ -107,6 +112,20 @@ public class DataMapper {
 
   }
 
+  public static AccountBalanceResponse mapToAccountBalanceResponse(BlockDto block, List<AddressBalanceDTO> balances) {
+    return AccountBalanceResponse.builder()
+            .blockIdentifier(BlockIdentifier.builder()
+                    .hash(block.getHash())
+                    .index(block.getNumber())
+                    .build())
+            .balances(balances.stream().map(addressBalanceDTO -> new org.openapitools.client.model.Amount()
+                            .value(addressBalanceDTO.getQuantity().toString())
+                            .currency(new Currency()
+                                    .decimals(MULTI_ASSET_DECIMALS)
+                                    .symbol(addressBalanceDTO.getUnit())
+                                    .metadata(addressBalanceDTO.getPolicy() != null ? Map.of("policyId", addressBalanceDTO.getPolicy()) : null))).toList())
+            .build();
+  }
 }
 
 

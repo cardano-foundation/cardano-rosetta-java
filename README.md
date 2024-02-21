@@ -16,9 +16,9 @@ to fetch the data from the node.
     - [x] /network/list
     - [x] /network/status
     - [x] /network/options
-    - [ ] /block/*
+    - [x] /block/*
     - [ ] /mempool/*
-    - [ ] /account/*
+    - [x] /account/*
     - [ ] /construction/*
 
 
@@ -47,7 +47,7 @@ to fetch the data from the node.
 - Run `docker compose --env-file .env.IntegrationTest -f docker-integration-test-environment.yaml up --build -d`
 - Using CLI
   - Install newman `npm install -g newman` (Node version 14+ needed)
-  - Run `newman run ./postmanTests/rosetta-java.postman_collection.json -r cli`
+  - Run `newman run ./postmanTests/rosetta-java.postman_collection.json -e ./postmanTests/Rosetta-java-env.postman_environment -r cli`
 - Using Postman
   - Install [Postman](https://www.postman.com)
   - Import the collection `./postmanTests/rosetta-java.postman_collection.json` 

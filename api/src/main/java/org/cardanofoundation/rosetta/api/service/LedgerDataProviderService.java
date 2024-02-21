@@ -1,12 +1,17 @@
 package org.cardanofoundation.rosetta.api.service;
 
+import org.cardanofoundation.rosetta.api.model.dto.AddressBalanceDTO;
 import org.cardanofoundation.rosetta.api.model.dto.BlockDto;
 import org.cardanofoundation.rosetta.api.model.dto.GenesisBlockDto;
 import org.cardanofoundation.rosetta.api.model.rest.BlockIdentifier;
 
 
 import java.util.List;
+
+import org.cardanofoundation.rosetta.api.model.rest.Currency;
 import org.cardanofoundation.rosetta.api.model.rest.TransactionDto;
+import org.cardanofoundation.rosetta.api.model.rest.Utxo;
+
 /**
  * Exposes functions to access chain data that has been indexed according to Rosetta API needs.
  */
@@ -17,9 +22,9 @@ public interface LedgerDataProviderService {
 
     BlockDto findBlock(Long number, String hash);
 
-//    Long findBalanceByAddressAndBlock(String address, String hash);
+    List<AddressBalanceDTO> findBalanceByAddressAndBlock(String address, Long number);
 
-//    List<Utxo> findUtxoByAddressAndBlock(String address, String hash, List<Currency> currencies);
+    List<Utxo> findUtxoByAddressAndBlock(String address, String hash, List<Currency> currencies);
 
     Long findLatestBlockNumber();
 

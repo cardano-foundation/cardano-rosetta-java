@@ -13,13 +13,13 @@ import org.cardanofoundation.rosetta.api.model.dto.BlockDto;
 
 public interface BlockService {
 
-//  AccountBalanceResponse findBalanceDataByAddressAndBlock(String address,
-//      Long number,
-//      String hash);
+  AccountBalanceResponse findBalanceDataByAddressAndBlock(String address,
+      Long number,
+      String hash);
 
-  //  BlockUtxos findCoinsDataByAddress(String accountAddress, List<Currency> currenciesRequested);
-//
-//  BlockDto findBlock(Long number, String hash);
+    BlockUtxos findCoinsDataByAddress(String accountAddress, List<Currency> currenciesRequested);
+
+  BlockDto findBlock(Long number, String hash);
 
 
   BlockResponse getBlockByBlockRequest(BlockRequest blockRequest);
