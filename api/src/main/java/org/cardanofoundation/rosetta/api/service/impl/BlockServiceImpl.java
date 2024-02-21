@@ -65,8 +65,8 @@ public class BlockServiceImpl implements BlockService {
                 .build();
       }
       log.info("[block] Looking for blocks transactions full data");
-//      List<PopulatedTransaction> transactions = this.fillTransactions(transactionsFound);
-//      log.info("[block] transactions already filled {}", transactions);
+
+
       return BlockResponse.builder()
               .block(DataMapper.mapToRosettaBlock(block, poolDeposit))
               .build();

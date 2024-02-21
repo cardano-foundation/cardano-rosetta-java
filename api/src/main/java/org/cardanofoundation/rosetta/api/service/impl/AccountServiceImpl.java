@@ -9,7 +9,6 @@ import org.cardanofoundation.rosetta.api.mapper.DataMapper;
 import org.cardanofoundation.rosetta.api.model.rest.*;
 import org.cardanofoundation.rosetta.api.service.AccountService;
 import org.cardanofoundation.rosetta.api.service.BlockService;
-import org.cardanofoundation.rosetta.api.service.YaciStoreRestService;
 import org.cardanofoundation.rosetta.api.util.CardanoAddressUtils;
 import org.cardanofoundation.rosetta.api.util.Validations;
 import org.springframework.stereotype.Service;

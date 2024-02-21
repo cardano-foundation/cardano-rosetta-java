@@ -1,6 +1,5 @@
 package org.cardanofoundation.rosetta.api.repository;
 
-import org.cardanofoundation.rosetta.api.model.rest.Currency;
 import org.cardanofoundation.rosetta.common.model.AddressUtxoEntity;
 import org.cardanofoundation.rosetta.common.model.UtxoId;
 import org.springframework.data.jpa.repository.JpaRepository;
