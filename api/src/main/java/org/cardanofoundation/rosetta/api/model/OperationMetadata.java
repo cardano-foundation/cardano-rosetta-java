@@ -1,6 +1,8 @@
 package org.cardanofoundation.rosetta.api.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.util.ArrayList;
 import java.util.List;
 import javax.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -89,6 +91,13 @@ public class OperationMetadata {
       return "null";
     }
     return o.toString().replace("\n", "\n    ");
+  }
+
+  public void addTokenBundleItem(TokenBundleItem tokenBundleItem) {
+    if(this.tokenBundle == null) {
+      this.tokenBundle = new ArrayList<>();
+    }
+    this.tokenBundle.add(tokenBundleItem);
   }
 }
 

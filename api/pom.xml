@@ -309,6 +309,8 @@
                               <useJakartaEe>true</useJakartaEe>
                               <skipValidateSpec>true</skipValidateSpec>
                               <interfaceOnly>true</interfaceOnly>
+                              <!--suppress UnresolvedMavenProperty -->
+                              <additionalModelTypeAnnotations>@lombok.Builder @lombok.NoArgsConstructor @lombok.AllArgsConstructor</additionalModelTypeAnnotations>
                           </configOptions>
                         </configuration>
                     </execution>

@@ -26,6 +26,7 @@ public class TransactionDto {
   protected List<UtxoDto> outputs;
 
   public static TransactionDto fromTx(TxnEntity txnEntity) {
+//    txnEntity.get
     return TransactionDto.builder()
                     .hash(txnEntity.getTxHash())
                     .blockHash(txnEntity.getBlock().getHash())
@@ -34,8 +35,8 @@ public class TransactionDto {
                     .size(0L) // TODO
                     .validContract(txnEntity.getInvalid())
                     .scriptSize(0L) // TODO
-                    .inputs(txnEntity.getInputs().stream().map(utxoKey -> UtxoDto.fromUtxoKey(utxoKey)).toList())
-                    .outputs(txnEntity.getOutputs().stream().map(utxoKey -> UtxoDto.fromUtxoKey(utxoKey)).toList())
+                    .inputs(txnEntity.getInputKeys().stream().map(utxoKey -> UtxoDto.fromUtxoKey(utxoKey)).toList())
+                    .outputs(txnEntity.getOutputKeys().stream().map(utxoKey -> UtxoDto.fromUtxoKey(utxoKey)).toList())
                     .build();
   }
 }

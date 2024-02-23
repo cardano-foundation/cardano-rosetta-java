@@ -100,6 +100,9 @@ public class Constants {
     public static final String RELATED_OPERATION="related_operations";
     public static final String STATUS="status";
     public static final String COIN_CHANGE="coin_change";
+    public static final String INPUT = "input";
+    public static final String OUTPUT = "output";
+    public static final String SUCCESS = "success";
     public static final String STAKING_CREDENTIAL="staking_credential";
     public static final String WITHDRAWALAMOUNT="withdrawalAmount";
     public static final String DEPOSITAMOUNT="depositAmount";
@@ -139,5 +142,5 @@ public class Constants {
     public static final String SYMBOL_REGEX="\\x";
 
 
-
+    public static final String LOVELACE = "lovelace";
 }

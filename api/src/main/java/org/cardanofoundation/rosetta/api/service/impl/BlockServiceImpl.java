@@ -10,7 +10,6 @@ import org.cardanofoundation.rosetta.api.model.dto.AddressBalanceDTO;
 import org.cardanofoundation.rosetta.api.model.dto.BlockUtxos;
 import org.cardanofoundation.rosetta.api.model.rest.Currency;
 import org.cardanofoundation.rosetta.api.util.CardanoAddressUtils;
-import org.openapitools.client.model.TransactionIdentifier;
 import org.cardanofoundation.rosetta.api.model.rest.*;
 import org.cardanofoundation.rosetta.api.model.dto.BlockDto;
 import org.cardanofoundation.rosetta.api.service.BlockService;
@@ -61,7 +60,7 @@ public class BlockServiceImpl implements BlockService {
                 , pageSize);
         return BlockResponse.builder()
                 .block(DataMapper.mapToRosettaBlock(block, poolDeposit))
-                .otherTransactions(transactionsFound.stream().map(transactionDto -> new TransactionIdentifier().hash(transactionDto.getHash())).toList())
+//                .otherTransactions(transactionsFound.stream().map(transactionDto -> new TransactionIdentifier().hash(transactionDto.getHash())).toList())
                 .build();
       }
       log.info("[block] Looking for blocks transactions full data");

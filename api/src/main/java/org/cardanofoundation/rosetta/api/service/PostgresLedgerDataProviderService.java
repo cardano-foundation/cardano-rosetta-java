@@ -14,6 +14,7 @@ import org.cardanofoundation.rosetta.api.mapper.DataMapper;
 import org.cardanofoundation.rosetta.api.model.dto.AddressBalanceDTO;
 import org.cardanofoundation.rosetta.api.model.dto.BlockDto;
 import org.cardanofoundation.rosetta.api.model.dto.GenesisBlockDto;
+import org.cardanofoundation.rosetta.api.model.dto.UtxoDto;
 import org.cardanofoundation.rosetta.api.model.rest.BlockIdentifier;
 import org.cardanofoundation.rosetta.api.model.rest.Currency;
 import org.cardanofoundation.rosetta.api.model.rest.TransactionDto;
@@ -93,11 +94,25 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
       BlockEntity block = blocks.getFirst();
       SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
       dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
-      return BlockDto.fromBlock(block);
-
+      // Populating transactions
+      BlockDto blockDto = BlockDto.fromBlock(block);
+      for (TransactionDto transaction : blockDto.getTransactions()) {
+        populateUtxos(transaction.getInputs());
+        populateUtxos(transaction.getOutputs());
+      }
+      return blockDto;
     }
     log.debug("[findBlock] No block was found");
     return null;
+  }
+
+  private void populateUtxos(List<UtxoDto> inputs) {
+    for (UtxoDto utxo : inputs) {
+      AddressUtxoEntity first = addressUtxoRepository.findAddressUtxoEntitiesByOutputIndexAndTxHash(utxo.getOutputIndex(), utxo.getTxHash()).getFirst();
+      if(first != null) {
+        utxo.populateFromUtxoEntity(first);
+      }
+    }
   }
 
   @Override
