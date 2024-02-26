@@ -12,6 +12,8 @@ import org.cardanofoundation.rosetta.api.model.rest.TransactionDto;
 import org.cardanofoundation.rosetta.common.model.Amt;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -22,6 +24,57 @@ import static org.cardanofoundation.rosetta.api.util.Formatters.hexStringFormatt
 
 @Slf4j
 public class OperationDataMapper {
+
+    @NotNull
+    public static List<Operation> getAllOperations(TransactionDto transactionDto, String poolDeposit, OperationStatus status) {
+        List<List<Operation>> totalOperations = new ArrayList<>();
+        List<Operation> inputsAsOperations = getInputTransactionsasOperations(transactionDto, status);
+        totalOperations.add(inputsAsOperations);
+// TODO Withdrawal currently not supported via Yaci-store. Will implemented it as soon as the PR is merged.
+//        List<Operation> withdrawalsAsOperations = getWithdrawlOperations(transactionDto, status, totalOperations);
+//        totalOperations.add(withdrawalsAsOperations);
+
+        List<Operation> stakeRegistrationOperations = getStakeRegistrationOperations(transactionDto, status, totalOperations);
+        totalOperations.add(stakeRegistrationOperations);
+
+        List<Operation> delegationOperations = getDelegationOperations(transactionDto, status, totalOperations);
+        totalOperations.add(delegationOperations);
+
+        List<Operation> poolRegistrationOperations = getPoolRegistrationOperations(transactionDto, status, totalOperations, poolDeposit);
+        totalOperations.add(poolRegistrationOperations);
+
+        List<Operation> poolRetirementOperations = getPoolRetirementOperations(transactionDto, status, totalOperations);
+        totalOperations.add(poolRetirementOperations);
+
+        List<OperationIdentifier> relatedOperations = getOperationIndexes(inputsAsOperations);
+
+        List<Operation> outputsAsOperations = getOutputsAsOperations(transactionDto, totalOperations, status, relatedOperations);
+
+        totalOperations.add(outputsAsOperations);
+        List<Operation> operations = totalOperations.stream()
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList());
+        return operations;
+    }
+
+//    @NotNull
+//    private static List<Operation> getWithdrawlOperations(TransactionDto transactionDto, OperationStatus status, List<List<Operation>> totalOperations) {
+//        return IntStream.range(0,
+//                        transactionDto.getWithdrawals().size())
+//                .mapToObj(index -> {
+//                    Withdrawal withdrawal = transaction.getWithdrawals().get(index);
+//                    return Operation.builder()
+//                            .operationIdentifier(OperationIdentifier.builder().index(
+//                                    getOperationCurrentIndex(totalOperations, index)).build())
+//                            .type(OperationType.WITHDRAWAL.getValue())
+//                            .status(status.getStatus())
+//                            .account(AccountIdentifier.builder().address(withdrawal.getStakeAddress()).build())
+//                            .metadata(OperationMetadata.builder()
+//                                    .withdrawalAmount(DataMapper.mapAmount("-" + withdrawal.getAmount()))
+//                                    .build())
+//                            .build();
+//                }).toList();
+//    }
 
     @NotNull
     public static List<Operation> getInputTransactionsasOperations(TransactionDto transactionDto, OperationStatus status) {

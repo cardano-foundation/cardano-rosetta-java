@@ -8,7 +8,6 @@ import org.cardanofoundation.rosetta.api.model.OperationStatus;
 import org.cardanofoundation.rosetta.api.model.dto.*;
 import org.cardanofoundation.rosetta.api.model.rest.*;
 import org.cardanofoundation.rosetta.api.model.rosetta.BlockMetadata;
-import org.cardanofoundation.rosetta.common.model.TxnEntity;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -23,16 +22,22 @@ import static org.cardanofoundation.rosetta.api.util.RosettaConstants.SUCCESS_OP
 @Component
 public class DataMapper {
 
-  private DataMapper() {
-
-  }
-
+  /**
+   * Maps a NetworkRequest to a NetworkOptionsResponse.
+   * @param supportedNetwork The supported network
+   * @return The NetworkOptionsResponse
+   */
   public static NetworkListResponse mapToNetworkListResponse(Network supportedNetwork) {
     NetworkIdentifier identifier = NetworkIdentifier.builder().blockchain(Constants.CARDANO)
             .network(supportedNetwork.getNetworkId()).build();
     return NetworkListResponse.builder().networkIdentifiers(List.of(identifier)).build();
   }
 
+  /**
+   * Maps a NetworkRequest to a NetworkOptionsResponse.
+   * @param networkStatus The network status
+   * @return The NetworkOptionsResponse
+   */
   public static NetworkStatusResponse mapToNetworkStatusResponse(NetworkStatus networkStatus) {
     BlockDto latestBlock = networkStatus.getLatestBlock();
     GenesisBlockDto genesisBlock = networkStatus.getGenesisBlock();
@@ -49,26 +54,12 @@ public class DataMapper {
             .build();
   }
 
-  public static List<TransactionDto> parseTransactionRows(
-          List<TxnEntity> findTransactions) {
-    return findTransactions.stream()
-            .map(tx -> TransactionDto.builder()
-                    .hash(tx.getTxHash())
-                    .blockHash(
-                            tx.getBlock().getHash())
-                    .blockNo(tx.getBlock().getNumber())
-                    .fee(String.valueOf(tx.getFee()))
-                    .inputs(tx.getInputKeys().stream().map(utxoKey -> new UtxoDto(utxoKey.getTxHash(), utxoKey.getOutputIndex())).toList())
-                    .outputs(tx.getOutputKeys().stream().map(utxoKey -> new UtxoDto(utxoKey.getTxHash(), utxoKey.getOutputIndex())).toList())
-//                    .size(Long.valueOf(tx.get)) // TODO
-//                    .scriptSize(Long.valueOf(tx.getScriptSize())) // TODO
-//                    .validContract(tx.) // TODO
-                    .build())
-            .collect(Collectors.toList());
-  }
-
-
-
+  /**
+   * Maps a list of AddressBalanceDTOs to a Rosetta compatible AccountBalanceResponse.
+   * @param block The block from where the balances are calculated into the past
+   * @param poolDeposit The pool deposit
+   * @return The Rosetta compatible AccountBalanceResponse
+   */
     public static Block mapToRosettaBlock(BlockDto block, String poolDeposit) {
       Block rosettaBlock = Block.builder().build();
       rosettaBlock.setBlockIdentifier(BlockIdentifier.builder()
@@ -87,6 +78,12 @@ public class DataMapper {
       return rosettaBlock;
     }
 
+  /**
+   * Maps a list of TransactionDtos to a list of Rosetta compatible Transactions.
+   * @param transactions The transactions to be mapped
+   * @param poolDeposit The pool deposit
+   * @return The list of Rosetta compatible Transactions
+   */
   public static List<Transaction> mapToRosettaTransactions(List<TransactionDto> transactions, String poolDeposit) {
     List<Transaction> rosettaTransactions = new ArrayList<>();
     for(TransactionDto transactionDto : transactions) {
@@ -95,6 +92,12 @@ public class DataMapper {
     return rosettaTransactions;
   }
 
+  /**
+   * Basic mapping if a value is spent or not.
+   * @param value value to be mapped
+   * @param spent if the value is spent. Will add a "-" in front of the value if spent.
+   * @return the mapped value
+   */
   public static String mapValue(String value, boolean spent) {
     return spent ? "-" + value : value;
   }
@@ -107,6 +110,12 @@ public class DataMapper {
             .coinAction(coinAction.toString()).build();
   }
 
+  /**
+   * Maps a TransactionDto to a Rosetta compatible Transaction.
+   * @param transactionDto The transaction to be mapped
+   * @param poolDeposit The pool deposit
+   * @return The Rosetta compatible Transaction
+   */
   public static Transaction mapToRosettaTransaction(TransactionDto transactionDto, String poolDeposit) {
     Transaction rosettaTransaction = new Transaction();
     TransactionIdentifier identifier = new TransactionIdentifier();
@@ -116,30 +125,7 @@ public class DataMapper {
     OperationStatus status = new OperationStatus();
 //    status.setStatus(Boolean.TRUE.equals(transactionDto.getValidContract()) ? SUCCESS_OPERATION_STATUS.getStatus() : INVALID_OPERATION_STATUS.getStatus());
     status.setStatus(SUCCESS_OPERATION_STATUS.getStatus()); // TODO need to check the right status
-    List<List<Operation>> totalOperations = new ArrayList<>();
-    List<Operation> inputsAsOperations = OperationDataMapper.getInputTransactionsasOperations(transactionDto, status);
-    totalOperations.add(inputsAsOperations);
-
-    List<Operation> stakeRegistrationOperations = OperationDataMapper.getStakeRegistrationOperations(transactionDto, status, totalOperations);
-    totalOperations.add(stakeRegistrationOperations);
-
-    List<Operation> delegationOperations = OperationDataMapper.getDelegationOperations(transactionDto, status, totalOperations);
-    totalOperations.add(delegationOperations);
-
-    List<Operation> poolRegistrationOperations = OperationDataMapper.getPoolRegistrationOperations(transactionDto, status, totalOperations, poolDeposit);
-    totalOperations.add(poolRegistrationOperations);
-
-    List<Operation> poolRetirementOperations = OperationDataMapper.getPoolRetirementOperations(transactionDto, status, totalOperations);
-    totalOperations.add(poolRetirementOperations);
-
-    List<OperationIdentifier> relatedOperations = OperationDataMapper.getOperationIndexes(inputsAsOperations);
-
-    List<Operation> outputsAsOperations = OperationDataMapper.getOutputsAsOperations(transactionDto, totalOperations, status, relatedOperations);
-
-    totalOperations.add(outputsAsOperations);
-    List<Operation> operations = totalOperations.stream()
-            .flatMap(java.util.Collection::stream)
-            .collect(Collectors.toList());
+    List<Operation> operations = OperationDataMapper.getAllOperations(transactionDto, poolDeposit, status);
 
     rosettaTransaction.setMetadata(TransactionMetadata.builder()
                     .size(transactionDto.getSize()) // Todo size is not available
@@ -150,6 +136,11 @@ public class DataMapper {
 
   }
 
+  /**
+   * Creates a Rosetta compatible Amount for ADA. The value is the amount in lovelace and the currency is ADA.
+   * @param value The amount in lovelace
+   * @return The Rosetta compatible Amount
+   */
   public static Amount mapAmount(String value) {
     if (Objects.isNull(value)) {
       return null;
@@ -161,6 +152,14 @@ public class DataMapper {
     return Amount.builder().value(value).currency(currency).build();
   }
 
+  /**
+   * Creates a Rosetta compatible Amount. Symbol and decimals are optional. If not provided, ADA and 6 decimals are used.
+   * @param value The amount of the token
+   * @param symbol The symbol of the token - it will be hex encoded
+   * @param decimals The number of decimals of the token
+   * @param metadata The metadata of the token
+   * @return The Rosetta compatible Amount
+   */
   public static Amount mapAmount(String value, String symbol, Integer decimals,
                                  Map<String, Object> metadata) {
     if (Objects.isNull(symbol)) {
@@ -179,6 +178,12 @@ public class DataMapper {
     return amount;
   }
 
+  /**
+   * Maps a list of AddressBalanceDTOs to a Rosetta compatible AccountBalanceResponse.
+   * @param block The block from where the balances are calculated into the past
+   * @param balances The balances of the addresses
+   * @return The Rosetta compatible AccountBalanceResponse
+   */
   public static AccountBalanceResponse mapToAccountBalanceResponse(BlockDto block, List<AddressBalanceDTO> balances) {
     return AccountBalanceResponse.builder()
             .blockIdentifier(BlockIdentifier.builder()
