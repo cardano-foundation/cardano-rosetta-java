@@ -35,14 +35,11 @@ public class TxnEntity {
 
     @Type(JsonType.class)
     @Column(name = "inputs")
-    private List<UtxoKey> inputs;
+    private List<UtxoKey> inputKeys;
 
     @Type(JsonType.class)
     @Column(name = "outputs")
-    private List<UtxoKey> outputs;
-
-    @OneToMany(mappedBy = "txHash")
-    private List<UtxoEntity> outputUtxos;
+    private List<UtxoKey> outputKeys;
 
     @Column(name = "fee")
     private BigInteger fee;

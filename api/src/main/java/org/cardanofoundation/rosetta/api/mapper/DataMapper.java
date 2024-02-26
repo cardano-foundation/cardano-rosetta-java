@@ -3,42 +3,41 @@ package org.cardanofoundation.rosetta.api.mapper;
 import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.api.common.constants.Constants;
 import org.cardanofoundation.rosetta.api.model.*;
-import org.cardanofoundation.rosetta.api.model.dto.AddressBalanceDTO;
-import org.cardanofoundation.rosetta.api.model.dto.BlockDto;
-import org.cardanofoundation.rosetta.api.model.dto.GenesisBlockDto;
-import org.cardanofoundation.rosetta.api.model.dto.UtxoDto;
+import org.cardanofoundation.rosetta.api.model.Currency;
+import org.cardanofoundation.rosetta.api.model.OperationStatus;
+import org.cardanofoundation.rosetta.api.model.dto.*;
 import org.cardanofoundation.rosetta.api.model.rest.*;
-import org.cardanofoundation.rosetta.common.model.TxnEntity;
-import org.openapitools.client.model.Block;
-import org.openapitools.client.model.Currency;
+import org.cardanofoundation.rosetta.api.model.rosetta.BlockMetadata;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.cardanofoundation.rosetta.api.common.constants.Constants.MULTI_ASSET_DECIMALS;
+import static org.cardanofoundation.rosetta.api.common.constants.Constants.*;
+import static org.cardanofoundation.rosetta.api.util.Formatters.hexStringFormatter;
+import static org.cardanofoundation.rosetta.api.util.RosettaConstants.SUCCESS_OPERATION_STATUS;
 
 
 @Slf4j
 @Component
-
 public class DataMapper {
 
-  public static final String COIN_SPENT_ACTION = "coin_spent";
-  public static final String COIN_CREATED_ACTION = "coin_created";
-
-  private DataMapper() {
-
-  }
-
+  /**
+   * Maps a NetworkRequest to a NetworkOptionsResponse.
+   * @param supportedNetwork The supported network
+   * @return The NetworkOptionsResponse
+   */
   public static NetworkListResponse mapToNetworkListResponse(Network supportedNetwork) {
     NetworkIdentifier identifier = NetworkIdentifier.builder().blockchain(Constants.CARDANO)
             .network(supportedNetwork.getNetworkId()).build();
     return NetworkListResponse.builder().networkIdentifiers(List.of(identifier)).build();
   }
 
+  /**
+   * Maps a NetworkRequest to a NetworkOptionsResponse.
+   * @param networkStatus The network status
+   * @return The NetworkOptionsResponse
+   */
   public static NetworkStatusResponse mapToNetworkStatusResponse(NetworkStatus networkStatus) {
     BlockDto latestBlock = networkStatus.getLatestBlock();
     GenesisBlockDto genesisBlock = networkStatus.getGenesisBlock();
@@ -55,75 +54,149 @@ public class DataMapper {
             .build();
   }
 
-  public static List<TransactionDto> parseTransactionRows(
-          List<TxnEntity> findTransactions) {
-    return findTransactions.stream()
-            .map(tx -> TransactionDto.builder()
-                    .hash(tx.getTxHash())
-                    .blockHash(
-                            tx.getBlock().getHash())
-                    .blockNo(tx.getBlock().getNumber())
-                    .fee(String.valueOf(tx.getFee()))
-                    .inputs(tx.getInputs().stream().map(utxoKey -> new UtxoDto(utxoKey.getTxHash(), utxoKey.getOutputIndex())).toList())
-                    .outputs(tx.getOutputs().stream().map(utxoKey -> new UtxoDto(utxoKey.getTxHash(), utxoKey.getOutputIndex())).toList())
-//                    .size(Long.valueOf(tx.get)) // TODO
-//                    .scriptSize(Long.valueOf(tx.getScriptSize())) // TODO
-//                    .validContract(tx.) // TODO
-                    .build())
-            .collect(Collectors.toList());
-  }
-
-
-
+  /**
+   * Maps a list of AddressBalanceDTOs to a Rosetta compatible AccountBalanceResponse.
+   * @param block The block from where the balances are calculated into the past
+   * @param poolDeposit The pool deposit
+   * @return The Rosetta compatible AccountBalanceResponse
+   */
     public static Block mapToRosettaBlock(BlockDto block, String poolDeposit) {
-      Block rosettaBlock = new Block();
-      rosettaBlock.setBlockIdentifier(new org.openapitools.client.model.BlockIdentifier()
-              .index(block.getNumber()).hash(block.getHash()));
-      rosettaBlock.setParentBlockIdentifier(new org.openapitools.client.model.BlockIdentifier()
-              .index(block.getPreviousBlockNumber()).hash(block.getPreviousBlockHash()));
+      Block rosettaBlock = Block.builder().build();
+      rosettaBlock.setBlockIdentifier(BlockIdentifier.builder()
+              .index(block.getNumber()).hash(block.getHash()).build());
+      rosettaBlock.setParentBlockIdentifier(BlockIdentifier.builder()
+              .index(block.getPreviousBlockNumber()).hash(block.getPreviousBlockHash()).build());
       rosettaBlock.setTimestamp(block.getCreatedAt());
-      rosettaBlock.setTransactions(mapToRosettaTransactions(block.getTransactions()));
-//      rosettaBlock.metadata() // TODO
-
+      rosettaBlock.setTransactions(mapToRosettaTransactions(block.getTransactions(), poolDeposit));
+      rosettaBlock.metadata(BlockMetadata.builder()
+              .transactionsCount(block.getTransactionsCount())
+              .createdBy(block.getCreatedBy())
+              .size(block.getSize())
+              .epochNo(block.getEpochNo())
+              .slotNo(block.getSlotNo())
+              .build());
       return rosettaBlock;
     }
 
-  public static List<org.openapitools.client.model.Transaction> mapToRosettaTransactions(List<TransactionDto> transactions) {
-    List<org.openapitools.client.model.Transaction> rosettaTransactions = new ArrayList<>();
+  /**
+   * Maps a list of TransactionDtos to a list of Rosetta compatible Transactions.
+   * @param transactions The transactions to be mapped
+   * @param poolDeposit The pool deposit
+   * @return The list of Rosetta compatible Transactions
+   */
+  public static List<Transaction> mapToRosettaTransactions(List<TransactionDto> transactions, String poolDeposit) {
+    List<Transaction> rosettaTransactions = new ArrayList<>();
     for(TransactionDto transactionDto : transactions) {
-
-      rosettaTransactions.add(mapToRosettaTransaction(transactionDto));
+      rosettaTransactions.add(mapToRosettaTransaction(transactionDto, poolDeposit));
     }
     return rosettaTransactions;
   }
 
-  public static org.openapitools.client.model.Transaction mapToRosettaTransaction(TransactionDto transactionDto) {
-    org.openapitools.client.model.Transaction rosettaTransaction = new org.openapitools.client.model.Transaction();
-    org.openapitools.client.model.TransactionIdentifier identifier = new org.openapitools.client.model.TransactionIdentifier();
-    identifier.setHash(transactionDto.getHash());
+  /**
+   * Basic mapping if a value is spent or not.
+   * @param value value to be mapped
+   * @param spent if the value is spent. Will add a "-" in front of the value if spent.
+   * @return the mapped value
+   */
+  public static String mapValue(String value, boolean spent) {
+    return spent ? "-" + value : value;
+  }
 
+  public static CoinChange getCoinChange(int index, String hash, CoinAction coinAction) {
+    CoinIdentifier coinIdentifier = new CoinIdentifier();
+    coinIdentifier.setIdentifier(hash + ":" + index);
+
+    return CoinChange.builder().coinIdentifier(CoinIdentifier.builder().identifier(hash + ":" + index).build())
+            .coinAction(coinAction.toString()).build();
+  }
+
+  /**
+   * Maps a TransactionDto to a Rosetta compatible Transaction.
+   * @param transactionDto The transaction to be mapped
+   * @param poolDeposit The pool deposit
+   * @return The Rosetta compatible Transaction
+   */
+  public static Transaction mapToRosettaTransaction(TransactionDto transactionDto, String poolDeposit) {
+    Transaction rosettaTransaction = new Transaction();
+    TransactionIdentifier identifier = new TransactionIdentifier();
+    identifier.setHash(transactionDto.getHash());
     rosettaTransaction.setTransactionIdentifier(identifier);
-//      rosettaTransaction.setRelatedTransactions(); // TODO
-    List<org.openapitools.client.model.Operation> operation = new ArrayList<>();
-//      TODO
-    rosettaTransaction.setOperations(operation);
-//      rosettaTransaction.setMetadata(); // TODO
+
+    OperationStatus status = new OperationStatus();
+//    status.setStatus(Boolean.TRUE.equals(transactionDto.getValidContract()) ? SUCCESS_OPERATION_STATUS.getStatus() : INVALID_OPERATION_STATUS.getStatus());
+    status.setStatus(SUCCESS_OPERATION_STATUS.getStatus()); // TODO need to check the right status
+    List<Operation> operations = OperationDataMapper.getAllOperations(transactionDto, poolDeposit, status);
+
+    rosettaTransaction.setMetadata(TransactionMetadata.builder()
+                    .size(transactionDto.getSize()) // Todo size is not available
+                    .scriptSize(transactionDto.getScriptSize()) // TODO script size is not available
+            .build());
+    rosettaTransaction.setOperations(operations);
     return rosettaTransaction;
 
   }
 
+  /**
+   * Creates a Rosetta compatible Amount for ADA. The value is the amount in lovelace and the currency is ADA.
+   * @param value The amount in lovelace
+   * @return The Rosetta compatible Amount
+   */
+  public static Amount mapAmount(String value) {
+    if (Objects.isNull(value)) {
+      return null;
+    }
+
+    Currency currency = Currency.builder()
+            .decimals(ADA_DECIMALS)
+            .symbol(hexStringFormatter(ADA)).build();
+    return Amount.builder().value(value).currency(currency).build();
+  }
+
+  /**
+   * Creates a Rosetta compatible Amount. Symbol and decimals are optional. If not provided, ADA and 6 decimals are used.
+   * @param value The amount of the token
+   * @param symbol The symbol of the token - it will be hex encoded
+   * @param decimals The number of decimals of the token
+   * @param metadata The metadata of the token
+   * @return The Rosetta compatible Amount
+   */
+  public static Amount mapAmount(String value, String symbol, Integer decimals,
+                                 Map<String, Object> metadata) {
+    if (Objects.isNull(symbol)) {
+      symbol = ADA;
+    }
+    if (Objects.isNull(decimals)) {
+      decimals = ADA_DECIMALS;
+    }
+    Amount amount = new Amount();
+    amount.setValue(value);
+    amount.setCurrency(Currency.builder()
+                            .symbol(hexStringFormatter(symbol))
+                            .decimals(decimals)
+//                            .metadata() // TODO check metadata for Amount
+                            .build());
+    return amount;
+  }
+
+  /**
+   * Maps a list of AddressBalanceDTOs to a Rosetta compatible AccountBalanceResponse.
+   * @param block The block from where the balances are calculated into the past
+   * @param balances The balances of the addresses
+   * @return The Rosetta compatible AccountBalanceResponse
+   */
   public static AccountBalanceResponse mapToAccountBalanceResponse(BlockDto block, List<AddressBalanceDTO> balances) {
     return AccountBalanceResponse.builder()
             .blockIdentifier(BlockIdentifier.builder()
                     .hash(block.getHash())
                     .index(block.getNumber())
                     .build())
-            .balances(balances.stream().map(addressBalanceDTO -> new org.openapitools.client.model.Amount()
+            .balances(balances.stream().map(addressBalanceDTO -> Amount.builder()
                             .value(addressBalanceDTO.getQuantity().toString())
-                            .currency(new Currency()
+                            .currency(Currency.builder()
                                     .decimals(MULTI_ASSET_DECIMALS)
                                     .symbol(addressBalanceDTO.getUnit())
-                                    .metadata(addressBalanceDTO.getPolicy() != null ? Map.of("policyId", addressBalanceDTO.getPolicy()) : null))).toList())
+//                                    .metadata(addressBalanceDTO.getPolicy() != null ? Map.of("policyId", addressBalanceDTO.getPolicy()) : null) // TODO check metadata for AccountBalanceResponse
+                                    .build()).build()).toList())
             .build();
   }
 }

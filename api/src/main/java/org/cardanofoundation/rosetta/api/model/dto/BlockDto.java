@@ -35,6 +35,7 @@ public class BlockDto {
             .previousBlockNumber(block.getPrev() != null ? block.getPrev().getNumber() : -1)
             .transactionsCount(block.getNoOfTxs())
             .size(Math.toIntExact(block.getBlockBodySize()))
+            .createdBy(block.getIssuerVkey()) // TODO probably need to change this, in typescript rosetta there is something like Pool-[HASH]
             .epochNo(block.getEpochNumber())
             .slotNo(block.getSlot())
             .transactions(block.getTransactions().stream().map(txnEntity -> TransactionDto.fromTx(txnEntity)).toList())

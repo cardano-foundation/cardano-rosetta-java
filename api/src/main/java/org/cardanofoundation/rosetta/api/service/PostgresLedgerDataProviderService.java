@@ -11,17 +11,12 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.cardanofoundation.rosetta.api.config.RosettaConfig;
 import org.cardanofoundation.rosetta.api.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.api.mapper.DataMapper;
-import org.cardanofoundation.rosetta.api.model.dto.AddressBalanceDTO;
-import org.cardanofoundation.rosetta.api.model.dto.BlockDto;
-import org.cardanofoundation.rosetta.api.model.dto.GenesisBlockDto;
+import org.cardanofoundation.rosetta.api.model.dto.*;
 import org.cardanofoundation.rosetta.api.model.rest.BlockIdentifier;
 import org.cardanofoundation.rosetta.api.model.rest.Currency;
 import org.cardanofoundation.rosetta.api.model.rest.TransactionDto;
 import org.cardanofoundation.rosetta.api.model.rest.Utxo;
-import org.cardanofoundation.rosetta.api.repository.AddressBalanceRepository;
-import org.cardanofoundation.rosetta.api.repository.AddressUtxoRepository;
-import org.cardanofoundation.rosetta.api.repository.BlockRepository;
-import org.cardanofoundation.rosetta.api.repository.TxRepository;
+import org.cardanofoundation.rosetta.api.repository.*;
 import org.cardanofoundation.rosetta.common.model.*;
 import org.springframework.stereotype.Component;
 
@@ -34,15 +29,12 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
   private final RosettaConfig rosettaConfig;
   private final BlockRepository blockRepository;
   private final AddressBalanceRepository addressBalanceRepository;
-//  private final RewardRepository rewardRepository;
   private final AddressUtxoRepository addressUtxoRepository;
   private final TxRepository txRepository;
-//  private final EpochParamRepository epochParamRepository;
-//  private final StakeDeregistrationRepository stakeDeregistrationRepository;
-//  private final DelegationRepository delegationRepository;
-//  private final TxMetadataRepository txMetadataRepository;
-//  private final PoolUpdateRepository poolUpdateRepository;
-//  private final PoolRetireRepository poolRetireRepository;
+  private final StakeRegistrationRepository stakeRegistrationRepository;
+  private final DelegationRepository delegationRepository;
+  private final PoolRegistrationRepository poolRegistrationRepository;
+  private final PoolRetirementRepository poolRetirementRepository;
 
   @PostConstruct
   void init() {
@@ -93,11 +85,34 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
       BlockEntity block = blocks.getFirst();
       SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
       dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
-      return BlockDto.fromBlock(block);
-
+      // Populating transactions
+      BlockDto blockDto = BlockDto.fromBlock(block);
+      for (TransactionDto transaction : blockDto.getTransactions()) {
+        populateUtxos(transaction.getInputs());
+        populateUtxos(transaction.getOutputs());
+        transaction.setStakeRegistrations(
+                stakeRegistrationRepository.findByTxHash(transaction.getHash())
+                        .stream().map(StakeRegistrationDTO::fromEntity).toList()); // TODO Refacotring - do this via JPA
+        transaction.setDelegations(delegationRepository.findByTxHash(transaction.getHash())
+                .stream().map(DelegationDTO::fromEntity).toList()); // TODO Refacotring - do this via JPA
+        transaction.setPoolRegistrations(poolRegistrationRepository.findByTxHash(transaction.getHash())
+                .stream().map(PoolRegistrationDTO::fromEntity).toList()); // TODO Refacotring - do this via JPA
+        transaction.setPoolRetirements(poolRetirementRepository.findByTxHash(transaction.getHash())
+                .stream().map(PoolRetirementDTO::fromEntity).toList()); // TODO Refacotring - do this via JPA
+      }
+      return blockDto;
     }
     log.debug("[findBlock] No block was found");
     return null;
+  }
+
+  private void populateUtxos(List<UtxoDto> inputs) {
+    for (UtxoDto utxo : inputs) {
+      AddressUtxoEntity first = addressUtxoRepository.findAddressUtxoEntitiesByOutputIndexAndTxHash(utxo.getOutputIndex(), utxo.getTxHash()).getFirst();
+      if(first != null) {
+        utxo.populateFromUtxoEntity(first);
+      }
+    }
   }
 
   @Override
@@ -110,41 +125,6 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
   public Long findLatestBlockNumber() {
         return blockRepository.findLatestBlockNumber();
   }
-
-//  @Override
-//  public ProtocolParameters findProtocolParameters() {
-//    log.debug("[findProtocolParameters] About to run findProtocolParameters query");
-//    Page<EpochParamProjection> epochParamProjectionPage =
-//        epochParamRepository.findProtocolParameters(PageRequest.of(0, 1));
-//    if (ObjectUtils.isEmpty(epochParamProjectionPage.getContent())) {
-//      return ProtocolParameters.builder()
-//          .coinsPerUtxoSize("0")
-//          .maxValSize(BigInteger.ZERO)
-//          .maxCollateralInputs(0)
-//          .build();
-//    }
-//    EpochParamProjection epochParamProjection = epochParamProjectionPage.getContent().get(0);
-//    log.debug(
-//        "[findProtocolParameters] epochParamProjection is " + epochParamProjection.toString());
-//    return ProtocolParameters.builder()
-//        .coinsPerUtxoSize(
-//            Objects.nonNull(epochParamProjection.getCoinsPerUtxoSize()) ?
-//                epochParamProjection.getCoinsPerUtxoSize().toString() : "0")
-//        .maxTxSize(epochParamProjection.getMaxTxSize())
-//        .maxValSize(Objects.nonNull(epochParamProjection.getMaxValSize()) ?
-//            epochParamProjection.getMaxValSize() : BigInteger.ZERO)
-//        .keyDeposit(Objects.nonNull(epochParamProjection.getKeyDeposit()) ?
-//            epochParamProjection.getKeyDeposit().toString() : null)
-//        .maxCollateralInputs(epochParamProjection.getMaxCollateralInputs())
-//        .minFeeCoefficient(epochParamProjection.getMinFeeA())
-//        .minFeeConstant(epochParamProjection.getMinFeeB())
-//        .minPoolCost(Objects.nonNull(epochParamProjection.getMinPoolCost()) ?
-//            epochParamProjection.getMinPoolCost().toString() : null)
-//        .poolDeposit(Objects.nonNull(epochParamProjection.getPoolDeposit()) ?
-//            epochParamProjection.getPoolDeposit().toString() : null)
-//        .protocol(epochParamProjection.getProtocolMajor())
-//        .build();
-//  }
 
   @Override
   public List<Utxo> findUtxoByAddressAndBlock(String address, String hash, List<Currency> currencies) {
@@ -168,11 +148,6 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
     }
     return utxos;
   }
-
-//  @Override
-//  public List<MaBalance> findMaBalanceByAddressAndBlock(String address, String hash) {
-//    return utxoRepository.findMaBalanceByAddressAndBlock(address, hash);
-//  }
 
   @Override
   public BlockDto findLatestBlock() {
@@ -205,172 +180,8 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
     log.debug(
         "[findTransactionsByBlock] Found {} transactions", txList.size());
     if (ObjectUtils.isNotEmpty(txList)) {
-      return DataMapper.parseTransactionRows(txList);
+      return txList.stream().map(TransactionDto::fromTx).toList();
     }
     return null;
   }
-
-//  @Override
-//  public List<PopulatedTransaction> fillTransaction(List<TransactionDto> transactions) {
-//    if (ObjectUtils.isNotEmpty(transactions)) {
-//      Map<String, PopulatedTransaction> transactionMap = mapTransactionsToDict(transactions);
-//      return populateTransactions(transactionMap);
-//    }
-//    log.debug(
-//        "[fillTransaction] Since no transactions were given, no inputs and outputs are looked for");
-//    return null;
-//  }
-
-//  @Override
-//  public List<PopulatedTransaction> populateTransactions(
-//      Map<String, PopulatedTransaction> transactionsMap) {
-//
-//    List<String> transactionsHashes = transactionsMap.keySet().stream().toList();
-//
-//    List<FindTransactionsInputs> inputs = getFindTransactionsInputs(
-//        transactionsHashes);
-//    List<FindTransactionsOutputs> outputs = getFindTransactionsOutputs(
-//        transactionsHashes);
-//    List<FindTransactionWithdrawals> withdrawals = getFindTransactionWithdrawals(
-//        transactionsHashes);
-//    List<FindTransactionRegistrations> registrations = getFindTransactionRegistrations(
-//        transactionsHashes);
-//    List<FindTransactionDeregistrations> deregistrations = getFindTransactionDeregistrations(
-//        transactionsHashes);
-//    List<FindTransactionDelegations> delegations = getFindTransactionDelegations(
-//        transactionsHashes);
-//    List<TransactionMetadataDto> votes = getTransactionMetadataDtos(
-//        transactionsHashes);
-//    List<FindTransactionPoolRegistrationsData> poolsData = getTransactionPoolRegistrationsData(
-//        transactionsHashes);
-//    List<FindTransactionPoolOwners> poolsOwners = getFindTransactionPoolOwners(
-//        transactionsHashes);
-//    List<FindTransactionPoolRelays> poolsRelays = getFindTransactionPoolRelays(
-//        transactionsHashes);
-//    List<FindPoolRetirements> poolRetirements = getFindPoolRetirements(
-//        transactionsHashes);
-//    var parseInputsRow = DataMapper.parseInputsRowFactory();
-//    var parseOutputsRow = DataMapper.parseOutputsRowFactory();
-//    var parseWithdrawalsRow = DataMapper.parseWithdrawalsRowFactory();
-//    var parseRegistrationsRow = DataMapper.parseRegistrationsRowFactory();
-//    var parseDeregistrationsRow = DataMapper.parseDeregistrationsRowFactory();
-//    var parseDelegationsRow = DataMapper.parseDelegationsRowFactory();
-//    var parsePoolRetirementRow = DataMapper.parsePoolRetirementRowFactory();
-//    var parseVoteRow = DataMapper.parseVoteRowFactory();
-//    var parsePoolRegistrationsRows = DataMapper.parsePoolRegistrationsRowsFactory();
-//    transactionsMap = populateTransactionField(transactionsMap, inputs, parseInputsRow);
-//    transactionsMap = populateTransactionField(transactionsMap, outputs, parseOutputsRow);
-//    transactionsMap = populateTransactionField(transactionsMap, withdrawals, parseWithdrawalsRow);
-//    transactionsMap = populateTransactionField(transactionsMap, registrations,
-//        parseRegistrationsRow);
-//    transactionsMap = populateTransactionField(transactionsMap, deregistrations,
-//        parseDeregistrationsRow);
-//    transactionsMap = populateTransactionField(transactionsMap, delegations, parseDelegationsRow);
-//    transactionsMap = populateTransactionField(transactionsMap, poolRetirements,
-//        parsePoolRetirementRow);
-//    transactionsMap = populateTransactionField(transactionsMap, votes, parseVoteRow);
-//    List<TransactionPoolRegistrations> mappedPoolRegistrations = mapToTransactionPoolRegistrations(
-//        poolsData, poolsOwners, poolsRelays);
-//    transactionsMap = populateTransactionField(transactionsMap, mappedPoolRegistrations,
-//        parsePoolRegistrationsRows);
-//    return new ArrayList<>(transactionsMap.values());
-//  }
-
-//  @Override
-//  public PopulatedTransaction findTransactionByHashAndBlock(String hash,
-//      Long blockNumber, String blockHash) {
-//    List<Tx> txList = blockRepository.findTransactionByHashAndBlock(hash, blockHash);
-//    if(txList.isEmpty()) {
-//      log.debug(
-//          "[findTransactionByHashAndBlock] No transactions found for hash {} and block {}",
-//          hash, blockHash);
-//      return null;
-//    }
-//
-//    log.debug(
-//        "[findTransactionByHashAndBlock] Found {} transactions", txList.size());
-//      Map<String, PopulatedTransaction> transactionsMap = mapTransactionsToDict(
-//          parseTransactionRows(txList));
-//      return populateTransactions(transactionsMap).get(0);
-//  }
-
-//  @Override
-//  public List<FindTransactionsInputs> getFindTransactionsInputs(List<String> transactionsHashes) {
-//    log.debug("[findTransactionsInputs] with parameters {}", transactionsHashes);
-//    return txRepository.findTransactionsInputs(transactionsHashes);
-//  }
-
-//  @Override
-//  public List<FindPoolRetirements> getFindPoolRetirements(List<String> transactionsHashes) {
-//    return poolRetireRepository.findPoolRetirements(
-//        transactionsHashes);
-//  }
-
-//  @Override
-//  public List<FindTransactionPoolRelays> getFindTransactionPoolRelays(
-//      List<String> transactionsHashes) {
-//    return poolUpdateRepository.findTransactionPoolRelays(
-//        transactionsHashes);
-//  }
-//
-//  @Override
-//  public List<FindTransactionPoolOwners> getFindTransactionPoolOwners(
-//      List<String> transactionsHashes) {
-//    return poolUpdateRepository.findTransactionPoolOwners(
-//        transactionsHashes);
-//  }
-//
-//  @Override
-//  public List<FindTransactionPoolRegistrationsData> getTransactionPoolRegistrationsData(
-//      List<String> transactionsHashes) {
-//    return getFindTransactionPoolRegistrationsData(
-//        transactionsHashes);
-//  }
-//
-//  @Override
-//  public List<FindTransactionPoolRegistrationsData> getFindTransactionPoolRegistrationsData(
-//      List<String> transactionsHashes) {
-//    return poolUpdateRepository.findTransactionPoolRegistrationsData(
-//        transactionsHashes);
-//  }
-//
-//  @Override
-//  public List<TransactionMetadataDto> getTransactionMetadataDtos(List<String> transactionsHashes) {
-//    return txMetadataRepository.findTransactionMetadata(
-//        transactionsHashes);
-//  }
-//
-//  @Override
-//  public List<FindTransactionDelegations> getFindTransactionDelegations(
-//      List<String> transactionsHashes) {
-//    return delegationRepository.findTransactionDelegations(
-//        transactionsHashes);
-//  }
-//
-//  @Override
-//  public List<FindTransactionDeregistrations> getFindTransactionDeregistrations(
-//      List<String> transactionsHashes) {
-//    return stakeDeregistrationRepository.findTransactionDeregistrations(
-//        transactionsHashes);
-//  }
-//
-//  @Override
-//  public List<FindTransactionRegistrations> getFindTransactionRegistrations(
-//      List<String> transactionsHashes) {
-//    return stakeDeregistrationRepository.findTransactionRegistrations(
-//        transactionsHashes);
-//  }
-//
-//  @Override
-//  public List<FindTransactionWithdrawals> getFindTransactionWithdrawals(
-//      List<String> transactionsHashes) {
-//    return txRepository.findTransactionWithdrawals(transactionsHashes);
-//  }
-//
-//  @Override
-//  public List<FindTransactionsOutputs> getFindTransactionsOutputs(
-//      List<String> transactionsHashes) {
-//    return txRepository.findTransactionsOutputs(
-//        transactionsHashes);
-//  }
 }

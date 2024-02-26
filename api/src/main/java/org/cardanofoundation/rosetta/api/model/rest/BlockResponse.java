@@ -7,8 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.openapitools.client.model.Block;
-import org.openapitools.client.model.TransactionIdentifier;
+import org.cardanofoundation.rosetta.api.model.TransactionIdentifier;
 
 /**
  * @author Sotatek-HoangNguyen9
