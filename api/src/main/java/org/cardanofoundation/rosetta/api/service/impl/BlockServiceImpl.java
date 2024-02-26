@@ -44,16 +44,7 @@ public class BlockServiceImpl implements BlockService {
       List<TransactionDto> transactionsFound = this.findTransactionsByBlock(block);
 
       log.debug("[block] transactionsFound is " + transactionsFound.toString());
-      String content = null;
-      try {
-        content = FileUtils.fileReader(genesisPath);
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
-      JSONObject object = new JSONObject(content);
-      JSONObject protocolParams = object.getJSONObject("protocolParams");
-      String poolDeposit = String.valueOf(protocolParams.get("poolDeposit")); // TODO Check if this is the right way to get poolDeposit
-      log.debug("[poolDeposit] poolDeposit is " + poolDeposit);
+      String poolDeposit = getPoolDeposit();
       if (transactionsFound.size() > pageSize) {
         log.info(
                 "[block] Returning only transactions hashes since the number of them is bigger than {}"
@@ -72,6 +63,20 @@ public class BlockServiceImpl implements BlockService {
     }
     log.error("[block] Block was not found");
     throw ExceptionFactory.blockNotFoundException();
+  }
+
+  private String getPoolDeposit() {
+    String content = null;
+    try {
+      content = FileUtils.fileReader(genesisPath);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+    JSONObject object = new JSONObject(content);
+    JSONObject protocolParams = object.getJSONObject("protocolParams");
+    String poolDeposit = String.valueOf(protocolParams.get("poolDeposit")); // TODO Check if this is the right way to get poolDeposit
+    log.debug("[poolDeposit] poolDeposit is " + poolDeposit);
+    return poolDeposit;
   }
 
   @Override
@@ -94,8 +99,10 @@ public class BlockServiceImpl implements BlockService {
     List<TransactionDto> transactionsByBlock = ledgerDataProviderService.findTransactionsByBlock(blockIdentifier.getIndex(), blockIdentifier.getHash());
     if(transactionsByBlock != null) {
       Optional<TransactionDto> first = transactionsByBlock.stream().filter(transactionDto -> transactionDto.getHash().equals(blockTransactionRequest.getTransactionIdentifier().getHash())).findFirst();
-      if(first.isPresent())
-        response.setTransaction(DataMapper.mapToRosettaTransaction(first.get()));
+      if(first.isPresent()) {
+        String poolDeposit = getPoolDeposit();
+        response.setTransaction(DataMapper.mapToRosettaTransaction(first.get(), poolDeposit));
+      }
     }
     return response;
   }

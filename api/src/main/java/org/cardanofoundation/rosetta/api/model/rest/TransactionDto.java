@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
-import org.cardanofoundation.rosetta.api.model.dto.UtxoDto;
+import org.cardanofoundation.rosetta.api.model.dto.*;
 import org.cardanofoundation.rosetta.common.model.TxnEntity;
 
 import java.util.List;
@@ -24,6 +24,10 @@ public class TransactionDto {
   protected Long scriptSize;
   protected List<UtxoDto> inputs;
   protected List<UtxoDto> outputs;
+  protected List<StakeRegistrationDTO> stakeRegistrations;
+  protected List<DelegationDTO> delegations;
+  protected List<PoolRegistrationDTO> poolRegistrations;
+  protected List<PoolRetirementDTO> poolRetirements;
 
   public static TransactionDto fromTx(TxnEntity txnEntity) {
 //    txnEntity.get

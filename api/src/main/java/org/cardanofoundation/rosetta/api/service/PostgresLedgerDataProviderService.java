@@ -11,18 +11,12 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.cardanofoundation.rosetta.api.config.RosettaConfig;
 import org.cardanofoundation.rosetta.api.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.api.mapper.DataMapper;
-import org.cardanofoundation.rosetta.api.model.dto.AddressBalanceDTO;
-import org.cardanofoundation.rosetta.api.model.dto.BlockDto;
-import org.cardanofoundation.rosetta.api.model.dto.GenesisBlockDto;
-import org.cardanofoundation.rosetta.api.model.dto.UtxoDto;
+import org.cardanofoundation.rosetta.api.model.dto.*;
 import org.cardanofoundation.rosetta.api.model.rest.BlockIdentifier;
 import org.cardanofoundation.rosetta.api.model.rest.Currency;
 import org.cardanofoundation.rosetta.api.model.rest.TransactionDto;
 import org.cardanofoundation.rosetta.api.model.rest.Utxo;
-import org.cardanofoundation.rosetta.api.repository.AddressBalanceRepository;
-import org.cardanofoundation.rosetta.api.repository.AddressUtxoRepository;
-import org.cardanofoundation.rosetta.api.repository.BlockRepository;
-import org.cardanofoundation.rosetta.api.repository.TxRepository;
+import org.cardanofoundation.rosetta.api.repository.*;
 import org.cardanofoundation.rosetta.common.model.*;
 import org.springframework.stereotype.Component;
 
@@ -35,15 +29,12 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
   private final RosettaConfig rosettaConfig;
   private final BlockRepository blockRepository;
   private final AddressBalanceRepository addressBalanceRepository;
-//  private final RewardRepository rewardRepository;
   private final AddressUtxoRepository addressUtxoRepository;
   private final TxRepository txRepository;
-//  private final EpochParamRepository epochParamRepository;
-//  private final StakeDeregistrationRepository stakeDeregistrationRepository;
-//  private final DelegationRepository delegationRepository;
-//  private final TxMetadataRepository txMetadataRepository;
-//  private final PoolUpdateRepository poolUpdateRepository;
-//  private final PoolRetireRepository poolRetireRepository;
+  private final StakeRegistrationRepository stakeRegistrationRepository;
+  private final DelegationRepository delegationRepository;
+  private final PoolRegistrationRepository poolRegistrationRepository;
+  private final PoolRetirementRepository poolRetirementRepository;
 
   @PostConstruct
   void init() {
@@ -99,6 +90,15 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
       for (TransactionDto transaction : blockDto.getTransactions()) {
         populateUtxos(transaction.getInputs());
         populateUtxos(transaction.getOutputs());
+        transaction.setStakeRegistrations(
+                stakeRegistrationRepository.findByTxHash(transaction.getHash())
+                        .stream().map(StakeRegistrationDTO::fromEntity).toList()); // TODO Refacotring - do this via JPA
+        transaction.setDelegations(delegationRepository.findByTxHash(transaction.getHash())
+                .stream().map(DelegationDTO::fromEntity).toList()); // TODO Refacotring - do this via JPA
+        transaction.setPoolRegistrations(poolRegistrationRepository.findByTxHash(transaction.getHash())
+                .stream().map(PoolRegistrationDTO::fromEntity).toList()); // TODO Refacotring - do this via JPA
+        transaction.setPoolRetirements(poolRetirementRepository.findByTxHash(transaction.getHash())
+                .stream().map(PoolRetirementDTO::fromEntity).toList()); // TODO Refacotring - do this via JPA
       }
       return blockDto;
     }
