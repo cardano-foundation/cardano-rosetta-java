@@ -3,6 +3,7 @@ package org.cardanofoundation.rosetta.api.service;
 import org.cardanofoundation.rosetta.api.model.dto.AddressBalanceDTO;
 import org.cardanofoundation.rosetta.api.model.dto.BlockDto;
 import org.cardanofoundation.rosetta.api.model.dto.GenesisBlockDto;
+import org.cardanofoundation.rosetta.api.model.dto.StakeAddressBalanceDTO;
 import org.cardanofoundation.rosetta.api.model.rest.BlockIdentifier;
 
 
@@ -25,6 +26,7 @@ public interface LedgerDataProviderService {
     List<AddressBalanceDTO> findBalanceByAddressAndBlock(String address, Long number);
 
     List<Utxo> findUtxoByAddressAndBlock(String address, String hash, List<Currency> currencies);
+    List<StakeAddressBalanceDTO> findStakeAddressBalanceByAddressAndBlock(String address, Long number);
 
     Long findLatestBlockNumber();
 

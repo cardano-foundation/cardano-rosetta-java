@@ -6,19 +6,16 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.api.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.api.mapper.DataMapper;
-import org.cardanofoundation.rosetta.api.model.dto.AddressBalanceDTO;
-import org.cardanofoundation.rosetta.api.model.dto.BlockUtxos;
+import org.cardanofoundation.rosetta.api.model.dto.*;
 import org.cardanofoundation.rosetta.api.model.rest.Currency;
 import org.cardanofoundation.rosetta.api.util.CardanoAddressUtils;
 import org.cardanofoundation.rosetta.api.model.rest.*;
-import org.cardanofoundation.rosetta.api.model.dto.BlockDto;
 import org.cardanofoundation.rosetta.api.service.BlockService;
 import org.cardanofoundation.rosetta.api.service.LedgerDataProviderService;
 import org.cardanofoundation.rosetta.api.util.FileUtils;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.cardanofoundation.rosetta.api.model.dto.GenesisBlockDto;
 
 @Slf4j
 @Service
@@ -162,8 +159,12 @@ public class BlockServiceImpl implements BlockService {
     if (CardanoAddressUtils.isStakeAddress(address)) {
       log.debug("[findBalanceDataByAddressAndBlock] Address is StakeAddress");
       log.debug("[findBalanceDataByAddressAndBlock] About to get balance for {}", address);
-      List<AddressBalanceDTO> balances = ledgerDataProviderService.findBalanceByAddressAndBlock(address, blockDto.getNumber());
-    return DataMapper.mapToAccountBalanceResponse(blockDto, balances);
+      List<StakeAddressBalanceDTO> balances = ledgerDataProviderService.findStakeAddressBalanceByAddressAndBlock(address, blockDto.getNumber());
+      if(Objects.isNull(balances) || balances.isEmpty()) {
+        log.error("[findBalanceDataByAddressAndBlock] No balance found for {}", address);
+        throw ExceptionFactory.invalidAddressError();
+      }
+    return DataMapper.mapToStakeAddressBalanceResponse(blockDto, balances.getFirst());
     } else {
       log.debug("[findBalanceDataByAddressAndBlock] Address isn't StakeAddress");
 

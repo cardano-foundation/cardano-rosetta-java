@@ -35,6 +35,7 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
   private final DelegationRepository delegationRepository;
   private final PoolRegistrationRepository poolRegistrationRepository;
   private final PoolRetirementRepository poolRetirementRepository;
+  private final StakeAddressRepository stakeAddressRepository;
 
   @PostConstruct
   void init() {
@@ -119,6 +120,12 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
   public List<AddressBalanceDTO> findBalanceByAddressAndBlock(String address, Long number) {
     List<AddressBalanceEntity> balances = addressBalanceRepository.findAdressBalanceByAddressAndBlockNumber(address, number);
     return balances.stream().map(AddressBalanceDTO::fromEntity).toList();
+  }
+
+  @Override
+  public List<StakeAddressBalanceDTO> findStakeAddressBalanceByAddressAndBlock(String address, Long number) {
+    List<StakeAddressBalanceEntity> balances = stakeAddressRepository.findStakeAddressBalanceByAddressAndBlockNumber(address, number);
+    return balances.stream().map(StakeAddressBalanceDTO::fromEntity).toList();
   }
 
   @Override
