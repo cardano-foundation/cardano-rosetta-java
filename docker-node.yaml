@@ -1,0 +1,13 @@
+version: '3.8'
+services:
+  cardano-node:
+    image: "inputoutput/cardano-node:${CARDANO_NODE_VERSION}"
+    container_name: cardano-node
+    environment:
+      NETWORK: ${NETWORK}
+      CARDANO_NODE_SOCKET_PATH: /ipc/node.socket
+    volumes:
+      - ./node-ipc:/ipc
+    restart: "no"
+    ports:
+      - "${CARDANO_NODE_PORT}:3001"
