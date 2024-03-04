@@ -21,6 +21,6 @@ public enum AddressTypeEnum {
                 return b;
             }
         }
-        return BASE;
+        return ENTERPRISE;
     }
 }

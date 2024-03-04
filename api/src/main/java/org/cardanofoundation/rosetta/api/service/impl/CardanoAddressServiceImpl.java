@@ -18,6 +18,8 @@ import org.springframework.stereotype.Service;
 public class CardanoAddressServiceImpl implements CardanoAddressService {
 
     public String getCardanoAddress(AddressTypeEnum addressType, PublicKey stakingCredential, PublicKey publicKey, NetworkEnum networkEnum) throws IllegalAccessException {
+        if(publicKey == null)
+            throw new IllegalAccessException("Public key is required");
         String address;
         switch (addressType) {
             case BASE:
@@ -30,10 +32,14 @@ public class CardanoAddressServiceImpl implements CardanoAddressService {
                 break;
             case REWARD:
                 log.debug("Deriving reward address");
-                if(stakingCredential == null)
-                    throw new IllegalAccessException("Staking credential is required for reward address");
-                log.debug("Deriving reward address with staking credential: {}", stakingCredential);
-                Address rewardAddress = AddressProvider.getRewardAddress(HdPublicKey.fromBytes(stakingCredential.getHexBytes().getBytes()), networkEnum.getNetwork());
+                Address rewardAddress;
+                if(stakingCredential == null) {
+                    rewardAddress= AddressProvider.getRewardAddress(HdPublicKey.fromBytes(publicKey.getHexBytes().getBytes()), networkEnum.getNetwork());
+                    log.debug("Deriving reward address with staking credential: {}", publicKey);
+                } else {
+                    rewardAddress= AddressProvider.getRewardAddress(HdPublicKey.fromBytes(stakingCredential.getHexBytes().getBytes()), networkEnum.getNetwork());
+                    log.debug("Deriving reward address with staking credential: {}", stakingCredential);
+                }
                 address = rewardAddress.getAddress();
                 break;
             case ENTERPRISE:
