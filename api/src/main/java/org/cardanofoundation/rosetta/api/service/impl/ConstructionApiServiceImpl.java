@@ -32,16 +32,23 @@ import java.util.List;
 @Slf4j
 public class ConstructionApiServiceImpl implements ConstructionApiService {
 
+    @Autowired
     private CardanoAddressService cardanoAddressService;
 
     @Override
     public ConstructionDeriveResponse constructionDeriveService(ConstructionDeriveRequest constructionDeriveRequest) throws IllegalAccessException, CborSerializationException {
         PublicKey publicKey = constructionDeriveRequest.getPublicKey();
         log.info("Deriving address for public key: {}", publicKey);
+        NetworkEnum network = NetworkEnum.fromValue(constructionDeriveRequest.getNetworkIdentifier().getNetwork());
+        String addressType = "";
+        PublicKey stakingCredential = null;
         ConstructionDeriveRequestMetadata metadata = constructionDeriveRequest.getMetadata();
-        String addressType = metadata.getAddressType();
-        String networkName = constructionDeriveRequest.getNetworkIdentifier().getNetwork();
-        String address = cardanoAddressService.getCardanoAddress(AddressTypeEnum.fromValue(addressType), metadata.getStakingCredential(), publicKey, NetworkEnum.fromValue(networkName));
+        if(metadata != null) {
+            addressType = metadata.getAddressType();
+
+            stakingCredential = metadata.getStakingCredential();
+        }
+        String address = cardanoAddressService.getCardanoAddress(AddressTypeEnum.fromValue(addressType), stakingCredential, publicKey, network);
         return new ConstructionDeriveResponse(new AccountIdentifier(address));
     }
 

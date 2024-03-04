@@ -31,7 +31,7 @@ public enum NetworkEnum {
                 return b;
             }
         }
-        return null;
+        return TESTNET;
     }
 
 }

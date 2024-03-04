@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.cardanofoundation.rosetta.api.model.PoolMargin;
 import org.cardanofoundation.rosetta.api.model.PoolMetadata;
+import org.cardanofoundation.rosetta.api.model.Relay;
 
 
 @Data
@@ -20,7 +21,7 @@ public class PoolRegistrationParams {
     private String pledge;
     private String cost;
     private List<String> poolOwners;
-    private List<PoolRelay> relays;
+    private List<Relay> relays;
     private PoolMargin margin;
     private String marginPercentage;
     private PoolMetadata poolMetadata;
