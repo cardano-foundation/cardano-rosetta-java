@@ -12,6 +12,7 @@ import com.bloxbean.cardano.client.exception.AddressExcepion;
 import com.bloxbean.cardano.client.exception.CborDeserializationException;
 import com.bloxbean.cardano.client.exception.CborSerializationException;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.api.model.ConstructionDeriveRequestMetadata;
 
@@ -31,18 +32,23 @@ import java.util.List;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class ConstructionApiServiceImpl implements ConstructionApiService {
 
-    @Autowired
-    private CardanoAddressService cardanoAddressService;
+    private final CardanoAddressService cardanoAddressService;
 
     @Override
     public ConstructionDeriveResponse constructionDeriveService(ConstructionDeriveRequest constructionDeriveRequest) throws IllegalAccessException, CborSerializationException {
         PublicKey publicKey = constructionDeriveRequest.getPublicKey();
         log.info("Deriving address for public key: {}", publicKey);
         NetworkEnum network = NetworkEnum.fromValue(constructionDeriveRequest.getNetworkIdentifier().getNetwork());
+        if (network == null)
+            throw new IllegalAccessException("Invalid network");
         ConstructionDeriveRequestMetadata metadata = constructionDeriveRequest.getMetadata();
-        AddressTypeEnum addressType = metadata != null ? AddressTypeEnum.fromValue(metadata.getAddressType()) : AddressTypeEnum.ENTERPRISE;
+        // Default address type is enterprise
+        AddressTypeEnum addressType = metadata != null ? AddressTypeEnum.fromValue(metadata.getAddressType()) : null;
+        addressType = addressType != null ? addressType : AddressTypeEnum.ENTERPRISE;
+
         PublicKey stakingCredential = null;
         if(addressType == AddressTypeEnum.BASE) {
             if(metadata == null || metadata.getStakingCredential() == null)

@@ -7,7 +7,8 @@ public enum NetworkEnum {
 
     MAINNET("mainnet", Networks.mainnet()),
     PREPROD("preprod", Networks.testnet()),
-    TESTNET("testnet", Networks.testnet());
+    TESTNET("testnet", Networks.testnet()),
+    DEVNET("devnet", Networks.testnet());
 
     private final String value;
     private final Network network;
@@ -31,7 +32,7 @@ public enum NetworkEnum {
                 return b;
             }
         }
-        return TESTNET;
+        return null;
     }
 
 }
