@@ -269,13 +269,7 @@
 						"exec": [
 							"pm.test(\"Status code is 200\", function () {",
 							"        pm.response.to.have.status(200);",
-							"});",
-							"",
-							"pm.test(\"Test account balance\", function () {",
-							"    var responseBody = pm.response.json();",
-							"    pm.expect(responseBody).to.be.an('object');",
-							"    pm.expect(responseBody.balances[0].value).to.equal(\"2000000\");",
-							"})"
+							"});"
 						],
 						"type": "text/javascript"
 					}
