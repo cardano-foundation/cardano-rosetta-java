@@ -10,6 +10,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.cardanofoundation.rosetta.api.model.dto.PoolRegistrationParams;
 
 /**
  * Metadata related to Cardano operations
