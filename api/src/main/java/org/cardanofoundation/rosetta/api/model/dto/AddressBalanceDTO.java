@@ -18,10 +18,12 @@ public class AddressBalanceDTO {
     private Long slot;
     private BigInteger quantity;
     private String policy;
+    private String assetName;
 
 
     public static AddressBalanceDTO fromEntity(AddressBalanceEntity addressBalanceEntity) {
         return AddressBalanceDTO.builder()
+                .assetName(addressBalanceEntity.getAssetName())
                 .address(addressBalanceEntity.getAddress())
                 .unit(addressBalanceEntity.getUnit())
                 .slot(addressBalanceEntity.getSlot())
