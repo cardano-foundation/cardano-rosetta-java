@@ -172,26 +172,4 @@ public class BlockServiceImpl implements BlockService {
     }
   }
 
-  @Override
-  public BlockUtxos findCoinsDataByAddress(String accountAddress, List<Currency> currenciesRequested) {
-    BlockDto block = this.findBlock(null, null);
-    if (Objects.isNull(block)) {
-      log.error("[findCoinsDataByAddress] Block not found");
-      throw ExceptionFactory.blockNotFoundException();
-    }
-    log.info(
-            "[findCoinsDataByAddress] Looking for utxos for address {} and {} specified currencies",
-            accountAddress,
-            currenciesRequested.size()
-    );
-    List<Utxo> utxoDetails = ledgerDataProviderService.findUtxoByAddressAndBlock(accountAddress, block.getHash(), currenciesRequested);
-    log.debug("[findCoinsByAddress] Found {} coin details for address {}", utxoDetails.size(),
-            accountAddress);
-
-    return BlockUtxos.builder()
-            .block(block)
-            .utxos(utxoDetails)
-            .build();
-  }
-
 }

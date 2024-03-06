@@ -5,13 +5,15 @@ import org.cardanofoundation.rosetta.api.common.constants.Constants;
 import org.cardanofoundation.rosetta.api.model.*;
 import org.cardanofoundation.rosetta.api.model.Currency;
 import org.cardanofoundation.rosetta.api.model.OperationStatus;
-import org.cardanofoundation.rosetta.api.model.dto.*;
+import org.cardanofoundation.rosetta.api.model.dto.AddressBalanceDTO;
+import org.cardanofoundation.rosetta.api.model.dto.BlockDto;
+import org.cardanofoundation.rosetta.api.model.dto.GenesisBlockDto;
 import org.cardanofoundation.rosetta.api.model.rest.*;
+import org.cardanofoundation.rosetta.api.model.rest.Coin;
 import org.cardanofoundation.rosetta.api.model.rosetta.BlockMetadata;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static org.cardanofoundation.rosetta.api.common.constants.Constants.*;
 import static org.cardanofoundation.rosetta.api.util.Formatters.hexStringFormatter;
@@ -198,6 +200,25 @@ public class DataMapper {
 //                                    .metadata(addressBalanceDTO.getPolicy() != null ? Map.of("policyId", addressBalanceDTO.getPolicy()) : null) // TODO check metadata for AccountBalanceResponse
                                     .build()).build()).toList())
             .build();
+  }
+
+  public static AccountCoinsResponse mapToAccountCoinsResponse(BlockDto block, List<Utxo> utxos) {
+    return AccountCoinsResponse.builder()
+            .blockIdentifier(BlockIdentifier.builder()
+                    .hash(block.getHash())
+                    .index(block.getNumber())
+                    .build())
+            .coins(utxos.stream().map(utxo -> Coin.builder()
+                    .coinIdentifier(CoinIdentifier.builder()
+                            .identifier(utxo.getTransactionHash() + ":" + utxo.getIndex())
+                            .build())
+                    .amount(Amount.builder()
+                            .value(utxo.getQuantity())
+                            .currency(Currency.builder()
+                                    .symbol(utxo.getName())
+                                    .decimals(MULTI_ASSET_DECIMALS)
+            .build()).build()).build()).toList()).build();
+
   }
 }
 

@@ -10,7 +10,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.cardanofoundation.rosetta.api.config.RosettaConfig;
 import org.cardanofoundation.rosetta.api.exception.ExceptionFactory;
-import org.cardanofoundation.rosetta.api.mapper.DataMapper;
 import org.cardanofoundation.rosetta.api.model.dto.*;
 import org.cardanofoundation.rosetta.api.model.rest.BlockIdentifier;
 import org.cardanofoundation.rosetta.api.model.rest.Currency;
@@ -127,13 +126,13 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
   }
 
   @Override
-  public List<Utxo> findUtxoByAddressAndBlock(String address, String hash, List<Currency> currencies) {
-    List<AddressUtxoEntity> addressUtxoEntities = addressUtxoRepository.findUtxoByAddressAndBlock(address, hash);
+  public List<Utxo> findUtxoByAddressAndCurrency(String address, List<Currency> currencies) {
+    List<AddressUtxoEntity> addressUtxoEntities = addressUtxoRepository.findUtxosByAddress(address);
     List<Utxo> utxos = new ArrayList<>();
     for(AddressUtxoEntity entity : addressUtxoEntities) {
       for(Amt amt : entity.getAmounts()) {
-        boolean present = currencies.stream().filter(currency -> currency.getSymbol().equals(amt.getUnit())).findFirst().isPresent();
-        if(present) {
+        boolean addToList = currencies.isEmpty() ? true : currencies.stream().filter(currency -> currency.getSymbol().equals(amt.getUnit())).findFirst().isPresent();
+        if(addToList) {
           Utxo utxo = Utxo.builder()
                   .policy(amt.getPolicyId())
 //                  .value() // TODO

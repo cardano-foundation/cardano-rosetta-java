@@ -14,7 +14,7 @@ jobs:
       - name: "Set up environment"
         run: docker compose --env-file .env.IntegrationTest -f docker-integration-test-environment.yaml up --build -d
       - name: "Wait for docker to finish building"
-        run: sleep 60
+        run: sleep 90
       - name: "Install Node"
         uses: actions/setup-node@v1
         with:

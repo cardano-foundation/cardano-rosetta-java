@@ -1,6 +1,9 @@
 package org.cardanofoundation.rosetta.api.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Builder;
+import lombok.Data;
+
 import java.util.List;
 import java.util.Map;
 import javax.validation.Valid;
@@ -9,6 +12,8 @@ import javax.validation.Valid;
  * Coin contains its unique identifier and the amount it represents.
  */
 
+@Builder
+@Data
 public class Coin {
 
   @JsonProperty("coin_identifier")

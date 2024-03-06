@@ -24,7 +24,7 @@ public interface LedgerDataProviderService {
 
     List<AddressBalanceDTO> findBalanceByAddressAndBlock(String address, Long number);
 
-    List<Utxo> findUtxoByAddressAndBlock(String address, String hash, List<Currency> currencies);
+    List<Utxo> findUtxoByAddressAndCurrency(String address, List<Currency> currencies);
 
     Long findLatestBlockNumber();
 
