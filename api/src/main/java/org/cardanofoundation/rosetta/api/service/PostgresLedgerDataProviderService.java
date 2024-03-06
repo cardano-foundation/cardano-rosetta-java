@@ -24,8 +24,6 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class PostgresLedgerDataProviderService implements LedgerDataProviderService {
 
-  private final Map<String, PostgresLedgerDataProviderClient> clients = new HashMap<>();
-  private final RosettaConfig rosettaConfig;
   private final BlockRepository blockRepository;
   private final AddressBalanceRepository addressBalanceRepository;
   private final AddressUtxoRepository addressUtxoRepository;
@@ -35,23 +33,6 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
   private final PoolRegistrationRepository poolRegistrationRepository;
   private final PoolRetirementRepository poolRetirementRepository;
   private final StakeAddressRepository stakeAddressRepository;
-
-  @PostConstruct
-  void init() {
-    rosettaConfig.getNetworks().forEach(networkConfig -> {
-      clients.put(networkConfig.getSanitizedNetworkId(), PostgresLedgerDataProviderClient.builder()
-          .networkId(networkConfig.getSanitizedNetworkId()).build());
-    });
-  }
-
-  @Override
-  public BlockIdentifier getTip(final String networkId) {
-    if (clients.containsKey(networkId)) {
-      return clients.get(networkId).getTip();
-    }
-
-    throw new IllegalArgumentException("Invalid network id specified.");
-  }
 
   @Override
   public GenesisBlockDto findGenesisBlock() {
@@ -138,7 +119,7 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
     List<Utxo> utxos = new ArrayList<>();
     for(AddressUtxoEntity entity : addressUtxoEntities) {
       for(Amt amt : entity.getAmounts()) {
-        boolean addToList = currencies.isEmpty() ? true : currencies.stream().filter(currency -> currency.getSymbol().equals(amt.getUnit())).findFirst().isPresent();
+        boolean addToList = currencies.isEmpty() || currencies.stream().anyMatch(currency -> currency.getSymbol().equals(amt.getUnit()));
         if(addToList) {
           Utxo utxo = Utxo.builder()
                   .policy(amt.getPolicyId())

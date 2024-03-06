@@ -190,7 +190,7 @@ public class DataMapper {
    * @return The Rosetta compatible AccountBalanceResponse
    */
   public static AccountBalanceResponse mapToAccountBalanceResponse(BlockDto block, List<AddressBalanceDTO> balances) {
-    List<AddressBalanceDTO> nonLovelaceBalances = balances.stream().filter(balance -> !balance.getAssetName().equals(LOVELACE)).collect(Collectors.toList());
+    List<AddressBalanceDTO> nonLovelaceBalances = balances.stream().filter(balance -> !balance.getAssetName().equals(LOVELACE)).toList();
     long sum = balances.stream().filter(balance -> balance.getAssetName().equals(LOVELACE)).mapToLong(value -> value.getQuantity().longValue()).sum();
     List<Amount> amounts = new ArrayList<>();
     if (sum > 0) {
@@ -212,7 +212,7 @@ public class DataMapper {
                     .hash(block.getHash())
                     .index(block.getNumber())
                     .build())
-            .balances(List.of(mapAmount(balance.getQuantity().toString())))
+            .balances(List.of(Objects.requireNonNull(mapAmount(balance.getQuantity().toString()))))
             .build();
   }
 

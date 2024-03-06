@@ -3,15 +3,13 @@ package org.cardanofoundation.rosetta.api.service.impl;
 import com.bloxbean.cardano.client.account.Account;
 import com.bloxbean.cardano.client.address.Address;
 import com.bloxbean.cardano.client.address.AddressProvider;
-import com.bloxbean.cardano.client.common.model.Network;
 import com.bloxbean.cardano.client.crypto.bip32.key.HdPublicKey;
 import com.bloxbean.cardano.client.util.HexUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.codec.binary.Hex;
+import org.cardanofoundation.rosetta.api.common.enumeration.AddressType;
+import org.cardanofoundation.rosetta.api.common.enumeration.NetworkEnum;
 import org.cardanofoundation.rosetta.api.model.PublicKey;
-import org.cardanofoundation.rosetta.api.model.enums.AddressTypeEnum;
-import org.cardanofoundation.rosetta.api.model.enums.NetworkEnum;
 import org.cardanofoundation.rosetta.api.service.CardanoAddressService;
 import org.springframework.stereotype.Service;
 
@@ -20,7 +18,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class CardanoAddressServiceImpl implements CardanoAddressService {
 
-    public String getCardanoAddress(AddressTypeEnum addressType, PublicKey stakingCredential, PublicKey publicKey, NetworkEnum networkEnum) throws IllegalAccessException {
+    public String getCardanoAddress(AddressType addressType, PublicKey stakingCredential, PublicKey publicKey, NetworkEnum networkEnum) throws IllegalAccessException {
         if(publicKey == null)
             throw new IllegalAccessException("Public key is required");
         String address;

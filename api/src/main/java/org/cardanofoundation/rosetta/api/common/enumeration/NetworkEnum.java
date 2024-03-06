@@ -1,4 +1,4 @@
-package org.cardanofoundation.rosetta.api.model.enums;
+package org.cardanofoundation.rosetta.api.common.enumeration;
 
 import com.bloxbean.cardano.client.common.model.Network;
 import com.bloxbean.cardano.client.common.model.Networks;

@@ -63,7 +63,7 @@ public class BlockServiceImpl implements BlockService {
   }
 
   private String getPoolDeposit() {
-    String content = null;
+    String content;
     try {
       content = FileUtils.fileReader(genesisPath);
     } catch (IOException e) {
