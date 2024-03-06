@@ -13,13 +13,22 @@ to fetch the data from the node.
 - [x] Docker-compose setup 
 - [x] Integration test setup
 - API calls
-    - [x] /network/list
-    - [x] /network/status
-    - [x] /network/options
-    - [x] /block/*
-    - [ ] /mempool/*
-    - [x] /account/*
-    - [ ] /construction/*
+  - Data API
+  - [x] /network/list
+  - [x] /network/status
+  - [x] /network/options
+  - [x] /block/*
+  - [ ] /mempool/*
+  - [x] /account/*
+  - Construction API
+  - [x] /construction/derive
+  - [ ] /construction/preprocess
+  - [ ] /construction/metadata
+  - [ ] /construction/payloads
+  - [ ] /construction/combine
+  - [ ] /construction/parse
+  - [ ] /construction/hash
+  - [ ] /construction/submit
 
 
 ## Getting Started

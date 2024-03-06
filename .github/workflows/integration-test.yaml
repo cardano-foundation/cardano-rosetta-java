@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - main
+      - feat/implement-account-coin # just for testing and fixing the action
   pull_request:
 
 jobs:
@@ -12,9 +13,9 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: "Set up environment"
-        run: docker compose --env-file .env.IntegrationTest -f docker-integration-test-environment.yaml up --build -d
+        run: docker compose --env-file .env.IntegrationTest -f docker-integration-test-environment.yaml up --build
       - name: "Wait for docker to finish building"
-        run: sleep 90
+        run: sleep 30
       - name: "Install Node"
         uses: actions/setup-node@v1
         with:
