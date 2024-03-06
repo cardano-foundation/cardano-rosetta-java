@@ -15,7 +15,10 @@ jobs:
       - name: "Set up environment"
         run: docker compose --env-file .env.IntegrationTest -f docker-integration-test-environment.yaml up --build -d
       - name: "Wait for docker to finish building"
-        run: sleep 120
+        run: |
+          while [[ "$(curl -L 'localhost:8081/network/options' -H 'Content-Type: application/json' --data '{"metadata": {}}' -X POST -s -o /dev/null -w ''%{http_code}'')" != "200" ]]; 
+          do sleep 10; 
+          done
       - name: "Install Node"
         uses: actions/setup-node@v1
         with:
