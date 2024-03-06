@@ -12,11 +12,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: "Set up environment"
-        run: docker compose --env-file .env.IntegrationTest -f docker-integration-test-environment.yaml up --build -d
       - name: "Wait for docker to finish building"
         run: |
-          while [[ "$(curl -L 'localhost:8081/network/options' -H 'Content-Type: application/json' --data '{"metadata": {}}' -X POST -s -o /dev/null -w ''%{http_code}'')" != "200" ]]; 
+          docker compose --env-file .env.IntegrationTest -f docker-integration-test-environment.yaml up --build -d
+          source .env.IntegrationTest
+          while [[ "$(curl -L 'localhost:${API_EXPOSED_PORT}/network/options' -H 'Content-Type: application/json' --data '{"metadata": {}}' -X POST -s -o /dev/null -w ''%{http_code}'')" != "200" ]]; 
           do sleep 10; 
           done
       - name: "Install Node"
