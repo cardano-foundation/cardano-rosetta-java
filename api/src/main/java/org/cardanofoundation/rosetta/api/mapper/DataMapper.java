@@ -1,6 +1,7 @@
 package org.cardanofoundation.rosetta.api.mapper;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.binary.Hex;
 import org.cardanofoundation.rosetta.api.common.constants.Constants;
 import org.cardanofoundation.rosetta.api.model.*;
 import org.cardanofoundation.rosetta.api.model.Currency;
@@ -173,7 +174,7 @@ public class DataMapper {
     amount.setCurrency(Currency.builder()
                             .symbol(hexStringFormatter(symbol))
                             .decimals(decimals)
-//                            .metadata() // TODO check metadata for Amount
+                            .metadata(metadata != null ? new Metadata((String) metadata.get("policyId")) : null) // TODO check metadata for Amount
                             .build());
     return amount;
   }
@@ -185,18 +186,29 @@ public class DataMapper {
    * @return The Rosetta compatible AccountBalanceResponse
    */
   public static AccountBalanceResponse mapToAccountBalanceResponse(BlockDto block, List<AddressBalanceDTO> balances) {
+    List<AddressBalanceDTO> nonLovelaceBalances = balances.stream().filter(balance -> !balance.getAssetName().equals(LOVELACE)).collect(Collectors.toList());
+    long sum = balances.stream().filter(balance -> balance.getAssetName().equals(LOVELACE)).mapToLong(value -> value.getQuantity().longValue()).sum();
+    List<Amount> amounts = new ArrayList<>();
+    if (sum > 0) {
+      amounts.add(mapAmount(String.valueOf(sum)));
+    }
+    nonLovelaceBalances.forEach(balance -> amounts.add(mapAmount(balance.getQuantity().toString(), Hex.encodeHexString(balance.getAssetName().getBytes()), MULTI_ASSET_DECIMALS, Map.of("policyId", balance.getPolicy()))));
     return AccountBalanceResponse.builder()
             .blockIdentifier(BlockIdentifier.builder()
                     .hash(block.getHash())
                     .index(block.getNumber())
                     .build())
-            .balances(balances.stream().map(addressBalanceDTO -> Amount.builder()
-                            .value(addressBalanceDTO.getQuantity().toString())
-                            .currency(Currency.builder()
-                                    .decimals(MULTI_ASSET_DECIMALS)
-                                    .symbol(addressBalanceDTO.getUnit())
-//                                    .metadata(addressBalanceDTO.getPolicy() != null ? Map.of("policyId", addressBalanceDTO.getPolicy()) : null) // TODO check metadata for AccountBalanceResponse
-                                    .build()).build()).toList())
+            .balances(amounts)
+            .build();
+  }
+
+  public static AccountBalanceResponse mapToStakeAddressBalanceResponse(BlockDto block, StakeAddressBalanceDTO balance) {
+    return AccountBalanceResponse.builder()
+            .blockIdentifier(BlockIdentifier.builder()
+                    .hash(block.getHash())
+                    .index(block.getNumber())
+                    .build())
+            .balances(List.of(mapAmount(balance.getQuantity().toString())))
             .build();
   }
 }
