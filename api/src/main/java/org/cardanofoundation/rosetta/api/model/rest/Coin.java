@@ -9,8 +9,11 @@ import java.util.Objects;
 import javax.annotation.Generated;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-import org.openapitools.client.model.Amount;
-import org.openapitools.client.model.CoinIdentifier;
+
+import lombok.Builder;
+import lombok.Data;
+import org.cardanofoundation.rosetta.api.model.CoinIdentifier;
+import org.cardanofoundation.rosetta.api.model.Amount;
 
 /**
  * Coin contains its unique identifier and the amount it represents.
@@ -18,6 +21,8 @@ import org.openapitools.client.model.CoinIdentifier;
 
 @Schema(name = "Coin", description = "Coin contains its unique identifier and the amount it represents.")
 @Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2023-03-21T15:54:41.273447600+07:00[Asia/Bangkok]")
+@Builder
+@Data
 public class Coin {
 
   @JsonProperty("coin_identifier")

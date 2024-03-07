@@ -17,7 +17,6 @@ import org.cardanofoundation.rosetta.api.model.rest.Utxo;
  * Exposes functions to access chain data that has been indexed according to Rosetta API needs.
  */
 public interface LedgerDataProviderService {
-    BlockIdentifier getTip(final String networkId);
 
     GenesisBlockDto findGenesisBlock();
 
@@ -25,7 +24,7 @@ public interface LedgerDataProviderService {
 
     List<AddressBalanceDTO> findBalanceByAddressAndBlock(String address, Long number);
 
-    List<Utxo> findUtxoByAddressAndBlock(String address, String hash, List<Currency> currencies);
+    List<Utxo> findUtxoByAddressAndCurrency(String address, List<Currency> currencies);
     List<StakeAddressBalanceDTO> findStakeAddressBalanceByAddressAndBlock(String address, Long number);
 
     Long findLatestBlockNumber();

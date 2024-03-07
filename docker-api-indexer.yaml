@@ -30,6 +30,12 @@ services:
         condition: service_healthy
     volumes:
       - ./config:/config
+    healthcheck:
+      test: [ "CMD-SHELL", "curl --fail http://localhost:8081/network/options -H 'Content-Type: application/json' --data '{\"metadata\": {}}' -X POST" ]
+      interval: 30s
+      retries: 20
+      start_period: 20s
+      timeout: 10s
   yaci-indexer:
     build:
       context: ./
@@ -70,17 +76,6 @@ services:
     restart: on-failure
     volumes:
       - ./data/postgres-data:/var/lib/postgresql/data
-  cardano-node:
-    image: "inputoutput/cardano-node:${CARDANO_NODE_VERSION}"
-    container_name: cardano-node
-    environment:
-      NETWORK: ${NETWORK}
-      CARDANO_NODE_SOCKET_PATH: /ipc/node.socket
-    volumes:
-        - ./node-ipc:/ipc
-    restart: "no"
-    ports:
-      - "${CARDANO_NODE_PORT}:3001"
 networks:
   default:
     name: cardano-rosetta-java

@@ -1,16 +1,12 @@
 package org.cardanofoundation.rosetta.api.service.impl;
 
-
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.parser.OpenAPIV3Parser;
 import jakarta.annotation.PostConstruct;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -20,7 +16,6 @@ import java.util.Objects;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
 import org.cardanofoundation.rosetta.api.common.constants.Constants;
 import org.cardanofoundation.rosetta.api.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.api.common.enumeration.OperationTypeStatus;
@@ -47,7 +42,6 @@ import org.cardanofoundation.rosetta.api.util.FileUtils;
 import org.cardanofoundation.rosetta.api.util.RosettaConstants;
 import org.json.JSONObject;
 import org.openapitools.client.model.Allow;
-import org.openapitools.client.model.BalanceExemption;
 import org.openapitools.client.model.Error;
 import org.openapitools.client.model.OperationStatus;
 import org.openapitools.client.model.Version;
@@ -62,11 +56,7 @@ public class NetworkServiceImpl implements NetworkService {
 
   private final RosettaConfig rosettaConfig;
 
-
   private final LedgerDataProviderService ledgerDataProviderService;
-
-
-  private List<BalanceExemption> balanceExemptions;
 
   @Value("${cardano.rosetta.TOPOLOGY_FILEPATH}")
   private String topologyFilepath;
@@ -77,10 +67,7 @@ public class NetworkServiceImpl implements NetworkService {
   private String cardanoNodeVersion;
   private final ResourceLoader resourceLoader;
 
-  private String networkId;
-  private Integer networkMagic;
-
-  @PostConstruct
+    @PostConstruct
   public void filePathExistingValidator() throws ServerException {
     validator(topologyFilepath);
     validator(genesisPath);
@@ -161,8 +148,8 @@ public class NetworkServiceImpl implements NetworkService {
 
     String content = FileUtils.fileReader(genesisPath);
     JSONObject object = new JSONObject(content);
-    networkId = ((String) object.get("networkId")).toLowerCase();
-    networkMagic = (Integer) object.get("networkMagic");
+      String networkId = ((String) object.get("networkId")).toLowerCase();
+      Integer networkMagic = (Integer) object.get("networkMagic");
 
     if (networkId.equals("mainnet")) {
       return Network.builder().networkId(networkId).build();
@@ -200,7 +187,10 @@ public class NetworkServiceImpl implements NetworkService {
     log.info("[getPeersFromConfig] Looking for peers from topologyFile");
     List<Producer> producers = Optional.ofNullable(topologyFile).map(
             TopologyConfig::getProducers)
-        .orElseGet(() -> getPublicRoots(topologyFile.getPublicRoots()));
+        .orElseGet(() -> {
+            assert topologyFile != null;
+            return getPublicRoots(topologyFile.getPublicRoots());
+        });
     log.debug("[getPeersFromConfig] Found " + producers.size() + " peers");
     return producers.stream().map(producer -> new Peer(producer.getAddr())).toList();
   }

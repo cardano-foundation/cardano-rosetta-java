@@ -6,8 +6,12 @@ import org.cardanofoundation.rosetta.api.common.constants.Constants;
 import org.cardanofoundation.rosetta.api.model.*;
 import org.cardanofoundation.rosetta.api.model.Currency;
 import org.cardanofoundation.rosetta.api.model.OperationStatus;
-import org.cardanofoundation.rosetta.api.model.dto.*;
+import org.cardanofoundation.rosetta.api.model.dto.AddressBalanceDTO;
+import org.cardanofoundation.rosetta.api.model.dto.BlockDto;
+import org.cardanofoundation.rosetta.api.model.dto.GenesisBlockDto;
+import org.cardanofoundation.rosetta.api.model.dto.StakeAddressBalanceDTO;
 import org.cardanofoundation.rosetta.api.model.rest.*;
+import org.cardanofoundation.rosetta.api.model.rest.Coin;
 import org.cardanofoundation.rosetta.api.model.rosetta.BlockMetadata;
 import org.springframework.stereotype.Component;
 
@@ -186,7 +190,7 @@ public class DataMapper {
    * @return The Rosetta compatible AccountBalanceResponse
    */
   public static AccountBalanceResponse mapToAccountBalanceResponse(BlockDto block, List<AddressBalanceDTO> balances) {
-    List<AddressBalanceDTO> nonLovelaceBalances = balances.stream().filter(balance -> !balance.getAssetName().equals(LOVELACE)).collect(Collectors.toList());
+    List<AddressBalanceDTO> nonLovelaceBalances = balances.stream().filter(balance -> !balance.getAssetName().equals(LOVELACE)).toList();
     long sum = balances.stream().filter(balance -> balance.getAssetName().equals(LOVELACE)).mapToLong(value -> value.getQuantity().longValue()).sum();
     List<Amount> amounts = new ArrayList<>();
     if (sum > 0) {
@@ -208,8 +212,27 @@ public class DataMapper {
                     .hash(block.getHash())
                     .index(block.getNumber())
                     .build())
-            .balances(List.of(mapAmount(balance.getQuantity().toString())))
+            .balances(List.of(Objects.requireNonNull(mapAmount(balance.getQuantity().toString()))))
             .build();
+  }
+
+  public static AccountCoinsResponse mapToAccountCoinsResponse(BlockDto block, List<Utxo> utxos) {
+    return AccountCoinsResponse.builder()
+            .blockIdentifier(BlockIdentifier.builder()
+                    .hash(block.getHash())
+                    .index(block.getNumber())
+                    .build())
+            .coins(utxos.stream().map(utxo -> Coin.builder()
+                    .coinIdentifier(CoinIdentifier.builder()
+                            .identifier(utxo.getTransactionHash() + ":" + utxo.getIndex())
+                            .build())
+                    .amount(Amount.builder()
+                            .value(utxo.getQuantity())
+                            .currency(Currency.builder()
+                                    .symbol(utxo.getName())
+                                    .decimals(MULTI_ASSET_DECIMALS)
+            .build()).build()).build()).toList()).build();
+
   }
 }
 

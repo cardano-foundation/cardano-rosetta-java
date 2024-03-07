@@ -10,7 +10,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.cardanofoundation.rosetta.api.config.RosettaConfig;
 import org.cardanofoundation.rosetta.api.exception.ExceptionFactory;
-import org.cardanofoundation.rosetta.api.mapper.DataMapper;
 import org.cardanofoundation.rosetta.api.model.dto.*;
 import org.cardanofoundation.rosetta.api.model.rest.BlockIdentifier;
 import org.cardanofoundation.rosetta.api.model.rest.Currency;
@@ -25,8 +24,6 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class PostgresLedgerDataProviderService implements LedgerDataProviderService {
 
-  private final Map<String, PostgresLedgerDataProviderClient> clients = new HashMap<>();
-  private final RosettaConfig rosettaConfig;
   private final BlockRepository blockRepository;
   private final AddressBalanceRepository addressBalanceRepository;
   private final AddressUtxoRepository addressUtxoRepository;
@@ -36,23 +33,6 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
   private final PoolRegistrationRepository poolRegistrationRepository;
   private final PoolRetirementRepository poolRetirementRepository;
   private final StakeAddressRepository stakeAddressRepository;
-
-  @PostConstruct
-  void init() {
-    rosettaConfig.getNetworks().forEach(networkConfig -> {
-      clients.put(networkConfig.getSanitizedNetworkId(), PostgresLedgerDataProviderClient.builder()
-          .networkId(networkConfig.getSanitizedNetworkId()).build());
-    });
-  }
-
-  @Override
-  public BlockIdentifier getTip(final String networkId) {
-    if (clients.containsKey(networkId)) {
-      return clients.get(networkId).getTip();
-    }
-
-    throw new IllegalArgumentException("Invalid network id specified.");
-  }
 
   @Override
   public GenesisBlockDto findGenesisBlock() {
@@ -134,13 +114,13 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
   }
 
   @Override
-  public List<Utxo> findUtxoByAddressAndBlock(String address, String hash, List<Currency> currencies) {
-    List<AddressUtxoEntity> addressUtxoEntities = addressUtxoRepository.findUtxoByAddressAndBlock(address, hash);
+  public List<Utxo> findUtxoByAddressAndCurrency(String address, List<Currency> currencies) {
+    List<AddressUtxoEntity> addressUtxoEntities = addressUtxoRepository.findUtxosByAddress(address);
     List<Utxo> utxos = new ArrayList<>();
     for(AddressUtxoEntity entity : addressUtxoEntities) {
       for(Amt amt : entity.getAmounts()) {
-        boolean present = currencies.stream().filter(currency -> currency.getSymbol().equals(amt.getUnit())).findFirst().isPresent();
-        if(present) {
+        boolean addToList = currencies.isEmpty() || currencies.stream().anyMatch(currency -> currency.getSymbol().equals(amt.getUnit()));
+        if(addToList) {
           Utxo utxo = Utxo.builder()
                   .policy(amt.getPolicyId())
 //                  .value() // TODO

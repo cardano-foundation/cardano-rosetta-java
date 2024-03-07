@@ -13,13 +13,22 @@ to fetch the data from the node.
 - [x] Docker-compose setup 
 - [x] Integration test setup
 - API calls
-    - [x] /network/list
-    - [x] /network/status
-    - [x] /network/options
-    - [x] /block/*
-    - [ ] /mempool/*
-    - [x] /account/*
-    - [ ] /construction/*
+  - Data API
+  - [x] /network/list
+  - [x] /network/status
+  - [x] /network/options
+  - [x] /block/*
+  - [ ] /mempool/*
+  - [x] /account/*
+  - Construction API
+  - [x] /construction/derive
+  - [ ] /construction/preprocess
+  - [ ] /construction/metadata
+  - [ ] /construction/payloads
+  - [ ] /construction/combine
+  - [ ] /construction/parse
+  - [ ] /construction/hash
+  - [ ] /construction/submit
 
 
 ## Getting Started
@@ -38,8 +47,8 @@ to fetch the data from the node.
   - Copy `.env.docker-compose`  to `.env`
   - Fill the `.env` file with your values (explain below) or use the provided for docker-compose setup
   - Start SpringBoot application with `mvn spring-boot:run` within submodule `api` or `yaci-indexer`
-- Run `docker compose -f docker-yaci.yaml up --build` to start rosetta api service including yaci-store and a cardano node
-  - Using the provided env file `docker-compose --env-file .env.docker-compose -f docker-yaci.yaml up --build`
+- Run `docker compose -f docker-compose.yaml up --build` to start rosetta api service including yaci-store and a cardano node
+  - Using the provided env file `docker-compose --env-file .env.docker-compose -f docker-compose.yaml up --build`
 * Note: the first time you run the command, it will take a little bit of your time to build the cardano-node, and next time it will be cached when run. So please be patient.
 
 ### How to run integration tests
