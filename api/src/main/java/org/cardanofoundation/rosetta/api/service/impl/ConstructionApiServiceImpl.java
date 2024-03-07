@@ -1,6 +1,8 @@
 package org.cardanofoundation.rosetta.api.service.impl;
 
 import co.nstant.in.cbor.CborException;
+import co.nstant.in.cbor.model.Array;
+import co.nstant.in.cbor.model.UnicodeString;
 import com.bloxbean.cardano.client.exception.AddressExcepion;
 import com.bloxbean.cardano.client.exception.CborDeserializationException;
 import com.bloxbean.cardano.client.exception.CborSerializationException;
@@ -9,12 +11,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.api.common.enumeration.AddressType;
 import org.cardanofoundation.rosetta.api.model.ConstructionDeriveRequestMetadata;
-
-import org.cardanofoundation.rosetta.api.model.DepositParameters;
 import org.cardanofoundation.rosetta.api.model.PublicKey;
 import org.cardanofoundation.rosetta.api.common.enumeration.NetworkEnum;
+import org.cardanofoundation.rosetta.api.model.TransactionIdentifier;
 import org.cardanofoundation.rosetta.api.model.rest.*;
 import org.cardanofoundation.rosetta.api.service.CardanoAddressService;
+import org.cardanofoundation.rosetta.api.service.CardanoService;
 import org.cardanofoundation.rosetta.api.service.ConstructionApiService;
 import org.springframework.stereotype.Service;
 
@@ -26,6 +28,7 @@ import java.io.IOException;
 public class ConstructionApiServiceImpl implements ConstructionApiService {
 
     private final CardanoAddressService cardanoAddressService;
+    private final CardanoService cardanoService;
 
     @Override
     public ConstructionDeriveResponse constructionDeriveService(ConstructionDeriveRequest constructionDeriveRequest) throws IllegalAccessException, CborSerializationException {
@@ -76,8 +79,12 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
 
     @Override
     public TransactionIdentifierResponse constructionHashService(ConstructionHashRequest constructionHashRequest) {
-
-        return null;
+        Array array = cardanoService.decodeExtraData(constructionHashRequest.getSignedTransaction());
+        log.info("[constructionHash] About to get hash of signed transaction");
+        String transactionHash = cardanoService.getHashOfSignedTransaction(
+                ((UnicodeString) array.getDataItems().get(0)).getString());
+        log.info("[constructionHash] About to return hash of signed transaction");
+        return new TransactionIdentifierResponse(new TransactionIdentifier(transactionHash));
     }
 
     @Override
