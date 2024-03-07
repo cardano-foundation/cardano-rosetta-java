@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
+//TODO EPAM: move repositories into semantic packages
 public interface AddressBalanceRepository extends JpaRepository<AddressBalanceEntity, AddressBalanceId> {
 
 //    @Query(value =

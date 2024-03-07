@@ -2,7 +2,7 @@ package org.cardanofoundation.rosetta.api.common.enumeration;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 
-public enum AddressType {
+public enum AddressType { //TODO EPAM: for the package ...enumeration: maybe rosetta openapi has this data models?
   ENTERPRISE("Enterprise"),
   BASE("Base"),
   REWARD("Reward"),

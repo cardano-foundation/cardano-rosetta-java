@@ -34,6 +34,9 @@ class NetworkServiceImplTest {
     String genesisPath = "src/main/resources/network-config/network/preprod/genesis/shelley.json";
     ReflectionTestUtils.setField(networkServiceImplUnderTest , "genesisPath" , genesisPath);
 
+    //TODO EPAM: I would suggest to use //given //when //then  - patterns or spec pattern: it should ...
+    // and also would add here assertj library https://github.com/assertj/assertj
+
     // Run the test
     Network result = networkServiceImplUnderTest.getSupportedNetwork();
 

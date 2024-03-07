@@ -6,6 +6,8 @@ import org.cardanofoundation.rosetta.api.model.rest.OperationStatus;
 
 public class RosettaConstants {
 
+  //TODO EPAM: one more constant file like org.cardanofoundation.rosetta.api.common.constants.Constants ?
+
   public static final String BLOCKCHAIN_NAME = "cardano";
   public static final String MAINNET = "mainnet";
   public static final String PREPROD = "preprod";

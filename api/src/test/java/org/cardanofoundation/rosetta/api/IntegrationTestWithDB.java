@@ -28,3 +28,5 @@
 //    }
 //  }
 //}
+
+//TODO EPAM: testcontainers are very heavy in testing, why not to use h2 for integration testing with specific mode (;MODE=Postgres)

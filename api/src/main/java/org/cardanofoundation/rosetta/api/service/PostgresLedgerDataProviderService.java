@@ -58,7 +58,7 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
     log.debug("[findGenesisBlock] About to run findGenesisBlock query");
     List<BlockEntity> blocks = blockRepository.findGenesisBlock();
     if(!blocks.isEmpty()) {
-      BlockEntity genesis = blocks.getFirst();
+      BlockEntity genesis = blocks.get(0);
       return GenesisBlockDto.builder().hash(genesis.getHash())
           .number(genesis.getNumber())
           .build();
@@ -82,7 +82,7 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
     }
     if (!blocks.isEmpty()) {
       log.debug("[findBlock] Block found!");
-      BlockEntity block = blocks.getFirst();
+      BlockEntity block = blocks.get(0);
       SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
       dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
       // Populating transactions
@@ -108,7 +108,7 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
 
   private void populateUtxos(List<UtxoDto> inputs) {
     for (UtxoDto utxo : inputs) {
-      AddressUtxoEntity first = addressUtxoRepository.findAddressUtxoEntitiesByOutputIndexAndTxHash(utxo.getOutputIndex(), utxo.getTxHash()).getFirst();
+      AddressUtxoEntity first = addressUtxoRepository.findAddressUtxoEntitiesByOutputIndexAndTxHash(utxo.getOutputIndex(), utxo.getTxHash()).get(0);
       if(first != null) {
         utxo.populateFromUtxoEntity(first);
       }
@@ -176,7 +176,7 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
           blockNumber, blockHash);
       return null;
     }
-    List<TxnEntity> txList = txRepository.findTransactionsByBlockHash(byNumberAndHash.getFirst().getHash());
+    List<TxnEntity> txList = txRepository.findTransactionsByBlockHash(byNumberAndHash.get(0).getHash());
     log.debug(
         "[findTransactionsByBlock] Found {} transactions", txList.size());
     if (ObjectUtils.isNotEmpty(txList)) {

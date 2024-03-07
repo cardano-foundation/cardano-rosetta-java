@@ -17,14 +17,14 @@ spring:
       max-file-size: 8MB
       max-request-size: 16MB
   datasource:
-    driver-class-name: org.postgresql.Driver
-    username: ${DB_USER:rosetta_db_admin}
-    password: ${DB_SECRET:weakpwd#123_d}
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5433}/${DB_NAME:test}?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC&useLegacyDatetimeCode=false&createDatabaseIfNotExist=true&autoReconnect=true&currentSchema=${DB_SCHEMA:preprod}
+    driver-class-name: org.h2.Driver
+    username: ${DB_ADMIN_USER_NAME:rosetta_db_admin}
+    password: ${DB_ADMIN_USER_SECRET:weakpwd#123_d}
+    url: jdbc:h2:tcp://localhost:9090/mem:rosetta-java-preprod
   jpa:
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
+        dialect: org.hibernate.dialect.H2Dialect
         format_sql: true
         jdbc:
           lob:

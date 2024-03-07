@@ -25,7 +25,7 @@ public class SpringWebConfig implements WebMvcConfigurer {
     registry.addConverter(new Converter<String, Map<String, String>>() {
       @Override
       public Map<String, String> convert(@NonNull final String source) {
-        final ObjectMapper objectMapper = new ObjectMapper();
+        final ObjectMapper objectMapper = new ObjectMapper(); // TODO EPAM should be injected
         try {
           return objectMapper.readValue(source, Map.class);
         } catch (JsonProcessingException e) {
@@ -37,7 +37,7 @@ public class SpringWebConfig implements WebMvcConfigurer {
     registry.addConverter(new Converter<String, LinkedHashMap<String, String>>() {
       @Override
       public LinkedHashMap<String, String> convert(@NonNull final String source) {
-        final ObjectMapper objectMapper = new ObjectMapper();
+        final ObjectMapper objectMapper = new ObjectMapper(); // TODO EPAM should be injected
         try {
           return objectMapper.readValue(source, LinkedHashMap.class);
         } catch (JsonProcessingException e) {

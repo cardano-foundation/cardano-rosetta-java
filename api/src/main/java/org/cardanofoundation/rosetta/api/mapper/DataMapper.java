@@ -20,7 +20,8 @@ import static org.cardanofoundation.rosetta.api.util.RosettaConstants.SUCCESS_OP
 
 @Slf4j
 @Component
-public class DataMapper {
+public class DataMapper { //TODO EPAM rename to RequestToOptionsResponseMapper and put into network package?
+  //TODO EPAM: Why dont use mapping library like mapstruct or others?
 
   /**
    * Maps a NetworkRequest to a NetworkOptionsResponse.

@@ -24,8 +24,10 @@ import static org.cardanofoundation.rosetta.api.util.Formatters.hexStringFormatt
 
 @Slf4j
 public class OperationDataMapper {
+  //TODO EPAM: Fix naming, Why dont use mapping library like mapstruct or others?
 
-    @NotNull
+
+  @NotNull
     public static List<Operation> getAllOperations(TransactionDto transactionDto, String poolDeposit, OperationStatus status) {
         List<List<Operation>> totalOperations = new ArrayList<>();
         List<Operation> inputsAsOperations = getInputTransactionsasOperations(transactionDto, status);
@@ -57,6 +59,7 @@ public class OperationDataMapper {
         return operations;
     }
 
+    //TODO EPAM: rm commented code
 //    @NotNull
 //    private static List<Operation> getWithdrawlOperations(TransactionDto transactionDto, OperationStatus status, List<List<Operation>> totalOperations) {
 //        return IntStream.range(0,

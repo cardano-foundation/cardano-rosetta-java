@@ -7,7 +7,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Constants {
+public class Constants { // TODO EPAM: Why not in properties file?
     public static final String CARDANO = "cardano";
     public static final Integer PREPROD_NETWORK_MAGIC = 1;
     public static final Integer TESTNET_NETWORK_MAGIC = 1097911063;
