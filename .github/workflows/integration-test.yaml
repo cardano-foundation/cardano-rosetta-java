@@ -13,7 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: "Set up environment"
-        run: docker compose --env-file .env.IntegrationTest -f docker-integration-test-environment.yaml up --build -d
+        run: docker compose --env-file .env.IntegrationTest -f docker-integration-test-environment.yaml up --build -d --wait
       - name: "Wait for docker to finish building"
         run: sleep 60
       - name: "Install Node"
@@ -24,3 +24,5 @@ jobs:
         run: npm install -g newman
       - name: "Run tests"
         run: newman run ./postmanTests/rosetta-java.postman_collection.json -e postmanTests/Rosetta-java-env.postman_environment.json -r cli
+      - name: "Tear down environment"
+        run: docker compose --env-file .env.IntegrationTest -f docker-integration-test-environment.yaml down

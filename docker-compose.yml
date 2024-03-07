@@ -1,0 +1,7 @@
+version: '3.8'
+include:
+  - docker-yaci.yaml
+  - docker-node.yaml
+networks:
+  default:
+    name: cardano-rosetta-java
