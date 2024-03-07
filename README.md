@@ -14,22 +14,21 @@ to fetch the data from the node.
 - [x] Integration test setup
 - API calls
   - Data API
-  - [x] /network/list
-  - [x] /network/status
-  - [x] /network/options
-  - [x] /block/*
-  - [ ] /mempool/*
-  - [x] /account/*
+    - [x] /network/list
+    - [x] /network/status
+    - [x] /network/options
+    - [x] /block/*
+    - [ ] /mempool/*
+    - [x] /account/*
   - Construction API
-  - [x] /construction/derive
-  - [ ] /construction/preprocess
-  - [ ] /construction/metadata
-  - [ ] /construction/payloads
-  - [ ] /construction/combine
-  - [ ] /construction/parse
-  - [x] /construction/hash
-  - [ ] /construction/submit
-
+    - [x] /construction/derive
+    - [ ] /construction/preprocess
+    - [ ] /construction/metadata
+    - [ ] /construction/payloads
+    - [ ] /construction/combine
+    - [ ] /construction/parse
+    - [x] /construction/hash
+    - [ ] /construction/submit
 
 ## Getting Started
 
