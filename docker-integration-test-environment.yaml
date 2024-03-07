@@ -21,9 +21,9 @@ services:
       - ./test:/test
     healthcheck:
       test: [ "CMD-SHELL", "curl --fail http://localhost:8081/network/options --data @/test/healtCheckMetadata.json -H @/test/healthCheckHeader  -X POST" ]
-      interval: 5s
-      retries: 10
-      start_period: 5s
+      interval: 20s
+      retries: 20
+      start_period: 20s
       timeout: 10s
   yaci-indexer:
     extends:
