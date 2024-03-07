@@ -12,14 +12,10 @@ import com.bloxbean.cardano.client.crypto.KeyGenUtil;
 import com.bloxbean.cardano.client.crypto.bip32.key.HdPublicKey;
 import com.bloxbean.cardano.client.exception.AddressRuntimeException;
 import com.bloxbean.cardano.client.spec.NetworkId;
-import com.bloxbean.cardano.client.transaction.spec.cert.MultiHostName;
-import com.bloxbean.cardano.client.transaction.spec.cert.SingleHostAddr;
-import com.bloxbean.cardano.client.transaction.spec.cert.SingleHostName;
 import com.bloxbean.cardano.client.transaction.spec.cert.StakeCredential;
 import com.bloxbean.cardano.client.util.HexUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.validator.routines.InetAddressValidator;
 import org.cardanofoundation.rosetta.api.common.constants.Constants;
 import org.cardanofoundation.rosetta.api.common.enumeration.EraAddressType;
 import org.cardanofoundation.rosetta.api.common.enumeration.NetworkIdentifierType;
@@ -29,7 +25,6 @@ import org.cardanofoundation.rosetta.api.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.api.model.*;
 
 import java.util.Arrays;
-import java.util.Objects;
 
 @Slf4j
 public class CardanoAddressUtils {
@@ -107,12 +102,12 @@ public class CardanoAddressUtils {
   }
 
   public static String add0xPrefix(String hex) {
-    return (hex.startsWith("0x") ? hex : Constants.EMPTY_SYMBOl + hex);
+    return (hex.startsWith("0x") ? hex : Constants.EMPTY_SYMBOL + hex);
   }
 
   public static boolean isEd25519Signature(String hash) {
     byte[] signatureByte = HexUtil.decodeHexString(hash);
-    return signatureByte.length >= Constants.Ed25519_Key_Signature_BYTE_LENGTH;
+    return signatureByte.length >= Constants.ED_25519_KEY_SIGNATURE_BYTE_LENGTH;
   }
 //
 //  public static com.bloxbean.cardano.client.transaction.spec.cert.Relay generateSpecificRelay(
@@ -176,11 +171,11 @@ public class CardanoAddressUtils {
   }
 
   public static Boolean isPolicyIdValid(String policyId) {
-    return policyId.matches(Constants.PolicyId_Validation);
+    return policyId.matches(Constants.POLICY_ID_VALIDATION);
   }
 
   public static Boolean isTokenNameValid(String name) {
-    return name.matches(Constants.Token_Name_Validation) || isEmptyHexString(name);
+    return name.matches(Constants.TOKEN_NAME_VALIDATION) || isEmptyHexString(name);
   }
 
   public static Boolean isEmptyHexString(String toCheck) {
@@ -223,6 +218,9 @@ public class CardanoAddressUtils {
       String publicKeyString,
       String stakingCredentialString,
       org.cardanofoundation.rosetta.api.common.enumeration.AddressType type) {
+
+    new org.cardanofoundation.rosetta.api.common.enumeration.AddressType("");
+
     log.info(
         "[generateAddress] About to generate address from public key {} and network identifier {}",
         publicKeyString, networkIdentifierType);

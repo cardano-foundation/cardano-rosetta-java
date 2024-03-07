@@ -22,6 +22,7 @@ public class SpringWebConfig implements WebMvcConfigurer {
 
   @Override
   public void addFormatters(final FormatterRegistry registry) {
+    // TODO EPAM: Lambda can be used here.
     registry.addConverter(new Converter<String, Map<String, String>>() {
       @Override
       public Map<String, String> convert(@NonNull final String source) {
@@ -34,6 +35,7 @@ public class SpringWebConfig implements WebMvcConfigurer {
       }
     });
 
+    // TODO EPAM: Lambda can be used here.
     registry.addConverter(new Converter<String, LinkedHashMap<String, String>>() {
       @Override
       public LinkedHashMap<String, String> convert(@NonNull final String source) {

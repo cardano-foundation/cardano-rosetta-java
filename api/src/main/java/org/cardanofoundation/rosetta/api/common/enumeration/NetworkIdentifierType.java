@@ -17,9 +17,11 @@ public enum NetworkIdentifierType {
     this.protocolMagic = protocolMagic;
   }
 
+  // TODO EPAM: Usage?
   NetworkIdentifierType() {
   }
 
+  // TODO EPAM: Find by id?
   public static NetworkIdentifierType find(int network) {
     for (NetworkIdentifierType networkIdentifierType : NetworkIdentifierType.values()) {
       if (network == networkIdentifierType.getValue()) {

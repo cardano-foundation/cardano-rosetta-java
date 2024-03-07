@@ -3,11 +3,10 @@ package org.cardanofoundation.rosetta.api.common.constants;
 import org.cardanofoundation.rosetta.api.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.api.model.CurveType;
 
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Constants { // TODO EPAM: Why not in properties file?
+public final class Constants { // TODO EPAM: Why not in properties file?
     public static final String CARDANO = "cardano";
     public static final Integer PREPROD_NETWORK_MAGIC = 1;
     public static final Integer TESTNET_NETWORK_MAGIC = 1097911063;
@@ -31,9 +30,9 @@ public class Constants { // TODO EPAM: Why not in properties file?
 
     public static final String IS_POSITIVE_NUMBER = "^\\+?\\d+";
 
-    public static final String Token_Name_Validation = "^[0-9a-fA-F]{0," + ASSET_NAME_LENGTH + "}$";
+    public static final String TOKEN_NAME_VALIDATION = "^[0-9a-fA-F]{0," + ASSET_NAME_LENGTH + "}$";
 
-    public static final String PolicyId_Validation = "^[0-9a-fA-F]{" + POLICY_ID_LENGTH + "}$";
+    public static final String POLICY_ID_VALIDATION = "^[0-9a-fA-F]{" + POLICY_ID_LENGTH + "}$";
 
     public static final Integer SIGNATURE_LENGTH = 128;
 
@@ -59,88 +58,91 @@ public class Constants { // TODO EPAM: Why not in properties file?
 
     public static final String CHAIN_CODE_DUMMY = new String(new char[CHAIN_CODE_LENGTH]).replace("\0", "0");
 
-    public static final ArrayList<String> StakingOperations = new ArrayList<>(List.of(OperationType.STAKE_DELEGATION.getValue(),
-        OperationType.STAKE_KEY_REGISTRATION.getValue(),
-        OperationType.STAKE_KEY_DEREGISTRATION.getValue(),
-        OperationType.WITHDRAWAL.getValue()));
-    public static final ArrayList<String> PoolOperations = new ArrayList<>(List.of(OperationType.POOL_RETIREMENT.getValue(),
-        OperationType.POOL_REGISTRATION.getValue(),
-        OperationType.POOL_REGISTRATION_WITH_CERT.getValue()));
-    public static final ArrayList<String> StakePoolOperations = new ArrayList<>(List.of(OperationType.STAKE_DELEGATION.getValue(),
-        OperationType.STAKE_KEY_REGISTRATION.getValue(),
-        OperationType.STAKE_KEY_DEREGISTRATION.getValue(),
-        OperationType.POOL_RETIREMENT.getValue(),
-        OperationType.POOL_REGISTRATION.getValue(),
-        OperationType.POOL_REGISTRATION_WITH_CERT.getValue()));
-    public static final ArrayList<String> VoteOperations = new ArrayList<>(List.of(OperationType.VOTE_REGISTRATION.getValue()));
+    public static final List<String> STAKING_OPERATIONS = new ArrayList<>(List.of(OperationType.STAKE_DELEGATION.getValue(),
+            OperationType.STAKE_KEY_REGISTRATION.getValue(),
+            OperationType.STAKE_KEY_DEREGISTRATION.getValue(),
+            OperationType.WITHDRAWAL.getValue()));
+    public static final List<String> POOL_OPERATIONS = new ArrayList<>(List.of(OperationType.POOL_RETIREMENT.getValue(),
+            OperationType.POOL_REGISTRATION.getValue(),
+            OperationType.POOL_REGISTRATION_WITH_CERT.getValue()));
+    public static final List<String> STAKE_POOL_OPERATIONS = new ArrayList<>(List.of(OperationType.STAKE_DELEGATION.getValue(),
+            OperationType.STAKE_KEY_REGISTRATION.getValue(),
+            OperationType.STAKE_KEY_DEREGISTRATION.getValue(),
+            OperationType.POOL_RETIREMENT.getValue(),
+            OperationType.POOL_REGISTRATION.getValue(),
+            OperationType.POOL_REGISTRATION_WITH_CERT.getValue()));
+    public static final List<String> VOTE_OPERATIONS = new ArrayList<>(List.of(OperationType.VOTE_REGISTRATION.getValue()));
 
-    public static final Integer Ed25519_Key_Signature_BYTE_LENGTH=64;
+    public static final Integer ED_25519_KEY_SIGNATURE_BYTE_LENGTH = 64;
 
     public static final String CERTIFICATE = "certificate";
     public static final String ADDRESS = "address";
 
-    public static final String POOL_KEY_HASH="pool_key_hash";
-    public static final String VOTING_KEY="votingKey";
-    public static final String STAKE_KEY="stakeKey";
-    public static final String REWARD_ADDRESS="rewardAddress";
-    public static final String VOTING_NONCE="votingNonce";
-    public static final String VOTING_SIGNATURE="votingSignature";
-    public static final String NETWORK_INDEX="network_index";
-    public static final String INDEX="index";
-    public static final String ACCOUNT="account";
-    public static final String AMOUNT="amount";
-    public static final String PLEDGE="pledge";
-    public static final String DECIMALS="decimals";
-    public static final String METADATA="metadata";
-    public static final String SUB_ACCOUNT="sub_account";
-    public static final String CHAIN_CODE="chain_code";
-    public static final String COIN_IDENTIFIER="coin_identifier";
-    public static final String COIN_ACTION="coin_action";
-    public static final String OPERATION_IDENTIFIER="operation_identifier";
-    public static final String RELATED_OPERATION="related_operations";
-    public static final String STATUS="status";
-    public static final String COIN_CHANGE="coin_change";
+    public static final String POOL_KEY_HASH = "pool_key_hash";
+    public static final String VOTING_KEY = "votingKey";
+    public static final String STAKE_KEY = "stakeKey";
+    public static final String REWARD_ADDRESS = "rewardAddress";
+    public static final String VOTING_NONCE = "votingNonce";
+    public static final String VOTING_SIGNATURE = "votingSignature";
+    public static final String NETWORK_INDEX = "network_index";
+    public static final String INDEX = "index";
+    public static final String ACCOUNT = "account";
+    public static final String AMOUNT = "amount";
+    public static final String PLEDGE = "pledge";
+    public static final String DECIMALS = "decimals";
+    public static final String METADATA = "metadata";
+    public static final String SUB_ACCOUNT = "sub_account";
+    public static final String CHAIN_CODE = "chain_code";
+    public static final String COIN_IDENTIFIER = "coin_identifier";
+    public static final String COIN_ACTION = "coin_action";
+    public static final String OPERATION_IDENTIFIER = "operation_identifier";
+    public static final String RELATED_OPERATION = "related_operations";
+    public static final String STATUS = "status";
+    public static final String COIN_CHANGE = "coin_change";
     public static final String INPUT = "input";
     public static final String OUTPUT = "output";
     public static final String SUCCESS = "success";
-    public static final String STAKING_CREDENTIAL="staking_credential";
-    public static final String WITHDRAWALAMOUNT="withdrawalAmount";
-    public static final String DEPOSITAMOUNT="depositAmount";
-    public static final String REFUNDAMOUNT="refundAmount";
-    public static final String EPOCH="epoch";
-    public static final String POLICYID="policyId";
-    public static final String TOKENS="tokens";
-    public static final String TOKENBUNDLE="tokenBundle";
-    public static final String NUMERATOR="numerator";
-    public static final String DENOMINATOR="denominator";
-    public static final String POOLMETADATA="poolMetadata";
-    public static final String POOLREGISTRATIONPARAMS="poolRegistrationParams";
-    public static final String POOLREGISTRATIONCERT="poolRegistrationCert";
-    public static final String VALUE="value";
-    public static final String VRFKEYHASH="vrfKeyHash";
-    public static final String POOLOWNERS="poolOwners";
-    public static final String DNSNAME="dnsName";
-    public static final String RELAYS="relays";
-    public static final String MARGIN="margin";
-    public static final String MARGIN_PERCENTAGE="margin_percentage";
-    public static final String VOTEREGISTRATIONMETADATA="voteRegistrationMetadata";
-    public static final String OPERATIONS="operations";
-    public static final String TRANSACTIONMETADATAHEX="transactionMetadataHex";
-    public static final String HEX_BYTES="hex_bytes";
-    public static final String CURVE_TYPE="curve_type";
-    public static final String CURRENCY="currency";
-    public static final String SYMBOL="symbol";
-    public static final String TYPE="type";
-    public static final String IPV4="ipv4";
-    public static final String IPV6="ipv6";
-    public static final String URL="url";
-    public static final String HASH="hash";
-    public static final String PORT="port";
-    public static final String IDENTIFIER="identifier";
-    public static final String COST="cost";
-    public static final String EMPTY_SYMBOl="0x";
-    public static final String SYMBOL_REGEX="\\x";
+    public static final String STAKING_CREDENTIAL = "staking_credential";
+    public static final String WITHDRAWALAMOUNT = "withdrawalAmount";
+    public static final String DEPOSITAMOUNT = "depositAmount";
+    public static final String REFUNDAMOUNT = "refundAmount";
+    public static final String EPOCH = "epoch";
+    public static final String POLICYID = "policyId";
+    public static final String TOKENS = "tokens";
+    public static final String TOKENBUNDLE = "tokenBundle";
+    public static final String NUMERATOR = "numerator";
+    public static final String DENOMINATOR = "denominator";
+    public static final String POOLMETADATA = "poolMetadata";
+    public static final String POOLREGISTRATIONPARAMS = "poolRegistrationParams";
+    public static final String POOLREGISTRATIONCERT = "poolRegistrationCert";
+    public static final String VALUE = "value";
+    public static final String VRFKEYHASH = "vrfKeyHash";
+    public static final String POOLOWNERS = "poolOwners";
+    public static final String DNSNAME = "dnsName";
+    public static final String RELAYS = "relays";
+    public static final String MARGIN = "margin";
+    public static final String MARGIN_PERCENTAGE = "margin_percentage";
+    public static final String VOTEREGISTRATIONMETADATA = "voteRegistrationMetadata";
+    public static final String OPERATIONS = "operations";
+    public static final String TRANSACTIONMETADATAHEX = "transactionMetadataHex";
+    public static final String HEX_BYTES = "hex_bytes";
+    public static final String CURVE_TYPE = "curve_type";
+    public static final String CURRENCY = "currency";
+    public static final String SYMBOL = "symbol";
+    public static final String TYPE = "type";
+    public static final String IPV4 = "ipv4";
+    public static final String IPV6 = "ipv6";
+    public static final String URL = "url";
+    public static final String HASH = "hash";
+    public static final String PORT = "port";
+    public static final String IDENTIFIER = "identifier";
+    public static final String COST = "cost";
+    public static final String EMPTY_SYMBOL = "0x";
+    public static final String SYMBOL_REGEX = "\\x";
 
 
     public static final String LOVELACE = "lovelace";
+
+    private Constants() {
+    }
 }

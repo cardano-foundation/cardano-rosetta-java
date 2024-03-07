@@ -2,6 +2,8 @@ package org.cardanofoundation.rosetta.api.common.enumeration;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 
+import java.util.Objects;
+
 public enum CatalystLabels {
   DATA("61284"),
   SIG("61285");
@@ -14,7 +16,8 @@ public enum CatalystLabels {
 
   public static CatalystLabels findByValue(String label) {
     for (CatalystLabels a : CatalystLabels.values()) {
-      if (a.getLabel() == label) {
+      // TODO EPAM: Equals should be used here.
+      if (Objects.equals(a.getLabel(), label)) {
         return a;
       }
     }

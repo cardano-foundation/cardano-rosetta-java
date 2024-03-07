@@ -2,6 +2,8 @@ package org.cardanofoundation.rosetta.api.common.enumeration;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 
+import java.util.Objects;
+
 public enum CatalystDataIndexes {
   VOTING_KEY(1L),
   STAKE_KEY(2L),
@@ -16,7 +18,9 @@ public enum CatalystDataIndexes {
 
   public static CatalystDataIndexes findByValue(Long value) {
     for (CatalystDataIndexes a : CatalystDataIndexes.values()) {
-      if (a.getValue() == value) {
+      // TODO EPAM: Null-safe equals is always a better choice, Objects have to be compared with equals method.
+      // TODO EPAM: Even though all the values will be in a LongCache and == should work, it's better to use equals.
+      if (Objects.equals(a.getValue(), value)) {
         return a;
       }
     }
