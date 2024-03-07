@@ -218,9 +218,6 @@ public class CardanoAddressUtils {
       String publicKeyString,
       String stakingCredentialString,
       org.cardanofoundation.rosetta.api.common.enumeration.AddressType type) {
-
-    new org.cardanofoundation.rosetta.api.common.enumeration.AddressType("");
-
     log.info(
         "[generateAddress] About to generate address from public key {} and network identifier {}",
         publicKeyString, networkIdentifierType);

@@ -39,8 +39,23 @@ to fetch the data from the node.
   - Fill the `.env` file with your values (explain below) or use the provided for docker-compose setup
   - Start SpringBoot application with `mvn spring-boot:run` within submodule `api` or `yaci-indexer`
 - Run `docker compose -f docker-yaci.yaml up --build` to start rosetta api service including yaci-store and a cardano node
-  - Using the provided env file `docker-compose --env-file .env.docker-compose -f docker-yaci.yaml up --build`
+  - Using the provided env file `docker compose --env-file .env.docker-compose -f docker-yaci.yaml up --build`
 * Note: the first time you run the command, it will take a little bit of your time to build the cardano-node, and next time it will be cached when run. So please be patient.
+
+### How to run rosetta with test data (development only)
+- Modify `.env` file (if you are using `network=devkit`, the protocol magic should be `42`. Also, probably, `DB_HOST` and `CARDANO_NODE_HOST` is a `localhost`)
+- Create a postgres DB and a user: `sudo -u postgres psql` -> `create database "rosetta-java";` -> `create user rosetta_db_admin with password 'weakpwd#123_d';` -> `grant all privileges on database "rosetta-java" to rosetta_db_admin;`
+- Pull a `yaci-devkit` for easy access to node and more: https://github.com/bloxbean/yaci-devkit.git
+   - Execute `./start.sh` script
+   - Execute `./yaci-cli.sh` script to get into cli
+   - Run create-node -o --start
+- Run `yaci-indexer` for postgres
+   - In application properties set active profile to `postgres`
+   - Change path to genesis files in `.env` file if needed
+   - Run `org.cardanofoundation.rosetta.yaciindexer.YaciIndexerApplication` with .env file
+   - After sync some data, sync could be stopped
+- Build the root project with `mvn clean install` to generate artifacts
+- Run API module by starting `org.cardanofoundation.rosetta.api.RosettaApiApplication` with .env file and modify application.properties if needed.
 
 ### How to run integration tests
 
