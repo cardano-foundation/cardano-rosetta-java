@@ -1,4 +1,6 @@
 version: '3.8'
+include:
+  - docker-api-indexer.yaml
 services:
   yaci-cli:
     image: bloxbean/yaci-cli:0.0.20-beta1
@@ -13,23 +15,3 @@ services:
     env_file:
       - .env.IntegrationTest
     entrypoint: ["java", "-jar","/app/yaci-cli.jar", "create-node -o --start" ]
-  api:
-    extends:
-      service: api
-      file: docker-yaci.yaml
-    volumes:
-      - ./test:/test
-    healthcheck:
-      test: [ "CMD-SHELL", "curl --fail http://localhost:8081/network/options --data @/test/healtCheckMetadata.json -H @/test/healthCheckHeader  -X POST" ]
-      interval: 20s
-      retries: 20
-      start_period: 20s
-      timeout: 10s
-  yaci-indexer:
-    extends:
-      service: yaci-indexer
-      file: docker-yaci.yaml
-  db:
-    extends:
-      service: db
-      file: docker-yaci.yaml

@@ -30,6 +30,12 @@ services:
         condition: service_healthy
     volumes:
       - ./config:/config
+    healthcheck:
+      test: [ "CMD-SHELL", "curl --fail http://localhost:8081/network/options -H 'Content-Type: application/json' --data '{\"metadata\": {}}' -X POST" ]
+      interval: 30s
+      retries: 20
+      start_period: 20s
+      timeout: 10s
   yaci-indexer:
     build:
       context: ./
