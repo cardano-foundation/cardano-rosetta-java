@@ -27,7 +27,7 @@ to fetch the data from the node.
   - [ ] /construction/payloads
   - [ ] /construction/combine
   - [ ] /construction/parse
-  - [ ] /construction/hash
+  - [x] /construction/hash
   - [ ] /construction/submit
 
 
