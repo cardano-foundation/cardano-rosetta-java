@@ -1,7 +1,7 @@
 package org.cardanofoundation.rosetta.api.repository;
 
-import org.cardanofoundation.rosetta.common.model.StakeRegistrationEntity;
-import org.cardanofoundation.rosetta.common.model.StakeRegistrationId;
+import org.cardanofoundation.rosetta.api.model.entity.StakeRegistrationEntity;
+import org.cardanofoundation.rosetta.api.model.entity.StakeRegistrationId;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

@@ -1,9 +1,9 @@
 package org.cardanofoundation.rosetta.api.service;
 
 import com.bloxbean.cardano.client.crypto.bip32.key.HdPublicKey;
-import org.cardanofoundation.rosetta.api.common.enumeration.AddressType;
-import org.cardanofoundation.rosetta.api.model.PublicKey;
-import org.cardanofoundation.rosetta.api.common.enumeration.NetworkEnum;
+import org.cardanofoundation.rosetta.api.model.enumeration.AddressType;
+import org.cardanofoundation.rosetta.api.model.enumeration.NetworkEnum;
+import org.openapitools.client.model.PublicKey;
 
 public interface CardanoAddressService {
 

@@ -320,7 +320,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"{{networkId}}\"\n    },\n    \"account_identifier\": {\n        \"address\": \"{{TestAccountBaseAddress}}\"\n    }\n}",
+					"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"{{networkId}}\"\n    },\n    \"account_identifier\": {\n        \"address\": \"{{TestAccountBaseAddress}}\"\n    },\n    \"include_mempool\": false\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -379,15 +379,14 @@
 							"})",
 							"",
 							"pm.test('Contains Json Body', function () {",
-							"    pm.response.to.have.jsonBody('account_identifier');",
+							"    pm.response.to.have.jsonBody('address');",
 							"})",
 							"",
 							"pm.test(\"Correct Address\", function () {",
 							"    const testAccountBaseAddress = pm.environment.get('TestAccountBaseAddress');",
 							"    var responseData = pm.response.json();",
 							"    pm.expect(responseData).to.be.an('object');",
-							"    pm.expect(responseData.account_identifier).to.be.an('object');",
-							"    pm.expect(responseData.account_identifier.address).to.eql(testAccountBaseAddress);",
+							"    pm.expect(responseData.address).to.eql(testAccountBaseAddress);",
 							"});",
 							"",
 							""

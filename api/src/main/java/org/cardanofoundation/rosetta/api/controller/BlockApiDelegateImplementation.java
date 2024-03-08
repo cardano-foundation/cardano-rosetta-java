@@ -1,11 +1,11 @@
 package org.cardanofoundation.rosetta.api.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.cardanofoundation.rosetta.api.model.rest.BlockRequest;
-import org.cardanofoundation.rosetta.api.model.rest.BlockResponse;
-import org.cardanofoundation.rosetta.api.model.rest.BlockTransactionRequest;
-import org.cardanofoundation.rosetta.api.model.rest.BlockTransactionResponse;
 import org.cardanofoundation.rosetta.api.service.BlockService;
+import org.openapitools.client.model.BlockRequest;
+import org.openapitools.client.model.BlockResponse;
+import org.openapitools.client.model.BlockTransactionRequest;
+import org.openapitools.client.model.BlockTransactionResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;

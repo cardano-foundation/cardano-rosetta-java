@@ -2,12 +2,8 @@ package org.cardanofoundation.rosetta.api.controller;
 
 import java.io.IOException;
 import lombok.RequiredArgsConstructor;
-import org.cardanofoundation.rosetta.api.model.rest.MetadataRequest;
-import org.cardanofoundation.rosetta.api.model.rest.NetworkListResponse;
-import org.cardanofoundation.rosetta.api.model.rest.NetworkOptionsResponse;
-import org.cardanofoundation.rosetta.api.model.rest.NetworkRequest;
-import org.cardanofoundation.rosetta.api.model.rest.NetworkStatusResponse;
 import org.cardanofoundation.rosetta.api.service.NetworkService;
+import org.openapitools.client.model.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -19,7 +15,7 @@ public class NetworkApiDelegateImplementation implements NetworkApiDelegate {
     private final NetworkService networkService;
 
     @Override
-    public ResponseEntity<NetworkListResponse> networkList( @RequestBody MetadataRequest metadataRequest)
+    public ResponseEntity<NetworkListResponse> networkList(@RequestBody MetadataRequest metadataRequest)
         throws IOException {
         final NetworkListResponse networkListResponse = networkService.getNetworkList(metadataRequest);
         return ResponseEntity.ok(networkListResponse);

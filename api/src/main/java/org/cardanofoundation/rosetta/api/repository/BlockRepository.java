@@ -2,8 +2,8 @@ package org.cardanofoundation.rosetta.api.repository;
 
 import java.util.List;
 
-import org.cardanofoundation.rosetta.common.model.BlockEntity;
-import org.cardanofoundation.rosetta.common.model.TxnEntity;
+import org.cardanofoundation.rosetta.api.model.entity.BlockEntity;
+import org.cardanofoundation.rosetta.api.model.entity.TxnEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

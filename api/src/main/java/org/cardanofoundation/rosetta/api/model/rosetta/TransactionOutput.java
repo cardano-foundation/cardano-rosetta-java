@@ -2,7 +2,7 @@ package org.cardanofoundation.rosetta.api.model.rosetta;
 
 import com.bloxbean.cardano.yaci.core.model.Datum;
 import lombok.*;
-import org.cardanofoundation.rosetta.api.model.Amount;
+import org.openapitools.client.model.Amount;
 
 import java.util.List;
 

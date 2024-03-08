@@ -6,23 +6,9 @@ import com.bloxbean.cardano.client.exception.AddressExcepion;
 import com.bloxbean.cardano.client.exception.CborDeserializationException;
 import com.bloxbean.cardano.client.exception.CborSerializationException;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import org.openapitools.client.model.*;
+
 import java.io.IOException;
-import java.net.UnknownHostException;
-import org.cardanofoundation.rosetta.api.model.rest.ConstructionCombineRequest;
-import org.cardanofoundation.rosetta.api.model.rest.ConstructionCombineResponse;
-import org.cardanofoundation.rosetta.api.model.rest.ConstructionDeriveRequest;
-import org.cardanofoundation.rosetta.api.model.rest.ConstructionDeriveResponse;
-import org.cardanofoundation.rosetta.api.model.rest.ConstructionHashRequest;
-import org.cardanofoundation.rosetta.api.model.rest.ConstructionMetadataRequest;
-import org.cardanofoundation.rosetta.api.model.rest.ConstructionMetadataResponse;
-import org.cardanofoundation.rosetta.api.model.rest.ConstructionParseRequest;
-import org.cardanofoundation.rosetta.api.model.rest.ConstructionParseResponse;
-import org.cardanofoundation.rosetta.api.model.rest.ConstructionPayloadsRequest;
-import org.cardanofoundation.rosetta.api.model.rest.ConstructionPayloadsResponse;
-import org.cardanofoundation.rosetta.api.model.rest.ConstructionPreprocessRequest;
-import org.cardanofoundation.rosetta.api.model.rest.ConstructionPreprocessResponse;
-import org.cardanofoundation.rosetta.api.model.rest.ConstructionSubmitRequest;
-import org.cardanofoundation.rosetta.api.model.rest.TransactionIdentifierResponse;
 
 public interface ConstructionApiService {
     ConstructionDeriveResponse constructionDeriveService(

@@ -4,10 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.when;
 
-import org.cardanofoundation.rosetta.api.model.Network;
-import org.cardanofoundation.rosetta.api.model.rest.NetworkIdentifier;
-import org.cardanofoundation.rosetta.api.model.rest.NetworkRequest;
-import org.cardanofoundation.rosetta.api.model.rest.NetworkStatusResponse;
+import com.bloxbean.cardano.client.common.model.Network;
 import org.cardanofoundation.rosetta.api.service.LedgerDataProviderService;
 import org.cardanofoundation.rosetta.api.service.impl.NetworkServiceImpl;
 import org.junit.jupiter.api.Test;
@@ -15,6 +12,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.openapitools.client.model.NetworkIdentifier;
+import org.openapitools.client.model.NetworkRequest;
+import org.openapitools.client.model.NetworkStatusResponse;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.cardanofoundation.rosetta.api.model.dto.BlockDto;
 import org.cardanofoundation.rosetta.api.model.dto.GenesisBlockDto;
@@ -38,7 +38,7 @@ class NetworkServiceImplTest {
     Network result = networkServiceImplUnderTest.getSupportedNetwork();
 
     // Verify the results
-    assertEquals(result.getNetworkId(), "preprod");
+    assertEquals(result.getProtocolMagic(), 1);
   }
 
   @Test
@@ -50,7 +50,7 @@ class NetworkServiceImplTest {
     Network result = networkServiceImplUnderTest.getSupportedNetwork();
 
     // Verify the results
-    assertEquals(result.getNetworkId(), "testnet");
+    assertEquals(result.getProtocolMagic(), 1097911063);
   }
 
   @Test
@@ -68,7 +68,7 @@ class NetworkServiceImplTest {
   @Test
   void testgetNetworkStatus_ThenReturnSuccess() throws Exception {
 
-    NetworkRequest networkRequest = new NetworkRequest(new NetworkIdentifier("cardano" , "mainnet" , null));
+    NetworkRequest networkRequest = new NetworkRequest(new NetworkIdentifier("cardano" , "mainnet" , null), null);
     String topologyFilePath = "src/test/resources/config/topology-test.json";
     ReflectionTestUtils.setField(networkServiceImplUnderTest , "topologyFilepath" , topologyFilePath);
     BlockDto blockDto = new BlockDto();
@@ -83,6 +83,6 @@ class NetworkServiceImplTest {
 
 
     // Verify the results
-    assertEquals(result.getPeers().get(0).getAddr(), "relays-new.cardano-mainnet.iohk.io");
+    assertEquals(result.getPeers().get(0).getPeerId(), "relays-new.cardano-mainnet.iohk.io");
   }
 }

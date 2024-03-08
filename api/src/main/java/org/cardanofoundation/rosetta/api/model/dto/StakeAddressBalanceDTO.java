@@ -1,10 +1,8 @@
 package org.cardanofoundation.rosetta.api.model.dto;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Id;
 import lombok.Builder;
 import lombok.Data;
-import org.cardanofoundation.rosetta.common.model.StakeAddressBalanceEntity;
+import org.cardanofoundation.rosetta.api.model.entity.StakeAddressBalanceEntity;
 
 import java.math.BigInteger;
 

@@ -1,5 +1,7 @@
 package org.cardanofoundation.rosetta.api.service.impl;
 
+import com.bloxbean.cardano.client.common.model.Network;
+import com.bloxbean.cardano.client.common.model.Networks;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.parser.OpenAPIV3Parser;
@@ -16,35 +18,26 @@ import java.util.Objects;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.cardanofoundation.rosetta.api.common.constants.Constants;
-import org.cardanofoundation.rosetta.api.common.enumeration.OperationType;
-import org.cardanofoundation.rosetta.api.common.enumeration.OperationTypeStatus;
+import org.cardanofoundation.rosetta.api.model.cardano.Producer;
+import org.cardanofoundation.rosetta.api.model.cardano.PublicRoot;
+import org.cardanofoundation.rosetta.api.model.cardano.TopologyConfig;
+import org.cardanofoundation.rosetta.api.model.constants.Constants;
+import org.cardanofoundation.rosetta.api.model.enumeration.OperationType;
+import org.cardanofoundation.rosetta.api.model.enumeration.OperationTypeStatus;
 import org.cardanofoundation.rosetta.api.config.RosettaConfig;
 import org.cardanofoundation.rosetta.api.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.api.exception.ServerException;
 import org.cardanofoundation.rosetta.api.mapper.DataMapper;
-import org.cardanofoundation.rosetta.api.model.Network;
-import org.cardanofoundation.rosetta.api.model.NetworkStatus;
-import org.cardanofoundation.rosetta.api.model.Peer;
-import org.cardanofoundation.rosetta.api.model.Producer;
-import org.cardanofoundation.rosetta.api.model.PublicRoot;
-import org.cardanofoundation.rosetta.api.model.TopologyConfig;
+import org.cardanofoundation.rosetta.api.model.dto.NetworkStatusDTO;
 import org.cardanofoundation.rosetta.api.model.dto.BlockDto;
 import org.cardanofoundation.rosetta.api.model.dto.GenesisBlockDto;
-import org.cardanofoundation.rosetta.api.model.rest.MetadataRequest;
-import org.cardanofoundation.rosetta.api.model.rest.NetworkListResponse;
-import org.cardanofoundation.rosetta.api.model.rest.NetworkOptionsResponse;
-import org.cardanofoundation.rosetta.api.model.rest.NetworkRequest;
-import org.cardanofoundation.rosetta.api.model.rest.NetworkStatusResponse;
 import org.cardanofoundation.rosetta.api.service.LedgerDataProviderService;
 import org.cardanofoundation.rosetta.api.service.NetworkService;
 import org.cardanofoundation.rosetta.api.util.FileUtils;
 import org.cardanofoundation.rosetta.api.util.RosettaConstants;
 import org.json.JSONObject;
-import org.openapitools.client.model.Allow;
+import org.openapitools.client.model.*;
 import org.openapitools.client.model.Error;
-import org.openapitools.client.model.OperationStatus;
-import org.openapitools.client.model.Version;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
@@ -139,7 +132,7 @@ public class NetworkServiceImpl implements NetworkService {
       throws  IOException {
     log.debug("[networkStatus] Request received:" + networkRequest.toString());
     log.info("[networkStatus] Looking for latest block");
-    NetworkStatus networkStatus = networkStatus();
+    NetworkStatusDTO networkStatus = networkStatus();
     return DataMapper.mapToNetworkStatusResponse(networkStatus);
   }
 
@@ -152,19 +145,19 @@ public class NetworkServiceImpl implements NetworkService {
       Integer networkMagic = (Integer) object.get("networkMagic");
 
     if (networkId.equals("mainnet")) {
-      return Network.builder().networkId(networkId).build();
+      return Networks.mainnet();
     } else if (Objects.equals(networkMagic, Constants.PREPROD_NETWORK_MAGIC)) {
-      return Network.builder().networkId("preprod").build();
+      return Networks.preprod();
     } else if (Objects.equals(networkMagic, Constants.TESTNET_NETWORK_MAGIC)) {
-      return Network.builder().networkId("testnet").build();
+      return Networks.testnet();
     } else if(Objects.equals(networkMagic, Constants.DEVNET_NETWORK_MAGIC)) {
-      return Network.builder().networkId("devnet").build();
+      return new Network(0b0000, 42);
     } else {
       throw ExceptionFactory.invalidNetworkError();
     }
   }
 
-  private NetworkStatus networkStatus() throws  IOException {
+  private NetworkStatusDTO networkStatus() throws  IOException {
     log.info("[networkStatus] Looking for latest block");
     BlockDto latestBlock = ledgerDataProviderService.findLatestBlock();
     log.debug("[networkStatus] Latest block found " + latestBlock);
@@ -176,7 +169,7 @@ public class NetworkServiceImpl implements NetworkService {
     String content = FileUtils.fileReader(topologyFilepath);
     TopologyConfig topologyConfig = mapper.readValue(content, TopologyConfig.class);
 
-    return NetworkStatus.builder()
+    return NetworkStatusDTO.builder()
         .latestBlock(latestBlock)
         .genesisBlock(genesisBlock)
         .peers(getPeerFromConfig(topologyConfig))
@@ -192,7 +185,7 @@ public class NetworkServiceImpl implements NetworkService {
             return getPublicRoots(topologyFile.getPublicRoots());
         });
     log.debug("[getPeersFromConfig] Found " + producers.size() + " peers");
-    return producers.stream().map(producer -> new Peer(producer.getAddr())).toList();
+    return producers.stream().map(producer -> new Peer(producer.getAddr(), null)).toList();
   }
 
   private List<Producer> getPublicRoots(List<PublicRoot> publicRoots) {
