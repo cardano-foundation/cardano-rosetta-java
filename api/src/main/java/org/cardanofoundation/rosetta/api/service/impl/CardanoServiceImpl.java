@@ -86,6 +86,6 @@ public class CardanoServiceImpl implements CardanoService {
     @Override
     public Long calculateTxMinimumFee(Long transactionSize, ProtocolParams protocolParameters) {
         return protocolParameters.getMinFeeA() * transactionSize
-                + protocolParameters.getMinFeeA();
+                + protocolParameters.getMinFeeB();
     }
 }

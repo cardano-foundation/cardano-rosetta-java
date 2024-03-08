@@ -54,7 +54,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
             stakingCredential = metadata.getStakingCredential();
         }
         String address = cardanoAddressService.getCardanoAddress(addressType, stakingCredential, publicKey, network);
-        return new ConstructionDeriveResponse(address, null, null);
+        return new ConstructionDeriveResponse(null, new AccountIdentifier(address, null, null), null);
     }
 
     @Override
@@ -65,10 +65,10 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
     @Override
     public ConstructionMetadataResponse constructionMetadataService(ConstructionMetadataRequest constructionMetadataRequest) throws CborException, CborSerializationException {
         Map<String, Object> options = (Map<String, Object>) constructionMetadataRequest.getOptions();
-        Double ttlOffset = (Double) options.get("ttl_offset");
+        Double relativeTtl = (Double) options.get("relative_ttl");
         Double txSize = (Double) options.get("transaction_size");
-        log.debug("[constructionMetadata] Calculating ttl based on {} relative ttl", ttlOffset);
-        Long ttl = cardanoService.calculateTtl(ttlOffset.longValue());
+        log.debug("[constructionMetadata] Calculating ttl based on {} relative ttl", relativeTtl);
+        Long ttl = cardanoService.calculateTtl(relativeTtl.longValue());
         log.debug("[constructionMetadata] ttl is {}", ttl);
         log.debug("[constructionMetadata] updating tx size from {}", txSize);
         Long updatedTxSize = cardanoService.updateTxSize(txSize.longValue(), 0L, ttl);
