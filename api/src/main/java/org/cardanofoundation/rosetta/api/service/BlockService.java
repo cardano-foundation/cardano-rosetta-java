@@ -22,4 +22,5 @@ public interface BlockService {
   List<TransactionDto> findTransactionsByBlock(BlockDto block);
 
   BlockTransactionResponse getBlockTransaction(BlockTransactionRequest blockTransactionRequest);
+
 }

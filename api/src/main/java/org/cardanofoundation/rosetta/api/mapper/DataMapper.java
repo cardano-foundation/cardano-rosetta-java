@@ -7,6 +7,7 @@ import org.cardanofoundation.rosetta.api.model.cardano.Metadata;
 import org.cardanofoundation.rosetta.api.model.constants.Constants;
 import org.cardanofoundation.rosetta.api.model.dto.*;
 import org.cardanofoundation.rosetta.api.model.dto.TransactionDto;
+import org.cardanofoundation.rosetta.api.model.entity.ProtocolParams;
 import org.cardanofoundation.rosetta.api.model.enumeration.NetworkEnum;
 import org.cardanofoundation.rosetta.api.model.rest.TransactionMetadata;
 import org.cardanofoundation.rosetta.api.model.rosetta.BlockMetadata;
@@ -232,6 +233,20 @@ public class DataMapper {
             .build()).build()).build()).toList()).build();
 
   }
+
+  public static ConstructionMetadataResponse mapToMetadataResponse(ProtocolParams protocolParams, Long ttl, Long suggestedFee) {
+    return ConstructionMetadataResponse.builder()
+            .metadata(Map.of("protocol_parameters", protocolParams, "ttl", ttl))
+            .suggestedFee(List.of(Amount.builder()
+                            .value(suggestedFee.toString())
+                            .currency(Currency.builder()
+                                    .decimals(ADA_DECIMALS)
+                                    .symbol(ADA)
+                                    .build())
+                    .build()))
+            .build();
+  }
+
 }
 
 

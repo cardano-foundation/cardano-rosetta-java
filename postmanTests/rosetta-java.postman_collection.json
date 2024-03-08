@@ -269,7 +269,13 @@
 						"exec": [
 							"pm.test(\"Status code is 200\", function () {",
 							"        pm.response.to.have.status(200);",
-							"});"
+							"});",
+							"",
+							"pm.test(\"Test account balance\", function () {",
+							"    var responseBody = pm.response.json();",
+							"    pm.expect(responseBody).to.be.an('object');",
+							"    pm.expect(responseBody.balances[0].value).to.equal(\"2000000\");",
+							"})"
 						],
 						"type": "text/javascript"
 					}
@@ -309,7 +315,13 @@
 						"exec": [
 							"pm.test(\"Status code is 200\", function () {",
 							"        pm.response.to.have.status(200);",
-							"});"
+							"});",
+							"",
+							"pm.test(\"Test account coins value\", function () {",
+							"    var responseBody = pm.response.json();",
+							"    pm.expect(responseBody).to.be.an('object');",
+							"    pm.expect(responseBody.coins[0].amount.value).to.equal(\"2000000\");",
+							"})"
 						],
 						"type": "text/javascript"
 					}
@@ -436,12 +448,12 @@
 							"})",
 							"",
 							"pm.test(\"Correct Address\", function () {",
-							"    const hashedSignedTransaction = pm.environment.get('hashedSignedTransaction');",
-							"    var responseData = pm.response.json();",
-							"    pm.expect(responseData).to.be.an('object');",
-							"    pm.expect(responseData.transaction_identifier).to.be.an('object');",
-							"    pm.expect(responseData.transaction_identifier.hash).to.eql(hashedSignedTransaction);",
-							"});"
+							"     const hashedSignedTransaction = pm.environment.get('hashedSignedTransaction');",
+							"     var responseData = pm.response.json();",
+							"     pm.expect(responseData).to.be.an('object');",
+							"     pm.expect(responseData.transaction_identifier).to.be.an('object');",
+							"     pm.expect(responseData.transaction_identifier.hash).to.eql(hashedSignedTransaction);",
+							" });"
 						],
 						"type": "text/javascript"
 					}
@@ -474,12 +486,29 @@
 		},
 		{
 			"name": "/construction/metadata",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 200', function () {",
+							"    pm.response.to.have.status(200);",
+							"})",
+							"",
+							"pm.test('Contains Json Body', function () {",
+							"    pm.response.to.have.jsonBody('suggested_fee');",
+							"})"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
 			"request": {
 				"method": "POST",
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"{{networkId}}\"\n    },\n    \"options\": {\n        \"relative_ttl\": 100,\n        \"transaction_size\":  225\n    }\n}",
+					"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"{{networkId}}\"\n    },\n    \"options\": {\n        \"ttl_offset\": 100.0,\n        \"transaction_size\": 40.0\n    }\n}",
 					"options": {
 						"raw": {
 							"language": "json"

@@ -5,7 +5,7 @@ import org.cardanofoundation.rosetta.api.model.dto.*;
 
 import java.util.List;
 
-import org.cardanofoundation.rosetta.api.model.entity.Amt;
+import org.cardanofoundation.rosetta.api.model.entity.ProtocolParams;
 import org.openapitools.client.model.Currency;
 
 /**
@@ -24,7 +24,7 @@ public interface LedgerDataProviderService {
 
     Long findLatestBlockNumber();
 
-//    ProtocolParameters findProtocolParameters();
+    ProtocolParams findProtocolParameters();
 
 //    List<MaBalance> findMaBalanceByAddressAndBlock(String address, String hash);
 

@@ -31,6 +31,7 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
   private final PoolRegistrationRepository poolRegistrationRepository;
   private final PoolRetirementRepository poolRetirementRepository;
   private final StakeAddressRepository stakeAddressRepository;
+  private final EpochParamRepository epochParamRepository;
 
   @Override
   public GenesisBlockDto findGenesisBlock() {
@@ -164,5 +165,10 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
       return txList.stream().map(TransactionDto::fromTx).toList();
     }
     return null;
+  }
+
+  @Override
+  public ProtocolParams findProtocolParameters() {
+    return epochParamRepository.findLatestProtocolParams();
   }
 }

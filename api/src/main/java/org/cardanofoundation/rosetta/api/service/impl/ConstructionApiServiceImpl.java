@@ -4,11 +4,11 @@ import co.nstant.in.cbor.CborException;
 import co.nstant.in.cbor.model.Array;
 import co.nstant.in.cbor.model.UnicodeString;
 import com.bloxbean.cardano.client.exception.AddressExcepion;
-import com.bloxbean.cardano.client.exception.CborDeserializationException;
 import com.bloxbean.cardano.client.exception.CborSerializationException;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.cardanofoundation.rosetta.api.mapper.DataMapper;
+import org.cardanofoundation.rosetta.api.model.entity.ProtocolParams;
 import org.cardanofoundation.rosetta.api.model.enumeration.AddressType;
 import org.cardanofoundation.rosetta.api.model.cardano.ConstructionDeriveRequestMetadata;
 
@@ -16,11 +16,13 @@ import org.cardanofoundation.rosetta.api.model.enumeration.NetworkEnum;
 import org.cardanofoundation.rosetta.api.service.CardanoAddressService;
 import org.cardanofoundation.rosetta.api.service.CardanoService;
 import org.cardanofoundation.rosetta.api.service.ConstructionApiService;
+import org.cardanofoundation.rosetta.api.service.LedgerDataProviderService;
 import org.openapitools.client.model.*;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Map;
 
 @Service
 @Slf4j
@@ -29,6 +31,8 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
 
     private final CardanoAddressService cardanoAddressService;
     private final CardanoService cardanoService;
+    private final LedgerDataProviderService ledgerService;
+    private final DataMapper dataMapper;
 
     @Override
     public ConstructionDeriveResponse constructionDeriveService(ConstructionDeriveRequest constructionDeriveRequest) throws IllegalAccessException, CborSerializationException {
@@ -60,7 +64,22 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
 
     @Override
     public ConstructionMetadataResponse constructionMetadataService(ConstructionMetadataRequest constructionMetadataRequest) throws CborException, CborSerializationException {
-        return null;
+        Map<String, Object> options = (Map<String, Object>) constructionMetadataRequest.getOptions();
+        Double ttlOffset = (Double) options.get("ttl_offset");
+        Double txSize = (Double) options.get("transaction_size");
+        log.debug("[constructionMetadata] Calculating ttl based on {} relative ttl", ttlOffset);
+        Long ttl = cardanoService.calculateTtl(ttlOffset.longValue());
+        log.debug("[constructionMetadata] ttl is {}", ttl);
+        log.debug("[constructionMetadata] updating tx size from {}", txSize);
+        Long updatedTxSize = cardanoService.updateTxSize(txSize.longValue(), 0L, ttl);
+        log.debug("[constructionMetadata] updated txSize size is ${updatedTxSize}");
+        ProtocolParams protocolParams = ledgerService.findProtocolParameters();
+        log.debug("[constructionMetadata] received protocol parameters from block-service {}",
+                protocolParams);
+        Long suggestedFee = cardanoService.calculateTxMinimumFee(updatedTxSize,
+                protocolParams);
+        log.debug("[constructionMetadata] suggested fee is ${suggestedFee}");
+        return DataMapper.mapToMetadataResponse(protocolParams, ttl, suggestedFee);
     }
 
     @Override
