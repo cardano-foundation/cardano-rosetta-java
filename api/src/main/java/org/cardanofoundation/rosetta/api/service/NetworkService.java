@@ -1,7 +1,8 @@
 package org.cardanofoundation.rosetta.api.service;
 
-import org.cardanofoundation.rosetta.api.model.Network;
-import org.cardanofoundation.rosetta.api.model.rest.*;
+
+import com.bloxbean.cardano.client.common.model.Network;
+import org.openapitools.client.model.*;
 
 import java.io.IOException;
 

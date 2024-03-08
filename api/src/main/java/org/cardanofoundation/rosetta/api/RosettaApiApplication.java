@@ -17,7 +17,7 @@ import java.util.List;
 
 
 @SpringBootApplication
-@EntityScan({"org.cardanofoundation.rosetta.common"})
+@EntityScan({"org.cardanofoundation.rosetta.api.model.entity"})
 @OpenAPIDefinition(info = @Info(title = "APIs", version = "1.0", description = "Rosetta APIs v1.0"))
 public class RosettaApiApplication {
     public static void main(String[] args) {

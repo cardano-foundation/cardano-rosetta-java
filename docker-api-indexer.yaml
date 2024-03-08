@@ -1,0 +1,81 @@
+version: '3.8'
+services:
+  api:
+    build:
+      context: ./
+      dockerfile: ./api/Dockerfile
+      args:
+        NETWORK: "${NETWORK}"
+    platform: linux/amd64
+    ports:
+      - "${API_BIND_PORT}:${API_EXPOSED_PORT}"
+    environment:
+      NETWORK: "${NETWORK}"
+      DB_HOST: "${DB_HOST}"
+      DB_PORT: "${DB_PORT}"
+      DB_NAME: "${DB_NAME}"
+      DB_USER: "${DB_ADMIN_USER_NAME}"
+      DB_SECRET: "${DB_ADMIN_USER_SECRET}"
+      DB_DRIVER_CLASS_NAME: "${DB_DRIVER_CLASS_NAME}"
+      CARDANO_NODE_VERSION: ${CARDANO_NODE_VERSION}
+      API_SPRING_PROFILES_ACTIVE: ${API_SPRING_PROFILES_ACTIVE_API}
+      DB_CONNECTION_PARAMS_PROVIDER_TYPE: ${DB_CONNECTION_PARAMS_PROVIDER_TYPE}
+      PROTOCOL_MAGIC: ${PROTOCOL_MAGIC}
+      NETWORK_MAGIC: ${PROTOCOL_MAGIC}
+      TRANSACTION_TTL: ${TRANSACTION_TTL}
+      TOPOLOGY_FILEPATH: ${TOPOLOGY_FILEPATH}
+      GENESIS_SHELLEY_PATH: ${GENESIS_SHELLEY_PATH}
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./config:/config
+    healthcheck:
+      test: [ "CMD-SHELL", "curl --fail http://localhost:8081/network/options -H 'Content-Type: application/json' --data '{\"metadata\": {}}' -X POST" ]
+      interval: 30s
+      retries: 20
+      start_period: 20s
+      timeout: 10s
+  yaci-indexer:
+    build:
+      context: ./
+      dockerfile: ./yaci-indexer/Dockerfile
+    environment:
+      API_SPRING_PROFILES_ACTIVE: ${API_SPRING_PROFILES_ACTIVE_YACI_INDEXER}
+      DB_HOST: "${DB_HOST}"
+      DB_PORT: "${DB_PORT}"
+      DB_NAME: "${DB_NAME}"
+      DB_USER: "${DB_ADMIN_USER_NAME}"
+      DB_SECRET: "${DB_ADMIN_USER_SECRET}"
+      DB_DRIVER_CLASS_NAME: "${DB_DRIVER_CLASS_NAME}"
+      CARDANO_NODE_HOST: "${CARDANO_NODE_HOST}"
+      CARDANO_NODE_PORT: "${INDEXER_NODE_PORT}"
+      PROTOCOL_MAGIC: "${PROTOCOL_MAGIC}"
+      NETWORK: "${NETWORK}"
+      GENESIS_SHELLEY_PATH: "${GENESIS_SHELLEY_PATH}"
+      GENESIS_BYRON_PATH: "${GENESIS_BYRON_PATH}"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./config:/config
+  db:
+    image: "${DB_IMAGE_NAME}:${DB_IMAGE_TAG}"
+    shm_size: 30g
+    ports:
+      - "${DB_PORT}:${DB_PORT}"
+    environment:
+      POSTGRES_PASSWORD: "${DB_ADMIN_USER_SECRET}"
+      POSTGRES_USER: "${DB_ADMIN_USER_NAME}"
+      POSTGRES_DB: "${DB_NAME}"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_ADMIN_USER_NAME}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: on-failure
+    volumes:
+      - ./data/postgres-data:/var/lib/postgresql/data
+networks:
+  default:
+    name: cardano-rosetta-java

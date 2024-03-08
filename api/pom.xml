@@ -151,11 +151,6 @@
             <artifactId>junit-jupiter-api</artifactId>
             <version>5.9.2</version>
         </dependency>
-        <dependency>
-            <groupId>org.cardanofoundation.rosetta-java</groupId>
-            <artifactId>cardano-common-rosetta</artifactId>
-            <version>1.0.7-SNAPSHOT</version>
-        </dependency>
 
         <dependency>
 
@@ -175,6 +170,13 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
+        <dependency>
+            <artifactId>hibernate-jpamodelgen</artifactId>
+            <groupId>org.hibernate</groupId>
+            <version>6.2.0.Final</version>
+            <scope>provided</scope>
+        </dependency>
+
 
         <dependency>
             <groupId>org.postgresql</groupId>
@@ -212,11 +214,6 @@
             <version>1.1.2</version>
         </dependency>
         <dependency>
-            <groupId>org.cardanofoundation.rosetta-java</groupId>
-            <artifactId>cardano-common-rosetta</artifactId>
-            <version>1.0.7-SNAPSHOT</version>
-        </dependency>
-        <dependency>
             <groupId>org.checkerframework</groupId>
             <artifactId>checker-qual</artifactId>
             <version>3.41.0</version>
@@ -248,6 +245,12 @@
             <artifactId>servlet-api</artifactId>
             <version>2.5</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.hypersistence</groupId>
+            <artifactId>hypersistence-utils-hibernate-63</artifactId>
+            <version>3.7.0</version>
+            <scope>compile</scope>
         </dependency>
 
     </dependencies>

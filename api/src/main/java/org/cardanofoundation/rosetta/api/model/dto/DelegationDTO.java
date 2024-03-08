@@ -2,7 +2,7 @@ package org.cardanofoundation.rosetta.api.model.dto;
 
 import lombok.Builder;
 import lombok.Data;
-import org.cardanofoundation.rosetta.common.model.DelegationEntity;
+import org.cardanofoundation.rosetta.api.model.entity.DelegationEntity;
 
 @Data
 @Builder

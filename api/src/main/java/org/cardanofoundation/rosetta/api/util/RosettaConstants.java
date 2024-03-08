@@ -2,7 +2,7 @@ package org.cardanofoundation.rosetta.api.util;
 
 import java.util.List;
 import org.cardanofoundation.rosetta.api.exception.Error;
-import org.cardanofoundation.rosetta.api.model.rest.OperationStatus;
+import org.openapitools.client.model.OperationStatus;
 
 public class RosettaConstants {
 

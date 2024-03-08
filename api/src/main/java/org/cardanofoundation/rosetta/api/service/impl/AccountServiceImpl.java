@@ -6,11 +6,16 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.api.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.api.mapper.DataMapper;
+import org.cardanofoundation.rosetta.api.model.dto.BlockDto;
+import org.cardanofoundation.rosetta.api.model.dto.UtxoDto;
+import org.cardanofoundation.rosetta.api.model.entity.Amt;
 import org.cardanofoundation.rosetta.api.model.rest.*;
 import org.cardanofoundation.rosetta.api.service.AccountService;
 import org.cardanofoundation.rosetta.api.service.BlockService;
+import org.cardanofoundation.rosetta.api.service.LedgerDataProviderService;
 import org.cardanofoundation.rosetta.api.util.CardanoAddressUtils;
 import org.cardanofoundation.rosetta.api.util.Validations;
+import org.openapitools.client.model.*;
 import org.springframework.stereotype.Service;
 import org.cardanofoundation.rosetta.api.model.dto.BlockUtxos;
 
@@ -20,6 +25,7 @@ import org.cardanofoundation.rosetta.api.model.dto.BlockUtxos;
 public class AccountServiceImpl implements AccountService {
 
   private final BlockService blockService;
+  private final LedgerDataProviderService ledgerDataProviderService;
 
   @Override
   public AccountBalanceResponse getAccountBalance(AccountBalanceRequest accountBalanceRequest) {
@@ -46,6 +52,8 @@ public class AccountServiceImpl implements AccountService {
   public AccountCoinsResponse getAccountCoins(AccountCoinsRequest accountCoinsRequest) {
     String accountAddress = accountCoinsRequest.getAccountIdentifier().getAddress();
     List<Currency> currencies = accountCoinsRequest.getCurrencies();
+//    accountCoinsRequest.getIncludeMempool(); // TODO
+
 
     log.debug("[accountCoins] Request received {}", accountCoinsRequest);
     if (Objects.isNull(CardanoAddressUtils.getEraAddressType(accountAddress))) {
@@ -58,9 +66,10 @@ public class AccountServiceImpl implements AccountService {
     }
     List<Currency> currenciesRequested = Validations.filterRequestedCurrencies(currencies);
     log.debug("[accountCoins] Filter currency is {}", currenciesRequested);
-    BlockUtxos blockUtxos = blockService.findCoinsDataByAddress(accountAddress, currenciesRequested);
-    log.debug("[accountCoins] blockUtxos is {}", blockUtxos);
-    return null;
-//    return DataMapper.mapToAccountCoinsResponse(blockUtxos);
+    BlockDto latestBlock = ledgerDataProviderService.findLatestBlock();
+    log.debug("[accountCoins] Latest block is {}", latestBlock);
+    List<UtxoDto> utxos = ledgerDataProviderService.findUtxoByAddressAndCurrency(accountAddress, currenciesRequested);
+    log.debug("[accountCoins] found {} Utxos for Address {}", utxos.size(), accountAddress);
+    return DataMapper.mapToAccountCoinsResponse(latestBlock, utxos);
   }
 }

@@ -1,19 +1,22 @@
 package org.cardanofoundation.rosetta.api.mapper;
 
+import com.bloxbean.cardano.client.common.model.Network;
 import lombok.extern.slf4j.Slf4j;
-import org.cardanofoundation.rosetta.api.common.constants.Constants;
-import org.cardanofoundation.rosetta.api.model.*;
-import org.cardanofoundation.rosetta.api.model.Currency;
-import org.cardanofoundation.rosetta.api.model.OperationStatus;
+import org.apache.commons.codec.binary.Hex;
+import org.cardanofoundation.rosetta.api.model.cardano.Metadata;
+import org.cardanofoundation.rosetta.api.model.constants.Constants;
 import org.cardanofoundation.rosetta.api.model.dto.*;
-import org.cardanofoundation.rosetta.api.model.rest.*;
+import org.cardanofoundation.rosetta.api.model.dto.TransactionDto;
+import org.cardanofoundation.rosetta.api.model.enumeration.NetworkEnum;
+import org.cardanofoundation.rosetta.api.model.rest.TransactionMetadata;
 import org.cardanofoundation.rosetta.api.model.rosetta.BlockMetadata;
+import org.openapitools.client.model.*;
+import org.openapitools.client.model.Currency;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
-import static org.cardanofoundation.rosetta.api.common.constants.Constants.*;
+import static org.cardanofoundation.rosetta.api.model.constants.Constants.*;
 import static org.cardanofoundation.rosetta.api.util.Formatters.hexStringFormatter;
 import static org.cardanofoundation.rosetta.api.util.RosettaConstants.SUCCESS_OPERATION_STATUS;
 
@@ -30,7 +33,7 @@ public class DataMapper { //TODO EPAM rename to RequestToOptionsResponseMapper a
    */
   public static NetworkListResponse mapToNetworkListResponse(Network supportedNetwork) {
     NetworkIdentifier identifier = NetworkIdentifier.builder().blockchain(Constants.CARDANO)
-            .network(supportedNetwork.getNetworkId()).build();
+            .network(NetworkEnum.fromProtocolMagic(supportedNetwork.getProtocolMagic()).getValue()).build();
     return NetworkListResponse.builder().networkIdentifiers(List.of(identifier)).build();
   }
 
@@ -39,7 +42,7 @@ public class DataMapper { //TODO EPAM rename to RequestToOptionsResponseMapper a
    * @param networkStatus The network status
    * @return The NetworkOptionsResponse
    */
-  public static NetworkStatusResponse mapToNetworkStatusResponse(NetworkStatus networkStatus) {
+  public static NetworkStatusResponse mapToNetworkStatusResponse(NetworkStatusDTO networkStatus) {
     BlockDto latestBlock = networkStatus.getLatestBlock();
     GenesisBlockDto genesisBlock = networkStatus.getGenesisBlock();
     List<Peer> peers = networkStatus.getPeers();
@@ -47,11 +50,11 @@ public class DataMapper { //TODO EPAM rename to RequestToOptionsResponseMapper a
             .currentBlockIdentifier(
                     BlockIdentifier.builder().index(latestBlock.getNumber()).hash(latestBlock.getHash())
                             .build())
-            .currentBlockTimeStamp(latestBlock.getCreatedAt())
+//            .currentBlockTimeStamp(latestBlock.getCreatedAt())
             .genesisBlockIdentifier(BlockIdentifier.builder().index(
                             genesisBlock.getNumber() != null ? genesisBlock.getNumber() : 0)
                     .hash(genesisBlock.getHash()).build())
-            .peers(peers.stream().map(peer -> new Peer(peer.getAddr())).toList())
+            .peers(peers.stream().map(peer -> new Peer(peer.getPeerId(), null)).toList())
             .build();
   }
 
@@ -108,7 +111,7 @@ public class DataMapper { //TODO EPAM rename to RequestToOptionsResponseMapper a
     coinIdentifier.setIdentifier(hash + ":" + index);
 
     return CoinChange.builder().coinIdentifier(CoinIdentifier.builder().identifier(hash + ":" + index).build())
-            .coinAction(coinAction.toString()).build();
+            .coinAction(coinAction).build();
   }
 
   /**
@@ -174,7 +177,7 @@ public class DataMapper { //TODO EPAM rename to RequestToOptionsResponseMapper a
     amount.setCurrency(Currency.builder()
                             .symbol(hexStringFormatter(symbol))
                             .decimals(decimals)
-//                            .metadata() // TODO check metadata for Amount
+                            .metadata(metadata != null ? new Metadata((String) metadata.get("policyId")) : null) // TODO check metadata for Amount
                             .build());
     return amount;
   }
@@ -186,19 +189,49 @@ public class DataMapper { //TODO EPAM rename to RequestToOptionsResponseMapper a
    * @return The Rosetta compatible AccountBalanceResponse
    */
   public static AccountBalanceResponse mapToAccountBalanceResponse(BlockDto block, List<AddressBalanceDTO> balances) {
+    List<AddressBalanceDTO> nonLovelaceBalances = balances.stream().filter(balance -> !balance.getAssetName().equals(LOVELACE)).toList();
+    long sum = balances.stream().filter(balance -> balance.getAssetName().equals(LOVELACE)).mapToLong(value -> value.getQuantity().longValue()).sum();
+    List<Amount> amounts = new ArrayList<>();
+    if (sum > 0) {
+      amounts.add(mapAmount(String.valueOf(sum)));
+    }
+    nonLovelaceBalances.forEach(balance -> amounts.add(mapAmount(balance.getQuantity().toString(), Hex.encodeHexString(balance.getAssetName().getBytes()), MULTI_ASSET_DECIMALS, Map.of("policyId", balance.getPolicy()))));
     return AccountBalanceResponse.builder()
             .blockIdentifier(BlockIdentifier.builder()
                     .hash(block.getHash())
                     .index(block.getNumber())
                     .build())
-            .balances(balances.stream().map(addressBalanceDTO -> Amount.builder()
-                            .value(addressBalanceDTO.getQuantity().toString())
-                            .currency(Currency.builder()
-                                    .decimals(MULTI_ASSET_DECIMALS)
-                                    .symbol(addressBalanceDTO.getUnit())
-//                                    .metadata(addressBalanceDTO.getPolicy() != null ? Map.of("policyId", addressBalanceDTO.getPolicy()) : null) // TODO check metadata for AccountBalanceResponse
-                                    .build()).build()).toList())
+            .balances(amounts)
             .build();
+  }
+
+  public static AccountBalanceResponse mapToStakeAddressBalanceResponse(BlockDto block, StakeAddressBalanceDTO balance) {
+    return AccountBalanceResponse.builder()
+            .blockIdentifier(BlockIdentifier.builder()
+                    .hash(block.getHash())
+                    .index(block.getNumber())
+                    .build())
+            .balances(List.of(Objects.requireNonNull(mapAmount(balance.getQuantity().toString()))))
+            .build();
+  }
+
+  public static AccountCoinsResponse mapToAccountCoinsResponse(BlockDto block, List<UtxoDto> utxos) {
+    return AccountCoinsResponse.builder()
+            .blockIdentifier(BlockIdentifier.builder()
+                    .hash(block.getHash())
+                    .index(block.getNumber())
+                    .build())
+            .coins(utxos.stream().map(utxo -> Coin.builder()
+                    .coinIdentifier(CoinIdentifier.builder()
+                            .identifier(utxo.getTxHash() + ":" + utxo.getOutputIndex())
+                            .build())
+                    .amount(Amount.builder()
+                            .value(utxo.getAmounts().getFirst().getQuantity().toString()) // TODO stream through amount list
+                            .currency(Currency.builder()
+                                    .symbol(utxo.getAmounts().getFirst().getUnit())  // TODO stream through amount list
+                                    .decimals(MULTI_ASSET_DECIMALS)
+            .build()).build()).build()).toList()).build();
+
   }
 }
 

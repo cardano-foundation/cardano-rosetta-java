@@ -1,23 +1,16 @@
 package org.cardanofoundation.rosetta.api.service;
 
 import java.util.List;
-import org.cardanofoundation.rosetta.api.model.rest.AccountBalanceResponse;
-import org.cardanofoundation.rosetta.api.model.rest.BlockRequest;
-import org.cardanofoundation.rosetta.api.model.rest.BlockResponse;
-import org.cardanofoundation.rosetta.api.model.rest.BlockTransactionRequest;
-import org.cardanofoundation.rosetta.api.model.rest.BlockTransactionResponse;
-import org.cardanofoundation.rosetta.api.model.rest.Currency;
-import org.cardanofoundation.rosetta.api.model.rest.TransactionDto;
-import org.cardanofoundation.rosetta.api.model.dto.BlockUtxos;
+
+import org.cardanofoundation.rosetta.api.model.dto.TransactionDto;
 import org.cardanofoundation.rosetta.api.model.dto.BlockDto;
+import org.openapitools.client.model.*;
 
 public interface BlockService {
 
   AccountBalanceResponse findBalanceDataByAddressAndBlock(String address,
-      Long number,
-      String hash);
-
-    BlockUtxos findCoinsDataByAddress(String accountAddress, List<Currency> currenciesRequested);
+                                                          Long number,
+                                                          String hash);
 
   BlockDto findBlock(Long number, String hash);
 

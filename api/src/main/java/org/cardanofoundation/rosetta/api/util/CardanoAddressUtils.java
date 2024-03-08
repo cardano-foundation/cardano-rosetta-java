@@ -16,13 +16,16 @@ import com.bloxbean.cardano.client.transaction.spec.cert.StakeCredential;
 import com.bloxbean.cardano.client.util.HexUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
-import org.cardanofoundation.rosetta.api.common.constants.Constants;
-import org.cardanofoundation.rosetta.api.common.enumeration.EraAddressType;
-import org.cardanofoundation.rosetta.api.common.enumeration.NetworkIdentifierType;
-import org.cardanofoundation.rosetta.api.common.enumeration.NonStakeAddressPrefix;
-import org.cardanofoundation.rosetta.api.common.enumeration.StakeAddressPrefix;
+import org.cardanofoundation.rosetta.api.model.cardano.Metadata;
+import org.cardanofoundation.rosetta.api.model.constants.Constants;
+import org.cardanofoundation.rosetta.api.model.enumeration.EraAddressType;
+import org.cardanofoundation.rosetta.api.model.enumeration.NetworkIdentifierType;
+import org.cardanofoundation.rosetta.api.model.enumeration.NonStakeAddressPrefix;
+import org.cardanofoundation.rosetta.api.model.enumeration.StakeAddressPrefix;
 import org.cardanofoundation.rosetta.api.exception.ExceptionFactory;
-import org.cardanofoundation.rosetta.api.model.*;
+import org.openapitools.client.model.Amount;
+import org.openapitools.client.model.Currency;
+import org.openapitools.client.model.PublicKey;
 
 import java.util.Arrays;
 
@@ -183,7 +186,7 @@ public class CardanoAddressUtils {
   }
 
   public static Amount mapAmount(String value, String symbol, Integer decimals,
-      Metadata metadata) {
+                                 Metadata metadata) {
     return new Amount(value,
         new Currency(ObjectUtils.isEmpty(symbol) ? Constants.ADA : hexStringFormatter(symbol),
             ObjectUtils.isEmpty(decimals) ? Constants.ADA_DECIMALS : decimals, metadata), null);
@@ -217,19 +220,19 @@ public class CardanoAddressUtils {
   public static String generateAddress(NetworkIdentifierType networkIdentifierType,
       String publicKeyString,
       String stakingCredentialString,
-      org.cardanofoundation.rosetta.api.common.enumeration.AddressType type) {
+      org.cardanofoundation.rosetta.api.model.enumeration.AddressType type) {
     log.info(
         "[generateAddress] About to generate address from public key {} and network identifier {}",
         publicKeyString, networkIdentifierType);
     HdPublicKey paymentCredential = new HdPublicKey();
     paymentCredential.setKeyData(HexUtil.decodeHexString(publicKeyString));
     if (!ObjectUtils.isEmpty(type) && type.getValue().equals(
-        org.cardanofoundation.rosetta.api.common.enumeration.AddressType.REWARD.getValue())) {
+        org.cardanofoundation.rosetta.api.model.enumeration.AddressType.REWARD.getValue())) {
       return generateRewardAddress(networkIdentifierType, paymentCredential);
     }
 
     if (!ObjectUtils.isEmpty(type) && type.getValue().equals(
-        org.cardanofoundation.rosetta.api.common.enumeration.AddressType.BASE.getValue())) {
+        org.cardanofoundation.rosetta.api.model.enumeration.AddressType.BASE.getValue())) {
       if (stakingCredentialString == null) {
         log.error("[constructionDerive] No staking key was provided for base address creation");
         throw ExceptionFactory.missingStakingKeyError();
@@ -307,7 +310,7 @@ public class CardanoAddressUtils {
       throw ExceptionFactory.missingStakingKeyError();
     }
     boolean checkKey = CardanoAddressUtils.isKeyValid(publicKey.getHexBytes(),
-        publicKey.getCurveType());
+        publicKey.getCurveType().toString());
     if (!checkKey) {
       log.info("[getPublicKey] Staking key has an invalid format");
       throw ExceptionFactory.invalidStakingKeyFormat();

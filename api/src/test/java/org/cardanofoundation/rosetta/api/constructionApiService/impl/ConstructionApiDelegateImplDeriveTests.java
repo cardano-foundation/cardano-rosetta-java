@@ -7,8 +7,8 @@
 //import org.cardanofoundation.rosetta.api.common.enumeration.NetworkIdentifierType;
 //import org.cardanofoundation.rosetta.api.exception.ApiException;
 //import org.cardanofoundation.rosetta.api.exception.Error;
-//import org.cardanofoundation.rosetta.api.model.ConstructionDeriveRequestMetadata;
-//import org.cardanofoundation.rosetta.api.model.CurveType;
+//import org.cardanofoundation.rosetta.api.model.cardano.ConstructionDeriveRequestMetadata;
+//import org.cardanofoundation.rosetta.api.model.cardano.CurveType;
 //import org.cardanofoundation.rosetta.api.model.PublicKey;
 //import org.cardanofoundation.rosetta.api.model.rest.ConstructionDeriveRequest;
 //import org.cardanofoundation.rosetta.api.model.rest.ConstructionDeriveResponse;

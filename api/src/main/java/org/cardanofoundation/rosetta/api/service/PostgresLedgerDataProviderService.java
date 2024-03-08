@@ -1,23 +1,20 @@
 package org.cardanofoundation.rosetta.api.service;
 
-import jakarta.annotation.PostConstruct;
-
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.TimeZone;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
-import org.cardanofoundation.rosetta.api.config.RosettaConfig;
 import org.cardanofoundation.rosetta.api.exception.ExceptionFactory;
-import org.cardanofoundation.rosetta.api.mapper.DataMapper;
+import org.cardanofoundation.rosetta.api.model.entity.*;
 import org.cardanofoundation.rosetta.api.model.dto.*;
-import org.cardanofoundation.rosetta.api.model.rest.BlockIdentifier;
-import org.cardanofoundation.rosetta.api.model.rest.Currency;
-import org.cardanofoundation.rosetta.api.model.rest.TransactionDto;
-import org.cardanofoundation.rosetta.api.model.rest.Utxo;
+import org.cardanofoundation.rosetta.api.model.dto.TransactionDto;
 import org.cardanofoundation.rosetta.api.repository.*;
-import org.cardanofoundation.rosetta.common.model.*;
+import org.openapitools.client.model.Currency;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -25,8 +22,6 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class PostgresLedgerDataProviderService implements LedgerDataProviderService {
 
-  private final Map<String, PostgresLedgerDataProviderClient> clients = new HashMap<>();
-  private final RosettaConfig rosettaConfig;
   private final BlockRepository blockRepository;
   private final AddressBalanceRepository addressBalanceRepository;
   private final AddressUtxoRepository addressUtxoRepository;
@@ -35,23 +30,7 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
   private final DelegationRepository delegationRepository;
   private final PoolRegistrationRepository poolRegistrationRepository;
   private final PoolRetirementRepository poolRetirementRepository;
-
-  @PostConstruct
-  void init() {
-    rosettaConfig.getNetworks().forEach(networkConfig -> {
-      clients.put(networkConfig.getSanitizedNetworkId(), PostgresLedgerDataProviderClient.builder()
-          .networkId(networkConfig.getSanitizedNetworkId()).build());
-    });
-  }
-
-  @Override
-  public BlockIdentifier getTip(final String networkId) {
-    if (clients.containsKey(networkId)) {
-      return clients.get(networkId).getTip();
-    }
-
-    throw new IllegalArgumentException("Invalid network id specified.");
-  }
+  private final StakeAddressRepository stakeAddressRepository;
 
   @Override
   public GenesisBlockDto findGenesisBlock() {
@@ -122,29 +101,31 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
   }
 
   @Override
+  public List<StakeAddressBalanceDTO> findStakeAddressBalanceByAddressAndBlock(String address, Long number) {
+    List<StakeAddressBalanceEntity> balances = stakeAddressRepository.findStakeAddressBalanceByAddressAndBlockNumber(address, number);
+    return balances.stream().map(StakeAddressBalanceDTO::fromEntity).toList();
+  }
+
+  @Override
   public Long findLatestBlockNumber() {
         return blockRepository.findLatestBlockNumber();
   }
 
   @Override
-  public List<Utxo> findUtxoByAddressAndBlock(String address, String hash, List<Currency> currencies) {
-    List<AddressUtxoEntity> addressUtxoEntities = addressUtxoRepository.findUtxoByAddressAndBlock(address, hash);
-    List<Utxo> utxos = new ArrayList<>();
+  public List<UtxoDto> findUtxoByAddressAndCurrency(String address, List<Currency> currencies) {
+    List<AddressUtxoEntity> addressUtxoEntities = addressUtxoRepository.findUtxosByAddress(address);
+    List<UtxoDto> utxos = new ArrayList<>();
     for(AddressUtxoEntity entity : addressUtxoEntities) {
+      List<Amt> amountsToAdd = new ArrayList<>();
       for(Amt amt : entity.getAmounts()) {
-        boolean present = currencies.stream().filter(currency -> currency.getSymbol().equals(amt.getUnit())).findFirst().isPresent();
-        if(present) {
-          Utxo utxo = Utxo.builder()
-                  .policy(amt.getPolicyId())
-//                  .value() // TODO
-                  .index(entity.getOutputIndex())
-                  .name(amt.getAssetName())
-                  .quantity(amt.getQuantity().toString())
-                  .transactionHash(entity.getTxHash())
-                  .build();
-          utxos.add(utxo);
+        boolean addToList = currencies.isEmpty() || currencies.stream().anyMatch(currency -> currency.getSymbol().equals(amt.getUnit()));
+        if(addToList) {
+          amountsToAdd.add(amt);
         }
       }
+      UtxoDto utxoDto = UtxoDto.fromUtxoKey(UtxoKey.builder().outputIndex(entity.getOutputIndex()).txHash(entity.getTxHash()).build());
+      utxoDto.setAmounts(amountsToAdd);
+      utxos.add(utxoDto);
     }
     return utxos;
   }
