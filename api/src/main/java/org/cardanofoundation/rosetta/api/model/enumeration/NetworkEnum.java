@@ -8,7 +8,7 @@ public enum NetworkEnum {
     MAINNET("mainnet", Networks.mainnet()),
     PREPROD("preprod", Networks.testnet()),
     TESTNET("testnet", Networks.testnet()),
-    DEVNET("devnet", Networks.testnet());
+    DEVNET("devnet", new Network(0b0000, 42));
 
     private final String value;
     private final Network network;
@@ -29,6 +29,15 @@ public enum NetworkEnum {
     public static NetworkEnum fromValue(String value) {
         for (NetworkEnum b : NetworkEnum.values()) {
             if (b.value.equals(value)) {
+                return b;
+            }
+        }
+        return null;
+    }
+
+    public static NetworkEnum fromProtocolMagic(long protocolMagic) {
+        for (NetworkEnum b : NetworkEnum.values()) {
+            if (b.network.getProtocolMagic() == protocolMagic) {
                 return b;
             }
         }

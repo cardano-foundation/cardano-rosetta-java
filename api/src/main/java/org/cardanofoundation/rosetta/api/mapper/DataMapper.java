@@ -7,6 +7,7 @@ import org.cardanofoundation.rosetta.api.model.cardano.Metadata;
 import org.cardanofoundation.rosetta.api.model.constants.Constants;
 import org.cardanofoundation.rosetta.api.model.dto.*;
 import org.cardanofoundation.rosetta.api.model.dto.TransactionDto;
+import org.cardanofoundation.rosetta.api.model.enumeration.NetworkEnum;
 import org.cardanofoundation.rosetta.api.model.rest.TransactionMetadata;
 import org.cardanofoundation.rosetta.api.model.rosetta.BlockMetadata;
 import org.openapitools.client.model.*;
@@ -31,7 +32,7 @@ public class DataMapper {
    */
   public static NetworkListResponse mapToNetworkListResponse(Network supportedNetwork) {
     NetworkIdentifier identifier = NetworkIdentifier.builder().blockchain(Constants.CARDANO)
-            .network(supportedNetwork.toString()).build();
+            .network(NetworkEnum.fromProtocolMagic(supportedNetwork.getProtocolMagic()).getValue()).build();
     return NetworkListResponse.builder().networkIdentifiers(List.of(identifier)).build();
   }
 
