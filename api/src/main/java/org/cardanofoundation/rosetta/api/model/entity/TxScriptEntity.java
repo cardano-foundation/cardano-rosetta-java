@@ -6,7 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
-import org.cardanofoundation.rosetta.api.model.entity.enums.ScriptType;
+import org.cardanofoundation.rosetta.api.model.enumeration.ScriptType;
 
 import java.math.BigInteger;
 import java.util.UUID;

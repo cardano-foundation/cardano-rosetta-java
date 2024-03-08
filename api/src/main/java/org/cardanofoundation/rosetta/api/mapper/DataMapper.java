@@ -1,24 +1,21 @@
 package org.cardanofoundation.rosetta.api.mapper;
 
+import com.bloxbean.cardano.client.common.model.Network;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Hex;
-import org.cardanofoundation.rosetta.api.common.constants.Constants;
-import org.cardanofoundation.rosetta.api.model.*;
-import org.cardanofoundation.rosetta.api.model.Currency;
-import org.cardanofoundation.rosetta.api.model.OperationStatus;
-import org.cardanofoundation.rosetta.api.model.dto.AddressBalanceDTO;
-import org.cardanofoundation.rosetta.api.model.dto.BlockDto;
-import org.cardanofoundation.rosetta.api.model.dto.GenesisBlockDto;
-import org.cardanofoundation.rosetta.api.model.dto.StakeAddressBalanceDTO;
-import org.cardanofoundation.rosetta.api.model.rest.*;
-import org.cardanofoundation.rosetta.api.model.rest.Coin;
+import org.cardanofoundation.rosetta.api.model.cardano.Metadata;
+import org.cardanofoundation.rosetta.api.model.constants.Constants;
+import org.cardanofoundation.rosetta.api.model.dto.*;
+import org.cardanofoundation.rosetta.api.model.dto.TransactionDto;
+import org.cardanofoundation.rosetta.api.model.rest.TransactionMetadata;
 import org.cardanofoundation.rosetta.api.model.rosetta.BlockMetadata;
+import org.openapitools.client.model.*;
+import org.openapitools.client.model.Currency;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
-import static org.cardanofoundation.rosetta.api.common.constants.Constants.*;
+import static org.cardanofoundation.rosetta.api.model.constants.Constants.*;
 import static org.cardanofoundation.rosetta.api.util.Formatters.hexStringFormatter;
 import static org.cardanofoundation.rosetta.api.util.RosettaConstants.SUCCESS_OPERATION_STATUS;
 
@@ -34,7 +31,7 @@ public class DataMapper {
    */
   public static NetworkListResponse mapToNetworkListResponse(Network supportedNetwork) {
     NetworkIdentifier identifier = NetworkIdentifier.builder().blockchain(Constants.CARDANO)
-            .network(supportedNetwork.getNetworkId()).build();
+            .network(supportedNetwork.toString()).build();
     return NetworkListResponse.builder().networkIdentifiers(List.of(identifier)).build();
   }
 
@@ -43,7 +40,7 @@ public class DataMapper {
    * @param networkStatus The network status
    * @return The NetworkOptionsResponse
    */
-  public static NetworkStatusResponse mapToNetworkStatusResponse(NetworkStatus networkStatus) {
+  public static NetworkStatusResponse mapToNetworkStatusResponse(NetworkStatusDTO networkStatus) {
     BlockDto latestBlock = networkStatus.getLatestBlock();
     GenesisBlockDto genesisBlock = networkStatus.getGenesisBlock();
     List<Peer> peers = networkStatus.getPeers();
@@ -51,11 +48,11 @@ public class DataMapper {
             .currentBlockIdentifier(
                     BlockIdentifier.builder().index(latestBlock.getNumber()).hash(latestBlock.getHash())
                             .build())
-            .currentBlockTimeStamp(latestBlock.getCreatedAt())
+//            .currentBlockTimeStamp(latestBlock.getCreatedAt())
             .genesisBlockIdentifier(BlockIdentifier.builder().index(
                             genesisBlock.getNumber() != null ? genesisBlock.getNumber() : 0)
                     .hash(genesisBlock.getHash()).build())
-            .peers(peers.stream().map(peer -> new Peer(peer.getAddr())).toList())
+            .peers(peers.stream().map(peer -> new Peer(peer.getPeerId(), null)).toList())
             .build();
   }
 
@@ -112,7 +109,7 @@ public class DataMapper {
     coinIdentifier.setIdentifier(hash + ":" + index);
 
     return CoinChange.builder().coinIdentifier(CoinIdentifier.builder().identifier(hash + ":" + index).build())
-            .coinAction(coinAction.toString()).build();
+            .coinAction(coinAction).build();
   }
 
   /**
@@ -216,7 +213,7 @@ public class DataMapper {
             .build();
   }
 
-  public static AccountCoinsResponse mapToAccountCoinsResponse(BlockDto block, List<Utxo> utxos) {
+  public static AccountCoinsResponse mapToAccountCoinsResponse(BlockDto block, List<UtxoDto> utxos) {
     return AccountCoinsResponse.builder()
             .blockIdentifier(BlockIdentifier.builder()
                     .hash(block.getHash())
@@ -224,12 +221,12 @@ public class DataMapper {
                     .build())
             .coins(utxos.stream().map(utxo -> Coin.builder()
                     .coinIdentifier(CoinIdentifier.builder()
-                            .identifier(utxo.getTransactionHash() + ":" + utxo.getIndex())
+                            .identifier(utxo.getTxHash() + ":" + utxo.getOutputIndex())
                             .build())
                     .amount(Amount.builder()
-                            .value(utxo.getQuantity())
+                            .value(utxo.getAmounts().getFirst().getQuantity().toString()) // TODO stream through amount list
                             .currency(Currency.builder()
-                                    .symbol(utxo.getName())
+                                    .symbol(utxo.getAmounts().getFirst().getUnit())  // TODO stream through amount list
                                     .decimals(MULTI_ASSET_DECIMALS)
             .build()).build()).build()).toList()).build();
 

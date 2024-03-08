@@ -3,14 +3,14 @@ package org.cardanofoundation.rosetta.api.mapper;
 import com.bloxbean.cardano.yaci.core.model.certs.CertificateType;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Hex;
-import org.cardanofoundation.rosetta.api.common.constants.Constants;
-import org.cardanofoundation.rosetta.api.common.enumeration.OperationType;
-import org.cardanofoundation.rosetta.api.model.*;
+import org.cardanofoundation.rosetta.api.model.cardano.OperationMetadata;
+import org.cardanofoundation.rosetta.api.model.cardano.TokenBundleItem;
+import org.cardanofoundation.rosetta.api.model.constants.Constants;
 import org.cardanofoundation.rosetta.api.model.dto.*;
-import org.cardanofoundation.rosetta.api.model.rest.AccountIdentifier;
-import org.cardanofoundation.rosetta.api.model.rest.TransactionDto;
+import org.cardanofoundation.rosetta.api.model.enumeration.OperationType;
 import org.cardanofoundation.rosetta.api.model.entity.Amt;
 import org.jetbrains.annotations.NotNull;
+import org.openapitools.client.model.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -18,8 +18,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static org.cardanofoundation.rosetta.api.common.constants.Constants.ADA;
-import static org.cardanofoundation.rosetta.api.common.constants.Constants.ADA_DECIMALS;
+import static org.cardanofoundation.rosetta.api.model.constants.Constants.ADA;
+import static org.cardanofoundation.rosetta.api.model.constants.Constants.ADA_DECIMALS;
 import static org.cardanofoundation.rosetta.api.util.Formatters.hexStringFormatter;
 
 @Slf4j

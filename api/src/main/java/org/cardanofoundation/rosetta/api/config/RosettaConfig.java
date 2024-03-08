@@ -4,8 +4,8 @@ import java.util.List;
 import java.util.Optional;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.cardanofoundation.rosetta.api.model.rest.NetworkRequest;
 import org.cardanofoundation.rosetta.api.util.RosettaConstants;
+import org.openapitools.client.model.NetworkRequest;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 

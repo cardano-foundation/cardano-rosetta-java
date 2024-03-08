@@ -1,6 +1,7 @@
 package org.cardanofoundation.rosetta.api.model.dto;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.cardanofoundation.rosetta.api.model.entity.AddressUtxoEntity;
@@ -13,6 +14,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class UtxoDto {
     private String txHash;
     private Integer outputIndex;

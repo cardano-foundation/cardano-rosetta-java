@@ -1,7 +1,10 @@
 package org.cardanofoundation.rosetta.api.service;
 
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.TimeZone;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -9,10 +12,9 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.cardanofoundation.rosetta.api.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.api.model.entity.*;
 import org.cardanofoundation.rosetta.api.model.dto.*;
-import org.cardanofoundation.rosetta.api.model.rest.Currency;
-import org.cardanofoundation.rosetta.api.model.rest.TransactionDto;
-import org.cardanofoundation.rosetta.api.model.rest.Utxo;
+import org.cardanofoundation.rosetta.api.model.dto.TransactionDto;
 import org.cardanofoundation.rosetta.api.repository.*;
+import org.openapitools.client.model.Currency;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -110,24 +112,20 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
   }
 
   @Override
-  public List<Utxo> findUtxoByAddressAndCurrency(String address, List<Currency> currencies) {
+  public List<UtxoDto> findUtxoByAddressAndCurrency(String address, List<Currency> currencies) {
     List<AddressUtxoEntity> addressUtxoEntities = addressUtxoRepository.findUtxosByAddress(address);
-    List<Utxo> utxos = new ArrayList<>();
+    List<UtxoDto> utxos = new ArrayList<>();
     for(AddressUtxoEntity entity : addressUtxoEntities) {
+      List<Amt> amountsToAdd = new ArrayList<>();
       for(Amt amt : entity.getAmounts()) {
         boolean addToList = currencies.isEmpty() || currencies.stream().anyMatch(currency -> currency.getSymbol().equals(amt.getUnit()));
         if(addToList) {
-          Utxo utxo = Utxo.builder()
-                  .policy(amt.getPolicyId())
-//                  .value() // TODO
-                  .index(entity.getOutputIndex())
-                  .name(amt.getAssetName())
-                  .quantity(amt.getQuantity().toString())
-                  .transactionHash(entity.getTxHash())
-                  .build();
-          utxos.add(utxo);
+          amountsToAdd.add(amt);
         }
       }
+      UtxoDto utxoDto = UtxoDto.fromUtxoKey(UtxoKey.builder().outputIndex(entity.getOutputIndex()).txHash(entity.getTxHash()).build());
+      utxoDto.setAmounts(amountsToAdd);
+      utxos.add(utxoDto);
     }
     return utxos;
   }

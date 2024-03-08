@@ -2,14 +2,15 @@ package org.cardanofoundation.rosetta.api.service;
 
 import java.util.List;
 
-import org.cardanofoundation.rosetta.api.model.rest.*;
+import org.cardanofoundation.rosetta.api.model.dto.TransactionDto;
 import org.cardanofoundation.rosetta.api.model.dto.BlockDto;
+import org.openapitools.client.model.*;
 
 public interface BlockService {
 
   AccountBalanceResponse findBalanceDataByAddressAndBlock(String address,
-      Long number,
-      String hash);
+                                                          Long number,
+                                                          String hash);
 
   BlockDto findBlock(Long number, String hash);
 

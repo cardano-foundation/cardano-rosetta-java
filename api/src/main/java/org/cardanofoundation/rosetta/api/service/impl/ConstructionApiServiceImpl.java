@@ -7,18 +7,17 @@ import com.bloxbean.cardano.client.exception.CborSerializationException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.cardanofoundation.rosetta.api.common.enumeration.AddressType;
-import org.cardanofoundation.rosetta.api.model.ConstructionDeriveRequestMetadata;
+import org.cardanofoundation.rosetta.api.model.enumeration.AddressType;
+import org.cardanofoundation.rosetta.api.model.cardano.ConstructionDeriveRequestMetadata;
 
-import org.cardanofoundation.rosetta.api.model.DepositParameters;
-import org.cardanofoundation.rosetta.api.model.PublicKey;
-import org.cardanofoundation.rosetta.api.common.enumeration.NetworkEnum;
-import org.cardanofoundation.rosetta.api.model.rest.*;
+import org.cardanofoundation.rosetta.api.model.enumeration.NetworkEnum;
 import org.cardanofoundation.rosetta.api.service.CardanoAddressService;
 import org.cardanofoundation.rosetta.api.service.ConstructionApiService;
+import org.openapitools.client.model.*;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.HashMap;
 
 @Service
 @Slf4j
@@ -34,7 +33,8 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
         NetworkEnum network = NetworkEnum.fromValue(constructionDeriveRequest.getNetworkIdentifier().getNetwork());
         if (network == null)
             throw new IllegalAccessException("Invalid network");
-        ConstructionDeriveRequestMetadata metadata = constructionDeriveRequest.getMetadata();
+
+        ConstructionDeriveRequestMetadata metadata = ConstructionDeriveRequestMetadata.fromHashMap((HashMap<String,Object>) constructionDeriveRequest.getMetadata());
         // Default address type is enterprise
         AddressType addressType = metadata != null ? AddressType.findByValue(metadata.getAddressType()) : null;
         addressType = addressType != null ? addressType : AddressType.ENTERPRISE;
@@ -46,7 +46,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
             stakingCredential = metadata.getStakingCredential();
         }
         String address = cardanoAddressService.getCardanoAddress(addressType, stakingCredential, publicKey, network);
-        return new ConstructionDeriveResponse(new AccountIdentifier(address));
+        return new ConstructionDeriveResponse(address, null, null);
     }
 
     @Override
@@ -60,28 +60,27 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
     }
 
     @Override
-    public ConstructionPayloadsResponse constructionPayloadsService(ConstructionPayloadsRequest constructionPayloadsRequest) throws Exception {
+    public ConstructionPayloadsResponse constructionPayloadsService(ConstructionPayloadsRequest constructionPayloadsRequest) {
         return null;
     }
 
     @Override
-    public ConstructionParseResponse constructionParseService(ConstructionParseRequest constructionParseRequest) throws Exception {
+    public ConstructionParseResponse constructionParseService(ConstructionParseRequest constructionParseRequest) {
         return null;
     }
 
     @Override
-    public ConstructionCombineResponse constructionCombineService(ConstructionCombineRequest constructionCombineRequest) throws CborException, CborSerializationException, JsonProcessingException {
+    public ConstructionCombineResponse constructionCombineService(ConstructionCombineRequest constructionCombineRequest) {
         return null;
     }
 
     @Override
     public TransactionIdentifierResponse constructionHashService(ConstructionHashRequest constructionHashRequest) {
-
         return null;
     }
 
     @Override
-    public TransactionIdentifierResponse constructionSubmitService(ConstructionSubmitRequest constructionSubmitRequest) throws CborDeserializationException, CborSerializationException, InterruptedException {
+    public TransactionIdentifierResponse constructionSubmitService(ConstructionSubmitRequest constructionSubmitRequest)  {
         return null;
     }
 }
