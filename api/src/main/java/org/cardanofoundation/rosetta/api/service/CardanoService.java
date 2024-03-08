@@ -1,6 +1,9 @@
 package org.cardanofoundation.rosetta.api.service;
 
 
-public interface CardanoService {
+import co.nstant.in.cbor.model.Array;
 
+public interface CardanoService {
+    String getHashOfSignedTransaction(String signedTransaction);
+    Array decodeExtraData(String encoded);
 }

@@ -1,6 +1,8 @@
 package org.cardanofoundation.rosetta.api.service.impl;
 
 import co.nstant.in.cbor.CborException;
+import co.nstant.in.cbor.model.Array;
+import co.nstant.in.cbor.model.UnicodeString;
 import com.bloxbean.cardano.client.exception.AddressExcepion;
 import com.bloxbean.cardano.client.exception.CborDeserializationException;
 import com.bloxbean.cardano.client.exception.CborSerializationException;
@@ -12,6 +14,7 @@ import org.cardanofoundation.rosetta.api.model.cardano.ConstructionDeriveRequest
 
 import org.cardanofoundation.rosetta.api.model.enumeration.NetworkEnum;
 import org.cardanofoundation.rosetta.api.service.CardanoAddressService;
+import org.cardanofoundation.rosetta.api.service.CardanoService;
 import org.cardanofoundation.rosetta.api.service.ConstructionApiService;
 import org.openapitools.client.model.*;
 import org.springframework.stereotype.Service;
@@ -25,6 +28,7 @@ import java.util.HashMap;
 public class ConstructionApiServiceImpl implements ConstructionApiService {
 
     private final CardanoAddressService cardanoAddressService;
+    private final CardanoService cardanoService;
 
     @Override
     public ConstructionDeriveResponse constructionDeriveService(ConstructionDeriveRequest constructionDeriveRequest) throws IllegalAccessException, CborSerializationException {
@@ -76,7 +80,12 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
 
     @Override
     public TransactionIdentifierResponse constructionHashService(ConstructionHashRequest constructionHashRequest) {
-        return null;
+        Array array = cardanoService.decodeExtraData(constructionHashRequest.getSignedTransaction());
+        log.info("[constructionHash] About to get hash of signed transaction");
+        String transactionHash = cardanoService.getHashOfSignedTransaction(
+                ((UnicodeString) array.getDataItems().get(0)).getString());
+        log.info("[constructionHash] About to return hash of signed transaction");
+        return new TransactionIdentifierResponse(new TransactionIdentifier(transactionHash), null);
     }
 
     @Override

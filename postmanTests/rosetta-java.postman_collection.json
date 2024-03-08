@@ -341,32 +341,6 @@
 			"response": []
 		},
 		{
-			"name": "/mempool",
-			"request": {
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"{{networkId}}\"\n    },\n    \"metadata\": {\n    }\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{URL}}/mempool",
-					"host": [
-						"{{URL}}"
-					],
-					"path": [
-						"mempool"
-					]
-				}
-			},
-			"response": []
-		},
-		{
 			"name": "/mempool/transaction",
 			"request": {
 				"method": "POST",
@@ -447,6 +421,58 @@
 			"response": []
 		},
 		{
+			"name": "/construction/hash",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 200', function () {",
+							"    pm.response.to.have.status(200);",
+							"})",
+							"",
+							"pm.test('Contains Json Body', function () {",
+							"    pm.response.to.have.jsonBody('transaction_identifier');",
+							"})",
+							"",
+							"pm.test(\"Correct Address\", function () {",
+							"    const hashedSignedTransaction = pm.environment.get('hashedSignedTransaction');",
+							"    var responseData = pm.response.json();",
+							"    pm.expect(responseData).to.be.an('object');",
+							"    pm.expect(responseData.transaction_identifier).to.be.an('object');",
+							"    pm.expect(responseData.transaction_identifier.hash).to.eql(hashedSignedTransaction);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"network_identifier\": {\n    \"blockchain\": \"cardano\",\n    \"network\": \"devkit\"\n  },\n  \"signed_transaction\": \"{{signedTransaction}}\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{URL}}/construction/hash",
+					"host": [
+						"{{URL}}"
+					],
+					"path": [
+						"construction",
+						"hash"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "/construction/metadata",
 			"request": {
 				"method": "POST",
@@ -468,6 +494,32 @@
 					"path": [
 						"construction",
 						"metadata"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "/mempool",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"{{networkId}}\"\n        },\n    \"metadata\": {    }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{URL}}/mempool",
+					"host": [
+						"{{URL}}"
+					],
+					"path": [
+						"mempool"
 					]
 				}
 			},
