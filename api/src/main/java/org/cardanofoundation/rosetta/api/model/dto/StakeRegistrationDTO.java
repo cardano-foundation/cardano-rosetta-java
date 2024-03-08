@@ -3,7 +3,7 @@ package org.cardanofoundation.rosetta.api.model.dto;
 import com.bloxbean.cardano.yaci.core.model.certs.CertificateType;
 import lombok.Builder;
 import lombok.Data;
-import org.cardanofoundation.rosetta.common.model.StakeRegistrationEntity;
+import org.cardanofoundation.rosetta.api.model.entity.StakeRegistrationEntity;
 
 @Data
 @Builder

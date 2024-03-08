@@ -9,7 +9,7 @@ import org.cardanofoundation.rosetta.api.model.*;
 import org.cardanofoundation.rosetta.api.model.dto.*;
 import org.cardanofoundation.rosetta.api.model.rest.AccountIdentifier;
 import org.cardanofoundation.rosetta.api.model.rest.TransactionDto;
-import org.cardanofoundation.rosetta.common.model.Amt;
+import org.cardanofoundation.rosetta.api.model.entity.Amt;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;

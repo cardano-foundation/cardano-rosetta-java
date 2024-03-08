@@ -1,22 +1,18 @@
 package org.cardanofoundation.rosetta.api.service;
 
-import jakarta.annotation.PostConstruct;
-
 import java.text.SimpleDateFormat;
 import java.util.*;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
-import org.cardanofoundation.rosetta.api.config.RosettaConfig;
 import org.cardanofoundation.rosetta.api.exception.ExceptionFactory;
+import org.cardanofoundation.rosetta.api.model.entity.*;
 import org.cardanofoundation.rosetta.api.model.dto.*;
-import org.cardanofoundation.rosetta.api.model.rest.BlockIdentifier;
 import org.cardanofoundation.rosetta.api.model.rest.Currency;
 import org.cardanofoundation.rosetta.api.model.rest.TransactionDto;
 import org.cardanofoundation.rosetta.api.model.rest.Utxo;
 import org.cardanofoundation.rosetta.api.repository.*;
-import org.cardanofoundation.rosetta.common.model.*;
 import org.springframework.stereotype.Component;
 
 @Slf4j

@@ -1,14 +1,11 @@
 package org.cardanofoundation.rosetta.api.model.dto;
 
-import io.hypersistence.utils.hibernate.type.json.JsonType;
-import jakarta.persistence.Column;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.cardanofoundation.rosetta.common.model.AddressUtxoEntity;
-import org.cardanofoundation.rosetta.common.model.Amt;
-import org.cardanofoundation.rosetta.common.model.UtxoKey;
-import org.hibernate.annotations.Type;
+import org.cardanofoundation.rosetta.api.model.entity.AddressUtxoEntity;
+import org.cardanofoundation.rosetta.api.model.entity.Amt;
+import org.cardanofoundation.rosetta.api.model.entity.UtxoKey;
 
 import java.math.BigInteger;
 import java.util.List;

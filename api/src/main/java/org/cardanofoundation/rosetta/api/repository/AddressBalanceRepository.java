@@ -1,7 +1,7 @@
 package org.cardanofoundation.rosetta.api.repository;
 
-import org.cardanofoundation.rosetta.common.model.AddressBalanceEntity;
-import org.cardanofoundation.rosetta.common.model.AddressBalanceId;
+import org.cardanofoundation.rosetta.api.model.entity.AddressBalanceEntity;
+import org.cardanofoundation.rosetta.api.model.entity.AddressBalanceId;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

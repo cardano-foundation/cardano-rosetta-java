@@ -5,7 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.cardanofoundation.rosetta.api.model.rest.TransactionDto;
-import org.cardanofoundation.rosetta.common.model.BlockEntity;
+import org.cardanofoundation.rosetta.api.model.entity.BlockEntity;
 
 import java.util.List;
 @Data

@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import org.cardanofoundation.rosetta.api.model.dto.*;
-import org.cardanofoundation.rosetta.common.model.TxnEntity;
+import org.cardanofoundation.rosetta.api.model.entity.TxnEntity;
 
 import java.util.List;
 
