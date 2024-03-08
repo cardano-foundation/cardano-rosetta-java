@@ -23,7 +23,7 @@ to fetch the data from the node.
   - Construction API
     - [x] /construction/derive
     - [ ] /construction/preprocess
-    - [ ] /construction/metadata
+    - [x] /construction/metadata
     - [ ] /construction/payloads
     - [ ] /construction/combine
     - [ ] /construction/parse
