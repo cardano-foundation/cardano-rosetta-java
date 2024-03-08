@@ -1,6 +1,6 @@
 //package org.cardanofoundation.rosetta.api.account;
 //
-//import static org.cardanofoundation.rosetta.api.common.constants.Constants.CARDANO;
+//import static org.cardanofoundation.rosetta.api.model.constants.Constants.CARDANO;
 //import static org.junit.jupiter.api.Assertions.assertEquals;
 //import static org.junit.jupiter.api.Assertions.assertFalse;
 //import static org.junit.jupiter.api.Assertions.assertTrue;

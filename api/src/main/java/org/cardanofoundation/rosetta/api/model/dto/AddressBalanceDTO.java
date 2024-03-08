@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.cardanofoundation.rosetta.common.model.AddressBalanceEntity;
+import org.cardanofoundation.rosetta.api.model.entity.AddressBalanceEntity;
 
 import java.math.BigInteger;
 

@@ -24,14 +24,14 @@
 //import org.cardanofoundation.rosetta.api.model.ConstructionPreprocessRequestMetadata;
 //import org.cardanofoundation.rosetta.api.model.Currency;
 //import org.cardanofoundation.rosetta.api.model.DepositParameters;
-//import org.cardanofoundation.rosetta.api.model.Metadata;
+//import org.cardanofoundation.rosetta.api.model.cardano.Metadata;
 //import org.cardanofoundation.rosetta.api.model.Operation;
 //import org.cardanofoundation.rosetta.api.model.OperationIdentifier;
-//import org.cardanofoundation.rosetta.api.model.OperationMetadata;
+//import org.cardanofoundation.rosetta.api.model.cardano.OperationMetadata;
 //import org.cardanofoundation.rosetta.api.model.PublicKey;
-//import org.cardanofoundation.rosetta.api.model.Signature;
+//import org.cardanofoundation.rosetta.api.model.cardano.Signature;
 //import org.cardanofoundation.rosetta.api.model.SignatureType;
-//import org.cardanofoundation.rosetta.api.model.SigningPayload;
+//import org.cardanofoundation.rosetta.api.model.cardano.SigningPayload;
 //import org.cardanofoundation.rosetta.api.model.rest.AccountBalanceRequest;
 //import org.cardanofoundation.rosetta.api.model.rest.AccountBalanceResponse;
 //import org.cardanofoundation.rosetta.api.model.rest.AccountCoinsRequest;
@@ -199,12 +199,12 @@
 //        );
 //        List<TokenBundleItem> coinTokenBundleItems=tokenBundleList;
 //        tokenBundle.addAll(coinTokenBundleItems);
-//        List<org.cardanofoundation.rosetta.api.model.TokenBundleItem> list=new ArrayList<>();
+//        List<org.cardanofoundation.rosetta.api.model.cardano.TokenBundleItem> list=new ArrayList<>();
 //        tokenBundleList.stream().forEach(t->{
 //          try {
 //            String tokenBundleString=objectMapper.writeValueAsString(t);
-//            org.cardanofoundation.rosetta.api.model.TokenBundleItem tokenBundleItem=objectMapper.readValue(tokenBundleString,
-//                org.cardanofoundation.rosetta.api.model.TokenBundleItem.class);
+//            org.cardanofoundation.rosetta.api.model.cardano.TokenBundleItem tokenBundleItem=objectMapper.readValue(tokenBundleString,
+//                org.cardanofoundation.rosetta.api.model.cardano.TokenBundleItem.class);
 //            list.add(tokenBundleItem);
 //          } catch (JsonProcessingException e) {
 //            throw new RuntimeException(e);
@@ -240,12 +240,12 @@
 //        null,
 //        null
 //    );
-//    List<org.cardanofoundation.rosetta.api.model.TokenBundleItem> list=new ArrayList<>();
+//    List<org.cardanofoundation.rosetta.api.model.cardano.TokenBundleItem> list=new ArrayList<>();
 //    tokenBundle.stream().forEach(t->{
 //      try {
 //        String tokenBundleString=objectMapper.writeValueAsString(t);
-//        org.cardanofoundation.rosetta.api.model.TokenBundleItem tokenBundleItem=objectMapper.readValue(tokenBundleString,
-//            org.cardanofoundation.rosetta.api.model.TokenBundleItem.class);
+//        org.cardanofoundation.rosetta.api.model.cardano.TokenBundleItem tokenBundleItem=objectMapper.readValue(tokenBundleString,
+//            org.cardanofoundation.rosetta.api.model.cardano.TokenBundleItem.class);
 //        list.add(tokenBundleItem);
 //      } catch (JsonProcessingException e) {
 //        throw new RuntimeException(e);
@@ -253,11 +253,11 @@
 //    });
 //    OperationMetadata operationMetadata=new OperationMetadata(list);
 //    ArrayList<String> checkSymBolList=new ArrayList<>();
-//    List<org.cardanofoundation.rosetta.api.model.TokenBundleItem> newList=new ArrayList<>();
+//    List<org.cardanofoundation.rosetta.api.model.cardano.TokenBundleItem> newList=new ArrayList<>();
 //
 //    list.stream().forEach(l->{
 //      if(!checkSymBolList.contains(l.getPolicyId())){
-//        newList.add(new org.cardanofoundation.rosetta.api.model.TokenBundleItem(l.getPolicyId()
+//        newList.add(new org.cardanofoundation.rosetta.api.model.cardano.TokenBundleItem(l.getPolicyId()
 //            , new ArrayList<>(List.of(new Amount("0",
 //            new Currency(l.getTokens().get(0).getCurrency().getSymbol(),
 //                l.getTokens().get(0).getCurrency().getDecimals(),

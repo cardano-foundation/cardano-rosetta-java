@@ -6,7 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.cardanofoundation.rosetta.api.model.SigningPayload;
+import org.cardanofoundation.rosetta.api.model.cardano.SigningPayload;
+import org.openapitools.client.model.NetworkIdentifier;
 
 import java.util.List;
 

@@ -13,11 +13,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Pattern;
-import org.cardanofoundation.rosetta.api.common.constants.Constants;
-import org.cardanofoundation.rosetta.api.common.enumeration.CatalystDataIndexes;
-import org.cardanofoundation.rosetta.api.common.enumeration.CatalystSigIndexes;
-import org.cardanofoundation.rosetta.api.model.rest.Currency;
-import org.cardanofoundation.rosetta.api.model.rest.Utxo;
+import org.cardanofoundation.rosetta.api.model.constants.Constants;
+import org.cardanofoundation.rosetta.api.model.dto.UtxoDto;
+import org.cardanofoundation.rosetta.api.model.enumeration.CatalystDataIndexes;
+import org.cardanofoundation.rosetta.api.model.enumeration.CatalystSigIndexes;
+import org.openapitools.client.model.Currency;
 
 
 public class Validations {
@@ -34,7 +34,7 @@ public class Validations {
   public static void validateCurrencies(List<Currency> currencies) {
     for (Currency currency : currencies) {
       String symbol = currency.getSymbol();
-      Map<String, Object> metadata = currency.getMetadata();
+      Map<String, Object> metadata = (Map<String, Object>) currency.getMetadata();
       if (!isTokenNameValid(symbol)) {
         throw invalidTokenNameError("Given name is " + symbol);
       }
@@ -113,9 +113,9 @@ public class Validations {
   }
 
 
-  public static boolean areEqualUtxos(Utxo firstUtxo, Utxo secondUtxo) {
-    return Objects.equals(firstUtxo.getIndex(), secondUtxo.getIndex())
-        && Objects.equals(firstUtxo.getTransactionHash(), secondUtxo.getTransactionHash());
+  public static boolean areEqualUtxos(UtxoDto firstUtxo, UtxoDto secondUtxo) {
+    return Objects.equals(firstUtxo.getOutputIndex(), secondUtxo.getOutputIndex())
+        && Objects.equals(firstUtxo.getTxHash(), secondUtxo.getTxHash());
   }
 
 }

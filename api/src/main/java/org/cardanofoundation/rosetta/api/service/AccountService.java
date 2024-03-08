@@ -1,11 +1,9 @@
 package org.cardanofoundation.rosetta.api.service;
 
-
-import org.cardanofoundation.rosetta.api.model.rest.AccountBalanceRequest;
-import org.cardanofoundation.rosetta.api.model.rest.AccountBalanceResponse;
-import org.cardanofoundation.rosetta.api.model.rest.AccountCoinsRequest;
-import org.cardanofoundation.rosetta.api.model.rest.AccountCoinsResponse;
-
+import org.openapitools.client.model.AccountBalanceRequest;
+import org.openapitools.client.model.AccountBalanceResponse;
+import org.openapitools.client.model.AccountCoinsRequest;
+import org.openapitools.client.model.AccountCoinsResponse;
 
 public interface AccountService {
 

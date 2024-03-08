@@ -2,9 +2,6 @@ FROM maven:3.9.6-sapmachine-21 AS build-common
 WORKDIR /app
 COPY ./pom.xml /app/pom.xml
 
-COPY ./common/pom.xml /app/common/pom.xml
-COPY ./common /app/common
-
 COPY ./api/pom.xml /app/api/pom.xml
 COPY ./api /app/api
 
