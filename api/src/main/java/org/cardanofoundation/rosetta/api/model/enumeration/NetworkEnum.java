@@ -2,11 +2,13 @@ package org.cardanofoundation.rosetta.api.model.enumeration;
 
 import com.bloxbean.cardano.client.common.model.Network;
 import com.bloxbean.cardano.client.common.model.Networks;
+import lombok.Getter;
 
+@Getter
 public enum NetworkEnum {
 
     MAINNET("mainnet", Networks.mainnet()),
-    PREPROD("preprod", Networks.testnet()),
+    PREPROD("preprod", Networks.preprod()),
     TESTNET("testnet", Networks.testnet()),
     DEVNET("devnet", new Network(0b0000, 42));
 
@@ -18,11 +20,7 @@ public enum NetworkEnum {
         this.network = network;
     }
 
-    public String getValue() {
-        return value;
-    }
-
-    final public Network getNetwork() {
+    public final Network getNetwork() {
         return network;
     }
 
