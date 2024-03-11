@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-
     <parent>
         <artifactId>base</artifactId>
         <groupId>org.cardanofoundation.rosetta-java</groupId>
@@ -121,12 +120,12 @@
             <version>4.10.0</version>
         </dependency>
         <dependency>
-          <groupId>com.fasterxml.jackson.dataformat</groupId>
-          <artifactId>jackson-dataformat-yaml</artifactId>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-yaml</artifactId>
         </dependency>
         <dependency>
-          <groupId>com.fasterxml.jackson.datatype</groupId>
-          <artifactId>jackson-datatype-jsr310</artifactId>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/org.openapitools/jackson-databind-nullable -->
@@ -136,9 +135,9 @@
             <version>0.2.2</version>
         </dependency>
         <dependency>
-            <groupId>com.google.code.findbugs</groupId>
-            <artifactId>jsr305</artifactId>
-            <version>3.0.2</version>
+            <groupId>com.github.spotbugs</groupId>
+            <artifactId>spotbugs-annotations</artifactId>
+            <version>4.7.3</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api -->
         <dependency>
@@ -148,7 +147,6 @@
         </dependency>
 
         <dependency>
-
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-configuration-processor</artifactId>
             <optional>true</optional>
@@ -216,24 +214,24 @@
         </dependency>
 
         <!--        &lt;!&ndash; https://mvnrepository.com/artifact/org.testcontainers/testcontainers &ndash;&gt;-->
-<!--        <dependency>-->
-<!--            <groupId>org.testcontainers</groupId>-->
-<!--            <artifactId>testcontainers</artifactId>-->
-<!--            <version>1.17.6</version>-->
-<!--            <scope>test</scope>-->
-<!--        </dependency>-->
-<!--        &lt;!&ndash; https://mvnrepository.com/artifact/org.purejava/tweetnacl-java &ndash;&gt;-->
-<!--        <dependency>-->
-<!--            <groupId>org.purejava</groupId>-->
-<!--            <artifactId>tweetnacl-java</artifactId>-->
-<!--            <version>1.1.2</version>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>org.mockito</groupId>-->
-<!--            <artifactId>mockito-inline</artifactId>-->
-<!--            <version>3.8.0</version>-->
-<!--            <scope>test</scope>-->
-<!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>org.testcontainers</groupId>-->
+        <!--            <artifactId>testcontainers</artifactId>-->
+        <!--            <version>1.17.6</version>-->
+        <!--            <scope>test</scope>-->
+        <!--        </dependency>-->
+        <!--        &lt;!&ndash; https://mvnrepository.com/artifact/org.purejava/tweetnacl-java &ndash;&gt;-->
+        <!--        <dependency>-->
+        <!--            <groupId>org.purejava</groupId>-->
+        <!--            <artifactId>tweetnacl-java</artifactId>-->
+        <!--            <version>1.1.2</version>-->
+        <!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>org.mockito</groupId>-->
+        <!--            <artifactId>mockito-inline</artifactId>-->
+        <!--            <version>3.8.0</version>-->
+        <!--            <scope>test</scope>-->
+        <!--        </dependency>-->
         <!-- https://mvnrepository.com/artifact/javax.servlet/servlet-api -->
         <dependency>
             <groupId>javax.servlet</groupId>
@@ -302,19 +300,22 @@
                             <goal>generate</goal>
                         </goals>
                         <configuration>
-                            <inputSpec>${project.basedir}/src/main/resources/rosetta-specifications-1.4.15/api.yaml</inputSpec>
+                            <inputSpec>${project.basedir}/src/main/resources/rosetta-specifications-1.4.15/api.yaml
+                            </inputSpec>
                             <generatorName>spring</generatorName>
                             <library>spring-boot</library>
                             <apiPackage>org.openapitools.client.api</apiPackage>
                             <modelPackage>org.openapitools.client.model</modelPackage>
-                          <configOptions>
-                              <sourceFolder>src/gen/java/main</sourceFolder>
-                              <useJakartaEe>true</useJakartaEe>
-                              <skipValidateSpec>true</skipValidateSpec>
-                              <interfaceOnly>true</interfaceOnly>
-                              <!--suppress UnresolvedMavenProperty -->
-                              <additionalModelTypeAnnotations>@lombok.Builder @lombok.NoArgsConstructor @lombok.AllArgsConstructor</additionalModelTypeAnnotations>
-                          </configOptions>
+                            <configOptions>
+                                <sourceFolder>src/gen/java/main</sourceFolder>
+                                <useJakartaEe>true</useJakartaEe>
+                                <skipValidateSpec>true</skipValidateSpec>
+                                <interfaceOnly>true</interfaceOnly>
+                                <!--suppress UnresolvedMavenProperty -->
+                                <additionalModelTypeAnnotations>@lombok.Builder @lombok.NoArgsConstructor
+                                    @lombok.AllArgsConstructor
+                                </additionalModelTypeAnnotations>
+                            </configOptions>
                         </configuration>
                     </execution>
                 </executions>
@@ -339,7 +340,9 @@
                 <configuration>
                     <excludes>
                         <exclude>**/dto/*</exclude>
-                        <exclude>**/model/**</exclude>
+                        <exclude>**/entity/*</exclude>
+                        <exclude>**/model/rest/**</exclude>
+                        <exclude>**/model/rosetta/**</exclude>
                         <exclude>**/mapper/*</exclude>
                         <exclude>**/cli/*</exclude>
                         <exclude>**/exception/*</exclude>
@@ -366,6 +369,39 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.diffplug.spotless</groupId>
+                <artifactId>spotless-maven-plugin</artifactId>
+                <version>${version.spotless-maven-plugin}</version>
+                <configuration>
+                    <java>
+                        <excludes>
+                            <exclude>target/**/*.java</exclude>
+                        </excludes>
+                        <removeUnusedImports/>
+                        <replaceRegex>
+                            <name>Remove wildcard imports</name>
+                            <searchRegex>import\\s+[^\\*\\s]+\\*;(\\r\\n|\\r|\\n)</searchRegex>
+                            <replacement>$1</replacement>
+                        </replaceRegex>
+                        <googleJavaFormat>
+                            <version>${version.google-java-format}</version>
+                            <style>GOOGLE</style>
+                        </googleJavaFormat>
+                        <importOrder>
+                            <order>
+                                java,jakarta,javax,lombok,org.springframework,,\\#,org.junit,\\#org.junit,org.cardanofoundation,\\#org.cardanofoundation
+                            </order>
+                        </importOrder>
+                        <indent>
+                            <spaces>true</spaces>
+                            <spacesPerTab>2</spacesPerTab>
+                        </indent>
+                        <trimTrailingWhitespace/>
+                        <endWithNewline/>
+                    </java>
+                </configuration>
             </plugin>
         </plugins>
     </build>
