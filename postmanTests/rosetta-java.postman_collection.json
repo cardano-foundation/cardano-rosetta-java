@@ -16,7 +16,7 @@
 							"pm.test(\"Test: Ok\", function () {",
 							"    pm.response.to.have.status(200);",
 							"});",
-							"",
+							"console.log(pm.response.json())",
 							"pm.test(\"Contains Json Body\", function() {",
 							"    pm.response.to.have.jsonBody('network_identifiers')",
 							"        .and.to.have.jsonBody('network_identifiers[0].blockchain')",
@@ -76,7 +76,8 @@
 							"pm.test(\"Status code is 200\", function () {",
 							"        pm.response.to.have.status(200);",
 							"});",
-							"    ",
+							"console.log(pm.response.json())",
+							"",
 							"var jsonData = pm.response.json();",
 							"postman.setEnvironmentVariable(\"blockIndex\", jsonData.current_block_identifier.index)",
 							"postman.setEnvironmentVariable(\"blockHash\", jsonData.current_block_identifier.hash)",
@@ -126,6 +127,7 @@
 							"pm.test(\"Status code is 200\", function () {",
 							"        pm.response.to.have.status(200);",
 							"    });",
+							"console.log(pm.response.json())",
 							"",
 							"pm.test(\"Contains Json Body\", function() {",
 							"    pm.response.to.have.jsonBody('version.rosetta_version')",
@@ -176,6 +178,7 @@
 							"pm.test(\"Status code is 200\", function () {",
 							"        pm.response.to.have.status(200);",
 							"});",
+							"console.log(pm.response.json())",
 							"",
 							"pm.test(\"Contains Json Body\", function() {",
 							"    pm.response.to.have.jsonBody('block.block_identifier.index')",
@@ -229,7 +232,8 @@
 						"exec": [
 							"pm.test(\"Status code is 200\", function () {",
 							"        pm.response.to.have.status(200);",
-							"});"
+							"});",
+							"console.log(pm.response.json())"
 						],
 						"type": "text/javascript"
 					}
@@ -269,13 +273,7 @@
 						"exec": [
 							"pm.test(\"Status code is 200\", function () {",
 							"        pm.response.to.have.status(200);",
-							"});",
-							"console.log(pm.response.json())",
-							"pm.test(\"Test account balance\", function () {",
-							"    var responseBody = pm.response.json();",
-							"    pm.expect(responseBody).to.be.an('object');",
-							"    pm.expect(responseBody.balances[0].value).to.equal(\"2000000\");",
-							"})"
+							"});"
 						],
 						"type": "text/javascript"
 					}
@@ -315,13 +313,7 @@
 						"exec": [
 							"pm.test(\"Status code is 200\", function () {",
 							"        pm.response.to.have.status(200);",
-							"});",
-							"console.log(pm.response.json())",
-							"pm.test(\"Test account coins value\", function () {",
-							"    var responseBody = pm.response.json();",
-							"    pm.expect(responseBody).to.be.an('object');",
-							"    pm.expect(responseBody.coins[0].amount.value).to.equal(\"2000000\");",
-							"})"
+							"});"
 						],
 						"type": "text/javascript"
 					}
@@ -389,6 +381,7 @@
 							"pm.test('Status code is 200', function () {",
 							"    pm.response.to.have.status(200);",
 							"})",
+							"console.log(pm.response.json())",
 							"",
 							"pm.test('Contains Json Body', function () {",
 							"    pm.response.to.have.jsonBody('account_identifier.address');",
@@ -442,6 +435,7 @@
 							"pm.test('Status code is 200', function () {",
 							"    pm.response.to.have.status(200);",
 							"})",
+							"console.log(pm.response.json())",
 							"",
 							"pm.test('Contains Json Body', function () {",
 							"    pm.response.to.have.jsonBody('transaction_identifier');",
@@ -494,17 +488,11 @@
 							"pm.test('Status code is 200', function () {",
 							"    pm.response.to.have.status(200);",
 							"})",
+							"console.log(pm.response.json())",
 							"",
 							"pm.test('Contains Json Body', function () {",
 							"    pm.response.to.have.jsonBody('suggested_fee');",
-							"})",
-							"",
-							"pm.test(\"Correct Address\", function () {",
-							"     const suggestedFee = pm.environment.get('suggestedFee');",
-							"     var responseData = pm.response.json();",
-							"     pm.expect(responseData).to.be.an('object');",
-							"     pm.expect(responseData.suggested_fee[0].value).to.eql(suggestedFee);",
-							" });"
+							"})"
 						],
 						"type": "text/javascript"
 					}

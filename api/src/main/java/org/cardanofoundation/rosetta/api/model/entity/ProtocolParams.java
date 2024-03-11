@@ -97,10 +97,10 @@ public class ProtocolParams {
         p.setNOpt(shelleyProtocolParams.getInt("nOpt"));
         p.setDecentralisationParam(shelleyProtocolParams.getBigDecimal("decentralisationParam"));
         p.setExtraEntropy(shelleyProtocolParams.getJSONObject("extraEntropy").getString("tag"));
-        JSONObject protolVersion = shelleyProtocolParams.getJSONObject("protolVersion");
+        JSONObject protolVersion = shelleyProtocolParams.getJSONObject("protocolVersion");
         p.setProtocolMajorVer(protolVersion.getInt("major"));
         p.setProtocolMinorVer(protolVersion.getInt("minor"));
-        p.setMinUtxo(shelleyProtocolParams.getBigInteger("minUtxoValue"));
+        p.setMinUtxo(shelleyProtocolParams.getBigInteger("minUTxOValue"));
         p.setMinPoolCost(shelleyProtocolParams.getBigInteger("minPoolCost"));
         p.setAdaPerUtxoByte(shelleyProtocolParams.getBigInteger("minFeeA"));
 
