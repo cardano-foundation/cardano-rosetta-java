@@ -1,5 +1,6 @@
 package org.cardanofoundation.rosetta.api.service;
 
+import java.io.FileNotFoundException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -173,7 +174,12 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
 
   @Override
   public ProtocolParams findProtolParametersFromConfig() {
-    return cardanoConfigService.getProtocolParameters();
+      try {
+          return cardanoConfigService.getProtocolParameters();
+      } catch (FileNotFoundException e) {
+          log.error("[findProtolParametersFromConfig] Protocol parameters not found");
+          return null;
+      }
   }
 
   @Override
