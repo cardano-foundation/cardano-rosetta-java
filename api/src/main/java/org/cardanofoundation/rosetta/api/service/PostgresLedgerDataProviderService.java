@@ -1,10 +1,8 @@
 package org.cardanofoundation.rosetta.api.service;
 
+import java.io.FileNotFoundException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.TimeZone;
+import java.util.*;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +29,9 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
   private final PoolRegistrationRepository poolRegistrationRepository;
   private final PoolRetirementRepository poolRetirementRepository;
   private final StakeAddressRepository stakeAddressRepository;
+  private final EpochParamRepository epochParamRepository;
+
+  private final CardanoConfigService cardanoConfigService;
 
   @Override
   public GenesisBlockDto findGenesisBlock() {
@@ -155,7 +156,7 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
       log.debug(
           "[findTransactionsByBlock] No block found for blockNumber: {} blockHash: {}",
           blockNumber, blockHash);
-      return null;
+      return Collections.emptyList();
     }
     List<TxnEntity> txList = txRepository.findTransactionsByBlockHash(byNumberAndHash.getFirst().getHash());
     log.debug(
@@ -163,6 +164,28 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
     if (ObjectUtils.isNotEmpty(txList)) {
       return txList.stream().map(TransactionDto::fromTx).toList();
     }
-    return null;
+    return Collections.emptyList();
+  }
+
+  @Override
+  public ProtocolParams findProtocolParametersFromIndexer() {
+    return epochParamRepository.findLatestProtocolParams();
+  }
+
+  @Override
+  public ProtocolParams findProtolParametersFromConfig() {
+      try {
+          return cardanoConfigService.getProtocolParameters();
+      } catch (FileNotFoundException e) {
+          log.error("[findProtolParametersFromConfig] Protocol parameters not found");
+          return null;
+      }
+  }
+
+  @Override
+  public ProtocolParams findProtocolParametersFromIndexerAndConfig() {
+    ProtocolParams protocolParams = findProtocolParametersFromIndexer();
+    protocolParams.merge(findProtolParametersFromConfig());
+    return protocolParams;
   }
 }

@@ -16,7 +16,7 @@
 							"pm.test(\"Test: Ok\", function () {",
 							"    pm.response.to.have.status(200);",
 							"});",
-							"",
+							"console.log(pm.response.json())",
 							"pm.test(\"Contains Json Body\", function() {",
 							"    pm.response.to.have.jsonBody('network_identifiers')",
 							"        .and.to.have.jsonBody('network_identifiers[0].blockchain')",
@@ -76,7 +76,8 @@
 							"pm.test(\"Status code is 200\", function () {",
 							"        pm.response.to.have.status(200);",
 							"});",
-							"    ",
+							"console.log(pm.response.json())",
+							"",
 							"var jsonData = pm.response.json();",
 							"postman.setEnvironmentVariable(\"blockIndex\", jsonData.current_block_identifier.index)",
 							"postman.setEnvironmentVariable(\"blockHash\", jsonData.current_block_identifier.hash)",
@@ -126,6 +127,7 @@
 							"pm.test(\"Status code is 200\", function () {",
 							"        pm.response.to.have.status(200);",
 							"    });",
+							"console.log(pm.response.json())",
 							"",
 							"pm.test(\"Contains Json Body\", function() {",
 							"    pm.response.to.have.jsonBody('version.rosetta_version')",
@@ -176,6 +178,7 @@
 							"pm.test(\"Status code is 200\", function () {",
 							"        pm.response.to.have.status(200);",
 							"});",
+							"console.log(pm.response.json())",
 							"",
 							"pm.test(\"Contains Json Body\", function() {",
 							"    pm.response.to.have.jsonBody('block.block_identifier.index')",
@@ -229,7 +232,8 @@
 						"exec": [
 							"pm.test(\"Status code is 200\", function () {",
 							"        pm.response.to.have.status(200);",
-							"});"
+							"});",
+							"console.log(pm.response.json())"
 						],
 						"type": "text/javascript"
 					}
@@ -377,16 +381,17 @@
 							"pm.test('Status code is 200', function () {",
 							"    pm.response.to.have.status(200);",
 							"})",
+							"console.log(pm.response.json())",
 							"",
 							"pm.test('Contains Json Body', function () {",
-							"    pm.response.to.have.jsonBody('address');",
+							"    pm.response.to.have.jsonBody('account_identifier.address');",
 							"})",
 							"",
 							"pm.test(\"Correct Address\", function () {",
 							"    const testAccountBaseAddress = pm.environment.get('TestAccountBaseAddress');",
 							"    var responseData = pm.response.json();",
 							"    pm.expect(responseData).to.be.an('object');",
-							"    pm.expect(responseData.address).to.eql(testAccountBaseAddress);",
+							"    pm.expect(responseData.account_identifier.address).to.eql(testAccountBaseAddress);",
 							"});",
 							"",
 							""
@@ -430,18 +435,19 @@
 							"pm.test('Status code is 200', function () {",
 							"    pm.response.to.have.status(200);",
 							"})",
+							"console.log(pm.response.json())",
 							"",
 							"pm.test('Contains Json Body', function () {",
 							"    pm.response.to.have.jsonBody('transaction_identifier');",
 							"})",
 							"",
 							"pm.test(\"Correct Address\", function () {",
-							"    const hashedSignedTransaction = pm.environment.get('hashedSignedTransaction');",
-							"    var responseData = pm.response.json();",
-							"    pm.expect(responseData).to.be.an('object');",
-							"    pm.expect(responseData.transaction_identifier).to.be.an('object');",
-							"    pm.expect(responseData.transaction_identifier.hash).to.eql(hashedSignedTransaction);",
-							"});"
+							"     const hashedSignedTransaction = pm.environment.get('hashedSignedTransaction');",
+							"     var responseData = pm.response.json();",
+							"     pm.expect(responseData).to.be.an('object');",
+							"     pm.expect(responseData.transaction_identifier).to.be.an('object');",
+							"     pm.expect(responseData.transaction_identifier.hash).to.eql(hashedSignedTransaction);",
+							" });"
 						],
 						"type": "text/javascript"
 					}
@@ -452,7 +458,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n  \"network_identifier\": {\n    \"blockchain\": \"cardano\",\n    \"network\": \"devkit\"\n  },\n  \"signed_transaction\": \"{{signedTransaction}}\"\n}",
+					"raw": "{\n  \"network_identifier\": {\n    \"blockchain\": \"cardano\",\n    \"network\": \"{{networkId}}\"\n  },\n  \"signed_transaction\": \"{{signedTransaction}}\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -474,12 +480,30 @@
 		},
 		{
 			"name": "/construction/metadata",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 200', function () {",
+							"    pm.response.to.have.status(200);",
+							"})",
+							"console.log(pm.response.json())",
+							"",
+							"pm.test('Contains Json Body', function () {",
+							"    pm.response.to.have.jsonBody('suggested_fee');",
+							"})"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
 			"request": {
 				"method": "POST",
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"{{networkId}}\"\n    },\n    \"options\": {\n        \"relative_ttl\": 100,\n        \"transaction_size\":  225\n    }\n}",
+					"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"{{networkId}}\"\n    },\n    \"options\": {\n        \"transaction_size\": 40.0,\n        \"relative_ttl\": 10.0\n    }\n}",
 					"options": {
 						"raw": {
 							"language": "json"
