@@ -13,8 +13,8 @@
 //import org.cardanofoundation.rosetta.api.model.rest.ConstructionDeriveRequest;
 //import org.cardanofoundation.rosetta.api.model.rest.ConstructionDeriveResponse;
 //import org.cardanofoundation.rosetta.api.model.rest.NetworkIdentifier;
-//import org.cardanofoundation.rosetta.api.service.CardanoService;
-//import org.cardanofoundation.rosetta.api.service.impl.ConstructionApiServiceImpl;
+//import org.cardanofoundation.rosetta.common.services.CardanoService;
+//import org.cardanofoundation.rosetta.api.construction.impl.service.ConstructionApiServiceImpl;
 //import org.cardanofoundation.rosetta.api.util.CardanoAddressUtils;
 //import org.junit.jupiter.api.BeforeEach;
 //import org.junit.jupiter.api.Test;

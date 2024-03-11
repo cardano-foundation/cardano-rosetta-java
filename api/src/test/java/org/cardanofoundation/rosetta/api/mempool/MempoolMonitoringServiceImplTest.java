@@ -9,7 +9,7 @@
 //import org.cardanofoundation.rosetta.api.exception.Error;
 //import org.cardanofoundation.rosetta.api.model.TransactionIdentifier;
 //import org.cardanofoundation.rosetta.api.model.rest.*;
-//import org.cardanofoundation.rosetta.api.service.CardanoService;
+//import org.cardanofoundation.rosetta.common.services.CardanoService;
 //import org.cardanofoundation.rosetta.api.service.impl.MempoolMonitoringServiceImpl;
 //import org.cardanofoundation.rosetta.api.util.RosettaConstants;
 //import org.junit.jupiter.api.BeforeEach;

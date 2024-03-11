@@ -1,6 +1,7 @@
 package org.cardanofoundation.rosetta.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.cardanofoundation.rosetta.RosettaApiApplication;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.springframework.boot.test.context.SpringBootTest;

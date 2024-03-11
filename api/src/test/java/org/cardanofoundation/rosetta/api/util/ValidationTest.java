@@ -1,8 +1,8 @@
 package org.cardanofoundation.rosetta.api.util;
 
-import static org.cardanofoundation.rosetta.api.util.Validations.getAddressFromHexString;
-import static org.cardanofoundation.rosetta.api.util.Validations.isVoteDataValid;
-import static org.cardanofoundation.rosetta.api.util.Validations.isVoteSignatureValid;
+import static org.cardanofoundation.rosetta.common.util.Validations.getAddressFromHexString;
+import static org.cardanofoundation.rosetta.common.util.Validations.isVoteDataValid;
+import static org.cardanofoundation.rosetta.common.util.Validations.isVoteSignatureValid;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;

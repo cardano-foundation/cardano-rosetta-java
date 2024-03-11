@@ -11,7 +11,7 @@
 //import lombok.extern.slf4j.Slf4j;
 //import org.cardanofoundation.rosetta.api.IntegrationTest;
 //import org.cardanofoundation.rosetta.api.IntegrationTestWithDB;
-//import org.cardanofoundation.rosetta.api.RosettaApiApplication;
+//import org.cardanofoundation.rosetta.RosettaApiApplication;
 //import org.cardanofoundation.rosetta.api.model.rest.ConstructionPreprocessRequest;
 //import org.cardanofoundation.rosetta.api.model.rest.ConstructionPreprocessResponse;
 //import org.junit.jupiter.api.BeforeEach;

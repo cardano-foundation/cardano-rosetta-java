@@ -17,8 +17,8 @@
 //import org.cardanofoundation.rosetta.api.model.rest.ConstructionSubmitRequest;
 //import org.cardanofoundation.rosetta.api.model.rest.NetworkIdentifier;
 //import org.cardanofoundation.rosetta.api.model.rest.TransactionIdentifierResponse;
-//import org.cardanofoundation.rosetta.api.service.CardanoService;
-//import org.cardanofoundation.rosetta.api.service.impl.ConstructionApiServiceImpl;
+//import org.cardanofoundation.rosetta.common.services.CardanoService;
+//import org.cardanofoundation.rosetta.api.construction.impl.service.ConstructionApiServiceImpl;
 //import org.junit.jupiter.api.Test;
 //import org.junit.jupiter.api.extension.ExtendWith;
 //import org.mockito.InjectMocks;
