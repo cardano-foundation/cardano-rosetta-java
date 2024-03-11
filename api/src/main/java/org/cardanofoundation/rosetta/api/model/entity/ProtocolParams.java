@@ -9,6 +9,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.json.JSONObject;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -82,65 +83,89 @@ public class ProtocolParams {
     private BigInteger drepDeposit; //31
     private Integer drepActivity; //32
 
+    // TODO clarify if parameters are correctly set
+    public static ProtocolParams fromJSONObject(JSONObject shelleyJsonObject) {
+        ProtocolParams p = new ProtocolParams();
+        JSONObject shelleyProtocolParams = shelleyJsonObject.getJSONObject("protocolParams");
+        p.setMinFeeA(shelleyProtocolParams.getInt("minFeeA"));
+        p.setMinFeeB(shelleyProtocolParams.getInt("minFeeB"));
+        p.setMaxBlockSize(shelleyProtocolParams.getInt("maxBlockBodySize"));
+        p.setMaxTxSize(shelleyProtocolParams.getInt("maxTxSize"));
+        p.setMaxBlockHeaderSize(shelleyProtocolParams.getInt("maxBlockHeaderSize"));
+        p.setKeyDeposit(shelleyProtocolParams.getBigInteger("keyDeposit"));
+        p.setPoolDeposit(shelleyProtocolParams.getBigInteger("poolDeposit"));
+        p.setNOpt(shelleyProtocolParams.getInt("nOpt"));
+        p.setDecentralisationParam(shelleyProtocolParams.getBigDecimal("decentralisationParam"));
+        p.setExtraEntropy(shelleyProtocolParams.getJSONObject("extraEntropy").getString("tag"));
+        JSONObject protolVersion = shelleyProtocolParams.getJSONObject("protolVersion");
+        p.setProtocolMajorVer(protolVersion.getInt("major"));
+        p.setProtocolMinorVer(protolVersion.getInt("minor"));
+        p.setMinUtxo(shelleyProtocolParams.getBigInteger("minUtxoValue"));
+        p.setMinPoolCost(shelleyProtocolParams.getBigInteger("minPoolCost"));
+        p.setAdaPerUtxoByte(shelleyProtocolParams.getBigInteger("minFeeA"));
+
+        return p;
+    }
+
     public void merge(ProtocolParams other) {
-        if (other.minFeeA != null) {
+        if (this.minFeeA == null) {
             this.minFeeA = other.minFeeA;
         }
-        if (other.minFeeB != null) {
+        if (this.minFeeB == null) {
             this.minFeeB = other.minFeeB;
         }
-        if (other.maxBlockSize != null) {
+        if (this.maxBlockSize == null) {
             this.maxBlockSize = other.maxBlockSize;
         }
-        if (other.maxTxSize != null) {
+        if (this.maxTxSize == null) {
             this.maxTxSize = other.maxTxSize;
         }
-        if (other.maxBlockHeaderSize != null) {
+        if (this.maxBlockHeaderSize == null) {
             this.maxBlockHeaderSize = other.maxBlockHeaderSize;
         }
-        if (other.keyDeposit != null) {
+        if (this.keyDeposit == null) {
             this.keyDeposit = other.keyDeposit;
         }
-        if (other.poolDeposit != null) {
+        if (this.poolDeposit == null) {
             this.poolDeposit = other.poolDeposit;
         }
-        if (other.maxEpoch != null) {
+        if (this.maxEpoch == null) {
             this.maxEpoch = other.maxEpoch;
         }
-        if (other.nOpt != null) {
+        if (this.nOpt == null) {
             this.nOpt = other.nOpt;
         }
-        if (other.poolPledgeInfluence != null) {
+        if (this.poolPledgeInfluence == null) {
             this.poolPledgeInfluence = other.poolPledgeInfluence;
         }
-        if (other.expansionRate != null) {
+        if (this.expansionRate == null) {
             this.expansionRate = other.expansionRate;
         }
-        if (other.treasuryGrowthRate != null) {
+        if (this.treasuryGrowthRate == null) {
             this.treasuryGrowthRate = other.treasuryGrowthRate;
         }
-        if (other.decentralisationParam != null) {
+        if (this.decentralisationParam == null) {
             this.decentralisationParam = other.decentralisationParam;
         }
-        if (other.extraEntropy != null) {
+        if (this.extraEntropy == null) {
             this.extraEntropy = other.extraEntropy;
         }
-        if (other.protocolMajorVer != null) {
+        if (this.protocolMajorVer == null) {
             this.protocolMajorVer = other.protocolMajorVer;
         }
-        if (other.protocolMinorVer != null) {
+        if (this.protocolMinorVer == null) {
             this.protocolMinorVer = other.protocolMinorVer;
         }
-        if (other.minUtxo != null) {
+        if (this.minUtxo == null) {
             this.minUtxo = other.minUtxo;
         }
-        if (other.minPoolCost != null) {
+        if (this.minPoolCost == null) {
             this.minPoolCost = other.minPoolCost;
         }
-        if (other.adaPerUtxoByte != null) {
+        if (this.adaPerUtxoByte == null) {
             this.adaPerUtxoByte = other.adaPerUtxoByte;
         }
-        if (other.costModels != null) {
+        if (this.costModels == null) {
             if (this.costModels == null) {
                 this.costModels = other.getCostModels();
             } else {
@@ -149,59 +174,59 @@ public class ProtocolParams {
             }
         }
 
-        if (other.costModelsHash != null) {
+        if (this.costModelsHash == null) {
             this.costModelsHash = other.costModelsHash;
         }
 
-        if (other.priceMem != null) {
+        if (this.priceMem == null) {
             this.priceMem = other.priceMem;
         }
-        if (other.priceStep != null) {
+        if (this.priceStep == null) {
             this.priceStep = other.priceStep;
         }
-        if (other.maxTxExMem != null) {
+        if (this.maxTxExMem == null) {
             this.maxTxExMem = other.maxTxExMem;
         }
-        if (other.maxTxExSteps != null) {
+        if (this.maxTxExSteps == null) {
             this.maxTxExSteps = other.maxTxExSteps;
         }
-        if (other.maxBlockExMem != null) {
+        if (this.maxBlockExMem == null) {
             this.maxBlockExMem = other.maxBlockExMem;
         }
-        if (other.maxBlockExSteps != null) {
+        if (this.maxBlockExSteps == null) {
             this.maxBlockExSteps = other.maxBlockExSteps;
         }
-        if (other.maxValSize != null) {
+        if (this.maxValSize == null) {
             this.maxValSize = other.maxValSize;
         }
-        if (other.collateralPercent != null) {
+        if (this.collateralPercent == null) {
             this.collateralPercent = other.collateralPercent;
         }
-        if (other.maxCollateralInputs != null) {
+        if (this.maxCollateralInputs == null) {
             this.maxCollateralInputs = other.maxCollateralInputs;
         }
-//        if (other.poolVotingThresholds != null) {
+//        if (other.poolVotingThresholds == null) {
 //            this.poolVotingThresholds = other.poolVotingThresholds;
 //        }
-//        if (other.drepVotingThresholds != null) {
+//        if (other.drepVotingThresholds == null) {
 //            this.drepVotingThresholds = other.drepVotingThresholds;
 //        }
-        if (other.committeeMinSize != null) {
+        if (this.committeeMinSize == null) {
             this.committeeMinSize = other.committeeMinSize;
         }
-        if (other.committeeMaxTermLength != null) {
+        if (this.committeeMaxTermLength == null) {
             this.committeeMaxTermLength = other.committeeMaxTermLength;
         }
-        if (other.govActionLifetime != null) {
+        if (this.govActionLifetime == null) {
             this.govActionLifetime = other.govActionLifetime;
         }
-        if (other.govActionDeposit != null) {
+        if (this.govActionDeposit == null) {
             this.govActionDeposit = other.govActionDeposit;
         }
-        if (other.drepDeposit != null) {
+        if (this.drepDeposit == null) {
             this.drepDeposit = other.drepDeposit;
         }
-        if (other.drepActivity != null) {
+        if (this.drepActivity == null) {
             this.drepActivity = other.drepActivity;
         }
     }

@@ -73,7 +73,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
         log.debug("[constructionMetadata] updating tx size from {}", txSize);
         Long updatedTxSize = cardanoService.updateTxSize(txSize.longValue(), 0L, ttl);
         log.debug("[constructionMetadata] updated txSize size is ${updatedTxSize}");
-        ProtocolParams protocolParams = ledgerService.findProtocolParameters();
+        ProtocolParams protocolParams = ledgerService.findProtocolParametersFromIndexerAndConfig();
         log.debug("[constructionMetadata] received protocol parameters from block-service {}",
                 protocolParams);
         Long suggestedFee = cardanoService.calculateTxMinimumFee(updatedTxSize,
