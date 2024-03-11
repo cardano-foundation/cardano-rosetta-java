@@ -6,9 +6,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import org.cardanofoundation.rosetta.api.IntegrationTest;
-import org.cardanofoundation.rosetta.api.model.cardano.Signature;
-import org.cardanofoundation.rosetta.api.model.rest.SigningPayloadsRequest;
-import org.cardanofoundation.rosetta.api.model.rest.SigningPayloadsResponse;
+import org.cardanofoundation.rosetta.common.model.cardano.Signature;
+import org.cardanofoundation.rosetta.common.model.rest.SigningPayloadsRequest;
+import org.cardanofoundation.rosetta.common.model.rest.SigningPayloadsResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
