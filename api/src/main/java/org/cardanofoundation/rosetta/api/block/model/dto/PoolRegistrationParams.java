@@ -5,9 +5,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.cardanofoundation.rosetta.common.model.cardano.PoolMargin;
-import org.cardanofoundation.rosetta.common.model.cardano.PoolMetadata;
-import org.cardanofoundation.rosetta.common.model.cardano.Relay;
+import org.cardanofoundation.rosetta.common.model.cardano.pool.PoolMargin;
+import org.cardanofoundation.rosetta.common.model.cardano.pool.PoolMetadata;
+import org.cardanofoundation.rosetta.common.model.cardano.network.Relay;
 
 
 @Data

@@ -7,12 +7,15 @@ import com.bloxbean.cardano.client.exception.AddressExcepion;
 import com.bloxbean.cardano.client.exception.CborSerializationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ObjectUtils;
 import org.cardanofoundation.rosetta.api.block.model.entity.ProtocolParams;
+import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
 import org.cardanofoundation.rosetta.common.mapper.DataMapper;
 import org.cardanofoundation.rosetta.common.enumeration.AddressType;
-import org.cardanofoundation.rosetta.common.model.cardano.ConstructionDeriveRequestMetadata;
+import org.cardanofoundation.rosetta.common.model.cardano.metadata.ConstructionDeriveMetadata;
 
 import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
+import org.cardanofoundation.rosetta.common.model.cardano.metadata.ConstructionPreprocessMetadata;
 import org.cardanofoundation.rosetta.common.services.CardanoAddressService;
 import org.cardanofoundation.rosetta.common.services.CardanoService;
 import org.cardanofoundation.rosetta.api.construction.service.ConstructionApiService;
@@ -41,8 +44,8 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
         NetworkEnum network = NetworkEnum.fromValue(constructionDeriveRequest.getNetworkIdentifier().getNetwork());
         if (network == null)
             throw new IllegalAccessException("Invalid network");
-
-        ConstructionDeriveRequestMetadata metadata = ConstructionDeriveRequestMetadata.fromHashMap((HashMap<String,Object>) constructionDeriveRequest.getMetadata());
+        // casting unspecific rosetta specification to cardano specific metadata
+        ConstructionDeriveMetadata metadata = ConstructionDeriveMetadata.fromHashMap((HashMap<String, Object>) constructionDeriveRequest.getMetadata());
         // Default address type is enterprise
         AddressType addressType = metadata != null ? AddressType.findByValue(metadata.getAddressType()) : null;
         addressType = addressType != null ? addressType : AddressType.ENTERPRISE;
@@ -59,7 +62,18 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
 
     @Override
     public ConstructionPreprocessResponse constructionPreprocessService(ConstructionPreprocessRequest constructionPreprocessRequest) throws IOException, AddressExcepion, CborSerializationException, CborException {
-        return null;
+        NetworkIdentifier networkIdentifier = constructionPreprocessRequest.getNetworkIdentifier();
+        // casting unspecific rosetta specification to cardano specific metadata
+        ConstructionPreprocessMetadata metadata = ConstructionPreprocessMetadata.fromHashmap((HashMap<String, Object>)constructionPreprocessRequest.getMetadata());
+        Double relativeTtl = cardanoService.calculateRelativeTtl(
+                !ObjectUtils.isEmpty(constructionPreprocessRequest.getMetadata())
+                        ? metadata.getRelativeTtl() : null);
+        Double transactionSize = cardanoService.calculateTxSize(NetworkIdentifierType.findByName(networkIdentifier.getNetwork()),
+                constructionPreprocessRequest.getOperations(), 0,
+                ObjectUtils.isEmpty(constructionPreprocessRequest.getMetadata()) ? null
+                        : metadata.getDepositParameters());
+        Map<String, Double> response = Map.of("relative_ttl", relativeTtl, "transaction_size", transactionSize);
+        return new ConstructionPreprocessResponse(response, null);
     }
 
     @Override

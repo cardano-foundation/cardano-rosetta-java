@@ -11,7 +11,7 @@ import org.cardanofoundation.rosetta.api.block.model.dto.StakeAddressBalanceDTO;
 import org.cardanofoundation.rosetta.api.block.model.dto.TransactionDto;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.mapper.DataMapper;
-import org.cardanofoundation.rosetta.common.util.CardanoAddressUtils;
+import org.cardanofoundation.rosetta.common.util.CardanoAddressUtil;
 import org.cardanofoundation.rosetta.api.block.service.BlockService;
 import org.cardanofoundation.rosetta.common.services.LedgerDataProviderService;
 import org.cardanofoundation.rosetta.common.util.FileUtils;
@@ -26,7 +26,6 @@ import org.springframework.stereotype.Service;
 public class BlockServiceImpl implements BlockService {
 
   private final LedgerDataProviderService ledgerDataProviderService;
-//  private final CardanoService cardanoService;
   @Value("${page-size:5}")
   private Integer pageSize;
   @Value("${cardano.rosetta.GENESIS_SHELLEY_PATH}")
@@ -70,7 +69,7 @@ public class BlockServiceImpl implements BlockService {
     try {
       content = FileUtils.fileReader(genesisPath);
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      throw ExceptionFactory.unspecifiedError("Error reading genesis file");
     }
     JSONObject object = new JSONObject(content);
     JSONObject protocolParams = object.getJSONObject("protocolParams");
@@ -159,7 +158,7 @@ public class BlockServiceImpl implements BlockService {
             "[findBalanceDataByAddressAndBlock] Looking for utxos for address {} and block {}",
             address,
             blockDto.getHash());
-    if (CardanoAddressUtils.isStakeAddress(address)) {
+    if (CardanoAddressUtil.isStakeAddress(address)) {
       log.debug("[findBalanceDataByAddressAndBlock] Address is StakeAddress");
       log.debug("[findBalanceDataByAddressAndBlock] About to get balance for {}", address);
       List<StakeAddressBalanceDTO> balances = ledgerDataProviderService.findStakeAddressBalanceByAddressAndBlock(address, blockDto.getNumber());

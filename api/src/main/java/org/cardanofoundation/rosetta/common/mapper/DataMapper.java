@@ -6,12 +6,12 @@ import org.apache.commons.codec.binary.Hex;
 import org.cardanofoundation.rosetta.api.account.model.dto.AddressBalanceDTO;
 import org.cardanofoundation.rosetta.api.account.model.dto.UtxoDto;
 import org.cardanofoundation.rosetta.api.block.model.dto.*;
-import org.cardanofoundation.rosetta.common.model.cardano.Metadata;
+import org.cardanofoundation.rosetta.common.model.cardano.metadata.Metadata;
 import org.cardanofoundation.rosetta.common.util.Constants;
 import org.cardanofoundation.rosetta.api.block.model.entity.ProtocolParams;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
-import org.cardanofoundation.rosetta.common.model.rest.TransactionMetadata;
-import org.cardanofoundation.rosetta.common.model.rosetta.BlockMetadata;
+import org.cardanofoundation.rosetta.common.model.cardano.metadata.TransactionMetadata;
+import org.cardanofoundation.rosetta.common.model.cardano.metadata.BlockMetadata;
 import org.openapitools.client.model.*;
 import org.openapitools.client.model.Currency;
 import org.springframework.stereotype.Component;
@@ -25,6 +25,9 @@ import static org.cardanofoundation.rosetta.common.util.RosettaConstants.SUCCESS
 @Slf4j
 @Component
 public class DataMapper {
+
+  private DataMapper() {
+  }
 
   /**
    * Maps a NetworkRequest to a NetworkOptionsResponse.
@@ -127,7 +130,6 @@ public class DataMapper {
     rosettaTransaction.setTransactionIdentifier(identifier);
 
     OperationStatus status = new OperationStatus();
-//    status.setStatus(Boolean.TRUE.equals(transactionDto.getValidContract()) ? SUCCESS_OPERATION_STATUS.getStatus() : INVALID_OPERATION_STATUS.getStatus());
     status.setStatus(SUCCESS_OPERATION_STATUS.getStatus()); // TODO need to check the right status
     List<Operation> operations = OperationDataMapper.getAllOperations(transactionDto, poolDeposit, status);
 

@@ -1,12 +1,16 @@
 package org.cardanofoundation.rosetta.common.util;
 
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
-import org.cardanofoundation.rosetta.common.model.cardano.CurveType;
+import org.cardanofoundation.rosetta.common.model.cardano.crypto.CurveType;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class Constants {
+
+    private Constants() {
+    }
+
     public static final String CARDANO = "cardano";
     public static final Integer PREPROD_NETWORK_MAGIC = 1;
     public static final Integer TESTNET_NETWORK_MAGIC = 1097911063;
@@ -142,4 +146,5 @@ public class Constants {
 
 
     public static final String LOVELACE = "lovelace";
+    public static final String TESTNET = "testnet";
 }

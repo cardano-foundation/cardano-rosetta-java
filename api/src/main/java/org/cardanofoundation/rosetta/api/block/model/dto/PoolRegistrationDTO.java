@@ -2,7 +2,7 @@ package org.cardanofoundation.rosetta.api.block.model.dto;
 
 import lombok.Builder;
 import lombok.Data;
-import org.cardanofoundation.rosetta.common.model.cardano.Relay;
+import org.cardanofoundation.rosetta.common.model.cardano.network.Relay;
 import org.cardanofoundation.rosetta.api.block.model.entity.PoolRegistrationEnity;
 
 import java.util.List;
