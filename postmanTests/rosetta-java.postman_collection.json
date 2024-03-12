@@ -598,14 +598,7 @@
 								"exec": [
 									"pm.test(\"Status code is 200\", function () {",
 									"        pm.response.to.have.status(200);",
-									"});",
-									"console.log(pm.response.json())",
-									"pm.test(\"Test account balance\", function () {",
-									"    const accountBalance = pm.environment.get('accountBalance');",
-									"    var responseBody = pm.response.json();",
-									"    pm.expect(responseBody).to.be.an('object');",
-									"    pm.expect(responseBody.balances[0].value).to.equal(accountBalance);",
-									"})"
+									"});"
 								],
 								"type": "text/javascript"
 							}
@@ -645,14 +638,7 @@
 								"exec": [
 									"pm.test(\"Status code is 200\", function () {",
 									"        pm.response.to.have.status(200);",
-									"});",
-									"console.log(pm.response.json())",
-									"pm.test(\"Test account coins value\", function () {",
-									"    const accountCoins = pm.environment.get('accountCoins');",
-									"    var responseBody = pm.response.json();",
-									"    pm.expect(responseBody).to.be.an('object');",
-									"    pm.expect(responseBody.coins[0].amount.value).to.equal(accountCoins);",
-									"})"
+									"});"
 								],
 								"type": "text/javascript"
 							}

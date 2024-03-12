@@ -177,13 +177,13 @@ public class CardanoServiceImpl implements CardanoService {
             if (!ObjectUtils.isEmpty(transactionMetadata)) {
                 log.info("[buildTransaction] Adding transaction metadata");
                 Array array = (Array) com.bloxbean.cardano.client.common.cbor.CborSerializationUtil.deserialize(HexUtil.decodeHexString(transactionMetadata));
-                auxiliaryData = AuxiliaryData.deserialize((co.nstant.in.cbor.model.Map) array.getDataItems().get(0));
+                auxiliaryData = AuxiliaryData.deserialize((co.nstant.in.cbor.model.Map) array.getDataItems().getFirst());
             }
             Transaction transaction = Transaction.builder().auxiliaryData(auxiliaryData).witnessSet(witnesses).build();
             transaction.setBody(transactionBody);
             Array array = (Array) com.bloxbean.cardano.client.common.cbor.CborSerializationUtil.deserialize(transaction.serialize());
             if (transactionBody.getTtl() == 0) {
-                co.nstant.in.cbor.model.Map dataItem1 = (co.nstant.in.cbor.model.Map) array.getDataItems().get(0);
+                co.nstant.in.cbor.model.Map dataItem1 = (co.nstant.in.cbor.model.Map) array.getDataItems().getFirst();
                 dataItem1.put(new UnsignedInteger(3), new UnsignedInteger(0));
                 array.getDataItems().set(0, dataItem1);
             }
@@ -388,9 +388,11 @@ public class CardanoServiceImpl implements CardanoService {
         if (type.equals(OperationType.WITHDRAWAL.getValue())) {
             ProcessWithdrawalReturnDto processWithdrawalReturnDto = ProcessContructionUtil.processWithdrawal(networkIdentifierType, operation);
             String withdrawalAmountString = ValidateParseUtil.validateValueAmount(operation);
-            Long withdrawalAmount = Long.valueOf(withdrawalAmountString);
+          assert withdrawalAmountString != null;
+          long withdrawalAmount = Long.parseLong(withdrawalAmountString);
             resultAccumulator.getWithdrawalAmounts().add(withdrawalAmount);
-            resultAccumulator.getWithdrawals().add(new Withdrawal(processWithdrawalReturnDto.getReward().getAddress(), withdrawalAmount == null ? null : valueOf(withdrawalAmount)));
+            resultAccumulator.getWithdrawals().add(new Withdrawal(processWithdrawalReturnDto.getReward().getAddress(),
+                valueOf(withdrawalAmount)));
             resultAccumulator.getAddresses().add(processWithdrawalReturnDto.getAddress());
             return resultAccumulator;
         }

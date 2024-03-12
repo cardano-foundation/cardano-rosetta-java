@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.cardanofoundation.rosetta.api.block.model.entity.ProtocolParams;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
+import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.mapper.DataMapper;
 import org.cardanofoundation.rosetta.common.enumeration.AddressType;
 import org.cardanofoundation.rosetta.common.model.cardano.metadata.ConstructionDeriveMetadata;
@@ -47,7 +48,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
         // casting unspecific rosetta specification to cardano specific metadata
         ConstructionDeriveMetadata metadata = ConstructionDeriveMetadata.fromHashMap((HashMap<String, Object>) constructionDeriveRequest.getMetadata());
         // Default address type is enterprise
-        AddressType addressType = metadata != null ? AddressType.findByValue(metadata.getAddressType()) : null;
+        AddressType addressType = metadata.getAddressType() != null ? AddressType.findByValue(metadata.getAddressType()) : null;
         addressType = addressType != null ? addressType : AddressType.ENTERPRISE;
 
         PublicKey stakingCredential = null;
@@ -116,7 +117,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
         Array array = cardanoService.decodeExtraData(constructionHashRequest.getSignedTransaction());
         log.info("[constructionHash] About to get hash of signed transaction");
         String transactionHash = cardanoService.getHashOfSignedTransaction(
-                ((UnicodeString) array.getDataItems().get(0)).getString());
+                ((UnicodeString) array.getDataItems().getFirst()).getString());
         log.info("[constructionHash] About to return hash of signed transaction");
         return new TransactionIdentifierResponse(new TransactionIdentifier(transactionHash), null);
     }
