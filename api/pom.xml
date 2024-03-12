@@ -137,7 +137,7 @@
         <dependency>
             <groupId>com.github.spotbugs</groupId>
             <artifactId>spotbugs-annotations</artifactId>
-            <version>4.7.3</version>
+            <version>4.8.3</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api -->
         <dependency>
@@ -401,6 +401,20 @@
                         <trimTrailingWhitespace/>
                         <endWithNewline/>
                     </java>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>com.github.spotbugs</groupId>
+                <artifactId>spotbugs-maven-plugin</artifactId>
+                <version>${version.spotbugs-maven-plugin}</version>
+                <configuration>
+                    <plugins>
+                        <plugin>
+                            <groupId>com.h3xstream.findsecbugs</groupId>
+                            <artifactId>findsecbugs-plugin</artifactId>
+                            <version>${version.findsecbugs-plugin}</version>
+                        </plugin>
+                    </plugins>
                 </configuration>
             </plugin>
         </plugins>
