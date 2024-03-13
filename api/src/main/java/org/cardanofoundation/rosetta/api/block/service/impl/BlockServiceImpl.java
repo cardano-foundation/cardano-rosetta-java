@@ -142,38 +142,5 @@ public class BlockServiceImpl implements BlockService {
     return response;
   }
 
-  @Override
-  public AccountBalanceResponse findBalanceDataByAddressAndBlock(String address, Long number, String hash) {
-    BlockDto blockDto;
-    if(number != null || hash != null) {
-      blockDto = ledgerDataProviderService.findBlock(number, hash);
-    } else {
-      blockDto = ledgerDataProviderService.findLatestBlock();
-    }
-
-    if (Objects.isNull(blockDto)) {
-      log.error("[findBalanceDataByAddressAndBlock] Block not found");
-      throw ExceptionFactory.blockNotFoundException();
-    }
-    log.info(
-            "[findBalanceDataByAddressAndBlock] Looking for utxos for address {} and block {}",
-            address,
-            blockDto.getHash());
-    if (CardanoAddressUtils.isStakeAddress(address)) {
-      log.debug("[findBalanceDataByAddressAndBlock] Address is StakeAddress");
-      log.debug("[findBalanceDataByAddressAndBlock] About to get balance for {}", address);
-      List<StakeAddressBalanceDTO> balances = ledgerDataProviderService.findStakeAddressBalanceByAddressAndBlock(address, blockDto.getNumber());
-      if(Objects.isNull(balances) || balances.isEmpty()) {
-        log.error("[findBalanceDataByAddressAndBlock] No balance found for {}", address);
-        throw ExceptionFactory.invalidAddressError();
-      }
-    return DataMapper.mapToStakeAddressBalanceResponse(blockDto, balances.getFirst());
-    } else {
-      log.debug("[findBalanceDataByAddressAndBlock] Address isn't StakeAddress");
-
-      List<AddressBalanceDTO> balances = ledgerDataProviderService.findBalanceByAddressAndBlock(address, blockDto.getNumber());
-      return DataMapper.mapToAccountBalanceResponse(blockDto, balances);
-    }
-  }
 
 }

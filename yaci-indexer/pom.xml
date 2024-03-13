@@ -111,4 +111,15 @@
         </plugins>
     </build>
 
+    <profiles>
+        <profile>
+            <id>h2-yaci-indexer</id>
+            <dependencies>
+                <dependency>
+                    <groupId>com.h2database</groupId>
+                    <artifactId>h2</artifactId>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
 </project>

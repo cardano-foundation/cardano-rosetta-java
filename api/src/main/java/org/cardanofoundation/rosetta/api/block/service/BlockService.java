@@ -8,16 +8,9 @@ import org.openapitools.client.model.*;
 
 public interface BlockService {
 
-  AccountBalanceResponse findBalanceDataByAddressAndBlock(String address,
-                                                          Long number,
-                                                          String hash);
-
   BlockDto findBlock(Long number, String hash);
 
-
   BlockResponse getBlockByBlockRequest(BlockRequest blockRequest);
-
-//  List<PopulatedTransaction> fillTransactions(List<TransactionDto> transactions);
 
   List<TransactionDto> findTransactionsByBlock(BlockDto block);
 
