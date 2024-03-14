@@ -1,34 +1,27 @@
 package org.cardanofoundation.rosetta.api.account.model.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.cardanofoundation.rosetta.api.account.model.entity.AddressBalanceEntity;
-
 import java.math.BigInteger;
 
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
+import lombok.Builder;
+
+import org.cardanofoundation.rosetta.api.account.model.entity.AddressBalanceEntity;
+
 @Builder
-public class AddressBalanceDTO {
-    private String address;
-    private String unit;
-    private Long slot;
-    private BigInteger quantity;
-    private String policy;
-    private String assetName;
+public record AddressBalanceDTO(String address,
+                                String unit,
+                                Long slot,
+                                BigInteger quantity,
+                                String policy,
+                                String assetName) {
 
-
-    public static AddressBalanceDTO fromEntity(AddressBalanceEntity addressBalanceEntity) {
-        return AddressBalanceDTO.builder()
-                .assetName(addressBalanceEntity.getAssetName())
-                .address(addressBalanceEntity.getAddress())
-                .unit(addressBalanceEntity.getUnit())
-                .slot(addressBalanceEntity.getSlot())
-                .quantity(addressBalanceEntity.getQuantity())
-                .policy(addressBalanceEntity.getPolicy())
-                .build();
-    }
+  public static AddressBalanceDTO fromEntity(AddressBalanceEntity addressBalanceEntity) {
+    return AddressBalanceDTO.builder()
+        .assetName(addressBalanceEntity.getAssetName())
+        .address(addressBalanceEntity.getAddress())
+        .unit(addressBalanceEntity.getUnit())
+        .slot(addressBalanceEntity.getSlot())
+        .quantity(addressBalanceEntity.getQuantity())
+        .policy(addressBalanceEntity.getPolicy())
+        .build();
+  }
 }

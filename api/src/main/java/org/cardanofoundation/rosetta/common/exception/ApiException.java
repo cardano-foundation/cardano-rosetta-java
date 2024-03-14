@@ -1,13 +1,15 @@
 package org.cardanofoundation.rosetta.common.exception;
 
+import java.io.Serial;
+
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Data
-@NoArgsConstructor
 public class ApiException extends RuntimeException {
 
-  private Error error;
+  @Serial
+  private static final long serialVersionUID = 7966468689369382174L;
+  private final Error error;
 
   public ApiException(Error error) {
     super();

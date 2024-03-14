@@ -1,8 +1,8 @@
 package org.cardanofoundation.rosetta.common.util;
 
+import lombok.extern.slf4j.Slf4j;
 
 import com.bloxbean.cardano.client.address.Address;
-
 import com.bloxbean.cardano.client.address.AddressProvider;
 import com.bloxbean.cardano.client.address.AddressType;
 import com.bloxbean.cardano.client.address.ByronAddress;
@@ -10,23 +10,22 @@ import com.bloxbean.cardano.client.address.util.AddressEncoderDecoderUtil;
 import com.bloxbean.cardano.client.common.model.Network;
 import com.bloxbean.cardano.client.crypto.KeyGenUtil;
 import com.bloxbean.cardano.client.crypto.bip32.key.HdPublicKey;
+import com.bloxbean.cardano.client.crypto.exception.AddressFormatException;
 import com.bloxbean.cardano.client.exception.AddressRuntimeException;
 import com.bloxbean.cardano.client.spec.NetworkId;
 import com.bloxbean.cardano.client.transaction.spec.cert.StakeCredential;
 import com.bloxbean.cardano.client.util.HexUtil;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
-import org.cardanofoundation.rosetta.common.model.cardano.Metadata;
+import org.openapitools.client.model.Amount;
+import org.openapitools.client.model.Currency;
+import org.openapitools.client.model.PublicKey;
+
 import org.cardanofoundation.rosetta.common.enumeration.EraAddressType;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
 import org.cardanofoundation.rosetta.common.enumeration.NonStakeAddressPrefix;
 import org.cardanofoundation.rosetta.common.enumeration.StakeAddressPrefix;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
-import org.openapitools.client.model.Amount;
-import org.openapitools.client.model.Currency;
-import org.openapitools.client.model.PublicKey;
-
-import java.util.Arrays;
+import org.cardanofoundation.rosetta.common.model.cardano.Metadata;
 
 @Slf4j
 public class CardanoAddressUtils {
@@ -37,10 +36,9 @@ public class CardanoAddressUtils {
 
   public static boolean isStakeAddress(String address) {
     String addressPrefix = address.substring(0, Constants.PREFIX_LENGTH);
-    String[] types = {StakeAddressPrefix.MAIN.getPrefix(), StakeAddressPrefix.TEST.getPrefix()};
 
-    return Arrays.stream(types)
-        .anyMatch(addressPrefix::contains);
+    return addressPrefix.contains(StakeAddressPrefix.MAIN.getPrefix())
+        || addressPrefix.contains(StakeAddressPrefix.TEST.getPrefix());
   }
 
   public static Address getAddress(byte[] paymentKeyHash, byte[] stakeKeyHash, byte headerKind,
@@ -162,12 +160,13 @@ public class CardanoAddressUtils {
 
   public static EraAddressType getEraAddressType(String address) {
     try {
-      if (address.startsWith("addr") || address.startsWith("stake")) {
+      if (address.startsWith(Constants.ADDRESS_PREFIX)
+          || address.startsWith(StakeAddressPrefix.MAIN.getPrefix())) {
         return EraAddressType.SHELLEY;
       }
       new ByronAddress(address).getAddress();
       return EraAddressType.BYRON;
-    } catch (Exception e) {
+    } catch (AddressFormatException | AddressRuntimeException e) {
       return null;
     }
   }

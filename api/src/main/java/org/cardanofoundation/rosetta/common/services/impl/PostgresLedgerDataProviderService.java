@@ -105,7 +105,7 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
 
   @Override
   public List<AddressBalanceDTO> findBalanceByAddressAndBlock(String address, Long number) {
-    List<AddressBalanceEntity> balances = addressBalanceRepository.findAdressBalanceByAddressAndBlockNumber(address, number);
+    List<AddressBalanceEntity> balances = addressBalanceRepository.findAddressBalanceByAddressAndBlockNumber(address, number);
     return balances.stream().map(AddressBalanceDTO::fromEntity).toList();
   }
 

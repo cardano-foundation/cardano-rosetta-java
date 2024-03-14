@@ -189,13 +189,13 @@ public class DataMapper {
    * @return The Rosetta compatible AccountBalanceResponse
    */
   public static AccountBalanceResponse mapToAccountBalanceResponse(BlockDto block, List<AddressBalanceDTO> balances) {
-    List<AddressBalanceDTO> nonLovelaceBalances = balances.stream().filter(balance -> !balance.getAssetName().equals(Constants.LOVELACE)).toList();
-    long sum = balances.stream().filter(balance -> balance.getAssetName().equals(Constants.LOVELACE)).mapToLong(value -> value.getQuantity().longValue()).sum();
+    List<AddressBalanceDTO> nonLovelaceBalances = balances.stream().filter(balance -> !balance.assetName().equals(Constants.LOVELACE)).toList();
+    long sum = balances.stream().filter(balance -> balance.assetName().equals(Constants.LOVELACE)).mapToLong(value -> value.quantity().longValue()).sum();
     List<Amount> amounts = new ArrayList<>();
     if (sum > 0) {
       amounts.add(mapAmount(String.valueOf(sum)));
     }
-    nonLovelaceBalances.forEach(balance -> amounts.add(mapAmount(balance.getQuantity().toString(), Hex.encodeHexString(balance.getAssetName().getBytes()), Constants.MULTI_ASSET_DECIMALS, Map.of("policyId", balance.getPolicy()))));
+    nonLovelaceBalances.forEach(balance -> amounts.add(mapAmount(balance.quantity().toString(), Hex.encodeHexString(balance.assetName().getBytes()), Constants.MULTI_ASSET_DECIMALS, Map.of("policyId", balance.policy()))));
     return AccountBalanceResponse.builder()
             .blockIdentifier(BlockIdentifier.builder()
                     .hash(block.getHash())
@@ -215,23 +215,27 @@ public class DataMapper {
             .build();
   }
 
-  public static AccountCoinsResponse mapToAccountCoinsResponse(BlockDto block, List<UtxoDto> utxos) {
+  public static AccountCoinsResponse mapToAccountCoinsResponse(BlockDto block,
+      List<UtxoDto> utxos) {
     return AccountCoinsResponse.builder()
-            .blockIdentifier(BlockIdentifier.builder()
-                    .hash(block.getHash())
-                    .index(block.getNumber())
+        .blockIdentifier(BlockIdentifier.builder()
+            .hash(block.getHash())
+            .index(block.getNumber())
+            .build())
+        .coins(utxos.stream().map(utxo -> Coin.builder()
+                .coinIdentifier(CoinIdentifier.builder()
+                    .identifier(utxo.getTxHash() + ":" + utxo.getOutputIndex())
                     .build())
-            .coins(utxos.stream().map(utxo -> Coin.builder()
-                    .coinIdentifier(CoinIdentifier.builder()
-                            .identifier(utxo.getTxHash() + ":" + utxo.getOutputIndex())
-                            .build())
-                    .amount(Amount.builder()
-                            .value(utxo.getAmounts().getFirst().getQuantity().toString()) // TODO stream through amount list
-                            .currency(Currency.builder()
-                                    .symbol(utxo.getAmounts().getFirst().getUnit())  // TODO stream through amount list
-                                    .decimals(Constants.MULTI_ASSET_DECIMALS)
-            .build()).build()).build()).toList()).build();
-
+                .amount(Amount.builder()
+                    .value(utxo.getAmounts().getFirst().getQuantity().toString()) // TODO stream through amount list
+                    .currency(Currency.builder()
+                        .symbol(utxo.getAmounts().getFirst().getUnit())  // TODO stream through amount list
+                        .decimals(Constants.MULTI_ASSET_DECIMALS)
+                        .build())
+                    .build())
+                .build())
+            .toList())
+        .build();
   }
 
   public static ConstructionMetadataResponse mapToMetadataResponse(ProtocolParams protocolParams, Long ttl, Long suggestedFee) {

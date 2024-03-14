@@ -1,5 +1,8 @@
 package org.cardanofoundation.rosetta.common.exception;
 
+import java.io.Serial;
+import java.io.Serializable;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,10 +18,13 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Error {
+public class Error implements Serializable {
+
+  @Serial
+  private static final long serialVersionUID = -217256584923275221L;
   private int code;
   private String message;
   private boolean retriable;
   private String description;
-  private Object details;
+  private Details details;
 }
