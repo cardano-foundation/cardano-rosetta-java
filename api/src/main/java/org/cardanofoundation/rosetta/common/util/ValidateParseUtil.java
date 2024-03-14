@@ -12,18 +12,15 @@ import com.bloxbean.cardano.client.transaction.spec.cert.PoolRegistration;
 import com.bloxbean.cardano.client.util.HexUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
-import org.cardanofoundation.rosetta.api.block.model.dto.PoolRegistrationParams;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
-import org.cardanofoundation.rosetta.common.model.cardano.metadata.OperationMetadata;
-import org.cardanofoundation.rosetta.common.model.cardano.pool.PoolMetadata;
 import org.cardanofoundation.rosetta.common.model.cardano.pool.PoolRegistationParametersReturnDto;
 import org.cardanofoundation.rosetta.common.model.cardano.pool.PoolRegistrationCertReturnDto;
-import org.cardanofoundation.rosetta.common.model.cardano.network.Relay;
-import org.cardanofoundation.rosetta.common.model.cardano.transaction.TokenBundleItem;
-import org.cardanofoundation.rosetta.common.model.cardano.metadata.VoteRegistrationMetadata;
 import org.openapitools.client.model.Amount;
 import org.openapitools.client.model.Operation;
+import org.openapitools.client.model.OperationMetadata;
+import org.openapitools.client.model.PoolMetadata;
+import org.openapitools.client.model.PoolRegistrationParams;
 import org.openapitools.client.model.PublicKey;
 
 import java.util.ArrayList;
@@ -33,6 +30,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import org.openapitools.client.model.Relay;
+import org.openapitools.client.model.TokenBundleItem;
+import org.openapitools.client.model.VoteRegistrationMetadata;
 
 import static java.math.BigInteger.valueOf;
 
@@ -282,7 +282,7 @@ public class ValidateParseUtil {
         List<com.bloxbean.cardano.client.transaction.spec.cert.Relay> generatedRelays = new ArrayList<>();
         for (Relay relay : relays) {
             if (!ObjectUtils.isEmpty(relay.getPort())) {
-                validatePort(relay.getPort());
+                validatePort(relay.getPort().toString());
             }
             com.bloxbean.cardano.client.transaction.spec.cert.Relay generatedRelay = CardanoAddressUtil.generateSpecificRelay(relay);
             generatedRelays.add(generatedRelay);
@@ -312,7 +312,6 @@ public class ValidateParseUtil {
         PoolMetadata parsedMetadata = null;
         try {
             if (!ObjectUtils.isEmpty(metadata)) {
-                HexUtil.decodeHexString(metadata.getHash());
                 parsedMetadata = new PoolMetadata(metadata.getUrl(), metadata.getHash());
                 return parsedMetadata;
             }
@@ -372,7 +371,7 @@ public class ValidateParseUtil {
     public static VoteRegistrationMetadata validateAndParseVoteRegistrationMetadata(VoteRegistrationMetadata voteRegistrationMetadata) {
 
         log.info("[validateAndParseVoteRegistrationMetadata] About to validate and parse voting key");
-        String parsedVotingKey = validateAndParseVotingKey(voteRegistrationMetadata.getVotingKey());
+        String parsedVotingKey = validateAndParseVotingKey(voteRegistrationMetadata.getVotingkey());
         log.info("[validateAndParseVoteRegistrationMetadata] About to validate and parse stake key");
         if (ObjectUtils.isEmpty(voteRegistrationMetadata.getStakeKey().getHexBytes())) {
             throw ExceptionFactory.missingStakingKeyError();

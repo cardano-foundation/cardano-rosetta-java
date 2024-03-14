@@ -22,29 +22,28 @@ import com.bloxbean.cardano.client.util.HexUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
-import org.cardanofoundation.rosetta.api.block.model.dto.PoolRegistrationParams;
 import org.cardanofoundation.rosetta.common.enumeration.CatalystDataIndexes;
 import org.cardanofoundation.rosetta.common.enumeration.CatalystLabels;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
-import org.cardanofoundation.rosetta.common.model.cardano.metadata.OperationMetadata;
-import org.cardanofoundation.rosetta.common.model.cardano.metadata.VoteRegistrationMetadata;
 import org.cardanofoundation.rosetta.common.model.cardano.pool.PoolRegistationParametersReturnDto;
 import org.cardanofoundation.rosetta.common.model.cardano.pool.PoolRegistrationCertReturnDto;
 import org.cardanofoundation.rosetta.common.model.cardano.pool.PoolRetirementDto;
 import org.cardanofoundation.rosetta.common.model.cardano.pool.ProcessPoolRegistrationReturnDto;
-import org.cardanofoundation.rosetta.common.model.cardano.pool.PoolMetadata;
 import org.cardanofoundation.rosetta.common.model.cardano.pool.StakeCertificateDto;
 import org.openapitools.client.model.AccountIdentifier;
 import org.cardanofoundation.rosetta.common.model.cardano.pool.ProcessWithdrawalReturnDto;
 import org.openapitools.client.model.Operation;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
+import org.openapitools.client.model.OperationMetadata;
+import org.openapitools.client.model.PoolMetadata;
+import org.openapitools.client.model.PoolRegistrationParams;
 import org.openapitools.client.model.PublicKey;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
+import org.openapitools.client.model.VoteRegistrationMetadata;
 
 import static java.math.BigInteger.valueOf;
 
@@ -57,7 +56,7 @@ public class ProcessContructionUtil {
     public static Certificate getStakeRegistrationCertificateFromOperation(Operation operation) {
         log.info("[processStakeKeyRegistration] About to process stake key registration");
         OperationMetadata operationMetadata = getOperationMetadata(operation);
-        StakeCredential credential = CardanoAddressUtil.getStakingCredentialFromHex(operationMetadata.getStakingCredential());
+        StakeCredential credential = CardanoAddressUtil.getStakingCredentialFromStakeKey(operationMetadata.getStakingCredential());
         return new StakeRegistration(credential);
     }
 
@@ -69,7 +68,7 @@ public class ProcessContructionUtil {
         OperationMetadata operationMetadata = getOperationMetadata(operation);
         PublicKey publicKey = ObjectUtils.isEmpty(operation.getMetadata()) ? null
                 : operationMetadata.getStakingCredential();
-        StakeCredential credential = CardanoAddressUtil.getStakingCredentialFromHex(publicKey);
+        StakeCredential credential = CardanoAddressUtil.getStakingCredentialFromStakeKey(publicKey);
         HdPublicKey hdPublicKey = new HdPublicKey();
         if (publicKey != null) {
             hdPublicKey.setKeyData(HexUtil.decodeHexString(publicKey.getHexBytes()));
@@ -223,7 +222,7 @@ public class ProcessContructionUtil {
         CBORMetadata metadata = new CBORMetadata();
 
         CBORMetadataMap map2 = new CBORMetadataMap();
-        byte[] votingKeyByte = HexUtil.decodeHexString(voteRegistrationMetadata.getVotingKey().getHexBytes());
+        byte[] votingKeyByte = HexUtil.decodeHexString(voteRegistrationMetadata.getVotingkey().getHexBytes());
         map2.put(valueOf(CatalystDataIndexes.VOTING_KEY.getValue()), votingKeyByte);
         map2.put(valueOf(CatalystDataIndexes.STAKE_KEY.getValue()),
                 HexUtil.decodeHexString(voteRegistrationMetadata.getStakeKey().getHexBytes()));
@@ -243,6 +242,7 @@ public class ProcessContructionUtil {
 
     public static OperationMetadata getOperationMetadata(Operation operation) {
         OperationMetadata operationMetadata;
+
         try {
             operationMetadata = operation == null ? null : (OperationMetadata) MetadataParseUtil.getObjectFromHashMapObject(operation.getMetadata(), OperationMetadata.class);
         } catch (JsonProcessingException e) {

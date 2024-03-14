@@ -13,10 +13,8 @@ import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.mapper.DataMapper;
 import org.cardanofoundation.rosetta.common.enumeration.AddressType;
-import org.cardanofoundation.rosetta.common.model.cardano.metadata.ConstructionDeriveMetadata;
 
 import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
-import org.cardanofoundation.rosetta.common.model.cardano.metadata.ConstructionPreprocessMetadata;
 import org.cardanofoundation.rosetta.common.services.CardanoAddressService;
 import org.cardanofoundation.rosetta.common.services.CardanoService;
 import org.cardanofoundation.rosetta.api.construction.service.ConstructionApiService;
@@ -50,8 +48,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
       throw new IllegalAccessException("Invalid network");
     }
     // casting unspecific rosetta specification to cardano specific metadata
-    ConstructionDeriveMetadata metadata = ConstructionDeriveMetadata.fromHashMap(
-        (HashMap<String, Object>) constructionDeriveRequest.getMetadata());
+    ConstructionDeriveMetadata metadata = constructionDeriveRequest.getMetadata();
     // Default address type is enterprise
     AddressType addressType =
         metadata.getAddressType() != null ? AddressType.findByValue(metadata.getAddressType())
@@ -76,11 +73,8 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
       throws IOException, AddressExcepion, CborSerializationException, CborException {
     NetworkIdentifier networkIdentifier = constructionPreprocessRequest.getNetworkIdentifier();
     // casting unspecific rosetta specification to cardano specific metadata
-    ConstructionPreprocessMetadata metadata = ConstructionPreprocessMetadata.fromHashmap(
-        (HashMap<String, Object>) constructionPreprocessRequest.getMetadata());
-    Double relativeTtl = cardanoService.calculateRelativeTtl(
-        !ObjectUtils.isEmpty(constructionPreprocessRequest.getMetadata())
-            ? metadata.getRelativeTtl() : null);
+    ConstructionPreprocessMetadata metadata = constructionPreprocessRequest.getMetadata();
+    Double relativeTtl = cardanoService.calculateRelativeTtl(metadata.getRelativeTtl() != null ? metadata.getRelativeTtl().doubleValue() : null);
     Double transactionSize = cardanoService.calculateTxSize(
         NetworkIdentifierType.findByName(networkIdentifier.getNetwork()),
         constructionPreprocessRequest.getOperations(), 0,

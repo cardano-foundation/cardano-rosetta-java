@@ -5,11 +5,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Hex;
 import org.cardanofoundation.rosetta.api.account.model.dto.UtxoDto;
 import org.cardanofoundation.rosetta.api.block.model.dto.*;
-import org.cardanofoundation.rosetta.common.model.cardano.metadata.OperationMetadata;
-import org.cardanofoundation.rosetta.common.model.cardano.transaction.TokenBundleItem;
 import org.cardanofoundation.rosetta.common.util.Constants;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.api.account.model.entity.Amt;
+import org.cardanofoundation.rosetta.common.util.Formatters;
 import org.jetbrains.annotations.NotNull;
 import org.openapitools.client.model.*;
 
@@ -21,7 +20,6 @@ import java.util.stream.IntStream;
 
 import static org.cardanofoundation.rosetta.common.util.Constants.ADA;
 import static org.cardanofoundation.rosetta.common.util.Constants.ADA_DECIMALS;
-import static org.cardanofoundation.rosetta.common.util.Formatters.nullOrEmptyStringToHexFormat;
 
 @Slf4j
 public class OperationDataMapper {
@@ -135,7 +133,7 @@ public class OperationDataMapper {
                             .status(status.getStatus())
                             .account(AccountIdentifier.builder().address(poolRetirement.getPoolId()).build())
                             .metadata(OperationMetadata.builder()
-                                    .epoch(poolRetirement.getEpoch().longValue())
+                                    .epoch(poolRetirement.getEpoch())
                                     .build())
                             .build();
                 }).toList();
@@ -226,13 +224,14 @@ public class OperationDataMapper {
         OperationMetadata operationMetadata = new OperationMetadata();
         for (Amt amount : amounts) {
             if(!amount.getAssetName().equals(Constants.LOVELACE)) {
+
                 TokenBundleItem tokenBundleItem = new TokenBundleItem();
                 tokenBundleItem.setPolicyId(amount.getPolicyId());
                 Amount amt = new Amount();
                 amt.setValue(DataMapper.mapValue(amount.getQuantity().toString(), spent));
                 String hexAssetName = Hex.encodeHexString(amount.getAssetName().getBytes());
                 amt.setCurrency(Currency.builder()
-                        .symbol(nullOrEmptyStringToHexFormat(hexAssetName))
+                        .symbol(hexAssetName)
                         .decimals(0)
                         .build());
                 tokenBundleItem.setTokens(List.of(amt));

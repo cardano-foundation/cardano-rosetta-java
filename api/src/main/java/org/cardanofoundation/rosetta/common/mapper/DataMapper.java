@@ -1,24 +1,22 @@
 package org.cardanofoundation.rosetta.common.mapper;
 
 import com.bloxbean.cardano.client.common.model.Network;
+import java.text.Normalizer.Form;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Hex;
 import org.cardanofoundation.rosetta.api.account.model.dto.AddressBalanceDTO;
 import org.cardanofoundation.rosetta.api.account.model.dto.UtxoDto;
 import org.cardanofoundation.rosetta.api.block.model.dto.*;
-import org.cardanofoundation.rosetta.common.model.cardano.metadata.Metadata;
 import org.cardanofoundation.rosetta.common.util.Constants;
 import org.cardanofoundation.rosetta.api.block.model.entity.ProtocolParams;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
-import org.cardanofoundation.rosetta.common.model.cardano.metadata.TransactionMetadata;
-import org.cardanofoundation.rosetta.common.model.cardano.metadata.BlockMetadata;
+import org.cardanofoundation.rosetta.common.util.Formatters;
 import org.openapitools.client.model.*;
 import org.openapitools.client.model.Currency;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
 
-import static org.cardanofoundation.rosetta.common.util.Formatters.nullOrEmptyStringToHexFormat;
 import static org.cardanofoundation.rosetta.common.util.RosettaConstants.SUCCESS_OPERATION_STATUS;
 
 
@@ -154,7 +152,7 @@ public class DataMapper {
 
     Currency currency = Currency.builder()
             .decimals(Constants.ADA_DECIMALS)
-            .symbol(nullOrEmptyStringToHexFormat(Constants.ADA)).build();
+            .symbol(Constants.ADA).build();
     return Amount.builder().value(value).currency(currency).build();
   }
 
@@ -177,9 +175,9 @@ public class DataMapper {
     Amount amount = new Amount();
     amount.setValue(value);
     amount.setCurrency(Currency.builder()
-                            .symbol(nullOrEmptyStringToHexFormat(symbol))
+                            .symbol(symbol)
                             .decimals(decimals)
-                            .metadata(metadata != null ? new Metadata((String) metadata.get("policyId")) : null) // TODO check metadata for Amount
+                            .metadata(metadata) // TODO check metadata for Amount
                             .build());
     return amount;
   }

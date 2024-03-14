@@ -20,19 +20,15 @@ import com.bloxbean.cardano.client.util.HexUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.validator.routines.InetAddressValidator;
-import org.cardanofoundation.rosetta.common.model.cardano.metadata.Metadata;
 import org.cardanofoundation.rosetta.common.enumeration.EraAddressType;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
-import org.cardanofoundation.rosetta.common.enumeration.NonStakeAddressPrefix;
 import org.cardanofoundation.rosetta.common.enumeration.StakeAddressPrefix;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
-import org.cardanofoundation.rosetta.common.model.cardano.network.Relay;
-import org.openapitools.client.model.Amount;
-import org.openapitools.client.model.Currency;
 import org.openapitools.client.model.PublicKey;
 
 import java.util.Arrays;
 import java.util.Objects;
+import org.openapitools.client.model.Relay;
 
 @Slf4j
 public class CardanoAddressUtil {
@@ -85,21 +81,6 @@ public class CardanoAddressUtil {
     return addressArray;
   }
 
-  public static String hex(byte[] bytes) {
-    StringBuilder result = new StringBuilder();
-    for (byte aByte : bytes) {
-      int decimal =
-          aByte & 0xff;               // bytes widen to int, need mask, prevent sign extension
-      // get last 8 bits
-      String hex = Integer.toHexString(decimal);
-      if (hex.length() % 2 == 1) {                    // if half hex, pad with zero, e.g \t
-        hex = "0" + hex;
-      }
-      result.append(hex);
-    }
-    return result.toString();
-  }
-
   public static Boolean isKeyValid(String publicKeyBytes, String curveType) {
     if (publicKeyBytes == null) {
       return false;
@@ -126,7 +107,7 @@ public class CardanoAddressUtil {
         throw ExceptionFactory.invalidPoolRelayTypeError();
       }
       switch (type) {
-        case "single_host_addr" -> {
+        case Constants.SINGLE_HOST_ADDR -> {
           if (relay.getIpv4() != null) {
             InetAddressValidator validator = InetAddressValidator.getInstance();
             if (!validator.isValidInet4Address(relay.getIpv4())) {
@@ -134,18 +115,18 @@ public class CardanoAddressUtil {
             }
           }
           Integer port =
-              ObjectUtils.isEmpty(relay.getPort()) ? null : Integer.parseInt(relay.getPort(), 10);
+              ObjectUtils.isEmpty(relay.getPort()) ? null : relay.getPort();
           return new SingleHostAddr(Objects.requireNonNullElse(port, 0),
               ParseConstructionUtil.parseIpv4(relay.getIpv4()),
               ParseConstructionUtil.parseIpv6(relay.getIpv6()));
         }
-        case "single_host_name" -> {
+        case Constants.SINGLE_HOST_NAME -> {
           ValidateParseUtil.validateDnsName(relay.getDnsName());
           Integer port =
-              ObjectUtils.isEmpty(relay.getPort()) ? null : Integer.parseInt(relay.getPort(), 10);
+              ObjectUtils.isEmpty(relay.getPort()) ? null : relay.getPort();
           return new SingleHostName(Objects.requireNonNullElse(port, 0), relay.getDnsName());
         }
-        case "multi_host_name" -> {
+        case Constants.MULTI_HOST_NAME -> {
           ValidateParseUtil.validateDnsName(relay.getDnsName());
           return new MultiHostName(relay.getDnsName());
         }
@@ -190,64 +171,6 @@ public class CardanoAddressUtil {
     return !ObjectUtils.isEmpty(toCheck) && toCheck.equals(Constants.EMPTY_HEX);
   }
 
-  public static Amount mapAmount(String value, String symbol, Integer decimals, Metadata metadata) {
-    return new Amount(value,
-        new Currency(ObjectUtils.isEmpty(symbol) ? Constants.ADA : hexStringFormatter(symbol),
-            ObjectUtils.isEmpty(decimals) ? Constants.ADA_DECIMALS : decimals, metadata), null);
-  }
-
-  public static String hexStringFormatter(String toFormat) {
-    if (ObjectUtils.isEmpty(toFormat)) {
-      return Constants.EMPTY_HEX;
-    } else {
-      return toFormat;
-    }
-  }
-
-  public static String hexFormatter(byte[] bytes) {
-    return HexUtil.encodeHexString(bytes);
-  }
-
-  public static String bytesToHex(byte[] bytes) {
-    return hexFormatter(bytes);
-  }
-
-  public static String getAddressPrefix(Integer network, StakeAddressPrefix addressPrefix) {
-    if (ObjectUtils.isEmpty(addressPrefix)) {
-      return network == NetworkIdentifierType.CARDANO_MAINNET_NETWORK.getValue()
-          ? NonStakeAddressPrefix.MAIN.getValue() : NonStakeAddressPrefix.TEST.getValue();
-    }
-    return network == NetworkIdentifierType.CARDANO_MAINNET_NETWORK.getValue()
-        ? StakeAddressPrefix.MAIN.getPrefix() : StakeAddressPrefix.TEST.getPrefix();
-  }
-
-  public static String generateAddress(NetworkIdentifierType networkIdentifierType,
-      String publicKeyString, String stakingCredentialString,
-      org.cardanofoundation.rosetta.common.enumeration.AddressType type) {
-    log.info(
-        "[generateAddress] About to generate address from public key {} and network identifier {}",
-        publicKeyString, networkIdentifierType);
-    HdPublicKey paymentCredential = new HdPublicKey();
-    paymentCredential.setKeyData(HexUtil.decodeHexString(publicKeyString));
-    if (!ObjectUtils.isEmpty(type) && type.getValue()
-        .equals(org.cardanofoundation.rosetta.common.enumeration.AddressType.REWARD.getValue())) {
-      return generateRewardAddress(networkIdentifierType, paymentCredential);
-    }
-
-    if (!ObjectUtils.isEmpty(type) && type.getValue()
-        .equals(org.cardanofoundation.rosetta.common.enumeration.AddressType.BASE.getValue())) {
-      if (stakingCredentialString == null) {
-        log.error("[constructionDerive] No staking key was provided for base address creation");
-        throw ExceptionFactory.missingStakingKeyError();
-      }
-      HdPublicKey stakingCredential = new HdPublicKey();
-      stakingCredential.setKeyData(HexUtil.decodeHexString(stakingCredentialString));
-      return generateBaseAddress(networkIdentifierType, paymentCredential, stakingCredential);
-    }
-
-    return generateEnterpriseAddress(paymentCredential, networkIdentifierType);
-  }
-
   public static String generateRewardAddress(NetworkIdentifierType networkIdentifierType,
       HdPublicKey paymentCredential) {
     log.info(
@@ -267,34 +190,13 @@ public class CardanoAddressUtil {
     return baseAddress.toBech32();
   }
 
-  public static String generateEnterpriseAddress(HdPublicKey paymentCredential,
-      NetworkIdentifierType networkIdentifierType) {
+  public static String generateEnterpriseAddress(NetworkIdentifierType networkIdentifierType,
+      HdPublicKey paymentCredential) {
     log.info("[generateAddress] Deriving cardano address from valid public key and staking key");
     Address entAddress = AddressProvider.getEntAddress(paymentCredential,
         new Network(networkIdentifierType.getValue(), networkIdentifierType.getProtocolMagic()));
     log.info("generateAddress] base address is {}", entAddress.toBech32());
     return entAddress.toBech32();
-  }
-
-  public static Address getAddressFromHexString(String hex) {
-    return new Address(hexStringToBuffer(hex));
-  }
-
-  public static byte[] hexStringToBuffer(String input) {
-    boolean checkEmptyHexString = CardanoAddressUtil.isEmptyHexString(input);
-    return checkEmptyHexString ? HexUtil.decodeHexString("") : HexUtil.decodeHexString(input);
-  }
-
-  public static String remove0xPrefix(String hex) {
-    return (hex.startsWith("0x") ? hex.substring("0x".length()) : hex);
-  }
-
-  public static EraAddressType getEraAddressTypeOrNull(String address) {
-    try {
-      return CardanoAddressUtil.getEraAddressType(address);
-    } catch (Exception error) {
-      return null;
-    }
   }
 
   public static boolean isEd25519KeyHash(String hash) {
@@ -306,12 +208,12 @@ public class CardanoAddressUtil {
     }
   }
 
-  public static StakeCredential getStakingCredentialFromHex(PublicKey stakingCredential) {
-    HdPublicKey stakingKey = getPublicKey(stakingCredential);
+  public static StakeCredential getStakingCredentialFromStakeKey(PublicKey stakingCredential) {
+    HdPublicKey stakingKey = publicKeyToHdPublicKey(stakingCredential);
     return StakeCredential.fromKeyHash(stakingKey.getKeyHash());
   }
 
-  public static HdPublicKey getPublicKey(PublicKey publicKey) {
+  public static HdPublicKey publicKeyToHdPublicKey(PublicKey publicKey) {
     if (ObjectUtils.isEmpty(publicKey) || ObjectUtils.isEmpty(publicKey.getHexBytes())) {
       log.error("[getPublicKey] Staking key not provided");
       throw ExceptionFactory.missingStakingKeyError();
@@ -322,7 +224,7 @@ public class CardanoAddressUtil {
       log.info("[getPublicKey] Staking key has an invalid format");
       throw ExceptionFactory.invalidStakingKeyFormat();
     }
-    byte[] stakingKeyBuffer = CardanoAddressUtil.hexStringToBuffer(publicKey.getHexBytes());
+    byte[] stakingKeyBuffer = HexUtil.decodeHexString(publicKey.getHexBytes());
     HdPublicKey hdPublicKey = new HdPublicKey();
     hdPublicKey.setKeyData(stakingKeyBuffer);
     return hdPublicKey;

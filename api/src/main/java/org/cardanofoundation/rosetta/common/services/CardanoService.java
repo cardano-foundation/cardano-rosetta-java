@@ -11,8 +11,8 @@ import org.cardanofoundation.rosetta.api.block.model.entity.ProtocolParams;
 import org.cardanofoundation.rosetta.common.enumeration.AddressType;
 import org.cardanofoundation.rosetta.common.enumeration.EraAddressType;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
-import org.cardanofoundation.rosetta.common.model.cardano.pool.DepositParameters;
 import org.cardanofoundation.rosetta.common.model.cardano.crypto.Signatures;
+import org.openapitools.client.model.DepositParameters;
 import org.openapitools.client.model.Operation;
 
 import java.io.IOException;

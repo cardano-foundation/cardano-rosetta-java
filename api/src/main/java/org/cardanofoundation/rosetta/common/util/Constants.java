@@ -1,12 +1,16 @@
 package org.cardanofoundation.rosetta.common.util;
 
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
-import org.cardanofoundation.rosetta.common.model.cardano.crypto.CurveType;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.openapitools.client.model.CurveType;
 
 public class Constants {
+
+  public static final String SINGLE_HOST_ADDR = "single_host_addr";
+  public static final String SINGLE_HOST_NAME = "single_host_name";
+  public static final String MULTI_HOST_NAME = "multi_host_name";
 
   private Constants() {
   }

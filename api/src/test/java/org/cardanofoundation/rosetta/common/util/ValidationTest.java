@@ -1,4 +1,4 @@
-package org.cardanofoundation.rosetta.api.util;
+package org.cardanofoundation.rosetta.common.util;
 
 import static org.cardanofoundation.rosetta.common.util.ValidationUtil.getAddressFromHexString;
 import static org.cardanofoundation.rosetta.common.util.ValidationUtil.isVoteDataValid;
