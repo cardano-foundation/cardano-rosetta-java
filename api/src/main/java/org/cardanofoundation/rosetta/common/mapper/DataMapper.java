@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.*;
 
-import static org.cardanofoundation.rosetta.common.util.Formatters.hexStringFormatter;
+import static org.cardanofoundation.rosetta.common.util.Formatters.nullOrEmptyStringToHexFormat;
 import static org.cardanofoundation.rosetta.common.util.RosettaConstants.SUCCESS_OPERATION_STATUS;
 
 
@@ -154,7 +154,7 @@ public class DataMapper {
 
     Currency currency = Currency.builder()
             .decimals(Constants.ADA_DECIMALS)
-            .symbol(hexStringFormatter(Constants.ADA)).build();
+            .symbol(nullOrEmptyStringToHexFormat(Constants.ADA)).build();
     return Amount.builder().value(value).currency(currency).build();
   }
 
@@ -177,7 +177,7 @@ public class DataMapper {
     Amount amount = new Amount();
     amount.setValue(value);
     amount.setCurrency(Currency.builder()
-                            .symbol(hexStringFormatter(symbol))
+                            .symbol(nullOrEmptyStringToHexFormat(symbol))
                             .decimals(decimals)
                             .metadata(metadata != null ? new Metadata((String) metadata.get("policyId")) : null) // TODO check metadata for Amount
                             .build());

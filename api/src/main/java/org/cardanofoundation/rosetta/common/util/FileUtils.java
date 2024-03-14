@@ -1,7 +1,5 @@
 package org.cardanofoundation.rosetta.common.util;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.IOUtils;
 
 import java.io.FileInputStream;
@@ -24,9 +22,4 @@ public class FileUtils {
         }
     }
 
-    public static Object getObjectFromHashMapObject(Object object, Class classForObject) throws JsonProcessingException {
-        ObjectMapper mapper = new ObjectMapper();
-        String s = mapper.writeValueAsString(object);
-        return mapper.readValue(s, classForObject);
-    }
 }

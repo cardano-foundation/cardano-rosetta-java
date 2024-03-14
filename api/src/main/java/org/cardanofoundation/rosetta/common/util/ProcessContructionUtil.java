@@ -28,10 +28,13 @@ import org.cardanofoundation.rosetta.common.enumeration.CatalystLabels;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.model.cardano.metadata.OperationMetadata;
+import org.cardanofoundation.rosetta.common.model.cardano.metadata.VoteRegistrationMetadata;
 import org.cardanofoundation.rosetta.common.model.cardano.pool.PoolRegistationParametersReturnDto;
 import org.cardanofoundation.rosetta.common.model.cardano.pool.PoolRegistrationCertReturnDto;
+import org.cardanofoundation.rosetta.common.model.cardano.pool.PoolRetirementDto;
 import org.cardanofoundation.rosetta.common.model.cardano.pool.ProcessPoolRegistrationReturnDto;
 import org.cardanofoundation.rosetta.common.model.cardano.pool.PoolMetadata;
+import org.cardanofoundation.rosetta.common.model.cardano.pool.StakeCertificateDto;
 import org.openapitools.client.model.AccountIdentifier;
 import org.cardanofoundation.rosetta.common.model.cardano.pool.ProcessWithdrawalReturnDto;
 import org.openapitools.client.model.Operation;
@@ -39,7 +42,6 @@ import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
 import org.openapitools.client.model.PublicKey;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -52,20 +54,19 @@ public class ProcessContructionUtil {
 
     }
 
-    public static Certificate processStakeKeyRegistration(Operation operation) {
+    public static Certificate getStakeRegistrationCertificateFromOperation(Operation operation) {
         log.info("[processStakeKeyRegistration] About to process stake key registration");
         OperationMetadata operationMetadata = getOperationMetadata(operation);
         StakeCredential credential = CardanoAddressUtil.getStakingCredentialFromHex(operationMetadata.getStakingCredential());
         return new StakeRegistration(credential);
     }
 
-    public static Map<String, Object> processOperationCertification(
+    public static StakeCertificateDto getStakeCertificateFromOperation(
             NetworkIdentifierType networkIdentifierType, Operation operation) {
         log.info(
                 "[processOperationCertification] About to process operation of type {}",
                 operation.getType());
         OperationMetadata operationMetadata = getOperationMetadata(operation);
-        HashMap<String, Object> map = new HashMap<>();
         PublicKey publicKey = ObjectUtils.isEmpty(operation.getMetadata()) ? null
                 : operationMetadata.getStakingCredential();
         StakeCredential credential = CardanoAddressUtil.getStakingCredentialFromHex(publicKey);
@@ -81,16 +82,12 @@ public class ProcessContructionUtil {
             Certificate certificate = new StakeDelegation(credential, new StakePoolId(
                     ObjectUtils.isEmpty(operation.getMetadata()) ? null
                             : HexUtil.decodeHexString(operationMetadata.getPoolKeyHash())));
-            map.put(Constants.CERTIFICATE, certificate);
-            map.put(Constants.ADDRESS, address);
-            return map;
+            return new StakeCertificateDto(certificate, address);
         }
-        map.put(Constants.CERTIFICATE, new StakeDeregistration(credential));
-        map.put(Constants.ADDRESS, address);
-        return map;
+        return new StakeCertificateDto(new StakeDeregistration(credential), address);
     }
 
-    public static ProcessWithdrawalReturnDto processWithdrawal(
+    public static ProcessWithdrawalReturnDto getWithdrawalsReturnFromOperation(
             NetworkIdentifierType networkIdentifierType,
             Operation operation) {
         log.info("[processWithdrawal] About to process withdrawal");
@@ -114,8 +111,7 @@ public class ProcessContructionUtil {
     }
 
 
-    public static ProcessPoolRegistrationReturnDto processPoolRegistration(
-            Operation operation) {
+    public static ProcessPoolRegistrationReturnDto getPoolRegistrationFromOperation(Operation operation) {
         log.info("[processPoolRegistration] About to process pool registration operation");
         OperationMetadata operationMetadata = getOperationMetadata(operation);
         if (!ObjectUtils.isEmpty(operation) && !ObjectUtils.isEmpty(operation.getMetadata())
@@ -182,7 +178,7 @@ public class ProcessContructionUtil {
         return processPoolRegistrationReturnDto;
     }
 
-    public static PoolRegistrationCertReturnDto processPoolRegistrationWithCert(Operation operation,
+    public static PoolRegistrationCertReturnDto getPoolRegistrationCertFromOperation(Operation operation,
                                                                                 NetworkIdentifierType networkIdentifierType) {
         OperationMetadata operationMetadata = getOperationMetadata(operation);
         AccountIdentifier account = operation == null ? null : operation.getAccount();
@@ -193,8 +189,7 @@ public class ProcessContructionUtil {
         );
     }
 
-    public static Map<String, Object> processPoolRetirement(Operation operation) {
-        Map<String, Object> map = new HashMap<>();
+    public static PoolRetirementDto getPoolRetirementFromOperation(Operation operation) {
         log.info("[processPoolRetiring] About to process operation of type {}", operation.getType());
         OperationMetadata operationMetadata = getOperationMetadata(operation);
         if (!ObjectUtils.isEmpty(operation.getMetadata()) && !ObjectUtils.isEmpty(
@@ -204,10 +199,7 @@ public class ProcessContructionUtil {
             double epoch = operationMetadata.getEpoch();
             byte[] keyHash = ValidateParseUtil.validateAndParsePoolKeyHash(
                     ObjectUtils.isEmpty(operation.getAccount()) ? null : operation.getAccount().getAddress());
-            map.put(Constants.CERTIFICATE, new PoolRetirement(keyHash, Math.round(epoch)));
-            map.put(Constants.POOL_KEY_HASH,
-                    ObjectUtils.isEmpty(operation.getAccount()) ? null : operation.getAccount().getAddress());
-            return map;
+            return new PoolRetirementDto(new PoolRetirement(keyHash, Math.round(epoch)), ObjectUtils.isEmpty(operation.getAccount()) ? null : operation.getAccount().getAddress());
         }
         log.error("[processPoolRetiring] Epoch operation metadata is missing");
         throw ExceptionFactory.missingMetadataParametersForPoolRetirement();
@@ -225,20 +217,20 @@ public class ProcessContructionUtil {
             log.error("[processVoteRegistration] Vote registration metadata was not provided");
             throw ExceptionFactory.missingVoteRegistrationMetadata();
         }
-        Map<String, Object> map = ValidateParseUtil.validateAndParseVoteRegistrationMetadata(
-                operationMetadata.getVoteRegistrationMetadata());
+        VoteRegistrationMetadata voteRegistrationMetadata = ValidateParseUtil.validateAndParseVoteRegistrationMetadata(
+            operationMetadata.getVoteRegistrationMetadata());
 
         CBORMetadata metadata = new CBORMetadata();
 
         CBORMetadataMap map2 = new CBORMetadataMap();
-        byte[] votingKeyByte = HexUtil.decodeHexString(((String) map.get(Constants.VOTING_KEY)));
+        byte[] votingKeyByte = HexUtil.decodeHexString(voteRegistrationMetadata.getVotingKey().getHexBytes());
         map2.put(valueOf(CatalystDataIndexes.VOTING_KEY.getValue()), votingKeyByte);
         map2.put(valueOf(CatalystDataIndexes.STAKE_KEY.getValue()),
-                HexUtil.decodeHexString(((String) map.get(Constants.STAKE_KEY))));
+                HexUtil.decodeHexString(voteRegistrationMetadata.getStakeKey().getHexBytes()));
         map2.put(valueOf(CatalystDataIndexes.REWARD_ADDRESS.getValue()),
-                HexUtil.decodeHexString(((String) map.get(Constants.REWARD_ADDRESS))));
+                HexUtil.decodeHexString(voteRegistrationMetadata.getRewardAddress()));
         map2.put(valueOf(CatalystDataIndexes.VOTING_NONCE.getValue()),
-                valueOf(((Integer) map.get(Constants.VOTING_NONCE))));
+                valueOf(voteRegistrationMetadata.getVotingNonce()));
         metadata.put(valueOf(Long.parseLong(CatalystLabels.DATA.getLabel())), map2);
         CBORMetadataMap map3 = new CBORMetadataMap();
         map3.put(valueOf(1L), HexUtil.decodeHexString(
@@ -252,7 +244,7 @@ public class ProcessContructionUtil {
     public static OperationMetadata getOperationMetadata(Operation operation) {
         OperationMetadata operationMetadata;
         try {
-            operationMetadata = operation == null ? null : (OperationMetadata) FileUtils.getObjectFromHashMapObject(operation.getMetadata(), OperationMetadata.class);
+            operationMetadata = operation == null ? null : (OperationMetadata) MetadataParseUtil.getObjectFromHashMapObject(operation.getMetadata(), OperationMetadata.class);
         } catch (JsonProcessingException e) {
             log.error("Could not parse operation metadata", e);
             throw new RuntimeException("Could not parse operation metadata");

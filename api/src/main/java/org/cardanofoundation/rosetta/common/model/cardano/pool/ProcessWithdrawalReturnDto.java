@@ -12,7 +12,9 @@ import lombok.Setter;
 @Setter
 public class ProcessWithdrawalReturnDto {
 
+    // reward address holding the rewards
     private Address reward;
+    // address to which the rewards will be withdrawn
     private String address;
 
 }

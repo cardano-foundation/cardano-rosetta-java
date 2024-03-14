@@ -1,7 +1,7 @@
 package org.cardanofoundation.rosetta.api.util;
 
 import static org.cardanofoundation.rosetta.common.util.Formatters.EMPTY_HEX;
-import static org.cardanofoundation.rosetta.common.util.Formatters.hexStringFormatter;
+import static org.cardanofoundation.rosetta.common.util.Formatters.nullOrEmptyStringToHexFormat;
 import static org.cardanofoundation.rosetta.common.util.Formatters.isEmptyHexString;
 import static org.cardanofoundation.rosetta.common.util.Formatters.remove0xPrefix;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -51,7 +51,7 @@ class FormattersTest {
   void test_hexStringFormatter_true() {
     String hexEmpty = "";
 
-    assertEquals(EMPTY_HEX, hexStringFormatter(hexEmpty));
-    assertEquals(EMPTY_HEX, hexStringFormatter(null));
+    assertEquals(EMPTY_HEX, nullOrEmptyStringToHexFormat(hexEmpty));
+    assertEquals(EMPTY_HEX, nullOrEmptyStringToHexFormat(null));
   }
 }

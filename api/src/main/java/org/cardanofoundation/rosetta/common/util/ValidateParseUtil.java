@@ -344,8 +344,8 @@ public class ValidateParseUtil {
             log.error("[validateAndParsePoolRegistrationCert] invalid certificate type");
             throw ExceptionFactory.invalidPoolRegistrationCertType();
         }
-        List<String> ownersAddresses = ParseConstructionUtil.parsePoolOwners(networkIdentifierType.getValue(), parsedCertificate);
-        String rewardAddress = ParseConstructionUtil.parsePoolRewardAccount(networkIdentifierType.getValue(), parsedCertificate);
+        List<String> ownersAddresses = ParseConstructionUtil.getOwnerAddressesFromPoolRegistrations(networkIdentifierType.getValue(), parsedCertificate);
+        String rewardAddress = ParseConstructionUtil.getRewardAddressFromPoolRegistration(networkIdentifierType.getValue(), parsedCertificate);
         Set<String> addresses = new HashSet<>(new HashSet<>(ownersAddresses));
         addresses.add(poolKeyHash);
         addresses.add(rewardAddress);
@@ -369,7 +369,7 @@ public class ValidateParseUtil {
         return votingKey.getHexBytes();
     }
 
-    public static Map<String, Object> validateAndParseVoteRegistrationMetadata(VoteRegistrationMetadata voteRegistrationMetadata) {
+    public static VoteRegistrationMetadata validateAndParseVoteRegistrationMetadata(VoteRegistrationMetadata voteRegistrationMetadata) {
 
         log.info("[validateAndParseVoteRegistrationMetadata] About to validate and parse voting key");
         String parsedVotingKey = validateAndParseVotingKey(voteRegistrationMetadata.getVotingKey());
@@ -412,13 +412,7 @@ public class ValidateParseUtil {
         String stakeKeyHex = CardanoAddressUtil.add0xPrefix(parsedStakeKey);
         String rewardAddressHex = CardanoAddressUtil.add0xPrefix(parsedAddress);
         String votingSignatureHex = CardanoAddressUtil.add0xPrefix(voteRegistrationMetadata.getVotingSignature());
-        HashMap<String, Object> map = new HashMap<>();
-        map.put(Constants.VOTING_KEY, votingKeyHex);
-        map.put(Constants.STAKE_KEY, stakeKeyHex);
-        map.put(Constants.REWARD_ADDRESS, rewardAddressHex);
-        map.put(Constants.VOTING_NONCE, voteRegistrationMetadata.getVotingNonce());
-        map.put(Constants.VOTING_SIGNATURE, votingSignatureHex);
 
-        return map;
+        return new VoteRegistrationMetadata(PublicKey.builder().hexBytes(stakeKeyHex).build(), PublicKey.builder().hexBytes(votingKeyHex).build(), rewardAddressHex, voteRegistrationMetadata.getVotingNonce(), votingSignatureHex);
     }
 }

@@ -45,8 +45,7 @@ public class CardanoAddressUtil {
     String addressPrefix = address.substring(0, Constants.PREFIX_LENGTH);
     String[] types = {StakeAddressPrefix.MAIN.getPrefix(), StakeAddressPrefix.TEST.getPrefix()};
 
-    return Arrays.stream(types)
-        .anyMatch(addressPrefix::contains);
+    return Arrays.stream(types).anyMatch(addressPrefix::contains);
   }
 
   public static Address getAddress(byte[] paymentKeyHash, byte[] stakeKeyHash, byte headerKind,
@@ -117,7 +116,6 @@ public class CardanoAddressUtil {
     byte[] signatureByte = HexUtil.decodeHexString(hash);
     return signatureByte.length >= Constants.Ed25519_Key_Signature_BYTE_LENGTH;
   }
-
 
 
   public static com.bloxbean.cardano.client.transaction.spec.cert.Relay generateSpecificRelay(
@@ -192,8 +190,7 @@ public class CardanoAddressUtil {
     return !ObjectUtils.isEmpty(toCheck) && toCheck.equals(Constants.EMPTY_HEX);
   }
 
-  public static Amount mapAmount(String value, String symbol, Integer decimals,
-                                 Metadata metadata) {
+  public static Amount mapAmount(String value, String symbol, Integer decimals, Metadata metadata) {
     return new Amount(value,
         new Currency(ObjectUtils.isEmpty(symbol) ? Constants.ADA : hexStringFormatter(symbol),
             ObjectUtils.isEmpty(decimals) ? Constants.ADA_DECIMALS : decimals, metadata), null);
@@ -225,21 +222,20 @@ public class CardanoAddressUtil {
   }
 
   public static String generateAddress(NetworkIdentifierType networkIdentifierType,
-      String publicKeyString,
-      String stakingCredentialString,
+      String publicKeyString, String stakingCredentialString,
       org.cardanofoundation.rosetta.common.enumeration.AddressType type) {
     log.info(
         "[generateAddress] About to generate address from public key {} and network identifier {}",
         publicKeyString, networkIdentifierType);
     HdPublicKey paymentCredential = new HdPublicKey();
     paymentCredential.setKeyData(HexUtil.decodeHexString(publicKeyString));
-    if (!ObjectUtils.isEmpty(type) && type.getValue().equals(
-        org.cardanofoundation.rosetta.common.enumeration.AddressType.REWARD.getValue())) {
+    if (!ObjectUtils.isEmpty(type) && type.getValue()
+        .equals(org.cardanofoundation.rosetta.common.enumeration.AddressType.REWARD.getValue())) {
       return generateRewardAddress(networkIdentifierType, paymentCredential);
     }
 
-    if (!ObjectUtils.isEmpty(type) && type.getValue().equals(
-        org.cardanofoundation.rosetta.common.enumeration.AddressType.BASE.getValue())) {
+    if (!ObjectUtils.isEmpty(type) && type.getValue()
+        .equals(org.cardanofoundation.rosetta.common.enumeration.AddressType.BASE.getValue())) {
       if (stakingCredentialString == null) {
         log.error("[constructionDerive] No staking key was provided for base address creation");
         throw ExceptionFactory.missingStakingKeyError();
@@ -292,6 +288,7 @@ public class CardanoAddressUtil {
   public static String remove0xPrefix(String hex) {
     return (hex.startsWith("0x") ? hex.substring("0x".length()) : hex);
   }
+
   public static EraAddressType getEraAddressTypeOrNull(String address) {
     try {
       return CardanoAddressUtil.getEraAddressType(address);
@@ -299,6 +296,7 @@ public class CardanoAddressUtil {
       return null;
     }
   }
+
   public static boolean isEd25519KeyHash(String hash) {
     try {
       HexUtil.decodeHexString(KeyGenUtil.getKeyHash(HexUtil.decodeHexString(hash)));
@@ -307,10 +305,12 @@ public class CardanoAddressUtil {
       return false;
     }
   }
+
   public static StakeCredential getStakingCredentialFromHex(PublicKey stakingCredential) {
     HdPublicKey stakingKey = getPublicKey(stakingCredential);
     return StakeCredential.fromKeyHash(stakingKey.getKeyHash());
   }
+
   public static HdPublicKey getPublicKey(PublicKey publicKey) {
     if (ObjectUtils.isEmpty(publicKey) || ObjectUtils.isEmpty(publicKey.getHexBytes())) {
       log.error("[getPublicKey] Staking key not provided");

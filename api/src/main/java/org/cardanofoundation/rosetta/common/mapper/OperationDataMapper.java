@@ -21,7 +21,7 @@ import java.util.stream.IntStream;
 
 import static org.cardanofoundation.rosetta.common.util.Constants.ADA;
 import static org.cardanofoundation.rosetta.common.util.Constants.ADA_DECIMALS;
-import static org.cardanofoundation.rosetta.common.util.Formatters.hexStringFormatter;
+import static org.cardanofoundation.rosetta.common.util.Formatters.nullOrEmptyStringToHexFormat;
 
 @Slf4j
 public class OperationDataMapper {
@@ -232,7 +232,7 @@ public class OperationDataMapper {
                 amt.setValue(DataMapper.mapValue(amount.getQuantity().toString(), spent));
                 String hexAssetName = Hex.encodeHexString(amount.getAssetName().getBytes());
                 amt.setCurrency(Currency.builder()
-                        .symbol(hexStringFormatter(hexAssetName))
+                        .symbol(nullOrEmptyStringToHexFormat(hexAssetName))
                         .decimals(0)
                         .build());
                 tokenBundleItem.setTokens(List.of(amt));

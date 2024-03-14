@@ -17,8 +17,6 @@ import com.bloxbean.cardano.client.transaction.spec.Transaction;
 import com.bloxbean.cardano.client.transaction.spec.TransactionBody;
 import com.bloxbean.cardano.client.transaction.spec.TransactionWitnessSet;
 import com.bloxbean.cardano.client.transaction.spec.VkeyWitness;
-import com.bloxbean.cardano.client.transaction.spec.Withdrawal;
-import com.bloxbean.cardano.client.transaction.spec.cert.Certificate;
 import com.bloxbean.cardano.client.util.HexUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,24 +26,20 @@ import org.cardanofoundation.rosetta.api.block.model.dto.ProcessOperationsReturn
 import org.cardanofoundation.rosetta.common.enumeration.AddressType;
 import org.cardanofoundation.rosetta.common.enumeration.EraAddressType;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
-import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.api.block.model.dto.BlockDto;
 import org.cardanofoundation.rosetta.api.block.model.entity.ProtocolParams;
 import org.cardanofoundation.rosetta.common.model.cardano.pool.DepositParameters;
-import org.cardanofoundation.rosetta.common.model.cardano.pool.PoolRegistrationCertReturnDto;
-import org.cardanofoundation.rosetta.common.model.cardano.pool.ProcessPoolRegistrationReturnDto;
-import org.cardanofoundation.rosetta.common.model.cardano.pool.ProcessWithdrawalReturnDto;
 import org.cardanofoundation.rosetta.common.model.cardano.crypto.Signatures;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.UnsignedTransaction;
 import org.cardanofoundation.rosetta.common.services.CardanoService;
 import org.cardanofoundation.rosetta.common.services.LedgerDataProviderService;
 import org.cardanofoundation.rosetta.common.util.CardanoAddressUtil;
 import org.cardanofoundation.rosetta.common.util.Constants;
+import org.cardanofoundation.rosetta.common.util.OperationParseUtil;
 import org.cardanofoundation.rosetta.common.util.ValidateParseUtil;
 import org.openapitools.client.model.Operation;
 import org.springframework.stereotype.Service;
-import org.cardanofoundation.rosetta.common.util.ProcessContructionUtil;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -288,7 +282,7 @@ public class CardanoServiceImpl implements CardanoService {
     }
 
     private ProcessOperationsReturnDto processOperations(NetworkIdentifierType networkIdentifierType, List<Operation> operations, DepositParameters depositParameters) throws IOException {
-        ProcessOperationsDto result = convert(networkIdentifierType, operations);
+        ProcessOperationsDto result = convertRosettaOperations(networkIdentifierType, operations);
         double refundsSum = result.getStakeKeyDeRegistrationsCount() * Long.parseLong(depositParameters.getKeyDeposit());
         double keyDepositsSum = result.getStakeKeyRegistrationsCount() * Long.parseLong(depositParameters.getKeyDeposit());
         double poolDepositsSum = result.getPoolRegistrationsCount() * Long.parseLong(depositParameters.getPoolDeposit());
@@ -333,13 +327,13 @@ public class CardanoServiceImpl implements CardanoService {
     }
 
     @Override
-    public ProcessOperationsDto convert(NetworkIdentifierType networkIdentifierType, List<Operation> operations) throws IOException {
+    public ProcessOperationsDto convertRosettaOperations(NetworkIdentifierType networkIdentifierType, List<Operation> operations) throws IOException {
         ProcessOperationsDto processor = new ProcessOperationsDto();
 
         for (Operation operation : operations) {
             String type = operation.getType();
             try {
-                processor = operationProcessor(operation, networkIdentifierType, processor, type);
+                processor = OperationParseUtil.parseOperation(operation, networkIdentifierType, processor, type);
             } catch (CborSerializationException | CborDeserializationException | NoSuchAlgorithmException |
                      SignatureException | InvalidKeySpecException | InvalidKeyException e) {
                 throw ExceptionFactory.unspecifiedError(e.getMessage());
@@ -352,82 +346,4 @@ public class CardanoServiceImpl implements CardanoService {
         return processor;
     }
 
-    @Override
-    public ProcessOperationsDto operationProcessor(Operation operation, NetworkIdentifierType networkIdentifierType, ProcessOperationsDto resultAccumulator, String type) throws CborSerializationException, CborDeserializationException, NoSuchAlgorithmException, SignatureException, InvalidKeySpecException, InvalidKeyException {
-        if (type.equals(OperationType.INPUT.getValue())) {
-            resultAccumulator.getTransactionInputs().add(ValidateParseUtil.validateAndParseTransactionInput(operation));
-            resultAccumulator.getAddresses().add(ObjectUtils.isEmpty(operation.getAccount()) ? null : operation.getAccount().getAddress());
-            resultAccumulator.getInputAmounts().add(ValidateParseUtil.validateValueAmount(operation));
-            return resultAccumulator;
-        }
-        if (type.equals(OperationType.OUTPUT.getValue())) {
-            resultAccumulator.getTransactionOutputs().add(ValidateParseUtil.validateAndParseTransactionOutput(operation));
-            resultAccumulator.getOutputAmounts().add(ValidateParseUtil.validateValueAmount(operation));
-            return resultAccumulator;
-        }
-        if (type.equals(OperationType.STAKE_KEY_REGISTRATION.getValue())) {
-            resultAccumulator.getCertificates().add(ProcessContructionUtil.processStakeKeyRegistration(operation));
-            double stakeNumber = resultAccumulator.getStakeKeyRegistrationsCount();
-            resultAccumulator.setStakeKeyRegistrationsCount(++stakeNumber);
-            return resultAccumulator;
-        }
-        if (type.equals(OperationType.STAKE_KEY_DEREGISTRATION.getValue())) {
-            Map<String, Object> map = ProcessContructionUtil.processOperationCertification(networkIdentifierType, operation);
-            resultAccumulator.getCertificates().add((Certificate) map.get(Constants.CERTIFICATE));
-            resultAccumulator.getAddresses().add((String) map.get(Constants.ADDRESS));
-            double stakeNumber = resultAccumulator.getStakeKeyDeRegistrationsCount();
-            resultAccumulator.setStakeKeyDeRegistrationsCount(++stakeNumber);
-            return resultAccumulator;
-        }
-        if (type.equals(OperationType.STAKE_DELEGATION.getValue())) {
-            Map<String, Object> map = ProcessContructionUtil.processOperationCertification(networkIdentifierType, operation);
-            resultAccumulator.getCertificates().add((Certificate) map.get(Constants.CERTIFICATE));
-            resultAccumulator.getAddresses().add((String) map.get(Constants.ADDRESS));
-            return resultAccumulator;
-        }
-        if (type.equals(OperationType.WITHDRAWAL.getValue())) {
-            ProcessWithdrawalReturnDto processWithdrawalReturnDto = ProcessContructionUtil.processWithdrawal(networkIdentifierType, operation);
-            String withdrawalAmountString = ValidateParseUtil.validateValueAmount(operation);
-          assert withdrawalAmountString != null;
-          long withdrawalAmount = Long.parseLong(withdrawalAmountString);
-            resultAccumulator.getWithdrawalAmounts().add(withdrawalAmount);
-            resultAccumulator.getWithdrawals().add(new Withdrawal(processWithdrawalReturnDto.getReward().getAddress(),
-                valueOf(withdrawalAmount)));
-            resultAccumulator.getAddresses().add(processWithdrawalReturnDto.getAddress());
-            return resultAccumulator;
-        }
-        if (type.equals(OperationType.POOL_REGISTRATION.getValue())) {
-            ProcessPoolRegistrationReturnDto processPoolRegistrationReturnDto = ProcessContructionUtil.processPoolRegistration( operation);
-            resultAccumulator.getCertificates().add(processPoolRegistrationReturnDto.getCertificate());
-            resultAccumulator.getAddresses()
-                    .addAll(processPoolRegistrationReturnDto.getTotalAddresses());
-            double poolNumber = resultAccumulator.getPoolRegistrationsCount();
-            resultAccumulator.setPoolRegistrationsCount(++poolNumber);
-            return resultAccumulator;
-        }
-        if (type.equals(OperationType.POOL_REGISTRATION_WITH_CERT.getValue())) {
-            PoolRegistrationCertReturnDto dto = ProcessContructionUtil.processPoolRegistrationWithCert(
-                    operation,
-                    networkIdentifierType);
-            resultAccumulator.getCertificates().add(dto.getCertificate());
-            Set<String> set = dto.getAddress();
-            resultAccumulator.getAddresses().addAll(set);
-            double poolNumber = resultAccumulator.getPoolRegistrationsCount();
-            resultAccumulator.setPoolRegistrationsCount(++poolNumber);
-            return resultAccumulator;
-        }
-        if (type.equals(OperationType.POOL_RETIREMENT.getValue())) {
-            Map<String, Object> map = ProcessContructionUtil.processPoolRetirement(operation);
-            resultAccumulator.getCertificates().add((Certificate) map.get(Constants.CERTIFICATE));
-            resultAccumulator.getAddresses().add((String) map.get(Constants.POOL_KEY_HASH));
-            return resultAccumulator;
-        }
-        if (type.equals(OperationType.VOTE_REGISTRATION.getValue())) {
-            AuxiliaryData voteRegistrationMetadata = ProcessContructionUtil.processVoteRegistration(
-                    operation);
-            resultAccumulator.setVoteRegistrationMetadata(voteRegistrationMetadata);
-            return resultAccumulator;
-        }
-        return null;
-    }
 }

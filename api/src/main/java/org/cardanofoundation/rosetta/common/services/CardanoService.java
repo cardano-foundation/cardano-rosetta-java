@@ -4,7 +4,6 @@ package org.cardanofoundation.rosetta.common.services;
 import co.nstant.in.cbor.CborException;
 import co.nstant.in.cbor.model.Array;
 import com.bloxbean.cardano.client.exception.AddressExcepion;
-import com.bloxbean.cardano.client.exception.CborDeserializationException;
 import com.bloxbean.cardano.client.exception.CborSerializationException;
 import com.bloxbean.cardano.client.transaction.spec.TransactionWitnessSet;
 import org.cardanofoundation.rosetta.api.block.model.dto.ProcessOperationsDto;
@@ -17,10 +16,6 @@ import org.cardanofoundation.rosetta.common.model.cardano.crypto.Signatures;
 import org.openapitools.client.model.Operation;
 
 import java.io.IOException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.SignatureException;
-import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -49,17 +44,6 @@ public interface CardanoService {
     Long calculateFee(ArrayList<String> inputAmounts, ArrayList<String> outputAmounts,
                       ArrayList<Long> withdrawalAmounts, Map<String, Double> depositsSumMap);
 
-    ProcessOperationsDto convert(NetworkIdentifierType networkIdentifierType,
+    ProcessOperationsDto convertRosettaOperations(NetworkIdentifierType networkIdentifierType,
                                  List<Operation> operations) throws IOException;
-
-    ProcessOperationsDto operationProcessor(Operation operation,
-                                            NetworkIdentifierType networkIdentifierType,
-                                            ProcessOperationsDto resultAccumulator,
-                                            String type)
-            throws CborSerializationException,
-            CborDeserializationException,
-            NoSuchAlgorithmException,
-            SignatureException,
-            InvalidKeySpecException,
-            InvalidKeyException;
 }
