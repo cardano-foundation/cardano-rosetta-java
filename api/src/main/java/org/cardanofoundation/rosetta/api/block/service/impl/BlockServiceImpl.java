@@ -60,7 +60,7 @@ public class BlockServiceImpl implements BlockService {
     try {
       content = FileUtils.fileReader(genesisPath);
     } catch (IOException e) {
-      throw new ApiException("Could not read genesis file path",e);
+      throw new ApiException("Could not read genesis file path", e);
     }
     JSONObject object = new JSONObject(content);
     JSONObject protocolParams = object.getJSONObject("protocolParams");
@@ -73,9 +73,9 @@ public class BlockServiceImpl implements BlockService {
   @Override
   public List<Transaction> findTransactionsByBlock(Block block) {
     boolean blockMightContainTransactions =
-            block.getTransactionsCount() != 0 || block.getPreviousBlockHash().equals(block.getHash());
+        block.getTransactionsCount() != 0 || block.getPreviousBlockHash().equals(block.getHash());
     log.debug("[findTransactionsByBlock] Does requested block contains transactions? : {}"
-            , blockMightContainTransactions);
+        , blockMightContainTransactions);
     if (blockMightContainTransactions) {
       return ledgerDataProviderService.findTransactionsByBlock(block.getNumber(), block.getHash());
     } else {
@@ -84,24 +84,24 @@ public class BlockServiceImpl implements BlockService {
   }
 
   @Override
-  public BlockTransactionResponse getBlockTransaction(
-      BlockTransactionRequest blockTransactionRequest) {
-    BlockIdentifier blockIdentifier = blockTransactionRequest.getBlockIdentifier();
+  public BlockTransactionResponse getBlockTransaction(BlockTransactionRequest request) {
+    BlockIdentifier blockIdentifier = request.getBlockIdentifier();
     BlockTransactionResponse response = new BlockTransactionResponse();
-    List<Transaction> transactionsByBlock = ledgerDataProviderService.findTransactionsByBlock(blockIdentifier.getIndex(), blockIdentifier.getHash());
-    if(transactionsByBlock != null) {
+    List<Transaction> transactionsByBlock = ledgerDataProviderService.findTransactionsByBlock(
+        blockIdentifier.getIndex(), blockIdentifier.getHash());
+    if (transactionsByBlock != null) {
       Optional<Transaction> first = transactionsByBlock
           .stream()
-          .filter(tr -> tr.getHash().equals(blockTransactionRequest.getTransactionIdentifier().getHash()))
+          .filter(tr -> tr.getHash()
+              .equals(request.getTransactionIdentifier().getHash()))
           .findFirst();
-      if(first.isPresent()) {
+      if (first.isPresent()) {
         String poolDeposit = getPoolDeposit();
         response.setTransaction(DataMapper.mapToRosettaTransaction(first.get(), poolDeposit));
       }
     }
     return response;
   }
-
 
 //TODO saa why this findBlock?
 //  @Override
