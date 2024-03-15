@@ -55,7 +55,8 @@ public class ProcessContructionUtil {
 
     public static Certificate getStakeRegistrationCertificateFromOperation(Operation operation) {
         log.info("[processStakeKeyRegistration] About to process stake key registration");
-        OperationMetadata operationMetadata = getOperationMetadata(operation);
+
+        OperationMetadata operationMetadata = operation.getMetadata();
         StakeCredential credential = CardanoAddressUtil.getStakingCredentialFromStakeKey(operationMetadata.getStakingCredential());
         return new StakeRegistration(credential);
     }
@@ -65,7 +66,7 @@ public class ProcessContructionUtil {
         log.info(
                 "[processOperationCertification] About to process operation of type {}",
                 operation.getType());
-        OperationMetadata operationMetadata = getOperationMetadata(operation);
+        OperationMetadata operationMetadata = operation.getMetadata();
         PublicKey publicKey = ObjectUtils.isEmpty(operation.getMetadata()) ? null
                 : operationMetadata.getStakingCredential();
         StakeCredential credential = CardanoAddressUtil.getStakingCredentialFromStakeKey(publicKey);
@@ -90,7 +91,7 @@ public class ProcessContructionUtil {
             NetworkIdentifierType networkIdentifierType,
             Operation operation) {
         log.info("[processWithdrawal] About to process withdrawal");
-        OperationMetadata operationMetadata = getOperationMetadata(operation);
+        OperationMetadata operationMetadata = operation.getMetadata();
         HdPublicKey hdPublicKey = new HdPublicKey();
         if (operation.getMetadata() != null &&
                 operationMetadata.getStakingCredential() != null &&
@@ -112,7 +113,7 @@ public class ProcessContructionUtil {
 
     public static ProcessPoolRegistrationReturnDto getPoolRegistrationFromOperation(Operation operation) {
         log.info("[processPoolRegistration] About to process pool registration operation");
-        OperationMetadata operationMetadata = getOperationMetadata(operation);
+        OperationMetadata operationMetadata = operation.getMetadata();
         if (!ObjectUtils.isEmpty(operation) && !ObjectUtils.isEmpty(operation.getMetadata())
                 && ObjectUtils.isEmpty(operationMetadata.getPoolRegistrationParams())) {
             log.error("[processPoolRegistration] Pool_registration was not provided");
@@ -179,7 +180,7 @@ public class ProcessContructionUtil {
 
     public static PoolRegistrationCertReturnDto getPoolRegistrationCertFromOperation(Operation operation,
                                                                                 NetworkIdentifierType networkIdentifierType) {
-        OperationMetadata operationMetadata = getOperationMetadata(operation);
+        OperationMetadata operationMetadata = operation.getMetadata();
         AccountIdentifier account = operation == null ? null : operation.getAccount();
         return ValidateParseUtil.validateAndParsePoolRegistrationCert(
                 networkIdentifierType,
@@ -190,7 +191,7 @@ public class ProcessContructionUtil {
 
     public static PoolRetirementDto getPoolRetirementFromOperation(Operation operation) {
         log.info("[processPoolRetiring] About to process operation of type {}", operation.getType());
-        OperationMetadata operationMetadata = getOperationMetadata(operation);
+        OperationMetadata operationMetadata = operation.getMetadata();
         if (!ObjectUtils.isEmpty(operation.getMetadata()) && !ObjectUtils.isEmpty(
                 operationMetadata.getEpoch())
                 && !ObjectUtils.isEmpty(operation.getAccount()) && !ObjectUtils.isEmpty(
@@ -210,7 +211,7 @@ public class ProcessContructionUtil {
             log.error("[processVoteRegistration] Vote registration metadata was not provided");
             throw ExceptionFactory.missingVoteRegistrationMetadata();
         }
-        OperationMetadata operationMetadata = getOperationMetadata(operation);
+        OperationMetadata operationMetadata = operation.getMetadata();
         if (!ObjectUtils.isEmpty(operation) && !ObjectUtils.isEmpty(operation.getMetadata())
                 && ObjectUtils.isEmpty(operationMetadata.getVoteRegistrationMetadata())) {
             log.error("[processVoteRegistration] Vote registration metadata was not provided");
@@ -239,18 +240,4 @@ public class ProcessContructionUtil {
         auxiliaryData.setMetadata(metadata);
         return auxiliaryData;
     }
-
-    public static OperationMetadata getOperationMetadata(Operation operation) {
-        OperationMetadata operationMetadata;
-
-        try {
-            operationMetadata = operation == null ? null : (OperationMetadata) MetadataParseUtil.getObjectFromHashMapObject(operation.getMetadata(), OperationMetadata.class);
-        } catch (JsonProcessingException e) {
-            log.error("Could not parse operation metadata", e);
-            throw new RuntimeException("Could not parse operation metadata");
-        }
-        return operationMetadata;
-    }
-
-
 }

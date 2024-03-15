@@ -101,7 +101,7 @@ public class ValidateParseUtil {
         Value value = Value.builder().coin(valueOf(Long.parseLong(outputValue))).build();
         if (!ObjectUtils.isEmpty(output.getMetadata())) {
             // Metadata object is a map of key value pairs, which includes TokenBundleItems. For easier Handling they are casted to the right type
-            OperationMetadata operationMetadata = ProcessContructionUtil.getOperationMetadata(output);
+            OperationMetadata operationMetadata = output.getMetadata();
             if (!ObjectUtils.isEmpty(operationMetadata.getTokenBundle())) {
                 value.setMultiAssets(validateAndParseTokenBundle(operationMetadata.getTokenBundle()));
             }
