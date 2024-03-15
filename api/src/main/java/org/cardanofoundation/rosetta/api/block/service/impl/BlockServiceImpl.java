@@ -44,7 +44,7 @@ public class BlockServiceImpl implements BlockService {
     if (nonNull(block)) {
       log.info("[block] Block was found, hash={}", block.getHash());
 
-      List<Transaction> transactionsFound = this.findTransactionsByBlock(block);
+      List<Transaction> transactionsFound = findTransactionsByBlock(block);
       block.setTransactions(transactionsFound);
       block.setPoolDeposit(getPoolDeposit());
 
@@ -70,8 +70,7 @@ public class BlockServiceImpl implements BlockService {
     return poolDeposit;
   }
 
-  @Override
-  public List<Transaction> findTransactionsByBlock(Block block) {
+  private List<Transaction> findTransactionsByBlock(Block block) {
     boolean blockMightContainTransactions =
         block.getTransactionsCount() != 0 || block.getPreviousBlockHash().equals(block.getHash());
     log.debug("[findTransactionsByBlock] Does requested block contains transactions? : {}"

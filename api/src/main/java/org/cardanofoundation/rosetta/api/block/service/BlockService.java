@@ -12,9 +12,6 @@ public interface BlockService {
 
   Block findBlock(Long index, String hash);
 
-
-  List<Transaction> findTransactionsByBlock(Block block);
-
   BlockTransactionResponse getBlockTransaction(BlockTransactionRequest blockTransactionRequest);
 
 }
