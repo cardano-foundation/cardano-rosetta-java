@@ -2,9 +2,9 @@ package org.cardanofoundation.rosetta.api.block.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.cardanofoundation.rosetta.api.block.model.dto.BlockDto;
-import org.cardanofoundation.rosetta.api.block.model.dto.GenesisBlockDto;
-import org.cardanofoundation.rosetta.api.block.model.dto.TransactionDto;
+
+import org.cardanofoundation.rosetta.api.block.model.domain.Block;
+import org.cardanofoundation.rosetta.api.block.model.domain.Transaction;
 import org.cardanofoundation.rosetta.api.block.service.BlockService;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.mapper.DataMapper;
@@ -12,7 +12,6 @@ import org.cardanofoundation.rosetta.common.services.LedgerDataProviderService;
 import org.cardanofoundation.rosetta.common.util.FileUtils;
 import org.json.JSONObject;
 import org.openapitools.client.model.BlockIdentifier;
-import org.openapitools.client.model.BlockResponse;
 import org.openapitools.client.model.BlockTransactionRequest;
 import org.openapitools.client.model.BlockTransactionResponse;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,22 +31,19 @@ import static java.util.Objects.nonNull;
 public class BlockServiceImpl implements BlockService {
 
   private final LedgerDataProviderService ledgerDataProviderService;
-//  private final CardanoService cardanoService;
-  @Value("${page-size:5}")
-  private Integer pageSize;
   @Value("${cardano.rosetta.GENESIS_SHELLEY_PATH}")
   private String genesisPath;
 
 
   @Override
-  public BlockDto findBlock(Long index, String hash) {
+  public Block findBlock(Long index, String hash) {
 
     log.info("[block] Looking for block: hash={}, index={}", hash, index);
-    BlockDto block = ledgerDataProviderService.findBlock(index, hash);
+    Block block = ledgerDataProviderService.findBlock(index, hash);
     if (nonNull(block)) {
       log.info("[block] Block was found, hash={}", block.getHash());
 
-      List<TransactionDto> transactionsFound = this.findTransactionsByBlock(block); //TODO saa: one2many mapping?
+      List<Transaction> transactionsFound = this.findTransactionsByBlock(block);
       block.setTransactions(transactionsFound);
       block.setPoolDeposit(getPoolDeposit());
 
@@ -73,7 +69,7 @@ public class BlockServiceImpl implements BlockService {
   }
 
   @Override
-  public List<TransactionDto> findTransactionsByBlock(BlockDto block) {
+  public List<Transaction> findTransactionsByBlock(Block block) {
     boolean blockMightContainTransactions =
             block.getTransactionsCount() != 0 || block.getPreviousBlockHash().equals(block.getHash());
     log.debug("[findTransactionsByBlock] Does requested block contains transactions? : {}"
@@ -86,12 +82,13 @@ public class BlockServiceImpl implements BlockService {
   }
 
   @Override
-  public BlockTransactionResponse getBlockTransaction(BlockTransactionRequest blockTransactionRequest) {
+  public BlockTransactionResponse getBlockTransaction(
+      BlockTransactionRequest blockTransactionRequest) {
     BlockIdentifier blockIdentifier = blockTransactionRequest.getBlockIdentifier();
     BlockTransactionResponse response = new BlockTransactionResponse();
-    List<TransactionDto> transactionsByBlock = ledgerDataProviderService.findTransactionsByBlock(blockIdentifier.getIndex(), blockIdentifier.getHash());
+    List<Transaction> transactionsByBlock = ledgerDataProviderService.findTransactionsByBlock(blockIdentifier.getIndex(), blockIdentifier.getHash());
     if(transactionsByBlock != null) {
-      Optional<TransactionDto> first = transactionsByBlock.stream().filter(transactionDto -> transactionDto.getHash().equals(blockTransactionRequest.getTransactionIdentifier().getHash())).findFirst();
+      Optional<Transaction> first = transactionsByBlock.stream().filter(Transaction -> Transaction.getHash().equals(blockTransactionRequest.getTransactionIdentifier().getHash())).findFirst();
       if(first.isPresent()) {
         String poolDeposit = getPoolDeposit();
         response.setTransaction(DataMapper.mapToRosettaTransaction(first.get(), poolDeposit));
@@ -103,7 +100,7 @@ public class BlockServiceImpl implements BlockService {
 
 //TODO saa why this findBlock?
 //  @Override
-//  public BlockDto findBlock(Long number, String hash) {
+//  public Block findBlock(Long number, String hash) {
 //    boolean searchBlockZero;
 //    if (nonNull(number)) {
 //      searchBlockZero = (number == 0);
@@ -112,7 +109,7 @@ public class BlockServiceImpl implements BlockService {
 //    }
 //    if (searchBlockZero) {
 //      log.info("[findBlock] Looking for genesis block");
-//      GenesisBlockDto genesis = ledgerDataProviderService.findGenesisBlock();
+//      GenesisBlock genesis = ledgerDataProviderService.findGenesisBlock();
 //      boolean isHashInvalidIfGiven = hash != null && !genesis.getHash().equals(hash);
 //      if (isHashInvalidIfGiven) {
 //        log.error("[findBlock] The requested block has an invalid block hash parameter");
@@ -129,7 +126,7 @@ public class BlockServiceImpl implements BlockService {
 //    log.info("[findBlock] Do we have to look for latestBlock? {}", searchLatestBlock);
 //    Long blockNumber = searchLatestBlock ? ledgerDataProviderService.findLatestBlockNumber() : number;
 //    log.info("[findBlock] Looking for block with blockNumber {}", blockNumber);
-//    BlockDto response = ledgerDataProviderService.findBlock(blockNumber, hash);
+//    Block response = ledgerDataProviderService.findBlock(blockNumber, hash);
 //    if (nonNull(response)) {
 //      log.info("[findBlock] Block was found");
 //    }

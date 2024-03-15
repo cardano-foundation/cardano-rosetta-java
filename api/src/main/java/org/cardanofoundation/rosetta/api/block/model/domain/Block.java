@@ -26,6 +26,7 @@ public class Block {
   private Integer epochNo;
   private Long slotNo;
   private List<Transaction> transactions;
+  private String poolDeposit;
 
   public static Block fromBlock(BlockEntity block) {
     return Block.builder()

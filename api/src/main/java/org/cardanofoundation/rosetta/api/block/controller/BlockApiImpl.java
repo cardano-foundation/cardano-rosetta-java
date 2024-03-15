@@ -1,16 +1,24 @@
 package org.cardanofoundation.rosetta.api.block.controller;
 
 import java.util.Optional;
+
 import lombok.RequiredArgsConstructor;
-import org.cardanofoundation.rosetta.api.block.mapper.BlockToBlockResponse;
-import org.cardanofoundation.rosetta.api.block.model.dto.BlockDto;
-import org.cardanofoundation.rosetta.api.block.service.BlockService;
-import org.openapitools.client.api.BlockApi;
-import org.openapitools.client.model.*;
+import lombok.val;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.NativeWebRequest;
+
+import org.openapitools.client.api.BlockApi;
+import org.openapitools.client.model.BlockRequest;
+import org.openapitools.client.model.BlockResponse;
+import org.openapitools.client.model.BlockTransactionRequest;
+import org.openapitools.client.model.BlockTransactionResponse;
+import org.openapitools.client.model.PartialBlockIdentifier;
+
+import org.cardanofoundation.rosetta.api.block.mapper.BlockToBlockResponse;
+import org.cardanofoundation.rosetta.api.block.service.BlockService;
 
 @RestController
 @RequiredArgsConstructor
@@ -27,8 +35,8 @@ public class BlockApiImpl implements BlockApi {
     String hash = bid.getHash();
     Long index = bid.getIndex();
 
-    BlockDto block = blockService.findBlock(index, hash);
-    
+    val block = blockService.findBlock(index, hash);
+
     return ResponseEntity.ok(mapper.toDto(block));
   }
 
