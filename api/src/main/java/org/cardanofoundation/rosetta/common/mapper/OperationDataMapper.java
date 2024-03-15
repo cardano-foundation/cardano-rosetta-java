@@ -1,24 +1,37 @@
 package org.cardanofoundation.rosetta.common.mapper;
 
-import com.bloxbean.cardano.yaci.core.model.certs.CertificateType;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.codec.binary.Hex;
-import org.cardanofoundation.rosetta.api.account.model.dto.UtxoDto;
-import org.cardanofoundation.rosetta.api.block.model.domain.*;
-import org.cardanofoundation.rosetta.api.block.model.domain.Transaction;
-import org.cardanofoundation.rosetta.common.model.cardano.OperationMetadata;
-import org.cardanofoundation.rosetta.common.model.cardano.TokenBundleItem;
-import org.cardanofoundation.rosetta.common.util.Constants;
-import org.cardanofoundation.rosetta.common.enumeration.OperationType;
-import org.cardanofoundation.rosetta.api.account.model.entity.Amt;
-import org.jetbrains.annotations.NotNull;
-import org.openapitools.client.model.*;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
+import lombok.extern.slf4j.Slf4j;
+
+import com.bloxbean.cardano.yaci.core.model.certs.CertificateType;
+import org.apache.commons.codec.binary.Hex;
+import org.jetbrains.annotations.NotNull;
+import org.openapitools.client.model.AccountIdentifier;
+import org.openapitools.client.model.Amount;
+import org.openapitools.client.model.CoinAction;
+import org.openapitools.client.model.CoinChange;
+import org.openapitools.client.model.Currency;
+import org.openapitools.client.model.Operation;
+import org.openapitools.client.model.OperationIdentifier;
+import org.openapitools.client.model.OperationStatus;
+
+import org.cardanofoundation.rosetta.api.account.model.dto.UtxoDto;
+import org.cardanofoundation.rosetta.api.account.model.entity.Amt;
+import org.cardanofoundation.rosetta.api.block.model.domain.Delegation;
+import org.cardanofoundation.rosetta.api.block.model.domain.PoolRegistration;
+import org.cardanofoundation.rosetta.api.block.model.domain.PoolRegistrationParams;
+import org.cardanofoundation.rosetta.api.block.model.domain.PoolRetirement;
+import org.cardanofoundation.rosetta.api.block.model.domain.StakeRegistration;
+import org.cardanofoundation.rosetta.api.block.model.domain.Transaction;
+import org.cardanofoundation.rosetta.common.enumeration.OperationType;
+import org.cardanofoundation.rosetta.common.model.cardano.OperationMetadata;
+import org.cardanofoundation.rosetta.common.model.cardano.TokenBundleItem;
+import org.cardanofoundation.rosetta.common.util.Constants;
 
 import static org.cardanofoundation.rosetta.common.util.Constants.ADA;
 import static org.cardanofoundation.rosetta.common.util.Constants.ADA_DECIMALS;
