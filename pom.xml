@@ -48,6 +48,8 @@
         <version.commons-io>2.11.0</version.commons-io>
         <version.javax-validation-api>2.0.1.Final</version.javax-validation-api>
         <version.bouncycastle>1.72</version.bouncycastle>
+        <modelmapper.version>3.2.0</modelmapper.version>
+        <assertj-core.version>3.25.3</assertj-core.version>
     </properties>
     <repositories>
         <repository>
@@ -123,6 +125,20 @@
                 <groupId>io.swagger.core.v3</groupId>
                 <artifactId>swagger-annotations</artifactId>
                 <version>${version.swagger-annotations}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.modelmapper</groupId>
+                <artifactId>modelmapper</artifactId>
+                <version>${modelmapper.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.modelmapper.extensions</groupId>
+                <artifactId>modelmapper-spring</artifactId>
+                <version>${modelmapper.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.assertj</groupId>
+                <artifactId>assertj-core</artifactId>
             </dependency>
         </dependencies>
     </dependencyManagement>

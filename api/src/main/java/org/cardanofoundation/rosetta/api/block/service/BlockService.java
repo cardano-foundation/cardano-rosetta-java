@@ -8,9 +8,8 @@ import org.openapitools.client.model.*;
 
 public interface BlockService {
 
-  BlockDto findBlock(Long number, String hash);
+  BlockDto findBlock(Long index, String hash);
 
-  BlockResponse getBlockByBlockRequest(BlockRequest blockRequest);
 
   List<TransactionDto> findTransactionsByBlock(BlockDto block);
 

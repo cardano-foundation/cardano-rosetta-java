@@ -1,24 +1,30 @@
 package org.cardanofoundation.rosetta.api.block.service.impl;
 
-import java.io.IOException;
-import java.util.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.cardanofoundation.rosetta.api.account.model.dto.AddressBalanceDTO;
 import org.cardanofoundation.rosetta.api.block.model.dto.BlockDto;
 import org.cardanofoundation.rosetta.api.block.model.dto.GenesisBlockDto;
-import org.cardanofoundation.rosetta.api.block.model.dto.StakeAddressBalanceDTO;
 import org.cardanofoundation.rosetta.api.block.model.dto.TransactionDto;
+import org.cardanofoundation.rosetta.api.block.service.BlockService;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.mapper.DataMapper;
-import org.cardanofoundation.rosetta.common.util.CardanoAddressUtils;
-import org.cardanofoundation.rosetta.api.block.service.BlockService;
 import org.cardanofoundation.rosetta.common.services.LedgerDataProviderService;
 import org.cardanofoundation.rosetta.common.util.FileUtils;
 import org.json.JSONObject;
-import org.openapitools.client.model.*;
+import org.openapitools.client.model.BlockIdentifier;
+import org.openapitools.client.model.BlockResponse;
+import org.openapitools.client.model.BlockTransactionRequest;
+import org.openapitools.client.model.BlockTransactionResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+
+import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 
 @Slf4j
 @Service
@@ -32,34 +38,21 @@ public class BlockServiceImpl implements BlockService {
   @Value("${cardano.rosetta.GENESIS_SHELLEY_PATH}")
   private String genesisPath;
 
+
   @Override
-  public BlockResponse getBlockByBlockRequest(BlockRequest blockRequest) {
-    PartialBlockIdentifier blockIdentifier = blockRequest.getBlockIdentifier();
-    String hash = blockIdentifier.getHash();
-    Long index = blockIdentifier.getIndex();
+  public BlockDto findBlock(Long index, String hash) {
+
     log.info("[block] Looking for block: hash={}, index={}", hash, index);
     BlockDto block = ledgerDataProviderService.findBlock(index, hash);
-    if (Objects.nonNull(block)) {
-      log.info("[block] Block was found");
-      List<TransactionDto> transactionsFound = this.findTransactionsByBlock(block);
+    if (nonNull(block)) {
+      log.info("[block] Block was found, hash={}", block.getHash());
 
-      log.debug("[block] transactionsFound is " + transactionsFound.toString());
-      String poolDeposit = getPoolDeposit();
-      if (transactionsFound.size() > pageSize) {
-        log.info(
-                "[block] Returning only transactions hashes since the number of them is bigger than {}"
-                , pageSize);
-        return BlockResponse.builder()
-                .block(DataMapper.mapToRosettaBlock(block, poolDeposit))
-//                .otherTransactions(transactionsFound.stream().map(transactionDto -> new TransactionIdentifier().hash(transactionDto.getHash())).toList())
-                .build();
-      }
-      log.info("[block] Looking for blocks transactions full data");
+      List<TransactionDto> transactionsFound = this.findTransactionsByBlock(block); //TODO saa: one2many mapping?
+      block.setTransactions(transactionsFound);
+      block.setPoolDeposit(getPoolDeposit());
 
-
-      return BlockResponse.builder()
-              .block(DataMapper.mapToRosettaBlock(block, poolDeposit))
-              .build();
+      log.debug("[block] full data {}", block);
+      return block;
     }
     log.error("[block] Block was not found");
     throw ExceptionFactory.blockNotFoundException();
@@ -107,40 +100,42 @@ public class BlockServiceImpl implements BlockService {
     return response;
   }
 
-  @Override
-  public BlockDto findBlock(Long number, String hash) {
-    boolean searchBlockZero;
-    if (Objects.nonNull(number)) {
-      searchBlockZero = (number == 0);
-    } else {
-      searchBlockZero = false;
-    }
-    if (searchBlockZero) {
-      log.info("[findBlock] Looking for genesis block");
-      GenesisBlockDto genesis = ledgerDataProviderService.findGenesisBlock();
-      boolean isHashInvalidIfGiven = hash != null && !genesis.getHash().equals(hash);
-      if (isHashInvalidIfGiven) {
-        log.error("[findBlock] The requested block has an invalid block hash parameter");
-        throw ExceptionFactory.blockNotFoundException();
-      }
-      if (Objects.nonNull(genesis)) {
-        return ledgerDataProviderService.findBlock(null, genesis.getHash());
-      } else {
-        return ledgerDataProviderService.findBlock(null, null);
-      }
-    }
-    boolean searchLatestBlock = (Objects.isNull(hash)) && (Objects.isNull(number));
 
-    log.info("[findBlock] Do we have to look for latestBlock? {}", searchLatestBlock);
-    Long blockNumber = searchLatestBlock ? ledgerDataProviderService.findLatestBlockNumber() : number;
-    log.info("[findBlock] Looking for block with blockNumber {}", blockNumber);
-    BlockDto response = ledgerDataProviderService.findBlock(blockNumber, hash);
-    if (Objects.nonNull(response)) {
-      log.info("[findBlock] Block was found");
-    }
-    log.debug("[findBlock] Returning response: " + response);
-    return response;
-  }
+//TODO saa why this findBlock?
+//  @Override
+//  public BlockDto findBlock(Long number, String hash) {
+//    boolean searchBlockZero;
+//    if (nonNull(number)) {
+//      searchBlockZero = (number == 0);
+//    } else {
+//      searchBlockZero = false;
+//    }
+//    if (searchBlockZero) {
+//      log.info("[findBlock] Looking for genesis block");
+//      GenesisBlockDto genesis = ledgerDataProviderService.findGenesisBlock();
+//      boolean isHashInvalidIfGiven = hash != null && !genesis.getHash().equals(hash);
+//      if (isHashInvalidIfGiven) {
+//        log.error("[findBlock] The requested block has an invalid block hash parameter");
+//        throw ExceptionFactory.blockNotFoundException();
+//      }
+//      if (nonNull(genesis)) {
+//        return ledgerDataProviderService.findBlock(null, genesis.getHash());
+//      } else {
+//        return ledgerDataProviderService.findBlock(null, null);
+//      }
+//    }
+//    boolean searchLatestBlock = (isNull(hash)) && (isNull(number));
+//
+//    log.info("[findBlock] Do we have to look for latestBlock? {}", searchLatestBlock);
+//    Long blockNumber = searchLatestBlock ? ledgerDataProviderService.findLatestBlockNumber() : number;
+//    log.info("[findBlock] Looking for block with blockNumber {}", blockNumber);
+//    BlockDto response = ledgerDataProviderService.findBlock(blockNumber, hash);
+//    if (nonNull(response)) {
+//      log.info("[findBlock] Block was found");
+//    }
+//    log.debug("[findBlock] Returning response: " + response);
+//    return response;
+//  }
 
 
 }

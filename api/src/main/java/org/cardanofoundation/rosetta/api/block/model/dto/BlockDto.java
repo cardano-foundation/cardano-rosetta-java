@@ -24,6 +24,7 @@ public class BlockDto {
   private Integer epochNo;
   private Long slotNo;
   private List<TransactionDto> transactions;
+  private String poolDeposit;
 
   public static BlockDto fromBlock(BlockEntity block) {
       return BlockDto.builder()

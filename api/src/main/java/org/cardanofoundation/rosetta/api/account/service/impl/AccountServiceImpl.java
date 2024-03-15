@@ -23,7 +23,6 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AccountServiceImpl implements AccountService {
 
-  private final BlockService blockService;
   private final LedgerDataProviderService ledgerDataProviderService;
 
   @Override
