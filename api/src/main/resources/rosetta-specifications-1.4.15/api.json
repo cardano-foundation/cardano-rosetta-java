@@ -983,7 +983,7 @@
             "$ref": "#/components/schemas/SubAccountIdentifier"
           },
           "metadata": {
-            "$ref": "#/components/schemas/AccountIdentifierMetadata"
+            "type": "object"
           }
         }
       },
@@ -2443,16 +2443,6 @@
               "address": "0x1dcc4de8dec75d7aab85b567b6",
               "error": "not base64"
             }
-          }
-        }
-      },
-      "AccountIdentifierMetadata": {
-        "description": "Blockchains that utilize a username model (where the address is not a derivative of a cryptographic public key) should specify the public key(s) owned by the address in metadata.",
-        "properties": {
-          "chain_code": {
-            "description": "The chain code is the identifier of the blockchain used in the address derivation path. It is used to ensure unique account generation across different blockchains.",
-            "type": "string",
-            "example": "0x80000000"
           }
         }
       },
