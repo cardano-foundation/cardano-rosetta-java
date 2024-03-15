@@ -1,28 +1,29 @@
 package org.cardanofoundation.rosetta.api.block.service.impl;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
-import org.cardanofoundation.rosetta.api.block.model.domain.Block;
-import org.cardanofoundation.rosetta.api.block.model.domain.Transaction;
-import org.cardanofoundation.rosetta.api.block.service.BlockService;
-import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
-import org.cardanofoundation.rosetta.common.mapper.DataMapper;
-import org.cardanofoundation.rosetta.common.services.LedgerDataProviderService;
-import org.cardanofoundation.rosetta.common.util.FileUtils;
-import org.json.JSONObject;
-import org.openapitools.client.model.BlockIdentifier;
-import org.openapitools.client.model.BlockTransactionRequest;
-import org.openapitools.client.model.BlockTransactionResponse;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static java.util.Objects.isNull;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.json.JSONObject;
+import org.openapitools.client.model.BlockIdentifier;
+import org.openapitools.client.model.BlockTransactionRequest;
+import org.openapitools.client.model.BlockTransactionResponse;
+
+import org.cardanofoundation.rosetta.api.block.model.domain.Block;
+import org.cardanofoundation.rosetta.api.block.model.domain.Transaction;
+import org.cardanofoundation.rosetta.api.block.service.BlockService;
+import org.cardanofoundation.rosetta.common.exception.ApiException;
+import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
+import org.cardanofoundation.rosetta.common.mapper.DataMapper;
+import org.cardanofoundation.rosetta.common.services.LedgerDataProviderService;
+import org.cardanofoundation.rosetta.common.util.FileUtils;
+
 import static java.util.Objects.nonNull;
 
 @Slf4j
@@ -59,12 +60,13 @@ public class BlockServiceImpl implements BlockService {
     try {
       content = FileUtils.fileReader(genesisPath);
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      throw new ApiException("Could not read genesis file path",e);
     }
     JSONObject object = new JSONObject(content);
     JSONObject protocolParams = object.getJSONObject("protocolParams");
-    String poolDeposit = String.valueOf(protocolParams.get("poolDeposit")); // TODO Check if this is the right way to get poolDeposit
-    log.debug("[poolDeposit] poolDeposit is " + poolDeposit);
+    // TODO Check if this is the right way to get poolDeposit
+    String poolDeposit = String.valueOf(protocolParams.get("poolDeposit"));
+    log.debug("[poolDeposit] poolDeposit is [{}]", poolDeposit);
     return poolDeposit;
   }
 
@@ -88,7 +90,10 @@ public class BlockServiceImpl implements BlockService {
     BlockTransactionResponse response = new BlockTransactionResponse();
     List<Transaction> transactionsByBlock = ledgerDataProviderService.findTransactionsByBlock(blockIdentifier.getIndex(), blockIdentifier.getHash());
     if(transactionsByBlock != null) {
-      Optional<Transaction> first = transactionsByBlock.stream().filter(Transaction -> Transaction.getHash().equals(blockTransactionRequest.getTransactionIdentifier().getHash())).findFirst();
+      Optional<Transaction> first = transactionsByBlock
+          .stream()
+          .filter(tr -> tr.getHash().equals(blockTransactionRequest.getTransactionIdentifier().getHash()))
+          .findFirst();
       if(first.isPresent()) {
         String poolDeposit = getPoolDeposit();
         response.setTransaction(DataMapper.mapToRosettaTransaction(first.get(), poolDeposit));
