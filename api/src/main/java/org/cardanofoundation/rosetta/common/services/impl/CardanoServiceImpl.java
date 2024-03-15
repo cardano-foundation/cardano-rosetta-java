@@ -27,7 +27,7 @@ import org.cardanofoundation.rosetta.common.enumeration.AddressType;
 import org.cardanofoundation.rosetta.common.enumeration.EraAddressType;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
-import org.cardanofoundation.rosetta.api.block.model.dto.BlockDto;
+import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.entity.ProtocolParams;
 import org.cardanofoundation.rosetta.common.model.cardano.crypto.Signatures;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.UnsignedTransaction;
@@ -104,7 +104,7 @@ public class CardanoServiceImpl implements CardanoService {
 
     @Override
     public Long calculateTtl(Long ttlOffset) {
-        BlockDto latestBlock = ledgerDataProviderService.findLatestBlock();
+        Block latestBlock = ledgerDataProviderService.findLatestBlock();
         return latestBlock.getSlotNo() + ttlOffset;
     }
 
