@@ -12,7 +12,7 @@ import com.bloxbean.cardano.client.util.HexUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
-import org.cardanofoundation.rosetta.api.block.model.dto.BlockDto;
+import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.entity.ProtocolParams;
 import org.cardanofoundation.rosetta.common.services.CardanoService;
 import org.cardanofoundation.rosetta.common.services.LedgerDataProviderService;
@@ -70,7 +70,7 @@ public class CardanoServiceImpl implements CardanoService {
 
     @Override
     public Long calculateTtl(Long ttlOffset) {
-        BlockDto latestBlock = ledgerDataProviderService.findLatestBlock();
+        Block latestBlock = ledgerDataProviderService.findLatestBlock();
         return latestBlock.getSlotNo() + ttlOffset;
     }
 

@@ -10,7 +10,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.cardanofoundation.rosetta.api.block.model.dto.PoolRegistrationParams;
+import org.cardanofoundation.rosetta.api.block.model.domain.PoolRegistrationParams;
 import org.openapitools.client.model.Amount;
 import org.openapitools.client.model.PublicKey;
 

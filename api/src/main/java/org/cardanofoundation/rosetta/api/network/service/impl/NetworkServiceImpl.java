@@ -28,9 +28,9 @@ import org.cardanofoundation.rosetta.config.RosettaConfig;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.exception.ServerException;
 import org.cardanofoundation.rosetta.common.mapper.DataMapper;
-import org.cardanofoundation.rosetta.api.block.model.dto.NetworkStatusDTO;
-import org.cardanofoundation.rosetta.api.block.model.dto.BlockDto;
-import org.cardanofoundation.rosetta.api.block.model.dto.GenesisBlockDto;
+import org.cardanofoundation.rosetta.api.block.model.domain.NetworkStatus;
+import org.cardanofoundation.rosetta.api.block.model.domain.Block;
+import org.cardanofoundation.rosetta.api.block.model.domain.GenesisBlock;
 import org.cardanofoundation.rosetta.common.services.LedgerDataProviderService;
 import org.cardanofoundation.rosetta.api.network.service.NetworkService;
 import org.cardanofoundation.rosetta.common.util.FileUtils;
@@ -132,7 +132,7 @@ public class NetworkServiceImpl implements NetworkService {
       throws  IOException {
     log.debug("[networkStatus] Request received:" + networkRequest.toString());
     log.info("[networkStatus] Looking for latest block");
-    NetworkStatusDTO networkStatus = networkStatus();
+    NetworkStatus networkStatus = networkStatus();
     return DataMapper.mapToNetworkStatusResponse(networkStatus);
   }
 
@@ -157,19 +157,19 @@ public class NetworkServiceImpl implements NetworkService {
     }
   }
 
-  private NetworkStatusDTO networkStatus() throws  IOException {
+  private NetworkStatus networkStatus() throws  IOException {
     log.info("[networkStatus] Looking for latest block");
-    BlockDto latestBlock = ledgerDataProviderService.findLatestBlock();
+    Block latestBlock = ledgerDataProviderService.findLatestBlock();
     log.debug("[networkStatus] Latest block found " + latestBlock);
     log.debug("[networkStatus] Looking for genesis block");
-    GenesisBlockDto genesisBlock = ledgerDataProviderService.findGenesisBlock();
+    GenesisBlock genesisBlock = ledgerDataProviderService.findGenesisBlock();
     log.debug("[networkStatus] Genesis block found " + genesisBlock);
 
     ObjectMapper mapper = new ObjectMapper();
     String content = FileUtils.fileReader(topologyFilepath);
     TopologyConfig topologyConfig = mapper.readValue(content, TopologyConfig.class);
 
-    return NetworkStatusDTO.builder()
+    return NetworkStatus.builder()
         .latestBlock(latestBlock)
         .genesisBlock(genesisBlock)
         .peers(getPeerFromConfig(topologyConfig))
