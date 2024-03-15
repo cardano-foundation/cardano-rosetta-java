@@ -1,4 +1,4 @@
-package org.cardanofoundation.rosetta.api.block.model.dto;
+package org.cardanofoundation.rosetta.api.block.model.domain;
 
 import lombok.Builder;
 import lombok.Data;
@@ -8,7 +8,7 @@ import java.math.BigInteger;
 
 @Data
 @Builder
-public class StakeAddressBalanceDTO {
+public class StakeAddressBalance {
     private String address;
     private Long slot;
     private BigInteger quantity;
@@ -17,8 +17,8 @@ public class StakeAddressBalanceDTO {
     private Integer epoch;
 
 
-    public static StakeAddressBalanceDTO fromEntity(StakeAddressBalanceEntity entity) {
-        return StakeAddressBalanceDTO.builder()
+    public static StakeAddressBalance fromEntity(StakeAddressBalanceEntity entity) {
+        return StakeAddressBalance.builder()
                 .address(entity.getAddress())
                 .slot(entity.getSlot())
                 .quantity(entity.getQuantity())

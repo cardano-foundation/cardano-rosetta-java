@@ -1,4 +1,4 @@
-package org.cardanofoundation.rosetta.api.block.model.dto;
+package org.cardanofoundation.rosetta.api.block.model.domain;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -13,7 +13,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder
-public class TransactionDto {
+public class Transaction {
 
   protected String hash;
   protected String blockHash;
@@ -24,14 +24,14 @@ public class TransactionDto {
   protected Long scriptSize;
   protected List<UtxoDto> inputs;
   protected List<UtxoDto> outputs;
-  protected List<StakeRegistrationDTO> stakeRegistrations;
-  protected List<DelegationDTO> delegations;
-  protected List<PoolRegistrationDTO> poolRegistrations;
-  protected List<PoolRetirementDTO> poolRetirements;
+  protected List<StakeRegistration> stakeRegistrations;
+  protected List<Delegation> delegations;
+  protected List<PoolRegistration> poolRegistrations;
+  protected List<PoolRetirement> poolRetirements;
 
-  public static TransactionDto fromTx(TxnEntity txnEntity) {
+  public static Transaction fromTx(TxnEntity txnEntity) {
 //    txnEntity.get
-    return TransactionDto.builder()
+    return Transaction.builder()
                     .hash(txnEntity.getTxHash())
                     .blockHash(txnEntity.getBlock().getHash())
                     .blockNo(txnEntity.getBlock().getNumber())

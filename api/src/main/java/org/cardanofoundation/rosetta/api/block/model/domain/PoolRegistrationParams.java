@@ -1,4 +1,4 @@
-package org.cardanofoundation.rosetta.api.block.model.dto;
+package org.cardanofoundation.rosetta.api.block.model.domain;
 
 import java.util.List;
 import lombok.AllArgsConstructor;

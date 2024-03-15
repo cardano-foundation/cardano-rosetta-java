@@ -1,4 +1,4 @@
-package org.cardanofoundation.rosetta.api.block.model.dto;
+package org.cardanofoundation.rosetta.api.block.model.domain;
 
 import com.bloxbean.cardano.yaci.core.model.certs.CertificateType;
 import lombok.Builder;
@@ -7,7 +7,7 @@ import org.cardanofoundation.rosetta.api.block.model.entity.StakeRegistrationEnt
 
 @Data
 @Builder
-public class StakeRegistrationDTO {
+public class StakeRegistration {
 
     private String txHash;
 
@@ -25,8 +25,8 @@ public class StakeRegistrationDTO {
 
     private String blockHash;
 
-    public static StakeRegistrationDTO fromEntity(StakeRegistrationEntity entity) {
-        return StakeRegistrationDTO.builder()
+    public static StakeRegistration fromEntity(StakeRegistrationEntity entity) {
+        return StakeRegistration.builder()
                 .txHash(entity.getTxHash())
                 .certIndex(entity.getCertIndex())
                 .credential(entity.getCredential())

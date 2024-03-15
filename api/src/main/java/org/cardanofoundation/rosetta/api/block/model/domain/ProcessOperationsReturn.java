@@ -1,4 +1,4 @@
-package org.cardanofoundation.rosetta.api.block.model.dto;
+package org.cardanofoundation.rosetta.api.block.model.domain;
 
 import com.bloxbean.cardano.client.transaction.spec.AuxiliaryData;
 import com.bloxbean.cardano.client.transaction.spec.TransactionInput;
@@ -17,7 +17,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @Getter
 @Setter
-public class ProcessOperationsReturnDto {
+public class ProcessOperationsReturn {
 
     private ArrayList<TransactionInput> transactionInputs;
     private ArrayList<TransactionOutput> transactionOutputs;

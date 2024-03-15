@@ -1,4 +1,4 @@
-package org.cardanofoundation.rosetta.api.block.model.dto;
+package org.cardanofoundation.rosetta.api.block.model.domain;
 
 import com.bloxbean.cardano.client.transaction.spec.AuxiliaryData;
 import com.bloxbean.cardano.client.transaction.spec.TransactionInput;
@@ -16,7 +16,7 @@ import java.util.ArrayList;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class ProcessOperationsDto {
+public class ProcessOperations {
     private ArrayList<TransactionInput> transactionInputs=new ArrayList<>();
     private ArrayList<TransactionOutput> transactionOutputs=new ArrayList<>();
     private ArrayList<Certificate> certificates=new ArrayList<>();

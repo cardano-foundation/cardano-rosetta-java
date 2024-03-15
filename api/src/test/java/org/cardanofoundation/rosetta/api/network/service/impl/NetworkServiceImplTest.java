@@ -15,8 +15,8 @@ import org.openapitools.client.model.NetworkIdentifier;
 import org.openapitools.client.model.NetworkRequest;
 import org.openapitools.client.model.NetworkStatusResponse;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.cardanofoundation.rosetta.api.block.model.dto.BlockDto;
-import org.cardanofoundation.rosetta.api.block.model.dto.GenesisBlockDto;
+import org.cardanofoundation.rosetta.api.block.model.domain.Block;
+import org.cardanofoundation.rosetta.api.block.model.domain.GenesisBlock;
 
 @ExtendWith(MockitoExtension.class)
 class NetworkServiceImplTest {
@@ -70,10 +70,10 @@ class NetworkServiceImplTest {
     NetworkRequest networkRequest = new NetworkRequest(new NetworkIdentifier("cardano" , "mainnet" , null), null);
     String topologyFilePath = "src/test/resources/config/topology-test.json";
     ReflectionTestUtils.setField(networkServiceImplUnderTest , "topologyFilepath" , topologyFilePath);
-    BlockDto blockDto = new BlockDto();
-    GenesisBlockDto genesisBlockDto = new GenesisBlockDto();
-    when(ledgerDataProviderService.findLatestBlock()).thenReturn(blockDto);
-    when(ledgerDataProviderService.findGenesisBlock()).thenReturn(genesisBlockDto);
+    Block block = new Block();
+    GenesisBlock genesisBlock = new GenesisBlock();
+    when(ledgerDataProviderService.findLatestBlock()).thenReturn(block);
+    when(ledgerDataProviderService.findGenesisBlock()).thenReturn(genesisBlock);
     //    doReturn(any(BlockDto.class)).when(ledgerDataProviderService).findLatestBlock();
 //    doReturn(any(BlockDto.class)).when(ledgerDataProviderService).findGenesisBlock();
 

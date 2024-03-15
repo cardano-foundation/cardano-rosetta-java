@@ -1,4 +1,4 @@
-package org.cardanofoundation.rosetta.api.block.model.dto;
+package org.cardanofoundation.rosetta.api.block.model.domain;
 
 import lombok.Builder;
 import lombok.Data;
@@ -6,7 +6,7 @@ import org.cardanofoundation.rosetta.api.block.model.entity.PoolRetirementEntity
 
 @Data
 @Builder
-public class PoolRetirementDTO {
+public class PoolRetirement {
 
     private String txHash;
 
@@ -20,8 +20,8 @@ public class PoolRetirementDTO {
 
     private String blockHash;
 
-    public static PoolRetirementDTO fromEntity(PoolRetirementEntity entity) {
-        return PoolRetirementDTO.builder()
+    public static PoolRetirement fromEntity(PoolRetirementEntity entity) {
+        return PoolRetirement.builder()
                 .txHash(entity.getTxHash())
                 .certIndex(entity.getCertIndex())
                 .poolId(entity.getPoolId())

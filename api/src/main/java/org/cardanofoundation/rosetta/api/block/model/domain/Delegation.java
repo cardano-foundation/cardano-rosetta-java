@@ -1,4 +1,4 @@
-package org.cardanofoundation.rosetta.api.block.model.dto;
+package org.cardanofoundation.rosetta.api.block.model.domain;
 
 import lombok.Builder;
 import lombok.Data;
@@ -6,7 +6,7 @@ import org.cardanofoundation.rosetta.api.block.model.entity.DelegationEntity;
 
 @Data
 @Builder
-public class DelegationDTO {
+public class Delegation {
 
     private String txHash;
 
@@ -24,8 +24,8 @@ public class DelegationDTO {
 
     private String blockHash;
 
-    public static DelegationDTO fromEntity(DelegationEntity entity) {
-        return DelegationDTO.builder()
+    public static Delegation fromEntity(DelegationEntity entity) {
+        return Delegation.builder()
                 .txHash(entity.getTxHash())
                 .certIndex(entity.getCertIndex())
                 .poolId(entity.getPoolId())

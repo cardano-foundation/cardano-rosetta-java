@@ -1,4 +1,4 @@
-package org.cardanofoundation.rosetta.api.block.model.dto;
+package org.cardanofoundation.rosetta.api.block.model.domain;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,7 +11,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class BlockDto {
+public class Block {
 
   private String hash;
   private Long number;
@@ -23,10 +23,10 @@ public class BlockDto {
   private Integer size;
   private Integer epochNo;
   private Long slotNo;
-  private List<TransactionDto> transactions;
+  private List<Transaction> transactions;
 
-  public static BlockDto fromBlock(BlockEntity block) {
-      return BlockDto.builder()
+  public static Block fromBlock(BlockEntity block) {
+      return Block.builder()
             .number(block.getNumber())
             .hash(block.getHash())
             .createdAt(block.getBlockTime())
@@ -37,7 +37,7 @@ public class BlockDto {
             .createdBy(block.getIssuerVkey()) // TODO probably need to change this, in typescript rosetta there is something like Pool-[HASH]
             .epochNo(block.getEpochNumber())
             .slotNo(block.getSlot())
-            .transactions(block.getTransactions().stream().map(txnEntity -> TransactionDto.fromTx(txnEntity)).toList())
+            .transactions(block.getTransactions().stream().map(txnEntity -> Transaction.fromTx(txnEntity)).toList())
             .build();
   }
 }
