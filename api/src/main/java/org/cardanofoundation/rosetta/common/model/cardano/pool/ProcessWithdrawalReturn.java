@@ -10,7 +10,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @Getter
 @Setter
-public class ProcessWithdrawalReturnDto {
+public class ProcessWithdrawalReturn {
 
     // reward address holding the rewards
     private Address reward;

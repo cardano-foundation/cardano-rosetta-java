@@ -12,7 +12,7 @@ import java.util.Set;
 @AllArgsConstructor
 @Getter
 @Setter
-public class PoolRegistrationCertReturnDto {
+public class PoolRegistrationCertReturn {
 
   private PoolRegistration certificate;
   private Set<String> address;

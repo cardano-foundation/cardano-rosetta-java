@@ -11,7 +11,7 @@ import java.math.BigInteger;
 @AllArgsConstructor
 @Getter
 @Setter
-public class PoolRegistationParametersReturnDto {
+public class PoolRegistationParametersReturn {
 
   private BigInteger cost;
   private BigInteger pledge;

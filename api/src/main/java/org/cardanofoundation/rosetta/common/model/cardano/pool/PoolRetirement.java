@@ -8,9 +8,9 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Data
 @AllArgsConstructor
-public class StakeCertificateDto {
+public class PoolRetirement {
 
   private Certificate certificate;
-  private String address;
+  private String poolKeyHash;
 
 }

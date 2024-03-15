@@ -11,7 +11,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @Getter
 @Setter
-public class ProcessPoolRegistrationReturnDto {
+public class ProcessPoolRegistrationReturn {
 
     private List<String> totalAddresses;
     private PoolRegistration certificate;

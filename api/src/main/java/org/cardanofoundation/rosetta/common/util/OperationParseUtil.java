@@ -15,11 +15,11 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProcessOperations;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
-import org.cardanofoundation.rosetta.common.model.cardano.pool.PoolRegistrationCertReturnDto;
-import org.cardanofoundation.rosetta.common.model.cardano.pool.PoolRetirementDto;
-import org.cardanofoundation.rosetta.common.model.cardano.pool.ProcessPoolRegistrationReturnDto;
-import org.cardanofoundation.rosetta.common.model.cardano.pool.ProcessWithdrawalReturnDto;
-import org.cardanofoundation.rosetta.common.model.cardano.pool.StakeCertificateDto;
+import org.cardanofoundation.rosetta.common.model.cardano.pool.PoolRegistrationCertReturn;
+import org.cardanofoundation.rosetta.common.model.cardano.pool.PoolRetirement;
+import org.cardanofoundation.rosetta.common.model.cardano.pool.ProcessPoolRegistrationReturn;
+import org.cardanofoundation.rosetta.common.model.cardano.pool.ProcessWithdrawalReturn;
+import org.cardanofoundation.rosetta.common.model.cardano.pool.StakeCertificate;
 import org.jetbrains.annotations.NotNull;
 import org.openapitools.client.model.Operation;
 
@@ -93,7 +93,7 @@ public class OperationParseUtil {
   @NotNull
   private static ProcessOperations parseTypeStakeKeyDeregistration(Operation operation,
       NetworkIdentifierType networkIdentifierType, ProcessOperations resultAccumulator) {
-    StakeCertificateDto stakeCertificateDto = ProcessContructionUtil.getStakeCertificateFromOperation(
+    StakeCertificate stakeCertificateDto = ProcessContructionUtil.getStakeCertificateFromOperation(
         networkIdentifierType, operation);
     resultAccumulator.getCertificates().add(stakeCertificateDto.getCertificate());
     resultAccumulator.getAddresses().add(stakeCertificateDto.getAddress());
@@ -105,7 +105,7 @@ public class OperationParseUtil {
   @NotNull
   private static ProcessOperations parseStakeDelegation(Operation operation,
       NetworkIdentifierType networkIdentifierType, ProcessOperations resultAccumulator) {
-    StakeCertificateDto stakeCertificateDto = ProcessContructionUtil.getStakeCertificateFromOperation(
+    StakeCertificate stakeCertificateDto = ProcessContructionUtil.getStakeCertificateFromOperation(
         networkIdentifierType, operation);
     resultAccumulator.getCertificates().add(stakeCertificateDto.getCertificate());
     resultAccumulator.getAddresses().add(stakeCertificateDto.getAddress());
@@ -115,7 +115,7 @@ public class OperationParseUtil {
   @NotNull
   private static ProcessOperations parseWithdrawal(Operation operation,
       NetworkIdentifierType networkIdentifierType, ProcessOperations resultAccumulator) {
-    ProcessWithdrawalReturnDto processWithdrawalReturnDto = ProcessContructionUtil.getWithdrawalsReturnFromOperation(
+    ProcessWithdrawalReturn processWithdrawalReturnDto = ProcessContructionUtil.getWithdrawalsReturnFromOperation(
         networkIdentifierType, operation);
     String withdrawalAmountString = ValidateParseUtil.validateValueAmount(operation);
     assert withdrawalAmountString != null;
@@ -139,7 +139,7 @@ public class OperationParseUtil {
   @NotNull
   private static ProcessOperations parsePoolRetirement(Operation operation,
       ProcessOperations resultAccumulator) {
-    PoolRetirementDto poolRetirementDto = ProcessContructionUtil.getPoolRetirementFromOperation(
+    PoolRetirement poolRetirementDto = ProcessContructionUtil.getPoolRetirementFromOperation(
         operation);
     resultAccumulator.getCertificates().add(poolRetirementDto.getCertificate());
     resultAccumulator.getAddresses().add(poolRetirementDto.getPoolKeyHash());
@@ -149,7 +149,7 @@ public class OperationParseUtil {
   @NotNull
   private static ProcessOperations parsePoolRegistrationWithCert(Operation operation,
       NetworkIdentifierType networkIdentifierType, ProcessOperations resultAccumulator) {
-    PoolRegistrationCertReturnDto dto = ProcessContructionUtil.getPoolRegistrationCertFromOperation(
+    PoolRegistrationCertReturn dto = ProcessContructionUtil.getPoolRegistrationCertFromOperation(
         operation,
         networkIdentifierType);
     resultAccumulator.getCertificates().add(dto.getCertificate());
@@ -163,7 +163,7 @@ public class OperationParseUtil {
   @NotNull
   private static ProcessOperations parsePoolRegistration(Operation operation,
       ProcessOperations resultAccumulator) {
-    ProcessPoolRegistrationReturnDto processPoolRegistrationReturnDto = ProcessContructionUtil.getPoolRegistrationFromOperation(
+    ProcessPoolRegistrationReturn processPoolRegistrationReturnDto = ProcessContructionUtil.getPoolRegistrationFromOperation(
         operation);
     resultAccumulator.getCertificates().add(processPoolRegistrationReturnDto.getCertificate());
     resultAccumulator.getAddresses()

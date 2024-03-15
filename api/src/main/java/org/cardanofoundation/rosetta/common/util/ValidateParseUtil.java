@@ -14,8 +14,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
-import org.cardanofoundation.rosetta.common.model.cardano.pool.PoolRegistationParametersReturnDto;
-import org.cardanofoundation.rosetta.common.model.cardano.pool.PoolRegistrationCertReturnDto;
+import org.cardanofoundation.rosetta.common.model.cardano.pool.PoolRegistationParametersReturn;
+import org.cardanofoundation.rosetta.common.model.cardano.pool.PoolRegistrationCertReturn;
 import org.openapitools.client.model.Amount;
 import org.openapitools.client.model.Operation;
 import org.openapitools.client.model.OperationMetadata;
@@ -204,7 +204,7 @@ public class ValidateParseUtil {
         }
     }
 
-    public static PoolRegistationParametersReturnDto validateAndParsePoolRegistationParameters(PoolRegistrationParams poolRegistrationParameters) {
+    public static PoolRegistationParametersReturn validateAndParsePoolRegistationParameters(PoolRegistrationParams poolRegistrationParameters) {
         String denominator = null;
         String numerator = null;
         if (!ObjectUtils.isEmpty(poolRegistrationParameters) && !ObjectUtils.isEmpty(poolRegistrationParameters.getMargin())) {
@@ -228,7 +228,7 @@ public class ValidateParseUtil {
             }
         }
         try {
-            PoolRegistationParametersReturnDto poolRegistationParametersReturnDto = new PoolRegistationParametersReturnDto();
+            PoolRegistationParametersReturn poolRegistationParametersReturnDto = new PoolRegistationParametersReturn();
             poolRegistationParametersReturnDto.setCost(valueOf(Long.parseLong(poolRegistrationParameters.getCost())));
             poolRegistationParametersReturnDto.setPledge(valueOf(Long.parseLong(poolRegistrationParameters.getPledge())));
             poolRegistationParametersReturnDto.setNumerator(valueOf(Long.parseLong(numerator)));
@@ -322,7 +322,7 @@ public class ValidateParseUtil {
         return parsedMetadata;
     }
 
-    public static PoolRegistrationCertReturnDto validateAndParsePoolRegistrationCert(NetworkIdentifierType networkIdentifierType, String poolRegistrationCert, String poolKeyHash) {
+    public static PoolRegistrationCertReturn validateAndParsePoolRegistrationCert(NetworkIdentifierType networkIdentifierType, String poolRegistrationCert, String poolKeyHash) {
         if (ObjectUtils.isEmpty(poolKeyHash)) {
             log.error("[validateAndParsePoolRegistrationCert] no cold key provided for pool registration");
             throw ExceptionFactory.missingPoolKeyError();
@@ -348,7 +348,7 @@ public class ValidateParseUtil {
         Set<String> addresses = new HashSet<>(new HashSet<>(ownersAddresses));
         addresses.add(poolKeyHash);
         addresses.add(rewardAddress);
-        PoolRegistrationCertReturnDto poolRegistrationCertReturnDto = new PoolRegistrationCertReturnDto();
+        PoolRegistrationCertReturn poolRegistrationCertReturnDto = new PoolRegistrationCertReturn();
         poolRegistrationCertReturnDto.setCertificate(parsedCertificate);
         poolRegistrationCertReturnDto.setAddress(addresses);
         return poolRegistrationCertReturnDto;
