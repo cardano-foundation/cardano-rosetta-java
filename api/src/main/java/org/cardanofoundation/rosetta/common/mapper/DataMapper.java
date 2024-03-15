@@ -5,7 +5,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Hex;
 import org.cardanofoundation.rosetta.api.account.model.dto.AddressBalanceDTO;
 import org.cardanofoundation.rosetta.api.account.model.dto.UtxoDto;
-import org.cardanofoundation.rosetta.api.block.model.dto.*;
+import org.cardanofoundation.rosetta.api.block.model.domain.*;
+import org.cardanofoundation.rosetta.api.block.model.domain.Block;
+import org.cardanofoundation.rosetta.api.block.model.domain.Transaction;
 import org.cardanofoundation.rosetta.common.model.cardano.Metadata;
 import org.cardanofoundation.rosetta.common.util.Constants;
 import org.cardanofoundation.rosetta.api.block.model.entity.ProtocolParams;
@@ -42,9 +44,9 @@ public class DataMapper {
    * @param networkStatus The network status
    * @return The NetworkOptionsResponse
    */
-  public static NetworkStatusResponse mapToNetworkStatusResponse(NetworkStatusDTO networkStatus) {
-    BlockDto latestBlock = networkStatus.getLatestBlock();
-    GenesisBlockDto genesisBlock = networkStatus.getGenesisBlock();
+  public static NetworkStatusResponse mapToNetworkStatusResponse(NetworkStatus networkStatus) {
+    Block latestBlock = networkStatus.getLatestBlock();
+    GenesisBlock genesisBlock = networkStatus.getGenesisBlock();
     List<Peer> peers = networkStatus.getPeers();
     return NetworkStatusResponse.builder()
             .currentBlockIdentifier(
@@ -64,8 +66,8 @@ public class DataMapper {
    * @param poolDeposit The pool deposit
    * @return The Rosetta compatible AccountBalanceResponse
    */
-    public static Block mapToRosettaBlock(BlockDto block, String poolDeposit) {
-      Block rosettaBlock = Block.builder().build();
+    public static org.openapitools.client.model.Block mapToRosettaBlock(Block block, String poolDeposit) {
+      org.openapitools.client.model.Block rosettaBlock = org.openapitools.client.model.Block.builder().build();
       rosettaBlock.setBlockIdentifier(BlockIdentifier.builder()
               .index(block.getNumber()).hash(block.getHash()).build());
       rosettaBlock.setParentBlockIdentifier(BlockIdentifier.builder()
@@ -88,9 +90,9 @@ public class DataMapper {
    * @param poolDeposit The pool deposit
    * @return The list of Rosetta compatible Transactions
    */
-  public static List<Transaction> mapToRosettaTransactions(List<TransactionDto> transactions, String poolDeposit) {
-    List<Transaction> rosettaTransactions = new ArrayList<>();
-    for(TransactionDto transactionDto : transactions) {
+  public static List<org.openapitools.client.model.Transaction> mapToRosettaTransactions(List<Transaction> transactions, String poolDeposit) {
+    List<org.openapitools.client.model.Transaction> rosettaTransactions = new ArrayList<>();
+    for(Transaction transactionDto : transactions) {
       rosettaTransactions.add(mapToRosettaTransaction(transactionDto, poolDeposit));
     }
     return rosettaTransactions;
@@ -120,8 +122,8 @@ public class DataMapper {
    * @param poolDeposit The pool deposit
    * @return The Rosetta compatible Transaction
    */
-  public static Transaction mapToRosettaTransaction(TransactionDto transactionDto, String poolDeposit) {
-    Transaction rosettaTransaction = new Transaction();
+  public static org.openapitools.client.model.Transaction mapToRosettaTransaction(Transaction transactionDto, String poolDeposit) {
+    org.openapitools.client.model.Transaction rosettaTransaction = new org.openapitools.client.model.Transaction();
     TransactionIdentifier identifier = new TransactionIdentifier();
     identifier.setHash(transactionDto.getHash());
     rosettaTransaction.setTransactionIdentifier(identifier);
@@ -188,7 +190,7 @@ public class DataMapper {
    * @param balances The balances of the addresses
    * @return The Rosetta compatible AccountBalanceResponse
    */
-  public static AccountBalanceResponse mapToAccountBalanceResponse(BlockDto block, List<AddressBalanceDTO> balances) {
+  public static AccountBalanceResponse mapToAccountBalanceResponse(Block block, List<AddressBalanceDTO> balances) {
     List<AddressBalanceDTO> nonLovelaceBalances = balances.stream().filter(balance -> !balance.assetName().equals(Constants.LOVELACE)).toList();
     long sum = balances.stream().filter(balance -> balance.assetName().equals(Constants.LOVELACE)).mapToLong(value -> value.quantity().longValue()).sum();
     List<Amount> amounts = new ArrayList<>();
@@ -205,7 +207,7 @@ public class DataMapper {
             .build();
   }
 
-  public static AccountBalanceResponse mapToStakeAddressBalanceResponse(BlockDto block, StakeAddressBalanceDTO balance) {
+  public static AccountBalanceResponse mapToStakeAddressBalanceResponse(Block block, StakeAddressBalance balance) {
     return AccountBalanceResponse.builder()
             .blockIdentifier(BlockIdentifier.builder()
                     .hash(block.getHash())
@@ -215,7 +217,7 @@ public class DataMapper {
             .build();
   }
 
-  public static AccountCoinsResponse mapToAccountCoinsResponse(BlockDto block,
+  public static AccountCoinsResponse mapToAccountCoinsResponse(Block block,
       List<UtxoDto> utxos) {
     return AccountCoinsResponse.builder()
         .blockIdentifier(BlockIdentifier.builder()

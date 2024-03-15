@@ -5,10 +5,10 @@ import java.util.List;
 
 import org.cardanofoundation.rosetta.api.account.model.dto.AddressBalanceDTO;
 import org.cardanofoundation.rosetta.api.account.model.dto.UtxoDto;
-import org.cardanofoundation.rosetta.api.block.model.dto.BlockDto;
-import org.cardanofoundation.rosetta.api.block.model.dto.GenesisBlockDto;
-import org.cardanofoundation.rosetta.api.block.model.dto.StakeAddressBalanceDTO;
-import org.cardanofoundation.rosetta.api.block.model.dto.TransactionDto;
+import org.cardanofoundation.rosetta.api.block.model.domain.Block;
+import org.cardanofoundation.rosetta.api.block.model.domain.GenesisBlock;
+import org.cardanofoundation.rosetta.api.block.model.domain.StakeAddressBalance;
+import org.cardanofoundation.rosetta.api.block.model.domain.Transaction;
 import org.cardanofoundation.rosetta.api.block.model.entity.ProtocolParams;
 import org.openapitools.client.model.Currency;
 
@@ -17,22 +17,22 @@ import org.openapitools.client.model.Currency;
  */
 public interface LedgerDataProviderService {
 
-    GenesisBlockDto findGenesisBlock();
+    GenesisBlock findGenesisBlock();
 
-    BlockDto findBlock(Long number, String hash);
+    Block findBlock(Long number, String hash);
 
     List<AddressBalanceDTO> findBalanceByAddressAndBlock(String address, Long number);
 
     List<UtxoDto> findUtxoByAddressAndCurrency(String address, List<Currency> currencies);
-    List<StakeAddressBalanceDTO> findStakeAddressBalanceByAddressAndBlock(String address, Long number);
+    List<StakeAddressBalance> findStakeAddressBalanceByAddressAndBlock(String address, Long number);
 
     Long findLatestBlockNumber();
 
     ProtocolParams findProtocolParametersFromIndexer();
 
-    BlockDto findLatestBlock();
+    Block findLatestBlock();
 
-  List<TransactionDto> findTransactionsByBlock(Long number, String hash);
+  List<Transaction> findTransactionsByBlock(Long number, String hash);
 
     ProtocolParams findProtolParametersFromConfig();
 
