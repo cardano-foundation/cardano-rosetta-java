@@ -5,10 +5,10 @@ import java.util.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.api.account.model.dto.AddressBalanceDTO;
-import org.cardanofoundation.rosetta.api.block.model.dto.BlockDto;
-import org.cardanofoundation.rosetta.api.block.model.dto.GenesisBlockDto;
-import org.cardanofoundation.rosetta.api.block.model.dto.StakeAddressBalanceDTO;
-import org.cardanofoundation.rosetta.api.block.model.dto.TransactionDto;
+import org.cardanofoundation.rosetta.api.block.model.domain.Block;
+import org.cardanofoundation.rosetta.api.block.model.domain.GenesisBlock;
+import org.cardanofoundation.rosetta.api.block.model.domain.StakeAddressBalance;
+import org.cardanofoundation.rosetta.api.block.model.domain.Transaction;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.mapper.DataMapper;
 import org.cardanofoundation.rosetta.common.util.CardanoAddressUtils;
@@ -38,10 +38,10 @@ public class BlockServiceImpl implements BlockService {
     String hash = blockIdentifier.getHash();
     Long index = blockIdentifier.getIndex();
     log.info("[block] Looking for block: hash={}, index={}", hash, index);
-    BlockDto block = ledgerDataProviderService.findBlock(index, hash);
+    Block block = ledgerDataProviderService.findBlock(index, hash);
     if (Objects.nonNull(block)) {
       log.info("[block] Block was found");
-      List<TransactionDto> transactionsFound = this.findTransactionsByBlock(block);
+      List<Transaction> transactionsFound = this.findTransactionsByBlock(block);
 
       log.debug("[block] transactionsFound is " + transactionsFound.toString());
       String poolDeposit = getPoolDeposit();
@@ -80,7 +80,7 @@ public class BlockServiceImpl implements BlockService {
   }
 
   @Override
-  public List<TransactionDto> findTransactionsByBlock(BlockDto block) {
+  public List<Transaction> findTransactionsByBlock(Block block) {
     boolean blockMightContainTransactions =
             block.getTransactionsCount() != 0 || block.getPreviousBlockHash().equals(block.getHash());
     log.debug("[findTransactionsByBlock] Does requested block contains transactions? : {}"
@@ -96,9 +96,9 @@ public class BlockServiceImpl implements BlockService {
   public BlockTransactionResponse getBlockTransaction(BlockTransactionRequest blockTransactionRequest) {
     BlockIdentifier blockIdentifier = blockTransactionRequest.getBlockIdentifier();
     BlockTransactionResponse response = new BlockTransactionResponse();
-    List<TransactionDto> transactionsByBlock = ledgerDataProviderService.findTransactionsByBlock(blockIdentifier.getIndex(), blockIdentifier.getHash());
+    List<Transaction> transactionsByBlock = ledgerDataProviderService.findTransactionsByBlock(blockIdentifier.getIndex(), blockIdentifier.getHash());
     if(transactionsByBlock != null) {
-      Optional<TransactionDto> first = transactionsByBlock.stream().filter(transactionDto -> transactionDto.getHash().equals(blockTransactionRequest.getTransactionIdentifier().getHash())).findFirst();
+      Optional<Transaction> first = transactionsByBlock.stream().filter(transactionDto -> transactionDto.getHash().equals(blockTransactionRequest.getTransactionIdentifier().getHash())).findFirst();
       if(first.isPresent()) {
         String poolDeposit = getPoolDeposit();
         response.setTransaction(DataMapper.mapToRosettaTransaction(first.get(), poolDeposit));
@@ -108,7 +108,7 @@ public class BlockServiceImpl implements BlockService {
   }
 
   @Override
-  public BlockDto findBlock(Long number, String hash) {
+  public Block findBlock(Long number, String hash) {
     boolean searchBlockZero;
     if (Objects.nonNull(number)) {
       searchBlockZero = (number == 0);
@@ -117,7 +117,7 @@ public class BlockServiceImpl implements BlockService {
     }
     if (searchBlockZero) {
       log.info("[findBlock] Looking for genesis block");
-      GenesisBlockDto genesis = ledgerDataProviderService.findGenesisBlock();
+      GenesisBlock genesis = ledgerDataProviderService.findGenesisBlock();
       boolean isHashInvalidIfGiven = hash != null && !genesis.getHash().equals(hash);
       if (isHashInvalidIfGiven) {
         log.error("[findBlock] The requested block has an invalid block hash parameter");
@@ -134,7 +134,7 @@ public class BlockServiceImpl implements BlockService {
     log.info("[findBlock] Do we have to look for latestBlock? {}", searchLatestBlock);
     Long blockNumber = searchLatestBlock ? ledgerDataProviderService.findLatestBlockNumber() : number;
     log.info("[findBlock] Looking for block with blockNumber {}", blockNumber);
-    BlockDto response = ledgerDataProviderService.findBlock(blockNumber, hash);
+    Block response = ledgerDataProviderService.findBlock(blockNumber, hash);
     if (Objects.nonNull(response)) {
       log.info("[findBlock] Block was found");
     }
@@ -144,35 +144,35 @@ public class BlockServiceImpl implements BlockService {
 
   @Override
   public AccountBalanceResponse findBalanceDataByAddressAndBlock(String address, Long number, String hash) {
-    BlockDto blockDto;
+    Block block;
     if(number != null || hash != null) {
-      blockDto = ledgerDataProviderService.findBlock(number, hash);
+      block = ledgerDataProviderService.findBlock(number, hash);
     } else {
-      blockDto = ledgerDataProviderService.findLatestBlock();
+      block = ledgerDataProviderService.findLatestBlock();
     }
 
-    if (Objects.isNull(blockDto)) {
+    if (Objects.isNull(block)) {
       log.error("[findBalanceDataByAddressAndBlock] Block not found");
       throw ExceptionFactory.blockNotFoundException();
     }
     log.info(
             "[findBalanceDataByAddressAndBlock] Looking for utxos for address {} and block {}",
             address,
-            blockDto.getHash());
+            block.getHash());
     if (CardanoAddressUtils.isStakeAddress(address)) {
       log.debug("[findBalanceDataByAddressAndBlock] Address is StakeAddress");
       log.debug("[findBalanceDataByAddressAndBlock] About to get balance for {}", address);
-      List<StakeAddressBalanceDTO> balances = ledgerDataProviderService.findStakeAddressBalanceByAddressAndBlock(address, blockDto.getNumber());
+      List<StakeAddressBalance> balances = ledgerDataProviderService.findStakeAddressBalanceByAddressAndBlock(address, block.getNumber());
       if(Objects.isNull(balances) || balances.isEmpty()) {
         log.error("[findBalanceDataByAddressAndBlock] No balance found for {}", address);
         throw ExceptionFactory.invalidAddressError();
       }
-    return DataMapper.mapToStakeAddressBalanceResponse(blockDto, balances.getFirst());
+    return DataMapper.mapToStakeAddressBalanceResponse(block, balances.getFirst());
     } else {
       log.debug("[findBalanceDataByAddressAndBlock] Address isn't StakeAddress");
 
-      List<AddressBalanceDTO> balances = ledgerDataProviderService.findBalanceByAddressAndBlock(address, blockDto.getNumber());
-      return DataMapper.mapToAccountBalanceResponse(blockDto, balances);
+      List<AddressBalanceDTO> balances = ledgerDataProviderService.findBalanceByAddressAndBlock(address, block.getNumber());
+      return DataMapper.mapToAccountBalanceResponse(block, balances);
     }
   }
 

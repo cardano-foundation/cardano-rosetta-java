@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.mapper.DataMapper;
-import org.cardanofoundation.rosetta.api.block.model.dto.BlockDto;
+import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.account.model.dto.UtxoDto;
 import org.cardanofoundation.rosetta.api.account.service.AccountService;
 import org.cardanofoundation.rosetta.api.block.service.BlockService;
@@ -63,7 +63,7 @@ public class AccountServiceImpl implements AccountService {
     }
     List<Currency> currenciesRequested = Validations.filterRequestedCurrencies(currencies);
     log.debug("[accountCoins] Filter currency is {}", currenciesRequested);
-    BlockDto latestBlock = ledgerDataProviderService.findLatestBlock();
+    Block latestBlock = ledgerDataProviderService.findLatestBlock();
     log.debug("[accountCoins] Latest block is {}", latestBlock);
     List<UtxoDto> utxos = ledgerDataProviderService.findUtxoByAddressAndCurrency(accountAddress, currenciesRequested);
     log.debug("[accountCoins] found {} Utxos for Address {}", utxos.size(), accountAddress);
