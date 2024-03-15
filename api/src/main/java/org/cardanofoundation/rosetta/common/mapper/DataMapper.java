@@ -52,7 +52,7 @@ public class DataMapper {
             .currentBlockIdentifier(
                     BlockIdentifier.builder().index(latestBlock.getNumber()).hash(latestBlock.getHash())
                             .build())
-//            .currentBlockTimeStamp(latestBlock.getCreatedAt())
+            .currentBlockTimestamp(latestBlock.getCreatedAt())
             .genesisBlockIdentifier(BlockIdentifier.builder().index(
                             genesisBlock.getNumber() != null ? genesisBlock.getNumber() : 0)
                     .hash(genesisBlock.getHash()).build())

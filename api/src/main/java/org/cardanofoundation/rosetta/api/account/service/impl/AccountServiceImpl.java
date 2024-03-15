@@ -16,7 +16,7 @@ import org.openapitools.client.model.PartialBlockIdentifier;
 
 import org.cardanofoundation.rosetta.api.account.model.dto.UtxoDto;
 import org.cardanofoundation.rosetta.api.account.service.AccountService;
-import org.cardanofoundation.rosetta.api.block.model.dto.Block;
+import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.service.BlockService;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.mapper.DataMapper;
