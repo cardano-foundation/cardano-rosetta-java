@@ -13,7 +13,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
-import org.cardanofoundation.rosetta.api.block.model.dto.ProcessOperationsDto;
+import org.cardanofoundation.rosetta.api.block.model.domain.ProcessOperations;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 import org.junit.jupiter.api.Test;
@@ -33,7 +33,7 @@ public class parseOperationTest {
   public void parseInputOperationTest()
       throws IOException, CborDeserializationException, NoSuchAlgorithmException, SignatureException, InvalidKeySpecException, CborSerializationException, InvalidKeyException {
     Operation operation = getOperation("testdata/Operations/inputOperation.json");
-    ProcessOperationsDto resultAccumulator = new ProcessOperationsDto();
+    ProcessOperations resultAccumulator = new ProcessOperations();
     resultAccumulator = OperationParseUtil.parseOperation(operation, NetworkIdentifierType.CARDANO_PREPROD_NETWORK, resultAccumulator, OperationType.INPUT.getValue());
 
     assertEquals(resultAccumulator.getTransactionInputs().size(), 1);
@@ -48,7 +48,7 @@ public class parseOperationTest {
   public void parseOutputOperationTest()
       throws IOException, CborDeserializationException, NoSuchAlgorithmException, SignatureException, InvalidKeySpecException, CborSerializationException, InvalidKeyException {
     Operation operation = getOperation("testdata/Operations/outputOperation.json");
-    ProcessOperationsDto resultAccumulator = new ProcessOperationsDto();
+    ProcessOperations resultAccumulator = new ProcessOperations();
     resultAccumulator = OperationParseUtil.parseOperation(operation, NetworkIdentifierType.CARDANO_PREPROD_NETWORK, resultAccumulator, OperationType.OUTPUT.getValue());
 
     assertEquals(resultAccumulator.getTransactionOutputs().size(), 1);
@@ -61,7 +61,7 @@ public class parseOperationTest {
   public void stakeKeyRegistrationTest()
       throws IOException, CborDeserializationException, NoSuchAlgorithmException, SignatureException, InvalidKeySpecException, CborSerializationException, InvalidKeyException {
     Operation operation = getOperation("testdata/Operations/stakeKeyRegistrationOperation.json");
-    ProcessOperationsDto resultAccumulator = new ProcessOperationsDto();
+    ProcessOperations resultAccumulator = new ProcessOperations();
     resultAccumulator = OperationParseUtil.parseOperation(operation,
         NetworkIdentifierType.CARDANO_MAINNET_NETWORK, resultAccumulator,
         OperationType.STAKE_KEY_REGISTRATION.getValue());
@@ -77,7 +77,7 @@ public class parseOperationTest {
   public void stakeKeyDeregistrationTest()
       throws IOException, CborDeserializationException, NoSuchAlgorithmException, SignatureException, InvalidKeySpecException, CborSerializationException, InvalidKeyException {
     Operation operation = getOperation("testdata/Operations/stakeKeyDeregistrationOperation.json");
-    ProcessOperationsDto resultAccumulator = new ProcessOperationsDto();
+    ProcessOperations resultAccumulator = new ProcessOperations();
     resultAccumulator = OperationParseUtil.parseOperation(operation,
         NetworkIdentifierType.CARDANO_MAINNET_NETWORK, resultAccumulator,
         OperationType.STAKE_KEY_DEREGISTRATION.getValue());
@@ -90,7 +90,7 @@ public class parseOperationTest {
   public void stakeDelegationOperationTest()
       throws IOException, CborDeserializationException, NoSuchAlgorithmException, SignatureException, InvalidKeySpecException, CborSerializationException, InvalidKeyException {
     Operation operation = getOperation("testdata/Operations/stakeDelegationOperation.json");
-    ProcessOperationsDto resultAccumulator = new ProcessOperationsDto();
+    ProcessOperations resultAccumulator = new ProcessOperations();
     resultAccumulator = OperationParseUtil.parseOperation(operation, NetworkIdentifierType.CARDANO_MAINNET_NETWORK, resultAccumulator,
         OperationType.STAKE_DELEGATION.getValue());
 
@@ -101,7 +101,7 @@ public class parseOperationTest {
   public void withdrawalOperationTest()
       throws IOException, CborDeserializationException, NoSuchAlgorithmException, SignatureException, InvalidKeySpecException, CborSerializationException, InvalidKeyException {
     Operation operation = getOperation("testdata/Operations/withdrawalOperation.json");
-    ProcessOperationsDto resultAccumulator = new ProcessOperationsDto();
+    ProcessOperations resultAccumulator = new ProcessOperations();
     resultAccumulator = OperationParseUtil.parseOperation(operation, NetworkIdentifierType.CARDANO_MAINNET_NETWORK, resultAccumulator, OperationType.WITHDRAWAL.getValue());
 
     assertEquals(operation.getAccount().getAddress(), resultAccumulator.getAddresses().get(0));
@@ -112,7 +112,7 @@ public class parseOperationTest {
   public void poolRegistrationOperationTest()
       throws IOException, CborDeserializationException, NoSuchAlgorithmException, SignatureException, InvalidKeySpecException, CborSerializationException, InvalidKeyException {
     Operation operation = getOperation("testdata/Operations/poolRegistrationOperation.json");
-    ProcessOperationsDto resultAccumulator = new ProcessOperationsDto();
+    ProcessOperations resultAccumulator = new ProcessOperations();
     resultAccumulator = OperationParseUtil.parseOperation(operation, NetworkIdentifierType.CARDANO_MAINNET_NETWORK, resultAccumulator,
         OperationType.POOL_REGISTRATION.getValue());
 
@@ -125,7 +125,7 @@ public class parseOperationTest {
   public void poolRetirementOperationTest()
       throws IOException, CborDeserializationException, NoSuchAlgorithmException, SignatureException, InvalidKeySpecException, CborSerializationException, InvalidKeyException {
     Operation operation = getOperation("testdata/Operations/poolRetirementOperation.json");
-    ProcessOperationsDto resultAccumulator = new ProcessOperationsDto();
+    ProcessOperations resultAccumulator = new ProcessOperations();
     resultAccumulator = OperationParseUtil.parseOperation(operation, NetworkIdentifierType.CARDANO_MAINNET_NETWORK, resultAccumulator,
         OperationType.POOL_RETIREMENT.getValue());
 

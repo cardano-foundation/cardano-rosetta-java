@@ -12,7 +12,7 @@ import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Set;
 import org.apache.commons.lang3.ObjectUtils;
-import org.cardanofoundation.rosetta.api.block.model.dto.ProcessOperationsDto;
+import org.cardanofoundation.rosetta.api.block.model.domain.ProcessOperations;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.common.model.cardano.pool.PoolRegistrationCertReturnDto;
@@ -25,8 +25,8 @@ import org.openapitools.client.model.Operation;
 
 public class OperationParseUtil {
 
-  public static ProcessOperationsDto parseOperation(
-      Operation operation, NetworkIdentifierType networkIdentifierType, ProcessOperationsDto resultAccumulator, String type) throws CborSerializationException, CborDeserializationException, NoSuchAlgorithmException, SignatureException, InvalidKeySpecException, InvalidKeyException {
+  public static ProcessOperations parseOperation(
+      Operation operation, NetworkIdentifierType networkIdentifierType, ProcessOperations resultAccumulator, String type) throws CborSerializationException, CborDeserializationException, NoSuchAlgorithmException, SignatureException, InvalidKeySpecException, InvalidKeyException {
     if (type.equals(OperationType.INPUT.getValue())) {
       return parseTypeInput(operation, resultAccumulator);
     }
@@ -61,8 +61,8 @@ public class OperationParseUtil {
   }
 
   @NotNull
-  private static ProcessOperationsDto parseTypeInput(Operation operation,
-      ProcessOperationsDto resultAccumulator) {
+  private static ProcessOperations parseTypeInput(Operation operation,
+      ProcessOperations resultAccumulator) {
     resultAccumulator.getTransactionInputs().add(ValidateParseUtil.validateAndParseTransactionInput(
         operation));
     resultAccumulator.getAddresses().add(ObjectUtils.isEmpty(
@@ -72,8 +72,8 @@ public class OperationParseUtil {
   }
 
   @NotNull
-  private static ProcessOperationsDto parseTypeOutput(Operation operation,
-      ProcessOperationsDto resultAccumulator) {
+  private static ProcessOperations parseTypeOutput(Operation operation,
+      ProcessOperations resultAccumulator) {
     resultAccumulator.getTransactionOutputs().add(ValidateParseUtil.validateAndParseTransactionOutput(
         operation));
     resultAccumulator.getOutputAmounts().add(ValidateParseUtil.validateValueAmount(operation));
@@ -81,8 +81,8 @@ public class OperationParseUtil {
   }
 
   @NotNull
-  private static ProcessOperationsDto parseStakeKeyRegistration(Operation operation,
-      ProcessOperationsDto resultAccumulator) {
+  private static ProcessOperations parseStakeKeyRegistration(Operation operation,
+      ProcessOperations resultAccumulator) {
     resultAccumulator.getCertificates().add(ProcessContructionUtil.getStakeRegistrationCertificateFromOperation(
         operation));
     double stakeNumber = resultAccumulator.getStakeKeyRegistrationsCount();
@@ -91,8 +91,8 @@ public class OperationParseUtil {
   }
 
   @NotNull
-  private static ProcessOperationsDto parseTypeStakeKeyDeregistration(Operation operation,
-      NetworkIdentifierType networkIdentifierType, ProcessOperationsDto resultAccumulator) {
+  private static ProcessOperations parseTypeStakeKeyDeregistration(Operation operation,
+      NetworkIdentifierType networkIdentifierType, ProcessOperations resultAccumulator) {
     StakeCertificateDto stakeCertificateDto = ProcessContructionUtil.getStakeCertificateFromOperation(
         networkIdentifierType, operation);
     resultAccumulator.getCertificates().add(stakeCertificateDto.getCertificate());
@@ -103,8 +103,8 @@ public class OperationParseUtil {
   }
 
   @NotNull
-  private static ProcessOperationsDto parseStakeDelegation(Operation operation,
-      NetworkIdentifierType networkIdentifierType, ProcessOperationsDto resultAccumulator) {
+  private static ProcessOperations parseStakeDelegation(Operation operation,
+      NetworkIdentifierType networkIdentifierType, ProcessOperations resultAccumulator) {
     StakeCertificateDto stakeCertificateDto = ProcessContructionUtil.getStakeCertificateFromOperation(
         networkIdentifierType, operation);
     resultAccumulator.getCertificates().add(stakeCertificateDto.getCertificate());
@@ -113,8 +113,8 @@ public class OperationParseUtil {
   }
 
   @NotNull
-  private static ProcessOperationsDto parseWithdrawal(Operation operation,
-      NetworkIdentifierType networkIdentifierType, ProcessOperationsDto resultAccumulator) {
+  private static ProcessOperations parseWithdrawal(Operation operation,
+      NetworkIdentifierType networkIdentifierType, ProcessOperations resultAccumulator) {
     ProcessWithdrawalReturnDto processWithdrawalReturnDto = ProcessContructionUtil.getWithdrawalsReturnFromOperation(
         networkIdentifierType, operation);
     String withdrawalAmountString = ValidateParseUtil.validateValueAmount(operation);
@@ -128,8 +128,8 @@ public class OperationParseUtil {
   }
 
   @NotNull
-  private static ProcessOperationsDto parseVoteRegistration(Operation operation,
-      ProcessOperationsDto resultAccumulator) {
+  private static ProcessOperations parseVoteRegistration(Operation operation,
+      ProcessOperations resultAccumulator) {
     AuxiliaryData voteRegistrationMetadata = ProcessContructionUtil.processVoteRegistration(
         operation);
     resultAccumulator.setVoteRegistrationMetadata(voteRegistrationMetadata);
@@ -137,8 +137,8 @@ public class OperationParseUtil {
   }
 
   @NotNull
-  private static ProcessOperationsDto parsePoolRetirement(Operation operation,
-      ProcessOperationsDto resultAccumulator) {
+  private static ProcessOperations parsePoolRetirement(Operation operation,
+      ProcessOperations resultAccumulator) {
     PoolRetirementDto poolRetirementDto = ProcessContructionUtil.getPoolRetirementFromOperation(
         operation);
     resultAccumulator.getCertificates().add(poolRetirementDto.getCertificate());
@@ -147,8 +147,8 @@ public class OperationParseUtil {
   }
 
   @NotNull
-  private static ProcessOperationsDto parsePoolRegistrationWithCert(Operation operation,
-      NetworkIdentifierType networkIdentifierType, ProcessOperationsDto resultAccumulator) {
+  private static ProcessOperations parsePoolRegistrationWithCert(Operation operation,
+      NetworkIdentifierType networkIdentifierType, ProcessOperations resultAccumulator) {
     PoolRegistrationCertReturnDto dto = ProcessContructionUtil.getPoolRegistrationCertFromOperation(
         operation,
         networkIdentifierType);
@@ -161,8 +161,8 @@ public class OperationParseUtil {
   }
 
   @NotNull
-  private static ProcessOperationsDto parsePoolRegistration(Operation operation,
-      ProcessOperationsDto resultAccumulator) {
+  private static ProcessOperations parsePoolRegistration(Operation operation,
+      ProcessOperations resultAccumulator) {
     ProcessPoolRegistrationReturnDto processPoolRegistrationReturnDto = ProcessContructionUtil.getPoolRegistrationFromOperation(
         operation);
     resultAccumulator.getCertificates().add(processPoolRegistrationReturnDto.getCertificate());

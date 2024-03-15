@@ -21,8 +21,8 @@ import com.bloxbean.cardano.client.util.HexUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
-import org.cardanofoundation.rosetta.api.block.model.dto.ProcessOperationsDto;
-import org.cardanofoundation.rosetta.api.block.model.dto.ProcessOperationsReturnDto;
+import org.cardanofoundation.rosetta.api.block.model.domain.ProcessOperations;
+import org.cardanofoundation.rosetta.api.block.model.domain.ProcessOperationsReturn;
 import org.cardanofoundation.rosetta.common.enumeration.AddressType;
 import org.cardanofoundation.rosetta.common.enumeration.EraAddressType;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
@@ -241,7 +241,7 @@ public class CardanoServiceImpl implements CardanoService {
 
     private UnsignedTransaction createUnsignedTransaction(NetworkIdentifierType networkIdentifierType, List<Operation> operations, int ttl, DepositParameters depositParameters) throws IOException, CborSerializationException, AddressExcepion, CborException {
         log.info("[createUnsignedTransaction] About to create an unsigned transaction with {} operations", operations.size());
-        ProcessOperationsReturnDto processOperationsReturnDto = processOperations(networkIdentifierType, operations, depositParameters);
+        ProcessOperationsReturn processOperationsReturnDto = processOperations(networkIdentifierType, operations, depositParameters);
 
         log.info("[createUnsignedTransaction] About to create transaction body");
         BigInteger fee = valueOf(processOperationsReturnDto.getFee());
@@ -281,8 +281,8 @@ public class CardanoServiceImpl implements CardanoService {
         return toReturn;
     }
 
-    private ProcessOperationsReturnDto processOperations(NetworkIdentifierType networkIdentifierType, List<Operation> operations, DepositParameters depositParameters) throws IOException {
-        ProcessOperationsDto result = convertRosettaOperations(networkIdentifierType, operations);
+    private ProcessOperationsReturn processOperations(NetworkIdentifierType networkIdentifierType, List<Operation> operations, DepositParameters depositParameters) throws IOException {
+        ProcessOperations result = convertRosettaOperations(networkIdentifierType, operations);
         double refundsSum = result.getStakeKeyDeRegistrationsCount() * Long.parseLong(depositParameters.getKeyDeposit());
         double keyDepositsSum = result.getStakeKeyRegistrationsCount() * Long.parseLong(depositParameters.getKeyDeposit());
         double poolDepositsSum = result.getPoolRegistrationsCount() * Long.parseLong(depositParameters.getPoolDeposit());
@@ -292,7 +292,7 @@ public class CardanoServiceImpl implements CardanoService {
         depositsSumMap.put("poolDepositsSum", poolDepositsSum);
         long fee = calculateFee(result.getInputAmounts(), result.getOutputAmounts(), result.getWithdrawalAmounts(), depositsSumMap);
         log.info("[processOperations] Calculated fee:{}", fee);
-        ProcessOperationsReturnDto processOperationsDto = new ProcessOperationsReturnDto();
+        ProcessOperationsReturn processOperationsDto = new ProcessOperationsReturn();
         processOperationsDto.setTransactionInputs(result.getTransactionInputs());
         processOperationsDto.setTransactionOutputs(result.getTransactionOutputs());
         processOperationsDto.setCertificates(result.getCertificates());
@@ -327,8 +327,8 @@ public class CardanoServiceImpl implements CardanoService {
     }
 
     @Override
-    public ProcessOperationsDto convertRosettaOperations(NetworkIdentifierType networkIdentifierType, List<Operation> operations) throws IOException {
-        ProcessOperationsDto processor = new ProcessOperationsDto();
+    public ProcessOperations convertRosettaOperations(NetworkIdentifierType networkIdentifierType, List<Operation> operations) throws IOException {
+        ProcessOperations processor = new ProcessOperations();
 
         for (Operation operation : operations) {
             String type = operation.getType();

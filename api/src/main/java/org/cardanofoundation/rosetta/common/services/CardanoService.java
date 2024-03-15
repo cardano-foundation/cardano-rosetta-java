@@ -6,7 +6,7 @@ import co.nstant.in.cbor.model.Array;
 import com.bloxbean.cardano.client.exception.AddressExcepion;
 import com.bloxbean.cardano.client.exception.CborSerializationException;
 import com.bloxbean.cardano.client.transaction.spec.TransactionWitnessSet;
-import org.cardanofoundation.rosetta.api.block.model.dto.ProcessOperationsDto;
+import org.cardanofoundation.rosetta.api.block.model.domain.ProcessOperations;
 import org.cardanofoundation.rosetta.api.block.model.entity.ProtocolParams;
 import org.cardanofoundation.rosetta.common.enumeration.AddressType;
 import org.cardanofoundation.rosetta.common.enumeration.EraAddressType;
@@ -44,6 +44,6 @@ public interface CardanoService {
     Long calculateFee(ArrayList<String> inputAmounts, ArrayList<String> outputAmounts,
                       ArrayList<Long> withdrawalAmounts, Map<String, Double> depositsSumMap);
 
-    ProcessOperationsDto convertRosettaOperations(NetworkIdentifierType networkIdentifierType,
+    ProcessOperations convertRosettaOperations(NetworkIdentifierType networkIdentifierType,
                                  List<Operation> operations) throws IOException;
 }
