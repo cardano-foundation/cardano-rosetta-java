@@ -1,8 +1,10 @@
-package org.cardanofoundation.rosetta.common.mapper;
+package org.cardanofoundation.rosetta.api.block.mapper;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -29,6 +31,7 @@ import org.cardanofoundation.rosetta.api.block.model.domain.PoolRetirement;
 import org.cardanofoundation.rosetta.api.block.model.domain.StakeRegistration;
 import org.cardanofoundation.rosetta.api.block.model.domain.Transaction;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
+import org.cardanofoundation.rosetta.common.mapper.DataMapper;
 import org.cardanofoundation.rosetta.common.model.cardano.OperationMetadata;
 import org.cardanofoundation.rosetta.common.model.cardano.TokenBundleItem;
 import org.cardanofoundation.rosetta.common.util.Constants;
@@ -38,7 +41,7 @@ import static org.cardanofoundation.rosetta.common.util.Constants.ADA_DECIMALS;
 import static org.cardanofoundation.rosetta.common.util.Formatters.hexStringFormatter;
 
 @Slf4j
-public class OperationDataMapper {
+class OperationDataMapper {
 
     @NotNull
     public static List<Operation> getAllOperations(Transaction transactionDto, String poolDeposit, OperationStatus status) {
@@ -93,7 +96,8 @@ public class OperationDataMapper {
 
     @NotNull
     public static List<Operation> getInputTransactionsasOperations(Transaction transactionDto, OperationStatus status) {
-        List<Operation> inputsAsOperations = IntStream.range(0, transactionDto.getInputs().size())
+
+      return  IntStream.range(0,  nullable(transactionDto.getInputs()).size()  )
                 .mapToObj(index -> {
                     UtxoDto utxoDto = transactionDto.getInputs().get(index);
                     return createOperation((long) index,
@@ -107,12 +111,14 @@ public class OperationDataMapper {
                                     CoinAction.SPENT),
                             mapToOperationMetaData(true, utxoDto.getAmounts()));
                 }).toList();
-        return inputsAsOperations;
     }
 
-    public static List<Operation> getPoolRegistrationOperations(Transaction transactionDto, OperationStatus status, List<List<Operation>> totalOperations, String poolDeposit) {
-        return IntStream.range(0,
-                        transactionDto.getPoolRegistrations().size())
+  private static <T> List<T> nullable(List<T> list) {
+    return Optional.ofNullable(list).orElse(Collections.emptyList());
+  }
+
+  public static List<Operation> getPoolRegistrationOperations(Transaction transactionDto, OperationStatus status, List<List<Operation>> totalOperations, String poolDeposit) {
+        return IntStream.range(0, nullable(transactionDto.getPoolRegistrations()).size())
                 .mapToObj(index -> {
                     PoolRegistration poolRegistration = transactionDto.getPoolRegistrations().get(index);
                     return Operation.builder()
@@ -139,7 +145,7 @@ public class OperationDataMapper {
 
     public static List<Operation> getPoolRetirementOperations(Transaction transactionDto, OperationStatus status, List<List<Operation>> totalOperations) {
         return IntStream.range(0,
-                        transactionDto.getPoolRetirements().size())
+                        nullable(transactionDto.getPoolRetirements()).size())
                 .mapToObj(index -> {
                     PoolRetirement poolRetirement = transactionDto.getPoolRetirements().get(index);
                     return Operation.builder()
@@ -157,7 +163,7 @@ public class OperationDataMapper {
 
     public static List<Operation> getStakeRegistrationOperations(Transaction transactionDto, OperationStatus status, List<List<Operation>> totalOperations) {
         return IntStream.range(0,
-                        transactionDto.getStakeRegistrations().size())
+                        nullable(transactionDto.getStakeRegistrations()).size())
                 .mapToObj(index -> {
                     StakeRegistration stakeRegistration = transactionDto.getStakeRegistrations().get(index);
                     OperationType operationType = stakeRegistration.getType().equals(CertificateType.STAKE_REGISTRATION) ? OperationType.STAKE_KEY_REGISTRATION :
@@ -182,7 +188,7 @@ public class OperationDataMapper {
 
     public static List<Operation> getDelegationOperations(Transaction transaction, OperationStatus status, List<List<Operation>> totalOperations) {
         return IntStream.range(0,
-                        transaction.getDelegations().size())
+                        nullable(transaction.getDelegations()).size())
                 .mapToObj(index -> {
                     Delegation delegation = transaction.getDelegations().get(index);
                     return Operation.builder()
@@ -200,7 +206,7 @@ public class OperationDataMapper {
 
     @NotNull
     public static List<Operation> getOutputsAsOperations(Transaction transaction, List<List<Operation>> totalOperations, OperationStatus status, List<OperationIdentifier> relatedOperations) {
-        List<Operation> outputsAsOperations = IntStream.range(0, transaction.getOutputs().size())
+        return IntStream.range(0, nullable(transaction.getOutputs()).size())
                 .mapToObj(index -> {
                     UtxoDto utxoDto = transaction.getOutputs().get(index);
                     return createOperation(getOperationCurrentIndex(totalOperations, index),
@@ -214,7 +220,6 @@ public class OperationDataMapper {
                                     CoinAction.CREATED),
                             mapToOperationMetaData(false, utxoDto.getAmounts()));
                 }).toList();
-        return outputsAsOperations;
     }
 
     public static Operation createOperation(Long index, String type, String status, String address,

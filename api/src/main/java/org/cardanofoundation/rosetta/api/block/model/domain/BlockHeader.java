@@ -1,4 +1,4 @@
-package org.cardanofoundation.rosetta.common.model.rosetta;
+package org.cardanofoundation.rosetta.api.block.model.domain;
 
 import com.bloxbean.cardano.yaci.core.model.HeaderBody;
 import lombok.AllArgsConstructor;

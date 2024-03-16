@@ -1,4 +1,4 @@
-package org.cardanofoundation.rosetta.api.block.service.impl;
+package org.cardanofoundation.rosetta.api.block.service;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -15,9 +15,9 @@ import org.openapitools.client.model.BlockIdentifier;
 import org.openapitools.client.model.BlockTransactionRequest;
 import org.openapitools.client.model.BlockTransactionResponse;
 
+import org.cardanofoundation.rosetta.api.block.mapper.BlockToBlockResponse;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.Transaction;
-import org.cardanofoundation.rosetta.api.block.service.BlockService;
 import org.cardanofoundation.rosetta.common.exception.ApiException;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.mapper.DataMapper;
@@ -96,7 +96,10 @@ public class BlockServiceImpl implements BlockService {
           .findFirst();
       if (first.isPresent()) {
         String poolDeposit = getPoolDeposit();
-        response.setTransaction(DataMapper.mapToRosettaTransaction(first.get(), poolDeposit));
+        response.setTransaction(
+            //TODO saa: add refactor mapper to use the new model
+            BlockToBlockResponse.mapToRosettaTransaction(first.get(), poolDeposit)
+        );
       }
     }
     return response;

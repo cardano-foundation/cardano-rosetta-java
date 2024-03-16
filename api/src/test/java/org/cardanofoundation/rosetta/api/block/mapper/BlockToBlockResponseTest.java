@@ -23,15 +23,23 @@ class BlockToBlockResponseTest {
   }
 
   @Test
-  void toDto_Ok() { //TODO how we agree to name tests? Maybe shouldMapDtoOK?
-    Block blockDto = newBlock();
+  void toDto_Ok() { //TODO how to we agree to name tests? Maybe shouldMapDtoOK?
 
     BlockToBlockResponse my = new BlockToBlockResponse(modelMapper);
-
     my.modelMapper.validate();
+
+    Block block = newBlock();
     BlockResponse resp = my.toDto(newBlock());
 
-    assertThat(blockDto).isEqualTo(resp.getBlock());
+    assertThat(block.getHash()).isEqualTo(resp.getBlock().getBlockIdentifier().getHash());
+    assertThat(block.getNumber()).isEqualTo(resp.getBlock().getBlockIdentifier().getIndex());
+
+    assertThat(block.getPreviousBlockHash()).isEqualTo(
+        resp.getBlock().getParentBlockIdentifier().getHash());
+
+    assertThat(block.getPreviousBlockNumber()).isEqualTo(
+        resp.getBlock().getParentBlockIdentifier().getIndex());
+
 
 
   }

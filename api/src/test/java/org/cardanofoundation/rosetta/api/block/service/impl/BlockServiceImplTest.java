@@ -16,6 +16,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.Transaction;
+import org.cardanofoundation.rosetta.api.block.service.BlockServiceImpl;
 import org.cardanofoundation.rosetta.common.exception.ApiException;
 import org.cardanofoundation.rosetta.common.services.LedgerDataProviderService;
 import org.cardanofoundation.rosetta.common.util.RosettaConstants.RosettaErrorType;
@@ -176,15 +177,11 @@ class BlockServiceImplTest {
   }
 
 
-  @Test
-  void findTransactionsByBlock() {
-  }
 
   @Test
   void getBlockTransaction() {
+    //TODO saa:  impl
   }
 
-  @Test
-  void findBlock() {
-  }
+
 }
