@@ -78,7 +78,7 @@ public class ProcessContructionUtil {
                 throw ExceptionFactory.missingPoolKeyError();
             }
             Certificate certificate = new StakeDelegation(credential, new StakePoolId(
-                    ObjectUtils.isEmpty(operation.getMetadata()) ? null
+                    ObjectUtils.isEmpty(operationMetadata) ? null
                             : HexUtil.decodeHexString(operationMetadata.getPoolKeyHash())));
             return new StakeCertificate(certificate, address);
         }

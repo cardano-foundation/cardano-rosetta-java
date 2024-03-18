@@ -248,8 +248,12 @@ public class CardanoServiceImpl implements CardanoService {
         ProcessOperationsReturn processOperationsReturnDto = processOperations(networkIdentifierType, operations, depositParameters);
 
         log.info("[createUnsignedTransaction] About to create transaction body");
-        BigInteger fee = valueOf(processOperationsReturnDto.getFee());
-        TransactionBody transactionBody = TransactionBody.builder().inputs(processOperationsReturnDto.getTransactionInputs()).outputs(processOperationsReturnDto.getTransactionOutputs()).fee(fee).ttl(ttl).build();
+        TransactionBody transactionBody = TransactionBody.builder()
+            .inputs(processOperationsReturnDto.getTransactionInputs())
+            .outputs(processOperationsReturnDto.getTransactionOutputs())
+            .fee(valueOf(processOperationsReturnDto.getFee()))
+            .ttl(ttl)
+            .build();
 
         if (!ObjectUtils.isEmpty(processOperationsReturnDto.getVoteRegistrationMetadata())) {
             log.info("[createUnsignedTransaction] Hashing vote registration metadata and adding to transaction body");
@@ -257,7 +261,8 @@ public class CardanoServiceImpl implements CardanoService {
             Array array = new Array();
             array.add(auxiliaryData.serialize());
             array.add(new Array());
-            transactionBody.setAuxiliaryDataHash(Blake2bUtil.blake2bHash256(com.bloxbean.cardano.yaci.core.util.CborSerializationUtil.serialize(array)));
+            // CIP 21 include only auxiliary data hash
+            transactionBody.setAuxiliaryDataHash(Blake2bUtil.blake2bHash256(CborSerializationUtil.serialize(array)));
         }
 
         if (!(processOperationsReturnDto.getCertificates()).isEmpty()) {
@@ -267,19 +272,22 @@ public class CardanoServiceImpl implements CardanoService {
             transactionBody.setWithdrawals(processOperationsReturnDto.getWithdrawals());
         }
         co.nstant.in.cbor.model.Map mapCbor = transactionBody.serialize();
+        // Serializer skips 0 values. If ttl is zero it isn't in the map.
+        // This ensures that ttl is in the final cbor map even if it's zero.
         if (ttl == 0) {
             mapCbor.put(new UnsignedInteger(3), new UnsignedInteger(0));
         }
-        String transactionBytes = HexUtil.encodeHexString(com.bloxbean.cardano.yaci.core.util.CborSerializationUtil.serialize(mapCbor));
+        String transactionBytes = HexUtil.encodeHexString(CborSerializationUtil.serialize(mapCbor));
         log.info("[createUnsignedTransaction] Hashing transaction body");
-        String bodyHash = com.bloxbean.cardano.client.util.HexUtil.encodeHexString(Blake2bUtil.blake2bHash256(com.bloxbean.cardano.client.common.cbor.CborSerializationUtil.serialize(mapCbor)));
+        String bodyHash = HexUtil.encodeHexString(Blake2bUtil.blake2bHash256(CborSerializationUtil.serialize(mapCbor)));
         UnsignedTransaction toReturn = new UnsignedTransaction(HexUtil.encodeHexString(HexUtil.decodeHexString(bodyHash)), transactionBytes, processOperationsReturnDto.getAddresses(), null);
+
         if (!ObjectUtils.isEmpty(processOperationsReturnDto.getVoteRegistrationMetadata())) {
             AuxiliaryData auxiliaryData = processOperationsReturnDto.getVoteRegistrationMetadata();
             Array array = new Array();
             array.add(auxiliaryData.serialize());
             array.add(new Array());
-            toReturn.setMetadata(HexUtil.encodeHexString(com.bloxbean.cardano.yaci.core.util.CborSerializationUtil.serialize(array)));
+            toReturn.setMetadata(HexUtil.encodeHexString(CborSerializationUtil.serialize(array)));
         }
         log.info(toReturn + "[createUnsignedTransaction] Returning unsigned transaction, hash to sign and addresses that will sign hash");
         return toReturn;

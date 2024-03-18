@@ -11,7 +11,6 @@ import java.util.HashMap;
 import java.util.List;
 import org.apache.commons.lang3.ObjectUtils;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
-import org.cardanofoundation.rosetta.common.model.cardano.transaction.TransactionExtraData;
 import org.openapitools.client.model.Amount;
 import org.openapitools.client.model.CoinChange;
 import org.openapitools.client.model.CoinIdentifier;
@@ -30,24 +29,35 @@ public class DataItemEncodeUtil {
   private DataItemEncodeUtil() {
 
   }
-  public static String encodeExtraData(String transaction, TransactionExtraData extraData)
+
+  /**
+   * Serialized extra Operations of type coin_spent, staking, pool, vote
+   * @param transaction serialized transaction
+   * @param operations full list of operations
+   * @param transactionMetadataHex transaction metadata in hex
+   * @return serialized extra Operations of type coin_spent, staking, pool, vote
+   * @throws CborException
+   */
+  public static String encodeExtraData(String transaction, List<Operation> operations, String transactionMetadataHex)
       throws CborException {
-    TransactionExtraData toEncode=getTxExtraData(extraData);
+
+    List<Operation> filteredExtraOperations = getTxExtraData(operations);
+
     co.nstant.in.cbor.model.Map transactionExtraDataMap = new co.nstant.in.cbor.model.Map();
     Array operationArray = new Array();
-    toEncode.getOperations().forEach(operation -> {
-      co.nstant.in.cbor.model.Map operationIdentifierMap = getOperationIdentifierMap(operation.getOperationIdentifier());
+    filteredExtraOperations.forEach(operation -> {
+      co.nstant.in.cbor.model.Map operationIdentifierMap = OperationIdentifierToCborMap(operation.getOperationIdentifier());
 
       Array rOperationArray = new Array();
       if (!ObjectUtils.isEmpty(operation.getRelatedOperations())) {
         operation.getRelatedOperations().forEach(rOperationIdentifier -> {
-          co.nstant.in.cbor.model.Map operationIdentifierMapnew = getOperationIdentifierMap(rOperationIdentifier);
+          co.nstant.in.cbor.model.Map operationIdentifierMapnew = OperationIdentifierToCborMap(rOperationIdentifier);
           rOperationArray.add(operationIdentifierMapnew);
         });
       }
-      co.nstant.in.cbor.model.Map accountIdentifierMap = getAccMap(operation);
-      co.nstant.in.cbor.model.Map amountMap = getAmountMap(operation.getAmount());
-      co.nstant.in.cbor.model.Map coinChangeMap = getCoinchangeMap(operation);
+      co.nstant.in.cbor.model.Map accountIdentifierMap = getAccountIdentifierCborMap(operation);
+      co.nstant.in.cbor.model.Map amountMap = amountToCborMap(operation.getAmount());
+      co.nstant.in.cbor.model.Map coinChangeMap = getCoinchangeCborMap(operation);
 
       co.nstant.in.cbor.model.Map operationMap = new co.nstant.in.cbor.model.Map();
       addOperationIdentifier(operation,operationMap,operationIdentifierMap);
@@ -74,9 +84,9 @@ public class DataItemEncodeUtil {
       operationArray.add(operationMap);
     });
     transactionExtraDataMap.put(new UnicodeString(Constants.OPERATIONS), operationArray);
-    if (toEncode.getTransactionMetadataHex() != null) {
+    if (transactionMetadataHex != null) {
       transactionExtraDataMap.put(new UnicodeString(Constants.TRANSACTIONMETADATAHEX),
-          new UnicodeString(toEncode.getTransactionMetadataHex()));
+          new UnicodeString(transactionMetadataHex));
     }
     Array outputArray = new Array();
     outputArray.add(new UnicodeString(transaction));
@@ -86,12 +96,12 @@ public class DataItemEncodeUtil {
             false));
   }
 
-  public static void addOperationIdentifier(Operation operation, Map operationMap,Map operationIdentifierMap){
+  private static void addOperationIdentifier(Operation operation, Map operationMap,Map operationIdentifierMap){
     if (operation.getOperationIdentifier() != null) {
       operationMap.put(new UnicodeString(Constants.OPERATION_IDENTIFIER), operationIdentifierMap);
     }
   }
-  public static void addOperationMetadataMap(Operation operation,Map operationMap){
+  private static void addOperationMetadataMap(Operation operation,Map operationMap){
     boolean operationMetadataCheck = ObjectUtils.isEmpty(operation.getMetadata());
     if (!operationMetadataCheck) {
       co.nstant.in.cbor.model.Map oMetadataMap = new co.nstant.in.cbor.model.Map();
@@ -112,14 +122,14 @@ public class DataItemEncodeUtil {
       }
     }
   }
-  public static void addVoteRegistrationMetadata(OperationMetadata operationMetadata,Map oMetadataMap){
+  private static void addVoteRegistrationMetadata(OperationMetadata operationMetadata,Map oMetadataMap){
     if (operationMetadata != null && operationMetadata.getVoteRegistrationMetadata() != null) {
       co.nstant.in.cbor.model.Map voteRegistrationMetadataMap = new co.nstant.in.cbor.model.Map();
       VoteRegistrationMetadata voteRegistrationMetadata =
           operationMetadata.getVoteRegistrationMetadata();
       addStakeKey(voteRegistrationMetadata,voteRegistrationMetadataMap);
       try{
-        co.nstant.in.cbor.model.Map votingKeyMap = getPublicKeymap(
+        co.nstant.in.cbor.model.Map votingKeyMap = publicKeyToCborMap(
             ObjectUtils.isEmpty(voteRegistrationMetadata) ? null
                 : voteRegistrationMetadata.getVotingkey());
         voteRegistrationMetadataMap.put(new UnicodeString(Constants.VOTING_KEY), votingKeyMap);
@@ -146,9 +156,9 @@ public class DataItemEncodeUtil {
           voteRegistrationMetadataMap);
     }
   }
-  public static void addStakeKey(VoteRegistrationMetadata voteRegistrationMetadata,Map voteRegistrationMetadataMap){
+  private static void addStakeKey(VoteRegistrationMetadata voteRegistrationMetadata,Map voteRegistrationMetadataMap){
     try{
-      co.nstant.in.cbor.model.Map stakeKeyMap = getPublicKeymap(
+      co.nstant.in.cbor.model.Map stakeKeyMap = publicKeyToCborMap(
           ObjectUtils.isEmpty(voteRegistrationMetadata) ? null
               : voteRegistrationMetadata.getStakeKey());
       voteRegistrationMetadataMap.put(new UnicodeString(Constants.REWARD_ADDRESS),
@@ -160,7 +170,7 @@ public class DataItemEncodeUtil {
       throw ExceptionFactory.unspecifiedError(e.getMessage());
     }
   }
-  public static void addPoolRegistrationParams(OperationMetadata operationMetadata,Operation operation,Map oMetadataMap){
+  private static void addPoolRegistrationParams(OperationMetadata operationMetadata,Operation operation,Map oMetadataMap){
     if (operationMetadata != null && operationMetadata.getPoolRegistrationParams() != null) {
       co.nstant.in.cbor.model.Map poolRegistrationParamsMap = new co.nstant.in.cbor.model.Map();
       PoolRegistrationParams poolRegistrationParams = operationMetadata.getPoolRegistrationParams();
@@ -194,7 +204,7 @@ public class DataItemEncodeUtil {
     }
   }
 
-  public static void addPoolMargin(PoolRegistrationParams poolRegistrationParams,Map poolRegistrationParamsMap){
+  private static void addPoolMargin(PoolRegistrationParams poolRegistrationParams,Map poolRegistrationParamsMap){
     PoolMargin poolMargin = poolRegistrationParams.getMargin();
     if (poolMargin != null) {
       co.nstant.in.cbor.model.Map marginMap = new co.nstant.in.cbor.model.Map();
@@ -209,7 +219,7 @@ public class DataItemEncodeUtil {
       poolRegistrationParamsMap.put(new UnicodeString(Constants.MARGIN), marginMap);
     }
   }
-  public static void addRelays(Operation operation,OperationMetadata operationMetadata,Map poolRegistrationParamsMap){
+  private static void addRelays(Operation operation,OperationMetadata operationMetadata,Map poolRegistrationParamsMap){
     Array relaysArray = new Array();
     if (!ObjectUtils.isEmpty(operationMetadata.getPoolRegistrationParams())
         && operationMetadata.getPoolRegistrationParams().getRelays() != null) {
@@ -228,13 +238,13 @@ public class DataItemEncodeUtil {
       poolRegistrationParamsMap.put(new UnicodeString(Constants.RELAYS), relaysArray);
     }
   }
-  public static void addStringDataItemToRelays(Map relayMap,String dataItemName,String dataItemValue){
+  private static void addStringDataItemToRelays(Map relayMap,String dataItemName,String dataItemValue){
     if (dataItemValue != null) {
       relayMap.put(new UnicodeString(dataItemName),
           new UnicodeString(dataItemValue));
     }
   }
-  public static void addOwners(Operation operation,OperationMetadata operationMetadata,Map poolRegistrationParamsMap){
+  private static void addOwners(Operation operation,OperationMetadata operationMetadata,Map poolRegistrationParamsMap){
     Array poolOwnersArray = new Array();
     if (!ObjectUtils.isEmpty(operationMetadata.getPoolRegistrationParams())
         && operation.getMetadata().getPoolRegistrationParams().getPoolOwners() != null) {
@@ -246,31 +256,31 @@ public class DataItemEncodeUtil {
     }
     poolRegistrationParamsMap.put(new UnicodeString(Constants.POOLOWNERS), poolOwnersArray);
   }
-  public static void addCost(PoolRegistrationParams poolRegistrationParams,Map poolRegistrationParamsMap){
+  private static void addCost(PoolRegistrationParams poolRegistrationParams,Map poolRegistrationParamsMap){
     if (poolRegistrationParams.getCost() != null) {
       poolRegistrationParamsMap.put(new UnicodeString(Constants.COST),
           new UnicodeString(poolRegistrationParams.getCost()));
     }
   }
-  public static void addPledge(PoolRegistrationParams poolRegistrationParams,Map poolRegistrationParamsMap){
+  private static void addPledge(PoolRegistrationParams poolRegistrationParams,Map poolRegistrationParamsMap){
     if (poolRegistrationParams.getPledge() != null) {
       poolRegistrationParamsMap.put(new UnicodeString(Constants.PLEDGE),
           new UnicodeString(poolRegistrationParams.getPledge()));
     }
   }
-  public static void addRewardAddress(PoolRegistrationParams poolRegistrationParams,Map poolRegistrationParamsMap){
+  private static void addRewardAddress(PoolRegistrationParams poolRegistrationParams,Map poolRegistrationParamsMap){
     if (poolRegistrationParams.getRewardAddress() != null) {
       poolRegistrationParamsMap.put(new UnicodeString(Constants.REWARD_ADDRESS),
           new UnicodeString(poolRegistrationParams.getRewardAddress()));
     }
   }
-  public static void addVrfKeyHash(PoolRegistrationParams poolRegistrationParams,Map poolRegistrationParamsMap){
+  private static void addVrfKeyHash(PoolRegistrationParams poolRegistrationParams,Map poolRegistrationParamsMap){
     if (poolRegistrationParams.getVrfKeyHash() != null) {
       poolRegistrationParamsMap.put(new UnicodeString(Constants.VRFKEYHASH),
           new UnicodeString(poolRegistrationParams.getVrfKeyHash()));
     }
   }
-  public static void addTokenBundle(Operation operation,Map oMetadataMap){
+  private static void addTokenBundle(Operation operation,Map oMetadataMap){
     if (operation.getMetadata() != null && operation.getMetadata().getTokenBundle() != null) {
       Array tokenBundleArray = new Array();
       operation.getMetadata().getTokenBundle().forEach(tokenbundle -> {
@@ -288,65 +298,65 @@ public class DataItemEncodeUtil {
     }
   }
 
-  public static void addTokensTomap(TokenBundleItem tokenbundle,Map tokenBundleItemMap){
+  private static void addTokensTomap(TokenBundleItem tokenbundle,Map tokenBundleItemMap){
     if (tokenbundle.getTokens() != null) {
       Array tokensArray = new Array();
       tokenbundle.getTokens().forEach(amount -> {
         if (amount != null) {
-          co.nstant.in.cbor.model.Map amountMapNext = getAmountMap(amount);
+          co.nstant.in.cbor.model.Map amountMapNext = amountToCborMap(amount);
           tokensArray.add(amountMapNext);
         }
       });
       tokenBundleItemMap.put(new UnicodeString(Constants.TOKENS), tokensArray);
     }
   }
-  public static void addPoolRegistrationCert(OperationMetadata operationMetadata,Map oMetadataMap,String dataItemName){
+  private static void addPoolRegistrationCert(OperationMetadata operationMetadata,Map oMetadataMap,String dataItemName){
     if (operationMetadata != null && operationMetadata.getPoolRegistrationCert() != null) {
       oMetadataMap.put(new UnicodeString(dataItemName),
           new UnicodeString(operationMetadata.getPoolRegistrationCert()));
     }
   }
-  public static void addEpoch(OperationMetadata operationMetadata,Map oMetadataMap,String dataItemName){
+  private static void addEpoch(OperationMetadata operationMetadata,Map oMetadataMap,String dataItemName){
     if (operationMetadata != null && operationMetadata.getEpoch() != null) {
       oMetadataMap.put(new UnicodeString(dataItemName),
           new UnsignedInteger(operationMetadata.getEpoch()));
     }
   }
-  public static void addPoolKeyHash(OperationMetadata operationMetadata,Map oMetadataMap,String dataItemName){
+  private static void addPoolKeyHash(OperationMetadata operationMetadata,Map oMetadataMap,String dataItemName){
     if (operationMetadata != null && operationMetadata.getPoolKeyHash() != null) {
       oMetadataMap.put(new UnicodeString(dataItemName),
           new UnicodeString(operationMetadata.getPoolKeyHash()));
     }
   }
-  public static void addRefund(OperationMetadata operationMetadata,Map oMetadataMap,String dataItemName){
+  private static void addRefund(OperationMetadata operationMetadata,Map oMetadataMap,String dataItemName){
     if (operationMetadata != null && operationMetadata.getRefundAmount() != null) {
-      co.nstant.in.cbor.model.Map refundAmount = getAmountMap(
+      co.nstant.in.cbor.model.Map refundAmount = amountToCborMap(
           operationMetadata.getRefundAmount());
       oMetadataMap.put(new UnicodeString(dataItemName), refundAmount);
     }
   }
-  public static void addWithdrawal(OperationMetadata operationMetadata,Map oMetadataMap,String dataItemName){
+  private static void addWithdrawal(OperationMetadata operationMetadata,Map oMetadataMap,String dataItemName){
     if (operationMetadata != null && operationMetadata.getWithdrawalAmount() != null) {
-      co.nstant.in.cbor.model.Map amount = getAmountMapV2(
+      co.nstant.in.cbor.model.Map amount = amountToCborMap(
           operationMetadata.getWithdrawalAmount());
       oMetadataMap.put(new UnicodeString(dataItemName), amount);
     }
   }
-  public static void addDeposit(OperationMetadata operationMetadata,Map oMetadataMap,String dataItemName){
+  private static void addDeposit(OperationMetadata operationMetadata,Map oMetadataMap,String dataItemName){
     if (operationMetadata != null && operationMetadata.getDepositAmount() != null) {
-      co.nstant.in.cbor.model.Map amount = getAmountMapV2(
+      co.nstant.in.cbor.model.Map amount = amountToCborMap(
           operationMetadata.getDepositAmount());
       oMetadataMap.put(new UnicodeString(dataItemName), amount);
     }
   }
-  public static void addStakingCretoOperationMetadataMap(OperationMetadata operationMetadata,Map oMetadataMap,String dataItemName){
+  private static void addStakingCretoOperationMetadataMap(OperationMetadata operationMetadata,Map oMetadataMap,String dataItemName){
     if (operationMetadata != null && operationMetadata.getStakingCredential() != null) {
-      co.nstant.in.cbor.model.Map stakingCredentialMap = getPublicKeymap(
+      co.nstant.in.cbor.model.Map stakingCredentialMap = publicKeyToCborMap(
           operationMetadata.getStakingCredential());
       oMetadataMap.put(new UnicodeString(dataItemName), stakingCredentialMap);
     }
   }
-  public static Map getCoinchangeMap(Operation operation){
+  private static Map getCoinchangeCborMap(Operation operation){
     co.nstant.in.cbor.model.Map coinChangeMap = new co.nstant.in.cbor.model.Map();
     co.nstant.in.cbor.model.Map coinIdentifierMap = new co.nstant.in.cbor.model.Map();
     CoinChange coinChange =
@@ -361,7 +371,7 @@ public class DataItemEncodeUtil {
         new UnicodeString(coinChange==null ? null : coinChange.getCoinAction().toString()));
     return coinChangeMap;
   }
-  public static Map getAccMap(Operation operation){
+  private static Map getAccountIdentifierCborMap(Operation operation){
     co.nstant.in.cbor.model.Map accountIdentifierMap = new co.nstant.in.cbor.model.Map();
     if (operation.getAccount() != null) {
       addAddressDataItem(operation.getAccount().getAddress(),accountIdentifierMap);
@@ -400,13 +410,13 @@ public class DataItemEncodeUtil {
     return map;
   }
 
-  public static void addAddressDataItem(String address, Map map){
+  private static void addAddressDataItem(String address, Map map){
     if (address != null) {
       map.put(new UnicodeString(Constants.ADDRESS),
           new UnicodeString(address));
     }
   }
-  public static Map getOperationIdentifierMap(OperationIdentifier operationIdentifier){
+  private static Map OperationIdentifierToCborMap(OperationIdentifier operationIdentifier){
     co.nstant.in.cbor.model.Map operationIdentifierMap = new co.nstant.in.cbor.model.Map();
     Long index = operationIdentifier.getIndex();
     if (index != null) {
@@ -420,8 +430,14 @@ public class DataItemEncodeUtil {
     }
     return  operationIdentifierMap;
   }
-  public static TransactionExtraData getTxExtraData(TransactionExtraData extraData){
-    List<Operation> extraOperations = extraData.getOperations().stream()
+
+  /**
+   * Get all Operations which are of the type coin_spent, staking, pool, vote
+   * @param operations Operations to be filtered
+   * @return List of Operations of type coin_spent, staking, pool, vote
+   */
+  private static List<Operation> getTxExtraData(List<Operation> operations){
+    return operations.stream()
         .filter(operation -> {
               String coinAction = ObjectUtils.isEmpty(operation.getCoinChange()) ? null
                   : operation.getCoinChange().getCoinAction().toString();
@@ -433,32 +449,12 @@ public class DataItemEncodeUtil {
                   Constants.VoteOperations.contains(operation.getType());
             }
         ).toList();
-    TransactionExtraData toEncode = new TransactionExtraData();
-    toEncode.setOperations(extraOperations);
-    if (!ObjectUtils.isEmpty(extraData.getTransactionMetadataHex())) {
-      toEncode.setTransactionMetadataHex(extraData.getTransactionMetadataHex());
-    }
-    return toEncode;
   }
 
-  public static co.nstant.in.cbor.model.Map getAmountMap(Amount amount) {
+  private static co.nstant.in.cbor.model.Map amountToCborMap(Amount amount) {
     co.nstant.in.cbor.model.Map amountMap = new co.nstant.in.cbor.model.Map();
     if (!ObjectUtils.isEmpty(amount)) {
-      if (amount.getValue() != null) {
-        amountMap.put(new UnicodeString(Constants.VALUE), new UnicodeString(amount.getValue()));
-      }
-      getCurrencyMap(amount, amountMap);
-      if (amount.getMetadata() != null) {
-        amountMap.put(new UnicodeString(Constants.METADATA), objectToDataItem(amount.getMetadata()));
-      }
-    }
-    return amountMap;
-  }
-
-  public static co.nstant.in.cbor.model.Map getAmountMapV2(Amount amount) {
-    co.nstant.in.cbor.model.Map amountMap = new co.nstant.in.cbor.model.Map();
-    if (!ObjectUtils.isEmpty(amount)) {
-      getCurrencyMap(amount, amountMap);
+      addAmountToCborMap(amount, amountMap);
       if (amount.getValue() != null) {
         amountMap.put(new UnicodeString(Constants.VALUE), new UnicodeString(amount.getValue()));
       }
@@ -469,7 +465,7 @@ public class DataItemEncodeUtil {
     return amountMap;
   }
 
-  public static void getCurrencyMap(Amount amount, co.nstant.in.cbor.model.Map amountMap) {
+  private static void addAmountToCborMap(Amount amount, co.nstant.in.cbor.model.Map amountMap) {
     if (amount.getCurrency() != null) {
       co.nstant.in.cbor.model.Map currencyMap = new co.nstant.in.cbor.model.Map();
       if (amount.getCurrency().getSymbol() != null) {
@@ -491,7 +487,7 @@ public class DataItemEncodeUtil {
     }
   }
 
-  public static co.nstant.in.cbor.model.Map getPublicKeymap(PublicKey publicKey) {
+  private static co.nstant.in.cbor.model.Map publicKeyToCborMap(PublicKey publicKey) {
     co.nstant.in.cbor.model.Map stakingCredentialMap = new co.nstant.in.cbor.model.Map();
     stakingCredentialMap.put(new UnicodeString(Constants.HEX_BYTES),
         new UnicodeString(ObjectUtils.isEmpty(publicKey) ? null : publicKey.getHexBytes()));

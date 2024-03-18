@@ -19,6 +19,7 @@ import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.TransactionExtraData;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.UnsignedTransaction;
 import org.cardanofoundation.rosetta.common.services.CardanoAddressService;
+import org.cardanofoundation.rosetta.common.services.CardanoConfigService;
 import org.cardanofoundation.rosetta.common.services.CardanoService;
 import org.cardanofoundation.rosetta.api.construction.service.ConstructionApiService;
 import org.cardanofoundation.rosetta.common.services.LedgerDataProviderService;
@@ -38,6 +39,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
   private final CardanoAddressService cardanoAddressService;
   private final CardanoService cardanoService;
   private final LedgerDataProviderService ledgerService;
+  private final CardanoConfigService cardanoConfigService;
   private final DataMapper dataMapper;
 
   @Override
@@ -116,27 +118,46 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
       throws CborException, AddressExcepion, IOException, CborSerializationException {
     int ttl = constructionPayloadsRequest.getMetadata().getTtl();
     List<Operation> operations = constructionPayloadsRequest.getOperations();
-    for (int i = 0; i < operations.size(); i++) {
-      if (operations.get(0).getOperationIdentifier() == null) {
-        throw ExceptionFactory.unspecifiedError(
-            "body[" + i + "]" + " should have required property operation_identifier");
-      }
-    }
+
+    checkOperationsHaveIdentifier(operations);
+
     NetworkIdentifierType networkIdentifier = NetworkIdentifierType.findByName(constructionPayloadsRequest.getNetworkIdentifier().getNetwork());
     log.info(operations + "[constuctionPayloads] Operations about to be processed");
+
     ProtocolParameters protocolParameters = constructionPayloadsRequest.getMetadata()
         .getProtocolParameters();
+    String keyDeposit;
+    String poolDeposit;
+    // TODO need to convert OpenAPI ProcotolParameters to domain ProtocolParams. Then merge with the one from indexer/config
+    if(protocolParameters != null) {
+      keyDeposit = protocolParameters.getKeyDeposit();
+      poolDeposit = protocolParameters.getPoolDeposit();
+    } else {
+      ProtocolParams protocolParametersFromIndexerAndConfig = ledgerService.findProtocolParametersFromIndexerAndConfig();
+      keyDeposit = protocolParametersFromIndexerAndConfig.getKeyDeposit().toString();
+      poolDeposit = protocolParametersFromIndexerAndConfig.getPoolDeposit().toString();
+    }
+    
     UnsignedTransaction unsignedTransaction = cardanoService.createUnsignedTransaction(
         networkIdentifier, operations, ttl,
-        new DepositParameters(protocolParameters.getKeyDeposit(),
-            protocolParameters.getPoolDeposit()));
+        new DepositParameters(keyDeposit,
+            poolDeposit));
     List<SigningPayload> payloads = cardanoService.constructPayloadsForTransactionBody(
         unsignedTransaction.getHash(), unsignedTransaction.getAddresses());
     String unsignedTransactionString = DataItemEncodeUtil.encodeExtraData(
         unsignedTransaction.getBytes(),
-        new TransactionExtraData(constructionPayloadsRequest.getOperations(),
-            unsignedTransaction.getMetadata()));
+        constructionPayloadsRequest.getOperations(),
+            unsignedTransaction.getMetadata());
     return new ConstructionPayloadsResponse(unsignedTransactionString, payloads);
+  }
+
+  private static void checkOperationsHaveIdentifier(List<Operation> operations) {
+    for (int i = 0; i < operations.size(); i++) {
+      if (operations.get(i).getOperationIdentifier() == null) {
+        throw ExceptionFactory.unspecifiedError(
+            "body[" + i + "]" + " should have required property operation_identifier");
+      }
+    }
   }
 
   @Override
