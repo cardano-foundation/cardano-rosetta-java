@@ -7,8 +7,8 @@ import java.util.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
-import org.cardanofoundation.rosetta.api.account.model.dto.AddressBalanceDTO;
-import org.cardanofoundation.rosetta.api.account.model.dto.UtxoDto;
+import org.cardanofoundation.rosetta.api.account.model.domain.AddressBalance;
+import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.account.model.repository.AddressBalanceRepository;
 import org.cardanofoundation.rosetta.api.account.model.repository.AddressUtxoRepository;
 import org.cardanofoundation.rosetta.api.account.model.entity.AddressBalanceEntity;
@@ -94,8 +94,8 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
     return null;
   }
 
-  private void populateUtxos(List<UtxoDto> inputs) {
-    for (UtxoDto utxo : inputs) {
+  private void populateUtxos(List<Utxo> inputs) {
+    for (Utxo utxo : inputs) {
       AddressUtxoEntity first = addressUtxoRepository.findAddressUtxoEntitiesByOutputIndexAndTxHash(utxo.getOutputIndex(), utxo.getTxHash()).getFirst();
       if(first != null) {
         utxo.populateFromUtxoEntity(first);
@@ -104,9 +104,9 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
   }
 
   @Override
-  public List<AddressBalanceDTO> findBalanceByAddressAndBlock(String address, Long number) {
+  public List<AddressBalance> findBalanceByAddressAndBlock(String address, Long number) {
     List<AddressBalanceEntity> balances = addressBalanceRepository.findAddressBalanceByAddressAndBlockNumber(address, number);
-    return balances.stream().map(AddressBalanceDTO::fromEntity).toList();
+    return balances.stream().map(AddressBalance::fromEntity).toList();
   }
 
   @Override
@@ -121,9 +121,9 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
   }
 
   @Override
-  public List<UtxoDto> findUtxoByAddressAndCurrency(String address, List<Currency> currencies) {
+  public List<Utxo> findUtxoByAddressAndCurrency(String address, List<Currency> currencies) {
     List<AddressUtxoEntity> addressUtxoEntities = addressUtxoRepository.findUtxosByAddress(address);
-    List<UtxoDto> utxos = new ArrayList<>();
+    List<Utxo> utxos = new ArrayList<>();
     for(AddressUtxoEntity entity : addressUtxoEntities) {
       List<Amt> amountsToAdd = new ArrayList<>();
       for(Amt amt : entity.getAmounts()) {
@@ -132,9 +132,9 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
           amountsToAdd.add(amt);
         }
       }
-      UtxoDto utxoDto = UtxoDto.fromUtxoKey(UtxoKey.builder().outputIndex(entity.getOutputIndex()).txHash(entity.getTxHash()).build());
-      utxoDto.setAmounts(amountsToAdd);
-      utxos.add(utxoDto);
+      Utxo utxoModel = Utxo.fromUtxoKey(UtxoKey.builder().outputIndex(entity.getOutputIndex()).txHash(entity.getTxHash()).build());
+      utxoModel.setAmounts(amountsToAdd);
+      utxos.add(utxoModel);
     }
     return utxos;
   }

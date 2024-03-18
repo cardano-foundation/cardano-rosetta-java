@@ -14,7 +14,7 @@ import org.openapitools.client.model.AccountCoinsResponse;
 import org.openapitools.client.model.Currency;
 import org.openapitools.client.model.PartialBlockIdentifier;
 
-import org.cardanofoundation.rosetta.api.account.model.dto.UtxoDto;
+import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.account.service.AccountService;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.service.BlockService;
@@ -70,7 +70,7 @@ public class AccountServiceImpl implements AccountService {
     log.debug("[accountCoins] Filter currency is {}", currenciesRequested);
     Block latestBlock = ledgerDataProviderService.findLatestBlock();
     log.debug("[accountCoins] Latest block is {}", latestBlock);
-    List<UtxoDto> utxos = ledgerDataProviderService.findUtxoByAddressAndCurrency(accountAddress,
+    List<Utxo> utxos = ledgerDataProviderService.findUtxoByAddressAndCurrency(accountAddress,
         currenciesRequested);
     log.debug("[accountCoins] found {} Utxos for Address {}", utxos.size(), accountAddress);
     return DataMapper.mapToAccountCoinsResponse(latestBlock, utxos);

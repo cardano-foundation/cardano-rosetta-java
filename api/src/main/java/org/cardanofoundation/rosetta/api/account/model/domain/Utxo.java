@@ -1,4 +1,4 @@
-package org.cardanofoundation.rosetta.api.account.model.dto;
+package org.cardanofoundation.rosetta.api.account.model.domain;
 
 import java.math.BigInteger;
 import java.util.List;
@@ -16,7 +16,7 @@ import org.cardanofoundation.rosetta.api.block.model.entity.UtxoKey;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class UtxoDto {
+public class Utxo {
 
   private String txHash;
   private Integer outputIndex;
@@ -36,13 +36,13 @@ public class UtxoDto {
   private String referenceScriptHash;
   private Boolean isCollateralReturn;
 
-  public UtxoDto(String txHash, Integer outputIndex) {
+  public Utxo(String txHash, Integer outputIndex) {
     this.txHash = txHash;
     this.outputIndex = outputIndex;
   }
 
-  public static UtxoDto fromUtxoKey(UtxoKey utxoKey) {
-    return new UtxoDto(utxoKey.getTxHash(), utxoKey.getOutputIndex());
+  public static Utxo fromUtxoKey(UtxoKey utxoKey) {
+    return new Utxo(utxoKey.getTxHash(), utxoKey.getOutputIndex());
   }
 
   public void populateFromUtxoEntity(AddressUtxoEntity entity) {

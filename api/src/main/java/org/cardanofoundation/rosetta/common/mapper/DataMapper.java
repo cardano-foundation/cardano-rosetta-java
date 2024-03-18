@@ -3,8 +3,8 @@ package org.cardanofoundation.rosetta.common.mapper;
 import com.bloxbean.cardano.client.common.model.Network;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Hex;
-import org.cardanofoundation.rosetta.api.account.model.dto.AddressBalanceDTO;
-import org.cardanofoundation.rosetta.api.account.model.dto.UtxoDto;
+import org.cardanofoundation.rosetta.api.account.model.domain.AddressBalance;
+import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.block.model.domain.*;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.Transaction;
@@ -190,8 +190,8 @@ public class DataMapper {
    * @param balances The balances of the addresses
    * @return The Rosetta compatible AccountBalanceResponse
    */
-  public static AccountBalanceResponse mapToAccountBalanceResponse(Block block, List<AddressBalanceDTO> balances) {
-    List<AddressBalanceDTO> nonLovelaceBalances = balances.stream().filter(balance -> !balance.assetName().equals(Constants.LOVELACE)).toList();
+  public static AccountBalanceResponse mapToAccountBalanceResponse(Block block, List<AddressBalance> balances) {
+    List<AddressBalance> nonLovelaceBalances = balances.stream().filter(balance -> !balance.assetName().equals(Constants.LOVELACE)).toList();
     long sum = balances.stream().filter(balance -> balance.assetName().equals(Constants.LOVELACE)).mapToLong(value -> value.quantity().longValue()).sum();
     List<Amount> amounts = new ArrayList<>();
     if (sum > 0) {
@@ -218,7 +218,7 @@ public class DataMapper {
   }
 
   public static AccountCoinsResponse mapToAccountCoinsResponse(Block block,
-      List<UtxoDto> utxos) {
+      List<Utxo> utxos) {
     return AccountCoinsResponse.builder()
         .blockIdentifier(BlockIdentifier.builder()
             .hash(block.getHash())
