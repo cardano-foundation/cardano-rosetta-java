@@ -16,19 +16,17 @@ import org.cardanofoundation.rosetta.common.mapper.DataMapper;
 import org.cardanofoundation.rosetta.common.enumeration.AddressType;
 
 import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
-import org.cardanofoundation.rosetta.common.model.cardano.transaction.TransactionExtraData;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.UnsignedTransaction;
 import org.cardanofoundation.rosetta.common.services.CardanoAddressService;
 import org.cardanofoundation.rosetta.common.services.CardanoConfigService;
 import org.cardanofoundation.rosetta.common.services.CardanoService;
 import org.cardanofoundation.rosetta.api.construction.service.ConstructionApiService;
 import org.cardanofoundation.rosetta.common.services.LedgerDataProviderService;
-import org.cardanofoundation.rosetta.common.util.DataItemEncodeUtil;
+import org.cardanofoundation.rosetta.common.util.CborEncodeUtil;
 import org.openapitools.client.model.*;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 
 @Service
@@ -144,7 +142,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
             poolDeposit));
     List<SigningPayload> payloads = cardanoService.constructPayloadsForTransactionBody(
         unsignedTransaction.getHash(), unsignedTransaction.getAddresses());
-    String unsignedTransactionString = DataItemEncodeUtil.encodeExtraData(
+    String unsignedTransactionString = CborEncodeUtil.encodeExtraData(
         unsignedTransaction.getBytes(),
         constructionPayloadsRequest.getOperations(),
             unsignedTransaction.getMetadata());

@@ -24,9 +24,9 @@ import org.openapitools.client.model.PublicKey;
 import org.openapitools.client.model.TokenBundleItem;
 import org.openapitools.client.model.VoteRegistrationMetadata;
 
-public class DataItemEncodeUtil {
+public class CborEncodeUtil {
 
-  private DataItemEncodeUtil() {
+  private CborEncodeUtil() {
 
   }
 
