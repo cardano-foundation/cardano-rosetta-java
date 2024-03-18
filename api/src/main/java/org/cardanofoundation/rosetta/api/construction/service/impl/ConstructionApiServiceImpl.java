@@ -135,7 +135,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
       keyDeposit = protocolParametersFromIndexerAndConfig.getKeyDeposit().toString();
       poolDeposit = protocolParametersFromIndexerAndConfig.getPoolDeposit().toString();
     }
-    
+
     UnsignedTransaction unsignedTransaction = cardanoService.createUnsignedTransaction(
         networkIdentifier, operations, ttl,
         new DepositParameters(keyDeposit,
