@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
-import org.cardanofoundation.rosetta.api.account.model.dto.UtxoDto;
+import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.common.enumeration.CatalystDataIndexes;
 import org.cardanofoundation.rosetta.common.enumeration.CatalystSigIndexes;
 import org.openapitools.client.model.Currency;
@@ -113,7 +113,7 @@ public class Validations {
   }
 
 
-  public static boolean areEqualUtxos(UtxoDto firstUtxo, UtxoDto secondUtxo) {
+  public static boolean areEqualUtxos(Utxo firstUtxo, Utxo secondUtxo) {
     return Objects.equals(firstUtxo.getOutputIndex(), secondUtxo.getOutputIndex())
         && Objects.equals(firstUtxo.getTxHash(), secondUtxo.getTxHash());
   }

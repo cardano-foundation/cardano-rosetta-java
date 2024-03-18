@@ -7,7 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
-import org.cardanofoundation.rosetta.api.account.model.dto.UtxoDto;
+import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.block.model.entity.TxnEntity;
 
 @Data
@@ -23,8 +23,8 @@ public class Transaction {
   protected Long size;
   protected Boolean validContract;
   protected Long scriptSize;
-  protected List<UtxoDto> inputs;
-  protected List<UtxoDto> outputs;
+  protected List<Utxo> inputs;
+  protected List<Utxo> outputs;
   protected List<StakeRegistration> stakeRegistrations;
   protected List<Delegation> delegations;
   protected List<PoolRegistration> poolRegistrations;
@@ -41,8 +41,8 @@ public class Transaction {
         .validContract(txnEntity.getInvalid())
         .scriptSize(0L) // TODO
         .inputs(
-            txnEntity.getInputKeys().stream().map(utxoKey -> UtxoDto.fromUtxoKey(utxoKey)).toList())
-        .outputs(txnEntity.getOutputKeys().stream().map(utxoKey -> UtxoDto.fromUtxoKey(utxoKey))
+            txnEntity.getInputKeys().stream().map(utxoKey -> Utxo.fromUtxoKey(utxoKey)).toList())
+        .outputs(txnEntity.getOutputKeys().stream().map(utxoKey -> Utxo.fromUtxoKey(utxoKey))
             .toList())
         .build();
   }

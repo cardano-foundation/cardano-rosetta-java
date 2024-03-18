@@ -7,7 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
-import org.cardanofoundation.rosetta.api.account.model.dto.UtxoDto;
+import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 
 @Data
 @AllArgsConstructor
@@ -16,5 +16,5 @@ import org.cardanofoundation.rosetta.api.account.model.dto.UtxoDto;
 public class BlockUtxos {
 
   Block block;
-  List<UtxoDto> utxos;
+  List<Utxo> utxos;
 }

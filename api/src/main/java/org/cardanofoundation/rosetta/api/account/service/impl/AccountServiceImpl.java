@@ -2,19 +2,27 @@ package org.cardanofoundation.rosetta.api.account.service.impl;
 
 import java.util.List;
 import java.util.Objects;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.stereotype.Service;
+import org.openapitools.client.model.AccountBalanceRequest;
+import org.openapitools.client.model.AccountBalanceResponse;
+import org.openapitools.client.model.AccountCoinsRequest;
+import org.openapitools.client.model.AccountCoinsResponse;
+import org.openapitools.client.model.Currency;
+import org.openapitools.client.model.PartialBlockIdentifier;
+
+import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
+import org.cardanofoundation.rosetta.api.account.service.AccountService;
+import org.cardanofoundation.rosetta.api.block.model.domain.Block;
+import org.cardanofoundation.rosetta.api.block.service.BlockService;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.mapper.DataMapper;
-import org.cardanofoundation.rosetta.api.block.model.domain.Block;
-import org.cardanofoundation.rosetta.api.account.model.dto.UtxoDto;
-import org.cardanofoundation.rosetta.api.account.service.AccountService;
-import org.cardanofoundation.rosetta.api.block.service.BlockService;
 import org.cardanofoundation.rosetta.common.services.LedgerDataProviderService;
 import org.cardanofoundation.rosetta.common.util.CardanoAddressUtils;
 import org.cardanofoundation.rosetta.common.util.Validations;
-import org.openapitools.client.model.*;
-import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
@@ -32,17 +40,15 @@ public class AccountServiceImpl implements AccountService {
     if (Objects.isNull(CardanoAddressUtils.getEraAddressType(accountAddress))) {
       throw ExceptionFactory.invalidAddressError(accountAddress);
     }
-    log.info(
-        "[accountBalance] Looking for block: {} || latest}",
-        accountBalanceRequest.getBlockIdentifier());
+    PartialBlockIdentifier blockIdentifier = accountBalanceRequest.getBlockIdentifier();
+    log.info("[accountBalance] Looking for block: {} || latest}", blockIdentifier);
 
-    if (Objects.nonNull(accountBalanceRequest.getBlockIdentifier())) {
-      index = accountBalanceRequest.getBlockIdentifier().getIndex();
-      hash = accountBalanceRequest.getBlockIdentifier().getHash();
+    if (Objects.nonNull(blockIdentifier)) {
+      index = blockIdentifier.getIndex();
+      hash = blockIdentifier.getHash();
     }
 
     return blockService.findBalanceDataByAddressAndBlock(accountAddress, index, hash);
-
   }
 
   @Override
@@ -50,7 +56,6 @@ public class AccountServiceImpl implements AccountService {
     String accountAddress = accountCoinsRequest.getAccountIdentifier().getAddress();
     List<Currency> currencies = accountCoinsRequest.getCurrencies();
 //    accountCoinsRequest.getIncludeMempool(); // TODO
-
 
     log.debug("[accountCoins] Request received {}", accountCoinsRequest);
     if (Objects.isNull(CardanoAddressUtils.getEraAddressType(accountAddress))) {
@@ -65,7 +70,8 @@ public class AccountServiceImpl implements AccountService {
     log.debug("[accountCoins] Filter currency is {}", currenciesRequested);
     Block latestBlock = ledgerDataProviderService.findLatestBlock();
     log.debug("[accountCoins] Latest block is {}", latestBlock);
-    List<UtxoDto> utxos = ledgerDataProviderService.findUtxoByAddressAndCurrency(accountAddress, currenciesRequested);
+    List<Utxo> utxos = ledgerDataProviderService.findUtxoByAddressAndCurrency(accountAddress,
+        currenciesRequested);
     log.debug("[accountCoins] found {} Utxos for Address {}", utxos.size(), accountAddress);
     return DataMapper.mapToAccountCoinsResponse(latestBlock, utxos);
   }
