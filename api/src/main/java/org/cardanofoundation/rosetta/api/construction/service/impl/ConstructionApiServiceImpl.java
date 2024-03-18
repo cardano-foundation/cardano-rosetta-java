@@ -5,6 +5,7 @@ import co.nstant.in.cbor.model.Array;
 import co.nstant.in.cbor.model.UnicodeString;
 import com.bloxbean.cardano.client.exception.AddressExcepion;
 import com.bloxbean.cardano.client.exception.CborSerializationException;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
@@ -15,10 +16,13 @@ import org.cardanofoundation.rosetta.common.mapper.DataMapper;
 import org.cardanofoundation.rosetta.common.enumeration.AddressType;
 
 import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
+import org.cardanofoundation.rosetta.common.model.cardano.transaction.TransactionExtraData;
+import org.cardanofoundation.rosetta.common.model.cardano.transaction.UnsignedTransaction;
 import org.cardanofoundation.rosetta.common.services.CardanoAddressService;
 import org.cardanofoundation.rosetta.common.services.CardanoService;
 import org.cardanofoundation.rosetta.api.construction.service.ConstructionApiService;
 import org.cardanofoundation.rosetta.common.services.LedgerDataProviderService;
+import org.cardanofoundation.rosetta.common.util.DataItemEncodeUtil;
 import org.openapitools.client.model.*;
 import org.springframework.stereotype.Service;
 
@@ -108,8 +112,31 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
 
   @Override
   public ConstructionPayloadsResponse constructionPayloadsService(
-      ConstructionPayloadsRequest constructionPayloadsRequest) {
-    return null;
+      ConstructionPayloadsRequest constructionPayloadsRequest)
+      throws CborException, AddressExcepion, IOException, CborSerializationException {
+    int ttl = constructionPayloadsRequest.getMetadata().getTtl();
+    List<Operation> operations = constructionPayloadsRequest.getOperations();
+    for (int i = 0; i < operations.size(); i++) {
+      if (operations.get(0).getOperationIdentifier() == null) {
+        throw ExceptionFactory.unspecifiedError(
+            "body[" + i + "]" + " should have required property operation_identifier");
+      }
+    }
+    NetworkIdentifierType networkIdentifier = NetworkIdentifierType.findByName(constructionPayloadsRequest.getNetworkIdentifier().getNetwork());
+    log.info(operations + "[constuctionPayloads] Operations about to be processed");
+    ProtocolParameters protocolParameters = constructionPayloadsRequest.getMetadata()
+        .getProtocolParameters();
+    UnsignedTransaction unsignedTransaction = cardanoService.createUnsignedTransaction(
+        networkIdentifier, operations, ttl,
+        new DepositParameters(protocolParameters.getKeyDeposit(),
+            protocolParameters.getPoolDeposit()));
+    List<SigningPayload> payloads = cardanoService.constructPayloadsForTransactionBody(
+        unsignedTransaction.getHash(), unsignedTransaction.getAddresses());
+    String unsignedTransactionString = DataItemEncodeUtil.encodeExtraData(
+        unsignedTransaction.getBytes(),
+        new TransactionExtraData(constructionPayloadsRequest.getOperations(),
+            unsignedTransaction.getMetadata()));
+    return new ConstructionPayloadsResponse(unsignedTransactionString, payloads);
   }
 
   @Override

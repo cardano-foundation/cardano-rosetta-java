@@ -37,8 +37,11 @@ import org.cardanofoundation.rosetta.common.util.CardanoAddressUtil;
 import org.cardanofoundation.rosetta.common.util.Constants;
 import org.cardanofoundation.rosetta.common.util.OperationParseUtil;
 import org.cardanofoundation.rosetta.common.util.ValidateParseUtil;
+import org.openapitools.client.model.AccountIdentifier;
 import org.openapitools.client.model.DepositParameters;
 import org.openapitools.client.model.Operation;
+import org.openapitools.client.model.SignatureType;
+import org.openapitools.client.model.SigningPayload;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -239,7 +242,8 @@ public class CardanoServiceImpl implements CardanoService {
         }
     }
 
-    private UnsignedTransaction createUnsignedTransaction(NetworkIdentifierType networkIdentifierType, List<Operation> operations, int ttl, DepositParameters depositParameters) throws IOException, CborSerializationException, AddressExcepion, CborException {
+    public UnsignedTransaction createUnsignedTransaction(NetworkIdentifierType networkIdentifierType, List<Operation> operations, int ttl, DepositParameters depositParameters)
+        throws IOException, CborSerializationException, AddressExcepion, CborException {
         log.info("[createUnsignedTransaction] About to create an unsigned transaction with {} operations", operations.size());
         ProcessOperationsReturn processOperationsReturnDto = processOperations(networkIdentifierType, operations, depositParameters);
 
@@ -279,6 +283,14 @@ public class CardanoServiceImpl implements CardanoService {
         }
         log.info(toReturn + "[createUnsignedTransaction] Returning unsigned transaction, hash to sign and addresses that will sign hash");
         return toReturn;
+    }
+
+    @Override
+    public List<SigningPayload> constructPayloadsForTransactionBody(String transactionBodyHash,
+        Set<String> addresses) {
+        return addresses.stream().map(
+            address -> new SigningPayload(null, new AccountIdentifier(address, null, null), transactionBodyHash,
+                SignatureType.ED25519)).toList();
     }
 
     private ProcessOperationsReturn processOperations(NetworkIdentifierType networkIdentifierType, List<Operation> operations, DepositParameters depositParameters) throws IOException {
