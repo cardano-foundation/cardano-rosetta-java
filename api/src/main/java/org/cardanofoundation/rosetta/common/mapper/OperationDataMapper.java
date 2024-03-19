@@ -20,7 +20,7 @@ import org.openapitools.client.model.Operation;
 import org.openapitools.client.model.OperationIdentifier;
 import org.openapitools.client.model.OperationStatus;
 
-import org.cardanofoundation.rosetta.api.account.model.dto.UtxoDto;
+import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.account.model.entity.Amt;
 import org.cardanofoundation.rosetta.api.block.model.domain.Delegation;
 import org.cardanofoundation.rosetta.api.block.model.domain.PoolRegistration;
@@ -92,17 +92,17 @@ public class OperationDataMapper {
     public static List<Operation> getInputTransactionsasOperations(Transaction transactionDto, OperationStatus status) {
         List<Operation> inputsAsOperations = IntStream.range(0, transactionDto.getInputs().size())
                 .mapToObj(index -> {
-                    UtxoDto utxoDto = transactionDto.getInputs().get(index);
+                    Utxo utxoModel = transactionDto.getInputs().get(index);
                     return createOperation((long) index,
                             Constants.INPUT,
                             status.getStatus(),
-                            utxoDto.getOwnerAddr(),
-                            DataMapper.mapValue(utxoDto.getLovelaceAmount().toString(), true),
+                            utxoModel.getOwnerAddr(),
+                            DataMapper.mapValue(utxoModel.getLovelaceAmount().toString(), true),
                             null,
                             null,
-                            DataMapper.getCoinChange(utxoDto.getOutputIndex(), utxoDto.getTxHash(),
+                            DataMapper.getCoinChange(utxoModel.getOutputIndex(), utxoModel.getTxHash(),
                                     CoinAction.SPENT),
-                            mapToOperationMetaData(true, utxoDto.getAmounts()));
+                            mapToOperationMetaData(true, utxoModel.getAmounts()));
                 }).toList();
         return inputsAsOperations;
     }
@@ -199,17 +199,17 @@ public class OperationDataMapper {
     public static List<Operation> getOutputsAsOperations(Transaction transaction, List<List<Operation>> totalOperations, OperationStatus status, List<OperationIdentifier> relatedOperations) {
         List<Operation> outputsAsOperations = IntStream.range(0, transaction.getOutputs().size())
                 .mapToObj(index -> {
-                    UtxoDto utxoDto = transaction.getOutputs().get(index);
+                    Utxo utxoModel = transaction.getOutputs().get(index);
                     return createOperation(getOperationCurrentIndex(totalOperations, index),
                             Constants.OUTPUT,
                             status.getStatus(),
-                            utxoDto.getOwnerAddr(),
-                            DataMapper.mapValue(utxoDto.getLovelaceAmount().toString(), false),
+                            utxoModel.getOwnerAddr(),
+                            DataMapper.mapValue(utxoModel.getLovelaceAmount().toString(), false),
                             relatedOperations,
-                            Long.valueOf(utxoDto.getOutputIndex()),
-                            DataMapper.getCoinChange(utxoDto.getOutputIndex(), utxoDto.getTxHash(),
+                            Long.valueOf(utxoModel.getOutputIndex()),
+                            DataMapper.getCoinChange(utxoModel.getOutputIndex(), utxoModel.getTxHash(),
                                     CoinAction.CREATED),
-                            mapToOperationMetaData(false, utxoDto.getAmounts()));
+                            mapToOperationMetaData(false, utxoModel.getAmounts()));
                 }).toList();
         return outputsAsOperations;
     }

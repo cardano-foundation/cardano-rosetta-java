@@ -1,19 +1,27 @@
 package org.cardanofoundation.rosetta.api.account.model.entity;
 
-import io.hypersistence.utils.hibernate.type.json.JsonType;
-import jakarta.persistence.*;
+import java.math.BigInteger;
+import java.util.List;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.IdClass;
+import jakarta.persistence.Table;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
-import org.cardanofoundation.rosetta.api.block.model.entity.BlockAwareEntity;
+
+import io.hypersistence.utils.hibernate.type.json.JsonType;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Type;
 
-import java.math.BigInteger;
-import java.util.List;
+import org.cardanofoundation.rosetta.api.block.model.entity.BlockAwareEntity;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder
@@ -22,56 +30,58 @@ import java.util.List;
 @IdClass(UtxoId.class)
 @DynamicUpdate
 public class AddressUtxoEntity extends BlockAwareEntity {
-    @Id
-    @Column(name = "tx_hash")
-    private String txHash;
-    @Id
-    @Column(name = "output_index")
-    private Integer outputIndex;
 
-    @Column(name = "slot")
-    private Long slot;
+  @Id
+  @Column(name = "tx_hash")
+  private String txHash;
 
-    @Column(name = "block_hash")
-    private String blockHash;
+  @Id
+  @Column(name = "output_index")
+  private Integer outputIndex;
 
-    @Column(name = "epoch")
-    private Integer epoch;
+  @Column(name = "slot")
+  private Long slot;
 
-    @Column(name = "owner_addr")
-    private String ownerAddr;
+  @Column(name = "block_hash")
+  private String blockHash;
 
-    //Only set if address doesn't fit in ownerAddr field. Required for few Byron Era addr
-    @Column(name = "owner_addr_full")
-    private String ownerAddrFull;
+  @Column(name = "epoch")
+  private Integer epoch;
 
-    @Column(name = "owner_stake_addr")
-    private String ownerStakeAddr;
+  @Column(name = "owner_addr")
+  private String ownerAddr;
 
-    @Column(name = "owner_payment_credential")
-    private String ownerPaymentCredential;
+  //Only set if address doesn't fit in ownerAddr field. Required for few Byron Era addr
+  @Column(name = "owner_addr_full")
+  private String ownerAddrFull;
 
-    @Column(name = "owner_stake_credential")
-    private String ownerStakeCredential;
+  @Column(name = "owner_stake_addr")
+  private String ownerStakeAddr;
 
-    @Column(name = "lovelace_amount")
-    private BigInteger lovelaceAmount;
+  @Column(name = "owner_payment_credential")
+  private String ownerPaymentCredential;
 
-    @Type(JsonType.class)
-    private List<Amt> amounts;
+  @Column(name = "owner_stake_credential")
+  private String ownerStakeCredential;
 
-    @Column(name = "data_hash")
-    private String dataHash;
+  @Column(name = "lovelace_amount")
+  private BigInteger lovelaceAmount;
 
-    @Column(name = "inline_datum")
-    private String inlineDatum;
+  @Type(JsonType.class)
+  private List<Amt> amounts;
 
-    @Column(name = "script_ref")
-    private String scriptRef;
+  @Column(name = "data_hash")
+  private String dataHash;
 
-    @Column(name = "reference_script_hash")
-    private String referenceScriptHash;
+  @Column(name = "inline_datum")
+  private String inlineDatum;
 
-    @Column(name = "is_collateral_return")
-    private Boolean isCollateralReturn;
+  @Column(name = "script_ref")
+  private String scriptRef;
+
+  @Column(name = "reference_script_hash")
+  private String referenceScriptHash;
+
+  @Column(name = "is_collateral_return")
+  private Boolean isCollateralReturn;
 }
