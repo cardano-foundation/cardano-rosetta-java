@@ -197,8 +197,8 @@ public class DataMapper {
     if (sum > 0) {
       amounts.add(mapAmount(String.valueOf(sum)));
     }
-    nonLovelaceBalances.forEach(balance -> amounts.add(mapAmount(balance.getQuantity().toString(), Hex.encodeHexString(balance.getAssetName().getBytes()), Constants.MULTI_ASSET_DECIMALS, new CurrencyMetadata(
-        balance.getPolicy()))));
+    nonLovelaceBalances.forEach(balance -> amounts.add(mapAmount(balance.quantity().toString(), Hex.encodeHexString(balance.assetName().getBytes()), Constants.MULTI_ASSET_DECIMALS, new CurrencyMetadata(
+        balance.policy()))));
     return AccountBalanceResponse.builder()
             .blockIdentifier(BlockIdentifier.builder()
                     .hash(block.getHash())
