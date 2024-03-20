@@ -10,6 +10,7 @@ import com.bloxbean.cardano.client.transaction.spec.TransactionOutput;
 import com.bloxbean.cardano.client.transaction.spec.Value;
 import com.bloxbean.cardano.client.transaction.spec.cert.PoolRegistration;
 import com.bloxbean.cardano.client.util.HexUtil;
+import java.math.BigInteger;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
@@ -168,8 +169,8 @@ public class ValidateParseUtil {
         }
     }
 
-    public static String validateValueAmount(Operation operation) {
-        return ObjectUtils.isEmpty(operation.getAmount()) ? null : operation.getAmount().getValue();
+    public static BigInteger validateValueAmount(Operation operation) {
+        return ObjectUtils.isEmpty(operation.getAmount()) ? null : new BigInteger(operation.getAmount().getValue());
     }
 
     public static void validateChainCode(String chainCode) {
@@ -228,11 +229,11 @@ public class ValidateParseUtil {
             }
         }
         try {
-            PoolRegistationParametersReturn poolRegistationParametersReturnDto = new PoolRegistationParametersReturn();
-            poolRegistationParametersReturnDto.setCost(valueOf(Long.parseLong(poolRegistrationParameters.getCost())));
-            poolRegistationParametersReturnDto.setPledge(valueOf(Long.parseLong(poolRegistrationParameters.getPledge())));
-            poolRegistationParametersReturnDto.setNumerator(valueOf(Long.parseLong(numerator)));
-            poolRegistationParametersReturnDto.setDenominator(valueOf(Long.parseLong(denominator)));
+            PoolRegistationParametersReturn poolRegistationParametersReturnDto = new PoolRegistationParametersReturn(
+                valueOf(Long.parseLong(poolRegistrationParameters.getCost())),
+                valueOf(Long.parseLong(poolRegistrationParameters.getPledge())),
+                valueOf(Long.parseLong(numerator)),
+                valueOf(Long.parseLong(denominator)));
 
             return poolRegistationParametersReturnDto;
         } catch (Exception error) {

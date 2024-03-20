@@ -11,6 +11,9 @@ public class Constants {
   public static final String SINGLE_HOST_ADDR = "single_host_addr";
   public static final String SINGLE_HOST_NAME = "single_host_name";
   public static final String MULTI_HOST_NAME = "multi_host_name";
+  public static final String RELATIVE_TTL = "relative_ttl";
+  public static final String TRANSACTION_SIZE = "transaction_size";
+  public static final int HEX_PREFIX_AND_REWARD_ACCOUNT_LENGTH = 58;
 
   private Constants() {
   }

@@ -6,6 +6,7 @@ import com.bloxbean.cardano.client.exception.CborDeserializationException;
 import com.bloxbean.cardano.client.exception.CborSerializationException;
 import com.bloxbean.cardano.client.transaction.spec.AuxiliaryData;
 import com.bloxbean.cardano.client.transaction.spec.Withdrawal;
+import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
@@ -26,38 +27,31 @@ import org.openapitools.client.model.Operation;
 public class OperationParseUtil {
 
   public static ProcessOperations parseOperation(
-      Operation operation, NetworkIdentifierType networkIdentifierType, ProcessOperations resultAccumulator, String type) throws CborSerializationException, CborDeserializationException, NoSuchAlgorithmException, SignatureException, InvalidKeySpecException, InvalidKeyException {
-    if (type.equals(OperationType.INPUT.getValue())) {
-      return parseTypeInput(operation, resultAccumulator);
-    }
-    if (type.equals(OperationType.OUTPUT.getValue())) {
-      return parseTypeOutput(operation, resultAccumulator);
-    }
-    if (type.equals(OperationType.STAKE_KEY_REGISTRATION.getValue())) {
-      return parseStakeKeyRegistration(operation, resultAccumulator);
-    }
-    if (type.equals(OperationType.STAKE_KEY_DEREGISTRATION.getValue())) {
-      return parseTypeStakeKeyDeregistration(operation, networkIdentifierType, resultAccumulator);
-    }
-    if (type.equals(OperationType.STAKE_DELEGATION.getValue())) {
-      return parseStakeDelegation(operation, networkIdentifierType, resultAccumulator);
-    }
-    if (type.equals(OperationType.WITHDRAWAL.getValue())) {
-      return parseWithdrawal(operation, networkIdentifierType, resultAccumulator);
-    }
-    if (type.equals(OperationType.POOL_REGISTRATION.getValue())) {
-      return parsePoolRegistration(operation, resultAccumulator);
-    }
-    if (type.equals(OperationType.POOL_REGISTRATION_WITH_CERT.getValue())) {
-      return parsePoolRegistrationWithCert(operation, networkIdentifierType, resultAccumulator);
-    }
-    if (type.equals(OperationType.POOL_RETIREMENT.getValue())) {
-      return parsePoolRetirement(operation, resultAccumulator);
-    }
-    if (type.equals(OperationType.VOTE_REGISTRATION.getValue())) {
-      return parseVoteRegistration(operation, resultAccumulator);
-    }
-    return null;
+      Operation operation, NetworkIdentifierType networkIdentifierType, ProcessOperations resultAccumulator, String type) {
+    return switch (OperationType.fromValue(type)) {
+      case OperationType.INPUT ->
+          parseTypeInput(operation, resultAccumulator);
+      case OperationType.OUTPUT ->
+          parseTypeOutput(operation, resultAccumulator);
+      case OperationType.STAKE_KEY_REGISTRATION ->
+          parseStakeKeyRegistration(operation, resultAccumulator);
+      case OperationType.STAKE_KEY_DEREGISTRATION ->
+          parseTypeStakeKeyDeregistration(operation, networkIdentifierType, resultAccumulator);
+      case OperationType.STAKE_DELEGATION ->
+          parseStakeDelegation(operation, networkIdentifierType, resultAccumulator);
+      case OperationType.WITHDRAWAL ->
+          parseWithdrawal(operation, networkIdentifierType, resultAccumulator);
+      case OperationType.POOL_REGISTRATION ->
+          parsePoolRegistration(operation, resultAccumulator);
+      case OperationType.POOL_REGISTRATION_WITH_CERT ->
+          parsePoolRegistrationWithCert(operation, networkIdentifierType, resultAccumulator);
+      case OperationType.POOL_RETIREMENT ->
+          parsePoolRetirement(operation, resultAccumulator);
+      case OperationType.VOTE_REGISTRATION ->
+          parseVoteRegistration(operation, resultAccumulator);
+      case null -> null;
+      // Without the default case, the switch statement would not compile in case of adding a new enum value
+    };
   }
 
   @NotNull
@@ -93,10 +87,10 @@ public class OperationParseUtil {
   @NotNull
   private static ProcessOperations parseTypeStakeKeyDeregistration(Operation operation,
       NetworkIdentifierType networkIdentifierType, ProcessOperations resultAccumulator) {
-    StakeCertificate stakeCertificateDto = ProcessContructionUtil.getStakeCertificateFromOperation(
+    StakeCertificate stakeCertificate = ProcessContructionUtil.getStakeCertificateFromOperation(
         networkIdentifierType, operation);
-    resultAccumulator.getCertificates().add(stakeCertificateDto.getCertificate());
-    resultAccumulator.getAddresses().add(stakeCertificateDto.getAddress());
+    resultAccumulator.getCertificates().add(stakeCertificate.getCertificate());
+    resultAccumulator.getAddresses().add(stakeCertificate.getAddress());
     double stakeNumber = resultAccumulator.getStakeKeyDeRegistrationsCount();
     resultAccumulator.setStakeKeyDeRegistrationsCount(++stakeNumber);
     return resultAccumulator;
@@ -105,25 +99,24 @@ public class OperationParseUtil {
   @NotNull
   private static ProcessOperations parseStakeDelegation(Operation operation,
       NetworkIdentifierType networkIdentifierType, ProcessOperations resultAccumulator) {
-    StakeCertificate stakeCertificateDto = ProcessContructionUtil.getStakeCertificateFromOperation(
+    StakeCertificate stakeCertificate = ProcessContructionUtil.getStakeCertificateFromOperation(
         networkIdentifierType, operation);
-    resultAccumulator.getCertificates().add(stakeCertificateDto.getCertificate());
-    resultAccumulator.getAddresses().add(stakeCertificateDto.getAddress());
+    resultAccumulator.getCertificates().add(stakeCertificate.getCertificate());
+    resultAccumulator.getAddresses().add(stakeCertificate.getAddress());
     return resultAccumulator;
   }
 
   @NotNull
   private static ProcessOperations parseWithdrawal(Operation operation,
       NetworkIdentifierType networkIdentifierType, ProcessOperations resultAccumulator) {
-    ProcessWithdrawalReturn processWithdrawalReturnDto = ProcessContructionUtil.getWithdrawalsReturnFromOperation(
+    ProcessWithdrawalReturn processWithdrawalReturn = ProcessContructionUtil.getWithdrawalsReturnFromOperation(
         networkIdentifierType, operation);
-    String withdrawalAmountString = ValidateParseUtil.validateValueAmount(operation);
-    assert withdrawalAmountString != null;
-    long withdrawalAmount = Long.parseLong(withdrawalAmountString);
+    BigInteger withdrawalAmount = ValidateParseUtil.validateValueAmount(operation);
+    assert withdrawalAmount != null;
     resultAccumulator.getWithdrawalAmounts().add(withdrawalAmount);
-    resultAccumulator.getWithdrawals().add(new Withdrawal(processWithdrawalReturnDto.getReward().getAddress(),
-        valueOf(withdrawalAmount)));
-    resultAccumulator.getAddresses().add(processWithdrawalReturnDto.getAddress());
+    resultAccumulator.getWithdrawals().add(new Withdrawal(processWithdrawalReturn.getReward().getAddress(),
+        withdrawalAmount));
+    resultAccumulator.getAddresses().add(processWithdrawalReturn.getAddress());
     return resultAccumulator;
   }
 
@@ -139,21 +132,21 @@ public class OperationParseUtil {
   @NotNull
   private static ProcessOperations parsePoolRetirement(Operation operation,
       ProcessOperations resultAccumulator) {
-    PoolRetirement poolRetirementDto = ProcessContructionUtil.getPoolRetirementFromOperation(
+    PoolRetirement poolRetirement = ProcessContructionUtil.getPoolRetirementFromOperation(
         operation);
-    resultAccumulator.getCertificates().add(poolRetirementDto.getCertificate());
-    resultAccumulator.getAddresses().add(poolRetirementDto.getPoolKeyHash());
+    resultAccumulator.getCertificates().add(poolRetirement.getCertificate());
+    resultAccumulator.getAddresses().add(poolRetirement.getPoolKeyHash());
     return resultAccumulator;
   }
 
   @NotNull
   private static ProcessOperations parsePoolRegistrationWithCert(Operation operation,
       NetworkIdentifierType networkIdentifierType, ProcessOperations resultAccumulator) {
-    PoolRegistrationCertReturn dto = ProcessContructionUtil.getPoolRegistrationCertFromOperation(
+    PoolRegistrationCertReturn poolRegistrationCertReturn = ProcessContructionUtil.getPoolRegistrationCertFromOperation(
         operation,
         networkIdentifierType);
-    resultAccumulator.getCertificates().add(dto.getCertificate());
-    Set<String> set = dto.getAddress();
+    resultAccumulator.getCertificates().add(poolRegistrationCertReturn.getCertificate());
+    Set<String> set = poolRegistrationCertReturn.getAddress();
     resultAccumulator.getAddresses().addAll(set);
     double poolNumber = resultAccumulator.getPoolRegistrationsCount();
     resultAccumulator.setPoolRegistrationsCount(++poolNumber);
@@ -163,11 +156,11 @@ public class OperationParseUtil {
   @NotNull
   private static ProcessOperations parsePoolRegistration(Operation operation,
       ProcessOperations resultAccumulator) {
-    ProcessPoolRegistrationReturn processPoolRegistrationReturnDto = ProcessContructionUtil.getPoolRegistrationFromOperation(
+    ProcessPoolRegistrationReturn processPoolRegistrationReturn = ProcessContructionUtil.getPoolRegistrationFromOperation(
         operation);
-    resultAccumulator.getCertificates().add(processPoolRegistrationReturnDto.getCertificate());
+    resultAccumulator.getCertificates().add(processPoolRegistrationReturn.getCertificate());
     resultAccumulator.getAddresses()
-        .addAll(processPoolRegistrationReturnDto.getTotalAddresses());
+        .addAll(processPoolRegistrationReturn.getTotalAddresses());
     double poolNumber = resultAccumulator.getPoolRegistrationsCount();
     resultAccumulator.setPoolRegistrationsCount(++poolNumber);
     return resultAccumulator;

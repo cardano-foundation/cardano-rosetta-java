@@ -21,4 +21,13 @@ public enum OperationType {
   public String getValue() {
     return value;
   }
+
+  public static OperationType fromValue(String value) {
+    for (OperationType b : OperationType.values()) {
+      if (b.value.equals(value)) {
+        return b;
+      }
+    }
+    return null;
+  }
 }

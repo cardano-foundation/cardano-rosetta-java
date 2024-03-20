@@ -37,6 +37,7 @@ import org.cardanofoundation.rosetta.common.util.CardanoAddressUtil;
 import org.cardanofoundation.rosetta.common.util.Constants;
 import org.cardanofoundation.rosetta.common.util.OperationParseUtil;
 import org.cardanofoundation.rosetta.common.util.ValidateParseUtil;
+import org.jetbrains.annotations.NotNull;
 import org.openapitools.client.model.DepositParameters;
 import org.openapitools.client.model.Operation;
 import org.springframework.stereotype.Service;
@@ -66,8 +67,8 @@ public class CardanoServiceImpl implements CardanoService {
     private final LedgerDataProviderService ledgerDataProviderService;
 
     @Override
-    public Double calculateRelativeTtl(Double relativeTtl) {
-        return Objects.requireNonNullElse(relativeTtl, Constants.DEFAULT_RELATIVE_TTL);
+    public Double checkOrReturnDefaultTtl(Integer relativeTtl) {
+        return relativeTtl == null ? Constants.DEFAULT_RELATIVE_TTL : relativeTtl.doubleValue();
     }
 
     @Override
@@ -83,7 +84,7 @@ public class CardanoServiceImpl implements CardanoService {
             if (body == null || CborSerializationUtil.serialize(body.serialize()) == null) {
                 hashBuffer = null;
             } else {
-                hashBuffer = Blake2bUtil.blake2bHash256(com.bloxbean.cardano.client.common.cbor.CborSerializationUtil.serialize(body.serialize()));
+                hashBuffer = Blake2bUtil.blake2bHash256(CborSerializationUtil.serialize(body.serialize()));
             }
             return HexUtil.encodeHexString(hashBuffer);
         } catch (Exception error) {
@@ -95,7 +96,7 @@ public class CardanoServiceImpl implements CardanoService {
     @Override
     public Array decodeExtraData(String encoded) {
         try {
-            DataItem dataItem = com.bloxbean.cardano.client.common.cbor.CborSerializationUtil.deserialize(HexUtil.decodeHexString(encoded));
+            DataItem dataItem = CborSerializationUtil.deserialize(HexUtil.decodeHexString(encoded));
             return (Array) dataItem;
         } catch (Exception e) {
             throw ExceptionFactory.cantBuildSignedTransaction();
@@ -110,7 +111,7 @@ public class CardanoServiceImpl implements CardanoService {
 
     @Override
     public Long updateTxSize(Long previousTxSize, Long previousTtl, Long updatedTtl) throws CborException {
-        return previousTxSize + com.bloxbean.cardano.client.common.cbor.CborSerializationUtil.serialize(new UnsignedInteger(updatedTtl)).length - com.bloxbean.cardano.client.common.cbor.CborSerializationUtil.serialize(new UnsignedInteger(previousTtl)).length;
+        return previousTxSize + CborSerializationUtil.serialize(new UnsignedInteger(updatedTtl)).length - CborSerializationUtil.serialize(new UnsignedInteger(previousTtl)).length;
     }
 
     @Override
@@ -126,7 +127,7 @@ public class CardanoServiceImpl implements CardanoService {
         if (!ObjectUtils.isEmpty(eraAddressType) && eraAddressType.equals(EraAddressType.BYRON)) {
             return new Signatures(Constants.BYRON_DUMMY_SIGNATURE, Constants.BYRON_DUMMY_PUBKEY, Constants.CHAIN_CODE_DUMMY, address);
         }
-        if (addressType.getValue().equals(AddressType.POOL_KEY_HASH.getValue())) {
+        if (AddressType.POOL_KEY_HASH.getValue().equals(addressType.getValue())) {
             return new Signatures(Constants.COLD_DUMMY_SIGNATURE, Constants.COLD_DUMMY_PUBKEY, null, address);
         }
         return null;
@@ -170,14 +171,16 @@ public class CardanoServiceImpl implements CardanoService {
             AuxiliaryData auxiliaryData = null;
             if (!ObjectUtils.isEmpty(transactionMetadata)) {
                 log.info("[buildTransaction] Adding transaction metadata");
-                Array array = (Array) com.bloxbean.cardano.client.common.cbor.CborSerializationUtil.deserialize(HexUtil.decodeHexString(transactionMetadata));
+                Array array = (Array) CborSerializationUtil.deserialize(HexUtil.decodeHexString(transactionMetadata));
                 auxiliaryData = AuxiliaryData.deserialize((co.nstant.in.cbor.model.Map) array.getDataItems().getFirst());
             }
             Transaction transaction = Transaction.builder().auxiliaryData(auxiliaryData).witnessSet(witnesses).build();
             transaction.setBody(transactionBody);
-            Array array = (Array) com.bloxbean.cardano.client.common.cbor.CborSerializationUtil.deserialize(transaction.serialize());
+            Array array = (Array) CborSerializationUtil.deserialize(transaction.serialize());
             if (transactionBody.getTtl() == 0) {
                 co.nstant.in.cbor.model.Map dataItem1 = (co.nstant.in.cbor.model.Map) array.getDataItems().getFirst();
+                // Position of ttl in transaction body, it will be discarded while serialization if it's 0, but it needs to be in the datamap
+                // otherwise a wrong hash will be produced.
                 dataItem1.put(new UnsignedInteger(3), new UnsignedInteger(0));
                 array.getDataItems().set(0, dataItem1);
             }
@@ -188,9 +191,12 @@ public class CardanoServiceImpl implements CardanoService {
                 array.getDataItems().set(3, metadataArray);
             }
             return HexUtil.encodeHexString(com.bloxbean.cardano.yaci.core.util.CborSerializationUtil.serialize(array));
-        } catch (Exception error) {
-            log.error(error.getMessage() + "[buildTransaction] There was an error building signed transaction");
-            throw ExceptionFactory.cantBuildSignedTransaction();
+        } catch (CborDeserializationException e) {
+            log.error(e.getMessage() + "[buildTransaction] CborDeserializationException while building transaction");
+            throw new RuntimeException(e);
+        } catch (CborSerializationException e) {
+            log.error(e.getMessage() + "[buildTransaction] CborSerializationException while building transaction");
+          throw new RuntimeException(e);
         }
     }
 
@@ -203,25 +209,21 @@ public class CardanoServiceImpl implements CardanoService {
             log.info("[getWitnessesForTransaction] Extracting witnesses from signatures");
             signaturesList.forEach(signature -> {
                 VerificationKey vkey = new VerificationKey();
-                vkey.setCborHex(ObjectUtils.isEmpty(signature) ? null : signature.getPublicKey());
-                EraAddressType eraAddressType = CardanoAddressUtil.getEraAddressType(signature.getAddress());
+                vkey.setCborHex(ObjectUtils.isEmpty(signature) ? null : signature.publicKey());
+                EraAddressType eraAddressType = CardanoAddressUtil.getEraAddressType(signature.address());
                 if (!ObjectUtils.isEmpty(signature)) {
-                    if (!ObjectUtils.isEmpty(signature.getAddress()) && eraAddressType == EraAddressType.BYRON) {
+                    if (!ObjectUtils.isEmpty(signature.address()) && eraAddressType == EraAddressType.BYRON) {
                         // byron case
-                        ValidateParseUtil.validateChainCode(signature.getChainCode());
-                        ByronAddress byronAddress = new ByronAddress(signature.getAddress());
-                        String str = HexUtil.encodeHexString(byronAddress.getBytes());
-                        String str1 = str.substring(72);
-                        StringBuilder str2 = new StringBuilder(str1);
-                        StringBuilder str3 = str2.reverse();
-                        String str4 = str3.substring(12);
-                        StringBuilder result = new StringBuilder(str4);
-                        BootstrapWitness bootstrap = new BootstrapWitness(HexUtil.decodeHexString(vkey.getCborHex()), HexUtil.decodeHexString(signature.getSignature()),
+                        ValidateParseUtil.validateChainCode(signature.chainCode());
+                        ByronAddress byronAddress = new ByronAddress(signature.address());
+                        String byronAddressTail = HexUtil.encodeHexString(byronAddress.getBytes()).substring(72);
+                        String partOfByronAddress = new StringBuilder(byronAddressTail).reverse().delete(0, 12).reverse().toString();
+                        BootstrapWitness bootstrap = new BootstrapWitness(HexUtil.decodeHexString(vkey.getCborHex()), HexUtil.decodeHexString(signature.signature()),
                                 //revise
-                                HexUtil.decodeHexString(signature.getChainCode()), HexUtil.decodeHexString(result.reverse().toString()));
+                                HexUtil.decodeHexString(signature.chainCode()), HexUtil.decodeHexString(partOfByronAddress));
                         bootstrapWitnesses.add(bootstrap);
                     } else {
-                        vkeyWitnesses.add(new VkeyWitness(HexUtil.decodeHexString(vkey.getCborHex()), HexUtil.decodeHexString(signature.getSignature())));
+                        vkeyWitnesses.add(new VkeyWitness(HexUtil.decodeHexString(vkey.getCborHex()), HexUtil.decodeHexString(signature.signature())));
                     }
                 }
             });
@@ -247,12 +249,9 @@ public class CardanoServiceImpl implements CardanoService {
         BigInteger fee = valueOf(processOperationsReturnDto.getFee());
         TransactionBody transactionBody = TransactionBody.builder().inputs(processOperationsReturnDto.getTransactionInputs()).outputs(processOperationsReturnDto.getTransactionOutputs()).fee(fee).ttl(ttl).build();
 
-        if (!ObjectUtils.isEmpty(processOperationsReturnDto.getVoteRegistrationMetadata())) {
+        if (processOperationsReturnDto.getVoteRegistrationMetadata() != null) {
             log.info("[createUnsignedTransaction] Hashing vote registration metadata and adding to transaction body");
-            AuxiliaryData auxiliaryData = processOperationsReturnDto.getVoteRegistrationMetadata();
-            Array array = new Array();
-            array.add(auxiliaryData.serialize());
-            array.add(new Array());
+            Array array = getArrayOfAuxiliaryData(processOperationsReturnDto);
             transactionBody.setAuxiliaryDataHash(Blake2bUtil.blake2bHash256(com.bloxbean.cardano.yaci.core.util.CborSerializationUtil.serialize(array)));
         }
 
@@ -268,17 +267,24 @@ public class CardanoServiceImpl implements CardanoService {
         }
         String transactionBytes = HexUtil.encodeHexString(com.bloxbean.cardano.yaci.core.util.CborSerializationUtil.serialize(mapCbor));
         log.info("[createUnsignedTransaction] Hashing transaction body");
-        String bodyHash = com.bloxbean.cardano.client.util.HexUtil.encodeHexString(Blake2bUtil.blake2bHash256(com.bloxbean.cardano.client.common.cbor.CborSerializationUtil.serialize(mapCbor)));
+        String bodyHash = com.bloxbean.cardano.client.util.HexUtil.encodeHexString(Blake2bUtil.blake2bHash256(CborSerializationUtil.serialize(mapCbor)));
         UnsignedTransaction toReturn = new UnsignedTransaction(HexUtil.encodeHexString(HexUtil.decodeHexString(bodyHash)), transactionBytes, processOperationsReturnDto.getAddresses(), null);
         if (!ObjectUtils.isEmpty(processOperationsReturnDto.getVoteRegistrationMetadata())) {
-            AuxiliaryData auxiliaryData = processOperationsReturnDto.getVoteRegistrationMetadata();
-            Array array = new Array();
-            array.add(auxiliaryData.serialize());
-            array.add(new Array());
-            toReturn.setMetadata(HexUtil.encodeHexString(com.bloxbean.cardano.yaci.core.util.CborSerializationUtil.serialize(array)));
+            Array array = getArrayOfAuxiliaryData(processOperationsReturnDto);
+            toReturn.setMetadata(HexUtil.encodeHexString(CborSerializationUtil.serialize(array)));
         }
         log.info(toReturn + "[createUnsignedTransaction] Returning unsigned transaction, hash to sign and addresses that will sign hash");
         return toReturn;
+    }
+
+    @NotNull
+    private static Array getArrayOfAuxiliaryData(ProcessOperationsReturn processOperationsReturnDto)
+        throws CborSerializationException {
+        AuxiliaryData auxiliaryData = processOperationsReturnDto.getVoteRegistrationMetadata();
+        Array array = new Array();
+        array.add(auxiliaryData.serialize());
+        array.add(new Array());
+        return array;
     }
 
     private ProcessOperationsReturn processOperations(NetworkIdentifierType networkIdentifierType, List<Operation> operations, DepositParameters depositParameters) throws IOException {
@@ -305,20 +311,10 @@ public class CardanoServiceImpl implements CardanoService {
     }
 
     @Override
-    public Long calculateFee(ArrayList<String> inputAmounts, ArrayList<String> outputAmounts, ArrayList<Long> withdrawalAmounts, Map<String, Double> depositsSumMap) {
-        double inputsSum = 0;
-        for (String i : inputAmounts) {
-            inputsSum += Long.parseLong(i);
-        }
-        inputsSum *= -1;
-        double outputsSum = 0;
-        for (String i : outputAmounts) {
-            outputsSum += Long.parseLong(i);
-        }
-        double withdrawalsSum = 0;
-        for (Long i : withdrawalAmounts) {
-            withdrawalsSum += i;
-        }
+    public Long calculateFee(ArrayList<BigInteger> inputAmounts, ArrayList<BigInteger> outputAmounts, ArrayList<BigInteger> withdrawalAmounts, Map<String, Double> depositsSumMap) {
+        long inputsSum = -1 * inputAmounts.stream().reduce(BigInteger.ZERO, BigInteger::add).longValue();
+        long outputsSum = outputAmounts.stream().reduce(BigInteger.ZERO, BigInteger::add).longValue();
+        long withdrawalsSum = withdrawalAmounts.stream().reduce(BigInteger.ZERO, BigInteger::add).longValue();
         long fee = (long) (inputsSum + withdrawalsSum + depositsSumMap.get("keyRefundsSum") - outputsSum - depositsSumMap.get("keyDepositsSum") - depositsSumMap.get("poolDepositsSum"));
         if (fee < 0) {
             throw ExceptionFactory.outputsAreBiggerThanInputsError();
@@ -332,12 +328,7 @@ public class CardanoServiceImpl implements CardanoService {
 
         for (Operation operation : operations) {
             String type = operation.getType();
-            try {
-                processor = OperationParseUtil.parseOperation(operation, networkIdentifierType, processor, type);
-            } catch (CborSerializationException | CborDeserializationException | NoSuchAlgorithmException |
-                     SignatureException | InvalidKeySpecException | InvalidKeyException e) {
-                throw ExceptionFactory.unspecifiedError(e.getMessage());
-            }
+            processor = OperationParseUtil.parseOperation(operation, networkIdentifierType, processor, type);
             if (ObjectUtils.isEmpty(processor)) {
                 log.error("[processOperations] Operation with id {} has invalid type", operation.getOperationIdentifier());
                 throw ExceptionFactory.invalidOperationTypeError();

@@ -121,7 +121,7 @@ public class ProcessContructionUtil {
                 ObjectUtils.isEmpty(operation.getMetadata()) ? null
                         : operationMetadata.getPoolRegistrationParams();
 
-        PoolRegistationParametersReturn dto = ValidateParseUtil.validateAndParsePoolRegistationParameters(
+        PoolRegistationParametersReturn poolRegistationParametersReturn = ValidateParseUtil.validateAndParsePoolRegistationParameters(
                 poolRegistrationParams);
         byte[] poolKeyHash = ValidateParseUtil.validateAndParsePoolKeyHash(
                 ObjectUtils.isEmpty(operation.getAccount()) ? null : operation.getAccount().getAddress());
@@ -147,10 +147,10 @@ public class ProcessContructionUtil {
                 .operator(poolKeyHash)
                 .vrfKeyHash(ObjectUtils.isEmpty(operation.getMetadata()) ? null : HexUtil.decodeHexString(
                         operationMetadata.getPoolRegistrationParams().getVrfKeyHash()))
-                .pledge(dto.getPledge())
-                .cost(dto.getCost())
-                .margin(new UnitInterval(dto.getNumerator(),
-                        dto.getDenominator()))
+                .pledge(poolRegistationParametersReturn.pledge())
+                .cost(poolRegistationParametersReturn.cost())
+                .margin(new UnitInterval(poolRegistationParametersReturn.numerator(),
+                        poolRegistationParametersReturn.denominator()))
                 .rewardAccount(HexUtil.encodeHexString(bech32Data.data))
                 .poolOwners(owners)
                 .relays(parsedRelays)

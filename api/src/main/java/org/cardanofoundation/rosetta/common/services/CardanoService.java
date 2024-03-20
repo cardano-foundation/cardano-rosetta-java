@@ -6,6 +6,7 @@ import co.nstant.in.cbor.model.Array;
 import com.bloxbean.cardano.client.exception.AddressExcepion;
 import com.bloxbean.cardano.client.exception.CborSerializationException;
 import com.bloxbean.cardano.client.transaction.spec.TransactionWitnessSet;
+import java.math.BigInteger;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProcessOperations;
 import org.cardanofoundation.rosetta.api.block.model.entity.ProtocolParams;
 import org.cardanofoundation.rosetta.common.enumeration.AddressType;
@@ -26,7 +27,7 @@ public interface CardanoService {
     String getHashOfSignedTransaction(String signedTransaction);
     Array decodeExtraData(String encoded);
     Long calculateTtl(Long ttlOffset);
-    Double calculateRelativeTtl(Double relativeTtl);
+    Double checkOrReturnDefaultTtl(Integer relativeTtl);
     Long updateTxSize(Long previousTxSize, Long previousTtl, Long updatedTtl) throws CborSerializationException, CborException;
     Long calculateTxMinimumFee(Long transactionSize, ProtocolParams protocolParameters);
 
@@ -41,8 +42,8 @@ public interface CardanoService {
     TransactionWitnessSet getWitnessesForTransaction(
             List<Signatures> signaturesList);
 
-    Long calculateFee(ArrayList<String> inputAmounts, ArrayList<String> outputAmounts,
-                      ArrayList<Long> withdrawalAmounts, Map<String, Double> depositsSumMap);
+    Long calculateFee(ArrayList<BigInteger> inputAmounts, ArrayList<BigInteger> outputAmounts,
+                      ArrayList<BigInteger> withdrawalAmounts, Map<String, Double> depositsSumMap);
 
     ProcessOperations convertRosettaOperations(NetworkIdentifierType networkIdentifierType,
                                  List<Operation> operations) throws IOException;
