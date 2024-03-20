@@ -1,13 +1,15 @@
 package org.cardanofoundation.rosetta.common.exception;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import java.io.Serial;
 
-@Data //TODO saa: do we need this here?
-@NoArgsConstructor
+import lombok.Data;
+
+@Data
 public class ApiException extends RuntimeException {
 
-  private Error error;  //TODO saa strange field.
+  @Serial
+  private static final long serialVersionUID = 7966468689369382174L;
+  private final Error error;
 
   public ApiException(Error error) {
     super();

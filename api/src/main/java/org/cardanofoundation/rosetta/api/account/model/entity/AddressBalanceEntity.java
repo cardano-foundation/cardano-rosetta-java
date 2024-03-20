@@ -1,16 +1,24 @@
 package org.cardanofoundation.rosetta.api.account.model.entity;
 
-import jakarta.persistence.*;
+import java.math.BigInteger;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.IdClass;
+import jakarta.persistence.Table;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
-import org.cardanofoundation.rosetta.api.block.model.entity.BlockAwareEntity;
+
 import org.hibernate.annotations.DynamicUpdate;
 
-import java.math.BigInteger;
+import org.cardanofoundation.rosetta.api.block.model.entity.BlockAwareEntity;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder
@@ -19,41 +27,42 @@ import java.math.BigInteger;
 @IdClass(AddressBalanceId.class)
 @DynamicUpdate
 public class AddressBalanceEntity extends BlockAwareEntity {
-    @Id
-    @Column(name = "address")
-    private String address;
 
-    @Id
-    @Column(name = "unit")
-    private String unit;
+  @Id
+  @Column(name = "address")
+  private String address;
 
-    @Id
-    @Column(name = "slot")
-    private Long slot;
+  @Id
+  @Column(name = "unit")
+  private String unit;
 
-    @Column(name = "quantity")
-    private BigInteger quantity;
+  @Id
+  @Column(name = "slot")
+  private Long slot;
 
-    //Only set if address doesn't fit in ownerAddr field. Required for few Byron Era addr
-    @Column(name = "addr_full")
-    private String addrFull;
+  @Column(name = "quantity")
+  private BigInteger quantity;
 
-    @Column(name = "policy")
-    private String policy;
+  //Only set if address doesn't fit in ownerAddr field. Required for few Byron Era addr
+  @Column(name = "addr_full")
+  private String addrFull;
 
-    @Column(name = "asset_name")
-    private String assetName;
+  @Column(name = "policy")
+  private String policy;
 
-    @Column(name = "payment_credential")
-    private String paymentCredential;
+  @Column(name = "asset_name")
+  private String assetName;
 
-    @Column(name = "stake_address")
-    private String stakeAddress;
+  @Column(name = "payment_credential")
+  private String paymentCredential;
 
-    @Column(name = "block_hash")
-    private String blockHash;
+  @Column(name = "stake_address")
+  private String stakeAddress;
 
-    @Column(name = "epoch")
-    private Integer epoch;
+  @Column(name = "block_hash")
+  private String blockHash;
+
+  @Column(name = "epoch")
+  private Integer epoch;
 
 }

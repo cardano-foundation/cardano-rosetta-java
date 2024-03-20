@@ -1,6 +1,7 @@
 package org.cardanofoundation.rosetta.api.block.model.domain;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -32,9 +33,9 @@ public class Block {
     return Block.builder()
         .number(block.getNumber())
         .hash(block.getHash())
-        .createdAt(block.getBlockTime())
-        .previousBlockHash(block.getPrev() != null ? block.getPrev().getHash() : "")
-        .previousBlockNumber(block.getPrev() != null ? block.getPrev().getNumber() : -1)
+        .createdAt(TimeUnit.SECONDS.toMillis(block.getBlockTimeInSeconds()))
+        .previousBlockHash(block.getPrev() != null ? block.getPrev().getHash() : block.getHash()) // TODO EPAM: check for genesis block
+        .previousBlockNumber(block.getPrev() != null ? block.getPrev().getNumber() : 0)
         .transactionsCount(block.getNoOfTxs())
         .size(Math.toIntExact(block.getBlockBodySize()))
         .createdBy(
