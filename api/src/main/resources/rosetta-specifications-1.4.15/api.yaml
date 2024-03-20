@@ -626,7 +626,7 @@ components:
         sub_account:
           $ref: '#/components/schemas/SubAccountIdentifier'
         metadata:
-          type: object
+          $ref: '#/components/schemas/AccountIdentifierMetadata'
     SubAccountIdentifier:
       description: An account may have state specific to a contract address (ERC-20 token) and/or a stake (delegated balance). The sub_account_identifier should specify which state (if applicable) an account instantiation refers to.
       type: object
@@ -638,8 +638,7 @@ components:
           type: string
           example: '0x6b175474e89094c44da98b954eedeac495271d0f'
         metadata:
-          description: If the SubAccount address is not sufficient to uniquely specify a SubAccount, any other identifying information can be stored here. It is important to note that two SubAccounts with identical addresses but differing metadata will not be considered equal by clients.
-          type: object
+          $ref: '#/components/schemas/AccountIdentifierMetadata'
     Block:
       description: 'Blocks contain an array of Transactions that occurred at a particular BlockIdentifier. A hard requirement for blocks returned by Rosetta implementations is that they MUST be _inalterable_: once a client has requested and received a block identified by a specific BlockIndentifier, all future calls for that same BlockIdentifier must return the same block contents.'
       type: object
@@ -746,10 +745,7 @@ components:
           minimum: 0
           example: 8
         metadata:
-          description: Any additional information related to the currency itself. For example, it would be useful to populate this object with the contract address of an ERC-20 token.
-          type: object
-          example:
-            Issuer: Satoshi
+          $ref: '#/components/schemas/CurrencyMetadata'
     SyncStatus:
       description: SyncStatus is used to provide additional context about an implementation's sync status. This object is often used by implementations to indicate healthiness when block data cannot be queried until some sync phase completes or cannot be determined by comparing the timestamp of the most recent block with the current time.
       type: object
@@ -1382,7 +1378,7 @@ components:
           items:
             $ref: '#/components/schemas/Operation'
         metadata:
-          type: object
+          $ref: '#/components/schemas/ConstructionPayloadsRequestMetadata'
         public_keys:
           type: array
           items:
@@ -1883,3 +1879,61 @@ components:
         poolDeposit:
           type: string
           description: PoolDeposit is the amount of funds that are needed to register a pool.
+    ConstructionPayloadsRequestMetadata:
+      description: ConstructionPayloadsRequestMetadata
+      type: object
+      properties:
+        ttl:
+          description: Ttl is the TTL of the transaction in the mempool in seconds. If the transaction is not included in a block before this time, it may be evicted from the mempool.
+          type: integer
+        protocol_parameters:
+          $ref: '#/components/schemas/ProtocolParameters'
+    ProtocolParameters:
+      description: Protocolparameters defining the current parameters of a blockchain protocol. For example how much to deposit for a pool registration.
+      type: object
+      properties:
+        coinsPerUtxoSize:
+          type: string
+          description: coinsperutxosize
+        maxTxSize:
+          type: integer
+          description: Maximum size of a transaction in bytes.
+        maxValSize:
+          type: integer
+          format: int64
+          description: Maximum size of a value in bytes.
+        keyDeposit:
+          type: string
+          description: KeyDeposit is the amount of funds that are needed for registering a stake key.
+        maxCollateralInputs:
+          type: integer
+          description: Maximum number of collateral inputs.
+        minFeeCoefficient:
+          type: integer
+          description: Minimum fee coefficient.
+        minFeeConstant:
+          type: integer
+          description: ''
+        minPoolCost:
+          type: string
+          description: Minimum pool cost.
+        poolDeposit:
+          type: string
+          description: PoolDeposit is the amount of funds that are needed to register a pool.
+        protocol:
+          type: integer
+          description: Protocol magic.
+    AccountIdentifierMetadata:
+      description: AccountIdentifierMetadata
+      type: object
+      properties:
+        chain_code:
+          description: 'ChainCode '
+          type: string
+    CurrencyMetadata:
+      description: ''
+      type: object
+      properties:
+        policyId:
+          description: ''
+          type: string

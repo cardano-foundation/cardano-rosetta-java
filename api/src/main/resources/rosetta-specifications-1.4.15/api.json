@@ -983,7 +983,7 @@
             "$ref": "#/components/schemas/SubAccountIdentifier"
           },
           "metadata": {
-            "type": "object"
+            "$ref": "#/components/schemas/AccountIdentifierMetadata"
           }
         }
       },
@@ -1000,8 +1000,7 @@
             "example": "0x6b175474e89094c44da98b954eedeac495271d0f"
           },
           "metadata": {
-            "description": "If the SubAccount address is not sufficient to uniquely specify a SubAccount, any other identifying information can be stored here. It is important to note that two SubAccounts with identical addresses but differing metadata will not be considered equal by clients.",
-            "type": "object"
+            "$ref": "#/components/schemas/AccountIdentifierMetadata"
           }
         }
       },
@@ -1155,11 +1154,7 @@
             "example": 8
           },
           "metadata": {
-            "description": "Any additional information related to the currency itself. For example, it would be useful to populate this object with the contract address of an ERC-20 token.",
-            "type": "object",
-            "example": {
-              "Issuer": "Satoshi"
-            }
+            "$ref": "#/components/schemas/CurrencyMetadata"
           }
         }
       },
@@ -2046,7 +2041,7 @@
             }
           },
           "metadata": {
-            "type": "object"
+            "$ref": "#/components/schemas/ConstructionPayloadsRequestMetadata"
           },
           "public_keys": {
             "type": "array",
@@ -2737,6 +2732,87 @@
             "description": "PoolDeposit is the amount of funds that are needed to register a pool."
           }
         }
+      },
+      "ConstructionPayloadsRequestMetadata": {
+        "description": "ConstructionPayloadsRequestMetadata",
+        "type": "object",
+        "properties": {
+          "ttl": {
+            "description": "Ttl is the TTL of the transaction in the mempool in seconds. If the transaction is not included in a block before this time, it may be evicted from the mempool.",
+            "type": "integer"
+          },
+          "protocol_parameters": {
+            "$ref": "#/components/schemas/ProtocolParameters"
+          }
+        }
+      },
+      "ProtocolParameters": {
+        "description": "Protocolparameters defining the current parameters of a blockchain protocol. For example how much to deposit for a pool registration.",
+        "type": "object",
+        "properties": {
+          "coinsPerUtxoSize": {
+            "type": "string",
+            "description": "coinsperutxosize"
+          },
+          "maxTxSize": {
+            "type": "integer",
+            "description": "Maximum size of a transaction in bytes."
+          },
+          "maxValSize": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Maximum size of a value in bytes."
+          },
+          "keyDeposit": {
+            "type": "string",
+            "description": "KeyDeposit is the amount of funds that are needed for registering a stake key."
+          },
+          "maxCollateralInputs": {
+            "type": "integer",
+            "description": "Maximum number of collateral inputs."
+          },
+          "minFeeCoefficient": {
+            "type": "integer",
+            "description": "Minimum fee coefficient."
+          },
+          "minFeeConstant": {
+            "type": "integer",
+            "description": ""
+          },
+          "minPoolCost": {
+            "type": "string",
+            "description": "Minimum pool cost."
+          },
+          "poolDeposit": {
+            "type": "string",
+            "description": "PoolDeposit is the amount of funds that are needed to register a pool."
+          },
+          "protocol": {
+            "type": "integer",
+            "description": "Protocol magic."
+          }
+        }
+      },
+      "AccountIdentifierMetadata": {
+        "description": "AccountIdentifierMetadata",
+        "type": "object",
+        "properties": {
+          "chain_code": {
+            "description": "ChainCode ",
+            "type": "string"
+          }
+        }
+      },
+      "CurrencyMetadata": {
+        "description": "",
+        "type": "object",
+        "properties": {
+          "policyId": {
+            "description": "",
+            "type": "string"
+          }
+        }
+
       }
     }
   }

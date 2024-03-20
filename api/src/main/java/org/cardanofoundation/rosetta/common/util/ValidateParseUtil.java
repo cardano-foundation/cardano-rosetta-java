@@ -344,8 +344,8 @@ public class ValidateParseUtil {
             log.error("[validateAndParsePoolRegistrationCert] invalid certificate type");
             throw ExceptionFactory.invalidPoolRegistrationCertType();
         }
-        List<String> ownersAddresses = ParseConstructionUtil.getOwnerAddressesFromPoolRegistrations(networkIdentifierType.getValue(), parsedCertificate);
-        String rewardAddress = ParseConstructionUtil.getRewardAddressFromPoolRegistration(networkIdentifierType.getValue(), parsedCertificate);
+        List<String> ownersAddresses = ParseConstructionUtil.getOwnerAddressesFromPoolRegistrations(networkIdentifierType.getNetworkId(), parsedCertificate);
+        String rewardAddress = ParseConstructionUtil.getRewardAddressFromPoolRegistration(networkIdentifierType.getNetworkId(), parsedCertificate);
         Set<String> addresses = new HashSet<>(new HashSet<>(ownersAddresses));
         addresses.add(poolKeyHash);
         addresses.add(rewardAddress);
