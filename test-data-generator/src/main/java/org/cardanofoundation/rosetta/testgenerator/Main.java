@@ -12,8 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.testgenerator.common.TestConstants;
 import org.cardanofoundation.rosetta.testgenerator.common.GeneratedTestDataDTO;
 import org.cardanofoundation.rosetta.testgenerator.transactions.TransactionRunner;
-import org.cardanofoundation.rosetta.testgenerator.transactions.impl.PoolTransactions;
-import org.cardanofoundation.rosetta.testgenerator.transactions.impl.SimpleTransactions;
 import org.reflections.Reflections;
 
 @Slf4j
@@ -28,6 +26,15 @@ public class Main {
 
   }
 
+  /**
+   * Finding all classes that implement the TransactionRunner interface, initializing them and running the transactions
+   * @param generatedTestData - the generatedTestData object where all the data will be stored for the tests
+   * @return
+   * @throws NoSuchMethodException
+   * @throws InvocationTargetException
+   * @throws InstantiationException
+   * @throws IllegalAccessException
+   */
   private static GeneratedTestDataDTO runAllFunctions(GeneratedTestDataDTO generatedTestData)
       throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
     Reflections reflections = new Reflections("org.cardanofoundation.rosetta.testgenerator");
