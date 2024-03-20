@@ -7,21 +7,22 @@ import com.bloxbean.cardano.client.backend.api.DefaultUtxoSupplier;
 import com.bloxbean.cardano.client.backend.blockfrost.service.BFBackendService;
 import com.bloxbean.cardano.client.backend.model.Block;
 import com.bloxbean.cardano.client.backend.model.TransactionContent;
+import com.bloxbean.cardano.client.quicktx.QuickTxBuilder;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Optional;
-import org.cardanofoundation.rosetta.testgenerator.SimpleTransactions;
+import org.cardanofoundation.rosetta.testgenerator.transactions.impl.SimpleTransactions;
 
 public class BaseFunctions {
 
-  public static BackendService getBackendService() {
-    return new BFBackendService("http://localhost:8080/api/v1/", "Dummy");
-  }
+
+  public static BackendService backendService = new BFBackendService("http://localhost:8080/api/v1/", "Dummy");
+  public static QuickTxBuilder quickTxBuilder = new QuickTxBuilder(backendService);
 
   public static void checkIfUtxoAvailable(String txHash, String address) {
     Optional<Utxo> utxo = Optional.empty();
     int count = 0;
-    DefaultUtxoSupplier defaultUtxoSupplier = new DefaultUtxoSupplier(getBackendService().getUtxoService());
+    DefaultUtxoSupplier defaultUtxoSupplier = new DefaultUtxoSupplier(backendService.getUtxoService());
     while (utxo.isEmpty()) {
       if (count++ >= 20)
         break;
@@ -42,11 +43,11 @@ public class BaseFunctions {
 
   public static Block getBlock(String txHash) {
     try {
-      TransactionContent txContent = SimpleTransactions.backendService.getTransactionService().getTransaction(txHash)
+      TransactionContent txContent = backendService.getTransactionService().getTransaction(txHash)
           .getValue();
       Integer blockHeight = txContent.getBlockHeight();
       System.out.println("Block height: " + blockHeight);
-      Block block = SimpleTransactions.backendService.getBlockService()
+      Block block = backendService.getBlockService()
           .getBlockByNumber(BigInteger.valueOf(blockHeight)).getValue();
       return block;
     } catch (ApiException e) {

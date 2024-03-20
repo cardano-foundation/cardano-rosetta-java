@@ -17,16 +17,16 @@ public class BlockApiTest extends IntegrationTest {
 
   @Test
   public void getBlockWithTransaction_Test() {
-    Block block = blockService.findBlock((long) generatedTestData.getBlockHeightTopUp(),
-        generatedTestData.getBlockHashTopUp());
+    Block block = blockService.findBlock((long) generatedTestData.getTopUpBlockNumber(),
+        generatedTestData.getTopUpBlockHash());
 
-    assertEquals(generatedTestData.getBlockHashTopUp(), block.getHash());
-    assertEquals(generatedTestData.getBlockHeightTopUp(), block.getSlotNo());
+    assertEquals(generatedTestData.getTopUpBlockHash(), block.getHash());
+    assertEquals(generatedTestData.getTopUpBlockNumber(), block.getSlotNo());
     assertEquals(1, block.getTransactions().size());
 
     Utxo receiverUtxoDto = block.getTransactions().get(0).getOutputs().get(0);
     assertEquals(TestConstants.TEST_ACCOUNT_ADDRESS, receiverUtxoDto.getOwnerAddr());
-    assertEquals(generatedTestData.getTxHashTopUp(), receiverUtxoDto.getTxHash());
+    assertEquals(generatedTestData.getTopUpTxHash(), receiverUtxoDto.getTxHash());
     assertEquals(TestConstants.ACCOUNT_BALANCE_ADA_AMOUNT, receiverUtxoDto.getLovelaceAmount().toString());
 
   }
