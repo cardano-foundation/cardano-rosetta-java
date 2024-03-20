@@ -6,6 +6,8 @@ import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.cardanofoundation.rosetta.common.util.CardanoAddressUtil;
+import org.cardanofoundation.rosetta.common.util.ValidationUtil;
 import org.springframework.stereotype.Service;
 import org.openapitools.client.model.AccountBalanceRequest;
 import org.openapitools.client.model.AccountBalanceResponse;
@@ -21,8 +23,7 @@ import org.cardanofoundation.rosetta.api.block.service.BlockService;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.mapper.DataMapper;
 import org.cardanofoundation.rosetta.common.services.LedgerDataProviderService;
-import org.cardanofoundation.rosetta.common.util.CardanoAddressUtils;
-import org.cardanofoundation.rosetta.common.util.Validations;
+
 
 @Service
 @Slf4j
@@ -37,7 +38,7 @@ public class AccountServiceImpl implements AccountService {
     Long index = null;
     String hash = null;
     String accountAddress = accountBalanceRequest.getAccountIdentifier().getAddress();
-    if (Objects.isNull(CardanoAddressUtils.getEraAddressType(accountAddress))) {
+    if (Objects.isNull(CardanoAddressUtil.getEraAddressType(accountAddress))) {
       throw ExceptionFactory.invalidAddressError(accountAddress);
     }
     PartialBlockIdentifier blockIdentifier = accountBalanceRequest.getBlockIdentifier();
@@ -58,15 +59,15 @@ public class AccountServiceImpl implements AccountService {
 //    accountCoinsRequest.getIncludeMempool(); // TODO
 
     log.debug("[accountCoins] Request received {}", accountCoinsRequest);
-    if (Objects.isNull(CardanoAddressUtils.getEraAddressType(accountAddress))) {
+    if (Objects.isNull(CardanoAddressUtil.getEraAddressType(accountAddress))) {
       log.debug("[accountCoins] Address isn't Era");
       throw ExceptionFactory.invalidAddressError(accountAddress);
     }
     log.debug("[accountCoins] Address is Era");
     if (Objects.nonNull(currencies)) {
-      Validations.validateCurrencies(currencies);
+      ValidationUtil.validateCurrencies(currencies);
     }
-    List<Currency> currenciesRequested = Validations.filterRequestedCurrencies(currencies);
+    List<Currency> currenciesRequested = ValidationUtil.filterRequestedCurrencies(currencies);
     log.debug("[accountCoins] Filter currency is {}", currenciesRequested);
     Block latestBlock = ledgerDataProviderService.findLatestBlock();
     log.debug("[accountCoins] Latest block is {}", latestBlock);

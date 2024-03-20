@@ -1,6 +1,7 @@
 package org.cardanofoundation.rosetta.common.mapper;
 
 import com.bloxbean.cardano.client.common.model.Network;
+import java.text.Normalizer.Form;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Hex;
 import org.cardanofoundation.rosetta.api.account.model.domain.AddressBalance;
@@ -8,25 +9,25 @@ import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.block.model.domain.*;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.Transaction;
-import org.cardanofoundation.rosetta.common.model.cardano.Metadata;
 import org.cardanofoundation.rosetta.common.util.Constants;
 import org.cardanofoundation.rosetta.api.block.model.entity.ProtocolParams;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
-import org.cardanofoundation.rosetta.common.model.rest.TransactionMetadata;
-import org.cardanofoundation.rosetta.common.model.rosetta.BlockMetadata;
+import org.cardanofoundation.rosetta.common.util.Formatters;
 import org.openapitools.client.model.*;
 import org.openapitools.client.model.Currency;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
 
-import static org.cardanofoundation.rosetta.common.util.Formatters.hexStringFormatter;
 import static org.cardanofoundation.rosetta.common.util.RosettaConstants.SUCCESS_OPERATION_STATUS;
 
 
 @Slf4j
 @Component
 public class DataMapper {
+
+  private DataMapper() {
+  }
 
   /**
    * Maps a NetworkRequest to a NetworkOptionsResponse.
@@ -129,7 +130,6 @@ public class DataMapper {
     rosettaTransaction.setTransactionIdentifier(identifier);
 
     OperationStatus status = new OperationStatus();
-//    status.setStatus(Boolean.TRUE.equals(transactionDto.getValidContract()) ? SUCCESS_OPERATION_STATUS.getStatus() : INVALID_OPERATION_STATUS.getStatus());
     status.setStatus(SUCCESS_OPERATION_STATUS.getStatus()); // TODO need to check the right status
     List<Operation> operations = OperationDataMapper.getAllOperations(transactionDto, poolDeposit, status);
 
@@ -154,7 +154,7 @@ public class DataMapper {
 
     Currency currency = Currency.builder()
             .decimals(Constants.ADA_DECIMALS)
-            .symbol(hexStringFormatter(Constants.ADA)).build();
+            .symbol(Constants.ADA).build();
     return Amount.builder().value(value).currency(currency).build();
   }
 
@@ -177,9 +177,9 @@ public class DataMapper {
     Amount amount = new Amount();
     amount.setValue(value);
     amount.setCurrency(Currency.builder()
-                            .symbol(hexStringFormatter(symbol))
+                            .symbol(symbol)
                             .decimals(decimals)
-                            .metadata(metadata != null ? new Metadata((String) metadata.get("policyId")) : null) // TODO check metadata for Amount
+                            .metadata(metadata) // TODO check metadata for Amount
                             .build());
     return amount;
   }

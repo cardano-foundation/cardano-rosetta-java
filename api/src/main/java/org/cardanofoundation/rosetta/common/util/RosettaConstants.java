@@ -9,10 +9,6 @@ import org.openapitools.client.model.OperationStatus;
 public class RosettaConstants {
 
   public static final String BLOCKCHAIN_NAME = "cardano";
-  public static final String MAINNET = "mainnet";
-  public static final String PREPROD = "preprod";
-  public static final String PREVIEW = "preview";
-
 
   public static final OperationStatus INVALID_OPERATION_STATUS = buildOperationStatus("invalid",
       false);

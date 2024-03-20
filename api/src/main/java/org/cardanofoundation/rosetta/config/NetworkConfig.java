@@ -3,7 +3,7 @@ package org.cardanofoundation.rosetta.config;
 import java.util.Optional;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.cardanofoundation.rosetta.common.util.CardanoNetworks;
+import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
@@ -23,6 +23,6 @@ public class NetworkConfig {
   }
 
   public final String getSanitizedNetworkId() {
-    return CardanoNetworks.sanitizeNetworkId(id, Optional.ofNullable(protocolMagic));
+    return NetworkEnum.fromValue(id).getValue();
   }
 }

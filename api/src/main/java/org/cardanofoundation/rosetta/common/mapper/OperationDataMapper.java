@@ -24,18 +24,15 @@ import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.account.model.entity.Amt;
 import org.cardanofoundation.rosetta.api.block.model.domain.Delegation;
 import org.cardanofoundation.rosetta.api.block.model.domain.PoolRegistration;
-import org.cardanofoundation.rosetta.api.block.model.domain.PoolRegistrationParams;
 import org.cardanofoundation.rosetta.api.block.model.domain.PoolRetirement;
 import org.cardanofoundation.rosetta.api.block.model.domain.StakeRegistration;
 import org.cardanofoundation.rosetta.api.block.model.domain.Transaction;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
-import org.cardanofoundation.rosetta.common.model.cardano.OperationMetadata;
-import org.cardanofoundation.rosetta.common.model.cardano.TokenBundleItem;
 import org.cardanofoundation.rosetta.common.util.Constants;
+import org.openapitools.client.model.*;
 
 import static org.cardanofoundation.rosetta.common.util.Constants.ADA;
 import static org.cardanofoundation.rosetta.common.util.Constants.ADA_DECIMALS;
-import static org.cardanofoundation.rosetta.common.util.Formatters.hexStringFormatter;
 
 @Slf4j
 public class OperationDataMapper {
@@ -149,7 +146,7 @@ public class OperationDataMapper {
                             .status(status.getStatus())
                             .account(AccountIdentifier.builder().address(poolRetirement.getPoolId()).build())
                             .metadata(OperationMetadata.builder()
-                                    .epoch(poolRetirement.getEpoch().longValue())
+                                    .epoch(poolRetirement.getEpoch())
                                     .build())
                             .build();
                 }).toList();
@@ -246,7 +243,7 @@ public class OperationDataMapper {
                 amt.setValue(DataMapper.mapValue(amount.getQuantity().toString(), spent));
                 String hexAssetName = Hex.encodeHexString(amount.getAssetName().getBytes());
                 amt.setCurrency(Currency.builder()
-                        .symbol(hexStringFormatter(hexAssetName))
+                        .symbol(hexAssetName)
                         .decimals(0)
                         .build());
                 tokenBundleItem.setTokens(List.of(amt));
