@@ -134,7 +134,7 @@ public class CardanoServiceImpl implements CardanoService {
     @Override
     public Double calculateTxSize(NetworkIdentifierType networkIdentifierType, List<Operation> operations, int ttl, DepositParameters depositParameters) throws IOException, CborException, AddressExcepion, CborSerializationException {
         UnsignedTransaction unsignedTransaction = createUnsignedTransaction(networkIdentifierType, operations, ttl, !ObjectUtils.isEmpty(depositParameters) ? depositParameters : new DepositParameters(Constants.DEFAULT_KEY_DEPOSIT.toString(), Constants.DEFAULT_POOL_DEPOSIT.toString()));
-        List<Signatures> signaturesList = (unsignedTransaction.getAddresses()).stream().map(address -> {
+        List<Signatures> signaturesList = (unsignedTransaction.addresses()).stream().map(address -> {
             EraAddressType eraAddressType = CardanoAddressUtil.getEraAddressType(address);
             if (eraAddressType != null) {
                 return signatureProcessor(eraAddressType, null, address);
@@ -146,7 +146,7 @@ public class CardanoServiceImpl implements CardanoService {
             throw ExceptionFactory.invalidAddressError(address);
         }).toList();
 
-        String transaction = buildTransaction(unsignedTransaction.getBytes(), signaturesList, unsignedTransaction.getMetadata());
+        String transaction = buildTransaction(unsignedTransaction.bytes(), signaturesList, unsignedTransaction.metadata());
         return ((double) transaction.length() / 2);
 
     }
@@ -267,13 +267,21 @@ public class CardanoServiceImpl implements CardanoService {
         String transactionBytes = HexUtil.encodeHexString(com.bloxbean.cardano.yaci.core.util.CborSerializationUtil.serialize(mapCbor));
         log.info("[createUnsignedTransaction] Hashing transaction body");
         String bodyHash = com.bloxbean.cardano.client.util.HexUtil.encodeHexString(Blake2bUtil.blake2bHash256(CborSerializationUtil.serialize(mapCbor)));
-        UnsignedTransaction toReturn = new UnsignedTransaction(HexUtil.encodeHexString(HexUtil.decodeHexString(bodyHash)), transactionBytes, processOperationsReturnDto.getAddresses(), null);
-        if (!ObjectUtils.isEmpty(processOperationsReturnDto.getVoteRegistrationMetadata())) {
-            Array array = getArrayOfAuxiliaryData(processOperationsReturnDto);
-            toReturn.setMetadata(HexUtil.encodeHexString(CborSerializationUtil.serialize(array)));
-        }
+        UnsignedTransaction toReturn = new UnsignedTransaction(
+            HexUtil.encodeHexString(HexUtil.decodeHexString(bodyHash)),
+            transactionBytes,
+            processOperationsReturnDto.getAddresses(),
+            getHexEncodedAuxiliaryMetadataArray(processOperationsReturnDto));
         log.info(toReturn + "[createUnsignedTransaction] Returning unsigned transaction, hash to sign and addresses that will sign hash");
         return toReturn;
+    }
+
+    private static String getHexEncodedAuxiliaryMetadataArray(ProcessOperationsReturn processOperationsReturnDto) throws CborSerializationException, CborException {
+        if (!ObjectUtils.isEmpty(processOperationsReturnDto.getVoteRegistrationMetadata())) {
+            Array array = getArrayOfAuxiliaryData(processOperationsReturnDto);
+            return HexUtil.encodeHexString(CborSerializationUtil.serialize(array));
+        }
+        return null;
     }
 
     @NotNull

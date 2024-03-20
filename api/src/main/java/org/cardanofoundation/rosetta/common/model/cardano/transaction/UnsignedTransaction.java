@@ -7,13 +7,4 @@ import lombok.Setter;
 
 import java.util.Set;
 
-@Getter
-@Setter
-@AllArgsConstructor
-@NoArgsConstructor
-public class UnsignedTransaction {
-    private String hash;
-    private String bytes;
-    private Set<String> addresses;
-    private String metadata;
-}
+public record UnsignedTransaction (String hash, String bytes, Set<String> addresses, String metadata){}

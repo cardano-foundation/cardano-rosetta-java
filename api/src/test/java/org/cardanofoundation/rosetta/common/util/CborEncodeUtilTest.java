@@ -66,8 +66,8 @@ public void encodeStakeKeyDeregistrationTest()
         NetworkIdentifierType.findByName(request.getNetworkIdentifier().getNetwork()), request.getOperations(), request.getMetadata().getTtl(),
         new DepositParameters(request.getMetadata().getProtocolParameters().getKeyDeposit(),
             request.getMetadata().getProtocolParameters().getPoolDeposit()));
-    String encoded = CborEncodeUtil.encodeExtraData(unsignedTransaction.getBytes(),
-        request.getOperations(), unsignedTransaction.getMetadata());
+    String encoded = CborEncodeUtil.encodeExtraData(unsignedTransaction.bytes(),
+        request.getOperations(), unsignedTransaction.metadata());
     return encoded;
   }
 
