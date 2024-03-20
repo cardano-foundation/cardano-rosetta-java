@@ -42,27 +42,16 @@ import org.openapitools.client.model.DepositParameters;
 import org.openapitools.client.model.Operation;
 import org.openapitools.client.model.SignatureType;
 import org.openapitools.client.model.SigningPayload;
-import org.cardanofoundation.rosetta.common.util.CardanoAddressUtil;
-import org.cardanofoundation.rosetta.common.util.Constants;
-import org.cardanofoundation.rosetta.common.util.OperationParseUtil;
-import org.cardanofoundation.rosetta.common.util.ValidateParseUtil;
 import org.jetbrains.annotations.NotNull;
-import org.openapitools.client.model.DepositParameters;
-import org.openapitools.client.model.Operation;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.SignatureException;
-import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 
 import static java.math.BigInteger.valueOf;
@@ -250,7 +239,8 @@ public class CardanoServiceImpl implements CardanoService {
         }
     }
 
-    private UnsignedTransaction createUnsignedTransaction(NetworkIdentifierType networkIdentifierType, List<Operation> operations, int ttl, DepositParameters depositParameters) throws IOException, CborSerializationException, AddressExcepion, CborException {
+    @Override
+    public UnsignedTransaction createUnsignedTransaction(NetworkIdentifierType networkIdentifierType, List<Operation> operations, int ttl, DepositParameters depositParameters) throws IOException, CborSerializationException, AddressExcepion, CborException {
         log.info("[createUnsignedTransaction] About to create an unsigned transaction with {} operations", operations.size());
         ProcessOperationsReturn processOperationsReturnDto = processOperations(networkIdentifierType, operations, depositParameters);
 

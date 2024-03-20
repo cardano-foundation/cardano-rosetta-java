@@ -26,53 +26,37 @@ import java.util.Map;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.UnsignedTransaction;
 import org.openapitools.client.model.DepositParameters;
 import org.openapitools.client.model.Operation;
+import org.openapitools.client.model.SigningPayload;
 
 public interface CardanoService {
 
 
-    String getHashOfSignedTransaction(String signedTransaction);
-    Array decodeExtraData(String encoded);
-    Long calculateTtl(Long ttlOffset);
-    Double checkOrReturnDefaultTtl(Integer relativeTtl);
-    Long updateTxSize(Long previousTxSize, Long previousTtl, Long updatedTtl) throws CborSerializationException, CborException;
-    Long calculateTxMinimumFee(Long transactionSize, ProtocolParams protocolParameters);
+  String getHashOfSignedTransaction(String signedTransaction);
+  Array decodeExtraData(String encoded);
+  Long calculateTtl(Long ttlOffset);
+  Double checkOrReturnDefaultTtl(Integer relativeTtl);
+  Long updateTxSize(Long previousTxSize, Long previousTtl, Long updatedTtl) throws CborSerializationException, CborException;
+  Long calculateTxMinimumFee(Long transactionSize, ProtocolParams protocolParameters);
 
-    Signatures signatureProcessor(EraAddressType eraAddressType, AddressType addressType,
-                                  String address);
+  Signatures signatureProcessor(EraAddressType eraAddressType, AddressType addressType,
+      String address);
 
-    Double calculateTxSize(NetworkIdentifierType networkIdentifierType, List<Operation> operations, int ttl, DepositParameters depositParameters) throws IOException, CborException, AddressExcepion, CborSerializationException;
+  Double calculateTxSize(NetworkIdentifierType networkIdentifierType, List<Operation> operations, int ttl, DepositParameters depositParameters) throws IOException, CborException, AddressExcepion, CborSerializationException;
 
-    String buildTransaction(String unsignedTransaction,
-                            List<Signatures> signaturesList, String transactionMetadata);
+  String buildTransaction(String unsignedTransaction,
+      List<Signatures> signaturesList, String transactionMetadata);
 
-    TransactionWitnessSet getWitnessesForTransaction(
-            List<Signatures> signaturesList);
+  TransactionWitnessSet getWitnessesForTransaction(
+      List<Signatures> signaturesList);
 
-    Long calculateFee(ArrayList<String> inputAmounts, ArrayList<String> outputAmounts,
-                      ArrayList<Long> withdrawalAmounts, Map<String, Double> depositsSumMap);
+  List<SigningPayload> constructPayloadsForTransactionBody(String transactionBodyHash,
+      Set<String> addresses);
 
-    ProcessOperations convertRosettaOperations(NetworkIdentifierType networkIdentifierType,
-                                 List<Operation> operations) throws IOException;
+  Long calculateFee(ArrayList<BigInteger> inputAmounts, ArrayList<BigInteger> outputAmounts,
+      ArrayList<BigInteger> withdrawalAmounts, Map<String, Double> depositsSumMap);
 
-  UnsignedTransaction createUnsignedTransaction(NetworkIdentifierType networkIdentifier, List<Operation> operations, int ttl, DepositParameters depositParameters)
-      throws IOException, CborSerializationException, AddressExcepion, CborException;
+  ProcessOperations convertRosettaOperations(NetworkIdentifierType networkIdentifierType,
+      List<Operation> operations) throws IOException;
 
-    List<SigningPayload> constructPayloadsForTransactionBody(String hash, Set<String> addresses);
-
-    Signatures signatureProcessor(EraAddressType eraAddressType, AddressType addressType,
-                                  String address);
-
-    Double calculateTxSize(NetworkIdentifierType networkIdentifierType, List<Operation> operations, int ttl, DepositParameters depositParameters) throws IOException, CborException, AddressExcepion, CborSerializationException;
-
-    String buildTransaction(String unsignedTransaction,
-                            List<Signatures> signaturesList, String transactionMetadata);
-
-    TransactionWitnessSet getWitnessesForTransaction(
-            List<Signatures> signaturesList);
-
-    Long calculateFee(ArrayList<BigInteger> inputAmounts, ArrayList<BigInteger> outputAmounts,
-                      ArrayList<BigInteger> withdrawalAmounts, Map<String, Double> depositsSumMap);
-
-    ProcessOperations convertRosettaOperations(NetworkIdentifierType networkIdentifierType,
-                                 List<Operation> operations) throws IOException;
+  UnsignedTransaction createUnsignedTransaction(NetworkIdentifierType networkIdentifier, List<Operation> operations, int ttl, DepositParameters depositParameters) throws IOException, CborSerializationException, AddressExcepion, CborException;
 }
