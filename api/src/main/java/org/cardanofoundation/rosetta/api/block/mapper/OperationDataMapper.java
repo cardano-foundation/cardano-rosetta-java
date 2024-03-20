@@ -163,7 +163,7 @@ class OperationDataMapper {
               .status(status.getStatus())
               .account(AccountIdentifier.builder().address(poolRetirement.getPoolId()).build())
               .metadata(OperationMetadata.builder()
-                  .epoch(poolRetirement.getEpoch().longValue())
+                  .epoch(poolRetirement.getEpoch())
                   .build())
               .build();
         }).toList();
@@ -267,7 +267,7 @@ class OperationDataMapper {
         amt.setValue(DataMapper.mapValue(amount.getQuantity().toString(), spent));
         String hexAssetName = Hex.encodeHexString(amount.getAssetName().getBytes());
         amt.setCurrency(Currency.builder()
-            .symbol(hexStringFormatter(hexAssetName))
+            .symbol(hexAssetName)
             .decimals(0)
             .build());
         tokenBundleItem.setTokens(List.of(amt));

@@ -7,7 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 
 import org.cardanofoundation.rosetta.api.block.model.entity.PoolRegistrationEnity;
-import org.cardanofoundation.rosetta.common.model.cardano.Relay;
+import org.openapitools.client.model.Relay;
 
 @Data
 @Builder
@@ -38,8 +38,8 @@ public class PoolRegistration {
         .cost(entity.getCost().toString())
         .rewardAccount(entity.getRewardAccount())
         .relays(entity.getRelays().stream().map(
-            relay -> new Relay("", relay.getIpv4(), relay.getIpv6(), relay.getDnsName(),
-                relay.getPort().toString())).toList()) // TODO check type
+            relay -> new Relay(relay.getIpv4(), relay.getIpv6(), relay.getDnsName(),
+                relay.getPort(), "")).toList()) // TODO check type
         .owners(entity.getPoolOwners())
         .epoch(entity.getEpoch())
         .slot(entity.getSlot())

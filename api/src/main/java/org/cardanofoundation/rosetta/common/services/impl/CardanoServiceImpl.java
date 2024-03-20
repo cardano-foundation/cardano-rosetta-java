@@ -33,7 +33,7 @@ import org.cardanofoundation.rosetta.common.model.cardano.crypto.Signatures;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.UnsignedTransaction;
 import org.cardanofoundation.rosetta.common.services.CardanoService;
 import org.cardanofoundation.rosetta.common.services.LedgerDataProviderService;
-import org.cardanofoundation.rosetta.common.util.CardanoAddressUtil;
+import org.cardanofoundation.rosetta.common.util.CardanoAddressUtils;
 import org.cardanofoundation.rosetta.common.util.Constants;
 import org.cardanofoundation.rosetta.common.util.OperationParseUtil;
 import org.cardanofoundation.rosetta.common.util.ValidateParseUtil;
@@ -135,12 +135,12 @@ public class CardanoServiceImpl implements CardanoService {
     public Double calculateTxSize(NetworkIdentifierType networkIdentifierType, List<Operation> operations, int ttl, DepositParameters depositParameters) throws IOException, CborException, AddressExcepion, CborSerializationException {
         UnsignedTransaction unsignedTransaction = createUnsignedTransaction(networkIdentifierType, operations, ttl, !ObjectUtils.isEmpty(depositParameters) ? depositParameters : new DepositParameters(Constants.DEFAULT_KEY_DEPOSIT.toString(), Constants.DEFAULT_POOL_DEPOSIT.toString()));
         List<Signatures> signaturesList = (unsignedTransaction.addresses()).stream().map(address -> {
-            EraAddressType eraAddressType = CardanoAddressUtil.getEraAddressType(address);
+            EraAddressType eraAddressType = CardanoAddressUtils.getEraAddressType(address);
             if (eraAddressType != null) {
                 return signatureProcessor(eraAddressType, null, address);
             }
             // since pool key hash are passed as address, ed25519 hashes must be included
-            if (CardanoAddressUtil.isEd25519KeyHash(address)) {
+            if (CardanoAddressUtils.isEd25519KeyHash(address)) {
                 return signatureProcessor(null, AddressType.POOL_KEY_HASH, address);
             }
             throw ExceptionFactory.invalidAddressError(address);
@@ -208,7 +208,7 @@ public class CardanoServiceImpl implements CardanoService {
             signaturesList.forEach(signature -> {
                 VerificationKey vkey = new VerificationKey();
                 vkey.setCborHex(ObjectUtils.isEmpty(signature) ? null : signature.publicKey());
-                EraAddressType eraAddressType = CardanoAddressUtil.getEraAddressType(signature.address());
+                EraAddressType eraAddressType = CardanoAddressUtils.getEraAddressType(signature.address());
                 if (!ObjectUtils.isEmpty(signature)) {
                     if (!ObjectUtils.isEmpty(signature.address()) && eraAddressType == EraAddressType.BYRON) {
                         // byron case

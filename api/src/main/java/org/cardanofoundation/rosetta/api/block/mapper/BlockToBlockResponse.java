@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.spi.MappingContext;
 import org.openapitools.client.model.BlockIdentifier;
+import org.openapitools.client.model.BlockMetadata;
 import org.openapitools.client.model.BlockResponse;
 import org.openapitools.client.model.Operation;
 import org.openapitools.client.model.OperationStatus;
@@ -15,7 +16,6 @@ import org.openapitools.client.model.TransactionIdentifier;
 import org.openapitools.client.model.TransactionMetadata;
 
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
-import org.cardanofoundation.rosetta.api.block.model.domain.BlockMetadata;
 import org.cardanofoundation.rosetta.common.annotation.OpenApiMapper;
 
 import static org.cardanofoundation.rosetta.common.util.RosettaConstants.SUCCESS_OPERATION_STATUS;
