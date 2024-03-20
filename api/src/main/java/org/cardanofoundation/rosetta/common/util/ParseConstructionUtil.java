@@ -50,24 +50,23 @@ public class ParseConstructionUtil {
   public static List<String> getOwnerAddressesFromPoolRegistrations(Integer network, PoolRegistration poolRegistration) {
     List<String> poolOwners = new ArrayList<>();
     Set<String> owners = poolRegistration.getPoolOwners();
-    int ownersCount = owners.size();
-    for (int i = 0; i < ownersCount; i++) {
+    for(String owner : owners) {
       if (network == NetworkIdentifierType.CARDANO_TESTNET_NETWORK.getValue()) {
         Address address = CardanoAddressUtil.getAddress(null,
-                HexUtil.decodeHexString(new ArrayList<>(owners).get(i)), Constants.STAKE_KEY_HASH_HEADER_KIND,
-                Networks.testnet(), Reward);
+            HexUtil.decodeHexString(owner), Constants.STAKE_KEY_HASH_HEADER_KIND,
+            Networks.testnet(), Reward);
         poolOwners.add(address.getAddress());
       }
       if (network == NetworkIdentifierType.CARDANO_PREPROD_NETWORK.getValue()) {
         Address address = CardanoAddressUtil.getAddress(null,
-                HexUtil.decodeHexString(new ArrayList<>(owners).get(i)), Constants.STAKE_KEY_HASH_HEADER_KIND,
-                Networks.preprod(), Reward);
+            HexUtil.decodeHexString(owner), Constants.STAKE_KEY_HASH_HEADER_KIND,
+            Networks.preprod(), Reward);
         poolOwners.add(address.getAddress());
       }
       if (network == NetworkIdentifierType.CARDANO_MAINNET_NETWORK.getValue()) {
         Address address = CardanoAddressUtil.getAddress(null,
-                HexUtil.decodeHexString(new ArrayList<>(owners).get(i)), Constants.STAKE_KEY_HASH_HEADER_KIND,
-                Networks.mainnet(), Reward);
+            HexUtil.decodeHexString(owner), Constants.STAKE_KEY_HASH_HEADER_KIND,
+            Networks.mainnet(), Reward);
         poolOwners.add(address.getAddress());
       }
     }

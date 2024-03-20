@@ -4,8 +4,8 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum NetworkIdentifierType {
   CARDANO_MAINNET_NETWORK("mainnet", 1, 764824073L),
-  CARDANO_TESTNET_NETWORK("testnet", 0, 1097911063L),
-  CARDANO_PREPROD_NETWORK("preprod", 0, 1097911063L);
+  CARDANO_TESTNET_NETWORK("testnet", 2, 2),
+  CARDANO_PREPROD_NETWORK("preprod", 3, 1);
 
   private String networkId;
   private int value;
