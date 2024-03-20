@@ -17,6 +17,7 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 
 @Slf4j
 public class ParseConstructionUtil {
@@ -33,7 +34,7 @@ public class ParseConstructionUtil {
       }
       return (Inet4Address) InetAddress.getByAddress(bytes);
     }
-    return null;
+    throw new UnknownHostException("Error Parsing IP Address");
   }
 
   public static Inet6Address parseIpv6(String ip) throws UnknownHostException {
@@ -42,7 +43,7 @@ public class ParseConstructionUtil {
       byte[] parsedIp = HexUtil.decodeHexString(ipNew);
       return (Inet6Address) InetAddress.getByAddress(parsedIp);
     }
-    return null;
+    throw new UnknownHostException("Error Parsing IP Address");
   }
 
 
@@ -75,7 +76,7 @@ public class ParseConstructionUtil {
 
   public static String getRewardAddressFromPoolRegistration(Integer network, PoolRegistration poolRegistration) {
     String cutRewardAccount = poolRegistration.getRewardAccount();
-    if (cutRewardAccount.length() == 58) {
+    if (cutRewardAccount.length() == Constants.HEX_PREFIX_AND_REWARD_ACCOUNT_LENGTH) {
       // removing prefix 0x from reward account, reward account is 56 bytes
       cutRewardAccount = poolRegistration.getRewardAccount().substring(2);
     }
@@ -101,7 +102,7 @@ public class ParseConstructionUtil {
               .getAddress();
     }
 
-    return null;
+    throw ExceptionFactory.invalidAddressError("Can't get Reward address from PoolRegistration");
   }
 
 }
