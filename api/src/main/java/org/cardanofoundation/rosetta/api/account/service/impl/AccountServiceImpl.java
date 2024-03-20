@@ -4,12 +4,13 @@ import java.util.List;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.cardanofoundation.rosetta.api.account.model.domain.AddressBalance;
+import org.cardanofoundation.rosetta.api.block.model.domain.StakeAddressBalance;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.mapper.DataMapper;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
-import org.cardanofoundation.rosetta.api.account.model.dto.UtxoDto;
+import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.account.service.AccountService;
-import org.cardanofoundation.rosetta.api.block.service.BlockService;
 import org.cardanofoundation.rosetta.common.services.LedgerDataProviderService;
 import org.cardanofoundation.rosetta.common.util.CardanoAddressUtils;
 import org.cardanofoundation.rosetta.common.util.Validations;
@@ -96,7 +97,7 @@ public class AccountServiceImpl implements AccountService {
     } else {
       log.debug("[findBalanceDataByAddressAndBlock] Address isn't StakeAddress");
 
-      List<AddressBalanceDTO> balances = ledgerDataProviderService.findBalanceByAddressAndBlock(address, blockDto.getNumber());
+      List<AddressBalance> balances = ledgerDataProviderService.findBalanceByAddressAndBlock(address, blockDto.getNumber());
       return DataMapper.mapToAccountBalanceResponse(blockDto, balances);
     }
   }
