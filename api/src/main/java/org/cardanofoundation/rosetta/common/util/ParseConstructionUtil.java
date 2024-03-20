@@ -47,23 +47,23 @@ public class ParseConstructionUtil {
   }
 
 
-  public static List<String> getOwnerAddressesFromPoolRegistrations(Integer network, PoolRegistration poolRegistration) {
+  public static List<String> getOwnerAddressesFromPoolRegistrations(String networkId, PoolRegistration poolRegistration) {
     List<String> poolOwners = new ArrayList<>();
     Set<String> owners = poolRegistration.getPoolOwners();
     for(String owner : owners) {
-      if (network == NetworkIdentifierType.CARDANO_TESTNET_NETWORK.getValue()) {
+      if (networkId.equals(NetworkIdentifierType.CARDANO_TESTNET_NETWORK.getNetworkId())) {
         Address address = CardanoAddressUtil.getAddress(null,
             HexUtil.decodeHexString(owner), Constants.STAKE_KEY_HASH_HEADER_KIND,
             Networks.testnet(), Reward);
         poolOwners.add(address.getAddress());
       }
-      if (network == NetworkIdentifierType.CARDANO_PREPROD_NETWORK.getValue()) {
+      if (networkId.equals(NetworkIdentifierType.CARDANO_PREPROD_NETWORK.getNetworkId())) {
         Address address = CardanoAddressUtil.getAddress(null,
             HexUtil.decodeHexString(owner), Constants.STAKE_KEY_HASH_HEADER_KIND,
             Networks.preprod(), Reward);
         poolOwners.add(address.getAddress());
       }
-      if (network == NetworkIdentifierType.CARDANO_MAINNET_NETWORK.getValue()) {
+      if (networkId.equals(NetworkIdentifierType.CARDANO_MAINNET_NETWORK.getNetworkId())) {
         Address address = CardanoAddressUtil.getAddress(null,
             HexUtil.decodeHexString(owner), Constants.STAKE_KEY_HASH_HEADER_KIND,
             Networks.mainnet(), Reward);
@@ -73,27 +73,27 @@ public class ParseConstructionUtil {
     return poolOwners;
   }
 
-  public static String getRewardAddressFromPoolRegistration(Integer network, PoolRegistration poolRegistration) {
+  public static String getRewardAddressFromPoolRegistration(String networkId, PoolRegistration poolRegistration) {
     String cutRewardAccount = poolRegistration.getRewardAccount();
     if (cutRewardAccount.length() == Constants.HEX_PREFIX_AND_REWARD_ACCOUNT_LENGTH) {
       // removing prefix 0x from reward account, reward account is 56 bytes
       cutRewardAccount = poolRegistration.getRewardAccount().substring(2);
     }
-    if (network == NetworkIdentifierType.CARDANO_TESTNET_NETWORK.getValue()) {
+    if (networkId.equals(NetworkIdentifierType.CARDANO_TESTNET_NETWORK.getNetworkId())) {
       return CardanoAddressUtil.getAddress(null,
                       HexUtil.decodeHexString(cutRewardAccount),
                       Constants.STAKE_KEY_HASH_HEADER_KIND,
                       Networks.testnet(), Reward)
               .getAddress();
     }
-    if (network == NetworkIdentifierType.CARDANO_PREPROD_NETWORK.getValue()) {
+    if (networkId.equals(NetworkIdentifierType.CARDANO_PREPROD_NETWORK.getNetworkId())) {
       return CardanoAddressUtil.getAddress(null,
                       HexUtil.decodeHexString(cutRewardAccount),
               Constants.STAKE_KEY_HASH_HEADER_KIND,
                       Networks.preprod(), Reward)
               .getAddress();
     }
-    if (network == NetworkIdentifierType.CARDANO_MAINNET_NETWORK.getValue()) {
+    if (networkId.equals(NetworkIdentifierType.CARDANO_MAINNET_NETWORK.getNetworkId())) {
       return CardanoAddressUtil.getAddress(null,
                       HexUtil.decodeHexString(cutRewardAccount),
               Constants.STAKE_KEY_HASH_HEADER_KIND,
