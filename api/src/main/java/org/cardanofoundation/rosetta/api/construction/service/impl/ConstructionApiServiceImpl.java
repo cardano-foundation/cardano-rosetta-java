@@ -5,20 +5,27 @@ import co.nstant.in.cbor.model.Array;
 import co.nstant.in.cbor.model.UnicodeString;
 import com.bloxbean.cardano.client.exception.AddressExcepion;
 import com.bloxbean.cardano.client.exception.CborSerializationException;
+import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ObjectUtils;
 import org.cardanofoundation.rosetta.api.block.model.entity.ProtocolParams;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
+import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
+import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.mapper.DataMapper;
 import org.cardanofoundation.rosetta.common.enumeration.AddressType;
 
 import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
+import org.cardanofoundation.rosetta.common.model.cardano.transaction.UnsignedTransaction;
 import org.cardanofoundation.rosetta.common.services.CardanoAddressService;
+import org.cardanofoundation.rosetta.common.services.CardanoConfigService;
 import org.cardanofoundation.rosetta.common.services.CardanoService;
 import org.cardanofoundation.rosetta.api.construction.service.ConstructionApiService;
 import org.cardanofoundation.rosetta.common.services.LedgerDataProviderService;
 import org.cardanofoundation.rosetta.common.util.Constants;
+import org.cardanofoundation.rosetta.common.util.CborEncodeUtil;
 import org.openapitools.client.model.*;
 import org.springframework.stereotype.Service;
 
@@ -33,6 +40,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
   private final CardanoAddressService cardanoAddressService;
   private final CardanoService cardanoService;
   private final LedgerDataProviderService ledgerService;
+  private final CardanoConfigService cardanoConfigService;
   private final DataMapper dataMapper;
 
   @Override
@@ -101,8 +109,50 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
 
   @Override
   public ConstructionPayloadsResponse constructionPayloadsService(
-      ConstructionPayloadsRequest constructionPayloadsRequest) {
-    return null;
+      ConstructionPayloadsRequest constructionPayloadsRequest)
+      throws CborException, AddressExcepion, IOException, CborSerializationException {
+    int ttl = constructionPayloadsRequest.getMetadata().getTtl();
+    List<Operation> operations = constructionPayloadsRequest.getOperations();
+
+    checkOperationsHaveIdentifier(operations);
+
+    NetworkIdentifierType networkIdentifier = NetworkIdentifierType.findByName(constructionPayloadsRequest.getNetworkIdentifier().getNetwork());
+    log.info(operations + "[constuctionPayloads] Operations about to be processed");
+
+    ProtocolParameters protocolParameters = constructionPayloadsRequest.getMetadata()
+        .getProtocolParameters();
+    String keyDeposit;
+    String poolDeposit;
+    // TODO need to convert OpenAPI ProcotolParameters to domain ProtocolParams. Then merge with the one from indexer/config
+    if(protocolParameters != null) {
+      keyDeposit = protocolParameters.getKeyDeposit();
+      poolDeposit = protocolParameters.getPoolDeposit();
+    } else {
+      ProtocolParams protocolParametersFromIndexerAndConfig = ledgerService.findProtocolParametersFromIndexerAndConfig();
+      keyDeposit = protocolParametersFromIndexerAndConfig.getKeyDeposit().toString();
+      poolDeposit = protocolParametersFromIndexerAndConfig.getPoolDeposit().toString();
+    }
+
+    UnsignedTransaction unsignedTransaction = cardanoService.createUnsignedTransaction(
+        networkIdentifier, operations, ttl,
+        new DepositParameters(keyDeposit,
+            poolDeposit));
+    List<SigningPayload> payloads = cardanoService.constructPayloadsForTransactionBody(
+        unsignedTransaction.hash(), unsignedTransaction.addresses());
+    String unsignedTransactionString = CborEncodeUtil.encodeExtraData(
+        unsignedTransaction.bytes(),
+        constructionPayloadsRequest.getOperations(),
+            unsignedTransaction.metadata());
+    return new ConstructionPayloadsResponse(unsignedTransactionString, payloads);
+  }
+
+  private static void checkOperationsHaveIdentifier(List<Operation> operations) {
+    for (int i = 0; i < operations.size(); i++) {
+      if (operations.get(i).getOperationIdentifier() == null) {
+        throw ExceptionFactory.unspecifiedError(
+            "body[" + i + "]" + " should have required property operation_identifier");
+      }
+    }
   }
 
   @Override

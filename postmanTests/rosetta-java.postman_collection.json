@@ -34,7 +34,8 @@
 									"",
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
@@ -325,6 +326,120 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "payload - simple",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"})",
+									"console.log(pm.response.json())",
+									"",
+									"pm.test('Contains Json Body', function () {",
+									"    pm.response.to.have.jsonBody('payloads');",
+									"    pm.response.to.have.jsonBody('unsigned_transaction');",
+									"})",
+									"",
+									"pm.test(\"Correct Values\", function () {",
+									"    ",
+									"    var responseData = pm.response.json();",
+									"    pm.expect(responseData).to.be.an('object');",
+									"    pm.expect(responseData.payloads.length).to.equal(2)",
+									"    pm.expect(responseData.payloads[0].hex_bytes).to.equal('159434d5bab91b4a3b041ee49540d01bcaeef35481bd386f9feb17acfc3aa0af')",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"network_identifier\": {\n    \"blockchain\": \"cardano\",\n    \"network\": \"preprod\"\n  },\n  \"operations\": [\n    {\n      \"operation_identifier\": {\n        \"index\": 0,\n        \"network_index\": 0\n      },\n      \"type\": \"input\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n      },\n      \"amount\": {\n        \"value\": \"-90000\",\n        \"currency\": {\n          \"symbol\": \"ADA\",\n          \"decimals\": 6\n        }\n      },\n      \"coin_change\": {\n        \"coin_identifier\": {\n          \"identifier\": \"2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f:1\"\n        },\n        \"coin_action\": \"coin_spent\"\n      }\n    },\n    {\n      \"operation_identifier\": {\n        \"index\": 1\n      },\n      \"related_operations\": [\n        {\n          \"index\": 0\n        }\n      ],\n      \"type\": \"output\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n      },\n      \"amount\": {\n        \"value\": \"10000\",\n        \"currency\": {\n          \"symbol\": \"ADA\",\n          \"decimals\": 6\n        }\n      }\n    },\n    {\n      \"operation_identifier\": {\n        \"index\": 2\n      },\n      \"related_operations\": [\n        {\n          \"index\": 0\n        }\n      ],\n      \"type\": \"output\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n      },\n      \"amount\": {\n        \"value\": \"40000\",\n        \"currency\": {\n          \"symbol\": \"ADA\",\n          \"decimals\": 6\n        }\n      }\n    },\n    {\n      \"operation_identifier\": {\n        \"index\": 3\n      },\n      \"type\": \"stakeKeyDeregistration\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5\"\n      },\n      \"metadata\": {\n        \"staking_credential\": {\n          \"hex_bytes\": \"1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F\",\n          \"curve_type\": \"edwards25519\"\n        }\n      }\n    }\n  ],\n  \"metadata\": {\n    \"ttl\": \"0\",\n    \"protocol_parameters\": {\n      \"coinsPerUtxoSize\": \"0\",\n      \"maxTxSize\": 16384,\n      \"maxValSize\": 0,\n      \"keyDeposit\": \"2000000\",\n      \"maxCollateralInputs\": 0,\n      \"minFeeCoefficient\": 44,\n      \"minFeeConstant\": 155381,\n      \"minPoolCost\": \"340000000\",\n      \"poolDeposit\": \"500000000\",\n      \"protocol\": 4\n    }\n  }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/construction/payloads",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"construction",
+								"payloads"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "payload - multiple assets",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"})",
+									"console.log(pm.response.json())",
+									"",
+									"pm.test('Contains Json Body', function () {",
+									"    pm.response.to.have.jsonBody('payloads');",
+									"    pm.response.to.have.jsonBody('unsigned_transaction');",
+									"})",
+									"",
+									"pm.test(\"Correct Values\", function () {",
+									"    ",
+									"    var responseData = pm.response.json();",
+									"    pm.expect(responseData).to.be.an('object');",
+									"    pm.expect(responseData.payloads.length).to.equal(1)",
+									"    pm.expect(responseData.payloads[0].account_identifier.address).to.equal('addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx')",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"network_identifier\": {\n    \"blockchain\": \"cardano\",\n    \"network\": \"preprod\"\n  },\n  \"operations\": [\n    {\n      \"operation_identifier\": {\n        \"index\": 0,\n        \"network_index\": 0\n      },\n      \"type\": \"input\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n      },\n      \"amount\": {\n        \"value\": \"-90000\",\n        \"currency\": {\n          \"symbol\": \"ADA\",\n          \"decimals\": 6\n        }\n      },\n      \"coin_change\": {\n        \"coin_identifier\": {\n          \"identifier\": \"2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f:1\"\n        },\n        \"coin_action\": \"coin_spent\"\n      }\n    },\n    {\n      \"operation_identifier\": {\n        \"index\": 1,\n        \"network_index\": 0\n      },\n      \"type\": \"input\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n      },\n      \"amount\": {\n        \"value\": \"-10000\",\n        \"currency\": {\n          \"symbol\": \"ADA\",\n          \"decimals\": 6\n        }\n      },\n      \"coin_change\": {\n        \"coin_identifier\": {\n          \"identifier\": \"2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f:1\"\n        },\n        \"coin_action\": \"coin_spent\"\n      }\n    },\n    {\n      \"operation_identifier\": {\n        \"index\": 2\n      },\n      \"related_operations\": [\n        {\n          \"index\": 0\n        },\n        {\n          \"index\": 1\n        }\n      ],\n      \"type\": \"output\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n      },\n      \"amount\": {\n        \"value\": \"10000\",\n        \"currency\": {\n          \"symbol\": \"ADA\",\n          \"decimals\": 6\n        }\n      }\n    },\n    {\n      \"operation_identifier\": {\n        \"index\": 3\n      },\n      \"related_operations\": [\n        {\n          \"index\": 0\n        },\n        {\n          \"index\": 1\n        }\n      ],\n      \"type\": \"output\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n      },\n      \"amount\": {\n        \"value\": \"40000\",\n        \"currency\": {\n          \"symbol\": \"ADA\",\n          \"decimals\": 6\n        }\n      }\n    }\n  ],\n  \"metadata\": {\n    \"ttl\": \"1000\",\n    \"protocol_parameters\": {\n      \"coinsPerUtxoSize\": \"0\",\n      \"maxTxSize\": 16384,\n      \"maxValSize\": 0,\n      \"keyDeposit\": \"2000000\",\n      \"maxCollateralInputs\": 0,\n      \"minFeeCoefficient\": 44,\n      \"minFeeConstant\": 155381,\n      \"minPoolCost\": \"340000000\",\n      \"poolDeposit\": \"500000000\",\n      \"protocol\": 4\n    }\n  }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/construction/payloads",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"construction",
+								"payloads"
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		},
@@ -598,9 +713,16 @@
 								"exec": [
 									"pm.test(\"Status code is 200\", function () {",
 									"        pm.response.to.have.status(200);",
-									"});"
+									"});",
+									"console.log(pm.response.json())",
+									"pm.test(\"Test account balance\", function () {",
+									"    const accountBalance = pm.environment.get('accountBalance');",
+									"    var responseBody = pm.response.json();",
+									"    pm.expect(responseBody).to.be.an('object');",
+									"})"
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
@@ -638,9 +760,16 @@
 								"exec": [
 									"pm.test(\"Status code is 200\", function () {",
 									"        pm.response.to.have.status(200);",
-									"});"
+									"});",
+									"console.log(pm.response.json())",
+									"pm.test(\"Test account coins value\", function () {",
+									"    const accountCoins = pm.environment.get('accountCoins');",
+									"    var responseBody = pm.response.json();",
+									"    pm.expect(responseBody).to.be.an('object');",
+									"})"
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],

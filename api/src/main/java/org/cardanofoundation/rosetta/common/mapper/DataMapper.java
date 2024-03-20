@@ -167,7 +167,7 @@ public class DataMapper {
    * @return The Rosetta compatible Amount
    */
   public static Amount mapAmount(String value, String symbol, Integer decimals,
-                                 Map<String, Object> metadata) {
+                                 CurrencyMetadata metadata) {
     if (Objects.isNull(symbol)) {
       symbol = Constants.ADA;
     }
@@ -197,7 +197,8 @@ public class DataMapper {
     if (sum > 0) {
       amounts.add(mapAmount(String.valueOf(sum)));
     }
-    nonLovelaceBalances.forEach(balance -> amounts.add(mapAmount(balance.quantity().toString(), Hex.encodeHexString(balance.assetName().getBytes()), Constants.MULTI_ASSET_DECIMALS, Map.of("policyId", balance.policy()))));
+    nonLovelaceBalances.forEach(balance -> amounts.add(mapAmount(balance.quantity().toString(), Hex.encodeHexString(balance.assetName().getBytes()), Constants.MULTI_ASSET_DECIMALS, new CurrencyMetadata(
+        balance.policy()))));
     return AccountBalanceResponse.builder()
             .blockIdentifier(BlockIdentifier.builder()
                     .hash(block.getHash())
