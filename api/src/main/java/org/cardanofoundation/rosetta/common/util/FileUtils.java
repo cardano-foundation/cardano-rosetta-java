@@ -9,6 +9,9 @@ import java.nio.charset.StandardCharsets;
 
 public class FileUtils {
 
+    private FileUtils() {
+    }
+
     public static String fileReader(String path) throws IOException {
         //check if path exists in classpath
         try (
@@ -18,4 +21,5 @@ public class FileUtils {
             return new String(fileBytes, StandardCharsets.UTF_8);
         }
     }
+
 }

@@ -180,4 +180,5 @@ public class ExceptionFactory {
   public static ApiException invalidNetworkError() {
     return new ApiException(RosettaErrorType.INVALID_NETWORK.toRosettaError(false));
   }
+
 }

@@ -1,5 +1,6 @@
 package org.cardanofoundation.rosetta.api.block.model.domain;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 
 import lombok.AllArgsConstructor;
@@ -24,9 +25,9 @@ public class ProcessOperations {
   private ArrayList<Certificate> certificates = new ArrayList<>();
   private ArrayList<Withdrawal> withdrawals = new ArrayList<>();
   private ArrayList<String> addresses = new ArrayList<>();
-  private ArrayList<String> inputAmounts = new ArrayList<>();
-  private ArrayList<String> outputAmounts = new ArrayList<>();
-  private ArrayList<Long> withdrawalAmounts = new ArrayList<>();
+  private ArrayList<BigInteger> inputAmounts = new ArrayList<>();
+  private ArrayList<BigInteger> outputAmounts = new ArrayList<>();
+  private ArrayList<BigInteger> withdrawalAmounts = new ArrayList<>();
   private double stakeKeyRegistrationsCount = 0.0;
   private double stakeKeyDeRegistrationsCount = 0.0;
   private double poolRegistrationsCount = 0.0;

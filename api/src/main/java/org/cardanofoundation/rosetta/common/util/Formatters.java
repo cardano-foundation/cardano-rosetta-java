@@ -22,7 +22,7 @@ public class Formatters {
     return toCheck.equals(EMPTY_HEX);
   }
 
-  public static String hexStringFormatter(String toFormat) {
+  public static String nullOrEmptyStringToHexFormat(String toFormat) {
     return toFormat == null || toFormat.isEmpty() ? EMPTY_HEX : toFormat;
   }
 
