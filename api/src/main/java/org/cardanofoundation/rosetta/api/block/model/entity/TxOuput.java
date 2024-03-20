@@ -1,13 +1,14 @@
 package org.cardanofoundation.rosetta.api.block.model.entity;
 
+import java.io.Serializable;
+import java.util.List;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.cardanofoundation.rosetta.api.account.model.entity.Amt;
 
-import java.io.Serializable;
-import java.util.List;
+import org.cardanofoundation.rosetta.api.account.model.entity.Amt;
 
 //Not used
 @Data
@@ -15,10 +16,11 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class TxOuput implements Serializable {
-    private String address;
 
-    private List<Amt> amounts;
-    private String dataHash;
-    private String inlineDatum;
-    private String referenceScriptHash;
+  private String address;
+
+  private List<Amt> amounts;
+  private String dataHash;
+  private String inlineDatum;
+  private String referenceScriptHash;
 }

@@ -1,10 +1,11 @@
 package org.cardanofoundation.rosetta.api.block.model.domain;
 
-import com.bloxbean.cardano.yaci.core.model.HeaderBody;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import com.bloxbean.cardano.yaci.core.model.HeaderBody;
 
 @Getter
 @NoArgsConstructor

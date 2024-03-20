@@ -9,7 +9,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.NativeWebRequest;
-
 import org.openapitools.client.api.BlockApi;
 import org.openapitools.client.model.BlockRequest;
 import org.openapitools.client.model.BlockResponse;

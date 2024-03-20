@@ -43,37 +43,43 @@ import static org.cardanofoundation.rosetta.common.util.Formatters.hexStringForm
 @Slf4j
 class OperationDataMapper {
 
-    @NotNull
-    public static List<Operation> getAllOperations(Transaction transactionDto, String poolDeposit, OperationStatus status) {
-        List<List<Operation>> totalOperations = new ArrayList<>();
-        List<Operation> inputsAsOperations = getInputTransactionsasOperations(transactionDto, status);
-        totalOperations.add(inputsAsOperations);
+  @NotNull
+  public static List<Operation> getAllOperations(Transaction transactionDto, String poolDeposit,
+      OperationStatus status) {
+    List<List<Operation>> totalOperations = new ArrayList<>();
+    List<Operation> inputsAsOperations = getInputTransactionsasOperations(transactionDto, status);
+    totalOperations.add(inputsAsOperations);
 // TODO Withdrawal currently not supported via Yaci-store. Will implemented it as soon as the PR is merged.
 //        List<Operation> withdrawalsAsOperations = getWithdrawlOperations(transactionDto, status, totalOperations);
 //        totalOperations.add(withdrawalsAsOperations);
 
-        List<Operation> stakeRegistrationOperations = getStakeRegistrationOperations(transactionDto, status, totalOperations);
-        totalOperations.add(stakeRegistrationOperations);
+    List<Operation> stakeRegistrationOperations = getStakeRegistrationOperations(transactionDto,
+        status, totalOperations);
+    totalOperations.add(stakeRegistrationOperations);
 
-        List<Operation> delegationOperations = getDelegationOperations(transactionDto, status, totalOperations);
-        totalOperations.add(delegationOperations);
+    List<Operation> delegationOperations = getDelegationOperations(transactionDto, status,
+        totalOperations);
+    totalOperations.add(delegationOperations);
 
-        List<Operation> poolRegistrationOperations = getPoolRegistrationOperations(transactionDto, status, totalOperations, poolDeposit);
-        totalOperations.add(poolRegistrationOperations);
+    List<Operation> poolRegistrationOperations = getPoolRegistrationOperations(transactionDto,
+        status, totalOperations, poolDeposit);
+    totalOperations.add(poolRegistrationOperations);
 
-        List<Operation> poolRetirementOperations = getPoolRetirementOperations(transactionDto, status, totalOperations);
-        totalOperations.add(poolRetirementOperations);
+    List<Operation> poolRetirementOperations = getPoolRetirementOperations(transactionDto, status,
+        totalOperations);
+    totalOperations.add(poolRetirementOperations);
 
-        List<OperationIdentifier> relatedOperations = getOperationIndexes(inputsAsOperations);
+    List<OperationIdentifier> relatedOperations = getOperationIndexes(inputsAsOperations);
 
-        List<Operation> outputsAsOperations = getOutputsAsOperations(transactionDto, totalOperations, status, relatedOperations);
+    List<Operation> outputsAsOperations = getOutputsAsOperations(transactionDto, totalOperations,
+        status, relatedOperations);
 
-        totalOperations.add(outputsAsOperations);
-        List<Operation> operations = totalOperations.stream()
-                .flatMap(Collection::stream)
-                .collect(Collectors.toList());
-        return operations;
-    }
+    totalOperations.add(outputsAsOperations);
+    List<Operation> operations = totalOperations.stream()
+        .flatMap(Collection::stream)
+        .collect(Collectors.toList());
+    return operations;
+  }
 
 //    @NotNull
 //    private static List<Operation> getWithdrawlOperations(TransactionDto transactionDto, OperationStatus status, List<List<Operation>> totalOperations) {
@@ -94,183 +100,194 @@ class OperationDataMapper {
 //                }).toList();
 //    }
 
-    @NotNull
-    public static List<Operation> getInputTransactionsasOperations(Transaction transactionDto, OperationStatus status) {
+  @NotNull
+  public static List<Operation> getInputTransactionsasOperations(Transaction transactionDto,
+      OperationStatus status) {
 
-      return  IntStream.range(0,  nullable(transactionDto.getInputs()).size()  )
-                .mapToObj(index -> {
-                    Utxo utxoModel = transactionDto.getInputs().get(index);
-                    return createOperation((long) index,
-                            Constants.INPUT,
-                            status.getStatus(),
-                            utxoModel.getOwnerAddr(),
-                            DataMapper.mapValue(utxoModel.getLovelaceAmount().toString(), true),
-                            null,
-                            null,
-                            DataMapper.getCoinChange(utxoModel.getOutputIndex(), utxoModel.getTxHash(),
-                                    CoinAction.SPENT),
-                            mapToOperationMetaData(true, utxoModel.getAmounts()));
-                }).toList();
-    }
+    return IntStream.range(0, nullable(transactionDto.getInputs()).size())
+        .mapToObj(index -> {
+          Utxo utxoModel = transactionDto.getInputs().get(index);
+          return createOperation((long) index,
+              Constants.INPUT,
+              status.getStatus(),
+              utxoModel.getOwnerAddr(),
+              DataMapper.mapValue(utxoModel.getLovelaceAmount().toString(), true),
+              null,
+              null,
+              DataMapper.getCoinChange(utxoModel.getOutputIndex(), utxoModel.getTxHash(),
+                  CoinAction.SPENT),
+              mapToOperationMetaData(true, utxoModel.getAmounts()));
+        }).toList();
+  }
 
   private static <T> List<T> nullable(List<T> list) {
     return Optional.ofNullable(list).orElse(Collections.emptyList());
   }
 
-  public static List<Operation> getPoolRegistrationOperations(Transaction transactionDto, OperationStatus status, List<List<Operation>> totalOperations, String poolDeposit) {
-        return IntStream.range(0, nullable(transactionDto.getPoolRegistrations()).size())
-                .mapToObj(index -> {
-                    PoolRegistration poolRegistration = transactionDto.getPoolRegistrations().get(index);
-                    return Operation.builder()
-                            .operationIdentifier(OperationIdentifier.builder().index(
-                                    getOperationCurrentIndex(totalOperations, index)).build())
-                            .type(OperationType.POOL_REGISTRATION.getValue())
-                            .status(status.getStatus())
-                            .account(AccountIdentifier.builder().address(poolRegistration.getPoolId()).build())
-                            .metadata(OperationMetadata.builder()
-                                    .depositAmount(DataMapper.mapAmount(poolDeposit))
-                                    .poolRegistrationParams(PoolRegistrationParams.builder()
-                                            .pledge(poolRegistration.getPledge())
-                                            .rewardAddress(poolRegistration.getRewardAccount())
-                                            .cost(poolRegistration.getCost())
-                                            .poolOwners(poolRegistration.getOwners().stream().toList())
-                                            .marginPercentage(poolRegistration.getMargin())
-                                            .vrfKeyHash(poolRegistration.getVrfKeyHash())
-                                            .relays(poolRegistration.getRelays())
-                                            .build())
-                                    .build())
-                            .build();
-                }).toList();
-    }
+  public static List<Operation> getPoolRegistrationOperations(Transaction transactionDto,
+      OperationStatus status, List<List<Operation>> totalOperations, String poolDeposit) {
+    return IntStream.range(0, nullable(transactionDto.getPoolRegistrations()).size())
+        .mapToObj(index -> {
+          PoolRegistration poolRegistration = transactionDto.getPoolRegistrations().get(index);
+          return Operation.builder()
+              .operationIdentifier(OperationIdentifier.builder().index(
+                  getOperationCurrentIndex(totalOperations, index)).build())
+              .type(OperationType.POOL_REGISTRATION.getValue())
+              .status(status.getStatus())
+              .account(AccountIdentifier.builder().address(poolRegistration.getPoolId()).build())
+              .metadata(OperationMetadata.builder()
+                  .depositAmount(DataMapper.mapAmount(poolDeposit))
+                  .poolRegistrationParams(PoolRegistrationParams.builder()
+                      .pledge(poolRegistration.getPledge())
+                      .rewardAddress(poolRegistration.getRewardAccount())
+                      .cost(poolRegistration.getCost())
+                      .poolOwners(poolRegistration.getOwners().stream().toList())
+                      .marginPercentage(poolRegistration.getMargin())
+                      .vrfKeyHash(poolRegistration.getVrfKeyHash())
+                      .relays(poolRegistration.getRelays())
+                      .build())
+                  .build())
+              .build();
+        }).toList();
+  }
 
-    public static List<Operation> getPoolRetirementOperations(Transaction transactionDto, OperationStatus status, List<List<Operation>> totalOperations) {
-        return IntStream.range(0,
-                        nullable(transactionDto.getPoolRetirements()).size())
-                .mapToObj(index -> {
-                    PoolRetirement poolRetirement = transactionDto.getPoolRetirements().get(index);
-                    return Operation.builder()
-                            .operationIdentifier(OperationIdentifier.builder().index(
-                                    getOperationCurrentIndex(totalOperations, index)).build())
-                            .type(OperationType.POOL_RETIREMENT.getValue())
-                            .status(status.getStatus())
-                            .account(AccountIdentifier.builder().address(poolRetirement.getPoolId()).build())
-                            .metadata(OperationMetadata.builder()
-                                    .epoch(poolRetirement.getEpoch().longValue())
-                                    .build())
-                            .build();
-                }).toList();
-    }
+  public static List<Operation> getPoolRetirementOperations(Transaction transactionDto,
+      OperationStatus status, List<List<Operation>> totalOperations) {
+    return IntStream.range(0,
+            nullable(transactionDto.getPoolRetirements()).size())
+        .mapToObj(index -> {
+          PoolRetirement poolRetirement = transactionDto.getPoolRetirements().get(index);
+          return Operation.builder()
+              .operationIdentifier(OperationIdentifier.builder().index(
+                  getOperationCurrentIndex(totalOperations, index)).build())
+              .type(OperationType.POOL_RETIREMENT.getValue())
+              .status(status.getStatus())
+              .account(AccountIdentifier.builder().address(poolRetirement.getPoolId()).build())
+              .metadata(OperationMetadata.builder()
+                  .epoch(poolRetirement.getEpoch().longValue())
+                  .build())
+              .build();
+        }).toList();
+  }
 
-    public static List<Operation> getStakeRegistrationOperations(Transaction transactionDto, OperationStatus status, List<List<Operation>> totalOperations) {
-        return IntStream.range(0,
-                        nullable(transactionDto.getStakeRegistrations()).size())
-                .mapToObj(index -> {
-                    StakeRegistration stakeRegistration = transactionDto.getStakeRegistrations().get(index);
-                    OperationType operationType = stakeRegistration.getType().equals(CertificateType.STAKE_REGISTRATION) ? OperationType.STAKE_KEY_REGISTRATION :
-                            stakeRegistration.getType().equals(CertificateType.STAKE_DEREGISTRATION) ? OperationType.STAKE_KEY_DEREGISTRATION : null;
-                    if(operationType == null) {
-                        log.error("Invalid stake registration type {}", stakeRegistration.getType());
-                        return null;
-                    }
-                    return Operation.builder()
-                            .operationIdentifier(OperationIdentifier.builder().index(
-                                    getOperationCurrentIndex(totalOperations, index)).build())
-                            .type(operationType.getValue())
-                            .status(status.getStatus())
-                            .account(AccountIdentifier.builder().address(stakeRegistration.getAddress()).build())
-                            .metadata(OperationMetadata.builder()
+  public static List<Operation> getStakeRegistrationOperations(Transaction transactionDto,
+      OperationStatus status, List<List<Operation>> totalOperations) {
+    return IntStream.range(0,
+            nullable(transactionDto.getStakeRegistrations()).size())
+        .mapToObj(index -> {
+          StakeRegistration stakeRegistration = transactionDto.getStakeRegistrations().get(index);
+          OperationType operationType =
+              stakeRegistration.getType().equals(CertificateType.STAKE_REGISTRATION)
+                  ? OperationType.STAKE_KEY_REGISTRATION :
+                  stakeRegistration.getType().equals(CertificateType.STAKE_DEREGISTRATION)
+                      ? OperationType.STAKE_KEY_DEREGISTRATION : null;
+          if (operationType == null) {
+            log.error("Invalid stake registration type {}", stakeRegistration.getType());
+            return null;
+          }
+          return Operation.builder()
+              .operationIdentifier(OperationIdentifier.builder().index(
+                  getOperationCurrentIndex(totalOperations, index)).build())
+              .type(operationType.getValue())
+              .status(status.getStatus())
+              .account(AccountIdentifier.builder().address(stakeRegistration.getAddress()).build())
+              .metadata(OperationMetadata.builder()
 
-                                    .depositAmount(DataMapper.mapAmount("2000000", ADA, ADA_DECIMALS, null)) // TODO need to get this from protocolparams
-                                    .build())
-                            .build();
-                }).toList();
-    }
+                  .depositAmount(DataMapper.mapAmount("2000000", ADA, ADA_DECIMALS,
+                      null)) // TODO need to get this from protocolparams
+                  .build())
+              .build();
+        }).toList();
+  }
 
-    public static List<Operation> getDelegationOperations(Transaction transaction, OperationStatus status, List<List<Operation>> totalOperations) {
-        return IntStream.range(0,
-                        nullable(transaction.getDelegations()).size())
-                .mapToObj(index -> {
-                    Delegation delegation = transaction.getDelegations().get(index);
-                    return Operation.builder()
-                            .operationIdentifier(OperationIdentifier.builder().index(
-                                    getOperationCurrentIndex(totalOperations, index)).build())
-                            .type(OperationType.STAKE_DELEGATION.getValue())
-                            .status(status.getStatus())
-                            .account(AccountIdentifier.builder().address(delegation.getAddress()).build())
-                            .metadata(OperationMetadata.builder()
-                                    .poolKeyHash(delegation.getPoolId())
-                                    .build())
-                            .build();
-                }).toList();
-    }
+  public static List<Operation> getDelegationOperations(Transaction transaction,
+      OperationStatus status, List<List<Operation>> totalOperations) {
+    return IntStream.range(0,
+            nullable(transaction.getDelegations()).size())
+        .mapToObj(index -> {
+          Delegation delegation = transaction.getDelegations().get(index);
+          return Operation.builder()
+              .operationIdentifier(OperationIdentifier.builder().index(
+                  getOperationCurrentIndex(totalOperations, index)).build())
+              .type(OperationType.STAKE_DELEGATION.getValue())
+              .status(status.getStatus())
+              .account(AccountIdentifier.builder().address(delegation.getAddress()).build())
+              .metadata(OperationMetadata.builder()
+                  .poolKeyHash(delegation.getPoolId())
+                  .build())
+              .build();
+        }).toList();
+  }
 
-    @NotNull
-    public static List<Operation> getOutputsAsOperations(Transaction transaction, List<List<Operation>> totalOperations, OperationStatus status, List<OperationIdentifier> relatedOperations) {
-        return IntStream.range(0, nullable(transaction.getOutputs()).size())
-                .mapToObj(index -> {
-                    Utxo utxoModel = transaction.getOutputs().get(index);
-                    return createOperation(getOperationCurrentIndex(totalOperations, index),
-                            Constants.OUTPUT,
-                            status.getStatus(),
-                            utxoModel.getOwnerAddr(),
-                            DataMapper.mapValue(utxoModel.getLovelaceAmount().toString(), false),
-                            relatedOperations,
-                            Long.valueOf(utxoModel.getOutputIndex()),
-                            DataMapper.getCoinChange(utxoModel.getOutputIndex(), utxoModel.getTxHash(),
-                                    CoinAction.CREATED),
-                            mapToOperationMetaData(false, utxoModel.getAmounts()));
-                }).toList();
-    }
+  @NotNull
+  public static List<Operation> getOutputsAsOperations(Transaction transaction,
+      List<List<Operation>> totalOperations, OperationStatus status,
+      List<OperationIdentifier> relatedOperations) {
+    return IntStream.range(0, nullable(transaction.getOutputs()).size())
+        .mapToObj(index -> {
+          Utxo utxoModel = transaction.getOutputs().get(index);
+          return createOperation(getOperationCurrentIndex(totalOperations, index),
+              Constants.OUTPUT,
+              status.getStatus(),
+              utxoModel.getOwnerAddr(),
+              DataMapper.mapValue(utxoModel.getLovelaceAmount().toString(), false),
+              relatedOperations,
+              Long.valueOf(utxoModel.getOutputIndex()),
+              DataMapper.getCoinChange(utxoModel.getOutputIndex(), utxoModel.getTxHash(),
+                  CoinAction.CREATED),
+              mapToOperationMetaData(false, utxoModel.getAmounts()));
+        }).toList();
+  }
 
-    public static Operation createOperation(Long index, String type, String status, String address,
-                                            String value, List<OperationIdentifier> relatedOperations, Long networkIndex,
-                                            CoinChange coinChange, OperationMetadata tokenBundleMetadata) {
-        return Operation.builder()
-                .operationIdentifier(OperationIdentifier.builder()
-                        .index(index)
-                        .networkIndex(networkIndex).build()
-                )
-                .type(type)
-                .status(status)
-                .account(AccountIdentifier.builder()
-                        .address(address).build()
-                )
-                .amount(DataMapper.mapAmount(value, null, null, null))
-                .coinChange(coinChange)
-                .relatedOperations(relatedOperations)
-                .metadata(tokenBundleMetadata).build();
-    }
+  public static Operation createOperation(Long index, String type, String status, String address,
+      String value, List<OperationIdentifier> relatedOperations, Long networkIndex,
+      CoinChange coinChange, OperationMetadata tokenBundleMetadata) {
+    return Operation.builder()
+        .operationIdentifier(OperationIdentifier.builder()
+            .index(index)
+            .networkIndex(networkIndex).build()
+        )
+        .type(type)
+        .status(status)
+        .account(AccountIdentifier.builder()
+            .address(address).build()
+        )
+        .amount(DataMapper.mapAmount(value, null, null, null))
+        .coinChange(coinChange)
+        .relatedOperations(relatedOperations)
+        .metadata(tokenBundleMetadata).build();
+  }
 
-    private static OperationMetadata mapToOperationMetaData(boolean spent, List<Amt> amounts) {
-        OperationMetadata operationMetadata = new OperationMetadata();
-        for (Amt amount : amounts) {
-            if(!amount.getAssetName().equals(Constants.LOVELACE)) {
-                TokenBundleItem tokenBundleItem = new TokenBundleItem();
-                tokenBundleItem.setPolicyId(amount.getPolicyId());
-                Amount amt = new Amount();
-                amt.setValue(DataMapper.mapValue(amount.getQuantity().toString(), spent));
-                String hexAssetName = Hex.encodeHexString(amount.getAssetName().getBytes());
-                amt.setCurrency(Currency.builder()
-                        .symbol(hexStringFormatter(hexAssetName))
-                        .decimals(0)
-                        .build());
-                tokenBundleItem.setTokens(List.of(amt));
-                operationMetadata.addTokenBundleItem(tokenBundleItem);
-            }
-        }
-        return operationMetadata;
+  private static OperationMetadata mapToOperationMetaData(boolean spent, List<Amt> amounts) {
+    OperationMetadata operationMetadata = new OperationMetadata();
+    for (Amt amount : amounts) {
+      if (!amount.getAssetName().equals(Constants.LOVELACE)) {
+        TokenBundleItem tokenBundleItem = new TokenBundleItem();
+        tokenBundleItem.setPolicyId(amount.getPolicyId());
+        Amount amt = new Amount();
+        amt.setValue(DataMapper.mapValue(amount.getQuantity().toString(), spent));
+        String hexAssetName = Hex.encodeHexString(amount.getAssetName().getBytes());
+        amt.setCurrency(Currency.builder()
+            .symbol(hexStringFormatter(hexAssetName))
+            .decimals(0)
+            .build());
+        tokenBundleItem.setTokens(List.of(amt));
+        operationMetadata.addTokenBundleItem(tokenBundleItem);
+      }
     }
+    return operationMetadata;
+  }
 
-    public static long getOperationCurrentIndex(List<List<Operation>> operationsList,
-                                                int relativeIndex) {
-        return relativeIndex + operationsList.stream()
-                .mapToLong(List::size)
-                .sum();
-    }
+  public static long getOperationCurrentIndex(List<List<Operation>> operationsList,
+      int relativeIndex) {
+    return relativeIndex + operationsList.stream()
+        .mapToLong(List::size)
+        .sum();
+  }
 
-    public static List<OperationIdentifier> getOperationIndexes(List<Operation> operations) {
-        return operations.stream()
-                .map(operation -> OperationIdentifier.builder().index(operation.getOperationIdentifier()
-                        .getIndex()).build()).collect(Collectors.toList());
-    }
+  public static List<OperationIdentifier> getOperationIndexes(List<Operation> operations) {
+    return operations.stream()
+        .map(operation -> OperationIdentifier.builder().index(operation.getOperationIdentifier()
+            .getIndex()).build()).collect(Collectors.toList());
+  }
 }

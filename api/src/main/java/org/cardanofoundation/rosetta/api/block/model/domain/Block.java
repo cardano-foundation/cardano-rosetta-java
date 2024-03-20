@@ -34,7 +34,8 @@ public class Block {
         .number(block.getNumber())
         .hash(block.getHash())
         .createdAt(TimeUnit.SECONDS.toMillis(block.getBlockTimeInSeconds()))
-        .previousBlockHash(block.getPrev() != null ? block.getPrev().getHash() : block.getHash()) // TODO EPAM: check for genesis block
+        .previousBlockHash(block.getPrev() != null ? block.getPrev().getHash()
+            : block.getHash()) // TODO EPAM: check for genesis block
         .previousBlockNumber(block.getPrev() != null ? block.getPrev().getNumber() : 0)
         .transactionsCount(block.getNoOfTxs())
         .size(Math.toIntExact(block.getBlockBodySize()))

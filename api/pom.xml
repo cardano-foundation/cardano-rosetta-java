@@ -11,6 +11,9 @@
     <artifactId>api</artifactId>
     <name>api</name>
     <description>Rosetta API implementation for Cardano.</description>
+    <properties>
+        <spotbugs-annotations.version>4.8.3</spotbugs-annotations.version>
+    </properties>
 
     <packaging>jar</packaging>
 
@@ -135,9 +138,9 @@
             <version>0.2.2</version>
         </dependency>
         <dependency>
-            <groupId>com.google.code.findbugs</groupId>
-            <artifactId>jsr305</artifactId>
-            <version>3.0.2</version>
+            <groupId>com.github.spotbugs</groupId>
+            <artifactId>spotbugs-annotations</artifactId>
+            <version>${spotbugs-annotations.version}</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api -->
         <dependency>

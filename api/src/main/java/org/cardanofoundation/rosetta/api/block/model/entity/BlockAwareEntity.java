@@ -1,14 +1,15 @@
 package org.cardanofoundation.rosetta.api.block.model.entity;
 
+import java.time.LocalDateTime;
 import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
-import org.hibernate.annotations.UpdateTimestamp;
 
-import java.time.LocalDateTime;
+import org.hibernate.annotations.UpdateTimestamp;
 
 @Data
 @MappedSuperclass
@@ -17,14 +18,14 @@ import java.time.LocalDateTime;
 @SuperBuilder
 public class BlockAwareEntity {
 
-    @Column(name = "block")
-    private Long blockNumber;
+  @Column(name = "block")
+  private Long blockNumber;
 
-    @Column(name = "block_time")
-    private Long blockTime;
+  @Column(name = "block_time")
+  private Long blockTime;
 
-    @UpdateTimestamp
-    @Column(name = "update_datetime")
-    private LocalDateTime updateDateTime;
+  @UpdateTimestamp
+  @Column(name = "update_datetime")
+  private LocalDateTime updateDateTime;
 
 }
