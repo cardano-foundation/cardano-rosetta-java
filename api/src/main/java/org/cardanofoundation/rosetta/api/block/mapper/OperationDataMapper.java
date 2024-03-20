@@ -20,25 +20,24 @@ import org.openapitools.client.model.CoinChange;
 import org.openapitools.client.model.Currency;
 import org.openapitools.client.model.Operation;
 import org.openapitools.client.model.OperationIdentifier;
+import org.openapitools.client.model.OperationMetadata;
 import org.openapitools.client.model.OperationStatus;
+import org.openapitools.client.model.PoolRegistrationParams;
+import org.openapitools.client.model.TokenBundleItem;
 
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.account.model.entity.Amt;
 import org.cardanofoundation.rosetta.api.block.model.domain.Delegation;
 import org.cardanofoundation.rosetta.api.block.model.domain.PoolRegistration;
-import org.cardanofoundation.rosetta.api.block.model.domain.PoolRegistrationParams;
 import org.cardanofoundation.rosetta.api.block.model.domain.PoolRetirement;
 import org.cardanofoundation.rosetta.api.block.model.domain.StakeRegistration;
 import org.cardanofoundation.rosetta.api.block.model.domain.Transaction;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.common.mapper.DataMapper;
-import org.cardanofoundation.rosetta.common.model.cardano.OperationMetadata;
-import org.cardanofoundation.rosetta.common.model.cardano.TokenBundleItem;
 import org.cardanofoundation.rosetta.common.util.Constants;
 
 import static org.cardanofoundation.rosetta.common.util.Constants.ADA;
 import static org.cardanofoundation.rosetta.common.util.Constants.ADA_DECIMALS;
-import static org.cardanofoundation.rosetta.common.util.Formatters.hexStringFormatter;
 
 @Slf4j
 class OperationDataMapper {

@@ -55,7 +55,7 @@ public class ProcessContructionUtil {
         log.info("[processStakeKeyRegistration] About to process stake key registration");
 
         OperationMetadata operationMetadata = operation.getMetadata();
-        StakeCredential credential = CardanoAddressUtil.getStakingCredentialFromStakeKey(operationMetadata.getStakingCredential());
+        StakeCredential credential = CardanoAddressUtils.getStakingCredentialFromStakeKey(operationMetadata.getStakingCredential());
         return new StakeRegistration(credential);
     }
 
@@ -67,12 +67,12 @@ public class ProcessContructionUtil {
         OperationMetadata operationMetadata = operation.getMetadata();
         PublicKey publicKey = ObjectUtils.isEmpty(operation.getMetadata()) ? null
                 : operationMetadata.getStakingCredential();
-        StakeCredential credential = CardanoAddressUtil.getStakingCredentialFromStakeKey(publicKey);
+        StakeCredential credential = CardanoAddressUtils.getStakingCredentialFromStakeKey(publicKey);
         HdPublicKey hdPublicKey = new HdPublicKey();
         if (publicKey != null) {
             hdPublicKey.setKeyData(HexUtil.decodeHexString(publicKey.getHexBytes()));
         }
-        String address = CardanoAddressUtil.generateRewardAddress(networkIdentifierType, hdPublicKey);
+        String address = CardanoAddressUtils.generateRewardAddress(networkIdentifierType, hdPublicKey);
         if (operation.getType().equals(OperationType.STAKE_DELEGATION.getValue())) {
             if (operationMetadata.getPoolKeyHash() == null) {
                 throw ExceptionFactory.missingPoolKeyError();
@@ -97,7 +97,7 @@ public class ProcessContructionUtil {
             hdPublicKey.setKeyData(
                     HexUtil.decodeHexString(operationMetadata.getStakingCredential().getHexBytes()));
         }
-        String address = CardanoAddressUtil.generateRewardAddress(networkIdentifierType, hdPublicKey);
+        String address = CardanoAddressUtils.generateRewardAddress(networkIdentifierType, hdPublicKey);
         HdPublicKey hdPublicKey1 = new HdPublicKey();
         hdPublicKey1.setKeyData(
                 HexUtil.decodeHexString(operationMetadata.getStakingCredential().getHexBytes()));

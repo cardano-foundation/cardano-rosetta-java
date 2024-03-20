@@ -3,7 +3,6 @@ package org.cardanofoundation.rosetta.api.block.controller;
 import java.util.Optional;
 
 import lombok.RequiredArgsConstructor;
-import lombok.val;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -17,6 +16,7 @@ import org.openapitools.client.model.BlockTransactionResponse;
 import org.openapitools.client.model.PartialBlockIdentifier;
 
 import org.cardanofoundation.rosetta.api.block.mapper.BlockToBlockResponse;
+import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.service.BlockService;
 
 @RestController
@@ -34,7 +34,7 @@ public class BlockApiImpl implements BlockApi {
     String hash = bid.getHash();
     Long index = bid.getIndex();
 
-    val block = blockService.findBlock(index, hash);
+    Block block = blockService.findBlock(index, hash);
 
     return ResponseEntity.ok(mapper.toDto(block));
   }

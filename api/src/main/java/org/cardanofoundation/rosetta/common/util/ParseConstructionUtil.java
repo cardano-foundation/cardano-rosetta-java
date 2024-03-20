@@ -53,19 +53,19 @@ public class ParseConstructionUtil {
     int ownersCount = owners.size();
     for (int i = 0; i < ownersCount; i++) {
       if (network == NetworkIdentifierType.CARDANO_TESTNET_NETWORK.getValue()) {
-        Address address = CardanoAddressUtil.getAddress(null,
+        Address address = CardanoAddressUtils.getAddress(null,
                 HexUtil.decodeHexString(new ArrayList<>(owners).get(i)), Constants.STAKE_KEY_HASH_HEADER_KIND,
                 Networks.testnet(), Reward);
         poolOwners.add(address.getAddress());
       }
       if (network == NetworkIdentifierType.CARDANO_PREPROD_NETWORK.getValue()) {
-        Address address = CardanoAddressUtil.getAddress(null,
+        Address address = CardanoAddressUtils.getAddress(null,
                 HexUtil.decodeHexString(new ArrayList<>(owners).get(i)), Constants.STAKE_KEY_HASH_HEADER_KIND,
                 Networks.preprod(), Reward);
         poolOwners.add(address.getAddress());
       }
       if (network == NetworkIdentifierType.CARDANO_MAINNET_NETWORK.getValue()) {
-        Address address = CardanoAddressUtil.getAddress(null,
+        Address address = CardanoAddressUtils.getAddress(null,
                 HexUtil.decodeHexString(new ArrayList<>(owners).get(i)), Constants.STAKE_KEY_HASH_HEADER_KIND,
                 Networks.mainnet(), Reward);
         poolOwners.add(address.getAddress());
@@ -81,21 +81,21 @@ public class ParseConstructionUtil {
       cutRewardAccount = poolRegistration.getRewardAccount().substring(2);
     }
     if (network == NetworkIdentifierType.CARDANO_TESTNET_NETWORK.getValue()) {
-      return CardanoAddressUtil.getAddress(null,
+      return CardanoAddressUtils.getAddress(null,
                       HexUtil.decodeHexString(cutRewardAccount),
                       Constants.STAKE_KEY_HASH_HEADER_KIND,
                       Networks.testnet(), Reward)
               .getAddress();
     }
     if (network == NetworkIdentifierType.CARDANO_PREPROD_NETWORK.getValue()) {
-      return CardanoAddressUtil.getAddress(null,
+      return CardanoAddressUtils.getAddress(null,
                       HexUtil.decodeHexString(cutRewardAccount),
               Constants.STAKE_KEY_HASH_HEADER_KIND,
                       Networks.preprod(), Reward)
               .getAddress();
     }
     if (network == NetworkIdentifierType.CARDANO_MAINNET_NETWORK.getValue()) {
-      return CardanoAddressUtil.getAddress(null,
+      return CardanoAddressUtils.getAddress(null,
                       HexUtil.decodeHexString(cutRewardAccount),
               Constants.STAKE_KEY_HASH_HEADER_KIND,
                       Networks.mainnet(), Reward)
