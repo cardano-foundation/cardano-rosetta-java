@@ -1,0 +1,21 @@
+name: "Nightly"
+on:
+  schedule:
+    - cron: "0 0 * * *"
+
+jobs:
+  tests:
+    name: "Night Dev Environment Check"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: "Install Node"
+        uses: actions/setup-node@v1
+        with:
+          node-version: '21.x'
+      - name: "Install newman"
+        run: npm install -g newman
+      - name: "Run tests"
+        run: newman run ./postmanTests/rosetta-java.postman_collection.json -e postmanTests/Rosetta-javaDevEnv.postman_environment.json -r cli --env-var URL=${{ secrets.DEV_URL }}
+      - name: "Tear down environment"
+        run: docker compose --env-file .env.IntegrationTest -f docker-integration-test-environment.yaml down

@@ -1,12 +1,18 @@
 package org.cardanofoundation.rosetta.api.block.model.entity;
 
-import io.hypersistence.utils.hibernate.type.json.JsonType;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.Table;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.slf4j.Slf4j;
+
+import io.hypersistence.utils.hibernate.type.json.JsonType;
 import org.hibernate.annotations.Type;
 
 @Data
@@ -17,27 +23,30 @@ import org.hibernate.annotations.Type;
 @Table(name = "epoch_param")
 @Slf4j
 public class EpochParamEntity extends BlockAwareEntity {
-    @Id
-    @Column(name = "epoch")
-    private Integer epoch;
 
-    @Type(JsonType.class)
-    @Column(name = "params", columnDefinition = "json")
-    private ProtocolParams params;
+  @Id
+  @Column(name = "epoch")
+  private Integer epoch;
 
-    @Column(name = "cost_model_hash")
-    private String costModelHash;
+  @Type(JsonType.class)
+  @Column(name = "params", columnDefinition = "json")
+  private ProtocolParams params;
 
-    @Column(name = "slot")
-    private Long slot;
+  @Column(name = "cost_model_hash")
+  private String costModelHash;
 
-    @PrePersist
-    public void preSave() {
-        if (this.getParams() == null)
-            return;
+  @Column(name = "slot")
+  private Long slot;
 
-        //reset these fields
-        if (this.getParams().getCostModels() != null)
-            this.getParams().setCostModels(null);
+  @PrePersist
+  public void preSave() {
+    if (this.getParams() == null) {
+      return;
     }
+
+    //reset these fields
+    if (this.getParams().getCostModels() != null) {
+      this.getParams().setCostModels(null);
+    }
+  }
 }

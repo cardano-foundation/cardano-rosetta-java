@@ -51,6 +51,8 @@
         <version.google-java-format>1.21.0</version.google-java-format>
         <version.spotbugs-maven-plugin>4.8.3.0</version.spotbugs-maven-plugin>
         <version.findsecbugs-plugin>1.13.0</version.findsecbugs-plugin>
+        <modelmapper.version>3.2.0</modelmapper.version>
+        <assertj-core.version>3.25.3</assertj-core.version>
     </properties>
     <repositories>
         <repository>
@@ -127,6 +129,20 @@
                 <artifactId>swagger-annotations</artifactId>
                 <version>${version.swagger-annotations}</version>
             </dependency>
+            <dependency>
+                <groupId>org.modelmapper</groupId>
+                <artifactId>modelmapper</artifactId>
+                <version>${modelmapper.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.modelmapper.extensions</groupId>
+                <artifactId>modelmapper-spring</artifactId>
+                <version>${modelmapper.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.assertj</groupId>
+                <artifactId>assertj-core</artifactId>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -162,5 +178,6 @@
             <version>1.3.2</version>
         </dependency>
     </dependencies>
+
 
 </project>
