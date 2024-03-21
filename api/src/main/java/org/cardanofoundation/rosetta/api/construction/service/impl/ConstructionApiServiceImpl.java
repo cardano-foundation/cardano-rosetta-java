@@ -170,7 +170,6 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
     TransactionExtraData extraData = DataItemDecodeUtil.changeFromCborMaptoTransactionExtraData(
         (co.nstant.in.cbor.model.Map) array.getDataItems().get(1));
 
-    // TODO Check if unsigned transaction in CBOR map is equal to the unsigned transaction in the request
     String signedTransaction = cardanoService.buildTransaction(
         ((UnicodeString) array.getDataItems().getFirst()).getString(),
         DataMapper.mapRosettaSignatureToSignaturesList(constructionCombineRequest.getSignatures()),
