@@ -20,7 +20,7 @@ spring:
     driver-class-name: org.h2.Driver
     username: ${DB_ADMIN_USER_NAME:rosetta_db_admin}
     password: ${DB_ADMIN_USER_SECRET:weakpwd#123_d}
-    url: jdbc:h2:tcp://localhost:9090/mem:rosetta-java-preprod
+    url: jdbc:h2:tcp://localhost:9090/mem:${DB_NAME:rosetta-java-preprod}
   jpa:
     properties:
       hibernate:
