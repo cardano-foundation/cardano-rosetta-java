@@ -17,5 +17,3 @@ jobs:
         run: npm install -g newman
       - name: "Run tests"
         run: newman run ./postmanTests/rosetta-java.postman_collection.json -e postmanTests/Rosetta-javaDevEnv.postman_environment.json -r cli --env-var URL=${{ secrets.DEV_URL }}
-      - name: "Tear down environment"
-        run: docker compose --env-file .env.IntegrationTest -f docker-integration-test-environment.yaml down
