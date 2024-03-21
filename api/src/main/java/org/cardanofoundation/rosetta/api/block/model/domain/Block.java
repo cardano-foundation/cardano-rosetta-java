@@ -27,13 +27,15 @@ public class Block {
   private Integer epochNo;
   private Long slotNo;
   private List<Transaction> transactions;
+  private String poolDeposit;
 
   public static Block fromBlock(BlockEntity block) {
     return Block.builder()
         .number(block.getNumber())
         .hash(block.getHash())
         .createdAt(TimeUnit.SECONDS.toMillis(block.getBlockTimeInSeconds()))
-        .previousBlockHash(block.getPrev() != null ? block.getPrev().getHash() : block.getHash()) // TODO EPAM: check for genesis block
+        .previousBlockHash(block.getPrev() != null ? block.getPrev().getHash()
+            : block.getHash()) // TODO EPAM: check for genesis block
         .previousBlockNumber(block.getPrev() != null ? block.getPrev().getNumber() : 0)
         .transactionsCount(block.getNoOfTxs())
         .size(Math.toIntExact(block.getBlockBodySize()))

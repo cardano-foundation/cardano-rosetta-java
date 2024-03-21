@@ -20,24 +20,20 @@ import com.bloxbean.cardano.client.transaction.spec.cert.StakeCredential;
 import com.bloxbean.cardano.client.util.HexUtil;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.validator.routines.InetAddressValidator;
-import org.openapitools.client.model.Amount;
-import org.openapitools.client.model.Currency;
 import org.openapitools.client.model.PublicKey;
 
 import org.cardanofoundation.rosetta.common.enumeration.EraAddressType;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
 import org.cardanofoundation.rosetta.common.enumeration.StakeAddressPrefix;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
-import org.openapitools.client.model.PublicKey;
 
-import java.util.Arrays;
 import java.util.Objects;
 import org.openapitools.client.model.Relay;
 
 @Slf4j
-public class CardanoAddressUtil {
+public class CardanoAddressUtils {
 
-  private CardanoAddressUtil() {
+  private CardanoAddressUtils() {
 
   }
 
@@ -238,7 +234,7 @@ public class CardanoAddressUtil {
       log.error("[getPublicKey] Staking key not provided");
       throw ExceptionFactory.missingStakingKeyError();
     }
-    boolean checkKey = CardanoAddressUtil.isKeyValid(publicKey.getHexBytes(),
+    boolean checkKey = CardanoAddressUtils.isKeyValid(publicKey.getHexBytes(),
         publicKey.getCurveType().toString());
     if (!checkKey) {
       log.info("[getPublicKey] Staking key has an invalid format");
