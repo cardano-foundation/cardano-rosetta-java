@@ -23,7 +23,7 @@ public class BaseFunctions {
     Optional<Utxo> utxo = Optional.empty();
     int count = 0;
     DefaultUtxoSupplier defaultUtxoSupplier = new DefaultUtxoSupplier(backendService.getUtxoService());
-    while (utxo.isEmpty()) {
+    while (!utxo.isPresent()) {
       if (count++ >= 20)
         break;
       List<Utxo> utxos = defaultUtxoSupplier.getAll(address);

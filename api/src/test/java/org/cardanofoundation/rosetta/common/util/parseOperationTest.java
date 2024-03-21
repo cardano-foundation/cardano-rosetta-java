@@ -40,7 +40,7 @@ public class parseOperationTest {
     assertEquals(operation.getCoinChange().getCoinIdentifier().getIdentifier(),
         resultAccumulator.getTransactionInputs().get(0).getTransactionId() + ":" + resultAccumulator.getTransactionInputs().get(0).getIndex());
 
-    assertEquals(operation.getAmount().getValue(), resultAccumulator.getInputAmounts().get(0));
+    assertEquals(operation.getAmount().getValue(), resultAccumulator.getInputAmounts().get(0).toString());
     System.out.println(operation);
   }
 
@@ -54,7 +54,7 @@ public class parseOperationTest {
     assertEquals(resultAccumulator.getTransactionOutputs().size(), 1);
     assertEquals(operation.getAccount().getAddress(), resultAccumulator.getTransactionOutputs().get(0).getAddress());
 
-    assertEquals(operation.getAmount().getValue(), resultAccumulator.getOutputAmounts().get(0));
+    assertEquals(operation.getAmount().getValue(), resultAccumulator.getOutputAmounts().get(0).toString());
   }
 
   @Test

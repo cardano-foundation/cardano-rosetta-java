@@ -332,56 +332,6 @@
                 </executions>
             </plugin>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>${verison.maven-surefire-plugin}</version>
-                <configuration>
-                    <includes>
-                        <include>**/*TestCases.java</include>
-                        <include>**/*Tests.java</include>
-                        <include>**/*TestCase.java</include>
-                        <include>**/*Test.java</include>
-                        <include>**/Test*.java</include>
-                    </includes>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.jacoco</groupId>
-                <artifactId>jacoco-maven-plugin</artifactId>
-                <configuration>
-                    <excludes>
-                        <exclude>**/dto/*</exclude>
-                        <exclude>**/entity/*</exclude>
-                        <exclude>**/model/rest/**</exclude>
-                        <exclude>**/model/rosetta/**</exclude>
-                        <exclude>**/mapper/*</exclude>
-                        <exclude>**/cli/*</exclude>
-                        <exclude>**/exception/*</exclude>
-                        <exclude>**/config/**</exclude>
-                        <exclude>**/filter/**</exclude>
-                        <exclude>**/org/openapitools/client/api/*</exclude>
-                        <exclude>**/enumeration/**</exclude>
-                        <exclude>**/yaci/**</exclude>
-                        <exclude>**/repository/**</exclude>
-                    </excludes>
-                </configuration>
-                <version>${verison.jacoco-maven-plugin}</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>prepare-agent</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>generate-code-coverage-report</id>
-                        <phase>test</phase>
-                        <goals>
-                            <goal>report</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
                 <groupId>com.diffplug.spotless</groupId>
                 <artifactId>spotless-maven-plugin</artifactId>
                 <version>${version.spotless-maven-plugin}</version>
@@ -427,6 +377,38 @@
                         </plugin>
                     </plugins>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.22.0</version>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.11</version>
+                <configuration>
+                    <excludes>
+                        <exclude>**/org/openapitools/**</exclude>
+                        <exclude>**/model/**</exclude>
+                        <exclude>**/entity/**</exclude>
+                    </excludes>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <!-- attached to Maven test phase -->
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

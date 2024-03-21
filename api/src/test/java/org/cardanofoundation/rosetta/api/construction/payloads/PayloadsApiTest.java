@@ -5,15 +5,17 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
+import org.cardanofoundation.rosetta.api.IntegrationTest;
 import org.cardanofoundation.rosetta.api.construction.service.ConstructionApiService;
 import org.junit.jupiter.api.Test;
 import org.openapitools.client.model.ConstructionPayloadsRequest;
 import org.openapitools.client.model.ConstructionPayloadsResponse;
+import org.springframework.beans.factory.annotation.Autowired;
 
 
+public class PayloadsApiTest extends IntegrationTest {
 
-public class PayloadsApiTest {
-
+  @Autowired
   private ConstructionApiService constructionApiService;
 
   private ConstructionPayloadsRequest getPayloadRequest(String fileName) throws IOException {
@@ -25,7 +27,7 @@ public class PayloadsApiTest {
 
   @Test
   public void payloadsMultipleInputTests() throws Exception {
-    ConstructionPayloadsRequest request = getPayloadRequest("testdata/construction/payloads/multipleInputPayloads.json");
+    ConstructionPayloadsRequest request = getPayloadRequest("testdata/construction/payloads/multiple_inputs.json");
 
     ConstructionPayloadsResponse body = constructionApiService.constructionPayloadsService(
         request);
