@@ -200,7 +200,6 @@ public class CardanoServiceImpl implements CardanoService {
 
     @Override
     public TransactionWitnessSet getWitnessesForTransaction(List<Signatures> signaturesList) {
-        try {
             TransactionWitnessSet witnesses = new TransactionWitnessSet();
             ArrayList<VkeyWitness> vkeyWitnesses = new ArrayList<>();
             ArrayList<BootstrapWitness> bootstrapWitnesses = new ArrayList<>();
@@ -233,10 +232,7 @@ public class CardanoServiceImpl implements CardanoService {
                 witnesses.setBootstrapWitnesses(bootstrapWitnesses);
             }
             return witnesses;
-        } catch (Exception error) {
-            log.error(error.getMessage() + "[getWitnessesForTransaction] There was an error building witnesses set for transaction");
-            throw ExceptionFactory.cantBuildWitnessesSet();
-        }
+
     }
 
     @Override

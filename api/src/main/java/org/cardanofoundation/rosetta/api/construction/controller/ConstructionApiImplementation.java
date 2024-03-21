@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.cardanofoundation.rosetta.api.construction.service.ConstructionApiService;
+import org.openapitools.client.api.ConstructionApi;
 import org.openapitools.client.model.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -21,16 +22,24 @@ import java.io.IOException;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-public class ConstructionApiDelegateImplementation implements ConstructionApiDelegate {
+public class ConstructionApiImplementation implements ConstructionApi {
     private final ConstructionApiService constructionApiService;
     @Override
-    public ResponseEntity<ConstructionCombineResponse> constructionCombine(@RequestBody ConstructionCombineRequest constructionCombineRequest) throws CborException, CborSerializationException, JsonProcessingException {
+    public ResponseEntity<ConstructionCombineResponse> constructionCombine(@RequestBody ConstructionCombineRequest constructionCombineRequest) {
+      try {
         return ResponseEntity.ok(constructionApiService.constructionCombineService(constructionCombineRequest));
+      } catch (CborException e) {
+        throw new RuntimeException(e);
+      }
     }
 
     @Override
-    public ResponseEntity<ConstructionDeriveResponse> constructionDerive(@RequestBody ConstructionDeriveRequest constructionDeriveRequest) throws IllegalAccessException, CborSerializationException {
+    public ResponseEntity<ConstructionDeriveResponse> constructionDerive(@RequestBody ConstructionDeriveRequest constructionDeriveRequest) {
+      try {
         return ResponseEntity.ok(constructionApiService.constructionDeriveService(constructionDeriveRequest));
+      } catch (IllegalAccessException e) {
+        throw new RuntimeException(e);
+      }
     }
 
     @Override
@@ -39,31 +48,53 @@ public class ConstructionApiDelegateImplementation implements ConstructionApiDel
     }
 
     @Override
-    public ResponseEntity<ConstructionMetadataResponse> constructionMetadata(@RequestBody ConstructionMetadataRequest constructionMetadataRequest) throws CborException, CborSerializationException {
+    public ResponseEntity<ConstructionMetadataResponse> constructionMetadata(@RequestBody ConstructionMetadataRequest constructionMetadataRequest)  {
+      try {
         return ResponseEntity.ok(constructionApiService.constructionMetadataService(constructionMetadataRequest));
+      } catch (CborException e) {
+        throw new RuntimeException(e);
+      } catch (CborSerializationException e) {
+        throw new RuntimeException(e);
+      }
     }
 
     @Override
-    public ResponseEntity<ConstructionParseResponse> constructionParse(@RequestBody @Valid ConstructionParseRequest constructionParseRequest)
-            throws Exception {
+    public ResponseEntity<ConstructionParseResponse> constructionParse(@RequestBody @Valid ConstructionParseRequest constructionParseRequest) {
         return ResponseEntity.ok(constructionApiService.constructionParseService(constructionParseRequest));
     }
 
     @Override
-    public ResponseEntity<ConstructionPayloadsResponse> constructionPayloads(@RequestBody @Validated ConstructionPayloadsRequest constructionPayloadsRequest)
-            throws Exception {
+    public ResponseEntity<ConstructionPayloadsResponse> constructionPayloads(@RequestBody @Validated ConstructionPayloadsRequest constructionPayloadsRequest) {
+      try {
         return ResponseEntity.ok(constructionApiService.constructionPayloadsService(constructionPayloadsRequest));
+      } catch (CborException e) {
+        throw new RuntimeException(e);
+      } catch (AddressExcepion e) {
+        throw new RuntimeException(e);
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      } catch (CborSerializationException e) {
+        throw new RuntimeException(e);
+      }
     }
 
     @Override
-    public ResponseEntity<ConstructionPreprocessResponse> constructionPreprocess(@RequestBody ConstructionPreprocessRequest constructionPreprocessRequest)
-            throws IOException, AddressExcepion, CborSerializationException, CborException {
+    public ResponseEntity<ConstructionPreprocessResponse> constructionPreprocess(@RequestBody ConstructionPreprocessRequest constructionPreprocessRequest) {
+      try {
         return ResponseEntity.ok(constructionApiService.constructionPreprocessService(constructionPreprocessRequest));
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      } catch (AddressExcepion e) {
+        throw new RuntimeException(e);
+      } catch (CborSerializationException e) {
+        throw new RuntimeException(e);
+      } catch (CborException e) {
+        throw new RuntimeException(e);
+      }
     }
 
     @Override
-    public ResponseEntity<TransactionIdentifierResponse> constructionSubmit(@RequestBody ConstructionSubmitRequest constructionSubmitRequest)
-            throws CborDeserializationException, CborSerializationException, InterruptedException {
+    public ResponseEntity<TransactionIdentifierResponse> constructionSubmit(@RequestBody ConstructionSubmitRequest constructionSubmitRequest) {
         return ResponseEntity.ok(constructionApiService.constructionSubmitService(constructionSubmitRequest));
     }
 
