@@ -8,6 +8,9 @@ COPY ./api /app/api
 COPY ./yaci-indexer/pom.xml /app/yaci-indexer/pom.xml
 COPY ./yaci-indexer /app/yaci-indexer
 
+COPY ./test-data-generator/pom.xml /app/test-data-generator/pom.xml
+COPY ./test-data-generator /app/test-data-generator
+
 RUN --mount=type=cache,target=/root/.m2 mvn clean package -DskipTests
 
 FROM eclipse-temurin:latest

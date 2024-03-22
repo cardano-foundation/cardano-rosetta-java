@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <artifactId>base</artifactId>
+        <groupId>org.cardanofoundation.rosetta-java</groupId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>test-data-generator</artifactId>
+    <name>test-data-generator</name>
+    <version>1.0-SNAPSHOT</version>
+    <description>Testdata generator for Rosetta java</description>
+
+    <packaging>jar</packaging>
+
+    <scm>
+        <connection>scm:git:https://github.com/cardano-foundation/cardano-rosetta-java</connection>
+        <url>https://github.com/cardano-foundation/cardano-rosetta-java</url>
+    </scm>
+
+    <issueManagement>
+        <url>https://github.com/cardano-foundation/cardano-rosetta-java/issues</url>
+        <system>GitHub Issues</system>
+    </issueManagement>
+
+    <licenses>
+        <license>
+            <name>MPL 2.0</name>
+            <url>https://www.mozilla.org/en-US/MPL/2.0/</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <properties>
+        <java.version>21</java.version>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+    </properties>
+
+
+    <dependencies>
+        <dependency>
+            <groupId>com.bloxbean.cardano</groupId>
+            <artifactId>cardano-client-lib</artifactId>
+            <version>0.5.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.bloxbean.cardano</groupId>
+            <artifactId>cardano-client-backend-blockfrost</artifactId>
+            <version>0.5.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.reflections</groupId>
+            <artifactId>reflections</artifactId>
+            <version>0.10.2</version>
+        </dependency>
+    </dependencies>
+</project>

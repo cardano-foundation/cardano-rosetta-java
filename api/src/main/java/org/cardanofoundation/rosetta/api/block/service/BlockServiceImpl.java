@@ -43,8 +43,6 @@ public class BlockServiceImpl implements BlockService {
     if (nonNull(block)) {
       log.info("[block] Block was found, hash={}", block.getHash());
 
-      List<Transaction> transactionsFound = findTransactionsByBlock(block);
-      block.setTransactions(transactionsFound);
       block.setPoolDeposit(getPoolDeposit());
 
       log.debug("[block] full data {}", block);
