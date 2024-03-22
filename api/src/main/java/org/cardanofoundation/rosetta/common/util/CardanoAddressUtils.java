@@ -163,6 +163,8 @@ public class CardanoAddressUtils {
   }
 
   public static EraAddressType getEraAddressType(String address) {
+    if(address == null)
+      return null;
     try {
       if (address.startsWith(Constants.ADDRESS_PREFIX)
           || address.startsWith(StakeAddressPrefix.MAIN.getPrefix())) {

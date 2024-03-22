@@ -1,10 +1,9 @@
 server:
-  port: ${API_BIND_PORT:8080}
+  port: ${API_BIND_PORT:8081}
   compression:
     enabled: true
     mime-types: text/html,text/plain,text/css,application/javascript,application/json
     min-response-size: 1024
-
 
 spring:
   jackson:
@@ -16,10 +15,14 @@ spring:
       max-file-size: 8MB
       max-request-size: 16MB
   datasource:
-    driver-class-name: org.postgresql.Driver
-    username: ${DB_USER_TEST:postgres}
-    password: ${DB_SECRET_TEST:123456}
-    url: jdbc:postgresql://${DB_HOST_TEST:localhost}:${DB_PORT_TEST:5437}/${DB_NAME_TEST:test}?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC&useLegacyDatetimeCode=false&createDatabaseIfNotExist=true&autoReconnect=true
+    driver-class-name: org.h2.Driver
+    username: ${DB_ADMIN_USER_NAME:rosetta_db_admin}
+    password: ${DB_ADMIN_USER_SECRET:weakpwd#123_d}
+    url: jdbc:h2:file:../testData/devkit.db
+  #    url: jdbc:h2:mem:${DB_NAME:rosetta-java};INIT=RUNSCRIPT FROM 'classpath:init.sql;DB_CLOSE_DELAY=-1;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH
+  sql:
+    init:
+      mode: always
   jpa:
     properties:
       hibernate:
@@ -31,12 +34,8 @@ spring:
     hibernate:
       ddl-auto: none
     show-sql: true
-  liquibase:
-    enabled: false
-  data:
-    redis:
-      port: 16739
-      host: localhost
+    defer-datasource-initialization: true
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
 
 api:
   exception:
@@ -49,85 +48,12 @@ cardano:
       ${ROSETTA_VERSION}
     implementation-version:
       '1.0.0-SNAPSHOT'
-    networks:
-      [
-        {
-          id:
-            mainnet,
-          node-version:
-            cardano node 1.30.1,
-          indexer:
-            {
-              type:
-                ledgersync,
-              endpoint-url:
-                http://localhost:8080
-            },
-          node-bridge:
-            {
-              type:
-                ledgersync,
-              endpoint-url:
-                http://localhost:8080
-            }
-        },
-        {
-          id:
-            preprod,
-          protocol-magic: 1,
-          node-version:
-            cardano node 1.30.1,
-          indexer:
-            {
-              type:
-                ledgersync,
-              endpoint-url:
-                http://localhost:8080
-            },
-          node-bridge:
-            {
-              type:
-                ledgersync,
-              endpoint-url:
-                http://localhost:8080
-            }
-        },
-        {
-          id:
-            preview,
-          protocol-magic: 2,
-          node-version:
-            cardano node 1.30.1,
-          indexer:
-            {
-              type:
-                ledgersync,
-              endpoint-url:
-                http://localhost:8080
-            },
-          node-bridge:
-            {
-              type:
-                ledgersync,
-              endpoint-url:
-                http://localhost:8080
-            }
-        }
-
-      ]
-    TOPOLOGY_FILEPATH: src/main/resources/network-config/network/mainnet/cardano-node/topology.json
-    GENESIS_SHELLEY_PATH: src/main/resources/network-config/network/mainnet/genesis/shelley.json
-    CARDANO_NODE_PATH: src/test/resources/cardano-node/cardano-node
-    EXEMPTION_TYPES_PATH: src/main/resources/network-config/network/exemptions.json
-
+    TOPOLOGY_FILEPATH: ../config/devkit/topology.json
+    GENESIS_SHELLEY_PATH: ../config/devkit/shelley-genesis.json
+    CARDANO_NODE_VERSION: "8.1.2"
 
 page-size: ${PAGE_SIZE:5}
 cardano-transaction-submitter:
-  connection:
-    socket:
-      path: ../testcontainers/node-ipc/node.socket
-
   networkMagic: ${NETWORK_MAGIC:1}
-
   transaction:
     ttl: ${TRANSACTION_TTL:3000}

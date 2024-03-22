@@ -35,7 +35,7 @@
         <version.openapi-generator-maven-plugin>6.4.0</version.openapi-generator-maven-plugin>
         <version.maven-compiler-plugin>3.10.1</version.maven-compiler-plugin>
         <verison.maven-surefire-plugin>3.0.0-M7</verison.maven-surefire-plugin>
-        <verison.jacoco-maven-plugin>0.8.8</verison.jacoco-maven-plugin>
+        <verison.jacoco-maven-plugin>0.8.11</verison.jacoco-maven-plugin>
         <version.flatten-maven-plugin>1.3.0</version.flatten-maven-plugin>
         <version.lombok>1.18.30</version.lombok>
         <version.swagger-annotations>2.2.8</version.swagger-annotations>
@@ -154,22 +154,10 @@
         </repository>
     </distributionManagement>
 
-    <build>
-        <defaultGoal>install</defaultGoal>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <configuration>
-                    <skipTests>true</skipTests>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
-
     <modules>
         <module>api</module>
         <module>yaci-indexer</module>
+        <module>test-data-generator</module>
     </modules>
     <dependencies>
         <dependency>
@@ -178,6 +166,5 @@
             <version>1.3.2</version>
         </dependency>
     </dependencies>
-
 
 </project>

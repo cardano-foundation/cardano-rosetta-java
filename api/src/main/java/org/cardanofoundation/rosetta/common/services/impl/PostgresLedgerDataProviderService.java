@@ -75,23 +75,27 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
       dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
       // Populating transactions
       Block blockDto = Block.fromBlock(block);
-      for (Transaction transaction : blockDto.getTransactions()) {
-        populateUtxos(transaction.getInputs());
-        populateUtxos(transaction.getOutputs());
-        transaction.setStakeRegistrations(
-                stakeRegistrationRepository.findByTxHash(transaction.getHash())
-                        .stream().map(StakeRegistration::fromEntity).toList()); // TODO Refacotring - do this via JPA
-        transaction.setDelegations(delegationRepository.findByTxHash(transaction.getHash())
-                .stream().map(Delegation::fromEntity).toList()); // TODO Refacotring - do this via JPA
-        transaction.setPoolRegistrations(poolRegistrationRepository.findByTxHash(transaction.getHash())
-                .stream().map(PoolRegistration::fromEntity).toList()); // TODO Refacotring - do this via JPA
-        transaction.setPoolRetirements(poolRetirementRepository.findByTxHash(transaction.getHash())
-                .stream().map(PoolRetirement::fromEntity).toList()); // TODO Refacotring - do this via JPA
-      }
+      populateTransactions(blockDto.getTransactions());
       return blockDto;
     }
     log.debug("[findBlock] No block was found");
     return null;
+  }
+
+  private void populateTransactions(List<Transaction> transactions) {
+    for (Transaction transaction : transactions) {
+      populateUtxos(transaction.getInputs());
+      populateUtxos(transaction.getOutputs());
+      transaction.setStakeRegistrations(
+              stakeRegistrationRepository.findByTxHash(transaction.getHash())
+                      .stream().map(StakeRegistration::fromEntity).toList()); // TODO Refacotring - do this via JPA
+      transaction.setDelegations(delegationRepository.findByTxHash(transaction.getHash())
+              .stream().map(Delegation::fromEntity).toList()); // TODO Refacotring - do this via JPA
+      transaction.setPoolRegistrations(poolRegistrationRepository.findByTxHash(transaction.getHash())
+              .stream().map(PoolRegistration::fromEntity).toList()); // TODO Refacotring - do this via JPA
+      transaction.setPoolRetirements(poolRetirementRepository.findByTxHash(transaction.getHash())
+              .stream().map(PoolRetirement::fromEntity).toList()); // TODO Refacotring - do this via JPA
+    }
   }
 
   private void populateUtxos(List<Utxo> inputs) {
@@ -170,7 +174,9 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
     log.debug(
         "[findTransactionsByBlock] Found {} transactions", txList.size());
     if (ObjectUtils.isNotEmpty(txList)) {
-      return txList.stream().map(Transaction::fromTx).toList();
+      List<Transaction> transactions = txList.stream().map(Transaction::fromTx).toList();
+      populateTransactions(transactions);
+      return transactions;
     }
     return Collections.emptyList();
   }

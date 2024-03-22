@@ -12,7 +12,7 @@ import java.io.IOException;
 
 public interface ConstructionApiService {
     ConstructionDeriveResponse constructionDeriveService(
-            ConstructionDeriveRequest constructionDeriveRequest) throws IllegalAccessException, CborSerializationException;
+            ConstructionDeriveRequest constructionDeriveRequest) throws IllegalAccessException;
     ConstructionPreprocessResponse constructionPreprocessService(
             ConstructionPreprocessRequest constructionPreprocessRequest)
             throws IOException, AddressExcepion, CborSerializationException, CborException;
@@ -21,19 +21,17 @@ public interface ConstructionApiService {
             ConstructionMetadataRequest constructionMetadataRequest) throws CborException, CborSerializationException;
 
     ConstructionPayloadsResponse constructionPayloadsService(
-            ConstructionPayloadsRequest constructionPayloadsRequest) throws Exception;
+            ConstructionPayloadsRequest constructionPayloadsRequest) throws CborException, AddressExcepion, IOException, CborSerializationException;
 
     ConstructionParseResponse constructionParseService(
-            ConstructionParseRequest constructionParseRequest)
-            throws Exception;
+            ConstructionParseRequest constructionParseRequest);
 
     ConstructionCombineResponse constructionCombineService(
-            ConstructionCombineRequest constructionCombineRequest) throws CborException, CborSerializationException, JsonProcessingException;
+            ConstructionCombineRequest constructionCombineRequest) throws CborException;
 
     TransactionIdentifierResponse constructionHashService(
             ConstructionHashRequest constructionHashRequest);
 
     TransactionIdentifierResponse constructionSubmitService(
-            ConstructionSubmitRequest constructionSubmitRequest)
-            throws CborDeserializationException, CborSerializationException, InterruptedException;
+            ConstructionSubmitRequest constructionSubmitRequest);
 }

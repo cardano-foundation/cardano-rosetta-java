@@ -9,15 +9,14 @@ import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ObjectUtils;
 import org.cardanofoundation.rosetta.api.block.model.entity.ProtocolParams;
-import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.mapper.DataMapper;
 import org.cardanofoundation.rosetta.common.enumeration.AddressType;
 
 import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
+import org.cardanofoundation.rosetta.common.model.cardano.transaction.TransactionExtraData;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.UnsignedTransaction;
 import org.cardanofoundation.rosetta.common.services.CardanoAddressService;
 import org.cardanofoundation.rosetta.common.services.CardanoConfigService;
@@ -26,6 +25,7 @@ import org.cardanofoundation.rosetta.api.construction.service.ConstructionApiSer
 import org.cardanofoundation.rosetta.common.services.LedgerDataProviderService;
 import org.cardanofoundation.rosetta.common.util.Constants;
 import org.cardanofoundation.rosetta.common.util.CborEncodeUtil;
+import org.cardanofoundation.rosetta.common.util.DataItemDecodeUtil;
 import org.openapitools.client.model.*;
 import org.springframework.stereotype.Service;
 
@@ -52,7 +52,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
     NetworkEnum network = Optional.ofNullable(NetworkEnum.fromValue(
         constructionDeriveRequest.getNetworkIdentifier().getNetwork())).orElseThrow(() -> new IllegalAccessException("Invalid network"));
     // casting unspecific rosetta specification to cardano specific metadata
-    ConstructionDeriveMetadata metadata = constructionDeriveRequest.getMetadata();
+    ConstructionDeriveMetadata metadata = Optional.ofNullable(constructionDeriveRequest.getMetadata()).orElse(new ConstructionDeriveMetadata());
     // Default address type is enterprise
     AddressType addressType =
         metadata.getAddressType() != null ? AddressType.findByValue(metadata.getAddressType())
@@ -163,8 +163,18 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
 
   @Override
   public ConstructionCombineResponse constructionCombineService(
-      ConstructionCombineRequest constructionCombineRequest) {
-    return null;
+      ConstructionCombineRequest constructionCombineRequest) throws CborException {
+    log.info("[constructionCombine] Request received to sign a transaction");
+    Array array = cardanoService.decodeExtraData(
+        constructionCombineRequest.getUnsignedTransaction());
+    TransactionExtraData extraData = DataItemDecodeUtil.changeFromCborMaptoTransactionExtraData(
+        (co.nstant.in.cbor.model.Map) array.getDataItems().get(1));
+
+    String signedTransaction = cardanoService.buildTransaction(
+        ((UnicodeString) array.getDataItems().getFirst()).getString(),
+        DataMapper.mapRosettaSignatureToSignaturesList(constructionCombineRequest.getSignatures()),
+        extraData.transactionMetadataHex());
+    return new ConstructionCombineResponse(CborEncodeUtil.encodeExtraData(signedTransaction, extraData.operations(), extraData.transactionMetadataHex()));
   }
 
   @Override
