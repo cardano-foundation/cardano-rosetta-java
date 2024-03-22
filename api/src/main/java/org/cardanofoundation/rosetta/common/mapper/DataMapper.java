@@ -3,15 +3,16 @@ package org.cardanofoundation.rosetta.common.mapper;
 import com.bloxbean.cardano.client.common.model.Network;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.lang3.ObjectUtils;
 import org.cardanofoundation.rosetta.api.account.model.domain.AddressBalance;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.block.model.domain.*;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.Transaction;
+import org.cardanofoundation.rosetta.common.model.cardano.crypto.Signatures;
 import org.cardanofoundation.rosetta.common.util.Constants;
 import org.cardanofoundation.rosetta.api.block.model.entity.ProtocolParams;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
-import org.cardanofoundation.rosetta.common.util.Formatters;
 import org.openapitools.client.model.*;
 import org.openapitools.client.model.Currency;
 import org.springframework.stereotype.Component;
@@ -192,6 +193,18 @@ public class DataMapper {
             .build();
   }
 
+  public static List<Signatures> mapRosettaSignatureToSignaturesList(List<Signature> signatures) {
+    return signatures.stream().map(signature -> {
+      String chainCode = null;
+      String address = null;
+      AccountIdentifier accountIdentifier = signature.getSigningPayload().getAccountIdentifier();
+      if(!ObjectUtils.isEmpty(accountIdentifier)) {
+        chainCode = accountIdentifier.getMetadata().getChainCode();
+        address = accountIdentifier.getAddress();
+      }
+      return new Signatures(signature.getHexBytes(), signature.getPublicKey().getHexBytes(), chainCode, address);
+    }).toList();
+  }
 }
 
 

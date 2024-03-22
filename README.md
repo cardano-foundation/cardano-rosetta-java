@@ -22,10 +22,10 @@ to fetch the data from the node.
     - [x] /account/*
   - Construction API
     - [x] /construction/derive
-    - [ ] /construction/preprocess
+    - [x] /construction/preprocess
     - [x] /construction/metadata
-    - [ ] /construction/payloads
-    - [ ] /construction/combine
+    - [x] /construction/payloads
+    - [x] /construction/combine
     - [ ] /construction/parse
     - [x] /construction/hash
     - [ ] /construction/submit

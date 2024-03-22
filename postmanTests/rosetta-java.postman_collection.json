@@ -421,7 +421,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"network_identifier\": {\n    \"blockchain\": \"cardano\",\n    \"network\": \"preprod\"\n  },\n  \"operations\": [\n    {\n      \"operation_identifier\": {\n        \"index\": 0,\n        \"network_index\": 0\n      },\n      \"type\": \"input\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n      },\n      \"amount\": {\n        \"value\": \"-90000\",\n        \"currency\": {\n          \"symbol\": \"ADA\",\n          \"decimals\": 6\n        }\n      },\n      \"coin_change\": {\n        \"coin_identifier\": {\n          \"identifier\": \"2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f:1\"\n        },\n        \"coin_action\": \"coin_spent\"\n      }\n    },\n    {\n      \"operation_identifier\": {\n        \"index\": 1,\n        \"network_index\": 0\n      },\n      \"type\": \"input\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n      },\n      \"amount\": {\n        \"value\": \"-10000\",\n        \"currency\": {\n          \"symbol\": \"ADA\",\n          \"decimals\": 6\n        }\n      },\n      \"coin_change\": {\n        \"coin_identifier\": {\n          \"identifier\": \"2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f:1\"\n        },\n        \"coin_action\": \"coin_spent\"\n      }\n    },\n    {\n      \"operation_identifier\": {\n        \"index\": 2\n      },\n      \"related_operations\": [\n        {\n          \"index\": 0\n        },\n        {\n          \"index\": 1\n        }\n      ],\n      \"type\": \"output\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n      },\n      \"amount\": {\n        \"value\": \"10000\",\n        \"currency\": {\n          \"symbol\": \"ADA\",\n          \"decimals\": 6\n        }\n      }\n    },\n    {\n      \"operation_identifier\": {\n        \"index\": 3\n      },\n      \"related_operations\": [\n        {\n          \"index\": 0\n        },\n        {\n          \"index\": 1\n        }\n      ],\n      \"type\": \"output\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n      },\n      \"amount\": {\n        \"value\": \"40000\",\n        \"currency\": {\n          \"symbol\": \"ADA\",\n          \"decimals\": 6\n        }\n      }\n    }\n  ],\n  \"metadata\": {\n    \"ttl\": \"1000\",\n    \"protocol_parameters\": {\n      \"coinsPerUtxoSize\": \"0\",\n      \"maxTxSize\": 16384,\n      \"maxValSize\": 0,\n      \"keyDeposit\": \"2000000\",\n      \"maxCollateralInputs\": 0,\n      \"minFeeCoefficient\": 44,\n      \"minFeeConstant\": 155381,\n      \"minPoolCost\": \"340000000\",\n      \"poolDeposit\": \"500000000\",\n      \"protocol\": 4\n    }\n  }\n}",
+							"raw": "{\n  \"network_identifier\": {\n    \"blockchain\": \"cardano\",\n    \"network\": \"mainnet\"\n  },\n  \"operations\": [\n    {\n      \"operation_identifier\": {\n        \"index\": 0,\n        \"network_index\": 0\n      },\n      \"type\": \"input\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n      },\n      \"amount\": {\n        \"value\": \"-9000000\",\n        \"currency\": {\n          \"symbol\": \"ADA\",\n          \"decimals\": 6\n        }\n      },\n      \"coin_change\": {\n        \"coin_identifier\": {\n          \"identifier\": \"2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f:1\"\n        },\n        \"coin_action\": \"coin_spent\"\n      }\n    },\n    {\n      \"operation_identifier\": {\n        \"index\": 1\n      },\n      \"related_operations\": [\n        {\n          \"index\": 0\n        }\n      ],\n      \"type\": \"output\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n      },\n      \"amount\": {\n        \"value\": \"10000\",\n        \"currency\": {\n          \"symbol\": \"ADA\",\n          \"decimals\": 6\n        }\n      }\n    },\n    {\n      \"operation_identifier\": {\n        \"index\": 2\n      },\n      \"related_operations\": [\n        {\n          \"index\": 0\n        }\n      ],\n      \"type\": \"output\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n      },\n      \"amount\": {\n        \"value\": \"40000\",\n        \"currency\": {\n          \"symbol\": \"ADA\",\n          \"decimals\": 6\n        }\n      }\n    },\n    {\n      \"operation_identifier\": {\n        \"index\": 3\n      },\n      \"type\": \"stakeKeyRegistration\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5\"\n      },\n      \"metadata\": {\n        \"staking_credential\": {\n          \"hex_bytes\": \"1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F\",\n          \"curve_type\": \"edwards25519\"\n        },\n        \"depositAmount\": {\n          \"currency\": {\n            \"decimals\": 6,\n            \"symbol\": \"ADA\"\n          },\n          \"value\": \"2000000\"\n        }\n      }\n    }\n  ],\n  \"metadata\": {\n    \"ttl\": \"1000\",\n    \"protocol_parameters\": {\n      \"coinsPerUtxoSize\": \"0\",\n      \"maxTxSize\": 16384,\n      \"maxValSize\": 0,\n      \"keyDeposit\": \"2000000\",\n      \"maxCollateralInputs\": 0,\n      \"minFeeCoefficient\": 44,\n      \"minFeeConstant\": 155381,\n      \"minPoolCost\": \"340000000\",\n      \"poolDeposit\": \"500000000\",\n      \"protocol\": 4\n    }\n  }\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -436,6 +436,52 @@
 							"path": [
 								"construction",
 								"payloads"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "combine",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"})",
+									"console.log(pm.response.json())",
+									"",
+									"pm.test('Contains Json Body', function () {",
+									"    pm.response.to.have.jsonBody('signed_transaction');",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"network_identifier\": {\n    \"blockchain\": \"cardano\",\n    \"network\": \"preprod\"\n  },\n  \"unsigned_transaction\": \"8278ee61343030383138323538323032663233666438636361383335616632316633616333373562616336303166393765616437356632653739313433626466373166653263346265303433653866303130313832383235383164363162623430663161363437626338386331626436623733386462386562363633353764393236343734656135666664366261613736633966623139323731303832353831643631626234306631613634376263383863316264366237333864623865623636333537643932363437346561356666643662616137366339666231393963343030323139396334303033313930336538a16a6f7065726174696f6e7381a6746f7065726174696f6e5f6964656e746966696572a265696e646578006d6e6574776f726b5f696e64657800647479706565696e707574667374617475736773756363657373676163636f756e74a16761646472657373783b416532746450775550455a4336574a66565178544e4e3274577734736b47724e367a5256756b76784a6d544679316e596b5647514275555255334c66616d6f756e74a26576616c7565662d39303030306863757272656e6379a26673796d626f6c6341444168646563696d616c73066b636f696e5f6368616e6765a26f636f696e5f6964656e746966696572a16a6964656e7469666965727842326632336664386363613833356166323166336163333735626163363031663937656164373566326537393134336264663731666532633462653034336538663a316b636f696e5f616374696f6e6a636f696e5f7370656e74\",\n  \"signatures\": [\n    {\n      \"signing_payload\": {\n        \"account_identifier\": {\n          \"address\": \"Ae2tdPwUPEZC6WJfVQxTNN2tWw4skGrN6zRVukvxJmTFy1nYkVGQBuURU3L\",\n          \"metadata\": {\n            \"chain_code\": \"dd75e154da417becec55cdd249327454138f082110297d5e87ab25e15fad150f\"\n          }\n        },\n        \"hex_bytes\": \"4691ebf945f37962153f74e198ba2553177e6dc8e464303e37589077f634397c\",\n        \"signature_type\": \"ed25519\"\n      },\n      \"public_key\": {\n        \"hex_bytes\": \"73fea80d424276ad0978d4fe5310e8bc2d485f5f6bb3bf87612989f112ad5a7d\",\n        \"curve_type\": \"edwards25519\"\n      },\n      \"signature_type\": \"ed25519\",\n      \"hex_bytes\": \"dc2a1948bfa9411b37e8d280b04c48a85af5588bcf509c0fca798f7b462ebca92d6733dacc1f1c6c1463623c085401be07ea422ad4f1c543375e7d3d2393aa0b\"\n    }\n  ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/construction/combine",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"construction",
+								"combine"
 							]
 						}
 					},
@@ -763,10 +809,9 @@
 									"});",
 									"console.log(pm.response.json())",
 									"pm.test(\"Test account coins value\", function () {",
-									"    const accountCoins = pm.environment.get('accountCoins');",
 									"    var responseBody = pm.response.json();",
 									"    pm.expect(responseBody).to.be.an('object');",
-									"})"
+									"});"
 								],
 								"type": "text/javascript",
 								"packages": {}
