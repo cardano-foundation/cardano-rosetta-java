@@ -9,6 +9,7 @@ import co.nstant.in.cbor.model.UnsignedInteger;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.TransactionExtraData;
 import org.openapitools.client.model.AccountIdentifier;
 import org.openapitools.client.model.AccountIdentifierMetadata;
@@ -445,18 +446,16 @@ public class DataItemDecodeUtil {
     }
   }
   public static void addStatusToOperation(Map operationMap,Operation operation,String dataName){
-    if (operationMap.get(new UnicodeString(dataName)) != null) {
-      String status = ((UnicodeString) (operationMap.get(
-          new UnicodeString(dataName)))).getString();
+    Optional.ofNullable(operationMap.get(new UnicodeString(dataName))).ifPresent(o -> {
+      String status = ((UnicodeString) o).getString();
       operation.setStatus(status);
-    }
+    });
   }
   public static void addTypeToOperation(Map operationMap,Operation operation,String dataName){
-    if (operationMap.get(new UnicodeString(dataName)) != null) {
-      String type = ((UnicodeString) (operationMap.get(
-          new UnicodeString(dataName)))).getString();
-      operation.setType(type);
-    }
+    Optional.ofNullable(operationMap.get(new UnicodeString(dataName))).ifPresent(o -> {
+      String status = ((UnicodeString) o).getString();
+      operation.setType(status);
+    });
   }
   public static void addOperationIdentifier(Map operationIdentifierMap,OperationIdentifier operationIdentifier){
     if (operationIdentifierMap.get(new UnicodeString(Constants.INDEX)) != null) {

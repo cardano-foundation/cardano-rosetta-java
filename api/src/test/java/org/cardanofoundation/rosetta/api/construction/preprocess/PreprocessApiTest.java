@@ -15,9 +15,11 @@ import org.junit.jupiter.api.Test;
 import org.openapitools.client.model.ConstructionCombineRequest;
 import org.openapitools.client.model.ConstructionPreprocessRequest;
 import org.openapitools.client.model.ConstructionPreprocessResponse;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public class PreprocessApiTest extends IntegrationTest {
 
+  @Autowired
   private ConstructionApiService constructionApiService;
 
   private ConstructionPreprocessRequest getPreprocessRequest(String fileName) throws IOException {
@@ -35,8 +37,8 @@ public class PreprocessApiTest extends IntegrationTest {
 
     ConstructionPreprocessResponse constructionPreprocessResponse = constructionApiService.constructionPreprocessService(
         preprocessRequest);
-    Map<String, Integer> options = (Map<String, Integer>)constructionPreprocessResponse.getOptions();
-    assertEquals(1000, options.get("relative_tll"));
+    Map<String, Double> options = (Map<String, Double>)constructionPreprocessResponse.getOptions();
+    assertEquals(1000, options.get("relative_ttl"));
     assertEquals(224, options.get("transaction_size"));
   }
 
@@ -48,8 +50,8 @@ public class PreprocessApiTest extends IntegrationTest {
 
     ConstructionPreprocessResponse constructionPreprocessResponse = constructionApiService.constructionPreprocessService(
         preprocessRequest);
-    Map<String, Integer> options = (Map<String, Integer>)constructionPreprocessResponse.getOptions();
-    assertEquals(100, options.get("relative_tll"));
+    Map<String, Double> options = (Map<String, Double>)constructionPreprocessResponse.getOptions();
+    assertEquals(100, options.get("relative_ttl"));
     assertEquals(399, options.get("transaction_size"));
   }
 
@@ -61,8 +63,8 @@ public class PreprocessApiTest extends IntegrationTest {
 
     ConstructionPreprocessResponse constructionPreprocessResponse = constructionApiService.constructionPreprocessService(
         preprocessRequest);
-    Map<String, Integer> options = (Map<String, Integer>)constructionPreprocessResponse.getOptions();
-    assertEquals(100, options.get("relative_tll"));
+    Map<String, Double> options = (Map<String, Double>)constructionPreprocessResponse.getOptions();
+    assertEquals(100, options.get("relative_ttl"));
     assertEquals(921, options.get("transaction_size"));
   }
 

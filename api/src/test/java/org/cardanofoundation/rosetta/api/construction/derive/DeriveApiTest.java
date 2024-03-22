@@ -10,9 +10,11 @@ import org.cardanofoundation.rosetta.api.construction.service.ConstructionApiSer
 import org.junit.jupiter.api.Test;
 import org.openapitools.client.model.ConstructionDeriveRequest;
 import org.openapitools.client.model.ConstructionDeriveResponse;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public class DeriveApiTest extends IntegrationTest {
 
+  @Autowired
   private ConstructionApiService constructionApiService;
 
   private ConstructionDeriveRequest getDeriveRequest(String fileName) throws IOException {

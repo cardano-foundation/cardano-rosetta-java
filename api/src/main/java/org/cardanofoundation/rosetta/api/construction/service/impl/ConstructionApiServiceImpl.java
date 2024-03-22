@@ -52,7 +52,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
     NetworkEnum network = Optional.ofNullable(NetworkEnum.fromValue(
         constructionDeriveRequest.getNetworkIdentifier().getNetwork())).orElseThrow(() -> new IllegalAccessException("Invalid network"));
     // casting unspecific rosetta specification to cardano specific metadata
-    ConstructionDeriveMetadata metadata = constructionDeriveRequest.getMetadata();
+    ConstructionDeriveMetadata metadata = Optional.ofNullable(constructionDeriveRequest.getMetadata()).orElse(new ConstructionDeriveMetadata());
     // Default address type is enterprise
     AddressType addressType =
         metadata.getAddressType() != null ? AddressType.findByValue(metadata.getAddressType())
