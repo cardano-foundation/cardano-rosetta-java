@@ -12,7 +12,7 @@ import org.cardanofoundation.rosetta.api.account.model.entity.AddressBalanceId;
 public interface AddressBalanceRepository extends
     JpaRepository<AddressBalanceEntity, AddressBalanceId> {
 
-//    @Query(value =
+  //    @Query(value =
 //    "SELECT new AddressBalanceEntity (b.address, b.unit, MAX(b.slot),  b.quantity, b.addrFull, b.policy, b.assetName, b.paymentCredential, b.stakeAddress, b.blockHash, b.epoch) " +
 //            "FROM AddressBalanceEntity b " +
 //            "WHERE b.address = :address AND b.blockNumber <= :number " +

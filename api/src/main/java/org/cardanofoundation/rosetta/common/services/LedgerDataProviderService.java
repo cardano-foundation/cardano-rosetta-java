@@ -19,6 +19,12 @@ public interface LedgerDataProviderService {
 
     GenesisBlock findGenesisBlock();
 
+  /**
+   * Returns a block by its number and hash. Including all populated Transactions.
+   * @param number
+   * @param hash
+   * @return
+   */
     Block findBlock(Long number, String hash);
 
     List<AddressBalance> findBalanceByAddressAndBlock(String address, Long number);
@@ -32,6 +38,12 @@ public interface LedgerDataProviderService {
 
     Block findLatestBlock();
 
+  /**
+   * Returns a list of all transactions within a block. The UTXO aren't populated yet. They contain only the hash and the index.
+   * @param number
+   * @param hash
+   * @return
+   */
   List<Transaction> findTransactionsByBlock(Long number, String hash);
 
     ProtocolParams findProtolParametersFromConfig();

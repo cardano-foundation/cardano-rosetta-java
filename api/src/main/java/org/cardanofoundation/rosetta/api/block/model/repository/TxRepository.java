@@ -1,9 +1,11 @@
 package org.cardanofoundation.rosetta.api.block.model.repository;
 
 import java.util.List;
-import org.cardanofoundation.rosetta.api.block.model.entity.TxnEntity;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.query.Param;
+
+import org.cardanofoundation.rosetta.api.block.model.entity.TxnEntity;
 
 public interface TxRepository extends JpaRepository<TxnEntity, Long> {
 

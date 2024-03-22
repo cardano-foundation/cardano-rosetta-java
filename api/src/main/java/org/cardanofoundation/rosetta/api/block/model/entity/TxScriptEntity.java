@@ -1,15 +1,24 @@
 package org.cardanofoundation.rosetta.api.block.model.entity;
 
-import com.bloxbean.cardano.client.plutus.spec.RedeemerTag;
-import jakarta.persistence.*;
+import java.math.BigInteger;
+import java.util.UUID;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
-import org.cardanofoundation.rosetta.common.enumeration.ScriptType;
 
-import java.math.BigInteger;
-import java.util.UUID;
+import com.bloxbean.cardano.client.plutus.spec.RedeemerTag;
+
+import org.cardanofoundation.rosetta.common.enumeration.ScriptType;
 
 @Data
 @NoArgsConstructor
@@ -18,46 +27,47 @@ import java.util.UUID;
 @Entity
 @Table(name = "transaction_scripts")
 public class TxScriptEntity extends BlockAwareEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "id", updatable = false, nullable = false)
-    private UUID id;
 
-    @Column(name = "tx_hash")
-    private String txHash;
+  @Id
+  @GeneratedValue(strategy = GenerationType.UUID)
+  @Column(name = "id", updatable = false, nullable = false)
+  private UUID id;
 
-    @Column(name = "script_hash")
-    private String scriptHash;
+  @Column(name = "tx_hash")
+  private String txHash;
 
-    @Column(name = "slot")
-    private Long slot;
+  @Column(name = "script_hash")
+  private String scriptHash;
 
-    @Column(name = "block_hash")
-    private String blockHash;
+  @Column(name = "slot")
+  private Long slot;
 
-    @Column(name = "script_type")
-    private ScriptType type;
+  @Column(name = "block_hash")
+  private String blockHash;
 
-    @Column(name = "redeemer_cbor")
-    private String redeemerCbor;
+  @Column(name = "script_type")
+  private ScriptType type;
 
-    @Column(name = "datum_hash")
-    private String datumHash;
+  @Column(name = "redeemer_cbor")
+  private String redeemerCbor;
 
-    @Column(name = "unit_mem")
-    private BigInteger unitMem;
+  @Column(name = "datum_hash")
+  private String datumHash;
 
-    @Column(name = "unit_steps")
-    private BigInteger unitSteps;
+  @Column(name = "unit_mem")
+  private BigInteger unitMem;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "purpose")
-    private RedeemerTag purpose;
+  @Column(name = "unit_steps")
+  private BigInteger unitSteps;
 
-    @Column(name = "redeemer_index")
-    private Integer redeemerIndex;
+  @Enumerated(EnumType.STRING)
+  @Column(name = "purpose")
+  private RedeemerTag purpose;
 
-    @Column(name = "redeemer_datahash")
-    private String redeemerDatahash;
+  @Column(name = "redeemer_index")
+  private Integer redeemerIndex;
+
+  @Column(name = "redeemer_datahash")
+  private String redeemerDatahash;
 
 }

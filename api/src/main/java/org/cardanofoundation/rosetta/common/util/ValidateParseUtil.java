@@ -82,7 +82,7 @@ public class ValidateParseUtil {
     public static TransactionOutput validateAndParseTransactionOutput(Operation output) {
         Object address;
         try {
-            address = ObjectUtils.isEmpty(output.getAccount()) ? null : CardanoAddressUtil.generateAddress(output.getAccount().getAddress());
+            address = ObjectUtils.isEmpty(output.getAccount()) ? null : CardanoAddressUtils.generateAddress(output.getAccount().getAddress());
         } catch (Exception error) {
             throw ExceptionFactory.transactionOutputDeserializationError("Invalid input: " + output.getAccount().getAddress() + " " + error.getMessage());
         }
@@ -143,7 +143,7 @@ public class ValidateParseUtil {
     }
 
     public static void validateCheckKey(String policyId) {
-        boolean checckKey = CardanoAddressUtil.isPolicyIdValid(policyId);
+        boolean checckKey = CardanoAddressUtils.isPolicyIdValid(policyId);
         if (!checckKey) {
             log.error("[validateAndParseTokenBundle] PolicyId {} is not valid", policyId);
             throw ExceptionFactory.transactionOutputsParametersMissingError("PolicyId " + policyId + " is not valid");
@@ -151,7 +151,7 @@ public class ValidateParseUtil {
     }
 
     public static void validateTokenName(String tokenName) {
-        boolean checkTokenName = CardanoAddressUtil.isTokenNameValid(tokenName);
+        boolean checkTokenName = CardanoAddressUtils.isTokenNameValid(tokenName);
         if (!checkTokenName) {
             log.error("validateAndParseTokenBundle] Token name {} is not valid", tokenName);
             throw ExceptionFactory.transactionOutputsParametersMissingError("Token name " + tokenName + " is not valid");
@@ -285,7 +285,7 @@ public class ValidateParseUtil {
             if (!ObjectUtils.isEmpty(relay.getPort())) {
                 validatePort(relay.getPort().toString());
             }
-            com.bloxbean.cardano.client.transaction.spec.cert.Relay generatedRelay = CardanoAddressUtil.generateSpecificRelay(relay);
+            com.bloxbean.cardano.client.transaction.spec.cert.Relay generatedRelay = CardanoAddressUtils.generateSpecificRelay(relay);
             generatedRelays.add(generatedRelay);
         }
 
@@ -361,7 +361,7 @@ public class ValidateParseUtil {
             log.error("[validateAndParsePublicKey] Voting key not provided");
             throw ExceptionFactory.missingVotingKeyError();
         }
-        boolean checkKey = CardanoAddressUtil.isKeyValid(votingKey.getHexBytes(), votingKey.getCurveType().toString());
+        boolean checkKey = CardanoAddressUtils.isKeyValid(votingKey.getHexBytes(), votingKey.getCurveType().toString());
         if (!checkKey) {
             log.info("[validateAndParsePublicKey] Voting key has an invalid format");
             throw ExceptionFactory.invalidVotingKeyFormat();
@@ -377,7 +377,7 @@ public class ValidateParseUtil {
         if (ObjectUtils.isEmpty(voteRegistrationMetadata.getStakeKey().getHexBytes())) {
             throw ExceptionFactory.missingStakingKeyError();
         }
-        boolean checkKey = CardanoAddressUtil.isKeyValid(voteRegistrationMetadata.getStakeKey().getHexBytes(), voteRegistrationMetadata.getStakeKey().getCurveType().toString());
+        boolean checkKey = CardanoAddressUtils.isKeyValid(voteRegistrationMetadata.getStakeKey().getHexBytes(), voteRegistrationMetadata.getStakeKey().getCurveType().toString());
         if (!checkKey) {
             throw ExceptionFactory.invalidStakingKeyFormat();
         }
@@ -404,14 +404,14 @@ public class ValidateParseUtil {
         if (ObjectUtils.isEmpty(voteRegistrationMetadata.getVotingSignature())) {
             throw ExceptionFactory.invalidVotingSignature();
         }
-        if (!CardanoAddressUtil.isEd25519Signature(voteRegistrationMetadata.getVotingSignature())) {
+        if (!CardanoAddressUtils.isEd25519Signature(voteRegistrationMetadata.getVotingSignature())) {
             log.error("[validateAndParseVoteRegistrationMetadata] Voting signature has an invalid format");
             throw ExceptionFactory.invalidVotingSignature();
         }
-        String votingKeyHex = CardanoAddressUtil.add0xPrefix(parsedVotingKey);
-        String stakeKeyHex = CardanoAddressUtil.add0xPrefix(parsedStakeKey);
-        String rewardAddressHex = CardanoAddressUtil.add0xPrefix(parsedAddress);
-        String votingSignatureHex = CardanoAddressUtil.add0xPrefix(voteRegistrationMetadata.getVotingSignature());
+        String votingKeyHex = CardanoAddressUtils.add0xPrefix(parsedVotingKey);
+        String stakeKeyHex = CardanoAddressUtils.add0xPrefix(parsedStakeKey);
+        String rewardAddressHex = CardanoAddressUtils.add0xPrefix(parsedAddress);
+        String votingSignatureHex = CardanoAddressUtils.add0xPrefix(voteRegistrationMetadata.getVotingSignature());
 
         return new VoteRegistrationMetadata(PublicKey.builder().hexBytes(stakeKeyHex).build(), PublicKey.builder().hexBytes(votingKeyHex).build(), rewardAddressHex, voteRegistrationMetadata.getVotingNonce(), votingSignatureHex);
     }

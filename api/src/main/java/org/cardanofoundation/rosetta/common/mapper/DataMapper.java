@@ -61,43 +61,6 @@ public class DataMapper {
             .build();
   }
 
-  /**
-   * Maps a list of AddressBalanceDTOs to a Rosetta compatible AccountBalanceResponse.
-   * @param block The block from where the balances are calculated into the past
-   * @param poolDeposit The pool deposit
-   * @return The Rosetta compatible AccountBalanceResponse
-   */
-    public static org.openapitools.client.model.Block mapToRosettaBlock(Block block, String poolDeposit) {
-      org.openapitools.client.model.Block rosettaBlock = org.openapitools.client.model.Block.builder().build();
-      rosettaBlock.setBlockIdentifier(BlockIdentifier.builder()
-              .index(block.getNumber()).hash(block.getHash()).build());
-      rosettaBlock.setParentBlockIdentifier(BlockIdentifier.builder()
-              .index(block.getPreviousBlockNumber()).hash(block.getPreviousBlockHash()).build());
-      rosettaBlock.setTimestamp(block.getCreatedAt());
-      rosettaBlock.setTransactions(mapToRosettaTransactions(block.getTransactions(), poolDeposit));
-      rosettaBlock.metadata(BlockMetadata.builder()
-              .transactionsCount(block.getTransactionsCount())
-              .createdBy(block.getCreatedBy())
-              .size(block.getSize())
-              .epochNo(block.getEpochNo())
-              .slotNo(block.getSlotNo())
-              .build());
-      return rosettaBlock;
-    }
-
-  /**
-   * Maps a list of TransactionDtos to a list of Rosetta compatible Transactions.
-   * @param transactions The transactions to be mapped
-   * @param poolDeposit The pool deposit
-   * @return The list of Rosetta compatible Transactions
-   */
-  public static List<org.openapitools.client.model.Transaction> mapToRosettaTransactions(List<Transaction> transactions, String poolDeposit) {
-    List<org.openapitools.client.model.Transaction> rosettaTransactions = new ArrayList<>();
-    for(Transaction transactionDto : transactions) {
-      rosettaTransactions.add(mapToRosettaTransaction(transactionDto, poolDeposit));
-    }
-    return rosettaTransactions;
-  }
 
   /**
    * Basic mapping if a value is spent or not.
@@ -117,30 +80,6 @@ public class DataMapper {
             .coinAction(coinAction).build();
   }
 
-  /**
-   * Maps a TransactionDto to a Rosetta compatible Transaction.
-   * @param transactionDto The transaction to be mapped
-   * @param poolDeposit The pool deposit
-   * @return The Rosetta compatible Transaction
-   */
-  public static org.openapitools.client.model.Transaction mapToRosettaTransaction(Transaction transactionDto, String poolDeposit) {
-    org.openapitools.client.model.Transaction rosettaTransaction = new org.openapitools.client.model.Transaction();
-    TransactionIdentifier identifier = new TransactionIdentifier();
-    identifier.setHash(transactionDto.getHash());
-    rosettaTransaction.setTransactionIdentifier(identifier);
-
-    OperationStatus status = new OperationStatus();
-    status.setStatus(SUCCESS_OPERATION_STATUS.getStatus()); // TODO need to check the right status
-    List<Operation> operations = OperationDataMapper.getAllOperations(transactionDto, poolDeposit, status);
-
-    rosettaTransaction.setMetadata(TransactionMetadata.builder()
-                    .size(transactionDto.getSize()) // Todo size is not available
-                    .scriptSize(transactionDto.getScriptSize()) // TODO script size is not available
-            .build());
-    rosettaTransaction.setOperations(operations);
-    return rosettaTransaction;
-
-  }
 
   /**
    * Creates a Rosetta compatible Amount for ADA. The value is the amount in lovelace and the currency is ADA.
