@@ -11,6 +11,9 @@
     <artifactId>api</artifactId>
     <name>api</name>
     <description>Rosetta API implementation for Cardano.</description>
+    <properties>
+        <spotbugs-annotations.version>4.8.3</spotbugs-annotations.version>
+    </properties>
 
     <packaging>jar</packaging>
 
@@ -137,7 +140,7 @@
         <dependency>
             <groupId>com.github.spotbugs</groupId>
             <artifactId>spotbugs-annotations</artifactId>
-            <version>4.8.3</version>
+            <version>${spotbugs-annotations.version}</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api -->
         <dependency>
@@ -212,27 +215,6 @@
             <version>3.41.0</version>
             <scope>compile</scope>
         </dependency>
-
-        <!--        &lt;!&ndash; https://mvnrepository.com/artifact/org.testcontainers/testcontainers &ndash;&gt;-->
-        <!--        <dependency>-->
-        <!--            <groupId>org.testcontainers</groupId>-->
-        <!--            <artifactId>testcontainers</artifactId>-->
-        <!--            <version>1.17.6</version>-->
-        <!--            <scope>test</scope>-->
-        <!--        </dependency>-->
-        <!--        &lt;!&ndash; https://mvnrepository.com/artifact/org.purejava/tweetnacl-java &ndash;&gt;-->
-        <!--        <dependency>-->
-        <!--            <groupId>org.purejava</groupId>-->
-        <!--            <artifactId>tweetnacl-java</artifactId>-->
-        <!--            <version>1.1.2</version>-->
-        <!--        </dependency>-->
-        <!--        <dependency>-->
-        <!--            <groupId>org.mockito</groupId>-->
-        <!--            <artifactId>mockito-inline</artifactId>-->
-        <!--            <version>3.8.0</version>-->
-        <!--            <scope>test</scope>-->
-        <!--        </dependency>-->
-        <!-- https://mvnrepository.com/artifact/javax.servlet/servlet-api -->
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>servlet-api</artifactId>
@@ -246,17 +228,31 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>org.cardanofoundation.rosetta-java</groupId>
-            <artifactId>test-data-generator</artifactId>
-            <version>1.0-SNAPSHOT</version>
-            <scope>test</scope>
+            <groupId>org.modelmapper</groupId>
+            <artifactId>modelmapper</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-            <version>2.2.224</version>
+            <groupId>org.modelmapper.extensions</groupId>
+            <artifactId>modelmapper-spring</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>${assertj-core.version}</version>
             <scope>test</scope>
         </dependency>
+      <dependency>
+        <groupId>org.cardanofoundation.rosetta-java</groupId>
+        <artifactId>test-data-generator</artifactId>
+        <version>1.0-SNAPSHOT</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.h2database</groupId>
+        <artifactId>h2</artifactId>
+        <version>2.2.224</version>
+        <scope>test</scope>
+      </dependency>
     </dependencies>
 
     <build>
@@ -412,5 +408,18 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>h2-api</id>
+            <dependencies>
+                <dependency>
+                    <groupId>com.h2database</groupId>
+                    <artifactId>h2</artifactId>
+                    <scope>runtime</scope>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
 
 </project>

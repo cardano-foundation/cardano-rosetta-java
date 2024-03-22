@@ -1,18 +1,28 @@
 package org.cardanofoundation.rosetta.api.block.model.entity;
 
-import io.hypersistence.utils.hibernate.type.json.JsonType;
-import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.hibernate.annotations.Type;
-import org.hibernate.annotations.UpdateTimestamp;
-
 import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
+import jakarta.persistence.Column;
+import jakarta.persistence.ConstraintMode;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import io.hypersistence.utils.hibernate.type.json.JsonType;
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.UpdateTimestamp;
 
 @Data
 @NoArgsConstructor
@@ -21,74 +31,75 @@ import java.util.Set;
 @Entity
 @Table(name = "transaction")
 public class TxnEntity {
-    @Id
-    @Column(name = "tx_hash")
-    private String txHash;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "block_hash",
-            foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "none"))
-    private BlockEntity block;
+  @Id
+  @Column(name = "tx_hash")
+  private String txHash;
 
-    @Column(name = "slot")
-    private Long slot;
+  @ManyToOne(fetch = FetchType.EAGER)
+  @JoinColumn(name = "block_hash",
+      foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "none"))
+  private BlockEntity block;
 
-    @Type(JsonType.class)
-    @Column(name = "inputs")
-    private List<UtxoKey> inputKeys;
+  @Column(name = "slot")
+  private Long slot;
 
-    @Type(JsonType.class)
-    @Column(name = "outputs")
-    private List<UtxoKey> outputKeys;
+  @Type(JsonType.class)
+  @Column(name = "inputs")
+  private List<UtxoKey> inputKeys;
 
-    @Column(name = "fee")
-    private BigInteger fee;
+  @Type(JsonType.class)
+  @Column(name = "outputs")
+  private List<UtxoKey> outputKeys;
 
-    @Column(name = "ttl")
-    private Long ttl;
+  @Column(name = "fee")
+  private BigInteger fee;
 
-    @Column(name = "auxiliary_datahash")
-    private String auxiliaryDataHash;
+  @Column(name = "ttl")
+  private Long ttl;
 
-    @Column(name = "validity_interval_start")
-    private Long validityIntervalStart;
+  @Column(name = "auxiliary_datahash")
+  private String auxiliaryDataHash;
 
-    @Column(name = "script_datahash")
-    private String scriptDataHash;
+  @Column(name = "validity_interval_start")
+  private Long validityIntervalStart;
 
-    @OneToMany(mappedBy = "txHash")
-    private List<TxScriptEntity> script;
+  @Column(name = "script_datahash")
+  private String scriptDataHash;
 
-    @Type(JsonType.class)
-    @Column(name = "collateral_inputs")
-    private List<UtxoKey> collateralInputs;
+  @OneToMany(mappedBy = "txHash")
+  private List<TxScriptEntity> script;
 
-    @Type(JsonType.class)
-    @Column(name = "required_signers")
-    private Set<String> requiredSigners;
+  @Type(JsonType.class)
+  @Column(name = "collateral_inputs")
+  private List<UtxoKey> collateralInputs;
 
-    @Column(name = "network_id")
-    private Integer netowrkId;
+  @Type(JsonType.class)
+  @Column(name = "required_signers")
+  private Set<String> requiredSigners;
 
-    @Type(JsonType.class)
-    @Column(name = "collateral_return")
-    private UtxoKey collateralReturn;
+  @Column(name = "network_id")
+  private Integer netowrkId;
 
-    @Type(JsonType.class)
-    @Column(name = "collateral_return_json")
-    private TxOuput collateralReturnJson;
+  @Type(JsonType.class)
+  @Column(name = "collateral_return")
+  private UtxoKey collateralReturn;
 
-    @Column(name = "total_collateral")
-    private BigInteger totalCollateral;
+  @Type(JsonType.class)
+  @Column(name = "collateral_return_json")
+  private TxOuput collateralReturnJson;
 
-    @Type(JsonType.class)
-    @Column(name = "reference_inputs")
-    private List<UtxoKey> referenceInputs;
+  @Column(name = "total_collateral")
+  private BigInteger totalCollateral;
 
-    @Column(name = "invalid")
-    private Boolean invalid;
+  @Type(JsonType.class)
+  @Column(name = "reference_inputs")
+  private List<UtxoKey> referenceInputs;
 
-    @UpdateTimestamp
-    @Column(name = "update_datetime")
-    private LocalDateTime updateDateTime;
+  @Column(name = "invalid")
+  private Boolean invalid;
+
+  @UpdateTimestamp
+  @Column(name = "update_datetime")
+  private LocalDateTime updateDateTime;
 }

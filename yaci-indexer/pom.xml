@@ -105,6 +105,11 @@
             <artifactId>postgresql</artifactId>
             <version>42.7.1</version>
         </dependency>
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -116,4 +121,15 @@
         </plugins>
     </build>
 
+    <profiles>
+        <profile>
+            <id>h2-yaci-indexer</id>
+            <dependencies>
+                <dependency>
+                    <groupId>com.h2database</groupId>
+                    <artifactId>h2</artifactId>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
 </project>

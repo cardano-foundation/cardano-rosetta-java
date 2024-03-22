@@ -1,18 +1,23 @@
 package org.cardanofoundation.rosetta.api.block.model.entity;
 
-import com.bloxbean.cardano.yaci.core.model.Relay;
-import io.hypersistence.utils.hibernate.type.json.JsonType;
-import jakarta.persistence.*;
+import java.math.BigInteger;
+import java.util.List;
+import java.util.Set;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.IdClass;
+import jakarta.persistence.Table;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
+
+import com.bloxbean.cardano.yaci.core.model.Relay;
+import io.hypersistence.utils.hibernate.type.json.JsonType;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Type;
-
-import java.math.BigInteger;
-import java.util.List;
-import java.util.Set;
 
 @Data
 @NoArgsConstructor
@@ -23,51 +28,52 @@ import java.util.Set;
 @IdClass(PoolRegistrationId.class)
 @DynamicUpdate
 public class PoolRegistrationEnity extends BlockAwareEntity {
-    @Id
-    @Column(name = "tx_hash")
-    private String txHash;
 
-    @Id
-    @Column(name = "cert_index")
-    private int certIndex;
+  @Id
+  @Column(name = "tx_hash")
+  private String txHash;
 
-    @Column(name = "pool_id")
-    private String poolId;
+  @Id
+  @Column(name = "cert_index")
+  private int certIndex;
 
-    @Column(name = "vrf_key")
-    private String vrfKeyHash;
+  @Column(name = "pool_id")
+  private String poolId;
 
-    @Column(name = "pledge")
-    private BigInteger pledge;
+  @Column(name = "vrf_key")
+  private String vrfKeyHash;
 
-    @Column(name = "cost")
-    private BigInteger cost;
+  @Column(name = "pledge")
+  private BigInteger pledge;
 
-    @Column(name = "margin")
-    private Double margin;
+  @Column(name = "cost")
+  private BigInteger cost;
 
-    @Column(name = "reward_account")
-    private String rewardAccount;
+  @Column(name = "margin")
+  private Double margin;
 
-    @Type(JsonType.class)
-    private Set<String> poolOwners;
+  @Column(name = "reward_account")
+  private String rewardAccount;
 
-    @Type(JsonType.class)
-    private List<Relay> relays;
+  @Type(JsonType.class)
+  private Set<String> poolOwners;
 
-    @Column(name = "metadata_url")
-    private String metadataUrl;
+  @Type(JsonType.class)
+  private List<Relay> relays;
 
-    @Column
-    private String metadataHash;
+  @Column(name = "metadata_url")
+  private String metadataUrl;
 
-    @Column(name = "epoch")
-    private Integer epoch;
+  @Column
+  private String metadataHash;
 
-    @Column(name = "slot")
-    private Long slot;
+  @Column(name = "epoch")
+  private Integer epoch;
 
-    @Column(name = "block_hash")
-    private String blockHash;
+  @Column(name = "slot")
+  private Long slot;
+
+  @Column(name = "block_hash")
+  private String blockHash;
 
 }

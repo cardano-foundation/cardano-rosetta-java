@@ -6,7 +6,7 @@ import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.cardanofoundation.rosetta.common.util.CardanoAddressUtil;
+import org.cardanofoundation.rosetta.common.util.CardanoAddressUtils;
 import org.cardanofoundation.rosetta.common.util.ValidationUtil;
 import org.springframework.stereotype.Service;
 import org.openapitools.client.model.AccountBalanceRequest;
@@ -16,10 +16,11 @@ import org.openapitools.client.model.AccountCoinsResponse;
 import org.openapitools.client.model.Currency;
 import org.openapitools.client.model.PartialBlockIdentifier;
 
+import org.cardanofoundation.rosetta.api.account.model.domain.AddressBalance;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.account.service.AccountService;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
-import org.cardanofoundation.rosetta.api.block.service.BlockService;
+import org.cardanofoundation.rosetta.api.block.model.domain.StakeAddressBalance;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.mapper.DataMapper;
 import org.cardanofoundation.rosetta.common.services.LedgerDataProviderService;
@@ -30,7 +31,6 @@ import org.cardanofoundation.rosetta.common.services.LedgerDataProviderService;
 @RequiredArgsConstructor
 public class AccountServiceImpl implements AccountService {
 
-  private final BlockService blockService;
   private final LedgerDataProviderService ledgerDataProviderService;
 
   @Override
@@ -38,7 +38,7 @@ public class AccountServiceImpl implements AccountService {
     Long index = null;
     String hash = null;
     String accountAddress = accountBalanceRequest.getAccountIdentifier().getAddress();
-    if (Objects.isNull(CardanoAddressUtil.getEraAddressType(accountAddress))) {
+    if (Objects.isNull(CardanoAddressUtils.getEraAddressType(accountAddress))) {
       throw ExceptionFactory.invalidAddressError(accountAddress);
     }
     PartialBlockIdentifier blockIdentifier = accountBalanceRequest.getBlockIdentifier();
@@ -49,7 +49,8 @@ public class AccountServiceImpl implements AccountService {
       hash = blockIdentifier.getHash();
     }
 
-    return blockService.findBalanceDataByAddressAndBlock(accountAddress, index, hash);
+    return findBalanceDataByAddressAndBlock(accountAddress, index, hash);
+
   }
 
   @Override
@@ -59,7 +60,7 @@ public class AccountServiceImpl implements AccountService {
 //    accountCoinsRequest.getIncludeMempool(); // TODO
 
     log.debug("[accountCoins] Request received {}", accountCoinsRequest);
-    if (Objects.isNull(CardanoAddressUtil.getEraAddressType(accountAddress))) {
+    if (Objects.isNull(CardanoAddressUtils.getEraAddressType(accountAddress))) {
       log.debug("[accountCoins] Address isn't Era");
       throw ExceptionFactory.invalidAddressError(accountAddress);
     }
@@ -75,5 +76,41 @@ public class AccountServiceImpl implements AccountService {
         currenciesRequested);
     log.debug("[accountCoins] found {} Utxos for Address {}", utxos.size(), accountAddress);
     return DataMapper.mapToAccountCoinsResponse(latestBlock, utxos);
+  }
+
+  private AccountBalanceResponse findBalanceDataByAddressAndBlock(String address, Long number,
+      String hash) {
+    Block blockDto;
+    if (number != null || hash != null) {
+      blockDto = ledgerDataProviderService.findBlock(number, hash);
+    } else {
+      blockDto = ledgerDataProviderService.findLatestBlock();
+    }
+
+    if (Objects.isNull(blockDto)) {
+      log.error("[findBalanceDataByAddressAndBlock] Block not found");
+      throw ExceptionFactory.blockNotFoundException();
+    }
+    log.info(
+        "[findBalanceDataByAddressAndBlock] Looking for utxos for address {} and block {}",
+        address,
+        blockDto.getHash());
+    if (CardanoAddressUtils.isStakeAddress(address)) {
+      log.debug("[findBalanceDataByAddressAndBlock] Address is StakeAddress");
+      log.debug("[findBalanceDataByAddressAndBlock] About to get balance for {}", address);
+      List<StakeAddressBalance> balances = ledgerDataProviderService.findStakeAddressBalanceByAddressAndBlock(
+          address, blockDto.getNumber());
+      if (Objects.isNull(balances) || balances.isEmpty()) {
+        log.error("[findBalanceDataByAddressAndBlock] No balance found for {}", address);
+        throw ExceptionFactory.invalidAddressError();
+      }
+      return DataMapper.mapToStakeAddressBalanceResponse(blockDto, balances.getFirst());
+    } else {
+      log.debug("[findBalanceDataByAddressAndBlock] Address isn't StakeAddress");
+
+      List<AddressBalance> balances = ledgerDataProviderService.findBalanceByAddressAndBlock(
+          address, blockDto.getNumber());
+      return DataMapper.mapToAccountBalanceResponse(blockDto, balances);
+    }
   }
 }
