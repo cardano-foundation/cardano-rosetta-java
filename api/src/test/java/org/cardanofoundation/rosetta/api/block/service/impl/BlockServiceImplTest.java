@@ -47,8 +47,6 @@ class BlockServiceImplTest {
     Block expected = newBlock();
     when(ledgerDataProviderService.findBlock(index, hash))
         .thenReturn(expected);
-    when(ledgerDataProviderService.findTransactionsByBlock(index, hash))
-        .thenReturn(newTransactionList());
 
     //when
     Block block = blockService.findBlock(index, hash);
@@ -70,8 +68,6 @@ class BlockServiceImplTest {
 
     when(ledgerDataProviderService.findBlock(index, hash))
         .thenReturn(newBlock());
-    when(ledgerDataProviderService.findTransactionsByBlock(index, hash))
-        .thenReturn(null);
 
     //when
     Block block = blockService.findBlock(index, hash);
