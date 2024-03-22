@@ -470,14 +470,9 @@ public class DataItemDecodeUtil {
           .longValue());
     }
   }
-  public static String addTransactionMetadataHex(Map map){
-    String transactionMetadataHex = "";
-    if (map.get(
-        new UnicodeString(Constants.TRANSACTIONMETADATAHEX)) != null) {
-      transactionMetadataHex = ((UnicodeString) map.get(
-          new UnicodeString(Constants.TRANSACTIONMETADATAHEX))).getString();
-    }
-    return transactionMetadataHex;
+  public static String addTransactionMetadataHex(Map map) {
+    DataItem transactionMetadataHex = map.get(new UnicodeString(Constants.TRANSACTIONMETADATAHEX));
+    return transactionMetadataHex == null ? "" : ((UnicodeString) transactionMetadataHex).getString();
   }
 
   public static PublicKey getPublicKeyFromMap(Map stakingCredentialMap) {
