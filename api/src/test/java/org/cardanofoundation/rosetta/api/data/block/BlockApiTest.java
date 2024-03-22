@@ -17,7 +17,7 @@ public class BlockApiTest extends IntegrationTest {
 
   @Test
   public void getBlockWithTransaction_Test() {
-    Block block = blockService.findBlock((long) generatedTestData.getTopUpBlockNumber(),
+    Block block = blockService.findBlock(generatedTestData.getTopUpBlockNumber(),
         generatedTestData.getTopUpBlockHash());
 
     assertEquals(generatedTestData.getTopUpBlockHash(), block.getHash());

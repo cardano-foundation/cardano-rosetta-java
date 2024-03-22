@@ -117,8 +117,6 @@ class BlockServiceImplTest {
 
     when(ledgerDataProviderService.findBlock(index, hash))
         .thenReturn(newBlock());
-    when(ledgerDataProviderService.findTransactionsByBlock(index, hash))
-        .thenReturn(newTransactionList());
 
     //when
     try {
