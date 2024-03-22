@@ -34,8 +34,8 @@
         <version.springdoc-openapi-ui>1.6.15</version.springdoc-openapi-ui>
         <version.openapi-generator-maven-plugin>6.4.0</version.openapi-generator-maven-plugin>
         <version.maven-compiler-plugin>3.10.1</version.maven-compiler-plugin>
-        <verison.maven-surefire-plugin>3.0.0-M7</verison.maven-surefire-plugin>
-        <verison.jacoco-maven-plugin>0.8.11</verison.jacoco-maven-plugin>
+        <version.maven-surefire-plugin>3.2.5</version.maven-surefire-plugin>
+        <version.jacoco-maven-plugin>0.8.11</version.jacoco-maven-plugin>
         <version.flatten-maven-plugin>1.3.0</version.flatten-maven-plugin>
         <version.lombok>1.18.30</version.lombok>
         <version.swagger-annotations>2.2.8</version.swagger-annotations>
@@ -51,8 +51,9 @@
         <version.google-java-format>1.21.0</version.google-java-format>
         <version.spotbugs-maven-plugin>4.8.3.0</version.spotbugs-maven-plugin>
         <version.findsecbugs-plugin>1.13.0</version.findsecbugs-plugin>
-        <modelmapper.version>3.2.0</modelmapper.version>
-        <assertj-core.version>3.25.3</assertj-core.version>
+        <version.modelmapper>3.2.0</version.modelmapper>
+        <version.assertj-core>3.25.3</version.assertj-core>
+        <version.h2>2.2.224</version.h2>
     </properties>
     <repositories>
         <repository>
@@ -132,12 +133,12 @@
             <dependency>
                 <groupId>org.modelmapper</groupId>
                 <artifactId>modelmapper</artifactId>
-                <version>${modelmapper.version}</version>
+                <version>${version.modelmapper}</version>
             </dependency>
             <dependency>
                 <groupId>org.modelmapper.extensions</groupId>
                 <artifactId>modelmapper-spring</artifactId>
-                <version>${modelmapper.version}</version>
+                <version>${version.modelmapper}</version>
             </dependency>
             <dependency>
                 <groupId>org.assertj</groupId>

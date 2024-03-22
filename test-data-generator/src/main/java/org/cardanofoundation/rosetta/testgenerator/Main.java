@@ -1,18 +1,21 @@
 package org.cardanofoundation.rosetta.testgenerator;
 
-import static org.reflections.scanners.Scanners.SubTypes;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Set;
+
 import lombok.extern.slf4j.Slf4j;
-import org.cardanofoundation.rosetta.testgenerator.common.TestConstants;
-import org.cardanofoundation.rosetta.testgenerator.common.GeneratedTestDataDTO;
-import org.cardanofoundation.rosetta.testgenerator.transactions.TransactionRunner;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import org.reflections.Reflections;
+
+import org.cardanofoundation.rosetta.testgenerator.common.GeneratedTestDataDTO;
+import org.cardanofoundation.rosetta.testgenerator.common.TestConstants;
+import org.cardanofoundation.rosetta.testgenerator.transactions.TransactionRunner;
+
+import static org.reflections.scanners.Scanners.SubTypes;
 
 @Slf4j
 public class Main {
@@ -41,7 +44,7 @@ public class Main {
     Set<Class<?>> classes = reflections.get(SubTypes.of(TransactionRunner.class).asClass());
     for(Class<?> clazz : classes) {
         TransactionRunner transactionGenerator = (TransactionRunner) clazz.getDeclaredConstructor().newInstance();
-        System.out.println("Running: " + transactionGenerator.getClass().getSimpleName());
+        log.info("Running: {}", transactionGenerator.getClass().getSimpleName());
         transactionGenerator.init();
         generatedTestData = transactionGenerator.runTransactions(generatedTestData);
     }
