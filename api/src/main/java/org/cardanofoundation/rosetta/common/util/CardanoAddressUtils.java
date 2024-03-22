@@ -247,4 +247,13 @@ public class CardanoAddressUtils {
     hdPublicKey.setKeyData(stakingKeyBuffer);
     return hdPublicKey;
   }
+
+  public static Address getAddressFromHexString(String hex) {
+    return new Address(hexStringToBuffer(hex));
+  }
+
+  public static byte[] hexStringToBuffer(String input) {
+    boolean checkEmptyHexString = CardanoAddressUtils.isEmptyHexString(input);
+    return checkEmptyHexString ? HexUtil.decodeHexString("") : HexUtil.decodeHexString(input);
+  }
 }
