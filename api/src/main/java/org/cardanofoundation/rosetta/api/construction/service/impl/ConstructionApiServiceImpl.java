@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.api.block.model.entity.ProtocolParams;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
+import org.cardanofoundation.rosetta.common.exception.ApiException;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.mapper.DataMapper;
 import org.cardanofoundation.rosetta.common.enumeration.AddressType;
@@ -191,6 +192,16 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
   @Override
   public TransactionIdentifierResponse constructionSubmitService(
       ConstructionSubmitRequest constructionSubmitRequest) {
-    return null;
+    String signedTransaction = constructionSubmitRequest.getSignedTransaction();
+    log.info("[constructionSubmit] About to submit signed transaction");
+    String txHash = null;
+    try {
+      txHash = cardanoService.submitTransaction(signedTransaction);
+    } catch (IOException | ApiException e) {
+      log.error("[constructionSubmit] Error while submitting transaction", e);
+      throw new RuntimeException(e);
+    }
+
+    return new TransactionIdentifierResponse(new TransactionIdentifier(txHash), null);
   }
 }

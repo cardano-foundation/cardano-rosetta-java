@@ -20,12 +20,20 @@ import com.bloxbean.cardano.client.transaction.spec.VkeyWitness;
 import com.bloxbean.cardano.client.util.HexUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.Call;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Request.Builder;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 import org.apache.commons.lang3.ObjectUtils;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProcessOperations;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProcessOperationsReturn;
 import org.cardanofoundation.rosetta.common.enumeration.AddressType;
 import org.cardanofoundation.rosetta.common.enumeration.EraAddressType;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
+import org.cardanofoundation.rosetta.common.exception.ApiException;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.entity.ProtocolParams;
@@ -43,6 +51,7 @@ import org.openapitools.client.model.Operation;
 import org.openapitools.client.model.SignatureType;
 import org.openapitools.client.model.SigningPayload;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -63,6 +72,10 @@ import static java.math.BigInteger.valueOf;
 public class CardanoServiceImpl implements CardanoService {
 
     private final LedgerDataProviderService ledgerDataProviderService;
+    @Value("${NODE_SUBMIT_API_PORT}")
+    private int NODE_SUBMIT_API_PORT;
+    @Value("${CARDANO_NODE_HOST}")
+    private String CARDANO_NODE_HOST;
 
     @Override
     public Double checkOrReturnDefaultTtl(Integer relativeTtl) {
@@ -346,6 +359,32 @@ public class CardanoServiceImpl implements CardanoService {
             }
         }
         return processor;
+    }
+
+    @Override
+    public String submitTransaction(String signedTransaction) throws IOException, ApiException {
+        String submitURL = "http://" + CARDANO_NODE_HOST + ":" + NODE_SUBMIT_API_PORT + Constants.SUBMIT_API_PATH;
+        log.info("[submitTransaction] About to submit transaction to {}", submitURL);
+      Request request = null;
+        request = new Builder()
+            .url(submitURL)
+            .addHeader(Constants.CONTENT_TYPE_HEADER_KEY, Constants.CBOR_CONTENT_TYPE)
+            .post(RequestBody.create(MediaType.parse(Constants.CBOR_CONTENT_TYPE), HexUtil.decodeHexString(signedTransaction)))
+            .build();
+      OkHttpClient client = new OkHttpClient();
+        Call call = client.newCall(request);
+        Response response = call.execute();
+
+        if(response.code() == 202) {
+            String txHash = response.body().string();
+            // removing leading and trailing quotes returned from node API
+            if (txHash.length() == Constants.TX_HASH_LENGTH + 2) {
+                txHash = txHash.substring(1, txHash.length() - 1);
+            }
+            return txHash;
+        } else {
+            throw ExceptionFactory.sendTransactionError(response.body().string());
+        }
     }
 
 }
