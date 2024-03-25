@@ -19,6 +19,7 @@ public class Constants {
   public static final String CBOR_CONTENT_TYPE = "application/cbor";
   public static final String CONTENT_TYPE_HEADER_KEY = "Content-Type";
   public static final int TX_HASH_LENGTH = 64;
+  public static final String PROTOCOL = "http://";
 
   private Constants() {
   }

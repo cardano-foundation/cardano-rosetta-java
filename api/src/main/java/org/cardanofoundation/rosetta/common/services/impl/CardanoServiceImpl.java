@@ -363,7 +363,7 @@ public class CardanoServiceImpl implements CardanoService {
 
     @Override
     public String submitTransaction(String signedTransaction) throws IOException, ApiException {
-        String submitURL = "http://" + CARDANO_NODE_HOST + ":" + NODE_SUBMIT_API_PORT + Constants.SUBMIT_API_PATH;
+        String submitURL = Constants.PROTOCOL + CARDANO_NODE_HOST + ":" + NODE_SUBMIT_API_PORT + Constants.SUBMIT_API_PATH;
         log.info("[submitTransaction] About to submit transaction to {}", submitURL);
       Request request = null;
         request = new Builder()
@@ -375,7 +375,7 @@ public class CardanoServiceImpl implements CardanoService {
         Call call = client.newCall(request);
         Response response = call.execute();
 
-        if(response.code() == 202) {
+        if(response.code() == Constants.SUCCESS_SUBMIT_TX_HTTP_CODE) {
             String txHash = response.body().string();
             // removing leading and trailing quotes returned from node API
             if (txHash.length() == Constants.TX_HASH_LENGTH + 2) {
