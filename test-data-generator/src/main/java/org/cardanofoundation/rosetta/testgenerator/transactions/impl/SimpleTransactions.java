@@ -1,5 +1,7 @@
 package org.cardanofoundation.rosetta.testgenerator.transactions.impl;
 
+import java.math.BigInteger;
+
 import lombok.extern.slf4j.Slf4j;
 
 import com.bloxbean.cardano.client.account.Account;
@@ -20,11 +22,13 @@ import static org.cardanofoundation.rosetta.testgenerator.common.BaseFunctions.q
 @Slf4j
 public class SimpleTransactions implements TransactionRunner {
 
+  private static final String SENDER_1_LOG = "Sender1 address: {}";
+  private static final String SENDER_2_LOG = "Sender2 address: {}";
   private Account sender1;
   private Account sender2;
 
-  private String sender1Addr = "addr_test1qz5t8wq55e09usmh07ymxry8atzwxwt2nwwzfngg6esffxvw2pfap6uqmkj3n6zmlrsgz397md2gt7yqs5p255uygaesx608y5";
-  private String sender2Addr = "addr_test1qp73ljurtknpm5fgey5r2y9aympd33ksgw0f8rc5khheg83y35rncur9mjvs665cg4052985ry9rzzmqend9sqw0cdksxvefah";
+  private String sender1Addr;
+  private String sender2Addr;
 
   private GeneratedTestDataDTO generatedTestData;
 
@@ -42,6 +46,7 @@ public class SimpleTransactions implements TransactionRunner {
     this.generatedTestData = generatedTestData;
 
     simpleTransaction();
+    simpleLovelaceTransaction();
     stakeKeyRegistration();
 
     stakeKeyDeregistration();
@@ -50,33 +55,58 @@ public class SimpleTransactions implements TransactionRunner {
   }
 
   public void simpleTransaction() {
-    log.info("Sender1 address: {}", sender1.baseAddress());
-    log.info("Sender2 address: {}", sender2.baseAddress());
+    log.info(SENDER_1_LOG, sender1.baseAddress());
+    log.info(SENDER_2_LOG, sender2.baseAddress());
     Tx tx = new Tx()
         .payToAddress(sender1Addr,
             Amount.ada(BaseFunctions.lovelaceToAda(TestConstants.ACCOUNT_BALANCE_ADA_AMOUNT)))
         .from(sender2Addr);
 
+    completeAndAddToTestDataTransaction(tx, sender2, sender1Addr);
+  }
+
+  public void simpleLovelaceTransaction() {
+    long halfOfLovelace = Long.parseLong(TestConstants.ACCOUNT_BALANCE_LOVELACE_AMOUNT)/2;
+    log.info("1st - Is about to send {} lovelace to the address: \n{}\nfrom the address: \n{}",
+        halfOfLovelace, TestConstants.RECEIVER_1, sender2Addr);
+    Tx tx = new Tx()
+        .payToAddress(TestConstants.RECEIVER_1,
+            Amount.lovelace(BigInteger.valueOf(halfOfLovelace)))
+        .from(sender2Addr);
+
+    completeAndAddToTestDataTransaction(tx, sender2, TestConstants.RECEIVER_1);
+
+    log.info("2nd - Is about to send {} lovelace to the address: \n{}\nfrom the address: \n{}",
+        halfOfLovelace, TestConstants.RECEIVER_1, sender2Addr);
+    tx = new Tx()
+        .payToAddress(TestConstants.RECEIVER_1,
+            Amount.lovelace(BigInteger.valueOf(halfOfLovelace)))
+        .from(sender2Addr);
+
+    completeAndAddToTestDataTransaction(tx, sender2, TestConstants.RECEIVER_1);
+  }
+
+  private void completeAndAddToTestDataTransaction(Tx tx, Account from, String addressTo) {
     Result<String> complete = quickTxBuilder.compose(tx)
-        .withSigner(SignerProviders.signerFrom(sender2))
+        .withSigner(SignerProviders.signerFrom(from))
         .complete();
 
     String txHash = complete.getValue();
-    log.info("Transaction hash: " + txHash);
-    BaseFunctions.checkIfUtxoAvailable(txHash, sender1Addr);
-    Block value1 = BaseFunctions.getBlock(txHash);
-    String hash = value1.getHash();
-    log.info("Block hash: " + hash);
+    log.info("Transaction hash: {}", txHash);
+    BaseFunctions.checkIfUtxoAvailable(txHash, addressTo);
+    Block transactionBlock = BaseFunctions.getBlock(txHash);
+    String hash = transactionBlock.getHash();
+    log.info("Block hash: {}", hash);
     if (generatedTestData != null) {
       generatedTestData.setTopUpTxHash(txHash);
-      generatedTestData.setTopUpBlockHash(value1.getHash());
-      generatedTestData.setTopUpBlockNumber(value1.getHeight());
+      generatedTestData.setTopUpBlockHash(transactionBlock.getHash());
+      generatedTestData.setTopUpBlockNumber(transactionBlock.getHeight());
+      log.info("Transaction with hash {} added to the generatedTestData", txHash);
     }
   }
 
   public void stakeKeyRegistration() {
-    log.info("Sender1 address: {}", sender1.baseAddress());
-    log.info("Sender2 address: {}", sender2.baseAddress());
+    log.info(SENDER_2_LOG, sender2.baseAddress());
     Tx tx = new Tx()
         .registerStakeAddress(sender2Addr)
         .payToAddress(TestConstants.RECEIVER_3, Amount.ada(1.0))
@@ -85,7 +115,7 @@ public class SimpleTransactions implements TransactionRunner {
     Result<String> complete = quickTxBuilder.compose(tx)
         .withSigner(SignerProviders.signerFrom(sender2))
         .complete();
-    log.info("Stake key registration tx: " + complete.getValue());
+    log.info("Stake key registration tx: {}", complete.getValue());
 
     String txHash = complete.getValue();
     BaseFunctions.checkIfUtxoAvailable(txHash, sender2Addr);

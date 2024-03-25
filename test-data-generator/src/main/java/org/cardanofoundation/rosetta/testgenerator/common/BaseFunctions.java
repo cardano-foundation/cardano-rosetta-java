@@ -38,7 +38,7 @@ public class BaseFunctions {
       List<Utxo> utxos = defaultUtxoSupplier.getAll(address);
       utxo = utxos.stream().filter(u -> u.getTxHash().equals(txHash))
           .findFirst();
-      log.info("Try to get new output... txhash: " + txHash);
+      log.info("Try to get new output... txhash: {}", txHash);
       try {
         Thread.sleep(1000);
       } catch (InterruptedException e) {
@@ -57,7 +57,7 @@ public class BaseFunctions {
       TransactionContent txContent = backendService.getTransactionService().getTransaction(txHash)
           .getValue();
       Integer blockHeight = txContent.getBlockHeight();
-      log.info("Block height: " + blockHeight);
+      log.info("Block height: {}", blockHeight);
       return backendService.getBlockService()
           .getBlockByNumber(BigInteger.valueOf(blockHeight)).getValue();
     } catch (ApiException e) {

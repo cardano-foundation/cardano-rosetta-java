@@ -5,6 +5,7 @@ import java.util.HashMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.jetbrains.annotations.NotNull;
 import org.openapitools.client.model.AccountBalanceRequest;
 import org.openapitools.client.model.AccountBalanceResponse;
 import org.openapitools.client.model.AccountCoinsRequest;
@@ -25,16 +26,13 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class AccountApiTest extends IntegrationTest {
 
-  private final String accountBalancePath = "/account/balance";
-  private final String accountCoinsPath = "/account/coins";
   @Autowired
   private AccountApiImplementation accountApi;
 
   @Test
   void accountBalance2Ada_Test() {
     ResponseEntity<AccountBalanceResponse> response = restTemplate.postForEntity(
-        URL + serverPort + accountBalancePath,
-        getAccountBalanceRequest(), AccountBalanceResponse.class);
+        getAccountBalanceUrl(), getAccountBalanceRequest(), AccountBalanceResponse.class);
     AccountBalanceResponse accountBalanceResponse = response.getBody();
 
     assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
@@ -50,8 +48,7 @@ class AccountApiTest extends IntegrationTest {
     AccountBalanceRequest accountBalanceRequest = getAccountBalanceRequest();
     accountBalanceRequest.getAccountIdentifier().setAddress("invalid_address");
     ResponseEntity<Error> response = restTemplate.postForEntity(
-        URL + serverPort + accountBalancePath,
-        accountBalanceRequest, Error.class);
+        getAccountBalanceUrl(), accountBalanceRequest, Error.class);
     Error accountBalanceError = response.getBody();
 
     assertEquals(HttpStatusCode.valueOf(500), response.getStatusCode());
@@ -65,8 +62,8 @@ class AccountApiTest extends IntegrationTest {
   @Test
   void accountCoins2Ada_Test() {
     ResponseEntity<AccountCoinsResponse> response = restTemplate.postForEntity(
-        URL + serverPort + accountCoinsPath,
-        getAccountCoinsRequest(), AccountCoinsResponse.class);
+        getAccountCoinsUrl(), getAccountCoinsRequest(TestConstants.TEST_ACCOUNT_ADDRESS),
+        AccountCoinsResponse.class);
     AccountCoinsResponse accountCoinsResponse = response.getBody();
 
     assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
@@ -77,12 +74,24 @@ class AccountApiTest extends IntegrationTest {
   }
 
   @Test
+  void accountCoins2Lovelace_Test() {
+    AccountCoinsRequest accountCoinsRequest = getAccountCoinsRequest(
+        TestConstants.RECEIVER_1);
+    ResponseEntity<AccountCoinsResponse> response = restTemplate.postForEntity(
+        getAccountCoinsUrl(), accountCoinsRequest, AccountCoinsResponse.class);
+    AccountCoinsResponse accountCoinsResponse = response.getBody();
+
+    assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
+    assertNotNull(accountCoinsResponse);
+  }
+
+  @Test
   void accountCoinsException_Test() {
-    AccountCoinsRequest accountCoinsRequest = getAccountCoinsRequest();
+    AccountCoinsRequest accountCoinsRequest = getAccountCoinsRequest(
+        TestConstants.TEST_ACCOUNT_ADDRESS);
     accountCoinsRequest.getAccountIdentifier().setAddress("invalid_address");
     ResponseEntity<Error> response = restTemplate.postForEntity(
-        URL + serverPort + accountCoinsPath,
-        accountCoinsRequest, Error.class);
+        getAccountCoinsUrl(), accountCoinsRequest, Error.class);
     Error accountCoinsError = response.getBody();
 
     assertEquals(HttpStatusCode.valueOf(500), response.getStatusCode());
@@ -93,20 +102,32 @@ class AccountApiTest extends IntegrationTest {
     assertEquals(4015, accountCoinsError.getCode());
   }
 
-  private static AccountCoinsRequest getAccountCoinsRequest() {
+  @NotNull
+  private String getAccountBalanceUrl() {
+    String accountBalancePath = "/account/balance";
+    return URL + serverPort + accountBalancePath;
+  }
+
+  @NotNull
+  private String getAccountCoinsUrl() {
+    String accountCoinsPath = "/account/coins";
+    return URL + serverPort + accountCoinsPath;
+  }
+
+  private AccountCoinsRequest getAccountCoinsRequest(String accountAddress) {
     return AccountCoinsRequest.builder()
         .networkIdentifier(NetworkIdentifier.builder()
             .blockchain(TestConstants.TEST_BLOCKCHAIN)
             .network(TestConstants.TEST_NETWORK)
             .build())
         .accountIdentifier(AccountIdentifier.builder()
-            .address(TestConstants.TEST_ACCOUNT_ADDRESS)
+            .address(accountAddress)
             .build())
         .includeMempool(true)
         .build();
   }
 
-  private static AccountBalanceRequest getAccountBalanceRequest() {
+  private AccountBalanceRequest getAccountBalanceRequest() {
     return AccountBalanceRequest.builder()
         .networkIdentifier(NetworkIdentifier.builder()
             .blockchain(TestConstants.TEST_BLOCKCHAIN)

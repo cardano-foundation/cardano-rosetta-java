@@ -11,11 +11,12 @@
 
     <groupId>org.cardanofoundation.rosetta-java</groupId>
     <artifactId>yaci-indexer</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>${revision}</version>
     <name>yaci-indexer</name>
     <description>yaci-indexer</description>
     <properties>
         <java.version>21</java.version>
+        <revision>1.0.0-SNAPSHOT</revision>
         <yaci-store.version>0.1.0-rc1</yaci-store.version>
     </properties>
     <dependencies>
@@ -37,8 +38,7 @@
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
-            <version>2.2.224</version>
-            <scope>provided</scope>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.bloxbean.cardano</groupId>
@@ -104,7 +104,6 @@
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>42.7.1</version>
         </dependency>
     </dependencies>
 

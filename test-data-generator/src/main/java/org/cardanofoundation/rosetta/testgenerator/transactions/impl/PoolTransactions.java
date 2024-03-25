@@ -37,8 +37,8 @@ public class PoolTransactions implements TransactionRunner {
   private Account sender1;
   private Account sender2;
 
-  private String sender1Addr = "addr_test1qz5t8wq55e09usmh07ymxry8atzwxwt2nwwzfngg6esffxvw2pfap6uqmkj3n6zmlrsgz397md2gt7yqs5p255uygaesx608y5";
-  private String sender2Addr = "addr_test1qp73ljurtknpm5fgey5r2y9aympd33ksgw0f8rc5khheg83y35rncur9mjvs665cg4052985ry9rzzmqend9sqw0cdksxvefah";
+  private String sender1Addr;
+  private String sender2Addr;
 
   private GeneratedTestDataDTO generatedTestData;
 
@@ -91,12 +91,12 @@ public class PoolTransactions implements TransactionRunner {
 
     Address stakeAddr = AddressProvider.getRewardAddress(
         Credential.fromKey(Blake2bUtil.blake2bHash224(stakeVKey.getBytes())), Networks.testnet());
-    log.info("Stake Addr: " + stakeAddr.toBech32());
+    log.info("Stake Addr: {}", stakeAddr.toBech32());
 
     poolRegistration.setPoolMetadataUrl("https://my-pool.com");
 
     String poolId = Bech32.encode(poolRegistration.getOperator(), "pool");
-    log.info("Pool ID: " + poolId);
+    log.info("Pool ID: {}", poolId);
 
     //pool registration
     log.info("Sender1 address: {}", sender1.baseAddress());
@@ -175,7 +175,6 @@ public class PoolTransactions implements TransactionRunner {
       log.error("Error reading and parsing cold.skey file");
       throw new MissingResourceException(e.getMessage(), this.getClass().getName(), "cold.skey");
     }
-    log.info("Sender1 address: {}", sender1Addr);
     log.info("Sender2 address: {}", sender2Addr);
     Tx retirePool = new Tx()
         .retirePool(poolId, 1)

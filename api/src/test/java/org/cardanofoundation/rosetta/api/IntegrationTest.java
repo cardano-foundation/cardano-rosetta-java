@@ -32,8 +32,7 @@ public abstract class IntegrationTest {
   protected int serverPort;
 
   @BeforeAll
-  public static void init() throws IOException {
-    ObjectMapper objectMapper = new ObjectMapper();
+  public static void init(@Autowired ObjectMapper objectMapper) throws IOException {
     generatedTestData = objectMapper.readValue(new File("." + TestConstants.FILE_SAVE_PATH),
         GeneratedTestDataDTO.class);
   }
