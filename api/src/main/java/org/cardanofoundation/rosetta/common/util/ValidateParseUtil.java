@@ -8,6 +8,7 @@ import com.bloxbean.cardano.client.transaction.spec.MultiAsset;
 import com.bloxbean.cardano.client.transaction.spec.TransactionInput;
 import com.bloxbean.cardano.client.transaction.spec.TransactionOutput;
 import com.bloxbean.cardano.client.transaction.spec.Value;
+import com.bloxbean.cardano.client.transaction.spec.cert.Certificate;
 import com.bloxbean.cardano.client.transaction.spec.cert.PoolRegistration;
 import com.bloxbean.cardano.client.util.HexUtil;
 import java.math.BigInteger;
@@ -414,5 +415,14 @@ public class ValidateParseUtil {
         String votingSignatureHex = CardanoAddressUtils.add0xPrefix(voteRegistrationMetadata.getVotingSignature());
 
         return new VoteRegistrationMetadata(PublicKey.builder().hexBytes(stakeKeyHex).build(), PublicKey.builder().hexBytes(votingKeyHex).build(), rewardAddressHex, voteRegistrationMetadata.getVotingNonce(), votingSignatureHex);
+    }
+
+    public static boolean validateAddressPresence(Operation operation) {
+        return !ObjectUtils.isEmpty(ObjectUtils.isEmpty(operation.getAccount()) ? null
+            : operation.getAccount().getAddress());
+    }
+    
+    public static Certificate validateCert(List<Certificate> certs, int i) {
+        return ObjectUtils.isEmpty(certs) ? null : certs.get(i);
     }
 }
