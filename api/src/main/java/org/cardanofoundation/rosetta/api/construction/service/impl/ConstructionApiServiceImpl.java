@@ -20,7 +20,6 @@ import org.cardanofoundation.rosetta.common.model.cardano.transaction.Transactio
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.TransactionParsed;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.UnsignedTransaction;
 import org.cardanofoundation.rosetta.common.services.CardanoAddressService;
-import org.cardanofoundation.rosetta.common.services.CardanoConfigService;
 import org.cardanofoundation.rosetta.common.services.CardanoService;
 import org.cardanofoundation.rosetta.api.construction.service.ConstructionApiService;
 import org.cardanofoundation.rosetta.common.services.LedgerDataProviderService;
@@ -42,8 +41,6 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
   private final CardanoAddressService cardanoAddressService;
   private final CardanoService cardanoService;
   private final LedgerDataProviderService ledgerService;
-  private final CardanoConfigService cardanoConfigService;
-  private final DataMapper dataMapper;
 
   @Override
   public ConstructionDeriveResponse constructionDeriveService(
@@ -172,14 +169,14 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
     TransactionParsed result;
     if (signed) {
       result = ParseConstructionUtil.parseSignedTransaction(networkIdentifier,
-          ((UnicodeString) array.getDataItems().get(0)).getString(), extraData);
+          ((UnicodeString) array.getDataItems().getFirst()).getString(), extraData);
 
     } else {
       result = ParseConstructionUtil.parseUnsignedTransaction(networkIdentifier,
-          ((UnicodeString) array.getDataItems().get(0)).getString(), extraData);
+          ((UnicodeString) array.getDataItems().getFirst()).getString(), extraData);
     }
     return new ConstructionParseResponse(result.operations(), null,
-        result.account_identifier_signers(), null);
+        result.accountIdentifierSigners(), null);
   }
 
   @Override

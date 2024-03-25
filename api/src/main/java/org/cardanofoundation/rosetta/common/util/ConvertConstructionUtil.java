@@ -14,18 +14,19 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
-import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.model.cardano.pool.PoolRegistrationCertReturn;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.TransactionExtraData;
-import org.cardanofoundation.rosetta.common.model.cardano.transaction.TransactionParsed;
 import org.openapitools.client.model.AccountIdentifier;
 import org.openapitools.client.model.Operation;
 import org.openapitools.client.model.OperationIdentifier;
+import org.openapitools.client.model.OperationMetadata;
 import org.openapitools.client.model.PoolRegistrationParams;
 
 /**
@@ -55,7 +56,7 @@ public class ConvertConstructionUtil {
         operation.setOperationIdentifier(inputOperations.get(i).getOperationIdentifier());
         operation.setRelatedOperations(inputOperations.get(i).getRelatedOperations());
         operation.setType(inputOperations.get(i).getType());
-        operation.setStatus("");
+        operation.setStatus(StringUtils.EMPTY);
         operation.setAccount(inputOperations.get(i).getAccount());
         operation.setAmount(inputOperations.get(i).getAmount());
         operation.setCoinChange(inputOperations.get(i).getCoinChange());
@@ -68,7 +69,7 @@ public class ConvertConstructionUtil {
         operation.setOperationIdentifier(inputParsed.getOperationIdentifier());
         operation.setRelatedOperations(inputParsed.getRelatedOperations());
         operation.setType(inputParsed.getType());
-        operation.setStatus("");
+        operation.setStatus(StringUtils.EMPTY);
         operation.setAccount(inputParsed.getAccount());
         operation.setAmount(inputParsed.getAmount());
         operation.setCoinChange(inputParsed.getCoinChange());
@@ -152,8 +153,9 @@ public class ConvertConstructionUtil {
         }
       }
       case "poolRegistrationWithCert" -> {
-        String poolCertAsHex = ObjectUtils.isEmpty(operation.getMetadata()) ? null
-            : operation.getMetadata().getPoolRegistrationCert();
+        String poolCertAsHex = Optional.ofNullable(operation.getMetadata())
+            .map(OperationMetadata::getPoolRegistrationCert)
+            .orElse(null);
         PoolRegistrationCertReturn dto = ValidateParseUtil.validateAndParsePoolRegistrationCert(
             networkIdentifierType,
             poolCertAsHex,
