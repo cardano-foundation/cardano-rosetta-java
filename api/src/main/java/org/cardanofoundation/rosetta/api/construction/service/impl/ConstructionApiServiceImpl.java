@@ -18,15 +18,16 @@ import org.cardanofoundation.rosetta.common.enumeration.AddressType;
 
 import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.TransactionExtraData;
+import org.cardanofoundation.rosetta.common.model.cardano.transaction.TransactionParsed;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.UnsignedTransaction;
 import org.cardanofoundation.rosetta.common.services.CardanoAddressService;
-import org.cardanofoundation.rosetta.common.services.CardanoConfigService;
 import org.cardanofoundation.rosetta.common.services.CardanoService;
 import org.cardanofoundation.rosetta.api.construction.service.ConstructionApiService;
 import org.cardanofoundation.rosetta.common.services.LedgerDataProviderService;
 import org.cardanofoundation.rosetta.common.util.Constants;
 import org.cardanofoundation.rosetta.common.util.CborEncodeUtil;
 import org.cardanofoundation.rosetta.common.util.DataItemDecodeUtil;
+import org.cardanofoundation.rosetta.common.util.ParseConstructionUtil;
 import org.openapitools.client.model.*;
 import org.springframework.stereotype.Service;
 
@@ -41,8 +42,6 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
   private final CardanoAddressService cardanoAddressService;
   private final CardanoService cardanoService;
   private final LedgerDataProviderService ledgerService;
-  private final CardanoConfigService cardanoConfigService;
-  private final DataMapper dataMapper;
 
   @Override
   public ConstructionDeriveResponse constructionDeriveService(
@@ -159,7 +158,26 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
   @Override
   public ConstructionParseResponse constructionParseService(
       ConstructionParseRequest constructionParseRequest) {
-    return null;
+    Boolean signed = Optional.ofNullable(constructionParseRequest.getSigned()).orElseThrow(
+        () -> ExceptionFactory.unspecifiedError("body should have required property signed."));
+
+    NetworkIdentifierType networkIdentifier = NetworkIdentifierType.findByName(
+        constructionParseRequest.getNetworkIdentifier().getNetwork());
+    log.info(constructionParseRequest.getTransaction() + "[constructionParse] Processing");
+    Array array = cardanoService.decodeExtraData(constructionParseRequest.getTransaction());
+    TransactionExtraData extraData = DataItemDecodeUtil.changeFromCborMaptoTransactionExtraData(
+        (co.nstant.in.cbor.model.Map) array.getDataItems().get(1));
+    TransactionParsed result;
+    if (signed) {
+      result = ParseConstructionUtil.parseSignedTransaction(networkIdentifier,
+          ((UnicodeString) array.getDataItems().getFirst()).getString(), extraData);
+
+    } else {
+      result = ParseConstructionUtil.parseUnsignedTransaction(networkIdentifier,
+          ((UnicodeString) array.getDataItems().getFirst()).getString(), extraData);
+    }
+    return new ConstructionParseResponse(result.operations(), null,
+        result.accountIdentifierSigners(), null);
   }
 
   @Override
