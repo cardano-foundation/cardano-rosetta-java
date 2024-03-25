@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -13,10 +14,13 @@ import com.bloxbean.cardano.yaci.core.model.certs.CertificateType;
 import org.jetbrains.annotations.NotNull;
 import org.modelmapper.ModelMapper;
 import org.openapitools.client.model.AccountIdentifier;
+import org.openapitools.client.model.Amount;
 import org.openapitools.client.model.BlockResponse;
+import org.openapitools.client.model.Currency;
 import org.openapitools.client.model.Operation;
 import org.openapitools.client.model.OperationIdentifier;
 import org.openapitools.client.model.OperationMetadata;
+import org.openapitools.client.model.PoolRegistrationParams;
 import org.openapitools.client.model.Relay;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -157,6 +161,13 @@ class BlockToBlockResponseTest {
             .collect(Collectors.toList()))
         .allSatisfy(BlockToBlockResponseTest::assertAllElementsIsNull); //TODO saa: return null?
 
+    Currency ada = Currency
+        .builder()
+        .symbol("ADA")
+        .decimals(6)
+        .metadata(null)
+        .build();
+
     assertThat((into.getBlock().getTransactions()))
         .extracting(t -> t.getOperations()
             .stream()
@@ -164,8 +175,17 @@ class BlockToBlockResponseTest {
                 g -> g.getType().equals("stakeKeyRegistration"))
             .map(Operation::getMetadata)
             .collect(Collectors.toList()))
-        .allSatisfy(d -> assertAllPropertiesIsNull(d,
-            "depositAmount")); //TODO saa: return null?
+        .allSatisfy(d -> {
+          assertAllPropertiesIsNull(d, "depositAmount"); //TODO saa: return null?
+          assertProperty(d, "depositAmount",
+              Amount
+                  .builder()
+                  .currency(ada)
+                  .value("2000000")
+                  .build());
+        });
+
+    AtomicInteger ai = new AtomicInteger(0);
 
     assertThat((into.getBlock().getTransactions()))
         .extracting(t -> t.getOperations()
@@ -174,8 +194,22 @@ class BlockToBlockResponseTest {
                 g -> g.getType().equals("poolRegistration"))
             .map(Operation::getMetadata)
             .collect(Collectors.toList()))
-        .allSatisfy(d -> assertAllPropertiesIsNull(d,
-            "depositAmount", "poolRegistrationParams"));
+        .allSatisfy(d -> {
+
+          assertAllPropertiesIsNull(d, "depositAmount", "poolRegistrationParams");
+
+          assertProperty(d, "depositAmount",
+              Amount
+                  .builder()
+                  .currency(ada)
+                  .value("poolDeposit")
+                  .build());
+
+          assertProperty(List.of(orderOwners(d.getFirst())), "poolRegistrationParams",
+              buildRegParams(ai.incrementAndGet()));
+          assertProperty(List.of(orderOwners(d.getLast())), "poolRegistrationParams",
+              buildRegParams(ai.incrementAndGet()));
+        });
 
     assertThat((into.getBlock().getTransactions()))
         .extracting(t -> t.getOperations()
@@ -199,19 +233,39 @@ class BlockToBlockResponseTest {
 
   }
 
+  private OperationMetadata orderOwners(OperationMetadata om) {
+
+//    getPoolOwners() -- immutable list, so need to convert to array and back
+    String[] poolOwners = om.getPoolRegistrationParams().getPoolOwners().toArray(new String[]{});
+    Arrays.sort(poolOwners); //sort required because of the Set in domain model:
+    // - org.cardanofoundation.rosetta.api.block.model.domain.PoolRegistration.owners
+    om.getPoolRegistrationParams().setPoolOwners(List.of(poolOwners));
+    return om;
+  }
+
+  private static PoolRegistrationParams buildRegParams(int i) {
+    return PoolRegistrationParams.builder()
+        .vrfKeyHash("vrfKeyHash" + i)
+        .pledge("pledge" + i)
+        .cost("1" + i)
+        .margin(null)
+        .rewardAddress("rewardAccount" + i)
+        .marginPercentage("1.0" + i)
+        .poolOwners(List.of("owner1" + i, "owner2" + i))
+        .relays(List.of(Relay
+            .builder().ipv4("ipv4" + i).ipv6("ipv6" + i)
+            .dnsName("dnsName" + i).port(1 + i).type("type" + i).build()))
+        .build();
+  }
+
 
   private static void assertAllPropertiesIsNull(List<OperationMetadata> g, String... except) {
     g.forEach(m -> assertThat(m).hasAllNullFieldsOrPropertiesExcept(except));
-//    g.forEach(m -> assertThat(m.getDepositAmount())
-//        .isEqualTo(Amount
-//            .builder().currency(Currency
-//                .builder()
-//                .symbol("ADA")
-//                .decimals(6)
-//                .metadata(null)
-//                .build())
-//            .value("2000000")
-//            .build()));
+  }
+  private static void assertProperty(List<OperationMetadata> g, String prop, Object actual) {
+    g.forEach(m -> assertThat(m)
+        .extracting(prop)
+        .isEqualTo(actual));
 
   }
 
