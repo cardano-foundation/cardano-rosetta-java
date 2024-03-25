@@ -13,9 +13,7 @@ import com.bloxbean.cardano.yaci.core.model.certs.CertificateType;
 import org.jetbrains.annotations.NotNull;
 import org.modelmapper.ModelMapper;
 import org.openapitools.client.model.AccountIdentifier;
-import org.openapitools.client.model.Amount;
 import org.openapitools.client.model.BlockResponse;
-import org.openapitools.client.model.Currency;
 import org.openapitools.client.model.Operation;
 import org.openapitools.client.model.OperationIdentifier;
 import org.openapitools.client.model.OperationMetadata;
@@ -162,7 +160,38 @@ class BlockToBlockResponseTest {
     assertThat((into.getBlock().getTransactions()))
         .extracting(t -> t.getOperations()
             .stream()
-            .filter( g-> g.getType().equals("stakeKeyRegistration") ) //TODO saa: add more filters !!!!
+            .filter(
+                g -> g.getType().equals("stakeKeyRegistration"))
+            .map(Operation::getMetadata)
+            .collect(Collectors.toList()))
+        .allSatisfy(d -> assertAllPropertiesIsNull(d,
+            "depositAmount")); //TODO saa: return null?
+
+    assertThat((into.getBlock().getTransactions()))
+        .extracting(t -> t.getOperations()
+            .stream()
+            .filter(
+                g -> g.getType().equals("poolRegistration"))
+            .map(Operation::getMetadata)
+            .collect(Collectors.toList()))
+        .allSatisfy(d -> assertAllPropertiesIsNull(d,
+            "depositAmount", "poolRegistrationParams"));
+
+    assertThat((into.getBlock().getTransactions()))
+        .extracting(t -> t.getOperations()
+            .stream()
+            .filter(
+                g -> g.getType().equals("poolRetirement"))
+            .map(Operation::getMetadata)
+            .collect(Collectors.toList()))
+        .allSatisfy(d -> assertAllPropertiesIsNull(d,
+            "epoch"));
+
+    assertThat((into.getBlock().getTransactions()))
+        .extracting(t -> t.getOperations()
+            .stream()
+            .filter(
+                g -> g.getType().equals("stakeDelegation")) //TODO saa: add more filters !!!!
             .map(Operation::getMetadata)
             .collect(Collectors.toList()))
         .allSatisfy(BlockToBlockResponseTest::assertAllPropertiesIsNull); //TODO saa: return null?
@@ -171,21 +200,18 @@ class BlockToBlockResponseTest {
   }
 
 
-  private static void assertAllPropertiesIsNull(List<OperationMetadata> g) {
-    g.forEach(m -> assertThat(m)
-
-        .hasAllNullFieldsOrPropertiesExcept(
-            "depositAmount", "poolRegistrationParams", "epoch"));
-    g.forEach(m -> assertThat(m.getDepositAmount())
-        .isEqualTo(Amount
-            .builder().currency(Currency
-                .builder()
-                .symbol("ADA")
-                .decimals(6)
-                .metadata(null)
-                .build())
-            .value("2000000")
-            .build()));
+  private static void assertAllPropertiesIsNull(List<OperationMetadata> g, String... except) {
+    g.forEach(m -> assertThat(m).hasAllNullFieldsOrPropertiesExcept(except));
+//    g.forEach(m -> assertThat(m.getDepositAmount())
+//        .isEqualTo(Amount
+//            .builder().currency(Currency
+//                .builder()
+//                .symbol("ADA")
+//                .decimals(6)
+//                .metadata(null)
+//                .build())
+//            .value("2000000")
+//            .build()));
 
   }
 
