@@ -72,9 +72,9 @@ import static java.math.BigInteger.valueOf;
 public class CardanoServiceImpl implements CardanoService {
 
     private final LedgerDataProviderService ledgerDataProviderService;
-    @Value("${NODE_SUBMIT_API_PORT}")
+    @Value("${cardano.rosetta.NODE_SUBMIT_API_PORT}")
     private int NODE_SUBMIT_API_PORT;
-    @Value("${CARDANO_NODE_HOST}")
+    @Value("${cardano.rosetta.CARDANO_NODE_HOST}")
     private String CARDANO_NODE_HOST;
 
     @Override
