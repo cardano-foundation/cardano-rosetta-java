@@ -19,6 +19,7 @@ import com.bloxbean.cardano.client.transaction.spec.cert.SingleHostName;
 import com.bloxbean.cardano.client.transaction.spec.cert.StakeCredential;
 import com.bloxbean.cardano.client.util.HexUtil;
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.InetAddressValidator;
 import org.openapitools.client.model.PublicKey;
 
@@ -246,5 +247,14 @@ public class CardanoAddressUtils {
     HdPublicKey hdPublicKey = new HdPublicKey();
     hdPublicKey.setKeyData(stakingKeyBuffer);
     return hdPublicKey;
+  }
+
+  public static Address getAddressFromHexString(String hex) {
+    return new Address(hexStringToBuffer(hex));
+  }
+
+  public static byte[] hexStringToBuffer(String input) {
+    boolean checkEmptyHexString = CardanoAddressUtils.isEmptyHexString(input);
+    return checkEmptyHexString ? HexUtil.decodeHexString(StringUtils.EMPTY) : HexUtil.decodeHexString(input);
   }
 }

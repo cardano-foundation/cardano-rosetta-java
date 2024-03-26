@@ -1447,7 +1447,7 @@ components:
           items:
             $ref: '#/components/schemas/Operation'
         signers:
-          description: '[DEPRECATED by `account_identifier_signers` in `v1.4.4`] All signers (addresses) of a particular transaction. If the transaction is unsigned, it should be empty.'
+          description: '[DEPRECATED by `accountIdentifierSigners` in `v1.4.4`] All signers (addresses) of a particular transaction. If the transaction is unsigned, it should be empty.'
           type: array
           items:
             type: string
