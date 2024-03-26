@@ -128,7 +128,8 @@ class BlockToBlockResponseTest {
             .collect(Collectors.toList()))
         .extracting(p -> p == null ? Collections.emptyList() : p)
         .allSatisfy(
-            BlockToBlockResponseTest::assertAllElementsIsNull); // TODO saa: is it OK to have all nulls for getRelatedOperations?
+            // TODO saa: is it OK to have all nulls for getRelatedOperations?
+            BlockToBlockResponseTest::assertAllElementsIsNull);
 
     List<String> types = List.of(
         "stakeKeyRegistration", "stakeKeyRegistration",
@@ -159,7 +160,8 @@ class BlockToBlockResponseTest {
             .stream()
             .map(Operation::getCoinChange)
             .collect(Collectors.toList()))
-        .allSatisfy(BlockToBlockResponseTest::assertAllElementsIsNull); //TODO saa: return null?
+        //TODO saa: is it OK to have all values here is null?
+        .allSatisfy(BlockToBlockResponseTest::assertAllElementsIsNull);
 
     Currency ada = Currency
         .builder()
@@ -176,7 +178,8 @@ class BlockToBlockResponseTest {
             .map(Operation::getMetadata)
             .collect(Collectors.toList()))
         .allSatisfy(d -> {
-          assertAllPropertiesIsNull(d, "depositAmount"); //TODO saa: return null?
+          //TODO saa: is it OK to have all values here is null other than depositAmount?
+          assertAllPropertiesIsNull(d, "depositAmount");
           assertProperty(d, "depositAmount",
               Amount
                   .builder()
@@ -185,7 +188,7 @@ class BlockToBlockResponseTest {
                   .build());
         });
 
-    AtomicInteger ai = new AtomicInteger(0);
+    AtomicInteger aiPool = new AtomicInteger(0); //just immutable helper
 
     assertThat((into.getBlock().getTransactions()))
         .extracting(t -> t.getOperations()
@@ -199,18 +202,16 @@ class BlockToBlockResponseTest {
           assertAllPropertiesIsNull(d, "depositAmount", "poolRegistrationParams");
 
           assertProperty(d, "depositAmount",
-              Amount
-                  .builder()
-                  .currency(ada)
-                  .value("poolDeposit")
-                  .build());
+              Amount.builder().currency(ada).value("poolDeposit").build());
 
+          //d == List<PoolRegistrationParams> size == 2
           assertProperty(List.of(orderOwners(d.getFirst())), "poolRegistrationParams",
-              buildRegParams(ai.incrementAndGet()));
+              buildRegParams(aiPool.incrementAndGet()));
           assertProperty(List.of(orderOwners(d.getLast())), "poolRegistrationParams",
-              buildRegParams(ai.incrementAndGet()));
+              buildRegParams(aiPool.incrementAndGet()));
         });
 
+    AtomicInteger aiEpoch = new AtomicInteger(1); //just immutable helper
     assertThat((into.getBlock().getTransactions()))
         .extracting(t -> t.getOperations()
             .stream()
@@ -218,17 +219,21 @@ class BlockToBlockResponseTest {
                 g -> g.getType().equals("poolRetirement"))
             .map(Operation::getMetadata)
             .collect(Collectors.toList()))
-        .allSatisfy(d -> assertAllPropertiesIsNull(d,
-            "epoch"));
+        .allSatisfy(d -> {
+          assertAllPropertiesIsNull(d, "epoch");
+          assertProperty(List.of(d.getFirst()), "epoch", aiEpoch.incrementAndGet());
+          assertProperty(List.of(d.getLast()), "epoch", aiEpoch.incrementAndGet());
+        });
 
     assertThat((into.getBlock().getTransactions()))
         .extracting(t -> t.getOperations()
             .stream()
             .filter(
-                g -> g.getType().equals("stakeDelegation")) //TODO saa: add more filters !!!!
+                g -> g.getType().equals("stakeDelegation"))
             .map(Operation::getMetadata)
             .collect(Collectors.toList()))
-        .allSatisfy(BlockToBlockResponseTest::assertAllPropertiesIsNull); //TODO saa: return null?
+        //TODO saa: is it OK to have all values here is null
+        .allSatisfy(BlockToBlockResponseTest::assertAllPropertiesIsNull);
 
 
   }
@@ -262,6 +267,7 @@ class BlockToBlockResponseTest {
   private static void assertAllPropertiesIsNull(List<OperationMetadata> g, String... except) {
     g.forEach(m -> assertThat(m).hasAllNullFieldsOrPropertiesExcept(except));
   }
+
   private static void assertProperty(List<OperationMetadata> g, String prop, Object actual) {
     g.forEach(m -> assertThat(m)
         .extracting(prop)
