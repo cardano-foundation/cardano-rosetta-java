@@ -13,6 +13,7 @@
     <description>Rosetta API implementation for Cardano.</description>
     <properties>
         <spotbugs-annotations.version>4.8.3</spotbugs-annotations.version>
+        <argLine/>
     </properties>
 
     <packaging>jar</packaging>
@@ -236,9 +237,9 @@
             <artifactId>modelmapper-spring</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.cardanofoundation.rosetta-java</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>test-data-generator</artifactId>
-            <version>${revision}</version>
+            <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -373,6 +374,7 @@
                 <version>${version.maven-surefire-plugin}</version>
                 <configuration>
                     <argLine>-XX:+EnableDynamicAgentLoading</argLine>
+                    <argLine>${argLine}</argLine>
                 </configuration>
             </plugin>
             <plugin>
