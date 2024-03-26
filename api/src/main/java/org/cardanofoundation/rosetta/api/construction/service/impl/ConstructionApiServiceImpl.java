@@ -12,7 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.api.block.model.entity.ProtocolParams;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
-import org.cardanofoundation.rosetta.common.mapper.CborMapToRosettaOperation;
 import org.cardanofoundation.rosetta.common.mapper.DataMapper;
 import org.cardanofoundation.rosetta.common.enumeration.AddressType;
 
@@ -26,6 +25,7 @@ import org.cardanofoundation.rosetta.api.construction.service.ConstructionApiSer
 import org.cardanofoundation.rosetta.common.services.LedgerDataProviderService;
 import org.cardanofoundation.rosetta.common.util.Constants;
 import org.cardanofoundation.rosetta.common.util.CborEncodeUtil;
+import org.cardanofoundation.rosetta.common.mapper.CborMapToTransactionExtraData;
 import org.cardanofoundation.rosetta.common.util.ParseConstructionUtil;
 import org.openapitools.client.model.*;
 import org.springframework.stereotype.Service;
@@ -41,7 +41,6 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
   private final CardanoAddressService cardanoAddressService;
   private final CardanoService cardanoService;
   private final LedgerDataProviderService ledgerService;
-  private final CborMapToRosettaOperation cborMapToRosettaOperation;
 
   @Override
   public ConstructionDeriveResponse constructionDeriveService(
@@ -165,9 +164,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
         constructionParseRequest.getNetworkIdentifier().getNetwork());
     log.info(constructionParseRequest.getTransaction() + "[constructionParse] Processing");
     Array array = cardanoService.decodeExtraData(constructionParseRequest.getTransaction());
-//    TransactionExtraData extraData = DataItemDecodeUtil.changeFromCborMaptoTransactionExtraData(
-//        (co.nstant.in.cbor.model.Map) array.getDataItems().get(1));
-    TransactionExtraData extraData = cborMapToRosettaOperation.toTransactionExtraData(
+    TransactionExtraData extraData = CborMapToTransactionExtraData.convertCborMapToTransactionExtraData(
         (co.nstant.in.cbor.model.Map) array.getDataItems().get(1));
     TransactionParsed result;
     if (signed) {
@@ -188,7 +185,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
     log.info("[constructionCombine] Request received to sign a transaction");
     Array array = cardanoService.decodeExtraData(
         constructionCombineRequest.getUnsignedTransaction());
-    TransactionExtraData extraData = cborMapToRosettaOperation.toTransactionExtraData(
+    TransactionExtraData extraData = CborMapToTransactionExtraData.convertCborMapToTransactionExtraData(
         (co.nstant.in.cbor.model.Map) array.getDataItems().get(1));
 
     String signedTransaction = cardanoService.buildTransaction(

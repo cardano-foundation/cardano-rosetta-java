@@ -1,5 +1,6 @@
 package org.cardanofoundation.rosetta.common.util;
 
+import co.nstant.in.cbor.model.UnicodeString;
 import com.bloxbean.cardano.client.util.HexUtil;
 import org.apache.commons.lang3.ObjectUtils;
 
@@ -8,6 +9,10 @@ public class Formatters {
   public static final String EMPTY_HEX = "\\x";
 
   private Formatters() {
+  }
+
+  public static UnicodeString key(String key) {
+    return new UnicodeString(key);
   }
 
 
