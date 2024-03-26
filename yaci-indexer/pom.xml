@@ -30,7 +30,7 @@
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
-            <scope>compile</scope>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.bloxbean.cardano</groupId>
@@ -85,7 +85,7 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <version>${version.spring-boot}</version>
+                <version>${version.spring-boot-for-yaci}</version>
                 <configuration>
                     <mainClass>org.cardanofoundation.rosetta.yaciindexer.YaciIndexerApplication</mainClass>
                 </configuration>
