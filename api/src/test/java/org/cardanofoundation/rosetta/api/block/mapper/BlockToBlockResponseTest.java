@@ -111,7 +111,6 @@ class BlockToBlockResponseTest {
         .mapToObj(p -> OperationIdentifier
             .builder()
             .index(p)
-            .networkIndex(null) //TODO saa: should networkIndex == null?
             .build())
         .toList();
     assertThat((into.getBlock().getTransactions()))
@@ -128,7 +127,6 @@ class BlockToBlockResponseTest {
             .collect(Collectors.toList()))
         .extracting(p -> p == null ? Collections.emptyList() : p)
         .allSatisfy(
-            // TODO saa: is it OK to have all nulls for getRelatedOperations?
             BlockToBlockResponseTest::assertAllElementsIsNull);
 
     List<String> types = List.of(
@@ -160,7 +158,6 @@ class BlockToBlockResponseTest {
             .stream()
             .map(Operation::getCoinChange)
             .collect(Collectors.toList()))
-        //TODO saa: is it OK to have all values here is null?
         .allSatisfy(BlockToBlockResponseTest::assertAllElementsIsNull);
 
     Currency ada = Currency
