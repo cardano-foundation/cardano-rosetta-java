@@ -180,9 +180,7 @@ public class OperationToCborMap {
     Optional.ofNullable(poolOwners)
         .ifPresent(poolOwners1 -> {
           Array poolOwnersArray = new Array();
-          poolOwners1.forEach(poolOwner -> {
-            poolOwnersArray.add(new UnicodeString(poolOwner));
-          });
+          poolOwners1.forEach(poolOwner -> poolOwnersArray.add(new UnicodeString(poolOwner)));
           poolRegistrationParamsMap.put(key(Constants.POOLOWNERS), poolOwnersArray);
         });
   }
@@ -295,9 +293,7 @@ public class OperationToCborMap {
    * @param coinChangeMap coinChangeMap
    */
   private static void addCoinActionToMap(CoinAction coinAction, Map coinChangeMap) {
-    Optional.ofNullable(coinAction).ifPresent(ca -> {
-      coinChangeMap.put(key(Constants.COIN_ACTION), new UnicodeString(ca.getValue()));
-    });
+    Optional.ofNullable(coinAction).ifPresent(ca -> coinChangeMap.put(key(Constants.COIN_ACTION), new UnicodeString(ca.getValue())));
   }
 
   /**
@@ -350,9 +346,7 @@ public class OperationToCborMap {
   private static void addMetadataToCurrencyMap(CurrencyMetadata metadata, Map currencyMap) {
     Optional.ofNullable(metadata).ifPresent(m -> {
       Map metadataMap = new Map();
-      Optional.ofNullable(metadata.getPolicyId()).ifPresent(policyId -> {
-        metadataMap.put(key(Constants.POLICYID), new UnicodeString(policyId));
-      });
+      Optional.ofNullable(metadata.getPolicyId()).ifPresent(policyId -> metadataMap.put(key(Constants.POLICYID), new UnicodeString(policyId)));
       currencyMap.put(key(Constants.METADATA), metadataMap);
     });
   }
@@ -396,10 +390,8 @@ public class OperationToCborMap {
    */
   private static void addMetaDataToAccountIdentifier(AccountIdentifier account, Map subAccountIdentifierMap) {
     Optional.ofNullable(account.getSubAccount().getMetadata())
-        .ifPresent(metadata -> {
-          subAccountIdentifierMap.put(key(Constants.METADATA),
-              objectToDataItem(metadata));
-        });
+        .ifPresent(metadata -> subAccountIdentifierMap.put(key(Constants.METADATA),
+            objectToDataItem(metadata)));
   }
 
   /**
@@ -412,10 +404,8 @@ public class OperationToCborMap {
     Optional.ofNullable(relatedOperations)
         .ifPresent(relatedOperationIdentifiers -> {
           Array relatedOperationArray = new Array();
-          relatedOperationIdentifiers.forEach(relatedOperationIdentifier -> {
-            Map operationIdentifierMap = getOperationIdentifierMap(relatedOperationIdentifier);
-            relatedOperationArray.add(operationIdentifierMap);
-          });
+          relatedOperationIdentifiers.stream().map(OperationToCborMap::getOperationIdentifierMap)
+              .forEach(relatedOperationArray::add);
           operationMap.put(key(Constants.RELATED_OPERATION), relatedOperationArray);
         });
   }

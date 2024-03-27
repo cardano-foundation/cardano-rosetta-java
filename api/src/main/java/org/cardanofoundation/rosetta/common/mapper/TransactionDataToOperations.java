@@ -62,7 +62,7 @@ public class TransactionDataToOperations {
         .toList();
     if (!ObjectUtils.isEmpty(voteOp)) {
       Operation parsedVoteOperations = ParseConstructionUtil.parseVoteMetadataToOperation(
-          voteOp.get(0).getOperationIdentifier().getIndex(),
+          voteOp.getFirst().getOperationIdentifier().getIndex(),
           extraData.transactionMetadataHex()
       );
       operations.add(parsedVoteOperations);

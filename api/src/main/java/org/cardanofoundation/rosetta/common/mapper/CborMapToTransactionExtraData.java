@@ -6,7 +6,6 @@ import co.nstant.in.cbor.model.Map;
 import co.nstant.in.cbor.model.UnicodeString;
 import java.util.ArrayList;
 import java.util.List;
-import org.cardanofoundation.rosetta.common.mapper.CborMapToOperation;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.TransactionExtraData;
 import org.cardanofoundation.rosetta.common.util.Constants;
 import org.openapitools.client.model.Operation;

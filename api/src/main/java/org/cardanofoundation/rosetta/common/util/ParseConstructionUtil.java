@@ -175,22 +175,22 @@ public class ParseConstructionUtil {
   }
 
   public static OperationMetadata parseTokenBundle(TransactionOutput output) {
-    List<MultiAsset> multiassets = output.getValue().getMultiAssets();
+    List<MultiAsset> multiAssets = output.getValue().getMultiAssets();
     List<TokenBundleItem> tokenBundle = new ArrayList<>();
-    if (!ObjectUtils.isEmpty(multiassets)) {
-      log.info("[parseTokenBundle] About to parse {} multiassets from token bundle",
-          multiassets.size());
-      tokenBundle = multiassets.stream()
-          .map(key -> parseTokenAsset(multiassets, key.getPolicyId()))
+    if (!ObjectUtils.isEmpty(multiAssets)) {
+      log.info("[parseTokenBundle] About to parse {} multiAssets from token bundle",
+          multiAssets.size());
+      tokenBundle = multiAssets.stream()
+          .map(key -> parseTokenAsset(multiAssets, key.getPolicyId()))
           .sorted(Comparator.comparing(TokenBundleItem::getPolicyId))
           .toList();
     }
 
-    return !ObjectUtils.isEmpty(multiassets) ? OperationMetadata.builder().tokenBundle(tokenBundle).build() : null;
+    return !ObjectUtils.isEmpty(multiAssets) ? OperationMetadata.builder().tokenBundle(tokenBundle).build() : null;
   }
 
   public static TokenBundleItem parseTokenAsset(List<MultiAsset> multiAssets, String policyId) {
-    MultiAsset mergedMultiAssets = multiAssets.get(0);
+    MultiAsset mergedMultiAssets = multiAssets.getFirst();
     for (int i = 1; i < multiAssets.size(); i++) {
       mergedMultiAssets.plus(multiAssets.get(i));
     }
@@ -220,7 +220,7 @@ public class ParseConstructionUtil {
     for (Asset a : assets) {
       if (a.getName().startsWith("0x")) {
         a.setName(a.getName().substring(2));
-        if (a.getName().equals("")) {
+        if (a.getName().isEmpty()) {
           a.setName("\\x");
         }
       }
@@ -228,7 +228,7 @@ public class ParseConstructionUtil {
     if (key.startsWith("0x")) {
       key = key.substring(2);
     }
-    if (key.equals("")) {
+    if (key.isEmpty()) {
       key = "\\x";
     }
     String assetSymbol = key;
@@ -395,7 +395,7 @@ public class ParseConstructionUtil {
     Array array = (Array) com.bloxbean.cardano.client.common.cbor.CborSerializationUtil.deserialize(
         HexUtil.decodeHexString(transactionMetadataHex));
     AuxiliaryData transactionMetadata = AuxiliaryData.deserialize(
-        (co.nstant.in.cbor.model.Map) array.getDataItems().get(0));
+        (co.nstant.in.cbor.model.Map) array.getDataItems().getFirst());
     CBORMetadata metadata = (CBORMetadata) transactionMetadata.getMetadata();
     CBORMetadataMap data = (CBORMetadataMap) metadata.get(
         valueOf(Long.parseLong(CatalystLabels.DATA.getLabel())));

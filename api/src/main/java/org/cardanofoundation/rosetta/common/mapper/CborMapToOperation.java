@@ -97,13 +97,9 @@ public class CborMapToOperation {
   private static void fillOperationIdentifier(Map operationIdentifierMap,
       OperationIdentifier operationIdentifier) {
     Optional.ofNullable(operationIdentifierMap.get(key(Constants.INDEX)))
-        .ifPresent(index -> {
-          operationIdentifier.setIndex(((UnsignedInteger) index).getValue().longValue());
-        });
+        .ifPresent(index -> operationIdentifier.setIndex(((UnsignedInteger) index).getValue().longValue()));
     Optional.ofNullable(operationIdentifierMap.get(key(Constants.NETWORK_INDEX)))
-        .ifPresent(index -> {
-          operationIdentifier.setNetworkIndex(((UnsignedInteger) index).getValue().longValue());
-        });
+        .ifPresent(index -> operationIdentifier.setNetworkIndex(((UnsignedInteger) index).getValue().longValue()));
   }
 
   /**
@@ -198,9 +194,9 @@ public class CborMapToOperation {
   }
 
   /**
-   * Adding a SubaccountIdentifier to the AccountIdentifier if not null.
+   * Adding a Sub accountIdentifier to the AccountIdentifier if not null.
    * Accessed through {@value Constants#SUB_ACCOUNT}
-   * @param accountIdentifierMap The map containing the subaccount field
+   * @param accountIdentifierMap The map containing the subAccount field
    * @param accountIdentifier The AccountIdentifier object to fill
    */
   private static void addSubAccountToAccountIdentifier(Map accountIdentifierMap, AccountIdentifier accountIdentifier) {
@@ -209,7 +205,7 @@ public class CborMapToOperation {
           Map subAccountIdentifierMap = (Map) o;
           SubAccountIdentifier subAccountIdentifier = new SubAccountIdentifier();
           // fill object
-          addAddressToSubaccountIdentifier(subAccountIdentifierMap, subAccountIdentifier);
+          addAddressToSubAccountIdentifier(subAccountIdentifierMap, subAccountIdentifier);
           // write to AccountIdentifier
           accountIdentifier.setSubAccount(subAccountIdentifier);
         });
@@ -221,7 +217,7 @@ public class CborMapToOperation {
    * @param subAccountIdentifierMap The map containing the address field
    * @param subAccountIdentifier The SubAccountIdentifier object to fill
    */
-  private static void addAddressToSubaccountIdentifier(Map subAccountIdentifierMap,
+  private static void addAddressToSubAccountIdentifier(Map subAccountIdentifierMap,
       SubAccountIdentifier subAccountIdentifier) {
     Optional.ofNullable(subAccountIdentifierMap.get(key(Constants.ADDRESS)))
         .ifPresent(o1 -> {
@@ -278,9 +274,7 @@ public class CborMapToOperation {
    * @param amount The Amount object to fill
    */
   private static void addValueToAmount(Map am, Amount amount) {
-    Optional.ofNullable(am.get(key(Constants.VALUE))).ifPresent(o -> {
-      amount.setValue(((UnicodeString) o).getString());
-    });
+    Optional.ofNullable(am.get(key(Constants.VALUE))).ifPresent(o -> amount.setValue(((UnicodeString) o).getString()));
   }
 
 
@@ -293,7 +287,7 @@ public class CborMapToOperation {
   private static void addCurrencyToAmount(Map amountMap, Amount amount) {
     Optional.ofNullable(amountMap.get(key(Constants.CURRENCY))).ifPresent(o -> {
       Map currencyMap = (Map) o;
-      Currency currency = getCurrentyFromMap(currencyMap);
+      Currency currency = getCurrencyMap(currencyMap);
       addMetadataToCurrency(currencyMap, currency);
       amount.setCurrency(currency);
     });
@@ -320,9 +314,7 @@ public class CborMapToOperation {
    */
   private static void addPolicyIdToMetadata(Map addedMetadataMap, CurrencyMetadata metadata) {
     Optional.ofNullable(addedMetadataMap.get(key(Constants.POLICYID)))
-        .ifPresent(o -> {
-          metadata.setPolicyId(((UnicodeString) o).getString());
-        });
+        .ifPresent(o -> metadata.setPolicyId(((UnicodeString) o).getString()));
   }
 
   /**
@@ -331,21 +323,17 @@ public class CborMapToOperation {
    * @param currencyMap The map containing the currency field
    * @return The populated Currency object
    */
-  private static Currency getCurrentyFromMap(Map currencyMap) {
+  private static Currency getCurrencyMap(Map currencyMap) {
     Currency currency = new Currency();
-    Optional.ofNullable(currencyMap.get(key(Constants.SYMBOL))).ifPresent(o1 -> {
-      currency.setSymbol(((UnicodeString) o1).getString());
-    });
-    Optional.ofNullable(currencyMap.get(key(Constants.DECIMALS))).ifPresent(o1 -> {
-      currency.setDecimals(((UnsignedInteger) o1).getValue().intValue());
-    });
+    Optional.ofNullable(currencyMap.get(key(Constants.SYMBOL))).ifPresent(o1 -> currency.setSymbol(((UnicodeString) o1).getString()));
+    Optional.ofNullable(currencyMap.get(key(Constants.DECIMALS))).ifPresent(o1 -> currency.setDecimals(((UnsignedInteger) o1).getValue().intValue()));
     return currency;
   }
 
   /**
-   * Add coinchange to Operation. The coinchange objects is accessed through {@value Constants#COIN_CHANGE}.
-   * The coinchange object contains a CoinAction and a CoinIdentifier.
-   * @param operationMap The map containing the coinchange field
+   * Add Coin change to Operation. The Coin change objects is accessed through {@value Constants#COIN_CHANGE}.
+   * The Coin change object contains a CoinAction and a CoinIdentifier.
+   * @param operationMap The map containing the Coin change field
    * @param operation The Operation object to fill
    */
   private static void addCoinChange(Map operationMap, Operation operation) {
@@ -409,7 +397,7 @@ public class CborMapToOperation {
     Optional.ofNullable(operationMap.get(new UnicodeString(Constants.METADATA))).ifPresent(o -> {
       Map metadataMap = (Map) operationMap.get(new UnicodeString(Constants.METADATA));
       OperationMetadata operationMetadata = new OperationMetadata();
-      addWithDrawalAmount(metadataMap, operationMetadata);
+      addWithdrawalAmount(metadataMap, operationMetadata);
       addDepositAmount(metadataMap, operationMetadata);
       addRefundAmount(metadataMap, operationMetadata);
       addStakingCredential(metadataMap, operationMetadata);
@@ -424,15 +412,15 @@ public class CborMapToOperation {
   }
 
   /**
-   * Add a voteregistration metadata to Operation object. The voteregistration metadata object is accessed through {@value Constants#VOTEREGISTRATIONMETADATA}.
-   * The voteregistration metadata object contains a list of different metadata objects.
+   * Add a vote registration metadata to Operation object. The vote registration metadata object is accessed through {@value Constants#VOTEREGISTRATIONMETADATA}.
+   * The vote registration metadata object contains a list of different metadata objects.
    * @param metadataMap The map containing the metadata field
    * @param operationMetadata The OperationMetadata object to fill
    */
   private static void addVoteRegistrationMetadata(Map metadataMap,
       OperationMetadata operationMetadata) {
     Optional.ofNullable(metadataMap.get(key(Constants.VOTEREGISTRATIONMETADATA)))
-        .ifPresent(voteregMetadata -> {
+        .ifPresent(voteRegMetadata -> {
           VoteRegistrationMetadata voteRegistrationMetadata = new VoteRegistrationMetadata();
           Map voteRegistrationMetadataMap = (Map) metadataMap.get(key(Constants.VOTEREGISTRATIONMETADATA));
           // filling the voteRegistrationMetadata object
@@ -524,7 +512,7 @@ public class CborMapToOperation {
   }
 
   /**
-   * Add PoolRegistrationParams to Operationmetadata object. The pool registration params object is accessed through {@value Constants#POOLREGISTRATIONPARAMS}.
+   * Add PoolRegistrationParams to Operation metadata object. The pool registration params object is accessed through {@value Constants#POOLREGISTRATIONPARAMS}.
    * The pool registration params object contains a list of different metadata objects.
    * @param metadataMap The map containing the metadata field
    * @param operationMetadata The OperationMetadata object to fill
@@ -545,13 +533,13 @@ public class CborMapToOperation {
           addMargins(poolRegistrationParamsMap, poolRegistrationParams);
           addMarginPercentage(poolRegistrationParamsMap, poolRegistrationParams);
           addPoolMetadata(poolRegistrationParamsMap, poolRegistrationParams);
-          // write back to operationmetadata
+          // write back to operation metadata
           operationMetadata.setPoolRegistrationParams(poolRegistrationParams);
         });
   }
 
   /**
-   * Add PoolMetadata to Poolregistrationparams object. The pool metadata object is accessed through {@value Constants#POOLMETADATA}.
+   * Add PoolMetadata to Evapotranspirations object. The pool metadata object is accessed through {@value Constants#POOLMETADATA}.
    * @param poolRegistrationParamsMap The map containing the pool registration params field
    * @param poolRegistrationParams The PoolRegistrationParams object to fill
    */
@@ -570,7 +558,7 @@ public class CborMapToOperation {
   }
 
   /**
-   * Add Hash to Poolmetadatamap object. The hash is accessed through {@value Constants#HASH}.
+   * Add Hash to Pool Metadata Map object. The hash is accessed through {@value Constants#HASH}.
    * @param poolMetadataMap The map containing the pool metadata field
    * @param poolMetadata The PoolMetadata object to fill
    */
@@ -583,7 +571,7 @@ public class CborMapToOperation {
   }
 
   /**
-   * Add Url to Poolmetadataobject from the cbor MAP  if not null.
+   * Add Url to Pool Metadata Object from the cbor MAP  if not null.
    * Accessed through {@value Constants#URL}
    * @param poolMetadataMap The map containing the pool metadata field
    * @param poolMetadata The PoolMetadata object to fill
@@ -597,7 +585,7 @@ public class CborMapToOperation {
   }
 
   /**
-   * Add MargincPercentage to Poolregistrationparams object. The margin percentage is accessed through {@value Constants#MARGIN_PERCENTAGE}.
+   * Add Margin Percentage to Pool registration params object. The margin percentage is accessed through {@value Constants#MARGIN_PERCENTAGE}.
    * @param poolRegistrationParamsMap The map containing the pool registration params field
    * @param poolRegistrationParams The PoolRegistrationParams object to fill
    */
@@ -611,7 +599,7 @@ public class CborMapToOperation {
   }
 
   /**
-   * Add Margins to Poolregistrationparams object. The margin object is accessed through {@value Constants#MARGIN}.
+   * Add Margins to Pool registration params object. The margin object is accessed through {@value Constants#MARGIN}.
    * @param poolRegistrationParamsMap The map containing the pool registration params field
    * @param poolRegistrationParams The PoolRegistrationParams object to fill
    */
@@ -630,7 +618,7 @@ public class CborMapToOperation {
   }
 
   /**
-   * Add Denominator to Poolmargin object. The denominator is accessed through {@value Constants#DENOMINATOR}.
+   * Add Denominator to Pool margin object. The denominator is accessed through {@value Constants#DENOMINATOR}.
    * @param marginMap The map containing the margin field
    * @param poolMargin The PoolMargin object to fill
    */
@@ -643,7 +631,7 @@ public class CborMapToOperation {
   }
 
   /**
-   * Add Numerator to Poolmargin object. The numerator is accessed through {@value Constants#NUMERATOR}.
+   * Add Numerator to Pool margin object. The numerator is accessed through {@value Constants#NUMERATOR}.
    * @param marginMap The map containing the margin field
    * @param poolMargin The PoolMargin object to fill
    */
@@ -656,7 +644,7 @@ public class CborMapToOperation {
   }
 
   /**
-   * Adding Releays to PoolRegistrationParams object. The relays object is accessed through {@value Constants#RELAYS}.
+   * Adding Relays to PoolRegistrationParams object. The relays object is accessed through {@value Constants#RELAYS}.
    * @param poolRegistrationParamsMap The map containing the pool registration params field
    * @param poolRegistrationParams The PoolRegistrationParams object to fill
    */
@@ -729,7 +717,7 @@ public class CborMapToOperation {
   }
 
   /**
-   * Add a List of PoolOwners to Poolregistrationparams object. The pool owners are accessed through {@value Constants#POOLOWNERS}.
+   * Add a List of PoolOwners to Pool registration params object. The pool owners are accessed through {@value Constants#POOLOWNERS}.
    * @param poolRegistrationParamsMap The map containing the pool registration params field
    * @param poolRegistrationParams The PoolRegistrationParams object to fill
    */
@@ -749,7 +737,7 @@ public class CborMapToOperation {
   }
 
   /**
-   * Add Cost to Poolregistrationparams object. The cost is accessed through {@value Constants#COST}.
+   * Add Cost to Pool registration params object. The cost is accessed through {@value Constants#COST}.
    * @param poolRegistrationParamsMap The map containing the pool registration params field
    * @param poolRegistrationParams The PoolRegistrationParams object to fill
    */
@@ -763,7 +751,7 @@ public class CborMapToOperation {
   }
 
   /**
-   * Add Pledge to Poolregistrationparams object. The pledge is accessed through {@value Constants#PLEDGE}.
+   * Add Pledge to Pool registration params object. The pledge is accessed through {@value Constants#PLEDGE}.
    * @param poolRegistrationParamsMap The map containing the pool registration params field
    * @param poolRegistrationParams The PoolRegistrationParams object to fill
    */
@@ -777,7 +765,7 @@ public class CborMapToOperation {
   }
 
   /**
-   * Add RewardAddress to Poolregistrationparams object. The reward address is accessed through {@value Constants#REWARD_ADDRESS}.
+   * Add RewardAddress to Pool registration params object. The reward address is accessed through {@value Constants#REWARD_ADDRESS}.
    * @param poolRegistrationParamsMap The map containing the pool registration params field
    * @param poolRegistrationParams The PoolRegistrationParams object to fill
    */
@@ -791,7 +779,7 @@ public class CborMapToOperation {
   }
 
   /**
-   * Add VrfKeyHash to Poolregistrationparams object. The vrf key hash is accessed through {@value Constants#VRFKEYHASH}.
+   * Add VrfKeyHash to Pool registration params object. The vrf key hash is accessed through {@value Constants#VRFKEYHASH}.
    * @param poolRegistrationParamsMap The map containing the pool registration params field
    * @param poolRegistrationParams The PoolRegistrationParams object to fill
    */
@@ -805,7 +793,7 @@ public class CborMapToOperation {
   }
 
   /**
-   * Add PoolRegistrationCert to Operationmetadata object. The pool registration cert is accessed through {@value Constants#POOLREGISTRATIONCERT}.
+   * Add PoolRegistrationCert to Operation Metadata object. The pool registration cert is accessed through {@value Constants#POOLREGISTRATIONCERT}.
    * @param metadataMap The map containing the metadata field
    * @param operationMetadata The OperationMetadata object to fill
    */
@@ -819,7 +807,7 @@ public class CborMapToOperation {
   }
 
   /**
-   * Add TokenBundle to Operationmetadata object. The token bundle is accessed through {@value Constants#TOKENBUNDLE}.
+   * Add TokenBundle to Operation metadata object. The token bundle is accessed through {@value Constants#TOKENBUNDLE}.
    * @param metadataMap The map containing the metadata field
    * @param operationMetadata The OperationMetadata object to fill
    */
@@ -871,7 +859,7 @@ public class CborMapToOperation {
   }
 
   /**
-   * Add Epoch to Operationmetadata object. The epoch is accessed through {@value Constants#EPOCH}.
+   * Add Epoch to Operation metadata object. The epoch is accessed through {@value Constants#EPOCH}.
    * @param metadataMap The map containing the metadata field
    * @param operationMetadata The OperationMetadata object to fill
    */
@@ -884,19 +872,17 @@ public class CborMapToOperation {
   }
 
   /**
-   * Add PoolKeyHash to Operationmetadata object. The pool key hash is accessed through {@value Constants#POOL_KEY_HASH}.
+   * Add PoolKeyHash to Operation metadata object. The pool key hash is accessed through {@value Constants#POOL_KEY_HASH}.
    * @param metadataMap The map containing the metadata field
    * @param operationMetadata The OperationMetadata object to fill
    */
   private static void addPoolKeyHash(Map metadataMap, OperationMetadata operationMetadata) {
     Optional.ofNullable(metadataMap.get(key(Constants.POOL_KEY_HASH)))
-        .ifPresent(o -> {
-          operationMetadata.setPoolKeyHash(((UnicodeString) o).getString());
-        });
+        .ifPresent(o -> operationMetadata.setPoolKeyHash(((UnicodeString) o).getString()));
   }
 
   /**
-   * Add StakingCredential to Operationmetadata object. The staking credential is accessed through {@value Constants#STAKING_CREDENTIAL}.
+   * Add StakingCredential to Operation metadata object. The staking credential is accessed through {@value Constants#STAKING_CREDENTIAL}.
    * @param metadataMap The map containing the metadata field
    * @param operationMetadata The OperationMetadata object to fill
    */
@@ -909,7 +895,7 @@ public class CborMapToOperation {
   }
 
   /**
-   * Add RefundAmount to Operationmetadata object. The refund amount is accessed through {@value Constants#REFUNDAMOUNT}.
+   * Add RefundAmount to Operation metadata object. The refund amount is accessed through {@value Constants#REFUNDAMOUNT}.
    * @param metadataMap The map containing the metadata field
    * @param operationMetadata The OperationMetadata object to fill
    */
@@ -922,7 +908,7 @@ public class CborMapToOperation {
   }
 
   /**
-   * Add DepositAmount to Operationmetadata object. The deposit amount is accessed through {@value Constants#DEPOSITAMOUNT}.
+   * Add DepositAmount to Operation metadata object. The deposit amount is accessed through {@value Constants#DEPOSITAMOUNT}.
    * @param metadataMap The map containing the metadata field
    * @param operationMetadata The OperationMetadata object to fill
    */
@@ -936,11 +922,11 @@ public class CborMapToOperation {
   }
 
   /**
-   * Add WithdrawalAmount to Operationmetadata object. The withdrawal amount is accessed through {@value Constants#WITHDRAWALAMOUNT}.
+   * Add WithdrawalAmount to Operation metadata object. The withdrawal amount is accessed through {@value Constants#WITHDRAWALAMOUNT}.
    * @param metadataMap The map containing the metadata field
    * @param operationMetadata The OperationMetadata object to fill
    */
-  private static void addWithDrawalAmount(Map metadataMap, OperationMetadata operationMetadata) {
+  private static void addWithdrawalAmount(Map metadataMap, OperationMetadata operationMetadata) {
     Optional.ofNullable(metadataMap.get(key(Constants.WITHDRAWALAMOUNT)))
         .ifPresent(o -> {
           Map withdrawalAmountMap = (Map) o;
@@ -957,13 +943,9 @@ public class CborMapToOperation {
   private static PublicKey getPublicKeyFromMap(Map stakingCredentialMap) {
     PublicKey publicKey = new PublicKey();
     Optional.ofNullable(stakingCredentialMap.get(new UnicodeString(Constants.HEX_BYTES)))
-        .ifPresent(o -> {
-          publicKey.setHexBytes(((UnicodeString) o).getString());
-        });
+        .ifPresent(o -> publicKey.setHexBytes(((UnicodeString) o).getString()));
     Optional.ofNullable(stakingCredentialMap.get(new UnicodeString(Constants.CURVE_TYPE)))
-        .ifPresent(o -> {
-          publicKey.setCurveType(CurveType.fromValue(((UnicodeString) o).getString()));
-        });
+        .ifPresent(o -> publicKey.setCurveType(CurveType.fromValue(((UnicodeString) o).getString())));
     return publicKey;
   }
 

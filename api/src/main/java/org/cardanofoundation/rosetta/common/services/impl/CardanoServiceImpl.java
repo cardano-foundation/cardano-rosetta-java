@@ -11,7 +11,6 @@ import com.bloxbean.cardano.client.crypto.VerificationKey;
 import com.bloxbean.cardano.client.exception.AddressExcepion;
 import com.bloxbean.cardano.client.exception.CborDeserializationException;
 import com.bloxbean.cardano.client.exception.CborSerializationException;
-import com.bloxbean.cardano.client.spec.NetworkId;
 import com.bloxbean.cardano.client.transaction.spec.AuxiliaryData;
 import com.bloxbean.cardano.client.transaction.spec.BootstrapWitness;
 import com.bloxbean.cardano.client.transaction.spec.Transaction;

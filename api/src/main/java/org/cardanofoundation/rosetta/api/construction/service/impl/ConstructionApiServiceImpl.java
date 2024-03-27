@@ -90,9 +90,10 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
   public ConstructionMetadataResponse constructionMetadataService(
       ConstructionMetadataRequest constructionMetadataRequest)
       throws CborException, CborSerializationException {
-    Map<String, Object> options = (Map<String, Object>) constructionMetadataRequest.getOptions();
-    Double relativeTtl = (Double) options.get(Constants.RELATIVE_TTL);
-    Double txSize = (Double) options.get(Constants.TRANSACTION_SIZE);
+
+    ConstructionMetadataRequestOption options = constructionMetadataRequest.getOptions();
+    Double relativeTtl = options.getRelativeTtl().doubleValue();
+    Double txSize = options.getTransactionSize().doubleValue();
     log.debug("[constructionMetadata] Calculating ttl based on {} relative ttl", relativeTtl);
     Long ttl = cardanoService.calculateTtl(relativeTtl.longValue());
     log.debug("[constructionMetadata] ttl is {}", ttl);
