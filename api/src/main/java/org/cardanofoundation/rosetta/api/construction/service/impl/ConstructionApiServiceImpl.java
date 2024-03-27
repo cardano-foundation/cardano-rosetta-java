@@ -26,7 +26,6 @@ import org.cardanofoundation.rosetta.common.services.LedgerDataProviderService;
 import org.cardanofoundation.rosetta.common.util.Constants;
 import org.cardanofoundation.rosetta.common.util.CborEncodeUtil;
 import org.cardanofoundation.rosetta.common.mapper.CborMapToTransactionExtraData;
-import org.cardanofoundation.rosetta.common.util.ParseConstructionUtil;
 import org.openapitools.client.model.*;
 import org.springframework.stereotype.Service;
 
@@ -163,18 +162,10 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
     NetworkIdentifierType networkIdentifier = NetworkIdentifierType.findByName(
         constructionParseRequest.getNetworkIdentifier().getNetwork());
     log.info(constructionParseRequest.getTransaction() + "[constructionParse] Processing");
-    Array array = cardanoService.decodeExtraData(constructionParseRequest.getTransaction());
-    TransactionExtraData extraData = CborMapToTransactionExtraData.convertCborMapToTransactionExtraData(
-        (co.nstant.in.cbor.model.Map) array.getDataItems().get(1));
-    TransactionParsed result;
-    if (signed) {
-      result = ParseConstructionUtil.parseSignedTransaction(networkIdentifier,
-          ((UnicodeString) array.getDataItems().getFirst()).getString(), extraData);
 
-    } else {
-      result = ParseConstructionUtil.parseUnsignedTransaction(networkIdentifier,
-          ((UnicodeString) array.getDataItems().getFirst()).getString(), extraData);
-    }
+    TransactionParsed result = cardanoService.parseTransaction(networkIdentifier,
+        constructionParseRequest.getTransaction(), signed);
+
     return new ConstructionParseResponse(result.operations(), null,
         result.accountIdentifierSigners(), null);
   }
@@ -183,7 +174,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
   public ConstructionCombineResponse constructionCombineService(
       ConstructionCombineRequest constructionCombineRequest) throws CborException {
     log.info("[constructionCombine] Request received to sign a transaction");
-    Array array = cardanoService.decodeExtraData(
+    Array array = cardanoService.decodeTransaction(
         constructionCombineRequest.getUnsignedTransaction());
     TransactionExtraData extraData = CborMapToTransactionExtraData.convertCborMapToTransactionExtraData(
         (co.nstant.in.cbor.model.Map) array.getDataItems().get(1));
@@ -198,7 +189,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
   @Override
   public TransactionIdentifierResponse constructionHashService(
       ConstructionHashRequest constructionHashRequest) {
-    Array array = cardanoService.decodeExtraData(constructionHashRequest.getSignedTransaction());
+    Array array = cardanoService.decodeTransaction(constructionHashRequest.getSignedTransaction());
     log.info("[constructionHash] About to get hash of signed transaction");
     String transactionHash = cardanoService.getHashOfSignedTransaction(
         ((UnicodeString) array.getDataItems().getFirst()).getString());

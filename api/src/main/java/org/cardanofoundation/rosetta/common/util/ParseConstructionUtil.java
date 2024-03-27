@@ -3,10 +3,8 @@ package org.cardanofoundation.rosetta.common.util;
 import static com.bloxbean.cardano.client.address.AddressType.Reward;
 import static java.math.BigInteger.valueOf;
 
-import co.nstant.in.cbor.CborDecoder;
 import co.nstant.in.cbor.CborException;
 import co.nstant.in.cbor.model.Array;
-import co.nstant.in.cbor.model.DataItem;
 import com.bloxbean.cardano.client.address.Address;
 import com.bloxbean.cardano.client.common.model.Networks;
 import com.bloxbean.cardano.client.crypto.bip32.key.HdPublicKey;
@@ -17,7 +15,6 @@ import com.bloxbean.cardano.client.metadata.cbor.CBORMetadataMap;
 import com.bloxbean.cardano.client.transaction.spec.Asset;
 import com.bloxbean.cardano.client.transaction.spec.AuxiliaryData;
 import com.bloxbean.cardano.client.transaction.spec.MultiAsset;
-import com.bloxbean.cardano.client.transaction.spec.Transaction;
 import com.bloxbean.cardano.client.transaction.spec.TransactionBody;
 import com.bloxbean.cardano.client.transaction.spec.TransactionInput;
 import com.bloxbean.cardano.client.transaction.spec.TransactionOutput;
@@ -29,9 +26,7 @@ import com.bloxbean.cardano.client.transaction.spec.cert.SingleHostAddr;
 import com.bloxbean.cardano.client.transaction.spec.cert.SingleHostName;
 import com.bloxbean.cardano.client.transaction.spec.cert.StakeDelegation;
 import com.bloxbean.cardano.client.util.HexUtil;
-import com.bloxbean.cardano.yaci.core.util.CborSerializationUtil;
 import java.math.BigInteger;
-import java.text.Normalizer.Form;
 import java.util.Comparator;
 import java.util.Objects;
 import java.util.Optional;
@@ -54,8 +49,6 @@ import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.mapper.DataMapper;
 import org.cardanofoundation.rosetta.common.model.cardano.network.RelayType;
-import org.cardanofoundation.rosetta.common.model.cardano.transaction.TransactionParsed;
-import org.cardanofoundation.rosetta.common.model.cardano.transaction.TransactionExtraData;
 import org.openapitools.client.model.AccountIdentifier;
 import org.openapitools.client.model.Amount;
 import org.openapitools.client.model.CoinAction;
@@ -77,9 +70,6 @@ import org.openapitools.client.model.VoteRegistrationMetadata;
 @Slf4j
 public class ParseConstructionUtil {
 
-  private ParseConstructionUtil() {
-
-  }
   public static Inet4Address parseIpv4(String ip) throws UnknownHostException {
     if (!ObjectUtils.isEmpty(ip)) {
       String[] ipNew = ip.split("\\.");
@@ -159,62 +149,7 @@ public class ParseConstructionUtil {
     throw ExceptionFactory.invalidAddressError("Can't get Reward address from PoolRegistration");
   }
 
-  public static TransactionParsed parseSignedTransaction(
-      NetworkIdentifierType networkIdentifierType,
-      String transaction, TransactionExtraData extraData) {
-    try {
-      byte[] transactionBuffer = HexUtil.decodeHexString(transaction);
-      List<DataItem> dataItemList = CborDecoder.decode(transactionBuffer);
-      Array array = (Array) dataItemList.get(0);
-      if (dataItemList.size() >= 2 && array.getDataItems().size() == 3) {
-        array.add(dataItemList.get(1));
-      }
-      log.info("[parseSignedTransaction] About to create signed transaction from bytes");
-      Transaction parsed = Transaction.deserialize(CborSerializationUtil.serialize(array));
-      log.info("[parseSignedTransaction] About to parse operations from transaction body");
-      List<Operation> operations = ConvertConstructionUtil.convert(parsed.getBody(), extraData,
-          networkIdentifierType.getValue());
-      log.info("[parseSignedTransaction] About to get signatures from parsed transaction");
-      log.info(operations + "[parseSignedTransaction] Returning operations");
-      List<String> accum = new ArrayList<>();
-      extraData.operations().forEach(o ->
-          {
-            List<String> list = ConvertConstructionUtil.getSignerFromOperation(networkIdentifierType, o);
-            accum.addAll(list);
-          }
-      );
-      List<AccountIdentifier> accountIdentifierSigners = ConvertConstructionUtil.getUniqueAccountIdentifiers(accum);
-      return new TransactionParsed(operations, accountIdentifierSigners);
-    } catch (Exception error) {
-      log.error(error
-          + "[parseSignedTransaction] Cant instantiate signed transaction from transaction bytes");
-      throw ExceptionFactory.cantCreateSignedTransactionFromBytes();
-    }
-  }
-
-  public static TransactionParsed parseUnsignedTransaction(
-      NetworkIdentifierType networkIdentifierType,
-      String transaction, TransactionExtraData extraData) {
-    try {
-      log.info(transaction
-          + "[parseUnsignedTransaction] About to create unsigned transaction from bytes");
-      byte[] transactionBuffer = HexUtil.decodeHexString(transaction);
-      TransactionBody parsed = TransactionBody.deserialize(
-          (co.nstant.in.cbor.model.Map) com.bloxbean.cardano.client.common.cbor.CborSerializationUtil.deserialize(
-              transactionBuffer));
-      log.info(
-          extraData + "[parseUnsignedTransaction] About to parse operations from transaction body");
-      List<Operation> operations = ConvertConstructionUtil.convert(parsed, extraData, networkIdentifierType.getValue());
-      log.info(operations + "[parseUnsignedTransaction] Returning ${operations.length} operations");
-      return new TransactionParsed(operations, new ArrayList<>());
-    } catch (Exception error) {
-      log.error(error
-          + "[parseUnsignedTransaction] Cant instantiate unsigned transaction from transaction bytes");
-      throw ExceptionFactory.cantCreateUnsignedTransactionFromBytes();
-    }
-  }
-
-  public static Operation parseInputToOperation(TransactionInput input, Long index) {
+  public static Operation TransactionInputToOperation(TransactionInput input, Long index) {
     return new Operation(new OperationIdentifier(index, null), null, OperationType.INPUT.getValue(),
         "", null, null,
         new CoinChange(new CoinIdentifier(
@@ -222,18 +157,21 @@ public class ParseConstructionUtil {
                 + input.getIndex()), CoinAction.SPENT), null);
   }
 
-  public static String parseAddress(String address) {
-    return address;
-  }
-  public static Operation parseOutputToOperation(TransactionOutput output, Long index,
-      List<OperationIdentifier> relatedOperations, String address) {
+  public static Operation TransActionOutputToOperation(TransactionOutput output, Long index,
+      List<OperationIdentifier> relatedOperations) {
     OperationIdentifier operationIdentifier = new OperationIdentifier(index, null);
-    AccountIdentifier account = new AccountIdentifier(address, null, null);
+    AccountIdentifier account = new AccountIdentifier(output.getAddress(), null, null);
     Amount amount = new Amount(output.getValue().getCoin().toString(),
         new Currency(Constants.ADA, Constants.ADA_DECIMALS, null), null);
     return new Operation(operationIdentifier, relatedOperations, OperationType.OUTPUT.getValue(),
         "",
         account, amount, null, parseTokenBundle(output));
+  }
+
+  public static List<OperationIdentifier> getRelatedOperationsFromInputs(List<Operation> inputs) {
+    return inputs.stream()
+        .map(input -> new OperationIdentifier(input.getOperationIdentifier().getIndex(), null))
+        .toList();
   }
 
   public static OperationMetadata parseTokenBundle(TransactionOutput output) {
@@ -273,11 +211,7 @@ public class ParseConstructionUtil {
   }
 
   public static List<String> keys(List<Asset> collection) {
-    List<String> keysArray = new ArrayList<>();
-    for (Asset asset : collection) {
-      keysArray.add(asset.getName());
-    }
-    return keysArray;
+    return collection.stream().map(Asset::getName).toList();
   }
 
   public static Amount parseAsset(List<Asset> assets, String key) throws CborException {
@@ -412,10 +346,11 @@ public class ParseConstructionUtil {
     );
   }
 
-  public static void parseWithdrawalsToOperations(List<Operation> withdrawalOps,
-      Integer withdrawalsCount,
-      List<Operation> operations, Integer network) {
+  public static List<Operation> parseWithdrawalsToOperations(List<Operation> withdrawalOps,
+      Integer withdrawalsCount, Integer network) {
+
     log.info("[parseWithdrawalsToOperations] About to parse {} withdrawals", withdrawalsCount);
+    List<Operation> withdrawalOperations = new ArrayList<>();
     for (int i = 0; i < withdrawalsCount; i++) {
       Operation withdrawalOperation = withdrawalOps.get(i);
       HdPublicKey hdPublicKey = new HdPublicKey();
@@ -429,8 +364,9 @@ public class ParseConstructionUtil {
           withdrawalOperation.getOperationIdentifier().getIndex(),
           address
       );
-      operations.add(parsedOperation);
+      withdrawalOperations.add(parsedOperation);
     }
+    return withdrawalOperations;
   }
 
   public static Operation parseWithdrawalToOperation(String value, String hex, Long index,

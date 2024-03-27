@@ -1,16 +1,13 @@
-package org.cardanofoundation.rosetta.common.util;
+package org.cardanofoundation.rosetta.common.mapper;
 
 import co.nstant.in.cbor.CborException;
 import com.bloxbean.cardano.client.crypto.bip32.key.HdPublicKey;
-import com.bloxbean.cardano.client.exception.AddressExcepion;
 import com.bloxbean.cardano.client.exception.CborDeserializationException;
 import com.bloxbean.cardano.client.exception.CborSerializationException;
 import com.bloxbean.cardano.client.transaction.spec.TransactionBody;
 import com.bloxbean.cardano.client.transaction.spec.TransactionInput;
 import com.bloxbean.cardano.client.transaction.spec.TransactionOutput;
 import com.bloxbean.cardano.client.util.HexUtil;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -18,11 +15,15 @@ import java.util.Optional;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.common.model.cardano.pool.PoolRegistrationCertReturn;
+import org.cardanofoundation.rosetta.common.model.cardano.transaction.TransactionData;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.TransactionExtraData;
+import org.cardanofoundation.rosetta.common.util.CardanoAddressUtils;
+import org.cardanofoundation.rosetta.common.util.Constants;
+import org.cardanofoundation.rosetta.common.util.ParseConstructionUtil;
+import org.cardanofoundation.rosetta.common.util.ValidateParseUtil;
 import org.openapitools.client.model.AccountIdentifier;
 import org.openapitools.client.model.Operation;
 import org.openapitools.client.model.OperationIdentifier;
@@ -33,73 +34,29 @@ import org.openapitools.client.model.PoolRegistrationParams;
  * This whole class will be rewritten with mapper. For the initial implementation it's fine.
  */
 @Slf4j
-public class ConvertConstructionUtil {
-  private ConvertConstructionUtil() {
+public class TransactionDataToOperations {
+  private TransactionDataToOperations() {
 
   }
 
-  public static List<Operation> convert(TransactionBody transactionBody,
-      TransactionExtraData extraData,
+  public static List<Operation> convert(TransactionData data,
       Integer network)
-      throws UnknownHostException, JsonProcessingException, AddressExcepion, CborDeserializationException, CborException, CborSerializationException {
+      throws CborDeserializationException, CborException, CborSerializationException {
+    TransactionBody transactionBody = data.transactionBody();
+    TransactionExtraData extraData = data.transactionExtraData();
+
     List<Operation> operations = new ArrayList<>();
-    List<TransactionInput> inputs = transactionBody.getInputs();
-    List<TransactionOutput> outputs = transactionBody.getOutputs();
-    log.info("[parseOperationsFromTransactionBody] About to parse {} inputs", inputs.size());
-    List<Operation> inputOperations = extraData.operations().stream()
-        .filter(o -> o.getType().equals(OperationType.INPUT.getValue()))
-        .toList();
-    for (int i = 0; i < inputs.size(); i++) {
+    fillInputOperations(transactionBody, extraData, operations);
+    fillOutputOperations(transactionBody, operations);
+    fillCertOperations(transactionBody, extraData, network, operations);
+    fillWithdrawalOperations(transactionBody, extraData, network, operations);
+    fillVoteOperations(extraData, operations);
 
-      if (!inputOperations.isEmpty() && inputOperations.size() <= inputs.size()) {
-        Operation operation = new Operation();
-        operation.setOperationIdentifier(inputOperations.get(i).getOperationIdentifier());
-        operation.setRelatedOperations(inputOperations.get(i).getRelatedOperations());
-        operation.setType(inputOperations.get(i).getType());
-        operation.setStatus(StringUtils.EMPTY);
-        operation.setAccount(inputOperations.get(i).getAccount());
-        operation.setAmount(inputOperations.get(i).getAmount());
-        operation.setCoinChange(inputOperations.get(i).getCoinChange());
-        operation.setMetadata(inputOperations.get(i).getMetadata());
-        operations.add(operation);
-      } else {
-        TransactionInput input = inputs.get(i);
-        Operation inputParsed = ParseConstructionUtil.parseInputToOperation(input, (long) operations.size());
-        Operation operation = new Operation();
-        operation.setOperationIdentifier(inputParsed.getOperationIdentifier());
-        operation.setRelatedOperations(inputParsed.getRelatedOperations());
-        operation.setType(inputParsed.getType());
-        operation.setStatus(StringUtils.EMPTY);
-        operation.setAccount(inputParsed.getAccount());
-        operation.setAmount(inputParsed.getAmount());
-        operation.setCoinChange(inputParsed.getCoinChange());
-        operation.setMetadata(inputParsed.getMetadata());
-        operations.add(operation);
-      }
-    }
-    // till this line operations only contains inputs
-    List<OperationIdentifier> relatedOperations = getRelatedOperationsFromInputs(operations);
-    log.info("[parseOperationsFromTransactionBody] About to parse {} outputs", outputs.size());
-    for (TransactionOutput output : outputs) {
-      String address = ParseConstructionUtil.parseAddress(output.getAddress());
-      Operation outputParsed = ParseConstructionUtil.parseOutputToOperation(output, (long) operations.size(),
-          relatedOperations, address);
-      operations.add(outputParsed);
-    }
+    return operations;
+  }
 
-    List<Operation> certOps = extraData.operations().stream()
-        .filter(o -> Constants.StakePoolOperations.contains(o.getType())
-        ).toList();
-    List<Operation> parsedCertOperations = ParseConstructionUtil.parseCertsToOperations(transactionBody, certOps,
-        network);
-    operations.addAll(parsedCertOperations);
-    List<Operation> withdrawalOps = extraData.operations().stream()
-        .filter(o -> o.getType().equals(OperationType.WITHDRAWAL.getValue()))
-        .toList();
-    Integer withdrawalsCount = ObjectUtils.isEmpty(transactionBody.getWithdrawals()) ? 0
-        : transactionBody.getWithdrawals().size();
-    ParseConstructionUtil.parseWithdrawalsToOperations(withdrawalOps, withdrawalsCount, operations, network);
-
+  private static void fillVoteOperations(TransactionExtraData extraData, List<Operation> operations)
+      throws CborDeserializationException {
     List<Operation> voteOp = extraData.operations().stream()
         .filter(o -> o.getType().equals(OperationType.VOTE_REGISTRATION.getValue()))
         .toList();
@@ -110,14 +67,60 @@ public class ConvertConstructionUtil {
       );
       operations.add(parsedVoteOperations);
     }
-
-    return operations;
   }
 
-  public static List<OperationIdentifier> getRelatedOperationsFromInputs(List<Operation> inputs) {
-    return inputs.stream()
-        .map(input -> new OperationIdentifier(input.getOperationIdentifier().getIndex(), null))
+  private static void fillWithdrawalOperations(TransactionBody transactionBody, TransactionExtraData extraData,
+      Integer network, List<Operation> operations) {
+    List<Operation> withdrawalOps = extraData.operations().stream()
+        .filter(o -> o.getType().equals(OperationType.WITHDRAWAL.getValue()))
         .toList();
+    int withdrawalsCount = ObjectUtils.isEmpty(transactionBody.getWithdrawals()) ? 0
+        : transactionBody.getWithdrawals().size();
+    List<Operation> withdrawalsOperations = ParseConstructionUtil.parseWithdrawalsToOperations(withdrawalOps,
+        withdrawalsCount, network);
+    operations.addAll(withdrawalsOperations);
+  }
+
+  private static void fillCertOperations(TransactionBody transactionBody, TransactionExtraData extraData,
+      Integer network, List<Operation> operations)
+      throws CborException, CborSerializationException {
+    List<Operation> certOps = extraData.operations().stream()
+        .filter(o -> Constants.StakePoolOperations.contains(o.getType())
+        ).toList();
+    List<Operation> parsedCertOperations = ParseConstructionUtil.parseCertsToOperations(
+        transactionBody, certOps,
+        network);
+    operations.addAll(parsedCertOperations);
+  }
+
+  private static void fillOutputOperations(TransactionBody transactionBody, List<Operation> operations) {
+    List<TransactionOutput> outputs = transactionBody.getOutputs();
+    List<OperationIdentifier> relatedOperations = ParseConstructionUtil.getRelatedOperationsFromInputs(
+        operations);
+    log.info("[parseOperationsFromTransactionBody] About to parse {} outputs", outputs.size());
+    for (TransactionOutput output : outputs) {
+      Operation outputParsed = ParseConstructionUtil.TransActionOutputToOperation(output, (long) operations.size(),
+          relatedOperations);
+      operations.add(outputParsed);
+    }
+  }
+
+  private static void fillInputOperations(TransactionBody transactionBody, TransactionExtraData extraData,
+      List<Operation> operations) {
+    List<TransactionInput> inputs = transactionBody.getInputs();
+    log.info("[parseOperationsFromTransactionBody] About to parse {} inputs", inputs.size());
+    List<Operation> inputOperations = extraData.operations().stream()
+        .filter(o -> o.getType().equals(OperationType.INPUT.getValue()))
+        .toList();
+    for (int i = 0; i < inputs.size(); i++) {
+      if (!inputOperations.isEmpty() && inputOperations.size() <= inputs.size()) {
+        operations.add(inputOperations.get(i));
+      } else {
+        TransactionInput input = inputs.get(i);
+        Operation inputParsed = ParseConstructionUtil.TransactionInputToOperation(input, (long) operations.size());
+        operations.add(inputParsed);
+      }
+    }
   }
   public static List<String> getSignerFromOperation(NetworkIdentifierType networkIdentifierType,
       Operation operation) {
@@ -134,7 +137,8 @@ public class ConvertConstructionUtil {
     HdPublicKey hdPublicKey = new HdPublicKey();
     hdPublicKey.setKeyData(
         HexUtil.decodeHexString(operation.getMetadata().getStakingCredential().getHexBytes()));
-    return new ArrayList<>(List.of(CardanoAddressUtils.generateRewardAddress(networkIdentifierType, hdPublicKey)));
+    return new ArrayList<>(List.of(
+        CardanoAddressUtils.generateRewardAddress(networkIdentifierType, hdPublicKey)));
   }
   public static List<String> getPoolSigners(NetworkIdentifierType networkIdentifierType,
       Operation operation) {

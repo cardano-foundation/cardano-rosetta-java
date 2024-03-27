@@ -8,14 +8,13 @@ import com.bloxbean.cardano.client.exception.CborSerializationException;
 import com.bloxbean.cardano.client.transaction.spec.TransactionWitnessSet;
 import java.util.Set;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProcessOperations;
-import com.bloxbean.cardano.client.transaction.spec.TransactionWitnessSet;
 import java.math.BigInteger;
-import org.cardanofoundation.rosetta.api.block.model.domain.ProcessOperations;
 import org.cardanofoundation.rosetta.api.block.model.entity.ProtocolParams;
 import org.cardanofoundation.rosetta.common.enumeration.AddressType;
 import org.cardanofoundation.rosetta.common.enumeration.EraAddressType;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
 import org.cardanofoundation.rosetta.common.model.cardano.crypto.Signatures;
+import org.cardanofoundation.rosetta.common.model.cardano.transaction.TransactionParsed;
 import org.openapitools.client.model.DepositParameters;
 import org.openapitools.client.model.Operation;
 
@@ -24,16 +23,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.UnsignedTransaction;
-import org.openapitools.client.model.DepositParameters;
-import org.openapitools.client.model.Operation;
 import org.openapitools.client.model.SigningPayload;
 
 public interface CardanoService {
 
 
   String getHashOfSignedTransaction(String signedTransaction);
-  Array decodeExtraData(String encoded);
+  Array decodeTransaction(String encoded);
   Long calculateTtl(Long ttlOffset);
+
+  TransactionParsed parseTransaction(NetworkIdentifierType networkIdentifierType,
+      String transaction, boolean signed);
+
   Double checkOrReturnDefaultTtl(Integer relativeTtl);
   Long updateTxSize(Long previousTxSize, Long previousTtl, Long updatedTtl) throws CborSerializationException, CborException;
   Long calculateTxMinimumFee(Long transactionSize, ProtocolParams protocolParameters);
