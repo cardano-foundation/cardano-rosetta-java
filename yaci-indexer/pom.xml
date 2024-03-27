@@ -44,56 +44,37 @@
             <artifactId>yaci-store-spring-boot-starter</artifactId>
             <version>${yaci-store.version}</version>
         </dependency>
+        <!-- Used for block data -->
         <dependency>
             <groupId>com.bloxbean.cardano</groupId>
             <artifactId>yaci-store-blocks-spring-boot-starter</artifactId>
             <version>${yaci-store.version}</version>
         </dependency>
+        <!-- Used for transaction data -->
         <dependency>
             <groupId>com.bloxbean.cardano</groupId>
             <artifactId>yaci-store-transaction-spring-boot-starter</artifactId>
             <version>${yaci-store.version}</version>
         </dependency>
+        <!-- Used for address_utxo table -->
         <dependency>
             <groupId>com.bloxbean.cardano</groupId>
             <artifactId>yaci-store-utxo-spring-boot-starter</artifactId>
             <version>${yaci-store.version}</version>
         </dependency>
+        <!-- Used for account balances -->
         <dependency>
             <groupId>com.bloxbean.cardano</groupId>
             <artifactId>yaci-store-account-spring-boot-starter</artifactId>
             <version>${yaci-store.version}</version>
         </dependency>
-        <dependency>
-            <groupId>com.bloxbean.cardano</groupId>
-            <artifactId>yaci-store-metadata-spring-boot-starter</artifactId>
-            <version>${yaci-store.version}</version>
-        </dependency>
+        <!-- Used for staking info including pool infos -->
         <dependency>
             <groupId>com.bloxbean.cardano</groupId>
             <artifactId>yaci-store-staking-spring-boot-starter</artifactId>
             <version>${yaci-store.version}</version>
         </dependency>
-        <dependency>
-            <groupId>com.bloxbean.cardano</groupId>
-            <artifactId>yaci-store-assets-spring-boot-starter</artifactId>
-            <version>${yaci-store.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.bloxbean.cardano</groupId>
-            <artifactId>yaci-store-script-spring-boot-starter</artifactId>
-            <version>${yaci-store.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.bloxbean.cardano</groupId>
-            <artifactId>yaci-store-submit-spring-boot-starter</artifactId>
-            <version>${yaci-store.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.bloxbean.cardano</groupId>
-            <artifactId>yaci-store-mir-spring-boot-starter</artifactId>
-            <version>${yaci-store.version}</version>
-        </dependency>
+        <!-- Used for epoch_params  -> protocolparams-->
         <dependency>
             <groupId>com.bloxbean.cardano</groupId>
             <artifactId>yaci-store-epoch-spring-boot-starter</artifactId>
