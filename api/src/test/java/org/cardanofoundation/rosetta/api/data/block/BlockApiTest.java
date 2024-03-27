@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class BlockApiTest extends IntegrationTest {
 
   @Autowired
+  @SuppressWarnings("unused")
   private BlockService blockService;
 
   @Test
@@ -24,7 +25,7 @@ public class BlockApiTest extends IntegrationTest {
     assertEquals(generatedTestData.getTopUpBlockNumber(), block.getSlotNo());
     assertEquals(1, block.getTransactions().size());
 
-    Utxo receiverUtxoDto = block.getTransactions().get(0).getOutputs().get(0);
+    Utxo receiverUtxoDto = block.getTransactions().getFirst().getOutputs().getFirst();
     assertEquals(TestConstants.TEST_ACCOUNT_ADDRESS, receiverUtxoDto.getOwnerAddr());
     assertEquals(generatedTestData.getTopUpTxHash(), receiverUtxoDto.getTxHash());
     assertEquals(TestConstants.ACCOUNT_BALANCE_ADA_AMOUNT, receiverUtxoDto.getLovelaceAmount().toString());
