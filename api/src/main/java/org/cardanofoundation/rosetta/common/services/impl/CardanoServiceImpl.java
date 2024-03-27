@@ -11,6 +11,7 @@ import com.bloxbean.cardano.client.crypto.VerificationKey;
 import com.bloxbean.cardano.client.exception.AddressExcepion;
 import com.bloxbean.cardano.client.exception.CborDeserializationException;
 import com.bloxbean.cardano.client.exception.CborSerializationException;
+import com.bloxbean.cardano.client.spec.NetworkId;
 import com.bloxbean.cardano.client.transaction.spec.AuxiliaryData;
 import com.bloxbean.cardano.client.transaction.spec.BootstrapWitness;
 import com.bloxbean.cardano.client.transaction.spec.Transaction;
@@ -48,8 +49,6 @@ import org.openapitools.client.model.SignatureType;
 import org.openapitools.client.model.SigningPayload;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
-
-import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -75,11 +74,11 @@ public class CardanoServiceImpl implements CardanoService {
 
       Array decodeTransaction = decodeTransaction(transaction);
 
-      TransactionData convert = CborArrayToTransactionData.convert(decodeTransaction, true);
+      TransactionData convert = CborArrayToTransactionData.convert(decodeTransaction, signed);
       List<Operation> operations = TransactionDataToOperations.convert(convert,
           networkIdentifierType.getValue());
       List<AccountIdentifier> accountIdentifierSigners = new ArrayList<>();
-      if(signed) {
+      if (signed) {
         log.info("[parseSignedTransaction] About to get signatures from parsed transaction");
         List<String> accum = new ArrayList<>();
         convert.transactionExtraData().operations().forEach(o -> {
@@ -87,8 +86,7 @@ public class CardanoServiceImpl implements CardanoService {
               networkIdentifierType, o);
           accum.addAll(list);
         });
-        accountIdentifierSigners = TransactionDataToOperations.getUniqueAccountIdentifiers(
-            accum);
+        accountIdentifierSigners = TransactionDataToOperations.getUniqueAccountIdentifiers(accum);
       }
       return new TransactionParsed(operations, accountIdentifierSigners);
     } catch (Exception error) {
@@ -177,7 +175,7 @@ public class CardanoServiceImpl implements CardanoService {
   @Override
   public Double calculateTxSize(NetworkIdentifierType networkIdentifierType,
       List<Operation> operations, int ttl, DepositParameters depositParameters)
-      throws IOException, CborException, AddressExcepion, CborSerializationException {
+      throws CborException, AddressExcepion, CborSerializationException {
     UnsignedTransaction unsignedTransaction = createUnsignedTransaction(networkIdentifierType,
         operations, ttl, !ObjectUtils.isEmpty(depositParameters) ? depositParameters
             : new DepositParameters(Constants.DEFAULT_KEY_DEPOSIT.toString(),
@@ -235,7 +233,7 @@ public class CardanoServiceImpl implements CardanoService {
       if (transactionBody.getTtl() == 0) {
         co.nstant.in.cbor.model.Map dataItem1 = (co.nstant.in.cbor.model.Map) array.getDataItems()
             .getFirst();
-        // Position of ttl in transaction body, it will be discarded while serialization if it's 0, but it needs to be in the datamap
+        // Position of ttl in transaction body, it will be discarded while serialization if it's 0, but it needs to be in the Data map
         // otherwise a wrong hash will be produced.
         dataItem1.put(new UnsignedInteger(3), new UnsignedInteger(0));
         array.getDataItems().set(0, dataItem1);
@@ -262,12 +260,12 @@ public class CardanoServiceImpl implements CardanoService {
   @Override
   public TransactionWitnessSet getWitnessesForTransaction(List<Signatures> signaturesList) {
     TransactionWitnessSet witnesses = new TransactionWitnessSet();
-    ArrayList<VkeyWitness> vkeyWitnesses = new ArrayList<>();
+    ArrayList<VkeyWitness> vKeyWitnesses = new ArrayList<>();
     ArrayList<BootstrapWitness> bootstrapWitnesses = new ArrayList<>();
     log.info("[getWitnessesForTransaction] Extracting witnesses from signatures");
     signaturesList.forEach(signature -> {
-      VerificationKey vkey = new VerificationKey();
-      vkey.setCborHex(ObjectUtils.isEmpty(signature) ? null : signature.publicKey());
+      VerificationKey vKey = new VerificationKey();
+      vKey.setCborHex(ObjectUtils.isEmpty(signature) ? null : signature.publicKey());
       EraAddressType eraAddressType = CardanoAddressUtils.getEraAddressType(signature.address());
       if (!ObjectUtils.isEmpty(signature)) {
         if (!ObjectUtils.isEmpty(signature.address()) && eraAddressType == EraAddressType.BYRON) {
@@ -278,22 +276,22 @@ public class CardanoServiceImpl implements CardanoService {
           String partOfByronAddress = new StringBuilder(byronAddressTail).reverse().delete(0, 12)
               .reverse().toString();
           BootstrapWitness bootstrap = new BootstrapWitness(
-              HexUtil.decodeHexString(vkey.getCborHex()),
+              HexUtil.decodeHexString(vKey.getCborHex()),
               HexUtil.decodeHexString(signature.signature()),
               //revise
               HexUtil.decodeHexString(signature.chainCode()),
               HexUtil.decodeHexString(partOfByronAddress));
           bootstrapWitnesses.add(bootstrap);
         } else {
-          vkeyWitnesses.add(new VkeyWitness(HexUtil.decodeHexString(vkey.getCborHex()),
+          vKeyWitnesses.add(new VkeyWitness(HexUtil.decodeHexString(vKey.getCborHex()),
               HexUtil.decodeHexString(signature.signature())));
         }
       }
     });
     log.info("[getWitnessesForTransaction] {} witnesses were extracted to sign transaction",
-        vkeyWitnesses.size());
-    if (!vkeyWitnesses.isEmpty()) {
-      witnesses.setVkeyWitnesses(vkeyWitnesses);
+        vKeyWitnesses.size());
+    if (!vKeyWitnesses.isEmpty()) {
+      witnesses.setVkeyWitnesses(vKeyWitnesses);
     }
     if (!bootstrapWitnesses.isEmpty()) {
       witnesses.setBootstrapWitnesses(bootstrapWitnesses);
@@ -305,7 +303,7 @@ public class CardanoServiceImpl implements CardanoService {
   @Override
   public UnsignedTransaction createUnsignedTransaction(NetworkIdentifierType networkIdentifierType,
       List<Operation> operations, int ttl, DepositParameters depositParameters)
-      throws IOException, CborSerializationException, AddressExcepion, CborException {
+      throws CborSerializationException, AddressExcepion, CborException {
     log.info(
         "[createUnsignedTransaction] About to create an unsigned transaction with {} operations",
         operations.size());
@@ -333,6 +331,7 @@ public class CardanoServiceImpl implements CardanoService {
       transactionBody.setWithdrawals(processOperationsReturnDto.getWithdrawals());
     }
     co.nstant.in.cbor.model.Map mapCbor = transactionBody.serialize();
+    //  If ttl is 0, it will be discarded while serialization, but it needs to be in the Data map
     if (ttl == 0) {
       mapCbor.put(new UnsignedInteger(3), new UnsignedInteger(0));
     }
@@ -379,7 +378,7 @@ public class CardanoServiceImpl implements CardanoService {
   }
 
   private ProcessOperationsReturn processOperations(NetworkIdentifierType networkIdentifierType,
-      List<Operation> operations, DepositParameters depositParameters) throws IOException {
+      List<Operation> operations, DepositParameters depositParameters) {
     ProcessOperations result = convertRosettaOperations(networkIdentifierType, operations);
     double refundsSum = result.getStakeKeyDeRegistrationsCount() * Long.parseLong(
         depositParameters.getKeyDeposit());
@@ -394,6 +393,12 @@ public class CardanoServiceImpl implements CardanoService {
     long fee = calculateFee(result.getInputAmounts(), result.getOutputAmounts(),
         result.getWithdrawalAmounts(), depositsSumMap);
     log.info("[processOperations] Calculated fee:{}", fee);
+    return fillProcessOperationsReturnObject(result, fee);
+  }
+
+  @NotNull
+  private static ProcessOperationsReturn fillProcessOperationsReturnObject(ProcessOperations result,
+      long fee) {
     ProcessOperationsReturn processOperationsDto = new ProcessOperationsReturn();
     processOperationsDto.setTransactionInputs(result.getTransactionInputs());
     processOperationsDto.setTransactionOutputs(result.getTransactionOutputs());
@@ -424,7 +429,7 @@ public class CardanoServiceImpl implements CardanoService {
 
   @Override
   public ProcessOperations convertRosettaOperations(NetworkIdentifierType networkIdentifierType,
-      List<Operation> operations) throws IOException {
+      List<Operation> operations) {
     ProcessOperations processor = new ProcessOperations();
 
     for (Operation operation : operations) {

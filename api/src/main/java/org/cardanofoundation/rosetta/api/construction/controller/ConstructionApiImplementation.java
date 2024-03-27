@@ -2,9 +2,7 @@ package org.cardanofoundation.rosetta.api.construction.controller;
 
 import co.nstant.in.cbor.CborException;
 import com.bloxbean.cardano.client.exception.AddressExcepion;
-import com.bloxbean.cardano.client.exception.CborDeserializationException;
 import com.bloxbean.cardano.client.exception.CborSerializationException;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -51,9 +49,7 @@ public class ConstructionApiImplementation implements ConstructionApi {
     public ResponseEntity<ConstructionMetadataResponse> constructionMetadata(@RequestBody ConstructionMetadataRequest constructionMetadataRequest)  {
       try {
         return ResponseEntity.ok(constructionApiService.constructionMetadataService(constructionMetadataRequest));
-      } catch (CborException e) {
-        throw new RuntimeException(e);
-      } catch (CborSerializationException e) {
+      } catch (CborException | CborSerializationException e) {
         throw new RuntimeException(e);
       }
     }
@@ -67,13 +63,7 @@ public class ConstructionApiImplementation implements ConstructionApi {
     public ResponseEntity<ConstructionPayloadsResponse> constructionPayloads(@RequestBody @Validated ConstructionPayloadsRequest constructionPayloadsRequest) {
       try {
         return ResponseEntity.ok(constructionApiService.constructionPayloadsService(constructionPayloadsRequest));
-      } catch (CborException e) {
-        throw new RuntimeException(e);
-      } catch (AddressExcepion e) {
-        throw new RuntimeException(e);
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      } catch (CborSerializationException e) {
+      } catch (CborException | AddressExcepion | IOException | CborSerializationException e) {
         throw new RuntimeException(e);
       }
     }
@@ -82,13 +72,7 @@ public class ConstructionApiImplementation implements ConstructionApi {
     public ResponseEntity<ConstructionPreprocessResponse> constructionPreprocess(@RequestBody ConstructionPreprocessRequest constructionPreprocessRequest) {
       try {
         return ResponseEntity.ok(constructionApiService.constructionPreprocessService(constructionPreprocessRequest));
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      } catch (AddressExcepion e) {
-        throw new RuntimeException(e);
-      } catch (CborSerializationException e) {
-        throw new RuntimeException(e);
-      } catch (CborException e) {
+      } catch (IOException | AddressExcepion | CborSerializationException | CborException e) {
         throw new RuntimeException(e);
       }
     }

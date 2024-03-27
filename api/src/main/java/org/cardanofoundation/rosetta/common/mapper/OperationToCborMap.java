@@ -308,7 +308,7 @@ public class OperationToCborMap {
   private static void addCoinIdentifierToMap(CoinIdentifier coinIdentifier, Map coinChangeMap) {
     Optional.ofNullable(coinIdentifier).ifPresent(coinId -> {
       Map coinIdentifierMap = new Map();
-      coinIdentifierMap.put(key(Constants.COIN_IDENTIFIER), new UnicodeString(coinId.getIdentifier()));
+      coinIdentifierMap.put(key(Constants.IDENTIFIER), new UnicodeString(coinId.getIdentifier()));
       coinChangeMap.put(key(Constants.COIN_IDENTIFIER), coinIdentifierMap);
     });
   }
@@ -322,6 +322,8 @@ public class OperationToCborMap {
     Optional.ofNullable(amount).ifPresent(am -> {
       Map amountMap = new Map();
       addCurrencyToAmountMap(am.getCurrency(), amountMap);
+      putStringDataItemToMap(amountMap,Constants.VALUE,am.getValue());
+      operationMap.put(key(Constants.AMOUNT), amountMap);
     });
   }
 

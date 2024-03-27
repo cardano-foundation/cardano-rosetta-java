@@ -71,8 +71,10 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
   public ConstructionPreprocessResponse constructionPreprocessService(
       ConstructionPreprocessRequest constructionPreprocessRequest)
       throws IOException, AddressExcepion, CborSerializationException, CborException {
+
     NetworkIdentifier networkIdentifier = constructionPreprocessRequest.getNetworkIdentifier();
     ConstructionPreprocessMetadata metadata = constructionPreprocessRequest.getMetadata();
+
     Double relativeTtl = cardanoService.checkOrReturnDefaultTtl(metadata.getRelativeTtl());
     Double transactionSize = cardanoService.calculateTxSize(
         NetworkIdentifierType.findByName(networkIdentifier.getNetwork()),
