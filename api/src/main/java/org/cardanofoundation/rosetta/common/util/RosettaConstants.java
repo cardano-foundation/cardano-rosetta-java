@@ -106,6 +106,7 @@ public class RosettaConstants {
     GENESIS_BLOCK_NOT_FOUND("Genesis block not found", 4005),
     TRANSACTION_NOT_FOUND("Transaction not found", 4006),
     INVALID_PUBLIC_KEY_FORMAT("Invalid public key format", 4007),
+    PUBLIC_KEY_MISSING("Public key is missing", 4008),
     TRANSACTION_INPUTS_PARAMETERS_MISSING_ERROR(
         "Transaction inputs parameters errors in operations array", 4008),
     TRANSACTION_OUTPUTS_PARAMETERS_MISSING_ERROR(
@@ -116,6 +117,7 @@ public class RosettaConstants {
         4011),
     CANT_CREATE_UNSIGNED_TRANSACTION_ERROR(
         "Cant create unsigned transaction from transaction bytes", 4012),
+    CANT_ENCODE_EXTRA_DATA("Cant encode extra data", 4012),
     TRANSACTION_INPUT_DESERIALIZATION_ERROR(
         "Cant deserialize transaction input from transaction body", 4013),
     TRANSACTION_OUTPUT_DESERIALIZATION_ERROR(
