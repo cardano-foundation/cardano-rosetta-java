@@ -1,5 +1,7 @@
 package org.cardanofoundation.rosetta.api.block.service;
 
+import java.util.Optional;
+
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.Tran;
 
@@ -9,6 +11,6 @@ public interface BlockService {
 
   String getPoolDeposit();
 
-  Tran getBlockTransaction(Long blockId, String blockHash, String txHash);
+  Optional<Tran> getBlockTransaction(Long blockId, String blockHash, String txHash);
 
 }
