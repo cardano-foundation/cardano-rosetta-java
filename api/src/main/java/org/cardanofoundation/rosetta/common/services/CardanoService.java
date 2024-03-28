@@ -36,13 +36,13 @@ public interface CardanoService {
       String transaction, boolean signed);
 
   Double checkOrReturnDefaultTtl(Integer relativeTtl);
-  Long updateTxSize(Long previousTxSize, Long previousTtl, Long updatedTtl) throws CborSerializationException, CborException;
+  Long updateTxSize(Long previousTxSize, Long previousTtl, Long updatedTtl);
   Long calculateTxMinimumFee(Long transactionSize, ProtocolParams protocolParameters);
 
   Signatures signatureProcessor(EraAddressType eraAddressType, AddressType addressType,
       String address);
 
-  Double calculateTxSize(NetworkIdentifierType networkIdentifierType, List<Operation> operations, int ttl, DepositParameters depositParameters) throws IOException, CborException, AddressExcepion, CborSerializationException;
+  Double calculateTxSize(NetworkIdentifierType networkIdentifierType, List<Operation> operations, int ttl, DepositParameters depositParameters);
 
   String buildTransaction(String unsignedTransaction,
       List<Signatures> signaturesList, String transactionMetadata);

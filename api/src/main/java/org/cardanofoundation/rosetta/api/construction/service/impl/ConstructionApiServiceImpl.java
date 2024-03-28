@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.api.block.model.entity.ProtocolParams;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
+import org.cardanofoundation.rosetta.common.exception.ApiException;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.mapper.DataMapper;
 import org.cardanofoundation.rosetta.common.enumeration.AddressType;
@@ -43,12 +44,12 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
 
   @Override
   public ConstructionDeriveResponse constructionDeriveService(
-      ConstructionDeriveRequest constructionDeriveRequest)
-      throws IllegalAccessException {
+      ConstructionDeriveRequest constructionDeriveRequest) {
     PublicKey publicKey = constructionDeriveRequest.getPublicKey();
     log.info("Deriving address for public key: {}", publicKey);
     NetworkEnum network = Optional.ofNullable(NetworkEnum.fromValue(
-        constructionDeriveRequest.getNetworkIdentifier().getNetwork())).orElseThrow(() -> new IllegalAccessException("Invalid network"));
+        constructionDeriveRequest.getNetworkIdentifier().getNetwork())).orElseThrow(
+        ExceptionFactory::invalidNetworkError);
     // casting unspecific rosetta specification to cardano specific metadata
     ConstructionDeriveMetadata metadata = Optional.ofNullable(constructionDeriveRequest.getMetadata()).orElse(new ConstructionDeriveMetadata());
     // Default address type is enterprise
@@ -60,7 +61,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
     PublicKey stakingCredential = null;
     if (addressType == AddressType.BASE) {
       stakingCredential = Optional.ofNullable(metadata.getStakingCredential())
-          .orElseThrow(() -> new IllegalAccessException("Staking credential is required for base address"));
+          .orElseThrow(ExceptionFactory::missingStakingKeyError);
     }
     String address = cardanoAddressService.getCardanoAddress(addressType, stakingCredential,
         publicKey, network);
@@ -69,8 +70,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
 
   @Override
   public ConstructionPreprocessResponse constructionPreprocessService(
-      ConstructionPreprocessRequest constructionPreprocessRequest)
-      throws IOException, AddressExcepion, CborSerializationException, CborException {
+      ConstructionPreprocessRequest constructionPreprocessRequest) {
 
     NetworkIdentifier networkIdentifier = constructionPreprocessRequest.getNetworkIdentifier();
     ConstructionPreprocessMetadata metadata = constructionPreprocessRequest.getMetadata();
@@ -88,8 +88,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
 
   @Override
   public ConstructionMetadataResponse constructionMetadataService(
-      ConstructionMetadataRequest constructionMetadataRequest)
-      throws CborException, CborSerializationException {
+      ConstructionMetadataRequest constructionMetadataRequest) {
 
     ConstructionMetadataRequestOption options = constructionMetadataRequest.getOptions();
     Double relativeTtl = options.getRelativeTtl().doubleValue();
@@ -110,8 +109,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
 
   @Override
   public ConstructionPayloadsResponse constructionPayloadsService(
-      ConstructionPayloadsRequest constructionPayloadsRequest)
-      throws CborException, AddressExcepion, IOException, CborSerializationException {
+      ConstructionPayloadsRequest constructionPayloadsRequest) {
     int ttl = constructionPayloadsRequest.getMetadata().getTtl();
     List<Operation> operations = constructionPayloadsRequest.getOperations();
 
@@ -134,16 +132,26 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
       poolDeposit = protocolParametersFromIndexerAndConfig.getPoolDeposit().toString();
     }
 
-    UnsignedTransaction unsignedTransaction = cardanoService.createUnsignedTransaction(
-        networkIdentifier, operations, ttl,
-        new DepositParameters(keyDeposit,
-            poolDeposit));
+    UnsignedTransaction unsignedTransaction = null;
+    try {
+      unsignedTransaction = cardanoService.createUnsignedTransaction(
+          networkIdentifier, operations, ttl,
+          new DepositParameters(keyDeposit,
+              poolDeposit));
+    } catch (IOException | CborSerializationException | AddressExcepion | CborException e) {
+      throw ExceptionFactory.cantCreateUnsignedTransactionFromBytes();
+    }
     List<SigningPayload> payloads = cardanoService.constructPayloadsForTransactionBody(
         unsignedTransaction.hash(), unsignedTransaction.addresses());
-    String unsignedTransactionString = CborEncodeUtil.encodeExtraData(
-        unsignedTransaction.bytes(),
-        constructionPayloadsRequest.getOperations(),
-            unsignedTransaction.metadata());
+    String unsignedTransactionString = null;
+    try {
+      unsignedTransactionString = CborEncodeUtil.encodeExtraData(
+          unsignedTransaction.bytes(),
+          constructionPayloadsRequest.getOperations(),
+              unsignedTransaction.metadata());
+    } catch (CborException e) {
+      throw ExceptionFactory.cantEncodeExtraData();
+    }
     return new ConstructionPayloadsResponse(unsignedTransactionString, payloads);
   }
 
@@ -175,7 +183,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
 
   @Override
   public ConstructionCombineResponse constructionCombineService(
-      ConstructionCombineRequest constructionCombineRequest) throws CborException {
+      ConstructionCombineRequest constructionCombineRequest) {
     log.info("[constructionCombine] Request received to sign a transaction");
     Array array = cardanoService.decodeTransaction(
         constructionCombineRequest.getUnsignedTransaction());
@@ -186,7 +194,11 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
         ((UnicodeString) array.getDataItems().getFirst()).getString(),
         DataMapper.mapRosettaSignatureToSignaturesList(constructionCombineRequest.getSignatures()),
         extraData.transactionMetadataHex());
-    return new ConstructionCombineResponse(CborEncodeUtil.encodeExtraData(signedTransaction, extraData.operations(), extraData.transactionMetadataHex()));
+    try {
+      return new ConstructionCombineResponse(CborEncodeUtil.encodeExtraData(signedTransaction, extraData.operations(), extraData.transactionMetadataHex()));
+    } catch (CborException e) {
+      throw new ApiException("Error while encoding signed transaction", e);
+    }
   }
 
   @Override

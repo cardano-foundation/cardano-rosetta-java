@@ -142,10 +142,13 @@ public class CardanoServiceImpl implements CardanoService {
   }
 
   @Override
-  public Long updateTxSize(Long previousTxSize, Long previousTtl, Long updatedTtl)
-      throws CborException {
-    return previousTxSize + CborSerializationUtil.serialize(new UnsignedInteger(updatedTtl)).length
-        - CborSerializationUtil.serialize(new UnsignedInteger(previousTtl)).length;
+  public Long updateTxSize(Long previousTxSize, Long previousTtl, Long updatedTtl) {
+    try {
+      return previousTxSize + CborSerializationUtil.serialize(new UnsignedInteger(updatedTtl)).length
+          - CborSerializationUtil.serialize(new UnsignedInteger(previousTtl)).length;
+    } catch (CborException e) {
+      throw ExceptionFactory.cantCreateUnsignedTransactionFromBytes();
+    }
   }
 
   @Override
@@ -173,12 +176,16 @@ public class CardanoServiceImpl implements CardanoService {
 
   @Override
   public Double calculateTxSize(NetworkIdentifierType networkIdentifierType,
-      List<Operation> operations, int ttl, DepositParameters depositParameters)
-      throws CborException, AddressExcepion, CborSerializationException {
-    UnsignedTransaction unsignedTransaction = createUnsignedTransaction(networkIdentifierType,
-        operations, ttl, !ObjectUtils.isEmpty(depositParameters) ? depositParameters
-            : new DepositParameters(Constants.DEFAULT_KEY_DEPOSIT.toString(),
-                Constants.DEFAULT_POOL_DEPOSIT.toString()));
+      List<Operation> operations, int ttl, DepositParameters depositParameters) {
+    UnsignedTransaction unsignedTransaction = null;
+    try {
+      unsignedTransaction = createUnsignedTransaction(networkIdentifierType,
+          operations, ttl, !ObjectUtils.isEmpty(depositParameters) ? depositParameters
+              : new DepositParameters(Constants.DEFAULT_KEY_DEPOSIT.toString(),
+                  Constants.DEFAULT_POOL_DEPOSIT.toString()));
+    } catch (CborSerializationException | AddressExcepion | CborException e) {
+      throw ExceptionFactory.cantCreateUnsignedTransactionFromBytes();
+    }
     List<Signatures> signaturesList = (unsignedTransaction.addresses()).stream().map(address -> {
       EraAddressType eraAddressType = CardanoAddressUtils.getEraAddressType(address);
       if (eraAddressType != null) {
