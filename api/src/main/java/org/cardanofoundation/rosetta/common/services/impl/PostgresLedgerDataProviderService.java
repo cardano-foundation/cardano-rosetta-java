@@ -2,26 +2,50 @@ package org.cardanofoundation.rosetta.common.services.impl;
 
 import java.io.FileNotFoundException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.TimeZone;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.stereotype.Component;
 import org.apache.commons.lang3.ObjectUtils;
+import org.openapitools.client.model.Currency;
+
 import org.cardanofoundation.rosetta.api.account.model.domain.AddressBalance;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
-import org.cardanofoundation.rosetta.api.account.model.repository.AddressBalanceRepository;
-import org.cardanofoundation.rosetta.api.account.model.repository.AddressUtxoRepository;
 import org.cardanofoundation.rosetta.api.account.model.entity.AddressBalanceEntity;
 import org.cardanofoundation.rosetta.api.account.model.entity.AddressUtxoEntity;
 import org.cardanofoundation.rosetta.api.account.model.entity.Amt;
-import org.cardanofoundation.rosetta.api.block.model.domain.*;
-import org.cardanofoundation.rosetta.api.block.model.entity.*;
-import org.cardanofoundation.rosetta.api.block.model.repository.*;
+import org.cardanofoundation.rosetta.api.account.model.repository.AddressBalanceRepository;
+import org.cardanofoundation.rosetta.api.account.model.repository.AddressUtxoRepository;
+import org.cardanofoundation.rosetta.api.block.model.domain.Block;
+import org.cardanofoundation.rosetta.api.block.model.domain.Delegation;
+import org.cardanofoundation.rosetta.api.block.model.domain.GenesisBlock;
+import org.cardanofoundation.rosetta.api.block.model.domain.PoolRegistration;
+import org.cardanofoundation.rosetta.api.block.model.domain.PoolRetirement;
+import org.cardanofoundation.rosetta.api.block.model.domain.StakeAddressBalance;
+import org.cardanofoundation.rosetta.api.block.model.domain.StakeRegistration;
+import org.cardanofoundation.rosetta.api.block.model.domain.Tran;
+import org.cardanofoundation.rosetta.api.block.model.entity.BlockEntity;
+import org.cardanofoundation.rosetta.api.block.model.entity.ProtocolParams;
+import org.cardanofoundation.rosetta.api.block.model.entity.StakeAddressBalanceEntity;
+import org.cardanofoundation.rosetta.api.block.model.entity.TxnEntity;
+import org.cardanofoundation.rosetta.api.block.model.entity.UtxoKey;
+import org.cardanofoundation.rosetta.api.block.model.repository.BlockRepository;
+import org.cardanofoundation.rosetta.api.block.model.repository.DelegationRepository;
+import org.cardanofoundation.rosetta.api.block.model.repository.EpochParamRepository;
+import org.cardanofoundation.rosetta.api.block.model.repository.PoolRegistrationRepository;
+import org.cardanofoundation.rosetta.api.block.model.repository.PoolRetirementRepository;
+import org.cardanofoundation.rosetta.api.block.model.repository.StakeAddressRepository;
+import org.cardanofoundation.rosetta.api.block.model.repository.StakeRegistrationRepository;
+import org.cardanofoundation.rosetta.api.block.model.repository.TxRepository;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.services.CardanoConfigService;
 import org.cardanofoundation.rosetta.common.services.LedgerDataProviderService;
-import org.openapitools.client.model.Currency;
-import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
@@ -82,8 +106,8 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
     return null;
   }
 
-  private void populateTransactions(List<Transaction> transactions) {
-    for (Transaction transaction : transactions) {
+  private void populateTransactions(List<Tran> transactions) {
+    for (Tran transaction : transactions) {
       populateUtxos(transaction.getInputs());
       populateUtxos(transaction.getOutputs());
       transaction.setStakeRegistrations(
@@ -158,13 +182,13 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
   }
 
   @Override
-  public List<Transaction> findTransactionsByBlock(Long blockNumber, String blockHash) {
+  public List<Tran> findTransactionsByBlock(Long blockNumber, String blockHash) {
     log.debug(
         "[findTransactionsByBlock] Parameters received for run query blockNumber: {} blockHash: {}",
         blockNumber, blockHash);
 
     List<BlockEntity> byNumberAndHash = blockRepository.findByNumberAndHash(blockNumber, blockHash);
-    if(byNumberAndHash.isEmpty()) {
+    if (byNumberAndHash.isEmpty()) {
       log.debug(
           "[findTransactionsByBlock] No block found for blockNumber: {} blockHash: {}",
           blockNumber, blockHash);
@@ -174,7 +198,7 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
     log.debug(
         "[findTransactionsByBlock] Found {} transactions", txList.size());
     if (ObjectUtils.isNotEmpty(txList)) {
-      List<Transaction> transactions = txList.stream().map(Transaction::fromTx).toList();
+      List<Tran> transactions = txList.stream().map(Tran::fromTx).toList();
       populateTransactions(transactions);
       return transactions;
     }
@@ -187,19 +211,19 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
   }
 
   @Override
-  public ProtocolParams findProtolParametersFromConfig() {
-      try {
-          return cardanoConfigService.getProtocolParameters();
-      } catch (FileNotFoundException e) {
-          log.error("[findProtolParametersFromConfig] Protocol parameters not found");
-          return null;
-      }
+  public ProtocolParams findProtocolParametersFromConfig() {
+    try {
+      return cardanoConfigService.getProtocolParameters();
+    } catch (FileNotFoundException e) {
+      log.error("[findProtocolParametersFromConfig] Protocol parameters not found");
+      return null;
+    }
   }
 
   @Override
   public ProtocolParams findProtocolParametersFromIndexerAndConfig() {
     ProtocolParams protocolParams = findProtocolParametersFromIndexer();
-    protocolParams.merge(findProtolParametersFromConfig());
+    protocolParams.merge(findProtocolParametersFromConfig());
     return protocolParams;
   }
 }

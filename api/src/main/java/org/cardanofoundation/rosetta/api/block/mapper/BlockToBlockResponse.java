@@ -13,10 +13,12 @@ import org.openapitools.client.model.BlockMetadata;
 import org.openapitools.client.model.BlockResponse;
 import org.openapitools.client.model.Operation;
 import org.openapitools.client.model.OperationStatus;
+import org.openapitools.client.model.Transaction;
 import org.openapitools.client.model.TransactionIdentifier;
 import org.openapitools.client.model.TransactionMetadata;
 
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
+import org.cardanofoundation.rosetta.api.block.model.domain.Tran;
 import org.cardanofoundation.rosetta.common.annotation.OpenApiMapper;
 
 import static org.cardanofoundation.rosetta.common.util.RosettaConstants.SUCCESS_OPERATION_STATUS;
@@ -26,6 +28,8 @@ import static org.cardanofoundation.rosetta.common.util.RosettaConstants.SUCCESS
 public class BlockToBlockResponse {
 
   final ModelMapper modelMapper;
+  final TranToRosettaTransaction mapToRosettaTransaction;
+
 
   /**
    * Maps a list of Block model to a Rosetta compatible BlockResponse.
@@ -73,51 +77,49 @@ public class BlockToBlockResponse {
 
 
   /**
-   * Maps a list of TransactionDtos to a list of Rosetta compatible Transactions.
+   * Maps a list of Cardano Transactions to a list of Rosetta compatible Transactions.
    *
    * @param transactions The transactions to be mapped
    * @param poolDeposit  The pool deposit
    * @return The list of Rosetta compatible Transactions
    */
-  public static List<org.openapitools.client.model.Transaction> mapToRosettaTransactions(
-      List<org.cardanofoundation.rosetta.api.block.model.domain.Transaction> transactions,
+  public List<Transaction> mapToRosettaTransactions(
+      List<Tran> transactions,
       String poolDeposit) {
-    List<org.openapitools.client.model.Transaction> rosettaTransactions = new ArrayList<>();
-    for (org.cardanofoundation.rosetta.api.block.model.domain.Transaction transactionDto : transactions) {
-      rosettaTransactions.add(mapToRosettaTransaction(transactionDto, poolDeposit));
+    List<Transaction> rosettaTransactions = new ArrayList<>();
+    for (Tran tranDto : transactions) {
+      rosettaTransactions.add(mapToRosettaTransaction.toDto(tranDto, poolDeposit));
     }
     return rosettaTransactions;
   }
 
-  /**
-   * Maps a TransactionDto to a Rosetta compatible Transaction.
-   *
-   * @param transactionDto The transaction to be mapped
-   * @param poolDeposit    The pool deposit
-   * @return The Rosetta compatible Transaction
-   */
-  public static org.openapitools.client.model.Transaction mapToRosettaTransaction(
-      org.cardanofoundation.rosetta.api.block.model.domain.Transaction transactionDto,
-      String poolDeposit) {
-    org.openapitools.client.model.Transaction rosettaTransaction = new org.openapitools.client.model.Transaction();
-    TransactionIdentifier identifier = new TransactionIdentifier();
-    identifier.setHash(transactionDto.getHash());
-    rosettaTransaction.setTransactionIdentifier(identifier);
-
-    OperationStatus status = new OperationStatus();
-//    status.setStatus(Boolean.TRUE.equals(transactionDto.getValidContract()) ? SUCCESS_OPERATION_STATUS.getStatus() : INVALID_OPERATION_STATUS.getStatus());
-    status.setStatus(SUCCESS_OPERATION_STATUS.getStatus()); // TODO need to check the right status
-    List<Operation> operations = OperationDataMapper.getAllOperations(transactionDto, poolDeposit,
-        status);
-
-    rosettaTransaction.setMetadata(TransactionMetadata.builder()
-        .size(transactionDto.getSize()) // Todo size is not available
-        .scriptSize(transactionDto.getScriptSize()) // TODO script size is not available
-        .build());
-    rosettaTransaction.setOperations(operations);
-    return rosettaTransaction;
-
-  }
+//  /**
+//   * Maps a TransactionDto to a Rosetta compatible Tran.
+//   *
+//   * @param transaction The Cardano transaction to be mapped
+//   * @param poolDeposit The pool deposit
+//   * @return The Rosetta compatible Transaction
+//   */
+//  public static Transaction mapToRosettaTransaction(Tran transaction, String poolDeposit) {
+//    Transaction rosettaTransaction = new Transaction();
+//    TransactionIdentifier identifier = new TransactionIdentifier();
+//    identifier.setHash(transaction.getHash());
+//    rosettaTransaction.setTransactionIdentifier(identifier);
+//
+//    OperationStatus status = new OperationStatus();
+////    status.setStatus(Boolean.TRUE.equals(transaction.getValidContract()) ? SUCCESS_OPERATION_STATUS.getStatus() : INVALID_OPERATION_STATUS.getStatus());
+//    status.setStatus(SUCCESS_OPERATION_STATUS.getStatus()); // TODO need to check the right status
+//    List<Operation> operations =
+//        OperationDataMapper.getAllOperations(transaction, poolDeposit, status);
+//
+//    rosettaTransaction.setMetadata(TransactionMetadata.builder()
+//        .size(transaction.getSize()) // Todo size is not available
+//        .scriptSize(transaction.getScriptSize()) // TODO script size is not available
+//        .build());
+//    rosettaTransaction.setOperations(operations);
+//    return rosettaTransaction;
+//
+//  }
 
   private static BlockIdentifier parentId(BlockResponse dest) {
     return dest.getBlock().getParentBlockIdentifier();

@@ -26,7 +26,7 @@ public class Block {
   private Integer size;
   private Integer epochNo;
   private Long slotNo;
-  private List<Transaction> transactions;
+  private List<Tran> transactions;
   private String poolDeposit;
 
   public static Block fromBlock(BlockEntity block) {
@@ -43,9 +43,7 @@ public class Block {
             block.getIssuerVkey()) // TODO probably need to change this, in typescript rosetta there is something like Pool-[HASH]
         .epochNo(block.getEpochNumber())
         .slotNo(block.getSlot())
-        .transactions(
-            block.getTransactions().stream().map(txnEntity -> Transaction.fromTx(txnEntity))
-                .toList())
+        .transactions(block.getTransactions().stream().map(Tran::fromTx).toList())
         .build();
   }
 }

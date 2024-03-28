@@ -1,21 +1,14 @@
 package org.cardanofoundation.rosetta.api.block.service.impl;
 
-import java.util.Collections;
-import java.util.List;
-
 import org.springframework.test.util.ReflectionTestUtils;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.openapitools.client.model.NetworkIdentifier;
-import org.openapitools.client.model.PartialBlockIdentifier;
-import org.openapitools.client.model.SubNetworkIdentifier;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
-import org.cardanofoundation.rosetta.api.block.model.domain.Transaction;
 import org.cardanofoundation.rosetta.api.block.service.BlockServiceImpl;
 import org.cardanofoundation.rosetta.common.exception.ApiException;
 import org.cardanofoundation.rosetta.common.services.LedgerDataProviderService;
@@ -126,13 +119,6 @@ class BlockServiceImplTest {
 
   }
 
-  private List<Transaction> newTransactionList() {
-    Transaction e1 = new Transaction("hash1", "blockHash1", 1L,
-        "fee1", 2L, true, 3L,
-        Collections.emptyList(), Collections.emptyList(), Collections.emptyList(),
-        Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
-    return List.of(e1);
-  }
 
   private Block newBlock() {
     return new Block(
@@ -148,33 +134,12 @@ class BlockServiceImplTest {
         "poolDeposit1");
   }
 
-  private NetworkIdentifier newNetworkIdentifier() {
-    NetworkIdentifier nid = new NetworkIdentifier();
-    return NetworkIdentifier
-        .builder()
-        .network("network1")
-        .blockchain("cardano-dev")
-        .subNetworkIdentifier(newSubNetworkIdentifier())
-        .build();
-  }
-
-  private SubNetworkIdentifier newSubNetworkIdentifier() {
-    return SubNetworkIdentifier
-        .builder()
-        .network("network")
-        .metadata("metadata")
-        .build();
-  }
-
-  private PartialBlockIdentifier newPartialBlockIdentifier() {
-    return null;
-  }
 
 
 
   @Test
   void getBlockTransaction() {
-    //TODO saa:  impl
+    //TODO saa:  implement this test
   }
 
 
