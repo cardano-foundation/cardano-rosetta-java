@@ -1,7 +1,6 @@
 package org.cardanofoundation.rosetta.api.block.service;
 
 import java.io.IOException;
-import java.util.Optional;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -57,19 +56,20 @@ public class BlockServiceImpl implements BlockService {
     }
     JSONObject object = new JSONObject(content);
     JSONObject protocolParams = object.getJSONObject("protocolParams");
-    // TODO saa Check if this is the right way to get poolDeposit
+    // TODO Check if this is the right way to get poolDeposit
     String poolDeposit = String.valueOf(protocolParams.get("poolDeposit"));
     log.debug("[poolDeposit] poolDeposit is [{}]", poolDeposit);
     return poolDeposit;
   }
 
   @Override
-  public Optional<Tran> getBlockTransaction(Long blockId, String blockHash, String txHash) {
+  public Tran getBlockTransaction(Long blockId, String blockHash, String txHash) {
     return ledgerDataProviderService
         .findTransactionsByBlock(blockId, blockHash)
         .stream()
         .filter(tr -> tr.getHash().equals(txHash))
-        .findFirst();
+        .findFirst()
+        .orElseThrow(ExceptionFactory::transactionNotFound);
 
   }
 

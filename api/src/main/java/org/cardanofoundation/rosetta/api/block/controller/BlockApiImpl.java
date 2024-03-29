@@ -1,7 +1,5 @@
 package org.cardanofoundation.rosetta.api.block.controller;
 
-import java.util.Optional;
-
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.ResponseEntity;
@@ -49,11 +47,10 @@ public class BlockApiImpl implements BlockApi {
     String blockHash = blockReq.getBlockIdentifier().getHash();
     String txHash = blockReq.getTransactionIdentifier().getHash();
 
-    Optional<Tran> tx = blockService.getBlockTransaction(blockId, blockHash, txHash);
-    return tx.map(t -> ResponseEntity.ok(
-            mapperToBlockTxResponse.toDto(t, blockService.getPoolDeposit()))
-        )
-        .orElseGet(() -> ResponseEntity.notFound().build());
+    Tran tx = blockService.getBlockTransaction(blockId, blockHash, txHash);
+    String poolDeposit = blockService.getPoolDeposit();
+
+    return ResponseEntity.ok(mapperToBlockTxResponse.toDto(tx, poolDeposit));
 
   }
 }
