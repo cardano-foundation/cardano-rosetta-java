@@ -716,6 +716,7 @@
 							"listen": "test",
 							"script": {
 								"exec": [
+									"console.log(pm.request.json())",
 									"pm.test(\"Status code is 200\", function () {",
 									"        pm.response.to.have.status(200);",
 									"});",
