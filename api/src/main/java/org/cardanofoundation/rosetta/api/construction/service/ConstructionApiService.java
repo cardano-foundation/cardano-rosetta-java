@@ -3,31 +3,28 @@ package org.cardanofoundation.rosetta.api.construction.service;
 
 import co.nstant.in.cbor.CborException;
 import com.bloxbean.cardano.client.exception.AddressExcepion;
-import com.bloxbean.cardano.client.exception.CborDeserializationException;
 import com.bloxbean.cardano.client.exception.CborSerializationException;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import org.openapitools.client.model.*;
 
 import java.io.IOException;
 
 public interface ConstructionApiService {
     ConstructionDeriveResponse constructionDeriveService(
-            ConstructionDeriveRequest constructionDeriveRequest) throws IllegalAccessException;
+            ConstructionDeriveRequest constructionDeriveRequest);
     ConstructionPreprocessResponse constructionPreprocessService(
-            ConstructionPreprocessRequest constructionPreprocessRequest)
-            throws IOException, AddressExcepion, CborSerializationException, CborException;
+            ConstructionPreprocessRequest constructionPreprocessRequest);
 
     ConstructionMetadataResponse constructionMetadataService(
-            ConstructionMetadataRequest constructionMetadataRequest) throws CborException, CborSerializationException;
+            ConstructionMetadataRequest constructionMetadataRequest);
 
     ConstructionPayloadsResponse constructionPayloadsService(
-            ConstructionPayloadsRequest constructionPayloadsRequest) throws CborException, AddressExcepion, IOException, CborSerializationException;
+            ConstructionPayloadsRequest constructionPayloadsRequest);
 
     ConstructionParseResponse constructionParseService(
             ConstructionParseRequest constructionParseRequest);
 
     ConstructionCombineResponse constructionCombineService(
-            ConstructionCombineRequest constructionCombineRequest) throws CborException;
+            ConstructionCombineRequest constructionCombineRequest);
 
     TransactionIdentifierResponse constructionHashService(
             ConstructionHashRequest constructionHashRequest);

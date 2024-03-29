@@ -7,6 +7,6 @@ import org.openapitools.client.model.PublicKey;
 
 public interface CardanoAddressService {
 
-    String getCardanoAddress(AddressType addressType, PublicKey stakingCredential, PublicKey publicKey, NetworkEnum networkEnum) throws IllegalAccessException;
+    String getCardanoAddress(AddressType addressType, PublicKey stakingCredential, PublicKey publicKey, NetworkEnum networkEnum);
     HdPublicKey getHdPublicKeyFromRosettaKey(PublicKey publicKey);
 }

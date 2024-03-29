@@ -15,7 +15,6 @@ import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
 import org.openapitools.client.model.*;
 import org.openapitools.client.model.Currency;
 import org.springframework.stereotype.Component;
-
 import java.util.*;
 
 
@@ -33,7 +32,8 @@ public class DataMapper {
    */
   public static NetworkListResponse mapToNetworkListResponse(Network supportedNetwork) {
     NetworkIdentifier identifier = NetworkIdentifier.builder().blockchain(Constants.CARDANO)
-            .network(NetworkEnum.fromProtocolMagic(supportedNetwork.getProtocolMagic()).getValue()).build();
+            .network(Objects.requireNonNull(
+                NetworkEnum.fromProtocolMagic(supportedNetwork.getProtocolMagic())).getValue()).build();
     return NetworkListResponse.builder().networkIdentifiers(List.of(identifier)).build();
   }
 

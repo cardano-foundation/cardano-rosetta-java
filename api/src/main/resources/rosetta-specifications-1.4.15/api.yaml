@@ -1292,8 +1292,7 @@ components:
         network_identifier:
           $ref: '#/components/schemas/NetworkIdentifier'
         options:
-          description: 'Some blockchains require different metadata for different types of transaction construction (ex: delegation versus a transfer). Instead of requiring a blockchain node to return all possible types of metadata for construction (which may require multiple node fetches), the client can populate an options object to limit the metadata returned to only the subset required.'
-          type: object
+          $ref: '#/components/schemas/ConstructionMetadataRequestOption'
         public_keys:
           type: array
           items:
@@ -1447,7 +1446,7 @@ components:
           items:
             $ref: '#/components/schemas/Operation'
         signers:
-          description: '[DEPRECATED by `accountIdentifierSigners` in `v1.4.4`] All signers (addresses) of a particular transaction. If the transaction is unsigned, it should be empty.'
+          description: '[DEPRECATED by `account_identifier_signers` in `v1.4.4`] All signers (addresses) of a particular transaction. If the transaction is unsigned, it should be empty.'
           type: array
           items:
             type: string
@@ -1937,3 +1936,13 @@ components:
         policyId:
           description: ''
           type: string
+    ConstructionMetadataRequestOption:
+      description: ''
+      type: object
+      properties:
+        relative_ttl:
+          description: ''
+          type: number
+        transaction_size:
+          description: ''
+          type: number
