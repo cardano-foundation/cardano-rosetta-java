@@ -284,7 +284,10 @@ class OperationDataMapper {
 
   public static List<OperationIdentifier> getOperationIndexes(List<Operation> operations) {
     return operations.stream()
-        .map(operation -> OperationIdentifier.builder().index(operation.getOperationIdentifier()
-            .getIndex()).build()).collect(Collectors.toList());
+        .map(operation -> OperationIdentifier
+            .builder()
+            .index(operation.getOperationIdentifier().getIndex())
+            .build())
+        .collect(Collectors.toList());
   }
 }

@@ -1,5 +1,6 @@
 package org.cardanofoundation.rosetta.api.block.mapper;
 
+import java.math.BigInteger;
 import java.util.List;
 import java.util.Set;
 
@@ -11,6 +12,7 @@ import org.openapitools.client.model.Relay;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.block.model.domain.Delegation;
 import org.cardanofoundation.rosetta.api.block.model.domain.PoolRegistration;
 import org.cardanofoundation.rosetta.api.block.model.domain.PoolRetirement;
@@ -55,18 +57,44 @@ class BlockToBlockTransactionResponseTest {
   private Tran newTran() {
     return Tran
         .builder()
-        .blockNo(1L)
-        .blockHash("blockHash1")
+        .blockNo(11L)
+        .blockHash("blockHash11")
         .size(1L)
         .fee("123")
-        .hash("hash1")
+        .hash("hash12")
         .scriptSize(0L)
         .validContract(true)
+        .inputs(List.of(newUtxo()))
         .delegations(newDelegations())
         .poolRegistrations(newPoolRegistrations())
         .poolRetirements(newPoolRetirements())
         .stakeRegistrations(newStakeRegistrations())
         .build();
+  }
+
+  private Utxo newUtxo() {
+    return Utxo
+        .builder()
+        .blockHash("blockHash1")
+        .epoch(11)
+        .slot(22L)
+        .txHash("txHash1")
+        .outputIndex(44)
+        //TODO saa: why Atm [entity] exists in domain model
+//        .amounts(List.of(org.cardanofoundation.rosetta.api.account.model.entity.Atm))
+        .amounts(List.of()) //TODO saa: FIXME
+        .dataHash("dataHash1")
+        .inlineDatum("inlineDatum1")
+        .isCollateralReturn(true)
+        .lovelaceAmount(BigInteger.TEN)
+        .ownerAddr("ownerAddr1")
+        .ownerAddrFull("ownerAddrFull1")
+        .ownerPaymentCredential("ownerPaymentCredential1")
+        .ownerStakeAddr("ownerStakeAddr1")
+        .scriptRef("scriptRef1")
+        .referenceScriptHash("referenceScriptHash1")
+        .build();
+
   }
 
   private List<StakeRegistration> newStakeRegistrations() {
@@ -86,9 +114,9 @@ class BlockToBlockTransactionResponseTest {
     return List.of(PoolRetirement
         .builder()
         .blockHash("poolRet_blockHash1")
-        .epoch(111)
-        .slot(222L)
-        .certIndex(333L)
+        .epoch(11)
+        .slot(22L)
+        .certIndex(33L)
         .poolId("poolRet_poolId1")
         .txHash("poolRet_txHash1")
         .build());
@@ -98,9 +126,9 @@ class BlockToBlockTransactionResponseTest {
     return List.of(PoolRegistration
         .builder()
         .blockHash("poolReg_blockHash1")
-        .epoch(1111)
-        .slot(2222L)
-        .certIndex(3333L)
+        .epoch(11)
+        .slot(22L)
+        .certIndex(33L)
         .poolId("poolReg_poolId1")
         .vrfKeyHash("poolReg_vrfKey1")
         .pledge("poolReg_pledge1")
@@ -117,9 +145,9 @@ class BlockToBlockTransactionResponseTest {
     return List.of(Delegation
         .builder()
         .blockHash("delegation_blockHash1")
-        .epoch(11111)
-        .slot(22222L)
-        .certIndex(33333L)
+        .epoch(11)
+        .slot(22L)
+        .certIndex(33L)
         .poolId("delegation_poolId1")
         .credential("delegation_account1")
         .txHash("delegation_txHash1")
