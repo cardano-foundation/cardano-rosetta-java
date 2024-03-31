@@ -12,6 +12,7 @@ import org.openapitools.client.model.Relay;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import org.cardanofoundation.rosetta.api.BaseMapperTest;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.block.model.domain.Delegation;
 import org.cardanofoundation.rosetta.api.block.model.domain.PoolRegistration;
@@ -21,14 +22,7 @@ import org.cardanofoundation.rosetta.api.block.model.domain.Tran;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class BlockToBlockTransactionResponseTest {
-
-  private ModelMapper modelMapper;
-
-  @BeforeEach
-  void setUp() {
-    modelMapper = new ModelMapper();
-  }
+class BlockToBlockTransactionResponseTest extends BaseMapperTest {
 
   @Test
   void toDto() {

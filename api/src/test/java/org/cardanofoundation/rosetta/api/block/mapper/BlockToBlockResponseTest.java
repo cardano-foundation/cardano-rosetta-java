@@ -24,6 +24,7 @@ import org.openapitools.client.model.Relay;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import org.cardanofoundation.rosetta.api.BaseMapperTest;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.Delegation;
 import org.cardanofoundation.rosetta.api.block.model.domain.PoolRegistration;
@@ -34,14 +35,8 @@ import org.cardanofoundation.rosetta.api.block.model.domain.Tran;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.cardanofoundation.rosetta.common.util.RosettaConstants.SUCCESS_OPERATION_STATUS;
 
-class BlockToBlockResponseTest {
+class BlockToBlockResponseTest extends BaseMapperTest {
 
-  private ModelMapper modelMapper;
-
-  @BeforeEach
-  void setUp() {
-    modelMapper = new ModelMapper();
-  }
 
   @Test
   void toDto_test_Ok() {

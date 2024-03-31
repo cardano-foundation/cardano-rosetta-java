@@ -22,6 +22,7 @@ import org.cardanofoundation.rosetta.api.account.model.entity.AddressUtxoEntity;
 import org.cardanofoundation.rosetta.api.account.model.entity.Amt;
 import org.cardanofoundation.rosetta.api.account.model.repository.AddressBalanceRepository;
 import org.cardanofoundation.rosetta.api.account.model.repository.AddressUtxoRepository;
+import org.cardanofoundation.rosetta.api.block.mapper.BlockToEntity;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.Delegation;
 import org.cardanofoundation.rosetta.api.block.model.domain.GenesisBlock;
@@ -65,6 +66,8 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
 
   private final CardanoConfigService cardanoConfigService;
 
+  private final BlockToEntity mapperBlock;
+
   @Override
   public GenesisBlock findGenesisBlock() {
     log.debug("[findGenesisBlock] About to run findGenesisBlock query");
@@ -98,9 +101,9 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
       SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
       dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
       // Populating transactions
-      Block blockDto = Block.fromBlock(block);
-      populateTransactions(blockDto.getTransactions());
-      return blockDto;
+      Block model = mapperBlock.fromEntity(block);
+      populateTransactions(model.getTransactions());
+      return model;
     }
     log.debug("[findBlock] No block was found");
     return null;
