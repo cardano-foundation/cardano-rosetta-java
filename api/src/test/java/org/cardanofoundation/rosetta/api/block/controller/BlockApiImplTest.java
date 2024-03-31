@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test;
 
 import org.cardanofoundation.rosetta.api.SpringMvcTest;
 import org.cardanofoundation.rosetta.api.block.mapper.BlockToBlockResponse;
-import org.cardanofoundation.rosetta.api.block.mapper.BlockToBlockTransactionResponse;
+import org.cardanofoundation.rosetta.api.block.mapper.TranToBlockTxResponse;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.Tran;
 import org.cardanofoundation.rosetta.api.block.service.BlockService;
@@ -41,7 +41,7 @@ class BlockApiImplTest extends SpringMvcTest {
   BlockToBlockResponse blockToBlockResponse;
 
   @MockBean
-  BlockToBlockTransactionResponse mapperToBlockTxResponse;
+  TranToBlockTxResponse mapperToBlockTxResponse;
 
 
   @Test

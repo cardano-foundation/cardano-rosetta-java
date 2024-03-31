@@ -13,7 +13,7 @@ import org.openapitools.client.model.BlockTransactionResponse;
 import org.openapitools.client.model.PartialBlockIdentifier;
 
 import org.cardanofoundation.rosetta.api.block.mapper.BlockToBlockResponse;
-import org.cardanofoundation.rosetta.api.block.mapper.BlockToBlockTransactionResponse;
+import org.cardanofoundation.rosetta.api.block.mapper.TranToBlockTxResponse;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.Tran;
 import org.cardanofoundation.rosetta.api.block.service.BlockService;
@@ -25,7 +25,7 @@ public class BlockApiImpl implements BlockApi {
   private final BlockService blockService;
 
   private final BlockToBlockResponse mapperToBlockResponse;
-  private final BlockToBlockTransactionResponse mapperToBlockTxResponse;
+  private final TranToBlockTxResponse mapperToBlockTxResponse;
 
   @Override
   public ResponseEntity<BlockResponse> block(@RequestBody BlockRequest blockRequest) {

@@ -5,11 +5,9 @@ import java.util.List;
 import java.util.Set;
 
 import com.bloxbean.cardano.yaci.core.model.certs.CertificateType;
-import org.modelmapper.ModelMapper;
 import org.openapitools.client.model.BlockTransactionResponse;
 import org.openapitools.client.model.Relay;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import org.cardanofoundation.rosetta.api.BaseMapperTest;
@@ -22,13 +20,13 @@ import org.cardanofoundation.rosetta.api.block.model.domain.Tran;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class BlockToBlockTransactionResponseTest extends BaseMapperTest {
+class TranToBlockTxResponseTest extends BaseMapperTest {
 
   @Test
   void toDto() {
     //given
     TranToRosettaTransaction tx = new TranToRosettaTransaction(modelMapper);
-    BlockToBlockTransactionResponse my = new BlockToBlockTransactionResponse(modelMapper, tx);
+    TranToBlockTxResponse my = new TranToBlockTxResponse(modelMapper, tx);
     Tran from = newTran();
 
     // when
