@@ -1,0 +1,130 @@
+package org.cardanofoundation.rosetta.api.block.mapper;
+
+import java.util.List;
+import java.util.Set;
+
+import com.bloxbean.cardano.yaci.core.model.certs.CertificateType;
+import org.modelmapper.ModelMapper;
+import org.openapitools.client.model.BlockTransactionResponse;
+import org.openapitools.client.model.Relay;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import org.cardanofoundation.rosetta.api.block.model.domain.Delegation;
+import org.cardanofoundation.rosetta.api.block.model.domain.PoolRegistration;
+import org.cardanofoundation.rosetta.api.block.model.domain.PoolRetirement;
+import org.cardanofoundation.rosetta.api.block.model.domain.StakeRegistration;
+import org.cardanofoundation.rosetta.api.block.model.domain.Tran;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+class BlockToBlockTransactionResponseTest {
+
+  private ModelMapper modelMapper;
+
+  @BeforeEach
+  void setUp() {
+    modelMapper = new ModelMapper();
+  }
+
+  @Test
+  void toDto() {
+    //given
+    TranToRosettaTransaction tx = new TranToRosettaTransaction(modelMapper);
+    BlockToBlockTransactionResponse my = new BlockToBlockTransactionResponse(modelMapper, tx);
+    Tran from = newTran();
+
+    // when
+    BlockTransactionResponse into = my.toDto(from, "5000");
+
+    // then
+    my.modelMapper.validate();
+
+    assertThat(into.getTransaction().getMetadata().getSize()).isEqualTo(from.getSize());
+    assertThat(into.getTransaction().getMetadata().getScriptSize()).isEqualTo(from.getScriptSize());
+
+    assertThat(into.getTransaction().getTransactionIdentifier().getHash()).isEqualTo(from.getHash());
+
+    //TODO saa: there are no related transactions for org.openapitools.client.model.Transaction.setRelatedTransactions
+    assertThat(into.getTransaction().getRelatedTransactions()).isNull();
+
+
+  }
+
+  private Tran newTran() {
+    return Tran
+        .builder()
+        .blockNo(1L)
+        .blockHash("blockHash1")
+        .size(1L)
+        .fee("123")
+        .hash("hash1")
+        .scriptSize(0L)
+        .validContract(true)
+        .delegations(newDelegations())
+        .poolRegistrations(newPoolRegistrations())
+        .poolRetirements(newPoolRetirements())
+        .stakeRegistrations(newStakeRegistrations())
+        .build();
+  }
+
+  private List<StakeRegistration> newStakeRegistrations() {
+    return List.of(StakeRegistration
+        .builder()
+        .blockHash("stakeReg_blockHash1")
+        .epoch(11)
+        .type(CertificateType.STAKE_DEREGISTRATION)
+        .slot(22L)
+        .certIndex(33L)
+        .address("stakeReg_address1")
+        .credential("stakeReg_credential1")
+        .build());
+  }
+
+  private List<PoolRetirement> newPoolRetirements() {
+    return List.of(PoolRetirement
+        .builder()
+        .blockHash("poolRet_blockHash1")
+        .epoch(111)
+        .slot(222L)
+        .certIndex(333L)
+        .poolId("poolRet_poolId1")
+        .txHash("poolRet_txHash1")
+        .build());
+  }
+
+  private List<PoolRegistration> newPoolRegistrations() {
+    return List.of(PoolRegistration
+        .builder()
+        .blockHash("poolReg_blockHash1")
+        .epoch(1111)
+        .slot(2222L)
+        .certIndex(3333L)
+        .poolId("poolReg_poolId1")
+        .vrfKeyHash("poolReg_vrfKey1")
+        .pledge("poolReg_pledge1")
+        .margin("poolReg_margin1")
+        .cost("poolReg_cost1")
+        .rewardAccount("poolReg_rewardAccount1")
+        .owners(Set.of("poolReg_owner1"))
+        .relays(List.of(Relay.builder().ipv4("poolReg_ipv4_1").
+            ipv6("poolReg_ipv6_1").port(123).dnsName("dnsName1").build()))
+        .build());
+  }
+
+  private List<Delegation> newDelegations() {
+    return List.of(Delegation
+        .builder()
+        .blockHash("delegation_blockHash1")
+        .epoch(11111)
+        .slot(22222L)
+        .certIndex(33333L)
+        .poolId("delegation_poolId1")
+        .credential("delegation_account1")
+        .txHash("delegation_txHash1")
+        .address("delegation_address1")
+        .build());
+  }
+
+}
