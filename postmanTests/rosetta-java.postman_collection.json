@@ -716,6 +716,7 @@
 							"listen": "test",
 							"script": {
 								"exec": [
+									"console.log(pm.request.toJSON())",
 									"pm.test(\"Status code is 200\", function () {",
 									"        pm.response.to.have.status(200);",
 									"});",
@@ -730,7 +731,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"{{networkId}}\"\n    },\n    \"block_identifier\": {\n        \"index\": {{blockIndex}},\n        \"hash\": \"{{blockHash}}\"\n    }, \n    \"transaction_identifier\": {\n        \"hash\": \"{{transactionHash}}\"\n    }\n}",
+							"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"{{networkId}}\"\n    },\n    \"block_identifier\": {\n        \"index\": -1,\n        \"hash\": \"Genesis\"\n    }, \n    \"transaction_identifier\": {\n        \"hash\": \"8c1cb0c06b48dc4238775f81f3276634fbc243131323be95767055ef3d095515\"\n    }\n}",
 							"options": {
 								"raw": {
 									"language": "json"
