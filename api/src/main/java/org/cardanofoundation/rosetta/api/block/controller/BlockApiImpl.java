@@ -24,7 +24,7 @@ public class BlockApiImpl implements BlockApi {
 
   private final BlockService blockService;
 
-  private final BlockToBlockResponse mapperToBlockResponse;
+    private final BlockToBlockResponse mapperToBlockResponse;
   private final BlockToBlockTransactionResponse mapperToBlockTxResponse;
 
   @Override

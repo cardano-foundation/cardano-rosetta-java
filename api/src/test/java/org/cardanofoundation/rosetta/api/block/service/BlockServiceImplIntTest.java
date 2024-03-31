@@ -1,4 +1,4 @@
-package org.cardanofoundation.rosetta.api.data.block;
+package org.cardanofoundation.rosetta.api.block.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -7,12 +7,11 @@ import org.junit.jupiter.api.Test;
 import org.cardanofoundation.rosetta.api.IntegrationTest;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
-import org.cardanofoundation.rosetta.api.block.service.BlockService;
 import org.cardanofoundation.rosetta.testgenerator.common.TestConstants;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class BlockApiTest extends IntegrationTest {
+class BlockServiceImplIntTest extends IntegrationTest {
 
   @Autowired
   @SuppressWarnings("unused")
@@ -33,5 +32,21 @@ class BlockApiTest extends IntegrationTest {
     assertEquals(TestConstants.ACCOUNT_BALANCE_ADA_AMOUNT, receiverUtxoDto.getLovelaceAmount().toString());
 
   }
+
+  //  @Test
+//  void getBlockTransaction_Test() {
+//
+//    Tran tx = blockService.getBlockTransaction(generatedTestData.getTopUpBlockNumber(),
+//        generatedTestData.getTopUpBlockHash(), generatedTestData.getTopUpTxHash());
+//
+//    assertEquals(generatedTestData.getTopUpTxHash(), tx.getHash());
+//    assertEquals(generatedTestData.getTopUpBlockNumber(), tx.getBlockNo());
+//
+//    Utxo receiverUtxoDto = tx.getOutputs().getFirst();
+//    assertEquals(TestConstants.TEST_ACCOUNT_ADDRESS, receiverUtxoDto.getOwnerAddr());
+//    assertEquals(generatedTestData.getTopUpTxHash(), receiverUtxoDto.getTxHash());
+//    assertEquals(TestConstants.ACCOUNT_BALANCE_ADA_AMOUNT, receiverUtxoDto.getLovelaceAmount().toString());
+//
+//  }
 
 }

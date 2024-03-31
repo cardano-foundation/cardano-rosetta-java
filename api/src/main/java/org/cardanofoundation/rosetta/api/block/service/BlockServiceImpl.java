@@ -73,41 +73,4 @@ public class BlockServiceImpl implements BlockService {
 
   }
 
-//TODO saa why this findBlock?
-//  @Override
-//  public Block findBlock(Long number, String hash) {
-//    boolean searchBlockZero;
-//    if (nonNull(number)) {
-//      searchBlockZero = (number == 0);
-//    } else {
-//      searchBlockZero = false;
-//    }
-//    if (searchBlockZero) {
-//      log.info("[findBlock] Looking for genesis block");
-//      GenesisBlock genesis = ledgerDataProviderService.findGenesisBlock();
-//      boolean isHashInvalidIfGiven = hash != null && !genesis.getHash().equals(hash);
-//      if (isHashInvalidIfGiven) {
-//        log.error("[findBlock] The requested block has an invalid block hash parameter");
-//        throw ExceptionFactory.blockNotFoundException();
-//      }
-//      if (nonNull(genesis)) {
-//        return ledgerDataProviderService.findBlock(null, genesis.getHash());
-//      } else {
-//        return ledgerDataProviderService.findBlock(null, null);
-//      }
-//    }
-//    boolean searchLatestBlock = (isNull(hash)) && (isNull(number));
-//
-//    log.info("[findBlock] Do we have to look for latestBlock? {}", searchLatestBlock);
-//    Long blockNumber = searchLatestBlock ? ledgerDataProviderService.findLatestBlockNumber() : number;
-//    log.info("[findBlock] Looking for block with blockNumber {}", blockNumber);
-//    Block response = ledgerDataProviderService.findBlock(blockNumber, hash);
-//    if (nonNull(response)) {
-//      log.info("[findBlock] Block was found");
-//    }
-//    log.debug("[findBlock] Returning response: " + response);
-//    return response;
-//  }
-
-
 }

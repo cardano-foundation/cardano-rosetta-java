@@ -1,4 +1,4 @@
-package org.cardanofoundation.rosetta.api.block.service.impl;
+package org.cardanofoundation.rosetta.api.block.service;
 
 import org.springframework.test.util.ReflectionTestUtils;
 import org.mockito.InjectMocks;
