@@ -19,6 +19,7 @@ import org.cardanofoundation.rosetta.api.block.mapper.BlockToBlockTransactionRes
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.Tran;
 import org.cardanofoundation.rosetta.api.block.service.BlockService;
+import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -47,10 +48,8 @@ class BlockApiImplTest extends SpringMvcTest {
   void block_Test() throws Exception {
 
     //given
-    BlockRequest blockRequest = newBlockRequest();
-    BlockResponse blockResp = newBlockResponse();
+    BlockRequest blockRequest = givenBlockRequest();
     when(blockService.findBlock(123L, "hash1")).thenReturn(new Block());
-    when(blockToBlockResponse.toDto(any(Block.class))).thenReturn(blockResp);
 
     //when
     //then
@@ -64,6 +63,26 @@ class BlockApiImplTest extends SpringMvcTest {
         .andExpect(jsonPath("$.block.block_identifier.index").value(index))
         .andExpect(jsonPath("$.block.block_identifier.hash").value(hash));
 
+
+  }
+
+  @Test
+  void blockNotFound_Test() throws Exception {
+
+    //given
+    BlockRequest blockRequest = givenBlockRequest();
+    when(blockService.findBlock(123L, "hash1")).thenThrow(ExceptionFactory.blockNotFoundException());
+
+    //when
+    //then
+    mockMvc.perform(post("/block")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(blockRequest)))
+        .andDo(print())
+        .andExpect(status().is5xxServerError())
+        .andExpect(jsonPath("$.code").value(4001))
+        .andExpect(jsonPath("$.message").value("Block not found"))
+        .andExpect(jsonPath("$.retriable").value(false));
 
   }
 
@@ -89,6 +108,35 @@ class BlockApiImplTest extends SpringMvcTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.transaction.transaction_identifier.hash").value(txHash));
 
+  }
+
+
+  @Test
+  void blockTransaction_notFound_Test() throws Exception {
+
+    //given
+    BlockTransactionRequest req = newBlockTransactionRequest();
+    when(blockService.getBlockTransaction(anyLong(), anyString(), anyString()))
+        .thenThrow(ExceptionFactory.transactionNotFound());
+
+    //when
+    //then
+    mockMvc.perform(post("/block/transaction")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(req)))
+        .andDo(print())
+        .andExpect(status().is5xxServerError())
+        .andExpect(jsonPath("$.code").value(4006))
+        .andExpect(jsonPath("$.message").value("Transaction not found"))
+        .andExpect(jsonPath("$.retriable").value(false));
+
+  }
+
+  private BlockRequest givenBlockRequest() {
+    BlockRequest blockRequest = newBlockRequest();
+    BlockResponse blockResp = newBlockResponse();
+    when(blockToBlockResponse.toDto(any(Block.class))).thenReturn(blockResp);
+    return blockRequest;
   }
 
   private BlockTransactionResponse newBlockTransactionResponse() {

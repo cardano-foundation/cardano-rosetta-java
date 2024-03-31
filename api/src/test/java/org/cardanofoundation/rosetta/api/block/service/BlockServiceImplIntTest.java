@@ -76,4 +76,13 @@ class BlockServiceImplIntTest extends IntegrationTest {
 
   }
 
+
+  @Test
+  void getDepositPool_Test() {
+
+    String poolDeposit = blockService.getPoolDeposit();
+    assertEquals("500000000", poolDeposit);
+
+  }
+
 }
