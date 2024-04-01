@@ -44,10 +44,8 @@ public class Tran {
         .size(0L) // TODO
         .validContract(txnEntity.getInvalid())
         .scriptSize(0L) // TODO
-        .inputs(
-            txnEntity.getInputKeys().stream().map(utxoKey -> Utxo.fromUtxoKey(utxoKey)).toList())
-        .outputs(txnEntity.getOutputKeys().stream().map(utxoKey -> Utxo.fromUtxoKey(utxoKey))
-            .toList())
+        .inputs(txnEntity.getInputKeys().stream().map(Utxo::fromUtxoKey).toList())
+        .outputs(txnEntity.getOutputKeys().stream().map(Utxo::fromUtxoKey).toList())
         .build();
   }
 }

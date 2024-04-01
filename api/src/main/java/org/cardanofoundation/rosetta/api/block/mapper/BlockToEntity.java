@@ -5,11 +5,14 @@ import java.util.concurrent.TimeUnit;
 import lombok.AllArgsConstructor;
 
 import org.modelmapper.ModelMapper;
+import org.modelmapper.spi.MappingContext;
 
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.Tran;
 import org.cardanofoundation.rosetta.api.block.model.entity.BlockEntity;
 import org.cardanofoundation.rosetta.common.annotation.PersistenceMapper;
+
+import static java.util.Optional.ofNullable;
 
 @PersistenceMapper
 @AllArgsConstructor
@@ -20,36 +23,41 @@ public class BlockToEntity {
 
   public Block fromEntity(BlockEntity entity) {
 
-//    return Optional.ofNullable(modelMapper.getTypeMap(BlockEntity.class, Block.class))
-//        .orElseGet(() -> modelMapper.createTypeMap(BlockEntity.class, Block.class))
-//        .setPostConverter(ctx -> {
-//          ctx.getDestination()
-//              .setCreatedAt(TimeUnit.SECONDS.toMillis(ctx.getSource().getBlockTimeInSeconds()));
-//
-//          ctx.getDestination().setSlotNo(ctx.getSource().getSlot());
-//          ctx.getDestination().setTransactions(ctx.getSource().getTransactions().stream().map(Tran::fromTx).toList());
-//          ctx.getDestination().setTransactions(List.of());
-//
-//
-//          return ctx.getDestination();
-//
-//        }).map(entity);
-//
-    return Block.builder()
-        .number(entity.getNumber())
-        .hash(entity.getHash())
-        .createdAt(TimeUnit.SECONDS.toMillis(entity.getBlockTimeInSeconds()))
-        .previousBlockHash(entity.getPrev() != null ? entity.getPrev().getHash()
-            : entity.getHash()) // TODO EPAM: check for genesis entity
-        .previousBlockNumber(entity.getPrev() != null ? entity.getPrev().getNumber() : 0)
-        .transactionsCount(entity.getNoOfTxs())
-        .size(Math.toIntExact(entity.getBlockBodySize()))
-        .createdBy(
-            entity.getIssuerVkey()) // TODO probably need to change this, in typescript rosetta there is something like Pool-[HASH]
-        .epochNo(entity.getEpochNumber())
-        .slotNo(entity.getSlot())
-        .transactions(entity.getTransactions().stream().map(Tran::fromTx).toList())
-        .build();
+    return ofNullable(modelMapper.getTypeMap(BlockEntity.class, Block.class))
+        .orElseGet(() -> modelMapper.createTypeMap(BlockEntity.class, Block.class))
+        .setPostConverter(ctx -> {
+          dest(ctx)
+              .setCreatedAt(TimeUnit.SECONDS.toMillis(src(ctx).getBlockTimeInSeconds()));
+
+          dest(ctx).setPreviousBlockHash(
+              ofNullable(src(ctx).getPrev())
+                  .map(BlockEntity::getHash)
+                  .orElse(src(ctx).getHash()));
+
+          dest(ctx).setPreviousBlockNumber(
+              ofNullable(src(ctx).getPrev())
+                  .map(BlockEntity::getNumber)
+                  .orElse(0L));
+
+          dest(ctx).setTransactionsCount(src(ctx).getNoOfTxs());
+          dest(ctx).setSize(Math.toIntExact(src(ctx).getBlockBodySize()));
+          dest(ctx).setCreatedBy(src(ctx).getIssuerVkey());
+          dest(ctx).setEpochNo(src(ctx).getEpochNumber());
+          dest(ctx).setSlotNo(src(ctx).getSlot());
+          dest(ctx).setTransactions(src(ctx).getTransactions().stream().map(Tran::fromTx).toList());
+
+          return dest(ctx);
+
+        }).map(entity);
+
+  }
+
+  private static BlockEntity src(MappingContext<BlockEntity, Block> ctx) {
+    return ctx.getSource();
+  }
+
+  private static Block dest(MappingContext<BlockEntity, Block> ctx) {
+    return ctx.getDestination();
   }
 
 }
