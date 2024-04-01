@@ -20,29 +20,36 @@ class BlockToEntityTest extends BaseMapperTest {
   @Test
   void fromEntity_Test() {
 
-    BlockToEntity my = new BlockToEntity(modelMapper);
+    //given
+    TranToEntity tranToEntity = new TranToEntity(modelMapper);
+    BlockToEntity my = new BlockToEntity(modelMapper, tranToEntity);
     my.modelMapper.validate();
+    BlockEntity from = newBlockEntity();
 
-    BlockEntity blockEntity = newBlockEntity();
+    //when
+    Block into = my.fromEntity(from);
 
-    Block model = my.fromEntity(blockEntity);
+    //then
+    assertThat(into.getNumber()).isEqualTo(from.getNumber());
+    assertThat(into.getHash()).isEqualTo(from.getHash());
 
-    assertThat(model.getNumber()).isEqualTo(blockEntity.getNumber());
-    assertThat(model.getHash()).isEqualTo(blockEntity.getHash());
-    assertThat(model.getCreatedAt()).isEqualTo(
-        TimeUnit.SECONDS.toMillis(blockEntity.getBlockTimeInSeconds()));
-    assertThat(model.getPreviousBlockHash()).isEqualTo(
-        blockEntity.getPrev() != null ? blockEntity.getPrev().getHash() : blockEntity.getHash());
-    assertThat(model.getPreviousBlockNumber()).isEqualTo(
-        blockEntity.getPrev() != null ? blockEntity.getPrev().getNumber() : 0);
-    assertThat(model.getTransactionsCount()).isEqualTo(blockEntity.getNoOfTxs());
-    assertThat(model.getSize()).isEqualTo(Math.toIntExact(blockEntity.getBlockBodySize()));
-    assertThat(model.getCreatedBy()).isEqualTo(blockEntity.getIssuerVkey());
-    assertThat(model.getEpochNo()).isEqualTo(blockEntity.getEpochNumber());
-    assertThat(model.getSlotNo()).isEqualTo(blockEntity.getSlot());
+    assertThat(into.getCreatedAt()).isEqualTo(
+        TimeUnit.SECONDS.toMillis(from.getBlockTimeInSeconds()));
+
+    assertThat(into.getPreviousBlockHash()).isEqualTo(
+        from.getPrev() != null ? from.getPrev().getHash() : from.getHash());
+
+    assertThat(into.getPreviousBlockNumber()).isEqualTo(
+        from.getPrev() != null ? from.getPrev().getNumber() : 0);
+
+    assertThat(into.getTransactionsCount()).isEqualTo(from.getNoOfTxs());
+    assertThat(into.getSize()).isEqualTo(Math.toIntExact(from.getBlockBodySize()));
+    assertThat(into.getCreatedBy()).isEqualTo(from.getIssuerVkey());
+    assertThat(into.getEpochNo()).isEqualTo(from.getEpochNumber());
+    assertThat(into.getSlotNo()).isEqualTo(from.getSlot());
 
     //TODO saa: refactor to use Tran.fromTx
-//    assertThat(model.getTransactions().size()).isEqualTo(blockEntity.getTransactions().size());
+//    assertThat(into.getTransactions().size()).isEqualTo(from.getTransactions().size());
 
   }
 
@@ -75,7 +82,6 @@ class BlockToEntityTest extends BaseMapperTest {
         .invalid(false)
         .inputKeys(List.of())
         .outputKeys(List.of())
-        .build())
-        ;
+        .build());
   }
 }

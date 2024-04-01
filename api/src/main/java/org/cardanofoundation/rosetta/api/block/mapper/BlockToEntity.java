@@ -8,7 +8,6 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.spi.MappingContext;
 
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
-import org.cardanofoundation.rosetta.api.block.model.domain.Tran;
 import org.cardanofoundation.rosetta.api.block.model.entity.BlockEntity;
 import org.cardanofoundation.rosetta.common.annotation.PersistenceMapper;
 
@@ -19,6 +18,8 @@ import static java.util.Optional.ofNullable;
 public class BlockToEntity {
 
   final ModelMapper modelMapper;
+
+  final TranToEntity tranToEntity;
 
 
   public Block fromEntity(BlockEntity entity) {
@@ -49,7 +50,7 @@ public class BlockToEntity {
 
           dest(ctx).setSize(Math.toIntExact(source(ctx).getBlockBodySize()));
           dest(ctx).setTransactions(
-              source(ctx).getTransactions().stream().map(Tran::fromTx).toList());
+              source(ctx).getTransactions().stream().map(tranToEntity::fromEntity).toList());
 
           return dest(ctx);
 

@@ -23,6 +23,7 @@ import org.cardanofoundation.rosetta.api.account.model.entity.Amt;
 import org.cardanofoundation.rosetta.api.account.model.repository.AddressBalanceRepository;
 import org.cardanofoundation.rosetta.api.account.model.repository.AddressUtxoRepository;
 import org.cardanofoundation.rosetta.api.block.mapper.BlockToEntity;
+import org.cardanofoundation.rosetta.api.block.mapper.TranToEntity;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.Delegation;
 import org.cardanofoundation.rosetta.api.block.model.domain.GenesisBlock;
@@ -67,6 +68,7 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
   private final CardanoConfigService cardanoConfigService;
 
   private final BlockToEntity mapperBlock;
+  private final TranToEntity mapperTran;
 
   @Override
   public GenesisBlock findGenesisBlock() {
@@ -201,7 +203,7 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
     log.debug(
         "[findTransactionsByBlock] Found {} transactions", txList.size());
     if (ObjectUtils.isNotEmpty(txList)) {
-      List<Tran> transactions = txList.stream().map(Tran::fromTx).toList();
+      List<Tran> transactions = txList.stream().map(mapperTran::fromEntity).toList();
       populateTransactions(transactions);
       return transactions;
     }
