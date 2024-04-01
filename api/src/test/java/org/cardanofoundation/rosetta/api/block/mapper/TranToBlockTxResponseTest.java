@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 
 import org.cardanofoundation.rosetta.api.BaseMapperTest;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
+import org.cardanofoundation.rosetta.api.account.model.entity.Amt;
 import org.cardanofoundation.rosetta.api.block.model.domain.Delegation;
 import org.cardanofoundation.rosetta.api.block.model.domain.PoolRegistration;
 import org.cardanofoundation.rosetta.api.block.model.domain.PoolRetirement;
@@ -38,7 +39,8 @@ class TranToBlockTxResponseTest extends BaseMapperTest {
     assertThat(into.getTransaction().getMetadata().getSize()).isEqualTo(from.getSize());
     assertThat(into.getTransaction().getMetadata().getScriptSize()).isEqualTo(from.getScriptSize());
 
-    assertThat(into.getTransaction().getTransactionIdentifier().getHash()).isEqualTo(from.getHash());
+    assertThat(into.getTransaction().getTransactionIdentifier().getHash())
+        .isEqualTo(from.getHash());
 
     //TODO saa: there are no related transactions for org.openapitools.client.model.Transaction.setRelatedTransactions
     assertThat(into.getTransaction().getRelatedTransactions()).isNull();
@@ -65,16 +67,13 @@ class TranToBlockTxResponseTest extends BaseMapperTest {
   }
 
   private Utxo newUtxo() {
-    return Utxo
-        .builder()
+    return Utxo.builder()
         .blockHash("blockHash1")
         .epoch(11)
         .slot(22L)
         .txHash("txHash1")
         .outputIndex(44)
-        //TODO saa: why Atm [entity] exists in domain model
-//        .amounts(List.of(org.cardanofoundation.rosetta.api.account.model.entity.Atm))
-        .amounts(List.of()) //TODO saa: FIXME
+        .amounts(List.of(newAmt()))
         .dataHash("dataHash1")
         .inlineDatum("inlineDatum1")
         .isCollateralReturn(true)
@@ -86,12 +85,19 @@ class TranToBlockTxResponseTest extends BaseMapperTest {
         .scriptRef("scriptRef1")
         .referenceScriptHash("referenceScriptHash1")
         .build();
+  }
 
+  private static Amt newAmt() {
+    return Amt.builder()
+        .assetName("assetName1")
+        .policyId("policyId1")
+        .quantity(BigInteger.ONE)
+        .unit("unit1")
+        .build();
   }
 
   private List<StakeRegistration> newStakeRegistrations() {
-    return List.of(StakeRegistration
-        .builder()
+    return List.of(StakeRegistration.builder()
         .blockHash("stakeReg_blockHash1")
         .epoch(11)
         .type(CertificateType.STAKE_DEREGISTRATION)
@@ -103,8 +109,7 @@ class TranToBlockTxResponseTest extends BaseMapperTest {
   }
 
   private List<PoolRetirement> newPoolRetirements() {
-    return List.of(PoolRetirement
-        .builder()
+    return List.of(PoolRetirement.builder()
         .blockHash("poolRet_blockHash1")
         .epoch(11)
         .slot(22L)
@@ -115,8 +120,7 @@ class TranToBlockTxResponseTest extends BaseMapperTest {
   }
 
   private List<PoolRegistration> newPoolRegistrations() {
-    return List.of(PoolRegistration
-        .builder()
+    return List.of(PoolRegistration.builder()
         .blockHash("poolReg_blockHash1")
         .epoch(11)
         .slot(22L)
@@ -134,8 +138,7 @@ class TranToBlockTxResponseTest extends BaseMapperTest {
   }
 
   private List<Delegation> newDelegations() {
-    return List.of(Delegation
-        .builder()
+    return List.of(Delegation.builder()
         .blockHash("delegation_blockHash1")
         .epoch(11)
         .slot(22L)
