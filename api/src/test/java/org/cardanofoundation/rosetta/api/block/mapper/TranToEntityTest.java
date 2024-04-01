@@ -17,8 +17,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class TranToEntityTest extends BaseMapperTest {
 
-  private UtxoKey inUtxKey = new UtxoKey("in_UtxoKey_txHash1", 55);
-  private UtxoKey outUtxKey = new UtxoKey("out_UtxoKey_txHash1", 55);
+  private final UtxoKey inUtxKey = new UtxoKey("in_UtxoKey_txHash1", 55);
+  private final UtxoKey outUtxKey = new UtxoKey("out_UtxoKey_txHash1", 55);
   @Test
   void fromEntity_Test() {
     //given
@@ -40,11 +40,17 @@ class TranToEntityTest extends BaseMapperTest {
     assertThat(into.getValidContract()).isEqualTo(from.getInvalid());
     assertThat(into.getScriptSize()).isEqualTo(0L);
 
-    //TODO saa: refactor to use Utxo::fromUtxoKey
-//    assertThat(into.getInputs().size()).isEqualTo(from.getInputKeys().size());
-//    assertThat(into.getOutputs().size()).isEqualTo(from.getOutputKeys().size());
+    assertThat(into.getInputs().size()).isEqualTo(from.getInputKeys().size());
+    assertThat(into.getInputs()).extracting("txHash")
+        .isEqualTo(List.of(inUtxKey.getTxHash()));
+    assertThat(into.getInputs()).extracting("outputIndex")
+        .isEqualTo(List.of(inUtxKey.getOutputIndex()));
 
-
+    assertThat(into.getOutputs().size()).isEqualTo(from.getOutputKeys().size());
+    assertThat(into.getOutputs()).extracting("txHash")
+        .isEqualTo(List.of(outUtxKey.getTxHash()));
+    assertThat(into.getOutputs()).extracting("outputIndex")
+        .isEqualTo(List.of(outUtxKey.getOutputIndex()));
 
   }
 
