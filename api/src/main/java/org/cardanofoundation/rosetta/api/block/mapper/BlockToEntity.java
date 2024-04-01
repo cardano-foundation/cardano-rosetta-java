@@ -25,26 +25,31 @@ public class BlockToEntity {
 
     return ofNullable(modelMapper.getTypeMap(BlockEntity.class, Block.class))
         .orElseGet(() -> modelMapper.createTypeMap(BlockEntity.class, Block.class))
+        .addMappings(mapper -> {
+
+          mapper.map(BlockEntity::getIssuerVkey, Block::setCreatedBy);
+          mapper.map(BlockEntity::getNoOfTxs, Block::setTransactionsCount);
+          mapper.map(BlockEntity::getEpochNumber, Block::setEpochNo);
+          mapper.map(BlockEntity::getSlot, Block::setSlotNo);
+
+        })
         .setPostConverter(ctx -> {
-          dest(ctx)
-              .setCreatedAt(TimeUnit.SECONDS.toMillis(src(ctx).getBlockTimeInSeconds()));
+
+          dest(ctx).setCreatedAt(TimeUnit.SECONDS.toMillis(source(ctx).getBlockTimeInSeconds()));
 
           dest(ctx).setPreviousBlockHash(
-              ofNullable(src(ctx).getPrev())
+              ofNullable(source(ctx).getPrev())
                   .map(BlockEntity::getHash)
-                  .orElse(src(ctx).getHash()));
+                  .orElse(source(ctx).getHash()));
 
           dest(ctx).setPreviousBlockNumber(
-              ofNullable(src(ctx).getPrev())
+              ofNullable(source(ctx).getPrev())
                   .map(BlockEntity::getNumber)
                   .orElse(0L));
 
-          dest(ctx).setTransactionsCount(src(ctx).getNoOfTxs());
-          dest(ctx).setSize(Math.toIntExact(src(ctx).getBlockBodySize()));
-          dest(ctx).setCreatedBy(src(ctx).getIssuerVkey());
-          dest(ctx).setEpochNo(src(ctx).getEpochNumber());
-          dest(ctx).setSlotNo(src(ctx).getSlot());
-          dest(ctx).setTransactions(src(ctx).getTransactions().stream().map(Tran::fromTx).toList());
+          dest(ctx).setSize(Math.toIntExact(source(ctx).getBlockBodySize()));
+          dest(ctx).setTransactions(
+              source(ctx).getTransactions().stream().map(Tran::fromTx).toList());
 
           return dest(ctx);
 
@@ -52,7 +57,7 @@ public class BlockToEntity {
 
   }
 
-  private static BlockEntity src(MappingContext<BlockEntity, Block> ctx) {
+  private static BlockEntity source(MappingContext<BlockEntity, Block> ctx) {
     return ctx.getSource();
   }
 
