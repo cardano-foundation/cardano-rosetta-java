@@ -146,20 +146,14 @@ public class NetworkServiceImpl implements NetworkService {
       throw ExceptionFactory.configNotFoundException();
     }
     JSONObject object = new JSONObject(content);
-    String networkId = ((String) object.get("networkId")).toLowerCase();
-    Integer networkMagic = (Integer) object.get("networkMagic");
-
-    if (networkId.equals("mainnet")) {
-      return Networks.mainnet();
-    } else if (Objects.equals(networkMagic, Constants.PREPROD_NETWORK_MAGIC)) {
-      return Networks.preprod();
-    } else if (Objects.equals(networkMagic, Constants.TESTNET_NETWORK_MAGIC)) {
-      return Networks.testnet();
-    } else if (Objects.equals(networkMagic, Constants.DEVNET_NETWORK_MAGIC)) {
-      return new Network(0b0000, 42);
-    } else {
-      throw ExceptionFactory.invalidNetworkError();
-    }
+    Integer networkMagic = (Integer) object.get(Constants.NETWORK_MAGIC_NAME);
+    return switch (networkMagic) {
+      case Constants.MAINNET_NETWORK_MAGIC -> Networks.mainnet();
+      case Constants.PREPROD_NETWORK_MAGIC -> Networks.preprod();
+      case Constants.TESTNET_NETWORK_MAGIC -> Networks.testnet();
+      case Constants.DEVNET_NETWORK_MAGIC -> new Network(0b0000, 42);
+      default -> throw ExceptionFactory.invalidNetworkError();
+    };
   }
 
   private NetworkStatus networkStatus() throws  IOException {

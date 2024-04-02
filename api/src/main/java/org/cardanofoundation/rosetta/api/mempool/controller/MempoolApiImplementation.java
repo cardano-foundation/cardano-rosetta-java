@@ -8,11 +8,13 @@ import org.openapitools.client.model.MempoolTransactionRequest;
 import org.openapitools.client.model.MempoolTransactionResponse;
 import org.openapitools.client.model.NetworkRequest;
 import org.openapitools.client.model.TransactionIdentifier;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
+@ConditionalOnProperty(value = "cardano.rosetta.MEMPOOL_ENABLED", havingValue = "true")
 public class MempoolApiImplementation implements MempoolApi {
 
   private final MempoolService mempoolService;
