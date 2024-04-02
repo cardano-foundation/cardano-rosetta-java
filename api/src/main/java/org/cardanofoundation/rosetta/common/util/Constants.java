@@ -14,6 +14,12 @@ public class Constants {
   public static final String RELATIVE_TTL = "relative_ttl";
   public static final String TRANSACTION_SIZE = "transaction_size";
   public static final int HEX_PREFIX_AND_REWARD_ACCOUNT_LENGTH = 58;
+  public static final String SUBMIT_API_PATH = "/api/submit/tx";
+  public static final int SUCCESS_SUBMIT_TX_HTTP_CODE = 202;
+  public static final String CBOR_CONTENT_TYPE = "application/cbor";
+  public static final String CONTENT_TYPE_HEADER_KEY = "Content-Type";
+  public static final int TX_HASH_LENGTH = 64;
+  public static final String PROTOCOL = "http://";
 
   private Constants() {
   }

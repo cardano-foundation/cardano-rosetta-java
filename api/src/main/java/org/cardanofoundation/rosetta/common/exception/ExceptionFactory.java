@@ -192,4 +192,7 @@ public class ExceptionFactory {
   public static ApiException cantDecodeMempoolTransaction() {
     return new ApiException(RosettaErrorType.CANT_DECODE_MEMPOOL_TRANSACTION.toRosettaError(false));
   }
+  public static ApiException sendTransactionError(String error) {
+    return new ApiException(RosettaErrorType.SEND_TRANSACTION_ERROR.toRosettaError(false, null, error));
+  }
 }

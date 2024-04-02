@@ -1,23 +1,25 @@
 package org.cardanofoundation.rosetta.api.data.block;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import org.junit.jupiter.api.Test;
 
 import org.cardanofoundation.rosetta.api.IntegrationTest;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.service.BlockService;
 import org.cardanofoundation.rosetta.testgenerator.common.TestConstants;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 
-public class BlockApiTest extends IntegrationTest {
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+class BlockApiTest extends IntegrationTest {
 
   @Autowired
   @SuppressWarnings("unused")
   private BlockService blockService;
 
   @Test
-  public void getBlockWithTransaction_Test() {
+  void getBlockWithTransaction_Test() {
     Block block = blockService.findBlock(generatedTestData.getTopUpBlockNumber(),
         generatedTestData.getTopUpBlockHash());
 
