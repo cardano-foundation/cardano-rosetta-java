@@ -189,4 +189,7 @@ public class ExceptionFactory {
     return new ApiException(RosettaErrorType.INVALID_NETWORK.toRosettaError(false));
   }
 
+  public static ApiException sendTransactionError(String error) {
+    return new ApiException(RosettaErrorType.SEND_TRANSACTION_ERROR.toRosettaError(false, null, error));
+  }
 }

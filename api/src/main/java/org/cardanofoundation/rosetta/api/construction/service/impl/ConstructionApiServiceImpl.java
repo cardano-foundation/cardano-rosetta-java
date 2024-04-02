@@ -215,6 +215,10 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
   @Override
   public TransactionIdentifierResponse constructionSubmitService(
       ConstructionSubmitRequest constructionSubmitRequest) {
-    return null;
+    String signedTransaction = constructionSubmitRequest.getSignedTransaction();
+    log.info("[constructionSubmit] About to submit signed transaction");
+    String txHash = cardanoService.submitTransaction(signedTransaction);
+
+    return new TransactionIdentifierResponse(new TransactionIdentifier(txHash), null);
   }
 }
