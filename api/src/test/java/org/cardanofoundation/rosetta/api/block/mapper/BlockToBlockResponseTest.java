@@ -5,14 +5,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 
 import com.bloxbean.cardano.yaci.core.model.certs.CertificateType;
-import org.jetbrains.annotations.NotNull;
-import org.modelmapper.ModelMapper;
 import org.openapitools.client.model.AccountIdentifier;
 import org.openapitools.client.model.Amount;
 import org.openapitools.client.model.BlockResponse;
@@ -23,33 +20,28 @@ import org.openapitools.client.model.OperationMetadata;
 import org.openapitools.client.model.PoolRegistrationParams;
 import org.openapitools.client.model.Relay;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import org.cardanofoundation.rosetta.api.BaseMapperTest;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
+import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.model.domain.Delegation;
 import org.cardanofoundation.rosetta.api.block.model.domain.PoolRegistration;
 import org.cardanofoundation.rosetta.api.block.model.domain.PoolRetirement;
 import org.cardanofoundation.rosetta.api.block.model.domain.StakeRegistration;
-import org.cardanofoundation.rosetta.api.block.model.domain.Transaction;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.cardanofoundation.rosetta.common.util.RosettaConstants.SUCCESS_OPERATION_STATUS;
 
-class BlockToBlockResponseTest {
+class BlockToBlockResponseTest extends BaseMapperTest {
 
-  private ModelMapper modelMapper;
-
-  @BeforeEach
-  void setUp() {
-    modelMapper = new ModelMapper();
-  }
 
   @Test
   void toDto_test_Ok() {
 
     //given
-    BlockToBlockResponse my = new BlockToBlockResponse(modelMapper);
+    TranToRosettaTransaction tx2tx = new TranToRosettaTransaction(modelMapper);
+    BlockToBlockResponse my = new BlockToBlockResponse(modelMapper,tx2tx);
     my.modelMapper.validate();
 
     Block from = newBlock();
@@ -79,17 +71,17 @@ class BlockToBlockResponseTest {
     assertThat(from.getTransactions().size()).isEqualTo(
         into.getBlock().getTransactions().size());
     assertThat(from.getTransactions())
-        .extracting(Transaction::getHash)
+        .extracting(BlockTx::getHash)
         .isEqualTo(into.getBlock().getTransactions().stream()
             .map(t -> t.getTransactionIdentifier().getHash()).toList());
 
     assertThat(from.getTransactions())
-        .extracting(Transaction::getSize)
+        .extracting(BlockTx::getSize)
         .isEqualTo(into.getBlock().getTransactions().stream()
             .map(t -> t.getMetadata().getSize()).toList());
 
     assertThat(from.getTransactions())
-        .extracting(Transaction::getScriptSize)
+        .extracting(BlockTx::getScriptSize)
         .isEqualTo(into.getBlock().getTransactions().stream()
             .map(t -> t.getMetadata().getScriptSize()).toList());
 
@@ -276,11 +268,6 @@ class BlockToBlockResponseTest {
     g.forEach(m -> assertThat(m).isNull());
   }
 
-  @NotNull
-  private static Supplier<AssertionError> nullException() {
-    return () -> new AssertionError("Not Null");
-  }
-
   private static AccountIdentifier newAccId(String address) {
     return AccountIdentifier.builder()
         .address(address)
@@ -303,18 +290,18 @@ class BlockToBlockResponseTest {
         "poolDeposit");
   }
 
-  private List<Transaction> newTransactions() {
-    return List.of(new Transaction("hash1", "blockHash1", 1L, "fee1", 1L,
+  private List<BlockTx> newTransactions() {
+    return List.of(new BlockTx("hash1", "blockHash1", 1L, "fee1", 1L,
             true, 1L, null, null,
             newStakeRegistrations(1, 2), newDelegations(1, 2), newPoolRegistrations(1, 2),
             newPoolRetirements(1, 2)),
 
-        new Transaction("hash2", "blockHash2", 2L, "fee2", 2L,
+        new BlockTx("hash2", "blockHash2", 2L, "fee2", 2L,
             true, 2L, null, null,
             newStakeRegistrations(3, 4), newDelegations(3, 4), newPoolRegistrations(3, 4),
             newPoolRetirements(3, 4)),
 
-        new Transaction("hash3", "blockHash3", 3L, "fee3", 3L,
+        new BlockTx("hash3", "blockHash3", 3L, "fee3", 3L,
             true, 3L, null, null,
             newStakeRegistrations(5, 6), newDelegations(5, 6), newPoolRegistrations(5, 6),
             newPoolRetirements(5, 6)));
