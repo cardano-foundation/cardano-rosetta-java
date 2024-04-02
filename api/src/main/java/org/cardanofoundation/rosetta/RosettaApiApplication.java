@@ -15,6 +15,7 @@ import org.springframework.web.filter.ForwardedHeaderFilter;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.info.Info;
 import org.modelmapper.ModelMapper;
+import org.modelmapper.convention.MatchingStrategies;
 import org.openapitools.jackson.nullable.JsonNullableModule;
 
 
@@ -34,6 +35,7 @@ public class RosettaApiApplication {
   }
 
   @Bean
+  @SuppressWarnings("unused") //used through injection
   public FilterRegistrationBean<ForwardedHeaderFilter> forwardedHeaderFilter() {
     final ForwardedHeaderFilter filter = new ForwardedHeaderFilter();
     final FilterRegistrationBean<ForwardedHeaderFilter> registration = new FilterRegistrationBean<>(
@@ -46,11 +48,15 @@ public class RosettaApiApplication {
   }
 
   @Bean
+  @SuppressWarnings("unused") //used through injection
   public ModelMapper modelMapper() {
-    return new ModelMapper();
+    ModelMapper modelMapper = new ModelMapper();
+    modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
+    return modelMapper;
   }
 
   @Bean
+  @SuppressWarnings("unused") //used through injection
   @Profile("!test-integration")
   public JsonNullableModule jsonNullableModule() {
     return new JsonNullableModule();

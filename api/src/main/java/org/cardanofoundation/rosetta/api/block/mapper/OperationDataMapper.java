@@ -27,11 +27,11 @@ import org.openapitools.client.model.TokenBundleItem;
 
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.account.model.entity.Amt;
+import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.model.domain.Delegation;
 import org.cardanofoundation.rosetta.api.block.model.domain.PoolRegistration;
 import org.cardanofoundation.rosetta.api.block.model.domain.PoolRetirement;
 import org.cardanofoundation.rosetta.api.block.model.domain.StakeRegistration;
-import org.cardanofoundation.rosetta.api.block.model.domain.Transaction;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.common.mapper.DataMapper;
 import org.cardanofoundation.rosetta.common.util.Constants;
@@ -43,41 +43,39 @@ import static org.cardanofoundation.rosetta.common.util.Constants.ADA_DECIMALS;
 class OperationDataMapper {
 
   @NotNull
-  public static List<Operation> getAllOperations(Transaction transactionDto, String poolDeposit,
+  public static List<Operation> getAllOperations(BlockTx transaction, String poolDeposit,
       OperationStatus status) {
     List<List<Operation>> totalOperations = new ArrayList<>();
-    List<Operation> inputsAsOperations = getInputTransactionsasOperations(transactionDto, status);
+    List<Operation> inputsAsOperations = getInputTransactionsAsOperations(transaction, status);
     totalOperations.add(inputsAsOperations);
 // TODO Withdrawal currently not supported via Yaci-store. Will implemented it as soon as the PR is merged.
-//        List<Operation> withdrawalsAsOperations = getWithdrawlOperations(transactionDto, status, totalOperations);
+//        List<Operation> withdrawalsAsOperations = getWithdrawlOperations(transaction, status, totalOperations);
 //        totalOperations.add(withdrawalsAsOperations);
 
-    List<Operation> stakeRegistrationOperations = getStakeRegistrationOperations(transactionDto,
+    List<Operation> stakeRegistrationOperations = getStakeRegistrationOperations(transaction,
         status, totalOperations);
     totalOperations.add(stakeRegistrationOperations);
 
-    List<Operation> delegationOperations = getDelegationOperations(transactionDto, status,
+    List<Operation> delegationOperations = getDelegationOperations(transaction, status,
         totalOperations);
     totalOperations.add(delegationOperations);
 
-    List<Operation> poolRegistrationOperations = getPoolRegistrationOperations(transactionDto,
-        status, totalOperations, poolDeposit);
+    List<Operation> poolRegistrationOperations =
+        getPoolRegistrationOperations(transaction, status, totalOperations, poolDeposit);
     totalOperations.add(poolRegistrationOperations);
 
-    List<Operation> poolRetirementOperations = getPoolRetirementOperations(transactionDto, status,
-        totalOperations);
+    List<Operation> poolRetirementOperations =
+        getPoolRetirementOperations(transaction, status, totalOperations);
     totalOperations.add(poolRetirementOperations);
 
     List<OperationIdentifier> relatedOperations = getOperationIndexes(inputsAsOperations);
-
-    List<Operation> outputsAsOperations = getOutputsAsOperations(transactionDto, totalOperations,
+    List<Operation> outputsAsOperations = getOutputsAsOperations(transaction, totalOperations,
         status, relatedOperations);
 
     totalOperations.add(outputsAsOperations);
-    List<Operation> operations = totalOperations.stream()
+    return totalOperations.stream()
         .flatMap(Collection::stream)
         .collect(Collectors.toList());
-    return operations;
   }
 
 //    @NotNull
@@ -100,12 +98,12 @@ class OperationDataMapper {
 //    }
 
   @NotNull
-  public static List<Operation> getInputTransactionsasOperations(Transaction transactionDto,
+  public static List<Operation> getInputTransactionsAsOperations(BlockTx transaction,
       OperationStatus status) {
 
-    return IntStream.range(0, nullable(transactionDto.getInputs()).size())
+    return IntStream.range(0, nullable(transaction.getInputs()).size())
         .mapToObj(index -> {
-          Utxo utxoModel = transactionDto.getInputs().get(index);
+          Utxo utxoModel = transaction.getInputs().get(index);
           return createOperation((long) index,
               Constants.INPUT,
               status.getStatus(),
@@ -123,11 +121,11 @@ class OperationDataMapper {
     return Optional.ofNullable(list).orElse(Collections.emptyList());
   }
 
-  public static List<Operation> getPoolRegistrationOperations(Transaction transactionDto,
+  public static List<Operation> getPoolRegistrationOperations(BlockTx tranDto,
       OperationStatus status, List<List<Operation>> totalOperations, String poolDeposit) {
-    return IntStream.range(0, nullable(transactionDto.getPoolRegistrations()).size())
+    return IntStream.range(0, nullable(tranDto.getPoolRegistrations()).size())
         .mapToObj(index -> {
-          PoolRegistration poolRegistration = transactionDto.getPoolRegistrations().get(index);
+          PoolRegistration poolRegistration = tranDto.getPoolRegistrations().get(index);
           return Operation.builder()
               .operationIdentifier(OperationIdentifier.builder().index(
                   getOperationCurrentIndex(totalOperations, index)).build())
@@ -150,12 +148,12 @@ class OperationDataMapper {
         }).toList();
   }
 
-  public static List<Operation> getPoolRetirementOperations(Transaction transactionDto,
+  public static List<Operation> getPoolRetirementOperations(BlockTx tranDto,
       OperationStatus status, List<List<Operation>> totalOperations) {
     return IntStream.range(0,
-            nullable(transactionDto.getPoolRetirements()).size())
+            nullable(tranDto.getPoolRetirements()).size())
         .mapToObj(index -> {
-          PoolRetirement poolRetirement = transactionDto.getPoolRetirements().get(index);
+          PoolRetirement poolRetirement = tranDto.getPoolRetirements().get(index);
           return Operation.builder()
               .operationIdentifier(OperationIdentifier.builder().index(
                   getOperationCurrentIndex(totalOperations, index)).build())
@@ -169,12 +167,12 @@ class OperationDataMapper {
         }).toList();
   }
 
-  public static List<Operation> getStakeRegistrationOperations(Transaction transactionDto,
+  public static List<Operation> getStakeRegistrationOperations(BlockTx transaction,
       OperationStatus status, List<List<Operation>> totalOperations) {
     return IntStream.range(0,
-            nullable(transactionDto.getStakeRegistrations()).size())
+            nullable(transaction.getStakeRegistrations()).size())
         .mapToObj(index -> {
-          StakeRegistration stakeRegistration = transactionDto.getStakeRegistrations().get(index);
+          StakeRegistration stakeRegistration = transaction.getStakeRegistrations().get(index);
           OperationType operationType =
               stakeRegistration.getType().equals(CertificateType.STAKE_REGISTRATION)
                   ? OperationType.STAKE_KEY_REGISTRATION :
@@ -199,7 +197,7 @@ class OperationDataMapper {
         }).toList();
   }
 
-  public static List<Operation> getDelegationOperations(Transaction transaction,
+  public static List<Operation> getDelegationOperations(BlockTx transaction,
       OperationStatus status, List<List<Operation>> totalOperations) {
     return IntStream.range(0,
             nullable(transaction.getDelegations()).size())
@@ -219,7 +217,7 @@ class OperationDataMapper {
   }
 
   @NotNull
-  public static List<Operation> getOutputsAsOperations(Transaction transaction,
+  public static List<Operation> getOutputsAsOperations(BlockTx transaction,
       List<List<Operation>> totalOperations, OperationStatus status,
       List<OperationIdentifier> relatedOperations) {
     return IntStream.range(0, nullable(transaction.getOutputs()).size())
@@ -286,7 +284,10 @@ class OperationDataMapper {
 
   public static List<OperationIdentifier> getOperationIndexes(List<Operation> operations) {
     return operations.stream()
-        .map(operation -> OperationIdentifier.builder().index(operation.getOperationIdentifier()
-            .getIndex()).build()).collect(Collectors.toList());
+        .map(operation -> OperationIdentifier
+            .builder()
+            .index(operation.getOperationIdentifier().getIndex())
+            .build())
+        .collect(Collectors.toList());
   }
 }
