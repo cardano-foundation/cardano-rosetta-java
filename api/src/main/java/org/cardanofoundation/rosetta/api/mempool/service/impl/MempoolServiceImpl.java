@@ -9,14 +9,12 @@ import java.util.List;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import lombok.val;
 import org.cardanofoundation.rosetta.api.mempool.service.MempoolService;
 import org.cardanofoundation.rosetta.api.network.service.NetworkService;
-import org.cardanofoundation.rosetta.common.model.cardano.transaction.RawTransaction;
+import org.cardanofoundation.rosetta.common.model.cardano.transaction.MemPoolTransaction;
 import org.openapitools.client.model.TransactionIdentifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Conditional;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -37,7 +35,7 @@ public class MempoolServiceImpl implements MempoolService {
   private int devkitPort;
   @Value("${cardano.rosetta.DEVKIT_URL}")
   private String devkitHost;
-  List<RawTransaction> rawTransactions = new ArrayList<>();
+  List<MemPoolTransaction> rawTransactions = new ArrayList<>();
 
   /**
    * Fetches the mempool transactions from the node and stores them in the rawTransactions list.
@@ -51,8 +49,12 @@ public class MempoolServiceImpl implements MempoolService {
     }
     rawTransactions = txMonitorClient.acquireAndGetMempoolTransactions().map(bytes -> {
       log.info("TxHash: {}", TransactionUtil.getTxHash(bytes));
-      String txHash = TransactionUtil.getTxHash(bytes);
-      return new RawTransaction(txHash, bytes);
+      return new MemPoolTransaction(
+          TransactionIdentifier
+              .builder()
+              .hash(TransactionUtil.getTxHash(bytes))
+              .build(),
+          bytes);
     }).collectList().block();
   }
 
@@ -66,15 +68,15 @@ public class MempoolServiceImpl implements MempoolService {
 
   @Override
   public List<TransactionIdentifier> getCurrentTransactionIdentifiers(String network) {
-    List<TransactionIdentifier> list = rawTransactions.stream()
-        .map(rawTransaction ->
-            TransactionIdentifier
-            .builder()
-            .hash(rawTransaction.txhash())
-            .build()).toList();
-    return list;
+    return rawTransactions.stream().map(MemPoolTransaction::identifier).toList();
   }
 
+  /**
+   * Creates a LocalClientProvider based on the configuration. Yaci Devkit only supports N2C
+   * communication. For regular nodes Sockets are used.
+   *
+   * @return LocalClientProvider
+   */
   private LocalClientProvider createLocalClientProvider() {
     Network supportedNetwork = networkService.getSupportedNetwork();
     if (devkitEnabled) {
