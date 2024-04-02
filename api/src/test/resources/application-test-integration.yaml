@@ -50,7 +50,9 @@ cardano:
       '1.0.0-SNAPSHOT'
     TOPOLOGY_FILEPATH: ../config/devkit/topology.json
     GENESIS_SHELLEY_PATH: ../config/devkit/shelley-genesis.json
-    CARDANO_NODE_VERSION: "8.1.2"
+    CARDANO_NODE_VERSION: "8.9.0"
+    CARDANO_NODE_HOST: localhost
+    NODE_SUBMIT_API_PORT: 8090
 
 page-size: ${PAGE_SIZE:5}
 cardano-transaction-submitter:

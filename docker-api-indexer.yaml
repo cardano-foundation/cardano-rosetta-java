@@ -25,6 +25,8 @@ services:
       TRANSACTION_TTL: ${TRANSACTION_TTL}
       TOPOLOGY_FILEPATH: ${TOPOLOGY_FILEPATH}
       GENESIS_SHELLEY_PATH: ${GENESIS_SHELLEY_PATH}
+      NODE_SUBMIT_API_PORT: ${NODE_SUBMIT_API_PORT}
+      CARDANO_NODE_HOST: ${CARDANO_NODE_HOST}
     depends_on:
       db:
         condition: service_healthy
