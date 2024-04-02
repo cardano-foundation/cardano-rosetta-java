@@ -29,8 +29,6 @@ class BlockServiceImplTest {
   private LedgerDataProviderService ledgerDataProviderService;
   @InjectMocks
   private BlockServiceImpl blockService;
-  private final String blockTxHash = "txHash1";
-
 
   @Test
   void getBlockByBlockRequest_OK() {
@@ -141,14 +139,15 @@ class BlockServiceImplTest {
   void getBlockTransaction_Test_OK() {
 
     //given
-    Tran tx = newTran();
+    String txHash = "txHash1";
+    Tran tx = newTran(txHash);
     long blockId = 1L;
     String blockHash = "hash1";
     when(ledgerDataProviderService.findTransactionsByBlock(blockId, blockHash))
         .thenReturn(List.of(tx));
 
     //when
-    Tran blockTransaction = blockService.getBlockTransaction(blockId, blockHash, blockTxHash);
+    Tran blockTransaction = blockService.getBlockTransaction(blockId, blockHash, txHash);
 
     //then
     assertThat(blockTransaction).isEqualTo(tx);
@@ -159,26 +158,22 @@ class BlockServiceImplTest {
   void getBlockTransaction_Test_notFoundTransaction() {
 
     //given
-    Tran tx = newTran();
     long blockId = 1L;
     String blockHash = "hash1";
     when(ledgerDataProviderService.findTransactionsByBlock(blockId, blockHash))
-        .thenReturn(List.of(Tran.builder().hash("any").build()));
+        .thenReturn(List.of(newTran("any")));
 
     try {
       //when
-      blockService.getBlockTransaction(blockId, blockHash, blockTxHash);
-
+      blockService.getBlockTransaction(blockId, blockHash, "differentFromAny");
     } catch (ApiException e) {
       //then
       assertThat(e.getError().getCode()).isEqualTo(TRANSACTION_NOT_FOUND.getCode());
     }
   }
 
-  private Tran newTran() {
-    return Tran.builder()
-        .hash(blockTxHash)
-        .build();
+  private Tran newTran(String hash) {
+    return Tran.builder().hash(hash).build();
   }
 
 
