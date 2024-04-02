@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
-import org.cardanofoundation.rosetta.api.block.model.domain.Tran;
+import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.common.exception.ApiException;
 import org.cardanofoundation.rosetta.common.services.LedgerDataProviderService;
 
@@ -140,14 +140,14 @@ class BlockServiceImplTest {
 
     //given
     String txHash = "txHash1";
-    Tran tx = newTran(txHash);
+    BlockTx tx = newTran(txHash);
     long blockId = 1L;
     String blockHash = "hash1";
     when(ledgerDataProviderService.findTransactionsByBlock(blockId, blockHash))
         .thenReturn(List.of(tx));
 
     //when
-    Tran blockTransaction = blockService.getBlockTransaction(blockId, blockHash, txHash);
+    BlockTx blockTransaction = blockService.getBlockTransaction(blockId, blockHash, txHash);
 
     //then
     assertThat(blockTransaction).isEqualTo(tx);
@@ -172,8 +172,8 @@ class BlockServiceImplTest {
     }
   }
 
-  private Tran newTran(String hash) {
-    return Tran.builder().hash(hash).build();
+  private BlockTx newTran(String hash) {
+    return BlockTx.builder().hash(hash).build();
   }
 
 

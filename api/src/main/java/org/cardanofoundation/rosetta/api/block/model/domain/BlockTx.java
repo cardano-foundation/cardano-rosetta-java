@@ -16,7 +16,7 @@ import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder
-public class Tran {
+public class BlockTx {
 
   protected String hash;
   protected String blockHash;

@@ -1,14 +1,11 @@
 package org.cardanofoundation.rosetta.api.block.model.domain;
 
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import org.cardanofoundation.rosetta.api.block.model.entity.BlockEntity;
 
 @Data
 @AllArgsConstructor
@@ -26,7 +23,7 @@ public class Block {
   private Integer size;
   private Integer epochNo;
   private Long slotNo;
-  private List<Tran> transactions;
+  private List<BlockTx> transactions;
   private String poolDeposit;
 
 }

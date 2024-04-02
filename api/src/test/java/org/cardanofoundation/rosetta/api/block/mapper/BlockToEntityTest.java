@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 
 import org.cardanofoundation.rosetta.api.BaseMapperTest;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
-import org.cardanofoundation.rosetta.api.block.model.domain.Tran;
+import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.model.entity.BlockEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.TxOuput;
 import org.cardanofoundation.rosetta.api.block.model.entity.TxnEntity;
@@ -69,7 +69,7 @@ class BlockToEntityTest extends BaseMapperTest {
     return from.getTransactions().getFirst();
   }
 
-  private static Tran to(Block into) {
+  private static BlockTx to(Block into) {
     return into.getTransactions().getFirst();
   }
 

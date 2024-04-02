@@ -6,7 +6,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.spi.MappingContext;
 
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
-import org.cardanofoundation.rosetta.api.block.model.domain.Tran;
+import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.model.entity.TxnEntity;
 import org.cardanofoundation.rosetta.common.annotation.PersistenceMapper;
 
@@ -18,19 +18,19 @@ public class TranToEntity {
 
   final ModelMapper modelMapper;
 
-  public Tran fromEntity(TxnEntity model) {
+  public BlockTx fromEntity(TxnEntity model) {
 
-    return ofNullable(modelMapper.getTypeMap(TxnEntity.class, Tran.class))
-        .orElseGet(() -> modelMapper.createTypeMap(TxnEntity.class, Tran.class))
+    return ofNullable(modelMapper.getTypeMap(TxnEntity.class, BlockTx.class))
+        .orElseGet(() -> modelMapper.createTypeMap(TxnEntity.class, BlockTx.class))
         .addMappings(mapper -> {
 
-          mapper.map(TxnEntity::getTxHash, Tran::setHash);
-          mapper.map(tx -> tx.getBlock().getHash(), Tran::setBlockHash);
-          mapper.map(tx -> tx.getBlock().getNumber(), Tran::setBlockNo);
-          mapper.map(tx -> 0L, Tran::setSize); // TODO saa: why is this 0L?
-          mapper.map(tx -> 0L, Tran::setScriptSize); // TODO why is this 0L?
+          mapper.map(TxnEntity::getTxHash, BlockTx::setHash);
+          mapper.map(tx -> tx.getBlock().getHash(), BlockTx::setBlockHash);
+          mapper.map(tx -> tx.getBlock().getNumber(), BlockTx::setBlockNo);
+          mapper.map(tx -> 0L, BlockTx::setSize); // TODO saa: why is this 0L?
+          mapper.map(tx -> 0L, BlockTx::setScriptSize); // TODO why is this 0L?
 
-          mapper.map(TxnEntity::getInvalid, Tran::setValidContract);
+          mapper.map(TxnEntity::getInvalid, BlockTx::setValidContract);
 
         })
         .setPostConverter(ctx -> {
@@ -46,11 +46,11 @@ public class TranToEntity {
         .map(model);
   }
 
-  private static TxnEntity source(MappingContext<TxnEntity, Tran> ctx) {
+  private static TxnEntity source(MappingContext<TxnEntity, BlockTx> ctx) {
     return ctx.getSource();
   }
 
-  private static Tran dest(MappingContext<TxnEntity, Tran> ctx) {
+  private static BlockTx dest(MappingContext<TxnEntity, BlockTx> ctx) {
     return ctx.getDestination();
   }
 

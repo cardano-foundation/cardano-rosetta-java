@@ -11,17 +11,11 @@ import org.modelmapper.spi.MappingContext;
 import org.openapitools.client.model.BlockIdentifier;
 import org.openapitools.client.model.BlockMetadata;
 import org.openapitools.client.model.BlockResponse;
-import org.openapitools.client.model.Operation;
-import org.openapitools.client.model.OperationStatus;
 import org.openapitools.client.model.Transaction;
-import org.openapitools.client.model.TransactionIdentifier;
-import org.openapitools.client.model.TransactionMetadata;
 
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
-import org.cardanofoundation.rosetta.api.block.model.domain.Tran;
+import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.common.annotation.OpenApiMapper;
-
-import static org.cardanofoundation.rosetta.common.util.RosettaConstants.SUCCESS_OPERATION_STATUS;
 
 @OpenApiMapper
 @AllArgsConstructor
@@ -84,23 +78,23 @@ public class BlockToBlockResponse {
    * @return The list of Rosetta compatible Transactions
    */
   public List<Transaction> mapToRosettaTransactions(
-      List<Tran> transactions,
+      List<BlockTx> transactions,
       String poolDeposit) {
     List<Transaction> rosettaTransactions = new ArrayList<>();
-    for (Tran tranDto : transactions) {
+    for (BlockTx tranDto : transactions) {
       rosettaTransactions.add(mapToRosettaTransaction.toDto(tranDto, poolDeposit));
     }
     return rosettaTransactions;
   }
 
 //  /**
-//   * Maps a TransactionDto to a Rosetta compatible Tran.
+//   * Maps a TransactionDto to a Rosetta compatible BlockTx.
 //   *
 //   * @param transaction The Cardano transaction to be mapped
 //   * @param poolDeposit The pool deposit
 //   * @return The Rosetta compatible Transaction
 //   */
-//  public static Transaction mapToRosettaTransaction(Tran transaction, String poolDeposit) {
+//  public static Transaction mapToRosettaTransaction(BlockTx transaction, String poolDeposit) {
 //    Transaction rosettaTransaction = new Transaction();
 //    TransactionIdentifier identifier = new TransactionIdentifier();
 //    identifier.setHash(transaction.getHash());

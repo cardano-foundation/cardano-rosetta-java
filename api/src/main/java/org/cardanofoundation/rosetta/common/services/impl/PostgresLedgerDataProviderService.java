@@ -31,7 +31,7 @@ import org.cardanofoundation.rosetta.api.block.model.domain.PoolRegistration;
 import org.cardanofoundation.rosetta.api.block.model.domain.PoolRetirement;
 import org.cardanofoundation.rosetta.api.block.model.domain.StakeAddressBalance;
 import org.cardanofoundation.rosetta.api.block.model.domain.StakeRegistration;
-import org.cardanofoundation.rosetta.api.block.model.domain.Tran;
+import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.model.entity.BlockEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.ProtocolParams;
 import org.cardanofoundation.rosetta.api.block.model.entity.StakeAddressBalanceEntity;
@@ -111,8 +111,8 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
     return null;
   }
 
-  private void populateTransactions(List<Tran> transactions) {
-    for (Tran transaction : transactions) {
+  private void populateTransactions(List<BlockTx> transactions) {
+    for (BlockTx transaction : transactions) {
       populateUtxos(transaction.getInputs());
       populateUtxos(transaction.getOutputs());
       transaction.setStakeRegistrations(
@@ -187,7 +187,7 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
   }
 
   @Override
-  public List<Tran> findTransactionsByBlock(Long blockNumber, String blockHash) {
+  public List<BlockTx> findTransactionsByBlock(Long blockNumber, String blockHash) {
     log.debug(
         "[findTransactionsByBlock] Parameters received for run query blockNumber: {} blockHash: {}",
         blockNumber, blockHash);
@@ -203,7 +203,7 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
     log.debug(
         "[findTransactionsByBlock] Found {} transactions", txList.size());
     if (ObjectUtils.isNotEmpty(txList)) {
-      List<Tran> transactions = txList.stream().map(mapperTran::fromEntity).toList();
+      List<BlockTx> transactions = txList.stream().map(mapperTran::fromEntity).toList();
       populateTransactions(transactions);
       return transactions;
     }

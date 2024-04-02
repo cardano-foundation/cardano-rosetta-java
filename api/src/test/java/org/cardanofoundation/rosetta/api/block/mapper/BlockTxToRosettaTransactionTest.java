@@ -8,12 +8,11 @@ import org.junit.jupiter.api.Test;
 import org.cardanofoundation.rosetta.api.BaseMapperTest;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.account.model.entity.Amt;
-import org.cardanofoundation.rosetta.api.block.model.domain.Tran;
-import org.cardanofoundation.rosetta.common.util.Constants;
+import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class TranToRosettaTransactionTest extends BaseMapperTest {
+class BlockTxToRosettaTransactionTest extends BaseMapperTest {
 
   @Test
   void toDto_Test() {
@@ -21,7 +20,7 @@ class TranToRosettaTransactionTest extends BaseMapperTest {
     //given
     TranToRosettaTransaction my = new TranToRosettaTransaction(modelMapper);
     my.modelMapper.validate();
-    Tran from = newTran();
+    BlockTx from = newTran();
 
     //when
     org.openapitools.client.model.Transaction into = my.toDto(from, "5000");
@@ -43,8 +42,8 @@ class TranToRosettaTransactionTest extends BaseMapperTest {
 
   }
 
-  private Tran newTran() {
-    return Tran
+  private BlockTx newTran() {
+    return BlockTx
         .builder()
         .blockNo(11L)
         .blockHash("blockHash11")

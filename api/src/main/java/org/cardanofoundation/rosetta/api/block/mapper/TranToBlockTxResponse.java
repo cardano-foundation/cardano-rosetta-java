@@ -7,7 +7,7 @@ import lombok.AllArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.openapitools.client.model.BlockTransactionResponse;
 
-import org.cardanofoundation.rosetta.api.block.model.domain.Tran;
+import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.common.annotation.OpenApiMapper;
 
 @OpenApiMapper
@@ -19,10 +19,10 @@ public class TranToBlockTxResponse {
   final TranToRosettaTransaction tranToRosettaTransaction;
 
 
-  public BlockTransactionResponse toDto(Tran model, String poolDeposit) {
+  public BlockTransactionResponse toDto(BlockTx model, String poolDeposit) {
     return Optional
-        .ofNullable(modelMapper.getTypeMap(Tran.class, BlockTransactionResponse.class))
-        .orElseGet(() -> modelMapper.createTypeMap(Tran.class, BlockTransactionResponse.class))
+        .ofNullable(modelMapper.getTypeMap(BlockTx.class, BlockTransactionResponse.class))
+        .orElseGet(() -> modelMapper.createTypeMap(BlockTx.class, BlockTransactionResponse.class))
         .setPostConverter(ctx -> {
           ctx.getDestination().setTransaction(tranToRosettaTransaction.toDto(model, poolDeposit));
           return ctx.getDestination();

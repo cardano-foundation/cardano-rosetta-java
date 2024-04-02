@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.cardanofoundation.rosetta.api.IntegrationTest;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
-import org.cardanofoundation.rosetta.api.block.model.domain.Tran;
+import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.testgenerator.common.TestConstants;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -43,7 +43,7 @@ class BlockServiceImplIntTest extends IntegrationTest {
 
     //given
     //when
-    Tran tx = blockService.getBlockTransaction(
+    BlockTx tx = blockService.getBlockTransaction(
         generatedTestData.getTopUpBlockNumber(),
         generatedTestData.getTopUpBlockHash(),
         generatedTestData.getTopUpTxHash());
@@ -62,27 +62,24 @@ class BlockServiceImplIntTest extends IntegrationTest {
     assertEquals(0, tx.getPoolRetirements().size());
     assertEquals(0, tx.getDelegations().size());
 
-    Utxo first = tx.getInputs().getFirst();
+    Utxo inUtxo = tx.getInputs().getFirst();
 
     //TODO saa: how to check?
-//    assertEquals(TestConstants.TEST_ACCOUNT_ADDRESS, first.getOwnerAddr());
-//    assertEquals(generatedTestData.getTopUpTxHash(), first.getTxHash());
+//    assertEquals(generatedTestData.getTopUpTxHash(), inUtxo.getTxHash());
+//    assertEquals(TestConstants.TEST_ACCOUNT_ADDRESS, inUtxo.getOwnerAddr());
 
-    Utxo receiverUtxoDto = tx.getOutputs().getFirst();
-    assertEquals(TestConstants.TEST_ACCOUNT_ADDRESS, receiverUtxoDto.getOwnerAddr());
-    assertEquals(generatedTestData.getTopUpTxHash(), receiverUtxoDto.getTxHash());
-    assertEquals(TestConstants.ACCOUNT_BALANCE_ADA_AMOUNT,
-        receiverUtxoDto.getLovelaceAmount().toString());
+    Utxo outUtxo = tx.getOutputs().getFirst();
+    assertEquals(TestConstants.TEST_ACCOUNT_ADDRESS, outUtxo.getOwnerAddr());
+    assertEquals(generatedTestData.getTopUpTxHash(), outUtxo.getTxHash());
+    assertEquals(TestConstants.ACCOUNT_BALANCE_ADA_AMOUNT, outUtxo.getLovelaceAmount().toString());
 
   }
 
 
   @Test
   void getDepositPool_Test() {
-
     String poolDeposit = blockService.getPoolDeposit();
     assertEquals("500000000", poolDeposit);
-
   }
 
 }

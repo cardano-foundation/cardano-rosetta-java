@@ -27,11 +27,11 @@ import org.openapitools.client.model.TokenBundleItem;
 
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.account.model.entity.Amt;
+import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.model.domain.Delegation;
 import org.cardanofoundation.rosetta.api.block.model.domain.PoolRegistration;
 import org.cardanofoundation.rosetta.api.block.model.domain.PoolRetirement;
 import org.cardanofoundation.rosetta.api.block.model.domain.StakeRegistration;
-import org.cardanofoundation.rosetta.api.block.model.domain.Tran;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.common.mapper.DataMapper;
 import org.cardanofoundation.rosetta.common.util.Constants;
@@ -43,7 +43,7 @@ import static org.cardanofoundation.rosetta.common.util.Constants.ADA_DECIMALS;
 class OperationDataMapper {
 
   @NotNull
-  public static List<Operation> getAllOperations(Tran transaction, String poolDeposit,
+  public static List<Operation> getAllOperations(BlockTx transaction, String poolDeposit,
       OperationStatus status) {
     List<List<Operation>> totalOperations = new ArrayList<>();
     List<Operation> inputsAsOperations = getInputTransactionsAsOperations(transaction, status);
@@ -98,7 +98,7 @@ class OperationDataMapper {
 //    }
 
   @NotNull
-  public static List<Operation> getInputTransactionsAsOperations(Tran transaction,
+  public static List<Operation> getInputTransactionsAsOperations(BlockTx transaction,
       OperationStatus status) {
 
     return IntStream.range(0, nullable(transaction.getInputs()).size())
@@ -121,7 +121,7 @@ class OperationDataMapper {
     return Optional.ofNullable(list).orElse(Collections.emptyList());
   }
 
-  public static List<Operation> getPoolRegistrationOperations(Tran tranDto,
+  public static List<Operation> getPoolRegistrationOperations(BlockTx tranDto,
       OperationStatus status, List<List<Operation>> totalOperations, String poolDeposit) {
     return IntStream.range(0, nullable(tranDto.getPoolRegistrations()).size())
         .mapToObj(index -> {
@@ -148,7 +148,7 @@ class OperationDataMapper {
         }).toList();
   }
 
-  public static List<Operation> getPoolRetirementOperations(Tran tranDto,
+  public static List<Operation> getPoolRetirementOperations(BlockTx tranDto,
       OperationStatus status, List<List<Operation>> totalOperations) {
     return IntStream.range(0,
             nullable(tranDto.getPoolRetirements()).size())
@@ -167,7 +167,7 @@ class OperationDataMapper {
         }).toList();
   }
 
-  public static List<Operation> getStakeRegistrationOperations(Tran transaction,
+  public static List<Operation> getStakeRegistrationOperations(BlockTx transaction,
       OperationStatus status, List<List<Operation>> totalOperations) {
     return IntStream.range(0,
             nullable(transaction.getStakeRegistrations()).size())
@@ -197,7 +197,7 @@ class OperationDataMapper {
         }).toList();
   }
 
-  public static List<Operation> getDelegationOperations(Tran transaction,
+  public static List<Operation> getDelegationOperations(BlockTx transaction,
       OperationStatus status, List<List<Operation>> totalOperations) {
     return IntStream.range(0,
             nullable(transaction.getDelegations()).size())
@@ -217,7 +217,7 @@ class OperationDataMapper {
   }
 
   @NotNull
-  public static List<Operation> getOutputsAsOperations(Tran transaction,
+  public static List<Operation> getOutputsAsOperations(BlockTx transaction,
       List<List<Operation>> totalOperations, OperationStatus status,
       List<OperationIdentifier> relatedOperations) {
     return IntStream.range(0, nullable(transaction.getOutputs()).size())

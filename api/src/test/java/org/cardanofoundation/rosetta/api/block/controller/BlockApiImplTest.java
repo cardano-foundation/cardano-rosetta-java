@@ -17,7 +17,7 @@ import org.cardanofoundation.rosetta.api.SpringMvcTest;
 import org.cardanofoundation.rosetta.api.block.mapper.BlockToBlockResponse;
 import org.cardanofoundation.rosetta.api.block.mapper.TranToBlockTxResponse;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
-import org.cardanofoundation.rosetta.api.block.model.domain.Tran;
+import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.service.BlockService;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 
@@ -94,9 +94,9 @@ class BlockApiImplTest extends SpringMvcTest {
     BlockTransactionRequest req = newBlockTransactionRequest();
 
     when(blockService.getBlockTransaction(anyLong(), anyString(), anyString())).thenReturn(
-        new Tran());
+        new BlockTx());
     when(blockService.getPoolDeposit()).thenReturn("1000"); //any string
-    when(mapperToBlockTxResponse.toDto(any(Tran.class), anyString())).thenReturn(resp);
+    when(mapperToBlockTxResponse.toDto(any(BlockTx.class), anyString())).thenReturn(resp);
 
     //when
     //then

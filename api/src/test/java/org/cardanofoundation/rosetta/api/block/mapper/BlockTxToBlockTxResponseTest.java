@@ -17,18 +17,18 @@ import org.cardanofoundation.rosetta.api.block.model.domain.Delegation;
 import org.cardanofoundation.rosetta.api.block.model.domain.PoolRegistration;
 import org.cardanofoundation.rosetta.api.block.model.domain.PoolRetirement;
 import org.cardanofoundation.rosetta.api.block.model.domain.StakeRegistration;
-import org.cardanofoundation.rosetta.api.block.model.domain.Tran;
+import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class TranToBlockTxResponseTest extends BaseMapperTest {
+class BlockTxToBlockTxResponseTest extends BaseMapperTest {
 
   @Test
   void toDto() {
     //given
     TranToRosettaTransaction tx = new TranToRosettaTransaction(modelMapper);
     TranToBlockTxResponse my = new TranToBlockTxResponse(modelMapper, tx);
-    Tran from = newTran();
+    BlockTx from = newTran();
 
     // when
     BlockTransactionResponse into = my.toDto(from, "5000");
@@ -48,8 +48,8 @@ class TranToBlockTxResponseTest extends BaseMapperTest {
 
   }
 
-  private Tran newTran() {
-    return Tran
+  private BlockTx newTran() {
+    return BlockTx
         .builder()
         .blockNo(11L)
         .blockHash("blockHash11")

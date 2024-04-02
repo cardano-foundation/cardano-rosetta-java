@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 import org.json.JSONObject;
 
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
-import org.cardanofoundation.rosetta.api.block.model.domain.Tran;
+import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.common.exception.ApiException;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.services.LedgerDataProviderService;
@@ -63,7 +63,7 @@ public class BlockServiceImpl implements BlockService {
   }
 
   @Override
-  public Tran getBlockTransaction(Long blockId, String blockHash, String txHash) {
+  public BlockTx getBlockTransaction(Long blockId, String blockHash, String txHash) {
     return ledgerDataProviderService
         .findTransactionsByBlock(blockId, blockHash)
         .stream()

@@ -6,9 +6,9 @@ import java.util.List;
 import org.cardanofoundation.rosetta.api.account.model.domain.AddressBalance;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
+import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.model.domain.GenesisBlock;
 import org.cardanofoundation.rosetta.api.block.model.domain.StakeAddressBalance;
-import org.cardanofoundation.rosetta.api.block.model.domain.Tran;
 import org.cardanofoundation.rosetta.api.block.model.entity.ProtocolParams;
 import org.openapitools.client.model.Currency;
 
@@ -44,7 +44,7 @@ public interface LedgerDataProviderService {
    * @param hash block hash
    * @return the list of transactions
    */
-  List<Tran> findTransactionsByBlock(Long number, String hash);
+  List<BlockTx> findTransactionsByBlock(Long number, String hash);
 
     ProtocolParams findProtocolParametersFromConfig();
 

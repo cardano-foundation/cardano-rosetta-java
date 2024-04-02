@@ -15,7 +15,7 @@ import org.openapitools.client.model.PartialBlockIdentifier;
 import org.cardanofoundation.rosetta.api.block.mapper.BlockToBlockResponse;
 import org.cardanofoundation.rosetta.api.block.mapper.TranToBlockTxResponse;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
-import org.cardanofoundation.rosetta.api.block.model.domain.Tran;
+import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.service.BlockService;
 
 @RestController
@@ -47,7 +47,7 @@ public class BlockApiImpl implements BlockApi {
     String blockHash = blockReq.getBlockIdentifier().getHash();
     String txHash = blockReq.getTransactionIdentifier().getHash();
 
-    Tran tx = blockService.getBlockTransaction(blockId, blockHash, txHash);
+    BlockTx tx = blockService.getBlockTransaction(blockId, blockHash, txHash);
     String poolDeposit = blockService.getPoolDeposit();
 
     return ResponseEntity.ok(mapperToBlockTxResponse.toDto(tx, poolDeposit));

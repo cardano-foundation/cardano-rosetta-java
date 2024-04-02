@@ -7,7 +7,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import org.cardanofoundation.rosetta.api.BaseMapperTest;
-import org.cardanofoundation.rosetta.api.block.model.domain.Tran;
+import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.model.entity.BlockEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.TxOuput;
 import org.cardanofoundation.rosetta.api.block.model.entity.TxnEntity;
@@ -15,7 +15,7 @@ import org.cardanofoundation.rosetta.api.block.model.entity.UtxoKey;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class TranToEntityTest extends BaseMapperTest {
+class BlockTxToEntityTest extends BaseMapperTest {
 
   private final UtxoKey inUtxKey = new UtxoKey("in_UtxoKey_txHash1", 55);
   private final UtxoKey outUtxKey = new UtxoKey("out_UtxoKey_txHash1", 55);
@@ -29,7 +29,7 @@ class TranToEntityTest extends BaseMapperTest {
 
 
     //when
-    Tran into = my.fromEntity(from);
+    BlockTx into = my.fromEntity(from);
 
     //then
     assertThat(into.getFee()).isEqualTo(from.getFee().toString());
