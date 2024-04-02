@@ -8,7 +8,6 @@ import org.cardanofoundation.rosetta.api.account.model.domain.AddressBalance;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.block.model.domain.*;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
-import org.cardanofoundation.rosetta.api.block.model.domain.Transaction;
 import org.cardanofoundation.rosetta.common.model.cardano.crypto.Signatures;
 import org.cardanofoundation.rosetta.common.util.Constants;
 import org.cardanofoundation.rosetta.api.block.model.entity.ProtocolParams;
@@ -16,10 +15,7 @@ import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
 import org.openapitools.client.model.*;
 import org.openapitools.client.model.Currency;
 import org.springframework.stereotype.Component;
-
 import java.util.*;
-
-import static org.cardanofoundation.rosetta.common.util.RosettaConstants.SUCCESS_OPERATION_STATUS;
 
 
 @Slf4j
@@ -36,7 +32,8 @@ public class DataMapper {
    */
   public static NetworkListResponse mapToNetworkListResponse(Network supportedNetwork) {
     NetworkIdentifier identifier = NetworkIdentifier.builder().blockchain(Constants.CARDANO)
-            .network(NetworkEnum.fromProtocolMagic(supportedNetwork.getProtocolMagic()).getValue()).build();
+            .network(Objects.requireNonNull(
+                NetworkEnum.fromProtocolMagic(supportedNetwork.getProtocolMagic())).getValue()).build();
     return NetworkListResponse.builder().networkIdentifiers(List.of(identifier)).build();
   }
 

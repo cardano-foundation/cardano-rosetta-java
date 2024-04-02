@@ -14,6 +14,7 @@ import org.cardanofoundation.rosetta.common.enumeration.AddressType;
 import org.cardanofoundation.rosetta.common.enumeration.EraAddressType;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
 import org.cardanofoundation.rosetta.common.model.cardano.crypto.Signatures;
+import org.cardanofoundation.rosetta.common.model.cardano.transaction.TransactionParsed;
 import org.openapitools.client.model.DepositParameters;
 import org.openapitools.client.model.Operation;
 
@@ -28,16 +29,20 @@ public interface CardanoService {
 
 
   String getHashOfSignedTransaction(String signedTransaction);
-  Array decodeExtraData(String encoded);
+  Array decodeTransaction(String encoded);
   Long calculateTtl(Long ttlOffset);
+
+  TransactionParsed parseTransaction(NetworkIdentifierType networkIdentifierType,
+      String transaction, boolean signed);
+
   Double checkOrReturnDefaultTtl(Integer relativeTtl);
-  Long updateTxSize(Long previousTxSize, Long previousTtl, Long updatedTtl) throws CborSerializationException, CborException;
+  Long updateTxSize(Long previousTxSize, Long previousTtl, Long updatedTtl);
   Long calculateTxMinimumFee(Long transactionSize, ProtocolParams protocolParameters);
 
   Signatures signatureProcessor(EraAddressType eraAddressType, AddressType addressType,
       String address);
 
-  Double calculateTxSize(NetworkIdentifierType networkIdentifierType, List<Operation> operations, int ttl, DepositParameters depositParameters) throws IOException, CborException, AddressExcepion, CborSerializationException;
+  Double calculateTxSize(NetworkIdentifierType networkIdentifierType, List<Operation> operations, int ttl, DepositParameters depositParameters);
 
   String buildTransaction(String unsignedTransaction,
       List<Signatures> signaturesList, String transactionMetadata);

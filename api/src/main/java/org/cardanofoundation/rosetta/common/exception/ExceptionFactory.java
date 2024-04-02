@@ -74,6 +74,10 @@ public class ExceptionFactory {
   public static ApiException invalidPublicKeyFormat() {
     return new ApiException(RosettaErrorType.INVALID_PUBLIC_KEY_FORMAT.toRosettaError(false));
   }
+
+  public static ApiException publicKeyMissing() {
+    return new ApiException(RosettaErrorType.PUBLIC_KEY_MISSING.toRosettaError(false));
+  }
   public static ApiException missingVoteRegistrationMetadata() {
     return new ApiException(RosettaErrorType.MISSING_VOTE_REGISTRATION_METADATA.toRosettaError(false));
   }
@@ -137,6 +141,10 @@ public class ExceptionFactory {
   }
   public static ApiException cantCreateUnsignedTransactionFromBytes() {
     return new ApiException(RosettaErrorType.CANT_CREATE_UNSIGNED_TRANSACTION_ERROR.toRosettaError(false));
+  }
+
+  public static ApiException cantEncodeExtraData() {
+    return new ApiException(RosettaErrorType.CANT_ENCODE_EXTRA_DATA.toRosettaError(false));
   }
   public static ApiException cantCreateSignedTransactionFromBytes() {
     return new ApiException(RosettaErrorType.CANT_CREATE_SIGNED_TRANSACTION_ERROR.toRosettaError(false));
