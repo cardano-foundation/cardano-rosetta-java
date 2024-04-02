@@ -40,7 +40,7 @@ class BlockToBlockResponseTest extends BaseMapperTest {
   void toDto_test_Ok() {
 
     //given
-    TranToRosettaTransaction tx2tx = new TranToRosettaTransaction(modelMapper);
+    BlockTxToRosettaTransaction tx2tx = new BlockTxToRosettaTransaction(modelMapper);
     BlockToBlockResponse my = new BlockToBlockResponse(modelMapper,tx2tx);
     my.modelMapper.validate();
 

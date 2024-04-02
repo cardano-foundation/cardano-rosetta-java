@@ -65,8 +65,8 @@ class BlockServiceImplIntTest extends IntegrationTest {
     Utxo inUtxo = tx.getInputs().getFirst();
 
     //TODO saa: how to check?
-//    assertEquals(generatedTestData.getTopUpTxHash(), inUtxo.getTxHash());
-//    assertEquals(TestConstants.TEST_ACCOUNT_ADDRESS, inUtxo.getOwnerAddr());
+    assertEquals(generatedTestData.getTopUpTxHash(), inUtxo.getTxHash());
+    assertEquals(TestConstants.TEST_ACCOUNT_ADDRESS, inUtxo.getOwnerAddr());
 
     Utxo outUtxo = tx.getOutputs().getFirst();
     assertEquals(TestConstants.TEST_ACCOUNT_ADDRESS, outUtxo.getOwnerAddr());

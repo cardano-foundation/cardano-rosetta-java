@@ -25,12 +25,8 @@ class BlockTxToEntityTest extends BaseMapperTest {
     TranToEntity my = new TranToEntity(modelMapper);
     my.modelMapper.validate();
     TxnEntity from = newTxnEntity();
-
-
-
     //when
     BlockTx into = my.fromEntity(from);
-
     //then
     assertThat(into.getFee()).isEqualTo(from.getFee().toString());
     assertThat(into.getHash()).isEqualTo(from.getTxHash());

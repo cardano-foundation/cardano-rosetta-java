@@ -18,7 +18,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
   void toDto_Test() {
 
     //given
-    TranToRosettaTransaction my = new TranToRosettaTransaction(modelMapper);
+    BlockTxToRosettaTransaction my = new BlockTxToRosettaTransaction(modelMapper);
     my.modelMapper.validate();
     BlockTx from = newTran();
 
