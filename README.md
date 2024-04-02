@@ -14,12 +14,12 @@ to fetch the data from the node.
 - [x] Integration test setup
 - API calls
   - Data API
-    - [x] /network/list
-    - [x] /network/status
-    - [x] /network/options
+    - [x] /network/*
     - [x] /block/*
-    - [ ] /mempool/*
     - [x] /account/*
+    - /mempool
+      - [x] /mempool
+      - [ ] /mempool/transaction
   - Construction API
     - [x] /construction/derive
     - [x] /construction/preprocess

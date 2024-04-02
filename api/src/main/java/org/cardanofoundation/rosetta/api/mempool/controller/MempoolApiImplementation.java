@@ -28,10 +28,6 @@ public class MempoolApiImplementation implements MempoolApi {
   @Override
   public ResponseEntity<MempoolTransactionResponse> mempoolTransaction(
       MempoolTransactionRequest mempoolTransactionRequest) {
-    MempoolTransactionResponse mempoolTransactionResponse = MempoolTransactionResponse.builder()
-        .transaction(mempoolService.getMempoolTransaction(mempoolTransactionRequest.getTransactionIdentifier().getHash()))
-        .build();
-
-    return MempoolApi.super.mempoolTransaction(mempoolTransactionRequest);
+    return null;
   }
 }

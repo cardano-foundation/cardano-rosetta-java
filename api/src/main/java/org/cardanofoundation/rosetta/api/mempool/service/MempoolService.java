@@ -7,6 +7,4 @@ import org.openapitools.client.model.TransactionIdentifier;
 public interface MempoolService {
 
   List<TransactionIdentifier> getCurrentTransactionIdentifiers(String network);
-
-  Transaction getMempoolTransaction(String hash);
 }

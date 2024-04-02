@@ -10,6 +10,7 @@ import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.Ordered;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.filter.ForwardedHeaderFilter;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.info.Info;
@@ -25,6 +26,7 @@ import org.openapitools.jackson.nullable.JsonNullableModule;
     "org.cardanofoundation.rosetta.api.network.model.entity",
     "org.cardanofoundation.rosetta.api.common.model.entity"})
 @OpenAPIDefinition(info = @Info(title = "APIs", version = "1.0", description = "Rosetta APIs v1.0"))
+@EnableScheduling
 public class RosettaApiApplication {
 
   public static void main(String[] args) {
