@@ -56,5 +56,5 @@ public interface CardanoService {
 
   UnsignedTransaction createUnsignedTransaction(NetworkIdentifierType networkIdentifier, List<Operation> operations, int ttl, DepositParameters depositParameters) throws IOException, CborSerializationException, AddressExcepion, CborException;
 
-  String submitTransaction(String signedTransaction) throws IOException;
+  String submitTransaction(String signedTransaction);
 }

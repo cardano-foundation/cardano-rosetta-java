@@ -361,29 +361,47 @@ public class CardanoServiceImpl implements CardanoService {
         return processor;
     }
 
+    /**
+     * Submits the signed transaction to the preconfigured SubmitAPI. If successfull the transaction hash is returned.
+     * @param signedTransaction signed transaction in hex format
+     * @return transaction hash
+     * @throws ApiException if the transaction submission fails, additional information is provided in the exception message
+     */
     @Override
-    public String submitTransaction(String signedTransaction) throws IOException, ApiException {
-        String submitURL = Constants.PROTOCOL + CARDANO_NODE_HOST + ":" + NODE_SUBMIT_API_PORT + Constants.SUBMIT_API_PATH;
+    public String submitTransaction(String signedTransaction) throws ApiException {
+        String submitURL = Constants.PROTOCOL + CARDANO_NODE_HOST + ":" + NODE_SUBMIT_API_PORT
+            + Constants.SUBMIT_API_PATH;
         log.info("[submitTransaction] About to submit transaction to {}", submitURL);
-      Request request = null;
+        Request request = null;
         request = new Builder()
             .url(submitURL)
             .addHeader(Constants.CONTENT_TYPE_HEADER_KEY, Constants.CBOR_CONTENT_TYPE)
-            .post(RequestBody.create(MediaType.parse(Constants.CBOR_CONTENT_TYPE), HexUtil.decodeHexString(signedTransaction)))
+            .post(RequestBody.create(MediaType.parse(Constants.CBOR_CONTENT_TYPE),
+                HexUtil.decodeHexString(signedTransaction)))
             .build();
-      OkHttpClient client = new OkHttpClient();
+        OkHttpClient client = new OkHttpClient();
         Call call = client.newCall(request);
-        Response response = call.execute();
+        Response response = null;
+        try {
+            response = call.execute();
 
-        if(response.code() == Constants.SUCCESS_SUBMIT_TX_HTTP_CODE) {
-            String txHash = response.body().string();
-            // removing leading and trailing quotes returned from node API
-            if (txHash.length() == Constants.TX_HASH_LENGTH + 2) {
-                txHash = txHash.substring(1, txHash.length() - 1);
+            if (response.code() == Constants.SUCCESS_SUBMIT_TX_HTTP_CODE) {
+                String txHash = response.body().string();
+                // removing leading and trailing quotes returned from node API
+                if (txHash.length() == Constants.TX_HASH_LENGTH + 2) {
+                    txHash = txHash.substring(1, txHash.length() - 1);
+                }
+                return txHash;
+            } else {
+                throw ExceptionFactory.sendTransactionError(response.body().string());
             }
-            return txHash;
-        } else {
-            throw ExceptionFactory.sendTransactionError(response.body().string());
+        } catch (IOException e) {
+            log.error(e.getMessage() + "[submitTransaction] There was an error submitting transaction");
+            throw ExceptionFactory.sendTransactionError(e.getMessage());
+        } finally {
+            if (response != null) {
+                response.close();
+            }
         }
     }
 
