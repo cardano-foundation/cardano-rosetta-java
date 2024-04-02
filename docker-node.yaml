@@ -7,7 +7,7 @@ services:
       NETWORK: ${NETWORK}
       CARDANO_NODE_SOCKET_PATH: /ipc/node.socket
     volumes:
-      - ./node-ipc:/ipc
+      - ${CARDANO_NODE_SOCKET}:/ipc
     restart: "no"
     ports:
       - "${CARDANO_NODE_PORT}:3001"

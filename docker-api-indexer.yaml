@@ -25,11 +25,16 @@ services:
       TRANSACTION_TTL: ${TRANSACTION_TTL}
       TOPOLOGY_FILEPATH: ${TOPOLOGY_FILEPATH}
       GENESIS_SHELLEY_PATH: ${GENESIS_SHELLEY_PATH}
+      API_NODE_SOCKET_PATH: /ipc/node.socket
+      DEVKIT_ENABLED: ${DEVKIT_ENABLED}
+      DEVKIT_URL: ${DEVKIT_URL}
+      DEVKIT_PORT: ${HOST_N2C_SOCAT_PORT}
     depends_on:
       db:
         condition: service_healthy
     volumes:
       - ./config:/config
+      - ${CARDANO_NODE_SOCKET}:/ipc/node.socket
     healthcheck:
       test: [ "CMD-SHELL", "curl --fail http://localhost:8081/network/options -H 'Content-Type: application/json' --data '{\"metadata\": {}}' -X POST" ]
       interval: 30s

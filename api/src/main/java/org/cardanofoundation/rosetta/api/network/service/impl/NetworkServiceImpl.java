@@ -76,16 +76,16 @@ public class NetworkServiceImpl implements NetworkService {
 
 
   @Override
-  public NetworkListResponse getNetworkList(MetadataRequest metadataRequest)
-      throws IOException {
+  public NetworkListResponse getNetworkList(MetadataRequest metadataRequest) {
     log.info("[networkList] Looking for all supported networks");
-    Network supportedNetwork = getSupportedNetwork();
+    Network supportedNetwork = null;
+    supportedNetwork = getSupportedNetwork();
     return DataMapper.mapToNetworkListResponse(supportedNetwork);
   }
 
   @Override
   public NetworkOptionsResponse getNetworkOptions(NetworkRequest networkRequest)
-      throws IOException, InterruptedException {
+      throws IOException {
     log.info("[networkOptions] Looking for networkOptions");
     InputStream openAPIStream = resourceLoader.getResource(
         "classpath:/rosetta-specifications-1.4.15/api.yaml").getInputStream();
@@ -137,12 +137,17 @@ public class NetworkServiceImpl implements NetworkService {
   }
 
   @Override
-  public Network getSupportedNetwork() throws IOException {
+  public Network getSupportedNetwork() {
 
-    String content = FileUtils.fileReader(genesisPath);
+    String content = null;
+    try {
+      content = FileUtils.fileReader(genesisPath);
+    } catch (IOException e) {
+      throw ExceptionFactory.configNotFoundException();
+    }
     JSONObject object = new JSONObject(content);
-      String networkId = ((String) object.get("networkId")).toLowerCase();
-      Integer networkMagic = (Integer) object.get("networkMagic");
+    String networkId = ((String) object.get("networkId")).toLowerCase();
+    Integer networkMagic = (Integer) object.get("networkMagic");
 
     if (networkId.equals("mainnet")) {
       return Networks.mainnet();
@@ -150,7 +155,7 @@ public class NetworkServiceImpl implements NetworkService {
       return Networks.preprod();
     } else if (Objects.equals(networkMagic, Constants.TESTNET_NETWORK_MAGIC)) {
       return Networks.testnet();
-    } else if(Objects.equals(networkMagic, Constants.DEVNET_NETWORK_MAGIC)) {
+    } else if (Objects.equals(networkMagic, Constants.DEVNET_NETWORK_MAGIC)) {
       return new Network(0b0000, 42);
     } else {
       throw ExceptionFactory.invalidNetworkError();
