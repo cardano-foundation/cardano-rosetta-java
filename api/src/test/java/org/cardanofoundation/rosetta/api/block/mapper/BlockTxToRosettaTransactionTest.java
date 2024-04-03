@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 
 import com.bloxbean.cardano.yaci.core.model.certs.CertificateType;
+import org.assertj.core.util.introspection.CaseFormatUtils;
 import org.jetbrains.annotations.NotNull;
 import org.openapitools.client.model.Amount;
 import org.openapitools.client.model.Currency;
@@ -21,6 +22,8 @@ import org.cardanofoundation.rosetta.api.block.model.domain.StakeRegistration;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.cardanofoundation.rosetta.common.util.Constants.ADA;
+import static org.cardanofoundation.rosetta.common.util.Constants.ADA_DECIMALS;
 
 class BlockTxToRosettaTransactionTest extends BaseMapperTest {
 
@@ -47,38 +50,47 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
     //given
     BlockTxToRosettaTransaction my = given();
     BlockTx from = newTran();
-    from.setStakeRegistrations(List.of(StakeRegistration.builder()
-        .address("stake_addr1")
-        .type(CertificateType.STAKE_REGISTRATION)
-        .slot(1L)
-        .build()));
-    //when
-    Transaction into = my.toDto(from, "5000");
-    //then
-    my.modelMapper.validate();
-    assertThat(into.getMetadata().getSize()).isEqualTo(from.getSize());
-    assertThat(into.getMetadata().getScriptSize()).isEqualTo(from.getScriptSize());
-    assertThat(into.getTransactionIdentifier().getHash()).isEqualTo(from.getHash());
+    List<CertificateType> stakeTypes = List.of(
+        CertificateType.STAKE_REGISTRATION,
+        CertificateType.STAKE_DEREGISTRATION);
 
-    assertThat(into.getOperations().size()).isEqualTo(3);
-    String type = OperationType.STAKE_KEY_REGISTRATION.getValue();
-    Optional<Operation> opt = into.getOperations()
-        .stream()
-        .filter(f-> f.getType().equals(type))
-        .findFirst();
-    assertThat(opt.isPresent()).isTrue();
+    stakeTypes.forEach(stakeType -> {
+      from.setStakeRegistrations(List.of(StakeRegistration.builder()
+          .address("stake_addr1")
+          .type(stakeType)
+          .slot(1L)
+          .build()));
+      //when
+      Transaction into = my.toDto(from, "5000");
+      //then
+      my.modelMapper.validate();
+      assertThat(into.getMetadata().getSize()).isEqualTo(from.getSize());
+      assertThat(into.getMetadata().getScriptSize()).isEqualTo(from.getScriptSize());
+      assertThat(into.getTransactionIdentifier().getHash()).isEqualTo(from.getHash());
 
-    Operation stakeInto = opt.get();
-    StakeRegistration firstFrom = from.getStakeRegistrations().getFirst();
-    assertThat(stakeInto.getType()).isEqualTo(type);
-    assertThat(stakeInto.getStatus()).isEqualTo("success");
-    assertThat(stakeInto.getOperationIdentifier().getIndex()).isEqualTo(1); //index in array
-    assertThat(stakeInto.getOperationIdentifier().getNetworkIndex()).isNull(); //TODO ??
-    assertThat(stakeInto.getAccount().getAddress()).isEqualTo(firstFrom.getAddress());
-    assertThat(stakeInto.getMetadata().getDepositAmount())
-        .isEqualTo(Amount.builder()
-            .currency(Currency.builder().symbol("ADA").decimals(6).build())
-            .value("2000000").build()); //TODO should be checked from genesis json settings?
+      assertThat(into.getOperations().size()).isEqualTo(3);
+      String type = Optional.ofNullable(OperationType.fromValue(convert(stakeType)))
+          .map(OperationType::getValue)
+          .orElseThrow(() -> new IllegalArgumentException("Invalid stake type"));
+      Optional<Operation> opt = into.getOperations()
+          .stream()
+          .filter(f -> f.getType().equals(type))
+          .findFirst();
+      assertThat(opt.isPresent()).isTrue();
+
+      Operation stakeInto = opt.get();
+      StakeRegistration firstFrom = from.getStakeRegistrations().getFirst();
+      assertThat(stakeInto.getType()).isEqualTo(type);
+      assertThat(stakeInto.getStatus()).isEqualTo("success");
+      assertThat(stakeInto.getOperationIdentifier().getIndex()).isEqualTo(1); //index in array
+      assertThat(stakeInto.getOperationIdentifier().getNetworkIndex()).isNull(); //TODO ??
+      assertThat(stakeInto.getAccount().getAddress()).isEqualTo(firstFrom.getAddress());
+      assertThat(stakeInto.getMetadata().getDepositAmount())
+          .isEqualTo(Amount.builder()
+              .currency(Currency.builder().symbol(ADA).decimals(ADA_DECIMALS).build())
+              .value("2000000").build()); //TODO should be checked from genesis json settings?
+    });
+
   }
 
   @NotNull
@@ -86,6 +98,10 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
     BlockTxToRosettaTransaction my = new BlockTxToRosettaTransaction(modelMapper);
     my.modelMapper.validate();
     return my;
+  }
+
+  private static String convert(CertificateType stakeType) {
+    return CaseFormatUtils.toCamelCase("stakeKey " + stakeType.name().substring(6));
   }
 
   private BlockTx newTran() {
