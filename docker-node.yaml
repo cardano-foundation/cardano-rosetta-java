@@ -8,6 +8,7 @@ services:
       - CARDANO_NODE_SOCKET_PATH=/ipc/node.socket
     volumes:
       - ${CARDANO_NODE_SOCKET}:/ipc
+      - ${CARDANO_NODE_DB}:/data/db
     restart: "no"
     ports:
       - "${CARDANO_NODE_PORT}:3001"
