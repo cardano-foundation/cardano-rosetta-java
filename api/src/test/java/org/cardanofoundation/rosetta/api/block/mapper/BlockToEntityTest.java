@@ -22,8 +22,8 @@ class BlockToEntityTest extends BaseMapperTest {
   void fromEntity_Test() {
 
     //given
-    TranToEntity tranToEntity = new TranToEntity(modelMapper);
-    BlockToEntity my = new BlockToEntity(modelMapper, tranToEntity);
+    BlockTxToEntity blockTxToEntity = new BlockTxToEntity(modelMapper);
+    BlockToEntity my = new BlockToEntity(modelMapper, blockTxToEntity);
     my.modelMapper.validate();
     BlockEntity from = newBlockEntity();
 

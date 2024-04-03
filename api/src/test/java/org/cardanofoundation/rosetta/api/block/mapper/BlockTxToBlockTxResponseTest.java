@@ -28,7 +28,7 @@ class BlockTxToBlockTxResponseTest extends BaseMapperTest {
   void toDto() {
     //given
     BlockTxToRosettaTransaction txMapper = new BlockTxToRosettaTransaction(modelMapper);
-    TranToBlockTxResponse my = new TranToBlockTxResponse(modelMapper, txMapper);
+    BlockTxToBlockTxResponse my = new BlockTxToBlockTxResponse(modelMapper, txMapper);
     BlockTx from = newTran();
     // when
     BlockTransactionResponse into = my.toDto(from, "5000");
@@ -36,16 +36,12 @@ class BlockTxToBlockTxResponseTest extends BaseMapperTest {
     my.modelMapper.validate();
 
     Transaction tx = into.getTransaction();
-
     assertThat(tx.getMetadata().getSize()).isEqualTo(from.getSize());
     assertThat(tx.getMetadata().getScriptSize()).isEqualTo(from.getScriptSize());
-
     assertThat(tx.getTransactionIdentifier().getHash()).isEqualTo(from.getHash());
 
     //TODO saa: there are no related transactions for org.openapitools.client.model.Transaction.setRelatedTransactions
     assertThat(tx.getRelatedTransactions()).isNull();
-
-
   }
 
   private BlockTx newTran() {

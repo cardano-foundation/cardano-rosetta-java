@@ -5,7 +5,6 @@ import java.util.concurrent.TimeUnit;
 import lombok.AllArgsConstructor;
 
 import org.modelmapper.ModelMapper;
-import org.modelmapper.spi.MappingContext;
 
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.entity.BlockEntity;
@@ -19,7 +18,7 @@ public class BlockToEntity {
 
   final ModelMapper modelMapper;
 
-  final TranToEntity tranToEntity;
+  final BlockTxToEntity blockTxToEntity;
 
 
   public Block fromEntity(BlockEntity entity) {
@@ -35,35 +34,27 @@ public class BlockToEntity {
 
         })
         .setPostConverter(ctx -> {
+          BlockEntity source = ctx.getSource();
+          Block dest = ctx.getDestination();
 
-          dest(ctx).setCreatedAt(TimeUnit.SECONDS.toMillis(source(ctx).getBlockTimeInSeconds()));
+          dest.setCreatedAt(TimeUnit.SECONDS.toMillis(source.getBlockTimeInSeconds()));
+          dest.setSize(Math.toIntExact(source.getBlockBodySize()));
 
-          dest(ctx).setPreviousBlockHash(
-              ofNullable(source(ctx).getPrev())
-                  .map(BlockEntity::getHash)
-                  .orElse(source(ctx).getHash()));
+          dest.setPreviousBlockHash(ofNullable(source.getPrev())
+              .map(BlockEntity::getHash)
+              .orElse(source.getHash()));
 
-          dest(ctx).setPreviousBlockNumber(
-              ofNullable(source(ctx).getPrev())
-                  .map(BlockEntity::getNumber)
-                  .orElse(0L));
+          dest.setPreviousBlockNumber(ofNullable(source.getPrev())
+              .map(BlockEntity::getNumber)
+              .orElse(0L));
 
-          dest(ctx).setSize(Math.toIntExact(source(ctx).getBlockBodySize()));
-          dest(ctx).setTransactions(
-              source(ctx).getTransactions().stream().map(tranToEntity::fromEntity).toList());
+          dest.setTransactions(source.getTransactions()
+              .stream()
+              .map(blockTxToEntity::fromEntity)
+              .toList());
 
-          return dest(ctx);
-
+          return dest;
         }).map(entity);
-
-  }
-
-  private static BlockEntity source(MappingContext<BlockEntity, Block> ctx) {
-    return ctx.getSource();
-  }
-
-  private static Block dest(MappingContext<BlockEntity, Block> ctx) {
-    return ctx.getDestination();
   }
 
 }

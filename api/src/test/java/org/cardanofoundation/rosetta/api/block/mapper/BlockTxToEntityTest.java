@@ -22,7 +22,7 @@ class BlockTxToEntityTest extends BaseMapperTest {
   @Test
   void fromEntity_Test() {
     //given
-    TranToEntity my = new TranToEntity(modelMapper);
+    BlockTxToEntity my = new BlockTxToEntity(modelMapper);
     my.modelMapper.validate();
     TxnEntity from = newTxnEntity();
     //when

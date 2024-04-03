@@ -12,7 +12,7 @@ import org.cardanofoundation.rosetta.common.annotation.OpenApiMapper;
 
 @OpenApiMapper
 @AllArgsConstructor
-public class TranToBlockTxResponse {
+public class BlockTxToBlockTxResponse {
 
   final ModelMapper modelMapper;
 

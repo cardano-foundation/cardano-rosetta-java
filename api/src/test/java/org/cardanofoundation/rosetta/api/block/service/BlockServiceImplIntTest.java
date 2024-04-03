@@ -56,6 +56,7 @@ class BlockServiceImplIntTest extends IntegrationTest {
     assertEquals(0, tx.getScriptSize());
     assertEquals(1, tx.getInputs().size());
     assertEquals(2, tx.getOutputs().size());
+    //TODO saa check the operations
     assertEquals(0, tx.getStakeRegistrations().size());
     assertEquals(0, tx.getPoolRegistrations().size());
     assertEquals(0, tx.getPoolRetirements().size());
