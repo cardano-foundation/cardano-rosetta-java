@@ -23,6 +23,7 @@ import org.cardanofoundation.rosetta.api.account.model.entity.Amt;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.model.domain.Delegation;
 import org.cardanofoundation.rosetta.api.block.model.domain.PoolRegistration;
+import org.cardanofoundation.rosetta.api.block.model.domain.PoolRetirement;
 import org.cardanofoundation.rosetta.api.block.model.domain.StakeRegistration;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 
@@ -193,6 +194,51 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
     assertThat(poolRegParams.getPoolOwners()).hasSameElementsAs(firstFrom.getOwners());
     assertThat(poolRegParams.getMarginPercentage()).isEqualTo(firstFrom.getMargin());
     assertThat(poolRegParams.getRelays()).hasSameElementsAs(firstFrom.getRelays());
+
+  }
+
+
+  @Test
+  void toDto_Test_getPoolRetirementOperations() {
+    //given
+    BlockTxToRosettaTransaction my = given();
+    BlockTx from = newTran();
+    CertificateType poolReg = CertificateType.POOL_RETIREMENT;
+
+    from.setPoolRetirements(List.of(PoolRetirement.builder()
+        .poolId("pool_addr1")
+        .slot(1L)
+        .epoch(11)
+        .certIndex(33)
+        .blockHash("blockHash1")
+        .txHash("txHash1")
+        .build()));
+
+    //when
+    Transaction into = my.toDto(from, "5000");
+    //then
+    assertThat(into.getMetadata().getSize()).isEqualTo(from.getSize());
+    assertThat(into.getMetadata().getScriptSize()).isEqualTo(from.getScriptSize());
+    assertThat(into.getTransactionIdentifier().getHash()).isEqualTo(from.getHash());
+
+    assertThat(into.getOperations().size()).isEqualTo(3);
+    String type = Optional.ofNullable(OperationType.fromValue(convert(poolReg, "pool")))
+        .map(OperationType::getValue)
+        .orElseThrow(() -> new IllegalArgumentException("Invalid pool type"));
+    Optional<Operation> opt = into.getOperations()
+        .stream()
+        .filter(f -> f.getType().equals(type))
+        .findFirst();
+    assertThat(opt.isPresent()).isTrue();
+
+    Operation stakeInto = opt.get();
+    PoolRetirement firstFrom = from.getPoolRetirements().getFirst();
+    assertThat(stakeInto.getType()).isEqualTo(type);
+    assertThat(stakeInto.getStatus()).isEqualTo("success");
+    assertThat(stakeInto.getOperationIdentifier().getIndex()).isEqualTo(1); //index in array
+    assertThat(stakeInto.getAccount().getAddress()).isEqualTo(firstFrom.getPoolId());
+    assertThat(stakeInto.getMetadata().getEpoch()).isEqualTo(firstFrom.getEpoch());
+
 
   }
 
