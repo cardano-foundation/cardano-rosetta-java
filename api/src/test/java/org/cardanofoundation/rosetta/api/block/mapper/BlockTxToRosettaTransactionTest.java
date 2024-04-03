@@ -2,6 +2,14 @@ package org.cardanofoundation.rosetta.api.block.mapper;
 
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Optional;
+
+import com.bloxbean.cardano.yaci.core.model.certs.CertificateType;
+import org.jetbrains.annotations.NotNull;
+import org.openapitools.client.model.Amount;
+import org.openapitools.client.model.Currency;
+import org.openapitools.client.model.Operation;
+import org.openapitools.client.model.Transaction;
 
 import org.junit.jupiter.api.Test;
 
@@ -9,6 +17,8 @@ import org.cardanofoundation.rosetta.api.BaseMapperTest;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.account.model.entity.Amt;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
+import org.cardanofoundation.rosetta.api.block.model.domain.StakeRegistration;
+import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -18,28 +28,64 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
   void toDto_Test() {
 
     //given
-    BlockTxToRosettaTransaction my = new BlockTxToRosettaTransaction(modelMapper);
-    my.modelMapper.validate();
+    BlockTxToRosettaTransaction my = given();
     BlockTx from = newTran();
 
     //when
-    org.openapitools.client.model.Transaction into = my.toDto(from, "5000");
+    Transaction into = my.toDto(from, "5000");
 
     //then
     my.modelMapper.validate();
     assertThat(into.getMetadata().getSize()).isEqualTo(from.getSize());
     assertThat(into.getMetadata().getScriptSize()).isEqualTo(from.getScriptSize());
     assertThat(into.getTransactionIdentifier().getHash()).isEqualTo(from.getHash());
-
-    //TODO finalize the test
-//    assertThat(into.getOperations().size()).isEqualTo(2);
-//    assertThat(into.getOperations().get(0).getStatus()).isEqualTo("success");
-//    assertThat(into.getOperations().get(0).getOperationIdentifier().getIndex()).isEqualTo(0);
-//    assertThat(into.getOperations().get(0).getOperationIdentifier().getNetworkIndex()).isEqualTo(0);
-//    assertThat(into.getOperations().getFirst().getType()).isEqualTo(Constants.INPUT);
+  }
 
 
+  @Test
+  void toDto_Test_stakeRegistrationOperations() {
+    //given
+    BlockTxToRosettaTransaction my = given();
+    BlockTx from = newTran();
+    from.setStakeRegistrations(List.of(StakeRegistration.builder()
+        .address("stake_addr1")
+        .type(CertificateType.STAKE_REGISTRATION)
+        .slot(1L)
+        .build()));
+    //when
+    Transaction into = my.toDto(from, "5000");
+    //then
+    my.modelMapper.validate();
+    assertThat(into.getMetadata().getSize()).isEqualTo(from.getSize());
+    assertThat(into.getMetadata().getScriptSize()).isEqualTo(from.getScriptSize());
+    assertThat(into.getTransactionIdentifier().getHash()).isEqualTo(from.getHash());
 
+    assertThat(into.getOperations().size()).isEqualTo(3);
+    String type = OperationType.STAKE_KEY_REGISTRATION.getValue();
+    Optional<Operation> opt = into.getOperations()
+        .stream()
+        .filter(f-> f.getType().equals(type))
+        .findFirst();
+    assertThat(opt.isPresent()).isTrue();
+
+    Operation stakeInto = opt.get();
+    StakeRegistration firstFrom = from.getStakeRegistrations().getFirst();
+    assertThat(stakeInto.getType()).isEqualTo(type);
+    assertThat(stakeInto.getStatus()).isEqualTo("success");
+    assertThat(stakeInto.getOperationIdentifier().getIndex()).isEqualTo(1); //index in array
+    assertThat(stakeInto.getOperationIdentifier().getNetworkIndex()).isNull(); //TODO ??
+    assertThat(stakeInto.getAccount().getAddress()).isEqualTo(firstFrom.getAddress());
+    assertThat(stakeInto.getMetadata().getDepositAmount())
+        .isEqualTo(Amount.builder()
+            .currency(Currency.builder().symbol("ADA").decimals(6).build())
+            .value("2000000").build()); //TODO should be checked from genesis json settings?
+  }
+
+  @NotNull
+  private BlockTxToRosettaTransaction given() {
+    BlockTxToRosettaTransaction my = new BlockTxToRosettaTransaction(modelMapper);
+    my.modelMapper.validate();
+    return my;
   }
 
   private BlockTx newTran() {
