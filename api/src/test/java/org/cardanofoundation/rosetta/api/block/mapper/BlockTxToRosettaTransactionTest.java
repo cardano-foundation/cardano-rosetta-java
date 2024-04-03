@@ -18,6 +18,7 @@ import org.cardanofoundation.rosetta.api.BaseMapperTest;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.account.model.entity.Amt;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
+import org.cardanofoundation.rosetta.api.block.model.domain.Delegation;
 import org.cardanofoundation.rosetta.api.block.model.domain.StakeRegistration;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 
@@ -28,25 +29,24 @@ import static org.cardanofoundation.rosetta.common.util.Constants.ADA_DECIMALS;
 class BlockTxToRosettaTransactionTest extends BaseMapperTest {
 
   @Test
-  void toDto_Test() {
-
+  void toDto_Test_empty_operations() {
     //given
     BlockTxToRosettaTransaction my = given();
     BlockTx from = newTran();
-
+    from.setInputs(List.of());
+    from.setOutputs(List.of());
     //when
     Transaction into = my.toDto(from, "5000");
-
     //then
-    my.modelMapper.validate();
     assertThat(into.getMetadata().getSize()).isEqualTo(from.getSize());
     assertThat(into.getMetadata().getScriptSize()).isEqualTo(from.getScriptSize());
     assertThat(into.getTransactionIdentifier().getHash()).isEqualTo(from.getHash());
+    assertThat(into.getOperations().size()).isEqualTo(0);
   }
 
 
   @Test
-  void toDto_Test_stakeRegistrationOperations() {
+  void toDto_Test_StakeRegistrationOperations() {
     //given
     BlockTxToRosettaTransaction my = given();
     BlockTx from = newTran();
@@ -63,13 +63,12 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
       //when
       Transaction into = my.toDto(from, "5000");
       //then
-      my.modelMapper.validate();
       assertThat(into.getMetadata().getSize()).isEqualTo(from.getSize());
       assertThat(into.getMetadata().getScriptSize()).isEqualTo(from.getScriptSize());
       assertThat(into.getTransactionIdentifier().getHash()).isEqualTo(from.getHash());
 
       assertThat(into.getOperations().size()).isEqualTo(3);
-      String type = Optional.ofNullable(OperationType.fromValue(convert(stakeType)))
+      String type = Optional.ofNullable(OperationType.fromValue(convert(stakeType, "stakeKey")))
           .map(OperationType::getValue)
           .orElseThrow(() -> new IllegalArgumentException("Invalid stake type"));
       Optional<Operation> opt = into.getOperations()
@@ -93,6 +92,46 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
 
   }
 
+
+  @Test
+  void toDto_Test_DelegationOperations() {
+    //given
+    BlockTxToRosettaTransaction my = given();
+    BlockTx from = newTran();
+    CertificateType stakeType = CertificateType.STAKE_DELEGATION;
+
+    from.setDelegations(List.of(Delegation.builder()
+        .address("stake_addr1")
+        .slot(1L)
+        .build()));
+    //when
+    Transaction into = my.toDto(from, "5000");
+    //then
+    assertThat(into.getMetadata().getSize()).isEqualTo(from.getSize());
+    assertThat(into.getMetadata().getScriptSize()).isEqualTo(from.getScriptSize());
+    assertThat(into.getTransactionIdentifier().getHash()).isEqualTo(from.getHash());
+
+    assertThat(into.getOperations().size()).isEqualTo(3);
+    String type = Optional.ofNullable(OperationType.fromValue(convert(stakeType, "stake")))
+        .map(OperationType::getValue)
+        .orElseThrow(() -> new IllegalArgumentException("Invalid stake type"));
+    Optional<Operation> opt = into.getOperations()
+        .stream()
+        .filter(f -> f.getType().equals(type))
+        .findFirst();
+    assertThat(opt.isPresent()).isTrue();
+
+    Operation stakeInto = opt.get();
+    Delegation firstFrom = from.getDelegations().getFirst();
+    assertThat(stakeInto.getType()).isEqualTo(type);
+    assertThat(stakeInto.getStatus()).isEqualTo("success");
+    assertThat(stakeInto.getOperationIdentifier().getIndex()).isEqualTo(1); //index in array
+    assertThat(stakeInto.getAccount().getAddress()).isEqualTo(firstFrom.getAddress());
+    assertThat(stakeInto.getMetadata().getPoolKeyHash()).isEqualTo(firstFrom.getPoolId());
+
+
+  }
+
   @NotNull
   private BlockTxToRosettaTransaction given() {
     BlockTxToRosettaTransaction my = new BlockTxToRosettaTransaction(modelMapper);
@@ -100,8 +139,9 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
     return my;
   }
 
-  private static String convert(CertificateType stakeType) {
-    return CaseFormatUtils.toCamelCase("stakeKey " + stakeType.name().substring(6));
+  private static String convert(CertificateType stakeType, String prefix) {
+    return CaseFormatUtils.
+        toCamelCase(prefix+ " " + stakeType.name().substring(6));
   }
 
   private BlockTx newTran() {

@@ -211,9 +211,7 @@ class OperationDataMapper {
               .type(OperationType.STAKE_DELEGATION.getValue())
               .status(status.getStatus())
               .account(AccountIdentifier.builder().address(delegation.getAddress()).build())
-              .metadata(OperationMetadata.builder()
-                  .poolKeyHash(delegation.getPoolId())
-                  .build())
+              .metadata(OperationMetadata.builder().poolKeyHash(delegation.getPoolId()).build())
               .build();
         }).toList();
   }
