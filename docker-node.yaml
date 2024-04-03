@@ -7,7 +7,8 @@ services:
       - NETWORK=${NETWORK}
       - CARDANO_NODE_SOCKET_PATH=/ipc/node.socket
     volumes:
-      - ./node-ipc:/ipc
+      - ${CARDANO_NODE_SOCKET}:/ipc
+      - ${CARDANO_NODE_DB}:/db
     restart: "no"
     ports:
       - "${CARDANO_NODE_PORT}:3001"
@@ -19,7 +20,7 @@ services:
     depends_on:
       - cardano-node
     volumes:
-      - ./node-ipc:/node-ipc
+      - ${CARDANO_NODE_SOCKET}:/node-ipc
     ports:
       - 8090:8090
     restart: on-failure
