@@ -3,6 +3,7 @@ package org.cardanofoundation.rosetta.api.block.mapper;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Optional;
+import java.util.TreeSet;
 
 import com.bloxbean.cardano.yaci.core.model.certs.CertificateType;
 import org.assertj.core.util.introspection.CaseFormatUtils;
@@ -10,6 +11,8 @@ import org.jetbrains.annotations.NotNull;
 import org.openapitools.client.model.Amount;
 import org.openapitools.client.model.Currency;
 import org.openapitools.client.model.Operation;
+import org.openapitools.client.model.PoolRegistrationParams;
+import org.openapitools.client.model.Relay;
 import org.openapitools.client.model.Transaction;
 
 import org.junit.jupiter.api.Test;
@@ -19,6 +22,7 @@ import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.account.model.entity.Amt;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.model.domain.Delegation;
+import org.cardanofoundation.rosetta.api.block.model.domain.PoolRegistration;
 import org.cardanofoundation.rosetta.api.block.model.domain.StakeRegistration;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 
@@ -27,6 +31,7 @@ import static org.cardanofoundation.rosetta.common.util.Constants.ADA;
 import static org.cardanofoundation.rosetta.common.util.Constants.ADA_DECIMALS;
 
 class BlockTxToRosettaTransactionTest extends BaseMapperTest {
+
 
   @Test
   void toDto_Test_empty_operations() {
@@ -85,9 +90,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
       assertThat(stakeInto.getOperationIdentifier().getNetworkIndex()).isNull(); //TODO ??
       assertThat(stakeInto.getAccount().getAddress()).isEqualTo(firstFrom.getAddress());
       assertThat(stakeInto.getMetadata().getDepositAmount())
-          .isEqualTo(Amount.builder()
-              .currency(Currency.builder().symbol(ADA).decimals(ADA_DECIMALS).build())
-              .value("2000000").build()); //TODO should be checked from genesis json settings?
+          .isEqualTo(depositAmountActual("2000000"));
     });
 
   }
@@ -132,6 +135,74 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
 
   }
 
+  @Test
+  void toDto_Test_getPoolRegistrationOperations() {
+    //given
+    BlockTxToRosettaTransaction my = given();
+    BlockTx from = newTran();
+    CertificateType poolReg = CertificateType.POOL_REGISTRATION;
+
+    TreeSet<String> owners = new TreeSet<>(); //Need to sort for verification
+    owners.add("pool_owner1");
+    owners.add("pool_owner2");
+
+    List<Relay> relays = List.of(Relay
+        .builder().ipv4("ipv4").ipv6("ipv6")
+        .dnsName("dnsName").port(1).type("type").build());
+
+    from.setPoolRegistrations(List.of(PoolRegistration.builder()
+        .poolId("pool_addr1")
+        .vrfKeyHash("vrf_key_hash1")
+        .pledge("pladege1")
+        .cost("cost1")
+        .margin("margin1")
+        .rewardAccount("reward_account1")
+        .owners(owners)
+        .relays(relays)
+        .slot(1L)
+        .build()));
+    //when
+    Transaction into = my.toDto(from, "5000");
+    //then
+    assertThat(into.getMetadata().getSize()).isEqualTo(from.getSize());
+    assertThat(into.getMetadata().getScriptSize()).isEqualTo(from.getScriptSize());
+    assertThat(into.getTransactionIdentifier().getHash()).isEqualTo(from.getHash());
+
+    assertThat(into.getOperations().size()).isEqualTo(3);
+    String type = Optional.ofNullable(OperationType.fromValue(convert(poolReg, "pool")))
+        .map(OperationType::getValue)
+        .orElseThrow(() -> new IllegalArgumentException("Invalid pool type"));
+    Optional<Operation> opt = into.getOperations()
+        .stream()
+        .filter(f -> f.getType().equals(type))
+        .findFirst();
+    assertThat(opt.isPresent()).isTrue();
+
+    Operation stakeInto = opt.get();
+    PoolRegistration firstFrom = from.getPoolRegistrations().getFirst();
+    assertThat(stakeInto.getType()).isEqualTo(type);
+    assertThat(stakeInto.getStatus()).isEqualTo("success");
+    assertThat(stakeInto.getOperationIdentifier().getIndex()).isEqualTo(1); //index in array
+    assertThat(stakeInto.getAccount().getAddress()).isEqualTo(firstFrom.getPoolId());
+    assertThat(stakeInto.getMetadata().getDepositAmount())
+        .isEqualTo(depositAmountActual("5000"));
+
+    PoolRegistrationParams poolRegParams = stakeInto.getMetadata().getPoolRegistrationParams();
+    assertThat(poolRegParams.getPledge()).isEqualTo(firstFrom.getPledge());
+    assertThat(poolRegParams.getCost()).isEqualTo(firstFrom.getCost());
+    assertThat(poolRegParams.getPoolOwners()).hasSameElementsAs(firstFrom.getOwners());
+    assertThat(poolRegParams.getMarginPercentage()).isEqualTo(firstFrom.getMargin());
+    assertThat(poolRegParams.getRelays()).hasSameElementsAs(firstFrom.getRelays());
+
+  }
+
+  private static Amount depositAmountActual(String value) {
+    return Amount.builder()
+        .currency(Currency.builder().symbol(ADA).decimals(ADA_DECIMALS).build())
+        .value(value) //TODO should be checked from genesis json settings?
+        .build();
+  }
+
   @NotNull
   private BlockTxToRosettaTransaction given() {
     BlockTxToRosettaTransaction my = new BlockTxToRosettaTransaction(modelMapper);
@@ -140,8 +211,10 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
   }
 
   private static String convert(CertificateType stakeType, String prefix) {
-    return CaseFormatUtils.
-        toCamelCase(prefix+ " " + stakeType.name().substring(6));
+    String name = stakeType.name();
+    int idx = name.lastIndexOf("_") + 1;
+
+    return CaseFormatUtils.toCamelCase(prefix + " " + name.substring(idx));
   }
 
   private BlockTx newTran() {
