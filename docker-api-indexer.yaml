@@ -77,7 +77,7 @@ services:
       retries: 10
     restart: on-failure
     volumes:
-      - ./data/postgres-data:/var/lib/postgresql/data
+      - ${DB_PATH}:/var/lib/postgresql/data
 networks:
   default:
     name: cardano-rosetta-java
