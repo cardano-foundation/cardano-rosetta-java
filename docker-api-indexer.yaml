@@ -83,6 +83,8 @@ services:
     restart: on-failure
     volumes:
       - ${DB_PATH}:/var/lib/postgresql/data
+volumes:
+  data:
 networks:
   default:
     name: cardano-rosetta-java
