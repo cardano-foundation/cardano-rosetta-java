@@ -15,13 +15,14 @@ import org.cardanofoundation.rosetta.common.model.cardano.transaction.MemPoolTra
 import org.openapitools.client.model.TransactionIdentifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
-@ConditionalOnProperty(value = "cardano.rosetta.MEMPOOL_ENABLED", havingValue = "true")
+@Profile("mempool")
 public class MempoolServiceImpl implements MempoolService {
 
   private final NetworkService networkService;
@@ -62,7 +63,6 @@ public class MempoolServiceImpl implements MempoolService {
   public void init() {
     log.info("MempoolServiceImpl initialized");
     localClientProvider = createLocalClientProvider();
-    localClientProvider.start();
     txMonitorClient = localClientProvider.getTxMonitorClient();
   }
 

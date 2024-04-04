@@ -10,8 +10,8 @@ services:
       - ${CARDANO_NODE_DB}:/data/db
       - ${CARDANO_CONFIG}:/config
     ports:
-      - "${CARDANO_NODE_PORT}:3001"
-    entrypoint: cardano-node run --port 3001 --config /config/config.json --topology /config/topology.json --database-path /data/db --socket-path /ipc/node.socket
+      - "${CARDANO_NODE_PORT}:${CARDANO_NODE_PORT}"
+    entrypoint: cardano-node run --port ${CARDANO_NODE_PORT} --config /config/config.json --topology /config/topology.json --database-path /data/db --socket-path /ipc/node.socket
 
   cardano-submit-api:
     image: ghcr.io/intersectmbo/cardano-submit-api:${CARDANO_NODE_VERSION}

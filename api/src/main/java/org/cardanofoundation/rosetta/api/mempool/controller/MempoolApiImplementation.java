@@ -1,6 +1,7 @@
 package org.cardanofoundation.rosetta.api.mempool.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.NotImplementedException;
 import org.cardanofoundation.rosetta.api.mempool.service.MempoolService;
 import org.openapitools.client.api.MempoolApi;
 import org.openapitools.client.model.MempoolResponse;
@@ -9,12 +10,13 @@ import org.openapitools.client.model.MempoolTransactionResponse;
 import org.openapitools.client.model.NetworkRequest;
 import org.openapitools.client.model.TransactionIdentifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@ConditionalOnProperty(value = "cardano.rosetta.MEMPOOL_ENABLED", havingValue = "true")
+@Profile("mempool")
 public class MempoolApiImplementation implements MempoolApi {
 
   private final MempoolService mempoolService;
@@ -30,6 +32,6 @@ public class MempoolApiImplementation implements MempoolApi {
   @Override
   public ResponseEntity<MempoolTransactionResponse> mempoolTransaction(
       MempoolTransactionRequest mempoolTransactionRequest) {
-    return null;
+    throw new NotImplementedException("Not implemented yet");
   }
 }

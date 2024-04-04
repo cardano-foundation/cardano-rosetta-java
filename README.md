@@ -73,6 +73,11 @@ For mainnet the following command can be used to restore the snapshot:
 curl -o - https://downloads.csnapshots.io/mainnet/$(curl -s https://downloads.csnapshots.io/mainnet/mainnet-db-snapshot.json| jq -r .[].file_name ) | lz4 -c -d - | tar -x -C ${CARDANO_NODE_DB}
 ```
 
+### Mempool Monitoring
+Mempool monitoring can be activated when adding the spring profile `mempool` to the rosetta api service.
+It will be turned off by default. Since it is only working for nodes, which participate in the network and available within P2P from other nodes. 
+So the Node itself needs extra configuration to be able to query mempool transactions.
+
 ### Environment variables
 <details>
 <summary>Full list of environment variables and standard values</summary>

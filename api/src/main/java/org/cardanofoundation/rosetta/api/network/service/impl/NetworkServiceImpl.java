@@ -78,8 +78,7 @@ public class NetworkServiceImpl implements NetworkService {
   @Override
   public NetworkListResponse getNetworkList(MetadataRequest metadataRequest) {
     log.info("[networkList] Looking for all supported networks");
-    Network supportedNetwork = null;
-    supportedNetwork = getSupportedNetwork();
+    Network supportedNetwork = getSupportedNetwork();
     return DataMapper.mapToNetworkListResponse(supportedNetwork);
   }
 
