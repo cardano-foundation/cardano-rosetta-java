@@ -22,7 +22,7 @@ services:
     volumes:
       - ${CARDANO_NODE_SOCKET}:/node-ipc
     ports:
-      - 8090:8090
+      - ${NODE_SUBMIT_API_PORT}:8090
     restart: on-failure
     logging:
       driver: "json-file"
