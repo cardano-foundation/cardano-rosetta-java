@@ -16,5 +16,5 @@ public interface NetworkService {
     NetworkStatusResponse getNetworkStatus(final NetworkRequest networkRequest)
         throws IOException;
 
-    Network getSupportedNetwork() throws IOException;
+    Network getSupportedNetwork();
 }
