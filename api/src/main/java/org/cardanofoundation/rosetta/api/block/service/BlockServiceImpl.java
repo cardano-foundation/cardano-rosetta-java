@@ -1,9 +1,6 @@
 package org.cardanofoundation.rosetta.api.block.service;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,13 +8,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.json.JSONObject;
-import org.openapitools.client.model.BlockIdentifier;
-import org.openapitools.client.model.BlockTransactionRequest;
-import org.openapitools.client.model.BlockTransactionResponse;
 
-import org.cardanofoundation.rosetta.api.block.mapper.BlockToBlockResponse;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
-import org.cardanofoundation.rosetta.api.block.model.domain.Transaction;
+import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.common.exception.ApiException;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.services.LedgerDataProviderService;
@@ -32,6 +25,7 @@ public class BlockServiceImpl implements BlockService {
 
   private final LedgerDataProviderService ledgerDataProviderService;
   @Value("${cardano.rosetta.GENESIS_SHELLEY_PATH}")
+  @SuppressWarnings("unused") // Used in getPoolDeposit
   private String genesisPath;
 
 
@@ -52,7 +46,8 @@ public class BlockServiceImpl implements BlockService {
     throw ExceptionFactory.blockNotFoundException();
   }
 
-  private String getPoolDeposit() {
+  @Override
+  public String getPoolDeposit() {
     String content;
     try {
       content = FileUtils.fileReader(genesisPath);
@@ -67,76 +62,14 @@ public class BlockServiceImpl implements BlockService {
     return poolDeposit;
   }
 
-  private List<Transaction> findTransactionsByBlock(Block block) {
-    boolean blockMightContainTransactions =
-        block.getTransactionsCount() != 0 || block.getPreviousBlockHash().equals(block.getHash());
-    log.debug("[findTransactionsByBlock] Does requested block contains transactions? : {}"
-        , blockMightContainTransactions);
-    if (blockMightContainTransactions) {
-      return ledgerDataProviderService.findTransactionsByBlock(block.getNumber(), block.getHash());
-    } else {
-      return Collections.emptyList();
-    }
-  }
-
   @Override
-  public BlockTransactionResponse getBlockTransaction(BlockTransactionRequest request) {
-    BlockIdentifier blockIdentifier = request.getBlockIdentifier();
-    BlockTransactionResponse response = new BlockTransactionResponse();
-    List<Transaction> transactionsByBlock = ledgerDataProviderService.findTransactionsByBlock(
-        blockIdentifier.getIndex(), blockIdentifier.getHash());
-    if (transactionsByBlock != null) {
-      Optional<Transaction> first = transactionsByBlock
-          .stream()
-          .filter(tr -> tr.getHash()
-              .equals(request.getTransactionIdentifier().getHash()))
-          .findFirst();
-      if (first.isPresent()) {
-        String poolDeposit = getPoolDeposit();
-        response.setTransaction(
-            //TODO saa: add refactor mapper to use the new model
-            BlockToBlockResponse.mapToRosettaTransaction(first.get(), poolDeposit)
-        );
-      }
-    }
-    return response;
+  public BlockTx getBlockTransaction(Long blockId, String blockHash, String txHash) {
+    return ledgerDataProviderService
+        .findTransactionsByBlock(blockId, blockHash)
+        .stream()
+        .filter(tr -> tr.getHash().equals(txHash))
+        .findFirst()
+        .orElseThrow(ExceptionFactory::transactionNotFound);
   }
-
-//TODO saa why this findBlock?
-//  @Override
-//  public Block findBlock(Long number, String hash) {
-//    boolean searchBlockZero;
-//    if (nonNull(number)) {
-//      searchBlockZero = (number == 0);
-//    } else {
-//      searchBlockZero = false;
-//    }
-//    if (searchBlockZero) {
-//      log.info("[findBlock] Looking for genesis block");
-//      GenesisBlock genesis = ledgerDataProviderService.findGenesisBlock();
-//      boolean isHashInvalidIfGiven = hash != null && !genesis.getHash().equals(hash);
-//      if (isHashInvalidIfGiven) {
-//        log.error("[findBlock] The requested block has an invalid block hash parameter");
-//        throw ExceptionFactory.blockNotFoundException();
-//      }
-//      if (nonNull(genesis)) {
-//        return ledgerDataProviderService.findBlock(null, genesis.getHash());
-//      } else {
-//        return ledgerDataProviderService.findBlock(null, null);
-//      }
-//    }
-//    boolean searchLatestBlock = (isNull(hash)) && (isNull(number));
-//
-//    log.info("[findBlock] Do we have to look for latestBlock? {}", searchLatestBlock);
-//    Long blockNumber = searchLatestBlock ? ledgerDataProviderService.findLatestBlockNumber() : number;
-//    log.info("[findBlock] Looking for block with blockNumber {}", blockNumber);
-//    Block response = ledgerDataProviderService.findBlock(blockNumber, hash);
-//    if (nonNull(response)) {
-//      log.info("[findBlock] Block was found");
-//    }
-//    log.debug("[findBlock] Returning response: " + response);
-//    return response;
-//  }
-
 
 }

@@ -22,6 +22,8 @@ import org.cardanofoundation.rosetta.api.account.model.entity.AddressBalanceEnti
 import org.cardanofoundation.rosetta.api.account.model.entity.AddressUtxoEntity;
 import org.cardanofoundation.rosetta.api.account.model.repository.AddressBalanceRepository;
 import org.cardanofoundation.rosetta.api.account.model.repository.AddressUtxoRepository;
+import org.cardanofoundation.rosetta.api.block.mapper.BlockToEntity;
+import org.cardanofoundation.rosetta.api.block.mapper.BlockTxToEntity;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.Delegation;
 import org.cardanofoundation.rosetta.api.block.model.domain.GenesisBlock;
@@ -66,6 +68,9 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
 
   private final CardanoConfigService cardanoConfigService;
 
+  private final BlockToEntity mapperBlock;
+  private final BlockTxToEntity mapperTran;
+
   @Override
   public GenesisBlock findGenesisBlock() {
     log.debug("[findGenesisBlock] About to run findGenesisBlock query");
@@ -99,16 +104,16 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
       SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
       dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
       // Populating transactions
-      Block blockDto = Block.fromBlock(block);
-      populateTransactions(blockDto.getTransactions());
-      return blockDto;
+      Block model = mapperBlock.fromEntity(block);
+      populateTransactions(model.getTransactions());
+      return model;
     }
     log.debug("[findBlock] No block was found");
     return null;
   }
 
-  private void populateTransactions(List<Transaction> transactions) {
-    for (Transaction transaction : transactions) {
+  private void populateTransactions(List<BlockTx> transactions) {
+    for (BlockTx transaction : transactions) {
       populateUtxos(transaction.getInputs());
       populateUtxos(transaction.getOutputs());
       transaction.setStakeRegistrations(
@@ -199,7 +204,7 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
   }
 
   @Override
-  public List<Transaction> findTransactionsByBlock(Long blockNumber, String blockHash) {
+  public List<BlockTx> findTransactionsByBlock(Long blockNumber, String blockHash) {
     log.debug(
         "[findTransactionsByBlock] Parameters received for run query blockNumber: {} blockHash: {}",
         blockNumber, blockHash);
@@ -216,7 +221,7 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
     log.debug(
         "[findTransactionsByBlock] Found {} transactions", txList.size());
     if (ObjectUtils.isNotEmpty(txList)) {
-      List<Transaction> transactions = txList.stream().map(Transaction::fromTx).toList();
+      List<BlockTx> transactions = txList.stream().map(mapperTran::fromEntity).toList();
       populateTransactions(transactions);
       return transactions;
     }
@@ -229,11 +234,11 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
   }
 
   @Override
-  public ProtocolParams findProtolParametersFromConfig() {
+  public ProtocolParams findProtocolParametersFromConfig() {
     try {
       return cardanoConfigService.getProtocolParameters();
     } catch (FileNotFoundException e) {
-      log.error("[findProtolParametersFromConfig] Protocol parameters not found");
+      log.error("[findProtocolParametersFromConfig] Protocol parameters not found");
       return null;
     }
   }
@@ -241,7 +246,7 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
   @Override
   public ProtocolParams findProtocolParametersFromIndexerAndConfig() {
     ProtocolParams protocolParams = findProtocolParametersFromIndexer();
-    protocolParams.merge(findProtolParametersFromConfig());
+    protocolParams.merge(findProtocolParametersFromConfig());
     return protocolParams;
   }
 }

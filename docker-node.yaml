@@ -1,16 +1,34 @@
 version: '3.8'
 services:
   cardano-node:
-    image: "inputoutput/cardano-node:${CARDANO_NODE_VERSION}"
+    image: ghcr.io/intersectmbo/cardano-node:${CARDANO_NODE_VERSION}
     container_name: cardano-node
     environment:
-      NETWORK: ${NETWORK}
-      CARDANO_NODE_SOCKET_PATH: /ipc/node.socket
+      - NETWORK=${NETWORK}
     volumes:
-      - ./node-ipc:/ipc
-    restart: "no"
+      - ${CARDANO_NODE_SOCKET}:/ipc
+      - ${CARDANO_NODE_DB}:/data/db
+      - ${CARDANO_CONFIG}:/config
     ports:
-      - "${CARDANO_NODE_PORT}:3001"
+      - "${CARDANO_NODE_PORT}:${CARDANO_NODE_PORT}"
+    entrypoint: cardano-node run --port ${CARDANO_NODE_PORT} --config /config/config.json --topology /config/topology.json --database-path /data/db --socket-path /ipc/node.socket
+
+  cardano-submit-api:
+    image: ghcr.io/intersectmbo/cardano-submit-api:${CARDANO_NODE_VERSION}
+    environment:
+      - NETWORK=${NETWORK}
+    depends_on:
+      - cardano-node
+    volumes:
+      - ${CARDANO_NODE_SOCKET}:/node-ipc
+    ports:
+      - 8090:8090
+    restart: on-failure
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200k"
+        max-file: "10"
 networks:
   default:
     name: cardano-rosetta-java

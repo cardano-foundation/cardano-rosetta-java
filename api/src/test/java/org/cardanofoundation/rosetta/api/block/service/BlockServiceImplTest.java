@@ -1,27 +1,23 @@
-package org.cardanofoundation.rosetta.api.block.service.impl;
+package org.cardanofoundation.rosetta.api.block.service;
 
-import java.util.Collections;
 import java.util.List;
 
 import org.springframework.test.util.ReflectionTestUtils;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.openapitools.client.model.NetworkIdentifier;
-import org.openapitools.client.model.PartialBlockIdentifier;
-import org.openapitools.client.model.SubNetworkIdentifier;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
-import org.cardanofoundation.rosetta.api.block.model.domain.Transaction;
-import org.cardanofoundation.rosetta.api.block.service.BlockServiceImpl;
+import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.common.exception.ApiException;
 import org.cardanofoundation.rosetta.common.services.LedgerDataProviderService;
-import org.cardanofoundation.rosetta.common.util.RosettaConstants.RosettaErrorType;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.cardanofoundation.rosetta.common.util.RosettaConstants.RosettaErrorType.BLOCK_NOT_FOUND;
+import static org.cardanofoundation.rosetta.common.util.RosettaConstants.RosettaErrorType.TRANSACTION_NOT_FOUND;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
@@ -93,8 +89,7 @@ class BlockServiceImplTest {
       blockService.findBlock(1L, "hash");
     } catch (ApiException e) {
       //then
-      assertThat(e.getError().getCode())
-          .isEqualTo(RosettaErrorType.BLOCK_NOT_FOUND.getCode());
+      assertThat(e.getError().getCode()).isEqualTo(BLOCK_NOT_FOUND.getCode());
     }
 
 
@@ -109,7 +104,6 @@ class BlockServiceImplTest {
 
     String genesisPath = "badPath";
     ReflectionTestUtils.setField(blockService, "genesisPath", genesisPath);
-
 
     when(ledgerDataProviderService.findBlock(index, hash))
         .thenReturn(newBlock());
@@ -126,13 +120,6 @@ class BlockServiceImplTest {
 
   }
 
-  private List<Transaction> newTransactionList() {
-    Transaction e1 = new Transaction("hash1", "blockHash1", 1L,
-        "fee1", 2L, true, 3L,
-        Collections.emptyList(), Collections.emptyList(), Collections.emptyList(),
-        Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
-    return List.of(e1);
-  }
 
   private Block newBlock() {
     return new Block(
@@ -148,33 +135,45 @@ class BlockServiceImplTest {
         "poolDeposit1");
   }
 
-  private NetworkIdentifier newNetworkIdentifier() {
-    NetworkIdentifier nid = new NetworkIdentifier();
-    return NetworkIdentifier
-        .builder()
-        .network("network1")
-        .blockchain("cardano-dev")
-        .subNetworkIdentifier(newSubNetworkIdentifier())
-        .build();
-  }
+  @Test
+  void getBlockTransaction_Test_OK() {
 
-  private SubNetworkIdentifier newSubNetworkIdentifier() {
-    return SubNetworkIdentifier
-        .builder()
-        .network("network")
-        .metadata("metadata")
-        .build();
-  }
+    //given
+    String txHash = "txHash1";
+    BlockTx tx = newTran(txHash);
+    long blockId = 1L;
+    String blockHash = "hash1";
+    when(ledgerDataProviderService.findTransactionsByBlock(blockId, blockHash))
+        .thenReturn(List.of(tx));
 
-  private PartialBlockIdentifier newPartialBlockIdentifier() {
-    return null;
-  }
+    //when
+    BlockTx blockTransaction = blockService.getBlockTransaction(blockId, blockHash, txHash);
 
+    //then
+    assertThat(blockTransaction).isEqualTo(tx);
+  }
 
 
   @Test
-  void getBlockTransaction() {
-    //TODO saa:  impl
+  void getBlockTransaction_Test_notFoundTransaction() {
+
+    //given
+    long blockId = 1L;
+    String blockHash = "hash1";
+    when(ledgerDataProviderService.findTransactionsByBlock(blockId, blockHash))
+        .thenReturn(List.of(newTran("any")));
+
+    try {
+      //when
+      blockService.getBlockTransaction(blockId, blockHash, "differentFromAny");
+    } catch (ApiException e) {
+      //then
+      assertThat(e.getError().getCode()).isEqualTo(TRANSACTION_NOT_FOUND.getCode());
+    }
+  }
+
+  private BlockTx newTran(String hash) {
+    return BlockTx.builder().hash(hash).build();
   }
 
 

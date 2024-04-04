@@ -13,8 +13,8 @@ public class ExceptionFactory {
   public static ApiException genesisBlockNotFound() {
     return new ApiException(RosettaErrorType.GENESIS_BLOCK_NOT_FOUND.toRosettaError(false));
   }
-  public static ServerException configNotFoundException(){
-    return new ServerException("Environment configurations needed to run server were not found");
+  public static ApiException configNotFoundException(){
+    return new ApiException(RosettaErrorType.CONFIG_NOT_FOUND.toRosettaError(false));
   }
 
   public static ApiException invalidBlockChainError() {
@@ -189,4 +189,10 @@ public class ExceptionFactory {
     return new ApiException(RosettaErrorType.INVALID_NETWORK.toRosettaError(false));
   }
 
+  public static ApiException cantDecodeMempoolTransaction() {
+    return new ApiException(RosettaErrorType.CANT_DECODE_MEMPOOL_TRANSACTION.toRosettaError(false));
+  }
+  public static ApiException sendTransactionError(String error) {
+    return new ApiException(RosettaErrorType.SEND_TRANSACTION_ERROR.toRosettaError(false, null, error));
+  }
 }

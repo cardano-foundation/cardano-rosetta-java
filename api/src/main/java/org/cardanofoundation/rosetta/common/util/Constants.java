@@ -14,14 +14,23 @@ public class Constants {
   public static final String RELATIVE_TTL = "relative_ttl";
   public static final String TRANSACTION_SIZE = "transaction_size";
   public static final int HEX_PREFIX_AND_REWARD_ACCOUNT_LENGTH = 58;
+  public static final String SUBMIT_API_PATH = "/api/submit/tx";
+  public static final int SUCCESS_SUBMIT_TX_HTTP_CODE = 202;
+  public static final String CBOR_CONTENT_TYPE = "application/cbor";
+  public static final String CONTENT_TYPE_HEADER_KEY = "Content-Type";
+  public static final int TX_HASH_LENGTH = 64;
+  public static final String PROTOCOL = "http://";
+  public static final String NETWORK_ID_NAME = "networkId";
+  public static final String NETWORK_MAGIC_NAME = "networkMagic";
+  public static final int MAINNET_NETWORK_MAGIC = 764824073;
 
   private Constants() {
   }
 
   public static final String CARDANO = "cardano";
-  public static final Integer PREPROD_NETWORK_MAGIC = 1;
-  public static final Integer TESTNET_NETWORK_MAGIC = 1097911063;
-  public static final Integer DEVNET_NETWORK_MAGIC = 42;
+  public static final int PREPROD_NETWORK_MAGIC = 1;
+  public static final int TESTNET_NETWORK_MAGIC = 1097911063;
+  public static final int DEVNET_NETWORK_MAGIC = 42;
   public static final byte STAKE_KEY_HASH_HEADER_KIND = (byte) -32;
 
   public static final int PREFIX_LENGTH = 10;
@@ -33,7 +42,7 @@ public class Constants {
   public static final int CHAIN_CODE_LENGTH = 64;
   public static final int MULTI_ASSET_DECIMALS = 0;
 
-  public static final String MAINNET = "mainnet";
+  public static final String MAINNET = "Mainnet";
   public static final String VALID_CURVE_TYPE = CurveType.EDWARDS25519.getValue();
   public static final int PUBLIC_KEY_BYTES_LENGTH = 64;
   public static final Double DEFAULT_RELATIVE_TTL = 1000.0;

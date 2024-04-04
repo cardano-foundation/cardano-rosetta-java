@@ -2,9 +2,10 @@ package org.cardanofoundation.rosetta.api;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Map;
-
-import org.springframework.beans.factory.annotation.Autowired;
+import org.cardanofoundation.rosetta.RosettaApiApplication;
+import org.cardanofoundation.rosetta.testgenerator.common.TestConstants;
+import org.cardanofoundation.rosetta.testgenerator.common.GeneratedTestDataDTO;
+import org.junit.jupiter.api.BeforeAll;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;

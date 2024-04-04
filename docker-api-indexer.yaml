@@ -25,13 +25,17 @@ services:
       TRANSACTION_TTL: ${TRANSACTION_TTL}
       TOPOLOGY_FILEPATH: ${TOPOLOGY_FILEPATH}
       GENESIS_SHELLEY_PATH: ${GENESIS_SHELLEY_PATH}
-    depends_on:
-      db:
-        condition: service_healthy
+      NODE_SUBMIT_API_PORT: ${NODE_SUBMIT_API_PORT}
+      CARDANO_NODE_HOST: ${CARDANO_NODE_HOST}
+      API_NODE_SOCKET_PATH: /ipc/node.socket
+      DEVKIT_ENABLED: ${DEVKIT_ENABLED}
+      DEVKIT_URL: ${DEVKIT_URL}
+      DEVKIT_PORT: ${HOST_N2C_SOCAT_PORT}
     volumes:
       - ./config:/config
+      - ${CARDANO_NODE_SOCKET}:/ipc/node.socket
     healthcheck:
-      test: [ "CMD-SHELL", "curl --fail http://localhost:8081/network/options -H 'Content-Type: application/json' --data '{\"metadata\": {}}' -X POST" ]
+      test: [ "CMD-SHELL", "curl --fail http://localhost:${API_BIND_PORT}/network/options -H 'Content-Type: application/json' --data '{\"metadata\": {}}' -X POST" ]
       interval: 30s
       retries: 20
       start_period: 20s
@@ -54,28 +58,24 @@ services:
       NETWORK: "${NETWORK}"
       GENESIS_SHELLEY_PATH: "${GENESIS_SHELLEY_PATH}"
       GENESIS_BYRON_PATH: "${GENESIS_BYRON_PATH}"
-    depends_on:
-      db:
-        condition: service_healthy
     volumes:
       - ./config:/config
+    restart: always
   db:
     image: "${DB_IMAGE_NAME}:${DB_IMAGE_TAG}"
     shm_size: 30g
     ports:
       - "${DB_PORT}:${DB_PORT}"
+    command: -p ${DB_PORT}
     environment:
       POSTGRES_PASSWORD: "${DB_ADMIN_USER_SECRET}"
       POSTGRES_USER: "${DB_ADMIN_USER_NAME}"
       POSTGRES_DB: "${DB_NAME}"
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${DB_ADMIN_USER_NAME}" ]
-      interval: 5s
-      timeout: 5s
-      retries: 10
     restart: on-failure
     volumes:
-      - ./data/postgres-data:/var/lib/postgresql/data
+      - ${DB_PATH}:/var/lib/postgresql/data
+volumes:
+  data:
 networks:
   default:
     name: cardano-rosetta-java

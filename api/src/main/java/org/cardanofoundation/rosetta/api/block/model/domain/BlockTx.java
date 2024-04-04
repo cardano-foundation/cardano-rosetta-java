@@ -8,13 +8,15 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
-import org.cardanofoundation.rosetta.api.block.model.entity.TxnEntity;
 
+/**
+ * Cardano Transaction model. Named so because of clash with the Transaction from the Rosetta API.
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder
-public class Transaction {
+public class BlockTx {
 
   protected String hash;
   protected String blockHash;
@@ -30,20 +32,4 @@ public class Transaction {
   protected List<PoolRegistration> poolRegistrations;
   protected List<PoolRetirement> poolRetirements;
 
-  public static Transaction fromTx(TxnEntity txnEntity) {
-//    txnEntity.get
-    return Transaction.builder()
-        .hash(txnEntity.getTxHash())
-        .blockHash(txnEntity.getBlock().getHash())
-        .blockNo(txnEntity.getBlock().getNumber())
-        .fee(txnEntity.getFee().toString())
-        .size(0L) // TODO
-        .validContract(txnEntity.getInvalid())
-        .scriptSize(0L) // TODO
-        .inputs(
-            txnEntity.getInputKeys().stream().map(utxoKey -> Utxo.fromUtxoKey(utxoKey)).toList())
-        .outputs(txnEntity.getOutputKeys().stream().map(utxoKey -> Utxo.fromUtxoKey(utxoKey))
-            .toList())
-        .build();
-  }
 }
