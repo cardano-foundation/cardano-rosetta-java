@@ -1,5 +1,5 @@
 server:
-  port: ${API_PORT:8085}
+  port: ${API_PORT:8080}
   compression:
     enabled: true
     mime-types: text/html,text/plain,text/css,application/javascript,application/json
@@ -18,7 +18,7 @@ spring:
     driver-class-name: org.postgresql.Driver
     username: rosetta_db_service_user
     password: weakerpwd#123_d
-    url: jdbc:postgresql://172.16.1.217:5432/rosetta?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC&useLegacyDatetimeCode=false&createDatabaseIfNotExist=true&autoReconnect=true&currentSchema=preprod
+    url: jdbc:postgresql://172.16.1.217:5432/rosetta?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC&useLegacyDatetimeCode=false&createDatabaseIfNotExist=true&autoReconnect=true&currentSchema=rosetta
   jpa:
     properties:
       hibernate:
@@ -38,12 +38,12 @@ api:
 cardano:
   rosetta:
     version:
-      ${ROSETTA_VERSION}
-    TOPOLOGY_FILEPATH: ${TOPOLOGY_FILEPATH}
-    GENESIS_SHELLEY_PATH: ${GENESIS_SHELLEY_PATH}
-    CARDANO_NODE_HOST: ${CARDANO_NODE_HOST}
-    NODE_SUBMIT_API_PORT: ${NODE_SUBMIT_API_PORT}
-    CARDANO_NODE_SOCKET: ${CARDANO_NODE_SOCKET}
+      ${ROSETTA_VERSION:1.4.13}
+    TOPOLOGY_FILEPATH: ${TOPOLOGY_FILEPATH:/config/topology.json}
+    GENESIS_SHELLEY_PATH: ${GENESIS_SHELLEY_PATH:/config/shelley-genesis.json}
+    CARDANO_NODE_HOST: ${CARDANO_NODE_HOST:localhost}
+    NODE_SUBMIT_API_PORT: ${NODE_SUBMIT_API_PORT:8090}
+    CARDANO_NODE_SOCKET: ${CARDANO_NODE_SOCKET:/ipc/node.socket}
     # devkit variables
     DEVKIT_ENABLED: ${DEVKIT_ENABLED:false}
     DEVKIT_URL: ${DEVKIT_URL:yaci-cli}
