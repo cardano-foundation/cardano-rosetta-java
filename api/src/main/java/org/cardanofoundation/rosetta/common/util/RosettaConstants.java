@@ -104,8 +104,9 @@ public class RosettaConstants {
     NETWORKS_NOT_FOUND("Networks not found", 4003),
     INVALID_BLOCKCHAIN("Invalid blockchain", 4004),
     GENESIS_BLOCK_NOT_FOUND("Genesis block not found", 4005),
-    CONFIG_NOT_FOUND("Environment configurations needed to run server were not found", 4006),
+
     INVALID_PUBLIC_KEY_FORMAT("Invalid public key format", 4007),
+    TRANSACTION_NOT_FOUND("Transaction not found", 4006),
     PUBLIC_KEY_MISSING("Public key is missing", 4008),
     TRANSACTION_INPUTS_PARAMETERS_MISSING_ERROR(
         "Transaction inputs parameters errors in operations array", 4008),
@@ -147,7 +148,7 @@ public class RosettaConstants {
     MISSING_METADATA_PARAMETERS_FOR_POOL_RETIREMENT("Mandatory parameter is missing: Epoch", 4036),
     OUTSIDE_VALIDITY_INTERVAL_UTXO(
         "Error when sending the transaction - OutsideValidityIntervalUTxO", 4037),
-    TRANSACTION_NOT_FOUND("Transaction not found", 4038),
+    CONFIG_NOT_FOUND("Environment configurations needed to run server were not found", 4038),
     UNSPECIFIED_ERROR("An error occurred", 5000),
     NOT_IMPLEMENTED("Not implemented", 5001),
     ADDRESS_GENERATION_ERROR("Address generation error", 5002),
