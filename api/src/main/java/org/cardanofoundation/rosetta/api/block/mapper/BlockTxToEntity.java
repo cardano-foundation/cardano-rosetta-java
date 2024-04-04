@@ -1,5 +1,8 @@
 package org.cardanofoundation.rosetta.api.block.mapper;
 
+import java.math.BigInteger;
+import java.util.Optional;
+
 import lombok.AllArgsConstructor;
 
 import org.modelmapper.ModelMapper;
@@ -37,7 +40,11 @@ public class BlockTxToEntity {
           BlockTx dest = ctx.getDestination();
           dest.setInputs(source.getInputKeys().stream().map(Utxo::fromUtxoKey).toList());
           dest.setOutputs(source.getOutputKeys().stream().map(Utxo::fromUtxoKey).toList());
-          dest.setFee(source.getFee().toString());
+          dest.setFee(Optional
+              .ofNullable(source.getFee())
+              .map(BigInteger::toString)
+              .orElse(null));
+
           return dest;
         })
         .map(model);
