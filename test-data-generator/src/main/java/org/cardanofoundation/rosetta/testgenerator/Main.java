@@ -3,7 +3,12 @@ package org.cardanofoundation.rosetta.testgenerator;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.MissingResourceException;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -11,51 +16,49 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import org.reflections.Reflections;
 
-import org.cardanofoundation.rosetta.testgenerator.common.GeneratedTestDataDTO;
 import org.cardanofoundation.rosetta.testgenerator.common.TestConstants;
+import org.cardanofoundation.rosetta.testgenerator.common.TransactionBlockDetails;
 import org.cardanofoundation.rosetta.testgenerator.transactions.TransactionRunner;
-
-import static org.reflections.scanners.Scanners.SubTypes;
 
 @Slf4j
 public class Main {
 
-  public static void main(String[] args)
-      throws IOException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
-    GeneratedTestDataDTO generatedTestData = new GeneratedTestDataDTO();
-
-    generatedTestData = runAllFunctions(generatedTestData);
-    writeToJson(generatedTestData);
-
+  public static void main(String[] args) {
+    Map<String, TransactionBlockDetails> allTransactions = getTransactionRunners()
+        .map(transactionRunner -> {
+          log.info("Running: {}", transactionRunner.getClass().getSimpleName());
+          transactionRunner.init();
+          return transactionRunner.runTransactions();
+        })
+        .flatMap(map -> map.entrySet().stream())
+        .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
+    log.info("All transactions executed successfully");
+    writeToJson(allTransactions);
   }
 
-  /**
-   * Finding all classes that implement the TransactionRunner interface, initializing them and running the transactions
-   * @param generatedTestData - the generatedTestData object where all the data will be stored for the tests
-   * @return
-   * @throws NoSuchMethodException
-   * @throws InvocationTargetException
-   * @throws InstantiationException
-   * @throws IllegalAccessException
-   */
-  private static GeneratedTestDataDTO runAllFunctions(GeneratedTestDataDTO generatedTestData)
-      throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+  private static Stream<TransactionRunner> getTransactionRunners() {
     Reflections reflections = new Reflections("org.cardanofoundation.rosetta.testgenerator");
-    Set<Class<?>> classes = reflections.get(SubTypes.of(TransactionRunner.class).asClass());
-    for(Class<?> clazz : classes) {
-        TransactionRunner transactionGenerator = (TransactionRunner) clazz.getDeclaredConstructor().newInstance();
-        log.info("Running: {}", transactionGenerator.getClass().getSimpleName());
-        transactionGenerator.init();
-        generatedTestData = transactionGenerator.runTransactions(generatedTestData);
-    }
-    return generatedTestData;
+    Set<Class<? extends TransactionRunner>> classes = reflections.getSubTypesOf(
+        TransactionRunner.class);
+    return classes.stream().map(clazz -> {
+      try {
+        return clazz.getDeclaredConstructor().newInstance();
+      } catch (InstantiationException | IllegalAccessException | NoSuchMethodException |
+               InvocationTargetException e) {
+        throw new IllegalArgumentException("Error during creating new instance with reflection", e);
+      }
+    });
   }
 
-  private static void writeToJson(GeneratedTestDataDTO generatedTestData) throws IOException {
+  private static void writeToJson(Map<String, TransactionBlockDetails> generatedDataMap) {
     ObjectMapper objectMapper = new ObjectMapper();
     objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
 
-    objectMapper.writeValue(new File(TestConstants.FILE_SAVE_PATH), generatedTestData);
+    try {
+      objectMapper.writeValue(new File(TestConstants.FILE_SAVE_PATH), generatedDataMap);
+    } catch (IOException e) {
+      throw new MissingResourceException(e.getMessage(), Main.class.getName(),
+          TestConstants.FILE_SAVE_PATH);
+    }
   }
-
 }

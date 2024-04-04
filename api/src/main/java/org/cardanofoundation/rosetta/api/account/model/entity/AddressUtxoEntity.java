@@ -18,6 +18,7 @@ import io.hypersistence.utils.hibernate.type.json.JsonType;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Type;
 
+import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
 import org.cardanofoundation.rosetta.api.block.model.entity.BlockAwareEntity;
 
 @Data
