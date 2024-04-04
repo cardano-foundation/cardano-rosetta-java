@@ -104,8 +104,9 @@ public class RosettaConstants {
     NETWORKS_NOT_FOUND("Networks not found", 4003),
     INVALID_BLOCKCHAIN("Invalid blockchain", 4004),
     GENESIS_BLOCK_NOT_FOUND("Genesis block not found", 4005),
-    TRANSACTION_NOT_FOUND("Transaction not found", 4006),
+
     INVALID_PUBLIC_KEY_FORMAT("Invalid public key format", 4007),
+    TRANSACTION_NOT_FOUND("Transaction not found", 4006),
     PUBLIC_KEY_MISSING("Public key is missing", 4008),
     TRANSACTION_INPUTS_PARAMETERS_MISSING_ERROR(
         "Transaction inputs parameters errors in operations array", 4008),
@@ -147,6 +148,7 @@ public class RosettaConstants {
     MISSING_METADATA_PARAMETERS_FOR_POOL_RETIREMENT("Mandatory parameter is missing: Epoch", 4036),
     OUTSIDE_VALIDITY_INTERVAL_UTXO(
         "Error when sending the transaction - OutsideValidityIntervalUTxO", 4037),
+    CONFIG_NOT_FOUND("Environment configurations needed to run server were not found", 4038),
     UNSPECIFIED_ERROR("An error occurred", 5000),
     NOT_IMPLEMENTED("Not implemented", 5001),
     ADDRESS_GENERATION_ERROR("Address generation error", 5002),
@@ -166,7 +168,8 @@ public class RosettaConstants {
     STATUS_SUCCESS_MATCH_ERROR("Given operation status and success state does not match", 5014),
     TX_HASH_COIN_NOT_MATCH("Transaction hash does not match to given coin identifier", 5015),
     ADDRESS_AND_ACCOUNT_ID_NOT_MATCH("Address and account identifier does not match", 5016),
-    BAD_FORMED_COIN_ERROR("Coin identifier has an invalid format", 5017);
+    BAD_FORMED_COIN_ERROR("Coin identifier has an invalid format", 5017),
+    CANT_DECODE_MEMPOOL_TRANSACTION("Cant decode mempool transaction", 5018);
 
     final String message;
     final int code;

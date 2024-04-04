@@ -6,9 +6,9 @@ import java.util.List;
 import org.cardanofoundation.rosetta.api.account.model.domain.AddressBalance;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
+import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.model.domain.GenesisBlock;
 import org.cardanofoundation.rosetta.api.block.model.domain.StakeAddressBalance;
-import org.cardanofoundation.rosetta.api.block.model.domain.Transaction;
 import org.cardanofoundation.rosetta.api.block.model.entity.ProtocolParams;
 import org.openapitools.client.model.Currency;
 
@@ -21,9 +21,9 @@ public interface LedgerDataProviderService {
 
   /**
    * Returns a block by its number and hash. Including all populated Transactions.
-   * @param number
-   * @param hash
-   * @return
+   * @param number block number
+   * @param hash block hash
+   * @return the block
    */
     Block findBlock(Long number, String hash);
 
@@ -40,13 +40,13 @@ public interface LedgerDataProviderService {
 
   /**
    * Returns a list of all transactions within a block. The UTXO aren't populated yet. They contain only the hash and the index.
-   * @param number
-   * @param hash
-   * @return
+   * @param number block number
+   * @param hash block hash
+   * @return the list of transactions
    */
-  List<Transaction> findTransactionsByBlock(Long number, String hash);
+  List<BlockTx> findTransactionsByBlock(Long number, String hash);
 
-    ProtocolParams findProtolParametersFromConfig();
+    ProtocolParams findProtocolParametersFromConfig();
 
     ProtocolParams findProtocolParametersFromIndexerAndConfig();
 
