@@ -12,11 +12,11 @@ import org.cardanofoundation.rosetta.common.annotation.OpenApiMapper;
 
 @OpenApiMapper
 @AllArgsConstructor
-public class TranToBlockTxResponse {
+public class BlockTxToBlockTxResponse {
 
   final ModelMapper modelMapper;
 
-  final TranToRosettaTransaction tranToRosettaTransaction;
+  final BlockTxToRosettaTransaction blockTxToRosettaTx;
 
 
   public BlockTransactionResponse toDto(BlockTx model, String poolDeposit) {
@@ -24,7 +24,7 @@ public class TranToBlockTxResponse {
         .ofNullable(modelMapper.getTypeMap(BlockTx.class, BlockTransactionResponse.class))
         .orElseGet(() -> modelMapper.createTypeMap(BlockTx.class, BlockTransactionResponse.class))
         .setPostConverter(ctx -> {
-          ctx.getDestination().setTransaction(tranToRosettaTransaction.toDto(model, poolDeposit));
+          ctx.getDestination().setTransaction(blockTxToRosettaTx.toDto(model, poolDeposit));
           return ctx.getDestination();
         }).map(model);
   }

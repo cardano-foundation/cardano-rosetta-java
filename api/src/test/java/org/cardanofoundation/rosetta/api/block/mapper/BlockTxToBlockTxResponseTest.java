@@ -7,6 +7,7 @@ import java.util.Set;
 import com.bloxbean.cardano.yaci.core.model.certs.CertificateType;
 import org.openapitools.client.model.BlockTransactionResponse;
 import org.openapitools.client.model.Relay;
+import org.openapitools.client.model.Transaction;
 
 import org.junit.jupiter.api.Test;
 
@@ -26,26 +27,21 @@ class BlockTxToBlockTxResponseTest extends BaseMapperTest {
   @Test
   void toDto() {
     //given
-    TranToRosettaTransaction tx = new TranToRosettaTransaction(modelMapper);
-    TranToBlockTxResponse my = new TranToBlockTxResponse(modelMapper, tx);
+    BlockTxToRosettaTransaction txMapper = new BlockTxToRosettaTransaction(modelMapper);
+    BlockTxToBlockTxResponse my = new BlockTxToBlockTxResponse(modelMapper, txMapper);
     BlockTx from = newTran();
-
     // when
     BlockTransactionResponse into = my.toDto(from, "5000");
-
     // then
     my.modelMapper.validate();
 
-    assertThat(into.getTransaction().getMetadata().getSize()).isEqualTo(from.getSize());
-    assertThat(into.getTransaction().getMetadata().getScriptSize()).isEqualTo(from.getScriptSize());
-
-    assertThat(into.getTransaction().getTransactionIdentifier().getHash())
-        .isEqualTo(from.getHash());
+    Transaction tx = into.getTransaction();
+    assertThat(tx.getMetadata().getSize()).isEqualTo(from.getSize());
+    assertThat(tx.getMetadata().getScriptSize()).isEqualTo(from.getScriptSize());
+    assertThat(tx.getTransactionIdentifier().getHash()).isEqualTo(from.getHash());
 
     //TODO saa: there are no related transactions for org.openapitools.client.model.Transaction.setRelatedTransactions
-    assertThat(into.getTransaction().getRelatedTransactions()).isNull();
-
-
+    assertThat(tx.getRelatedTransactions()).isNull();
   }
 
   private BlockTx newTran() {
@@ -65,7 +61,6 @@ class BlockTxToBlockTxResponseTest extends BaseMapperTest {
         .stakeRegistrations(newStakeRegistrations())
         .build();
   }
-
   private Utxo newUtxo() {
     return Utxo.builder()
         .blockHash("blockHash1")
@@ -95,7 +90,6 @@ class BlockTxToBlockTxResponseTest extends BaseMapperTest {
         .unit("unit1")
         .build();
   }
-
   private List<StakeRegistration> newStakeRegistrations() {
     return List.of(StakeRegistration.builder()
         .blockHash("stakeReg_blockHash1")

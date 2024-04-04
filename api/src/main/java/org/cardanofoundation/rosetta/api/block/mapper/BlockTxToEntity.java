@@ -2,6 +2,7 @@ package org.cardanofoundation.rosetta.api.block.mapper;
 
 import java.math.BigInteger;
 import java.util.Optional;
+
 import lombok.AllArgsConstructor;
 
 import org.modelmapper.ModelMapper;
@@ -16,12 +17,11 @@ import static java.util.Optional.ofNullable;
 
 @PersistenceMapper
 @AllArgsConstructor
-public class TranToEntity {
+public class BlockTxToEntity {
 
   final ModelMapper modelMapper;
 
   public BlockTx fromEntity(TxnEntity model) {
-
     return ofNullable(modelMapper.getTypeMap(TxnEntity.class, BlockTx.class))
         .orElseGet(() -> modelMapper.createTypeMap(TxnEntity.class, BlockTx.class))
         .addMappings(mapper -> {
@@ -36,24 +36,17 @@ public class TranToEntity {
 
         })
         .setPostConverter(ctx -> {
+          TxnEntity source = ctx.getSource();
+          BlockTx dest = ctx.getDestination();
+          dest.setInputs(source.getInputKeys().stream().map(Utxo::fromUtxoKey).toList());
+          dest.setOutputs(source.getOutputKeys().stream().map(Utxo::fromUtxoKey).toList());
+          dest.setFee(Optional
+              .ofNullable(source.getFee())
+              .map(BigInteger::toString)
+              .orElse(null));
 
-            dest(ctx).setInputs(source(ctx).getInputKeys().stream().map(Utxo::fromUtxoKey).toList());
-            dest(ctx).setOutputs(source(ctx).getOutputKeys().stream().map(Utxo::fromUtxoKey).toList());
-            dest(ctx).setFee(Optional.ofNullable(source(ctx).getFee()).map(BigInteger::toString).orElse(null));
-
-            return dest(ctx);
-
-
+          return dest;
         })
         .map(model);
   }
-
-  private static TxnEntity source(MappingContext<TxnEntity, BlockTx> ctx) {
-    return ctx.getSource();
-  }
-
-  private static BlockTx dest(MappingContext<TxnEntity, BlockTx> ctx) {
-    return ctx.getDestination();
-  }
-
 }
