@@ -7,7 +7,7 @@ services:
     ports:
       - "${HOST_N2N_PORT}:3001"
       - "${HOST_N2C_SOCAT_PORT}:3333"
-      - "${HOST_SUBMIT_API_PORT}:8090"
+      - "${NODE_SUBMIT_API_PORT}:8090"
       - "${HOST_STORE_API_PORT}:8080"
       - "${HOST_CLUSTER_API_PORT}:10000"
       - "${HOST_OGMIOS_PORT}:1337"
