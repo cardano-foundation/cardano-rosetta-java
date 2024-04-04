@@ -8,7 +8,7 @@ services:
         NETWORK: "${NETWORK}"
     platform: linux/amd64
     ports:
-      - "${API_BIND_PORT}:${API_EXPOSED_PORT}"
+      - "${API_PORT}:${API_PORT}"
     environment:
       NETWORK: "${NETWORK}"
       DB_HOST: "${DB_HOST}"
@@ -17,6 +17,7 @@ services:
       DB_USER: "${DB_ADMIN_USER_NAME}"
       DB_SECRET: "${DB_ADMIN_USER_SECRET}"
       DB_DRIVER_CLASS_NAME: "${DB_DRIVER_CLASS_NAME}"
+      API_PORT: ${API_PORT}
       CARDANO_NODE_VERSION: ${CARDANO_NODE_VERSION}
       API_SPRING_PROFILES_ACTIVE: ${API_SPRING_PROFILES_ACTIVE_API}
       DB_CONNECTION_PARAMS_PROVIDER_TYPE: ${DB_CONNECTION_PARAMS_PROVIDER_TYPE}
@@ -27,7 +28,7 @@ services:
       GENESIS_SHELLEY_PATH: ${GENESIS_SHELLEY_PATH}
       NODE_SUBMIT_API_PORT: ${NODE_SUBMIT_API_PORT}
       CARDANO_NODE_HOST: ${CARDANO_NODE_HOST}
-      API_NODE_SOCKET_PATH: /ipc/node.socket
+      CARDANO_NODE_SOCKET: /ipc/node.socket
       DEVKIT_ENABLED: ${DEVKIT_ENABLED}
       DEVKIT_URL: ${DEVKIT_URL}
       DEVKIT_PORT: ${HOST_N2C_SOCAT_PORT}
@@ -48,7 +49,7 @@ services:
       context: ./
       dockerfile: ./yaci-indexer/Dockerfile
     environment:
-      API_SPRING_PROFILES_ACTIVE: ${API_SPRING_PROFILES_ACTIVE_YACI_INDEXER}
+      YACI_SPRING_PROFILES: ${YACI_SPRING_PROFILES}
       DB_HOST: "${DB_HOST}"
       DB_PORT: "${DB_PORT}"
       DB_NAME: "${DB_NAME}"
