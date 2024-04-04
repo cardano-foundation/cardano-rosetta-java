@@ -1,5 +1,7 @@
 package org.cardanofoundation.rosetta.api.block.mapper;
 
+import java.math.BigInteger;
+import java.util.Optional;
 import lombok.AllArgsConstructor;
 
 import org.modelmapper.ModelMapper;
@@ -37,7 +39,7 @@ public class TranToEntity {
 
             dest(ctx).setInputs(source(ctx).getInputKeys().stream().map(Utxo::fromUtxoKey).toList());
             dest(ctx).setOutputs(source(ctx).getOutputKeys().stream().map(Utxo::fromUtxoKey).toList());
-            dest(ctx).setFee(source(ctx).getFee().toString());
+            dest(ctx).setFee(Optional.ofNullable(source(ctx).getFee()).map(BigInteger::toString).orElse(null));
 
             return dest(ctx);
 
