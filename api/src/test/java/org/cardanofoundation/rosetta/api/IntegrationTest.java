@@ -2,10 +2,9 @@ package org.cardanofoundation.rosetta.api;
 
 import java.io.File;
 import java.io.IOException;
-import org.cardanofoundation.rosetta.RosettaApiApplication;
-import org.cardanofoundation.rosetta.testgenerator.common.TestConstants;
-import org.cardanofoundation.rosetta.testgenerator.common.GeneratedTestDataDTO;
-import org.junit.jupiter.api.BeforeAll;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
@@ -37,6 +36,7 @@ public abstract class IntegrationTest {
   @BeforeAll
   public static void init(@Autowired ObjectMapper objectMapper) throws IOException {
     generatedDataMap = objectMapper.readValue(new File("." + TestConstants.FILE_SAVE_PATH),
-        new TypeReference<Map<String, TransactionBlockDetails>>() {});
+        new TypeReference<Map<String, TransactionBlockDetails>>() {
+        });
   }
 }

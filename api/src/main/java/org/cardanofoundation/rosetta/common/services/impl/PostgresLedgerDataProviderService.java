@@ -25,13 +25,13 @@ import org.cardanofoundation.rosetta.api.account.model.repository.AddressUtxoRep
 import org.cardanofoundation.rosetta.api.block.mapper.BlockToEntity;
 import org.cardanofoundation.rosetta.api.block.mapper.BlockTxToEntity;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
+import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.model.domain.Delegation;
 import org.cardanofoundation.rosetta.api.block.model.domain.GenesisBlock;
 import org.cardanofoundation.rosetta.api.block.model.domain.PoolRegistration;
 import org.cardanofoundation.rosetta.api.block.model.domain.PoolRetirement;
 import org.cardanofoundation.rosetta.api.block.model.domain.StakeAddressBalance;
 import org.cardanofoundation.rosetta.api.block.model.domain.StakeRegistration;
-import org.cardanofoundation.rosetta.api.block.model.domain.Transaction;
 import org.cardanofoundation.rosetta.api.block.model.entity.BlockEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.ProtocolParams;
 import org.cardanofoundation.rosetta.api.block.model.entity.StakeAddressBalanceEntity;
