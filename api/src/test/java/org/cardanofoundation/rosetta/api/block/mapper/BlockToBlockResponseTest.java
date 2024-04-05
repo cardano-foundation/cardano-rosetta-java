@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import com.bloxbean.cardano.yaci.core.model.certs.CertificateType;
 import org.openapitools.client.model.AccountIdentifier;
 import org.openapitools.client.model.Amount;
@@ -36,14 +37,13 @@ import static org.cardanofoundation.rosetta.common.util.RosettaConstants.SUCCESS
 class BlockToBlockResponseTest extends BaseMapperTest {
 
 
+  @Autowired
+  private BlockToBlockResponse my;
+
   @Test
   void toDto_test_Ok() {
 
     //given
-    BlockTxToRosettaTransaction tx2tx = new BlockTxToRosettaTransaction(modelMapper);
-    BlockToBlockResponse my = new BlockToBlockResponse(modelMapper,tx2tx);
-    my.modelMapper.validate();
-
     Block from = newBlock();
 
     //when

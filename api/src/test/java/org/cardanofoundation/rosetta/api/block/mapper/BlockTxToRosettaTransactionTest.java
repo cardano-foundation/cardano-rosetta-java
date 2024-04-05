@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.TreeSet;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import com.bloxbean.cardano.yaci.core.model.certs.CertificateType;
 import org.apache.commons.codec.binary.Hex;
 import org.assertj.core.util.introspection.CaseFormatUtils;
@@ -38,11 +39,13 @@ import static org.cardanofoundation.rosetta.common.util.Constants.ADA_DECIMALS;
 
 class BlockTxToRosettaTransactionTest extends BaseMapperTest {
 
+  @Autowired
+  private BlockTxToRosettaTransaction my;
+
 
   @Test
   void toDto_Test_empty_operations() {
     //given
-    BlockTxToRosettaTransaction my = given();
     BlockTx from = newTran();
     from.setInputs(List.of());
     from.setOutputs(List.of());
@@ -59,7 +62,6 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
   @Test
   void toDto_Test_StakeRegistrationOperations() {
     //given
-    BlockTxToRosettaTransaction my = given();
     BlockTx from = newTran();
     List<CertificateType> stakeTypes = List.of(
         CertificateType.STAKE_REGISTRATION,
@@ -105,7 +107,6 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
   @Test
   void toDto_Test_DelegationOperations() {
     //given
-    BlockTxToRosettaTransaction my = given();
     BlockTx from = newTran();
     CertificateType stakeType = CertificateType.STAKE_DELEGATION;
 
@@ -144,7 +145,6 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
   @Test
   void toDto_Test_getPoolRegistrationOperations() {
     //given
-    BlockTxToRosettaTransaction my = given();
     BlockTx from = newTran();
     CertificateType poolReg = CertificateType.POOL_REGISTRATION;
 
@@ -206,7 +206,6 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
   @Test
   void toDto_Test_getPoolRetirementOperations() {
     //given
-    BlockTxToRosettaTransaction my = given();
     BlockTx from = newTran();
     CertificateType poolReg = CertificateType.POOL_RETIREMENT;
 
@@ -250,7 +249,6 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
   @Test
   void toDto_Test_getOutputsAsOperations() {
     //given
-    BlockTxToRosettaTransaction my = given();
     BlockTx from = newTran();
     //when
     Transaction into = my.toDto(from, "5000");
@@ -277,7 +275,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
     CoinChange coinChange = opInto.getCoinChange();
     assertThat(coinChange.getCoinAction()).isEqualTo(CoinAction.CREATED);
     assertThat(coinChange.getCoinIdentifier().getIdentifier())
-        .isEqualTo( firstFrom.getTxHash() + ":" + firstFrom.getOutputIndex() );
+        .isEqualTo(firstFrom.getTxHash() + ":" + firstFrom.getOutputIndex());
 
     assertThat(opInto.getMetadata().getTokenBundle().size()).isEqualTo(1);
     TokenBundleItem bundle = opInto.getMetadata().getTokenBundle().getFirst();
@@ -301,13 +299,6 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
         .currency(Currency.builder().symbol(ADA).decimals(ADA_DECIMALS).build())
         .value(value) //TODO should be checked from genesis json settings?
         .build();
-  }
-
-  @NotNull
-  private BlockTxToRosettaTransaction given() {
-    BlockTxToRosettaTransaction my = new BlockTxToRosettaTransaction(modelMapper);
-    my.modelMapper.validate();
-    return my;
   }
 
   private static String convert(CertificateType stakeType, String prefix) {

@@ -1,7 +1,10 @@
 package org.cardanofoundation.rosetta.api.block.mapper;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 
 import lombok.AllArgsConstructor;
 
@@ -21,6 +24,13 @@ public class BlockTxToRosettaTransaction {
 
   final ModelMapper modelMapper;
 
+  final ConvBlockTxToOperations convBlockTxToOperations;
+
+  private static final OperationStatus status = OperationStatus.builder()
+      .status(SUCCESS_OPERATION_STATUS.getStatus()) // TODO saa: need to check the right status
+      .build();
+
+
   /**
    * Maps a TransactionDto to a Rosetta compatible BlockTx.
    *
@@ -38,22 +48,18 @@ public class BlockTxToRosettaTransaction {
               (dest, v) -> dest.getTransactionIdentifier().setHash(v));
 
           mapper.<Long>map(BlockTx::getSize, (dest, v) -> dest.getMetadata().setSize(v));
-          mapper.<Long>map(BlockTx::getScriptSize, (dest, v) -> dest.getMetadata().setScriptSize(v));
+          mapper.<Long>map(BlockTx::getScriptSize,
+              (dest, v) -> dest.getMetadata().setScriptSize(v));
 
         })
+
         .setPostConverter(ctx -> {
-
-          OperationStatus status = OperationStatus.builder()
-              .status(SUCCESS_OPERATION_STATUS.getStatus()) // TODO need to check the right status
-              .build();
-
-          List<Operation> operations =
-              OperationDataMapper.getAllOperations(model, poolDeposit, status);
-
-          ctx.getDestination().setOperations(operations);
+          @NotNull @Valid
+          List<Operation> opDest = ctx.getDestination().getOperations();
+          opDest.addAll(convBlockTxToOperations.convert(model.getStakeRegistrations(), status));
           return ctx.getDestination();
-
-        }).map(model);
+        })
+        .map(model);
 
   }
 }
