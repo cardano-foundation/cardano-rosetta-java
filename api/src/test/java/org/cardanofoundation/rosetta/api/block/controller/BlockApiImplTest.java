@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test;
 
 import org.cardanofoundation.rosetta.api.SpringMvcTest;
 import org.cardanofoundation.rosetta.api.block.mapper.BlockToBlockResponse;
-import org.cardanofoundation.rosetta.api.block.mapper.TranToBlockTxResponse;
+import org.cardanofoundation.rosetta.api.block.mapper.BlockTxToBlockTxResponse;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.service.BlockService;
@@ -41,16 +41,14 @@ class BlockApiImplTest extends SpringMvcTest {
   BlockToBlockResponse blockToBlockResponse;
 
   @MockBean
-  TranToBlockTxResponse mapperToBlockTxResponse;
+  BlockTxToBlockTxResponse mapperToBlockTxResponse;
 
 
   @Test
   void block_Test() throws Exception {
-
     //given
     BlockRequest blockRequest = givenBlockRequest();
     when(blockService.findBlock(123L, "hash1")).thenReturn(new Block());
-
     //when
     //then
     Long index = blockRequest.getBlockIdentifier().getIndex();
@@ -62,17 +60,13 @@ class BlockApiImplTest extends SpringMvcTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.block.block_identifier.index").value(index))
         .andExpect(jsonPath("$.block.block_identifier.hash").value(hash));
-
-
   }
 
   @Test
   void blockNotFound_Test() throws Exception {
-
     //given
     BlockRequest blockRequest = givenBlockRequest();
     when(blockService.findBlock(123L, "hash1")).thenThrow(ExceptionFactory.blockNotFoundException());
-
     //when
     //then
     mockMvc.perform(post("/block")
@@ -83,21 +77,17 @@ class BlockApiImplTest extends SpringMvcTest {
         .andExpect(jsonPath("$.code").value(4001))
         .andExpect(jsonPath("$.message").value("Block not found"))
         .andExpect(jsonPath("$.retriable").value(false));
-
   }
 
   @Test
   void blockTransaction_Test() throws Exception {
-
     //given
     BlockTransactionResponse resp = newBlockTransactionResponse();
     BlockTransactionRequest req = newBlockTransactionRequest();
-
     when(blockService.getBlockTransaction(anyLong(), anyString(), anyString())).thenReturn(
         new BlockTx());
     when(blockService.getPoolDeposit()).thenReturn("1000"); //any string
     when(mapperToBlockTxResponse.toDto(any(BlockTx.class), anyString())).thenReturn(resp);
-
     //when
     //then
     String txHash = resp.getTransaction().getTransactionIdentifier().getHash();
@@ -107,18 +97,15 @@ class BlockApiImplTest extends SpringMvcTest {
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.transaction.transaction_identifier.hash").value(txHash));
-
   }
 
 
   @Test
   void blockTransaction_notFound_Test() throws Exception {
-
     //given
     BlockTransactionRequest req = newBlockTransactionRequest();
     when(blockService.getBlockTransaction(anyLong(), anyString(), anyString()))
         .thenThrow(ExceptionFactory.transactionNotFound());
-
     //when
     //then
     mockMvc.perform(post("/block/transaction")
@@ -129,7 +116,6 @@ class BlockApiImplTest extends SpringMvcTest {
         .andExpect(jsonPath("$.code").value(4006))
         .andExpect(jsonPath("$.message").value("Transaction not found"))
         .andExpect(jsonPath("$.retriable").value(false));
-
   }
 
   private BlockRequest givenBlockRequest() {

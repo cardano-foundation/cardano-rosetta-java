@@ -23,7 +23,7 @@ import org.cardanofoundation.rosetta.api.account.model.entity.Amt;
 import org.cardanofoundation.rosetta.api.account.model.repository.AddressBalanceRepository;
 import org.cardanofoundation.rosetta.api.account.model.repository.AddressUtxoRepository;
 import org.cardanofoundation.rosetta.api.block.mapper.BlockToEntity;
-import org.cardanofoundation.rosetta.api.block.mapper.TranToEntity;
+import org.cardanofoundation.rosetta.api.block.mapper.BlockTxToEntity;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.Delegation;
 import org.cardanofoundation.rosetta.api.block.model.domain.GenesisBlock;
@@ -68,7 +68,7 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
   private final CardanoConfigService cardanoConfigService;
 
   private final BlockToEntity mapperBlock;
-  private final TranToEntity mapperTran;
+  private final BlockTxToEntity mapperTran;
 
   @Override
   public GenesisBlock findGenesisBlock() {
