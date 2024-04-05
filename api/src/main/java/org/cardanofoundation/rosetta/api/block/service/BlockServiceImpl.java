@@ -70,7 +70,6 @@ public class BlockServiceImpl implements BlockService {
         .filter(tr -> tr.getHash().equals(txHash))
         .findFirst()
         .orElseThrow(ExceptionFactory::transactionNotFound);
-
   }
 
 }

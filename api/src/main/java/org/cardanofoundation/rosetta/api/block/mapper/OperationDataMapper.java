@@ -192,6 +192,8 @@ class OperationDataMapper {
 
                   .depositAmount(DataMapper.mapAmount("2000000", ADA, ADA_DECIMALS,
                       null)) // TODO need to get this from protocolparams
+                  // Create and inject  GenesisService to get the stake deposit amount
+                  // see similar implementation in BlockService.getPoolDeposit
                   .build())
               .build();
         }).toList();
@@ -209,9 +211,7 @@ class OperationDataMapper {
               .type(OperationType.STAKE_DELEGATION.getValue())
               .status(status.getStatus())
               .account(AccountIdentifier.builder().address(delegation.getAddress()).build())
-              .metadata(OperationMetadata.builder()
-                  .poolKeyHash(delegation.getPoolId())
-                  .build())
+              .metadata(OperationMetadata.builder().poolKeyHash(delegation.getPoolId()).build())
               .build();
         }).toList();
   }

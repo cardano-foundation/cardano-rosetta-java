@@ -40,23 +40,23 @@ class BlockServiceImplIntTest extends IntegrationTest {
 
   @Test
   void getBlockTransaction_Test() {
-
     //given
+    long blockNo = generatedTestData.getTopUpBlockNumber();
+    String blockHash = generatedTestData.getTopUpBlockHash();
+    String blockTxHash = generatedTestData.getTopUpTxHash();
+    String fee = "172321";
     //when
-    BlockTx tx = blockService.getBlockTransaction(
-        generatedTestData.getTopUpBlockNumber(),
-        generatedTestData.getTopUpBlockHash(),
-        generatedTestData.getTopUpTxHash());
-
+    BlockTx tx = blockService.getBlockTransaction(blockNo, blockHash, blockTxHash);
     //then
-    assertEquals(generatedTestData.getTopUpTxHash(), tx.getHash());
-    assertEquals(generatedTestData.getTopUpBlockNumber(), tx.getBlockNo());
-    assertEquals("172321", tx.getFee());
+    assertEquals(blockTxHash, tx.getHash());
+    assertEquals(blockNo, tx.getBlockNo());
+    assertEquals(fee, tx.getFee());
     assertEquals(0, tx.getSize());
     assertEquals(false, tx.getValidContract());
     assertEquals(0, tx.getScriptSize());
     assertEquals(1, tx.getInputs().size());
     assertEquals(2, tx.getOutputs().size());
+    //TODO saa check the operations
     assertEquals(0, tx.getStakeRegistrations().size());
     assertEquals(0, tx.getPoolRegistrations().size());
     assertEquals(0, tx.getPoolRetirements().size());
@@ -65,12 +65,12 @@ class BlockServiceImplIntTest extends IntegrationTest {
     Utxo inUtxo = tx.getInputs().getFirst();
 
     //TODO saa: how to check?
-//    assertEquals(generatedTestData.getTopUpTxHash(), inUtxo.getTxHash());
+//    assertEquals(blockTxHash, inUtxo.getTxHash());
 //    assertEquals(TestConstants.TEST_ACCOUNT_ADDRESS, inUtxo.getOwnerAddr());
 
     Utxo outUtxo = tx.getOutputs().getFirst();
     assertEquals(TestConstants.TEST_ACCOUNT_ADDRESS, outUtxo.getOwnerAddr());
-    assertEquals(generatedTestData.getTopUpTxHash(), outUtxo.getTxHash());
+    assertEquals(blockTxHash, outUtxo.getTxHash());
     assertEquals(TestConstants.ACCOUNT_BALANCE_ADA_AMOUNT, outUtxo.getLovelaceAmount().toString());
 
   }

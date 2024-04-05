@@ -17,7 +17,7 @@ import static org.cardanofoundation.rosetta.common.util.RosettaConstants.SUCCESS
 
 @OpenApiMapper
 @AllArgsConstructor
-public class TranToRosettaTransaction {
+public class BlockTxToRosettaTransaction {
 
   final ModelMapper modelMapper;
 

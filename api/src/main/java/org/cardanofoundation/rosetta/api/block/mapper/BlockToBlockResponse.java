@@ -22,7 +22,7 @@ import org.cardanofoundation.rosetta.common.annotation.OpenApiMapper;
 public class BlockToBlockResponse {
 
   final ModelMapper modelMapper;
-  final TranToRosettaTransaction mapToRosettaTransaction;
+  final BlockTxToRosettaTransaction mapToRosettaTransaction;
 
 
   /**
