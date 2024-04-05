@@ -2,7 +2,6 @@ package org.cardanofoundation.rosetta.common.services.impl;
 
 import java.io.FileNotFoundException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -164,29 +163,10 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
   @Override
   public List<Utxo> findUtxoByAddressAndCurrency(String address, List<Currency> currencies) {
     List<AddressUtxoEntity> addressUtxoEntities = addressUtxoRepository.findUtxosByAddress(address);
-    List<Utxo> utxos = new ArrayList<>();
-    for (AddressUtxoEntity entity : addressUtxoEntities) {
-      List<Amt> amountsToAdd = new ArrayList<>();
-      for (Amt amt : entity.getAmounts()) {
-        boolean addToList = currencies.isEmpty() ||
-            currencies.stream()
-                .anyMatch(currency -> {
-                  String currencyUnit = Formatters.isEmptyHexString(currency.getSymbol()) ?
-                      currency.getMetadata().getPolicyId() :
-                      currency.getMetadata().getPolicyId() + currency.getSymbol();
-                  return currencyUnit.equals(amt.getUnit());
-                });
-        if (addToList) {
-          amountsToAdd.add(amt);
-        }
-      }
-      Utxo utxoModel = Utxo.fromUtxoKey(
-          UtxoKey.builder().outputIndex(entity.getOutputIndex()).txHash(entity.getTxHash())
-              .build());
-      utxoModel.setAmounts(amountsToAdd);
-      utxos.add(utxoModel);
-    }
-    return utxos;
+
+    return addressUtxoEntities.stream()
+        .map(entity -> createUtxoModel(currencies, entity))
+        .toList();
   }
 
   @Override
@@ -248,5 +228,31 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
     ProtocolParams protocolParams = findProtocolParametersFromIndexer();
     protocolParams.merge(findProtocolParametersFromConfig());
     return protocolParams;
+  }
+
+  private static Utxo createUtxoModel(List<Currency> currencies, AddressUtxoEntity entity) {
+    Utxo utxoModel = Utxo.fromUtxoKey(
+        UtxoKey.builder().outputIndex(entity.getOutputIndex()).txHash(entity.getTxHash())
+            .build());
+    utxoModel.setAmounts(getAmts(currencies, entity));
+    return utxoModel;
+  }
+
+  private static List<Amt> getAmts(List<Currency> currencies, AddressUtxoEntity entity) {
+    return currencies.isEmpty()
+        ? entity.getAmounts()
+        : entity.getAmounts().stream()
+            .filter(amt -> isAmountMatchesCurrency(currencies, amt))
+            .toList();
+  }
+
+  private static boolean isAmountMatchesCurrency(List<Currency> currencies, Amt amt) {
+    return currencies.stream()
+        .anyMatch(currency -> {
+          String currencyUnit = Formatters.isEmptyHexString(currency.getSymbol()) ?
+              currency.getMetadata().getPolicyId() :
+              currency.getMetadata().getPolicyId() + currency.getSymbol();
+          return currencyUnit.equals(amt.getUnit());
+        });
   }
 }
