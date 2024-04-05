@@ -12,7 +12,7 @@ DB_NAME="rosetta-java-preprod"
 DB_HOST="db" # Service name in docker-compose or local db
 DB_PORT="5432"
 DB_SCHEMA=${NETWORK}
-DB_PATH="./data"
+DB_PATH="/opt/rosetta-java-preprod/data"
 
 MAXIMUM_POOL_SIZE=80
 JDBC_BATCH_SIZE=1000
@@ -21,8 +21,8 @@ CARDANO_NODE_HOST="cardano-node"
 CARDANO_NODE_PORT=3001
 CARDANO_NODE_VERSION="8.9.0"
 NODE_SUBMIT_API_PORT=8090
-CARDANO_NODE_SOCKET="./node"
-CARDANO_NODE_DB="./node/db"
+CARDANO_NODE_SOCKET="/opt/rosetta-java-preprod/node"
+CARDANO_NODE_DB="/opt/rosetta-java-preprod/node/db"
 CARDANO_CONFIG="./config/${NETWORK}"
 
 #api env

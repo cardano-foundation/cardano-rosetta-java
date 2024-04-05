@@ -40,6 +40,9 @@ services:
       retries: 20
       start_period: 20s
       timeout: 10s
+    depends_on:
+      db:
+        condition: service_healthy
   yaci-indexer:
     build:
       context: ./
@@ -58,9 +61,14 @@ services:
       NETWORK: "${NETWORK}"
       GENESIS_SHELLEY_PATH: "${GENESIS_SHELLEY_PATH}"
       GENESIS_BYRON_PATH: "${GENESIS_BYRON_PATH}"
+      GENESIS_ALONZO_PATH: "${GENESIS_ALONZO_PATH}"
+      GENESIS_CONWAY_PATH: "${GENESIS_CONWAY_PATH}"
     volumes:
       - ./config:/config
     restart: always
+    depends_on:
+      db:
+        condition: service_healthy
   db:
     image: "${DB_IMAGE_NAME}:${DB_IMAGE_TAG}"
     shm_size: 30g
@@ -74,8 +82,13 @@ services:
     restart: on-failure
     volumes:
       - ${DB_PATH}:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_ADMIN_USER_NAME} -p ${DB_PORT}" ]
+      interval: 10s
+      timeout: 3s
+      retries: 10
 volumes:
   data:
 networks:
   default:
-    name: cardano-rosetta-java
+    name: cardano-rosetta-java-${NETWORK}
