@@ -54,10 +54,16 @@ public class BlockTxToRosettaTransaction {
         })
 
         .setPostConverter(ctx -> {
-          @NotNull @Valid
-          List<Operation> opDest = ctx.getDestination().getOperations();
-          opDest.addAll(convBlockTxToOperations.convert(model.getStakeRegistrations(), status));
+          List<Operation> operations =
+              OperationDataMapper.getAllOperations(model, poolDeposit, status);
+
+          ctx.getDestination().setOperations(operations);
           return ctx.getDestination();
+
+//          @NotNull @Valid
+//          List<Operation> opDest = ctx.getDestination().getOperations();
+//          opDest.addAll(convBlockTxToOperations.convert(model.getStakeRegistrations(), status));
+//          return ctx.getDestination();
         })
         .map(model);
 
