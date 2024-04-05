@@ -78,44 +78,10 @@ Mempool monitoring can be activated when adding the spring profile `mempool` to 
 It will be turned off by default. Since it is only working for nodes, which participate in the network and available within P2P from other nodes. 
 So the Node itself needs extra configuration to be able to query mempool transactions.
 
-### Environment variables
-<details>
-<summary>Full list of environment variables and standard values</summary>
-
-| Variable                                  | Description                                        | Default                                                   | 
-|-------------------------------------------|----------------------------------------------------|-----------------------------------------------------------|
-| `NETWORK`                                 | Network                                            | preprod - Options are `mainnet, testnet, preprod, devkit` |
-| `PROTOCOL_MAGIC`                          | Cardano protocol magic                             | 1                                                         |
-| `DB_ADMIN_USER_NAME`                      | Postgres admin user                                | rosetta_db_admin                                          | 
-| `DB_ADMIN_USER_SECRET`                    | Postgres admin secret                              | weakpwd#123_d                                             |
-| `DB_IMAGE_NAME`                           | Postgres docker image name                         | rosetta                                                   |
-| `DB_IMAGE_TAG`                            | Postgres docker image tag                          | latest                                                    |
-| `DB_NAME`                                 | Postgres database                                  | rosetta                                                   |
-| `DB_HOST`                                 | Postgres host                                      | db                                                        |
-| `DB_PORT`                                 | Postgres port                                      | 5432                                                      |
-| `DB_SCHEMA`                               | Database schema                                    | testnet                                                   |
-| `MAXIMUM_POOL_SIZE`                       | Database max pool size                             | 80                                                        |
-| `JDBC_BATCH_SIZE`                         | JDBC batch size                                    | 1000                                                      |
-| `SCHEMA`                                  | Postgres schema                                    | testnet                                                   |
-| `LOG`                                     | Log level                                          | INFO                                                      |
-| `CARDANO_NODE_HOST`                       | Cardano node host                                  | cardano-node                                              |
-| `CARDANO_NODE_PORT`                       | Cardano node port                                  | 3001                                                      |
-| `CARDANO_NODE_VERSION`                    | Cardano node version                               | 8.1.2                                                     |
-| `API_SPRING_PROFILES_ACTIVE_API`          | Api spring profile                                 | dev                                                       |
-| `API_EXPOSED_PORT`                        | Rosetta api exposed port                           | 8080                                                      |
-| `API_BIND_PORT`                           | Rosetta api bind port                              | 8080                                                      |
-| `TRANSACTION_TTL`                         | Transaction ttl                                    | 3000                                                      |
-| `DB_CONNECTION_PARAMS_PROVIDER_TYPE`      | Database connection params provider type           | ENVIRONMENT                                               |
-| `DB_DRIVER_CLASS_NAME`                    | Database driver class name                         | "org.postgresql.Driver"                                   |
-| `ROSETTA_VERSION`                         | Rosetta version                                    | 1.4.13                                                    |
-| `TOPOLOGY_FILEPATH`                       | Topology file path                                 | ./config/${NETWORK}/topology.json                         |
-| `GENESIS_SHELLEY_PATH`                    | Genesis file path                                  | ./config/${NETWORK}/shelley-genesis.json                  |
-| `GENESIS_BYRON_PATH`                      | Genesis file path                                  | ./config/${NETWORK}/byron-genesis.json                    |
-| `PRINT_EXCEPTION`                         | Print exception                                    | true                                                      |
-| `API_SPRING_PROFILES_ACTIVE_YACI_INDEXER` | Yaci indexer spring profile                        | dev,postgres                                              |
-| `INDEXER_NODE_PORT`                       | Cardano node port that the indexer will connect to | 3001                                                      |
-
-</details>
+### Documentation
+- [Cardano specific API Additions](./docs/cardano-specific-api-additions.md)
+- [Dev H2 Quickstart Guide](./docs/dev-h2-quick-start-guide.md)
+- [Environment Variables](./docs/environment-variables.md)
 
 ## Contributing
 
