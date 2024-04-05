@@ -4,26 +4,21 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import lombok.AllArgsConstructor;
-
 import org.openapitools.client.model.Operation;
 import org.openapitools.client.model.OperationStatus;
 
 import org.cardanofoundation.rosetta.api.block.model.domain.StakeRegistration;
-import org.cardanofoundation.rosetta.common.annotation.OpenApiMapper;
 
-@OpenApiMapper
-@AllArgsConstructor
-class ConvBlockTxToOperations  {
+public abstract class  AbstractToOperation<T> {
 
-  private final StakeRegistrationToOperation stakeToOperation;
+  abstract Operation toDto(T model, OperationStatus status);
 
-
-  protected List<Operation> convert(List<StakeRegistration> stakeReg, OperationStatus status) {
+  protected List<Operation> convert(List<T> stakeReg, OperationStatus status) {
     return Optional.ofNullable(stakeReg)
         .stream()
         .flatMap(List::stream)
-        .map(t -> stakeToOperation.toDto(t, status))
+        .map(t -> toDto(t, status))
         .collect(Collectors.toList());
   }
+
 }

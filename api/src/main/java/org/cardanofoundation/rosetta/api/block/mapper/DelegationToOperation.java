@@ -10,6 +10,7 @@ import org.openapitools.client.model.Operation;
 import org.openapitools.client.model.OperationMetadata;
 import org.openapitools.client.model.OperationStatus;
 
+import org.cardanofoundation.rosetta.api.block.model.domain.Delegation;
 import org.cardanofoundation.rosetta.api.block.model.domain.StakeRegistration;
 import org.cardanofoundation.rosetta.common.annotation.OpenApiMapper;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
@@ -20,19 +21,21 @@ import static org.cardanofoundation.rosetta.common.util.Constants.ADA_DECIMALS;
 
 @OpenApiMapper
 @AllArgsConstructor
-public class StakeRegistrationToOperation extends AbstractToOperation<StakeRegistration> {
+public class DelegationToOperation extends AbstractToOperation<Delegation> {
 
   final ModelMapper modelMapper;
 
   @Override
-  public Operation toDto(StakeRegistration model, OperationStatus status) {
+  public Operation toDto(Delegation model, OperationStatus status) {
     return Optional
-        .ofNullable(modelMapper.getTypeMap(StakeRegistration.class, Operation.class))
-        .orElseGet(() -> modelMapper.createTypeMap(StakeRegistration.class, Operation.class))
+        .ofNullable(modelMapper.getTypeMap(Delegation.class, Operation.class))
+        .orElseGet(() -> modelMapper.createTypeMap(Delegation.class, Operation.class))
         .addMappings(mp -> {
 
-          mp.<CertificateType>map(StakeRegistration::getType, (d, v) -> d.setType(convert(v)));
-          mp.<String>map(StakeRegistration::getAddress, (d, v) -> d.getAccount().setAddress(v));
+          mp.map(f-> OperationType.STAKE_DELEGATION.getValue(), Operation::setType);
+          mp.<Long>map(f-> 1, (d,v) -> d.getOperationIdentifier().setIndex(v)); //TODO saa check index
+          mp.<String>map(Delegation::getAddress, (d, v) -> d.getAccount().setAddress(v));
+          mp.<String>map(Delegation::getPoolId, (d, v) -> d.getMetadata().setPoolKeyHash(v));
 
         })
         .setPostConverter(ctx -> {
@@ -48,18 +51,5 @@ public class StakeRegistrationToOperation extends AbstractToOperation<StakeRegis
           return ctx.getDestination();
         }).map(model);
   }
-
-
-  private String convert(CertificateType model) {
-    if (model == null) {
-      return null;
-    } else {
-      return model.equals(CertificateType.STAKE_REGISTRATION)
-          ? OperationType.STAKE_KEY_REGISTRATION.toString() :
-          model.equals(CertificateType.STAKE_DEREGISTRATION)
-              ? OperationType.STAKE_KEY_DEREGISTRATION.toString() : null;
-    }
-  }
-
 
 }

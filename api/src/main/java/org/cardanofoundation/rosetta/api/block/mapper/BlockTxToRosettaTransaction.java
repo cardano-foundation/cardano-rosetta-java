@@ -1,6 +1,5 @@
 package org.cardanofoundation.rosetta.api.block.mapper;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import jakarta.validation.Valid;
@@ -24,7 +23,10 @@ public class BlockTxToRosettaTransaction {
 
   final ModelMapper modelMapper;
 
-  final ConvBlockTxToOperations convBlockTxToOperations;
+  final InputToOperation inputToOperation;
+  final OutputToOperation outputToOperation;
+  final StakeRegistrationToOperation stakeToOperation;
+  final DelegationToOperation delegationToOperation;
 
   private static final OperationStatus status = OperationStatus.builder()
       .status(SUCCESS_OPERATION_STATUS.getStatus()) // TODO saa: need to check the right status
@@ -54,16 +56,18 @@ public class BlockTxToRosettaTransaction {
         })
 
         .setPostConverter(ctx -> {
-          List<Operation> operations =
-              OperationDataMapper.getAllOperations(model, poolDeposit, status);
-
-          ctx.getDestination().setOperations(operations);
-          return ctx.getDestination();
-
-//          @NotNull @Valid
-//          List<Operation> opDest = ctx.getDestination().getOperations();
-//          opDest.addAll(convBlockTxToOperations.convert(model.getStakeRegistrations(), status));
+//          List<Operation> operations =
+//              OperationDataMapper.getAllOperations(model, poolDeposit, status);
+//
+//          ctx.getDestination().setOperations(operations);
 //          return ctx.getDestination();
+
+          @NotNull @Valid List<Operation> destOp = ctx.getDestination().getOperations();
+          destOp.addAll(inputToOperation.convert(model.getInputs(), status));
+          destOp.addAll(outputToOperation.convert(model.getOutputs(), status));
+          destOp.addAll(stakeToOperation.convert(model.getStakeRegistrations(), status));
+          destOp.addAll(delegationToOperation.convert(model.getDelegations(), status));
+          return ctx.getDestination();
         })
         .map(model);
 
