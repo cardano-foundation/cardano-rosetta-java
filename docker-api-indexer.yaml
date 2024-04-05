@@ -61,6 +61,8 @@ services:
       NETWORK: "${NETWORK}"
       GENESIS_SHELLEY_PATH: "${GENESIS_SHELLEY_PATH}"
       GENESIS_BYRON_PATH: "${GENESIS_BYRON_PATH}"
+      GENESIS_ALONZO_PATH: "${GENESIS_ALONZO_PATH}"
+      GENESIS_CONWAY_PATH: "${GENESIS_CONWAY_PATH}"
     volumes:
       - ./config:/config
     restart: always
