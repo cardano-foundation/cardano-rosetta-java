@@ -25,7 +25,7 @@ public class StakeRegistrationToOperation extends AbstractToOperation<StakeRegis
   final ModelMapper modelMapper;
 
   @Override
-  public Operation toDto(StakeRegistration model, OperationStatus status) {
+  public Operation toDto(StakeRegistration model, OperationStatus status, int index) {
     return Optional
         .ofNullable(modelMapper.getTypeMap(StakeRegistration.class, Operation.class))
         .orElseGet(() -> modelMapper.createTypeMap(StakeRegistration.class, Operation.class))

@@ -27,7 +27,7 @@ public class InputToOperation extends AbstractToOperation<Utxo> {
   final ModelMapper modelMapper;
 
   @Override
-  public Operation toDto(Utxo model, OperationStatus status) {
+  public Operation toDto(Utxo model, OperationStatus status, int index) {
     return Optional
         .ofNullable(modelMapper.getTypeMap(Utxo.class, Operation.class))
         .orElseGet(() -> modelMapper.createTypeMap(Utxo.class, Operation.class))

@@ -4,14 +4,12 @@ import java.util.Optional;
 
 import lombok.AllArgsConstructor;
 
-import com.bloxbean.cardano.yaci.core.model.certs.CertificateType;
 import org.modelmapper.ModelMapper;
 import org.openapitools.client.model.Operation;
 import org.openapitools.client.model.OperationMetadata;
 import org.openapitools.client.model.OperationStatus;
 
 import org.cardanofoundation.rosetta.api.block.model.domain.Delegation;
-import org.cardanofoundation.rosetta.api.block.model.domain.StakeRegistration;
 import org.cardanofoundation.rosetta.common.annotation.OpenApiMapper;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.common.mapper.DataMapper;
@@ -26,14 +24,14 @@ public class DelegationToOperation extends AbstractToOperation<Delegation> {
   final ModelMapper modelMapper;
 
   @Override
-  public Operation toDto(Delegation model, OperationStatus status) {
+  public Operation toDto(Delegation model, OperationStatus status, int index) {
     return Optional
         .ofNullable(modelMapper.getTypeMap(Delegation.class, Operation.class))
         .orElseGet(() -> modelMapper.createTypeMap(Delegation.class, Operation.class))
         .addMappings(mp -> {
 
           mp.map(f-> OperationType.STAKE_DELEGATION.getValue(), Operation::setType);
-          mp.<Long>map(f-> 1, (d,v) -> d.getOperationIdentifier().setIndex(v)); //TODO saa check index
+          mp.<Long>map(f -> index, (d,v) -> d.getOperationIdentifier().setIndex(v));
           mp.<String>map(Delegation::getAddress, (d, v) -> d.getAccount().setAddress(v));
           mp.<String>map(Delegation::getPoolId, (d, v) -> d.getMetadata().setPoolKeyHash(v));
 
