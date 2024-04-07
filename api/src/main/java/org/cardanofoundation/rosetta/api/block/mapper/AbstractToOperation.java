@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.mutable.MutableInt;
+import org.jetbrains.annotations.NotNull;
 import org.openapitools.client.model.Amount;
 import org.openapitools.client.model.Currency;
 import org.openapitools.client.model.Operation;
@@ -17,7 +18,7 @@ import org.cardanofoundation.rosetta.api.account.model.entity.Amt;
 import org.cardanofoundation.rosetta.common.mapper.DataMapper;
 import org.cardanofoundation.rosetta.common.util.Constants;
 
-public abstract class  AbstractToOperation<T> {
+public abstract class AbstractToOperation<T> {
 
   abstract Operation toDto(T model, OperationStatus status, int index);
 
@@ -30,24 +31,36 @@ public abstract class  AbstractToOperation<T> {
         .collect(Collectors.toList());
   }
 
-  protected static  OperationMetadata mapToOperationMetaData(boolean spent, List<Amt> amounts) {
+  protected static OperationMetadata mapToOperationMetaData(boolean spent, List<Amt> amounts) {
     OperationMetadata operationMetadata = new OperationMetadata();
-    for (Amt amount : amounts) {
-      if (!amount.getAssetName().equals(Constants.LOVELACE)) {
-        TokenBundleItem tokenBundleItem = new TokenBundleItem();
-        tokenBundleItem.setPolicyId(amount.getPolicyId());
-        Amount amt = new Amount();
-        amt.setValue(DataMapper.mapValue(amount.getQuantity().toString(), spent));
-        String hexAssetName = Hex.encodeHexString(amount.getAssetName().getBytes());
-        amt.setCurrency(Currency.builder()
-            .symbol(hexAssetName)
-            .decimals(0)
-            .build());
-        tokenBundleItem.setTokens(List.of(amt));
-        operationMetadata.addTokenBundleItem(tokenBundleItem);
-      }
-    }
+    Optional.ofNullable(amounts)
+        .stream()
+        .flatMap(List::stream)
+        .forEach(amount -> {
+          operationMetadata.setDepositAmount(getDepositAmount());
+          if (!amount.getAssetName().equals(Constants.LOVELACE)) {
+            TokenBundleItem tokenBundleItem = new TokenBundleItem();
+            tokenBundleItem.setPolicyId(amount.getPolicyId());
+            Amount amt = new Amount();
+            amt.setValue(DataMapper.mapValue(amount.getQuantity().toString(), spent));
+            String hexAssetName = Hex.encodeHexString(amount.getAssetName().getBytes());
+            amt.setCurrency(Currency.builder()
+                .symbol(hexAssetName)
+                .decimals(0)
+                .build());
+            tokenBundleItem.setTokens(List.of(amt));
+            operationMetadata.addTokenBundleItem(tokenBundleItem);
+          }
+        });
     return operationMetadata;
+  }
+
+  // TODO saa: need to get this '"2000000", Constants.ADA, Constants.ADA_DECIMALS,' from protocolparams
+  // Create and inject  GenesisService to get the stake deposit amount
+  // see similar implementation in BlockService.getPoolDeposit
+  @NotNull
+  private static Amount getDepositAmount() {
+    return DataMapper.mapAmount("2000000", Constants.ADA, Constants.ADA_DECIMALS, null);
   }
 
 }
