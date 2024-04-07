@@ -37,7 +37,7 @@ public abstract class AbstractToOperation<T> {
         .stream()
         .flatMap(List::stream)
         .forEach(amount -> {
-          operationMetadata.setDepositAmount(getDepositAmount());
+          operationMetadata.setDepositAmount(getDepositAmount("2000000"));
           if (!amount.getAssetName().equals(Constants.LOVELACE)) {
             TokenBundleItem tokenBundleItem = new TokenBundleItem();
             tokenBundleItem.setPolicyId(amount.getPolicyId());
@@ -59,8 +59,9 @@ public abstract class AbstractToOperation<T> {
   // Create and inject  GenesisService to get the stake deposit amount
   // see similar implementation in BlockService.getPoolDeposit
   @NotNull
-  protected static Amount getDepositAmount() {
-    return DataMapper.mapAmount("2000000", Constants.ADA, Constants.ADA_DECIMALS, null);
+  protected static Amount getDepositAmount(String deposit) {
+    return DataMapper.mapAmount(deposit, Constants.ADA, Constants.ADA_DECIMALS, null);
   }
+
 
 }

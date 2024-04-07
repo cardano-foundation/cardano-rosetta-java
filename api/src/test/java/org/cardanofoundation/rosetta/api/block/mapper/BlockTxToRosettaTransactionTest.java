@@ -297,7 +297,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
   private static Amount depositAmountActual(String value) {
     return Amount.builder()
         .currency(Currency.builder().symbol(ADA).decimals(ADA_DECIMALS).build())
-        .value(value) //TODO should be checked from genesis json settings?
+        .value(value) //TODO saa: should be checked from genesis json settings?
         .build();
   }
 

@@ -31,7 +31,7 @@ public class StakeRegistrationToOperation extends AbstractToOperation<StakeRegis
           mp.map(f -> status.getStatus(), Operation::setStatus);
           mp.map(f->convert(model.getType()), Operation::setType);
           mp.<String>map(StakeRegistration::getAddress, (d, v) -> d.getAccount().setAddress(v));
-          mp.<Amount>map(f->getDepositAmount(), (d, v) -> d.getMetadata().setDepositAmount(v));
+          mp.<Amount>map(f->getDepositAmount("2000000"), (d, v) -> d.getMetadata().setDepositAmount(v));
           mp.<Long>map(f -> index, (d, v) -> d.getOperationIdentifier().setIndex(v));
 
 
