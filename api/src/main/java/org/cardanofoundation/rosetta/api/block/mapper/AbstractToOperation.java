@@ -59,7 +59,7 @@ public abstract class AbstractToOperation<T> {
   // Create and inject  GenesisService to get the stake deposit amount
   // see similar implementation in BlockService.getPoolDeposit
   @NotNull
-  private static Amount getDepositAmount() {
+  protected static Amount getDepositAmount() {
     return DataMapper.mapAmount("2000000", Constants.ADA, Constants.ADA_DECIMALS, null);
   }
 
