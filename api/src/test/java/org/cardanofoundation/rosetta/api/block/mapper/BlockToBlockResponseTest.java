@@ -292,7 +292,7 @@ class BlockToBlockResponseTest extends BaseMapperTest {
         "createdAt",
         4, 5,
         6L, newTransactions(),
-        "poolDeposit");
+        "5000");
   }
 
   private List<BlockTx> newTransactions() {
