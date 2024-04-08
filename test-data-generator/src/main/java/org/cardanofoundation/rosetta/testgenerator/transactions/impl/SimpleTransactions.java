@@ -22,6 +22,7 @@ import com.bloxbean.cardano.client.transaction.spec.Policy;
 
 import org.cardanofoundation.rosetta.testgenerator.common.BaseFunctions;
 import org.cardanofoundation.rosetta.testgenerator.common.TestConstants;
+import org.cardanofoundation.rosetta.testgenerator.common.TestTransactionNames;
 import org.cardanofoundation.rosetta.testgenerator.common.TransactionBlockDetails;
 import org.cardanofoundation.rosetta.testgenerator.transactions.TransactionRunner;
 
@@ -55,18 +56,18 @@ public class SimpleTransactions implements TransactionRunner {
   @Override
   public Map<String, TransactionBlockDetails> runTransactions() {
     Map<String, TransactionBlockDetails> generatedDataMap = HashMap.newHashMap(6);
-    generatedDataMap.put(TestConstants.SIMPLE_TRANSACTION_NAME, simpleTransaction());
-    generatedDataMap.put(TestConstants.SIMPLE_LOVELACE_FIRST_TRANSACTION_NAME,
+    generatedDataMap.put(TestTransactionNames.SIMPLE_TRANSACTION.getName(), simpleTransaction());
+    generatedDataMap.put(TestTransactionNames.SIMPLE_LOVELACE_FIRST_TRANSACTION.getName(),
         simpleLovelaceTransaction());
-    generatedDataMap.put(TestConstants.SIMPLE_LOVELACE_SECOND_TRANSACTION_NAME,
+    generatedDataMap.put(TestTransactionNames.SIMPLE_LOVELACE_SECOND_TRANSACTION.getName(),
         simpleLovelaceTransaction());
-    generatedDataMap.put(TestConstants.SIMPLE_NEW_COINS_TRANSACTION_NAME,
+    generatedDataMap.put(TestTransactionNames.SIMPLE_NEW_COINS_TRANSACTION.getName(),
         simpleNewCoinsTransaction());
-    generatedDataMap.put(TestConstants.SIMPLE_NEW_EMPTY_NAME_COINS_TRANSACTION_NAME,
+    generatedDataMap.put(TestTransactionNames.SIMPLE_NEW_EMPTY_NAME_COINS_TRANSACTION.getName(),
         simpleNewEmptyNameCoinsTransaction());
-    generatedDataMap.put(TestConstants.STAKE_KEY_REGISTRATION_TRANSACTION_NAME,
+    generatedDataMap.put(TestTransactionNames.STAKE_KEY_REGISTRATION_TRANSACTION.getName(),
         stakeKeyRegistrationTransaction());
-    generatedDataMap.put(TestConstants.STAKE_KEY_DEREGISTRATION_TRANSACTION_NAME,
+    generatedDataMap.put(TestTransactionNames.STAKE_KEY_DEREGISTRATION_TRANSACTION.getName(),
         stakeKeyDeregistrationTransaction());
     return generatedDataMap;
   }

@@ -9,6 +9,7 @@ import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.testgenerator.common.TestConstants;
+import org.cardanofoundation.rosetta.testgenerator.common.TestTransactionNames;
 import org.cardanofoundation.rosetta.testgenerator.common.TransactionBlockDetails;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -18,7 +19,9 @@ class BlockServiceImplIntTest extends IntegrationTest {
   @Autowired
   @SuppressWarnings("unused")
   private BlockService blockService;
-  final TransactionBlockDetails generatedTestData = generatedDataMap.get(TestConstants.SIMPLE_TRANSACTION_NAME);
+  final TransactionBlockDetails generatedTestData = generatedDataMap.get(
+      TestTransactionNames.SIMPLE_TRANSACTION.getName());
+
   @Test
   void getBlockWithTransaction_Test() {
     //given
@@ -72,7 +75,8 @@ class BlockServiceImplIntTest extends IntegrationTest {
     Utxo outUtxo = tx.getOutputs().getFirst();
     assertEquals(TestConstants.TEST_ACCOUNT_ADDRESS, outUtxo.getOwnerAddr());
     assertEquals(blockTxHash, outUtxo.getTxHash());
-    assertEquals(TestConstants.ACCOUNT_BALANCE_LOVELACE_AMOUNT, outUtxo.getLovelaceAmount().toString());
+    assertEquals(TestConstants.ACCOUNT_BALANCE_LOVELACE_AMOUNT,
+        outUtxo.getLovelaceAmount().toString());
 
   }
 
