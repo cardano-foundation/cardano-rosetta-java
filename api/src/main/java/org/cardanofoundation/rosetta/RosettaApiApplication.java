@@ -8,6 +8,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.Ordered;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -20,6 +21,7 @@ import org.openapitools.jackson.nullable.JsonNullableModule;
 
 
 @SpringBootApplication
+@Import(ConfigurationMapper.class)
 @EntityScan({
     "org.cardanofoundation.rosetta.api.account.model.entity",
     "org.cardanofoundation.rosetta.api.block.model.entity",
@@ -45,14 +47,6 @@ public class RosettaApiApplication {
     registration.setOrder(Ordered.HIGHEST_PRECEDENCE);
     registration.setUrlPatterns(List.of("/**"));
     return registration;
-  }
-
-  @Bean
-  @SuppressWarnings("unused") //used through injection
-  public ModelMapper modelMapper() {
-    ModelMapper modelMapper = new ModelMapper();
-    modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
-    return modelMapper;
   }
 
   @Bean

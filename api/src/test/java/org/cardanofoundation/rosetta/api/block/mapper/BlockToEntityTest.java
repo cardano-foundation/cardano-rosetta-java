@@ -5,6 +5,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
 import org.junit.jupiter.api.Test;
 
 import org.cardanofoundation.rosetta.api.BaseMapperTest;
@@ -18,12 +20,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class BlockToEntityTest extends BaseMapperTest {
 
+  @Autowired
+  private BlockToEntity my;
+
   @Test
   void fromEntity_Test() {
 
     //given
-    BlockTxToEntity blockTxToEntity = new BlockTxToEntity(modelMapper);
-    BlockToEntity my = new BlockToEntity(modelMapper, blockTxToEntity);
+
     my.modelMapper.validate();
     BlockEntity from = newBlockEntity();
 
