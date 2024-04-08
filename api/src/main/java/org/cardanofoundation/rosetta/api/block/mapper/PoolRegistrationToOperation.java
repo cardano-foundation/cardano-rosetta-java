@@ -58,7 +58,7 @@ public class PoolRegistrationToOperation extends AbstractToOperation<PoolRegistr
 
         .setPostConverter(ctx -> {
           Operation d = ctx.getDestination();
-          d.setMetadata(OperationMetadata.builder().epoch(model.getEpoch()).build());
+          d.setMetadata(new OperationMetadata());
 
           ctx.getDestination().getMetadata().setDepositAmount(getDepositAmount("5000"));
           ctx.getDestination().getMetadata().setPoolRegistrationParams(new PoolRegistrationParams());

@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotNull;
 
 import lombok.AllArgsConstructor;
 
+import org.apache.commons.lang3.mutable.MutableInt;
 import org.modelmapper.ModelMapper;
 import org.openapitools.client.model.Operation;
 import org.openapitools.client.model.OperationStatus;
@@ -62,14 +63,13 @@ public class BlockTxToRosettaTransaction {
 //
 //          ctx.getDestination().setOperations(operations);
 //          return ctx.getDestination();
-
+          MutableInt ix = new MutableInt(0);
           @NotNull @Valid List<Operation> destOp = ctx.getDestination().getOperations();
-          destOp.addAll(inputToOperation.convert(model.getInputs(), status));
-          destOp.addAll(stakeToOperation.convert(model.getStakeRegistrations(), status));
-          destOp.addAll(delegationToOperation.convert(model.getDelegations(), status));
-          destOp.addAll(poolRegistrationToOperation.convert(model.getPoolRegistrations(), status));
-          destOp.addAll(poolRetirementToOperation.convert(model.getPoolRetirements(), status));
-          destOp.addAll(outputToOperation.convert(model.getOutputs(), status));
+          destOp.addAll(stakeToOperation.convert(model.getStakeRegistrations(), status, ix));
+          destOp.addAll(delegationToOperation.convert(model.getDelegations(), status, ix));
+          destOp.addAll(poolRegistrationToOperation.convert(model.getPoolRegistrations(), status, ix));
+          destOp.addAll(poolRetirementToOperation.convert(model.getPoolRetirements(), status, ix));
+          destOp.addAll(outputToOperation.convert(model.getOutputs(), status, ix));
           return ctx.getDestination();
         })
         .map(model);

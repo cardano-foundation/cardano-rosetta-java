@@ -135,9 +135,9 @@ class BlockToBlockResponseTest extends BaseMapperTest {
 
     List<AccountIdentifier> accIds = List.of(
         newAccId("address1"), newAccId("address2"),
-        newAccId(null), newAccId(null), //TODO saa: should be null?
-        newAccId("poolId1"), newAccId("poolId2"), //TODO saa: repeated?
-        newAccId("poolId1"), newAccId("poolId2"));
+        newAccId("delegationAcc1"), newAccId("delegationAcc2"),
+        newAccId("poolReg1"), newAccId("poolReg2"),
+        newAccId("poolDlg1"), newAccId("poolDlg2"));
     assertThat((into.getBlock().getTransactions()))
         .extracting(t -> t.getOperations()
             .stream()
@@ -315,6 +315,7 @@ class BlockToBlockResponseTest extends BaseMapperTest {
             .credential("credential" + ver)
             .epoch(1 + ver)
             .slot(1L + ver)
+            .address("delegationAcc" + ver)
             .blockHash("blockHash" + ver)
             .build())
         .collect(Collectors.toList());
@@ -325,7 +326,7 @@ class BlockToBlockResponseTest extends BaseMapperTest {
         .mapToObj(ver -> PoolRegistration.builder()
             .txHash("txHash" + ver)
             .certIndex(1L + ver)
-            .poolId("poolId" + ver)
+            .poolId("poolReg" + ver)
             .vrfKeyHash("vrfKeyHash" + ver)
             .pledge("pledge" + ver)
             .cost("1" + ver)
@@ -347,7 +348,7 @@ class BlockToBlockResponseTest extends BaseMapperTest {
         .mapToObj(ver -> PoolRetirement.builder()
             .txHash("txHash" + ver)
             .certIndex(1L + ver)
-            .poolId("poolId" + ver)
+            .poolId("poolDlg" + ver)
             .epoch(1 + ver)
             .slot(1L + ver)
             .blockHash("blockHash" + ver)

@@ -22,12 +22,12 @@ public abstract class AbstractToOperation<T> {
 
   abstract Operation toDto(T model, OperationStatus status, int index);
 
-  protected List<Operation> convert(List<T> stakeReg, OperationStatus status) {
-    MutableInt mutableIndexHolder = new MutableInt(0);
+  protected List<Operation> convert(List<T> stakeReg, OperationStatus status,
+      MutableInt indexHolder) {
     return Optional.ofNullable(stakeReg)
         .stream()
         .flatMap(List::stream)
-        .map(t -> toDto(t, status, mutableIndexHolder.incrementAndGet()))
+        .map(t -> toDto(t, status, indexHolder.getAndIncrement()))
         .collect(Collectors.toList());
   }
 
