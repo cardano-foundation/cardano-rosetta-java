@@ -26,6 +26,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.cardanofoundation.rosetta.testgenerator.common.BaseFunctions;
 import org.cardanofoundation.rosetta.testgenerator.common.TestConstants;
+import org.cardanofoundation.rosetta.testgenerator.common.TestTransactionNames;
 import org.cardanofoundation.rosetta.testgenerator.common.TransactionBlockDetails;
 import org.cardanofoundation.rosetta.testgenerator.transactions.TransactionRunner;
 
@@ -52,9 +53,11 @@ public class PoolTransactions implements TransactionRunner {
   @Override
   public Map<String, TransactionBlockDetails> runTransactions() {
     Map<String, TransactionBlockDetails> generatedDataMap = HashMap.newHashMap(3);
-    generatedDataMap.put(TestConstants.POOL_REGISTRATION_TRANSACTION_NAME, registerPool());
-    generatedDataMap.put(TestConstants.POOL_DELEGATION_TRANSACTION_NAME, delegateStakeToPool());
-    generatedDataMap.put(TestConstants.POOL_RETIREMENT_TRANSACTION_NAME, retirePool());
+    generatedDataMap.put(TestTransactionNames.POOL_REGISTRATION_TRANSACTION.getName(),
+        registerPool());
+    generatedDataMap.put(TestTransactionNames.POOL_DELEGATION_TRANSACTION.getName(),
+        delegateStakeToPool());
+    generatedDataMap.put(TestTransactionNames.POOL_RETIREMENT_TRANSACTION.getName(), retirePool());
     return generatedDataMap;
   }
 

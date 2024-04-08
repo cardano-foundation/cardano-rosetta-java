@@ -27,20 +27,6 @@ public class TestConstants {
   public static final String STAKE_ADDRESS_WITH_EARNED_REWARDS = "stake_test1uqjg6peuwpjaexgdd2vy2h69zn6pjz33pdsvekjcq88uxmgc6qc7u";
   public static final String STAKE_ADDRESS_WITH_MINTED_TOKENS = "stake_test1uq54hxr3x4ssv9hnca8prj2dw7mva4wveya86uvulvf4qcsceluue";
 
-  // Transaction names for SimpleTransactions
-  public static final String SIMPLE_TRANSACTION_NAME = "simple_transaction";
-  public static final String SIMPLE_LOVELACE_FIRST_TRANSACTION_NAME = "simple_first_lovelace_transaction";
-  public static final String SIMPLE_LOVELACE_SECOND_TRANSACTION_NAME = "simple_second_lovelace_transaction";
-  public static final String SIMPLE_NEW_COINS_TRANSACTION_NAME = "simple_new_coins_transaction";
-  public static final String SIMPLE_NEW_EMPTY_NAME_COINS_TRANSACTION_NAME = "simple_new_empty_name_coins_transaction";
-  public static final String STAKE_KEY_REGISTRATION_TRANSACTION_NAME = "stake_key_registration";
-  public static final String STAKE_KEY_DEREGISTRATION_TRANSACTION_NAME = "stake_key_deregistration";
-
-  // Transaction names for PoolTransactions
-  public static final String POOL_REGISTRATION_TRANSACTION_NAME = "pool_registration";
-  public static final String POOL_DELEGATION_TRANSACTION_NAME = "pool_delegation";
-  public static final String POOL_RETIREMENT_TRANSACTION_NAME = "pool_retirement";
-
   private TestConstants() {
   }
 }
