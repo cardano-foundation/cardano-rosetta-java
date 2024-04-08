@@ -58,11 +58,6 @@ public class BlockTxToRosettaTransaction {
         })
 
         .setPostConverter(ctx -> {
-//          List<Operation> operations =
-//              OperationDataMapper.getAllOperations(model, poolDeposit, status);
-//
-//          ctx.getDestination().setOperations(operations);
-//          return ctx.getDestination();
           MutableInt ix = new MutableInt(0);
           @NotNull @Valid List<Operation> destOp = ctx.getDestination().getOperations();
           destOp.addAll(inputToOperation.convert(model.getInputs(), status, ix));

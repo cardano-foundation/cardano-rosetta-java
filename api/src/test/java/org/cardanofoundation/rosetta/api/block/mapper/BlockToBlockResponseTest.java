@@ -191,7 +191,7 @@ class BlockToBlockResponseTest extends BaseMapperTest {
           assertAllPropertiesIsNull(d, "depositAmount", "poolRegistrationParams");
 
           assertProperty(d, "depositAmount",
-              Amount.builder().currency(ada).value("5000").build());
+              Amount.builder().currency(ada).value("500").build());
 
           //d == List<PoolRegistrationParams> size == 2
           assertProperty(List.of(orderOwners(d.getFirst())), "poolRegistrationParams",
@@ -292,7 +292,7 @@ class BlockToBlockResponseTest extends BaseMapperTest {
         "createdAt",
         4, 5,
         6L, newTransactions(),
-        "5000");
+        "500");
   }
 
   private List<BlockTx> newTransactions() {

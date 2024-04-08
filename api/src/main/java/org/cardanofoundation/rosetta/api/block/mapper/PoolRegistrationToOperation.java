@@ -60,7 +60,7 @@ public class PoolRegistrationToOperation extends AbstractToOperation<PoolRegistr
           Operation d = ctx.getDestination();
           d.setMetadata(new OperationMetadata());
 
-          ctx.getDestination().getMetadata().setDepositAmount(getDepositAmount("5000"));
+          ctx.getDestination().getMetadata().setDepositAmount(getDepositAmount("500"));
           ctx.getDestination().getMetadata().setPoolRegistrationParams(new PoolRegistrationParams());
           var params = ctx.getDestination().getMetadata().getPoolRegistrationParams();
           params.setPledge(ctx.getSource().getPledge());

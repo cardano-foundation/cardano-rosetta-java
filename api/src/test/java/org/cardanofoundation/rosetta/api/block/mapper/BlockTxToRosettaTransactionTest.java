@@ -50,7 +50,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
     from.setInputs(List.of());
     from.setOutputs(List.of());
     //when
-    Transaction into = my.toDto(from, "5000");
+    Transaction into = my.toDto(from, "500");
     //then
     assertThat(into.getMetadata().getSize()).isEqualTo(from.getSize());
     assertThat(into.getMetadata().getScriptSize()).isEqualTo(from.getScriptSize());
@@ -74,7 +74,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
           .slot(1L)
           .build()));
       //when
-      Transaction into = my.toDto(from, "5000");
+      Transaction into = my.toDto(from, "500");
       //then
       assertThat(into.getMetadata().getSize()).isEqualTo(from.getSize());
       assertThat(into.getMetadata().getScriptSize()).isEqualTo(from.getScriptSize());
@@ -116,7 +116,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
         .slot(1L)
         .build()));
     //when
-    Transaction into = my.toDto(from, "5000");
+    Transaction into = my.toDto(from, "500");
     //then
     assertThat(into.getMetadata().getSize()).isEqualTo(from.getSize());
     assertThat(into.getMetadata().getScriptSize()).isEqualTo(from.getScriptSize());
@@ -169,7 +169,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
         .slot(1L)
         .build()));
     //when
-    Transaction into = my.toDto(from, "5000");
+    Transaction into = my.toDto(from, "500");
     //then
     assertThat(into.getMetadata().getSize()).isEqualTo(from.getSize());
     assertThat(into.getMetadata().getScriptSize()).isEqualTo(from.getScriptSize());
@@ -192,7 +192,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
     assertThat(poolInto.getOperationIdentifier().getIndex()).isEqualTo(1); //index in array
     assertThat(poolInto.getAccount().getAddress()).isEqualTo(firstFrom.getPoolId());
     assertThat(poolInto.getMetadata().getDepositAmount())
-        .isEqualTo(depositAmountActual("5000"));
+        .isEqualTo(depositAmountActual("500"));
 
     PoolRegistrationParams poolRegParams = poolInto.getMetadata().getPoolRegistrationParams();
     assertThat(poolRegParams.getPledge()).isEqualTo(firstFrom.getPledge());
@@ -220,7 +220,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
         .build()));
 
     //when
-    Transaction into = my.toDto(from, "5000");
+    Transaction into = my.toDto(from, "500");
     //then
     assertThat(into.getMetadata().getSize()).isEqualTo(from.getSize());
     assertThat(into.getMetadata().getScriptSize()).isEqualTo(from.getScriptSize());
@@ -252,7 +252,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
     //given
     BlockTx from = newTran();
     //when
-    Transaction into = my.toDto(from, "5000");
+    Transaction into = my.toDto(from, "500");
     //then
     assertThat(into.getMetadata().getSize()).isEqualTo(from.getSize());
     assertThat(into.getMetadata().getScriptSize()).isEqualTo(from.getScriptSize());
