@@ -15,6 +15,8 @@ import lombok.extern.slf4j.Slf4j;
 import io.hypersistence.utils.hibernate.type.json.JsonType;
 import org.hibernate.annotations.Type;
 
+import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

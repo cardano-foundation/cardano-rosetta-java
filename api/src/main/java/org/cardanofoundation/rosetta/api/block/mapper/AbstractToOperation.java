@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
@@ -16,9 +17,13 @@ import org.openapitools.client.model.TokenBundleItem;
 
 import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
 import org.cardanofoundation.rosetta.common.mapper.DataMapper;
+import org.cardanofoundation.rosetta.common.services.GenesisService;
 import org.cardanofoundation.rosetta.common.util.Constants;
 
 public abstract class AbstractToOperation<T> {
+
+  @Autowired
+  protected GenesisService genesisService;
 
   abstract Operation toDto(T model, OperationStatus status, int index);
 
@@ -31,7 +36,7 @@ public abstract class AbstractToOperation<T> {
         .collect(Collectors.toList());
   }
 
-  protected static OperationMetadata mapToOperationMetaData(boolean spent, List<Amt> amounts) {
+  protected OperationMetadata mapToOperationMetaData(boolean spent, List<Amt> amounts) {
     OperationMetadata operationMetadata = new OperationMetadata();
     Optional.ofNullable(amounts)
         .stream()
@@ -56,10 +61,12 @@ public abstract class AbstractToOperation<T> {
   }
 
   // TODO saa: need to get this '"2000000", Constants.ADA, Constants.ADA_DECIMALS,' from protocolparams
-  // Create and inject  GenesisService to get the stake deposit amount
+  // Create and inject  GenesisServiceImpl to get the stake deposit amount
   // see similar implementation in BlockService.getPoolDeposit
   @NotNull
-  protected static Amount getDepositAmount(String deposit) {
+  protected Amount getDepositAmount(String deposit) {
+    //TODO saa: poolDeposit  and delegation ddeposit are equals?
+//    String deposit = String.valueOf(genesisService.getProtocolParameters().getPoolDeposit());
     return DataMapper.mapAmount(deposit, Constants.ADA, Constants.ADA_DECIMALS, null);
   }
 

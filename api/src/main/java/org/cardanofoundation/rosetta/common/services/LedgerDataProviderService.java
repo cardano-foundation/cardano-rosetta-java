@@ -9,7 +9,7 @@ import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.model.domain.GenesisBlock;
 import org.cardanofoundation.rosetta.api.block.model.domain.StakeAddressBalance;
-import org.cardanofoundation.rosetta.api.block.model.entity.ProtocolParams;
+import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
 import org.openapitools.client.model.Currency;
 
 /**

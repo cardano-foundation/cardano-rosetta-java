@@ -17,12 +17,14 @@ import org.cardanofoundation.rosetta.api.block.mapper.BlockTxToBlockTxResponse;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.service.BlockService;
+import org.cardanofoundation.rosetta.common.services.GenesisService;
 
 @RestController
 @RequiredArgsConstructor
 public class BlockApiImpl implements BlockApi {
 
   private final BlockService blockService;
+  private final GenesisService genesisService;
 
   private final BlockToBlockResponse mapperToBlockResponse;
   private final BlockTxToBlockTxResponse mapperToBlockTxResponse;
@@ -48,7 +50,7 @@ public class BlockApiImpl implements BlockApi {
     String txHash = blockReq.getTransactionIdentifier().getHash();
 
     BlockTx tx = blockService.getBlockTransaction(blockId, blockHash, txHash);
-    String poolDeposit = blockService.getPoolDeposit();
+    String poolDeposit = String.valueOf(genesisService.getProtocolParameters().getPoolDeposit());
 
     return ResponseEntity.ok(mapperToBlockTxResponse.toDto(tx, poolDeposit));
 

@@ -4,7 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import org.cardanofoundation.rosetta.api.block.model.entity.EpochParamEntity;
-import org.cardanofoundation.rosetta.api.block.model.entity.ProtocolParams;
+import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
 
 public interface EpochParamRepository extends JpaRepository<EpochParamEntity, Integer> {
 

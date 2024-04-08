@@ -1,5 +1,7 @@
 package org.cardanofoundation.rosetta.api.block.controller;
 
+import java.math.BigInteger;
+
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.openapitools.client.model.BlockIdentifier;
@@ -20,6 +22,7 @@ import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.service.BlockService;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
+import org.cardanofoundation.rosetta.common.services.GenesisService;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -36,6 +39,11 @@ class BlockApiImplTest extends SpringMvcTest {
   @MockBean
   @SuppressWarnings("unused") //used in when
   private BlockService blockService;
+
+  @MockBean
+  @SuppressWarnings("unused") //used in when
+  private GenesisService genesisService;
+
 
   @MockBean
   BlockToBlockResponse blockToBlockResponse;
@@ -86,7 +94,9 @@ class BlockApiImplTest extends SpringMvcTest {
     BlockTransactionRequest req = newBlockTransactionRequest();
     when(blockService.getBlockTransaction(anyLong(), anyString(), anyString())).thenReturn(
         new BlockTx());
-    when(blockService.getPoolDeposit()).thenReturn("1000"); //any string
+    when(genesisService.getProtocolParameters().getPoolDeposit())
+        .thenReturn(new BigInteger("1000"));
+//any string
     when(mapperToBlockTxResponse.toDto(any(BlockTx.class), anyString())).thenReturn(resp);
     //when
     //then

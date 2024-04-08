@@ -1,4 +1,4 @@
-package org.cardanofoundation.rosetta.api.block.model.entity;
+package org.cardanofoundation.rosetta.api.block.model.domain;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -12,9 +12,6 @@ import lombok.NoArgsConstructor;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
-import com.fasterxml.jackson.databind.annotation.JsonNaming;
-import org.json.JSONObject;
 
 @Data
 @NoArgsConstructor
@@ -22,26 +19,25 @@ import org.json.JSONObject;
 @Builder
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class ProtocolParams {
 
   private Integer minFeeA; //0
   private Integer minFeeB; //1
-  private Integer maxBlockSize; //2
+  private Integer maxBlockBodySize; //2
   private Integer maxTxSize; //3
   private Integer maxBlockHeaderSize; //4
   private BigInteger keyDeposit; //5
   private BigInteger poolDeposit; //6
   private Integer maxEpoch; //7
-  @JsonProperty("nopt")
+  @JsonProperty("nOpt")
   private Integer nOpt; //8
   private BigDecimal poolPledgeInfluence; //rational //9
   private BigDecimal expansionRate; //unit interval //10
   private BigDecimal treasuryGrowthRate; //11
   private BigDecimal decentralisationParam; //12
-  private String extraEntropy; //13
-  private Integer protocolMajorVer; //14
-  private Integer protocolMinorVer; //14
+  private ExtraEntropy extraEntropy; //13
+  private ProtocolVersion protocolVersion; //14
+  @JsonProperty("minUTxOValue")
   private BigInteger minUtxo; //TODO //15
 
   private BigInteger minPoolCost; //16
@@ -85,39 +81,35 @@ public class ProtocolParams {
   private BigInteger drepDeposit; //31
   private Integer drepActivity; //32
 
-  // TODO clarify if parameters are correctly set
-  public static ProtocolParams fromJSONObject(JSONObject shelleyJsonObject) {
-    ProtocolParams p = new ProtocolParams();
-    JSONObject shelleyProtocolParams = shelleyJsonObject.getJSONObject("protocolParams");
-    p.setMinFeeA(shelleyProtocolParams.getInt("minFeeA"));
-    p.setMinFeeB(shelleyProtocolParams.getInt("minFeeB"));
-    p.setMaxBlockSize(shelleyProtocolParams.getInt("maxBlockBodySize"));
-    p.setMaxTxSize(shelleyProtocolParams.getInt("maxTxSize"));
-    p.setMaxBlockHeaderSize(shelleyProtocolParams.getInt("maxBlockHeaderSize"));
-    p.setKeyDeposit(shelleyProtocolParams.getBigInteger("keyDeposit"));
-    p.setPoolDeposit(shelleyProtocolParams.getBigInteger("poolDeposit"));
-    p.setNOpt(shelleyProtocolParams.getInt("nOpt"));
-    p.setDecentralisationParam(shelleyProtocolParams.getBigDecimal("decentralisationParam"));
-    p.setExtraEntropy(shelleyProtocolParams.getJSONObject("extraEntropy").getString("tag"));
-    JSONObject protolVersion = shelleyProtocolParams.getJSONObject("protocolVersion");
-    p.setProtocolMajorVer(protolVersion.getInt("major"));
-    p.setProtocolMinorVer(protolVersion.getInt("minor"));
-    p.setMinUtxo(shelleyProtocolParams.getBigInteger("minUTxOValue"));
-    p.setMinPoolCost(shelleyProtocolParams.getBigInteger("minPoolCost"));
-    p.setAdaPerUtxoByte(shelleyProtocolParams.getBigInteger("minFeeA"));
+  private Double a0;
+  private Double rho;
+  private Double tau;
+  @JsonProperty("eMax")
+  private Integer eMax;
+  @JsonProperty("maxUTxOValue")
+  private Integer maxUTxOValue;
 
-    return p;
+  @Data
+  public class ExtraEntropy{
+    String tag;
   }
 
-  public void merge(ProtocolParams other) {
+  @Data
+  public class ProtocolVersion{
+    Integer minor;
+    Integer major;
+  }
+  // TODO clarify if parameters are correctly set -- where golden source?)
+
+  public void merge(ProtocolParams other) { //TODO saa: why?
     if (this.minFeeA == null) {
       this.minFeeA = other.minFeeA;
     }
     if (this.minFeeB == null) {
       this.minFeeB = other.minFeeB;
     }
-    if (this.maxBlockSize == null) {
-      this.maxBlockSize = other.maxBlockSize;
+    if (this.maxBlockBodySize == null) {
+      this.maxBlockBodySize = other.maxBlockBodySize;
     }
     if (this.maxTxSize == null) {
       this.maxTxSize = other.maxTxSize;
@@ -152,12 +144,13 @@ public class ProtocolParams {
     if (this.extraEntropy == null) {
       this.extraEntropy = other.extraEntropy;
     }
-    if (this.protocolMajorVer == null) {
-      this.protocolMajorVer = other.protocolMajorVer;
-    }
-    if (this.protocolMinorVer == null) {
-      this.protocolMinorVer = other.protocolMinorVer;
-    }
+    //TODO saa: fetch from protocol model entity
+//    if (this.protocolMajorVer == null) {
+//      this.protocolMajorVer = other.protocolMajorVer;
+//    }
+//    if (this.protocolMinorVer == null) {
+//      this.protocolMinorVer = other.protocolMinorVer;
+//    }
     if (this.minUtxo == null) {
       this.minUtxo = other.minUtxo;
     }
