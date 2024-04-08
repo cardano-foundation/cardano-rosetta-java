@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.cardanofoundation.rosetta.api.IntegrationTest;
 import org.cardanofoundation.rosetta.common.util.Constants;
 import org.cardanofoundation.rosetta.testgenerator.common.TestConstants;
+import org.cardanofoundation.rosetta.testgenerator.common.TestTransactionNames;
 
 import static org.cardanofoundation.rosetta.testgenerator.common.TestConstants.URL;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -27,9 +28,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 class AccountBalanceApiTest extends IntegrationTest {
 
   private final String upToBlockHash = generatedDataMap.get(
-      TestConstants.SIMPLE_LOVELACE_FIRST_TRANSACTION_NAME).blockHash();
+      TestTransactionNames.SIMPLE_LOVELACE_FIRST_TRANSACTION.getName()).blockHash();
   private final Long upToBlockNumber = generatedDataMap.get(
-      TestConstants.SIMPLE_LOVELACE_FIRST_TRANSACTION_NAME).blockNumber();
+      TestTransactionNames.SIMPLE_LOVELACE_FIRST_TRANSACTION.getName()).blockNumber();
 
   private final String currentAdaBalance = "1635030";
   private final String currentLovelaceBalance = "1939500";
@@ -58,9 +59,11 @@ class AccountBalanceApiTest extends IntegrationTest {
     AccountBalanceResponse accountBalanceResponse = response.getBody();
 
     assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
-    assertNotNull(accountBalanceResponse); // TODO check if balances list should be size of 2
+    assertNotNull(accountBalanceResponse);
+    assertEquals(1, accountBalanceResponse.getBalances().size());
     assertAdaCurrency(accountBalanceResponse);
-    assertEquals(currentLovelaceBalance, accountBalanceResponse.getBalances().getFirst().getValue());
+    assertEquals(currentLovelaceBalance,
+        accountBalanceResponse.getBalances().getFirst().getValue());
   }
 
   @Test
@@ -164,7 +167,7 @@ class AccountBalanceApiTest extends IntegrationTest {
 
     assertEquals(HttpStatusCode.valueOf(500), response.getStatusCode());
     assertNotNull(accountBalanceError);
-    assertEquals("Block not found", accountBalanceError.getMessage()); // TODO check the message
+    assertEquals("Block not found", accountBalanceError.getMessage());
     assertEquals(4001, accountBalanceError.getCode());
   }
 
@@ -246,9 +249,9 @@ class AccountBalanceApiTest extends IntegrationTest {
   @Test
   void accountBalanceBetweenTwoBlocksWithMintedCoins_Test() {
     String upToBlockHashTestAccount = generatedDataMap.get(
-        TestConstants.SIMPLE_NEW_EMPTY_NAME_COINS_TRANSACTION_NAME).blockHash();
+        TestTransactionNames.SIMPLE_NEW_EMPTY_NAME_COINS_TRANSACTION.getName()).blockHash();
     long upToBlockNumberTestAccount = generatedDataMap.get(
-        TestConstants.SIMPLE_NEW_EMPTY_NAME_COINS_TRANSACTION_NAME).blockNumber();
+        TestTransactionNames.SIMPLE_NEW_EMPTY_NAME_COINS_TRANSACTION.getName()).blockNumber();
 
     AccountBalanceRequest accountBalanceRequest = getAccountBalanceRequestUntilBlock(
         TestConstants.TEST_ACCOUNT_ADDRESS, upToBlockNumberTestAccount, null);
@@ -273,7 +276,8 @@ class AccountBalanceApiTest extends IntegrationTest {
     assertNotEquals(
         accountBalanceResponseWith3Tokens.getBalances().getFirst().getCurrency().getSymbol(),
         accountBalanceResponseWith3Tokens.getBalances().get(2).getCurrency().getSymbol());
-    assertEquals(upToBlockHashTestAccount, accountBalanceResponseWith3Tokens.getBlockIdentifier().getHash());
+    assertEquals(upToBlockHashTestAccount,
+        accountBalanceResponseWith3Tokens.getBlockIdentifier().getHash());
     assertEquals(upToBlockNumberTestAccount,
         accountBalanceResponseWith3Tokens.getBlockIdentifier().getIndex());
     // Check the balance on the previous block
