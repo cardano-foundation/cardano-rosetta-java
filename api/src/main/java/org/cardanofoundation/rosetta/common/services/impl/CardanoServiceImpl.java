@@ -431,6 +431,15 @@ public class CardanoServiceImpl implements CardanoService {
     return processOperationsDto;
   }
 
+  /**
+   * Fees are calulcated based on adding all inputs and substracting all outputs.
+   * Withdrawals will be added as well.
+   * @param inputAmounts Sum of all Input ADA Amounts
+   * @param outputAmounts Sum of all Output ADA Amounts
+   * @param withdrawalAmounts Sum of all Withdrawals
+   * @param depositsSumMap Map of refund and deposit values
+   * @return Payed Fee
+   */
   @Override
   public Long calculateFee(ArrayList<BigInteger> inputAmounts, ArrayList<BigInteger> outputAmounts,
       ArrayList<BigInteger> withdrawalAmounts, Map<String, Double> depositsSumMap) {
@@ -439,8 +448,8 @@ public class CardanoServiceImpl implements CardanoService {
     long outputsSum = outputAmounts.stream().reduce(BigInteger.ZERO, BigInteger::add).longValue();
     long withdrawalsSum = withdrawalAmounts.stream().reduce(BigInteger.ZERO, BigInteger::add)
         .longValue();
-    long fee = (long) (inputsSum + withdrawalsSum + depositsSumMap.get("keyRefundsSum") - outputsSum
-        - depositsSumMap.get("keyDepositsSum") - depositsSumMap.get("poolDepositsSum"));
+    long fee = (long) (inputsSum + withdrawalsSum * (-1) + depositsSumMap.get("keyRefundsSum") - outputsSum
+        - depositsSumMap.get("keyDepositsSum") - depositsSumMap.get("poolDepositsSum")); // withdrawals -1 because it's a negative value, but must be added to the
     if (fee < 0) {
       throw ExceptionFactory.outputsAreBiggerThanInputsError();
     }
@@ -508,5 +517,6 @@ public class CardanoServiceImpl implements CardanoService {
             }
         }
     }
+
 
 }

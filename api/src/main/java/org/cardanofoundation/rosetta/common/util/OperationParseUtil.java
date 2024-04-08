@@ -1,16 +1,9 @@
 package org.cardanofoundation.rosetta.common.util;
 
-import static java.math.BigInteger.valueOf;
-
-import com.bloxbean.cardano.client.exception.CborDeserializationException;
-import com.bloxbean.cardano.client.exception.CborSerializationException;
 import com.bloxbean.cardano.client.transaction.spec.AuxiliaryData;
 import com.bloxbean.cardano.client.transaction.spec.Withdrawal;
 import java.math.BigInteger;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.SignatureException;
-import java.security.spec.InvalidKeySpecException;
+import java.util.Optional;
 import java.util.Set;
 import org.apache.commons.lang3.ObjectUtils;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProcessOperations;
@@ -111,7 +104,9 @@ public class OperationParseUtil {
       NetworkIdentifierType networkIdentifierType, ProcessOperations resultAccumulator) {
     ProcessWithdrawalReturn processWithdrawalReturn = ProcessContructionUtil.getWithdrawalsReturnFromOperation(
         networkIdentifierType, operation);
-    BigInteger withdrawalAmount = ValidateParseUtil.validateValueAmount(operation);
+    BigInteger withdrawalAmount = Optional.ofNullable(operation.getMetadata().getWithdrawalAmount())
+        .map(amount -> new BigInteger(amount.getValue()))
+        .orElse(null);
     assert withdrawalAmount != null;
     resultAccumulator.getWithdrawalAmounts().add(withdrawalAmount);
     resultAccumulator.getWithdrawals().add(new Withdrawal(processWithdrawalReturn.getReward().getAddress(),

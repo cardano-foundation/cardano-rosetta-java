@@ -11,6 +11,8 @@ import java.util.TimeZone;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.cardanofoundation.rosetta.api.block.model.domain.Withdrawal;
+import org.cardanofoundation.rosetta.api.block.model.repository.WithdrawalRepository;
 import org.springframework.stereotype.Component;
 import org.apache.commons.lang3.ObjectUtils;
 import org.openapitools.client.model.Currency;
@@ -64,6 +66,7 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
   private final PoolRetirementRepository poolRetirementRepository;
   private final StakeAddressRepository stakeAddressRepository;
   private final EpochParamRepository epochParamRepository;
+  private final WithdrawalRepository withdrawalRepository;
 
   private final CardanoConfigService cardanoConfigService;
 
@@ -124,6 +127,11 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
               .stream().map(PoolRegistration::fromEntity).toList()); // TODO Refacotring - do this via JPA
       transaction.setPoolRetirements(poolRetirementRepository.findByTxHash(transaction.getHash())
               .stream().map(PoolRetirement::fromEntity).toList()); // TODO Refacotring - do this via JPA
+      transaction.setWithdrawals(withdrawalRepository.findByTxHash(transaction.getHash())
+              .stream().map(Withdrawal::fromEntity).toList()); // TODO Refacotring - do this via JPA
+
+      ProtocolParams protocolParametersFromIndexerAndConfig = findProtocolParametersFromIndexerAndConfig();
+      transaction.setSize((Long.parseLong(transaction.getFee()) - protocolParametersFromIndexerAndConfig.getMinFeeB().longValue()) / protocolParametersFromIndexerAndConfig.getMinFeeA().longValue());
     }
   }
 

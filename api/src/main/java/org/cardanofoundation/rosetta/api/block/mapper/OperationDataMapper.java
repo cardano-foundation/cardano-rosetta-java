@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import com.bloxbean.cardano.yaci.core.model.certs.CertificateType;
 import org.apache.commons.codec.binary.Hex;
+import org.cardanofoundation.rosetta.api.block.model.domain.Withdrawal;
 import org.jetbrains.annotations.NotNull;
 import org.openapitools.client.model.AccountIdentifier;
 import org.openapitools.client.model.Amount;
@@ -48,9 +49,9 @@ class OperationDataMapper {
     List<List<Operation>> totalOperations = new ArrayList<>();
     List<Operation> inputsAsOperations = getInputTransactionsAsOperations(transaction, status);
     totalOperations.add(inputsAsOperations);
-// TODO Withdrawal currently not supported via Yaci-store. Will implemented it as soon as the PR is merged.
-//        List<Operation> withdrawalsAsOperations = getWithdrawlOperations(transaction, status, totalOperations);
-//        totalOperations.add(withdrawalsAsOperations);
+
+    List<Operation> withdrawalsAsOperations = getWithdrawlOperations(transaction, status, totalOperations);
+    totalOperations.add(withdrawalsAsOperations);
 
     List<Operation> stakeRegistrationOperations = getStakeRegistrationOperations(transaction,
         status, totalOperations);
@@ -78,24 +79,24 @@ class OperationDataMapper {
         .collect(Collectors.toList());
   }
 
-//    @NotNull
-//    private static List<Operation> getWithdrawlOperations(TransactionDto transactionDto, OperationStatus status, List<List<Operation>> totalOperations) {
-//        return IntStream.range(0,
-//                        transactionDto.getWithdrawals().size())
-//                .mapToObj(index -> {
-//                    Withdrawal withdrawal = transaction.getWithdrawals().get(index);
-//                    return Operation.builder()
-//                            .operationIdentifier(OperationIdentifier.builder().index(
-//                                    getOperationCurrentIndex(totalOperations, index)).build())
-//                            .type(OperationType.WITHDRAWAL.getValue())
-//                            .status(status.getStatus())
-//                            .account(AccountIdentifier.builder().address(withdrawal.getStakeAddress()).build())
-//                            .metadata(OperationMetadata.builder()
-//                                    .withdrawalAmount(DataMapper.mapAmount("-" + withdrawal.getAmount()))
-//                                    .build())
-//                            .build();
-//                }).toList();
-//    }
+    @NotNull
+    private static List<Operation> getWithdrawlOperations(BlockTx transaction, OperationStatus status, List<List<Operation>> totalOperations) {
+        return IntStream.range(0,
+                transaction.getWithdrawals().size())
+                .mapToObj(index -> {
+                    Withdrawal withdrawal = transaction.getWithdrawals().get(index);
+                    return Operation.builder()
+                            .operationIdentifier(OperationIdentifier.builder().index(
+                                    getOperationCurrentIndex(totalOperations, index)).build())
+                            .type(OperationType.WITHDRAWAL.getValue())
+                            .status(status.getStatus())
+                            .account(AccountIdentifier.builder().address(withdrawal.getStakeAddress()).build())
+                            .metadata(OperationMetadata.builder()
+                                    .withdrawalAmount(DataMapper.mapAmount("-" + withdrawal.getAmount()))
+                                    .build())
+                            .build();
+                }).toList();
+    }
 
   @NotNull
   public static List<Operation> getInputTransactionsAsOperations(BlockTx transaction,
