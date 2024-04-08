@@ -1,12 +1,6 @@
 package org.cardanofoundation.rosetta.common.util;
 
 
-import static org.cardanofoundation.rosetta.common.exception.ExceptionFactory.invalidPolicyIdError;
-import static org.cardanofoundation.rosetta.common.exception.ExceptionFactory.invalidTokenNameError;
-import static org.cardanofoundation.rosetta.common.util.Formatters.hexStringToBuffer;
-import static org.cardanofoundation.rosetta.common.util.Formatters.isEmptyHexString;
-
-import com.bloxbean.cardano.client.address.Address;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -14,10 +8,18 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
+import com.bloxbean.cardano.client.address.Address;
+import org.openapitools.client.model.Currency;
+import org.openapitools.client.model.CurrencyMetadata;
+
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.common.enumeration.CatalystDataIndexes;
 import org.cardanofoundation.rosetta.common.enumeration.CatalystSigIndexes;
-import org.openapitools.client.model.Currency;
+
+import static org.cardanofoundation.rosetta.common.exception.ExceptionFactory.invalidPolicyIdError;
+import static org.cardanofoundation.rosetta.common.exception.ExceptionFactory.invalidTokenNameError;
+import static org.cardanofoundation.rosetta.common.util.Formatters.hexStringToBuffer;
+import static org.cardanofoundation.rosetta.common.util.Formatters.isEmptyHexString;
 
 
 public class ValidationUtil {
@@ -34,14 +36,14 @@ public class ValidationUtil {
   public static void validateCurrencies(List<Currency> currencies) {
     for (Currency currency : currencies) {
       String symbol = currency.getSymbol();
-      Map<String, Object> metadata = (Map<String, Object>) currency.getMetadata();
+      CurrencyMetadata metadata = currency.getMetadata();
       if (!isTokenNameValid(symbol)) {
         throw invalidTokenNameError("Given name is " + symbol);
       }
-      if (
-          !symbol.equals(Constants.ADA)
-              && !isPolicyIdValid(String.valueOf(metadata.get("policyId")))) {
-        throw invalidPolicyIdError("Given policy id is " + metadata.get("policyId"));
+      if (!symbol.equals(Constants.ADA)
+          && (metadata == null || !isPolicyIdValid(String.valueOf(metadata.getPolicyId())))) {
+        String policyId = metadata == null ? null : metadata.getPolicyId();
+        throw invalidPolicyIdError("Given policy id is " + policyId);
       }
     }
   }

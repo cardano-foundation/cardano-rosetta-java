@@ -1,6 +1,8 @@
 package org.cardanofoundation.rosetta.testgenerator.transactions.impl;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.MissingResourceException;
 
 import lombok.extern.slf4j.Slf4j;
@@ -23,8 +25,8 @@ import com.bloxbean.cardano.client.transaction.spec.cert.PoolRegistration;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.cardanofoundation.rosetta.testgenerator.common.BaseFunctions;
-import org.cardanofoundation.rosetta.testgenerator.common.GeneratedTestDataDTO;
 import org.cardanofoundation.rosetta.testgenerator.common.TestConstants;
+import org.cardanofoundation.rosetta.testgenerator.common.TransactionBlockDetails;
 import org.cardanofoundation.rosetta.testgenerator.transactions.TransactionRunner;
 
 import static org.cardanofoundation.rosetta.testgenerator.common.BaseFunctions.checkIfUtxoAvailable;
@@ -37,33 +39,26 @@ public class PoolTransactions implements TransactionRunner {
   private Account sender1;
   private Account sender2;
 
-  private String sender1Addr;
   private String sender2Addr;
-
-  private GeneratedTestDataDTO generatedTestData;
 
   @Override
   public void init() {
     sender1 = new Account(Networks.testnet(), TestConstants.SENDER_1_MNEMONIC);
-    sender1Addr = sender1.baseAddress();
 
     sender2 = new Account(Networks.testnet(), TestConstants.SENDER_2_MNEMONIC);
     sender2Addr = sender2.baseAddress();
   }
 
   @Override
-  public GeneratedTestDataDTO runTransactions(GeneratedTestDataDTO generatedTestData) {
-    this.generatedTestData = generatedTestData;
-
-    registerPool();
-
-    delegateStakeToPool();
-
-    retirePool();
-    return this.generatedTestData;
+  public Map<String, TransactionBlockDetails> runTransactions() {
+    Map<String, TransactionBlockDetails> generatedDataMap = HashMap.newHashMap(3);
+    generatedDataMap.put(TestConstants.POOL_REGISTRATION_TRANSACTION_NAME, registerPool());
+    generatedDataMap.put(TestConstants.POOL_DELEGATION_TRANSACTION_NAME, delegateStakeToPool());
+    generatedDataMap.put(TestConstants.POOL_RETIREMENT_TRANSACTION_NAME, retirePool());
+    return generatedDataMap;
   }
 
-  public void registerPool() {
+  public TransactionBlockDetails registerPool() {
     log.info("Registering pool");
     ObjectMapper objectMapper = new ObjectMapper();
 
@@ -117,14 +112,11 @@ public class PoolTransactions implements TransactionRunner {
     Block value1 = BaseFunctions.getBlock(txHash);
     String hash = value1.getHash();
     log.info(BLOCK_HASH_MASSAGE + hash);
-    if (generatedTestData != null) {
-      generatedTestData.setPoolRegistrationTxHash(txHash);
-      generatedTestData.setPoolRegistrationBlockHash(value1.getHash());
-      generatedTestData.setPoolRegistrationBlockNumber(value1.getHeight());
-    }
+
+    return new TransactionBlockDetails(txHash, hash, value1.getHeight());
   }
 
-  public void delegateStakeToPool() {
+  public TransactionBlockDetails delegateStakeToPool() {
     log.info("Delegating stake to pool");
     // registering Stake keys first
     Tx tx = new Tx()
@@ -156,14 +148,11 @@ public class PoolTransactions implements TransactionRunner {
     Block value1 = BaseFunctions.getBlock(txHash);
     String hash = value1.getHash();
     log.info(BLOCK_HASH_MASSAGE + hash);
-    if (generatedTestData != null) {
-      generatedTestData.setDelegationTxHash(txHash);
-      generatedTestData.setDelegationBlockHash(value1.getHash());
-      generatedTestData.setDelegationBlockNumber(value1.getHeight());
-    }
+
+    return new TransactionBlockDetails(txHash, hash, value1.getHeight());
   }
 
-  public void retirePool() {
+  public TransactionBlockDetails retirePool() {
     log.info("Retiring pool");
     String poolId = getPoolId();
     ObjectMapper objectMapper = new ObjectMapper();
@@ -189,11 +178,8 @@ public class PoolTransactions implements TransactionRunner {
     Block value1 = BaseFunctions.getBlock(txHash);
     String hash = value1.getHash();
     log.info(BLOCK_HASH_MASSAGE + hash);
-    if (generatedTestData != null) {
-      generatedTestData.setPoolRetireTxHash(txHash);
-      generatedTestData.setPoolRetireBlockHash(value1.getHash());
-      generatedTestData.setPoolRetireBlockNumber(value1.getHeight());
-    }
+
+    return new TransactionBlockDetails(txHash, hash, value1.getHeight());
   }
 
   private String getPoolId() {

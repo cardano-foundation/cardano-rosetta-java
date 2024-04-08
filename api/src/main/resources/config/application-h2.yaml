@@ -1,11 +1,9 @@
 server:
-  port: ${API_BIND_PORT:8081}
+  port: ${API_PORT:8081}
   compression:
     enabled: true
     mime-types: text/html,text/plain,text/css,application/javascript,application/json
     min-response-size: 1024
-
-
 
 spring:
   jackson:
@@ -32,102 +30,22 @@ spring:
     hibernate:
       ddl-auto: none
     show-sql: true
-  liquibase:
-    enabled: false
 
 api:
   exception:
     isPrintStackTrace : {PRINT_EXCEPTION:true}
 
-
-
 cardano:
   rosetta:
     version:
       ${ROSETTA_VERSION}
-    implementation-version:
-      '@project.version@'
-    networks:
-      [
-        {
-          id:
-            mainnet,
-          node-version:
-            cardano node 1.30.1,
-          indexer:
-            {
-              type:
-                ledgersync,
-              endpoint-url:
-                http://localhost:8080
-            },
-          node-bridge:
-            {
-              type:
-                ledgersync,
-              endpoint-url:
-                http://localhost:8080
-            }
-        },
-        {
-          id:
-            preprod,
-          protocol-magic: 1,
-          node-version:
-            cardano node 1.30.1,
-          indexer:
-            {
-              type:
-                ledgersync,
-              endpoint-url:
-                http://localhost:8080
-            },
-          node-bridge:
-            {
-              type:
-                ledgersync,
-              endpoint-url:
-                http://localhost:8080
-            }
-        },
-        {
-          id:
-            preview,
-          protocol-magic: 2,
-          node-version:
-            cardano node 1.30.1,
-          indexer:
-            {
-              type:
-                ledgersync,
-              endpoint-url:
-                http://localhost:8080
-            },
-          node-bridge:
-            {
-              type:
-                ledgersync,
-              endpoint-url:
-                http://localhost:8080
-            }
-        }
-
-      ]
     TOPOLOGY_FILEPATH: ${TOPOLOGY_FILEPATH}
     GENESIS_SHELLEY_PATH: ${GENESIS_SHELLEY_PATH}
     CARDANO_NODE_VERSION: ${CARDANO_NODE_VERSION}
-    EXEMPTION_TYPES_PATH: ${EXEMPTION_TYPES_PATH}
     CARDANO_NODE_HOST: ${CARDANO_NODE_HOST}
     NODE_SUBMIT_API_PORT: ${NODE_SUBMIT_API_PORT}
-    API_NODE_SOCKET_PATH: ${API_NODE_SOCKET_PATH}
+    CARDANO_NODE_SOCKET: ${CARDANO_NODE_SOCKET}
     # devkit variables
     DEVKIT_ENABLED: ${DEVKIT_ENABLED:false}
     DEVKIT_URL: ${DEVKIT_URL:yaci-cli}
     DEVKIT_PORT: ${HOST_N2C_SOCAT_PORT:3333}
-
-page-size: ${PAGE_SIZE:5}
-
-cardano-transaction-submitter:
-  networkMagic: ${PROTOCOL_MAGIC:1}
-  transaction:
-    ttl: ${TRANSACTION_TTL:3000}

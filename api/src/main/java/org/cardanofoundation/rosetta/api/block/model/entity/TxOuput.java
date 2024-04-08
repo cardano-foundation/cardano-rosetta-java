@@ -8,7 +8,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import org.cardanofoundation.rosetta.api.account.model.entity.Amt;
+import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
 
 //Not used
 @Data

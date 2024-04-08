@@ -9,7 +9,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import org.cardanofoundation.rosetta.api.account.model.entity.AddressUtxoEntity;
-import org.cardanofoundation.rosetta.api.account.model.entity.Amt;
 import org.cardanofoundation.rosetta.api.block.model.entity.UtxoKey;
 
 @Data
