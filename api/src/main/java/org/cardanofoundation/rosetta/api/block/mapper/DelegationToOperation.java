@@ -29,8 +29,8 @@ public class DelegationToOperation extends AbstractToOperation<Delegation> {
           mp.map(f -> status.getStatus(), Operation::setStatus);
           mp.map(f-> OperationType.STAKE_DELEGATION.getValue(), Operation::setType);
           mp.<Long>map(f -> index, (d,v) -> d.getOperationIdentifier().setIndex(v));
-          mp.<Amount>map(f->getDepositAmount("2000000"), (d, v) -> d.getMetadata().setDepositAmount(v));
           mp.<String>map(Delegation::getAddress, (d, v) -> d.getAccount().setAddress(v));
+          mp.<String>map(Delegation::getPoolId, (d, v) -> d.getMetadata().setPoolKeyHash(v));
 
         })
         .setPostConverter(MappingContext::getDestination)

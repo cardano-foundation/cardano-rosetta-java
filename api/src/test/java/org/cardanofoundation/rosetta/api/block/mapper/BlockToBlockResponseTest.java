@@ -137,7 +137,7 @@ class BlockToBlockResponseTest extends BaseMapperTest {
         newAccId("address1"), newAccId("address2"),
         newAccId("delegationAcc1"), newAccId("delegationAcc2"),
         newAccId("poolReg1"), newAccId("poolReg2"),
-        newAccId("poolDlg1"), newAccId("poolDlg2"));
+        newAccId("poolRet1"), newAccId("poolRet2"));
     assertThat((into.getBlock().getTransactions()))
         .extracting(t -> t.getOperations()
             .stream()
@@ -191,7 +191,7 @@ class BlockToBlockResponseTest extends BaseMapperTest {
           assertAllPropertiesIsNull(d, "depositAmount", "poolRegistrationParams");
 
           assertProperty(d, "depositAmount",
-              Amount.builder().currency(ada).value("poolDeposit").build());
+              Amount.builder().currency(ada).value("5000").build());
 
           //d == List<PoolRegistrationParams> size == 2
           assertProperty(List.of(orderOwners(d.getFirst())), "poolRegistrationParams",
@@ -214,6 +214,7 @@ class BlockToBlockResponseTest extends BaseMapperTest {
           assertProperty(List.of(d.getLast()), "epoch", aiEpoch.incrementAndGet());
         });
 
+    AtomicInteger poolKeyHash = new AtomicInteger(0); //just immutable helper
     assertThat((into.getBlock().getTransactions()))
         .extracting(t -> t.getOperations()
             .stream()
@@ -221,13 +222,17 @@ class BlockToBlockResponseTest extends BaseMapperTest {
                 g -> g.getType().equals("stakeDelegation"))
             .map(Operation::getMetadata)
             .collect(Collectors.toList()))
-        //TODO saa: is it OK to have all values here is null
-        .allSatisfy(BlockToBlockResponseTest::assertAllPropertiesIsNull);
+        .allSatisfy(d->
+        {
+          assertAllPropertiesIsNull(d, "poolKeyHash");
+          assertProperty(List.of(d.getFirst()), "poolKeyHash", "poolDlg"+poolKeyHash.incrementAndGet());
+          assertProperty(List.of(d.getLast()), "poolKeyHash", "poolDlg"+poolKeyHash.incrementAndGet());
+        });
 
 
   }
 
-  private OperationMetadata orderOwners(OperationMetadata om) {
+  private OperationMetadata orderOwners(OperationMetadata om) { //TODO saa rewrite with TreeSet
 
 //    getPoolOwners() -- immutable list, so need to convert to array and back
     String[] poolOwners = om.getPoolRegistrationParams().getPoolOwners().toArray(new String[]{});
@@ -315,6 +320,7 @@ class BlockToBlockResponseTest extends BaseMapperTest {
             .credential("credential" + ver)
             .epoch(1 + ver)
             .slot(1L + ver)
+            .poolId("poolDlg" + ver)
             .address("delegationAcc" + ver)
             .blockHash("blockHash" + ver)
             .build())
@@ -348,7 +354,7 @@ class BlockToBlockResponseTest extends BaseMapperTest {
         .mapToObj(ver -> PoolRetirement.builder()
             .txHash("txHash" + ver)
             .certIndex(1L + ver)
-            .poolId("poolDlg" + ver)
+            .poolId("poolRet" + ver)
             .epoch(1 + ver)
             .slot(1L + ver)
             .blockHash("blockHash" + ver)

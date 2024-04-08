@@ -65,6 +65,7 @@ public class BlockTxToRosettaTransaction {
 //          return ctx.getDestination();
           MutableInt ix = new MutableInt(0);
           @NotNull @Valid List<Operation> destOp = ctx.getDestination().getOperations();
+          destOp.addAll(inputToOperation.convert(model.getInputs(), status, ix));
           destOp.addAll(stakeToOperation.convert(model.getStakeRegistrations(), status, ix));
           destOp.addAll(delegationToOperation.convert(model.getDelegations(), status, ix));
           destOp.addAll(poolRegistrationToOperation.convert(model.getPoolRegistrations(), status, ix));

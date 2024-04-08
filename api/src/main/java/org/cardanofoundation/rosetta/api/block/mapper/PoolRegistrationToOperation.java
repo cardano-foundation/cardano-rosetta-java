@@ -68,6 +68,8 @@ public class PoolRegistrationToOperation extends AbstractToOperation<PoolRegistr
           params.setPoolOwners(ctx.getSource().getOwners().stream().toList());
           params.setMarginPercentage(ctx.getSource().getMargin());
           params.setRelays(ctx.getSource().getRelays());
+          params.setVrfKeyHash(ctx.getSource().getVrfKeyHash());
+          params.setRewardAddress(ctx.getSource().getRewardAccount());
 
           return d;
         })

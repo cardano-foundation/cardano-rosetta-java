@@ -112,6 +112,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
 
     from.setDelegations(List.of(Delegation.builder()
         .address("stake_addr1")
+        .poolId("pool_id1")
         .slot(1L)
         .build()));
     //when
