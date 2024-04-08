@@ -14,7 +14,7 @@ import org.openapitools.client.model.OperationMetadata;
 import org.openapitools.client.model.OperationStatus;
 import org.openapitools.client.model.TokenBundleItem;
 
-import org.cardanofoundation.rosetta.api.account.model.entity.Amt;
+import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
 import org.cardanofoundation.rosetta.common.mapper.DataMapper;
 import org.cardanofoundation.rosetta.common.util.Constants;
 
