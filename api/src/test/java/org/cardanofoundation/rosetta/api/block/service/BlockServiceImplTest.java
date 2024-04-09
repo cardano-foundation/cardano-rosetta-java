@@ -1,8 +1,8 @@
 package org.cardanofoundation.rosetta.api.block.service;
 
+import java.math.BigInteger;
 import java.util.List;
 
-import org.springframework.test.util.ReflectionTestUtils;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -12,7 +12,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
+import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
 import org.cardanofoundation.rosetta.common.exception.ApiException;
+import org.cardanofoundation.rosetta.common.services.GenesisService;
 import org.cardanofoundation.rosetta.common.services.LedgerDataProviderService;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -24,66 +26,52 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class BlockServiceImplTest {
-
   @Mock
   private LedgerDataProviderService ledgerDataProviderService;
   @InjectMocks
   private BlockServiceImpl blockService;
+  @Mock
+  private GenesisService genesisService;
+  @Mock
+  private ProtocolParams protocolParams;
+
+  public void givenProtocolParam() {
+    when(genesisService.getProtocolParameters()).thenReturn(protocolParams);
+    when(protocolParams.getPoolDeposit()).thenReturn(BigInteger.TEN);
+  }
 
   @Test
   void getBlockByBlockRequest_OK() {
-
     //given
+    givenProtocolParam();
     long index = 1;
     String hash = "hash1";
-
-    String genesisPath = "../config/preprod/shelley-genesis.json";
-    ReflectionTestUtils.setField(blockService, "genesisPath", genesisPath);
-
     Block expected = newBlock();
-    when(ledgerDataProviderService.findBlock(index, hash))
-        .thenReturn(expected);
-
+    when(ledgerDataProviderService.findBlock(index, hash)).thenReturn(expected);
     //when
     Block block = blockService.findBlock(index, hash);
-
     //then
     assertThat(block).isEqualTo(expected);
-
   }
 
   @Test
   void getBlockByBlockRequest_OK_emptyTransactions() {
-
     //given
+    givenProtocolParam();
     long index = 1;
     String hash = "hash1";
-
-    String genesisPath = "../config/preprod/shelley-genesis.json";
-    ReflectionTestUtils.setField(blockService, "genesisPath", genesisPath);
-
-    when(ledgerDataProviderService.findBlock(index, hash))
-        .thenReturn(newBlock());
-
+    when(ledgerDataProviderService.findBlock(index, hash)).thenReturn(newBlock());
     //when
     Block block = blockService.findBlock(index, hash);
-
     //then
     assertThat(block.getTransactions()).isNull();
-
-
   }
 
   @Test
   void getBlockByBlockRequest_blockNotFoundException() {
-
     //given
-    String genesisPath = "../config/preprod/shelley-genesis.json";
-    ReflectionTestUtils.setField(blockService, "genesisPath", genesisPath);
-
-    when(ledgerDataProviderService.findBlock(anyLong(), anyString()))
-        .thenReturn(newBlock());
-
+    givenProtocolParam();
+    when(ledgerDataProviderService.findBlock(anyLong(), anyString())).thenReturn(newBlock());
     //when
     try {
       blockService.findBlock(1L, "hash");
@@ -91,33 +79,23 @@ class BlockServiceImplTest {
       //then
       assertThat(e.getError().getCode()).isEqualTo(BLOCK_NOT_FOUND.getCode());
     }
-
-
   }
 
   @Test
   void getBlockByBlockRequest_canNotReadGenesis() {
-
     //given
+    givenProtocolParam();
     long index = 1;
     String hash = "hash1";
-
-    String genesisPath = "badPath";
-    ReflectionTestUtils.setField(blockService, "genesisPath", genesisPath);
-
-    when(ledgerDataProviderService.findBlock(index, hash))
-        .thenReturn(newBlock());
-
-    //when
+    when(ledgerDataProviderService.findBlock(index, hash)).thenReturn(newBlock());
     try {
+      //when
       blockService.findBlock(index, hash);
     } catch (ApiException e) {
       //then
       assertThat(e.getMessage())
           .isEqualTo("Could not read genesis file path");
     }
-
-
   }
 
 
@@ -137,7 +115,6 @@ class BlockServiceImplTest {
 
   @Test
   void getBlockTransaction_Test_OK() {
-
     //given
     String txHash = "txHash1";
     BlockTx tx = newTran(txHash);
@@ -145,10 +122,8 @@ class BlockServiceImplTest {
     String blockHash = "hash1";
     when(ledgerDataProviderService.findTransactionsByBlock(blockId, blockHash))
         .thenReturn(List.of(tx));
-
     //when
     BlockTx blockTransaction = blockService.getBlockTransaction(blockId, blockHash, txHash);
-
     //then
     assertThat(blockTransaction).isEqualTo(tx);
   }
@@ -156,13 +131,11 @@ class BlockServiceImplTest {
 
   @Test
   void getBlockTransaction_Test_notFoundTransaction() {
-
     //given
     long blockId = 1L;
     String blockHash = "hash1";
     when(ledgerDataProviderService.findTransactionsByBlock(blockId, blockHash))
         .thenReturn(List.of(newTran("any")));
-
     try {
       //when
       blockService.getBlockTransaction(blockId, blockHash, "differentFromAny");

@@ -21,19 +21,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 class BlockToEntityTest extends BaseMapperTest {
 
   @Autowired
+  @SuppressWarnings("unused") //used through injection
   private BlockToEntity my;
-
   @Test
   void fromEntity_Test() {
-
     //given
-
     my.modelMapper.validate();
     BlockEntity from = newBlockEntity();
-
     //when
     Block into = my.fromEntity(from);
-
     //then
     assertThat(into.getNumber()).isEqualTo(from.getNumber());
     assertThat(into.getHash()).isEqualTo(from.getHash());
