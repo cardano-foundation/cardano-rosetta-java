@@ -41,6 +41,11 @@ To support all of these operations extra metadata in addition to the Rosetta Spe
 "poolRegistrationParams": { "type": "PoolRegistrationParams"}       // Extra Parameters for a pool registration. Only use if it's a pool registration operation.
 "voteRegistrationMetadata": { "type": "VoteRegistrationMetadata"}   // Metadata to register votes. Only use if it's a vote registration operation.
 ```
+
+### ``/account/coins``
+`include_mempool` is an optional parameter that can be used to include mempool transactions in the response.
+If not set, it will be ignored. Default is false, since mempool tracking is not activated by default as well.
+
 ###  ``/construction/derive``
 Following the rosetta specification this endpoint returns an Enterprise address. 
 In addition to that Cardano Rosetta Java allows the creation of Reward and Base addresses, which aren't supported in the Rosetta specification.
