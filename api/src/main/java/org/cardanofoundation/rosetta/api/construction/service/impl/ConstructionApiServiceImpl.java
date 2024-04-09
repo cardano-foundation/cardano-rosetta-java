@@ -73,13 +73,21 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
       ConstructionPreprocessRequest constructionPreprocessRequest) {
 
     NetworkIdentifier networkIdentifier = constructionPreprocessRequest.getNetworkIdentifier();
-    ConstructionPreprocessMetadata metadata = constructionPreprocessRequest.getMetadata();
+    Optional<ConstructionPreprocessMetadata> metadata = Optional.ofNullable(
+        constructionPreprocessRequest.getMetadata());
+    Double relativeTtl;
+    DepositParameters depositParameters;
+    if(metadata.isPresent()) {
+      relativeTtl = cardanoService.checkOrReturnDefaultTtl(metadata.get().getRelativeTtl());
+      depositParameters = Optional.ofNullable(metadata.get().getDepositParameters()).orElse(cardanoService.getDepositParameters());
+    } else {
+      relativeTtl = Constants.DEFAULT_RELATIVE_TTL;
+      depositParameters = cardanoService.getDepositParameters();
+    }
 
-    Double relativeTtl = cardanoService.checkOrReturnDefaultTtl(metadata.getRelativeTtl());
     Double transactionSize = cardanoService.calculateTxSize(
         NetworkIdentifierType.findByName(networkIdentifier.getNetwork()),
-        constructionPreprocessRequest.getOperations(), 0,
-        metadata.getDepositParameters());
+        constructionPreprocessRequest.getOperations(), 0, depositParameters);
     Map<String, Double> response = Map.of(Constants.RELATIVE_TTL, relativeTtl,
         Constants.TRANSACTION_SIZE,
         transactionSize);
