@@ -23,7 +23,6 @@ import org.cardanofoundation.rosetta.common.util.FileUtils;
 public class GenesisServiceImpl implements GenesisService {
 
   @Value("${cardano.rosetta.GENESIS_SHELLEY_PATH}")
-  @SuppressWarnings("unused") //used through injection
   private String genesisShelleyPath;
 
   private final ObjectMapper objectMapper;

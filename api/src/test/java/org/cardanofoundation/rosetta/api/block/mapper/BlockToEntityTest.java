@@ -21,7 +21,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 class BlockToEntityTest extends BaseMapperTest {
 
   @Autowired
-  @SuppressWarnings("unused") //used through injection
   private BlockToEntity my;
   @Test
   void fromEntity_Test() {

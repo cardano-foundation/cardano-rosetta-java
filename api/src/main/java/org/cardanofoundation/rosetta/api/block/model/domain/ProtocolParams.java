@@ -90,16 +90,16 @@ public class ProtocolParams {
   private Integer maxUTxOValue;
 
   @Data
-  public class ExtraEntropy{
+  public static class ExtraEntropy{
     String tag;
   }
 
   @Data
-  public class ProtocolVersion{
+  public static class ProtocolVersion{
     Integer minor;
     Integer major;
   }
-  // TODO clarify if parameters are correctly set -- where golden source?)
+  // TODO saa: clarify if parameters are correctly set -- where golden source?)
 
   public void merge(ProtocolParams other) { //TODO saa: why?
     if (this.minFeeA == null) {

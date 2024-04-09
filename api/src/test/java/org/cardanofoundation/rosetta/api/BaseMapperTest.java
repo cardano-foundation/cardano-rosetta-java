@@ -13,7 +13,6 @@ import org.cardanofoundation.rosetta.common.services.GenesisService;
 @ContextConfiguration(classes = {ConfigurationMapper.class, SpringMappersTestConfig.class})
 public class BaseMapperTest {
   @MockBean
-  @SuppressWarnings("unused")
   protected GenesisService genesisService;
 }
 

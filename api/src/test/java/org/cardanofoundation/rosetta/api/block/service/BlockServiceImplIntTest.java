@@ -19,14 +19,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class BlockServiceImplIntTest extends IntegrationTest {
 
   @Autowired
-  @SuppressWarnings("unused")
   private BlockService blockService;
   final TransactionBlockDetails generatedTestData = generatedDataMap.get(
       TestTransactionNames.SIMPLE_TRANSACTION.getName());
 
 
   @Autowired
-  @SuppressWarnings("unused")
   private GenesisService genesisService;
   @Test
   void getBlockWithTransaction_Test() {

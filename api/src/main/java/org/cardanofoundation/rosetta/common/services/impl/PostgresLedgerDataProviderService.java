@@ -28,10 +28,11 @@ import org.cardanofoundation.rosetta.api.block.model.domain.Delegation;
 import org.cardanofoundation.rosetta.api.block.model.domain.GenesisBlock;
 import org.cardanofoundation.rosetta.api.block.model.domain.PoolRegistration;
 import org.cardanofoundation.rosetta.api.block.model.domain.PoolRetirement;
+import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
 import org.cardanofoundation.rosetta.api.block.model.domain.StakeAddressBalance;
 import org.cardanofoundation.rosetta.api.block.model.domain.StakeRegistration;
 import org.cardanofoundation.rosetta.api.block.model.entity.BlockEntity;
-import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
+import org.cardanofoundation.rosetta.api.block.model.entity.EpochParamEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.StakeAddressBalanceEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.TxnEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.UtxoKey;
@@ -44,6 +45,7 @@ import org.cardanofoundation.rosetta.api.block.model.repository.StakeAddressRepo
 import org.cardanofoundation.rosetta.api.block.model.repository.StakeRegistrationRepository;
 import org.cardanofoundation.rosetta.api.block.model.repository.TxRepository;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
+import org.cardanofoundation.rosetta.common.mapper.ProtocolParamsToEntity;
 import org.cardanofoundation.rosetta.common.services.GenesisService;
 import org.cardanofoundation.rosetta.common.services.LedgerDataProviderService;
 import org.cardanofoundation.rosetta.common.util.Formatters;
@@ -68,6 +70,7 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
 
   private final BlockToEntity mapperBlock;
   private final BlockTxToEntity mapperTran;
+  private final ProtocolParamsToEntity mapperProtocolParamsToEntity;
 
   @Override
   public GenesisBlock findGenesisBlock() {
@@ -209,12 +212,11 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
 
   @Override
   public ProtocolParams findProtocolParametersFromIndexer() {
-    //TODO saa: refactor to ProtocolParamEntity
-    return epochParamRepository.findLatestProtocolParams();
+    EpochParamEntity epochParam = epochParamRepository.findLatestProtocolParams();
+    return mapperProtocolParamsToEntity.fromEntity(epochParam.getParams());
   }
 
-  @Override
-  public ProtocolParams findProtocolParametersFromConfig() {
+  private ProtocolParams findProtocolParametersFromConfig() {
       return genesisService.getProtocolParameters();
   }
 

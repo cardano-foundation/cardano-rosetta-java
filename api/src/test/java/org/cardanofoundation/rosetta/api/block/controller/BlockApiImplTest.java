@@ -39,11 +39,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class BlockApiImplTest extends SpringMvcTest {
 
   @MockBean
-  @SuppressWarnings("unused") //used in when
   private BlockService blockService;
 
   @MockBean
-  @SuppressWarnings("unused") //used in when
   private GenesisService genesisService;
 
 
