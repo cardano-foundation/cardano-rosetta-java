@@ -33,6 +33,7 @@ import org.cardanofoundation.rosetta.api.block.model.domain.StakeAddressBalance;
 import org.cardanofoundation.rosetta.api.block.model.domain.StakeRegistration;
 import org.cardanofoundation.rosetta.api.block.model.entity.BlockEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.EpochParamEntity;
+import org.cardanofoundation.rosetta.api.block.model.entity.ProtocolParamsEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.StakeAddressBalanceEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.TxnEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.UtxoKey;
@@ -212,8 +213,8 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
 
   @Override
   public ProtocolParams findProtocolParametersFromIndexerAndConfig() {
-    EpochParamEntity epochParam = epochParamRepository.findLatestProtocolParams();
-    ProtocolParams protocolParams = mapperProtocolParams.fromEntity(epochParam.getParams());
+    ProtocolParamsEntity paramsEntity = epochParamRepository.findLatestProtocolParams();
+    ProtocolParams protocolParams = mapperProtocolParams.fromEntity(paramsEntity);
 
     return mapperProtocolParams.merge(genesisService.getProtocolParameters(), protocolParams);
   }
