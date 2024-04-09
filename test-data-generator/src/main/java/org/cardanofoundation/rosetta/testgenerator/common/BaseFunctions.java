@@ -15,12 +15,13 @@ import com.bloxbean.cardano.client.backend.blockfrost.service.BFBackendService;
 import com.bloxbean.cardano.client.backend.model.Block;
 import com.bloxbean.cardano.client.backend.model.TransactionContent;
 import com.bloxbean.cardano.client.quicktx.QuickTxBuilder;
+import org.cardanofoundation.rosetta.testgenerator.DataGenerator;
 
 @Slf4j
 public class BaseFunctions {
 
   public static final BackendService backendService = new BFBackendService(
-      "http://localhost:8080/api/v1/", "Dummy");
+      "http://localhost:" + DataGenerator.cardanoContainer.getYaciStorePort() + "/api/v1/", "Dummy");
   public static final QuickTxBuilder quickTxBuilder = new QuickTxBuilder(backendService);
 
   private BaseFunctions() {
