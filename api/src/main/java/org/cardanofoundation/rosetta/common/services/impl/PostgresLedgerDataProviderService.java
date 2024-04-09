@@ -70,7 +70,7 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
 
   private final BlockToEntity mapperBlock;
   private final BlockTxToEntity mapperTran;
-  private final ProtocolParamsToEntity mapperProtocolParamsToEntity;
+  private final ProtocolParamsToEntity mapperProtocolParams;
 
   @Override
   public GenesisBlock findGenesisBlock() {
@@ -211,20 +211,11 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
   }
 
   @Override
-  public ProtocolParams findProtocolParametersFromIndexer() {
-    EpochParamEntity epochParam = epochParamRepository.findLatestProtocolParams();
-    return mapperProtocolParamsToEntity.fromEntity(epochParam.getParams());
-  }
-
-  private ProtocolParams findProtocolParametersFromConfig() {
-      return genesisService.getProtocolParameters();
-  }
-
-  @Override
   public ProtocolParams findProtocolParametersFromIndexerAndConfig() {
-    ProtocolParams protocolParams = findProtocolParametersFromIndexer();
-    protocolParams.merge(findProtocolParametersFromConfig());
-    return protocolParams;
+    EpochParamEntity epochParam = epochParamRepository.findLatestProtocolParams();
+    ProtocolParams protocolParams = mapperProtocolParams.fromEntity(epochParam.getParams());
+
+    return mapperProtocolParams.merge(genesisService.getProtocolParameters(), protocolParams);
   }
 
   private static Utxo createUtxoModel(List<Currency> currencies, AddressUtxoEntity entity) {

@@ -4,6 +4,7 @@ import java.util.Optional;
 
 import lombok.AllArgsConstructor;
 
+import org.modelmapper.Conditions;
 import org.modelmapper.ModelMapper;
 
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
@@ -27,6 +28,14 @@ public class ProtocolParamsToEntity {
           mapper.<Integer>map(ProtocolParamsEntity::getProtocolMinorVer, (dest, v) -> dest.getProtocolVersion().setMinor(v));
         })
         .map(entity);
+  }
+
+  public ProtocolParams merge(ProtocolParams from, ProtocolParams to){
+    ModelMapper notNullMapper = new ModelMapper();
+    notNullMapper.getConfiguration().setPropertyCondition(Conditions.isNotNull());
+    notNullMapper.map(from, to);
+    return to;
+
   }
 
 }

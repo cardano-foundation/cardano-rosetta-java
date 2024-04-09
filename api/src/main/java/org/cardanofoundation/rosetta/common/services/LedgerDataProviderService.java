@@ -37,8 +37,6 @@ public interface LedgerDataProviderService {
 
   Long findLatestBlockNumber();
 
-  ProtocolParams findProtocolParametersFromIndexer();
-
   Block findLatestBlock();
 
   /**
