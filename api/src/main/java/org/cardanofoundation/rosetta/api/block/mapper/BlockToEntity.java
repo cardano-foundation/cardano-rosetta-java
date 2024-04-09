@@ -27,7 +27,7 @@ public class BlockToEntity {
         .orElseGet(() -> modelMapper.createTypeMap(BlockEntity.class, Block.class))
         .addMappings(mapper -> {
 
-          mapper.map(BlockEntity::getIssuerVkey, Block::setCreatedBy);
+          mapper.map(BlockEntity::getSlotLeader, Block::setCreatedBy);
           mapper.map(BlockEntity::getNoOfTxs, Block::setTransactionsCount);
           mapper.map(BlockEntity::getEpochNumber, Block::setEpochNo);
           mapper.map(BlockEntity::getSlot, Block::setSlotNo);
