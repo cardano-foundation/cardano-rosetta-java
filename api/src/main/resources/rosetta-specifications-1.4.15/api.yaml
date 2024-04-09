@@ -1113,7 +1113,6 @@ components:
       required:
         - network_identifier
         - account_identifier
-        - include_mempool
       properties:
         network_identifier:
           $ref: '#/components/schemas/NetworkIdentifier'
@@ -1121,6 +1120,7 @@ components:
           $ref: '#/components/schemas/AccountIdentifier'
         include_mempool:
           type: boolean
+          default: false
           description: Include state from the mempool when looking up an account's unspent coins. Note, using this functionality breaks any guarantee of idempotency.
         currencies:
           type: array

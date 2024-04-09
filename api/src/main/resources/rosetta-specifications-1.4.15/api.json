@@ -1654,8 +1654,7 @@
         "type": "object",
         "required": [
           "network_identifier",
-          "account_identifier",
-          "include_mempool"
+          "account_identifier"
         ],
         "properties": {
           "network_identifier": {
@@ -1666,6 +1665,7 @@
           },
           "include_mempool": {
             "type": "boolean",
+            "default": false,
             "description": "Include state from the mempool when looking up an account's unspent coins. Note, using this functionality breaks any guarantee of idempotency."
           },
           "currencies": {
