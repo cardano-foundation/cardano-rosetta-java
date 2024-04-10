@@ -26,8 +26,8 @@ import org.openapitools.client.model.OperationStatus;
 import org.openapitools.client.model.PoolRegistrationParams;
 import org.openapitools.client.model.TokenBundleItem;
 
+import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
-import org.cardanofoundation.rosetta.api.account.model.entity.Amt;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.model.domain.Delegation;
 import org.cardanofoundation.rosetta.api.block.model.domain.PoolRegistration;

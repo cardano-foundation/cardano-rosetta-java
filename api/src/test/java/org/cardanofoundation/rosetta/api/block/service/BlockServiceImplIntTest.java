@@ -9,6 +9,8 @@ import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.testgenerator.common.TestConstants;
+import org.cardanofoundation.rosetta.testgenerator.common.TestTransactionNames;
+import org.cardanofoundation.rosetta.testgenerator.common.TransactionBlockDetails;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -17,23 +19,25 @@ class BlockServiceImplIntTest extends IntegrationTest {
   @Autowired
   @SuppressWarnings("unused")
   private BlockService blockService;
+  final TransactionBlockDetails generatedTestData = generatedDataMap.get(
+      TestTransactionNames.SIMPLE_TRANSACTION.getName());
 
   @Test
   void getBlockWithTransaction_Test() {
     //given
     //when
-    Block block = blockService.findBlock(generatedTestData.getTopUpBlockNumber(),
-        generatedTestData.getTopUpBlockHash());
+    Block block = blockService.findBlock(generatedTestData.blockNumber(),
+        generatedTestData.blockHash());
 
     //then
-    assertEquals(generatedTestData.getTopUpBlockHash(), block.getHash());
-    assertEquals(generatedTestData.getTopUpBlockNumber(), block.getSlotNo());
+    assertEquals(generatedTestData.blockHash(), block.getHash());
+    assertEquals(generatedTestData.blockNumber(), block.getSlotNo());
     assertEquals(1, block.getTransactions().size());
 
     Utxo receiverUtxoDto = block.getTransactions().getFirst().getOutputs().getFirst();
     assertEquals(TestConstants.TEST_ACCOUNT_ADDRESS, receiverUtxoDto.getOwnerAddr());
-    assertEquals(generatedTestData.getTopUpTxHash(), receiverUtxoDto.getTxHash());
-    assertEquals(TestConstants.ACCOUNT_BALANCE_ADA_AMOUNT,
+    assertEquals(generatedTestData.txHash(), receiverUtxoDto.getTxHash());
+    assertEquals(TestConstants.ACCOUNT_BALANCE_LOVELACE_AMOUNT,
         receiverUtxoDto.getLovelaceAmount().toString());
 
   }
@@ -41,9 +45,9 @@ class BlockServiceImplIntTest extends IntegrationTest {
   @Test
   void getBlockTransaction_Test() {
     //given
-    long blockNo = generatedTestData.getTopUpBlockNumber();
-    String blockHash = generatedTestData.getTopUpBlockHash();
-    String blockTxHash = generatedTestData.getTopUpTxHash();
+    long blockNo = generatedTestData.blockNumber();
+    String blockHash = generatedTestData.blockHash();
+    String blockTxHash = generatedTestData.txHash();
     String fee = "172321";
     //when
     BlockTx tx = blockService.getBlockTransaction(blockNo, blockHash, blockTxHash);
@@ -71,7 +75,8 @@ class BlockServiceImplIntTest extends IntegrationTest {
     Utxo outUtxo = tx.getOutputs().getFirst();
     assertEquals(TestConstants.TEST_ACCOUNT_ADDRESS, outUtxo.getOwnerAddr());
     assertEquals(blockTxHash, outUtxo.getTxHash());
-    assertEquals(TestConstants.ACCOUNT_BALANCE_ADA_AMOUNT, outUtxo.getLovelaceAmount().toString());
+    assertEquals(TestConstants.ACCOUNT_BALANCE_LOVELACE_AMOUNT,
+        outUtxo.getLovelaceAmount().toString());
 
   }
 

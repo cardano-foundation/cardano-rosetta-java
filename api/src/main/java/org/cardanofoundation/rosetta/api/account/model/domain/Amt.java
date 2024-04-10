@@ -1,4 +1,4 @@
-package org.cardanofoundation.rosetta.api.account.model.entity;
+package org.cardanofoundation.rosetta.api.account.model.domain;
 
 import java.io.Serializable;
 import java.math.BigInteger;

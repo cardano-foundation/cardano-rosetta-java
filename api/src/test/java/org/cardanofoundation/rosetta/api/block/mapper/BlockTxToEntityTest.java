@@ -4,6 +4,8 @@ import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
 import org.junit.jupiter.api.Test;
 
 import org.cardanofoundation.rosetta.api.BaseMapperTest;
@@ -17,13 +19,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class BlockTxToEntityTest extends BaseMapperTest {
 
+  @Autowired
+  private BlockTxToEntity my;
+
   private final UtxoKey inUtxKey = new UtxoKey("in_UtxoKey_txHash1", 55);
   private final UtxoKey outUtxKey = new UtxoKey("out_UtxoKey_txHash1", 55);
   @Test
   void fromEntity_Test() {
     //given
-    BlockTxToEntity my = new BlockTxToEntity(modelMapper);
-    my.modelMapper.validate();
     TxnEntity from = newTxnEntity();
     //when
     BlockTx into = my.fromEntity(from);

@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import com.bloxbean.cardano.yaci.core.model.certs.CertificateType;
 import org.openapitools.client.model.AccountIdentifier;
 import org.openapitools.client.model.Amount;
@@ -36,14 +37,13 @@ import static org.cardanofoundation.rosetta.common.util.RosettaConstants.SUCCESS
 class BlockToBlockResponseTest extends BaseMapperTest {
 
 
+  @Autowired
+  private BlockToBlockResponse my;
+
   @Test
   void toDto_test_Ok() {
 
     //given
-    BlockTxToRosettaTransaction tx2tx = new BlockTxToRosettaTransaction(modelMapper);
-    BlockToBlockResponse my = new BlockToBlockResponse(modelMapper,tx2tx);
-    my.modelMapper.validate();
-
     Block from = newBlock();
 
     //when
@@ -135,9 +135,9 @@ class BlockToBlockResponseTest extends BaseMapperTest {
 
     List<AccountIdentifier> accIds = List.of(
         newAccId("address1"), newAccId("address2"),
-        newAccId(null), newAccId(null), //TODO saa: should be null?
-        newAccId("poolId1"), newAccId("poolId2"), //TODO saa: repeated?
-        newAccId("poolId1"), newAccId("poolId2"));
+        newAccId("delegationAcc1"), newAccId("delegationAcc2"),
+        newAccId("poolReg1"), newAccId("poolReg2"),
+        newAccId("poolRet1"), newAccId("poolRet2"));
     assertThat((into.getBlock().getTransactions()))
         .extracting(t -> t.getOperations()
             .stream()
@@ -191,7 +191,7 @@ class BlockToBlockResponseTest extends BaseMapperTest {
           assertAllPropertiesIsNull(d, "depositAmount", "poolRegistrationParams");
 
           assertProperty(d, "depositAmount",
-              Amount.builder().currency(ada).value("poolDeposit").build());
+              Amount.builder().currency(ada).value("500").build());
 
           //d == List<PoolRegistrationParams> size == 2
           assertProperty(List.of(orderOwners(d.getFirst())), "poolRegistrationParams",
@@ -214,6 +214,7 @@ class BlockToBlockResponseTest extends BaseMapperTest {
           assertProperty(List.of(d.getLast()), "epoch", aiEpoch.incrementAndGet());
         });
 
+    AtomicInteger poolKeyHash = new AtomicInteger(0); //just immutable helper
     assertThat((into.getBlock().getTransactions()))
         .extracting(t -> t.getOperations()
             .stream()
@@ -221,13 +222,17 @@ class BlockToBlockResponseTest extends BaseMapperTest {
                 g -> g.getType().equals("stakeDelegation"))
             .map(Operation::getMetadata)
             .collect(Collectors.toList()))
-        //TODO saa: is it OK to have all values here is null
-        .allSatisfy(BlockToBlockResponseTest::assertAllPropertiesIsNull);
+        .allSatisfy(d->
+        {
+          assertAllPropertiesIsNull(d, "poolKeyHash");
+          assertProperty(List.of(d.getFirst()), "poolKeyHash", "poolDlg"+poolKeyHash.incrementAndGet());
+          assertProperty(List.of(d.getLast()), "poolKeyHash", "poolDlg"+poolKeyHash.incrementAndGet());
+        });
 
 
   }
 
-  private OperationMetadata orderOwners(OperationMetadata om) {
+  private OperationMetadata orderOwners(OperationMetadata om) { //TODO saa rewrite with TreeSet
 
 //    getPoolOwners() -- immutable list, so need to convert to array and back
     String[] poolOwners = om.getPoolRegistrationParams().getPoolOwners().toArray(new String[]{});
@@ -287,7 +292,7 @@ class BlockToBlockResponseTest extends BaseMapperTest {
         "createdAt",
         4, 5,
         6L, newTransactions(),
-        "poolDeposit");
+        "500");
   }
 
   private List<BlockTx> newTransactions() {
@@ -315,6 +320,8 @@ class BlockToBlockResponseTest extends BaseMapperTest {
             .credential("credential" + ver)
             .epoch(1 + ver)
             .slot(1L + ver)
+            .poolId("poolDlg" + ver)
+            .address("delegationAcc" + ver)
             .blockHash("blockHash" + ver)
             .build())
         .collect(Collectors.toList());
@@ -325,7 +332,7 @@ class BlockToBlockResponseTest extends BaseMapperTest {
         .mapToObj(ver -> PoolRegistration.builder()
             .txHash("txHash" + ver)
             .certIndex(1L + ver)
-            .poolId("poolId" + ver)
+            .poolId("poolReg" + ver)
             .vrfKeyHash("vrfKeyHash" + ver)
             .pledge("pledge" + ver)
             .cost("1" + ver)
@@ -347,7 +354,7 @@ class BlockToBlockResponseTest extends BaseMapperTest {
         .mapToObj(ver -> PoolRetirement.builder()
             .txHash("txHash" + ver)
             .certIndex(1L + ver)
-            .poolId("poolId" + ver)
+            .poolId("poolRet" + ver)
             .epoch(1 + ver)
             .slot(1L + ver)
             .blockHash("blockHash" + ver)

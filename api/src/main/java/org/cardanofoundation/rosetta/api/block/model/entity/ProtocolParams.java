@@ -94,17 +94,18 @@ public class ProtocolParams {
     p.setMaxBlockSize(shelleyProtocolParams.getInt("maxBlockBodySize"));
     p.setMaxTxSize(shelleyProtocolParams.getInt("maxTxSize"));
     p.setMaxBlockHeaderSize(shelleyProtocolParams.getInt("maxBlockHeaderSize"));
-    p.setKeyDeposit(shelleyProtocolParams.getBigInteger("keyDeposit"));
-    p.setPoolDeposit(shelleyProtocolParams.getBigInteger("poolDeposit"));
+    p.setKeyDeposit(BigInteger.valueOf(shelleyProtocolParams.getLong("keyDeposit")));
+    p.setPoolDeposit(BigInteger.valueOf(shelleyProtocolParams.getLong("poolDeposit")));
     p.setNOpt(shelleyProtocolParams.getInt("nOpt"));
-    p.setDecentralisationParam(shelleyProtocolParams.getBigDecimal("decentralisationParam"));
+    p.setDecentralisationParam(
+        BigDecimal.valueOf(shelleyProtocolParams.getLong("decentralisationParam")));
     p.setExtraEntropy(shelleyProtocolParams.getJSONObject("extraEntropy").getString("tag"));
     JSONObject protolVersion = shelleyProtocolParams.getJSONObject("protocolVersion");
     p.setProtocolMajorVer(protolVersion.getInt("major"));
     p.setProtocolMinorVer(protolVersion.getInt("minor"));
-    p.setMinUtxo(shelleyProtocolParams.getBigInteger("minUTxOValue"));
-    p.setMinPoolCost(shelleyProtocolParams.getBigInteger("minPoolCost"));
-    p.setAdaPerUtxoByte(shelleyProtocolParams.getBigInteger("minFeeA"));
+    p.setMinUtxo(BigInteger.valueOf(shelleyProtocolParams.getLong("minUTxOValue")));
+    p.setMinPoolCost(BigInteger.valueOf(shelleyProtocolParams.getLong("minPoolCost")));
+    p.setAdaPerUtxoByte(BigInteger.valueOf(shelleyProtocolParams.getLong("minFeeA")));
 
     return p;
   }

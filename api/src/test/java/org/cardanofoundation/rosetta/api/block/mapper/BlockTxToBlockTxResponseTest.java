@@ -4,6 +4,7 @@ import java.math.BigInteger;
 import java.util.List;
 import java.util.Set;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import com.bloxbean.cardano.yaci.core.model.certs.CertificateType;
 import org.openapitools.client.model.BlockTransactionResponse;
 import org.openapitools.client.model.Relay;
@@ -12,26 +13,27 @@ import org.openapitools.client.model.Transaction;
 import org.junit.jupiter.api.Test;
 
 import org.cardanofoundation.rosetta.api.BaseMapperTest;
+import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
-import org.cardanofoundation.rosetta.api.account.model.entity.Amt;
+import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.model.domain.Delegation;
 import org.cardanofoundation.rosetta.api.block.model.domain.PoolRegistration;
 import org.cardanofoundation.rosetta.api.block.model.domain.PoolRetirement;
 import org.cardanofoundation.rosetta.api.block.model.domain.StakeRegistration;
-import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class BlockTxToBlockTxResponseTest extends BaseMapperTest {
 
+  @Autowired
+  private BlockTxToBlockTxResponse my;
+
   @Test
   void toDto() {
     //given
-    BlockTxToRosettaTransaction txMapper = new BlockTxToRosettaTransaction(modelMapper);
-    BlockTxToBlockTxResponse my = new BlockTxToBlockTxResponse(modelMapper, txMapper);
     BlockTx from = newTran();
     // when
-    BlockTransactionResponse into = my.toDto(from, "5000");
+    BlockTransactionResponse into = my.toDto(from, "500");
     // then
     my.modelMapper.validate();
 
@@ -61,6 +63,7 @@ class BlockTxToBlockTxResponseTest extends BaseMapperTest {
         .stakeRegistrations(newStakeRegistrations())
         .build();
   }
+
   private Utxo newUtxo() {
     return Utxo.builder()
         .blockHash("blockHash1")
@@ -90,6 +93,7 @@ class BlockTxToBlockTxResponseTest extends BaseMapperTest {
         .unit("unit1")
         .build();
   }
+
   private List<StakeRegistration> newStakeRegistrations() {
     return List.of(StakeRegistration.builder()
         .blockHash("stakeReg_blockHash1")

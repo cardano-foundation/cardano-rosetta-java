@@ -6,7 +6,6 @@ import java.util.Optional;
 import lombok.AllArgsConstructor;
 
 import org.modelmapper.ModelMapper;
-import org.modelmapper.spi.MappingContext;
 
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
