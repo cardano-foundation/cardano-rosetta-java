@@ -44,7 +44,7 @@ class BlockToEntityTest extends BaseMapperTest {
 
     assertThat(into.getTransactionsCount()).isEqualTo(from.getNoOfTxs());
     assertThat(into.getSize()).isEqualTo(Math.toIntExact(from.getBlockBodySize()));
-    assertThat(into.getCreatedBy()).isEqualTo(from.getIssuerVkey());
+    assertThat(into.getCreatedBy()).isEqualTo(from.getSlotLeader());
     assertThat(into.getEpochNo()).isEqualTo(from.getEpochNumber());
     assertThat(into.getSlotNo()).isEqualTo(from.getSlot());
 
