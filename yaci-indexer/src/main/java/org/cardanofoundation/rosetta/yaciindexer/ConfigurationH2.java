@@ -18,7 +18,6 @@ public class ConfigurationH2 {
 
   private static final Logger log = LoggerFactory.getLogger(ConfigurationH2.class);
   @Bean(initMethod = "start", destroyMethod = "stop")
-  @SuppressWarnings("unused") //used by Spring
   public Server inMemoryH2DatabaseaServer() throws SQLException {
     int port = 9090;
     log.debug("Starting H2 database server on tcp port: {}", port);

@@ -2,7 +2,7 @@ package org.cardanofoundation.rosetta.common.model.cardano;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
-import org.cardanofoundation.rosetta.api.block.model.entity.ProtocolParams;
+import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
 
 import java.math.BigInteger;
 
@@ -88,7 +88,7 @@ import java.math.BigInteger;
         .minFeeConstant(entity.getMinFeeB())
         .minPoolCost(entity.getMinPoolCost().toString())
         .poolDeposit(entity.getPoolDeposit().toString())
-        .protocol(entity.getProtocolMajorVer())
+        .protocol(entity.getProtocolVersion().getMajor())
         .build();
   }
 }

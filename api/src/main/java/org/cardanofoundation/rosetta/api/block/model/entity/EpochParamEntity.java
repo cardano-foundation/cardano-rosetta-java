@@ -15,6 +15,8 @@ import lombok.extern.slf4j.Slf4j;
 import io.hypersistence.utils.hibernate.type.json.JsonType;
 import org.hibernate.annotations.Type;
 
+import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -30,7 +32,7 @@ public class EpochParamEntity extends BlockAwareEntity {
 
   @Type(JsonType.class)
   @Column(name = "params", columnDefinition = "json")
-  private ProtocolParams params;
+  private ProtocolParamsEntity params;
 
   @Column(name = "cost_model_hash")
   private String costModelHash;
