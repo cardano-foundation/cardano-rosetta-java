@@ -24,7 +24,7 @@ import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
 import org.cardanofoundation.rosetta.api.block.service.BlockService;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
-import org.cardanofoundation.rosetta.common.services.GenesisService;
+import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -42,7 +42,7 @@ class BlockApiImplTest extends SpringMvcTest {
   private BlockService blockService;
 
   @MockBean
-  private GenesisService genesisService;
+  private ProtocolParamService protocolParamService;
 
 
   @MockBean
@@ -98,7 +98,7 @@ class BlockApiImplTest extends SpringMvcTest {
     BlockTransactionRequest req = newBlockTransactionRequest();
     when(blockService.getBlockTransaction(anyLong(), anyString(), anyString())).thenReturn(
         new BlockTx());
-    when(genesisService.getProtocolParameters()).thenReturn(protocolParams);
+    when(protocolParamService.getProtocolParameters()).thenReturn(protocolParams);
     when(protocolParams.getPoolDeposit()).thenReturn(new BigInteger("1000"));
 //any string
     when(mapperToBlockTxResponse.toDto(any(BlockTx.class), anyString())).thenReturn(resp);

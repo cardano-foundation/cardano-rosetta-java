@@ -8,7 +8,7 @@ import org.cardanofoundation.rosetta.api.IntegrationTest;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
-import org.cardanofoundation.rosetta.common.services.GenesisService;
+import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
 import org.cardanofoundation.rosetta.testgenerator.common.TestConstants;
 import org.cardanofoundation.rosetta.testgenerator.common.TestTransactionNames;
 import org.cardanofoundation.rosetta.testgenerator.common.TransactionBlockDetails;
@@ -25,7 +25,7 @@ class BlockServiceImplIntTest extends IntegrationTest {
 
 
   @Autowired
-  private GenesisService genesisService;
+  private ProtocolParamService protocolParamService;
   @Test
   void getBlockWithTransaction_Test() {
     //given
@@ -87,7 +87,7 @@ class BlockServiceImplIntTest extends IntegrationTest {
 
   @Test
   void getDepositPool_Test() {
-    assertThat(genesisService.getProtocolParameters().getPoolDeposit()).isEqualTo(500000000);
+    assertThat(protocolParamService.getProtocolParameters().getPoolDeposit()).isEqualTo(500000000);
   }
 
 }

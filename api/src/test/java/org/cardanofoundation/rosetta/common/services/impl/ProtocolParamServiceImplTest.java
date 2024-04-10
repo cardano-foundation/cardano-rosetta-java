@@ -8,10 +8,10 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-class GenesisServiceImplTest {
+class ProtocolParamServiceImplTest {
 
   ObjectMapper objectMapper = new ObjectMapper();
-  GenesisServiceImpl genesisService = new GenesisServiceImpl(objectMapper);
+  ProtocolParamServiceImpl genesisService = new ProtocolParamServiceImpl(objectMapper);
 
   @Test
   void getProtocolParameters() {

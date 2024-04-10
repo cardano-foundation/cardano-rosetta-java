@@ -14,7 +14,7 @@ import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
 import org.cardanofoundation.rosetta.common.exception.ApiException;
-import org.cardanofoundation.rosetta.common.services.GenesisService;
+import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
 import org.cardanofoundation.rosetta.common.services.LedgerDataProviderService;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -31,12 +31,12 @@ class BlockServiceImplTest {
   @InjectMocks
   private BlockServiceImpl blockService;
   @Mock
-  private GenesisService genesisService;
+  private ProtocolParamService protocolParamService;
   @Mock
   private ProtocolParams protocolParams;
 
   public void givenProtocolParam() {
-    when(genesisService.getProtocolParameters()).thenReturn(protocolParams);
+    when(protocolParamService.getProtocolParameters()).thenReturn(protocolParams);
     when(protocolParams.getPoolDeposit()).thenReturn(BigInteger.TEN);
   }
 

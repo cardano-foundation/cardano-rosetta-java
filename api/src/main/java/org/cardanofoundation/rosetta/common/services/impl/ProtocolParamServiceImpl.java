@@ -14,13 +14,13 @@ import org.json.JSONObject;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
 import org.cardanofoundation.rosetta.common.exception.ApiException;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
-import org.cardanofoundation.rosetta.common.services.GenesisService;
+import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
 import org.cardanofoundation.rosetta.common.util.FileUtils;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class GenesisServiceImpl implements GenesisService {
+public class ProtocolParamServiceImpl implements ProtocolParamService {
 
   @Value("${cardano.rosetta.GENESIS_SHELLEY_PATH}")
   private String genesisShelleyPath;

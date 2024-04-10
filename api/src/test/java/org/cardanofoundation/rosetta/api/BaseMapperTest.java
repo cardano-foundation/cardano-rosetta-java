@@ -7,12 +7,12 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.cardanofoundation.rosetta.ConfigurationMapper;
-import org.cardanofoundation.rosetta.common.services.GenesisService;
+import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {ConfigurationMapper.class, SpringMappersTestConfig.class})
 public class BaseMapperTest {
   @MockBean
-  protected GenesisService genesisService;
+  protected ProtocolParamService protocolParamService;
 }
 

@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
-import org.cardanofoundation.rosetta.common.services.GenesisService;
+import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
 import org.cardanofoundation.rosetta.common.services.LedgerDataProviderService;
 
 import static java.util.Objects.nonNull;
@@ -20,7 +20,7 @@ public class BlockServiceImpl implements BlockService {
 
   private final LedgerDataProviderService ledgerDataProviderService;
 
-  private final GenesisService genesisService;
+  private final ProtocolParamService protocolParamService;
 
 
   @Override
@@ -31,7 +31,7 @@ public class BlockServiceImpl implements BlockService {
     if (nonNull(block)) {
       log.info("[block] Block was found, hash={}", block.getHash());
 
-      block.setPoolDeposit(String.valueOf(genesisService.getProtocolParameters().getPoolDeposit()));
+      block.setPoolDeposit(String.valueOf(protocolParamService.getProtocolParameters().getPoolDeposit()));
 
       log.debug("[block] full data {}", block);
       return block;

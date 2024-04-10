@@ -32,7 +32,6 @@ import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
 import org.cardanofoundation.rosetta.api.block.model.domain.StakeAddressBalance;
 import org.cardanofoundation.rosetta.api.block.model.domain.StakeRegistration;
 import org.cardanofoundation.rosetta.api.block.model.entity.BlockEntity;
-import org.cardanofoundation.rosetta.api.block.model.entity.EpochParamEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.ProtocolParamsEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.StakeAddressBalanceEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.TxnEntity;
@@ -47,7 +46,7 @@ import org.cardanofoundation.rosetta.api.block.model.repository.StakeRegistratio
 import org.cardanofoundation.rosetta.api.block.model.repository.TxRepository;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.mapper.ProtocolParamsToEntity;
-import org.cardanofoundation.rosetta.common.services.GenesisService;
+import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
 import org.cardanofoundation.rosetta.common.services.LedgerDataProviderService;
 import org.cardanofoundation.rosetta.common.util.Formatters;
 
@@ -67,7 +66,7 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
   private final StakeAddressRepository stakeAddressRepository;
   private final EpochParamRepository epochParamRepository;
 
-  private final GenesisService genesisService;
+  private final ProtocolParamService protocolParamService;
 
   private final BlockToEntity mapperBlock;
   private final BlockTxToEntity mapperTran;
@@ -216,7 +215,7 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
     ProtocolParamsEntity paramsEntity = epochParamRepository.findLatestProtocolParams();
     ProtocolParams protocolParams = mapperProtocolParams.fromEntity(paramsEntity);
 
-    return mapperProtocolParams.merge(genesisService.getProtocolParameters(), protocolParams);
+    return mapperProtocolParams.merge(protocolParamService.getProtocolParameters(), protocolParams);
   }
 
   private static Utxo createUtxoModel(List<Currency> currencies, AddressUtxoEntity entity) {

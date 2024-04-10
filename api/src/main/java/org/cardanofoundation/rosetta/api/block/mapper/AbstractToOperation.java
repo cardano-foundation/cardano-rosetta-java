@@ -17,13 +17,13 @@ import org.openapitools.client.model.TokenBundleItem;
 
 import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
 import org.cardanofoundation.rosetta.common.mapper.DataMapper;
-import org.cardanofoundation.rosetta.common.services.GenesisService;
+import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
 import org.cardanofoundation.rosetta.common.util.Constants;
 
 public abstract class AbstractToOperation<T> {
 
   @Autowired
-  protected GenesisService genesisService;
+  protected ProtocolParamService protocolParamService;
 
   abstract Operation toDto(T model, OperationStatus status, int index);
 
@@ -61,12 +61,12 @@ public abstract class AbstractToOperation<T> {
   }
 
   // TODO saa: need to get this '"2000000", Constants.ADA, Constants.ADA_DECIMALS,' from protocolparams
-  // Create and inject  GenesisServiceImpl to get the stake deposit amount
+  // Create and inject  ProtocolParamServiceImpl to get the stake deposit amount
   // see similar implementation in BlockService.getPoolDeposit
   @NotNull
   protected Amount getDepositAmount(String deposit) {
     //TODO saa: poolDeposit  and delegation ddeposit are equals?
-//    String deposit = String.valueOf(genesisService.getProtocolParameters().getPoolDeposit());
+//    String deposit = String.valueOf(protocolParamService.getProtocolParameters().getPoolDeposit());
     return DataMapper.mapAmount(deposit, Constants.ADA, Constants.ADA_DECIMALS, null);
   }
 
