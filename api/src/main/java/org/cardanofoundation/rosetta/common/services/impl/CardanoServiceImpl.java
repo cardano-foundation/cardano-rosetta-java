@@ -509,4 +509,15 @@ public class CardanoServiceImpl implements CardanoService {
         }
     }
 
+  /**
+   * Returns the deposit parameters for the network fetched from the protocolparameters
+   * @return Depositparameters including key- and pooldeposit
+   */
+  @Override
+    public DepositParameters getDepositParameters() {
+      ProtocolParams protocolParametersFromIndexerAndConfig = ledgerDataProviderService.findProtocolParametersFromIndexerAndConfig();
+      return new DepositParameters(protocolParametersFromIndexerAndConfig.getKeyDeposit().toString(),
+            protocolParametersFromIndexerAndConfig.getPoolDeposit().toString());
+    }
+
 }
