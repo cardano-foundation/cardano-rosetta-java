@@ -41,6 +41,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
   private final CardanoAddressService cardanoAddressService;
   private final CardanoService cardanoService;
   private final LedgerDataProviderService ledgerService;
+  private final DataMapper dataMapper;
 
   @Override
   public ConstructionDeriveResponse constructionDeriveService(
@@ -112,7 +113,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
         protocolParams);
     Long suggestedFee = cardanoService.calculateTxMinimumFee(updatedTxSize, protocolParams);
     log.debug("[constructionMetadata] suggested fee is ${suggestedFee}");
-    return DataMapper.mapToMetadataResponse(protocolParams, ttl, suggestedFee);
+    return dataMapper.mapToMetadataResponse(protocolParams, ttl, suggestedFee);
   }
 
   @Override

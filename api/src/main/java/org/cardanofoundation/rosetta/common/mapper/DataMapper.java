@@ -1,6 +1,8 @@
 package org.cardanofoundation.rosetta.common.mapper;
 
 import com.bloxbean.cardano.client.common.model.Network;
+import java.math.BigDecimal;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.ObjectUtils;
@@ -20,17 +22,15 @@ import java.util.*;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class DataMapper {
-
-  private DataMapper() {
-  }
-
+  private final ProtocolParamsToRosettaProtocolParameters protocolParamsToRosettaProtocolParameters;
   /**
    * Maps a NetworkRequest to a NetworkOptionsResponse.
    * @param supportedNetwork The supported network
    * @return The NetworkOptionsResponse
    */
-  public static NetworkListResponse mapToNetworkListResponse(Network supportedNetwork) {
+  public NetworkListResponse mapToNetworkListResponse(Network supportedNetwork) {
     NetworkIdentifier identifier = NetworkIdentifier.builder().blockchain(Constants.CARDANO)
             .network(Objects.requireNonNull(
                 NetworkEnum.fromProtocolMagic(supportedNetwork.getProtocolMagic())).getValue()).build();
@@ -42,7 +42,7 @@ public class DataMapper {
    * @param networkStatus The network status
    * @return The NetworkOptionsResponse
    */
-  public static NetworkStatusResponse mapToNetworkStatusResponse(NetworkStatus networkStatus) {
+  public NetworkStatusResponse mapToNetworkStatusResponse(NetworkStatus networkStatus) {
     Block latestBlock = networkStatus.getLatestBlock();
     GenesisBlock genesisBlock = networkStatus.getGenesisBlock();
     List<Peer> peers = networkStatus.getPeers();
@@ -177,9 +177,12 @@ public class DataMapper {
         .build();
   }
 
-  public static ConstructionMetadataResponse mapToMetadataResponse(ProtocolParams protocolParams, Long ttl, Long suggestedFee) {
+  public ConstructionMetadataResponse mapToMetadataResponse(ProtocolParams protocolParams, Long ttl, Long suggestedFee) {
     return ConstructionMetadataResponse.builder()
-            .metadata(Map.of("protocol_parameters", protocolParams, "ttl", ttl))
+            .metadata(ConstructionMetadataResponseMetadata.builder()
+                .ttl(new BigDecimal(ttl))
+                .protocolParameters(protocolParamsToRosettaProtocolParameters.toProtocolParameters(protocolParams))
+                .build())
             .suggestedFee(List.of(Amount.builder()
                             .value(suggestedFee.toString())
                             .currency(Currency.builder()
