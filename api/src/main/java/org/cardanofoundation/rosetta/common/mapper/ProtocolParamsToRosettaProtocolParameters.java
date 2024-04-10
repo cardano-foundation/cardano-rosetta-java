@@ -3,9 +3,7 @@ package org.cardanofoundation.rosetta.common.mapper;
 import static java.util.Optional.ofNullable;
 
 import lombok.AllArgsConstructor;
-import org.cardanofoundation.rosetta.api.block.model.domain.Block;
-import org.cardanofoundation.rosetta.api.block.model.entity.BlockEntity;
-import org.cardanofoundation.rosetta.api.block.model.entity.ProtocolParams;
+import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
 import org.cardanofoundation.rosetta.common.annotation.OpenApiMapper;
 import org.modelmapper.ModelMapper;
 import org.openapitools.client.model.ProtocolParameters;
@@ -30,7 +28,7 @@ public class ProtocolParamsToRosettaProtocolParameters {
           mapper.map(ProtocolParams::getMinFeeB, ProtocolParameters::setMinFeeConstant);
           mapper.map(ProtocolParams::getMinPoolCost, ProtocolParameters::setMinPoolCost);
           mapper.map(ProtocolParams::getPoolDeposit, ProtocolParameters::setPoolDeposit);
-          mapper.map(ProtocolParams::getProtocolMajorVer, ProtocolParameters::setProtocol);
+          mapper.map(source -> source.getProtocolVersion().getMajor(), ProtocolParameters::setProtocol);
 
 
         }).map(model);

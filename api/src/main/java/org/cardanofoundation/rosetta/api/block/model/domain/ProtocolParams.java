@@ -75,14 +75,6 @@ public class ProtocolParams {
   private BigInteger drepDeposit; //31
   private Integer drepActivity; //32
 
-  private Double a0;
-  private Double rho;
-  private Double tau;
-  @JsonProperty("eMax")
-  private Integer eMax;
-  @JsonProperty("maxUTxOValue")
-  private Integer maxUTxOValue;
-
   @Data
   public static class ExtraEntropy{
     String tag;
