@@ -28,8 +28,8 @@ public class BlockTxToEntity {
           mapper.map(TxnEntity::getTxHash, BlockTx::setHash);
           mapper.map(tx -> tx.getBlock().getHash(), BlockTx::setBlockHash);
           mapper.map(tx -> tx.getBlock().getNumber(), BlockTx::setBlockNo);
-//          mapper.map(tx -> 0L, BlockTx::setSize); // will be calcualted, within the population method
-//          mapper.map(tx -> 0L, BlockTx::setScriptSize); // TODO Needs to be calulated if needed
+          mapper.map(tx -> 0L, BlockTx::setSize); // will be calcualted, within the population method
+          mapper.map(tx -> 0L, BlockTx::setScriptSize); // TODO Needs to be calulated if needed
 
           mapper.map(TxnEntity::getInvalid, BlockTx::setValidContract);
 

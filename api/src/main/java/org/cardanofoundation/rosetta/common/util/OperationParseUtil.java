@@ -104,9 +104,7 @@ public class OperationParseUtil {
       NetworkIdentifierType networkIdentifierType, ProcessOperations resultAccumulator) {
     ProcessWithdrawalReturn processWithdrawalReturn = ProcessContructionUtil.getWithdrawalsReturnFromOperation(
         networkIdentifierType, operation);
-    BigInteger withdrawalAmount = Optional.ofNullable(operation.getMetadata().getWithdrawalAmount())
-        .map(amount -> new BigInteger(amount.getValue()))
-        .orElse(null);
+    BigInteger withdrawalAmount = ValidateParseUtil.validateValueAmount(operation);
     assert withdrawalAmount != null;
     resultAccumulator.getWithdrawalAmounts().add(withdrawalAmount);
     resultAccumulator.getWithdrawals().add(new Withdrawal(processWithdrawalReturn.getReward().getAddress(),

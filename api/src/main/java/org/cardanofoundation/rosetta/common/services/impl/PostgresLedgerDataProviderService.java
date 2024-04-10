@@ -171,10 +171,10 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
   @Override
   public List<Utxo> findUtxoByAddressAndCurrency(String address, List<Currency> currencies) {
     List<AddressUtxoEntity> addressUtxoEntities = addressUtxoRepository.findUtxosByAddress(address);
-
-    return addressUtxoEntities.stream()
+    List<Utxo> list = addressUtxoEntities.stream()
         .map(entity -> createUtxoModel(currencies, entity))
         .toList();
+    return list;
   }
 
   @Override

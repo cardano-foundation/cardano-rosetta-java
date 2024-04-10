@@ -31,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 class AccountCoinsApiTest extends IntegrationTest {
 
   private final String myAssetPolicyId = "ae1ed1312d2e2e2e3e80e48e4485a9a0b1373ad71e28bde4764ca8c6";
-  private final String emptyNamePolicyId = "5e174cc9d1ab862679d4997ce9d92cfe910ca8670f4d92fce4edb65c";
+  private final String emptyNamePolicyId = "8fb99d4762495fbf0feb0a5b2e32342f1f4f36046f8ac23476e81ef3";
   private final Currency myAssetCurrency = getCurrency(TestConstants.MY_ASSET_SYMBOL,
       Constants.MULTI_ASSET_DECIMALS, myAssetPolicyId);
   private final Currency ada = getCurrency(Constants.ADA, Constants.ADA_DECIMALS);
