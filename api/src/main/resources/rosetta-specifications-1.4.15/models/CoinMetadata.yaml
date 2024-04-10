@@ -1,0 +1,10 @@
+description: |
+  CoinMetadata is used to provide additional data for a Coin object. It is often used to store 
+  human-readable information that a client can use to display information to a user.
+type: object
+properties:
+  type: object
+  additionalProperties:
+    type: array
+    items:
+      $ref: 'CoinTokens.yaml'

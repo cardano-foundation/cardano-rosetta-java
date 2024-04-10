@@ -1,0 +1,14 @@
+description: |
+  CoinTokens contains the policyId and the tokens
+  it represents.
+type: object
+required:
+  - policyId
+  - tokens
+properties:
+  policyId:
+    type: string
+  tokens:
+    type: array
+    items:
+      $ref: 'Amount.yaml'
