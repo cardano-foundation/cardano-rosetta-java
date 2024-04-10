@@ -1,6 +1,5 @@
 package org.cardanofoundation.rosetta.common.services.impl;
 
-import java.io.FileNotFoundException;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.List;
@@ -29,10 +28,11 @@ import org.cardanofoundation.rosetta.api.block.model.domain.Delegation;
 import org.cardanofoundation.rosetta.api.block.model.domain.GenesisBlock;
 import org.cardanofoundation.rosetta.api.block.model.domain.PoolRegistration;
 import org.cardanofoundation.rosetta.api.block.model.domain.PoolRetirement;
+import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
 import org.cardanofoundation.rosetta.api.block.model.domain.StakeAddressBalance;
 import org.cardanofoundation.rosetta.api.block.model.domain.StakeRegistration;
 import org.cardanofoundation.rosetta.api.block.model.entity.BlockEntity;
-import org.cardanofoundation.rosetta.api.block.model.entity.ProtocolParams;
+import org.cardanofoundation.rosetta.api.block.model.entity.ProtocolParamsEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.StakeAddressBalanceEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.TxnEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.UtxoKey;
@@ -45,7 +45,8 @@ import org.cardanofoundation.rosetta.api.block.model.repository.StakeAddressRepo
 import org.cardanofoundation.rosetta.api.block.model.repository.StakeRegistrationRepository;
 import org.cardanofoundation.rosetta.api.block.model.repository.TxRepository;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
-import org.cardanofoundation.rosetta.common.services.CardanoConfigService;
+import org.cardanofoundation.rosetta.common.mapper.ProtocolParamsToEntity;
+import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
 import org.cardanofoundation.rosetta.common.services.LedgerDataProviderService;
 import org.cardanofoundation.rosetta.common.util.Formatters;
 
@@ -65,10 +66,11 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
   private final StakeAddressRepository stakeAddressRepository;
   private final EpochParamRepository epochParamRepository;
 
-  private final CardanoConfigService cardanoConfigService;
+  private final ProtocolParamService protocolParamService;
 
   private final BlockToEntity mapperBlock;
   private final BlockTxToEntity mapperTran;
+  private final ProtocolParamsToEntity mapperProtocolParams;
 
   @Override
   public GenesisBlock findGenesisBlock() {
@@ -209,25 +211,11 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
   }
 
   @Override
-  public ProtocolParams findProtocolParametersFromIndexer() {
-    return epochParamRepository.findLatestProtocolParams();
-  }
-
-  @Override
-  public ProtocolParams findProtocolParametersFromConfig() {
-    try {
-      return cardanoConfigService.getProtocolParameters();
-    } catch (FileNotFoundException e) {
-      log.error("[findProtocolParametersFromConfig] Protocol parameters not found");
-      return null;
-    }
-  }
-
-  @Override
   public ProtocolParams findProtocolParametersFromIndexerAndConfig() {
-    ProtocolParams protocolParams = findProtocolParametersFromIndexer();
-    protocolParams.merge(findProtocolParametersFromConfig());
-    return protocolParams;
+    ProtocolParamsEntity paramsEntity = epochParamRepository.findLatestProtocolParams();
+    ProtocolParams protocolParams = mapperProtocolParams.fromEntity(paramsEntity);
+
+    return mapperProtocolParams.merge(protocolParamService.getProtocolParameters(), protocolParams);
   }
 
   private static Utxo createUtxoModel(List<Currency> currencies, AddressUtxoEntity entity) {

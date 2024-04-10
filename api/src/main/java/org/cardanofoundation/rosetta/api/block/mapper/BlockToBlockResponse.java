@@ -87,34 +87,6 @@ public class BlockToBlockResponse {
     return rosettaTransactions;
   }
 
-//  /**
-//   * Maps a TransactionDto to a Rosetta compatible BlockTx.
-//   *
-//   * @param transaction The Cardano transaction to be mapped
-//   * @param poolDeposit The pool deposit
-//   * @return The Rosetta compatible Transaction
-//   */
-//  public static Transaction mapToRosettaTransaction(BlockTx transaction, String poolDeposit) {
-//    Transaction rosettaTransaction = new Transaction();
-//    TransactionIdentifier identifier = new TransactionIdentifier();
-//    identifier.setHash(transaction.getHash());
-//    rosettaTransaction.setTransactionIdentifier(identifier);
-//
-//    OperationStatus status = new OperationStatus();
-////    status.setStatus(Boolean.TRUE.equals(transaction.getValidContract()) ? SUCCESS_OPERATION_STATUS.getStatus() : INVALID_OPERATION_STATUS.getStatus());
-//    status.setStatus(SUCCESS_OPERATION_STATUS.getStatus()); // TODO need to check the right status
-//    List<Operation> operations =
-//        OperationDataMapper.getAllOperations(transaction, poolDeposit, status);
-//
-//    rosettaTransaction.setMetadata(TransactionMetadata.builder()
-//        .size(transaction.getSize()) // Todo size is not available
-//        .scriptSize(transaction.getScriptSize()) // TODO script size is not available
-//        .build());
-//    rosettaTransaction.setOperations(operations);
-//    return rosettaTransaction;
-//
-//  }
-
   private static BlockIdentifier parentId(BlockResponse dest) {
     return dest.getBlock().getParentBlockIdentifier();
   }
@@ -122,6 +94,4 @@ public class BlockToBlockResponse {
   private static BlockIdentifier currentId(BlockResponse dest) {
     return dest.getBlock().getBlockIdentifier();
   }
-
-
 }

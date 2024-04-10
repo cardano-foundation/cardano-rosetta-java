@@ -4,7 +4,6 @@ import java.util.Optional;
 
 import lombok.AllArgsConstructor;
 
-import com.bloxbean.cardano.yaci.core.model.certs.CertificateType;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.spi.MappingContext;
 import org.openapitools.client.model.CoinAction;
@@ -13,7 +12,6 @@ import org.openapitools.client.model.OperationStatus;
 
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.common.annotation.OpenApiMapper;
-import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.common.util.Constants;
 
 import static org.cardanofoundation.rosetta.common.util.Constants.ADA;
@@ -47,18 +45,4 @@ public class InputToOperation extends AbstractToOperation<Utxo> {
         .setPostConverter(MappingContext::getDestination)
         .map(model);
   }
-
-
-  private String convert(CertificateType model) {
-    if (model == null) {
-      return null;
-    } else {
-      return model.equals(CertificateType.STAKE_REGISTRATION)
-          ? OperationType.STAKE_KEY_REGISTRATION.toString() :
-          model.equals(CertificateType.STAKE_DEREGISTRATION)
-              ? OperationType.STAKE_KEY_DEREGISTRATION.toString() : null;
-    }
-  }
-
-
 }
