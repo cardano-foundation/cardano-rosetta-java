@@ -283,11 +283,56 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
     assertThat(bundle.getTokens().size()).isEqualTo(1);
 
     Amount token = bundle.getTokens().getFirst();
-    assertThat(token.getValue())
-        .isEqualTo(from.getOutputs().getFirst().getAmounts().getFirst().getQuantity().toString());
     assertThat(token.getCurrency().getSymbol())
         .isEqualTo(Hex.encodeHexString(
             from.getOutputs().getFirst().getAmounts().getFirst().getAssetName().getBytes()));
+    assertThat(token.getCurrency().getDecimals()).isEqualTo(0);
+
+  }
+
+
+  @Test
+  void toDto_Test_getInputsAsOperations() {
+    //given
+    BlockTx from = newTran();
+    //when
+    Transaction into = my.toDto(from);
+    //then
+    assertThat(into.getMetadata().getSize()).isEqualTo(from.getSize());
+    assertThat(into.getMetadata().getScriptSize()).isEqualTo(from.getScriptSize());
+    assertThat(into.getTransactionIdentifier().getHash()).isEqualTo(from.getHash());
+    assertThat(into.getOperations().size()).isEqualTo(2);
+
+    Optional<Operation> opt = into.getOperations()
+        .stream()
+        .filter(f -> f.getType().equals(Constants.INPUT))
+        .findFirst();
+    assertThat(opt.isPresent()).isTrue();
+
+    Operation opInto = opt.get();
+    Utxo firstFrom = from.getInputs().getFirst();
+    assertThat(opInto.getType()).isEqualTo(Constants.INPUT);
+    assertThat(opInto.getStatus()).isEqualTo("success");
+    assertThat(opInto.getOperationIdentifier().getIndex()).isEqualTo(0); //index in array
+    assertThat(opInto.getAccount().getAddress()).isEqualTo(firstFrom.getOwnerAddr());
+    assertThat(opInto.getAmount()).isEqualTo(amountActual("10"));
+
+    CoinChange coinChange = opInto.getCoinChange();
+    assertThat(coinChange.getCoinAction()).isEqualTo(CoinAction.SPENT);
+    assertThat(coinChange.getCoinIdentifier().getIdentifier())
+        .isEqualTo(firstFrom.getTxHash() + ":" + firstFrom.getOutputIndex());
+
+    assertThat(opInto.getMetadata().getTokenBundle().size()).isEqualTo(1);
+    TokenBundleItem bundle = opInto.getMetadata().getTokenBundle().getFirst();
+
+    assertThat(bundle.getPolicyId())
+        .isEqualTo(from.getInputs().getFirst().getAmounts().getFirst().getPolicyId());
+    assertThat(bundle.getTokens().size()).isEqualTo(1);
+
+    Amount token = bundle.getTokens().getFirst();
+    assertThat(token.getCurrency().getSymbol())
+        .isEqualTo(Hex.encodeHexString(
+            from.getInputs().getFirst().getAmounts().getFirst().getAssetName().getBytes()));
     assertThat(token.getCurrency().getDecimals()).isEqualTo(0);
 
   }

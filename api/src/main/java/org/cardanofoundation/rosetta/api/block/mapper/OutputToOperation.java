@@ -42,8 +42,6 @@ public class OutputToOperation extends AbstractToOperation<Utxo> {
           mp.map(f-> mapToOperationMetaData(false, model.getAmounts()), Operation::setMetadata);
 
         })
-        //strange but without it method mapToOperationMetaData in above mapper did not work
-        .setPostConverter(MappingContext::getDestination)
         .map(model);
   }
 }

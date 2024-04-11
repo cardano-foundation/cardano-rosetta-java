@@ -15,6 +15,7 @@ import org.cardanofoundation.rosetta.common.annotation.OpenApiMapper;
 import org.cardanofoundation.rosetta.common.util.Constants;
 
 import static org.cardanofoundation.rosetta.common.util.Constants.ADA;
+import static org.cardanofoundation.rosetta.common.util.Constants.ADA_DECIMALS;
 
 @OpenApiMapper
 @AllArgsConstructor
@@ -31,17 +32,18 @@ public class InputToOperation extends AbstractToOperation<Utxo> {
 
           mp.map(f -> Constants.INPUT, Operation::setType);
           mp.map(f -> status.getStatus(), Operation::setStatus);
+          mp.<Long>map(f -> index, (d, v) -> d.getOperationIdentifier().setIndex(v));
           mp.<String>map(Utxo::getOwnerAddr, (d, v) -> d.getAccount().setAddress(v));
           mp.map(Utxo::getLovelaceAmount, (d, v) -> d.getAmount().setValue(String.valueOf(v)));
           mp.<String>map(f -> ADA, (d, v) -> d.getAmount().getCurrency().setSymbol(v));
-          mp.map(f -> f,
-              (d, v) -> d.getCoinChange()
-                  .getCoinIdentifier()
-                  .setIdentifier(model.getTxHash() + ":" + model.getOutputIndex()));
+          mp.<Integer>map(f -> ADA_DECIMALS, (d, v) -> d.getAmount().getCurrency().setDecimals(v));
+          mp.<String>map(f -> model.getTxHash() + ":" + model.getOutputIndex(),
+              (d, v) -> d.getCoinChange().getCoinIdentifier().setIdentifier(v));
           mp.<CoinAction>map(f -> CoinAction.SPENT, (d, v) -> d.getCoinChange().setCoinAction(v));
-          mp.map(f-> mapToOperationMetaData(true, model.getAmounts()), Operation::setMetadata); //TODO saa: test it!
+          mp.map(f-> mapToOperationMetaData(true, model.getAmounts()), Operation::setMetadata);
 
         })
+        //TODO saa: strange but without it method mapToOperationMetaData in above mapper did not work
         .setPostConverter(MappingContext::getDestination)
         .map(model);
   }
