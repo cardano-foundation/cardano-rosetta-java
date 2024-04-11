@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.cardanofoundation.rosetta.api.block.model.entity.ProtocolParams;
+import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
 import org.cardanofoundation.rosetta.common.exception.ApiException;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
@@ -41,6 +41,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
   private final CardanoAddressService cardanoAddressService;
   private final CardanoService cardanoService;
   private final LedgerDataProviderService ledgerService;
+  private final DataMapper dataMapper;
 
   @Override
   public ConstructionDeriveResponse constructionDeriveService(
@@ -112,7 +113,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
         protocolParams);
     Long suggestedFee = cardanoService.calculateTxMinimumFee(updatedTxSize, protocolParams);
     log.debug("[constructionMetadata] suggested fee is ${suggestedFee}");
-    return DataMapper.mapToMetadataResponse(protocolParams, ttl, suggestedFee);
+    return dataMapper.mapToMetadataResponse(protocolParams, ttl, suggestedFee);
   }
 
   @Override

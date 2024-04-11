@@ -9,7 +9,7 @@ import com.bloxbean.cardano.client.transaction.spec.TransactionWitnessSet;
 import java.util.Set;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProcessOperations;
 import java.math.BigInteger;
-import org.cardanofoundation.rosetta.api.block.model.entity.ProtocolParams;
+import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
 import org.cardanofoundation.rosetta.common.enumeration.AddressType;
 import org.cardanofoundation.rosetta.common.enumeration.EraAddressType;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;

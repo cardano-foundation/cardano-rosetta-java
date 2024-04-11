@@ -37,7 +37,7 @@ import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
 import org.cardanofoundation.rosetta.common.exception.ApiException;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
-import org.cardanofoundation.rosetta.api.block.model.entity.ProtocolParams;
+import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
 import org.cardanofoundation.rosetta.common.mapper.CborArrayToTransactionData;
 import org.cardanofoundation.rosetta.common.model.cardano.crypto.Signatures;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.TransactionData;
