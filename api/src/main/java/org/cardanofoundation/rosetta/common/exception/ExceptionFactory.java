@@ -195,4 +195,8 @@ public class ExceptionFactory {
   public static ApiException sendTransactionError(String error) {
     return new ApiException(RosettaErrorType.SEND_TRANSACTION_ERROR.toRosettaError(false, null, error));
   }
+
+  public static ApiException invalidTransactionError() {
+    return new ApiException(RosettaErrorType.INVALID_TRANSACTION.toRosettaError(false));
+  }
 }

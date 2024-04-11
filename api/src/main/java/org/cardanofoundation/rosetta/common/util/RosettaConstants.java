@@ -169,7 +169,8 @@ public class RosettaConstants {
     TX_HASH_COIN_NOT_MATCH("Transaction hash does not match to given coin identifier", 5015),
     ADDRESS_AND_ACCOUNT_ID_NOT_MATCH("Address and account identifier does not match", 5016),
     BAD_FORMED_COIN_ERROR("Coin identifier has an invalid format", 5017),
-    CANT_DECODE_MEMPOOL_TRANSACTION("Cant decode mempool transaction", 5018);
+    CANT_DECODE_MEMPOOL_TRANSACTION("Cant decode mempool transaction", 5018),
+    INVALID_TRANSACTION("Can't decode Transaction", 5019);
 
     final String message;
     final int code;

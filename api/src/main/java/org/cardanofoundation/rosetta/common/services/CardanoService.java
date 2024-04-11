@@ -19,7 +19,6 @@ import org.openapitools.client.model.DepositParameters;
 import org.openapitools.client.model.Operation;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.UnsignedTransaction;
@@ -63,4 +62,6 @@ public interface CardanoService {
 
   String submitTransaction(String signedTransaction);
   DepositParameters getDepositParameters();
+
+  String extractTransaction(String txWithExtraData);
 }

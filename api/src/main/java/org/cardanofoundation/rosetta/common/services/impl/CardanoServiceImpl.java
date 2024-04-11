@@ -3,6 +3,7 @@ package org.cardanofoundation.rosetta.common.services.impl;
 import co.nstant.in.cbor.CborException;
 import co.nstant.in.cbor.model.Array;
 import co.nstant.in.cbor.model.DataItem;
+import co.nstant.in.cbor.model.UnicodeString;
 import co.nstant.in.cbor.model.UnsignedInteger;
 import com.bloxbean.cardano.client.address.ByronAddress;
 import com.bloxbean.cardano.client.common.cbor.CborSerializationUtil;
@@ -531,4 +532,28 @@ public class CardanoServiceImpl implements CardanoService {
             protocolParametersFromIndexerAndConfig.getPoolDeposit().toString());
     }
 
+  /**
+   * Extract raw signed transaction and removes the extradata.
+   * Transactions build with rosetta contain such data, transaction build with other tools like cardano-cli do not contain this data.
+   * @param txWithExtraData transaction with extra data
+   * @return raw signed transaction
+   */
+  @Override
+  public String extractTransaction(String txWithExtraData) {
+    byte[] bytes = HexUtil.decodeHexString(txWithExtraData);
+    Array deserialize = (Array) CborSerializationUtil.deserialize(bytes);
+    if(deserialize.getDataItems().size() != 1) {
+      log.error("[SubmitTransaction] Invalid transaction format");
+      throw ExceptionFactory.invalidTransactionError();
+    }
+    Array transactionData = (Array) deserialize.getDataItems().getFirst();
+    if(transactionData.getDataItems().size() == 2) {
+      return ((UnicodeString) transactionData.getDataItems().getFirst()).getString();
+    } else if(transactionData.getDataItems().size() == 4) {
+      log.info("[SubmitTransaction] Transaction already contains no extra data");
+      return txWithExtraData;
+    } else {
+      throw ExceptionFactory.invalidTransactionError();
+    }
+  }
 }
