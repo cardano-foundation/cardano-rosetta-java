@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -11,6 +12,7 @@ import java.util.stream.LongStream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import com.bloxbean.cardano.yaci.core.model.certs.CertificateType;
+import org.jetbrains.annotations.NotNull;
 import org.openapitools.client.model.AccountIdentifier;
 import org.openapitools.client.model.Amount;
 import org.openapitools.client.model.BlockResponse;
@@ -194,9 +196,9 @@ class BlockToBlockResponseTest extends BaseMapperTest {
               Amount.builder().currency(ada).value("500").build());
 
           //d == List<PoolRegistrationParams> size == 2
-          assertProperty(List.of(orderOwners(d.getFirst())), "poolRegistrationParams",
+          assertProperty(List.of(d.getFirst()), "poolRegistrationParams",
               buildRegParams(aiPool.incrementAndGet()));
-          assertProperty(List.of(orderOwners(d.getLast())), "poolRegistrationParams",
+          assertProperty(List.of(d.getLast()), "poolRegistrationParams",
               buildRegParams(aiPool.incrementAndGet()));
         });
 
@@ -230,16 +232,6 @@ class BlockToBlockResponseTest extends BaseMapperTest {
         });
 
 
-  }
-
-  private OperationMetadata orderOwners(OperationMetadata om) { //TODO saa rewrite with TreeSet
-
-//    getPoolOwners() -- immutable list, so need to convert to array and back
-    String[] poolOwners = om.getPoolRegistrationParams().getPoolOwners().toArray(new String[]{});
-    Arrays.sort(poolOwners); //sort required because of the Set in domain model:
-    // - org.cardanofoundation.rosetta.api.block.model.domain.PoolRegistration.owners
-    om.getPoolRegistrationParams().setPoolOwners(List.of(poolOwners));
-    return om;
   }
 
   private static PoolRegistrationParams buildRegParams(int i) {
@@ -338,7 +330,7 @@ class BlockToBlockResponseTest extends BaseMapperTest {
             .cost("1" + ver)
             .margin("1.0" + ver)
             .rewardAccount("rewardAccount" + ver)
-            .owners(Set.of("owner1" + ver, "owner2" + ver))
+            .owners(newOwners(ver))
             .relays(List.of(Relay.builder().ipv4("ipv4" + ver).ipv6("ipv6" + ver)
                 .dnsName("dnsName" + ver).port(1 + ver).type("type" + ver).build()))
             .epoch(1 + ver)
@@ -346,6 +338,14 @@ class BlockToBlockResponseTest extends BaseMapperTest {
             .blockHash("blockHash" + ver)
             .build())
         .collect(Collectors.toList());
+  }
+
+  @NotNull
+  private static Set<String> newOwners(int ver) {
+    TreeSet<String> treeSet = new TreeSet<>();
+    treeSet.add("owner1" + ver);
+    treeSet.add("owner2" + ver);
+    return treeSet;
   }
 
 
