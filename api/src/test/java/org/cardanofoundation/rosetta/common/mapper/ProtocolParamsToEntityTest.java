@@ -24,7 +24,6 @@ class ProtocolParamsToEntityTest extends BaseMapperTest {
   @Test
   void fromEntity_Test_ok() {
 
-    my.modelMapper.validate();
     EpochParamEntity from = newEpochParamEntity();
 
     ProtocolParams into = my.fromEntity(from.getParams());
