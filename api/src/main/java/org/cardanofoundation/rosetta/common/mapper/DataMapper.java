@@ -10,6 +10,7 @@ import org.cardanofoundation.rosetta.api.account.model.domain.AddressBalance;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.block.model.domain.*;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
+import org.cardanofoundation.rosetta.common.annotation.PersistenceMapper;
 import org.cardanofoundation.rosetta.common.model.cardano.crypto.Signatures;
 import org.cardanofoundation.rosetta.common.util.Constants;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
@@ -21,7 +22,7 @@ import java.util.*;
 
 
 @Slf4j
-@Component
+@PersistenceMapper
 @RequiredArgsConstructor
 public class DataMapper {
   private final ProtocolParamsToRosettaProtocolParameters protocolParamsToRosettaProtocolParameters;

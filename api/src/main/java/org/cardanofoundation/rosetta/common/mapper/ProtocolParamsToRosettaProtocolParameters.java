@@ -20,14 +20,9 @@ public class ProtocolParamsToRosettaProtocolParameters {
         .addMappings(mapper -> {
 
           mapper.map(ProtocolParams::getAdaPerUtxoByte, ProtocolParameters::setCoinsPerUtxoSize);
-          mapper.map(ProtocolParams::getMaxTxSize, ProtocolParameters::setMaxTxSize);
-          mapper.map(ProtocolParams::getMaxValSize, ProtocolParameters::setMaxValSize);
-          mapper.map(ProtocolParams::getKeyDeposit, ProtocolParameters::setKeyDeposit);
           mapper.map(ProtocolParams::getMaxCollateralInputs, ProtocolParameters::setMaxCollateralInputs);
           mapper.map(ProtocolParams::getMinFeeA, ProtocolParameters::setMinFeeCoefficient);
           mapper.map(ProtocolParams::getMinFeeB, ProtocolParameters::setMinFeeConstant);
-          mapper.map(ProtocolParams::getMinPoolCost, ProtocolParameters::setMinPoolCost);
-          mapper.map(ProtocolParams::getPoolDeposit, ProtocolParameters::setPoolDeposit);
           mapper.map(source -> source.getProtocolVersion().getMajor(), ProtocolParameters::setProtocol);
 
 

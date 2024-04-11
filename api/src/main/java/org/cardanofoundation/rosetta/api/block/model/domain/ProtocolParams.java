@@ -76,11 +76,13 @@ public class ProtocolParams {
   private Integer drepActivity; //32
 
   @Data
+  @Builder
   public static class ExtraEntropy{
     String tag;
   }
 
   @Data
+  @Builder
   public static class ProtocolVersion{
     Integer minor;
     Integer major;
