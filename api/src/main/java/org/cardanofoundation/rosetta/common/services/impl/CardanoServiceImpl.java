@@ -77,8 +77,8 @@ public class CardanoServiceImpl implements CardanoService {
     private final LedgerDataProviderService ledgerDataProviderService;
     @Value("${cardano.rosetta.NODE_SUBMIT_API_PORT}")
     private int NODE_SUBMIT_API_PORT;
-    @Value("${cardano.rosetta.CARDANO_NODE_HOST}")
-    private String CARDANO_NODE_HOST;
+    @Value("${cardano.rosetta.CARDANO_NODE_SUBMIT_HOST}")
+    private String CARDANO_NODE_SUBMIT_HOST;
 
   @Override
   public TransactionParsed parseTransaction(NetworkIdentifierType networkIdentifierType,
@@ -473,7 +473,7 @@ public class CardanoServiceImpl implements CardanoService {
      */
     @Override
     public String submitTransaction(String signedTransaction) throws ApiException {
-        String submitURL = Constants.PROTOCOL + CARDANO_NODE_HOST + ":" + NODE_SUBMIT_API_PORT
+        String submitURL = Constants.PROTOCOL + CARDANO_NODE_SUBMIT_HOST + ":" + NODE_SUBMIT_API_PORT
             + Constants.SUBMIT_API_PATH;
         log.info("[submitTransaction] About to submit transaction to {}", submitURL);
         Request request = null;
