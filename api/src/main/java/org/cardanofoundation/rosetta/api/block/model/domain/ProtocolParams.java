@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.RequiredArgsConstructor;
 
 @Data
 @NoArgsConstructor
@@ -74,14 +75,6 @@ public class ProtocolParams {
   private BigInteger govActionDeposit; //30
   private BigInteger drepDeposit; //31
   private Integer drepActivity; //32
-
-  private Double a0;
-  private Double rho;
-  private Double tau;
-  @JsonProperty("eMax")
-  private Integer eMax;
-  @JsonProperty("maxUTxOValue")
-  private Integer maxUTxOValue;
 
   @Data
   public static class ExtraEntropy{
