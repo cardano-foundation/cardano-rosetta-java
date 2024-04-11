@@ -73,16 +73,13 @@ class ProtocolParamsToEntityTest extends BaseMapperTest {
 
   @Test
   void merge_Test_ok() {
-    ProtocolParams from = ProtocolParams.builder().eMax(1).rho(2.0).costModels(Map.of("key3", new long[]{4})).build();
-    ProtocolParams to = ProtocolParams.builder().tau(5.0).costModelsHash("costHash6").build();
+    ProtocolParams from = ProtocolParams.builder().costModels(Map.of("key3", new long[]{4})).build();
+    ProtocolParams to = ProtocolParams.builder().costModelsHash("costHash6").build();
     ProtocolParams merged = my.merge(from, to);
-    assertThat(merged.getEMax()).isEqualTo(from.getEMax());
-    assertThat(merged.getRho()).isEqualTo(from.getRho());
     assertThat(merged.getCostModels().size()).isEqualTo(1);
     assertThat(merged.getCostModels().keySet()).containsAll(from.getCostModels().keySet());
     assertThat(merged.getCostModels().values()).containsAll(from.getCostModels().values());
 
-    assertThat(merged.getTau()).isEqualTo(to.getTau());
     assertThat(merged.getCostModelsHash()).isEqualTo(to.getCostModelsHash());
   }
 

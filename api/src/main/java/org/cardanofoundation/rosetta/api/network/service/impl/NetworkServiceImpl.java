@@ -50,6 +50,7 @@ public class NetworkServiceImpl implements NetworkService {
   private final RosettaConfig rosettaConfig;
 
   private final LedgerDataProviderService ledgerDataProviderService;
+  private final DataMapper datamapper;
 
   @Value("${cardano.rosetta.TOPOLOGY_FILEPATH}")
   private String topologyFilepath;
@@ -79,7 +80,7 @@ public class NetworkServiceImpl implements NetworkService {
   public NetworkListResponse getNetworkList(MetadataRequest metadataRequest) {
     log.info("[networkList] Looking for all supported networks");
     Network supportedNetwork = getSupportedNetwork();
-    return DataMapper.mapToNetworkListResponse(supportedNetwork);
+    return datamapper.mapToNetworkListResponse(supportedNetwork);
   }
 
   @Override
@@ -132,7 +133,7 @@ public class NetworkServiceImpl implements NetworkService {
     log.debug("[networkStatus] Request received:" + networkRequest.toString());
     log.info("[networkStatus] Looking for latest block");
     NetworkStatus networkStatus = networkStatus();
-    return DataMapper.mapToNetworkStatusResponse(networkStatus);
+    return datamapper.mapToNetworkStatusResponse(networkStatus);
   }
 
   @Override
