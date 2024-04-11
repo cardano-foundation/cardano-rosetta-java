@@ -28,8 +28,8 @@ public class BlockTxToEntity {
           mapper.map(TxnEntity::getTxHash, BlockTx::setHash);
           mapper.map(tx -> tx.getBlock().getHash(), BlockTx::setBlockHash);
           mapper.map(tx -> tx.getBlock().getNumber(), BlockTx::setBlockNo);
-          mapper.map(tx -> 0L, BlockTx::setSize); // TODO saa: why is this 0L?
-          mapper.map(tx -> 0L, BlockTx::setScriptSize); // TODO why is this 0L?
+          mapper.map(tx -> 0L, BlockTx::setSize); // will be calcualted, within the population method
+          mapper.map(tx -> 0L, BlockTx::setScriptSize); // TODO Needs to be calulated if needed
 
           mapper.map(TxnEntity::getInvalid, BlockTx::setValidContract);
 
@@ -43,7 +43,6 @@ public class BlockTxToEntity {
               .ofNullable(source.getFee())
               .map(BigInteger::toString)
               .orElse(null));
-
           return dest;
         })
         .map(model);

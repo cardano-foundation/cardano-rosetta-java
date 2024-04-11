@@ -30,6 +30,7 @@ public class BlockTxToRosettaTransaction {
   final DelegationToOperation delegationToOperation;
   final PoolRetirementToOperation poolRetirementToOperation;
   final PoolRegistrationToOperation poolRegistrationToOperation;
+  final WithdrawalToOperation withdrawalToOperation;
 
   private static final OperationStatus status = OperationStatus.builder()
       .status(SUCCESS_OPERATION_STATUS.getStatus()) // TODO saa: need to check the right status
@@ -60,6 +61,7 @@ public class BlockTxToRosettaTransaction {
           MutableInt ix = new MutableInt(0);
           @NotNull @Valid List<Operation> destOp = ctx.getDestination().getOperations();
           destOp.addAll(inputToOperation.convert(model.getInputs(), status, ix));
+          destOp.addAll(withdrawalToOperation.convert(model.getWithdrawals(), status, ix));
           destOp.addAll(stakeToOperation.convert(model.getStakeRegistrations(), status, ix));
           destOp.addAll(delegationToOperation.convert(model.getDelegations(), status, ix));
           destOp.addAll(poolRegistrationToOperation.convert(model.getPoolRegistrations(), status, ix));

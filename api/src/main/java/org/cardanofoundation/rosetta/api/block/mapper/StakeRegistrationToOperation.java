@@ -5,6 +5,7 @@ import java.util.Optional;
 import lombok.AllArgsConstructor;
 
 import com.bloxbean.cardano.yaci.core.model.certs.CertificateType;
+import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.spi.MappingContext;
 import org.openapitools.client.model.Amount;
@@ -20,7 +21,6 @@ import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 public class StakeRegistrationToOperation extends AbstractToOperation<StakeRegistration> {
 
   final ModelMapper modelMapper;
-
   @Override
   public Operation toDto(StakeRegistration model, OperationStatus status, int index) {
     return Optional

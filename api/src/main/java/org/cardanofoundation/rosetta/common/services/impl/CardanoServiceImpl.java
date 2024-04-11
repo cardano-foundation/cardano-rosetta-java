@@ -74,11 +74,11 @@ import static java.math.BigInteger.valueOf;
 @RequiredArgsConstructor
 public class CardanoServiceImpl implements CardanoService {
 
-    private final LedgerDataProviderService ledgerDataProviderService;
+  private final LedgerDataProviderService ledgerDataProviderService;
     @Value("${cardano.rosetta.NODE_SUBMIT_API_PORT}")
     private int NODE_SUBMIT_API_PORT;
-    @Value("${cardano.rosetta.CARDANO_NODE_HOST}")
-    private String CARDANO_NODE_HOST;
+    @Value("${cardano.rosetta.CARDANO_NODE_SUBMIT_HOST}")
+    private String CARDANO_NODE_SUBMIT_HOST;
 
   @Override
   public TransactionParsed parseTransaction(NetworkIdentifierType networkIdentifierType,
@@ -407,9 +407,9 @@ public class CardanoServiceImpl implements CardanoService {
     double poolDepositsSum =
         result.getPoolRegistrationsCount() * Long.parseLong(depositParameters.getPoolDeposit());
     Map<String, Double> depositsSumMap = new HashMap<>();
-    depositsSumMap.put("keyRefundsSum", refundsSum);
-    depositsSumMap.put("keyDepositsSum", keyDepositsSum);
-    depositsSumMap.put("poolDepositsSum", poolDepositsSum);
+    depositsSumMap.put(Constants.KEY_REFUNDS_SUM, refundsSum);
+    depositsSumMap.put(Constants.KEY_DEPOSITS_SUM, keyDepositsSum);
+    depositsSumMap.put(Constants.POOL_DEPOSITS_SUM, poolDepositsSum);
     long fee = calculateFee(result.getInputAmounts(), result.getOutputAmounts(),
         result.getWithdrawalAmounts(), depositsSumMap);
     log.info("[processOperations] Calculated fee:{}", fee);
@@ -431,16 +431,27 @@ public class CardanoServiceImpl implements CardanoService {
     return processOperationsDto;
   }
 
+  /**
+   * Fees are calulcated based on adding all inputs and substracting all outputs.
+   * Withdrawals will be added as well.
+   * @param inputAmounts Sum of all Input ADA Amounts
+   * @param outputAmounts Sum of all Output ADA Amounts
+   * @param withdrawalAmounts Sum of all Withdrawals
+   * @param depositsSumMap Map of refund and deposit values
+   * @return Payed Fee
+   */
   @Override
-  public Long calculateFee(ArrayList<BigInteger> inputAmounts, ArrayList<BigInteger> outputAmounts,
-      ArrayList<BigInteger> withdrawalAmounts, Map<String, Double> depositsSumMap) {
+  public Long calculateFee(List<BigInteger> inputAmounts, List<BigInteger> outputAmounts,
+      List<BigInteger> withdrawalAmounts, Map<String, Double> depositsSumMap) {
     long inputsSum =
         -1 * inputAmounts.stream().reduce(BigInteger.ZERO, BigInteger::add).longValue();
     long outputsSum = outputAmounts.stream().reduce(BigInteger.ZERO, BigInteger::add).longValue();
     long withdrawalsSum = withdrawalAmounts.stream().reduce(BigInteger.ZERO, BigInteger::add)
         .longValue();
-    long fee = (long) (inputsSum + withdrawalsSum + depositsSumMap.get("keyRefundsSum") - outputsSum
-        - depositsSumMap.get("keyDepositsSum") - depositsSumMap.get("poolDepositsSum"));
+    long fee = (long) (inputsSum + withdrawalsSum * (-1) + depositsSumMap.get(
+        Constants.KEY_REFUNDS_SUM) - outputsSum
+        - depositsSumMap.get(Constants.KEY_DEPOSITS_SUM) - depositsSumMap.get(
+        Constants.POOL_DEPOSITS_SUM)); // withdrawals -1 because it's a negative value, but must be added to the
     if (fee < 0) {
       throw ExceptionFactory.outputsAreBiggerThanInputsError();
     }
@@ -473,7 +484,7 @@ public class CardanoServiceImpl implements CardanoService {
      */
     @Override
     public String submitTransaction(String signedTransaction) throws ApiException {
-        String submitURL = Constants.PROTOCOL + CARDANO_NODE_HOST + ":" + NODE_SUBMIT_API_PORT
+        String submitURL = Constants.PROTOCOL + CARDANO_NODE_SUBMIT_HOST + ":" + NODE_SUBMIT_API_PORT
             + Constants.SUBMIT_API_PATH;
         log.info("[submitTransaction] About to submit transaction to {}", submitURL);
         Request request = null;
