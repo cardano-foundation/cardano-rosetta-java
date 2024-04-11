@@ -222,7 +222,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
       ConstructionSubmitRequest constructionSubmitRequest) {
     String signedTransaction = constructionSubmitRequest.getSignedTransaction();
     log.info("[constructionSubmit] About to submit signed transaction");
-    String tx = cardanoService.extractTransaction(signedTransaction);
+    String tx = cardanoService.extractTransactionIfNeeded(signedTransaction);
     String txHash = cardanoService.submitTransaction(tx);
 
     return new TransactionIdentifierResponse(new TransactionIdentifier(txHash), null);

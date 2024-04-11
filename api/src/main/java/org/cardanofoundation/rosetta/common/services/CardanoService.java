@@ -63,5 +63,5 @@ public interface CardanoService {
   String submitTransaction(String signedTransaction);
   DepositParameters getDepositParameters();
 
-  String extractTransaction(String txWithExtraData);
+  String extractTransactionIfNeeded(String txWithExtraData);
 }

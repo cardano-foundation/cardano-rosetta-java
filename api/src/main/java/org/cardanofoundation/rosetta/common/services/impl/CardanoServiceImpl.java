@@ -3,6 +3,7 @@ package org.cardanofoundation.rosetta.common.services.impl;
 import co.nstant.in.cbor.CborException;
 import co.nstant.in.cbor.model.Array;
 import co.nstant.in.cbor.model.DataItem;
+import co.nstant.in.cbor.model.MajorType;
 import co.nstant.in.cbor.model.UnicodeString;
 import co.nstant.in.cbor.model.UnsignedInteger;
 import com.bloxbean.cardano.client.address.ByronAddress;
@@ -539,21 +540,21 @@ public class CardanoServiceImpl implements CardanoService {
    * @return raw signed transaction
    */
   @Override
-  public String extractTransaction(String txWithExtraData) {
+  public String extractTransactionIfNeeded(String txWithExtraData) {
     byte[] bytes = HexUtil.decodeHexString(txWithExtraData);
     Array deserialize = (Array) CborSerializationUtil.deserialize(bytes);
-    if(deserialize.getDataItems().size() != 1) {
-      log.error("[SubmitTransaction] Invalid transaction format");
+    // Unpack transaction if needed
+    if(deserialize.getDataItems().size() == 1) {
+      deserialize = (Array) deserialize.getDataItems().getFirst();
+    }
+    if(deserialize.getDataItems().isEmpty()) {
       throw ExceptionFactory.invalidTransactionError();
     }
-    Array transactionData = (Array) deserialize.getDataItems().getFirst();
-    if(transactionData.getDataItems().size() == 2) {
-      return ((UnicodeString) transactionData.getDataItems().getFirst()).getString();
-    } else if(transactionData.getDataItems().size() == 4) {
-      log.info("[SubmitTransaction] Transaction already contains no extra data");
-      return txWithExtraData;
+    // unpack transaction
+    if(deserialize.getDataItems().getFirst().getMajorType().equals(MajorType.UNICODE_STRING)) {
+      return ((UnicodeString) deserialize.getDataItems().getFirst()).getString();
     } else {
-      throw ExceptionFactory.invalidTransactionError();
+      return txWithExtraData;
     }
   }
 }
