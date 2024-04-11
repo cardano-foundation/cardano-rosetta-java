@@ -46,8 +46,8 @@ import org.openapitools.client.model.VoteRegistrationMetadata;
 import static java.math.BigInteger.valueOf;
 
 @Slf4j
-public class ProcessContructionUtil {
-    private ProcessContructionUtil() {
+public class ProcessConstructionUtil {
+    private ProcessConstructionUtil() {
 
     }
 

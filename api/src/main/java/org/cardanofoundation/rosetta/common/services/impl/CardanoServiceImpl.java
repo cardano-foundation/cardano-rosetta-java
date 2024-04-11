@@ -74,7 +74,7 @@ import static java.math.BigInteger.valueOf;
 @RequiredArgsConstructor
 public class CardanoServiceImpl implements CardanoService {
 
-    private final LedgerDataProviderService ledgerDataProviderService;
+  private final LedgerDataProviderService ledgerDataProviderService;
     @Value("${cardano.rosetta.NODE_SUBMIT_API_PORT}")
     private int NODE_SUBMIT_API_PORT;
     @Value("${cardano.rosetta.CARDANO_NODE_HOST}")
@@ -407,9 +407,9 @@ public class CardanoServiceImpl implements CardanoService {
     double poolDepositsSum =
         result.getPoolRegistrationsCount() * Long.parseLong(depositParameters.getPoolDeposit());
     Map<String, Double> depositsSumMap = new HashMap<>();
-    depositsSumMap.put("keyRefundsSum", refundsSum);
-    depositsSumMap.put("keyDepositsSum", keyDepositsSum);
-    depositsSumMap.put("poolDepositsSum", poolDepositsSum);
+    depositsSumMap.put(Constants.KEY_REFUNDS_SUM, refundsSum);
+    depositsSumMap.put(Constants.KEY_DEPOSITS_SUM, keyDepositsSum);
+    depositsSumMap.put(Constants.POOL_DEPOSITS_SUM, poolDepositsSum);
     long fee = calculateFee(result.getInputAmounts(), result.getOutputAmounts(),
         result.getWithdrawalAmounts(), depositsSumMap);
     log.info("[processOperations] Calculated fee:{}", fee);
@@ -441,15 +441,17 @@ public class CardanoServiceImpl implements CardanoService {
    * @return Payed Fee
    */
   @Override
-  public Long calculateFee(ArrayList<BigInteger> inputAmounts, ArrayList<BigInteger> outputAmounts,
-      ArrayList<BigInteger> withdrawalAmounts, Map<String, Double> depositsSumMap) {
+  public Long calculateFee(List<BigInteger> inputAmounts, List<BigInteger> outputAmounts,
+      List<BigInteger> withdrawalAmounts, Map<String, Double> depositsSumMap) {
     long inputsSum =
         -1 * inputAmounts.stream().reduce(BigInteger.ZERO, BigInteger::add).longValue();
     long outputsSum = outputAmounts.stream().reduce(BigInteger.ZERO, BigInteger::add).longValue();
     long withdrawalsSum = withdrawalAmounts.stream().reduce(BigInteger.ZERO, BigInteger::add)
         .longValue();
-    long fee = (long) (inputsSum + withdrawalsSum * (-1) + depositsSumMap.get("keyRefundsSum") - outputsSum
-        - depositsSumMap.get("keyDepositsSum") - depositsSumMap.get("poolDepositsSum")); // withdrawals -1 because it's a negative value, but must be added to the
+    long fee = (long) (inputsSum + withdrawalsSum * (-1) + depositsSumMap.get(
+        Constants.KEY_REFUNDS_SUM) - outputsSum
+        - depositsSumMap.get(Constants.KEY_DEPOSITS_SUM) - depositsSumMap.get(
+        Constants.POOL_DEPOSITS_SUM)); // withdrawals -1 because it's a negative value, but must be added to the
     if (fee < 0) {
       throw ExceptionFactory.outputsAreBiggerThanInputsError();
     }

@@ -9,6 +9,7 @@ import java.util.TimeZone;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.cardanofoundation.rosetta.api.block.mapper.WithdrawalEntityToWithdrawal;
 import org.cardanofoundation.rosetta.api.block.model.domain.Withdrawal;
 import org.cardanofoundation.rosetta.api.block.model.repository.WithdrawalRepository;
 import org.springframework.stereotype.Component;
@@ -74,6 +75,7 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
   private final BlockToEntity mapperBlock;
   private final BlockTxToEntity mapperTran;
   private final ProtocolParamsToEntity mapperProtocolParams;
+  private final WithdrawalEntityToWithdrawal withdrawalEntityToWithdrawal;
 
   @Override
   public GenesisBlock findGenesisBlock() {
@@ -133,7 +135,7 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
       transaction.setPoolRetirements(poolRetirementRepository.findByTxHash(transaction.getHash())
               .stream().map(PoolRetirement::fromEntity).toList()); // TODO Refacotring - do this via JPA
       transaction.setWithdrawals(withdrawalRepository.findByTxHash(transaction.getHash())
-              .stream().map(Withdrawal::fromEntity).toList()); // TODO Refacotring - do this via JPA
+              .stream().map(withdrawalEntityToWithdrawal::fromEntity).toList()); // TODO Refacotring - do this via JPA
 
       ProtocolParams protocolParametersFromIndexerAndConfig = findProtocolParametersFromIndexerAndConfig();
       transaction.setSize((Long.parseLong(transaction.getFee()) - protocolParametersFromIndexerAndConfig.getMinFeeB().longValue()) / protocolParametersFromIndexerAndConfig.getMinFeeA().longValue());
