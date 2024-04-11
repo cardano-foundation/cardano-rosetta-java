@@ -53,8 +53,8 @@ public interface CardanoService {
   List<SigningPayload> constructPayloadsForTransactionBody(String transactionBodyHash,
       Set<String> addresses);
 
-  Long calculateFee(ArrayList<BigInteger> inputAmounts, ArrayList<BigInteger> outputAmounts,
-      ArrayList<BigInteger> withdrawalAmounts, Map<String, Double> depositsSumMap);
+  Long calculateFee(List<BigInteger> inputAmounts, List<BigInteger> outputAmounts,
+      List<BigInteger> withdrawalAmounts, Map<String, Double> depositsSumMap);
 
   ProcessOperations convertRosettaOperations(NetworkIdentifierType networkIdentifierType,
       List<Operation> operations) throws IOException;

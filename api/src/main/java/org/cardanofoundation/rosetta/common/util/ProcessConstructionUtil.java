@@ -46,8 +46,8 @@ import org.openapitools.client.model.VoteRegistrationMetadata;
 import static java.math.BigInteger.valueOf;
 
 @Slf4j
-public class ProcessContructionUtil {
-    private ProcessContructionUtil() {
+public class ProcessConstructionUtil {
+    private ProcessConstructionUtil() {
 
     }
 
@@ -91,20 +91,29 @@ public class ProcessContructionUtil {
         log.info("[processWithdrawal] About to process withdrawal");
         OperationMetadata operationMetadata = operation.getMetadata();
         HdPublicKey hdPublicKey = new HdPublicKey();
+        String address;
+        ProcessWithdrawalReturn processWithdrawalReturnDto = new ProcessWithdrawalReturn();
         if (operation.getMetadata() != null &&
                 operationMetadata.getStakingCredential() != null &&
                 operationMetadata.getStakingCredential().getHexBytes() != null) {
             hdPublicKey.setKeyData(
                     HexUtil.decodeHexString(operationMetadata.getStakingCredential().getHexBytes()));
-        }
-        String address = CardanoAddressUtils.generateRewardAddress(networkIdentifierType, hdPublicKey);
-        HdPublicKey hdPublicKey1 = new HdPublicKey();
-        hdPublicKey1.setKeyData(
+            address = CardanoAddressUtils.generateRewardAddress(networkIdentifierType, hdPublicKey);
+            HdPublicKey hdPublicKey1 = new HdPublicKey();
+            hdPublicKey1.setKeyData(
                 HexUtil.decodeHexString(operationMetadata.getStakingCredential().getHexBytes()));
-        ProcessWithdrawalReturn processWithdrawalReturnDto = new ProcessWithdrawalReturn();
-        processWithdrawalReturnDto.setReward(AddressProvider.getRewardAddress(hdPublicKey1,
+
+            processWithdrawalReturnDto.setReward(AddressProvider.getRewardAddress(hdPublicKey1,
                 new Network(networkIdentifierType.getValue(), networkIdentifierType.getProtocolMagic())));
-        processWithdrawalReturnDto.setAddress(address);
+            processWithdrawalReturnDto.setAddress(address);
+        } else if(operation.getAccount() != null && operation.getAccount().getAddress() != null) {
+            address = operation.getAccount().getAddress();
+            processWithdrawalReturnDto.setAddress(address);
+            processWithdrawalReturnDto.setReward(new Address(address));
+        } else {
+            throw ExceptionFactory.missingStakingKeyError();
+        }
+
         return processWithdrawalReturnDto;
     }
 
