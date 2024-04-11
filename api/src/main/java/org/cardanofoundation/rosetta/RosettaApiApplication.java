@@ -37,7 +37,6 @@ public class RosettaApiApplication {
   }
 
   @Bean
-  @SuppressWarnings("unused") //used through injection
   public FilterRegistrationBean<ForwardedHeaderFilter> forwardedHeaderFilter() {
     final ForwardedHeaderFilter filter = new ForwardedHeaderFilter();
     final FilterRegistrationBean<ForwardedHeaderFilter> registration = new FilterRegistrationBean<>(
@@ -50,7 +49,6 @@ public class RosettaApiApplication {
   }
 
   @Bean
-  @SuppressWarnings("unused") //used through injection
   @Profile("!test-integration")
   public JsonNullableModule jsonNullableModule() {
     return new JsonNullableModule();

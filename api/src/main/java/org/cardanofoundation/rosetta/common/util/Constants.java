@@ -23,6 +23,9 @@ public class Constants {
   public static final String NETWORK_ID_NAME = "networkId";
   public static final String NETWORK_MAGIC_NAME = "networkMagic";
   public static final int MAINNET_NETWORK_MAGIC = 764824073;
+  public static final String KEY_REFUNDS_SUM = "keyRefundsSum";
+  public static final String KEY_DEPOSITS_SUM = "keyDepositsSum";
+  public static final String POOL_DEPOSITS_SUM = "poolDepositsSum";
 
   private Constants() {
   }

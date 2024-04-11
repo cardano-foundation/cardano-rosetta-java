@@ -31,5 +31,6 @@ public class BlockTx {
   protected List<Delegation> delegations;
   protected List<PoolRegistration> poolRegistrations;
   protected List<PoolRetirement> poolRetirements;
+  protected List<Withdrawal> withdrawals;
 
 }

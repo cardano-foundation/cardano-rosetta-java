@@ -7,8 +7,6 @@ public interface BlockService {
 
   Block findBlock(Long index, String hash);
 
-  String getPoolDeposit();
-
   BlockTx getBlockTransaction(Long blockId, String blockHash, String txHash);
 
 }

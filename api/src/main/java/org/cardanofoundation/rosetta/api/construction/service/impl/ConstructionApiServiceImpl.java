@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.cardanofoundation.rosetta.api.block.model.entity.ProtocolParams;
+import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
 import org.cardanofoundation.rosetta.common.exception.ApiException;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
@@ -41,6 +41,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
   private final CardanoAddressService cardanoAddressService;
   private final CardanoService cardanoService;
   private final LedgerDataProviderService ledgerService;
+  private final DataMapper dataMapper;
 
   @Override
   public ConstructionDeriveResponse constructionDeriveService(
@@ -73,13 +74,21 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
       ConstructionPreprocessRequest constructionPreprocessRequest) {
 
     NetworkIdentifier networkIdentifier = constructionPreprocessRequest.getNetworkIdentifier();
-    ConstructionPreprocessMetadata metadata = constructionPreprocessRequest.getMetadata();
+    Optional<ConstructionPreprocessMetadata> metadata = Optional.ofNullable(
+        constructionPreprocessRequest.getMetadata());
+    Double relativeTtl;
+    DepositParameters depositParameters;
+    if(metadata.isPresent()) {
+      relativeTtl = cardanoService.checkOrReturnDefaultTtl(metadata.get().getRelativeTtl());
+      depositParameters = Optional.ofNullable(metadata.get().getDepositParameters()).orElse(cardanoService.getDepositParameters());
+    } else {
+      relativeTtl = Constants.DEFAULT_RELATIVE_TTL;
+      depositParameters = cardanoService.getDepositParameters();
+    }
 
-    Double relativeTtl = cardanoService.checkOrReturnDefaultTtl(metadata.getRelativeTtl());
     Double transactionSize = cardanoService.calculateTxSize(
         NetworkIdentifierType.findByName(networkIdentifier.getNetwork()),
-        constructionPreprocessRequest.getOperations(), 0,
-        metadata.getDepositParameters());
+        constructionPreprocessRequest.getOperations(), 0, depositParameters);
     Map<String, Double> response = Map.of(Constants.RELATIVE_TTL, relativeTtl,
         Constants.TRANSACTION_SIZE,
         transactionSize);
@@ -104,46 +113,42 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
         protocolParams);
     Long suggestedFee = cardanoService.calculateTxMinimumFee(updatedTxSize, protocolParams);
     log.debug("[constructionMetadata] suggested fee is ${suggestedFee}");
-    return DataMapper.mapToMetadataResponse(protocolParams, ttl, suggestedFee);
+    return dataMapper.mapToMetadataResponse(protocolParams, ttl, suggestedFee);
   }
 
   @Override
   public ConstructionPayloadsResponse constructionPayloadsService(
       ConstructionPayloadsRequest constructionPayloadsRequest) {
-    int ttl = constructionPayloadsRequest.getMetadata().getTtl();
+
     List<Operation> operations = constructionPayloadsRequest.getOperations();
 
     checkOperationsHaveIdentifier(operations);
 
     NetworkIdentifierType networkIdentifier = NetworkIdentifierType.findByName(constructionPayloadsRequest.getNetworkIdentifier().getNetwork());
     log.info(operations + "[constuctionPayloads] Operations about to be processed");
-
-    ProtocolParameters protocolParameters = constructionPayloadsRequest.getMetadata()
-        .getProtocolParameters();
-    String keyDeposit;
-    String poolDeposit;
-    // TODO need to convert OpenAPI ProcotolParameters to domain ProtocolParams. Then merge with the one from indexer/config
-    if(protocolParameters != null) {
-      keyDeposit = protocolParameters.getKeyDeposit();
-      poolDeposit = protocolParameters.getPoolDeposit();
+    Optional<ConstructionPayloadsRequestMetadata> metadata = Optional.ofNullable(
+        constructionPayloadsRequest.getMetadata());
+    int ttl;
+    DepositParameters depositParameters;
+    if(metadata.isPresent()) {
+      ttl = cardanoService.checkOrReturnDefaultTtl(metadata.get().getTtl()).intValue();
+      depositParameters = Optional.ofNullable(metadata.get().getProtocolParameters()).map(protocolParameters -> new DepositParameters(protocolParameters.getKeyDeposit(), protocolParameters.getPoolDeposit())).orElse(cardanoService.getDepositParameters());
     } else {
-      ProtocolParams protocolParametersFromIndexerAndConfig = ledgerService.findProtocolParametersFromIndexerAndConfig();
-      keyDeposit = protocolParametersFromIndexerAndConfig.getKeyDeposit().toString();
-      poolDeposit = protocolParametersFromIndexerAndConfig.getPoolDeposit().toString();
+      ttl = Constants.DEFAULT_RELATIVE_TTL.intValue();
+      depositParameters = cardanoService.getDepositParameters();
     }
 
-    UnsignedTransaction unsignedTransaction = null;
+    UnsignedTransaction unsignedTransaction;
     try {
       unsignedTransaction = cardanoService.createUnsignedTransaction(
           networkIdentifier, operations, ttl,
-          new DepositParameters(keyDeposit,
-              poolDeposit));
+          depositParameters);
     } catch (IOException | CborSerializationException | AddressExcepion | CborException e) {
       throw ExceptionFactory.cantCreateUnsignedTransactionFromBytes();
     }
     List<SigningPayload> payloads = cardanoService.constructPayloadsForTransactionBody(
         unsignedTransaction.hash(), unsignedTransaction.addresses());
-    String unsignedTransactionString = null;
+    String unsignedTransactionString;
     try {
       unsignedTransactionString = CborEncodeUtil.encodeExtraData(
           unsignedTransaction.bytes(),

@@ -9,7 +9,7 @@ import com.bloxbean.cardano.client.transaction.spec.TransactionWitnessSet;
 import java.util.Set;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProcessOperations;
 import java.math.BigInteger;
-import org.cardanofoundation.rosetta.api.block.model.entity.ProtocolParams;
+import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
 import org.cardanofoundation.rosetta.common.enumeration.AddressType;
 import org.cardanofoundation.rosetta.common.enumeration.EraAddressType;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
@@ -53,8 +53,8 @@ public interface CardanoService {
   List<SigningPayload> constructPayloadsForTransactionBody(String transactionBodyHash,
       Set<String> addresses);
 
-  Long calculateFee(ArrayList<BigInteger> inputAmounts, ArrayList<BigInteger> outputAmounts,
-      ArrayList<BigInteger> withdrawalAmounts, Map<String, Double> depositsSumMap);
+  Long calculateFee(List<BigInteger> inputAmounts, List<BigInteger> outputAmounts,
+      List<BigInteger> withdrawalAmounts, Map<String, Double> depositsSumMap);
 
   ProcessOperations convertRosettaOperations(NetworkIdentifierType networkIdentifierType,
       List<Operation> operations) throws IOException;
@@ -62,4 +62,5 @@ public interface CardanoService {
   UnsignedTransaction createUnsignedTransaction(NetworkIdentifierType networkIdentifier, List<Operation> operations, int ttl, DepositParameters depositParameters) throws IOException, CborSerializationException, AddressExcepion, CborException;
 
   String submitTransaction(String signedTransaction);
+  DepositParameters getDepositParameters();
 }

@@ -8,20 +8,23 @@ import org.cardanofoundation.rosetta.api.IntegrationTest;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
+import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
 import org.cardanofoundation.rosetta.testgenerator.common.TestConstants;
 import org.cardanofoundation.rosetta.testgenerator.common.TestTransactionNames;
 import org.cardanofoundation.rosetta.testgenerator.common.TransactionBlockDetails;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class BlockServiceImplIntTest extends IntegrationTest {
 
   @Autowired
-  @SuppressWarnings("unused")
   private BlockService blockService;
   final TransactionBlockDetails generatedTestData = generatedDataMap.get(
       TestTransactionNames.SIMPLE_TRANSACTION.getName());
 
+  @Autowired
+  private ProtocolParamService protocolParamService;
   @Test
   void getBlockWithTransaction_Test() {
     //given
@@ -83,8 +86,7 @@ class BlockServiceImplIntTest extends IntegrationTest {
 
   @Test
   void getDepositPool_Test() {
-    String poolDeposit = blockService.getPoolDeposit();
-    assertEquals("500000000", poolDeposit);
+    assertThat(protocolParamService.getProtocolParameters().getPoolDeposit()).isEqualTo(500000000);
   }
 
 }

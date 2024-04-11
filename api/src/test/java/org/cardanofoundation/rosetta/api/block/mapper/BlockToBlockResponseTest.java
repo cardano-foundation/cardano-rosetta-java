@@ -299,17 +299,17 @@ class BlockToBlockResponseTest extends BaseMapperTest {
     return List.of(new BlockTx("hash1", "blockHash1", 1L, "fee1", 1L,
             true, 1L, null, null,
             newStakeRegistrations(1, 2), newDelegations(1, 2), newPoolRegistrations(1, 2),
-            newPoolRetirements(1, 2)),
+            newPoolRetirements(1, 2), null),
 
         new BlockTx("hash2", "blockHash2", 2L, "fee2", 2L,
             true, 2L, null, null,
             newStakeRegistrations(3, 4), newDelegations(3, 4), newPoolRegistrations(3, 4),
-            newPoolRetirements(3, 4)),
+            newPoolRetirements(3, 4), null),
 
         new BlockTx("hash3", "blockHash3", 3L, "fee3", 3L,
             true, 3L, null, null,
             newStakeRegistrations(5, 6), newDelegations(5, 6), newPoolRegistrations(5, 6),
-            newPoolRetirements(5, 6)));
+            newPoolRetirements(5, 6), null));
   }
 
   private List<Delegation> newDelegations(int... instances) {

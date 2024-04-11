@@ -1115,7 +1115,6 @@ components:
       required:
         - network_identifier
         - account_identifier
-        - include_mempool
       properties:
         network_identifier:
           $ref: '#/components/schemas/NetworkIdentifier'
@@ -1123,6 +1122,7 @@ components:
           $ref: '#/components/schemas/AccountIdentifier'
         include_mempool:
           type: boolean
+          default: false
           description: Include state from the mempool when looking up an account's unspent coins. Note, using this functionality breaks any guarantee of idempotency.
         currencies:
           type: array
@@ -1306,10 +1306,7 @@ components:
         - metadata
       properties:
         metadata:
-          type: object
-          example:
-            account_sequence: 23
-            recent_block_hash: '0x52bc44d5378309ee2abf1539bf71de1b7d7be3b5'
+          $ref: '#/components/schemas/ConstructionMetadataResponseMetadata'
         suggested_fee:
           type: array
           items:
@@ -1344,7 +1341,6 @@ components:
       required:
         - network_identifier
         - operations
-        - metadata
       properties:
         network_identifier:
           $ref: '#/components/schemas/NetworkIdentifier'
@@ -1948,6 +1944,15 @@ components:
         transaction_size:
           description: ''
           type: number
+    ConstructionMetadataResponseMetadata:
+      description: ''
+      type: object
+      properties:
+        ttl:
+          description: ''
+          type: number
+        protocol_parameters:
+          $ref: '#/components/schemas/ProtocolParameters'
     CoinMetadata:
       description: CoinMetadata is used to provide additional data for a Coin object. It is often used to store human-readable information that a client can use to display information to a user.
       type: object

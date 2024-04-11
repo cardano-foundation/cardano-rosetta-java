@@ -2,7 +2,6 @@
 ---
 
 # :rotating_light: This Repository is under active development. :rotating_light:
-The latest version from main was backupped in branch [backup-old-architecture](https://github.com/cardano-foundation/cardano-rosetta-java/tree/backup-old-architecture)
 
 # Cardano Rosetta API Java implementation
 This repository provides a lightweight java implementation of the Rosetta API. It uses [Yaci-Store](https://github.com/bloxbean/yaci-store) as an indexer

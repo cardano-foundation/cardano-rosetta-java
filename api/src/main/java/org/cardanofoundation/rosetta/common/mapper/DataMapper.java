@@ -1,12 +1,12 @@
 package org.cardanofoundation.rosetta.common.mapper;
 
-import java.math.BigInteger;
+import com.bloxbean.cardano.client.common.model.Network;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import javax.annotation.Nullable;
 
+import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.stereotype.Component;
@@ -36,6 +36,7 @@ import org.cardanofoundation.rosetta.api.account.model.domain.AddressBalance;
 import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
+import org.cardanofoundation.rosetta.common.annotation.PersistenceMapper;
 import org.cardanofoundation.rosetta.api.block.model.domain.GenesisBlock;
 import org.cardanofoundation.rosetta.api.block.model.domain.NetworkStatus;
 import org.cardanofoundation.rosetta.api.block.model.domain.StakeAddressBalance;
@@ -43,21 +44,25 @@ import org.cardanofoundation.rosetta.api.block.model.entity.ProtocolParams;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
 import org.cardanofoundation.rosetta.common.model.cardano.crypto.Signatures;
 import org.cardanofoundation.rosetta.common.util.Constants;
+import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
+import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
+import org.openapitools.client.model.*;
+import org.openapitools.client.model.Currency;
+import org.springframework.stereotype.Component;
+import java.util.*;
 
 
 @Slf4j
-@Component
+@PersistenceMapper
+@RequiredArgsConstructor
 public class DataMapper {
-
-  private DataMapper() {
-  }
-
+  private final ProtocolParamsToRosettaProtocolParameters protocolParamsToRosettaProtocolParameters;
   /**
    * Maps a NetworkRequest to a NetworkOptionsResponse.
    * @param supportedNetwork The supported network
    * @return The NetworkOptionsResponse
    */
-  public static NetworkListResponse mapToNetworkListResponse(Network supportedNetwork) {
+  public NetworkListResponse mapToNetworkListResponse(Network supportedNetwork) {
     NetworkIdentifier identifier = NetworkIdentifier.builder().blockchain(Constants.CARDANO)
             .network(Objects.requireNonNull(
                 NetworkEnum.fromProtocolMagic(supportedNetwork.getProtocolMagic())).getValue()).build();
@@ -69,7 +74,7 @@ public class DataMapper {
    * @param networkStatus The network status
    * @return The NetworkOptionsResponse
    */
-  public static NetworkStatusResponse mapToNetworkStatusResponse(NetworkStatus networkStatus) {
+  public NetworkStatusResponse mapToNetworkStatusResponse(NetworkStatus networkStatus) {
     Block latestBlock = networkStatus.getLatestBlock();
     GenesisBlock genesisBlock = networkStatus.getGenesisBlock();
     List<Peer> peers = networkStatus.getPeers();
@@ -234,9 +239,12 @@ public class DataMapper {
     return coinTokens.isEmpty() ? null : Map.of(key, coinTokens);
   }
 
-  public static ConstructionMetadataResponse mapToMetadataResponse(ProtocolParams protocolParams, Long ttl, Long suggestedFee) {
+  public ConstructionMetadataResponse mapToMetadataResponse(ProtocolParams protocolParams, Long ttl, Long suggestedFee) {
     return ConstructionMetadataResponse.builder()
-            .metadata(Map.of("protocol_parameters", protocolParams, "ttl", ttl))
+            .metadata(ConstructionMetadataResponseMetadata.builder()
+                .ttl(new BigDecimal(ttl))
+                .protocolParameters(protocolParamsToRosettaProtocolParameters.toProtocolParameters(protocolParams))
+                .build())
             .suggestedFee(List.of(Amount.builder()
                             .value(suggestedFee.toString())
                             .currency(Currency.builder()
