@@ -29,6 +29,7 @@ import org.cardanofoundation.rosetta.api.block.model.domain.Delegation;
 import org.cardanofoundation.rosetta.api.block.model.domain.PoolRegistration;
 import org.cardanofoundation.rosetta.api.block.model.domain.PoolRetirement;
 import org.cardanofoundation.rosetta.api.block.model.domain.StakeRegistration;
+import org.cardanofoundation.rosetta.api.block.model.domain.Withdrawal;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.common.util.Constants;
 
@@ -336,6 +337,35 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
     assertThat(token.getCurrency().getDecimals()).isEqualTo(0);
 
   }
+
+
+  @Test
+  void toDto_Test_getWithdrawlOperations() {
+    //given
+    BlockTx from = newTran();
+    from.setWithdrawals(List.of(Withdrawal.builder()
+        .amount(BigInteger.TWO)
+        .stakeAddress("stake_addr1_for_withdraw")
+        .build()));
+    //when
+    Transaction into = my.toDto(from);
+    //then
+    assertThat(into.getOperations().size()).isEqualTo(3);
+    Optional<Operation> opt = into.getOperations()
+        .stream()
+        .filter(f -> f.getType().equals(OperationType.WITHDRAWAL.getValue()))
+        .findFirst();
+    assertThat(opt.isPresent()).isTrue();
+    Operation opInto = opt.get();
+    assertThat(opInto.getStatus()).isEqualTo("success");
+    assertThat(opInto.getOperationIdentifier().getIndex()).isEqualTo(1); //index in array
+    assertThat(opInto.getAccount().getAddress()).isNotEmpty();
+    assertThat(opInto.getAccount().getAddress())
+        .isEqualTo(from.getWithdrawals().getFirst().getStakeAddress());
+    assertThat(opInto.getMetadata().getWithdrawalAmount().getValue())
+        .isEqualTo("-"+ from.getWithdrawals().getFirst().getAmount().toString());
+  }
+
 
   private static Amount amountActual(String value) {
     return Amount.builder()

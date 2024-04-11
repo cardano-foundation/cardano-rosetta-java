@@ -28,7 +28,7 @@ public class WithdrawalToOperation extends AbstractToOperation<Withdrawal>{
           mp.map(f -> OperationType.WITHDRAWAL.getValue(), Operation::setType);
           mp.<String>map(Withdrawal::getStakeAddress, (d, v) -> d.getAccount().setAddress(v));
           mp.<Amount>map(f -> updateDepositAmount(
-              Optional.ofNullable(f.getAmount())
+              Optional.ofNullable(model.getAmount())
                   .map(BigInteger::negate)
                   .orElse(BigInteger.ZERO)), //TODO saa: is it OK?
               (d, v) -> d.getMetadata().setWithdrawalAmount(v));
