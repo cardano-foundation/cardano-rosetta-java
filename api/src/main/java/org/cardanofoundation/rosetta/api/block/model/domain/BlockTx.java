@@ -10,7 +10,7 @@ import lombok.experimental.SuperBuilder;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 
 /**
- * Cardano Transaction model. Named so because of clash with the Transaction from the Rosetta API.
+ * Cardano Transaction domain model.
  */
 @Data
 @NoArgsConstructor

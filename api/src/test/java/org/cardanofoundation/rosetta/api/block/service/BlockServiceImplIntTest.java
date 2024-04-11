@@ -20,27 +20,28 @@ class BlockServiceImplIntTest extends IntegrationTest {
 
   @Autowired
   private BlockService blockService;
-  final TransactionBlockDetails generatedTestData = generatedDataMap.get(
+  final TransactionBlockDetails simpleTx = generatedDataMap.get(
       TestTransactionNames.SIMPLE_TRANSACTION.getName());
 
 
   @Autowired
   private ProtocolParamService protocolParamService;
+
   @Test
   void getBlockWithTransaction_Test() {
     //given
     //when
-    Block block = blockService.findBlock(generatedTestData.blockNumber(),
-        generatedTestData.blockHash());
+    Block block = blockService.findBlock(simpleTx.blockNumber(),
+        simpleTx.blockHash());
 
     //then
-    assertEquals(generatedTestData.blockHash(), block.getHash());
-    assertEquals(generatedTestData.blockNumber(), block.getSlotNo());
+    assertEquals(simpleTx.blockHash(), block.getHash());
+    assertEquals(simpleTx.blockNumber(), block.getSlotNo());
     assertEquals(1, block.getTransactions().size());
 
     Utxo receiverUtxoDto = block.getTransactions().getFirst().getOutputs().getFirst();
     assertEquals(TestConstants.TEST_ACCOUNT_ADDRESS, receiverUtxoDto.getOwnerAddr());
-    assertEquals(generatedTestData.txHash(), receiverUtxoDto.getTxHash());
+    assertEquals(simpleTx.txHash(), receiverUtxoDto.getTxHash());
     assertEquals(TestConstants.ACCOUNT_BALANCE_LOVELACE_AMOUNT,
         receiverUtxoDto.getLovelaceAmount().toString());
 
@@ -49,9 +50,9 @@ class BlockServiceImplIntTest extends IntegrationTest {
   @Test
   void getBlockTransaction_Test() {
     //given
-    long blockNo = generatedTestData.blockNumber();
-    String blockHash = generatedTestData.blockHash();
-    String blockTxHash = generatedTestData.txHash();
+    long blockNo = simpleTx.blockNumber();
+    String blockHash = simpleTx.blockHash();
+    String blockTxHash = simpleTx.txHash();
     String fee = "172321";
     //when
     BlockTx tx = blockService.getBlockTransaction(blockNo, blockHash, blockTxHash);
@@ -64,7 +65,6 @@ class BlockServiceImplIntTest extends IntegrationTest {
     assertEquals(0, tx.getScriptSize());
     assertEquals(1, tx.getInputs().size());
     assertEquals(2, tx.getOutputs().size());
-    //TODO saa check the operations
     assertEquals(0, tx.getStakeRegistrations().size());
     assertEquals(0, tx.getPoolRegistrations().size());
     assertEquals(0, tx.getPoolRetirements().size());
@@ -73,8 +73,8 @@ class BlockServiceImplIntTest extends IntegrationTest {
     Utxo inUtxo = tx.getInputs().getFirst();
 
     //TODO saa: how to check?
+    assertEquals(TestConstants.SENDER_2_ADDRESS, inUtxo.getOwnerAddr());
 //    assertEquals(blockTxHash, inUtxo.getTxHash());
-//    assertEquals(TestConstants.TEST_ACCOUNT_ADDRESS, inUtxo.getOwnerAddr());
 
     Utxo outUtxo = tx.getOutputs().getFirst();
     assertEquals(TestConstants.TEST_ACCOUNT_ADDRESS, outUtxo.getOwnerAddr());
@@ -87,7 +87,8 @@ class BlockServiceImplIntTest extends IntegrationTest {
 
   @Test
   void getDepositPool_Test() {
-    assertThat(protocolParamService.getProtocolParameters().getPoolDeposit()).isEqualTo(500000000);
+    assertThat(protocolParamService.getProtocolParameters().getPoolDeposit())
+        .isEqualTo(500000000);
   }
 
 }

@@ -36,7 +36,7 @@ public abstract class IntegrationTest {
   @BeforeAll
   public static void init(@Autowired ObjectMapper objectMapper) throws IOException {
     generatedDataMap = objectMapper.readValue(new File("." + TestConstants.FILE_SAVE_PATH),
-        new TypeReference<Map<String, TransactionBlockDetails>>() {
+        new TypeReference<>() {
         });
   }
 }
