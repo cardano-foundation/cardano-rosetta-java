@@ -1,12 +1,15 @@
 package org.cardanofoundation.rosetta.common.mapper;
 
 import com.bloxbean.cardano.client.common.model.Network;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 import javax.annotation.Nullable;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.stereotype.Component;
@@ -40,16 +43,11 @@ import org.cardanofoundation.rosetta.common.annotation.PersistenceMapper;
 import org.cardanofoundation.rosetta.api.block.model.domain.GenesisBlock;
 import org.cardanofoundation.rosetta.api.block.model.domain.NetworkStatus;
 import org.cardanofoundation.rosetta.api.block.model.domain.StakeAddressBalance;
-import org.cardanofoundation.rosetta.api.block.model.entity.ProtocolParams;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
 import org.cardanofoundation.rosetta.common.model.cardano.crypto.Signatures;
 import org.cardanofoundation.rosetta.common.util.Constants;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
-import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
 import org.openapitools.client.model.*;
-import org.openapitools.client.model.Currency;
-import org.springframework.stereotype.Component;
-import java.util.*;
 
 
 @Slf4j
@@ -165,7 +163,8 @@ public class DataMapper {
     if (sum > 0) {
       amounts.add(mapAmount(String.valueOf(sum)));
     }
-    nonLovelaceBalances.forEach(balance -> amounts.add(mapAmount(balance.quantity().toString(), Hex.encodeHexString(balance.assetName().getBytes()), Constants.MULTI_ASSET_DECIMALS, new CurrencyMetadata(
+    // unit = assetName + policyId. To get the symbol policy ID must be removed from Unit. According to CIP67
+    nonLovelaceBalances.forEach(balance -> amounts.add(mapAmount(balance.quantity().toString(), balance.unit().replace(balance.policy(), ""), Constants.MULTI_ASSET_DECIMALS, new CurrencyMetadata(
         balance.policy()))));
     return AccountBalanceResponse.builder()
             .blockIdentifier(BlockIdentifier.builder()
@@ -231,7 +230,8 @@ public class DataMapper {
               CoinTokens tokens = new CoinTokens();
               tokens.setPolicyId(amount.getPolicyId());
               tokens.setTokens(List.of(mapAmount(amount.getQuantity().toString(),
-                  Hex.encodeHexString(amount.getAssetName().getBytes()),
+                  // unit = assetName + policyId. To get the symbol policy ID must be removed from Unit. According to CIP67
+                  amount.getUnit().replace(amount.getPolicyId(), ""),
                   Constants.MULTI_ASSET_DECIMALS, new CurrencyMetadata(amount.getPolicyId()))));
               return tokens;
             })
