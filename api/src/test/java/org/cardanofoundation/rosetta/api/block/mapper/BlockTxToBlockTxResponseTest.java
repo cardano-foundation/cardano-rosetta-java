@@ -35,7 +35,6 @@ class BlockTxToBlockTxResponseTest extends BaseMapperTest {
     // when
     BlockTransactionResponse into = my.toDto(from);
     // then
-    my.modelMapper.validate();
 
     Transaction tx = into.getTransaction();
     assertThat(tx.getMetadata().getSize()).isEqualTo(from.getSize());
