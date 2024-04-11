@@ -1,5 +1,6 @@
 package org.cardanofoundation.rosetta.api.block.mapper;
 
+import java.math.BigInteger;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -69,6 +70,11 @@ public abstract class AbstractToOperation<T> {
   protected Amount getDepositAmount() {
     String deposit = String.valueOf(protocolParamService.getProtocolParameters().getPoolDeposit());
     return DataMapper.mapAmount(deposit, Constants.ADA, Constants.ADA_DECIMALS, null);
+  }
+
+  @NotNull
+  protected Amount updateDepositAmount(BigInteger deposit) {
+    return DataMapper.mapAmount(deposit.toString(), Constants.ADA, Constants.ADA_DECIMALS, null);
   }
 
   protected static void mapOthers(Utxo model, OperationStatus status, int index,

@@ -1,5 +1,6 @@
 package org.cardanofoundation.rosetta.api.block.mapper;
 
+import java.math.BigInteger;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
 import org.cardanofoundation.rosetta.api.block.model.domain.Withdrawal;
@@ -26,10 +27,13 @@ public class WithdrawalToOperation extends AbstractToOperation<Withdrawal>{
           mp.map(f -> status.getStatus(), Operation::setStatus);
           mp.map(f -> OperationType.WITHDRAWAL.getValue(), Operation::setType);
           mp.<String>map(Withdrawal::getStakeAddress, (d, v) -> d.getAccount().setAddress(v));
-          mp.<Amount>map(f -> getDepositAmount("-" + f.getAmount()), (d, v) -> d.getMetadata().setWithdrawalAmount(v));
+          mp.<Amount>map(f -> updateDepositAmount(
+              Optional.ofNullable(f.getAmount())
+                  .map(BigInteger::negate)
+                  .orElse(BigInteger.ZERO)), //TODO saa: is it OK?
+              (d, v) -> d.getMetadata().setWithdrawalAmount(v));
           mp.<Long>map(f -> index, (d, v) -> d.getOperationIdentifier().setIndex(v));
         })
-        .setPostConverter(MappingContext::getDestination)
         .map(model);
   }
 }
