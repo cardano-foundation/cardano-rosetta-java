@@ -33,7 +33,7 @@ class BlockTxToBlockTxResponseTest extends BaseMapperTest {
     //given
     BlockTx from = newTran();
     // when
-    BlockTransactionResponse into = my.toDto(from, "500");
+    BlockTransactionResponse into = my.toDto(from);
     // then
     my.modelMapper.validate();
 

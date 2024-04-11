@@ -7,7 +7,6 @@ import java.util.Optional;
 import lombok.AllArgsConstructor;
 
 import org.modelmapper.ModelMapper;
-import org.modelmapper.spi.MappingContext;
 import org.openapitools.client.model.BlockIdentifier;
 import org.openapitools.client.model.BlockMetadata;
 import org.openapitools.client.model.BlockResponse;
@@ -46,18 +45,19 @@ public class BlockToBlockResponse {
           mapper.<Long>map(Block::getCreatedAt, (dest, v) -> dest.getBlock().setTimestamp(v));
         })
         .setPostConverter(ctx -> {
+          Block source = ctx.getSource();
           ctx.getDestination().getBlock().setMetadata(
               BlockMetadata.builder()
-                  .transactionsCount(source(ctx).getTransactionsCount())
-                  .createdBy(source(ctx).getCreatedBy())
-                  .size(source(ctx).getSize())
-                  .epochNo(source(ctx).getEpochNo())
-                  .slotNo(source(ctx).getSlotNo())
+                  .transactionsCount(source.getTransactionsCount())
+                  .createdBy(source.getCreatedBy())
+                  .size(source.getSize())
+                  .epochNo(source.getEpochNo())
+                  .slotNo(source.getSlotNo())
                   .build()
           );
 
           ctx.getDestination().getBlock().setTransactions(
-              mapToRosettaTransactions(source(ctx).getTransactions(), source(ctx).getPoolDeposit())
+              mapToRosettaTransactions(source.getTransactions())
           );
 
           return ctx.getDestination();
@@ -65,24 +65,19 @@ public class BlockToBlockResponse {
 
   }
 
-  private static Block source(MappingContext<Block, BlockResponse> ctx) {
-    return ctx.getSource();
-  }
+
 
 
   /**
    * Maps a list of Cardano Transactions to a list of Rosetta compatible Transactions.
    *
    * @param transactions The transactions to be mapped
-   * @param poolDeposit  The pool deposit
    * @return The list of Rosetta compatible Transactions
    */
-  public List<Transaction> mapToRosettaTransactions(
-      List<BlockTx> transactions,
-      String poolDeposit) {
+  public List<Transaction> mapToRosettaTransactions(List<BlockTx> transactions) {
     List<Transaction> rosettaTransactions = new ArrayList<>();
     for (BlockTx tranDto : transactions) {
-      rosettaTransactions.add(mapToRosettaTransaction.toDto(tranDto, poolDeposit));
+      rosettaTransactions.add(mapToRosettaTransaction.toDto(tranDto));
     }
     return rosettaTransactions;
   }

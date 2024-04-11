@@ -42,7 +42,7 @@ public abstract class AbstractToOperation<T> {
         .stream()
         .flatMap(List::stream)
         .forEach(amount -> {
-          operationMetadata.setDepositAmount(getDepositAmount("2000000"));
+          operationMetadata.setDepositAmount(getDepositAmount());
           if (!amount.getAssetName().equals(Constants.LOVELACE)) {
             TokenBundleItem tokenBundleItem = new TokenBundleItem();
             tokenBundleItem.setPolicyId(amount.getPolicyId());
@@ -60,13 +60,9 @@ public abstract class AbstractToOperation<T> {
     return operationMetadata;
   }
 
-  // TODO saa: need to get this '"2000000", Constants.ADA, Constants.ADA_DECIMALS,' from protocolparams
-  // Create and inject  ProtocolParamServiceImpl to get the stake deposit amount
-  // see similar implementation in BlockService.getPoolDeposit
   @NotNull
-  protected Amount getDepositAmount(String deposit) {
-    //TODO saa: poolDeposit  and delegation ddeposit are equals?
-//    String deposit = String.valueOf(protocolParamService.getProtocolParameters().getPoolDeposit());
+  protected Amount getDepositAmount() {
+    String deposit = String.valueOf(protocolParamService.getProtocolParameters().getPoolDeposit());
     return DataMapper.mapAmount(deposit, Constants.ADA, Constants.ADA_DECIMALS, null);
   }
 

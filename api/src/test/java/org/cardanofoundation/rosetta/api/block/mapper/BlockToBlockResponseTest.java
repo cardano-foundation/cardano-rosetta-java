@@ -173,7 +173,7 @@ class BlockToBlockResponseTest extends BaseMapperTest {
               Amount
                   .builder()
                   .currency(ada)
-                  .value("2000000")
+                  .value("500")
                   .build());
         });
 
