@@ -6,8 +6,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import org.cardanofoundation.rosetta.api.block.model.entity.StakeAddressBalanceEntity;
-import org.cardanofoundation.rosetta.api.block.model.entity.StakeAddressBalanceId;
+import org.cardanofoundation.rosetta.api.account.model.entity.StakeAddressBalanceEntity;
+import org.cardanofoundation.rosetta.api.account.model.entity.StakeAddressBalanceId;
 
 public interface StakeAddressRepository extends
     JpaRepository<StakeAddressBalanceEntity, StakeAddressBalanceId> {

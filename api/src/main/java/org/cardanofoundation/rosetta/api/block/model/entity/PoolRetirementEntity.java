@@ -21,7 +21,7 @@ import org.hibernate.annotations.DynamicUpdate;
 @Table(name = "pool_retirement")
 @IdClass(PoolRetirementId.class)
 @DynamicUpdate
-public class PoolRetirementEntity extends BlockAwareEntity {
+public class PoolRetirementEntity {
 
   @Id
   @Column(name = "tx_hash")
@@ -34,15 +34,11 @@ public class PoolRetirementEntity extends BlockAwareEntity {
   @Column(name = "pool_id")
   private String poolId;
 
-  @Column(name = "retirement_epoch")
-  private int retirementEpoch;
+  // TODO check which epoch to use. Current or retirement epoch
+//  @Column(name = "retirement_epoch")
+//  private int retirementEpoch;
 
   @Column(name = "epoch")
   private Integer epoch; //current epoch
 
-  @Column(name = "slot")
-  private Long slot;
-
-  @Column(name = "block_hash")
-  private String blockHash;
 }

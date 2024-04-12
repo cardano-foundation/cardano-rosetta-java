@@ -310,12 +310,8 @@ class BlockToBlockResponseTest extends BaseMapperTest {
         .mapToObj(ver -> Delegation.builder()
             .txHash("txHash" + ver)
             .certIndex(1L + ver)
-            .credential("credential" + ver)
-            .epoch(1 + ver)
-            .slot(1L + ver)
             .poolId("poolDlg" + ver)
             .address("delegationAcc" + ver)
-            .blockHash("blockHash" + ver)
             .build())
         .collect(Collectors.toList());
   }
@@ -324,7 +320,6 @@ class BlockToBlockResponseTest extends BaseMapperTest {
     return Arrays.stream(instances)
         .mapToObj(ver -> PoolRegistration.builder()
             .txHash("txHash" + ver)
-            .certIndex(1L + ver)
             .poolId("poolReg" + ver)
             .vrfKeyHash("vrfKeyHash" + ver)
             .pledge("pledge" + ver)
@@ -334,9 +329,6 @@ class BlockToBlockResponseTest extends BaseMapperTest {
             .owners(newOwners(ver))
             .relays(List.of(Relay.builder().ipv4("ipv4" + ver).ipv6("ipv6" + ver)
                 .dnsName("dnsName" + ver).port(1 + ver).type("type" + ver).build()))
-            .epoch(1 + ver)
-            .slot(1L + ver)
-            .blockHash("blockHash" + ver)
             .build())
         .collect(Collectors.toList());
   }
@@ -354,11 +346,8 @@ class BlockToBlockResponseTest extends BaseMapperTest {
     return Arrays.stream(instances)
         .mapToObj(ver -> PoolRetirement.builder()
             .txHash("txHash" + ver)
-            .certIndex(1L + ver)
             .poolId("poolRet" + ver)
             .epoch(1 + ver)
-            .slot(1L + ver)
-            .blockHash("blockHash" + ver)
             .build())
         .collect(Collectors.toList());
   }
@@ -369,12 +358,8 @@ class BlockToBlockResponseTest extends BaseMapperTest {
         .mapToObj(ver -> StakeRegistration.builder()
             .txHash("txHash" + ver)
             .certIndex(1L + ver)
-            .credential("credential" + ver)
             .type(CertificateType.STAKE_REGISTRATION)
             .address("address" + ver)
-            .epoch(1 + ver)
-            .slot(1L + ver)
-            .blockHash("blockHash" + ver)
             .build())
         .collect(Collectors.toList());
 

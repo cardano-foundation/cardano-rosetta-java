@@ -14,7 +14,7 @@ import org.openapitools.client.model.Relay;
 public class PoolRegistration {
 
   private String txHash;
-  private long certIndex;
+  private int certIndex;
   private String poolId;
   private String vrfKeyHash;
   private String pledge;
@@ -23,9 +23,6 @@ public class PoolRegistration {
   private String rewardAccount;
   private Set<String> owners;
   private List<Relay> relays;
-  private Integer epoch;
-  private Long slot;
-  private String blockHash;
 
   public static PoolRegistration fromEntity(PoolRegistrationEnity entity) {
     return PoolRegistration.builder()
@@ -41,9 +38,6 @@ public class PoolRegistration {
             relay -> new Relay(relay.getIpv4(), relay.getIpv6(), relay.getDnsName(),
                 relay.getPort(), "")).toList()) // TODO check type
         .owners(entity.getPoolOwners())
-        .epoch(entity.getEpoch())
-        .slot(entity.getSlot())
-        .blockHash(entity.getBlockHash())
         .build();
   }
 }

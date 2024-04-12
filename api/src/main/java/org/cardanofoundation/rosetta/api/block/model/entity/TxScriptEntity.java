@@ -26,7 +26,7 @@ import org.cardanofoundation.rosetta.common.enumeration.ScriptType;
 @SuperBuilder
 @Entity
 @Table(name = "transaction_scripts")
-public class TxScriptEntity extends BlockAwareEntity {
+public class TxScriptEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)

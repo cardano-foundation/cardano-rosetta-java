@@ -71,7 +71,6 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
       from.setStakeRegistrations(List.of(StakeRegistration.builder()
           .address("stake_addr1")
           .type(stakeType)
-          .slot(1L)
           .build()));
       //when
       Transaction into = my.toDto(from);
@@ -112,7 +111,6 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
     from.setDelegations(List.of(Delegation.builder()
         .address("stake_addr1")
         .poolId("pool_id1")
-        .slot(1L)
         .build()));
     //when
     Transaction into = my.toDto(from);
@@ -165,7 +163,6 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
         .rewardAccount("reward_account1")
         .owners(owners)
         .relays(relays)
-        .slot(1L)
         .build()));
     //when
     Transaction into = my.toDto(from);
@@ -210,10 +207,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
 
     from.setPoolRetirements(List.of(PoolRetirement.builder()
         .poolId("pool_addr1")
-        .slot(1L)
         .epoch(11)
-        .certIndex(33)
-        .blockHash("blockHash1")
         .txHash("txHash1")
         .build()));
 

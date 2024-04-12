@@ -1,4 +1,4 @@
-package org.cardanofoundation.rosetta.api.block.model.entity;
+package org.cardanofoundation.rosetta.api.account.model.entity;
 
 import java.math.BigInteger;
 import jakarta.persistence.Column;
@@ -12,6 +12,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
+import org.cardanofoundation.rosetta.api.block.model.entity.BlockAwareEntity;
 import org.hibernate.annotations.DynamicUpdate;
 
 @Data

@@ -11,15 +11,11 @@ public class PoolRetirement {
 
   private String txHash;
 
-  private long certIndex;
+  private int certIndex;
 
   private String poolId;
 
   private Integer epoch;
-
-  private Long slot;
-
-  private String blockHash;
 
   public static PoolRetirement fromEntity(PoolRetirementEntity entity) {
     return PoolRetirement.builder()
@@ -27,8 +23,6 @@ public class PoolRetirement {
         .certIndex(entity.getCertIndex())
         .poolId(entity.getPoolId())
         .epoch(entity.getEpoch())
-        .slot(entity.getSlot())
-        .blockHash(entity.getBlockHash())
         .build();
   }
 }

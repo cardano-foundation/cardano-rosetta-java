@@ -84,22 +84,15 @@ class BlockTxToBlockTxResponseTest extends BaseMapperTest {
 
   private List<StakeRegistration> newStakeRegistrations() {
     return List.of(StakeRegistration.builder()
-        .blockHash("stakeReg_blockHash1")
-        .epoch(11)
         .type(CertificateType.STAKE_DEREGISTRATION)
-        .slot(22L)
         .certIndex(33L)
         .address("stakeReg_address1")
-        .credential("stakeReg_credential1")
         .build());
   }
 
   private List<PoolRetirement> newPoolRetirements() {
     return List.of(PoolRetirement.builder()
-        .blockHash("poolRet_blockHash1")
         .epoch(11)
-        .slot(22L)
-        .certIndex(33L)
         .poolId("poolRet_poolId1")
         .txHash("poolRet_txHash1")
         .build());
@@ -107,10 +100,6 @@ class BlockTxToBlockTxResponseTest extends BaseMapperTest {
 
   private List<PoolRegistration> newPoolRegistrations() {
     return List.of(PoolRegistration.builder()
-        .blockHash("poolReg_blockHash1")
-        .epoch(11)
-        .slot(22L)
-        .certIndex(33L)
         .poolId("poolReg_poolId1")
         .vrfKeyHash("poolReg_vrfKey1")
         .pledge("poolReg_pledge1")
@@ -125,12 +114,8 @@ class BlockTxToBlockTxResponseTest extends BaseMapperTest {
 
   private List<Delegation> newDelegations() {
     return List.of(Delegation.builder()
-        .blockHash("delegation_blockHash1")
-        .epoch(11)
-        .slot(22L)
         .certIndex(33L)
         .poolId("delegation_poolId1")
-        .credential("delegation_account1")
         .txHash("delegation_txHash1")
         .address("delegation_address1")
         .build());

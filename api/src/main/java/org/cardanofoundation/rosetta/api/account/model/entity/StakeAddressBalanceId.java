@@ -1,4 +1,4 @@
-package org.cardanofoundation.rosetta.api.block.model.entity;
+package org.cardanofoundation.rosetta.api.account.model.entity;
 
 import java.io.Serializable;
 import jakarta.persistence.Column;

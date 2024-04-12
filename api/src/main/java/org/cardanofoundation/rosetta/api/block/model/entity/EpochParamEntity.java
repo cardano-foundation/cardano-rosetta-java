@@ -24,7 +24,7 @@ import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
 @Entity
 @Table(name = "epoch_param")
 @Slf4j
-public class EpochParamEntity extends BlockAwareEntity {
+public class EpochParamEntity {
 
   @Id
   @Column(name = "epoch")
@@ -33,12 +33,6 @@ public class EpochParamEntity extends BlockAwareEntity {
   @Type(JsonType.class)
   @Column(name = "params", columnDefinition = "json")
   private ProtocolParamsEntity params;
-
-  @Column(name = "cost_model_hash")
-  private String costModelHash;
-
-  @Column(name = "slot")
-  private Long slot;
 
   @PrePersist
   public void preSave() {

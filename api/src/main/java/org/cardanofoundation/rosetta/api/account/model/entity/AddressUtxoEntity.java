@@ -19,10 +19,8 @@ import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Type;
 
 import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
-import org.cardanofoundation.rosetta.api.block.model.entity.BlockAwareEntity;
 
 @Data
-@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder
@@ -30,7 +28,7 @@ import org.cardanofoundation.rosetta.api.block.model.entity.BlockAwareEntity;
 @Table(name = "address_utxo")
 @IdClass(UtxoId.class)
 @DynamicUpdate
-public class AddressUtxoEntity extends BlockAwareEntity {
+public class AddressUtxoEntity {
 
   @Id
   @Column(name = "tx_hash")
