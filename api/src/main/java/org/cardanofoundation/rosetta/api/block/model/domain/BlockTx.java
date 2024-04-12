@@ -23,7 +23,6 @@ public class BlockTx {
   protected Long blockNo;
   protected String fee;
   protected Long size;
-  protected Boolean validContract;
   protected Long scriptSize;
   protected List<Utxo> inputs;
   protected List<Utxo> outputs;

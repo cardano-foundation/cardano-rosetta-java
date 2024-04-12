@@ -18,7 +18,7 @@ import lombok.experimental.SuperBuilder;
 @Entity
 @Table(name = "withdrawal")
 @IdClass(WithdrawalId.class)
-public class WithdrawalEntity extends BlockAwareEntity {
+public class WithdrawalEntity {
   @Id
   @Column(name = "address")
   private String address;
@@ -29,11 +29,4 @@ public class WithdrawalEntity extends BlockAwareEntity {
 
   @Column(name = "amount")
   private BigInteger amount;
-
-  @Column(name = "epoch")
-  private Integer epoch;
-
-  @Column(name = "slot")
-  private Long slot;
-
 }

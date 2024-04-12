@@ -36,7 +36,6 @@ class BlockTxToEntityTest extends BaseMapperTest {
     assertThat(into.getBlockHash()).isEqualTo(from.getBlock().getHash());
     assertThat(into.getBlockNo()).isEqualTo(from.getBlock().getNumber());
     assertThat(into.getSize()).isEqualTo(0L);
-    assertThat(into.getValidContract()).isEqualTo(from.getInvalid());
     assertThat(into.getScriptSize()).isEqualTo(0L);
 
     assertThat(into.getInputs().size()).isEqualTo(from.getInputKeys().size());
@@ -60,12 +59,7 @@ class BlockTxToEntityTest extends BaseMapperTest {
         .txHash("txHash1")
         .block(BlockEntity.builder().hash("blockHash1").number(22L).build())
         .fee(BigInteger.TEN)
-        .slot(11L)
-        .updateDateTime(LocalDateTime.MIN)
-        .auxiliaryDataHash("auxiliaryDataHash1")
         .collateralInputs(List.of())
-        .collateralReturnJson(new TxOuput())
-        .invalid(false)
         .inputKeys(List.of(inUtxKey))
         .outputKeys(List.of(outUtxKey))
         .build();

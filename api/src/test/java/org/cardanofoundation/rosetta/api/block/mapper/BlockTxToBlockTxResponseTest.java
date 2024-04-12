@@ -54,7 +54,6 @@ class BlockTxToBlockTxResponseTest extends BaseMapperTest {
         .fee("123")
         .hash("hash12")
         .scriptSize(0L)
-        .validContract(true)
         .inputs(List.of(newUtxo()))
         .delegations(newDelegations())
         .poolRegistrations(newPoolRegistrations())
@@ -66,21 +65,11 @@ class BlockTxToBlockTxResponseTest extends BaseMapperTest {
   private Utxo newUtxo() {
     return Utxo.builder()
         .blockHash("blockHash1")
-        .epoch(11)
-        .slot(22L)
         .txHash("txHash1")
         .outputIndex(44)
         .amounts(List.of(newAmt()))
-        .dataHash("dataHash1")
-        .inlineDatum("inlineDatum1")
-        .isCollateralReturn(true)
         .lovelaceAmount(BigInteger.TEN)
         .ownerAddr("ownerAddr1")
-        .ownerAddrFull("ownerAddrFull1")
-        .ownerPaymentCredential("ownerPaymentCredential1")
-        .ownerStakeAddr("ownerStakeAddr1")
-        .scriptRef("scriptRef1")
-        .referenceScriptHash("referenceScriptHash1")
         .build();
   }
 
