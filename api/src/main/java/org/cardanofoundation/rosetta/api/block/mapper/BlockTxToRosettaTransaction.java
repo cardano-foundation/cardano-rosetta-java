@@ -41,10 +41,9 @@ public class BlockTxToRosettaTransaction {
    * Maps a TransactionDto to a Rosetta compatible BlockTx.
    *
    * @param model       The Cardano transaction to be mapped
-   * @param poolDeposit The pool deposit //TODO saa: make injectable from the protocol params
    * @return The Rosetta compatible Transaction
    */
-  public Transaction toDto(BlockTx model, @Deprecated String poolDeposit) {
+  public Transaction toDto(BlockTx model) {
     return Optional
         .ofNullable(modelMapper.getTypeMap(BlockTx.class, Transaction.class))
         .orElseGet(() -> modelMapper.createTypeMap(BlockTx.class, Transaction.class))
