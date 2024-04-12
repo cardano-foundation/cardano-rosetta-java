@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.bloxbean.cardano.yaci.core.model.certs.CertificateType;
 import org.apache.commons.codec.binary.Hex;
 import org.assertj.core.util.introspection.CaseFormatUtils;
-import org.jetbrains.annotations.NotNull;
 import org.openapitools.client.model.Amount;
 import org.openapitools.client.model.CoinAction;
 import org.openapitools.client.model.CoinChange;
@@ -30,6 +29,7 @@ import org.cardanofoundation.rosetta.api.block.model.domain.Delegation;
 import org.cardanofoundation.rosetta.api.block.model.domain.PoolRegistration;
 import org.cardanofoundation.rosetta.api.block.model.domain.PoolRetirement;
 import org.cardanofoundation.rosetta.api.block.model.domain.StakeRegistration;
+import org.cardanofoundation.rosetta.api.block.model.domain.Withdrawal;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.common.util.Constants;
 
@@ -50,7 +50,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
     from.setInputs(List.of());
     from.setOutputs(List.of());
     //when
-    Transaction into = my.toDto(from, "500");
+    Transaction into = my.toDto(from);
     //then
     assertThat(into.getMetadata().getSize()).isEqualTo(from.getSize());
     assertThat(into.getMetadata().getScriptSize()).isEqualTo(from.getScriptSize());
@@ -74,7 +74,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
           .slot(1L)
           .build()));
       //when
-      Transaction into = my.toDto(from, "500");
+      Transaction into = my.toDto(from);
       //then
       assertThat(into.getMetadata().getSize()).isEqualTo(from.getSize());
       assertThat(into.getMetadata().getScriptSize()).isEqualTo(from.getScriptSize());
@@ -97,8 +97,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
       assertThat(stakeInto.getOperationIdentifier().getIndex()).isEqualTo(1); //index in array
       assertThat(stakeInto.getOperationIdentifier().getNetworkIndex()).isNull(); //TODO ??
       assertThat(stakeInto.getAccount().getAddress()).isEqualTo(firstFrom.getAddress());
-      assertThat(stakeInto.getMetadata().getDepositAmount())
-          .isEqualTo(depositAmountActual("2000000"));
+      assertThat(stakeInto.getMetadata().getDepositAmount()).isEqualTo(amountActual("500"));
     });
 
   }
@@ -116,7 +115,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
         .slot(1L)
         .build()));
     //when
-    Transaction into = my.toDto(from, "500");
+    Transaction into = my.toDto(from);
     //then
     assertThat(into.getMetadata().getSize()).isEqualTo(from.getSize());
     assertThat(into.getMetadata().getScriptSize()).isEqualTo(from.getScriptSize());
@@ -169,7 +168,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
         .slot(1L)
         .build()));
     //when
-    Transaction into = my.toDto(from, "500");
+    Transaction into = my.toDto(from);
     //then
     assertThat(into.getMetadata().getSize()).isEqualTo(from.getSize());
     assertThat(into.getMetadata().getScriptSize()).isEqualTo(from.getScriptSize());
@@ -191,8 +190,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
     assertThat(poolInto.getStatus()).isEqualTo("success");
     assertThat(poolInto.getOperationIdentifier().getIndex()).isEqualTo(1); //index in array
     assertThat(poolInto.getAccount().getAddress()).isEqualTo(firstFrom.getPoolId());
-    assertThat(poolInto.getMetadata().getDepositAmount())
-        .isEqualTo(depositAmountActual("500"));
+    assertThat(poolInto.getMetadata().getDepositAmount()).isEqualTo(amountActual("500"));
 
     PoolRegistrationParams poolRegParams = poolInto.getMetadata().getPoolRegistrationParams();
     assertThat(poolRegParams.getPledge()).isEqualTo(firstFrom.getPledge());
@@ -220,7 +218,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
         .build()));
 
     //when
-    Transaction into = my.toDto(from, "500");
+    Transaction into = my.toDto(from);
     //then
     assertThat(into.getMetadata().getSize()).isEqualTo(from.getSize());
     assertThat(into.getMetadata().getScriptSize()).isEqualTo(from.getScriptSize());
@@ -252,7 +250,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
     //given
     BlockTx from = newTran();
     //when
-    Transaction into = my.toDto(from, "500");
+    Transaction into = my.toDto(from);
     //then
     assertThat(into.getMetadata().getSize()).isEqualTo(from.getSize());
     assertThat(into.getMetadata().getScriptSize()).isEqualTo(from.getScriptSize());
@@ -271,7 +269,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
     assertThat(opInto.getStatus()).isEqualTo("success");
     assertThat(opInto.getOperationIdentifier().getIndex()).isEqualTo(1); //index in array
     assertThat(opInto.getAccount().getAddress()).isEqualTo(firstFrom.getOwnerAddr());
-    assertThat(opInto.getAmount()).isEqualTo(depositAmountActual("10"));
+    assertThat(opInto.getAmount()).isEqualTo(amountActual("10"));
 
     CoinChange coinChange = opInto.getCoinChange();
     assertThat(coinChange.getCoinAction()).isEqualTo(CoinAction.CREATED);
@@ -286,8 +284,6 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
     assertThat(bundle.getTokens().size()).isEqualTo(1);
 
     Amount token = bundle.getTokens().getFirst();
-    assertThat(token.getValue())
-        .isEqualTo(from.getOutputs().getFirst().getAmounts().getFirst().getQuantity().toString());
     assertThat(token.getCurrency().getSymbol())
         .isEqualTo(Hex.encodeHexString(
             from.getOutputs().getFirst().getAmounts().getFirst().getAssetName().getBytes()));
@@ -295,10 +291,86 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
 
   }
 
-  private static Amount depositAmountActual(String value) {
+
+  @Test
+  void toDto_Test_getInputsAsOperations() {
+    //given
+    BlockTx from = newTran();
+    //when
+    Transaction into = my.toDto(from);
+    //then
+    assertThat(into.getMetadata().getSize()).isEqualTo(from.getSize());
+    assertThat(into.getMetadata().getScriptSize()).isEqualTo(from.getScriptSize());
+    assertThat(into.getTransactionIdentifier().getHash()).isEqualTo(from.getHash());
+    assertThat(into.getOperations().size()).isEqualTo(2);
+
+    Optional<Operation> opt = into.getOperations()
+        .stream()
+        .filter(f -> f.getType().equals(Constants.INPUT))
+        .findFirst();
+    assertThat(opt.isPresent()).isTrue();
+
+    Operation opInto = opt.get();
+    Utxo firstFrom = from.getInputs().getFirst();
+    assertThat(opInto.getType()).isEqualTo(Constants.INPUT);
+    assertThat(opInto.getStatus()).isEqualTo("success");
+    assertThat(opInto.getOperationIdentifier().getIndex()).isEqualTo(0); //index in array
+    assertThat(opInto.getAccount().getAddress()).isEqualTo(firstFrom.getOwnerAddr());
+    assertThat(opInto.getAmount()).isEqualTo(amountActual("10"));
+
+    CoinChange coinChange = opInto.getCoinChange();
+    assertThat(coinChange.getCoinAction()).isEqualTo(CoinAction.SPENT);
+    assertThat(coinChange.getCoinIdentifier().getIdentifier())
+        .isEqualTo(firstFrom.getTxHash() + ":" + firstFrom.getOutputIndex());
+
+    assertThat(opInto.getMetadata().getTokenBundle().size()).isEqualTo(1);
+    TokenBundleItem bundle = opInto.getMetadata().getTokenBundle().getFirst();
+
+    assertThat(bundle.getPolicyId())
+        .isEqualTo(from.getInputs().getFirst().getAmounts().getFirst().getPolicyId());
+    assertThat(bundle.getTokens().size()).isEqualTo(1);
+
+    Amount token = bundle.getTokens().getFirst();
+    assertThat(token.getCurrency().getSymbol())
+        .isEqualTo(Hex.encodeHexString(
+            from.getInputs().getFirst().getAmounts().getFirst().getAssetName().getBytes()));
+    assertThat(token.getCurrency().getDecimals()).isEqualTo(0);
+
+  }
+
+
+  @Test
+  void toDto_Test_getWithdrawlOperations() {
+    //given
+    BlockTx from = newTran();
+    from.setWithdrawals(List.of(Withdrawal.builder()
+        .amount(BigInteger.TWO)
+        .stakeAddress("stake_addr1_for_withdraw")
+        .build()));
+    //when
+    Transaction into = my.toDto(from);
+    //then
+    assertThat(into.getOperations().size()).isEqualTo(3);
+    Optional<Operation> opt = into.getOperations()
+        .stream()
+        .filter(f -> f.getType().equals(OperationType.WITHDRAWAL.getValue()))
+        .findFirst();
+    assertThat(opt.isPresent()).isTrue();
+    Operation opInto = opt.get();
+    assertThat(opInto.getStatus()).isEqualTo("success");
+    assertThat(opInto.getOperationIdentifier().getIndex()).isEqualTo(1); //index in array
+    assertThat(opInto.getAccount().getAddress()).isNotEmpty();
+    assertThat(opInto.getAccount().getAddress())
+        .isEqualTo(from.getWithdrawals().getFirst().getStakeAddress());
+    assertThat(opInto.getMetadata().getWithdrawalAmount().getValue())
+        .isEqualTo("-"+ from.getWithdrawals().getFirst().getAmount().toString());
+  }
+
+
+  private static Amount amountActual(String value) {
     return Amount.builder()
         .currency(Currency.builder().symbol(ADA).decimals(ADA_DECIMALS).build())
-        .value(value) //TODO saa: should be checked from genesis json settings?
+        .value(value)
         .build();
   }
 

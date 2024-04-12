@@ -19,12 +19,12 @@ public class BlockTxToBlockTxResponse {
   final BlockTxToRosettaTransaction blockTxToRosettaTx;
 
 
-  public BlockTransactionResponse toDto(BlockTx model, String poolDeposit) {
+  public BlockTransactionResponse toDto(BlockTx model) {
     return Optional
         .ofNullable(modelMapper.getTypeMap(BlockTx.class, BlockTransactionResponse.class))
         .orElseGet(() -> modelMapper.createTypeMap(BlockTx.class, BlockTransactionResponse.class))
         .setPostConverter(ctx -> {
-          ctx.getDestination().setTransaction(blockTxToRosettaTx.toDto(model, poolDeposit));
+          ctx.getDestination().setTransaction(blockTxToRosettaTx.toDto(model));
           return ctx.getDestination();
         }).map(model);
   }
