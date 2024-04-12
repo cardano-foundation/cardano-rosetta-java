@@ -77,6 +77,7 @@ public abstract class AbstractToOperation<T> {
     return DataMapper.mapAmount(deposit.toString(), Constants.ADA, Constants.ADA_DECIMALS, null);
   }
 
+  //common mappings for InputToOperation and OutputToOperation
   protected static void mapOthers(Utxo model, OperationStatus status, int index,
       ConfigurableConditionExpression<Utxo, Operation> mp) {
     mp.map(f -> status.getStatus(), Operation::setStatus);
