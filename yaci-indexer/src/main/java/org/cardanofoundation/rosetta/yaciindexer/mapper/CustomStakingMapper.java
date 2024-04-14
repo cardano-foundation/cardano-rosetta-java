@@ -20,6 +20,7 @@ public class CustomStakingMapper extends StakingMapperImpl {
         .certIndex(stakeRegistrationDetail.getCertIndex())
         .type(stakeRegistrationDetail.getType())
         .address(stakeRegistrationDetail.getAddress())
+        .credential(stakeRegistrationDetail.getCredential())
         .build();
   }
 
@@ -28,6 +29,7 @@ public class CustomStakingMapper extends StakingMapperImpl {
     return DelegationEntity.builder()
         .txHash(delegation.getTxHash())
         .certIndex(delegation.getCertIndex())
+        .credential(delegation.getCredential())
         .poolId(delegation.getPoolId())
         .address(delegation.getAddress())
         .build();

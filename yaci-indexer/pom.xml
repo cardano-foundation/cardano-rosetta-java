@@ -1,16 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <artifactId>base</artifactId>
-        <groupId>org.cardanofoundation.rosetta-java</groupId>
-        <version>${revision}</version>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.2.4</version>
+        <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
+    <groupId>org.cardanofoundation.rosetta-java</groupId>
     <artifactId>yaci-indexer</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
     <name>yaci-indexer</name>
     <description>yaci-indexer</description>
+    <properties>
+        <java.version>21</java.version>
+        <yaci-store.version>0.1.0-rc2-d5f2998-SNAPSHOT</yaci-store.version>
+    </properties>
     <repositories>
         <repository>
             <id>snapshots-repo</id>
@@ -47,43 +54,43 @@
         <dependency>
             <groupId>com.bloxbean.cardano</groupId>
             <artifactId>yaci-store-spring-boot-starter</artifactId>
-            <version>${version.yaci-store}</version>
+            <version>${yaci-store.version}</version>
         </dependency>
         <!-- Used for block data -->
         <dependency>
             <groupId>com.bloxbean.cardano</groupId>
             <artifactId>yaci-store-blocks-spring-boot-starter</artifactId>
-            <version>${version.yaci-store}</version>
+            <version>${yaci-store.version}</version>
         </dependency>
         <!-- Used for transaction data -->
         <dependency>
             <groupId>com.bloxbean.cardano</groupId>
             <artifactId>yaci-store-transaction-spring-boot-starter</artifactId>
-            <version>${version.yaci-store}</version>
+            <version>${yaci-store.version}</version>
         </dependency>
         <!-- Used for address_utxo table -->
         <dependency>
             <groupId>com.bloxbean.cardano</groupId>
             <artifactId>yaci-store-utxo-spring-boot-starter</artifactId>
-            <version>${version.yaci-store}</version>
+            <version>${yaci-store.version}</version>
         </dependency>
         <!-- Used for account balances -->
         <dependency>
             <groupId>com.bloxbean.cardano</groupId>
             <artifactId>yaci-store-account-spring-boot-starter</artifactId>
-            <version>${version.yaci-store}</version>
+            <version>${yaci-store.version}</version>
         </dependency>
         <!-- Used for staking info including pool infos -->
         <dependency>
             <groupId>com.bloxbean.cardano</groupId>
             <artifactId>yaci-store-staking-spring-boot-starter</artifactId>
-            <version>${version.yaci-store}</version>
+            <version>${yaci-store.version}</version>
         </dependency>
         <!-- Used for epoch_params  -> protocolparams-->
         <dependency>
             <groupId>com.bloxbean.cardano</groupId>
             <artifactId>yaci-store-epoch-spring-boot-starter</artifactId>
-            <version>${version.yaci-store}</version>
+            <version>${yaci-store.version}</version>
         </dependency>
         <!-- Add mysql or H2 or Postgres dependency based on your database -->
         <dependency>
@@ -97,18 +104,9 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>repackage</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
-
         </plugins>
     </build>
-
 
     <profiles>
         <profile>

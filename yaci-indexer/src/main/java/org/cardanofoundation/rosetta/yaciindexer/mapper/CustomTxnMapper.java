@@ -27,11 +27,13 @@ public class CustomTxnMapper extends TxnMapperImpl {
         .build();
   }
 
-  @Override
-  public TxnWitnessEntity toTxnWitnessEntity(TxnWitness txnWitness) {
-    // don't save anything
-    return TxnWitnessEntity.builder().build();
-  }
+//  @Override
+//  public TxnWitnessEntity toTxnWitnessEntity(TxnWitness txnWitness) {
+//    // don't save anything
+//    return TxnWitnessEntity.builder()
+//        .txHash(txnWitness.getTxHash())
+//        .build();
+//  }
 
   @Override
   public WithdrawalEntity toWithdrawalEntity(Withdrawal withdrawal) {
