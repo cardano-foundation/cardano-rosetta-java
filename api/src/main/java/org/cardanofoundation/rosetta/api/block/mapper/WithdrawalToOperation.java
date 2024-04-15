@@ -30,7 +30,7 @@ public class WithdrawalToOperation extends AbstractToOperation<Withdrawal>{
           mp.<Amount>map(f -> updateDepositAmount(
               Optional.ofNullable(model.getAmount())
                   .map(BigInteger::negate)
-                  .orElse(BigInteger.ZERO)), //TODO saa: is it OK?
+                  .orElse(BigInteger.ZERO)),
               (d, v) -> d.getMetadata().setWithdrawalAmount(v));
           mp.<Long>map(f -> index, (d, v) -> d.getOperationIdentifier().setIndex(v));
         })
