@@ -25,7 +25,6 @@ class BlockToEntityTest extends BaseMapperTest {
   @Test
   void fromEntity_Test() {
     //given
-    my.modelMapper.validate();
     BlockEntity from = newBlockEntity();
     //when
     Block into = my.fromEntity(from);

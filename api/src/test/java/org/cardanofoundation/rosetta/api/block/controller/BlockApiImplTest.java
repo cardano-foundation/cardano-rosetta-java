@@ -101,7 +101,7 @@ class BlockApiImplTest extends SpringMvcTest {
     when(protocolParamService.getProtocolParameters()).thenReturn(protocolParams);
     when(protocolParams.getPoolDeposit()).thenReturn(new BigInteger("1000"));
 //any string
-    when(mapperToBlockTxResponse.toDto(any(BlockTx.class), anyString())).thenReturn(resp);
+    when(mapperToBlockTxResponse.toDto(any(BlockTx.class))).thenReturn(resp);
     //when
     //then
     String txHash = resp.getTransaction().getTransactionIdentifier().getHash();

@@ -49,10 +49,9 @@ public class BlockApiImpl implements BlockApi {
     String blockHash = blockReq.getBlockIdentifier().getHash();
     String txHash = blockReq.getTransactionIdentifier().getHash();
 
-    BlockTx tx = blockService.getBlockTransaction(blockId, blockHash, txHash);
-    String poolDeposit = String.valueOf(protocolParamService.getProtocolParameters().getPoolDeposit());
+    BlockTx blockTx = blockService.getBlockTransaction(blockId, blockHash, txHash);
 
-    return ResponseEntity.ok(mapperToBlockTxResponse.toDto(tx, poolDeposit));
+    return ResponseEntity.ok(mapperToBlockTxResponse.toDto(blockTx));
 
   }
 }
