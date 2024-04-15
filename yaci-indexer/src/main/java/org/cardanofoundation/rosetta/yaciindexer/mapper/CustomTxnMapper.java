@@ -40,6 +40,7 @@ public class CustomTxnMapper extends TxnMapperImpl {
     return WithdrawalEntity.builder()
         .address(withdrawal.getAddress())
         .amount(withdrawal.getAmount())
+        .txHash(withdrawal.getTxHash())
         .build();
   }
 }
