@@ -21,6 +21,9 @@ public class CustomUtxoMapper extends UtxoMapperImpl_ {
         .ownerAddr(addressUtxo.getOwnerAddr())
         .lovelaceAmount(addressUtxo.getLovelaceAmount())
         .amounts(addressUtxo.getAmounts())
+        .updateDateTime(null)
+        .ownerPaymentCredential(null)
+        .ownerStakeCredential(null)
         .build();
   }
 

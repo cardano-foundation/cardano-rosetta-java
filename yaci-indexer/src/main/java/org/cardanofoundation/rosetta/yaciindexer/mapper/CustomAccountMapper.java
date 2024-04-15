@@ -22,6 +22,8 @@ public class CustomAccountMapper extends AccountMapperImpl_ {
         .quantity(addressBalance.getQuantity())
         .policy(addressBalance.getPolicy())
         .assetName(addressBalance.getAssetName())
+        .paymentCredential(null)
+        .updateDateTime(null)
         .build();
   }
 
@@ -31,6 +33,7 @@ public class CustomAccountMapper extends AccountMapperImpl_ {
         .address(stakeBalance.getAddress())
         .slot(stakeBalance.getSlot())
         .quantity(stakeBalance.getQuantity())
+        .updateDateTime(null)
         .build();
   }
 }

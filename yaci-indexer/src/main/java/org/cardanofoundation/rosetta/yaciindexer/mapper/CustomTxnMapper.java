@@ -24,16 +24,18 @@ public class CustomTxnMapper extends TxnMapperImpl {
         .outputs(txn.getOutputs())
         .fee(txn.getFee())
         .collateralInputs(txn.getCollateralInputs())
+        .updateDateTime(null)
         .build();
   }
 
-//  @Override
-//  public TxnWitnessEntity toTxnWitnessEntity(TxnWitness txnWitness) {
-//    // don't save anything
-//    return TxnWitnessEntity.builder()
-//        .txHash(txnWitness.getTxHash())
-//        .build();
-//  }
+  @Override
+  public TxnWitnessEntity toTxnWitnessEntity(TxnWitness txnWitness) {
+    // don't save anything
+    return TxnWitnessEntity.builder()
+        .txHash(txnWitness.getTxHash())
+        .index(txnWitness.getIndex())
+        .build();
+  }
 
   @Override
   public WithdrawalEntity toWithdrawalEntity(Withdrawal withdrawal) {
@@ -41,6 +43,7 @@ public class CustomTxnMapper extends TxnMapperImpl {
         .address(withdrawal.getAddress())
         .amount(withdrawal.getAmount())
         .txHash(withdrawal.getTxHash())
+        .updateDateTime(null)
         .build();
   }
 }

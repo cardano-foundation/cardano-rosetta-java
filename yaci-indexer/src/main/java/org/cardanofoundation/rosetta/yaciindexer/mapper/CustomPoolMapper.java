@@ -25,6 +25,7 @@ public class CustomPoolMapper extends PoolMapperImpl {
         .rewardAccount(poolRegistrationDetail.getRewardAccount())
         .poolOwners(poolRegistrationDetail.getPoolOwners())
         .relays(poolRegistrationDetail.getRelays())
+        .updateDateTime(null)
         .build();
   }
 
@@ -35,6 +36,7 @@ public class CustomPoolMapper extends PoolMapperImpl {
         .certIndex(poolRetirement.getCertIndex())
         .poolId(poolRetirement.getPoolId())
         .epoch(poolRetirement.getEpoch())
+        .updateDateTime(null)
         .build();
   }
 }
