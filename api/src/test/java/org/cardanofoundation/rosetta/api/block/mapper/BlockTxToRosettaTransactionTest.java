@@ -316,7 +316,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
     assertThat(opInto.getStatus()).isEqualTo("success");
     assertThat(opInto.getOperationIdentifier().getIndex()).isEqualTo(0); //index in array
     assertThat(opInto.getAccount().getAddress()).isEqualTo(firstFrom.getOwnerAddr());
-    assertThat(opInto.getAmount()).isEqualTo(amountActual("10"));
+    assertThat(opInto.getAmount()).isEqualTo(amountActual("-10"));
 
     CoinChange coinChange = opInto.getCoinChange();
     assertThat(coinChange.getCoinAction()).isEqualTo(CoinAction.SPENT);
@@ -403,7 +403,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
         .slot(22L)
         .txHash("txHash1")
         .outputIndex(44)
-        .amounts(List.of(newAmt()))
+        .amounts(List.of(newTokenAmt(), newAdaAmt()))
         .dataHash("in_dataHash1")
         .inlineDatum("in_inlineDatum1")
         .isCollateralReturn(true)
@@ -424,7 +424,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
         .slot(22L)
         .txHash("txHash1")
         .outputIndex(44)
-        .amounts(List.of(newAmt()))
+        .amounts(List.of(newTokenAmt(), newAdaAmt()))
         .dataHash("out_dataHash1")
         .inlineDatum("out_inlineDatum1")
         .isCollateralReturn(true)
@@ -438,7 +438,15 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
         .build();
   }
 
-  private static Amt newAmt() {
+  private static Amt newAdaAmt() {
+    return Amt.builder()
+        .assetName(Constants.LOVELACE)
+        .quantity(BigInteger.TEN)
+        .unit(Constants.LOVELACE)
+        .build();
+  }
+
+  private static Amt newTokenAmt() {
     return Amt.builder()
         .assetName("assetName1")
         .policyId("policyId1")
