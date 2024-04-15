@@ -2,15 +2,17 @@ package org.cardanofoundation.rosetta.api.block.mapper;
 
 import java.math.BigInteger;
 import java.util.Optional;
+
 import lombok.AllArgsConstructor;
-import org.cardanofoundation.rosetta.api.block.model.domain.Withdrawal;
-import org.cardanofoundation.rosetta.common.annotation.OpenApiMapper;
-import org.cardanofoundation.rosetta.common.enumeration.OperationType;
+
 import org.modelmapper.ModelMapper;
-import org.modelmapper.spi.MappingContext;
 import org.openapitools.client.model.Amount;
 import org.openapitools.client.model.Operation;
 import org.openapitools.client.model.OperationStatus;
+
+import org.cardanofoundation.rosetta.api.block.model.domain.Withdrawal;
+import org.cardanofoundation.rosetta.common.annotation.OpenApiMapper;
+import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 
 @OpenApiMapper
 @AllArgsConstructor

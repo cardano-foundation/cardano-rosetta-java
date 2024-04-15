@@ -1,5 +1,6 @@
 package org.cardanofoundation.rosetta.api.block.service;
 
+import java.math.BigInteger;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 
@@ -92,10 +93,23 @@ class BlockServiceImplIntTest extends IntegrationTest {
     assertEquals(expectedInputKey.getTxHash(), inUtxo.getTxHash());
     assertEquals(expectedInputKey.getOutputIndex(), inUtxo.getOutputIndex());
 
-    Utxo outUtxo = tx.getOutputs().getFirst();
-    assertEquals(TEST_ACCOUNT_ADDRESS, outUtxo.getOwnerAddr());
-    assertEquals(blockTxHash, outUtxo.getTxHash());
-    assertEquals(ACCOUNT_BALANCE_LOVELACE_AMOUNT, outUtxo.getLovelaceAmount().toString());
+    Utxo outUtxo1 = tx.getOutputs().getFirst();
+    assertEquals(TEST_ACCOUNT_ADDRESS, outUtxo1.getOwnerAddr());
+    assertEquals(blockTxHash, outUtxo1.getTxHash());
+    assertEquals(ACCOUNT_BALANCE_LOVELACE_AMOUNT, outUtxo1.getLovelaceAmount().toString());
+
+    Utxo outUtxo2 = tx.getOutputs().getLast();
+    assertEquals(SENDER_2_ADDRESS, outUtxo2.getOwnerAddr());
+    assertEquals(blockTxHash, outUtxo2.getTxHash());
+
+    //  init deposit was 1000 ADA for the account1: addr_test1qp73lju...
+    //  (@see test-data-generator/README.md)
+    BigInteger initAmountSender1 = BigInteger.valueOf(1000 * 1_000_000); //ADA to lovelace
+    BigInteger expected = initAmountSender1
+        .add(fromBlockB.getTotalFees().negate()) //fee
+        .add(new BigInteger(ACCOUNT_BALANCE_LOVELACE_AMOUNT).negate()); //sent amount
+
+    assertEquals(expected, outUtxo2.getLovelaceAmount());
 
   }
 
