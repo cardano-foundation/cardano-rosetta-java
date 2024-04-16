@@ -53,7 +53,7 @@ class BlockServiceImplIntTest extends IntegrationTest {
     assertEquals(TEST_ACCOUNT_ADDRESS, receiverUtxoDto.getOwnerAddr());
     assertEquals(simpleTx.txHash(), receiverUtxoDto.getTxHash());
     assertEquals(ACCOUNT_BALANCE_LOVELACE_AMOUNT,
-        receiverUtxoDto.getLovelaceAmount().toString());
+        receiverUtxoDto.getAmounts().getFirst().getQuantity().toString());
 
   }
 
@@ -95,7 +95,7 @@ class BlockServiceImplIntTest extends IntegrationTest {
     Utxo outUtxo1 = tx.getOutputs().getFirst();
     assertEquals(TEST_ACCOUNT_ADDRESS, outUtxo1.getOwnerAddr());
     assertEquals(blockTxHash, outUtxo1.getTxHash());
-    assertEquals(ACCOUNT_BALANCE_LOVELACE_AMOUNT, outUtxo1.getLovelaceAmount().toString());
+    assertEquals(ACCOUNT_BALANCE_LOVELACE_AMOUNT, outUtxo1.getAmounts().getFirst().getQuantity().toString());
 
     Utxo outUtxo2 = tx.getOutputs().getLast();
     assertEquals(SENDER_2_ADDRESS, outUtxo2.getOwnerAddr());
@@ -105,10 +105,10 @@ class BlockServiceImplIntTest extends IntegrationTest {
     //  (@see test-data-generator/README.md)
     BigInteger initAmountSender1 = BigInteger.valueOf(1000 * 1_000_000); //ADA to lovelace
     BigInteger expected = initAmountSender1
-        .add(fromBlockB.getTotalFees().negate()) //fee
+        .add(fromBlockB.getTransactions().getFirst().getFee().negate()) //fee
         .add(new BigInteger(ACCOUNT_BALANCE_LOVELACE_AMOUNT).negate()); //sent amount
 
-    assertEquals(expected, outUtxo2.getLovelaceAmount());
+    assertEquals(expected, outUtxo2.getAmounts().getFirst().getQuantity());
 
   }
 
