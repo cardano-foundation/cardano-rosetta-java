@@ -33,7 +33,7 @@ public class BlockTxToRosettaTransaction {
   final WithdrawalToOperation withdrawalToOperation;
 
   private static final OperationStatus status = OperationStatus.builder()
-      .status(SUCCESS_OPERATION_STATUS.getStatus()) // TODO saa: need to check the right status
+      .status(SUCCESS_OPERATION_STATUS.getStatus())
       .build();
 
 

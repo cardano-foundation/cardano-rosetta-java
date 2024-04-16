@@ -263,8 +263,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
     assertThat(opInto.getStatus()).isEqualTo("success");
     assertThat(opInto.getOperationIdentifier().getIndex()).isEqualTo(1); //index in array
     assertThat(opInto.getAccount().getAddress()).isEqualTo(firstFrom.getOwnerAddr());
-    // fixed in a later PR
-//    assertThat(opInto.getAmount()).isEqualTo(amountActual("10"));
+    assertThat(opInto.getAmount()).isEqualTo(amountActual("10"));
 
     CoinChange coinChange = opInto.getCoinChange();
     assertThat(coinChange.getCoinAction()).isEqualTo(CoinAction.CREATED);
@@ -311,8 +310,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
     assertThat(opInto.getStatus()).isEqualTo("success");
     assertThat(opInto.getOperationIdentifier().getIndex()).isEqualTo(0); //index in array
     assertThat(opInto.getAccount().getAddress()).isEqualTo(firstFrom.getOwnerAddr());
-    // fixed in a later PR
-//    assertThat(opInto.getAmount()).isEqualTo(amountActual("10"));
+    assertThat(opInto.getAmount()).isEqualTo(amountActual("-10"));
 
     CoinChange coinChange = opInto.getCoinChange();
     assertThat(coinChange.getCoinAction()).isEqualTo(CoinAction.SPENT);
@@ -395,7 +393,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
     return Utxo.builder()
         .txHash("txHash1")
         .outputIndex(44)
-        .amounts(List.of(newAmt()))
+        .amounts(List.of(newTokenAmt(), newAdaAmt()))
         .ownerAddr("in_ownerAddr1")
         .build();
   }
@@ -404,12 +402,20 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
     return Utxo.builder()
         .txHash("txHash1")
         .outputIndex(44)
-        .amounts(List.of(newAmt()))
+        .amounts(List.of(newTokenAmt(), newAdaAmt()))
         .ownerAddr("out_ownerAddr1")
         .build();
   }
 
-  private static Amt newAmt() {
+  private static Amt newAdaAmt() {
+    return Amt.builder()
+        .assetName(Constants.LOVELACE)
+        .quantity(BigInteger.TEN)
+        .unit(Constants.LOVELACE)
+        .build();
+  }
+
+  private static Amt newTokenAmt() {
     return Amt.builder()
         .assetName("assetName1")
         .policyId("policyId1")

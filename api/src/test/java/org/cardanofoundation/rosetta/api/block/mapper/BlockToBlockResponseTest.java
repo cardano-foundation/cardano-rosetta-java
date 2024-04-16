@@ -168,7 +168,6 @@ class BlockToBlockResponseTest extends BaseMapperTest {
             .map(Operation::getMetadata)
             .collect(Collectors.toList()))
         .allSatisfy(d -> {
-          //TODO saa: Is it OK to have all values here is null other than depositAmount?
           assertAllPropertiesIsNull(d, "depositAmount");
           assertProperty(d, "depositAmount",
               Amount

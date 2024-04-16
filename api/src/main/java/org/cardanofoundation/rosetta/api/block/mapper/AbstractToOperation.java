@@ -79,16 +79,23 @@ public abstract class AbstractToOperation<T> {
 
   //common mappings for InputToOperation and OutputToOperation
   protected static void mapOthers(Utxo model, OperationStatus status, int index,
-      ConfigurableConditionExpression<Utxo, Operation> mp) {
+      ConfigurableConditionExpression<Utxo, Operation> mp, boolean input) {
     mp.map(f -> status.getStatus(), Operation::setStatus);
     mp.<Long>map(f -> index, (d, v) -> d.getOperationIdentifier().setIndex(v));
     mp.<String>map(Utxo::getOwnerAddr, (d, v) -> d.getAccount().setAddress(v));
-//    mp.map(Utxo::getLovelaceAmount, (d, v) -> d.getAmount().setValue(String.valueOf(v))); // will be fixed in the future and replaced with the right value
+    mp.<String>map( f -> getAdaAmount(model, input), (d, v) -> d.getAmount().setValue(v));
     mp.<String>map(f -> ADA, (d, v) -> d.getAmount().getCurrency().setSymbol(v));
     mp.<Integer>map(f -> ADA_DECIMALS, (d, v) -> d.getAmount().getCurrency().setDecimals(v));
     mp.<String>map(f -> model.getTxHash() + ":" + model.getOutputIndex(),
         (d, v) -> d.getCoinChange().getCoinIdentifier().setIdentifier(v));
   }
 
+  private static String getAdaAmount(Utxo f, boolean input) {
+    BigInteger adaAmount = Optional.ofNullable(f.getAmounts())
+        .map(amts -> amts.stream().filter(amt -> amt.getAssetName().equals(
+            Constants.LOVELACE)).findFirst().map(Amt::getQuantity).orElse(BigInteger.ZERO))
+        .orElse(BigInteger.ZERO);
+    return input ? adaAmount.negate().toString() : adaAmount.toString();
+  }
 
 }
