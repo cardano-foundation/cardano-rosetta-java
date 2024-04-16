@@ -41,7 +41,6 @@ class BlockTxToBlockTxResponseTest extends BaseMapperTest {
     assertThat(tx.getMetadata().getScriptSize()).isEqualTo(from.getScriptSize());
     assertThat(tx.getTransactionIdentifier().getHash()).isEqualTo(from.getHash());
 
-    //TODO saa: there are no related transactions for org.openapitools.client.model.Transaction.setRelatedTransactions
     assertThat(tx.getRelatedTransactions()).isNull();
   }
 
