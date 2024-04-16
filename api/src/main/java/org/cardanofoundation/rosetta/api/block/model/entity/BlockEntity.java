@@ -40,9 +40,6 @@ public class BlockEntity {
   @Column(name = "slot")
   private Long slot;
 
-  @Column(name = "epoch")
-  private Integer epochNumber;
-
   @Column(name = "block_time")
   private Long blockTimeInSeconds;
 

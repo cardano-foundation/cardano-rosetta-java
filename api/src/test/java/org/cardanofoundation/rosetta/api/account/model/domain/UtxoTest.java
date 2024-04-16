@@ -29,18 +29,14 @@ class UtxoTest {
   @Test
   void populateFromUtxoEntityPositiveTest() {
     AddressUtxoEntity entity = new AddressUtxoEntity();
-    entity.setBlockHash("blockHash");
     entity.setOwnerAddr("ownerAddr");
-    entity.setLovelaceAmount(BigInteger.ONE);
     entity.setAmounts(Collections.emptyList());
     Utxo utxo = new Utxo("txHash", 1);
 
     utxo.populateFromUtxoEntity(entity);
 
-    assertEquals("blockHash", utxo.getBlockHash());
     assertEquals("ownerAddr", utxo.getOwnerAddr());
     assertEquals(Collections.emptyList(), utxo.getAmounts());
-    assertEquals(BigInteger.ONE, utxo.getLovelaceAmount());
   }
 
   @Test

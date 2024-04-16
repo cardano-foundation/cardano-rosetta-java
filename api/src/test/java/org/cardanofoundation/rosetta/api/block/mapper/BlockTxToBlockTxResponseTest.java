@@ -67,7 +67,6 @@ class BlockTxToBlockTxResponseTest extends BaseMapperTest {
         .txHash("txHash1")
         .outputIndex(44)
         .amounts(List.of(newAmt()))
-        .lovelaceAmount(BigInteger.TEN)
         .ownerAddr("ownerAddr1")
         .build();
   }

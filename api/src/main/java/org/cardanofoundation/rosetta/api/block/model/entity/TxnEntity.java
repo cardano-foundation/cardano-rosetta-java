@@ -54,8 +54,4 @@ public class TxnEntity {
 
   @OneToMany(mappedBy = "txHash")
   private List<TxScriptEntity> script;
-
-  @Type(JsonType.class)
-  @Column(name = "collateral_inputs")
-  private List<UtxoKey> collateralInputs;
 }

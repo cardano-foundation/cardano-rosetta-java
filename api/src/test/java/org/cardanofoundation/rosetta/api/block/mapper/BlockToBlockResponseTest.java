@@ -67,7 +67,6 @@ class BlockToBlockResponseTest extends BaseMapperTest {
         into.getBlock().getMetadata().getTransactionsCount());
     assertThat(from.getCreatedBy()).isEqualTo(into.getBlock().getMetadata().getCreatedBy());
     assertThat(from.getSize()).isEqualTo(into.getBlock().getMetadata().getSize());
-    assertThat(from.getEpochNo()).isEqualTo(into.getBlock().getMetadata().getEpochNo());
     assertThat(from.getSlotNo()).isEqualTo(into.getBlock().getMetadata().getSlotNo());
 
     assertThat(from.getTransactions().size()).isEqualTo(
@@ -282,7 +281,7 @@ class BlockToBlockResponseTest extends BaseMapperTest {
         21L,
         3L,
         "createdAt",
-        4, 5,
+        4,
         6L, newTransactions(),
         "500");
   }

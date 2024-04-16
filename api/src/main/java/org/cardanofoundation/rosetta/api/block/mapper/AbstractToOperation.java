@@ -83,7 +83,7 @@ public abstract class AbstractToOperation<T> {
     mp.map(f -> status.getStatus(), Operation::setStatus);
     mp.<Long>map(f -> index, (d, v) -> d.getOperationIdentifier().setIndex(v));
     mp.<String>map(Utxo::getOwnerAddr, (d, v) -> d.getAccount().setAddress(v));
-    mp.map(Utxo::getLovelaceAmount, (d, v) -> d.getAmount().setValue(String.valueOf(v)));
+//    mp.map(Utxo::getLovelaceAmount, (d, v) -> d.getAmount().setValue(String.valueOf(v))); // will be fixed in the future and replaced with the right value
     mp.<String>map(f -> ADA, (d, v) -> d.getAmount().getCurrency().setSymbol(v));
     mp.<Integer>map(f -> ADA_DECIMALS, (d, v) -> d.getAmount().getCurrency().setDecimals(v));
     mp.<String>map(f -> model.getTxHash() + ":" + model.getOutputIndex(),

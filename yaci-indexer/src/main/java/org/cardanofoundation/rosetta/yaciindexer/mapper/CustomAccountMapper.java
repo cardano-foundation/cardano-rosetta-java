@@ -21,7 +21,6 @@ public class CustomAccountMapper extends AccountMapperImpl_ {
         .slot(addressBalance.getSlot())
         .blockNumber(addressBalance.getBlockNumber())
         .paymentCredential(null)
-        .updateDateTime(null)
         .epoch(null)
         .blockHash(null)
         .blockTime(null)

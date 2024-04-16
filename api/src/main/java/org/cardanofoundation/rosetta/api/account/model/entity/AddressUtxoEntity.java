@@ -38,14 +38,8 @@ public class AddressUtxoEntity {
   @Column(name = "output_index")
   private Integer outputIndex;
 
-  @Column(name = "block_hash")
-  private String blockHash;
-
   @Column(name = "owner_addr")
   private String ownerAddr;
-
-  @Column(name = "lovelace_amount")
-  private BigInteger lovelaceAmount;
 
   @Type(JsonType.class)
   private List<Amt> amounts;

@@ -15,15 +15,15 @@ public class CustomUtxoMapper extends UtxoMapperImpl_ {
     return AddressUtxoEntity.builder()
         .txHash(addressUtxo.getTxHash())
         .outputIndex(addressUtxo.getOutputIndex())
-        .blockHash(addressUtxo.getBlockHash())
-        .blockNumber(addressUtxo.getBlockNumber())
-        .blockTime(addressUtxo.getBlockTime())
         .ownerAddr(addressUtxo.getOwnerAddr())
-        .lovelaceAmount(addressUtxo.getLovelaceAmount())
         .amounts(addressUtxo.getAmounts())
-        .updateDateTime(null)
+        .slot(null)
+        .lovelaceAmount(null)
         .ownerPaymentCredential(null)
         .ownerStakeCredential(null)
+        .blockHash(null)
+        .blockNumber(null)
+        .blockTime(null)
         .build();
   }
 

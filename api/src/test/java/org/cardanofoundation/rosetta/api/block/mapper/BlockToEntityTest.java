@@ -44,7 +44,6 @@ class BlockToEntityTest extends BaseMapperTest {
     assertThat(into.getTransactionsCount()).isEqualTo(from.getNoOfTxs());
     assertThat(into.getSize()).isEqualTo(Math.toIntExact(from.getBlockBodySize()));
     assertThat(into.getCreatedBy()).isEqualTo(from.getSlotLeader());
-    assertThat(into.getEpochNo()).isEqualTo(from.getEpochNumber());
     assertThat(into.getSlotNo()).isEqualTo(from.getSlot());
 
     assertThat(into.getTransactions().size()).isEqualTo(from.getTransactions().size());
@@ -78,7 +77,6 @@ class BlockToEntityTest extends BaseMapperTest {
         .prev(null)
         .noOfTxs(1L)
         .blockBodySize(1L)
-        .epochNumber(1)
         .slot(1L)
         .transactions(newTxList())
         .build();
@@ -90,7 +88,6 @@ class BlockToEntityTest extends BaseMapperTest {
         .txHash("txHash1")
         .block(BlockEntity.builder().hash("blockHash1").number(22L).build())
         .fee(BigInteger.TEN)
-        .collateralInputs(List.of())
         .inputKeys(List.of())
         .outputKeys(List.of())
         .build());

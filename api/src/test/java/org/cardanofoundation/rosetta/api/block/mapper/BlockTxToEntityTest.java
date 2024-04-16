@@ -1,7 +1,6 @@
 package org.cardanofoundation.rosetta.api.block.mapper;
 
 import java.math.BigInteger;
-import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +10,6 @@ import org.junit.jupiter.api.Test;
 import org.cardanofoundation.rosetta.api.BaseMapperTest;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.model.entity.BlockEntity;
-import org.cardanofoundation.rosetta.api.block.model.entity.TxOuput;
 import org.cardanofoundation.rosetta.api.block.model.entity.TxnEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.UtxoKey;
 
@@ -49,7 +47,6 @@ class BlockTxToEntityTest extends BaseMapperTest {
         .isEqualTo(List.of(outUtxKey.getTxHash()));
     assertThat(into.getOutputs()).extracting("outputIndex")
         .isEqualTo(List.of(outUtxKey.getOutputIndex()));
-
   }
 
   private TxnEntity newTxnEntity() {
@@ -59,7 +56,6 @@ class BlockTxToEntityTest extends BaseMapperTest {
         .txHash("txHash1")
         .block(BlockEntity.builder().hash("blockHash1").number(22L).build())
         .fee(BigInteger.TEN)
-        .collateralInputs(List.of())
         .inputKeys(List.of(inUtxKey))
         .outputKeys(List.of(outUtxKey))
         .build();

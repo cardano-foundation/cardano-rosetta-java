@@ -19,9 +19,7 @@ public class Utxo {
 
   private String txHash;
   private Integer outputIndex;
-  private String blockHash;
   private String ownerAddr;
-  private BigInteger lovelaceAmount;
   private List<Amt> amounts;
 
   public Utxo(String txHash, Integer outputIndex) {
@@ -36,9 +34,7 @@ public class Utxo {
   public void populateFromUtxoEntity(AddressUtxoEntity entity) {
     this.txHash = entity.getTxHash();
     this.outputIndex = entity.getOutputIndex();
-    this.blockHash = entity.getBlockHash();
     this.ownerAddr = entity.getOwnerAddr();
-    this.lovelaceAmount = entity.getLovelaceAmount();
     this.amounts = entity.getAmounts();
   }
 }

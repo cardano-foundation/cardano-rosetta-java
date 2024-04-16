@@ -21,7 +21,6 @@ public class Block {
   private Long transactionsCount;
   private String createdBy;
   private Integer size;
-  private Integer epochNo;
   private Long slotNo;
   private List<BlockTx> transactions;
   private String poolDeposit;
