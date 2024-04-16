@@ -43,12 +43,6 @@ public class AddressBalanceEntity extends BlockAwareEntity {
   @Column(name = "quantity")
   private BigInteger quantity;
 
-  @Column(name = "policy")
-  private String policy;
-
-  @Column(name = "asset_name")
-  private String assetName;
-
   @Column(name = "block_hash")
   private String blockHash;
 

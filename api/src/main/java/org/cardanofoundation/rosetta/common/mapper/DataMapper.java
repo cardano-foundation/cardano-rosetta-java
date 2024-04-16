@@ -25,6 +25,7 @@ import java.util.*;
 @PersistenceMapper
 @RequiredArgsConstructor
 public class DataMapper {
+
   private final ProtocolParamsToRosettaProtocolParameters protocolParamsToRosettaProtocolParameters;
   /**
    * Maps a NetworkRequest to a NetworkOptionsResponse.
@@ -128,14 +129,14 @@ public class DataMapper {
    * @return The Rosetta compatible AccountBalanceResponse
    */
   public static AccountBalanceResponse mapToAccountBalanceResponse(Block block, List<AddressBalance> balances) {
-    List<AddressBalance> nonLovelaceBalances = balances.stream().filter(balance -> !balance.assetName().equals(Constants.LOVELACE)).toList();
-    long sum = balances.stream().filter(balance -> balance.assetName().equals(Constants.LOVELACE)).mapToLong(value -> value.quantity().longValue()).sum();
+    List<AddressBalance> nonLovelaceBalances = balances.stream().filter(balance -> !balance.unit().equals(Constants.LOVELACE) && !balance.unit().equals(Constants.ADA)).toList();
+    long sum = balances.stream().filter(balance -> balance.unit().equals(Constants.LOVELACE) || balance.unit().equals(Constants.ADA)).mapToLong(value -> value.quantity().longValue()).sum();
     List<Amount> amounts = new ArrayList<>();
     if (sum > 0) {
       amounts.add(mapAmount(String.valueOf(sum)));
     }
-    nonLovelaceBalances.forEach(balance -> amounts.add(mapAmount(balance.quantity().toString(), Hex.encodeHexString(balance.assetName().getBytes()), Constants.MULTI_ASSET_DECIMALS, new CurrencyMetadata(
-        balance.policy()))));
+    nonLovelaceBalances.forEach(balance -> amounts.add(mapAmount(balance.quantity().toString(), balance.unit().substring(Constants.POLICY_ID_LENGTH), Constants.MULTI_ASSET_DECIMALS, new CurrencyMetadata(
+        balance.unit().substring(0, Constants.POLICY_ID_LENGTH)))));
     return AccountBalanceResponse.builder()
             .blockIdentifier(BlockIdentifier.builder()
                     .hash(block.getHash())

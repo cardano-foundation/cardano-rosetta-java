@@ -19,8 +19,6 @@ public class CustomAccountMapper extends AccountMapperImpl_ {
         .unit(addressBalance.getUnit())
         .slot(addressBalance.getSlot())
         .quantity(addressBalance.getQuantity())
-        .policy(addressBalance.getPolicy())
-        .assetName(addressBalance.getAssetName())
         .paymentCredential(null)
         .updateDateTime(null)
         .blockTime(null)
