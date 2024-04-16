@@ -391,7 +391,6 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
 
   private Utxo newUtxoIn() {
     return Utxo.builder()
-        .blockHash("in_blockHash1")
         .txHash("txHash1")
         .outputIndex(44)
         .amounts(List.of(newAmt()))
@@ -402,7 +401,6 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
 
   private Utxo newUtxoOut() {
     return Utxo.builder()
-        .blockHash("in_blockHash1")
         .txHash("txHash1")
         .outputIndex(44)
         .amounts(List.of(newAmt()))

@@ -17,10 +17,13 @@ public class CustomAccountMapper extends AccountMapperImpl_ {
     return AddressBalanceEntity.builder()
         .address(addressBalance.getAddress())
         .unit(addressBalance.getUnit())
-        .slot(addressBalance.getSlot())
         .quantity(addressBalance.getQuantity())
+        .slot(addressBalance.getSlot())
+        .blockNumber(addressBalance.getBlockNumber())
         .paymentCredential(null)
         .updateDateTime(null)
+        .epoch(null)
+        .blockHash(null)
         .blockTime(null)
         .build();
   }

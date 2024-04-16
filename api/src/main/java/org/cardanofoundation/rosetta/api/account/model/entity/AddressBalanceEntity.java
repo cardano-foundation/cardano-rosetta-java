@@ -18,7 +18,6 @@ import org.hibernate.annotations.DynamicUpdate;
 import org.cardanofoundation.rosetta.api.block.model.entity.BlockAwareEntity;
 
 @Data
-@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder
@@ -26,7 +25,7 @@ import org.cardanofoundation.rosetta.api.block.model.entity.BlockAwareEntity;
 @Table(name = "address_balance")
 @IdClass(AddressBalanceId.class)
 @DynamicUpdate
-public class AddressBalanceEntity extends BlockAwareEntity {
+public class AddressBalanceEntity {
 
   @Id
   @Column(name = "address")
@@ -43,7 +42,6 @@ public class AddressBalanceEntity extends BlockAwareEntity {
   @Column(name = "quantity")
   private BigInteger quantity;
 
-  @Column(name = "block_hash")
-  private String blockHash;
-
+  @Column(name = "block")
+  private Long blockNumber;
 }

@@ -64,7 +64,6 @@ class BlockTxToBlockTxResponseTest extends BaseMapperTest {
 
   private Utxo newUtxo() {
     return Utxo.builder()
-        .blockHash("blockHash1")
         .txHash("txHash1")
         .outputIndex(44)
         .amounts(List.of(newAmt()))

@@ -10,7 +10,8 @@ import org.cardanofoundation.rosetta.api.account.model.entity.AddressBalanceEnti
 public record AddressBalance(String address,
                              String unit,
                              Long slot,
-                             BigInteger quantity) {
+                             BigInteger quantity,
+                             Long number) {
 
   public static AddressBalance fromEntity(AddressBalanceEntity addressBalanceEntity) {
     return AddressBalance.builder()
@@ -18,6 +19,7 @@ public record AddressBalance(String address,
         .unit(addressBalanceEntity.getUnit())
         .slot(addressBalanceEntity.getSlot())
         .quantity(addressBalanceEntity.getQuantity())
+        .number(addressBalanceEntity.getBlockNumber())
         .build();
   }
 }
