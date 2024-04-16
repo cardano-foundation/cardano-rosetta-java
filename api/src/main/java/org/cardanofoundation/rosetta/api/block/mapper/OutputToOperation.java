@@ -28,7 +28,7 @@ public class OutputToOperation extends AbstractToOperation<Utxo> {
           mp.map(f -> Constants.OUTPUT, Operation::setType);
           mp.<CoinAction>map(f -> CoinAction.CREATED, (d, v) -> d.getCoinChange().setCoinAction(v));
           mp.map(f-> mapToOperationMetaData(false, model.getAmounts()), Operation::setMetadata);
-          mapOthers(model, status, index, mp);
+          mapOthers(model, status, index, mp, false);
         })
         .map(model);
   }
