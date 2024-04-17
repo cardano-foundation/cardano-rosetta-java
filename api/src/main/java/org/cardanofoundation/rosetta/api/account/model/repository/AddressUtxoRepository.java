@@ -11,11 +11,6 @@ import org.cardanofoundation.rosetta.api.account.model.entity.UtxoId;
 
 public interface AddressUtxoRepository extends JpaRepository<AddressUtxoEntity, UtxoId> {
 
-  @Query(value =
-      "SELECT a FROM AddressUtxoEntity a WHERE a.ownerAddr = :address AND a.blockHash = :blockHash")
-  List<AddressUtxoEntity> findUtxoByAddressAndBlock(@Param("address") String address,
-      @Param("blockHash") String blockHash);
-
   List<AddressUtxoEntity> findAddressUtxoEntitiesByOutputIndexAndTxHash(Integer outputIndex,
       String txHash);
 

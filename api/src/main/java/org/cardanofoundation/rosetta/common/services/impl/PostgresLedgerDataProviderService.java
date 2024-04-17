@@ -10,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.cardanofoundation.rosetta.api.block.mapper.WithdrawalEntityToWithdrawal;
-import org.cardanofoundation.rosetta.api.block.model.domain.Withdrawal;
 import org.cardanofoundation.rosetta.api.block.model.repository.WithdrawalRepository;
 import org.springframework.stereotype.Component;
 import org.apache.commons.lang3.ObjectUtils;
@@ -36,7 +35,7 @@ import org.cardanofoundation.rosetta.api.block.model.domain.StakeAddressBalance;
 import org.cardanofoundation.rosetta.api.block.model.domain.StakeRegistration;
 import org.cardanofoundation.rosetta.api.block.model.entity.BlockEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.ProtocolParamsEntity;
-import org.cardanofoundation.rosetta.api.block.model.entity.StakeAddressBalanceEntity;
+import org.cardanofoundation.rosetta.api.account.model.entity.StakeAddressBalanceEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.TxnEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.UtxoKey;
 import org.cardanofoundation.rosetta.api.block.model.repository.BlockRepository;

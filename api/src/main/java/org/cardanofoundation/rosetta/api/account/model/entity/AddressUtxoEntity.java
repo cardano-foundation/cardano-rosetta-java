@@ -19,10 +19,8 @@ import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Type;
 
 import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
-import org.cardanofoundation.rosetta.api.block.model.entity.BlockAwareEntity;
 
 @Data
-@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder
@@ -30,7 +28,7 @@ import org.cardanofoundation.rosetta.api.block.model.entity.BlockAwareEntity;
 @Table(name = "address_utxo")
 @IdClass(UtxoId.class)
 @DynamicUpdate
-public class AddressUtxoEntity extends BlockAwareEntity {
+public class AddressUtxoEntity {
 
   @Id
   @Column(name = "tx_hash")
@@ -40,49 +38,9 @@ public class AddressUtxoEntity extends BlockAwareEntity {
   @Column(name = "output_index")
   private Integer outputIndex;
 
-  @Column(name = "slot")
-  private Long slot;
-
-  @Column(name = "block_hash")
-  private String blockHash;
-
-  @Column(name = "epoch")
-  private Integer epoch;
-
   @Column(name = "owner_addr")
   private String ownerAddr;
 
-  //Only set if address doesn't fit in ownerAddr field. Required for few Byron Era addr
-  @Column(name = "owner_addr_full")
-  private String ownerAddrFull;
-
-  @Column(name = "owner_stake_addr")
-  private String ownerStakeAddr;
-
-  @Column(name = "owner_payment_credential")
-  private String ownerPaymentCredential;
-
-  @Column(name = "owner_stake_credential")
-  private String ownerStakeCredential;
-
-  @Column(name = "lovelace_amount")
-  private BigInteger lovelaceAmount;
-
   @Type(JsonType.class)
   private List<Amt> amounts;
-
-  @Column(name = "data_hash")
-  private String dataHash;
-
-  @Column(name = "inline_datum")
-  private String inlineDatum;
-
-  @Column(name = "script_ref")
-  private String scriptRef;
-
-  @Column(name = "reference_script_hash")
-  private String referenceScriptHash;
-
-  @Column(name = "is_collateral_return")
-  private Boolean isCollateralReturn;
 }

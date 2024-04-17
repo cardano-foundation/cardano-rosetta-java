@@ -71,7 +71,6 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
       from.setStakeRegistrations(List.of(StakeRegistration.builder()
           .address("stake_addr1")
           .type(stakeType)
-          .slot(1L)
           .build()));
       //when
       Transaction into = my.toDto(from);
@@ -112,7 +111,6 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
     from.setDelegations(List.of(Delegation.builder()
         .address("stake_addr1")
         .poolId("pool_id1")
-        .slot(1L)
         .build()));
     //when
     Transaction into = my.toDto(from);
@@ -165,7 +163,6 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
         .rewardAccount("reward_account1")
         .owners(owners)
         .relays(relays)
-        .slot(1L)
         .build()));
     //when
     Transaction into = my.toDto(from);
@@ -210,10 +207,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
 
     from.setPoolRetirements(List.of(PoolRetirement.builder()
         .poolId("pool_addr1")
-        .slot(1L)
         .epoch(11)
-        .certIndex(33)
-        .blockHash("blockHash1")
         .txHash("txHash1")
         .build()));
 
@@ -392,49 +386,24 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
         .scriptSize(0L)
         .inputs(List.of(newUtxoIn()))
         .outputs(List.of(newUtxoOut()))
-        .validContract(true)
         .build();
   }
 
   private Utxo newUtxoIn() {
     return Utxo.builder()
-        .blockHash("in_blockHash1")
-        .epoch(11)
-        .slot(22L)
         .txHash("txHash1")
         .outputIndex(44)
         .amounts(List.of(newTokenAmt(), newAdaAmt()))
-        .dataHash("in_dataHash1")
-        .inlineDatum("in_inlineDatum1")
-        .isCollateralReturn(true)
-        .lovelaceAmount(BigInteger.TEN)
         .ownerAddr("in_ownerAddr1")
-        .ownerAddrFull("ownerAddrFull1")
-        .ownerPaymentCredential("in_ownerPaymentCredential1")
-        .ownerStakeAddr("in_ownerStakeAddr1")
-        .scriptRef("in_scriptRef1")
-        .referenceScriptHash("in_referenceScriptHash1")
         .build();
   }
 
   private Utxo newUtxoOut() {
     return Utxo.builder()
-        .blockHash("in_blockHash1")
-        .epoch(11)
-        .slot(22L)
         .txHash("txHash1")
         .outputIndex(44)
         .amounts(List.of(newTokenAmt(), newAdaAmt()))
-        .dataHash("out_dataHash1")
-        .inlineDatum("out_inlineDatum1")
-        .isCollateralReturn(true)
-        .lovelaceAmount(BigInteger.TEN)
         .ownerAddr("out_ownerAddr1")
-        .ownerAddrFull("ownerAddrFull1")
-        .ownerPaymentCredential("out_ownerPaymentCredential1")
-        .ownerStakeAddr("out_ownerStakeAddr1")
-        .scriptRef("out_scriptRef1")
-        .referenceScriptHash("out_referenceScriptHash1")
         .build();
   }
 

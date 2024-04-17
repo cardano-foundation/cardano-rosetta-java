@@ -67,7 +67,6 @@ class BlockToBlockResponseTest extends BaseMapperTest {
         into.getBlock().getMetadata().getTransactionsCount());
     assertThat(from.getCreatedBy()).isEqualTo(into.getBlock().getMetadata().getCreatedBy());
     assertThat(from.getSize()).isEqualTo(into.getBlock().getMetadata().getSize());
-    assertThat(from.getEpochNo()).isEqualTo(into.getBlock().getMetadata().getEpochNo());
     assertThat(from.getSlotNo()).isEqualTo(into.getBlock().getMetadata().getSlotNo());
 
     assertThat(from.getTransactions().size()).isEqualTo(
@@ -280,25 +279,27 @@ class BlockToBlockResponseTest extends BaseMapperTest {
         "prevHashBlock",
         21L,
         3L,
+        4,
         "createdAt",
-        4, 5,
+        4,
         6L, newTransactions(),
         "500");
   }
 
   private List<BlockTx> newTransactions() {
-    return List.of(new BlockTx("hash1", "blockHash1", 1L, "fee1", 1L,
-            true, 1L, null, null,
+    return List.of(
+        new BlockTx("hash1", "blockHash1", 1L, "fee1", 1L,
+             1L, null, null,
             newStakeRegistrations(1, 2), newDelegations(1, 2), newPoolRegistrations(1, 2),
             newPoolRetirements(1, 2), null),
 
         new BlockTx("hash2", "blockHash2", 2L, "fee2", 2L,
-            true, 2L, null, null,
+             2L, null, null,
             newStakeRegistrations(3, 4), newDelegations(3, 4), newPoolRegistrations(3, 4),
             newPoolRetirements(3, 4), null),
 
         new BlockTx("hash3", "blockHash3", 3L, "fee3", 3L,
-            true, 3L, null, null,
+             3L, null, null,
             newStakeRegistrations(5, 6), newDelegations(5, 6), newPoolRegistrations(5, 6),
             newPoolRetirements(5, 6), null));
   }
@@ -308,12 +309,8 @@ class BlockToBlockResponseTest extends BaseMapperTest {
         .mapToObj(ver -> Delegation.builder()
             .txHash("txHash" + ver)
             .certIndex(1L + ver)
-            .credential("credential" + ver)
-            .epoch(1 + ver)
-            .slot(1L + ver)
             .poolId("poolDlg" + ver)
             .address("delegationAcc" + ver)
-            .blockHash("blockHash" + ver)
             .build())
         .collect(Collectors.toList());
   }
@@ -322,7 +319,6 @@ class BlockToBlockResponseTest extends BaseMapperTest {
     return Arrays.stream(instances)
         .mapToObj(ver -> PoolRegistration.builder()
             .txHash("txHash" + ver)
-            .certIndex(1L + ver)
             .poolId("poolReg" + ver)
             .vrfKeyHash("vrfKeyHash" + ver)
             .pledge("pledge" + ver)
@@ -332,9 +328,6 @@ class BlockToBlockResponseTest extends BaseMapperTest {
             .owners(newOwners(ver))
             .relays(List.of(Relay.builder().ipv4("ipv4" + ver).ipv6("ipv6" + ver)
                 .dnsName("dnsName" + ver).port(1 + ver).type("type" + ver).build()))
-            .epoch(1 + ver)
-            .slot(1L + ver)
-            .blockHash("blockHash" + ver)
             .build())
         .collect(Collectors.toList());
   }
@@ -352,11 +345,8 @@ class BlockToBlockResponseTest extends BaseMapperTest {
     return Arrays.stream(instances)
         .mapToObj(ver -> PoolRetirement.builder()
             .txHash("txHash" + ver)
-            .certIndex(1L + ver)
             .poolId("poolRet" + ver)
             .epoch(1 + ver)
-            .slot(1L + ver)
-            .blockHash("blockHash" + ver)
             .build())
         .collect(Collectors.toList());
   }
@@ -367,12 +357,8 @@ class BlockToBlockResponseTest extends BaseMapperTest {
         .mapToObj(ver -> StakeRegistration.builder()
             .txHash("txHash" + ver)
             .certIndex(1L + ver)
-            .credential("credential" + ver)
             .type(CertificateType.STAKE_REGISTRATION)
             .address("address" + ver)
-            .epoch(1 + ver)
-            .slot(1L + ver)
-            .blockHash("blockHash" + ver)
             .build())
         .collect(Collectors.toList());
 

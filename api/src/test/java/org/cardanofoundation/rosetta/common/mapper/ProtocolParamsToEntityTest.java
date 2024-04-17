@@ -86,11 +86,6 @@ class ProtocolParamsToEntityTest extends BaseMapperTest {
     return EpochParamEntity.builder()
         .params(newEpochParams())
         .epoch(1)
-        .slot(2L)
-        .blockNumber(3L)
-        .blockTime(4L)
-        .costModelHash("costModelHash5")
-        .updateDateTime(LocalDateTime.MIN)
         .build();
   }
 

@@ -41,9 +41,6 @@ public class TxnEntity {
       foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "none"))
   private BlockEntity block;
 
-  @Column(name = "slot")
-  private Long slot;
-
   @Type(JsonType.class)
   @Column(name = "inputs")
   private List<UtxoKey> inputKeys;
@@ -55,51 +52,6 @@ public class TxnEntity {
   @Column(name = "fee")
   private BigInteger fee;
 
-  @Column(name = "ttl")
-  private Long ttl;
-
-  @Column(name = "auxiliary_datahash")
-  private String auxiliaryDataHash;
-
-  @Column(name = "validity_interval_start")
-  private Long validityIntervalStart;
-
-  @Column(name = "script_datahash")
-  private String scriptDataHash;
-
   @OneToMany(mappedBy = "txHash")
   private List<TxScriptEntity> script;
-
-  @Type(JsonType.class)
-  @Column(name = "collateral_inputs")
-  private List<UtxoKey> collateralInputs;
-
-  @Type(JsonType.class)
-  @Column(name = "required_signers")
-  private Set<String> requiredSigners;
-
-  @Column(name = "network_id")
-  private Integer netowrkId;
-
-  @Type(JsonType.class)
-  @Column(name = "collateral_return")
-  private UtxoKey collateralReturn;
-
-  @Type(JsonType.class)
-  @Column(name = "collateral_return_json")
-  private TxOuput collateralReturnJson;
-
-  @Column(name = "total_collateral")
-  private BigInteger totalCollateral;
-
-  @Type(JsonType.class)
-  @Column(name = "reference_inputs")
-  private List<UtxoKey> referenceInputs;
-
-  @Column(name = "invalid")
-  private Boolean invalid;
-
-  @UpdateTimestamp
-  @Column(name = "update_datetime")
-  private LocalDateTime updateDateTime;
 }

@@ -22,7 +22,7 @@ import com.bloxbean.cardano.yaci.core.model.certs.CertificateType;
 @Entity
 @Table(name = "stake_registration")
 @IdClass(StakeRegistrationId.class)
-public class StakeRegistrationEntity extends BlockAwareEntity {
+public class StakeRegistrationEntity {
 
   @Id
   @Column(name = "tx_hash")
@@ -32,22 +32,10 @@ public class StakeRegistrationEntity extends BlockAwareEntity {
   @Column(name = "cert_index")
   private long certIndex;
 
-  @Column(name = "credential")
-  private String credential;
-
   @Column(name = "type")
   @Enumerated(EnumType.STRING)
   private CertificateType type;
 
   @Column(name = "address")
   private String address;
-
-  @Column(name = "epoch")
-  private Integer epoch;
-
-  @Column(name = "slot")
-  private Long slot;
-
-  @Column(name = "block_hash")
-  private String blockHash;
 }
