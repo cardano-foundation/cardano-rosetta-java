@@ -18,7 +18,7 @@ import lombok.experimental.SuperBuilder;
 @Entity
 @Table(name = "delegation")
 @IdClass(DelegationId.class)
-public class DelegationEntity extends BlockAwareEntity {
+public class DelegationEntity {
 
   @Id
   @Column(name = "tx_hash")
@@ -28,21 +28,10 @@ public class DelegationEntity extends BlockAwareEntity {
   @Column(name = "cert_index")
   private long certIndex;
 
-  @Column(name = "credential")
-  private String credential;
-
   @Column(name = "pool_id")
   private String poolId;
 
   @Column(name = "address")
   private String address;
 
-  @Column(name = "epoch")
-  private Integer epoch;
-
-  @Column(name = "slot")
-  private Long slot;
-
-  @Column(name = "block_hash")
-  private String blockHash;
 }

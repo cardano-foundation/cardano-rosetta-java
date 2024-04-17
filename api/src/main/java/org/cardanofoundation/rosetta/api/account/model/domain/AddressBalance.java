@@ -11,17 +11,15 @@ public record AddressBalance(String address,
                              String unit,
                              Long slot,
                              BigInteger quantity,
-                             String policy,
-                             String assetName) {
+                             Long number) {
 
   public static AddressBalance fromEntity(AddressBalanceEntity addressBalanceEntity) {
     return AddressBalance.builder()
-        .assetName(addressBalanceEntity.getAssetName())
         .address(addressBalanceEntity.getAddress())
         .unit(addressBalanceEntity.getUnit())
         .slot(addressBalanceEntity.getSlot())
         .quantity(addressBalanceEntity.getQuantity())
-        .policy(addressBalanceEntity.getPolicy())
+        .number(addressBalanceEntity.getBlockNumber())
         .build();
   }
 }

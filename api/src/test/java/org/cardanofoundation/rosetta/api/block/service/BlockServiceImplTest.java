@@ -107,10 +107,12 @@ class BlockServiceImplTest {
         "prevHashBlock1",
         21L,
         3L,
+        4,
         "createdAt1",
-        4, 5,
+        4,
         6L, null,
-        "poolDeposit1");
+        "poolDeposit1"
+        );
   }
 
   @Test

@@ -5,7 +5,7 @@ import java.math.BigInteger;
 import lombok.Builder;
 import lombok.Data;
 
-import org.cardanofoundation.rosetta.api.block.model.entity.StakeAddressBalanceEntity;
+import org.cardanofoundation.rosetta.api.account.model.entity.StakeAddressBalanceEntity;
 
 @Data
 @Builder

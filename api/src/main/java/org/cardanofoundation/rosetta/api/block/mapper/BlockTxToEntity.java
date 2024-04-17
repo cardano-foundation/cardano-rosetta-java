@@ -31,8 +31,6 @@ public class BlockTxToEntity {
           mapper.map(tx -> 0L, BlockTx::setSize); // will be calcualted, within the population method
           mapper.map(tx -> 0L, BlockTx::setScriptSize); // TODO Needs to be calulated if needed
 
-          mapper.map(TxnEntity::getInvalid, BlockTx::setValidContract);
-
         })
         .setPostConverter(ctx -> {
           TxnEntity source = ctx.getSource();

@@ -18,7 +18,6 @@ import org.hibernate.annotations.DynamicUpdate;
 import org.cardanofoundation.rosetta.api.block.model.entity.BlockAwareEntity;
 
 @Data
-@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder
@@ -26,7 +25,7 @@ import org.cardanofoundation.rosetta.api.block.model.entity.BlockAwareEntity;
 @Table(name = "address_balance")
 @IdClass(AddressBalanceId.class)
 @DynamicUpdate
-public class AddressBalanceEntity extends BlockAwareEntity {
+public class AddressBalanceEntity {
 
   @Id
   @Column(name = "address")
@@ -43,26 +42,6 @@ public class AddressBalanceEntity extends BlockAwareEntity {
   @Column(name = "quantity")
   private BigInteger quantity;
 
-  //Only set if address doesn't fit in ownerAddr field. Required for few Byron Era addr
-  @Column(name = "addr_full")
-  private String addrFull;
-
-  @Column(name = "policy")
-  private String policy;
-
-  @Column(name = "asset_name")
-  private String assetName;
-
-  @Column(name = "payment_credential")
-  private String paymentCredential;
-
-  @Column(name = "stake_address")
-  private String stakeAddress;
-
-  @Column(name = "block_hash")
-  private String blockHash;
-
-  @Column(name = "epoch")
-  private Integer epoch;
-
+  @Column(name = "block")
+  private Long blockNumber;
 }

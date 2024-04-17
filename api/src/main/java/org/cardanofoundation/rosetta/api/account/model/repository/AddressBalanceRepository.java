@@ -18,7 +18,7 @@ public interface AddressBalanceRepository extends
 //            "WHERE b.address = :address AND b.blockNumber <= :number " +
 //            "GROUP BY b.address, b.unit,  b.quantity, b.addrFull, b.policy, b.assetName, b.paymentCredential, b.stakeAddress, b.blockHash, b.epoch")
   @Query(value =
-      "SELECT b from AddressBalanceEntity b WHERE b.slot in (SELECT MAX(c.slot) FROM AddressBalanceEntity c WHERE c.address = :address AND c.blockNumber <= :number GROUP BY c.unit) AND b.address = :address")
+      "SELECT b from AddressBalanceEntity b WHERE b.blockNumber in (SELECT MAX(c.blockNumber) FROM AddressBalanceEntity c WHERE c.address = :address AND c.blockNumber <= :number GROUP BY c.unit) AND b.address = :address")
   List<AddressBalanceEntity> findAddressBalanceByAddressAndBlockNumber(
       @Param("address") String address, @Param("number") Long number);
 }

@@ -27,7 +27,7 @@ import org.hibernate.annotations.Type;
 @Table(name = "pool_registration")
 @IdClass(PoolRegistrationId.class)
 @DynamicUpdate
-public class PoolRegistrationEnity extends BlockAwareEntity {
+public class PoolRegistrationEnity {
 
   @Id
   @Column(name = "tx_hash")
@@ -60,20 +60,5 @@ public class PoolRegistrationEnity extends BlockAwareEntity {
 
   @Type(JsonType.class)
   private List<Relay> relays;
-
-  @Column(name = "metadata_url")
-  private String metadataUrl;
-
-  @Column
-  private String metadataHash;
-
-  @Column(name = "epoch")
-  private Integer epoch;
-
-  @Column(name = "slot")
-  private Long slot;
-
-  @Column(name = "block_hash")
-  private String blockHash;
 
 }

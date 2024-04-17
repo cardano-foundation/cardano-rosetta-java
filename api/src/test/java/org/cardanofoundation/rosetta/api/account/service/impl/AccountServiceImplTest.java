@@ -61,7 +61,7 @@ class AccountServiceImplTest {
         accountBalanceRequest, blockIdentifier, accountAddress);
     Block block = getMockBlock();
     AddressBalance addressBalance = new AddressBalance(accountAddress, ADA, 1L,
-        BigInteger.valueOf(1000L), "policy", "assetName");
+        BigInteger.valueOf(1000L), 1L);
     when(ledgerDataProviderService.findBlock(1L, HASH)).thenReturn(block);
     when(ledgerDataProviderService.findBalanceByAddressAndBlock(accountAddress, 1L))
         .thenReturn(Collections.singletonList(addressBalance));
@@ -122,7 +122,7 @@ class AccountServiceImplTest {
     when(accountIdentifier.getAddress()).thenReturn(accountAddress);
     Block block = getMockBlock();
     AddressBalance addressBalance = new AddressBalance(accountAddress, ADA, 1L,
-        BigInteger.valueOf(1000L), "policy", "assetName");
+        BigInteger.valueOf(1000L), 1L);
     when(ledgerDataProviderService.findLatestBlock()).thenReturn(block);
     when(ledgerDataProviderService.findBalanceByAddressAndBlock(accountAddress, 1L))
         .thenReturn(Collections.singletonList(addressBalance));
