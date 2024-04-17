@@ -32,6 +32,7 @@ import org.cardanofoundation.rosetta.common.util.Constants;
 import org.cardanofoundation.rosetta.common.util.RosettaConstants.RosettaErrorType;
 
 import static org.cardanofoundation.rosetta.common.util.Constants.ADDRESS_PREFIX;
+import static org.cardanofoundation.rosetta.common.util.Constants.LOVELACE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -221,7 +222,7 @@ class AccountServiceImplTest {
     when(utxo.getTxHash()).thenReturn("txHash");
     when(utxo.getOutputIndex()).thenReturn(1);
     when(utxo.getAmounts()).thenReturn(
-        Collections.singletonList(new Amt(ADA, "", ADA, BigInteger.valueOf(1000L))));
+        Collections.singletonList(new Amt(LOVELACE, "", LOVELACE, BigInteger.valueOf(1000L))));
     when(accountCoinsRequest.getAccountIdentifier()).thenReturn(accountIdentifier);
     when(accountCoinsRequest.getCurrencies()).thenReturn(Collections.singletonList(currency));
     when(accountIdentifier.getAddress()).thenReturn(accountAddress);
@@ -245,7 +246,7 @@ class AccountServiceImplTest {
     when(utxo.getTxHash()).thenReturn("txHash");
     when(utxo.getOutputIndex()).thenReturn(1);
     when(utxo.getAmounts()).thenReturn(
-        Collections.singletonList(new Amt(ADA, "", ADA, BigInteger.valueOf(1000L))));
+        Collections.singletonList(new Amt(LOVELACE, "", LOVELACE, BigInteger.valueOf(1000L))));
     when(accountCoinsRequest.getAccountIdentifier()).thenReturn(accountIdentifier);
     when(accountCoinsRequest.getCurrencies()).thenReturn(null);
     when(accountIdentifier.getAddress()).thenReturn(accountAddress);
@@ -307,16 +308,12 @@ class AccountServiceImplTest {
   private void verifyPositiveAccountCoinsCase(AccountCoinsResponse actual, Utxo utxo, Block block,
       String accountAddress,
       AccountCoinsRequest accountCoinsRequest) {
-    String expectedValue = Constants.ADA.equals(utxo.getAmounts().getFirst().getUnit())
-        ? utxo.getAmounts().getFirst().getQuantity().toString() + "000000"
-        : utxo.getAmounts().getFirst().getQuantity().toString();
     assertNotNull(actual);
     assertEquals(1, actual.getCoins().size());
     assertEquals(utxo.getTxHash() + ":" + utxo.getOutputIndex(),
         actual.getCoins().getFirst().getCoinIdentifier().getIdentifier());
-    assertEquals(expectedValue, actual.getCoins().getFirst().getAmount().getValue());
-    assertEquals(utxo.getAmounts().getFirst().getUnit(),
-        actual.getCoins().getFirst().getAmount().getCurrency().getSymbol());
+    assertEquals(utxo.getAmounts().getFirst().getQuantity().toString(), actual.getCoins().getFirst().getAmount().getValue());
+    assertEquals(Constants.ADA, actual.getCoins().getFirst().getAmount().getCurrency().getSymbol());
     assertEquals(block.getHash(), actual.getBlockIdentifier().getHash());
     assertEquals(block.getNumber(), actual.getBlockIdentifier().getIndex());
     verify(ledgerDataProviderService).findLatestBlock();

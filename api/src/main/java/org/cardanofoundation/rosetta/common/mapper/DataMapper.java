@@ -189,16 +189,18 @@ public class DataMapper {
             .index(block.getNumber())
             .build())
         .coins(utxos.stream().map(utxo -> {
-              Amt adaAsset = utxo.getAmounts().stream().filter(DataMapper::isAdaOrLovelace).findFirst()
+              Amt adaAsset = utxo.getAmounts().stream()
+                  .filter(amt -> Constants.LOVELACE.equals(amt.getAssetName()))
+                  .findFirst()
                   .orElseGet(() -> new Amt(null, null, Constants.ADA, BigInteger.ZERO));
               return Coin.builder()
                   .coinIdentifier(CoinIdentifier.builder()
                       .identifier(utxo.getTxHash() + ":" + utxo.getOutputIndex())
                       .build())
                   .amount(Amount.builder()
-                      .value(getAdaValue(adaAsset))
+                      .value(adaAsset.getQuantity().toString()) // In the DB only Lovelace are persisted.
                       .currency(Currency.builder()
-                          .symbol(adaAsset.getAssetName())
+                          .symbol(Constants.ADA)
                           .decimals(Constants.ADA_DECIMALS)
                           .build())
                       .build())
@@ -207,23 +209,6 @@ public class DataMapper {
             })
             .toList())
         .build();
-  }
-
-  private static boolean isAdaOrLovelace(Amt amount) {
-    String symbol = amount.getAssetName();
-    return Constants.ADA.equals(symbol) || Constants.LOVELACE.equals(symbol);
-  }
-
-  /**
-   * If value was store in ADA, we need to add 6 decimals to the value.
-   *
-   * @param amount to get the value from
-   * @return Amount of ADA coins in lovelace (within 6 decimals)
-   */
-  private static String getAdaValue(Amt amount) {
-    return Constants.ADA.equals(amount.getAssetName())
-        ? (amount.getQuantity().multiply(BigInteger.valueOf(1000000L))).toString()
-        : amount.getQuantity().toString();
   }
 
   @Nullable
