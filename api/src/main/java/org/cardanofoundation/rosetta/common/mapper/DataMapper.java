@@ -1,20 +1,17 @@
 package org.cardanofoundation.rosetta.common.mapper;
 
-import com.bloxbean.cardano.client.common.model.Network;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-
 import javax.annotation.Nullable;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.springframework.stereotype.Component;
 import com.bloxbean.cardano.client.common.model.Network;
-import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.ObjectUtils;
 import org.openapitools.client.model.AccountBalanceResponse;
 import org.openapitools.client.model.AccountCoinsResponse;
@@ -27,6 +24,7 @@ import org.openapitools.client.model.CoinChange;
 import org.openapitools.client.model.CoinIdentifier;
 import org.openapitools.client.model.CoinTokens;
 import org.openapitools.client.model.ConstructionMetadataResponse;
+import org.openapitools.client.model.ConstructionMetadataResponseMetadata;
 import org.openapitools.client.model.Currency;
 import org.openapitools.client.model.CurrencyMetadata;
 import org.openapitools.client.model.NetworkIdentifier;
@@ -39,15 +37,14 @@ import org.cardanofoundation.rosetta.api.account.model.domain.AddressBalance;
 import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
-import org.cardanofoundation.rosetta.common.annotation.PersistenceMapper;
 import org.cardanofoundation.rosetta.api.block.model.domain.GenesisBlock;
 import org.cardanofoundation.rosetta.api.block.model.domain.NetworkStatus;
+import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
 import org.cardanofoundation.rosetta.api.block.model.domain.StakeAddressBalance;
+import org.cardanofoundation.rosetta.common.annotation.PersistenceMapper;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
 import org.cardanofoundation.rosetta.common.model.cardano.crypto.Signatures;
 import org.cardanofoundation.rosetta.common.util.Constants;
-import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
-import org.openapitools.client.model.*;
 
 
 @Slf4j
@@ -199,7 +196,7 @@ public class DataMapper {
                       .identifier(utxo.getTxHash() + ":" + utxo.getOutputIndex())
                       .build())
                   .amount(Amount.builder()
-                      .value(adaAsset.getQuantity().toString())
+                      .value(getAdaValue(adaAsset))
                       .currency(Currency.builder()
                           .symbol(adaAsset.getAssetName())
                           .decimals(Constants.ADA_DECIMALS)
@@ -215,6 +212,18 @@ public class DataMapper {
   private static boolean isAdaOrLovelace(Amt amount) {
     String symbol = amount.getAssetName();
     return Constants.ADA.equals(symbol) || Constants.LOVELACE.equals(symbol);
+  }
+
+  /**
+   * If value was store in ADA, we need to add 6 decimals to the value.
+   *
+   * @param amount to get the value from
+   * @return Amount of ADA coins in lovelace (within 6 decimals)
+   */
+  private static String getAdaValue(Amt amount) {
+    return Constants.ADA.equals(amount.getAssetName())
+        ? (amount.getQuantity().multiply(BigInteger.valueOf(1000000L))).toString()
+        : amount.getQuantity().toString();
   }
 
   @Nullable

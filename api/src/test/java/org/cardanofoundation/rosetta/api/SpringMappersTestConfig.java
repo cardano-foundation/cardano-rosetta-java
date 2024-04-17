@@ -7,6 +7,7 @@ import org.openapitools.jackson.nullable.JsonNullableModule;
 
 @TestConfiguration
 @ComponentScan(basePackages = {
+    "org.cardanofoundation.rosetta.api.account.mapper",
     "org.cardanofoundation.rosetta.api.block.mapper",
     "org.cardanofoundation.rosetta.common.mapper"})
 public class SpringMappersTestConfig {

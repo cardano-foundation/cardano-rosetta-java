@@ -2,6 +2,7 @@ package org.cardanofoundation.rosetta.api.data.account;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -11,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import org.openapitools.client.model.AccountCoinsRequest;
 import org.openapitools.client.model.AccountCoinsResponse;
 import org.openapitools.client.model.AccountIdentifier;
+import org.openapitools.client.model.CoinTokens;
 import org.openapitools.client.model.Currency;
 import org.openapitools.client.model.CurrencyMetadata;
 import org.openapitools.client.model.Error;
@@ -22,6 +24,7 @@ import org.junit.jupiter.api.Test;
 import org.cardanofoundation.rosetta.api.IntegrationTest;
 import org.cardanofoundation.rosetta.common.util.Constants;
 import org.cardanofoundation.rosetta.testgenerator.common.TestConstants;
+import org.cardanofoundation.rosetta.testgenerator.common.TestTransactionNames;
 
 import static org.cardanofoundation.rosetta.testgenerator.common.TestConstants.URL;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -32,26 +35,32 @@ class AccountCoinsApiTest extends IntegrationTest {
 
   private final String myAssetPolicyId = "ae1ed1312d2e2e2e3e80e48e4485a9a0b1373ad71e28bde4764ca8c6";
   private final String emptyNamePolicyId = "423088ef596d9b25750b76d80aa72362a44cfd713db965fee662df65";
+  private final String latestTxHashOnZeroSlot = generatedDataMap.get(
+      TestTransactionNames.SIMPLE_NEW_EMPTY_NAME_COINS_TRANSACTION.getName()).txHash() + ":0";
+  private final String expectedTestAccountCoinAmount = "1635030";
   private final Currency myAssetCurrency = getCurrency(TestConstants.MY_ASSET_SYMBOL,
       Constants.MULTI_ASSET_DECIMALS, myAssetPolicyId);
   private final Currency ada = getCurrency(Constants.ADA, Constants.ADA_DECIMALS);
   private final Currency lovelace = getCurrency(Constants.LOVELACE, Constants.ADA_DECIMALS);
 
   @Test
-  @Disabled("RA-61 issue - data mapper need to be updated to handle multi-asset coins")
   void accountCoins2Ada_Test() {
     ResponseEntity<AccountCoinsResponse> response = restTemplate.postForEntity(
         getAccountCoinsUrl(), getAccountCoinsRequest(TestConstants.TEST_ACCOUNT_ADDRESS),
         AccountCoinsResponse.class);
+
     AccountCoinsResponse accountCoinsResponse = response.getBody();
 
     assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
     assertNotNull(accountCoinsResponse);
-    assertEquals(2, accountCoinsResponse.getCoins().size());
-    assertEquals(TestConstants.ACCOUNT_BALANCE_LOVELACE_AMOUNT,
+    assertEquals(1, accountCoinsResponse.getCoins().size());
+    List<CoinTokens> metadata = accountCoinsResponse.getCoins().getFirst().getMetadata()
+        .get(latestTxHashOnZeroSlot);
+    assertEquals(2, metadata.size());
+    assertEquals(expectedTestAccountCoinAmount,
         accountCoinsResponse.getCoins().getFirst().getAmount().getValue());
     assertEquals(TestConstants.ACCOUNT_BALANCE_MINTED_TOKENS_AMOUNT,
-        accountCoinsResponse.getCoins().get(1).getAmount().getValue());
+        metadata.getFirst().getTokens().getFirst().getValue());
   }
 
   @Test
@@ -104,7 +113,6 @@ class AccountCoinsApiTest extends IntegrationTest {
   }
 
   @Test
-  @Disabled("RA-61 issue - data mapper need to be updated to handle multi-asset coins")
   void accountCoinsDifferentCoins_Test() {
     ResponseEntity<AccountCoinsResponse> response = restTemplate.postForEntity(
         getAccountCoinsUrl(), getAccountCoinsRequest(TestConstants.TEST_ACCOUNT_ADDRESS),
@@ -113,13 +121,32 @@ class AccountCoinsApiTest extends IntegrationTest {
 
     assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
     assertNotNull(accountCoinsResponse);
-    assertEquals(3, accountCoinsResponse.getCoins().size());
-    assertNotEquals(accountCoinsResponse.getCoins().getFirst().getCoinIdentifier(),
-        accountCoinsResponse.getCoins().get(2).getCoinIdentifier());
+    assertEquals(1, accountCoinsResponse.getCoins().size());
+    assertEquals(latestTxHashOnZeroSlot,
+        accountCoinsResponse.getCoins().getFirst().getCoinIdentifier().getIdentifier());
+    assertEquals(expectedTestAccountCoinAmount,
+        accountCoinsResponse.getCoins().getFirst().getAmount().getValue());
+    assertEquals(Constants.LOVELACE,
+        accountCoinsResponse.getCoins().getFirst().getAmount().getCurrency().getSymbol());
+    assertEquals(Constants.ADA_DECIMALS,
+        accountCoinsResponse.getCoins().getFirst().getAmount().getCurrency().getDecimals());
+    List<CoinTokens> metadata = accountCoinsResponse.getCoins().getFirst().getMetadata()
+        .get(latestTxHashOnZeroSlot);
+    assertEquals(2, metadata.size());
+    assertNotEquals(metadata.get(1).getPolicyId(), metadata.getFirst().getPolicyId());
+    assertEquals(metadata.getFirst().getPolicyId(), metadata
+        .getFirst().getTokens().getFirst().getCurrency().getMetadata().getPolicyId());
+    assertEquals(metadata.get(1).getPolicyId(), metadata
+        .get(1).getTokens().getFirst().getCurrency().getMetadata().getPolicyId());
+    assertEquals(TestConstants.ACCOUNT_BALANCE_MINTED_TOKENS_AMOUNT,
+        metadata.getFirst().getTokens().getFirst().getValue());
+    assertEquals(TestConstants.ACCOUNT_BALANCE_MINTED_TOKENS_AMOUNT,
+        metadata.get(1).getTokens().getFirst().getValue());
+    assertNotEquals(metadata.get(1).getTokens().getFirst().getCurrency().getSymbol(),
+        metadata.getFirst().getTokens().getFirst().getCurrency().getSymbol());
   }
 
   @Test
-  @Disabled("TODO - what we are expecting from the coin of a UTXO")
   void accountCoinsEmptyNameCoin_Test() {
     ResponseEntity<AccountCoinsResponse> response = restTemplate.postForEntity(
         getAccountCoinsUrl(),
@@ -131,12 +158,24 @@ class AccountCoinsApiTest extends IntegrationTest {
     assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
     assertNotNull(accountCoinsResponse);
     assertEquals(1, accountCoinsResponse.getCoins().size());
-    assertEquals(emptyNamePolicyId,
+    assertEquals(1, accountCoinsResponse.getCoins().getFirst().getMetadata().size());
+    assertEquals(latestTxHashOnZeroSlot,
+        accountCoinsResponse.getCoins().getFirst().getCoinIdentifier().getIdentifier());
+    assertEquals(Constants.ADA,
         accountCoinsResponse.getCoins().getFirst().getAmount().getCurrency().getSymbol());
-    assertEquals(Constants.MULTI_ASSET_DECIMALS,
+    assertEquals(Constants.ADA_DECIMALS,
         accountCoinsResponse.getCoins().getFirst().getAmount().getCurrency().getDecimals());
+    assertEquals(emptyNamePolicyId,
+        accountCoinsResponse.getCoins().getFirst().getMetadata().get(latestTxHashOnZeroSlot)
+            .getFirst().getPolicyId());
     assertEquals(TestConstants.ACCOUNT_BALANCE_MINTED_TOKENS_AMOUNT,
-        accountCoinsResponse.getCoins().getFirst().getAmount().getValue());
+        accountCoinsResponse.getCoins().getFirst().getMetadata().get(latestTxHashOnZeroSlot).getFirst()
+            .getTokens().getFirst().getValue());
+    Currency mintedTokenCurrency = accountCoinsResponse.getCoins().getFirst().getMetadata()
+        .get(latestTxHashOnZeroSlot).getFirst().getTokens().getFirst().getCurrency();
+    assertEquals("", mintedTokenCurrency.getSymbol());
+    assertEquals(Constants.MULTI_ASSET_DECIMALS, mintedTokenCurrency.getDecimals());
+    assertEquals(emptyNamePolicyId, mintedTokenCurrency.getMetadata().getPolicyId());
   }
 
   @Test

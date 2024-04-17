@@ -37,8 +37,10 @@ public class BlockTxToEntity {
         .setPostConverter(ctx -> {
           TxnEntity source = ctx.getSource();
           BlockTx dest = ctx.getDestination();
-          dest.setInputs(source.getInputKeys().stream().map(Utxo::fromUtxoKey).toList());
-          dest.setOutputs(source.getOutputKeys().stream().map(Utxo::fromUtxoKey).toList());
+          dest.setInputs(source.getInputKeys().stream()
+              .map(utxoKey -> modelMapper.map(utxoKey, Utxo.class)).toList());
+          dest.setOutputs(source.getOutputKeys().stream()
+              .map(utxoKey -> modelMapper.map(utxoKey, Utxo.class)).toList());
           dest.setFee(Optional
               .ofNullable(source.getFee())
               .map(BigInteger::toString)

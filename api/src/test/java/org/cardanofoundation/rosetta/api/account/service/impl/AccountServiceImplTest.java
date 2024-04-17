@@ -17,7 +17,6 @@ import org.openapitools.client.model.AccountIdentifier;
 import org.openapitools.client.model.Currency;
 import org.openapitools.client.model.PartialBlockIdentifier;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -29,6 +28,7 @@ import org.cardanofoundation.rosetta.api.block.model.domain.StakeAddressBalance;
 import org.cardanofoundation.rosetta.common.enumeration.StakeAddressPrefix;
 import org.cardanofoundation.rosetta.common.exception.ApiException;
 import org.cardanofoundation.rosetta.common.services.LedgerDataProviderService;
+import org.cardanofoundation.rosetta.common.util.Constants;
 import org.cardanofoundation.rosetta.common.util.RosettaConstants.RosettaErrorType;
 
 import static org.cardanofoundation.rosetta.common.util.Constants.ADDRESS_PREFIX;
@@ -211,7 +211,6 @@ class AccountServiceImplTest {
   }
 
   @Test
-  @Disabled("TODO - what we are expecting from the coin of a UTXO")
   void getAccountCoinsWithCurrenciesPositiveTest() {
     String accountAddress = ADDRESS_PREFIX + "1q9g8address_that_pass8";
     AccountCoinsRequest accountCoinsRequest = Mockito.mock(AccountCoinsRequest.class);
@@ -222,7 +221,7 @@ class AccountServiceImplTest {
     when(utxo.getTxHash()).thenReturn("txHash");
     when(utxo.getOutputIndex()).thenReturn(1);
     when(utxo.getAmounts()).thenReturn(
-        Collections.singletonList(new Amt(ADA, "", "", BigInteger.valueOf(1000L))));
+        Collections.singletonList(new Amt(ADA, "", ADA, BigInteger.valueOf(1000L))));
     when(accountCoinsRequest.getAccountIdentifier()).thenReturn(accountIdentifier);
     when(accountCoinsRequest.getCurrencies()).thenReturn(Collections.singletonList(currency));
     when(accountIdentifier.getAddress()).thenReturn(accountAddress);
@@ -237,7 +236,6 @@ class AccountServiceImplTest {
   }
 
   @Test
-  @Disabled("TODO - what we are expecting from the coin of a UTXO")
   void getAccountCoinsWithNullCurrenciesPositiveTest() {
     String accountAddress = ADDRESS_PREFIX + "1q9g8address_that_pass8";
     AccountCoinsRequest accountCoinsRequest = Mockito.mock(AccountCoinsRequest.class);
@@ -247,7 +245,7 @@ class AccountServiceImplTest {
     when(utxo.getTxHash()).thenReturn("txHash");
     when(utxo.getOutputIndex()).thenReturn(1);
     when(utxo.getAmounts()).thenReturn(
-        Collections.singletonList(new Amt(ADA, "", "", BigInteger.valueOf(1000L))));
+        Collections.singletonList(new Amt(ADA, "", ADA, BigInteger.valueOf(1000L))));
     when(accountCoinsRequest.getAccountIdentifier()).thenReturn(accountIdentifier);
     when(accountCoinsRequest.getCurrencies()).thenReturn(null);
     when(accountIdentifier.getAddress()).thenReturn(accountAddress);
@@ -306,14 +304,17 @@ class AccountServiceImplTest {
     return accountIdentifier;
   }
 
-  private void verifyPositiveAccountCoinsCase(AccountCoinsResponse actual, Utxo utxo, Block block, String accountAddress,
+  private void verifyPositiveAccountCoinsCase(AccountCoinsResponse actual, Utxo utxo, Block block,
+      String accountAddress,
       AccountCoinsRequest accountCoinsRequest) {
+    String expectedValue = Constants.ADA.equals(utxo.getAmounts().getFirst().getUnit())
+        ? utxo.getAmounts().getFirst().getQuantity().toString() + "000000"
+        : utxo.getAmounts().getFirst().getQuantity().toString();
     assertNotNull(actual);
     assertEquals(1, actual.getCoins().size());
     assertEquals(utxo.getTxHash() + ":" + utxo.getOutputIndex(),
         actual.getCoins().getFirst().getCoinIdentifier().getIdentifier());
-    assertEquals(utxo.getAmounts().getFirst().getQuantity().toString(),
-        actual.getCoins().getFirst().getAmount().getValue());
+    assertEquals(expectedValue, actual.getCoins().getFirst().getAmount().getValue());
     assertEquals(utxo.getAmounts().getFirst().getUnit(),
         actual.getCoins().getFirst().getAmount().getCurrency().getSymbol());
     assertEquals(block.getHash(), actual.getBlockIdentifier().getHash());
