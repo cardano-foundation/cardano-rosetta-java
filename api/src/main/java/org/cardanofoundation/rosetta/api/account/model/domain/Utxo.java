@@ -1,6 +1,5 @@
 package org.cardanofoundation.rosetta.api.account.model.domain;
 
-import java.math.BigInteger;
 import java.util.List;
 
 import lombok.AllArgsConstructor;
