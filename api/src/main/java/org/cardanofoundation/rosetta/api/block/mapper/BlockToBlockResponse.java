@@ -52,6 +52,7 @@ public class BlockToBlockResponse {
                   .createdBy(source.getCreatedBy())
                   .size(source.getSize())
                   .slotNo(source.getSlotNo())
+                  .epochNo(source.getEpochNo())
                   .build()
           );
 

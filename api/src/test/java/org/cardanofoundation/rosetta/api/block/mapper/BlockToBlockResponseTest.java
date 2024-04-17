@@ -279,6 +279,7 @@ class BlockToBlockResponseTest extends BaseMapperTest {
         "prevHashBlock",
         21L,
         3L,
+        4,
         "createdAt",
         4,
         6L, newTransactions(),

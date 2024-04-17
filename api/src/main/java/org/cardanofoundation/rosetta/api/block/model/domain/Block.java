@@ -19,6 +19,7 @@ public class Block {
   private String previousBlockHash;
   private Long previousBlockNumber;
   private Long transactionsCount;
+  private Integer epochNo;
   private String createdBy;
   private Integer size;
   private Long slotNo;

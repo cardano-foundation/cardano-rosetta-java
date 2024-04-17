@@ -60,4 +60,7 @@ public class BlockEntity {
 
   @Column(name = "slot_leader")
   private String slotLeader;
+
+  @Column(name = "epoch")
+  private Integer epochNumber;
 }

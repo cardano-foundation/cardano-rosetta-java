@@ -30,6 +30,7 @@ public class BlockToEntity {
           mapper.map(BlockEntity::getSlotLeader, Block::setCreatedBy);
           mapper.map(BlockEntity::getNoOfTxs, Block::setTransactionsCount);
           mapper.map(BlockEntity::getSlot, Block::setSlotNo);
+          mapper.map(BlockEntity::getEpochNumber, Block::setEpochNo);
 
         })
         .setPostConverter(ctx -> {
