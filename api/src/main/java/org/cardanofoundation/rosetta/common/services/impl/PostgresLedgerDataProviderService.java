@@ -9,10 +9,9 @@ import java.util.TimeZone;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.cardanofoundation.rosetta.api.block.mapper.WithdrawalEntityToWithdrawal;
-import org.cardanofoundation.rosetta.api.block.model.repository.WithdrawalRepository;
 import org.springframework.stereotype.Component;
 import org.apache.commons.lang3.ObjectUtils;
+import org.modelmapper.ModelMapper;
 import org.openapitools.client.model.Currency;
 
 import org.cardanofoundation.rosetta.api.account.model.domain.AddressBalance;
@@ -24,6 +23,7 @@ import org.cardanofoundation.rosetta.api.account.model.repository.AddressBalance
 import org.cardanofoundation.rosetta.api.account.model.repository.AddressUtxoRepository;
 import org.cardanofoundation.rosetta.api.block.mapper.BlockToEntity;
 import org.cardanofoundation.rosetta.api.block.mapper.BlockTxToEntity;
+import org.cardanofoundation.rosetta.api.block.mapper.WithdrawalEntityToWithdrawal;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.model.domain.Delegation;
@@ -46,10 +46,11 @@ import org.cardanofoundation.rosetta.api.block.model.repository.PoolRetirementRe
 import org.cardanofoundation.rosetta.api.block.model.repository.StakeAddressRepository;
 import org.cardanofoundation.rosetta.api.block.model.repository.StakeRegistrationRepository;
 import org.cardanofoundation.rosetta.api.block.model.repository.TxRepository;
+import org.cardanofoundation.rosetta.api.block.model.repository.WithdrawalRepository;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.mapper.ProtocolParamsToEntity;
-import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
 import org.cardanofoundation.rosetta.common.services.LedgerDataProviderService;
+import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
 import org.cardanofoundation.rosetta.common.util.Formatters;
 
 @Slf4j
@@ -71,6 +72,7 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
 
   private final ProtocolParamService protocolParamService;
 
+  private final ModelMapper mapper;
   private final BlockToEntity mapperBlock;
   private final BlockTxToEntity mapperTran;
   private final ProtocolParamsToEntity mapperProtocolParams;
@@ -146,7 +148,8 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
       AddressUtxoEntity first = addressUtxoRepository.findAddressUtxoEntitiesByOutputIndexAndTxHash(
           utxo.getOutputIndex(), utxo.getTxHash()).getFirst();
       if (first != null) {
-        utxo.populateFromUtxoEntity(first);
+        // Populating the values from entity to model
+        mapper.map(first, utxo);
       }
     }
   }
@@ -174,10 +177,9 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
   @Override
   public List<Utxo> findUtxoByAddressAndCurrency(String address, List<Currency> currencies) {
     List<AddressUtxoEntity> addressUtxoEntities = addressUtxoRepository.findUtxosByAddress(address);
-    List<Utxo> list = addressUtxoEntities.stream()
+    return addressUtxoEntities.stream()
         .map(entity -> createUtxoModel(currencies, entity))
         .toList();
-    return list;
   }
 
   @Override
@@ -227,10 +229,10 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
     return mapperProtocolParams.merge(protocolParamService.getProtocolParameters(), protocolParams);
   }
 
-  private static Utxo createUtxoModel(List<Currency> currencies, AddressUtxoEntity entity) {
-    Utxo utxoModel = Utxo.fromUtxoKey(
-        UtxoKey.builder().outputIndex(entity.getOutputIndex()).txHash(entity.getTxHash())
-            .build());
+  private Utxo createUtxoModel(List<Currency> currencies, AddressUtxoEntity entity) {
+    Utxo utxoModel = mapper.map(
+        UtxoKey.builder().outputIndex(entity.getOutputIndex()).txHash(entity.getTxHash()).build(),
+        Utxo.class);
     utxoModel.setAmounts(getAmts(currencies, entity));
     return utxoModel;
   }

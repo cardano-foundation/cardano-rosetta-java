@@ -981,6 +981,8 @@ components:
           $ref: '#/components/schemas/CoinIdentifier'
         amount:
           $ref: '#/components/schemas/Amount'
+        metadata:
+          $ref: '#/components/schemas/CoinMetadata'
     BalanceExemption:
       description: BalanceExemption indicates that the balance for an exempt account could change without a corresponding Operation. This typically occurs with staking rewards, vesting balances, and Currencies with a dynamic supply. Currently, it is possible to exempt an account from strict reconciliation by SubAccountIdentifier.Address or by Currency. This means that any account with SubAccountIdentifier.Address would be exempt or any balance of a particular Currency would be exempt, respectively. BalanceExemptions should be used sparingly as they may introduce significant complexity for integrators that attempt to reconcile all account balance changes. If your implementation relies on any BalanceExemptions, you MUST implement historical balance lookup (the ability to query an account balance at any BlockIdentifier).
       type: object
@@ -1951,3 +1953,25 @@ components:
           type: number
         protocol_parameters:
           $ref: '#/components/schemas/ProtocolParameters'
+    CoinMetadata:
+      description: CoinMetadata is used to provide additional data for a Coin object. It is often used to store human-readable information that a client can use to display information to a user.
+      type: object
+      additionalProperties:
+        type: array
+        items:
+          $ref: '#/components/schemas/CoinTokens'
+    CoinTokens:
+      description: |
+        CoinTokens contains the policyId and the tokens
+        it represents.
+      type: object
+      required:
+        - policyId
+        - tokens
+      properties:
+        policyId:
+          type: string
+        tokens:
+          type: array
+          items:
+            $ref: '#/components/schemas/Amount'

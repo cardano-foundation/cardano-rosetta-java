@@ -1,24 +1,50 @@
 package org.cardanofoundation.rosetta.common.mapper;
 
-import com.bloxbean.cardano.client.common.model.Network;
 import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import javax.annotation.Nullable;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.codec.binary.Hex;
+
+import com.bloxbean.cardano.client.common.model.Network;
 import org.apache.commons.lang3.ObjectUtils;
+import org.openapitools.client.model.AccountBalanceResponse;
+import org.openapitools.client.model.AccountCoinsResponse;
+import org.openapitools.client.model.AccountIdentifier;
+import org.openapitools.client.model.Amount;
+import org.openapitools.client.model.BlockIdentifier;
+import org.openapitools.client.model.Coin;
+import org.openapitools.client.model.CoinAction;
+import org.openapitools.client.model.CoinChange;
+import org.openapitools.client.model.CoinIdentifier;
+import org.openapitools.client.model.CoinTokens;
+import org.openapitools.client.model.ConstructionMetadataResponse;
+import org.openapitools.client.model.ConstructionMetadataResponseMetadata;
+import org.openapitools.client.model.Currency;
+import org.openapitools.client.model.CurrencyMetadata;
+import org.openapitools.client.model.NetworkIdentifier;
+import org.openapitools.client.model.NetworkListResponse;
+import org.openapitools.client.model.NetworkStatusResponse;
+import org.openapitools.client.model.Peer;
+import org.openapitools.client.model.Signature;
+
 import org.cardanofoundation.rosetta.api.account.model.domain.AddressBalance;
+import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
-import org.cardanofoundation.rosetta.api.block.model.domain.*;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
+import org.cardanofoundation.rosetta.api.block.model.domain.GenesisBlock;
+import org.cardanofoundation.rosetta.api.block.model.domain.NetworkStatus;
+import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
+import org.cardanofoundation.rosetta.api.block.model.domain.StakeAddressBalance;
 import org.cardanofoundation.rosetta.common.annotation.PersistenceMapper;
+import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
 import org.cardanofoundation.rosetta.common.model.cardano.crypto.Signatures;
 import org.cardanofoundation.rosetta.common.util.Constants;
-import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
-import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
-import org.openapitools.client.model.*;
-import org.openapitools.client.model.Currency;
-import org.springframework.stereotype.Component;
-import java.util.*;
 
 
 @Slf4j
@@ -156,27 +182,55 @@ public class DataMapper {
             .build();
   }
 
-  public static AccountCoinsResponse mapToAccountCoinsResponse(Block block,
-      List<Utxo> utxos) {
+  public static AccountCoinsResponse mapToAccountCoinsResponse(Block block, List<Utxo> utxos) {
     return AccountCoinsResponse.builder()
         .blockIdentifier(BlockIdentifier.builder()
             .hash(block.getHash())
             .index(block.getNumber())
             .build())
-        .coins(utxos.stream().map(utxo -> Coin.builder()
-                .coinIdentifier(CoinIdentifier.builder()
-                    .identifier(utxo.getTxHash() + ":" + utxo.getOutputIndex())
-                    .build())
-                .amount(Amount.builder()
-                    .value(utxo.getAmounts().getFirst().getQuantity().toString()) // TODO stream through amount list
-                    .currency(Currency.builder()
-                        .symbol(utxo.getAmounts().getFirst().getUnit())  // TODO stream through amount list
-                        .decimals(Constants.MULTI_ASSET_DECIMALS)
-                        .build())
-                    .build())
-                .build())
+        .coins(utxos.stream().map(utxo -> {
+              Amt adaAsset = utxo.getAmounts().stream()
+                  .filter(amt -> Constants.LOVELACE.equals(amt.getAssetName()))
+                  .findFirst()
+                  .orElseGet(() -> new Amt(null, null, Constants.ADA, BigInteger.ZERO));
+              return Coin.builder()
+                  .coinIdentifier(CoinIdentifier.builder()
+                      .identifier(utxo.getTxHash() + ":" + utxo.getOutputIndex())
+                      .build())
+                  .amount(Amount.builder()
+                      .value(adaAsset.getQuantity().toString()) // In the DB only Lovelace are persisted.
+                      .currency(Currency.builder()
+                          .symbol(Constants.ADA)
+                          .decimals(Constants.ADA_DECIMALS)
+                          .build())
+                      .build())
+                  .metadata(mapCoinMetadata(utxo))
+                  .build();
+            })
             .toList())
         .build();
+  }
+
+  @Nullable
+  private static Map<String, List<CoinTokens>> mapCoinMetadata(Utxo utxo) {
+    String key = utxo.getTxHash() + ":" + utxo.getOutputIndex();
+    List<CoinTokens> coinTokens =
+        utxo.getAmounts().stream()
+            .filter(Objects::nonNull)
+            .filter(amount -> amount.getPolicyId() != null
+                && amount.getAssetName() != null
+                && amount.getQuantity() != null)
+            .map(amount -> {
+              CoinTokens tokens = new CoinTokens();
+              tokens.setPolicyId(amount.getPolicyId());
+              tokens.setTokens(List.of(mapAmount(amount.getQuantity().toString(),
+                  // unit = assetName + policyId. To get the symbol policy ID must be removed from Unit. According to CIP67
+                  amount.getUnit().replace(amount.getPolicyId(), ""),
+                  Constants.MULTI_ASSET_DECIMALS, new CurrencyMetadata(amount.getPolicyId()))));
+              return tokens;
+            })
+            .toList();
+    return coinTokens.isEmpty() ? null : Map.of(key, coinTokens);
   }
 
   public ConstructionMetadataResponse mapToMetadataResponse(ProtocolParams protocolParams, Long ttl, Long suggestedFee) {
