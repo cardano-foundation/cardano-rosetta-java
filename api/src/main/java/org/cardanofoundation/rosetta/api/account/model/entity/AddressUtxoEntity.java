@@ -1,5 +1,8 @@
 package org.cardanofoundation.rosetta.api.account.model.entity;
 
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.OneToMany;
 import java.math.BigInteger;
 import java.util.List;
 import jakarta.persistence.Column;
@@ -41,6 +44,6 @@ public class AddressUtxoEntity {
   @Column(name = "owner_addr")
   private String ownerAddr;
 
-  @Type(JsonType.class)
-  private List<Amt> amounts;
+  @OneToMany(mappedBy = "addressUtxo", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+  private List<AmtEntity> amounts;
 }

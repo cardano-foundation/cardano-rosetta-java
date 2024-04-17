@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 
 import org.cardanofoundation.rosetta.api.account.model.entity.AddressUtxoEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.UtxoKey;
+import org.cardanofoundation.rosetta.common.mapper.AmtEntityToAmt;
 
 @Data
 @AllArgsConstructor
@@ -35,6 +36,6 @@ public class Utxo {
     this.txHash = entity.getTxHash();
     this.outputIndex = entity.getOutputIndex();
     this.ownerAddr = entity.getOwnerAddr();
-    this.amounts = entity.getAmounts();
+    this.amounts = entity.getAmounts().stream().map(AmtEntityToAmt::fromEntity).toList();
   }
 }

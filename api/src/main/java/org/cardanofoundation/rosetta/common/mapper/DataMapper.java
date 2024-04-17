@@ -17,7 +17,6 @@ import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
 import org.openapitools.client.model.*;
 import org.openapitools.client.model.Currency;
-import org.springframework.stereotype.Component;
 import java.util.*;
 
 
@@ -168,7 +167,7 @@ public class DataMapper {
                     .identifier(utxo.getTxHash() + ":" + utxo.getOutputIndex())
                     .build())
                 .amount(Amount.builder()
-                    .value(utxo.getAmounts().getFirst().getQuantity().toString()) // TODO stream through amount list
+                    .value(utxo.getAmounts().getFirst().getQuantity().toString())//) // TODO stream through amount list
                     .currency(Currency.builder()
                         .symbol(utxo.getAmounts().getFirst().getUnit())  // TODO stream through amount list
                         .decimals(Constants.MULTI_ASSET_DECIMALS)

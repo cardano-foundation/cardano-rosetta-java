@@ -9,8 +9,10 @@ import java.util.TimeZone;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.cardanofoundation.rosetta.api.account.model.entity.AmtEntity;
 import org.cardanofoundation.rosetta.api.block.mapper.WithdrawalEntityToWithdrawal;
 import org.cardanofoundation.rosetta.api.block.model.repository.WithdrawalRepository;
+import org.cardanofoundation.rosetta.common.mapper.AmtEntityToAmt;
 import org.springframework.stereotype.Component;
 import org.apache.commons.lang3.ObjectUtils;
 import org.openapitools.client.model.Currency;
@@ -174,10 +176,9 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
   @Override
   public List<Utxo> findUtxoByAddressAndCurrency(String address, List<Currency> currencies) {
     List<AddressUtxoEntity> addressUtxoEntities = addressUtxoRepository.findUtxosByAddress(address);
-    List<Utxo> list = addressUtxoEntities.stream()
+    return addressUtxoEntities.stream()
         .map(entity -> createUtxoModel(currencies, entity))
         .toList();
-    return list;
   }
 
   @Override
@@ -237,13 +238,14 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
 
   private static List<Amt> getAmts(List<Currency> currencies, AddressUtxoEntity entity) {
     return currencies.isEmpty()
-        ? entity.getAmounts()
+        ? entity.getAmounts().stream().map(AmtEntityToAmt::fromEntity).toList()
         : entity.getAmounts().stream()
             .filter(amt -> isAmountMatchesCurrency(currencies, amt))
+            .map(AmtEntityToAmt::fromEntity)
             .toList();
   }
 
-  private static boolean isAmountMatchesCurrency(List<Currency> currencies, Amt amt) {
+  private static boolean isAmountMatchesCurrency(List<Currency> currencies, AmtEntity amt) {
     return currencies.stream()
         .anyMatch(currency -> {
           String currencyUnit = Formatters.isEmptyHexString(currency.getSymbol()) ?

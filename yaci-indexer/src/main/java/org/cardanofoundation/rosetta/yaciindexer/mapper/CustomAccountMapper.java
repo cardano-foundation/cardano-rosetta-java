@@ -20,10 +20,6 @@ public class CustomAccountMapper extends AccountMapperImpl_ {
         .quantity(addressBalance.getQuantity())
         .slot(addressBalance.getSlot())
         .blockNumber(addressBalance.getBlockNumber())
-        .paymentCredential(null)
-        .epoch(null)
-        .blockHash(null)
-        .blockTime(null)
         .build();
   }
 
