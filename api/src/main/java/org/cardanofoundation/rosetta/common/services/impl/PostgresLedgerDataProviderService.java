@@ -19,6 +19,7 @@ import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.account.model.entity.AddressBalanceEntity;
 import org.cardanofoundation.rosetta.api.account.model.entity.AddressUtxoEntity;
+import org.cardanofoundation.rosetta.api.account.model.entity.StakeAddressBalanceEntity;
 import org.cardanofoundation.rosetta.api.account.model.repository.AddressBalanceRepository;
 import org.cardanofoundation.rosetta.api.account.model.repository.AddressUtxoRepository;
 import org.cardanofoundation.rosetta.api.block.mapper.BlockToEntity;
@@ -35,7 +36,6 @@ import org.cardanofoundation.rosetta.api.block.model.domain.StakeAddressBalance;
 import org.cardanofoundation.rosetta.api.block.model.domain.StakeRegistration;
 import org.cardanofoundation.rosetta.api.block.model.entity.BlockEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.ProtocolParamsEntity;
-import org.cardanofoundation.rosetta.api.account.model.entity.StakeAddressBalanceEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.TxnEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.UtxoKey;
 import org.cardanofoundation.rosetta.api.block.model.repository.BlockRepository;
@@ -225,8 +225,9 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
   public ProtocolParams findProtocolParametersFromIndexerAndConfig() {
     ProtocolParamsEntity paramsEntity = epochParamRepository.findLatestProtocolParams();
     ProtocolParams protocolParams = mapperProtocolParams.fromEntity(paramsEntity);
+    ProtocolParams protocolParametersFromConfigFile = protocolParamService.getProtocolParameters();
 
-    return mapperProtocolParams.merge(protocolParamService.getProtocolParameters(), protocolParams);
+    return mapperProtocolParams.merge(protocolParams, protocolParametersFromConfigFile);
   }
 
   private Utxo createUtxoModel(List<Currency> currencies, AddressUtxoEntity entity) {
