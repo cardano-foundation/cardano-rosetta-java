@@ -35,7 +35,6 @@ public class ProtocolParamsToEntity {
     notNullMapper.getConfiguration().setPropertyCondition(Conditions.isNotNull());
     notNullMapper.map(from, to);
     return to;
-
   }
 
 }
