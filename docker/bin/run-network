@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+
+if [[ -z ${NETWORK} ]]; then
+	echo "[Error] Cannot obtain NETWORK env variable"
+	exit 1
+fi
+
+export PATH=${PATH}:/usr/local/bin
+mkdir -p /ipc
+case ${NETWORK} in
+	mainnet|preview|preprod|sanchonet) : ;;
+	*) echo "[Error] Managed configuration for network ${NETWORK} does not exist"; exit 1 ;;
+esac
+
+# Mithril
+if ! test -e /data/db/protocolMagicId; then
+	__base=https://raw.githubusercontent.com/input-output-hk/mithril/main/mithril-infra/configuration
+	RESTORE_NETWORK=${RESTORE_NETWORK:-true}
+	if [[ ${RESTORE_NETWORK} != true ]]; then
+		__skip=true
+	fi
+	case ${NETWORK} in
+		mainnet|preprod) __path=release-${NETWORK} ;;
+		preview) __path=pre-release-${NETWORK} ;;
+		sanchonet) __path=testing-${NETWORK} ;;
+		*) echo "Mithril not supported on ${NETWORK}... skipping"; __skip=true ;;
+	esac
+	if [[ ${__skip} != true ]]; then
+		export GENESIS_VERIFICATION_KEY=$(</opt/cardano/config/${NETWORK}/genesis.vkey)
+		export AGGREGATOR_ENDPOINT=https://aggregator.${__path}.api.mithril.network/aggregator
+		export SNAPSHOT_DIGEST=$(mithril-client snapshot list --json | jq -r '.[0].digest')
+		mkdir -p /data
+		cd /data
+		echo "Starting: /usr/local/bin/mithril-client snapshot download ${SNAPSHOT_DIGEST}"
+		# Handle SIGTERM during initial sync
+		trap 'kill -TERM $(pidof mithril-client)' TERM
+		# Run mithril-client in the background so we can capture the PID and wait
+		mithril-client snapshot download ${SNAPSHOT_DIGEST} &
+		_mithril_pid=$!
+		wait $_mithril_pid || exit $?
+		# Reset signal handler and wait again (to avoid race condition)
+		trap - TERM
+		wait $_mithril_pid || exit $?
+	fi
+fi
+
+echo "Starting: /usr/local/bin/cardano-node run"
+echo "--config /opt/cardano/config/${NETWORK}/config.json"
+echo "--database-path /data/db"
+echo "--host-addr 0.0.0.0"
+echo "--port 3001"
+echo "--socket-path /ipc/node.socket"
+echo "--topology /opt/cardano/config/${NETWORK}/topology.json"
+echo "+RTS"
+echo "-N2"
+echo "-I0"
+echo "-A16m"
+echo "-qg"
+echo "-qb"
+echo "--disable-delayed-os-memory-return"
+echo "-RTS"
+echo "..or, once again, in a single line:"
+echo "/usr/local/bin/cardano-node run --config /opt/cardano/config/${NETWORK}/config.json --database-path /data/db --host-addr 0.0.0.0 --port 3001 --socket-path /ipc/node.socket --topology /opt/cardano/config/${NETWORK}/topology.json +RTS -N2 -I0 -A16m -qg -qb --disable-delayed-os-memory-return -RTS"
+exec /usr/local/bin/cardano-node run --config /opt/cardano/config/${NETWORK}/config.json --database-path /data/db --host-addr 0.0.0.0 --port 3001 --socket-path /ipc/node.socket --topology /opt/cardano/config/${NETWORK}/topology.json +RTS -N2 -I0 -A16m -qg -qb --disable-delayed-os-memory-return -RTS ${@}
