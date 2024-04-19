@@ -1,9 +1,16 @@
-FROM ubuntu:24.04
+ARG NETWORK="preprod"
+
+FROM ubuntu:24.04 AS cardano-builder
+
+ARG CABAL_VERSION=3.8.1.0
+ARG GHC_VERSION=8.10.7
+ARG CARDANO_NODE_VERSION=8.9.2
+ARG NETWORK
 
 WORKDIR /root
 
 # Install dependencies
-RUN apt-get update -qq --fix-missing
+RUN apt-get update --fix-missing
 
 RUN apt -y --no-install-recommends install \
      automake build-essential pkg-config libffi-dev libgmp-dev libssl-dev libncurses-dev libsystemd-dev zlib1g-dev make \
@@ -11,28 +18,43 @@ RUN apt -y --no-install-recommends install \
 
 # Install ghcup
 ENV BOOTSTRAP_HASKELL_NONINTERACTIVE=1
-RUN bash -c "curl --proto '=https' --tlsv1.2 -sSf https://get-ghcup.haskell.org | sh "
-#curl --proto '=https' --tlsv1.2 -sSf https://get-ghcup.haskell.org > ghcup_install.sh
+RUN bash -c "curl --proto '=https' --tlsv1.2 -sSf https://get-ghcup.haskell.org | sh"
 
 # Add ghcup to PATH
 ENV PATH=${PATH}:/root/.local/bin
 ENV PATH=${PATH}:/root/.ghcup/bin
 
-RUN bash -c "ghcup upgrade"
+#RUN bash -c "ghcup upgrade"
 
 # Install cabal
-ENV CABAL_VERSION=3.8.1.0
 RUN bash -c "ghcup install cabal ${CABAL_VERSION}"
 RUN bash -c "ghcup set cabal ${CABAL_VERSION}"
 
 # Install GHC
-ENV GHC_VERSION=8.10.7
 RUN bash -c "ghcup install ghc ${GHC_VERSION}"
 RUN bash -c "ghcup set ghc ${GHC_VERSION}"
 
-WORKDIR /root/src
+# Cabal
+#ENV CABAL_VERSION=${CABAL_VERSION}
+#ENV PATH="/root/.cabal/bin:/root/.ghcup/bin:/root/.local/bin:$PATH"
+#RUN wget https://downloads.haskell.org/~cabal/cabal-install-${CABAL_VERSION}/cabal-install-${CABAL_VERSION}-$(uname -m)-linux-ubuntu20_04.tar.xz \
+#    && tar -xf cabal-install-${CABAL_VERSION}-$(uname -m)-linux-ubuntu20_04.tar.xz \
+#    && rm cabal-install-${CABAL_VERSION}-$(uname -m)-linux-ubuntu20_04.tar.xz \
+#    && mkdir -p ~/.local/bin \
+#    && mv cabal ~/.local/bin/ \
+#    && cabal update && cabal --version
+#
+## GHC
+#ENV GHC_VERSION=${GHC_VERSION}
+#RUN wget https://downloads.haskell.org/~ghc/${GHC_VERSION}/ghc-${GHC_VERSION}-$(uname -m)-deb10-linux.tar.xz \
+#    && tar -xf ghc-${GHC_VERSION}-$(uname -m)-deb10-linux.tar.xz \
+#    && rm ghc-${GHC_VERSION}-$(uname -m)-deb10-linux.tar.xz \
+#    && cd ghc-${GHC_VERSION} \
+#    && ./configure \
+#    && make install
 
-ENV CARDANO_NODE_VERSION=8.7.3
+
+WORKDIR /root/src
 
 #Install sodium
 RUN export IOHKNIX_VERSION=$(curl https://raw.githubusercontent.com/IntersectMBO/cardano-node/$CARDANO_NODE_VERSION/flake.lock | jq -r '.nodes.iohkNix.locked.rev') \
@@ -88,19 +110,17 @@ RUN export BLST_VERSION=$(curl https://raw.githubusercontent.com/input-output-hk
     && cp libblst.pc /usr/local/lib/pkgconfig/ \
     && cp bindings/blst_aux.h bindings/blst.h bindings/blst.hpp  /usr/local/include/ \
     && cp libblst.a /usr/local/lib \
-    &&  bash -c "chmod u=rw,go=r /usr/local/{lib/{libblst.a,pkgconfig/libblst.pc},include/{blst.{h,hpp},blst_aux.h}}" \
+    && bash -c "chmod u=rw,go=r /usr/local/{lib/{libblst.a,pkgconfig/libblst.pc},include/{blst.{h,hpp},blst_aux.h}}" \
     && cd ..
 
 RUN apt -y --no-install-recommends install libsecp256k1-dev
 
 #Install node
-ENV NODE_VERSION=8.9.2
-
 RUN git clone https://github.com/intersectmbo/cardano-node.git \
     && cd cardano-node \
 #    && git fetch --all --recurse-submodules --tags \
 #    && git tag | sort -V \
-    && git checkout tags/$NODE_VERSION \
+    && git checkout tags/$CARDANO_NODE_VERSION \
     && echo "with-compiler: ghc-$GHC_VERSION" >> cabal.project.local \
     && echo "" >> cabal.project.local \
     && echo "package cardano-crypto-praos" >> cabal.project.local \
@@ -127,23 +147,126 @@ RUN mkdir -p ~/.local/bin \
     && cp -p "$(./scripts/bin-path.sh cardano-cli)" ~/.local/bin/ \
     && cd ..
 
-RUN cardano-cli --version
+FROM maven:3.9.6-sapmachine-21 AS build-common
+
+ARG NETWORK
+ARG DB_HOST="localhjost"
+ARG DB_PORT="5432"
+ARG DB_NAME="rosetta-java-preprod"
+ARG DB_ADMIN_USER_NAME="rosetta_db_admin"
+ARG DB_ADMIN_USER_SECRET="weakpwd#123_d"
+ARG DB_DRIVER_CLASS_NAME="org.postgresql.Driver"
+ARG API_PORT=8081
+ARG CARDANO_NODE_VERSION="8.9.0"
+ARG API_SPRING_PROFILES_ACTIVE_API="dev"
+ARG DB_CONNECTION_PARAMS_PROVIDER_TYPE="ENVIRONMENT"
+ARG PROTOCOL_MAGIC=1
+ARG TRANSACTION_TTL=3000
+ARG TOPOLOGY_FILEPATH=/config/${NETWORK}/topology.json
+ARG GENESIS_SHELLEY_PATH=/config/${NETWORK}/shelley-genesis.json
+ARG NODE_SUBMIT_API_PORT=8090
+ARG CARDANO_NODE_SUBMIT_HOST="cardano-submit-api"
+ARG DEVKIT_ENABLED=false
+ARG DEVKIT_URL=yaci-cli
+ARG HOST_N2C_SOCAT_PORT=3333
+ARG CARDANO_NODE_HOST="cardano-node"
+ARG CARDANO_NODE_PORT="3001"
+ARG GENESIS_BYRON_PATH=/config/${NETWORK}/byron-genesis.json
+ARG GENESIS_ALONZO_PATH=/config/${NETWORK}/alonzo-genesis.json
+ARG GENESIS_CONWAY_PATH=/config/${NETWORK}/conway-genesis.json
+
+ENV NETWORK="${NETWORK}"
+ENV DB_HOST="${DB_HOST}"
+ENV DB_PORT="${DB_PORT}"
+ENV DB_NAME="${DB_NAME}"
+ENV DB_USER="${DB_ADMIN_USER_NAME}"
+ENV DB_SECRET="${DB_ADMIN_USER_SECRET}"
+ENV DB_DRIVER_CLASS_NAME="${DB_DRIVER_CLASS_NAME}"
+ENV API_PORT=${API_PORT}
+ENV CARDANO_NODE_VERSION=${CARDANO_NODE_VERSION}
+ENV API_SPRING_PROFILES_ACTIVE=${API_SPRING_PROFILES_ACTIVE_API}
+ENV DB_CONNECTION_PARAMS_PROVIDER_TYPE=${DB_CONNECTION_PARAMS_PROVIDER_TYPE}
+ENV PROTOCOL_MAGIC=${PROTOCOL_MAGIC}
+ENV NETWORK_MAGIC=${PROTOCOL_MAGIC}
+ENV TRANSACTION_TTL=${TRANSACTION_TTL}
+ENV TOPOLOGY_FILEPATH=${TOPOLOGY_FILEPATH}
+ENV GENESIS_SHELLEY_PATH=${GENESIS_SHELLEY_PATH}
+ENV NODE_SUBMIT_API_PORT=${NODE_SUBMIT_API_PORT}
+ENV CARDANO_NODE_SUBMIT_HOST=${CARDANO_NODE_SUBMIT_HOST}
+ENV CARDANO_NODE_SOCKET=/ipc/node.socket
+ENV DEVKIT_ENABLED=${DEVKIT_ENABLED}
+ENV DEVKIT_URL=${DEVKIT_URL}
+ENV DEVKIT_PORT=${HOST_N2C_SOCAT_PORT}
+ENV CARDANO_NODE_HOST: "${CARDANO_NODE_HOST}"
+ENV CARDANO_NODE_PORT: "${INDEXER_NODE_PORT}"
+ENV GENESIS_BYRON_PATH: "${GENESIS_BYRON_PATH}"
+ENV GENESIS_ALONZO_PATH: "${GENESIS_ALONZO_PATH}"
+ENV GENESIS_CONWAY_PATH: "${GENESIS_CONWAY_PATH}"
+
+WORKDIR /root/app
+
+COPY ./pom.xml /root/app/pom.xml
+
+COPY ./api/pom.xml /root/app/api/pom.xml
+COPY ./api /root/app/api
+
+COPY ./yaci-indexer/pom.xml /root/app/yaci-indexer/pom.xml
+COPY ./yaci-indexer /root/app/yaci-indexer
+
+COPY ./test-data-generator/pom.xml /root/app/test-data-generator/pom.xml
+COPY ./test-data-generator /root/app/test-data-generator
+
+RUN --mount=type=cache,target=/root/.m2 mvn clean package -DskipTests
+
+FROM eclipse-temurin:21-jdk
+
+ARG NETWORK
+
+ARG PG_VERSION=11
+
+ARG DB_ADMIN_USER_NAME="rosetta_db_admin"
+ARG DB_ADMIN_USER_SECRET="weakpwd#123_d"
+
+ARG DB_NAME="rosetta-java-preprod"
+ARG DB_PORT="5432"
+ARG DB_SCHEMA=${NETWORK}
+
+ARG CARDANO_CONFIG="./config/${NETWORK}"
+
+COPY --from=cardano-builder /usr/local/lib /usr/local/lib
+COPY --from=cardano-builder /root/.local/bin/cardano-* /usr/local/bin/
+
+COPY ${CARDANO_CONFIG} /config
+
+RUN mkdir -p /data/db
+RUN mkdir /ipc
+
+COPY --from=build-common /root/app/api/target/*.jar /root/api/app.jar
+COPY --from=build-common /root/app/yaci-indexer/target/*.jar /root/yaci-indexer/app.jar
 
 WORKDIR /root
 
-#ARG CARDANO_NODE_SOCKET="./node-ipc"
-#ARG CARDANO_NODE_DB="./node/db"
-##ARG CARDANO_CONFIG="./docker/${NETWORK}"
-#ARG CARDANO_CONFIG="./docker/config/${NETWORK}"
-#
-#COPY ${CARDANO_NODE_SOCKET} /node/ipc
-#COPY ${CARDANO_NODE_DB} /node/data/db
-#COPY ${CARDANO_CONFIG} /node/config
-#
-#EXPOSE 3001 12788 12798
+RUN apt-get update --fix-missing \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y wget gnupg \
+    && wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
+    && echo 'deb http://apt.postgresql.org/pub/repos/apt/ jammy-pgdg main' >> /etc/apt/sources.list
 
-#ENTRYPOINT cardano-node run --database-path /data/db --host-addr 0.0.0.0 --port 3001 --socket-path /node/ipc/node.socket --topology /node/config/topology.json --config /node/config/config.json
+RUN apt-get update --fix-missing \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends sudo \
+    postgresql-${PG_VERSION}
+
+ENV DB_ADMIN_USER_NAME=$DB_ADMIN_USER_NAME
+ENV DB_ADMIN_USER_SECRET=$DB_ADMIN_USER_SECRET
+
+ENV DB_NAME=$DB_NAME
+ENV DB_PORT=$DB_PORT
+ENV DB_SCHEMA=$NETWORK
+
+ENV PG_USER="postgres"
+
+EXPOSE 5432 3001 12788 12798
+
+COPY docker/entrypoint.sh /sbin/entrypoint.sh
+ENTRYPOINT ["/sbin/entrypoint.sh"]
+
 CMD ["/bin/sh", "-c", "bash"]
-
-
-
