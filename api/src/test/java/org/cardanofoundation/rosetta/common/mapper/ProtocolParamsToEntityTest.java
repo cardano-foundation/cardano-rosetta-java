@@ -2,7 +2,6 @@ package org.cardanofoundation.rosetta.common.mapper;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.time.LocalDateTime;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,62 +22,39 @@ class ProtocolParamsToEntityTest extends BaseMapperTest {
 
   @Test
   void fromEntity_Test_ok() {
-
     EpochParamEntity from = newEpochParamEntity();
 
     ProtocolParams into = my.fromEntity(from.getParams());
     var param = from.getParams();
-    assertThat(into.getDecentralisationParam()).isEqualTo(param.getDecentralisationParam());
-    assertThat(into.getAdaPerUtxoByte()).isEqualTo(param.getAdaPerUtxoByte());
-    assertThat(into.getCommitteeMaxTermLength()).isEqualTo(param.getCommitteeMaxTermLength());
-    assertThat(into.getCommitteeMinSize()).isEqualTo(param.getCommitteeMinSize());
-    assertThat(into.getDrepDeposit()).isEqualTo(param.getDrepDeposit());
-    assertThat(into.getCollateralPercent()).isEqualTo(param.getCollateralPercent());
-    assertThat(into.getCostModelsHash()).isEqualTo(param.getCostModelsHash());
-    assertThat(into.getExtraEntropy().getTag()).isEqualTo(param.getExtraEntropy());
-    assertThat(into.getExpansionRate()).isEqualTo(param.getExpansionRate());
-    assertThat(into.getKeyDeposit()).isEqualTo(param.getKeyDeposit());
-    assertThat(into.getMaxBlockExMem()).isEqualTo(param.getMaxBlockExMem());
-    assertThat(into.getMaxBlockHeaderSize()).isEqualTo(param.getMaxBlockHeaderSize());
-    assertThat(into.getMaxBlockBodySize()).isEqualTo(param.getMaxBlockSize());
-    assertThat(into.getMaxBlockExSteps()).isEqualTo(param.getMaxBlockExSteps());
-    assertThat(into.getMaxBlockExMem()).isEqualTo(param.getMaxBlockExMem());
-    assertThat(into.getMaxEpoch()).isEqualTo(param.getMaxEpoch());
-    assertThat(into.getMaxTxExMem()).isEqualTo(param.getMaxTxExMem());
-    assertThat(into.getMaxTxExSteps()).isEqualTo(param.getMaxTxExSteps());
-    assertThat(into.getMaxTxSize()).isEqualTo(param.getMaxTxSize());
-    assertThat(into.getMinFeeA()).isEqualTo(param.getMinFeeA());
-    assertThat(into.getMinFeeB()).isEqualTo(param.getMinFeeB());
-    assertThat(into.getMinPoolCost()).isEqualTo(param.getMinPoolCost());
-    assertThat(into.getMinUtxo()).isEqualTo(param.getMinUtxo());
-    assertThat(into.getNOpt()).isEqualTo(param.getNOpt());
-    assertThat(into.getPoolDeposit()).isEqualTo(param.getPoolDeposit());
-    assertThat(into.getPoolPledgeInfluence()).isEqualTo(param.getPoolPledgeInfluence());
-    assertThat(into.getPriceMem()).isEqualTo(param.getPriceMem());
-    assertThat(into.getPriceStep()).isEqualTo(param.getPriceStep());
-    assertThat(into.getProtocolVersion().getMajor()).isEqualTo(param.getProtocolMajorVer());
-    assertThat(into.getProtocolVersion().getMinor()).isEqualTo(param.getProtocolMinorVer());
-    assertThat(into.getTreasuryGrowthRate()).isEqualTo(param.getTreasuryGrowthRate());
-    assertThat(into.getMaxValSize()).isEqualTo(param.getMaxValSize());
-    assertThat(into.getMaxCollateralInputs()).isEqualTo(param.getMaxCollateralInputs());
-    assertThat(into.getGovActionDeposit()).isEqualTo(param.getGovActionDeposit());
-    assertThat(into.getGovActionLifetime()).isEqualTo(param.getGovActionLifetime());
-    assertThat(into.getDrepActivity()).isEqualTo(param.getDrepActivity());
+    assertProtocolParameters(into, param);
 
-    assertThat(into.getCostModels().size()).isEqualTo(1);
+    assertThat(into.getCostModels()).hasSize(1);
     assertThat(into.getCostModels().keySet()).containsAll(param.getCostModels().keySet());
     assertThat(into.getCostModels().values()).containsAll(param.getCostModels().values());
   }
 
   @Test
   void merge_Test_ok() {
-    ProtocolParams from = ProtocolParams.builder().costModels(Map.of("key3", new long[]{4})).build();
-    ProtocolParams to = ProtocolParams.builder().costModelsHash("costHash6").build();
+    ProtocolParams from = ProtocolParams.builder()
+        .costModels(Map.of("key3", new long[]{4}))
+        .minPoolCost(BigInteger.valueOf(5))
+        .committeeMinSize(null)
+        .committeeMaxTermLength(6)
+        .build();
+    ProtocolParams to = ProtocolParams.builder()
+        .costModelsHash("costHash6")
+        .minPoolCost(BigInteger.valueOf(7))
+        .committeeMinSize(8)
+        .committeeMaxTermLength(null)
+        .build();
     ProtocolParams merged = my.merge(from, to);
-    assertThat(merged.getCostModels().size()).isEqualTo(1);
+
+    assertThat(merged.getCostModels()).hasSize(1);
     assertThat(merged.getCostModels().keySet()).containsAll(from.getCostModels().keySet());
     assertThat(merged.getCostModels().values()).containsAll(from.getCostModels().values());
-
+    assertThat(merged.getMinPoolCost()).isEqualTo(from.getMinPoolCost());
+    assertThat(merged.getCommitteeMinSize()).isEqualTo(to.getCommitteeMinSize());
+    assertThat(merged.getCommitteeMaxTermLength()).isEqualTo(from.getCommitteeMaxTermLength());
     assertThat(merged.getCostModelsHash()).isEqualTo(to.getCostModelsHash());
   }
 
@@ -130,5 +106,43 @@ class ProtocolParamsToEntityTest extends BaseMapperTest {
         .govActionLifetime(35)
         .drepActivity(36)
         .build();
+  }
+
+  private void assertProtocolParameters(ProtocolParams into, ProtocolParamsEntity param) {
+    assertThat(into.getDecentralisationParam()).isEqualTo(param.getDecentralisationParam());
+    assertThat(into.getAdaPerUtxoByte()).isEqualTo(param.getAdaPerUtxoByte());
+    assertThat(into.getCommitteeMaxTermLength()).isEqualTo(param.getCommitteeMaxTermLength());
+    assertThat(into.getCommitteeMinSize()).isEqualTo(param.getCommitteeMinSize());
+    assertThat(into.getDrepDeposit()).isEqualTo(param.getDrepDeposit());
+    assertThat(into.getCollateralPercent()).isEqualTo(param.getCollateralPercent());
+    assertThat(into.getCostModelsHash()).isEqualTo(param.getCostModelsHash());
+    assertThat(into.getExtraEntropy().getTag()).isEqualTo(param.getExtraEntropy());
+    assertThat(into.getExpansionRate()).isEqualTo(param.getExpansionRate());
+    assertThat(into.getKeyDeposit()).isEqualTo(param.getKeyDeposit());
+    assertThat(into.getMaxBlockHeaderSize()).isEqualTo(param.getMaxBlockHeaderSize());
+    assertThat(into.getMaxBlockBodySize()).isEqualTo(param.getMaxBlockSize());
+    assertThat(into.getMaxBlockExSteps()).isEqualTo(param.getMaxBlockExSteps());
+    assertThat(into.getMaxBlockExMem()).isEqualTo(param.getMaxBlockExMem());
+    assertThat(into.getMaxEpoch()).isEqualTo(param.getMaxEpoch());
+    assertThat(into.getMaxTxExMem()).isEqualTo(param.getMaxTxExMem());
+    assertThat(into.getMaxTxExSteps()).isEqualTo(param.getMaxTxExSteps());
+    assertThat(into.getMaxTxSize()).isEqualTo(param.getMaxTxSize());
+    assertThat(into.getMinFeeA()).isEqualTo(param.getMinFeeA());
+    assertThat(into.getMinFeeB()).isEqualTo(param.getMinFeeB());
+    assertThat(into.getMinPoolCost()).isEqualTo(param.getMinPoolCost());
+    assertThat(into.getMinUtxo()).isEqualTo(param.getMinUtxo());
+    assertThat(into.getNOpt()).isEqualTo(param.getNOpt());
+    assertThat(into.getPoolDeposit()).isEqualTo(param.getPoolDeposit());
+    assertThat(into.getPoolPledgeInfluence()).isEqualTo(param.getPoolPledgeInfluence());
+    assertThat(into.getPriceMem()).isEqualTo(param.getPriceMem());
+    assertThat(into.getPriceStep()).isEqualTo(param.getPriceStep());
+    assertThat(into.getProtocolVersion().getMajor()).isEqualTo(param.getProtocolMajorVer());
+    assertThat(into.getProtocolVersion().getMinor()).isEqualTo(param.getProtocolMinorVer());
+    assertThat(into.getTreasuryGrowthRate()).isEqualTo(param.getTreasuryGrowthRate());
+    assertThat(into.getMaxValSize()).isEqualTo(param.getMaxValSize());
+    assertThat(into.getMaxCollateralInputs()).isEqualTo(param.getMaxCollateralInputs());
+    assertThat(into.getGovActionDeposit()).isEqualTo(param.getGovActionDeposit());
+    assertThat(into.getGovActionLifetime()).isEqualTo(param.getGovActionLifetime());
+    assertThat(into.getDrepActivity()).isEqualTo(param.getDrepActivity());
   }
 }

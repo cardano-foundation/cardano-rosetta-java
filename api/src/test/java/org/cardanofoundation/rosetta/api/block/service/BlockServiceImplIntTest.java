@@ -34,7 +34,6 @@ class BlockServiceImplIntTest extends IntegrationTest {
   @PersistenceContext
   private EntityManager entityManager;
 
-
   @Autowired
   private ProtocolParamService protocolParamService;
 

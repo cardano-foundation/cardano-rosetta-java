@@ -15,6 +15,7 @@ import org.cardanofoundation.rosetta.api.block.model.repository.WithdrawalReposi
 import org.cardanofoundation.rosetta.common.mapper.AmtEntityToAmt;
 import org.springframework.stereotype.Component;
 import org.apache.commons.lang3.ObjectUtils;
+import org.modelmapper.ModelMapper;
 import org.openapitools.client.model.Currency;
 
 import org.cardanofoundation.rosetta.api.account.model.domain.AddressBalance;
@@ -22,10 +23,12 @@ import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.account.model.entity.AddressBalanceEntity;
 import org.cardanofoundation.rosetta.api.account.model.entity.AddressUtxoEntity;
+import org.cardanofoundation.rosetta.api.account.model.entity.StakeAddressBalanceEntity;
 import org.cardanofoundation.rosetta.api.account.model.repository.AddressBalanceRepository;
 import org.cardanofoundation.rosetta.api.account.model.repository.AddressUtxoRepository;
 import org.cardanofoundation.rosetta.api.block.mapper.BlockToEntity;
 import org.cardanofoundation.rosetta.api.block.mapper.BlockTxToEntity;
+import org.cardanofoundation.rosetta.api.block.mapper.WithdrawalEntityToWithdrawal;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.model.domain.Delegation;
@@ -37,7 +40,6 @@ import org.cardanofoundation.rosetta.api.block.model.domain.StakeAddressBalance;
 import org.cardanofoundation.rosetta.api.block.model.domain.StakeRegistration;
 import org.cardanofoundation.rosetta.api.block.model.entity.BlockEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.ProtocolParamsEntity;
-import org.cardanofoundation.rosetta.api.account.model.entity.StakeAddressBalanceEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.TxnEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.UtxoKey;
 import org.cardanofoundation.rosetta.api.block.model.repository.BlockRepository;
@@ -48,10 +50,11 @@ import org.cardanofoundation.rosetta.api.block.model.repository.PoolRetirementRe
 import org.cardanofoundation.rosetta.api.block.model.repository.StakeAddressRepository;
 import org.cardanofoundation.rosetta.api.block.model.repository.StakeRegistrationRepository;
 import org.cardanofoundation.rosetta.api.block.model.repository.TxRepository;
+import org.cardanofoundation.rosetta.api.block.model.repository.WithdrawalRepository;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.mapper.ProtocolParamsToEntity;
-import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
 import org.cardanofoundation.rosetta.common.services.LedgerDataProviderService;
+import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
 import org.cardanofoundation.rosetta.common.util.Formatters;
 
 @Slf4j
@@ -73,6 +76,7 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
 
   private final ProtocolParamService protocolParamService;
 
+  private final ModelMapper mapper;
   private final BlockToEntity mapperBlock;
   private final BlockTxToEntity mapperTran;
   private final ProtocolParamsToEntity mapperProtocolParams;
@@ -148,7 +152,8 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
       AddressUtxoEntity first = addressUtxoRepository.findAddressUtxoEntitiesByOutputIndexAndTxHash(
           utxo.getOutputIndex(), utxo.getTxHash()).getFirst();
       if (first != null) {
-        utxo.populateFromUtxoEntity(first);
+        // Populating the values from entity to model
+        mapper.map(first, utxo);
       }
     }
   }
@@ -224,14 +229,15 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
   public ProtocolParams findProtocolParametersFromIndexerAndConfig() {
     ProtocolParamsEntity paramsEntity = epochParamRepository.findLatestProtocolParams();
     ProtocolParams protocolParams = mapperProtocolParams.fromEntity(paramsEntity);
+    ProtocolParams protocolParametersFromConfigFile = protocolParamService.getProtocolParameters();
 
-    return mapperProtocolParams.merge(protocolParamService.getProtocolParameters(), protocolParams);
+    return mapperProtocolParams.merge(protocolParams, protocolParametersFromConfigFile);
   }
 
-  private static Utxo createUtxoModel(List<Currency> currencies, AddressUtxoEntity entity) {
-    Utxo utxoModel = Utxo.fromUtxoKey(
-        UtxoKey.builder().outputIndex(entity.getOutputIndex()).txHash(entity.getTxHash())
-            .build());
+  private Utxo createUtxoModel(List<Currency> currencies, AddressUtxoEntity entity) {
+    Utxo utxoModel = mapper.map(
+        UtxoKey.builder().outputIndex(entity.getOutputIndex()).txHash(entity.getTxHash()).build(),
+        Utxo.class);
     utxoModel.setAmounts(getAmts(currencies, entity));
     return utxoModel;
   }
