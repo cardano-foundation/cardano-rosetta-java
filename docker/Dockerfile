@@ -1,5 +1,7 @@
 FROM ubuntu:24.04
 
+WORKDIR /root
+
 # Install dependencies
 RUN apt-get update -qq --fix-missing
 
@@ -20,16 +22,17 @@ RUN bash -c "ghcup upgrade"
 
 # Install cabal
 ENV CABAL_VERSION=3.8.1.0
-RUN bash -c "ghcup install cabal $CABAL_VERSION"
-RUN bash -c "ghcup set cabal $CABAL_VERSION."
+RUN bash -c "ghcup install cabal ${CABAL_VERSION}"
+RUN bash -c "ghcup set cabal ${CABAL_VERSION}"
 
 # Install GHC
 ENV GHC_VERSION=8.10.7
-RUN bash -c "ghcup install ghc $GHC_VERSION"
-RUN bash -c "ghcup set ghc $GHC_VERSION"
+RUN bash -c "ghcup install ghc ${GHC_VERSION}"
+RUN bash -c "ghcup set ghc ${GHC_VERSION}"
 
-ARG CARDANO_NODE_VERSION=8.7.3
-RUN mkdir -p ~/src && cd ~/src
+WORKDIR /root/src
+
+ENV CARDANO_NODE_VERSION=8.7.3
 
 #Install sodium
 RUN export IOHKNIX_VERSION=$(curl https://raw.githubusercontent.com/IntersectMBO/cardano-node/$CARDANO_NODE_VERSION/flake.lock | jq -r '.nodes.iohkNix.locked.rev') \
@@ -85,8 +88,10 @@ RUN export BLST_VERSION=$(curl https://raw.githubusercontent.com/input-output-hk
     && cp libblst.pc /usr/local/lib/pkgconfig/ \
     && cp bindings/blst_aux.h bindings/blst.h bindings/blst.hpp  /usr/local/include/ \
     && cp libblst.a /usr/local/lib \
-#    && chmod u=rw,go=r /usr/local/{lib/{libblst.a,pkgconfig/libblst.pc},include/{blst.{h,hpp},blst_aux.h}} \
+    &&  bash -c "chmod u=rw,go=r /usr/local/{lib/{libblst.a,pkgconfig/libblst.pc},include/{blst.{h,hpp},blst_aux.h}}" \
     && cd ..
+
+RUN apt -y --no-install-recommends install libsecp256k1-dev
 
 #Install node
 ENV NODE_VERSION=8.9.2
@@ -109,29 +114,33 @@ RUN git clone https://github.com/intersectmbo/cardano-node.git \
     && echo "" >> cabal.project.local \
     && mkdir -p /usr/local/opt/openssl \
     && ln -s /opt/homebrew/opt/openssl@3/lib /usr/local/opt/openssl/lib \
-    && ln -s /opt/homebrew/opt/openssl@3/include /usr/local/opt/openssl/include \
-    && cd ..
+    && ln -s /opt/homebrew/opt/openssl@3/include /usr/local/opt/openssl/include
+
+WORKDIR /root/src/cardano-node
 
 RUN bash -c "cabal update"
 RUN bash -c "cabal build all"
 RUN bash -c "cabal build cardano-cli"
 
-RUN kdir -p ~/.local/bin \
+RUN mkdir -p ~/.local/bin \
     && cp -p "$(./scripts/bin-path.sh cardano-node)" ~/.local/bin/ \
-    && cp -p "$(./scripts/bin-path.sh cardano-cli)" ~/.local/bin/
+    && cp -p "$(./scripts/bin-path.sh cardano-cli)" ~/.local/bin/ \
+    && cd ..
 
 RUN cardano-cli --version
 
-ARG CARDANO_NODE_SOCKET="./node-ipc"
-ARG CARDANO_NODE_DB="./node/db"
-#ARG CARDANO_CONFIG="./docker/${NETWORK}"
-ARG CARDANO_CONFIG="./docker/config/${NETWORK}"
+WORKDIR /root
 
-COPY ${CARDANO_NODE_SOCKET} /node/ipc
-COPY ${CARDANO_NODE_DB} /node/data/db
-COPY ${CARDANO_CONFIG} /node/config
-
-EXPOSE 3001 12788 12798
+#ARG CARDANO_NODE_SOCKET="./node-ipc"
+#ARG CARDANO_NODE_DB="./node/db"
+##ARG CARDANO_CONFIG="./docker/${NETWORK}"
+#ARG CARDANO_CONFIG="./docker/config/${NETWORK}"
+#
+#COPY ${CARDANO_NODE_SOCKET} /node/ipc
+#COPY ${CARDANO_NODE_DB} /node/data/db
+#COPY ${CARDANO_CONFIG} /node/config
+#
+#EXPOSE 3001 12788 12798
 
 #ENTRYPOINT cardano-node run --database-path /data/db --host-addr 0.0.0.0 --port 3001 --socket-path /node/ipc/node.socket --topology /node/config/topology.json --config /node/config/config.json
 CMD ["/bin/sh", "-c", "bash"]
