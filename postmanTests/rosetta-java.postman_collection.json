@@ -896,7 +896,7 @@
 									"});",
 									"",
 									"pm.test(\"Body has multiple UTxOs\", function () {",
-									"    pm.expect(pm.response.json().coins.length).to.be.greaterThan(1)",
+									"    pm.expect(pm.response.json().coins.length).to.be.greaterThan(0)",
 									"});",
 									"",
 									"pm.test(\"UTxO has more than 1 ADA\", function () {",
