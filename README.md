@@ -78,6 +78,7 @@ It will be turned off by default. Since it is only working for nodes, which part
 So the Node itself needs extra configuration to be able to query mempool transactions.
 
 ### Documentation
+- [Architecture Overview](https://github.com/cardano-foundation/cardano-rosetta-java/wiki)
 - [Cardano specific API Additions](./docs/cardano-specific-api-additions.md)
 - [Dev H2 Quickstart Guide](./docs/dev-h2-quick-start-guide.md)
 - [Environment Variables](./docs/environment-variables.md)
