@@ -13,8 +13,6 @@ RUN apt -y --no-install-recommends install \
      automake build-essential pkg-config libffi-dev libgmp-dev libssl-dev libncurses-dev libsystemd-dev zlib1g-dev make \
      g++ tmux git jq wget libncursesw5-dev libtool autoconf liblmdb-dev curl ca-certificates
 
-WORKDIR /root/src
-
 # Install ghcup
 ENV BOOTSTRAP_HASKELL_NONINTERACTIVE=1
 RUN bash -c "curl --proto '=https' --tlsv1.2 -sSf https://get-ghcup.haskell.org | sh"
@@ -29,7 +27,7 @@ RUN bash -c "ghcup set cabal ${CABAL_VERSION}"
 RUN bash -c "ghcup install ghc ${GHC_VERSION}"
 RUN bash -c "ghcup set ghc ${GHC_VERSION}"
 
-# Install sodium
+#Install sodium
 RUN export IOHKNIX_VERSION=$(curl https://raw.githubusercontent.com/IntersectMBO/cardano-node/$CARDANO_NODE_VERSION/flake.lock | jq -r '.nodes.iohkNix.locked.rev') \
     && echo "iohk-nix version: $IOHKNIX_VERSION" \
     && export SODIUM_VERSION=$(curl https://raw.githubusercontent.com/input-output-hk/iohk-nix/$IOHKNIX_VERSION/flake.lock | jq -r '.nodes.sodium.original.rev') \
@@ -85,7 +83,7 @@ RUN export BLST_VERSION=$(curl https://raw.githubusercontent.com/input-output-hk
 
 RUN apt -y --no-install-recommends install libsecp256k1-dev
 
-# Install node
+#Install node
 RUN git clone https://github.com/intersectmbo/cardano-node.git \
     && cd cardano-node \
     && git checkout tags/$CARDANO_NODE_VERSION \
@@ -114,68 +112,10 @@ RUN mkdir -p /root/.local/bin \
     && cp -p "$(./scripts/bin-path.sh cardano-node)" /root/.local/bin/ \
     && cp -p "$(./scripts/bin-path.sh cardano-cli)" /root/.local/bin/
 
-# Compile java applications
-FROM maven:3.9.6-sapmachine-21 AS java-builder
+# Copy libs
+RUN mkdir -p /root/lib
 
-WORKDIR /root/app
-
-COPY ./pom.xml /root/app/pom.xml
-
-COPY ./api/pom.xml /root/app/api/pom.xml
-COPY ./api /root/app/api
-
-COPY ./yaci-indexer/pom.xml /root/app/yaci-indexer/pom.xml
-COPY ./yaci-indexer /root/app/yaci-indexer
-
-COPY ./test-data-generator/pom.xml /root/app/test-data-generator/pom.xml
-COPY ./test-data-generator /root/app/test-data-generator
-
-RUN --mount=type=cache,target=/root/.m2 mvn clean package -DskipTests
-
-# Main
-FROM eclipse-temurin:21-jdk
-
-WORKDIR /
-
-# Install postgres
-ARG PG_VERSION=11
-
-RUN apt-get update --fix-missing \
-    && DEBIAN_FRONTEND=noninteractive apt-get install -y wget sudo gnupg \
-    && wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
-    && echo 'deb http://apt.postgresql.org/pub/repos/apt/ jammy-pgdg main' >> /etc/apt/sources.list
-
-RUN apt-get update --fix-missing \
-    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-    postgresql-${PG_VERSION}
-
-RUN echo "host all  all    0.0.0.0/0  md5" >> /etc/postgresql/$PG_VERSION/main/pg_hba.conf
-RUN echo "listen_addresses='*'" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
-
-# Copy cardano node
-COPY --from=cardano-builder /usr/local/lib /usr/local/lib
-COPY --from=cardano-builder /root/.local/bin/cardano-* /usr/local/bin/
-
-ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
-ENV PATH=/usr/local/lib/:$PATH
-
-COPY ./config /config_bck
-RUN mkdir /config
-
-RUN mkdir -p /data/db
-RUN mkdir /ipc
-
-# Copy jars
-COPY --from=java-builder /root/app/api/target/*.jar /api/app.jar
-COPY --from=java-builder /root/app/yaci-indexer/target/*.jar /yaci-indexer/app.jar
-
-# Run
-RUN mkdir /logs
-
-EXPOSE 8081
-#EXPOSE 8081 5432 3001 12788 12798
-
-COPY ./docker/entrypoint.sh /sbin/entrypoint.sh
-ENTRYPOINT ["/sbin/entrypoint.sh"]
+RUN cp -r /usr/local/lib/* /root/lib \
+    && cp -r /root/.local/bin/cardano-* /root/lib
 
 CMD ["/bin/sh", "-c", "bash"]
