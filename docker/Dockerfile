@@ -121,13 +121,8 @@ WORKDIR /root/app
 
 COPY ./pom.xml /root/app/pom.xml
 
-COPY ./api/pom.xml /root/app/api/pom.xml
 COPY ./api /root/app/api
-
-COPY ./yaci-indexer/pom.xml /root/app/yaci-indexer/pom.xml
 COPY ./yaci-indexer /root/app/yaci-indexer
-
-COPY ./test-data-generator/pom.xml /root/app/test-data-generator/pom.xml
 COPY ./test-data-generator /root/app/test-data-generator
 
 RUN --mount=type=cache,target=/root/.m2 mvn clean package -DskipTests
@@ -159,8 +154,8 @@ COPY --from=cardano-builder /root/.local/bin/cardano-* /usr/local/bin/
 ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 ENV PATH=/usr/local/lib/:$PATH
 
-COPY ./config /config_bck
-RUN mkdir /config
+COPY ./config /config
+RUN mkdir /current
 
 RUN mkdir -p /data/db
 RUN mkdir /ipc
@@ -173,7 +168,6 @@ COPY --from=java-builder /root/app/yaci-indexer/target/*.jar /yaci-indexer/app.j
 RUN mkdir /logs
 
 EXPOSE 8081
-#EXPOSE 8081 5432 3001 12788 12798
 
 COPY ./docker/entrypoint.sh /sbin/entrypoint.sh
 ENTRYPOINT ["/sbin/entrypoint.sh"]

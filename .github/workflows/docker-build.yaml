@@ -1,7 +1,7 @@
 name: Build docker file
 run-name: Build docker file
 on:
-  pull_request:
+  push:
     branches:
       - feat/RA-60-Single-docker-container
 jobs:
@@ -10,10 +10,5 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-
-      - name: Set up JDK 21
-        uses: actions/setup-java@v3
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-          cache: maven
+      - name: Build docker images
+        run: docker build -t cardano-rosetta-java -f ./docker/Dockerfile .

@@ -1,8 +1,7 @@
 #!/bin/bash
 echo "entrypoint - run node"
-# rm /config/*
-cp -r /config_bck/${NETWORK}/* /config/
-cardano-node run --database-path /data/db --host-addr 0.0.0.0 --port ${CARDANO_NODE_PORT} --socket-path /ipc/node.socket --topology /config/topology.json --config /config/config.json > /logs/node.log &
+cp -r /config/${NETWORK}/* /current/
+cardano-node run --database-path /data/db --host-addr 0.0.0.0 --port ${CARDANO_NODE_PORT} --socket-path /ipc/node.socket --topology /current/topology.json --config /current/config.json > /logs/node.log &
 
 echo "entrypoint - run postgres"
 /etc/init.d/postgresql start
@@ -19,10 +18,9 @@ if [[ -z $(sudo -u postgres psql -U postgres -Atc "SELECT 1 FROM pg_catalog.pg_d
 fi
 
 echo "entrypoint - run indexer"
-exec java -jar -DdbUrl="${DB_URL}" -DdbUser="${DB_USER}" -DdbSecret="${DB_SECRET}" -DdbDriverName="${DB_DRIVER_CLASS_NAME}" /yaci-indexer/app.jar > /logs/indexer.log &
+exec java -jar /yaci-indexer/app.jar > /logs/indexer.log &
 
 echo "entrypoint - run api"
-exec java -jar -DdbUrl="${DB_URL}" -DdbUser="${DB_USER}" -DdbSecret="${DB_SECRET}" -DdbDriverName="${DB_DRIVER_CLASS_NAME}" /api/app.jar > /logs/api.log &
+exec java -jar /api/app.jar > /logs/api.log &
 
-echo "entrypoint - run bash"
-/bin/sh -c bash
+$@
