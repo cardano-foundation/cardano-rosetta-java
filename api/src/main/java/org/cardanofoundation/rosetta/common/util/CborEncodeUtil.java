@@ -57,9 +57,9 @@ public class CborEncodeUtil {
               boolean coinActionStatement =
                   !ObjectUtils.isEmpty(coinAction) && coinAction.equals(Constants.COIN_SPENT_ACTION);
               return coinActionStatement ||
-                  Constants.StakingOperations.contains(operation.getType()) ||
-                  Constants.PoolOperations.contains(operation.getType()) ||
-                  Constants.VoteOperations.contains(operation.getType());
+                  Constants.STAKING_OPERATIONS.contains(operation.getType()) ||
+                  Constants.POOL_OPERATIONS.contains(operation.getType()) ||
+                  Constants.VOTE_OPERATIONS.contains(operation.getType());
             }
         ).toList();
   }

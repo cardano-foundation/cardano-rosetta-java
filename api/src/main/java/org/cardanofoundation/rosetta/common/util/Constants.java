@@ -54,9 +54,9 @@ public class Constants {
 
   public static final String IS_POSITIVE_NUMBER = "^\\+?\\d+";
 
-  public static final String Token_Name_Validation = "^[0-9a-fA-F]{0," + ASSET_NAME_LENGTH + "}$";
+  public static final String TOKEN_NAME_VALIDATION = "^[0-9a-fA-F]{0," + ASSET_NAME_LENGTH + "}$";
 
-  public static final String PolicyId_Validation = "^[0-9a-fA-F]{" + POLICY_ID_LENGTH + "}$";
+  public static final String POLICY_ID_VALIDATION = "^[0-9a-fA-F]{" + POLICY_ID_LENGTH + "}$";
 
   public static final Integer SIGNATURE_LENGTH = 128;
 
@@ -89,26 +89,26 @@ public class Constants {
   public static final String CHAIN_CODE_DUMMY = new String(new char[CHAIN_CODE_LENGTH]).replace(
       "\0", "0");
 
-  public static final ArrayList<String> StakingOperations = new ArrayList<>(
+  public static final List<String> STAKING_OPERATIONS = new ArrayList<>(
       List.of(OperationType.STAKE_DELEGATION.getValue(),
           OperationType.STAKE_KEY_REGISTRATION.getValue(),
           OperationType.STAKE_KEY_DEREGISTRATION.getValue(),
           OperationType.WITHDRAWAL.getValue()));
-  public static final ArrayList<String> PoolOperations = new ArrayList<>(
+  public static final List<String> POOL_OPERATIONS = new ArrayList<>(
       List.of(OperationType.POOL_RETIREMENT.getValue(),
           OperationType.POOL_REGISTRATION.getValue(),
           OperationType.POOL_REGISTRATION_WITH_CERT.getValue()));
-  public static final ArrayList<String> StakePoolOperations = new ArrayList<>(
+  public static final List<String> STAKE_POOL_OPERATIONS = new ArrayList<>(
       List.of(OperationType.STAKE_DELEGATION.getValue(),
           OperationType.STAKE_KEY_REGISTRATION.getValue(),
           OperationType.STAKE_KEY_DEREGISTRATION.getValue(),
           OperationType.POOL_RETIREMENT.getValue(),
           OperationType.POOL_REGISTRATION.getValue(),
           OperationType.POOL_REGISTRATION_WITH_CERT.getValue()));
-  public static final ArrayList<String> VoteOperations = new ArrayList<>(
+  public static final List<String> VOTE_OPERATIONS = new ArrayList<>(
       List.of(OperationType.VOTE_REGISTRATION.getValue()));
 
-  public static final Integer Ed25519_Key_Signature_BYTE_LENGTH = 64;
+  public static final Integer ED_25519_KEY_SIGNATURE_BYTE_LENGTH = 64;
 
     public static final String CERTIFICATE = "certificate";
     public static final String ADDRESS = "address";
@@ -173,7 +173,7 @@ public class Constants {
   public static final String PORT = "port";
   public static final String IDENTIFIER = "identifier";
   public static final String COST = "cost";
-  public static final String EMPTY_SYMBOl = "0x";
+  public static final String EMPTY_SYMBOL = "0x";
   public static final String SYMBOL_REGEX = "\\x";
 
 
