@@ -4,6 +4,7 @@ import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.TimeZone;
 import java.util.stream.Collectors;
 
@@ -69,24 +70,21 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
 
   @Override
   public Block findBlock(Long blockNumber, String blockHash) {
-    log.debug(
-        "[findBlock] Parameters received for run query blockNumber: {} , blockHash: {}",
-        blockNumber, blockHash);
-    List<BlockEntity> blocks;
+    log.debug("Query blockNumber: {} , blockHash: {}", blockNumber, blockHash);
+    Optional<BlockEntity> block;
     if (blockHash == null && blockNumber != null) {
-      blocks = blockRepository.findByNumber(blockNumber);
+      block = blockRepository.findByNumber(blockNumber);
     } else if (blockHash != null && blockNumber == null) {
-      blocks = blockRepository.findByHash(blockHash);
+      block = blockRepository.findByHash(blockHash);
     } else {
-      blocks = blockRepository.findByNumberAndHash(blockNumber, blockHash);
+      block = blockRepository.findByNumberAndHash(blockNumber, blockHash);
     }
-    if (!blocks.isEmpty()) {
-      log.debug("[findBlock] Block found!");
-      BlockEntity block = blocks.getFirst();
-      SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    if (block.isPresent()) {
+      log.debug("Block found! {}", block);
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
       dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
       // Populating transactions
-      Block model = mapperBlock.fromEntity(block);
+      Block model = mapperBlock.fromEntity(block.get());
       populateTransactions(model.getTransactions());
       return model;
     }
@@ -100,17 +98,15 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
         "[findTransactionsByBlock] Parameters received for run query blockNumber: {} blockHash: {}",
         blockNumber, blockHash);
 
-    List<BlockEntity> byNumberAndHash = blockRepository.findByNumberAndHash(blockNumber, blockHash);
+    Optional<BlockEntity> byNumberAndHash = blockRepository.findByNumberAndHash(blockNumber, blockHash);
     if (byNumberAndHash.isEmpty()) {
-      log.debug(
-          "[findTransactionsByBlock] No block found for blockNumber: {} blockHash: {}",
+      log.debug("[findTransactionsByBlock] No block found for blockNumber: {} blockHash: {}",
           blockNumber, blockHash);
       return Collections.emptyList();
     }
-    List<TxnEntity> txList = txRepository.findTransactionsByBlockHash(
-        byNumberAndHash.getFirst().getHash());
-    log.debug(
-        "[findTransactionsByBlock] Found {} transactions", txList.size());
+    List<TxnEntity> txList = txRepository.
+        findTransactionsByBlockHash(byNumberAndHash.get().getHash());
+    log.debug("[findTransactionsByBlock] Found {} transactions", txList.size());
     if (ObjectUtils.isNotEmpty(txList)) {
       List<BlockTx> transactions = txList.stream().map(mapperTran::fromEntity).toList();
       populateTransactions(transactions);
@@ -152,8 +148,8 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
 
   private void populateTransactions(List<BlockTx> transactions) {
     for (BlockTx transaction : transactions) {
-      populateUtxos(transaction.getInputs());
-      populateUtxos(transaction.getOutputs());
+      populateUtxo(transaction.getInputs());
+      populateUtxo(transaction.getOutputs());
 
       transaction.setStakeRegistrations(
           stakeRegistrationRepository
@@ -192,7 +188,7 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
     }
   }
 
-  private void populateUtxos(List<Utxo> inputs) {
+  private void populateUtxo(List<Utxo> inputs) {
     for (Utxo utxo : inputs) {
       AddressUtxoEntity first = addressUtxoRepository.findAddressUtxoEntitiesByOutputIndexAndTxHash(
           utxo.getOutputIndex(), utxo.getTxHash()).getFirst();
