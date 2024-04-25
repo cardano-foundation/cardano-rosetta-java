@@ -223,7 +223,7 @@ class AccountServiceImplTest {
     AccountIdentifier accountIdentifier = getMockedAccountIdentifierAndMockAccountBalanceRequest(
         accountBalanceRequest, blockIdentifier, accountAddress);
     Block block = getMockBlock();
-    when(ledgerDataProviderService.findBlock(1L, HASH)).thenReturn(block);
+    when(ledgerBlockService.findBlock(1L, HASH)).thenReturn(block);
     when(ledgerDataProviderService.findStakeAddressBalanceByAddressAndBlock(accountAddress, 1L))
         .thenReturn(null);
 
@@ -232,7 +232,7 @@ class AccountServiceImplTest {
 
     assertEquals(RosettaErrorType.INVALID_ADDRESS.getMessage(),
         actualException.getError().getMessage());
-    verify(ledgerDataProviderService).findBlock(1L, HASH);
+    verify(ledgerBlockService).findBlock(1L, HASH);
     verify(ledgerDataProviderService).findStakeAddressBalanceByAddressAndBlock(accountAddress, 1L);
     verify(accountBalanceRequest).getAccountIdentifier();
     verify(accountBalanceRequest).getBlockIdentifier();
