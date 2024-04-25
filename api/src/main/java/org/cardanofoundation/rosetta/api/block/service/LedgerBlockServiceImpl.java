@@ -144,8 +144,8 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
           .number(genesis.getNumber())
           .build();
     }
-    log.debug("[findGenesisBlock] Genesis block was not found");
-    return null;
+    log.error("[findGenesisBlock] Genesis block was not found");
+    throw ExceptionFactory.genesisBlockNotFound();
   }
 
 

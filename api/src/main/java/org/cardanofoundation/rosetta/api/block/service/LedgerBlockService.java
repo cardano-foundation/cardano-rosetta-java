@@ -26,8 +26,16 @@ public interface LedgerBlockService {
    */
   List<BlockTx> findTransactionsByBlock(Long number, String hash);
 
-
+  /**
+   * Returns the latest block.
+   * @return block domain model
+   */
   Block findLatestBlock();
+
+  /**
+   * Returns the genesis block.
+   * @return the genesis block
+   */
 
   GenesisBlock findGenesisBlock();
 }
