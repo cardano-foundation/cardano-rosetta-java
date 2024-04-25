@@ -170,7 +170,9 @@ public class RosettaConstants {
     ADDRESS_AND_ACCOUNT_ID_NOT_MATCH("Address and account identifier does not match", 5016),
     BAD_FORMED_COIN_ERROR("Coin identifier has an invalid format", 5017),
     CANT_DECODE_MEMPOOL_TRANSACTION("Cant decode mempool transaction", 5018),
-    INVALID_TRANSACTION("Can't decode Transaction", 5019);
+    INVALID_TRANSACTION("Can't decode Transaction", 5019),
+    SERIALIZATION_ERROR("Error during serialization process", 5020),
+    DESERIALIZATION_ERROR("Error during deserialization process", 5021);
 
     final String message;
     final int code;
