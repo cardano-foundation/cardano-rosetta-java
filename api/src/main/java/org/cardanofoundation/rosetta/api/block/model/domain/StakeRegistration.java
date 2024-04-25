@@ -19,12 +19,4 @@ public class StakeRegistration {
 
   private String address;
 
-  public static StakeRegistration fromEntity(StakeRegistrationEntity entity) {
-    return StakeRegistration.builder()
-        .txHash(entity.getTxHash())
-        .certIndex(entity.getCertIndex())
-        .type(entity.getType())
-        .address(entity.getAddress())
-        .build();
-  }
 }

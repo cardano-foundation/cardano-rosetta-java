@@ -60,7 +60,7 @@ public void encodeStakeKeyDeregistrationTest()
 
   private String getEncodedTransaction(String filename)
       throws IOException, CborSerializationException, AddressExcepion, CborException {
-    CardanoServiceImpl cardanoService = new CardanoServiceImpl(null);
+    CardanoServiceImpl cardanoService = new CardanoServiceImpl(null,null);
     ConstructionPayloadsRequest request = getRequest(filename);
     UnsignedTransaction unsignedTransaction = cardanoService.createUnsignedTransaction(
         NetworkIdentifierType.findByName(request.getNetworkIdentifier().getNetwork()), request.getOperations(), request.getMetadata().getTtl(),

@@ -17,12 +17,4 @@ public class PoolRetirement {
 
   private Integer epoch;
 
-  public static PoolRetirement fromEntity(PoolRetirementEntity entity) {
-    return PoolRetirement.builder()
-        .txHash(entity.getTxHash())
-        .certIndex(entity.getCertIndex())
-        .poolId(entity.getPoolId())
-        .epoch(entity.getEpoch())
-        .build();
-  }
 }

@@ -17,12 +17,4 @@ public class Delegation {
 
   private String address;
 
-  public static Delegation fromEntity(DelegationEntity entity) {
-    return Delegation.builder()
-        .txHash(entity.getTxHash())
-        .certIndex(entity.getCertIndex())
-        .poolId(entity.getPoolId())
-        .address(entity.getAddress())
-        .build();
-  }
 }

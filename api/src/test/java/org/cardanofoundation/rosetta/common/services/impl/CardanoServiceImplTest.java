@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 
 public class CardanoServiceImplTest {
 
-  CardanoService cardanoService = new CardanoServiceImpl(null);
+  CardanoService cardanoService = new CardanoServiceImpl(null,null);
   @Test
   public void calculateFeeTest() {
     List<BigInteger> inputAmounts = List.of(BigInteger.valueOf(5L));

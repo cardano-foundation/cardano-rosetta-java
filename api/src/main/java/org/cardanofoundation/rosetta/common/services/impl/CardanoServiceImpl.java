@@ -1,5 +1,19 @@
 package org.cardanofoundation.rosetta.common.services.impl;
 
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 import co.nstant.in.cbor.CborException;
 import co.nstant.in.cbor.model.Array;
 import co.nstant.in.cbor.model.DataItem;
@@ -20,9 +34,6 @@ import com.bloxbean.cardano.client.transaction.spec.TransactionBody;
 import com.bloxbean.cardano.client.transaction.spec.TransactionWitnessSet;
 import com.bloxbean.cardano.client.transaction.spec.VkeyWitness;
 import com.bloxbean.cardano.client.util.HexUtil;
-import java.io.IOException;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import okhttp3.Call;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -31,42 +42,35 @@ import okhttp3.Request.Builder;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import org.apache.commons.lang3.ObjectUtils;
-import org.cardanofoundation.rosetta.api.block.model.domain.ProcessOperations;
-import org.cardanofoundation.rosetta.api.block.model.domain.ProcessOperationsReturn;
-import org.cardanofoundation.rosetta.common.enumeration.AddressType;
-import org.cardanofoundation.rosetta.common.enumeration.EraAddressType;
-import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
-import org.cardanofoundation.rosetta.common.exception.ApiException;
-import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
-import org.cardanofoundation.rosetta.api.block.model.domain.Block;
-import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
-import org.cardanofoundation.rosetta.common.mapper.CborArrayToTransactionData;
-import org.cardanofoundation.rosetta.common.model.cardano.crypto.Signatures;
-import org.cardanofoundation.rosetta.common.model.cardano.transaction.TransactionData;
-import org.cardanofoundation.rosetta.common.model.cardano.transaction.TransactionParsed;
-import org.cardanofoundation.rosetta.common.model.cardano.transaction.UnsignedTransaction;
-import org.cardanofoundation.rosetta.common.services.CardanoService;
-import org.cardanofoundation.rosetta.common.services.LedgerDataProviderService;
-import org.cardanofoundation.rosetta.common.util.CardanoAddressUtils;
-import org.cardanofoundation.rosetta.common.util.Constants;
-import org.cardanofoundation.rosetta.common.mapper.TransactionDataToOperations;
-import org.cardanofoundation.rosetta.common.util.OperationParseUtil;
-import org.cardanofoundation.rosetta.common.util.ValidateParseUtil;
+import org.jetbrains.annotations.NotNull;
 import org.openapitools.client.model.AccountIdentifier;
 import org.openapitools.client.model.DepositParameters;
 import org.openapitools.client.model.Operation;
 import org.openapitools.client.model.SignatureType;
 import org.openapitools.client.model.SigningPayload;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+
+import org.cardanofoundation.rosetta.api.block.model.domain.Block;
+import org.cardanofoundation.rosetta.api.block.model.domain.ProcessOperations;
+import org.cardanofoundation.rosetta.api.block.model.domain.ProcessOperationsReturn;
+import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
+import org.cardanofoundation.rosetta.api.block.service.LedgerBlockService;
+import org.cardanofoundation.rosetta.common.enumeration.AddressType;
+import org.cardanofoundation.rosetta.common.enumeration.EraAddressType;
+import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
+import org.cardanofoundation.rosetta.common.exception.ApiException;
+import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
+import org.cardanofoundation.rosetta.common.mapper.CborArrayToTransactionData;
+import org.cardanofoundation.rosetta.common.mapper.TransactionDataToOperations;
+import org.cardanofoundation.rosetta.common.model.cardano.crypto.Signatures;
+import org.cardanofoundation.rosetta.common.model.cardano.transaction.TransactionData;
+import org.cardanofoundation.rosetta.common.model.cardano.transaction.TransactionParsed;
+import org.cardanofoundation.rosetta.common.model.cardano.transaction.UnsignedTransaction;
+import org.cardanofoundation.rosetta.common.services.CardanoService;
+import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
+import org.cardanofoundation.rosetta.common.util.CardanoAddressUtils;
+import org.cardanofoundation.rosetta.common.util.Constants;
+import org.cardanofoundation.rosetta.common.util.OperationParseUtil;
+import org.cardanofoundation.rosetta.common.util.ValidateParseUtil;
 
 import static java.math.BigInteger.valueOf;
 
@@ -76,7 +80,9 @@ import static java.math.BigInteger.valueOf;
 @RequiredArgsConstructor
 public class CardanoServiceImpl implements CardanoService {
 
-  private final LedgerDataProviderService ledgerDataProviderService;
+  private final ProtocolParamService protocolParamService;
+  private final LedgerBlockService ledgerBlockService;
+
     @Value("${cardano.rosetta.NODE_SUBMIT_API_PORT}")
     private int NODE_SUBMIT_API_PORT;
     @Value("${cardano.rosetta.CARDANO_NODE_SUBMIT_HOST}")
@@ -153,7 +159,7 @@ public class CardanoServiceImpl implements CardanoService {
 
   @Override
   public Long calculateTtl(Long ttlOffset) {
-    Block latestBlock = ledgerDataProviderService.findLatestBlock();
+    Block latestBlock = ledgerBlockService.findLatestBlock();
     return latestBlock.getSlotNo() + ttlOffset;
   }
 
@@ -528,7 +534,7 @@ public class CardanoServiceImpl implements CardanoService {
    */
   @Override
     public DepositParameters getDepositParameters() {
-      ProtocolParams protocolParametersFromIndexerAndConfig = ledgerDataProviderService.findProtocolParametersFromIndexerAndConfig();
+      ProtocolParams protocolParametersFromIndexerAndConfig = protocolParamService.findProtocolParametersFromIndexerAndConfig();
       return new DepositParameters(protocolParametersFromIndexerAndConfig.getKeyDeposit().toString(),
             protocolParametersFromIndexerAndConfig.getPoolDeposit().toString());
     }
