@@ -28,6 +28,7 @@ import org.cardanofoundation.rosetta.api.block.model.domain.PoolRetirement;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
 import org.cardanofoundation.rosetta.api.block.model.domain.StakeRegistration;
 import org.cardanofoundation.rosetta.api.block.model.entity.BlockEntity;
+import org.cardanofoundation.rosetta.api.block.model.entity.PoolRegistrationEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.TxnEntity;
 import org.cardanofoundation.rosetta.api.block.model.repository.BlockRepository;
 import org.cardanofoundation.rosetta.api.block.model.repository.DelegationRepository;
@@ -154,8 +155,11 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
     transaction.setPoolRegistrations(poolRegistrationRepository
         .findByTxHash(transaction.getHash())
         .stream()
-        .map(PoolRegistration::fromEntity)
-        .toList()); // TODO Refacotring - do this via JPA
+        .map(poolReg -> mapper.typeMap(PoolRegistrationEntity.class, PoolRegistration.class)
+            .addMappings(mp ->
+                mp.map(PoolRegistrationEntity::getPoolOwners, PoolRegistration::setOwners))
+            .map(poolReg))
+        .collect(Collectors.toList()));
 
     transaction.setPoolRetirements(poolRetirementRepository
         .findByTxHash(transaction.getHash())
