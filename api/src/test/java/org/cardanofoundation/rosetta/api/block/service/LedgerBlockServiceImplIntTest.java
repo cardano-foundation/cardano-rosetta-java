@@ -12,8 +12,10 @@ import org.junit.jupiter.api.Test;
 import org.cardanofoundation.rosetta.api.IntegrationTest;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
+import org.cardanofoundation.rosetta.api.block.model.domain.Delegation;
 import org.cardanofoundation.rosetta.api.block.model.domain.GenesisBlock;
 import org.cardanofoundation.rosetta.api.block.model.entity.BlockEntity;
+import org.cardanofoundation.rosetta.api.block.model.entity.DelegationEntity;
 import org.cardanofoundation.rosetta.testgenerator.common.TransactionBlockDetails;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -81,6 +83,24 @@ class LedgerBlockServiceImplIntTest extends IntegrationTest {
     assertThat(blockTx.getDelegations().size()).isEqualTo(1);
     assertThat(blockTx.getDelegations().getFirst().getAddress())
         .isEqualTo(STAKE_ADDRESS_WITH_EARNED_REWARDS);
+
+    List<DelegationEntity> delegations = entityManager
+        .createQuery("FROM DelegationEntity b where b.txHash=:hash", DelegationEntity.class)
+        .setParameter("hash", tx.txHash())
+        .getResultList();
+    assertThat(delegations).isNotNull();
+
+    assertThat(delegations.size()).isEqualTo(1);
+    DelegationEntity expected = delegations.getFirst();
+    assertThat(expected.getAddress()).isEqualTo(STAKE_ADDRESS_WITH_EARNED_REWARDS);
+
+    Delegation actual = blockTx.getDelegations().getFirst();
+    assertThat(actual.getTxHash()).isEqualTo(expected.getTxHash());
+    assertThat(actual.getAddress()).isEqualTo(expected.getAddress());
+    assertThat(actual.getPoolId()).isEqualTo(expected.getPoolId());
+    assertThat(actual.getCertIndex()).isEqualTo(expected.getCertIndex());
+
+
   }
 
   @Test
@@ -131,4 +151,6 @@ class LedgerBlockServiceImplIntTest extends IntegrationTest {
     assertThat(block.getTransactions().size()).isEqualTo(1);
     assertThat(block.getTransactions().getFirst().getHash()).isEqualTo(tx.txHash());
   }
+
+
 }
