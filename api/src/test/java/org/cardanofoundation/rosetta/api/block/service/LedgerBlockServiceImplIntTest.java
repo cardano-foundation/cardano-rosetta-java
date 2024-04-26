@@ -14,16 +14,22 @@ import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.model.domain.Delegation;
 import org.cardanofoundation.rosetta.api.block.model.domain.GenesisBlock;
 import org.cardanofoundation.rosetta.api.block.model.domain.PoolRegistration;
+import org.cardanofoundation.rosetta.api.block.model.domain.PoolRetirement;
+import org.cardanofoundation.rosetta.api.block.model.domain.StakeRegistration;
 import org.cardanofoundation.rosetta.api.block.model.entity.BlockEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.DelegationEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.PoolRegistrationEntity;
+import org.cardanofoundation.rosetta.api.block.model.entity.PoolRetirementEntity;
+import org.cardanofoundation.rosetta.api.block.model.entity.StakeRegistrationEntity;
 import org.cardanofoundation.rosetta.testgenerator.common.TransactionBlockDetails;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.cardanofoundation.rosetta.testgenerator.common.TestConstants.STAKE_ADDRESS_WITH_EARNED_REWARDS;
 import static org.cardanofoundation.rosetta.testgenerator.common.TestTransactionNames.POOL_DELEGATION_TRANSACTION;
 import static org.cardanofoundation.rosetta.testgenerator.common.TestTransactionNames.POOL_REGISTRATION_TRANSACTION;
+import static org.cardanofoundation.rosetta.testgenerator.common.TestTransactionNames.POOL_RETIREMENT_TRANSACTION;
 import static org.cardanofoundation.rosetta.testgenerator.common.TestTransactionNames.SIMPLE_TRANSACTION;
+import static org.cardanofoundation.rosetta.testgenerator.common.TestTransactionNames.STAKE_KEY_REGISTRATION_TRANSACTION;
 
 class LedgerBlockServiceImplIntTest extends IntegrationTest {
 
@@ -66,13 +72,13 @@ class LedgerBlockServiceImplIntTest extends IntegrationTest {
 
 
   @Test
-  void findTransactionsByBlock_Test_pool_tx() {
+  void findTransactionsByBlock_Test_delegation_tx() {
     //given
     TransactionBlockDetails tx = generatedDataMap.get(POOL_DELEGATION_TRANSACTION.getName());
     //when
     List<BlockTx> txs =
         ledgerBlockService.findTransactionsByBlock(tx.blockNumber(), tx.blockHash());
-
+    //then
     assertThat(txs).isNotNull();
     assertThat(txs.size()).isEqualTo(1);
 
@@ -102,13 +108,13 @@ class LedgerBlockServiceImplIntTest extends IntegrationTest {
   }
 
   @Test
-  void findTransactionsByBlock_Test_registration_tx() {
+  void findTransactionsByBlock_Test_pool_reg_tx() {
     //given
     TransactionBlockDetails tx = generatedDataMap.get(POOL_REGISTRATION_TRANSACTION.getName());
     //when
     List<BlockTx> txs =
         ledgerBlockService.findTransactionsByBlock(tx.blockNumber(), tx.blockHash());
-
+    //then
     assertThat(txs).isNotNull();
     assertThat(txs.size()).isEqualTo(1);
 
@@ -149,6 +155,72 @@ class LedgerBlockServiceImplIntTest extends IntegrationTest {
   }
 
   @Test
+  void findTransactionsByBlock_Test_pool_ret_tx() {
+    //given
+    TransactionBlockDetails tx = generatedDataMap.get(POOL_RETIREMENT_TRANSACTION.getName());
+    //when
+    List<BlockTx> txs =
+        ledgerBlockService.findTransactionsByBlock(tx.blockNumber(), tx.blockHash());
+    //then
+    assertThat(txs).isNotNull();
+    assertThat(txs.size()).isEqualTo(1);
+
+    BlockTx blockTx = txs.getFirst();
+    assertThat(blockTx.getHash()).isEqualTo(tx.txHash());
+    assertThat(blockTx.getBlockNo()).isEqualTo(tx.blockNumber());
+    assertThat(blockTx.getBlockHash()).isEqualTo(tx.blockHash());
+    assertThat(blockTx.getPoolRetirements().size()).isEqualTo(1);
+
+    List<PoolRetirementEntity> entity = entityManager
+        .createQuery("FROM PoolRetirementEntity b where b.txHash=:hash", PoolRetirementEntity.class)
+        .setParameter("hash", tx.txHash())
+        .getResultList();
+    assertThat(entity).isNotNull();
+
+    assertThat(entity.size()).isEqualTo(1);
+    PoolRetirementEntity expected = entity.getFirst();
+
+    PoolRetirement actual = blockTx.getPoolRetirements().getFirst();
+    assertThat(actual.getTxHash()).isEqualTo(expected.getTxHash());
+    assertThat(actual.getPoolId()).isEqualTo(expected.getPoolId());
+    assertThat(actual.getCertIndex()).isEqualTo(expected.getCertIndex());
+    assertThat(actual.getEpoch()).isEqualTo(expected.getEpoch());
+  }
+
+  @Test
+  void findTransactionsByBlock_Test_stake_pool_tx() {
+    //given
+    TransactionBlockDetails tx = generatedDataMap.get(STAKE_KEY_REGISTRATION_TRANSACTION.getName());
+    //when
+    List<BlockTx> txs =
+        ledgerBlockService.findTransactionsByBlock(tx.blockNumber(), tx.blockHash());
+    //then
+    assertThat(txs).isNotNull();
+    assertThat(txs.size()).isEqualTo(1);
+
+    BlockTx blockTx = txs.getFirst();
+    assertThat(blockTx.getHash()).isEqualTo(tx.txHash());
+    assertThat(blockTx.getBlockNo()).isEqualTo(tx.blockNumber());
+    assertThat(blockTx.getBlockHash()).isEqualTo(tx.blockHash());
+    assertThat(blockTx.getStakeRegistrations().size()).isEqualTo(1);
+
+    List<StakeRegistrationEntity> entity = entityManager
+        .createQuery("FROM StakeRegistrationEntity b where b.txHash=:hash", StakeRegistrationEntity.class)
+        .setParameter("hash", tx.txHash())
+        .getResultList();
+    assertThat(entity).isNotNull();
+
+    assertThat(entity.size()).isEqualTo(1);
+    StakeRegistrationEntity expected = entity.getFirst();
+
+    StakeRegistration actual = blockTx.getStakeRegistrations().getFirst();
+    assertThat(actual.getTxHash()).isEqualTo(expected.getTxHash());
+    assertThat(actual.getAddress()).isEqualTo(expected.getAddress());
+    assertThat(actual.getCertIndex()).isEqualTo(expected.getCertIndex());
+    assertThat(actual.getType()).isEqualTo(expected.getType());
+  }
+
+  @Test
   void findLatestBlock() {
     //given
     BlockEntity fromBlockB = entityManager
@@ -178,7 +250,6 @@ class LedgerBlockServiceImplIntTest extends IntegrationTest {
     assertThat(genesisBlock.getNumber()).isEqualTo(-1);
     assertThat(genesisBlock.getNumber()).isEqualTo(fromBlockB.getNumber());
     assertThat(genesisBlock.getHash()).isEqualTo("Genesis");
-
   }
 
   private static void assertBlocks(Block latestBlock, BlockEntity fromBlockB) {
@@ -196,6 +267,4 @@ class LedgerBlockServiceImplIntTest extends IntegrationTest {
     assertThat(block.getTransactions().size()).isEqualTo(1);
     assertThat(block.getTransactions().getFirst().getHash()).isEqualTo(tx.txHash());
   }
-
-
 }
