@@ -6,7 +6,7 @@ import java.util.Set;
 import lombok.Builder;
 import lombok.Data;
 
-import org.cardanofoundation.rosetta.api.block.model.entity.PoolRegistrationEnity;
+import org.cardanofoundation.rosetta.api.block.model.entity.PoolRegistrationEntity;
 import org.openapitools.client.model.Relay;
 
 @Data
@@ -24,7 +24,7 @@ public class PoolRegistration {
   private Set<String> owners;
   private List<Relay> relays;
 
-  public static PoolRegistration fromEntity(PoolRegistrationEnity entity) {
+  public static PoolRegistration fromEntity(PoolRegistrationEntity entity) {
     return PoolRegistration.builder()
         .txHash(entity.getTxHash())
         .certIndex(entity.getCertIndex())

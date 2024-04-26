@@ -1,7 +1,6 @@
 package org.cardanofoundation.rosetta.api.block.service;
 
 import java.util.List;
-
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 
@@ -14,13 +13,16 @@ import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.model.domain.Delegation;
 import org.cardanofoundation.rosetta.api.block.model.domain.GenesisBlock;
+import org.cardanofoundation.rosetta.api.block.model.domain.PoolRegistration;
 import org.cardanofoundation.rosetta.api.block.model.entity.BlockEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.DelegationEntity;
+import org.cardanofoundation.rosetta.api.block.model.entity.PoolRegistrationEntity;
 import org.cardanofoundation.rosetta.testgenerator.common.TransactionBlockDetails;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.cardanofoundation.rosetta.testgenerator.common.TestConstants.STAKE_ADDRESS_WITH_EARNED_REWARDS;
 import static org.cardanofoundation.rosetta.testgenerator.common.TestTransactionNames.POOL_DELEGATION_TRANSACTION;
+import static org.cardanofoundation.rosetta.testgenerator.common.TestTransactionNames.POOL_REGISTRATION_TRANSACTION;
 import static org.cardanofoundation.rosetta.testgenerator.common.TestTransactionNames.SIMPLE_TRANSACTION;
 
 class LedgerBlockServiceImplIntTest extends IntegrationTest {
@@ -63,8 +65,6 @@ class LedgerBlockServiceImplIntTest extends IntegrationTest {
   }
 
 
-
-
   @Test
   void findTransactionsByBlock_Test_pool_tx() {
     //given
@@ -99,8 +99,51 @@ class LedgerBlockServiceImplIntTest extends IntegrationTest {
     assertThat(actual.getAddress()).isEqualTo(expected.getAddress());
     assertThat(actual.getPoolId()).isEqualTo(expected.getPoolId());
     assertThat(actual.getCertIndex()).isEqualTo(expected.getCertIndex());
+  }
 
+  @Test
+  void findTransactionsByBlock_Test_registration_tx() {
+    //given
+    TransactionBlockDetails tx = generatedDataMap.get(POOL_REGISTRATION_TRANSACTION.getName());
+    //when
+    List<BlockTx> txs =
+        ledgerBlockService.findTransactionsByBlock(tx.blockNumber(), tx.blockHash());
 
+    assertThat(txs).isNotNull();
+    assertThat(txs.size()).isEqualTo(1);
+
+    BlockTx blockTx = txs.getFirst();
+    assertThat(blockTx.getHash()).isEqualTo(tx.txHash());
+    assertThat(blockTx.getBlockNo()).isEqualTo(tx.blockNumber());
+    assertThat(blockTx.getBlockHash()).isEqualTo(tx.blockHash());
+    assertThat(blockTx.getPoolRegistrations().size()).isEqualTo(1);
+
+    List<PoolRegistrationEntity> entity = entityManager
+        .createQuery(
+            "FROM PoolRegistrationEntity b where b.txHash=:hash", PoolRegistrationEntity.class)
+        .setParameter("hash", tx.txHash())
+        .getResultList();
+    assertThat(entity).isNotNull();
+
+    assertThat(entity.size()).isEqualTo(1);
+    PoolRegistrationEntity expected = entity.getFirst();
+
+    PoolRegistration actual = blockTx.getPoolRegistrations().getFirst();
+    assertThat(actual.getTxHash()).isEqualTo(expected.getTxHash());
+    assertThat(actual.getPoolId()).isEqualTo(expected.getPoolId());
+    assertThat(actual.getCertIndex()).isEqualTo(expected.getCertIndex());
+    assertThat(actual.getVrfKeyHash()).isEqualTo(expected.getVrfKeyHash());
+    assertThat(actual.getPledge()).isEqualTo(expected.getPledge().toString());
+    assertThat(actual.getMargin()).isEqualTo(expected.getMargin().toString());
+    assertThat(actual.getCost()).isEqualTo(expected.getCost().toString());
+    assertThat(actual.getRewardAccount()).isEqualTo(expected.getRewardAccount());
+    assertThat(actual.getOwners()).isNotEmpty();
+    assertThat(actual.getOwners()).containsExactlyInAnyOrderElementsOf(expected.getPoolOwners());
+    assertThat(actual.getRelays().size()).isEqualTo(1);
+    assertThat(actual.getRelays().getFirst())
+        .usingRecursiveComparison()
+        .ignoringFields("type")
+        .isEqualTo(expected.getRelays().getFirst());
   }
 
   @Test
