@@ -106,12 +106,12 @@ public class CardanoAddressUtils {
   }
 
   public static String add0xPrefix(String hex) {
-    return (hex.startsWith("0x") ? hex : Constants.EMPTY_SYMBOl + hex);
+    return (hex.startsWith("0x") ? hex : Constants.EMPTY_SYMBOL + hex);
   }
 
   public static boolean isEd25519Signature(String hash) {
     byte[] signatureByte = HexUtil.decodeHexString(hash);
-    return signatureByte.length >= Constants.Ed25519_Key_Signature_BYTE_LENGTH;
+    return signatureByte.length >= Constants.ED_25519_KEY_SIGNATURE_BYTE_LENGTH;
   }
 
 
@@ -179,11 +179,11 @@ public class CardanoAddressUtils {
   }
 
   public static Boolean isPolicyIdValid(String policyId) {
-    return policyId.matches(Constants.PolicyId_Validation);
+    return policyId.matches(Constants.POLICY_ID_VALIDATION);
   }
 
   public static Boolean isTokenNameValid(String name) {
-    return name.matches(Constants.Token_Name_Validation) || isEmptyHexString(name);
+    return name.matches(Constants.TOKEN_NAME_VALIDATION) || isEmptyHexString(name);
   }
 
   public static Boolean isEmptyHexString(String toCheck) {
