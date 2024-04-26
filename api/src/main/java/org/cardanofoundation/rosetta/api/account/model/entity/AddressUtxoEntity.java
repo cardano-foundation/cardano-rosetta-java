@@ -44,6 +44,6 @@ public class AddressUtxoEntity {
   @Column(name = "owner_addr")
   private String ownerAddr;
 
-  @OneToMany(mappedBy = "addressUtxo", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
-  private List<AmtEntity> amounts;
+  @Type(JsonType.class)
+  private List<Amt> amounts;
 }

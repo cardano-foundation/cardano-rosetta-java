@@ -9,10 +9,8 @@ import java.util.TimeZone;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.cardanofoundation.rosetta.api.account.model.entity.AmtEntity;
 import org.cardanofoundation.rosetta.api.block.mapper.WithdrawalEntityToWithdrawal;
 import org.cardanofoundation.rosetta.api.block.model.repository.WithdrawalRepository;
-import org.cardanofoundation.rosetta.common.mapper.AmtEntityToAmt;
 import org.springframework.stereotype.Component;
 import org.apache.commons.lang3.ObjectUtils;
 import org.modelmapper.ModelMapper;
@@ -28,7 +26,6 @@ import org.cardanofoundation.rosetta.api.account.model.repository.AddressBalance
 import org.cardanofoundation.rosetta.api.account.model.repository.AddressUtxoRepository;
 import org.cardanofoundation.rosetta.api.block.mapper.BlockToEntity;
 import org.cardanofoundation.rosetta.api.block.mapper.BlockTxToEntity;
-import org.cardanofoundation.rosetta.api.block.mapper.WithdrawalEntityToWithdrawal;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.model.domain.Delegation;
@@ -50,7 +47,6 @@ import org.cardanofoundation.rosetta.api.block.model.repository.PoolRetirementRe
 import org.cardanofoundation.rosetta.api.block.model.repository.StakeAddressRepository;
 import org.cardanofoundation.rosetta.api.block.model.repository.StakeRegistrationRepository;
 import org.cardanofoundation.rosetta.api.block.model.repository.TxRepository;
-import org.cardanofoundation.rosetta.api.block.model.repository.WithdrawalRepository;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.mapper.ProtocolParamsToEntity;
 import org.cardanofoundation.rosetta.common.services.LedgerDataProviderService;
@@ -244,14 +240,13 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
 
   private static List<Amt> getAmts(List<Currency> currencies, AddressUtxoEntity entity) {
     return currencies.isEmpty()
-        ? entity.getAmounts().stream().map(AmtEntityToAmt::fromEntity).toList()
+        ? entity.getAmounts().stream().toList()
         : entity.getAmounts().stream()
             .filter(amt -> isAmountMatchesCurrency(currencies, amt))
-            .map(AmtEntityToAmt::fromEntity)
             .toList();
   }
 
-  private static boolean isAmountMatchesCurrency(List<Currency> currencies, AmtEntity amt) {
+  private static boolean isAmountMatchesCurrency(List<Currency> currencies, Amt amt) {
     return currencies.stream()
         .anyMatch(currency -> {
           String currencyUnit = Formatters.isEmptyHexString(currency.getSymbol()) ?
