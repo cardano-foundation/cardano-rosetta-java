@@ -70,6 +70,24 @@ class LedgerBlockServiceImplIntTest extends IntegrationTest {
     assertBlockAndTx(block, tx);
   }
 
+  @Test
+  void findBlock_Test_OK_empty() {
+    //given
+    TransactionBlockDetails tx = generatedDataMap.get(SIMPLE_TRANSACTION.getName());
+    //when
+    Block block = ledgerBlockService.findBlock(-234L, "#####2");
+    //then
+    assertThat(block).isNull();
+  }
+
+  @Test
+  void findTransactionsByBlock_Test_empty_tx() {
+    //given
+    //when
+    List<BlockTx> txs = ledgerBlockService.findTransactionsByBlock(-123L, "#####");
+    //then
+    assertThat(txs).isEmpty();
+  }
 
   @Test
   void findTransactionsByBlock_Test_delegation_tx() {
