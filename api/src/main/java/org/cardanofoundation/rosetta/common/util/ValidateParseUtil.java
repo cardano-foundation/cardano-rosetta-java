@@ -135,7 +135,8 @@ public class ValidateParseUtil {
                 if (token.getCurrency().getSymbol().equals(Constants.SYMBOL_REGEX)) {
                     token.getCurrency().setSymbol("");
                 }
-                assets.add(new Asset(token.getCurrency().getSymbol().startsWith(Constants.EMPTY_SYMBOl) ? token.getCurrency().getSymbol() : Constants.EMPTY_SYMBOl + token.getCurrency().getSymbol(), valueOf(Long.parseLong(token.getValue()))));
+                assets.add(new Asset(token.getCurrency().getSymbol().startsWith(Constants.EMPTY_SYMBOL) ? token.getCurrency().getSymbol() : Constants.EMPTY_SYMBOL
+                    + token.getCurrency().getSymbol(), valueOf(Long.parseLong(token.getValue()))));
                 assetsCheck.add(new Asset(token.getCurrency().getSymbol(), valueOf(Long.parseLong(token.getValue()))));
             });
             multiAssets.add(new MultiAsset(tokenBundleItem.getPolicyId(), assets));

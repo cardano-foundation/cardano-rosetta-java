@@ -255,7 +255,7 @@ public class ParseConstructionUtil {
 
     for (int i = 0; i < certsCount; i++) {
       Operation certOperation = certOps.get(i);
-      if (Constants.StakingOperations.contains(certOperation.getType())) {
+      if (Constants.STAKING_OPERATIONS.contains(certOperation.getType())) {
         String hex = null;
         if (checkStakeCredential(certOperation)) {
           hex = certOperation.getMetadata().getStakingCredential().getHexBytes();

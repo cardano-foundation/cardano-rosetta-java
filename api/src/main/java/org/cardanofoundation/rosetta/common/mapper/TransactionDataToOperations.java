@@ -85,7 +85,7 @@ public class TransactionDataToOperations {
       Integer network, List<Operation> operations)
       throws CborException, CborSerializationException {
     List<Operation> certOps = extraData.operations().stream()
-        .filter(o -> Constants.StakePoolOperations.contains(o.getType())
+        .filter(o -> Constants.STAKE_POOL_OPERATIONS.contains(o.getType())
         ).toList();
     List<Operation> parsedCertOperations = ParseConstructionUtil.parseCertsToOperations(
         transactionBody, certOps,
@@ -124,7 +124,7 @@ public class TransactionDataToOperations {
   }
   public static List<String> getSignerFromOperation(NetworkIdentifierType networkIdentifierType,
       Operation operation) {
-    if (Constants.PoolOperations.contains(operation.getType())) {
+    if (Constants.POOL_OPERATIONS.contains(operation.getType())) {
       return getPoolSigners(networkIdentifierType, operation);
     }
     if (!ObjectUtils.isEmpty(
