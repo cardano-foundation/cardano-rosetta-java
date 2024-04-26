@@ -143,6 +143,8 @@ class LedgerBlockServiceImplIntTest extends IntegrationTest {
     assertThat(actual.getRelays().getFirst())
         .usingRecursiveComparison()
         .ignoringFields("type")
+        // If you have a warning in IDEA for the isEqualTo than it is not fixed yet:
+        // https://youtrack.jetbrains.com/issue/IDEA-347472/
         .isEqualTo(expected.getRelays().getFirst());
   }
 

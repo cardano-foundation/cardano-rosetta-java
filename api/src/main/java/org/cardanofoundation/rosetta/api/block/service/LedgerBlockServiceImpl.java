@@ -2,7 +2,6 @@ package org.cardanofoundation.rosetta.api.block.service;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -11,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.stereotype.Component;
 import org.apache.commons.lang3.ObjectUtils;
+import org.jetbrains.annotations.NotNull;
 import org.modelmapper.ModelMapper;
 
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
@@ -66,23 +66,27 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
   @Override
   public Block findBlock(Long blockNumber, String blockHash) {
     log.debug("Query blockNumber: {} , blockHash: {}", blockNumber, blockHash);
-    Optional<BlockEntity> block;
+    Optional<BlockEntity> blockEntity;
     if (blockHash == null && blockNumber != null) {
-      block = blockRepository.findByNumber(blockNumber);
+      blockEntity = blockRepository.findByNumber(blockNumber);
     } else if (blockHash != null && blockNumber == null) {
-      block = blockRepository.findByHash(blockHash);
+      blockEntity = blockRepository.findByHash(blockHash);
     } else {
-      block = blockRepository.findByNumberAndHash(blockNumber, blockHash);
+      blockEntity = blockRepository.findByNumberAndHash(blockNumber, blockHash);
     }
-    if (block.isPresent()) {
-      log.debug("Block found! {}", block);
-      // Populating transactions
-      Block model = mapperBlock.fromEntity(block.get());
-      model.getTransactions().forEach(this::populateTransaction);
-      return model;
+    if (blockEntity.isPresent()) {
+      log.debug("Block found! {}", blockEntity);
+      return toModelFrom(blockEntity.get());
     }
     log.debug("[findBlock] No block was found");
-    return null;
+    return null; //TODO saa: replace with optional
+  }
+
+  @NotNull
+  private Block toModelFrom(BlockEntity blockEntity) {
+    Block model = mapperBlock.fromEntity(blockEntity);
+    model.getTransactions().forEach(this::populateTransaction);
+    return model;
   }
 
   @Override
@@ -107,15 +111,9 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
   @Override
   public Block findLatestBlock() {
     log.info("[getLatestBlock] About to look for latest block");
-    Long latestBlockNumber = blockRepository.findLatestBlockNumber();
-    log.info("[getLatestBlock] Latest block number is {}", latestBlockNumber);
-    Block latestBlock = findBlock(latestBlockNumber, null);
-    if (Objects.isNull(latestBlock)) {
-      log.error("[getLatestBlock] Latest block not found");
-      throw ExceptionFactory.blockNotFoundException();
-    }
+    BlockEntity latestBlock = blockRepository.findLatestBlock();
     log.debug("[getLatestBlock] Returning latest block {}", latestBlock);
-    return latestBlock;
+    return toModelFrom(latestBlock);
   }
 
   @Override
