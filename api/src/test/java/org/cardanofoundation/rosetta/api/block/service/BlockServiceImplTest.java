@@ -15,7 +15,6 @@ import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
 import org.cardanofoundation.rosetta.common.exception.ApiException;
 import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
-import org.cardanofoundation.rosetta.common.services.LedgerDataProviderService;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.cardanofoundation.rosetta.common.util.RosettaConstants.RosettaErrorType.BLOCK_NOT_FOUND;
@@ -27,7 +26,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class BlockServiceImplTest {
   @Mock
-  private LedgerDataProviderService ledgerDataProviderService;
+  private LedgerBlockService ledgerBlockService;
   @InjectMocks
   private BlockServiceImpl blockService;
   @Mock
@@ -47,7 +46,7 @@ class BlockServiceImplTest {
     long index = 1;
     String hash = "hash1";
     Block expected = newBlock();
-    when(ledgerDataProviderService.findBlock(index, hash)).thenReturn(expected);
+    when(ledgerBlockService.findBlock(index, hash)).thenReturn(expected);
     //when
     Block block = blockService.findBlock(index, hash);
     //then
@@ -60,7 +59,7 @@ class BlockServiceImplTest {
     givenProtocolParam();
     long index = 1;
     String hash = "hash1";
-    when(ledgerDataProviderService.findBlock(index, hash)).thenReturn(newBlock());
+    when(ledgerBlockService.findBlock(index, hash)).thenReturn(newBlock());
     //when
     Block block = blockService.findBlock(index, hash);
     //then
@@ -71,7 +70,7 @@ class BlockServiceImplTest {
   void getBlockByBlockRequest_blockNotFoundException() {
     //given
     givenProtocolParam();
-    when(ledgerDataProviderService.findBlock(anyLong(), anyString())).thenReturn(newBlock());
+    when(ledgerBlockService.findBlock(anyLong(), anyString())).thenReturn(newBlock());
     //when
     try {
       blockService.findBlock(1L, "hash");
@@ -87,7 +86,7 @@ class BlockServiceImplTest {
     givenProtocolParam();
     long index = 1;
     String hash = "hash1";
-    when(ledgerDataProviderService.findBlock(index, hash)).thenReturn(newBlock());
+    when(ledgerBlockService.findBlock(index, hash)).thenReturn(newBlock());
     try {
       //when
       blockService.findBlock(index, hash);
@@ -122,7 +121,7 @@ class BlockServiceImplTest {
     BlockTx tx = newTran(txHash);
     long blockId = 1L;
     String blockHash = "hash1";
-    when(ledgerDataProviderService.findTransactionsByBlock(blockId, blockHash))
+    when(ledgerBlockService.findTransactionsByBlock(blockId, blockHash))
         .thenReturn(List.of(tx));
     //when
     BlockTx blockTransaction = blockService.getBlockTransaction(blockId, blockHash, txHash);
@@ -136,7 +135,7 @@ class BlockServiceImplTest {
     //given
     long blockId = 1L;
     String blockHash = "hash1";
-    when(ledgerDataProviderService.findTransactionsByBlock(blockId, blockHash))
+    when(ledgerBlockService.findTransactionsByBlock(blockId, blockHash))
         .thenReturn(List.of(newTran("any")));
     try {
       //when

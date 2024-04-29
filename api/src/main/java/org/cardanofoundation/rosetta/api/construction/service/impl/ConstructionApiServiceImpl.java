@@ -24,6 +24,7 @@ import org.cardanofoundation.rosetta.common.services.CardanoAddressService;
 import org.cardanofoundation.rosetta.common.services.CardanoService;
 import org.cardanofoundation.rosetta.api.construction.service.ConstructionApiService;
 import org.cardanofoundation.rosetta.common.services.LedgerDataProviderService;
+import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
 import org.cardanofoundation.rosetta.common.util.Constants;
 import org.cardanofoundation.rosetta.common.util.CborEncodeUtil;
 import org.cardanofoundation.rosetta.common.mapper.CborMapToTransactionExtraData;
@@ -40,7 +41,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
 
   private final CardanoAddressService cardanoAddressService;
   private final CardanoService cardanoService;
-  private final LedgerDataProviderService ledgerService;
+    private final ProtocolParamService protocolParamService;
   private final DataMapper dataMapper;
 
   @Override
@@ -108,7 +109,8 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
     log.debug("[constructionMetadata] updating tx size from {}", txSize);
     Long updatedTxSize = cardanoService.updateTxSize(txSize.longValue(), 0L, ttl);
     log.debug("[constructionMetadata] updated txSize size is ${updatedTxSize}");
-    ProtocolParams protocolParams = ledgerService.findProtocolParametersFromIndexerAndConfig();
+    ProtocolParams protocolParams =
+        protocolParamService.findProtocolParametersFromIndexerAndConfig();
     log.debug("[constructionMetadata] received protocol parameters from block-service {}",
         protocolParams);
     Long suggestedFee = cardanoService.calculateTxMinimumFee(updatedTxSize, protocolParams);

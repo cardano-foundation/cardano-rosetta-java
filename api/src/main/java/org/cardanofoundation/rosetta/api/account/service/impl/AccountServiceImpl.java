@@ -6,8 +6,6 @@ import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.cardanofoundation.rosetta.common.util.CardanoAddressUtils;
-import org.cardanofoundation.rosetta.common.util.ValidationUtil;
 import org.springframework.stereotype.Service;
 import org.openapitools.client.model.AccountBalanceRequest;
 import org.openapitools.client.model.AccountBalanceResponse;
@@ -21,9 +19,12 @@ import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.account.service.AccountService;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.StakeAddressBalance;
+import org.cardanofoundation.rosetta.api.block.service.LedgerBlockService;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.mapper.DataMapper;
 import org.cardanofoundation.rosetta.common.services.LedgerDataProviderService;
+import org.cardanofoundation.rosetta.common.util.CardanoAddressUtils;
+import org.cardanofoundation.rosetta.common.util.ValidationUtil;
 
 
 @Service
@@ -32,6 +33,7 @@ import org.cardanofoundation.rosetta.common.services.LedgerDataProviderService;
 public class AccountServiceImpl implements AccountService {
 
   private final LedgerDataProviderService ledgerDataProviderService;
+  private final LedgerBlockService ledgerBlockService;
 
   @Override
   public AccountBalanceResponse getAccountBalance(AccountBalanceRequest accountBalanceRequest) {
@@ -70,7 +72,7 @@ public class AccountServiceImpl implements AccountService {
     }
     List<Currency> currenciesRequested = ValidationUtil.filterRequestedCurrencies(currencies);
     log.debug("[accountCoins] Filter currency is {}", currenciesRequested);
-    Block latestBlock = ledgerDataProviderService.findLatestBlock();
+    Block latestBlock = ledgerBlockService.findLatestBlock();
     log.debug("[accountCoins] Latest block is {}", latestBlock);
     List<Utxo> utxos = ledgerDataProviderService.findUtxoByAddressAndCurrency(accountAddress,
         currenciesRequested);
@@ -82,9 +84,9 @@ public class AccountServiceImpl implements AccountService {
       String hash) {
     Block blockDto;
     if (number != null || hash != null) {
-      blockDto = ledgerDataProviderService.findBlock(number, hash);
+      blockDto = ledgerBlockService.findBlock(number, hash);
     } else {
-      blockDto = ledgerDataProviderService.findLatestBlock();
+      blockDto = ledgerBlockService.findLatestBlock();
     }
 
     if (Objects.isNull(blockDto)) {

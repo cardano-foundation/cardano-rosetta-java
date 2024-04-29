@@ -1,7 +1,5 @@
 package org.cardanofoundation.rosetta.api.block.mapper;
 
-import java.util.Optional;
-
 import lombok.AllArgsConstructor;
 
 import org.modelmapper.ModelMapper;
@@ -22,23 +20,16 @@ public class PoolRetirementToOperation extends AbstractToOperation<PoolRetiremen
 
   @Override
   public Operation toDto(PoolRetirement model, OperationStatus status, int index) {
-    return Optional
-        .ofNullable(modelMapper.getTypeMap(PoolRetirement.class, Operation.class))
-        .orElseGet(() -> modelMapper.createTypeMap(PoolRetirement.class, Operation.class))
+    return modelMapper.typeMap(PoolRetirement.class, Operation.class)
         .addMappings(mp -> {
-
           mp.map(f -> status.getStatus(), Operation::setStatus);
           mp.map(f -> OperationType.POOL_RETIREMENT.getValue(), Operation::setType);
           mp.<String>map(PoolRetirement::getPoolId, (d, v) -> d.getAccount().setAddress(v));
           mp.map(f -> OperationMetadata.builder().epoch(model.getEpoch()).build(),
               Operation::setMetadata);
           mp.<Long>map(f -> index, (d, v) -> d.getOperationIdentifier().setIndex(v));
-
-
         })
         .setPostConverter(MappingContext::getDestination)
         .map(model);
   }
-
-
 }

@@ -1,7 +1,6 @@
 package org.cardanofoundation.rosetta.api.block.mapper;
 
 import java.util.List;
-import java.util.Optional;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 
@@ -44,17 +43,13 @@ public class BlockTxToRosettaTransaction {
    * @return The Rosetta compatible Transaction
    */
   public Transaction toDto(BlockTx model) {
-    return Optional
-        .ofNullable(modelMapper.getTypeMap(BlockTx.class, Transaction.class))
-        .orElseGet(() -> modelMapper.createTypeMap(BlockTx.class, Transaction.class))
+    return modelMapper.typeMap(BlockTx.class, Transaction.class)
         .addMappings(mapper -> {
           mapper.<String>map(BlockTx::getHash,
               (dest, v) -> dest.getTransactionIdentifier().setHash(v));
-
           mapper.<Long>map(BlockTx::getSize, (dest, v) -> dest.getMetadata().setSize(v));
           mapper.<Long>map(BlockTx::getScriptSize,
               (dest, v) -> dest.getMetadata().setScriptSize(v));
-
         })
 
         .setPostConverter(ctx -> {
