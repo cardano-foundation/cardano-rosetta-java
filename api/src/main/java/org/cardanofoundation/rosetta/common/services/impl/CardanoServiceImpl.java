@@ -53,6 +53,7 @@ import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProcessOperations;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProcessOperationsReturn;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
+import org.cardanofoundation.rosetta.api.block.service.LedgerBlockService;
 import org.cardanofoundation.rosetta.common.enumeration.AddressType;
 import org.cardanofoundation.rosetta.common.enumeration.EraAddressType;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
@@ -65,7 +66,7 @@ import org.cardanofoundation.rosetta.common.model.cardano.transaction.Transactio
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.TransactionParsed;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.UnsignedTransaction;
 import org.cardanofoundation.rosetta.common.services.CardanoService;
-import org.cardanofoundation.rosetta.common.services.LedgerDataProviderService;
+import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
 import org.cardanofoundation.rosetta.common.util.CardanoAddressUtils;
 import org.cardanofoundation.rosetta.common.util.Constants;
 import org.cardanofoundation.rosetta.common.util.OperationParseUtil;
@@ -78,7 +79,10 @@ import static java.math.BigInteger.valueOf;
 @RequiredArgsConstructor
 public class CardanoServiceImpl implements CardanoService {
 
-  private final LedgerDataProviderService ledgerDataProviderService;
+  private final LedgerBlockService ledgerBlockService;
+
+  private final ProtocolParamService protocolParamService;
+
   @Value("${cardano.rosetta.NODE_SUBMIT_API_PORT}")
   private int nodeSubmitApiPort;
   @Value("${cardano.rosetta.CARDANO_NODE_SUBMIT_HOST}")
@@ -155,7 +159,7 @@ public class CardanoServiceImpl implements CardanoService {
 
   @Override
   public Long calculateTtl(Long ttlOffset) {
-    Block latestBlock = ledgerDataProviderService.findLatestBlock();
+    Block latestBlock = ledgerBlockService.findLatestBlock();
     return latestBlock.getSlotNo() + ttlOffset;
   }
 
@@ -536,9 +540,8 @@ public class CardanoServiceImpl implements CardanoService {
    */
   @Override
   public DepositParameters getDepositParameters() {
-    ProtocolParams protocolParametersFromIndexerAndConfig = ledgerDataProviderService.findProtocolParametersFromIndexerAndConfig();
-    return new DepositParameters(protocolParametersFromIndexerAndConfig.getKeyDeposit().toString(),
-        protocolParametersFromIndexerAndConfig.getPoolDeposit().toString());
+    ProtocolParams pp = protocolParamService.findProtocolParametersFromIndexerAndConfig();
+    return new DepositParameters(pp.getKeyDeposit().toString(), pp.getPoolDeposit().toString());
   }
 
   /**
