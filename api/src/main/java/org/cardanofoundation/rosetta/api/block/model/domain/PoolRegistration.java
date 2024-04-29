@@ -8,7 +8,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import org.cardanofoundation.rosetta.api.block.model.entity.PoolRegistrationEntity;
 import org.openapitools.client.model.Relay;
 
 @Data

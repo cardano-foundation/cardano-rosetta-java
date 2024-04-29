@@ -5,8 +5,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import org.cardanofoundation.rosetta.api.block.model.entity.PoolRetirementEntity;
-
 @Data
 @Builder // TODO saa: remove this and refactor tests
 @NoArgsConstructor
