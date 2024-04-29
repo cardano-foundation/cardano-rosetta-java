@@ -12,8 +12,6 @@ import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.model.entity.TxnEntity;
 import org.cardanofoundation.rosetta.common.annotation.PersistenceMapper;
 
-import static java.util.Optional.ofNullable;
-
 @PersistenceMapper
 @AllArgsConstructor
 public class BlockTxToEntity {
@@ -21,16 +19,13 @@ public class BlockTxToEntity {
   final ModelMapper modelMapper;
 
   public BlockTx fromEntity(TxnEntity model) {
-    return ofNullable(modelMapper.getTypeMap(TxnEntity.class, BlockTx.class))
-        .orElseGet(() -> modelMapper.createTypeMap(TxnEntity.class, BlockTx.class))
+    return modelMapper.typeMap(TxnEntity.class, BlockTx.class)
         .addMappings(mapper -> {
-
           mapper.map(TxnEntity::getTxHash, BlockTx::setHash);
           mapper.map(tx -> tx.getBlock().getHash(), BlockTx::setBlockHash);
           mapper.map(tx -> tx.getBlock().getNumber(), BlockTx::setBlockNo);
           mapper.map(tx -> 0L, BlockTx::setSize); // will be calcualted, within the population method
           mapper.map(tx -> 0L, BlockTx::setScriptSize); // TODO Needs to be calulated if needed
-
         })
         .setPostConverter(ctx -> {
           TxnEntity source = ctx.getSource();

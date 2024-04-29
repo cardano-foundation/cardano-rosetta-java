@@ -8,8 +8,6 @@ import org.openapitools.client.model.ProtocolParameters;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
 import org.cardanofoundation.rosetta.common.annotation.OpenApiMapper;
 
-import static java.util.Optional.ofNullable;
-
 @OpenApiMapper
 @AllArgsConstructor
 public class ProtocolParamsToRosettaProtocolParameters {
@@ -17,8 +15,7 @@ public class ProtocolParamsToRosettaProtocolParameters {
   final ModelMapper modelMapper;
 
   public ProtocolParameters toProtocolParameters(ProtocolParams model) {
-    return ofNullable(modelMapper.getTypeMap(ProtocolParams.class, ProtocolParameters.class))
-        .orElseGet(() -> modelMapper.createTypeMap(ProtocolParams.class, ProtocolParameters.class))
+    return modelMapper.typeMap(ProtocolParams.class, ProtocolParameters.class)
         .addMappings(mapper -> {
           mapper.map(ProtocolParams::getAdaPerUtxoByte, ProtocolParameters::setCoinsPerUtxoSize);
           mapper.map(ProtocolParams::getMaxCollateralInputs,
