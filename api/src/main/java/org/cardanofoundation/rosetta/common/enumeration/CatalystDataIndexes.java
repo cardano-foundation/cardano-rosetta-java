@@ -16,7 +16,7 @@ public enum CatalystDataIndexes {
 
   public static CatalystDataIndexes findByValue(Long value) {
     for (CatalystDataIndexes a : CatalystDataIndexes.values()) {
-      if (a.getValue() == value) {
+      if (a.getValue().equals(value)) {
         return a;
       }
     }

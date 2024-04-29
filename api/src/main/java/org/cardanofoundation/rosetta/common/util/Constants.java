@@ -2,7 +2,6 @@ package org.cardanofoundation.rosetta.common.util;
 
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 
-import java.util.ArrayList;
 import java.util.List;
 import org.openapitools.client.model.CurveType;
 
@@ -89,24 +88,24 @@ public class Constants {
   public static final String CHAIN_CODE_DUMMY = new String(new char[CHAIN_CODE_LENGTH]).replace(
       "\0", "0");
 
-  public static final List<String> STAKING_OPERATIONS = new ArrayList<>(
+  public static final List<String> STAKING_OPERATIONS =
       List.of(OperationType.STAKE_DELEGATION.getValue(),
           OperationType.STAKE_KEY_REGISTRATION.getValue(),
           OperationType.STAKE_KEY_DEREGISTRATION.getValue(),
-          OperationType.WITHDRAWAL.getValue()));
-  public static final List<String> POOL_OPERATIONS = new ArrayList<>(
+          OperationType.WITHDRAWAL.getValue());
+  public static final List<String> POOL_OPERATIONS =
       List.of(OperationType.POOL_RETIREMENT.getValue(),
           OperationType.POOL_REGISTRATION.getValue(),
-          OperationType.POOL_REGISTRATION_WITH_CERT.getValue()));
-  public static final List<String> STAKE_POOL_OPERATIONS = new ArrayList<>(
+          OperationType.POOL_REGISTRATION_WITH_CERT.getValue());
+  public static final List<String> STAKE_POOL_OPERATIONS =
       List.of(OperationType.STAKE_DELEGATION.getValue(),
           OperationType.STAKE_KEY_REGISTRATION.getValue(),
           OperationType.STAKE_KEY_DEREGISTRATION.getValue(),
           OperationType.POOL_RETIREMENT.getValue(),
           OperationType.POOL_REGISTRATION.getValue(),
-          OperationType.POOL_REGISTRATION_WITH_CERT.getValue()));
-  public static final List<String> VOTE_OPERATIONS = new ArrayList<>(
-      List.of(OperationType.VOTE_REGISTRATION.getValue()));
+          OperationType.POOL_REGISTRATION_WITH_CERT.getValue());
+  public static final List<String> VOTE_OPERATIONS =
+      List.of(OperationType.VOTE_REGISTRATION.getValue());
 
   public static final Integer ED_25519_KEY_SIGNATURE_BYTE_LENGTH = 64;
 

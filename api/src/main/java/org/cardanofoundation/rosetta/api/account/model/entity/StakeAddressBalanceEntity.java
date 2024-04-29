@@ -9,12 +9,14 @@ import jakarta.persistence.Table;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 import org.cardanofoundation.rosetta.api.block.model.entity.BlockAwareEntity;
 import org.hibernate.annotations.DynamicUpdate;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -45,3 +47,4 @@ public class StakeAddressBalanceEntity extends BlockAwareEntity {
   @Column(name = "epoch")
   private Integer epoch;
 }
+
