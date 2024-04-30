@@ -22,6 +22,8 @@ jobs:
         env:
           GH_PACKAGES_USER_NAME: ${{ secrets.GH_PACKAGES_USER_NAME }}
           GH_PACKAGES_ACCESS_TOKEN: ${{ secrets.GH_PACKAGES_ACCESS_TOKEN }}
+      - name: Checking style with Spotless plugin
+        run: mvn spotless:check --file ./api/pom.xml
       - name: Test project
         run: mvn -s $GITHUB_WORKSPACE/.github/workflows/maven-settings.xml --batch-mode --update-snapshots clean verify --file ./pom.xml
         env:
