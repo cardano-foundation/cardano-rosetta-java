@@ -5,8 +5,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import org.cardanofoundation.rosetta.api.block.model.entity.DelegationEntity;
-
 @Data
 @Builder //TODO saa: refactor tests and remove builder and *argConstructor annotations
 @NoArgsConstructor

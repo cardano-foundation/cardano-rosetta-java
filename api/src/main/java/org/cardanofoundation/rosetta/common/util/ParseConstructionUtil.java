@@ -26,13 +26,16 @@ import com.bloxbean.cardano.client.transaction.spec.cert.SingleHostAddr;
 import com.bloxbean.cardano.client.transaction.spec.cert.SingleHostName;
 import com.bloxbean.cardano.client.transaction.spec.cert.StakeDelegation;
 import com.bloxbean.cardano.client.util.HexUtil;
+
 import java.math.BigInteger;
 import java.util.Comparator;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.ObjectUtils;
+
 import org.cardanofoundation.rosetta.common.enumeration.CatalystDataIndexes;
 import org.cardanofoundation.rosetta.common.enumeration.CatalystLabels;
 import org.cardanofoundation.rosetta.common.enumeration.CatalystSigIndexes;
@@ -45,10 +48,12 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.mapper.DataMapper;
 import org.cardanofoundation.rosetta.common.model.cardano.network.RelayType;
+
 import org.openapitools.client.model.AccountIdentifier;
 import org.openapitools.client.model.Amount;
 import org.openapitools.client.model.CoinAction;
@@ -69,6 +74,9 @@ import org.openapitools.client.model.VoteRegistrationMetadata;
 
 @Slf4j
 public class ParseConstructionUtil {
+
+  private ParseConstructionUtil() {
+  }
 
   public static Inet4Address parseIpv4(String ip) throws UnknownHostException {
     if (!ObjectUtils.isEmpty(ip)) {
@@ -92,10 +100,11 @@ public class ParseConstructionUtil {
   }
 
 
-  public static List<String> getOwnerAddressesFromPoolRegistrations(String networkId, PoolRegistration poolRegistration) {
+  public static List<String> getOwnerAddressesFromPoolRegistrations(String networkId,
+      PoolRegistration poolRegistration) {
     List<String> poolOwners = new ArrayList<>();
     Set<String> owners = poolRegistration.getPoolOwners();
-    for(String owner : owners) {
+    for (String owner : owners) {
       if (networkId.equals(NetworkIdentifierType.CARDANO_TESTNET_NETWORK.getNetworkId())) {
         Address address = CardanoAddressUtils.getAddress(null,
             HexUtil.decodeHexString(owner), Constants.STAKE_KEY_HASH_HEADER_KIND,
@@ -118,7 +127,8 @@ public class ParseConstructionUtil {
     return poolOwners;
   }
 
-  public static String getRewardAddressFromPoolRegistration(String networkId, PoolRegistration poolRegistration) {
+  public static String getRewardAddressFromPoolRegistration(String networkId,
+      PoolRegistration poolRegistration) {
     String cutRewardAccount = poolRegistration.getRewardAccount();
     if (cutRewardAccount.length() == Constants.HEX_PREFIX_AND_REWARD_ACCOUNT_LENGTH) {
       // removing prefix 0x from reward account, reward account is 56 bytes
@@ -126,30 +136,30 @@ public class ParseConstructionUtil {
     }
     if (networkId.equals(NetworkIdentifierType.CARDANO_TESTNET_NETWORK.getNetworkId())) {
       return CardanoAddressUtils.getAddress(null,
-                      HexUtil.decodeHexString(cutRewardAccount),
-                      Constants.STAKE_KEY_HASH_HEADER_KIND,
-                      Networks.testnet(), Reward)
-              .getAddress();
+              HexUtil.decodeHexString(cutRewardAccount),
+              Constants.STAKE_KEY_HASH_HEADER_KIND,
+              Networks.testnet(), Reward)
+          .getAddress();
     }
     if (networkId.equals(NetworkIdentifierType.CARDANO_PREPROD_NETWORK.getNetworkId())) {
       return CardanoAddressUtils.getAddress(null,
-                      HexUtil.decodeHexString(cutRewardAccount),
+              HexUtil.decodeHexString(cutRewardAccount),
               Constants.STAKE_KEY_HASH_HEADER_KIND,
-                      Networks.preprod(), Reward)
-              .getAddress();
+              Networks.preprod(), Reward)
+          .getAddress();
     }
     if (networkId.equals(NetworkIdentifierType.CARDANO_MAINNET_NETWORK.getNetworkId())) {
       return CardanoAddressUtils.getAddress(null,
-                      HexUtil.decodeHexString(cutRewardAccount),
+              HexUtil.decodeHexString(cutRewardAccount),
               Constants.STAKE_KEY_HASH_HEADER_KIND,
-                      Networks.mainnet(), Reward)
-              .getAddress();
+              Networks.mainnet(), Reward)
+          .getAddress();
     }
 
     throw ExceptionFactory.invalidAddressError("Can't get Reward address from PoolRegistration");
   }
 
-  public static Operation TransactionInputToOperation(TransactionInput input, Long index) {
+  public static Operation transactionInputToOperation(TransactionInput input, Long index) {
     return new Operation(new OperationIdentifier(index, null), null, OperationType.INPUT.getValue(),
         "", null, null,
         new CoinChange(new CoinIdentifier(
@@ -157,7 +167,7 @@ public class ParseConstructionUtil {
                 + input.getIndex()), CoinAction.SPENT), null);
   }
 
-  public static Operation TransActionOutputToOperation(TransactionOutput output, Long index,
+  public static Operation transActionOutputToOperation(TransactionOutput output, Long index,
       List<OperationIdentifier> relatedOperations) {
     OperationIdentifier operationIdentifier = new OperationIdentifier(index, null);
     AccountIdentifier account = new AccountIdentifier(output.getAddress(), null, null);
@@ -186,7 +196,8 @@ public class ParseConstructionUtil {
           .toList();
     }
 
-    return !ObjectUtils.isEmpty(multiAssets) ? OperationMetadata.builder().tokenBundle(tokenBundle).build() : null;
+    return !ObjectUtils.isEmpty(multiAssets) ? OperationMetadata.builder().tokenBundle(tokenBundle)
+        .build() : null;
   }
 
   public static TokenBundleItem parseTokenAsset(List<MultiAsset> multiAssets, String policyId) {
@@ -256,11 +267,7 @@ public class ParseConstructionUtil {
     for (int i = 0; i < certsCount; i++) {
       Operation certOperation = certOps.get(i);
       if (Constants.STAKING_OPERATIONS.contains(certOperation.getType())) {
-        String hex = null;
-        if (checkStakeCredential(certOperation)) {
-          hex = certOperation.getMetadata().getStakingCredential().getHexBytes();
-        }
-        Optional.ofNullable(hex).orElseThrow(ExceptionFactory::missingStakingKeyError);
+        String hex = getStakingCredentialHex(certOperation);
         HdPublicKey hdPublicKey = new HdPublicKey();
         hdPublicKey.setKeyData(HexUtil.decodeHexString(hex));
         String address = CardanoAddressUtils.generateRewardAddress(
@@ -293,6 +300,18 @@ public class ParseConstructionUtil {
     }
 
     return parsedOperations;
+  }
+
+  private static String getStakingCredentialHex(Operation certOperation) {
+    String hex = null;
+    if (checkStakeCredential(certOperation)) {
+      hex = certOperation.getMetadata().getStakingCredential().getHexBytes();
+    }
+    if (hex == null) {
+      log.error("[parseCertsToOperations] Missing staking key");
+      throw ExceptionFactory.missingStakingKeyError();
+    }
+    return hex;
   }
 
   public static Operation parsePoolCertToOperation(Integer network, Certificate cert, Long index,
@@ -517,12 +536,12 @@ public class ParseConstructionUtil {
       MultiHostName multiHostRelay = getMultiHostRelay(relay);
       SingleHostName singleHostName = getSingleHostName(relay);
       SingleHostAddr singleHostAddr = getSingleHostAddr(relay);
-      if (multiHostRelay!=null || singleHostName!=null) {
+      if (multiHostRelay != null || singleHostName != null) {
         addRelayToPoolReLayOfTypeMultiHostOrSingleHostName(poolRelays, multiHostRelay,
             singleHostName);
         continue;
       }
-      if (singleHostAddr!=null) {
+      if (singleHostAddr != null) {
         addRelayToPoolReLayOfTypeSingleHostAddr(poolRelays, singleHostAddr);
       }
     }
@@ -598,7 +617,8 @@ public class ParseConstructionUtil {
       String address) {
     Operation operation = new Operation(new OperationIdentifier(index, null), null, type, "",
         new AccountIdentifier(address, null, null), null, null,
-        OperationMetadata.builder().stakingCredential(new PublicKey(hash, CurveType.EDWARDS25519)).build());
+        OperationMetadata.builder().stakingCredential(new PublicKey(hash, CurveType.EDWARDS25519))
+            .build());
     StakeDelegation delegationCert = null;
     try {
       delegationCert = (StakeDelegation) cert;

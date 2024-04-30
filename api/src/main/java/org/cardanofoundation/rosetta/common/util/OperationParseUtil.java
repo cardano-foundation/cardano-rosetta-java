@@ -18,6 +18,9 @@ import org.openapitools.client.model.Operation;
 
 public class OperationParseUtil {
 
+  private OperationParseUtil() {
+  }
+
   public static ProcessOperations parseOperation(
       Operation operation, NetworkIdentifierType networkIdentifierType, ProcessOperations resultAccumulator, String type) {
     return switch (OperationType.fromValue(type)) {

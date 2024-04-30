@@ -97,14 +97,13 @@ class LedgerBlockServiceImplIntTest extends IntegrationTest {
     List<BlockTx> txs =
         ledgerBlockService.findTransactionsByBlock(tx.blockNumber(), tx.blockHash());
     //then
-    assertThat(txs).isNotNull();
-    assertThat(txs.size()).isEqualTo(1);
+    assertThat(txs).isNotNull().hasSize(1);
 
     BlockTx blockTx = txs.getFirst();
     assertThat(blockTx.getHash()).isEqualTo(tx.txHash());
     assertThat(blockTx.getBlockNo()).isEqualTo(tx.blockNumber());
     assertThat(blockTx.getBlockHash()).isEqualTo(tx.blockHash());
-    assertThat(blockTx.getDelegations().size()).isEqualTo(1);
+    assertThat(blockTx.getDelegations()).hasSize(1);
     assertThat(blockTx.getDelegations().getFirst().getAddress())
         .isEqualTo(STAKE_ADDRESS_WITH_EARNED_REWARDS);
 
@@ -112,9 +111,7 @@ class LedgerBlockServiceImplIntTest extends IntegrationTest {
         .createQuery("FROM DelegationEntity b where b.txHash=:hash", DelegationEntity.class)
         .setParameter("hash", tx.txHash())
         .getResultList();
-    assertThat(delegations).isNotNull();
-
-    assertThat(delegations.size()).isEqualTo(1);
+    assertThat(delegations).isNotNull().hasSize(1);
     DelegationEntity expected = delegations.getFirst();
     assertThat(expected.getAddress()).isEqualTo(STAKE_ADDRESS_WITH_EARNED_REWARDS);
 
@@ -133,23 +130,20 @@ class LedgerBlockServiceImplIntTest extends IntegrationTest {
     List<BlockTx> txs =
         ledgerBlockService.findTransactionsByBlock(tx.blockNumber(), tx.blockHash());
     //then
-    assertThat(txs).isNotNull();
-    assertThat(txs.size()).isEqualTo(1);
+    assertThat(txs).isNotNull().hasSize(1);
 
     BlockTx blockTx = txs.getFirst();
     assertThat(blockTx.getHash()).isEqualTo(tx.txHash());
     assertThat(blockTx.getBlockNo()).isEqualTo(tx.blockNumber());
     assertThat(blockTx.getBlockHash()).isEqualTo(tx.blockHash());
-    assertThat(blockTx.getPoolRegistrations().size()).isEqualTo(1);
+    assertThat(blockTx.getPoolRegistrations()).hasSize(1);
 
     List<PoolRegistrationEntity> entity = entityManager
         .createQuery(
             "FROM PoolRegistrationEntity b where b.txHash=:hash", PoolRegistrationEntity.class)
         .setParameter("hash", tx.txHash())
         .getResultList();
-    assertThat(entity).isNotNull();
-
-    assertThat(entity.size()).isEqualTo(1);
+    assertThat(entity).isNotNull().hasSize(1);
     PoolRegistrationEntity expected = entity.getFirst();
 
     PoolRegistration actual = blockTx.getPoolRegistrations().getFirst();
@@ -163,7 +157,7 @@ class LedgerBlockServiceImplIntTest extends IntegrationTest {
     assertThat(actual.getRewardAccount()).isEqualTo(expected.getRewardAccount());
     assertThat(actual.getOwners()).isNotEmpty();
     assertThat(actual.getOwners()).containsExactlyInAnyOrderElementsOf(expected.getPoolOwners());
-    assertThat(actual.getRelays().size()).isEqualTo(1);
+    assertThat(actual.getRelays()).hasSize(1);
     assertThat(actual.getRelays().getFirst())
         .usingRecursiveComparison()
         .ignoringFields("type")
@@ -180,22 +174,19 @@ class LedgerBlockServiceImplIntTest extends IntegrationTest {
     List<BlockTx> txs =
         ledgerBlockService.findTransactionsByBlock(tx.blockNumber(), tx.blockHash());
     //then
-    assertThat(txs).isNotNull();
-    assertThat(txs.size()).isEqualTo(1);
+    assertThat(txs).isNotNull().hasSize(1);
 
     BlockTx blockTx = txs.getFirst();
     assertThat(blockTx.getHash()).isEqualTo(tx.txHash());
     assertThat(blockTx.getBlockNo()).isEqualTo(tx.blockNumber());
     assertThat(blockTx.getBlockHash()).isEqualTo(tx.blockHash());
-    assertThat(blockTx.getPoolRetirements().size()).isEqualTo(1);
+    assertThat(blockTx.getPoolRetirements()).hasSize(1);
 
     List<PoolRetirementEntity> entity = entityManager
         .createQuery("FROM PoolRetirementEntity b where b.txHash=:hash", PoolRetirementEntity.class)
         .setParameter("hash", tx.txHash())
         .getResultList();
-    assertThat(entity).isNotNull();
-
-    assertThat(entity.size()).isEqualTo(1);
+    assertThat(entity).isNotNull().hasSize(1);
     PoolRetirementEntity expected = entity.getFirst();
 
     PoolRetirement actual = blockTx.getPoolRetirements().getFirst();
@@ -213,22 +204,19 @@ class LedgerBlockServiceImplIntTest extends IntegrationTest {
     List<BlockTx> txs =
         ledgerBlockService.findTransactionsByBlock(tx.blockNumber(), tx.blockHash());
     //then
-    assertThat(txs).isNotNull();
-    assertThat(txs.size()).isEqualTo(1);
+    assertThat(txs).isNotNull().hasSize(1);
 
     BlockTx blockTx = txs.getFirst();
     assertThat(blockTx.getHash()).isEqualTo(tx.txHash());
     assertThat(blockTx.getBlockNo()).isEqualTo(tx.blockNumber());
     assertThat(blockTx.getBlockHash()).isEqualTo(tx.blockHash());
-    assertThat(blockTx.getStakeRegistrations().size()).isEqualTo(1);
+    assertThat(blockTx.getStakeRegistrations()).hasSize(1);
 
     List<StakeRegistrationEntity> entity = entityManager
         .createQuery("FROM StakeRegistrationEntity b where b.txHash=:hash", StakeRegistrationEntity.class)
         .setParameter("hash", tx.txHash())
         .getResultList();
-    assertThat(entity).isNotNull();
-
-    assertThat(entity.size()).isEqualTo(1);
+    assertThat(entity).isNotNull().hasSize(1);
     StakeRegistrationEntity expected = entity.getFirst();
 
     StakeRegistration actual = blockTx.getStakeRegistrations().getFirst();
@@ -274,7 +262,7 @@ class LedgerBlockServiceImplIntTest extends IntegrationTest {
     assertThat(latestBlock).isNotNull();
     assertThat(latestBlock.getHash()).isEqualTo(fromBlockB.getHash());
     assertThat(latestBlock.getSlotNo()).isEqualTo(fromBlockB.getNumber());
-    assertThat(latestBlock.getTransactions().size()).isEqualTo(fromBlockB.getTransactions().size());
+    assertThat(latestBlock.getTransactions()).hasSize(fromBlockB.getTransactions().size());
     assertThat(latestBlock.getEpochNo()).isEqualTo(fromBlockB.getEpochNumber());
   }
 
@@ -282,7 +270,7 @@ class LedgerBlockServiceImplIntTest extends IntegrationTest {
     assertThat(block).isNotNull();
     assertThat(block.getHash()).isEqualTo(tx.blockHash());
     assertThat(block.getSlotNo()).isEqualTo(tx.blockNumber());
-    assertThat(block.getTransactions().size()).isEqualTo(1);
+    assertThat(block.getTransactions()).hasSize(1);
     assertThat(block.getTransactions().getFirst().getHash()).isEqualTo(tx.txHash());
   }
 }

@@ -99,7 +99,7 @@ public class TransactionDataToOperations {
         operations);
     log.info("[parseOperationsFromTransactionBody] About to parse {} outputs", outputs.size());
     for (TransactionOutput output : outputs) {
-      Operation outputParsed = ParseConstructionUtil.TransActionOutputToOperation(output, (long) operations.size(),
+      Operation outputParsed = ParseConstructionUtil.transActionOutputToOperation(output, (long) operations.size(),
           relatedOperations);
       operations.add(outputParsed);
     }
@@ -117,7 +117,7 @@ public class TransactionDataToOperations {
         operations.add(inputOperations.get(i));
       } else {
         TransactionInput input = inputs.get(i);
-        Operation inputParsed = ParseConstructionUtil.TransactionInputToOperation(input, (long) operations.size());
+        Operation inputParsed = ParseConstructionUtil.transactionInputToOperation(input, (long) operations.size());
         operations.add(inputParsed);
       }
     }

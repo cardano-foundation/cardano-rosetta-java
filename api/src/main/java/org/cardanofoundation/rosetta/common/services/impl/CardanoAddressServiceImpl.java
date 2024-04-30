@@ -59,7 +59,7 @@ public class CardanoAddressServiceImpl implements CardanoAddressService {
 
     public HdPublicKey getHdPublicKeyFromRosettaKey(PublicKey publicKey) {
         byte[] pubKeyBytes = HexUtil.decodeHexString(publicKey.getHexBytes());
-        HdPublicKey pubKey = new HdPublicKey();
+        HdPublicKey pubKey;
         if(pubKeyBytes.length == 32) {
             pubKey = new HdPublicKey();
             pubKey.setKeyData(pubKeyBytes);

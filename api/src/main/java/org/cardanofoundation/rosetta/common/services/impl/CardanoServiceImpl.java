@@ -41,6 +41,7 @@ import okhttp3.Request;
 import okhttp3.Request.Builder;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import okhttp3.ResponseBody;
 import org.apache.commons.lang3.ObjectUtils;
 import org.jetbrains.annotations.NotNull;
 import org.openapitools.client.model.AccountIdentifier;
@@ -367,7 +368,7 @@ public class CardanoServiceImpl implements CardanoService {
     String transactionBytes = HexUtil.encodeHexString(
         com.bloxbean.cardano.yaci.core.util.CborSerializationUtil.serialize(mapCbor));
     log.info("[createUnsignedTransaction] Hashing transaction body");
-    String bodyHash = com.bloxbean.cardano.client.util.HexUtil.encodeHexString(
+    String bodyHash = HexUtil.encodeHexString(
         Blake2bUtil.blake2bHash256(CborSerializationUtil.serialize(mapCbor)));
     UnsignedTransaction toReturn = new UnsignedTransaction(
         HexUtil.encodeHexString(HexUtil.decodeHexString(bodyHash)), transactionBytes,
@@ -509,27 +510,25 @@ public class CardanoServiceImpl implements CardanoService {
         .build();
     OkHttpClient client = new OkHttpClient();
     Call call = client.newCall(request);
-    Response response = null;
-    try {
-      response = call.execute();
+    try (Response response = call.execute()) {
+      ResponseBody body = response.body();
 
       if (response.code() == Constants.SUCCESS_SUBMIT_TX_HTTP_CODE) {
-        String txHash = response.body().string();
+        if (body == null) {
+          throw ExceptionFactory.sendTransactionError("Empty response body");
+        }
+        String txHash = body.string();
         // removing leading and trailing quotes returned from node API
         if (txHash.length() == Constants.TX_HASH_LENGTH + 2) {
           txHash = txHash.substring(1, txHash.length() - 1);
         }
         return txHash;
       } else {
-        throw ExceptionFactory.sendTransactionError(response.body().string());
+        throw ExceptionFactory.sendTransactionError(body == null ? null : body.string());
       }
     } catch (IOException e) {
       log.error("{}[submitTransaction] There was an error submitting transaction", e.getMessage());
       throw ExceptionFactory.sendTransactionError(e.getMessage());
-    } finally {
-      if (response != null) {
-        response.close();
-      }
     }
   }
 
