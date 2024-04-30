@@ -5,7 +5,6 @@ import java.math.BigInteger;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-
 import org.mockito.Mock;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -32,4 +31,3 @@ public class BaseMapperTest {
     when(protocolParams.getPoolDeposit()).thenReturn(new BigInteger("500"));
   }
 }
-

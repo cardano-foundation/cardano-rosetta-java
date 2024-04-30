@@ -1,8 +1,10 @@
 package org.cardanofoundation.rosetta.common.enumeration;
 
+import lombok.Getter;
+
 import com.bloxbean.cardano.client.common.model.Network;
 import com.bloxbean.cardano.client.common.model.Networks;
-import lombok.Getter;
+
 import org.cardanofoundation.rosetta.common.util.Constants;
 
 @Getter

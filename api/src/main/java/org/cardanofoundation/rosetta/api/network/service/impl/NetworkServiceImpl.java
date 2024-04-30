@@ -1,11 +1,5 @@
 package org.cardanofoundation.rosetta.api.network.service.impl;
 
-import com.bloxbean.cardano.client.common.model.Network;
-import com.bloxbean.cardano.client.common.model.Networks;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.swagger.v3.oas.models.OpenAPI;
-import io.swagger.v3.parser.OpenAPIV3Parser;
-import jakarta.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,32 +9,40 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;
+import jakarta.annotation.PostConstruct;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ResourceLoader;
+import org.springframework.stereotype.Service;
+import com.bloxbean.cardano.client.common.model.Network;
+import com.bloxbean.cardano.client.common.model.Networks;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.parser.OpenAPIV3Parser;
+import org.json.JSONObject;
+import org.openapitools.client.model.*;
+import org.openapitools.client.model.Error;
+
+import org.cardanofoundation.rosetta.api.block.model.domain.Block;
+import org.cardanofoundation.rosetta.api.block.model.domain.GenesisBlock;
+import org.cardanofoundation.rosetta.api.block.model.domain.NetworkStatus;
 import org.cardanofoundation.rosetta.api.block.service.LedgerBlockService;
+import org.cardanofoundation.rosetta.api.network.service.NetworkService;
+import org.cardanofoundation.rosetta.common.enumeration.OperationType;
+import org.cardanofoundation.rosetta.common.enumeration.OperationTypeStatus;
+import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
+import org.cardanofoundation.rosetta.common.exception.ServerException;
+import org.cardanofoundation.rosetta.common.mapper.DataMapper;
 import org.cardanofoundation.rosetta.common.model.cardano.network.Producer;
 import org.cardanofoundation.rosetta.common.model.cardano.network.PublicRoot;
 import org.cardanofoundation.rosetta.common.model.cardano.network.TopologyConfig;
 import org.cardanofoundation.rosetta.common.util.Constants;
-import org.cardanofoundation.rosetta.common.enumeration.OperationType;
-import org.cardanofoundation.rosetta.common.enumeration.OperationTypeStatus;
-import org.cardanofoundation.rosetta.config.RosettaConfig;
-import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
-import org.cardanofoundation.rosetta.common.exception.ServerException;
-import org.cardanofoundation.rosetta.common.mapper.DataMapper;
-import org.cardanofoundation.rosetta.api.block.model.domain.NetworkStatus;
-import org.cardanofoundation.rosetta.api.block.model.domain.Block;
-import org.cardanofoundation.rosetta.api.block.model.domain.GenesisBlock;
-import org.cardanofoundation.rosetta.api.network.service.NetworkService;
 import org.cardanofoundation.rosetta.common.util.FileUtils;
 import org.cardanofoundation.rosetta.common.util.RosettaConstants;
-import org.json.JSONObject;
-import org.openapitools.client.model.*;
-import org.openapitools.client.model.Error;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.ResourceLoader;
-import org.springframework.stereotype.Service;
+import org.cardanofoundation.rosetta.config.RosettaConfig;
 
 @Service
 @Slf4j

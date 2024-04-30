@@ -1,15 +1,16 @@
 package org.cardanofoundation.rosetta.common.util;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import org.junit.jupiter.api.Test;
+
 import static org.cardanofoundation.rosetta.common.util.ValidationUtil.getAddressFromHexString;
 import static org.cardanofoundation.rosetta.common.util.ValidationUtil.isVoteDataValid;
 import static org.cardanofoundation.rosetta.common.util.ValidationUtil.isVoteSignatureValid;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import java.util.HashMap;
-import java.util.Map;
-import org.junit.jupiter.api.Test;
 
 public class ValidationTest {
 

@@ -1,15 +1,18 @@
 package org.cardanofoundation.rosetta.api.construction.controller;
 
+import javax.validation.Valid;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.cardanofoundation.rosetta.api.construction.service.ConstructionApiService;
-import org.openapitools.client.api.ConstructionApi;
-import org.openapitools.client.model.*;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-import javax.validation.Valid;
+import org.openapitools.client.api.ConstructionApi;
+import org.openapitools.client.model.*;
+
+import org.cardanofoundation.rosetta.api.construction.service.ConstructionApiService;
 
 @Slf4j
 @RestController

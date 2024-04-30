@@ -2,9 +2,10 @@ package org.cardanofoundation.rosetta.common.util;
 
 import java.util.List;
 
+import org.openapitools.client.model.OperationStatus;
+
 import org.cardanofoundation.rosetta.common.exception.Details;
 import org.cardanofoundation.rosetta.common.exception.Error;
-import org.openapitools.client.model.OperationStatus;
 
 public class RosettaConstants {
 

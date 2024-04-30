@@ -1,9 +1,7 @@
 package org.cardanofoundation.rosetta.api.block.model.entity;
 
 import java.math.BigInteger;
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Set;
 import jakarta.persistence.Column;
 import jakarta.persistence.ConstraintMode;
 import jakarta.persistence.Entity;
@@ -22,7 +20,6 @@ import lombok.NoArgsConstructor;
 
 import io.hypersistence.utils.hibernate.type.json.JsonType;
 import org.hibernate.annotations.Type;
-import org.hibernate.annotations.UpdateTimestamp;
 
 @Data
 @NoArgsConstructor

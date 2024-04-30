@@ -1,5 +1,7 @@
 package org.cardanofoundation.rosetta.common.util;
 
+import java.util.Objects;
+
 import lombok.extern.slf4j.Slf4j;
 
 import com.bloxbean.cardano.client.address.Address;
@@ -22,14 +24,12 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.InetAddressValidator;
 import org.openapitools.client.model.PublicKey;
+import org.openapitools.client.model.Relay;
 
 import org.cardanofoundation.rosetta.common.enumeration.EraAddressType;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
 import org.cardanofoundation.rosetta.common.enumeration.StakeAddressPrefix;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
-
-import java.util.Objects;
-import org.openapitools.client.model.Relay;
 
 @Slf4j
 public class CardanoAddressUtils {

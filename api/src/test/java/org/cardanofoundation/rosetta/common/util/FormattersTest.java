@@ -1,12 +1,11 @@
 package org.cardanofoundation.rosetta.common.util;
 
+import org.junit.jupiter.api.Test;
+
 import static org.cardanofoundation.rosetta.common.util.Formatters.isEmptyHexString;
 import static org.cardanofoundation.rosetta.common.util.Formatters.remove0xPrefix;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import org.junit.jupiter.api.Test;
 
 class FormattersTest {
 

@@ -1,14 +1,17 @@
 package org.cardanofoundation.rosetta.common.services.impl;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
 import lombok.extern.java.Log;
-import org.cardanofoundation.rosetta.common.services.LoggingService;
+
 import org.springframework.stereotype.Service;
+
+import org.cardanofoundation.rosetta.common.services.LoggingService;
 
 @Service
 @Log

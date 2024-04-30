@@ -1,7 +1,6 @@
 package org.cardanofoundation.rosetta.api.block.mapper;
 
 import java.math.BigInteger;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -13,7 +12,6 @@ import org.cardanofoundation.rosetta.api.BaseMapperTest;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.model.entity.BlockEntity;
-import org.cardanofoundation.rosetta.api.block.model.entity.TxOuput;
 import org.cardanofoundation.rosetta.api.block.model.entity.TxnEntity;
 
 import static org.assertj.core.api.Assertions.assertThat;
