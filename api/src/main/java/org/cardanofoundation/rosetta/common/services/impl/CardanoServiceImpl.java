@@ -9,6 +9,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import jakarta.validation.constraints.NotNull;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -39,7 +41,6 @@ import com.bloxbean.cardano.client.transaction.spec.TransactionWitnessSet;
 import com.bloxbean.cardano.client.transaction.spec.VkeyWitness;
 import com.bloxbean.cardano.client.util.HexUtil;
 import org.apache.commons.lang3.ObjectUtils;
-import org.jetbrains.annotations.NotNull;
 import org.openapitools.client.model.AccountIdentifier;
 import org.openapitools.client.model.DepositParameters;
 import org.openapitools.client.model.Operation;

@@ -5,10 +5,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import jakarta.validation.constraints.NotNull;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.mutable.MutableInt;
-import org.jetbrains.annotations.NotNull;
 import org.modelmapper.builder.ConfigurableConditionExpression;
 import org.openapitools.client.model.Amount;
 import org.openapitools.client.model.Currency;

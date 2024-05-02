@@ -4,6 +4,8 @@ import com.bloxbean.cardano.client.transaction.spec.AuxiliaryData;
 import com.bloxbean.cardano.client.transaction.spec.Withdrawal;
 import java.math.BigInteger;
 import java.util.Set;
+import jakarta.validation.constraints.NotNull;
+
 import org.apache.commons.lang3.ObjectUtils;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProcessOperations;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
@@ -13,7 +15,6 @@ import org.cardanofoundation.rosetta.common.model.cardano.pool.PoolRetirement;
 import org.cardanofoundation.rosetta.common.model.cardano.pool.ProcessPoolRegistrationReturn;
 import org.cardanofoundation.rosetta.common.model.cardano.pool.ProcessWithdrawalReturn;
 import org.cardanofoundation.rosetta.common.model.cardano.pool.StakeCertificate;
-import org.jetbrains.annotations.NotNull;
 import org.openapitools.client.model.Operation;
 
 public class OperationParseUtil {
