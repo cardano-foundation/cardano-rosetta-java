@@ -37,7 +37,7 @@ class AccountCoinsApiTest extends IntegrationTest {
   private final String latestTxHashOnZeroSlot = generatedDataMap.get(
       TestTransactionNames.SIMPLE_NEW_EMPTY_NAME_COINS_TRANSACTION.getName()).txHash() + ":0";
   private final String expectedTestAccountCoinAmount = "1635030";
-  private final String emptyNamePolicyId = "73e85b14b044bc59cf07a5626b698f6ae3a96ff8c130807365dfe1b7";
+  private final String emptyNamePolicyId = "b6d9dfb09401df509e565d42f0eff419ce58a020a9dbbe07754969d5";
   private final Currency myAssetCurrency = getCurrency(TestConstants.MY_ASSET_SYMBOL,
       Constants.MULTI_ASSET_DECIMALS, myAssetPolicyId);
   private final Currency ada = getCurrency(Constants.ADA, Constants.ADA_DECIMALS);
