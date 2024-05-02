@@ -1,7 +1,5 @@
 package org.cardanofoundation.rosetta.api.block.mapper;
 
-import java.util.Optional;
-
 import lombok.AllArgsConstructor;
 
 import org.modelmapper.ModelMapper;
@@ -22,22 +20,16 @@ public class PoolRegistrationToOperation extends AbstractToOperation<PoolRegistr
 
   @Override
   public Operation toDto(PoolRegistration model, OperationStatus status, int index) {
-    return Optional
-        .ofNullable(modelMapper.getTypeMap(PoolRegistration.class, Operation.class))
-        .orElseGet(() -> modelMapper.createTypeMap(PoolRegistration.class, Operation.class))
+    return modelMapper.typeMap(PoolRegistration.class, Operation.class)
         .addMappings(mp -> {
           mp.skip(Operation::setMetadata);
-
           mp.<Long>map(f -> index, (d, v) -> d.getOperationIdentifier().setIndex(v));
           mp.map(f -> status.getStatus(), Operation::setStatus);
           mp.map(f -> OperationType.POOL_REGISTRATION.getValue(), Operation::setType);
           mp.<String>map(PoolRegistration::getPoolId, (d, v) -> d.getAccount().setAddress(v));
-
-
         })
-
         .setPostConverter(ctx -> {
-          Operation d = ctx.getDestination();
+          var d = ctx.getDestination();
           d.setMetadata(new OperationMetadata());
 
           ctx.getDestination().getMetadata().setDepositAmount(getDepositAmount());
@@ -51,7 +43,6 @@ public class PoolRegistrationToOperation extends AbstractToOperation<PoolRegistr
           params.setRelays(ctx.getSource().getRelays());
           params.setVrfKeyHash(ctx.getSource().getVrfKeyHash());
           params.setRewardAddress(ctx.getSource().getRewardAccount());
-
           return d;
         })
         .map(model);

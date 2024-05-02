@@ -106,8 +106,7 @@ public class DataMapper {
     CoinIdentifier coinIdentifier = new CoinIdentifier();
     coinIdentifier.setIdentifier(hash + ":" + index);
 
-    return CoinChange.builder().coinIdentifier(CoinIdentifier.builder().identifier(hash + ":" + index).build())
-            .coinAction(coinAction).build();
+    return CoinChange.builder().coinIdentifier(coinIdentifier).coinAction(coinAction).build();
   }
 
 

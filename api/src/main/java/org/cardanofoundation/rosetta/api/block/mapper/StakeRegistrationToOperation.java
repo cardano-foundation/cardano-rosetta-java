@@ -1,11 +1,8 @@
 package org.cardanofoundation.rosetta.api.block.mapper;
 
-import java.util.Optional;
-
 import lombok.AllArgsConstructor;
 
 import com.bloxbean.cardano.yaci.core.model.certs.CertificateType;
-import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.spi.MappingContext;
 import org.openapitools.client.model.Amount;
@@ -23,9 +20,7 @@ public class StakeRegistrationToOperation extends AbstractToOperation<StakeRegis
   final ModelMapper modelMapper;
   @Override
   public Operation toDto(StakeRegistration model, OperationStatus status, int index) {
-    return Optional
-        .ofNullable(modelMapper.getTypeMap(StakeRegistration.class, Operation.class))
-        .orElseGet(() -> modelMapper.createTypeMap(StakeRegistration.class, Operation.class))
+    return modelMapper.typeMap(StakeRegistration.class, Operation.class)
         .addMappings(mp -> {
 
           mp.map(f -> status.getStatus(), Operation::setStatus);

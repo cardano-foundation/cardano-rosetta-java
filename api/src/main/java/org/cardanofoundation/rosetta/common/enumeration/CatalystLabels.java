@@ -14,7 +14,7 @@ public enum CatalystLabels {
 
   public static CatalystLabels findByValue(String label) {
     for (CatalystLabels a : CatalystLabels.values()) {
-      if (a.getLabel() == label) {
+      if (a.getLabel().equals(label)) {
         return a;
       }
     }

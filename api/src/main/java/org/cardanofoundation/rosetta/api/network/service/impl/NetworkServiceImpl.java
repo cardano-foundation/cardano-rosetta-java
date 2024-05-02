@@ -14,10 +14,11 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.cardanofoundation.rosetta.api.block.service.LedgerBlockService;
 import org.cardanofoundation.rosetta.common.model.cardano.network.Producer;
 import org.cardanofoundation.rosetta.common.model.cardano.network.PublicRoot;
 import org.cardanofoundation.rosetta.common.model.cardano.network.TopologyConfig;
@@ -31,7 +32,6 @@ import org.cardanofoundation.rosetta.common.mapper.DataMapper;
 import org.cardanofoundation.rosetta.api.block.model.domain.NetworkStatus;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.GenesisBlock;
-import org.cardanofoundation.rosetta.common.services.LedgerDataProviderService;
 import org.cardanofoundation.rosetta.api.network.service.NetworkService;
 import org.cardanofoundation.rosetta.common.util.FileUtils;
 import org.cardanofoundation.rosetta.common.util.RosettaConstants;
@@ -49,7 +49,7 @@ public class NetworkServiceImpl implements NetworkService {
 
   private final RosettaConfig rosettaConfig;
 
-  private final LedgerDataProviderService ledgerDataProviderService;
+  private final LedgerBlockService ledgerBlockService;
   private final DataMapper datamapper;
 
   @Value("${cardano.rosetta.TOPOLOGY_FILEPATH}")
@@ -158,10 +158,10 @@ public class NetworkServiceImpl implements NetworkService {
 
   private NetworkStatus networkStatus() throws  IOException {
     log.info("[networkStatus] Looking for latest block");
-    Block latestBlock = ledgerDataProviderService.findLatestBlock();
+    Block latestBlock = ledgerBlockService.findLatestBlock();
     log.debug("[networkStatus] Latest block found " + latestBlock);
     log.debug("[networkStatus] Looking for genesis block");
-    GenesisBlock genesisBlock = ledgerDataProviderService.findGenesisBlock();
+    GenesisBlock genesisBlock = ledgerBlockService.findGenesisBlock();
     log.debug("[networkStatus] Genesis block found " + genesisBlock);
 
     ObjectMapper mapper = new ObjectMapper();

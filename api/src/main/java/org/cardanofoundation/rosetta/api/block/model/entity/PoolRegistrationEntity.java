@@ -27,7 +27,7 @@ import org.hibernate.annotations.Type;
 @Table(name = "pool_registration")
 @IdClass(PoolRegistrationId.class)
 @DynamicUpdate
-public class PoolRegistrationEnity {
+public class PoolRegistrationEntity {
 
   @Id
   @Column(name = "tx_hash")

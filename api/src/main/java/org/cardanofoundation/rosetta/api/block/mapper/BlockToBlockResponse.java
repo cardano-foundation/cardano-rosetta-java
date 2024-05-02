@@ -2,7 +2,6 @@ package org.cardanofoundation.rosetta.api.block.mapper;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import lombok.AllArgsConstructor;
 
@@ -31,10 +30,7 @@ public class BlockToBlockResponse {
    * @return The Rosetta compatible BlockResponse
    */
   public BlockResponse toDto(Block model) {
-
-    return Optional
-        .ofNullable(modelMapper.getTypeMap(Block.class, BlockResponse.class))
-        .orElseGet(() -> modelMapper.createTypeMap(Block.class, BlockResponse.class))
+    return modelMapper.typeMap(Block.class, BlockResponse.class)
         .addMappings(mapper -> {
           mapper.<String>map(Block::getHash, (dest, v) -> currentId(dest).setHash(v));
           mapper.<Long>map(Block::getNumber, (dest, v) -> currentId(dest).setIndex(v));

@@ -12,8 +12,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.JSONObject;
 
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
+import org.cardanofoundation.rosetta.api.block.model.entity.ProtocolParamsEntity;
+import org.cardanofoundation.rosetta.api.block.model.repository.EpochParamRepository;
 import org.cardanofoundation.rosetta.common.exception.ApiException;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
+import org.cardanofoundation.rosetta.common.mapper.ProtocolParamsToEntity;
 import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
 import org.cardanofoundation.rosetta.common.util.FileUtils;
 
@@ -26,6 +29,8 @@ public class ProtocolParamServiceImpl implements ProtocolParamService {
   private String genesisShelleyPath;
 
   private final ObjectMapper objectMapper;
+  private final EpochParamRepository epochParamRepository;
+  private final ProtocolParamsToEntity mapperProtocolParams;
 
 
   @Override
@@ -52,6 +57,14 @@ public class ProtocolParamServiceImpl implements ProtocolParamService {
       throw new ApiException("Error parsing protocol parameters", e);
     }
 
+  }
+
+  @Override
+  public ProtocolParams findProtocolParametersFromIndexerAndConfig() {
+    ProtocolParamsEntity paramsEntity = epochParamRepository.findLatestProtocolParams();
+    ProtocolParams protocolParams = mapperProtocolParams.fromEntity(paramsEntity);
+    ProtocolParams protocolParametersFromConfigFile = getProtocolParameters();
+    return mapperProtocolParams.merge(protocolParams, protocolParametersFromConfigFile);
   }
 
 }

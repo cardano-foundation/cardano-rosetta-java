@@ -22,9 +22,7 @@ public class WithdrawalToOperation extends AbstractToOperation<Withdrawal>{
 
   @Override
   public Operation toDto(Withdrawal model, OperationStatus status, int index) {
-    return Optional
-        .ofNullable(modelMapper.getTypeMap(Withdrawal.class, Operation.class))
-        .orElseGet(() -> modelMapper.createTypeMap(Withdrawal.class, Operation.class))
+    return modelMapper.typeMap(Withdrawal.class, Operation.class)
         .addMappings(mp -> {
           mp.map(f -> status.getStatus(), Operation::setStatus);
           mp.map(f -> OperationType.WITHDRAWAL.getValue(), Operation::setType);

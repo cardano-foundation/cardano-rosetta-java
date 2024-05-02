@@ -9,7 +9,6 @@ import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
-import org.cardanofoundation.rosetta.common.services.LedgerDataProviderService;
 
 import static java.util.Objects.nonNull;
 
@@ -18,8 +17,7 @@ import static java.util.Objects.nonNull;
 @RequiredArgsConstructor
 public class BlockServiceImpl implements BlockService {
 
-  private final LedgerDataProviderService ledgerDataProviderService;
-
+  private final LedgerBlockService ledgerBlockService;
   private final ProtocolParamService protocolParamService;
 
 
@@ -27,7 +25,7 @@ public class BlockServiceImpl implements BlockService {
   public Block findBlock(Long index, String hash) {
 
     log.info("[block] Looking for block: hash={}, index={}", hash, index);
-    Block block = ledgerDataProviderService.findBlock(index, hash);
+    Block block = ledgerBlockService.findBlock(index, hash);
     if (nonNull(block)) {
       log.info("[block] Block was found, hash={}", block.getHash());
 
@@ -42,7 +40,7 @@ public class BlockServiceImpl implements BlockService {
 
   @Override
   public BlockTx getBlockTransaction(Long blockId, String blockHash, String txHash) {
-    return ledgerDataProviderService
+    return ledgerBlockService
         .findTransactionsByBlock(blockId, blockHash)
         .stream()
         .filter(tr -> tr.getHash().equals(txHash))

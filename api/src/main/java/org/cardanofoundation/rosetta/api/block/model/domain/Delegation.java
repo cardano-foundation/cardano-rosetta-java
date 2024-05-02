@@ -1,12 +1,14 @@
 package org.cardanofoundation.rosetta.api.block.model.domain;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-
-import org.cardanofoundation.rosetta.api.block.model.entity.DelegationEntity;
+import lombok.NoArgsConstructor;
 
 @Data
-@Builder
+@Builder //TODO saa: refactor tests and remove builder and *argConstructor annotations
+@NoArgsConstructor
+@AllArgsConstructor
 public class Delegation {
 
   private String txHash;
@@ -17,12 +19,4 @@ public class Delegation {
 
   private String address;
 
-  public static Delegation fromEntity(DelegationEntity entity) {
-    return Delegation.builder()
-        .txHash(entity.getTxHash())
-        .certIndex(entity.getCertIndex())
-        .poolId(entity.getPoolId())
-        .address(entity.getAddress())
-        .build();
-  }
 }

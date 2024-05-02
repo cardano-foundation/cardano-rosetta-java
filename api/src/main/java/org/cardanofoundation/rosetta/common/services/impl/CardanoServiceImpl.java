@@ -1,5 +1,19 @@
 package org.cardanofoundation.rosetta.common.services.impl;
 
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 import co.nstant.in.cbor.CborException;
 import co.nstant.in.cbor.model.Array;
 import co.nstant.in.cbor.model.DataItem;
@@ -20,9 +34,6 @@ import com.bloxbean.cardano.client.transaction.spec.TransactionBody;
 import com.bloxbean.cardano.client.transaction.spec.TransactionWitnessSet;
 import com.bloxbean.cardano.client.transaction.spec.VkeyWitness;
 import com.bloxbean.cardano.client.util.HexUtil;
-import java.io.IOException;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import okhttp3.Call;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -30,73 +41,67 @@ import okhttp3.Request;
 import okhttp3.Request.Builder;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import okhttp3.ResponseBody;
 import org.apache.commons.lang3.ObjectUtils;
-import org.cardanofoundation.rosetta.api.block.model.domain.ProcessOperations;
-import org.cardanofoundation.rosetta.api.block.model.domain.ProcessOperationsReturn;
-import org.cardanofoundation.rosetta.common.enumeration.AddressType;
-import org.cardanofoundation.rosetta.common.enumeration.EraAddressType;
-import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
-import org.cardanofoundation.rosetta.common.exception.ApiException;
-import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
-import org.cardanofoundation.rosetta.api.block.model.domain.Block;
-import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
-import org.cardanofoundation.rosetta.common.mapper.CborArrayToTransactionData;
-import org.cardanofoundation.rosetta.common.model.cardano.crypto.Signatures;
-import org.cardanofoundation.rosetta.common.model.cardano.transaction.TransactionData;
-import org.cardanofoundation.rosetta.common.model.cardano.transaction.TransactionParsed;
-import org.cardanofoundation.rosetta.common.model.cardano.transaction.UnsignedTransaction;
-import org.cardanofoundation.rosetta.common.services.CardanoService;
-import org.cardanofoundation.rosetta.common.services.LedgerDataProviderService;
-import org.cardanofoundation.rosetta.common.util.CardanoAddressUtils;
-import org.cardanofoundation.rosetta.common.util.Constants;
-import org.cardanofoundation.rosetta.common.mapper.TransactionDataToOperations;
-import org.cardanofoundation.rosetta.common.util.OperationParseUtil;
-import org.cardanofoundation.rosetta.common.util.ValidateParseUtil;
+import org.jetbrains.annotations.NotNull;
 import org.openapitools.client.model.AccountIdentifier;
 import org.openapitools.client.model.DepositParameters;
 import org.openapitools.client.model.Operation;
 import org.openapitools.client.model.SignatureType;
 import org.openapitools.client.model.SigningPayload;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+
+import org.cardanofoundation.rosetta.api.block.model.domain.Block;
+import org.cardanofoundation.rosetta.api.block.model.domain.ProcessOperations;
+import org.cardanofoundation.rosetta.api.block.model.domain.ProcessOperationsReturn;
+import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
+import org.cardanofoundation.rosetta.api.block.service.LedgerBlockService;
+import org.cardanofoundation.rosetta.common.enumeration.AddressType;
+import org.cardanofoundation.rosetta.common.enumeration.EraAddressType;
+import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
+import org.cardanofoundation.rosetta.common.exception.ApiException;
+import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
+import org.cardanofoundation.rosetta.common.mapper.CborArrayToTransactionData;
+import org.cardanofoundation.rosetta.common.mapper.TransactionDataToOperations;
+import org.cardanofoundation.rosetta.common.model.cardano.crypto.Signatures;
+import org.cardanofoundation.rosetta.common.model.cardano.transaction.TransactionData;
+import org.cardanofoundation.rosetta.common.model.cardano.transaction.TransactionParsed;
+import org.cardanofoundation.rosetta.common.model.cardano.transaction.UnsignedTransaction;
+import org.cardanofoundation.rosetta.common.services.CardanoService;
+import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
+import org.cardanofoundation.rosetta.common.util.CardanoAddressUtils;
+import org.cardanofoundation.rosetta.common.util.Constants;
+import org.cardanofoundation.rosetta.common.util.OperationParseUtil;
+import org.cardanofoundation.rosetta.common.util.ValidateParseUtil;
 
 import static java.math.BigInteger.valueOf;
-
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class CardanoServiceImpl implements CardanoService {
 
-  private final LedgerDataProviderService ledgerDataProviderService;
-    @Value("${cardano.rosetta.NODE_SUBMIT_API_PORT}")
-    private int NODE_SUBMIT_API_PORT;
-    @Value("${cardano.rosetta.CARDANO_NODE_SUBMIT_HOST}")
-    private String CARDANO_NODE_SUBMIT_HOST;
+  private final LedgerBlockService ledgerBlockService;
+
+  private final ProtocolParamService protocolParamService;
+
+  @Value("${cardano.rosetta.NODE_SUBMIT_API_PORT}")
+  private int nodeSubmitApiPort;
+  @Value("${cardano.rosetta.CARDANO_NODE_SUBMIT_HOST}")
+  private String cardanoNodeSubmitHost;
 
   @Override
   public TransactionParsed parseTransaction(NetworkIdentifierType networkIdentifierType,
       String transaction, boolean signed) {
+    Array decodeTransaction = decodeTransaction(transaction);
     try {
-
-      Array decodeTransaction = decodeTransaction(transaction);
-
-      TransactionData convert = CborArrayToTransactionData.convert(decodeTransaction, signed);
-      List<Operation> operations = TransactionDataToOperations.convert(convert,
+      TransactionData convertedTr = CborArrayToTransactionData.convert(decodeTransaction, signed);
+      List<Operation> operations = TransactionDataToOperations.convert(convertedTr,
           networkIdentifierType.getValue());
       List<AccountIdentifier> accountIdentifierSigners = new ArrayList<>();
       if (signed) {
         log.info("[parseSignedTransaction] About to get signatures from parsed transaction");
         List<String> accum = new ArrayList<>();
-        convert.transactionExtraData().operations().forEach(o -> {
+        convertedTr.transactionExtraData().operations().forEach(o -> {
           List<String> list = TransactionDataToOperations.getSignerFromOperation(
               networkIdentifierType, o);
           accum.addAll(list);
@@ -104,10 +109,10 @@ public class CardanoServiceImpl implements CardanoService {
         accountIdentifierSigners = TransactionDataToOperations.getUniqueAccountIdentifiers(accum);
       }
       return new TransactionParsed(operations, accountIdentifierSigners);
-    } catch (Exception error) {
-      log.error(error
-          + "[parseSignedTransaction] Cant instantiate signed transaction from transaction bytes");
-      throw ExceptionFactory.cantCreateSignedTransactionFromBytes();
+    } catch (CborException | CborDeserializationException | CborSerializationException error) {
+      log.error("{} [parseTransaction] Cant instantiate transaction from transaction bytes",
+          error.getMessage(), error);
+      throw ExceptionFactory.invalidTransactionError();
     }
   }
 
@@ -135,8 +140,8 @@ public class CardanoServiceImpl implements CardanoService {
       }
       return HexUtil.encodeHexString(hashBuffer);
     } catch (Exception error) {
-      log.error(error.getMessage()
-          + "[getHashOfSignedTransaction] There was an error parsing signed transaction");
+      log.error("{} [getHashOfSignedTransaction] There was an error parsing signed transaction",
+          error.getMessage());
       throw ExceptionFactory.parseSignedTransactionError();
     }
   }
@@ -147,21 +152,24 @@ public class CardanoServiceImpl implements CardanoService {
       DataItem dataItem = CborSerializationUtil.deserialize(HexUtil.decodeHexString(encoded));
       return (Array) dataItem;
     } catch (Exception e) {
-      throw ExceptionFactory.cantBuildSignedTransaction();
+      log.error("[decodeTransaction] Cannot decode transaction bytes. Exception: {}",
+          e.getMessage());
+      throw ExceptionFactory.invalidTransactionError();
     }
   }
 
   @Override
   public Long calculateTtl(Long ttlOffset) {
-    Block latestBlock = ledgerDataProviderService.findLatestBlock();
+    Block latestBlock = ledgerBlockService.findLatestBlock();
     return latestBlock.getSlotNo() + ttlOffset;
   }
 
   @Override
   public Long updateTxSize(Long previousTxSize, Long previousTtl, Long updatedTtl) {
     try {
-      return previousTxSize + CborSerializationUtil.serialize(new UnsignedInteger(updatedTtl)).length
-          - CborSerializationUtil.serialize(new UnsignedInteger(previousTtl)).length;
+      return
+          previousTxSize + CborSerializationUtil.serialize(new UnsignedInteger(updatedTtl)).length
+              - CborSerializationUtil.serialize(new UnsignedInteger(previousTtl)).length;
     } catch (CborException e) {
       throw ExceptionFactory.cantCreateUnsignedTransactionFromBytes();
     }
@@ -269,13 +277,13 @@ public class CardanoServiceImpl implements CardanoService {
       return HexUtil.encodeHexString(
           com.bloxbean.cardano.yaci.core.util.CborSerializationUtil.serialize(array));
     } catch (CborDeserializationException e) {
-      log.error(e.getMessage()
-          + "[buildTransaction] CborDeserializationException while building transaction");
-      throw new RuntimeException(e);
+      log.error("{} [buildTransaction] CborDeserializationException while building transaction",
+          e.getMessage());
+      throw ExceptionFactory.generalDeserializationError(e.getMessage());
     } catch (CborSerializationException e) {
-      log.error(e.getMessage()
-          + "[buildTransaction] CborSerializationException while building transaction");
-      throw new RuntimeException(e);
+      log.error("{} [buildTransaction] CborSerializationException while building transaction",
+          e.getMessage());
+      throw ExceptionFactory.generalSerializationError(e.getMessage());
     }
   }
 
@@ -360,7 +368,7 @@ public class CardanoServiceImpl implements CardanoService {
     String transactionBytes = HexUtil.encodeHexString(
         com.bloxbean.cardano.yaci.core.util.CborSerializationUtil.serialize(mapCbor));
     log.info("[createUnsignedTransaction] Hashing transaction body");
-    String bodyHash = com.bloxbean.cardano.client.util.HexUtil.encodeHexString(
+    String bodyHash = HexUtil.encodeHexString(
         Blake2bUtil.blake2bHash256(CborSerializationUtil.serialize(mapCbor)));
     UnsignedTransaction toReturn = new UnsignedTransaction(
         HexUtil.encodeHexString(HexUtil.decodeHexString(bodyHash)), transactionBytes,
@@ -434,12 +442,13 @@ public class CardanoServiceImpl implements CardanoService {
   }
 
   /**
-   * Fees are calulcated based on adding all inputs and substracting all outputs.
-   * Withdrawals will be added as well.
-   * @param inputAmounts Sum of all Input ADA Amounts
-   * @param outputAmounts Sum of all Output ADA Amounts
+   * Fees are calulcated based on adding all inputs and substracting all outputs. Withdrawals will
+   * be added as well.
+   *
+   * @param inputAmounts      Sum of all Input ADA Amounts
+   * @param outputAmounts     Sum of all Output ADA Amounts
    * @param withdrawalAmounts Sum of all Withdrawals
-   * @param depositsSumMap Map of refund and deposit values
+   * @param depositsSumMap    Map of refund and deposit values
    * @return Payed Fee
    */
   @Override
@@ -478,64 +487,67 @@ public class CardanoServiceImpl implements CardanoService {
     return processor;
   }
 
-    /**
-     * Submits the signed transaction to the preconfigured SubmitAPI. If successfull the transaction hash is returned.
-     * @param signedTransaction signed transaction in hex format
-     * @return transaction hash
-     * @throws ApiException if the transaction submission fails, additional information is provided in the exception message
-     */
-    @Override
-    public String submitTransaction(String signedTransaction) throws ApiException {
-        String submitURL = Constants.PROTOCOL + CARDANO_NODE_SUBMIT_HOST + ":" + NODE_SUBMIT_API_PORT
-            + Constants.SUBMIT_API_PATH;
-        log.info("[submitTransaction] About to submit transaction to {}", submitURL);
-        Request request = null;
-        request = new Builder()
-            .url(submitURL)
-            .addHeader(Constants.CONTENT_TYPE_HEADER_KEY, Constants.CBOR_CONTENT_TYPE)
-            .post(RequestBody.create(MediaType.parse(Constants.CBOR_CONTENT_TYPE),
-                HexUtil.decodeHexString(signedTransaction)))
-            .build();
-        OkHttpClient client = new OkHttpClient();
-        Call call = client.newCall(request);
-        Response response = null;
-        try {
-            response = call.execute();
+  /**
+   * Submits the signed transaction to the preconfigured SubmitAPI. If successfull the transaction
+   * hash is returned.
+   *
+   * @param signedTransaction signed transaction in hex format
+   * @return transaction hash
+   * @throws ApiException if the transaction submission fails, additional information is provided in
+   *                      the exception message
+   */
+  @Override
+  public String submitTransaction(String signedTransaction) throws ApiException {
+    String submitURL = Constants.PROTOCOL + cardanoNodeSubmitHost + ":" + nodeSubmitApiPort
+        + Constants.SUBMIT_API_PATH;
+    log.info("[submitTransaction] About to submit transaction to {}", submitURL);
+    Request request = null;
+    request = new Builder()
+        .url(submitURL)
+        .addHeader(Constants.CONTENT_TYPE_HEADER_KEY, Constants.CBOR_CONTENT_TYPE)
+        .post(RequestBody.create(MediaType.parse(Constants.CBOR_CONTENT_TYPE),
+            HexUtil.decodeHexString(signedTransaction)))
+        .build();
+    OkHttpClient client = new OkHttpClient();
+    Call call = client.newCall(request);
+    try (Response response = call.execute()) {
+      ResponseBody body = response.body();
 
-            if (response.code() == Constants.SUCCESS_SUBMIT_TX_HTTP_CODE) {
-                String txHash = response.body().string();
-                // removing leading and trailing quotes returned from node API
-                if (txHash.length() == Constants.TX_HASH_LENGTH + 2) {
-                    txHash = txHash.substring(1, txHash.length() - 1);
-                }
-                return txHash;
-            } else {
-                throw ExceptionFactory.sendTransactionError(response.body().string());
-            }
-        } catch (IOException e) {
-            log.error(e.getMessage() + "[submitTransaction] There was an error submitting transaction");
-            throw ExceptionFactory.sendTransactionError(e.getMessage());
-        } finally {
-            if (response != null) {
-                response.close();
-            }
+      if (response.code() == Constants.SUCCESS_SUBMIT_TX_HTTP_CODE) {
+        if (body == null) {
+          throw ExceptionFactory.sendTransactionError("Empty response body");
         }
+        String txHash = body.string();
+        // removing leading and trailing quotes returned from node API
+        if (txHash.length() == Constants.TX_HASH_LENGTH + 2) {
+          txHash = txHash.substring(1, txHash.length() - 1);
+        }
+        return txHash;
+      } else {
+        throw ExceptionFactory.sendTransactionError(body == null ? null : body.string());
+      }
+    } catch (IOException e) {
+      log.error("{}[submitTransaction] There was an error submitting transaction", e.getMessage());
+      throw ExceptionFactory.sendTransactionError(e.getMessage());
     }
+  }
 
   /**
    * Returns the deposit parameters for the network fetched from the protocolparameters
+   *
    * @return Depositparameters including key- and pooldeposit
    */
   @Override
-    public DepositParameters getDepositParameters() {
-      ProtocolParams protocolParametersFromIndexerAndConfig = ledgerDataProviderService.findProtocolParametersFromIndexerAndConfig();
-      return new DepositParameters(protocolParametersFromIndexerAndConfig.getKeyDeposit().toString(),
-            protocolParametersFromIndexerAndConfig.getPoolDeposit().toString());
-    }
+  public DepositParameters getDepositParameters() {
+    ProtocolParams pp = protocolParamService.findProtocolParametersFromIndexerAndConfig();
+    return new DepositParameters(pp.getKeyDeposit().toString(), pp.getPoolDeposit().toString());
+  }
 
   /**
-   * Extract raw signed transaction and removes the extradata.
-   * Transactions build with rosetta contain such data, transaction build with other tools like cardano-cli do not contain this data.
+   * Extract raw signed transaction and removes the extradata. Transactions build with rosetta
+   * contain such data, transaction build with other tools like cardano-cli do not contain this
+   * data.
+   *
    * @param txWithExtraData transaction with extra data
    * @return raw signed transaction
    */
@@ -544,14 +556,14 @@ public class CardanoServiceImpl implements CardanoService {
     byte[] bytes = HexUtil.decodeHexString(txWithExtraData);
     Array deserialize = (Array) CborSerializationUtil.deserialize(bytes);
     // Unpack transaction if needed
-    if(deserialize.getDataItems().size() == 1) {
+    if (deserialize.getDataItems().size() == 1) {
       deserialize = (Array) deserialize.getDataItems().getFirst();
     }
-    if(deserialize.getDataItems().isEmpty()) {
+    if (deserialize.getDataItems().isEmpty()) {
       throw ExceptionFactory.invalidTransactionError();
     }
     // unpack transaction
-    if(deserialize.getDataItems().getFirst().getMajorType().equals(MajorType.UNICODE_STRING)) {
+    if (deserialize.getDataItems().getFirst().getMajorType().equals(MajorType.UNICODE_STRING)) {
       return ((UnicodeString) deserialize.getDataItems().getFirst()).getString();
     } else {
       return txWithExtraData;

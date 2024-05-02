@@ -231,7 +231,7 @@ class AccountBalanceApiTest extends IntegrationTest {
 
     assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
     assertNotNull(accountBalanceResponse);
-    assertEquals(3, accountBalanceResponse.getBalances().size());
+    assertEquals(1, accountBalanceResponse.getBalances().size());
     assertAdaCurrency(accountBalanceResponse);
     assertEquals(TestConstants.STAKE_ACCOUNT_BALANCE_AMOUNT,
         accountBalanceResponse.getBalances().getFirst().getValue());
