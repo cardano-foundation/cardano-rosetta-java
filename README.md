@@ -19,15 +19,9 @@ to fetch the data from the node.
     - /mempool
       - [x] /mempool
       - [ ] /mempool/transaction
-  - Construction API
-    - [x] /construction/derive
-    - [x] /construction/preprocess
-    - [x] /construction/metadata
-    - [x] /construction/payloads
-    - [x] /construction/combine
-    - [x] /construction/parse
-    - [x] /construction/hash
-    - [x] /construction/submit
+  - [x] Construction API
+- [ ] Extending Tests
+- [ ] Refactoring
 
 ## Getting Started
 

@@ -46,7 +46,6 @@ import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
 import org.cardanofoundation.rosetta.common.model.cardano.crypto.Signatures;
 import org.cardanofoundation.rosetta.common.util.Constants;
 
-
 @Slf4j
 @PersistenceMapper
 @RequiredArgsConstructor

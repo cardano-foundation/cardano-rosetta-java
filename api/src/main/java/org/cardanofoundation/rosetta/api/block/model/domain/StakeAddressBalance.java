@@ -14,8 +14,7 @@ public class StakeAddressBalance {
   private String address;
   private Long slot;
   private BigInteger quantity;
-  private String stakeCredential;
-  private String blockHash;
+  private Long blockNumber;
   private Integer epoch;
 
 
@@ -24,8 +23,7 @@ public class StakeAddressBalance {
         .address(entity.getAddress())
         .slot(entity.getSlot())
         .quantity(entity.getQuantity())
-        .stakeCredential(entity.getStakeCredential())
-        .blockHash(entity.getBlockHash())
+        .blockNumber(entity.getBlockNumber())
         .epoch(entity.getEpoch())
         .build();
   }

@@ -1,6 +1,5 @@
 package org.cardanofoundation.rosetta.api.account.model.entity;
 
-import java.math.BigInteger;
 import java.util.List;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
