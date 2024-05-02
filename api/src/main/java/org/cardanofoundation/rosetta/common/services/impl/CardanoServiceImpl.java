@@ -508,7 +508,7 @@ public class CardanoServiceImpl implements CardanoService {
         .post(RequestBody.create(MediaType.parse(Constants.CBOR_CONTENT_TYPE),
             HexUtil.decodeHexString(signedTransaction)))
         .build();
-    OkHttpClient client = new OkHttpClient();
+    OkHttpClient client = getOkClient();
     Call call = client.newCall(request);
     try (Response response = call.execute()) {
       ResponseBody body = response.body();
@@ -532,6 +532,9 @@ public class CardanoServiceImpl implements CardanoService {
     }
   }
 
+  OkHttpClient getOkClient() {
+    return new OkHttpClient();
+  }
   /**
    * Returns the deposit parameters for the network fetched from the protocolparameters
    *
