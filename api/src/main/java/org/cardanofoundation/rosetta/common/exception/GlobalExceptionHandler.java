@@ -29,7 +29,6 @@ public class GlobalExceptionHandler {
     }
 
     Error errorResponse;
-
     if (exception instanceof ApiException apiException) {
 
       errorResponse = apiException.getError();

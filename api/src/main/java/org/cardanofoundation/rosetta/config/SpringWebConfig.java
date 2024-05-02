@@ -3,6 +3,7 @@ package org.cardanofoundation.rosetta.config;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;
@@ -17,8 +18,9 @@ import org.cardanofoundation.rosetta.common.interceptor.LogInterceptor;
 
 
 @Configuration
+@RequiredArgsConstructor
 public class SpringWebConfig implements WebMvcConfigurer {
-  @Autowired
+
   LogInterceptor logInterceptor;
 
   @Override

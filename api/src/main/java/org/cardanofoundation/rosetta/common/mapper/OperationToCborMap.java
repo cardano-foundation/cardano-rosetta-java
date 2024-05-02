@@ -33,6 +33,8 @@ import static org.cardanofoundation.rosetta.common.util.Formatters.key;
 
 public class OperationToCborMap {
 
+  private OperationToCborMap() {}
+
   public static Map convertToCborMap(Operation operation) {
     Map operationMap = new Map();
     // fill with nested objects
@@ -441,8 +443,8 @@ public class OperationToCborMap {
     Map map = new Map();
     HashMap<String, Object> metadataMap = (HashMap<String, Object>) metadata;
     metadataMap.forEach((key, value) -> {
-      if (value instanceof String) {
-        map.put(new UnicodeString(key), new UnicodeString((String) value));
+      if (value instanceof String string) {
+        map.put(new UnicodeString(key), new UnicodeString(string));
       } else {
         map.put(new UnicodeString(key), objectToDataItem(value));
       }

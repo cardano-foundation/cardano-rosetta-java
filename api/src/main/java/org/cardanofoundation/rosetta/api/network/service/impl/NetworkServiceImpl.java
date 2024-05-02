@@ -63,14 +63,13 @@ public class NetworkServiceImpl implements NetworkService {
   private String cardanoNodeVersion;
   private final ResourceLoader resourceLoader;
 
-    @PostConstruct
-  public void filePathExistingValidator() throws ServerException {
+  @PostConstruct
+  public void filePathExistingValidator() {
     validator(topologyFilepath);
     validator(genesisPath);
-//    validator(cardanoNodeVersion);
   }
 
-  private void validator( String path) throws ServerException {
+  private void validator( String path) {
     if(!new File(path).exists()) {
       throw ExceptionFactory.configNotFoundException();
     }

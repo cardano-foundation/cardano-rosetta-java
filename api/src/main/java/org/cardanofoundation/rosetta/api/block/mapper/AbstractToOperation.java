@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.mutable.MutableInt;
@@ -26,9 +27,9 @@ import org.cardanofoundation.rosetta.common.util.Constants;
 import static org.cardanofoundation.rosetta.common.util.Constants.ADA;
 import static org.cardanofoundation.rosetta.common.util.Constants.ADA_DECIMALS;
 
+@RequiredArgsConstructor
 public abstract class AbstractToOperation<T> {
 
-  @Autowired
   protected ProtocolParamService protocolParamService;
 
   abstract Operation toDto(T model, OperationStatus status, int index);

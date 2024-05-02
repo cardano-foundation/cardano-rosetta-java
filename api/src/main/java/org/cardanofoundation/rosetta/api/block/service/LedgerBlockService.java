@@ -2,6 +2,7 @@ package org.cardanofoundation.rosetta.api.block.service;
 
 import java.util.List;
 
+import java.util.Optional;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.model.domain.GenesisBlock;

@@ -4,6 +4,7 @@ import jakarta.servlet.DispatcherType;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
@@ -13,9 +14,9 @@ import org.springframework.web.servlet.ModelAndView;
 import org.cardanofoundation.rosetta.common.services.LoggingService;
 
 @Component
+@RequiredArgsConstructor
 public class LogInterceptor implements HandlerInterceptor {
 
-    @Autowired
     LoggingService loggingService;
 
     @Override
