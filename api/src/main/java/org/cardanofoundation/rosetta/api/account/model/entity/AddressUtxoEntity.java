@@ -1,9 +1,5 @@
 package org.cardanofoundation.rosetta.api.account.model.entity;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.OneToMany;
-import java.math.BigInteger;
 import java.util.List;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

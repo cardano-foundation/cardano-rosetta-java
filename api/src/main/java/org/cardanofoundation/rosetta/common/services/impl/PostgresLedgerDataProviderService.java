@@ -4,9 +4,6 @@ import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
-import org.cardanofoundation.rosetta.api.block.mapper.WithdrawalEntityToWithdrawal;
-import org.cardanofoundation.rosetta.api.block.model.repository.WithdrawalRepository;
 import org.springframework.stereotype.Component;
 import org.modelmapper.ModelMapper;
 import org.openapitools.client.model.Currency;
@@ -19,22 +16,9 @@ import org.cardanofoundation.rosetta.api.account.model.entity.AddressUtxoEntity;
 import org.cardanofoundation.rosetta.api.account.model.entity.StakeAddressBalanceEntity;
 import org.cardanofoundation.rosetta.api.account.model.repository.AddressBalanceRepository;
 import org.cardanofoundation.rosetta.api.account.model.repository.AddressUtxoRepository;
-import org.cardanofoundation.rosetta.api.block.mapper.BlockToEntity;
-import org.cardanofoundation.rosetta.api.block.mapper.BlockTxToEntity;
-import org.cardanofoundation.rosetta.api.block.model.domain.Block;
-import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
-import org.cardanofoundation.rosetta.api.block.model.domain.Delegation;
-import org.cardanofoundation.rosetta.api.block.model.domain.GenesisBlock;
-import org.cardanofoundation.rosetta.api.block.model.domain.PoolRegistration;
-import org.cardanofoundation.rosetta.api.block.model.domain.PoolRetirement;
-import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
 import org.cardanofoundation.rosetta.api.block.model.domain.StakeAddressBalance;
 import org.cardanofoundation.rosetta.api.block.model.entity.UtxoKey;
 import org.cardanofoundation.rosetta.api.block.model.repository.StakeAddressRepository;
-import org.cardanofoundation.rosetta.api.block.model.repository.StakeRegistrationRepository;
-import org.cardanofoundation.rosetta.api.block.model.repository.TxRepository;
-import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
-import org.cardanofoundation.rosetta.common.mapper.ProtocolParamsToEntity;
 import org.cardanofoundation.rosetta.common.services.LedgerDataProviderService;
 import org.cardanofoundation.rosetta.common.util.Formatters;
 
