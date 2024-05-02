@@ -2,11 +2,11 @@ package org.cardanofoundation.rosetta.common.util;
 
 import java.math.BigInteger;
 import java.util.Set;
+import jakarta.validation.constraints.NotNull;
 
 import com.bloxbean.cardano.client.transaction.spec.AuxiliaryData;
 import com.bloxbean.cardano.client.transaction.spec.Withdrawal;
 import org.apache.commons.lang3.ObjectUtils;
-import org.jetbrains.annotations.NotNull;
 import org.openapitools.client.model.Operation;
 
 import org.cardanofoundation.rosetta.api.block.model.domain.ProcessOperations;
