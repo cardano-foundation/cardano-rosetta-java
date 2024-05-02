@@ -1,9 +1,9 @@
 package org.cardanofoundation.rosetta.api.mempool.service;
 
 import java.util.List;
-import org.openapitools.client.model.Transaction;
-import org.openapitools.client.model.TransactionIdentifier;
+
 import org.springframework.context.annotation.Profile;
+import org.openapitools.client.model.TransactionIdentifier;
 
 @Profile("mempool")
 public interface MempoolService {

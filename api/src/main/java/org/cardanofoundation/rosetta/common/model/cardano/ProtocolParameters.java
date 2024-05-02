@@ -1,10 +1,12 @@
 package org.cardanofoundation.rosetta.common.model.cardano;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.*;
-import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
-
 import java.math.BigInteger;
+
+import lombok.*;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
 
 /**
  * ProtocolParameters
@@ -92,4 +94,3 @@ import java.math.BigInteger;
         .build();
   }
 }
-

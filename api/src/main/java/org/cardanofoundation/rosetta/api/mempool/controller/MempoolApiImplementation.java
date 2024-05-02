@@ -1,18 +1,18 @@
 package org.cardanofoundation.rosetta.api.mempool.controller;
 
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.context.annotation.Profile;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RestController;
 import org.apache.commons.lang3.NotImplementedException;
-import org.cardanofoundation.rosetta.api.mempool.service.MempoolService;
 import org.openapitools.client.api.MempoolApi;
 import org.openapitools.client.model.MempoolResponse;
 import org.openapitools.client.model.MempoolTransactionRequest;
 import org.openapitools.client.model.MempoolTransactionResponse;
 import org.openapitools.client.model.NetworkRequest;
-import org.openapitools.client.model.TransactionIdentifier;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Profile;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RestController;
+
+import org.cardanofoundation.rosetta.api.mempool.service.MempoolService;
 
 @RestController
 @RequiredArgsConstructor

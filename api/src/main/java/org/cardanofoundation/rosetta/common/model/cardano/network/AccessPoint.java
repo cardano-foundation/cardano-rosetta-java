@@ -1,9 +1,10 @@
 package org.cardanofoundation.rosetta.common.model.cardano.network;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Data
 @RequiredArgsConstructor

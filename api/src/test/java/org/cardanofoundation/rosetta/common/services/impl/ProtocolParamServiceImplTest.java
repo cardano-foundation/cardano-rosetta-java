@@ -1,7 +1,6 @@
 package org.cardanofoundation.rosetta.common.services.impl;
 
 import org.springframework.test.util.ReflectionTestUtils;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;

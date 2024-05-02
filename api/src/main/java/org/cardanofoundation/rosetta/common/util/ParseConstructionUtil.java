@@ -1,7 +1,18 @@
 package org.cardanofoundation.rosetta.common.util;
 
-import static com.bloxbean.cardano.client.address.AddressType.Reward;
-import static java.math.BigInteger.valueOf;
+import java.math.BigInteger;
+import java.net.Inet4Address;
+import java.net.Inet6Address;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
+
+import lombok.extern.slf4j.Slf4j;
 
 import co.nstant.in.cbor.CborException;
 import co.nstant.in.cbor.model.Array;
@@ -26,34 +37,7 @@ import com.bloxbean.cardano.client.transaction.spec.cert.SingleHostAddr;
 import com.bloxbean.cardano.client.transaction.spec.cert.SingleHostName;
 import com.bloxbean.cardano.client.transaction.spec.cert.StakeDelegation;
 import com.bloxbean.cardano.client.util.HexUtil;
-
-import java.math.BigInteger;
-import java.util.Comparator;
-import java.util.Objects;
-import java.util.concurrent.atomic.AtomicLong;
-
-import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.ObjectUtils;
-
-import org.cardanofoundation.rosetta.common.enumeration.CatalystDataIndexes;
-import org.cardanofoundation.rosetta.common.enumeration.CatalystLabels;
-import org.cardanofoundation.rosetta.common.enumeration.CatalystSigIndexes;
-import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
-
-import java.net.Inet4Address;
-import java.net.Inet6Address;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
-import org.cardanofoundation.rosetta.common.enumeration.OperationType;
-import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
-import org.cardanofoundation.rosetta.common.mapper.DataMapper;
-import org.cardanofoundation.rosetta.common.model.cardano.network.RelayType;
-
 import org.openapitools.client.model.AccountIdentifier;
 import org.openapitools.client.model.Amount;
 import org.openapitools.client.model.CoinAction;
@@ -71,6 +55,18 @@ import org.openapitools.client.model.PublicKey;
 import org.openapitools.client.model.Relay;
 import org.openapitools.client.model.TokenBundleItem;
 import org.openapitools.client.model.VoteRegistrationMetadata;
+
+import org.cardanofoundation.rosetta.common.enumeration.CatalystDataIndexes;
+import org.cardanofoundation.rosetta.common.enumeration.CatalystLabels;
+import org.cardanofoundation.rosetta.common.enumeration.CatalystSigIndexes;
+import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
+import org.cardanofoundation.rosetta.common.enumeration.OperationType;
+import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
+import org.cardanofoundation.rosetta.common.mapper.DataMapper;
+import org.cardanofoundation.rosetta.common.model.cardano.network.RelayType;
+
+import static com.bloxbean.cardano.client.address.AddressType.Reward;
+import static java.math.BigInteger.valueOf;
 
 @Slf4j
 public class ParseConstructionUtil {

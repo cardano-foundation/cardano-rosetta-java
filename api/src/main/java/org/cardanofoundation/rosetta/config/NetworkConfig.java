@@ -1,11 +1,12 @@
 package org.cardanofoundation.rosetta.config;
 
-import java.util.Optional;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
+
+import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
 
 @Data
 @NoArgsConstructor

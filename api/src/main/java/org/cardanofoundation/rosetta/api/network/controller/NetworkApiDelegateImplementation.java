@@ -1,12 +1,15 @@
 package org.cardanofoundation.rosetta.api.network.controller;
 
 import java.io.IOException;
+
 import lombok.RequiredArgsConstructor;
-import org.cardanofoundation.rosetta.api.network.service.NetworkService;
-import org.openapitools.client.model.*;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.openapitools.client.model.*;
+
+import org.cardanofoundation.rosetta.api.network.service.NetworkService;
 
 @RestController
 @RequiredArgsConstructor

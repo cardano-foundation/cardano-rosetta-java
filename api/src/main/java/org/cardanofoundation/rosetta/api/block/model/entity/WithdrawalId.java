@@ -1,7 +1,8 @@
 package org.cardanofoundation.rosetta.api.block.model.entity;
 
-import jakarta.persistence.Column;
 import java.io.Serializable;
+import jakarta.persistence.Column;
+
 import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode

@@ -1,18 +1,20 @@
 package org.cardanofoundation.rosetta.api.construction.combine;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
-import co.nstant.in.cbor.CborException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
-import org.cardanofoundation.rosetta.api.IntegrationTest;
-import org.cardanofoundation.rosetta.api.construction.service.ConstructionApiService;
-import org.junit.jupiter.api.Test;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import co.nstant.in.cbor.CborException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.openapitools.client.model.ConstructionCombineRequest;
 import org.openapitools.client.model.ConstructionCombineResponse;
-import org.openapitools.client.model.ConstructionPayloadsRequest;
-import org.springframework.beans.factory.annotation.Autowired;
+
+import org.junit.jupiter.api.Test;
+
+import org.cardanofoundation.rosetta.api.IntegrationTest;
+import org.cardanofoundation.rosetta.api.construction.service.ConstructionApiService;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class CombineApiTest extends IntegrationTest {
   @Autowired

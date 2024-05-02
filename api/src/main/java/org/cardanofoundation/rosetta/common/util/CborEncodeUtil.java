@@ -1,13 +1,15 @@
 package org.cardanofoundation.rosetta.common.util;
 
+import java.util.List;
+
 import co.nstant.in.cbor.CborException;
 import co.nstant.in.cbor.model.Array;
 import co.nstant.in.cbor.model.UnicodeString;
 import com.bloxbean.cardano.client.util.HexUtil;
-import java.util.List;
 import org.apache.commons.lang3.ObjectUtils;
-import org.cardanofoundation.rosetta.common.mapper.OperationToCborMap;
 import org.openapitools.client.model.Operation;
+
+import org.cardanofoundation.rosetta.common.mapper.OperationToCborMap;
 
 public class CborEncodeUtil {
 
