@@ -330,21 +330,18 @@
                         <excludes>
                             <exclude>target/**/*.java</exclude>
                         </excludes>
-                        <removeUnusedImports/>
                         <replaceRegex>
                             <name>Remove wildcard imports</name>
                             <searchRegex>import\\s+[^\\*\\s]+\\*;(\\r\\n|\\r|\\n)</searchRegex>
                             <replacement>$1</replacement>
                         </replaceRegex>
-                        <googleJavaFormat>
-                            <version>${version.google-java-format}</version>
-                            <style>GOOGLE</style>
-                        </googleJavaFormat>
+                        <removeUnusedImports/>
                         <importOrder>
                             <order>
-                                java,jakarta,javax,lombok,org.springframework,,\\#,org.junit,\\#org.junit,org.cardanofoundation,\\#org.cardanofoundation
+                                java|jakarta|javax,lombok,org.springframework|, ,org.junit,org.cardanofoundation,\#
                             </order>
                         </importOrder>
+                        <trimTrailingWhitespace/>
                         <indent>
                             <spaces>true</spaces>
                             <spacesPerTab>2</spacesPerTab>
