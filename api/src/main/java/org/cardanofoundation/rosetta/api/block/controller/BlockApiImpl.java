@@ -2,6 +2,7 @@ package org.cardanofoundation.rosetta.api.block.controller;
 
 import lombok.RequiredArgsConstructor;
 
+import org.cardanofoundation.rosetta.api.network.service.NetworkService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -25,12 +26,15 @@ public class BlockApiImpl implements BlockApi {
 
   private final BlockService blockService;
   private final ProtocolParamService protocolParamService;
+  private final NetworkService networkService;
 
   private final BlockToBlockResponse mapperToBlockResponse;
   private final BlockTxToBlockTxResponse mapperToBlockTxResponse;
 
   @Override
   public ResponseEntity<BlockResponse> block(@RequestBody BlockRequest blockRequest) {
+
+    networkService.verifyNetworkRequest(blockRequest.getNetworkIdentifier());
 
     PartialBlockIdentifier bid = blockRequest.getBlockIdentifier();
     String hash = bid.getHash();
@@ -44,6 +48,8 @@ public class BlockApiImpl implements BlockApi {
   @Override
   public ResponseEntity<BlockTransactionResponse> blockTransaction(
       @RequestBody BlockTransactionRequest blockReq) {
+
+    networkService.verifyNetworkRequest(blockReq.getNetworkIdentifier());
 
     Long blockId = blockReq.getBlockIdentifier().getIndex();
     String blockHash = blockReq.getBlockIdentifier().getHash();

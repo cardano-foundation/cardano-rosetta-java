@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 
 import lombok.RequiredArgsConstructor;
 
+import org.cardanofoundation.rosetta.api.network.service.NetworkService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -20,16 +21,23 @@ import org.cardanofoundation.rosetta.api.account.service.AccountService;
 public class AccountApiImplementation implements AccountApi {
 
   private final AccountService accountService;
+  private final NetworkService networkService;
 
   @Override
   public ResponseEntity<AccountBalanceResponse> accountBalance(
       @Valid @RequestBody AccountBalanceRequest accountBalanceRequest) {
+
+    networkService.verifyNetworkRequest(accountBalanceRequest.getNetworkIdentifier());
+
     return ResponseEntity.ok(accountService.getAccountBalance(accountBalanceRequest));
   }
 
   @Override
   public ResponseEntity<AccountCoinsResponse> accountCoins(
       @Valid @RequestBody AccountCoinsRequest accountCoinsRequest) {
+
+    networkService.verifyNetworkRequest(accountCoinsRequest.getNetworkIdentifier());
+
     return ResponseEntity.ok(accountService.getAccountCoins(accountCoinsRequest));
   }
 }
