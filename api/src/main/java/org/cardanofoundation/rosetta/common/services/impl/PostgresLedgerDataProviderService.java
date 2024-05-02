@@ -4,7 +4,6 @@ import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.springframework.stereotype.Component;
 import org.modelmapper.ModelMapper;
 import org.openapitools.client.model.Currency;
@@ -68,7 +67,7 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
 
   private static List<Amt> getAmts(List<Currency> currencies, AddressUtxoEntity entity) {
     return currencies.isEmpty()
-        ? entity.getAmounts()
+        ? entity.getAmounts().stream().toList()
         : entity.getAmounts().stream()
             .filter(amt -> isAmountMatchesCurrency(currencies, amt))
             .toList();

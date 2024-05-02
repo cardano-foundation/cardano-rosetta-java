@@ -27,8 +27,15 @@ hs_err_pid*
 .flattened-pom.xml
 target
 settings.xml
-.env
+.env*
 
 /data/
 /docker-compose-3rd.yaml
 /testcontainers/node-ipc
+
+*.trace.db
+
+# Allow files
+!.env.docker-compose
+!.env.IntegrationTest
+!.env.h2

@@ -38,11 +38,8 @@ public class StakeAddressBalanceEntity extends BlockAwareEntity {
   @Column(name = "quantity")
   private BigInteger quantity;
 
-  @Column(name = "stake_credential")
-  private String stakeCredential;
-
-  @Column(name = "block_hash")
-  private String blockHash;
+  @Column(name = "block")
+  private Long blockNumber;
 
   @Column(name = "epoch")
   private Integer epoch;
