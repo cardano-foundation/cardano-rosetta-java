@@ -1,9 +1,10 @@
 package org.cardanofoundation.rosetta.common.util;
 
-import org.cardanofoundation.rosetta.common.enumeration.OperationType;
-
 import java.util.List;
+
 import org.openapitools.client.model.CurveType;
+
+import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 
 public class Constants {
 

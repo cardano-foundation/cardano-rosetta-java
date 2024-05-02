@@ -260,8 +260,3 @@ public class DataMapper {
     }).toList();
   }
 }
-
-
-
-
-

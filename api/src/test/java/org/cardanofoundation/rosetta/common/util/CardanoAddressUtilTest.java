@@ -1,9 +1,5 @@
 package org.cardanofoundation.rosetta.common.util;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import com.bloxbean.cardano.client.account.Account;
 import com.bloxbean.cardano.client.address.Address;
 import com.bloxbean.cardano.client.address.AddressType;
@@ -14,13 +10,18 @@ import com.bloxbean.cardano.client.transaction.spec.cert.SingleHostAddr;
 import com.bloxbean.cardano.client.transaction.spec.cert.SingleHostName;
 import com.bloxbean.cardano.client.transaction.spec.cert.StakeCredential;
 import com.bloxbean.cardano.client.util.HexUtil;
-import org.cardanofoundation.rosetta.common.enumeration.EraAddressType;
-import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
-
-import org.junit.jupiter.api.Test;
 import org.openapitools.client.model.CurveType;
 import org.openapitools.client.model.PublicKey;
 import org.openapitools.client.model.Relay;
+
+import org.junit.jupiter.api.Test;
+
+import org.cardanofoundation.rosetta.common.enumeration.EraAddressType;
+import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class CardanoAddressUtilTest {
 
@@ -159,4 +160,3 @@ public class CardanoAddressUtilTest {
     assertEquals(HexUtil.encodeHexString(account.stakeHdKeyPair().getPublicKey().getKeyHash()), HexUtil.encodeHexString(stakingCredentialFromStakeKey.getHash()));
   }
 }
-

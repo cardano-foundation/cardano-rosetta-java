@@ -1,6 +1,7 @@
 package org.cardanofoundation.rosetta.common.model.cardano.network;
 
 import javax.annotation.Nullable;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

@@ -1,16 +1,14 @@
 package org.cardanofoundation.rosetta.common.mapper;
 
-import static org.cardanofoundation.rosetta.common.util.Formatters.key;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Optional;
 
 import co.nstant.in.cbor.model.Array;
 import co.nstant.in.cbor.model.DataItem;
 import co.nstant.in.cbor.model.Map;
 import co.nstant.in.cbor.model.UnicodeString;
 import co.nstant.in.cbor.model.UnsignedInteger;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Optional;
-import org.cardanofoundation.rosetta.common.util.Constants;
 import org.openapitools.client.model.AccountIdentifier;
 import org.openapitools.client.model.Amount;
 import org.openapitools.client.model.CoinAction;
@@ -28,6 +26,10 @@ import org.openapitools.client.model.PublicKey;
 import org.openapitools.client.model.Relay;
 import org.openapitools.client.model.TokenBundleItem;
 import org.openapitools.client.model.VoteRegistrationMetadata;
+
+import org.cardanofoundation.rosetta.common.util.Constants;
+
+import static org.cardanofoundation.rosetta.common.util.Formatters.key;
 
 public class OperationToCborMap {
 

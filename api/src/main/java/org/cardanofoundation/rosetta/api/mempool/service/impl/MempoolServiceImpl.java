@@ -1,23 +1,25 @@
 package org.cardanofoundation.rosetta.api.mempool.service.impl;
 
+import java.util.ArrayList;
+import java.util.List;
+import javax.annotation.PostConstruct;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
 import com.bloxbean.cardano.client.common.model.Network;
 import com.bloxbean.cardano.client.transaction.util.TransactionUtil;
 import com.bloxbean.cardano.yaci.helper.LocalClientProvider;
 import com.bloxbean.cardano.yaci.helper.LocalTxMonitorClient;
-import java.util.ArrayList;
-import java.util.List;
-import javax.annotation.PostConstruct;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.openapitools.client.model.TransactionIdentifier;
+
 import org.cardanofoundation.rosetta.api.mempool.service.MempoolService;
 import org.cardanofoundation.rosetta.api.network.service.NetworkService;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.MemPoolTransaction;
-import org.openapitools.client.model.TransactionIdentifier;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Profile;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j

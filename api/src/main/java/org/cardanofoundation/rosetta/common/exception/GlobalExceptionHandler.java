@@ -1,7 +1,8 @@
 package org.cardanofoundation.rosetta.common.exception;
 
+import java.util.List;
 import jakarta.servlet.http.HttpServletRequest;
-import org.cardanofoundation.rosetta.common.util.RosettaConstants.RosettaErrorType;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,7 +11,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
-import java.util.List;
+import org.cardanofoundation.rosetta.common.util.RosettaConstants.RosettaErrorType;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {

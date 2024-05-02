@@ -1,10 +1,10 @@
 package org.cardanofoundation.rosetta.api.network.service;
 
 
+import java.io.IOException;
+
 import com.bloxbean.cardano.client.common.model.Network;
 import org.openapitools.client.model.*;
-
-import java.io.IOException;
 
 public interface NetworkService {
     NetworkListResponse getNetworkList(final MetadataRequest metadataRequest)
