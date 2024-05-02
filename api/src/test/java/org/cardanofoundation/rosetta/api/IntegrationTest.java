@@ -20,8 +20,9 @@ import org.cardanofoundation.rosetta.testgenerator.common.TestConstants;
 import org.cardanofoundation.rosetta.testgenerator.common.TransactionBlockDetails;
 
 @Profile("test-integration")
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = {
-    RosettaApiApplication.class})
+@SpringBootTest(
+    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+    classes = {RosettaApiApplication.class})
 @Transactional
 public abstract class IntegrationTest {
 

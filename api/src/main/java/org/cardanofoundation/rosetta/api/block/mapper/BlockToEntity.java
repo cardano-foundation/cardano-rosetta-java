@@ -23,8 +23,7 @@ public class BlockToEntity {
 
   public Block fromEntity(BlockEntity entity) {
 
-    return ofNullable(modelMapper.getTypeMap(BlockEntity.class, Block.class))
-        .orElseGet(() -> modelMapper.createTypeMap(BlockEntity.class, Block.class))
+    return modelMapper.typeMap(BlockEntity.class, Block.class)
         .addMappings(mapper -> {
 
           mapper.map(BlockEntity::getSlotLeader, Block::setCreatedBy);

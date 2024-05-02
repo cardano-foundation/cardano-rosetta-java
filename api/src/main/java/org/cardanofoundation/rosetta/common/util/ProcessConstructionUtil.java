@@ -187,8 +187,12 @@ public class ProcessConstructionUtil {
 
     public static PoolRegistrationCertReturn getPoolRegistrationCertFromOperation(Operation operation,
                                                                                 NetworkIdentifierType networkIdentifierType) {
-        OperationMetadata operationMetadata = operation.getMetadata();
-        AccountIdentifier account = operation == null ? null : operation.getAccount();
+        OperationMetadata operationMetadata = null;
+        AccountIdentifier account = null;
+        if (operation != null) {
+            operationMetadata = operation.getMetadata();
+            account = operation.getAccount();
+        }
         return ValidateParseUtil.validateAndParsePoolRegistrationCert(
                 networkIdentifierType,
                 operationMetadata == null ? null : operationMetadata.getPoolRegistrationCert(),

@@ -1,7 +1,5 @@
 package org.cardanofoundation.rosetta.api.block.mapper;
 
-import java.util.Optional;
-
 import lombok.AllArgsConstructor;
 
 import org.modelmapper.ModelMapper;
@@ -20,9 +18,7 @@ public class BlockTxToBlockTxResponse {
 
 
   public BlockTransactionResponse toDto(BlockTx model) {
-    return Optional
-        .ofNullable(modelMapper.getTypeMap(BlockTx.class, BlockTransactionResponse.class))
-        .orElseGet(() -> modelMapper.createTypeMap(BlockTx.class, BlockTransactionResponse.class))
+    return modelMapper.typeMap(BlockTx.class, BlockTransactionResponse.class)
         .setPostConverter(ctx -> {
           ctx.getDestination().setTransaction(blockTxToRosettaTx.toDto(model));
           return ctx.getDestination();

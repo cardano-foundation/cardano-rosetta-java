@@ -1,7 +1,5 @@
 package org.cardanofoundation.rosetta.common.mapper;
 
-import java.util.Optional;
-
 import lombok.AllArgsConstructor;
 
 import org.modelmapper.Conditions;
@@ -18,8 +16,7 @@ public class ProtocolParamsToEntity {
   final ModelMapper modelMapper;
 
   public ProtocolParams fromEntity(ProtocolParamsEntity entity){
-    return Optional.ofNullable(modelMapper.getTypeMap(ProtocolParamsEntity.class, ProtocolParams.class))
-        .orElseGet(() -> modelMapper.createTypeMap(ProtocolParamsEntity.class, ProtocolParams.class))
+    return modelMapper.typeMap(ProtocolParamsEntity.class, ProtocolParams.class)
         .implicitMappings()
         .addMappings(mapper -> {
           mapper.<String>map(ProtocolParamsEntity::getExtraEntropy, (dest, v) -> dest.getExtraEntropy().setTag(v));

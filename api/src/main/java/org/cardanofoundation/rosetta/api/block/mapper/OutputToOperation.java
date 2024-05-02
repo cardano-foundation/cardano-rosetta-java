@@ -1,7 +1,5 @@
 package org.cardanofoundation.rosetta.api.block.mapper;
 
-import java.util.Optional;
-
 import lombok.AllArgsConstructor;
 
 import org.modelmapper.ModelMapper;
@@ -21,9 +19,7 @@ public class OutputToOperation extends AbstractToOperation<Utxo> {
 
   @Override
   public Operation toDto(Utxo model, OperationStatus status, int index) {
-    return Optional
-        .ofNullable(modelMapper.getTypeMap(Utxo.class, Operation.class))
-        .orElseGet(() -> modelMapper.createTypeMap(Utxo.class, Operation.class))
+    return modelMapper.typeMap(Utxo.class, Operation.class)
         .addMappings(mp -> {
           mp.map(f -> Constants.OUTPUT, Operation::setType);
           mp.<CoinAction>map(f -> CoinAction.CREATED, (d, v) -> d.getCoinChange().setCoinAction(v));

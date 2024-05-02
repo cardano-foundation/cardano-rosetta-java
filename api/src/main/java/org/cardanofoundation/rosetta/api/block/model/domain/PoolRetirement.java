@@ -1,12 +1,14 @@
 package org.cardanofoundation.rosetta.api.block.model.domain;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-
-import org.cardanofoundation.rosetta.api.block.model.entity.PoolRetirementEntity;
+import lombok.NoArgsConstructor;
 
 @Data
-@Builder
+@Builder // TODO saa: remove this and refactor tests
+@NoArgsConstructor
+@AllArgsConstructor
 public class PoolRetirement {
 
   private String txHash;
@@ -17,12 +19,4 @@ public class PoolRetirement {
 
   private Integer epoch;
 
-  public static PoolRetirement fromEntity(PoolRetirementEntity entity) {
-    return PoolRetirement.builder()
-        .txHash(entity.getTxHash())
-        .certIndex(entity.getCertIndex())
-        .poolId(entity.getPoolId())
-        .epoch(entity.getEpoch())
-        .build();
-  }
 }
