@@ -62,7 +62,8 @@ public abstract class AbstractToOperation<T> {
             operationMetadata.addTokenBundleItem(tokenBundleItem);
           }
         });
-    return operationMetadata;
+
+    return operationMetadata.getTokenBundle() == null ? null : operationMetadata;
   }
 
   @NotNull
