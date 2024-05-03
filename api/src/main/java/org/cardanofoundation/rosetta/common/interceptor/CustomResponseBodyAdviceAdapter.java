@@ -20,6 +20,7 @@ public class CustomResponseBodyAdviceAdapter implements ResponseBodyAdvice<Objec
 
     final LoggingService loggingService;
 
+    @Override
     public boolean supports(MethodParameter methodParameter, Class<? extends HttpMessageConverter<?>> aClass) {
         return true;
     }
