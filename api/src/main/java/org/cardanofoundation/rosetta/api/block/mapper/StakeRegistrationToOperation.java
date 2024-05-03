@@ -40,10 +40,12 @@ public class StakeRegistrationToOperation extends AbstractToOperation<StakeRegis
     if (model == null) {
       return null;
     } else {
-      return model.equals(CertificateType.STAKE_REGISTRATION)
-          ? OperationType.STAKE_KEY_REGISTRATION.getValue() :
-          model.equals(CertificateType.STAKE_DEREGISTRATION)
-              ? OperationType.STAKE_KEY_DEREGISTRATION.getValue() : null;
+      if(model.equals(CertificateType.STAKE_REGISTRATION)) {
+        return OperationType.STAKE_KEY_REGISTRATION.getValue();
+      } else {
+        return model.equals(CertificateType.STAKE_DEREGISTRATION)
+            ? OperationType.STAKE_KEY_DEREGISTRATION.getValue() : null;
+      }
     }
   }
 

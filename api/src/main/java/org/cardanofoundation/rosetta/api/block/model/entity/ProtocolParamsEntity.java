@@ -44,7 +44,6 @@ public class ProtocolParamsEntity {
 
   private BigInteger minPoolCost; //16
   private BigInteger adaPerUtxoByte; //17
-  //private String nonce;
 
   //Alonzo changes
   private Map<String, long[]> costModels; //18
