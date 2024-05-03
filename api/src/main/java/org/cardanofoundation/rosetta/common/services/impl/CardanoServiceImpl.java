@@ -77,10 +77,9 @@ import static java.math.BigInteger.valueOf;
 public class CardanoServiceImpl implements CardanoService {
 
   private final LedgerBlockService ledgerBlockService;
-
   private final ProtocolParamService protocolParamService;
-
   private final RestTemplate restTemplate;
+
   @Value("${cardano.rosetta.NODE_SUBMIT_API_PORT}")
   private int nodeSubmitApiPort;
   @Value("${cardano.rosetta.CARDANO_NODE_SUBMIT_HOST}")
@@ -365,15 +364,15 @@ public class CardanoServiceImpl implements CardanoService {
     String transactionBytes = HexUtil.encodeHexString(
         com.bloxbean.cardano.yaci.core.util.CborSerializationUtil.serialize(mapCbor));
     log.info("[createUnsignedTransaction] Hashing transaction body");
-    String bodyHash = com.bloxbean.cardano.client.util.HexUtil.encodeHexString(
+    String bodyHash = HexUtil.encodeHexString(
         Blake2bUtil.blake2bHash256(CborSerializationUtil.serialize(mapCbor)));
 
     UnsignedTransaction toReturn = new UnsignedTransaction(
         HexUtil.encodeHexString(HexUtil.decodeHexString(bodyHash)), transactionBytes,
         opRetDto.getAddresses(),
         getHexEncodedAuxiliaryMetadataArray(opRetDto));
-    log.info(toReturn
-        + "[createUnsignedTransaction] Returning unsigned transaction, hash to sign and addresses that will sign hash");
+    log.info("[createUnsignedTransaction] Returning unsigned transaction, hash to sign and addresses"
+        + " that will sign hash: [{}]", toReturn);
     return toReturn;
   }
 
@@ -410,7 +409,7 @@ public class CardanoServiceImpl implements CardanoService {
     ProcessOperations result = convertRosettaOperations(networkIdentifierType, operations);
     double refundsSum = result.getStakeKeyDeRegistrationsCount() * Long.parseLong(
         depositParams.getKeyDeposit());
-    Map<String, Double> depositsSumMap = getStringDoubleMap(depositParams, result, refundsSum);
+    Map<String, Double> depositsSumMap = getDepositsSumMap(depositParams, result, refundsSum);
     long fee = calculateFee(result.getInputAmounts(), result.getOutputAmounts(),
         result.getWithdrawalAmounts(), depositsSumMap);
     log.info("[processOperations] Calculated fee:{}", fee);
@@ -418,7 +417,7 @@ public class CardanoServiceImpl implements CardanoService {
   }
 
   @NotNull
-  private static Map<String, Double> getStringDoubleMap(DepositParameters depositParameters,
+  private static Map<String, Double> getDepositsSumMap(DepositParameters depositParameters,
       ProcessOperations result, double refundsSum) {
     double keyDepositsSum =
         result.getStakeKeyRegistrationsCount() * Long.parseLong(depositParameters.getKeyDeposit());
