@@ -1,7 +1,4 @@
-
----
-
-# :rotating_light: This Repository is under active development. :rotating_light:
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=cardano-foundation_cardano-rosetta-java&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=cardano-foundation_cardano-rosetta-java)
 
 # Cardano Rosetta API Java implementation
 This repository provides a lightweight java implementation of the Rosetta API. It uses [Yaci-Store](https://github.com/bloxbean/yaci-store) as an indexer
