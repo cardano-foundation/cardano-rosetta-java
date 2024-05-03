@@ -37,7 +37,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.cardanofoundation.rosetta.common.util.Constants.ADA;
 import static org.cardanofoundation.rosetta.common.util.Constants.ADA_DECIMALS;
 
-class BlockTxToRosettaTransactionTest extends BaseMapperTest {
+class
+BlockTxToRosettaTransactionTest extends BaseMapperTest {
 
   @Autowired
   private BlockTxToRosettaTransaction my;
@@ -275,6 +276,10 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
 
     assertThat(opInto.getAccount().getAddress()).isEqualTo(firstFrom.getOwnerAddr());
     assertThat(opInto.getAmount()).isEqualTo(amountActual("10"));
+
+    assertThat(opInto.getRelatedOperations()).isNotNull();
+    assertThat(opInto.getRelatedOperations().size()).isEqualTo(1);
+    assertThat(opInto.getRelatedOperations().getFirst().getIndex()).isEqualTo(0);
 
     CoinChange coinChange = opInto.getCoinChange();
     assertThat(coinChange.getCoinAction()).isEqualTo(CoinAction.CREATED);
