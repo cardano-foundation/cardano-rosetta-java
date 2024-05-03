@@ -201,11 +201,13 @@ public class NetworkServiceImpl implements NetworkService {
 
   @Override
   public void verifyNetworkRequest(final NetworkIdentifier networkIdentifier) {
-    if(!verifyBlockchain(networkIdentifier.getBlockchain())) {
-      throw ExceptionFactory.invalidBlockchainError();
-    }
-    if(!verifyNetwork(networkIdentifier.getNetwork())) {
-      throw ExceptionFactory.networkNotFoundError();
+    if (networkIdentifier != null) {
+      if (!verifyBlockchain(networkIdentifier.getBlockchain())) {
+        throw ExceptionFactory.invalidBlockchainError();
+      }
+      if (!verifyNetwork(networkIdentifier.getNetwork())) {
+        throw ExceptionFactory.networkNotFoundError();
+      }
     }
   }
 

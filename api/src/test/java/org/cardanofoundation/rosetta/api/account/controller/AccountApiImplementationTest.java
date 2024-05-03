@@ -1,5 +1,8 @@
 package org.cardanofoundation.rosetta.api.account.controller;
 
+import org.cardanofoundation.rosetta.api.network.service.NetworkService;
+import org.cardanofoundation.rosetta.common.util.Constants;
+import org.openapitools.client.model.NetworkIdentifier;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
@@ -34,6 +37,10 @@ class AccountApiImplementationTest {
 
   @Mock
   AccountService accountService;
+
+  @Mock
+  NetworkService networkService;
+
   @Spy
   @InjectMocks
   AccountApiImplementation accountController;
@@ -47,6 +54,8 @@ class AccountApiImplementationTest {
   void accountBalancePositiveTest() {
     AccountBalanceRequest request = Mockito.mock(AccountBalanceRequest.class);
     AccountBalanceResponse response = Mockito.mock(AccountBalanceResponse.class);
+    request.setNetworkIdentifier(NetworkIdentifier.builder().blockchain(Constants.CARDANO_BLOCKCHAIN).network(Constants.DEVKIT).build());
+
     Mockito.when(accountService.getAccountBalance(request)).thenReturn(response);
 
     ResponseEntity<AccountBalanceResponse> actual = accountController.accountBalance(request);
@@ -61,8 +70,9 @@ class AccountApiImplementationTest {
   void accountCoinsPositiveTest() {
     AccountCoinsRequest request = Mockito.mock(AccountCoinsRequest.class);
     AccountCoinsResponse response = Mockito.mock(AccountCoinsResponse.class);
-    Mockito.when(accountService.getAccountCoins(request)).thenReturn(response);
+    request.setNetworkIdentifier(NetworkIdentifier.builder().blockchain(Constants.CARDANO_BLOCKCHAIN).network(Constants.DEVKIT).build());
 
+    Mockito.when(accountService.getAccountCoins(request)).thenReturn(response);
     ResponseEntity<AccountCoinsResponse> actual = accountController.accountCoins(request);
 
     assertEquals(response, actual.getBody());
