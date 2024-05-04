@@ -234,7 +234,9 @@ public class NetworkServiceImpl implements NetworkService {
       case Constants.DEVKIT_PROTOCOL_MAGIC -> {
         return network.equals(Constants.DEVKIT);
       }
-      default -> throw ExceptionFactory.networkNotFoundError();
+      default -> {
+        return false;
+      }
     }
   }
 
