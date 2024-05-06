@@ -37,12 +37,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.cardanofoundation.rosetta.common.util.Constants.ADA;
 import static org.cardanofoundation.rosetta.common.util.Constants.ADA_DECIMALS;
 
-class
-BlockTxToRosettaTransactionTest extends BaseMapperTest {
+class BlockTxToRosettaTransactionTest extends BaseMapperTest {
 
   @Autowired
   private BlockTxToRosettaTransaction my;
-
 
   @Test
   void toDto_Test_empty_operations() {
@@ -99,7 +97,6 @@ BlockTxToRosettaTransactionTest extends BaseMapperTest {
       assertThat(stakeInto.getAccount().getAddress()).isEqualTo(firstFrom.getAddress());
       assertThat(stakeInto.getMetadata().getDepositAmount()).isEqualTo(amountActual("500"));
     });
-
   }
 
 
@@ -138,9 +135,6 @@ BlockTxToRosettaTransactionTest extends BaseMapperTest {
     assertThat(stakeInto.getAccount().getAddress()).isEqualTo(firstFrom.getAddress());
     assertThat(stakeInto.getMetadata().getPoolKeyHash()).isEqualTo(firstFrom.getPoolId());
     assertThat(stakeInto.getMetadata().getDepositAmount()).isNull();
-
-
-
   }
 
   @Test
@@ -198,7 +192,6 @@ BlockTxToRosettaTransactionTest extends BaseMapperTest {
     assertThat(poolRegParams.getPoolOwners()).hasSameElementsAs(firstFrom.getOwners());
     assertThat(poolRegParams.getMarginPercentage()).isEqualTo(firstFrom.getMargin());
     assertThat(poolRegParams.getRelays()).hasSameElementsAs(firstFrom.getRelays());
-
   }
 
 
@@ -239,9 +232,6 @@ BlockTxToRosettaTransactionTest extends BaseMapperTest {
     assertThat(poolInto.getAccount().getAddress()).isEqualTo(firstFrom.getPoolId());
     assertThat(poolInto.getMetadata().getEpoch()).isEqualTo(firstFrom.getEpoch());
     assertThat(poolInto.getMetadata().getDepositAmount()).isNull();
-
-
-
   }
 
   @Test
@@ -298,7 +288,6 @@ BlockTxToRosettaTransactionTest extends BaseMapperTest {
         .isEqualTo(Hex.encodeHexString(
             from.getOutputs().getFirst().getAmounts().getFirst().getAssetName().getBytes()));
     assertThat(token.getCurrency().getDecimals()).isEqualTo(0);
-
   }
 
 
@@ -347,7 +336,6 @@ BlockTxToRosettaTransactionTest extends BaseMapperTest {
         .isEqualTo(Hex.encodeHexString(
             from.getInputs().getFirst().getAmounts().getFirst().getAssetName().getBytes()));
     assertThat(token.getCurrency().getDecimals()).isEqualTo(0);
-
   }
 
 
@@ -377,7 +365,6 @@ BlockTxToRosettaTransactionTest extends BaseMapperTest {
     assertThat(opInto.getMetadata().getWithdrawalAmount().getValue())
         .isEqualTo("-"+ from.getWithdrawals().getFirst().getAmount().toString());
     assertThat(opInto.getMetadata().getDepositAmount()).isNull();
-
   }
 
 
@@ -443,6 +430,4 @@ BlockTxToRosettaTransactionTest extends BaseMapperTest {
         .unit("unit1")
         .build();
   }
-
-
 }
