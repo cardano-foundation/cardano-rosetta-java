@@ -41,7 +41,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
 
   private final CardanoAddressService cardanoAddressService;
   private final CardanoService cardanoService;
-    private final ProtocolParamService protocolParamService;
+  private final ProtocolParamService protocolParamService;
   private final DataMapper dataMapper;
 
   @Override

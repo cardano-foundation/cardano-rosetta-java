@@ -1,19 +1,24 @@
 package org.cardanofoundation.rosetta.common.services.impl;
 
-import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import jakarta.validation.constraints.NotNull;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 import co.nstant.in.cbor.CborException;
 import co.nstant.in.cbor.model.Array;
 import co.nstant.in.cbor.model.DataItem;
@@ -34,16 +39,7 @@ import com.bloxbean.cardano.client.transaction.spec.TransactionBody;
 import com.bloxbean.cardano.client.transaction.spec.TransactionWitnessSet;
 import com.bloxbean.cardano.client.transaction.spec.VkeyWitness;
 import com.bloxbean.cardano.client.util.HexUtil;
-import okhttp3.Call;
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Request.Builder;
-import okhttp3.RequestBody;
-import okhttp3.Response;
-import okhttp3.ResponseBody;
 import org.apache.commons.lang3.ObjectUtils;
-import org.jetbrains.annotations.NotNull;
 import org.openapitools.client.model.AccountIdentifier;
 import org.openapitools.client.model.DepositParameters;
 import org.openapitools.client.model.Operation;
@@ -81,8 +77,8 @@ import static java.math.BigInteger.valueOf;
 public class CardanoServiceImpl implements CardanoService {
 
   private final LedgerBlockService ledgerBlockService;
-
   private final ProtocolParamService protocolParamService;
+  private final RestTemplate restTemplate;
 
   @Value("${cardano.rosetta.NODE_SUBMIT_API_PORT}")
   private int nodeSubmitApiPort;
@@ -100,13 +96,13 @@ public class CardanoServiceImpl implements CardanoService {
       List<AccountIdentifier> accountIdentifierSigners = new ArrayList<>();
       if (signed) {
         log.info("[parseSignedTransaction] About to get signatures from parsed transaction");
-        List<String> accum = new ArrayList<>();
+        List<String> accumulator = new ArrayList<>();
         convertedTr.transactionExtraData().operations().forEach(o -> {
           List<String> list = TransactionDataToOperations.getSignerFromOperation(
               networkIdentifierType, o);
-          accum.addAll(list);
+          accumulator.addAll(list);
         });
-        accountIdentifierSigners = TransactionDataToOperations.getUniqueAccountIdentifiers(accum);
+        accountIdentifierSigners = TransactionDataToOperations.getUniqueAccountIdentifiers(accumulator);
       }
       return new TransactionParsed(operations, accountIdentifierSigners);
     } catch (CborException | CborDeserializationException | CborSerializationException error) {
@@ -201,7 +197,7 @@ public class CardanoServiceImpl implements CardanoService {
   @Override
   public Double calculateTxSize(NetworkIdentifierType networkIdentifierType,
       List<Operation> operations, int ttl, DepositParameters depositParameters) {
-    UnsignedTransaction unsignedTransaction = null;
+    UnsignedTransaction unsignedTransaction;
     try {
       unsignedTransaction = createUnsignedTransaction(networkIdentifierType,
           operations, ttl, !ObjectUtils.isEmpty(depositParameters) ? depositParameters
@@ -337,28 +333,28 @@ public class CardanoServiceImpl implements CardanoService {
     log.info(
         "[createUnsignedTransaction] About to create an unsigned transaction with {} operations",
         operations.size());
-    ProcessOperationsReturn processOperationsReturnDto = processOperations(networkIdentifierType,
+    ProcessOperationsReturn opRetDto = processOperations(networkIdentifierType,
         operations, depositParameters);
 
     log.info("[createUnsignedTransaction] About to create transaction body");
-    BigInteger fee = valueOf(processOperationsReturnDto.getFee());
+    BigInteger fee = valueOf(opRetDto.getFee());
     TransactionBody transactionBody = TransactionBody.builder()
-        .inputs(processOperationsReturnDto.getTransactionInputs())
-        .outputs(processOperationsReturnDto.getTransactionOutputs()).fee(fee).ttl(ttl).build();
+        .inputs(opRetDto.getTransactionInputs())
+        .outputs(opRetDto.getTransactionOutputs()).fee(fee).ttl(ttl).build();
 
-    if (processOperationsReturnDto.getVoteRegistrationMetadata() != null) {
+    if (opRetDto.getVoteRegistrationMetadata() != null) {
       log.info(
           "[createUnsignedTransaction] Hashing vote registration metadata and adding to transaction body");
-      Array array = getArrayOfAuxiliaryData(processOperationsReturnDto);
+      Array array = getArrayOfAuxiliaryData(opRetDto);
       transactionBody.setAuxiliaryDataHash(Blake2bUtil.blake2bHash256(
           com.bloxbean.cardano.yaci.core.util.CborSerializationUtil.serialize(array)));
     }
 
-    if (!(processOperationsReturnDto.getCertificates()).isEmpty()) {
-      transactionBody.setCerts(processOperationsReturnDto.getCertificates());
+    if (!(opRetDto.getCertificates()).isEmpty()) {
+      transactionBody.setCerts(opRetDto.getCertificates());
     }
-    if (!ObjectUtils.isEmpty(processOperationsReturnDto.getWithdrawals())) {
-      transactionBody.setWithdrawals(processOperationsReturnDto.getWithdrawals());
+    if (!ObjectUtils.isEmpty(opRetDto.getWithdrawals())) {
+      transactionBody.setWithdrawals(opRetDto.getWithdrawals());
     }
     co.nstant.in.cbor.model.Map mapCbor = transactionBody.serialize();
     //  If ttl is 0, it will be discarded while serialization, but it needs to be in the Data map
@@ -370,20 +366,21 @@ public class CardanoServiceImpl implements CardanoService {
     log.info("[createUnsignedTransaction] Hashing transaction body");
     String bodyHash = HexUtil.encodeHexString(
         Blake2bUtil.blake2bHash256(CborSerializationUtil.serialize(mapCbor)));
+
     UnsignedTransaction toReturn = new UnsignedTransaction(
         HexUtil.encodeHexString(HexUtil.decodeHexString(bodyHash)), transactionBytes,
-        processOperationsReturnDto.getAddresses(),
-        getHexEncodedAuxiliaryMetadataArray(processOperationsReturnDto));
-    log.info(toReturn
-        + "[createUnsignedTransaction] Returning unsigned transaction, hash to sign and addresses that will sign hash");
+        opRetDto.getAddresses(),
+        getHexEncodedAuxiliaryMetadataArray(opRetDto));
+    log.info("[createUnsignedTransaction] Returning unsigned transaction, hash to sign and addresses"
+        + " that will sign hash: [{}]", toReturn);
     return toReturn;
   }
 
   private static String getHexEncodedAuxiliaryMetadataArray(
-      ProcessOperationsReturn processOperationsReturnDto)
+      ProcessOperationsReturn opRetDto)
       throws CborSerializationException, CborException {
-    if (!ObjectUtils.isEmpty(processOperationsReturnDto.getVoteRegistrationMetadata())) {
-      Array array = getArrayOfAuxiliaryData(processOperationsReturnDto);
+    if (!ObjectUtils.isEmpty(opRetDto.getVoteRegistrationMetadata())) {
+      Array array = getArrayOfAuxiliaryData(opRetDto);
       return HexUtil.encodeHexString(CborSerializationUtil.serialize(array));
     }
     return null;
@@ -408,10 +405,20 @@ public class CardanoServiceImpl implements CardanoService {
   }
 
   private ProcessOperationsReturn processOperations(NetworkIdentifierType networkIdentifierType,
-      List<Operation> operations, DepositParameters depositParameters) {
+      List<Operation> operations, DepositParameters depositParams) {
     ProcessOperations result = convertRosettaOperations(networkIdentifierType, operations);
     double refundsSum = result.getStakeKeyDeRegistrationsCount() * Long.parseLong(
-        depositParameters.getKeyDeposit());
+        depositParams.getKeyDeposit());
+    Map<String, Double> depositsSumMap = getDepositsSumMap(depositParams, result, refundsSum);
+    long fee = calculateFee(result.getInputAmounts(), result.getOutputAmounts(),
+        result.getWithdrawalAmounts(), depositsSumMap);
+    log.info("[processOperations] Calculated fee:{}", fee);
+    return fillProcessOperationsReturnObject(result, fee);
+  }
+
+  @NotNull
+  private static Map<String, Double> getDepositsSumMap(DepositParameters depositParameters,
+      ProcessOperations result, double refundsSum) {
     double keyDepositsSum =
         result.getStakeKeyRegistrationsCount() * Long.parseLong(depositParameters.getKeyDeposit());
     double poolDepositsSum =
@@ -420,10 +427,7 @@ public class CardanoServiceImpl implements CardanoService {
     depositsSumMap.put(Constants.KEY_REFUNDS_SUM, refundsSum);
     depositsSumMap.put(Constants.KEY_DEPOSITS_SUM, keyDepositsSum);
     depositsSumMap.put(Constants.POOL_DEPOSITS_SUM, poolDepositsSum);
-    long fee = calculateFee(result.getInputAmounts(), result.getOutputAmounts(),
-        result.getWithdrawalAmounts(), depositsSumMap);
-    log.info("[processOperations] Calculated fee:{}", fee);
-    return fillProcessOperationsReturnObject(result, fee);
+    return depositsSumMap;
   }
 
   @NotNull
@@ -442,7 +446,7 @@ public class CardanoServiceImpl implements CardanoService {
   }
 
   /**
-   * Fees are calulcated based on adding all inputs and substracting all outputs. Withdrawals will
+   * Fees are calculated based on adding all inputs and subtracting all outputs. Withdrawals will
    * be added as well.
    *
    * @param inputAmounts      Sum of all Input ADA Amounts
@@ -488,7 +492,7 @@ public class CardanoServiceImpl implements CardanoService {
   }
 
   /**
-   * Submits the signed transaction to the preconfigured SubmitAPI. If successfull the transaction
+   * Submits the signed transaction to the preconfigured SubmitAPI. If successful the transaction
    * hash is returned.
    *
    * @param signedTransaction signed transaction in hex format
@@ -501,41 +505,33 @@ public class CardanoServiceImpl implements CardanoService {
     String submitURL = Constants.PROTOCOL + cardanoNodeSubmitHost + ":" + nodeSubmitApiPort
         + Constants.SUBMIT_API_PATH;
     log.info("[submitTransaction] About to submit transaction to {}", submitURL);
-    Request request = null;
-    request = new Builder()
-        .url(submitURL)
-        .addHeader(Constants.CONTENT_TYPE_HEADER_KEY, Constants.CBOR_CONTENT_TYPE)
-        .post(RequestBody.create(MediaType.parse(Constants.CBOR_CONTENT_TYPE),
-            HexUtil.decodeHexString(signedTransaction)))
-        .build();
-    OkHttpClient client = new OkHttpClient();
-    Call call = client.newCall(request);
-    try (Response response = call.execute()) {
-      ResponseBody body = response.body();
 
-      if (response.code() == Constants.SUCCESS_SUBMIT_TX_HTTP_CODE) {
-        if (body == null) {
-          throw ExceptionFactory.sendTransactionError("Empty response body");
-        }
-        String txHash = body.string();
-        // removing leading and trailing quotes returned from node API
-        if (txHash.length() == Constants.TX_HASH_LENGTH + 2) {
-          txHash = txHash.substring(1, txHash.length() - 1);
-        }
-        return txHash;
-      } else {
-        throw ExceptionFactory.sendTransactionError(body == null ? null : body.string());
+    HttpHeaders headers = new HttpHeaders();
+    headers.add(Constants.CONTENT_TYPE_HEADER_KEY, Constants.CBOR_CONTENT_TYPE);
+      ResponseEntity<String> exchange = restTemplate.postForEntity(
+          submitURL,
+          new HttpEntity<>(HexUtil.decodeHexString(signedTransaction), headers),
+          String.class);
+      if (exchange.getStatusCode().value() == Constants.SUCCESS_SUBMIT_TX_HTTP_CODE) {
+        return Optional
+            .ofNullable(exchange.getBody())
+            .filter(txHash -> txHash.length() == Constants.TX_HASH_LENGTH + 2)
+            // removing leading and trailing quotes returned from node API
+            .map(txHash -> txHash.substring(1, txHash.length() - 1))
+            .orElseThrow(() ->
+                ExceptionFactory.sendTransactionError("Transaction hash format error: " +
+                    exchange.getBody()));
+      }else {
+        log.error("[submitTransaction] There was an error submitting transaction");
+        throw ExceptionFactory.sendTransactionError("Transaction submit error: " +
+            exchange.getBody());
       }
-    } catch (IOException e) {
-      log.error("{}[submitTransaction] There was an error submitting transaction", e.getMessage());
-      throw ExceptionFactory.sendTransactionError(e.getMessage());
-    }
   }
 
   /**
-   * Returns the deposit parameters for the network fetched from the protocolparameters
+   * Returns the deposit parameters for the network fetched from the protocol parameters
    *
-   * @return Depositparameters including key- and pooldeposit
+   * @return Deposit parameters including key- and pool deposit
    */
   @Override
   public DepositParameters getDepositParameters() {
@@ -544,7 +540,7 @@ public class CardanoServiceImpl implements CardanoService {
   }
 
   /**
-   * Extract raw signed transaction and removes the extradata. Transactions build with rosetta
+   * Extract raw signed transaction and removes the extra data. Transactions build with rosetta
    * contain such data, transaction build with other tools like cardano-cli do not contain this
    * data.
    *
