@@ -14,22 +14,30 @@ import org.openapitools.client.model.AccountCoinsRequest;
 import org.openapitools.client.model.AccountCoinsResponse;
 
 import org.cardanofoundation.rosetta.api.account.service.AccountService;
+import org.cardanofoundation.rosetta.api.network.service.NetworkService;
 
 @RestController
 @RequiredArgsConstructor
 public class AccountApiImplementation implements AccountApi {
 
   private final AccountService accountService;
+  private final NetworkService networkService;
 
   @Override
   public ResponseEntity<AccountBalanceResponse> accountBalance(
       @Valid @RequestBody AccountBalanceRequest accountBalanceRequest) {
+
+    networkService.verifyNetworkRequest(accountBalanceRequest.getNetworkIdentifier());
+
     return ResponseEntity.ok(accountService.getAccountBalance(accountBalanceRequest));
   }
 
   @Override
   public ResponseEntity<AccountCoinsResponse> accountCoins(
       @Valid @RequestBody AccountCoinsRequest accountCoinsRequest) {
+
+    networkService.verifyNetworkRequest(accountCoinsRequest.getNetworkIdentifier());
+
     return ResponseEntity.ok(accountService.getAccountCoins(accountCoinsRequest));
   }
 }

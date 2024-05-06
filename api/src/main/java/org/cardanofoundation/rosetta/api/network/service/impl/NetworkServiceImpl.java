@@ -63,7 +63,7 @@ public class NetworkServiceImpl implements NetworkService {
   private String cardanoNodeVersion;
   private final ResourceLoader resourceLoader;
 
-    @PostConstruct
+  @PostConstruct
   public void filePathExistingValidator() throws ServerException {
     validator(topologyFilepath);
     validator(genesisPath);
@@ -153,7 +153,7 @@ public class NetworkServiceImpl implements NetworkService {
       case Constants.MAINNET_NETWORK_MAGIC -> Networks.mainnet();
       case Constants.PREPROD_NETWORK_MAGIC -> Networks.preprod();
       case Constants.TESTNET_NETWORK_MAGIC -> Networks.testnet();
-      case Constants.DEVNET_NETWORK_MAGIC -> new Network(0b0000, 42);
+      case Constants.DEVNET_NETWORK_MAGIC -> new Network(0b0000, Constants.DEVKIT_PROTOCOL_MAGIC);
       default -> throw ExceptionFactory.invalidNetworkError();
     };
   }
@@ -197,6 +197,47 @@ public class NetworkServiceImpl implements NetworkService {
         .map(ap -> Producer.builder().addr(ap.getAddress()).build())
         .toList();
 
+  }
+
+  @Override
+  public void verifyNetworkRequest(final NetworkIdentifier networkIdentifier) {
+    if (networkIdentifier != null) {
+      if (!verifyBlockchain(networkIdentifier.getBlockchain())) {
+        throw ExceptionFactory.invalidBlockchainError();
+      }
+      if (!verifyNetwork(networkIdentifier.getNetwork())) {
+        throw ExceptionFactory.networkNotFoundError();
+      }
+    }
+  }
+
+  private boolean verifyBlockchain(String blockchain) {
+    return blockchain.equals(Constants.CARDANO_BLOCKCHAIN);
+  }
+
+  private boolean verifyNetwork(String network) {
+    Network supportedNetwork = getSupportedNetwork();
+
+    switch ((int) supportedNetwork.getProtocolMagic()) {
+      case Constants.MAINNET_PROTOCOL_MAGIC -> {
+        return network.equalsIgnoreCase(Constants.MAINNET);
+      }
+      case Constants.TESTNET_PROTOCOL_MAGIC -> {
+        return network.equalsIgnoreCase(Constants.TESTNET);
+      }
+      case Constants.PREPROD_PROTOCOL_MAGIC -> {
+        return network.equals(Constants.PREPROD);
+      }
+      case Constants.PREVIEW_PROTOCOL_MAGIC -> {
+        return network.equals(Constants.PREVIEW);
+      }
+      case Constants.DEVKIT_PROTOCOL_MAGIC -> {
+        return network.equals(Constants.DEVKIT);
+      }
+      default -> {
+        return false;
+      }
+    }
   }
 
 }

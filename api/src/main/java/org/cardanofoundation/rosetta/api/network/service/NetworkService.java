@@ -17,4 +17,7 @@ public interface NetworkService {
         throws IOException;
 
     Network getSupportedNetwork();
+
+    void verifyNetworkRequest(final NetworkIdentifier networkRequest);
+
 }
