@@ -1,19 +1,18 @@
 package org.cardanofoundation.rosetta.api.network;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.openapitools.client.model.NetworkIdentifier;
 
-import lombok.RequiredArgsConstructor;
-import org.apache.tomcat.util.bcel.Const;
+import org.junit.jupiter.api.Test;
+
 import org.cardanofoundation.rosetta.api.IntegrationTest;
 import org.cardanofoundation.rosetta.api.network.service.NetworkService;
 import org.cardanofoundation.rosetta.common.exception.ApiException;
-import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.util.Constants;
 import org.cardanofoundation.rosetta.common.util.RosettaConstants.RosettaErrorType;
-import org.junit.jupiter.api.Test;
-import org.openapitools.client.model.NetworkIdentifier;
-import org.springframework.beans.factory.annotation.Autowired;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class NetworkServiceImplTest extends IntegrationTest {
 
@@ -43,7 +42,6 @@ public class NetworkServiceImplTest extends IntegrationTest {
     assertEquals(RosettaErrorType.INVALID_BLOCKCHAIN.getMessage(), apiException.getError().getMessage());
     assertEquals(RosettaErrorType.INVALID_BLOCKCHAIN.getCode(), apiException.getError().getCode());
   }
-
 
   private NetworkIdentifier createNetworkIdentifier(String blockchain, String network) {
     return NetworkIdentifier.builder()
