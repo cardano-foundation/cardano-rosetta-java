@@ -73,6 +73,7 @@ So the Node itself needs extra configuration to be able to query mempool transac
 - [Cardano specific API Additions](./docs/cardano-specific-api-additions.md)
 - [Dev H2 Quickstart Guide](./docs/dev-h2-quick-start-guide.md)
 - [Environment Variables](./docs/environment-variables.md)
+- [Rosetta-cli tests](./docs/rosetta-cli-tests.md)
 
 ## Contributing
 
