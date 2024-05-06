@@ -8,7 +8,7 @@ to fetch the data from a Cardano node.
 
 ## Documentation
 
-Please refer to our [wiki page](https://github.com/cardano-foundation/cardano-rosetta-java/wiki) for more information on the project.
+Please refer to our [wiki pages](https://github.com/cardano-foundation/cardano-rosetta-java/wiki) for more information on the project.
 
 ---
 Thanks for visiting us and enjoy :heart:!
