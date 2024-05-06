@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@Builder // TODO saa: remove this and refactor tests
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class PoolRetirement {

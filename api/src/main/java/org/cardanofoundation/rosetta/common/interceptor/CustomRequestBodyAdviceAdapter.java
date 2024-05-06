@@ -3,7 +3,8 @@ package org.cardanofoundation.rosetta.common.interceptor;
 import java.lang.reflect.Type;
 import jakarta.servlet.http.HttpServletRequest;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -13,13 +14,12 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestBodyAdviceAd
 import org.cardanofoundation.rosetta.common.services.LoggingService;
 
 @ControllerAdvice
+@RequiredArgsConstructor
 public class CustomRequestBodyAdviceAdapter extends RequestBodyAdviceAdapter {
 
-    @Autowired
-    LoggingService loggingService;
+    final LoggingService loggingService;
 
-    @Autowired
-    HttpServletRequest httpServletRequest;
+    final HttpServletRequest httpServletRequest;
 
     @Override
     public boolean supports(MethodParameter methodParameter, Type type, Class<? extends HttpMessageConverter<?>> aClass) {
