@@ -1,6 +1,7 @@
 package org.cardanofoundation.rosetta.api.block.mapper;
 
 import java.util.List;
+import java.util.stream.Collectors;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 
@@ -9,6 +10,7 @@ import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.modelmapper.ModelMapper;
 import org.openapitools.client.model.Operation;
+import org.openapitools.client.model.OperationIdentifier;
 import org.openapitools.client.model.OperationStatus;
 import org.openapitools.client.model.Transaction;
 
@@ -55,16 +57,30 @@ public class BlockTxToRosettaTransaction {
         .setPostConverter(ctx -> {
           MutableInt ix = new MutableInt(0);
           @NotNull @Valid List<Operation> destOp = ctx.getDestination().getOperations();
-          destOp.addAll(inputToOperation.convert(model.getInputs(), status, ix));
+          List<Operation> inpOps = inputToOperation.convert(model.getInputs(), status, ix);
+          destOp.addAll(inpOps);
           destOp.addAll(withdrawalToOperation.convert(model.getWithdrawals(), status, ix));
           destOp.addAll(stakeToOperation.convert(model.getStakeRegistrations(), status, ix));
           destOp.addAll(delegationToOperation.convert(model.getDelegations(), status, ix));
           destOp.addAll(poolRegistrationToOperation.convert(model.getPoolRegistrations(), status, ix));
           destOp.addAll(poolRetirementToOperation.convert(model.getPoolRetirements(), status, ix));
-          destOp.addAll(outputToOperation.convert(model.getOutputs(), status, ix));
+
+          List<Operation> outOps = outputToOperation.convert(model.getOutputs(), status, ix);
+          outOps.forEach(op -> op.setRelatedOperations(getOperationIndexes(inpOps)));
+
+          destOp.addAll(outOps);
           return ctx.getDestination();
         })
         .map(model);
 
+  }
+
+
+  public static List<OperationIdentifier> getOperationIndexes(List<Operation> operations) {
+    return operations.stream()
+        .map(operation -> OperationIdentifier
+            .builder()
+            .index(operation.getOperationIdentifier().getIndex()).build())
+        .collect(Collectors.toList());
   }
 }

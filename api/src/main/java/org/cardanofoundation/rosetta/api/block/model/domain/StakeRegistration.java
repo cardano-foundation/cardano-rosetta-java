@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 import com.bloxbean.cardano.yaci.core.model.certs.CertificateType;
 
 @Data
-@Builder //TODO saa: remove this and refactor tests
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class StakeRegistration {

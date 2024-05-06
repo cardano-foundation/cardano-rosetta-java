@@ -63,22 +63,20 @@ public void encodeStakeKeyDeregistrationTest()
 
   private String getEncodedTransaction(String filename)
       throws IOException, CborSerializationException, AddressExcepion, CborException {
-    CardanoServiceImpl cardanoService = new CardanoServiceImpl(null,null);
+    CardanoServiceImpl cardanoService = new CardanoServiceImpl(null,null, null);
     ConstructionPayloadsRequest request = getRequest(filename);
     UnsignedTransaction unsignedTransaction = cardanoService.createUnsignedTransaction(
         NetworkIdentifierType.findByName(request.getNetworkIdentifier().getNetwork()), request.getOperations(), request.getMetadata().getTtl(),
         new DepositParameters(request.getMetadata().getProtocolParameters().getKeyDeposit(),
             request.getMetadata().getProtocolParameters().getPoolDeposit()));
-    String encoded = CborEncodeUtil.encodeExtraData(unsignedTransaction.bytes(),
+    return CborEncodeUtil.encodeExtraData(unsignedTransaction.bytes(),
         request.getOperations(), unsignedTransaction.metadata());
-    return encoded;
   }
 
   private ConstructionPayloadsRequest getRequest(String fileName) throws IOException {
     File file = new File(this.getClass().getClassLoader().getResource(fileName).getFile());
     ObjectMapper mapper = new ObjectMapper();
-    ConstructionPayloadsRequest request = mapper.readValue(file, ConstructionPayloadsRequest.class);
-    return request;
+    return mapper.readValue(file, ConstructionPayloadsRequest.class);
   }
 
 

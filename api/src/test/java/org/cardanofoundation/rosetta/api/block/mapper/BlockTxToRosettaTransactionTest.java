@@ -42,7 +42,6 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
   @Autowired
   private BlockTxToRosettaTransaction my;
 
-
   @Test
   void toDto_Test_empty_operations() {
     //given
@@ -98,7 +97,6 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
       assertThat(stakeInto.getAccount().getAddress()).isEqualTo(firstFrom.getAddress());
       assertThat(stakeInto.getMetadata().getDepositAmount()).isEqualTo(amountActual("500"));
     });
-
   }
 
 
@@ -136,8 +134,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
     assertThat(stakeInto.getOperationIdentifier().getIndex()).isEqualTo(1); //index in array
     assertThat(stakeInto.getAccount().getAddress()).isEqualTo(firstFrom.getAddress());
     assertThat(stakeInto.getMetadata().getPoolKeyHash()).isEqualTo(firstFrom.getPoolId());
-
-
+    assertThat(stakeInto.getMetadata().getDepositAmount()).isNull();
   }
 
   @Test
@@ -195,7 +192,6 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
     assertThat(poolRegParams.getPoolOwners()).hasSameElementsAs(firstFrom.getOwners());
     assertThat(poolRegParams.getMarginPercentage()).isEqualTo(firstFrom.getMargin());
     assertThat(poolRegParams.getRelays()).hasSameElementsAs(firstFrom.getRelays());
-
   }
 
 
@@ -235,8 +231,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
     assertThat(poolInto.getOperationIdentifier().getIndex()).isEqualTo(1); //index in array
     assertThat(poolInto.getAccount().getAddress()).isEqualTo(firstFrom.getPoolId());
     assertThat(poolInto.getMetadata().getEpoch()).isEqualTo(firstFrom.getEpoch());
-
-
+    assertThat(poolInto.getMetadata().getDepositAmount()).isNull();
   }
 
   @Test
@@ -261,9 +256,20 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
     Utxo firstFrom = from.getOutputs().getFirst();
     assertThat(opInto.getType()).isEqualTo(Constants.OUTPUT);
     assertThat(opInto.getStatus()).isEqualTo("success");
-    assertThat(opInto.getOperationIdentifier().getIndex()).isEqualTo(1); //index in array
+    assertThat(opInto.getOperationIdentifier().getIndex())
+        .isEqualTo(1); //index in array for toDto_Test_getOutputsAsOperations test
+    assertThat(opInto.getOperationIdentifier().getNetworkIndex().intValue())
+        .isEqualTo(firstFrom.getOutputIndex());
+
+    assertThat(opInto.getMetadata()).isNotNull();
+    assertThat(opInto.getMetadata().getDepositAmount()).isNull();
+
     assertThat(opInto.getAccount().getAddress()).isEqualTo(firstFrom.getOwnerAddr());
     assertThat(opInto.getAmount()).isEqualTo(amountActual("10"));
+
+    assertThat(opInto.getRelatedOperations()).isNotNull();
+    assertThat(opInto.getRelatedOperations().size()).isEqualTo(1);
+    assertThat(opInto.getRelatedOperations().getFirst().getIndex()).isEqualTo(0);
 
     CoinChange coinChange = opInto.getCoinChange();
     assertThat(coinChange.getCoinAction()).isEqualTo(CoinAction.CREATED);
@@ -282,7 +288,6 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
         .isEqualTo(Hex.encodeHexString(
             from.getOutputs().getFirst().getAmounts().getFirst().getAssetName().getBytes()));
     assertThat(token.getCurrency().getDecimals()).isEqualTo(0);
-
   }
 
 
@@ -311,6 +316,8 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
     assertThat(opInto.getOperationIdentifier().getIndex()).isEqualTo(0); //index in array
     assertThat(opInto.getAccount().getAddress()).isEqualTo(firstFrom.getOwnerAddr());
     assertThat(opInto.getAmount()).isEqualTo(amountActual("-10"));
+    assertThat(opInto.getMetadata().getDepositAmount()).isNull();
+
 
     CoinChange coinChange = opInto.getCoinChange();
     assertThat(coinChange.getCoinAction()).isEqualTo(CoinAction.SPENT);
@@ -329,7 +336,6 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
         .isEqualTo(Hex.encodeHexString(
             from.getInputs().getFirst().getAmounts().getFirst().getAssetName().getBytes()));
     assertThat(token.getCurrency().getDecimals()).isEqualTo(0);
-
   }
 
 
@@ -358,6 +364,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
         .isEqualTo(from.getWithdrawals().getFirst().getStakeAddress());
     assertThat(opInto.getMetadata().getWithdrawalAmount().getValue())
         .isEqualTo("-"+ from.getWithdrawals().getFirst().getAmount().toString());
+    assertThat(opInto.getMetadata().getDepositAmount()).isNull();
   }
 
 
@@ -423,6 +430,4 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
         .unit("unit1")
         .build();
   }
-
-
 }

@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@Builder //TODO saa: refactor tests and remove builder and *argConstructor annotations
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class Delegation {
