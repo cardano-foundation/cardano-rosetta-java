@@ -14,7 +14,7 @@ public class SpringWebSecurityConfig {
   @Bean
   public SecurityFilterChain filterChain(final HttpSecurity http) throws Exception {
     http
-        // we don't need CSRF protection yet, since Rosetta API is uses by non-browser clients only
+        // we don't need CSRF protection yet, since Rosetta API is used by non-browser clients only
         .csrf(AbstractHttpConfigurer::disable)
         .authorizeHttpRequests(matcherRegistry -> matcherRegistry
             .requestMatchers("/**").permitAll())
