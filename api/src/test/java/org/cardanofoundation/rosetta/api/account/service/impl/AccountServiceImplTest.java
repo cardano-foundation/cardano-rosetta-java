@@ -72,8 +72,10 @@ class AccountServiceImplTest {
     AccountBalanceResponse actual = accountService.getAccountBalance(accountBalanceRequest);
 
     assertNotNull(actual);
-    assertEquals("1000", actual.getBalances().getFirst().getValue());
+    assertEquals("1000000000", actual.getBalances().getFirst().getValue());
     assertNotNull(actual.getBalances().getFirst().getCurrency().getSymbol());
+    assertEquals(Constants.ADA, actual.getBalances().getFirst().getCurrency().getSymbol());
+    assertEquals(Constants.ADA_DECIMALS, actual.getBalances().getFirst().getCurrency().getDecimals());
     assertEquals(blockIdentifier.getIndex(), actual.getBlockIdentifier().getIndex());
     assertEquals(blockIdentifier.getHash(), actual.getBlockIdentifier().getHash());
     verify(ledgerBlockService).findBlock(1L, HASH);
@@ -133,8 +135,10 @@ class AccountServiceImplTest {
     AccountBalanceResponse actual = accountService.getAccountBalance(accountBalanceRequest);
 
     assertNotNull(actual);
-    assertEquals("1000", actual.getBalances().getFirst().getValue());
+    assertEquals("1000000000", actual.getBalances().getFirst().getValue());
     assertNotNull(actual.getBalances().getFirst().getCurrency().getSymbol());
+    assertEquals(Constants.ADA, actual.getBalances().getFirst().getCurrency().getSymbol());
+    assertEquals(Constants.ADA_DECIMALS, actual.getBalances().getFirst().getCurrency().getDecimals());
     assertEquals(block.getNumber(), actual.getBlockIdentifier().getIndex());
     assertEquals(block.getHash(), actual.getBlockIdentifier().getHash());
     verify(ledgerBlockService).findLatestBlock();

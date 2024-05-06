@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
 import lombok.RequiredArgsConstructor;
@@ -149,18 +151,33 @@ public class DataMapper {
   /**
    * Maps a list of AddressBalanceDTOs to a Rosetta compatible AccountBalanceResponse.
    * @param block The block from where the balances are calculated into the past
-   * @param balances The balances of the addresses
+   * @param balances The list of balances that should contain quantity on the latest block number
    * @return The Rosetta compatible AccountBalanceResponse
    */
   public static AccountBalanceResponse mapToAccountBalanceResponse(Block block, List<AddressBalance> balances) {
-    List<AddressBalance> nonLovelaceBalances = balances.stream().filter(balance -> !balance.unit().equals(Constants.LOVELACE) && !balance.unit().equals(Constants.ADA)).toList();
-    long sum = balances.stream().filter(balance -> balance.unit().equals(Constants.LOVELACE) || balance.unit().equals(Constants.ADA)).mapToLong(value -> value.quantity().longValue()).sum();
+    // in case if there are multiple balances for the same unit, we take the one from the latest block
+    Map<String, AddressBalance> unitToBalance = balances.stream().collect(
+        Collectors.toMap(AddressBalance::unit, Function.identity(),
+            (balance1, balance2) -> balance1.number() > balance2.number() ? balance1 : balance2));
+    AddressBalance zeroBalance = AddressBalance.builder().quantity(BigInteger.ZERO).build();
+    // here should be only one balance, LOVELACE
+    BigInteger sum = unitToBalance.getOrDefault(Constants.LOVELACE, zeroBalance).quantity().add(
+        BigInteger.valueOf(1_000_000L).multiply( // make it LOVELACE out of ADA
+            unitToBalance.getOrDefault(Constants.ADA, zeroBalance).quantity()));
     List<Amount> amounts = new ArrayList<>();
-    if (sum > 0) {
+    if (sum.compareTo(BigInteger.ZERO) > 0) {
       amounts.add(mapAmount(String.valueOf(sum)));
     }
-    nonLovelaceBalances.forEach(balance -> amounts.add(mapAmount(balance.quantity().toString(), balance.unit().substring(Constants.POLICY_ID_LENGTH), Constants.MULTI_ASSET_DECIMALS, new CurrencyMetadata(
-        balance.unit().substring(0, Constants.POLICY_ID_LENGTH)))));
+    unitToBalance.entrySet().stream()
+        .filter(entry -> !entry.getKey().equals(Constants.LOVELACE)
+            && !entry.getKey().equals(Constants.ADA))
+        .forEach(entry -> amounts.add(
+            mapAmount(entry.getValue().quantity().toString(),
+                entry.getKey().substring(Constants.POLICY_ID_LENGTH),
+                Constants.MULTI_ASSET_DECIMALS,
+                new CurrencyMetadata(
+                    entry.getKey().substring(0, Constants.POLICY_ID_LENGTH)))
+        ));
     return AccountBalanceResponse.builder()
             .blockIdentifier(BlockIdentifier.builder()
                     .hash(block.getHash())
