@@ -48,7 +48,6 @@ public abstract class AbstractToOperation<T> {
         .stream()
         .flatMap(List::stream)
         .forEach(amount -> {
-          operationMetadata.setDepositAmount(getDepositAmount());
           if (!amount.getAssetName().equals(Constants.LOVELACE)) {
             TokenBundleItem tokenBundleItem = new TokenBundleItem();
             tokenBundleItem.setPolicyId(amount.getPolicyId());
@@ -63,7 +62,8 @@ public abstract class AbstractToOperation<T> {
             operationMetadata.addTokenBundleItem(tokenBundleItem);
           }
         });
-    return operationMetadata;
+
+    return operationMetadata.getTokenBundle() == null ? null : operationMetadata;
   }
 
   @NotNull
