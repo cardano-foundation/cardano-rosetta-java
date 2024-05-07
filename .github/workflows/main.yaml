@@ -22,9 +22,11 @@ jobs:
             file: ./api/Dockerfile
             tags: main
             image_name: cardanofoundation/cardano-rosetta-java-api
+            push: true
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
         with:
           file: ./yaci-indexer/Dockerfile
           tags: main
           image_name: cardanofoundation/cardano-rosetta-java-indexer
+          push: true
