@@ -2,36 +2,13 @@ name: Build main branch
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, feat/RA-64-Containerisation-for-Distribution ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
+      - name: Build Cardano Rosetta Release
+        uses: ./.github/actions/build_docker_images
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: [API] Build and push Docker image
-        uses: docker/build-push-action@v4
-        with:
-            file: ./api/Dockerfile
-            tags: cardanofoundation/cardano-rosetta-java-api:main
-            push: true
-      - name: [Indexer] Build and push Docker image
-        uses: docker/build-push-action@v4
-        with:
-          file: ./yaci-indexer/Dockerfile
-          tags: cardanofoundation/cardano-rosetta-java-indexer:main
-          push: true
-# TODO will be added when the all-in-one image is ready
-#      - name: [All-in-one] Build and push Docker image
-#        uses: docker/build-push-action@v4
-#        with:
-#          file: ./Dockerfile
-#          tags: cardanofoundation/cardano-rosetta-java:main
-#          push: true
+          tag: ${{ github.event.release.tag_name }}

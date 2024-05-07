@@ -1,0 +1,63 @@
+name: Build Docker images
+description: Builds and pushes Docker images for the Cardano Rosetta project including API, Indexer and All-in-one Image
+inputs:
+  tag:
+    description: Docker tag
+    required: true
+    default: main
+  isRelease:
+    description: Is this a release build? If true, the latest tag will be applied
+    required: false
+    default: false
+runs:
+    using: composite
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        ref: ${{ inputs.tag }}
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: [ API ] Build and push Docker ${{ inputs.tag }} image
+        uses: docker/build-push-action@v4
+        with:
+          file: ./api/Dockerfile
+          tags: cardanofoundation/cardano-rosetta-java-api:${{ inputs.tag }}
+          push: true
+      - name: [ API ] Build and push Docker latest image
+        uses: docker/build-push-action@v4
+        if: ${{ inputs.isRelease == 'true' }}
+        with:
+          file: ./api/Dockerfile
+          tags: cardanofoundation/cardano-rosetta-java-api:latest
+          push: true
+      - name: [ Indexer ] Build and push Docker ${{ inputs.tag }} image
+        uses: docker/build-push-action@v4
+        with:
+          file: ./yaci-indexer/Dockerfile
+          tags: cardanofoundation/cardano-rosetta-java-indexer:${{ inputs.tag }}
+          push: true
+      - name: [ Indexer ] Build and push Docker latest image
+        uses: docker/build-push-action@v4
+        if: ${{ inputs.isRelease == 'true' }}
+        with:
+          file: ./api/Dockerfile
+          tags: cardanofoundation/cardano-rosetta-java-indexer:latest
+          push: true
+# TODO will be added when the all-in-one image is ready
+#      - name: [All-in-one] Build and push Docker image
+#        uses: docker/build-push-action@v4
+#        with:
+#          file: ./Dockerfile
+#          tags: cardanofoundation/cardano-rosetta-java:${{ inputs.tag }}
+#          push: true
+#      - name: [ All-in-one ] Build and push Docker latest image
+#        uses: docker/build-push-action@v4
+#        if: ${{ inputs.isRelease == 'true' }}
+#        with:
+#          file: ./Dockerfile
+#          tags: cardanofoundation/cardano-rosetta-java:latest
+#          push: true

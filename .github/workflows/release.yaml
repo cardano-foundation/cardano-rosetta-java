@@ -9,31 +9,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-        ref: ${{github.event.release.tag_name}}
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
+      - name: Build Cardano Rosetta Release
+        uses: ./.github/actions/build_docker_images
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: [API] Build and push Docker image
-        uses: docker/build-push-action@v4
-        with:
-          file: ./api/Dockerfile
-          tags: cardanofoundation/cardano-rosetta-java-api:${{github.event.release.tag_name}},cardanofoundation/cardano-rosetta-java-api:latest
-          push: true
-      - name: [Indexer] Build and push Docker image
-        uses: docker/build-push-action@v4
-        with:
-          file: ./yaci-indexer/Dockerfile
-          tags: cardanofoundation/cardano-rosetta-java-indexer:${{github.event.release.tag_name}},cardanofoundation/cardano-rosetta-java-indexer:latest
-          push: true
-# TODO will be added when the all-in-one image is ready
-#      - name: [All-in-one] Build and push Docker image
-#        uses: docker/build-push-action@v4
-#        with:
-#          file: ./Dockerfile
-#          tags: cardanofoundation/cardano-rosetta-java:${{github.event.release.tag_name}}
-#          push: true
+          tag: ${{ github.event.release.tag_name }}
+          isRelease: true
