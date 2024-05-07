@@ -38,7 +38,7 @@ public class ProtocolParams {
   private ExtraEntropy extraEntropy; //13
   private ProtocolVersion protocolVersion; //14
   @JsonProperty("minUTxOValue")
-  private BigInteger minUtxo; //15
+  private BigInteger minUtxoValue; //15
 
   private BigInteger minPoolCost; //16
   private BigInteger adaPerUtxoByte; //17
