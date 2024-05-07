@@ -9,6 +9,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        ref: ${{ github.event.release.tag_name }}
       - name: Build Cardano Rosetta Release
         uses: ./.github/actions/build_docker_images
         with:
