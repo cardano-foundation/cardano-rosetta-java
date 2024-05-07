@@ -27,7 +27,7 @@ We can specify network, ports, postgres user, etc.
 
 ### 4. Changing build parameters
 ```
-docker build -t {image_name} --build-arg PG_VERSION=11 -f ./docker/Dockerfile .
+docker build -t {image_name} --build-arg PG_VERSION=14 -f ./docker/Dockerfile .
 ```
 We can specify Cabal, GHC, Cardano node, and Postgres versions when building an image.
 
@@ -42,7 +42,7 @@ GHC_VERSION=8.10.7
 CARDANO_NODE_VERSION=8.9.2  
 ``  
 ``
-PG_VERSION=11  
+PG_VERSION=14  
 ``
 
 ### 5. Volume with Cardano node data
