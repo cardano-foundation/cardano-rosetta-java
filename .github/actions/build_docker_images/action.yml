@@ -9,6 +9,13 @@ inputs:
     description: Is this a release build? If true, the latest tag will be applied
     required: false
     default: false
+secrets:
+  DOCKERHUB_USERNAME:
+    description: Docker Hub username
+    required: true
+    DOCKERHUB_TOKEN:
+      description: Docker Hub token
+      required: true
 runs:
     using: composite
     steps:
