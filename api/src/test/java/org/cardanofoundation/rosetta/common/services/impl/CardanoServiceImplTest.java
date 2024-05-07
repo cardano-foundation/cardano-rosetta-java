@@ -247,9 +247,9 @@ class CardanoServiceImplTest {
     } catch (ApiException e) {
       //then
       Error error = e.getError();
-      assertEquals(error.getCode(), 5006);
-      assertEquals(error.getMessage(), "Error when sending the transaction");
-      assertEquals(error.getDescription(), "Transaction hash format error: err");
+      assertEquals(5006, error.getCode());
+      assertEquals("Error when sending the transaction", error.getMessage());
+      assertEquals("Transaction hash format error: err", error.getDescription());
     }
   }
 
@@ -266,9 +266,9 @@ class CardanoServiceImplTest {
     } catch (ApiException e) {
       //then
       Error error = e.getError();
-      assertEquals(error.getCode(), 5006);
-      assertEquals(error.getMessage(), "Error when sending the transaction");
-      assertEquals(error.getDescription(), "Transaction submit error: err");
+      assertEquals(5006, error.getCode());
+      assertEquals("Error when sending the transaction", error.getMessage());
+      assertEquals("Transaction submit error: err", error.getDescription());
     }
   }
 
