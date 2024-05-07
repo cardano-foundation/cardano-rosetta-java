@@ -64,13 +64,12 @@ public class NetworkServiceImpl implements NetworkService {
   private final ResourceLoader resourceLoader;
 
   @PostConstruct
-  public void filePathExistingValidator() throws ServerException {
+  public void filePathExistingValidator() {
     validator(topologyFilepath);
     validator(genesisPath);
-//    validator(cardanoNodeVersion);
   }
 
-  private void validator( String path) throws ServerException {
+  private void validator( String path) {
     if(!new File(path).exists()) {
       throw ExceptionFactory.configNotFoundException();
     }
@@ -124,7 +123,6 @@ public class NetworkServiceImpl implements NetworkService {
                 .toList())
             .historicalBalanceLookup(true)
             .callMethods(new ArrayList<>())
-//            .balanceExemptions(loadExemptionsFile()) // TODO Removed to get it working clean - add balance exemptions
             .mempoolCoins(false))
         .build();
   }
