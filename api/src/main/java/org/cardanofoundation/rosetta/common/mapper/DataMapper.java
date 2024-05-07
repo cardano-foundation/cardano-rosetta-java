@@ -148,26 +148,38 @@ public class DataMapper {
 
   /**
    * Maps a list of AddressBalanceDTOs to a Rosetta compatible AccountBalanceResponse.
+   *
    * @param block The block from where the balances are calculated into the past
-   * @param balances The balances of the addresses
+   * @param balances The list of filtered balances up to {@code block} number.
+   *                 Each unit should occur only one time with the latest balance.
+   *                 Native assets should be present only as a lovelace unit.
    * @return The Rosetta compatible AccountBalanceResponse
    */
   public static AccountBalanceResponse mapToAccountBalanceResponse(Block block, List<AddressBalance> balances) {
-    List<AddressBalance> nonLovelaceBalances = balances.stream().filter(balance -> !balance.unit().equals(Constants.LOVELACE) && !balance.unit().equals(Constants.ADA)).toList();
-    long sum = balances.stream().filter(balance -> balance.unit().equals(Constants.LOVELACE) || balance.unit().equals(Constants.ADA)).mapToLong(value -> value.quantity().longValue()).sum();
+    BigInteger lovelaceAmount = balances.stream()
+        .filter(b -> Constants.LOVELACE.equals(b.unit()))
+        .map(AddressBalance::quantity)
+        .findFirst()
+        .orElse(BigInteger.ZERO);
     List<Amount> amounts = new ArrayList<>();
-    if (sum > 0) {
-      amounts.add(mapAmount(String.valueOf(sum)));
+    if (lovelaceAmount.compareTo(BigInteger.ZERO) > 0) {
+      amounts.add(mapAmount(String.valueOf(lovelaceAmount)));
     }
-    nonLovelaceBalances.forEach(balance -> amounts.add(mapAmount(balance.quantity().toString(), balance.unit().substring(Constants.POLICY_ID_LENGTH), Constants.MULTI_ASSET_DECIMALS, new CurrencyMetadata(
-        balance.unit().substring(0, Constants.POLICY_ID_LENGTH)))));
+    balances.stream()
+        .filter(b -> !Constants.LOVELACE.equals(b.unit()))
+        .forEach(b -> amounts.add(
+            mapAmount(b.quantity().toString(),
+                b.unit().substring(Constants.POLICY_ID_LENGTH),
+                Constants.MULTI_ASSET_DECIMALS,
+                new CurrencyMetadata(b.unit().substring(0, Constants.POLICY_ID_LENGTH)))
+        ));
     return AccountBalanceResponse.builder()
-            .blockIdentifier(BlockIdentifier.builder()
-                    .hash(block.getHash())
-                    .index(block.getNumber())
-                    .build())
-            .balances(amounts)
-            .build();
+        .blockIdentifier(BlockIdentifier.builder()
+            .hash(block.getHash())
+            .index(block.getNumber())
+            .build())
+        .balances(amounts)
+        .build();
   }
 
   public static AccountBalanceResponse mapToStakeAddressBalanceResponse(Block block, StakeAddressBalance balance) {
