@@ -1,6 +1,5 @@
 package org.cardanofoundation.rosetta.api.block.model.entity;
 
-import java.math.BigInteger;
 import java.util.List;
 import jakarta.persistence.Column;
 import jakarta.persistence.ConstraintMode;
@@ -19,7 +18,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
-import org.cardanofoundation.rosetta.common.model.entity.BaseEntity;
 
 
 @Data

@@ -367,5 +367,3 @@ class BlockToBlockResponseTest extends BaseMapperTest {
 
 
 }
-
-

@@ -3,20 +3,32 @@ package org.cardanofoundation.rosetta.common.services.impl;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import jakarta.validation.constraints.NotNull;
 
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
+import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.web.client.RestTemplate;
 import co.nstant.in.cbor.CborException;
+import com.bloxbean.cardano.client.util.HexUtil;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
 import org.cardanofoundation.rosetta.common.exception.ApiException;
+import org.cardanofoundation.rosetta.common.exception.Error;
 import org.cardanofoundation.rosetta.common.mapper.CborArrayToTransactionData;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.TransactionParsed;
-import org.cardanofoundation.rosetta.common.services.CardanoService;
 import org.cardanofoundation.rosetta.common.util.Constants;
 import org.cardanofoundation.rosetta.common.util.RosettaConstants.RosettaErrorType;
 
@@ -25,14 +37,27 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class CardanoServiceImplTest {
 
+  @Mock
+  private RestTemplate restTemplate;
   private final static String TRANSACTION_SIGNED = "8279025a3833613430303831383235383230326632336664386363613833356166323166336163333735626163363031663937656164373566326537393134336264663731666532633462653034336538663031303138323832353831643631626234306631613634376263383863316264366237333864623865623636333537643932363437346561356666643662616137366339666238323139323731306131353831636230643037643435666539353134663830323133663430323065356136313234313435386265363236383431636465373137636233386137613334393437373536393634366634333666363936653139303930363530346137353631366534333732373537613534366636623635366536313761366631393161306134373665373537343633366636393665313932373130383235383164363162623430663161363437626338386331626436623733386462386562363633353764393236343734656135666664366261613736633966623139396334303032313939633430303330306131303038313832353832303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303035383430303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303066356636a16a6f7065726174696f6e7381a7746f7065726174696f6e5f6964656e746966696572a265696e646578006d6e6574776f726b5f696e64657800647479706565696e707574667374617475736773756363657373676163636f756e74a16761646472657373783a616464723176786135707564786737376733736461646465636d773874766336686d796e79776e34396c6c747434666d766e3763706e6b63707866616d6f756e74a26576616c7565662d39303030306863757272656e6379a26673796d626f6c6341444168646563696d616c73066b636f696e5f6368616e6765a26f636f696e5f6964656e746966696572a16a6964656e7469666965727842326632336664386363613833356166323166336163333735626163363031663937656164373566326537393134336264663731666532633462653034336538663a316b636f696e5f616374696f6e6a636f696e5f7370656e74686d65746164617461a16b746f6b656e42756e646c6581a268706f6c69637949647838623064303764343566653935313466383032313366343032306535613631323431343538626536323638343163646537313763623338613766746f6b656e7383a26576616c756564323331306863757272656e6379a26673796d626f6c7234373735363936343666343336663639366568646563696d616c7300a26576616c756564363636366863757272656e6379a26673796d626f6c7820346137353631366534333732373537613534366636623635366536313761366668646563696d616c7300a26576616c75656531303030306863757272656e6379a26673796d626f6c6e366537353734363336663639366568646563696d616c7300";
   private final static String TRANSACTION_NOT_SIGNED = "82790132613530303831383235383230326632336664386363613833356166323166336163333735626163363031663937656164373566326537393134336264663731666532633462653034336538663031303138323832353831643631626234306631613634376263383863316264366237333864623865623636333537643932363437346561356666643662616137366339666230313832353831643631626234306631613634376263383863316264366237333864623865623636333537643932363437346561356666643662616137366339666230343032316130353762636566623033313930336538303438313832303138323030353831636262343066316136343762633838633162643662373338646238656236363335376439323634373465613566666436626161373663396662a16a6f7065726174696f6e7382a6746f7065726174696f6e5f6964656e746966696572a265696e646578006d6e6574776f726b5f696e64657800647479706565696e707574667374617475736773756363657373676163636f756e74a16761646472657373783a616464723176786135707564786737376733736461646465636d773874766336686d796e79776e34396c6c747434666d766e3763706e6b63707866616d6f756e74a26576616c7565692d39303030303030306863757272656e6379a26673796d626f6c6341444168646563696d616c73066b636f696e5f6368616e6765a26f636f696e5f6964656e746966696572a16a6964656e7469666965727842326632336664386363613833356166323166336163333735626163363031663937656164373566326537393134336264663731666532633462653034336538663a316b636f696e5f616374696f6e6a636f696e5f7370656e74a5746f7065726174696f6e5f6964656e746966696572a165696e646578036474797065767374616b654b65794465726567697374726174696f6e667374617475736773756363657373676163636f756e74a16761646472657373783b7374616b653175387a666e6b687034673676686e6565746d763271656e3766356e64726b6c716a7138653973326e636b3968333063667a36716d70686d65746164617461a2727374616b696e675f63726564656e7469616ca2696865785f62797465737840314234303044363041414633344541463644434241423942424134363030314132333439373838364346313130363646373834363933334433304535414433466a63757276655f747970656c6564776172647332353531396c726566756e64416d6f756e74a26576616c7565682d323030303030306863757272656e6379a26673796d626f6c6341444168646563696d616c7306";
 
-  CardanoService cardanoService = new CardanoServiceImpl(null, null);
+  @InjectMocks
+  CardanoServiceImpl cardanoService;
+
+  @BeforeEach
+  void setup() {
+    cardanoService = new CardanoServiceImpl(null, null,restTemplate);
+  }
 
   @Test
   void calculateFeeTest() {
@@ -170,7 +195,7 @@ class CardanoServiceImplTest {
   void parseTransactionCborThrowTest() {
     try (MockedStatic<CborArrayToTransactionData> mocked = Mockito.mockStatic(
         CborArrayToTransactionData.class, Mockito.CALLS_REAL_METHODS)) {
-      mocked.when(() -> CborArrayToTransactionData.convert(Mockito.any(), Mockito.anyBoolean()))
+      mocked.when(() -> CborArrayToTransactionData.convert(any(), Mockito.anyBoolean()))
           .thenThrow(new CborException("Test error"));
 
       ApiException actualException = assertThrows(ApiException.class, () ->
@@ -183,5 +208,77 @@ class CardanoServiceImplTest {
           actualException.getError().getCode());
       assertFalse(actualException.getError().isRetriable());
     }
+  }
+
+  @Test
+  void submitTransactionTest() {
+    //given
+    ReflectionTestUtils.setField(cardanoService, "nodeSubmitApiPort", 8080);
+    ReflectionTestUtils.setField(cardanoService, "cardanoNodeSubmitHost", "localhost");
+    String txHash = IntStream.range(64, 128) //generate tx hash
+        .mapToObj(Character::toChars)
+        .map(String::new)
+        .collect(Collectors.joining());
+    HttpHeaders headers = new HttpHeaders();
+    headers.add(Constants.CONTENT_TYPE_HEADER_KEY, Constants.CBOR_CONTENT_TYPE);
+    ResponseEntity<String> resp = new ResponseEntity<>("\"" + txHash + "\"", headers, 202);
+    when(restTemplate.postForEntity(anyString(),any(),eq(String.class))).thenReturn(resp);
+    String hex = String.format("%040x", new BigInteger(1, "txToSign".getBytes()));
+    //when
+    String tx = cardanoService.submitTransaction(hex);
+    //then
+    assertEquals(txHash, tx);
+    verify(restTemplate).postForEntity(
+        "http://localhost:8080/api/submit/tx",
+        new HttpEntity<>(HexUtil.decodeHexString(hex), headers),
+        String.class);
+  }
+
+  @Test
+  void submitTransactionTest_tx_error() {
+    //given
+    HttpHeaders headers = given();
+    ResponseEntity<String> resp = new ResponseEntity<>("err", headers, 202);
+    when(restTemplate.postForEntity(anyString(),any(),eq(String.class))).thenReturn(resp);
+    String hex = String.format("%040x", new BigInteger(1, "txToSign".getBytes()));
+    //when
+    try {
+      cardanoService.submitTransaction(hex);
+    } catch (ApiException e) {
+      //then
+      Error error = e.getError();
+      assertEquals(error.getCode(), 5006);
+      assertEquals(error.getMessage(), "Error when sending the transaction");
+      assertEquals(error.getDescription(), "Transaction hash format error: err");
+    }
+  }
+
+  @Test
+  void submitTransactionTest_tx_submit_error() {
+    //given
+    HttpHeaders headers = given();
+    ResponseEntity<String> resp = new ResponseEntity<>("err", headers, 500);
+    when(restTemplate.postForEntity(anyString(),any(),eq(String.class))).thenReturn(resp);
+    String hex = String.format("%040x", new BigInteger(1, "txToSign".getBytes()));
+    //when
+    try {
+      cardanoService.submitTransaction(hex);
+    } catch (ApiException e) {
+      //then
+      Error error = e.getError();
+      assertEquals(error.getCode(), 5006);
+      assertEquals(error.getMessage(), "Error when sending the transaction");
+      assertEquals(error.getDescription(), "Transaction submit error: err");
+    }
+  }
+
+  @NotNull
+  private HttpHeaders given() {
+    ReflectionTestUtils.setField(cardanoService, "nodeSubmitApiPort", 8080);
+    ReflectionTestUtils.setField(cardanoService, "cardanoNodeSubmitHost", "localhost");
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.add(Constants.CONTENT_TYPE_HEADER_KEY, Constants.CBOR_CONTENT_TYPE);
+    return headers;
   }
 }

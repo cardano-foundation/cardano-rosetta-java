@@ -1,5 +1,11 @@
 package org.cardanofoundation.rosetta.common.util;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
+import lombok.extern.slf4j.Slf4j;
+
 import com.bloxbean.cardano.client.address.Address;
 import com.bloxbean.cardano.client.address.AddressProvider;
 import com.bloxbean.cardano.client.common.model.Network;
@@ -18,30 +24,26 @@ import com.bloxbean.cardano.client.transaction.spec.cert.StakeDeregistration;
 import com.bloxbean.cardano.client.transaction.spec.cert.StakePoolId;
 import com.bloxbean.cardano.client.transaction.spec.cert.StakeRegistration;
 import com.bloxbean.cardano.client.util.HexUtil;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
+import org.openapitools.client.model.AccountIdentifier;
+import org.openapitools.client.model.Operation;
+import org.openapitools.client.model.OperationMetadata;
+import org.openapitools.client.model.PoolMetadata;
+import org.openapitools.client.model.PoolRegistrationParams;
+import org.openapitools.client.model.PublicKey;
+import org.openapitools.client.model.VoteRegistrationMetadata;
+
 import org.cardanofoundation.rosetta.common.enumeration.CatalystDataIndexes;
 import org.cardanofoundation.rosetta.common.enumeration.CatalystLabels;
+import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.model.cardano.pool.PoolRegistationParametersReturn;
 import org.cardanofoundation.rosetta.common.model.cardano.pool.PoolRegistrationCertReturn;
 import org.cardanofoundation.rosetta.common.model.cardano.pool.PoolRetirement;
 import org.cardanofoundation.rosetta.common.model.cardano.pool.ProcessPoolRegistrationReturn;
-import org.cardanofoundation.rosetta.common.model.cardano.pool.StakeCertificate;
-import org.openapitools.client.model.AccountIdentifier;
 import org.cardanofoundation.rosetta.common.model.cardano.pool.ProcessWithdrawalReturn;
-import org.openapitools.client.model.Operation;
-import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
-import org.openapitools.client.model.OperationMetadata;
-import org.openapitools.client.model.PoolMetadata;
-import org.openapitools.client.model.PoolRegistrationParams;
-import org.openapitools.client.model.PublicKey;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import org.openapitools.client.model.VoteRegistrationMetadata;
+import org.cardanofoundation.rosetta.common.model.cardano.pool.StakeCertificate;
 
 import static java.math.BigInteger.valueOf;
 

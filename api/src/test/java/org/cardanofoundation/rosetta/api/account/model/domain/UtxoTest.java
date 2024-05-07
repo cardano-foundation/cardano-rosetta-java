@@ -1,6 +1,5 @@
 package org.cardanofoundation.rosetta.api.account.model.domain;
 
-import java.math.BigInteger;
 import java.util.Collections;
 import jakarta.inject.Inject;
 
@@ -14,7 +13,6 @@ import org.cardanofoundation.rosetta.api.block.model.entity.UtxoKey;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class UtxoTest extends BaseMapperTest {
 

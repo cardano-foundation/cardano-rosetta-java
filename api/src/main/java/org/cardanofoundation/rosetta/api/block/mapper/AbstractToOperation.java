@@ -4,11 +4,11 @@ import java.math.BigInteger;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import jakarta.validation.constraints.NotNull;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.mutable.MutableInt;
-import org.jetbrains.annotations.NotNull;
 import org.modelmapper.builder.ConfigurableConditionExpression;
 import org.openapitools.client.model.Amount;
 import org.openapitools.client.model.Currency;
@@ -48,7 +48,6 @@ public abstract class AbstractToOperation<T> {
         .stream()
         .flatMap(List::stream)
         .forEach(amount -> {
-          operationMetadata.setDepositAmount(getDepositAmount());
           if (!amount.getAssetName().equals(Constants.LOVELACE)) {
             TokenBundleItem tokenBundleItem = new TokenBundleItem();
             tokenBundleItem.setPolicyId(amount.getPolicyId());
@@ -63,7 +62,8 @@ public abstract class AbstractToOperation<T> {
             operationMetadata.addTokenBundleItem(tokenBundleItem);
           }
         });
-    return operationMetadata;
+
+    return operationMetadata.getTokenBundle() == null ? null : operationMetadata;
   }
 
   @NotNull

@@ -1,5 +1,16 @@
 package org.cardanofoundation.rosetta.common.util;
 
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+
+import lombok.extern.slf4j.Slf4j;
+
 import co.nstant.in.cbor.model.DataItem;
 import com.bloxbean.cardano.client.address.Address;
 import com.bloxbean.cardano.client.address.ByronAddress;
@@ -11,30 +22,21 @@ import com.bloxbean.cardano.client.transaction.spec.Value;
 import com.bloxbean.cardano.client.transaction.spec.cert.Certificate;
 import com.bloxbean.cardano.client.transaction.spec.cert.PoolRegistration;
 import com.bloxbean.cardano.client.util.HexUtil;
-import java.math.BigInteger;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
-import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
-import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
-import org.cardanofoundation.rosetta.common.model.cardano.pool.PoolRegistationParametersReturn;
-import org.cardanofoundation.rosetta.common.model.cardano.pool.PoolRegistrationCertReturn;
 import org.openapitools.client.model.Amount;
 import org.openapitools.client.model.Operation;
 import org.openapitools.client.model.OperationMetadata;
 import org.openapitools.client.model.PoolMetadata;
 import org.openapitools.client.model.PoolRegistrationParams;
 import org.openapitools.client.model.PublicKey;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
 import org.openapitools.client.model.Relay;
 import org.openapitools.client.model.TokenBundleItem;
 import org.openapitools.client.model.VoteRegistrationMetadata;
+
+import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
+import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
+import org.cardanofoundation.rosetta.common.model.cardano.pool.PoolRegistationParametersReturn;
+import org.cardanofoundation.rosetta.common.model.cardano.pool.PoolRegistrationCertReturn;
 
 import static java.math.BigInteger.valueOf;
 
@@ -422,7 +424,7 @@ public class ValidateParseUtil {
         return !ObjectUtils.isEmpty(ObjectUtils.isEmpty(operation.getAccount()) ? null
             : operation.getAccount().getAddress());
     }
-    
+
     public static Certificate validateCert(List<Certificate> certs, int i) {
         return ObjectUtils.isEmpty(certs) ? null : certs.get(i);
     }

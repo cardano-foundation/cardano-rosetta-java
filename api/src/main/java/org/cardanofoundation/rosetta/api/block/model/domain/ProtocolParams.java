@@ -12,7 +12,6 @@ import lombok.NoArgsConstructor;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.RequiredArgsConstructor;
 
 @Data
 @NoArgsConstructor
@@ -43,7 +42,6 @@ public class ProtocolParams {
 
   private BigInteger minPoolCost; //16
   private BigInteger adaPerUtxoByte; //17
-  //private String nonce;
 
   //Alonzo changes
   private Map<String, long[]> costModels; //18

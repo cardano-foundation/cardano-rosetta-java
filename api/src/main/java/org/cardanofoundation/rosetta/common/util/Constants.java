@@ -1,9 +1,10 @@
 package org.cardanofoundation.rosetta.common.util;
 
-import org.cardanofoundation.rosetta.common.enumeration.OperationType;
-
 import java.util.List;
+
 import org.openapitools.client.model.CurveType;
+
+import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 
 public class Constants {
 
@@ -25,6 +26,12 @@ public class Constants {
   public static final String KEY_REFUNDS_SUM = "keyRefundsSum";
   public static final String KEY_DEPOSITS_SUM = "keyDepositsSum";
   public static final String POOL_DEPOSITS_SUM = "poolDepositsSum";
+  public static final String CARDANO_BLOCKCHAIN = "cardano";
+  public static final int MAINNET_PROTOCOL_MAGIC = 764824073;
+  public static final int TESTNET_PROTOCOL_MAGIC = 1097911063;
+  public static final int PREPROD_PROTOCOL_MAGIC = 1;
+  public static final int PREVIEW_PROTOCOL_MAGIC = 2;
+  public static final int DEVKIT_PROTOCOL_MAGIC = 42;
 
   private Constants() {
   }
@@ -178,5 +185,5 @@ public class Constants {
 
   public static final String LOVELACE = "lovelace";
   public static final String TESTNET = "testnet";
-  public static final String DEVNET = "devnet";
+  public static final String DEVKIT = "devkit";
 }

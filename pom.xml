@@ -44,12 +44,11 @@
         <version.bloxbean>0.4.3</version.bloxbean>
         <version.client-lib>0.5.1</version.client-lib>
         <version.yaci>0.2.5</version.yaci>
-        <version.yaci-store>0.1.0-rc2-d5f2998-SNAPSHOT</version.yaci-store>
+        <version.yaci-store>0.1.0-rc2-8071294-SNAPSHOT</version.yaci-store>
         <version.commons-io>2.11.0</version.commons-io>
         <version.javax-validation-api>2.0.1.Final</version.javax-validation-api>
         <version.bouncycastle>1.77</version.bouncycastle>
         <version.spotless-maven-plugin>2.43.0</version.spotless-maven-plugin>
-        <version.google-java-format>1.21.0</version.google-java-format>
         <version.spotbugs-maven-plugin>4.8.3.0</version.spotbugs-maven-plugin>
         <version.findsecbugs-plugin>1.13.0</version.findsecbugs-plugin>
         <version.modelmapper>3.2.0</version.modelmapper>
@@ -93,33 +92,9 @@
                 <version>${version.yaci}</version>
             </dependency>
             <dependency>
-                <groupId>org.bouncycastle</groupId>
-                <artifactId>bcprov-jdk18on</artifactId>
-                <version>${version.bouncycastle}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.nimbusds</groupId>
-                <artifactId>nimbus-jose-jwt</artifactId>
-                <version>${version.nimbusds}</version>
-            </dependency>
-            <dependency>
                 <groupId>javax.validation</groupId>
                 <artifactId>validation-api</artifactId>
                 <version>${version.javax-validation-api}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.liquibase</groupId>
-                <artifactId>liquibase-core</artifactId>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.logging.log4j</groupId>
-                <artifactId>log4j-core</artifactId>
-                <version>${version.log4j}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.logging.log4j</groupId>
-                <artifactId>log4j-api</artifactId>
-                <version>${version.log4j}</version>
             </dependency>
             <dependency>
                 <groupId>commons-io</groupId>

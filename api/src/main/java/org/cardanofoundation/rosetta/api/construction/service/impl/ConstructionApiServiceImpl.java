@@ -1,38 +1,38 @@
 package org.cardanofoundation.rosetta.api.construction.service.impl;
 
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.stereotype.Service;
 import co.nstant.in.cbor.CborException;
 import co.nstant.in.cbor.model.Array;
 import co.nstant.in.cbor.model.UnicodeString;
 import com.bloxbean.cardano.client.exception.AddressExcepion;
 import com.bloxbean.cardano.client.exception.CborSerializationException;
-import java.util.List;
-import java.util.Optional;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.openapitools.client.model.*;
+
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
+import org.cardanofoundation.rosetta.api.construction.service.ConstructionApiService;
+import org.cardanofoundation.rosetta.common.enumeration.AddressType;
+import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
 import org.cardanofoundation.rosetta.common.exception.ApiException;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
+import org.cardanofoundation.rosetta.common.mapper.CborMapToTransactionExtraData;
 import org.cardanofoundation.rosetta.common.mapper.DataMapper;
-import org.cardanofoundation.rosetta.common.enumeration.AddressType;
-
-import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.TransactionExtraData;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.TransactionParsed;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.UnsignedTransaction;
 import org.cardanofoundation.rosetta.common.services.CardanoAddressService;
 import org.cardanofoundation.rosetta.common.services.CardanoService;
-import org.cardanofoundation.rosetta.api.construction.service.ConstructionApiService;
-import org.cardanofoundation.rosetta.common.services.LedgerDataProviderService;
 import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
-import org.cardanofoundation.rosetta.common.util.Constants;
 import org.cardanofoundation.rosetta.common.util.CborEncodeUtil;
-import org.cardanofoundation.rosetta.common.mapper.CborMapToTransactionExtraData;
-import org.openapitools.client.model.*;
-import org.springframework.stereotype.Service;
-
-import java.io.IOException;
-import java.util.Map;
+import org.cardanofoundation.rosetta.common.util.Constants;
 
 @Service
 @Slf4j
@@ -41,7 +41,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
 
   private final CardanoAddressService cardanoAddressService;
   private final CardanoService cardanoService;
-    private final ProtocolParamService protocolParamService;
+  private final ProtocolParamService protocolParamService;
   private final DataMapper dataMapper;
 
   @Override

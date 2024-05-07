@@ -68,7 +68,7 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
 
   private static List<Amt> getAmts(List<Currency> currencies, AddressUtxoEntity entity) {
     return currencies.isEmpty()
-        ? entity.getAmounts()
+        ? entity.getAmounts().stream().toList()
         : entity.getAmounts().stream()
             .filter(amt -> isAmountMatchesCurrency(currencies, amt))
             .toList();

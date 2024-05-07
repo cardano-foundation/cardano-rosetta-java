@@ -1,7 +1,4 @@
-
----
-
-# :rotating_light: This Repository is under active development. :rotating_light:
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=cardano-foundation_cardano-rosetta-java&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=cardano-foundation_cardano-rosetta-java)
 
 # Cardano Rosetta API Java implementation
 This repository provides a lightweight java implementation of the Rosetta API. It uses [Yaci-Store](https://github.com/bloxbean/yaci-store) as an indexer
@@ -19,15 +16,9 @@ to fetch the data from the node.
     - /mempool
       - [x] /mempool
       - [ ] /mempool/transaction
-  - Construction API
-    - [x] /construction/derive
-    - [x] /construction/preprocess
-    - [x] /construction/metadata
-    - [x] /construction/payloads
-    - [x] /construction/combine
-    - [x] /construction/parse
-    - [x] /construction/hash
-    - [x] /construction/submit
+  - [x] Construction API
+- [ ] Extending Tests
+- [ ] Refactoring
 
 ## Getting Started
 
@@ -82,6 +73,7 @@ So the Node itself needs extra configuration to be able to query mempool transac
 - [Cardano specific API Additions](./docs/cardano-specific-api-additions.md)
 - [Dev H2 Quickstart Guide](./docs/dev-h2-quick-start-guide.md)
 - [Environment Variables](./docs/environment-variables.md)
+- [Rosetta-cli tests](./docs/rosetta-cli-tests.md)
 
 ## Contributing
 

@@ -1,11 +1,5 @@
 package org.cardanofoundation.rosetta.api.network.service.impl;
 
-import com.bloxbean.cardano.client.common.model.Network;
-import com.bloxbean.cardano.client.common.model.Networks;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.swagger.v3.oas.models.OpenAPI;
-import io.swagger.v3.parser.OpenAPIV3Parser;
-import jakarta.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,32 +9,40 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;
+import jakarta.annotation.PostConstruct;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ResourceLoader;
+import org.springframework.stereotype.Service;
+import com.bloxbean.cardano.client.common.model.Network;
+import com.bloxbean.cardano.client.common.model.Networks;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.parser.OpenAPIV3Parser;
+import org.json.JSONObject;
+import org.openapitools.client.model.*;
+import org.openapitools.client.model.Error;
+
+import org.cardanofoundation.rosetta.api.block.model.domain.Block;
+import org.cardanofoundation.rosetta.api.block.model.domain.GenesisBlock;
+import org.cardanofoundation.rosetta.api.block.model.domain.NetworkStatus;
 import org.cardanofoundation.rosetta.api.block.service.LedgerBlockService;
+import org.cardanofoundation.rosetta.api.network.service.NetworkService;
+import org.cardanofoundation.rosetta.common.enumeration.OperationType;
+import org.cardanofoundation.rosetta.common.enumeration.OperationTypeStatus;
+import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
+import org.cardanofoundation.rosetta.common.exception.ServerException;
+import org.cardanofoundation.rosetta.common.mapper.DataMapper;
 import org.cardanofoundation.rosetta.common.model.cardano.network.Producer;
 import org.cardanofoundation.rosetta.common.model.cardano.network.PublicRoot;
 import org.cardanofoundation.rosetta.common.model.cardano.network.TopologyConfig;
 import org.cardanofoundation.rosetta.common.util.Constants;
-import org.cardanofoundation.rosetta.common.enumeration.OperationType;
-import org.cardanofoundation.rosetta.common.enumeration.OperationTypeStatus;
-import org.cardanofoundation.rosetta.config.RosettaConfig;
-import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
-import org.cardanofoundation.rosetta.common.exception.ServerException;
-import org.cardanofoundation.rosetta.common.mapper.DataMapper;
-import org.cardanofoundation.rosetta.api.block.model.domain.NetworkStatus;
-import org.cardanofoundation.rosetta.api.block.model.domain.Block;
-import org.cardanofoundation.rosetta.api.block.model.domain.GenesisBlock;
-import org.cardanofoundation.rosetta.api.network.service.NetworkService;
 import org.cardanofoundation.rosetta.common.util.FileUtils;
 import org.cardanofoundation.rosetta.common.util.RosettaConstants;
-import org.json.JSONObject;
-import org.openapitools.client.model.*;
-import org.openapitools.client.model.Error;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.ResourceLoader;
-import org.springframework.stereotype.Service;
+import org.cardanofoundation.rosetta.config.RosettaConfig;
 
 @Service
 @Slf4j
@@ -61,7 +63,7 @@ public class NetworkServiceImpl implements NetworkService {
   private String cardanoNodeVersion;
   private final ResourceLoader resourceLoader;
 
-    @PostConstruct
+  @PostConstruct
   public void filePathExistingValidator() throws ServerException {
     validator(topologyFilepath);
     validator(genesisPath);
@@ -151,7 +153,7 @@ public class NetworkServiceImpl implements NetworkService {
       case Constants.MAINNET_NETWORK_MAGIC -> Networks.mainnet();
       case Constants.PREPROD_NETWORK_MAGIC -> Networks.preprod();
       case Constants.TESTNET_NETWORK_MAGIC -> Networks.testnet();
-      case Constants.DEVNET_NETWORK_MAGIC -> new Network(0b0000, 42);
+      case Constants.DEVNET_NETWORK_MAGIC -> new Network(0b0000, Constants.DEVKIT_PROTOCOL_MAGIC);
       default -> throw ExceptionFactory.invalidNetworkError();
     };
   }
@@ -195,6 +197,47 @@ public class NetworkServiceImpl implements NetworkService {
         .map(ap -> Producer.builder().addr(ap.getAddress()).build())
         .toList();
 
+  }
+
+  @Override
+  public void verifyNetworkRequest(final NetworkIdentifier networkIdentifier) {
+    if (networkIdentifier != null) {
+      if (!verifyBlockchain(networkIdentifier.getBlockchain())) {
+        throw ExceptionFactory.invalidBlockchainError();
+      }
+      if (!verifyNetwork(networkIdentifier.getNetwork())) {
+        throw ExceptionFactory.networkNotFoundError();
+      }
+    }
+  }
+
+  private boolean verifyBlockchain(String blockchain) {
+    return blockchain.equals(Constants.CARDANO_BLOCKCHAIN);
+  }
+
+  private boolean verifyNetwork(String network) {
+    Network supportedNetwork = getSupportedNetwork();
+
+    switch ((int) supportedNetwork.getProtocolMagic()) {
+      case Constants.MAINNET_PROTOCOL_MAGIC -> {
+        return network.equalsIgnoreCase(Constants.MAINNET);
+      }
+      case Constants.TESTNET_PROTOCOL_MAGIC -> {
+        return network.equalsIgnoreCase(Constants.TESTNET);
+      }
+      case Constants.PREPROD_PROTOCOL_MAGIC -> {
+        return network.equals(Constants.PREPROD);
+      }
+      case Constants.PREVIEW_PROTOCOL_MAGIC -> {
+        return network.equals(Constants.PREVIEW);
+      }
+      case Constants.DEVKIT_PROTOCOL_MAGIC -> {
+        return network.equals(Constants.DEVKIT);
+      }
+      default -> {
+        return false;
+      }
+    }
   }
 
 }

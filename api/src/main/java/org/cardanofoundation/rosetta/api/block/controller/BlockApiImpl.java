@@ -17,6 +17,7 @@ import org.cardanofoundation.rosetta.api.block.mapper.BlockTxToBlockTxResponse;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.service.BlockService;
+import org.cardanofoundation.rosetta.api.network.service.NetworkService;
 import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
 
 @RestController
@@ -25,12 +26,15 @@ public class BlockApiImpl implements BlockApi {
 
   private final BlockService blockService;
   private final ProtocolParamService protocolParamService;
+  private final NetworkService networkService;
 
   private final BlockToBlockResponse mapperToBlockResponse;
   private final BlockTxToBlockTxResponse mapperToBlockTxResponse;
 
   @Override
   public ResponseEntity<BlockResponse> block(@RequestBody BlockRequest blockRequest) {
+
+    networkService.verifyNetworkRequest(blockRequest.getNetworkIdentifier());
 
     PartialBlockIdentifier bid = blockRequest.getBlockIdentifier();
     String hash = bid.getHash();
@@ -45,6 +49,8 @@ public class BlockApiImpl implements BlockApi {
   public ResponseEntity<BlockTransactionResponse> blockTransaction(
       @RequestBody BlockTransactionRequest blockReq) {
 
+    networkService.verifyNetworkRequest(blockReq.getNetworkIdentifier());
+
     Long blockId = blockReq.getBlockIdentifier().getIndex();
     String blockHash = blockReq.getBlockIdentifier().getHash();
     String txHash = blockReq.getTransactionIdentifier().getHash();
@@ -55,4 +61,3 @@ public class BlockApiImpl implements BlockApi {
 
   }
 }
-

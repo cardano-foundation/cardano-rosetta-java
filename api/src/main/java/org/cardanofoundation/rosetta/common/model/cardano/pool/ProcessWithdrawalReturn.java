@@ -1,10 +1,11 @@
 package org.cardanofoundation.rosetta.common.model.cardano.pool;
 
-import com.bloxbean.cardano.client.address.Address;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import com.bloxbean.cardano.client.address.Address;
 
 @NoArgsConstructor
 @AllArgsConstructor

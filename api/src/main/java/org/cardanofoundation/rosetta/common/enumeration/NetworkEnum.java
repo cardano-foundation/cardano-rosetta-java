@@ -1,8 +1,10 @@
 package org.cardanofoundation.rosetta.common.enumeration;
 
+import lombok.Getter;
+
 import com.bloxbean.cardano.client.common.model.Network;
 import com.bloxbean.cardano.client.common.model.Networks;
-import lombok.Getter;
+
 import org.cardanofoundation.rosetta.common.util.Constants;
 
 @Getter
@@ -11,7 +13,7 @@ public enum NetworkEnum {
     MAINNET(Constants.MAINNET, Networks.mainnet()),
     PREPROD(Constants.PREPROD, Networks.preprod()),
     TESTNET(Constants.TESTNET, Networks.testnet()),
-    DEVNET(Constants.DEVNET, new Network(0b0000, 42));
+    DEVNET(Constants.DEVKIT, new Network(0b0000, 42));
 
     private final String value;
     private final Network network;

@@ -1,24 +1,27 @@
 package org.cardanofoundation.rosetta.config;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.cardanofoundation.rosetta.common.interceptor.LogInterceptor;
-import org.springframework.beans.factory.annotation.Autowired;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.format.FormatterRegistry;
 import org.springframework.lang.NonNull;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
+import org.cardanofoundation.rosetta.common.interceptor.LogInterceptor;
 
 
 @Configuration
+@RequiredArgsConstructor
 public class SpringWebConfig implements WebMvcConfigurer {
-  @Autowired
-  LogInterceptor logInterceptor;
+
+  final LogInterceptor logInterceptor;
 
   @Override
   public void addFormatters(final FormatterRegistry registry) {

@@ -1,14 +1,17 @@
 package org.cardanofoundation.rosetta.common.mapper;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import java.math.BigInteger;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.openapitools.client.model.ProtocolParameters;
+
+import org.junit.jupiter.api.Test;
+
 import org.cardanofoundation.rosetta.api.BaseMapperTest;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams.ProtocolVersion;
-import org.junit.jupiter.api.Test;
-import org.openapitools.client.model.ProtocolParameters;
-import org.springframework.beans.factory.annotation.Autowired;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ProtocolParamsToRosettaProtocolParamsTest extends BaseMapperTest {
 

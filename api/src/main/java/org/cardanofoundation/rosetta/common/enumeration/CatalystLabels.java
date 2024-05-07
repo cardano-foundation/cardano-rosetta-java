@@ -28,6 +28,6 @@ public enum CatalystLabels {
 
   @Override
   public String toString() {
-    return String.valueOf(label);
+    return label;
   }
 }

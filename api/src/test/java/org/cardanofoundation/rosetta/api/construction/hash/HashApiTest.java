@@ -1,16 +1,19 @@
 package org.cardanofoundation.rosetta.api.construction.hash;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
-import org.cardanofoundation.rosetta.api.IntegrationTest;
-import org.cardanofoundation.rosetta.api.construction.service.ConstructionApiService;
-import org.junit.jupiter.api.Test;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.openapitools.client.model.ConstructionHashRequest;
 import org.openapitools.client.model.TransactionIdentifierResponse;
-import org.springframework.beans.factory.annotation.Autowired;
+
+import org.junit.jupiter.api.Test;
+
+import org.cardanofoundation.rosetta.api.IntegrationTest;
+import org.cardanofoundation.rosetta.api.construction.service.ConstructionApiService;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class HashApiTest extends IntegrationTest {
 

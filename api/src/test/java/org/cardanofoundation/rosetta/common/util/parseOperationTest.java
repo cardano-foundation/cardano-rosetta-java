@@ -1,23 +1,26 @@
 package org.cardanofoundation.rosetta.common.util;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
-import com.bloxbean.cardano.client.exception.CborDeserializationException;
-import com.bloxbean.cardano.client.exception.CborSerializationException;
-import com.bloxbean.cardano.client.transaction.spec.cert.StakeDeregistration;
-import com.bloxbean.cardano.client.transaction.spec.cert.StakeRegistration;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
+
+import com.bloxbean.cardano.client.exception.CborDeserializationException;
+import com.bloxbean.cardano.client.exception.CborSerializationException;
+import com.bloxbean.cardano.client.transaction.spec.cert.StakeDeregistration;
+import com.bloxbean.cardano.client.transaction.spec.cert.StakeRegistration;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.openapitools.client.model.Operation;
+
+import org.junit.jupiter.api.Test;
+
 import org.cardanofoundation.rosetta.api.block.model.domain.ProcessOperations;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
-import org.junit.jupiter.api.Test;
-import org.openapitools.client.model.Operation;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class parseOperationTest {
 
