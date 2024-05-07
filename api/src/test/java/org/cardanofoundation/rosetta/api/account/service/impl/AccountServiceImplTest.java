@@ -63,7 +63,7 @@ class AccountServiceImplTest {
     AccountIdentifier accountIdentifier = getMockedAccountIdentifierAndMockAccountBalanceRequest(
         accountBalanceRequest, blockIdentifier, accountAddress);
     Block block = getMockBlock();
-    AddressBalance addressBalance = new AddressBalance(accountAddress, ADA, 1L,
+    AddressBalance addressBalance = new AddressBalance(accountAddress, LOVELACE, 1L,
         BigInteger.valueOf(1000L), 1L);
     when(ledgerBlockService.findBlock(1L, HASH)).thenReturn(block);
     when(ledgerDataProviderService.findBalanceByAddressAndBlock(accountAddress, 1L))
@@ -72,7 +72,7 @@ class AccountServiceImplTest {
     AccountBalanceResponse actual = accountService.getAccountBalance(accountBalanceRequest);
 
     assertNotNull(actual);
-    assertEquals("1000000000", actual.getBalances().getFirst().getValue());
+    assertEquals("1000", actual.getBalances().getFirst().getValue());
     assertNotNull(actual.getBalances().getFirst().getCurrency().getSymbol());
     assertEquals(Constants.ADA, actual.getBalances().getFirst().getCurrency().getSymbol());
     assertEquals(Constants.ADA_DECIMALS, actual.getBalances().getFirst().getCurrency().getDecimals());
@@ -126,7 +126,7 @@ class AccountServiceImplTest {
     when(accountBalanceRequest.getAccountIdentifier()).thenReturn(accountIdentifier);
     when(accountIdentifier.getAddress()).thenReturn(accountAddress);
     Block block = getMockBlock();
-    AddressBalance addressBalance = new AddressBalance(accountAddress, ADA, 1L,
+    AddressBalance addressBalance = new AddressBalance(accountAddress, LOVELACE, 1L,
         BigInteger.valueOf(1000L), 1L);
     when(ledgerBlockService.findLatestBlock()).thenReturn(block);
     when(ledgerDataProviderService.findBalanceByAddressAndBlock(accountAddress, 1L))
@@ -135,7 +135,7 @@ class AccountServiceImplTest {
     AccountBalanceResponse actual = accountService.getAccountBalance(accountBalanceRequest);
 
     assertNotNull(actual);
-    assertEquals("1000000000", actual.getBalances().getFirst().getValue());
+    assertEquals("1000", actual.getBalances().getFirst().getValue());
     assertNotNull(actual.getBalances().getFirst().getCurrency().getSymbol());
     assertEquals(Constants.ADA, actual.getBalances().getFirst().getCurrency().getSymbol());
     assertEquals(Constants.ADA_DECIMALS, actual.getBalances().getFirst().getCurrency().getDecimals());

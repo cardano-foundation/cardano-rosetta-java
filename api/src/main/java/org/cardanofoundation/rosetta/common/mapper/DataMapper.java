@@ -150,41 +150,38 @@ public class DataMapper {
 
   /**
    * Maps a list of AddressBalanceDTOs to a Rosetta compatible AccountBalanceResponse.
+   *
    * @param block The block from where the balances are calculated into the past
-   * @param balances The list of balances that should contain quantity on the latest block number
+   * @param balances The list of filtered balances up to {@code block} number.
+   *                 Each unit should occur only one time with the latest balance.
+   *                 Native assets should be present only as a lovelace unit.
    * @return The Rosetta compatible AccountBalanceResponse
    */
   public static AccountBalanceResponse mapToAccountBalanceResponse(Block block, List<AddressBalance> balances) {
-    // in case if there are multiple balances for the same unit, we take the one from the latest block
-    Map<String, AddressBalance> unitToBalance = balances.stream().collect(
-        Collectors.toMap(AddressBalance::unit, Function.identity(),
-            (balance1, balance2) -> balance1.number() > balance2.number() ? balance1 : balance2));
-    AddressBalance zeroBalance = AddressBalance.builder().quantity(BigInteger.ZERO).build();
-    // here should be only one balance, LOVELACE
-    BigInteger sum = unitToBalance.getOrDefault(Constants.LOVELACE, zeroBalance).quantity().add(
-        BigInteger.valueOf(1_000_000L).multiply( // make it LOVELACE out of ADA
-            unitToBalance.getOrDefault(Constants.ADA, zeroBalance).quantity()));
+    BigInteger lovelaceAmount = balances.stream()
+        .filter(b -> Constants.LOVELACE.equals(b.unit()))
+        .map(AddressBalance::quantity)
+        .findFirst()
+        .orElse(BigInteger.ZERO);
     List<Amount> amounts = new ArrayList<>();
-    if (sum.compareTo(BigInteger.ZERO) > 0) {
-      amounts.add(mapAmount(String.valueOf(sum)));
+    if (lovelaceAmount.compareTo(BigInteger.ZERO) > 0) {
+      amounts.add(mapAmount(String.valueOf(lovelaceAmount)));
     }
-    unitToBalance.entrySet().stream()
-        .filter(entry -> !entry.getKey().equals(Constants.LOVELACE)
-            && !entry.getKey().equals(Constants.ADA))
-        .forEach(entry -> amounts.add(
-            mapAmount(entry.getValue().quantity().toString(),
-                entry.getKey().substring(Constants.POLICY_ID_LENGTH),
+    balances.stream()
+        .filter(b -> !Constants.LOVELACE.equals(b.unit()))
+        .forEach(b -> amounts.add(
+            mapAmount(b.quantity().toString(),
+                b.unit().substring(Constants.POLICY_ID_LENGTH),
                 Constants.MULTI_ASSET_DECIMALS,
-                new CurrencyMetadata(
-                    entry.getKey().substring(0, Constants.POLICY_ID_LENGTH)))
+                new CurrencyMetadata(b.unit().substring(0, Constants.POLICY_ID_LENGTH)))
         ));
     return AccountBalanceResponse.builder()
-            .blockIdentifier(BlockIdentifier.builder()
-                    .hash(block.getHash())
-                    .index(block.getNumber())
-                    .build())
-            .balances(amounts)
-            .build();
+        .blockIdentifier(BlockIdentifier.builder()
+            .hash(block.getHash())
+            .index(block.getNumber())
+            .build())
+        .balances(amounts)
+        .build();
   }
 
   public static AccountBalanceResponse mapToStakeAddressBalanceResponse(Block block, StakeAddressBalance balance) {
