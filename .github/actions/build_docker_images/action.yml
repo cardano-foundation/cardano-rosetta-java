@@ -12,15 +12,6 @@ inputs:
 runs:
     using: composite
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-        ref: ${{ inputs.tag }}
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
       - name: [ API ] Build and push Docker ${{ inputs.tag }} image
         uses: docker/build-push-action@v4
         with:
