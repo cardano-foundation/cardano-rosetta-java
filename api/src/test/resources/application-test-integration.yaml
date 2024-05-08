@@ -16,8 +16,8 @@ spring:
       max-request-size: 16MB
   datasource:
     driver-class-name: org.h2.Driver
-    username: ${DB_ADMIN_USER_NAME:rosetta_db_admin}
-    password: ${DB_ADMIN_USER_SECRET:weakpwd#123_d}
+    username: ${DB_USER:rosetta_db_admin}
+    password: ${DB_SECRET:weakpwd#123_d}
     url: jdbc:h2:file:../testData/devkit.db
   #    url: jdbc:h2:mem:${DB_NAME:rosetta-java};INIT=RUNSCRIPT FROM 'classpath:init.sql;DB_CLOSE_DELAY=-1;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH
   sql:
@@ -50,10 +50,10 @@ cardano:
       '1.0.0-SNAPSHOT'
     TOPOLOGY_FILEPATH: ../config/devkit/topology.json
     GENESIS_SHELLEY_PATH: ../config/devkit/shelley-genesis.json
-    CARDANO_NODE_VERSION: "8.9.0"
+    CARDANO_NODE_VERSION: ${CARDANO_NODE_VERSION}
     CARDANO_NODE_SUBMIT_HOST: localhost
     NODE_SUBMIT_API_PORT: 8090
-    CARDANO_NODE_SOCKET: ${CARDANO_NODE_SOCKET:""}
+    CARDANO_NODE_SOCKET: ${CARDANO_NODE_SOCKET}
     # devkit variables
     DEVKIT_ENABLED: ${DEVKIT_ENABLED:false}
     DEVKIT_URL: ${DEVKIT_URL:yaci-cli}

@@ -1,24 +1,18 @@
-FROM maven:3.9.6-sapmachine-21 AS build-common
+FROM ubuntu:22.04 AS build-common
 WORKDIR /app
 
+RUN apt-get update --fix-missing \
+    && apt install -y --no-install-recommends openjdk-21-jdk maven
+
 COPY ./pom.xml /app/pom.xml
-
-COPY ./api/pom.xml /app/api/pom.xml
 COPY ./api /app/api
-
-COPY ./yaci-indexer/pom.xml /app/yaci-indexer/pom.xml
 COPY ./yaci-indexer /app/yaci-indexer
-
-COPY ./test-data-generator/pom.xml /app/test-data-generator/pom.xml
 COPY ./test-data-generator /app/test-data-generator
 
 RUN --mount=type=cache,target=/root/.m2 mvn clean package -DskipTests
 
-FROM eclipse-temurin:latest
-RUN apt-get update
-WORKDIR /cf-rosetta-api
-COPY --from=build-common /app/api/target/*.jar /cf-rosetta-api/app.jar
+RUN cp /app/api/target/*.jar /app/api.jar
 
-COPY ./api/run_backend.sh /cf-rosetta-api/run_backend.sh
+ENTRYPOINT ["java", "-jar",  "/app/api.jar"]
 
-ENTRYPOINT ["/bin/sh", "/cf-rosetta-api/run_backend.sh"]
+CMD ["/bin/sh", "-c", "bash"]

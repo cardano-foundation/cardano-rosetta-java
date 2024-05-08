@@ -10,8 +10,8 @@ Within root folder of the project there are example `.env` files, which can be c
 | `LOG`                                | Log level                                          | INFO                                                      |
 | `NETWORK`                            | Network                                            | preprod - Options are `mainnet, testnet, preprod, devkit` |
 | `PROTOCOL_MAGIC`                     | Cardano protocol magic                             | 1                                                         |
-| `DB_ADMIN_USER_NAME`                 | Postgres admin user                                | rosetta_db_admin                                          | 
-| `DB_ADMIN_USER_SECRET`               | Postgres admin secret                              | weakpwd#123_d                                             |
+| `DB_USER`                            | Postgres admin user                                | rosetta_db_admin                                          | 
+| `DB_SECRET`                          | Postgres admin secret                              | weakpwd#123_d                                             |
 | `DB_IMAGE_NAME`                      | Postgres docker image name                         | rosetta                                                   |
 | `DB_IMAGE_TAG`                       | Postgres docker image tag                          | latest                                                    |
 | `DB_NAME`                            | Postgres database                                  | rosetta                                                   |
@@ -26,11 +26,8 @@ Within root folder of the project there are example `.env` files, which can be c
 | `CARDANO_NODE_SOCKET`                | Cardano node socket Path                           | /ipc/node.socket                                          |
 | `CARDANO_NODE_DB`                    | Cardano node db path                               | /data/cardano-node/db                                     |
 | `CARDANO_CONFIG`                     | Cardano node config path                           | ./config/${NETWORK}/config                                |
-| `API_SPRING_PROFILES_ACTIVE_API`     | Api spring profile                                 | dev                                                       |
+| `API_SPRING_PROFILES_ACTIVE`         | Api spring profile                                 | dev                                                       |
 | `API_PORT`                           | Rosetta api exposed port                           | 8080                                                      |
-| `TRANSACTION_TTL`                    | Transaction ttl                                    | 3000                                                      |
-| `DB_CONNECTION_PARAMS_PROVIDER_TYPE` | Database connection params provider type           | ENVIRONMENT                                               |
-| `DB_DRIVER_CLASS_NAME`               | Database driver class name                         | "org.postgresql.Driver"                                   |
 | `ROSETTA_VERSION`                    | Rosetta version                                    | 1.4.13                                                    |
 | `TOPOLOGY_FILEPATH`                  | Topology file path                                 | ./config/${NETWORK}/topology.json                         |
 | `GENESIS_SHELLEY_PATH`               | Genesis file path                                  | ./config/${NETWORK}/shelley-genesis.json                  |
