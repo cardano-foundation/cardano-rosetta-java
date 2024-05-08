@@ -3,7 +3,7 @@ LOG=INFO
 NETWORK=preprod
 DB_SCHEMA=preprod
 # mainnet, preprod, preview, sanchonet, devkit
-NETWORK_MAGIC=1
+PROTOCOL_MAGIC=1
 # mainnet 764824073, preprod 1, preview 2, sanchonet 4, devkit 42
 
 ## Postgres variables

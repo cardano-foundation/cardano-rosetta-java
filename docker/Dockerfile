@@ -178,7 +178,7 @@ COPY --from=java-builder /root/app/yaci-indexer/target/*.jar /yaci-indexer/app.j
 # Run
 RUN mkdir /logs
 
-EXPOSE 8081
+EXPOSE 8080
 
 COPY ./docker/entrypoint.sh /sbin/entrypoint.sh
 ENTRYPOINT ["/sbin/entrypoint.sh"]
