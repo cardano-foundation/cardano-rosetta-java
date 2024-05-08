@@ -269,7 +269,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
 
     assertThat(opInto.getRelatedOperations()).isNotNull();
     assertThat(opInto.getRelatedOperations().size()).isEqualTo(1);
-    assertThat(opInto.getRelatedOperations().getFirst().getIndex()).isEqualTo(0);
+    assertThat(opInto.getRelatedOperations().getFirst().getIndex()).isZero();
 
     CoinChange coinChange = opInto.getCoinChange();
     assertThat(coinChange.getCoinAction()).isEqualTo(CoinAction.CREATED);
