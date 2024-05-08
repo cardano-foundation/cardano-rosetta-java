@@ -39,11 +39,11 @@ class ParseOperationTest {
     ProcessOperations resultAccumulator = new ProcessOperations();
     resultAccumulator = OperationParseUtil.parseOperation(operation, NetworkIdentifierType.CARDANO_PREPROD_NETWORK, resultAccumulator, OperationType.INPUT.getValue());
 
-    assertEquals(resultAccumulator.getTransactionInputs().size(), 1);
+    assertEquals(1, resultAccumulator.getTransactionInputs().size());
     assertEquals(operation.getCoinChange().getCoinIdentifier().getIdentifier(),
-        resultAccumulator.getTransactionInputs().get(0).getTransactionId() + ":" + resultAccumulator.getTransactionInputs().get(0).getIndex());
+        resultAccumulator.getTransactionInputs().getFirst().getTransactionId() + ":" + resultAccumulator.getTransactionInputs().getFirst().getIndex());
 
-    assertEquals(operation.getAmount().getValue(), resultAccumulator.getInputAmounts().get(0).toString());
+    assertEquals(operation.getAmount().getValue(), resultAccumulator.getInputAmounts().getFirst().toString());
     System.out.println(operation);
   }
 
@@ -54,10 +54,10 @@ class ParseOperationTest {
     ProcessOperations resultAccumulator = new ProcessOperations();
     resultAccumulator = OperationParseUtil.parseOperation(operation, NetworkIdentifierType.CARDANO_PREPROD_NETWORK, resultAccumulator, OperationType.OUTPUT.getValue());
 
-    assertEquals(resultAccumulator.getTransactionOutputs().size(), 1);
-    assertEquals(operation.getAccount().getAddress(), resultAccumulator.getTransactionOutputs().get(0).getAddress());
+    assertEquals(1, resultAccumulator.getTransactionOutputs().size());
+    assertEquals(operation.getAccount().getAddress(), resultAccumulator.getTransactionOutputs().getFirst().getAddress());
 
-    assertEquals(operation.getAmount().getValue(), resultAccumulator.getOutputAmounts().get(0).toString());
+    assertEquals(operation.getAmount().getValue(), resultAccumulator.getOutputAmounts().getFirst().toString());
   }
 
   @Test
@@ -70,7 +70,7 @@ class ParseOperationTest {
         NetworkIdentifierType.CARDANO_MAINNET_NETWORK, resultAccumulator,
         OperationType.STAKE_KEY_REGISTRATION.getValue());
     StakeRegistration stakeRegistration = (StakeRegistration) resultAccumulator.getCertificates()
-        .get(0);
+        .getFirst();
     String cborHex = stakeRegistration.getStakeCredential().getCborHex();
 
     assertEquals("8200581cbb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb", cborHex);
@@ -86,7 +86,7 @@ class ParseOperationTest {
     resultAccumulator = OperationParseUtil.parseOperation(operation,
         NetworkIdentifierType.CARDANO_MAINNET_NETWORK, resultAccumulator,
         OperationType.STAKE_KEY_DEREGISTRATION.getValue());
-    StakeDeregistration certificateDto = (StakeDeregistration) resultAccumulator.getCertificates().get(0);
+    StakeDeregistration certificateDto = (StakeDeregistration) resultAccumulator.getCertificates().getFirst();
     assertEquals("82018200581cbb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb", certificateDto.getCborHex());
 
   }
@@ -100,7 +100,7 @@ class ParseOperationTest {
     resultAccumulator = OperationParseUtil.parseOperation(operation, NetworkIdentifierType.CARDANO_MAINNET_NETWORK, resultAccumulator,
         OperationType.STAKE_DELEGATION.getValue());
 
-    assertEquals(operation.getAccount().getAddress(), resultAccumulator.getAddresses().get(0));
+    assertEquals(operation.getAccount().getAddress(), resultAccumulator.getAddresses().getFirst());
   }
 
   @Test
@@ -110,8 +110,8 @@ class ParseOperationTest {
     ProcessOperations resultAccumulator = new ProcessOperations();
     resultAccumulator = OperationParseUtil.parseOperation(operation, NetworkIdentifierType.CARDANO_MAINNET_NETWORK, resultAccumulator, OperationType.WITHDRAWAL.getValue());
 
-    assertEquals(operation.getAccount().getAddress(), resultAccumulator.getAddresses().get(0));
-    assertEquals(operation.getAmount().getValue(), resultAccumulator.getWithdrawalAmounts().get(0).toString());
+    assertEquals(operation.getAccount().getAddress(), resultAccumulator.getAddresses().getFirst());
+    assertEquals(operation.getAmount().getValue(), resultAccumulator.getWithdrawalAmounts().getFirst().toString());
   }
 
   @Test
@@ -124,8 +124,8 @@ class ParseOperationTest {
         OperationType.POOL_REGISTRATION.getValue());
 
     assertEquals(operation.getAccount().getAddress(), resultAccumulator.getAddresses().get(2));
-    String poolOwner = operation.getMetadata().getPoolRegistrationParams().getPoolOwners().get(0);
-    assertEquals(poolOwner, resultAccumulator.getAddresses().get(0));
+    String poolOwner = operation.getMetadata().getPoolRegistrationParams().getPoolOwners().getFirst();
+    assertEquals(poolOwner, resultAccumulator.getAddresses().getFirst());
   }
 
   @Test
@@ -137,7 +137,7 @@ class ParseOperationTest {
     resultAccumulator = OperationParseUtil.parseOperation(operation, NetworkIdentifierType.CARDANO_MAINNET_NETWORK, resultAccumulator,
         OperationType.POOL_RETIREMENT.getValue());
 
-    assertEquals(operation.getAccount().getAddress(), resultAccumulator.getAddresses().get(0));
+    assertEquals(operation.getAccount().getAddress(), resultAccumulator.getAddresses().getFirst());
   }
 
 }
