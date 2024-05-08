@@ -3,8 +3,7 @@ package org.cardanofoundation.rosetta.api.network.controller;
 import java.io.IOException;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.PostMapping;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -28,8 +27,7 @@ public interface NetworkApiDelegate {
                   @ApiResponse(responseCode = "400", description = "Invalid `body`")
           }
   )
-  @RequestMapping(
-          method = RequestMethod.POST,
+  @PostMapping(
           value = "/network/list",
           produces = { "application/json;charset=utf-8" },
           consumes = { "application/json;charset=utf-8" }
@@ -45,8 +43,7 @@ public interface NetworkApiDelegate {
                   @ApiResponse(responseCode = "400", description = "Invalid `body`")
           }
   )
-  @RequestMapping(
-          method = RequestMethod.POST,
+  @PostMapping(
           value = "/network/options",
           produces = { "application/json;charset=utf-8" },
           consumes = { "application/json;charset=utf-8" }
@@ -62,8 +59,7 @@ public interface NetworkApiDelegate {
                   @ApiResponse(responseCode = "400", description = "Invalid `body`")
           }
   )
-  @RequestMapping(
-          method = RequestMethod.POST,
+  @PostMapping(
           value = "/network/status",
           produces = { "application/json;charset=utf-8" },
           consumes = { "application/json;charset=utf-8" }

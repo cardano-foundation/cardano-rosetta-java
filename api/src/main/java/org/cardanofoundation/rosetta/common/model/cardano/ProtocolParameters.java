@@ -81,7 +81,7 @@ import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
 
   public ProtocolParameters fromEntity(ProtocolParams entity) {
     return ProtocolParameters.builder()
-        .coinsPerUtxoSize(entity.getAdaPerUtxoByte().toString()) // TODO check if it's the right value
+        .coinsPerUtxoSize(entity.getAdaPerUtxoByte().toString())
         .maxTxSize(entity.getMaxTxSize())
         .maxValSize(BigInteger.valueOf(entity.getMaxValSize()))
         .keyDeposit(entity.getKeyDeposit().toString())
