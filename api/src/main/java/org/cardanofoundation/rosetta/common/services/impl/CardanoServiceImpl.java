@@ -113,8 +113,8 @@ public class CardanoServiceImpl implements CardanoService {
   }
 
   @Override
-  public Double checkOrReturnDefaultTtl(Integer relativeTtl) {
-    return relativeTtl == null ? Constants.DEFAULT_RELATIVE_TTL : relativeTtl.doubleValue();
+  public Integer checkOrReturnDefaultTtl(Integer relativeTtl) {
+    return relativeTtl == null ? Constants.DEFAULT_RELATIVE_TTL : relativeTtl;
   }
 
   @Override
@@ -195,7 +195,7 @@ public class CardanoServiceImpl implements CardanoService {
   }
 
   @Override
-  public Double calculateTxSize(NetworkIdentifierType networkIdentifierType,
+  public Integer calculateTxSize(NetworkIdentifierType networkIdentifierType,
       List<Operation> operations, int ttl, DepositParameters depositParameters) {
     UnsignedTransaction unsignedTransaction;
     try {
@@ -220,7 +220,7 @@ public class CardanoServiceImpl implements CardanoService {
 
     String transaction = buildTransaction(unsignedTransaction.bytes(), signaturesList,
         unsignedTransaction.metadata());
-    return ((double) transaction.length() / 2);
+    return (transaction.length() / 2);
 
   }
 

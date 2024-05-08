@@ -54,7 +54,7 @@ public class Constants {
   public static final String MAINNET = "Mainnet";
   public static final String VALID_CURVE_TYPE = CurveType.EDWARDS25519.getValue();
   public static final int PUBLIC_KEY_BYTES_LENGTH = 64;
-  public static final Double DEFAULT_RELATIVE_TTL = 1000.0;
+  public static final Integer DEFAULT_RELATIVE_TTL = 1000;
 
   public static final String EMPTY_HEX = "\\x";
 
