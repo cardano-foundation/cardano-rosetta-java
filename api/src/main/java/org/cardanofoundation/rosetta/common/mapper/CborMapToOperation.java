@@ -37,6 +37,8 @@ import static org.cardanofoundation.rosetta.common.util.Formatters.key;
 
 public class CborMapToOperation {
 
+  private CborMapToOperation() {}
+
   public static Operation cborMapToOperation(Map operationMap) {
     Operation operation = new Operation();
 

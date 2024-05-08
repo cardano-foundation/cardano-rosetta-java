@@ -1,8 +1,9 @@
-name: Build main branch
+name: Build release
 
 on:
-  push:
-    branches: [ main, feat/RA-64-Containerisation-for-Distribution ]
+  release:
+    types:
+      - published
 
 jobs:
   build:
@@ -18,4 +19,5 @@ jobs:
       - name: Build Cardano Rosetta Release
         uses: ./.github/actions/build_docker_images
         with:
-          tag: main
+          tag: ${{ github.event.release.tag_name }}
+          isRelease: true

@@ -34,7 +34,6 @@ import org.cardanofoundation.rosetta.api.network.service.NetworkService;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.common.enumeration.OperationTypeStatus;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
-import org.cardanofoundation.rosetta.common.exception.ServerException;
 import org.cardanofoundation.rosetta.common.mapper.DataMapper;
 import org.cardanofoundation.rosetta.common.model.cardano.network.Producer;
 import org.cardanofoundation.rosetta.common.model.cardano.network.PublicRoot;
@@ -64,13 +63,12 @@ public class NetworkServiceImpl implements NetworkService {
   private final ResourceLoader resourceLoader;
 
   @PostConstruct
-  public void filePathExistingValidator() throws ServerException {
+  public void filePathExistingValidator() {
     validator(topologyFilepath);
     validator(genesisPath);
-//    validator(cardanoNodeVersion);
   }
 
-  private void validator( String path) throws ServerException {
+  private void validator( String path) {
     if(!new File(path).exists()) {
       throw ExceptionFactory.configNotFoundException();
     }
@@ -124,7 +122,6 @@ public class NetworkServiceImpl implements NetworkService {
                 .toList())
             .historicalBalanceLookup(true)
             .callMethods(new ArrayList<>())
-//            .balanceExemptions(loadExemptionsFile()) // TODO Removed to get it working clean - add balance exemptions
             .mempoolCoins(false))
         .build();
   }

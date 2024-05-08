@@ -233,13 +233,11 @@ public class ValidateParseUtil {
             }
         }
         try {
-            PoolRegistationParametersReturn poolRegistationParametersReturnDto = new PoolRegistationParametersReturn(
+            return new PoolRegistationParametersReturn(
                 valueOf(Long.parseLong(poolRegistrationParameters.getCost())),
                 valueOf(Long.parseLong(poolRegistrationParameters.getPledge())),
                 valueOf(Long.parseLong(numerator)),
                 valueOf(Long.parseLong(denominator)));
-
-            return poolRegistationParametersReturnDto;
         } catch (Exception error) {
             log.error("[validateAndParsePoolRegistationParameters] Given pool parameters are invalid");
             throw ExceptionFactory.invalidPoolRegistrationParameters(error.getMessage());

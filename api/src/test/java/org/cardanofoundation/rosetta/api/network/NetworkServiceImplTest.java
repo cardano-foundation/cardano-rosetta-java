@@ -14,19 +14,19 @@ import org.cardanofoundation.rosetta.common.util.RosettaConstants.RosettaErrorTy
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class NetworkServiceImplTest extends IntegrationTest {
+class NetworkServiceImplTest extends IntegrationTest {
 
   @Autowired
   private NetworkService networkService;
 
   @Test
-  public void verifyCorrectNetworkTest() {
+  void verifyCorrectNetworkTest() {
     // void function, no exception expected
     networkService.verifyNetworkRequest(createNetworkIdentifier(Constants.CARDANO_BLOCKCHAIN, Constants.DEVKIT));
   }
 
   @Test
-  public void verifyWrongNetworkTest() {
+  void verifyWrongNetworkTest() {
     ApiException apiException = assertThrows(ApiException.class,
         () -> networkService.verifyNetworkRequest(createNetworkIdentifier(Constants.CARDANO_BLOCKCHAIN,
             Constants.MAINNET)));
@@ -35,7 +35,7 @@ public class NetworkServiceImplTest extends IntegrationTest {
   }
 
   @Test
-  public void verifyWrongBlockchainTest() {
+  void verifyWrongBlockchainTest() {
     ApiException apiException = assertThrows(ApiException.class,
         () -> networkService.verifyNetworkRequest(createNetworkIdentifier("Wrong Blockchain",
             Constants.DEVKIT)));
