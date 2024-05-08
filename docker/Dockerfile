@@ -1,9 +1,5 @@
 FROM ubuntu:22.04 AS cardano-builder
 
-ARG CABAL_VERSION=3.8.1.0
-ARG GHC_VERSION=8.10.7
-ARG CARDANO_NODE_VERSION=8.9.2
-
 WORKDIR /root/src
 
 # Install dependencies
@@ -22,12 +18,19 @@ RUN bash -c "curl --proto '=https' --tlsv1.2 -sSf https://get-ghcup.haskell.org 
 ENV PATH=/root/.local/bin:/root/.ghcup/bin:/root/.cabal/bin:${PATH}
 
 # Install cabal
+ARG CABAL_VERSION=3.8.1.0
+
 RUN bash -c "ghcup install cabal ${CABAL_VERSION}"
 RUN bash -c "ghcup set cabal ${CABAL_VERSION}"
 
 # Install GHC
+ARG GHC_VERSION=8.10.7
+
 RUN bash -c "ghcup install ghc ${GHC_VERSION}"
 RUN bash -c "ghcup set ghc ${GHC_VERSION}"
+
+# Cardano node version
+ARG CARDANO_NODE_VERSION=8.9.2
 
 # Install sodium
 RUN export IOHKNIX_VERSION=$(curl https://raw.githubusercontent.com/IntersectMBO/cardano-node/$CARDANO_NODE_VERSION/flake.lock | jq -r '.nodes.iohkNix.locked.rev') \
@@ -109,15 +112,20 @@ WORKDIR /root/src/cardano-node
 RUN bash -c "cabal update"
 RUN bash -c "cabal build all"
 RUN bash -c "cabal build cardano-cli"
+RUN bash -c "cabal build cardano-submit-api"
 
 RUN mkdir -p /root/.local/bin \
     && cp -p "$(./scripts/bin-path.sh cardano-node)" /root/.local/bin/ \
-    && cp -p "$(./scripts/bin-path.sh cardano-cli)" /root/.local/bin/
+    && cp -p "$(./scripts/bin-path.sh cardano-cli)" /root/.local/bin/ \
+    && cp -p "$(./scripts/bin-path.sh cardano-submit-api)" /root/.local/bin/
 
 # Compile java applications
-FROM maven:3.9.6-sapmachine-21 AS java-builder
+FROM ubuntu:22.04 AS java-builder
 
 WORKDIR /root/app
+
+RUN apt-get update --fix-missing \
+    && apt install -y --no-install-recommends openjdk-21-jdk maven
 
 COPY ./pom.xml /root/app/pom.xml
 
@@ -128,12 +136,12 @@ COPY ./test-data-generator /root/app/test-data-generator
 RUN --mount=type=cache,target=/root/.m2 mvn clean package -DskipTests
 
 # Main
-FROM eclipse-temurin:21-jdk
+FROM ubuntu:22.04
 
 WORKDIR /
 
 # Install postgres
-ARG PG_VERSION=11
+ARG PG_VERSION=14
 
 RUN apt-get update --fix-missing \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y wget sudo gnupg \
@@ -147,9 +155,13 @@ RUN apt-get update --fix-missing \
 RUN echo "host all  all    0.0.0.0/0  md5" >> /etc/postgresql/$PG_VERSION/main/pg_hba.conf
 RUN echo "listen_addresses='*'" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
 
+# Install jdk 21
+RUN apt -y --no-install-recommends install openjdk-21-jdk
+
 # Copy cardano node
 COPY --from=cardano-builder /usr/local/lib /usr/local/lib
 COPY --from=cardano-builder /root/.local/bin/cardano-* /usr/local/bin/
+COPY --from=cardano-builder /root/src/cardano-node/cardano-submit-api/config/tx-submit-mainnet-config.yaml /root/cardano-submit-api
 
 ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 ENV PATH=/usr/local/lib/:$PATH

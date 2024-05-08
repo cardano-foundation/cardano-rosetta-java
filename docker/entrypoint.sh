@@ -1,7 +1,10 @@
 #!/bin/bash
 echo "entrypoint - run node"
-cp -r /config/${NETWORK}/* /config/
-cardano-node run --database-path /data/db --host-addr 0.0.0.0 --port ${CARDANO_NODE_PORT} --socket-path /ipc/node.socket --topology /config/topology.json --config /config/config.json > /logs/node.log &
+cp -r /config/${NETWORK}/* /current/
+cardano-node run --database-path /data/db --host-addr 0.0.0.0 --port ${CARDANO_NODE_PORT} --socket-path ${CARDANO_NODE_SOCKET} --topology /current/topology.json --config /current/config.json > /logs/node.log &
+
+echo "entrypoint - run submit api"
+cardano-submit-api --config /root/cardano-submit-api/tx-submit-mainnet-config.yaml --socket-path ${CARDANO_NODE_SOCKET} --port ${NODE_SUBMIT_API_PORT} --testnet-magic ${PROTOCOL_MAGIC} > /logs/submit-api.log &
 
 echo "entrypoint - run postgres"
 /etc/init.d/postgresql start
