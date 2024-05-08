@@ -1,6 +1,7 @@
 package org.cardanofoundation.rosetta.api.block.service;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
@@ -13,9 +14,9 @@ public interface LedgerBlockService {
    *
    * @param number block number
    * @param hash   block hash
-   * @return the block
+   * @return the block if found or empty otherwise
    */
-  Block findBlock(Long number, String hash);
+  Optional<Block> findBlock(Long number, String hash);
 
 
   /**

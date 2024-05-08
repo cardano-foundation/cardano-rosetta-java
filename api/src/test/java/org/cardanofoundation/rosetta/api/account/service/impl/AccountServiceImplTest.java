@@ -2,6 +2,7 @@ package org.cardanofoundation.rosetta.api.account.service.impl;
 
 import java.math.BigInteger;
 import java.util.Collections;
+import java.util.Optional;
 
 import org.jetbrains.annotations.NotNull;
 import org.mockito.InjectMocks;
@@ -52,7 +53,6 @@ class AccountServiceImplTest {
   @InjectMocks
   AccountServiceImpl accountService;
 
-  private final String ADA = "ADA";
   private final String HASH = "hash";
 
   @Test
@@ -65,7 +65,7 @@ class AccountServiceImplTest {
     Block block = getMockBlock();
     AddressBalance addressBalance = new AddressBalance(accountAddress, LOVELACE, 1L,
         BigInteger.valueOf(1000L), 1L);
-    when(ledgerBlockService.findBlock(1L, HASH)).thenReturn(block);
+    when(ledgerBlockService.findBlock(1L, HASH)).thenReturn(Optional.of(block));
     when(ledgerDataProviderService.findBalanceByAddressAndBlock(accountAddress, 1L))
         .thenReturn(Collections.singletonList(addressBalance));
 
@@ -98,7 +98,7 @@ class AccountServiceImplTest {
     StakeAddressBalance addressBalance = Mockito.mock(StakeAddressBalance.class);
     Block block = getMockBlock();
     when(addressBalance.getQuantity()).thenReturn(BigInteger.valueOf(1000L));
-    when(ledgerBlockService.findBlock(1L, HASH)).thenReturn(block);
+    when(ledgerBlockService.findBlock(1L, HASH)).thenReturn(Optional.of(block));
     when(ledgerDataProviderService.findStakeAddressBalanceByAddressAndBlock(accountAddress, 1L))
         .thenReturn(Collections.singletonList(addressBalance));
 
@@ -159,7 +159,7 @@ class AccountServiceImplTest {
     AccountBalanceRequest accountBalanceRequest = Mockito.mock(AccountBalanceRequest.class);
     AccountIdentifier accountIdentifier = getMockedAccountIdentifierAndMockAccountBalanceRequest(
         accountBalanceRequest, blockIdentifier, accountAddress);
-    when(ledgerBlockService.findBlock(1L, HASH)).thenReturn(block);
+    when(ledgerBlockService.findBlock(1L, HASH)).thenReturn(Optional.of(block));
     when(ledgerDataProviderService.findStakeAddressBalanceByAddressAndBlock(accountAddress, 1L))
         .thenReturn(Collections.emptyList());
 
@@ -185,7 +185,7 @@ class AccountServiceImplTest {
     AccountBalanceRequest accountBalanceRequest = Mockito.mock(AccountBalanceRequest.class);
     AccountIdentifier accountIdentifier = getMockedAccountIdentifierAndMockAccountBalanceRequest(
         accountBalanceRequest, blockIdentifier, accountAddress);
-    when(ledgerBlockService.findBlock(1L, HASH)).thenReturn(null);
+    when(ledgerBlockService.findBlock(1L, HASH)).thenReturn(Optional.empty());
 
     ApiException actualException = assertThrows(ApiException.class,
         () -> accountService.getAccountBalance(accountBalanceRequest));
@@ -227,7 +227,7 @@ class AccountServiceImplTest {
     AccountIdentifier accountIdentifier = getMockedAccountIdentifierAndMockAccountBalanceRequest(
         accountBalanceRequest, blockIdentifier, accountAddress);
     Block block = getMockBlock();
-    when(ledgerBlockService.findBlock(1L, HASH)).thenReturn(block);
+    when(ledgerBlockService.findBlock(1L, HASH)).thenReturn(Optional.of(block));
     when(ledgerDataProviderService.findStakeAddressBalanceByAddressAndBlock(accountAddress, 1L))
         .thenReturn(null);
 
@@ -260,7 +260,7 @@ class AccountServiceImplTest {
     when(accountCoinsRequest.getAccountIdentifier()).thenReturn(accountIdentifier);
     when(accountCoinsRequest.getCurrencies()).thenReturn(Collections.singletonList(currency));
     when(accountIdentifier.getAddress()).thenReturn(accountAddress);
-    when(currency.getSymbol()).thenReturn(ADA);
+    when(currency.getSymbol()).thenReturn("ADA");
     when(ledgerBlockService.findLatestBlock()).thenReturn(block);
     when(ledgerDataProviderService.findUtxoByAddressAndCurrency(accountAddress,
         Collections.emptyList())).thenReturn(Collections.singletonList(utxo));
