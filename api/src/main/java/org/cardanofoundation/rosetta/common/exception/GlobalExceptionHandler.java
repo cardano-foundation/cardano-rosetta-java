@@ -40,6 +40,7 @@ public class GlobalExceptionHandler {
             Details.builder().message(
                 "An error occurred for request " + request.getRequestId() + ": "
                     + errors ).build());
+        break;
       default:
         errorResponse = RosettaErrorType.UNSPECIFIED_ERROR.toRosettaError(true,
             Details.builder().message(
