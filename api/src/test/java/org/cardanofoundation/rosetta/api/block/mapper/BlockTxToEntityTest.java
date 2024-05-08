@@ -33,8 +33,8 @@ class BlockTxToEntityTest extends BaseMapperTest {
     assertThat(into.getHash()).isEqualTo(from.getTxHash());
     assertThat(into.getBlockHash()).isEqualTo(from.getBlock().getHash());
     assertThat(into.getBlockNo()).isEqualTo(from.getBlock().getNumber());
-    assertThat(into.getSize()).isEqualTo(0L);
-    assertThat(into.getScriptSize()).isEqualTo(0L);
+    assertThat(into.getSize()).isZero();
+    assertThat(into.getScriptSize()).isZero();
 
     assertThat(into.getInputs().size()).isEqualTo(from.getInputKeys().size());
     assertThat(into.getInputs()).extracting("txHash")

@@ -22,7 +22,7 @@ import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class parseOperationTest {
+class ParseOperationTest {
 
 
   private Operation getOperation(String fileName) throws IOException {
@@ -33,7 +33,7 @@ public class parseOperationTest {
   }
 
   @Test
-  public void parseInputOperationTest()
+  void parseInputOperationTest()
       throws IOException, CborDeserializationException, NoSuchAlgorithmException, SignatureException, InvalidKeySpecException, CborSerializationException, InvalidKeyException {
     Operation operation = getOperation("testdata/construction/Operations/inputOperation.json");
     ProcessOperations resultAccumulator = new ProcessOperations();
@@ -48,7 +48,7 @@ public class parseOperationTest {
   }
 
   @Test
-  public void parseOutputOperationTest()
+  void parseOutputOperationTest()
       throws IOException, CborDeserializationException, NoSuchAlgorithmException, SignatureException, InvalidKeySpecException, CborSerializationException, InvalidKeyException {
     Operation operation = getOperation("testdata/construction/Operations/outputOperation.json");
     ProcessOperations resultAccumulator = new ProcessOperations();
@@ -61,7 +61,7 @@ public class parseOperationTest {
   }
 
   @Test
-  public void stakeKeyRegistrationTest()
+  void stakeKeyRegistrationTest()
       throws IOException, CborDeserializationException, NoSuchAlgorithmException, SignatureException, InvalidKeySpecException, CborSerializationException, InvalidKeyException {
     Operation operation = getOperation(
         "testdata/construction/Operations/stakeKeyRegistrationOperation.json");
@@ -78,7 +78,7 @@ public class parseOperationTest {
   }
 
   @Test
-  public void stakeKeyDeregistrationTest()
+  void stakeKeyDeregistrationTest()
       throws IOException, CborDeserializationException, NoSuchAlgorithmException, SignatureException, InvalidKeySpecException, CborSerializationException, InvalidKeyException {
     Operation operation = getOperation(
         "testdata/construction/Operations/stakeKeyDeregistrationOperation.json");
@@ -92,7 +92,7 @@ public class parseOperationTest {
   }
 
   @Test
-  public void stakeDelegationOperationTest()
+  void stakeDelegationOperationTest()
       throws IOException, CborDeserializationException, NoSuchAlgorithmException, SignatureException, InvalidKeySpecException, CborSerializationException, InvalidKeyException {
     Operation operation = getOperation(
         "testdata/construction/Operations/stakeDelegationOperation.json");
@@ -103,8 +103,8 @@ public class parseOperationTest {
     assertEquals(operation.getAccount().getAddress(), resultAccumulator.getAddresses().get(0));
   }
 
-    @Test
-  public void withdrawalOperationTest()
+  @Test
+  void withdrawalOperationTest()
       throws IOException, CborDeserializationException, NoSuchAlgorithmException, SignatureException, InvalidKeySpecException, CborSerializationException, InvalidKeyException {
     Operation operation = getOperation("testdata/construction/Operations/withdrawalOperation.json");
     ProcessOperations resultAccumulator = new ProcessOperations();
@@ -115,7 +115,7 @@ public class parseOperationTest {
   }
 
   @Test
-  public void poolRegistrationOperationTest()
+  void poolRegistrationOperationTest()
       throws IOException, CborDeserializationException, NoSuchAlgorithmException, SignatureException, InvalidKeySpecException, CborSerializationException, InvalidKeyException {
     Operation operation = getOperation(
         "testdata/construction/Operations/poolRegistrationOperation.json");
@@ -129,7 +129,7 @@ public class parseOperationTest {
   }
 
   @Test
-  public void poolRetirementOperationTest()
+  void poolRetirementOperationTest()
       throws IOException, CborDeserializationException, NoSuchAlgorithmException, SignatureException, InvalidKeySpecException, CborSerializationException, InvalidKeyException {
     Operation operation = getOperation(
         "testdata/construction/Operations/poolRetirementOperation.json");

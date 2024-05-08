@@ -15,7 +15,7 @@ import org.cardanofoundation.rosetta.api.construction.service.ConstructionApiSer
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class DeriveApiTest extends IntegrationTest {
+class DeriveApiTest extends IntegrationTest {
 
   @Autowired
   private ConstructionApiService constructionApiService;
@@ -28,7 +28,7 @@ public class DeriveApiTest extends IntegrationTest {
   }
 
   @Test
-  public void deriveAddressTest() throws IOException, IllegalAccessException {
+  void deriveAddressTest() throws IOException, IllegalAccessException {
     ConstructionDeriveRequest deriveRequest = getDeriveRequest(
         "testdata/construction/derive/derive_request.json");
     ConstructionDeriveResponse constructionDeriveResponse = constructionApiService.constructionDeriveService(
