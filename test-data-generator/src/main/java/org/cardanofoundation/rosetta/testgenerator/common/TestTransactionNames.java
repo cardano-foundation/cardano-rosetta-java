@@ -6,6 +6,7 @@ public enum TestTransactionNames {
   SIMPLE_LOVELACE_FIRST_TRANSACTION("simple_first_lovelace_transaction"),
   SIMPLE_LOVELACE_SECOND_TRANSACTION("simple_second_lovelace_transaction"),
   SIMPLE_NEW_COINS_TRANSACTION("simple_new_coins_transaction"),
+  SIMPLE_NEW_COINS_STAKE_POOL_TRANSACTION("simple_new_coins_stake_pool_transaction"),
   SIMPLE_NEW_EMPTY_NAME_COINS_TRANSACTION("simple_new_empty_name_coins_transaction"),
   STAKE_KEY_REGISTRATION_TRANSACTION("stake_key_registration"),
   STAKE_KEY_DEREGISTRATION_TRANSACTION("stake_key_deregistration"),
