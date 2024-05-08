@@ -30,6 +30,6 @@ public enum AddressType {
 
   @Override
   public String toString() {
-    return String.valueOf(value);
+    return value;
   }
 }
