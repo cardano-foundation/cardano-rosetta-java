@@ -69,9 +69,9 @@ public class LoggingServiceImpl implements LoggingService {
   private Map<String, String> buildHeadersMap(HttpServletRequest request) {
     Map<String, String> map = new HashMap<>();
 
-    Enumeration headerNames = request.getHeaderNames();
+    Enumeration<String> headerNames = request.getHeaderNames();
     while (headerNames.hasMoreElements()) {
-      String key = (String) headerNames.nextElement();
+      String key = headerNames.nextElement();
       String value = request.getHeader(key);
       map.put(key, value);
     }

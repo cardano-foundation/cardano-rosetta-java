@@ -130,7 +130,7 @@ class ProtocolParamsToEntityTest extends BaseMapperTest {
     assertThat(into.getMinFeeA()).isEqualTo(param.getMinFeeA());
     assertThat(into.getMinFeeB()).isEqualTo(param.getMinFeeB());
     assertThat(into.getMinPoolCost()).isEqualTo(param.getMinPoolCost());
-    assertThat(into.getMinUtxo()).isEqualTo(param.getMinUtxo());
+    assertThat(into.getMinUtxoValue()).isEqualTo(param.getMinUtxo());
     assertThat(into.getNOpt()).isEqualTo(param.getNOpt());
     assertThat(into.getPoolDeposit()).isEqualTo(param.getPoolDeposit());
     assertThat(into.getPoolPledgeInfluence()).isEqualTo(param.getPoolPledgeInfluence());
