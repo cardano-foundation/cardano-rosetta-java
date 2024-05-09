@@ -11,7 +11,7 @@ import org.openapitools.client.model.PartialBlockIdentifier;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-import org.cardanofoundation.rosetta.api.SpringMvcTest;
+import org.cardanofoundation.rosetta.api.BaseSpringMvcTest;
 import org.cardanofoundation.rosetta.common.util.Constants;
 import org.cardanofoundation.rosetta.testgenerator.common.TestConstants;
 import org.cardanofoundation.rosetta.testgenerator.common.TestTransactionNames;
@@ -26,7 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-class AccountBalanceApiTest extends SpringMvcTest {
+class AccountBalanceApiTest extends BaseSpringMvcTest {
 
   private final String upToBlockHash = generatedDataMap.get(
       TestTransactionNames.SIMPLE_LOVELACE_FIRST_TRANSACTION.getName()).blockHash();
@@ -46,22 +46,6 @@ class AccountBalanceApiTest extends SpringMvcTest {
         accountBalanceResponse.getBalances().getFirst().getCurrency().getSymbol());
   }
 
-  private AccountBalanceResponse post(AccountBalanceRequest accountBalanceRequest) {
-    try {
-      var resp = mockMvc.perform(MockMvcRequestBuilders.post("/account/balance")
-              .contentType(MediaType.APPLICATION_JSON)
-              .content(objectMapper.writeValueAsString(accountBalanceRequest)))
-          .andDo(print())
-          .andExpect(status().isOk()) //200
-          .andReturn()
-          .getResponse()
-          .getContentAsString();
-      return objectMapper.readValue(resp, AccountBalanceResponse.class);
-    } catch (Exception e) {
-      throw new AssertionError(e);
-    }
-
-  }
 
   @Test
   void accountBalance2Lovelace_Test() {
@@ -291,5 +275,22 @@ class AccountBalanceApiTest extends SpringMvcTest {
         accountBalanceResponse.getBalances().getFirst().getCurrency().getSymbol());
     assertEquals(Constants.ADA_DECIMALS,
         accountBalanceResponse.getBalances().getFirst().getCurrency().getDecimals());
+  }
+
+  private AccountBalanceResponse post(AccountBalanceRequest accountBalanceRequest) {
+    try {
+      var resp = mockMvc.perform(MockMvcRequestBuilders.post("/account/balance")
+              .contentType(MediaType.APPLICATION_JSON)
+              .content(objectMapper.writeValueAsString(accountBalanceRequest)))
+          .andDo(print())
+          .andExpect(status().isOk()) //200
+          .andReturn()
+          .getResponse()
+          .getContentAsString();
+      return objectMapper.readValue(resp, AccountBalanceResponse.class);
+    } catch (Exception e) {
+      throw new AssertionError(e);
+    }
+
   }
 }
