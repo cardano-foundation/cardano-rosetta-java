@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class ValidationTest {
+class ValidationTest {
 
   @Test
   void test_isVoteDataValid_true_when_vote_data_metadata_format_is_valid() {

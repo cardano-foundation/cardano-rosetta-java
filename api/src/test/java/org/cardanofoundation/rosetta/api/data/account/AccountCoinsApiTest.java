@@ -36,10 +36,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 class AccountCoinsApiTest extends BaseSpringMvcTest {
 
-  private final String myAssetPolicyId = "ae1ed1312d2e2e2e3e80e48e4485a9a0b1373ad71e28bde4764ca8c6";
+  private final String myAssetPolicyId = "55fb0efbf5721e95a05c3d9a13fa63421c83689b35de6247d9d371ef";
   private final String latestTxHashOnZeroSlot = generatedDataMap.get(
       TestTransactionNames.SIMPLE_NEW_EMPTY_NAME_COINS_TRANSACTION.getName()).txHash() + ":0";
   private final String expectedTestAccountCoinAmount = "1635030";
+  private final String expectedTestAccountCoinAmount = "1636394";
   private final Currency myAssetCurrency = getCurrency(TestConstants.MY_ASSET_SYMBOL,
       myAssetPolicyId);
   private final Currency ada = getCurrency(Constants.ADA, Constants.ADA_DECIMALS);
@@ -50,7 +51,7 @@ class AccountCoinsApiTest extends BaseSpringMvcTest {
     AccountCoinsResponse accountCoinsResponse = post(newAccCoinsRequest(TEST_ACCOUNT_ADDRESS));
 
     assertNotNull(accountCoinsResponse);
-    assertEquals(1, accountCoinsResponse.getCoins().size());
+    assertEquals(2, accountCoinsResponse.getCoins().size());
     List<CoinTokens> metadata = accountCoinsResponse.getCoins().getFirst().getMetadata()
         .get(latestTxHashOnZeroSlot);
     assertEquals(2, metadata.size());
@@ -105,7 +106,7 @@ class AccountCoinsApiTest extends BaseSpringMvcTest {
     AccountCoinsResponse accountCoinsResponse = post(newAccCoinsRequest(TEST_ACCOUNT_ADDRESS));
 
     assertNotNull(accountCoinsResponse);
-    assertEquals(1, accountCoinsResponse.getCoins().size());
+    assertEquals(2, accountCoinsResponse.getCoins().size());
     assertEquals(latestTxHashOnZeroSlot,
         accountCoinsResponse.getCoins().getFirst().getCoinIdentifier().getIdentifier());
     assertEquals(expectedTestAccountCoinAmount,
@@ -117,7 +118,7 @@ class AccountCoinsApiTest extends BaseSpringMvcTest {
     List<CoinTokens> metadata = accountCoinsResponse.getCoins().getFirst().getMetadata()
         .get(latestTxHashOnZeroSlot);
     assertEquals(2, metadata.size());
-    assertNotEquals(metadata.get(1).getPolicyId(), metadata.getFirst().getPolicyId());
+    assertEquals(metadata.get(1).getPolicyId(), metadata.getFirst().getPolicyId());
     assertEquals(metadata.getFirst().getPolicyId(), metadata
         .getFirst().getTokens().getFirst().getCurrency().getMetadata().getPolicyId());
     assertEquals(metadata.get(1).getPolicyId(), metadata
@@ -136,9 +137,15 @@ class AccountCoinsApiTest extends BaseSpringMvcTest {
     AccountCoinsResponse accountCoinsResponse = post(
         newAccCoinsRequestWithCurrencies(TEST_ACCOUNT_ADDRESS,
             getCurrency("\\x", emptyNamePolicyId)));
+    ResponseEntity<AccountCoinsResponse> response = restTemplate.postForEntity(
+        getAccountCoinsUrl(),
+        getAccountCoinsRequestWithCurrencies(TestConstants.TEST_ACCOUNT_ADDRESS,
+            getCurrency("\\x", Constants.MULTI_ASSET_DECIMALS, myAssetPolicyId)),
+        AccountCoinsResponse.class);
+    AccountCoinsResponse accountCoinsResponse = response.getBody();
 
     assertNotNull(accountCoinsResponse);
-    assertEquals(1, accountCoinsResponse.getCoins().size());
+    assertEquals(2, accountCoinsResponse.getCoins().size());
     assertEquals(1, accountCoinsResponse.getCoins().getFirst().getMetadata().size());
     assertEquals(latestTxHashOnZeroSlot,
         accountCoinsResponse.getCoins().getFirst().getCoinIdentifier().getIdentifier());
@@ -146,7 +153,7 @@ class AccountCoinsApiTest extends BaseSpringMvcTest {
         accountCoinsResponse.getCoins().getFirst().getAmount().getCurrency().getSymbol());
     assertEquals(Constants.ADA_DECIMALS,
         accountCoinsResponse.getCoins().getFirst().getAmount().getCurrency().getDecimals());
-    assertEquals(emptyNamePolicyId,
+    assertEquals(myAssetPolicyId,
         accountCoinsResponse.getCoins().getFirst().getMetadata().get(latestTxHashOnZeroSlot)
             .getFirst().getPolicyId());
     assertEquals(TestConstants.ACCOUNT_BALANCE_MINTED_TOKENS_AMOUNT,
@@ -156,7 +163,7 @@ class AccountCoinsApiTest extends BaseSpringMvcTest {
         .get(latestTxHashOnZeroSlot).getFirst().getTokens().getFirst().getCurrency();
     assertEquals("", mintedTokenCurrency.getSymbol());
     assertEquals(Constants.MULTI_ASSET_DECIMALS, mintedTokenCurrency.getDecimals());
-    assertEquals(emptyNamePolicyId, mintedTokenCurrency.getMetadata().getPolicyId());
+    assertEquals(myAssetPolicyId, mintedTokenCurrency.getMetadata().getPolicyId());
   }
 
   @Test
@@ -180,14 +187,14 @@ class AccountCoinsApiTest extends BaseSpringMvcTest {
         post(newAccCoinsRequestWithCurrencies(TEST_ACCOUNT_ADDRESS, ada, myAssetCurrency));
 
     assertNotNull(accountCoinsResponse);
-    assertEquals(1, accountCoinsResponse.getCoins().size());
+    assertEquals(2, accountCoinsResponse.getCoins().size());
     Coin coins = accountCoinsResponse.getCoins().getFirst();
     assertEquals(expectedTestAccountCoinAmount, coins.getAmount().getValue());
     assertEquals(Constants.ADA, coins.getAmount().getCurrency().getSymbol());
     assertEquals(Constants.ADA_DECIMALS, coins.getAmount().getCurrency().getDecimals());
     List<CoinTokens> coinsMetadata = coins.getMetadata().values().iterator().next();
     assertEquals(2, coinsMetadata.size());
-    assertNotEquals(coinsMetadata.getFirst().getPolicyId(), coinsMetadata.get(1).getPolicyId());
+    assertEquals(coinsMetadata.getFirst().getPolicyId(), coinsMetadata.get(1).getPolicyId());
     assertEquals(TestConstants.ACCOUNT_BALANCE_MINTED_TOKENS_AMOUNT, coinsMetadata.getFirst()
         .getTokens().getFirst().getValue());
     assertEquals(coinsMetadata.getFirst().getPolicyId(),

@@ -50,8 +50,8 @@ class BlockToEntityTest extends BaseMapperTest {
     assertThat(to(into).getHash()).isEqualTo(got(from).getTxHash());
     assertThat(to(into).getBlockHash()).isEqualTo(got(from).getBlock().getHash());
     assertThat(to(into).getBlockNo()).isEqualTo(got(from).getBlock().getNumber());
-    assertThat(to(into).getSize()).isEqualTo(0L);
-    assertThat(to(into).getScriptSize()).isEqualTo(0L);
+    assertThat(to(into).getSize()).isZero();
+    assertThat(to(into).getScriptSize()).isZero();
     assertThat(to(into).getInputs().size()).isEqualTo(got(from).getInputKeys().size());
     assertThat(to(into).getOutputs().size()).isEqualTo(got(from).getOutputKeys().size());
     assertThat(to(into).getFee()).isEqualTo(got(from).getFee().toString());

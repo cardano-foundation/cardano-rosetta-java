@@ -15,7 +15,7 @@ import org.cardanofoundation.rosetta.api.construction.service.ConstructionApiSer
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class HashApiTest extends IntegrationTest {
+class HashApiTest extends IntegrationTest {
 
   @Autowired
   private ConstructionApiService constructionApiService;
@@ -28,7 +28,7 @@ public class HashApiTest extends IntegrationTest {
   }
 
   @Test
-  public void hashTest() throws IOException {
+  void hashTest() throws IOException {
     ConstructionHashRequest hashRequest = getHashRequest(
         "testdata/construction/hash/hash_request.json");
     TransactionIdentifierResponse transactionIdentifierResponse = constructionApiService.constructionHashService(

@@ -12,6 +12,7 @@ public class TestConstants {
   public static final String TEST_BLOCKCHAIN = "cardano";
   public static final String TEST_NETWORK = "devkit";
   public static final String MY_ASSET_SYMBOL = "\\x";
+  public static final String MY_ASSET_NAME = "MyAsset";
   public static final String CURRENCY_HEX_SYMBOL = "1A2B3C4D5E6F";
 
   // Account addresses
