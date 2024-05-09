@@ -6,13 +6,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import org.junit.jupiter.api.Test;
 
-import org.cardanofoundation.rosetta.api.BaseMapperTest;
+import org.cardanofoundation.rosetta.api.BaseMapperSetup;
 import org.cardanofoundation.rosetta.api.block.model.domain.Withdrawal;
 import org.cardanofoundation.rosetta.api.block.model.entity.WithdrawalEntity;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-public class WithdrawalEntityToWithdrawalTest extends BaseMapperTest {
+public class WithdrawalEntityToWithdrawalTest extends BaseMapperSetup {
 
   @Autowired
   private WithdrawalEntityToWithdrawal my;

@@ -3,7 +3,6 @@ package org.cardanofoundation.rosetta.api.block.service;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import jakarta.validation.constraints.NotNull;
 
 import lombok.RequiredArgsConstructor;
@@ -138,14 +137,14 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
             .findByTxHash(transaction.getHash())
             .stream()
             .map(m -> mapper.map(m, StakeRegistration.class))
-            .collect(Collectors.toList()));
+            .toList());
 
     transaction.setDelegations(
         delegationRepository
             .findByTxHash(transaction.getHash())
             .stream()
             .map(m -> mapper.map(m, Delegation.class))
-            .collect(Collectors.toList()));
+            .toList());
 
     transaction.setPoolRegistrations(poolRegistrationRepository
         .findByTxHash(transaction.getHash())
@@ -154,13 +153,13 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
             .addMappings(mp ->
                 mp.map(PoolRegistrationEntity::getPoolOwners, PoolRegistration::setOwners))
             .map(poolReg))
-        .collect(Collectors.toList()));
+        .toList());
 
     transaction.setPoolRetirements(poolRetirementRepository
         .findByTxHash(transaction.getHash())
         .stream()
         .map(m -> mapper.map(m, PoolRetirement.class))
-        .collect(Collectors.toList()));
+        .toList());
 
     transaction.setWithdrawals(withdrawalRepository
         .findByTxHash(transaction.getHash())

@@ -22,24 +22,29 @@ class NetworkServiceImplTest extends IntegrationTest {
   @Test
   void verifyCorrectNetworkTest() {
     // void function, no exception expected
-    networkService.verifyNetworkRequest(createNetworkIdentifier(Constants.CARDANO_BLOCKCHAIN, Constants.DEVKIT));
+    networkService.verifyNetworkRequest(
+        createNetworkIdentifier(Constants.CARDANO_BLOCKCHAIN, Constants.DEVKIT));
   }
 
   @Test
   void verifyWrongNetworkTest() {
+    NetworkIdentifier wrongNetworkIdentifier = createNetworkIdentifier(Constants.CARDANO_BLOCKCHAIN,
+        Constants.MAINNET);
     ApiException apiException = assertThrows(ApiException.class,
-        () -> networkService.verifyNetworkRequest(createNetworkIdentifier(Constants.CARDANO_BLOCKCHAIN,
-            Constants.MAINNET)));
-    assertEquals(RosettaErrorType.NETWORK_NOT_FOUND.getMessage(), apiException.getError().getMessage());
+        () -> networkService.verifyNetworkRequest(wrongNetworkIdentifier));
+    assertEquals(RosettaErrorType.NETWORK_NOT_FOUND.getMessage(),
+        apiException.getError().getMessage());
     assertEquals(RosettaErrorType.NETWORK_NOT_FOUND.getCode(), apiException.getError().getCode());
   }
 
   @Test
   void verifyWrongBlockchainTest() {
+    NetworkIdentifier wrongBlockchain = createNetworkIdentifier("Wrong Blockchain",
+        Constants.DEVKIT);
     ApiException apiException = assertThrows(ApiException.class,
-        () -> networkService.verifyNetworkRequest(createNetworkIdentifier("Wrong Blockchain",
-            Constants.DEVKIT)));
-    assertEquals(RosettaErrorType.INVALID_BLOCKCHAIN.getMessage(), apiException.getError().getMessage());
+        () -> networkService.verifyNetworkRequest(wrongBlockchain));
+    assertEquals(RosettaErrorType.INVALID_BLOCKCHAIN.getMessage(),
+        apiException.getError().getMessage());
     assertEquals(RosettaErrorType.INVALID_BLOCKCHAIN.getCode(), apiException.getError().getCode());
   }
 
@@ -49,5 +54,4 @@ class NetworkServiceImplTest extends IntegrationTest {
         .network(network)
         .build();
   }
-
 }

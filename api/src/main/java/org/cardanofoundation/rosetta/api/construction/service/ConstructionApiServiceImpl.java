@@ -1,4 +1,4 @@
-package org.cardanofoundation.rosetta.api.construction.service.impl;
+package org.cardanofoundation.rosetta.api.construction.service;
 
 import java.io.IOException;
 import java.util.List;
@@ -17,7 +17,6 @@ import com.bloxbean.cardano.client.exception.CborSerializationException;
 import org.openapitools.client.model.*;
 
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
-import org.cardanofoundation.rosetta.api.construction.service.ConstructionApiService;
 import org.cardanofoundation.rosetta.common.enumeration.AddressType;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;

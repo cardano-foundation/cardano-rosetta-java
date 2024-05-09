@@ -28,7 +28,7 @@ class CardanoAddressUtilTest {
   private final String testMnemonic = "clog book honey force cricket stamp until seed minimum margin denial kind volume undo simple federal then jealous solid legal crucial crazy acoustic thank";
 
   @Test
-  public void isStakeAddressTest() {
+  void isStakeAddressTest() {
     String validStakeAddress = "stake_test1uz89q57sawqdmfgeapdl3cypgjldk4y9lzqg2q422wzywucvsxnhw";
     assertTrue(CardanoAddressUtils.isStakeAddress(validStakeAddress));
 
@@ -63,7 +63,8 @@ class CardanoAddressUtilTest {
 
   @Test
   void generateSpecificRelayTest() {
-    Relay relay = new Relay("127.0.0.1", "2001:0db8:3c4d:0015:0000:0000:1a2f:1a2b", "relay.io", 3001, Constants.SINGLE_HOST_ADDR);
+    Relay relay = new Relay("127.0.0.1", "2001:0db8:3c4d:0015:0000:0000:1a2f:1a2b", "relay.io",
+        3001, Constants.SINGLE_HOST_ADDR);
     SingleHostAddr singleHostAddr = (SingleHostAddr) CardanoAddressUtils.generateSpecificRelay(
         relay);
     assertEquals("2001:db8:3c4d:15:0:0:1a2f:1a2b", singleHostAddr.getIpv6().getHostAddress());
@@ -123,21 +124,25 @@ class CardanoAddressUtilTest {
   @Test
   void generateRewardAddress() {
     Account account = new Account(testMnemonic);
-    String rewardAddress = CardanoAddressUtils.generateRewardAddress(NetworkIdentifierType.CARDANO_MAINNET_NETWORK, account.hdKeyPair().getPublicKey());
+    String rewardAddress = CardanoAddressUtils.generateRewardAddress(
+        NetworkIdentifierType.CARDANO_MAINNET_NETWORK, account.hdKeyPair().getPublicKey());
     assertEquals("stake1ux5t8wq55e09usmh07ymxry8atzwxwt2nwwzfngg6esffxgfvzpaw", rewardAddress);
   }
 
   @Test
   void generateBaseAddressTest() {
     Account account = new Account(testMnemonic);
-    String baseAddress = CardanoAddressUtils.generateBaseAddress(NetworkIdentifierType.CARDANO_MAINNET_NETWORK, account.hdKeyPair().getPublicKey(), account.stakeHdKeyPair().getPublicKey());
+    String baseAddress = CardanoAddressUtils.generateBaseAddress(
+        NetworkIdentifierType.CARDANO_MAINNET_NETWORK, account.hdKeyPair().getPublicKey(),
+        account.stakeHdKeyPair().getPublicKey());
     assertEquals(account.baseAddress(), baseAddress);
   }
 
   @Test
   void generateEnterpriseAddressTest() {
     Account account = new Account(testMnemonic);
-    String enterpriseAddress = CardanoAddressUtils.generateEnterpriseAddress(NetworkIdentifierType.CARDANO_MAINNET_NETWORK, account.hdKeyPair().getPublicKey());
+    String enterpriseAddress = CardanoAddressUtils.generateEnterpriseAddress(
+        NetworkIdentifierType.CARDANO_MAINNET_NETWORK, account.hdKeyPair().getPublicKey());
     assertEquals(account.enterpriseAddress(), enterpriseAddress);
   }
 
@@ -153,10 +158,12 @@ class CardanoAddressUtilTest {
   void getStakingCredentialFromStakeKeyTest() {
     Account account = new Account(testMnemonic);
     PublicKey publicKey = PublicKey.builder()
-        .hexBytes(HexUtil.encodeHexString(account.stakeHdKeyPair().getPublicKey().getKeyData())).curveType(
+        .hexBytes(HexUtil.encodeHexString(account.stakeHdKeyPair().getPublicKey().getKeyData()))
+        .curveType(
             CurveType.EDWARDS25519).build();
     StakeCredential stakingCredentialFromStakeKey = CardanoAddressUtils.getStakingCredentialFromStakeKey(
         publicKey);
-    assertEquals(HexUtil.encodeHexString(account.stakeHdKeyPair().getPublicKey().getKeyHash()), HexUtil.encodeHexString(stakingCredentialFromStakeKey.getHash()));
+    assertEquals(HexUtil.encodeHexString(account.stakeHdKeyPair().getPublicKey().getKeyHash()),
+        HexUtil.encodeHexString(stakingCredentialFromStakeKey.getHash()));
   }
 }

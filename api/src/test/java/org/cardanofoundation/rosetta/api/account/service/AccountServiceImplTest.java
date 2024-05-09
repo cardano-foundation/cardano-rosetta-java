@@ -1,4 +1,4 @@
-package org.cardanofoundation.rosetta.api.account.service.impl;
+package org.cardanofoundation.rosetta.api.account.service;
 
 import java.math.BigInteger;
 import java.util.Collections;

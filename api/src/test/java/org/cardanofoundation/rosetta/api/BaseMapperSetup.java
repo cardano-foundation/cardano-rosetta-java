@@ -18,7 +18,8 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {ConfigurationMapper.class, SpringMappersTestConfig.class})
-public class BaseMapperTest {
+public class BaseMapperSetup {
+
   @MockBean
   protected ProtocolParamService protocolParamService;
 

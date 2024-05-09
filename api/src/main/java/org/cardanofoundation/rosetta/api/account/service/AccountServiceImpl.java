@@ -1,4 +1,4 @@
-package org.cardanofoundation.rosetta.api.account.service.impl;
+package org.cardanofoundation.rosetta.api.account.service;
 
 import java.util.List;
 import java.util.Objects;
@@ -17,7 +17,6 @@ import org.openapitools.client.model.PartialBlockIdentifier;
 
 import org.cardanofoundation.rosetta.api.account.model.domain.AddressBalance;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
-import org.cardanofoundation.rosetta.api.account.service.AccountService;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.StakeAddressBalance;
 import org.cardanofoundation.rosetta.api.block.service.LedgerBlockService;

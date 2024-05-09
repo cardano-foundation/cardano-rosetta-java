@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import org.junit.jupiter.api.Test;
 
-import org.cardanofoundation.rosetta.api.BaseMapperTest;
+import org.cardanofoundation.rosetta.api.BaseMapperSetup;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.model.entity.BlockEntity;
@@ -16,10 +16,11 @@ import org.cardanofoundation.rosetta.api.block.model.entity.TxnEntity;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class BlockToEntityTest extends BaseMapperTest {
+class BlockToEntityTest extends BaseMapperSetup {
 
   @Autowired
   private BlockToEntity my;
+
   @Test
   void fromEntity_Test() {
     //given
@@ -44,16 +45,16 @@ class BlockToEntityTest extends BaseMapperTest {
     assertThat(into.getCreatedBy()).isEqualTo(from.getSlotLeader());
     assertThat(into.getSlotNo()).isEqualTo(from.getSlot());
 
-    assertThat(into.getTransactions().size()).isEqualTo(from.getTransactions().size());
-    assertThat(into.getTransactions().size()).isEqualTo(1);
+    assertThat(into.getTransactions()).hasSameSizeAs(from.getTransactions());
+    assertThat(into.getTransactions()).hasSize(1);
 
     assertThat(to(into).getHash()).isEqualTo(got(from).getTxHash());
     assertThat(to(into).getBlockHash()).isEqualTo(got(from).getBlock().getHash());
     assertThat(to(into).getBlockNo()).isEqualTo(got(from).getBlock().getNumber());
     assertThat(to(into).getSize()).isZero();
     assertThat(to(into).getScriptSize()).isZero();
-    assertThat(to(into).getInputs().size()).isEqualTo(got(from).getInputKeys().size());
-    assertThat(to(into).getOutputs().size()).isEqualTo(got(from).getOutputKeys().size());
+    assertThat(to(into).getInputs()).hasSameSizeAs(got(from).getInputKeys());
+    assertThat(to(into).getOutputs()).hasSameSizeAs(got(from).getOutputKeys());
     assertThat(to(into).getFee()).isEqualTo(got(from).getFee().toString());
 
 
