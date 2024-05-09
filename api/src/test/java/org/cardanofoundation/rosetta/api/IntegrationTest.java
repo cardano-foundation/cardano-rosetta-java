@@ -7,9 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.cardanofoundation.rosetta.RosettaApiApplication;
 
 @Profile("test-integration")
-@SpringBootTest(
-    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-    classes = {RosettaApiApplication.class})
+@SpringBootTest(classes = {RosettaApiApplication.class})
 @Transactional
 public abstract class IntegrationTest extends TransactionsTestData {
 }
