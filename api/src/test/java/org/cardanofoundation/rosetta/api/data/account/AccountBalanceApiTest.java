@@ -32,7 +32,8 @@ class AccountBalanceApiTest extends IntegrationTest {
   private final Long upToBlockNumber = generatedDataMap.get(
       TestTransactionNames.SIMPLE_LOVELACE_FIRST_TRANSACTION.getName()).blockNumber();
 
-  private final String currentAdaBalance = "1635030";
+  private final String currentAdaBalance = "3636394";
+  private final String previousAdaBalance = "1636394";
   private final String currentLovelaceBalance = "1939500";
 
   @Test
@@ -269,7 +270,7 @@ class AccountBalanceApiTest extends IntegrationTest {
     // check the balance on the current block
     assertNotNull(accountBalanceResponseWith3Tokens);
     assertEquals(3, accountBalanceResponseWith3Tokens.getBalances().size());
-    assertEquals(currentAdaBalance,
+    assertEquals(previousAdaBalance,
         accountBalanceResponseWith3Tokens.getBalances().getFirst().getValue());
     assertEquals(TestConstants.ACCOUNT_BALANCE_MINTED_TOKENS_AMOUNT,
         accountBalanceResponseWith3Tokens.getBalances().get(1).getValue());
