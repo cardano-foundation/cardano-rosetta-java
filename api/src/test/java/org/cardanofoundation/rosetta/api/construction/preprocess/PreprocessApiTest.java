@@ -19,7 +19,7 @@ import org.cardanofoundation.rosetta.api.construction.service.ConstructionApiSer
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class PreprocessApiTest extends IntegrationTest {
+class PreprocessApiTest extends IntegrationTest {
 
   @Autowired
   private ConstructionApiService constructionApiService;
@@ -32,7 +32,7 @@ public class PreprocessApiTest extends IntegrationTest {
   }
 
   @Test
-  public void simplePreprocessTest()
+  void simplePreprocessTest()
       throws IOException, CborException, AddressExcepion, CborSerializationException {
     ConstructionPreprocessRequest preprocessRequest = getPreprocessRequest(
         "testdata/construction/preprocess/simple_preprocess.json");
@@ -45,7 +45,7 @@ public class PreprocessApiTest extends IntegrationTest {
   }
 
   @Test
-  public void twoWithdrawalsTest()
+  void twoWithdrawalsTest()
       throws IOException, CborException, AddressExcepion, CborSerializationException {
     ConstructionPreprocessRequest preprocessRequest = getPreprocessRequest(
         "testdata/construction/preprocess/two_withdrawals.json");
@@ -58,7 +58,7 @@ public class PreprocessApiTest extends IntegrationTest {
   }
 
   @Test
-  public void poolRegistrationTest()
+  void poolRegistrationTest()
       throws IOException, CborException, AddressExcepion, CborSerializationException {
     ConstructionPreprocessRequest preprocessRequest = getPreprocessRequest(
         "testdata/construction/preprocess/pool_registration.json");

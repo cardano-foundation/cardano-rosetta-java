@@ -16,7 +16,7 @@ import org.cardanofoundation.rosetta.api.construction.service.ConstructionApiSer
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class CombineApiTest extends IntegrationTest {
+class CombineApiTest extends IntegrationTest {
   @Autowired
   private ConstructionApiService constructionApiService;
 
@@ -28,7 +28,7 @@ public class CombineApiTest extends IntegrationTest {
   }
 
   @Test
-  public void combineWithMetadataTest() throws IOException, CborException {
+  void combineWithMetadataTest() throws IOException, CborException {
     ConstructionCombineRequest combineRequest = getCombineRequest(
         "testdata/construction/combine/combine_with_metadata.json");
 
@@ -39,7 +39,7 @@ public class CombineApiTest extends IntegrationTest {
   }
 
   @Test
-  public void combineWithByronAddressTest() throws IOException, CborException {
+  void combineWithByronAddressTest() throws IOException, CborException {
     ConstructionCombineRequest combineRequest = getCombineRequest(
         "testdata/construction/combine/combine_with_byron_addresses.json");
 
