@@ -39,16 +39,15 @@ class AccountCoinsApiTest extends BaseSpringMvcTest {
   private final String myAssetPolicyId = "55fb0efbf5721e95a05c3d9a13fa63421c83689b35de6247d9d371ef";
   private final String latestTxHashOnZeroSlot = generatedDataMap.get(
       TestTransactionNames.SIMPLE_NEW_EMPTY_NAME_COINS_TRANSACTION.getName()).txHash() + ":0";
-  private final String expectedTestAccountCoinAmount = "1635030";
   private final String expectedTestAccountCoinAmount = "1636394";
-  private final Currency myAssetCurrency = getCurrency(TestConstants.MY_ASSET_SYMBOL,
-      myAssetPolicyId);
+  private final Currency myAssetCurrency =
+      getCurrency(TestConstants.MY_ASSET_SYMBOL,Constants.MULTI_ASSET_DECIMALS, myAssetPolicyId);
   private final Currency ada = getCurrency(Constants.ADA, Constants.ADA_DECIMALS);
   private final Currency lovelace = getCurrency(Constants.LOVELACE, Constants.MULTI_ASSET_DECIMALS);
 
   @Test
   void accountCoins2Ada_Test() {
-    AccountCoinsResponse accountCoinsResponse = post(newAccCoinsRequest(TEST_ACCOUNT_ADDRESS));
+    AccountCoinsResponse accountCoinsResponse = post(getAccountCoinsRequest(TEST_ACCOUNT_ADDRESS));
 
     assertNotNull(accountCoinsResponse);
     assertEquals(2, accountCoinsResponse.getCoins().size());
@@ -63,7 +62,7 @@ class AccountCoinsApiTest extends BaseSpringMvcTest {
 
   @Test
   void accountCoins2Lovelace_Test() {
-    AccountCoinsResponse accountCoinsResponse = post(newAccCoinsRequest(RECEIVER_1));
+    AccountCoinsResponse accountCoinsResponse = post(getAccountCoinsRequest(RECEIVER_1));
 
     assertNotNull(accountCoinsResponse);
     assertEquals(2, accountCoinsResponse.getCoins().size());
@@ -86,7 +85,7 @@ class AccountCoinsApiTest extends BaseSpringMvcTest {
 
   @Test
   void accountCoinsNoCoins_Test() {
-    AccountCoinsResponse accountCoinsResponse = post(newAccCoinsRequest(RECEIVER_2));
+    AccountCoinsResponse accountCoinsResponse = post(getAccountCoinsRequest(RECEIVER_2));
 
     assertNotNull(accountCoinsResponse);
     assertEquals(0, accountCoinsResponse.getCoins().size());
@@ -95,7 +94,7 @@ class AccountCoinsApiTest extends BaseSpringMvcTest {
   @Test
   void accountCoinsNoCoinsForStakeAccount_Test() {
     AccountCoinsResponse accountCoinsResponse =
-        post(newAccCoinsRequest(STAKE_ADDRESS_WITH_EARNED_REWARDS));
+        post(getAccountCoinsRequest(STAKE_ADDRESS_WITH_EARNED_REWARDS));
 
     assertNotNull(accountCoinsResponse);
     assertEquals(0, accountCoinsResponse.getCoins().size());
@@ -103,7 +102,7 @@ class AccountCoinsApiTest extends BaseSpringMvcTest {
 
   @Test
   void accountCoinsDifferentCoins_Test() {
-    AccountCoinsResponse accountCoinsResponse = post(newAccCoinsRequest(TEST_ACCOUNT_ADDRESS));
+    AccountCoinsResponse accountCoinsResponse = post(getAccountCoinsRequest(TEST_ACCOUNT_ADDRESS));
 
     assertNotNull(accountCoinsResponse);
     assertEquals(2, accountCoinsResponse.getCoins().size());
@@ -133,16 +132,9 @@ class AccountCoinsApiTest extends BaseSpringMvcTest {
 
   @Test
   void accountCoinsEmptyNameCoin_Test() {
-    final String emptyNamePolicyId = "b6d9dfb09401df509e565d42f0eff419ce58a020a9dbbe07754969d5";
     AccountCoinsResponse accountCoinsResponse = post(
-        newAccCoinsRequestWithCurrencies(TEST_ACCOUNT_ADDRESS,
-            getCurrency("\\x", emptyNamePolicyId)));
-    ResponseEntity<AccountCoinsResponse> response = restTemplate.postForEntity(
-        getAccountCoinsUrl(),
-        getAccountCoinsRequestWithCurrencies(TestConstants.TEST_ACCOUNT_ADDRESS,
-            getCurrency("\\x", Constants.MULTI_ASSET_DECIMALS, myAssetPolicyId)),
-        AccountCoinsResponse.class);
-    AccountCoinsResponse accountCoinsResponse = response.getBody();
+        getAccountCoinsRequestWithCurrencies(TEST_ACCOUNT_ADDRESS,
+            getCurrency("\\x", Constants.MULTI_ASSET_DECIMALS, myAssetPolicyId)));
 
     assertNotNull(accountCoinsResponse);
     assertEquals(2, accountCoinsResponse.getCoins().size());
@@ -169,7 +161,7 @@ class AccountCoinsApiTest extends BaseSpringMvcTest {
   @Test
   void accountCoinsOneSpecifiedCurrency_Test() {
     AccountCoinsResponse accountCoinsResponse =
-        post(newAccCoinsRequestWithCurrencies(RECEIVER_1, ada));
+        post(getAccountCoinsRequestWithCurrencies(RECEIVER_1, ada));
 
     assertNotNull(accountCoinsResponse);
     assertEquals(2, accountCoinsResponse.getCoins().size());
@@ -184,7 +176,7 @@ class AccountCoinsApiTest extends BaseSpringMvcTest {
   @Test
   void accountCoinsMultipleSpecifiedCurrencies_Test() {
     AccountCoinsResponse accountCoinsResponse =
-        post(newAccCoinsRequestWithCurrencies(TEST_ACCOUNT_ADDRESS, ada, myAssetCurrency));
+        post(getAccountCoinsRequestWithCurrencies(TEST_ACCOUNT_ADDRESS, ada, myAssetCurrency));
 
     assertNotNull(accountCoinsResponse);
     assertEquals(2, accountCoinsResponse.getCoins().size());
@@ -211,7 +203,7 @@ class AccountCoinsApiTest extends BaseSpringMvcTest {
 
   @Test
   void accountCoinsException_Test() throws Exception {
-    AccountCoinsRequest accountCoinsRequest = newAccCoinsRequest(
+    AccountCoinsRequest accountCoinsRequest = getAccountCoinsRequest(
         TEST_ACCOUNT_ADDRESS);
     accountCoinsRequest.getAccountIdentifier().setAddress("invalid_address");
 
@@ -227,7 +219,7 @@ class AccountCoinsApiTest extends BaseSpringMvcTest {
 
   @Test
   void accountCoinsNonHexCurrencySymbolException_Test() throws Exception {
-    AccountCoinsRequest thisIsANonHexString = newAccCoinsRequestWithCurrencies(TEST_ACCOUNT_ADDRESS,
+    AccountCoinsRequest thisIsANonHexString = getAccountCoinsRequestWithCurrencies(TEST_ACCOUNT_ADDRESS,
         getCurrency("thisIsANonHexString", Constants.MULTI_ASSET_DECIMALS));
 
     mockMvc.perform(MockMvcRequestBuilders.post("/account/coins")
@@ -245,7 +237,8 @@ class AccountCoinsApiTest extends BaseSpringMvcTest {
 
     mockMvc.perform(MockMvcRequestBuilders.post("/account/coins")
             .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(newAccCoinsRequestWithCurrencies(RECEIVER_1, lovelace))))
+            .content(objectMapper.writeValueAsString(
+                getAccountCoinsRequestWithCurrencies(RECEIVER_1, lovelace))))
         .andDo(print())
         .andExpect(jsonPath("$.code").value(4024))
         .andExpect(jsonPath("$.message").value("Invalid token name"))
@@ -261,7 +254,7 @@ class AccountCoinsApiTest extends BaseSpringMvcTest {
         .collect(Collectors.joining());
 
     AccountCoinsRequest request =
-        newAccCoinsRequestWithCurrencies(TEST_ACCOUNT_ADDRESS,
+        getAccountCoinsRequestWithCurrencies(TEST_ACCOUNT_ADDRESS,
         getCurrency(tooLongCurrencyName, Constants.MULTI_ASSET_DECIMALS));
 
     mockMvc.perform(MockMvcRequestBuilders.post("/account/coins")
@@ -278,7 +271,7 @@ class AccountCoinsApiTest extends BaseSpringMvcTest {
   void accountCoinsTooLongPolicyIdException_Test() throws Exception {
     String tooLongPolicyId = Stream.generate(() -> "w").limit(Constants.POLICY_ID_LENGTH + 2)
         .collect(Collectors.joining());
-    AccountCoinsRequest request = newAccCoinsRequestWithCurrencies(TEST_ACCOUNT_ADDRESS,
+    AccountCoinsRequest request = getAccountCoinsRequestWithCurrencies(TEST_ACCOUNT_ADDRESS,
         getCurrency(TestConstants.CURRENCY_HEX_SYMBOL, Constants.MULTI_ASSET_DECIMALS)
             .metadata(new CurrencyMetadata(tooLongPolicyId)));
 
@@ -294,7 +287,7 @@ class AccountCoinsApiTest extends BaseSpringMvcTest {
 
   @Test
   void accountCoinsNonHexPolicyIdException_Test() throws Exception {
-    AccountCoinsRequest request = newAccCoinsRequestWithCurrencies(TEST_ACCOUNT_ADDRESS,
+    AccountCoinsRequest request = getAccountCoinsRequestWithCurrencies(TEST_ACCOUNT_ADDRESS,
         getCurrency(TestConstants.CURRENCY_HEX_SYMBOL, Constants.MULTI_ASSET_DECIMALS)
             .metadata(new CurrencyMetadata("thisIsNonHexPolicyId")));
 
@@ -309,7 +302,7 @@ class AccountCoinsApiTest extends BaseSpringMvcTest {
   }
 
 
-  private AccountCoinsRequest newAccCoinsRequest(String accountAddress) {
+  private AccountCoinsRequest getAccountCoinsRequest(String accountAddress) {
     return AccountCoinsRequest.builder()
         .networkIdentifier(NetworkIdentifier.builder()
             .blockchain(TestConstants.TEST_BLOCKCHAIN)
@@ -322,7 +315,7 @@ class AccountCoinsApiTest extends BaseSpringMvcTest {
         .build();
   }
 
-  private AccountCoinsRequest newAccCoinsRequestWithCurrencies(String accountAddress,
+  private AccountCoinsRequest getAccountCoinsRequestWithCurrencies(String accountAddress,
       Currency... currencies) {
     return AccountCoinsRequest.builder()
         .networkIdentifier(NetworkIdentifier.builder()
@@ -344,15 +337,15 @@ class AccountCoinsApiTest extends BaseSpringMvcTest {
         .build();
   }
 
-  private Currency getCurrency(String symbol, String policyId) {
+  private Currency getCurrency(String symbol, int decimals, String policyId) {
     return Currency.builder()
         .symbol(symbol)
-        .decimals(Constants.MULTI_ASSET_DECIMALS)
+        .decimals(decimals)
         .metadata(CurrencyMetadata.builder().policyId(policyId).build())
         .build();
   }
 
-  private AccountCoinsResponse post(AccountCoinsRequest accountBalanceRequest) {
+private AccountCoinsResponse post(AccountCoinsRequest accountBalanceRequest) {
     try {
       var resp = mockMvc.perform(MockMvcRequestBuilders.post("/account/coins")
               .contentType(MediaType.APPLICATION_JSON)
