@@ -24,7 +24,7 @@ CARDANO_NODE_SOCKET=/node-ipc/node.socket
 ## Api env
 API_SPRING_PROFILES_ACTIVE=dev
 # staging, h2, test. Additional profiles: mempool (if mempool should be activated)
-API_PORT=8080
+API_PORT=8082
 
 ROSETTA_VERSION=1.4.13
 TOPOLOGY_FILEPATH=/current/topology.json

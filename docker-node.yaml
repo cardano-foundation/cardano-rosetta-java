@@ -5,12 +5,12 @@ services:
     environment:
       - NETWORK=${NETWORK}
     volumes:
-      - ${CARDANO_NODE_SOCKET_PATH}:/ipc
+      - ${CARDANO_NODE_SOCKET_PATH}:/node-ipc
       - ${CARDANO_NODE_DB}:/data/db
       - ${CARDANO_CONFIG}:/current
     ports:
-      - ${CARDANO_NODE_PORT}:${CARDANO_NODE_PORT}
-    entrypoint: cardano-node run --port ${CARDANO_NODE_PORT} --config /current/config.json --topology /current/topology.json --database-path /data/db --socket-path /ipc/node.socket
+      - ${CARDANO_NODE_PORT}:8090
+    entrypoint: cardano-node run --database-path /data/db --host-addr 0.0.0.0 --port 8090 --socket-path /node-ipc/node.socket --topology /current/topology.json --config /current/config.json
 
   cardano-submit-api:
     image: ghcr.io/intersectmbo/cardano-submit-api:${CARDANO_NODE_VERSION}

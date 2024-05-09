@@ -27,7 +27,7 @@ Within root folder of the project there are example `.env` files, which can be c
 | `CARDANO_NODE_DB`                    | Cardano node db path                               | /data/cardano-node/db                                     |
 | `CARDANO_CONFIG`                     | Cardano node config path                           | ./config/${NETWORK}/config                                |
 | `API_SPRING_PROFILES_ACTIVE`         | Api spring profile                                 | dev                                                       |
-| `API_PORT`                           | Rosetta api exposed port                           | 8080                                                      |
+| `API_PORT`                           | Rosetta api exposed port                           | 8082                                                      |
 | `ROSETTA_VERSION`                    | Rosetta version                                    | 1.4.13                                                    |
 | `TOPOLOGY_FILEPATH`                  | Topology file path                                 | ./config/${NETWORK}/topology.json                         |
 | `GENESIS_SHELLEY_PATH`               | Genesis file path                                  | ./config/${NETWORK}/shelley-genesis.json                  |
