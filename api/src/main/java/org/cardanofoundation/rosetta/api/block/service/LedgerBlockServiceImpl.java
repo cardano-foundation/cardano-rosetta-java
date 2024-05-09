@@ -65,22 +65,17 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
 
 
   @Override
-  public Block findBlock(Long blockNumber, String blockHash) {
+  public Optional<Block> findBlock(Long blockNumber, String blockHash) {
     log.debug("Query blockNumber: {} , blockHash: {}", blockNumber, blockHash);
-    Optional<BlockEntity> blockEntity;
     if (blockHash == null && blockNumber != null) {
-      blockEntity = blockRepository.findByNumber(blockNumber);
+      return blockRepository.findByNumber(blockNumber).map(this::toModelFrom);
     } else if (blockHash != null && blockNumber == null) {
-      blockEntity = blockRepository.findByHash(blockHash);
+      return blockRepository.findByHash(blockHash).map(this::toModelFrom);
     } else {
-      blockEntity = blockRepository.findByNumberAndHash(blockNumber, blockHash);
+      return blockRepository
+          .findByNumberAndHash(blockNumber, blockHash)
+          .map(this::toModelFrom);
     }
-    if (blockEntity.isPresent()) {
-      log.debug("Block found! {}", blockEntity);
-      return toModelFrom(blockEntity.get());
-    }
-    log.debug("[findBlock] No block was found");
-    return null; //TODO saa: replace with optional
   }
 
   @NotNull
@@ -92,14 +87,14 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
 
   @Override
   public List<BlockTx> findTransactionsByBlock(Long blk, String blkHash) {
-    log.debug("[findTransactionsByBlock]  query blockNumber: {} blockHash: {}", blk, blkHash);
+    log.debug("query blockNumber: {} blockHash: {}", blk, blkHash);
     Optional<BlockEntity> blkEntity = blockRepository.findByNumberAndHash(blk, blkHash);
     if (blkEntity.isEmpty()) {
-      log.debug("[findTransactionsByBlock] Block Not found: {} blockHash: {}", blk, blkHash);
+      log.debug("Block Not found: {} blockHash: {}", blk, blkHash);
       return Collections.emptyList();
     }
     List<TxnEntity> txList = txRepository.findTransactionsByBlockHash(blkEntity.get().getHash());
-    log.debug("[findTransactionsByBlock] Found {} transactions", txList.size());
+    log.debug("Found {} transactions", txList.size());
     if (ObjectUtils.isNotEmpty(txList)) {
       List<BlockTx> transactions = txList.stream().map(mapperTran::fromEntity).toList();
       transactions.forEach(this::populateTransaction);
@@ -111,15 +106,15 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
 
   @Override
   public Block findLatestBlock() {
-    log.info("[getLatestBlock] About to look for latest block");
+    log.debug("About to look for latest block");
     BlockEntity latestBlock = blockRepository.findLatestBlock();
-    log.debug("[getLatestBlock] Returning latest block {}", latestBlock);
+    log.debug("Returning latest block {}", latestBlock);
     return toModelFrom(latestBlock);
   }
 
   @Override
   public GenesisBlock findGenesisBlock() {
-    log.debug("[findGenesisBlock] About to run findGenesisBlock query");
+    log.debug("About to run findGenesisBlock query");
     return blockRepository.findGenesisBlock()
         .map(b -> mapper.map(b, GenesisBlock.class))
         .orElseThrow(ExceptionFactory::genesisBlockNotFound);
