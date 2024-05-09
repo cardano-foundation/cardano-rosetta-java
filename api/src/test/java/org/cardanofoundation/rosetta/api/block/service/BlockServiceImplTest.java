@@ -2,6 +2,7 @@ package org.cardanofoundation.rosetta.api.block.service;
 
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Optional;
 
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -45,12 +46,12 @@ class BlockServiceImplTest {
     givenProtocolParam();
     long index = 1;
     String hash = "hash1";
-    Block expected = newBlock();
+    Optional<Block> expected = newBlock();
     when(ledgerBlockService.findBlock(index, hash)).thenReturn(expected);
     //when
     Block block = blockService.findBlock(index, hash);
     //then
-    assertThat(block).isEqualTo(expected);
+    assertThat(block).isEqualTo(expected.orElse(null)); //idea complains on .get()
   }
 
   @Test
@@ -98,8 +99,8 @@ class BlockServiceImplTest {
   }
 
 
-  private Block newBlock() {
-    return new Block(
+  private Optional<Block> newBlock() {
+    return Optional.of(new Block(
         "hash1",
         1L,
         2L,
@@ -111,7 +112,7 @@ class BlockServiceImplTest {
         4,
         6L, null,
         "poolDeposit1"
-        );
+        ));
   }
 
   @Test

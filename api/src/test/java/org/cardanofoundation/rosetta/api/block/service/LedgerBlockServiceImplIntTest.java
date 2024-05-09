@@ -1,6 +1,7 @@
 package org.cardanofoundation.rosetta.api.block.service;
 
 import java.util.List;
+import java.util.Optional;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 
@@ -45,7 +46,7 @@ class LedgerBlockServiceImplIntTest extends IntegrationTest {
     //given
     TransactionBlockDetails tx = generatedDataMap.get(SIMPLE_TRANSACTION.getName());
     //when
-    Block block = ledgerBlockService.findBlock(tx.blockNumber(), tx.blockHash());
+    Optional<Block> block = ledgerBlockService.findBlock(tx.blockNumber(), tx.blockHash());
     //then
     assertBlockAndTx(block, tx);
   }
@@ -55,7 +56,7 @@ class LedgerBlockServiceImplIntTest extends IntegrationTest {
     //given
     TransactionBlockDetails tx = generatedDataMap.get(SIMPLE_TRANSACTION.getName());
     //when
-    Block block = ledgerBlockService.findBlock(tx.blockNumber(), null);
+    Optional<Block> block = ledgerBlockService.findBlock(tx.blockNumber(), null);
     //then
     assertBlockAndTx(block, tx);
   }
@@ -65,7 +66,7 @@ class LedgerBlockServiceImplIntTest extends IntegrationTest {
     //given
     TransactionBlockDetails tx = generatedDataMap.get(SIMPLE_TRANSACTION.getName());
     //when
-    Block block = ledgerBlockService.findBlock(null, tx.blockHash());
+    Optional<Block> block = ledgerBlockService.findBlock(null, tx.blockHash());
     //then
     assertBlockAndTx(block, tx);
   }
@@ -73,11 +74,10 @@ class LedgerBlockServiceImplIntTest extends IntegrationTest {
   @Test
   void findBlock_Test_OK_empty() {
     //given
-    TransactionBlockDetails tx = generatedDataMap.get(SIMPLE_TRANSACTION.getName());
     //when
-    Block block = ledgerBlockService.findBlock(-234L, "#####2");
+    Optional<Block> block = ledgerBlockService.findBlock(-234L, "#####2");
     //then
-    assertThat(block).isNull();
+    assertThat(block).isEmpty();
   }
 
   @Test
@@ -213,7 +213,8 @@ class LedgerBlockServiceImplIntTest extends IntegrationTest {
     assertThat(blockTx.getStakeRegistrations()).hasSize(1);
 
     List<StakeRegistrationEntity> entity = entityManager
-        .createQuery("FROM StakeRegistrationEntity b where b.txHash=:hash", StakeRegistrationEntity.class)
+        .createQuery("FROM StakeRegistrationEntity b where b.txHash=:hash",
+            StakeRegistrationEntity.class)
         .setParameter("hash", tx.txHash())
         .getResultList();
     assertThat(entity).isNotNull().hasSize(1);
@@ -266,7 +267,11 @@ class LedgerBlockServiceImplIntTest extends IntegrationTest {
     assertThat(latestBlock.getEpochNo()).isEqualTo(fromBlockB.getEpochNumber());
   }
 
-  private static void assertBlockAndTx(Block block, TransactionBlockDetails tx) {
+  private static void assertBlockAndTx(Optional<Block> blockOpt, TransactionBlockDetails tx) {
+    if (blockOpt.isEmpty()) {
+      throw new AssertionError("Not a block");
+    }
+    var block = blockOpt.get();
     assertThat(block).isNotNull();
     assertThat(block.getHash()).isEqualTo(tx.blockHash());
     assertThat(block.getSlotNo()).isEqualTo(tx.blockNumber());
