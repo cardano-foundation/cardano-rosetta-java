@@ -16,7 +16,7 @@ import org.cardanofoundation.rosetta.api.construction.service.ConstructionApiSer
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 
-public class PayloadsApiTest extends IntegrationTest {
+class PayloadsApiTest extends IntegrationTest {
 
   @Autowired
   private ConstructionApiService constructionApiService;
@@ -29,7 +29,7 @@ public class PayloadsApiTest extends IntegrationTest {
   }
 
   @Test
-  public void payloadsMultipleInputTests() throws Exception {
+  void payloadsMultipleInputTests() throws Exception {
     ConstructionPayloadsRequest request = getPayloadRequest("testdata/construction/payloads/multiple_inputs.json");
 
     ConstructionPayloadsResponse body = constructionApiService.constructionPayloadsService(
@@ -39,7 +39,7 @@ public class PayloadsApiTest extends IntegrationTest {
   }
 
   @Test
-  public void byronInputTest() throws Exception {
+  void byronInputTest() throws Exception {
     ConstructionPayloadsRequest request = getPayloadRequest("testdata/construction/payloads/byronInput.json");
 
     ConstructionPayloadsResponse body = constructionApiService.constructionPayloadsService(
@@ -49,7 +49,7 @@ public class PayloadsApiTest extends IntegrationTest {
   }
 
   @Test
-  public void depositTest() throws Exception {
+  void depositTest() throws Exception {
     ConstructionPayloadsRequest request = getPayloadRequest("testdata/construction/payloads/deposit.json");
 
     ConstructionPayloadsResponse body = constructionApiService.constructionPayloadsService(
@@ -59,7 +59,7 @@ public class PayloadsApiTest extends IntegrationTest {
   }
 
   @Test
-  public void simpeInputOutputTest() throws Exception {
+  void simpeInputOutputTest() throws Exception {
     ConstructionPayloadsRequest request = getPayloadRequest("testdata/construction/payloads/simpleInputOutput.json");
 
     ConstructionPayloadsResponse body = constructionApiService.constructionPayloadsService(
@@ -69,7 +69,7 @@ public class PayloadsApiTest extends IntegrationTest {
   }
 
   @Test
-  public void stakeKeyDeregistrationTest() throws Exception {
+  void stakeKeyDeregistrationTest() throws Exception {
     ConstructionPayloadsRequest request = getPayloadRequest("testdata/construction/payloads/stakeKey_deregistration.json");
 
     ConstructionPayloadsResponse body = constructionApiService.constructionPayloadsService(

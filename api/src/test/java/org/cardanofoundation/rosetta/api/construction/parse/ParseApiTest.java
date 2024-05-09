@@ -15,7 +15,7 @@ import org.cardanofoundation.rosetta.api.construction.service.ConstructionApiSer
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class ParseApiTest extends IntegrationTest {
+class ParseApiTest extends IntegrationTest {
 
   @Autowired
   private ConstructionApiService constructionApiService;
@@ -28,7 +28,7 @@ public class ParseApiTest extends IntegrationTest {
   }
 
   @Test
-  public void depositParseTest() throws IOException {
+  void depositParseTest() throws IOException {
     ConstructionParseRequest parseRequest = getParseRequest(
         "testdata/construction/parse/deposit_request.json");
     ConstructionParseResponse parseResponse = constructionApiService.constructionParseService(
@@ -42,7 +42,7 @@ public class ParseApiTest extends IntegrationTest {
   }
 
   @Test
-  public void refundParseTest() throws IOException {
+  void refundParseTest() throws IOException {
     ConstructionParseRequest parseRequest = getParseRequest(
         "testdata/construction/parse/refund_request.json");
     ConstructionParseResponse parseResponse = constructionApiService.constructionParseService(
@@ -56,7 +56,7 @@ public class ParseApiTest extends IntegrationTest {
   }
 
   @Test
-  public void signedMultiAssetTest() throws IOException {
+  void signedMultiAssetTest() throws IOException {
     ConstructionParseRequest parseRequest = getParseRequest(
         "testdata/construction/parse/signed_multiasset_request.json");
     ConstructionParseResponse parseResponse = constructionApiService.constructionParseService(
