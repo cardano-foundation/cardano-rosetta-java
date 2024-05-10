@@ -16,7 +16,7 @@ import org.openapitools.client.model.TransactionIdentifier;
 
 import org.junit.jupiter.api.Test;
 
-import org.cardanofoundation.rosetta.api.SpringMvcSetup;
+import org.cardanofoundation.rosetta.api.BaseSpringMvcTest;
 import org.cardanofoundation.rosetta.api.block.mapper.BlockToBlockResponse;
 import org.cardanofoundation.rosetta.api.block.mapper.BlockTxToBlockTxResponse;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
@@ -36,7 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
-class BlockApiImplTest extends SpringMvcSetup {
+class BlockApiImplTest extends BaseSpringMvcTest {
 
   @MockBean
   private BlockService blockService;
@@ -53,6 +53,7 @@ class BlockApiImplTest extends SpringMvcSetup {
 
   @Mock
   private ProtocolParams protocolParams;
+
 
 
   @Test
@@ -77,8 +78,7 @@ class BlockApiImplTest extends SpringMvcSetup {
   void blockNotFound_Test() throws Exception {
     //given
     BlockRequest blockRequest = givenBlockRequest();
-    when(blockService.findBlock(123L, "hash1")).thenThrow(
-        ExceptionFactory.blockNotFoundException());
+    when(blockService.findBlock(123L, "hash1")).thenThrow(ExceptionFactory.blockNotFoundException());
     //when
     //then
     mockMvc.perform(post("/block")
@@ -207,4 +207,6 @@ class BlockApiImplTest extends SpringMvcSetup {
         .network("devkit")
         .build();
   }
+
+
 }
