@@ -1,14 +1,12 @@
 package org.cardanofoundation.rosetta.api.data.account;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.springframework.http.HttpStatusCode;
-import org.springframework.http.ResponseEntity;
-import org.jetbrains.annotations.NotNull;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.openapitools.client.model.AccountCoinsRequest;
 import org.openapitools.client.model.AccountCoinsResponse;
 import org.openapitools.client.model.AccountIdentifier;
@@ -16,44 +14,43 @@ import org.openapitools.client.model.Coin;
 import org.openapitools.client.model.CoinTokens;
 import org.openapitools.client.model.Currency;
 import org.openapitools.client.model.CurrencyMetadata;
-import org.openapitools.client.model.Error;
 import org.openapitools.client.model.NetworkIdentifier;
 
 import org.junit.jupiter.api.Test;
 
-import org.cardanofoundation.rosetta.api.IntegrationTest;
+import org.cardanofoundation.rosetta.api.BaseSpringMvcSetup;
 import org.cardanofoundation.rosetta.common.util.Constants;
 import org.cardanofoundation.rosetta.testgenerator.common.TestConstants;
 import org.cardanofoundation.rosetta.testgenerator.common.TestTransactionNames;
 
-import static org.cardanofoundation.rosetta.testgenerator.common.TestConstants.URL;
+import static org.cardanofoundation.rosetta.testgenerator.common.TestConstants.RECEIVER_1;
+import static org.cardanofoundation.rosetta.testgenerator.common.TestConstants.RECEIVER_2;
+import static org.cardanofoundation.rosetta.testgenerator.common.TestConstants.STAKE_ADDRESS_WITH_EARNED_REWARDS;
+import static org.cardanofoundation.rosetta.testgenerator.common.TestConstants.TEST_ACCOUNT_ADDRESS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-class AccountCoinsApiTest extends IntegrationTest {
+class AccountCoinsApiTest extends BaseSpringMvcSetup {
 
-  private final String myAssetPolicyId = "ae1ed1312d2e2e2e3e80e48e4485a9a0b1373ad71e28bde4764ca8c6";
+  private final String myAssetPolicyId = "55fb0efbf5721e95a05c3d9a13fa63421c83689b35de6247d9d371ef";
   private final String latestTxHashOnZeroSlot = generatedDataMap.get(
       TestTransactionNames.SIMPLE_NEW_EMPTY_NAME_COINS_TRANSACTION.getName()).txHash() + ":0";
-  private final String expectedTestAccountCoinAmount = "1635030";
-  private final String emptyNamePolicyId = "b6d9dfb09401df509e565d42f0eff419ce58a020a9dbbe07754969d5";
-  private final Currency myAssetCurrency = getCurrency(TestConstants.MY_ASSET_SYMBOL,
-      Constants.MULTI_ASSET_DECIMALS, myAssetPolicyId);
+  private final String expectedTestAccountCoinAmount = "1636394";
+  private final Currency myAssetCurrency =
+      getCurrency(TestConstants.MY_ASSET_SYMBOL,Constants.MULTI_ASSET_DECIMALS, myAssetPolicyId);
   private final Currency ada = getCurrency(Constants.ADA, Constants.ADA_DECIMALS);
   private final Currency lovelace = getCurrency(Constants.LOVELACE, Constants.MULTI_ASSET_DECIMALS);
 
   @Test
   void accountCoins2Ada_Test() {
-    ResponseEntity<AccountCoinsResponse> response = restTemplate.postForEntity(
-        getAccountCoinsUrl(), getAccountCoinsRequest(TestConstants.TEST_ACCOUNT_ADDRESS),
-        AccountCoinsResponse.class);
+    AccountCoinsResponse accountCoinsResponse = post(getAccountCoinsRequest(TEST_ACCOUNT_ADDRESS));
 
-    AccountCoinsResponse accountCoinsResponse = response.getBody();
-
-    assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
     assertNotNull(accountCoinsResponse);
-    assertEquals(1, accountCoinsResponse.getCoins().size());
+    assertEquals(2, accountCoinsResponse.getCoins().size());
     List<CoinTokens> metadata = accountCoinsResponse.getCoins().getFirst().getMetadata()
         .get(latestTxHashOnZeroSlot);
     assertEquals(2, metadata.size());
@@ -65,13 +62,8 @@ class AccountCoinsApiTest extends IntegrationTest {
 
   @Test
   void accountCoins2Lovelace_Test() {
-    AccountCoinsRequest accountCoinsRequest = getAccountCoinsRequest(
-        TestConstants.RECEIVER_1);
-    ResponseEntity<AccountCoinsResponse> response = restTemplate.postForEntity(
-        getAccountCoinsUrl(), accountCoinsRequest, AccountCoinsResponse.class);
-    AccountCoinsResponse accountCoinsResponse = response.getBody();
+    AccountCoinsResponse accountCoinsResponse = post(getAccountCoinsRequest(RECEIVER_1));
 
-    assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
     assertNotNull(accountCoinsResponse);
     assertEquals(2, accountCoinsResponse.getCoins().size());
     assertNotEquals(accountCoinsResponse.getCoins().getFirst().getCoinIdentifier(),
@@ -93,39 +85,27 @@ class AccountCoinsApiTest extends IntegrationTest {
 
   @Test
   void accountCoinsNoCoins_Test() {
-    ResponseEntity<AccountCoinsResponse> response = restTemplate.postForEntity(
-        getAccountCoinsUrl(), getAccountCoinsRequest(TestConstants.RECEIVER_2),
-        AccountCoinsResponse.class);
-    AccountCoinsResponse accountCoinsResponse = response.getBody();
+    AccountCoinsResponse accountCoinsResponse = post(getAccountCoinsRequest(RECEIVER_2));
 
-    assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
     assertNotNull(accountCoinsResponse);
     assertEquals(0, accountCoinsResponse.getCoins().size());
   }
 
   @Test
   void accountCoinsNoCoinsForStakeAccount_Test() {
-    ResponseEntity<AccountCoinsResponse> response = restTemplate.postForEntity(
-        getAccountCoinsUrl(),
-        getAccountCoinsRequest(TestConstants.STAKE_ADDRESS_WITH_EARNED_REWARDS),
-        AccountCoinsResponse.class);
-    AccountCoinsResponse accountCoinsResponse = response.getBody();
+    AccountCoinsResponse accountCoinsResponse =
+        post(getAccountCoinsRequest(STAKE_ADDRESS_WITH_EARNED_REWARDS));
 
-    assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
     assertNotNull(accountCoinsResponse);
     assertEquals(0, accountCoinsResponse.getCoins().size());
   }
 
   @Test
   void accountCoinsDifferentCoins_Test() {
-    ResponseEntity<AccountCoinsResponse> response = restTemplate.postForEntity(
-        getAccountCoinsUrl(), getAccountCoinsRequest(TestConstants.TEST_ACCOUNT_ADDRESS),
-        AccountCoinsResponse.class);
-    AccountCoinsResponse accountCoinsResponse = response.getBody();
+    AccountCoinsResponse accountCoinsResponse = post(getAccountCoinsRequest(TEST_ACCOUNT_ADDRESS));
 
-    assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
     assertNotNull(accountCoinsResponse);
-    assertEquals(1, accountCoinsResponse.getCoins().size());
+    assertEquals(2, accountCoinsResponse.getCoins().size());
     assertEquals(latestTxHashOnZeroSlot,
         accountCoinsResponse.getCoins().getFirst().getCoinIdentifier().getIdentifier());
     assertEquals(expectedTestAccountCoinAmount,
@@ -137,7 +117,7 @@ class AccountCoinsApiTest extends IntegrationTest {
     List<CoinTokens> metadata = accountCoinsResponse.getCoins().getFirst().getMetadata()
         .get(latestTxHashOnZeroSlot);
     assertEquals(2, metadata.size());
-    assertNotEquals(metadata.get(1).getPolicyId(), metadata.getFirst().getPolicyId());
+    assertEquals(metadata.get(1).getPolicyId(), metadata.getFirst().getPolicyId());
     assertEquals(metadata.getFirst().getPolicyId(), metadata
         .getFirst().getTokens().getFirst().getCurrency().getMetadata().getPolicyId());
     assertEquals(metadata.get(1).getPolicyId(), metadata
@@ -152,16 +132,12 @@ class AccountCoinsApiTest extends IntegrationTest {
 
   @Test
   void accountCoinsEmptyNameCoin_Test() {
-    ResponseEntity<AccountCoinsResponse> response = restTemplate.postForEntity(
-        getAccountCoinsUrl(),
-        getAccountCoinsRequestWithCurrencies(TestConstants.TEST_ACCOUNT_ADDRESS,
-            getCurrency("\\x", Constants.MULTI_ASSET_DECIMALS, emptyNamePolicyId)),
-        AccountCoinsResponse.class);
-    AccountCoinsResponse accountCoinsResponse = response.getBody();
+    AccountCoinsResponse accountCoinsResponse = post(
+        getAccountCoinsRequestWithCurrencies(TEST_ACCOUNT_ADDRESS,
+            getCurrency("\\x", Constants.MULTI_ASSET_DECIMALS, myAssetPolicyId)));
 
-    assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
     assertNotNull(accountCoinsResponse);
-    assertEquals(1, accountCoinsResponse.getCoins().size());
+    assertEquals(2, accountCoinsResponse.getCoins().size());
     assertEquals(1, accountCoinsResponse.getCoins().getFirst().getMetadata().size());
     assertEquals(latestTxHashOnZeroSlot,
         accountCoinsResponse.getCoins().getFirst().getCoinIdentifier().getIdentifier());
@@ -169,7 +145,7 @@ class AccountCoinsApiTest extends IntegrationTest {
         accountCoinsResponse.getCoins().getFirst().getAmount().getCurrency().getSymbol());
     assertEquals(Constants.ADA_DECIMALS,
         accountCoinsResponse.getCoins().getFirst().getAmount().getCurrency().getDecimals());
-    assertEquals(emptyNamePolicyId,
+    assertEquals(myAssetPolicyId,
         accountCoinsResponse.getCoins().getFirst().getMetadata().get(latestTxHashOnZeroSlot)
             .getFirst().getPolicyId());
     assertEquals(TestConstants.ACCOUNT_BALANCE_MINTED_TOKENS_AMOUNT,
@@ -179,17 +155,14 @@ class AccountCoinsApiTest extends IntegrationTest {
         .get(latestTxHashOnZeroSlot).getFirst().getTokens().getFirst().getCurrency();
     assertEquals("", mintedTokenCurrency.getSymbol());
     assertEquals(Constants.MULTI_ASSET_DECIMALS, mintedTokenCurrency.getDecimals());
-    assertEquals(emptyNamePolicyId, mintedTokenCurrency.getMetadata().getPolicyId());
+    assertEquals(myAssetPolicyId, mintedTokenCurrency.getMetadata().getPolicyId());
   }
 
   @Test
   void accountCoinsOneSpecifiedCurrency_Test() {
-    ResponseEntity<AccountCoinsResponse> response = restTemplate.postForEntity(
-        getAccountCoinsUrl(), getAccountCoinsRequestWithCurrencies(TestConstants.RECEIVER_1, ada),
-        AccountCoinsResponse.class);
-    AccountCoinsResponse accountCoinsResponse = response.getBody();
+    AccountCoinsResponse accountCoinsResponse =
+        post(getAccountCoinsRequestWithCurrencies(RECEIVER_1, ada));
 
-    assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
     assertNotNull(accountCoinsResponse);
     assertEquals(2, accountCoinsResponse.getCoins().size());
     assertEquals("969750",
@@ -202,22 +175,18 @@ class AccountCoinsApiTest extends IntegrationTest {
 
   @Test
   void accountCoinsMultipleSpecifiedCurrencies_Test() {
-    ResponseEntity<AccountCoinsResponse> response = restTemplate.postForEntity(
-        getAccountCoinsUrl(),
-        getAccountCoinsRequestWithCurrencies(TestConstants.TEST_ACCOUNT_ADDRESS, ada,
-            myAssetCurrency), AccountCoinsResponse.class);
-    AccountCoinsResponse accountCoinsResponse = response.getBody();
+    AccountCoinsResponse accountCoinsResponse =
+        post(getAccountCoinsRequestWithCurrencies(TEST_ACCOUNT_ADDRESS, ada, myAssetCurrency));
 
-    assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
     assertNotNull(accountCoinsResponse);
-    assertEquals(1, accountCoinsResponse.getCoins().size());
+    assertEquals(2, accountCoinsResponse.getCoins().size());
     Coin coins = accountCoinsResponse.getCoins().getFirst();
     assertEquals(expectedTestAccountCoinAmount, coins.getAmount().getValue());
     assertEquals(Constants.ADA, coins.getAmount().getCurrency().getSymbol());
     assertEquals(Constants.ADA_DECIMALS, coins.getAmount().getCurrency().getDecimals());
     List<CoinTokens> coinsMetadata = coins.getMetadata().values().iterator().next();
     assertEquals(2, coinsMetadata.size());
-    assertNotEquals(coinsMetadata.getFirst().getPolicyId(), coinsMetadata.get(1).getPolicyId());
+    assertEquals(coinsMetadata.getFirst().getPolicyId(), coinsMetadata.get(1).getPolicyId());
     assertEquals(TestConstants.ACCOUNT_BALANCE_MINTED_TOKENS_AMOUNT, coinsMetadata.getFirst()
         .getTokens().getFirst().getValue());
     assertEquals(coinsMetadata.getFirst().getPolicyId(),
@@ -233,117 +202,105 @@ class AccountCoinsApiTest extends IntegrationTest {
   }
 
   @Test
-  void accountCoinsException_Test() {
+  void accountCoinsException_Test() throws Exception {
     AccountCoinsRequest accountCoinsRequest = getAccountCoinsRequest(
-        TestConstants.TEST_ACCOUNT_ADDRESS);
+        TEST_ACCOUNT_ADDRESS);
     accountCoinsRequest.getAccountIdentifier().setAddress("invalid_address");
-    ResponseEntity<Error> response = restTemplate.postForEntity(
-        getAccountCoinsUrl(), accountCoinsRequest, Error.class);
-    Error accountCoinsError = response.getBody();
 
-    assertEquals(HttpStatusCode.valueOf(500), response.getStatusCode());
-    assertNotNull(accountCoinsError);
-    assertEquals("Provided address is invalid", accountCoinsError.getMessage());
-    assertEquals("invalid_address",
-        ((HashMap<String, String>) accountCoinsError.getDetails()).get("message"));
-    assertEquals(4015, accountCoinsError.getCode());
+    mockMvc.perform(MockMvcRequestBuilders.post("/account/coins")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(accountCoinsRequest)))
+        .andDo(print())
+        .andExpect(jsonPath("$.code").value(4015))
+        .andExpect(jsonPath("$.message").value("Provided address is invalid"))
+        .andExpect(jsonPath("$.details.message").value("invalid_address"))
+        .andExpect(jsonPath("$.retriable").value(true));
   }
 
   @Test
-  void accountCoinsNonHexCurrencySymbolException_Test() {
-    ResponseEntity<Error> response = restTemplate.postForEntity(
-        getAccountCoinsUrl(),
-        getAccountCoinsRequestWithCurrencies(TestConstants.TEST_ACCOUNT_ADDRESS,
-            getCurrency("thisIsANonHexString", Constants.MULTI_ASSET_DECIMALS)),
-        Error.class);
-    Error accountCoinsError = response.getBody();
+  void accountCoinsNonHexCurrencySymbolException_Test() throws Exception {
+    AccountCoinsRequest thisIsANonHexString = getAccountCoinsRequestWithCurrencies(TEST_ACCOUNT_ADDRESS,
+        getCurrency("thisIsANonHexString", Constants.MULTI_ASSET_DECIMALS));
 
-    assertEquals(HttpStatusCode.valueOf(500), response.getStatusCode());
-    assertNotNull(accountCoinsError);
-    assertEquals("Invalid token name", accountCoinsError.getMessage());
-    assertEquals("Given name is thisIsANonHexString",
-        ((HashMap<String, String>) accountCoinsError.getDetails()).get("message"));
-    assertEquals(4024, accountCoinsError.getCode());
+    mockMvc.perform(MockMvcRequestBuilders.post("/account/coins")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(thisIsANonHexString)))
+        .andDo(print())
+        .andExpect(jsonPath("$.code").value(4024))
+        .andExpect(jsonPath("$.message").value("Invalid token name"))
+        .andExpect(jsonPath("$.details.message").value("Given name is thisIsANonHexString"))
+        .andExpect(jsonPath("$.retriable").value(false));
   }
 
   @Test
-  void accountCoinsLovelaceCurrencySymbolException_Test() {
-    ResponseEntity<Error> response = restTemplate.postForEntity(
-        getAccountCoinsUrl(),
-        getAccountCoinsRequestWithCurrencies(TestConstants.RECEIVER_1, lovelace),
-        Error.class);
-    Error accountCoinsError = response.getBody();
+  void accountCoinsLovelaceCurrencySymbolException_Test() throws Exception {
 
-    assertEquals(HttpStatusCode.valueOf(500), response.getStatusCode());
-    assertNotNull(accountCoinsError);
-    assertEquals("Invalid token name", accountCoinsError.getMessage());
-    assertEquals("Given name is lovelace",
-        ((HashMap<String, String>) accountCoinsError.getDetails()).get("message"));
-    assertEquals(4024, accountCoinsError.getCode());
+    mockMvc.perform(MockMvcRequestBuilders.post("/account/coins")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(
+                getAccountCoinsRequestWithCurrencies(RECEIVER_1, lovelace))))
+        .andDo(print())
+        .andExpect(jsonPath("$.code").value(4024))
+        .andExpect(jsonPath("$.message").value("Invalid token name"))
+        .andExpect(jsonPath("$.details.message").value("Given name is lovelace"))
+        .andExpect(jsonPath("$.retriable").value(false));
   }
 
   @Test
-  void accountCoinsTooLongCurrencyNameException_Test() {
-    String tooLongCurrencyName = Stream.generate(() -> "0").limit(Constants.ASSET_NAME_LENGTH + 2)
+  void accountCoinsTooLongCurrencyNameException_Test() throws Exception {
+    String tooLongCurrencyName = Stream
+        .generate(() -> "0")
+        .limit(Constants.ASSET_NAME_LENGTH + 2)
         .collect(Collectors.joining());
-    ResponseEntity<Error> response = restTemplate.postForEntity(
-        getAccountCoinsUrl(),
-        getAccountCoinsRequestWithCurrencies(TestConstants.TEST_ACCOUNT_ADDRESS,
-            getCurrency(tooLongCurrencyName, Constants.MULTI_ASSET_DECIMALS)),
-        Error.class);
-    Error accountCoinsError = response.getBody();
 
-    assertEquals(HttpStatusCode.valueOf(500), response.getStatusCode());
-    assertNotNull(accountCoinsError);
-    assertEquals("Invalid token name", accountCoinsError.getMessage());
-    assertEquals("Given name is " + tooLongCurrencyName,
-        ((HashMap<String, String>) accountCoinsError.getDetails()).get("message"));
-    assertEquals(4024, accountCoinsError.getCode());
+    AccountCoinsRequest request =
+        getAccountCoinsRequestWithCurrencies(TEST_ACCOUNT_ADDRESS,
+        getCurrency(tooLongCurrencyName, Constants.MULTI_ASSET_DECIMALS));
+
+    mockMvc.perform(MockMvcRequestBuilders.post("/account/coins")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(request)))
+        .andDo(print())
+        .andExpect(jsonPath("$.code").value(4024))
+        .andExpect(jsonPath("$.message").value("Invalid token name"))
+        .andExpect(jsonPath("$.details.message").value("Given name is " + tooLongCurrencyName))
+        .andExpect(jsonPath("$.retriable").value(false));
   }
 
   @Test
-  void accountCoinsTooLongPolicyIdException_Test() {
+  void accountCoinsTooLongPolicyIdException_Test() throws Exception {
     String tooLongPolicyId = Stream.generate(() -> "w").limit(Constants.POLICY_ID_LENGTH + 2)
         .collect(Collectors.joining());
-    ResponseEntity<Error> response = restTemplate.postForEntity(
-        getAccountCoinsUrl(),
-        getAccountCoinsRequestWithCurrencies(TestConstants.TEST_ACCOUNT_ADDRESS,
-            getCurrency(TestConstants.CURRENCY_HEX_SYMBOL, Constants.MULTI_ASSET_DECIMALS)
-                .metadata(new CurrencyMetadata(tooLongPolicyId))),
-        Error.class);
-    Error accountCoinsError = response.getBody();
+    AccountCoinsRequest request = getAccountCoinsRequestWithCurrencies(TEST_ACCOUNT_ADDRESS,
+        getCurrency(TestConstants.CURRENCY_HEX_SYMBOL, Constants.MULTI_ASSET_DECIMALS)
+            .metadata(new CurrencyMetadata(tooLongPolicyId)));
 
-    assertEquals(HttpStatusCode.valueOf(500), response.getStatusCode());
-    assertNotNull(accountCoinsError);
-    assertEquals("Invalid policy id", accountCoinsError.getMessage());
-    assertEquals("Given policy id is " + tooLongPolicyId,
-        ((HashMap<String, String>) accountCoinsError.getDetails()).get("message"));
-    assertEquals(4023, accountCoinsError.getCode());
+    mockMvc.perform(MockMvcRequestBuilders.post("/account/coins")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(request)))
+        .andDo(print())
+        .andExpect(jsonPath("$.code").value(4023))
+        .andExpect(jsonPath("$.message").value("Invalid policy id"))
+        .andExpect(jsonPath("$.details.message").value("Given policy id is " + tooLongPolicyId))
+        .andExpect(jsonPath("$.retriable").value(false));
   }
 
   @Test
-  void accountCoinsNonHexPolicyIdException_Test() {
-    ResponseEntity<Error> response = restTemplate.postForEntity(
-        getAccountCoinsUrl(),
-        getAccountCoinsRequestWithCurrencies(TestConstants.TEST_ACCOUNT_ADDRESS,
-            getCurrency(TestConstants.CURRENCY_HEX_SYMBOL, Constants.MULTI_ASSET_DECIMALS)
-                .metadata(new CurrencyMetadata("thisIsNonHexPolicyId"))),
-        Error.class);
-    Error accountCoinsError = response.getBody();
+  void accountCoinsNonHexPolicyIdException_Test() throws Exception {
+    AccountCoinsRequest request = getAccountCoinsRequestWithCurrencies(TEST_ACCOUNT_ADDRESS,
+        getCurrency(TestConstants.CURRENCY_HEX_SYMBOL, Constants.MULTI_ASSET_DECIMALS)
+            .metadata(new CurrencyMetadata("thisIsNonHexPolicyId")));
 
-    assertEquals(HttpStatusCode.valueOf(500), response.getStatusCode());
-    assertNotNull(accountCoinsError);
-    assertEquals("Invalid policy id", accountCoinsError.getMessage());
-    assertEquals("Given policy id is thisIsNonHexPolicyId",
-        ((HashMap<String, String>) accountCoinsError.getDetails()).get("message"));
-    assertEquals(4023, accountCoinsError.getCode());
+    mockMvc.perform(MockMvcRequestBuilders.post("/account/coins")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(request)))
+        .andDo(print())
+        .andExpect(jsonPath("$.code").value(4023))
+        .andExpect(jsonPath("$.message").value("Invalid policy id"))
+        .andExpect(jsonPath("$.details.message").value("Given policy id is thisIsNonHexPolicyId"))
+        .andExpect(jsonPath("$.retriable").value(false));
   }
 
-  @NotNull
-  private String getAccountCoinsUrl() {
-    String accountCoinsPath = "/account/coins";
-    return URL + serverPort + accountCoinsPath;
-  }
 
   private AccountCoinsRequest getAccountCoinsRequest(String accountAddress) {
     return AccountCoinsRequest.builder()
@@ -387,4 +344,21 @@ class AccountCoinsApiTest extends IntegrationTest {
         .metadata(CurrencyMetadata.builder().policyId(policyId).build())
         .build();
   }
+
+private AccountCoinsResponse post(AccountCoinsRequest accountBalanceRequest) {
+    try {
+      var resp = mockMvc.perform(MockMvcRequestBuilders.post("/account/coins")
+              .contentType(MediaType.APPLICATION_JSON)
+              .content(objectMapper.writeValueAsString(accountBalanceRequest)))
+          .andDo(print())
+          .andExpect(status().isOk()) //200
+          .andReturn()
+          .getResponse()
+          .getContentAsString();
+      return objectMapper.readValue(resp, AccountCoinsResponse.class);
+    } catch (Exception e) {
+      throw new AssertionError(e);
+    }
+  }
+
 }

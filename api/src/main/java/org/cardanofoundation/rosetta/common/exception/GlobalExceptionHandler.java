@@ -22,32 +22,36 @@ public class GlobalExceptionHandler {
 
   @ExceptionHandler(Exception.class)
   public ResponseEntity<Error> handleGlobalException(Exception exception,
-                                                     HttpServletRequest request) {
+      HttpServletRequest request) {
+    printStackTraceIfNeeded(exception);
+    Error errorResponse = RosettaErrorType.UNSPECIFIED_ERROR.toRosettaError(true,
+        new Details("An error occurred for request " + request.getRequestId() + ": "
+                + exception.getMessage()));
 
+    return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+  }
+
+  @ExceptionHandler(ApiException.class)
+  public ResponseEntity<Error> handleApiException(ApiException apiException) {
+    printStackTraceIfNeeded(apiException);
+    return new ResponseEntity<>(apiException.getError(), HttpStatus.INTERNAL_SERVER_ERROR);
+  }
+
+  @ExceptionHandler(MethodArgumentNotValidException.class)
+  public ResponseEntity<Error> handleMethodArgumentNotValidException(
+      MethodArgumentNotValidException methodArgumentNotValidException, HttpServletRequest request) {
+    printStackTraceIfNeeded(methodArgumentNotValidException);
+    List<String> errors = methodArgumentNotValidException.getBindingResult().getFieldErrors()
+        .stream().map(FieldError::getDefaultMessage).toList();
+    Error errorResponse = RosettaErrorType.UNSPECIFIED_ERROR.toRosettaError(true,
+        new Details("An error occurred for request " + request.getRequestId() + ": "
+                + errors));
+    return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+  }
+
+  private void printStackTraceIfNeeded(Exception exception) {
     if (isPrintStackTrace.equals("true")) {
       exception.printStackTrace();
     }
-
-    Error errorResponse;
-    switch (exception) {
-      case ApiException apiException:
-        errorResponse = apiException.getError();
-        break;
-      case MethodArgumentNotValidException methodArgumentNotValidException:
-        List<String> errors = methodArgumentNotValidException.getBindingResult().getFieldErrors()
-            .stream().map(FieldError::getDefaultMessage).toList();
-        errorResponse = RosettaErrorType.UNSPECIFIED_ERROR.toRosettaError(true,
-            Details.builder().message(
-                "An error occurred for request " + request.getRequestId() + ": "
-                    + errors ).build());
-        break;
-      default:
-        errorResponse = RosettaErrorType.UNSPECIFIED_ERROR.toRosettaError(true,
-            Details.builder().message(
-                "An error occurred for request " + request.getRequestId() + ": "
-                    + exception.getMessage()).build());
-    }
-
-    return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
   }
 }

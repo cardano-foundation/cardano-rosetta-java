@@ -37,6 +37,8 @@ public class SimpleTransactions implements TransactionRunner {
   private String sender1Addr;
   private String sender2Addr;
 
+  private Policy policy;
+
   @Override
   public void init() {
     sender1 = new Account(Networks.testnet(), TestConstants.SENDER_1_MNEMONIC);
@@ -69,6 +71,8 @@ public class SimpleTransactions implements TransactionRunner {
         stakeKeyRegistrationTransaction());
     generatedDataMap.put(TestTransactionNames.STAKE_KEY_DEREGISTRATION_TRANSACTION.getName(),
         stakeKeyDeregistrationTransaction());
+    generatedDataMap.put(TestTransactionNames.SIMPLE_TRANSACTION.getName() + "_2",
+        simpleTransaction());
     return generatedDataMap;
   }
 
@@ -109,11 +113,10 @@ public class SimpleTransactions implements TransactionRunner {
    * After this transaction, the sender1 will have 1000 of the new coins (MyAsset) in the utxo.
    */
   public TransactionBlockDetails simpleNewCoinsTransaction() {
-    String assetName = "MyAsset";
     BigInteger quantity = BigInteger.valueOf(1000);
-    log.info("Minting {} of the new coins ({}) to the {}", quantity, assetName, sender1Addr);
+    log.info("Minting {} of the new coins ({}) to the {}", quantity, TestConstants.MY_ASSET_NAME,
+        sender1Addr);
 
-    Policy policy;
     try {
       policy = PolicyUtil.createMultiSigScriptAtLeastPolicy("test_policy", 1, 1);
     } catch (CborSerializationException e) {
@@ -121,7 +124,8 @@ public class SimpleTransactions implements TransactionRunner {
     }
 
     Tx tx = new Tx()
-        .mintAssets(policy.getPolicyScript(), new Asset(assetName, quantity), sender1Addr)
+        .mintAssets(policy.getPolicyScript(),
+            new Asset(TestConstants.MY_ASSET_NAME, quantity), sender1Addr)
         .attachMetadata(MessageMetadata.create().add("Minting tx"))
         .from(sender1Addr);
 
@@ -134,19 +138,12 @@ public class SimpleTransactions implements TransactionRunner {
   }
 
   private TransactionBlockDetails simpleNewEmptyNameCoinsTransaction() {
-    String assetName = "";
+    String emptyAssetName = "";
     BigInteger quantity = BigInteger.valueOf(1000);
-    log.info("Minting {} of the new coins ({}) to the {}", quantity, assetName, sender1Addr);
-
-    Policy policy;
-    try {
-      policy = PolicyUtil.createMultiSigScriptAtLeastPolicy("test_policy", 1, 1);
-    } catch (CborSerializationException e) {
-      throw new ApiRuntimeException("Error creating policy", e);
-    }
+    log.info("Minting {} of the new coins ({}) to the {}", quantity, emptyAssetName, sender1Addr);
 
     Tx tx = new Tx()
-        .mintAssets(policy.getPolicyScript(), new Asset(assetName, quantity), sender1Addr)
+        .mintAssets(policy.getPolicyScript(), new Asset(emptyAssetName, quantity), sender1Addr)
         .attachMetadata(MessageMetadata.create().add("Minting tx"))
         .from(sender1Addr);
 

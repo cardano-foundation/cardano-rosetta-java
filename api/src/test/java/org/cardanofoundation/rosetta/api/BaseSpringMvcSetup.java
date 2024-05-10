@@ -8,7 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-public class SpringMvcTest {
+public class BaseSpringMvcSetup extends TransactionsTestData {
 
   @Autowired
   protected ObjectMapper objectMapper;

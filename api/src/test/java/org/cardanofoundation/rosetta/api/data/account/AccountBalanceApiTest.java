@@ -1,48 +1,46 @@
 package org.cardanofoundation.rosetta.api.data.account;
 
-import java.util.HashMap;
-
-import org.springframework.http.HttpStatusCode;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.openapitools.client.model.AccountBalanceRequest;
 import org.openapitools.client.model.AccountBalanceResponse;
 import org.openapitools.client.model.AccountIdentifier;
-import org.openapitools.client.model.Error;
 import org.openapitools.client.model.NetworkIdentifier;
 import org.openapitools.client.model.PartialBlockIdentifier;
 
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-import org.cardanofoundation.rosetta.api.IntegrationTest;
+import org.cardanofoundation.rosetta.api.BaseSpringMvcSetup;
 import org.cardanofoundation.rosetta.common.util.Constants;
 import org.cardanofoundation.rosetta.testgenerator.common.TestConstants;
 import org.cardanofoundation.rosetta.testgenerator.common.TestTransactionNames;
 
-import static org.cardanofoundation.rosetta.testgenerator.common.TestConstants.URL;
+import static org.cardanofoundation.rosetta.testgenerator.common.TestConstants.RECEIVER_1;
+import static org.cardanofoundation.rosetta.testgenerator.common.TestConstants.TEST_ACCOUNT_ADDRESS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-class AccountBalanceApiTest extends IntegrationTest {
+class AccountBalanceApiTest extends BaseSpringMvcSetup {
 
   private final String upToBlockHash = generatedDataMap.get(
       TestTransactionNames.SIMPLE_LOVELACE_FIRST_TRANSACTION.getName()).blockHash();
   private final Long upToBlockNumber = generatedDataMap.get(
       TestTransactionNames.SIMPLE_LOVELACE_FIRST_TRANSACTION.getName()).blockNumber();
 
-  private final String currentAdaBalance = "1635030";
+  private final String currentAdaBalance = "3636394";
+  private final String previousAdaBalance = "1636394";
   private final String currentLovelaceBalance = "1939500";
 
   @Test
   void accountBalance2Ada_Test() {
-    ResponseEntity<AccountBalanceResponse> response = restTemplate.postForEntity(
-        getAccountBalanceUrl(), getAccountBalanceRequest(TestConstants.TEST_ACCOUNT_ADDRESS),
-        AccountBalanceResponse.class);
-    AccountBalanceResponse accountBalanceResponse = response.getBody();
+    AccountBalanceResponse accountBalanceResponse = post(newAccBalance(TEST_ACCOUNT_ADDRESS));
 
-    assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
     assertNotNull(accountBalanceResponse);
     assertEquals(currentAdaBalance,
         accountBalanceResponse.getBalances().getFirst().getValue());
@@ -50,49 +48,22 @@ class AccountBalanceApiTest extends IntegrationTest {
         accountBalanceResponse.getBalances().getFirst().getCurrency().getSymbol());
   }
 
+
   @Test
   void accountBalance2Lovelace_Test() {
-    AccountBalanceRequest accountBalanceRequest = getAccountBalanceRequest(
-        TestConstants.RECEIVER_1);
-    ResponseEntity<AccountBalanceResponse> response = restTemplate.postForEntity(
-        getAccountBalanceUrl(), accountBalanceRequest, AccountBalanceResponse.class);
-    AccountBalanceResponse accountBalanceResponse = response.getBody();
 
-    assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
+    AccountBalanceResponse accountBalanceResponse = post(newAccBalance(RECEIVER_1));
+
     assertNotNull(accountBalanceResponse);
     assertEquals(1, accountBalanceResponse.getBalances().size());
     assertAdaCurrency(accountBalanceResponse);
-    assertEquals(currentLovelaceBalance,
-        accountBalanceResponse.getBalances().getFirst().getValue());
+    assertEquals("1939500", accountBalanceResponse.getBalances().getFirst().getValue());
   }
 
   @Test
-  void accountBalanceMintedToken_Test() {
-    AccountBalanceRequest accountBalanceRequest = getAccountBalanceRequest(
-        TestConstants.TEST_ACCOUNT_ADDRESS);
-    ResponseEntity<AccountBalanceResponse> response = restTemplate.postForEntity(
-        getAccountBalanceUrl(), accountBalanceRequest, AccountBalanceResponse.class);
-    AccountBalanceResponse accountBalanceResponse = response.getBody();
+  void accountBalanceMintedTokenAndEmptyName_Test() {
 
-    assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
-    assertNotNull(accountBalanceResponse);
-    assertEquals(3, accountBalanceResponse.getBalances().size());
-    assertAdaCurrency(accountBalanceResponse);
-    assertEquals(TestConstants.ACCOUNT_BALANCE_MINTED_TOKENS_AMOUNT,
-        accountBalanceResponse.getBalances().get(1).getValue());
-    assertNotEquals(accountBalanceResponse.getBalances().getFirst().getCurrency().getSymbol(),
-        accountBalanceResponse.getBalances().get(1).getCurrency().getSymbol());
-  }
-
-  @Test
-  void AddressBalanceMintedTokenWithEmptyName_Test() {
-    AccountBalanceRequest accountBalanceRequest = getAccountBalanceRequest(
-        TestConstants.TEST_ACCOUNT_ADDRESS);
-    ResponseEntity<AccountBalanceResponse> response = restTemplate.postForEntity(
-        getAccountBalanceUrl(), accountBalanceRequest, AccountBalanceResponse.class);
-    AccountBalanceResponse accountBalanceResponse = response.getBody();
-
-    assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
+    AccountBalanceResponse accountBalanceResponse = post(newAccBalance(TEST_ACCOUNT_ADDRESS));
     assertNotNull(accountBalanceResponse);
     assertEquals(3, accountBalanceResponse.getBalances().size());
     assertAdaCurrency(accountBalanceResponse);
@@ -106,13 +77,10 @@ class AccountBalanceApiTest extends IntegrationTest {
   @Test
   void accountBalanceUntilBlockByHash_Test() {
     String balanceUpToBlock = "969750";
-    AccountBalanceRequest accountBalanceRequest = getAccountBalanceRequestUntilBlock(
-        TestConstants.RECEIVER_1, null, upToBlockHash);
-    ResponseEntity<AccountBalanceResponse> response = restTemplate.postForEntity(
-        getAccountBalanceUrl(), accountBalanceRequest, AccountBalanceResponse.class);
-    AccountBalanceResponse accountBalanceResponse = response.getBody();
+    AccountBalanceRequest accountBalanceRequest =
+        newAccBalanceUntilBlock(RECEIVER_1, null, upToBlockHash);
+    AccountBalanceResponse accountBalanceResponse = post(accountBalanceRequest);
 
-    assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
     assertNotNull(accountBalanceResponse);
     assertEquals(1, accountBalanceResponse.getBalances().size());
     assertEquals(accountBalanceResponse.getBlockIdentifier().getHash(), upToBlockHash);
@@ -124,13 +92,10 @@ class AccountBalanceApiTest extends IntegrationTest {
   @Test
   void accountBalanceUntilBlockByIndex_Test() {
     String balanceUpToBlock = "969750";
-    AccountBalanceRequest accountBalanceRequest = getAccountBalanceRequestUntilBlock(
-        TestConstants.RECEIVER_1, upToBlockNumber, null);
-    ResponseEntity<AccountBalanceResponse> response = restTemplate.postForEntity(
-        getAccountBalanceUrl(), accountBalanceRequest, AccountBalanceResponse.class);
-    AccountBalanceResponse accountBalanceResponse = response.getBody();
+    AccountBalanceRequest accountBalanceRequest = newAccBalanceUntilBlock(
+        RECEIVER_1, upToBlockNumber, null);
+    AccountBalanceResponse accountBalanceResponse = post(accountBalanceRequest);
 
-    assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
     assertNotNull(accountBalanceResponse);
     assertEquals(1, accountBalanceResponse.getBalances().size());
     assertEquals(accountBalanceResponse.getBlockIdentifier().getHash(), upToBlockHash);
@@ -142,13 +107,10 @@ class AccountBalanceApiTest extends IntegrationTest {
   @Test
   void accountBalanceUntilBlockByIndexAndHash_Test() {
     String balanceUpToBlock = "969750";
-    AccountBalanceRequest accountBalanceRequest = getAccountBalanceRequestUntilBlock(
-        TestConstants.RECEIVER_1, upToBlockNumber, upToBlockHash);
-    ResponseEntity<AccountBalanceResponse> response = restTemplate.postForEntity(
-        getAccountBalanceUrl(), accountBalanceRequest, AccountBalanceResponse.class);
-    AccountBalanceResponse accountBalanceResponse = response.getBody();
+    AccountBalanceRequest accountBalanceRequest = newAccBalanceUntilBlock(
+        RECEIVER_1, upToBlockNumber, upToBlockHash);
+    AccountBalanceResponse accountBalanceResponse = post(accountBalanceRequest);
 
-    assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
     assertNotNull(accountBalanceResponse);
     assertEquals(1, accountBalanceResponse.getBalances().size());
     assertEquals(accountBalanceResponse.getBlockIdentifier().getHash(), upToBlockHash);
@@ -158,46 +120,42 @@ class AccountBalanceApiTest extends IntegrationTest {
   }
 
   @Test
-  void accountBalanceUntilBlockException_Test() {
-    AccountBalanceRequest accountBalanceRequest = getAccountBalanceRequestUntilBlock(
-        TestConstants.TEST_ACCOUNT_ADDRESS, upToBlockNumber + 1L, upToBlockHash);
-    ResponseEntity<Error> response = restTemplate.postForEntity(
-        getAccountBalanceUrl(), accountBalanceRequest, Error.class);
-    Error accountBalanceError = response.getBody();
+  void accountBalanceUntilBlockException_Test() throws Exception {
+    AccountBalanceRequest accountBalanceRequest =
+        newAccBalanceUntilBlock(TEST_ACCOUNT_ADDRESS, upToBlockNumber + 1L, upToBlockHash);
 
-    assertEquals(HttpStatusCode.valueOf(500), response.getStatusCode());
-    assertNotNull(accountBalanceError);
-    assertEquals("Block not found", accountBalanceError.getMessage());
-    assertEquals(4001, accountBalanceError.getCode());
+    mockMvc.perform(MockMvcRequestBuilders.post("/account/balance")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(accountBalanceRequest)))
+        .andDo(print())
+        .andExpect(jsonPath("$.code").value(4001))
+        .andExpect(jsonPath("$.message").value("Block not found"))
+        .andExpect(jsonPath("$.retriable").value(false));
+
   }
 
   @Test
-  void accountBalanceException_Test() {
-    AccountBalanceRequest accountBalanceRequest = getAccountBalanceRequest(
-        TestConstants.TEST_ACCOUNT_ADDRESS);
+  void accountBalanceException_Test() throws Exception {
+    AccountBalanceRequest accountBalanceRequest = newAccBalance(TEST_ACCOUNT_ADDRESS);
     accountBalanceRequest.getAccountIdentifier().setAddress("invalid_address");
-    ResponseEntity<Error> response = restTemplate.postForEntity(
-        getAccountBalanceUrl(), accountBalanceRequest, Error.class);
-    Error accountBalanceError = response.getBody();
 
-    assertEquals(HttpStatusCode.valueOf(500), response.getStatusCode());
-    assertNotNull(accountBalanceError);
-    assertEquals("Provided address is invalid", accountBalanceError.getMessage());
-    assertEquals("invalid_address",
-        ((HashMap<String, String>) accountBalanceError.getDetails()).get("message"));
-    assertEquals(4015, accountBalanceError.getCode());
+    mockMvc.perform(MockMvcRequestBuilders.post("/account/balance")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(accountBalanceRequest)))
+        .andDo(print())
+        .andExpect(jsonPath("$.code").value(4015))
+        .andExpect(jsonPath("$.message").value("Provided address is invalid"))
+        .andExpect(jsonPath("$.details.message").value("invalid_address"))
+        .andExpect(jsonPath("$.retriable").value(true));
   }
 
   @Test
   @Disabled("No test setup for stake address with rewards yet implemented")
   void accountBalanceStakeAddressWithNoEarnedRewards_Test() {
-    AccountBalanceRequest accountBalanceRequest = getAccountBalanceRequest(
+    AccountBalanceRequest accountBalanceRequest = newAccBalance(
         TestConstants.STAKE_ADDRESS_WITH_NO_EARNED_REWARDS);
-    ResponseEntity<AccountBalanceResponse> response = restTemplate.postForEntity(
-        getAccountBalanceUrl(), accountBalanceRequest, AccountBalanceResponse.class);
-    AccountBalanceResponse accountBalanceResponse = response.getBody();
+    AccountBalanceResponse accountBalanceResponse = post(accountBalanceRequest);
 
-    assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
     assertNotNull(accountBalanceResponse);
     assertEquals(1, accountBalanceResponse.getBalances().size());
     assertEquals("0", accountBalanceResponse.getBalances().getFirst().getValue());
@@ -206,13 +164,10 @@ class AccountBalanceApiTest extends IntegrationTest {
 
   @Test
   void accountBalanceStakeAddressUntilBlockNumber_Test() {
-    AccountBalanceRequest accountBalanceRequest = getAccountBalanceRequestUntilBlock(
+    AccountBalanceRequest accountBalanceRequest = newAccBalanceUntilBlock(
         TestConstants.STAKE_ADDRESS_WITH_EARNED_REWARDS, upToBlockNumber, null);
-    ResponseEntity<AccountBalanceResponse> response = restTemplate.postForEntity(
-        getAccountBalanceUrl(), accountBalanceRequest, AccountBalanceResponse.class);
-    AccountBalanceResponse accountBalanceResponse = response.getBody();
+    AccountBalanceResponse accountBalanceResponse =  post(accountBalanceRequest);
 
-    assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
     assertNotNull(accountBalanceResponse);
     assertEquals(1, accountBalanceResponse.getBalances().size());
     assertEquals(TestConstants.STAKE_ACCOUNT_BALANCE_AMOUNT,
@@ -223,13 +178,10 @@ class AccountBalanceApiTest extends IntegrationTest {
   @Test
   @Disabled("No test setup for minted tokens on stake address yet implemented")
   void accountBalanceStakeAddressWithMintedUtxo_Test() {
-    AccountBalanceRequest accountBalanceRequest = getAccountBalanceRequest(
+    AccountBalanceRequest accountBalanceRequest = newAccBalance(
         TestConstants.STAKE_ADDRESS_WITH_MINTED_TOKENS);
-    ResponseEntity<AccountBalanceResponse> response = restTemplate.postForEntity(
-        getAccountBalanceUrl(), accountBalanceRequest, AccountBalanceResponse.class);
-    AccountBalanceResponse accountBalanceResponse = response.getBody();
+    AccountBalanceResponse accountBalanceResponse =  post(accountBalanceRequest);
 
-    assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
     assertNotNull(accountBalanceResponse);
     assertEquals(1, accountBalanceResponse.getBalances().size());
     assertAdaCurrency(accountBalanceResponse);
@@ -253,23 +205,18 @@ class AccountBalanceApiTest extends IntegrationTest {
     long upToBlockNumberTestAccount = generatedDataMap.get(
         TestTransactionNames.SIMPLE_NEW_EMPTY_NAME_COINS_TRANSACTION.getName()).blockNumber();
 
-    AccountBalanceRequest accountBalanceRequest = getAccountBalanceRequestUntilBlock(
-        TestConstants.TEST_ACCOUNT_ADDRESS, upToBlockNumberTestAccount, null);
-    ResponseEntity<AccountBalanceResponse> response = restTemplate.postForEntity(
-        getAccountBalanceUrl(), accountBalanceRequest, AccountBalanceResponse.class);
-    AccountBalanceResponse accountBalanceResponseWith3Tokens = response.getBody();
+    AccountBalanceRequest accountBalanceRequest = newAccBalanceUntilBlock(
+        TEST_ACCOUNT_ADDRESS, upToBlockNumberTestAccount, null);
+    AccountBalanceResponse accountBalanceResponseWith3Tokens =  post(accountBalanceRequest);
 
-    accountBalanceRequest = getAccountBalanceRequestUntilBlock(
-        TestConstants.TEST_ACCOUNT_ADDRESS, upToBlockNumberTestAccount - 1L, null);
-    response = restTemplate.postForEntity(
-        getAccountBalanceUrl(), accountBalanceRequest, AccountBalanceResponse.class);
-    AccountBalanceResponse accountBalanceResponseWith2Tokens = response.getBody();
+    accountBalanceRequest = newAccBalanceUntilBlock(
+        TEST_ACCOUNT_ADDRESS, upToBlockNumberTestAccount - 1L, null);
+    AccountBalanceResponse accountBalanceResponseWith2Tokens = post(accountBalanceRequest);
 
-    assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
     // check the balance on the current block
     assertNotNull(accountBalanceResponseWith3Tokens);
     assertEquals(3, accountBalanceResponseWith3Tokens.getBalances().size());
-    assertEquals(currentAdaBalance,
+    assertEquals(previousAdaBalance,
         accountBalanceResponseWith3Tokens.getBalances().getFirst().getValue());
     assertEquals(TestConstants.ACCOUNT_BALANCE_MINTED_TOKENS_AMOUNT,
         accountBalanceResponseWith3Tokens.getBalances().get(1).getValue());
@@ -295,12 +242,7 @@ class AccountBalanceApiTest extends IntegrationTest {
     assertNotEquals("", mintedTokenSymbol);
   }
 
-  private String getAccountBalanceUrl() {
-    String accountBalancePath = "/account/balance";
-    return URL + serverPort + accountBalancePath;
-  }
-
-  private AccountBalanceRequest getAccountBalanceRequest(String accountAddress) {
+  private AccountBalanceRequest newAccBalance(String accountAddress) {
     return AccountBalanceRequest.builder()
         .networkIdentifier(NetworkIdentifier.builder()
             .blockchain(TestConstants.TEST_BLOCKCHAIN)
@@ -312,7 +254,7 @@ class AccountBalanceApiTest extends IntegrationTest {
         .build();
   }
 
-  private AccountBalanceRequest getAccountBalanceRequestUntilBlock(String accountAddress,
+  private AccountBalanceRequest newAccBalanceUntilBlock(String accountAddress,
       Long blockIndex, String blockHash) {
     return AccountBalanceRequest.builder()
         .networkIdentifier(NetworkIdentifier.builder()
@@ -335,5 +277,22 @@ class AccountBalanceApiTest extends IntegrationTest {
         accountBalanceResponse.getBalances().getFirst().getCurrency().getSymbol());
     assertEquals(Constants.ADA_DECIMALS,
         accountBalanceResponse.getBalances().getFirst().getCurrency().getDecimals());
+  }
+
+  private AccountBalanceResponse post(AccountBalanceRequest accountBalanceRequest) {
+    try {
+      var resp = mockMvc.perform(MockMvcRequestBuilders.post("/account/balance")
+              .contentType(MediaType.APPLICATION_JSON)
+              .content(objectMapper.writeValueAsString(accountBalanceRequest)))
+          .andDo(print())
+          .andExpect(status().isOk()) //200
+          .andReturn()
+          .getResponse()
+          .getContentAsString();
+      return objectMapper.readValue(resp, AccountBalanceResponse.class);
+    } catch (Exception e) {
+      throw new AssertionError(e);
+    }
+
   }
 }

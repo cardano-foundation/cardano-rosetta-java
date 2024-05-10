@@ -21,7 +21,7 @@ import org.openapitools.client.model.Transaction;
 
 import org.junit.jupiter.api.Test;
 
-import org.cardanofoundation.rosetta.api.BaseMapperTest;
+import org.cardanofoundation.rosetta.api.BaseMapperSetup;
 import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
@@ -37,7 +37,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.cardanofoundation.rosetta.common.util.Constants.ADA;
 import static org.cardanofoundation.rosetta.common.util.Constants.ADA_DECIMALS;
 
-class BlockTxToRosettaTransactionTest extends BaseMapperTest {
+class BlockTxToRosettaTransactionTest extends BaseMapperSetup {
 
   @Autowired
   private BlockTxToRosettaTransaction my;
@@ -54,7 +54,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
     assertThat(into.getMetadata().getSize()).isEqualTo(from.getSize());
     assertThat(into.getMetadata().getScriptSize()).isEqualTo(from.getScriptSize());
     assertThat(into.getTransactionIdentifier().getHash()).isEqualTo(from.getHash());
-    assertThat(into.getOperations().size()).isEqualTo(0);
+    assertThat(into.getOperations()).isEmpty();
   }
 
 
@@ -78,7 +78,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
       assertThat(into.getMetadata().getScriptSize()).isEqualTo(from.getScriptSize());
       assertThat(into.getTransactionIdentifier().getHash()).isEqualTo(from.getHash());
 
-      assertThat(into.getOperations().size()).isEqualTo(3);
+      assertThat(into.getOperations()).hasSize(3);
       String type = Optional.ofNullable(OperationType.fromValue(convert(stakeType, "stakeKey")))
           .map(OperationType::getValue)
           .orElseThrow(() -> new IllegalArgumentException("Invalid stake type"));
@@ -86,7 +86,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
           .stream()
           .filter(f -> f.getType().equals(type))
           .findFirst();
-      assertThat(opt.isPresent()).isTrue();
+      assertThat(opt).isPresent();
 
       Operation stakeInto = opt.get();
       StakeRegistration firstFrom = from.getStakeRegistrations().getFirst();
@@ -117,7 +117,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
     assertThat(into.getMetadata().getScriptSize()).isEqualTo(from.getScriptSize());
     assertThat(into.getTransactionIdentifier().getHash()).isEqualTo(from.getHash());
 
-    assertThat(into.getOperations().size()).isEqualTo(3);
+    assertThat(into.getOperations()).hasSize(3);
     String type = Optional.ofNullable(OperationType.fromValue(convert(stakeType, "stake")))
         .map(OperationType::getValue)
         .orElseThrow(() -> new IllegalArgumentException("Invalid stake type"));
@@ -125,7 +125,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
         .stream()
         .filter(f -> f.getType().equals(type))
         .findFirst();
-    assertThat(opt.isPresent()).isTrue();
+    assertThat(opt).isPresent();
 
     Operation stakeInto = opt.get();
     Delegation firstFrom = from.getDelegations().getFirst();
@@ -168,7 +168,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
     assertThat(into.getMetadata().getScriptSize()).isEqualTo(from.getScriptSize());
     assertThat(into.getTransactionIdentifier().getHash()).isEqualTo(from.getHash());
 
-    assertThat(into.getOperations().size()).isEqualTo(3);
+    assertThat(into.getOperations()).hasSize(3);
     String type = Optional.ofNullable(OperationType.fromValue(convert(poolReg, "pool")))
         .map(OperationType::getValue)
         .orElseThrow(() -> new IllegalArgumentException("Invalid pool type"));
@@ -176,7 +176,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
         .stream()
         .filter(f -> f.getType().equals(type))
         .findFirst();
-    assertThat(opt.isPresent()).isTrue();
+    assertThat(opt).isPresent();
 
     Operation poolInto = opt.get();
     PoolRegistration firstFrom = from.getPoolRegistrations().getFirst();
@@ -214,7 +214,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
     assertThat(into.getMetadata().getScriptSize()).isEqualTo(from.getScriptSize());
     assertThat(into.getTransactionIdentifier().getHash()).isEqualTo(from.getHash());
 
-    assertThat(into.getOperations().size()).isEqualTo(3);
+    assertThat(into.getOperations()).hasSize(3);
     String type = Optional.ofNullable(OperationType.fromValue(convert(poolReg, "pool")))
         .map(OperationType::getValue)
         .orElseThrow(() -> new IllegalArgumentException("Invalid pool type"));
@@ -222,7 +222,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
         .stream()
         .filter(f -> f.getType().equals(type))
         .findFirst();
-    assertThat(opt.isPresent()).isTrue();
+    assertThat(opt).isPresent();
 
     Operation poolInto = opt.get();
     PoolRetirement firstFrom = from.getPoolRetirements().getFirst();
@@ -244,13 +244,13 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
     assertThat(into.getMetadata().getSize()).isEqualTo(from.getSize());
     assertThat(into.getMetadata().getScriptSize()).isEqualTo(from.getScriptSize());
     assertThat(into.getTransactionIdentifier().getHash()).isEqualTo(from.getHash());
-    assertThat(into.getOperations().size()).isEqualTo(2);
+    assertThat(into.getOperations()).hasSize(2);
 
     Optional<Operation> opt = into.getOperations()
         .stream()
         .filter(f -> f.getType().equals(Constants.OUTPUT))
         .findFirst();
-    assertThat(opt.isPresent()).isTrue();
+    assertThat(opt).isPresent();
 
     Operation opInto = opt.get();
     Utxo firstFrom = from.getOutputs().getFirst();
@@ -268,7 +268,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
     assertThat(opInto.getAmount()).isEqualTo(amountActual("10"));
 
     assertThat(opInto.getRelatedOperations()).isNotNull();
-    assertThat(opInto.getRelatedOperations().size()).isEqualTo(1);
+    assertThat(opInto.getRelatedOperations()).hasSize(1);
     assertThat(opInto.getRelatedOperations().getFirst().getIndex()).isZero();
 
     CoinChange coinChange = opInto.getCoinChange();
@@ -276,18 +276,18 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
     assertThat(coinChange.getCoinIdentifier().getIdentifier())
         .isEqualTo(firstFrom.getTxHash() + ":" + firstFrom.getOutputIndex());
 
-    assertThat(opInto.getMetadata().getTokenBundle().size()).isEqualTo(1);
+    assertThat(opInto.getMetadata().getTokenBundle()).hasSize(1);
     TokenBundleItem bundle = opInto.getMetadata().getTokenBundle().getFirst();
 
     assertThat(bundle.getPolicyId())
         .isEqualTo(from.getOutputs().getFirst().getAmounts().getFirst().getPolicyId());
-    assertThat(bundle.getTokens().size()).isEqualTo(1);
+    assertThat(bundle.getTokens()).hasSize(1);
 
     Amount token = bundle.getTokens().getFirst();
     assertThat(token.getCurrency().getSymbol())
         .isEqualTo(Hex.encodeHexString(
             from.getOutputs().getFirst().getAmounts().getFirst().getAssetName().getBytes()));
-    assertThat(token.getCurrency().getDecimals()).isEqualTo(0);
+    assertThat(token.getCurrency().getDecimals()).isZero();
   }
 
 
@@ -301,19 +301,19 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
     assertThat(into.getMetadata().getSize()).isEqualTo(from.getSize());
     assertThat(into.getMetadata().getScriptSize()).isEqualTo(from.getScriptSize());
     assertThat(into.getTransactionIdentifier().getHash()).isEqualTo(from.getHash());
-    assertThat(into.getOperations().size()).isEqualTo(2);
+    assertThat(into.getOperations()).hasSize(2);
 
     Optional<Operation> opt = into.getOperations()
         .stream()
         .filter(f -> f.getType().equals(Constants.INPUT))
         .findFirst();
-    assertThat(opt.isPresent()).isTrue();
+    assertThat(opt).isPresent();
 
     Operation opInto = opt.get();
     Utxo firstFrom = from.getInputs().getFirst();
     assertThat(opInto.getType()).isEqualTo(Constants.INPUT);
     assertThat(opInto.getStatus()).isEqualTo("success");
-    assertThat(opInto.getOperationIdentifier().getIndex()).isEqualTo(0); //index in array
+    assertThat(opInto.getOperationIdentifier().getIndex()).isZero(); //index in array
     assertThat(opInto.getAccount().getAddress()).isEqualTo(firstFrom.getOwnerAddr());
     assertThat(opInto.getAmount()).isEqualTo(amountActual("-10"));
     assertThat(opInto.getMetadata().getDepositAmount()).isNull();
@@ -324,18 +324,18 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
     assertThat(coinChange.getCoinIdentifier().getIdentifier())
         .isEqualTo(firstFrom.getTxHash() + ":" + firstFrom.getOutputIndex());
 
-    assertThat(opInto.getMetadata().getTokenBundle().size()).isEqualTo(1);
+    assertThat(opInto.getMetadata().getTokenBundle()).hasSize(1);
     TokenBundleItem bundle = opInto.getMetadata().getTokenBundle().getFirst();
 
     assertThat(bundle.getPolicyId())
         .isEqualTo(from.getInputs().getFirst().getAmounts().getFirst().getPolicyId());
-    assertThat(bundle.getTokens().size()).isEqualTo(1);
+    assertThat(bundle.getTokens()).hasSize(1);
 
     Amount token = bundle.getTokens().getFirst();
     assertThat(token.getCurrency().getSymbol())
         .isEqualTo(Hex.encodeHexString(
             from.getInputs().getFirst().getAmounts().getFirst().getAssetName().getBytes()));
-    assertThat(token.getCurrency().getDecimals()).isEqualTo(0);
+    assertThat(token.getCurrency().getDecimals()).isZero();
   }
 
 
@@ -350,12 +350,12 @@ class BlockTxToRosettaTransactionTest extends BaseMapperTest {
     //when
     Transaction into = my.toDto(from);
     //then
-    assertThat(into.getOperations().size()).isEqualTo(3);
+    assertThat(into.getOperations()).hasSize(3);
     Optional<Operation> opt = into.getOperations()
         .stream()
         .filter(f -> f.getType().equals(OperationType.WITHDRAWAL.getValue()))
         .findFirst();
-    assertThat(opt.isPresent()).isTrue();
+    assertThat(opt).isPresent();
     Operation opInto = opt.get();
     assertThat(opInto.getStatus()).isEqualTo("success");
     assertThat(opInto.getOperationIdentifier().getIndex()).isEqualTo(1); //index in array

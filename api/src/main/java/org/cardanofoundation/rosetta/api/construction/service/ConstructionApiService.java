@@ -1,6 +1,5 @@
 package org.cardanofoundation.rosetta.api.construction.service;
 
-
 import org.openapitools.client.model.ConstructionCombineRequest;
 import org.openapitools.client.model.ConstructionCombineResponse;
 import org.openapitools.client.model.ConstructionDeriveRequest;
@@ -19,26 +18,28 @@ import org.openapitools.client.model.TransactionIdentifierResponse;
 
 
 public interface ConstructionApiService {
-    ConstructionDeriveResponse constructionDeriveService(
-            ConstructionDeriveRequest constructionDeriveRequest);
-    ConstructionPreprocessResponse constructionPreprocessService(
-            ConstructionPreprocessRequest constructionPreprocessRequest);
 
-    ConstructionMetadataResponse constructionMetadataService(
-            ConstructionMetadataRequest constructionMetadataRequest);
+  ConstructionDeriveResponse constructionDeriveService(
+      ConstructionDeriveRequest constructionDeriveRequest);
 
-    ConstructionPayloadsResponse constructionPayloadsService(
-            ConstructionPayloadsRequest constructionPayloadsRequest);
+  ConstructionPreprocessResponse constructionPreprocessService(
+      ConstructionPreprocessRequest constructionPreprocessRequest);
 
-    ConstructionParseResponse constructionParseService(
-            ConstructionParseRequest constructionParseRequest);
+  ConstructionMetadataResponse constructionMetadataService(
+      ConstructionMetadataRequest constructionMetadataRequest);
 
-    ConstructionCombineResponse constructionCombineService(
-            ConstructionCombineRequest constructionCombineRequest);
+  ConstructionPayloadsResponse constructionPayloadsService(
+      ConstructionPayloadsRequest constructionPayloadsRequest);
 
-    TransactionIdentifierResponse constructionHashService(
-            ConstructionHashRequest constructionHashRequest);
+  ConstructionParseResponse constructionParseService(
+      ConstructionParseRequest constructionParseRequest);
 
-    TransactionIdentifierResponse constructionSubmitService(
-            ConstructionSubmitRequest constructionSubmitRequest);
+  ConstructionCombineResponse constructionCombineService(
+      ConstructionCombineRequest constructionCombineRequest);
+
+  TransactionIdentifierResponse constructionHashService(
+      ConstructionHashRequest constructionHashRequest);
+
+  TransactionIdentifierResponse constructionSubmitService(
+      ConstructionSubmitRequest constructionSubmitRequest);
 }

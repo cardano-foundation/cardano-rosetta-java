@@ -1,5 +1,7 @@
 package org.cardanofoundation.rosetta.api.block.service;
 
+import java.util.Optional;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -9,8 +11,6 @@ import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
-
-import static java.util.Objects.nonNull;
 
 @Slf4j
 @Service
@@ -23,18 +23,16 @@ public class BlockServiceImpl implements BlockService {
 
   @Override
   public Block findBlock(Long index, String hash) {
-
     log.info("[block] Looking for block: hash={}, index={}", hash, index);
-    Block block = ledgerBlockService.findBlock(index, hash);
-    if (nonNull(block)) {
-      log.info("[block] Block was found, hash={}", block.getHash());
-
+    Optional<Block> blockOpt = ledgerBlockService.findBlock(index, hash);
+    if (blockOpt.isPresent()) {
+      var block = blockOpt.get();
+      log.info("Block was found, hash={}", block.getHash());
       block.setPoolDeposit(String.valueOf(protocolParamService.getProtocolParameters().getPoolDeposit()));
-
-      log.debug("[block] full data {}", block);
+      log.debug("full data {}", block);
       return block;
     }
-    log.error("[block] Block was not found");
+    log.error("Block was not found");
     throw ExceptionFactory.blockNotFoundException();
   }
 
