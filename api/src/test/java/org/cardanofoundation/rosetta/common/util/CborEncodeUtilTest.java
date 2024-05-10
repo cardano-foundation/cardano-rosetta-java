@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test;
 
 import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.UnsignedTransaction;
-import org.cardanofoundation.rosetta.common.services.impl.CardanoServiceImpl;
+import org.cardanofoundation.rosetta.api.construction.service.CardanoConstructionServiceImpl;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -67,7 +67,7 @@ class CborEncodeUtilTest {
 
   private String getEncodedTransaction(String requestPayloadFilename)
       throws IOException, CborSerializationException, AddressExcepion, CborException {
-    CardanoServiceImpl cardanoService = new CardanoServiceImpl(null, null, null);
+    CardanoConstructionServiceImpl cardanoService = new CardanoConstructionServiceImpl(null, null, null);
     ConstructionPayloadsRequest request = getRequest(requestPayloadFilename);
     UnsignedTransaction unsignedTransaction = cardanoService.createUnsignedTransaction(
         NetworkIdentifierType.findByName(request.getNetworkIdentifier().getNetwork()),
