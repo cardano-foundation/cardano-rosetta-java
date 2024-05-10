@@ -15,7 +15,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.cardanofoundation.rosetta.ConfigurationMapper;
-import org.cardanofoundation.rosetta.api.BaseMapperTest.BaseMappersConfig;
+import org.cardanofoundation.rosetta.api.BaseMapperSetup.BaseMappersConfig;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
 import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
 
@@ -23,7 +23,7 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {ConfigurationMapper.class, BaseMappersConfig.class})
-public class BaseMapperTest {
+public class BaseMapperSetup {
   @MockBean
   protected ProtocolParamService protocolParamService;
 

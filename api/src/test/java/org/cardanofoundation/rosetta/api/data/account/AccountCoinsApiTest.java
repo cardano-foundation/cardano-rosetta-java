@@ -18,7 +18,7 @@ import org.openapitools.client.model.NetworkIdentifier;
 
 import org.junit.jupiter.api.Test;
 
-import org.cardanofoundation.rosetta.api.BaseSpringMvcTest;
+import org.cardanofoundation.rosetta.api.BaseSpringMvcSetup;
 import org.cardanofoundation.rosetta.common.util.Constants;
 import org.cardanofoundation.rosetta.testgenerator.common.TestConstants;
 import org.cardanofoundation.rosetta.testgenerator.common.TestTransactionNames;
@@ -34,7 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-class AccountCoinsApiTest extends BaseSpringMvcTest {
+class AccountCoinsApiTest extends BaseSpringMvcSetup {
 
   private final String myAssetPolicyId = "55fb0efbf5721e95a05c3d9a13fa63421c83689b35de6247d9d371ef";
   private final String latestTxHashOnZeroSlot = generatedDataMap.get(

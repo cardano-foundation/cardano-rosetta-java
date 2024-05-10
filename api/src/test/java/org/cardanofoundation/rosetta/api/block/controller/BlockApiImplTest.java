@@ -16,7 +16,7 @@ import org.openapitools.client.model.TransactionIdentifier;
 
 import org.junit.jupiter.api.Test;
 
-import org.cardanofoundation.rosetta.api.BaseSpringMvcTest;
+import org.cardanofoundation.rosetta.api.BaseSpringMvcSetup;
 import org.cardanofoundation.rosetta.api.block.mapper.BlockToBlockResponse;
 import org.cardanofoundation.rosetta.api.block.mapper.BlockTxToBlockTxResponse;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
@@ -36,7 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
-class BlockApiImplTest extends BaseSpringMvcTest {
+class BlockApiImplTest extends BaseSpringMvcSetup {
 
   @MockBean
   private BlockService blockService;
