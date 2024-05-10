@@ -1,4 +1,4 @@
-package org.cardanofoundation.rosetta.common.services;
+package org.cardanofoundation.rosetta.api.construction.service;
 
 
 import java.io.IOException;
@@ -25,7 +25,7 @@ import org.cardanofoundation.rosetta.common.model.cardano.crypto.Signatures;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.TransactionParsed;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.UnsignedTransaction;
 
-public interface CardanoService {
+public interface CardanoConstructionService {
 
 
   String getHashOfSignedTransaction(String signedTransaction);

@@ -1,4 +1,4 @@
-package org.cardanofoundation.rosetta.common.services.impl;
+package org.cardanofoundation.rosetta.api.construction.service;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -62,7 +62,6 @@ import org.cardanofoundation.rosetta.common.model.cardano.crypto.Signatures;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.TransactionData;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.TransactionParsed;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.UnsignedTransaction;
-import org.cardanofoundation.rosetta.common.services.CardanoService;
 import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
 import org.cardanofoundation.rosetta.common.util.CardanoAddressUtils;
 import org.cardanofoundation.rosetta.common.util.Constants;
@@ -74,7 +73,7 @@ import static java.math.BigInteger.valueOf;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class CardanoServiceImpl implements CardanoService {
+public class CardanoConstructionServiceImpl implements CardanoConstructionService {
 
   private final LedgerBlockService ledgerBlockService;
   private final ProtocolParamService protocolParamService;

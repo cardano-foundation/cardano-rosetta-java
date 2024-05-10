@@ -1,7 +1,6 @@
 package org.cardanofoundation.rosetta.api.block.mapper;
 
 import java.util.List;
-import java.util.stream.Collectors;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 
@@ -81,6 +80,6 @@ public class BlockTxToRosettaTransaction {
         .map(operation -> OperationIdentifier
             .builder()
             .index(operation.getOperationIdentifier().getIndex()).build())
-        .collect(Collectors.toList());
+        .toList();
   }
 }

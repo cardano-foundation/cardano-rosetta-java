@@ -3,7 +3,6 @@ package org.cardanofoundation.rosetta.api.block.mapper;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import jakarta.validation.constraints.NotNull;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +38,7 @@ public abstract class AbstractToOperation<T> {
         .stream()
         .flatMap(List::stream)
         .map(t -> toDto(t, status, indexHolder.getAndIncrement()))
-        .collect(Collectors.toList());
+        .toList();
   }
 
   protected OperationMetadata mapToOperationMetaData(boolean spent, List<Amt> amounts) {

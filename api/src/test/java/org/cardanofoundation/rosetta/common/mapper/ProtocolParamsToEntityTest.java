@@ -8,14 +8,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import org.junit.jupiter.api.Test;
 
-import org.cardanofoundation.rosetta.api.BaseMapperTest;
+import org.cardanofoundation.rosetta.api.BaseMapperSetup;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
 import org.cardanofoundation.rosetta.api.block.model.entity.EpochParamEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.ProtocolParamsEntity;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class ProtocolParamsToEntityTest extends BaseMapperTest {
+class ProtocolParamsToEntityTest extends BaseMapperSetup {
 
   @Autowired
   private ProtocolParamsToEntity my;

@@ -1,4 +1,4 @@
-package org.cardanofoundation.rosetta.api.mempool.service.impl;
+package org.cardanofoundation.rosetta.api.mempool.service;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,7 +17,6 @@ import com.bloxbean.cardano.yaci.helper.LocalClientProvider;
 import com.bloxbean.cardano.yaci.helper.LocalTxMonitorClient;
 import org.openapitools.client.model.TransactionIdentifier;
 
-import org.cardanofoundation.rosetta.api.mempool.service.MempoolService;
 import org.cardanofoundation.rosetta.api.network.service.NetworkService;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.MemPoolTransaction;
 
