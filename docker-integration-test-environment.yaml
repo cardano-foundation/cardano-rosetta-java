@@ -3,7 +3,7 @@ include:
   - docker-api-indexer.yaml
 services:
   yaci-cli:
-    image: bloxbean/yaci-cli:0.0.20-beta1
+    image: bloxbean/yaci-cli:${YACI_VERSION}
     ports:
       - ${HOST_N2N_PORT}:3001
       - ${HOST_N2C_SOCAT_PORT}:3333
