@@ -24,7 +24,7 @@ Within root folder of the project there are example `.env` files, which can be c
 | `CARDANO_NODE_VERSION`               | Cardano node version                               | 8.9.0                                                     |
 | `NODE_SUBMIT_API_PORT`               | Cardano node submit api port                       | 8090                                                      |
 | `CARDANO_NODE_SOCKET`                | Cardano node socket Path                           | /ipc/node.socket                                          |
-| `CARDANO_NODE_DB`                    | Cardano node db path                               | /data/cardano-node/db                                     |
+| `CARDANO_NODE_DB`                    | Cardano node db path                               | /node/db                                     |
 | `CARDANO_CONFIG`                     | Cardano node config path                           | ./config/${NETWORK}/config                                |
 | `API_SPRING_PROFILES_ACTIVE`         | Api spring profile                                 | dev                                                       |
 | `API_PORT`                           | Rosetta api exposed port                           | 8082                                                      |
@@ -34,5 +34,4 @@ Within root folder of the project there are example `.env` files, which can be c
 | `GENESIS_BYRON_PATH`                 | Genesis file path                                  | ./config/${NETWORK}/byron-genesis.json                    |
 | `PRINT_EXCEPTION`                    | Print exception                                    | true                                                      |
 | `YACI_SPRING_PROFILES`               | Yaci indexer spring profile                        | dev,postgres                                              |
-| `INDEXER_NODE_PORT`                  | Cardano node port that the indexer will connect to | ${CARDANO_NODE_PORT}                                      |
 | `DEVKIT_ENABLED`                     | Devkit enabled                                     | false                                                     |

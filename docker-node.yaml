@@ -9,8 +9,8 @@ services:
       - ${CARDANO_NODE_DB}:/data/db
       - ${CARDANO_CONFIG}:/current
     ports:
-      - ${CARDANO_NODE_PORT}:8090
-    entrypoint: cardano-node run --database-path /data/db --host-addr 0.0.0.0 --port 8090 --socket-path /node-ipc/node.socket --topology /current/topology.json --config /current/config.json
+      - ${CARDANO_NODE_PORT}:${CARDANO_NODE_PORT}
+    entrypoint: cardano-node run --database-path /data/db --port ${CARDANO_NODE_PORT} --socket-path /node-ipc/node.socket --topology /current/topology.json --config /current/config.json
 
   cardano-submit-api:
     image: ghcr.io/intersectmbo/cardano-submit-api:${CARDANO_NODE_VERSION}
