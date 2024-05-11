@@ -7,7 +7,7 @@ PROTOCOL_MAGIC=1
 # mainnet 764824073, preprod 1, preview 2, sanchonet 4, devkit 42
 
 ## Postgres variables
-DB_NAME=rosetta-java-preprod
+DB_NAME=rosetta-java
 DB_USER=rosetta_db_admin
 DB_SECRET=weakpwd#123_d
 DB_HOST=localhost
@@ -37,7 +37,6 @@ PRINT_EXCEPTION=true
 ## Yaci Indexer env
 YACI_SPRING_PROFILES=postgres
 # database profiles: h2, h2-testData, postgres
-INDEXER_NODE_PORT=3001
 MEMPOOL_ENABLED=false
 # Haven't implemented yet
 INITIAL_BALANCE_CALCULATION_BLOCK=0
