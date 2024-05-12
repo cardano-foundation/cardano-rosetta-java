@@ -220,6 +220,8 @@ public class CardanoServiceImpl implements CardanoService {
 
     String transaction = buildTransaction(unsignedTransaction.bytes(), signaturesList,
         unsignedTransaction.metadata());
+    // the String transaction represents Hex encoded bytes of the transaction.
+    // To get the size of the transaction in bytes, we need to divide the length by two. Because every Hex character represents 4 bits.
     return (transaction.length() / 2);
 
   }
