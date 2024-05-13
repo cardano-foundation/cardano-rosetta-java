@@ -3,11 +3,11 @@ LOG=INFO
 NETWORK=preprod
 DB_SCHEMA=preprod
 # mainnet, preprod, preview, sanchonet, devkit
-NETWORK_MAGIC=1
+PROTOCOL_MAGIC=1
 # mainnet 764824073, preprod 1, preview 2, sanchonet 4, devkit 42
 
 ## Postgres variables
-DB_NAME=rosetta-java-preprod
+DB_NAME=rosetta-java
 DB_USER=rosetta_db_admin
 DB_SECRET=weakpwd#123_d
 DB_HOST=localhost
@@ -27,17 +27,16 @@ API_SPRING_PROFILES_ACTIVE=dev
 API_PORT=8082
 
 ROSETTA_VERSION=1.4.13
-TOPOLOGY_FILEPATH=/current/topology.json
-GENESIS_SHELLEY_PATH=/current/shelley-genesis.json
-GENESIS_BYRON_PATH=/current/byron-genesis.json
-GENESIS_ALONZO_PATH=/current/alonzo-genesis.json
-GENESIS_CONWAY_PATH=/current/conway-genesis.json
+TOPOLOGY_FILEPATH=/config/topology.json
+GENESIS_SHELLEY_PATH=/config/shelley-genesis.json
+GENESIS_BYRON_PATH=/config/byron-genesis.json
+GENESIS_ALONZO_PATH=/config/alonzo-genesis.json
+GENESIS_CONWAY_PATH=/config/conway-genesis.json
 PRINT_EXCEPTION=true
 
 ## Yaci Indexer env
 YACI_SPRING_PROFILES=postgres
 # database profiles: h2, h2-testData, postgres
-INDEXER_NODE_PORT=3001
 MEMPOOL_ENABLED=false
 # Haven't implemented yet
 INITIAL_BALANCE_CALCULATION_BLOCK=0
