@@ -5,14 +5,10 @@ import java.math.BigInteger;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.mockito.Mock;
-import org.openapitools.client.model.BlockIdentifier;
 import org.openapitools.client.model.BlockRequest;
 import org.openapitools.client.model.BlockResponse;
 import org.openapitools.client.model.BlockTransactionRequest;
 import org.openapitools.client.model.BlockTransactionResponse;
-import org.openapitools.client.model.NetworkIdentifier;
-import org.openapitools.client.model.PartialBlockIdentifier;
-import org.openapitools.client.model.TransactionIdentifier;
 
 import org.junit.jupiter.api.Test;
 
@@ -26,12 +22,15 @@ import org.cardanofoundation.rosetta.api.block.service.BlockService;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
 
+import static org.cardanofoundation.rosetta.EntityGenerator.newBlockRequest;
+import static org.cardanofoundation.rosetta.EntityGenerator.newBlockResponse;
+import static org.cardanofoundation.rosetta.EntityGenerator.newBlockTransactionRequest;
+import static org.cardanofoundation.rosetta.EntityGenerator.newBlockTransactionResponse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -44,7 +43,6 @@ class BlockApiImplTest extends BaseSpringMvcSetup {
   @MockBean
   private ProtocolParamService protocolParamService;
 
-
   @MockBean
   BlockToBlockResponse blockToBlockResponse;
 
@@ -53,8 +51,6 @@ class BlockApiImplTest extends BaseSpringMvcSetup {
 
   @Mock
   private ProtocolParams protocolParams;
-
-
 
   @Test
   void block_Test() throws Exception {
@@ -68,7 +64,6 @@ class BlockApiImplTest extends BaseSpringMvcSetup {
     mockMvc.perform(post("/block")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(blockRequest)))
-        .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.block.block_identifier.index").value(index))
         .andExpect(jsonPath("$.block.block_identifier.hash").value(hash));
@@ -84,7 +79,6 @@ class BlockApiImplTest extends BaseSpringMvcSetup {
     mockMvc.perform(post("/block")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(blockRequest)))
-        .andDo(print())
         .andExpect(status().is5xxServerError())
         .andExpect(jsonPath("$.code").value(4001))
         .andExpect(jsonPath("$.message").value("Block not found"))
@@ -108,11 +102,9 @@ class BlockApiImplTest extends BaseSpringMvcSetup {
     mockMvc.perform(post("/block/transaction")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(req)))
-        .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.transaction.transaction_identifier.hash").value(txHash));
   }
-
 
   @Test
   void blockTransaction_notFound_Test() throws Exception {
@@ -125,7 +117,6 @@ class BlockApiImplTest extends BaseSpringMvcSetup {
     mockMvc.perform(post("/block/transaction")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(req)))
-        .andDo(print())
         .andExpect(status().is5xxServerError())
         .andExpect(jsonPath("$.code").value(4006))
         .andExpect(jsonPath("$.message").value("Transaction not found"))
@@ -138,75 +129,5 @@ class BlockApiImplTest extends BaseSpringMvcSetup {
     when(blockToBlockResponse.toDto(any(Block.class))).thenReturn(blockResp);
     return blockRequest;
   }
-
-  private BlockTransactionResponse newBlockTransactionResponse() {
-    return BlockTransactionResponse
-        .builder()
-        .transaction(
-            org.openapitools.client.model.Transaction
-                .builder()
-                .transactionIdentifier(
-                    TransactionIdentifier
-                        .builder()
-                        .hash("hash1")
-                        .build())
-                .build())
-        .build();
-  }
-
-  private static BlockIdentifier newBlockId() {
-    return BlockIdentifier
-        .builder()
-        .index(123L)
-        .hash("hash1")
-        .build();
-  }
-
-
-  private static BlockResponse newBlockResponse() {
-    return BlockResponse
-        .builder()
-        .block(
-            org.openapitools.client.model.Block
-                .builder()
-                .blockIdentifier(
-                    newBlockId())
-                .build())
-        .build();
-  }
-
-  private static BlockTransactionRequest newBlockTransactionRequest() {
-    return BlockTransactionRequest
-        .builder()
-        .blockIdentifier(newBlockId())
-        .networkIdentifier(newNetworkId())
-        .transactionIdentifier(TransactionIdentifier
-            .builder()
-            .hash("txHash1")
-            .build())
-        .build();
-  }
-
-  private static BlockRequest newBlockRequest() {
-    return BlockRequest
-        .builder()
-        .blockIdentifier(
-            PartialBlockIdentifier
-                .builder()
-                .index(123L)
-                .hash("hash1")
-                .build())
-        .networkIdentifier(newNetworkId())
-        .build();
-  }
-
-  private static NetworkIdentifier newNetworkId() {
-    return NetworkIdentifier
-        .builder()
-        .blockchain("cardano")
-        .network("devkit")
-        .build();
-  }
-
 
 }
