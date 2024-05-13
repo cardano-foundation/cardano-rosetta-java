@@ -7,10 +7,10 @@ services:
     volumes:
       - ./${CARDANO_NODE_SOCKET_PATH}:${CARDANO_NODE_SOCKET_PATH}
       - ./${CARDANO_NODE_DB}:/data/db
-      - ./${CARDANO_CONFIG}:/current
+      - ./${CARDANO_CONFIG}:/config
     ports:
       - ${CARDANO_NODE_PORT}:${CARDANO_NODE_PORT}
-    entrypoint: cardano-node run --database-path /data/db --port ${CARDANO_NODE_PORT} --socket-path ${CARDANO_NODE_SOCKET} --topology /current/topology.json --config /current/config.json
+    entrypoint: cardano-node run --database-path /data/db --port ${CARDANO_NODE_PORT} --socket-path ${CARDANO_NODE_SOCKET} --topology /config/topology.json --config /config/config.json
 
   cardano-submit-api:
     image: ghcr.io/intersectmbo/cardano-submit-api:${CARDANO_NODE_VERSION}

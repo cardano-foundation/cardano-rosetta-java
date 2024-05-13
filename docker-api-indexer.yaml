@@ -25,7 +25,7 @@ services:
       DEVKIT_URL: ${DEVKIT_URL}
       DEVKIT_PORT: ${DEVKIT_PORT}
     volumes:
-      - ./${CARDANO_CONFIG}:/current
+      - ./${CARDANO_CONFIG}:/config
       - ./${CARDANO_NODE_SOCKET_PATH}:${CARDANO_NODE_SOCKET_PATH}
     healthcheck:
       test: [ "CMD-SHELL", "curl --fail http://localhost:${API_PORT}/network/options -H 'Content-Type: application/json' --data '{\"metadata\": {}}' -X POST" ]
@@ -57,7 +57,7 @@ services:
       GENESIS_ALONZO_PATH: ${GENESIS_ALONZO_PATH}
       GENESIS_CONWAY_PATH: ${GENESIS_CONWAY_PATH}
     volumes:
-      - ./${CARDANO_CONFIG}:/current
+      - ./${CARDANO_CONFIG}:/config
     restart: always
     depends_on:
       db:
