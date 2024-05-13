@@ -237,7 +237,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
           CborEncodeUtil.encodeExtraData(signedTransaction, extraData.operations(),
               extraData.transactionMetadataHex()));
     } catch (CborException e) {
-      throw new ApiException("Error while encoding signed transaction", e);
+      throw ExceptionFactory.cantEncodeExtraData();
     }
   }
 

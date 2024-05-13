@@ -1,6 +1,5 @@
 package org.cardanofoundation.rosetta.common.exception;
 
-
 import static org.cardanofoundation.rosetta.common.util.RosettaConstants.RosettaErrorType;
 
 
@@ -45,10 +44,6 @@ public class ExceptionFactory {
   }
 
   public static ApiException cantCreateSignTransaction() {
-    return new ApiException(RosettaErrorType.CANT_CREATE_SIGN_TRANSACTION.toRosettaError(false));
-  }
-
-  public static ApiException cantBuildSignedTransaction() {
     return new ApiException(RosettaErrorType.CANT_CREATE_SIGN_TRANSACTION.toRosettaError(false));
   }
 
@@ -242,7 +237,7 @@ public class ExceptionFactory {
         Details.builder().message(detail).build()));
   }
 
-  public static ApiException outPutTooLow() {
+  public static ApiException outputTooLow() {
     return unspecifiedError("The outputAmount is too low. Try with more funds.");
   }
 
@@ -256,7 +251,7 @@ public class ExceptionFactory {
     return new ApiException(RosettaErrorType.INVALID_NETWORK.toRosettaError(false));
   }
 
-  public static ApiException cantDecodeMempoolTransaction() {
+  public static ApiException cantDecodeMemPoolTransaction() {
     return new ApiException(RosettaErrorType.CANT_DECODE_MEMPOOL_TRANSACTION.toRosettaError(false));
   }
 
