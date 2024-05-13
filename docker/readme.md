@@ -55,7 +55,7 @@ We can mount a volume with Cardano node data to ``/data/db`` to prevent loading 
 
 ### 6. Volume with custom network configurations
 ````
-docker run --env-file .\docker\.env.dockerfile -p 8080:8080 -v {custom_folder}:/config -it {image_name}:latest
+docker run --env-file .\docker\.env.dockerfile -p 8080:8080 -v {custom_folder}:/networks -it {image_name}:latest
 ````
 The cardano node configuration json's are stored in the ``config`` folder and copied into the image on build.
 If we want to use a custom configuration without rebuilding the image, we can mount a volume with configs to ``/config``
