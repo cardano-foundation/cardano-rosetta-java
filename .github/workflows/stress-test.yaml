@@ -10,6 +10,10 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
+      - name: "Set up environment"
+        run: docker compose --env-file .env.IntegrationTest -f docker-integration-test-environment.yaml up --build -d --wait
+      - name: "Wait for node to be populated"
+        run: "sleep 30s"
       - name: Execute load Tests
         uses: artilleryio/action-cli@v1
         with:
