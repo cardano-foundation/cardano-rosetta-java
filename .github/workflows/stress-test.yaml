@@ -1,0 +1,16 @@
+name: Artillery Stress Test
+on:
+  push:
+    branches:
+      - feat/RA-68-Stress-Testing
+
+jobs:
+  artillery:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+      - name: Execute load Tests
+        uses: artilleryio/action-cli@v1
+        with:
+          command: run artilleryTests/rosetta-load-test.yml
