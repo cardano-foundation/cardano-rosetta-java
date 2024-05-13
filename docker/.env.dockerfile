@@ -24,14 +24,14 @@ CARDANO_NODE_SOCKET=/node-ipc/node.socket
 ## Api env
 API_SPRING_PROFILES_ACTIVE=dev
 # staging, h2, test. Additional profiles: mempool (if mempool should be activated)
-API_PORT=8080
+API_PORT=8082
 
 ROSETTA_VERSION=1.4.13
-TOPOLOGY_FILEPATH=/current/topology.json
-GENESIS_SHELLEY_PATH=/current/shelley-genesis.json
-GENESIS_BYRON_PATH=/current/byron-genesis.json
-GENESIS_ALONZO_PATH=/current/alonzo-genesis.json
-GENESIS_CONWAY_PATH=/current/conway-genesis.json
+TOPOLOGY_FILEPATH=/config/topology.json
+GENESIS_SHELLEY_PATH=/config/shelley-genesis.json
+GENESIS_BYRON_PATH=/config/byron-genesis.json
+GENESIS_ALONZO_PATH=/config/alonzo-genesis.json
+GENESIS_CONWAY_PATH=/config/conway-genesis.json
 PRINT_EXCEPTION=true
 
 ## Yaci Indexer env

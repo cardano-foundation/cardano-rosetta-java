@@ -166,8 +166,8 @@ COPY --from=cardano-builder /root/src/cardano-node/cardano-submit-api/config/tx-
 ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 ENV PATH=/usr/local/lib/:$PATH
 
-COPY ./config /config
-RUN mkdir /current
+COPY ./config /networks
+RUN mkdir /config
 
 RUN mkdir -p /data/db
 
