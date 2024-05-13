@@ -161,7 +161,7 @@ RUN apt -y --no-install-recommends install openjdk-21-jdk
 # Copy cardano node
 COPY --from=cardano-builder /usr/local/lib /usr/local/lib
 COPY --from=cardano-builder /root/.local/bin/cardano-* /usr/local/bin/
-COPY --from=cardano-builder /root/src/cardano-node/cardano-submit-api/config/tx-submit-mainnet-config.yaml /root/cardano-submit-api/
+#COPY --from=cardano-builder /root/src/cardano-node/cardano-submit-api/config/tx-submit-mainnet-config.yaml /root/cardano-submit-api/
 
 ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 ENV PATH=/usr/local/lib/:$PATH
@@ -178,7 +178,7 @@ COPY --from=java-builder /root/app/yaci-indexer/target/*.jar /yaci-indexer/app.j
 # Run
 RUN mkdir /logs
 
-EXPOSE 8080
+EXPOSE 8082
 
 COPY ./docker/entrypoint.sh /sbin/entrypoint.sh
 ENTRYPOINT ["/sbin/entrypoint.sh"]

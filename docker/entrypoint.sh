@@ -1,11 +1,11 @@
 #!/bin/bash
 echo "entrypoint - run node"
 cp -r /networks/${NETWORK}/* /config/
-mkdir -p ${CARDANO_NODE_SOCKET_PATH}
-cardano-node run --database-path /data/db-${NETWORK} --host-addr 0.0.0.0 --port ${CARDANO_NODE_PORT} --socket-path ${CARDANO_NODE_SOCKET} --topology /config/topology.json --config /config/config.json > /logs/node.log &
+mkdir -p ${CARDANO_NODE_PATH}
+cardano-node run --socket-path ${CARDANO_NODE_SOCKET} --port ${CARDANO_NODE_PORT} --database-path ${CARDANO_NODE_PATH}/db --config /config/config.json --topology /config/topology.json > /logs/node.log &
 
 echo "entrypoint - run submit api"
-cardano-submit-api --config /root/cardano-submit-api/tx-submit-mainnet-config.yaml --socket-path ${CARDANO_NODE_SOCKET} --port ${NODE_SUBMIT_API_PORT} --testnet-magic ${PROTOCOL_MAGIC} > /logs/submit-api.log &
+cardano-submit-api --socket-path ${CARDANO_NODE_SOCKET} --port ${NODE_SUBMIT_API_PORT} --testnet-magic ${PROTOCOL_MAGIC} --config /config/submit-api-config.yaml > /logs/submit-api.log &
 
 echo "entrypoint - run postgres"
 /etc/init.d/postgresql start
