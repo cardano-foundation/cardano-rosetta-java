@@ -45,7 +45,6 @@ import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
 import org.cardanofoundation.rosetta.common.enumeration.AddressType;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
-import org.cardanofoundation.rosetta.common.exception.ApiException;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.mapper.CborMapToTransactionExtraData;
 import org.cardanofoundation.rosetta.common.mapper.DataMapper;
@@ -237,7 +236,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
           CborEncodeUtil.encodeExtraData(signedTransaction, extraData.operations(),
               extraData.transactionMetadataHex()));
     } catch (CborException e) {
-      throw new ApiException("Error while encoding signed transaction", e);
+      throw ExceptionFactory.cantEncodeExtraData();
     }
   }
 
