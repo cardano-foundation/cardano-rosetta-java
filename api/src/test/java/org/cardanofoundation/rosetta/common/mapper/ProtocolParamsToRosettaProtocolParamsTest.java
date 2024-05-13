@@ -7,13 +7,13 @@ import org.openapitools.client.model.ProtocolParameters;
 
 import org.junit.jupiter.api.Test;
 
-import org.cardanofoundation.rosetta.api.BaseMapperTest;
+import org.cardanofoundation.rosetta.api.BaseMapperSetup;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams.ProtocolVersion;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class ProtocolParamsToRosettaProtocolParamsTest extends BaseMapperTest {
+public class ProtocolParamsToRosettaProtocolParamsTest extends BaseMapperSetup {
 
   @Autowired
   private ProtocolParamsToRosettaProtocolParameters mapper;

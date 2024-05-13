@@ -141,7 +141,7 @@ public class DataMapper {
     amount.setCurrency(Currency.builder()
                             .symbol(symbol)
                             .decimals(decimals)
-                            .metadata(metadata) // TODO check metadata for Amount
+                            .metadata(metadata)
                             .build());
     return amount;
   }

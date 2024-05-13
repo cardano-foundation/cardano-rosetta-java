@@ -25,7 +25,7 @@ import org.openapitools.client.model.Relay;
 
 import org.junit.jupiter.api.Test;
 
-import org.cardanofoundation.rosetta.api.BaseMapperTest;
+import org.cardanofoundation.rosetta.api.BaseMapperSetup;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.model.domain.Delegation;
@@ -36,7 +36,7 @@ import org.cardanofoundation.rosetta.api.block.model.domain.StakeRegistration;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.cardanofoundation.rosetta.common.util.RosettaConstants.SUCCESS_OPERATION_STATUS;
 
-class BlockToBlockResponseTest extends BaseMapperTest {
+class BlockToBlockResponseTest extends BaseMapperSetup {
 
 
   @Autowired
@@ -69,8 +69,7 @@ class BlockToBlockResponseTest extends BaseMapperTest {
     assertThat(from.getSize()).isEqualTo(into.getBlock().getMetadata().getSize());
     assertThat(from.getSlotNo()).isEqualTo(into.getBlock().getMetadata().getSlotNo());
 
-    assertThat(from.getTransactions().size()).isEqualTo(
-        into.getBlock().getTransactions().size());
+    assertThat(from.getTransactions()).hasSameSizeAs(into.getBlock().getTransactions());
     assertThat(from.getTransactions())
         .extracting(BlockTx::getHash)
         .isEqualTo(into.getBlock().getTransactions().stream()
@@ -222,11 +221,13 @@ class BlockToBlockResponseTest extends BaseMapperTest {
                 g -> g.getType().equals("stakeDelegation"))
             .map(Operation::getMetadata)
             .collect(Collectors.toList()))
-        .allSatisfy(d->
+        .allSatisfy(d ->
         {
           assertAllPropertiesIsNull(d, "poolKeyHash");
-          assertProperty(List.of(d.getFirst()), "poolKeyHash", "poolDlg"+poolKeyHash.incrementAndGet());
-          assertProperty(List.of(d.getLast()), "poolKeyHash", "poolDlg"+poolKeyHash.incrementAndGet());
+          assertProperty(List.of(d.getFirst()), "poolKeyHash",
+              "poolDlg" + poolKeyHash.incrementAndGet());
+          assertProperty(List.of(d.getLast()), "poolKeyHash",
+              "poolDlg" + poolKeyHash.incrementAndGet());
         });
 
 
@@ -289,17 +290,17 @@ class BlockToBlockResponseTest extends BaseMapperTest {
   private List<BlockTx> newTransactions() {
     return List.of(
         new BlockTx("hash1", "blockHash1", 1L, "fee1", 1L,
-             1L, null, null,
+            1L, null, null,
             newStakeRegistrations(1, 2), newDelegations(1, 2), newPoolRegistrations(1, 2),
             newPoolRetirements(1, 2), null),
 
         new BlockTx("hash2", "blockHash2", 2L, "fee2", 2L,
-             2L, null, null,
+            2L, null, null,
             newStakeRegistrations(3, 4), newDelegations(3, 4), newPoolRegistrations(3, 4),
             newPoolRetirements(3, 4), null),
 
         new BlockTx("hash3", "blockHash3", 3L, "fee3", 3L,
-             3L, null, null,
+            3L, null, null,
             newStakeRegistrations(5, 6), newDelegations(5, 6), newPoolRegistrations(5, 6),
             newPoolRetirements(5, 6), null));
   }
@@ -364,6 +365,4 @@ class BlockToBlockResponseTest extends BaseMapperTest {
 
 
   }
-
-
 }

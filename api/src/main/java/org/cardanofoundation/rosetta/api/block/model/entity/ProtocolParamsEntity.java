@@ -40,7 +40,7 @@ public class ProtocolParamsEntity {
   private String extraEntropy; //13
   private Integer protocolMajorVer; //14
   private Integer protocolMinorVer; //14
-  private BigInteger minUtxo; //TODO //15
+  private BigInteger minUtxo; //15
 
   private BigInteger minPoolCost; //16
   private BigInteger adaPerUtxoByte; //17

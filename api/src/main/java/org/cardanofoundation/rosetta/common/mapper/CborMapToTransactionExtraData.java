@@ -14,6 +14,8 @@ import org.cardanofoundation.rosetta.common.util.Constants;
 
 public class CborMapToTransactionExtraData {
 
+  private CborMapToTransactionExtraData() {}
+
   public static TransactionExtraData convertCborMapToTransactionExtraData(Map map) {
     String transactionMetadataHex = getTransactionMetadataHexFromMap(map);
 
