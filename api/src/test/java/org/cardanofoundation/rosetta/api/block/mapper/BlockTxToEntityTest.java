@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import org.junit.jupiter.api.Test;
 
-import org.cardanofoundation.rosetta.api.BaseMapperTest;
+import org.cardanofoundation.rosetta.api.BaseMapperSetup;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.model.entity.BlockEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.TxnEntity;
@@ -15,7 +15,7 @@ import org.cardanofoundation.rosetta.api.block.model.entity.UtxoKey;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class BlockTxToEntityTest extends BaseMapperTest {
+class BlockTxToEntityTest extends BaseMapperSetup {
 
   @Autowired
   private BlockTxToEntity my;
@@ -33,16 +33,16 @@ class BlockTxToEntityTest extends BaseMapperTest {
     assertThat(into.getHash()).isEqualTo(from.getTxHash());
     assertThat(into.getBlockHash()).isEqualTo(from.getBlock().getHash());
     assertThat(into.getBlockNo()).isEqualTo(from.getBlock().getNumber());
-    assertThat(into.getSize()).isEqualTo(0L);
-    assertThat(into.getScriptSize()).isEqualTo(0L);
+    assertThat(into.getSize()).isZero();
+    assertThat(into.getScriptSize()).isZero();
 
-    assertThat(into.getInputs().size()).isEqualTo(from.getInputKeys().size());
+    assertThat(into.getInputs()).hasSameSizeAs(from.getInputKeys());
     assertThat(into.getInputs()).extracting("txHash")
         .isEqualTo(List.of(inUtxKey.getTxHash()));
     assertThat(into.getInputs()).extracting("outputIndex")
         .isEqualTo(List.of(inUtxKey.getOutputIndex()));
 
-    assertThat(into.getOutputs().size()).isEqualTo(from.getOutputKeys().size());
+    assertThat(into.getOutputs()).hasSameSizeAs(from.getOutputKeys());
     assertThat(into.getOutputs()).extracting("txHash")
         .isEqualTo(List.of(outUtxKey.getTxHash()));
     assertThat(into.getOutputs()).extracting("outputIndex")

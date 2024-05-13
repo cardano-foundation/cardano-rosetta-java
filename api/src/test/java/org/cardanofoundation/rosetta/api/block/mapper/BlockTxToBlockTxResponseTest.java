@@ -12,7 +12,7 @@ import org.openapitools.client.model.Transaction;
 
 import org.junit.jupiter.api.Test;
 
-import org.cardanofoundation.rosetta.api.BaseMapperTest;
+import org.cardanofoundation.rosetta.api.BaseMapperSetup;
 import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
@@ -23,7 +23,7 @@ import org.cardanofoundation.rosetta.api.block.model.domain.StakeRegistration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class BlockTxToBlockTxResponseTest extends BaseMapperTest {
+class BlockTxToBlockTxResponseTest extends BaseMapperSetup {
 
   @Autowired
   private BlockTxToBlockTxResponse my;

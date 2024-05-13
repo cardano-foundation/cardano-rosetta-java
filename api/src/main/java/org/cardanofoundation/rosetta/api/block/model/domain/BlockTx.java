@@ -21,7 +21,7 @@ public class BlockTx {
   protected String hash;
   protected String blockHash;
   protected Long blockNo;
-  protected String fee; // TODO can be removed if we found another way to calculate the size
+  protected String fee;
   protected Long size;
   protected Long scriptSize;
   protected List<Utxo> inputs;

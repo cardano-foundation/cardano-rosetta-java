@@ -7,14 +7,14 @@ import org.modelmapper.ModelMapper;
 
 import org.junit.jupiter.api.Test;
 
-import org.cardanofoundation.rosetta.api.BaseMapperTest;
+import org.cardanofoundation.rosetta.api.BaseMapperSetup;
 import org.cardanofoundation.rosetta.api.account.model.entity.AddressUtxoEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.UtxoKey;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-class UtxoTest extends BaseMapperTest {
+class UtxoTest extends BaseMapperSetup {
 
   @Inject
   ModelMapper mapper;
