@@ -2,6 +2,7 @@ version: '3.8'
 include:
   - docker-api-indexer.yaml
   - docker-node.yaml
+
 networks:
   default:
     name: cardano-rosetta-java-${NETWORK}
