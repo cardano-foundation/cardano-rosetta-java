@@ -1,4 +1,4 @@
-package org.cardanofoundation.rosetta.api.construction.preprocess;
+package org.cardanofoundation.rosetta.api.construction.service;
 
 import java.io.File;
 import java.io.IOException;
@@ -12,7 +12,6 @@ import org.openapitools.client.model.ConstructionPreprocessResponse;
 import org.junit.jupiter.api.Test;
 
 import org.cardanofoundation.rosetta.api.IntegrationTest;
-import org.cardanofoundation.rosetta.api.construction.service.ConstructionApiService;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
