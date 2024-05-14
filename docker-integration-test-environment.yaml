@@ -16,7 +16,3 @@ services:
     env_file:
       - .env.IntegrationTest
     entrypoint: ["java", "-jar", "/app/yaci-cli.jar", "create-node -o --start" ]
-
-networks:
-  default:
-    name: cardano-rosetta-java-${NETWORK}
