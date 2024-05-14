@@ -18,18 +18,18 @@ The build can take up to 1.5 hours.
 ````
 docker run --env-file .\docker\.env.dockerfile -p 8080:8080 -it {image_name}:latest
 ````
-We need to specify the path to the environment variables file and open the port.
+You need to specify the path to the environment variables file and open the port.
 
 ### 3. Changing project settings
 
 All application settings are located in the ``.\docker\.env.dockerfile`` file.  
-We can specify network, ports, postgres user, etc.
+You can specify network, ports, postgres user, etc.
 
 ### 4. Changing build parameters
 ```
 docker build -t {image_name} --build-arg PG_VERSION=14 -f ./docker/Dockerfile .
-```
-We can specify Cabal, GHC, Cardano node, and Postgres versions when building an image.
+``` 
+You can specify Cabal, GHC, Cardano node, and Postgres versions when building an image.
 
 The default values:  
 ``
@@ -51,16 +51,22 @@ docker run --env-file .\docker\.env.dockerfile -p 8080:8080 -v {custom_folder}:/
 ````
 It is possible to root the cardano node data volumetrically to the /data/db point.
 
-We can mount a volume with Cardano node data to ``/data/db`` to prevent loading during initialization.
+You can mount a volume with Cardano node data to ``/data/db`` to prevent loading during initialization.
 
 ### 6. Volume with custom network configurations
 ````
 docker run --env-file .\docker\.env.dockerfile -p 8080:8080 -v {custom_folder}:/networks -it {image_name}:latest
 ````
-The cardano node configuration json's are stored in the ``config`` folder and copied into the image on build.
-If we want to use a custom configuration without rebuilding the image, we can mount a volume with configs to ``/config``
+The cardano node configuration jsons are stored in the ``config`` folder and copied into the image on build.
+If you want to use a custom configuration without rebuilding the image, we can mount a volume with configs to ``/networks`` folder inside the container.
 
-### 7. Logs location
+### 7. Volume with cardano data
+````
+docker run --env-file .\docker\.env.dockerfile -p 8082:8082 -v {custom_folder}:/data/db -it {image_name}:latest
+````
+If you want to use already existing cardano data, you can mount the data volume to the ``/data/db`` folder inside the container.
+
+### 8. Logs location
 
 The logs can be viewed inside the container.  
 ``
