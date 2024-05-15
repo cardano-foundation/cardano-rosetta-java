@@ -13,8 +13,12 @@ jobs:
       - name: "Set up environment"
         run: docker compose --env-file .env.docker-compose -f docker-compose.yml up --build -d --wait
       - name: "Wait for node to be populated"
-        run: "sleep 30s"
-      - name: Execute load Tests
-        uses: artilleryio/action-cli@v1
+        run: sleep 30s
+      - name: "Install Node"
+        uses: actions/setup-node@v1
         with:
-          command: run artilleryTests/rosetta-load-test.yml
+          node-version: '21.x'
+      - name: "Install Artillery"
+        run: npm install -g artillery
+      - name: "Run tests"
+        run: artillery run artilleryTests/rosetta-load-test.yml
