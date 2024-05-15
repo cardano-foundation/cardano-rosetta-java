@@ -33,7 +33,5 @@ class ProtocolParamServiceImplTest {
     ReflectionTestUtils.setField(genesisService, "genesisShelleyPath", genesisPath);
 
     assertNotNull(genesisService.getProtocolParameters().getPoolDeposit());
-
-
   }
 }
