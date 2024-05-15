@@ -4,7 +4,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import jakarta.validation.constraints.NotNull;
-import javax.annotation.PostConstruct;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -115,7 +114,6 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
   }
 
   @Override
-  @PostConstruct
   public GenesisBlock findGenesisBlock() {
     if(cachedGenesisBlock == null) {
       log.debug("About to run findGenesisBlock query");
