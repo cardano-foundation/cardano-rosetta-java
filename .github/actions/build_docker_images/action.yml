@@ -42,20 +42,19 @@ runs:
         uses: docker/build-push-action@v4
         if: ${{ inputs.isRelease == 'true' }}
         with:
-          file: ./api/Dockerfile
+          file: ./yaci-indexer/Dockerfile
           tags: cardanofoundation/cardano-rosetta-java-indexer:latest
           push: true
-# TODO will be added when the all-in-one image is ready
-#      - name: All-in-one - Build and push Docker image
-#        uses: docker/build-push-action@v4
-#        with:
-#          file: ./Dockerfile
-#          tags: cardanofoundation/cardano-rosetta-java:${{ inputs.tag }}
-#          push: true
-#      - name: All-in-one - Build and push Docker latest image
-#        uses: docker/build-push-action@v4
-#        if: ${{ inputs.isRelease == 'true' }}
-#        with:
-#          file: ./Dockerfile
-#          tags: cardanofoundation/cardano-rosetta-java:latest
-#          push: true
+      - name: All-in-one - Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          file: ./docker/Dockerfile
+          tags: cardanofoundation/cardano-rosetta-java:${{ inputs.tag }}
+          push: true
+      - name: All-in-one - Build and push Docker latest image
+        uses: docker/build-push-action@v4
+        if: ${{ inputs.isRelease == 'true' }}
+        with:
+          file: ./docker/Dockerfile
+          tags: cardanofoundation/cardano-rosetta-java:latest
+          push: true
