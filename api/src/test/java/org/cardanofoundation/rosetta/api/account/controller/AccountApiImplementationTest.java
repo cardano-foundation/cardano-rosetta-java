@@ -1,5 +1,6 @@
 package org.cardanofoundation.rosetta.api.account.controller;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +14,7 @@ import org.openapitools.client.model.AccountBalanceRequest;
 import org.openapitools.client.model.AccountBalanceResponse;
 import org.openapitools.client.model.AccountCoinsRequest;
 import org.openapitools.client.model.AccountCoinsResponse;
+import org.openapitools.client.model.AccountIdentifier;
 import org.openapitools.client.model.NetworkIdentifier;
 
 import org.junit.jupiter.api.Test;
@@ -21,10 +23,13 @@ import org.cardanofoundation.rosetta.api.BaseSpringMvcSetup;
 import org.cardanofoundation.rosetta.api.account.service.AccountService;
 import org.cardanofoundation.rosetta.api.network.service.NetworkService;
 import org.cardanofoundation.rosetta.common.util.Constants;
+import org.cardanofoundation.rosetta.common.util.RosettaConstants.RosettaErrorType;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class AccountApiImplementationTest extends BaseSpringMvcSetup {
@@ -94,5 +99,89 @@ class AccountApiImplementationTest extends BaseSpringMvcSetup {
         .content("{}");
     mockMvc.perform(requestBuilder)
         .andExpect(status().is(500)).andReturn();
+  }
+
+  @Test
+  void accountBalanceInvalidPayloadTest() throws Exception {
+    AccountBalanceRequest request = givenAccountBalanceRequest();
+    request.setNetworkIdentifier(null);
+    RequestBuilder requestBuilder = MockMvcRequestBuilders
+        .post("/account/balance")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(request));
+    mockMvc.perform(requestBuilder)
+        .andExpect(status().is(HttpStatus.INTERNAL_SERVER_ERROR.value()))
+        .andExpect(jsonPath("$.code").value(RosettaErrorType.UNSPECIFIED_ERROR.getCode()))
+        .andExpect(jsonPath("$.details.message", containsString("An error occurred for request")))
+        .andReturn();
+  }
+
+  @Test
+  void accountCoinsInvalidPayloadTest() throws Exception {
+    AccountCoinsRequest request = givenAccountCoinsRequest();
+    request.setAccountIdentifier(null);
+    RequestBuilder requestBuilder = MockMvcRequestBuilders
+        .post("/account/coins")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(request));
+    mockMvc.perform(requestBuilder)
+        .andExpect(status().is(HttpStatus.INTERNAL_SERVER_ERROR.value()))
+        .andExpect(jsonPath("$.code").value(RosettaErrorType.UNSPECIFIED_ERROR.getCode()))
+        .andExpect(jsonPath("$.details.message", containsString("An error occurred for request")))
+        .andReturn();
+  }
+
+  @Test
+  void accountBalanceInvalidRequestTest() throws Exception {
+    AccountBalanceRequest request = givenAccountBalanceRequest();
+    request.getNetworkIdentifier().setBlockchain("Invalid");
+    RequestBuilder requestBuilder = MockMvcRequestBuilders
+        .post("/account/balance")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(request));
+    mockMvc.perform(requestBuilder)
+        .andExpect(status().is(HttpStatus.INTERNAL_SERVER_ERROR.value()))
+        .andExpect(jsonPath("$.code").value(RosettaErrorType.INVALID_BLOCKCHAIN.getCode()))
+        .andExpect(jsonPath("$.message").value(RosettaErrorType.INVALID_BLOCKCHAIN.getMessage()))
+        .andReturn();
+  }
+
+  @Test
+  void accountCoinsInvalidRequestTest() throws Exception {
+    AccountCoinsRequest request = givenAccountCoinsRequest();
+    request.getNetworkIdentifier().setBlockchain("Invalid");
+    RequestBuilder requestBuilder = MockMvcRequestBuilders
+        .post("/account/coins")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(request));
+    mockMvc.perform(requestBuilder)
+        .andExpect(status().is(HttpStatus.INTERNAL_SERVER_ERROR.value()))
+        .andExpect(jsonPath("$.code").value(RosettaErrorType.INVALID_BLOCKCHAIN.getCode()))
+        .andExpect(jsonPath("$.message").value(RosettaErrorType.INVALID_BLOCKCHAIN.getMessage()))
+        .andReturn();
+  }
+
+  private AccountBalanceRequest givenAccountBalanceRequest() {
+    return AccountBalanceRequest.builder()
+        .networkIdentifier(NetworkIdentifier.builder()
+            .blockchain(Constants.CARDANO_BLOCKCHAIN)
+            .network(Constants.DEVKIT)
+            .build())
+        .accountIdentifier(AccountIdentifier.builder()
+            .address(Constants.ADDRESS)
+            .build())
+        .build();
+  }
+
+  private AccountCoinsRequest givenAccountCoinsRequest() {
+    return AccountCoinsRequest.builder()
+        .networkIdentifier(NetworkIdentifier.builder()
+            .blockchain(Constants.CARDANO_BLOCKCHAIN)
+            .network(Constants.DEVKIT)
+            .build())
+        .accountIdentifier(AccountIdentifier.builder()
+            .address(Constants.ADDRESS)
+            .build())
+        .build();
   }
 }

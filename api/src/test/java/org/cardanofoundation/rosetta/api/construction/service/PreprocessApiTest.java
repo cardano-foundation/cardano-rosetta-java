@@ -1,4 +1,4 @@
-package org.cardanofoundation.rosetta.api.construction.preprocess;
+package org.cardanofoundation.rosetta.api.construction.service;
 
 import java.io.File;
 import java.io.IOException;
@@ -12,7 +12,6 @@ import org.openapitools.client.model.ConstructionPreprocessResponse;
 import org.junit.jupiter.api.Test;
 
 import org.cardanofoundation.rosetta.api.IntegrationTest;
-import org.cardanofoundation.rosetta.api.construction.service.ConstructionApiService;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -53,7 +52,7 @@ class PreprocessApiTest extends IntegrationTest {
 
     ConstructionPreprocessResponse constructionPreprocessResponse = constructionApiService.constructionPreprocessService(
         preprocessRequest);
-    Map<String, Double> options = (Map<String, Double>) constructionPreprocessResponse.getOptions();
+    Map<String, Integer> options = (Map<String, Integer>) constructionPreprocessResponse.getOptions();
     assertEquals(expectedTtl, options.get("relative_ttl"));
     assertEquals(expectedTransactionSize, options.get("transaction_size"));
   }

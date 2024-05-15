@@ -127,7 +127,6 @@ class AccountBalanceApiTest extends BaseSpringMvcSetup {
     mockMvc.perform(MockMvcRequestBuilders.post("/account/balance")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(accountBalanceRequest)))
-        .andDo(print())
         .andExpect(jsonPath("$.code").value(4001))
         .andExpect(jsonPath("$.message").value("Block not found"))
         .andExpect(jsonPath("$.retriable").value(false));
@@ -142,7 +141,6 @@ class AccountBalanceApiTest extends BaseSpringMvcSetup {
     mockMvc.perform(MockMvcRequestBuilders.post("/account/balance")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(accountBalanceRequest)))
-        .andDo(print())
         .andExpect(jsonPath("$.code").value(4015))
         .andExpect(jsonPath("$.message").value("Provided address is invalid"))
         .andExpect(jsonPath("$.details.message").value("invalid_address"))

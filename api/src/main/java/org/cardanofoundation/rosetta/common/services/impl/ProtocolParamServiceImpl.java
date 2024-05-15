@@ -8,13 +8,13 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.JSONObject;
 
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
 import org.cardanofoundation.rosetta.api.block.model.entity.ProtocolParamsEntity;
 import org.cardanofoundation.rosetta.api.block.model.repository.EpochParamRepository;
-import org.cardanofoundation.rosetta.common.exception.ApiException;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.mapper.ProtocolParamsToEntity;
 import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
@@ -43,20 +43,13 @@ public class ProtocolParamServiceImpl implements ProtocolParamService {
       log.error("Error reading genesis shelley file: {}", genesisShelleyPath);
       throw ExceptionFactory.configNotFoundException();
     }
-
   }
 
-  private ProtocolParams fromJSONObject(JSONObject shelleyJsonObject) {
-
+  private ProtocolParams fromJSONObject(JSONObject shelleyJsonObject)
+      throws JsonProcessingException {
     var params = shelleyJsonObject.getJSONObject("protocolParams");
-
-    try {
-      String s = Optional.ofNullable(params).map(JSONObject::toString).orElse("{}");
-      return objectMapper.readValue(s, ProtocolParams.class);
-    } catch (Exception e) {
-      throw new ApiException("Error parsing protocol parameters", e);
-    }
-
+    String s = Optional.ofNullable(params).map(JSONObject::toString).orElse("{}");
+    return objectMapper.readValue(s, ProtocolParams.class);
   }
 
   @Override
@@ -66,5 +59,4 @@ public class ProtocolParamServiceImpl implements ProtocolParamService {
     ProtocolParams protocolParametersFromConfigFile = getProtocolParameters();
     return mapperProtocolParams.merge(protocolParams, protocolParametersFromConfigFile);
   }
-
 }
