@@ -100,7 +100,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
     NetworkIdentifier networkIdentifier = constructionPreprocessRequest.getNetworkIdentifier();
     Optional<ConstructionPreprocessMetadata> metadata = Optional.ofNullable(
         constructionPreprocessRequest.getMetadata());
-    Double relativeTtl;
+    int relativeTtl;
     DepositParameters depositParameters;
     if (metadata.isPresent()) {
       relativeTtl = cardanoConstructionService.checkOrReturnDefaultTtl(
@@ -112,10 +112,10 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
       depositParameters = cardanoConstructionService.getDepositParameters();
     }
 
-    Double transactionSize = cardanoConstructionService.calculateTxSize(
+    int transactionSize = cardanoConstructionService.calculateTxSize(
         NetworkIdentifierType.findByName(networkIdentifier.getNetwork()),
         constructionPreprocessRequest.getOperations(), 0, depositParameters);
-    Map<String, Double> response = Map.of(Constants.RELATIVE_TTL, relativeTtl,
+    Map<String, Integer> response = Map.of(Constants.RELATIVE_TTL, relativeTtl,
         Constants.TRANSACTION_SIZE,
         transactionSize);
     return new ConstructionPreprocessResponse(response, null);
@@ -160,13 +160,13 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
     int ttl;
     DepositParameters depositParameters;
     if (metadata.isPresent()) {
-      ttl = cardanoConstructionService.checkOrReturnDefaultTtl(metadata.get().getTtl()).intValue();
+      ttl = cardanoConstructionService.checkOrReturnDefaultTtl(metadata.get().getTtl());
       depositParameters = Optional.ofNullable(metadata.get().getProtocolParameters()).map(
           protocolParameters -> new DepositParameters(protocolParameters.getKeyDeposit(),
               protocolParameters.getPoolDeposit())).orElse(
           cardanoConstructionService.getDepositParameters());
     } else {
-      ttl = Constants.DEFAULT_RELATIVE_TTL.intValue();
+      ttl = Constants.DEFAULT_RELATIVE_TTL;
       depositParameters = cardanoConstructionService.getDepositParameters();
     }
 
