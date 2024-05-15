@@ -25,7 +25,6 @@ import co.nstant.in.cbor.model.DataItem;
 import co.nstant.in.cbor.model.MajorType;
 import co.nstant.in.cbor.model.UnicodeString;
 import co.nstant.in.cbor.model.UnsignedInteger;
-import com.bloxbean.cardano.client.account.Account;
 import com.bloxbean.cardano.client.address.Address;
 import com.bloxbean.cardano.client.address.AddressProvider;
 import com.bloxbean.cardano.client.address.ByronAddress;
