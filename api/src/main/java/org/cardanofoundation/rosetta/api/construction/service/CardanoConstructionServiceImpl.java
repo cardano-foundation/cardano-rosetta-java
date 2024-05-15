@@ -112,8 +112,8 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
   }
 
   @Override
-  public Double checkOrReturnDefaultTtl(Integer relativeTtl) {
-    return relativeTtl == null ? Constants.DEFAULT_RELATIVE_TTL : relativeTtl.doubleValue();
+  public Integer checkOrReturnDefaultTtl(Integer relativeTtl) {
+    return relativeTtl == null ? Constants.DEFAULT_RELATIVE_TTL : relativeTtl;
   }
 
   @Override
@@ -194,7 +194,7 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
   }
 
   @Override
-  public Double calculateTxSize(NetworkIdentifierType networkIdentifierType,
+  public Integer calculateTxSize(NetworkIdentifierType networkIdentifierType,
       List<Operation> operations, int ttl, DepositParameters depositParameters) {
     UnsignedTransaction unsignedTransaction;
     try {
@@ -219,7 +219,9 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
 
     String transaction = buildTransaction(unsignedTransaction.bytes(), signaturesList,
         unsignedTransaction.metadata());
-    return ((double) transaction.length() / 2);
+    // the String transaction represents Hex encoded bytes of the transaction.
+    // To get the size of the transaction in bytes, we need to divide the length by two. Because every Hex character represents 4 bits.
+    return (transaction.length() / 2);
 
   }
 
