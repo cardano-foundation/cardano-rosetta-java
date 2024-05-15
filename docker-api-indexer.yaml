@@ -2,6 +2,9 @@ version: '3.8'
 services:
   api:
     image: cardanofoundation/cardano-rosetta-java-api:${API_DOCKER_IMAGE_TAG}
+    build:
+      context: ./
+      dockerfile: ./api/Dockerfile
     ports:
       - ${API_PORT}:${API_PORT}
     environment:
@@ -39,6 +42,9 @@ services:
 
   yaci-indexer:
     image: cardanofoundation/cardano-rosetta-java-indexer:${INDEXER_DOCKER_IMAGE_TAG}
+    build:
+      context: ./
+      dockerfile: ./yaci-indexer/Dockerfile
     environment:
       NETWORK: ${NETWORK}
       YACI_SPRING_PROFILES: ${YACI_SPRING_PROFILES}
