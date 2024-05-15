@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: "Set up environment"
-        run: docker compose --env-file .env.IntegrationTest -f docker-integration-test-environment.yaml up --build --wait
+        run: docker compose --env-file .env.IntegrationTest -f docker-integration-test-environment.yaml up --build
       - name: "Wait for node to be populated"
         run: "sleep 30s"
       - name: "Install Node"
