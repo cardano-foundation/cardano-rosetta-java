@@ -1,8 +1,6 @@
 name: Artillery Stress Test
 on:
-  push:
-    branches:
-      - feat/RA-68-Stress-Testing
+  pull_request:
 
 jobs:
   artillery:
