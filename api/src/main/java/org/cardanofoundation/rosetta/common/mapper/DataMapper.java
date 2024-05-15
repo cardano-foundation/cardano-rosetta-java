@@ -19,8 +19,6 @@ import org.openapitools.client.model.AccountIdentifier;
 import org.openapitools.client.model.Amount;
 import org.openapitools.client.model.BlockIdentifier;
 import org.openapitools.client.model.Coin;
-import org.openapitools.client.model.CoinAction;
-import org.openapitools.client.model.CoinChange;
 import org.openapitools.client.model.CoinIdentifier;
 import org.openapitools.client.model.CoinTokens;
 import org.openapitools.client.model.ConstructionMetadataResponse;
@@ -52,20 +50,23 @@ import org.cardanofoundation.rosetta.common.util.Constants;
 public class DataMapper {
 
   private final ProtocolParamsToRosettaProtocolParameters protocolParamsToRosettaProtocolParameters;
+
   /**
    * Maps a NetworkRequest to a NetworkOptionsResponse.
+   *
    * @param supportedNetwork The supported network
    * @return The NetworkOptionsResponse
    */
   public NetworkListResponse mapToNetworkListResponse(Network supportedNetwork) {
     NetworkIdentifier identifier = NetworkIdentifier.builder().blockchain(Constants.CARDANO)
-            .network(Objects.requireNonNull(
-                NetworkEnum.fromProtocolMagic(supportedNetwork.getProtocolMagic())).getValue()).build();
+        .network(Objects.requireNonNull(
+            NetworkEnum.fromProtocolMagic(supportedNetwork.getProtocolMagic())).getValue()).build();
     return NetworkListResponse.builder().networkIdentifiers(List.of(identifier)).build();
   }
 
   /**
    * Maps a NetworkRequest to a NetworkOptionsResponse.
+   *
    * @param networkStatus The network status
    * @return The NetworkOptionsResponse
    */
@@ -74,20 +75,21 @@ public class DataMapper {
     GenesisBlock genesisBlock = networkStatus.getGenesisBlock();
     List<Peer> peers = networkStatus.getPeers();
     return NetworkStatusResponse.builder()
-            .currentBlockIdentifier(
-                    BlockIdentifier.builder().index(latestBlock.getNumber()).hash(latestBlock.getHash())
-                            .build())
-            .currentBlockTimestamp(latestBlock.getCreatedAt())
-            .genesisBlockIdentifier(BlockIdentifier.builder().index(
-                            genesisBlock.getNumber() != null ? genesisBlock.getNumber() : 0)
-                    .hash(genesisBlock.getHash()).build())
-            .peers(peers.stream().map(peer -> new Peer(peer.getPeerId(), null)).toList())
-            .build();
+        .currentBlockIdentifier(
+            BlockIdentifier.builder().index(latestBlock.getNumber()).hash(latestBlock.getHash())
+                .build())
+        .currentBlockTimestamp(latestBlock.getCreatedAt())
+        .genesisBlockIdentifier(BlockIdentifier.builder().index(
+                genesisBlock.getNumber() != null ? genesisBlock.getNumber() : 0)
+            .hash(genesisBlock.getHash()).build())
+        .peers(peers.stream().map(peer -> new Peer(peer.getPeerId(), null)).toList())
+        .build();
   }
 
 
   /**
    * Basic mapping if a value is spent or not.
+   *
    * @param value value to be mapped
    * @param spent if the value is spent. Will add a "-" in front of the value if spent.
    * @return the mapped value
@@ -96,16 +98,11 @@ public class DataMapper {
     return spent ? "-" + value : value;
   }
 
-  public static CoinChange getCoinChange(int index, String hash, CoinAction coinAction) {
-    CoinIdentifier coinIdentifier = new CoinIdentifier();
-    coinIdentifier.setIdentifier(hash + ":" + index);
-
-    return CoinChange.builder().coinIdentifier(coinIdentifier).coinAction(coinAction).build();
-  }
-
 
   /**
-   * Creates a Rosetta compatible Amount for ADA. The value is the amount in lovelace and the currency is ADA.
+   * Creates a Rosetta compatible Amount for ADA. The value is the amount in lovelace and the
+   * currency is ADA.
+   *
    * @param value The amount in lovelace
    * @return The Rosetta compatible Amount
    */
@@ -115,21 +112,23 @@ public class DataMapper {
     }
 
     Currency currency = Currency.builder()
-            .decimals(Constants.ADA_DECIMALS)
-            .symbol(Constants.ADA).build();
+        .decimals(Constants.ADA_DECIMALS)
+        .symbol(Constants.ADA).build();
     return Amount.builder().value(value).currency(currency).build();
   }
 
   /**
-   * Creates a Rosetta compatible Amount. Symbol and decimals are optional. If not provided, ADA and 6 decimals are used.
-   * @param value The amount of the token
-   * @param symbol The symbol of the token - it will be hex encoded
+   * Creates a Rosetta compatible Amount. Symbol and decimals are optional. If not provided, ADA and
+   * 6 decimals are used.
+   *
+   * @param value    The amount of the token
+   * @param symbol   The symbol of the token - it will be hex encoded
    * @param decimals The number of decimals of the token
    * @param metadata The metadata of the token
    * @return The Rosetta compatible Amount
    */
   public static Amount mapAmount(String value, String symbol, Integer decimals,
-                                 CurrencyMetadata metadata) {
+      CurrencyMetadata metadata) {
     if (Objects.isNull(symbol)) {
       symbol = Constants.ADA;
     }
@@ -139,23 +138,24 @@ public class DataMapper {
     Amount amount = new Amount();
     amount.setValue(value);
     amount.setCurrency(Currency.builder()
-                            .symbol(symbol)
-                            .decimals(decimals)
-                            .metadata(metadata)
-                            .build());
+        .symbol(symbol)
+        .decimals(decimals)
+        .metadata(metadata)
+        .build());
     return amount;
   }
 
   /**
    * Maps a list of AddressBalanceDTOs to a Rosetta compatible AccountBalanceResponse.
    *
-   * @param block The block from where the balances are calculated into the past
-   * @param balances The list of filtered balances up to {@code block} number.
-   *                 Each unit should occur only one time with the latest balance.
-   *                 Native assets should be present only as a lovelace unit.
+   * @param block    The block from where the balances are calculated into the past
+   * @param balances The list of filtered balances up to {@code block} number. Each unit should
+   *                 occur only one time with the latest balance. Native assets should be present
+   *                 only as a lovelace unit.
    * @return The Rosetta compatible AccountBalanceResponse
    */
-  public static AccountBalanceResponse mapToAccountBalanceResponse(Block block, List<AddressBalance> balances) {
+  public static AccountBalanceResponse mapToAccountBalanceResponse(Block block,
+      List<AddressBalance> balances) {
     BigInteger lovelaceAmount = balances.stream()
         .filter(b -> Constants.LOVELACE.equals(b.unit()))
         .map(AddressBalance::quantity)
@@ -182,14 +182,15 @@ public class DataMapper {
         .build();
   }
 
-  public static AccountBalanceResponse mapToStakeAddressBalanceResponse(Block block, StakeAddressBalance balance) {
+  public static AccountBalanceResponse mapToStakeAddressBalanceResponse(Block block,
+      StakeAddressBalance balance) {
     return AccountBalanceResponse.builder()
-            .blockIdentifier(BlockIdentifier.builder()
-                    .hash(block.getHash())
-                    .index(block.getNumber())
-                    .build())
-            .balances(List.of(Objects.requireNonNull(mapAmount(balance.getQuantity().toString()))))
-            .build();
+        .blockIdentifier(BlockIdentifier.builder()
+            .hash(block.getHash())
+            .index(block.getNumber())
+            .build())
+        .balances(List.of(Objects.requireNonNull(mapAmount(balance.getQuantity().toString()))))
+        .build();
   }
 
   public static AccountCoinsResponse mapToAccountCoinsResponse(Block block, List<Utxo> utxos) {
@@ -208,7 +209,8 @@ public class DataMapper {
                       .identifier(utxo.getTxHash() + ":" + utxo.getOutputIndex())
                       .build())
                   .amount(Amount.builder()
-                      .value(adaAsset.getQuantity().toString()) // In the DB only Lovelace are persisted.
+                      .value(
+                          adaAsset.getQuantity().toString()) // In the DB only Lovelace are persisted.
                       .currency(Currency.builder()
                           .symbol(Constants.ADA)
                           .decimals(Constants.ADA_DECIMALS)
@@ -243,20 +245,22 @@ public class DataMapper {
     return coinTokens.isEmpty() ? null : Map.of(key, coinTokens);
   }
 
-  public ConstructionMetadataResponse mapToMetadataResponse(ProtocolParams protocolParams, Long ttl, Long suggestedFee) {
+  public ConstructionMetadataResponse mapToMetadataResponse(ProtocolParams protocolParams, Long ttl,
+      Long suggestedFee) {
     return ConstructionMetadataResponse.builder()
-            .metadata(ConstructionMetadataResponseMetadata.builder()
-                .ttl(new BigDecimal(ttl))
-                .protocolParameters(protocolParamsToRosettaProtocolParameters.toProtocolParameters(protocolParams))
+        .metadata(ConstructionMetadataResponseMetadata.builder()
+            .ttl(new BigDecimal(ttl))
+            .protocolParameters(
+                protocolParamsToRosettaProtocolParameters.toProtocolParameters(protocolParams))
+            .build())
+        .suggestedFee(List.of(Amount.builder()
+            .value(suggestedFee.toString())
+            .currency(Currency.builder()
+                .decimals(Constants.ADA_DECIMALS)
+                .symbol(Constants.ADA)
                 .build())
-            .suggestedFee(List.of(Amount.builder()
-                            .value(suggestedFee.toString())
-                            .currency(Currency.builder()
-                                    .decimals(Constants.ADA_DECIMALS)
-                                    .symbol(Constants.ADA)
-                                    .build())
-                    .build()))
-            .build();
+            .build()))
+        .build();
   }
 
   public static List<Signatures> mapRosettaSignatureToSignaturesList(List<Signature> signatures) {
@@ -264,11 +268,12 @@ public class DataMapper {
       String chainCode = null;
       String address = null;
       AccountIdentifier accountIdentifier = signature.getSigningPayload().getAccountIdentifier();
-      if(!ObjectUtils.isEmpty(accountIdentifier)) {
+      if (!ObjectUtils.isEmpty(accountIdentifier)) {
         chainCode = accountIdentifier.getMetadata().getChainCode();
         address = accountIdentifier.getAddress();
       }
-      return new Signatures(signature.getHexBytes(), signature.getPublicKey().getHexBytes(), chainCode, address);
+      return new Signatures(signature.getHexBytes(), signature.getPublicKey().getHexBytes(),
+          chainCode, address);
     }).toList();
   }
 }

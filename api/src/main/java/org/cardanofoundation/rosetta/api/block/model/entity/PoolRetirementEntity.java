@@ -6,17 +6,13 @@ import jakarta.persistence.Id;
 import jakarta.persistence.IdClass;
 import jakarta.persistence.Table;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
 
 import org.hibernate.annotations.DynamicUpdate;
 
-@Data
+@Getter
 @NoArgsConstructor
-@AllArgsConstructor
-@SuperBuilder
 @Entity
 @Table(name = "pool_retirement")
 @IdClass(PoolRetirementId.class)

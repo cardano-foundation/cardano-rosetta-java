@@ -14,12 +14,14 @@ import com.bloxbean.cardano.client.exception.CborSerializationException;
 import com.bloxbean.cardano.client.transaction.spec.TransactionWitnessSet;
 import org.openapitools.client.model.DepositParameters;
 import org.openapitools.client.model.Operation;
+import org.openapitools.client.model.PublicKey;
 import org.openapitools.client.model.SigningPayload;
 
 import org.cardanofoundation.rosetta.api.block.model.domain.ProcessOperations;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
 import org.cardanofoundation.rosetta.common.enumeration.AddressType;
 import org.cardanofoundation.rosetta.common.enumeration.EraAddressType;
+import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
 import org.cardanofoundation.rosetta.common.model.cardano.crypto.Signatures;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.TransactionParsed;
@@ -65,4 +67,7 @@ public interface CardanoConstructionService {
   DepositParameters getDepositParameters();
 
   String extractTransactionIfNeeded(String txWithExtraData);
+
+  String getCardanoAddress(AddressType addressType, PublicKey stakingCredential,
+      PublicKey publicKey, NetworkEnum networkEnum);
 }

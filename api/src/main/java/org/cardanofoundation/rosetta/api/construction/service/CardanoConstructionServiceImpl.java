@@ -25,10 +25,14 @@ import co.nstant.in.cbor.model.DataItem;
 import co.nstant.in.cbor.model.MajorType;
 import co.nstant.in.cbor.model.UnicodeString;
 import co.nstant.in.cbor.model.UnsignedInteger;
+import com.bloxbean.cardano.client.account.Account;
+import com.bloxbean.cardano.client.address.Address;
+import com.bloxbean.cardano.client.address.AddressProvider;
 import com.bloxbean.cardano.client.address.ByronAddress;
 import com.bloxbean.cardano.client.common.cbor.CborSerializationUtil;
 import com.bloxbean.cardano.client.crypto.Blake2bUtil;
 import com.bloxbean.cardano.client.crypto.VerificationKey;
+import com.bloxbean.cardano.client.crypto.bip32.key.HdPublicKey;
 import com.bloxbean.cardano.client.exception.AddressExcepion;
 import com.bloxbean.cardano.client.exception.CborDeserializationException;
 import com.bloxbean.cardano.client.exception.CborSerializationException;
@@ -43,6 +47,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.openapitools.client.model.AccountIdentifier;
 import org.openapitools.client.model.DepositParameters;
 import org.openapitools.client.model.Operation;
+import org.openapitools.client.model.PublicKey;
 import org.openapitools.client.model.SignatureType;
 import org.openapitools.client.model.SigningPayload;
 
@@ -53,6 +58,7 @@ import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
 import org.cardanofoundation.rosetta.api.block.service.LedgerBlockService;
 import org.cardanofoundation.rosetta.common.enumeration.AddressType;
 import org.cardanofoundation.rosetta.common.enumeration.EraAddressType;
+import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
 import org.cardanofoundation.rosetta.common.exception.ApiException;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
@@ -534,7 +540,7 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
    */
   @Override
   public DepositParameters getDepositParameters() {
-    ProtocolParams pp = protocolParamService.findProtocolParametersFromIndexerAndConfig();
+    ProtocolParams pp = protocolParamService.findProtocolParametersFromIndexer();
     return new DepositParameters(pp.getKeyDeposit().toString(), pp.getPoolDeposit().toString());
   }
 
@@ -563,5 +569,58 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
     } else {
       return txWithExtraData;
     }
+  }
+
+  @Override
+  public String getCardanoAddress(AddressType addressType, PublicKey stakingCredential, PublicKey publicKey, NetworkEnum networkEnum) {
+    if(publicKey == null)
+      throw ExceptionFactory.publicKeyMissing();
+    String address;
+    switch (addressType) {
+      case BASE:
+        log.debug("Deriving base address");
+        if(stakingCredential == null)
+          throw ExceptionFactory.missingStakingKeyError();
+        log.debug("Deriving base address with staking credential: {}", stakingCredential);
+        Address baseAddress = AddressProvider.getBaseAddress(getHdPublicKeyFromRosettaKey(publicKey), getHdPublicKeyFromRosettaKey(stakingCredential), networkEnum.getNetwork());
+        address = baseAddress.getAddress();
+        break;
+      case REWARD:
+        log.debug("Deriving reward address");
+        Address rewardAddress;
+        if(stakingCredential == null) {
+          rewardAddress= AddressProvider.getRewardAddress(getHdPublicKeyFromRosettaKey(publicKey), networkEnum.getNetwork());
+          log.debug("Deriving reward address with staking credential: {}", publicKey);
+        } else {
+          rewardAddress= AddressProvider.getRewardAddress(getHdPublicKeyFromRosettaKey(stakingCredential), networkEnum.getNetwork());
+          log.debug("Deriving reward address with staking credential: {}", stakingCredential);
+        }
+        address = rewardAddress.getAddress();
+        break;
+      case ENTERPRISE:
+        log.info("Deriving enterprise address");
+        Address enterpriseAddress = AddressProvider.getEntAddress(getHdPublicKeyFromRosettaKey(publicKey), networkEnum.getNetwork());
+        address = enterpriseAddress.getAddress();
+        break;
+      default:
+        log.error("Invalid address type: {}", addressType);
+        throw ExceptionFactory.invalidAddressTypeError();
+    }
+    return address;
+  }
+
+  private HdPublicKey getHdPublicKeyFromRosettaKey(PublicKey publicKey) {
+    byte[] pubKeyBytes = HexUtil.decodeHexString(publicKey.getHexBytes());
+    HdPublicKey pubKey;
+    if(pubKeyBytes.length == 32) {
+      pubKey = new HdPublicKey();
+      pubKey.setKeyData(pubKeyBytes);
+    } else if(pubKeyBytes.length == 64) {
+      pubKey = HdPublicKey.fromBytes(pubKeyBytes);
+    } else {
+      log.error("Invalid public key length: {}", pubKeyBytes.length);
+      throw new IllegalArgumentException("Invalid public key length");
+    }
+    return pubKey;
   }
 }

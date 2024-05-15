@@ -4,18 +4,16 @@ import java.time.LocalDateTime;
 import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
 
 import org.hibernate.annotations.UpdateTimestamp;
 
-@Data
-@MappedSuperclass
+@Getter
+@EqualsAndHashCode
 @NoArgsConstructor
-@AllArgsConstructor
-@SuperBuilder
+@MappedSuperclass
 public class BlockAwareEntity {
 
   @Column(name = "block")

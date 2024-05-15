@@ -30,6 +30,11 @@ spring:
     hibernate:
       ddl-auto: none
     show-sql: true
+  mvc:
+    log-resolved-exception: true
+  output:
+    ansi:
+      enabled: always
 
 api:
   exception:
@@ -49,3 +54,19 @@ cardano:
     DEVKIT_PORT: ${HOST_N2C_SOCAT_PORT:3333}
     CARDANO_NODE_SUBMIT_HOST: ${CARDANO_NODE_SUBMIT_HOST}
     NODE_SUBMIT_API_PORT: ${NODE_SUBMIT_API_PORT}
+
+logging:
+  level:
+    root: INFO
+    org:
+      springframework:
+        web:
+          filter:
+            CommonsRequestLoggingFilter: DEBUG
+      hibernate:
+        SQL: DEBUG
+  path: ${LOG_FILE_PATH:logs}
+  file:
+    name: ${LOG_FILE_NAME:logs/rosetta-api.log}
+    max-size: ${LOG_FILE_MAX_SIZE:10MB}
+    max-history: ${LOG_FILE_MAX_HISTORY:10}

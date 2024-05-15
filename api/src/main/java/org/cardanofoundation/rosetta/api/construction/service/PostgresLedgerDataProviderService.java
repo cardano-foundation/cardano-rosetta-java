@@ -1,4 +1,4 @@
-package org.cardanofoundation.rosetta.common.services.impl;
+package org.cardanofoundation.rosetta.api.construction.service;
 
 import java.util.List;
 
@@ -20,7 +20,6 @@ import org.cardanofoundation.rosetta.api.account.model.repository.AddressUtxoRep
 import org.cardanofoundation.rosetta.api.block.model.domain.StakeAddressBalance;
 import org.cardanofoundation.rosetta.api.block.model.entity.UtxoKey;
 import org.cardanofoundation.rosetta.api.block.model.repository.StakeAddressRepository;
-import org.cardanofoundation.rosetta.common.services.LedgerDataProviderService;
 import org.cardanofoundation.rosetta.common.util.Formatters;
 
 @Slf4j
@@ -60,8 +59,7 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
 
   private Utxo createUtxoModel(List<Currency> currencies, AddressUtxoEntity entity) {
     Utxo utxoModel = mapper.map(
-        UtxoKey.builder().outputIndex(entity.getOutputIndex()).txHash(entity.getTxHash()).build(),
-        Utxo.class);
+        new UtxoKey(entity.getTxHash(), entity.getOutputIndex()), Utxo.class);
     utxoModel.setAmounts(getAmts(currencies, entity));
     return utxoModel;
   }
