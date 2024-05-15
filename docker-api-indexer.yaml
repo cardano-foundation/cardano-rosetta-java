@@ -46,7 +46,7 @@ services:
       db:
         condition: service_healthy
       yaci-indexer:
-        condition: service_started
+        condition: service_healthy
   yaci-indexer:
     image: cardanofoundation/cardano-rosetta-java-indexer:${INDEXER_DOCKER_IMAGE_TAG}
     build:
