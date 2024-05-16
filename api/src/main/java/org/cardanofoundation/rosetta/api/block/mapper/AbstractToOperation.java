@@ -6,7 +6,6 @@ import java.util.Optional;
 import jakarta.validation.constraints.NotNull;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.modelmapper.builder.ConfigurableConditionExpression;
 import org.openapitools.client.model.Amount;

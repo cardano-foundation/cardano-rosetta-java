@@ -7,7 +7,6 @@ import java.util.TreeSet;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import com.bloxbean.cardano.yaci.core.model.certs.CertificateType;
-import org.apache.commons.codec.binary.Hex;
 import org.assertj.core.util.introspection.CaseFormatUtils;
 import org.openapitools.client.model.Amount;
 import org.openapitools.client.model.CoinAction;
