@@ -285,8 +285,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperSetup {
 
     Amount token = bundle.getTokens().getFirst();
     assertThat(token.getCurrency().getSymbol())
-        .isEqualTo(Hex.encodeHexString(
-            from.getOutputs().getFirst().getAmounts().getFirst().getAssetName().getBytes()));
+        .isEqualTo("unit1");
     assertThat(token.getCurrency().getDecimals()).isZero();
   }
 
@@ -333,8 +332,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperSetup {
 
     Amount token = bundle.getTokens().getFirst();
     assertThat(token.getCurrency().getSymbol())
-        .isEqualTo(Hex.encodeHexString(
-            from.getInputs().getFirst().getAmounts().getFirst().getAssetName().getBytes()));
+        .isEqualTo("unit1");
     assertThat(token.getCurrency().getDecimals()).isZero();
   }
 
