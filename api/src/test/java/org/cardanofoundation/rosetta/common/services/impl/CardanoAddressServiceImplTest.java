@@ -9,7 +9,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.cardanofoundation.rosetta.common.enumeration.AddressType;
 import org.cardanofoundation.rosetta.common.exception.ApiException;
 
-import static org.cardanofoundation.rosetta.EntityGenerator.*;
+import static org.cardanofoundation.rosetta.EntityGenerator.givenPublicKey;
 import static org.cardanofoundation.rosetta.common.enumeration.AddressType.BASE;
 import static org.cardanofoundation.rosetta.common.enumeration.AddressType.REWARD;
 import static org.cardanofoundation.rosetta.common.enumeration.NetworkEnum.PREPROD;

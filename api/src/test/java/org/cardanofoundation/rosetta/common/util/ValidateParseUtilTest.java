@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 
 import org.cardanofoundation.rosetta.common.exception.ApiException;
 
+import static org.cardanofoundation.rosetta.EntityGenerator.givenPublicKey;
 import static org.cardanofoundation.rosetta.common.util.ValidateParseUtil.validateAndParsePoolKeyHash;
 import static org.cardanofoundation.rosetta.common.util.ValidateParseUtil.validateAndParseTransactionInput;
 import static org.cardanofoundation.rosetta.common.util.ValidateParseUtil.validateAndParseVoteRegistrationMetadata;
@@ -56,11 +57,7 @@ class ValidateParseUtilTest {
 
     @Test
     void validateAndParseVoteRegistrationMetadataWOStaikingKeyTest() {
-        PublicKey stakingCredential = PublicKey
-                .builder()
-                .hexBytes("1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F")
-                .curveType(EDWARDS25519)
-                .build();
+        PublicKey stakingCredential = givenPublicKey();
         ApiException exception = assertThrows(ApiException.class,
                 () -> validateAndParseVoteRegistrationMetadata(VoteRegistrationMetadata
                         .builder()
@@ -73,17 +70,14 @@ class ValidateParseUtilTest {
 
     @Test
     void validateAndParseVoteRegistrationMetadataInvalidStaikinKetTest() {
-        PublicKey stakingCredential = PublicKey
+        PublicKey stakingCredential = givenPublicKey();
+        VoteRegistrationMetadata voteRegistrationMetadata = VoteRegistrationMetadata
                 .builder()
-                .hexBytes("1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F")
-                .curveType(EDWARDS25519)
+                .votingkey(stakingCredential)
+                .stakeKey(new PublicKey("hex", EDWARDS25519))
                 .build();
         ApiException exception = assertThrows(ApiException.class,
-                () -> validateAndParseVoteRegistrationMetadata(VoteRegistrationMetadata
-                        .builder()
-                        .votingkey(stakingCredential)
-                        .stakeKey(new PublicKey("hex", EDWARDS25519))
-                        .build()));
+                () -> validateAndParseVoteRegistrationMetadata(voteRegistrationMetadata));
         assertEquals("Invalid staking key format", exception.getError().getMessage());
         assertEquals(4017, exception.getError().getCode());
     }
