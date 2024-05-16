@@ -52,7 +52,7 @@ public abstract class AbstractToOperation<T> {
             tokenBundleItem.setPolicyId(amount.getPolicyId());
             Amount amt = new Amount();
             amt.setValue(DataMapper.mapValue(amount.getQuantity().toString(), spent));
-            String hexAssetName = Hex.encodeHexString(amount.getAssetName().getBytes());
+            String hexAssetName = amount.getUnit().replace(amount.getPolicyId(), "");
             amt.setCurrency(Currency.builder()
                 .symbol(hexAssetName)
                 .decimals(0)
