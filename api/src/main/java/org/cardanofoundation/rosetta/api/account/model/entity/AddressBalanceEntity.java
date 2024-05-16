@@ -11,8 +11,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import org.hibernate.annotations.DynamicUpdate;
-
 
 @Getter
 @NoArgsConstructor
@@ -20,7 +18,6 @@ import org.hibernate.annotations.DynamicUpdate;
 @Entity
 @Table(name = "address_balance")
 @IdClass(AddressBalanceId.class)
-@DynamicUpdate
 public class AddressBalanceEntity {
 
   @Id

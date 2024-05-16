@@ -9,8 +9,6 @@ import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import org.hibernate.annotations.DynamicUpdate;
-
 import org.cardanofoundation.rosetta.api.account.model.entity.UtxoId;
 
 @Getter
@@ -18,7 +16,6 @@ import org.cardanofoundation.rosetta.api.account.model.entity.UtxoId;
 @Entity
 @Table(name = "tx_input")
 @IdClass(UtxoId.class)
-@DynamicUpdate
 public class TxInputEntity {
 
   @Id

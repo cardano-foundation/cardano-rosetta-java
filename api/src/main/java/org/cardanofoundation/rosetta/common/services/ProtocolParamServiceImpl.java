@@ -34,7 +34,11 @@ public class ProtocolParamServiceImpl implements ProtocolParamService {
 
   @Override
   public ProtocolParams findProtocolParametersFromIndexer() {
+    log.info("Fetching protocol parameters from the indexer");
     ProtocolParamsEntity paramsEntity = epochParamRepository.findLatestProtocolParams();
-    return mapperProtocolParams.fromEntity(paramsEntity);
+    cachedProtocolParams = mapperProtocolParams.fromEntity(paramsEntity);
+    log.info("Protocol parameters fetched from the indexer: {} \nand saved in cachedProtocolParams",
+        paramsEntity);
+    return cachedProtocolParams;
   }
 }

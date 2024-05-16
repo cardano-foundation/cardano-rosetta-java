@@ -9,14 +9,12 @@ import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import org.hibernate.annotations.DynamicUpdate;
 
 @Getter
 @NoArgsConstructor
 @Entity
 @Table(name = "pool_retirement")
 @IdClass(PoolRetirementId.class)
-@DynamicUpdate
 public class PoolRetirementEntity {
 
   @Id
@@ -30,9 +28,8 @@ public class PoolRetirementEntity {
   @Column(name = "pool_id")
   private String poolId;
 
-  // TODO check which epoch to use. Current or retirement epoch
-//  @Column(name = "retirement_epoch")
-//  private int retirementEpoch;
+  // TO check which epoch to use. Current or retirement epoch
+  // Could be used another column to fetch the retirement epoch (retirement_epoch)
 
   @Column(name = "epoch")
   private Integer epoch; //current epoch

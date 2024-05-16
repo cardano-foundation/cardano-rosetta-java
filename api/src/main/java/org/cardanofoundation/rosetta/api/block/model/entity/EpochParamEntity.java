@@ -3,7 +3,6 @@ package org.cardanofoundation.rosetta.api.block.model.entity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
-import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 
 import lombok.AllArgsConstructor;
@@ -28,15 +27,4 @@ public class EpochParamEntity {
   @Column(name = "params", columnDefinition = "json")
   private ProtocolParamsEntity params;
 
-  @PrePersist
-  public void preSave() {
-    if (this.getParams() == null) {
-      return;
-    }
-
-    //reset these fields
-    if (this.getParams().getCostModels() != null) {
-      this.getParams().setCostModels(null);
-    }
-  }
 }

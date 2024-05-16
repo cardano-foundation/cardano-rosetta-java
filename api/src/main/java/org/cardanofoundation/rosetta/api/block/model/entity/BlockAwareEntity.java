@@ -8,8 +8,6 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import org.hibernate.annotations.UpdateTimestamp;
-
 @Getter
 @EqualsAndHashCode
 @NoArgsConstructor
@@ -22,7 +20,6 @@ public class BlockAwareEntity {
   @Column(name = "block_time")
   private Long blockTime;
 
-  @UpdateTimestamp
   @Column(name = "update_datetime")
   private LocalDateTime updateDateTime;
 

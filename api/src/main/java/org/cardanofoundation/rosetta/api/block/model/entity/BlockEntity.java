@@ -14,7 +14,6 @@ import jakarta.persistence.Table;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -43,7 +42,6 @@ public class BlockEntity {
   @OneToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "prev_hash",
       foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "none"))
-  @EqualsAndHashCode.Exclude
   private BlockEntity prev;
 
   @OneToMany(fetch = FetchType.LAZY, mappedBy = "block")

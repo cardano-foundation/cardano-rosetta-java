@@ -14,7 +14,6 @@ import lombok.NoArgsConstructor;
 
 import com.bloxbean.cardano.yaci.core.model.Relay;
 import io.hypersistence.utils.hibernate.type.json.JsonType;
-import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Type;
 
 @Getter
@@ -22,7 +21,6 @@ import org.hibernate.annotations.Type;
 @Entity
 @Table(name = "pool_registration")
 @IdClass(PoolRegistrationId.class)
-@DynamicUpdate
 public class PoolRegistrationEntity {
 
   @Id

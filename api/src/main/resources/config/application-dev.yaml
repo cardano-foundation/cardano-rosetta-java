@@ -63,8 +63,6 @@ logging:
         web:
           filter:
             CommonsRequestLoggingFilter: DEBUG
-      hibernate:
-        SQL: DEBUG
   path: ${LOG_FILE_PATH:logs}
   file:
     name: ${LOG_FILE_NAME:logs/rosetta-api.log}
