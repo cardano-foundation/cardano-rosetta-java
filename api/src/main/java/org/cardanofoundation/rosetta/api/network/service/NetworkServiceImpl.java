@@ -148,8 +148,9 @@ public class NetworkServiceImpl implements NetworkService {
     return switch (networkMagic) {
       case Constants.MAINNET_NETWORK_MAGIC -> Networks.mainnet();
       case Constants.PREPROD_NETWORK_MAGIC -> Networks.preprod();
-      case Constants.TESTNET_NETWORK_MAGIC -> Networks.testnet();
-      case Constants.DEVNET_NETWORK_MAGIC -> new Network(0b0000, Constants.DEVKIT_PROTOCOL_MAGIC);
+      case Constants.PREVIEW_NETWORK_MAGIC -> Networks.preview();
+      case Constants.SANCHONET_NETWORK_MAGIC -> new Network(0b0000, Constants.SANCHONET_NETWORK_MAGIC);
+      case Constants.DEVKIT_NETWORK_MAGIC -> new Network(0b0000, Constants.DEVKIT_NETWORK_MAGIC);
       default -> throw ExceptionFactory.invalidNetworkError();
     };
   }
@@ -215,19 +216,16 @@ public class NetworkServiceImpl implements NetworkService {
     Network supportedNetwork = getSupportedNetwork();
 
     switch ((int) supportedNetwork.getProtocolMagic()) {
-      case Constants.MAINNET_PROTOCOL_MAGIC -> {
+      case Constants.MAINNET_NETWORK_MAGIC -> {
         return network.equalsIgnoreCase(Constants.MAINNET);
       }
-      case Constants.TESTNET_PROTOCOL_MAGIC -> {
-        return network.equalsIgnoreCase(Constants.TESTNET);
-      }
-      case Constants.PREPROD_PROTOCOL_MAGIC -> {
+      case Constants.PREPROD_NETWORK_MAGIC -> {
         return network.equals(Constants.PREPROD);
       }
-      case Constants.PREVIEW_PROTOCOL_MAGIC -> {
+      case Constants.PREVIEW_NETWORK_MAGIC -> {
         return network.equals(Constants.PREVIEW);
       }
-      case Constants.DEVKIT_PROTOCOL_MAGIC -> {
+      case Constants.DEVKIT_NETWORK_MAGIC -> {
         return network.equals(Constants.DEVKIT);
       }
       default -> {
