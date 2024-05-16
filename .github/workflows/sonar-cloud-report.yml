@@ -19,14 +19,8 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
           cache: maven
-      - name: Get PR info
-        id: pr_info
-        run: |
-          echo "PR_NUMBER=${{ github.event.pull_request.number }}" >> $GITHUB_ENV
-          echo "PR_BRANCH=${{ github.event.pull_request.head.ref }}" >> $GITHUB_ENV
-          echo "BASE_BRANCH=${{ github.event.pull_request.base.ref }}" >> $GITHUB_ENV
       - name: Build
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: mvn clean verify sonar:sonar -Dsonar.projectName=cardano-rosetta-java -Dsonar.organization=cardano-foundation -Dsonar.projectKey=cardano-foundation_cardano-rosetta-java -Dsonar.host.url=https://sonarcloud.io -Dsonar.pullrequest.key=$PR_NUMBER -Dsonar.pullrequest.branch=$PR_BRANCH -Dsonar.pullrequest.base=$BASE_BRANCH --file ./pom.xml
+        run: mvn clean verify sonar:sonar -Dsonar.projectName=cardano-rosetta-java -Dsonar.organization=cardano-foundation -Dsonar.projectKey=cardano-foundation_cardano-rosetta-java -Dsonar.host.url=https://sonarcloud.io --file ./pom.xml
