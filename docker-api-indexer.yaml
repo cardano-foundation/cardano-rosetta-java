@@ -5,94 +5,92 @@ services:
     build:
       context: ./
       dockerfile: ./api/Dockerfile
-      args:
-        NETWORK: "${NETWORK}"
-    platform: linux/amd64
     ports:
-      - "${API_PORT}:${API_PORT}"
+      - ${API_PORT}:${API_PORT}
     environment:
-      NETWORK: "${NETWORK}"
-      DB_HOST: "${DB_HOST}"
-      DB_PORT: "${DB_PORT}"
-      DB_NAME: "${DB_NAME}"
-      DB_USER: "${DB_ADMIN_USER_NAME}"
-      DB_SECRET: "${DB_ADMIN_USER_SECRET}"
-      DB_DRIVER_CLASS_NAME: "${DB_DRIVER_CLASS_NAME}"
+      NETWORK: ${NETWORK}
+      API_SPRING_PROFILES_ACTIVE: ${API_SPRING_PROFILES_ACTIVE}
       API_PORT: ${API_PORT}
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_SECRET: ${DB_SECRET}
+      DB_SCHEMA: ${DB_SCHEMA}
       CARDANO_NODE_VERSION: ${CARDANO_NODE_VERSION}
-      API_SPRING_PROFILES_ACTIVE: ${API_SPRING_PROFILES_ACTIVE_API}
-      DB_CONNECTION_PARAMS_PROVIDER_TYPE: ${DB_CONNECTION_PARAMS_PROVIDER_TYPE}
-      PROTOCOL_MAGIC: ${PROTOCOL_MAGIC}
-      NETWORK_MAGIC: ${PROTOCOL_MAGIC}
-      TRANSACTION_TTL: ${TRANSACTION_TTL}
       TOPOLOGY_FILEPATH: ${TOPOLOGY_FILEPATH}
       GENESIS_SHELLEY_PATH: ${GENESIS_SHELLEY_PATH}
-      NODE_SUBMIT_API_PORT: ${NODE_SUBMIT_API_PORT}
       CARDANO_NODE_SUBMIT_HOST: ${CARDANO_NODE_SUBMIT_HOST}
-      CARDANO_NODE_SOCKET: /ipc/node.socket
+      NODE_SUBMIT_API_PORT: ${NODE_SUBMIT_API_PORT}
+      CARDANO_NODE_SOCKET: ${CARDANO_NODE_SOCKET}
       DEVKIT_ENABLED: ${DEVKIT_ENABLED}
       DEVKIT_URL: ${DEVKIT_URL}
-      DEVKIT_PORT: ${HOST_N2C_SOCAT_PORT}
+      DEVKIT_PORT: ${DEVKIT_PORT}
     volumes:
-      - ./config:/config
-      - ${CARDANO_NODE_SOCKET}:/ipc/node.socket
+      - ./${CARDANO_CONFIG}:/config
+      - ./${CARDANO_NODE_SOCKET_PATH}:${CARDANO_NODE_SOCKET_PATH}
     healthcheck:
       test: [ "CMD-SHELL", "curl --fail http://localhost:${API_PORT}/network/options -H 'Content-Type: application/json' --data '{\"metadata\": {}}' -X POST" ]
       interval: 30s
       retries: 20
       start_period: 20s
       timeout: 10s
+    restart: always
     depends_on:
       db:
         condition: service_healthy
+
   yaci-indexer:
     image: cardanofoundation/cardano-rosetta-java-indexer:${INDEXER_DOCKER_IMAGE_TAG}
     build:
       context: ./
       dockerfile: ./yaci-indexer/Dockerfile
     environment:
+      NETWORK: ${NETWORK}
       YACI_SPRING_PROFILES: ${YACI_SPRING_PROFILES}
-      DB_HOST: "${DB_HOST}"
-      DB_PORT: "${DB_PORT}"
-      DB_NAME: "${DB_NAME}"
-      DB_USER: "${DB_ADMIN_USER_NAME}"
-      DB_SECRET: "${DB_ADMIN_USER_SECRET}"
-      DB_DRIVER_CLASS_NAME: "${DB_DRIVER_CLASS_NAME}"
-      CARDANO_NODE_HOST: "${CARDANO_NODE_HOST}"
-      CARDANO_NODE_PORT: "${INDEXER_NODE_PORT}"
-      PROTOCOL_MAGIC: "${PROTOCOL_MAGIC}"
-      NETWORK: "${NETWORK}"
-      GENESIS_SHELLEY_PATH: "${GENESIS_SHELLEY_PATH}"
-      GENESIS_BYRON_PATH: "${GENESIS_BYRON_PATH}"
-      GENESIS_ALONZO_PATH: "${GENESIS_ALONZO_PATH}"
-      GENESIS_CONWAY_PATH: "${GENESIS_CONWAY_PATH}"
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_SECRET: ${DB_SECRET}
+      DB_SCHEMA: ${DB_SCHEMA}
+      CARDANO_NODE_HOST: ${CARDANO_NODE_HOST}
+      CARDANO_NODE_PORT: ${CARDANO_NODE_PORT}
+      PROTOCOL_MAGIC: ${PROTOCOL_MAGIC}
+      GENESIS_SHELLEY_PATH: ${GENESIS_SHELLEY_PATH}
+      GENESIS_BYRON_PATH: ${GENESIS_BYRON_PATH}
+      GENESIS_ALONZO_PATH: ${GENESIS_ALONZO_PATH}
+      GENESIS_CONWAY_PATH: ${GENESIS_CONWAY_PATH}
       INITIAL_BALANCE_CALCULATION_BLOCK: ${INITIAL_BALANCE_CALCULATION_BLOCK}
     volumes:
-      - ./config:/config
+      - ./${CARDANO_CONFIG}:/config
     restart: always
     depends_on:
       db:
         condition: service_healthy
+
   db:
-    image: "${DB_IMAGE_NAME}:${DB_IMAGE_TAG}"
+    image: ${DB_IMAGE_NAME}:${DB_IMAGE_TAG}
     shm_size: 30g
     ports:
-      - "${DB_PORT}:${DB_PORT}"
+      - ${DB_PORT}:${DB_PORT}
     command: -p ${DB_PORT}
     environment:
-      POSTGRES_PASSWORD: "${DB_ADMIN_USER_SECRET}"
-      POSTGRES_USER: "${DB_ADMIN_USER_NAME}"
-      POSTGRES_DB: "${DB_NAME}"
+      POSTGRES_PASSWORD: ${DB_SECRET}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_DB: ${DB_NAME}
     restart: on-failure
     volumes:
-      - ${DB_PATH}:/var/lib/postgresql/data
+      - ./${DB_PATH}:/var/lib/postgresql/data
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${DB_ADMIN_USER_NAME} -p ${DB_PORT}" ]
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME} -p ${DB_PORT} -h localhost"]
       interval: 10s
       timeout: 3s
       retries: 10
+
 volumes:
   data:
+
 networks:
   default:
     name: cardano-rosetta-java-${NETWORK}
