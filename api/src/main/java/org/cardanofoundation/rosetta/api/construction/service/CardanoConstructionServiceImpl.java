@@ -610,7 +610,7 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
     return address;
   }
 
-  private HdPublicKey getHdPublicKeyFromRosettaKey(PublicKey publicKey) {
+  public HdPublicKey getHdPublicKeyFromRosettaKey(PublicKey publicKey) {
     byte[] pubKeyBytes = HexUtil.decodeHexString(publicKey.getHexBytes());
     HdPublicKey pubKey;
     if(pubKeyBytes.length == 32) {
