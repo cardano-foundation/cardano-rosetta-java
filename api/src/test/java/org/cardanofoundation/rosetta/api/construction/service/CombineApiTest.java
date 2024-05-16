@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import co.nstant.in.cbor.CborException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.openapitools.client.model.ConstructionCombineRequest;
 import org.openapitools.client.model.ConstructionCombineResponse;
@@ -27,7 +26,7 @@ class CombineApiTest extends IntegrationTest {
   }
 
   @Test
-  void combineWithMetadataTest() throws IOException, CborException {
+  void combineWithMetadataTest() throws IOException {
     ConstructionCombineRequest combineRequest = getCombineRequest(
         "testdata/construction/combine/combine_with_metadata.json");
 
@@ -38,7 +37,7 @@ class CombineApiTest extends IntegrationTest {
   }
 
   @Test
-  void combineWithByronAddressTest() throws IOException, CborException {
+  void combineWithByronAddressTest() throws IOException {
     ConstructionCombineRequest combineRequest = getCombineRequest(
         "testdata/construction/combine/combine_with_byron_addresses.json");
 
