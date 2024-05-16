@@ -1,7 +1,5 @@
 package org.cardanofoundation.rosetta.common.services;
 
-import javax.annotation.PostConstruct;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -19,17 +17,22 @@ public class ProtocolParamServiceImpl implements ProtocolParamService {
 
   private final EpochParamRepository epochParamRepository;
   private final ProtocolParamsToEntity mapperProtocolParams;
+  private final Object lock = new Object();
 
   private ProtocolParams cachedProtocolParams;
 
-  @PostConstruct
-  public void init() {
-    cachedProtocolParams = findProtocolParametersFromIndexer();
-  }
-
   @Override
   public ProtocolParams getProtocolParameters() {
-    return cachedProtocolParams;
+    ProtocolParams params = cachedProtocolParams;
+    if (params == null) {
+      synchronized (lock) {
+        params = cachedProtocolParams;
+        if (params == null) {
+          cachedProtocolParams = params = findProtocolParametersFromIndexer();
+        }
+      }
+    }
+    return params;
   }
 
   @Override
