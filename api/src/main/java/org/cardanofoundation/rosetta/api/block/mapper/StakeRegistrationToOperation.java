@@ -5,8 +5,11 @@ import lombok.AllArgsConstructor;
 import com.bloxbean.cardano.yaci.core.model.certs.CertificateType;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.spi.MappingContext;
+import org.openapitools.client.model.AccountIdentifier;
 import org.openapitools.client.model.Amount;
 import org.openapitools.client.model.Operation;
+import org.openapitools.client.model.OperationIdentifier;
+import org.openapitools.client.model.OperationMetadata;
 import org.openapitools.client.model.OperationStatus;
 
 import org.cardanofoundation.rosetta.api.block.model.domain.StakeRegistration;
@@ -21,17 +24,31 @@ public class StakeRegistrationToOperation extends AbstractToOperation<StakeRegis
   @Override
   public Operation toDto(StakeRegistration model, OperationStatus status, int index) {
     return modelMapper.typeMap(StakeRegistration.class, Operation.class)
-        .addMappings(mp -> {
+//        .addMappings(mp -> {
+//
+//          mp.map(f -> status.getStatus(), Operation::setStatus);
+//          mp.map(f -> convert(model.getType()), Operation::setType);
+//          mp.<String>map(StakeRegistration::getAddress, (d, v) -> d.getAccount().setAddress(v));
+//          mp.<Amount>map(f -> getDepositAmount(), (d, v) -> d.getMetadata().setDepositAmount(v));
+//          mp.<Long>map(f -> index, (d, v) -> d.getOperationIdentifier().setIndex(v));
+//
+//
+//        })
+        .setPostConverter(ctx -> {
+          var d = ctx.getDestination();
+          d.setMetadata(new OperationMetadata());
+          d.setAccount(new AccountIdentifier());
+          d.setOperationIdentifier(new OperationIdentifier());
 
-          mp.map(f -> status.getStatus(), Operation::setStatus);
-          mp.map(f -> convert(model.getType()), Operation::setType);
-          mp.<String>map(StakeRegistration::getAddress, (d, v) -> d.getAccount().setAddress(v));
-          mp.<Amount>map(f -> getDepositAmount(), (d, v) -> d.getMetadata().setDepositAmount(v));
-          mp.<Long>map(f -> index, (d, v) -> d.getOperationIdentifier().setIndex(v));
+          d.getAccount().setAddress(ctx.getSource().getAddress());
+          d.setType(convert(ctx.getSource().getType()));
+          d.setStatus(status.getStatus());
+          d.getOperationIdentifier().setIndex((long)index);
 
+          ctx.getDestination().getMetadata().setDepositAmount(getDepositAmount());
+          return d;
 
         })
-        .setPostConverter(MappingContext::getDestination)
         .map(model);
   }
 

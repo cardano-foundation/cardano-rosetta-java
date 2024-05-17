@@ -3,7 +3,9 @@ package org.cardanofoundation.rosetta.api.block.mapper;
 import lombok.AllArgsConstructor;
 
 import org.modelmapper.ModelMapper;
+import org.openapitools.client.model.AccountIdentifier;
 import org.openapitools.client.model.Operation;
+import org.openapitools.client.model.OperationIdentifier;
 import org.openapitools.client.model.OperationMetadata;
 import org.openapitools.client.model.OperationStatus;
 import org.openapitools.client.model.PoolRegistrationParams;
@@ -21,16 +23,23 @@ public class PoolRegistrationToOperation extends AbstractToOperation<PoolRegistr
   @Override
   public Operation toDto(PoolRegistration model, OperationStatus status, int index) {
     return modelMapper.typeMap(PoolRegistration.class, Operation.class)
-        .addMappings(mp -> {
-          mp.skip(Operation::setMetadata);
-          mp.<Long>map(f -> index, (d, v) -> d.getOperationIdentifier().setIndex(v));
-          mp.map(f -> status.getStatus(), Operation::setStatus);
-          mp.map(f -> OperationType.POOL_REGISTRATION.getValue(), Operation::setType);
-          mp.<String>map(PoolRegistration::getPoolId, (d, v) -> d.getAccount().setAddress(v));
-        })
+//        .addMappings(mp -> {
+//          mp.skip(Operation::setMetadata);
+//          mp.<Long>map(f -> index, (d, v) -> d.getOperationIdentifier().setIndex(v));
+//          mp.map(f -> status.getStatus(), Operation::setStatus);
+//          mp.map(f -> OperationType.POOL_REGISTRATION.getValue(), Operation::setType);
+//          mp.<String>map(PoolRegistration::getPoolId, (d, v) -> d.getAccount().setAddress(v));
+//        })
         .setPostConverter(ctx -> {
           var d = ctx.getDestination();
           d.setMetadata(new OperationMetadata());
+          d.setAccount(new AccountIdentifier());
+          d.setOperationIdentifier(new OperationIdentifier());
+
+          d.getAccount().setAddress(ctx.getSource().getPoolId());
+          d.setType(OperationType.POOL_REGISTRATION.getValue());
+          d.setStatus(status.getStatus());
+          d.getOperationIdentifier().setIndex((long)index);
 
           ctx.getDestination().getMetadata().setDepositAmount(getDepositAmount());
           ctx.getDestination().getMetadata()

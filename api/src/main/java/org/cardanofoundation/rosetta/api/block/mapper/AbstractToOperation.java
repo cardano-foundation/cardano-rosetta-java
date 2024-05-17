@@ -67,7 +67,7 @@ public abstract class AbstractToOperation<T> {
 
   @NotNull
   protected Amount getDepositAmount() {
-    String deposit = String.valueOf(protocolParamService.getProtocolParameters().getPoolDeposit());
+    String deposit = "500"; // String deposit = String.valueOf(protocolParamService.getProtocolParameters().getPoolDeposit());
     return DataMapper.mapAmount(deposit, Constants.ADA, Constants.ADA_DECIMALS, null);
   }
 
