@@ -24,9 +24,6 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
-        jdbc:
-          lob:
-            non-contextual-creation: true
     hibernate:
       ddl-auto: none
     show-sql: true
