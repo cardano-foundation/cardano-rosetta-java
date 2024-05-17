@@ -19,11 +19,8 @@ public class ProtocolParamsToEntity {
     return modelMapper.typeMap(ProtocolParamsEntity.class, ProtocolParams.class)
         .implicitMappings()
         .addMappings(mapper -> {
-          mapper.<String>map(ProtocolParamsEntity::getExtraEntropy, (dest, v) -> dest.getExtraEntropy().setTag(v));
-          mapper.map(ProtocolParamsEntity::getMaxBlockSize, ProtocolParams::setMaxBlockBodySize);
           mapper.<Integer>map(ProtocolParamsEntity::getProtocolMajorVer, (dest, v) -> dest.getProtocolVersion().setMajor(v));
           mapper.<Integer>map(ProtocolParamsEntity::getProtocolMinorVer, (dest, v) -> dest.getProtocolVersion().setMinor(v));
-          mapper.map(ProtocolParamsEntity::getMinUtxo, ProtocolParams::setMinUtxoValue);
         })
         .map(entity);
   }
