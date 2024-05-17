@@ -58,4 +58,10 @@ public class BlockEntity {
 
   @Column(name = "epoch")
   private Integer epochNumber;
+
+  public BlockEntity(String hash, Long number, Long blockTimeInSeconds) {
+    this.hash = hash;
+    this.number = number;
+    this.blockTimeInSeconds = blockTimeInSeconds;
+  }
 }

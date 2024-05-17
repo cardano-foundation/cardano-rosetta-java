@@ -10,8 +10,10 @@ import org.cardanofoundation.rosetta.api.block.model.entity.BlockEntity;
 
 public interface BlockRepository extends JpaRepository<BlockEntity, Long> {
 
-  @Query(value = "SELECT  b FROM BlockEntity b WHERE b.prev.hash IS NULL")
-  Optional<BlockEntity> findGenesisBlock();
+  @Query("SELECT NEW org.cardanofoundation.rosetta.api.block.model.entity."
+      + "BlockEntity(b.hash, b.number, b.blockTimeInSeconds) FROM BlockEntity b "
+      + "WHERE b.prev.hash IS NULL ORDER BY b.number ASC LIMIT 1")
+  Optional<BlockEntity> findGenesisBlockHashAndNumber();
 
   Optional<BlockEntity> findByNumber(Long blockNumber);
 
@@ -20,5 +22,11 @@ public interface BlockRepository extends JpaRepository<BlockEntity, Long> {
   Optional<BlockEntity> findByNumberAndHash(Long blockNumber, String blockHash);
 
   @Query("FROM BlockEntity b ORDER BY b.number DESC LIMIT 1")
-  BlockEntity findLatestBlock();
+  Optional<BlockEntity> findLatestBlock();
+
+  @Query("SELECT NEW org.cardanofoundation.rosetta.api.block.model.entity. "
+      + "BlockEntity(b.hash, b.number, b.blockTimeInSeconds) FROM BlockEntity b "
+      + "ORDER BY b.number DESC LIMIT 1")
+  Optional<BlockEntity> findLatestBlockHashAndNumber();
+
 }

@@ -274,6 +274,11 @@ public class ExceptionFactory {
         RosettaErrorType.DESERIALIZATION_ERROR.toRosettaError(false, new Details(details)));
   }
 
+  public static ApiException latestBlockNotFoundException() {
+    return new ApiException(
+        RosettaErrorType.LATEST_BLOCK_NOT_FOUND.toRosettaError(true));
+  }
+
   private ExceptionFactory() {
   }
 }

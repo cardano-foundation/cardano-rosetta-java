@@ -20,7 +20,6 @@ public class Constants {
   public static final String CONTENT_TYPE_HEADER_KEY = "Content-Type";
   public static final int TX_HASH_LENGTH = 64;
   public static final String PROTOCOL = "http://";
-  public static final String NETWORK_ID_NAME = "networkId";
   public static final String NETWORK_MAGIC_NAME = "networkMagic";
   public static final int MAINNET_NETWORK_MAGIC = 764824073;
   public static final String KEY_REFUNDS_SUM = "keyRefundsSum";
@@ -32,6 +31,7 @@ public class Constants {
   public static final int PREPROD_PROTOCOL_MAGIC = 1;
   public static final int PREVIEW_PROTOCOL_MAGIC = 2;
   public static final int DEVKIT_PROTOCOL_MAGIC = 42;
+  public static final String CACHE = "CACHE";
 
   private Constants() {
   }
@@ -116,9 +116,9 @@ public class Constants {
 
   public static final Integer ED_25519_KEY_SIGNATURE_BYTE_LENGTH = 64;
 
-    public static final String CERTIFICATE = "certificate";
-    public static final String ADDRESS = "address";
-    public static final String ADDRESS_PREFIX = "addr";
+  public static final String CERTIFICATE = "certificate";
+  public static final String ADDRESS = "address";
+  public static final String ADDRESS_PREFIX = "addr";
 
   public static final String POOL_KEY_HASH = "pool_key_hash";
   public static final String VOTING_KEY = "votingKey";

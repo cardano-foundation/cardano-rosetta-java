@@ -1,6 +1,5 @@
 package org.cardanofoundation.rosetta.api.network.service;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -8,8 +7,6 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Optional;
-import jakarta.annotation.PostConstruct;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +16,6 @@ import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
 import com.bloxbean.cardano.client.common.model.Network;
 import com.bloxbean.cardano.client.common.model.Networks;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.parser.OpenAPIV3Parser;
 import org.json.JSONObject;
@@ -35,13 +31,9 @@ import org.openapitools.client.model.OperationStatus;
 import org.openapitools.client.model.Peer;
 import org.openapitools.client.model.Version;
 
-import org.cardanofoundation.rosetta.api.block.model.domain.Block;
-import org.cardanofoundation.rosetta.api.block.model.domain.GenesisBlock;
+import org.cardanofoundation.rosetta.api.block.model.domain.BlockIdentifierExtended;
 import org.cardanofoundation.rosetta.api.block.model.domain.NetworkStatus;
 import org.cardanofoundation.rosetta.api.block.service.LedgerBlockService;
-import org.cardanofoundation.rosetta.api.network.model.Producer;
-import org.cardanofoundation.rosetta.api.network.model.PublicRoot;
-import org.cardanofoundation.rosetta.api.network.model.TopologyConfig;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.common.enumeration.OperationTypeStatus;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
@@ -57,31 +49,18 @@ import org.cardanofoundation.rosetta.config.RosettaConfig;
 public class NetworkServiceImpl implements NetworkService {
 
   private final RosettaConfig rosettaConfig;
-
   private final LedgerBlockService ledgerBlockService;
   private final DataMapper datamapper;
-
-  @Value("${cardano.rosetta.TOPOLOGY_FILEPATH}")
-  private String topologyFilepath;
-  @Value("${cardano.rosetta.GENESIS_SHELLEY_PATH}")
-  private String genesisPath;
-
-  @Value("${cardano.rosetta.CARDANO_NODE_VERSION}")
-  private String cardanoNodeVersion;
+  private final TopologyConfigService topologyConfigService;
   private final ResourceLoader resourceLoader;
 
-  @PostConstruct
-  public void filePathExistingValidator() {
-    validator(topologyFilepath);
-    validator(genesisPath);
-  }
+  private final Object lock = new Object();
+  private Integer cachedMagicNumber;
 
-  private void validator(String path) {
-    if (!new File(path).exists()) {
-      throw ExceptionFactory.configNotFoundException();
-    }
-  }
-
+  @Value("${cardano.rosetta.GENESIS_SHELLEY_PATH}")
+  private String genesisShelleyPath;
+  @Value("${cardano.rosetta.CARDANO_NODE_VERSION}")
+  private String cardanoNodeVersion;
 
   @Override
   public NetworkListResponse getNetworkList(MetadataRequest metadataRequest) {
@@ -91,17 +70,23 @@ public class NetworkServiceImpl implements NetworkService {
   }
 
   @Override
-  public NetworkOptionsResponse getNetworkOptions(NetworkRequest networkRequest)
-      throws IOException {
+  public NetworkOptionsResponse getNetworkOptions(NetworkRequest networkRequest) {
     log.info("[networkOptions] Looking for networkOptions");
-    InputStream openAPIStream = resourceLoader.getResource(
-        "classpath:/rosetta-specifications-1.4.15/api.yaml").getInputStream();
-    OpenAPI openAPI = new OpenAPIV3Parser().readContents(new String(openAPIStream.readAllBytes()),
-            null,
-            null)
-        .getOpenAPI();
-    String rosettaVersion = openAPI.getInfo().getVersion();
-    String implementationVersion = rosettaConfig.getImplementationVersion();
+
+    String rosettaVersion;
+    String implementationVersion;
+    try {
+      InputStream openAPIStream = resourceLoader.getResource(
+          "classpath:/rosetta-specifications-1.4.15/api.yaml").getInputStream();
+      OpenAPI openAPI = new OpenAPIV3Parser().readContents(new String(openAPIStream.readAllBytes()),
+              null,
+              null)
+          .getOpenAPI();
+      rosettaVersion = openAPI.getInfo().getVersion();
+      implementationVersion = rosettaConfig.getImplementationVersion();
+    } catch (IOException e) {
+      throw ExceptionFactory.configNotFoundException();
+    }
 
     OperationStatus success = new OperationStatus().successful(true)
         .status(OperationTypeStatus.SUCCESS.getValue());
@@ -134,9 +119,8 @@ public class NetworkServiceImpl implements NetworkService {
   }
 
   @Override
-  public NetworkStatusResponse getNetworkStatus(NetworkRequest networkRequest)
-      throws IOException {
-    log.debug("[networkStatus] Request received: {}", networkRequest.toString());
+  public NetworkStatusResponse getNetworkStatus(NetworkRequest networkRequest) {
+    log.debug("[networkStatus] Request received:" + networkRequest.toString());
     log.info("[networkStatus] Looking for latest block");
     NetworkStatus networkStatus = networkStatus();
     return datamapper.mapToNetworkStatusResponse(networkStatus);
@@ -144,15 +128,7 @@ public class NetworkServiceImpl implements NetworkService {
 
   @Override
   public Network getSupportedNetwork() {
-
-    String content = null;
-    try {
-      content = FileUtils.fileReader(genesisPath);
-    } catch (IOException e) {
-      throw ExceptionFactory.configNotFoundException();
-    }
-    JSONObject object = new JSONObject(content);
-    Integer networkMagic = (Integer) object.get(Constants.NETWORK_MAGIC_NAME);
+    Integer networkMagic = getNetworkMagic();
     return switch (networkMagic) {
       case Constants.MAINNET_NETWORK_MAGIC -> Networks.mainnet();
       case Constants.PREPROD_NETWORK_MAGIC -> Networks.preprod();
@@ -162,45 +138,22 @@ public class NetworkServiceImpl implements NetworkService {
     };
   }
 
-  private NetworkStatus networkStatus() throws IOException {
+  private NetworkStatus networkStatus() {
     log.info("[networkStatus] Looking for latest block");
-    Block latestBlock = ledgerBlockService.findLatestBlock();
-    log.debug("[networkStatus] Latest block found {}", latestBlock);
-    log.debug("[networkStatus] Looking for genesis block");
-    GenesisBlock genesisBlock = ledgerBlockService.findGenesisBlock();
-    log.debug("[networkStatus] Genesis block found {}", genesisBlock);
+    BlockIdentifierExtended latestBlock = ledgerBlockService.findLatestBlockIdentifier();
+    log.debug("[networkStatus] Latest block found " + latestBlock);
 
-    ObjectMapper mapper = new ObjectMapper();
-    String content = FileUtils.fileReader(topologyFilepath);
-    TopologyConfig topologyConfig = mapper.readValue(content, TopologyConfig.class);
+    log.debug("[networkStatus] Looking for genesis block");
+    BlockIdentifierExtended genesisBlock = ledgerBlockService.findGenesisBlockIdentifier();
+    log.debug("[networkStatus] Genesis block found " + genesisBlock);
+
+    List<Peer> peers = topologyConfigService.getPeers();
 
     return NetworkStatus.builder()
         .latestBlock(latestBlock)
         .genesisBlock(genesisBlock)
-        .peers(getPeerFromConfig(topologyConfig))
+        .peers(peers)
         .build();
-  }
-
-  private List<Peer> getPeerFromConfig(TopologyConfig topologyFile) {
-    log.info("[getPeersFromConfig] Looking for peers from topologyFile");
-    List<Producer> producers = Optional.ofNullable(topologyFile).map(
-            TopologyConfig::getProducers)
-        .orElseGet(() -> {
-          assert topologyFile != null;
-          return getPublicRoots(topologyFile.getPublicRoots());
-        });
-    log.debug("[getPeersFromConfig] Found {} peers", producers.size());
-    return producers.stream().map(producer -> new Peer(producer.getAddr(), null)).toList();
-  }
-
-  private List<Producer> getPublicRoots(List<PublicRoot> publicRoots) {
-    if (publicRoots == null) {
-      return new ArrayList<>();
-    }
-    return publicRoots.stream().flatMap(pr -> pr.getAccessPoints().stream())
-        .map(ap -> Producer.builder().addr(ap.getAddress()).build())
-        .toList();
-
   }
 
   @Override
@@ -241,6 +194,29 @@ public class NetworkServiceImpl implements NetworkService {
       default -> {
         return false;
       }
+    }
+  }
+
+  public Integer getNetworkMagic() {
+    Integer magicNumber = cachedMagicNumber;
+    if (magicNumber == null) {
+      synchronized (lock) {
+        magicNumber = cachedMagicNumber;
+        if (magicNumber == null) {
+          JSONObject json = loadGenesisShelleyConfig();
+          cachedMagicNumber = magicNumber = (Integer) json.get(Constants.NETWORK_MAGIC_NAME);
+        }
+      }
+    }
+    return magicNumber;
+  }
+
+  private JSONObject loadGenesisShelleyConfig() {
+    try {
+      String content = FileUtils.fileReader(genesisShelleyPath);
+      return new JSONObject(content);
+    } catch (IOException e) {
+      throw ExceptionFactory.configNotFoundException();
     }
   }
 

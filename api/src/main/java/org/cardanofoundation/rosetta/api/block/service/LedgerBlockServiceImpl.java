@@ -8,6 +8,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.apache.commons.lang3.ObjectUtils;
@@ -20,9 +21,9 @@ import org.cardanofoundation.rosetta.api.block.mapper.BlockToEntity;
 import org.cardanofoundation.rosetta.api.block.mapper.BlockTxToEntity;
 import org.cardanofoundation.rosetta.api.block.mapper.WithdrawalEntityToWithdrawal;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
+import org.cardanofoundation.rosetta.api.block.model.domain.BlockIdentifierExtended;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.model.domain.Delegation;
-import org.cardanofoundation.rosetta.api.block.model.domain.GenesisBlock;
 import org.cardanofoundation.rosetta.api.block.model.domain.PoolRegistration;
 import org.cardanofoundation.rosetta.api.block.model.domain.PoolRetirement;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
@@ -39,6 +40,7 @@ import org.cardanofoundation.rosetta.api.block.model.repository.TxRepository;
 import org.cardanofoundation.rosetta.api.block.model.repository.WithdrawalRepository;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
+import org.cardanofoundation.rosetta.common.util.Constants;
 
 
 @Slf4j
@@ -107,17 +109,31 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
   @Override
   public Block findLatestBlock() {
     log.debug("About to look for latest block");
-    BlockEntity latestBlock = blockRepository.findLatestBlock();
+    BlockEntity latestBlock = blockRepository.findLatestBlock()
+        .orElseThrow(ExceptionFactory::latestBlockNotFoundException);
     log.debug("Returning latest block {}", latestBlock);
     return toModelFrom(latestBlock);
   }
 
   @Override
-  public GenesisBlock findGenesisBlock() {
-    log.debug("About to run findGenesisBlock query");
-    return blockRepository.findGenesisBlock()
-        .map(b -> mapper.map(b, GenesisBlock.class))
+  public BlockIdentifierExtended findLatestBlockIdentifier() {
+    log.debug("About to look for latest block");
+    BlockIdentifierExtended latestBlock = blockRepository.findLatestBlockHashAndNumber()
+        .map(b -> mapper.map(b, BlockIdentifierExtended.class))
         .orElseThrow(ExceptionFactory::genesisBlockNotFound);
+    log.debug("Returning latest block {}", latestBlock);
+    return latestBlock;
+  }
+
+  @Override
+  @Cacheable(value = Constants.CACHE, key = "#root.method.name")
+  public BlockIdentifierExtended findGenesisBlockIdentifier() {
+    log.debug("About to run findGenesisBlock query");
+    BlockIdentifierExtended genesisBlock = blockRepository.findGenesisBlockHashAndNumber()
+        .map(b -> mapper.map(b, BlockIdentifierExtended.class))
+        .orElseThrow(ExceptionFactory::genesisBlockNotFound);
+    log.debug("Returning genesis block {}", genesisBlock);
+    return genesisBlock;
   }
 
   private void populateTransaction(BlockTx transaction) {
