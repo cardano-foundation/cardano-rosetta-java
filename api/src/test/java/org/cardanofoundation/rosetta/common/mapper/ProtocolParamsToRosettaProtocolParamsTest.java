@@ -13,7 +13,7 @@ import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams.Proto
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class ProtocolParamsToRosettaProtocolParamsTest extends BaseMapperSetup {
+class ProtocolParamsToRosettaProtocolParamsTest extends BaseMapperSetup {
 
   @Autowired
   private ProtocolParamsToRosettaProtocolParameters mapper;

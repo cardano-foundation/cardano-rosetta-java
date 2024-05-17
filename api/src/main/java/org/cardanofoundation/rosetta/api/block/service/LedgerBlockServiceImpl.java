@@ -2,8 +2,8 @@ package org.cardanofoundation.rosetta.api.block.service;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
+import jakarta.transaction.Transactional;
 import jakarta.validation.constraints.NotNull;
 
 import lombok.RequiredArgsConstructor;
@@ -15,7 +15,6 @@ import org.modelmapper.ModelMapper;
 
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.account.model.entity.AddressUtxoEntity;
-import org.cardanofoundation.rosetta.api.account.model.entity.UtxoId;
 import org.cardanofoundation.rosetta.api.account.model.repository.AddressUtxoRepository;
 import org.cardanofoundation.rosetta.api.block.mapper.BlockToEntity;
 import org.cardanofoundation.rosetta.api.block.mapper.BlockTxToEntity;
@@ -82,8 +81,7 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
   @NotNull
   private Block toModelFrom(BlockEntity blockEntity) {
     Block model = mapperBlock.fromEntity(blockEntity);
-    ProtocolParams pps = protocolParamService.findProtocolParametersFromIndexerAndConfig();
-    model.getTransactions().forEach(transaction -> populateTransaction(transaction, pps));
+    model.getTransactions().forEach(this::populateTransaction);
     return model;
   }
 
@@ -99,8 +97,7 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
     log.debug("Found {} transactions", txList.size());
     if (ObjectUtils.isNotEmpty(txList)) {
       List<BlockTx> transactions = txList.stream().map(mapperTran::fromEntity).toList();
-      ProtocolParams pps = protocolParamService.findProtocolParametersFromIndexerAndConfig();
-      transactions.forEach(t-> populateTransaction(t,pps));
+      transactions.forEach(this::populateTransaction);
       return transactions;
     }
     return Collections.emptyList();
@@ -124,34 +121,18 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
   }
 
 
-  private void populateTransaction(BlockTx transaction, ProtocolParams pps) {
-
-    log.debug("Populating transaction input: {}", transaction.getInputs().stream().map(Utxo::getTxHash).toList());
-    log.debug("Populating transaction input: {}", transaction.getInputs().stream().map(Utxo::getOutputIndex).toList());
-
-    log.debug("Populating transaction output: {}", transaction.getOutputs().stream().map(Utxo::getTxHash).toList());
-    log.debug("Populating transaction output: {}", transaction.getOutputs().stream().map(Utxo::getOutputIndex).toList());
-
-    List<UtxoId> inpListId = transaction.getInputs()
-        .stream()
-        .map(t -> new UtxoId(t.getTxHash(), t.getOutputIndex())).toList();
-
-    List<UtxoId> outListId = transaction.getOutputs()
-        .stream()
-        .map(t -> new UtxoId(t.getTxHash(), t.getOutputIndex())).toList();
-
-    List<AddressUtxoEntity> input  = addressUtxoRepository.findAllById(inpListId);
-    List<AddressUtxoEntity> output = addressUtxoRepository.findAllById(outListId);
+  @Transactional
+  private void populateTransaction(BlockTx transaction) {
 
     Optional.ofNullable(transaction.getInputs())
         .stream()
         .flatMap(List::stream)
-        .forEach(f-> populateUtxo(f, input));
+        .forEach(this::populateUtxo);
 
     Optional.ofNullable(transaction.getOutputs())
         .stream()
         .flatMap(List::stream)
-        .forEach(f-> populateUtxo(f, output));
+        .forEach(this::populateUtxo);
 
     transaction.setStakeRegistrations(
         stakeRegistrationRepository
@@ -188,6 +169,7 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
         .map(withdrawalEntityToWithdrawal::fromEntity)
         .toList());
 
+    ProtocolParams pps = protocolParamService.findProtocolParametersFromIndexer();
     transaction.setSize(calcSize(transaction, pps));
   }
 
@@ -195,12 +177,10 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
     return (Long.parseLong(tx.getFee()) - p.getMinFeeB().longValue()) / p.getMinFeeA().longValue();
   }
 
-  private void populateUtxo(Utxo utxo, List<AddressUtxoEntity> entities) {
-
-    Optional<AddressUtxoEntity> first = entities.stream().filter(
-            f -> Objects.equals(f.getOutputIndex(), utxo.getOutputIndex()) && f.getTxHash().equals(utxo.getTxHash()))
-        .findFirst();
-
-    first.ifPresent(m -> mapper.map(m, utxo));
+  private void populateUtxo(Utxo utxo) {
+    AddressUtxoEntity first = addressUtxoRepository
+        .findAddressUtxoEntitiesByOutputIndexAndTxHash(utxo.getOutputIndex(), utxo.getTxHash())
+        .getFirst();
+    Optional.ofNullable(first).ifPresent(m -> mapper.map(m, utxo));
   }
 }

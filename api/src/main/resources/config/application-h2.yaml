@@ -30,6 +30,11 @@ spring:
     hibernate:
       ddl-auto: none
     show-sql: true
+  mvc:
+    log-resolved-exception: true
+  output:
+    ansi:
+      enabled: detect
 
 api:
   exception:
@@ -49,3 +54,20 @@ cardano:
     DEVKIT_ENABLED: ${DEVKIT_ENABLED:false}
     DEVKIT_URL: ${DEVKIT_URL:yaci-cli}
     DEVKIT_PORT: ${DEVKIT_PORT:3333}
+
+logging:
+  level:
+    root: INFO
+    org:
+      springframework:
+        transaction: DEBUG
+        orm:
+          jpa: DEBUG
+        web:
+          filter:
+            CommonsRequestLoggingFilter: DEBUG
+  path: ${LOG_FILE_PATH:logs}
+  file:
+    name: ${LOG_FILE_NAME:logs/rosetta-api.log}
+    max-size: ${LOG_FILE_MAX_SIZE:10MB}
+    max-history: ${LOG_FILE_MAX_HISTORY:10}

@@ -27,7 +27,7 @@ class DeriveApiTest extends IntegrationTest {
   }
 
   @Test
-  void deriveAddressTest() throws IOException, IllegalAccessException {
+  void deriveAddressTest() throws IOException {
     ConstructionDeriveRequest deriveRequest = getDeriveRequest(
         "testdata/construction/derive/derive_request.json");
     ConstructionDeriveResponse constructionDeriveResponse = constructionApiService.constructionDeriveService(

@@ -9,24 +9,18 @@ import jakarta.persistence.Id;
 import jakarta.persistence.IdClass;
 import jakarta.persistence.Table;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
 
 import com.bloxbean.cardano.yaci.core.model.Relay;
 import io.hypersistence.utils.hibernate.type.json.JsonType;
-import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Type;
 
-@Data
+@Getter
 @NoArgsConstructor
-@AllArgsConstructor
-@SuperBuilder
 @Entity
 @Table(name = "pool_registration")
 @IdClass(PoolRegistrationId.class)
-@DynamicUpdate
 public class PoolRegistrationEntity {
 
   @Id
