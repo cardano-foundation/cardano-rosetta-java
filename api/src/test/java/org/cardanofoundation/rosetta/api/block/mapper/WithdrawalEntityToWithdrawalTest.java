@@ -12,13 +12,13 @@ import org.cardanofoundation.rosetta.api.block.model.entity.WithdrawalEntity;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-public class WithdrawalEntityToWithdrawalTest extends BaseMapperSetup {
+class WithdrawalEntityToWithdrawalTest extends BaseMapperSetup {
 
   @Autowired
   private WithdrawalEntityToWithdrawal my;
 
   @Test
-  public void fromEntity() {
+  void fromEntity() {
     WithdrawalEntity from = newWithdrawalEntity();
     Withdrawal into = my.fromEntity(from);
 
@@ -27,10 +27,7 @@ public class WithdrawalEntityToWithdrawalTest extends BaseMapperSetup {
   }
 
   private WithdrawalEntity newWithdrawalEntity() {
-    return WithdrawalEntity.builder()
-        .address("address")
-        .amount(BigInteger.ONE)
-        .build();
+    return new WithdrawalEntity("address", null, BigInteger.ONE);
   }
 
 }

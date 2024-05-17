@@ -13,11 +13,8 @@ class AddressBalanceTest {
 
   @Test
   void fromEntityPositiveTest() {
-    AddressBalanceEntity addressBalanceEntity = new AddressBalanceEntity();
-    addressBalanceEntity.setAddress("address");
-    addressBalanceEntity.setUnit("unit");
-    addressBalanceEntity.setSlot(1L);
-    addressBalanceEntity.setQuantity(BigInteger.ONE);
+    AddressBalanceEntity addressBalanceEntity = new AddressBalanceEntity("address", "unit", 1L,
+        BigInteger.ONE, null);
 
     AddressBalance addressBalance = AddressBalance.fromEntity(addressBalanceEntity);
 

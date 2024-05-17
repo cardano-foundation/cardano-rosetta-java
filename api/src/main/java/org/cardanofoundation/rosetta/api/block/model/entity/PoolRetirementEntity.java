@@ -6,21 +6,15 @@ import jakarta.persistence.Id;
 import jakarta.persistence.IdClass;
 import jakarta.persistence.Table;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
 
-import org.hibernate.annotations.DynamicUpdate;
 
-@Data
+@Getter
 @NoArgsConstructor
-@AllArgsConstructor
-@SuperBuilder
 @Entity
 @Table(name = "pool_retirement")
 @IdClass(PoolRetirementId.class)
-@DynamicUpdate
 public class PoolRetirementEntity {
 
   @Id
@@ -34,9 +28,8 @@ public class PoolRetirementEntity {
   @Column(name = "pool_id")
   private String poolId;
 
-  // TODO check which epoch to use. Current or retirement epoch
-//  @Column(name = "retirement_epoch")
-//  private int retirementEpoch;
+  // TO check which epoch to use. Current or retirement epoch
+  // Could be used another column to fetch the retirement epoch (retirement_epoch)
 
   @Column(name = "epoch")
   private Integer epoch; //current epoch

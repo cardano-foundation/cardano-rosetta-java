@@ -1,4 +1,4 @@
-package org.cardanofoundation.rosetta.common.services;
+package org.cardanofoundation.rosetta.api.construction.service;
 
 
 import java.util.List;

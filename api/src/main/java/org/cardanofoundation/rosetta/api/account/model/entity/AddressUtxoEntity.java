@@ -8,24 +8,20 @@ import jakarta.persistence.IdClass;
 import jakarta.persistence.Table;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
 
 import io.hypersistence.utils.hibernate.type.json.JsonType;
-import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Type;
 
 import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
 
-@Data
+@Getter
 @NoArgsConstructor
 @AllArgsConstructor
-@SuperBuilder
 @Entity
 @Table(name = "address_utxo")
 @IdClass(UtxoId.class)
-@DynamicUpdate
 public class AddressUtxoEntity {
 
   @Id
