@@ -51,7 +51,6 @@ import org.cardanofoundation.rosetta.common.mapper.DataMapper;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.TransactionExtraData;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.TransactionParsed;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.UnsignedTransaction;
-import org.cardanofoundation.rosetta.common.services.CardanoAddressService;
 import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
 import org.cardanofoundation.rosetta.common.util.CborEncodeUtil;
 import org.cardanofoundation.rosetta.common.util.Constants;
@@ -61,7 +60,6 @@ import org.cardanofoundation.rosetta.common.util.Constants;
 @RequiredArgsConstructor
 public class ConstructionApiServiceImpl implements ConstructionApiService {
 
-  private final CardanoAddressService cardanoAddressService;
   private final CardanoConstructionService cardanoConstructionService;
   private final ProtocolParamService protocolParamService;
   private final DataMapper dataMapper;
@@ -88,7 +86,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
       stakingCredential = Optional.ofNullable(metadata.getStakingCredential())
           .orElseThrow(ExceptionFactory::missingStakingKeyError);
     }
-    String address = cardanoAddressService.getCardanoAddress(addressType, stakingCredential,
+    String address = cardanoConstructionService.getCardanoAddress(addressType, stakingCredential,
         publicKey, network);
     return new ConstructionDeriveResponse(null, new AccountIdentifier(address, null, null), null);
   }
@@ -135,7 +133,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
     Long updatedTxSize = cardanoConstructionService.updateTxSize(txSize.longValue(), 0L, ttl);
     log.debug("[constructionMetadata] updated txSize size is ${updatedTxSize}");
     ProtocolParams protocolParams =
-        protocolParamService.findProtocolParametersFromIndexerAndConfig();
+        protocolParamService.findProtocolParametersFromIndexer();
     log.debug("[constructionMetadata] received protocol parameters from block-service {}",
         protocolParams);
     Long suggestedFee = cardanoConstructionService.calculateTxMinimumFee(updatedTxSize,

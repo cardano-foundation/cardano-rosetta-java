@@ -14,6 +14,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.core.Ordered;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.filter.CommonsRequestLoggingFilter;
 import org.springframework.web.filter.ForwardedHeaderFilter;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.info.Info;
@@ -57,5 +58,16 @@ public class RosettaApiApplication {
   @Bean
   public RestTemplate restTemplate(RestTemplateBuilder builder) {
     return builder.build();
+  }
+
+  @Bean
+  public CommonsRequestLoggingFilter logFilter() {
+    CommonsRequestLoggingFilter filter = new CommonsRequestLoggingFilter();
+    filter.setIncludeQueryString(true);
+    filter.setIncludePayload(true);
+    filter.setMaxPayloadLength(10000);
+    filter.setIncludeHeaders(false);
+    filter.setAfterMessagePrefix("REQUEST DATA: \n");
+    return filter;
   }
 }

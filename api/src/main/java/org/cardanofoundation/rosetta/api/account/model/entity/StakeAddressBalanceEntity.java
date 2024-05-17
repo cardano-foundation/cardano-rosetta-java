@@ -7,25 +7,18 @@ import jakarta.persistence.Id;
 import jakarta.persistence.IdClass;
 import jakarta.persistence.Table;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
-
-import org.hibernate.annotations.DynamicUpdate;
 
 import org.cardanofoundation.rosetta.api.block.model.entity.BlockAwareEntity;
 
 @EqualsAndHashCode(callSuper = true)
-@Data
 @NoArgsConstructor
-@AllArgsConstructor
-@SuperBuilder
+@Getter
 @Entity
 @Table(name = "stake_address_balance")
 @IdClass(StakeAddressBalanceId.class)
-@DynamicUpdate
 public class StakeAddressBalanceEntity extends BlockAwareEntity {
 
   @Id

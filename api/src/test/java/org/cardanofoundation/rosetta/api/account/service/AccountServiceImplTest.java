@@ -27,9 +27,9 @@ import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.StakeAddressBalance;
 import org.cardanofoundation.rosetta.api.block.service.LedgerBlockService;
+import org.cardanofoundation.rosetta.api.construction.service.LedgerDataProviderService;
 import org.cardanofoundation.rosetta.common.enumeration.StakeAddressPrefix;
 import org.cardanofoundation.rosetta.common.exception.ApiException;
-import org.cardanofoundation.rosetta.common.services.LedgerDataProviderService;
 import org.cardanofoundation.rosetta.common.util.Constants;
 import org.cardanofoundation.rosetta.common.util.RosettaConstants.RosettaErrorType;
 
@@ -75,7 +75,8 @@ class AccountServiceImplTest {
     assertEquals("1000", actual.getBalances().getFirst().getValue());
     assertNotNull(actual.getBalances().getFirst().getCurrency().getSymbol());
     assertEquals(Constants.ADA, actual.getBalances().getFirst().getCurrency().getSymbol());
-    assertEquals(Constants.ADA_DECIMALS, actual.getBalances().getFirst().getCurrency().getDecimals());
+    assertEquals(Constants.ADA_DECIMALS,
+        actual.getBalances().getFirst().getCurrency().getDecimals());
     assertEquals(blockIdentifier.getIndex(), actual.getBlockIdentifier().getIndex());
     assertEquals(blockIdentifier.getHash(), actual.getBlockIdentifier().getHash());
     verify(ledgerBlockService).findBlock(1L, HASH);
@@ -138,7 +139,8 @@ class AccountServiceImplTest {
     assertEquals("1000", actual.getBalances().getFirst().getValue());
     assertNotNull(actual.getBalances().getFirst().getCurrency().getSymbol());
     assertEquals(Constants.ADA, actual.getBalances().getFirst().getCurrency().getSymbol());
-    assertEquals(Constants.ADA_DECIMALS, actual.getBalances().getFirst().getCurrency().getDecimals());
+    assertEquals(Constants.ADA_DECIMALS,
+        actual.getBalances().getFirst().getCurrency().getDecimals());
     assertEquals(block.getNumber(), actual.getBlockIdentifier().getIndex());
     assertEquals(block.getHash(), actual.getBlockIdentifier().getHash());
     verify(ledgerBlockService).findLatestBlock();
