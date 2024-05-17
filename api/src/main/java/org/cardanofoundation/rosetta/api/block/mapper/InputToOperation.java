@@ -1,33 +1,30 @@
 package org.cardanofoundation.rosetta.api.block.mapper;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
-import org.modelmapper.ModelMapper;
+import org.springframework.stereotype.Component;
 import org.openapitools.client.model.CoinAction;
 import org.openapitools.client.model.Operation;
 import org.openapitools.client.model.OperationStatus;
 
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
-import org.cardanofoundation.rosetta.common.annotation.OpenApiMapper;
+import org.cardanofoundation.rosetta.common.mapper.UtxoMapper;
 import org.cardanofoundation.rosetta.common.util.Constants;
 
-@OpenApiMapper
-@AllArgsConstructor
+@Component
+@RequiredArgsConstructor
 public class InputToOperation extends AbstractToOperation<Utxo> {
 
-  final ModelMapper modelMapper;
+  private final UtxoMapper utxoMapper;
 
   @Override
   public Operation toDto(Utxo model, OperationStatus status, int index) {
-    return modelMapper.typeMap(Utxo.class, Operation.class)
-        .addMappings(mp -> {
-          mp.map(f -> Constants.INPUT, Operation::setType);
-          mp.<CoinAction>map(f -> CoinAction.SPENT, (d, v) -> d.getCoinChange().setCoinAction(v));
-          mp.map(f-> mapToOperationMetaData(true, model.getAmounts()), Operation::setMetadata);
-          mapOthers(model, status, index, mp, true);
-        })
-        .map(model);
+    Operation operation = utxoMapper.mapToOperation(model, status, index, true);
+    operation.setType(Constants.INPUT);
+    operation.getCoinChange().setCoinAction(CoinAction.SPENT);
+    operation.setMetadata(mapToOperationMetaData(true, model.getAmounts()));
+    return operation;
   }
-
-
 }
+
+

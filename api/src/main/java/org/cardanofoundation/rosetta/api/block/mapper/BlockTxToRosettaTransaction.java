@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 
 import lombok.AllArgsConstructor;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.modelmapper.ModelMapper;
 import org.openapitools.client.model.Operation;
@@ -24,7 +25,9 @@ public class BlockTxToRosettaTransaction {
 
   final ModelMapper modelMapper;
 
-  final InputToOperation inputToOperation;
+  @Autowired
+  private InputToOperation inputToOperation;
+
   final OutputToOperation outputToOperation;
   final StakeRegistrationToOperation stakeToOperation;
   final DelegationToOperation delegationToOperation;

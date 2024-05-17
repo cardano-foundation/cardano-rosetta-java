@@ -2,19 +2,21 @@ package org.cardanofoundation.rosetta.api.block.service;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
-import jakarta.transaction.Transactional;
 import jakarta.validation.constraints.NotNull;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import org.apache.commons.lang3.ObjectUtils;
 import org.modelmapper.ModelMapper;
 
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.account.model.entity.AddressUtxoEntity;
+import org.cardanofoundation.rosetta.api.account.model.entity.UtxoId;
 import org.cardanofoundation.rosetta.api.account.model.repository.AddressUtxoRepository;
 import org.cardanofoundation.rosetta.api.block.mapper.BlockToEntity;
 import org.cardanofoundation.rosetta.api.block.mapper.BlockTxToEntity;
@@ -122,17 +124,34 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
 
 
   @Transactional
-  private void populateTransaction(BlockTx transaction) {
+  public void populateTransaction(BlockTx transaction) {
+
+    log.debug("Populating transaction input: {}", transaction.getInputs().stream().map(Utxo::getTxHash).toList());
+    log.debug("Populating transaction input: {}", transaction.getInputs().stream().map(Utxo::getOutputIndex).toList());
+
+    log.debug("Populating transaction output: {}", transaction.getOutputs().stream().map(Utxo::getTxHash).toList());
+    log.debug("Populating transaction output: {}", transaction.getOutputs().stream().map(Utxo::getOutputIndex).toList());
+
+    List<UtxoId> inpListId = transaction.getInputs()
+        .stream()
+        .map(t -> new UtxoId(t.getTxHash(), t.getOutputIndex())).toList();
+
+    List<UtxoId> outListId = transaction.getOutputs()
+        .stream()
+        .map(t -> new UtxoId(t.getTxHash(), t.getOutputIndex())).toList();
+
+    List<AddressUtxoEntity> input  = addressUtxoRepository.findAllById(inpListId);
+    List<AddressUtxoEntity> output = addressUtxoRepository.findAllById(outListId);
 
     Optional.ofNullable(transaction.getInputs())
         .stream()
         .flatMap(List::stream)
-        .forEach(this::populateUtxo);
+        .forEach(f-> populateUtxo(f, input));
 
     Optional.ofNullable(transaction.getOutputs())
         .stream()
         .flatMap(List::stream)
-        .forEach(this::populateUtxo);
+        .forEach(f-> populateUtxo(f, output));
 
     transaction.setStakeRegistrations(
         stakeRegistrationRepository
@@ -177,10 +196,13 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
     return (Long.parseLong(tx.getFee()) - p.getMinFeeB().longValue()) / p.getMinFeeA().longValue();
   }
 
-  private void populateUtxo(Utxo utxo) {
-    AddressUtxoEntity first = addressUtxoRepository
-        .findAddressUtxoEntitiesByOutputIndexAndTxHash(utxo.getOutputIndex(), utxo.getTxHash())
-        .getFirst();
-    Optional.ofNullable(first).ifPresent(m -> mapper.map(m, utxo));
+  private void populateUtxo(Utxo utxo, List<AddressUtxoEntity> entities) {
+
+    Optional<AddressUtxoEntity> first = entities.stream()
+        .filter(f -> Objects.equals(f.getOutputIndex(), utxo.getOutputIndex())
+            && f.getTxHash().equals(utxo.getTxHash()))
+        .findFirst();
+
+    first.ifPresent(m -> mapper.map(m, utxo));
   }
 }

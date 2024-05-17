@@ -31,9 +31,9 @@ public abstract class AbstractToOperation<T> {
 
   abstract Operation toDto(T model, OperationStatus status, int index);
 
-  protected List<Operation> convert(List<T> stakeReg, OperationStatus status,
+  protected List<Operation> convert(List<T> models, OperationStatus status,
       MutableInt indexHolder) {
-    return Optional.ofNullable(stakeReg)
+    return Optional.ofNullable(models)
         .stream()
         .flatMap(List::stream)
         .map(t -> toDto(t, status, indexHolder.getAndIncrement()))
