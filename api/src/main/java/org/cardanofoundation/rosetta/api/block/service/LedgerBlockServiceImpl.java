@@ -3,6 +3,7 @@ package org.cardanofoundation.rosetta.api.block.service;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import jakarta.transaction.Transactional;
 import jakarta.validation.constraints.NotNull;
 
 import lombok.RequiredArgsConstructor;
@@ -120,6 +121,7 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
   }
 
 
+  @Transactional
   private void populateTransaction(BlockTx transaction) {
 
     Optional.ofNullable(transaction.getInputs())
@@ -167,7 +169,7 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
         .map(withdrawalEntityToWithdrawal::fromEntity)
         .toList());
 
-    ProtocolParams pps = protocolParamService.findProtocolParametersFromIndexerAndConfig();
+    ProtocolParams pps = protocolParamService.findProtocolParametersFromIndexer();
     transaction.setSize(calcSize(transaction, pps));
   }
 

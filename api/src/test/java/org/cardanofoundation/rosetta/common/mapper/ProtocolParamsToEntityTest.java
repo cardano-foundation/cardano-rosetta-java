@@ -59,10 +59,7 @@ class ProtocolParamsToEntityTest extends BaseMapperSetup {
   }
 
   private EpochParamEntity newEpochParamEntity() {
-    return EpochParamEntity.builder()
-        .params(newEpochParams())
-        .epoch(1)
-        .build();
+    return new EpochParamEntity(1, newEpochParams());
   }
 
   private ProtocolParamsEntity newEpochParams() {

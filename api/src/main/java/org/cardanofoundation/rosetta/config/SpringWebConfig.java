@@ -9,19 +9,14 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.format.FormatterRegistry;
 import org.springframework.lang.NonNull;
-import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import org.cardanofoundation.rosetta.common.interceptor.LogInterceptor;
 
 
 @Configuration
 @RequiredArgsConstructor
 public class SpringWebConfig implements WebMvcConfigurer {
-
-  final LogInterceptor logInterceptor;
 
   @Override
   public void addFormatters(final FormatterRegistry registry) {
@@ -48,10 +43,5 @@ public class SpringWebConfig implements WebMvcConfigurer {
         }
       }
     });
-  }
-
-  @Override
-  public void addInterceptors(InterceptorRegistry registry) {
-    registry.addInterceptor(logInterceptor);
   }
 }
