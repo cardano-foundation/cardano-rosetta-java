@@ -9,7 +9,6 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.stereotype.Service;
 import co.nstant.in.cbor.CborException;
 import co.nstant.in.cbor.model.Array;
