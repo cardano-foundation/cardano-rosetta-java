@@ -1,6 +1,4 @@
-package org.cardanofoundation.rosetta.common.model.cardano.network;
-
-import java.util.List;
+package org.cardanofoundation.rosetta.api.network.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -9,9 +7,9 @@ import lombok.RequiredArgsConstructor;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Data
-@AllArgsConstructor
 @RequiredArgsConstructor
+@AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class PublicRoot {
-  private List<AccessPoint> accessPoints;
+public class AccessPoint {
+  private String address;
 }

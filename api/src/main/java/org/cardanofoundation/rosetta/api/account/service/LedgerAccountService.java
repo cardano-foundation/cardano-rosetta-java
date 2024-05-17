@@ -1,4 +1,4 @@
-package org.cardanofoundation.rosetta.api.construction.service;
+package org.cardanofoundation.rosetta.api.account.service;
 
 
 import java.util.List;
@@ -12,7 +12,7 @@ import org.cardanofoundation.rosetta.api.block.model.domain.StakeAddressBalance;
 /**
  * Exposes functions to access chain data that has been indexed according to Rosetta API needs.
  */
-public interface LedgerDataProviderService {
+public interface LedgerAccountService {
 
   List<AddressBalance> findBalanceByAddressAndBlock(String address, Long number);
 

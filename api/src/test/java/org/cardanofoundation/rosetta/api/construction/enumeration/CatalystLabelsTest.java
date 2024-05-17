@@ -1,4 +1,4 @@
-package org.cardanofoundation.rosetta.common.enumeration;
+package org.cardanofoundation.rosetta.api.construction.enumeration;
 
 import org.junit.jupiter.api.Test;
 

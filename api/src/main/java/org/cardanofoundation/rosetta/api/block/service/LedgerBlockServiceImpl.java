@@ -3,13 +3,13 @@ package org.cardanofoundation.rosetta.api.block.service;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import jakarta.transaction.Transactional;
 import jakarta.validation.constraints.NotNull;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import org.apache.commons.lang3.ObjectUtils;
 import org.modelmapper.ModelMapper;
 
@@ -86,6 +86,7 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
   }
 
   @Override
+  @Transactional(readOnly = true)
   public List<BlockTx> findTransactionsByBlock(Long blk, String blkHash) {
     log.debug("query blockNumber: {} blockHash: {}", blk, blkHash);
     Optional<BlockEntity> blkEntity = blockRepository.findByNumberAndHash(blk, blkHash);
@@ -103,7 +104,6 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
     return Collections.emptyList();
   }
 
-
   @Override
   public Block findLatestBlock() {
     log.debug("About to look for latest block");
@@ -120,8 +120,6 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
         .orElseThrow(ExceptionFactory::genesisBlockNotFound);
   }
 
-
-  @Transactional
   private void populateTransaction(BlockTx transaction) {
 
     Optional.ofNullable(transaction.getInputs())
