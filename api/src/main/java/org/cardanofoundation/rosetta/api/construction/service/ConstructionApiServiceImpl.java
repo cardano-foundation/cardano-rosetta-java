@@ -3,7 +3,6 @@ package org.cardanofoundation.rosetta.api.construction.service;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 
 import lombok.RequiredArgsConstructor;
@@ -195,7 +194,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
 
   private static void checkOperationsHaveIdentifier(List<Operation> operations) {
     for (int i = 0; i < operations.size(); i++) {
-      if (Objects.isNull(operations.get(i).getOperationIdentifier())) {
+      if (operations.get(i).getOperationIdentifier() == null) {
         throw ExceptionFactory.unspecifiedError(
             "body[" + i + "]" + " should have required property operation_identifier");
       }
