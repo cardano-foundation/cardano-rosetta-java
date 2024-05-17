@@ -23,13 +23,6 @@ public class PoolRegistrationToOperation extends AbstractToOperation<PoolRegistr
   @Override
   public Operation toDto(PoolRegistration model, OperationStatus status, int index) {
     return modelMapper.typeMap(PoolRegistration.class, Operation.class)
-//        .addMappings(mp -> {
-//          mp.skip(Operation::setMetadata);
-//          mp.<Long>map(f -> index, (d, v) -> d.getOperationIdentifier().setIndex(v));
-//          mp.map(f -> status.getStatus(), Operation::setStatus);
-//          mp.map(f -> OperationType.POOL_REGISTRATION.getValue(), Operation::setType);
-//          mp.<String>map(PoolRegistration::getPoolId, (d, v) -> d.getAccount().setAddress(v));
-//        })
         .setPostConverter(ctx -> {
           var d = ctx.getDestination();
           d.setMetadata(new OperationMetadata());

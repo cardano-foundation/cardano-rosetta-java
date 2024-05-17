@@ -24,16 +24,6 @@ public class StakeRegistrationToOperation extends AbstractToOperation<StakeRegis
   @Override
   public Operation toDto(StakeRegistration model, OperationStatus status, int index) {
     return modelMapper.typeMap(StakeRegistration.class, Operation.class)
-//        .addMappings(mp -> {
-//
-//          mp.map(f -> status.getStatus(), Operation::setStatus);
-//          mp.map(f -> convert(model.getType()), Operation::setType);
-//          mp.<String>map(StakeRegistration::getAddress, (d, v) -> d.getAccount().setAddress(v));
-//          mp.<Amount>map(f -> getDepositAmount(), (d, v) -> d.getMetadata().setDepositAmount(v));
-//          mp.<Long>map(f -> index, (d, v) -> d.getOperationIdentifier().setIndex(v));
-//
-//
-//        })
         .setPostConverter(ctx -> {
           var d = ctx.getDestination();
           d.setMetadata(new OperationMetadata());
