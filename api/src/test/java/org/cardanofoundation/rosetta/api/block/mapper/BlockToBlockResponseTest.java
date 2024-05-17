@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 
@@ -91,12 +90,12 @@ class BlockToBlockResponseTest extends BaseMapperSetup {
 
     List<String> sts = IntStream.range(0, 8)
         .mapToObj(p -> SUCCESS_OPERATION_STATUS.getStatus())
-        .collect(Collectors.toList());
+        .toList();
     assertThat((into.getBlock().getTransactions()))
         .extracting(t -> t.getOperations()
             .stream()
             .map(Operation::getStatus)
-            .collect(Collectors.toList()))
+            .toList())
         .containsAnyOf(sts);
 
     List<OperationIdentifier> opIds = LongStream.range(0, 8)
@@ -109,14 +108,14 @@ class BlockToBlockResponseTest extends BaseMapperSetup {
         .extracting(t -> t.getOperations()
             .stream()
             .map(Operation::getOperationIdentifier)
-            .collect(Collectors.toList()))
+            .toList())
         .containsAnyOf(opIds);
 
     assertThat((into.getBlock().getTransactions()))
         .extracting(t -> t.getOperations()
             .stream()
             .map(Operation::getRelatedOperations)
-            .collect(Collectors.toList()))
+            .toList())
         .extracting(p -> p == null ? Collections.emptyList() : p)
         .allSatisfy(
             BlockToBlockResponseTest::assertAllElementsIsNull);
@@ -130,7 +129,7 @@ class BlockToBlockResponseTest extends BaseMapperSetup {
         .extracting(t -> t.getOperations()
             .stream()
             .map(Operation::getType)
-            .collect(Collectors.toList()))
+            .toList())
         .containsAnyOf(types);
 
     List<AccountIdentifier> accIds = List.of(
@@ -142,14 +141,14 @@ class BlockToBlockResponseTest extends BaseMapperSetup {
         .extracting(t -> t.getOperations()
             .stream()
             .map(Operation::getAccount)
-            .collect(Collectors.toList()))
+            .toList())
         .containsAnyOf(accIds);
 
     assertThat((into.getBlock().getTransactions()))
         .extracting(t -> t.getOperations()
             .stream()
             .map(Operation::getCoinChange)
-            .collect(Collectors.toList()))
+            .toList())
         .allSatisfy(BlockToBlockResponseTest::assertAllElementsIsNull);
 
     Currency ada = Currency
@@ -165,7 +164,7 @@ class BlockToBlockResponseTest extends BaseMapperSetup {
             .filter(
                 g -> g.getType().equals("stakeKeyRegistration"))
             .map(Operation::getMetadata)
-            .collect(Collectors.toList()))
+            .toList())
         .allSatisfy(d -> {
           assertAllPropertiesIsNull(d, "depositAmount");
           assertProperty(d, "depositAmount",
@@ -184,7 +183,7 @@ class BlockToBlockResponseTest extends BaseMapperSetup {
             .filter(
                 g -> g.getType().equals("poolRegistration"))
             .map(Operation::getMetadata)
-            .collect(Collectors.toList()))
+            .toList())
         .allSatisfy(d -> {
 
           assertAllPropertiesIsNull(d, "depositAmount", "poolRegistrationParams");
@@ -206,7 +205,7 @@ class BlockToBlockResponseTest extends BaseMapperSetup {
             .filter(
                 g -> g.getType().equals("poolRetirement"))
             .map(Operation::getMetadata)
-            .collect(Collectors.toList()))
+            .toList())
         .allSatisfy(d -> {
           assertAllPropertiesIsNull(d, "epoch");
           assertProperty(List.of(d.getFirst()), "epoch", aiEpoch.incrementAndGet());
@@ -220,7 +219,7 @@ class BlockToBlockResponseTest extends BaseMapperSetup {
             .filter(
                 g -> g.getType().equals("stakeDelegation"))
             .map(Operation::getMetadata)
-            .collect(Collectors.toList()))
+            .toList())
         .allSatisfy(d ->
         {
           assertAllPropertiesIsNull(d, "poolKeyHash");
@@ -313,7 +312,7 @@ class BlockToBlockResponseTest extends BaseMapperSetup {
             .poolId("poolDlg" + ver)
             .address("delegationAcc" + ver)
             .build())
-        .collect(Collectors.toList());
+        .toList();
   }
 
   private List<PoolRegistration> newPoolRegistrations(int... instances) {
@@ -330,7 +329,7 @@ class BlockToBlockResponseTest extends BaseMapperSetup {
             .relays(List.of(Relay.builder().ipv4("ipv4" + ver).ipv6("ipv6" + ver)
                 .dnsName("dnsName" + ver).port(1 + ver).type("type" + ver).build()))
             .build())
-        .collect(Collectors.toList());
+        .toList();
   }
 
   @NotNull
@@ -349,7 +348,7 @@ class BlockToBlockResponseTest extends BaseMapperSetup {
             .poolId("poolRet" + ver)
             .epoch(1 + ver)
             .build())
-        .collect(Collectors.toList());
+        .toList();
   }
 
   private List<StakeRegistration> newStakeRegistrations(int... instances) {
@@ -361,7 +360,7 @@ class BlockToBlockResponseTest extends BaseMapperSetup {
             .type(CertificateType.STAKE_REGISTRATION)
             .address("address" + ver)
             .build())
-        .collect(Collectors.toList());
+        .toList();
 
 
   }
