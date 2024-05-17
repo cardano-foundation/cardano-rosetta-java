@@ -11,19 +11,15 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
 
 import com.bloxbean.cardano.client.plutus.spec.RedeemerTag;
 
 import org.cardanofoundation.rosetta.common.enumeration.ScriptType;
 
-@Data
+@Getter
 @NoArgsConstructor
-@AllArgsConstructor
-@SuperBuilder
 @Entity
 @Table(name = "transaction_scripts")
 public class TxScriptEntity {

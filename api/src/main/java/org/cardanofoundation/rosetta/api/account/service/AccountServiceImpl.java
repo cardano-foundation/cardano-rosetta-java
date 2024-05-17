@@ -20,9 +20,9 @@ import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.StakeAddressBalance;
 import org.cardanofoundation.rosetta.api.block.service.LedgerBlockService;
+import org.cardanofoundation.rosetta.api.construction.service.LedgerDataProviderService;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.mapper.DataMapper;
-import org.cardanofoundation.rosetta.common.services.LedgerDataProviderService;
 import org.cardanofoundation.rosetta.common.util.CardanoAddressUtils;
 import org.cardanofoundation.rosetta.common.util.ValidationUtil;
 
@@ -83,7 +83,7 @@ public class AccountServiceImpl implements AccountService {
   private AccountBalanceResponse findBalanceDataByAddressAndBlock(String address, Long number,
       String hash) {
 
-    return  findBlockOrLast(number, hash)
+    return findBlockOrLast(number, hash)
         .map(blockDto -> {
           log.info("Looking for utxos for address {} and block {}",
               address,

@@ -27,10 +27,7 @@ class WithdrawalEntityToWithdrawalTest extends BaseMapperSetup {
   }
 
   private WithdrawalEntity newWithdrawalEntity() {
-    return WithdrawalEntity.builder()
-        .address("address")
-        .amount(BigInteger.ONE)
-        .build();
+    return new WithdrawalEntity("address", null, BigInteger.ONE);
   }
 
 }

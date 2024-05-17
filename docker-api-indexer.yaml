@@ -27,8 +27,8 @@ services:
       DEVKIT_URL: ${DEVKIT_URL}
       DEVKIT_PORT: ${DEVKIT_PORT}
     volumes:
-      - ./${CARDANO_CONFIG}:/config
-      - ./${CARDANO_NODE_SOCKET_PATH}:${CARDANO_NODE_SOCKET_PATH}
+      - ${CARDANO_CONFIG}:/config
+      - ${CARDANO_NODE_SOCKET_PATH}:${CARDANO_NODE_SOCKET_PATH}
     healthcheck:
       test: [ "CMD-SHELL", "curl --fail http://localhost:${API_PORT}/network/options -H 'Content-Type: application/json' --data '{\"metadata\": {}}' -X POST" ]
       interval: 30s
@@ -63,7 +63,7 @@ services:
       GENESIS_CONWAY_PATH: ${GENESIS_CONWAY_PATH}
       INITIAL_BALANCE_CALCULATION_BLOCK: ${INITIAL_BALANCE_CALCULATION_BLOCK}
     volumes:
-      - ./${CARDANO_CONFIG}:/config
+      - ${CARDANO_CONFIG}:/config
     restart: always
     depends_on:
       db:
@@ -81,7 +81,7 @@ services:
       POSTGRES_DB: ${DB_NAME}
     restart: on-failure
     volumes:
-      - ./${DB_PATH}:/var/lib/postgresql/data
+      - ${DB_PATH}:/var/lib/postgresql/data
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME} -p ${DB_PORT} -h localhost"]
       interval: 10s
