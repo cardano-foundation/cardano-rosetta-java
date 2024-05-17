@@ -3,11 +3,13 @@ package org.cardanofoundation.rosetta.api.construction.service;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.stereotype.Service;
 import co.nstant.in.cbor.CborException;
 import co.nstant.in.cbor.model.Array;
@@ -194,7 +196,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
 
   private static void checkOperationsHaveIdentifier(List<Operation> operations) {
     for (int i = 0; i < operations.size(); i++) {
-      if (operations.get(i).getOperationIdentifier() == null) {
+      if (Objects.isNull(operations.get(i).getOperationIdentifier())) {
         throw ExceptionFactory.unspecifiedError(
             "body[" + i + "]" + " should have required property operation_identifier");
       }
