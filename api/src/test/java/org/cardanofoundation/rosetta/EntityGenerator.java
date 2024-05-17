@@ -49,6 +49,7 @@ import org.openapitools.client.model.TransactionIdentifierResponse;
 import org.openapitools.client.model.Version;
 
 import static org.cardanofoundation.rosetta.common.util.Constants.*;
+import static org.openapitools.client.model.CurveType.EDWARDS25519;
 
 @UtilityClass
 public class EntityGenerator {
@@ -301,5 +302,11 @@ public class EntityGenerator {
                         .address("addr")
                         .build()))
                 .build();
+    }
+
+    public static PublicKey givenPublicKey() {
+        return new PublicKey("1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F",
+                EDWARDS25519);
+
     }
 }

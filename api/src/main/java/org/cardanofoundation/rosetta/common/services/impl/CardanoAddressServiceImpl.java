@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.stereotype.Service;
-import com.bloxbean.cardano.client.account.Account;
 import com.bloxbean.cardano.client.address.Address;
 import com.bloxbean.cardano.client.address.AddressProvider;
 import com.bloxbean.cardano.client.crypto.bip32.key.HdPublicKey;
@@ -32,7 +31,6 @@ public class CardanoAddressServiceImpl implements CardanoAddressService {
                     throw ExceptionFactory.missingStakingKeyError();
                 log.debug("Deriving base address with staking credential: {}", stakingCredential);
                 Address baseAddress = AddressProvider.getBaseAddress(getHdPublicKeyFromRosettaKey(publicKey), getHdPublicKeyFromRosettaKey(stakingCredential), networkEnum.getNetwork());
-                new Account();
                 address = baseAddress.getAddress();
                 break;
             case REWARD:
