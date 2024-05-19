@@ -1,33 +1,26 @@
 package org.cardanofoundation.rosetta.api.block.mapper;
 
-import lombok.AllArgsConstructor;
-
-import org.modelmapper.ModelMapper;
-import org.openapitools.client.model.CoinAction;
+import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
+import org.cardanofoundation.rosetta.common.mapper.BaseMapper;
+import org.cardanofoundation.rosetta.common.util.Constants;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.openapitools.client.model.Operation;
 import org.openapitools.client.model.OperationStatus;
 
-import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
-import org.cardanofoundation.rosetta.common.annotation.OpenApiMapper;
-import org.cardanofoundation.rosetta.common.util.Constants;
+@Mapper(config = BaseMapper.class, uses = {OperationMapperUtils.class})
+public interface OutputToOperation {
 
-@OpenApiMapper
-@AllArgsConstructor
-public class OutputToOperation extends AbstractToOperation<Utxo> {
+  @Mapping(target = "type", constant = Constants.OUTPUT)
+  @Mapping(target = "status", source = "status.status")
+  @Mapping(target = "coinChange.coinAction", source = "model", qualifiedByName = "getCoinCreatedAction")
+  @Mapping(target = "operationIdentifier", source = "index", qualifiedByName = "OperationIdentifier")
+  @Mapping(target = "metadata", source = "model.amounts", qualifiedByName = "mapAmountsToOperationMetadataOutput")
+  @Mapping(target = "account.address", source = "model.ownerAddr")
+  @Mapping(target = "amount.value", source = "model", qualifiedByName = "getAdaAmountOutput")
+  @Mapping(target = "amount.currency.symbol", constant = Constants.ADA)
+  @Mapping(target = "amount.currency.decimals", constant = Constants.ADA_DECIMALS_STRING)
+  @Mapping(target = "coinChange.coinIdentifier.identifier", source = "model", qualifiedByName = "getUtxoName")
+  Operation toDto(Utxo model, OperationStatus status, int index);
 
-  final ModelMapper modelMapper;
-
-  @Override
-  public Operation toDto(Utxo model, OperationStatus status, int index) {
-    return modelMapper.typeMap(Utxo.class, Operation.class)
-        .addMappings(mp -> {
-          mp.map(f -> Constants.OUTPUT, Operation::setType);
-          mp.<CoinAction>map(f -> CoinAction.CREATED, (d, v) -> d.getCoinChange().setCoinAction(v));
-          mp.<Long>map(f -> model.getOutputIndex(), (d, v) -> d.getOperationIdentifier()
-              .setNetworkIndex(v));
-          mp.map(f-> mapToOperationMetaData(false, model.getAmounts()), Operation::setMetadata);
-          mapOthers(model, status, index, mp, false);
-        })
-        .map(model);
-  }
 }
