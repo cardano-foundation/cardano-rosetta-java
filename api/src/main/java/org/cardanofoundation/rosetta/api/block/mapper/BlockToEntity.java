@@ -14,7 +14,7 @@ import org.cardanofoundation.rosetta.common.mapper.BaseMapper;
 @Mapper(config = BaseMapper.class, uses = {BlockTxToEntity.class})
 public interface BlockToEntity {
 
-  @Mapping(target = "previousBlockHash", source = "prev.hash", defaultExpression = "java(blockEntity.getHash())")
+  @Mapping(target = "previousBlockHash", source = "prev.hash", defaultExpression = "java(entity.getHash())")
   @Mapping(target = "previousBlockNumber", source = "prev.number", defaultValue = "0L")
   @Mapping(target = "transactionsCount", source = "noOfTxs")
   @Mapping(target = "epochNo", source = "epochNumber")
