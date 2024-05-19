@@ -1,5 +1,6 @@
 package org.cardanofoundation.rosetta.api.block.mapper;
 
+import org.cardanofoundation.rosetta.common.mapper.OperationMapperUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.openapitools.client.model.Operation;

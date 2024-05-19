@@ -1,6 +1,7 @@
 package org.cardanofoundation.rosetta.api.block.mapper;
 
 import com.bloxbean.cardano.yaci.core.model.certs.CertificateType;
+import org.cardanofoundation.rosetta.common.mapper.OperationMapperUtils;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;

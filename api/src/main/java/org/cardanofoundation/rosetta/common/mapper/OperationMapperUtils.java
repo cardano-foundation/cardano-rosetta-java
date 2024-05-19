@@ -1,4 +1,4 @@
-package org.cardanofoundation.rosetta.api.block.mapper;
+package org.cardanofoundation.rosetta.common.mapper;
 
 import java.math.BigInteger;
 import java.util.List;
