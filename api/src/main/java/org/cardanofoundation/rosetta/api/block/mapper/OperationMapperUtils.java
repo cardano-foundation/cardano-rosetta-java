@@ -82,9 +82,17 @@ public class OperationMapperUtils {
     return input ? adaAmount.negate().toString() : adaAmount.toString();
   }
 
-  public Amount getDepositAmount() {
+  public Amount getDepositAmountPool() {
     String deposit = String.valueOf(protocolParamService.getProtocolParameters().getPoolDeposit());
     return DataMapper.mapAmount(deposit, Constants.ADA, Constants.ADA_DECIMALS, null);
+  }
+
+  public Amount getDepositAmountStake(CertificateType type) {
+    BigInteger keyDeposit = protocolParamService.getProtocolParameters().getKeyDeposit();
+    if (type == CertificateType.STAKE_DEREGISTRATION) {
+      keyDeposit = keyDeposit.negate();
+    }
+    return DataMapper.mapAmount(keyDeposit.toString(), Constants.ADA, Constants.ADA_DECIMALS, null);
   }
 
   @Named("OperationIdentifier")
