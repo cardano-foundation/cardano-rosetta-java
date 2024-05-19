@@ -61,13 +61,11 @@ public abstract class BlockTxToRosettaTransaction {
   List<Operation> mapOperations(BlockTx source){
     List<Operation> operations = new ArrayList<>();
       MutableInt ix = new MutableInt(0);
-//    inputToOperation.convert(source.getInputs(), status, ix);
     List<Operation> inpOps = Optional.ofNullable(source.getInputs()).stream()
             .flatMap(List::stream)
             .map(input -> inputToOperation.toDto(input, status, ix.getAndIncrement()))
             .toList();
     operations.addAll(inpOps);
-//    operations.addAll(withdrawalToOperation.convert(source.getWithdrawals(), status, ix));
     operations.addAll(Optional.ofNullable(source.getWithdrawals()).stream()
             .flatMap(List::stream)
             .map(withdrawal -> withdrawalToOperation.toDto(withdrawal, status, ix.getAndIncrement()))
@@ -99,57 +97,7 @@ public abstract class BlockTxToRosettaTransaction {
 
     return operations;
   }
-//
-//  final ModelMapper modelMapper;
-//
-//  final InputToOperation inputToOperation;
-//  final OutputToOperation outputToOperation;
-//  final StakeRegistrationToOperation stakeToOperation;
-//  final DelegationToOperation delegationToOperation;
-//  final PoolRetirementToOperation poolRetirementToOperation;
-//  final PoolRegistrationToOperation poolRegistrationToOperation;
-//  final WithdrawalToOperation withdrawalToOperation;
-//
-//
-//
-//  /**
-//   * Maps a TransactionDto to a Rosetta compatible BlockTx.
-//   *
-//   * @param model       The Cardano transaction to be mapped
-//   * @return The Rosetta compatible Transaction
-//   */
-//  public Transaction toDto(BlockTx model) {
-//    return modelMapper.typeMap(BlockTx.class, Transaction.class)
-//        .addMappings(mapper -> {
-//          mapper.<String>map(BlockTx::getHash,
-//              (dest, v) -> dest.getTransactionIdentifier().setHash(v));
-//          mapper.<Long>map(BlockTx::getSize, (dest, v) -> dest.getMetadata().setSize(v));
-//          mapper.<Long>map(BlockTx::getScriptSize,
-//              (dest, v) -> dest.getMetadata().setScriptSize(v));
-//        })
-//
-//        .setPostConverter(ctx -> {
-//          MutableInt ix = new MutableInt(0);
-//          @NotNull @Valid List<Operation> destOp = ctx.getDestination().getOperations();
-//          List<Operation> inpOps = inputToOperation.convert(model.getInputs(), status, ix);
-//          destOp.addAll(inpOps);
-//          destOp.addAll(withdrawalToOperation.convert(model.getWithdrawals(), status, ix));
-//          destOp.addAll(stakeToOperation.convert(model.getStakeRegistrations(), status, ix));
-//          destOp.addAll(delegationToOperation.convert(model.getDelegations(), status, ix));
-//          destOp.addAll(poolRegistrationToOperation.convert(model.getPoolRegistrations(), status, ix));
-//          destOp.addAll(poolRetirementToOperation.convert(model.getPoolRetirements(), status, ix));
-//
-//          List<Operation> outOps = outputToOperation.convert(model.getOutputs(), status, ix);
-//          outOps.forEach(op -> op.setRelatedOperations(getOperationIndexes(inpOps)));
-//
-//          destOp.addAll(outOps);
-//          return ctx.getDestination();
-//        })
-//        .map(model);
-//
-//  }
-//
-//
+
   public static List<OperationIdentifier> getOperationIndexes(List<Operation> operations) {
     return operations.stream()
         .map(operation -> OperationIdentifier
