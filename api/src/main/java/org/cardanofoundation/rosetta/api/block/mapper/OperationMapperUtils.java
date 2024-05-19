@@ -8,6 +8,7 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
+import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
 import org.cardanofoundation.rosetta.api.block.model.domain.StakeRegistration;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.common.mapper.DataMapper;
@@ -87,12 +88,14 @@ public class OperationMapperUtils {
     return DataMapper.mapAmount(deposit, Constants.ADA, Constants.ADA_DECIMALS, null);
   }
 
-  public Amount getDepositAmountStake(CertificateType type) {
+  @Named("getDepositAmountStake")
+  public Amount getDepositAmountStake(StakeRegistration model) {
+    CertificateType type = model.getType();
     BigInteger keyDeposit = protocolParamService.getProtocolParameters().getKeyDeposit();
     if (type == CertificateType.STAKE_DEREGISTRATION) {
       keyDeposit = keyDeposit.negate();
     }
-    return DataMapper.mapAmount(keyDeposit.toString(), Constants.ADA, Constants.ADA_DECIMALS, null);
+    return DataMapper.mapAmount(Optional.ofNullable(keyDeposit).orElse(BigInteger.ZERO).toString(), Constants.ADA, Constants.ADA_DECIMALS, null);
   }
 
   @Named("OperationIdentifier")

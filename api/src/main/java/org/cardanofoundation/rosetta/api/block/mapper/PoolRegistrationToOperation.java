@@ -18,7 +18,7 @@ public interface PoolRegistrationToOperation {
   @Mapping(target = "status", source = "status.status")
   @Mapping(target = "account.address", source = "model.poolId")
   @Mapping(target = "operationIdentifier", source = "index", qualifiedByName = "OperationIdentifier")
-  @Mapping(target = "metadata.depositAmount", expression = "java(operationMapperUtils.getDepositAmount())")
+  @Mapping(target = "metadata.depositAmount", expression = "java(operationMapperUtils.getDepositAmountPool())")
   @Mapping(target = "metadata.poolRegistrationParams.pledge", source = "model.pledge")
   @Mapping(target = "metadata.poolRegistrationParams.cost", source = "model.cost")
   @Mapping(target = "metadata.poolRegistrationParams.poolOwners", source = "model.owners")
