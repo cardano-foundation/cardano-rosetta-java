@@ -7,8 +7,8 @@ import org.openapitools.client.model.OperationStatus;
 
 import org.cardanofoundation.rosetta.api.block.model.domain.PoolRegistration;
 import org.cardanofoundation.rosetta.common.mapper.BaseMapper;
+import org.cardanofoundation.rosetta.common.mapper.OperationMapperUtils;
 import org.cardanofoundation.rosetta.common.util.Constants;
-import org.cardanofoundation.rosetta.common.util.OperationMapperUtils;
 
 @Mapper(config = BaseMapper.class, uses = {OperationMapperUtils.class})
 public interface PoolRegistrationToOperation {

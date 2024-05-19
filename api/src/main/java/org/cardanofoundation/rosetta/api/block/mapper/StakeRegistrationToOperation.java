@@ -9,7 +9,7 @@ import org.openapitools.client.model.OperationStatus;
 
 import org.cardanofoundation.rosetta.api.block.model.domain.StakeRegistration;
 import org.cardanofoundation.rosetta.common.mapper.BaseMapper;
-import org.cardanofoundation.rosetta.common.util.OperationMapperUtils;
+import org.cardanofoundation.rosetta.common.mapper.OperationMapperUtils;
 
 @Mapper(config = BaseMapper.class, uses = {OperationMapperUtils.class})
 public interface StakeRegistrationToOperation {
