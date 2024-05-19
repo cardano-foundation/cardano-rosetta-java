@@ -1,13 +1,11 @@
 package org.cardanofoundation.rosetta.api.block.mapper;
 
-import static org.cardanofoundation.rosetta.common.util.RosettaConstants.SUCCESS_OPERATION_STATUS;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.apache.commons.lang3.mutable.MutableInt;
-import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
-import org.cardanofoundation.rosetta.common.mapper.BaseMapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -16,7 +14,11 @@ import org.openapitools.client.model.OperationIdentifier;
 import org.openapitools.client.model.OperationStatus;
 import org.openapitools.client.model.Transaction;
 import org.openapitools.client.model.TransactionIdentifier;
-import org.springframework.beans.factory.annotation.Autowired;
+
+import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
+import org.cardanofoundation.rosetta.common.mapper.BaseMapper;
+
+import static org.cardanofoundation.rosetta.common.util.RosettaConstants.SUCCESS_OPERATION_STATUS;
 
 @Mapper(config = BaseMapper.class, uses = {InputToOperation.class, StakeRegistrationToOperation.class,
     DelegationToOperation.class, PoolRegistrationToOperation.class, PoolRetirementToOperation.class,
@@ -47,7 +49,7 @@ public abstract class BlockTxToRosettaTransaction {
   @Mapping(target = "metadata.size", source = "size")
   @Mapping(target = "metadata.scriptSize", source = "scriptSize")
   @Mapping(target = "operations", source = "source", qualifiedByName = "mapOperations")
-  @Named("toDto")
+  @Named("toRosettaTransaction")
   abstract Transaction toDto(BlockTx source);
 
   @Named("getTransactionIdentifier")

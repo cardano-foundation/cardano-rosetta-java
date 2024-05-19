@@ -1,19 +1,13 @@
 package org.cardanofoundation.rosetta.api.block.mapper;
 
-import com.bloxbean.cardano.yaci.core.model.certs.CertificateType;
-import jakarta.validation.constraints.NotNull;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Optional;
+
 import lombok.RequiredArgsConstructor;
-import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
-import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
-import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
-import org.cardanofoundation.rosetta.api.block.model.domain.StakeRegistration;
-import org.cardanofoundation.rosetta.common.enumeration.OperationType;
-import org.cardanofoundation.rosetta.common.mapper.DataMapper;
-import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
-import org.cardanofoundation.rosetta.common.util.Constants;
+
+import org.springframework.stereotype.Component;
+import com.bloxbean.cardano.yaci.core.model.certs.CertificateType;
 import org.mapstruct.Named;
 import org.openapitools.client.model.Amount;
 import org.openapitools.client.model.CoinAction;
@@ -21,8 +15,14 @@ import org.openapitools.client.model.Currency;
 import org.openapitools.client.model.OperationIdentifier;
 import org.openapitools.client.model.OperationMetadata;
 import org.openapitools.client.model.TokenBundleItem;
-import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
+
+import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
+import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
+import org.cardanofoundation.rosetta.api.block.model.domain.StakeRegistration;
+import org.cardanofoundation.rosetta.common.enumeration.OperationType;
+import org.cardanofoundation.rosetta.common.mapper.DataMapper;
+import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
+import org.cardanofoundation.rosetta.common.util.Constants;
 
 @Component
 @RequiredArgsConstructor

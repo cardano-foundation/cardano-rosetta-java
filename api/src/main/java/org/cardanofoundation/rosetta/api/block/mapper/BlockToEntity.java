@@ -2,12 +2,14 @@ package org.cardanofoundation.rosetta.api.block.mapper;
 
 
 import java.util.concurrent.TimeUnit;
-import org.cardanofoundation.rosetta.api.block.model.domain.Block;
-import org.cardanofoundation.rosetta.api.block.model.entity.BlockEntity;
-import org.cardanofoundation.rosetta.common.mapper.BaseMapper;
+
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
+
+import org.cardanofoundation.rosetta.api.block.model.domain.Block;
+import org.cardanofoundation.rosetta.api.block.model.entity.BlockEntity;
+import org.cardanofoundation.rosetta.common.mapper.BaseMapper;
 
 @Mapper(config = BaseMapper.class, uses = {BlockTxToEntity.class})
 public interface BlockToEntity {

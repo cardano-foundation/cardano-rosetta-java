@@ -1,17 +1,13 @@
 package org.cardanofoundation.rosetta.api.block.mapper;
 
-import org.cardanofoundation.rosetta.common.mapper.BaseMapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.Named;
-import org.openapitools.client.model.CoinAction;
 import org.openapitools.client.model.Operation;
-import org.openapitools.client.model.OperationMetadata;
 import org.openapitools.client.model.OperationStatus;
 
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
+import org.cardanofoundation.rosetta.common.mapper.BaseMapper;
 import org.cardanofoundation.rosetta.common.util.Constants;
-import org.springframework.beans.factory.annotation.Autowired;
 
 @Mapper(config = BaseMapper.class, uses = {OperationMapperUtils.class})
 public interface InputToOperation {

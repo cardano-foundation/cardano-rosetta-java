@@ -1,7 +1,6 @@
 package org.cardanofoundation.rosetta.api.block.mapper;
 
 import com.bloxbean.cardano.yaci.core.model.certs.CertificateType;
-import org.cardanofoundation.rosetta.common.mapper.BaseMapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -9,6 +8,7 @@ import org.openapitools.client.model.Operation;
 import org.openapitools.client.model.OperationStatus;
 
 import org.cardanofoundation.rosetta.api.block.model.domain.StakeRegistration;
+import org.cardanofoundation.rosetta.common.mapper.BaseMapper;
 
 @Mapper(config = BaseMapper.class, uses = {OperationMapperUtils.class})
 public interface StakeRegistrationToOperation {

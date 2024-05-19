@@ -3,7 +3,6 @@ package org.cardanofoundation.rosetta.common.mapper;
 import org.mapstruct.Builder;
 import org.mapstruct.InjectionStrategy;
 import org.mapstruct.MapperConfig;
-import org.mapstruct.MappingConstants;
 import org.mapstruct.MappingConstants.ComponentModel;
 import org.mapstruct.NullValueMappingStrategy;
 import org.mapstruct.NullValuePropertyMappingStrategy;
