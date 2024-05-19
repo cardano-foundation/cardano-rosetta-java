@@ -15,6 +15,7 @@ import org.openapitools.client.model.Operation;
 import org.openapitools.client.model.OperationIdentifier;
 import org.openapitools.client.model.OperationStatus;
 import org.openapitools.client.model.Transaction;
+import org.openapitools.client.model.TransactionIdentifier;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @Mapper(config = BaseMapper.class, uses = {InputToOperation.class, StakeRegistrationToOperation.class,
@@ -42,12 +43,19 @@ public abstract class BlockTxToRosettaTransaction {
       .status(SUCCESS_OPERATION_STATUS.getStatus())
       .build();
 
-  @Mapping(target = "transactionIdentifier.hash", source = "hash")
+  @Mapping(target = "transactionIdentifier", source = "hash", qualifiedByName = "getTransactionIdentifier")
   @Mapping(target = "metadata.size", source = "size")
   @Mapping(target = "metadata.scriptSize", source = "scriptSize")
-  @Mapping(target = "operations", source = "source")
+  @Mapping(target = "operations", source = "source", qualifiedByName = "mapOperations")
+  @Named("toDto")
   abstract Transaction toDto(BlockTx source);
 
+  @Named("getTransactionIdentifier")
+  public TransactionIdentifier getTransactionIdentifier(String hash) {
+    return TransactionIdentifier.builder().hash(hash).build();
+  }
+
+  @Named("mapOperations")
   List<Operation> mapOperations(BlockTx source){
     List<Operation> operations = new ArrayList<>();
       MutableInt ix = new MutableInt(0);

@@ -19,7 +19,7 @@ public interface BlockToBlockResponse {
   @Mapping(target = "block.metadata.size", source = "size")
   @Mapping(target = "block.metadata.slotNo", source = "slotNo")
   @Mapping(target = "block.metadata.epochNo", source = "epochNo")
-  @Mapping(target = "block.transactions", source = "transactions")
+  @Mapping(target = "block.transactions", source = "transactions", qualifiedByName = "toDto")
   BlockResponse toDto(Block model);
 //
 //  final ModelMapper modelMapper;

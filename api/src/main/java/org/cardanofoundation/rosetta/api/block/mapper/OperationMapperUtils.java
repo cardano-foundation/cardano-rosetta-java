@@ -91,11 +91,11 @@ public class OperationMapperUtils {
   @Named("getDepositAmountStake")
   public Amount getDepositAmountStake(StakeRegistration model) {
     CertificateType type = model.getType();
-    BigInteger keyDeposit = protocolParamService.getProtocolParameters().getKeyDeposit();
+    BigInteger keyDeposit = Optional.ofNullable(protocolParamService.getProtocolParameters().getKeyDeposit()).orElse(BigInteger.ZERO);
     if (type == CertificateType.STAKE_DEREGISTRATION) {
       keyDeposit = keyDeposit.negate();
     }
-    return DataMapper.mapAmount(Optional.ofNullable(keyDeposit).orElse(BigInteger.ZERO).toString(), Constants.ADA, Constants.ADA_DECIMALS, null);
+    return DataMapper.mapAmount(keyDeposit.toString(), Constants.ADA, Constants.ADA_DECIMALS, null);
   }
 
   @Named("OperationIdentifier")

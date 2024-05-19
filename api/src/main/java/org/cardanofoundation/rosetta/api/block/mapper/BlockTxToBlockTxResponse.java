@@ -1,27 +1,15 @@
 package org.cardanofoundation.rosetta.api.block.mapper;
 
-import lombok.AllArgsConstructor;
-
-import org.modelmapper.ModelMapper;
+import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
+import org.cardanofoundation.rosetta.common.mapper.BaseMapper;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.openapitools.client.model.BlockTransactionResponse;
 
-import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
-import org.cardanofoundation.rosetta.common.annotation.OpenApiMapper;
+@Mapper(config = BaseMapper.class, uses = {BlockTxToRosettaTransaction.class})
+public interface BlockTxToBlockTxResponse {
 
-@OpenApiMapper
-@AllArgsConstructor
-public class BlockTxToBlockTxResponse {
+  @Mapping(target = "transaction", source = "model", qualifiedByName = "toDto")
+  BlockTransactionResponse toDto(BlockTx model);
 
-  final ModelMapper modelMapper;
-
-  final BlockTxToRosettaTransaction blockTxToRosettaTx;
-
-
-  public BlockTransactionResponse toDto(BlockTx model) {
-    return modelMapper.typeMap(BlockTx.class, BlockTransactionResponse.class)
-        .setPostConverter(ctx -> {
-          ctx.getDestination().setTransaction(blockTxToRosettaTx.toDto(model));
-          return ctx.getDestination();
-        }).map(model);
-  }
 }
