@@ -1,11 +1,9 @@
 package org.cardanofoundation.rosetta.api.network.service;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-
 import javax.annotation.PostConstruct;
 
 import lombok.RequiredArgsConstructor;
