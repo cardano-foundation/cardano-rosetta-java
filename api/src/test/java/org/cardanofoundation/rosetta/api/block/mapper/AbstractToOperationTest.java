@@ -1,12 +1,10 @@
 package org.cardanofoundation.rosetta.api.block.mapper;
 
-
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.List;
 
 import org.assertj.core.api.Assertions;
-import org.jetbrains.annotations.NotNull;
 import org.mockito.Mockito;
 import org.openapitools.client.model.Amount;
 import org.openapitools.client.model.Currency;
@@ -49,12 +47,6 @@ public class AbstractToOperationTest {
     assertNotNull(operationMetadata);
     List<TokenBundleItem> tokenBundle = operationMetadata.getTokenBundle();
     assertEquals(3, tokenBundle.size());
-
-    List<Amount> policyId1 = tokenBundle.stream()
-        .filter(t -> t.getPolicyId().equals("policyId1"))
-        .map(TokenBundleItem::getTokens)
-        .flatMap(List::stream)
-        .toList();
 
     Assertions.assertThat(getPolicyIdUnits(tokenBundle, "policyId1"))
         .containsExactlyInAnyOrder("unit12", "unit13", "unit14");
