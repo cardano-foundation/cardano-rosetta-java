@@ -13,8 +13,9 @@ public class ExceptionFactory {
     return new ApiException(RosettaErrorType.GENESIS_BLOCK_NOT_FOUND.toRosettaError(false));
   }
 
-  public static ApiException configNotFoundException() {
-    return new ApiException(RosettaErrorType.CONFIG_NOT_FOUND.toRosettaError(false));
+  public static ApiException configNotFoundException(String path) {
+    return new ApiException(RosettaErrorType.CONFIG_NOT_FOUND.toRosettaError(false,
+        Details.builder().message(path).build()));
   }
 
   public static ApiException networkNotFoundError() {
@@ -272,6 +273,11 @@ public class ExceptionFactory {
   public static ApiException generalDeserializationError(String details) {
     return new ApiException(
         RosettaErrorType.DESERIALIZATION_ERROR.toRosettaError(false, new Details(details)));
+  }
+
+  public static ApiException latestBlockNotFoundException() {
+    return new ApiException(
+        RosettaErrorType.LATEST_BLOCK_NOT_FOUND.toRosettaError(true));
   }
 
   private ExceptionFactory() {
