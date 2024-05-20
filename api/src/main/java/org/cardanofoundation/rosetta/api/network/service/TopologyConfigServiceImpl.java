@@ -1,9 +1,12 @@
 package org.cardanofoundation.rosetta.api.network.service;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import javax.annotation.PostConstruct;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +32,11 @@ public class TopologyConfigServiceImpl implements TopologyConfigService {
 
   private final Object lock = new Object();
   private List<Peer> cachedPeers;
+
+  @PostConstruct
+  public void filePathExistingValidator() {
+    FileUtils.validator(topologyFilepath);
+  }
 
   @Override
   public List<Peer> getPeers() {
@@ -73,7 +81,7 @@ public class TopologyConfigServiceImpl implements TopologyConfigService {
       String content = FileUtils.fileReader(topologyFilepath);
       return mapper.readValue(content, TopologyConfig.class);
     } catch (IOException e) {
-      throw ExceptionFactory.configNotFoundException();
+      throw ExceptionFactory.configNotFoundException(topologyFilepath);
     }
   }
 

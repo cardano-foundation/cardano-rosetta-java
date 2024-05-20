@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import javax.annotation.PostConstruct;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -62,6 +63,11 @@ public class NetworkServiceImpl implements NetworkService {
   @Value("${cardano.rosetta.CARDANO_NODE_VERSION}")
   private String cardanoNodeVersion;
 
+  @PostConstruct
+  public void filePathExistingValidator() {
+    FileUtils.validator(genesisShelleyPath);
+  }
+
   @Override
   public NetworkListResponse getNetworkList(MetadataRequest metadataRequest) {
     log.info("[networkList] Looking for all supported networks");
@@ -73,21 +79,8 @@ public class NetworkServiceImpl implements NetworkService {
   public NetworkOptionsResponse getNetworkOptions(NetworkRequest networkRequest) {
     log.info("[networkOptions] Looking for networkOptions");
 
-    String rosettaVersion;
-    String implementationVersion;
-    try {
-      InputStream openAPIStream = resourceLoader.getResource(
-          "classpath:/rosetta-specifications-1.4.15/api.yaml").getInputStream();
-      OpenAPI openAPI = new OpenAPIV3Parser().readContents(new String(openAPIStream.readAllBytes()),
-              null,
-              null)
-          .getOpenAPI();
-      rosettaVersion = openAPI.getInfo().getVersion();
-      implementationVersion = rosettaConfig.getImplementationVersion();
-    } catch (IOException e) {
-      throw ExceptionFactory.configNotFoundException();
-    }
-
+    String rosettaVersion = getRosettaVersion();
+    String implementationVersion = rosettaConfig.getImplementationVersion();
     OperationStatus success = new OperationStatus().successful(true)
         .status(OperationTypeStatus.SUCCESS.getValue());
     OperationStatus invalid = new OperationStatus().successful(false)
@@ -118,6 +111,19 @@ public class NetworkServiceImpl implements NetworkService {
         .build();
   }
 
+  private String getRosettaVersion() {
+    try {
+      InputStream openAPIStream = resourceLoader.getResource(
+          Constants.ROSETTA_API_PATH).getInputStream();
+      OpenAPI openAPI = new OpenAPIV3Parser().readContents(new String(openAPIStream.readAllBytes()),
+              null, null)
+          .getOpenAPI();
+      return openAPI.getInfo().getVersion();
+    } catch (IOException e) {
+      throw ExceptionFactory.configNotFoundException(Constants.ROSETTA_API_PATH);
+    }
+  }
+
   @Override
   public NetworkStatusResponse getNetworkStatus(NetworkRequest networkRequest) {
     log.debug("[networkStatus] Request received: {}", networkRequest.toString());
@@ -133,7 +139,8 @@ public class NetworkServiceImpl implements NetworkService {
       case Constants.MAINNET_NETWORK_MAGIC -> Networks.mainnet();
       case Constants.PREPROD_NETWORK_MAGIC -> Networks.preprod();
       case Constants.PREVIEW_NETWORK_MAGIC -> Networks.preview();
-      case Constants.SANCHONET_NETWORK_MAGIC -> new Network(0b0000, Constants.SANCHONET_NETWORK_MAGIC);
+      case Constants.SANCHONET_NETWORK_MAGIC ->
+          new Network(0b0000, Constants.SANCHONET_NETWORK_MAGIC);
       case Constants.DEVKIT_NETWORK_MAGIC -> new Network(0b0000, Constants.DEVKIT_NETWORK_MAGIC);
       default -> throw ExceptionFactory.invalidNetworkError();
     };
@@ -189,6 +196,9 @@ public class NetworkServiceImpl implements NetworkService {
       case Constants.DEVKIT_NETWORK_MAGIC -> {
         return network.equals(Constants.DEVKIT);
       }
+      case Constants.SANCHONET_NETWORK_MAGIC -> {
+        return network.equals(Constants.SANCHONET);
+      }
       default -> {
         return false;
       }
@@ -214,7 +224,7 @@ public class NetworkServiceImpl implements NetworkService {
       String content = FileUtils.fileReader(genesisShelleyPath);
       return new JSONObject(content);
     } catch (IOException e) {
-      throw ExceptionFactory.configNotFoundException();
+      throw ExceptionFactory.configNotFoundException(genesisShelleyPath);
     }
   }
 

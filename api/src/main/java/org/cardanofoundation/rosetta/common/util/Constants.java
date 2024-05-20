@@ -181,4 +181,7 @@ public class Constants {
   public static final String LOVELACE = "lovelace";
   public static final String TESTNET = "testnet";
   public static final String DEVKIT = "devkit";
+  public static final String SANCHONET = "sanchonet";
+
+  public static final String ROSETTA_API_PATH = "classpath:/rosetta-specifications-1.4.15/api.yaml";
 }
