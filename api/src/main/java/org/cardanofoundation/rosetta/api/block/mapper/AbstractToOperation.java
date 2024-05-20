@@ -2,7 +2,9 @@ package org.cardanofoundation.rosetta.api.block.mapper;
 
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import jakarta.validation.constraints.NotNull;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,23 +47,25 @@ public abstract class AbstractToOperation<T> {
     Optional.ofNullable(amounts)
         .stream()
         .flatMap(List::stream)
-        .forEach(amount -> {
-          if (!amount.getAssetName().equals(Constants.LOVELACE)) {
-            TokenBundleItem tokenBundleItem = new TokenBundleItem();
-            tokenBundleItem.setPolicyId(amount.getPolicyId());
-            Amount amt = new Amount();
-            amt.setValue(DataMapper.mapValue(amount.getQuantity().toString(), spent));
-            String hexAssetName = amount.getUnit().replace(amount.getPolicyId(), "");
-            amt.setCurrency(Currency.builder()
-                .symbol(hexAssetName)
-                .decimals(0)
-                .build());
-            tokenBundleItem.setTokens(List.of(amt));
-            operationMetadata.addTokenBundleItem(tokenBundleItem);
-          }
-        });
-
-    return operationMetadata.getTokenBundle() == null ? null : operationMetadata;
+        .filter(amount -> !amount.getAssetName().equals(Constants.LOVELACE))
+        .collect(Collectors.groupingBy(Amt::getPolicyId))
+        .forEach((policyId, policyIdAmounts) ->
+            operationMetadata.addTokenBundleItem(
+                TokenBundleItem.builder()
+                    .policyId(policyId)
+                    .tokens(policyIdAmounts.stream()
+                        .map(amount -> Amount.builder()
+                            .value(DataMapper.mapValue(amount.getQuantity().toString(), spent))
+                            .currency(Currency.builder()
+                                .symbol(amount.getUnit().replace(amount.getPolicyId(), ""))
+                                .decimals(0)
+                                .build())
+                            .build())
+                        .toList())
+                    .build()
+            )
+        );
+    return Objects.isNull(operationMetadata.getTokenBundle()) ? null : operationMetadata;
   }
 
   @NotNull
@@ -81,7 +85,7 @@ public abstract class AbstractToOperation<T> {
     mp.map(f -> status.getStatus(), Operation::setStatus);
     mp.<Long>map(f -> index, (d, v) -> d.getOperationIdentifier().setIndex(v));
     mp.<String>map(Utxo::getOwnerAddr, (d, v) -> d.getAccount().setAddress(v));
-    mp.<String>map( f -> getAdaAmount(model, input), (d, v) -> d.getAmount().setValue(v));
+    mp.<String>map(f -> getAdaAmount(model, input), (d, v) -> d.getAmount().setValue(v));
     mp.<String>map(f -> ADA, (d, v) -> d.getAmount().getCurrency().setSymbol(v));
     mp.<Integer>map(f -> ADA_DECIMALS, (d, v) -> d.getAmount().getCurrency().setDecimals(v));
     mp.<String>map(f -> model.getTxHash() + ":" + model.getOutputIndex(),
