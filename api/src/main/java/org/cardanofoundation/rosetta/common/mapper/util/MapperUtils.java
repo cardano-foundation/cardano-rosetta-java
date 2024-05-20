@@ -40,7 +40,6 @@ public class MapperUtils {
     return mapToOperationMetaData(false, amounts);
   }
 
-  // TODO Map Tokens to one PolicyID
   public OperationMetadata mapToOperationMetaData(boolean spent, List<Amt> amounts) {
     OperationMetadata operationMetadata = new OperationMetadata();
     Optional.ofNullable(amounts)

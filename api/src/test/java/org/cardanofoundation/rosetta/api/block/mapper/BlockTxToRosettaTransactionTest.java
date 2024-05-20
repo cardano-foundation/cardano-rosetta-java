@@ -257,8 +257,8 @@ class BlockTxToRosettaTransactionTest extends BaseMapperSetup {
     assertThat(opInto.getStatus()).isEqualTo("success");
     assertThat(opInto.getOperationIdentifier().getIndex())
         .isEqualTo(1); //index in array for toDto_Test_getOutputsAsOperations test
-//    assertThat(opInto.getOperationIdentifier().getNetworkIndex().intValue())
-//        .isEqualTo(firstFrom.getOutputIndex()); // TODO This assertion doesn't make sense
+    assertThat(opInto.getCoinChange().getCoinIdentifier().getIdentifier())
+        .isEqualTo(firstFrom.getTxHash() + ":" + firstFrom.getOutputIndex());
 
     assertThat(opInto.getMetadata()).isNotNull();
     assertThat(opInto.getMetadata().getDepositAmount()).isNull();

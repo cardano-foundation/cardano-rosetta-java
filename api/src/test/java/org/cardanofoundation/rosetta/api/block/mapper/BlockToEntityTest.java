@@ -33,8 +33,9 @@ class BlockToEntityTest extends BaseMapperSetup {
 
     assertThat(into.getCreatedAt()).isEqualTo(
         TimeUnit.SECONDS.toMillis(from.getBlockTimeInSeconds()));
-// TODO: Fix the following assertion
-//    assertThat(into.getPreviousBlockHash()).isEqualTo(from.getPrev() != null ? from.getPrev().getHash() : null);
+
+    assertThat(into.getPreviousBlockHash()).isEqualTo(
+        from.getPrev() != null ? from.getPrev().getHash() : from.getHash());
 
     assertThat(into.getPreviousBlockNumber()).isEqualTo(
         from.getPrev() != null ? from.getPrev().getNumber() : 0);

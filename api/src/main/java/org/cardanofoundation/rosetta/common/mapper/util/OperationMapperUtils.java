@@ -37,7 +37,7 @@ public class OperationMapperUtils {
   final WithdrawalToOperation withdrawalToOperation;
   final OutputToOperation outputToOperation;
 
-  final OperationStatus SUCCESS_OPERATION_STATUS = OperationStatus.builder()
+  final OperationStatus successOperationStatus = OperationStatus.builder()
       .status(RosettaConstants.SUCCESS_OPERATION_STATUS.getStatus())
       .build();
 
@@ -47,36 +47,36 @@ public class OperationMapperUtils {
     MutableInt ix = new MutableInt(0);
     List<Operation> inpOps = Optional.ofNullable(source.getInputs()).stream()
         .flatMap(List::stream)
-        .map(input -> inputToOperation.toDto(input, SUCCESS_OPERATION_STATUS, ix.getAndIncrement()))
+        .map(input -> inputToOperation.toDto(input, successOperationStatus, ix.getAndIncrement()))
         .toList();
     operations.addAll(inpOps);
     operations.addAll(Optional.ofNullable(source.getWithdrawals()).stream()
         .flatMap(List::stream)
-        .map(withdrawal -> withdrawalToOperation.toDto(withdrawal, SUCCESS_OPERATION_STATUS, ix.getAndIncrement()))
+        .map(withdrawal -> withdrawalToOperation.toDto(withdrawal, successOperationStatus, ix.getAndIncrement()))
         .toList());
     operations.addAll(Optional.ofNullable(source.getStakeRegistrations()).stream()
         .flatMap(List::stream)
         .map(stakeRegistration -> stakeRegistrationToOperation.toDto(stakeRegistration,
-            SUCCESS_OPERATION_STATUS, ix.getAndIncrement()))
+            successOperationStatus, ix.getAndIncrement()))
         .toList());
     operations.addAll(Optional.ofNullable(source.getDelegations()).stream()
         .flatMap(List::stream)
-        .map(delegation -> delegationToOperation.toDto(delegation, SUCCESS_OPERATION_STATUS, ix.getAndIncrement()))
+        .map(delegation -> delegationToOperation.toDto(delegation, successOperationStatus, ix.getAndIncrement()))
         .toList());
     operations.addAll(Optional.ofNullable(source.getPoolRegistrations()).stream()
         .flatMap(List::stream)
         .map(poolRegistration -> poolRegistrationToOperation.toDto(poolRegistration,
-            SUCCESS_OPERATION_STATUS, ix.getAndIncrement()))
+            successOperationStatus, ix.getAndIncrement()))
         .toList());
     operations.addAll(Optional.ofNullable(source.getPoolRetirements()).stream()
         .flatMap(List::stream)
         .map(poolRetirement -> poolRetirementToOperation.toDto(poolRetirement,
-            SUCCESS_OPERATION_STATUS, ix.getAndIncrement()))
+            successOperationStatus, ix.getAndIncrement()))
         .toList());
 
     List<Operation> outOps = Optional.ofNullable(source.getOutputs()).stream()
         .flatMap(List::stream)
-        .map(output -> outputToOperation.toDto(output, SUCCESS_OPERATION_STATUS, ix.getAndIncrement()))
+        .map(output -> outputToOperation.toDto(output, successOperationStatus, ix.getAndIncrement()))
         .toList();
     outOps.forEach(op -> op.setRelatedOperations(getOperationIndexes(inpOps)));
 
