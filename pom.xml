@@ -51,7 +51,6 @@
         <version.spotless-maven-plugin>2.43.0</version.spotless-maven-plugin>
         <version.spotbugs-maven-plugin>4.8.3.0</version.spotbugs-maven-plugin>
         <version.findsecbugs-plugin>1.13.0</version.findsecbugs-plugin>
-        <version.modelmapper>3.2.0</version.modelmapper>
         <version.assertj-core>3.25.3</version.assertj-core>
         <version.h2>2.2.224</version.h2>
         <version.mapstruct>1.5.5.Final</version.mapstruct>
@@ -107,16 +106,6 @@
                 <groupId>io.swagger.core.v3</groupId>
                 <artifactId>swagger-annotations</artifactId>
                 <version>${version.swagger-annotations}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.modelmapper</groupId>
-                <artifactId>modelmapper</artifactId>
-                <version>${version.modelmapper}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.modelmapper.extensions</groupId>
-                <artifactId>modelmapper-spring</artifactId>
-                <version>${version.modelmapper}</version>
             </dependency>
             <dependency>
                 <groupId>org.assertj</groupId>
