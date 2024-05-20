@@ -5,6 +5,7 @@ import org.mapstruct.Mapping;
 import org.openapitools.client.model.ProtocolParameters;
 
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
+import org.cardanofoundation.rosetta.common.mapper.util.BaseMapper;
 
 @Mapper(config = BaseMapper.class)
 public interface ProtocolParamsToRosettaProtocolParameters {

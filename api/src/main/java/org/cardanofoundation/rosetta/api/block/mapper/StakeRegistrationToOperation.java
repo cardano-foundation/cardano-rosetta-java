@@ -8,10 +8,10 @@ import org.openapitools.client.model.Operation;
 import org.openapitools.client.model.OperationStatus;
 
 import org.cardanofoundation.rosetta.api.block.model.domain.StakeRegistration;
-import org.cardanofoundation.rosetta.common.mapper.BaseMapper;
-import org.cardanofoundation.rosetta.common.mapper.OperationMapperUtils;
+import org.cardanofoundation.rosetta.common.mapper.util.BaseMapper;
+import org.cardanofoundation.rosetta.common.mapper.util.MapperUtils;
 
-@Mapper(config = BaseMapper.class, uses = {OperationMapperUtils.class})
+@Mapper(config = BaseMapper.class, uses = {MapperUtils.class})
 public interface StakeRegistrationToOperation {
 
   @Mapping(target = "type", source = "model.type", qualifiedByName = "convertCertificateType")

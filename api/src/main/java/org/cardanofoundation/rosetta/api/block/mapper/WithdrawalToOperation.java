@@ -6,11 +6,11 @@ import org.openapitools.client.model.Operation;
 import org.openapitools.client.model.OperationStatus;
 
 import org.cardanofoundation.rosetta.api.block.model.domain.Withdrawal;
-import org.cardanofoundation.rosetta.common.mapper.BaseMapper;
-import org.cardanofoundation.rosetta.common.mapper.OperationMapperUtils;
+import org.cardanofoundation.rosetta.common.mapper.util.BaseMapper;
+import org.cardanofoundation.rosetta.common.mapper.util.MapperUtils;
 import org.cardanofoundation.rosetta.common.util.Constants;
 
-@Mapper(config = BaseMapper.class, uses = {OperationMapperUtils.class})
+@Mapper(config = BaseMapper.class, uses = {MapperUtils.class})
 public interface WithdrawalToOperation {
 
   @Mapping(target = "type", constant = Constants.OPERATION_TYPE_WITHDRAWAL)

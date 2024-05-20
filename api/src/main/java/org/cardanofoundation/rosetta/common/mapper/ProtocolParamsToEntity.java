@@ -6,6 +6,7 @@ import org.mapstruct.Mapping;
 
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
 import org.cardanofoundation.rosetta.api.block.model.entity.ProtocolParamsEntity;
+import org.cardanofoundation.rosetta.common.mapper.util.BaseMapper;
 
 
 @Mapper(config = BaseMapper.class)

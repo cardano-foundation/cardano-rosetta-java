@@ -9,7 +9,7 @@ import org.mapstruct.Named;
 
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.entity.BlockEntity;
-import org.cardanofoundation.rosetta.common.mapper.BaseMapper;
+import org.cardanofoundation.rosetta.common.mapper.util.BaseMapper;
 
 @Mapper(config = BaseMapper.class, uses = {BlockTxToEntity.class})
 public interface BlockToEntity {

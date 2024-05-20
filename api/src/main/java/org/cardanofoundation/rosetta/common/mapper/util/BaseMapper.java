@@ -1,4 +1,4 @@
-package org.cardanofoundation.rosetta.common.mapper;
+package org.cardanofoundation.rosetta.common.mapper.util;
 
 import org.mapstruct.Builder;
 import org.mapstruct.InjectionStrategy;

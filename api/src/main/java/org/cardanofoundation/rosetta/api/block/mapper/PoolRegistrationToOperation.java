@@ -6,18 +6,18 @@ import org.openapitools.client.model.Operation;
 import org.openapitools.client.model.OperationStatus;
 
 import org.cardanofoundation.rosetta.api.block.model.domain.PoolRegistration;
-import org.cardanofoundation.rosetta.common.mapper.BaseMapper;
-import org.cardanofoundation.rosetta.common.mapper.OperationMapperUtils;
+import org.cardanofoundation.rosetta.common.mapper.util.BaseMapper;
+import org.cardanofoundation.rosetta.common.mapper.util.MapperUtils;
 import org.cardanofoundation.rosetta.common.util.Constants;
 
-@Mapper(config = BaseMapper.class, uses = {OperationMapperUtils.class})
+@Mapper(config = BaseMapper.class, uses = {MapperUtils.class})
 public interface PoolRegistrationToOperation {
 
   @Mapping(target = "type", constant = Constants.OPERATION_TYPE_POOL_REGISTRATION)
   @Mapping(target = "status", source = "status.status")
   @Mapping(target = "account.address", source = "model.poolId")
   @Mapping(target = "operationIdentifier", source = "index", qualifiedByName = "OperationIdentifier")
-  @Mapping(target = "metadata.depositAmount", expression = "java(operationMapperUtils.getDepositAmountPool())")
+  @Mapping(target = "metadata.depositAmount", expression = "java(mapperUtils.getDepositAmountPool())")
   @Mapping(target = "metadata.poolRegistrationParams.pledge", source = "model.pledge")
   @Mapping(target = "metadata.poolRegistrationParams.cost", source = "model.cost")
   @Mapping(target = "metadata.poolRegistrationParams.poolOwners", source = "model.owners")

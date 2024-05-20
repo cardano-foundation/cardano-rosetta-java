@@ -5,7 +5,7 @@ import org.mapstruct.Mapping;
 
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.model.entity.TxnEntity;
-import org.cardanofoundation.rosetta.common.mapper.BaseMapper;
+import org.cardanofoundation.rosetta.common.mapper.util.BaseMapper;
 
 @Mapper(config = BaseMapper.class, uses = {UtxoKeyToEntity.class})
 public interface BlockTxToEntity {

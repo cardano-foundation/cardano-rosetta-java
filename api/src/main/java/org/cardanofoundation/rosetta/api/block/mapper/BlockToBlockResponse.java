@@ -5,7 +5,7 @@ import org.mapstruct.Mapping;
 import org.openapitools.client.model.BlockResponse;
 
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
-import org.cardanofoundation.rosetta.common.mapper.BaseMapper;
+import org.cardanofoundation.rosetta.common.mapper.util.BaseMapper;
 
 @Mapper(config = BaseMapper.class, uses = {BlockTxToRosettaTransaction.class})
 public interface BlockToBlockResponse {
