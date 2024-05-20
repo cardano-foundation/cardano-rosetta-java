@@ -5,7 +5,7 @@ mkdir -p ${CARDANO_NODE_SOCKET_PATH}
 cardano-node run --socket-path ${CARDANO_NODE_SOCKET} --port ${CARDANO_NODE_PORT} --database-path /node/db --config /config/config.json --topology /config/topology.json > /logs/node.log &
 
 echo "entrypoint - run submit api"
-cardano-submit-api --socket-path ${CARDANO_NODE_SOCKET} --port ${NODE_SUBMIT_API_PORT} --testnet-magic ${PROTOCOL_MAGIC} --config /cardano-submit-api-config/submit-api-config.yaml > /logs/submit-api.log &
+cardano-submit-api --socket-path ${CARDANO_NODE_SOCKET} --port ${NODE_SUBMIT_API_PORT} --testnet-magic ${PROTOCOL_MAGIC} --config /cardano-submit-api-config/cardano-submit-api > /logs/submit-api.log &
 
 echo "entrypoint - run postgres"
 /etc/init.d/postgresql start
