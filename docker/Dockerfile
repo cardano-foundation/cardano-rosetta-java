@@ -3,7 +3,7 @@ FROM ubuntu:22.04 AS cardano-builder
 WORKDIR /root/src
 
 # Install dependencies
-RUN apt-get update --fix-missing
+RUN apt update --fix-missing
 
 RUN apt -y --no-install-recommends install \
      automake build-essential pkg-config libffi-dev libgmp-dev libssl-dev libncurses-dev libsystemd-dev zlib1g-dev make \
@@ -124,8 +124,8 @@ FROM ubuntu:22.04 AS java-builder
 
 WORKDIR /root/app
 
-RUN apt-get update --fix-missing \
-    && apt install -y --no-install-recommends openjdk-21-jdk maven
+RUN apt update --fix-missing \
+    && apt -y --no-install-recommends install openjdk-21-jdk maven
 
 COPY ./pom.xml /root/app/pom.xml
 
@@ -143,20 +143,21 @@ WORKDIR /
 # Install postgres
 ARG PG_VERSION=14
 
-RUN apt-get update --fix-missing \
-    && DEBIAN_FRONTEND=noninteractive apt-get install -y wget sudo gnupg \
+RUN apt update --fix-missing \
+    && DEBIAN_FRONTEND=noninteractive apt install -y wget sudo gnupg \
     && wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
     && echo 'deb http://apt.postgresql.org/pub/repos/apt/ jammy-pgdg main' >> /etc/apt/sources.list
 
-RUN apt-get update --fix-missing \
-    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+RUN apt update --fix-missing \
+    && DEBIAN_FRONTEND=noninteractive apt -y --no-install-recommends install  \
     postgresql-${PG_VERSION}
 
 RUN echo "host all  all    0.0.0.0/0  md5" >> /etc/postgresql/$PG_VERSION/main/pg_hba.conf
 RUN echo "listen_addresses='*'" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
 
 # Install jdk 21
-RUN apt -y --no-install-recommends install openjdk-21-jdk
+RUN apt -y --no-install-recommends install openjdk-21-jdk \
+    && apt clean
 
 # Copy cardano node
 COPY --from=cardano-builder /usr/local/lib /usr/local/lib

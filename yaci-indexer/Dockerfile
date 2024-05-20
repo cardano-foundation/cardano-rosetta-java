@@ -1,8 +1,9 @@
 FROM ubuntu:22.04 AS build-common
 WORKDIR /app
 
-RUN apt-get update --fix-missing \
-    && apt install -y --no-install-recommends openjdk-21-jdk maven
+RUN apt update --fix-missing \
+    && apt -y --no-install-recommends install openjdk-21-jdk maven curl \
+    && apt clean
 
 COPY ./pom.xml /app/pom.xml
 COPY ./api /app/api
