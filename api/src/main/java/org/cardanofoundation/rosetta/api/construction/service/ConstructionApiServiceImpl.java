@@ -42,7 +42,7 @@ import org.openapitools.client.model.TransactionIdentifier;
 import org.openapitools.client.model.TransactionIdentifierResponse;
 
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
-import org.cardanofoundation.rosetta.common.enumeration.AddressType;
+import org.cardanofoundation.rosetta.api.construction.enumeration.AddressType;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;

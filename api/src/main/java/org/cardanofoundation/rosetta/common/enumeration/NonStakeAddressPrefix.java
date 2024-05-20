@@ -2,6 +2,7 @@ package org.cardanofoundation.rosetta.common.enumeration;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 
+// [FutureUse] It could be used to generate address
 public enum NonStakeAddressPrefix {
   MAIN("addr"),
   TEST("addr_test");

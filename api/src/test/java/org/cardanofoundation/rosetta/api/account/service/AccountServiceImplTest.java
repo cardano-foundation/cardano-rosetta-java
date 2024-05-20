@@ -27,7 +27,6 @@ import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.StakeAddressBalance;
 import org.cardanofoundation.rosetta.api.block.service.LedgerBlockService;
-import org.cardanofoundation.rosetta.api.construction.service.LedgerDataProviderService;
 import org.cardanofoundation.rosetta.common.enumeration.StakeAddressPrefix;
 import org.cardanofoundation.rosetta.common.exception.ApiException;
 import org.cardanofoundation.rosetta.common.util.Constants;
@@ -46,7 +45,7 @@ import static org.mockito.Mockito.when;
 class AccountServiceImplTest {
 
   @Mock
-  LedgerDataProviderService ledgerDataProviderService;
+  LedgerAccountService ledgerAccountService;
   @Mock
   LedgerBlockService ledgerBlockService;
   @Spy
@@ -66,7 +65,7 @@ class AccountServiceImplTest {
     AddressBalance addressBalance = new AddressBalance(accountAddress, LOVELACE, 1L,
         BigInteger.valueOf(1000L), 1L);
     when(ledgerBlockService.findBlock(1L, HASH)).thenReturn(Optional.of(block));
-    when(ledgerDataProviderService.findBalanceByAddressAndBlock(accountAddress, 1L))
+    when(ledgerAccountService.findBalanceByAddressAndBlock(accountAddress, 1L))
         .thenReturn(Collections.singletonList(addressBalance));
 
     AccountBalanceResponse actual = accountService.getAccountBalance(accountBalanceRequest);
@@ -80,10 +79,10 @@ class AccountServiceImplTest {
     assertEquals(blockIdentifier.getIndex(), actual.getBlockIdentifier().getIndex());
     assertEquals(blockIdentifier.getHash(), actual.getBlockIdentifier().getHash());
     verify(ledgerBlockService).findBlock(1L, HASH);
-    verify(ledgerDataProviderService).findBalanceByAddressAndBlock(accountAddress, 1L);
+    verify(ledgerAccountService).findBalanceByAddressAndBlock(accountAddress, 1L);
     verify(accountBalanceRequest).getAccountIdentifier();
     verify(accountBalanceRequest).getBlockIdentifier();
-    verifyNoMoreInteractions(ledgerDataProviderService);
+    verifyNoMoreInteractions(ledgerAccountService);
     verifyNoMoreInteractions(accountBalanceRequest);
     verifyNoMoreInteractions(accountIdentifier);
   }
@@ -100,7 +99,7 @@ class AccountServiceImplTest {
     Block block = getMockBlock();
     when(addressBalance.getQuantity()).thenReturn(BigInteger.valueOf(1000L));
     when(ledgerBlockService.findBlock(1L, HASH)).thenReturn(Optional.of(block));
-    when(ledgerDataProviderService.findStakeAddressBalanceByAddressAndBlock(accountAddress, 1L))
+    when(ledgerAccountService.findStakeAddressBalanceByAddressAndBlock(accountAddress, 1L))
         .thenReturn(Collections.singletonList(addressBalance));
 
     AccountBalanceResponse actual = accountService.getAccountBalance(accountBalanceRequest);
@@ -111,10 +110,10 @@ class AccountServiceImplTest {
     assertEquals(blockIdentifier.getIndex(), actual.getBlockIdentifier().getIndex());
     assertEquals(blockIdentifier.getHash(), actual.getBlockIdentifier().getHash());
     verify(ledgerBlockService).findBlock(1L, HASH);
-    verify(ledgerDataProviderService).findStakeAddressBalanceByAddressAndBlock(accountAddress, 1L);
+    verify(ledgerAccountService).findStakeAddressBalanceByAddressAndBlock(accountAddress, 1L);
     verify(accountBalanceRequest).getAccountIdentifier();
     verify(accountBalanceRequest).getBlockIdentifier();
-    verifyNoMoreInteractions(ledgerDataProviderService);
+    verifyNoMoreInteractions(ledgerAccountService);
     verifyNoMoreInteractions(accountBalanceRequest);
     verifyNoMoreInteractions(accountIdentifier);
   }
@@ -130,7 +129,7 @@ class AccountServiceImplTest {
     AddressBalance addressBalance = new AddressBalance(accountAddress, LOVELACE, 1L,
         BigInteger.valueOf(1000L), 1L);
     when(ledgerBlockService.findLatestBlock()).thenReturn(block);
-    when(ledgerDataProviderService.findBalanceByAddressAndBlock(accountAddress, 1L))
+    when(ledgerAccountService.findBalanceByAddressAndBlock(accountAddress, 1L))
         .thenReturn(Collections.singletonList(addressBalance));
 
     AccountBalanceResponse actual = accountService.getAccountBalance(accountBalanceRequest);
@@ -144,10 +143,10 @@ class AccountServiceImplTest {
     assertEquals(block.getNumber(), actual.getBlockIdentifier().getIndex());
     assertEquals(block.getHash(), actual.getBlockIdentifier().getHash());
     verify(ledgerBlockService).findLatestBlock();
-    verify(ledgerDataProviderService).findBalanceByAddressAndBlock(accountAddress, 1L);
+    verify(ledgerAccountService).findBalanceByAddressAndBlock(accountAddress, 1L);
     verify(accountBalanceRequest).getAccountIdentifier();
     verify(accountBalanceRequest).getBlockIdentifier();
-    verifyNoMoreInteractions(ledgerDataProviderService);
+    verifyNoMoreInteractions(ledgerAccountService);
     verifyNoMoreInteractions(accountBalanceRequest);
     verifyNoMoreInteractions(accountIdentifier);
   }
@@ -162,7 +161,7 @@ class AccountServiceImplTest {
     AccountIdentifier accountIdentifier = getMockedAccountIdentifierAndMockAccountBalanceRequest(
         accountBalanceRequest, blockIdentifier, accountAddress);
     when(ledgerBlockService.findBlock(1L, HASH)).thenReturn(Optional.of(block));
-    when(ledgerDataProviderService.findStakeAddressBalanceByAddressAndBlock(accountAddress, 1L))
+    when(ledgerAccountService.findStakeAddressBalanceByAddressAndBlock(accountAddress, 1L))
         .thenReturn(Collections.emptyList());
 
     ApiException actualException = assertThrows(ApiException.class,
@@ -171,10 +170,10 @@ class AccountServiceImplTest {
     assertEquals(RosettaErrorType.INVALID_ADDRESS.getMessage(),
         actualException.getError().getMessage());
     verify(ledgerBlockService).findBlock(1L, HASH);
-    verify(ledgerDataProviderService).findStakeAddressBalanceByAddressAndBlock(accountAddress, 1L);
+    verify(ledgerAccountService).findStakeAddressBalanceByAddressAndBlock(accountAddress, 1L);
     verify(accountBalanceRequest).getAccountIdentifier();
     verify(accountBalanceRequest).getBlockIdentifier();
-    verifyNoMoreInteractions(ledgerDataProviderService);
+    verifyNoMoreInteractions(ledgerAccountService);
     verifyNoMoreInteractions(accountBalanceRequest);
     verifyNoMoreInteractions(accountIdentifier);
   }
@@ -197,7 +196,7 @@ class AccountServiceImplTest {
     verify(ledgerBlockService).findBlock(1L, HASH);
     verify(accountBalanceRequest).getAccountIdentifier();
     verify(accountBalanceRequest).getBlockIdentifier();
-    verifyNoMoreInteractions(ledgerDataProviderService);
+    verifyNoMoreInteractions(ledgerAccountService);
     verifyNoMoreInteractions(accountBalanceRequest);
     verifyNoMoreInteractions(accountIdentifier);
   }
@@ -230,7 +229,7 @@ class AccountServiceImplTest {
         accountBalanceRequest, blockIdentifier, accountAddress);
     Block block = getMockBlock();
     when(ledgerBlockService.findBlock(1L, HASH)).thenReturn(Optional.of(block));
-    when(ledgerDataProviderService.findStakeAddressBalanceByAddressAndBlock(accountAddress, 1L))
+    when(ledgerAccountService.findStakeAddressBalanceByAddressAndBlock(accountAddress, 1L))
         .thenReturn(null);
 
     ApiException actualException = assertThrows(ApiException.class,
@@ -239,10 +238,10 @@ class AccountServiceImplTest {
     assertEquals(RosettaErrorType.INVALID_ADDRESS.getMessage(),
         actualException.getError().getMessage());
     verify(ledgerBlockService).findBlock(1L, HASH);
-    verify(ledgerDataProviderService).findStakeAddressBalanceByAddressAndBlock(accountAddress, 1L);
+    verify(ledgerAccountService).findStakeAddressBalanceByAddressAndBlock(accountAddress, 1L);
     verify(accountBalanceRequest).getAccountIdentifier();
     verify(accountBalanceRequest).getBlockIdentifier();
-    verifyNoMoreInteractions(ledgerDataProviderService);
+    verifyNoMoreInteractions(ledgerAccountService);
     verifyNoMoreInteractions(accountBalanceRequest);
     verifyNoMoreInteractions(accountIdentifier);
   }
@@ -264,7 +263,7 @@ class AccountServiceImplTest {
     when(accountIdentifier.getAddress()).thenReturn(accountAddress);
     when(currency.getSymbol()).thenReturn("ADA");
     when(ledgerBlockService.findLatestBlock()).thenReturn(block);
-    when(ledgerDataProviderService.findUtxoByAddressAndCurrency(accountAddress,
+    when(ledgerAccountService.findUtxoByAddressAndCurrency(accountAddress,
         Collections.emptyList())).thenReturn(Collections.singletonList(utxo));
 
     AccountCoinsResponse actual = accountService.getAccountCoins(accountCoinsRequest);
@@ -287,7 +286,7 @@ class AccountServiceImplTest {
     when(accountCoinsRequest.getCurrencies()).thenReturn(null);
     when(accountIdentifier.getAddress()).thenReturn(accountAddress);
     when(ledgerBlockService.findLatestBlock()).thenReturn(block);
-    when(ledgerDataProviderService.findUtxoByAddressAndCurrency(accountAddress,
+    when(ledgerAccountService.findUtxoByAddressAndCurrency(accountAddress,
         Collections.emptyList())).thenReturn(Collections.singletonList(utxo));
 
     AccountCoinsResponse actual = accountService.getAccountCoins(accountCoinsRequest);
@@ -354,11 +353,11 @@ class AccountServiceImplTest {
     assertEquals(block.getHash(), actual.getBlockIdentifier().getHash());
     assertEquals(block.getNumber(), actual.getBlockIdentifier().getIndex());
     verify(ledgerBlockService).findLatestBlock();
-    verify(ledgerDataProviderService).findUtxoByAddressAndCurrency(accountAddress,
+    verify(ledgerAccountService).findUtxoByAddressAndCurrency(accountAddress,
         Collections.emptyList());
     verify(accountCoinsRequest).getAccountIdentifier();
     verify(accountCoinsRequest).getCurrencies();
-    verifyNoMoreInteractions(ledgerDataProviderService);
+    verifyNoMoreInteractions(ledgerAccountService);
     verifyNoMoreInteractions(accountCoinsRequest);
   }
 }

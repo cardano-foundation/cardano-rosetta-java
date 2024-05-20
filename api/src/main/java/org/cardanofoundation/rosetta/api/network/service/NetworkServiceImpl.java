@@ -23,20 +23,29 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.parser.OpenAPIV3Parser;
 import org.json.JSONObject;
-import org.openapitools.client.model.*;
+import org.openapitools.client.model.Allow;
 import org.openapitools.client.model.Error;
+import org.openapitools.client.model.MetadataRequest;
+import org.openapitools.client.model.NetworkIdentifier;
+import org.openapitools.client.model.NetworkListResponse;
+import org.openapitools.client.model.NetworkOptionsResponse;
+import org.openapitools.client.model.NetworkRequest;
+import org.openapitools.client.model.NetworkStatusResponse;
+import org.openapitools.client.model.OperationStatus;
+import org.openapitools.client.model.Peer;
+import org.openapitools.client.model.Version;
 
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.GenesisBlock;
 import org.cardanofoundation.rosetta.api.block.model.domain.NetworkStatus;
 import org.cardanofoundation.rosetta.api.block.service.LedgerBlockService;
+import org.cardanofoundation.rosetta.api.network.model.Producer;
+import org.cardanofoundation.rosetta.api.network.model.PublicRoot;
+import org.cardanofoundation.rosetta.api.network.model.TopologyConfig;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.common.enumeration.OperationTypeStatus;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.mapper.DataMapper;
-import org.cardanofoundation.rosetta.common.model.cardano.network.Producer;
-import org.cardanofoundation.rosetta.common.model.cardano.network.PublicRoot;
-import org.cardanofoundation.rosetta.common.model.cardano.network.TopologyConfig;
 import org.cardanofoundation.rosetta.common.util.Constants;
 import org.cardanofoundation.rosetta.common.util.FileUtils;
 import org.cardanofoundation.rosetta.common.util.RosettaConstants;
@@ -67,12 +76,11 @@ public class NetworkServiceImpl implements NetworkService {
     validator(genesisPath);
   }
 
-  private void validator( String path) {
-    if(!new File(path).exists()) {
+  private void validator(String path) {
+    if (!new File(path).exists()) {
       throw ExceptionFactory.configNotFoundException();
     }
   }
-
 
 
   @Override
@@ -127,8 +135,8 @@ public class NetworkServiceImpl implements NetworkService {
 
   @Override
   public NetworkStatusResponse getNetworkStatus(NetworkRequest networkRequest)
-      throws  IOException {
-    log.debug("[networkStatus] Request received:" + networkRequest.toString());
+      throws IOException {
+    log.debug("[networkStatus] Request received: {}", networkRequest.toString());
     log.info("[networkStatus] Looking for latest block");
     NetworkStatus networkStatus = networkStatus();
     return datamapper.mapToNetworkStatusResponse(networkStatus);
@@ -155,13 +163,13 @@ public class NetworkServiceImpl implements NetworkService {
     };
   }
 
-  private NetworkStatus networkStatus() throws  IOException {
+  private NetworkStatus networkStatus() throws IOException {
     log.info("[networkStatus] Looking for latest block");
     Block latestBlock = ledgerBlockService.findLatestBlock();
-    log.debug("[networkStatus] Latest block found " + latestBlock);
+    log.debug("[networkStatus] Latest block found {}", latestBlock);
     log.debug("[networkStatus] Looking for genesis block");
     GenesisBlock genesisBlock = ledgerBlockService.findGenesisBlock();
-    log.debug("[networkStatus] Genesis block found " + genesisBlock);
+    log.debug("[networkStatus] Genesis block found {}", genesisBlock);
 
     ObjectMapper mapper = new ObjectMapper();
     String content = FileUtils.fileReader(topologyFilepath);
@@ -179,10 +187,10 @@ public class NetworkServiceImpl implements NetworkService {
     List<Producer> producers = Optional.ofNullable(topologyFile).map(
             TopologyConfig::getProducers)
         .orElseGet(() -> {
-            assert topologyFile != null;
-            return getPublicRoots(topologyFile.getPublicRoots());
+          assert topologyFile != null;
+          return getPublicRoots(topologyFile.getPublicRoots());
         });
-    log.debug("[getPeersFromConfig] Found " + producers.size() + " peers");
+    log.debug("[getPeersFromConfig] Found {} peers", producers.size());
     return producers.stream().map(producer -> new Peer(producer.getAddr(), null)).toList();
   }
 
