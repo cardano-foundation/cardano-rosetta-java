@@ -55,6 +55,24 @@
         <version.h2>2.2.224</version.h2>
         <version.mapstruct>1.5.5.Final</version.mapstruct>
         <version.lombok.mapstruct.binding>0.2.0</version.lombok.mapstruct.binding>
+        <test.exclusions>
+            **/testgenerator/**,
+            **/yaciindexer/**,
+            **/org/openapitools/**,
+            **/model/**,
+            **/entity/**,
+            **/rosetta/config/**,
+            **/rosetta/common/enumeration/NetworkId.java,
+            **/rosetta/common/enumeration/OperationTypeStatus.java,
+            **/rosetta/common/enumeration/RewardType.java,
+            **/rosetta/common/enumeration/SyncStateType.java,
+            **/rosetta/common/enumeration/ScriptPurposetype.java,
+            **/rosetta/api/mempool/service/MempoolServiceImpl.java, <!-- Currently excluded, but will be incorporated when the mempool is fully implemented. -->
+            **/rosetta/common/exception/Error.java,
+            **/rosetta/common/exception/Details.java,
+            **/rosetta/common/exception/ApiException.java
+        </test.exclusions>
+        <sonar.coverage.exclusions>${test.exclusions}</sonar.coverage.exclusions>
     </properties>
     <repositories>
         <repository>
