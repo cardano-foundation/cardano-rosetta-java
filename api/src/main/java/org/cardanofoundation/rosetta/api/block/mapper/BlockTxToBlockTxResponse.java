@@ -10,7 +10,7 @@ import org.cardanofoundation.rosetta.common.mapper.util.BaseMapper;
 @Mapper(config = BaseMapper.class, uses = {BlockTxToRosettaTransaction.class})
 public interface BlockTxToBlockTxResponse {
 
-  @Mapping(target = "transaction", source = "model", qualifiedByName = "toRosettaTransaction")
+  @Mapping(target = "transaction", source = "model")
   BlockTransactionResponse toDto(BlockTx model);
 
 }

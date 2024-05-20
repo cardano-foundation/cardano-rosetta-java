@@ -20,7 +20,7 @@ public interface BlockToBlockResponse {
   @Mapping(target = "block.metadata.size", source = "size")
   @Mapping(target = "block.metadata.slotNo", source = "slotNo")
   @Mapping(target = "block.metadata.epochNo", source = "epochNo")
-  @Mapping(target = "block.transactions", source = "transactions", qualifiedByName = "toRosettaTransaction")
+  @Mapping(target = "block.transactions", source = "transactions")
   BlockResponse toDto(Block model);
 
 }

@@ -18,7 +18,6 @@ public interface BlockTxToRosettaTransaction {
   @Mapping(target = "metadata.size", source = "size")
   @Mapping(target = "metadata.scriptSize", source = "scriptSize")
   @Mapping(target = "operations", source = "source", qualifiedByName = "mapTransactionsToOperations")
-  @Named("toRosettaTransaction")
   Transaction toDto(BlockTx source);
 
   @Named("getTransactionIdentifier")
