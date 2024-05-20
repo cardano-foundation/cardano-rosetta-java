@@ -1,0 +1,41 @@
+server:
+  compression:
+    enabled: true
+    mime-types: text/html,text/plain,text/css,application/javascript,application/json
+    min-response-size: 1024
+
+spring:
+  profiles:
+    active: ${API_SPRING_PROFILES_ACTIVE:staging, standalone}
+  jackson:
+    default-property-inclusion: NON_NULL
+    serialization:
+      write-dates-as-timestamps: false
+  servlet:
+    multipart:
+      max-file-size: 8MB
+      max-request-size: 16MB
+
+cardano:
+  rosetta:
+    version:
+      ${ROSETTA_VERSION}
+    TOPOLOGY_FILEPATH: ${TOPOLOGY_FILEPATH}
+    GENESIS_SHELLEY_PATH: ${GENESIS_SHELLEY_PATH}
+    NODE_SUBMIT_API_PORT: ${NODE_SUBMIT_API_PORT}
+    CARDANO_NODE_SUBMIT_HOST: ${CARDANO_NODE_SUBMIT_HOST}
+    CARDANO_NODE_VERSION: ${CARDANO_NODE_VERSION}
+    CARDANO_NODE_SOCKET: ${CARDANO_NODE_SOCKET}
+    # devkit variables
+    DEVKIT_ENABLED: ${DEVKIT_ENABLED:false}
+    DEVKIT_URL: ${DEVKIT_URL:yaci-cli}
+    DEVKIT_PORT: ${DEVKIT_PORT:3333}
+
+logging:
+  level:
+    root: ${LOG:INFO}
+  path: ${LOG_FILE_PATH:/var/log/rosetta-java}
+  file:
+    name: ${LOG_FILE_NAME:rosetta-api.log}
+    max-size: ${LOG_FILE_MAX_SIZE:10MB}
+    max-history: ${LOG_FILE_MAX_HISTORY:10}
