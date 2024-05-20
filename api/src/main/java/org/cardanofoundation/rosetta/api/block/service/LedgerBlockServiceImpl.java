@@ -8,7 +8,6 @@ import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.apache.commons.lang3.ObjectUtils;
@@ -40,7 +39,6 @@ import org.cardanofoundation.rosetta.api.block.model.repository.TxRepository;
 import org.cardanofoundation.rosetta.api.block.model.repository.WithdrawalRepository;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
-import org.cardanofoundation.rosetta.common.util.Constants;
 
 
 @Slf4j
