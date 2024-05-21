@@ -28,8 +28,12 @@ import org.cardanofoundation.rosetta.api.block.model.domain.PoolRetirement;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
 import org.cardanofoundation.rosetta.api.block.model.domain.StakeRegistration;
 import org.cardanofoundation.rosetta.api.block.model.entity.BlockEntity;
+import org.cardanofoundation.rosetta.api.block.model.entity.DelegationEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.PoolRegistrationEntity;
+import org.cardanofoundation.rosetta.api.block.model.entity.PoolRetirementEntity;
+import org.cardanofoundation.rosetta.api.block.model.entity.StakeRegistrationEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.TxnEntity;
+import org.cardanofoundation.rosetta.api.block.model.entity.WithdrawalEntity;
 import org.cardanofoundation.rosetta.api.block.model.repository.BlockRepository;
 import org.cardanofoundation.rosetta.api.block.model.repository.DelegationRepository;
 import org.cardanofoundation.rosetta.api.block.model.repository.PoolRegistrationRepository;
@@ -81,8 +85,30 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
   @NotNull
   private Block toModelFrom(BlockEntity blockEntity) {
     Block model = mapperBlock.fromEntity(blockEntity);
-    model.getTransactions().forEach(this::populateTransaction);
+    ProtocolParams pps = protocolParamService.findProtocolParametersFromIndexer();
+    List<BlockTx> transactions = model.getTransactions();
+    Entities fetched = getEntities(transactions);
+    transactions.forEach(tx-> populateTransaction(tx, pps, fetched));
     return model;
+  }
+
+  private Entities getEntities(List<BlockTx> transactions) {
+    List<String> txHashes = transactions.stream().map(BlockTx::getHash).toList();
+    List<StakeRegistrationEntity> stakeRegistrations = stakeRegistrationRepository.findByTxHashIn(txHashes);
+    List<DelegationEntity> delegations = delegationRepository.findByTxHashIn(txHashes);
+    List<PoolRegistrationEntity> poolRegistrations = poolRegistrationRepository.findByTxHashIn(txHashes);
+    List<PoolRetirementEntity> poolRetirements = poolRetirementRepository.findByTxHashIn(txHashes);
+    List<WithdrawalEntity> withdrawals = withdrawalRepository.findByTxHashIn(txHashes);
+    return new Entities(stakeRegistrations, delegations, poolRegistrations, poolRetirements,
+        withdrawals);
+  }
+
+  private record Entities(List<StakeRegistrationEntity> stakeRegistrations,
+                          List<DelegationEntity> delegations,
+                          List<PoolRegistrationEntity> poolRegistrations,
+                          List<PoolRetirementEntity> poolRetirements,
+                          List<WithdrawalEntity> withdrawals) {
+
   }
 
   @Override
@@ -97,8 +123,10 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
     List<TxnEntity> txList = txRepository.findTransactionsByBlockHash(blkEntity.get().getHash());
     log.debug("Found {} transactions", txList.size());
     if (ObjectUtils.isNotEmpty(txList)) {
+      ProtocolParams pps = protocolParamService.findProtocolParametersFromIndexer();
       List<BlockTx> transactions = txList.stream().map(mapperTran::fromEntity).toList();
-      transactions.forEach(this::populateTransaction);
+      Entities fetched = getEntities(transactions);
+      transactions.forEach(tx -> populateTransaction(tx, pps, fetched));
       return transactions;
     }
     return Collections.emptyList();
@@ -120,7 +148,7 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
         .orElseThrow(ExceptionFactory::genesisBlockNotFound);
   }
 
-  private void populateTransaction(BlockTx transaction) {
+  private void populateTransaction(BlockTx transaction, ProtocolParams pps, Entities fetched) {
 
     Optional.ofNullable(transaction.getInputs())
         .stream()
@@ -133,41 +161,44 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
         .forEach(this::populateUtxo);
 
     transaction.setStakeRegistrations(
-        stakeRegistrationRepository
-            .findByTxHash(transaction.getHash())
+        fetched.stakeRegistrations
             .stream()
+            .filter(tx-> tx.getTxHash().equals(transaction.getHash()))
             .map(m -> mapper.map(m, StakeRegistration.class))
             .toList());
 
     transaction.setDelegations(
-        delegationRepository
-            .findByTxHash(transaction.getHash())
+        fetched.delegations
             .stream()
+            .filter(tx-> tx.getTxHash().equals(transaction.getHash()))
             .map(m -> mapper.map(m, Delegation.class))
             .toList());
 
-    transaction.setPoolRegistrations(poolRegistrationRepository
-        .findByTxHash(transaction.getHash())
-        .stream()
-        .map(poolReg -> mapper.typeMap(PoolRegistrationEntity.class, PoolRegistration.class)
-            .addMappings(mp ->
-                mp.map(PoolRegistrationEntity::getPoolOwners, PoolRegistration::setOwners))
-            .map(poolReg))
-        .toList());
+    transaction.setPoolRegistrations(
+        fetched.poolRegistrations
+            .stream()
+            .filter(tx-> tx.getTxHash().equals(transaction.getHash()))
+            .map(poolReg -> mapper.typeMap(PoolRegistrationEntity.class, PoolRegistration.class)
+                .addMappings(mp ->
+                    mp.map(PoolRegistrationEntity::getPoolOwners, PoolRegistration::setOwners))
+                .map(poolReg))
+            .toList());
 
-    transaction.setPoolRetirements(poolRetirementRepository
-        .findByTxHash(transaction.getHash())
-        .stream()
-        .map(m -> mapper.map(m, PoolRetirement.class))
-        .toList());
 
-    transaction.setWithdrawals(withdrawalRepository
-        .findByTxHash(transaction.getHash())
-        .stream()
-        .map(withdrawalEntityToWithdrawal::fromEntity)
-        .toList());
+    transaction.setPoolRetirements(
+        fetched.poolRetirements
+            .stream()
+            .filter(tx-> tx.getTxHash().equals(transaction.getHash()))
+            .map(m -> mapper.map(m, PoolRetirement.class))
+            .toList());
 
-    ProtocolParams pps = protocolParamService.findProtocolParametersFromIndexer();
+    transaction.setWithdrawals(
+        fetched.withdrawals
+            .stream()
+            .filter(tx-> tx.getTxHash().equals(transaction.getHash()))
+            .map(withdrawalEntityToWithdrawal::fromEntity)
+            .toList());
+
     transaction.setSize(calcSize(transaction, pps));
   }
 

@@ -24,6 +24,7 @@ public class BlockTxToEntity {
           TxnEntity source = ctx.getSource();
           BlockTx dest = ctx.getDestination();
 
+          dest.setBlockNo(source.getBlock().getNumber());
           dest.setHash(source.getTxHash());
           dest.setBlockHash(source.getBlock().getHash());
           dest.setSize(0L);

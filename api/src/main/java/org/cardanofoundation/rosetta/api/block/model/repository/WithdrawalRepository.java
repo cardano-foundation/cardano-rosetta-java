@@ -9,5 +9,5 @@ import org.cardanofoundation.rosetta.api.block.model.entity.WithdrawalId;
 
 public interface WithdrawalRepository extends JpaRepository<WithdrawalEntity, WithdrawalId> {
 
-  List<WithdrawalEntity> findByTxHash(String txHash);
+  List<WithdrawalEntity> findByTxHashIn(List<String> txHashes);
 }
