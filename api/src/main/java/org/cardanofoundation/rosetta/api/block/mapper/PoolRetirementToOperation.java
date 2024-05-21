@@ -3,7 +3,6 @@ package org.cardanofoundation.rosetta.api.block.mapper;
 import lombok.AllArgsConstructor;
 
 import org.modelmapper.ModelMapper;
-import org.modelmapper.spi.MappingContext;
 import org.openapitools.client.model.AccountIdentifier;
 import org.openapitools.client.model.Operation;
 import org.openapitools.client.model.OperationIdentifier;
