@@ -1,4 +1,4 @@
-package org.cardanofoundation.rosetta.common.model.cardano.transaction;
+package org.cardanofoundation.rosetta.api.mempool.model;
 
 import java.util.Arrays;
 import java.util.Objects;

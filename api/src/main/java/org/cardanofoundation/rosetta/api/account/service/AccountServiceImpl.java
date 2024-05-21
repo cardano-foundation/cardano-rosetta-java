@@ -22,7 +22,6 @@ import org.cardanofoundation.rosetta.api.block.model.domain.StakeAddressBalance;
 import org.cardanofoundation.rosetta.api.block.service.LedgerBlockService;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.mapper.DataMapper;
-import org.cardanofoundation.rosetta.common.services.LedgerDataProviderService;
 import org.cardanofoundation.rosetta.common.util.CardanoAddressUtils;
 import org.cardanofoundation.rosetta.common.util.ValidationUtil;
 
@@ -32,7 +31,7 @@ import org.cardanofoundation.rosetta.common.util.ValidationUtil;
 @RequiredArgsConstructor
 public class AccountServiceImpl implements AccountService {
 
-  private final LedgerDataProviderService ledgerDataProviderService;
+  private final LedgerAccountService ledgerAccountService;
   private final LedgerBlockService ledgerBlockService;
 
   @Override
@@ -74,7 +73,7 @@ public class AccountServiceImpl implements AccountService {
     log.debug("[accountCoins] Filter currency is {}", currenciesRequested);
     Block latestBlock = ledgerBlockService.findLatestBlock();
     log.debug("[accountCoins] Latest block is {}", latestBlock);
-    List<Utxo> utxos = ledgerDataProviderService.findUtxoByAddressAndCurrency(accountAddress,
+    List<Utxo> utxos = ledgerAccountService.findUtxoByAddressAndCurrency(accountAddress,
         currenciesRequested);
     log.debug("[accountCoins] found {} Utxos for Address {}", utxos.size(), accountAddress);
     return DataMapper.mapToAccountCoinsResponse(latestBlock, utxos);
@@ -83,14 +82,14 @@ public class AccountServiceImpl implements AccountService {
   private AccountBalanceResponse findBalanceDataByAddressAndBlock(String address, Long number,
       String hash) {
 
-    return  findBlockOrLast(number, hash)
+    return findBlockOrLast(number, hash)
         .map(blockDto -> {
           log.info("Looking for utxos for address {} and block {}",
               address,
               blockDto.getHash());
           if (CardanoAddressUtils.isStakeAddress(address)) {
             log.debug("Address is StakeAddress, get balance for {}", address);
-            List<StakeAddressBalance> balances = ledgerDataProviderService.findStakeAddressBalanceByAddressAndBlock(
+            List<StakeAddressBalance> balances = ledgerAccountService.findStakeAddressBalanceByAddressAndBlock(
                 address, blockDto.getNumber());
             if (Objects.isNull(balances) || balances.isEmpty()) {
               log.error("[findBalanceDataByAddressAndBlock] No balance found for {}", address);
@@ -99,7 +98,7 @@ public class AccountServiceImpl implements AccountService {
             return DataMapper.mapToStakeAddressBalanceResponse(blockDto, balances.getFirst());
           } else {
             log.debug("Address isn't StakeAddress");
-            List<AddressBalance> balances = ledgerDataProviderService.findBalanceByAddressAndBlock(
+            List<AddressBalance> balances = ledgerAccountService.findBalanceByAddressAndBlock(
                 address, blockDto.getNumber());
             return DataMapper.mapToAccountBalanceResponse(blockDto, balances);
           }

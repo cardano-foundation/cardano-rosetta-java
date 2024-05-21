@@ -1,5 +1,5 @@
 server:
-  port: ${API_PORT:8081}
+  port: ${API_PORT:8082}
   compression:
     enabled: true
     mime-types: text/html,text/plain,text/css,application/javascript,application/json
@@ -16,9 +16,9 @@ spring:
       max-request-size: 16MB
   datasource:
     driver-class-name: org.h2.Driver
-    username: ${DB_ADMIN_USER_NAME:rosetta_db_admin}
-    password: ${DB_ADMIN_USER_SECRET:weakpwd#123_d}
-    url: jdbc:h2:tcp://localhost:9090/mem:${DB_NAME:rosetta-java-preprod}
+    username: ${DB_USER:rosetta_db_admin}
+    password: ${DB_SECRET:weakpwd#123_d}
+    url: jdbc:h2:tcp://localhost:9090/mem:${DB_NAME:rosetta-java}
   jpa:
     properties:
       hibernate:
@@ -30,6 +30,11 @@ spring:
     hibernate:
       ddl-auto: none
     show-sql: true
+  mvc:
+    log-resolved-exception: true
+  output:
+    ansi:
+      enabled: detect
 
 api:
   exception:
@@ -48,4 +53,21 @@ cardano:
     # devkit variables
     DEVKIT_ENABLED: ${DEVKIT_ENABLED:false}
     DEVKIT_URL: ${DEVKIT_URL:yaci-cli}
-    DEVKIT_PORT: ${HOST_N2C_SOCAT_PORT:3333}
+    DEVKIT_PORT: ${DEVKIT_PORT:3333}
+
+logging:
+  level:
+    root: INFO
+    org:
+      springframework:
+        transaction: DEBUG
+        orm:
+          jpa: DEBUG
+        web:
+          filter:
+            CommonsRequestLoggingFilter: DEBUG
+  path: ${LOG_FILE_PATH:logs}
+  file:
+    name: ${LOG_FILE_NAME:logs/rosetta-api.log}
+    max-size: ${LOG_FILE_MAX_SIZE:10MB}
+    max-history: ${LOG_FILE_MAX_HISTORY:10}

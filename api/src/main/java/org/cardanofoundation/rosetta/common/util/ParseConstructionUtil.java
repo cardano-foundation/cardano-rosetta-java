@@ -56,8 +56,8 @@ import org.openapitools.client.model.Relay;
 import org.openapitools.client.model.TokenBundleItem;
 import org.openapitools.client.model.VoteRegistrationMetadata;
 
+import org.cardanofoundation.rosetta.api.construction.enumeration.CatalystLabels;
 import org.cardanofoundation.rosetta.common.enumeration.CatalystDataIndexes;
-import org.cardanofoundation.rosetta.common.enumeration.CatalystLabels;
 import org.cardanofoundation.rosetta.common.enumeration.CatalystSigIndexes;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
@@ -532,24 +532,23 @@ public class ParseConstructionUtil {
       MultiHostName multiHostRelay = getMultiHostRelay(relay);
       SingleHostName singleHostName = getSingleHostName(relay);
       SingleHostAddr singleHostAddr = getSingleHostAddr(relay);
-      if (multiHostRelay != null || singleHostName != null) {
-        addRelayToPoolReLayOfTypeMultiHostOrSingleHostName(poolRelays, multiHostRelay,
-            singleHostName);
-        continue;
-      }
-      if (singleHostAddr != null) {
-        addRelayToPoolReLayOfTypeSingleHostAddr(poolRelays, singleHostAddr);
-      }
+
+      addRelayToPoolRelayOfTypeMultiHost(poolRelays, multiHostRelay);
+      addRelayToPoolReLayOfTypeSingleHostName(poolRelays, singleHostName);
+      addRelayToPoolReLayOfTypeSingleHostAddr(poolRelays, singleHostAddr);
+
     }
     return poolRelays;
   }
 
   public static void addRelayToPoolReLayOfTypeSingleHostAddr(List<Relay> poolRelays,
       SingleHostAddr singleHostAddr) {
-    Relay relay1 = new Relay(RelayType.SINGLE_HOST_ADDR.getValue(),
-        singleHostAddr.getIpv4().getHostAddress(), singleHostAddr.getIpv6().getHostAddress(),
-        null, String.valueOf(singleHostAddr.getPort()));
-    poolRelays.add(relay1);
+    if (!ObjectUtils.isEmpty(singleHostAddr)) {
+      Relay relay1 = new Relay(RelayType.SINGLE_HOST_ADDR.getValue(),
+          singleHostAddr.getIpv4().getHostAddress(), singleHostAddr.getIpv6().getHostAddress(),
+          null, String.valueOf(singleHostAddr.getPort()));
+      poolRelays.add(relay1);
+    }
   }
 
   public static MultiHostName getMultiHostRelay(
@@ -579,9 +578,8 @@ public class ParseConstructionUtil {
     return null;
   }
 
-  public static void addRelayToPoolReLayOfTypeMultiHostOrSingleHostName(List<Relay> poolRelays,
-      MultiHostName multiHostRelay,
-      SingleHostName singleHostName) {
+  public static void addRelayToPoolRelayOfTypeMultiHost(List<Relay> poolRelays,
+      MultiHostName multiHostRelay) {
     if (!ObjectUtils.isEmpty(multiHostRelay)) {
       poolRelays.add(
           Relay.builder()
@@ -589,6 +587,11 @@ public class ParseConstructionUtil {
               .dnsName(multiHostRelay.getDnsName())
               .build());
     }
+  }
+
+  public static void addRelayToPoolReLayOfTypeSingleHostName(List<Relay> poolRelays,
+      SingleHostName singleHostName) {
+
     if (!ObjectUtils.isEmpty(singleHostName)) {
       poolRelays.add(
           Relay.builder()

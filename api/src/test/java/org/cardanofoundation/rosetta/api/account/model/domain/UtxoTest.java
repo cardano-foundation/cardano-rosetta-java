@@ -33,9 +33,8 @@ class UtxoTest extends BaseMapperSetup {
 
   @Test
   void populateFromUtxoEntityPositiveTest() {
-    AddressUtxoEntity entity = new AddressUtxoEntity();
-    entity.setOwnerAddr("ownerAddr");
-    entity.setAmounts(Collections.emptyList());
+    AddressUtxoEntity entity = new AddressUtxoEntity(null, null, "ownerAddr",
+        Collections.emptyList());
     Utxo utxo = new Utxo("txHash", 1);
 
     mapper.map(entity, utxo);

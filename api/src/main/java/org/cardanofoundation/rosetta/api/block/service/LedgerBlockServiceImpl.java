@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import org.apache.commons.lang3.ObjectUtils;
 import org.modelmapper.ModelMapper;
 
@@ -87,6 +88,7 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
   }
 
   @Override
+  @Transactional(readOnly = true)
   public List<BlockTx> findTransactionsByBlock(Long blk, String blkHash) {
     log.debug("query blockNumber: {} blockHash: {}", blk, blkHash);
     Optional<BlockEntity> blkEntity = blockRepository.findByNumberAndHash(blk, blkHash);
@@ -103,7 +105,6 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
     }
     return Collections.emptyList();
   }
-
 
   @Override
   public Block findLatestBlock() {
@@ -123,7 +124,6 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
     }
     return cachedGenesisBlock;
   }
-
 
   private void populateTransaction(BlockTx transaction) {
 
@@ -172,7 +172,7 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
         .map(withdrawalEntityToWithdrawal::fromEntity)
         .toList());
 
-    ProtocolParams pps = protocolParamService.findProtocolParametersFromIndexerAndConfig();
+    ProtocolParams pps = protocolParamService.findProtocolParametersFromIndexer();
     transaction.setSize(calcSize(transaction, pps));
   }
 

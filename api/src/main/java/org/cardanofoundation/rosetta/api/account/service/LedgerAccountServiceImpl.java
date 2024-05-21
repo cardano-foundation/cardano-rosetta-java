@@ -1,4 +1,4 @@
-package org.cardanofoundation.rosetta.common.services.impl;
+package org.cardanofoundation.rosetta.api.account.service;
 
 import java.util.List;
 
@@ -20,13 +20,12 @@ import org.cardanofoundation.rosetta.api.account.model.repository.AddressUtxoRep
 import org.cardanofoundation.rosetta.api.block.model.domain.StakeAddressBalance;
 import org.cardanofoundation.rosetta.api.block.model.entity.UtxoKey;
 import org.cardanofoundation.rosetta.api.block.model.repository.StakeAddressRepository;
-import org.cardanofoundation.rosetta.common.services.LedgerDataProviderService;
 import org.cardanofoundation.rosetta.common.util.Formatters;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class PostgresLedgerDataProviderService implements LedgerDataProviderService {
+public class LedgerAccountServiceImpl implements LedgerAccountService {
 
   private final AddressBalanceRepository addressBalanceRepository;
   private final AddressUtxoRepository addressUtxoRepository;
@@ -35,6 +34,7 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
 
   @Override
   public List<AddressBalance> findBalanceByAddressAndBlock(String address, Long number) {
+    log.debug("Finding balance for address {} at block {}", address, number);
     List<AddressBalanceEntity> balances = addressBalanceRepository.findAddressBalanceByAddressAndBlockNumber(
         address, number);
     return balances.stream().map(AddressBalance::fromEntity).toList();
@@ -43,6 +43,7 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
   @Override
   public List<StakeAddressBalance> findStakeAddressBalanceByAddressAndBlock(String address,
       Long number) {
+    log.debug("Finding stake address balance for address {} at block {}", address, number);
     List<StakeAddressBalanceEntity> balances = stakeAddressRepository.findStakeAddressBalanceByAddressAndBlockNumber(
         address, number);
     return balances.stream().map(StakeAddressBalance::fromEntity).toList();
@@ -51,6 +52,7 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
 
   @Override
   public List<Utxo> findUtxoByAddressAndCurrency(String address, List<Currency> currencies) {
+    log.debug("Finding UTXOs for address {} with currencies {}", address, currencies);
     List<AddressUtxoEntity> addressUtxoEntities = addressUtxoRepository.findUtxosByAddress(address);
     return addressUtxoEntities.stream()
         .map(entity -> createUtxoModel(currencies, entity))
@@ -60,8 +62,7 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
 
   private Utxo createUtxoModel(List<Currency> currencies, AddressUtxoEntity entity) {
     Utxo utxoModel = mapper.map(
-        UtxoKey.builder().outputIndex(entity.getOutputIndex()).txHash(entity.getTxHash()).build(),
-        Utxo.class);
+        new UtxoKey(entity.getTxHash(), entity.getOutputIndex()), Utxo.class);
     utxoModel.setAmounts(getAmts(currencies, entity));
     return utxoModel;
   }
