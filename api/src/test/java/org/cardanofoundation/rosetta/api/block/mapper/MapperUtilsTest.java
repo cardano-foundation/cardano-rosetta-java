@@ -14,16 +14,17 @@ import org.openapitools.client.model.TokenBundleItem;
 import org.junit.jupiter.api.Test;
 
 import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
+import org.cardanofoundation.rosetta.common.mapper.util.MapperUtils;
 import org.cardanofoundation.rosetta.common.util.Constants;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-public class AbstractToOperationTest {
+public class MapperUtilsTest {
 
-  final private AbstractToOperation abstractToOperation = Mockito.mock(
-      AbstractToOperation.class,
+  final private MapperUtils mapperUtils = Mockito.mock(
+      MapperUtils.class,
       Mockito.CALLS_REAL_METHODS);
 
   @Test
@@ -42,7 +43,7 @@ public class AbstractToOperationTest {
         newAmt(4, 41, true)
     );
     // when
-    OperationMetadata operationMetadata = abstractToOperation.mapToOperationMetaData(true, amtList);
+    OperationMetadata operationMetadata = mapperUtils.mapToOperationMetaData(true, amtList);
     // then
     assertNotNull(operationMetadata);
     List<TokenBundleItem> tokenBundle = operationMetadata.getTokenBundle();
@@ -65,7 +66,7 @@ public class AbstractToOperationTest {
         newAmt(1, 11, true),
         newAmt(2, 21, true));
     // when
-    OperationMetadata operationMetadata = abstractToOperation.mapToOperationMetaData(true, amtList);
+    OperationMetadata operationMetadata = mapperUtils.mapToOperationMetaData(true, amtList);
     // then
     assertNull(operationMetadata);
   }
