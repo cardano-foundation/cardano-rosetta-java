@@ -68,6 +68,8 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
   private final BlockTxToEntity mapperTran;
   private final WithdrawalEntityToWithdrawal withdrawalEntityToWithdrawal;
 
+  private GenesisBlock cachedGenesisBlock;
+
 
   @Override
   public Optional<Block> findBlock(Long blockNumber, String blockHash) {
@@ -119,10 +121,13 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
 
   @Override
   public GenesisBlock findGenesisBlock() {
-    log.debug("About to run findGenesisBlock query");
-    return blockRepository.findGenesisBlock()
-        .map(blockToGensisBlock::toGenesisBlock)
-        .orElseThrow(ExceptionFactory::genesisBlockNotFound);
+    if(cachedGenesisBlock == null) {
+      log.debug("About to run findGenesisBlock query");
+      cachedGenesisBlock = blockRepository.findGenesisBlock()
+          .map(blockToGensisBlock::toGenesisBlock)
+          .orElseThrow(ExceptionFactory::genesisBlockNotFound);
+    }
+    return cachedGenesisBlock;
   }
 
   private void populateTransaction(BlockTx transaction) {
