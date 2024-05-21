@@ -33,8 +33,8 @@ import org.openapitools.client.model.PoolRegistrationParams;
 import org.openapitools.client.model.PublicKey;
 import org.openapitools.client.model.VoteRegistrationMetadata;
 
+import org.cardanofoundation.rosetta.api.construction.enumeration.CatalystLabels;
 import org.cardanofoundation.rosetta.common.enumeration.CatalystDataIndexes;
-import org.cardanofoundation.rosetta.common.enumeration.CatalystLabels;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;

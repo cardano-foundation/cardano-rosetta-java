@@ -23,20 +23,29 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.parser.OpenAPIV3Parser;
 import org.json.JSONObject;
-import org.openapitools.client.model.*;
+import org.openapitools.client.model.Allow;
 import org.openapitools.client.model.Error;
+import org.openapitools.client.model.MetadataRequest;
+import org.openapitools.client.model.NetworkIdentifier;
+import org.openapitools.client.model.NetworkListResponse;
+import org.openapitools.client.model.NetworkOptionsResponse;
+import org.openapitools.client.model.NetworkRequest;
+import org.openapitools.client.model.NetworkStatusResponse;
+import org.openapitools.client.model.OperationStatus;
+import org.openapitools.client.model.Peer;
+import org.openapitools.client.model.Version;
 
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.GenesisBlock;
 import org.cardanofoundation.rosetta.api.block.model.domain.NetworkStatus;
 import org.cardanofoundation.rosetta.api.block.service.LedgerBlockService;
+import org.cardanofoundation.rosetta.api.network.model.Producer;
+import org.cardanofoundation.rosetta.api.network.model.PublicRoot;
+import org.cardanofoundation.rosetta.api.network.model.TopologyConfig;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.common.enumeration.OperationTypeStatus;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.mapper.DataMapper;
-import org.cardanofoundation.rosetta.common.model.cardano.network.Producer;
-import org.cardanofoundation.rosetta.common.model.cardano.network.PublicRoot;
-import org.cardanofoundation.rosetta.common.model.cardano.network.TopologyConfig;
 import org.cardanofoundation.rosetta.common.util.Constants;
 import org.cardanofoundation.rosetta.common.util.FileUtils;
 import org.cardanofoundation.rosetta.common.util.RosettaConstants;
@@ -67,12 +76,11 @@ public class NetworkServiceImpl implements NetworkService {
     validator(genesisPath);
   }
 
-  private void validator( String path) {
-    if(!new File(path).exists()) {
+  private void validator(String path) {
+    if (!new File(path).exists()) {
       throw ExceptionFactory.configNotFoundException();
     }
   }
-
 
 
   @Override
@@ -127,8 +135,8 @@ public class NetworkServiceImpl implements NetworkService {
 
   @Override
   public NetworkStatusResponse getNetworkStatus(NetworkRequest networkRequest)
-      throws  IOException {
-    log.debug("[networkStatus] Request received:" + networkRequest.toString());
+      throws IOException {
+    log.debug("[networkStatus] Request received: {}", networkRequest.toString());
     log.info("[networkStatus] Looking for latest block");
     NetworkStatus networkStatus = networkStatus();
     return datamapper.mapToNetworkStatusResponse(networkStatus);
@@ -148,19 +156,20 @@ public class NetworkServiceImpl implements NetworkService {
     return switch (networkMagic) {
       case Constants.MAINNET_NETWORK_MAGIC -> Networks.mainnet();
       case Constants.PREPROD_NETWORK_MAGIC -> Networks.preprod();
-      case Constants.TESTNET_NETWORK_MAGIC -> Networks.testnet();
-      case Constants.DEVNET_NETWORK_MAGIC -> new Network(0b0000, Constants.DEVKIT_PROTOCOL_MAGIC);
+      case Constants.PREVIEW_NETWORK_MAGIC -> Networks.preview();
+      case Constants.SANCHONET_NETWORK_MAGIC -> new Network(0b0000, Constants.SANCHONET_NETWORK_MAGIC);
+      case Constants.DEVKIT_NETWORK_MAGIC -> new Network(0b0000, Constants.DEVKIT_NETWORK_MAGIC);
       default -> throw ExceptionFactory.invalidNetworkError();
     };
   }
 
-  private NetworkStatus networkStatus() throws  IOException {
+  private NetworkStatus networkStatus() throws IOException {
     log.info("[networkStatus] Looking for latest block");
     Block latestBlock = ledgerBlockService.findLatestBlock();
-    log.debug("[networkStatus] Latest block found " + latestBlock);
+    log.debug("[networkStatus] Latest block found {}", latestBlock);
     log.debug("[networkStatus] Looking for genesis block");
     GenesisBlock genesisBlock = ledgerBlockService.findGenesisBlock();
-    log.debug("[networkStatus] Genesis block found " + genesisBlock);
+    log.debug("[networkStatus] Genesis block found {}", genesisBlock);
 
     ObjectMapper mapper = new ObjectMapper();
     String content = FileUtils.fileReader(topologyFilepath);
@@ -178,10 +187,10 @@ public class NetworkServiceImpl implements NetworkService {
     List<Producer> producers = Optional.ofNullable(topologyFile).map(
             TopologyConfig::getProducers)
         .orElseGet(() -> {
-            assert topologyFile != null;
-            return getPublicRoots(topologyFile.getPublicRoots());
+          assert topologyFile != null;
+          return getPublicRoots(topologyFile.getPublicRoots());
         });
-    log.debug("[getPeersFromConfig] Found " + producers.size() + " peers");
+    log.debug("[getPeersFromConfig] Found {} peers", producers.size());
     return producers.stream().map(producer -> new Peer(producer.getAddr(), null)).toList();
   }
 
@@ -215,19 +224,16 @@ public class NetworkServiceImpl implements NetworkService {
     Network supportedNetwork = getSupportedNetwork();
 
     switch ((int) supportedNetwork.getProtocolMagic()) {
-      case Constants.MAINNET_PROTOCOL_MAGIC -> {
+      case Constants.MAINNET_NETWORK_MAGIC -> {
         return network.equalsIgnoreCase(Constants.MAINNET);
       }
-      case Constants.TESTNET_PROTOCOL_MAGIC -> {
-        return network.equalsIgnoreCase(Constants.TESTNET);
-      }
-      case Constants.PREPROD_PROTOCOL_MAGIC -> {
+      case Constants.PREPROD_NETWORK_MAGIC -> {
         return network.equals(Constants.PREPROD);
       }
-      case Constants.PREVIEW_PROTOCOL_MAGIC -> {
+      case Constants.PREVIEW_NETWORK_MAGIC -> {
         return network.equals(Constants.PREVIEW);
       }
-      case Constants.DEVKIT_PROTOCOL_MAGIC -> {
+      case Constants.DEVKIT_NETWORK_MAGIC -> {
         return network.equals(Constants.DEVKIT);
       }
       default -> {
