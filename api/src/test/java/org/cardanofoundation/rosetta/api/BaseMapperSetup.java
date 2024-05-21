@@ -14,7 +14,6 @@ import org.openapitools.jackson.nullable.JsonNullableModule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import org.cardanofoundation.rosetta.ConfigurationMapper;
 import org.cardanofoundation.rosetta.api.BaseMapperSetup.BaseMappersConfig;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
 import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
@@ -22,7 +21,7 @@ import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = {ConfigurationMapper.class, BaseMappersConfig.class})
+@ContextConfiguration(classes = { BaseMappersConfig.class})
 public class BaseMapperSetup {
   @MockBean
   protected ProtocolParamService protocolParamService;
@@ -39,6 +38,7 @@ public class BaseMapperSetup {
   @TestConfiguration
   @ComponentScan(basePackages = {
       "org.cardanofoundation.rosetta.api.block.mapper",
+      "org.cardanofoundation.rosetta.api.account.mapper",
       "org.cardanofoundation.rosetta.common.mapper"})
   public static class BaseMappersConfig {
 
