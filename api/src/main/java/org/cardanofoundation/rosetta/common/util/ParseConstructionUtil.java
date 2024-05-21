@@ -56,8 +56,8 @@ import org.openapitools.client.model.Relay;
 import org.openapitools.client.model.TokenBundleItem;
 import org.openapitools.client.model.VoteRegistrationMetadata;
 
+import org.cardanofoundation.rosetta.api.construction.enumeration.CatalystLabels;
 import org.cardanofoundation.rosetta.common.enumeration.CatalystDataIndexes;
-import org.cardanofoundation.rosetta.common.enumeration.CatalystLabels;
 import org.cardanofoundation.rosetta.common.enumeration.CatalystSigIndexes;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
@@ -543,7 +543,7 @@ public class ParseConstructionUtil {
 
   public static void addRelayToPoolReLayOfTypeSingleHostAddr(List<Relay> poolRelays,
       SingleHostAddr singleHostAddr) {
-    if(!ObjectUtils.isEmpty(singleHostAddr)) {
+    if (!ObjectUtils.isEmpty(singleHostAddr)) {
       Relay relay1 = new Relay(RelayType.SINGLE_HOST_ADDR.getValue(),
           singleHostAddr.getIpv4().getHostAddress(), singleHostAddr.getIpv6().getHostAddress(),
           null, String.valueOf(singleHostAddr.getPort()));
@@ -578,7 +578,8 @@ public class ParseConstructionUtil {
     return null;
   }
 
-  public static void addRelayToPoolRelayOfTypeMultiHost(List<Relay> poolRelays, MultiHostName multiHostRelay) {
+  public static void addRelayToPoolRelayOfTypeMultiHost(List<Relay> poolRelays,
+      MultiHostName multiHostRelay) {
     if (!ObjectUtils.isEmpty(multiHostRelay)) {
       poolRelays.add(
           Relay.builder()

@@ -73,6 +73,7 @@ public class ValidationUtil {
     }
   }
 
+  // [FutureUse] This method will be used to validate Transaction votes.
   public static boolean validateVoteDataFields(Map<String, Object> object) {
     List<CatalystDataIndexes> hexStringIndexes = Arrays.asList(
         CatalystDataIndexes.REWARD_ADDRESS,
@@ -89,6 +90,7 @@ public class ValidationUtil {
             object.get(index.getValue().toString()).toString()));
   }
 
+  // [FutureUse] Votes-related code.
   public static boolean isVoteSignatureValid(Map<String, Object> mapJsonString) {
 
     List<Integer> dataIndexes = Arrays.stream(CatalystSigIndexes.values())
@@ -100,6 +102,7 @@ public class ValidationUtil {
             && isHexString(mapJsonString.get(String.valueOf(index))));
   }
 
+  // [FutureUse] Votes-related code.
   public static boolean isVoteDataValid(Map<String, Object> jsonObject) {
     boolean isObject = Objects.nonNull(jsonObject);
 
@@ -114,7 +117,7 @@ public class ValidationUtil {
     return false;
   }
 
-
+  // [FutureUse]
   public static boolean areEqualUtxos(Utxo firstUtxo, Utxo secondUtxo) {
     return Objects.equals(firstUtxo.getOutputIndex(), secondUtxo.getOutputIndex())
         && Objects.equals(firstUtxo.getTxHash(), secondUtxo.getTxHash());

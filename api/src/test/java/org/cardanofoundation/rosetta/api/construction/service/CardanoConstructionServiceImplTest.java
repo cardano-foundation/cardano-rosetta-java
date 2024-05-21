@@ -1,4 +1,4 @@
-package org.cardanofoundation.rosetta.common.services.impl;
+package org.cardanofoundation.rosetta.api.construction.service;
 
 import java.math.BigInteger;
 import java.util.List;
@@ -25,8 +25,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import org.cardanofoundation.rosetta.api.construction.service.CardanoConstructionServiceImpl;
-import org.cardanofoundation.rosetta.common.enumeration.AddressType;
+import org.cardanofoundation.rosetta.api.construction.enumeration.AddressType;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
 import org.cardanofoundation.rosetta.common.exception.ApiException;
 import org.cardanofoundation.rosetta.common.exception.Error;
@@ -36,8 +35,8 @@ import org.cardanofoundation.rosetta.common.util.Constants;
 import org.cardanofoundation.rosetta.common.util.RosettaConstants.RosettaErrorType;
 
 import static org.cardanofoundation.rosetta.EntityGenerator.givenPublicKey;
-import static org.cardanofoundation.rosetta.common.enumeration.AddressType.BASE;
-import static org.cardanofoundation.rosetta.common.enumeration.AddressType.REWARD;
+import static org.cardanofoundation.rosetta.api.construction.enumeration.AddressType.BASE;
+import static org.cardanofoundation.rosetta.api.construction.enumeration.AddressType.REWARD;
 import static org.cardanofoundation.rosetta.common.enumeration.NetworkEnum.PREPROD;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;

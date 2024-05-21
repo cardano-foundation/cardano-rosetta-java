@@ -1,4 +1,4 @@
-package org.cardanofoundation.rosetta.common.model.cardano.network;
+package org.cardanofoundation.rosetta.api.network.model;
 
 
 import java.util.List;

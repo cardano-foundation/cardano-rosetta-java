@@ -17,8 +17,8 @@ import com.bloxbean.cardano.yaci.helper.LocalClientProvider;
 import com.bloxbean.cardano.yaci.helper.LocalTxMonitorClient;
 import org.openapitools.client.model.TransactionIdentifier;
 
+import org.cardanofoundation.rosetta.api.mempool.model.MemPoolTransaction;
 import org.cardanofoundation.rosetta.api.network.service.NetworkService;
-import org.cardanofoundation.rosetta.common.model.cardano.transaction.MemPoolTransaction;
 
 @Service
 @Slf4j
