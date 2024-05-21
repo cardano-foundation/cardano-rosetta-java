@@ -66,7 +66,7 @@ public class NetworkServiceImpl implements NetworkService {
   public void init() {
     JSONObject json = loadGenesisShelleyConfig();
     cachedMagicNumber = (Integer) json.get(Constants.NETWORK_MAGIC_NAME);
-    log.info("Magic number loaded from genesis config json");
+    log.info("Magic number {} loaded from genesis config json", cachedMagicNumber);
   }
 
   @Override
@@ -149,11 +149,11 @@ public class NetworkServiceImpl implements NetworkService {
   private NetworkStatus networkStatus() {
     log.info("[networkStatus] Looking for latest block");
     BlockIdentifierExtended latestBlock = ledgerBlockService.findLatestBlockIdentifier();
-    log.debug("[networkStatus] Latest block found " + latestBlock);
+    log.debug("[networkStatus] Latest block found {}", latestBlock);
 
     log.debug("[networkStatus] Looking for genesis block");
     BlockIdentifierExtended genesisBlock = ledgerBlockService.findGenesisBlockIdentifier();
-    log.debug("[networkStatus] Genesis block found " + genesisBlock);
+    log.debug("[networkStatus] Genesis block found {}", genesisBlock);
 
     List<Peer> peers = topologyConfigService.getPeers();
 
