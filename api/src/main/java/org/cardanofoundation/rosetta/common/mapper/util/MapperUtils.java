@@ -2,7 +2,9 @@ package org.cardanofoundation.rosetta.common.mapper.util;
 
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 
@@ -45,23 +47,25 @@ public class MapperUtils {
     Optional.ofNullable(amounts)
         .stream()
         .flatMap(List::stream)
-        .forEach(amount -> {
-          if (!amount.getAssetName().equals(Constants.LOVELACE)) {
-            TokenBundleItem tokenBundleItem = new TokenBundleItem();
-            tokenBundleItem.setPolicyId(amount.getPolicyId());
-            Amount amt = new Amount();
-            amt.setValue(DataMapper.mapValue(amount.getQuantity().toString(), spent));
-            String hexAssetName = amount.getUnit().replace(amount.getPolicyId(), "");
-            amt.setCurrency(Currency.builder()
-                .symbol(hexAssetName)
-                .decimals(0)
-                .build());
-            tokenBundleItem.setTokens(List.of(amt));
-            operationMetadata.addTokenBundleItem(tokenBundleItem);
-          }
-        });
-
-    return operationMetadata.getTokenBundle() == null ? null : operationMetadata;
+        .filter(amount -> !amount.getAssetName().equals(Constants.LOVELACE))
+        .collect(Collectors.groupingBy(Amt::getPolicyId))
+        .forEach((policyId, policyIdAmounts) ->
+            operationMetadata.addTokenBundleItem(
+                TokenBundleItem.builder()
+                    .policyId(policyId)
+                    .tokens(policyIdAmounts.stream()
+                        .map(amount -> Amount.builder()
+                            .value(DataMapper.mapValue(amount.getQuantity().toString(), spent))
+                            .currency(Currency.builder()
+                                .symbol(amount.getUnit().replace(amount.getPolicyId(), ""))
+                                .decimals(0)
+                                .build())
+                            .build())
+                        .toList())
+                    .build()
+            )
+        );
+    return Objects.isNull(operationMetadata.getTokenBundle()) ? null : operationMetadata;
   }
 
   @Named("getAdaAmountInput")
