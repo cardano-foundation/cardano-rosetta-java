@@ -88,34 +88,11 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
     Block model = mapperBlock.fromEntity(blockEntity);
     ProtocolParams pps = protocolParamService.findProtocolParametersFromIndexer();
     List<BlockTx> transactions = model.getTransactions();
-    Entities fetched = getEntities(transactions);
+    Entities fetched = findByTxHash(transactions);
     transactions.forEach(tx -> populateTransaction(tx, pps, fetched));
     return model;
   }
 
-  private Entities getEntities(List<BlockTx> transactions) {
-    List<String> txHashes = transactions.stream().map(BlockTx::getHash).toList();
-    List<AddressUtxoEntity> byTxHashIn = addressUtxoRepository.findByTxHashIn(txHashes);
-    List<StakeRegistrationEntity> stakeRegistrations = stakeRegistrationRepository.findByTxHashIn(
-        txHashes);
-    List<DelegationEntity> delegations = delegationRepository.findByTxHashIn(txHashes);
-    List<PoolRegistrationEntity> poolRegistrations = poolRegistrationRepository.findByTxHashIn(
-        txHashes);
-    List<PoolRetirementEntity> poolRetirements = poolRetirementRepository.findByTxHashIn(txHashes);
-    List<WithdrawalEntity> withdrawals = withdrawalRepository.findByTxHashIn(txHashes);
-    return new Entities(byTxHashIn, stakeRegistrations, delegations, poolRegistrations,
-        poolRetirements,
-        withdrawals);
-  }
-
-  private record Entities(List<AddressUtxoEntity> utxos,
-                          List<StakeRegistrationEntity> stakeRegistrations,
-                          List<DelegationEntity> delegations,
-                          List<PoolRegistrationEntity> poolRegistrations,
-                          List<PoolRetirementEntity> poolRetirements,
-                          List<WithdrawalEntity> withdrawals) {
-
-  }
 
   @Override
   @Transactional(readOnly = true)
@@ -131,7 +108,7 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
     if (ObjectUtils.isNotEmpty(txList)) {
       ProtocolParams pps = protocolParamService.findProtocolParametersFromIndexer();
       List<BlockTx> transactions = txList.stream().map(mapperTran::fromEntity).toList();
-      Entities fetched = getEntities(transactions);
+      Entities fetched = findByTxHash(transactions);
       transactions.forEach(tx -> populateTransaction(tx, pps, fetched));
       return transactions;
     }
@@ -153,6 +130,27 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
         .map(b -> mapper.map(b, GenesisBlock.class))
         .orElseThrow(ExceptionFactory::genesisBlockNotFound);
   }
+
+  private Entities findByTxHash(List<BlockTx> transactions) {
+    List<String> txHashes = transactions.stream().map(BlockTx::getHash).toList();
+    List<AddressUtxoEntity> utxos = addressUtxoRepository.findByTxHashIn(txHashes);
+    List<StakeRegistrationEntity> sReg = stakeRegistrationRepository.findByTxHashIn(txHashes);
+    List<DelegationEntity> delegations = delegationRepository.findByTxHashIn(txHashes);
+    List<PoolRegistrationEntity> pReg = poolRegistrationRepository.findByTxHashIn(txHashes);
+    List<PoolRetirementEntity> pRet = poolRetirementRepository.findByTxHashIn(txHashes);
+    List<WithdrawalEntity> withdrawals = withdrawalRepository.findByTxHashIn(txHashes);
+    return new Entities(utxos, sReg, delegations, pReg, pRet, withdrawals);
+  }
+
+  private record Entities(List<AddressUtxoEntity> utxos,
+                          List<StakeRegistrationEntity> stakeRegistrations,
+                          List<DelegationEntity> delegations,
+                          List<PoolRegistrationEntity> poolRegistrations,
+                          List<PoolRetirementEntity> poolRetirements,
+                          List<WithdrawalEntity> withdrawals) {
+
+  }
+
 
   private void populateTransaction(BlockTx transaction, ProtocolParams pps, Entities fetched) {
 
