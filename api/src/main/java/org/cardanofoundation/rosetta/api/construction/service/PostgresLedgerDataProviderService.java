@@ -6,9 +6,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.stereotype.Component;
-import org.modelmapper.ModelMapper;
 import org.openapitools.client.model.Currency;
 
+import org.cardanofoundation.rosetta.api.account.mapper.AddressUtxoEntityToUtxo;
 import org.cardanofoundation.rosetta.api.account.model.domain.AddressBalance;
 import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
@@ -18,7 +18,6 @@ import org.cardanofoundation.rosetta.api.account.model.entity.StakeAddressBalanc
 import org.cardanofoundation.rosetta.api.account.model.repository.AddressBalanceRepository;
 import org.cardanofoundation.rosetta.api.account.model.repository.AddressUtxoRepository;
 import org.cardanofoundation.rosetta.api.block.model.domain.StakeAddressBalance;
-import org.cardanofoundation.rosetta.api.block.model.entity.UtxoKey;
 import org.cardanofoundation.rosetta.api.block.model.repository.StakeAddressRepository;
 import org.cardanofoundation.rosetta.common.util.Formatters;
 
@@ -30,7 +29,7 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
   private final AddressBalanceRepository addressBalanceRepository;
   private final AddressUtxoRepository addressUtxoRepository;
   private final StakeAddressRepository stakeAddressRepository;
-  private final ModelMapper mapper;
+  private final AddressUtxoEntityToUtxo addressUtxoEntityToUtxo;
 
   @Override
   public List<AddressBalance> findBalanceByAddressAndBlock(String address, Long number) {
@@ -58,10 +57,9 @@ public class PostgresLedgerDataProviderService implements LedgerDataProviderServ
 
 
   private Utxo createUtxoModel(List<Currency> currencies, AddressUtxoEntity entity) {
-    Utxo utxoModel = mapper.map(
-        new UtxoKey(entity.getTxHash(), entity.getOutputIndex()), Utxo.class);
-    utxoModel.setAmounts(getAmts(currencies, entity));
-    return utxoModel;
+    Utxo utxo = addressUtxoEntityToUtxo.toDto(entity);
+    utxo.setAmounts(getAmts(currencies, entity));
+    return utxo;
   }
 
   private static List<Amt> getAmts(List<Currency> currencies, AddressUtxoEntity entity) {
