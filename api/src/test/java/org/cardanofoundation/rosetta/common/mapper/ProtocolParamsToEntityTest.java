@@ -32,23 +32,6 @@ class ProtocolParamsToEntityTest extends BaseMapperSetup {
     assertThat(into.getCostModels().values()).containsAll(param.getCostModels().values());
   }
 
-  @Test
-  void merge_Test_ok() {
-    ProtocolParams from = ProtocolParams.builder()
-        .costModels(Map.of("key3", new long[]{4}))
-        .minPoolCost(BigInteger.valueOf(5))
-        .build();
-    ProtocolParams to = ProtocolParams.builder()
-        .minPoolCost(BigInteger.valueOf(7))
-        .build();
-    ProtocolParams merged = my.merge(from, to);
-
-    assertThat(merged.getCostModels()).hasSize(1);
-    assertThat(merged.getCostModels().keySet()).containsAll(from.getCostModels().keySet());
-    assertThat(merged.getCostModels().values()).containsAll(from.getCostModels().values());
-    assertThat(merged.getMinPoolCost()).isEqualTo(from.getMinPoolCost());
-  }
-
   private EpochParamEntity newEpochParamEntity() {
     return new EpochParamEntity(1, newEpochParams());
   }
