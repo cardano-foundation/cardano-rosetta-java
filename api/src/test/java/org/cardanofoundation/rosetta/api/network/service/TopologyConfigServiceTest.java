@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 
-public class TopologyConfigServiceTest {
+class TopologyConfigServiceTest {
 
   private TopologyConfigServiceImpl topologyConfigService = new TopologyConfigServiceImpl();
 
@@ -33,7 +33,7 @@ public class TopologyConfigServiceTest {
   }
 
   @Test
-  public void getPeersTest_getRoots() {
+  void getPeersTest_getRoots() {
     // when
     topologyConfigService.init();
     List<Peer> peers = topologyConfigService.getPeers();
@@ -46,7 +46,7 @@ public class TopologyConfigServiceTest {
   }
 
   @Test
-  public void getPeersNegativeTest_fileNotFoundException() {
+  void getPeersNegativeTest_fileNotFoundException() {
     // given
     try (MockedStatic<FileUtils> fileUtils = Mockito.mockStatic(FileUtils.class)) {
       fileUtils.when(() -> FileUtils.fileReader(any()))
@@ -64,7 +64,7 @@ public class TopologyConfigServiceTest {
   }
 
   @Test
-  public void getPeersNegativeTest_emptyFile() {
+  void getPeersNegativeTest_emptyFile() {
     // given
     try (MockedStatic<FileUtils> fileUtils = Mockito.mockStatic(FileUtils.class)) {
       fileUtils.when(() -> FileUtils.fileReader(any()))
@@ -81,7 +81,7 @@ public class TopologyConfigServiceTest {
   }
 
   @Test
-  public void getPeersNegativeTest_getProducers() {
+  void getPeersNegativeTest_getProducers() {
     // given
     String jsonPath = this.getClass().getClassLoader()
         .getResource("testdata/topology_with_producers.json").getFile();
