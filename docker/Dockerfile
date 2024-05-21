@@ -3,9 +3,9 @@ FROM ubuntu:22.04 AS cardano-builder
 WORKDIR /root/src
 
 # Install dependencies
-RUN apt-get update --fix-missing
+RUN apt update --fix-missing
 
-RUN apt -y --no-install-recommends install \
+RUN apt install -y --no-install-recommends \
      automake build-essential pkg-config libffi-dev libgmp-dev libssl-dev libncurses-dev libsystemd-dev zlib1g-dev make \
      g++ tmux git jq wget libncursesw5-dev libtool autoconf liblmdb-dev curl ca-certificates
 
@@ -50,7 +50,7 @@ ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 ENV PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH
 
 # Install libsodium
-RUN apt -y --no-install-recommends install libsodium-dev
+RUN apt install -y --no-install-recommends libsodium-dev
 
 # Install secp256k1
 RUN export IOHKNIX_VERSION=$(curl https://raw.githubusercontent.com/IntersectMBO/cardano-node/$CARDANO_NODE_VERSION/flake.lock | jq -r '.nodes.iohkNix.locked.rev') \
@@ -86,7 +86,7 @@ RUN export BLST_VERSION=$(curl https://raw.githubusercontent.com/input-output-hk
     && cp libblst.a /usr/local/lib \
     && bash -c "chmod u=rw,go=r /usr/local/{lib/{libblst.a,pkgconfig/libblst.pc},include/{blst.{h,hpp},blst_aux.h}}"
 
-RUN apt -y --no-install-recommends install libsecp256k1-dev
+RUN apt install -y --no-install-recommends libsecp256k1-dev
 
 # Install node
 RUN git clone https://github.com/intersectmbo/cardano-node.git \
@@ -124,7 +124,7 @@ FROM ubuntu:22.04 AS java-builder
 
 WORKDIR /root/app
 
-RUN apt-get update --fix-missing \
+RUN apt update --fix-missing \
     && apt install -y --no-install-recommends openjdk-21-jdk maven
 
 COPY ./pom.xml /root/app/pom.xml
@@ -143,20 +143,21 @@ WORKDIR /
 # Install postgres
 ARG PG_VERSION=14
 
-RUN apt-get update --fix-missing \
-    && DEBIAN_FRONTEND=noninteractive apt-get install -y wget sudo gnupg \
+RUN apt update --fix-missing \
+    && DEBIAN_FRONTEND=noninteractive apt install -y wget sudo gnupg \
     && wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
     && echo 'deb http://apt.postgresql.org/pub/repos/apt/ jammy-pgdg main' >> /etc/apt/sources.list
 
-RUN apt-get update --fix-missing \
-    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+RUN apt update --fix-missing \
+    && DEBIAN_FRONTEND=noninteractive apt install -y --no-install-recommends  \
     postgresql-${PG_VERSION}
 
 RUN echo "host all  all    0.0.0.0/0  md5" >> /etc/postgresql/$PG_VERSION/main/pg_hba.conf
 RUN echo "listen_addresses='*'" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
 
 # Install jdk 21
-RUN apt -y --no-install-recommends install openjdk-21-jdk
+RUN apt install -y --no-install-recommends openjdk-21-jdk \
+    && apt clean
 
 # Copy cardano node
 COPY --from=cardano-builder /usr/local/lib /usr/local/lib
