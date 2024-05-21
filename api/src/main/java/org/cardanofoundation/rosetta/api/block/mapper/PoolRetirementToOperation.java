@@ -1,41 +1,23 @@
 package org.cardanofoundation.rosetta.api.block.mapper;
 
-import lombok.AllArgsConstructor;
-
-import org.modelmapper.ModelMapper;
-import org.openapitools.client.model.AccountIdentifier;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.openapitools.client.model.Operation;
-import org.openapitools.client.model.OperationIdentifier;
-import org.openapitools.client.model.OperationMetadata;
 import org.openapitools.client.model.OperationStatus;
 
 import org.cardanofoundation.rosetta.api.block.model.domain.PoolRetirement;
-import org.cardanofoundation.rosetta.common.annotation.OpenApiMapper;
-import org.cardanofoundation.rosetta.common.enumeration.OperationType;
+import org.cardanofoundation.rosetta.common.mapper.util.BaseMapper;
+import org.cardanofoundation.rosetta.common.mapper.util.MapperUtils;
+import org.cardanofoundation.rosetta.common.util.Constants;
 
-@OpenApiMapper
-@AllArgsConstructor
-public class PoolRetirementToOperation extends AbstractToOperation<PoolRetirement> {
+@Mapper(config = BaseMapper.class, uses = {MapperUtils.class})
+public interface PoolRetirementToOperation {
 
-  final ModelMapper modelMapper;
+  @Mapping(target = "type", constant = Constants.OPERATION_TYPE_POOL_RETIREMENT)
+  @Mapping(target = "status", source = "status.status")
+  @Mapping(target = "account.address", source = "model.poolId")
+  @Mapping(target = "metadata.epoch", source = "model.epoch")
+  @Mapping(target = "operationIdentifier", source = "index", qualifiedByName = "OperationIdentifier")
+  Operation toDto(PoolRetirement model, OperationStatus status, int index);
 
-  @Override
-  public Operation toDto(PoolRetirement model, OperationStatus status, int index) {
-    return modelMapper.typeMap(PoolRetirement.class, Operation.class)
-        .setPostConverter(ctx -> {
-          var d = ctx.getDestination();
-          d.setAccount(new AccountIdentifier());
-          d.setOperationIdentifier(new OperationIdentifier());
-          d.setMetadata(new OperationMetadata());
-
-          d.getAccount().setAddress(ctx.getSource().getPoolId());
-          d.setType(OperationType.POOL_RETIREMENT.getValue());
-          d.setStatus(status.getStatus());
-          d.getOperationIdentifier().setIndex((long)index);
-
-          ctx.getDestination().getMetadata().setEpoch(model.getEpoch());
-          return d;
-        })
-        .map(model);
-  }
 }

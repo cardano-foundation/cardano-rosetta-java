@@ -1,33 +1,28 @@
 package org.cardanofoundation.rosetta.api.block.mapper;
 
-import lombok.AllArgsConstructor;
-
-import org.modelmapper.ModelMapper;
-import org.openapitools.client.model.CoinAction;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.openapitools.client.model.Operation;
 import org.openapitools.client.model.OperationStatus;
 
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
-import org.cardanofoundation.rosetta.common.annotation.OpenApiMapper;
+import org.cardanofoundation.rosetta.common.mapper.util.BaseMapper;
+import org.cardanofoundation.rosetta.common.mapper.util.MapperUtils;
 import org.cardanofoundation.rosetta.common.util.Constants;
 
-@OpenApiMapper
-@AllArgsConstructor
-public class InputToOperation extends AbstractToOperation<Utxo> {
+@Mapper(config = BaseMapper.class, uses = {MapperUtils.class})
+public interface InputToOperation {
 
-  final ModelMapper modelMapper;
-
-  @Override
-  public Operation toDto(Utxo model, OperationStatus status, int index) {
-    return modelMapper.typeMap(Utxo.class, Operation.class)
-        .addMappings(mp -> {
-          mp.map(f -> Constants.INPUT, Operation::setType);
-          mp.<CoinAction>map(f -> CoinAction.SPENT, (d, v) -> d.getCoinChange().setCoinAction(v));
-          mp.map(f-> mapToOperationMetaData(true, model.getAmounts()), Operation::setMetadata);
-          mapOthers(model, status, index, mp, true);
-        })
-        .map(model);
-  }
-
+  @Mapping(target = "type", constant = Constants.INPUT)
+  @Mapping(target = "coinChange.coinAction", source = "model", qualifiedByName = "getCoinSpentAction")
+  @Mapping(target = "metadata", source = "model.amounts", qualifiedByName = "mapAmountsToOperationMetadataInput")
+  @Mapping(target = "operationIdentifier", source = "index", qualifiedByName = "OperationIdentifier")
+  @Mapping(target = "amount.value", source = "model", qualifiedByName = "getAdaAmountInput")
+  @Mapping(target = "status", source = "status.status")
+  @Mapping(target = "account.address", source = "model.ownerAddr")
+  @Mapping(target = "amount.currency.symbol", constant = Constants.ADA)
+  @Mapping(target = "amount.currency.decimals", constant = Constants.ADA_DECIMALS_STRING)
+  @Mapping(target = "coinChange.coinIdentifier.identifier", source = "model", qualifiedByName = "getUtxoName")
+  Operation toDto(Utxo model, OperationStatus status, int index);
 
 }

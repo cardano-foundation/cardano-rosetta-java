@@ -1,54 +1,30 @@
 package org.cardanofoundation.rosetta.api.block.mapper;
 
-import lombok.AllArgsConstructor;
-
-import org.modelmapper.ModelMapper;
-import org.openapitools.client.model.AccountIdentifier;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.openapitools.client.model.Operation;
-import org.openapitools.client.model.OperationIdentifier;
-import org.openapitools.client.model.OperationMetadata;
 import org.openapitools.client.model.OperationStatus;
-import org.openapitools.client.model.PoolRegistrationParams;
 
 import org.cardanofoundation.rosetta.api.block.model.domain.PoolRegistration;
-import org.cardanofoundation.rosetta.common.annotation.OpenApiMapper;
-import org.cardanofoundation.rosetta.common.enumeration.OperationType;
+import org.cardanofoundation.rosetta.common.mapper.util.BaseMapper;
+import org.cardanofoundation.rosetta.common.mapper.util.MapperUtils;
+import org.cardanofoundation.rosetta.common.util.Constants;
 
-@OpenApiMapper
-@AllArgsConstructor
-public class PoolRegistrationToOperation extends AbstractToOperation<PoolRegistration> {
+@Mapper(config = BaseMapper.class, uses = {MapperUtils.class})
+public interface PoolRegistrationToOperation {
 
-  final ModelMapper modelMapper;
-
-  @Override
-  public Operation toDto(PoolRegistration model, OperationStatus status, int index) {
-    return modelMapper.typeMap(PoolRegistration.class, Operation.class)
-        .setPostConverter(ctx -> {
-          var d = ctx.getDestination();
-          d.setMetadata(new OperationMetadata());
-          d.setAccount(new AccountIdentifier());
-          d.setOperationIdentifier(new OperationIdentifier());
-
-          d.getAccount().setAddress(ctx.getSource().getPoolId());
-          d.setType(OperationType.POOL_REGISTRATION.getValue());
-          d.setStatus(status.getStatus());
-          d.getOperationIdentifier().setIndex((long)index);
-
-          ctx.getDestination().getMetadata().setDepositAmount(getDepositAmount());
-          ctx.getDestination().getMetadata()
-              .setPoolRegistrationParams(new PoolRegistrationParams());
-          var params = ctx.getDestination().getMetadata().getPoolRegistrationParams();
-          params.setPledge(ctx.getSource().getPledge());
-          params.setCost(ctx.getSource().getCost());
-          params.setPoolOwners(ctx.getSource().getOwners().stream().toList());
-          params.setMarginPercentage(ctx.getSource().getMargin());
-          params.setRelays(ctx.getSource().getRelays());
-          params.setVrfKeyHash(ctx.getSource().getVrfKeyHash());
-          params.setRewardAddress(ctx.getSource().getRewardAccount());
-          return d;
-        })
-        .map(model);
-  }
-
+  @Mapping(target = "type", constant = Constants.OPERATION_TYPE_POOL_REGISTRATION)
+  @Mapping(target = "status", source = "status.status")
+  @Mapping(target = "account.address", source = "model.poolId")
+  @Mapping(target = "operationIdentifier", source = "index", qualifiedByName = "OperationIdentifier")
+  @Mapping(target = "metadata.depositAmount", expression = "java(mapperUtils.getDepositAmountPool())")
+  @Mapping(target = "metadata.poolRegistrationParams.pledge", source = "model.pledge")
+  @Mapping(target = "metadata.poolRegistrationParams.cost", source = "model.cost")
+  @Mapping(target = "metadata.poolRegistrationParams.poolOwners", source = "model.owners")
+  @Mapping(target = "metadata.poolRegistrationParams.marginPercentage", source = "model.margin")
+  @Mapping(target = "metadata.poolRegistrationParams.relays", source = "model.relays")
+  @Mapping(target = "metadata.poolRegistrationParams.vrfKeyHash", source = "model.vrfKeyHash")
+  @Mapping(target = "metadata.poolRegistrationParams.rewardAddress", source = "model.rewardAccount")
+  Operation toDto(PoolRegistration model, OperationStatus status, int index);
 
 }

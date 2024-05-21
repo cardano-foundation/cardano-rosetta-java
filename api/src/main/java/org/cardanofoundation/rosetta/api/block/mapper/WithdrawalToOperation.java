@@ -1,39 +1,24 @@
 package org.cardanofoundation.rosetta.api.block.mapper;
 
-import java.math.BigInteger;
-import java.util.Optional;
-
-import lombok.AllArgsConstructor;
-
-import org.modelmapper.ModelMapper;
-import org.openapitools.client.model.Amount;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.openapitools.client.model.Operation;
 import org.openapitools.client.model.OperationStatus;
 
 import org.cardanofoundation.rosetta.api.block.model.domain.Withdrawal;
-import org.cardanofoundation.rosetta.common.annotation.OpenApiMapper;
-import org.cardanofoundation.rosetta.common.enumeration.OperationType;
+import org.cardanofoundation.rosetta.common.mapper.util.BaseMapper;
+import org.cardanofoundation.rosetta.common.mapper.util.MapperUtils;
+import org.cardanofoundation.rosetta.common.util.Constants;
 
-@OpenApiMapper
-@AllArgsConstructor
-public class WithdrawalToOperation extends AbstractToOperation<Withdrawal>{
+@Mapper(config = BaseMapper.class, uses = {MapperUtils.class})
+public interface WithdrawalToOperation {
 
-  private final ModelMapper modelMapper;
+  @Mapping(target = "type", constant = Constants.OPERATION_TYPE_WITHDRAWAL)
+  @Mapping(target = "status", source = "status.status")
+  @Mapping(target = "account.address", source = "model.stakeAddress")
+  @Mapping(target = "operationIdentifier", source = "index", qualifiedByName = "OperationIdentifier")
+  @Mapping(target = "metadata.withdrawalAmount", source = "model.amount", qualifiedByName = "updateDepositAmountNegate")
+  @Mapping(target = "amount", ignore = true)
+  Operation toDto(Withdrawal model, OperationStatus status, int index);
 
-  @Override
-  public Operation toDto(Withdrawal model, OperationStatus status, int index) {
-    return modelMapper.typeMap(Withdrawal.class, Operation.class)
-        .addMappings(mp -> {
-          mp.map(f -> status.getStatus(), Operation::setStatus);
-          mp.map(f -> OperationType.WITHDRAWAL.getValue(), Operation::setType);
-          mp.<String>map(Withdrawal::getStakeAddress, (d, v) -> d.getAccount().setAddress(v));
-          mp.<Amount>map(f -> updateDepositAmount(
-              Optional.ofNullable(model.getAmount())
-                  .map(BigInteger::negate)
-                  .orElse(BigInteger.ZERO)),
-              (d, v) -> d.getMetadata().setWithdrawalAmount(v));
-          mp.<Long>map(f -> index, (d, v) -> d.getOperationIdentifier().setIndex(v));
-        })
-        .map(model);
-  }
 }

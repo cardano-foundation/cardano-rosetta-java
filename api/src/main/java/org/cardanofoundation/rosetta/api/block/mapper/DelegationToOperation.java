@@ -1,42 +1,23 @@
 package org.cardanofoundation.rosetta.api.block.mapper;
 
-import lombok.AllArgsConstructor;
-
-import org.modelmapper.ModelMapper;
-import org.openapitools.client.model.AccountIdentifier;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.openapitools.client.model.Operation;
-import org.openapitools.client.model.OperationIdentifier;
-import org.openapitools.client.model.OperationMetadata;
 import org.openapitools.client.model.OperationStatus;
 
 import org.cardanofoundation.rosetta.api.block.model.domain.Delegation;
-import org.cardanofoundation.rosetta.common.annotation.OpenApiMapper;
-import org.cardanofoundation.rosetta.common.enumeration.OperationType;
+import org.cardanofoundation.rosetta.common.mapper.util.BaseMapper;
+import org.cardanofoundation.rosetta.common.mapper.util.MapperUtils;
+import org.cardanofoundation.rosetta.common.util.Constants;
 
-@OpenApiMapper
-@AllArgsConstructor
-public class DelegationToOperation extends AbstractToOperation<Delegation> {
+@Mapper(config = BaseMapper.class, uses = {MapperUtils.class})
+public interface DelegationToOperation {
 
-  final ModelMapper modelMapper;
-
-  @Override
-  public Operation toDto(Delegation model, OperationStatus status, int index) {
-    return modelMapper.typeMap(Delegation.class, Operation.class)
-        .setPostConverter(ctx -> {
-          var d = ctx.getDestination();
-          d.setMetadata(new OperationMetadata());
-          d.setAccount(new AccountIdentifier());
-          d.setOperationIdentifier(new OperationIdentifier());
-
-          d.getAccount().setAddress(ctx.getSource().getAddress());
-          d.setType(OperationType.STAKE_DELEGATION.getValue());
-          d.setStatus(status.getStatus());
-          d.getOperationIdentifier().setIndex((long)index);
-
-          ctx.getDestination().getMetadata().setPoolKeyHash(model.getPoolId());
-          return d;
-        })
-        .map(model);
-  }
+  @Mapping(target = "status", source = "status.status")
+  @Mapping(target = "type", constant = Constants.OPERATION_TYPE_STAKE_DELEGATION)
+  @Mapping(target = "operationIdentifier", source = "index", qualifiedByName = "OperationIdentifier")
+  @Mapping(target = "account.address", source = "model.address")
+  @Mapping(target = "metadata.poolKeyHash", source = "model.poolId")
+  Operation toDto(Delegation model, OperationStatus status, int index);
 
 }

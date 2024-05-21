@@ -1,57 +1,30 @@
 package org.cardanofoundation.rosetta.api.block.mapper;
 
-import lombok.AllArgsConstructor;
-
 import com.bloxbean.cardano.yaci.core.model.certs.CertificateType;
-import org.modelmapper.ModelMapper;
-import org.openapitools.client.model.AccountIdentifier;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 import org.openapitools.client.model.Operation;
-import org.openapitools.client.model.OperationIdentifier;
-import org.openapitools.client.model.OperationMetadata;
 import org.openapitools.client.model.OperationStatus;
 
 import org.cardanofoundation.rosetta.api.block.model.domain.StakeRegistration;
-import org.cardanofoundation.rosetta.common.annotation.OpenApiMapper;
-import org.cardanofoundation.rosetta.common.enumeration.OperationType;
+import org.cardanofoundation.rosetta.common.mapper.util.BaseMapper;
+import org.cardanofoundation.rosetta.common.mapper.util.MapperUtils;
 
-@OpenApiMapper
-@AllArgsConstructor
-public class StakeRegistrationToOperation extends AbstractToOperation<StakeRegistration> {
+@Mapper(config = BaseMapper.class, uses = {MapperUtils.class})
+public interface StakeRegistrationToOperation {
 
-  final ModelMapper modelMapper;
-  @Override
-  public Operation toDto(StakeRegistration model, OperationStatus status, int index) {
-    return modelMapper.typeMap(StakeRegistration.class, Operation.class)
-        .setPostConverter(ctx -> {
-          var d = ctx.getDestination();
-          d.setMetadata(new OperationMetadata());
-          d.setAccount(new AccountIdentifier());
-          d.setOperationIdentifier(new OperationIdentifier());
+  @Mapping(target = "type", source = "model.type", qualifiedByName = "convertCertificateType")
+  @Mapping(target = "status", source = "status.status")
+  @Mapping(target = "account.address", source = "model.address")
+  @Mapping(target = "metadata.depositAmount", source = "model", qualifiedByName = "getDepositAmountStake", conditionExpression = "java(isRegistration(stakeRegistration.getType()))")
+  @Mapping(target = "metadata.refundAmount", source = "model", qualifiedByName = "getDepositAmountStake", conditionExpression = "java(!isRegistration(stakeRegistration.getType()))")
+  @Mapping(target = "operationIdentifier", source = "index", qualifiedByName = "OperationIdentifier")
+  abstract Operation toDto(StakeRegistration model, OperationStatus status, int index);
 
-          d.getAccount().setAddress(ctx.getSource().getAddress());
-          d.setType(convert(ctx.getSource().getType()));
-          d.setStatus(status.getStatus());
-          d.getOperationIdentifier().setIndex((long)index);
-
-          ctx.getDestination().getMetadata().setDepositAmount(getDepositAmount());
-          return d;
-
-        })
-        .map(model);
+  @Named("isRegistration")
+  default boolean isRegistration(CertificateType type) {
+    return type == CertificateType.STAKE_REGISTRATION;
   }
-
-
-  private String convert(CertificateType model) {
-    if (model == null) {
-      return null;
-    } else {
-      return switch (model) {
-        case CertificateType.STAKE_REGISTRATION -> OperationType.STAKE_KEY_REGISTRATION.getValue();
-        case CertificateType.STAKE_DEREGISTRATION -> OperationType.STAKE_KEY_DEREGISTRATION.getValue();
-        default -> null;
-      };
-    }
-  }
-
 
 }
