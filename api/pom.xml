@@ -14,24 +14,6 @@
     <properties>
         <spotbugs-annotations.version>4.8.3</spotbugs-annotations.version>
         <argLine/>
-        <test.exclusions>
-            **/org/openapitools/**,
-            **/model/**,
-            **/entity/**,
-            **/rosetta/config/**,
-            **/rosetta/common/enumeration/NetworkId.java,
-            **/rosetta/common/enumeration/OperationTypeStatus.java,
-            **/rosetta/common/enumeration/RewardType.java,
-            **/rosetta/common/enumeration/SyncStateType.java,
-            **/rosetta/common/enumeration/ScriptPurposetype.java,
-            **/rosetta/api/mempool/service/MempoolServiceImpl.java,
-            **/rosetta/common/exception/ServerException.java,
-            **/rosetta/common/exception/Error.java,
-            **/rosetta/common/exception/Details.java,
-            **/rosetta/common/exception/ApiException.java
-        </test.exclusions>
-        <sonar.sources>src/main/java</sonar.sources>
-        <sonar.coverage.exclusions>${test.exclusions}</sonar.coverage.exclusions>
     </properties>
 
     <packaging>jar</packaging>
