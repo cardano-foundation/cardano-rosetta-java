@@ -1,35 +1,23 @@
 package org.cardanofoundation.rosetta.api.block.mapper;
 
-import lombok.AllArgsConstructor;
-
-import org.modelmapper.ModelMapper;
-import org.modelmapper.spi.MappingContext;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.openapitools.client.model.Operation;
-import org.openapitools.client.model.OperationMetadata;
 import org.openapitools.client.model.OperationStatus;
 
 import org.cardanofoundation.rosetta.api.block.model.domain.PoolRetirement;
-import org.cardanofoundation.rosetta.common.annotation.OpenApiMapper;
-import org.cardanofoundation.rosetta.common.enumeration.OperationType;
+import org.cardanofoundation.rosetta.common.mapper.util.BaseMapper;
+import org.cardanofoundation.rosetta.common.mapper.util.MapperUtils;
+import org.cardanofoundation.rosetta.common.util.Constants;
 
-@OpenApiMapper
-@AllArgsConstructor
-public class PoolRetirementToOperation extends AbstractToOperation<PoolRetirement> {
+@Mapper(config = BaseMapper.class, uses = {MapperUtils.class})
+public interface PoolRetirementToOperation {
 
-  final ModelMapper modelMapper;
+  @Mapping(target = "type", constant = Constants.OPERATION_TYPE_POOL_RETIREMENT)
+  @Mapping(target = "status", source = "status.status")
+  @Mapping(target = "account.address", source = "model.poolId")
+  @Mapping(target = "metadata.epoch", source = "model.epoch")
+  @Mapping(target = "operationIdentifier", source = "index", qualifiedByName = "OperationIdentifier")
+  Operation toDto(PoolRetirement model, OperationStatus status, int index);
 
-  @Override
-  public Operation toDto(PoolRetirement model, OperationStatus status, int index) {
-    return modelMapper.typeMap(PoolRetirement.class, Operation.class)
-        .addMappings(mp -> {
-          mp.map(f -> status.getStatus(), Operation::setStatus);
-          mp.map(f -> OperationType.POOL_RETIREMENT.getValue(), Operation::setType);
-          mp.<String>map(PoolRetirement::getPoolId, (d, v) -> d.getAccount().setAddress(v));
-          mp.map(f -> OperationMetadata.builder().epoch(model.getEpoch()).build(),
-              Operation::setMetadata);
-          mp.<Long>map(f -> index, (d, v) -> d.getOperationIdentifier().setIndex(v));
-        })
-        .setPostConverter(MappingContext::getDestination)
-        .map(model);
-  }
 }

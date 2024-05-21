@@ -1,3 +1,4 @@
+
 package org.cardanofoundation.rosetta.api.block.mapper;
 
 import java.math.BigInteger;
