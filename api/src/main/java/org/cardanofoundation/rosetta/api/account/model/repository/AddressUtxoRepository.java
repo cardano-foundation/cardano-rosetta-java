@@ -11,14 +11,10 @@ import org.cardanofoundation.rosetta.api.account.model.entity.UtxoId;
 
 public interface AddressUtxoRepository extends JpaRepository<AddressUtxoEntity, UtxoId> {
 
-  List<AddressUtxoEntity> findAddressUtxoEntitiesByOutputIndexAndTxHash(Integer outputIndex,
-      String txHash);
-
-  @Query(value ="SELECT a FROM AddressUtxoEntity a WHERE a.txHash in (:txHash) AND a.outputIndex in (:outputIndex)")
-  List<AddressUtxoEntity> findAllById(List<Integer> outputIndex, List<String> txHash );
-
   @Query(value =
       "SELECT a FROM AddressUtxoEntity a LEFT OUTER JOIN TxInputEntity i ON a.txHash = i.txHash AND a.outputIndex = i.outputIndex WHERE a.ownerAddr = :address AND i.txHash IS NULL AND i.outputIndex IS NULL"
   )
   List<AddressUtxoEntity> findUtxosByAddress(@Param("address") String address);
+
+  List<AddressUtxoEntity> findByTxHashIn(List<String> txHashes);
 }

@@ -2,6 +2,7 @@ package org.cardanofoundation.rosetta.api.block.service;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import jakarta.validation.constraints.NotNull;
 
@@ -88,22 +89,27 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
     ProtocolParams pps = protocolParamService.findProtocolParametersFromIndexer();
     List<BlockTx> transactions = model.getTransactions();
     Entities fetched = getEntities(transactions);
-    transactions.forEach(tx-> populateTransaction(tx, pps, fetched));
+    transactions.forEach(tx -> populateTransaction(tx, pps, fetched));
     return model;
   }
 
   private Entities getEntities(List<BlockTx> transactions) {
     List<String> txHashes = transactions.stream().map(BlockTx::getHash).toList();
-    List<StakeRegistrationEntity> stakeRegistrations = stakeRegistrationRepository.findByTxHashIn(txHashes);
+    List<AddressUtxoEntity> byTxHashIn = addressUtxoRepository.findByTxHashIn(txHashes);
+    List<StakeRegistrationEntity> stakeRegistrations = stakeRegistrationRepository.findByTxHashIn(
+        txHashes);
     List<DelegationEntity> delegations = delegationRepository.findByTxHashIn(txHashes);
-    List<PoolRegistrationEntity> poolRegistrations = poolRegistrationRepository.findByTxHashIn(txHashes);
+    List<PoolRegistrationEntity> poolRegistrations = poolRegistrationRepository.findByTxHashIn(
+        txHashes);
     List<PoolRetirementEntity> poolRetirements = poolRetirementRepository.findByTxHashIn(txHashes);
     List<WithdrawalEntity> withdrawals = withdrawalRepository.findByTxHashIn(txHashes);
-    return new Entities(stakeRegistrations, delegations, poolRegistrations, poolRetirements,
+    return new Entities(byTxHashIn, stakeRegistrations, delegations, poolRegistrations,
+        poolRetirements,
         withdrawals);
   }
 
-  private record Entities(List<StakeRegistrationEntity> stakeRegistrations,
+  private record Entities(List<AddressUtxoEntity> utxos,
+                          List<StakeRegistrationEntity> stakeRegistrations,
                           List<DelegationEntity> delegations,
                           List<PoolRegistrationEntity> poolRegistrations,
                           List<PoolRetirementEntity> poolRetirements,
@@ -153,49 +159,48 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
     Optional.ofNullable(transaction.getInputs())
         .stream()
         .flatMap(List::stream)
-        .forEach(this::populateUtxo);
+        .forEach(t -> populateUtxo(t, fetched.utxos));
 
     Optional.ofNullable(transaction.getOutputs())
         .stream()
         .flatMap(List::stream)
-        .forEach(this::populateUtxo);
+        .forEach(utxo -> populateUtxo(utxo, fetched.utxos));
 
     transaction.setStakeRegistrations(
         fetched.stakeRegistrations
             .stream()
-            .filter(tx-> tx.getTxHash().equals(transaction.getHash()))
+            .filter(tx -> tx.getTxHash().equals(transaction.getHash()))
             .map(m -> mapper.map(m, StakeRegistration.class))
             .toList());
 
     transaction.setDelegations(
         fetched.delegations
             .stream()
-            .filter(tx-> tx.getTxHash().equals(transaction.getHash()))
+            .filter(tx -> tx.getTxHash().equals(transaction.getHash()))
             .map(m -> mapper.map(m, Delegation.class))
             .toList());
 
     transaction.setPoolRegistrations(
         fetched.poolRegistrations
             .stream()
-            .filter(tx-> tx.getTxHash().equals(transaction.getHash()))
+            .filter(tx -> tx.getTxHash().equals(transaction.getHash()))
             .map(poolReg -> mapper.typeMap(PoolRegistrationEntity.class, PoolRegistration.class)
                 .addMappings(mp ->
                     mp.map(PoolRegistrationEntity::getPoolOwners, PoolRegistration::setOwners))
                 .map(poolReg))
             .toList());
 
-
     transaction.setPoolRetirements(
         fetched.poolRetirements
             .stream()
-            .filter(tx-> tx.getTxHash().equals(transaction.getHash()))
+            .filter(tx -> tx.getTxHash().equals(transaction.getHash()))
             .map(m -> mapper.map(m, PoolRetirement.class))
             .toList());
 
     transaction.setWithdrawals(
         fetched.withdrawals
             .stream()
-            .filter(tx-> tx.getTxHash().equals(transaction.getHash()))
+            .filter(tx -> tx.getTxHash().equals(transaction.getHash()))
             .map(withdrawalEntityToWithdrawal::fromEntity)
             .toList());
 
@@ -206,10 +211,13 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
     return (Long.parseLong(tx.getFee()) - p.getMinFeeB().longValue()) / p.getMinFeeA().longValue();
   }
 
-  private void populateUtxo(Utxo utxo) {
-    AddressUtxoEntity first = addressUtxoRepository
-        .findAddressUtxoEntitiesByOutputIndexAndTxHash(utxo.getOutputIndex(), utxo.getTxHash())
-        .getFirst();
-    Optional.ofNullable(first).ifPresent(m -> mapper.map(m, utxo));
+  private void populateUtxo(Utxo utxo, List<AddressUtxoEntity> utxos) {
+    utxos
+        .stream()
+        .filter(t ->
+            Objects.equals(t.getOutputIndex(), utxo.getOutputIndex())
+                && t.getTxHash().equals(utxo.getTxHash()))
+        .findAny()
+        .ifPresent(m -> mapper.map(m, utxo));
   }
 }
