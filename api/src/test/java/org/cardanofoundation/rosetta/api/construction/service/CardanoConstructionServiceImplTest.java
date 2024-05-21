@@ -19,6 +19,7 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.openapitools.client.model.Operation;
 import org.openapitools.client.model.PublicKey;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -77,6 +78,30 @@ class CardanoConstructionServiceImplTest {
         depositsSumMap);
 
     assertEquals(0L, l);
+  }
+
+  @Test
+  void outputMoreThanInputTest() {
+    List<BigInteger> inputAmounts = List.of(BigInteger.valueOf(-5L));
+    List<BigInteger> outputAmounts = List.of(BigInteger.valueOf(2L));
+    List<BigInteger> withdrawalAmounts = List.of(BigInteger.valueOf(7L));
+    Map<String, Double> depositsSumMap = Map.of(Constants.KEY_REFUNDS_SUM, (double) 6L,
+            Constants.KEY_DEPOSITS_SUM, (double) 2L, Constants.POOL_DEPOSITS_SUM, (double) 2L);
+    ApiException exception = assertThrows(ApiException.class,
+            () -> cardanoService.calculateFee(inputAmounts, outputAmounts, withdrawalAmounts, depositsSumMap));
+
+    assertEquals(4010, exception.getError().getCode());
+    assertEquals("The transaction you are trying to build has more outputs than inputs", exception.getError().getMessage());
+  }
+
+  @SuppressWarnings("java:S5778")
+  @Test
+  void convertRosettaOperationsWOOperationType() {
+    ApiException exception = assertThrows(ApiException.class,
+            () -> cardanoService.convertRosettaOperations(NetworkIdentifierType.CARDANO_MAINNET_NETWORK, List.of(new Operation())));
+
+    assertEquals(4019, exception.getError().getCode());
+    assertEquals("Provided operation type is invalid", exception.getError().getMessage());
   }
 
   @Test
