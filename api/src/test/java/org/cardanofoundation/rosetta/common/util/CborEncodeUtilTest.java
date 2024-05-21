@@ -20,7 +20,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class CborEncodeUtilTest {
 
-
   @Test
   void encodeSimpleInputOutputTest()
       throws IOException, CborException, AddressExcepion, CborSerializationException {

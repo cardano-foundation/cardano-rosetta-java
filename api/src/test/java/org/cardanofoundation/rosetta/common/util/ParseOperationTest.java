@@ -8,6 +8,7 @@ import com.bloxbean.cardano.client.transaction.spec.cert.StakeDeregistration;
 import com.bloxbean.cardano.client.transaction.spec.cert.StakeRegistration;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.openapitools.client.model.Operation;
+import org.openapitools.client.model.OperationMetadata;
 
 import org.junit.jupiter.api.Test;
 
@@ -21,7 +22,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SuppressWarnings("java:S5778")
 class ParseOperationTest {
-
 
   private Operation getOperation(String fileName) throws IOException {
     File file = new File(this.getClass().getClassLoader().getResource(fileName).getFile());
@@ -162,4 +162,30 @@ class ParseOperationTest {
     assertEquals("Missing vote registration metadata", exception.getError().getMessage());
   }
 
+  @Test
+  void parseOperationWOAddressStaiingKey() {
+    ProcessOperations resultAccumulator = new ProcessOperations();
+    Operation operation = new Operation();
+    ApiException exception = assertThrows(ApiException.class,
+            () -> OperationParseUtil.parseOperation(operation, NetworkIdentifierType.CARDANO_PREPROD_NETWORK,
+                    resultAccumulator, OperationType.WITHDRAWAL.getValue()));
+
+    assertEquals("Staking key is required for this type of address", exception.getError().getMessage());
+    assertEquals(4018, exception.getError().getCode());
+  }
+
+  @Test
+  void parsePoolRegistrationOperationWOParameters() {
+    ProcessOperations resultAccumulator = new ProcessOperations();
+    Operation operation = new Operation();
+    operation.setMetadata(OperationMetadata
+            .builder()
+            .build());
+    ApiException exception = assertThrows(ApiException.class,
+            () -> OperationParseUtil.parseOperation(operation, NetworkIdentifierType.CARDANO_PREPROD_NETWORK,
+                    resultAccumulator, OperationType.POOL_REGISTRATION.getValue()));
+
+    assertEquals("Pool registration parameters were expected", exception.getError().getMessage());
+    assertEquals(4029, exception.getError().getCode());
+  }
 }
