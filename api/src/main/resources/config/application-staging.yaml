@@ -3,10 +3,9 @@ server:
 
 spring:
   datasource:
-    driver-class-name: org.postgresql.Driver
     username: rosetta_db_service_user
     password: weakerpwd#123_d
-    url: jdbc:postgresql://172.16.1.217:5432/rosetta?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC&useLegacyDatetimeCode=false&createDatabaseIfNotExist=true&autoReconnect=true&currentSchema=preprod
+    url: jdbc:postgresql://172.16.1.217:5432/rosetta?currentSchema=${DB_SCHEMA:preprod}
   jpa:
     properties:
       hibernate:

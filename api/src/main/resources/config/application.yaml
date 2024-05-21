@@ -15,6 +15,10 @@ spring:
     multipart:
       max-file-size: 8MB
       max-request-size: 16MB
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    readOnly: true
+    readOnlyMode: always
 
 cardano:
   rosetta:

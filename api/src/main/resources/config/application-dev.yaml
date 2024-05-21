@@ -3,10 +3,9 @@ server:
 
 spring:
   datasource:
-    driver-class-name: org.postgresql.Driver
     username: ${DB_USER:rosetta_db_admin}
     password: ${DB_SECRET:weakpwd#123_d}
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5433}/${DB_NAME:test}?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC&useLegacyDatetimeCode=false&createDatabaseIfNotExist=true&autoReconnect=true&currentSchema=${DB_SCHEMA:preprod}
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5433}/${DB_NAME:test}?currentSchema=${DB_SCHEMA:preprod}
     hikari:
 #      default connection-timeout is 30 seconds
       connectionTimeout: 30000
