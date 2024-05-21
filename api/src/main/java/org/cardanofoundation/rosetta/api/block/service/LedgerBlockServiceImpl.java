@@ -27,12 +27,8 @@ import org.cardanofoundation.rosetta.api.block.mapper.StakeRegistrationEntityToS
 import org.cardanofoundation.rosetta.api.block.mapper.WithdrawalEntityToWithdrawal;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
-import org.cardanofoundation.rosetta.api.block.model.domain.Delegation;
 import org.cardanofoundation.rosetta.api.block.model.domain.GenesisBlock;
-import org.cardanofoundation.rosetta.api.block.model.domain.PoolRegistration;
-import org.cardanofoundation.rosetta.api.block.model.domain.PoolRetirement;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
-import org.cardanofoundation.rosetta.api.block.model.domain.StakeRegistration;
 import org.cardanofoundation.rosetta.api.block.model.entity.BlockEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.DelegationEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.PoolRegistrationEntity;
@@ -229,10 +225,4 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
         .ifPresent(m -> addressUtxoEntityToUtxo.overWriteDto(utxo,m));
   }
 
-//  private void populateUtxo(Utxo utxo) {
-//    AddressUtxoEntity first = addressUtxoRepository
-//        .findAddressUtxoEntitiesByOutputIndexAndTxHash(utxo.getOutputIndex(), utxo.getTxHash())
-//        .getFirst();
-//    Optional.ofNullable(first).ifPresent(m -> addressUtxoEntityToUtxo.overWriteDto(utxo,m));
-//  }
 }
