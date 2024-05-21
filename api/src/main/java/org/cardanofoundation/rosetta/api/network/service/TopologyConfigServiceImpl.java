@@ -44,8 +44,8 @@ public class TopologyConfigServiceImpl implements TopologyConfigService {
   public List<Peer> getPeerFromConfig(TopologyConfig topologyConfig) {
     log.info("[getPeersFromConfig] Looking for peers from topologyFile");
 
-    List<Producer> producers = Optional.ofNullable(topologyConfig).map(
-            TopologyConfig::getProducers)
+    List<Producer> producers = Optional.ofNullable(topologyConfig)
+        .map(TopologyConfig::getProducers)
         .orElseGet(() -> {
           assert topologyConfig != null;
           return getPublicRoots(topologyConfig.getPublicRoots());
@@ -58,7 +58,8 @@ public class TopologyConfigServiceImpl implements TopologyConfigService {
     if (publicRoots == null) {
       return new ArrayList<>();
     }
-    return publicRoots.stream().flatMap(pr -> pr.getAccessPoints().stream())
+    return publicRoots.stream()
+        .flatMap(pr -> pr.getAccessPoints().stream())
         .map(ap -> Producer.builder().addr(ap.getAddress()).build())
         .toList();
   }
