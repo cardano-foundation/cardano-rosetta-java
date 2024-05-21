@@ -11,24 +11,28 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.apache.commons.lang3.ObjectUtils;
-import org.modelmapper.ModelMapper;
 
+import org.cardanofoundation.rosetta.api.account.mapper.AddressUtxoEntityToUtxo;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.account.model.entity.AddressUtxoEntity;
 import org.cardanofoundation.rosetta.api.account.model.repository.AddressUtxoRepository;
 import org.cardanofoundation.rosetta.api.block.mapper.BlockToEntity;
+import org.cardanofoundation.rosetta.api.block.mapper.BlockToGensisBlock;
 import org.cardanofoundation.rosetta.api.block.mapper.BlockTxToEntity;
+import org.cardanofoundation.rosetta.api.block.mapper.DelegationEntityToDelegation;
+import org.cardanofoundation.rosetta.api.block.mapper.PoolRegistrationEntityToPoolRegistration;
+import org.cardanofoundation.rosetta.api.block.mapper.PoolRetirementEntityToPoolRetirement;
+import org.cardanofoundation.rosetta.api.block.mapper.StakeRegistrationEntityToStakeRegistration;
 import org.cardanofoundation.rosetta.api.block.mapper.WithdrawalEntityToWithdrawal;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockIdentifierExtended;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
+import org.cardanofoundation.rosetta.api.block.model.domain.GenesisBlock;
 import org.cardanofoundation.rosetta.api.block.model.domain.Delegation;
 import org.cardanofoundation.rosetta.api.block.model.domain.PoolRegistration;
 import org.cardanofoundation.rosetta.api.block.model.domain.PoolRetirement;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
-import org.cardanofoundation.rosetta.api.block.model.domain.StakeRegistration;
 import org.cardanofoundation.rosetta.api.block.model.entity.BlockEntity;
-import org.cardanofoundation.rosetta.api.block.model.entity.PoolRegistrationEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.TxnEntity;
 import org.cardanofoundation.rosetta.api.block.model.repository.BlockRepository;
 import org.cardanofoundation.rosetta.api.block.model.repository.DelegationRepository;
@@ -58,10 +62,17 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
   private final AddressUtxoRepository addressUtxoRepository;
 
 
-  private final ModelMapper mapper;
   private final BlockToEntity mapperBlock;
+  private final BlockToGensisBlock blockToGensisBlock;
+  private final StakeRegistrationEntityToStakeRegistration stakeRegistrationEntityToStakeRegistration;
+  private final DelegationEntityToDelegation delegationEntityToDelegation;
+  private final PoolRegistrationEntityToPoolRegistration poolRegistrationEntityToPoolRegistration;
+  private final PoolRetirementEntityToPoolRetirement poolRetirementEntityToPoolRetirement;
+  private final AddressUtxoEntityToUtxo addressUtxoEntityToUtxo;
   private final BlockTxToEntity mapperTran;
   private final WithdrawalEntityToWithdrawal withdrawalEntityToWithdrawal;
+
+  private GenesisBlock cachedGenesisBlock;
 
 
   @Override
@@ -148,29 +159,26 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
         stakeRegistrationRepository
             .findByTxHash(transaction.getHash())
             .stream()
-            .map(m -> mapper.map(m, StakeRegistration.class))
+            .map(stakeRegistrationEntityToStakeRegistration::toDto)
             .toList());
 
     transaction.setDelegations(
         delegationRepository
             .findByTxHash(transaction.getHash())
             .stream()
-            .map(m -> mapper.map(m, Delegation.class))
+            .map(delegationEntityToDelegation::toDto)
             .toList());
 
     transaction.setPoolRegistrations(poolRegistrationRepository
         .findByTxHash(transaction.getHash())
         .stream()
-        .map(poolReg -> mapper.typeMap(PoolRegistrationEntity.class, PoolRegistration.class)
-            .addMappings(mp ->
-                mp.map(PoolRegistrationEntity::getPoolOwners, PoolRegistration::setOwners))
-            .map(poolReg))
+        .map(poolRegistrationEntityToPoolRegistration::toDto)
         .toList());
 
     transaction.setPoolRetirements(poolRetirementRepository
         .findByTxHash(transaction.getHash())
         .stream()
-        .map(m -> mapper.map(m, PoolRetirement.class))
+        .map(poolRetirementEntityToPoolRetirement::toDto)
         .toList());
 
     transaction.setWithdrawals(withdrawalRepository
@@ -191,6 +199,6 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
     AddressUtxoEntity first = addressUtxoRepository
         .findAddressUtxoEntitiesByOutputIndexAndTxHash(utxo.getOutputIndex(), utxo.getTxHash())
         .getFirst();
-    Optional.ofNullable(first).ifPresent(m -> mapper.map(m, utxo));
+    Optional.ofNullable(first).ifPresent(m -> addressUtxoEntityToUtxo.overWriteDto(utxo,m));
   }
 }

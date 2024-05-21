@@ -11,6 +11,8 @@ import java.util.Set;
 import co.nstant.in.cbor.CborException;
 import com.bloxbean.cardano.client.exception.CborSerializationException;
 import com.bloxbean.cardano.client.spec.UnitInterval;
+import com.bloxbean.cardano.client.transaction.spec.MultiAsset;
+import com.bloxbean.cardano.client.transaction.spec.TransactionInput;
 import com.bloxbean.cardano.client.transaction.spec.cert.PoolRegistration;
 import com.bloxbean.cardano.client.transaction.spec.cert.SingleHostAddr;
 import org.openapitools.client.model.Operation;
@@ -23,13 +25,19 @@ import org.junit.jupiter.api.Test;
 import org.cardanofoundation.rosetta.common.exception.ApiException;
 
 import static org.cardanofoundation.rosetta.common.util.ParseConstructionUtil.addRelayToPoolReLayOfTypeSingleHostAddr;
+import static org.cardanofoundation.rosetta.common.util.ParseConstructionUtil.parseAsset;
 import static org.cardanofoundation.rosetta.common.util.ParseConstructionUtil.parsePoolCertToOperation;
 import static org.cardanofoundation.rosetta.common.util.ParseConstructionUtil.parsePoolRegistration;
+import static org.cardanofoundation.rosetta.common.util.ParseConstructionUtil.parseTokenAsset;
 import static org.cardanofoundation.rosetta.common.util.ParseConstructionUtil.parseVoteMetadataToOperation;
+import static org.cardanofoundation.rosetta.common.util.ParseConstructionUtil.parseWithdrawalToOperation;
+import static org.cardanofoundation.rosetta.common.util.ParseConstructionUtil.transactionInputToOperation;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+@SuppressWarnings("java:S5778")
 class ParseConstructionUtilTest {
 
     @Test
@@ -65,7 +73,7 @@ class ParseConstructionUtilTest {
     @Test
     void parseVoteMetadataToOperationWOVoteRegMetadataTest()  {
         //when //then
-        ApiException exception = Assertions.assertThrows(ApiException.class,
+        ApiException exception = assertThrows(ApiException.class,
                 () -> parseVoteMetadataToOperation(1L,""));
 
         assertEquals("Missing vote registration metadata", exception.getError().getMessage());
@@ -89,6 +97,46 @@ class ParseConstructionUtilTest {
         //then
         assertEquals(1, relays.size());
         assertEquals("SINGLE_HOST_ADDR", relays.getFirst().getIpv4());
+    }
+
+    @Test
+    void parseAssetWOAssetTest() {
+        //when //then
+        ApiException exception = assertThrows(ApiException.class,
+                () -> parseAsset(List.of(), ""));
+        assertEquals("Asset value is required for token asset", exception.getError().getMessage());
+        assertEquals(4022, exception.getError().getCode());
+    }
+
+    @Test
+    void parseAssetWithEmptyAssetTest() {
+        //when //then
+        ApiException exception = assertThrows(ApiException.class,
+                () -> parseTokenAsset(List.of(new MultiAsset()), ""));
+        assertEquals("Assets are required for output operation token bundle", exception.getError().getMessage());
+        assertEquals(4021, exception.getError().getCode());
+    }
+
+    @Test
+    void withdrawalToOperationTest() {
+        //when //then
+        Operation operation = parseWithdrawalToOperation("value", "hex", 1L, "address");
+        assertEquals("withdrawal", operation.getType());
+        assertEquals("", operation.getStatus());
+        assertEquals("address", operation.getAccount().getAddress());
+        assertEquals("value", operation.getAmount().getValue());
+        assertEquals("hex", operation.getMetadata().getStakingCredential().getHexBytes());
+    }
+
+    @Test
+    void transactionInputToOperationTest() {
+        //when //then
+        Operation operation = transactionInputToOperation(new TransactionInput("id", 1), 1L);
+        assertEquals("input", operation.getType());
+        assertEquals("", operation.getStatus());
+        assertEquals(1L, operation.getOperationIdentifier().getIndex());
+        assertEquals("id:1", operation.getCoinChange().getCoinIdentifier().getIdentifier());
+        assertEquals("coin_spent", operation.getCoinChange().getCoinAction().getValue());
     }
 
 }

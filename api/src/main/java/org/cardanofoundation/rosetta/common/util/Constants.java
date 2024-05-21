@@ -43,6 +43,7 @@ public class Constants {
   public static final int ASSET_NAME_LENGTH = 64;
   public static final int POLICY_ID_LENGTH = 56;
   public static final int ADA_DECIMALS = 6;
+  public static final String ADA_DECIMALS_STRING = "6";
   public static final int CHAIN_CODE_LENGTH = 64;
   public static final int MULTI_ASSET_DECIMALS = 0;
 
@@ -109,6 +110,18 @@ public class Constants {
   public static final List<String> VOTE_OPERATIONS =
       List.of(OperationType.VOTE_REGISTRATION.getValue());
 
+  public static final String OPERATION_TYPE_INPUT = "input";
+  public static final String OPERATION_TYPE_OUTPUT = "output";
+  public static final String OPERATION_TYPE_STAKE_KEY_REGISTRATION = "stakeKeyRegistration";
+  public static final String OPERATION_TYPE_STAKE_DELEGATION = "stakeDelegation";
+  public static final String OPERATION_TYPE_WITHDRAWAL = "withdrawal";
+  public static final String OPERATION_TYPE_STAKE_KEY_DEREGISTRATION = "stakeKeyDeregistration";
+  public static final String OPERATION_TYPE_POOL_REGISTRATION = "poolRegistration";
+  public static final String OPERATION_TYPE_POOL_REGISTRATION_WITH_CERT = "poolRegistrationWithCert";
+  public static final String OPERATION_TYPE_POOL_RETIREMENT = "poolRetirement";
+  public static final String OPERATION_TYPE_VOTE_REGISTRATION = "voteRegistration";
+
+
   public static final Integer ED_25519_KEY_SIGNATURE_BYTE_LENGTH = 64;
 
   public static final String CERTIFICATE = "certificate";
@@ -132,6 +145,8 @@ public class Constants {
   public static final String CHAIN_CODE = "chain_code";
   public static final String COIN_IDENTIFIER = "coin_identifier";
   public static final String COIN_ACTION = "coin_action";
+  public static final String COIN_ACTION_CREATED = "coin_created";
+  public static final String COIN_ACTION_SPENT = "coin_spent";
   public static final String OPERATION_IDENTIFIER = "operation_identifier";
   public static final String RELATED_OPERATION = "related_operations";
   public static final String STATUS = "status";
