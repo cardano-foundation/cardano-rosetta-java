@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Stream;
 import jakarta.validation.constraints.NotNull;
 
 import lombok.RequiredArgsConstructor;
@@ -144,7 +145,14 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
 
   private Entities findByTxHash(List<BlockTx> transactions) {
     List<String> txHashes = transactions.stream().map(BlockTx::getHash).toList();
-    List<AddressUtxoEntity> utxos = addressUtxoRepository.findByTxHashIn(txHashes);
+
+    List<String> utxHashes = transactions
+        .stream()
+        .flatMap(t -> Stream.concat(t.getInputs().stream(), t.getOutputs().stream()))
+        .map(Utxo::getTxHash)
+        .toList();
+
+    List<AddressUtxoEntity> utxos = addressUtxoRepository.findByTxHashIn(utxHashes);
     List<StakeRegistrationEntity> sReg = stakeRegistrationRepository.findByTxHashIn(txHashes);
     List<DelegationEntity> delegations = delegationRepository.findByTxHashIn(txHashes);
     List<PoolRegistrationEntity> pReg = poolRegistrationRepository.findByTxHashIn(txHashes);
@@ -224,5 +232,4 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
         .findAny()
         .ifPresent(m -> addressUtxoEntityToUtxo.overWriteDto(utxo,m));
   }
-
 }
