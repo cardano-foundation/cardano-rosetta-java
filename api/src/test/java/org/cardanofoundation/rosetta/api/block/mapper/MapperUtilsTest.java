@@ -21,14 +21,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-public class MapperUtilsTest {
+class MapperUtilsTest {
 
   final private MapperUtils mapperUtils = Mockito.mock(
       MapperUtils.class,
       Mockito.CALLS_REAL_METHODS);
 
   @Test
-  public void mapToOperationMetaDataTest() {
+  void mapToOperationMetaDataTest() {
     // given
     List<Amt> amtList = Arrays.asList(
         newAmt(1, 11, true),
@@ -60,7 +60,7 @@ public class MapperUtilsTest {
   }
 
   @Test
-  public void mapToOperationMetaDataNegativeTest() {
+  void mapToOperationMetaDataNegativeTest() {
     // given
     List<Amt> amtList = Arrays.asList(
         newAmt(1, 11, true),
