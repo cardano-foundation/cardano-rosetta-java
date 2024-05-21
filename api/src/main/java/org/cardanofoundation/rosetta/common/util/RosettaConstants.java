@@ -150,8 +150,6 @@ public class RosettaConstants {
     OUTSIDE_VALIDITY_INTERVAL_UTXO(
         "Error when sending the transaction - OutsideValidityIntervalUTxO", 4037),
     CONFIG_NOT_FOUND("Environment configurations needed to run server were not found", 4038),
-    LATEST_BLOCK_NOT_FOUND("Сan't get the latest block. The node has not yet been initialized",
-        4039),
     UNSPECIFIED_ERROR("An error occurred", 5000),
     NOT_IMPLEMENTED("Not implemented", 5001),
     ADDRESS_GENERATION_ERROR("Address generation error", 5002),

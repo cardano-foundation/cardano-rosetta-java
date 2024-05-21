@@ -245,8 +245,7 @@ class LedgerBlockServiceImplIntTest extends IntegrationTest {
   void findLatestBlockIdentifier() {
     //given
     BlockEntity fromBlockB = entityManager
-        .createQuery("SELECT NEW org.cardanofoundation.rosetta.api.block.model.entity. "
-            + "BlockEntity(b.hash, b.number, b.blockTimeInSeconds) FROM BlockEntity b "
+        .createQuery("FROM BlockEntity b "
             + "ORDER BY b.number DESC LIMIT 1", BlockEntity.class)
         .setMaxResults(1)
         .getSingleResult();
@@ -261,8 +260,7 @@ class LedgerBlockServiceImplIntTest extends IntegrationTest {
   void findGenesisBlockIdentifier() {
     //given
     BlockEntity fromBlockB = entityManager
-        .createQuery("SELECT NEW org.cardanofoundation.rosetta.api.block.model.entity."
-            + "BlockEntity(b.hash, b.number, b.blockTimeInSeconds) FROM BlockEntity b "
+        .createQuery("FROM BlockEntity b "
             + "WHERE b.prev.hash IS NULL ORDER BY b.number ASC LIMIT 1", BlockEntity.class)
         .setMaxResults(1)
         .getSingleResult();

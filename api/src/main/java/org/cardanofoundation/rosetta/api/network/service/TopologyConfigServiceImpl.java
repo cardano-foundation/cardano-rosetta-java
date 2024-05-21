@@ -27,28 +27,18 @@ public class TopologyConfigServiceImpl implements TopologyConfigService {
 
   @Value("${cardano.rosetta.TOPOLOGY_FILEPATH}")
   private String topologyFilepath;
-
-  private final Object lock = new Object();
   private List<Peer> cachedPeers;
 
   @PostConstruct
-  public void filePathExistingValidator() {
-    FileUtils.validator(topologyFilepath);
+  public void init() {
+    TopologyConfig topologyConfig = loadTopologyConfig();
+    cachedPeers = getPeerFromConfig(topologyConfig);
+    log.info("Peer loaded from topology config json");
   }
 
   @Override
   public List<Peer> getPeers() {
-    List<Peer> peers = cachedPeers;
-    if (peers == null) {
-      synchronized (lock) {
-        peers = cachedPeers;
-        if (peers == null) {
-          TopologyConfig topologyConfig = loadTopologyConfig();
-          cachedPeers = peers = getPeerFromConfig(topologyConfig);
-        }
-      }
-    }
-    return peers;
+    return cachedPeers;
   }
 
   public List<Peer> getPeerFromConfig(TopologyConfig topologyConfig) {

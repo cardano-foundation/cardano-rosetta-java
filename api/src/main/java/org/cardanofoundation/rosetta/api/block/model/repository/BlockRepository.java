@@ -6,14 +6,13 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import org.cardanofoundation.rosetta.api.block.model.entity.BlockEntity;
+import org.cardanofoundation.rosetta.api.block.model.entity.projection.BlockIdentifierProjection;
 
 
 public interface BlockRepository extends JpaRepository<BlockEntity, Long> {
 
-  @Query("SELECT NEW org.cardanofoundation.rosetta.api.block.model.entity."
-      + "BlockEntity(b.hash, b.number, b.blockTimeInSeconds) FROM BlockEntity b "
-      + "WHERE b.prev.hash IS NULL ORDER BY b.number ASC LIMIT 1")
-  Optional<BlockEntity> findGenesisBlockHashAndNumber();
+  @Query("FROM BlockEntity b WHERE b.prev.hash IS NULL ORDER BY b.number ASC LIMIT 1")
+  Optional<BlockIdentifierProjection> findGenesisBlockIdentifier();
 
   Optional<BlockEntity> findByNumber(Long blockNumber);
 
@@ -24,9 +23,7 @@ public interface BlockRepository extends JpaRepository<BlockEntity, Long> {
   @Query("FROM BlockEntity b ORDER BY b.number DESC LIMIT 1")
   Optional<BlockEntity> findLatestBlock();
 
-  @Query("SELECT NEW org.cardanofoundation.rosetta.api.block.model.entity. "
-      + "BlockEntity(b.hash, b.number, b.blockTimeInSeconds) FROM BlockEntity b "
-      + "ORDER BY b.number DESC LIMIT 1")
-  Optional<BlockEntity> findLatestBlockHashAndNumber();
+  @Query("FROM BlockEntity b ORDER BY b.number DESC LIMIT 1")
+  Optional<BlockIdentifierProjection> findLatestBlockIdentifier();
 
 }

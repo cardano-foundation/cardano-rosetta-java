@@ -55,7 +55,6 @@ public class NetworkServiceImpl implements NetworkService {
   private final TopologyConfigService topologyConfigService;
   private final ResourceLoader resourceLoader;
 
-  private final Object lock = new Object();
   private Integer cachedMagicNumber;
 
   @Value("${cardano.rosetta.GENESIS_SHELLEY_PATH}")
@@ -64,8 +63,10 @@ public class NetworkServiceImpl implements NetworkService {
   private String cardanoNodeVersion;
 
   @PostConstruct
-  public void filePathExistingValidator() {
-    FileUtils.validator(genesisShelleyPath);
+  public void init() {
+    JSONObject json = loadGenesisShelleyConfig();
+    cachedMagicNumber = (Integer) json.get(Constants.NETWORK_MAGIC_NAME);
+    log.info("Magic number loaded from genesis config json");
   }
 
   @Override
@@ -205,17 +206,7 @@ public class NetworkServiceImpl implements NetworkService {
   }
 
   public Integer getNetworkMagic() {
-    Integer magicNumber = cachedMagicNumber;
-    if (magicNumber == null) {
-      synchronized (lock) {
-        magicNumber = cachedMagicNumber;
-        if (magicNumber == null) {
-          JSONObject json = loadGenesisShelleyConfig();
-          cachedMagicNumber = magicNumber = (Integer) json.get(Constants.NETWORK_MAGIC_NAME);
-        }
-      }
-    }
-    return magicNumber;
+    return cachedMagicNumber;
   }
 
   private JSONObject loadGenesisShelleyConfig() {
