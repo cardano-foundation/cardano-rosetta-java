@@ -202,7 +202,7 @@ public class OperationToCborMap {
             Map tokenBundleMap = new Map();
 
             addTokensToMap(tokenBundleItem.getTokens(), tokenBundleMap);
-            putStringDataItemToMap(tokenBundleMap,Constants.POLICYID,tokenBundleItem.getPolicyId());
+            putStringDataItemToMap(tokenBundleMap, Constants.POLICYID, tokenBundleItem.getPolicyId());
             tokenBundleArray.add(tokenBundleMap);
           });
           metadataMap.put(key(Constants.TOKENBUNDLE), tokenBundleArray);
@@ -365,7 +365,7 @@ public class OperationToCborMap {
         .ifPresent(accountIdentifier -> {
           co.nstant.in.cbor.model.Map accountIdentifierMap = new co.nstant.in.cbor.model.Map();
           // fill map
-          putStringDataItemToMap(accountIdentifierMap,Constants.ADDRESS,account.getAddress());
+          putStringDataItemToMap(accountIdentifierMap, Constants.ADDRESS, account.getAddress());
           addSubAccountToMap(account, accountIdentifierMap);
           operationMap.put(key(Constants.ACCOUNT), accountIdentifierMap);
         });
