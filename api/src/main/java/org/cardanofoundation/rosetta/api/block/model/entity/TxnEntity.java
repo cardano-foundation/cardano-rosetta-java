@@ -1,5 +1,6 @@
 package org.cardanofoundation.rosetta.api.block.model.entity;
 
+import jakarta.persistence.OneToOne;
 import java.math.BigInteger;
 import java.util.List;
 import jakarta.persistence.Column;
@@ -51,4 +52,10 @@ public class TxnEntity {
 
   @OneToMany(mappedBy = "txHash")
   private List<TxScriptEntity> script;
+
+  @OneToOne(fetch = FetchType.EAGER)
+  @JoinColumn(name = "tx_hash",
+      foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "none"))
+  private TransactionSizeEntity sizeEntity;
+
 }
