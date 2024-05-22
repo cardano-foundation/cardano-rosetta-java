@@ -4,8 +4,8 @@ import java.util.List;
 import java.util.Optional;
 
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
+import org.cardanofoundation.rosetta.api.block.model.domain.BlockIdentifierExtended;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
-import org.cardanofoundation.rosetta.api.block.model.domain.GenesisBlock;
 
 public interface LedgerBlockService {
 
@@ -34,9 +34,15 @@ public interface LedgerBlockService {
   Block findLatestBlock();
 
   /**
-   * Returns the genesis block.
-   * @return the genesis block
+   * Returns the latest block identifier.
+   * @return the latest block identifier
    */
+  BlockIdentifierExtended findLatestBlockIdentifier();
 
-  GenesisBlock findGenesisBlock();
+  /**
+   * Returns the genesis block identifier.
+   * @return the genesis block identifier
+   */
+  BlockIdentifierExtended findGenesisBlockIdentifier();
+
 }

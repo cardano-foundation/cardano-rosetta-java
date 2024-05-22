@@ -13,8 +13,9 @@ public class ExceptionFactory {
     return new ApiException(RosettaErrorType.GENESIS_BLOCK_NOT_FOUND.toRosettaError(false));
   }
 
-  public static ApiException configNotFoundException() {
-    return new ApiException(RosettaErrorType.CONFIG_NOT_FOUND.toRosettaError(false));
+  public static ApiException configNotFoundException(String path) {
+    return new ApiException(RosettaErrorType.CONFIG_NOT_FOUND.toRosettaError(false,
+        Details.builder().message(path).build()));
   }
 
   public static ApiException networkNotFoundError() {

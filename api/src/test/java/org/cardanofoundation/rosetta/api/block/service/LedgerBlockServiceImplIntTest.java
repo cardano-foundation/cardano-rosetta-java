@@ -11,9 +11,9 @@ import org.junit.jupiter.api.Test;
 
 import org.cardanofoundation.rosetta.api.IntegrationTest;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
+import org.cardanofoundation.rosetta.api.block.model.domain.BlockIdentifierExtended;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.model.domain.Delegation;
-import org.cardanofoundation.rosetta.api.block.model.domain.GenesisBlock;
 import org.cardanofoundation.rosetta.api.block.model.domain.PoolRegistration;
 import org.cardanofoundation.rosetta.api.block.model.domain.PoolRetirement;
 import org.cardanofoundation.rosetta.api.block.model.domain.StakeRegistration;
@@ -242,20 +242,33 @@ class LedgerBlockServiceImplIntTest extends IntegrationTest {
   }
 
   @Test
-  void findGenesisBlock() {
+  void findLatestBlockIdentifier() {
     //given
     BlockEntity fromBlockB = entityManager
-        .createQuery("FROM BlockEntity b ORDER BY b.number ASC", BlockEntity.class)
+        .createQuery("FROM BlockEntity b "
+            + "ORDER BY b.number DESC LIMIT 1", BlockEntity.class)
         .setMaxResults(1)
         .getSingleResult();
     //when
-    GenesisBlock genesisBlock = ledgerBlockService.findGenesisBlock();
+    BlockIdentifierExtended latestBlock = ledgerBlockService.findLatestBlockIdentifier();
     //then
     assertThat(fromBlockB).isNotNull();
-    assertThat(genesisBlock).isNotNull();
-    assertThat(genesisBlock.getHash()).isEqualTo(fromBlockB.getHash());
-    assertThat(genesisBlock.getNumber()).isEqualTo(-1);
-    assertThat(genesisBlock.getNumber()).isEqualTo(fromBlockB.getNumber());
+    assertBlockIdentifier(latestBlock, fromBlockB);
+  }
+
+  @Test
+  void findGenesisBlockIdentifier() {
+    //given
+    BlockEntity fromBlockB = entityManager
+        .createQuery("FROM BlockEntity b "
+            + "WHERE b.prev.hash IS NULL ORDER BY b.number ASC LIMIT 1", BlockEntity.class)
+        .setMaxResults(1)
+        .getSingleResult();
+    //when
+    BlockIdentifierExtended genesisBlock = ledgerBlockService.findGenesisBlockIdentifier();
+    //then
+    assertThat(fromBlockB).isNotNull();
+    assertBlockIdentifier(genesisBlock, fromBlockB);
     assertThat(genesisBlock.getHash()).isEqualTo("Genesis");
   }
 
@@ -265,6 +278,15 @@ class LedgerBlockServiceImplIntTest extends IntegrationTest {
     assertThat(latestBlock.getSlotNo()).isEqualTo(fromBlockB.getNumber());
     assertThat(latestBlock.getTransactions()).hasSize(fromBlockB.getTransactions().size());
     assertThat(latestBlock.getEpochNo()).isEqualTo(fromBlockB.getEpochNumber());
+  }
+
+  private static void assertBlockIdentifier(BlockIdentifierExtended blockIdentifier,
+      BlockEntity fromBlockB) {
+    assertThat(blockIdentifier).isNotNull();
+    assertThat(blockIdentifier.getHash()).isEqualTo(fromBlockB.getHash());
+    assertThat(blockIdentifier.getNumber()).isEqualTo(fromBlockB.getNumber());
+    assertThat(blockIdentifier.getBlockTimeInSeconds())
+        .isEqualTo(fromBlockB.getBlockTimeInSeconds());
   }
 
   private static void assertBlockAndTx(Optional<Block> blockOpt, TransactionBlockDetails tx) {

@@ -1,20 +1,20 @@
 package org.cardanofoundation.rosetta.api.network.service;
 
 
-import java.io.IOException;
-
 import com.bloxbean.cardano.client.common.model.Network;
-import org.openapitools.client.model.*;
+import org.openapitools.client.model.MetadataRequest;
+import org.openapitools.client.model.NetworkIdentifier;
+import org.openapitools.client.model.NetworkListResponse;
+import org.openapitools.client.model.NetworkOptionsResponse;
+import org.openapitools.client.model.NetworkRequest;
+import org.openapitools.client.model.NetworkStatusResponse;
 
 public interface NetworkService {
-    NetworkListResponse getNetworkList(final MetadataRequest metadataRequest)
-        throws IOException;
+    NetworkListResponse getNetworkList(final MetadataRequest metadataRequest);
 
-    NetworkOptionsResponse getNetworkOptions(final NetworkRequest networkRequest)
-        throws IOException, InterruptedException;
+    NetworkOptionsResponse getNetworkOptions(final NetworkRequest networkRequest);
 
-    NetworkStatusResponse getNetworkStatus(final NetworkRequest networkRequest)
-        throws IOException;
+    NetworkStatusResponse getNetworkStatus(final NetworkRequest networkRequest);
 
     Network getSupportedNetwork();
 

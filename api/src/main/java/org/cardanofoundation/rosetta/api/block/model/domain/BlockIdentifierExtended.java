@@ -9,10 +9,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class GenesisBlock {
+public class BlockIdentifierExtended {
 
   private String hash;
   private Long number;
-
+  private Long blockTimeInSeconds;
 
 }
