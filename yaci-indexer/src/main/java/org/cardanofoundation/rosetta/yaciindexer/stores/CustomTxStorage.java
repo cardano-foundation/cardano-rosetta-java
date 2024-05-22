@@ -40,9 +40,8 @@ public class CustomTxStorage {
     transactionEvent.getTransactions().forEach(tx -> {
       Map signedTransaction = new Map();
 
-//      DataItem txBody = CborSerializationUtil.deserialize(HexUtil.decodeHexString(tx.getBody().getCbor()))[0];
-//      signedTransaction.put(new UnsignedInteger(0), txBody);
-
+      DataItem txBody = CborSerializationUtil.deserialize(HexUtil.decodeHexString(tx.getBody().getCbor()))[0];
+      signedTransaction.put(new UnsignedInteger(0), txBody);
       int scriptSize = addWitnessSetToSignedTransaction(tx, signedTransaction);
 
       if(tx.getBlockNumber() > 64902L) { // starting from alonzo era?
@@ -55,7 +54,7 @@ public class CustomTxStorage {
       byte[] serialize = CborSerializationUtil.serialize(signedTransaction);
 
 
-      int txSize = serialize.length + tx.getBody().getCbor().length() / 2; // using half the length of cbor string, since it's hex and a hex is 4 bits and a char is 8bits. So dividing by 2 results in the byte size.
+      int txSize = serialize.length; // using half the length of cbor string, since it's hex and a hex is 4 bits and a char is 8bits. So dividing by 2 results in the byte size.
       // Save the transaction
       TransactionSizeEntity transactionSizeEntity = TransactionSizeEntity.builder()
           .txHash(tx.getTxHash())
@@ -148,42 +147,45 @@ public class CustomTxStorage {
         auxiliaryData.add(CborSerializationUtil.deserialize(
             HexUtil.decodeHexString(tx.getAuxData().getMetadataCbor()))[0]);
       }
-      if(tx.getAuxData().getNativeScripts() != null) {
-        tx.getAuxData().getNativeScripts().forEach(script -> {
-          try {
-            auxiliaryData.add(new ByteString(NativeScript.deserializeJson(script.getContent()).getScriptHash()));
-          } catch (CborDeserializationException | JsonProcessingException | CborSerializationException e) {
-            throw new RuntimeException(e);
-          }
-        });
-      }
-      if(tx.getAuxData().getPlutusV1Scripts() != null) {
-        tx.getAuxData().getPlutusV1Scripts().forEach(script -> {
-          try {
-            auxiliaryData.add(new ByteString(NativeScript.deserializeJson(script.getContent()).getScriptHash()));
-          } catch (CborDeserializationException | JsonProcessingException | CborSerializationException e) {
-            throw new RuntimeException(e);
-          }
-        });
-      }
-      if(tx.getAuxData().getPlutusV2Scripts() != null) {
-        tx.getAuxData().getPlutusV2Scripts().forEach(script -> {
-          try {
-            auxiliaryData.add(new ByteString(NativeScript.deserializeJson(script.getContent()).getScriptHash()));
-          } catch (CborDeserializationException | JsonProcessingException | CborSerializationException e) {
-            throw new RuntimeException(e);
-          }
-        });
-      }
-      if(tx.getAuxData().getPlutusV3Scripts() != null) {
-        tx.getAuxData().getPlutusV3Scripts().forEach(script -> {
-          try {
-            auxiliaryData.add(new ByteString(NativeScript.deserializeJson(script.getContent()).getScriptHash()));
-          } catch (CborDeserializationException | JsonProcessingException | CborSerializationException e) {
-            throw new RuntimeException(e);
-          }
-        });
-      }
+//      if(tx.getAuxData().getNativeScripts() != null) {
+//        tx.getAuxData().getNativeScripts().forEach(script -> {
+//          try {
+//            if(script.getContent() != null) {
+//              auxiliaryData.add(new ByteString(
+//                  NativeScript.deserializeJson(script.getContent()).getScriptHash()));
+//            }
+//          } catch (CborDeserializationException | JsonProcessingException | CborSerializationException e) {
+//            throw new RuntimeException(e);
+//          }
+//        });
+//      }
+//      if(tx.getAuxData().getPlutusV1Scripts() != null) {
+//        tx.getAuxData().getPlutusV1Scripts().forEach(script -> {
+//          try {
+//            auxiliaryData.add(new ByteString(NativeScript.deserializeJson(script.getContent()).getScriptHash()));
+//          } catch (CborDeserializationException | JsonProcessingException | CborSerializationException e) {
+//            throw new RuntimeException(e);
+//          }
+//        });
+//      }
+//      if(tx.getAuxData().getPlutusV2Scripts() != null) {
+//        tx.getAuxData().getPlutusV2Scripts().forEach(script -> {
+//          try {
+//            auxiliaryData.add(new ByteString(NativeScript.deserializeJson(script.getContent()).getScriptHash()));
+//          } catch (CborDeserializationException | JsonProcessingException | CborSerializationException e) {
+//            throw new RuntimeException(e);
+//          }
+//        });
+//      }
+//      if(tx.getAuxData().getPlutusV3Scripts() != null) {
+//        tx.getAuxData().getPlutusV3Scripts().forEach(script -> {
+//          try {
+//            auxiliaryData.add(new ByteString(NativeScript.deserializeJson(script.getContent()).getScriptHash()));
+//          } catch (CborDeserializationException | JsonProcessingException | CborSerializationException e) {
+//            throw new RuntimeException(e);
+//          }
+//        });
+//      }
       signedTransaction.put(new UnsignedInteger(3), auxiliaryData);
     }
   }
