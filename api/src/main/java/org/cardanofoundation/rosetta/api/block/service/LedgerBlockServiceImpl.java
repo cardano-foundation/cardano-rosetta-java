@@ -42,8 +42,9 @@ import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
 
 
 @Slf4j
-@Component
 @RequiredArgsConstructor
+@Component
+@Transactional(readOnly = true)
 public class LedgerBlockServiceImpl implements LedgerBlockService {
 
   private final ProtocolParamService protocolParamService;
@@ -93,7 +94,6 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
   }
 
   @Override
-  @Transactional(readOnly = true)
   public List<BlockTx> findTransactionsByBlock(Long blk, String blkHash) {
     log.debug("query blockNumber: {} blockHash: {}", blk, blkHash);
     Optional<BlockEntity> blkEntity = blockRepository.findByNumberAndHash(blk, blkHash);

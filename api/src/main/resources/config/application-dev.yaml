@@ -8,18 +8,15 @@ spring:
     url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5433}/${DB_NAME:test}?currentSchema=${DB_SCHEMA:preprod}
     hikari:
 #      default connection-timeout is 30 seconds
-      connectionTimeout: 30000
+      connectionTimeout: 100000
 #      default pool size is 10
 #      connections = ((core_count * 2) + effective_spindle_count)
-      maximumPoolSize: 17
-      poolName: RosettaHikariCP
-      readOnly: true
+      maximumPoolSize: 12
 #      for developing purposes
       leakDetectionThreshold: 60000
   jpa:
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
     hibernate:
       ddl-auto: none

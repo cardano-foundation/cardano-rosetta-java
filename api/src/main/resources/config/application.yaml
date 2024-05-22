@@ -11,14 +11,19 @@ spring:
     default-property-inclusion: NON_NULL
     serialization:
       write-dates-as-timestamps: false
-  servlet:
-    multipart:
-      max-file-size: 8MB
-      max-request-size: 16MB
+  mvc:
+    log-resolved-exception: true
   datasource:
     driver-class-name: org.postgresql.Driver
     readOnly: true
     readOnlyMode: always
+    hikari:
+      maximumPoolSize: 12
+      poolName: RosettaHikariCP
+      readOnly: true
+      autoCommit: false
+  jpa:
+    open-in-view: false
 
 cardano:
   rosetta:
