@@ -1,32 +1,23 @@
 server:
   port: ${API_PORT:8082}
-  compression:
-    enabled: true
-    mime-types: text/html,text/plain,text/css,application/javascript,application/json
-    min-response-size: 1024
 
 spring:
-  jackson:
-    default-property-inclusion: NON_NULL
-    serialization:
-      write-dates-as-timestamps: false
-  servlet:
-    multipart:
-      max-file-size: 8MB
-      max-request-size: 16MB
   datasource:
-    driver-class-name: org.postgresql.Driver
     username: ${DB_USER:rosetta_db_admin}
     password: ${DB_SECRET:weakpwd#123_d}
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5433}/${DB_NAME:test}?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC&useLegacyDatetimeCode=false&createDatabaseIfNotExist=true&autoReconnect=true&currentSchema=${DB_SCHEMA:preprod}
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5433}/${DB_NAME:test}?currentSchema=${DB_SCHEMA:preprod}
+    hikari:
+#      default connection-timeout is 30 seconds
+      connectionTimeout: 100000
+#      default pool size is 10
+#      connections = ((core_count * 2) + effective_spindle_count)
+      maximumPoolSize: 12
+#      for developing purposes
+      leakDetectionThreshold: 60000
   jpa:
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
-        jdbc:
-          lob:
-            non-contextual-creation: true
     hibernate:
       ddl-auto: none
     show-sql: true
@@ -36,30 +27,24 @@ spring:
     ansi:
       enabled: always
 
-api:
-  exception:
-    isPrintStackTrace : {PRINT_EXCEPTION:true}
-
 cardano:
   rosetta:
     version:
-      ${ROSETTA_VERSION}
-    TOPOLOGY_FILEPATH: ${TOPOLOGY_FILEPATH}
-    GENESIS_SHELLEY_PATH: ${GENESIS_SHELLEY_PATH}
-    CARDANO_NODE_VERSION: ${CARDANO_NODE_VERSION}
-    CARDANO_NODE_SOCKET: ${CARDANO_NODE_SOCKET}
-    CARDANO_NODE_SUBMIT_HOST: ${CARDANO_NODE_SUBMIT_HOST}
-    NODE_SUBMIT_API_PORT: ${NODE_SUBMIT_API_PORT}
     # devkit variables
-    DEVKIT_ENABLED: ${DEVKIT_ENABLED:false}
     DEVKIT_URL: ${DEVKIT_URL:localhost}
-    DEVKIT_PORT: ${DEVKIT_PORT:3333}
 
 logging:
   level:
     root: INFO
+    com:
+      zaxxer:
+        hikari:
+          HikariConfig: DEBUG
     org:
       springframework:
+        transaction: DEBUG
+        orm:
+          jpa: DEBUG
         web:
           filter:
             CommonsRequestLoggingFilter: DEBUG
