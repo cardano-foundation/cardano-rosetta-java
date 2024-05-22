@@ -58,4 +58,5 @@ public class BlockEntity {
 
   @Column(name = "epoch")
   private Integer epochNumber;
+
 }
