@@ -44,7 +44,7 @@ public class CustomTxStorage {
       signedTransaction.put(new UnsignedInteger(0), txBody);
       int scriptSize = addWitnessSetToSignedTransaction(tx, signedTransaction);
 
-      if(tx.getBlockNumber() > 64902L) { // starting from alonzo era?
+      if(tx.getBlockNumber() > 64902L) { // starting from alonzo era? TODO extract to constant
         signedTransaction.put(new UnsignedInteger(2), SimpleValue.TRUE);
       }
 
@@ -54,7 +54,7 @@ public class CustomTxStorage {
       byte[] serialize = CborSerializationUtil.serialize(signedTransaction);
 
 
-      int txSize = serialize.length; // using half the length of cbor string, since it's hex and a hex is 4 bits and a char is 8bits. So dividing by 2 results in the byte size.
+      int txSize = serialize.length;
       // Save the transaction
       TransactionSizeEntity transactionSizeEntity = TransactionSizeEntity.builder()
           .txHash(tx.getTxHash())
