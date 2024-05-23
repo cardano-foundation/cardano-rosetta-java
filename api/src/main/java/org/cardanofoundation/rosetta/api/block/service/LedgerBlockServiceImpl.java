@@ -4,6 +4,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.StructuredTaskScope;
+import java.util.concurrent.StructuredTaskScope.Subtask;
 import java.util.stream.Stream;
 import jakarta.validation.constraints.NotNull;
 
@@ -97,7 +100,7 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
     Block model = mapperBlock.fromEntity(blockEntity);
     ProtocolParams pps = protocolParamService.findProtocolParametersFromIndexer();
     List<BlockTx> transactions = model.getTransactions();
-    Entities fetched = findByTxHash(transactions);
+    Entities fetched = findByTxHashPreview(transactions);
     transactions.forEach(tx -> populateTransaction(tx, pps, fetched));
     return model;
   }
@@ -117,7 +120,7 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
     if (ObjectUtils.isNotEmpty(txList)) {
       ProtocolParams pps = protocolParamService.findProtocolParametersFromIndexer();
       List<BlockTx> transactions = txList.stream().map(mapperTran::fromEntity).toList();
-      Entities fetched = findByTxHash(transactions);
+      Entities fetched = findByTxHashPreview(transactions);
       transactions.forEach(tx -> populateTransaction(tx, pps, fetched));
       return transactions;
     }
@@ -143,7 +146,46 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
     return cachedGenesisBlock;
   }
 
-  private Entities findByTxHash(List<BlockTx> transactions) {
+  //use instead findByTxHashPreview
+//  private Entities findByTxHash(List<BlockTx> transactions) {
+//    List<String> txHashes = transactions.stream().map(BlockTx::getHash).toList();
+//
+//    List<String> utxHashes = transactions
+//        .stream()
+//        .flatMap(t -> Stream.concat(t.getInputs().stream(), t.getOutputs().stream()))
+//        .map(Utxo::getTxHash)
+//        .toList();
+//
+//    // refactor to use invokeAll
+//    try (var executorService = Executors.newVirtualThreadPerTaskExecutor()) {
+//      List<Callable<Object>> tasks = new ArrayList<>();
+//
+//      tasks.add(() -> addressUtxoRepository.findByTxHashIn(utxHashes));
+//      tasks.add(() -> stakeRegistrationRepository.findByTxHashIn(txHashes));
+//      tasks.add(() -> delegationRepository.findByTxHashIn(txHashes));
+//      tasks.add(() -> poolRegistrationRepository.findByTxHashIn(txHashes));
+//      tasks.add(() -> poolRetirementRepository.findByTxHashIn(txHashes));
+//      tasks.add(() -> withdrawalRepository.findByTxHashIn(txHashes));
+//
+//      List<Future<Object>> futures = executorService.invokeAll(tasks);
+//      return new Entities(
+//          (List<AddressUtxoEntity>) futures.get(0).get(),
+//          (List<StakeRegistrationEntity>) futures.get(1).get(),
+//          (List<DelegationEntity>) futures.get(2).get(),
+//          (List<PoolRegistrationEntity>) futures.get(3).get(),
+//          (List<PoolRetirementEntity>) futures.get(4).get(),
+//          (List<WithdrawalEntity>) futures.get(5).get());
+//
+//    } catch (InterruptedException | ExecutionException e) {
+//      log.error("Error fetching transaction data", e);
+//      throw ExceptionFactory.unspecifiedError("Error fetching transaction data");
+//    }
+//  }
+
+
+
+  @SuppressWarnings("preview")
+  private Entities findByTxHashPreview(List<BlockTx> transactions) {
     List<String> txHashes = transactions.stream().map(BlockTx::getHash).toList();
 
     List<String> utxHashes = transactions
@@ -152,13 +194,24 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
         .map(Utxo::getTxHash)
         .toList();
 
-    List<AddressUtxoEntity> utxos = addressUtxoRepository.findByTxHashIn(utxHashes);
-    List<StakeRegistrationEntity> sReg = stakeRegistrationRepository.findByTxHashIn(txHashes);
-    List<DelegationEntity> delegations = delegationRepository.findByTxHashIn(txHashes);
-    List<PoolRegistrationEntity> pReg = poolRegistrationRepository.findByTxHashIn(txHashes);
-    List<PoolRetirementEntity> pRet = poolRetirementRepository.findByTxHashIn(txHashes);
-    List<WithdrawalEntity> withdrawals = withdrawalRepository.findByTxHashIn(txHashes);
-    return new Entities(utxos, sReg, delegations, pReg, pRet, withdrawals);
+    try (var scope = new StructuredTaskScope.ShutdownOnFailure()) {
+
+      Subtask<List<AddressUtxoEntity>> utxos = scope.fork(() -> addressUtxoRepository.findByTxHashIn(utxHashes));
+      Subtask<List<StakeRegistrationEntity>> sReg = scope.fork(() -> stakeRegistrationRepository.findByTxHashIn(txHashes));
+      Subtask<List<DelegationEntity>> delegations = scope.fork(() -> delegationRepository.findByTxHashIn(txHashes));
+      Subtask<List<PoolRegistrationEntity>> pReg = scope.fork(() -> poolRegistrationRepository.findByTxHashIn(txHashes));
+      Subtask<List<PoolRetirementEntity>> pRet = scope.fork(() -> poolRetirementRepository.findByTxHashIn(txHashes));
+      Subtask<List<WithdrawalEntity>> withdrawals = scope.fork(() -> withdrawalRepository.findByTxHashIn(txHashes));
+
+      scope.join();
+      scope.throwIfFailed();
+
+      return new Entities(utxos.get(), sReg.get(), delegations.get(), pReg.get(), pRet.get(), withdrawals.get());
+
+    } catch (InterruptedException | ExecutionException e) {
+      log.error("Error fetching transaction data", e);
+        throw ExceptionFactory.unspecifiedError("Error fetching transaction data");
+    }
   }
 
   private record Entities(List<AddressUtxoEntity> utxos,
