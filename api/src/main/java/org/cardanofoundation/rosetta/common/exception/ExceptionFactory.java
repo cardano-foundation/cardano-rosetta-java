@@ -13,8 +13,9 @@ public class ExceptionFactory {
     return new ApiException(RosettaErrorType.GENESIS_BLOCK_NOT_FOUND.toRosettaError(false));
   }
 
-  public static ApiException configNotFoundException() {
-    return new ApiException(RosettaErrorType.CONFIG_NOT_FOUND.toRosettaError(false));
+  public static ApiException configNotFoundException(String path) {
+    return new ApiException(RosettaErrorType.CONFIG_NOT_FOUND.toRosettaError(false,
+        Details.builder().message(path).build()));
   }
 
   public static ApiException networkNotFoundError() {
@@ -51,10 +52,6 @@ public class ExceptionFactory {
     return new ApiException(RosettaErrorType.CHAIN_CODE_MISSING.toRosettaError(false));
   }
 
-  public static ApiException cantBuildWitnessesSet() {
-    return new ApiException(RosettaErrorType.CANT_BUILD_WITNESSES_SET.toRosettaError(false));
-  }
-
   public static ApiException outputsAreBiggerThanInputsError() {
     return new ApiException(
         RosettaErrorType.OUTPUTS_BIGGER_THAN_INPUTS_ERROR.toRosettaError(false));
@@ -79,10 +76,6 @@ public class ExceptionFactory {
 
   public static ApiException invalidPoolRegistrationCertType() {
     return new ApiException(RosettaErrorType.INVALID_POOL_CERT_TYPE.toRosettaError(false));
-  }
-
-  public static ApiException invalidPublicKeyFormat() {
-    return new ApiException(RosettaErrorType.INVALID_PUBLIC_KEY_FORMAT.toRosettaError(false));
   }
 
   public static ApiException publicKeyMissing() {
@@ -161,10 +154,6 @@ public class ExceptionFactory {
         Details.builder().message(value).build()));
   }
 
-  public static ApiException addressGenerationError() {
-    return new ApiException(RosettaErrorType.ADDRESS_GENERATION_ERROR.toRosettaError(false));
-  }
-
   public static ApiException transactionInputsParametersMissingError(String error) {
     return new ApiException(
         RosettaErrorType.TRANSACTION_INPUTS_PARAMETERS_MISSING_ERROR.toRosettaError(false,
@@ -232,15 +221,6 @@ public class ExceptionFactory {
         Details.builder().message(details).build()));
   }
 
-  public static ApiException submitRejected(String detail) {
-    return new ApiException(RosettaErrorType.SEND_TRANSACTION_ERROR.toRosettaError(true,
-        Details.builder().message(detail).build()));
-  }
-
-  public static ApiException outputTooLow() {
-    return unspecifiedError("The outputAmount is too low. Try with more funds.");
-  }
-
   public static ApiException deserializationError(String details) {
     return new ApiException(
         RosettaErrorType.TRANSACTION_INPUT_DESERIALIZATION_ERROR.toRosettaError(false,
@@ -249,10 +229,6 @@ public class ExceptionFactory {
 
   public static ApiException invalidNetworkError() {
     return new ApiException(RosettaErrorType.INVALID_NETWORK.toRosettaError(false));
-  }
-
-  public static ApiException cantDecodeMemPoolTransaction() {
-    return new ApiException(RosettaErrorType.CANT_DECODE_MEMPOOL_TRANSACTION.toRosettaError(false));
   }
 
   public static ApiException sendTransactionError(String error) {

@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 
 import lombok.RequiredArgsConstructor;
@@ -35,7 +36,7 @@ import org.cardanofoundation.rosetta.api.account.model.domain.AddressBalance;
 import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
-import org.cardanofoundation.rosetta.api.block.model.domain.GenesisBlock;
+import org.cardanofoundation.rosetta.api.block.model.domain.BlockIdentifierExtended;
 import org.cardanofoundation.rosetta.api.block.model.domain.NetworkStatus;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
 import org.cardanofoundation.rosetta.api.block.model.domain.StakeAddressBalance;
@@ -71,14 +72,14 @@ public class DataMapper {
    * @return The NetworkOptionsResponse
    */
   public NetworkStatusResponse mapToNetworkStatusResponse(NetworkStatus networkStatus) {
-    Block latestBlock = networkStatus.getLatestBlock();
-    GenesisBlock genesisBlock = networkStatus.getGenesisBlock();
+    BlockIdentifierExtended latestBlock = networkStatus.getLatestBlock();
+    BlockIdentifierExtended genesisBlock = networkStatus.getGenesisBlock();
     List<Peer> peers = networkStatus.getPeers();
     return NetworkStatusResponse.builder()
         .currentBlockIdentifier(
-            BlockIdentifier.builder().index(latestBlock.getNumber()).hash(latestBlock.getHash())
-                .build())
-        .currentBlockTimestamp(latestBlock.getCreatedAt())
+            BlockIdentifier.builder().index(latestBlock.getNumber())
+                .hash(latestBlock.getHash()).build())
+        .currentBlockTimestamp(TimeUnit.SECONDS.toMillis(latestBlock.getBlockTimeInSeconds()))
         .genesisBlockIdentifier(BlockIdentifier.builder().index(
                 genesisBlock.getNumber() != null ? genesisBlock.getNumber() : 0)
             .hash(genesisBlock.getHash()).build())
