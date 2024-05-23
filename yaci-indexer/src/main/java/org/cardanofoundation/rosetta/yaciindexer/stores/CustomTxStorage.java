@@ -147,45 +147,6 @@ public class CustomTxStorage {
         auxiliaryData.add(CborSerializationUtil.deserialize(
             HexUtil.decodeHexString(tx.getAuxData().getMetadataCbor()))[0]);
       }
-//      if(tx.getAuxData().getNativeScripts() != null) {
-//        tx.getAuxData().getNativeScripts().forEach(script -> {
-//          try {
-//            if(script.getContent() != null) {
-//              auxiliaryData.add(new ByteString(
-//                  NativeScript.deserializeJson(script.getContent()).getScriptHash()));
-//            }
-//          } catch (CborDeserializationException | JsonProcessingException | CborSerializationException e) {
-//            throw new RuntimeException(e);
-//          }
-//        });
-//      }
-//      if(tx.getAuxData().getPlutusV1Scripts() != null) {
-//        tx.getAuxData().getPlutusV1Scripts().forEach(script -> {
-//          try {
-//            auxiliaryData.add(new ByteString(NativeScript.deserializeJson(script.getContent()).getScriptHash()));
-//          } catch (CborDeserializationException | JsonProcessingException | CborSerializationException e) {
-//            throw new RuntimeException(e);
-//          }
-//        });
-//      }
-//      if(tx.getAuxData().getPlutusV2Scripts() != null) {
-//        tx.getAuxData().getPlutusV2Scripts().forEach(script -> {
-//          try {
-//            auxiliaryData.add(new ByteString(NativeScript.deserializeJson(script.getContent()).getScriptHash()));
-//          } catch (CborDeserializationException | JsonProcessingException | CborSerializationException e) {
-//            throw new RuntimeException(e);
-//          }
-//        });
-//      }
-//      if(tx.getAuxData().getPlutusV3Scripts() != null) {
-//        tx.getAuxData().getPlutusV3Scripts().forEach(script -> {
-//          try {
-//            auxiliaryData.add(new ByteString(NativeScript.deserializeJson(script.getContent()).getScriptHash()));
-//          } catch (CborDeserializationException | JsonProcessingException | CborSerializationException e) {
-//            throw new RuntimeException(e);
-//          }
-//        });
-//      }
       signedTransaction.put(new UnsignedInteger(3), auxiliaryData);
     }
   }
