@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
+import org.cardanofoundation.rosetta.api.block.model.entity.ProtocolParamsEntity;
 import org.cardanofoundation.rosetta.api.block.model.repository.EpochParamRepository;
 import org.cardanofoundation.rosetta.common.mapper.ProtocolParamsToEntity;
 
@@ -28,5 +29,17 @@ class ProtocolParamServiceImplTest {
   void getProtocolParameters() {
     when(genesisService.findProtocolParametersFromIndexer()).thenReturn(new ProtocolParams());
     assertNotNull(genesisService.findProtocolParametersFromIndexer());
+  }
+
+  @Test
+  void test() {
+    //given
+    ProtocolParamsEntity protocolParams = new ProtocolParamsEntity();
+    when(epochParamRepository.findLatestProtocolParams()).thenReturn(protocolParams);
+    when(protocolParamsToEntity.fromEntity(protocolParams)).thenReturn(new ProtocolParams());
+    //when
+    ProtocolParams protocolParameters = genesisService.getProtocolParameters();
+    //then
+    assertNotNull(protocolParameters);
   }
 }

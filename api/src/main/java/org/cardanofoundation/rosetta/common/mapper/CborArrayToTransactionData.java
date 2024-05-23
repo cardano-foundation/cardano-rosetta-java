@@ -27,28 +27,34 @@ public class CborArrayToTransactionData {
 
     byte[] bytes = HexUtil.decodeHexString(
         ((UnicodeString) decodedTransaction.getDataItems().get(0)).getString());
-    TransactionBody body;
-    if (signed) {
-      List<DataItem> decode = CborDecoder.decode(bytes);
-      if (decode.get(0) instanceof Array array) {
-        if (decode.size() >= 2 && array.getDataItems().size() == 3) {
-          array.add(decode.get(1));
-        }
-        Transaction parsed = Transaction.deserialize(
-            com.bloxbean.cardano.yaci.core.util.CborSerializationUtil.serialize(array));
-        body = parsed.getBody();
-      } else {
-        throw ExceptionFactory.cantCreateSignedTransactionFromBytes();
+
+    return signed ? processSignedTransaction(bytes, extraData) : processUnsignedTransaction(bytes, extraData);
+  }
+
+  private static TransactionData processSignedTransaction(byte[] bytes, TransactionExtraData extraData)
+          throws CborException, CborDeserializationException {
+    List<DataItem> decode = CborDecoder.decode(bytes);
+    if (decode.get(0) instanceof Array array) {
+      if (decode.size() >= 2 && array.getDataItems().size() == 3) {
+        array.add(decode.get(1));
       }
+      Transaction parsed = Transaction.deserialize(
+              com.bloxbean.cardano.yaci.core.util.CborSerializationUtil.serialize(array));
+      return new TransactionData(parsed.getBody(), extraData);
     } else {
-      DataItem deserializedTrBody = CborSerializationUtil.deserialize(bytes);
-      if (deserializedTrBody instanceof Map deserializedMap) {
-        body = TransactionBody.deserialize(deserializedMap);
-      } else {
-        throw ExceptionFactory.cantCreateUnsignedTransactionFromBytes();
-      }
+      throw ExceptionFactory.cantCreateSignedTransactionFromBytes();
     }
-    return new TransactionData(body, extraData);
+  }
+
+  private static TransactionData processUnsignedTransaction(byte[] bytes, TransactionExtraData extraData)
+          throws CborDeserializationException {
+    DataItem deserializedTrBody = CborSerializationUtil.deserialize(bytes);
+    if (deserializedTrBody instanceof Map deserializedMap) {
+      TransactionBody body = TransactionBody.deserialize(deserializedMap);
+      return new TransactionData(body, extraData);
+    } else {
+      throw ExceptionFactory.cantCreateUnsignedTransactionFromBytes();
+    }
   }
 
   private CborArrayToTransactionData() {
