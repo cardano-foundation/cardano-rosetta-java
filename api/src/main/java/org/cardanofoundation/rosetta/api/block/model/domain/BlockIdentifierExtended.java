@@ -14,5 +14,6 @@ public class BlockIdentifierExtended {
   private String hash;
   private Long number;
   private Long blockTimeInSeconds;
+  private Long slot;
 
 }
