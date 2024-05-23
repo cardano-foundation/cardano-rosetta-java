@@ -52,9 +52,8 @@ import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
 
 
 @Slf4j
-@RequiredArgsConstructor
 @Component
-@Transactional(readOnly = true)
+@RequiredArgsConstructor
 public class LedgerBlockServiceImpl implements LedgerBlockService {
 
   private final ProtocolParamService protocolParamService;
@@ -138,11 +137,11 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
 
   @Override
   public BlockIdentifierExtended findLatestBlockIdentifier() {
-    log.debug("About to look for latest block");
+    log.debug("About to look for latest findLatestBlockIdentifier");
     BlockIdentifierExtended latestBlock = blockRepository.findLatestBlockIdentifier()
         .map(blockToGensisBlock::toBlockIdentifierExtended)
         .orElseThrow(ExceptionFactory::genesisBlockNotFound);
-    log.debug("Returning latest block {}", latestBlock);
+    log.debug("Returning latest findLatestBlockIdentifier {}", latestBlock);
     return latestBlock;
   }
 
@@ -158,7 +157,6 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
     return cachedGenesisBlock;
   }
 
-  private void populateTransaction(BlockTx transaction) {
   //use instead findByTxHashPreview
 //  private Entities findByTxHash(List<BlockTx> transactions) {
 //    List<String> txHashes = transactions.stream().map(BlockTx::getHash).toList();
@@ -223,7 +221,7 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
 
     } catch (InterruptedException | ExecutionException e) {
       log.error("Error fetching transaction data", e);
-        throw ExceptionFactory.unspecifiedError("Error fetching transaction data");
+      throw ExceptionFactory.unspecifiedError("Error fetching transaction data");
     }
   }
 
