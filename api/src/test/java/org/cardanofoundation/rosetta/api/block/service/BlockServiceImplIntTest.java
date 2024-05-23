@@ -45,7 +45,7 @@ class BlockServiceImplIntTest extends IntegrationTest {
 
     //then
     assertEquals(simpleTx.blockHash(), block.getHash());
-    assertEquals(simpleTx.blockNumber(), block.getSlotNo());
+    assertEquals(simpleTx.blockNumber(), block.getNumber());
     assertEquals(1, block.getTransactions().size());
 
     Utxo receiverUtxoDto = block.getTransactions().getFirst().getOutputs().getFirst();

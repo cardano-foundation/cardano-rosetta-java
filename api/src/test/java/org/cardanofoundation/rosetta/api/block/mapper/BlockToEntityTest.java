@@ -4,6 +4,7 @@ import java.math.BigInteger;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import org.cardanofoundation.rosetta.api.block.model.entity.TransactionSizeEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.junit.jupiter.api.Test;
@@ -88,6 +89,10 @@ class BlockToEntityTest extends BaseMapperSetup {
         .block(BlockEntity.builder().hash("blockHash1").number(22L).build())
         .fee(BigInteger.TEN)
         .inputKeys(List.of())
+            .sizeEntity(TransactionSizeEntity.builder()
+                .size(0)
+                .scriptSize(0)
+                .build())
         .outputKeys(List.of())
         .build());
   }

@@ -3,6 +3,7 @@ package org.cardanofoundation.rosetta.api.block.mapper;
 import java.math.BigInteger;
 import java.util.List;
 
+import org.cardanofoundation.rosetta.api.block.model.entity.TransactionSizeEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.junit.jupiter.api.Test;
@@ -58,6 +59,10 @@ class BlockTxToEntityTest extends BaseMapperSetup {
         .fee(BigInteger.TEN)
         .inputKeys(List.of(inUtxKey))
         .outputKeys(List.of(outUtxKey))
+        .sizeEntity(TransactionSizeEntity.builder()
+            .size(0)
+            .scriptSize(0)
+            .build())
         .build();
   }
 
