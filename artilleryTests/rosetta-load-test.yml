@@ -26,6 +26,16 @@ config:
 scenarios:
   - flow:
       - post:
+          url: 'network/status'
+          body: |
+            {
+              "network_identifier": {
+                "blockchain": "cardano",
+                "network": "preprod"
+              },
+              "metadata": {}
+            }
+      - post:
           url: '/account/balance'
           body: |
             {

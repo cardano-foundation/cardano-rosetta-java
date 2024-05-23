@@ -124,9 +124,9 @@ public class Constants {
 
   public static final Integer ED_25519_KEY_SIGNATURE_BYTE_LENGTH = 64;
 
-    public static final String CERTIFICATE = "certificate";
-    public static final String ADDRESS = "address";
-    public static final String ADDRESS_PREFIX = "addr";
+  public static final String CERTIFICATE = "certificate";
+  public static final String ADDRESS = "address";
+  public static final String ADDRESS_PREFIX = "addr";
 
   public static final String POOL_KEY_HASH = "pool_key_hash";
   public static final String VOTING_KEY = "votingKey";
@@ -196,4 +196,7 @@ public class Constants {
   public static final String LOVELACE = "lovelace";
   public static final String TESTNET = "testnet";
   public static final String DEVKIT = "devkit";
+  public static final String SANCHONET = "sanchonet";
+
+  public static final String ROSETTA_API_PATH = "classpath:/rosetta-specifications-1.4.15/api.yaml";
 }

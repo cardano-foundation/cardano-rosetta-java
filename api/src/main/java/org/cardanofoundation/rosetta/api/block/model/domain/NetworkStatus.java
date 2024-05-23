@@ -15,7 +15,7 @@ import org.openapitools.client.model.Peer;
 @AllArgsConstructor
 public class NetworkStatus {
 
-  private Block latestBlock;
-  private GenesisBlock genesisBlock;
+  private BlockIdentifierExtended latestBlock;
+  private BlockIdentifierExtended genesisBlock;
   private List<Peer> peers;
 }
