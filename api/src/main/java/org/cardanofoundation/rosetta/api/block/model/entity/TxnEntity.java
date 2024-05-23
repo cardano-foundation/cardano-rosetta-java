@@ -1,6 +1,5 @@
 package org.cardanofoundation.rosetta.api.block.model.entity;
 
-import jakarta.persistence.OneToOne;
 import java.math.BigInteger;
 import java.util.List;
 import jakarta.persistence.Column;
@@ -12,6 +11,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
 import lombok.AllArgsConstructor;

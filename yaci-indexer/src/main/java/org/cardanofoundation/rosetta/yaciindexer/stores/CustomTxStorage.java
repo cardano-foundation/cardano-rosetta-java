@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.cardanofoundation.rosetta.yaciindexer.model.entity.TransactionSizeEntity;
+import org.cardanofoundation.rosetta.api.block.model.entity.TransactionSizeEntity;
 import org.cardanofoundation.rosetta.yaciindexer.model.repository.TransactionSizeRepository;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
@@ -80,7 +80,6 @@ public class CustomTxStorage {
 
     scriptSize += addPlutusToWitness(tx, witnessSet, tx.getWitnesses().getPlutusV1Scripts(), 3);
     scriptSize += addPlutusToWitness(tx, witnessSet, tx.getWitnesses().getPlutusV2Scripts(), 6);
-    scriptSize += addPlutusToWitness(tx, witnessSet, tx.getWitnesses().getPlutusV3Scripts(), 7);
 
     addDatumToWitness(tx, witnessSet);
     addRedeemerToWitness(tx, witnessSet);
