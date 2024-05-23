@@ -1,6 +1,5 @@
-package org.cardanofoundation.rosetta.yaciindexer.txSizeStore;
+package org.cardanofoundation.rosetta.yaciindexer.txSizeStore.model;
 
-import org.cardanofoundation.rosetta.api.block.model.entity.TransactionSizeEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
