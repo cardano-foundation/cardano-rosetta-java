@@ -1,11 +1,13 @@
 config:
-  target: http://localhost:8081
+  target: http://127.0.0.1:8082
+  ensure:
+    thresholds:
+      - vusers.failed: 1
   http:
+    timeout: 120
     defaults:
       headers:
         Content-Type: application/json
-    http:
-      timeout: 60
   phases:
     - duration: 60
       arrivalRate: 1
@@ -19,14 +21,19 @@ config:
       arrivalRate: 10
       rampTo: 30
       name: Spike phase
-    - duration: 60
   plugins:
+    ensure: { }
+    expect:
+      expectDefault200: true
+      outputFormat: silent
+      reportFailuresAsErrors: true
     metrics-by-endpoint:
       useOnlyRequestNames: true
+      metricsNamespace: "latency_metrics"
 scenarios:
   - flow:
       - post:
-          url: 'network/status'
+          url: '/network/status'
           body: |
             {
               "network_identifier": {
@@ -56,7 +63,7 @@ scenarios:
                       "network": "preprod"
                   },
                   "block_identifier": {
-                      "index": 2235737
+                      "index": 20
                   }
               }
       - post:
