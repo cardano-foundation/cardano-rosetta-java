@@ -1,4 +1,4 @@
-package org.cardanofoundation.rosetta.yaciindexer.txSizeStore;
+package org.cardanofoundation.rosetta.yaciindexer.stores.txsize;
 
 import co.nstant.in.cbor.model.Array;
 import co.nstant.in.cbor.model.ByteString;
@@ -20,8 +20,8 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.cardanofoundation.rosetta.yaciindexer.txSizeStore.model.TransactionSizeEntity;
-import org.cardanofoundation.rosetta.yaciindexer.txSizeStore.model.TransactionSizeRepository;
+import org.cardanofoundation.rosetta.yaciindexer.stores.txsize.model.TransactionSizeEntity;
+import org.cardanofoundation.rosetta.yaciindexer.stores.txsize.model.TransactionSizeRepository;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
