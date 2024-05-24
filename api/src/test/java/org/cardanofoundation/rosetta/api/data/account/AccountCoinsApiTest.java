@@ -36,7 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 class AccountCoinsApiTest extends BaseSpringMvcSetup {
 
-  private final String myAssetPolicyId = "55fb0efbf5721e95a05c3d9a13fa63421c83689b35de6247d9d371ef";
+  private final String myAssetPolicyId = "7fb3df13910c057bd9254e847c076fb02de78503b9fa0ecdd70b566c";
   private final String latestTxHashOnZeroSlot = generatedDataMap.get(
       TestTransactionNames.SIMPLE_NEW_EMPTY_NAME_COINS_TRANSACTION.getName()).txHash() + ":0";
   private final String expectedTestAccountCoinAmount = "1636394";
@@ -138,24 +138,24 @@ class AccountCoinsApiTest extends BaseSpringMvcSetup {
 
     assertNotNull(accountCoinsResponse);
     assertEquals(2, accountCoinsResponse.getCoins().size());
-//    assertEquals(1, accountCoinsResponse.getCoins().getFirst().getMetadata().size()); // TODO Metadata is null?
+    assertEquals(1, accountCoinsResponse.getCoins().getFirst().getMetadata().size());
     assertEquals(latestTxHashOnZeroSlot,
         accountCoinsResponse.getCoins().getFirst().getCoinIdentifier().getIdentifier());
     assertEquals(Constants.ADA,
         accountCoinsResponse.getCoins().getFirst().getAmount().getCurrency().getSymbol());
     assertEquals(Constants.ADA_DECIMALS,
         accountCoinsResponse.getCoins().getFirst().getAmount().getCurrency().getDecimals());
-//    assertEquals(myAssetPolicyId,
-//        accountCoinsResponse.getCoins().getFirst().getMetadata().get(latestTxHashOnZeroSlot) // TODO Metadata is null??
-//            .getFirst().getPolicyId());
-//    assertEquals(TestConstants.ACCOUNT_BALANCE_MINTED_TOKENS_AMOUNT,
-//        accountCoinsResponse.getCoins().getFirst().getMetadata().get(latestTxHashOnZeroSlot).getFirst()
-//            .getTokens().getFirst().getValue());
-//    Currency mintedTokenCurrency = accountCoinsResponse.getCoins().getFirst().getMetadata()
-//        .get(latestTxHashOnZeroSlot).getFirst().getTokens().getFirst().getCurrency();
-//    assertEquals("", mintedTokenCurrency.getSymbol());
-//    assertEquals(Constants.MULTI_ASSET_DECIMALS, mintedTokenCurrency.getDecimals());
-//    assertEquals(myAssetPolicyId, mintedTokenCurrency.getMetadata().getPolicyId());
+    assertEquals(myAssetPolicyId,
+        accountCoinsResponse.getCoins().getFirst().getMetadata().get(latestTxHashOnZeroSlot)
+            .getFirst().getPolicyId());
+    assertEquals(TestConstants.ACCOUNT_BALANCE_MINTED_TOKENS_AMOUNT,
+        accountCoinsResponse.getCoins().getFirst().getMetadata().get(latestTxHashOnZeroSlot).getFirst()
+            .getTokens().getFirst().getValue());
+    Currency mintedTokenCurrency = accountCoinsResponse.getCoins().getFirst().getMetadata()
+        .get(latestTxHashOnZeroSlot).getFirst().getTokens().getFirst().getCurrency();
+    assertEquals("", mintedTokenCurrency.getSymbol());
+    assertEquals(Constants.MULTI_ASSET_DECIMALS, mintedTokenCurrency.getDecimals());
+    assertEquals(myAssetPolicyId, mintedTokenCurrency.getMetadata().getPolicyId());
   }
 
   @Test
