@@ -58,8 +58,9 @@ import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
 
 
 @Slf4j
-@Component
 @RequiredArgsConstructor
+@Component
+@Transactional(readOnly = true)
 public class LedgerBlockServiceImpl implements LedgerBlockService {
 
   private final ProtocolParamService protocolParamService;
@@ -204,7 +205,7 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
       throw ExceptionFactory.unspecifiedError("Error fetching transaction data");
     }
   }
-
+/*
   private Entities findByTxHashMono(List<BlockTx> transactions) {
     List<String> txHashes = transactions.stream().map(BlockTx::getHash).toList();
 
@@ -242,7 +243,7 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
     return ent.get();
 
   }
-
+*/
 
 
 /*
