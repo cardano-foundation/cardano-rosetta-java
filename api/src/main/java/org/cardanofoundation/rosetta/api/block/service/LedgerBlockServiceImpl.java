@@ -9,8 +9,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.StructuredTaskScope;
-import java.util.concurrent.StructuredTaskScope.Subtask;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 import jakarta.validation.constraints.NotNull;
@@ -247,7 +245,7 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
 
 
 
-
+/*
   @SuppressWarnings("preview")
   private Entities findByTxHashPreview(List<BlockTx> transactions) {
     List<String> txHashes = transactions.stream().map(BlockTx::getHash).toList();
@@ -277,6 +275,8 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
       throw ExceptionFactory.unspecifiedError("Error fetching transaction data");
     }
   }
+
+ */
 
   private record Entities(List<AddressUtxoEntity> utxos,
                           List<StakeRegistrationEntity> stakeRegistrations,
