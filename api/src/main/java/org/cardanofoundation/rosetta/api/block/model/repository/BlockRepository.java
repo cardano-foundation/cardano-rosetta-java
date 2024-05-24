@@ -26,4 +26,11 @@ public interface BlockRepository extends JpaRepository<BlockEntity, Long> {
   @Query("FROM BlockEntity b ORDER BY b.number DESC LIMIT 1")
   Optional<BlockIdentifierProjection> findLatestBlockIdentifier();
 
+  Optional<BlockIdentifierProjection> findBlockIdentifierByNumber(Long blockNumber);
+
+  Optional<BlockIdentifierProjection> findBlockIdentifierByHash(String blockHash);
+
+  Optional<BlockIdentifierProjection> findBlockIdentifierByNumberAndHash(
+      Long blockNumber,
+      String blockHash);
 }

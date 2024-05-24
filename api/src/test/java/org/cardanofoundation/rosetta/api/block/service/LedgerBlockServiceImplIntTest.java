@@ -6,6 +6,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 import org.junit.jupiter.api.Test;
 
@@ -32,6 +33,7 @@ import static org.cardanofoundation.rosetta.testgenerator.common.TestTransaction
 import static org.cardanofoundation.rosetta.testgenerator.common.TestTransactionNames.SIMPLE_TRANSACTION;
 import static org.cardanofoundation.rosetta.testgenerator.common.TestTransactionNames.STAKE_KEY_REGISTRATION_TRANSACTION;
 
+@Transactional
 class LedgerBlockServiceImplIntTest extends IntegrationTest {
 
   @Autowired
