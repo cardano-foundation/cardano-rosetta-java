@@ -91,6 +91,7 @@ public class CustomTransactionSizeStore {
     scriptSize += addPlutusToWitness(witnessSet, tx.getWitnesses().getPlutusV1Scripts(),
         TransactionBuildingConstants.PLUTUSV1_WITNESS_INDEX);
     scriptSize += addPlutusToWitness(witnessSet, tx.getWitnesses().getPlutusV2Scripts(), TransactionBuildingConstants.PLUTUSV2_WITNESS_INDEX);
+    scriptSize += addPlutusToWitness(witnessSet, tx.getWitnesses().getPlutusV3Scripts(), TransactionBuildingConstants.PLUTUSV3_WITNESS_INDEX);
 
     addDatumToWitness(tx, witnessSet);
     addRedeemerToWitness(tx, witnessSet);

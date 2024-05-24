@@ -15,5 +15,6 @@ public class TransactionBuildingConstants {
   public static final int REDEEMER_WITNESS_INDEX = 5;
   public static final int PLUTUSV1_WITNESS_INDEX = 3;
   public static final int PLUTUSV2_WITNESS_INDEX = 6;
+  public static final int PLUTUSV3_WITNESS_INDEX = 6;
   public static final int PLUTUS_DATUM_WITNESS_INDEX = 4;
 }
