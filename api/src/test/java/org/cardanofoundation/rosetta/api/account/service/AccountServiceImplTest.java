@@ -108,7 +108,8 @@ class AccountServiceImplTest {
     assertEquals(blockIdentifier.getIndex(), actual.getBlockIdentifier().getIndex());
     assertEquals(blockIdentifier.getHash(), actual.getBlockIdentifier().getHash());
     verify(ledgerBlockService).findBlockIdentifier(1L, HASH);
-    verify(ledgerAccountService).findStakeAddressBalanceQuantityByAddressAndBlock(accountAddress, 1L);
+    verify(ledgerAccountService)
+        .findStakeAddressBalanceQuantityByAddressAndBlock(accountAddress, 1L);
     verify(accountBalanceRequest).getAccountIdentifier();
     verify(accountBalanceRequest).getBlockIdentifier();
     verifyNoMoreInteractions(ledgerAccountService);
@@ -168,7 +169,8 @@ class AccountServiceImplTest {
     assertEquals(RosettaErrorType.INVALID_ADDRESS.getMessage(),
         actualException.getError().getMessage());
     verify(ledgerBlockService).findBlockIdentifier(1L, HASH);
-    verify(ledgerAccountService).findStakeAddressBalanceQuantityByAddressAndBlock(accountAddress, 1L);
+    verify(ledgerAccountService)
+        .findStakeAddressBalanceQuantityByAddressAndBlock(accountAddress, 1L);
     verify(accountBalanceRequest).getAccountIdentifier();
     verify(accountBalanceRequest).getBlockIdentifier();
     verifyNoMoreInteractions(ledgerAccountService);
@@ -236,7 +238,8 @@ class AccountServiceImplTest {
     assertEquals(RosettaErrorType.INVALID_ADDRESS.getMessage(),
         actualException.getError().getMessage());
     verify(ledgerBlockService).findBlockIdentifier(1L, HASH);
-    verify(ledgerAccountService).findStakeAddressBalanceQuantityByAddressAndBlock(accountAddress, 1L);
+    verify(ledgerAccountService)
+        .findStakeAddressBalanceQuantityByAddressAndBlock(accountAddress, 1L);
     verify(accountBalanceRequest).getAccountIdentifier();
     verify(accountBalanceRequest).getBlockIdentifier();
     verifyNoMoreInteractions(ledgerAccountService);
@@ -310,7 +313,7 @@ class AccountServiceImplTest {
     verifyNoMoreInteractions(accountCoinsRequest);
     verifyNoMoreInteractions(accountIdentifier);
   }
-  
+
   private BlockIdentifierExtended getMockedBlockIdentifierExtended() {
     BlockIdentifierExtended blockIdentifier = Mockito.mock(BlockIdentifierExtended.class);
     when(blockIdentifier.getNumber()).thenReturn(1L);
