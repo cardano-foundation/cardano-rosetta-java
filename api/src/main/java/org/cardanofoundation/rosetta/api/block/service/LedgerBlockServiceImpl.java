@@ -158,7 +158,6 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
     return cachedGenesisBlock;
   }
 
-  //use green threads from java 21 - instead findByTxHashPreview
   private Entities findByTxHash(List<BlockTx> transactions) {
     List<String> txHashes = transactions.stream().map(BlockTx::getHash).toList();
 
@@ -168,6 +167,7 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
         .map(Utxo::getTxHash)
         .toList();
 
+    //Use java 21 green threads
     try (var executorService = Executors.newVirtualThreadPerTaskExecutor()) {
       Future<List<AddressUtxoEntity>> utxos = executorService.submit(() ->
           addressUtxoRepository.findByTxHashIn(utxHashes));
