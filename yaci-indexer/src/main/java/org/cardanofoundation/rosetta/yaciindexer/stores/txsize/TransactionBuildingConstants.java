@@ -2,6 +2,8 @@ package org.cardanofoundation.rosetta.yaciindexer.stores.txsize;
 
 public class TransactionBuildingConstants {
 
+  private TransactionBuildingConstants() {}
+
   public static final long ALONZO_START_BLOCKNUMBER = 64902L;
   public static final int TX_BODY_INDEX = 0;
   public static final int WITNESS_SET_INDEX = 1;

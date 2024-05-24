@@ -109,9 +109,8 @@ public class CustomTransactionSizeStore {
   private static void addDatumToWitness(Transaction tx, Map witnessSet) {
     if(!tx.getWitnesses().getDatums().isEmpty()) {
       Array array = new Array();
-      tx.getWitnesses().getDatums().forEach(datum -> {
-        array.add(new ByteString(HexUtil.decodeHexString(datum.getCbor()))); // could speed it up by passing an empty array, since we are only interested in the size not the content
-      });
+      // could speed it up by passing an empty array, since we are only interested in the size not the content
+      tx.getWitnesses().getDatums().forEach(datum -> array.add(new ByteString(HexUtil.decodeHexString(datum.getCbor()))));
       witnessSet.put(new UnsignedInteger(TransactionBuildingConstants.PLUTUS_DATUM_WITNESS_INDEX), array);
     }
   }
@@ -144,9 +143,8 @@ public class CustomTransactionSizeStore {
   private static void addRedeemerToWitness(Transaction tx, Map witnessSet) {
     if(!tx.getWitnesses().getRedeemers().isEmpty()) {
       Array array = new Array();
-      tx.getWitnesses().getRedeemers().forEach(redeemer -> {
-        array.add(new ByteString(HexUtil.decodeHexString(redeemer.getCbor()))); // could speed it up by passing an empty array, since we are only interested in the size not the content
-      });
+      // could speed it up by passing an empty array, since we are only interested in the size not the content
+      tx.getWitnesses().getRedeemers().forEach(redeemer -> array.add(new ByteString(HexUtil.decodeHexString(redeemer.getCbor()))));
       witnessSet.put(new UnsignedInteger(TransactionBuildingConstants.REDEEMER_WITNESS_INDEX), array);
     }
   }
@@ -220,7 +218,7 @@ public class CustomTransactionSizeStore {
               nativeScripts.add(new ByteString(nativeScript.getScriptHash()));
             } catch (CborDeserializationException | JsonProcessingException |
                      CborSerializationException e) {
-              throw new RuntimeException(e);
+              log.error("Can't parse Native script for Transaction: " + tx.getTxHash());
             }
       });
       witnessSet.put(new UnsignedInteger(TransactionBuildingConstants.NATIVESCRIPT_WITNESS_INDEX), nativeScripts);
