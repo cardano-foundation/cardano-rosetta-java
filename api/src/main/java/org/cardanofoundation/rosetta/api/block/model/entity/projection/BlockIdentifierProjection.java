@@ -4,5 +4,6 @@ public interface BlockIdentifierProjection {
   String getHash();
   Long getNumber();
   Long getBlockTimeInSeconds();
+  Long getSlot();
 
 }
