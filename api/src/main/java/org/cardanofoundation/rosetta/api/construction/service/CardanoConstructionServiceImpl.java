@@ -50,7 +50,6 @@ import org.openapitools.client.model.PublicKey;
 import org.openapitools.client.model.SignatureType;
 import org.openapitools.client.model.SigningPayload;
 
-import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProcessOperations;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProcessOperationsReturn;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
@@ -160,8 +159,7 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
 
   @Override
   public Long calculateTtl(Long ttlOffset) {
-    Block latestBlock = ledgerBlockService.findLatestBlock();
-    return latestBlock.getSlotNo() + ttlOffset;
+    return ledgerBlockService.findLatestBlockIdentifier().getSlot() + ttlOffset;
   }
 
   @Override
