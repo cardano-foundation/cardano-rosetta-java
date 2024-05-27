@@ -102,23 +102,24 @@ public class AccountServiceImpl implements AccountService {
             log.debug("Address is StakeAddress, get balance for {}", address);
             Optional<BigInteger> quantity = ledgerAccountService
                 .findStakeAddressBalanceQuantityByAddressAndBlock(address, blockDto.getNumber());
-            if (quantity.isEmpty()) {
-              log.error("[findBalanceDataByAddressAndBlock] No balance found for {}", address);
-              throw ExceptionFactory.invalidAddressError();
-            }
+            validateAndLogBalances(address, quantity.isEmpty());
             return DataMapper.mapToStakeAddressBalanceResponse(blockDto, quantity.get());
           } else {
             log.debug("Address isn't StakeAddress");
             List<AddressBalance> balances = ledgerAccountService
                 .findBalanceByAddressAndBlock(address, blockDto.getNumber());
-            if (Objects.isNull(balances) || balances.isEmpty()) {
-              log.error("[findBalanceDataByAddressAndBlock] No balance found for {}", address);
-              throw ExceptionFactory.invalidAddressError();
-            }
+            validateAndLogBalances(address, Objects.isNull(balances) || balances.isEmpty());
             return DataMapper.mapToAccountBalanceResponse(blockDto, balances);
           }
         })
         .orElseThrow(ExceptionFactory::blockNotFoundException);
+  }
+
+  private void validateAndLogBalances(String address, boolean throwCondition) {
+    if (throwCondition) {
+      log.error("[findBalanceDataByAddressAndBlock] No balance found for {}", address);
+      throw ExceptionFactory.invalidAddressError(address);
+    }
   }
 
   private Optional<BlockIdentifierExtended> findBlockOrLast(Long number, String hash) {
