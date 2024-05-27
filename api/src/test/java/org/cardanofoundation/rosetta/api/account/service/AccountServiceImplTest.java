@@ -27,11 +27,11 @@ import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockIdentifierExtended;
 import org.cardanofoundation.rosetta.api.block.service.LedgerBlockService;
-import org.cardanofoundation.rosetta.common.enumeration.StakeAddressPrefix;
 import org.cardanofoundation.rosetta.common.exception.ApiException;
 import org.cardanofoundation.rosetta.common.util.Constants;
 import org.cardanofoundation.rosetta.common.util.RosettaConstants.RosettaErrorType;
 
+import static org.cardanofoundation.rosetta.common.util.Constants.ADA;
 import static org.cardanofoundation.rosetta.common.util.Constants.ADDRESS_PREFIX;
 import static org.cardanofoundation.rosetta.common.util.Constants.LOVELACE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -56,7 +56,7 @@ class AccountServiceImplTest {
 
   @Test
   void getAccountBalanceNoStakeAddressPositiveTest() {
-    String accountAddress = ADDRESS_PREFIX + "1q9g8address_that_pass8";
+    String accountAddress = ADDRESS_PREFIX + "1q9ccruvttlfsqwu47ndmapxmk5xa8cc9ngsgj90290tfpysc6gcpmq6ejwgewr49ja0kghws4fdy9t2zecvd7zwqrheqjze0c7";
     PartialBlockIdentifier blockIdentifier = getMockedPartialBlockIdentifier();
     AccountBalanceRequest accountBalanceRequest = Mockito.mock(AccountBalanceRequest.class);
     AccountIdentifier accountIdentifier = getMockedAccountIdentifierAndMockAccountBalanceRequest(
@@ -89,8 +89,7 @@ class AccountServiceImplTest {
 
   @Test
   void getAccountBalanceStakeAddressPositiveTest() {
-    String accountAddress =
-        ADDRESS_PREFIX + StakeAddressPrefix.TEST.getPrefix() + "1q9g8address_that_pass8";
+    String accountAddress = "stake_test1urpal63jnzqjkhn7ld5dfjzvesjs07u4pn2y88yk2a8250qgvnqhw";
     PartialBlockIdentifier blockIdentifier = getMockedPartialBlockIdentifier();
     AccountBalanceRequest accountBalanceRequest = Mockito.mock(AccountBalanceRequest.class);
     AccountIdentifier accountIdentifier = getMockedAccountIdentifierAndMockAccountBalanceRequest(
@@ -119,7 +118,8 @@ class AccountServiceImplTest {
 
   @Test
   void getAccountBalanceNoStakeAddressNullBlockIdentifierPositiveTest() {
-    String accountAddress = ADDRESS_PREFIX + "1q9g8address_that_pass8";
+    // Shelly testnet address
+    String accountAddress = "addr_test1vru64wlzn85v7fecg0mz33lh00wlggqtquvzzuhf6vusyes32jz9w";
     AccountBalanceRequest accountBalanceRequest = Mockito.mock(AccountBalanceRequest.class);
     AccountIdentifier accountIdentifier = Mockito.mock(AccountIdentifier.class);
     when(accountBalanceRequest.getAccountIdentifier()).thenReturn(accountIdentifier);
@@ -152,8 +152,7 @@ class AccountServiceImplTest {
 
   @Test
   void getAccountBalanceStakeAddressWithEmptyBalancesThrowTest() {
-    String accountAddress =
-        ADDRESS_PREFIX + StakeAddressPrefix.TEST.getPrefix() + "1q9g8address_that_pass8";
+    String accountAddress = "stake_test1uzjspr9ux2w3jwevcxx954n7al0z3wnj2zlyff68mdwqmlglx3p5m";
     PartialBlockIdentifier blockIdentifier = getMockedPartialBlockIdentifier();
     BlockIdentifierExtended block = getMockedBlockIdentifierExtended();
     AccountBalanceRequest accountBalanceRequest = Mockito.mock(AccountBalanceRequest.class);
@@ -163,11 +162,12 @@ class AccountServiceImplTest {
     when(ledgerAccountService.findStakeAddressBalanceQuantityByAddressAndBlock(accountAddress, 1L))
         .thenReturn(Optional.empty());
 
-    ApiException actualException = assertThrows(ApiException.class,
-        () -> accountService.getAccountBalance(accountBalanceRequest));
+    AccountBalanceResponse actual = accountService.getAccountBalance(accountBalanceRequest);
 
-    assertEquals(RosettaErrorType.INVALID_ADDRESS.getMessage(),
-        actualException.getError().getMessage());
+    assertEquals(block.getHash(), actual.getBlockIdentifier().getHash());
+    assertEquals(block.getNumber(), actual.getBlockIdentifier().getIndex());
+    assertEquals("0", actual.getBalances().getFirst().getValue());
+    assertEquals(ADA, actual.getBalances().getFirst().getCurrency().getSymbol());
     verify(ledgerBlockService).findBlockIdentifier(1L, HASH);
     verify(ledgerAccountService)
         .findStakeAddressBalanceQuantityByAddressAndBlock(accountAddress, 1L);
@@ -180,8 +180,7 @@ class AccountServiceImplTest {
 
   @Test
   void getAccountBalanceStakeAddressWithBlockDtoNullThrowTest() {
-    String accountAddress =
-        ADDRESS_PREFIX + StakeAddressPrefix.TEST.getPrefix() + "1q9g8address_that_pass8";
+    String accountAddress = "stake_test1upg95j7372g4xhalw69xum09nvumrrpazkxug02vlsy8w8ckxuqmh";
     PartialBlockIdentifier blockIdentifier = getMockedPartialBlockIdentifier();
     AccountBalanceRequest accountBalanceRequest = Mockito.mock(AccountBalanceRequest.class);
     AccountIdentifier accountIdentifier = getMockedAccountIdentifierAndMockAccountBalanceRequest(
@@ -221,8 +220,7 @@ class AccountServiceImplTest {
 
   @Test
   void getAccountBalanceWithStakeAddressAndNullBalanceThrowTest() {
-    String accountAddress =
-        ADDRESS_PREFIX + StakeAddressPrefix.TEST.getPrefix() + "1q9g8address_that_pass8";
+    String accountAddress = "stake1ux4dtdmhnj9xu7txtwsn2zdxzc6gmef5na875rcumvzq4ws4gd8qj";
     PartialBlockIdentifier blockIdentifier = getMockedPartialBlockIdentifier();
     AccountBalanceRequest accountBalanceRequest = Mockito.mock(AccountBalanceRequest.class);
     AccountIdentifier accountIdentifier = getMockedAccountIdentifierAndMockAccountBalanceRequest(
@@ -232,11 +230,12 @@ class AccountServiceImplTest {
     when(ledgerAccountService.findStakeAddressBalanceQuantityByAddressAndBlock(accountAddress, 1L))
         .thenReturn(Optional.empty());
 
-    ApiException actualException = assertThrows(ApiException.class,
-        () -> accountService.getAccountBalance(accountBalanceRequest));
+    AccountBalanceResponse actual = accountService.getAccountBalance(accountBalanceRequest);
 
-    assertEquals(RosettaErrorType.INVALID_ADDRESS.getMessage(),
-        actualException.getError().getMessage());
+    assertEquals(block.getHash(), actual.getBlockIdentifier().getHash());
+    assertEquals(block.getNumber(), actual.getBlockIdentifier().getIndex());
+    assertEquals("0", actual.getBalances().getFirst().getValue());
+    assertEquals(ADA, actual.getBalances().getFirst().getCurrency().getSymbol());
     verify(ledgerBlockService).findBlockIdentifier(1L, HASH);
     verify(ledgerAccountService)
         .findStakeAddressBalanceQuantityByAddressAndBlock(accountAddress, 1L);
@@ -249,7 +248,8 @@ class AccountServiceImplTest {
 
   @Test
   void getAccountCoinsWithCurrenciesPositiveTest() {
-    String accountAddress = ADDRESS_PREFIX + "1q9g8address_that_pass8";
+    // Icarus address
+    String accountAddress = "Ae2tdPwUPEZGvXJ3ebp4LDgBhbxekAH2oKZgfahKq896fehv8oCJxmGJgLt";
     AccountCoinsRequest accountCoinsRequest = Mockito.mock(AccountCoinsRequest.class);
     AccountIdentifier accountIdentifier = Mockito.mock(AccountIdentifier.class);
     Currency currency = Mockito.mock(Currency.class);
@@ -274,7 +274,8 @@ class AccountServiceImplTest {
 
   @Test
   void getAccountCoinsWithNullCurrenciesPositiveTest() {
-    String accountAddress = ADDRESS_PREFIX + "1q9g8address_that_pass8";
+    // Byron address
+    String accountAddress = "DdzFFzCqrht9fvu17fiXwiuP82kKEhiGsDByRE7PWfMktrd8Jc1jWqKxubpz21mWjUMh8bWsKuP5JUF9CgUefyABDBsq326ybHrEhB7M";
     AccountCoinsRequest accountCoinsRequest = Mockito.mock(AccountCoinsRequest.class);
     AccountIdentifier accountIdentifier = Mockito.mock(AccountIdentifier.class);
     Block block = Mockito.mock(Block.class);

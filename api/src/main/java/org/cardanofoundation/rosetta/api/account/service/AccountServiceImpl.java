@@ -53,6 +53,7 @@ public class AccountServiceImpl implements AccountService {
     String hash = null;
     String accountAddress = accountBalanceRequest.getAccountIdentifier().getAddress();
     if (Objects.isNull(CardanoAddressUtils.getEraAddressType(accountAddress))) {
+      log.error("[findBalanceDataByAddressAndBlock] Provided address is invalid {}", accountAddress);
       throw ExceptionFactory.invalidAddressError(accountAddress);
     }
     PartialBlockIdentifier blockIdentifier = accountBalanceRequest.getBlockIdentifier();
@@ -100,26 +101,18 @@ public class AccountServiceImpl implements AccountService {
           log.info("Looking for utxos for address {} and block {}", address, blockDto.getHash());
           if (CardanoAddressUtils.isStakeAddress(address)) {
             log.debug("Address is StakeAddress, get balance for {}", address);
-            Optional<BigInteger> quantity = ledgerAccountService
-                .findStakeAddressBalanceQuantityByAddressAndBlock(address, blockDto.getNumber());
-            validateAndLogBalances(address, quantity.isEmpty());
-            return DataMapper.mapToStakeAddressBalanceResponse(blockDto, quantity.get());
+            BigInteger quantity = ledgerAccountService
+                .findStakeAddressBalanceQuantityByAddressAndBlock(address, blockDto.getNumber())
+                .orElse(BigInteger.ZERO);
+            return DataMapper.mapToStakeAddressBalanceResponse(blockDto, quantity);
           } else {
             log.debug("Address isn't StakeAddress");
             List<AddressBalance> balances = ledgerAccountService
                 .findBalanceByAddressAndBlock(address, blockDto.getNumber());
-            validateAndLogBalances(address, Objects.isNull(balances) || balances.isEmpty());
             return DataMapper.mapToAccountBalanceResponse(blockDto, balances);
           }
         })
         .orElseThrow(ExceptionFactory::blockNotFoundException);
-  }
-
-  private void validateAndLogBalances(String address, boolean throwCondition) {
-    if (throwCondition) {
-      log.error("[findBalanceDataByAddressAndBlock] No balance found for {}", address);
-      throw ExceptionFactory.invalidAddressError(address);
-    }
   }
 
   private Optional<BlockIdentifierExtended> findBlockOrLast(Long number, String hash) {
