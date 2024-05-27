@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -123,21 +124,25 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
   public ConstructionMetadataResponse constructionMetadataService(
       ConstructionMetadataRequest constructionMetadataRequest) {
 
+    CompletableFuture<ProtocolParams> protocolParamsFuture = CompletableFuture
+            .supplyAsync(protocolParamService::findProtocolParametersFromIndexer);
+
     ConstructionMetadataRequestOption options = constructionMetadataRequest.getOptions();
     Double relativeTtl = options.getRelativeTtl().doubleValue();
     Double txSize = options.getTransactionSize().doubleValue();
     log.debug("[constructionMetadata] Calculating ttl based on {} relative ttl", relativeTtl);
+
     Long ttl = cardanoConstructionService.calculateTtl(relativeTtl.longValue());
     log.debug("[constructionMetadata] ttl is {}", ttl);
     log.debug("[constructionMetadata] updating tx size from {}", txSize);
+
     Long updatedTxSize = cardanoConstructionService.updateTxSize(txSize.longValue(), 0L, ttl);
     log.debug("[constructionMetadata] updated txSize size is ${updatedTxSize}");
-    ProtocolParams protocolParams =
-        protocolParamService.findProtocolParametersFromIndexer();
-    log.debug("[constructionMetadata] received protocol parameters from block-service {}",
-        protocolParams);
-    Long suggestedFee = cardanoConstructionService.calculateTxMinimumFee(updatedTxSize,
-        protocolParams);
+
+    ProtocolParams protocolParams = protocolParamsFuture.join();
+    log.debug("[constructionMetadata] received protocol parameters from block-service {}", protocolParams);
+
+    Long suggestedFee = cardanoConstructionService.calculateTxMinimumFee(updatedTxSize, protocolParams);
     log.debug("[constructionMetadata] suggested fee is ${suggestedFee}");
     return dataMapper.mapToMetadataResponse(protocolParams, ttl, suggestedFee);
   }
