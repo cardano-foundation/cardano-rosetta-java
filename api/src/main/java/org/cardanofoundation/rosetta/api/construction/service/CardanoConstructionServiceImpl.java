@@ -204,8 +204,9 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
     UnsignedTransaction unsignedTransaction;
     try {
       unsignedTransaction = createUnsignedTransaction(networkIdentifierType,
-          operations, ttl, !ObjectUtils.isEmpty(depositParameters) ? depositParameters
-              : new DepositParameters(Constants.DEFAULT_KEY_DEPOSIT.toString(),
+          operations, ttl, !ObjectUtils.isEmpty(depositParameters) ?
+              depositParameters :
+              new DepositParameters(Constants.DEFAULT_KEY_DEPOSIT.toString(),
                   Constants.DEFAULT_POOL_DEPOSIT.toString()));
     } catch (CborSerializationException | AddressExcepion | CborException e) {
       throw ExceptionFactory.cantCreateUnsignedTransactionFromBytes();

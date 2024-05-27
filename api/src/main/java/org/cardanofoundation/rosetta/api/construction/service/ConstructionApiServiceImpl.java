@@ -105,18 +105,17 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
       relativeTtl = cardanoConstructionService.checkOrReturnDefaultTtl(
           metadata.get().getRelativeTtl());
       depositParameters = Optional.ofNullable(metadata.get().getDepositParameters()).orElse(
-          cardanoConstructionService.getDepositParameters());
+          cardanoConstructionService.getCachedDepositParameters());
     } else {
       relativeTtl = Constants.DEFAULT_RELATIVE_TTL;
-      depositParameters = cardanoConstructionService.getDepositParameters();
+      depositParameters = cardanoConstructionService.getCachedDepositParameters();
     }
 
     int transactionSize = cardanoConstructionService.calculateTxSize(
         NetworkIdentifierType.findByName(networkIdentifier.getNetwork()),
         constructionPreprocessRequest.getOperations(), 0, depositParameters);
     Map<String, Integer> response = Map.of(Constants.RELATIVE_TTL, relativeTtl,
-        Constants.TRANSACTION_SIZE,
-        transactionSize);
+        Constants.TRANSACTION_SIZE, transactionSize);
     return new ConstructionPreprocessResponse(response, null);
   }
 
