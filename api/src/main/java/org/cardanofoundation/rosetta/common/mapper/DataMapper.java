@@ -154,7 +154,7 @@ public class DataMapper {
    *                 only as a lovelace unit.
    * @return The Rosetta compatible AccountBalanceResponse
    */
-  public static AccountBalanceResponse mapToAccountBalanceResponse(Block block,
+  public static AccountBalanceResponse mapToAccountBalanceResponse(BlockIdentifierExtended block,
       List<AddressBalance> balances) {
     BigInteger lovelaceAmount = balances.stream()
         .filter(b -> Constants.LOVELACE.equals(b.unit()))
@@ -179,6 +179,18 @@ public class DataMapper {
             .index(block.getNumber())
             .build())
         .balances(amounts)
+        .build();
+  }
+
+  public static AccountBalanceResponse mapToStakeAddressBalanceResponse(
+      BlockIdentifierExtended block,
+      BigInteger quantity) {
+    return AccountBalanceResponse.builder()
+        .blockIdentifier(BlockIdentifier.builder()
+            .hash(block.getHash())
+            .index(block.getNumber())
+            .build())
+        .balances(List.of(Objects.requireNonNull(mapAmount(quantity.toString()))))
         .build();
   }
 

@@ -10,9 +10,9 @@ import com.bloxbean.cardano.client.address.AddressType;
 import com.bloxbean.cardano.client.address.ByronAddress;
 import com.bloxbean.cardano.client.address.util.AddressEncoderDecoderUtil;
 import com.bloxbean.cardano.client.common.model.Network;
+import com.bloxbean.cardano.client.crypto.Bech32;
 import com.bloxbean.cardano.client.crypto.KeyGenUtil;
 import com.bloxbean.cardano.client.crypto.bip32.key.HdPublicKey;
-import com.bloxbean.cardano.client.crypto.exception.AddressFormatException;
 import com.bloxbean.cardano.client.exception.AddressRuntimeException;
 import com.bloxbean.cardano.client.spec.NetworkId;
 import com.bloxbean.cardano.client.transaction.spec.cert.MultiHostName;
@@ -169,11 +169,13 @@ public class CardanoAddressUtils {
     try {
       if (address.startsWith(Constants.ADDRESS_PREFIX)
           || address.startsWith(StakeAddressPrefix.MAIN.getPrefix())) {
+        // validate bech32 address. Unfortunately, it will throw a runtime exception in case of invalid address
+        Bech32.decode(address);
         return EraAddressType.SHELLEY;
       }
       new ByronAddress(address).getAddress();
       return EraAddressType.BYRON;
-    } catch (AddressFormatException | AddressRuntimeException e) {
+    } catch (RuntimeException e) {
       return null;
     }
   }

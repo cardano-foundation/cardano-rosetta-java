@@ -1,6 +1,7 @@
 package org.cardanofoundation.rosetta.api.account.service;
 
 import java.math.BigInteger;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -9,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.openapitools.client.model.Currency;
 
@@ -17,13 +19,16 @@ import org.cardanofoundation.rosetta.api.account.model.domain.AddressBalance;
 import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.account.model.entity.AddressUtxoEntity;
+import org.cardanofoundation.rosetta.api.account.model.entity.projection.StakeAccountBalanceQuantityOnly;
+import org.cardanofoundation.rosetta.api.account.model.repository.AddressBalanceRepository;
 import org.cardanofoundation.rosetta.api.account.model.repository.AddressUtxoRepository;
+import org.cardanofoundation.rosetta.api.account.model.repository.StakeAddressBalanceRepository;
 import org.cardanofoundation.rosetta.common.util.Formatters;
 
 @Slf4j
 @RequiredArgsConstructor
 @Component
-@Transactional(readOnly = true)
+@Transactional(readOnly = true, propagation = Propagation.NEVER)
 public class LedgerAccountServiceImpl implements LedgerAccountService {
 
   private final AddressUtxoRepository addressUtxoRepository;
@@ -69,7 +74,6 @@ public class LedgerAccountServiceImpl implements LedgerAccountService {
     return retList;
   }
 
-
   @Override
   public List<Utxo> findUtxoByAddressAndCurrency(String address, List<Currency> currencies) {
     log.debug("Finding UTXOs for address {} with currencies {}", address, currencies);
@@ -78,7 +82,6 @@ public class LedgerAccountServiceImpl implements LedgerAccountService {
         .map(entity -> createUtxoModel(currencies, entity))
         .toList();
   }
-
 
   private Utxo createUtxoModel(List<Currency> currencies, AddressUtxoEntity entity) {
     Utxo utxo = addressUtxoEntityToUtxo.toDto(entity);
