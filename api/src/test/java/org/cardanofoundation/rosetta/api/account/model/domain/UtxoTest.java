@@ -29,8 +29,8 @@ class UtxoTest extends BaseMapperSetup {
 
   @Test
   void populateFromUtxoEntityPositiveTest() {
-    AddressUtxoEntity entity = new AddressUtxoEntity(null, null, "ownerAddr",
-        Collections.emptyList());
+    AddressUtxoEntity entity = new AddressUtxoEntity(null, null, "ownerAddr", "ownerStakeAddr",
+        Collections.emptyList(), 0L);
 
     Utxo utxo = addressUtxoEntityToUtxo.toDto(entity);
 

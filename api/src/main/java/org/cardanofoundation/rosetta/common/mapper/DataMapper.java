@@ -39,7 +39,6 @@ import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockIdentifierExtended;
 import org.cardanofoundation.rosetta.api.block.model.domain.NetworkStatus;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
-import org.cardanofoundation.rosetta.api.block.model.domain.StakeAddressBalance;
 import org.cardanofoundation.rosetta.common.annotation.PersistenceMapper;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
 import org.cardanofoundation.rosetta.common.model.cardano.crypto.Signatures;
@@ -180,17 +179,6 @@ public class DataMapper {
             .index(block.getNumber())
             .build())
         .balances(amounts)
-        .build();
-  }
-
-  public static AccountBalanceResponse mapToStakeAddressBalanceResponse(Block block,
-      StakeAddressBalance balance) {
-    return AccountBalanceResponse.builder()
-        .blockIdentifier(BlockIdentifier.builder()
-            .hash(block.getHash())
-            .index(block.getNumber())
-            .build())
-        .balances(List.of(Objects.requireNonNull(mapAmount(balance.getQuantity().toString()))))
         .build();
   }
 
