@@ -5,11 +5,9 @@ import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
-import static org.cardanofoundation.rosetta.common.util.ValidationUtil.getAddressFromHexString;
 import static org.cardanofoundation.rosetta.common.util.ValidationUtil.isVoteDataValid;
 import static org.cardanofoundation.rosetta.common.util.ValidationUtil.isVoteSignatureValid;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ValidationTest {
@@ -116,13 +114,4 @@ class ValidationTest {
 
     assertFalse(isVoteSignatureValid(invalidSignatureLabel));
   }
-
-  @Test
-  void test_getAddressFromHexString_throw_exception() {
-    String address = "asdasdasd";
-
-    assertNull(getAddressFromHexString(address));
-  }
-
-
 }

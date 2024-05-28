@@ -39,7 +39,6 @@ import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockIdentifierExtended;
 import org.cardanofoundation.rosetta.api.block.model.domain.NetworkStatus;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
-import org.cardanofoundation.rosetta.api.block.model.domain.StakeAddressBalance;
 import org.cardanofoundation.rosetta.common.annotation.PersistenceMapper;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
 import org.cardanofoundation.rosetta.common.model.cardano.crypto.Signatures;
@@ -155,7 +154,7 @@ public class DataMapper {
    *                 only as a lovelace unit.
    * @return The Rosetta compatible AccountBalanceResponse
    */
-  public static AccountBalanceResponse mapToAccountBalanceResponse(Block block,
+  public static AccountBalanceResponse mapToAccountBalanceResponse(BlockIdentifierExtended block,
       List<AddressBalance> balances) {
     BigInteger lovelaceAmount = balances.stream()
         .filter(b -> Constants.LOVELACE.equals(b.unit()))
@@ -183,14 +182,15 @@ public class DataMapper {
         .build();
   }
 
-  public static AccountBalanceResponse mapToStakeAddressBalanceResponse(Block block,
-      StakeAddressBalance balance) {
+  public static AccountBalanceResponse mapToStakeAddressBalanceResponse(
+      BlockIdentifierExtended block,
+      BigInteger quantity) {
     return AccountBalanceResponse.builder()
         .blockIdentifier(BlockIdentifier.builder()
             .hash(block.getHash())
             .index(block.getNumber())
             .build())
-        .balances(List.of(Objects.requireNonNull(mapAmount(balance.getQuantity().toString()))))
+        .balances(List.of(Objects.requireNonNull(mapAmount(quantity.toString()))))
         .build();
   }
 
