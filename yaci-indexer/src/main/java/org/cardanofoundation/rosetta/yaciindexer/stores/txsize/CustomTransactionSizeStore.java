@@ -1,5 +1,14 @@
 package org.cardanofoundation.rosetta.yaciindexer.stores.txsize;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.context.event.EventListener;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import co.nstant.in.cbor.model.Array;
 import co.nstant.in.cbor.model.ByteString;
 import co.nstant.in.cbor.model.DataItem;
@@ -15,16 +24,9 @@ import com.bloxbean.cardano.yaci.core.util.CborSerializationUtil;
 import com.bloxbean.cardano.yaci.helper.model.Transaction;
 import com.bloxbean.cardano.yaci.store.events.TransactionEvent;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.cardanofoundation.rosetta.yaciindexer.stores.txsize.model.TransactionSizeEntity;
 import org.cardanofoundation.rosetta.yaciindexer.stores.txsize.model.TransactionSizeRepository;
-import org.springframework.context.event.EventListener;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 @Component
 @RequiredArgsConstructor
@@ -46,7 +48,7 @@ public class CustomTransactionSizeStore {
       signedTransaction.put(new UnsignedInteger(TransactionBuildingConstants.TX_BODY_INDEX), txBody);
       int scriptSize = addWitnessSetToSignedTransaction(tx, signedTransaction);
 
-      if(tx.getBlockNumber() > TransactionBuildingConstants.ALONZO_START_BLOCKNUMBER) { // starting from alonzo era
+      if(tx.getBlockNumber() >= TransactionBuildingConstants.ALONZO_START_BLOCKNUMBER) { // starting from alonzo era
         signedTransaction.put(new UnsignedInteger(
             TransactionBuildingConstants.SUCCESS_INDICATOR_INDEX), SimpleValue.TRUE);
       }
@@ -124,16 +126,16 @@ public class CustomTransactionSizeStore {
    * @return
    */
   private static int addPlutusToWitness(Map witnessSet, List<PlutusScript> scripts, int witnessSetIndex) {
-    AtomicInteger scriptSize = new AtomicInteger();
+    int scriptSize = 0;
     Array array = new Array();
     if(!scripts.isEmpty()) {
-      scripts.forEach(script -> {
-        scriptSize.addAndGet(script.getContent().length() / 2); // adding have the string length, sinze it's 4bit hex and we need the byte length
+      scriptSize = scripts.stream().mapToInt(script -> {
         array.add(new ByteString(HexUtil.decodeHexString(script.getContent())));
-      });
+        return script.getContent().length() / 2;
+      }).sum();
       witnessSet.put(new UnsignedInteger(witnessSetIndex), array);
     }
-    return scriptSize.get();
+    return scriptSize;
   }
 
   /**

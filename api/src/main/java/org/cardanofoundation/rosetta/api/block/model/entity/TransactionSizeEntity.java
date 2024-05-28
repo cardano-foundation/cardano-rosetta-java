@@ -8,12 +8,12 @@ import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@Getter
 @Entity
 @Table(name = "transaction_size")
 public class TransactionSizeEntity {

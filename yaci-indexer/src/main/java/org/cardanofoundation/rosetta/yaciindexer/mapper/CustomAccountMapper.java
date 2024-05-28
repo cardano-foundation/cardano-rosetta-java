@@ -1,12 +1,12 @@
 package org.cardanofoundation.rosetta.yaciindexer.mapper;
 
+import org.springframework.context.annotation.Primary;
+import org.springframework.stereotype.Component;
 import com.bloxbean.cardano.yaci.store.account.domain.AddressBalance;
 import com.bloxbean.cardano.yaci.store.account.domain.StakeAddressBalance;
 import com.bloxbean.cardano.yaci.store.account.storage.impl.mapper.AccountMapperImpl_;
 import com.bloxbean.cardano.yaci.store.account.storage.impl.model.AddressBalanceEntity;
 import com.bloxbean.cardano.yaci.store.account.storage.impl.model.StakeAddressBalanceEntity;
-import org.springframework.context.annotation.Primary;
-import org.springframework.stereotype.Component;
 
 @Component
 @Primary
