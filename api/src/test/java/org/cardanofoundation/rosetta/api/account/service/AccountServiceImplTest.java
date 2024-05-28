@@ -24,7 +24,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.cardanofoundation.rosetta.api.account.model.domain.AddressBalance;
 import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
-import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockIdentifierExtended;
 import org.cardanofoundation.rosetta.api.block.service.LedgerBlockService;
 import org.cardanofoundation.rosetta.common.exception.ApiException;
