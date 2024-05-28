@@ -89,10 +89,7 @@ class BlockToEntityTest extends BaseMapperSetup {
         .block(BlockEntity.builder().hash("blockHash1").number(22L).build())
         .fee(BigInteger.TEN)
         .inputKeys(List.of())
-            .sizeEntity(TransactionSizeEntity.builder()
-                .size(0)
-                .scriptSize(0)
-                .build())
+            .sizeEntity(new TransactionSizeEntity("txHash", 0L, 0, 0))
         .outputKeys(List.of())
         .build());
   }

@@ -59,10 +59,7 @@ class BlockTxToEntityTest extends BaseMapperSetup {
         .fee(BigInteger.TEN)
         .inputKeys(List.of(inUtxKey))
         .outputKeys(List.of(outUtxKey))
-        .sizeEntity(TransactionSizeEntity.builder()
-            .size(0)
-            .scriptSize(0)
-            .build())
+        .sizeEntity(new TransactionSizeEntity("txHash", 0L, 0, 0))
         .build();
   }
 
