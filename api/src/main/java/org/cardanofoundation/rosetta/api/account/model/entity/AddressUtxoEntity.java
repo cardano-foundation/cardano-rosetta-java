@@ -35,6 +35,12 @@ public class AddressUtxoEntity {
   @Column(name = "owner_addr")
   private String ownerAddr;
 
+  @Column(name = "owner_stake_addr")
+  private String ownerStakeAddr;
+
   @Type(JsonType.class)
   private List<Amt> amounts;
+
+  @Column(name = "block")
+  private Long blockNumber;
 }

@@ -16,13 +16,14 @@ public class CustomUtxoMapper extends UtxoMapperImpl_ {
         .txHash(addressUtxo.getTxHash())
         .outputIndex(addressUtxo.getOutputIndex())
         .ownerAddr(addressUtxo.getOwnerAddr())
+        .ownerStakeAddr(addressUtxo.getOwnerStakeAddr())
         .amounts(addressUtxo.getAmounts())
+        .blockNumber(addressUtxo.getBlockNumber())
         .slot(null)
         .lovelaceAmount(null)
         .ownerPaymentCredential(null)
         .ownerStakeCredential(null)
         .blockHash(null)
-        .blockNumber(null)
         .blockTime(null)
         .build();
   }
