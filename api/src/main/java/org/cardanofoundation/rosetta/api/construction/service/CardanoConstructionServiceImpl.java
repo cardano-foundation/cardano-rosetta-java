@@ -18,6 +18,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.client.RestTemplate;
 import co.nstant.in.cbor.CborException;
 import co.nstant.in.cbor.model.Array;
@@ -39,6 +40,7 @@ import com.bloxbean.cardano.client.transaction.spec.AuxiliaryData;
 import com.bloxbean.cardano.client.transaction.spec.BootstrapWitness;
 import com.bloxbean.cardano.client.transaction.spec.Transaction;
 import com.bloxbean.cardano.client.transaction.spec.TransactionBody;
+import com.bloxbean.cardano.client.transaction.spec.TransactionBody.TransactionBodyBuilder;
 import com.bloxbean.cardano.client.transaction.spec.TransactionWitnessSet;
 import com.bloxbean.cardano.client.transaction.spec.VkeyWitness;
 import com.bloxbean.cardano.client.util.HexUtil;
@@ -334,6 +336,7 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
   public UnsignedTransaction createUnsignedTransaction(NetworkIdentifierType networkIdentifierType,
       List<Operation> operations, int ttl, DepositParameters depositParameters)
       throws CborSerializationException, AddressExcepion, CborException {
+
     log.info(
         "[createUnsignedTransaction] About to create an unsigned transaction with {} operations",
         operations.size());
@@ -341,40 +344,40 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
         operations, depositParameters);
 
     log.info("[createUnsignedTransaction] About to create transaction body");
-    BigInteger fee = valueOf(opRetDto.getFee());
-    TransactionBody transactionBody = TransactionBody.builder()
+    TransactionBodyBuilder transactionBodyBuilder = TransactionBody.builder()
         .inputs(opRetDto.getTransactionInputs())
-        .outputs(opRetDto.getTransactionOutputs()).fee(fee).ttl(ttl).build();
+        .outputs(opRetDto.getTransactionOutputs())
+        .fee(valueOf(opRetDto.getFee()))
+        .ttl(ttl);
 
     if (opRetDto.getVoteRegistrationMetadata() != null) {
       log.info(
           "[createUnsignedTransaction] Hashing vote registration metadata and adding to transaction body");
       Array array = getArrayOfAuxiliaryData(opRetDto);
-      transactionBody.setAuxiliaryDataHash(Blake2bUtil.blake2bHash256(
+      transactionBodyBuilder.auxiliaryDataHash(Blake2bUtil.blake2bHash256(
           com.bloxbean.cardano.yaci.core.util.CborSerializationUtil.serialize(array)));
     }
 
     if (!(opRetDto.getCertificates()).isEmpty()) {
-      transactionBody.setCerts(opRetDto.getCertificates());
+      transactionBodyBuilder.certs(opRetDto.getCertificates());
     }
-    if (!ObjectUtils.isEmpty(opRetDto.getWithdrawals())) {
-      transactionBody.setWithdrawals(opRetDto.getWithdrawals());
+    if (!CollectionUtils.isEmpty(opRetDto.getWithdrawals())) {
+      transactionBodyBuilder.withdrawals(opRetDto.getWithdrawals());
     }
+    TransactionBody transactionBody = transactionBodyBuilder.build();
     co.nstant.in.cbor.model.Map mapCbor = transactionBody.serialize();
+
     //  If ttl is 0, it will be discarded while serialization, but it needs to be in the Data map
     if (ttl == 0) {
       mapCbor.put(new UnsignedInteger(3), new UnsignedInteger(0));
     }
-    String transactionBytes = HexUtil.encodeHexString(
-        com.bloxbean.cardano.yaci.core.util.CborSerializationUtil.serialize(mapCbor));
+    byte[] serializedMapCbor = CborSerializationUtil.serialize(mapCbor);
+    String transactionBytes = HexUtil.encodeHexString(serializedMapCbor);
     log.info("[createUnsignedTransaction] Hashing transaction body");
-    String bodyHash = HexUtil.encodeHexString(
-        Blake2bUtil.blake2bHash256(CborSerializationUtil.serialize(mapCbor)));
+    String bodyHash = HexUtil.encodeHexString(Blake2bUtil.blake2bHash256(serializedMapCbor));
 
-    UnsignedTransaction toReturn = new UnsignedTransaction(
-        HexUtil.encodeHexString(HexUtil.decodeHexString(bodyHash)), transactionBytes,
-        opRetDto.getAddresses(),
-        getHexEncodedAuxiliaryMetadataArray(opRetDto));
+    UnsignedTransaction toReturn = new UnsignedTransaction(bodyHash, transactionBytes,
+        opRetDto.getAddresses(), getHexEncodedAuxiliaryMetadataArray(opRetDto));
     log.info("[createUnsignedTransaction] Returning unsigned transaction, hash to sign and addresses"
         + " that will sign hash: [{}]", toReturn);
     return toReturn;
@@ -421,7 +424,7 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
   }
 
   @NotNull
-  private static Map<String, Double> getDepositsSumMap(DepositParameters depositParameters,
+  private Map<String, Double> getDepositsSumMap(DepositParameters depositParameters,
       ProcessOperations result, double refundsSum) {
     double keyDepositsSum =
         result.getStakeKeyRegistrationsCount() * Long.parseLong(depositParameters.getKeyDeposit());
@@ -435,7 +438,7 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
   }
 
   @NotNull
-  private static ProcessOperationsReturn fillProcessOperationsReturnObject(ProcessOperations result,
+  private ProcessOperationsReturn fillProcessOperationsReturnObject(ProcessOperations result,
       long fee) {
     ProcessOperationsReturn processOperationsDto = new ProcessOperationsReturn();
     processOperationsDto.setTransactionInputs(result.getTransactionInputs());
@@ -540,6 +543,17 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
   @Override
   public DepositParameters getDepositParameters() {
     ProtocolParams pp = protocolParamService.findProtocolParametersFromIndexer();
+    return new DepositParameters(pp.getKeyDeposit().toString(), pp.getPoolDeposit().toString());
+  }
+
+  /**
+   * Returns the deposit parameters for the network fetched from the cached protocol parameters
+   *
+   * @return Deposit parameters including key- and pool deposit
+   */
+  @Override
+  public DepositParameters getCachedDepositParameters() {
+    ProtocolParams pp = protocolParamService.getProtocolParameters();
     return new DepositParameters(pp.getKeyDeposit().toString(), pp.getPoolDeposit().toString());
   }
 
