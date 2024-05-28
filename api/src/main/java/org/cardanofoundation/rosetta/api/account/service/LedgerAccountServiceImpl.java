@@ -1,9 +1,7 @@
 package org.cardanofoundation.rosetta.api.account.service;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -49,25 +47,20 @@ public class LedgerAccountServiceImpl implements LedgerAccountService {
 
   private static List<AddressBalance> mapAndGroupAddressUtxoEntityToAddressBalance(
       List<AddressUtxoEntity> unspendUtxosByAddressAndBlock) {
-    List<AddressBalance> retList = new ArrayList<>();
-    unspendUtxosByAddressAndBlock.forEach(entity -> entity.getAmounts().forEach(amt -> {
-      Optional<AddressBalance> first = retList.stream()
-          .filter(addressBalance -> addressBalance.unit().equals(amt.getUnit())).findFirst();
-      BigInteger quantity;
-      if(first.isPresent()) {
-        quantity = first.get().quantity().add(amt.getQuantity());
-        retList.remove(first.get());
-      } else {
-        quantity = amt.getQuantity();
+    Map<String, AddressBalance> map = new HashMap<>();
+    unspendUtxosByAddressAndBlock.forEach(addressUtxoEntity -> addressUtxoEntity.getAmounts().forEach(amt -> {
+      BigInteger quantity = amt.getQuantity();
+      if(map.containsKey(amt.getUnit())) {
+        quantity = quantity.add(map.get(amt.getUnit()).quantity());
       }
-      retList.add(AddressBalance.builder()
-              .unit(amt.getUnit())
-              .address(entity.getOwnerAddr())
-              .quantity(quantity)
-              .number(entity.getBlockNumber())
-          .build());
+      map.put(amt.getUnit(), AddressBalance.builder()
+                      .address(addressUtxoEntity.getOwnerAddr())
+                      .unit(amt.getUnit())
+                      .number(addressUtxoEntity.getBlockNumber())
+                      .quantity(quantity)
+              .build());
     }));
-    return retList;
+    return map.values().stream().toList();
   }
 
   @Override
