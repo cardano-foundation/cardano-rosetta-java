@@ -1,6 +1,7 @@
 package org.cardanofoundation.rosetta.api.construction.service;
 
 import java.math.BigInteger;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -32,9 +33,11 @@ import org.cardanofoundation.rosetta.common.exception.ApiException;
 import org.cardanofoundation.rosetta.common.exception.Error;
 import org.cardanofoundation.rosetta.common.mapper.CborArrayToTransactionData;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.TransactionParsed;
+import org.cardanofoundation.rosetta.common.util.CardanoAddressUtils;
 import org.cardanofoundation.rosetta.common.util.Constants;
 import org.cardanofoundation.rosetta.common.util.RosettaConstants.RosettaErrorType;
 
+import static org.cardanofoundation.rosetta.EntityGenerator.givenOperation;
 import static org.cardanofoundation.rosetta.EntityGenerator.givenPublicKey;
 import static org.cardanofoundation.rosetta.api.construction.enumeration.AddressType.BASE;
 import static org.cardanofoundation.rosetta.api.construction.enumeration.AddressType.REWARD;
@@ -44,6 +47,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -92,6 +96,26 @@ class CardanoConstructionServiceImplTest {
 
     assertEquals(4010, exception.getError().getCode());
     assertEquals("The transaction you are trying to build has more outputs than inputs", exception.getError().getMessage());
+  }
+
+  @Test
+  void calculateTxSize_whenUnsignedTransactionAddressesInvalid_thenThrowException() {
+    List<Operation> operations = Collections.singletonList(givenOperation());
+    try (MockedStatic<CardanoAddressUtils> mockedAddressUtil = Mockito.mockStatic(
+        CardanoAddressUtils.class)) {
+      mockedAddressUtil.when(() -> CardanoAddressUtils.getEraAddressType(anyString()))
+          .thenReturn(null);
+      mockedAddressUtil.when(() -> CardanoAddressUtils.isEd25519KeyHash(anyString()))
+          .thenReturn(false);
+
+      ApiException result = assertThrows(ApiException.class,
+          () -> cardanoService.calculateTxSize(NetworkIdentifierType.CARDANO_TESTNET_NETWORK,
+              operations, 0, null));
+
+      assertEquals(RosettaErrorType.INVALID_ADDRESS.getMessage(), result.getError().getMessage());
+      assertEquals(RosettaErrorType.INVALID_ADDRESS.getCode(), result.getError().getCode());
+      assertTrue(result.getError().isRetriable());
+    }
   }
 
   @SuppressWarnings("java:S5778")
