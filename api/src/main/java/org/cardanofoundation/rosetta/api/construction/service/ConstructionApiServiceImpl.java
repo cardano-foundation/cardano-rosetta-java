@@ -70,16 +70,21 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
       ConstructionDeriveRequest constructionDeriveRequest) {
     PublicKey publicKey = constructionDeriveRequest.getPublicKey();
     log.info("Deriving address for public key: {}", publicKey);
-    NetworkEnum network = Optional.ofNullable(NetworkEnum.fromValue(
-        constructionDeriveRequest.getNetworkIdentifier().getNetwork())).orElseThrow(
-        ExceptionFactory::invalidNetworkError);
+
+    NetworkEnum network = NetworkEnum.fromValue(constructionDeriveRequest.getNetworkIdentifier().getNetwork());
+    if (network == null) {
+      throw ExceptionFactory.invalidNetworkError();
+    }
+
     // casting unspecific rosetta specification to cardano specific metadata
-    ConstructionDeriveMetadata metadata = Optional.ofNullable(
-        constructionDeriveRequest.getMetadata()).orElse(new ConstructionDeriveMetadata());
+    ConstructionDeriveMetadata metadata = constructionDeriveRequest.getMetadata();
+    if (metadata == null) {
+      metadata = new ConstructionDeriveMetadata();
+    }
+
     // Default address type is enterprise
     AddressType addressType =
-        metadata.getAddressType() != null ? AddressType.findByValue(metadata.getAddressType())
-            : null;
+        metadata.getAddressType() != null ? AddressType.findByValue(metadata.getAddressType()) : null;
     addressType = addressType != null ? addressType : AddressType.ENTERPRISE;
 
     PublicKey stakingCredential = null;
@@ -87,8 +92,8 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
       stakingCredential = Optional.ofNullable(metadata.getStakingCredential())
           .orElseThrow(ExceptionFactory::missingStakingKeyError);
     }
-    String address = cardanoConstructionService.getCardanoAddress(addressType, stakingCredential,
-        publicKey, network);
+    String address = cardanoConstructionService
+            .getCardanoAddress(addressType, stakingCredential, publicKey, network);
     return new ConstructionDeriveResponse(null, new AccountIdentifier(address, null, null), null);
   }
 
