@@ -26,7 +26,6 @@ import co.nstant.in.cbor.model.DataItem;
 import co.nstant.in.cbor.model.MajorType;
 import co.nstant.in.cbor.model.UnicodeString;
 import co.nstant.in.cbor.model.UnsignedInteger;
-import com.bloxbean.cardano.client.address.Address;
 import com.bloxbean.cardano.client.address.AddressProvider;
 import com.bloxbean.cardano.client.address.ByronAddress;
 import com.bloxbean.cardano.client.common.cbor.CborSerializationUtil;
@@ -578,35 +577,38 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
   }
 
   @Override
-  public String getCardanoAddress(AddressType addressType, PublicKey stakingCredential, PublicKey publicKey, NetworkEnum networkEnum) {
-    if(publicKey == null)
+  public String getCardanoAddress(AddressType addressType, PublicKey stakingCredential,
+                                  PublicKey publicKey, NetworkEnum networkEnum) {
+    if(publicKey == null) {
       throw ExceptionFactory.publicKeyMissing();
+    }
     String address;
     switch (addressType) {
       case BASE:
         log.debug("Deriving base address");
-        if(stakingCredential == null)
+        if(stakingCredential == null) {
           throw ExceptionFactory.missingStakingKeyError();
+        }
         log.debug("Deriving base address with staking credential: {}", stakingCredential);
-        Address baseAddress = AddressProvider.getBaseAddress(getHdPublicKeyFromRosettaKey(publicKey), getHdPublicKeyFromRosettaKey(stakingCredential), networkEnum.getNetwork());
-        address = baseAddress.getAddress();
+        address = AddressProvider.getBaseAddress(getHdPublicKeyFromRosettaKey(publicKey), getHdPublicKeyFromRosettaKey(stakingCredential),
+                networkEnum.getNetwork()).getAddress();
         break;
       case REWARD:
         log.debug("Deriving reward address");
-        Address rewardAddress;
         if(stakingCredential == null) {
-          rewardAddress= AddressProvider.getRewardAddress(getHdPublicKeyFromRosettaKey(publicKey), networkEnum.getNetwork());
+          address = AddressProvider
+                  .getRewardAddress(getHdPublicKeyFromRosettaKey(publicKey), networkEnum.getNetwork()).getAddress();
           log.debug("Deriving reward address with staking credential: {}", publicKey);
         } else {
-          rewardAddress= AddressProvider.getRewardAddress(getHdPublicKeyFromRosettaKey(stakingCredential), networkEnum.getNetwork());
+          address = AddressProvider
+                  .getRewardAddress(getHdPublicKeyFromRosettaKey(stakingCredential), networkEnum.getNetwork()).getAddress();
           log.debug("Deriving reward address with staking credential: {}", stakingCredential);
         }
-        address = rewardAddress.getAddress();
         break;
       case ENTERPRISE:
         log.info("Deriving enterprise address");
-        Address enterpriseAddress = AddressProvider.getEntAddress(getHdPublicKeyFromRosettaKey(publicKey), networkEnum.getNetwork());
-        address = enterpriseAddress.getAddress();
+        address = AddressProvider
+                .getEntAddress(getHdPublicKeyFromRosettaKey(publicKey), networkEnum.getNetwork()).getAddress();
         break;
       default:
         log.error("Invalid address type: {}", addressType);
