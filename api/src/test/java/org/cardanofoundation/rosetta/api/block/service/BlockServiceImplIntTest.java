@@ -5,6 +5,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 import org.junit.jupiter.api.Test;
 
@@ -25,6 +26,7 @@ import static org.cardanofoundation.rosetta.testgenerator.common.TestTransaction
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+@Transactional
 class BlockServiceImplIntTest extends IntegrationTest {
 
   @Autowired

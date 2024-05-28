@@ -1,11 +1,14 @@
 package org.cardanofoundation.rosetta.api.account.service;
 
+import java.math.BigInteger;
 import java.util.List;
+import java.util.Optional;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.openapitools.client.model.Currency;
 
@@ -15,22 +18,21 @@ import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.account.model.entity.AddressBalanceEntity;
 import org.cardanofoundation.rosetta.api.account.model.entity.AddressUtxoEntity;
-import org.cardanofoundation.rosetta.api.account.model.entity.StakeAddressBalanceEntity;
+import org.cardanofoundation.rosetta.api.account.model.entity.projection.StakeAccountBalanceQuantityOnly;
 import org.cardanofoundation.rosetta.api.account.model.repository.AddressBalanceRepository;
 import org.cardanofoundation.rosetta.api.account.model.repository.AddressUtxoRepository;
-import org.cardanofoundation.rosetta.api.block.model.domain.StakeAddressBalance;
-import org.cardanofoundation.rosetta.api.block.model.repository.StakeAddressRepository;
+import org.cardanofoundation.rosetta.api.account.model.repository.StakeAddressBalanceRepository;
 import org.cardanofoundation.rosetta.common.util.Formatters;
 
 @Slf4j
 @RequiredArgsConstructor
 @Component
-@Transactional(readOnly = true)
+@Transactional(readOnly = true, propagation = Propagation.NEVER)
 public class LedgerAccountServiceImpl implements LedgerAccountService {
 
   private final AddressBalanceRepository addressBalanceRepository;
   private final AddressUtxoRepository addressUtxoRepository;
-  private final StakeAddressRepository stakeAddressRepository;
+  private final StakeAddressBalanceRepository stakeAddressBalanceRepository;
   private final AddressUtxoEntityToUtxo addressUtxoEntityToUtxo;
 
   @Override
@@ -42,14 +44,14 @@ public class LedgerAccountServiceImpl implements LedgerAccountService {
   }
 
   @Override
-  public List<StakeAddressBalance> findStakeAddressBalanceByAddressAndBlock(String address,
+  public Optional<BigInteger> findStakeAddressBalanceQuantityByAddressAndBlock(
+      String address,
       Long number) {
-    log.debug("Finding stake address balance for address {} at block {}", address, number);
-    List<StakeAddressBalanceEntity> balances = stakeAddressRepository.findStakeAddressBalanceByAddressAndBlockNumber(
-        address, number);
-    return balances.stream().map(StakeAddressBalance::fromEntity).toList();
+    log.debug("Finding stake address balance quantity for address {} at block {}", address, number);
+    return stakeAddressBalanceRepository
+        .findStakeAddressBalanceQuantityByAddressAndBlockNumber(address, number)
+        .map(StakeAccountBalanceQuantityOnly::getQuantity);
   }
-
 
   @Override
   public List<Utxo> findUtxoByAddressAndCurrency(String address, List<Currency> currencies) {
@@ -59,7 +61,6 @@ public class LedgerAccountServiceImpl implements LedgerAccountService {
         .map(entity -> createUtxoModel(currencies, entity))
         .toList();
   }
-
 
   private Utxo createUtxoModel(List<Currency> currencies, AddressUtxoEntity entity) {
     Utxo utxo = addressUtxoEntityToUtxo.toDto(entity);
