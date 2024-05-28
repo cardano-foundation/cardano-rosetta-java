@@ -34,7 +34,7 @@ public class LedgerAccountServiceImpl implements LedgerAccountService {
     log.debug("Finding balance for address {} at block {}", address, number);
     List<AddressUtxoEntity> unspendUtxosByAddressAndBlock = addressUtxoRepository.findUnspentUtxosByAddressAndBlock(
         address, number);
-    return groupAddressBalancesBasedOnUnit(unspendUtxosByAddressAndBlock);
+    return mapAndGroupAddressUtxoEntityToAddressBalance(unspendUtxosByAddressAndBlock);
   }
 
   @Override
@@ -43,10 +43,10 @@ public class LedgerAccountServiceImpl implements LedgerAccountService {
     log.debug("Finding balance for Stakeaddress {} at block {}", stakeAddress, number);
     List<AddressUtxoEntity> unspendUtxosByAddressAndBlock = addressUtxoRepository.findUnspentUtxosByStakeAddressAndBlock(
         stakeAddress, number);
-    return groupAddressBalancesBasedOnUnit(unspendUtxosByAddressAndBlock);
+    return mapAndGroupAddressUtxoEntityToAddressBalance(unspendUtxosByAddressAndBlock);
   }
 
-  private static List<AddressBalance> groupAddressBalancesBasedOnUnit(
+  private static List<AddressBalance> mapAndGroupAddressUtxoEntityToAddressBalance(
       List<AddressUtxoEntity> unspendUtxosByAddressAndBlock) {
     List<AddressBalance> retList = new ArrayList<>();
     unspendUtxosByAddressAndBlock.forEach(entity -> entity.getAmounts().forEach(amt -> {
