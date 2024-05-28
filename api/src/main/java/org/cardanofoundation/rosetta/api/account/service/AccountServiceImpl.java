@@ -89,13 +89,8 @@ public class AccountServiceImpl implements AccountService {
           List<AddressBalance> balances;
           if(CardanoAddressUtils.isStakeAddress(address)) {
             balances = ledgerAccountService.findBalanceByStakeAddressAndBlock(address, blockDto.getNumber());
-            if(Objects.isNull(balances) || balances.isEmpty()) {
-              log.error("[findBalanceDataByAddressAndBlock] No balance found for {}", address);
-              throw ExceptionFactory.invalidAddressError();
-            }
           } else {
-            balances = ledgerAccountService.findBalanceByAddressAndBlock(
-                address, blockDto.getNumber());
+            balances = ledgerAccountService.findBalanceByAddressAndBlock(address, blockDto.getNumber());
           }
           return DataMapper.mapToAccountBalanceResponse(blockDto, balances);
         })
