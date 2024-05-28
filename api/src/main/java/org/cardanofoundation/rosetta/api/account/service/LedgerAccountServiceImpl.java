@@ -35,9 +35,7 @@ public class LedgerAccountServiceImpl implements LedgerAccountService {
     log.debug("Finding balance for address {} at block {}", address, number);
     List<AddressUtxoEntity> unspendUtxosByAddressAndBlock = addressUtxoRepository.findUnspentUtxosByAddressAndBlock(
         address, number);
-    Map<String, AddressBalance> map = getStringAddressBalanceMap(
-        unspendUtxosByAddressAndBlock);
-    return new ArrayList<>(map.values());
+    return groupAddressBalancesBasedOnUnit(unspendUtxosByAddressAndBlock);
   }
 
   @Override
@@ -46,31 +44,26 @@ public class LedgerAccountServiceImpl implements LedgerAccountService {
     log.debug("Finding balance for Stakeaddress {} at block {}", stakeAddress, number);
     List<AddressUtxoEntity> unspendUtxosByAddressAndBlock = addressUtxoRepository.findUnspentUtxosByStakeAddressAndBlock(
         stakeAddress, number);
-    Map<String, AddressBalance> map = getStringAddressBalanceMap(
-        unspendUtxosByAddressAndBlock);
-    return new ArrayList<>(map.values());
+    return groupAddressBalancesBasedOnUnit(unspendUtxosByAddressAndBlock);
   }
 
-  private static Map<String, AddressBalance> getStringAddressBalanceMap(
+  private static List<AddressBalance> groupAddressBalancesBasedOnUnit(
       List<AddressUtxoEntity> unspendUtxosByAddressAndBlock) {
-    // Hashmap is super slow
     Map<String, AddressBalance> map = new HashMap<>();
-    unspendUtxosByAddressAndBlock.forEach(entity -> {
-      entity.getAmounts().forEach(amt -> {
-        BigInteger quantity = amt.getQuantity();
-        if(map.containsKey(amt.getUnit())) {
-          quantity = quantity.add(map.get(amt.getUnit()).quantity());
-        }
-        map.put(amt.getUnit(), AddressBalance.builder()
-            .address(entity.getOwnerAddr())
-            .unit(amt.getUnit())
-            .quantity(quantity)
-            .number(entity.getBlockNumber())
-            .build());
+    unspendUtxosByAddressAndBlock.forEach(entity -> entity.getAmounts().forEach(amt -> {
+      BigInteger quantity = amt.getQuantity();
+      if(map.containsKey(amt.getUnit())) {
+        quantity = quantity.add(map.get(amt.getUnit()).quantity());
+      }
+      map.put(amt.getUnit(), AddressBalance.builder()
+          .address(entity.getOwnerAddr())
+          .unit(amt.getUnit())
+          .quantity(quantity)
+          .number(entity.getBlockNumber())
+          .build());
 
-      });
-    });
-    return map;
+    }));
+    return map.values().stream().toList();
   }
 
 
