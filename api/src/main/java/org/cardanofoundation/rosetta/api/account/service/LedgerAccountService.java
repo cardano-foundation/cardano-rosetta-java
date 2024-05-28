@@ -1,9 +1,7 @@
 package org.cardanofoundation.rosetta.api.account.service;
 
 
-import java.math.BigInteger;
 import java.util.List;
-import java.util.Optional;
 
 import org.openapitools.client.model.Currency;
 
