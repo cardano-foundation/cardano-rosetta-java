@@ -1,7 +1,10 @@
 package org.cardanofoundation.rosetta.common.enumeration;
 
+import lombok.Getter;
+
 import org.cardanofoundation.rosetta.common.util.Constants;
 
+@Getter
 public enum OperationType {
   INPUT(Constants.OPERATION_TYPE_INPUT),
   OUTPUT(Constants.OPERATION_TYPE_OUTPUT),
@@ -18,10 +21,6 @@ public enum OperationType {
 
   OperationType(String value) {
     this.value = value;
-  }
-
-  public String getValue() {
-    return value;
   }
 
   public static OperationType fromValue(String value) {
