@@ -5,7 +5,6 @@ import java.util.Collections;
 import java.util.Optional;
 
 import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.Disabled;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -19,6 +18,7 @@ import org.openapitools.client.model.AccountIdentifier;
 import org.openapitools.client.model.Currency;
 import org.openapitools.client.model.PartialBlockIdentifier;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
