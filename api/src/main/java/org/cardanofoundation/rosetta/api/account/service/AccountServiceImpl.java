@@ -147,11 +147,9 @@ public class AccountServiceImpl implements AccountService {
   }
 
   private List<Currency> filterRequestedCurrencies(List<Currency> currencies) {
-    if (currencies != null && currencies.stream().map(Currency::getSymbol)
-        .noneMatch(Constants.ADA::equals)) {
-      return currencies;
-    } else {
-      return Collections.emptyList();
-    }
+    boolean isAdaAbsent = Optional.ofNullable(currencies)
+        .map(c -> c.stream().map(Currency::getSymbol).noneMatch(Constants.ADA::equals))
+        .orElse(false);
+    return isAdaAbsent ? currencies : Collections.emptyList();
   }
 }
