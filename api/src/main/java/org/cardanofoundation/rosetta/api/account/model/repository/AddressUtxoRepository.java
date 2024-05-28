@@ -20,16 +20,20 @@ public interface AddressUtxoRepository extends JpaRepository<AddressUtxoEntity, 
   List<AddressUtxoEntity> findUtxosByAddress(@Param("address") String address);
 
   @Query(value =
-  "SELECT a FROM AddressUtxoEntity a WHERE "
-      + "a.ownerAddr = :address "
-      + "AND NOT EXISTS(SELECT 1 FROM TxInputEntity o WHERE o.txHash = a.txHash AND o.outputIndex = a.outputIndex AND o.spentAtBlock <= :block) "
-      + "AND a.blockNumber <= :block")
+      """
+      SELECT a FROM AddressUtxoEntity a WHERE
+      a.ownerAddr = :address
+      AND NOT EXISTS(SELECT 1 FROM TxInputEntity o WHERE o.txHash = a.txHash AND o.outputIndex = a.outputIndex AND o.spentAtBlock <= :block)
+      AND a.blockNumber <= :block
+      """)
   List<AddressUtxoEntity> findUnspentUtxosByAddressAndBlock(@Param("address") String address, @Param("block") long block);
 
   @Query(value =
-      "SELECT a FROM AddressUtxoEntity a WHERE "
-          + "a.ownerStakeAddr = :address "
-          + "AND NOT EXISTS(SELECT o FROM TxInputEntity o WHERE o.txHash = a.txHash AND o.outputIndex = a.outputIndex AND o.spentAtBlock <= :block) "
-          + "AND a.blockNumber <= :block")
+      """
+      SELECT a FROM AddressUtxoEntity a WHERE
+      a.ownerStakeAddr = :address
+      AND NOT EXISTS(SELECT o FROM TxInputEntity o WHERE o.txHash = a.txHash AND o.outputIndex = a.outputIndex AND o.spentAtBlock <= :block)
+      AND a.blockNumber <= :block
+      """)
   List<AddressUtxoEntity> findUnspentUtxosByStakeAddressAndBlock(@Param("address") String stakeAddress, @Param("block") long block);
 }
