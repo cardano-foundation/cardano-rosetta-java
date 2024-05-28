@@ -66,6 +66,8 @@ public interface CardanoConstructionService {
   String submitTransaction(String signedTransaction);
   DepositParameters getDepositParameters();
 
+  DepositParameters getCachedDepositParameters();
+
   String extractTransactionIfNeeded(String txWithExtraData);
 
   String getCardanoAddress(AddressType addressType, PublicKey stakingCredential,

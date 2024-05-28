@@ -45,4 +45,13 @@ public interface LedgerBlockService {
    */
   BlockIdentifierExtended findGenesisBlockIdentifier();
 
+  /**
+   * Returns a block identifier by its number and hash.
+   *
+   * @param number block number
+   * @param hash block hash
+   * @return the block identifier if found or empty otherwise
+   */
+  Optional<BlockIdentifierExtended> findBlockIdentifier(Long number, String hash);
+
 }
