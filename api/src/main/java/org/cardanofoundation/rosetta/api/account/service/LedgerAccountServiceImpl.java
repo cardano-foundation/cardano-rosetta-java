@@ -1,9 +1,9 @@
 package org.cardanofoundation.rosetta.api.account.service;
 
 import java.math.BigInteger;
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -48,21 +48,42 @@ public class LedgerAccountServiceImpl implements LedgerAccountService {
 
   private static List<AddressBalance> groupAddressBalancesBasedOnUnit(
       List<AddressUtxoEntity> unspendUtxosByAddressAndBlock) {
-    Map<String, AddressBalance> map = new HashMap<>();
-    unspendUtxosByAddressAndBlock.forEach(entity -> entity.getAmounts().forEach(amt -> {
-      BigInteger quantity = amt.getQuantity();
-      if(map.containsKey(amt.getUnit())) {
-        quantity = quantity.add(map.get(amt.getUnit()).quantity());
-      }
-      map.put(amt.getUnit(), AddressBalance.builder()
-          .address(entity.getOwnerAddr())
-          .unit(amt.getUnit())
-          .quantity(quantity)
-          .number(entity.getBlockNumber())
-          .build());
-
-    }));
-    return map.values().stream().toList();
+//    Map<String, AddressBalance> map = new HashMap<>();
+//    unspendUtxosByAddressAndBlock.forEach(entity -> entity.getAmounts().forEach(amt -> {
+//      BigInteger quantity = amt.getQuantity();
+//      if(map.containsKey(amt.getUnit())) {
+//        quantity = quantity.add(map.get(amt.getUnit()).quantity());
+//      }
+//      map.put(amt.getUnit(), AddressBalance.builder()
+//          .address(entity.getOwnerAddr())
+//          .unit(amt.getUnit())
+//          .quantity(quantity)
+//          .number(entity.getBlockNumber())
+//          .build());
+//
+//    }));
+//    return map.values().stream().toList();
+    List<AddressBalance> retList = new ArrayList<>();
+    unspendUtxosByAddressAndBlock.forEach(entity -> {
+      entity.getAmounts().forEach(amt -> {
+        Optional<AddressBalance> first = retList.stream()
+            .filter(addressBalance -> addressBalance.unit().equals(amt.getUnit())).findFirst();
+        BigInteger quantity;
+        if(first.isPresent()) {
+          quantity = first.get().quantity().add(amt.getQuantity());
+          retList.remove(first.get());
+        } else {
+          quantity = amt.getQuantity();
+        }
+        retList.add(AddressBalance.builder()
+                .unit(amt.getUnit())
+                .address(entity.getOwnerAddr())
+                .quantity(quantity)
+                .number(entity.getBlockNumber())
+            .build());
+      });
+    });
+    return retList;
   }
 
 
