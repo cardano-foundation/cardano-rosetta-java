@@ -56,7 +56,8 @@ class AccountServiceImplTest {
 
   @Test
   void getAccountBalanceNoStakeAddressPositiveTest() {
-    String accountAddress = ADDRESS_PREFIX + "1q9ccruvttlfsqwu47ndmapxmk5xa8cc9ngsgj90290tfpysc6gcpmq6ejwgewr49ja0kghws4fdy9t2zecvd7zwqrheqjze0c7";
+    String accountAddress = ADDRESS_PREFIX
+        + "1q9ccruvttlfsqwu47ndmapxmk5xa8cc9ngsgj90290tfpysc6gcpmq6ejwgewr49ja0kghws4fdy9t2zecvd7zwqrheqjze0c7";
     PartialBlockIdentifier blockIdentifier = getMockedPartialBlockIdentifier();
     AccountBalanceRequest accountBalanceRequest = Mockito.mock(AccountBalanceRequest.class);
     AccountIdentifier accountIdentifier = getMockedAccountIdentifierAndMockAccountBalanceRequest(
@@ -253,7 +254,7 @@ class AccountServiceImplTest {
     AccountCoinsRequest accountCoinsRequest = Mockito.mock(AccountCoinsRequest.class);
     AccountIdentifier accountIdentifier = Mockito.mock(AccountIdentifier.class);
     Currency currency = Mockito.mock(Currency.class);
-    Block block = Mockito.mock(Block.class);
+    BlockIdentifierExtended block = Mockito.mock(BlockIdentifierExtended.class);
     Utxo utxo = Mockito.mock(Utxo.class);
     when(utxo.getTxHash()).thenReturn("txHash");
     when(utxo.getOutputIndex()).thenReturn(1);
@@ -263,7 +264,7 @@ class AccountServiceImplTest {
     when(accountCoinsRequest.getCurrencies()).thenReturn(Collections.singletonList(currency));
     when(accountIdentifier.getAddress()).thenReturn(accountAddress);
     when(currency.getSymbol()).thenReturn("ADA");
-    when(ledgerBlockService.findLatestBlock()).thenReturn(block);
+    when(ledgerBlockService.findLatestBlockIdentifier()).thenReturn(block);
     when(ledgerAccountService.findUtxoByAddressAndCurrency(accountAddress,
         Collections.emptyList())).thenReturn(Collections.singletonList(utxo));
 
@@ -278,7 +279,7 @@ class AccountServiceImplTest {
     String accountAddress = "DdzFFzCqrht9fvu17fiXwiuP82kKEhiGsDByRE7PWfMktrd8Jc1jWqKxubpz21mWjUMh8bWsKuP5JUF9CgUefyABDBsq326ybHrEhB7M";
     AccountCoinsRequest accountCoinsRequest = Mockito.mock(AccountCoinsRequest.class);
     AccountIdentifier accountIdentifier = Mockito.mock(AccountIdentifier.class);
-    Block block = Mockito.mock(Block.class);
+    BlockIdentifierExtended block = Mockito.mock(BlockIdentifierExtended.class);
     Utxo utxo = Mockito.mock(Utxo.class);
     when(utxo.getTxHash()).thenReturn("txHash");
     when(utxo.getOutputIndex()).thenReturn(1);
@@ -287,7 +288,7 @@ class AccountServiceImplTest {
     when(accountCoinsRequest.getAccountIdentifier()).thenReturn(accountIdentifier);
     when(accountCoinsRequest.getCurrencies()).thenReturn(null);
     when(accountIdentifier.getAddress()).thenReturn(accountAddress);
-    when(ledgerBlockService.findLatestBlock()).thenReturn(block);
+    when(ledgerBlockService.findLatestBlockIdentifier()).thenReturn(block);
     when(ledgerAccountService.findUtxoByAddressAndCurrency(accountAddress,
         Collections.emptyList())).thenReturn(Collections.singletonList(utxo));
 
@@ -341,7 +342,8 @@ class AccountServiceImplTest {
     return accountIdentifier;
   }
 
-  private void verifyPositiveAccountCoinsCase(AccountCoinsResponse actual, Utxo utxo, Block block,
+  private void verifyPositiveAccountCoinsCase(AccountCoinsResponse actual, Utxo utxo,
+      BlockIdentifierExtended block,
       String accountAddress,
       AccountCoinsRequest accountCoinsRequest) {
     assertNotNull(actual);
@@ -353,7 +355,7 @@ class AccountServiceImplTest {
     assertEquals(Constants.ADA, actual.getCoins().getFirst().getAmount().getCurrency().getSymbol());
     assertEquals(block.getHash(), actual.getBlockIdentifier().getHash());
     assertEquals(block.getNumber(), actual.getBlockIdentifier().getIndex());
-    verify(ledgerBlockService).findLatestBlock();
+    verify(ledgerBlockService).findLatestBlockIdentifier();
     verify(ledgerAccountService).findUtxoByAddressAndCurrency(accountAddress,
         Collections.emptyList());
     verify(accountCoinsRequest).getAccountIdentifier();

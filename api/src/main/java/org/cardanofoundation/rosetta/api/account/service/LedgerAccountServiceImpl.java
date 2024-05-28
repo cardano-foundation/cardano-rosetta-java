@@ -27,7 +27,7 @@ import org.cardanofoundation.rosetta.common.util.Formatters;
 @Slf4j
 @RequiredArgsConstructor
 @Component
-@Transactional(readOnly = true, propagation = Propagation.NEVER)
+@Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
 public class LedgerAccountServiceImpl implements LedgerAccountService {
 
   private final AddressBalanceRepository addressBalanceRepository;
