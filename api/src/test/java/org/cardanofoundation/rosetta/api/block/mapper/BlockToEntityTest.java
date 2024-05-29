@@ -12,6 +12,7 @@ import org.cardanofoundation.rosetta.api.BaseMapperSetup;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.model.entity.BlockEntity;
+import org.cardanofoundation.rosetta.api.block.model.entity.TransactionSizeEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.TxnEntity;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -88,6 +89,7 @@ class BlockToEntityTest extends BaseMapperSetup {
         .block(BlockEntity.builder().hash("blockHash1").number(22L).build())
         .fee(BigInteger.TEN)
         .inputKeys(List.of())
+            .sizeEntity(new TransactionSizeEntity("txHash", 0L, 0, 0))
         .outputKeys(List.of())
         .build());
   }

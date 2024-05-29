@@ -1,5 +1,7 @@
 package org.cardanofoundation.rosetta.yaciindexer.mapper;
 
+import org.springframework.context.annotation.Primary;
+import org.springframework.stereotype.Component;
 import com.bloxbean.cardano.yaci.store.transaction.domain.Txn;
 import com.bloxbean.cardano.yaci.store.transaction.domain.TxnWitness;
 import com.bloxbean.cardano.yaci.store.transaction.domain.Withdrawal;
@@ -7,8 +9,6 @@ import com.bloxbean.cardano.yaci.store.transaction.storage.impl.mapper.TxnMapper
 import com.bloxbean.cardano.yaci.store.transaction.storage.impl.model.TxnEntity;
 import com.bloxbean.cardano.yaci.store.transaction.storage.impl.model.TxnWitnessEntity;
 import com.bloxbean.cardano.yaci.store.transaction.storage.impl.model.WithdrawalEntity;
-import org.springframework.context.annotation.Primary;
-import org.springframework.stereotype.Component;
 
 @Component
 @Primary

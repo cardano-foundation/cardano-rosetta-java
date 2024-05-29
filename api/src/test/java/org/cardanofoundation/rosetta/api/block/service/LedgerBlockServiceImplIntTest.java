@@ -277,7 +277,7 @@ class LedgerBlockServiceImplIntTest extends IntegrationTest {
   private static void assertBlocks(Block latestBlock, BlockEntity fromBlockB) {
     assertThat(latestBlock).isNotNull();
     assertThat(latestBlock.getHash()).isEqualTo(fromBlockB.getHash());
-    assertThat(latestBlock.getSlotNo()).isEqualTo(fromBlockB.getNumber());
+    assertThat(latestBlock.getNumber()).isEqualTo(fromBlockB.getNumber());
     assertThat(latestBlock.getTransactions()).hasSize(fromBlockB.getTransactions().size());
     assertThat(latestBlock.getEpochNo()).isEqualTo(fromBlockB.getEpochNumber());
   }
@@ -298,7 +298,7 @@ class LedgerBlockServiceImplIntTest extends IntegrationTest {
     var block = blockOpt.get();
     assertThat(block).isNotNull();
     assertThat(block.getHash()).isEqualTo(tx.blockHash());
-    assertThat(block.getSlotNo()).isEqualTo(tx.blockNumber());
+    assertThat(block.getNumber()).isEqualTo(tx.blockNumber());
     assertThat(block.getTransactions()).hasSize(1);
     assertThat(block.getTransactions().getFirst().getHash()).isEqualTo(tx.txHash());
   }
