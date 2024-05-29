@@ -203,7 +203,7 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
     UnsignedTransaction unsignedTransaction;
     try {
       unsignedTransaction = createUnsignedTransaction(networkIdentifierType,
-          operations, ttl, depositParameters != null ?
+          operations, ttl, !ObjectUtils.isEmpty(depositParameters) ?
               depositParameters :
               new DepositParameters(Constants.DEFAULT_KEY_DEPOSIT.toString(),
                   Constants.DEFAULT_POOL_DEPOSIT.toString()));
