@@ -44,11 +44,11 @@
         <version.bloxbean>0.4.3</version.bloxbean>
         <version.client-lib>0.5.1</version.client-lib>
         <version.yaci>0.2.5</version.yaci>
-        <version.yaci-store>0.1.0-rc2-8071294-SNAPSHOT</version.yaci-store>
+        <version.yaci-store>0.1.0-rc2-323a1a4-SNAPSHOT</version.yaci-store>
         <version.commons-io>2.11.0</version.commons-io>
         <version.javax-validation-api>2.0.1.Final</version.javax-validation-api>
-        <version.bouncycastle>1.77</version.bouncycastle>
         <version.spotless-maven-plugin>2.43.0</version.spotless-maven-plugin>
+        <version.bouncycastle>1.77</version.bouncycastle>
         <version.spotbugs-maven-plugin>4.8.3.0</version.spotbugs-maven-plugin>
         <version.findsecbugs-plugin>1.13.0</version.findsecbugs-plugin>
         <version.assertj-core>3.25.3</version.assertj-core>
@@ -78,6 +78,16 @@
         <repository>
             <id>central</id>
             <url>https://repo1.maven.org/maven2/</url>
+        </repository>
+        <repository>
+            <id>snapshots-repo</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
         </repository>
     </repositories>
     <dependencyManagement>

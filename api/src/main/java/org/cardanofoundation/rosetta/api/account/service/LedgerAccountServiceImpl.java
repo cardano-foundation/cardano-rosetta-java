@@ -1,8 +1,7 @@
 package org.cardanofoundation.rosetta.api.account.service;
 
 import java.math.BigInteger;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,12 +15,8 @@ import org.cardanofoundation.rosetta.api.account.mapper.AddressUtxoEntityToUtxo;
 import org.cardanofoundation.rosetta.api.account.model.domain.AddressBalance;
 import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
-import org.cardanofoundation.rosetta.api.account.model.entity.AddressBalanceEntity;
 import org.cardanofoundation.rosetta.api.account.model.entity.AddressUtxoEntity;
-import org.cardanofoundation.rosetta.api.account.model.entity.projection.StakeAccountBalanceQuantityOnly;
-import org.cardanofoundation.rosetta.api.account.model.repository.AddressBalanceRepository;
 import org.cardanofoundation.rosetta.api.account.model.repository.AddressUtxoRepository;
-import org.cardanofoundation.rosetta.api.account.model.repository.StakeAddressBalanceRepository;
 import org.cardanofoundation.rosetta.common.util.Formatters;
 
 @Slf4j
@@ -30,27 +25,42 @@ import org.cardanofoundation.rosetta.common.util.Formatters;
 @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
 public class LedgerAccountServiceImpl implements LedgerAccountService {
 
-  private final AddressBalanceRepository addressBalanceRepository;
   private final AddressUtxoRepository addressUtxoRepository;
-  private final StakeAddressBalanceRepository stakeAddressBalanceRepository;
   private final AddressUtxoEntityToUtxo addressUtxoEntityToUtxo;
 
   @Override
   public List<AddressBalance> findBalanceByAddressAndBlock(String address, Long number) {
     log.debug("Finding balance for address {} at block {}", address, number);
-    List<AddressBalanceEntity> balances = addressBalanceRepository.findAddressBalanceByAddressAndBlockNumber(
+    List<AddressUtxoEntity> unspendUtxosByAddressAndBlock = addressUtxoRepository.findUnspentUtxosByAddressAndBlock(
         address, number);
-    return balances.stream().map(AddressBalance::fromEntity).toList();
+    return mapAndGroupAddressUtxoEntityToAddressBalance(unspendUtxosByAddressAndBlock);
   }
 
   @Override
-  public Optional<BigInteger> findStakeAddressBalanceQuantityByAddressAndBlock(
-      String address,
+  public List<AddressBalance> findBalanceByStakeAddressAndBlock(String stakeAddress,
       Long number) {
-    log.debug("Finding stake address balance quantity for address {} at block {}", address, number);
-    return stakeAddressBalanceRepository
-        .findStakeAddressBalanceQuantityByAddressAndBlockNumber(address, number)
-        .map(StakeAccountBalanceQuantityOnly::getQuantity);
+    log.debug("Finding balance for Stakeaddress {} at block {}", stakeAddress, number);
+    List<AddressUtxoEntity> unspendUtxosByAddressAndBlock = addressUtxoRepository.findUnspentUtxosByStakeAddressAndBlock(
+        stakeAddress, number);
+    return mapAndGroupAddressUtxoEntityToAddressBalance(unspendUtxosByAddressAndBlock);
+  }
+
+  private static List<AddressBalance> mapAndGroupAddressUtxoEntityToAddressBalance(
+      List<AddressUtxoEntity> unspendUtxosByAddressAndBlock) {
+    Map<String, AddressBalance> map = new HashMap<>();
+    unspendUtxosByAddressAndBlock.forEach(addressUtxoEntity -> addressUtxoEntity.getAmounts().forEach(amt -> {
+      BigInteger quantity = amt.getQuantity();
+      if(map.containsKey(amt.getUnit())) {
+        quantity = quantity.add(map.get(amt.getUnit()).quantity());
+      }
+      map.put(amt.getUnit(), AddressBalance.builder()
+                      .address(addressUtxoEntity.getOwnerAddr())
+                      .unit(amt.getUnit())
+                      .number(addressUtxoEntity.getBlockNumber())
+                      .quantity(quantity)
+              .build());
+    }));
+    return map.values().stream().toList();
   }
 
   @Override

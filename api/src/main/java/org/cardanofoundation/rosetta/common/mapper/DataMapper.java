@@ -179,20 +179,7 @@ public class DataMapper {
         .build();
   }
 
-  public static AccountBalanceResponse mapToStakeAddressBalanceResponse(
-      BlockIdentifierExtended block,
-      BigInteger quantity) {
-    return AccountBalanceResponse.builder()
-        .blockIdentifier(BlockIdentifier.builder()
-            .hash(block.getHash())
-            .index(block.getNumber())
-            .build())
-        .balances(List.of(Objects.requireNonNull(mapAmount(quantity.toString()))))
-        .build();
-  }
-
-  public static AccountCoinsResponse mapToAccountCoinsResponse(BlockIdentifierExtended block,
-      List<Utxo> utxos) {
+  public static AccountCoinsResponse mapToAccountCoinsResponse(Block block, List<Utxo> utxos) {
     return AccountCoinsResponse.builder()
         .blockIdentifier(new BlockIdentifier(block.getNumber(), block.getHash()))
         .coins(utxos.stream().map(utxo -> {

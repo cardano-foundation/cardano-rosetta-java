@@ -1,12 +1,12 @@
 package org.cardanofoundation.rosetta.yaciindexer.mapper;
 
+import org.springframework.context.annotation.Primary;
+import org.springframework.stereotype.Component;
 import com.bloxbean.cardano.yaci.store.staking.domain.Delegation;
 import com.bloxbean.cardano.yaci.store.staking.domain.StakeRegistrationDetail;
 import com.bloxbean.cardano.yaci.store.staking.storage.impl.mapper.StakingMapperImpl;
 import com.bloxbean.cardano.yaci.store.staking.storage.impl.model.DelegationEntity;
 import com.bloxbean.cardano.yaci.store.staking.storage.impl.model.StakeRegistrationEntity;
-import org.springframework.context.annotation.Primary;
-import org.springframework.stereotype.Component;
 
 @Component
 @Primary
