@@ -21,6 +21,9 @@ import org.openapitools.client.model.PartialBlockIdentifier;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import org.cardanofoundation.rosetta.api.account.mapper.AccountMapper;
+import org.cardanofoundation.rosetta.api.account.mapper.AccountMapperImpl;
+import org.cardanofoundation.rosetta.api.account.mapper.AccountMapperUtil;
 import org.cardanofoundation.rosetta.api.account.model.domain.AddressBalance;
 import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
@@ -46,6 +49,8 @@ class AccountServiceImplTest {
   LedgerAccountService ledgerAccountService;
   @Mock
   LedgerBlockService ledgerBlockService;
+  @Spy
+  AccountMapper accountMapper = new AccountMapperImpl(new AccountMapperUtil());
   @Spy
   @InjectMocks
   AccountServiceImpl accountService;

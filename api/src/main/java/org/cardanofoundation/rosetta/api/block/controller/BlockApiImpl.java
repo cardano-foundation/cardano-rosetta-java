@@ -18,14 +18,12 @@ import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.service.BlockService;
 import org.cardanofoundation.rosetta.api.network.service.NetworkService;
-import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
 
 @RestController
 @RequiredArgsConstructor
 public class BlockApiImpl implements BlockApi {
 
   private final BlockService blockService;
-  private final ProtocolParamService protocolParamService;
   private final NetworkService networkService;
 
   private final BlockToBlockResponse mapperToBlockResponse;
