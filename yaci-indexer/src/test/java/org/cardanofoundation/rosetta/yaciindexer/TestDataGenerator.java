@@ -30,9 +30,9 @@ import com.bloxbean.cardano.yaci.core.model.certs.CertificateType;
 import com.bloxbean.cardano.yaci.core.util.CborSerializationUtil;
 import com.bloxbean.cardano.yaci.helper.model.Transaction;
 import com.bloxbean.cardano.yaci.helper.model.Utxo;
-import com.bloxbean.cardano.yaci.store.account.domain.AddressBalance;
 import com.bloxbean.cardano.yaci.store.blocks.domain.Block;
 import com.bloxbean.cardano.yaci.store.blocks.domain.Vrf;
+import com.bloxbean.cardano.yaci.store.common.domain.AddressUtxo;
 import com.bloxbean.cardano.yaci.store.common.domain.Amt;
 import com.bloxbean.cardano.yaci.store.common.domain.TxOuput;
 import com.bloxbean.cardano.yaci.store.common.domain.UtxoKey;
@@ -221,15 +221,24 @@ public class TestDataGenerator {
   }
 
   // Mappers
-  public static AddressBalance newAddressBalance() {
-    return AddressBalance.builder()
-        .address("address")
-        .unit("unit")
-        .slot(100L)
-        .quantity(BigInteger.TEN)
-        .epoch(200)
-        .blockNumber(300L)
-        .blockTime(400L)
+  public static AddressUtxo newAddressUtxo() {
+    return AddressUtxo.builder()
+        .txHash("txHash")
+        .outputIndex(100)
+        .slot(200L)
+        .blockHash("blockHash")
+        .epoch(300)
+        .ownerAddr("ownerAddr")
+        .ownerStakeAddr("ownerStakeAddr")
+        .ownerPaymentCredential("ownerPaymentCredential")
+        .ownerStakeCredential("ownerStakeCredential")
+        .lovelaceAmount(BigInteger.ONE)
+        .amounts(List.of(new Amt()))
+        .dataHash("dataHash")
+        .inlineDatum("inlineDatum")
+        .scriptRef("scriptRef")
+        .referenceScriptHash("referenceScriptHash")
+        .isCollateralReturn(true)
         .build();
   }
 
