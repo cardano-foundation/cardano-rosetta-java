@@ -22,6 +22,7 @@ runs:
       - name: API - Build and push Docker ${{ inputs.tag }} image
         uses: docker/build-push-action@v4
         with:
+          context: .
           file: ./api/Dockerfile
           tags: cardanofoundation/cardano-rosetta-java-api:${{ inputs.tag }}
           push: true
@@ -29,12 +30,14 @@ runs:
         uses: docker/build-push-action@v4
         if: ${{ inputs.isRelease == 'true' }}
         with:
+          context: .
           file: ./api/Dockerfile
           tags: cardanofoundation/cardano-rosetta-java-api:latest
           push: true
       - name: Indexer - Build and push Docker ${{ inputs.tag }} image
         uses: docker/build-push-action@v4
         with:
+          context: .
           file: ./yaci-indexer/Dockerfile
           tags: cardanofoundation/cardano-rosetta-java-indexer:${{ inputs.tag }}
           push: true
@@ -42,12 +45,14 @@ runs:
         uses: docker/build-push-action@v4
         if: ${{ inputs.isRelease == 'true' }}
         with:
+          context: .
           file: ./yaci-indexer/Dockerfile
           tags: cardanofoundation/cardano-rosetta-java-indexer:latest
           push: true
       - name: All-in-one - Build and push Docker image
         uses: docker/build-push-action@v4
         with:
+          context: .
           file: ./docker/Dockerfile
           tags: cardanofoundation/cardano-rosetta-java:${{ inputs.tag }}
           push: true
@@ -55,6 +60,7 @@ runs:
         uses: docker/build-push-action@v4
         if: ${{ inputs.isRelease == 'true' }}
         with:
+          context: .
           file: ./docker/Dockerfile
           tags: cardanofoundation/cardano-rosetta-java:latest
           push: true
