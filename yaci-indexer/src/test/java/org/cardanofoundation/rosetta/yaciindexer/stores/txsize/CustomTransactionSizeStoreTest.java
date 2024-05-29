@@ -39,7 +39,7 @@ class CustomTransactionSizeStoreTest {
   }
 
   @Test
-  void handleTransactionEventTest() throws Exception {
+  void handleTransactionEventTest() {
     // given
     var transactionEvent = TestDataGenerator.newTransactionEvent();
     // when
