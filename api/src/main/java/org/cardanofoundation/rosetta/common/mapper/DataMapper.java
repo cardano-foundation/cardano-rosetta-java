@@ -179,7 +179,8 @@ public class DataMapper {
         .build();
   }
 
-  public static AccountCoinsResponse mapToAccountCoinsResponse(Block block, List<Utxo> utxos) {
+  public static AccountCoinsResponse mapToAccountCoinsResponse(BlockIdentifierExtended block,
+      List<Utxo> utxos) {
     return AccountCoinsResponse.builder()
         .blockIdentifier(new BlockIdentifier(block.getNumber(), block.getHash()))
         .coins(utxos.stream().map(utxo -> {
