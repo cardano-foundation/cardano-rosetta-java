@@ -15,8 +15,16 @@ public interface AddressUtxoRepository extends JpaRepository<AddressUtxoEntity, 
       String txHash);
 
   @Query(value =
-      "SELECT a FROM AddressUtxoEntity a LEFT OUTER JOIN TxInputEntity i ON a.txHash = i.txHash AND a.outputIndex = i.outputIndex WHERE a.ownerAddr = :address AND i.txHash IS NULL AND i.outputIndex IS NULL"
-  )
+      """
+          SELECT a FROM AddressUtxoEntity a
+          WHERE a.ownerAddr = :address
+          AND NOT EXISTS (
+            SELECT 1
+            FROM TxInputEntity i
+            WHERE a.txHash = i.txHash
+              AND a.outputIndex = i.outputIndex
+          )
+      """)
   List<AddressUtxoEntity> findUtxosByAddress(@Param("address") String address);
 
   @Query(value =

@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.apache.commons.lang3.ObjectUtils;
 
@@ -44,7 +45,7 @@ import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
 @Slf4j
 @RequiredArgsConstructor
 @Component
-@Transactional(readOnly = true)
+@Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
 public class LedgerBlockServiceImpl implements LedgerBlockService {
 
   private final ProtocolParamService protocolParamService;
