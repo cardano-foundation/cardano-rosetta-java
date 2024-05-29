@@ -24,4 +24,7 @@ public class TxInputEntity {
   @Id
   @Column(name = "output_index")
   private Integer outputIndex;
+
+  @Column(name = "spent_at_block")
+  private Long spentAtBlock;
 }
