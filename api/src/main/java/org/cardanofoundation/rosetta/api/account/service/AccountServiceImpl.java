@@ -20,7 +20,6 @@ import org.openapitools.client.model.PartialBlockIdentifier;
 
 import org.cardanofoundation.rosetta.api.account.model.domain.AddressBalance;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
-import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockIdentifierExtended;
 import org.cardanofoundation.rosetta.api.block.service.LedgerBlockService;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
@@ -84,7 +83,7 @@ public class AccountServiceImpl implements AccountService {
     }
     List<Currency> currenciesRequested = filterRequestedCurrencies(currencies);
     log.debug("[accountCoins] Filter currency is {}", currenciesRequested);
-    Block latestBlock = ledgerBlockService.findLatestBlock();
+    BlockIdentifierExtended latestBlock = ledgerBlockService.findLatestBlockIdentifier();
     log.debug("[accountCoins] Latest block is {}", latestBlock);
     List<Utxo> utxos = ledgerAccountService.findUtxoByAddressAndCurrency(accountAddress,
         currenciesRequested);
