@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.cardanofoundation.rosetta.api.BaseMapperSetup;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.model.entity.BlockEntity;
+import org.cardanofoundation.rosetta.api.block.model.entity.TransactionSizeEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.TxnEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.UtxoKey;
 
@@ -58,6 +59,7 @@ class BlockTxToEntityTest extends BaseMapperSetup {
         .fee(BigInteger.TEN)
         .inputKeys(List.of(inUtxKey))
         .outputKeys(List.of(outUtxKey))
+        .sizeEntity(new TransactionSizeEntity("txHash", 0L, 0, 0))
         .build();
   }
 

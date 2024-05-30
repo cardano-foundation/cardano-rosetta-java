@@ -9,6 +9,7 @@ COPY ./pom.xml /app/pom.xml
 COPY ./api /app/api
 COPY ./yaci-indexer /app/yaci-indexer
 COPY ./test-data-generator /app/test-data-generator
+COPY ./.git .git
 
 RUN --mount=type=cache,target=/root/.m2 mvn clean package -DskipTests
 

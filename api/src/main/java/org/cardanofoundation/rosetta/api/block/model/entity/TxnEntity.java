@@ -11,6 +11,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
 import lombok.AllArgsConstructor;
@@ -51,4 +52,10 @@ public class TxnEntity {
 
   @OneToMany(mappedBy = "txHash")
   private List<TxScriptEntity> script;
+
+  @OneToOne(fetch = FetchType.EAGER)
+  @JoinColumn(name = "tx_hash",
+      foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT, name = "none"))
+  private TransactionSizeEntity sizeEntity;
+
 }

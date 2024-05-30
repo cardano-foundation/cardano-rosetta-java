@@ -1,6 +1,5 @@
 package org.cardanofoundation.rosetta.api.account.service;
 
-import java.math.BigInteger;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -21,7 +20,6 @@ import org.openapitools.client.model.PartialBlockIdentifier;
 
 import org.cardanofoundation.rosetta.api.account.model.domain.AddressBalance;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
-import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockIdentifierExtended;
 import org.cardanofoundation.rosetta.api.block.service.LedgerBlockService;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
@@ -85,7 +83,7 @@ public class AccountServiceImpl implements AccountService {
     }
     List<Currency> currenciesRequested = filterRequestedCurrencies(currencies);
     log.debug("[accountCoins] Filter currency is {}", currenciesRequested);
-    Block latestBlock = ledgerBlockService.findLatestBlock();
+    BlockIdentifierExtended latestBlock = ledgerBlockService.findLatestBlockIdentifier();
     log.debug("[accountCoins] Latest block is {}", latestBlock);
     List<Utxo> utxos = ledgerAccountService.findUtxoByAddressAndCurrency(accountAddress,
         currenciesRequested);
@@ -98,19 +96,16 @@ public class AccountServiceImpl implements AccountService {
 
     return findBlockOrLast(number, hash)
         .map(blockDto -> {
-          log.info("Looking for utxos for address {} and block {}", address, blockDto.getHash());
-          if (CardanoAddressUtils.isStakeAddress(address)) {
-            log.debug("Address is StakeAddress, get balance for {}", address);
-            BigInteger quantity = ledgerAccountService
-                .findStakeAddressBalanceQuantityByAddressAndBlock(address, blockDto.getNumber())
-                .orElse(BigInteger.ZERO);
-            return DataMapper.mapToStakeAddressBalanceResponse(blockDto, quantity);
+          log.info("Looking for utxos for address {} and block {}",
+              address,
+              blockDto.getHash());
+          List<AddressBalance> balances;
+          if(CardanoAddressUtils.isStakeAddress(address)) {
+            balances = ledgerAccountService.findBalanceByStakeAddressAndBlock(address, blockDto.getNumber());
           } else {
-            log.debug("Address isn't StakeAddress");
-            List<AddressBalance> balances = ledgerAccountService
-                .findBalanceByAddressAndBlock(address, blockDto.getNumber());
-            return DataMapper.mapToAccountBalanceResponse(blockDto, balances);
+            balances = ledgerAccountService.findBalanceByAddressAndBlock(address, blockDto.getNumber());
           }
+          return DataMapper.mapToAccountBalanceResponse(blockDto, balances);
         })
         .orElseThrow(ExceptionFactory::blockNotFoundException);
   }

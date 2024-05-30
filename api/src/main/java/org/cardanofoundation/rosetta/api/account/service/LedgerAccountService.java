@@ -1,9 +1,7 @@
 package org.cardanofoundation.rosetta.api.account.service;
 
 
-import java.math.BigInteger;
 import java.util.List;
-import java.util.Optional;
 
 import org.openapitools.client.model.Currency;
 
@@ -17,9 +15,8 @@ public interface LedgerAccountService {
 
   List<AddressBalance> findBalanceByAddressAndBlock(String address, Long number);
 
-  List<Utxo> findUtxoByAddressAndCurrency(String address, List<Currency> currencies);
+  List<AddressBalance> findBalanceByStakeAddressAndBlock(String address, Long number);
 
-  Optional<BigInteger> findStakeAddressBalanceQuantityByAddressAndBlock(
-      String address, Long number);
+  List<Utxo> findUtxoByAddressAndCurrency(String address, List<Currency> currencies);
 
 }
