@@ -6,6 +6,14 @@ spring:
     username: ${DB_USER_TEST:postgres}
     password: ${DB_SECRET_TEST:123456}
     url: jdbc:postgresql://${DB_HOST_TEST:localhost}:${DB_PORT_TEST:5437}/${DB_NAME_TEST:test}
+    hikari:
+      #      default connection-timeout is 30 seconds
+      connectionTimeout: 100000
+      #      default pool size is 10
+      #      connections = ((core_count * 2) + effective_spindle_count)
+      maximumPoolSize: 120
+      #      for developing purposes
+      leakDetectionThreshold: 60000
   jpa:
     properties:
       hibernate:
