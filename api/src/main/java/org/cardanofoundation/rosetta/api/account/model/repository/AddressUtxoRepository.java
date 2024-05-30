@@ -11,10 +11,37 @@ import org.cardanofoundation.rosetta.api.account.model.entity.UtxoId;
 
 public interface AddressUtxoRepository extends JpaRepository<AddressUtxoEntity, UtxoId> {
 
+  List<AddressUtxoEntity> findAddressUtxoEntitiesByOutputIndexAndTxHash(Integer outputIndex,
+      String txHash);
+
   @Query(value =
-      "SELECT a FROM AddressUtxoEntity a LEFT OUTER JOIN TxInputEntity i ON a.txHash = i.txHash AND a.outputIndex = i.outputIndex WHERE a.ownerAddr = :address AND i.txHash IS NULL AND i.outputIndex IS NULL"
-  )
+      """
+          SELECT a FROM AddressUtxoEntity a
+          WHERE a.ownerAddr = :address
+          AND NOT EXISTS (
+            SELECT 1
+            FROM TxInputEntity i
+            WHERE a.txHash = i.txHash
+              AND a.outputIndex = i.outputIndex
+          )
+      """)
   List<AddressUtxoEntity> findUtxosByAddress(@Param("address") String address);
 
-  List<AddressUtxoEntity> findByTxHashIn(List<String> txHashes);
+  @Query(value =
+      """
+      SELECT a FROM AddressUtxoEntity a WHERE
+      a.ownerAddr = :address
+      AND NOT EXISTS(SELECT 1 FROM TxInputEntity o WHERE o.txHash = a.txHash AND o.outputIndex = a.outputIndex AND o.spentAtBlock <= :block)
+      AND a.blockNumber <= :block
+      """)
+  List<AddressUtxoEntity> findUnspentUtxosByAddressAndBlock(@Param("address") String address, @Param("block") long block);
+
+  @Query(value =
+      """
+      SELECT a FROM AddressUtxoEntity a WHERE
+      a.ownerStakeAddr = :address
+      AND NOT EXISTS(SELECT o FROM TxInputEntity o WHERE o.txHash = a.txHash AND o.outputIndex = a.outputIndex AND o.spentAtBlock <= :block)
+      AND a.blockNumber <= :block
+      """)
+  List<AddressUtxoEntity> findUnspentUtxosByStakeAddressAndBlock(@Param("address") String stakeAddress, @Param("block") long block);
 }

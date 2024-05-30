@@ -132,6 +132,7 @@ COPY ./pom.xml /root/app/pom.xml
 COPY ./api /root/app/api
 COPY ./yaci-indexer /root/app/yaci-indexer
 COPY ./test-data-generator /root/app/test-data-generator
+COPY ./.git /root/app/.git
 
 RUN --mount=type=cache,target=/root/.m2 mvn clean package -DskipTests
 

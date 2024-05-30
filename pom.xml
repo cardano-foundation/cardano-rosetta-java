@@ -44,16 +44,17 @@
         <version.bloxbean>0.4.3</version.bloxbean>
         <version.client-lib>0.5.1</version.client-lib>
         <version.yaci>0.2.5</version.yaci>
-        <version.yaci-store>0.1.0-rc2-8071294-SNAPSHOT</version.yaci-store>
+        <version.yaci-store>0.1.0-rc2-323a1a4-SNAPSHOT</version.yaci-store>
         <version.commons-io>2.11.0</version.commons-io>
         <version.javax-validation-api>2.0.1.Final</version.javax-validation-api>
-        <version.bouncycastle>1.77</version.bouncycastle>
         <version.spotless-maven-plugin>2.43.0</version.spotless-maven-plugin>
+        <version.bouncycastle>1.77</version.bouncycastle>
         <version.spotbugs-maven-plugin>4.8.3.0</version.spotbugs-maven-plugin>
         <version.findsecbugs-plugin>1.13.0</version.findsecbugs-plugin>
         <version.assertj-core>3.25.3</version.assertj-core>
         <version.h2>2.2.224</version.h2>
         <version.mapstruct>1.5.5.Final</version.mapstruct>
+        <version.git.commit>4.0.0</version.git.commit>
         <version.lombok.mapstruct.binding>0.2.0</version.lombok.mapstruct.binding>
         <test.exclusions>
             **/testgenerator/**,
@@ -78,6 +79,16 @@
         <repository>
             <id>central</id>
             <url>https://repo1.maven.org/maven2/</url>
+        </repository>
+        <repository>
+            <id>snapshots-repo</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
         </repository>
     </repositories>
     <dependencyManagement>
@@ -163,6 +174,24 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>pl.project13.maven</groupId>
+                <artifactId>git-commit-id-plugin</artifactId>
+                <version>${version.git.commit}</version>
+                <executions>
+                    <execution>
+                        <id>get-the-git-infos</id>
+                        <goals>
+                            <goal>revision</goal>
+                        </goals>
+                        <phase>initialize</phase>
+                    </execution>
+                </executions>
+                <configuration>
+                    <dotGitDirectory>${project.basedir}/.git</dotGitDirectory>
+                    <generateGitPropertiesFile>true</generateGitPropertiesFile>
+                </configuration>
             </plugin>
         </plugins>
     </build>

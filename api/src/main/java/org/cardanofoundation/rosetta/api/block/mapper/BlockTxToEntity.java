@@ -13,8 +13,8 @@ public interface BlockTxToEntity {
   @Mapping(target = "hash", source = "txHash")
   @Mapping(target = "blockHash", source = "block.hash")
   @Mapping(target = "blockNo", source = "block.number")
-  @Mapping(target = "size", constant = "0L")
-  @Mapping(target = "scriptSize", constant = "0L")
+  @Mapping(target = "size", source = "sizeEntity.size")
+  @Mapping(target = "scriptSize", source = "sizeEntity.scriptSize")
   @Mapping(target = "inputs", source = "inputKeys")
   @Mapping(target = "outputs", source = "outputKeys")
   BlockTx fromEntity(TxnEntity model);

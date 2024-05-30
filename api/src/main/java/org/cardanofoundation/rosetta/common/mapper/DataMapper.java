@@ -35,11 +35,9 @@ import org.openapitools.client.model.Signature;
 import org.cardanofoundation.rosetta.api.account.model.domain.AddressBalance;
 import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
-import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockIdentifierExtended;
 import org.cardanofoundation.rosetta.api.block.model.domain.NetworkStatus;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
-import org.cardanofoundation.rosetta.api.block.model.domain.StakeAddressBalance;
 import org.cardanofoundation.rosetta.common.annotation.PersistenceMapper;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
 import org.cardanofoundation.rosetta.common.model.cardano.crypto.Signatures;
@@ -112,9 +110,7 @@ public class DataMapper {
       return null;
     }
 
-    Currency currency = Currency.builder()
-        .decimals(Constants.ADA_DECIMALS)
-        .symbol(Constants.ADA).build();
+    Currency currency = getAdaCurrency();
     return Amount.builder().value(value).currency(currency).build();
   }
 
@@ -155,7 +151,7 @@ public class DataMapper {
    *                 only as a lovelace unit.
    * @return The Rosetta compatible AccountBalanceResponse
    */
-  public static AccountBalanceResponse mapToAccountBalanceResponse(Block block,
+  public static AccountBalanceResponse mapToAccountBalanceResponse(BlockIdentifierExtended block,
       List<AddressBalance> balances) {
     BigInteger lovelaceAmount = balances.stream()
         .filter(b -> Constants.LOVELACE.equals(b.unit()))
@@ -183,41 +179,23 @@ public class DataMapper {
         .build();
   }
 
-  public static AccountBalanceResponse mapToStakeAddressBalanceResponse(Block block,
-      StakeAddressBalance balance) {
-    return AccountBalanceResponse.builder()
-        .blockIdentifier(BlockIdentifier.builder()
-            .hash(block.getHash())
-            .index(block.getNumber())
-            .build())
-        .balances(List.of(Objects.requireNonNull(mapAmount(balance.getQuantity().toString()))))
-        .build();
-  }
-
-  public static AccountCoinsResponse mapToAccountCoinsResponse(Block block, List<Utxo> utxos) {
+  public static AccountCoinsResponse mapToAccountCoinsResponse(BlockIdentifierExtended block,
+      List<Utxo> utxos) {
     return AccountCoinsResponse.builder()
-        .blockIdentifier(BlockIdentifier.builder()
-            .hash(block.getHash())
-            .index(block.getNumber())
-            .build())
+        .blockIdentifier(new BlockIdentifier(block.getNumber(), block.getHash()))
         .coins(utxos.stream().map(utxo -> {
               Amt adaAsset = utxo.getAmounts().stream()
                   .filter(amt -> Constants.LOVELACE.equals(amt.getAssetName()))
                   .findFirst()
                   .orElseGet(() -> new Amt(null, null, Constants.ADA, BigInteger.ZERO));
+              String coinIdentifier = utxo.getTxHash() + ":" + utxo.getOutputIndex();
               return Coin.builder()
-                  .coinIdentifier(CoinIdentifier.builder()
-                      .identifier(utxo.getTxHash() + ":" + utxo.getOutputIndex())
-                      .build())
+                  .coinIdentifier(new CoinIdentifier(coinIdentifier))
                   .amount(Amount.builder()
-                      .value(
-                          adaAsset.getQuantity().toString()) // In the DB only Lovelace are persisted.
-                      .currency(Currency.builder()
-                          .symbol(Constants.ADA)
-                          .decimals(Constants.ADA_DECIMALS)
-                          .build())
+                      .value(adaAsset.getQuantity().toString())
+                      .currency(getAdaCurrency())
                       .build())
-                  .metadata(mapCoinMetadata(utxo))
+                  .metadata(mapCoinMetadata(utxo, coinIdentifier))
                   .build();
             })
             .toList())
@@ -225,8 +203,7 @@ public class DataMapper {
   }
 
   @Nullable
-  private static Map<String, List<CoinTokens>> mapCoinMetadata(Utxo utxo) {
-    String key = utxo.getTxHash() + ":" + utxo.getOutputIndex();
+  private static Map<String, List<CoinTokens>> mapCoinMetadata(Utxo utxo, String coinIdentifier) {
     List<CoinTokens> coinTokens =
         utxo.getAmounts().stream()
             .filter(Objects::nonNull)
@@ -243,7 +220,7 @@ public class DataMapper {
               return tokens;
             })
             .toList();
-    return coinTokens.isEmpty() ? null : Map.of(key, coinTokens);
+    return coinTokens.isEmpty() ? null : Map.of(coinIdentifier, coinTokens);
   }
 
   public ConstructionMetadataResponse mapToMetadataResponse(ProtocolParams protocolParams, Long ttl,
@@ -256,10 +233,7 @@ public class DataMapper {
             .build())
         .suggestedFee(List.of(Amount.builder()
             .value(suggestedFee.toString())
-            .currency(Currency.builder()
-                .decimals(Constants.ADA_DECIMALS)
-                .symbol(Constants.ADA)
-                .build())
+            .currency(getAdaCurrency())
             .build()))
         .build();
   }
@@ -276,5 +250,12 @@ public class DataMapper {
       return new Signatures(signature.getHexBytes(), signature.getPublicKey().getHexBytes(),
           chainCode, address);
     }).toList();
+  }
+
+  private static Currency getAdaCurrency() {
+    return Currency.builder()
+        .symbol(Constants.ADA)
+        .decimals(Constants.ADA_DECIMALS)
+        .build();
   }
 }
