@@ -95,6 +95,22 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
     }
   }
 
+  @Override
+  public Optional<BlockIdentifierExtended> findBlockIdentifier(Long blockNumber, String blockHash) {
+    log.debug("Query blockNumber: {} , blockHash: {}", blockNumber, blockHash);
+    if (blockHash == null && blockNumber != null) {
+      return blockRepository.findBlockIdentifierByNumber(blockNumber)
+          .map(blockToGensisBlock::toBlockIdentifierExtended);
+    } else if (blockHash != null && blockNumber == null) {
+      return blockRepository.findBlockIdentifierByHash(blockHash)
+          .map(blockToGensisBlock::toBlockIdentifierExtended);
+    } else {
+      return blockRepository
+          .findBlockIdentifierByNumberAndHash(blockNumber, blockHash)
+          .map(blockToGensisBlock::toBlockIdentifierExtended);
+    }
+  }
+
   @NotNull
   private Block toModelFrom(BlockEntity blockEntity) {
     Block model = mapperBlock.fromEntity(blockEntity);
