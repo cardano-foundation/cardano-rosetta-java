@@ -16,14 +16,14 @@ public interface AddressUtxoRepository extends JpaRepository<AddressUtxoEntity, 
 
   @Query(value =
       """
-          SELECT a FROM AddressUtxoEntity a
-          WHERE a.ownerAddr = :address
-          AND NOT EXISTS (
-            SELECT 1
-            FROM TxInputEntity i
-            WHERE a.txHash = i.txHash
-              AND a.outputIndex = i.outputIndex
-          )
+      SELECT a FROM AddressUtxoEntity a
+      WHERE a.ownerAddr = :address
+      AND NOT EXISTS (
+        SELECT 1
+        FROM TxInputEntity i
+        WHERE a.txHash = i.txHash
+          AND a.outputIndex = i.outputIndex
+      )
       """)
   List<AddressUtxoEntity> findUtxosByAddress(@Param("address") String address);
 
@@ -40,7 +40,7 @@ public interface AddressUtxoRepository extends JpaRepository<AddressUtxoEntity, 
       """
       SELECT a FROM AddressUtxoEntity a WHERE
       a.ownerStakeAddr = :address
-      AND NOT EXISTS(SELECT o FROM TxInputEntity o WHERE o.txHash = a.txHash AND o.outputIndex = a.outputIndex AND o.spentAtBlock <= :block)
+      AND NOT EXISTS(SELECT 1 FROM TxInputEntity o WHERE o.txHash = a.txHash AND o.outputIndex = a.outputIndex AND o.spentAtBlock <= :block)
       AND a.blockNumber <= :block
       """)
   List<AddressUtxoEntity> findUnspentUtxosByStakeAddressAndBlock(@Param("address") String stakeAddress, @Param("block") long block);

@@ -35,10 +35,10 @@ import org.openapitools.client.model.Version;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockIdentifierExtended;
 import org.cardanofoundation.rosetta.api.block.model.domain.NetworkStatus;
 import org.cardanofoundation.rosetta.api.block.service.LedgerBlockService;
+import org.cardanofoundation.rosetta.api.network.mapper.NetworkMapper;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.common.enumeration.OperationTypeStatus;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
-import org.cardanofoundation.rosetta.common.mapper.DataMapper;
 import org.cardanofoundation.rosetta.common.util.Constants;
 import org.cardanofoundation.rosetta.common.util.FileUtils;
 import org.cardanofoundation.rosetta.common.util.RosettaConstants;
@@ -51,7 +51,7 @@ public class NetworkServiceImpl implements NetworkService {
 
   private final RosettaConfig rosettaConfig;
   private final LedgerBlockService ledgerBlockService;
-  private final DataMapper datamapper;
+  private final NetworkMapper networkMapper;
   private final TopologyConfigService topologyConfigService;
   private final ResourceLoader resourceLoader;
 
@@ -73,7 +73,7 @@ public class NetworkServiceImpl implements NetworkService {
   public NetworkListResponse getNetworkList(MetadataRequest metadataRequest) {
     log.info("[networkList] Looking for all supported networks");
     Network supportedNetwork = getSupportedNetwork();
-    return datamapper.mapToNetworkListResponse(supportedNetwork);
+    return networkMapper.toNetworkListResponse(supportedNetwork);
   }
 
   @Override
@@ -130,7 +130,7 @@ public class NetworkServiceImpl implements NetworkService {
     log.debug("[networkStatus] Request received: {}", networkRequest.toString());
     log.info("[networkStatus] Looking for latest block");
     NetworkStatus networkStatus = networkStatus();
-    return datamapper.mapToNetworkStatusResponse(networkStatus);
+    return networkMapper.toNetworkStatusResponse(networkStatus);
   }
 
   @Override
