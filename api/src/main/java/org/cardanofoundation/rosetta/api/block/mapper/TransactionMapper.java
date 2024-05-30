@@ -19,10 +19,9 @@ import org.cardanofoundation.rosetta.api.block.model.entity.PoolRetirementEntity
 import org.cardanofoundation.rosetta.api.block.model.entity.StakeRegistrationEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.WithdrawalEntity;
 import org.cardanofoundation.rosetta.common.mapper.util.BaseMapper;
-import org.cardanofoundation.rosetta.common.mapper.util.MapperUtils;
 import org.cardanofoundation.rosetta.common.util.Constants;
 
-@Mapper(config = BaseMapper.class, uses = {MapperUtils.class})
+@Mapper(config = BaseMapper.class, uses = {TransactionMapperUtils.class})
 public interface TransactionMapper {
 
   @Mapping(target = "owners", source = "poolOwners")
@@ -32,7 +31,7 @@ public interface TransactionMapper {
   @Mapping(target = "status", source = "status.status")
   @Mapping(target = "account.address", source = "model.poolId")
   @Mapping(target = "operationIdentifier", source = "index", qualifiedByName = "OperationIdentifier")
-  @Mapping(target = "metadata.depositAmount", expression = "java(mapperUtils.getDepositAmountPool())")
+  @Mapping(target = "metadata.depositAmount", expression = "java(transactionMapperUtils.getDepositAmountPool())")
   @Mapping(target = "metadata.poolRegistrationParams.pledge", source = "model.pledge")
   @Mapping(target = "metadata.poolRegistrationParams.cost", source = "model.cost")
   @Mapping(target = "metadata.poolRegistrationParams.poolOwners", source = "model.owners")

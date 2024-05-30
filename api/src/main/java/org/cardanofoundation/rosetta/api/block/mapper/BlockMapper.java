@@ -19,10 +19,9 @@ import org.cardanofoundation.rosetta.api.block.model.entity.TxnEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.UtxoKey;
 import org.cardanofoundation.rosetta.api.block.model.entity.projection.BlockIdentifierProjection;
 import org.cardanofoundation.rosetta.common.mapper.util.BaseMapper;
-import org.cardanofoundation.rosetta.common.mapper.util.MapperUtils;
 import org.cardanofoundation.rosetta.common.mapper.util.OperationMapperUtils;
 
-@Mapper(config = BaseMapper.class, uses = {MapperUtils.class, OperationMapperUtils.class})
+@Mapper(config = BaseMapper.class, uses = {OperationMapperUtils.class})
 public interface BlockMapper {
 
   BlockIdentifierExtended mapToBlockIdentifierExtended(BlockIdentifierProjection projection);

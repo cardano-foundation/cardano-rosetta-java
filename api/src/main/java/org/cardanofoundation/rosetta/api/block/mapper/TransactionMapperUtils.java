@@ -1,4 +1,4 @@
-package org.cardanofoundation.rosetta.common.mapper.util;
+package org.cardanofoundation.rosetta.api.block.mapper;
 
 import java.math.BigInteger;
 import java.util.List;
@@ -28,7 +28,7 @@ import org.cardanofoundation.rosetta.common.util.Constants;
 
 @Component
 @RequiredArgsConstructor
-public class MapperUtils {
+public class TransactionMapperUtils {
 
   final ProtocolParamService protocolParamService;
 
