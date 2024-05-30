@@ -26,14 +26,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 class BlockTxToBlockTxResponseTest extends BaseMapperSetup {
 
   @Autowired
-  private BlockTxToBlockTxResponse my;
+  private BlockMapper my;
 
   @Test
-  void toDto() {
+  void mapToBlockTransactionResponse() {
     //given
     BlockTx from = newTran();
     // when
-    BlockTransactionResponse into = my.toDto(from);
+    BlockTransactionResponse into = my.mapToBlockTransactionResponse(from);
     // then
 
     Transaction tx = into.getTransaction();

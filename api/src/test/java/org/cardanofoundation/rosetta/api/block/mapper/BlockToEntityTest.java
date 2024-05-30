@@ -20,14 +20,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 class BlockToEntityTest extends BaseMapperSetup {
 
   @Autowired
-  private BlockToEntity my;
+  private BlockMapper my;
 
   @Test
-  void fromEntity_Test() {
+  void mapToBlock_Test() {
     //given
     BlockEntity from = newBlockEntity();
     //when
-    Block into = my.fromEntity(from);
+    Block into = my.mapToBlock(from);
     //then
     assertThat(into.getNumber()).isEqualTo(from.getNumber());
     assertThat(into.getHash()).isEqualTo(from.getHash());
