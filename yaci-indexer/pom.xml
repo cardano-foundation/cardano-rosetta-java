@@ -19,6 +19,12 @@
         <yaci-store.version>0.1.0-rc2-323a1a4-SNAPSHOT</yaci-store.version>
         <sonar.exclusions>src/main/java/org/cardanofoundation/rosetta/yaciindexer/stores/txsize/model/*</sonar.exclusions>
         <version.spotless-maven-plugin>2.43.0</version.spotless-maven-plugin>
+        <test.exclusions>
+            **/model/**,
+            **/yaciindexer/config/**,
+        </test.exclusions>
+        <sonar.coverage.exclusions>${test.exclusions}</sonar.coverage.exclusions>
+        <version.jacoco-maven-plugin>0.8.11</version.jacoco-maven-plugin>
     </properties>
     <repositories>
         <repository>
@@ -130,6 +136,30 @@
                         <endWithNewline/>
                     </java>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${version.jacoco-maven-plugin}</version>
+                <configuration>
+                    <excludes>
+                        <exclude>${test.exclusions}</exclude>
+                    </excludes>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

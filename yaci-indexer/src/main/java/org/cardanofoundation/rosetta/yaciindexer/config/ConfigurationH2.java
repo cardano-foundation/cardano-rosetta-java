@@ -1,4 +1,4 @@
-package org.cardanofoundation.rosetta.yaciindexer;
+package org.cardanofoundation.rosetta.yaciindexer.config;
 
 import java.sql.SQLException;
 
