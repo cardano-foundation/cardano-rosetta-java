@@ -18,12 +18,12 @@ import org.openapitools.client.model.Currency;
 import org.openapitools.client.model.CurrencyMetadata;
 import org.openapitools.client.model.PartialBlockIdentifier;
 
+import org.cardanofoundation.rosetta.api.account.mapper.AccountMapper;
 import org.cardanofoundation.rosetta.api.account.model.domain.AddressBalance;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockIdentifierExtended;
 import org.cardanofoundation.rosetta.api.block.service.LedgerBlockService;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
-import org.cardanofoundation.rosetta.common.mapper.DataMapper;
 import org.cardanofoundation.rosetta.common.util.CardanoAddressUtils;
 import org.cardanofoundation.rosetta.common.util.Constants;
 
@@ -44,6 +44,7 @@ public class AccountServiceImpl implements AccountService {
 
   private final LedgerAccountService ledgerAccountService;
   private final LedgerBlockService ledgerBlockService;
+  private final AccountMapper accountMapper;
 
   @Override
   public AccountBalanceResponse getAccountBalance(AccountBalanceRequest accountBalanceRequest) {
@@ -88,7 +89,7 @@ public class AccountServiceImpl implements AccountService {
     List<Utxo> utxos = ledgerAccountService.findUtxoByAddressAndCurrency(accountAddress,
         currenciesRequested);
     log.debug("[accountCoins] found {} Utxos for Address {}", utxos.size(), accountAddress);
-    return DataMapper.mapToAccountCoinsResponse(latestBlock, utxos);
+    return accountMapper.mapToAccountCoinsResponse(latestBlock, utxos);
   }
 
   private AccountBalanceResponse findBalanceDataByAddressAndBlock(String address, Long number,
@@ -105,7 +106,7 @@ public class AccountServiceImpl implements AccountService {
           } else {
             balances = ledgerAccountService.findBalanceByAddressAndBlock(address, blockDto.getNumber());
           }
-          return DataMapper.mapToAccountBalanceResponse(blockDto, balances);
+          return accountMapper.mapToAccountBalanceResponse(blockDto, balances);
         })
         .orElseThrow(ExceptionFactory::blockNotFoundException);
   }
