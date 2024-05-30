@@ -203,23 +203,16 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
     UnsignedTransaction unsignedTransaction;
     try {
       unsignedTransaction = createUnsignedTransaction(networkIdentifierType,
-          operations, ttl, !ObjectUtils.isEmpty(depositParameters) ? depositParameters
-              : new DepositParameters(Constants.DEFAULT_KEY_DEPOSIT.toString(),
+          operations, ttl, !ObjectUtils.isEmpty(depositParameters) ?
+              depositParameters :
+              new DepositParameters(Constants.DEFAULT_KEY_DEPOSIT.toString(),
                   Constants.DEFAULT_POOL_DEPOSIT.toString()));
     } catch (CborSerializationException | AddressExcepion | CborException e) {
       throw ExceptionFactory.cantCreateUnsignedTransactionFromBytes();
     }
-    List<Signatures> signaturesList = (unsignedTransaction.addresses()).stream().map(address -> {
-      EraAddressType eraAddressType = CardanoAddressUtils.getEraAddressType(address);
-      if (eraAddressType != null) {
-        return signatureProcessor(eraAddressType, null, address);
-      }
-      // since pool key hash are passed as address, ed25519 hashes must be included
-      if (CardanoAddressUtils.isEd25519KeyHash(address)) {
-        return signatureProcessor(null, AddressType.POOL_KEY_HASH, address);
-      }
-      throw ExceptionFactory.invalidAddressError(address);
-    }).toList();
+    List<Signatures> signaturesList = (unsignedTransaction.addresses()).stream()
+        .map(this::extractSignaturesFromAddress)
+        .toList();
 
     String transaction = buildTransaction(unsignedTransaction.bytes(), signaturesList,
         unsignedTransaction.metadata());
@@ -637,5 +630,16 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
       throw new IllegalArgumentException("Invalid public key length");
     }
     return pubKey;
+  }
+
+  private Signatures extractSignaturesFromAddress(String address) {
+    EraAddressType eraAddressType = CardanoAddressUtils.getEraAddressType(address);
+    if (eraAddressType != null) {
+      return signatureProcessor(eraAddressType, null, address);
+    }
+    if (CardanoAddressUtils.isEd25519KeyHash(address)) {
+      return signatureProcessor(null, AddressType.POOL_KEY_HASH, address);
+    }
+    throw ExceptionFactory.invalidAddressError(address);
   }
 }

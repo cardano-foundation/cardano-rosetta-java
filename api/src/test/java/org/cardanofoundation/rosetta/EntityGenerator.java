@@ -7,12 +7,16 @@ import lombok.experimental.UtilityClass;
 
 import org.openapitools.client.model.AccountIdentifier;
 import org.openapitools.client.model.Allow;
+import org.openapitools.client.model.Amount;
 import org.openapitools.client.model.Block;
 import org.openapitools.client.model.BlockIdentifier;
 import org.openapitools.client.model.BlockRequest;
 import org.openapitools.client.model.BlockResponse;
 import org.openapitools.client.model.BlockTransactionRequest;
 import org.openapitools.client.model.BlockTransactionResponse;
+import org.openapitools.client.model.CoinAction;
+import org.openapitools.client.model.CoinChange;
+import org.openapitools.client.model.CoinIdentifier;
 import org.openapitools.client.model.ConstructionCombineRequest;
 import org.openapitools.client.model.ConstructionCombineResponse;
 import org.openapitools.client.model.ConstructionDeriveRequest;
@@ -29,6 +33,7 @@ import org.openapitools.client.model.ConstructionPayloadsResponse;
 import org.openapitools.client.model.ConstructionPreprocessRequest;
 import org.openapitools.client.model.ConstructionPreprocessResponse;
 import org.openapitools.client.model.ConstructionSubmitRequest;
+import org.openapitools.client.model.Currency;
 import org.openapitools.client.model.CurveType;
 import org.openapitools.client.model.MetadataRequest;
 import org.openapitools.client.model.NetworkIdentifier;
@@ -312,5 +317,30 @@ public class EntityGenerator {
 
     public static SigningPayload givenSigningPayload() {
         return SigningPayload.builder().hexBytes("hex").build();
+    }
+
+    public static Operation givenOperation() {
+        return Operation
+            .builder()
+            .operationIdentifier(OperationIdentifier
+                .builder()
+                .index(1L)
+                .build())
+            .status("success")
+            .type("input")
+            .account(AccountIdentifier
+                .builder()
+                .address("addr1")
+                .build())
+            .amount(Amount.builder()
+                .value("-90000")
+                .currency(Currency.builder().symbol("ADA").build())
+                .build())
+            .coinChange(CoinChange.builder()
+                .coinIdentifier(CoinIdentifier.builder()
+                    .identifier("2f:1").build())
+                .coinAction(CoinAction.SPENT)
+                .build())
+            .build();
     }
 }
