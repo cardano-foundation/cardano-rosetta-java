@@ -116,7 +116,7 @@ class BlockServiceImplIntTest extends IntegrationTest {
 
   @Test
   void getDepositPool_Test() {
-    assertThat(protocolParamService.getProtocolParameters().getPoolDeposit())
+    assertThat(protocolParamService.findProtocolParametersFromIndexer().getPoolDeposit())
         .isEqualTo(500000000);
   }
 

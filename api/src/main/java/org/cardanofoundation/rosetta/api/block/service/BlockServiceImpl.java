@@ -28,7 +28,7 @@ public class BlockServiceImpl implements BlockService {
     if (blockOpt.isPresent()) {
       var block = blockOpt.get();
       log.info("Block was found, hash={}", block.getHash());
-      block.setPoolDeposit(String.valueOf(protocolParamService.getProtocolParameters().getPoolDeposit()));
+      block.setPoolDeposit(String.valueOf(protocolParamService.findProtocolParametersFromIndexer().getPoolDeposit()));
       log.debug("full data {}", block);
       return block;
     }

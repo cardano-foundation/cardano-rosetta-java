@@ -112,10 +112,10 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
       relativeTtl = cardanoConstructionService.checkOrReturnDefaultTtl(
           metadata.get().getRelativeTtl());
       depositParameters = Optional.ofNullable(metadata.get().getDepositParameters()).orElse(
-          cardanoConstructionService.getCachedDepositParameters());
+          cardanoConstructionService.getDepositParameters());
     } else {
       relativeTtl = Constants.DEFAULT_RELATIVE_TTL;
-      depositParameters = cardanoConstructionService.getCachedDepositParameters();
+      depositParameters = cardanoConstructionService.getDepositParameters();
     }
 
     int transactionSize = cardanoConstructionService.calculateTxSize(
@@ -256,7 +256,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
     return metadata != null && metadata.getProtocolParameters() != null ?
         new DepositParameters(metadata.getProtocolParameters().getKeyDeposit(),
             metadata.getProtocolParameters().getPoolDeposit()) :
-        cardanoConstructionService.getCachedDepositParameters();
+        cardanoConstructionService.getDepositParameters();
   }
 
   private UnsignedTransaction createUnsignedTransaction(NetworkIdentifierType networkIdentifier,
