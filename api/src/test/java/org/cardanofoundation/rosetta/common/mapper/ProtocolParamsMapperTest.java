@@ -14,16 +14,16 @@ import org.cardanofoundation.rosetta.api.block.model.entity.ProtocolParamsEntity
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class ProtocolParamsToEntityTest extends BaseMapperSetup {
+class ProtocolParamsMapperTest extends BaseMapperSetup {
 
   @Autowired
-  private ProtocolParamsToEntity my;
+  private ProtocolParamsMapper my;
 
   @Test
-  void fromEntity_Test_ok() {
+  void mapProtocolParamsToEntity_Test_ok() {
     EpochParamEntity from = newEpochParamEntity();
 
-    ProtocolParams into = my.fromEntity(from.getParams());
+    ProtocolParams into = my.mapProtocolParamsToEntity(from.getParams());
     var param = from.getParams();
     assertProtocolParameters(into, param);
 

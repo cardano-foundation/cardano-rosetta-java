@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
 import org.cardanofoundation.rosetta.api.block.model.entity.ProtocolParamsEntity;
 import org.cardanofoundation.rosetta.api.block.model.repository.EpochParamRepository;
-import org.cardanofoundation.rosetta.common.mapper.ProtocolParamsToEntity;
+import org.cardanofoundation.rosetta.common.mapper.ProtocolParamsMapper;
 
 @Service
 @Slf4j
@@ -21,7 +21,7 @@ import org.cardanofoundation.rosetta.common.mapper.ProtocolParamsToEntity;
 public class ProtocolParamServiceImpl implements ProtocolParamService {
 
   private final EpochParamRepository epochParamRepository;
-  private final ProtocolParamsToEntity mapperProtocolParams;
+  private final ProtocolParamsMapper mapperProtocolParams;
 
   @Override
   @Cacheable(value = "protocolParamsCache")
@@ -29,7 +29,7 @@ public class ProtocolParamServiceImpl implements ProtocolParamService {
   public ProtocolParams findProtocolParametersFromIndexer() {
     log.info("Fetching protocol parameters from the indexer");
     ProtocolParamsEntity paramsEntity = epochParamRepository.findLatestProtocolParams();
-    ProtocolParams protocolParams = mapperProtocolParams.fromEntity(paramsEntity);
+    ProtocolParams protocolParams = mapperProtocolParams.mapProtocolParamsToEntity(paramsEntity);
     log.debug("Protocol parameters fetched from the indexer: {} \nand saved in cachedProtocolParams",
         paramsEntity);
     return protocolParams;

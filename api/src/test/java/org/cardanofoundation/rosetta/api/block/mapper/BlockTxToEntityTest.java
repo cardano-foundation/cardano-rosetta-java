@@ -19,16 +19,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 class BlockTxToEntityTest extends BaseMapperSetup {
 
   @Autowired
-  private BlockTxToEntity my;
+  private BlockMapper my;
 
   private final UtxoKey inUtxKey = new UtxoKey("in_UtxoKey_txHash1", 55);
   private final UtxoKey outUtxKey = new UtxoKey("out_UtxoKey_txHash1", 55);
   @Test
-  void fromEntity_Test() {
+  void mapToBlockTx_Test() {
     //given
     TxnEntity from = newTxnEntity();
     //when
-    BlockTx into = my.fromEntity(from);
+    BlockTx into = my.mapToBlockTx(from);
     //then
     assertThat(into.getFee()).isEqualTo(from.getFee().toString());
     assertThat(into.getHash()).isEqualTo(from.getTxHash());
