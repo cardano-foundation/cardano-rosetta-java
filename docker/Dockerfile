@@ -183,6 +183,9 @@ RUN mkdir /logs
 EXPOSE 8082
 
 COPY ./docker/entrypoint.sh /sbin/entrypoint.sh
+
+RUN chmod +x /sbin/entrypoint.sh
+
 ENTRYPOINT ["/sbin/entrypoint.sh"]
 
 CMD ["/bin/sh", "-c", "bash"]
