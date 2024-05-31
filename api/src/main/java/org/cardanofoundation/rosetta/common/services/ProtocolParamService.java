@@ -7,4 +7,6 @@ public interface ProtocolParamService {
   ProtocolParams getProtocolParameters();
 
   ProtocolParams findProtocolParametersFromIndexer();
+
+  void updateCachedProtocolParams();
 }

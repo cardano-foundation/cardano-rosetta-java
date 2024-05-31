@@ -28,7 +28,7 @@ public class ProtocolParamServiceImpl implements ProtocolParamService {
       synchronized (lock) {
         params = cachedProtocolParams;
         if (params == null) {
-          cachedProtocolParams = params = findProtocolParametersFromIndexer();
+          cachedProtocolParams = params = fetchAndCacheProtocolParameters();
         }
       }
     }
@@ -38,10 +38,23 @@ public class ProtocolParamServiceImpl implements ProtocolParamService {
   @Override
   public ProtocolParams findProtocolParametersFromIndexer() {
     log.info("Fetching protocol parameters from the indexer");
-    ProtocolParamsEntity paramsEntity = epochParamRepository.findLatestProtocolParams();
-    cachedProtocolParams = mapperProtocolParams.fromEntity(paramsEntity);
-    log.debug("Protocol parameters fetched from the indexer: {} \nand saved in cachedProtocolParams",
-        paramsEntity);
+    synchronized (lock) {
+      cachedProtocolParams = fetchAndCacheProtocolParameters();
+    }
     return cachedProtocolParams;
+  }
+
+  @Override
+  public void updateCachedProtocolParams() {
+    log.info("Updating protocol parameters from the indexer");
+    synchronized (lock) {
+      cachedProtocolParams = fetchAndCacheProtocolParameters();
+    }
+  }
+
+  private ProtocolParams fetchAndCacheProtocolParameters() {
+    ProtocolParamsEntity paramsEntity = epochParamRepository.findLatestProtocolParams();
+    log.debug("Protocol parameters fetched from the indexer: {} \nand saved in cachedProtocolParams", paramsEntity);
+    return mapperProtocolParams.fromEntity(paramsEntity);
   }
 }
