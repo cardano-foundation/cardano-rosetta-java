@@ -2,6 +2,7 @@ package org.cardanofoundation.rosetta.common.util;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import lombok.extern.slf4j.Slf4j;
@@ -138,7 +139,7 @@ public class ProcessConstructionUtil {
                 ObjectUtils.isEmpty(operation.getAccount()) ? null : operation.getAccount().getAddress());
 
         log.info("[processPoolRegistration] About to validate and parse reward address");
-        assert poolRegistrationParams != null;
+        Objects.requireNonNull(poolRegistrationParams, "Pool registration params can't be null");
         Address parsedAddress = ValidateParseUtil.validateAndParseRewardAddress(
                 poolRegistrationParams.getRewardAddress());
         Bech32.Bech32Data bech32Data = Bech32.decode(parsedAddress.toBech32());

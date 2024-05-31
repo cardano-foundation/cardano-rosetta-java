@@ -1,6 +1,7 @@
 package org.cardanofoundation.rosetta.common.util;
 
 import java.math.BigInteger;
+import java.util.Objects;
 import java.util.Set;
 import jakarta.validation.constraints.NotNull;
 
@@ -109,7 +110,7 @@ public class OperationParseUtil {
     ProcessWithdrawalReturn processWithdrawalReturn = ProcessConstructionUtil.getWithdrawalsReturnFromOperation(
         networkIdentifierType, operation);
     BigInteger withdrawalAmount = ValidateParseUtil.validateValueAmount(operation);
-    assert withdrawalAmount != null;
+    Objects.requireNonNull(withdrawalAmount, "No withdrawal amount found in operation");
     resultAccumulator.getWithdrawalAmounts().add(withdrawalAmount);
     resultAccumulator.getWithdrawals().add(new Withdrawal(processWithdrawalReturn.getReward().getAddress(),
         withdrawalAmount));
