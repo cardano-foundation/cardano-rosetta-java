@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.cardanofoundation.rosetta.api.BaseMapperSetup;
 import org.cardanofoundation.rosetta.api.account.mapper.AddressUtxoEntityToUtxo;
 import org.cardanofoundation.rosetta.api.account.model.entity.AddressUtxoEntity;
-import org.cardanofoundation.rosetta.api.block.mapper.UtxoKeyToEntity;
+import org.cardanofoundation.rosetta.api.block.mapper.BlockMapper;
 import org.cardanofoundation.rosetta.api.block.model.entity.UtxoKey;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -16,13 +16,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class UtxoTest extends BaseMapperSetup {
 
   @Inject
-  UtxoKeyToEntity mapper;
+  BlockMapper mapper;
   @Inject
   AddressUtxoEntityToUtxo addressUtxoEntityToUtxo;
 
   @Test
   void fromUtxoKeyPositiveTest() {
-    Utxo utxo = mapper.fromEntity(new UtxoKey("txHash", 1));
+    Utxo utxo = mapper.getUtxoFromUtxoKey(new UtxoKey("txHash", 1));
     assertEquals("txHash", utxo.getTxHash());
     assertEquals(1, utxo.getOutputIndex());
   }

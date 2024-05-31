@@ -13,8 +13,7 @@ import org.openapitools.client.model.BlockTransactionResponse;
 import org.junit.jupiter.api.Test;
 
 import org.cardanofoundation.rosetta.api.BaseSpringMvcSetup;
-import org.cardanofoundation.rosetta.api.block.mapper.BlockToBlockResponse;
-import org.cardanofoundation.rosetta.api.block.mapper.BlockTxToBlockTxResponse;
+import org.cardanofoundation.rosetta.api.block.mapper.BlockMapper;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
@@ -44,10 +43,7 @@ class BlockApiImplTest extends BaseSpringMvcSetup {
   private ProtocolParamService protocolParamService;
 
   @MockBean
-  BlockToBlockResponse blockToBlockResponse;
-
-  @MockBean
-  BlockTxToBlockTxResponse mapperToBlockTxResponse;
+  BlockMapper blockMapper;
 
   @Mock
   private ProtocolParams protocolParams;
@@ -95,7 +91,7 @@ class BlockApiImplTest extends BaseSpringMvcSetup {
     when(protocolParamService.getProtocolParameters()).thenReturn(protocolParams);
     when(protocolParams.getPoolDeposit()).thenReturn(new BigInteger("1000"));
 //any string
-    when(mapperToBlockTxResponse.toDto(any(BlockTx.class))).thenReturn(resp);
+    when(blockMapper.mapToBlockTransactionResponse(any(BlockTx.class))).thenReturn(resp);
     //when
     //then
     String txHash = resp.getTransaction().getTransactionIdentifier().getHash();
@@ -126,7 +122,7 @@ class BlockApiImplTest extends BaseSpringMvcSetup {
   private BlockRequest givenBlockRequest() {
     BlockRequest blockRequest = newBlockRequest();
     BlockResponse blockResp = newBlockResponse();
-    when(blockToBlockResponse.toDto(any(Block.class))).thenReturn(blockResp);
+    when(blockMapper.mapToBlockResponse(any(Block.class))).thenReturn(blockResp);
     return blockRequest;
   }
 
