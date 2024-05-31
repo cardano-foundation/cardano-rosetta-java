@@ -39,16 +39,16 @@ class BlockToBlockResponseTest extends BaseMapperSetup {
 
 
   @Autowired
-  private BlockToBlockResponse my;
+  private BlockMapper my;
 
   @Test
-  void toDto_test_Ok() {
+  void mapToBlockResponse_test_Ok() {
 
     //given
     Block from = newBlock();
 
     //when
-    BlockResponse into = my.toDto(newBlock());
+    BlockResponse into = my.mapToBlockResponse(newBlock());
 
     //then
     assertThat(from.getHash()).isEqualTo(into.getBlock().getBlockIdentifier().getHash());

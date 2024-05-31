@@ -16,12 +16,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class ProtocolParamsToRosettaProtocolParamsTest extends BaseMapperSetup {
 
   @Autowired
-  private ProtocolParamsToRosettaProtocolParameters mapper;
+  private ProtocolParamsMapper mapper;
 
   @Test
-  public void fromDomainObjectToRosettaTest() {
+  void fromDomainObjectToRosettaTest() {
     ProtocolParams protocolParams = newProtocolParams();
-    ProtocolParameters protocolParameters = mapper.toProtocolParameters(protocolParams);
+    ProtocolParameters protocolParameters = mapper.mapToProtocolParameters(protocolParams);
 
     assertEquals(protocolParams.getAdaPerUtxoByte().toString(), protocolParameters.getCoinsPerUtxoSize());
     assertEquals(protocolParams.getMaxTxSize(), protocolParameters.getMaxTxSize());

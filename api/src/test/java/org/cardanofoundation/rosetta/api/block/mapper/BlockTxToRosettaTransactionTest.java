@@ -39,16 +39,16 @@ import static org.cardanofoundation.rosetta.common.util.Constants.ADA_DECIMALS;
 class BlockTxToRosettaTransactionTest extends BaseMapperSetup {
 
   @Autowired
-  private BlockTxToRosettaTransaction my;
+  private BlockMapper my;
 
   @Test
-  void toDto_Test_empty_operations() {
+  void mapToRosettaTransaction_Test_empty_operations() {
     //given
     BlockTx from = newTran();
     from.setInputs(List.of());
     from.setOutputs(List.of());
     //when
-    Transaction into = my.toDto(from);
+    Transaction into = my.mapToRosettaTransaction(from);
     //then
     assertThat(into.getMetadata().getSize()).isEqualTo(from.getSize());
     assertThat(into.getMetadata().getScriptSize()).isEqualTo(from.getScriptSize());
@@ -58,7 +58,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperSetup {
 
 
   @Test
-  void toDto_Test_StakeRegistrationOperations() {
+  void mapToRosettaTransaction_Test_StakeRegistrationOperations() {
     //given
     BlockTx from = newTran();
     List<CertificateType> stakeTypes = List.of(
@@ -71,7 +71,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperSetup {
           .type(stakeType)
           .build()));
       //when
-      Transaction into = my.toDto(from);
+      Transaction into = my.mapToRosettaTransaction(from);
       //then
       assertThat(into.getMetadata().getSize()).isEqualTo(from.getSize());
       assertThat(into.getMetadata().getScriptSize()).isEqualTo(from.getScriptSize());
@@ -100,7 +100,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperSetup {
 
 
   @Test
-  void toDto_Test_DelegationOperations() {
+  void mapToRosettaTransaction_Test_DelegationOperations() {
     //given
     BlockTx from = newTran();
     CertificateType stakeType = CertificateType.STAKE_DELEGATION;
@@ -110,7 +110,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperSetup {
         .poolId("pool_id1")
         .build()));
     //when
-    Transaction into = my.toDto(from);
+    Transaction into = my.mapToRosettaTransaction(from);
     //then
     assertThat(into.getMetadata().getSize()).isEqualTo(from.getSize());
     assertThat(into.getMetadata().getScriptSize()).isEqualTo(from.getScriptSize());
@@ -137,7 +137,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperSetup {
   }
 
   @Test
-  void toDto_Test_getPoolRegistrationOperations() {
+  void mapToRosettaTransaction_Test_getPoolRegistrationOperations() {
     //given
     BlockTx from = newTran();
     CertificateType poolReg = CertificateType.POOL_REGISTRATION;
@@ -161,7 +161,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperSetup {
         .relays(relays)
         .build()));
     //when
-    Transaction into = my.toDto(from);
+    Transaction into = my.mapToRosettaTransaction(from);
     //then
     assertThat(into.getMetadata().getSize()).isEqualTo(from.getSize());
     assertThat(into.getMetadata().getScriptSize()).isEqualTo(from.getScriptSize());
@@ -195,7 +195,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperSetup {
 
 
   @Test
-  void toDto_Test_getPoolRetirementOperations() {
+  void mapToRosettaTransaction_Test_getPoolRetirementOperations() {
     //given
     BlockTx from = newTran();
     CertificateType poolReg = CertificateType.POOL_RETIREMENT;
@@ -207,7 +207,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperSetup {
         .build()));
 
     //when
-    Transaction into = my.toDto(from);
+    Transaction into = my.mapToRosettaTransaction(from);
     //then
     assertThat(into.getMetadata().getSize()).isEqualTo(from.getSize());
     assertThat(into.getMetadata().getScriptSize()).isEqualTo(from.getScriptSize());
@@ -234,11 +234,11 @@ class BlockTxToRosettaTransactionTest extends BaseMapperSetup {
   }
 
   @Test
-  void toDto_Test_getOutputsAsOperations() {
+  void mapToRosettaTransaction_Test_getOutputsAsOperations() {
     //given
     BlockTx from = newTran();
     //when
-    Transaction into = my.toDto(from);
+    Transaction into = my.mapToRosettaTransaction(from);
     //then
     assertThat(into.getMetadata().getSize()).isEqualTo(from.getSize());
     assertThat(into.getMetadata().getScriptSize()).isEqualTo(from.getScriptSize());
@@ -290,11 +290,11 @@ class BlockTxToRosettaTransactionTest extends BaseMapperSetup {
 
 
   @Test
-  void toDto_Test_getInputsAsOperations() {
+  void mapToRosettaTransaction_Test_getInputsAsOperations() {
     //given
     BlockTx from = newTran();
     //when
-    Transaction into = my.toDto(from);
+    Transaction into = my.mapToRosettaTransaction(from);
     //then
     assertThat(into.getMetadata().getSize()).isEqualTo(from.getSize());
     assertThat(into.getMetadata().getScriptSize()).isEqualTo(from.getScriptSize());
@@ -337,7 +337,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperSetup {
 
 
   @Test
-  void toDto_Test_getWithdrawlOperations() {
+  void mapToRosettaTransaction_Test_getWithdrawlOperations() {
     //given
     BlockTx from = newTran();
     from.setWithdrawals(List.of(Withdrawal.builder()
@@ -345,7 +345,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperSetup {
         .stakeAddress("stake_addr1_for_withdraw")
         .build()));
     //when
-    Transaction into = my.toDto(from);
+    Transaction into = my.mapToRosettaTransaction(from);
     //then
     assertThat(into.getOperations()).hasSize(3);
     Optional<Operation> opt = into.getOperations()

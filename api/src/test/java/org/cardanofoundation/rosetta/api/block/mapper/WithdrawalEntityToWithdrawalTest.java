@@ -15,12 +15,12 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 class WithdrawalEntityToWithdrawalTest extends BaseMapperSetup {
 
   @Autowired
-  private WithdrawalEntityToWithdrawal my;
+  private TransactionMapper my;
 
   @Test
-  void fromEntity() {
+  void mapWithdrawalEntityToWithdrawal() {
     WithdrawalEntity from = newWithdrawalEntity();
-    Withdrawal into = my.fromEntity(from);
+    Withdrawal into = my.mapWithdrawalEntityToWithdrawal(from);
 
     assertThat(into.getStakeAddress()).isEqualTo(from.getAddress());
     assertThat(into.getAmount()).isEqualTo(from.getAmount());
