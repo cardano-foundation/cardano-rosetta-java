@@ -23,4 +23,4 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: mvn clean verify sonar:sonar -Dsonar.projectName=cardano-rosetta-java -Dsonar.organization=cardano-foundation -Dsonar.projectKey=cardano-foundation_cardano-rosetta-java -Dsonar.host.url=https://sonarcloud.io -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco-aggregate/jacoco.xml --file ./pom.xml
+        run: mvn clean verify sonar:sonar -Dsonar.projectName=cardano-rosetta-java -Dsonar.organization=cardano-foundation -Dsonar.projectKey=cardano-foundation_cardano-rosetta-java -Dsonar.host.url=https://sonarcloud.io --file ./pom.xml
