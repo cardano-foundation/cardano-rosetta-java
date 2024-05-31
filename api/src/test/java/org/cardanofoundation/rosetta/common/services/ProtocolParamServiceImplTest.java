@@ -38,7 +38,7 @@ class ProtocolParamServiceImplTest {
     when(epochParamRepository.findLatestProtocolParams()).thenReturn(protocolParams);
     when(protocolParamsToEntity.fromEntity(protocolParams)).thenReturn(new ProtocolParams());
     //when
-    ProtocolParams protocolParameters = genesisService.getProtocolParameters();
+    ProtocolParams protocolParameters = genesisService.findProtocolParametersFromIndexer();
     //then
     assertNotNull(protocolParameters);
   }
