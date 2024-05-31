@@ -539,17 +539,6 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
   }
 
   /**
-   * Returns the deposit parameters for the network fetched from the cached protocol parameters
-   *
-   * @return Deposit parameters including key- and pool deposit
-   */
-  @Override
-  public DepositParameters getCachedDepositParameters() {
-    ProtocolParams pp = protocolParamService.getProtocolParameters();
-    return new DepositParameters(pp.getKeyDeposit().toString(), pp.getPoolDeposit().toString());
-  }
-
-  /**
    * Extract raw signed transaction and removes the extra data. Transactions build with rosetta
    * contain such data, transaction build with other tools like cardano-cli do not contain this
    * data.
