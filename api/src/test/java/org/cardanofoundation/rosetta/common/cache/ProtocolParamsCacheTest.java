@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
 import org.cardanofoundation.rosetta.api.block.model.entity.ProtocolParamsEntity;
 import org.cardanofoundation.rosetta.api.block.model.repository.EpochParamRepository;
-import org.cardanofoundation.rosetta.common.mapper.ProtocolParamsToEntity;
+import org.cardanofoundation.rosetta.common.mapper.ProtocolParamsMapper;
 import org.cardanofoundation.rosetta.common.services.ProtocolParamServiceImpl;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -34,7 +34,7 @@ class ProtocolParamsCacheTest {
   private EpochParamRepository epochParamRepository;
 
   @MockBean
-  private ProtocolParamsToEntity protocolParamsToEntity;
+  private ProtocolParamsMapper protocolParamsToEntity;
 
   @Autowired
   private ProtocolParamServiceImpl genesisService;
@@ -58,14 +58,14 @@ class ProtocolParamsCacheTest {
     protocolParams.setMinFeeA(1);
 
     when(epochParamRepository.findLatestProtocolParams()).thenReturn(paramsEntity);
-    when(protocolParamsToEntity.fromEntity(paramsEntity)).thenReturn(protocolParams);
+    when(protocolParamsToEntity.mapProtocolParamsToEntity(paramsEntity)).thenReturn(protocolParams);
 
     ProtocolParams result1 = genesisService.findProtocolParametersFromIndexer();
     ProtocolParams result2 = genesisService.findProtocolParametersFromIndexer();
 
     // Assert that the repository & mapper method is only called once
     verify(epochParamRepository, times(1)).findLatestProtocolParams();
-    verify(protocolParamsToEntity, times(1)).fromEntity(paramsEntity);
+    verify(protocolParamsToEntity, times(1)).mapProtocolParamsToEntity(paramsEntity);
     assertEquals(result1, result2);
 
     Cache cache = cacheManager.getCache(PROTOCOL_PARAMS_CACHE);
@@ -87,7 +87,7 @@ class ProtocolParamsCacheTest {
     protocolParams.setMinFeeA(1);
 
     when(epochParamRepository.findLatestProtocolParams()).thenReturn(paramsEntity);
-    when(protocolParamsToEntity.fromEntity(paramsEntity)).thenReturn(protocolParams);
+    when(protocolParamsToEntity.mapProtocolParamsToEntity(paramsEntity)).thenReturn(protocolParams);
 
     ProtocolParams result = genesisService.findProtocolParametersFromIndexer();
 
