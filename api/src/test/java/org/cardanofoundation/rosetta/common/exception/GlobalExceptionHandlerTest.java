@@ -1,6 +1,7 @@
 package org.cardanofoundation.rosetta.common.exception;
 
 import java.util.Collections;
+import java.util.concurrent.CompletionException;
 import jakarta.servlet.http.HttpServletRequest;
 
 import org.springframework.http.HttpStatus;
@@ -18,6 +19,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.cardanofoundation.rosetta.common.util.RosettaConstants.RosettaErrorType;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -32,6 +34,8 @@ class GlobalExceptionHandlerTest {
   private static final String API_MESSAGE = "API Exception";
   private static final String GLOBAL_EXCEPTION_MESSAGE =
       "An error occurred for request " + TEST_ID + ": " + GLOBAL_MESSAGE;
+  private static final String COMPLETION_GLOBAL_EXCEPTION_MESSAGE =
+      "An error occurred for request " + TEST_ID + ": " + "java.lang.Exception: " + GLOBAL_MESSAGE;
   private static final String API_EXCEPTION_MESSAGE =
       "An error occurred for request " + TEST_ID + ": " + API_MESSAGE;
   private static final String ARGUMENT_NOT_VALID_EXCEPTION_MESSAGE =
@@ -60,6 +64,7 @@ class GlobalExceptionHandlerTest {
     ResponseEntity<Error> result = underTest.handleGlobalException(globalException, request);
 
     assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, result.getStatusCode());
+    assertNotNull(result.getBody());
     assertEquals(GLOBAL_EXCEPTION_MESSAGE, result.getBody().getDetails().getMessage());
     assertEquals(CARDANO_ERROR_CODE, result.getBody().getCode());
   }
@@ -71,9 +76,41 @@ class GlobalExceptionHandlerTest {
     ResponseEntity<Error> result = underTest.handleApiException(apiException);
 
     assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, result.getStatusCode());
+    assertNotNull(result.getBody());
     assertEquals(apiException.getError().getDetails().getMessage(),
         result.getBody().getDetails().getMessage());
     assertEquals(apiException.getError().getCode(), result.getBody().getCode());
+  }
+
+  @Test
+  void handleCompletionException_whenAPIExceptionWrapped_shouldReturnInternalServerError() {
+    ApiException apiException = createApiException();
+    CompletionException completionException = new CompletionException(apiException);
+
+    ResponseEntity<Error> result = underTest.handleCompletionException(completionException,
+        request);
+
+    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, result.getStatusCode());
+    assertNotNull(result.getBody());
+    assertEquals(apiException.getError().getDetails().getMessage(),
+        result.getBody().getDetails().getMessage());
+    assertEquals(apiException.getError().getCode(), result.getBody().getCode());
+  }
+
+  @Test
+  void handleCompletionException_whenGlobalExceptionWrapped_shouldReturnInternalServerError() {
+    Exception globalException = new Exception(GLOBAL_MESSAGE);
+    CompletionException completionException = new CompletionException(globalException);
+
+    when(request.getRequestId()).thenReturn(TEST_ID);
+
+    ResponseEntity<Error> result = underTest.handleCompletionException(completionException,
+        request);
+
+    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, result.getStatusCode());
+    assertNotNull(result.getBody());
+    assertEquals(COMPLETION_GLOBAL_EXCEPTION_MESSAGE, result.getBody().getDetails().getMessage());
+    assertEquals(CARDANO_ERROR_CODE, result.getBody().getCode());
   }
 
   @Test
@@ -88,6 +125,7 @@ class GlobalExceptionHandlerTest {
         methodArgumentNotValidException, request);
 
     assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, result.getStatusCode());
+    assertNotNull(result.getBody());
     assertEquals(ARGUMENT_NOT_VALID_EXCEPTION_MESSAGE, result.getBody().getDetails().getMessage());
     assertEquals(CARDANO_ERROR_CODE, result.getBody().getCode());
   }
