@@ -47,11 +47,13 @@ PG_VERSION=14
 
 ### 5. Volume with Cardano node data
 ````
-docker run --env-file .\docker\.env.dockerfile -p 8082:8082 -v {custom_folder}:/data/db -it {image_name}:latest
+docker run --env-file .\docker\.env.dockerfile -p 8082:8082 -v {custom_folder}:/node/db -it {image_name}:latest
 ````
-It is possible to root the cardano node data volumetrically to the /data/db point.
+It is possible to root the cardano node data volumetrically to the /node/db point.
 
-You can mount a volume with Cardano node data to ``/data/db`` to prevent loading during initialization.
+If you want to use already existing cardano data, you can mount the data volume to the ``/node/db`` folder inside the container.
+
+You can mount a volume with Cardano node data to ``/node/db`` to prevent loading during initialization.
 
 ### 6. Volume with custom network configurations
 ````
@@ -60,13 +62,7 @@ docker run --env-file .\docker\.env.dockerfile -p 8082:8082 -v {custom_folder}:/
 The cardano node configuration jsons are stored in the ``config`` folder and copied into the image on build.
 If you want to use a custom configuration without rebuilding the image, we can mount a volume with configs to ``/networks`` folder inside the container.
 
-### 7. Volume with cardano data
-````
-docker run --env-file .\docker\.env.dockerfile -p 8082:8082 -v {custom_folder}:/data/db -it {image_name}:latest
-````
-If you want to use already existing cardano data, you can mount the data volume to the ``/data/db`` folder inside the container.
-
-### 8. Logs location
+### 7. Logs location
 
 The logs can be viewed inside the container.  
 ``
