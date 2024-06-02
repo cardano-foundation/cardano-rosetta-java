@@ -27,6 +27,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.openapitools.client.model.Operation;
 import org.openapitools.client.model.PublicKey;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -76,9 +77,23 @@ class CardanoConstructionServiceImplTest {
   @InjectMocks
   private CardanoConstructionServiceImpl cardanoService;
 
+  private MockedStatic<CompletableFuture> completableFutureMock;
+
   @BeforeEach
   void setup() {
     cardanoService = new CardanoConstructionServiceImpl(null, null,restTemplate);
+    completableFutureMock = Mockito.mockStatic(CompletableFuture.class, invocation -> {
+      if (invocation.getMethod().getName().equals("supplyAsync")) {
+        Supplier<?> supplier = invocation.getArgument(0);
+        return CompletableFuture.completedFuture(supplier.get());
+      }
+      return invocation.callRealMethod();
+    });
+  }
+
+  @AfterEach
+  void tearDown() {
+    completableFutureMock.close();
   }
 
   @Test
@@ -426,7 +441,6 @@ class CardanoConstructionServiceImplTest {
     try (MockedStatic<CborSerializationUtil> mocked = Mockito.mockStatic(CborSerializationUtil.class)) {
       mocked.when(() -> CborSerializationUtil.deserialize(any(byte[].class)))
           .thenThrow(new CborRuntimeException("CborException"));
-      mockCompletableFuture();
 
       ApiException result = assertThrows(ApiException.class,
           () -> cardanoService.buildTransaction(COMBINE_UNSIGNED_TRANSACTION, signatures, ""));
@@ -446,8 +460,6 @@ class CardanoConstructionServiceImplTest {
         = Mockito.mockStatic(com.bloxbean.cardano.client.common.cbor.CborSerializationUtil.class)) {
       mocked.when(() -> com.bloxbean.cardano.client.common.cbor.CborSerializationUtil.deserialize(any()))
           .thenThrow(new com.bloxbean.cardano.client.exception.CborRuntimeException("CborException"));
-
-      mockCompletableFuture();
 
       ApiException result = assertThrows(ApiException.class,
           () -> cardanoService.buildTransaction(COMBINE_UNSIGNED_TRANSACTION, signatures, COMBINE_UNSIGNED_TRANSACTION));
@@ -469,15 +481,5 @@ class CardanoConstructionServiceImplTest {
     HttpHeaders headers = new HttpHeaders();
     headers.add(Constants.CONTENT_TYPE_HEADER_KEY, Constants.CBOR_CONTENT_TYPE);
     return headers;
-  }
-
-  private void mockCompletableFuture() {
-    Mockito.mockStatic(CompletableFuture.class, invocation -> {
-      if (invocation.getMethod().getName().equals("supplyAsync")) {
-        Supplier<?> supplier = invocation.getArgument(0);
-        return CompletableFuture.completedFuture(supplier.get());
-      }
-      return invocation.callRealMethod();
-    });
   }
 }
