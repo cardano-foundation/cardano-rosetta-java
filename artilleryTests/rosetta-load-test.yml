@@ -21,16 +21,17 @@ config:
         Content-Type: application/json
   phases:
     - duration: 60
-      arrivalRate: 1
-      rampTo: 5
+      arrivalRate: 5
+      rampTo: 30
       name: Warm up phase
     - duration: 60
-      arrivalRate: 5
-      rampTo: 10
+      arrivalRate: 30
+      rampTo: 60
       name: Ramp up load
     - duration: 30
-      arrivalRate: 10
-      rampTo: 30
+      arrivalRate: 50
+      maxVusers: 1000
+      rampTo: 100
       name: Spike phase
   plugins:
     ensure: { }
