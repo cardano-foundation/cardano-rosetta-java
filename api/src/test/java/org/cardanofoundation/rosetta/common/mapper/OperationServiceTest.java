@@ -9,12 +9,13 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import org.cardanofoundation.rosetta.api.construction.service.OperationService;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
 
-import static org.cardanofoundation.rosetta.common.mapper.TransactionDataToOperations.*;
-
 @ExtendWith(MockitoExtension.class)
-class TransactionDataToOperationsTest {
+class OperationServiceTest {
+
+  OperationService operationService = new OperationService();
 
   @Test
   void getPoolSignersFromOperationWOPoolSigners() {
@@ -24,7 +25,7 @@ class TransactionDataToOperationsTest {
             .type("poolRegistration")
             .build();
     //when
-    List<String> poolSigners = getPoolSigners(NetworkIdentifierType.CARDANO_MAINNET_NETWORK, operation);
+    List<String> poolSigners = operationService.getSignerFromOperation(NetworkIdentifierType.CARDANO_MAINNET_NETWORK, operation);
     //then
     Assertions.assertEquals(0, poolSigners.size());
   }

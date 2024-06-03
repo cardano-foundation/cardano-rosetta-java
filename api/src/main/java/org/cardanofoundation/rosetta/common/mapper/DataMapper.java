@@ -8,10 +8,8 @@ import org.openapitools.client.model.Amount;
 import org.openapitools.client.model.Currency;
 import org.openapitools.client.model.CurrencyMetadata;
 
-import org.cardanofoundation.rosetta.common.annotation.PersistenceMapper;
 import org.cardanofoundation.rosetta.common.util.Constants;
 
-@PersistenceMapper
 @RequiredArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public class DataMapper {
 

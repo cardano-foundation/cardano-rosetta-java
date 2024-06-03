@@ -24,7 +24,6 @@ public class ConstructionMapperUtils {
         .build());
   }
 
-  @Named("mapSignatures")
   public Signatures getSignatures(Signature signature) {
     String chainCode = null;
     String address = null;

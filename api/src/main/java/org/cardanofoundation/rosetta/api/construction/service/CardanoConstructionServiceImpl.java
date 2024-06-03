@@ -65,7 +65,6 @@ import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
 import org.cardanofoundation.rosetta.common.exception.ApiException;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.mapper.CborArrayToTransactionData;
-import org.cardanofoundation.rosetta.common.mapper.TransactionDataToOperations;
 import org.cardanofoundation.rosetta.common.model.cardano.crypto.Signatures;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.TransactionData;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.TransactionParsed;
@@ -85,9 +84,10 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
 
   private final LedgerBlockService ledgerBlockService;
   private final ProtocolParamService protocolParamService;
+  private final OperationService operationService;
   private final RestTemplate restTemplate;
 
-  private ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor();
+  private final ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor();
 
   @Value("${cardano.rosetta.NODE_SUBMIT_API_PORT}")
   private int nodeSubmitApiPort;
@@ -100,18 +100,17 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
     Array decodeTransaction = decodeTransaction(transaction);
     try {
       TransactionData convertedTr = CborArrayToTransactionData.convert(decodeTransaction, signed);
-      List<Operation> operations = TransactionDataToOperations.convert(convertedTr,
+      List<Operation> operations = operationService.mapTransactionDataToOperations(convertedTr,
           networkIdentifierType.getValue());
       List<AccountIdentifier> accountIdentifierSigners = new ArrayList<>();
       if (signed) {
         log.info("[parseSignedTransaction] About to get signatures from parsed transaction");
-        List<String> accumulator = new ArrayList<>();
-        convertedTr.transactionExtraData().operations().forEach(o -> {
-          List<String> list = TransactionDataToOperations.getSignerFromOperation(
-              networkIdentifierType, o);
-          accumulator.addAll(list);
-        });
-        accountIdentifierSigners = TransactionDataToOperations.getUniqueAccountIdentifiers(accumulator);
+        List<String> accumulator = convertedTr.transactionExtraData().operations().stream()
+            .map(o -> operationService.getSignerFromOperation(networkIdentifierType, o))
+            .flatMap(List::stream)
+            .toList();
+        accountIdentifierSigners = operationService.getUniqueAccountIdentifiers(
+            accumulator);
       }
       return new TransactionParsed(operations, accountIdentifierSigners);
     } catch (CborException | CborDeserializationException | CborSerializationException error) {
