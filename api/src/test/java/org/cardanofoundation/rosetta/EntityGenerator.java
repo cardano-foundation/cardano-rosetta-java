@@ -53,6 +53,8 @@ import org.openapitools.client.model.TransactionIdentifier;
 import org.openapitools.client.model.TransactionIdentifierResponse;
 import org.openapitools.client.model.Version;
 
+import org.cardanofoundation.rosetta.common.model.cardano.crypto.Signatures;
+
 import static org.cardanofoundation.rosetta.common.util.Constants.*;
 import static org.openapitools.client.model.CurveType.EDWARDS25519;
 
@@ -342,5 +344,12 @@ public class EntityGenerator {
                 .coinAction(CoinAction.SPENT)
                 .build())
             .build();
+    }
+
+    public static Signatures givenSignatures() {
+        return new Signatures("dc2a1948bfa9411b37e8d280b04c48a85af5588bcf509c0fca798f7b462ebca92d6733dacc1f1c6c1463623c085401be07ea422ad4f1c543375e7d3d2393aa0b",
+            "73fea80d424276ad0978d4fe5310e8bc2d485f5f6bb3bf87612989f112ad5a7d",
+            "dd75e154da417becec55cdd249327454138f082110297d5e87ab25e15fad150f",
+            "Ae2tdPwUPEZC6WJfVQxTNN2tWw4skGrN6zRVukvxJmTFy1nYkVGQBuURU3L");
     }
 }
