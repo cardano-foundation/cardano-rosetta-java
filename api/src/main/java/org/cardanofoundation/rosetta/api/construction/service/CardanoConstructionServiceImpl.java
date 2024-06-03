@@ -8,6 +8,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import jakarta.validation.constraints.NotNull;
 
 import lombok.RequiredArgsConstructor;
@@ -83,6 +86,8 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
   private final LedgerBlockService ledgerBlockService;
   private final ProtocolParamService protocolParamService;
   private final RestTemplate restTemplate;
+
+  private ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor();
 
   @Value("${cardano.rosetta.NODE_SUBMIT_API_PORT}")
   private int nodeSubmitApiPort;
@@ -227,31 +232,18 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
       String transactionMetadata) {
     log.info("[buildTransaction] About to signed a transaction with {} signatures",
         signaturesList.size());
-    TransactionWitnessSet witnesses = getWitnessesForTransaction(signaturesList);
-
-    log.info("[buildTransaction] Instantiating transaction body from unsigned transaction bytes");
-    DataItem[] dataItems;
+    CompletableFuture<TransactionBody> transactionBodyFuture =
+        CompletableFuture.supplyAsync(() -> deserializeTransactionBody(unsignedTransaction), executorService);
+    CompletableFuture<TransactionWitnessSet> witnessesFuture =
+        CompletableFuture.supplyAsync(() -> getWitnessesForTransaction(signaturesList), executorService);
+    CompletableFuture<AuxiliaryData> auxiliaryDataFuture =
+        CompletableFuture.supplyAsync(() -> deserializeAuxiliaryData(transactionMetadata), executorService);
     try {
-      dataItems = com.bloxbean.cardano.yaci.core.util.CborSerializationUtil.deserialize(
-          HexUtil.decodeHexString(unsignedTransaction));
-    } catch (Exception e) {
-      throw ExceptionFactory.cantCreateSignTransaction();
-    }
-    try {
-      TransactionBody transactionBody = TransactionBody.deserialize(
-          (co.nstant.in.cbor.model.Map) dataItems[0]);
       log.info(
           "[buildTransaction] Creating transaction using transaction body and extracted witnesses");
-      AuxiliaryData auxiliaryData = null;
-      if (!ObjectUtils.isEmpty(transactionMetadata)) {
-        log.info("[buildTransaction] Adding transaction metadata");
-        Array array = (Array) CborSerializationUtil.deserialize(
-            HexUtil.decodeHexString(transactionMetadata));
-        auxiliaryData = AuxiliaryData.deserialize(
-            (co.nstant.in.cbor.model.Map) array.getDataItems().getFirst());
-      }
-      Transaction transaction = Transaction.builder().auxiliaryData(auxiliaryData)
-          .witnessSet(witnesses).build();
+      Transaction transaction = Transaction.builder().auxiliaryData(auxiliaryDataFuture.join())
+          .witnessSet(witnessesFuture.join()).build();
+      TransactionBody transactionBody = transactionBodyFuture.join();
       transaction.setBody(transactionBody);
       Array array = (Array) CborSerializationUtil.deserialize(transaction.serialize());
       if (transactionBody.getTtl() == 0) {
@@ -270,10 +262,6 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
       }
       return HexUtil.encodeHexString(
           com.bloxbean.cardano.yaci.core.util.CborSerializationUtil.serialize(array));
-    } catch (CborDeserializationException e) {
-      log.error("{} [buildTransaction] CborDeserializationException while building transaction",
-          e.getMessage());
-      throw ExceptionFactory.generalDeserializationError(e.getMessage());
     } catch (CborSerializationException e) {
       log.error("{} [buildTransaction] CborSerializationException while building transaction",
           e.getMessage());
@@ -288,11 +276,13 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
     ArrayList<BootstrapWitness> bootstrapWitnesses = new ArrayList<>();
     log.info("[getWitnessesForTransaction] Extracting witnesses from signatures");
     signaturesList.forEach(signature -> {
-      VerificationKey vKey = new VerificationKey();
-      vKey.setCborHex(ObjectUtils.isEmpty(signature) ? null : signature.publicKey());
+      if (ObjectUtils.isEmpty(signature)) {
+        return;
+      }
+
+      VerificationKey vKey = new VerificationKey(signature.publicKey());
       EraAddressType eraAddressType = CardanoAddressUtils.getEraAddressType(signature.address());
-      if (!ObjectUtils.isEmpty(signature)) {
-        if (!ObjectUtils.isEmpty(signature.address()) && eraAddressType == EraAddressType.BYRON) {
+        if (eraAddressType == EraAddressType.BYRON) {
           // byron case
           ValidateParseUtil.validateChainCode(signature.chainCode());
           ByronAddress byronAddress = new ByronAddress(signature.address());
@@ -310,7 +300,6 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
           vKeyWitnesses.add(new VkeyWitness(HexUtil.decodeHexString(vKey.getCborHex()),
               HexUtil.decodeHexString(signature.signature())));
         }
-      }
     });
     log.info("[getWitnessesForTransaction] {} witnesses were extracted to sign transaction",
         vKeyWitnesses.size());
@@ -630,5 +619,31 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
       return signatureProcessor(null, AddressType.POOL_KEY_HASH, address);
     }
     throw ExceptionFactory.invalidAddressError(address);
+  }
+
+  private TransactionBody deserializeTransactionBody(String unsignedTransaction) {
+    log.info("[buildTransaction] Instantiating transaction body from unsigned transaction bytes");
+    try {
+      DataItem[] dataItems = com.bloxbean.cardano.yaci.core.util.CborSerializationUtil.deserialize(
+          HexUtil.decodeHexString(unsignedTransaction));
+      return TransactionBody.deserialize((co.nstant.in.cbor.model.Map) dataItems[0]);
+    } catch (Exception e) {
+      log.error("[buildTransaction] Error deserializing unsigned transaction: {}", e.getMessage());
+      throw ExceptionFactory.cantCreateSignTransaction();
+    }
+  }
+
+  private AuxiliaryData deserializeAuxiliaryData(String transactionMetadata) {
+    if (ObjectUtils.isEmpty(transactionMetadata)) {
+      return null;
+    }
+    try {
+      log.info("[buildTransaction] Adding transaction metadata");
+      Array array = (Array) CborSerializationUtil.deserialize(HexUtil.decodeHexString(transactionMetadata));
+      return AuxiliaryData.deserialize((co.nstant.in.cbor.model.Map) array.getDataItems().getFirst());
+    } catch (Exception e) {
+      log.error("[buildTransaction] CborDeserializationException while deserializing transactionMetadata: {}", e.getMessage());
+      throw ExceptionFactory.generalDeserializationError(e.getMessage());
+    }
   }
 }

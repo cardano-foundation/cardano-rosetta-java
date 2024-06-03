@@ -1,6 +1,7 @@
 package org.cardanofoundation.rosetta.common.exception;
 
 import java.util.List;
+import java.util.concurrent.CompletionException;
 import jakarta.servlet.http.HttpServletRequest;
 
 import lombok.extern.slf4j.Slf4j;
@@ -33,6 +34,16 @@ public class GlobalExceptionHandler {
   public ResponseEntity<Error> handleApiException(ApiException apiException) {
     log.error("An API exception has raised", apiException);
     return new ResponseEntity<>(apiException.getError(), HttpStatus.INTERNAL_SERVER_ERROR);
+  }
+
+  @ExceptionHandler(CompletionException.class)
+  public ResponseEntity<Error> handleCompletionException(CompletionException exception, HttpServletRequest request) {
+    Throwable cause = exception.getCause();
+    if (cause instanceof ApiException apiException) {
+      log.error("An API exception has raised", apiException);
+      return new ResponseEntity<>(apiException.getError(), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+    return handleGlobalException(exception, request);
   }
 
   @ExceptionHandler(MethodArgumentNotValidException.class)
