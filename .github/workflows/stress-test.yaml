@@ -11,7 +11,7 @@ jobs:
       - name: "Set up environment"
         run: docker compose --env-file .env.docker-compose -f docker-compose.yaml up --build -d --wait
       - name: "Wait for node to be populated"
-        run: sleep 330s
+        run: sleep 500s
       - name: "Install Node"
         uses: actions/setup-node@v1
         with:
