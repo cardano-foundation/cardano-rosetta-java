@@ -2,6 +2,7 @@ package org.cardanofoundation.rosetta.common.util;
 
 import java.util.List;
 
+import org.openapitools.client.model.AccountIdentifier;
 import org.openapitools.client.model.Amount;
 import org.openapitools.client.model.CoinChange;
 import org.openapitools.client.model.CoinIdentifier;
@@ -32,7 +33,9 @@ import static org.cardanofoundation.rosetta.common.util.ValidateParseUtil.valida
 import static org.cardanofoundation.rosetta.common.util.ValidateParseUtil.validateChainCode;
 import static org.cardanofoundation.rosetta.common.util.ValidateParseUtil.validateDnsName;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.openapitools.client.model.CurveType.EDWARDS25519;
 
 @SuppressWarnings("java:S5778")
@@ -188,4 +191,19 @@ class ValidateParseUtilTest {
         assertEquals(4025, exception.getError().getCode());
     }
 
+    @Test
+    void validateAddressPresenceTest() {
+        boolean actual = ValidateParseUtil.validateAddressPresence(new Operation());
+        assertFalse(actual);
+        actual = ValidateParseUtil
+            .validateAddressPresence(new Operation().account(new AccountIdentifier()));
+        assertFalse(actual);
+        actual = ValidateParseUtil
+            .validateAddressPresence(new Operation().account(new AccountIdentifier().address("")));
+        assertFalse(actual);
+        actual = ValidateParseUtil
+            .validateAddressPresence(
+                new Operation().account(new AccountIdentifier().address("address")));
+        assertTrue(actual);
+    }
 }
