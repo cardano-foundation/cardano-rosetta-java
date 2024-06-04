@@ -1,10 +1,12 @@
 ## Main variables
 LOG=INFO
 NETWORK=preprod
-DB_SCHEMA=preprod
 # mainnet, preprod, preview, sanchonet, devkit
 PROTOCOL_MAGIC=1
 # mainnet 764824073, preprod 1, preview 2, sanchonet 4, devkit 42
+
+# Node synchronization
+SYNC=false
 
 ## Postgres variables
 DB_NAME=rosetta-java
@@ -19,8 +21,8 @@ CARDANO_NODE_PORT=3001
 CARDANO_NODE_VERSION=8.9.0
 CARDANO_NODE_SUBMIT_HOST=localhost
 NODE_SUBMIT_API_PORT=8090
-CARDANO_NODE_SOCKET_PATH=/node
-CARDANO_NODE_SOCKET=/node/node.socket
+CARDANO_NODE_SOCKET_DIR=/node
+CARDANO_NODE_SOCKET_PATH=/node/node.socket
 ## Api env
 API_SPRING_PROFILES_ACTIVE=dev
 # staging, h2, test. Additional profiles: mempool (if mempool should be activated)

@@ -143,6 +143,8 @@ WORKDIR /
 
 # Install postgres
 ARG PG_VERSION=14
+ARG PG_VERSION_TEMP=$PG_VERSION
+ENV PG_VERSION=$PG_VERSION_TEMP
 
 RUN apt update --fix-missing \
     && DEBIAN_FRONTEND=noninteractive apt install -y wget sudo gnupg \
@@ -157,7 +159,7 @@ RUN echo "host all  all    0.0.0.0/0  md5" >> /etc/postgresql/$PG_VERSION/main/p
 RUN echo "listen_addresses='*'" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
 
 # Install jdk 21
-RUN apt install -y --no-install-recommends openjdk-21-jdk \
+RUN apt install -y --no-install-recommends openjdk-21-jdk jq bc sudo \
     && apt clean
 
 # Copy cardano node
@@ -180,12 +182,12 @@ COPY --from=java-builder /root/app/yaci-indexer/target/*.jar /yaci-indexer/app.j
 # Run
 RUN mkdir /logs
 
-EXPOSE 8082
-
 COPY ./docker/entrypoint.sh /sbin/entrypoint.sh
 
 RUN chmod +x /sbin/entrypoint.sh
 
+EXPOSE 8082
+
 ENTRYPOINT ["/sbin/entrypoint.sh"]
 
-CMD ["/bin/sh", "-c", "bash"]
+CMD ["tail", "-f", "-n", "+1", "/logs/*.log"]
