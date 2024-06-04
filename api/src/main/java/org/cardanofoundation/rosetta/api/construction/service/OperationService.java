@@ -2,7 +2,6 @@ package org.cardanofoundation.rosetta.api.construction.service;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,7 +16,6 @@ import com.bloxbean.cardano.client.transaction.spec.TransactionBody;
 import com.bloxbean.cardano.client.transaction.spec.TransactionInput;
 import com.bloxbean.cardano.client.transaction.spec.TransactionOutput;
 import org.apache.commons.lang3.ObjectUtils;
-import org.openapitools.client.model.AccountIdentifier;
 import org.openapitools.client.model.Operation;
 import org.openapitools.client.model.OperationIdentifier;
 import org.openapitools.client.model.OperationMetadata;
@@ -37,11 +35,14 @@ import org.cardanofoundation.rosetta.common.util.ValidateParseUtil;
 import static org.cardanofoundation.rosetta.common.util.Constants.OPERATION_TYPE_POOL_REGISTRATION;
 import static org.cardanofoundation.rosetta.common.util.Constants.OPERATION_TYPE_POOL_REGISTRATION_WITH_CERT;
 
+/**
+ * Service class to operate on Operations
+ */
 @Slf4j
 @Service
 public class OperationService {
 
-  public List<Operation> mapTransactionDataToOperations(TransactionData data, Integer network)
+  public List<Operation> getOperationsFromTransactionData(TransactionData data, Integer network)
       throws CborDeserializationException, CborException, CborSerializationException {
     TransactionBody transactionBody = data.transactionBody();
     TransactionExtraData extraData = data.transactionExtraData();
@@ -191,10 +192,5 @@ public class OperationService {
     if (operation == null || operation.getMetadata() == null) {
       throw ExceptionFactory.missingStakingKeyError();
     }
-  }
-
-  public List<AccountIdentifier> getUniqueAccountIdentifiers(List<String> addresses) {
-    return new HashSet<>(addresses).stream().map(s -> new AccountIdentifier(s, null, null))
-        .toList();
   }
 }
