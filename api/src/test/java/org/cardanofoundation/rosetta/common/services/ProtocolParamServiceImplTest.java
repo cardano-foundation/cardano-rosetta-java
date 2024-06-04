@@ -32,7 +32,7 @@ class ProtocolParamServiceImplTest {
   }
 
   @Test
-  void test() {
+  void findProtocolParametersFromIndexerTest() {
     //given
     ProtocolParamsEntity protocolParams = new ProtocolParamsEntity();
     when(epochParamRepository.findLatestProtocolParams()).thenReturn(protocolParams);

@@ -41,7 +41,7 @@ import static org.cardanofoundation.rosetta.common.util.Constants.OPERATION_TYPE
 @Service
 public class OperationService {
 
-  public List<Operation> getOperationsFromTransactionData(TransactionData data, Integer network)
+  public List<Operation> getOperationsFromTransactionData(TransactionData data, Long networkProtocolMagic)
       throws CborDeserializationException, CborException, CborSerializationException {
     TransactionBody transactionBody = data.transactionBody();
     TransactionExtraData extraData = data.transactionExtraData();
@@ -49,8 +49,8 @@ public class OperationService {
     List<Operation> operations = new ArrayList<>();
     fillInputOperations(transactionBody, extraData, operations);
     fillOutputOperations(transactionBody, operations);
-    fillCertOperations(transactionBody, extraData, network, operations);
-    fillWithdrawalOperations(transactionBody, extraData, network, operations);
+    fillCertOperations(transactionBody, extraData, networkProtocolMagic, operations);
+    fillWithdrawalOperations(transactionBody, extraData, networkProtocolMagic, operations);
     fillVoteOperations(extraData, operations);
 
     return operations;
@@ -109,28 +109,26 @@ public class OperationService {
   }
 
   private void fillCertOperations(TransactionBody transactionBody, TransactionExtraData extraData,
-      Integer network, List<Operation> operations)
+      Long networkIdentifierType, List<Operation> operations)
       throws CborException, CborSerializationException {
     List<Operation> certOps = extraData.operations().stream()
         .filter(o -> Constants.STAKE_POOL_OPERATIONS.contains(o.getType())
         ).toList();
     List<Operation> parsedCertOperations = ParseConstructionUtil.parseCertsToOperations(
-        transactionBody, certOps,
-        network);
+            transactionBody, certOps, networkIdentifierType);
     operations.addAll(parsedCertOperations);
   }
 
   private void fillWithdrawalOperations(TransactionBody transactionBody,
       TransactionExtraData extraData,
-      Integer network, List<Operation> operations) {
+      Long networkIdentifierType, List<Operation> operations) {
     List<Operation> withdrawalOps = extraData.operations().stream()
         .filter(o -> o.getType().equals(OperationType.WITHDRAWAL.getValue()))
         .toList();
     int withdrawalsCount = ObjectUtils.isEmpty(transactionBody.getWithdrawals()) ? 0
         : transactionBody.getWithdrawals().size();
     List<Operation> withdrawalsOperations = ParseConstructionUtil.parseWithdrawalsToOperations(
-        withdrawalOps,
-        withdrawalsCount, network);
+            withdrawalOps, withdrawalsCount, networkIdentifierType);
     operations.addAll(withdrawalsOperations);
   }
 

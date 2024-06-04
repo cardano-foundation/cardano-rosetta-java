@@ -135,7 +135,7 @@ class CardanoConstructionServiceImplTest {
           .thenReturn(false);
 
       ApiException result = assertThrows(ApiException.class,
-          () -> cardanoService.calculateTxSize(NetworkIdentifierType.CARDANO_TESTNET_NETWORK,
+          () -> cardanoService.calculateTxSize(NetworkIdentifierType.CARDANO_PREVIEW_NETWORK,
               operations, 0, null));
 
       assertEquals(RosettaErrorType.INVALID_ADDRESS.getMessage(), result.getError().getMessage());
@@ -175,7 +175,7 @@ class CardanoConstructionServiceImplTest {
   @Test
   void parseTransactionSignedTest() {
     TransactionParsed actual = cardanoService.parseTransaction(
-        NetworkIdentifierType.CARDANO_TESTNET_NETWORK,
+        NetworkIdentifierType.CARDANO_PREVIEW_NETWORK,
         TRANSACTION_SIGNED, true);
 
     assertFalse(actual.operations().isEmpty());
@@ -202,7 +202,7 @@ class CardanoConstructionServiceImplTest {
   @Test
   void parseTransactionSignedThrowTest() {
     ApiException actualException = assertThrows(ApiException.class, () ->
-        cardanoService.parseTransaction(NetworkIdentifierType.CARDANO_TESTNET_NETWORK,
+        cardanoService.parseTransaction(NetworkIdentifierType.CARDANO_PREVIEW_NETWORK,
             TRANSACTION_NOT_SIGNED, true));
 
     assertEquals(RosettaErrorType.CANT_CREATE_SIGNED_TRANSACTION_ERROR.getMessage(),
@@ -213,9 +213,22 @@ class CardanoConstructionServiceImplTest {
   }
 
   @Test
+  void parseTransactionSignedThrowSanchonetTest() {
+    ApiException actualException = assertThrows(ApiException.class, () ->
+            cardanoService.parseTransaction(NetworkIdentifierType.CARDANO_SANCHONET_NETWORK,
+                    TRANSACTION_NOT_SIGNED, true));
+
+    assertEquals(RosettaErrorType.CANT_CREATE_SIGNED_TRANSACTION_ERROR.getMessage(),
+            actualException.getError().getMessage());
+    assertEquals(RosettaErrorType.CANT_CREATE_SIGNED_TRANSACTION_ERROR.getCode(),
+            actualException.getError().getCode());
+    assertFalse(actualException.getError().isRetriable());
+  }
+
+  @Test
   void parseTransactionNotSignedTest() {
     TransactionParsed actual = cardanoService.parseTransaction(
-        NetworkIdentifierType.CARDANO_TESTNET_NETWORK,
+        NetworkIdentifierType.CARDANO_PREVIEW_NETWORK,
         TRANSACTION_NOT_SIGNED, false);
 
     assertFalse(actual.operations().isEmpty());
@@ -253,7 +266,7 @@ class CardanoConstructionServiceImplTest {
   @Test
   void parseTransactionNotSignedThrowTest() {
     ApiException actualException = assertThrows(ApiException.class, () ->
-        cardanoService.parseTransaction(NetworkIdentifierType.CARDANO_TESTNET_NETWORK,
+        cardanoService.parseTransaction(NetworkIdentifierType.CARDANO_PREVIEW_NETWORK,
             TRANSACTION_SIGNED, false));
 
     assertEquals(RosettaErrorType.CANT_CREATE_UNSIGNED_TRANSACTION_ERROR.getMessage(),
@@ -266,7 +279,7 @@ class CardanoConstructionServiceImplTest {
   @Test
   void parseTransactionThrowTest() {
     ApiException actualException = assertThrows(ApiException.class, () ->
-        cardanoService.parseTransaction(NetworkIdentifierType.CARDANO_TESTNET_NETWORK,
+        cardanoService.parseTransaction(NetworkIdentifierType.CARDANO_PREVIEW_NETWORK,
             TRANSACTION_SIGNED + "1", false));
 
     assertEquals(RosettaErrorType.INVALID_TRANSACTION.getMessage(),
@@ -284,7 +297,7 @@ class CardanoConstructionServiceImplTest {
           .thenThrow(new CborException("Test error"));
 
       ApiException actualException = assertThrows(ApiException.class, () ->
-          cardanoService.parseTransaction(NetworkIdentifierType.CARDANO_TESTNET_NETWORK,
+          cardanoService.parseTransaction(NetworkIdentifierType.CARDANO_PREVIEW_NETWORK,
               TRANSACTION_SIGNED, false));
 
       assertEquals(RosettaErrorType.INVALID_TRANSACTION.getMessage(),

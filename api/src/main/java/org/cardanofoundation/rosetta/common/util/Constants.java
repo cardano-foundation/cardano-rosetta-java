@@ -47,7 +47,7 @@ public class Constants {
   public static final int CHAIN_CODE_LENGTH = 64;
   public static final int MULTI_ASSET_DECIMALS = 0;
 
-  public static final String MAINNET = "Mainnet";
+  public static final String MAINNET = "mainnet";
   public static final String VALID_CURVE_TYPE = CurveType.EDWARDS25519.getValue();
   public static final int PUBLIC_KEY_BYTES_LENGTH = 64;
   public static final Integer DEFAULT_RELATIVE_TTL = 1000;
@@ -194,7 +194,6 @@ public class Constants {
 
 
   public static final String LOVELACE = "lovelace";
-  public static final String TESTNET = "testnet";
   public static final String DEVKIT = "devkit";
   public static final String SANCHONET = "sanchonet";
 

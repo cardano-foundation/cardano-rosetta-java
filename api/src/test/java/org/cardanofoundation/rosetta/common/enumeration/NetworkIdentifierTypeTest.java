@@ -10,9 +10,9 @@ class NetworkIdentifierTypeTest {
   final NetworkIdentifierType[] networkIdentifierTypes = NetworkIdentifierType.values();
 
   @Test
-  void find() {
-    assertEquals(NetworkIdentifierType.CARDANO_MAINNET_NETWORK, NetworkIdentifierType.find(1));
-    assertNull(NetworkIdentifierType.find(100));
+  void findByProtocolMagic() {
+    assertEquals(NetworkIdentifierType.CARDANO_MAINNET_NETWORK, NetworkIdentifierType.findByProtocolMagic(764824073L));
+    assertNull(NetworkIdentifierType.findByProtocolMagic(100L));
   }
 
   @Test

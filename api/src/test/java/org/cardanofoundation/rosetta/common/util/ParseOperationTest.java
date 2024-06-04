@@ -163,7 +163,7 @@ class ParseOperationTest {
   }
 
   @Test
-  void parseOperationWOAddressStaiingKey() {
+  void parseOperationWOAddressStakingKey() {
     ProcessOperations resultAccumulator = new ProcessOperations();
     Operation operation = new Operation();
     ApiException exception = assertThrows(ApiException.class,
