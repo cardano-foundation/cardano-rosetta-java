@@ -5,6 +5,7 @@ import com.bloxbean.cardano.client.address.Address;
 import com.bloxbean.cardano.client.address.AddressType;
 import com.bloxbean.cardano.client.common.model.Networks;
 import com.bloxbean.cardano.client.crypto.bip32.HdKeyPair;
+import com.bloxbean.cardano.client.crypto.bip32.key.HdPublicKey;
 import com.bloxbean.cardano.client.transaction.spec.cert.MultiHostName;
 import com.bloxbean.cardano.client.transaction.spec.cert.SingleHostAddr;
 import com.bloxbean.cardano.client.transaction.spec.cert.SingleHostName;
@@ -18,12 +19,15 @@ import org.junit.jupiter.api.Test;
 
 import org.cardanofoundation.rosetta.common.enumeration.EraAddressType;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
+import org.cardanofoundation.rosetta.common.exception.ApiException;
+import org.cardanofoundation.rosetta.common.util.RosettaConstants.RosettaErrorType;
 
 import static org.cardanofoundation.rosetta.common.util.CardanoAddressUtils.*;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CardanoAddressUtilTest {
@@ -191,5 +195,59 @@ class CardanoAddressUtilTest {
     assertNotNull(address);
     assertArrayEquals(new byte[]{(byte) 0x01, (byte) 0x23, (byte) 0x45, (byte) 0x67, (byte) 0x89, (byte) 0xab, (byte) 0xcd, (byte) 0xef},
             address.getBytes());
+  }
+
+  @Test
+  void publicKeyToHdPublicKeyTest() {
+    Account account = new Account(testMnemonic);
+    PublicKey publicKey = PublicKey.builder()
+        .hexBytes(HexUtil.encodeHexString(account.stakeHdKeyPair().getPublicKey().getKeyData()))
+        .curveType(CurveType.EDWARDS25519).build();
+
+    HdPublicKey actual = publicKeyToHdPublicKey(publicKey);
+
+    assertEquals(HexUtil.encodeHexString(account.stakeHdKeyPair().getPublicKey().getKeyData()),
+        HexUtil.encodeHexString(actual.getKeyData()));
+  }
+
+  @Test
+  void publicKeyToHdPublicKeyNullPublicKeyTest() {
+    ApiException actualException = assertThrows(ApiException.class,
+        () -> publicKeyToHdPublicKey(null));
+
+    assertEquals(RosettaErrorType.STAKING_KEY_MISSING.getCode(),
+        actualException.getError().getCode());
+    assertEquals(RosettaErrorType.STAKING_KEY_MISSING.getMessage(),
+        actualException.getError().getMessage());
+  }
+
+  @Test
+  void publicKeyToHdPublicKeyEmptyPublicKeyTest() {
+    PublicKey publicKey = PublicKey.builder()
+        .hexBytes("")
+        .curveType(CurveType.EDWARDS25519)
+        .build();
+    ApiException actualException = assertThrows(ApiException.class,
+        () -> publicKeyToHdPublicKey(publicKey));
+
+    assertEquals(RosettaErrorType.STAKING_KEY_MISSING.getCode(),
+        actualException.getError().getCode());
+    assertEquals(RosettaErrorType.STAKING_KEY_MISSING.getMessage(),
+        actualException.getError().getMessage());
+  }
+
+  @Test
+  void publicKeyToHdPublicKeyInvalidPublicKeyTest() {
+    PublicKey publicKey = PublicKey.builder()
+        .hexBytes("invalid")
+        .curveType(CurveType.EDWARDS25519)
+        .build();
+    ApiException actualException = assertThrows(ApiException.class,
+        () -> publicKeyToHdPublicKey(publicKey));
+
+    assertEquals(RosettaErrorType.INVALID_STAKING_KEY_FORMAT.getCode(),
+        actualException.getError().getCode());
+    assertEquals(RosettaErrorType.INVALID_STAKING_KEY_FORMAT.getMessage(),
+        actualException.getError().getMessage());
   }
 }

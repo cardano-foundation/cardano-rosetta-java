@@ -235,13 +235,13 @@ public class CardanoAddressUtils {
   }
 
   public static HdPublicKey publicKeyToHdPublicKey(PublicKey publicKey) {
-    if (ObjectUtils.isEmpty(publicKey) || ObjectUtils.isEmpty(publicKey.getHexBytes())) {
+    if (publicKey == null || ObjectUtils.isEmpty(publicKey.getHexBytes())) {
       log.error("[getPublicKey] Staking key not provided");
       throw ExceptionFactory.missingStakingKeyError();
     }
-    boolean checkKey = CardanoAddressUtils.isKeyValid(publicKey.getHexBytes(),
+    boolean isKeyValid = CardanoAddressUtils.isKeyValid(publicKey.getHexBytes(),
         publicKey.getCurveType().toString());
-    if (!checkKey) {
+    if (!isKeyValid) {
       log.info("[getPublicKey] Staking key has an invalid format");
       throw ExceptionFactory.invalidStakingKeyFormat();
     }

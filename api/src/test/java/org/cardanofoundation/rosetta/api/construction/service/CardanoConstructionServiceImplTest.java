@@ -81,7 +81,8 @@ class CardanoConstructionServiceImplTest {
 
   @BeforeEach
   void setup() {
-    cardanoService = new CardanoConstructionServiceImpl(null, null,restTemplate);
+    cardanoService = new CardanoConstructionServiceImpl(null, null,
+        new OperationService(), restTemplate);
     completableFutureMock = Mockito.mockStatic(CompletableFuture.class, invocation -> {
       if (invocation.getMethod().getName().equals("supplyAsync")) {
         Supplier<?> supplier = invocation.getArgument(0);

@@ -3,7 +3,6 @@ package org.cardanofoundation.rosetta.api.construction.mapper;
 import java.util.List;
 
 import org.springframework.stereotype.Component;
-import org.apache.commons.lang3.ObjectUtils;
 import org.mapstruct.Named;
 import org.openapitools.client.model.AccountIdentifier;
 import org.openapitools.client.model.Amount;
@@ -24,14 +23,15 @@ public class ConstructionMapperUtils {
         .build());
   }
 
-  @Named("mapSignatures")
   public Signatures getSignatures(Signature signature) {
     String chainCode = null;
     String address = null;
     AccountIdentifier accountIdentifier = signature.getSigningPayload().getAccountIdentifier();
-    if (!ObjectUtils.isEmpty(accountIdentifier)) {
-      chainCode = accountIdentifier.getMetadata().getChainCode();
+    if (accountIdentifier != null) {
       address = accountIdentifier.getAddress();
+      if (accountIdentifier.getMetadata() != null) {
+        chainCode = accountIdentifier.getMetadata().getChainCode();
+      }
     }
     return new Signatures(signature.getHexBytes(), signature.getPublicKey().getHexBytes(),
         chainCode, address);
