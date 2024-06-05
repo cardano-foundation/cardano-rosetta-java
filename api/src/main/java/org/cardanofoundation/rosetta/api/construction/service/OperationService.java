@@ -19,7 +19,6 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.openapitools.client.model.Operation;
 import org.openapitools.client.model.OperationIdentifier;
 import org.openapitools.client.model.OperationMetadata;
-import org.openapitools.client.model.PoolRegistrationParams;
 
 import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
@@ -67,7 +66,7 @@ public class OperationService {
       return Collections.singletonList(operation.getAccount().getAddress());
     }
     if (operation.getType().equals(OperationType.VOTE_REGISTRATION.getValue())) {
-      return Collections.EMPTY_LIST;
+      return Collections.emptyList();
     }
     validateMetadataForStakingCredential(operation);
     HdPublicKey hdPublicKey =
@@ -157,12 +156,12 @@ public class OperationService {
         if (ValidateParseUtil.validateAddressPresence(operation)) {
           signers.add(operation.getAccount().getAddress());
         }
-        if (operation.getMetadata() != null) {
-          PoolRegistrationParams poolRegistrationParameters =
-              operation.getMetadata().getPoolRegistrationParams();
-          signers.add(poolRegistrationParameters.getRewardAddress());
-          signers.addAll(poolRegistrationParameters.getPoolOwners());
-        }
+        Optional.ofNullable(operation.getMetadata())
+            .map(OperationMetadata::getPoolRegistrationParams)
+            .ifPresent(poolRegistrationParameters -> {
+              signers.add(poolRegistrationParameters.getRewardAddress());
+              signers.addAll(poolRegistrationParameters.getPoolOwners());
+            });
       }
       case OPERATION_TYPE_POOL_REGISTRATION_WITH_CERT -> {
         String poolCertAsHex = Optional.ofNullable(operation.getMetadata())
@@ -189,7 +188,7 @@ public class OperationService {
   }
 
   private void validateMetadataForStakingCredential(Operation operation) {
-    if (operation == null || operation.getMetadata() == null) {
+    if (operation.getMetadata() == null) {
       throw ExceptionFactory.missingStakingKeyError();
     }
   }
