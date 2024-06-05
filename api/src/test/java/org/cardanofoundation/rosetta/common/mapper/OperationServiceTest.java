@@ -2,10 +2,18 @@ package org.cardanofoundation.rosetta.common.mapper;
 
 import java.util.List;
 
+import co.nstant.in.cbor.CborException;
+import com.bloxbean.cardano.client.exception.CborDeserializationException;
+import com.bloxbean.cardano.client.exception.CborSerializationException;
+import com.bloxbean.cardano.client.transaction.spec.TransactionBody;
+import com.bloxbean.cardano.client.transaction.spec.TransactionInput;
+import com.bloxbean.cardano.client.transaction.spec.Withdrawal;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.openapitools.client.model.AccountIdentifier;
+import org.openapitools.client.model.Amount;
 import org.openapitools.client.model.CurveType;
 import org.openapitools.client.model.Operation;
+import org.openapitools.client.model.OperationIdentifier;
 import org.openapitools.client.model.OperationMetadata;
 import org.openapitools.client.model.PoolRegistrationParams;
 import org.openapitools.client.model.PublicKey;
@@ -17,6 +25,8 @@ import org.cardanofoundation.rosetta.api.construction.service.OperationService;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.common.exception.ApiException;
+import org.cardanofoundation.rosetta.common.model.cardano.transaction.TransactionData;
+import org.cardanofoundation.rosetta.common.model.cardano.transaction.TransactionExtraData;
 import org.cardanofoundation.rosetta.common.util.RosettaConstants.RosettaErrorType;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -38,6 +48,18 @@ class OperationServiceTest {
     assertThat(poolSigners)
         .hasSize(4)
         .contains("addr1", "rewardAddress", "poolOwner1", "poolOwner2");
+  }
+
+  @Test
+  void getSignerFromOperation_poolOperationRetirementType_test() {
+    Operation operation = getOperation("addr1", "rewardAddress",
+        List.of("poolOwner1", "poolOwner2"));
+    operation.setType(OperationType.POOL_RETIREMENT.getValue());
+
+    List<String> poolSigners = operationService
+        .getSignerFromOperation(NetworkIdentifierType.CARDANO_MAINNET_NETWORK, operation);
+
+    assertThat(poolSigners).hasSize(1).contains("addr1");
   }
 
   @Test
@@ -160,6 +182,35 @@ class OperationServiceTest {
         .isEqualTo(RosettaErrorType.STAKING_KEY_MISSING.getCode());
   }
 
+  @Test
+  void getOperationsFromTransactionData()
+      throws CborException, CborDeserializationException, CborSerializationException {
+    TransactionData transactionData = getTransactionData();
+    transactionData.transactionBody().setInputs(List.of(new TransactionInput()));
+    transactionData.transactionBody().setWithdrawals(List.of(new Withdrawal()));
+    Operation withdrawalOperation = transactionData.transactionExtraData().operations().getFirst();
+    withdrawalOperation.setType(OperationType.WITHDRAWAL.getValue());
+    withdrawalOperation.setMetadata(OperationMetadata.builder()
+        .stakingCredential(
+            PublicKey.builder()
+                .curveType(CurveType.EDWARDS25519)
+                .hexBytes("1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F")
+                .build())
+        .build());
+    withdrawalOperation.setOperationIdentifier(OperationIdentifier.builder().index(22L).build());
+    withdrawalOperation.setAmount(Amount.builder().value("value").build());
+
+    List<Operation> operations = operationService
+        .getOperationsFromTransactionData(transactionData, 0);
+
+    assertThat(operations).hasSize(2);
+    assertThat(operations.get(1).getType()).isEqualTo(OperationType.WITHDRAWAL.getValue());
+    assertThat(operations.get(1).getOperationIdentifier().getIndex()).isEqualTo(22L);
+    assertThat(operations.get(1).getAmount().getValue()).isEqualTo("value");
+    assertThat(operations.get(1).getMetadata().getStakingCredential().getHexBytes())
+        .isEqualTo("1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F");
+  }
+
   private static Operation getOperation(String accountAddress, String rewardAddress,
       List<String> poolOwners) {
     return Operation.builder()
@@ -174,5 +225,15 @@ class OperationServiceTest {
                 .build())
             .build())
         .build();
+  }
+
+  private static TransactionData getTransactionData() {
+    return new TransactionData(
+        TransactionBody.builder().build(),
+        new TransactionExtraData(
+            List.of(getOperation("addr1", "rewardAddress", List.of("poolOwner1", "poolOwner2")),
+                getOperation("addr2", "rewardAddress", List.of("poolOwner3", "poolOwner4"))),
+            "81a100a0")
+    );
   }
 }

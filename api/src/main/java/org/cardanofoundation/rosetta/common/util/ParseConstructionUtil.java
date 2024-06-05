@@ -368,14 +368,14 @@ public class ParseConstructionUtil {
     List<Operation> withdrawalOperations = new ArrayList<>();
     for (int i = 0; i < withdrawalsCount; i++) {
       Operation withdrawalOperation = withdrawalOps.get(i);
+      String stakingCredentialHex = getStakingCredentialHex(withdrawalOperation);
       HdPublicKey hdPublicKey = new HdPublicKey();
-      hdPublicKey.setKeyData(HexUtil.decodeHexString(
-          withdrawalOperation.getMetadata().getStakingCredential().getHexBytes()));
+      hdPublicKey.setKeyData(HexUtil.decodeHexString(stakingCredentialHex));
       String address = CardanoAddressUtils.generateRewardAddress(
           Objects.requireNonNull(NetworkIdentifierType.find(network)), hdPublicKey);
       Operation parsedOperation = parseWithdrawalToOperation(
           withdrawalOperation.getAmount().getValue(),
-          withdrawalOperation.getMetadata().getStakingCredential().getHexBytes(),
+          stakingCredentialHex,
           withdrawalOperation.getOperationIdentifier().getIndex(),
           address
       );
