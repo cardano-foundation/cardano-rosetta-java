@@ -160,7 +160,6 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
       ConstructionPayloadsRequest constructionPayloadsRequest) {
 
     List<Operation> operations = constructionPayloadsRequest.getOperations();
-    checkOperationsHaveIdentifier(operations);
 
     log.info("{} [constuctionPayloads] Operations about to be processed", operations);
     ConstructionPayloadsRequestMetadata metadata = constructionPayloadsRequest.getMetadata();
@@ -241,15 +240,6 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
     String txHash = cardanoConstructionService.submitTransaction(tx);
 
     return new TransactionIdentifierResponse(new TransactionIdentifier(txHash), null);
-  }
-
-  private void checkOperationsHaveIdentifier(List<Operation> operations) {
-    for (int i = 0; i < operations.size(); i++) {
-      if (operations.get(i).getOperationIdentifier() == null) {
-        throw ExceptionFactory.unspecifiedError(
-            String.format("body[%d] should have required property operation_identifier", i));
-      }
-    }
   }
 
   private DepositParameters getDepositParameters(ConstructionPayloadsRequestMetadata metadata) {
