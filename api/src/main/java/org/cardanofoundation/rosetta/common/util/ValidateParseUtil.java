@@ -419,8 +419,8 @@ public class ValidateParseUtil {
     }
 
     public static boolean validateAddressPresence(Operation operation) {
-        return !ObjectUtils.isEmpty(ObjectUtils.isEmpty(operation.getAccount()) ? null
-            : operation.getAccount().getAddress());
+        return operation.getAccount() != null &&
+            ObjectUtils.isNotEmpty(operation.getAccount().getAddress());
     }
 
     public static Certificate validateCert(List<Certificate> certs, int i) {
