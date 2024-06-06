@@ -53,10 +53,10 @@ If you want to use already existing cardano data, you can mount the data volume 
 
 ### 6. Volume with Postgres data
 ````
-docker run --env-file .\docker\.env.dockerfile -p 8082:8082 -v {custom_folder}:/var/lib/postgresql/14/main -d {image_name}:latest
+docker run --env-file .\docker\.env.dockerfile -p 8082:8082 -v {custom_folder}:/node/postgres -d {image_name}:latest
 ````
 
-You can mount a volume with Postgres node data to ``/var/lib/postgresql/14/main`` point to use already existed data.  
+You can mount a volume with Postgres node data to ``/node/postgres`` point to use already existed data.  
 If the mounted volume does not contain the database or empty, new database will be created there.
 
 ### 7. Volume with custom network configurations
@@ -68,9 +68,9 @@ If you want to use a custom configuration without rebuilding the image, we can m
 
 ### 8. Synchronization mode
 ````
-docker run -e SYNC=true --env-file .\docker\.env.dockerfile -p 8082:8082 -v {custom_folder}:/networks -d {image_name}:latest
+docker run -e SYNC=true --env-file .\docker\.env.dockerfile -p 8082:8082 -d {image_name}:latest
 ````
-The container can be started in synchronization mode. In this case, the container will verify chunks and synchronize all nodes when it is started.  
+The container can be started in synchronization mode. In this case, the container will verify chunks and synchronize all nodes when it is started and run ``Rosseta Api`` after that  
 To start it you need to change the ``SYNC`` variable in ``.env.dockerfile`` or by adding the ``-e SYNC=true`` key when starting the container.  
 Progress can be tracked in the container log.
 

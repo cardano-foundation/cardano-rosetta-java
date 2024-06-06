@@ -12,18 +12,16 @@ show_progress() {
 node_verification() {
     echo "Stating Cardano node verification..."
 
-    REGEX_VALIDATION="^.?\[.*\].?\[.*\].?(Validating|Validated) chunk no\. ([0-9]+) out of ([0-9]+)\. Progress: ([0-9]+\.[0-9][0-9])\%.*$"
+    REGEX_VALIDATED="^.?\[.*\].?\[.*\].?(Validating|Validated) chunk no\. ([0-9]+) out of ([0-9]+)\. Progress: ([0-9]+\.[0-9][0-9])\%.*$"
     REGEX_REPLAYED="^.?\[.*\].?\[.*\].?Replayed block: slot ([0-9]+) out of ([0-9]+)\. Progress: ([0-9]+\.[0-9][0-9])\%.*$"
     REGEX_PUSHING="^.?\[.*\].?\[.*\].?Pushing ledger state for block ([a-f0-9]+) at slot ([0-9]+)\. Progress: ([0-9]+\.[0-9][0-9])\%.*$"
     REGEX_STARTED="^.?\[.*\].?\[.*\].?(Started .*)$"
 
     while [ ! -S "$CARDANO_NODE_SOCKET_PATH" ]; do
         new_line=$(tail -n 1 /logs/node.log)
-        if [ "${new_line}" == "${line}" ]; then
-          continue
-        fi
+        if [ "${new_line}" == "${line}" ]; then continue; fi
         line=$new_line
-        if [[ "$line" =~ $REGEX_VALIDATION ]]; then
+        if [[ "$line" =~ $REGEX_VALIDATED ]]; then
             show_progress "Node verification: Chunk ${BASH_REMATCH[2]}/${BASH_REMATCH[3]}" ${BASH_REMATCH[4]}
         elif [[ "$line" =~ $REGEX_REPLAYED ]]; then
             show_progress "Replayed block: Block ${BASH_REMATCH[1]}/${BASH_REMATCH[2]}"  ${BASH_REMATCH[3]}
@@ -61,12 +59,10 @@ node_synchronization() {
     echo "Node synchronization: DONE"
 }
 
-database_initialisation() {
-    echo "Starting database initialisation..."
-    chown -R postgres:postgres /var/lib/postgresql/$PG_VERSION/main
-    chmod -R 0700 /var/lib/postgresql/$PG_VERSION/main
+database_initialization() {
+    echo "Starting database initialization..."
     echo "postgres" >> /tmp/password
-    initdb_command="/usr/lib/postgresql/$PG_VERSION/bin/initdb --pgdata=/var/lib/postgresql/$PG_VERSION/main --auth=md5 --auth-local=md5 --auth-host=md5 --username=postgres --pwfile=/tmp/password"
+    initdb_command="/usr/lib/postgresql/$PG_VERSION/bin/initdb --pgdata=/node/postgres --auth=md5 --auth-local=md5 --auth-host=md5 --username=postgres --pwfile=/tmp/password"
     sudo -H -u postgres bash -c "$initdb_command"
 }
 
@@ -94,6 +90,13 @@ create_database_and_user() {
     fi
 }
 
+get_current_index() {
+    json="{\"network_identifier\":{\"blockchain\":\"cardano\",\"network\":\"${NETWORK}\"},\"metadata\":{}}"
+    response=$(curl -s -X POST -H "Content-Type: application/json" -H "Content-length: 1000" -H "Host: localhost.com" --data "$json" "localhost:{$API_PORT}/network/status")
+    current_index=$(echo $response | jq -r '.current_block_identifier.index')
+    if [[ -z "$current_index" || "$current_index" == "null" ]]; then current_index=0; fi
+}
+
 echo "Network: $NETWORK"
 if [ "$NETWORK" == "mainnet" ]; then
     NETWORK_STR="--mainnet"
@@ -105,27 +108,30 @@ fi
 
 echo "Starting Cardano node..."
 cp -r /networks/$NETWORK/* /config/
-mkdir -p $CARDANO_NODE_SOCKET_DIR
-rm -rf $CARDANO_NODE_SOCKET_PATH
+rm -f $CARDANO_NODE_SOCKET_PATH
+mkdir -p "$(dirname "$CARDANO_NODE_SOCKET_PATH")"
+sleep 1
 cardano-node run --socket-path "$CARDANO_NODE_SOCKET_PATH" --port $CARDANO_NODE_PORT --database-path /node/db --config /config/config.json --topology /config/topology.json > /logs/node.log &
 sleep 2
 
-if ${SYNC} ; then
-    echo "Starting synchronization process..."
+if [ "${VERIFICATION}" == "true" ] || [ "${SYNC}" == "true" ] ; then
     node_verification
+fi
+
+if [ "${SYNC}" == "true" ] ; then
     node_synchronization
 fi
 
 echo "Starting Cardano submit api..."
 cardano-submit-api --socket-path "$CARDANO_NODE_SOCKET_PATH" --port $NODE_SUBMIT_API_PORT $NETWORK_STR  --config /cardano-submit-api-config/cardano-submit-api.yaml > /logs/submit-api.log &
 
-if [ ! -f "/var/lib/postgresql/$PG_VERSION/main/PG_VERSION" ]; then
-    database_initialisation
+chown -R postgres:postgres /node/postgres
+chmod -R 0700 /node/postgres
+if [ ! -f "/node/postgres/PG_VERSION" ]; then
+    database_initialization
 fi
 
 echo "Starting Postgres..."
-chown -R postgres:postgres /var/lib/postgresql/$PG_VERSION/main
-chmod -R 0700 /var/lib/postgresql/$PG_VERSION/main
 /etc/init.d/postgresql start
 create_database_and_user
 
@@ -134,6 +140,14 @@ exec java -jar /yaci-indexer/app.jar > /logs/indexer.log &
 
 echo "Starting Rosetta API..."
 exec java -jar /api/app.jar > /logs/api.log &
+
+echo "Waiting Rosetta API initialization..."
+sleep 5
+get_current_index
+while (( ! $current_index > 0 )); do
+    get_current_index
+    sleep 2
+done
 
 echo "DONE"
 

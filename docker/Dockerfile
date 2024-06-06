@@ -157,16 +157,18 @@ RUN apt update --fix-missing \
 
 RUN echo "host all  all    0.0.0.0/0  md5" >> /etc/postgresql/$PG_VERSION/main/pg_hba.conf
 RUN echo "listen_addresses='*'" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
+RUN sed -i "s/var\/lib\/postgresql\/${PG_VERSION}\/main/node\/postgres/" /etc/postgresql/$PG_VERSION/main/postgresql.conf
+RUN mkdir -p /node/postgres
+RUN rm -rf /var/lib/postgresql/${PG_VERSION}/main
 
 # Install jdk 21
-RUN apt install -y --no-install-recommends openjdk-21-jdk jq bc sudo \
+RUN apt install -y --no-install-recommends openjdk-21-jdk jq bc sudo curl \
     && apt clean
 
 # Copy cardano node
 COPY --from=cardano-builder /usr/local/lib /usr/local/lib
 COPY --from=cardano-builder /root/.local/bin/cardano-* /usr/local/bin/
 COPY --from=cardano-builder /root/src/cardano-node/cardano-submit-api/config/tx-submit-mainnet-config.yaml /cardano-submit-api-config/cardano-submit-api.yaml
-
 ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 ENV PATH=/usr/local/lib/:$PATH
 
