@@ -3,18 +3,20 @@ package org.cardanofoundation.rosetta.api.construction.service;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import jakarta.validation.ConstraintViolationException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.openapitools.client.api.ConstructionApi;
 import org.openapitools.client.model.ConstructionPayloadsRequest;
 import org.openapitools.client.model.ConstructionPayloadsResponse;
+import org.openapitools.client.model.NetworkIdentifier;
 import org.openapitools.client.model.Operation;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import org.cardanofoundation.rosetta.api.IntegrationTest;
-import org.cardanofoundation.rosetta.common.exception.ApiException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -23,6 +25,8 @@ class PayloadsApiTest extends IntegrationTest {
 
   @Autowired
   private ConstructionApiService constructionApiService;
+  @Autowired
+  private ConstructionApi constructionApi;
 
   private ConstructionPayloadsRequest getPayloadRequest(String fileName) throws IOException {
     File file = new File(this.getClass().getClassLoader().getResource(fileName).getFile());
@@ -69,13 +73,23 @@ class PayloadsApiTest extends IntegrationTest {
   @Test
   void operationsHaveIdentifierTest() {
     ConstructionPayloadsRequest request = ConstructionPayloadsRequest
-            .builder()
-            .operations(List.of(new Operation()))
-            .build();
-    ApiException exception = Assertions.assertThrows(ApiException.class,
-            () -> constructionApiService.constructionPayloadsService(request));
-    Assertions.assertEquals("body[0] should have required property operation_identifier",
-            exception.getError().getDetails().getMessage());
+        .builder()
+        .operations(List.of(Operation.builder()
+            .type("operation")
+            .build()))
+        .networkIdentifier(NetworkIdentifier.builder()
+            .blockchain("cardano")
+            .network("mainnet")
+            .build())
+        .build();
+
+    // Check for not null Identifier is on the level above, at the constructionApi
+    ConstraintViolationException exception = Assertions.assertThrows(
+        ConstraintViolationException.class,
+        () -> constructionApi.constructionPayloads(request));
+
+    Assertions.assertEquals("constructionPayloads.arg0.operations[0].operationIdentifier: must not be null",
+        exception.getMessage());
   }
 
   private void assertConstructionPayloads(String requestFile, String expectedUnsignedTransaction)
