@@ -29,7 +29,7 @@ public class MempoolServiceImpl implements MempoolService {
   private final NetworkService networkService;
   private LocalClientProvider localClientProvider;
   private LocalTxMonitorClient txMonitorClient;
-  @Value("${cardano.rosetta.CARDANO_NODE_SOCKET}")
+  @Value("${cardano.rosetta.CARDANO_NODE_SOCKET_PATH}")
   private String nodeSocketPath;
   @Value("${cardano.rosetta.DEVKIT_ENABLED}")
   private boolean devkitEnabled;
