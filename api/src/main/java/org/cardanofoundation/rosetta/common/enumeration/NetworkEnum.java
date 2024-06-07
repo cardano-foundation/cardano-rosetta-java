@@ -12,8 +12,9 @@ public enum NetworkEnum {
 
     MAINNET(Constants.MAINNET, Networks.mainnet()),
     PREPROD(Constants.PREPROD, Networks.preprod()),
-    TESTNET(Constants.TESTNET, Networks.testnet()),
-    DEVNET(Constants.DEVKIT, new Network(0b0000, 42));
+    DEVNET(Constants.DEVKIT, new Network(0b0000, 42)),
+    PREVIEW(Constants.PREVIEW, Networks.preview()),
+    SANCHONET(Constants.SANCHONET, new Network(0b0000,  4));
 
     private final String value;
     private final Network network;

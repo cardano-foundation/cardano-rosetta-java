@@ -201,7 +201,7 @@ class OperationServiceTest {
     withdrawalOperation.setAmount(Amount.builder().value("value").build());
 
     List<Operation> operations = operationService
-        .getOperationsFromTransactionData(transactionData, 0);
+        .getOperationsFromTransactionData(transactionData, 764824073L);
 
     assertThat(operations).hasSize(2);
     assertThat(operations.get(1).getType()).isEqualTo(OperationType.WITHDRAWAL.getValue());

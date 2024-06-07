@@ -101,7 +101,7 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
     try {
       TransactionData convertedTr = CborArrayToTransactionData.convert(decodeTransaction, signed);
       List<Operation> operations = operationService.getOperationsFromTransactionData(convertedTr,
-          networkIdentifierType.getValue());
+          networkIdentifierType.getProtocolMagic());
       List<AccountIdentifier> accountIdentifierSigners = new ArrayList<>();
       if (signed) {
         log.info("[parseSignedTransaction] About to get signatures from parsed transaction");
