@@ -39,7 +39,8 @@ logging:
     com:
       zaxxer:
         hikari:
-          HikariConfig: DEBUG
+          pool:
+            HikariPool: DEBUG
     org:
       springframework:
         transaction: DEBUG

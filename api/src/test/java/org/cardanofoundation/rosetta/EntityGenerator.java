@@ -7,12 +7,16 @@ import lombok.experimental.UtilityClass;
 
 import org.openapitools.client.model.AccountIdentifier;
 import org.openapitools.client.model.Allow;
+import org.openapitools.client.model.Amount;
 import org.openapitools.client.model.Block;
 import org.openapitools.client.model.BlockIdentifier;
 import org.openapitools.client.model.BlockRequest;
 import org.openapitools.client.model.BlockResponse;
 import org.openapitools.client.model.BlockTransactionRequest;
 import org.openapitools.client.model.BlockTransactionResponse;
+import org.openapitools.client.model.CoinAction;
+import org.openapitools.client.model.CoinChange;
+import org.openapitools.client.model.CoinIdentifier;
 import org.openapitools.client.model.ConstructionCombineRequest;
 import org.openapitools.client.model.ConstructionCombineResponse;
 import org.openapitools.client.model.ConstructionDeriveRequest;
@@ -29,6 +33,7 @@ import org.openapitools.client.model.ConstructionPayloadsResponse;
 import org.openapitools.client.model.ConstructionPreprocessRequest;
 import org.openapitools.client.model.ConstructionPreprocessResponse;
 import org.openapitools.client.model.ConstructionSubmitRequest;
+import org.openapitools.client.model.Currency;
 import org.openapitools.client.model.CurveType;
 import org.openapitools.client.model.MetadataRequest;
 import org.openapitools.client.model.NetworkIdentifier;
@@ -47,6 +52,8 @@ import org.openapitools.client.model.SigningPayload;
 import org.openapitools.client.model.TransactionIdentifier;
 import org.openapitools.client.model.TransactionIdentifierResponse;
 import org.openapitools.client.model.Version;
+
+import org.cardanofoundation.rosetta.common.model.cardano.crypto.Signatures;
 
 import static org.cardanofoundation.rosetta.common.util.Constants.*;
 import static org.openapitools.client.model.CurveType.EDWARDS25519;
@@ -312,5 +319,37 @@ public class EntityGenerator {
 
     public static SigningPayload givenSigningPayload() {
         return SigningPayload.builder().hexBytes("hex").build();
+    }
+
+    public static Operation givenOperation() {
+        return Operation
+            .builder()
+            .operationIdentifier(OperationIdentifier
+                .builder()
+                .index(1L)
+                .build())
+            .status("success")
+            .type("input")
+            .account(AccountIdentifier
+                .builder()
+                .address("addr1")
+                .build())
+            .amount(Amount.builder()
+                .value("-90000")
+                .currency(Currency.builder().symbol("ADA").build())
+                .build())
+            .coinChange(CoinChange.builder()
+                .coinIdentifier(CoinIdentifier.builder()
+                    .identifier("2f:1").build())
+                .coinAction(CoinAction.SPENT)
+                .build())
+            .build();
+    }
+
+    public static Signatures givenSignatures() {
+        return new Signatures("dc2a1948bfa9411b37e8d280b04c48a85af5588bcf509c0fca798f7b462ebca92d6733dacc1f1c6c1463623c085401be07ea422ad4f1c543375e7d3d2393aa0b",
+            "73fea80d424276ad0978d4fe5310e8bc2d485f5f6bb3bf87612989f112ad5a7d",
+            "dd75e154da417becec55cdd249327454138f082110297d5e87ab25e15fad150f",
+            "Ae2tdPwUPEZC6WJfVQxTNN2tWw4skGrN6zRVukvxJmTFy1nYkVGQBuURU3L");
     }
 }

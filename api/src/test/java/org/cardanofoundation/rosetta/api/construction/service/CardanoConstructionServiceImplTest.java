@@ -1,8 +1,11 @@
 package org.cardanofoundation.rosetta.api.construction.service;
 
 import java.math.BigInteger;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import jakarta.validation.constraints.NotNull;
@@ -14,6 +17,8 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestTemplate;
 import co.nstant.in.cbor.CborException;
 import com.bloxbean.cardano.client.util.HexUtil;
+import com.bloxbean.cardano.yaci.core.exception.CborRuntimeException;
+import com.bloxbean.cardano.yaci.core.util.CborSerializationUtil;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
@@ -22,6 +27,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.openapitools.client.model.Operation;
 import org.openapitools.client.model.PublicKey;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,11 +37,15 @@ import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
 import org.cardanofoundation.rosetta.common.exception.ApiException;
 import org.cardanofoundation.rosetta.common.exception.Error;
 import org.cardanofoundation.rosetta.common.mapper.CborArrayToTransactionData;
+import org.cardanofoundation.rosetta.common.model.cardano.crypto.Signatures;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.TransactionParsed;
+import org.cardanofoundation.rosetta.common.util.CardanoAddressUtils;
 import org.cardanofoundation.rosetta.common.util.Constants;
 import org.cardanofoundation.rosetta.common.util.RosettaConstants.RosettaErrorType;
 
+import static org.cardanofoundation.rosetta.EntityGenerator.givenOperation;
 import static org.cardanofoundation.rosetta.EntityGenerator.givenPublicKey;
+import static org.cardanofoundation.rosetta.EntityGenerator.givenSignatures;
 import static org.cardanofoundation.rosetta.api.construction.enumeration.AddressType.BASE;
 import static org.cardanofoundation.rosetta.api.construction.enumeration.AddressType.REWARD;
 import static org.cardanofoundation.rosetta.common.enumeration.NetworkEnum.PREPROD;
@@ -44,9 +54,11 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.openapitools.client.model.CurveType.EDWARDS25519;
@@ -54,17 +66,35 @@ import static org.openapitools.client.model.CurveType.EDWARDS25519;
 @ExtendWith(MockitoExtension.class)
 class CardanoConstructionServiceImplTest {
 
-  @Mock
-  private RestTemplate restTemplate;
   private final static String TRANSACTION_SIGNED = "8279025a3833613430303831383235383230326632336664386363613833356166323166336163333735626163363031663937656164373566326537393134336264663731666532633462653034336538663031303138323832353831643631626234306631613634376263383863316264366237333864623865623636333537643932363437346561356666643662616137366339666238323139323731306131353831636230643037643435666539353134663830323133663430323065356136313234313435386265363236383431636465373137636233386137613334393437373536393634366634333666363936653139303930363530346137353631366534333732373537613534366636623635366536313761366631393161306134373665373537343633366636393665313932373130383235383164363162623430663161363437626338386331626436623733386462386562363633353764393236343734656135666664366261613736633966623139396334303032313939633430303330306131303038313832353832303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303035383430303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303066356636a16a6f7065726174696f6e7381a7746f7065726174696f6e5f6964656e746966696572a265696e646578006d6e6574776f726b5f696e64657800647479706565696e707574667374617475736773756363657373676163636f756e74a16761646472657373783a616464723176786135707564786737376733736461646465636d773874766336686d796e79776e34396c6c747434666d766e3763706e6b63707866616d6f756e74a26576616c7565662d39303030306863757272656e6379a26673796d626f6c6341444168646563696d616c73066b636f696e5f6368616e6765a26f636f696e5f6964656e746966696572a16a6964656e7469666965727842326632336664386363613833356166323166336163333735626163363031663937656164373566326537393134336264663731666532633462653034336538663a316b636f696e5f616374696f6e6a636f696e5f7370656e74686d65746164617461a16b746f6b656e42756e646c6581a268706f6c69637949647838623064303764343566653935313466383032313366343032306535613631323431343538626536323638343163646537313763623338613766746f6b656e7383a26576616c756564323331306863757272656e6379a26673796d626f6c7234373735363936343666343336663639366568646563696d616c7300a26576616c756564363636366863757272656e6379a26673796d626f6c7820346137353631366534333732373537613534366636623635366536313761366668646563696d616c7300a26576616c75656531303030306863757272656e6379a26673796d626f6c6e366537353734363336663639366568646563696d616c7300";
   private final static String TRANSACTION_NOT_SIGNED = "82790132613530303831383235383230326632336664386363613833356166323166336163333735626163363031663937656164373566326537393134336264663731666532633462653034336538663031303138323832353831643631626234306631613634376263383863316264366237333864623865623636333537643932363437346561356666643662616137366339666230313832353831643631626234306631613634376263383863316264366237333864623865623636333537643932363437346561356666643662616137366339666230343032316130353762636566623033313930336538303438313832303138323030353831636262343066316136343762633838633162643662373338646238656236363335376439323634373465613566666436626161373663396662a16a6f7065726174696f6e7382a6746f7065726174696f6e5f6964656e746966696572a265696e646578006d6e6574776f726b5f696e64657800647479706565696e707574667374617475736773756363657373676163636f756e74a16761646472657373783a616464723176786135707564786737376733736461646465636d773874766336686d796e79776e34396c6c747434666d766e3763706e6b63707866616d6f756e74a26576616c7565692d39303030303030306863757272656e6379a26673796d626f6c6341444168646563696d616c73066b636f696e5f6368616e6765a26f636f696e5f6964656e746966696572a16a6964656e7469666965727842326632336664386363613833356166323166336163333735626163363031663937656164373566326537393134336264663731666532633462653034336538663a316b636f696e5f616374696f6e6a636f696e5f7370656e74a5746f7065726174696f6e5f6964656e746966696572a165696e646578036474797065767374616b654b65794465726567697374726174696f6e667374617475736773756363657373676163636f756e74a16761646472657373783b7374616b653175387a666e6b687034673676686e6565746d763271656e3766356e64726b6c716a7138653973326e636b3968333063667a36716d70686d65746164617461a2727374616b696e675f63726564656e7469616ca2696865785f62797465737840314234303044363041414633344541463644434241423942424134363030314132333439373838364346313130363646373834363933334433304535414433466a63757276655f747970656c6564776172647332353531396c726566756e64416d6f756e74a26576616c7565682d323030303030306863757272656e6379a26673796d626f6c6341444168646563696d616c7306";
+  private final static String COMBINE_UNSIGNED_TRANSACTION = "a400818258202f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f01018282581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb19271082581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb199c4002199c40031903e8";
+  private final static String COMBINE_SIGNED_TRANSACTION = "84a400818258202f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f01018282581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb19271082581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb199c4002199c40031903e8a1028184582073fea80d424276ad0978d4fe5310e8bc2d485f5f6bb3bf87612989f112ad5a7d5840dc2a1948bfa9411b37e8d280b04c48a85af5588bcf509c0fca798f7b462ebca92d6733dacc1f1c6c1463623c085401be07ea422ad4f1c543375e7d3d2393aa0b5820dd75e154da417becec55cdd249327454138f082110297d5e87ab25e15fad150f41a0f5f6";
+
+  @Mock
+  private RestTemplate restTemplate;
 
   @InjectMocks
-  CardanoConstructionServiceImpl cardanoService;
+  private CardanoConstructionServiceImpl cardanoService;
+
+  private MockedStatic<CompletableFuture> completableFutureMock;
 
   @BeforeEach
   void setup() {
-    cardanoService = new CardanoConstructionServiceImpl(null, null,restTemplate);
+    cardanoService = new CardanoConstructionServiceImpl(null, null,
+        new OperationService(), restTemplate);
+    completableFutureMock = Mockito.mockStatic(CompletableFuture.class, invocation -> {
+      if (invocation.getMethod().getName().equals("supplyAsync")) {
+        Supplier<?> supplier = invocation.getArgument(0);
+        return CompletableFuture.completedFuture(supplier.get());
+      }
+      return invocation.callRealMethod();
+    });
+  }
+
+  @AfterEach
+  void tearDown() {
+    completableFutureMock.close();
   }
 
   @Test
@@ -92,6 +122,29 @@ class CardanoConstructionServiceImplTest {
 
     assertEquals(4010, exception.getError().getCode());
     assertEquals("The transaction you are trying to build has more outputs than inputs", exception.getError().getMessage());
+  }
+
+  @Test
+  void calculateTxSize_whenUnsignedTransactionAddressesInvalid_thenThrowException() {
+    List<Operation> operations = Collections.singletonList(givenOperation());
+    try (MockedStatic<CardanoAddressUtils> mockedAddressUtil = Mockito.mockStatic(
+        CardanoAddressUtils.class)) {
+      mockedAddressUtil.when(() -> CardanoAddressUtils.getEraAddressType(anyString()))
+          .thenReturn(null);
+      mockedAddressUtil.when(() -> CardanoAddressUtils.isEd25519KeyHash(anyString()))
+          .thenReturn(false);
+
+      ApiException result = assertThrows(ApiException.class,
+          () -> cardanoService.calculateTxSize(NetworkIdentifierType.CARDANO_PREVIEW_NETWORK,
+              operations, 0, null));
+
+      assertEquals(RosettaErrorType.INVALID_ADDRESS.getMessage(), result.getError().getMessage());
+      assertEquals(RosettaErrorType.INVALID_ADDRESS.getCode(), result.getError().getCode());
+      assertTrue(result.getError().isRetriable());
+
+      mockedAddressUtil.verify(() -> CardanoAddressUtils.getEraAddressType(anyString()), times(1));
+      mockedAddressUtil.verify(() -> CardanoAddressUtils.isEd25519KeyHash(anyString()), times(1));
+    }
   }
 
   @SuppressWarnings("java:S5778")
@@ -122,7 +175,7 @@ class CardanoConstructionServiceImplTest {
   @Test
   void parseTransactionSignedTest() {
     TransactionParsed actual = cardanoService.parseTransaction(
-        NetworkIdentifierType.CARDANO_TESTNET_NETWORK,
+        NetworkIdentifierType.CARDANO_PREVIEW_NETWORK,
         TRANSACTION_SIGNED, true);
 
     assertFalse(actual.operations().isEmpty());
@@ -149,7 +202,7 @@ class CardanoConstructionServiceImplTest {
   @Test
   void parseTransactionSignedThrowTest() {
     ApiException actualException = assertThrows(ApiException.class, () ->
-        cardanoService.parseTransaction(NetworkIdentifierType.CARDANO_TESTNET_NETWORK,
+        cardanoService.parseTransaction(NetworkIdentifierType.CARDANO_PREVIEW_NETWORK,
             TRANSACTION_NOT_SIGNED, true));
 
     assertEquals(RosettaErrorType.CANT_CREATE_SIGNED_TRANSACTION_ERROR.getMessage(),
@@ -160,9 +213,22 @@ class CardanoConstructionServiceImplTest {
   }
 
   @Test
+  void parseTransactionSignedThrowSanchonetTest() {
+    ApiException actualException = assertThrows(ApiException.class, () ->
+            cardanoService.parseTransaction(NetworkIdentifierType.CARDANO_SANCHONET_NETWORK,
+                    TRANSACTION_NOT_SIGNED, true));
+
+    assertEquals(RosettaErrorType.CANT_CREATE_SIGNED_TRANSACTION_ERROR.getMessage(),
+            actualException.getError().getMessage());
+    assertEquals(RosettaErrorType.CANT_CREATE_SIGNED_TRANSACTION_ERROR.getCode(),
+            actualException.getError().getCode());
+    assertFalse(actualException.getError().isRetriable());
+  }
+
+  @Test
   void parseTransactionNotSignedTest() {
     TransactionParsed actual = cardanoService.parseTransaction(
-        NetworkIdentifierType.CARDANO_TESTNET_NETWORK,
+        NetworkIdentifierType.CARDANO_PREVIEW_NETWORK,
         TRANSACTION_NOT_SIGNED, false);
 
     assertFalse(actual.operations().isEmpty());
@@ -200,7 +266,7 @@ class CardanoConstructionServiceImplTest {
   @Test
   void parseTransactionNotSignedThrowTest() {
     ApiException actualException = assertThrows(ApiException.class, () ->
-        cardanoService.parseTransaction(NetworkIdentifierType.CARDANO_TESTNET_NETWORK,
+        cardanoService.parseTransaction(NetworkIdentifierType.CARDANO_PREVIEW_NETWORK,
             TRANSACTION_SIGNED, false));
 
     assertEquals(RosettaErrorType.CANT_CREATE_UNSIGNED_TRANSACTION_ERROR.getMessage(),
@@ -213,7 +279,7 @@ class CardanoConstructionServiceImplTest {
   @Test
   void parseTransactionThrowTest() {
     ApiException actualException = assertThrows(ApiException.class, () ->
-        cardanoService.parseTransaction(NetworkIdentifierType.CARDANO_TESTNET_NETWORK,
+        cardanoService.parseTransaction(NetworkIdentifierType.CARDANO_PREVIEW_NETWORK,
             TRANSACTION_SIGNED + "1", false));
 
     assertEquals(RosettaErrorType.INVALID_TRANSACTION.getMessage(),
@@ -231,7 +297,7 @@ class CardanoConstructionServiceImplTest {
           .thenThrow(new CborException("Test error"));
 
       ApiException actualException = assertThrows(ApiException.class, () ->
-          cardanoService.parseTransaction(NetworkIdentifierType.CARDANO_TESTNET_NETWORK,
+          cardanoService.parseTransaction(NetworkIdentifierType.CARDANO_PREVIEW_NETWORK,
               TRANSACTION_SIGNED, false));
 
       assertEquals(RosettaErrorType.INVALID_TRANSACTION.getMessage(),
@@ -372,6 +438,53 @@ class CardanoConstructionServiceImplTest {
         () -> cardanoService.getHdPublicKeyFromRosettaKey(publicKey));
 
     assertEquals("Invalid public key length", exception.getMessage());
+  }
+
+  @Test
+  void buildTransaction() {
+    List<Signatures> signatures = Collections.singletonList(givenSignatures());
+    String result = cardanoService.buildTransaction(COMBINE_UNSIGNED_TRANSACTION, signatures, "");
+
+    assertEquals(COMBINE_SIGNED_TRANSACTION, result);
+  }
+
+  @Test
+  void buildTransaction_whenCannotDeserializeTransactionBody_thenThrowException() {
+    List<Signatures> signatures = Collections.singletonList(givenSignatures());
+
+    try (MockedStatic<CborSerializationUtil> mocked = Mockito.mockStatic(CborSerializationUtil.class)) {
+      mocked.when(() -> CborSerializationUtil.deserialize(any(byte[].class)))
+          .thenThrow(new CborRuntimeException("CborException"));
+
+      ApiException result = assertThrows(ApiException.class,
+          () -> cardanoService.buildTransaction(COMBINE_UNSIGNED_TRANSACTION, signatures, ""));
+
+      assertEquals(RosettaErrorType.CANT_CREATE_SIGN_TRANSACTION.getMessage(), result.getError().getMessage());
+      assertEquals(RosettaErrorType.CANT_CREATE_SIGN_TRANSACTION.getCode(), result.getError().getCode());
+      assertFalse(result.getError().isRetriable());
+      mocked.verify(() -> CborSerializationUtil.deserialize(any(byte[].class)), times(1));
+    }
+  }
+
+  @Test
+  void buildTransaction_whenCannotDeserializeAuxiliaryData_thenThrowException() {
+    List<Signatures> signatures = Collections.singletonList(givenSignatures());
+
+    try (MockedStatic<com.bloxbean.cardano.client.common.cbor.CborSerializationUtil> mocked
+        = Mockito.mockStatic(com.bloxbean.cardano.client.common.cbor.CborSerializationUtil.class)) {
+      mocked.when(() -> com.bloxbean.cardano.client.common.cbor.CborSerializationUtil.deserialize(any()))
+          .thenThrow(new com.bloxbean.cardano.client.exception.CborRuntimeException("CborException"));
+
+      ApiException result = assertThrows(ApiException.class,
+          () -> cardanoService.buildTransaction(COMBINE_UNSIGNED_TRANSACTION, signatures, COMBINE_UNSIGNED_TRANSACTION));
+
+      assertEquals(RosettaErrorType.DESERIALIZATION_ERROR.getMessage(), result.getError().getMessage());
+      assertEquals(RosettaErrorType.DESERIALIZATION_ERROR.getCode(), result.getError().getCode());
+      assertEquals("CborException", result.getError().getDetails().getMessage());
+      assertFalse(result.getError().isRetriable());
+      mocked.verify(() -> com.bloxbean.cardano.client.common.cbor.CborSerializationUtil.deserialize(any()),
+          times(1));
+    }
   }
 
   @NotNull

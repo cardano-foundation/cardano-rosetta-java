@@ -31,7 +31,7 @@ public class BaseMapperSetup {
 
   @BeforeEach
   public void before() {
-    when(protocolParamService.getProtocolParameters()).thenReturn(protocolParams);
+    when(protocolParamService.findProtocolParametersFromIndexer()).thenReturn(protocolParams);
     when(protocolParams.getPoolDeposit()).thenReturn(new BigInteger("500"));
   }
 

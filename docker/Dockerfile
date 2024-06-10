@@ -143,6 +143,8 @@ WORKDIR /
 
 # Install postgres
 ARG PG_VERSION=14
+ARG PG_VERSION_TEMP=$PG_VERSION
+ENV PG_VERSION=$PG_VERSION_TEMP
 
 RUN apt update --fix-missing \
     && DEBIAN_FRONTEND=noninteractive apt install -y wget sudo gnupg \
@@ -155,23 +157,25 @@ RUN apt update --fix-missing \
 
 RUN echo "host all  all    0.0.0.0/0  md5" >> /etc/postgresql/$PG_VERSION/main/pg_hba.conf
 RUN echo "listen_addresses='*'" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
+RUN sed -i "s/var\/lib\/postgresql\/${PG_VERSION}\/main/node\/postgres/" /etc/postgresql/$PG_VERSION/main/postgresql.conf
+RUN mkdir -p /node/postgres
+RUN rm -rf /var/lib/postgresql/${PG_VERSION}/main
 
 # Install jdk 21
-RUN apt install -y --no-install-recommends openjdk-21-jdk \
+RUN apt install -y --no-install-recommends openjdk-21-jdk jq bc sudo curl \
     && apt clean
 
 # Copy cardano node
 COPY --from=cardano-builder /usr/local/lib /usr/local/lib
 COPY --from=cardano-builder /root/.local/bin/cardano-* /usr/local/bin/
 COPY --from=cardano-builder /root/src/cardano-node/cardano-submit-api/config/tx-submit-mainnet-config.yaml /cardano-submit-api-config/cardano-submit-api.yaml
-
 ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 ENV PATH=/usr/local/lib/:$PATH
 
 COPY ./config /networks
 RUN mkdir /config
 
-RUN mkdir -p /data/db
+RUN mkdir -p /node/db
 
 # Copy jars
 COPY --from=java-builder /root/app/api/target/*.jar /api/app.jar
@@ -180,9 +184,12 @@ COPY --from=java-builder /root/app/yaci-indexer/target/*.jar /yaci-indexer/app.j
 # Run
 RUN mkdir /logs
 
+COPY ./docker/entrypoint.sh /sbin/entrypoint.sh
+
+RUN chmod +x /sbin/entrypoint.sh
+
 EXPOSE 8082
 
-COPY ./docker/entrypoint.sh /sbin/entrypoint.sh
 ENTRYPOINT ["/sbin/entrypoint.sh"]
 
-CMD ["/bin/sh", "-c", "bash"]
+CMD ["tail", "-f", "-n", "+1", "/logs/*.log"]

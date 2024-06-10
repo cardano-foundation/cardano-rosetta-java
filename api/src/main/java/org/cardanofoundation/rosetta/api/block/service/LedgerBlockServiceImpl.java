@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.apache.commons.lang3.ObjectUtils;
 
@@ -21,14 +22,8 @@ import org.cardanofoundation.rosetta.api.account.mapper.AddressUtxoEntityToUtxo;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.account.model.entity.AddressUtxoEntity;
 import org.cardanofoundation.rosetta.api.account.model.repository.AddressUtxoRepository;
-import org.cardanofoundation.rosetta.api.block.mapper.BlockIdentifierProjectionToBlockIdentifierExtended;
-import org.cardanofoundation.rosetta.api.block.mapper.BlockToEntity;
-import org.cardanofoundation.rosetta.api.block.mapper.BlockTxToEntity;
-import org.cardanofoundation.rosetta.api.block.mapper.DelegationEntityToDelegation;
-import org.cardanofoundation.rosetta.api.block.mapper.PoolRegistrationEntityToPoolRegistration;
-import org.cardanofoundation.rosetta.api.block.mapper.PoolRetirementEntityToPoolRetirement;
-import org.cardanofoundation.rosetta.api.block.mapper.StakeRegistrationEntityToStakeRegistration;
-import org.cardanofoundation.rosetta.api.block.mapper.WithdrawalEntityToWithdrawal;
+import org.cardanofoundation.rosetta.api.block.mapper.BlockMapper;
+import org.cardanofoundation.rosetta.api.block.mapper.TransactionMapper;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockIdentifierExtended;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
@@ -50,11 +45,10 @@ import org.cardanofoundation.rosetta.api.block.model.repository.WithdrawalReposi
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
 
-
 @Slf4j
 @RequiredArgsConstructor
 @Component
-@Transactional(readOnly = true)
+@Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
 public class LedgerBlockServiceImpl implements LedgerBlockService {
 
   private final ProtocolParamService protocolParamService;
@@ -69,15 +63,9 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
   private final AddressUtxoRepository addressUtxoRepository;
 
 
-  private final BlockToEntity mapperBlock;
-  private final BlockIdentifierProjectionToBlockIdentifierExtended blockToGensisBlock;
-  private final StakeRegistrationEntityToStakeRegistration stakeRegistrationEntityToStakeRegistration;
-  private final DelegationEntityToDelegation delegationEntityToDelegation;
-  private final PoolRegistrationEntityToPoolRegistration poolRegistrationEntityToPoolRegistration;
-  private final PoolRetirementEntityToPoolRetirement poolRetirementEntityToPoolRetirement;
+  private final BlockMapper blockMapper;
+  private final TransactionMapper transactionMapper;
   private final AddressUtxoEntityToUtxo addressUtxoEntityToUtxo;
-  private final BlockTxToEntity mapperTran;
-  private final WithdrawalEntityToWithdrawal withdrawalEntityToWithdrawal;
 
   private BlockIdentifierExtended cachedGenesisBlock;
 
@@ -100,27 +88,26 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
     log.debug("Query blockNumber: {} , blockHash: {}", blockNumber, blockHash);
     if (blockHash == null && blockNumber != null) {
       return blockRepository.findBlockIdentifierByNumber(blockNumber)
-          .map(blockToGensisBlock::toBlockIdentifierExtended);
+          .map(blockMapper::mapToBlockIdentifierExtended);
     } else if (blockHash != null && blockNumber == null) {
       return blockRepository.findBlockIdentifierByHash(blockHash)
-          .map(blockToGensisBlock::toBlockIdentifierExtended);
+          .map(blockMapper::mapToBlockIdentifierExtended);
     } else {
       return blockRepository
           .findBlockIdentifierByNumberAndHash(blockNumber, blockHash)
-          .map(blockToGensisBlock::toBlockIdentifierExtended);
+          .map(blockMapper::mapToBlockIdentifierExtended);
     }
   }
 
   @NotNull
   private Block toModelFrom(BlockEntity blockEntity) {
-    Block model = mapperBlock.fromEntity(blockEntity);
+    Block model = blockMapper.mapToBlock(blockEntity);
     ProtocolParams pps = protocolParamService.findProtocolParametersFromIndexer();
     List<BlockTx> transactions = model.getTransactions();
     Entities fetched = findByTxHash(transactions);
     transactions.forEach(tx -> populateTransaction(tx, pps, fetched));
     return model;
   }
-
 
   @Override
   @Transactional(readOnly = true)
@@ -135,7 +122,7 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
     log.debug("Found {} transactions", txList.size());
     if (ObjectUtils.isNotEmpty(txList)) {
       ProtocolParams pps = protocolParamService.findProtocolParametersFromIndexer();
-      List<BlockTx> transactions = txList.stream().map(mapperTran::fromEntity).toList();
+      List<BlockTx> transactions = txList.stream().map(blockMapper::mapToBlockTx).toList();
       Entities fetched = findByTxHash(transactions);
       transactions.forEach(tx -> populateTransaction(tx, pps, fetched));
       return transactions;
@@ -156,7 +143,7 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
   public BlockIdentifierExtended findLatestBlockIdentifier() {
     log.debug("About to look for latest findLatestBlockIdentifier");
     BlockIdentifierExtended latestBlock = blockRepository.findLatestBlockIdentifier()
-        .map(blockToGensisBlock::toBlockIdentifierExtended)
+        .map(blockMapper::mapToBlockIdentifierExtended)
         .orElseThrow(ExceptionFactory::genesisBlockNotFound);
     log.debug("Returning latest findLatestBlockIdentifier {}", latestBlock);
     return latestBlock;
@@ -167,7 +154,7 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
     if (cachedGenesisBlock == null) {
       log.debug("About to run findGenesisBlock query");
       cachedGenesisBlock = blockRepository.findGenesisBlockIdentifier()
-          .map(blockToGensisBlock::toBlockIdentifierExtended)
+          .map(blockMapper::mapToBlockIdentifierExtended)
           .orElseThrow(ExceptionFactory::genesisBlockNotFound);
     }
     log.debug("Returning genesis block {}", cachedGenesisBlock);
@@ -230,33 +217,33 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
         fetched.stakeRegistrations
             .stream()
             .filter(tx -> tx.getTxHash().equals(transaction.getHash()))
-            .map(stakeRegistrationEntityToStakeRegistration::toDto)
+            .map(transactionMapper::mapStakeRegistrationEntityToStakeRegistration)
             .toList());
 
     transaction.setDelegations(
         fetched.delegations
             .stream()
             .filter(tx -> tx.getTxHash().equals(transaction.getHash()))
-            .map(delegationEntityToDelegation::toDto)
+            .map(transactionMapper::mapDelegationEntityToDelegation)
             .toList());
 
     transaction.setPoolRegistrations(
         fetched.poolRegistrations
             .stream()
-            .map(poolRegistrationEntityToPoolRegistration::toDto)
+            .map(transactionMapper::mapEntityToPoolRegistration)
             .toList());
 
     transaction.setPoolRetirements(
         fetched.poolRetirements
             .stream()
-            .map(poolRetirementEntityToPoolRetirement::toDto)
+            .map(transactionMapper::mapEntityToPoolRetirement)
             .toList());
 
     transaction.setWithdrawals(
         fetched.withdrawals
             .stream()
             .filter(tx -> tx.getTxHash().equals(transaction.getHash()))
-            .map(withdrawalEntityToWithdrawal::fromEntity)
+            .map(transactionMapper::mapWithdrawalEntityToWithdrawal)
             .toList());
 
     transaction.setSize(calcSize(transaction, pps));

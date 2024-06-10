@@ -3,6 +3,7 @@ package org.cardanofoundation.rosetta.api.network.service;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import javax.annotation.PostConstruct;
 
@@ -47,7 +48,7 @@ public class TopologyConfigServiceImpl implements TopologyConfigService {
     List<Producer> producers = Optional.ofNullable(topologyConfig)
         .map(TopologyConfig::getProducers)
         .orElseGet(() -> {
-          assert topologyConfig != null;
+          Objects.requireNonNull(topologyConfig, "Producers not found in topology config");
           return getPublicRoots(topologyConfig.getPublicRoots());
         });
     log.debug("[getPeersFromConfig] Found {} peers", producers.size());

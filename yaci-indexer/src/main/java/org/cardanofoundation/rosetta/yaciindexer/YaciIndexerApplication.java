@@ -7,6 +7,8 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import com.bloxbean.cardano.yaci.core.config.YaciConfig;
 
+import org.cardanofoundation.rosetta.yaciindexer.config.ConfigurationH2;
+
 @SpringBootApplication
 @Import(ConfigurationH2.class)
 @EntityScan({

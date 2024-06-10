@@ -10,7 +10,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
 import org.cardanofoundation.rosetta.api.block.model.entity.ProtocolParamsEntity;
 import org.cardanofoundation.rosetta.api.block.model.repository.EpochParamRepository;
-import org.cardanofoundation.rosetta.common.mapper.ProtocolParamsToEntity;
+import org.cardanofoundation.rosetta.common.mapper.ProtocolParamsMapper;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.when;
@@ -21,7 +21,7 @@ class ProtocolParamServiceImplTest {
   @Mock
   EpochParamRepository epochParamRepository;
   @Mock
-  ProtocolParamsToEntity protocolParamsToEntity;
+  ProtocolParamsMapper protocolParamsMapper;
   @InjectMocks
   ProtocolParamServiceImpl genesisService;
 
@@ -32,13 +32,13 @@ class ProtocolParamServiceImplTest {
   }
 
   @Test
-  void test() {
+  void findProtocolParametersFromIndexerTest() {
     //given
     ProtocolParamsEntity protocolParams = new ProtocolParamsEntity();
     when(epochParamRepository.findLatestProtocolParams()).thenReturn(protocolParams);
-    when(protocolParamsToEntity.fromEntity(protocolParams)).thenReturn(new ProtocolParams());
+    when(protocolParamsMapper.mapProtocolParamsToEntity(protocolParams)).thenReturn(new ProtocolParams());
     //when
-    ProtocolParams protocolParameters = genesisService.getProtocolParameters();
+    ProtocolParams protocolParameters = genesisService.findProtocolParametersFromIndexer();
     //then
     assertNotNull(protocolParameters);
   }
