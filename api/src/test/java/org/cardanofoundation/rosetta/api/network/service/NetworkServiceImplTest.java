@@ -62,7 +62,7 @@ class NetworkServiceImplTest extends IntegrationTest {
   }
 
   @Test
-  void networkOptionTest() throws IOException, InterruptedException {
+  void networkOptionTest() throws IOException {
     //given
     NetworkRequest networkRequest = getNetworkRequest();
     //when
@@ -87,7 +87,7 @@ class NetworkServiceImplTest extends IntegrationTest {
   }
 
   @Test
-  void networkListTest() throws IOException {
+  void networkListTest() {
     //given
     MetadataRequest metadataRequest = EntityGenerator.givenMetadataRequest();
     //when
