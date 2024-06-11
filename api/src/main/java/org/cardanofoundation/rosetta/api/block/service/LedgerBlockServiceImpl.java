@@ -171,7 +171,7 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
         .toList();
 
     //Use java 21 green threads
-    try (var executorService = Executors.newVirtualThreadPerTaskExecutor()) {
+    try (var executorService = Executors.newFixedThreadPool(6)) {
       Future<List<AddressUtxoEntity>> utxos = executorService.submit(() ->
           addressUtxoRepository.findByTxHashIn(utxHashes));
       Future<List<StakeRegistrationEntity>> sReg = executorService.submit(() ->
