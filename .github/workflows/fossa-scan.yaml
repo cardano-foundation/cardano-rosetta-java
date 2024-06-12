@@ -13,5 +13,7 @@ jobs:
       - uses: fossas/fossa-action@main # Use a specific version if locking is preferred
         with:
           api-key: ${{secrets.fossaApiKey}}
-          name: cardano-foundation/rosetta-java
+      - uses: fossas/fossa-action@main # Use a specific version if locking is preferred
+        with:
+          api-key: ${{secrets.fossaApiKey}}
           run-tests: true
