@@ -3,11 +3,11 @@ FROM ubuntu:22.04 AS cardano-builder
 WORKDIR /root/src
 
 # Install dependencies
-RUN apt update --fix-missing
-
-RUN apt install -y --no-install-recommends \
-     automake build-essential pkg-config libffi-dev libgmp-dev libssl-dev libncurses-dev libsystemd-dev zlib1g-dev make \
-     g++ tmux git jq wget libncursesw5-dev libtool autoconf liblmdb-dev curl ca-certificates
+RUN apt update --fix-missing \
+    && apt install -y --no-install-recommends \
+        automake build-essential pkg-config libffi-dev libgmp-dev libssl-dev libncurses-dev libsystemd-dev zlib1g-dev make \
+        g++ tmux git jq wget libncursesw5-dev libtool autoconf liblmdb-dev curl ca-certificates \
+    && apt-get clean
 
 WORKDIR /root/src
 
@@ -33,13 +33,13 @@ RUN bash -c "ghcup set ghc ${GHC_VERSION}"
 ARG CARDANO_NODE_VERSION=8.9.2
 
 # Install sodium
-RUN export IOHKNIX_VERSION=$(curl https://raw.githubusercontent.com/IntersectMBO/cardano-node/$CARDANO_NODE_VERSION/flake.lock | jq -r '.nodes.iohkNix.locked.rev') \
+RUN export IOHKNIX_VERSION=$(curl https://raw.githubusercontent.com/IntersectMBO/cardano-node/${CARDANO_NODE_VERSION}/flake.lock | jq -r '.nodes.iohkNix.locked.rev') \
     && echo "iohk-nix version: $IOHKNIX_VERSION" \
-    && export SODIUM_VERSION=$(curl https://raw.githubusercontent.com/input-output-hk/iohk-nix/$IOHKNIX_VERSION/flake.lock | jq -r '.nodes.sodium.original.rev') \
+    && export SODIUM_VERSION=$(curl https://raw.githubusercontent.com/input-output-hk/iohk-nix/${IOHKNIX_VERSION}/flake.lock | jq -r '.nodes.sodium.original.rev') \
     && echo "Using sodium version: $SODIUM_VERSION" \
     && git clone https://github.com/intersectmbo/libsodium \
     && cd libsodium \
-    && git checkout $SODIUM_VERSION \
+    && git checkout ${SODIUM_VERSION} \
     && ./autogen.sh \
     && ./configure \
     && make \
@@ -50,14 +50,15 @@ ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 ENV PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH
 
 # Install libsodium
-RUN apt install -y --no-install-recommends libsodium-dev
+RUN apt install -y --no-install-recommends libsodium-dev \
+    && apt-get clean
 
 # Install secp256k1
-RUN export IOHKNIX_VERSION=$(curl https://raw.githubusercontent.com/IntersectMBO/cardano-node/$CARDANO_NODE_VERSION/flake.lock | jq -r '.nodes.iohkNix.locked.rev') \
-    && echo "iohk-nix version: $IOHKNIX_VERSION" \
+RUN export IOHKNIX_VERSION=$(curl https://raw.githubusercontent.com/IntersectMBO/cardano-node/${CARDANO_NODE_VERSION}/flake.lock | jq -r '.nodes.iohkNix.locked.rev') \
+    && echo "iohk-nix version: ${IOHKNIX_VERSION}" \
     && export SECP256K1_VERSION=$(curl https://raw.githubusercontent.com/input-output-hk/iohk-nix/${IOHKNIX_VERSION}/flake.lock | jq -r '.nodes.secp256k1.original.ref') \
-    && echo "Using secp256k1 version:$SECP256K1_VERSION" \
-    && git clone --depth 1 --branch $SECP256K1_VERSION https://github.com/bitcoin-core/secp256k1 \
+    && echo "Using secp256k1 version:${SECP256K1_VERSION}" \
+    && git clone --depth 1 --branch ${SECP256K1_VERSION} https://github.com/bitcoin-core/secp256k1 \
     && cd secp256k1 \
     && ./autogen.sh \
     && ./configure --enable-module-schnorrsig --enable-experimental \
@@ -86,13 +87,14 @@ RUN export BLST_VERSION=$(curl https://raw.githubusercontent.com/input-output-hk
     && cp libblst.a /usr/local/lib \
     && bash -c "chmod u=rw,go=r /usr/local/{lib/{libblst.a,pkgconfig/libblst.pc},include/{blst.{h,hpp},blst_aux.h}}"
 
-RUN apt install -y --no-install-recommends libsecp256k1-dev
+RUN apt install -y --no-install-recommends libsecp256k1-dev \
+    && apt-get clean
 
 # Install node
 RUN git clone https://github.com/intersectmbo/cardano-node.git \
     && cd cardano-node \
-    && git checkout tags/$CARDANO_NODE_VERSION \
-    && echo "with-compiler: ghc-$GHC_VERSION" >> cabal.project.local \
+    && git checkout tags/${CARDANO_NODE_VERSION} \
+    && echo "with-compiler: ghc-${GHC_VERSION}" >> cabal.project.local \
     && echo "" >> cabal.project.local \
     && echo "package cardano-crypto-praos" >> cabal.project.local \
     && echo "  flags: -external-libsodium-vrf" >> cabal.project.local \
@@ -125,7 +127,8 @@ FROM ubuntu:22.04 AS java-builder
 WORKDIR /root/app
 
 RUN apt update --fix-missing \
-    && apt install -y --no-install-recommends openjdk-21-jdk maven
+    && apt install -y --no-install-recommends openjdk-21-jdk maven \
+    && apt-get clean
 
 COPY ./pom.xml /root/app/pom.xml
 
@@ -149,15 +152,17 @@ ENV PG_VERSION=$PG_VERSION_TEMP
 RUN apt update --fix-missing \
     && DEBIAN_FRONTEND=noninteractive apt install -y wget sudo gnupg \
     && wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
-    && echo 'deb http://apt.postgresql.org/pub/repos/apt/ jammy-pgdg main' >> /etc/apt/sources.list
+    && echo 'deb http://apt.postgresql.org/pub/repos/apt/ jammy-pgdg main' >> /etc/apt/sources.list \
+    && apt-get clean
 
 RUN apt update --fix-missing \
     && DEBIAN_FRONTEND=noninteractive apt install -y --no-install-recommends  \
-    postgresql-${PG_VERSION}
+        postgresql-${PG_VERSION} \
+    && apt-get clean
 
-RUN echo "host all  all    0.0.0.0/0  md5" >> /etc/postgresql/$PG_VERSION/main/pg_hba.conf
-RUN echo "listen_addresses='*'" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
-RUN sed -i "s/var\/lib\/postgresql\/${PG_VERSION}\/main/node\/postgres/" /etc/postgresql/$PG_VERSION/main/postgresql.conf
+RUN echo "host all  all    0.0.0.0/0  md5" >> /etc/postgresql/${PG_VERSION}/main/pg_hba.conf
+RUN echo "listen_addresses='*'" >> /etc/postgresql/${PG_VERSION}/main/postgresql.conf
+RUN sed -i "s/var\/lib\/postgresql\/${PG_VERSION}\/main/node\/postgres/" /etc/postgresql/${PG_VERSION}/main/postgresql.conf
 RUN mkdir -p /node/postgres
 RUN rm -rf /var/lib/postgresql/${PG_VERSION}/main
 

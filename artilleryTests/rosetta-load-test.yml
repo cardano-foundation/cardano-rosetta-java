@@ -15,7 +15,7 @@ config:
     thresholds:
       - vusers.failed: 1
   http:
-    timeout: 120
+    timeout: 240
     defaults:
       headers:
         Content-Type: application/json
@@ -28,10 +28,10 @@ config:
       arrivalRate: 30
       rampTo: 60
       name: Ramp up load
-    - duration: 30
-      arrivalRate: 50
-      maxVusers: 1000
-      rampTo: 100
+    - duration: 300
+      arrivalRate: 30
+      maxVusers: 10000
+      rampTo: 300
       name: Spike phase
   plugins:
     ensure: { }
@@ -68,6 +68,21 @@ scenarios:
                 "account_identifier": {
                     "address": "{{ address }}"
                 }
+            }
+  - name: "Account coins test"
+    flow:
+      - post:
+          url: '/account/coins'
+          body: |
+            {
+              "network_identifier": {
+                "blockchain": "cardano",
+                "network": "preprod"
+              },
+              "account_identifier": {
+                "address": "{{ address }}"
+              },
+              "include_mempool": true
             }
   - name: "Block test"
     flow:

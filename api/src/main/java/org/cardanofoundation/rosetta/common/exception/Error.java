@@ -5,7 +5,6 @@ import java.io.Serializable;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -13,7 +12,6 @@ import lombok.NoArgsConstructor;
  * @author Sotatek-HoangNguyen9
  * @since 12/04/2023 17:56
  */
-@Data
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
