@@ -11,10 +11,6 @@
     <artifactId>api</artifactId>
     <name>api</name>
     <description>Rosetta API implementation for Cardano.</description>
-    <properties>
-        <spotbugs-annotations.version>4.8.3</spotbugs-annotations.version>
-        <argLine/>
-    </properties>
 
     <packaging>jar</packaging>
 
@@ -27,14 +23,6 @@
         <url>https://github.com/cardano-foundation/cardano-rosetta-java/issues</url>
         <system>GitHub Issues</system>
     </issueManagement>
-
-    <licenses>
-        <license>
-            <name>MPL 2.0</name>
-            <url>https://www.mozilla.org/en-US/MPL/2.0/</url>
-            <distribution>repo</distribution>
-        </license>
-    </licenses>
 
     <dependencies>
         <dependency>
@@ -101,18 +89,11 @@
             <artifactId>jackson-dataformat-yaml</artifactId>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/org.openapitools/jackson-databind-nullable -->
         <dependency>
             <groupId>org.openapitools</groupId>
             <artifactId>jackson-databind-nullable</artifactId>
             <version>0.2.2</version>
         </dependency>
-        <dependency>
-            <groupId>com.github.spotbugs</groupId>
-            <artifactId>spotbugs-annotations</artifactId>
-            <version>${spotbugs-annotations.version}</version>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
@@ -152,19 +133,12 @@
         <dependency>
             <groupId>commons-validator</groupId>
             <artifactId>commons-validator</artifactId>
-            <version>1.8.0</version>
+            <version>1.9.0</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/io.swagger.parser.v3/swagger-parser -->
         <dependency>
             <groupId>io.swagger.parser.v3</groupId>
             <artifactId>swagger-parser</artifactId>
             <version>2.1.22</version>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/org.json/json -->
-        <dependency>
-            <groupId>org.json</groupId>
-            <artifactId>json</artifactId>
-            <version>20231013</version>
         </dependency>
         <dependency>
             <groupId>com.bloxbean.cardano</groupId>
@@ -309,20 +283,6 @@
                         <trimTrailingWhitespace/>
                         <endWithNewline/>
                     </java>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>com.github.spotbugs</groupId>
-                <artifactId>spotbugs-maven-plugin</artifactId>
-                <version>${version.spotbugs-maven-plugin}</version>
-                <configuration>
-                    <plugins>
-                        <plugin>
-                            <groupId>com.h3xstream.findsecbugs</groupId>
-                            <artifactId>findsecbugs-plugin</artifactId>
-                            <version>${version.findsecbugs-plugin}</version>
-                        </plugin>
-                    </plugins>
                 </configuration>
             </plugin>
             <plugin>

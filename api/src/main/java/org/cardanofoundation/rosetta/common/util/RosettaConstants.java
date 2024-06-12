@@ -201,13 +201,13 @@ public class RosettaConstants {
 
     public Error toRosettaError(final boolean retriable, final Details details,
         final String description) {
-      final Error error = new Error();
-      error.setCode(code);
-      error.setMessage(message);
-      error.setRetriable(retriable);
-      error.setDescription(description);
-      error.setDetails(details);
-      return error;
+      return Error.builder()
+          .code(code)
+          .message(message)
+          .retriable(retriable)
+          .description(description)
+          .details(details)
+          .build();
     }
   }
 }
