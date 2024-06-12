@@ -2,11 +2,12 @@ package org.cardanofoundation.rosetta.api.block.service;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import jakarta.validation.constraints.NotNull;
 
@@ -110,7 +111,6 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
   }
 
   @Override
-  @Transactional(readOnly = true)
   public List<BlockTx> findTransactionsByBlock(Long blk, String blkHash) {
     log.debug("query blockNumber: {} blockHash: {}", blk, blkHash);
     Optional<BlockEntity> blkEntity = blockRepository.findByNumberAndHash(blk, blkHash);
@@ -185,7 +185,8 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
       Future<List<WithdrawalEntity>> withdrawals = executorService.submit(() ->
           withdrawalRepository.findByTxHashIn(txHashes));
 
-      return new Entities(utxos.get(), sReg.get(), delegations.get(), pReg.get(), pRet.get(), withdrawals.get());
+      return new Entities(utxos.get(), sReg.get(), delegations.get(), pReg.get(), pRet.get(),
+          withdrawals.get());
     } catch (InterruptedException | ExecutionException e) {
       log.error("Error fetching transaction data", e);
       Thread.currentThread().interrupt();
@@ -193,25 +194,24 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
     }
   }
 
-  private record Entities(List<AddressUtxoEntity> utxos,
-                          List<StakeRegistrationEntity> stakeRegistrations,
-                          List<DelegationEntity> delegations,
-                          List<PoolRegistrationEntity> poolRegistrations,
-                          List<PoolRetirementEntity> poolRetirements,
-                          List<WithdrawalEntity> withdrawals) {
-  }
-
   private void populateTransaction(BlockTx transaction, ProtocolParams pps, Entities fetched) {
+
+    Map<UtxoKey, AddressUtxoEntity> utxoMap = fetched.utxos
+        .stream()
+        .collect(Collectors.toMap(
+            utxo -> new UtxoKey(utxo.getTxHash(), utxo.getOutputIndex()),
+            utxo -> utxo
+        ));
 
     Optional.ofNullable(transaction.getInputs())
         .stream()
         .flatMap(List::stream)
-        .forEach(t -> populateUtxo(t, fetched.utxos));
+        .forEach(utxo -> populateUtxo(utxo, utxoMap));
 
     Optional.ofNullable(transaction.getOutputs())
         .stream()
         .flatMap(List::stream)
-        .forEach(utxo -> populateUtxo(utxo, fetched.utxos));
+        .forEach(utxo -> populateUtxo(utxo, utxoMap));
 
     transaction.setStakeRegistrations(
         fetched.stakeRegistrations
@@ -253,13 +253,24 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
     return (Long.parseLong(tx.getFee()) - p.getMinFeeB().longValue()) / p.getMinFeeA().longValue();
   }
 
-  private void populateUtxo(Utxo utxo, List<AddressUtxoEntity> utxos) {
-    utxos
-        .stream()
-        .filter(t ->
-            Objects.equals(t.getOutputIndex(), utxo.getOutputIndex())
-                && t.getTxHash().equals(utxo.getTxHash()))
-        .findAny()
-        .ifPresent(m -> addressUtxoEntityToUtxo.overWriteDto(utxo,m));
+  private void populateUtxo(Utxo utxo, Map<UtxoKey, AddressUtxoEntity> utxoMap) {
+    AddressUtxoEntity entity = utxoMap.get(
+        new UtxoKey(utxo.getTxHash(), utxo.getOutputIndex()));
+    Optional.ofNullable(entity)
+        .ifPresent(e -> addressUtxoEntityToUtxo.overWriteDto(utxo, e));
   }
+
+  private record Entities(List<AddressUtxoEntity> utxos,
+                          List<StakeRegistrationEntity> stakeRegistrations,
+                          List<DelegationEntity> delegations,
+                          List<PoolRegistrationEntity> poolRegistrations,
+                          List<PoolRetirementEntity> poolRetirements,
+                          List<WithdrawalEntity> withdrawals) {
+
+  }
+
+  private record UtxoKey(String txHash, Integer outputIndex) {
+
+  }
+
 }
