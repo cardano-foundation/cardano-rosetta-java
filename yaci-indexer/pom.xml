@@ -19,11 +19,6 @@
         <yaci-store.version>0.1.0-rc2-323a1a4-SNAPSHOT</yaci-store.version>
         <sonar.exclusions>src/main/java/org/cardanofoundation/rosetta/yaciindexer/stores/txsize/model/*</sonar.exclusions>
         <version.spotless-maven-plugin>2.43.0</version.spotless-maven-plugin>
-        <test.exclusions>
-            **/model/**,
-            **/yaciindexer/config/**,
-        </test.exclusions>
-        <sonar.coverage.exclusions>${test.exclusions}</sonar.coverage.exclusions>
     </properties>
     <repositories>
         <repository>
