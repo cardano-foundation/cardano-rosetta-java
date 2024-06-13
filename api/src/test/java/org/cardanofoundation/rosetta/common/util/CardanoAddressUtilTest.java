@@ -18,7 +18,7 @@ import org.openapitools.client.model.Relay;
 import org.junit.jupiter.api.Test;
 
 import org.cardanofoundation.rosetta.common.enumeration.EraAddressType;
-import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
+import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
 import org.cardanofoundation.rosetta.common.exception.ApiException;
 import org.cardanofoundation.rosetta.common.util.RosettaConstants.RosettaErrorType;
 
@@ -131,16 +131,14 @@ class CardanoAddressUtilTest {
   @Test
   void generateRewardAddress() {
     Account account = new Account(testMnemonic);
-    String rewardAddress = CardanoAddressUtils.generateRewardAddress(
-        NetworkIdentifierType.CARDANO_MAINNET_NETWORK, account.hdKeyPair().getPublicKey());
+    String rewardAddress = CardanoAddressUtils.generateRewardAddress(NetworkEnum.MAINNET.getNetwork(), account.hdKeyPair().getPublicKey());
     assertEquals("stake1ux5t8wq55e09usmh07ymxry8atzwxwt2nwwzfngg6esffxgfvzpaw", rewardAddress);
   }
 
   @Test
   void generateBaseAddressTest() {
     Account account = new Account(testMnemonic);
-    String baseAddress = generateBaseAddress(
-        NetworkIdentifierType.CARDANO_MAINNET_NETWORK, account.hdKeyPair().getPublicKey(),
+    String baseAddress = generateBaseAddress(NetworkEnum.MAINNET.getNetwork(), account.hdKeyPair().getPublicKey(),
         account.stakeHdKeyPair().getPublicKey());
     assertEquals(account.baseAddress(), baseAddress);
   }
@@ -149,7 +147,7 @@ class CardanoAddressUtilTest {
   void generateEnterpriseAddressTest() {
     Account account = new Account(testMnemonic);
     String enterpriseAddress = generateEnterpriseAddress(
-        NetworkIdentifierType.CARDANO_MAINNET_NETWORK, account.hdKeyPair().getPublicKey());
+        NetworkEnum.MAINNET.getNetwork(), account.hdKeyPair().getPublicKey());
     assertEquals(account.enterpriseAddress(), enterpriseAddress);
   }
 

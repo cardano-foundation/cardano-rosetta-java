@@ -27,7 +27,6 @@ import org.openapitools.client.model.PublicKey;
 import org.openapitools.client.model.Relay;
 
 import org.cardanofoundation.rosetta.common.enumeration.EraAddressType;
-import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
 import org.cardanofoundation.rosetta.common.enumeration.StakeAddressPrefix;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 
@@ -192,30 +191,26 @@ public class CardanoAddressUtils {
     return !ObjectUtils.isEmpty(toCheck) && toCheck.equals(Constants.EMPTY_HEX);
   }
 
-  public static String generateRewardAddress(NetworkIdentifierType networkIdentifierType,
-      HdPublicKey paymentCredential) {
+  public static String generateRewardAddress(Network network, HdPublicKey paymentCredential) {
     log.info(
         "[generateRewardAddress] Deriving cardano reward address from valid public staking key");
-    Address rewardAddress = AddressProvider.getRewardAddress(paymentCredential,
-        new Network(networkIdentifierType.getValue(), networkIdentifierType.getProtocolMagic()));
+    Address rewardAddress = AddressProvider.getRewardAddress(paymentCredential, network);
     log.info("[generateRewardAddress] reward address is {}", rewardAddress.toBech32());
     return rewardAddress.toBech32();
   }
 
-  public static String generateBaseAddress(NetworkIdentifierType networkIdentifierType,
+  public static String generateBaseAddress(Network network,
       HdPublicKey paymentCredential, HdPublicKey stakingCredential) {
     log.info("[generateAddress] Deriving cardano address from valid public key and staking key");
     Address baseAddress = AddressProvider.getBaseAddress(paymentCredential, stakingCredential,
-        new Network(networkIdentifierType.getValue(), networkIdentifierType.getProtocolMagic()));
+        network);
     log.info("generateAddress] base address is {}", baseAddress.toBech32());
     return baseAddress.toBech32();
   }
 
-  public static String generateEnterpriseAddress(NetworkIdentifierType networkIdentifierType,
-      HdPublicKey paymentCredential) {
+  public static String generateEnterpriseAddress(Network network, HdPublicKey paymentCredential) {
     log.info("[generateAddress] Deriving cardano address from valid public key and staking key");
-    Address entAddress = AddressProvider.getEntAddress(paymentCredential,
-        new Network(networkIdentifierType.getValue(), networkIdentifierType.getProtocolMagic()));
+    Address entAddress = AddressProvider.getEntAddress(paymentCredential, network);
     log.info("generateAddress] base address is {}", entAddress.toBech32());
     return entAddress.toBech32();
   }

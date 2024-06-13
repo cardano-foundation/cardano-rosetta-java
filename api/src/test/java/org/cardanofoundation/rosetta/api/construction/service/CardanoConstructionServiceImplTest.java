@@ -33,7 +33,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.cardanofoundation.rosetta.api.construction.enumeration.AddressType;
-import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
+import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
 import org.cardanofoundation.rosetta.common.exception.ApiException;
 import org.cardanofoundation.rosetta.common.exception.Error;
 import org.cardanofoundation.rosetta.common.mapper.CborArrayToTransactionData;
@@ -124,6 +124,7 @@ class CardanoConstructionServiceImplTest {
     assertEquals("The transaction you are trying to build has more outputs than inputs", exception.getError().getMessage());
   }
 
+  @SuppressWarnings("java:S5778")
   @Test
   void calculateTxSize_whenUnsignedTransactionAddressesInvalid_thenThrowException() {
     List<Operation> operations = Collections.singletonList(givenOperation());
@@ -135,8 +136,7 @@ class CardanoConstructionServiceImplTest {
           .thenReturn(false);
 
       ApiException result = assertThrows(ApiException.class,
-          () -> cardanoService.calculateTxSize(NetworkIdentifierType.CARDANO_PREVIEW_NETWORK,
-              operations, 0, null));
+          () -> cardanoService.calculateTxSize(NetworkEnum.PREVIEW.getNetwork(), operations, 0, null));
 
       assertEquals(RosettaErrorType.INVALID_ADDRESS.getMessage(), result.getError().getMessage());
       assertEquals(RosettaErrorType.INVALID_ADDRESS.getCode(), result.getError().getCode());
@@ -151,7 +151,7 @@ class CardanoConstructionServiceImplTest {
   @Test
   void convertRosettaOperationsWOOperationType() {
     ApiException exception = assertThrows(ApiException.class,
-            () -> cardanoService.convertRosettaOperations(NetworkIdentifierType.CARDANO_MAINNET_NETWORK, List.of(new Operation())));
+            () -> cardanoService.convertRosettaOperations(NetworkEnum.MAINNET.getNetwork(), List.of(new Operation())));
 
     assertEquals(4019, exception.getError().getCode());
     assertEquals("Provided operation type is invalid", exception.getError().getMessage());
@@ -174,9 +174,7 @@ class CardanoConstructionServiceImplTest {
 
   @Test
   void parseTransactionSignedTest() {
-    TransactionParsed actual = cardanoService.parseTransaction(
-        NetworkIdentifierType.CARDANO_PREVIEW_NETWORK,
-        TRANSACTION_SIGNED, true);
+    TransactionParsed actual = cardanoService.parseTransaction(NetworkEnum.PREVIEW.getNetwork(), TRANSACTION_SIGNED, true);
 
     assertFalse(actual.operations().isEmpty());
     assertEquals(3, actual.operations().size());
@@ -199,11 +197,11 @@ class CardanoConstructionServiceImplTest {
     });
   }
 
+  @SuppressWarnings("java:S5778")
   @Test
   void parseTransactionSignedThrowTest() {
     ApiException actualException = assertThrows(ApiException.class, () ->
-        cardanoService.parseTransaction(NetworkIdentifierType.CARDANO_PREVIEW_NETWORK,
-            TRANSACTION_NOT_SIGNED, true));
+        cardanoService.parseTransaction(NetworkEnum.PREVIEW.getNetwork(), TRANSACTION_NOT_SIGNED, true));
 
     assertEquals(RosettaErrorType.CANT_CREATE_SIGNED_TRANSACTION_ERROR.getMessage(),
         actualException.getError().getMessage());
@@ -212,11 +210,11 @@ class CardanoConstructionServiceImplTest {
     assertFalse(actualException.getError().isRetriable());
   }
 
+  @SuppressWarnings("java:S5778")
   @Test
   void parseTransactionSignedThrowSanchonetTest() {
     ApiException actualException = assertThrows(ApiException.class, () ->
-            cardanoService.parseTransaction(NetworkIdentifierType.CARDANO_SANCHONET_NETWORK,
-                    TRANSACTION_NOT_SIGNED, true));
+            cardanoService.parseTransaction(NetworkEnum.SANCHONET.getNetwork(), TRANSACTION_NOT_SIGNED, true));
 
     assertEquals(RosettaErrorType.CANT_CREATE_SIGNED_TRANSACTION_ERROR.getMessage(),
             actualException.getError().getMessage());
@@ -227,9 +225,7 @@ class CardanoConstructionServiceImplTest {
 
   @Test
   void parseTransactionNotSignedTest() {
-    TransactionParsed actual = cardanoService.parseTransaction(
-        NetworkIdentifierType.CARDANO_PREVIEW_NETWORK,
-        TRANSACTION_NOT_SIGNED, false);
+    TransactionParsed actual = cardanoService.parseTransaction(NetworkEnum.PREVIEW.getNetwork(), TRANSACTION_NOT_SIGNED, false);
 
     assertFalse(actual.operations().isEmpty());
     assertEquals(4, actual.operations().size());
@@ -263,11 +259,11 @@ class CardanoConstructionServiceImplTest {
         });
   }
 
+  @SuppressWarnings("java:S5778")
   @Test
   void parseTransactionNotSignedThrowTest() {
     ApiException actualException = assertThrows(ApiException.class, () ->
-        cardanoService.parseTransaction(NetworkIdentifierType.CARDANO_PREVIEW_NETWORK,
-            TRANSACTION_SIGNED, false));
+        cardanoService.parseTransaction(NetworkEnum.PREVIEW.getNetwork(), TRANSACTION_SIGNED, false));
 
     assertEquals(RosettaErrorType.CANT_CREATE_UNSIGNED_TRANSACTION_ERROR.getMessage(),
         actualException.getError().getMessage());
@@ -276,11 +272,11 @@ class CardanoConstructionServiceImplTest {
     assertFalse(actualException.getError().isRetriable());
   }
 
+  @SuppressWarnings("java:S5778")
   @Test
   void parseTransactionThrowTest() {
     ApiException actualException = assertThrows(ApiException.class, () ->
-        cardanoService.parseTransaction(NetworkIdentifierType.CARDANO_PREVIEW_NETWORK,
-            TRANSACTION_SIGNED + "1", false));
+        cardanoService.parseTransaction(NetworkEnum.PREVIEW.getNetwork(), TRANSACTION_SIGNED + "1", false));
 
     assertEquals(RosettaErrorType.INVALID_TRANSACTION.getMessage(),
         actualException.getError().getMessage());
@@ -289,6 +285,7 @@ class CardanoConstructionServiceImplTest {
     assertFalse(actualException.getError().isRetriable());
   }
 
+  @SuppressWarnings("java:S5778")
   @Test
   void parseTransactionCborThrowTest() {
     try (MockedStatic<CborArrayToTransactionData> mocked = Mockito.mockStatic(
@@ -297,8 +294,7 @@ class CardanoConstructionServiceImplTest {
           .thenThrow(new CborException("Test error"));
 
       ApiException actualException = assertThrows(ApiException.class, () ->
-          cardanoService.parseTransaction(NetworkIdentifierType.CARDANO_PREVIEW_NETWORK,
-              TRANSACTION_SIGNED, false));
+          cardanoService.parseTransaction(NetworkEnum.PREVIEW.getNetwork(), TRANSACTION_SIGNED, false));
 
       assertEquals(RosettaErrorType.INVALID_TRANSACTION.getMessage(),
           actualException.getError().getMessage());

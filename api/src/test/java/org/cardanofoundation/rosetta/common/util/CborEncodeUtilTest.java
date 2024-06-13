@@ -13,7 +13,7 @@ import org.openapitools.client.model.DepositParameters;
 import org.junit.jupiter.api.Test;
 
 import org.cardanofoundation.rosetta.api.construction.service.CardanoConstructionServiceImpl;
-import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
+import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.UnsignedTransaction;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -70,7 +70,7 @@ class CborEncodeUtilTest {
         null, null);
     ConstructionPayloadsRequest request = getRequest(requestPayloadFilename);
     UnsignedTransaction unsignedTransaction = cardanoService.createUnsignedTransaction(
-        NetworkIdentifierType.findByName(request.getNetworkIdentifier().getNetwork()),
+        NetworkEnum.findByName(request.getNetworkIdentifier().getNetwork()).getNetwork(),
         request.getOperations(), request.getMetadata().getTtl(),
         new DepositParameters(request.getMetadata().getProtocolParameters().getKeyDeposit(),
             request.getMetadata().getProtocolParameters().getPoolDeposit()));

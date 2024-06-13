@@ -3,6 +3,7 @@ package org.cardanofoundation.rosetta.api.construction.service;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 import co.nstant.in.cbor.CborException;
 import co.nstant.in.cbor.model.Array;
 import co.nstant.in.cbor.model.UnicodeString;
+import com.bloxbean.cardano.client.common.model.Network;
 import com.bloxbean.cardano.client.exception.AddressExcepion;
 import com.bloxbean.cardano.client.exception.CborSerializationException;
 import org.openapitools.client.model.AccountIdentifier;
@@ -46,7 +48,6 @@ import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
 import org.cardanofoundation.rosetta.api.construction.enumeration.AddressType;
 import org.cardanofoundation.rosetta.api.construction.mapper.ConstructionMapper;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
-import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.mapper.CborMapToTransactionExtraData;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.TransactionExtraData;
@@ -71,7 +72,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
     PublicKey publicKey = constructionDeriveRequest.getPublicKey();
     log.info("Deriving address for public key: {}", publicKey);
 
-    NetworkEnum network = NetworkEnum.fromValue(
+    NetworkEnum network = NetworkEnum.findByName(
         constructionDeriveRequest.getNetworkIdentifier().getNetwork());
     if (network == null) {
       throw ExceptionFactory.invalidNetworkError();
@@ -119,7 +120,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
     }
 
     int transactionSize = cardanoConstructionService.calculateTxSize(
-        NetworkIdentifierType.findByName(networkIdentifier.getNetwork()),
+        Objects.requireNonNull(NetworkEnum.findByName(networkIdentifier.getNetwork())).getNetwork(),
         constructionPreprocessRequest.getOperations(), 0, depositParameters);
     Map<String, Integer> response = Map.of(Constants.RELATIVE_TTL, relativeTtl,
         Constants.TRANSACTION_SIZE, transactionSize);
@@ -169,10 +170,10 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
         Constants.DEFAULT_RELATIVE_TTL;
 
     DepositParameters depositParameters = getDepositParameters(metadata);
-    NetworkIdentifierType networkIdentifier = NetworkIdentifierType.findByName(
-        constructionPayloadsRequest.getNetworkIdentifier().getNetwork());
+    Network network = NetworkEnum.findByName(
+        constructionPayloadsRequest.getNetworkIdentifier().getNetwork()).getNetwork();
 
-    UnsignedTransaction unsignedTransaction = createUnsignedTransaction(networkIdentifier,
+    UnsignedTransaction unsignedTransaction = createUnsignedTransaction(network,
         operations, ttl, depositParameters);
     List<SigningPayload> payloads = cardanoConstructionService.constructPayloadsForTransactionBody(
         unsignedTransaction.hash(), unsignedTransaction.addresses());
@@ -186,11 +187,12 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
     Boolean signed = Optional.ofNullable(constructionParseRequest.getSigned()).orElseThrow(
         () -> ExceptionFactory.unspecifiedError("body should have required property signed."));
 
-    NetworkIdentifierType networkIdentifier = NetworkIdentifierType.findByName(
-        constructionParseRequest.getNetworkIdentifier().getNetwork());
+    Network network = Objects
+            .requireNonNull(NetworkEnum.findByName(constructionParseRequest.getNetworkIdentifier().getNetwork()))
+            .getNetwork();
     log.info(constructionParseRequest.getTransaction() + "[constructionParse] Processing");
 
-    TransactionParsed result = cardanoConstructionService.parseTransaction(networkIdentifier,
+    TransactionParsed result = cardanoConstructionService.parseTransaction(network,
         constructionParseRequest.getTransaction(), signed);
 
     return new ConstructionParseResponse(result.operations(), null,
@@ -249,11 +251,10 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
         cardanoConstructionService.getDepositParameters();
   }
 
-  private UnsignedTransaction createUnsignedTransaction(NetworkIdentifierType networkIdentifier,
-      List<Operation> operations, int ttl, DepositParameters depositParameters) {
+  private UnsignedTransaction createUnsignedTransaction(Network network, List<Operation> operations, int ttl,
+     DepositParameters depositParameters) {
     try {
-      return cardanoConstructionService.createUnsignedTransaction(
-          networkIdentifier, operations, ttl, depositParameters);
+      return cardanoConstructionService.createUnsignedTransaction(network, operations, ttl, depositParameters);
     } catch (IOException | CborSerializationException | AddressExcepion | CborException e) {
       log.error("Failed to create unsigned transaction: {}", e.getMessage());
       throw ExceptionFactory.cantCreateUnsignedTransactionFromBytes();
