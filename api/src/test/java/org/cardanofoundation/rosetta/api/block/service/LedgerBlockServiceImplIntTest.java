@@ -8,6 +8,7 @@ import jakarta.persistence.PersistenceContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 
 import org.cardanofoundation.rosetta.api.IntegrationTest;
@@ -42,8 +43,7 @@ class LedgerBlockServiceImplIntTest extends IntegrationTest {
   @PersistenceContext
   EntityManager entityManager;
 
-
-  @Test
+  @RepeatedTest(10)
   void findBlock_Test_OK_tx_blk() {
     //given
     TransactionBlockDetails tx = generatedDataMap.get(SIMPLE_TRANSACTION.getName());
@@ -51,6 +51,16 @@ class LedgerBlockServiceImplIntTest extends IntegrationTest {
     Optional<Block> block = ledgerBlockService.findBlock(tx.blockNumber(), tx.blockHash());
     //then
     assertBlockAndTx(block, tx);
+  }
+
+  @RepeatedTest(10)
+  void findBlockIdentifier_Test_OK_tx_blk() {
+    //given
+    TransactionBlockDetails tx = generatedDataMap.get(SIMPLE_TRANSACTION.getName());
+    //when
+    Optional<BlockIdentifierExtended> block = ledgerBlockService.findBlockIdentifier(tx.blockNumber(), tx.blockHash());
+    //then
+    assertBlockIdentifierAndTx(block, tx);
   }
 
   @Test
@@ -64,6 +74,16 @@ class LedgerBlockServiceImplIntTest extends IntegrationTest {
   }
 
   @Test
+  void findBlockIdentifier_Test_OK_tx_null() {
+    //given
+    TransactionBlockDetails tx = generatedDataMap.get(SIMPLE_TRANSACTION.getName());
+    //when
+    Optional<BlockIdentifierExtended> block = ledgerBlockService.findBlockIdentifier(tx.blockNumber(), null);
+    //then
+    assertBlockIdentifierAndTx(block, tx);
+  }
+
+  @Test
   void findBlock_Test_OK_null_blk() {
     //given
     TransactionBlockDetails tx = generatedDataMap.get(SIMPLE_TRANSACTION.getName());
@@ -71,6 +91,16 @@ class LedgerBlockServiceImplIntTest extends IntegrationTest {
     Optional<Block> block = ledgerBlockService.findBlock(null, tx.blockHash());
     //then
     assertBlockAndTx(block, tx);
+  }
+
+  @Test
+  void findBlockIdentifier_Test_OK_null_blk() {
+    //given
+    TransactionBlockDetails tx = generatedDataMap.get(SIMPLE_TRANSACTION.getName());
+    //when
+    Optional<BlockIdentifierExtended> block = ledgerBlockService.findBlockIdentifier(null, tx.blockHash());
+    //then
+    assertBlockIdentifierAndTx(block, tx);
   }
 
   @Test
@@ -301,5 +331,15 @@ class LedgerBlockServiceImplIntTest extends IntegrationTest {
     assertThat(block.getNumber()).isEqualTo(tx.blockNumber());
     assertThat(block.getTransactions()).hasSize(1);
     assertThat(block.getTransactions().getFirst().getHash()).isEqualTo(tx.txHash());
+  }
+
+  private static void assertBlockIdentifierAndTx(Optional<BlockIdentifierExtended> blockOpt, TransactionBlockDetails tx) {
+    if (blockOpt.isEmpty()) {
+      throw new AssertionError("Not a block");
+    }
+    var block = blockOpt.get();
+    assertThat(block).isNotNull();
+    assertThat(block.getHash()).isEqualTo(tx.blockHash());
+    assertThat(block.getNumber()).isEqualTo(tx.blockNumber());
   }
 }

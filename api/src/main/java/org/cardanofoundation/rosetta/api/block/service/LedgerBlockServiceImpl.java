@@ -171,7 +171,6 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
         .map(Utxo::getTxHash)
         .toList();
 
-    //Use java 21 green threads
     try (var executorService = Executors.newFixedThreadPool(6)) {
       Future<List<AddressUtxoEntity>> utxos = executorService.submit(() ->
           addressUtxoRepository.findByTxHashIn(utxHashes));
@@ -221,6 +220,13 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
             .map(transactionMapper::mapDelegationEntityToDelegation)
             .toList());
 
+    transaction.setWithdrawals(
+        fetched.withdrawals
+            .stream()
+            .filter(tx -> tx.getTxHash().equals(transaction.getHash()))
+            .map(transactionMapper::mapWithdrawalEntityToWithdrawal)
+            .toList());
+
     transaction.setPoolRegistrations(
         fetched.poolRegistrations
             .stream()
@@ -231,13 +237,6 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
         fetched.poolRetirements
             .stream()
             .map(transactionMapper::mapEntityToPoolRetirement)
-            .toList());
-
-    transaction.setWithdrawals(
-        fetched.withdrawals
-            .stream()
-            .filter(tx -> tx.getTxHash().equals(transaction.getHash()))
-            .map(transactionMapper::mapWithdrawalEntityToWithdrawal)
             .toList());
 
     transaction.setSize(calcSize(transaction, pps));
