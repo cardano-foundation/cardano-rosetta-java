@@ -63,7 +63,6 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
   private final WithdrawalRepository withdrawalRepository;
   private final AddressUtxoRepository addressUtxoRepository;
 
-
   private final BlockMapper blockMapper;
   private final TransactionMapper transactionMapper;
   private final AddressUtxoEntityToUtxo addressUtxoEntityToUtxo;
@@ -106,7 +105,8 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
     ProtocolParams pps = protocolParamService.findProtocolParametersFromIndexer();
     List<BlockTx> transactions = model.getTransactions();
     Entities fetched = findByTxHash(transactions);
-    transactions.forEach(tx -> populateTransaction(tx, pps, fetched));
+    Map<UtxoKey, AddressUtxoEntity> utxoMap = getUtxoMapFromEntities(fetched);
+    transactions.forEach(tx -> populateTransaction(tx, pps, fetched, utxoMap));
     return model;
   }
 
@@ -124,7 +124,8 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
       ProtocolParams pps = protocolParamService.findProtocolParametersFromIndexer();
       List<BlockTx> transactions = txList.stream().map(blockMapper::mapToBlockTx).toList();
       Entities fetched = findByTxHash(transactions);
-      transactions.forEach(tx -> populateTransaction(tx, pps, fetched));
+      Map<UtxoKey, AddressUtxoEntity> utxoMap = getUtxoMapFromEntities(fetched);
+      transactions.forEach(tx -> populateTransaction(tx, pps, fetched, utxoMap));
       return transactions;
     }
     return Collections.emptyList();
@@ -194,15 +195,8 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
     }
   }
 
-  private void populateTransaction(BlockTx transaction, ProtocolParams pps, Entities fetched) {
-
-    Map<UtxoKey, AddressUtxoEntity> utxoMap = fetched.utxos
-        .stream()
-        .collect(Collectors.toMap(
-            utxo -> new UtxoKey(utxo.getTxHash(), utxo.getOutputIndex()),
-            utxo -> utxo
-        ));
-
+  private void populateTransaction(BlockTx transaction, ProtocolParams pps, Entities fetched,
+      Map<UtxoKey, AddressUtxoEntity> utxoMap) {
     Optional.ofNullable(transaction.getInputs())
         .stream()
         .flatMap(List::stream)
@@ -258,6 +252,15 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
         new UtxoKey(utxo.getTxHash(), utxo.getOutputIndex()));
     Optional.ofNullable(entity)
         .ifPresent(e -> addressUtxoEntityToUtxo.overWriteDto(utxo, e));
+  }
+
+  private static Map<UtxoKey, AddressUtxoEntity> getUtxoMapFromEntities(Entities fetched) {
+    return fetched.utxos
+        .stream()
+        .collect(Collectors.toMap(
+            utxo -> new UtxoKey(utxo.getTxHash(), utxo.getOutputIndex()),
+            utxo -> utxo
+        ));
   }
 
   private record Entities(List<AddressUtxoEntity> utxos,
