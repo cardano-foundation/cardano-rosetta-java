@@ -28,6 +28,7 @@ import org.openapitools.client.model.Relay;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.common.exception.ApiException;
 
@@ -46,9 +47,7 @@ import static org.cardanofoundation.rosetta.common.util.ParseConstructionUtil.pa
 import static org.cardanofoundation.rosetta.common.util.ParseConstructionUtil.parseIpv6;
 import static org.cardanofoundation.rosetta.common.util.ParseConstructionUtil.parsePoolCertToOperation;
 import static org.cardanofoundation.rosetta.common.util.ParseConstructionUtil.parsePoolMetadata;
-import static org.cardanofoundation.rosetta.common.util.ParseConstructionUtil.parsePoolOwners;
 import static org.cardanofoundation.rosetta.common.util.ParseConstructionUtil.parsePoolRegistration;
-import static org.cardanofoundation.rosetta.common.util.ParseConstructionUtil.parsePoolRewardAccount;
 import static org.cardanofoundation.rosetta.common.util.ParseConstructionUtil.parseTokenAsset;
 import static org.cardanofoundation.rosetta.common.util.ParseConstructionUtil.parseVoteMetadataToOperation;
 import static org.cardanofoundation.rosetta.common.util.ParseConstructionUtil.parseWithdrawalToOperation;
@@ -65,7 +64,7 @@ class ParseConstructionUtilTest {
     @Test
     void parsePoolCertToOperationWOCert() throws CborException, CborSerializationException {
         //when
-        Operation operation = parsePoolCertToOperation(1L, null, 1L, "type");
+        Operation operation = parsePoolCertToOperation(NetworkEnum.MAINNET.getNetwork(), null, 1L, "type");
         //then
         assertEquals("", operation.getStatus());
         assertEquals("type", operation.getType());
@@ -84,7 +83,7 @@ class ParseConstructionUtilTest {
                 .poolOwners(Set.of("1A2B3C"))
                 .build();
         //when
-        PoolRegistrationParams poolRegistrationParams = parsePoolRegistration(764824073L, poolRegistration);
+        PoolRegistrationParams poolRegistrationParams = parsePoolRegistration(NetworkEnum.MAINNET.getNetwork(), poolRegistration);
         //then
         Assertions.assertEquals("1", poolRegistrationParams.getCost());
         Assertions.assertEquals("stake1uydzk0qg9zh3a", poolRegistrationParams.getRewardAddress());
@@ -169,7 +168,7 @@ class ParseConstructionUtilTest {
                 .poolOwners(Set.of("0x4A6F686E446F65"))
                 .build();
         //when
-        List<String> ownerAddresses = getOwnerAddressesFromPoolRegistrations(Constants.PREVIEW, poolRegistration);
+        List<String> ownerAddresses = getOwnerAddressesFromPoolRegistrations(NetworkEnum.PREVIEW.getNetwork(), poolRegistration);
         //then
         assertThat(ownerAddresses)
                 .hasSize(1)
@@ -184,7 +183,7 @@ class ParseConstructionUtilTest {
                 .rewardAccount("0x4A6F686E446F65")
                 .build();
         //when
-        String rewardAddress = getRewardAddressFromPoolRegistration("preview", poolRegistration);
+        String rewardAddress = getRewardAddressFromPoolRegistration(NetworkEnum.PREVIEW.getNetwork(), poolRegistration);
         //then
         assertThat(rewardAddress).isEqualTo("stake_test1up9x76rwg3hk2an50ek");
     }
@@ -303,33 +302,6 @@ class ParseConstructionUtilTest {
     }
 
     @Test
-    void shouldReturnNullWhenParseRewaedAccuntNetworkNullTest() {
-        //given
-        PoolRegistration poolRegistration = PoolRegistration
-                .builder()
-                .rewardAccount("a".repeat(58))
-                .build();
-        //when
-        String rewardAccount = parsePoolRewardAccount(123L, poolRegistration);
-        //then
-        assertThat(rewardAccount).isNull();
-    }
-
-    @Test
-    void shouldNotAddToPoolOwnersWithWrongNetworkTest() {
-        //given
-        PoolRegistration poolRegistration = PoolRegistration
-                .builder()
-                .poolOwners(Set.of("owner"))
-                .build();
-        //when
-        List<String> poolOwners = parsePoolOwners(123L, poolRegistration);
-        //then
-        assertThat(poolOwners)
-                .isEmpty();
-    }
-
-    @Test
     void shouldThrowExceptionWhenUnknownNetworkTest() {
         //given
         PoolRegistration poolRegistration = PoolRegistration
@@ -338,7 +310,7 @@ class ParseConstructionUtilTest {
                 .build();
         //when
         Exception exception = Assertions.assertThrows(ApiException.class,
-                () -> getRewardAddressFromPoolRegistration("custom", poolRegistration));
+                () -> getRewardAddressFromPoolRegistration(null, poolRegistration));
         //then
         assertThat(exception)
                 .extracting("error")
@@ -355,7 +327,7 @@ class ParseConstructionUtilTest {
                 .poolOwners(Set.of("asdasd"))
                 .build();
         //when
-        List<String> poolOwners = getOwnerAddressesFromPoolRegistrations("custom", poolRegistration);
+        List<String> poolOwners = getOwnerAddressesFromPoolRegistrations(null, poolRegistration);
         //then
         assertThat(poolOwners)
                 .isEmpty();
@@ -368,7 +340,7 @@ class ParseConstructionUtilTest {
                 .epoch(1L)
                 .build();
         //when
-        Operation operation = parsePoolCertToOperation(1L, certificate , 1L,
+        Operation operation = parsePoolCertToOperation(NetworkEnum.MAINNET.getNetwork(), certificate , 1L,
                 OperationType.POOL_RETIREMENT.getValue());
         //then
         assertEquals("", operation.getStatus());
@@ -389,7 +361,7 @@ class ParseConstructionUtilTest {
                 .relays(List.of(new SingleHostName()))
                 .build();
         //when
-        Operation operation = parsePoolCertToOperation(1L, certificate , 1L,
+        Operation operation = parsePoolCertToOperation(NetworkEnum.PREPROD.getNetwork(), certificate , 1L,
                 OperationType.POOL_REGISTRATION.getValue());
         //then
         assertEquals("", operation.getStatus());

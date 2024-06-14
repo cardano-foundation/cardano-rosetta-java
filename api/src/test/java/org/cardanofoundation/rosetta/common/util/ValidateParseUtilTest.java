@@ -18,7 +18,7 @@ import org.openapitools.client.model.VoteRegistrationMetadata;
 
 import org.junit.jupiter.api.Test;
 
-import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
+import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
 import org.cardanofoundation.rosetta.common.exception.ApiException;
 
 import static org.cardanofoundation.rosetta.EntityGenerator.givenPublicKey;
@@ -158,7 +158,7 @@ class ValidateParseUtilTest {
     @Test
     void parsePoolRegistrationCertWithInvalidFormatTest() {
         ApiException exception = assertThrows(ApiException.class,
-                () -> validateAndParsePoolRegistrationCert(NetworkIdentifierType.CARDANO_MAINNET_NETWORK,
+                () -> validateAndParsePoolRegistrationCert(NetworkEnum.MAINNET.getNetwork(),
                         "cert", "hash"));
         assertEquals("Invalid pool registration certificate format", exception.getError().getMessage());
         assertEquals(4027, exception.getError().getCode());
@@ -167,7 +167,7 @@ class ValidateParseUtilTest {
     @Test
     void parsePoolRegistrationCertWOCertTest() {
         ApiException exception = assertThrows(ApiException.class,
-                () -> validateAndParsePoolRegistrationCert(NetworkIdentifierType.CARDANO_MAINNET_NETWORK,
+                () -> validateAndParsePoolRegistrationCert(NetworkEnum.MAINNET.getNetwork(),
                         "", "hash"));
         assertEquals("Pool registration certificate is required for pool registration", exception.getError().getMessage());
         assertEquals(4026, exception.getError().getCode());

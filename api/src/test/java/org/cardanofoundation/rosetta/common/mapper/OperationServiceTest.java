@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.cardanofoundation.rosetta.api.construction.service.OperationService;
-import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
+import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.common.exception.ApiException;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.TransactionData;
@@ -42,8 +42,7 @@ class OperationServiceTest {
     Operation operation = getOperation("addr1", "rewardAddress",
         List.of("poolOwner1", "poolOwner2"));
 
-    List<String> poolSigners = operationService
-        .getSignerFromOperation(NetworkIdentifierType.CARDANO_MAINNET_NETWORK, operation);
+    List<String> poolSigners = operationService.getSignerFromOperation(NetworkEnum.MAINNET.getNetwork(), operation);
 
     assertThat(poolSigners)
         .hasSize(4)
@@ -56,8 +55,7 @@ class OperationServiceTest {
         List.of("poolOwner1", "poolOwner2"));
     operation.setType(OperationType.POOL_RETIREMENT.getValue());
 
-    List<String> poolSigners = operationService
-        .getSignerFromOperation(NetworkIdentifierType.CARDANO_MAINNET_NETWORK, operation);
+    List<String> poolSigners = operationService.getSignerFromOperation(NetworkEnum.MAINNET.getNetwork(), operation);
 
     assertThat(poolSigners).hasSize(1).contains("addr1");
   }
@@ -69,8 +67,7 @@ class OperationServiceTest {
     operation.getMetadata().setPoolRegistrationCert(
         "8a03581c1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b558208dd154228946bd12967c12bedb1cb6038b78f8b84a1760b1a788fa72a4af3db01a004c4b401a002dc6c0d81e820101581de1bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb81581c7a9a4d5a6ac7a9d8702818fa3ea533e56c4f1de16da611a730ee3f008184001820445820f5d9505820f5d9ea167fd2e0b19647f18dd1e0826f706f6f6c4d6574616461746155726c58209ac2217288d1ae0b4e15c41b58d3e05a13206fd9ab81cb15943e4174bf30c90b");
 
-    List<String> poolSigners = operationService
-        .getSignerFromOperation(NetworkIdentifierType.CARDANO_MAINNET_NETWORK, operation);
+    List<String> poolSigners = operationService.getSignerFromOperation(NetworkEnum.MAINNET.getNetwork(), operation);
 
     assertThat(poolSigners)
         .hasSize(3)
@@ -78,6 +75,7 @@ class OperationServiceTest {
             "stake1u9af5n26dtr6nkrs9qv05049x0jkcncau9k6vyd8xrhr7qq8tez5p");
   }
 
+  @SuppressWarnings("java:S5778")
   @Test
   void getSignerFromOperation_poolOperationTypeWithCertificateNullable_test() {
     Operation operation = getOperation("addr1", null, null);
@@ -85,8 +83,7 @@ class OperationServiceTest {
     operation.getMetadata().setPoolRegistrationCert(null);
 
     ApiException actualException = assertThrows(ApiException.class,
-        () -> operationService.getSignerFromOperation(
-            NetworkIdentifierType.CARDANO_MAINNET_NETWORK, operation));
+        () -> operationService.getSignerFromOperation(NetworkEnum.MAINNET.getNetwork(), operation));
 
     assertThat(actualException.getError().getMessage())
         .isEqualTo(RosettaErrorType.POOL_CERT_MISSING.getMessage());
@@ -95,8 +92,7 @@ class OperationServiceTest {
 
     operation.setMetadata(null);
     actualException = assertThrows(ApiException.class,
-        () -> operationService.getSignerFromOperation(
-            NetworkIdentifierType.CARDANO_MAINNET_NETWORK, operation));
+        () -> operationService.getSignerFromOperation(NetworkEnum.MAINNET.getNetwork(), operation));
 
     assertThat(actualException.getError().getMessage())
         .isEqualTo(RosettaErrorType.POOL_CERT_MISSING.getMessage());
@@ -109,28 +105,24 @@ class OperationServiceTest {
     Operation operation = getOperation(null, "rewardAddress",
         List.of("poolOwner1", "poolOwner2"));
 
-    List<String> poolSigners = operationService
-        .getSignerFromOperation(NetworkIdentifierType.CARDANO_MAINNET_NETWORK, operation);
+    List<String> poolSigners = operationService.getSignerFromOperation(NetworkEnum.MAINNET.getNetwork(), operation);
 
     assertThat(poolSigners)
         .hasSize(3)
         .contains("rewardAddress", "poolOwner1", "poolOwner2");
 
     operation.setAccount(null);
-    poolSigners = operationService
-        .getSignerFromOperation(NetworkIdentifierType.CARDANO_MAINNET_NETWORK, operation);
+    poolSigners = operationService.getSignerFromOperation(NetworkEnum.MAINNET.getNetwork(), operation);
     assertThat(poolSigners)
         .hasSize(3)
         .contains("rewardAddress", "poolOwner1", "poolOwner2");
 
     operation.getMetadata().setPoolRegistrationParams(null);
-    poolSigners = operationService
-        .getSignerFromOperation(NetworkIdentifierType.CARDANO_MAINNET_NETWORK, operation);
+    poolSigners = operationService.getSignerFromOperation(NetworkEnum.MAINNET.getNetwork(), operation);
     assertThat(poolSigners).isEmpty();
 
     operation.setMetadata(null);
-    poolSigners = operationService
-        .getSignerFromOperation(NetworkIdentifierType.CARDANO_MAINNET_NETWORK, operation);
+    poolSigners = operationService.getSignerFromOperation(NetworkEnum.MAINNET.getNetwork(), operation);
     assertThat(poolSigners).isEmpty();
   }
 
@@ -141,8 +133,7 @@ class OperationServiceTest {
         .type(OperationType.VOTE_REGISTRATION.getValue())
         .build();
 
-    List<String> poolSigners = operationService
-        .getSignerFromOperation(NetworkIdentifierType.CARDANO_MAINNET_NETWORK, operation);
+    List<String> poolSigners = operationService.getSignerFromOperation(NetworkEnum.MAINNET.getNetwork(), operation);
 
     assertThat(poolSigners).isEmpty();
   }
@@ -160,21 +151,20 @@ class OperationServiceTest {
             .build())
         .build();
 
-    List<String> poolSigners = operationService
-        .getSignerFromOperation(NetworkIdentifierType.CARDANO_MAINNET_NETWORK, operation);
+    List<String> poolSigners = operationService.getSignerFromOperation(NetworkEnum.MAINNET.getNetwork(), operation);
 
     assertThat(poolSigners)
         .hasSize(1)
         .contains("stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5");
   }
 
+  @SuppressWarnings("java:S5778")
   @Test
   void getSignerFromOperation_negative_test() {
     Operation operation = Operation.builder().metadata(null).type("invalidType").build();
 
     ApiException actualException = assertThrows(ApiException.class,
-        () -> operationService.getSignerFromOperation(
-            NetworkIdentifierType.CARDANO_MAINNET_NETWORK, operation));
+        () -> operationService.getSignerFromOperation(NetworkEnum.MAINNET.getNetwork(), operation));
 
     assertThat(actualException.getError().getMessage())
         .isEqualTo(RosettaErrorType.STAKING_KEY_MISSING.getMessage());
@@ -201,7 +191,7 @@ class OperationServiceTest {
     withdrawalOperation.setAmount(Amount.builder().value("value").build());
 
     List<Operation> operations = operationService
-        .getOperationsFromTransactionData(transactionData, 764824073L);
+        .getOperationsFromTransactionData(transactionData, NetworkEnum.MAINNET.getNetwork());
 
     assertThat(operations).hasSize(2);
     assertThat(operations.get(1).getType()).isEqualTo(OperationType.WITHDRAWAL.getValue());

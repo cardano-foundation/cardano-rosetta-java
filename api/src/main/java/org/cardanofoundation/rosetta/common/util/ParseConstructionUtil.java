@@ -8,7 +8,6 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -17,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import co.nstant.in.cbor.CborException;
 import co.nstant.in.cbor.model.Array;
 import com.bloxbean.cardano.client.address.Address;
+import com.bloxbean.cardano.client.common.model.Network;
 import com.bloxbean.cardano.client.crypto.bip32.key.HdPublicKey;
 import com.bloxbean.cardano.client.exception.CborDeserializationException;
 import com.bloxbean.cardano.client.exception.CborSerializationException;
@@ -58,8 +58,6 @@ import org.openapitools.client.model.VoteRegistrationMetadata;
 import org.cardanofoundation.rosetta.api.construction.enumeration.CatalystLabels;
 import org.cardanofoundation.rosetta.common.enumeration.CatalystDataIndexes;
 import org.cardanofoundation.rosetta.common.enumeration.CatalystSigIndexes;
-import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
-import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.mapper.DataMapper;
@@ -96,18 +94,16 @@ public class ParseConstructionUtil {
   }
 
 
-  public static List<String> getOwnerAddressesFromPoolRegistrations(String networkId,
-      PoolRegistration poolRegistration) {
+  public static List<String> getOwnerAddressesFromPoolRegistrations(Network network, PoolRegistration poolRegistration) {
     List<String> poolOwners = new ArrayList<>();
     Set<String> owners = poolRegistration.getPoolOwners();
-    NetworkEnum network = NetworkEnum.fromValue(networkId);
     if (network != null) {
       for (String owner : owners) {
         Address address = CardanoAddressUtils.getAddress(
                 null,
                 HexUtil.decodeHexString(owner),
                 Constants.STAKE_KEY_HASH_HEADER_KIND,
-                network.getNetwork(),
+                network,
                 Reward);
         poolOwners.add(address.getAddress());
       }
@@ -115,20 +111,18 @@ public class ParseConstructionUtil {
     return poolOwners;
   }
 
-  public static String getRewardAddressFromPoolRegistration(String networkId,
-      PoolRegistration poolRegistration) {
+  public static String getRewardAddressFromPoolRegistration(Network network, PoolRegistration poolRegistration) {
     String cutRewardAccount = poolRegistration.getRewardAccount();
     if (cutRewardAccount.length() == Constants.HEX_PREFIX_AND_REWARD_ACCOUNT_LENGTH) {
       // removing prefix 0x from reward account, reward account is 56 bytes
       cutRewardAccount = poolRegistration.getRewardAccount().substring(2);
     }
-    NetworkEnum network = NetworkEnum.fromValue(networkId);
     if (network != null) {
       return CardanoAddressUtils.getAddress(
               null,
               HexUtil.decodeHexString(cutRewardAccount),
               Constants.STAKE_KEY_HASH_HEADER_KIND,
-              network.getNetwork(),
+              network,
               Reward)
               .getAddress();
     }
@@ -234,7 +228,7 @@ public class ParseConstructionUtil {
   }
 
   public static List<Operation> parseCertsToOperations(TransactionBody transactionBody,
-      List<Operation> certOps, Long networkProtocolMagic)
+      List<Operation> certOps, Network network)
       throws CborException, CborSerializationException {
     List<Operation> parsedOperations = new ArrayList<>();
     List<Certificate> certs = transactionBody.getCerts();
@@ -247,8 +241,7 @@ public class ParseConstructionUtil {
         String hex = getStakingCredentialHex(certOperation);
         HdPublicKey hdPublicKey = new HdPublicKey();
         hdPublicKey.setKeyData(HexUtil.decodeHexString(hex));
-        String address = CardanoAddressUtils.generateRewardAddress(
-            Objects.requireNonNull(NetworkIdentifierType.findByProtocolMagic(networkProtocolMagic)), hdPublicKey);
+        String address = CardanoAddressUtils.generateRewardAddress(network, hdPublicKey);
         Certificate cert = ValidateParseUtil.validateCert(certs, i);
         if (!ObjectUtils.isEmpty(cert)) {
           Operation parsedOperation = parseCertToOperation(
@@ -264,7 +257,7 @@ public class ParseConstructionUtil {
         Certificate cert = ValidateParseUtil.validateCert(certs, i);
         if (!ObjectUtils.isEmpty(cert)) {
           Operation parsedOperation = parsePoolCertToOperation(
-              networkProtocolMagic,
+              network,
               cert,
               certOperation.getOperationIdentifier().getIndex(),
               certOperation.getType()
@@ -291,7 +284,7 @@ public class ParseConstructionUtil {
     return hex;
   }
 
-  public static Operation parsePoolCertToOperation(Long networkProtocolMagic, Certificate cert, Long index,
+  public static Operation parsePoolCertToOperation(Network network, Certificate cert, Long index,
       String type)
       throws CborSerializationException, CborException {
     Operation operation = Operation.builder()
@@ -315,8 +308,7 @@ public class ParseConstructionUtil {
       }
       if (!ObjectUtils.isEmpty(poolRegistrationCert)) {
         if (type.equals(OperationType.POOL_REGISTRATION.getValue())) {
-          PoolRegistrationParams poolRegistrationParams = parsePoolRegistration(networkProtocolMagic,
-              poolRegistrationCert);
+          PoolRegistrationParams poolRegistrationParams = parsePoolRegistration(network, poolRegistrationCert);
           operation.getMetadata().setPoolRegistrationParams(poolRegistrationParams);
         } else {
           String parsedPoolCert = HexUtil.encodeHexString(
@@ -329,14 +321,14 @@ public class ParseConstructionUtil {
     return operation;
   }
 
-  public static PoolRegistrationParams parsePoolRegistration(Long networkProtocolMagic,
+  public static PoolRegistrationParams parsePoolRegistration(Network network,
       PoolRegistration poolRegistration) {
     return new PoolRegistrationParams(
         HexUtil.encodeHexString(poolRegistration.getVrfKeyHash()),
-        parsePoolRewardAccount(networkProtocolMagic, poolRegistration),
+        parsePoolRewardAccount(network, poolRegistration),
         poolRegistration.getPledge().toString(),
         poolRegistration.getCost().toString(),
-        parsePoolOwners(networkProtocolMagic, poolRegistration),
+        parsePoolOwners(network, poolRegistration),
         parsePoolRelays(poolRegistration),
         parsePoolMargin(poolRegistration), null,
         parsePoolMetadata(poolRegistration)
@@ -344,7 +336,7 @@ public class ParseConstructionUtil {
   }
 
   public static List<Operation> parseWithdrawalsToOperations(List<Operation> withdrawalOps,
-      Integer withdrawalsCount, Long networkProtocolMagic) {
+      Integer withdrawalsCount, Network network) {
 
     log.info("[parseWithdrawalsToOperations] About to parse {} withdrawals", withdrawalsCount);
     List<Operation> withdrawalOperations = new ArrayList<>();
@@ -353,8 +345,7 @@ public class ParseConstructionUtil {
       String stakingCredentialHex = getStakingCredentialHex(withdrawalOperation);
       HdPublicKey hdPublicKey = new HdPublicKey();
       hdPublicKey.setKeyData(HexUtil.decodeHexString(stakingCredentialHex));
-      String address = CardanoAddressUtils.generateRewardAddress(
-          Objects.requireNonNull(NetworkIdentifierType.findByProtocolMagic(networkProtocolMagic)), hdPublicKey);
+      String address = CardanoAddressUtils.generateRewardAddress(network, hdPublicKey);
       Operation parsedOperation = parseWithdrawalToOperation(
           withdrawalOperation.getAmount().getValue(),
           stakingCredentialHex,
@@ -436,39 +427,33 @@ public class ParseConstructionUtil {
         .build();
   }
 
-  public static List<String> parsePoolOwners(Long networkProtocolMagic, PoolRegistration poolRegistration) {
-    List<String> poolOwners = new ArrayList<>();
-    Set<String> owners = poolRegistration.getPoolOwners();
-    NetworkEnum network = NetworkEnum.fromProtocolMagic(networkProtocolMagic);
-    if (network != null) {
+  public static List<String> parsePoolOwners(Network network, PoolRegistration poolRegistration) {
+      List<String> poolOwners = new ArrayList<>();
+      Set<String> owners = poolRegistration.getPoolOwners();
       for (String owner : owners) {
-        Address address = CardanoAddressUtils.getAddress(
-                null,
-                HexUtil.decodeHexString(owner),
-                (byte) -32,
-                network.getNetwork(),
-                com.bloxbean.cardano.client.address.AddressType.Reward);
-        poolOwners.add(address.getAddress());
+          Address address = CardanoAddressUtils.getAddress(
+                  null,
+                  HexUtil.decodeHexString(owner),
+                  (byte) -32,
+                  network,
+                  com.bloxbean.cardano.client.address.AddressType.Reward);
+          poolOwners.add(address.getAddress());
       }
-    }
-    return poolOwners;
+      return poolOwners;
   }
 
-  public static String parsePoolRewardAccount(Long networkProtocolMagic, PoolRegistration poolRegistration) {
-    String cutRewardAccount = poolRegistration.getRewardAccount();
-    if (poolRegistration.getRewardAccount().length() == Constants.HEX_PREFIX_AND_REWARD_ACCOUNT_LENGTH) {
-      cutRewardAccount = poolRegistration.getRewardAccount().substring(2);
-    }
-    NetworkEnum networkEnum = NetworkEnum.fromProtocolMagic(networkProtocolMagic);
-    if (networkEnum != null) {
+  public static String parsePoolRewardAccount(Network network, PoolRegistration poolRegistration) {
+      String cutRewardAccount = poolRegistration.getRewardAccount();
+      if (poolRegistration.getRewardAccount().length() == Constants.HEX_PREFIX_AND_REWARD_ACCOUNT_LENGTH) {
+          cutRewardAccount = poolRegistration.getRewardAccount().substring(2);
+      }
       return CardanoAddressUtils.getAddress(
               null,
               HexUtil.decodeHexString(cutRewardAccount),
               (byte) -32,
-              networkEnum.getNetwork(),
+              network,
               com.bloxbean.cardano.client.address.AddressType.Reward).getAddress();
-    }
-    return null;
+
   }
 
   public static PoolMetadata parsePoolMetadata(PoolRegistration poolRegistration) {

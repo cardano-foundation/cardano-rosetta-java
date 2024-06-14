@@ -1,5 +1,7 @@
 package org.cardanofoundation.rosetta.config;
 
+import java.util.Objects;
+
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -24,6 +26,6 @@ public class NetworkConfig {
   }
 
   public final String getSanitizedNetworkId() {
-    return NetworkEnum.fromValue(id).getValue();
+    return Objects.requireNonNull(NetworkEnum.findByName(id)).getName();
   }
 }

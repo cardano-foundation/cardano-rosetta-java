@@ -12,19 +12,19 @@ class NetworkEnumTest {
   @Test
   void fromValue() {
     for (NetworkEnum networkEnum : networkEnums) {
-      NetworkEnum actual = NetworkEnum.fromValue(networkEnum.getValue());
+      NetworkEnum actual = NetworkEnum.findByName(networkEnum.getName());
       assertEquals(networkEnum, actual);
     }
-    assertNull(NetworkEnum.fromValue("Invalid"));
+    assertNull(NetworkEnum.findByName("Invalid"));
   }
 
   @Test
   void fromProtocolMagic() {
     for (NetworkEnum networkEnum : networkEnums) {
-      NetworkEnum actual = NetworkEnum.fromProtocolMagic(
+      NetworkEnum actual = NetworkEnum.findByProtocolMagic(
           networkEnum.getNetwork().getProtocolMagic());
       assertEquals(networkEnum, actual);
     }
-    assertNull(NetworkEnum.fromProtocolMagic(0L));
+    assertNull(NetworkEnum.findByProtocolMagic(0L));
   }
 }

@@ -32,6 +32,7 @@ import co.nstant.in.cbor.model.UnsignedInteger;
 import com.bloxbean.cardano.client.address.AddressProvider;
 import com.bloxbean.cardano.client.address.ByronAddress;
 import com.bloxbean.cardano.client.common.cbor.CborSerializationUtil;
+import com.bloxbean.cardano.client.common.model.Network;
 import com.bloxbean.cardano.client.crypto.Blake2bUtil;
 import com.bloxbean.cardano.client.crypto.VerificationKey;
 import com.bloxbean.cardano.client.crypto.bip32.key.HdPublicKey;
@@ -61,7 +62,6 @@ import org.cardanofoundation.rosetta.api.block.service.LedgerBlockService;
 import org.cardanofoundation.rosetta.api.construction.enumeration.AddressType;
 import org.cardanofoundation.rosetta.common.enumeration.EraAddressType;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
-import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
 import org.cardanofoundation.rosetta.common.exception.ApiException;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.mapper.CborArrayToTransactionData;
@@ -95,18 +95,16 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
   private String cardanoNodeSubmitHost;
 
   @Override
-  public TransactionParsed parseTransaction(NetworkIdentifierType networkIdentifierType,
-      String transaction, boolean signed) {
+  public TransactionParsed parseTransaction(Network network, String transaction, boolean signed) {
     Array decodeTransaction = decodeTransaction(transaction);
     try {
       TransactionData convertedTr = CborArrayToTransactionData.convert(decodeTransaction, signed);
-      List<Operation> operations = operationService.getOperationsFromTransactionData(convertedTr,
-          networkIdentifierType.getProtocolMagic());
+      List<Operation> operations = operationService.getOperationsFromTransactionData(convertedTr, network);
       List<AccountIdentifier> accountIdentifierSigners = new ArrayList<>();
       if (signed) {
         log.info("[parseSignedTransaction] About to get signatures from parsed transaction");
         List<String> accumulator = convertedTr.transactionExtraData().operations().stream()
-            .map(o -> operationService.getSignerFromOperation(networkIdentifierType, o))
+            .map(o -> operationService.getSignerFromOperation(network, o))
             .flatMap(List::stream)
             .toList();
         accountIdentifierSigners = getUniqueAccountIdentifiers(accumulator);
@@ -201,13 +199,12 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
   }
 
   @Override
-  public Integer calculateTxSize(NetworkIdentifierType networkIdentifierType,
-      List<Operation> operations, int ttl, DepositParameters depositParameters) {
+  public Integer calculateTxSize(Network network, List<Operation> operations, int ttl,
+      DepositParameters depositParameters) {
     UnsignedTransaction unsignedTransaction;
     try {
-      unsignedTransaction = createUnsignedTransaction(networkIdentifierType,
-          operations, ttl, depositParameters != null ?
-              depositParameters :
+      unsignedTransaction = createUnsignedTransaction(network, operations, ttl,
+              depositParameters != null ? depositParameters :
               new DepositParameters(Constants.DEFAULT_KEY_DEPOSIT.toString(),
                   Constants.DEFAULT_POOL_DEPOSIT.toString()));
     } catch (CborSerializationException | AddressExcepion | CborException e) {
@@ -310,15 +307,13 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
   }
 
   @Override
-  public UnsignedTransaction createUnsignedTransaction(NetworkIdentifierType networkIdentifierType,
-      List<Operation> operations, int ttl, DepositParameters depositParameters)
+  public UnsignedTransaction createUnsignedTransaction(Network network, List<Operation> operations, int ttl, DepositParameters depositParameters)
       throws CborSerializationException, AddressExcepion, CborException {
 
     log.info(
         "[createUnsignedTransaction] About to create an unsigned transaction with {} operations",
         operations.size());
-    ProcessOperationsReturn opRetDto = processOperations(networkIdentifierType,
-        operations, depositParameters);
+    ProcessOperationsReturn opRetDto = processOperations(network, operations, depositParameters);
 
     log.info("[createUnsignedTransaction] About to create transaction body");
     TransactionBodyBuilder transactionBodyBuilder = TransactionBody.builder()
@@ -388,9 +383,8 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
             transactionBodyHash, SignatureType.ED25519)).toList();
   }
 
-  private ProcessOperationsReturn processOperations(NetworkIdentifierType networkIdentifierType,
-      List<Operation> operations, DepositParameters depositParams) {
-    ProcessOperations result = convertRosettaOperations(networkIdentifierType, operations);
+  private ProcessOperationsReturn processOperations(Network network, List<Operation> operations, DepositParameters depositParams) {
+    ProcessOperations result = convertRosettaOperations(network, operations);
     double refundsSum = result.getStakeKeyDeRegistrationsCount() * Long.parseLong(
         depositParams.getKeyDeposit());
     Map<String, Double> depositsSumMap = getDepositsSumMap(depositParams, result, refundsSum);
@@ -401,8 +395,7 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
   }
 
   @NotNull
-  private Map<String, Double> getDepositsSumMap(DepositParameters depositParameters,
-      ProcessOperations result, double refundsSum) {
+  private Map<String, Double> getDepositsSumMap(DepositParameters depositParameters, ProcessOperations result, double refundsSum) {
     double keyDepositsSum =
         result.getStakeKeyRegistrationsCount() * Long.parseLong(depositParameters.getKeyDeposit());
     double poolDepositsSum =
@@ -458,13 +451,12 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
   }
 
   @Override
-  public ProcessOperations convertRosettaOperations(NetworkIdentifierType networkIdentifierType,
-      List<Operation> operations) {
+  public ProcessOperations convertRosettaOperations(Network network, List<Operation> operations) {
     ProcessOperations processor = new ProcessOperations();
 
     for (Operation operation : operations) {
       String type = operation.getType();
-      processor = OperationParseUtil.parseOperation(operation, networkIdentifierType, processor,
+      processor = OperationParseUtil.parseOperation(operation, network, processor,
           type);
       if (processor == null) {
         log.error("[processOperations] Operation with id {} has invalid type",
