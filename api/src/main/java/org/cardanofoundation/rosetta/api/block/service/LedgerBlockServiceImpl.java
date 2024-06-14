@@ -195,13 +195,15 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
   }
 
   private static long calcSize(BlockTx tx, ProtocolParams p) {
-    return (Long.parseLong(tx.getFee()) - p.getMinFeeB().longValue()) / p.getMinFeeA().longValue();
+    return  (Long.parseLong(tx.getFee() == null ? "0" : tx.getFee())
+        - p.getMinFeeB().longValue()) / p.getMinFeeA().longValue();
   }
 
   private void populateUtxo(Utxo utxo) {
-    AddressUtxoEntity first = addressUtxoRepository
+    addressUtxoRepository
         .findAddressUtxoEntitiesByOutputIndexAndTxHash(utxo.getOutputIndex(), utxo.getTxHash())
-        .getFirst();
-    Optional.ofNullable(first).ifPresent(m -> addressUtxoEntityToUtxo.overWriteDto(utxo,m));
+        .stream()
+        .findFirst()
+        .ifPresent(m -> addressUtxoEntityToUtxo.overWriteDto(utxo,m));
   }
 }
