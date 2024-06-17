@@ -6,7 +6,7 @@ PROTOCOL_MAGIC=1
 # mainnet 764824073, preprod 1, preview 2, sanchonet 4, devkit 42
 
 # Node synchronization
-SYNC=false
+SYNC=true
 VERIFICATION=true
 
 ## Postgres variables
