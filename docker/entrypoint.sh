@@ -116,6 +116,7 @@ else
 fi
 
 echo "Starting Cardano node..."
+mkdir -p /node/db
 cp -r /networks/$NETWORK/* /config/
 rm -f $CARDANO_NODE_SOCKET_PATH
 mkdir -p "$(dirname "$CARDANO_NODE_SOCKET_PATH")"
@@ -134,6 +135,7 @@ fi
 echo "Starting Cardano submit api..."
 cardano-submit-api --socket-path "$CARDANO_NODE_SOCKET_PATH" --port $NODE_SUBMIT_API_PORT $NETWORK_STR  --config /cardano-submit-api-config/cardano-submit-api.yaml > /logs/submit-api.log &
 
+mkdir -p /node/postgres
 chown -R postgres:postgres /node/postgres
 chmod -R 0700 /node/postgres
 if [ ! -f "/node/postgres/PG_VERSION" ]; then
