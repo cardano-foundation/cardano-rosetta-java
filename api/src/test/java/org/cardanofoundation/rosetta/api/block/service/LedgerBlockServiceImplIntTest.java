@@ -10,6 +10,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 
 import org.cardanofoundation.rosetta.api.IntegrationTest;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
@@ -44,6 +46,7 @@ class LedgerBlockServiceImplIntTest extends IntegrationTest {
   EntityManager entityManager;
 
   @RepeatedTest(10)
+  @Execution(ExecutionMode.CONCURRENT)
   void findBlock_Test_OK_tx_blk() {
     //given
     TransactionBlockDetails tx = generatedDataMap.get(SIMPLE_TRANSACTION.getName());
@@ -54,6 +57,7 @@ class LedgerBlockServiceImplIntTest extends IntegrationTest {
   }
 
   @RepeatedTest(10)
+  @Execution(ExecutionMode.CONCURRENT)
   void findBlockIdentifier_Test_OK_tx_blk() {
     //given
     TransactionBlockDetails tx = generatedDataMap.get(SIMPLE_TRANSACTION.getName());

@@ -104,7 +104,7 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
     Block model = blockMapper.mapToBlock(blockEntity);
     ProtocolParams pps = protocolParamService.findProtocolParametersFromIndexer();
     List<BlockTx> transactions = model.getTransactions();
-    Entities fetched = findByTxHash(transactions);
+    TransactionInfo fetched = findByTxHash(transactions);
     Map<UtxoKey, AddressUtxoEntity> utxoMap = getUtxoMapFromEntities(fetched);
     transactions.forEach(tx -> populateTransaction(tx, pps, fetched, utxoMap));
     return model;
@@ -123,7 +123,7 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
     if (ObjectUtils.isNotEmpty(txList)) {
       ProtocolParams pps = protocolParamService.findProtocolParametersFromIndexer();
       List<BlockTx> transactions = txList.stream().map(blockMapper::mapToBlockTx).toList();
-      Entities fetched = findByTxHash(transactions);
+      TransactionInfo fetched = findByTxHash(transactions);
       Map<UtxoKey, AddressUtxoEntity> utxoMap = getUtxoMapFromEntities(fetched);
       transactions.forEach(tx -> populateTransaction(tx, pps, fetched, utxoMap));
       return transactions;
@@ -162,7 +162,7 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
     return cachedGenesisBlock;
   }
 
-  private Entities findByTxHash(List<BlockTx> transactions) {
+  private TransactionInfo findByTxHash(List<BlockTx> transactions) {
     List<String> txHashes = transactions.stream().map(BlockTx::getHash).toList();
 
     List<String> utxHashes = transactions
@@ -185,7 +185,7 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
       Future<List<WithdrawalEntity>> withdrawals = executorService.submit(() ->
           withdrawalRepository.findByTxHashIn(txHashes));
 
-      return new Entities(utxos.get(), sReg.get(), delegations.get(), pReg.get(), pRet.get(),
+      return new TransactionInfo(utxos.get(), sReg.get(), delegations.get(), pReg.get(), pRet.get(),
           withdrawals.get());
     } catch (InterruptedException | ExecutionException e) {
       log.error("Error fetching transaction data", e);
@@ -194,7 +194,7 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
     }
   }
 
-  private void populateTransaction(BlockTx transaction, ProtocolParams pps, Entities fetched,
+  private void populateTransaction(BlockTx transaction, ProtocolParams pps, TransactionInfo fetched,
       Map<UtxoKey, AddressUtxoEntity> utxoMap) {
     Optional.ofNullable(transaction.getInputs())
         .stream()
@@ -253,7 +253,7 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
         .ifPresent(e -> addressUtxoEntityToUtxo.overWriteDto(utxo, e));
   }
 
-  private static Map<UtxoKey, AddressUtxoEntity> getUtxoMapFromEntities(Entities fetched) {
+  private static Map<UtxoKey, AddressUtxoEntity> getUtxoMapFromEntities(TransactionInfo fetched) {
     return fetched.utxos
         .stream()
         .collect(Collectors.toMap(
@@ -262,12 +262,12 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
         ));
   }
 
-  private record Entities(List<AddressUtxoEntity> utxos,
-                          List<StakeRegistrationEntity> stakeRegistrations,
-                          List<DelegationEntity> delegations,
-                          List<PoolRegistrationEntity> poolRegistrations,
-                          List<PoolRetirementEntity> poolRetirements,
-                          List<WithdrawalEntity> withdrawals) {
+  private record TransactionInfo(List<AddressUtxoEntity> utxos,
+                                 List<StakeRegistrationEntity> stakeRegistrations,
+                                 List<DelegationEntity> delegations,
+                                 List<PoolRegistrationEntity> poolRegistrations,
+                                 List<PoolRetirementEntity> poolRetirements,
+                                 List<WithdrawalEntity> withdrawals) {
 
   }
 
