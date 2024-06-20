@@ -191,6 +191,31 @@
                     <generateGitPropertiesFile>true</generateGitPropertiesFile>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.pitest</groupId>
+                <artifactId>pitest-maven</artifactId>
+                <version>1.16.1</version>
+                <configuration>
+                <excludedClasses>
+                    <param>org.cardanofoundation.rosetta.RosettaApiApplication</param>
+                    <param>org.cardanofoundation.rosetta.api.account.model.*</param>
+                    <param>org.cardanofoundation.rosetta.api.block.model.*</param>
+                    <param>org.cardanofoundation.rosetta.api.mempool.*</param>
+                    <param>org.cardanofoundation.rosetta.api.network.model.*</param>
+                    <param>org.cardanofoundation.rosetta.common.model.cardano.*</param>
+                    <param>org.cardanofoundation.rosetta.config.*</param>
+                    <param>org.openapitools.client.*</param>
+                    <param>org.cardanofoundation.rosetta.common.exception.*</param>
+                </excludedClasses>
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.pitest</groupId>
+                        <artifactId>pitest-junit5-plugin</artifactId>
+                        <version>1.2.1</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
         </plugins>
     </build>
 
