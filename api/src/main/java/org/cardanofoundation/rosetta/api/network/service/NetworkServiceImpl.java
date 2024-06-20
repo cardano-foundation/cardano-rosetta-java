@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import javax.annotation.PostConstruct;
 
 import lombok.RequiredArgsConstructor;
@@ -17,9 +18,10 @@ import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
 import com.bloxbean.cardano.client.common.model.Network;
 import com.bloxbean.cardano.client.common.model.Networks;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.parser.OpenAPIV3Parser;
-import org.json.JSONObject;
 import org.openapitools.client.model.Allow;
 import org.openapitools.client.model.Error;
 import org.openapitools.client.model.MetadataRequest;
@@ -64,8 +66,8 @@ public class NetworkServiceImpl implements NetworkService {
 
   @PostConstruct
   public void init() {
-    JSONObject json = loadGenesisShelleyConfig();
-    cachedMagicNumber = (Integer) json.get(Constants.NETWORK_MAGIC_NAME);
+    Map<String, Object> jsonMap = loadGenesisShelleyConfig();
+    cachedMagicNumber = (Integer) jsonMap.get(Constants.NETWORK_MAGIC_NAME);
     log.info("Magic number {} loaded from genesis config json", cachedMagicNumber);
   }
 
@@ -209,13 +211,12 @@ public class NetworkServiceImpl implements NetworkService {
     return cachedMagicNumber;
   }
 
-  private JSONObject loadGenesisShelleyConfig() {
+  private Map<String, Object> loadGenesisShelleyConfig() {
     try {
       String content = FileUtils.fileReader(genesisShelleyPath);
-      return new JSONObject(content);
+      return new ObjectMapper().readValue(content, new TypeReference<Map<String, Object>>() {});
     } catch (IOException e) {
       throw ExceptionFactory.configNotFoundException(genesisShelleyPath);
     }
   }
-
 }

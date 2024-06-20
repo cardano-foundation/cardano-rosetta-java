@@ -16,11 +16,11 @@ public enum NetworkEnum {
     PREVIEW(Constants.PREVIEW, Networks.preview()),
     SANCHONET(Constants.SANCHONET, new Network(0b0000,  4));
 
-    private final String value;
+    private final String name;
     private final Network network;
 
     NetworkEnum(String value, Network network) {
-        this.value = value;
+        this.name = value;
         this.network = network;
     }
 
@@ -28,16 +28,16 @@ public enum NetworkEnum {
         return network;
     }
 
-    public static NetworkEnum fromValue(String value) {
+    public static NetworkEnum findByName(String name) {
         for (NetworkEnum b : NetworkEnum.values()) {
-            if (b.value.equals(value)) {
+            if (b.name.equals(name)) {
                 return b;
             }
         }
         return null;
     }
 
-    public static NetworkEnum fromProtocolMagic(long protocolMagic) {
+    public static NetworkEnum findByProtocolMagic(long protocolMagic) {
         for (NetworkEnum b : NetworkEnum.values()) {
             if (b.network.getProtocolMagic() == protocolMagic) {
                 return b;

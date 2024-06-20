@@ -36,7 +36,6 @@ import org.openapitools.client.model.VoteRegistrationMetadata;
 
 import org.cardanofoundation.rosetta.api.construction.enumeration.CatalystLabels;
 import org.cardanofoundation.rosetta.common.enumeration.CatalystDataIndexes;
-import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.model.cardano.pool.PoolRegistationParametersReturn;
@@ -63,7 +62,7 @@ public class ProcessConstructionUtil {
     }
 
     public static StakeCertificate getStakeCertificateFromOperation(
-            NetworkIdentifierType networkIdentifierType, Operation operation) {
+            Network network, Operation operation) {
         log.info(
                 "[processOperationCertification] About to process operation of type {}",
                 operation.getType());
@@ -75,7 +74,7 @@ public class ProcessConstructionUtil {
         if (publicKey != null) {
             hdPublicKey.setKeyData(HexUtil.decodeHexString(publicKey.getHexBytes()));
         }
-        String address = CardanoAddressUtils.generateRewardAddress(networkIdentifierType, hdPublicKey);
+        String address = CardanoAddressUtils.generateRewardAddress(network, hdPublicKey);
         if (operation.getType().equals(OperationType.STAKE_DELEGATION.getValue())) {
             if (operationMetadata.getPoolKeyHash() == null) {
                 throw ExceptionFactory.missingPoolKeyError();
@@ -88,9 +87,7 @@ public class ProcessConstructionUtil {
         return new StakeCertificate(new StakeDeregistration(credential), address);
     }
 
-    public static ProcessWithdrawalReturn getWithdrawalsReturnFromOperation(
-            NetworkIdentifierType networkIdentifierType,
-            Operation operation) {
+    public static ProcessWithdrawalReturn getWithdrawalsReturnFromOperation(Network network, Operation operation) {
         log.info("[processWithdrawal] About to process withdrawal");
         OperationMetadata operationMetadata = operation.getMetadata();
         HdPublicKey hdPublicKey = new HdPublicKey();
@@ -101,13 +98,12 @@ public class ProcessConstructionUtil {
                 operationMetadata.getStakingCredential().getHexBytes() != null) {
             hdPublicKey.setKeyData(
                     HexUtil.decodeHexString(operationMetadata.getStakingCredential().getHexBytes()));
-            address = CardanoAddressUtils.generateRewardAddress(networkIdentifierType, hdPublicKey);
+            address = CardanoAddressUtils.generateRewardAddress(network, hdPublicKey);
             HdPublicKey hdPublicKey1 = new HdPublicKey();
             hdPublicKey1.setKeyData(
                 HexUtil.decodeHexString(operationMetadata.getStakingCredential().getHexBytes()));
 
-            processWithdrawalReturnDto.setReward(AddressProvider.getRewardAddress(hdPublicKey1,
-                new Network(networkIdentifierType.getValue(), networkIdentifierType.getProtocolMagic())));
+            processWithdrawalReturnDto.setReward(AddressProvider.getRewardAddress(hdPublicKey1, network));
             processWithdrawalReturnDto.setAddress(address);
         } else if(operation.getAccount() != null && operation.getAccount().getAddress() != null) {
             address = operation.getAccount().getAddress();
@@ -188,8 +184,7 @@ public class ProcessConstructionUtil {
         return processPoolRegistrationReturnDto;
     }
 
-    public static PoolRegistrationCertReturn getPoolRegistrationCertFromOperation(Operation operation,
-                                                                                NetworkIdentifierType networkIdentifierType) {
+    public static PoolRegistrationCertReturn getPoolRegistrationCertFromOperation(Operation operation, Network network) {
         OperationMetadata operationMetadata = null;
         AccountIdentifier account = null;
         if (operation != null) {
@@ -197,7 +192,7 @@ public class ProcessConstructionUtil {
             account = operation.getAccount();
         }
         return ValidateParseUtil.validateAndParsePoolRegistrationCert(
-                networkIdentifierType,
+                network,
                 operationMetadata == null ? null : operationMetadata.getPoolRegistrationCert(),
                 account == null ? null : account.getAddress()
         );

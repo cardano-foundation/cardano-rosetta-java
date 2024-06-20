@@ -24,7 +24,7 @@ public class NetworkMapperUtils {
   public List<NetworkIdentifier> toNetworkIdentifier(Network network) {
     return List.of(new NetworkIdentifier()
         .blockchain(Constants.CARDANO)
-        .network(Objects.requireNonNull(NetworkEnum.fromProtocolMagic(network.getProtocolMagic()))
-            .getValue()));
+        .network(Objects.requireNonNull(NetworkEnum.findByProtocolMagic(network.getProtocolMagic()))
+            .getName()));
   }
 }

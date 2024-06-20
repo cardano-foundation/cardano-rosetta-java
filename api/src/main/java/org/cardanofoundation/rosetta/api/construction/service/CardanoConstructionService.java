@@ -9,6 +9,7 @@ import java.util.Set;
 
 import co.nstant.in.cbor.CborException;
 import co.nstant.in.cbor.model.Array;
+import com.bloxbean.cardano.client.common.model.Network;
 import com.bloxbean.cardano.client.exception.AddressExcepion;
 import com.bloxbean.cardano.client.exception.CborSerializationException;
 import com.bloxbean.cardano.client.transaction.spec.TransactionWitnessSet;
@@ -22,7 +23,6 @@ import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
 import org.cardanofoundation.rosetta.api.construction.enumeration.AddressType;
 import org.cardanofoundation.rosetta.common.enumeration.EraAddressType;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
-import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
 import org.cardanofoundation.rosetta.common.model.cardano.crypto.Signatures;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.TransactionParsed;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.UnsignedTransaction;
@@ -34,8 +34,7 @@ public interface CardanoConstructionService {
   Array decodeTransaction(String encoded);
   Long calculateTtl(Long ttlOffset);
 
-  TransactionParsed parseTransaction(NetworkIdentifierType networkIdentifierType,
-      String transaction, boolean signed);
+  TransactionParsed parseTransaction(Network network, String transaction, boolean signed);
 
   Integer checkOrReturnDefaultTtl(Integer relativeTtl);
   Long updateTxSize(Long previousTxSize, Long previousTtl, Long updatedTtl);
@@ -44,7 +43,7 @@ public interface CardanoConstructionService {
   Signatures signatureProcessor(EraAddressType eraAddressType, AddressType addressType,
       String address);
 
-  Integer calculateTxSize(NetworkIdentifierType networkIdentifierType, List<Operation> operations, int ttl, DepositParameters depositParameters);
+  Integer calculateTxSize(Network network, List<Operation> operations, int ttl, DepositParameters depositParameters);
 
   String buildTransaction(String unsignedTransaction,
       List<Signatures> signaturesList, String transactionMetadata);
@@ -58,10 +57,10 @@ public interface CardanoConstructionService {
   Long calculateFee(List<BigInteger> inputAmounts, List<BigInteger> outputAmounts,
       List<BigInteger> withdrawalAmounts, Map<String, Double> depositsSumMap);
 
-  ProcessOperations convertRosettaOperations(NetworkIdentifierType networkIdentifierType,
+  ProcessOperations convertRosettaOperations(Network network,
       List<Operation> operations) throws IOException;
 
-  UnsignedTransaction createUnsignedTransaction(NetworkIdentifierType networkIdentifier, List<Operation> operations, int ttl, DepositParameters depositParameters) throws IOException, CborSerializationException, AddressExcepion, CborException;
+  UnsignedTransaction createUnsignedTransaction(Network network, List<Operation> operations, int ttl, DepositParameters depositParameters) throws IOException, CborSerializationException, AddressExcepion, CborException;
 
   String submitTransaction(String signedTransaction);
   DepositParameters getDepositParameters();

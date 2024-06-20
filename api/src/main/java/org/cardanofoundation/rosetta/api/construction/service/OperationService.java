@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.stereotype.Service;
 import co.nstant.in.cbor.CborException;
+import com.bloxbean.cardano.client.common.model.Network;
 import com.bloxbean.cardano.client.crypto.bip32.key.HdPublicKey;
 import com.bloxbean.cardano.client.exception.CborDeserializationException;
 import com.bloxbean.cardano.client.exception.CborSerializationException;
@@ -20,7 +21,6 @@ import org.openapitools.client.model.Operation;
 import org.openapitools.client.model.OperationIdentifier;
 import org.openapitools.client.model.OperationMetadata;
 
-import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.model.cardano.pool.PoolRegistrationCertReturn;
@@ -41,7 +41,7 @@ import static org.cardanofoundation.rosetta.common.util.Constants.OPERATION_TYPE
 @Service
 public class OperationService {
 
-  public List<Operation> getOperationsFromTransactionData(TransactionData data, Long networkProtocolMagic)
+  public List<Operation> getOperationsFromTransactionData(TransactionData data, Network network)
       throws CborDeserializationException, CborException, CborSerializationException {
     TransactionBody transactionBody = data.transactionBody();
     TransactionExtraData extraData = data.transactionExtraData();
@@ -49,17 +49,16 @@ public class OperationService {
     List<Operation> operations = new ArrayList<>();
     fillInputOperations(transactionBody, extraData, operations);
     fillOutputOperations(transactionBody, operations);
-    fillCertOperations(transactionBody, extraData, networkProtocolMagic, operations);
-    fillWithdrawalOperations(transactionBody, extraData, networkProtocolMagic, operations);
+    fillCertOperations(transactionBody, extraData, network, operations);
+    fillWithdrawalOperations(transactionBody, extraData, network, operations);
     fillVoteOperations(extraData, operations);
 
     return operations;
   }
 
-  public List<String> getSignerFromOperation(NetworkIdentifierType networkIdentifierType,
-      Operation operation) {
+  public List<String> getSignerFromOperation(Network network, Operation operation) {
     if (Constants.POOL_OPERATIONS.contains(operation.getType())) {
-      return getPoolSigners(networkIdentifierType, operation);
+      return getPoolSigners(network, operation);
     }
     if (operation.getAccount() != null) {
       // org.openapitools.client.model.AccountIdentifier.getAddress() is always not null
@@ -72,7 +71,7 @@ public class OperationService {
     HdPublicKey hdPublicKey =
         CardanoAddressUtils.publicKeyToHdPublicKey(operation.getMetadata().getStakingCredential());
     return Collections.singletonList(
-        CardanoAddressUtils.generateRewardAddress(networkIdentifierType, hdPublicKey));
+        CardanoAddressUtils.generateRewardAddress(network, hdPublicKey));
   }
 
   private void fillInputOperations(TransactionBody transactionBody,
@@ -109,26 +108,26 @@ public class OperationService {
   }
 
   private void fillCertOperations(TransactionBody transactionBody, TransactionExtraData extraData,
-      Long networkIdentifierType, List<Operation> operations)
+      Network network, List<Operation> operations)
       throws CborException, CborSerializationException {
     List<Operation> certOps = extraData.operations().stream()
         .filter(o -> Constants.STAKE_POOL_OPERATIONS.contains(o.getType())
         ).toList();
     List<Operation> parsedCertOperations = ParseConstructionUtil.parseCertsToOperations(
-            transactionBody, certOps, networkIdentifierType);
+            transactionBody, certOps, network);
     operations.addAll(parsedCertOperations);
   }
 
   private void fillWithdrawalOperations(TransactionBody transactionBody,
       TransactionExtraData extraData,
-      Long networkIdentifierType, List<Operation> operations) {
+      Network network, List<Operation> operations) {
     List<Operation> withdrawalOps = extraData.operations().stream()
         .filter(o -> o.getType().equals(OperationType.WITHDRAWAL.getValue()))
         .toList();
     int withdrawalsCount = ObjectUtils.isEmpty(transactionBody.getWithdrawals()) ? 0
         : transactionBody.getWithdrawals().size();
     List<Operation> withdrawalsOperations = ParseConstructionUtil.parseWithdrawalsToOperations(
-            withdrawalOps, withdrawalsCount, networkIdentifierType);
+            withdrawalOps, withdrawalsCount, network);
     operations.addAll(withdrawalsOperations);
   }
 
@@ -146,8 +145,7 @@ public class OperationService {
     }
   }
 
-  private List<String> getPoolSigners(NetworkIdentifierType networkIdentifierType,
-      Operation operation) {
+  private List<String> getPoolSigners(Network network, Operation operation) {
     List<String> signers = new ArrayList<>();
     switch (operation.getType()) {
       case OPERATION_TYPE_POOL_REGISTRATION -> {
@@ -166,7 +164,7 @@ public class OperationService {
             .map(OperationMetadata::getPoolRegistrationCert)
             .orElse(null);
         PoolRegistrationCertReturn dto = ValidateParseUtil.validateAndParsePoolRegistrationCert(
-            networkIdentifierType,
+            network,
             poolCertAsHex,
             operation.getAccount() == null ? null : operation.getAccount().getAddress()
         );

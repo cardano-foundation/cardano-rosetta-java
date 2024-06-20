@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import co.nstant.in.cbor.model.DataItem;
 import com.bloxbean.cardano.client.address.Address;
 import com.bloxbean.cardano.client.address.ByronAddress;
+import com.bloxbean.cardano.client.common.model.Network;
 import com.bloxbean.cardano.client.transaction.spec.Asset;
 import com.bloxbean.cardano.client.transaction.spec.MultiAsset;
 import com.bloxbean.cardano.client.transaction.spec.TransactionInput;
@@ -33,7 +34,6 @@ import org.openapitools.client.model.Relay;
 import org.openapitools.client.model.TokenBundleItem;
 import org.openapitools.client.model.VoteRegistrationMetadata;
 
-import org.cardanofoundation.rosetta.common.enumeration.NetworkIdentifierType;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.model.cardano.pool.PoolRegistationParametersReturn;
 import org.cardanofoundation.rosetta.common.model.cardano.pool.PoolRegistrationCertReturn;
@@ -325,7 +325,7 @@ public class ValidateParseUtil {
         return parsedMetadata;
     }
 
-    public static PoolRegistrationCertReturn validateAndParsePoolRegistrationCert(NetworkIdentifierType networkIdentifierType, String poolRegistrationCert, String poolKeyHash) {
+    public static PoolRegistrationCertReturn validateAndParsePoolRegistrationCert(Network network, String poolRegistrationCert, String poolKeyHash) {
         if (ObjectUtils.isEmpty(poolKeyHash)) {
             log.error("[validateAndParsePoolRegistrationCert] no cold key provided for pool registration");
             throw ExceptionFactory.missingPoolKeyError();
@@ -346,8 +346,8 @@ public class ValidateParseUtil {
             log.error("[validateAndParsePoolRegistrationCert] invalid certificate type");
             throw ExceptionFactory.invalidPoolRegistrationCertType();
         }
-        List<String> ownersAddresses = ParseConstructionUtil.getOwnerAddressesFromPoolRegistrations(networkIdentifierType.getNetworkId(), parsedCertificate);
-        String rewardAddress = ParseConstructionUtil.getRewardAddressFromPoolRegistration(networkIdentifierType.getNetworkId(), parsedCertificate);
+        List<String> ownersAddresses = ParseConstructionUtil.getOwnerAddressesFromPoolRegistrations(network, parsedCertificate);
+        String rewardAddress = ParseConstructionUtil.getRewardAddressFromPoolRegistration(network, parsedCertificate);
         Set<String> addresses = new HashSet<>(new HashSet<>(ownersAddresses));
         addresses.add(poolKeyHash);
         addresses.add(rewardAddress);
