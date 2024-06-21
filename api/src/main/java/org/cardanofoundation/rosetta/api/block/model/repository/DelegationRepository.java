@@ -9,5 +9,5 @@ import org.cardanofoundation.rosetta.api.block.model.entity.DelegationId;
 
 public interface DelegationRepository extends JpaRepository<DelegationEntity, DelegationId> {
 
-  List<DelegationEntity> findByTxHashIn(List<String> list);
+  List<DelegationEntity> findByTxHashIn(List<String> txHashes);
 }
