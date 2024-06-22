@@ -6,6 +6,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
@@ -15,11 +17,11 @@ import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
 public class BlockServiceImpl implements BlockService {
 
   private final LedgerBlockService ledgerBlockService;
   private final ProtocolParamService protocolParamService;
-
 
   @Override
   public Block findBlock(Long index, String hash) {
