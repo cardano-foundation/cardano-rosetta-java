@@ -181,6 +181,7 @@ COPY ./config /networks
 RUN mkdir /config
 
 RUN mkdir -p /node/db
+RUN mkdir -p /node/postgres
 
 # Copy jars
 COPY --from=java-builder /root/app/api/target/*.jar /api/app.jar
