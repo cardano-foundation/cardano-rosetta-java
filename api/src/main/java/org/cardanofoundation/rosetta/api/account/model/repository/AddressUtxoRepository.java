@@ -11,9 +11,6 @@ import org.cardanofoundation.rosetta.api.account.model.entity.UtxoId;
 
 public interface AddressUtxoRepository extends JpaRepository<AddressUtxoEntity, UtxoId> {
 
-  List<AddressUtxoEntity> findAddressUtxoEntitiesByOutputIndexAndTxHash(Integer outputIndex,
-      String txHash);
-
   @Query(value =
       """
       SELECT a FROM AddressUtxoEntity a
@@ -44,4 +41,6 @@ public interface AddressUtxoRepository extends JpaRepository<AddressUtxoEntity, 
       AND a.blockNumber <= :block
       """)
   List<AddressUtxoEntity> findUnspentUtxosByStakeAddressAndBlock(@Param("address") String stakeAddress, @Param("block") long block);
+
+  List<AddressUtxoEntity> findByTxHashIn(List<String> utxHashes);
 }

@@ -10,5 +10,5 @@ import org.cardanofoundation.rosetta.api.block.model.entity.PoolRegistrationId;
 public interface PoolRegistrationRepository extends
     JpaRepository<PoolRegistrationEntity, PoolRegistrationId> {
 
-  List<PoolRegistrationEntity> findByTxHash(String txHash);
+  List<PoolRegistrationEntity> findByTxHashIn(List<String> txHashes);
 }

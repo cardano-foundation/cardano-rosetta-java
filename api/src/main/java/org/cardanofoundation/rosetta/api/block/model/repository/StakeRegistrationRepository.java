@@ -10,5 +10,5 @@ import org.cardanofoundation.rosetta.api.block.model.entity.StakeRegistrationId;
 public interface StakeRegistrationRepository extends
     JpaRepository<StakeRegistrationEntity, StakeRegistrationId> {
 
-  List<StakeRegistrationEntity> findByTxHash(String txHash);
+  List<StakeRegistrationEntity> findByTxHashIn(List<String> txHashes);
 }
