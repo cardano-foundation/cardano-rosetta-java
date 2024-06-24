@@ -1,8 +1,8 @@
 ## Main variables
 LOG=INFO
-NETWORK=preprod
+NETWORK=mainnet
 # mainnet, preprod, preview, sanchonet, devkit
-PROTOCOL_MAGIC=1
+PROTOCOL_MAGIC=764824073
 # mainnet 764824073, preprod 1, preview 2, sanchonet 4, devkit 42
 
 # Node synchronization
@@ -19,7 +19,7 @@ DB_PORT=5432
 ## Cardano node variables
 CARDANO_NODE_HOST=localhost
 CARDANO_NODE_PORT=3001
-CARDANO_NODE_VERSION=8.9.0
+CARDANO_NODE_VERSION=8.9.3
 CARDANO_NODE_SUBMIT_HOST=localhost
 NODE_SUBMIT_API_PORT=8090
 CARDANO_NODE_SOCKET_PATH=/node/node.socket
