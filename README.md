@@ -11,6 +11,13 @@ to fetch the data from a Cardano node.
 ## Documentation
 
 Please refer to our [wiki pages](https://github.com/cardano-foundation/cardano-rosetta-java/wiki) for more information on the project.
+Following Topics are handled in our Wiki:
+- [Architecture Overview](https://github.com/cardano-foundation/cardano-rosetta-java/wiki/1.-Architecture)
+- [Cardano specific API additions](https://github.com/cardano-foundation/cardano-rosetta-java/wiki/2.-Cardano-Specific-API-Additions)
+- [Getting started with H2](https://github.com/cardano-foundation/cardano-rosetta-java/wiki/3.-Getting-Started-with-H2)
+- [Getting started with Docker](https://github.com/cardano-foundation/cardano-rosetta-java/wiki/4.-Getting-Started-with-Docker)
+- [Environment variables](https://github.com/cardano-foundation/cardano-rosetta-java/wiki/5.-Environment-Variables)
+- [Install Cardano Node](https://github.com/cardano-foundation/cardano-rosetta-java/wiki/6.-Install-Cardano-Node)
 
 ---
 Thanks for visiting us and enjoy :heart:!
