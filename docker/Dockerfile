@@ -30,7 +30,7 @@ RUN bash -c "ghcup install ghc ${GHC_VERSION}"
 RUN bash -c "ghcup set ghc ${GHC_VERSION}"
 
 # Cardano node version
-ARG CARDANO_NODE_VERSION=8.9.2
+ARG CARDANO_NODE_VERSION=8.9.4
 
 # Install sodium
 RUN export IOHKNIX_VERSION=$(curl https://raw.githubusercontent.com/IntersectMBO/cardano-node/${CARDANO_NODE_VERSION}/flake.lock | jq -r '.nodes.iohkNix.locked.rev') \
