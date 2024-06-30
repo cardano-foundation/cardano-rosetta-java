@@ -7,11 +7,17 @@
 This repository provides a lightweight java implementation of the [Rosetta API](https://github.com/coinbase/mesh-specifications). It uses [Yaci-Store](https://github.com/bloxbean/yaci-store) as an indexer
 to fetch the data from a Cardano node. 
 
+## System requirements
+Thanks to design differences in Yaci-Store the system requirements for this Cardano Rosetta implemenations are drastically lower, while it also increases performance.
+
+- 32GB RAM
+To be completed!
+
 ## Installation
 
 ### Docker (build from source)
 If your user is not in the `docker` group you might have to execute this.
-The default config is focused on mainnet. If you want to test this on other Cardano netwok please adjust the `docker/.env.dockerfile`.
+The default config is focused on mainnet. If you want to test this on other Cardano netwok please adjust the `docker/.env.dockerfile` or read the Wiki page on [Environment variables](https://github.com/cardano-foundation/cardano-rosetta-java/wiki/5.-Environment-Variables) on other options and their default values.
 ######
     git clone https://github.com/cardano-foundation/cardano-rosetta-java
 ######
@@ -38,6 +44,10 @@ The default config is focused on mainnet. If you want to test this on other Card
 #####
     cardano-cli query tip --mainnet
 
+
+### Docker (image)
+
+TO BE COMPLETED!
 
 ## Documentation
 
