@@ -13,7 +13,7 @@ This component consists of:
 - an indexer which stores data in Postgres
 
 ## System requirements
-Thanks to design differences in Yaci-Store the system requirements for this Cardano Rosetta implemenations are drastically lower, while it also increases performance.
+Thanks to design differences in Yaci-Store the system requirements for this Cardano Rosetta implemenation are drastically lower, while it also increases performance.
 
 - 4CPU Cores
 - 32GB RAM
