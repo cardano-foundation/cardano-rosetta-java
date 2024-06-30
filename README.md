@@ -21,17 +21,20 @@ The default config is focused on mainnet. If you want to test this on other Card
 #####
     docker run --name rosetta --env-file ./docker/.env.dockerfile -p 8082:8082 -d rosetta-java:latest
 
-Useful commands:
-**Following Docker container logs:**
+**Useful commands:**
+- Following Docker container logs:
+#####
     docker logs rosetta -f
 
-**Access node logs:**
+- Access node logs:
+#####
     docker exec rosetta tail -f /logs/node.log
 
-**Interactive access to container:**
+- Interactive access to container:
+#####
     docker exec -it rosetta bash
 
-**Commands:** 
+- Commands:
     cardano-cli query tip --mainnet
 
 
