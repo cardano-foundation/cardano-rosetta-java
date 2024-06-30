@@ -138,13 +138,7 @@ RUN mkdir -p /root/.local/bin \
     && cp -p "$(./scripts/bin-path.sh cardano-cli)" /root/.local/bin/ \
     && cp -p "$(./scripts/bin-path.sh cardano-submit-api)" /root/.local/bin/
 
-
-# Add Mithril support
-FROM ghcr.io/blinklabs-io/mithril-client:0.9.2-1 AS mithril-client
-COPY --from=mithril-client /bin/mithril-client /root/.local/bin/
-
-
-
+    
 # Compile java applications
 FROM ubuntu:22.04 AS java-builder
 
