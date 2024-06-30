@@ -106,6 +106,13 @@ get_current_index() {
     if [[ -z "$current_index" || "$current_index" == "null" ]]; then current_index=0; fi
 }
 
+download_mithril_snapshot(){
+    echo "Downloading Mithril Snapshot..."
+
+    
+}
+
+
 echo "Network: $NETWORK"
 if [ "$NETWORK" == "mainnet" ]; then
     NETWORK_STR="--mainnet"
@@ -117,6 +124,11 @@ fi
 
 echo "Starting Cardano node..."
 mkdir -p /node/db
+
+if [ "${MITHRIL_SYNC}" == "true" ]; then
+    download_mithril_snapshot
+fi
+
 cp -r /networks/$NETWORK/* /config/
 rm -f $CARDANO_NODE_SOCKET_PATH
 mkdir -p "$(dirname "$CARDANO_NODE_SOCKET_PATH")"

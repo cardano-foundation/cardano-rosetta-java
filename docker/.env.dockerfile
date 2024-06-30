@@ -9,6 +9,9 @@ PROTOCOL_MAGIC=1
 SYNC=true
 VERIFICATION=true
 
+# Mithril snapshots
+MITHRIL_SYNC=false
+
 ## Postgres variables
 DB_NAME=rosetta-java
 DB_USER=rosetta_db_admin
