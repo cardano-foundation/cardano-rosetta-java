@@ -7,6 +7,60 @@
 This repository provides a lightweight java implementation of the [Rosetta API](https://github.com/coinbase/mesh-specifications). It uses [Yaci-Store](https://github.com/bloxbean/yaci-store) as an indexer
 to fetch the data from a Cardano node. 
 
+This component consists of:
+- a full Cardano node
+- a Cardano Submit API
+- an indexer which stores data in Postgres
+- the Mesh (formerly Rosetta) API
+
+## System requirements
+Thanks to design differences in Yaci-Store the system requirements for this Cardano Rosetta implemenation are drastically lower, while it also increases performance.
+
+- 4CPU Cores
+- 32GB RAM
+- 400GB of storage
+
+To be completed after testing!
+
+## Installation
+By default this Cardano-node will sync the entire chain from Genesis. This will take up to 48-72 hours.
+
+### Docker (build from source)
+If your user is not in the `docker` group you might have to execute these commands with `sudo`.
+The default config is focused on mainnet. If you want to test this on other Cardano netwoks (like `preview` or `preprod`) please adjust the `docker/.env.dockerfile` or read the Wiki page on [Environment variables](https://github.com/cardano-foundation/cardano-rosetta-java/wiki/5.-Environment-Variables) on other options and their default values.
+
+######
+    git clone https://github.com/cardano-foundation/cardano-rosetta-java
+######
+    cd cardano-rosetta-java
+######
+    docker build -t rosetta-java -f ./docker/Dockerfile .
+#####
+    docker run --name rosetta --env-file ./docker/.env.dockerfile -p 8082:8082 -d rosetta-java:latest
+
+Depending on using a snapshot feature or not, this will take X amount of time. You can follow along with the commands below. Your instance is ready when you see: `DONE`.
+
+**Useful commands:**
+- Following Docker container logs:
+#####
+    docker logs rosetta -f
+
+- Access node logs:
+#####
+    docker exec rosetta tail -f /logs/node.log
+
+- Interactive access to container:
+#####
+    docker exec -it rosetta bash
+
+- Verify node sync:
+#####
+    cardano-cli query tip --mainnet
+
+
+### Docker (image)
+
+TO BE COMPLETED!
 
 ## Documentation
 
