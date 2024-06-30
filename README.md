@@ -35,6 +35,7 @@ The default config is focused on mainnet. If you want to test this on other Card
     docker exec -it rosetta bash
 
 - Commands:
+#####
     cardano-cli query tip --mainnet
 
 
