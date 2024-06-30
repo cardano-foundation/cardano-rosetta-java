@@ -11,7 +11,6 @@ to fetch the data from a Cardano node.
 
 ### Docker (build from source)
 
-######
     docker build -t rosetta-java -f ./docker/Dockerfile .
 
 
