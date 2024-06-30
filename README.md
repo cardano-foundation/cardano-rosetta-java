@@ -38,6 +38,8 @@ The default config is focused on mainnet. If you want to test this on other Card
 #####
     docker run --name rosetta --env-file ./docker/.env.dockerfile -p 8082:8082 -d rosetta-java:latest
 
+Depending on using a snapshot feature or not, this will take X amount of time. You can follow along with the commands below. Your instance is ready when you see: `DONE`.
+
 **Useful commands:**
 - Following Docker container logs:
 #####
