@@ -12,11 +12,11 @@ to fetch the data from a Cardano node.
 ### Docker (build from source)
 If your user is not in the `docker` group you might have to execute this.
 The default config is focused on mainnet. If you want to test this on other Cardano netwok please adjust the `docker/.env.dockerfile`.
-
+######
     git clone https://github.com/cardano-foundation/cardano-rosetta-java
-
+######
     cd cardano-rosetta-java
-
+######
     docker build -t rosetta-java -f ./docker/Dockerfile .
 
 
