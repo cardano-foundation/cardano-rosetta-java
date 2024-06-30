@@ -16,7 +16,7 @@ To be completed!
 ## Installation
 
 ### Docker (build from source)
-If your user is not in the `docker` group you might have to execute this.
+If your user is not in the `docker` group you might have to execute these commands with `sudo`.
 The default config is focused on mainnet. If you want to test this on other Cardano netwok please adjust the `docker/.env.dockerfile` or read the Wiki page on [Environment variables](https://github.com/cardano-foundation/cardano-rosetta-java/wiki/5.-Environment-Variables) on other options and their default values.
 ######
     git clone https://github.com/cardano-foundation/cardano-rosetta-java
