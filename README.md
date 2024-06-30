@@ -25,8 +25,6 @@ To be completed after testing!
 ## Installation
 By default this Cardano-node will sync the entire chain from Genesis. This will take up to 48-72 hours.
 
-You are able to use Cardano-node snapshots as described [here](https://github.com/cardano-foundation/cardano-rosetta-java/wiki/6.-Install-Cardano-Node). Note that these snapshots are not provided by or maintained by Cardano Foundation.
-
 ### Docker (build from source)
 If your user is not in the `docker` group you might have to execute these commands with `sudo`.
 The default config is focused on mainnet. If you want to test this on other Cardano netwoks (like `preview` or `preprod`) please adjust the `docker/.env.dockerfile` or read the Wiki page on [Environment variables](https://github.com/cardano-foundation/cardano-rosetta-java/wiki/5.-Environment-Variables) on other options and their default values.
