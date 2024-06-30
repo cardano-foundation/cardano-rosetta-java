@@ -29,6 +29,23 @@ ARG GHC_VERSION=8.10.7
 RUN bash -c "ghcup install ghc ${GHC_VERSION}"
 RUN bash -c "ghcup set ghc ${GHC_VERSION}"
 
+
+# Mithril setup
+ARG MITHRIL_VERSION=2423.0
+# Install dependencies
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | bash -s -- -y \
+    && apt update --fix-missing \
+    && apt install -y --no-install-recommends \
+       build-essential m4 libssl-dev docker jq git cargo \
+    && apt-get clean \
+RUN git clone https://github.com/input-output-hk/mithril.git \
+    && cd mithril \
+    && git checkout MITHRIL_VERSION \
+    && cd mithril-client-cli \
+    && make build \
+    && cp mithril-client-cli /root/.local/bin/
+
+
 # Cardano node version
 ARG CARDANO_NODE_VERSION=8.9.4
 
@@ -173,6 +190,7 @@ RUN apt install -y --no-install-recommends openjdk-21-jdk jq bc sudo curl \
 # Copy cardano node
 COPY --from=cardano-builder /usr/local/lib /usr/local/lib
 COPY --from=cardano-builder /root/.local/bin/cardano-* /usr/local/bin/
+COPY --from=cardano-builder /root/.local/bin/mithril-client-cli /usr/local/bin/
 COPY --from=cardano-builder /root/src/cardano-node/cardano-submit-api/config/tx-submit-mainnet-config.yaml /cardano-submit-api-config/cardano-submit-api.yaml
 ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 ENV PATH=/usr/local/lib/:$PATH
