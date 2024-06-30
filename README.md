@@ -11,6 +11,7 @@ This component consists of:
 - a full Cardano node
 - a Cardano Submit API
 - an indexer which stores data in Postgres
+- the Mesh (formerly Rosetta) API
 
 ## System requirements
 Thanks to design differences in Yaci-Store the system requirements for this Cardano Rosetta implemenation are drastically lower, while it also increases performance.
