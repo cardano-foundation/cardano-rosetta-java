@@ -137,6 +137,7 @@ download_mithril_snapshot(){
     esac
     mithril-client cardano-db download latest --download-dir /node &
     MITHRIL_PID=$!
+    wait $MITHRIL_PID
     echo "Done downloading Mithril Snapshot"
 }
 
