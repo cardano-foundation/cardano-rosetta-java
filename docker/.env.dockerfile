@@ -10,7 +10,12 @@ SYNC=true
 VERIFICATION=true
 
 # Mithril snapshots
-MITHRIL_SYNC=false
+MITHRIL_SYNC=true
+SNAPSHOT_DIGEST=latest
+# if not set standard values will be used
+AGGREGATOR_ENDPOINT=
+# if not set standard values will be used
+GENESIS_VERIFICATION_KEY=
 
 ## Postgres variables
 DB_NAME=rosetta-java
