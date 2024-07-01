@@ -139,6 +139,7 @@ RUN mkdir -p /root/.local/bin \
     && cp -p "$(./scripts/bin-path.sh cardano-cli)" /root/.local/bin/ \
     && cp -p "$(./scripts/bin-path.sh cardano-submit-api)" /root/.local/bin/
 
+    
 # Compile java applications
 FROM ubuntu:22.04 AS java-builder
 
