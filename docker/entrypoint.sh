@@ -1,5 +1,13 @@
 #!/bin/bash
 
+function clean_up() {
+  # Killing all processes before exiting
+  kill $MITHRIL_PID $CARDANO_NODE_PID $CARDANO_SUBMIT_PID $API_PID
+  exit
+}
+
+trap clean_up SIGHUP SIGINT SIGTERM
+
 show_progress() {
     message="$1"; percent="$2"
     done=$(bc <<< "scale=0; 40 * ${percent%.*} / 100" )
@@ -127,7 +135,8 @@ download_mithril_snapshot(){
       GENESIS_VERIFICATION_KEY=${GENESIS_VERIFICATION_KEY:-$(wget -q -O - https://raw.githubusercontent.com/input-output-hk/mithril/main/mithril-infra/configuration/testing-sanchonet/genesis.vkey)}
       ;;
     esac
-    mithril-client cardano-db download latest --download-dir /node
+    mithril-client cardano-db download latest --download-dir /node &
+    MITHRIL_PID=$!
     echo "Done downloading Mithril Snapshot"
 }
 
@@ -153,6 +162,7 @@ rm -f $CARDANO_NODE_SOCKET_PATH
 mkdir -p "$(dirname "$CARDANO_NODE_SOCKET_PATH")"
 sleep 1
 cardano-node run --socket-path "$CARDANO_NODE_SOCKET_PATH" --port $CARDANO_NODE_PORT --database-path /node/db --config /config/config.json --topology /config/topology.json > /logs/node.log &
+CARDANO_NODE_PID=$!
 sleep 2
 
 if [ "${VERIFICATION}" == "true" ] || [ "${SYNC}" == "true" ] ; then
@@ -165,6 +175,7 @@ fi
 
 echo "Starting Cardano submit api..."
 cardano-submit-api --socket-path "$CARDANO_NODE_SOCKET_PATH" --port $NODE_SUBMIT_API_PORT $NETWORK_STR  --config /cardano-submit-api-config/cardano-submit-api.yaml > /logs/submit-api.log &
+CARDANO_SUBMIT_PID=$!
 
 mkdir -p /node/postgres
 chown -R postgres:postgres /node/postgres
@@ -179,9 +190,11 @@ create_database_and_user
 
 echo "Starting Yaci indexer..."
 exec java -jar /yaci-indexer/app.jar > /logs/indexer.log &
+YACI_STORE_PID=$!
 
 echo "Starting Rosetta API..."
 exec java -jar /api/app.jar > /logs/api.log &
+API_PID=$!
 
 echo "Waiting Rosetta API initialization..."
 sleep 5
