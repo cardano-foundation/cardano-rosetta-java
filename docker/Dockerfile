@@ -43,6 +43,7 @@ RUN git clone https://github.com/input-output-hk/mithril.git \
     && git checkout $MITHRIL_VERSION \
     && cd mithril-client-cli \
     && make build \
+    && mkdir -p /root/.local/bin \
     && cp mithril-client /root/.local/bin/
 
 
