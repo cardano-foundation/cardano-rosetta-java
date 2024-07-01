@@ -1,8 +1,8 @@
 ## Main variables
 LOG=INFO
-NETWORK=preprod
+NETWORK=mainnet
 # mainnet, preprod, preview, sanchonet, devkit
-PROTOCOL_MAGIC=1
+PROTOCOL_MAGIC=764824073
 # mainnet 764824073, preprod 1, preview 2, sanchonet 4, devkit 42
 
 # Node synchronization
