@@ -9,6 +9,14 @@ PROTOCOL_MAGIC=764824073
 SYNC=true
 VERIFICATION=true
 
+# Mithril snapshots
+MITHRIL_SYNC=true
+SNAPSHOT_DIGEST=latest
+# if not set standard values will be used
+AGGREGATOR_ENDPOINT=
+# if not set standard values will be used
+GENESIS_VERIFICATION_KEY=
+
 ## Postgres variables
 DB_NAME=rosetta-java
 DB_USER=rosetta_db_admin
