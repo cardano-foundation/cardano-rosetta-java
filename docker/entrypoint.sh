@@ -2,7 +2,8 @@
 
 function clean_up() {
   # Killing all processes before exiting
-  kill $MITHRIL_PID $CARDANO_NODE_PID $CARDANO_SUBMIT_PID $API_PID
+  kill -2 "$CARDANO_NODE_PID" "$API_PID" "$MITHRIL_PID" "$CARDANO_SUBMIT_PID" "$YACI_STORE_PID"
+  wait $CARDANO_NODE_PID
   exit
 }
 
@@ -14,7 +15,7 @@ show_progress() {
     todo=$(bc <<< "scale=0; 40 - $done" )
     done_sub_bar=$(printf "%${done}s" | tr " " "#")
     todo_sub_bar=$(printf "%${todo}s" | tr " " "-")
-    echo -e "$message [${done_sub_bar}${todo_sub_bar}] ${percent}%"
+    echo -ne "$message [${done_sub_bar}${todo_sub_bar}] ${percent}%"\\r
 }
 
 node_verification() {
@@ -135,7 +136,7 @@ download_mithril_snapshot(){
       GENESIS_VERIFICATION_KEY=${GENESIS_VERIFICATION_KEY:-$(wget -q -O - https://raw.githubusercontent.com/input-output-hk/mithril/main/mithril-infra/configuration/testing-sanchonet/genesis.vkey)}
       ;;
     esac
-    mithril-client cardano-db download latest --download-dir /node &
+    mithril-client cardano-db download latest --download-dir /node > >(tee $logf) &
     MITHRIL_PID=$!
     wait $MITHRIL_PID
     echo "Done downloading Mithril Snapshot"
@@ -208,5 +209,6 @@ done
 create_index
 
 echo "DONE"
-
-$@
+tail -f -n +1 /logs/*.log > >(tee $logf) &
+tail_pid=$!
+wait $CARDANO_NODE_PID

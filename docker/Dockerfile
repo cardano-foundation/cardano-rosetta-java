@@ -217,5 +217,3 @@ RUN chmod +x /sbin/entrypoint.sh
 EXPOSE 8082
 
 ENTRYPOINT ["/sbin/entrypoint.sh"]
-
-CMD ["tail", "-f", "-n", "+1", "/logs/*.log"]

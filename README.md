@@ -55,6 +55,10 @@ Depending on using a snapshot feature or not, this will take X amount of time. Y
 ```bash
     docker exec rosetta tail -f /logs/node.log
 ```
+- Access indexer logs:
+```bash
+    docker exec rosetta tail -f /logs/indexer.log
+```
 - Interactive access to container:
 ```bash
     docker exec -it rosetta bash # direct bash access within the container 
