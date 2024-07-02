@@ -1,17 +1,32 @@
 version: '3.8'
 services:
+  mithril:
+    build:
+      context: ./docker/dockerfiles/mithril
+    environment:
+      - NETWORK=${NETWORK}
+      - MITHRIL_SYNC=${MITHRIL_SYNC}
+      - SNAPSHOT_DIGEST=${SNAPSHOT_DIGEST}
+      - AGGREGATOR_ENDPOINT=${AGGREGATOR_ENDPOINT}
+      - GENESIS_VERIFICATION_KEY=${GENESIS_VERIFICATION_KEY}
+    volumes:
+      - ${CARDANO_NODE_DIR}:/node
   cardano-node:
+    build:
+      context: ./docker/dockerfiles/node
     image: ghcr.io/intersectmbo/cardano-node:${CARDANO_NODE_VERSION}
     environment:
       - NETWORK=${NETWORK}
     volumes:
-      - ${CARDANO_NODE_SOCKET_DIR}:${CARDANO_NODE_SOCKET_DIR}
+      - ${CARDANO_NODE_DIR}:/node/
       - ${CARDANO_NODE_DB}:/node/db
       - ${CARDANO_CONFIG}:/config
     ports:
       - ${CARDANO_NODE_PORT}:${CARDANO_NODE_PORT}
-    entrypoint: cardano-node run --database-path /node/db --port ${CARDANO_NODE_PORT} --socket-path ${CARDANO_NODE_SOCKET_PATH} --topology /config/topology.json --config /config/config.json
-
+    entrypoint: cardano-node run --database-path /node/db --port ${CARDANO_NODE_PORT} --socket-path /node/node.socket --topology /config/topology.json --config /config/config.json
+    depends_on:
+      mithril:
+        condition: service_completed_successfully
   cardano-submit-api:
     image: ghcr.io/intersectmbo/cardano-submit-api:${CARDANO_NODE_VERSION}
     environment:
@@ -19,7 +34,7 @@ services:
     depends_on:
       - cardano-node
     volumes:
-      - ${CARDANO_NODE_SOCKET_DIR}:/node-ipc
+      - ${CARDANO_NODE_DIR}:/node-ipc
     ports:
       - ${NODE_SUBMIT_API_PORT}:8090
     restart: on-failure
@@ -28,6 +43,7 @@ services:
       options:
         max-size: "200k"
         max-file: "10"
+
 
 networks:
   default:

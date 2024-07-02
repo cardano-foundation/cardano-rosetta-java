@@ -28,7 +28,7 @@ services:
       DEVKIT_PORT: ${DEVKIT_PORT}
     volumes:
       - ${CARDANO_CONFIG}:/config
-      - ${CARDANO_NODE_SOCKET_DIR}:${CARDANO_NODE_SOCKET_DIR}
+      - ${CARDANO_NODE_DIR}:${CARDANO_NODE_DIR}
     healthcheck:
       test: [ "CMD-SHELL", "curl --fail http://localhost:${API_PORT}/network/options -H 'Content-Type: application/json' --data '{\"network_identifier\": {\"blockchain\": \"cardano\",\"network\": \"${NETWORK}\"},\"metadata\": {}}' -X POST" ]
       interval: 30s
