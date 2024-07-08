@@ -9,7 +9,6 @@ RUN apt update --fix-missing \
         g++ tmux git jq wget libncursesw5-dev libtool autoconf liblmdb-dev curl ca-certificates \
     && apt-get clean
 
-WORKDIR /root/src
 
 # Install ghcup
 ENV BOOTSTRAP_HASKELL_NONINTERACTIVE=1
@@ -28,24 +27,6 @@ ARG GHC_VERSION=8.10.7
 
 RUN bash -c "ghcup install ghc ${GHC_VERSION}"
 RUN bash -c "ghcup set ghc ${GHC_VERSION}"
-
-
-# Mithril setup
-ARG MITHRIL_VERSION=2423.0
-# Install dependencies
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | bash -s -- -y \
-    && apt update --fix-missing \
-    && apt install -y --no-install-recommends \
-       build-essential m4 libssl-dev docker jq git cargo \
-    && apt-get clean
-RUN git clone https://github.com/input-output-hk/mithril.git \
-    && cd mithril \
-    && git checkout $MITHRIL_VERSION \
-    && cd mithril-client-cli \
-    && make build \
-    && mkdir -p /root/.local/bin \
-    && cp mithril-client /root/.local/bin/
-
 
 # Cardano node version
 ARG CARDANO_NODE_VERSION=8.9.4
@@ -139,81 +120,6 @@ RUN mkdir -p /root/.local/bin \
     && cp -p "$(./scripts/bin-path.sh cardano-cli)" /root/.local/bin/ \
     && cp -p "$(./scripts/bin-path.sh cardano-submit-api)" /root/.local/bin/
 
-    
-# Compile java applications
-FROM ubuntu:22.04 AS java-builder
 
-WORKDIR /root/app
-
-RUN apt update --fix-missing \
-    && apt install -y --no-install-recommends openjdk-21-jdk maven \
-    && apt-get clean
-
-COPY ./pom.xml /root/app/pom.xml
-
-COPY ./api /root/app/api
-COPY ./yaci-indexer /root/app/yaci-indexer
-COPY ./test-data-generator /root/app/test-data-generator
-COPY ./.git /root/app/.git
-
-RUN --mount=type=cache,target=/root/.m2 mvn clean package -DskipTests
-
-# Main
-FROM ubuntu:22.04
-
-WORKDIR /
-
-# Install postgres
-ARG PG_VERSION=14
-ARG PG_VERSION_TEMP=$PG_VERSION
-ENV PG_VERSION=$PG_VERSION_TEMP
-
-RUN apt update --fix-missing \
-    && DEBIAN_FRONTEND=noninteractive apt install -y wget sudo gnupg \
-    && wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
-    && echo 'deb http://apt.postgresql.org/pub/repos/apt/ jammy-pgdg main' >> /etc/apt/sources.list \
-    && apt-get clean
-
-RUN apt update --fix-missing \
-    && DEBIAN_FRONTEND=noninteractive apt install -y --no-install-recommends  \
-        postgresql-${PG_VERSION} \
-    && apt-get clean
-
-RUN echo "host all  all    0.0.0.0/0  md5" >> /etc/postgresql/${PG_VERSION}/main/pg_hba.conf
-RUN echo "listen_addresses='*'" >> /etc/postgresql/${PG_VERSION}/main/postgresql.conf
-RUN sed -i "s/var\/lib\/postgresql\/${PG_VERSION}\/main/node\/postgres/" /etc/postgresql/${PG_VERSION}/main/postgresql.conf
-RUN mkdir -p /node/postgres
-RUN rm -rf /var/lib/postgresql/${PG_VERSION}/main
-
-# Install jdk 21
-RUN apt install -y --no-install-recommends openjdk-21-jdk jq bc sudo curl \
-    && apt clean
-
-# Copy cardano node
-COPY --from=cardano-builder /usr/local/lib /usr/local/lib
+FROM ubuntu:22.04 AS node-runner
 COPY --from=cardano-builder /root/.local/bin/cardano-* /usr/local/bin/
-COPY --from=cardano-builder /root/.local/bin/mithril-client /usr/local/bin/
-COPY --from=cardano-builder /root/src/cardano-node/cardano-submit-api/config/tx-submit-mainnet-config.yaml /cardano-submit-api-config/cardano-submit-api.yaml
-ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
-ENV PATH=/usr/local/lib/:$PATH
-
-COPY ./config /networks
-RUN mkdir /config
-
-RUN mkdir -p /node/db
-RUN mkdir -p /node/postgres
-
-# Copy jars
-COPY --from=java-builder /root/app/api/target/*.jar /api/app.jar
-COPY --from=java-builder /root/app/yaci-indexer/target/*.jar /yaci-indexer/app.jar
-
-# Run
-RUN mkdir /logs
-
-COPY ./docker/entrypoint.sh /sbin/entrypoint.sh
-
-RUN chmod +x /sbin/entrypoint.sh
-
-EXPOSE 8082
-
-ENTRYPOINT ["/sbin/entrypoint.sh"]
