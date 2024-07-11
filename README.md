@@ -24,7 +24,8 @@ It includes explanations about the Architecture, how to build and run the compon
 Since [Yaci-Store](https://github.com/bloxbean/yaci-store) is a comparatively lightweight indexer, the system requirements are lower than for other chain indexers. The following are the recommended system requirements for running this component:
 - 4CPU Cores
 - 32GB RAM
-- 400GB of storage
+- 1TB of storage (PRUNING_ENABLED=false) [default]
+- 400GB of storage (PRUNING_ENABLED=true)
 
 Better hardware will improve the performance of the indexer and the node, which will result in faster syncing times.
 
