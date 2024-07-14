@@ -3,6 +3,8 @@ package org.cardanofoundation.rosetta.common.services;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.cardanofoundation.rosetta.api.block.model.entity.LocalProtocolParamsEntity;
+import org.cardanofoundation.rosetta.api.block.model.repository.LocalProtocolParamsRepository;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -15,12 +17,14 @@ import org.cardanofoundation.rosetta.api.block.model.entity.ProtocolParamsEntity
 import org.cardanofoundation.rosetta.api.block.model.repository.EpochParamRepository;
 import org.cardanofoundation.rosetta.common.mapper.ProtocolParamsMapper;
 
+import java.util.Optional;
+
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class ProtocolParamServiceImpl implements ProtocolParamService {
 
-  private final EpochParamRepository epochParamRepository;
+  private final LocalProtocolParamsRepository localProtocolParamsRepository;
   private final ProtocolParamsMapper mapperProtocolParams;
 
   @Override
@@ -28,11 +32,11 @@ public class ProtocolParamServiceImpl implements ProtocolParamService {
   @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
   public ProtocolParams findProtocolParametersFromIndexer() {
     log.info("Fetching protocol parameters from the indexer");
-    ProtocolParamsEntity paramsEntity = epochParamRepository.findLatestProtocolParams();
-    ProtocolParams protocolParams = mapperProtocolParams.mapProtocolParamsToEntity(paramsEntity);
+    Optional<LocalProtocolParamsEntity> protocolParams = localProtocolParamsRepository.getLocalProtocolParams();
     log.debug("Protocol parameters fetched from the indexer: {} \nand saved in cachedProtocolParams",
-        paramsEntity);
-    return protocolParams;
+            protocolParams);
+
+    return protocolParams.orElse(new LocalProtocolParamsEntity()).getProtocolParams();
   }
 
   @Scheduled(fixedRate = 3600000) // 1 hour

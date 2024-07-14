@@ -1,5 +1,7 @@
 package org.cardanofoundation.rosetta.common.cache;
 
+import org.cardanofoundation.rosetta.api.block.model.entity.LocalProtocolParamsEntity;
+import org.cardanofoundation.rosetta.api.block.model.repository.LocalProtocolParamsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -17,6 +19,8 @@ import org.cardanofoundation.rosetta.api.block.model.repository.EpochParamReposi
 import org.cardanofoundation.rosetta.common.mapper.ProtocolParamsMapper;
 import org.cardanofoundation.rosetta.common.services.ProtocolParamServiceImpl;
 
+import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -32,6 +36,8 @@ class ProtocolParamsCacheTest {
 
   @MockBean
   private EpochParamRepository epochParamRepository;
+  @MockBean
+  private LocalProtocolParamsRepository localProtocolParamsRepository;
 
   @MockBean
   private ProtocolParamsMapper protocolParamsToEntity;
@@ -56,16 +62,15 @@ class ProtocolParamsCacheTest {
     paramsEntity.setMinFeeA(1);
     ProtocolParams protocolParams = new ProtocolParams();
     protocolParams.setMinFeeA(1);
-
-    when(epochParamRepository.findLatestProtocolParams()).thenReturn(paramsEntity);
-    when(protocolParamsToEntity.mapProtocolParamsToEntity(paramsEntity)).thenReturn(protocolParams);
+    LocalProtocolParamsEntity localProtocolParamsEntity = LocalProtocolParamsEntity.builder().protocolParams(protocolParams).build();
+    when(localProtocolParamsRepository.getLocalProtocolParams()).thenReturn(Optional.of(localProtocolParamsEntity));
+//    when(protocolParamsToEntity.mapProtocolParamsToEntity(paramsEntity)).thenReturn(protocolParams);
 
     ProtocolParams result1 = genesisService.findProtocolParametersFromIndexer();
     ProtocolParams result2 = genesisService.findProtocolParametersFromIndexer();
 
     // Assert that the repository & mapper method is only called once
-    verify(epochParamRepository, times(1)).findLatestProtocolParams();
-    verify(protocolParamsToEntity, times(1)).mapProtocolParamsToEntity(paramsEntity);
+    verify(localProtocolParamsRepository, times(1)).getLocalProtocolParams();
     assertEquals(result1, result2);
 
     Cache cache = cacheManager.getCache(PROTOCOL_PARAMS_CACHE);

@@ -3,6 +3,8 @@ package org.cardanofoundation.rosetta.api.block.model.domain;
 import java.math.BigInteger;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 @Builder
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class ProtocolParams {
 
   private Integer minFeeA; //0

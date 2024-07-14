@@ -62,8 +62,10 @@ services:
       GENESIS_ALONZO_PATH: ${GENESIS_ALONZO_PATH}
       GENESIS_CONWAY_PATH: ${GENESIS_CONWAY_PATH}
       PRUNING_ENABLED: ${PRUNING_ENABLED}
+      CARDANO_NODE_SOCKET_PATH: ${CARDANO_NODE_SOCKET_PATH}
     volumes:
       - ${CARDANO_CONFIG}:/config
+      - ${CARDANO_NODE_DIR}:${CARDANO_NODE_DIR}
     restart: always
     depends_on:
       db:
