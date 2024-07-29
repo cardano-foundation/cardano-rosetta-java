@@ -64,9 +64,6 @@ RUN export IOHKNIX_VERSION=$(curl https://raw.githubusercontent.com/IntersectMBO
     && make check \
     && make install
 
-ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
-ENV PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH
-
 # Install libsodium
 RUN apt install -y --no-install-recommends libsodium-dev \
     && apt-get clean
@@ -194,8 +191,6 @@ COPY --from=cardano-builder /usr/local/lib /usr/local/lib
 COPY --from=cardano-builder /root/.local/bin/cardano-* /usr/local/bin/
 COPY --from=cardano-builder /root/.local/bin/mithril-client /usr/local/bin/
 COPY --from=cardano-builder /root/src/cardano-node/cardano-submit-api/config/tx-submit-mainnet-config.yaml /cardano-submit-api-config/cardano-submit-api.yaml
-ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
-ENV PATH=/usr/local/lib/:$PATH
 
 COPY ./config /networks
 RUN mkdir /config
