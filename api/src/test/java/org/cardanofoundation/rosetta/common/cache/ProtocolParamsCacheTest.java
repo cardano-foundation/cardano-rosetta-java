@@ -1,7 +1,7 @@
 package org.cardanofoundation.rosetta.common.cache;
 
-import org.cardanofoundation.rosetta.api.block.model.entity.LocalProtocolParamsEntity;
-import org.cardanofoundation.rosetta.api.block.model.repository.LocalProtocolParamsRepository;
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -14,12 +14,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
+import org.cardanofoundation.rosetta.api.block.model.entity.LocalProtocolParamsEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.ProtocolParamsEntity;
 import org.cardanofoundation.rosetta.api.block.model.repository.EpochParamRepository;
+import org.cardanofoundation.rosetta.api.block.model.repository.LocalProtocolParamsRepository;
 import org.cardanofoundation.rosetta.common.mapper.ProtocolParamsMapper;
 import org.cardanofoundation.rosetta.common.services.ProtocolParamServiceImpl;
-
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -64,7 +64,6 @@ class ProtocolParamsCacheTest {
     protocolParams.setMinFeeA(1);
     LocalProtocolParamsEntity localProtocolParamsEntity = LocalProtocolParamsEntity.builder().protocolParams(protocolParams).build();
     when(localProtocolParamsRepository.getLocalProtocolParams()).thenReturn(Optional.of(localProtocolParamsEntity));
-//    when(protocolParamsToEntity.mapProtocolParamsToEntity(paramsEntity)).thenReturn(protocolParams);
 
     ProtocolParams result1 = genesisService.findProtocolParametersFromIndexer();
     ProtocolParams result2 = genesisService.findProtocolParametersFromIndexer();
