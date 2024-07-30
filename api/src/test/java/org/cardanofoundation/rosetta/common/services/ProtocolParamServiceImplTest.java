@@ -1,5 +1,7 @@
 package org.cardanofoundation.rosetta.common.services;
 
+import java.util.Optional;
+
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -8,9 +10,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
-import org.cardanofoundation.rosetta.api.block.model.entity.ProtocolParamsEntity;
-import org.cardanofoundation.rosetta.api.block.model.repository.EpochParamRepository;
-import org.cardanofoundation.rosetta.common.mapper.ProtocolParamsMapper;
+import org.cardanofoundation.rosetta.api.block.model.entity.LocalProtocolParamsEntity;
+import org.cardanofoundation.rosetta.api.block.model.repository.LocalProtocolParamsRepository;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.when;
@@ -19,24 +20,19 @@ import static org.mockito.Mockito.when;
 class ProtocolParamServiceImplTest {
 
   @Mock
-  EpochParamRepository epochParamRepository;
-  @Mock
-  ProtocolParamsMapper protocolParamsMapper;
+  LocalProtocolParamsRepository protocolParamsRepository;
   @InjectMocks
   ProtocolParamServiceImpl genesisService;
 
   @Test
-  void getProtocolParameters() {
-    when(genesisService.findProtocolParametersFromIndexer()).thenReturn(new ProtocolParams());
-    assertNotNull(genesisService.findProtocolParametersFromIndexer());
-  }
-
-  @Test
   void findProtocolParametersFromIndexerTest() {
     //given
-    ProtocolParamsEntity protocolParams = new ProtocolParamsEntity();
-    when(epochParamRepository.findLatestProtocolParams()).thenReturn(protocolParams);
-    when(protocolParamsMapper.mapProtocolParamsToEntity(protocolParams)).thenReturn(new ProtocolParams());
+    when(protocolParamsRepository.getLocalProtocolParams()).thenReturn(Optional.of(
+        LocalProtocolParamsEntity.builder()
+            .epoch(5L)
+            .protocolParams(
+                ProtocolParams.builder().build())
+            .build()));
     //when
     ProtocolParams protocolParameters = genesisService.findProtocolParametersFromIndexer();
     //then

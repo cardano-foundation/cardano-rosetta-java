@@ -41,7 +41,7 @@ The default config is focused on mainnet. If you want to test this on other Card
     git clone https://github.com/cardano-foundation/cardano-rosetta-java
     cd cardano-rosetta-java
     docker build -t rosetta-java -f ./docker/Dockerfile .
-    docker run --name rosetta --env-file ./docker/.env.dockerfile -p 8082:8082 -d rosetta-java:latest
+    docker run --name rosetta -v {CUSTOM_MOUNT_PATH}:/node --env-file ./docker/.env.dockerfile -p 8082:8082 -d rosetta-java:latest
 ```
 Detailed explanation can be found in the [Wiki](https://github.com/cardano-foundation/cardano-rosetta-java/wiki/3.-Getting-Started-with-Docker).
 

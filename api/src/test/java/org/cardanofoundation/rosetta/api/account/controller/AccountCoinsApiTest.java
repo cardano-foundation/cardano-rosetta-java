@@ -1,4 +1,4 @@
-package org.cardanofoundation.rosetta.api.data.account;
+package org.cardanofoundation.rosetta.api.account.controller;
 
 import java.util.Arrays;
 import java.util.List;
@@ -36,7 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 class AccountCoinsApiTest extends BaseSpringMvcSetup {
 
-  private final String myAssetPolicyId = "7fb3df13910c057bd9254e847c076fb02de78503b9fa0ecdd70b566c";
+  private final String myAssetPolicyId = "d97e36383ae494e72b736ace04080f2953934626376ee06cf84adeb4";
   private final String latestTxHashOnZeroSlot = generatedDataMap.get(
       TestTransactionNames.SIMPLE_NEW_EMPTY_NAME_COINS_TRANSACTION.getName()).txHash() + ":0";
   private final String expectedTestAccountCoinAmount = "1636394";

@@ -6,7 +6,7 @@ server:
 
 spring:
   profiles:
-    active: ${API_SPRING_PROFILES_ACTIVE:staging, standalone}
+    active: ${API_SPRING_PROFILES_ACTIVE:dev}
   jackson:
     default-property-inclusion: NON_NULL
     serialization:
