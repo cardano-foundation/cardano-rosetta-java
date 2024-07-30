@@ -192,6 +192,9 @@ COPY --from=cardano-builder /root/.local/bin/cardano-* /usr/local/bin/
 COPY --from=cardano-builder /root/.local/bin/mithril-client /usr/local/bin/
 COPY --from=cardano-builder /root/src/cardano-node/cardano-submit-api/config/tx-submit-mainnet-config.yaml /cardano-submit-api-config/cardano-submit-api.yaml
 
+ENV LD_LIBRARY_PATH=/usr/local/lib
+ENV PATH=/usr/local/lib/:$PATH
+
 COPY ./config /networks
 RUN mkdir /config
 
