@@ -35,7 +35,6 @@ class AccountBalanceApiTest extends BaseSpringMvcSetup {
 
   private final String currentAdaBalance = "3636394";
   private final String previousAdaBalance = "1636394";
-  private final String currentLovelaceBalance = "1939500";
 
   @Test
   void accountBalance2Ada_Test() {
