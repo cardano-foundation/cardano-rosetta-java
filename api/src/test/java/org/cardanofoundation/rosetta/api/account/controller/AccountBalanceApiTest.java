@@ -1,4 +1,4 @@
-package org.cardanofoundation.rosetta.api.data.account;
+package org.cardanofoundation.rosetta.api.account.controller;
 
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -71,7 +71,7 @@ class AccountBalanceApiTest extends BaseSpringMvcSetup {
         accountBalanceResponse.getBalances().get(1).getValue());
     assertNotEquals(accountBalanceResponse.getBalances().getFirst().getCurrency().getSymbol(),
         accountBalanceResponse.getBalances().get(1).getCurrency().getSymbol());
-    assertEquals("", accountBalanceResponse.getBalances().get(2).getCurrency().getSymbol());
+    assertEquals("", accountBalanceResponse.getBalances().get(1).getCurrency().getSymbol());
   }
 
   @Test
