@@ -41,5 +41,4 @@ runs:
     - name: Get more space
       shell: bash
       run: |
-        sudo rm -rf ${GITHUB_WORKSPACE}/.git
         df . -h
