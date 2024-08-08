@@ -41,7 +41,7 @@ The default config is focused on mainnet. If you want to test this on other Card
     git clone https://github.com/cardano-foundation/cardano-rosetta-java
     cd cardano-rosetta-java
     docker build -t rosetta-java -f ./docker/Dockerfile .
-    docker run --name rosetta -v {CUSTOM_MOUNT_PATH}:/node --env-file ./docker/.env.dockerfile -p 8082:8082 -d rosetta-java:latest
+    docker run --name rosetta -v {CUSTOM_MOUNT_PATH}:/node --env-file ./docker/.env.dockerfile -p 8082:8082 -d rosetta-java:1.0-rc4
 ```
 Detailed explanation can be found in the [Wiki](https://github.com/cardano-foundation/cardano-rosetta-java/wiki/3.-Getting-Started-with-Docker).
 
@@ -75,7 +75,7 @@ Depending on using a snapshot feature or not, this will take X amount of time. Y
 For every Release we provide pre-built docker images stored in the DockerHub Repositories of the Cardano Foundation ([DockerHub](https://hub.docker.com/orgs/cardanofoundation/repositories))
 To start it use the following command:
 ```bash
-    docker run --name rosetta --env-file ./docker/.env.dockerfile -p 8082:8082 -d cardanofoundation/cardano-rosetta-java:latest
+    docker run --name rosetta -v {CUSTOM_MOUNT_PATH}:/node --env-file ./docker/.env.dockerfile -p 8082:8082 -d cardanofoundation/cardano-rosetta-java:1.0-rc4
 ```
 Changes to the configuration can be made by adjusting the `docker/.env.dockerfile` file. For more information on the environment variables, please refer to the [Wiki](https://github.com/cardano-foundation/cardano-rosetta-java/wiki/5.-Environment-Variables).
 
