@@ -121,14 +121,19 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
     List<TxnEntity> txList = txRepository.findTransactionsByBlockHash(blkEntity.get().getHash());
     log.debug("Found {} transactions", txList.size());
     if (ObjectUtils.isNotEmpty(txList)) {
-      ProtocolParams pps = protocolParamService.findProtocolParametersFromIndexer();
-      List<BlockTx> transactions = txList.stream().map(blockMapper::mapToBlockTx).toList();
-      TransactionInfo fetched = findByTxHash(transactions);
-      Map<UtxoKey, AddressUtxoEntity> utxoMap = getUtxoMapFromEntities(fetched);
-      transactions.forEach(tx -> populateTransaction(tx, pps, fetched, utxoMap));
-      return transactions;
+      return mapTxnEntitiesToBlockTxList(txList);
     }
     return Collections.emptyList();
+  }
+
+  @Override
+  public List<BlockTx> mapTxnEntitiesToBlockTxList(List<TxnEntity> txList) {
+    ProtocolParams pps = protocolParamService.findProtocolParametersFromIndexer();
+    List<BlockTx> transactions = txList.stream().map(blockMapper::mapToBlockTx).toList();
+    TransactionInfo fetched = findByTxHash(transactions);
+    Map<UtxoKey, AddressUtxoEntity> utxoMap = getUtxoMapFromEntities(fetched);
+    transactions.forEach(tx -> populateTransaction(tx, pps, fetched, utxoMap));
+    return transactions;
   }
 
   @Override

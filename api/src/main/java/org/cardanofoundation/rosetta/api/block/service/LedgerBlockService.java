@@ -6,6 +6,7 @@ import java.util.Optional;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockIdentifierExtended;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
+import org.cardanofoundation.rosetta.api.block.model.entity.TxnEntity;
 
 public interface LedgerBlockService {
 
@@ -26,6 +27,8 @@ public interface LedgerBlockService {
    * @return the list of transactions
    */
   List<BlockTx> findTransactionsByBlock(Long number, String hash);
+
+  List<BlockTx> mapTxnEntitiesToBlockTxList(List<TxnEntity> txList);
 
   /**
    * Returns the latest block.

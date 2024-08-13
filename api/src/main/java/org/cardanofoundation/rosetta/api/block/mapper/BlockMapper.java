@@ -5,7 +5,9 @@ import java.util.concurrent.TimeUnit;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
+import org.openapitools.client.model.BlockIdentifier;
 import org.openapitools.client.model.BlockResponse;
+import org.openapitools.client.model.BlockTransaction;
 import org.openapitools.client.model.BlockTransactionResponse;
 import org.openapitools.client.model.Transaction;
 import org.openapitools.client.model.TransactionIdentifier;
@@ -38,6 +40,14 @@ public interface BlockMapper {
   @Mapping(target = "block.metadata.epochNo", source = "epochNo")
   @Mapping(target = "block.transactions", source = "transactions")
   BlockResponse mapToBlockResponse(Block model);
+
+  @Mapping(target = "blockIdentifier", source = "source")
+  @Mapping(target = "transaction", source = "source")
+  BlockTransaction mapToBlockTransaction(BlockTx source);
+
+  @Mapping(target = "hash", source = "blockHash")
+  @Mapping(target = "index", source = "blockNo")
+  BlockIdentifier mapToBlockIdentifier(BlockTx source);
 
   @Mapping(target = "transactionIdentifier", source = "hash")
   @Mapping(target = "metadata.size", source = "size")

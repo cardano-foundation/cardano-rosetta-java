@@ -2,7 +2,10 @@ package org.cardanofoundation.rosetta.api.block.model.repository;
 
 import java.util.List;
 
+import org.cardanofoundation.rosetta.api.block.model.entity.UtxoKey;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import org.cardanofoundation.rosetta.api.block.model.entity.TxnEntity;
@@ -10,7 +13,31 @@ import org.cardanofoundation.rosetta.api.block.model.entity.TxnEntity;
 public interface TxRepository extends JpaRepository<TxnEntity, Long> {
 
   List<TxnEntity> findTransactionsByBlockHash(@Param("blockHash") String blockHash);
-//
+
+  @Query(value = """
+        SELECT tx FROM TxnEntity tx
+        LEFT JOIN AddressUtxoEntity utxo ON tx.txHash = utxo.txHash
+        WHERE
+        (:txHash IS NULL OR tx.txHash = :txHash) AND
+        (:address IS NULL OR utxo.ownerAddr = :address) AND
+        (:maxBlock IS NULL OR tx.block.number <= :maxBlock) AND
+        (:blockHash IS NULL OR tx.block.hash = :blockHash) AND
+        (:blockNo IS NULL OR tx.block.number = :blockNo)
+        """)
+  List<TxnEntity> searchTxnEntitiesAND(@Param("txHash") String txHash, @Param("address") String address, @Param("blockHash") String blockHash, @Param("blockNo") Long blockNumber, @Param("maxBlock") Long maxBlock, Pageable pageable);
+
+  @Query(value = """
+        SELECT tx FROM TxnEntity tx
+        LEFT JOIN AddressUtxoEntity utxo ON tx.txHash = utxo.txHash
+        WHERE
+        (:txHash IS NULL OR tx.txHash = :txHash) OR
+        (:address IS NULL OR utxo.ownerAddr = :address) OR
+        (:maxBlock IS NULL OR tx.block.number <= :maxBlock) OR
+        (:blockHash IS NULL OR tx.block.hash = :blockHash) OR
+        (:blockNo IS NULL OR tx.block.number = :blockNo)
+        """)
+  List<TxnEntity> searchTxnEntitiesOR(@Param("txHash") String txHash, @Param("address") String address, @Param("blockHash") String blockHash, @Param("blockNo") Long blockNumber, @Param("maxBlock") Long maxBlock, Pageable pageable);
+  //
 //  @Query("SELECT new org.cardanofoundation.rosetta.api.projection.dto.FindTransactionsInputs "
 //      + "(txIn.id , "
 //      + "  sourceTxOut.address ,"
