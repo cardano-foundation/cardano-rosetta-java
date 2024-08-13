@@ -18,13 +18,13 @@ public interface TxRepository extends JpaRepository<TxnEntity, Long> {
         SELECT tx FROM TxnEntity tx
         LEFT JOIN AddressUtxoEntity utxo ON tx.txHash = utxo.txHash
         WHERE
-        (:txHash IS NULL OR tx.txHash = :txHash) AND
+        (:txHashes IS NULL OR tx.txHash IN :txHashes) AND
         (:address IS NULL OR utxo.ownerAddr = :address) AND
         (:maxBlock IS NULL OR tx.block.number <= :maxBlock) AND
         (:blockHash IS NULL OR tx.block.hash = :blockHash) AND
         (:blockNo IS NULL OR tx.block.number = :blockNo)
         """)
-  List<TxnEntity> searchTxnEntitiesAND(@Param("txHash") String txHash, @Param("address") String address, @Param("blockHash") String blockHash, @Param("blockNo") Long blockNumber, @Param("maxBlock") Long maxBlock, Pageable pageable);
+  List<TxnEntity> searchTxnEntitiesAND(@Param("txHashes") List<String> txHashes, @Param("address") String address, @Param("blockHash") String blockHash, @Param("blockNo") Long blockNumber, @Param("maxBlock") Long maxBlock, Pageable pageable);
 
   @Query(value = """
         SELECT tx FROM TxnEntity tx

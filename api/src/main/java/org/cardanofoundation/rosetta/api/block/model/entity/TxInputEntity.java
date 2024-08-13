@@ -27,4 +27,7 @@ public class TxInputEntity {
 
   @Column(name = "spent_at_block")
   private Long spentAtBlock;
+
+  @Column(name = "spent_tx_hash")
+  private String spentTxHash;
 }
