@@ -52,8 +52,7 @@ public class LedgerSearchServiceImpl implements LedgerSearchService {
       txHashes.addAll(addressUtxoRepository.findTxHashesByOwnerAddr(address));
     }
     if(operator == Operator.AND) {
-      txnEntities = txRepository.searchTxnEntitiesAND(txHashes, blockHash, blockIndex, maxBlock,
-          pageable);
+      txnEntities = txRepository.searchTxnEntitiesAND(txHashes, blockHash, blockIndex, maxBlock);
     } else {
       txnEntities = txRepository.searchTxnEntitiesOR(txHash, address, blockHash, blockIndex,
           maxBlock,
