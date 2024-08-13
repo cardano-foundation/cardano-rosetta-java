@@ -31,6 +31,7 @@ public class LedgerSearchServiceImpl implements LedgerSearchService {
   private final TxRepository txRepository;
   private final LedgerBlockService ledgerBlockService;
   private final TxInputRepository txInputRepository;
+  private final AddressUtxoRepository addressUtxoRepository;
   @SneakyThrows
   @Override
   public List<BlockTx> searchTransaction(Operator operator, String txHash, String address, UtxoKey utxoKey,
@@ -47,8 +48,11 @@ public class LedgerSearchServiceImpl implements LedgerSearchService {
     if(utxoKey != null) {
       txHashes.addAll(txInputRepository.findSpentTxHashByUtxoKey(utxoKey.getTxHash(), utxoKey.getOutputIndex()));
     }
+    if(address != null) {
+      txHashes.addAll(addressUtxoRepository.findTxHashesByOwnerAddr(address));
+    }
     if(operator == Operator.AND) {
-      txnEntities = txRepository.searchTxnEntitiesAND(txHashes, address, blockHash, blockIndex, maxBlock,
+      txnEntities = txRepository.searchTxnEntitiesAND(txHashes, blockHash, blockIndex, maxBlock,
           pageable);
     } else {
       txnEntities = txRepository.searchTxnEntitiesOR(txHash, address, blockHash, blockIndex,
