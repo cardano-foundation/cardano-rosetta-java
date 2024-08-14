@@ -2,17 +2,20 @@ package org.cardanofoundation.rosetta.api.search.controller;
 
 import java.util.List;
 import java.util.Optional;
+
 import lombok.RequiredArgsConstructor;
-import org.cardanofoundation.rosetta.api.network.service.NetworkService;
-import org.cardanofoundation.rosetta.api.search.mapper.SearchMapper;
-import org.cardanofoundation.rosetta.api.search.service.SearchService;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RestController;
 import org.openapitools.client.api.SearchApi;
 import org.openapitools.client.model.BlockTransaction;
 import org.openapitools.client.model.SearchTransactionsRequest;
 import org.openapitools.client.model.SearchTransactionsResponse;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RestController;
+
+import org.cardanofoundation.rosetta.api.network.service.NetworkService;
+import org.cardanofoundation.rosetta.api.search.mapper.SearchMapper;
+import org.cardanofoundation.rosetta.api.search.service.SearchService;
 
 @RestController
 @RequiredArgsConstructor

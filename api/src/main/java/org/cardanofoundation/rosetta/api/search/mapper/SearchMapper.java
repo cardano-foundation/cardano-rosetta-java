@@ -1,11 +1,13 @@
 package org.cardanofoundation.rosetta.api.search.mapper;
 
 import java.util.List;
-import org.cardanofoundation.rosetta.common.mapper.util.BaseMapper;
+
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.openapitools.client.model.BlockTransaction;
 import org.openapitools.client.model.SearchTransactionsResponse;
+
+import org.cardanofoundation.rosetta.common.mapper.util.BaseMapper;
 
 @Mapper(config = BaseMapper.class)
 public interface SearchMapper {

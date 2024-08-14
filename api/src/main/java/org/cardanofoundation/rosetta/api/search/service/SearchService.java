@@ -1,6 +1,7 @@
 package org.cardanofoundation.rosetta.api.search.service;
 
 import java.util.List;
+
 import org.openapitools.client.model.BlockTransaction;
 import org.openapitools.client.model.SearchTransactionsRequest;
 

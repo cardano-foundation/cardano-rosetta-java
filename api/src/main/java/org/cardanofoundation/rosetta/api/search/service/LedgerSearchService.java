@@ -1,9 +1,11 @@
 package org.cardanofoundation.rosetta.api.search.service;
 
 import java.util.List;
+
+import org.openapitools.client.model.Operator;
+
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.model.entity.UtxoKey;
-import org.openapitools.client.model.Operator;
 
 public interface LedgerSearchService {
 
