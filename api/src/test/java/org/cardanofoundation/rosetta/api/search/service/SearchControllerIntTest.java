@@ -14,7 +14,7 @@ import org.cardanofoundation.rosetta.api.IntegrationTest;
 import org.cardanofoundation.rosetta.testgenerator.common.TestConstants;
 import org.cardanofoundation.rosetta.testgenerator.common.TransactionBlockDetails;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class SearchControllerIntTest extends IntegrationTest {
 
@@ -28,7 +28,7 @@ class SearchControllerIntTest extends IntegrationTest {
         .build();
 
     List<BlockTransaction> blockTransactions = service.searchTransaction(req, 0L, 5L);
-    assertThat(blockTransactions.size() == 5);
+    assertEquals(5, blockTransactions.size());
   }
 
   @Test
@@ -40,13 +40,14 @@ class SearchControllerIntTest extends IntegrationTest {
             .hash(stakeKeyDeregistration.txHash())
             .build())
         .build();
+
     List<BlockTransaction> blockTransactions = service.searchTransaction(req, 0L, 10L);
-    assertThat(blockTransactions.size() == 1);
+    assertEquals(1, blockTransactions.size());
     BlockTransaction tx = blockTransactions.getFirst();
-    assertThat(tx.getBlockIdentifier().getHash().equals(stakeKeyDeregistration.blockHash()));
-    assertThat(tx.getBlockIdentifier().getIndex() == stakeKeyDeregistration.blockNumber());
-    assertThat(tx.getTransaction().getTransactionIdentifier().getHash().equals(stakeKeyDeregistration.txHash()));
-    assertThat(tx.getTransaction().getOperations().size() == 4);
+    assertEquals(stakeKeyDeregistration.blockHash(), tx.getBlockIdentifier().getHash());
+    assertEquals(stakeKeyDeregistration.blockNumber(), tx.getBlockIdentifier().getIndex());
+    assertEquals(stakeKeyDeregistration.txHash(), tx.getTransaction().getTransactionIdentifier().getHash());
+    assertEquals(4, tx.getTransaction().getOperations().size());
   }
 
   @Test
@@ -60,7 +61,7 @@ class SearchControllerIntTest extends IntegrationTest {
         .build();
 
     List<BlockTransaction> blockTransactions = service.searchTransaction(req, 0L, 10L);
-    assertThat(blockTransactions.size() == 1);
+    assertEquals(1, blockTransactions.size());
     String identifier = blockTransactions.getFirst().getTransaction().getOperations().getFirst()
         .getCoinChange().getCoinIdentifier().getIdentifier();
     req = SearchTransactionsRequest.builder()
@@ -70,7 +71,7 @@ class SearchControllerIntTest extends IntegrationTest {
         .build();
 
     blockTransactions = service.searchTransaction(req, 0L, 10L);
-    assertThat(blockTransactions.size() == 2);
+    assertEquals(2, blockTransactions.size());
   }
 
 }

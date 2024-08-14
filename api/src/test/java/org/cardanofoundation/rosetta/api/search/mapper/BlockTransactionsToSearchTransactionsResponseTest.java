@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 
 import org.cardanofoundation.rosetta.api.BaseMapperSetup;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class BlockTransactionsToSearchTransactionsResponseTest extends BaseMapperSetup {
 
@@ -38,11 +38,11 @@ class BlockTransactionsToSearchTransactionsResponseTest extends BaseMapperSetup 
     SearchTransactionsResponse searchTransactionsResponse = my.mapToSearchTransactionsResponse(
         blockTransactions, 2L);
 
-    assertThat(searchTransactionsResponse.getTransactions().size() == 1);
-    assertThat(searchTransactionsResponse.getNextOffset() == 2L);
-    assertThat(searchTransactionsResponse.getTotalCount() == 1);
-    assertThat(searchTransactionsResponse.getTransactions().get(0).getBlockIdentifier().getHash().equals("hash"));
-    assertThat(searchTransactionsResponse.getTransactions().get(0).getBlockIdentifier().getIndex().equals(1L));
+    assertEquals(1,searchTransactionsResponse.getTransactions().size());
+    assertEquals(2L, searchTransactionsResponse.getNextOffset());
+    assertEquals(1, searchTransactionsResponse.getTotalCount());
+    assertEquals("hash", searchTransactionsResponse.getTransactions().getFirst().getBlockIdentifier().getHash());
+    assertEquals(1L, searchTransactionsResponse.getTransactions().getFirst().getBlockIdentifier().getIndex());
   }
 
 }
