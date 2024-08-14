@@ -22,7 +22,14 @@ public interface AddressUtxoRepository extends JpaRepository<AddressUtxoEntity, 
           AND a.outputIndex = i.outputIndex
       )
       """)
-  List<AddressUtxoEntity> findUtxosByAddress(@Param("address") String address);
+  List<AddressUtxoEntity> findunspentUtxosByAddress(@Param("address") String address);
+
+  @Query(value =
+      """
+      SELECT a.txHash FROM AddressUtxoEntity a
+      WHERE a.ownerStakeAddr = :address
+      """)
+  List<String> findTxHashesByOwnerAddr(@Param("address") String ownerAddr);
 
   @Query(value =
       """

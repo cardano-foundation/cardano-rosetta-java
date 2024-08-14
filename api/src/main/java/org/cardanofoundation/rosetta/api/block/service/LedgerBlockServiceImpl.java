@@ -28,7 +28,6 @@ import org.cardanofoundation.rosetta.api.block.mapper.TransactionMapper;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockIdentifierExtended;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
-import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
 import org.cardanofoundation.rosetta.api.block.model.entity.BlockEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.DelegationEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.PoolRegistrationEntity;
@@ -102,11 +101,10 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
   @NotNull
   private Block toModelFrom(BlockEntity blockEntity) {
     Block model = blockMapper.mapToBlock(blockEntity);
-    ProtocolParams pps = protocolParamService.findProtocolParametersFromIndexer();
     List<BlockTx> transactions = model.getTransactions();
     TransactionInfo fetched = findByTxHash(transactions);
     Map<UtxoKey, AddressUtxoEntity> utxoMap = getUtxoMapFromEntities(fetched);
-    transactions.forEach(tx -> populateTransaction(tx, pps, fetched, utxoMap));
+    transactions.forEach(tx -> populateTransaction(tx, fetched, utxoMap));
     return model;
   }
 
@@ -121,14 +119,18 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
     List<TxnEntity> txList = txRepository.findTransactionsByBlockHash(blkEntity.get().getHash());
     log.debug("Found {} transactions", txList.size());
     if (ObjectUtils.isNotEmpty(txList)) {
-      ProtocolParams pps = protocolParamService.findProtocolParametersFromIndexer();
-      List<BlockTx> transactions = txList.stream().map(blockMapper::mapToBlockTx).toList();
-      TransactionInfo fetched = findByTxHash(transactions);
-      Map<UtxoKey, AddressUtxoEntity> utxoMap = getUtxoMapFromEntities(fetched);
-      transactions.forEach(tx -> populateTransaction(tx, pps, fetched, utxoMap));
-      return transactions;
+      return mapTxnEntitiesToBlockTxList(txList);
     }
     return Collections.emptyList();
+  }
+
+  @Override
+  public List<BlockTx> mapTxnEntitiesToBlockTxList(List<TxnEntity> txList) {
+    List<BlockTx> transactions = txList.stream().map(blockMapper::mapToBlockTx).toList();
+    TransactionInfo fetched = findByTxHash(transactions);
+    Map<UtxoKey, AddressUtxoEntity> utxoMap = getUtxoMapFromEntities(fetched);
+    transactions.forEach(tx -> populateTransaction(tx, fetched, utxoMap));
+    return transactions;
   }
 
   @Override
@@ -194,7 +196,7 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
     }
   }
 
-  private void populateTransaction(BlockTx transaction, ProtocolParams pps, TransactionInfo fetched,
+  private void populateTransaction(BlockTx transaction, TransactionInfo fetched,
       Map<UtxoKey, AddressUtxoEntity> utxoMap) {
     Optional.ofNullable(transaction.getInputs())
         .stream()
@@ -238,12 +240,6 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
             .stream()
             .map(transactionMapper::mapEntityToPoolRetirement)
             .toList());
-
-    transaction.setSize(calcSize(transaction, pps));
-  }
-
-  private static long calcSize(BlockTx tx, ProtocolParams p) {
-    return (Long.parseLong(tx.getFee()) - p.getMinFeeB().longValue()) / p.getMinFeeA().longValue();
   }
 
   private void populateUtxo(Utxo utxo, Map<UtxoKey, AddressUtxoEntity> utxoMap) {
