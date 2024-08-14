@@ -1,17 +1,20 @@
 package org.cardanofoundation.rosetta.api.search.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.List;
-import org.cardanofoundation.rosetta.api.IntegrationTest;
-import org.cardanofoundation.rosetta.testgenerator.common.TestConstants;
-import org.cardanofoundation.rosetta.testgenerator.common.TransactionBlockDetails;
-import org.junit.jupiter.api.Test;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.openapitools.client.model.BlockTransaction;
 import org.openapitools.client.model.CoinIdentifier;
 import org.openapitools.client.model.SearchTransactionsRequest;
 import org.openapitools.client.model.TransactionIdentifier;
-import org.springframework.beans.factory.annotation.Autowired;
+
+import org.junit.jupiter.api.Test;
+
+import org.cardanofoundation.rosetta.api.IntegrationTest;
+import org.cardanofoundation.rosetta.testgenerator.common.TestConstants;
+import org.cardanofoundation.rosetta.testgenerator.common.TransactionBlockDetails;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 class SearchControllerIntTest extends IntegrationTest {
 

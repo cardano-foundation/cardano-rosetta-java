@@ -1,16 +1,19 @@
 package org.cardanofoundation.rosetta.api.search.mapper;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.List;
-import org.cardanofoundation.rosetta.api.BaseMapperSetup;
-import org.junit.jupiter.api.Test;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.openapitools.client.model.BlockIdentifier;
 import org.openapitools.client.model.BlockTransaction;
 import org.openapitools.client.model.SearchTransactionsResponse;
 import org.openapitools.client.model.Transaction;
 import org.openapitools.client.model.TransactionMetadata;
-import org.springframework.beans.factory.annotation.Autowired;
+
+import org.junit.jupiter.api.Test;
+
+import org.cardanofoundation.rosetta.api.BaseMapperSetup;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 class BlockTransactionsToSearchTransactionsResponseTest extends BaseMapperSetup {
 
