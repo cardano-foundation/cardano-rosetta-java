@@ -64,7 +64,16 @@ public class OperationMapperUtils {
 
     List<Operation> outOps = Optional.ofNullable(source.getOutputs()).stream()
         .flatMap(List::stream)
-        .map(output -> transactionMapper.mapOutputUtxoToOperation(output, successOperationStatus, ix.getAndIncrement()))
+        .map(output -> {
+          Operation operation = transactionMapper.mapOutputUtxoToOperation(output,
+              successOperationStatus, ix.getAndIncrement());
+              // It's needed to add output index for output Operations, this represents the output index of these utxos
+              Optional.ofNullable(operation.getOperationIdentifier())
+                  .ifPresent(operationIdentifier ->
+                          Optional.ofNullable(output.getOutputIndex()).ifPresent(outputIndex ->
+                                  operationIdentifier.networkIndex((long) outputIndex)));
+              return operation;
+        })
         .toList();
     outOps.forEach(op -> op.setRelatedOperations(getOperationIndexes(inpOps)));
 
