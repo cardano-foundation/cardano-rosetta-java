@@ -66,7 +66,7 @@ public class LedgerAccountServiceImpl implements LedgerAccountService {
   @Override
   public List<Utxo> findUtxoByAddressAndCurrency(String address, List<Currency> currencies) {
     log.debug("Finding UTXOs for address {} with currencies {}", address, currencies);
-    List<AddressUtxoEntity> addressUtxoEntities = addressUtxoRepository.findUtxosByAddress(address);
+    List<AddressUtxoEntity> addressUtxoEntities = addressUtxoRepository.findunspentUtxosByAddress(address);
     return addressUtxoEntities.stream()
         .map(entity -> createUtxoModel(currencies, entity))
         .toList();

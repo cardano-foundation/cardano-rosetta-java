@@ -1587,6 +1587,8 @@ components:
           format: int64
           minimum: 0
           example: 5
+        block_identifier:
+          $ref: '#/components/schemas/BlockIdentifier'
         transaction_identifier:
           $ref: '#/components/schemas/TransactionIdentifier'
         account_identifier:
