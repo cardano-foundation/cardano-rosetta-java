@@ -46,6 +46,7 @@ PRINT_EXCEPTION=true
 
 ## Yaci Indexer env
 YACI_SPRING_PROFILES=postgres
+PRUNING_ENABLED=false
 # database profiles: h2, h2-testData, postgres
 MEMPOOL_ENABLED=false
 # Haven't implemented yet
