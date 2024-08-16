@@ -1,5 +1,6 @@
 package org.cardanofoundation.rosetta.common.util;
 
+import com.bloxbean.cardano.client.address.util.AddressUtil;
 import java.util.Objects;
 
 import lombok.extern.slf4j.Slf4j;
@@ -163,7 +164,7 @@ public class CardanoAddressUtils {
   }
 
   public static EraAddressType getEraAddressType(String address) {
-    if(address == null)
+    if(address == null || !AddressUtil.isValidAddress(address))
       return null;
     try {
       if (address.startsWith(Constants.ADDRESS_PREFIX)
