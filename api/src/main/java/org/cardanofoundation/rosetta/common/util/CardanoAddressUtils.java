@@ -9,6 +9,7 @@ import com.bloxbean.cardano.client.address.AddressProvider;
 import com.bloxbean.cardano.client.address.AddressType;
 import com.bloxbean.cardano.client.address.ByronAddress;
 import com.bloxbean.cardano.client.address.util.AddressEncoderDecoderUtil;
+import com.bloxbean.cardano.client.address.util.AddressUtil;
 import com.bloxbean.cardano.client.common.model.Network;
 import com.bloxbean.cardano.client.crypto.Bech32;
 import com.bloxbean.cardano.client.crypto.KeyGenUtil;
@@ -163,9 +164,9 @@ public class CardanoAddressUtils {
   }
 
   public static EraAddressType getEraAddressType(String address) {
-    if(address == null)
-      return null;
     try {
+      if(address == null || !AddressUtil.isValidAddress(address))
+        return null;
       if (address.startsWith(Constants.ADDRESS_PREFIX)
           || address.startsWith(StakeAddressPrefix.MAIN.getPrefix())) {
         // validate bech32 address. Unfortunately, it will throw a runtime exception in case of invalid address

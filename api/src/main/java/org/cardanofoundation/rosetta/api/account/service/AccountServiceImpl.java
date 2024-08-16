@@ -75,10 +75,9 @@ public class AccountServiceImpl implements AccountService {
 
     log.debug("[accountCoins] Request received {}", accountCoinsRequest);
     if (Objects.isNull(CardanoAddressUtils.getEraAddressType(accountAddress))) {
-      log.debug("[accountCoins] Address isn't Era");
+      log.debug("[findBalanceDataByAddressAndBlock] Provided address is invalid {}", accountAddress);
       throw ExceptionFactory.invalidAddressError(accountAddress);
     }
-    log.debug("[accountCoins] Address is Era");
     if (Objects.nonNull(currencies)) {
       validateCurrencies(currencies);
     }
