@@ -1,6 +1,5 @@
 package org.cardanofoundation.rosetta.common.util;
 
-import com.bloxbean.cardano.client.address.util.AddressUtil;
 import java.util.Objects;
 
 import lombok.extern.slf4j.Slf4j;
@@ -10,6 +9,7 @@ import com.bloxbean.cardano.client.address.AddressProvider;
 import com.bloxbean.cardano.client.address.AddressType;
 import com.bloxbean.cardano.client.address.ByronAddress;
 import com.bloxbean.cardano.client.address.util.AddressEncoderDecoderUtil;
+import com.bloxbean.cardano.client.address.util.AddressUtil;
 import com.bloxbean.cardano.client.common.model.Network;
 import com.bloxbean.cardano.client.crypto.Bech32;
 import com.bloxbean.cardano.client.crypto.KeyGenUtil;
@@ -164,7 +164,6 @@ public class CardanoAddressUtils {
   }
 
   public static EraAddressType getEraAddressType(String address) {
-
     try {
       if(address == null || !AddressUtil.isValidAddress(address))
         return null;
