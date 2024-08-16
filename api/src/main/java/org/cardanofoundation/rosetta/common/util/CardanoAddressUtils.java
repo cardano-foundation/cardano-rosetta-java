@@ -164,9 +164,10 @@ public class CardanoAddressUtils {
   }
 
   public static EraAddressType getEraAddressType(String address) {
-    if(address == null || !AddressUtil.isValidAddress(address))
-      return null;
+
     try {
+      if(address == null || !AddressUtil.isValidAddress(address))
+        return null;
       if (address.startsWith(Constants.ADDRESS_PREFIX)
           || address.startsWith(StakeAddressPrefix.MAIN.getPrefix())) {
         // validate bech32 address. Unfortunately, it will throw a runtime exception in case of invalid address
