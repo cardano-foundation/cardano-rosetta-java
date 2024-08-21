@@ -325,7 +325,6 @@ class AccountServiceImplTest {
     assertEquals(RosettaErrorType.INVALID_ADDRESS.getMessage(),
         actualException.getError().getMessage());
     verify(accountCoinsRequest).getAccountIdentifier();
-    verify(accountCoinsRequest).getCurrencies();
     verifyNoMoreInteractions(accountCoinsRequest);
     verifyNoMoreInteractions(accountIdentifier);
   }
@@ -372,7 +371,6 @@ class AccountServiceImplTest {
     verify(ledgerBlockService).findLatestBlockIdentifier();
     verify(ledgerAccountService).findUtxoByAddressAndCurrency(accountAddress,
         Collections.emptyList());
-    verify(accountCoinsRequest).getAccountIdentifier();
     verify(accountCoinsRequest).getCurrencies();
     verifyNoMoreInteractions(ledgerAccountService);
     verifyNoMoreInteractions(accountCoinsRequest);

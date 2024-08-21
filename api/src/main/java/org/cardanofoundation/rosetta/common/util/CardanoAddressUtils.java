@@ -1,6 +1,7 @@
 package org.cardanofoundation.rosetta.common.util;
 
 import java.util.Objects;
+import java.util.Optional;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -257,15 +258,19 @@ public class CardanoAddressUtils {
   }
 
   public static void verifyAddress(String address) {
-    if (address == null || !AddressUtil.isValidAddress(address)) {
+    try {
+      if (address == null || !AddressUtil.isValidAddress(address)) {
+        throw ExceptionFactory.invalidAddressError(address);
+      }
+    } catch (RuntimeException e) {
       log.debug("[verifyAddress] Provided address is invalid {}", address);
-      throw ExceptionFactory.invalidAddressError(address);
+      throw ExceptionFactory.invalidAddressError(Optional.ofNullable(address).orElse(Constants.EMPTY_SYMBOL));
     }
     // Shelley era checking for lower case, upper case characters can lead to problems with other tools
     // if Shelley Era and contains upper case characters
     if (Objects.equals(getEraAddressType(address), EraAddressType.SHELLEY) && address.chars().anyMatch(Character::isUpperCase)) {
         log.debug("[verifyAddress] Provided address is invalid {}", address);
         throw ExceptionFactory.invalidAddressCasingError(address);
-      }
+    }
   }
 }

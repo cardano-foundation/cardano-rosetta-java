@@ -48,9 +48,12 @@ public class AccountServiceImpl implements AccountService {
 
   @Override
   public AccountBalanceResponse getAccountBalance(AccountBalanceRequest accountBalanceRequest) {
+
+
     Long index = null;
     String hash = null;
     String accountAddress = accountBalanceRequest.getAccountIdentifier().getAddress();
+    CardanoAddressUtils.verifyAddress(accountAddress);
 
     PartialBlockIdentifier blockIdentifier = accountBalanceRequest.getBlockIdentifier();
     log.info("[accountBalance] Looking for block: {} || latest}", blockIdentifier);
@@ -66,11 +69,15 @@ public class AccountServiceImpl implements AccountService {
 
   @Override
   public AccountCoinsResponse getAccountCoins(AccountCoinsRequest accountCoinsRequest) {
+    CardanoAddressUtils.verifyAddress(accountCoinsRequest.getAccountIdentifier().getAddress());
+
     String accountAddress = accountCoinsRequest.getAccountIdentifier().getAddress();
+    CardanoAddressUtils.verifyAddress(accountAddress);
+
     List<Currency> currencies = accountCoinsRequest.getCurrencies();
 //    accountCoinsRequest.getIncludeMempool(); // TODO
-
     log.debug("[accountCoins] Request received {}", accountCoinsRequest);
+
     if (Objects.nonNull(currencies)) {
       validateCurrencies(currencies);
     }
