@@ -248,4 +248,19 @@ class CardanoAddressUtilTest {
     assertEquals(RosettaErrorType.INVALID_STAKING_KEY_FORMAT.getMessage(),
         actualException.getError().getMessage());
   }
+
+  @Test
+  void isAddressValidTest() {
+    String validAddress = "addr1qyj9der2u29gcuwcxum7ylyfqrcg86d0l76khlazmn9cnxgqk2v9xpzd89c93yaszz2zgczqshqvf424cmpmswlr2lnqt6j3lu";
+    // not expecting an exception
+    CardanoAddressUtils.verifyAddress(validAddress);
+    // checking null
+    assertThrows(ApiException.class, () -> CardanoAddressUtils.verifyAddress(null));
+    String invalidAddress = "addr1qyj9der2u29gcuwcxum7ylyfqrcg86d0l76khlazmn9cnxgqk2v9xpzd89c93yaszz2zgczqshqvf424cmpmswlr2lnqt6j3lb";
+    assertThrows(RuntimeException.class, () -> CardanoAddressUtils.verifyAddress(invalidAddress));
+    // wrong Casing
+    String wrongCasingAddress = "addr1qyj9der2u29gcuwcxum7ylyfqrcg86d0l76khlazmn9cnxgqk2v9xpzd89c93yaszz2zgczqshqvf424cmpmswlr2lnqt6j3lU";
+    assertThrows(ApiException.class, () -> CardanoAddressUtils.verifyAddress(wrongCasingAddress));
+
+  }
 }

@@ -32,6 +32,11 @@ public class ExceptionFactory {
         Details.builder().message(address).build()));
   }
 
+  public static ApiException invalidAddressCasingError(String address) {
+    return new ApiException(RosettaErrorType.INVALID_ADDRESS_CASING.toRosettaError(true,
+        Details.builder().message(address).build()));
+  }
+
   public static ApiException missingStakingKeyError() {
     return new ApiException(RosettaErrorType.STAKING_KEY_MISSING.toRosettaError(false));
   }

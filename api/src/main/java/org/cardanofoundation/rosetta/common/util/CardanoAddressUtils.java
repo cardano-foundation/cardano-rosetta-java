@@ -255,4 +255,17 @@ public class CardanoAddressUtils {
     boolean checkEmptyHexString = CardanoAddressUtils.isEmptyHexString(input);
     return checkEmptyHexString ? HexUtil.decodeHexString(StringUtils.EMPTY) : HexUtil.decodeHexString(input);
   }
+
+  public static void verifyAddress(String address) {
+    if (address == null || !AddressUtil.isValidAddress(address)) {
+      log.debug("[verifyAddress] Provided address is invalid {}", address);
+      throw ExceptionFactory.invalidAddressError(address);
+    }
+    // Shelley era checking for lower case, upper case characters can lead to problems with other tools
+    // if Shelley Era and contains upper case characters
+    if (Objects.equals(getEraAddressType(address), EraAddressType.SHELLEY) && address.chars().anyMatch(Character::isUpperCase)) {
+        log.debug("[verifyAddress] Provided address is invalid {}", address);
+        throw ExceptionFactory.invalidAddressCasingError(address);
+      }
+  }
 }

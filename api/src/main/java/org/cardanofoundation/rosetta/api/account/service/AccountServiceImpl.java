@@ -51,10 +51,7 @@ public class AccountServiceImpl implements AccountService {
     Long index = null;
     String hash = null;
     String accountAddress = accountBalanceRequest.getAccountIdentifier().getAddress();
-    if (Objects.isNull(CardanoAddressUtils.getEraAddressType(accountAddress))) {
-      log.error("[findBalanceDataByAddressAndBlock] Provided address is invalid {}", accountAddress);
-      throw ExceptionFactory.invalidAddressError(accountAddress);
-    }
+
     PartialBlockIdentifier blockIdentifier = accountBalanceRequest.getBlockIdentifier();
     log.info("[accountBalance] Looking for block: {} || latest}", blockIdentifier);
 
@@ -74,10 +71,6 @@ public class AccountServiceImpl implements AccountService {
 //    accountCoinsRequest.getIncludeMempool(); // TODO
 
     log.debug("[accountCoins] Request received {}", accountCoinsRequest);
-    if (Objects.isNull(CardanoAddressUtils.getEraAddressType(accountAddress))) {
-      log.debug("[findBalanceDataByAddressAndBlock] Provided address is invalid {}", accountAddress);
-      throw ExceptionFactory.invalidAddressError(accountAddress);
-    }
     if (Objects.nonNull(currencies)) {
       validateCurrencies(currencies);
     }
