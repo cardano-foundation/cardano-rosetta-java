@@ -48,13 +48,13 @@ public class AccountServiceImpl implements AccountService {
 
   @Override
   public AccountBalanceResponse getAccountBalance(AccountBalanceRequest accountBalanceRequest) {
+
+
     Long index = null;
     String hash = null;
     String accountAddress = accountBalanceRequest.getAccountIdentifier().getAddress();
-    if (Objects.isNull(CardanoAddressUtils.getEraAddressType(accountAddress))) {
-      log.error("[findBalanceDataByAddressAndBlock] Provided address is invalid {}", accountAddress);
-      throw ExceptionFactory.invalidAddressError(accountAddress);
-    }
+    CardanoAddressUtils.verifyAddress(accountAddress);
+
     PartialBlockIdentifier blockIdentifier = accountBalanceRequest.getBlockIdentifier();
     log.info("[accountBalance] Looking for block: {} || latest}", blockIdentifier);
 
@@ -69,15 +69,15 @@ public class AccountServiceImpl implements AccountService {
 
   @Override
   public AccountCoinsResponse getAccountCoins(AccountCoinsRequest accountCoinsRequest) {
+    CardanoAddressUtils.verifyAddress(accountCoinsRequest.getAccountIdentifier().getAddress());
+
     String accountAddress = accountCoinsRequest.getAccountIdentifier().getAddress();
+    CardanoAddressUtils.verifyAddress(accountAddress);
+
     List<Currency> currencies = accountCoinsRequest.getCurrencies();
 //    accountCoinsRequest.getIncludeMempool(); // TODO
-
     log.debug("[accountCoins] Request received {}", accountCoinsRequest);
-    if (Objects.isNull(CardanoAddressUtils.getEraAddressType(accountAddress))) {
-      log.debug("[findBalanceDataByAddressAndBlock] Provided address is invalid {}", accountAddress);
-      throw ExceptionFactory.invalidAddressError(accountAddress);
-    }
+
     if (Objects.nonNull(currencies)) {
       validateCurrencies(currencies);
     }
