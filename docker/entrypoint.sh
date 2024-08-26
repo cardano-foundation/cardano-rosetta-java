@@ -176,7 +176,7 @@ if [ "${SYNC}" == "true" ] ; then
 fi
 
 echo "Starting Cardano submit api..."
-cardano-submit-api --socket-path "$CARDANO_NODE_SOCKET_PATH" --port $NODE_SUBMIT_API_PORT $NETWORK_STR  --config /cardano-submit-api-config/cardano-submit-api.yaml > /logs/submit-api.log &
+cardano-submit-api --listen-address 0.0.0.0 --socket-path "$CARDANO_NODE_SOCKET_PATH" --port $NODE_SUBMIT_API_PORT $NETWORK_STR  --config /cardano-submit-api-config/cardano-submit-api.yaml > /logs/submit-api.log &
 CARDANO_SUBMIT_PID=$!
 
 mkdir -p /node/postgres
