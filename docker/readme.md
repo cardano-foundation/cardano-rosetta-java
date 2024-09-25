@@ -16,13 +16,13 @@ The build can take up to 1.5 hours.
 
 ### 2. Run
 ````
-docker run --env-file .\docker\.env.dockerfile -p 8082:8082 -d {image_name}:latest
+docker run --env-file ./docker/.env.dockerfile -p 8082:8082 -d {image_name}:latest
 ````
 You need to specify the path to the environment variables file and open the port.
 
 ### 3. Changing project settings
 
-All application settings are located in the ``.\docker\.env.dockerfile`` file.  
+All application settings are located in the ``./docker/.env.dockerfile`` file.  
 You can specify network, ports, postgres user, etc.
 
 ### 4. Changing build parameters
