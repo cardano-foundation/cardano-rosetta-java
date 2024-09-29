@@ -33,7 +33,7 @@ public class AccountMapperUtil {
         .findFirst()
         .orElse(BigInteger.ZERO);
     List<Amount> amounts = new ArrayList<>();
-    if (lovelaceAmount.compareTo(BigInteger.ZERO) > 0) {
+    if (lovelaceAmount.compareTo(BigInteger.ZERO) >= 0) {
       amounts.add(DataMapper.mapAmount(String.valueOf(lovelaceAmount), null, null, null));
     }
     balances.stream()
