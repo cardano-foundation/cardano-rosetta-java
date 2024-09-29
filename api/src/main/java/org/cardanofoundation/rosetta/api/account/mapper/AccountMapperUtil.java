@@ -33,9 +33,8 @@ public class AccountMapperUtil {
         .findFirst()
         .orElse(BigInteger.ZERO);
     List<Amount> amounts = new ArrayList<>();
-    if (lovelaceAmount.compareTo(BigInteger.ZERO) >= 0) {
-      amounts.add(DataMapper.mapAmount(String.valueOf(lovelaceAmount), null, null, null));
-    }
+    // always adding lovelace amount to the beginning of the list. Even if lovelace amount is 0
+    amounts.add(DataMapper.mapAmount(String.valueOf(lovelaceAmount), null, null, null));
     balances.stream()
         .filter(b -> !Constants.LOVELACE.equals(b.unit()))
         .forEach(b -> amounts.add(
