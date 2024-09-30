@@ -181,7 +181,7 @@ class AccountServiceImplTest {
     assertEquals(block.getHash(), actual.getBlockIdentifier().getHash());
     assertEquals(block.getNumber(), actual.getBlockIdentifier().getIndex());
     assertEquals("1000", actual.getBalances().get(1).getValue());
-    assertEquals("4c4943454e5345", actual.getBalances().getFirst().getCurrency().getSymbol());
+    assertEquals("4c4943454e5345", actual.getBalances().get(1).getCurrency().getSymbol());
     verify(ledgerBlockService).findBlockIdentifier(1L, HASH);
     verify(ledgerAccountService)
         .findBalanceByStakeAddressAndBlock(accountAddress, 1L);
@@ -250,7 +250,7 @@ class AccountServiceImplTest {
     assertEquals(block.getHash(), actual.getBlockIdentifier().getHash());
     assertEquals(block.getNumber(), actual.getBlockIdentifier().getIndex());
     assertEquals("1000", actual.getBalances().get(1).getValue());
-    assertEquals("4c4943454e5345", actual.getBalances().getFirst().getCurrency().getSymbol());
+    assertEquals("4c4943454e5345", actual.getBalances().get(1).getCurrency().getSymbol());
     verify(ledgerBlockService).findBlockIdentifier(1L, HASH);
     verify(ledgerAccountService)
         .findBalanceByStakeAddressAndBlock(accountAddress, 1L);
