@@ -123,31 +123,6 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
   }
 
   @Override
-  public String getHashOfSignedTransaction(String signedTransaction) {
-    try {
-      log.info("[getHashOfSignedTransaction] About to hash signed transaction {}",
-          signedTransaction);
-      byte[] signedTransactionBytes = HexUtil.decodeHexString(signedTransaction);
-      log.info(
-          "[getHashOfSignedTransaction] About to parse transaction from signed transaction bytes");
-      Transaction parsed = Transaction.deserialize(signedTransactionBytes);
-      log.info("[getHashOfSignedTransaction] Returning transaction hash");
-      TransactionBody body = parsed.getBody();
-      byte[] hashBuffer;
-      if (body == null || CborSerializationUtil.serialize(body.serialize()) == null) {
-        hashBuffer = null;
-      } else {
-        hashBuffer = Blake2bUtil.blake2bHash256(CborSerializationUtil.serialize(body.serialize()));
-      }
-      return HexUtil.encodeHexString(hashBuffer);
-    } catch (Exception error) {
-      log.error("{} [getHashOfSignedTransaction] There was an error parsing signed transaction",
-          error.getMessage());
-      throw ExceptionFactory.parseSignedTransactionError();
-    }
-  }
-
-  @Override
   public Array decodeTransaction(String encoded) {
     try {
       DataItem dataItem = CborSerializationUtil.deserialize(HexUtil.decodeHexString(encoded));

@@ -30,7 +30,6 @@ import org.cardanofoundation.rosetta.common.model.cardano.transaction.UnsignedTr
 public interface CardanoConstructionService {
 
 
-  String getHashOfSignedTransaction(String signedTransaction);
   Array decodeTransaction(String encoded);
   Long calculateTtl(Long ttlOffset);
 

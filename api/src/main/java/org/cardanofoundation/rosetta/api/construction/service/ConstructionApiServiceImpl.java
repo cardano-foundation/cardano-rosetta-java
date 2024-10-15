@@ -17,6 +17,8 @@ import co.nstant.in.cbor.model.UnicodeString;
 import com.bloxbean.cardano.client.common.model.Network;
 import com.bloxbean.cardano.client.exception.AddressExcepion;
 import com.bloxbean.cardano.client.exception.CborSerializationException;
+import com.bloxbean.cardano.client.transaction.util.TransactionUtil;
+import com.bloxbean.cardano.client.util.HexUtil;
 import org.openapitools.client.model.AccountIdentifier;
 import org.openapitools.client.model.ConstructionCombineRequest;
 import org.openapitools.client.model.ConstructionCombineResponse;
@@ -227,8 +229,8 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
     Array array = cardanoConstructionService.decodeTransaction(
         constructionHashRequest.getSignedTransaction());
     log.info("[constructionHash] About to get hash of signed transaction");
-    String transactionHash = cardanoConstructionService.getHashOfSignedTransaction(
-        ((UnicodeString) array.getDataItems().getFirst()).getString());
+    byte[] signedTransactionBytes = HexUtil.decodeHexString(((UnicodeString) array.getDataItems().getFirst()).getString());
+    String transactionHash = TransactionUtil.getTxHash(signedTransactionBytes);
     log.info("[constructionHash] About to return hash of signed transaction");
     return new TransactionIdentifierResponse(new TransactionIdentifier(transactionHash), null);
   }
