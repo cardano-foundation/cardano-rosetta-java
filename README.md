@@ -41,7 +41,7 @@ The default config is focused on mainnet. If you want to test this on other Card
     git clone https://github.com/cardano-foundation/cardano-rosetta-java
     cd cardano-rosetta-java
     docker build -t rosetta-java -f ./docker/Dockerfile .
-    docker run --name rosetta -v {CUSTOM_MOUNT_PATH}:/node --env-file ./docker/.env.dockerfile -p 8082:8082 -d rosetta-java:1.0-rc4
+    docker run --name rosetta -v {CUSTOM_MOUNT_PATH}:/node --env-file ./docker/.env.dockerfile -p 8082:8082 -d rosetta-java
 ```
 Detailed explanation can be found in the [Wiki](https://github.com/cardano-foundation/cardano-rosetta-java/wiki/3.-Getting-Started-with-Docker).
 
@@ -81,7 +81,7 @@ Changes to the configuration can be made by adjusting the `docker/.env.dockerfil
 
 If you want to use the `cardano-submit-api` you can additionally expose port `8090`. It can then be used to submit raw cbor transaction (API documentation here: [Link](https://input-output-hk.github.io/cardano-rest/submit-api/))
 ```bash
-    docker run --name rosetta -v {CUSTOM_MOUNT_PATH}:/node --env-file ./docker/.env.dockerfile -p 8090:8090 -p 8082:8082 -d cardanofoundation/cardano-rosetta-java:1.0-rc4
+    docker run --name rosetta -v {CUSTOM_MOUNT_PATH}:/node --env-file ./docker/.env.dockerfile -p 8090:8090 -p 8082:8082 -d cardanofoundation/cardano-rosetta-java:1.0.1
 ```
 
 ### Docker compose
