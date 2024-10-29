@@ -71,16 +71,16 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
   @Override
   public Optional<Block> findBlock(Long blockNumber, String blockHash) {
     log.debug("Query blockNumber: {} , blockHash: {}", blockNumber, blockHash);
-    if (blockHash == null && blockNumber != null) {
-      return blockRepository.findByNumber(blockNumber).map(this::toModelFrom);
-    } else if (blockHash != null && blockNumber == null) {
+    if (blockHash != null && blockNumber == null) {
       return blockRepository.findByHash(blockHash).map(this::toModelFrom);
-    } else if (blockHash == null && blockNumber == null) {
-      return blockRepository.findLatestBlock().map(this::toModelFrom);
-    } else {
+    } else if (blockHash == null && blockNumber != null) {
+      return blockRepository.findByNumber(blockNumber).map(this::toModelFrom);
+    } else if (blockHash != null && blockNumber > 0) {
       return blockRepository
           .findByNumberAndHash(blockNumber, blockHash)
           .map(this::toModelFrom);
+    } else {
+      return blockRepository.findLatestBlock().map(this::toModelFrom);
     }
   }
 
