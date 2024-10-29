@@ -75,7 +75,7 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
       return blockRepository.findByHash(blockHash).map(this::toModelFrom);
     } else if (blockHash == null && blockNumber != null) {
       return blockRepository.findByNumber(blockNumber).map(this::toModelFrom);
-    } else if (blockHash != null && blockNumber > 0) {
+    } else if (blockHash != null && blockNumber != null) {
       return blockRepository
           .findByNumberAndHash(blockNumber, blockHash)
           .map(this::toModelFrom);

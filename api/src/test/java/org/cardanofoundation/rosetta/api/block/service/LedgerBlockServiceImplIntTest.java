@@ -108,6 +108,15 @@ class LedgerBlockServiceImplIntTest extends IntegrationTest {
   }
 
   @Test
+  void findBlock_Test_OK_null() {
+    //given
+    //when
+    Optional<Block> block = ledgerBlockService.findBlock(null, null);
+    //then
+    assertThat(block).isPresent();
+  }
+
+  @Test
   void findBlock_Test_OK_empty() {
     //given
     //when
