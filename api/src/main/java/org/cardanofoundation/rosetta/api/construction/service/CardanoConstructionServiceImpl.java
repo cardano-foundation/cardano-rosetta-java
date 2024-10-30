@@ -503,7 +503,8 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
     byte[] bytes = HexUtil.decodeHexString(txWithExtraData);
     Array deserialize = (Array) CborSerializationUtil.deserialize(bytes);
     // Unpack transaction if needed
-    if (deserialize.getDataItems().size() == 1) {
+    if (deserialize.getDataItems().size() == 1 && deserialize.getDataItems().getFirst().getMajorType()
+        .equals(MajorType.ARRAY)) {
       deserialize = (Array) deserialize.getDataItems().getFirst();
     }
     if (deserialize.getDataItems().isEmpty()) {
