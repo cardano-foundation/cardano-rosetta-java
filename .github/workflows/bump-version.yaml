@@ -19,6 +19,7 @@ jobs:
         uses: nnichols/maven-version-bump-action@v3
         with:
           github-token: ${{ secrets.github_token }}
+          version-path: /project/properties/revision
 
       - name: Print Version
         run: "echo 'New Version: ${{steps.bump.outputs.version}}'"
