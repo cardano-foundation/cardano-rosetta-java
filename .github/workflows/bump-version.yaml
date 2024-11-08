@@ -16,7 +16,7 @@ jobs:
 
       - name: Bump Version
         id: bump
-        uses: nnichols/maven-version-bump-action@v3
+        uses: mickem/gh-action-bump-maven-version
         with:
           version-path: /project/properties/revision
 
