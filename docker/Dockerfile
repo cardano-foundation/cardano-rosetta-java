@@ -48,7 +48,7 @@ RUN git clone https://github.com/input-output-hk/mithril.git \
 
 
 # Cardano node version
-ARG CARDANO_NODE_VERSION=9.2.0
+ARG CARDANO_NODE_VERSION=10.1.2
 
 # Install sodium
 RUN export IOHKNIX_VERSION=$(curl https://raw.githubusercontent.com/IntersectMBO/cardano-node/${CARDANO_NODE_VERSION}/flake.lock | jq -r '.nodes.iohkNix.locked.rev') \
