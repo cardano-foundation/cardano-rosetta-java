@@ -63,6 +63,8 @@ public class NetworkServiceImpl implements NetworkService {
   private String genesisShelleyPath;
   @Value("${cardano.rosetta.CARDANO_NODE_VERSION}")
   private String cardanoNodeVersion;
+  @Value("${cardano.rosetta.middleware-version}")
+  private String revision;
 
   @PostConstruct
   public void init() {
@@ -83,7 +85,6 @@ public class NetworkServiceImpl implements NetworkService {
     log.info("[networkOptions] Looking for networkOptions");
 
     String rosettaVersion = getRosettaVersion();
-    String implementationVersion = rosettaConfig.getImplementationVersion();
     OperationStatus success = new OperationStatus().successful(true)
         .status(OperationTypeStatus.SUCCESS.getValue());
     OperationStatus invalid = new OperationStatus().successful(false)
@@ -93,7 +94,7 @@ public class NetworkServiceImpl implements NetworkService {
     return NetworkOptionsResponse.builder()
         .version(new Version().nodeVersion(cardanoNodeVersion)
             .rosettaVersion(rosettaVersion)
-            .middlewareVersion(implementationVersion)
+            .middlewareVersion(revision)
             .metadata(new LinkedHashMap<>()))
         .allow(new Allow().operationStatuses(operationStatuses)
             .operationTypes(

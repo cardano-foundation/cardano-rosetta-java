@@ -29,6 +29,7 @@ cardano:
   rosetta:
     version:
       ${ROSETTA_VERSION}
+    middleware-version: '@revision@'
     TOPOLOGY_FILEPATH: ${TOPOLOGY_FILEPATH}
     GENESIS_SHELLEY_PATH: ${GENESIS_SHELLEY_PATH}
     NODE_SUBMIT_API_PORT: ${NODE_SUBMIT_API_PORT}
