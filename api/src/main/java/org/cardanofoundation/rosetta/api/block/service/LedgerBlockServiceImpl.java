@@ -14,7 +14,6 @@ import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.cardanofoundation.rosetta.api.block.model.repository.InvalidTransactionRepository;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,6 +37,7 @@ import org.cardanofoundation.rosetta.api.block.model.entity.TxnEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.WithdrawalEntity;
 import org.cardanofoundation.rosetta.api.block.model.repository.BlockRepository;
 import org.cardanofoundation.rosetta.api.block.model.repository.DelegationRepository;
+import org.cardanofoundation.rosetta.api.block.model.repository.InvalidTransactionRepository;
 import org.cardanofoundation.rosetta.api.block.model.repository.PoolRegistrationRepository;
 import org.cardanofoundation.rosetta.api.block.model.repository.PoolRetirementRepository;
 import org.cardanofoundation.rosetta.api.block.model.repository.StakeRegistrationRepository;

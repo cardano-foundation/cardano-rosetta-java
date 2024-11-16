@@ -1,9 +1,9 @@
 package org.cardanofoundation.rosetta.api.account.service;
 
-import jakarta.validation.constraints.NotNull;
 import java.math.BigInteger;
 import java.util.Collections;
 import java.util.Optional;
+import jakarta.validation.constraints.NotNull;
 
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
