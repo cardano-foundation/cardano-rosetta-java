@@ -37,6 +37,7 @@ import org.cardanofoundation.rosetta.api.block.model.entity.TxnEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.WithdrawalEntity;
 import org.cardanofoundation.rosetta.api.block.model.repository.BlockRepository;
 import org.cardanofoundation.rosetta.api.block.model.repository.DelegationRepository;
+import org.cardanofoundation.rosetta.api.block.model.repository.InvalidTransactionRepository;
 import org.cardanofoundation.rosetta.api.block.model.repository.PoolRegistrationRepository;
 import org.cardanofoundation.rosetta.api.block.model.repository.PoolRetirementRepository;
 import org.cardanofoundation.rosetta.api.block.model.repository.StakeRegistrationRepository;
@@ -61,6 +62,7 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
   private final PoolRetirementRepository poolRetirementRepository;
   private final WithdrawalRepository withdrawalRepository;
   private final AddressUtxoRepository addressUtxoRepository;
+  private final InvalidTransactionRepository invalidTransactionRepository;
 
   private final BlockMapper blockMapper;
   private final TransactionMapper transactionMapper;
@@ -175,7 +177,7 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
         .map(Utxo::getTxHash)
         .toList();
 
-    try (var executorService = Executors.newFixedThreadPool(6)) {
+    try (var executorService = Executors.newFixedThreadPool(12)) {
       Future<List<AddressUtxoEntity>> utxos = executorService.submit(() ->
           addressUtxoRepository.findByTxHashIn(utxHashes));
       Future<List<StakeRegistrationEntity>> sReg = executorService.submit(() ->
@@ -200,16 +202,16 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
 
   private void populateTransaction(BlockTx transaction, TransactionInfo fetched,
       Map<UtxoKey, AddressUtxoEntity> utxoMap) {
+    boolean invalid = invalidTransactionRepository.findById(transaction.getHash()).isPresent();
+    transaction.setInvalid(invalid);
     Optional.ofNullable(transaction.getInputs())
         .stream()
         .flatMap(List::stream)
         .forEach(utxo -> populateUtxo(utxo, utxoMap));
-
-    Optional.ofNullable(transaction.getOutputs())
-        .stream()
-        .flatMap(List::stream)
-        .forEach(utxo -> populateUtxo(utxo, utxoMap));
-
+      Optional.ofNullable(transaction.getOutputs())
+          .stream()
+          .flatMap(List::stream)
+          .forEach(utxo -> populateUtxo(utxo, utxoMap));
     transaction.setStakeRegistrations(
         fetched.stakeRegistrations
             .stream()

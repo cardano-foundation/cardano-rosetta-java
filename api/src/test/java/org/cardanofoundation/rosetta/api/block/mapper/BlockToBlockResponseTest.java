@@ -8,10 +8,10 @@ import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
+import jakarta.validation.constraints.NotNull;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import com.bloxbean.cardano.yaci.core.model.certs.CertificateType;
-import org.jetbrains.annotations.NotNull;
 import org.openapitools.client.model.AccountIdentifier;
 import org.openapitools.client.model.Amount;
 import org.openapitools.client.model.BlockResponse;
@@ -289,17 +289,17 @@ class BlockToBlockResponseTest extends BaseMapperSetup {
   private List<BlockTx> newTransactions() {
     return List.of(
         new BlockTx("hash1", "blockHash1", 1L, "fee1", 1L,
-            1L, null, null,
+            1L, false, null, null,
             newStakeRegistrations(1, 2), newDelegations(1, 2), newPoolRegistrations(1, 2),
             newPoolRetirements(1, 2), null),
 
         new BlockTx("hash2", "blockHash2", 2L, "fee2", 2L,
-            2L, null, null,
+            2L, false,null, null,
             newStakeRegistrations(3, 4), newDelegations(3, 4), newPoolRegistrations(3, 4),
             newPoolRetirements(3, 4), null),
 
         new BlockTx("hash3", "blockHash3", 3L, "fee3", 3L,
-            3L, null, null,
+            3L, false,null, null,
             newStakeRegistrations(5, 6), newDelegations(5, 6), newPoolRegistrations(5, 6),
             newPoolRetirements(5, 6), null));
   }

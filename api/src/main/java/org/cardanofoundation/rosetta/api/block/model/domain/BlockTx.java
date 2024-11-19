@@ -24,6 +24,7 @@ public class BlockTx {
   protected String fee;
   protected Long size;
   protected Long scriptSize;
+  protected boolean invalid;
   protected List<Utxo> inputs;
   protected List<Utxo> outputs;
   protected List<StakeRegistration> stakeRegistrations;
