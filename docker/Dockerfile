@@ -31,14 +31,17 @@ RUN bash -c "ghcup set ghc ${GHC_VERSION}"
 
 
 # Mithril setup
-ARG MITHRIL_VERSION=2423.0
+ARG MITHRIL_VERSION=2445.0
 # Install dependencies
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | bash -s -- -y \
+    && export PATH="$HOME/.cargo/bin:$PATH" \
     && apt update --fix-missing \
     && apt install -y --no-install-recommends \
-       build-essential m4 libssl-dev docker jq git cargo \
+       build-essential m4 libssl-dev docker jq git \
+    && rustup update stable \
     && apt-get clean
 RUN git clone https://github.com/input-output-hk/mithril.git \
+    && export PATH="$HOME/.cargo/bin:$PATH" \
     && cd mithril \
     && git checkout $MITHRIL_VERSION \
     && cd mithril-client-cli \
