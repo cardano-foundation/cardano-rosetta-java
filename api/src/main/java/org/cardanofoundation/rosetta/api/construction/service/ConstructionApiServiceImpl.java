@@ -134,7 +134,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
       ConstructionMetadataRequest constructionMetadataRequest) {
 
     CompletableFuture<ProtocolParams> protocolParamsFuture = CompletableFuture
-        .supplyAsync(protocolParamService::findProtocolParametersFromIndexer);
+        .supplyAsync(protocolParamService::findProtocolParameters);
 
     ConstructionMetadataRequestOption options = constructionMetadataRequest.getOptions();
     Double relativeTtl = options.getRelativeTtl().doubleValue();

@@ -93,6 +93,8 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
   private int nodeSubmitApiPort;
   @Value("${cardano.rosetta.CARDANO_NODE_SUBMIT_HOST}")
   private String cardanoNodeSubmitHost;
+  @Value("${cardano.rosetta.OFFLINE_MODE}")
+  private boolean offlineMode;
 
   @Override
   public TransactionParsed parseTransaction(Network network, String transaction, boolean signed) {
@@ -136,7 +138,8 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
 
   @Override
   public Long calculateTtl(Long ttlOffset) {
-    return ledgerBlockService.findLatestBlockIdentifier().getSlot() + ttlOffset;
+
+    return offlineMode ? ttlOffset : ledgerBlockService.findLatestBlockIdentifier().getSlot() + ttlOffset;
   }
 
   @Override
@@ -486,7 +489,7 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
    */
   @Override
   public DepositParameters getDepositParameters() {
-    ProtocolParams pp = protocolParamService.findProtocolParametersFromIndexer();
+    ProtocolParams pp = protocolParamService.findProtocolParameters();
     return new DepositParameters(pp.getKeyDeposit().toString(), pp.getPoolDeposit().toString());
   }
 

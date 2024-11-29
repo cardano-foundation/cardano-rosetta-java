@@ -87,14 +87,14 @@ public class TransactionMapperUtils {
   }
 
   public Amount getDepositAmountPool() {
-    String deposit = String.valueOf(protocolParamService.findProtocolParametersFromIndexer().getPoolDeposit());
+    String deposit = String.valueOf(protocolParamService.findProtocolParameters().getPoolDeposit());
     return DataMapper.mapAmount(deposit, Constants.ADA, Constants.ADA_DECIMALS, null);
   }
 
   @Named("getDepositAmountStake")
   public Amount getDepositAmountStake(StakeRegistration model) {
     CertificateType type = model.getType();
-    BigInteger keyDeposit = Optional.ofNullable(protocolParamService.findProtocolParametersFromIndexer()
+    BigInteger keyDeposit = Optional.ofNullable(protocolParamService.findProtocolParameters()
         .getKeyDeposit()).orElse(BigInteger.ZERO);
     if (type == CertificateType.STAKE_DEREGISTRATION) {
       keyDeposit = keyDeposit.negate();

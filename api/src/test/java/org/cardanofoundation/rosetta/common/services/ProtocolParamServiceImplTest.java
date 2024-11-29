@@ -34,7 +34,7 @@ class ProtocolParamServiceImplTest {
                 ProtocolParams.builder().build())
             .build()));
     //when
-    ProtocolParams protocolParameters = genesisService.findProtocolParametersFromIndexer();
+    ProtocolParams protocolParameters = genesisService.findProtocolParameters();
     //then
     assertNotNull(protocolParameters);
   }

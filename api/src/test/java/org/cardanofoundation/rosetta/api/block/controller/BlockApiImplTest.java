@@ -88,7 +88,7 @@ class BlockApiImplTest extends BaseSpringMvcSetup {
     BlockTransactionRequest req = newBlockTransactionRequest();
     when(blockService.getBlockTransaction(anyLong(), anyString(), anyString())).thenReturn(
         new BlockTx());
-    when(protocolParamService.findProtocolParametersFromIndexer()).thenReturn(protocolParams);
+    when(protocolParamService.findProtocolParameters()).thenReturn(protocolParams);
     when(protocolParams.getPoolDeposit()).thenReturn(new BigInteger("1000"));
 //any string
     when(blockMapper.mapToBlockTransactionResponse(any(BlockTx.class))).thenReturn(resp);
