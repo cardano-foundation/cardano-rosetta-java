@@ -3,6 +3,7 @@ package org.cardanofoundation.rosetta.common.services;
 import java.math.BigInteger;
 import java.util.Optional;
 
+import org.springframework.test.util.ReflectionTestUtils;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -13,7 +14,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
 import org.cardanofoundation.rosetta.api.block.model.entity.LocalProtocolParamsEntity;
 import org.cardanofoundation.rosetta.api.block.model.repository.LocalProtocolParamsRepository;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
