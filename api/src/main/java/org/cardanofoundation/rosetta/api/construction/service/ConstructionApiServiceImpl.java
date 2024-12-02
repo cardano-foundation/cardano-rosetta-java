@@ -215,6 +215,9 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
       if(constructionPayloadsRequest.getMetadata().getProtocolParameters().getMinPoolCost() == null) {
         throw ExceptionFactory.minPoolCostMissingError();
       }
+      if(constructionPayloadsRequest.getMetadata().getProtocolParameters().getPoolDeposit() == null) {
+        throw ExceptionFactory.poolDepositMissingError();
+      }
       if(constructionPayloadsRequest.getMetadata().getProtocolParameters().getProtocol() == null) {
         throw ExceptionFactory.protocolMissingError();
       }

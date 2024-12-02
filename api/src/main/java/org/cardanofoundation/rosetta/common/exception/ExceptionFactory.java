@@ -301,4 +301,8 @@ public class ExceptionFactory {
   public static ApiException protocolMissingError() {
     return new ApiException(RosettaErrorType.PROTOCOL_MISSING.toRosettaError(false));
   }
+
+  public static ApiException poolDepositMissingError() {
+    return new ApiException(RosettaErrorType.POOL_DEPOSIT_MISSING.toRosettaError(false));
+  }
 }

@@ -176,7 +176,7 @@ public class RosettaConstants {
     SERIALIZATION_ERROR("Error during serialization process", 5020),
     DESERIALIZATION_ERROR("Error during deserialization process", 5021),
     TTL_MISSING("body.metadata must have required property 'ttl'", 5022),
-    PROTOCOL_PARAMETERS_MISSING("body.metadata must have required property 'protocolParameters'", 5023),
+    PROTOCOL_PARAMETERS_MISSING("body.metadata must have required property 'protocol_parameters'", 5023),
     COINS_PER_UTXO_SIZE_MISSING("body.metadata must have required property 'coinsPerUtxoSize'", 5024),
     MAX_TX_SIZE_MISSING("body.metadata must have required property 'maxTxSize'", 5025),
     MAX_VAL_SIZE_MISSING("body.metadata must have required property 'maxValSize'", 5026),
@@ -185,7 +185,8 @@ public class RosettaConstants {
     MIN_FEE_COEFFICIENT_MISSING("body.metadata must have required property 'minFeeCoefficient'", 5029),
     MIN_FEE_CONSTANT_MISSING("body.metadata must have required property 'minFeeConstant'", 5030),
     MIN_POOL_COST_MISSING("body.metadata must have required property 'minPoolCost'", 5031),
-    PROTOCOL_MISSING("body.metadata must have required property 'protocol'", 5032),;
+    PROTOCOL_MISSING("body.metadata must have required property 'protocol'", 5032),
+    POOL_DEPOSIT_MISSING("body.metadata must have required property 'poolDeposit'", 5033),;
 
 
     final String message;
