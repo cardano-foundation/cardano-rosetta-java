@@ -1,7 +1,7 @@
 # In offline mode there will be no synchronization with the network
 # and the following components will be disabled: Node, Submit-api, Mithril, Yaci Indexer
 # Set to false if you want to start everything needed to synchronize with the network
-OFFLINE_MODE=true
+OFFLINE_MODE=false
 
 ## Main variables
 LOG=INFO
