@@ -3,7 +3,7 @@ FROM ubuntu:22.04 AS cardano-builder
 WORKDIR /root/src
 
 # Mithril setup
-ARG MITHRIL_VERSION=2423.0
+ARG MITHRIL_VERSION=2445.0
 # Install dependencies
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | bash -s -- -y \
     && apt update --fix-missing \
