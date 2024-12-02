@@ -16,6 +16,7 @@ import org.openapitools.client.model.SearchTransactionsResponse;
 import org.cardanofoundation.rosetta.api.network.service.NetworkService;
 import org.cardanofoundation.rosetta.api.search.mapper.SearchMapper;
 import org.cardanofoundation.rosetta.api.search.service.SearchService;
+import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 
 @RestController
 @RequiredArgsConstructor
@@ -28,9 +29,15 @@ public class SearchApiImpl implements SearchApi {
   @Value("${cardano.rosetta.SEARCH_PAGE_SIZE}")
   private Long PAGE_SIZE;
 
+  @Value("${cardano.rosetta.OFFLINE_MODE}")
+  private boolean offlineMode;
+
   @Override
   public ResponseEntity<SearchTransactionsResponse> searchTransactions(
       SearchTransactionsRequest searchTransactionsRequest) {
+    if(offlineMode) {
+      throw ExceptionFactory.NotSupportedInOfflineMode();
+    }
     networkService.verifyNetworkRequest(searchTransactionsRequest.getNetworkIdentifier());
 
 

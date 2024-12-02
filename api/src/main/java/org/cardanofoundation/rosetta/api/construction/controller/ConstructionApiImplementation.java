@@ -5,6 +5,7 @@ import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -14,6 +15,7 @@ import org.openapitools.client.model.*;
 
 import org.cardanofoundation.rosetta.api.construction.service.ConstructionApiService;
 import org.cardanofoundation.rosetta.api.network.service.NetworkService;
+import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 
 @Slf4j
 @RestController
@@ -22,6 +24,9 @@ public class ConstructionApiImplementation implements ConstructionApi {
 
     private final ConstructionApiService constructionApiService;
     private final NetworkService networkService;
+
+    @Value("${cardano.rosetta.OFFLINE_MODE}")
+    private boolean offlineMode;
 
     @Override
     public ResponseEntity<ConstructionCombineResponse> constructionCombine(@RequestBody ConstructionCombineRequest constructionCombineRequest) {
@@ -43,6 +48,9 @@ public class ConstructionApiImplementation implements ConstructionApi {
 
     @Override
     public ResponseEntity<ConstructionMetadataResponse> constructionMetadata(@RequestBody ConstructionMetadataRequest constructionMetadataRequest)  {
+        if(offlineMode) {
+            throw ExceptionFactory.NotSupportedInOfflineMode();
+        }
         networkService.verifyNetworkRequest(constructionMetadataRequest.getNetworkIdentifier());
         return ResponseEntity.ok(constructionApiService.constructionMetadataService(constructionMetadataRequest));
     }
@@ -69,6 +77,9 @@ public class ConstructionApiImplementation implements ConstructionApi {
 
     @Override
     public ResponseEntity<TransactionIdentifierResponse> constructionSubmit(@RequestBody ConstructionSubmitRequest constructionSubmitRequest) {
+        if(offlineMode) {
+            throw ExceptionFactory.NotSupportedInOfflineMode();
+        }
         networkService.verifyNetworkRequest(constructionSubmitRequest.getNetworkIdentifier());
         return ResponseEntity.ok(constructionApiService.constructionSubmitService(constructionSubmitRequest));
     }

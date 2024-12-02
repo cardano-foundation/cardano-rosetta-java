@@ -305,4 +305,8 @@ public class ExceptionFactory {
   public static ApiException poolDepositMissingError() {
     return new ApiException(RosettaErrorType.POOL_DEPOSIT_MISSING.toRosettaError(false));
   }
+
+  public static ApiException NotSupportedInOfflineMode() {
+    return new ApiException(RosettaErrorType.NOT_SUPPORTED_IN_OFFLINE_MODE.toRosettaError(false));
+  }
 }
