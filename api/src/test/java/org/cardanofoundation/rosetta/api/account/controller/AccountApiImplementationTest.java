@@ -1,5 +1,7 @@
 package org.cardanofoundation.rosetta.api.account.controller;
 
+import java.lang.reflect.Field;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
@@ -22,11 +24,13 @@ import org.junit.jupiter.api.Test;
 import org.cardanofoundation.rosetta.api.BaseSpringMvcSetup;
 import org.cardanofoundation.rosetta.api.account.service.AccountService;
 import org.cardanofoundation.rosetta.api.network.service.NetworkService;
+import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.util.Constants;
 import org.cardanofoundation.rosetta.common.util.RosettaConstants.RosettaErrorType;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -43,6 +47,24 @@ class AccountApiImplementationTest extends BaseSpringMvcSetup {
   @Spy
   @InjectMocks
   AccountApiImplementation accountController;
+
+  @Test
+  void accountBalanceOfflineModeTest() throws NoSuchFieldException, IllegalAccessException {
+    AccountBalanceRequest request = Mockito.mock(AccountBalanceRequest.class);
+    Field field = AccountApiImplementation.class.getDeclaredField("offlineMode");
+    field.setAccessible(true);
+    field.set(accountController, true);
+    assertThrows(ExceptionFactory.NotSupportedInOfflineMode().getClass(), () -> accountController.accountBalance(request));
+  }
+
+  @Test
+  void accountCoinsOfflineModeTest() throws NoSuchFieldException, IllegalAccessException {
+    AccountCoinsRequest request = Mockito.mock(AccountCoinsRequest.class);
+    Field field = AccountApiImplementation.class.getDeclaredField("offlineMode");
+    field.setAccessible(true);
+    field.set(accountController, true);
+    assertThrows(ExceptionFactory.NotSupportedInOfflineMode().getClass(), () -> accountController.accountCoins(request));
+  }
 
   @Test
   void accountBalancePositiveTest() {

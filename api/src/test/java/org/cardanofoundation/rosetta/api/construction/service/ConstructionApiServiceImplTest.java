@@ -12,7 +12,9 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.openapitools.client.model.ConstructionPayloadsRequest;
+import org.openapitools.client.model.ConstructionPayloadsRequestMetadata;
 import org.openapitools.client.model.ConstructionPayloadsResponse;
+import org.openapitools.client.model.ProtocolParameters;
 import org.openapitools.client.model.SigningPayload;
 
 import org.junit.jupiter.api.Test;
@@ -66,6 +68,103 @@ class ConstructionApiServiceImplTest {
       assertFalse(result.getPayloads().isEmpty());
       assertEquals(expectedSigningPayload, result.getPayloads().get(0));
     }
+  }
+
+  @Test
+  void verifyProtocolParametersTest() {
+    ConstructionPayloadsRequest constructionPayloadsRequest = new ConstructionPayloadsRequest();
+    ConstructionPayloadsRequestMetadata metaData = ConstructionPayloadsRequestMetadata.builder()
+        .build();
+    ProtocolParameters protocolParameters = ProtocolParameters.builder().build();
+    ApiException apiException = assertThrows(ApiException.class,
+        () -> underTest.verifyProtocolParameters(constructionPayloadsRequest));
+    assertEquals(RosettaErrorType.TTL_MISSING.getCode(), apiException.getError().getCode());
+
+    constructionPayloadsRequest.setMetadata(metaData);
+    apiException = assertThrows(ApiException.class,
+        () -> underTest.verifyProtocolParameters(constructionPayloadsRequest));
+    assertEquals(RosettaErrorType.TTL_MISSING.getCode(), apiException.getError().getCode());
+
+    metaData.setTtl(1);
+    constructionPayloadsRequest.setMetadata(metaData);
+    apiException = assertThrows(ApiException.class,
+        () -> underTest.verifyProtocolParameters(constructionPayloadsRequest));
+    assertEquals(RosettaErrorType.PROTOCOL_PARAMETERS_MISSING.getCode(), apiException.getError().getCode());
+
+    metaData.setProtocolParameters(protocolParameters);
+    constructionPayloadsRequest.setMetadata(metaData);
+    apiException = assertThrows(ApiException.class,
+        () -> underTest.verifyProtocolParameters(constructionPayloadsRequest));
+    assertEquals(RosettaErrorType.COINS_PER_UTXO_SIZE_MISSING.getCode(), apiException.getError().getCode());
+
+    protocolParameters.setCoinsPerUtxoSize("1");
+    metaData.setProtocolParameters(protocolParameters);
+    constructionPayloadsRequest.setMetadata(metaData);
+    apiException = assertThrows(ApiException.class,
+        () -> underTest.verifyProtocolParameters(constructionPayloadsRequest));
+    assertEquals(RosettaErrorType.MAX_TX_SIZE_MISSING.getCode(), apiException.getError().getCode());
+
+    protocolParameters.setMaxTxSize(1);
+    metaData.setProtocolParameters(protocolParameters);
+    constructionPayloadsRequest.setMetadata(metaData);
+    apiException = assertThrows(ApiException.class,
+        () -> underTest.verifyProtocolParameters(constructionPayloadsRequest));
+    assertEquals(RosettaErrorType.MAX_VAL_SIZE_MISSING.getCode(), apiException.getError().getCode());
+
+    protocolParameters.setMaxValSize(1L);
+    metaData.setProtocolParameters(protocolParameters);
+    constructionPayloadsRequest.setMetadata(metaData);
+    apiException = assertThrows(ApiException.class,
+        () -> underTest.verifyProtocolParameters(constructionPayloadsRequest));
+    assertEquals(RosettaErrorType.KEY_DEPOSIT_MISSING.getCode(), apiException.getError().getCode());
+
+    protocolParameters.setKeyDeposit("1");
+    metaData.setProtocolParameters(protocolParameters);
+    constructionPayloadsRequest.setMetadata(metaData);
+    apiException = assertThrows(ApiException.class,
+        () -> underTest.verifyProtocolParameters(constructionPayloadsRequest));
+    assertEquals(RosettaErrorType.MAX_COLLATERAL_INPUTS_MISSING.getCode(), apiException.getError().getCode());
+
+    protocolParameters.setMaxCollateralInputs(1);
+    metaData.setProtocolParameters(protocolParameters);
+    constructionPayloadsRequest.setMetadata(metaData);
+    apiException = assertThrows(ApiException.class,
+        () -> underTest.verifyProtocolParameters(constructionPayloadsRequest));
+    assertEquals(RosettaErrorType.MIN_FEE_COEFFICIENT_MISSING.getCode(), apiException.getError().getCode());
+
+    protocolParameters.setMinFeeCoefficient(1);
+    metaData.setProtocolParameters(protocolParameters);
+    constructionPayloadsRequest.setMetadata(metaData);
+    apiException = assertThrows(ApiException.class,
+        () -> underTest.verifyProtocolParameters(constructionPayloadsRequest));
+    assertEquals(RosettaErrorType.MIN_FEE_CONSTANT_MISSING.getCode(), apiException.getError().getCode());
+
+    protocolParameters.setMinFeeConstant(1);
+    metaData.setProtocolParameters(protocolParameters);
+    constructionPayloadsRequest.setMetadata(metaData);
+    apiException = assertThrows(ApiException.class,
+        () -> underTest.verifyProtocolParameters(constructionPayloadsRequest));
+    assertEquals(RosettaErrorType.MIN_POOL_COST_MISSING.getCode(), apiException.getError().getCode());
+
+    protocolParameters.setMinPoolCost("1");
+    metaData.setProtocolParameters(protocolParameters);
+    constructionPayloadsRequest.setMetadata(metaData);
+    apiException = assertThrows(ApiException.class,
+        () -> underTest.verifyProtocolParameters(constructionPayloadsRequest));
+    assertEquals(RosettaErrorType.POOL_DEPOSIT_MISSING.getCode(), apiException.getError().getCode());
+
+    protocolParameters.setPoolDeposit("1");
+    metaData.setProtocolParameters(protocolParameters);
+    constructionPayloadsRequest.setMetadata(metaData);
+    apiException = assertThrows(ApiException.class,
+        () -> underTest.verifyProtocolParameters(constructionPayloadsRequest));
+    assertEquals(RosettaErrorType.PROTOCOL_MISSING.getCode(), apiException.getError().getCode());
+
+    protocolParameters.setProtocol(1);
+    metaData.setProtocolParameters(protocolParameters);
+    constructionPayloadsRequest.setMetadata(metaData);
+    underTest.verifyProtocolParameters(constructionPayloadsRequest);
+
   }
 
   @Test

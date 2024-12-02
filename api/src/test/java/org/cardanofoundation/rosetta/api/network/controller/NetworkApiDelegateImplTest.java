@@ -1,8 +1,11 @@
 package org.cardanofoundation.rosetta.api.network.controller;
 
+import java.lang.reflect.Field;
+
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import org.mockito.InjectMocks;
 import org.openapitools.client.model.MetadataRequest;
 import org.openapitools.client.model.NetworkListResponse;
 import org.openapitools.client.model.NetworkOptionsResponse;
@@ -13,12 +16,14 @@ import org.junit.jupiter.api.Test;
 
 import org.cardanofoundation.rosetta.api.BaseSpringMvcSetup;
 import org.cardanofoundation.rosetta.api.network.service.NetworkService;
+import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 
 import static org.cardanofoundation.rosetta.EntityGenerator.givenMetadataRequest;
 import static org.cardanofoundation.rosetta.EntityGenerator.givenNetworkListResponse;
 import static org.cardanofoundation.rosetta.EntityGenerator.givenNetworkOptionsResponse;
 import static org.cardanofoundation.rosetta.EntityGenerator.givenNetworkRequest;
 import static org.cardanofoundation.rosetta.EntityGenerator.givenNetworkStatusResponse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -29,6 +34,21 @@ class NetworkApiDelegateImplTest extends BaseSpringMvcSetup {
 
     @MockBean
     private NetworkService networkService;
+
+    @InjectMocks
+    private NetworkApiImpl networkApi;
+
+    @Test
+    void statusOfflineModeTest() throws Exception {
+        //given
+        NetworkRequest networkRequest = givenNetworkRequest();
+        Field field = NetworkApiImpl.class.getDeclaredField("offlineMode");
+        field.setAccessible(true);
+        field.set(networkApi, true);
+        //when
+        //then
+        assertThrows(ExceptionFactory.NotSupportedInOfflineMode().getClass(), () -> networkApi.networkStatus(networkRequest));
+    }
 
     @Test
     void networkList_Test() throws Exception {

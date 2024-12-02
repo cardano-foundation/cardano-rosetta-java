@@ -1,8 +1,11 @@
 package org.cardanofoundation.rosetta.api.construction.controller;
 
+import java.lang.reflect.Field;
+
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import org.mockito.InjectMocks;
 import org.openapitools.client.model.ConstructionCombineRequest;
 import org.openapitools.client.model.ConstructionCombineResponse;
 import org.openapitools.client.model.ConstructionDeriveRequest;
@@ -24,6 +27,7 @@ import org.junit.jupiter.api.Test;
 
 import org.cardanofoundation.rosetta.api.BaseSpringMvcSetup;
 import org.cardanofoundation.rosetta.api.construction.service.ConstructionApiService;
+import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 
 import static org.cardanofoundation.rosetta.EntityGenerator.givenConstructionCombineRequest;
 import static org.cardanofoundation.rosetta.EntityGenerator.givenConstructionCombineResponse;
@@ -40,6 +44,7 @@ import static org.cardanofoundation.rosetta.EntityGenerator.givenConstructionPre
 import static org.cardanofoundation.rosetta.EntityGenerator.givenConstructionSubmitRequest;
 import static org.cardanofoundation.rosetta.EntityGenerator.givenTransactionIdentifierResponse;
 import static org.cardanofoundation.rosetta.EntityGenerator.givenTransactionMetadataResponse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -50,9 +55,38 @@ class ConstructionApiImplTest extends BaseSpringMvcSetup {
     @MockBean
     private ConstructionApiService constructionApiService;
 
+    @InjectMocks
+    private ConstructionApiImplementation constructionApiImplementation;
+
     @BeforeEach
     void init() {
         objectMapper.setSerializationInclusion(JsonInclude.Include.ALWAYS);
+    }
+
+    @Test
+    void metadataOfflineModeTest() throws Exception {
+        //given
+        ConstructionMetadataRequest constructionMetadataRequest = givenConstructionMetadataRequest();
+        Field field = ConstructionApiImplementation.class.getDeclaredField("offlineMode");
+        field.setAccessible(true);
+        field.set(constructionApiImplementation, true);
+        //when
+        //then
+        assertThrows(ExceptionFactory.NotSupportedInOfflineMode().getClass(), () -> constructionApiImplementation.constructionMetadata(constructionMetadataRequest));
+    }
+
+
+
+    @Test
+    void submitOfflineModeTest() throws Exception {
+        //given
+        ConstructionSubmitRequest constructionSubmitRequest = givenConstructionSubmitRequest();
+        Field field = ConstructionApiImplementation.class.getDeclaredField("offlineMode");
+        field.setAccessible(true);
+        field.set(constructionApiImplementation, true);
+        //when
+        //then
+        assertThrows(ExceptionFactory.NotSupportedInOfflineMode().getClass(), () -> constructionApiImplementation.constructionSubmit(constructionSubmitRequest));
     }
 
     @Test

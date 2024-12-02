@@ -97,6 +97,7 @@ class CardanoConstructionServiceImplTest {
     completableFutureMock.close();
   }
 
+
   @Test
   void calculateFeeTest() {
     List<BigInteger> inputAmounts = List.of(BigInteger.valueOf(5L));
