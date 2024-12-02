@@ -184,6 +184,44 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
   }
 
   @Override
+  public void verifyProtocolParameters(ConstructionPayloadsRequest constructionPayloadsRequest) {
+    if(constructionPayloadsRequest.getMetadata() == null || constructionPayloadsRequest.getMetadata().getTtl() == null) {
+      throw ExceptionFactory.ttlMissingError();
+    }
+    if(constructionPayloadsRequest.getMetadata().getProtocolParameters() == null) {
+      throw ExceptionFactory.protocolParametersMissingError();
+    } else {
+      if(constructionPayloadsRequest.getMetadata().getProtocolParameters().getCoinsPerUtxoSize() == null) {
+        throw ExceptionFactory.coinsPerUtxoSizeMissingError();
+      }
+      if(constructionPayloadsRequest.getMetadata().getProtocolParameters().getMaxTxSize() == null) {
+        throw ExceptionFactory.maxTxSizeMissingError();
+      }
+      if(constructionPayloadsRequest.getMetadata().getProtocolParameters().getMaxValSize() == null) {
+        throw ExceptionFactory.maxValSizeMissingError();
+      }
+      if(constructionPayloadsRequest.getMetadata().getProtocolParameters().getKeyDeposit() == null) {
+        throw ExceptionFactory.keyDepositMissingError();
+      }
+      if(constructionPayloadsRequest.getMetadata().getProtocolParameters().getMaxCollateralInputs() == null) {
+        throw ExceptionFactory.maxCollateralInputsMissingError();
+      }
+      if(constructionPayloadsRequest.getMetadata().getProtocolParameters().getMinFeeCoefficient() == null) {
+        throw ExceptionFactory.minFeeCoefficientMissingError();
+      }
+      if(constructionPayloadsRequest.getMetadata().getProtocolParameters().getMinFeeConstant() == null) {
+        throw ExceptionFactory.minFeeConstantMissingError();
+      }
+      if(constructionPayloadsRequest.getMetadata().getProtocolParameters().getMinPoolCost() == null) {
+        throw ExceptionFactory.minPoolCostMissingError();
+      }
+      if(constructionPayloadsRequest.getMetadata().getProtocolParameters().getProtocol() == null) {
+        throw ExceptionFactory.protocolMissingError();
+      }
+    }
+  }
+
+  @Override
   public ConstructionParseResponse constructionParseService(
       ConstructionParseRequest constructionParseRequest) {
     Boolean signed = Optional.ofNullable(constructionParseRequest.getSigned()).orElseThrow(

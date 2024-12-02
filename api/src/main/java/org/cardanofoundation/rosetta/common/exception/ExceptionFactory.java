@@ -255,6 +255,50 @@ public class ExceptionFactory {
         RosettaErrorType.DESERIALIZATION_ERROR.toRosettaError(false, new Details(details)));
   }
 
+  public static ApiException ttlMissingError() {
+    return new ApiException(RosettaErrorType.TTL_MISSING.toRosettaError(false));
+  }
+
   private ExceptionFactory() {
+  }
+
+  public static ApiException protocolParametersMissingError() {
+    return new ApiException(RosettaErrorType.PROTOCOL_PARAMETERS_MISSING.toRosettaError(false));
+  }
+
+  public static ApiException coinsPerUtxoSizeMissingError() {
+    return new ApiException(RosettaErrorType.COINS_PER_UTXO_SIZE_MISSING.toRosettaError(false));
+  }
+
+  public static ApiException maxTxSizeMissingError() {
+    return new ApiException(RosettaErrorType.MAX_TX_SIZE_MISSING.toRosettaError(false));
+  }
+
+  public static ApiException maxValSizeMissingError() {
+    return new ApiException(RosettaErrorType.MAX_VAL_SIZE_MISSING.toRosettaError(false));
+  }
+
+  public static ApiException keyDepositMissingError() {
+    return new ApiException(RosettaErrorType.KEY_DEPOSIT_MISSING.toRosettaError(false));
+  }
+
+  public static ApiException maxCollateralInputsMissingError() {
+    return new ApiException(RosettaErrorType.MAX_COLLATERAL_INPUTS_MISSING.toRosettaError(false));
+  }
+
+  public static ApiException minFeeCoefficientMissingError() {
+    return new ApiException(RosettaErrorType.MIN_FEE_COEFFICIENT_MISSING.toRosettaError(false));
+  }
+
+  public static ApiException minFeeConstantMissingError() {
+    return new ApiException(RosettaErrorType.MIN_FEE_CONSTANT_MISSING.toRosettaError(false));
+  }
+
+  public static ApiException minPoolCostMissingError() {
+    return new ApiException(RosettaErrorType.MIN_POOL_COST_MISSING.toRosettaError(false));
+  }
+
+  public static ApiException protocolMissingError() {
+    return new ApiException(RosettaErrorType.PROTOCOL_MISSING.toRosettaError(false));
   }
 }

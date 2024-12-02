@@ -56,6 +56,8 @@ public class ConstructionApiImplementation implements ConstructionApi {
     @Override
     public ResponseEntity<ConstructionPayloadsResponse> constructionPayloads(@RequestBody @Validated ConstructionPayloadsRequest constructionPayloadsRequest) {
         networkService.verifyNetworkRequest(constructionPayloadsRequest.getNetworkIdentifier());
+        constructionApiService.verifyProtocolParameters(constructionPayloadsRequest);
+
         return ResponseEntity.ok(constructionApiService.constructionPayloadsService(constructionPayloadsRequest));
     }
 
@@ -70,4 +72,6 @@ public class ConstructionApiImplementation implements ConstructionApi {
         networkService.verifyNetworkRequest(constructionSubmitRequest.getNetworkIdentifier());
         return ResponseEntity.ok(constructionApiService.constructionSubmitService(constructionSubmitRequest));
     }
+
+
 }
