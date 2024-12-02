@@ -1,5 +1,6 @@
 package org.cardanofoundation.rosetta.api.block.mapper;
 
+import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -15,6 +16,7 @@ import com.bloxbean.cardano.yaci.core.model.certs.CertificateType;
 import org.openapitools.client.model.AccountIdentifier;
 import org.openapitools.client.model.Amount;
 import org.openapitools.client.model.BlockResponse;
+import org.openapitools.client.model.BlockTransactionResponse;
 import org.openapitools.client.model.Currency;
 import org.openapitools.client.model.Operation;
 import org.openapitools.client.model.OperationIdentifier;
@@ -25,6 +27,8 @@ import org.openapitools.client.model.Relay;
 import org.junit.jupiter.api.Test;
 
 import org.cardanofoundation.rosetta.api.BaseMapperSetup;
+import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
+import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.model.domain.Delegation;
@@ -40,6 +44,26 @@ class BlockToBlockResponseTest extends BaseMapperSetup {
 
   @Autowired
   private BlockMapper my;
+
+  @Test
+  void mapToBlockResponse_test_invalidTransaction() {
+    BlockTx build = BlockTx.builder()
+        .invalid(true)
+        .blockHash("Hash")
+        .blockNo(1L)
+        .inputs(
+            List.of(Utxo.builder().txHash("Hash").outputIndex(0).ownerAddr("Owner").amounts(List.of(
+                    Amt.builder().unit("tAda123").policyId("tAda").assetName("tAda").quantity(BigInteger.valueOf(10L)).build()))
+                .build()))
+        .outputs(
+            List.of(Utxo.builder().txHash("Hash").outputIndex(0).ownerAddr("Owner").amounts(List.of(
+                    Amt.builder().unit("tAda123").policyId("tAda").assetName("tAda").quantity(BigInteger.valueOf(10L)).build()))
+                .build()))
+        .build();
+    BlockTransactionResponse blockTransactionResponse = my.mapToBlockTransactionResponse(build);
+    // Since the Transaction is invalid we are not returning any outputs. The outputs will be removed, since there aren't any outputs
+    assertThat(blockTransactionResponse.getTransaction().getOperations()).hasSize(1);
+  }
 
   @Test
   void mapToBlockResponse_test_Ok() {
