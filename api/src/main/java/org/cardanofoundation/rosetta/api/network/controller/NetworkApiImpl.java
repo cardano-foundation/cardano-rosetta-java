@@ -2,6 +2,7 @@ package org.cardanofoundation.rosetta.api.network.controller;
 
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -13,12 +14,16 @@ import org.openapitools.client.model.NetworkRequest;
 import org.openapitools.client.model.NetworkStatusResponse;
 
 import org.cardanofoundation.rosetta.api.network.service.NetworkService;
+import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 
 @RestController
 @RequiredArgsConstructor
 public class NetworkApiImpl implements NetworkApi {
 
   private final NetworkService networkService;
+
+  @Value("${cardano.rosetta.OFFLINE_MODE}")
+  private boolean offlineMode;
 
   @Override
   public ResponseEntity<NetworkListResponse> networkList(
@@ -39,6 +44,10 @@ public class NetworkApiImpl implements NetworkApi {
   @Override
   public ResponseEntity<NetworkStatusResponse> networkStatus(
       @RequestBody NetworkRequest networkRequest) {
+    if (offlineMode) {
+      throw ExceptionFactory.NotSupportedInOfflineMode();
+    }
+
     networkService.verifyNetworkRequest(networkRequest.getNetworkIdentifier());
     final NetworkStatusResponse networkStatusResponse = networkService.getNetworkStatus(
         networkRequest);

@@ -41,6 +41,8 @@ cardano:
     middleware-version: '@revision@'
     TOPOLOGY_FILEPATH: ${TOPOLOGY_FILEPATH:../config/devkit/topology.json}
     GENESIS_SHELLEY_PATH: ${GENESIS_SHELLEY_PATH:../config/devkit/shelley-genesis.json}
+    GENESIS_ALONZO_PATH: ${GENESIS_ALONZO_PATH:../config/devkit/alonzo-genesis.json}
+    GENESIS_CONWAY_PATH: ${GENESIS_CONWAY_PATH:../config/devkit/conway-genesis.json}
     CARDANO_NODE_VERSION: ${CARDANO_NODE_VERSION:10.1.2}
     CARDANO_NODE_SUBMIT_HOST: ${CARDANO_NODE_SUBMIT_HOST:localhost}
     NODE_SUBMIT_API_PORT: ${NODE_SUBMIT_API_PORT:8090}
@@ -50,3 +52,4 @@ cardano:
     DEVKIT_URL: ${DEVKIT_URL:yaci-cli}
     DEVKIT_PORT: ${DEVKIT_PORT:3333}
     SEARCH_PAGE_SIZE: ${SEARCH_PAGE_SIZE:10}
+    OFFLINE_MODE: ${OFFLINE_MODE:false}

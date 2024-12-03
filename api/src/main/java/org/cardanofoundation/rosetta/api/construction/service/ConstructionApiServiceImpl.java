@@ -134,7 +134,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
       ConstructionMetadataRequest constructionMetadataRequest) {
 
     CompletableFuture<ProtocolParams> protocolParamsFuture = CompletableFuture
-        .supplyAsync(protocolParamService::findProtocolParametersFromIndexer);
+        .supplyAsync(protocolParamService::findProtocolParameters);
 
     ConstructionMetadataRequestOption options = constructionMetadataRequest.getOptions();
     Double relativeTtl = options.getRelativeTtl().doubleValue();
@@ -181,6 +181,47 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
         unsignedTransaction.hash(), unsignedTransaction.addresses());
     String unsignedTransactionString = encodeUnsignedTransaction(unsignedTransaction, operations);
     return new ConstructionPayloadsResponse(unsignedTransactionString, payloads);
+  }
+
+  @Override
+  public void verifyProtocolParameters(ConstructionPayloadsRequest constructionPayloadsRequest) {
+    if(constructionPayloadsRequest.getMetadata() == null || constructionPayloadsRequest.getMetadata().getTtl() == null) {
+      throw ExceptionFactory.ttlMissingError();
+    }
+    if(constructionPayloadsRequest.getMetadata().getProtocolParameters() == null) {
+      throw ExceptionFactory.protocolParametersMissingError();
+    } else {
+      if(constructionPayloadsRequest.getMetadata().getProtocolParameters().getCoinsPerUtxoSize() == null) {
+        throw ExceptionFactory.coinsPerUtxoSizeMissingError();
+      }
+      if(constructionPayloadsRequest.getMetadata().getProtocolParameters().getMaxTxSize() == null) {
+        throw ExceptionFactory.maxTxSizeMissingError();
+      }
+      if(constructionPayloadsRequest.getMetadata().getProtocolParameters().getMaxValSize() == null) {
+        throw ExceptionFactory.maxValSizeMissingError();
+      }
+      if(constructionPayloadsRequest.getMetadata().getProtocolParameters().getKeyDeposit() == null) {
+        throw ExceptionFactory.keyDepositMissingError();
+      }
+      if(constructionPayloadsRequest.getMetadata().getProtocolParameters().getMaxCollateralInputs() == null) {
+        throw ExceptionFactory.maxCollateralInputsMissingError();
+      }
+      if(constructionPayloadsRequest.getMetadata().getProtocolParameters().getMinFeeCoefficient() == null) {
+        throw ExceptionFactory.minFeeCoefficientMissingError();
+      }
+      if(constructionPayloadsRequest.getMetadata().getProtocolParameters().getMinFeeConstant() == null) {
+        throw ExceptionFactory.minFeeConstantMissingError();
+      }
+      if(constructionPayloadsRequest.getMetadata().getProtocolParameters().getMinPoolCost() == null) {
+        throw ExceptionFactory.minPoolCostMissingError();
+      }
+      if(constructionPayloadsRequest.getMetadata().getProtocolParameters().getPoolDeposit() == null) {
+        throw ExceptionFactory.poolDepositMissingError();
+      }
+      if(constructionPayloadsRequest.getMetadata().getProtocolParameters().getProtocol() == null) {
+        throw ExceptionFactory.protocolMissingError();
+      }
+    }
   }
 
   @Override

@@ -32,6 +32,8 @@ cardano:
     middleware-version: '@revision@'
     TOPOLOGY_FILEPATH: ${TOPOLOGY_FILEPATH}
     GENESIS_SHELLEY_PATH: ${GENESIS_SHELLEY_PATH}
+    GENESIS_ALONZO_PATH: ${GENESIS_ALONZO_PATH}
+    GENESIS_CONWAY_PATH: ${GENESIS_CONWAY_PATH}
     NODE_SUBMIT_API_PORT: ${NODE_SUBMIT_API_PORT}
     CARDANO_NODE_SUBMIT_HOST: ${CARDANO_NODE_SUBMIT_HOST}
     CARDANO_NODE_VERSION: ${CARDANO_NODE_VERSION}
@@ -41,12 +43,15 @@ cardano:
     DEVKIT_URL: ${DEVKIT_URL:yaci-cli}
     DEVKIT_PORT: ${DEVKIT_PORT:3333}
     SEARCH_PAGE_SIZE: ${SEARCH_PAGE_SIZE:10}
+    OFFLINE_MODE: ${OFFLINE_MODE:false}
 
 logging:
   level:
     root: ${LOG:INFO}
-  path: ${LOG_FILE_PATH:/var/log/rosetta-java}
   file:
     name: ${LOG_FILE_NAME:rosetta-api.log}
-    max-size: ${LOG_FILE_MAX_SIZE:10MB}
-    max-history: ${LOG_FILE_MAX_HISTORY:10}
+    path: ${LOG_FILE_PATH:/var/log/rosetta-java}
+  logback:
+    rollingpolicy:
+      max-file-size: ${LOG_FILE_MAX_SIZE:10MB}
+      max-history: ${LOG_FILE_MAX_HISTORY:10}

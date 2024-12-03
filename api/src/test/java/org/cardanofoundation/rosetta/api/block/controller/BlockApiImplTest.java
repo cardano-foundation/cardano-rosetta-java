@@ -1,9 +1,11 @@
 package org.cardanofoundation.rosetta.api.block.controller;
 
+import java.lang.reflect.Field;
 import java.math.BigInteger;
 
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.openapitools.client.model.BlockRequest;
 import org.openapitools.client.model.BlockResponse;
@@ -25,6 +27,7 @@ import static org.cardanofoundation.rosetta.EntityGenerator.newBlockRequest;
 import static org.cardanofoundation.rosetta.EntityGenerator.newBlockResponse;
 import static org.cardanofoundation.rosetta.EntityGenerator.newBlockTransactionRequest;
 import static org.cardanofoundation.rosetta.EntityGenerator.newBlockTransactionResponse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -47,6 +50,33 @@ class BlockApiImplTest extends BaseSpringMvcSetup {
 
   @Mock
   private ProtocolParams protocolParams;
+
+  @InjectMocks
+  private BlockApiImpl blockApi;
+
+  @Test
+  void blockOfflineModeTest() throws NoSuchFieldException, IllegalAccessException {
+    //given
+    BlockRequest blockRequest = newBlockRequest();
+    //when
+    Field field = BlockApiImpl.class.getDeclaredField("offlineMode");
+    field.setAccessible(true);
+    field.set(blockApi, true);
+    //then
+    assertThrows(ExceptionFactory.NotSupportedInOfflineMode().getClass(), () -> blockApi.block(blockRequest));
+  }
+
+  @Test
+  void blockTransactionOfflineModeTest() throws NoSuchFieldException, IllegalAccessException {
+    //given
+    BlockTransactionRequest blockTransactionRequest = newBlockTransactionRequest();
+    //when
+    Field field = BlockApiImpl.class.getDeclaredField("offlineMode");
+    field.setAccessible(true);
+    field.set(blockApi, true);
+    //then
+    assertThrows(ExceptionFactory.NotSupportedInOfflineMode().getClass(), () -> blockApi.blockTransaction(blockTransactionRequest));
+  }
 
   @Test
   void block_Test() throws Exception {
@@ -88,7 +118,7 @@ class BlockApiImplTest extends BaseSpringMvcSetup {
     BlockTransactionRequest req = newBlockTransactionRequest();
     when(blockService.getBlockTransaction(anyLong(), anyString(), anyString())).thenReturn(
         new BlockTx());
-    when(protocolParamService.findProtocolParametersFromIndexer()).thenReturn(protocolParams);
+    when(protocolParamService.findProtocolParameters()).thenReturn(protocolParams);
     when(protocolParams.getPoolDeposit()).thenReturn(new BigInteger("1000"));
 //any string
     when(blockMapper.mapToBlockTransactionResponse(any(BlockTx.class))).thenReturn(resp);

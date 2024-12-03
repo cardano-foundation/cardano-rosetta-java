@@ -142,42 +142,46 @@ download_mithril_snapshot(){
     echo "Done downloading Mithril Snapshot"
 }
 
-
-echo "Network: $NETWORK"
-if [ "$NETWORK" == "mainnet" ]; then
-    NETWORK_STR="--mainnet"
-    HARDFORK_EPOCH=208
-else
-    NETWORK_STR="--testnet-magic $PROTOCOL_MAGIC"
-    HARDFORK_EPOCH=1
-fi
-
-echo "Starting Cardano node..."
-mkdir -p /node/db
-
-if [ "${MITHRIL_SYNC}" == "true" ]; then
-    download_mithril_snapshot
-fi
-
 cp -r /networks/$NETWORK/* /config/
 rm -f $CARDANO_NODE_SOCKET_PATH
-mkdir -p "$(dirname "$CARDANO_NODE_SOCKET_PATH")"
-sleep 1
-cardano-node run --socket-path "$CARDANO_NODE_SOCKET_PATH" --port $CARDANO_NODE_PORT --database-path /node/db --config /config/config.json --topology /config/topology.json > /logs/node.log &
-CARDANO_NODE_PID=$!
-sleep 2
+if [ "$OFFLINE_MODE" == "true" ]; then
+  echo "Starting in Offline mode - The Database won't be populated!"
+else
+  echo "Network: $NETWORK"
+  if [ "$NETWORK" == "mainnet" ]; then
+      NETWORK_STR="--mainnet"
+      HARDFORK_EPOCH=208
+  else
+      NETWORK_STR="--testnet-magic $PROTOCOL_MAGIC"
+      HARDFORK_EPOCH=1
+  fi
 
-if [ "${VERIFICATION}" == "true" ] || [ "${SYNC}" == "true" ] ; then
-    node_verification
+  echo "Starting Cardano node..."
+  mkdir -p /node/db
+
+  if [ "${MITHRIL_SYNC}" == "true" ]; then
+      download_mithril_snapshot
+  fi
+
+
+  mkdir -p "$(dirname "$CARDANO_NODE_SOCKET_PATH")"
+  sleep 1
+  cardano-node run --socket-path "$CARDANO_NODE_SOCKET_PATH" --port $CARDANO_NODE_PORT --database-path /node/db --config /config/config.json --topology /config/topology.json > /logs/node.log &
+  CARDANO_NODE_PID=$!
+  sleep 2
+
+  if [ "${VERIFICATION}" == "true" ] || [ "${SYNC}" == "true" ] ; then
+      node_verification
+  fi
+
+  if [ "${SYNC}" == "true" ] ; then
+      node_synchronization
+  fi
+
+  echo "Starting Cardano submit api..."
+  cardano-submit-api --listen-address 0.0.0.0 --socket-path "$CARDANO_NODE_SOCKET_PATH" --port $NODE_SUBMIT_API_PORT $NETWORK_STR  --config /cardano-submit-api-config/cardano-submit-api.yaml > /logs/submit-api.log &
+  CARDANO_SUBMIT_PID=$!
 fi
-
-if [ "${SYNC}" == "true" ] ; then
-    node_synchronization
-fi
-
-echo "Starting Cardano submit api..."
-cardano-submit-api --listen-address 0.0.0.0 --socket-path "$CARDANO_NODE_SOCKET_PATH" --port $NODE_SUBMIT_API_PORT $NETWORK_STR  --config /cardano-submit-api-config/cardano-submit-api.yaml > /logs/submit-api.log &
-CARDANO_SUBMIT_PID=$!
 
 mkdir -p /node/postgres
 chown -R postgres:postgres /node/postgres
@@ -190,25 +194,49 @@ echo "Starting Postgres..."
 /etc/init.d/postgresql start
 create_database_and_user
 
+
 echo "Starting Yaci indexer..."
 exec java -jar /yaci-indexer/app.jar > /logs/indexer.log &
 YACI_STORE_PID=$!
+
+if [ "$OFFLINE_MODE" == "true" ]; then
+  # We need to start the Yaci Indexer to create the database schema
+  # But we don't want to populate the database so we kill it after 30 seconds
+  echo "Waiting 30 seconds to let yaci store create the db schema. Killing it after..."
+  sleep 30
+  kill -9  $YACI_STORE_PID
+  rm /logs/indexer.log
+  rm /logs/yaci-store.log
+fi
 
 echo "Starting Rosetta API..."
 exec java -jar /api/app.jar > /logs/api.log &
 API_PID=$!
 
-echo "Waiting Rosetta API initialization..."
-sleep 5
-get_current_index
-while (( ! $current_index > 0 )); do
-    get_current_index
-    sleep 2
-done
 
-create_index
+if [ "$OFFLINE_MODE" == "true" ]; then
+  echo "Starting API in offline mode - The Database won't be populated!"
+else
+  echo "Waiting Rosetta API initialization..."
+  sleep 5
+  get_current_index
+  while (( ! $current_index > 0 )); do
+      get_current_index
+      sleep 2
+  done
+
+  create_index
+fi
+
 
 echo "DONE"
-tail -f -n +1 /logs/*.log > >(tee $logf) &
-tail_pid=$!
-wait $CARDANO_NODE_PID
+
+if [ "$OFFLINE_MODE" == "true" ]; then
+  tail -f -n +1 /logs/*.log > >(tee $logf) &
+  tail_pid=$!
+  wait $API_PID
+else
+  tail -f -n +1 /logs/*.log > >(tee $logf) &
+  tail_pid=$!
+  wait $CARDANO_NODE_PID
+fi

@@ -31,6 +31,8 @@ public interface ConstructionApiService {
   ConstructionPayloadsResponse constructionPayloadsService(
       ConstructionPayloadsRequest constructionPayloadsRequest);
 
+  void verifyProtocolParameters(ConstructionPayloadsRequest constructionPayloadsRequest);
+
   ConstructionParseResponse constructionParseService(
       ConstructionParseRequest constructionParseRequest);
 

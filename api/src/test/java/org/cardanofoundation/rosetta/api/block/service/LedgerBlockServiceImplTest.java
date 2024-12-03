@@ -58,7 +58,7 @@ class LedgerBlockServiceImplTest {
     when(model.getTransactions()).thenReturn(Collections.singletonList(blockTx));
     when(blockMapper.mapToBlock(blockEntity)).thenReturn(model);
     ProtocolParams protocolParams = mock(ProtocolParams.class);
-    when(protocolParamService.findProtocolParametersFromIndexer()).thenReturn(protocolParams);
+    when(protocolParamService.findProtocolParameters()).thenReturn(protocolParams);
     ExecutionException exception = new ExecutionException(new Throwable());
     given(addressUtxoRepository.findByTxHashIn(Collections.singletonList(hash)))
         .willAnswer(t -> exception);

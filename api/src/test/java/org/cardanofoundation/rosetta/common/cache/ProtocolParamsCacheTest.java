@@ -65,8 +65,8 @@ class ProtocolParamsCacheTest {
     LocalProtocolParamsEntity localProtocolParamsEntity = LocalProtocolParamsEntity.builder().protocolParams(protocolParams).build();
     when(localProtocolParamsRepository.getLocalProtocolParams()).thenReturn(Optional.of(localProtocolParamsEntity));
 
-    ProtocolParams result1 = genesisService.findProtocolParametersFromIndexer();
-    ProtocolParams result2 = genesisService.findProtocolParametersFromIndexer();
+    ProtocolParams result1 = genesisService.findProtocolParameters();
+    ProtocolParams result2 = genesisService.findProtocolParameters();
 
     // Assert that the repository & mapper method is only called once
     verify(localProtocolParamsRepository, times(1)).getLocalProtocolParams();
@@ -93,7 +93,7 @@ class ProtocolParamsCacheTest {
     when(epochParamRepository.findLatestProtocolParams()).thenReturn(paramsEntity);
     when(protocolParamsToEntity.mapProtocolParamsToEntity(paramsEntity)).thenReturn(protocolParams);
 
-    ProtocolParams result = genesisService.findProtocolParametersFromIndexer();
+    ProtocolParams result = genesisService.findProtocolParameters();
 
     Cache cache = cacheManager.getCache(PROTOCOL_PARAMS_CACHE);
     assertNotNull(cache);

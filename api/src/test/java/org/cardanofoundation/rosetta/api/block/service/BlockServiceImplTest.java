@@ -36,7 +36,7 @@ class BlockServiceImplTest {
   private ProtocolParams protocolParams;
 
   public void givenProtocolParam() {
-    when(protocolParamService.findProtocolParametersFromIndexer()).thenReturn(protocolParams);
+    when(protocolParamService.findProtocolParameters()).thenReturn(protocolParams);
     when(protocolParams.getPoolDeposit()).thenReturn(BigInteger.TEN);
   }
 
