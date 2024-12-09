@@ -1,7 +1,8 @@
 # In offline mode there will be no synchronization with the network
 # and the following components will be disabled: Node, Submit-api, Mithril, Yaci Indexer
-# Set to false if you want to start everything needed to synchronize with the network
-API_SPRING_PROFILES_ACTIVE="offline" # online or offline mode
+# Set to offline for offline mode
+# Set to online for online mode
+API_SPRING_PROFILES_ACTIVE=online
 
 ## Main variables
 LOG=INFO

@@ -205,9 +205,7 @@ exec java -jar /api/app.jar > /logs/api.log &
 API_PID=$!
 
 
-if [ "$API_SPRING_PROFILES_ACTIVE" == "offline" ]; then
-  echo "Starting API in offline mode - The Database won't be populated!"
-else
+if [ "$API_SPRING_PROFILES_ACTIVE" == "online" ]; then
   echo "Waiting Rosetta API initialization..."
   sleep 5
   get_current_index
