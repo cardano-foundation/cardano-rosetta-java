@@ -40,11 +40,11 @@ public class TxnEntity {
   private BlockEntity block;
 
   @Type(JsonType.class)
-  @Column(name = "inputs")
+  @Column(name = "inputs", columnDefinition = "TEXT")
   private List<UtxoKey> inputKeys;
 
   @Type(JsonType.class)
-  @Column(name = "outputs")
+  @Column(name = "outputs", columnDefinition = "TEXT")
   private List<UtxoKey> outputKeys;
 
   @Column(name = "fee")

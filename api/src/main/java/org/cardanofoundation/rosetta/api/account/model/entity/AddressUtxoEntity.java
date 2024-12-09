@@ -39,6 +39,7 @@ public class AddressUtxoEntity {
   private String ownerStakeAddr;
 
   @Type(JsonType.class)
+  @Column(columnDefinition = "TEXT") // Use TEXT for H2
   private List<Amt> amounts;
 
   @Column(name = "block")

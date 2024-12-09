@@ -1,7 +1,8 @@
 # In offline mode there will be no synchronization with the network
 # and the following components will be disabled: Node, Submit-api, Mithril, Yaci Indexer
-# Set to false if you want to start everything needed to synchronize with the network
-OFFLINE_MODE=false
+# Set to offline for offline mode
+# Set to online for online mode
+API_SPRING_PROFILES_ACTIVE=online
 
 ## Main variables
 LOG=INFO
@@ -37,8 +38,6 @@ CARDANO_NODE_SUBMIT_HOST=localhost
 NODE_SUBMIT_API_PORT=8090
 CARDANO_NODE_SOCKET_PATH=/node/node.socket
 ## Api env
-API_SPRING_PROFILES_ACTIVE=dev
-# staging, h2, test. Additional profiles: mempool (if mempool should be activated)
 API_PORT=8082
 
 ROSETTA_VERSION=1.4.13

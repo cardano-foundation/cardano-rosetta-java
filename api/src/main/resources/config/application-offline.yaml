@@ -1,0 +1,14 @@
+# Using H2 database as a dummy db for offline mode
+spring:
+  datasource:
+    driver-class-name: org.h2.Driver
+    username: ${DB_USER:rosetta_db_admin}
+    password: ${DB_SECRET:weakpwd#123_d}
+    url: jdbc:h2:mem:${DB_NAME:rosetta-java}
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+
+cardano:
+  rosetta:
+    OFFLINE_MODE: true

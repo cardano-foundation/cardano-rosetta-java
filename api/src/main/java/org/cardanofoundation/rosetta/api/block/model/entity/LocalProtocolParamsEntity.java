@@ -33,7 +33,7 @@ public class LocalProtocolParamsEntity {
     private Long epoch;
 
     @Type(JsonType.class)
-    @Column(name = "params")
+    @Column(name = "params", columnDefinition = "TEXT")
     private ProtocolParams protocolParams;
 
 }
