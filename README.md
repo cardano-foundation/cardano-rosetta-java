@@ -48,8 +48,8 @@ Detailed explanation can be found in the [Wiki](https://github.com/cardano-found
 Depending on using a snapshot feature or not, this will take X amount of time. You can follow along with the commands below. Your instance is ready when you see: `DONE`.
 
 ### Offline mode
-If you want to run rosetta-java in offline mode you need to set the `OFFLINE_MODE` environment variable to `true` in `./docker/.env.dockerfile`. 
-
+If you want to run rosetta-java in offline mode you need to set the `API_SPRING_PROFILES_ACTIVE` environment variable to `offline` in `./docker/.env.dockerfile`. 
+Default is `online`.
 This will disable the syncing of the node and the indexer.
 
 **Useful commands:**

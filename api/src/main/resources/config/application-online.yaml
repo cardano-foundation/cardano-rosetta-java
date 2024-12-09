@@ -1,6 +1,3 @@
-server:
-  port: ${API_PORT:8082}
-
 spring:
   datasource:
     username: ${DB_USER:rosetta_db_admin}
@@ -26,37 +23,3 @@ spring:
   output:
     ansi:
       enabled: always
-
-cardano:
-  rosetta:
-    version:
-    # devkit variables
-    DEVKIT_URL: ${DEVKIT_URL:localhost}
-
-logging:
-  level:
-    root: INFO
-    com:
-      zaxxer:
-        hikari:
-          pool:
-            HikariPool: DEBUG
-    org:
-      springframework:
-        transaction: DEBUG
-        orm:
-          jpa: DEBUG
-        web:
-          filter:
-            CommonsRequestLoggingFilter: DEBUG
-  path: ${LOG_FILE_PATH:logs}
-  file:
-    name: ${LOG_FILE_NAME:logs/rosetta-api.log}
-    max-size: ${LOG_FILE_MAX_SIZE:10MB}
-    max-history: ${LOG_FILE_MAX_HISTORY:10}
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: "info"

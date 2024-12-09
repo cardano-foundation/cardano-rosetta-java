@@ -50,9 +50,11 @@ public class PoolRegistrationEntity {
   private String rewardAccount;
 
   @Type(JsonType.class)
+  @Column(columnDefinition = "TEXT") // Use TEXT for H2
   private Set<String> poolOwners;
 
   @Type(JsonType.class)
+  @Column(columnDefinition = "TEXT") // Use TEXT for H2
   private List<Relay> relays;
 
 }

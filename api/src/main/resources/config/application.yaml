@@ -3,27 +3,17 @@ server:
     enabled: true
     mime-types: text/html,text/plain,text/css,application/javascript,application/json
     min-response-size: 1024
+  port: ${API_PORT:8082}
 
 spring:
   profiles:
-    active: ${API_SPRING_PROFILES_ACTIVE:dev}
+    active: ${API_SPRING_PROFILES_ACTIVE:online}
   jackson:
     default-property-inclusion: NON_NULL
     serialization:
       write-dates-as-timestamps: false
   mvc:
     log-resolved-exception: true
-  datasource:
-    driver-class-name: org.postgresql.Driver
-    readOnly: true
-    readOnlyMode: always
-    hikari:
-      maximumPoolSize: 12
-      poolName: RosettaHikariCP
-      readOnly: true
-      autoCommit: false
-  jpa:
-    open-in-view: false
 
 cardano:
   rosetta:
@@ -55,3 +45,9 @@ logging:
     rollingpolicy:
       max-file-size: ${LOG_FILE_MAX_SIZE:10MB}
       max-history: ${LOG_FILE_MAX_HISTORY:10}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "info"
