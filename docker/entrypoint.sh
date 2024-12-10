@@ -160,7 +160,11 @@ else
   mkdir -p /node/db
 
   if [ "${MITHRIL_SYNC}" == "true" ]; then
-      download_mithril_snapshot
+      if [ "$(ls -A /node/db)" ]; then
+          echo "Mithril Snapshot already exists - Skipping Download..."
+      else
+        download_mithril_snapshot
+      fi
   fi
 
 
