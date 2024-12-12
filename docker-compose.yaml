@@ -1,7 +1,8 @@
 version: '3.8'
 include:
-  - docker-api-indexer.yaml
-  - docker-node.yaml
+  - docker-compose-indexer.yaml
+  - docker-compose-node.yaml
+  - docker-compose-api.yaml
 
 networks:
   default:

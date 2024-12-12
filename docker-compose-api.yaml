@@ -1,0 +1,47 @@
+version: '3.8'
+services:
+  api:
+    image: cardanofoundation/cardano-rosetta-java-api:${API_DOCKER_IMAGE_TAG}
+    build:
+      context: ./
+      dockerfile: ./api/Dockerfile
+    ports:
+      - ${API_PORT}:${API_PORT}
+    environment:
+      NETWORK: ${NETWORK}
+      API_SPRING_PROFILES_ACTIVE: ${API_SPRING_PROFILES_ACTIVE}
+      API_PORT: ${API_PORT}
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_SECRET: ${DB_SECRET}
+      DB_SCHEMA: ${DB_SCHEMA}
+      CARDANO_NODE_VERSION: ${CARDANO_NODE_VERSION}
+      TOPOLOGY_FILEPATH: ${TOPOLOGY_FILEPATH}
+      GENESIS_SHELLEY_PATH: ${GENESIS_SHELLEY_PATH}
+      GENESIS_ALONZO_PATH: ${GENESIS_ALONZO_PATH}
+      GENESIS_CONWAY_PATH: ${GENESIS_CONWAY_PATH}
+      CARDANO_NODE_SUBMIT_HOST: ${CARDANO_NODE_SUBMIT_HOST}
+      NODE_SUBMIT_API_PORT: ${NODE_SUBMIT_API_PORT}
+      CARDANO_NODE_SOCKET_PATH: ${CARDANO_NODE_SOCKET_PATH}
+      DEVKIT_ENABLED: ${DEVKIT_ENABLED}
+      DEVKIT_URL: ${DEVKIT_URL}
+      DEVKIT_PORT: ${DEVKIT_PORT}
+    volumes:
+      - ${CARDANO_CONFIG}:/config
+      - ${CARDANO_NODE_DIR}:${CARDANO_NODE_DIR}
+    healthcheck:
+      test: [ "CMD-SHELL", "curl --fail http://localhost:${API_PORT}/network/options -H 'Content-Type: application/json' --data '{\"network_identifier\": {\"blockchain\": \"cardano\",\"network\": \"${NETWORK}\"},\"metadata\": {}}' -X POST" ]
+      interval: 30s
+      retries: 20
+      start_period: 20s
+      timeout: 10s
+    restart: always
+
+volumes:
+  data:
+
+networks:
+  default:
+    name: cardano-rosetta-java-${NETWORK}

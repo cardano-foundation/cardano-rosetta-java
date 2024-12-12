@@ -144,8 +144,8 @@ download_mithril_snapshot(){
 
 cp -r /networks/$NETWORK/* /config/
 rm -f $CARDANO_NODE_SOCKET_PATH
-if [ "$OFFLINE_MODE" == "true" ]; then
-  echo "Starting in Offline mode - The Database won't be populated!"
+if [ "$API_SPRING_PROFILES_ACTIVE" == "offline" ]; then
+  echo "Starting in offline mode - No Database, Node, submit api or indexer will be started!"
 else
   echo "Network: $NETWORK"
   if [ "$NETWORK" == "mainnet" ]; then
@@ -185,42 +185,31 @@ else
   echo "Starting Cardano submit api..."
   cardano-submit-api --listen-address 0.0.0.0 --socket-path "$CARDANO_NODE_SOCKET_PATH" --port $NODE_SUBMIT_API_PORT $NETWORK_STR  --config /cardano-submit-api-config/cardano-submit-api.yaml > /logs/submit-api.log &
   CARDANO_SUBMIT_PID=$!
+
+
+  mkdir -p /node/postgres
+  chown -R postgres:postgres /node/postgres
+  chmod -R 0700 /node/postgres
+  if [ ! -f "/node/postgres/PG_VERSION" ]; then
+      database_initialization
+  fi
+
+  echo "Starting Postgres..."
+  /etc/init.d/postgresql start
+  create_database_and_user
+
+
+  echo "Starting Yaci indexer..."
+  exec java -jar /yaci-indexer/app.jar > /logs/indexer.log &
+  YACI_STORE_PID=$!
+
 fi
-
-mkdir -p /node/postgres
-chown -R postgres:postgres /node/postgres
-chmod -R 0700 /node/postgres
-if [ ! -f "/node/postgres/PG_VERSION" ]; then
-    database_initialization
-fi
-
-echo "Starting Postgres..."
-/etc/init.d/postgresql start
-create_database_and_user
-
-
-echo "Starting Yaci indexer..."
-exec java -jar /yaci-indexer/app.jar > /logs/indexer.log &
-YACI_STORE_PID=$!
-
-if [ "$OFFLINE_MODE" == "true" ]; then
-  # We need to start the Yaci Indexer to create the database schema
-  # But we don't want to populate the database so we kill it after 30 seconds
-  echo "Waiting 30 seconds to let yaci store create the db schema. Killing it after..."
-  sleep 30
-  kill -9  $YACI_STORE_PID
-  rm /logs/indexer.log
-  rm /logs/yaci-store.log
-fi
-
 echo "Starting Rosetta API..."
 exec java -jar /api/app.jar > /logs/api.log &
 API_PID=$!
 
 
-if [ "$OFFLINE_MODE" == "true" ]; then
-  echo "Starting API in offline mode - The Database won't be populated!"
-else
+if [ "$API_SPRING_PROFILES_ACTIVE" == "online" ]; then
   echo "Waiting Rosetta API initialization..."
   sleep 5
   get_current_index
@@ -235,7 +224,7 @@ fi
 
 echo "DONE"
 
-if [ "$OFFLINE_MODE" == "true" ]; then
+if [ "$API_SPRING_PROFILES_ACTIVE" == "offline" ]; then
   tail -f -n +1 /logs/*.log > >(tee $logf) &
   tail_pid=$!
   wait $API_PID
