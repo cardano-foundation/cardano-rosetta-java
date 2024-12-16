@@ -62,8 +62,7 @@ class ProtocolParamsMapperTest extends BaseMapperSetup {
     assertThat(into.getMinFeeB()).isEqualTo(param.getMinFeeB());
     assertThat(into.getMinPoolCost()).isEqualTo(param.getMinPoolCost());
     assertThat(into.getPoolDeposit()).isEqualTo(param.getPoolDeposit());
-    assertThat(into.getProtocolVersion().getMajor()).isEqualTo(param.getProtocolMajorVer());
-    assertThat(into.getProtocolVersion().getMinor()).isEqualTo(param.getProtocolMinorVer());
+    assertThat(into.getProtocolMajorVer()).isEqualTo(param.getProtocolMajorVer());
     assertThat(into.getMaxValSize()).isEqualTo(param.getMaxValSize());
     assertThat(into.getMaxCollateralInputs()).isEqualTo(param.getMaxCollateralInputs());
   }
