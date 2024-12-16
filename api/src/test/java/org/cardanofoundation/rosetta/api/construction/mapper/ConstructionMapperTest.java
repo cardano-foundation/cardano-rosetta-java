@@ -17,7 +17,6 @@ import org.openapitools.client.model.SigningPayload;
 import org.junit.jupiter.api.Test;
 
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
-import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams.ProtocolVersion;
 import org.cardanofoundation.rosetta.common.mapper.ProtocolParamsMapper;
 import org.cardanofoundation.rosetta.common.mapper.ProtocolParamsMapperImpl;
 import org.cardanofoundation.rosetta.common.model.cardano.crypto.Signatures;
