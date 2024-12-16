@@ -108,7 +108,7 @@ public class AccountServiceImpl implements AccountService {
           }
           AccountBalanceResponse accountBalanceResponse = accountMapper.mapToAccountBalanceResponse(
               blockDto, balances);
-          if (Objects.nonNull(currencies)) {
+          if (Objects.nonNull(currencies) && !currencies.isEmpty()) {
             validateCurrencies(currencies);
             List<Amount> accountBalanceResponseAmounts = accountBalanceResponse.getBalances();
             accountBalanceResponseAmounts.removeIf(b -> currencies.stream().noneMatch(c -> c.getSymbol().equals(b.getCurrency().getSymbol())));
