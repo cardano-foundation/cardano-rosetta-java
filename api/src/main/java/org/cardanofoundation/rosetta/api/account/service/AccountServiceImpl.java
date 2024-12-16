@@ -14,6 +14,7 @@ import org.openapitools.client.model.AccountBalanceRequest;
 import org.openapitools.client.model.AccountBalanceResponse;
 import org.openapitools.client.model.AccountCoinsRequest;
 import org.openapitools.client.model.AccountCoinsResponse;
+import org.openapitools.client.model.Amount;
 import org.openapitools.client.model.Currency;
 import org.openapitools.client.model.CurrencyMetadata;
 import org.openapitools.client.model.PartialBlockIdentifier;
@@ -63,7 +64,7 @@ public class AccountServiceImpl implements AccountService {
       hash = blockIdentifier.getHash();
     }
 
-    return findBalanceDataByAddressAndBlock(accountAddress, index, hash);
+    return findBalanceDataByAddressAndBlock(accountAddress, index, hash, accountBalanceRequest.getCurrencies());
 
   }
 
@@ -92,7 +93,7 @@ public class AccountServiceImpl implements AccountService {
   }
 
   private AccountBalanceResponse findBalanceDataByAddressAndBlock(String address, Long number,
-      String hash) {
+      String hash, List<Currency> currencies) {
 
     return findBlockOrLast(number, hash)
         .map(blockDto -> {
@@ -105,7 +106,15 @@ public class AccountServiceImpl implements AccountService {
           } else {
             balances = ledgerAccountService.findBalanceByAddressAndBlock(address, blockDto.getNumber());
           }
-          return accountMapper.mapToAccountBalanceResponse(blockDto, balances);
+          AccountBalanceResponse accountBalanceResponse = accountMapper.mapToAccountBalanceResponse(
+              blockDto, balances);
+          if (Objects.nonNull(currencies)) {
+            validateCurrencies(currencies);
+            List<Amount> accountBalanceResponseAmounts = accountBalanceResponse.getBalances();
+            accountBalanceResponseAmounts.removeIf(b -> currencies.stream().noneMatch(c -> c.getSymbol().equals(b.getCurrency().getSymbol())));
+            accountBalanceResponse.setBalances(accountBalanceResponseAmounts);
+          }
+          return accountBalanceResponse;
         })
         .orElseThrow(ExceptionFactory::blockNotFoundException);
   }

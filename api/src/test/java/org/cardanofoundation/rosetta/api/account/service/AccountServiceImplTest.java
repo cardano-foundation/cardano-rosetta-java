@@ -2,6 +2,7 @@ package org.cardanofoundation.rosetta.api.account.service;
 
 import java.math.BigInteger;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import jakarta.validation.constraints.NotNull;
 
@@ -38,6 +39,7 @@ import static org.cardanofoundation.rosetta.common.util.Constants.LOVELACE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -127,6 +129,26 @@ class AccountServiceImplTest {
     when(mock.unit()).thenReturn("089eb57344dcfa1d2d82749566f27aa5c072194d11a261d6e66f33cc4c4943454e5345");
     when(mock.quantity()).thenReturn(BigInteger.valueOf(1000L));
     return mock;
+  }
+
+  @Test
+  void getFilteredAccountBalance() {
+    String address = "addr_test1qz5t8wq55e09usmh07ymxry8atzwxwt2nwwzfngg6esffxvw2pfap6uqmkj3n6zmlrsgz397md2gt7yqs5p255uygaesx608y5";
+    when(ledgerAccountService.findBalanceByAddressAndBlock(any(), any()))
+        .thenReturn(List.of(AddressBalance.builder().address(address).unit("lovelace").number(10L).quantity(
+            BigInteger.valueOf(10)).build(),
+            AddressBalance.builder().address(address).unit("bd976e131cfc3956b806967b06530e48c20ed5498b46a5eb836b61c2").number(10L).quantity(
+                BigInteger.valueOf(10)).build()));
+    BlockIdentifierExtended block = getMockedBlockIdentifierExtended();
+    when(ledgerBlockService.findLatestBlockIdentifier()).thenReturn(block);
+    AccountBalanceRequest accountBalanceRequest = AccountBalanceRequest.builder()
+        .accountIdentifier(AccountIdentifier.builder().address(address).build())
+        .currencies(List.of(Currency.builder().symbol("ADA").build()))
+        .build();
+    AccountBalanceResponse accountBalanceResponse = accountService.getAccountBalance(
+        accountBalanceRequest);
+
+    assertEquals(1, accountBalanceResponse.getBalances().size());
   }
 
   @Test
