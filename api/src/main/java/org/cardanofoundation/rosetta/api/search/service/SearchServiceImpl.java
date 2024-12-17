@@ -6,6 +6,7 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.openapitools.client.model.AccountIdentifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,7 +35,10 @@ public class SearchServiceImpl implements SearchService {
   @Override
   public List<BlockTransaction> searchTransaction(
       SearchTransactionsRequest searchTransactionsRequest, Long offset, Long pageSize) {
-    String address = searchTransactionsRequest.getAddress();
+    // Using address either from searchTransactionsRequest.address or from searchTransactionsRequest.accountIdentifier.address
+    String address = Optional.ofNullable(searchTransactionsRequest.getAddress())
+        .orElse(Optional.ofNullable(searchTransactionsRequest.getAccountIdentifier()).orElse(
+            AccountIdentifier.builder().build()).getAddress());
     String txHash = Optional.ofNullable(searchTransactionsRequest.getTransactionIdentifier()).orElse(
         TransactionIdentifier.builder().build()).getHash();
     String symbol = Optional.ofNullable(searchTransactionsRequest.getCurrency())
