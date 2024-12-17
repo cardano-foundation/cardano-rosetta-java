@@ -11,13 +11,11 @@ import org.cardanofoundation.rosetta.common.mapper.util.BaseMapper;
 @Mapper(config = BaseMapper.class)
 public interface ProtocolParamsMapper {
 
-  @Mapping(target = "protocolVersion.major", source = "protocolMajorVer")
-  @Mapping(target = "protocolVersion.minor", source = "protocolMinorVer")
   ProtocolParams mapProtocolParamsToEntity(ProtocolParamsEntity entity);
 
   @Mapping(target = "coinsPerUtxoSize", source = "adaPerUtxoByte")
   @Mapping(target = "minFeeCoefficient", source = "minFeeA")
   @Mapping(target = "minFeeConstant", source = "minFeeB")
-  @Mapping(target = "protocol", source = "protocolVersion.major")
+  @Mapping(target = "protocol", source = "protocolMajorVer")
   ProtocolParameters mapToProtocolParameters(ProtocolParams model);
 }

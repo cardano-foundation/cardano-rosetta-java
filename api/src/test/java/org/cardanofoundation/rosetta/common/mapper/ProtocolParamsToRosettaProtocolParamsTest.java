@@ -9,7 +9,6 @@ import org.junit.jupiter.api.Test;
 
 import org.cardanofoundation.rosetta.api.BaseMapperSetup;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
-import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams.ProtocolVersion;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -32,13 +31,11 @@ class ProtocolParamsToRosettaProtocolParamsTest extends BaseMapperSetup {
     assertEquals(protocolParams.getMinFeeB(), protocolParameters.getMinFeeConstant());
     assertEquals(protocolParams.getMinPoolCost().toString(), protocolParameters.getMinPoolCost());
     assertEquals(protocolParams.getPoolDeposit().toString(), protocolParameters.getPoolDeposit());
-    assertEquals(protocolParams.getProtocolVersion().getMajor(), protocolParameters.getProtocol());
+    assertEquals(protocolParams.getProtocolMajorVer(), protocolParameters.getProtocol());
 
   }
 
   private ProtocolParams newProtocolParams() {
-    ProtocolVersion protocolVersion = new ProtocolVersion();
-    protocolVersion.setMajor(10);
     return ProtocolParams.builder()
         .adaPerUtxoByte(BigInteger.valueOf(1))
         .maxTxSize(2)
@@ -49,7 +46,7 @@ class ProtocolParamsToRosettaProtocolParamsTest extends BaseMapperSetup {
         .minFeeB(7)
         .minPoolCost(BigInteger.valueOf(8))
         .poolDeposit(BigInteger.valueOf(9))
-        .protocolVersion(protocolVersion)
+        .protocolMajorVer(10)
         .build();
 
   }

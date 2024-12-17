@@ -17,7 +17,6 @@ import org.openapitools.client.model.SigningPayload;
 import org.junit.jupiter.api.Test;
 
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
-import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams.ProtocolVersion;
 import org.cardanofoundation.rosetta.common.mapper.ProtocolParamsMapper;
 import org.cardanofoundation.rosetta.common.mapper.ProtocolParamsMapperImpl;
 import org.cardanofoundation.rosetta.common.model.cardano.crypto.Signatures;
@@ -73,7 +72,7 @@ class ConstructionMapperTest {
   void mapToMetadataResponse_protocolParamsSomeFieldsNull_test() {
     ProtocolParams protocolParams = getProtocolParams();
     protocolParams.setKeyDeposit(null);
-    protocolParams.setProtocolVersion(null);
+    protocolParams.setProtocolMajorVer(0);
     ConstructionMetadataResponse actual = constructionMapper.mapToMetadataResponse(
         protocolParams, 1L, 100L);
 
@@ -123,7 +122,7 @@ class ConstructionMapperTest {
         .maxTxSize(2)
         .keyDeposit(BigInteger.TWO)
         .poolDeposit(BigInteger.TEN)
-        .protocolVersion(new ProtocolVersion())
+        .protocolMajorVer(0)
         .minPoolCost(BigInteger.ONE)
         .adaPerUtxoByte(BigInteger.ONE)
         .maxValSize(3L)
@@ -163,8 +162,7 @@ class ConstructionMapperTest {
     assertThat(actual.getPoolDeposit())
         .isEqualTo(Objects.toString(expected.getPoolDeposit(), null));
     assertThat(actual.getProtocol())
-        .isEqualTo(expected.getProtocolVersion() != null ? expected.getProtocolVersion()
-            .getMajor() : null);
+        .isEqualTo(expected.getProtocolMajorVer() != null ? expected.getProtocolMajorVer() : null);
   }
 
   private void assertSignature(Signatures actual, Signature expected) {

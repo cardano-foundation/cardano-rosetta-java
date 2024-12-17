@@ -27,7 +27,8 @@ public class ProtocolParams {
   private Integer maxTxSize; //3
   private BigInteger keyDeposit; //5
   private BigInteger poolDeposit; //6
-  private ProtocolVersion protocolVersion; //14
+  private Integer protocolMajorVer;
+  private Integer protocolMinorVer;
 
   private BigInteger minPoolCost; //16
   private BigInteger adaPerUtxoByte; //17

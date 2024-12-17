@@ -2,15 +2,21 @@ FROM ubuntu:22.04 AS cardano-builder
 
 WORKDIR /root/src
 
+RUN apt update --fix-missing \
+    && apt install -y --no-install-recommends curl ca-certificates \
+    && apt-get clean
+
 # Mithril setup
 ARG MITHRIL_VERSION=2445.0
 # Install dependencies
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | bash -s -- -y \
+    && export PATH="$HOME/.cargo/bin:$PATH" \
     && apt update --fix-missing \
     && apt install -y --no-install-recommends \
-       build-essential m4 libssl-dev docker jq git cargo ca-certificates wget \
+       build-essential m4 libssl-dev docker jq git \
     && apt-get clean
 RUN git clone https://github.com/input-output-hk/mithril.git \
+    && export PATH="$HOME/.cargo/bin:$PATH" \
     && cd mithril \
     && git checkout $MITHRIL_VERSION \
     && cd mithril-client-cli \

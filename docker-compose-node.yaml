@@ -12,8 +12,6 @@ services:
     volumes:
       - ${CARDANO_NODE_DIR}:/node
   cardano-node:
-    build:
-      context: ./docker/dockerfiles/node
     image: ghcr.io/intersectmbo/cardano-node:${CARDANO_NODE_VERSION}
     environment:
       - NETWORK=${NETWORK}
