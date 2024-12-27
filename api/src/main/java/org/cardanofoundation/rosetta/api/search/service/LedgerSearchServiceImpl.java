@@ -41,7 +41,17 @@ public class LedgerSearchServiceImpl implements LedgerSearchService {
     List<TxnEntity> txnEntities;
     Set<String> txHashes = new HashSet<>();
     Optional.ofNullable(txHash).ifPresent(txHashes::add);
-    Optional.ofNullable(address).ifPresent(addr -> txHashes.addAll(addressUtxoRepository.findTxHashesByOwnerAddr(addr)));
+
+    Optional<String> addressOptional = Optional.ofNullable(address);
+    Set<String> addressTxHashes = new HashSet<>();
+    addressOptional.ifPresent(addr -> addressTxHashes.addAll(addressUtxoRepository.findTxHashesByOwnerAddr(addr)));
+    // If Address was set and there weren't any transactions found, return empty list
+    if (addressOptional.isPresent() && addressTxHashes.isEmpty()) {
+      return List.of();
+    } else {
+      txHashes.addAll(addressTxHashes);
+    }
+
     Optional.ofNullable(utxoKey).ifPresent(utxo -> {
       txHashes.add(utxo.getTxHash());
       txHashes.addAll(txInputRepository.findSpentTxHashByUtxoKey(utxoKey.getTxHash(), utxoKey.getOutputIndex()));

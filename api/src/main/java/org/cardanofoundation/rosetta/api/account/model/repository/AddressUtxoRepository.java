@@ -27,7 +27,8 @@ public interface AddressUtxoRepository extends JpaRepository<AddressUtxoEntity, 
   @Query(value =
       """
       SELECT a.txHash FROM AddressUtxoEntity a
-      WHERE a.ownerStakeAddr = :address
+      WHERE a.ownerAddr = :address
+      OR a.ownerStakeAddr = :address
       """)
   List<String> findTxHashesByOwnerAddr(@Param("address") String ownerAddr);
 
