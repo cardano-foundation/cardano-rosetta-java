@@ -31,7 +31,7 @@ RUN bash -c "ghcup set ghc ${GHC_VERSION}"
 
 
 # Mithril setup
-ARG MITHRIL_VERSION=2445.0
+ARG MITHRIL_VERSION=2450.0
 # Install dependencies
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | bash -s -- -y \
     && export PATH="$HOME/.cargo/bin:$PATH" \
