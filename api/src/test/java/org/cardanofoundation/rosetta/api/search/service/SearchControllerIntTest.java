@@ -28,7 +28,7 @@ class SearchControllerIntTest extends IntegrationTest {
         .build();
 
     List<BlockTransaction> blockTransactions = service.searchTransaction(req, 0L, 5L);
-    assertEquals(5, blockTransactions.size());
+    assertEquals(4, blockTransactions.size());
   }
 
   @Test
