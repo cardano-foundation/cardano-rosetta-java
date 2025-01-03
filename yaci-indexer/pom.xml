@@ -56,6 +56,17 @@
             <groupId>com.bloxbean.cardano</groupId>
             <artifactId>yaci-store-spring-boot-starter</artifactId>
             <version>${yaci-store.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.bloxbean.cardano</groupId>
+                    <artifactId>yaci</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.bloxbean.cardano</groupId>
+            <artifactId>yaci</artifactId>
+            <version>0.3.4.1</version>
         </dependency>
         <!-- Used for block data -->
         <dependency>
