@@ -156,7 +156,7 @@ COPY ./yaci-indexer /root/app/yaci-indexer
 COPY ./test-data-generator /root/app/test-data-generator
 COPY ./.git /root/app/.git
 
-RUN --mount=type=cache,target=/root/.m2 mvn dependency:purge-local-repository clean package -DskipTests
+RUN --mount=type=cache,target=/root/.m2 mvn -U clean package -DskipTests
 
 # Main
 FROM ubuntu:22.04
