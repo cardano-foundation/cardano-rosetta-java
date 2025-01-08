@@ -31,7 +31,7 @@ RUN bash -c "ghcup set ghc ${GHC_VERSION}"
 
 
 # Mithril setup
-ARG MITHRIL_VERSION=2445.0
+ARG MITHRIL_VERSION=2450.0
 # Install dependencies
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | bash -s -- -y \
     && export PATH="$HOME/.cargo/bin:$PATH" \
@@ -156,7 +156,7 @@ COPY ./yaci-indexer /root/app/yaci-indexer
 COPY ./test-data-generator /root/app/test-data-generator
 COPY ./.git /root/app/.git
 
-RUN --mount=type=cache,target=/root/.m2 mvn clean package -DskipTests
+RUN --mount=type=cache,target=/root/.m2 mvn -U clean package -DskipTests
 
 # Main
 FROM ubuntu:22.04
