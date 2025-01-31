@@ -2,12 +2,7 @@ package org.cardanofoundation.rosetta.api.network.service;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import javax.annotation.PostConstruct;
 
 import lombok.RequiredArgsConstructor;
@@ -22,17 +17,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.parser.OpenAPIV3Parser;
-import org.openapitools.client.model.Allow;
+import org.openapitools.client.model.*;
 import org.openapitools.client.model.Error;
-import org.openapitools.client.model.MetadataRequest;
-import org.openapitools.client.model.NetworkIdentifier;
-import org.openapitools.client.model.NetworkListResponse;
-import org.openapitools.client.model.NetworkOptionsResponse;
-import org.openapitools.client.model.NetworkRequest;
-import org.openapitools.client.model.NetworkStatusResponse;
-import org.openapitools.client.model.OperationStatus;
-import org.openapitools.client.model.Peer;
-import org.openapitools.client.model.Version;
 
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockIdentifierExtended;
 import org.cardanofoundation.rosetta.api.block.model.domain.NetworkStatus;
@@ -56,6 +42,7 @@ public class NetworkServiceImpl implements NetworkService {
   private final NetworkMapper networkMapper;
   private final TopologyConfigService topologyConfigService;
   private final ResourceLoader resourceLoader;
+  private final ObjectMapper objectMapper;
 
   private Integer cachedMagicNumber;
 
@@ -215,7 +202,7 @@ public class NetworkServiceImpl implements NetworkService {
   private Map<String, Object> loadGenesisShelleyConfig() {
     try {
       String content = FileUtils.fileReader(genesisShelleyPath);
-      return new ObjectMapper().readValue(content, new TypeReference<Map<String, Object>>() {});
+      return objectMapper.readValue(content, new TypeReference<Map<String, Object>>() {});
     } catch (IOException e) {
       throw ExceptionFactory.configNotFoundException(genesisShelleyPath);
     }

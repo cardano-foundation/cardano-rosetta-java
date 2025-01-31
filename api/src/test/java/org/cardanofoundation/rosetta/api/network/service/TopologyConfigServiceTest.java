@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 import java.util.List;
 
 import org.springframework.test.util.ReflectionTestUtils;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.assertj.core.api.Assertions;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
@@ -24,7 +25,7 @@ import static org.mockito.ArgumentMatchers.any;
 
 class TopologyConfigServiceTest {
 
-  private TopologyConfigServiceImpl topologyConfigService = new TopologyConfigServiceImpl();
+  private TopologyConfigServiceImpl topologyConfigService = new TopologyConfigServiceImpl(new ObjectMapper());
 
   @BeforeEach
   void setup() {

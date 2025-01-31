@@ -309,4 +309,9 @@ public class ExceptionFactory {
   public static ApiException NotSupportedInOfflineMode() {
     return new ApiException(RosettaErrorType.NOT_SUPPORTED_IN_OFFLINE_MODE.toRosettaError(false));
   }
+
+  public static ApiException gatewayError(boolean retriable) {
+    return new ApiException(RosettaErrorType.GATEWAY_ERROR.toRosettaError(retriable));
+  }
+
 }

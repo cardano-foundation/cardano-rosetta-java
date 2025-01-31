@@ -59,7 +59,7 @@ class ConstructionApiImplTest extends BaseSpringMvcSetup {
     private ConstructionApiImplementation constructionApiImplementation;
 
     @BeforeEach
-    void init() {
+    void initOnEach() {
         objectMapper.setSerializationInclusion(JsonInclude.Include.ALWAYS);
     }
 

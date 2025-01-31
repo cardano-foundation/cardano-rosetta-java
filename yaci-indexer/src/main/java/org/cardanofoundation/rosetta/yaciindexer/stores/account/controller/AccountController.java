@@ -1,0 +1,46 @@
+package org.cardanofoundation.rosetta.yaciindexer.stores.account.controller;
+
+import java.math.BigInteger;
+import java.util.Optional;
+
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
+import org.cardanofoundation.rosetta.yaciindexer.stores.account.model.StakeAccountRewardInfo;
+import org.cardanofoundation.rosetta.yaciindexer.stores.account.service.AccountService;
+
+import static com.bloxbean.cardano.yaci.store.common.util.Bech32Prefixes.STAKE_ADDR_PREFIX;
+
+@Controller("rosetta.AccountController")
+@RequestMapping("${apiPrefix}/rosetta/account")
+@RequiredArgsConstructor
+@Slf4j
+@Tag(name = "Rosetta Account API", description = "APIs for Rosetta's yaci-indexer account related operations.")
+public class AccountController {
+
+    private final AccountService accountService;
+
+    @GetMapping("/by-stake-address/{stakeAddress}")
+    @Operation(description = "Obtain information about a specific stake account." +
+            "It gets stake account balance from aggregated stake account balance if aggregation is enabled")
+    public StakeAccountRewardInfo getStakeAccountDetails(@PathVariable("stakeAddress") @NonNull String stakeAddress) {
+        if (!stakeAddress.startsWith(STAKE_ADDR_PREFIX)) {
+            throw new IllegalArgumentException("Invalid stake address"); // TODO introduce problem from zalando?
+        }
+
+        Optional<StakeAccountRewardInfo> stakeAccountInfo = accountService.getAccountInfo(stakeAddress);
+        BigInteger withdrawableRewards = stakeAccountInfo.map(StakeAccountRewardInfo::getWithdrawableAmount)
+                .orElse(BigInteger.ZERO);
+
+        return new StakeAccountRewardInfo(stakeAddress, withdrawableRewards);
+    }
+
+}

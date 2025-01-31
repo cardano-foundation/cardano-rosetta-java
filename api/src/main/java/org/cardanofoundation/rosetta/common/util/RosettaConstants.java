@@ -187,8 +187,9 @@ public class RosettaConstants {
     MIN_POOL_COST_MISSING("body.metadata must have required property 'minPoolCost'", 5031),
     PROTOCOL_MISSING("body.metadata must have required property 'protocol'", 5032),
     POOL_DEPOSIT_MISSING("body.metadata must have required property 'poolDeposit'", 5033),
-    NOT_SUPPORTED_IN_OFFLINE_MODE("This operation is not supported in offline mode", 5034),;
-
+    NOT_SUPPORTED_IN_OFFLINE_MODE("This operation is not supported in offline mode", 5034),
+    GATEWAY_ERROR("Unable to get data from the downstream gateway", 5035),
+    ;
 
     final String message;
     final int code;

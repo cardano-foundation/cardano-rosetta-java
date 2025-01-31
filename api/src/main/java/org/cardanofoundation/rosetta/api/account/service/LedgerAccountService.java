@@ -15,8 +15,6 @@ public interface LedgerAccountService {
 
   List<AddressBalance> findBalanceByAddressAndBlock(String address, Long number);
 
-  List<AddressBalance> findBalanceByStakeAddressAndBlock(String address, Long number);
-
   List<Utxo> findUtxoByAddressAndCurrency(String address, List<Currency> currencies);
 
 }

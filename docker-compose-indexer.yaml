@@ -5,9 +5,12 @@ services:
     build:
       context: ./
       dockerfile: ./yaci-indexer/Dockerfile
+    ports:
+        - ${YACI_INDEXER_PORT}:9095
     environment:
       NETWORK: ${NETWORK}
       YACI_SPRING_PROFILES: ${YACI_SPRING_PROFILES}
+      YACI_INDEXER_PORT: ${YACI_INDEXER_PORT}
       DB_HOST: ${DB_HOST}
       DB_PORT: ${DB_PORT}
       DB_NAME: ${DB_NAME}

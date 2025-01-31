@@ -29,6 +29,7 @@ public class TopologyConfigServiceImpl implements TopologyConfigService {
   @Value("${cardano.rosetta.TOPOLOGY_FILEPATH}")
   private String topologyFilepath;
   private List<Peer> cachedPeers;
+  private final ObjectMapper objectMapper;
 
   @PostConstruct
   public void init() {
@@ -67,9 +68,8 @@ public class TopologyConfigServiceImpl implements TopologyConfigService {
 
   private TopologyConfig loadTopologyConfig() {
     try {
-      ObjectMapper mapper = new ObjectMapper();
       String content = FileUtils.fileReader(topologyFilepath);
-      return mapper.readValue(content, TopologyConfig.class);
+      return objectMapper.readValue(content, TopologyConfig.class);
     } catch (IOException e) {
       throw ExceptionFactory.configNotFoundException(topologyFilepath);
     }

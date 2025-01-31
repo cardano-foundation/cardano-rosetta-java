@@ -3,10 +3,7 @@ package org.cardanofoundation.rosetta.common.exception;
 import java.io.Serial;
 import java.io.Serializable;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 /**
  * @author Sotatek-HoangNguyen9
@@ -16,6 +13,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@EqualsAndHashCode
 public class Error implements Serializable {
 
   @Serial

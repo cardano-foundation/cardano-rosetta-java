@@ -50,6 +50,7 @@ PRINT_EXCEPTION=true
 
 ## Yaci Indexer env
 YACI_SPRING_PROFILES=postgres,n2c-socket
+YACI_INDEXER_PORT=9095
 PRUNING_ENABLED=false
 # database profiles: h2, h2-testData, postgres
 MEMPOOL_ENABLED=false
