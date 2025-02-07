@@ -1,7 +1,9 @@
 package org.cardanofoundation.rosetta.api.account.service;
 
 import java.math.BigInteger;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,15 +35,6 @@ public class LedgerAccountServiceImpl implements LedgerAccountService {
     log.debug("Finding balance for address {} at block {}", address, number);
     List<AddressUtxoEntity> unspendUtxosByAddressAndBlock = addressUtxoRepository.findUnspentUtxosByAddressAndBlock(
         address, number);
-    return mapAndGroupAddressUtxoEntityToAddressBalance(unspendUtxosByAddressAndBlock);
-  }
-
-  @Override
-  public List<AddressBalance> findBalanceByStakeAddressAndBlock(String stakeAddress,
-      Long number) {
-    log.debug("Finding balance for Stakeaddress {} at block {}", stakeAddress, number);
-    List<AddressUtxoEntity> unspendUtxosByAddressAndBlock = addressUtxoRepository.findUnspentUtxosByStakeAddressAndBlock(
-        stakeAddress, number);
     return mapAndGroupAddressUtxoEntityToAddressBalance(unspendUtxosByAddressAndBlock);
   }
 

@@ -11,6 +11,7 @@ services:
       - GENESIS_VERIFICATION_KEY=${GENESIS_VERIFICATION_KEY}
     volumes:
       - ${CARDANO_NODE_DIR}:/node
+
   cardano-node:
     image: ghcr.io/intersectmbo/cardano-node:${CARDANO_NODE_VERSION}
     environment:
@@ -19,6 +20,7 @@ services:
       - ${CARDANO_NODE_DIR}:/node/
       - ${CARDANO_NODE_DB}:/node/db
       - ${CARDANO_CONFIG}:/config
+    restart: unless-stopped
     ports:
       - ${CARDANO_NODE_PORT}:${CARDANO_NODE_PORT}
     entrypoint: cardano-node run --database-path /node/db --port ${CARDANO_NODE_PORT} --socket-path /node/node.socket --topology /config/topology.json --config /config/config.json
