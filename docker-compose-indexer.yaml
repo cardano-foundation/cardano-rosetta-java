@@ -29,6 +29,8 @@ services:
     volumes:
       - ${CARDANO_CONFIG}:/config
       - ${CARDANO_NODE_DIR}:${CARDANO_NODE_DIR}
+    ports:
+      - ${YACI_INDEXER_PORT}:9095
     restart: always
     depends_on:
       db:

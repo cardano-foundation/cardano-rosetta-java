@@ -1,10 +1,10 @@
 package org.cardanofoundation.rosetta.yaciindexer.mapper;
 
+import org.springframework.context.annotation.Primary;
+import org.springframework.stereotype.Component;
 import com.bloxbean.cardano.yaci.store.common.domain.AddressUtxo;
 import com.bloxbean.cardano.yaci.store.utxo.storage.impl.mapper.UtxoMapperImpl_;
 import com.bloxbean.cardano.yaci.store.utxo.storage.impl.model.AddressUtxoEntity;
-import org.springframework.context.annotation.Primary;
-import org.springframework.stereotype.Component;
 
 @Component
 @Primary
