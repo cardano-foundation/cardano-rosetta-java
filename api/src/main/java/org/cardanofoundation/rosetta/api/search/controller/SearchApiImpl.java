@@ -36,7 +36,7 @@ public class SearchApiImpl implements SearchApi {
   public ResponseEntity<SearchTransactionsResponse> searchTransactions(
       SearchTransactionsRequest searchTransactionsRequest) {
     if(offlineMode) {
-      throw ExceptionFactory.NotSupportedInOfflineMode();
+      throw ExceptionFactory.notSupportedInOfflineMode();
     }
     networkService.verifyNetworkRequest(searchTransactionsRequest.getNetworkIdentifier());
 

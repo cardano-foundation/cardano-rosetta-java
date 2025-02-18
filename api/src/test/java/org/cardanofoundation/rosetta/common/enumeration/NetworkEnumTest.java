@@ -3,7 +3,7 @@ package org.cardanofoundation.rosetta.common.enumeration;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class NetworkEnumTest {
 
@@ -12,19 +12,20 @@ class NetworkEnumTest {
   @Test
   void fromValue() {
     for (NetworkEnum networkEnum : networkEnums) {
-      NetworkEnum actual = NetworkEnum.findByName(networkEnum.getName());
+      NetworkEnum actual = NetworkEnum.findByName(networkEnum.getName()).orElseThrow();
       assertEquals(networkEnum, actual);
     }
-    assertNull(NetworkEnum.findByName("Invalid"));
+    assertTrue(NetworkEnum.findByName("Invalid").isEmpty());
   }
 
   @Test
   void fromProtocolMagic() {
     for (NetworkEnum networkEnum : networkEnums) {
       NetworkEnum actual = NetworkEnum.findByProtocolMagic(
-          networkEnum.getNetwork().getProtocolMagic());
+          networkEnum.getNetwork().getProtocolMagic()).orElseThrow();
+
       assertEquals(networkEnum, actual);
     }
-    assertNull(NetworkEnum.findByProtocolMagic(0L));
+    assertTrue(NetworkEnum.findByProtocolMagic(0L).isEmpty());
   }
 }

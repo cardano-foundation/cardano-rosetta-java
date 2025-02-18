@@ -66,6 +66,8 @@ public class RosettaApiApplication {
     filter.setMaxPayloadLength(10000);
     filter.setIncludeHeaders(false);
     filter.setAfterMessagePrefix("REQUEST DATA: \n");
+
     return filter;
   }
+
 }

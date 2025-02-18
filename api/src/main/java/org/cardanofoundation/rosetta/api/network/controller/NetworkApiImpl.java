@@ -45,7 +45,7 @@ public class NetworkApiImpl implements NetworkApi {
   public ResponseEntity<NetworkStatusResponse> networkStatus(
       @RequestBody NetworkRequest networkRequest) {
     if (offlineMode) {
-      throw ExceptionFactory.NotSupportedInOfflineMode();
+      throw ExceptionFactory.notSupportedInOfflineMode();
     }
 
     networkService.verifyNetworkRequest(networkRequest.getNetworkIdentifier());

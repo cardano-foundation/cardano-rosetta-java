@@ -1,5 +1,7 @@
 package org.cardanofoundation.rosetta.api.construction.service;
 
+import com.bloxbean.cardano.client.exception.CborDeserializationException;
+import com.bloxbean.cardano.client.exception.CborSerializationException;
 import org.openapitools.client.model.ConstructionCombineRequest;
 import org.openapitools.client.model.ConstructionCombineResponse;
 import org.openapitools.client.model.ConstructionDeriveRequest;
@@ -29,7 +31,7 @@ public interface ConstructionApiService {
       ConstructionMetadataRequest constructionMetadataRequest);
 
   ConstructionPayloadsResponse constructionPayloadsService(
-      ConstructionPayloadsRequest constructionPayloadsRequest);
+      ConstructionPayloadsRequest constructionPayloadsRequest) throws CborDeserializationException, CborSerializationException;
 
   void verifyProtocolParameters(ConstructionPayloadsRequest constructionPayloadsRequest);
 

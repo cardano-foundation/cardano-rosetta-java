@@ -54,7 +54,7 @@ class AccountApiImplementationTest extends BaseSpringMvcSetup {
     Field field = AccountApiImplementation.class.getDeclaredField("offlineMode");
     field.setAccessible(true);
     field.set(accountController, true);
-    assertThrows(ExceptionFactory.NotSupportedInOfflineMode().getClass(), () -> accountController.accountBalance(request));
+    assertThrows(ExceptionFactory.notSupportedInOfflineMode().getClass(), () -> accountController.accountBalance(request));
   }
 
   @Test
@@ -63,7 +63,7 @@ class AccountApiImplementationTest extends BaseSpringMvcSetup {
     Field field = AccountApiImplementation.class.getDeclaredField("offlineMode");
     field.setAccessible(true);
     field.set(accountController, true);
-    assertThrows(ExceptionFactory.NotSupportedInOfflineMode().getClass(), () -> accountController.accountCoins(request));
+    assertThrows(ExceptionFactory.notSupportedInOfflineMode().getClass(), () -> accountController.accountCoins(request));
   }
 
   @Test

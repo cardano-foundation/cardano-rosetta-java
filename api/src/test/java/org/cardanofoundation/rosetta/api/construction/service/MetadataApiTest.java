@@ -39,7 +39,7 @@ class MetadataApiTest extends IntegrationTest {
         ConstructionMetadataResponse constructionMetadataResponse = constructionApiService.constructionMetadataService(constructionMetadataRequest);
         //then
         assertNotNull(constructionMetadataResponse);
-        assertEquals("157185", constructionMetadataResponse.getSuggestedFee().getFirst().getValue());
+        assertEquals("157141", constructionMetadataResponse.getSuggestedFee().getFirst().getValue());
         assertEquals(ADA, constructionMetadataResponse.getSuggestedFee().getFirst().getCurrency().getSymbol());
         assertEquals(ADA_DECIMALS, constructionMetadataResponse.getSuggestedFee().getFirst().getCurrency().getDecimals());
 

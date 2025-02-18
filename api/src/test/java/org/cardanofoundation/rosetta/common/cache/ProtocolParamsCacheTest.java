@@ -49,6 +49,7 @@ class ProtocolParamsCacheTest {
   private CacheManager cacheManager;
 
   @BeforeEach
+  @SuppressWarnings("java:S5786")
   public void setUp() {
     Cache cache = cacheManager.getCache(PROTOCOL_PARAMS_CACHE);
     if (cache != null) {

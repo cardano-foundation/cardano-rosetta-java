@@ -1,5 +1,8 @@
 package org.cardanofoundation.rosetta.common.enumeration;
 
+import java.util.Arrays;
+import java.util.Optional;
+
 import lombok.Getter;
 
 import com.bloxbean.cardano.client.common.model.Network;
@@ -28,22 +31,12 @@ public enum NetworkEnum {
         return network;
     }
 
-    public static NetworkEnum findByName(String name) {
-        for (NetworkEnum b : NetworkEnum.values()) {
-            if (b.name.equals(name)) {
-                return b;
-            }
-        }
-        return null;
+    public static Optional<NetworkEnum> findByName(String name) {
+        return Arrays.stream(NetworkEnum.values()).filter(b -> b.name.equals(name)).findFirst();
     }
 
-    public static NetworkEnum findByProtocolMagic(long protocolMagic) {
-        for (NetworkEnum b : NetworkEnum.values()) {
-            if (b.network.getProtocolMagic() == protocolMagic) {
-                return b;
-            }
-        }
-        return null;
+    public static Optional<NetworkEnum> findByProtocolMagic(long protocolMagic) {
+        return Arrays.stream(NetworkEnum.values()).filter(b -> b.network.getProtocolMagic() == protocolMagic).findFirst();
     }
 
 }
