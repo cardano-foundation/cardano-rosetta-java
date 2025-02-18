@@ -19,32 +19,7 @@ import com.bloxbean.cardano.client.exception.AddressExcepion;
 import com.bloxbean.cardano.client.exception.CborSerializationException;
 import com.bloxbean.cardano.client.transaction.util.TransactionUtil;
 import com.bloxbean.cardano.client.util.HexUtil;
-import org.openapitools.client.model.AccountIdentifier;
-import org.openapitools.client.model.ConstructionCombineRequest;
-import org.openapitools.client.model.ConstructionCombineResponse;
-import org.openapitools.client.model.ConstructionDeriveMetadata;
-import org.openapitools.client.model.ConstructionDeriveRequest;
-import org.openapitools.client.model.ConstructionDeriveResponse;
-import org.openapitools.client.model.ConstructionHashRequest;
-import org.openapitools.client.model.ConstructionMetadataRequest;
-import org.openapitools.client.model.ConstructionMetadataRequestOption;
-import org.openapitools.client.model.ConstructionMetadataResponse;
-import org.openapitools.client.model.ConstructionParseRequest;
-import org.openapitools.client.model.ConstructionParseResponse;
-import org.openapitools.client.model.ConstructionPayloadsRequest;
-import org.openapitools.client.model.ConstructionPayloadsRequestMetadata;
-import org.openapitools.client.model.ConstructionPayloadsResponse;
-import org.openapitools.client.model.ConstructionPreprocessMetadata;
-import org.openapitools.client.model.ConstructionPreprocessRequest;
-import org.openapitools.client.model.ConstructionPreprocessResponse;
-import org.openapitools.client.model.ConstructionSubmitRequest;
-import org.openapitools.client.model.DepositParameters;
-import org.openapitools.client.model.NetworkIdentifier;
-import org.openapitools.client.model.Operation;
-import org.openapitools.client.model.PublicKey;
-import org.openapitools.client.model.SigningPayload;
-import org.openapitools.client.model.TransactionIdentifier;
-import org.openapitools.client.model.TransactionIdentifierResponse;
+import org.openapitools.client.model.*;
 
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
 import org.cardanofoundation.rosetta.api.construction.enumeration.AddressType;
@@ -56,6 +31,7 @@ import org.cardanofoundation.rosetta.common.model.cardano.transaction.Transactio
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.TransactionParsed;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.UnsignedTransaction;
 import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
+import org.cardanofoundation.rosetta.common.time.OfflineSlotService;
 import org.cardanofoundation.rosetta.common.util.CborEncodeUtil;
 import org.cardanofoundation.rosetta.common.util.Constants;
 
@@ -67,15 +43,16 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
   private final CardanoConstructionService cardanoConstructionService;
   private final ProtocolParamService protocolParamService;
   private final ConstructionMapper constructionMapper;
+  private final OfflineSlotService offlineSlotService;
 
   @Override
   public ConstructionDeriveResponse constructionDeriveService(
-      ConstructionDeriveRequest constructionDeriveRequest) {
+          ConstructionDeriveRequest constructionDeriveRequest) {
     PublicKey publicKey = constructionDeriveRequest.getPublicKey();
     log.info("Deriving address for public key: {}", publicKey);
 
     NetworkEnum network = NetworkEnum.findByName(
-        constructionDeriveRequest.getNetworkIdentifier().getNetwork());
+            constructionDeriveRequest.getNetworkIdentifier().getNetwork());
     if (network == null) {
       throw ExceptionFactory.invalidNetworkError();
     }
@@ -88,79 +65,89 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
 
     // Default address type is enterprise
     AddressType addressType =
-        metadata.getAddressType() != null ? AddressType.findByValue(metadata.getAddressType())
-            : null;
+            metadata.getAddressType() != null ? AddressType.findByValue(metadata.getAddressType())
+                    : null;
     addressType = addressType != null ? addressType : AddressType.ENTERPRISE;
 
     PublicKey stakingCredential = null;
     if (addressType == AddressType.BASE) {
       stakingCredential = Optional.ofNullable(metadata.getStakingCredential())
-          .orElseThrow(ExceptionFactory::missingStakingKeyError);
+              .orElseThrow(ExceptionFactory::missingStakingKeyError);
     }
     String address = cardanoConstructionService
-        .getCardanoAddress(addressType, stakingCredential, publicKey, network);
+            .getCardanoAddress(addressType, stakingCredential, publicKey, network);
     return new ConstructionDeriveResponse(null, new AccountIdentifier(address, null, null), null);
   }
 
   @Override
   public ConstructionPreprocessResponse constructionPreprocessService(
-      ConstructionPreprocessRequest constructionPreprocessRequest) {
+          ConstructionPreprocessRequest constructionPreprocessRequest) {
 
     NetworkIdentifier networkIdentifier = constructionPreprocessRequest.getNetworkIdentifier();
     Optional<ConstructionPreprocessMetadata> metadata = Optional.ofNullable(
-        constructionPreprocessRequest.getMetadata());
+            constructionPreprocessRequest.getMetadata());
     int relativeTtl;
     DepositParameters depositParameters;
     if (metadata.isPresent()) {
       relativeTtl = cardanoConstructionService.checkOrReturnDefaultTtl(
-          metadata.get().getRelativeTtl());
+              metadata.get().getRelativeTtl());
       depositParameters = Optional.ofNullable(metadata.get().getDepositParameters()).orElse(
-          cardanoConstructionService.getDepositParameters());
+              cardanoConstructionService.getDepositParameters());
     } else {
       relativeTtl = Constants.DEFAULT_RELATIVE_TTL;
       depositParameters = cardanoConstructionService.getDepositParameters();
     }
 
+    long currentSlotBasedOnTime = offlineSlotService.getCurrentSlotBasedOnTime() + relativeTtl;
+
     int transactionSize = cardanoConstructionService.calculateTxSize(
-        Objects.requireNonNull(NetworkEnum.findByName(networkIdentifier.getNetwork())).getNetwork(),
-        constructionPreprocessRequest.getOperations(), 0, depositParameters);
+            Objects.requireNonNull(NetworkEnum.findByName(networkIdentifier.getNetwork())).getNetwork(),
+            constructionPreprocessRequest.getOperations(),
+            currentSlotBasedOnTime,
+            depositParameters
+    );
     Map<String, Integer> response = Map.of(Constants.RELATIVE_TTL, relativeTtl,
-        Constants.TRANSACTION_SIZE, transactionSize);
+            Constants.TRANSACTION_SIZE, transactionSize);
+
     return new ConstructionPreprocessResponse(response, null);
   }
 
   @Override
   public ConstructionMetadataResponse constructionMetadataService(
-      ConstructionMetadataRequest constructionMetadataRequest) {
+          ConstructionMetadataRequest constructionMetadataRequest) {
 
     CompletableFuture<ProtocolParams> protocolParamsFuture = CompletableFuture
-        .supplyAsync(protocolParamService::findProtocolParameters);
-
+            .supplyAsync(protocolParamService::findProtocolParameters);
     ConstructionMetadataRequestOption options = constructionMetadataRequest.getOptions();
-    Double relativeTtl = options.getRelativeTtl().doubleValue();
-    Double txSize = options.getTransactionSize().doubleValue();
+
+    int relativeTtl = options.getRelativeTtl().intValue();
+    long txSize = options.getTransactionSize().longValue();
+
     log.debug("[constructionMetadata] Calculating ttl based on {} relative ttl", relativeTtl);
 
-    Long ttl = cardanoConstructionService.calculateTtl(relativeTtl.longValue());
+    Long ttl = cardanoConstructionService.calculateTtl((long) relativeTtl);
+
     log.debug("[constructionMetadata] ttl is {}", ttl);
     log.debug("[constructionMetadata] updating tx size from {}", txSize);
-
-    Long updatedTxSize = cardanoConstructionService.updateTxSize(txSize.longValue(), 0L, ttl);
     log.debug("[constructionMetadata] updated txSize size is ${updatedTxSize}");
 
     ProtocolParams protocolParams = protocolParamsFuture.join();
     log.debug("[constructionMetadata] received protocol parameters from block-service {}",
-        protocolParams);
+            protocolParams);
 
-    Long suggestedFee = cardanoConstructionService.calculateTxMinimumFee(updatedTxSize,
-        protocolParams);
+    Long suggestedFee = cardanoConstructionService.calculateTxMinimumFee(
+            txSize,
+            protocolParams
+    );
+
     log.debug("[constructionMetadata] suggested fee is ${suggestedFee}");
+
     return constructionMapper.mapToMetadataResponse(protocolParams, ttl, suggestedFee);
   }
 
   @Override
   public ConstructionPayloadsResponse constructionPayloadsService(
-      ConstructionPayloadsRequest constructionPayloadsRequest) {
+          ConstructionPayloadsRequest constructionPayloadsRequest) {
 
     List<Operation> operations = constructionPayloadsRequest.getOperations();
 
@@ -168,27 +155,27 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
     ConstructionPayloadsRequestMetadata metadata = constructionPayloadsRequest.getMetadata();
 
     int ttl = metadata != null ?
-        cardanoConstructionService.checkOrReturnDefaultTtl(metadata.getTtl()) :
-        Constants.DEFAULT_RELATIVE_TTL;
+            cardanoConstructionService.checkOrReturnDefaultTtl(metadata.getTtl()) :
+            Constants.DEFAULT_RELATIVE_TTL;
 
     DepositParameters depositParameters = getDepositParameters(metadata);
     Network network = NetworkEnum.findByName(
-        constructionPayloadsRequest.getNetworkIdentifier().getNetwork()).getNetwork();
+            constructionPayloadsRequest.getNetworkIdentifier().getNetwork()).getNetwork();
 
     UnsignedTransaction unsignedTransaction = createUnsignedTransaction(network,
-        operations, ttl, depositParameters);
+            operations, ttl, depositParameters);
     List<SigningPayload> payloads = cardanoConstructionService.constructPayloadsForTransactionBody(
-        unsignedTransaction.hash(), unsignedTransaction.addresses());
+            unsignedTransaction.hash(), unsignedTransaction.addresses());
     String unsignedTransactionString = encodeUnsignedTransaction(unsignedTransaction, operations);
     return new ConstructionPayloadsResponse(unsignedTransactionString, payloads);
   }
 
   @Override
   public void verifyProtocolParameters(ConstructionPayloadsRequest constructionPayloadsRequest) {
-    if(constructionPayloadsRequest.getMetadata() == null || constructionPayloadsRequest.getMetadata().getTtl() == null) {
+    if (constructionPayloadsRequest.getMetadata() == null || constructionPayloadsRequest.getMetadata().getTtl() == null) {
       throw ExceptionFactory.ttlMissingError();
     }
-    if(constructionPayloadsRequest.getMetadata().getProtocolParameters() == null) {
+    if (constructionPayloadsRequest.getMetadata().getProtocolParameters() == null) {
       throw ExceptionFactory.protocolParametersMissingError();
     } else {
       if(constructionPayloadsRequest.getMetadata().getProtocolParameters().getCoinsPerUtxoSize() == null) {
@@ -226,9 +213,9 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
 
   @Override
   public ConstructionParseResponse constructionParseService(
-      ConstructionParseRequest constructionParseRequest) {
+          ConstructionParseRequest constructionParseRequest) {
     Boolean signed = Optional.ofNullable(constructionParseRequest.getSigned()).orElseThrow(
-        () -> ExceptionFactory.unspecifiedError("body should have required property signed."));
+            () -> ExceptionFactory.unspecifiedError("body should have required property signed."));
 
     Network network = Objects
             .requireNonNull(NetworkEnum.findByName(constructionParseRequest.getNetworkIdentifier().getNetwork()))
@@ -236,29 +223,29 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
     log.info(constructionParseRequest.getTransaction() + "[constructionParse] Processing");
 
     TransactionParsed result = cardanoConstructionService.parseTransaction(network,
-        constructionParseRequest.getTransaction(), signed);
+            constructionParseRequest.getTransaction(), signed);
 
     return new ConstructionParseResponse(result.operations(), null,
-        result.accountIdentifierSigners(), null);
+            result.accountIdentifierSigners(), null);
   }
 
   @Override
   public ConstructionCombineResponse constructionCombineService(
-      ConstructionCombineRequest constructionCombineRequest) {
+          ConstructionCombineRequest constructionCombineRequest) {
     log.info("[constructionCombine] Request received to sign a transaction");
     Array array = cardanoConstructionService.decodeTransaction(
-        constructionCombineRequest.getUnsignedTransaction());
+            constructionCombineRequest.getUnsignedTransaction());
     TransactionExtraData extraData = CborMapToTransactionExtraData.convertCborMapToTransactionExtraData(
-        (co.nstant.in.cbor.model.Map) array.getDataItems().get(1));
+            (co.nstant.in.cbor.model.Map) array.getDataItems().get(1));
 
     String signedTransaction = cardanoConstructionService.buildTransaction(
-        ((UnicodeString) array.getDataItems().getFirst()).getString(),
-        constructionMapper.mapRosettaSignatureToSignaturesList(constructionCombineRequest.getSignatures()),
-        extraData.transactionMetadataHex());
+            ((UnicodeString) array.getDataItems().getFirst()).getString(),
+            constructionMapper.mapRosettaSignatureToSignaturesList(constructionCombineRequest.getSignatures()),
+            extraData.transactionMetadataHex());
     try {
       return new ConstructionCombineResponse(
-          CborEncodeUtil.encodeExtraData(signedTransaction, extraData.operations(),
-              extraData.transactionMetadataHex()));
+              CborEncodeUtil.encodeExtraData(signedTransaction, extraData.operations(),
+                      extraData.transactionMetadataHex()));
     } catch (CborException e) {
       throw ExceptionFactory.cantEncodeExtraData();
     }
@@ -266,9 +253,9 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
 
   @Override
   public TransactionIdentifierResponse constructionHashService(
-      ConstructionHashRequest constructionHashRequest) {
+          ConstructionHashRequest constructionHashRequest) {
     Array array = cardanoConstructionService.decodeTransaction(
-        constructionHashRequest.getSignedTransaction());
+            constructionHashRequest.getSignedTransaction());
     log.info("[constructionHash] About to get hash of signed transaction");
     byte[] signedTransactionBytes = HexUtil.decodeHexString(((UnicodeString) array.getDataItems().getFirst()).getString());
     String transactionHash = TransactionUtil.getTxHash(signedTransactionBytes);
@@ -278,7 +265,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
 
   @Override
   public TransactionIdentifierResponse constructionSubmitService(
-      ConstructionSubmitRequest constructionSubmitRequest) {
+          ConstructionSubmitRequest constructionSubmitRequest) {
     String signedTransaction = constructionSubmitRequest.getSignedTransaction();
     log.info("[constructionSubmit] About to submit signed transaction");
     String tx = cardanoConstructionService.extractTransactionIfNeeded(signedTransaction);
@@ -289,13 +276,13 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
 
   private DepositParameters getDepositParameters(ConstructionPayloadsRequestMetadata metadata) {
     return metadata != null && metadata.getProtocolParameters() != null ?
-        new DepositParameters(metadata.getProtocolParameters().getKeyDeposit(),
-            metadata.getProtocolParameters().getPoolDeposit()) :
-        cardanoConstructionService.getDepositParameters();
+            new DepositParameters(metadata.getProtocolParameters().getKeyDeposit(),
+                    metadata.getProtocolParameters().getPoolDeposit()) :
+            cardanoConstructionService.getDepositParameters();
   }
 
   private UnsignedTransaction createUnsignedTransaction(Network network, List<Operation> operations, int ttl,
-     DepositParameters depositParameters) {
+                                                        DepositParameters depositParameters) {
     try {
       return cardanoConstructionService.createUnsignedTransaction(network, operations, ttl, depositParameters);
     } catch (IOException | CborSerializationException | AddressExcepion | CborException e) {
@@ -305,10 +292,10 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
   }
 
   private String encodeUnsignedTransaction(UnsignedTransaction unsignedTransaction,
-      List<Operation> operations) {
+                                           List<Operation> operations) {
     try {
       return CborEncodeUtil.encodeExtraData(unsignedTransaction.bytes(), operations,
-          unsignedTransaction.metadata());
+              unsignedTransaction.metadata());
     } catch (CborException e) {
       log.error("Error encoding unsigned transaction: {}", e.getMessage());
       throw ExceptionFactory.cantEncodeExtraData();

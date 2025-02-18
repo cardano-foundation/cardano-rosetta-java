@@ -1,34 +1,10 @@
 package org.cardanofoundation.rosetta.api.construction.service;
 
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import jakarta.validation.constraints.NotNull;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
-import org.springframework.web.client.RestTemplate;
 import co.nstant.in.cbor.CborException;
 import co.nstant.in.cbor.model.Array;
 import co.nstant.in.cbor.model.DataItem;
 import co.nstant.in.cbor.model.MajorType;
 import co.nstant.in.cbor.model.UnicodeString;
-import co.nstant.in.cbor.model.UnsignedInteger;
 import com.bloxbean.cardano.client.address.AddressProvider;
 import com.bloxbean.cardano.client.address.ByronAddress;
 import com.bloxbean.cardano.client.common.cbor.CborSerializationUtil;
@@ -39,22 +15,16 @@ import com.bloxbean.cardano.client.crypto.bip32.key.HdPublicKey;
 import com.bloxbean.cardano.client.exception.AddressExcepion;
 import com.bloxbean.cardano.client.exception.CborDeserializationException;
 import com.bloxbean.cardano.client.exception.CborSerializationException;
-import com.bloxbean.cardano.client.transaction.spec.AuxiliaryData;
-import com.bloxbean.cardano.client.transaction.spec.BootstrapWitness;
+import com.bloxbean.cardano.client.spec.Era;
 import com.bloxbean.cardano.client.transaction.spec.Transaction;
-import com.bloxbean.cardano.client.transaction.spec.TransactionBody;
+import com.bloxbean.cardano.client.transaction.spec.*;
 import com.bloxbean.cardano.client.transaction.spec.TransactionBody.TransactionBodyBuilder;
-import com.bloxbean.cardano.client.transaction.spec.TransactionWitnessSet;
-import com.bloxbean.cardano.client.transaction.spec.VkeyWitness;
 import com.bloxbean.cardano.client.util.HexUtil;
+import jakarta.validation.constraints.NotNull;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import org.apache.commons.lang3.ObjectUtils;
-import org.openapitools.client.model.AccountIdentifier;
-import org.openapitools.client.model.DepositParameters;
-import org.openapitools.client.model.Operation;
-import org.openapitools.client.model.PublicKey;
-import org.openapitools.client.model.SignatureType;
-import org.openapitools.client.model.SigningPayload;
-
 import org.cardanofoundation.rosetta.api.block.model.domain.ProcessOperations;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProcessOperationsReturn;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
@@ -70,22 +40,41 @@ import org.cardanofoundation.rosetta.common.model.cardano.transaction.Transactio
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.TransactionParsed;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.UnsignedTransaction;
 import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
+import org.cardanofoundation.rosetta.common.time.OfflineSlotService;
 import org.cardanofoundation.rosetta.common.util.CardanoAddressUtils;
 import org.cardanofoundation.rosetta.common.util.Constants;
 import org.cardanofoundation.rosetta.common.util.OperationParseUtil;
 import org.cardanofoundation.rosetta.common.util.ValidateParseUtil;
+import org.openapitools.client.model.*;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+import org.springframework.web.client.RestTemplate;
+
+import java.math.BigInteger;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static java.math.BigInteger.valueOf;
+import static org.cardanofoundation.rosetta.common.util.Constants.DEFAULT_RELATIVE_TTL;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class CardanoConstructionServiceImpl implements CardanoConstructionService {
 
+  private final static long MIN_DUMMY_FEE = 17_0000L;
+
   private final LedgerBlockService ledgerBlockService;
   private final ProtocolParamService protocolParamService;
   private final OperationService operationService;
   private final RestTemplate restTemplate;
+  private final OfflineSlotService offlineSlotService;
 
   private final ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor();
 
@@ -106,22 +95,22 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
       if (signed) {
         log.info("[parseSignedTransaction] About to get signatures from parsed transaction");
         List<String> accumulator = convertedTr.transactionExtraData().operations().stream()
-            .map(o -> operationService.getSignerFromOperation(network, o))
-            .flatMap(List::stream)
-            .toList();
+                .map(o -> operationService.getSignerFromOperation(network, o))
+                .flatMap(List::stream)
+                .toList();
         accountIdentifierSigners = getUniqueAccountIdentifiers(accumulator);
       }
       return new TransactionParsed(operations, accountIdentifierSigners);
     } catch (CborException | CborDeserializationException | CborSerializationException error) {
       log.error("{} [parseTransaction] Cant instantiate transaction from transaction bytes",
-          error.getMessage(), error);
+              error.getMessage(), error);
       throw ExceptionFactory.invalidTransactionError();
     }
   }
 
   @Override
   public Integer checkOrReturnDefaultTtl(Integer relativeTtl) {
-    return relativeTtl == null ? Constants.DEFAULT_RELATIVE_TTL : relativeTtl;
+    return relativeTtl == null ? DEFAULT_RELATIVE_TTL : relativeTtl;
   }
 
   @Override
@@ -131,113 +120,120 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
       return (Array) dataItem;
     } catch (Exception e) {
       log.error("[decodeTransaction] Cannot decode transaction bytes. Exception: {}",
-          e.getMessage());
+              e.getMessage());
       throw ExceptionFactory.invalidTransactionError();
     }
   }
 
   @Override
   public Long calculateTtl(Long ttlOffset) {
+    long absoluteSlot = offlineMode ? offlineSlotService.getCurrentSlotBasedOnTime()
+            : ledgerBlockService.findLatestBlockIdentifier().getSlot();
 
-    return offlineMode ? ttlOffset : ledgerBlockService.findLatestBlockIdentifier().getSlot() + ttlOffset;
-  }
-
-  @Override
-  public Long updateTxSize(Long previousTxSize, Long previousTtl, Long updatedTtl) {
-    try {
-      return
-          previousTxSize + CborSerializationUtil.serialize(new UnsignedInteger(updatedTtl)).length
-              - CborSerializationUtil.serialize(new UnsignedInteger(previousTtl)).length;
-    } catch (CborException e) {
-      throw ExceptionFactory.cantCreateUnsignedTransactionFromBytes();
-    }
+    return absoluteSlot + ttlOffset;
   }
 
   @Override
   public Long calculateTxMinimumFee(Long transactionSize, ProtocolParams protocolParameters) {
-    return protocolParameters.getMinFeeA() * transactionSize + protocolParameters.getMinFeeB();
+    return BigInteger.valueOf((protocolParameters.getMinFeeA() * transactionSize) + protocolParameters.getMinFeeB()).longValue();
   }
 
   @Override
   public Signatures signatureProcessor(EraAddressType eraAddressType, AddressType addressType,
-      String address) {
+                                       String address) {
     if (eraAddressType != null && eraAddressType.equals(EraAddressType.SHELLEY)) {
       return new Signatures(Constants.SHELLEY_DUMMY_SIGNATURE, Constants.SHELLEY_DUMMY_PUBKEY, null,
-          address);
+              address);
     }
     if (eraAddressType != null && eraAddressType.equals(EraAddressType.BYRON)) {
       return new Signatures(Constants.BYRON_DUMMY_SIGNATURE, Constants.BYRON_DUMMY_PUBKEY,
-          Constants.CHAIN_CODE_DUMMY, address);
+              Constants.CHAIN_CODE_DUMMY, address);
     }
     if (addressType != null && AddressType.POOL_KEY_HASH.getValue().equals(addressType.getValue())) {
       return new Signatures(Constants.COLD_DUMMY_SIGNATURE, Constants.COLD_DUMMY_PUBKEY, null,
-          address);
+              address);
     }
     return null;
   }
 
   @Override
-  public Integer calculateTxSize(Network network, List<Operation> operations, int ttl,
-      DepositParameters depositParameters) {
-    UnsignedTransaction unsignedTransaction;
+  public Integer calculateTxSize(Network network,
+                                 List<Operation> operations,
+                                 long ttl,
+                                 DepositParameters depositParameters) {
     try {
-      unsignedTransaction = createUnsignedTransaction(network, operations, ttl,
-              depositParameters != null ? depositParameters :
-              new DepositParameters(Constants.DEFAULT_KEY_DEPOSIT.toString(),
-                  Constants.DEFAULT_POOL_DEPOSIT.toString()));
+      UnsignedTransaction unsignedTransaction = createUnsignedTransaction(
+              network,
+              operations,
+              ttl,
+              getDepositParametersOrFallback(depositParameters)
+      );
+
+      List<Signatures> signaturesList = (unsignedTransaction.addresses()).stream()
+              .map(this::extractSignaturesFromAddress)
+              .toList();
+
+      String transactionCborHex = buildTransaction(
+              unsignedTransaction.bytes(),
+              signaturesList,
+              unsignedTransaction.metadata()
+      );
+
+      log.debug("TxCbor:" + transactionCborHex);
+
+      val txBytes = HexUtil.decodeHexString(transactionCborHex);
+
+      return txBytes.length;
     } catch (CborSerializationException | AddressExcepion | CborException e) {
       throw ExceptionFactory.cantCreateUnsignedTransactionFromBytes();
     }
-    List<Signatures> signaturesList = (unsignedTransaction.addresses()).stream()
-        .map(this::extractSignaturesFromAddress)
-        .toList();
+  }
 
-    String transaction = buildTransaction(unsignedTransaction.bytes(), signaturesList,
-        unsignedTransaction.metadata());
-    // the String transaction represents Hex encoded bytes of the transaction.
-    // To get the size of the transaction in bytes, we need to divide the length by two. Because every Hex character represents 4 bits.
-    return (transaction.length() / 2);
-
+  private static DepositParameters getDepositParametersOrFallback(DepositParameters depositParameters) {
+    return depositParameters != null ? depositParameters :
+            new DepositParameters(Constants.DEFAULT_KEY_DEPOSIT.toString(), Constants.DEFAULT_POOL_DEPOSIT.toString());
   }
 
   @Override
-  public String buildTransaction(String unsignedTransaction, List<Signatures> signaturesList,
-      String transactionMetadata) {
+  public String buildTransaction(String unsignedTransaction,
+                                 List<Signatures> signaturesList,
+                                 String transactionMetadata) {
     log.info("[buildTransaction] About to signed a transaction with {} signatures",
-        signaturesList.size());
+            signaturesList.size());
+
     CompletableFuture<TransactionBody> transactionBodyFuture =
-        CompletableFuture.supplyAsync(() -> deserializeTransactionBody(unsignedTransaction), executorService);
+            CompletableFuture.supplyAsync(() -> deserializeTransactionBody(unsignedTransaction), executorService);
+
     CompletableFuture<TransactionWitnessSet> witnessesFuture =
-        CompletableFuture.supplyAsync(() -> getWitnessesForTransaction(signaturesList), executorService);
+            CompletableFuture.supplyAsync(() -> getWitnessesForTransaction(signaturesList), executorService);
+
     CompletableFuture<AuxiliaryData> auxiliaryDataFuture =
-        CompletableFuture.supplyAsync(() -> deserializeAuxiliaryData(transactionMetadata), executorService);
+            CompletableFuture.supplyAsync(() -> deserializeAuxiliaryData(transactionMetadata), executorService);
+
     try {
       log.info(
-          "[buildTransaction] Creating transaction using transaction body and extracted witnesses");
+              "[buildTransaction] Creating transaction using transaction body and extracted witnesses");
+
       Transaction transaction = new Transaction();
       transaction.setBody(transactionBodyFuture.join());
       transaction.setAuxiliaryData(auxiliaryDataFuture.join());
       transaction.setWitnessSet(witnessesFuture.join());
+      transaction.setEra(Era.Conway);
+      transaction.setValid(true);
+
       Array cborTransactionsArray = (Array) CborSerializationUtil.deserialize(transaction.serialize());
-      if (transaction.getBody().getTtl() == 0) {
-        co.nstant.in.cbor.model.Map dataItem1 =
-            (co.nstant.in.cbor.model.Map) cborTransactionsArray.getDataItems().getFirst();
-        // Position of ttl in transaction body, it will be discarded while serialization if it's 0, but it needs to be in the Data map
-        // otherwise a wrong hash will be produced.
-        dataItem1.put(new UnsignedInteger(3), new UnsignedInteger(0));
-        cborTransactionsArray.getDataItems().set(0, dataItem1);
-      }
+
       if (!ObjectUtils.isEmpty(transactionMetadata)) {
         Array cborMetadataArray = new Array();
         cborMetadataArray.add(cborTransactionsArray.getDataItems().get(3));
         cborMetadataArray.add(new Array());
         cborTransactionsArray.getDataItems().set(3, cborMetadataArray);
       }
-      return HexUtil.encodeHexString(
-          com.bloxbean.cardano.yaci.core.util.CborSerializationUtil.serialize(cborTransactionsArray));
+
+      return transaction.serializeToHex();
     } catch (CborSerializationException e) {
       log.error("{} [buildTransaction] CborSerializationException while building transaction",
-          e.getMessage());
+              e.getMessage());
       throw ExceptionFactory.generalSerializationError(e.getMessage());
     }
   }
@@ -254,27 +250,27 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
       }
       VerificationKey vKey = new VerificationKey(signature.publicKey());
       EraAddressType eraAddressType = CardanoAddressUtils.getEraAddressType(signature.address());
-        if (eraAddressType == EraAddressType.BYRON) {
-          // byron case
-          ValidateParseUtil.validateChainCode(signature.chainCode());
-          ByronAddress byronAddress = new ByronAddress(signature.address());
-          String byronAddressTail = HexUtil.encodeHexString(byronAddress.getBytes()).substring(72);
-          String partOfByronAddress = new StringBuilder(byronAddressTail).reverse().delete(0, 12)
-              .reverse().toString();
-          BootstrapWitness bootstrap = new BootstrapWitness(
-              HexUtil.decodeHexString(vKey.getCborHex()),
-              HexUtil.decodeHexString(signature.signature()),
-              //revise
-              HexUtil.decodeHexString(signature.chainCode()),
-              HexUtil.decodeHexString(partOfByronAddress));
-          bootstrapWitnesses.add(bootstrap);
-        } else {
-          vKeyWitnesses.add(new VkeyWitness(HexUtil.decodeHexString(vKey.getCborHex()),
-              HexUtil.decodeHexString(signature.signature())));
-        }
+      if (eraAddressType == EraAddressType.BYRON) {
+        // byron case
+        ValidateParseUtil.validateChainCode(signature.chainCode());
+        ByronAddress byronAddress = new ByronAddress(signature.address());
+        String byronAddressTail = HexUtil.encodeHexString(byronAddress.getBytes()).substring(72);
+        String partOfByronAddress = new StringBuilder(byronAddressTail).reverse().delete(0, 12)
+                .reverse().toString();
+        BootstrapWitness bootstrap = new BootstrapWitness(
+                HexUtil.decodeHexString(vKey.getCborHex()),
+                HexUtil.decodeHexString(signature.signature()),
+                //revise
+                HexUtil.decodeHexString(signature.chainCode()),
+                HexUtil.decodeHexString(partOfByronAddress));
+        bootstrapWitnesses.add(bootstrap);
+      } else {
+        vKeyWitnesses.add(new VkeyWitness(HexUtil.decodeHexString(vKey.getCborHex()),
+                HexUtil.decodeHexString(signature.signature())));
+      }
     });
     log.info("[getWitnessesForTransaction] {} witnesses were extracted to sign transaction",
-        vKeyWitnesses.size());
+            vKeyWitnesses.size());
     if (!vKeyWitnesses.isEmpty()) {
       witnesses.setVkeyWitnesses(vKeyWitnesses);
     }
@@ -285,27 +281,30 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
   }
 
   @Override
-  public UnsignedTransaction createUnsignedTransaction(Network network, List<Operation> operations, int ttl, DepositParameters depositParameters)
-      throws CborSerializationException, AddressExcepion, CborException {
+  public UnsignedTransaction createUnsignedTransaction(Network network,
+                                                       List<Operation> operations,
+                                                       long ttl,
+                                                       DepositParameters depositParameters)
+          throws CborSerializationException, AddressExcepion, CborException {
 
     log.info(
-        "[createUnsignedTransaction] About to create an unsigned transaction with {} operations",
-        operations.size());
+            "[createUnsignedTransaction] About to create an unsigned transaction with {} operations",
+            operations.size());
     ProcessOperationsReturn opRetDto = processOperations(network, operations, depositParameters);
 
     log.info("[createUnsignedTransaction] About to create transaction body");
     TransactionBodyBuilder transactionBodyBuilder = TransactionBody.builder()
-        .inputs(opRetDto.getTransactionInputs())
-        .outputs(opRetDto.getTransactionOutputs())
-        .fee(valueOf(opRetDto.getFee()))
-        .ttl(ttl);
+            .inputs(opRetDto.getTransactionInputs())
+            .outputs(opRetDto.getTransactionOutputs())
+            .fee(valueOf(opRetDto.getFee()))
+            .ttl(ttl);
 
     if (opRetDto.getVoteRegistrationMetadata() != null) {
       log.info(
-          "[createUnsignedTransaction] Hashing vote registration metadata and adding to transaction body");
+              "[createUnsignedTransaction] Hashing vote registration metadata and adding to transaction body");
       Array cborAuxDataArray = getArrayOfAuxiliaryData(opRetDto);
       transactionBodyBuilder.auxiliaryDataHash(Blake2bUtil.blake2bHash256(
-          com.bloxbean.cardano.yaci.core.util.CborSerializationUtil.serialize(cborAuxDataArray)));
+              com.bloxbean.cardano.yaci.core.util.CborSerializationUtil.serialize(cborAuxDataArray)));
     }
 
     if (!(opRetDto.getCertificates()).isEmpty()) {
@@ -317,25 +316,22 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
     TransactionBody transactionBody = transactionBodyBuilder.build();
     co.nstant.in.cbor.model.Map mapCbor = transactionBody.serialize();
 
-    //  If ttl is 0, it will be discarded while serialization, but it needs to be in the Data map
-    if (ttl == 0) {
-      mapCbor.put(new UnsignedInteger(3), new UnsignedInteger(0));
-    }
     byte[] serializedMapCbor = CborSerializationUtil.serialize(mapCbor);
     String transactionBytes = HexUtil.encodeHexString(serializedMapCbor);
     log.info("[createUnsignedTransaction] Hashing transaction body");
     String bodyHash = HexUtil.encodeHexString(Blake2bUtil.blake2bHash256(serializedMapCbor));
 
     UnsignedTransaction toReturn = new UnsignedTransaction(bodyHash, transactionBytes,
-        opRetDto.getAddresses(), getHexEncodedAuxiliaryMetadataArray(opRetDto));
+            opRetDto.getAddresses(), getHexEncodedAuxiliaryMetadataArray(opRetDto));
     log.info("[createUnsignedTransaction] Returning unsigned transaction, hash to sign and addresses"
-        + " that will sign hash: [{}]", toReturn);
+            + " that will sign hash: [{}]", toReturn);
+
     return toReturn;
   }
 
   private static String getHexEncodedAuxiliaryMetadataArray(
-      ProcessOperationsReturn opRetDto)
-      throws CborSerializationException, CborException {
+          ProcessOperationsReturn opRetDto)
+          throws CborSerializationException, CborException {
     if (opRetDto.getVoteRegistrationMetadata() != null) {
       Array cborAuxDataArray = getArrayOfAuxiliaryData(opRetDto);
       return HexUtil.encodeHexString(CborSerializationUtil.serialize(cborAuxDataArray));
@@ -345,7 +341,7 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
 
   @NotNull
   private static Array getArrayOfAuxiliaryData(ProcessOperationsReturn processOperationsReturnDto)
-      throws CborSerializationException {
+          throws CborSerializationException {
     AuxiliaryData auxiliaryData = processOperationsReturnDto.getVoteRegistrationMetadata();
     Array cborArray = new Array();
     cborArray.add(auxiliaryData.serialize());
@@ -355,29 +351,24 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
 
   @Override
   public List<SigningPayload> constructPayloadsForTransactionBody(String transactionBodyHash,
-      Set<String> addresses) {
+                                                                  Set<String> addresses) {
     return addresses.stream().map(
-        address -> new SigningPayload(null, new AccountIdentifier(address, null, null),
-            transactionBodyHash, SignatureType.ED25519)).toList();
+            address -> new SigningPayload(null, new AccountIdentifier(address, null, null),
+                    transactionBodyHash, SignatureType.ED25519)).toList();
   }
 
   private ProcessOperationsReturn processOperations(Network network, List<Operation> operations, DepositParameters depositParams) {
     ProcessOperations result = convertRosettaOperations(network, operations);
-    double refundsSum = result.getStakeKeyDeRegistrationsCount() * Long.parseLong(
-        depositParams.getKeyDeposit());
-    Map<String, Double> depositsSumMap = getDepositsSumMap(depositParams, result, refundsSum);
-    long fee = calculateFee(result.getInputAmounts(), result.getOutputAmounts(),
-        result.getWithdrawalAmounts(), depositsSumMap);
-    log.info("[processOperations] Calculated fee:{}", fee);
-    return fillProcessOperationsReturnObject(result, fee);
+
+    return fillProcessOperationsReturnObject(result, MIN_DUMMY_FEE);
   }
 
   @NotNull
   private Map<String, Double> getDepositsSumMap(DepositParameters depositParameters, ProcessOperations result, double refundsSum) {
     double keyDepositsSum =
-        result.getStakeKeyRegistrationsCount() * Long.parseLong(depositParameters.getKeyDeposit());
+            result.getStakeKeyRegistrationsCount() * Long.parseLong(depositParameters.getKeyDeposit());
     double poolDepositsSum =
-        result.getPoolRegistrationsCount() * Long.parseLong(depositParameters.getPoolDeposit());
+            result.getPoolRegistrationsCount() * Long.parseLong(depositParameters.getPoolDeposit());
     Map<String, Double> depositsSumMap = new HashMap<>();
     depositsSumMap.put(Constants.KEY_REFUNDS_SUM, refundsSum);
     depositsSumMap.put(Constants.KEY_DEPOSITS_SUM, keyDepositsSum);
@@ -387,7 +378,7 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
 
   @NotNull
   private ProcessOperationsReturn fillProcessOperationsReturnObject(ProcessOperations result,
-      long fee) {
+                                                                    long fee) {
     ProcessOperationsReturn processOperationsDto = new ProcessOperationsReturn();
     processOperationsDto.setTransactionInputs(result.getTransactionInputs());
     processOperationsDto.setTransactionOutputs(result.getTransactionOutputs());
@@ -400,34 +391,6 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
     return processOperationsDto;
   }
 
-  /**
-   * Fees are calculated based on adding all inputs and subtracting all outputs. Withdrawals will
-   * be added as well.
-   *
-   * @param inputAmounts      Sum of all Input ADA Amounts
-   * @param outputAmounts     Sum of all Output ADA Amounts
-   * @param withdrawalAmounts Sum of all Withdrawals
-   * @param depositsSumMap    Map of refund and deposit values
-   * @return Payed Fee
-   */
-  @Override
-  public Long calculateFee(List<BigInteger> inputAmounts, List<BigInteger> outputAmounts,
-      List<BigInteger> withdrawalAmounts, Map<String, Double> depositsSumMap) {
-    long inputsSum =
-        -1 * inputAmounts.stream().reduce(BigInteger.ZERO, BigInteger::add).longValue();
-    long outputsSum = outputAmounts.stream().reduce(BigInteger.ZERO, BigInteger::add).longValue();
-    long withdrawalsSum = withdrawalAmounts.stream().reduce(BigInteger.ZERO, BigInteger::add)
-        .longValue();
-    long fee = (long) (inputsSum + withdrawalsSum * (-1) + depositsSumMap.get(
-        Constants.KEY_REFUNDS_SUM) - outputsSum
-        - depositsSumMap.get(Constants.KEY_DEPOSITS_SUM) - depositsSumMap.get(
-        Constants.POOL_DEPOSITS_SUM)); // withdrawals -1 because it's a negative value, but must be added to the
-    if (fee < 0) {
-      throw ExceptionFactory.outputsAreBiggerThanInputsError();
-    }
-    return fee;
-  }
-
   @Override
   public ProcessOperations convertRosettaOperations(Network network, List<Operation> operations) {
     ProcessOperations processor = new ProcessOperations();
@@ -435,10 +398,10 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
     for (Operation operation : operations) {
       String type = operation.getType();
       processor = OperationParseUtil.parseOperation(operation, network, processor,
-          type);
+              type);
       if (processor == null) {
         log.error("[processOperations] Operation with id {} has invalid type",
-            operation.getOperationIdentifier());
+                operation.getOperationIdentifier());
         throw ExceptionFactory.invalidOperationTypeError();
       }
     }
@@ -457,29 +420,29 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
   @Override
   public String submitTransaction(String signedTransaction) throws ApiException {
     String submitURL = Constants.PROTOCOL + cardanoNodeSubmitHost + ":" + nodeSubmitApiPort
-        + Constants.SUBMIT_API_PATH;
+            + Constants.SUBMIT_API_PATH;
     log.info("[submitTransaction] About to submit transaction to {}", submitURL);
 
     HttpHeaders headers = new HttpHeaders();
     headers.add(Constants.CONTENT_TYPE_HEADER_KEY, Constants.CBOR_CONTENT_TYPE);
-      ResponseEntity<String> exchange = restTemplate.postForEntity(
-          submitURL,
-          new HttpEntity<>(HexUtil.decodeHexString(signedTransaction), headers),
-          String.class);
-      if (exchange.getStatusCode().value() == Constants.SUCCESS_SUBMIT_TX_HTTP_CODE) {
-        return Optional
-            .ofNullable(exchange.getBody())
-            .filter(txHash -> txHash.length() == Constants.TX_HASH_LENGTH + 2)
-            // removing leading and trailing quotes returned from node API
-            .map(txHash -> txHash.substring(1, txHash.length() - 1))
-            .orElseThrow(() ->
-                ExceptionFactory.sendTransactionError("Transaction hash format error: " +
-                    exchange.getBody()));
-      }else {
-        log.error("[submitTransaction] There was an error submitting transaction");
-        throw ExceptionFactory.sendTransactionError("Transaction submit error: " +
-            exchange.getBody());
-      }
+    ResponseEntity<String> exchange = restTemplate.postForEntity(
+            submitURL,
+            new HttpEntity<>(HexUtil.decodeHexString(signedTransaction), headers),
+            String.class);
+    if (exchange.getStatusCode().value() == Constants.SUCCESS_SUBMIT_TX_HTTP_CODE) {
+      return Optional
+              .ofNullable(exchange.getBody())
+              .filter(txHash -> txHash.length() == Constants.TX_HASH_LENGTH + 2)
+              // removing leading and trailing quotes returned from node API
+              .map(txHash -> txHash.substring(1, txHash.length() - 1))
+              .orElseThrow(() ->
+                      ExceptionFactory.sendTransactionError("Transaction hash format error: " +
+                              exchange.getBody()));
+    }else {
+      log.error("[submitTransaction] There was an error submitting transaction");
+      throw ExceptionFactory.sendTransactionError("Transaction submit error: " +
+              exchange.getBody());
+    }
   }
 
   /**
@@ -507,7 +470,7 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
     Array deserialize = (Array) CborSerializationUtil.deserialize(bytes);
     // Unpack transaction if needed
     if (deserialize.getDataItems().size() == 1 && deserialize.getDataItems().getFirst().getMajorType()
-        .equals(MajorType.ARRAY)) {
+            .equals(MajorType.ARRAY)) {
       deserialize = (Array) deserialize.getDataItems().getFirst();
     }
     if (deserialize.getDataItems().isEmpty()) {
@@ -592,7 +555,8 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
     log.info("[buildTransaction] Instantiating transaction body from unsigned transaction bytes");
     try {
       DataItem[] dataItems = com.bloxbean.cardano.yaci.core.util.CborSerializationUtil.deserialize(
-          HexUtil.decodeHexString(unsignedTransaction));
+              HexUtil.decodeHexString(unsignedTransaction));
+
       return TransactionBody.deserialize((co.nstant.in.cbor.model.Map) dataItems[0]);
     } catch (Exception e) {
       log.error("[buildTransaction] Error deserializing unsigned transaction: {}", e.getMessage());
@@ -607,19 +571,19 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
     try {
       log.info("[buildTransaction] Adding transaction metadata");
       Array cborArray = (Array) CborSerializationUtil.deserialize(
-          HexUtil.decodeHexString(transactionMetadata));
+              HexUtil.decodeHexString(transactionMetadata));
       return AuxiliaryData.deserialize(
-          (co.nstant.in.cbor.model.Map) cborArray.getDataItems().getFirst());
+              (co.nstant.in.cbor.model.Map) cborArray.getDataItems().getFirst());
     } catch (Exception e) {
       log.error(
-          "[buildTransaction] CborDeserializationException while deserializing transactionMetadata: {}",
-          e.getMessage());
+              "[buildTransaction] CborDeserializationException while deserializing transactionMetadata: {}",
+              e.getMessage());
       throw ExceptionFactory.generalDeserializationError(e.getMessage());
     }
   }
 
   private List<AccountIdentifier> getUniqueAccountIdentifiers(List<String> addresses) {
     return new HashSet<>(addresses).stream().map(s -> new AccountIdentifier(s, null, null))
-        .toList();
+            .toList();
   }
 }

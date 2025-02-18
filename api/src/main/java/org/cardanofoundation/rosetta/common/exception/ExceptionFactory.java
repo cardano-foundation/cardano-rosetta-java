@@ -1,5 +1,7 @@
 package org.cardanofoundation.rosetta.common.exception;
 
+import java.time.LocalDateTime;
+
 import static org.cardanofoundation.rosetta.common.util.RosettaConstants.RosettaErrorType;
 
 
@@ -306,12 +308,16 @@ public class ExceptionFactory {
     return new ApiException(RosettaErrorType.POOL_DEPOSIT_MISSING.toRosettaError(false));
   }
 
-  public static ApiException NotSupportedInOfflineMode() {
+  public static ApiException notSupportedInOfflineMode() {
     return new ApiException(RosettaErrorType.NOT_SUPPORTED_IN_OFFLINE_MODE.toRosettaError(false));
   }
 
   public static ApiException gatewayError(boolean retriable) {
     return new ApiException(RosettaErrorType.GATEWAY_ERROR.toRosettaError(retriable));
+  }
+
+  public static ApiException misconfiguredTime(LocalDateTime now) {
+    return new ApiException(RosettaErrorType.MISCONFIGURED_TIME.toRosettaError(false, Details.builder().message("Current time: " + now).build()));
   }
 
 }

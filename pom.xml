@@ -53,6 +53,7 @@
         <version.mapstruct>1.5.5.Final</version.mapstruct>
         <version.git.commit>4.0.0</version.git.commit>
         <version.lombok.mapstruct.binding>0.2.0</version.lombok.mapstruct.binding>
+        <version.cardano.conversions>1.2.0</version.cardano.conversions>
         <test.exclusions>
             **/testgenerator/**,
             **/yaciindexer/**,
@@ -90,6 +91,11 @@
     </repositories>
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>org.cardanofoundation</groupId>
+                <artifactId>cf-cardano-conversions-java</artifactId>
+                <version>${version.cardano.conversions}</version>
+            </dependency>
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>

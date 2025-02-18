@@ -63,7 +63,7 @@ class BlockApiImplTest extends BaseSpringMvcSetup {
     field.setAccessible(true);
     field.set(blockApi, true);
     //then
-    assertThrows(ExceptionFactory.NotSupportedInOfflineMode().getClass(), () -> blockApi.block(blockRequest));
+    assertThrows(ExceptionFactory.notSupportedInOfflineMode().getClass(), () -> blockApi.block(blockRequest));
   }
 
   @Test
@@ -75,7 +75,7 @@ class BlockApiImplTest extends BaseSpringMvcSetup {
     field.setAccessible(true);
     field.set(blockApi, true);
     //then
-    assertThrows(ExceptionFactory.NotSupportedInOfflineMode().getClass(), () -> blockApi.blockTransaction(blockTransactionRequest));
+    assertThrows(ExceptionFactory.notSupportedInOfflineMode().getClass(), () -> blockApi.blockTransaction(blockTransactionRequest));
   }
 
   @Test

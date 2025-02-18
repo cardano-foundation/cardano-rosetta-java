@@ -32,7 +32,7 @@ public class AccountApiImplementation implements AccountApi {
   public ResponseEntity<AccountBalanceResponse> accountBalance(
       @Valid @RequestBody AccountBalanceRequest accountBalanceRequest) {
     if(offlineMode) {
-      throw ExceptionFactory.NotSupportedInOfflineMode();
+      throw ExceptionFactory.notSupportedInOfflineMode();
     }
     networkService.verifyNetworkRequest(accountBalanceRequest.getNetworkIdentifier());
 
@@ -43,7 +43,7 @@ public class AccountApiImplementation implements AccountApi {
   public ResponseEntity<AccountCoinsResponse> accountCoins(
       @Valid @RequestBody AccountCoinsRequest accountCoinsRequest) {
     if(offlineMode) {
-      throw ExceptionFactory.NotSupportedInOfflineMode();
+      throw ExceptionFactory.notSupportedInOfflineMode();
     }
     networkService.verifyNetworkRequest(accountCoinsRequest.getNetworkIdentifier());
 
