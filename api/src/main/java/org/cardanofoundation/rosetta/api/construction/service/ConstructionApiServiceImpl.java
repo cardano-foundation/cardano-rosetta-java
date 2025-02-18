@@ -123,9 +123,13 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
 
     int transactionSize = cardanoConstructionService.calculateTxSize(
         Objects.requireNonNull(NetworkEnum.findByName(networkIdentifier.getNetwork())).getNetwork(),
-        constructionPreprocessRequest.getOperations(), 0, depositParameters);
+        constructionPreprocessRequest.getOperations(),
+            7200 + relativeTtl,
+            depositParameters
+    );
     Map<String, Integer> response = Map.of(Constants.RELATIVE_TTL, relativeTtl,
         Constants.TRANSACTION_SIZE, transactionSize);
+
     return new ConstructionPreprocessResponse(response, null);
   }
 

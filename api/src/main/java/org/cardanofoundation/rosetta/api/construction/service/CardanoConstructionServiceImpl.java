@@ -1,13 +1,8 @@
 package org.cardanofoundation.rosetta.api.construction.service;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -24,11 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.client.RestTemplate;
 import co.nstant.in.cbor.CborException;
-import co.nstant.in.cbor.model.Array;
-import co.nstant.in.cbor.model.DataItem;
-import co.nstant.in.cbor.model.MajorType;
-import co.nstant.in.cbor.model.UnicodeString;
-import co.nstant.in.cbor.model.UnsignedInteger;
+import co.nstant.in.cbor.model.*;
 import com.bloxbean.cardano.client.address.AddressProvider;
 import com.bloxbean.cardano.client.address.ByronAddress;
 import com.bloxbean.cardano.client.common.cbor.CborSerializationUtil;
@@ -39,21 +30,12 @@ import com.bloxbean.cardano.client.crypto.bip32.key.HdPublicKey;
 import com.bloxbean.cardano.client.exception.AddressExcepion;
 import com.bloxbean.cardano.client.exception.CborDeserializationException;
 import com.bloxbean.cardano.client.exception.CborSerializationException;
-import com.bloxbean.cardano.client.transaction.spec.AuxiliaryData;
-import com.bloxbean.cardano.client.transaction.spec.BootstrapWitness;
+import com.bloxbean.cardano.client.transaction.spec.*;
 import com.bloxbean.cardano.client.transaction.spec.Transaction;
-import com.bloxbean.cardano.client.transaction.spec.TransactionBody;
 import com.bloxbean.cardano.client.transaction.spec.TransactionBody.TransactionBodyBuilder;
-import com.bloxbean.cardano.client.transaction.spec.TransactionWitnessSet;
-import com.bloxbean.cardano.client.transaction.spec.VkeyWitness;
 import com.bloxbean.cardano.client.util.HexUtil;
 import org.apache.commons.lang3.ObjectUtils;
-import org.openapitools.client.model.AccountIdentifier;
-import org.openapitools.client.model.DepositParameters;
-import org.openapitools.client.model.Operation;
-import org.openapitools.client.model.PublicKey;
-import org.openapitools.client.model.SignatureType;
-import org.openapitools.client.model.SigningPayload;
+import org.openapitools.client.model.*;
 
 import org.cardanofoundation.rosetta.api.block.model.domain.ProcessOperations;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProcessOperationsReturn;
@@ -76,6 +58,7 @@ import org.cardanofoundation.rosetta.common.util.OperationParseUtil;
 import org.cardanofoundation.rosetta.common.util.ValidateParseUtil;
 
 import static java.math.BigInteger.valueOf;
+import static org.cardanofoundation.rosetta.common.util.Constants.DEFAULT_RELATIVE_TTL;
 
 @Slf4j
 @Service
@@ -121,7 +104,7 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
 
   @Override
   public Integer checkOrReturnDefaultTtl(Integer relativeTtl) {
-    return relativeTtl == null ? Constants.DEFAULT_RELATIVE_TTL : relativeTtl;
+    return relativeTtl == null ? DEFAULT_RELATIVE_TTL : relativeTtl;
   }
 
   @Override
@@ -218,8 +201,12 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
       transaction.setBody(transactionBodyFuture.join());
       transaction.setAuxiliaryData(auxiliaryDataFuture.join());
       transaction.setWitnessSet(witnessesFuture.join());
+
       Array cborTransactionsArray = (Array) CborSerializationUtil.deserialize(transaction.serialize());
+
       if (transaction.getBody().getTtl() == 0) {
+        log.warn("[buildTransaction] Setting ttl to 0 in transaction body");
+
         co.nstant.in.cbor.model.Map dataItem1 =
             (co.nstant.in.cbor.model.Map) cborTransactionsArray.getDataItems().getFirst();
         // Position of ttl in transaction body, it will be discarded while serialization if it's 0, but it needs to be in the Data map
@@ -227,6 +214,7 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
         dataItem1.put(new UnsignedInteger(3), new UnsignedInteger(0));
         cborTransactionsArray.getDataItems().set(0, dataItem1);
       }
+
       if (!ObjectUtils.isEmpty(transactionMetadata)) {
         Array cborMetadataArray = new Array();
         cborMetadataArray.add(cborTransactionsArray.getDataItems().get(3));
