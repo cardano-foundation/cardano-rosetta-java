@@ -5,7 +5,9 @@ import org.springframework.context.annotation.Profile;
 
 import org.cardanofoundation.rosetta.RosettaApiApplication;
 
+
 @Profile("test-integration")
-@SpringBootTest(classes = {RosettaApiApplication.class})
+@SpringBootTest(classes = { RosettaApiApplication.class, TestConfig.class })
 public abstract class IntegrationTest extends TransactionsTestData {
+
 }

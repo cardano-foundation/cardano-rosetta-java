@@ -4,6 +4,7 @@ import java.util.List;
 import jakarta.servlet.DispatcherType;
 
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -35,7 +36,6 @@ public class RosettaApiApplication {
 
   public static void main(String[] args) {
     SpringApplication.run(RosettaApiApplication.class, args);
-    log.info("bug-fix-tx-size-calculation-issue-277");
   }
 
   @Bean
@@ -69,6 +69,8 @@ public class RosettaApiApplication {
     filter.setMaxPayloadLength(10000);
     filter.setIncludeHeaders(false);
     filter.setAfterMessagePrefix("REQUEST DATA: \n");
+
     return filter;
   }
+
 }

@@ -42,7 +42,7 @@ class SearchControllerTest extends BaseSpringMvcSetup {
     Field field = SearchApiImpl.class.getDeclaredField("offlineMode");
     field.setAccessible(true);
     field.set(searchApi, true);
-    assertThrows(ExceptionFactory.NotSupportedInOfflineMode().getClass(), () -> searchApi.searchTransactions(request));
+    assertThrows(ExceptionFactory.notSupportedInOfflineMode().getClass(), () -> searchApi.searchTransactions(request));
   }
 
   @SneakyThrows

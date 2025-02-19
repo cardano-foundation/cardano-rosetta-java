@@ -1,6 +1,8 @@
 package org.cardanofoundation.rosetta.api.construction.service;
 
 import java.math.BigInteger;
+import java.time.Clock;
+import java.time.ZoneOffset;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -19,10 +21,7 @@ import co.nstant.in.cbor.CborException;
 import com.bloxbean.cardano.client.util.HexUtil;
 import com.bloxbean.cardano.yaci.core.exception.CborRuntimeException;
 import com.bloxbean.cardano.yaci.core.util.CborSerializationUtil;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
+import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.openapitools.client.model.Operation;
 import org.openapitools.client.model.PublicKey;
@@ -39,6 +38,7 @@ import org.cardanofoundation.rosetta.common.exception.Error;
 import org.cardanofoundation.rosetta.common.mapper.CborArrayToTransactionData;
 import org.cardanofoundation.rosetta.common.model.cardano.crypto.Signatures;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.TransactionParsed;
+import org.cardanofoundation.rosetta.common.time.OfflineSlotServiceImpl;
 import org.cardanofoundation.rosetta.common.util.CardanoAddressUtils;
 import org.cardanofoundation.rosetta.common.util.Constants;
 import org.cardanofoundation.rosetta.common.util.RosettaConstants.RosettaErrorType;
@@ -71,10 +71,16 @@ class CardanoConstructionServiceImplTest {
 
   private MockedStatic<CompletableFuture> completableFutureMock;
 
+  @Spy
+  private Clock clock = Clock.systemDefaultZone();
+
+  @Spy
+  private OfflineSlotServiceImpl offlineSlotService = new OfflineSlotServiceImpl(clock, ZoneOffset.UTC);
+
   @BeforeEach
   void setup() {
     cardanoService = new CardanoConstructionServiceImpl(null, null,
-        new OperationService(), restTemplate);
+        new OperationService(), restTemplate, offlineSlotService);
     completableFutureMock = Mockito.mockStatic(CompletableFuture.class, invocation -> {
       if (invocation.getMethod().getName().equals("supplyAsync")) {
         Supplier<?> supplier = invocation.getArgument(0);

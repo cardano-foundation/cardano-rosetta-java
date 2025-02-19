@@ -188,7 +188,8 @@ public class RosettaConstants {
     PROTOCOL_MISSING("body.metadata must have required property 'protocol'", 5032),
     POOL_DEPOSIT_MISSING("body.metadata must have required property 'poolDeposit'", 5033),
     NOT_SUPPORTED_IN_OFFLINE_MODE("This operation is not supported in offline mode", 5034),
-    GATEWAY_ERROR("Unable to get data from the downstream gateway", 5035);
+    GATEWAY_ERROR("Unable to get data from the downstream gateway", 5035),
+    MISCONFIGURED_TIME("Time is misconfigured on the server, check system date and time, current time is before Cardano's Shelly start time, which is impossible.", 5036);
 
     final String message;
     final int code;

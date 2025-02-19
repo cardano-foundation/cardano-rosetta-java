@@ -42,7 +42,7 @@ public interface CardanoConstructionService {
   Signatures signatureProcessor(EraAddressType eraAddressType, AddressType addressType,
       String address);
 
-  Integer calculateTxSize(Network network, List<Operation> operations, int ttl, DepositParameters depositParameters);
+  Integer calculateTxSize(Network network, List<Operation> operations, long ttl, DepositParameters depositParameters);
 
   String buildTransaction(String unsignedTransaction,
       List<Signatures> signaturesList, String transactionMetadata);
@@ -59,7 +59,7 @@ public interface CardanoConstructionService {
   ProcessOperations convertRosettaOperations(Network network,
       List<Operation> operations) throws IOException;
 
-  UnsignedTransaction createUnsignedTransaction(Network network, List<Operation> operations, int ttl, DepositParameters depositParameters) throws IOException, CborSerializationException, AddressExcepion, CborException;
+  UnsignedTransaction createUnsignedTransaction(Network network, List<Operation> operations, long ttl, DepositParameters depositParameters) throws IOException, CborSerializationException, AddressExcepion, CborException;
 
   String submitTransaction(String signedTransaction);
   DepositParameters getDepositParameters();

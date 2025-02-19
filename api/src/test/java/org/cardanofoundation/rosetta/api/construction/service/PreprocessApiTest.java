@@ -53,6 +53,7 @@ class PreprocessApiTest extends IntegrationTest {
     ConstructionPreprocessResponse constructionPreprocessResponse = constructionApiService.constructionPreprocessService(
         preprocessRequest);
     Map<String, Integer> options = (Map<String, Integer>) constructionPreprocessResponse.getOptions();
+
     assertEquals(expectedTtl, options.get("relative_ttl"));
     assertEquals(expectedTransactionSize, options.get("transaction_size"));
   }
