@@ -183,7 +183,7 @@
 									"    var responseData = pm.response.json();",
 									"    pm.expect(responseData).to.be.an('object');",
 									"    pm.expect(responseData.options.relative_ttl).to.eql(1000.0);",
-									"    pm.expect(responseData.options.transaction_size).to.eql(224.0);",
+									"    pm.expect(responseData.options.transaction_size).to.eql(230.0);",
 									"});",
 									"",
 									""
@@ -238,7 +238,7 @@
 									"    var responseData = pm.response.json();",
 									"    pm.expect(responseData).to.be.an('object');",
 									"    pm.expect(responseData.options.relative_ttl).to.eql(100.0);",
-									"    pm.expect(responseData.options.transaction_size).to.eql(399.0);",
+									"    pm.expect(responseData.options.transaction_size).to.eql(408.0);",
 									"});",
 									"",
 									""
@@ -293,7 +293,7 @@
 									"    var responseData = pm.response.json();",
 									"    pm.expect(responseData).to.be.an('object');",
 									"    pm.expect(responseData.options.relative_ttl).to.eql(100.0);",
-									"    pm.expect(responseData.options.transaction_size).to.eql(921.0);",
+									"    pm.expect(responseData.options.transaction_size).to.eql(933.0);",
 									"});",
 									"",
 									""
@@ -349,7 +349,7 @@
 									"    var responseData = pm.response.json();",
 									"    pm.expect(responseData).to.be.an('object');",
 									"    pm.expect(responseData.payloads.length).to.equal(2)",
-									"    pm.expect(responseData.payloads[0].hex_bytes).to.equal('159434d5bab91b4a3b041ee49540d01bcaeef35481bd386f9feb17acfc3aa0af')",
+									"    pm.expect(responseData.payloads[0].hex_bytes).to.equal('c1ce05e0626510a08696da806e3bf7956cabafbcbad039c4ad87694b7816024b')",
 									"});",
 									"",
 									""

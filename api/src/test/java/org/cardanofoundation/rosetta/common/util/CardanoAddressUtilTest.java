@@ -99,7 +99,6 @@ class CardanoAddressUtilTest {
   void getEraAddressTypeTest() {
     Account account = new Account(Networks.preprod(), testMnemonic);
     String address = account.getBaseAddress().getAddress();
-    System.out.println(address);
     EraAddressType eraAddressType = getEraAddressType(
         account.getBaseAddress().getAddress());
     assertEquals(EraAddressType.SHELLEY, eraAddressType);
