@@ -41,7 +41,6 @@ class ParseOperationTest {
         resultAccumulator.getTransactionInputs().getFirst().getTransactionId() + ":" + resultAccumulator.getTransactionInputs().getFirst().getIndex());
 
     assertEquals(operation.getAmount().getValue(), resultAccumulator.getInputAmounts().getFirst().toString());
-    System.out.println(operation);
   }
   @Test
   void parseOutputOperationTest() throws IOException {

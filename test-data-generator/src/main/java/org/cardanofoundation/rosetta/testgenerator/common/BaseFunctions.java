@@ -56,7 +56,7 @@ public class BaseFunctions {
     try {
       TransactionContent txContent = backendService.getTransactionService().getTransaction(txHash)
           .getValue();
-      Integer blockHeight = txContent.getBlockHeight();
+      Long blockHeight = txContent.getBlockHeight();
       log.info("Block height: {}", blockHeight);
       return backendService.getBlockService()
           .getBlockByNumber(BigInteger.valueOf(blockHeight)).getValue();
