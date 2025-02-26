@@ -173,7 +173,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
     log.info("TxCbor - constructionPayloadsService:" + unsignedTransaction.bytes());
 
     long calculatedFee = cardanoConstructionService.calculateTxMinimumFee(
-            (long) unsignedTransaction.bytes().length(),
+            (long) cardanoConstructionService.calculateTxSize(network, operations, ttl),
             convertProtocolParams(metadata)
     );
 
