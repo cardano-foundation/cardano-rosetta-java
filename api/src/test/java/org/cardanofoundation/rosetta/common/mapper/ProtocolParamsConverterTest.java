@@ -14,7 +14,7 @@ import org.cardanofoundation.rosetta.api.block.model.entity.ProtocolParamsEntity
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class ProtocolParamsMapperTest extends BaseMapperSetup {
+class ProtocolParamsConverterTest extends BaseMapperSetup {
 
   @Autowired
   private ProtocolParamsMapper my;

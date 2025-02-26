@@ -1,21 +1,21 @@
 package org.cardanofoundation.rosetta.api.construction.controller;
 
-import javax.validation.Valid;
-
+import com.bloxbean.cardano.client.exception.CborDeserializationException;
+import com.bloxbean.cardano.client.exception.CborSerializationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
+import org.cardanofoundation.rosetta.api.construction.service.ConstructionApiService;
+import org.cardanofoundation.rosetta.api.network.service.NetworkService;
+import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
+import org.openapitools.client.api.ConstructionApi;
+import org.openapitools.client.model.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-import org.openapitools.client.api.ConstructionApi;
-import org.openapitools.client.model.*;
 
-import org.cardanofoundation.rosetta.api.construction.service.ConstructionApiService;
-import org.cardanofoundation.rosetta.api.network.service.NetworkService;
-import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
+import javax.validation.Valid;
 
 @Slf4j
 @RestController
@@ -66,7 +66,13 @@ public class ConstructionApiImplementation implements ConstructionApi {
         networkService.verifyNetworkRequest(constructionPayloadsRequest.getNetworkIdentifier());
         constructionApiService.verifyProtocolParameters(constructionPayloadsRequest);
 
-        return ResponseEntity.ok(constructionApiService.constructionPayloadsService(constructionPayloadsRequest));
+        try {
+            return ResponseEntity.ok(constructionApiService.constructionPayloadsService(constructionPayloadsRequest));
+        } catch (CborDeserializationException | CborSerializationException e) {
+            log.error("Error in constructionPayloads", e);
+
+            throw ExceptionFactory.unspecifiedError("Error in constructionPayloads");
+        }
     }
 
     @Override

@@ -1,11 +1,13 @@
 package org.cardanofoundation.rosetta.api.construction.service;
 
-import java.io.IOException;
-import java.util.Collections;
-
-import lombok.SneakyThrows;
-
 import co.nstant.in.cbor.CborException;
+import lombok.SneakyThrows;
+import org.cardanofoundation.rosetta.common.exception.ApiException;
+import org.cardanofoundation.rosetta.common.model.cardano.transaction.UnsignedTransaction;
+import org.cardanofoundation.rosetta.common.util.CborEncodeUtil;
+import org.cardanofoundation.rosetta.common.util.RosettaConstants.RosettaErrorType;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
@@ -13,13 +15,9 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.openapitools.client.model.*;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-
-import org.cardanofoundation.rosetta.common.exception.ApiException;
-import org.cardanofoundation.rosetta.common.model.cardano.transaction.UnsignedTransaction;
-import org.cardanofoundation.rosetta.common.util.CborEncodeUtil;
-import org.cardanofoundation.rosetta.common.util.RosettaConstants.RosettaErrorType;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.Optional;
 
 import static org.cardanofoundation.rosetta.EntityGenerator.givenConstructionPayloadsRequest;
 import static org.cardanofoundation.rosetta.EntityGenerator.givenSigningPayload;
@@ -47,7 +45,7 @@ class ConstructionApiServiceImplTest {
     try (MockedStatic<CborEncodeUtil> mocked = Mockito.mockStatic(CborEncodeUtil.class)) {
       mocked.when(() -> CborEncodeUtil.encodeExtraData(anyString(), anyList(), anyString()))
           .thenReturn(expectedEncodedUnsignedTransaction);
-      when(cardanoConstructionService.createUnsignedTransaction(any(), anyList(), anyLong(), any()))
+      when(cardanoConstructionService.createUnsignedTransaction(any(), anyList(), anyLong(), any(Optional.class)))
           .thenReturn(createUnsignedTransaction());
       when(cardanoConstructionService.constructPayloadsForTransactionBody(any(), any()))
           .thenReturn(Collections.singletonList(expectedSigningPayload));
@@ -162,7 +160,7 @@ class ConstructionApiServiceImplTest {
   @SneakyThrows
   void constructionPayloadsService_whenCannotCreateUnsignedTransaction_thenShouldThrowError() {
 
-    when(cardanoConstructionService.createUnsignedTransaction(any(), anyList(), anyLong(), any()))
+    when(cardanoConstructionService.createUnsignedTransaction(any(), anyList(), anyLong(), any(Optional.class)))
         .thenThrow(new IOException());
 
     ApiException result = assertThrows(ApiException.class,
@@ -182,7 +180,7 @@ class ConstructionApiServiceImplTest {
     try (MockedStatic<CborEncodeUtil> mocked = Mockito.mockStatic(CborEncodeUtil.class)) {
       mocked.when(() -> CborEncodeUtil.encodeExtraData(anyString(), anyList(), anyString()))
           .thenThrow(new CborException("CborException"));
-      when(cardanoConstructionService.createUnsignedTransaction(any(), anyList(), anyLong(), any()))
+      when(cardanoConstructionService.createUnsignedTransaction(any(), anyList(), anyLong(), any(Optional.class)))
           .thenReturn(createUnsignedTransaction());
       when(cardanoConstructionService.constructPayloadsForTransactionBody(any(), any())).thenReturn(
           null);

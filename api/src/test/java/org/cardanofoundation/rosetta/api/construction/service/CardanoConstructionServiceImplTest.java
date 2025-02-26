@@ -1,35 +1,10 @@
 package org.cardanofoundation.rosetta.api.construction.service;
 
-import java.math.BigInteger;
-import java.time.Clock;
-import java.time.ZoneOffset;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import jakarta.validation.constraints.NotNull;
-
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseEntity;
-import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.web.client.RestTemplate;
 import co.nstant.in.cbor.CborException;
 import com.bloxbean.cardano.client.util.HexUtil;
 import com.bloxbean.cardano.yaci.core.exception.CborRuntimeException;
 import com.bloxbean.cardano.yaci.core.util.CborSerializationUtil;
-import org.mockito.*;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.openapitools.client.model.Operation;
-import org.openapitools.client.model.PublicKey;
-
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-
+import jakarta.validation.constraints.NotNull;
 import org.cardanofoundation.rosetta.api.construction.enumeration.AddressType;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
 import org.cardanofoundation.rosetta.common.exception.ApiException;
@@ -41,6 +16,29 @@ import org.cardanofoundation.rosetta.common.time.OfflineSlotServiceImpl;
 import org.cardanofoundation.rosetta.common.util.CardanoAddressUtils;
 import org.cardanofoundation.rosetta.common.util.Constants;
 import org.cardanofoundation.rosetta.common.util.RosettaConstants.RosettaErrorType;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.*;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.openapitools.client.model.Operation;
+import org.openapitools.client.model.PublicKey;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
+import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.web.client.RestTemplate;
+
+import java.math.BigInteger;
+import java.time.Clock;
+import java.time.ZoneOffset;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static com.bloxbean.cardano.client.crypto.Blake2bUtil.blake2bHash256;
 import static com.bloxbean.cardano.client.util.HexUtil.decodeHexString;
@@ -106,7 +104,7 @@ class CardanoConstructionServiceImplTest {
           .thenReturn(false);
 
       ApiException result = assertThrows(ApiException.class,
-          () -> cardanoService.calculateTxSize(NetworkEnum.PREVIEW.getNetwork(), operations, 0, null));
+          () -> cardanoService.calculateTxSize(NetworkEnum.PREVIEW.getNetwork(), operations, 0));
 
       assertEquals(RosettaErrorType.INVALID_ADDRESS.getMessage(), result.getError().getMessage());
       assertEquals(RosettaErrorType.INVALID_ADDRESS.getCode(), result.getError().getCode());

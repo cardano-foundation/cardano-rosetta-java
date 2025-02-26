@@ -1,5 +1,28 @@
 package org.cardanofoundation.rosetta.api.construction.service;
 
+import java.math.BigInteger;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import com.bloxbean.cardano.client.util.JsonUtil;
+import jakarta.validation.constraints.NotNull;
+import javax.annotation.Nullable;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import lombok.val;
+
+import org.apache.commons.codec.DecoderException;
+import org.apache.commons.codec.binary.Hex;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+import org.springframework.web.client.RestTemplate;
 import co.nstant.in.cbor.CborException;
 import co.nstant.in.cbor.model.Array;
 import co.nstant.in.cbor.model.DataItem;
@@ -16,15 +39,13 @@ import com.bloxbean.cardano.client.exception.AddressExcepion;
 import com.bloxbean.cardano.client.exception.CborDeserializationException;
 import com.bloxbean.cardano.client.exception.CborSerializationException;
 import com.bloxbean.cardano.client.spec.Era;
-import com.bloxbean.cardano.client.transaction.spec.Transaction;
 import com.bloxbean.cardano.client.transaction.spec.*;
+import com.bloxbean.cardano.client.transaction.spec.Transaction;
 import com.bloxbean.cardano.client.transaction.spec.TransactionBody.TransactionBodyBuilder;
 import com.bloxbean.cardano.client.util.HexUtil;
-import jakarta.validation.constraints.NotNull;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import lombok.val;
 import org.apache.commons.lang3.ObjectUtils;
+import org.openapitools.client.model.*;
+
 import org.cardanofoundation.rosetta.api.block.model.domain.ProcessOperations;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProcessOperationsReturn;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
@@ -45,20 +66,6 @@ import org.cardanofoundation.rosetta.common.util.CardanoAddressUtils;
 import org.cardanofoundation.rosetta.common.util.Constants;
 import org.cardanofoundation.rosetta.common.util.OperationParseUtil;
 import org.cardanofoundation.rosetta.common.util.ValidateParseUtil;
-import org.openapitools.client.model.*;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
-import org.springframework.web.client.RestTemplate;
-
-import java.math.BigInteger;
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import static java.math.BigInteger.valueOf;
 import static org.cardanofoundation.rosetta.common.util.Constants.DEFAULT_RELATIVE_TTL;
@@ -117,6 +124,7 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
   public Array decodeTransaction(String encoded) {
     try {
       DataItem dataItem = CborSerializationUtil.deserialize(HexUtil.decodeHexString(encoded));
+
       return (Array) dataItem;
     } catch (Exception e) {
       log.error("[decodeTransaction] Cannot decode transaction bytes. Exception: {}",
@@ -159,14 +167,13 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
   @Override
   public Integer calculateTxSize(Network network,
                                  List<Operation> operations,
-                                 long ttl,
-                                 DepositParameters depositParameters) {
+                                 long ttl) {
     try {
       UnsignedTransaction unsignedTransaction = createUnsignedTransaction(
               network,
               operations,
               ttl,
-              getDepositParametersOrFallback(depositParameters)
+              Optional.empty()
       );
 
       List<Signatures> signaturesList = (unsignedTransaction.addresses()).stream()
@@ -179,7 +186,17 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
               unsignedTransaction.metadata()
       );
 
-      log.debug("TxCbor:" + transactionCborHex);
+      log.debug("TxCbor - calculateTxSize:" + transactionCborHex);
+
+      try {
+        val tx = Transaction.deserialize(Hex.decodeHex(transactionCborHex));
+
+        System.out.println(JsonUtil.getPrettyJson(tx));
+      } catch (CborDeserializationException e) {
+        throw new RuntimeException(e);
+      } catch (DecoderException e) {
+        throw new RuntimeException(e);
+      }
 
       val txBytes = HexUtil.decodeHexString(transactionCborHex);
 
@@ -187,11 +204,6 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
     } catch (CborSerializationException | AddressExcepion | CborException e) {
       throw ExceptionFactory.cantCreateUnsignedTransactionFromBytes();
     }
-  }
-
-  private static DepositParameters getDepositParametersOrFallback(DepositParameters depositParameters) {
-    return depositParameters != null ? depositParameters :
-            new DepositParameters(Constants.DEFAULT_KEY_DEPOSIT.toString(), Constants.DEFAULT_POOL_DEPOSIT.toString());
   }
 
   @Override
@@ -284,13 +296,13 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
   public UnsignedTransaction createUnsignedTransaction(Network network,
                                                        List<Operation> operations,
                                                        long ttl,
-                                                       DepositParameters depositParameters)
+                                                       Optional<Long> calculatedFee)
           throws CborSerializationException, AddressExcepion, CborException {
 
     log.info(
             "[createUnsignedTransaction] About to create an unsigned transaction with {} operations",
             operations.size());
-    ProcessOperationsReturn opRetDto = processOperations(network, operations, depositParameters);
+    ProcessOperationsReturn opRetDto = processOperations(network, operations);
 
     log.info("[createUnsignedTransaction] About to create transaction body");
     TransactionBodyBuilder transactionBodyBuilder = TransactionBody.builder()
@@ -313,6 +325,12 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
     if (!CollectionUtils.isEmpty(opRetDto.getWithdrawals())) {
       transactionBodyBuilder.withdrawals(opRetDto.getWithdrawals());
     }
+    if (calculatedFee.isPresent()) {
+      log.info("[createUnsignedTransaction] Calculated fee is present, adding to transaction body, fee:" + calculatedFee.orElseThrow());
+
+      transactionBodyBuilder.fee(BigInteger.valueOf(calculatedFee.orElseThrow()));
+    }
+
     TransactionBody transactionBody = transactionBodyBuilder.build();
     co.nstant.in.cbor.model.Map mapCbor = transactionBody.serialize();
 
@@ -323,12 +341,14 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
 
     UnsignedTransaction toReturn = new UnsignedTransaction(bodyHash, transactionBytes,
             opRetDto.getAddresses(), getHexEncodedAuxiliaryMetadataArray(opRetDto));
+
     log.info("[createUnsignedTransaction] Returning unsigned transaction, hash to sign and addresses"
             + " that will sign hash: [{}]", toReturn);
 
     return toReturn;
   }
 
+  @Nullable
   private static String getHexEncodedAuxiliaryMetadataArray(
           ProcessOperationsReturn opRetDto)
           throws CborSerializationException, CborException {
@@ -336,6 +356,7 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
       Array cborAuxDataArray = getArrayOfAuxiliaryData(opRetDto);
       return HexUtil.encodeHexString(CborSerializationUtil.serialize(cborAuxDataArray));
     }
+
     return null;
   }
 
@@ -346,6 +367,7 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
     Array cborArray = new Array();
     cborArray.add(auxiliaryData.serialize());
     cborArray.add(new Array());
+
     return cborArray;
   }
 
@@ -357,28 +379,14 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
                     transactionBodyHash, SignatureType.ED25519)).toList();
   }
 
-  private ProcessOperationsReturn processOperations(Network network, List<Operation> operations, DepositParameters depositParams) {
+  private ProcessOperationsReturn processOperations(Network network, List<Operation> operations) {
     ProcessOperations result = convertRosettaOperations(network, operations);
 
-    return fillProcessOperationsReturnObject(result, MIN_DUMMY_FEE);
+    return fillProcessOperationsReturnObject(result);
   }
 
   @NotNull
-  private Map<String, Double> getDepositsSumMap(DepositParameters depositParameters, ProcessOperations result, double refundsSum) {
-    double keyDepositsSum =
-            result.getStakeKeyRegistrationsCount() * Long.parseLong(depositParameters.getKeyDeposit());
-    double poolDepositsSum =
-            result.getPoolRegistrationsCount() * Long.parseLong(depositParameters.getPoolDeposit());
-    Map<String, Double> depositsSumMap = new HashMap<>();
-    depositsSumMap.put(Constants.KEY_REFUNDS_SUM, refundsSum);
-    depositsSumMap.put(Constants.KEY_DEPOSITS_SUM, keyDepositsSum);
-    depositsSumMap.put(Constants.POOL_DEPOSITS_SUM, poolDepositsSum);
-    return depositsSumMap;
-  }
-
-  @NotNull
-  private ProcessOperationsReturn fillProcessOperationsReturnObject(ProcessOperations result,
-                                                                    long fee) {
+  private ProcessOperationsReturn fillProcessOperationsReturnObject(ProcessOperations result) {
     ProcessOperationsReturn processOperationsDto = new ProcessOperationsReturn();
     processOperationsDto.setTransactionInputs(result.getTransactionInputs());
     processOperationsDto.setTransactionOutputs(result.getTransactionOutputs());
@@ -386,8 +394,9 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
     processOperationsDto.setWithdrawals(result.getWithdrawals());
     Set<String> addresses = new HashSet<>(result.getAddresses());
     processOperationsDto.setAddresses(addresses);
-    processOperationsDto.setFee(fee);
+    processOperationsDto.setFee(MIN_DUMMY_FEE);
     processOperationsDto.setVoteRegistrationMetadata(result.getVoteRegistrationMetadata());
+
     return processOperationsDto;
   }
 

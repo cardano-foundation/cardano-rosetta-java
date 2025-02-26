@@ -1,16 +1,5 @@
 package org.cardanofoundation.rosetta.api.construction.service;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
-import org.springframework.stereotype.Service;
 import co.nstant.in.cbor.CborException;
 import co.nstant.in.cbor.model.Array;
 import co.nstant.in.cbor.model.UnicodeString;
@@ -18,9 +7,8 @@ import com.bloxbean.cardano.client.common.model.Network;
 import com.bloxbean.cardano.client.exception.AddressExcepion;
 import com.bloxbean.cardano.client.exception.CborSerializationException;
 import com.bloxbean.cardano.client.transaction.util.TransactionUtil;
-import com.bloxbean.cardano.client.util.HexUtil;
-import org.openapitools.client.model.*;
-
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
 import org.cardanofoundation.rosetta.api.construction.enumeration.AddressType;
 import org.cardanofoundation.rosetta.api.construction.mapper.ConstructionMapper;
@@ -34,6 +22,17 @@ import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
 import org.cardanofoundation.rosetta.common.time.OfflineSlotService;
 import org.cardanofoundation.rosetta.common.util.CborEncodeUtil;
 import org.cardanofoundation.rosetta.common.util.Constants;
+import org.openapitools.client.model.*;
+import org.springframework.stereotype.Service;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+
+import static com.bloxbean.cardano.client.util.HexUtil.decodeHexString;
 
 @Service
 @Slf4j
@@ -44,6 +43,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
   private final ProtocolParamService protocolParamService;
   private final ConstructionMapper constructionMapper;
   private final OfflineSlotService offlineSlotService;
+  private final ProtocolParamsConverter protocolParamsConverter;
 
   @Override
   public ConstructionDeriveResponse constructionDeriveService(
@@ -84,18 +84,16 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
           ConstructionPreprocessRequest constructionPreprocessRequest) {
 
     NetworkIdentifier networkIdentifier = constructionPreprocessRequest.getNetworkIdentifier();
+
     Optional<ConstructionPreprocessMetadata> metadata = Optional.ofNullable(
             constructionPreprocessRequest.getMetadata());
     int relativeTtl;
-    DepositParameters depositParameters;
+
     if (metadata.isPresent()) {
       relativeTtl = cardanoConstructionService.checkOrReturnDefaultTtl(
               metadata.get().getRelativeTtl());
-      depositParameters = Optional.ofNullable(metadata.get().getDepositParameters()).orElse(
-              cardanoConstructionService.getDepositParameters());
     } else {
       relativeTtl = Constants.DEFAULT_RELATIVE_TTL;
-      depositParameters = cardanoConstructionService.getDepositParameters();
     }
 
     long currentSlotBasedOnTime = offlineSlotService.getCurrentSlotBasedOnTime() + relativeTtl;
@@ -103,9 +101,9 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
     int transactionSize = cardanoConstructionService.calculateTxSize(
             Objects.requireNonNull(NetworkEnum.findByName(networkIdentifier.getNetwork())).getNetwork(),
             constructionPreprocessRequest.getOperations(),
-            currentSlotBasedOnTime,
-            depositParameters
+            currentSlotBasedOnTime
     );
+
     Map<String, Integer> response = Map.of(Constants.RELATIVE_TTL, relativeTtl,
             Constants.TRANSACTION_SIZE, transactionSize);
 
@@ -135,6 +133,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
     log.debug("[constructionMetadata] received protocol parameters from block-service {}",
             protocolParams);
 
+
     Long suggestedFee = cardanoConstructionService.calculateTxMinimumFee(
             txSize,
             protocolParams
@@ -149,25 +148,60 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
   public ConstructionPayloadsResponse constructionPayloadsService(
           ConstructionPayloadsRequest constructionPayloadsRequest) {
 
+    // hypothesis 1
     List<Operation> operations = constructionPayloadsRequest.getOperations();
 
-    log.info("{} [constuctionPayloads] Operations about to be processed", operations);
+    log.info("{} [constructionPayloads] Operations about to be processed", operations);
     ConstructionPayloadsRequestMetadata metadata = constructionPayloadsRequest.getMetadata();
 
     int ttl = metadata != null ?
             cardanoConstructionService.checkOrReturnDefaultTtl(metadata.getTtl()) :
             Constants.DEFAULT_RELATIVE_TTL;
 
-    DepositParameters depositParameters = getDepositParameters(metadata);
+    log.info("TTL: {}", ttl);
+
     Network network = NetworkEnum.findByName(
             constructionPayloadsRequest.getNetworkIdentifier().getNetwork()).getNetwork();
 
-    UnsignedTransaction unsignedTransaction = createUnsignedTransaction(network,
-            operations, ttl, depositParameters);
+    UnsignedTransaction unsignedTransaction = createUnsignedTransaction
+            (network,
+                    operations,
+                    ttl,
+                    Optional.empty() // minFee, e.g. 17000 will be applied in the background
+            );
+
+    log.info("TxCbor - constructionPayloadsService:" + unsignedTransaction.bytes());
+
+    long calculatedFee = cardanoConstructionService.calculateTxMinimumFee(
+            (long) unsignedTransaction.bytes().length(),
+            convertProtocolParams(metadata)
+    );
+
+    log.info("Calculated fee: {}", calculatedFee);
+
+    unsignedTransaction = createUnsignedTransaction
+            (network,
+                    operations,
+                    ttl,
+                    Optional.of(calculatedFee)
+            );
+
     List<SigningPayload> payloads = cardanoConstructionService.constructPayloadsForTransactionBody(
-            unsignedTransaction.hash(), unsignedTransaction.addresses());
+            unsignedTransaction.hash(), unsignedTransaction.addresses()
+    );
+
     String unsignedTransactionString = encodeUnsignedTransaction(unsignedTransaction, operations);
+
     return new ConstructionPayloadsResponse(unsignedTransactionString, payloads);
+  }
+
+  private ProtocolParams convertProtocolParams(ConstructionPayloadsRequestMetadata metadata) {
+    if (metadata == null) {
+      return protocolParamService.findProtocolParameters();
+    }
+
+    return metadata.getProtocolParameters() == null ? protocolParamService.findProtocolParameters() :
+            protocolParamsConverter.convert(metadata.getProtocolParameters());
   }
 
   @Override
@@ -257,7 +291,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
     Array array = cardanoConstructionService.decodeTransaction(
             constructionHashRequest.getSignedTransaction());
     log.info("[constructionHash] About to get hash of signed transaction");
-    byte[] signedTransactionBytes = HexUtil.decodeHexString(((UnicodeString) array.getDataItems().getFirst()).getString());
+    byte[] signedTransactionBytes = decodeHexString(((UnicodeString) array.getDataItems().getFirst()).getString());
     String transactionHash = TransactionUtil.getTxHash(signedTransactionBytes);
     log.info("[constructionHash] About to return hash of signed transaction");
     return new TransactionIdentifierResponse(new TransactionIdentifier(transactionHash), null);
@@ -274,17 +308,12 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
     return new TransactionIdentifierResponse(new TransactionIdentifier(txHash), null);
   }
 
-  private DepositParameters getDepositParameters(ConstructionPayloadsRequestMetadata metadata) {
-    return metadata != null && metadata.getProtocolParameters() != null ?
-            new DepositParameters(metadata.getProtocolParameters().getKeyDeposit(),
-                    metadata.getProtocolParameters().getPoolDeposit()) :
-            cardanoConstructionService.getDepositParameters();
-  }
-
-  private UnsignedTransaction createUnsignedTransaction(Network network, List<Operation> operations, int ttl,
-                                                        DepositParameters depositParameters) {
+  private UnsignedTransaction createUnsignedTransaction(Network network,
+                                                        List<Operation> operations,
+                                                        int ttl,
+                                                        Optional<Long> calculatedFee) {
     try {
-      return cardanoConstructionService.createUnsignedTransaction(network, operations, ttl, depositParameters);
+      return cardanoConstructionService.createUnsignedTransaction(network, operations, ttl, calculatedFee);
     } catch (IOException | CborSerializationException | AddressExcepion | CborException e) {
       log.error("Failed to create unsigned transaction: {}", e.getMessage());
       throw ExceptionFactory.cantCreateUnsignedTransactionFromBytes();
@@ -294,11 +323,15 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
   private String encodeUnsignedTransaction(UnsignedTransaction unsignedTransaction,
                                            List<Operation> operations) {
     try {
-      return CborEncodeUtil.encodeExtraData(unsignedTransaction.bytes(), operations,
-              unsignedTransaction.metadata());
+      return CborEncodeUtil.encodeExtraData(
+              unsignedTransaction.bytes(),
+              operations,
+              unsignedTransaction.metadata()
+      );
     } catch (CborException e) {
       log.error("Error encoding unsigned transaction: {}", e.getMessage());
       throw ExceptionFactory.cantEncodeExtraData();
     }
   }
+
 }

@@ -3,6 +3,7 @@ package org.cardanofoundation.rosetta.api.construction.service;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import co.nstant.in.cbor.CborException;
@@ -39,7 +40,7 @@ public interface CardanoConstructionService {
   Signatures signatureProcessor(EraAddressType eraAddressType, AddressType addressType,
       String address);
 
-  Integer calculateTxSize(Network network, List<Operation> operations, long ttl, DepositParameters depositParameters);
+  Integer calculateTxSize(Network network, List<Operation> operations, long ttl);
 
   String buildTransaction(String unsignedTransaction,
       List<Signatures> signaturesList, String transactionMetadata);
@@ -53,7 +54,7 @@ public interface CardanoConstructionService {
   ProcessOperations convertRosettaOperations(Network network,
       List<Operation> operations) throws IOException;
 
-  UnsignedTransaction createUnsignedTransaction(Network network, List<Operation> operations, long ttl, DepositParameters depositParameters) throws IOException, CborSerializationException, AddressExcepion, CborException;
+  UnsignedTransaction createUnsignedTransaction(Network network, List<Operation> operations, long ttl, Optional<Long> calculatedFee) throws IOException, CborSerializationException, AddressExcepion, CborException;
 
   String submitTransaction(String signedTransaction);
   DepositParameters getDepositParameters();
