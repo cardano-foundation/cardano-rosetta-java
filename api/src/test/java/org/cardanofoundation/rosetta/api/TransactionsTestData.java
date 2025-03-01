@@ -25,4 +25,5 @@ abstract class TransactionsTestData {
         new File("." + TestConstants.FILE_SAVE_PATH),
         new TypeReference<>() {});
   }
+
 }

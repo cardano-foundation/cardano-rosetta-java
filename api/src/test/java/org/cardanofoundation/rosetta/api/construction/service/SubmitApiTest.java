@@ -30,6 +30,7 @@ class SubmitApiTest extends IntegrationTest {
                 .builder()
                 .signedTransaction("signedTransaction")
                 .build();
+
         when(cardanoService.extractTransactionIfNeeded(constructionSubmitRequest.getSignedTransaction())).thenReturn("transaction");
         when(cardanoService.submitTransaction("transaction")).thenReturn("{}");
         //when

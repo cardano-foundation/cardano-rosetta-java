@@ -32,17 +32,17 @@ class PreprocessApiTest extends IntegrationTest {
 
   @Test
   void simplePreprocessTest() throws IOException {
-    assertPreprocessRequest("testdata/construction/preprocess/simple_preprocess.json", 1000, 230);
+    assertPreprocessRequest("testdata/construction/preprocess/simple_preprocess.json", 1000, 234);
   }
 
   @Test
   void twoWithdrawalsTest() throws IOException {
-    assertPreprocessRequest("testdata/construction/preprocess/two_withdrawals.json", 100, 408);
+    assertPreprocessRequest("testdata/construction/preprocess/two_withdrawals.json", 100, 409);
   }
 
   @Test
   void poolRegistrationTest() throws IOException {
-    assertPreprocessRequest("testdata/construction/preprocess/pool_registration.json", 100, 933);
+    assertPreprocessRequest("testdata/construction/preprocess/pool_registration.json", 100, 930);
   }
 
   private void assertPreprocessRequest(String constructionPayloadFile, int expectedTtl,
@@ -53,7 +53,8 @@ class PreprocessApiTest extends IntegrationTest {
     ConstructionPreprocessResponse constructionPreprocessResponse = constructionApiService.constructionPreprocessService(
         preprocessRequest);
     Map<String, Integer> options = (Map<String, Integer>) constructionPreprocessResponse.getOptions();
-    assertEquals(expectedTtl, options.get("relative_ttl"));
-    assertEquals(expectedTransactionSize, options.get("transaction_size"));
+
+    assertEquals(expectedTtl, options.get("relative_ttl"), "relative_ttl is not as expected");
+    assertEquals(expectedTransactionSize, options.get("transaction_size"), "transaction_size is not as expected");
   }
 }

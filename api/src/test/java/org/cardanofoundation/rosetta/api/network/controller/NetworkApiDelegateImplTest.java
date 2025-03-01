@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test;
 
 import org.cardanofoundation.rosetta.api.BaseSpringMvcSetup;
 import org.cardanofoundation.rosetta.api.network.service.NetworkService;
+import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 
 import static org.cardanofoundation.rosetta.EntityGenerator.givenMetadataRequest;
@@ -47,7 +48,7 @@ class NetworkApiDelegateImplTest extends BaseSpringMvcSetup {
         field.set(networkApi, true);
         //when
         //then
-        assertThrows(ExceptionFactory.NotSupportedInOfflineMode().getClass(), () -> networkApi.networkStatus(networkRequest));
+        assertThrows(ExceptionFactory.notSupportedInOfflineMode().getClass(), () -> networkApi.networkStatus(networkRequest));
     }
 
     @Test
@@ -55,6 +56,7 @@ class NetworkApiDelegateImplTest extends BaseSpringMvcSetup {
         //given
         MetadataRequest metadataRequest = givenMetadataRequest();
         NetworkListResponse networkListResponse = givenNetworkListResponse();
+        when(networkService.getSupportedNetwork()).thenReturn(NetworkEnum.DEVNET.getNetwork());
         when(networkService.getNetworkList(any())).thenReturn(networkListResponse);
         objectMapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
         //when

@@ -10,6 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import com.bloxbean.cardano.client.exception.CborDeserializationException;
+import com.bloxbean.cardano.client.exception.CborSerializationException;
 import org.openapitools.client.api.ConstructionApi;
 import org.openapitools.client.model.*;
 
@@ -48,8 +50,8 @@ public class ConstructionApiImplementation implements ConstructionApi {
 
     @Override
     public ResponseEntity<ConstructionMetadataResponse> constructionMetadata(@RequestBody ConstructionMetadataRequest constructionMetadataRequest)  {
-        if(offlineMode) {
-            throw ExceptionFactory.NotSupportedInOfflineMode();
+        if (offlineMode) {
+            throw ExceptionFactory.notSupportedInOfflineMode();
         }
         networkService.verifyNetworkRequest(constructionMetadataRequest.getNetworkIdentifier());
         return ResponseEntity.ok(constructionApiService.constructionMetadataService(constructionMetadataRequest));
@@ -66,7 +68,13 @@ public class ConstructionApiImplementation implements ConstructionApi {
         networkService.verifyNetworkRequest(constructionPayloadsRequest.getNetworkIdentifier());
         constructionApiService.verifyProtocolParameters(constructionPayloadsRequest);
 
-        return ResponseEntity.ok(constructionApiService.constructionPayloadsService(constructionPayloadsRequest));
+        try {
+            return ResponseEntity.ok(constructionApiService.constructionPayloadsService(constructionPayloadsRequest));
+        } catch (CborDeserializationException | CborSerializationException e) {
+            log.error("Error in constructionPayloads", e);
+
+            throw ExceptionFactory.unspecifiedError("Error in constructionPayloads");
+        }
     }
 
     @Override
@@ -78,7 +86,7 @@ public class ConstructionApiImplementation implements ConstructionApi {
     @Override
     public ResponseEntity<TransactionIdentifierResponse> constructionSubmit(@RequestBody ConstructionSubmitRequest constructionSubmitRequest) {
         if(offlineMode) {
-            throw ExceptionFactory.NotSupportedInOfflineMode();
+            throw ExceptionFactory.notSupportedInOfflineMode();
         }
         networkService.verifyNetworkRequest(constructionSubmitRequest.getNetworkIdentifier());
         return ResponseEntity.ok(constructionApiService.constructionSubmitService(constructionSubmitRequest));

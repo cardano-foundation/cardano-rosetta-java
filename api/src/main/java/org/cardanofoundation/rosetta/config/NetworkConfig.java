@@ -1,20 +1,17 @@
 package org.cardanofoundation.rosetta.config;
 
-import java.util.Objects;
-
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
-import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
-
 @Data
 @NoArgsConstructor
 @Configuration
 @ConfigurationProperties(prefix = "cardano.rosetta.networks")
 public class NetworkConfig {
+
   private String id;
   private Long protocolMagic;
   private String nodeVersion;
@@ -25,7 +22,4 @@ public class NetworkConfig {
             .equalsIgnoreCase(rosettaNetworkIdentifier));
   }
 
-  public final String getSanitizedNetworkId() {
-    return Objects.requireNonNull(NetworkEnum.findByName(id)).getName();
-  }
 }

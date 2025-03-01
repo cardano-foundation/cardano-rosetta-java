@@ -1,7 +1,6 @@
 package org.cardanofoundation.rosetta.api.network.mapper;
 
 import java.util.List;
-import java.util.Objects;
 
 import org.springframework.stereotype.Component;
 import com.bloxbean.cardano.client.common.model.Network;
@@ -22,9 +21,11 @@ public class NetworkMapperUtils {
 
   @Named("toNetworkIdentifier")
   public List<NetworkIdentifier> toNetworkIdentifier(Network network) {
-    return List.of(new NetworkIdentifier()
-        .blockchain(Constants.CARDANO)
-        .network(Objects.requireNonNull(NetworkEnum.findByProtocolMagic(network.getProtocolMagic()))
-            .getName()));
+    return NetworkEnum.findByProtocolMagic(network.getProtocolMagic())
+            .map(n -> List.of(new NetworkIdentifier()
+                    .blockchain(Constants.CARDANO)
+                    .network(n.getName())))
+            .orElseGet(List::of);
   }
+
 }

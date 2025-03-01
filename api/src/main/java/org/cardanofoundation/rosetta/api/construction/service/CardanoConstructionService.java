@@ -2,9 +2,7 @@ package org.cardanofoundation.rosetta.api.construction.service;
 
 
 import java.io.IOException;
-import java.math.BigInteger;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import co.nstant.in.cbor.CborException;
@@ -36,13 +34,12 @@ public interface CardanoConstructionService {
   TransactionParsed parseTransaction(Network network, String transaction, boolean signed);
 
   Integer checkOrReturnDefaultTtl(Integer relativeTtl);
-  Long updateTxSize(Long previousTxSize, Long previousTtl, Long updatedTtl);
   Long calculateTxMinimumFee(Long transactionSize, ProtocolParams protocolParameters);
 
   Signatures signatureProcessor(EraAddressType eraAddressType, AddressType addressType,
       String address);
 
-  Integer calculateTxSize(Network network, List<Operation> operations, int ttl, DepositParameters depositParameters);
+  Integer calculateTxSize(Network network, List<Operation> operations, long ttl);
 
   String buildTransaction(String unsignedTransaction,
       List<Signatures> signaturesList, String transactionMetadata);
@@ -53,13 +50,12 @@ public interface CardanoConstructionService {
   List<SigningPayload> constructPayloadsForTransactionBody(String transactionBodyHash,
       Set<String> addresses);
 
-  Long calculateFee(List<BigInteger> inputAmounts, List<BigInteger> outputAmounts,
-      List<BigInteger> withdrawalAmounts, Map<String, Double> depositsSumMap);
-
   ProcessOperations convertRosettaOperations(Network network,
       List<Operation> operations) throws IOException;
 
-  UnsignedTransaction createUnsignedTransaction(Network network, List<Operation> operations, int ttl, DepositParameters depositParameters) throws IOException, CborSerializationException, AddressExcepion, CborException;
+  UnsignedTransaction createUnsignedTransaction(Network network, List<Operation> operations, long ttl, Long calculatedFee) throws IOException, CborSerializationException, AddressExcepion, CborException;
+
+  UnsignedTransaction createUnsignedTransaction(Network network, List<Operation> operations, long ttl) throws IOException, CborSerializationException, AddressExcepion, CborException;
 
   String submitTransaction(String signedTransaction);
   DepositParameters getDepositParameters();
@@ -68,4 +64,5 @@ public interface CardanoConstructionService {
 
   String getCardanoAddress(AddressType addressType, PublicKey stakingCredential,
       PublicKey publicKey, NetworkEnum networkEnum);
+
 }

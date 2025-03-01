@@ -72,7 +72,7 @@ class ConstructionApiImplTest extends BaseSpringMvcSetup {
         field.set(constructionApiImplementation, true);
         //when
         //then
-        assertThrows(ExceptionFactory.NotSupportedInOfflineMode().getClass(), () -> constructionApiImplementation.constructionMetadata(constructionMetadataRequest));
+        assertThrows(ExceptionFactory.notSupportedInOfflineMode().getClass(), () -> constructionApiImplementation.constructionMetadata(constructionMetadataRequest));
     }
 
 
@@ -86,7 +86,7 @@ class ConstructionApiImplTest extends BaseSpringMvcSetup {
         field.set(constructionApiImplementation, true);
         //when
         //then
-        assertThrows(ExceptionFactory.NotSupportedInOfflineMode().getClass(), () -> constructionApiImplementation.constructionSubmit(constructionSubmitRequest));
+        assertThrows(ExceptionFactory.notSupportedInOfflineMode().getClass(), () -> constructionApiImplementation.constructionSubmit(constructionSubmitRequest));
     }
 
     @Test
