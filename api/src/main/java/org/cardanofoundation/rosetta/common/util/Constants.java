@@ -31,6 +31,8 @@ public class Constants {
   public static final int SANCHONET_NETWORK_MAGIC = 4;
   public static final int DEVKIT_NETWORK_MAGIC = 42;
 
+  public static final int OPERATION_TYPE_VOTE_DELEGATION = 43;
+
   private Constants() {
   }
 
@@ -121,6 +123,8 @@ public class Constants {
   public static final String OPERATION_TYPE_POOL_RETIREMENT = "poolRetirement";
   public static final String OPERATION_TYPE_VOTE_REGISTRATION = "voteRegistration";
 
+  // Plomin hard fork governance related
+  public static final String OPERATION_TYPE_DREP_VOTE_DELEGATION = "dRepVoteDelegation";
 
   public static final Integer ED_25519_KEY_SIGNATURE_BYTE_LENGTH = 64;
 
