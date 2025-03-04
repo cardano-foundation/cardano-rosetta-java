@@ -31,8 +31,10 @@ public class BlockServiceImpl implements BlockService {
       log.info("Block was found, hash={}", block.getHash());
       block.setPoolDeposit(String.valueOf(protocolParamService.findProtocolParameters().getPoolDeposit()));
       log.debug("full data {}", block);
+
       return block;
     }
+
     log.error("Block was not found");
     throw ExceptionFactory.blockNotFoundException();
   }

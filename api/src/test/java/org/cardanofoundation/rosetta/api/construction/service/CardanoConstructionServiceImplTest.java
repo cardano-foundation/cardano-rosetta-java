@@ -460,6 +460,8 @@ class CardanoConstructionServiceImplTest {
 
     HttpHeaders headers = new HttpHeaders();
     headers.add(Constants.CONTENT_TYPE_HEADER_KEY, Constants.CBOR_CONTENT_TYPE);
+
     return headers;
   }
+
 }

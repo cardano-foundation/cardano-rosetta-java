@@ -28,7 +28,8 @@ public class BlockTx {
   protected List<Utxo> inputs;
   protected List<Utxo> outputs;
   protected List<StakeRegistration> stakeRegistrations;
-  protected List<Delegation> delegations;
+  protected List<StakePoolDelegation> stakePoolDelegations;
+  protected List<DRepDelegation> dRepDelegations;
   protected List<PoolRegistration> poolRegistrations;
   protected List<PoolRetirement> poolRetirements;
   protected List<Withdrawal> withdrawals;

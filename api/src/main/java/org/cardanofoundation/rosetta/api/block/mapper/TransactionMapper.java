@@ -8,16 +8,8 @@ import org.openapitools.client.model.Operation;
 import org.openapitools.client.model.OperationStatus;
 
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
-import org.cardanofoundation.rosetta.api.block.model.domain.Delegation;
-import org.cardanofoundation.rosetta.api.block.model.domain.PoolRegistration;
-import org.cardanofoundation.rosetta.api.block.model.domain.PoolRetirement;
-import org.cardanofoundation.rosetta.api.block.model.domain.StakeRegistration;
-import org.cardanofoundation.rosetta.api.block.model.domain.Withdrawal;
-import org.cardanofoundation.rosetta.api.block.model.entity.DelegationEntity;
-import org.cardanofoundation.rosetta.api.block.model.entity.PoolRegistrationEntity;
-import org.cardanofoundation.rosetta.api.block.model.entity.PoolRetirementEntity;
-import org.cardanofoundation.rosetta.api.block.model.entity.StakeRegistrationEntity;
-import org.cardanofoundation.rosetta.api.block.model.entity.WithdrawalEntity;
+import org.cardanofoundation.rosetta.api.block.model.domain.*;
+import org.cardanofoundation.rosetta.api.block.model.entity.*;
 import org.cardanofoundation.rosetta.common.mapper.util.BaseMapper;
 import org.cardanofoundation.rosetta.common.util.Constants;
 
@@ -50,14 +42,21 @@ public interface TransactionMapper {
   @Mapping(target = "operationIdentifier", source = "index", qualifiedByName = "OperationIdentifier")
   Operation mapPoolRetirementToOperation(PoolRetirement model, OperationStatus status, int index);
 
-  Delegation mapDelegationEntityToDelegation(DelegationEntity entity);
+  StakePoolDelegation mapDelegationEntityToDelegation(DelegationEntity entity);
 
   @Mapping(target = "status", source = "status.status")
   @Mapping(target = "type", constant = Constants.OPERATION_TYPE_STAKE_DELEGATION)
   @Mapping(target = "operationIdentifier", source = "index", qualifiedByName = "OperationIdentifier")
   @Mapping(target = "account.address", source = "model.address")
   @Mapping(target = "metadata.poolKeyHash", source = "model.poolId")
-  Operation mapDelegationToOperation(Delegation model, OperationStatus status, int index);
+  Operation mapStakeDelegationToOperation(StakePoolDelegation model, OperationStatus status, int index);
+
+  @Mapping(target = "status", source = "status.status")
+  @Mapping(target = "type", constant = Constants.OPERATION_TYPE_DREP_VOTE_DELEGATION)
+  @Mapping(target = "operationIdentifier", source = "index", qualifiedByName = "OperationIdentifier")
+  @Mapping(target = "account.address", source = "model.address")
+  @Mapping(target = "metadata.drep", source = "model.drep", qualifiedByName = "convertDRepFromRosetta")
+  Operation mapDRepDelegationToOperation(DRepDelegation model, OperationStatus status, int index);
 
   @Mapping(target = "type", constant = Constants.INPUT)
   @Mapping(target = "coinChange.coinAction", source = "model", qualifiedByName = "getCoinSpentAction")
@@ -85,7 +84,7 @@ public interface TransactionMapper {
 
   StakeRegistration mapStakeRegistrationEntityToStakeRegistration(StakeRegistrationEntity entity);
 
-  @Mapping(target = "type", source = "model.type", qualifiedByName = "convertCertificateType")
+  @Mapping(target = "type", source = "model.type", qualifiedByName = "convertStakeCertificateType")
   @Mapping(target = "status", source = "status.status")
   @Mapping(target = "account.address", source = "model.address")
   @Mapping(target = "metadata.depositAmount", source = "model", qualifiedByName = "getDepositAmountStake", conditionExpression = "java(isRegistration(stakeRegistration.getType()))")
@@ -108,4 +107,6 @@ public interface TransactionMapper {
   @Mapping(target = "metadata.withdrawalAmount", source = "model.amount", qualifiedByName = "updateDepositAmountNegate")
   @Mapping(target = "amount", ignore = true)
   Operation mapWithdrawalToOperation(Withdrawal model, OperationStatus status, int index);
+
+
 }

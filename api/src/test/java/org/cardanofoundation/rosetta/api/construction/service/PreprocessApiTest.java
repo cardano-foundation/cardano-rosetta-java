@@ -27,6 +27,7 @@ class PreprocessApiTest extends IntegrationTest {
     ObjectMapper mapper = new ObjectMapper();
     ConstructionPreprocessRequest request = mapper.readValue(file,
         ConstructionPreprocessRequest.class);
+
     return request;
   }
 
@@ -45,6 +46,11 @@ class PreprocessApiTest extends IntegrationTest {
     assertPreprocessRequest("testdata/construction/preprocess/pool_registration.json", 100, 930);
   }
 
+  @Test
+  void dRepDelegationTest() throws IOException {
+    assertPreprocessRequest("testdata/construction/preprocess/drep_vote_delegation.json", 100, 405);
+  }
+
   private void assertPreprocessRequest(String constructionPayloadFile, int expectedTtl,
       int expectedTransactionSize)
       throws IOException {
@@ -57,4 +63,5 @@ class PreprocessApiTest extends IntegrationTest {
     assertEquals(expectedTtl, options.get("relative_ttl"), "relative_ttl is not as expected");
     assertEquals(expectedTransactionSize, options.get("transaction_size"), "transaction_size is not as expected");
   }
+
 }
