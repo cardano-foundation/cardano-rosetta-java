@@ -1,12 +1,5 @@
 package org.cardanofoundation.rosetta.common.util;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-
-import lombok.extern.slf4j.Slf4j;
-
 import com.bloxbean.cardano.client.address.Address;
 import com.bloxbean.cardano.client.address.AddressProvider;
 import com.bloxbean.cardano.client.common.model.Network;
@@ -16,41 +9,30 @@ import com.bloxbean.cardano.client.metadata.cbor.CBORMetadata;
 import com.bloxbean.cardano.client.metadata.cbor.CBORMetadataMap;
 import com.bloxbean.cardano.client.spec.UnitInterval;
 import com.bloxbean.cardano.client.transaction.spec.AuxiliaryData;
-import com.bloxbean.cardano.client.transaction.spec.cert.Certificate;
-import com.bloxbean.cardano.client.transaction.spec.cert.PoolRegistration;
 import com.bloxbean.cardano.client.transaction.spec.cert.Relay;
-import com.bloxbean.cardano.client.transaction.spec.cert.StakeCredential;
-import com.bloxbean.cardano.client.transaction.spec.cert.StakeDelegation;
-import com.bloxbean.cardano.client.transaction.spec.cert.StakeDeregistration;
-import com.bloxbean.cardano.client.transaction.spec.cert.StakePoolId;
-import com.bloxbean.cardano.client.transaction.spec.cert.StakeRegistration;
+import com.bloxbean.cardano.client.transaction.spec.cert.*;
 import com.bloxbean.cardano.client.util.HexUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
-import org.openapitools.client.model.AccountIdentifier;
-import org.openapitools.client.model.Operation;
-import org.openapitools.client.model.OperationMetadata;
-import org.openapitools.client.model.PoolMetadata;
-import org.openapitools.client.model.PoolRegistrationParams;
-import org.openapitools.client.model.PublicKey;
-import org.openapitools.client.model.VoteRegistrationMetadata;
-
 import org.cardanofoundation.rosetta.api.construction.enumeration.CatalystLabels;
 import org.cardanofoundation.rosetta.common.enumeration.CatalystDataIndexes;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
-import org.cardanofoundation.rosetta.common.model.cardano.pool.PoolRegistationParametersReturn;
-import org.cardanofoundation.rosetta.common.model.cardano.pool.PoolRegistrationCertReturn;
 import org.cardanofoundation.rosetta.common.model.cardano.pool.PoolRetirement;
-import org.cardanofoundation.rosetta.common.model.cardano.pool.ProcessPoolRegistrationReturn;
-import org.cardanofoundation.rosetta.common.model.cardano.pool.ProcessWithdrawalReturn;
-import org.cardanofoundation.rosetta.common.model.cardano.pool.StakeCertificate;
+import org.cardanofoundation.rosetta.common.model.cardano.pool.*;
+import org.openapitools.client.model.*;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
 import static java.math.BigInteger.valueOf;
 
 @Slf4j
-public class ProcessConstructionUtil {
-    private ProcessConstructionUtil() {
+public class ProcessConstructions {
 
+    private ProcessConstructions() {
     }
 
     public static Certificate getStakeRegistrationCertificateFromOperation(Operation operation) {
@@ -58,6 +40,7 @@ public class ProcessConstructionUtil {
 
         OperationMetadata operationMetadata = operation.getMetadata();
         StakeCredential credential = CardanoAddressUtils.getStakingCredentialFromStakeKey(operationMetadata.getStakingCredential());
+
         return new StakeRegistration(credential);
     }
 
@@ -66,14 +49,18 @@ public class ProcessConstructionUtil {
         log.info(
                 "[processOperationCertification] About to process operation of type {}",
                 operation.getType());
+
         OperationMetadata operationMetadata = operation.getMetadata();
         PublicKey publicKey = ObjectUtils.isEmpty(operation.getMetadata()) ? null
                 : operationMetadata.getStakingCredential();
+
         StakeCredential credential = CardanoAddressUtils.getStakingCredentialFromStakeKey(publicKey);
         HdPublicKey hdPublicKey = new HdPublicKey();
+
         if (publicKey != null) {
             hdPublicKey.setKeyData(HexUtil.decodeHexString(publicKey.getHexBytes()));
         }
+
         String address = CardanoAddressUtils.generateRewardAddress(network, hdPublicKey);
         if (operation.getType().equals(OperationType.STAKE_DELEGATION.getValue())) {
             if (operationMetadata.getPoolKeyHash() == null) {
@@ -84,6 +71,7 @@ public class ProcessConstructionUtil {
                             : HexUtil.decodeHexString(operationMetadata.getPoolKeyHash())));
             return new StakeCertificate(certificate, address);
         }
+
         return new StakeCertificate(new StakeDeregistration(credential), address);
     }
 
@@ -116,7 +104,6 @@ public class ProcessConstructionUtil {
         return processWithdrawalReturnDto;
     }
 
-
     public static ProcessPoolRegistrationReturn getPoolRegistrationFromOperation(Operation operation) {
         log.info("[processPoolRegistration] About to process pool registration operation");
         OperationMetadata operationMetadata = operation.getMetadata();
@@ -138,6 +125,7 @@ public class ProcessConstructionUtil {
         Objects.requireNonNull(poolRegistrationParams, "Pool registration params can't be null");
         Address parsedAddress = ValidateParseUtil.validateAndParseRewardAddress(
                 poolRegistrationParams.getRewardAddress());
+
         Bech32.Bech32Data bech32Data = Bech32.decode(parsedAddress.toBech32());
         log.info("[processPoolRegistration] About to generate pool owners");
         Set<String> owners = ValidateParseUtil.validateAndParsePoolOwners(
@@ -210,7 +198,9 @@ public class ProcessConstructionUtil {
                     ObjectUtils.isEmpty(operation.getAccount()) ? null : operation.getAccount().getAddress());
             return new PoolRetirement(new com.bloxbean.cardano.client.transaction.spec.cert.PoolRetirement(keyHash, Math.round(epoch)), ObjectUtils.isEmpty(operation.getAccount()) ? null : operation.getAccount().getAddress());
         }
+
         log.error("[processPoolRetiring] Epoch operation metadata is missing");
+
         throw ExceptionFactory.missingMetadataParametersForPoolRetirement();
     }
 
@@ -245,8 +235,11 @@ public class ProcessConstructionUtil {
         map3.put(valueOf(1L), HexUtil.decodeHexString(
                 operationMetadata.getVoteRegistrationMetadata().getVotingSignature()));
         metadata.put(valueOf(Long.parseLong(CatalystLabels.SIG.getLabel())), map3);
+
         AuxiliaryData auxiliaryData = new AuxiliaryData();
         auxiliaryData.setMetadata(metadata);
+
         return auxiliaryData;
     }
+
 }

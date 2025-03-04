@@ -70,6 +70,7 @@ public class OperationService {
     validateMetadataForStakingCredential(operation);
     HdPublicKey hdPublicKey =
         CardanoAddressUtils.publicKeyToHdPublicKey(operation.getMetadata().getStakingCredential());
+
     return Collections.singletonList(
         CardanoAddressUtils.generateRewardAddress(network, hdPublicKey));
   }
@@ -180,6 +181,7 @@ public class OperationService {
     }
     log.info("[getPoolSigners] About to return {} signers for {} operation", signers.size(),
         operation.getType());
+
     return signers;
   }
 
