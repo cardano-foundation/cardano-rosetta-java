@@ -7,7 +7,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.apache.commons.lang3.ObjectUtils;
 import org.openapitools.client.model.AccountIdentifier;
@@ -25,7 +24,7 @@ import org.cardanofoundation.rosetta.api.block.model.entity.UtxoKey;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
+@Transactional(readOnly = true)
 public class SearchServiceImpl implements SearchService {
 
   private final BlockMapper blockMapper;

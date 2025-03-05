@@ -11,7 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.openapitools.client.model.Operator;
 
@@ -26,7 +25,7 @@ import org.cardanofoundation.rosetta.api.block.service.LedgerBlockService;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
+@Transactional(readOnly = true)
 public class LedgerSearchServiceImpl implements LedgerSearchService {
 
   private final TxRepository txRepository;

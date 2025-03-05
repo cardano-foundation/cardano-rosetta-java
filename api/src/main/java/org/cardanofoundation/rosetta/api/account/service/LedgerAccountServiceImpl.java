@@ -9,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.openapitools.client.model.Currency;
 
@@ -24,7 +23,7 @@ import org.cardanofoundation.rosetta.common.util.Formatters;
 @Slf4j
 @RequiredArgsConstructor
 @Component
-@Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
+@Transactional(readOnly = true)
 public class LedgerAccountServiceImpl implements LedgerAccountService {
 
   private final AddressUtxoRepository addressUtxoRepository;

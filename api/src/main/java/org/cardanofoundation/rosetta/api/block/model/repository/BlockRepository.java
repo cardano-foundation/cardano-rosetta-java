@@ -4,11 +4,12 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
 
 import org.cardanofoundation.rosetta.api.block.model.entity.BlockEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.projection.BlockIdentifierProjection;
 
-
+@Repository
 public interface BlockRepository extends JpaRepository<BlockEntity, Long> {
 
   @Query("FROM BlockEntity b WHERE b.prev.hash IS NULL ORDER BY b.number ASC LIMIT 1")
