@@ -1,6 +1,9 @@
 package org.cardanofoundation.rosetta.common.services;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
@@ -13,7 +16,6 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.apache.commons.io.IOUtils;
 import org.json.JSONObject;
@@ -32,10 +34,13 @@ public class ProtocolParamServiceImpl implements ProtocolParamService {
 
   @Value("${cardano.rosetta.OFFLINE_MODE}")
   private boolean offlineMode;
+
   @Value("${cardano.rosetta.GENESIS_SHELLEY_PATH}")
   private String genesisShelleyPath;
+
   @Value("${cardano.rosetta.GENESIS_ALONZO_PATH}")
   private String genesisAlonzoPath;
+
   @Value("${cardano.rosetta.GENESIS_CONWAY_PATH}")
   private String genesisConwayPath;
 
@@ -45,26 +50,27 @@ public class ProtocolParamServiceImpl implements ProtocolParamService {
 
   @Override
   @Cacheable(value = "protocolParamsCache")
-  @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+  @Transactional(readOnly = true)
   public ProtocolParams findProtocolParameters() {
-    if(!offlineMode) {
-      log.info("Fetching protocol parameters from the indexer");
+    if (!offlineMode) {
+      log.info("Fetching protocol parameters from the indexer...");
+
       Optional<LocalProtocolParamsEntity> protocolParams = localProtocolParamsRepository.getLocalProtocolParams();
-      log.debug("Protocol parameters fetched from the indexer: {} \nand saved in cachedProtocolParams",
-              protocolParams);
-      if(protocolParams.isEmpty()) {
+      log.debug("Protocol parameters fetched from the indexer: {} \nand saved in cachedProtocolParams", protocolParams);
+
+      if (protocolParams.isEmpty()) {
         ProtocolParamsEntity paramsEntity = epochParamRepository.findLatestProtocolParams();
+
         return mapperProtocolParams.mapProtocolParamsToEntity(paramsEntity);
-      } else {
-        return protocolParams.get().getProtocolParams();
       }
-    } else {
-      return getProtocolParamsFromGenesisFiles();
+
+      return protocolParams.get().getProtocolParams();
     }
+
+    return getProtocolParamsFromGenesisFiles();
   }
 
   private ProtocolParams getProtocolParamsFromGenesisFiles() {
-
     ProtocolParams protocolParams = new ProtocolParams();
       File genesisShelley = new File(genesisShelleyPath);
       if(genesisShelley.exists()) {

@@ -79,7 +79,7 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
   private final RestTemplate restTemplate;
   private final OfflineSlotService offlineSlotService;
 
-  private final ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor();
+  private final ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor(); // TODO this probably gives more overhead than it should
 
   @Value("${cardano.rosetta.NODE_SUBMIT_API_PORT}")
   private int nodeSubmitApiPort;

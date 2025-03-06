@@ -36,6 +36,7 @@ class ProtocolParamsCacheTest {
 
   @MockBean
   private EpochParamRepository epochParamRepository;
+
   @MockBean
   private LocalProtocolParamsRepository localProtocolParamsRepository;
 
