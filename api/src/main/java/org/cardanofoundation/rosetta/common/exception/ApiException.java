@@ -12,7 +12,8 @@ public class ApiException extends RuntimeException {
   private final Error error;
 
   public ApiException(Error error) {
-    super();
+    super(error.getMessage() == null ? "?" : error.getMessage());
     this.error = error;
   }
+
 }
