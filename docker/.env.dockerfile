@@ -51,6 +51,8 @@ PRINT_EXCEPTION=true
 ## Yaci Indexer env
 YACI_SPRING_PROFILES=postgres,n2c-socket
 PRUNING_ENABLED=false
+PRUNING_INTERVAL:600
+PRUNING_SAFE_BLOCKS:4320
 # database profiles: h2, h2-testData, postgres
 MEMPOOL_ENABLED=false
 # Haven't implemented yet
