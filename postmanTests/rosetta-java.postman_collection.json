@@ -1,9 +1,10 @@
 {
 	"info": {
-		"_postman_id": "f2a51270-0506-4241-843b-268eae9b2bab",
+		"_postman_id": "3e539593-9616-49d9-b849-088608c77d69",
 		"name": "rosetta-java",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "32834089"
+		"_exporter_id": "22770953",
+		"_collection_link": "https://universal-water-431619.postman.co/workspace/My-Workspace~207852b0-2ada-455f-838b-25731ed1d6fa/collection/22770953-3e539593-9616-49d9-b849-088608c77d69?action=share&source=collection_link&creator=22770953"
 	},
 	"item": [
 		{
@@ -328,6 +329,116 @@
 					"response": []
 				},
 				{
+					"name": "preprocess - stake delegation",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"})",
+									"console.log(pm.response.json())",
+									"",
+									"pm.test('Contains Json Body', function () {",
+									"    pm.response.to.have.jsonBody('options');",
+									"})",
+									"",
+									"pm.test(\"Correct Values\", function () {",
+									"    ",
+									"    var responseData = pm.response.json();",
+									"    pm.expect(responseData).to.be.an('object');",
+									"    pm.expect(responseData.options.relative_ttl).to.eql(100.0);",
+									"    pm.expect(responseData.options.transaction_size).to.eql(930.0);",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"network_identifier\": {\n    \"blockchain\": \"cardano\",\n    \"network\": \"{{networkId}}\"\n  },\n  \"metadata\": {\n    \"relative_ttl\": 100,\n    \"deposit_parameters\": {\n      \"poolDeposit\": \"500000000\",\n      \"keyDeposit\": \"2000000\"\n    }\n  },\n  \"operations\" : [\n    {\n      \"operation_identifier\": {\n        \"index\": 0,\n        \"network_index\": 0\n      },\n      \"type\": \"input\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n      },\n      \"amount\": {\n        \"value\": \"-90000000000\",\n        \"currency\": {\n          \"symbol\": \"ADA\",\n          \"decimals\": 6\n        }\n      },\n      \"coin_change\": {\n        \"coin_identifier\": {\n          \"identifier\": \"2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f:1\"\n        },\n        \"coin_action\": \"coin_spent\"\n      }\n    },\n    {\n      \"operation_identifier\": {\n        \"index\": 1\n      },\n      \"related_operations\": [\n        {\n          \"index\": 0\n        }\n      ],\n      \"type\": \"output\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n      },\n      \"amount\": {\n        \"value\": \"10000\",\n        \"currency\": {\n          \"symbol\": \"ADA\",\n          \"decimals\": 6\n        }\n      }\n    },\n    {\n      \"operation_identifier\": {\n        \"index\": 2\n      },\n      \"related_operations\": [\n        {\n          \"index\": 0\n        }\n      ],\n      \"type\": \"output\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n      },\n      \"amount\": {\n        \"value\": \"40000\",\n        \"currency\": {\n          \"symbol\": \"ADA\",\n          \"decimals\": 6\n        }\n      }\n    },\n    {\n      \"operation_identifier\": {\n        \"index\": 3\n      },\n      \"type\": \"poolRegistration\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5\"\n      },\n      \"metadata\": {\n        \"poolRegistrationParams\": {\n          \"vrfKeyHash\": \"8dd154228946bd12967c12bedb1cb6038b78f8b84a1760b1a788fa72a4af3db0\",\n          \"rewardAddress\": \"stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5\",\n          \"pledge\": \"5000000\",\n          \"cost\": \"3000000\",\n          \"poolOwners\": [\"stake1uxly0q2cnpxrjrqm9vpnr9dwkr0j945gulhhgs3dx33l47sweg9er\"],\n          \"relays\": [\n            {\n              \"type\": \"single_host_addr\",\n              \"ipv4\": \"127.0.0.1\",\n              \"ipv6\": \"2345:0425:2ca1:0000:0000:0567:5673:23b5\",\n              \"port\": \"32\"\n            }\n          ],\n          \"margin\": {\n            \"numerator\": \"1\",\n            \"denominator\": \"1\"\n          },\n          \"poolMetadata\": {\n            \"url\": \"poolMetadataUrl\",\n            \"hash\": \"9ac2217288d1ae0b4e15c41b58d3e05a13206fd9ab81cb15943e4174bf30c90b\"\n          }\n        }\n      }\n    },\n    {\n      \"operation_identifier\": {\n        \"index\": 3\n      },\n      \"type\": \"stakeDelegation\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5\"\n      },\n      \"metadata\": {\n        \"staking_credential\": {\n          \"hex_bytes\": \"1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F\",\n          \"curve_type\": \"edwards25519\"\n        },\n        \"pool_key_hash\": \"1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5\"\n      }\n    }\n  ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/construction/preprocess",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"construction",
+								"preprocess"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "preprocess - drep vote delegation",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"})",
+									"console.log(pm.response.json())",
+									"",
+									"pm.test('Contains Json Body', function () {",
+									"    pm.response.to.have.jsonBody('options');",
+									"})",
+									"",
+									"pm.test(\"Correct Values\", function () {",
+									"    ",
+									"    var responseData = pm.response.json();",
+									"    pm.expect(responseData).to.be.an('object');",
+									"    pm.expect(responseData.options.relative_ttl).to.eql(100.0);",
+									"    pm.expect(responseData.options.transaction_size).to.eql(930.0);",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"network_identifier\": {\n    \"blockchain\": \"cardano\",\n    \"network\": \"{{networkId}}\"\n  },\n  \"metadata\": {\n    \"relative_ttl\": 100,\n    \"deposit_parameters\": {\n      \"poolDeposit\": \"500000000\",\n      \"keyDeposit\": \"2000000\"\n    }\n  },\n  \"operations\" : [\n    {\n      \"operation_identifier\": {\n        \"index\": 0,\n        \"network_index\": 0\n      },\n      \"type\": \"input\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n      },\n      \"amount\": {\n        \"value\": \"-90000000000\",\n        \"currency\": {\n          \"symbol\": \"ADA\",\n          \"decimals\": 6\n        }\n      },\n      \"coin_change\": {\n        \"coin_identifier\": {\n          \"identifier\": \"2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f:1\"\n        },\n        \"coin_action\": \"coin_spent\"\n      }\n    },\n    {\n      \"operation_identifier\": {\n        \"index\": 1\n      },\n      \"related_operations\": [\n        {\n          \"index\": 0\n        }\n      ],\n      \"type\": \"output\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n      },\n      \"amount\": {\n        \"value\": \"10000\",\n        \"currency\": {\n          \"symbol\": \"ADA\",\n          \"decimals\": 6\n        }\n      }\n    },\n    {\n      \"operation_identifier\": {\n        \"index\": 2\n      },\n      \"related_operations\": [\n        {\n          \"index\": 0\n        }\n      ],\n      \"type\": \"output\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n      },\n      \"amount\": {\n        \"value\": \"40000\",\n        \"currency\": {\n          \"symbol\": \"ADA\",\n          \"decimals\": 6\n        }\n      }\n    },\n    {\n      \"operation_identifier\": {\n        \"index\": 3\n      },\n      \"type\": \"poolRegistration\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5\"\n      },\n      \"metadata\": {\n        \"poolRegistrationParams\": {\n          \"vrfKeyHash\": \"8dd154228946bd12967c12bedb1cb6038b78f8b84a1760b1a788fa72a4af3db0\",\n          \"rewardAddress\": \"stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5\",\n          \"pledge\": \"5000000\",\n          \"cost\": \"3000000\",\n          \"poolOwners\": [\"stake1uxly0q2cnpxrjrqm9vpnr9dwkr0j945gulhhgs3dx33l47sweg9er\"],\n          \"relays\": [\n            {\n              \"type\": \"single_host_addr\",\n              \"ipv4\": \"127.0.0.1\",\n              \"ipv6\": \"2345:0425:2ca1:0000:0000:0567:5673:23b5\",\n              \"port\": \"32\"\n            }\n          ],\n          \"margin\": {\n            \"numerator\": \"1\",\n            \"denominator\": \"1\"\n          },\n          \"poolMetadata\": {\n            \"url\": \"poolMetadataUrl\",\n            \"hash\": \"9ac2217288d1ae0b4e15c41b58d3e05a13206fd9ab81cb15943e4174bf30c90b\"\n          }\n        }\n      }\n    },\n    {\n      \"operation_identifier\": {\n        \"index\": 3\n      },\n      \"type\": \"stakeDelegation\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5\"\n      },\n      \"metadata\": {\n        \"staking_credential\": {\n          \"hex_bytes\": \"1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F\",\n          \"curve_type\": \"edwards25519\"\n        },\n        \"pool_key_hash\": \"1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5\"\n      }\n    }\n  ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/construction/preprocess",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"construction",
+								"preprocess"
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "payload - simple",
 					"event": [
 						{
@@ -422,6 +533,62 @@
 						"body": {
 							"mode": "raw",
 							"raw": "{\n  \"network_identifier\": {\n    \"blockchain\": \"cardano\",\n    \"network\": \"{{networkId}}\"\n  },\n  \"operations\": [\n    {\n      \"operation_identifier\": {\n        \"index\": 0,\n        \"network_index\": 0\n      },\n      \"type\": \"input\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n      },\n      \"amount\": {\n        \"value\": \"-9000000\",\n        \"currency\": {\n          \"symbol\": \"ADA\",\n          \"decimals\": 6\n        }\n      },\n      \"coin_change\": {\n        \"coin_identifier\": {\n          \"identifier\": \"2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f:1\"\n        },\n        \"coin_action\": \"coin_spent\"\n      }\n    },\n    {\n      \"operation_identifier\": {\n        \"index\": 1\n      },\n      \"related_operations\": [\n        {\n          \"index\": 0\n        }\n      ],\n      \"type\": \"output\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n      },\n      \"amount\": {\n        \"value\": \"10000\",\n        \"currency\": {\n          \"symbol\": \"ADA\",\n          \"decimals\": 6\n        }\n      }\n    },\n    {\n      \"operation_identifier\": {\n        \"index\": 2\n      },\n      \"related_operations\": [\n        {\n          \"index\": 0\n        }\n      ],\n      \"type\": \"output\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n      },\n      \"amount\": {\n        \"value\": \"40000\",\n        \"currency\": {\n          \"symbol\": \"ADA\",\n          \"decimals\": 6\n        }\n      }\n    },\n    {\n      \"operation_identifier\": {\n        \"index\": 3\n      },\n      \"type\": \"stakeKeyRegistration\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5\"\n      },\n      \"metadata\": {\n        \"staking_credential\": {\n          \"hex_bytes\": \"1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F\",\n          \"curve_type\": \"edwards25519\"\n        },\n        \"depositAmount\": {\n          \"currency\": {\n            \"decimals\": 6,\n            \"symbol\": \"ADA\"\n          },\n          \"value\": \"2000000\"\n        }\n      }\n    }\n  ],\n  \"metadata\": {\n    \"ttl\": \"1000\",\n    \"protocol_parameters\": {\n      \"coinsPerUtxoSize\": \"0\",\n      \"maxTxSize\": 16384,\n      \"maxValSize\": 0,\n      \"keyDeposit\": \"2000000\",\n      \"maxCollateralInputs\": 0,\n      \"minFeeCoefficient\": 44,\n      \"minFeeConstant\": 155381,\n      \"minPoolCost\": \"340000000\",\n      \"poolDeposit\": \"500000000\",\n      \"protocol\": 4\n    }\n  }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/construction/payloads",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"construction",
+								"payloads"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "payload - drep vote delegation",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"})",
+									"console.log(pm.response.json())",
+									"",
+									"pm.test('Contains Json Body', function () {",
+									"    pm.response.to.have.jsonBody('payloads');",
+									"    pm.response.to.have.jsonBody('unsigned_transaction');",
+									"})",
+									"",
+									"pm.test(\"Correct Values\", function () {",
+									"    ",
+									"    var responseData = pm.response.json();",
+									"    pm.expect(responseData).to.be.an('object');",
+									"    pm.expect(responseData.payloads.length).to.equal(2)",
+									"    pm.expect(responseData.payloads[0].hex_bytes).to.equal('177fe37160bb5af01f98873e8963fe2d21d2e2dd54295f4bbcd13c47856e50cb')",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"network_identifier\": {\n    \"blockchain\": \"cardano\",\n    \"network\": \"{{networkId}}\"\n  },\n  \"operations\": [\n    {\n      \"operation_identifier\": {\n        \"index\": 0,\n        \"network_index\": 0\n      },\n      \"type\": \"input\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n      },\n      \"amount\": {\n        \"value\": \"-90000000000\",\n        \"currency\": {\n          \"symbol\": \"ADA\",\n          \"decimals\": 6\n        }\n      },\n      \"coin_change\": {\n        \"coin_identifier\": {\n          \"identifier\": \"2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f:1\"\n        },\n        \"coin_action\": \"coin_spent\"\n      }\n    },\n    {\n      \"operation_identifier\": {\n        \"index\": 1\n      },\n      \"related_operations\": [\n        {\n          \"index\": 0\n        }\n      ],\n      \"type\": \"output\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n      },\n      \"amount\": {\n        \"value\": \"10000\",\n        \"currency\": {\n          \"symbol\": \"ADA\",\n          \"decimals\": 6\n        }\n      }\n    },\n    {\n      \"operation_identifier\": {\n        \"index\": 2\n      },\n      \"related_operations\": [\n        {\n          \"index\": 0\n        }\n      ],\n      \"type\": \"output\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n      },\n      \"amount\": {\n        \"value\": \"40000\",\n        \"currency\": {\n          \"symbol\": \"ADA\",\n          \"decimals\": 6\n        }\n      }\n    },\n    {\n      \"operation_identifier\": {\n        \"index\": 3\n      },\n      \"type\": \"dRepVoteDelegation\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5\"\n      },\n      \"metadata\": {\n        \"staking_credential\": {\n          \"hex_bytes\": \"1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F\",\n          \"curve_type\": \"edwards25519\"\n        },\n        \"drep\": {\n          \"id\": \"74984fae4ca1715fa1f8759f9d871015ac87f449a85dea6cf9956da1\",\n          \"type\": \"key_hash\"\n        }\n      }\n    }\n  ],\n  \"metadata\": {\n    \"ttl\": \"1000\",\n    \"protocol_parameters\": {\n      \"coinsPerUtxoSize\": \"0\",\n      \"maxTxSize\": 16384,\n      \"maxValSize\": 0,\n      \"keyDeposit\": \"2000000\",\n      \"maxCollateralInputs\": 0,\n      \"minFeeCoefficient\": 44,\n      \"minFeeConstant\": 155381,\n      \"minPoolCost\": \"340000000\",\n      \"poolDeposit\": \"500000000\",\n      \"protocol\": 4\n    }\n  }\n}\n",
 							"options": {
 								"raw": {
 									"language": "json"

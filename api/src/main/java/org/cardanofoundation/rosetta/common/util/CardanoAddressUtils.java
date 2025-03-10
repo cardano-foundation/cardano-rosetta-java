@@ -228,6 +228,7 @@ public class CardanoAddressUtils {
 
   public static StakeCredential getStakingCredentialFromStakeKey(PublicKey stakingCredential) {
     HdPublicKey stakingKey = publicKeyToHdPublicKey(stakingCredential);
+
     return StakeCredential.fromKeyHash(stakingKey.getKeyHash());
   }
 

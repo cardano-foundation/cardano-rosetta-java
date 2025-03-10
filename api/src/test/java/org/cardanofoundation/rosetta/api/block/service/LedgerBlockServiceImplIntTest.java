@@ -14,13 +14,8 @@ import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
 
 import org.cardanofoundation.rosetta.api.IntegrationTest;
-import org.cardanofoundation.rosetta.api.block.model.domain.Block;
-import org.cardanofoundation.rosetta.api.block.model.domain.BlockIdentifierExtended;
-import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
-import org.cardanofoundation.rosetta.api.block.model.domain.Delegation;
-import org.cardanofoundation.rosetta.api.block.model.domain.PoolRegistration;
-import org.cardanofoundation.rosetta.api.block.model.domain.PoolRetirement;
-import org.cardanofoundation.rosetta.api.block.model.domain.StakeRegistration;
+import org.cardanofoundation.rosetta.api.block.model.domain.*;
+import org.cardanofoundation.rosetta.api.block.model.domain.StakePoolDelegation;
 import org.cardanofoundation.rosetta.api.block.model.entity.BlockEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.DelegationEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.PoolRegistrationEntity;
@@ -148,8 +143,8 @@ class LedgerBlockServiceImplIntTest extends IntegrationTest {
     assertThat(blockTx.getHash()).isEqualTo(tx.txHash());
     assertThat(blockTx.getBlockNo()).isEqualTo(tx.blockNumber());
     assertThat(blockTx.getBlockHash()).isEqualTo(tx.blockHash());
-    assertThat(blockTx.getDelegations()).hasSize(1);
-    assertThat(blockTx.getDelegations().getFirst().getAddress())
+    assertThat(blockTx.getStakePoolDelegations()).hasSize(1);
+    assertThat(blockTx.getStakePoolDelegations().getFirst().getAddress())
         .isEqualTo(STAKE_ADDRESS_WITH_EARNED_REWARDS);
 
     List<DelegationEntity> delegations = entityManager
@@ -160,7 +155,7 @@ class LedgerBlockServiceImplIntTest extends IntegrationTest {
     DelegationEntity expected = delegations.getFirst();
     assertThat(expected.getAddress()).isEqualTo(STAKE_ADDRESS_WITH_EARNED_REWARDS);
 
-    Delegation actual = blockTx.getDelegations().getFirst();
+    StakePoolDelegation actual = blockTx.getStakePoolDelegations().getFirst();
     assertThat(actual.getTxHash()).isEqualTo(expected.getTxHash());
     assertThat(actual.getAddress()).isEqualTo(expected.getAddress());
     assertThat(actual.getPoolId()).isEqualTo(expected.getPoolId());

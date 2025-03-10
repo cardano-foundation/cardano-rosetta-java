@@ -23,6 +23,7 @@ class ParseApiTest extends IntegrationTest {
     File file = new File(this.getClass().getClassLoader().getResource(fileName).getFile());
     ObjectMapper mapper = new ObjectMapper();
     ConstructionParseRequest request = mapper.readValue(file, ConstructionParseRequest.class);
+
     return request;
   }
 

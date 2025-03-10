@@ -7,11 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.openapitools.client.api.NetworkApi;
-import org.openapitools.client.model.MetadataRequest;
-import org.openapitools.client.model.NetworkListResponse;
-import org.openapitools.client.model.NetworkOptionsResponse;
-import org.openapitools.client.model.NetworkRequest;
-import org.openapitools.client.model.NetworkStatusResponse;
+import org.openapitools.client.model.*;
 
 import org.cardanofoundation.rosetta.api.network.service.NetworkService;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
@@ -34,10 +30,11 @@ public class NetworkApiImpl implements NetworkApi {
 
   @Override
   public ResponseEntity<NetworkOptionsResponse> networkOptions(
-      @RequestBody NetworkRequest networkRequest)  {
+      @RequestBody NetworkRequest networkRequest) {
     networkService.verifyNetworkRequest(networkRequest.getNetworkIdentifier());
     final NetworkOptionsResponse networkOptionsResponse = networkService.getNetworkOptions(
         networkRequest);
+
     return ResponseEntity.ok(networkOptionsResponse);
   }
 
@@ -51,6 +48,8 @@ public class NetworkApiImpl implements NetworkApi {
     networkService.verifyNetworkRequest(networkRequest.getNetworkIdentifier());
     final NetworkStatusResponse networkStatusResponse = networkService.getNetworkStatus(
         networkRequest);
+
     return ResponseEntity.ok(networkStatusResponse);
   }
+
 }

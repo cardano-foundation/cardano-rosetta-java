@@ -97,14 +97,18 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
             .orElseThrow(ExceptionFactory::invalidNetworkError);
     Network network = networkEnum.getNetwork();
 
+    List<Operation> operations = constructionPreprocessRequest.getOperations();
+
     int transactionSize = cardanoConstructionService.calculateTxSize(
             network,
-            constructionPreprocessRequest.getOperations(),
+            operations,
             currentSlotBasedOnTime
     );
 
-    Map<String, Integer> response = Map.of(Constants.RELATIVE_TTL, relativeTtl,
-            Constants.TRANSACTION_SIZE, transactionSize);
+    Map<String, Integer> response = Map.of(
+            Constants.RELATIVE_TTL, relativeTtl,
+            Constants.TRANSACTION_SIZE, transactionSize
+    );
 
     return new ConstructionPreprocessResponse(response, null);
   }

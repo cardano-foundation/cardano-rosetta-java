@@ -16,22 +16,24 @@ public class RosettaConstants {
   public static final OperationStatus SUCCESS_OPERATION_STATUS = buildOperationStatus("success",
       true);
 
-  public static final List<OperationStatus> ROSETTA_OPERATION_STATUSES = List.of(
-      SUCCESS_OPERATION_STATUS, INVALID_OPERATION_STATUS
-  );
+//  public static final List<OperationStatus> ROSETTA_OPERATION_STATUSES = List.of(
+//      SUCCESS_OPERATION_STATUS, INVALID_OPERATION_STATUS
+//  );
+//
+//  public static final List<String> ROSETTA_OPERATION_TYPES = List.of(
+//      "input",
+//      "output",
+//      "stakeKeyRegistration",
+//      "stakeDelegation",
+//      "dRepVoteDelegation",
+//      "withdrawal",
+//      "stakeKeyDeregistration",
+//      "poolRegistration",
+//      "poolRegistrationWithCert",
+//      "poolRetirement",
+//      "voteRegistration"
+//  );
 
-  public static final List<String> ROSETTA_OPERATION_TYPES = List.of(
-      "input",
-      "output",
-      "stakeKeyRegistration",
-      "stakeDelegation",
-      "withdrawal",
-      "stakeKeyDeregistration",
-      "poolRegistration",
-      "poolRegistrationWithCert",
-      "poolRetirement",
-      "voteRegistration"
-  );
   public static final List<Error> ROSETTA_ERRORS = List.of(
       RosettaErrorType.BLOCK_NOT_FOUND.toRosettaError(false),
       RosettaErrorType.INVALID_BLOCKCHAIN.toRosettaError(false),
@@ -95,6 +97,7 @@ public class RosettaConstants {
     final OperationStatus operationStatus = new OperationStatus();
     operationStatus.setStatus(status);
     operationStatus.setSuccessful(successful);
+
     return operationStatus;
   }
 
@@ -189,7 +192,11 @@ public class RosettaConstants {
     POOL_DEPOSIT_MISSING("body.metadata must have required property 'poolDeposit'", 5033),
     NOT_SUPPORTED_IN_OFFLINE_MODE("This operation is not supported in offline mode", 5034),
     GATEWAY_ERROR("Unable to get data from the downstream gateway", 5035),
-    MISCONFIGURED_TIME("Time is misconfigured on the server, check system date and time, current time is before Cardano's Shelly start time, which is impossible.", 5036);
+    MISCONFIGURED_TIME("Time is misconfigured on the server, check system date and time, current time is before Cardano's Shelly start time, which is impossible.", 5036),
+    INVALID_DREP_TYPE("Invalid drep type", 5037),
+    MISSING_DREP("Missing drep", 5038),
+    MISSING_DREP_ID("Missing drep id", 5039),
+    MISSING_DREP_TYPE("Missing drep type", 5040);
 
     final String message;
     final int code;

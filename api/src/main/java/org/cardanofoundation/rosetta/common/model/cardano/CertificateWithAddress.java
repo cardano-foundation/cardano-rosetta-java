@@ -1,4 +1,4 @@
-package org.cardanofoundation.rosetta.common.model.cardano.pool;
+package org.cardanofoundation.rosetta.common.model.cardano;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -9,7 +9,7 @@ import com.bloxbean.cardano.client.transaction.spec.cert.Certificate;
 @Slf4j
 @Data
 @AllArgsConstructor
-public class StakeCertificate {
+public class CertificateWithAddress {
 
   private Certificate certificate;
   private String address;

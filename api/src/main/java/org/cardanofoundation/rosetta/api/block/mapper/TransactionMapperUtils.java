@@ -5,21 +5,18 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import javax.annotation.Nullable;
 
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Component;
 import com.bloxbean.cardano.yaci.core.model.certs.CertificateType;
 import org.mapstruct.Named;
-import org.openapitools.client.model.Amount;
-import org.openapitools.client.model.CoinAction;
-import org.openapitools.client.model.Currency;
-import org.openapitools.client.model.OperationIdentifier;
-import org.openapitools.client.model.OperationMetadata;
-import org.openapitools.client.model.TokenBundleItem;
+import org.openapitools.client.model.*;
 
 import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
+import org.cardanofoundation.rosetta.api.block.model.domain.DRepDelegation;
 import org.cardanofoundation.rosetta.api.block.model.domain.StakeRegistration;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.common.mapper.DataMapper;
@@ -31,6 +28,16 @@ import org.cardanofoundation.rosetta.common.util.Constants;
 public class TransactionMapperUtils {
 
   final ProtocolParamService protocolParamService;
+
+  @Named("convertDRepToRosetta")
+  public DRepDelegation.DRep convertDRepToRosetta(DRepParams dRepParams) {
+    return DRepDelegation.DRep.convertDRepToRosetta(dRepParams);
+  }
+
+  @Named("convertDRepFromRosetta")
+  public DRepParams convertDRepFromRosetta(DRepDelegation.DRep drep) {
+    return DRepDelegation.DRep.convertDRepFromRosetta(drep);
+  }
 
   @Named("mapAmountsToOperationMetadataInput")
   public OperationMetadata mapToOperationMetaDataInput(List<Amt> amounts) {
@@ -45,26 +52,26 @@ public class TransactionMapperUtils {
   public OperationMetadata mapToOperationMetaData(boolean spent, List<Amt> amounts) {
     OperationMetadata operationMetadata = new OperationMetadata();
     Optional.ofNullable(amounts)
-        .stream()
-        .flatMap(List::stream)
-        .filter(amount -> !amount.getAssetName().equals(Constants.LOVELACE))
-        .collect(Collectors.groupingBy(Amt::getPolicyId))
-        .forEach((policyId, policyIdAmounts) ->
-            operationMetadata.addTokenBundleItem(
-                TokenBundleItem.builder()
-                    .policyId(policyId)
-                    .tokens(policyIdAmounts.stream()
-                        .map(amount -> Amount.builder()
-                            .value(DataMapper.mapValue(amount.getQuantity().toString(), spent))
-                            .currency(Currency.builder()
-                                .symbol(amount.getUnit().replace(amount.getPolicyId(), ""))
-                                .decimals(0)
-                                .build())
-                            .build())
-                        .toList())
-                    .build()
-            )
-        );
+            .stream()
+            .flatMap(List::stream)
+            .filter(amount -> !amount.getAssetName().equals(Constants.LOVELACE))
+            .collect(Collectors.groupingBy(Amt::getPolicyId))
+            .forEach((policyId, policyIdAmounts) ->
+                    operationMetadata.addTokenBundleItem(
+                            TokenBundleItem.builder()
+                                    .policyId(policyId)
+                                    .tokens(policyIdAmounts.stream()
+                                            .map(amount -> Amount.builder()
+                                                    .value(DataMapper.mapValue(amount.getQuantity().toString(), spent))
+                                                    .currency(Currency.builder()
+                                                            .symbol(amount.getUnit().replace(amount.getPolicyId(), ""))
+                                                            .decimals(0)
+                                                            .build())
+                                                    .build())
+                                            .toList())
+                                    .build()
+                    )
+            );
     return Objects.isNull(operationMetadata.getTokenBundle()) ? null : operationMetadata;
   }
 
@@ -80,9 +87,9 @@ public class TransactionMapperUtils {
 
   public String getAdaAmount(Utxo f, boolean input) {
     BigInteger adaAmount = Optional.ofNullable(f.getAmounts())
-        .map(amts -> amts.stream().filter(amt -> amt.getAssetName().equals(
-            Constants.LOVELACE)).findFirst().map(Amt::getQuantity).orElse(BigInteger.ZERO))
-        .orElse(BigInteger.ZERO);
+            .map(amts -> amts.stream().filter(amt -> amt.getAssetName().equals(
+                    Constants.LOVELACE)).findFirst().map(Amt::getQuantity).orElse(BigInteger.ZERO))
+            .orElse(BigInteger.ZERO);
     return input ? adaAmount.negate().toString() : adaAmount.toString();
   }
 
@@ -95,7 +102,7 @@ public class TransactionMapperUtils {
   public Amount getDepositAmountStake(StakeRegistration model) {
     CertificateType type = model.getType();
     BigInteger keyDeposit = Optional.ofNullable(protocolParamService.findProtocolParameters()
-        .getKeyDeposit()).orElse(BigInteger.ZERO);
+            .getKeyDeposit()).orElse(BigInteger.ZERO);
     if (type == CertificateType.STAKE_DEREGISTRATION) {
       keyDeposit = keyDeposit.negate();
     }
@@ -115,22 +122,24 @@ public class TransactionMapperUtils {
   @Named("updateDepositAmountNegate")
   public Amount updateDepositAmountNegate(BigInteger amount) {
     BigInteger bigInteger = Optional.ofNullable(amount)
-        .map(BigInteger::negate)
-        .orElse(BigInteger.ZERO);
+            .map(BigInteger::negate)
+            .orElse(BigInteger.ZERO);
+
     return DataMapper.mapAmount(bigInteger.toString(), Constants.ADA, Constants.ADA_DECIMALS, null);
   }
 
-  @Named("convertCertificateType")
-  public String convert(CertificateType model) {
+  @Named("convertStakeCertificateType")
+  @Nullable
+  public String convertCertificateType(CertificateType model) {
     if (model == null) {
       return null;
-    } else {
-      return switch (model) {
-        case CertificateType.STAKE_REGISTRATION -> OperationType.STAKE_KEY_REGISTRATION.getValue();
-        case CertificateType.STAKE_DEREGISTRATION -> OperationType.STAKE_KEY_DEREGISTRATION.getValue();
-        default -> null;
-      };
     }
+
+    return switch (model) {
+      case CertificateType.STAKE_REGISTRATION -> OperationType.STAKE_KEY_REGISTRATION.getValue();
+      case CertificateType.STAKE_DEREGISTRATION -> OperationType.STAKE_KEY_DEREGISTRATION.getValue();
+      default -> null;
+    };
   }
 
   @Named("getCoinSpentAction")

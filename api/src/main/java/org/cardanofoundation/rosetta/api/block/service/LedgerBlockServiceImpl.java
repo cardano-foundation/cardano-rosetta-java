@@ -200,7 +200,7 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
             .map(transactionMapper::mapStakeRegistrationEntityToStakeRegistration)
             .toList());
 
-    transaction.setDelegations(
+    transaction.setStakePoolDelegations(
         fetched.delegations
             .stream()
             .filter(tx -> tx.getTxHash().equals(transaction.getHash()))

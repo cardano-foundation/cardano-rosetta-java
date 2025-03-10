@@ -15,19 +15,18 @@ import org.openapitools.client.model.OperationStatus;
 
 import org.cardanofoundation.rosetta.api.block.mapper.TransactionMapper;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
-import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
 import org.cardanofoundation.rosetta.common.util.RosettaConstants;
 
 @Component
 @RequiredArgsConstructor
-public class OperationMapperUtils {
+public class OperationMapperService {
 
-  final ProtocolParamService protocolParamService;
   final TransactionMapper transactionMapper;
 
   final OperationStatus successOperationStatus = OperationStatus.builder()
       .status(RosettaConstants.SUCCESS_OPERATION_STATUS.getStatus())
       .build();
+
   final OperationStatus invalidOperationStatus = OperationStatus.builder()
       .status(RosettaConstants.INVALID_OPERATION_STATUS.getStatus())
       .build();
@@ -43,29 +42,40 @@ public class OperationMapperUtils {
         .map(input -> transactionMapper.mapInputUtxoToOperation(input, txStatus, ix.getAndIncrement()))
         .toList();
     operations.addAll(inpOps);
+
     operations.addAll(Optional.ofNullable(source.getWithdrawals()).stream()
         .flatMap(List::stream)
         .map(withdrawal -> transactionMapper.mapWithdrawalToOperation(withdrawal, txStatus, ix.getAndIncrement()))
         .toList());
+
     operations.addAll(Optional.ofNullable(source.getStakeRegistrations()).stream()
         .flatMap(List::stream)
         .map(stakeRegistration -> transactionMapper.mapStakeRegistrationToOperation(stakeRegistration,
             txStatus, ix.getAndIncrement()))
         .toList());
-    operations.addAll(Optional.ofNullable(source.getDelegations()).stream()
+
+    operations.addAll(Optional.ofNullable(source.getStakePoolDelegations()).stream()
+            .flatMap(List::stream)
+            .map(delegation -> transactionMapper.mapStakeDelegationToOperation(delegation, txStatus, ix.getAndIncrement()))
+            .toList());
+
+    operations.addAll(Optional.ofNullable(source.getDRepDelegations()).stream()
         .flatMap(List::stream)
-        .map(delegation -> transactionMapper.mapDelegationToOperation(delegation, txStatus, ix.getAndIncrement()))
+        .map(delegation -> transactionMapper.mapDRepDelegationToOperation(delegation, txStatus, ix.getAndIncrement()))
         .toList());
+
     operations.addAll(Optional.ofNullable(source.getPoolRegistrations()).stream()
         .flatMap(List::stream)
         .map(poolRegistration -> transactionMapper.mapPoolRegistrationToOperation(poolRegistration,
             txStatus, ix.getAndIncrement()))
         .toList());
+
     operations.addAll(Optional.ofNullable(source.getPoolRetirements()).stream()
         .flatMap(List::stream)
         .map(poolRetirement -> transactionMapper.mapPoolRetirementToOperation(poolRetirement,
             txStatus, ix.getAndIncrement()))
         .toList());
+
     if(!source.isInvalid()) {
       List<Operation> outOps = Optional.ofNullable(source.getOutputs()).stream()
           .flatMap(List::stream)
@@ -95,4 +105,5 @@ public class OperationMapperUtils {
             .index(operation.getOperationIdentifier().getIndex()).build())
         .toList();
   }
+
 }

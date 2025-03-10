@@ -1,11 +1,7 @@
 package org.cardanofoundation.rosetta.api.block.mapper;
 
 import java.math.BigInteger;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
@@ -13,28 +9,16 @@ import jakarta.validation.constraints.NotNull;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import com.bloxbean.cardano.yaci.core.model.certs.CertificateType;
-import org.openapitools.client.model.AccountIdentifier;
-import org.openapitools.client.model.Amount;
-import org.openapitools.client.model.BlockResponse;
-import org.openapitools.client.model.BlockTransactionResponse;
+import org.openapitools.client.model.*;
 import org.openapitools.client.model.Currency;
-import org.openapitools.client.model.Operation;
-import org.openapitools.client.model.OperationIdentifier;
-import org.openapitools.client.model.OperationMetadata;
-import org.openapitools.client.model.PoolRegistrationParams;
-import org.openapitools.client.model.Relay;
 
 import org.junit.jupiter.api.Test;
 
 import org.cardanofoundation.rosetta.api.BaseMapperSetup;
 import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
+import org.cardanofoundation.rosetta.api.block.model.domain.*;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
-import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
-import org.cardanofoundation.rosetta.api.block.model.domain.Delegation;
-import org.cardanofoundation.rosetta.api.block.model.domain.PoolRegistration;
-import org.cardanofoundation.rosetta.api.block.model.domain.PoolRetirement;
-import org.cardanofoundation.rosetta.api.block.model.domain.StakeRegistration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.cardanofoundation.rosetta.common.util.RosettaConstants.SUCCESS_OPERATION_STATUS;
@@ -312,25 +296,54 @@ class BlockToBlockResponseTest extends BaseMapperSetup {
 
   private List<BlockTx> newTransactions() {
     return List.of(
-        new BlockTx("hash1", "blockHash1", 1L, "fee1", 1L,
-            1L, false, null, null,
-            newStakeRegistrations(1, 2), newDelegations(1, 2), newPoolRegistrations(1, 2),
-            newPoolRetirements(1, 2), null),
-
-        new BlockTx("hash2", "blockHash2", 2L, "fee2", 2L,
-            2L, false,null, null,
-            newStakeRegistrations(3, 4), newDelegations(3, 4), newPoolRegistrations(3, 4),
-            newPoolRetirements(3, 4), null),
-
-        new BlockTx("hash3", "blockHash3", 3L, "fee3", 3L,
-            3L, false,null, null,
-            newStakeRegistrations(5, 6), newDelegations(5, 6), newPoolRegistrations(5, 6),
-            newPoolRetirements(5, 6), null));
+            BlockTx.builder()
+                    .hash("hash1")
+                    .blockHash("   blockHash1")
+                    .blockNo(1L)
+                    .fee("fee1")
+                    .size(1L)
+                    .scriptSize(1L)
+                    .invalid(false)
+                    .stakeRegistrations(newStakeRegistrations(1, 2))
+                    .stakePoolDelegations(newDelegations(1, 2))
+                    .poolRegistrations(newPoolRegistrations(1, 2))
+                    .poolRetirements(newPoolRetirements(1, 2))
+                    .dRepDelegations(List.of()) // TODO drep vote delegation
+                    .build(),
+            BlockTx.builder()
+                    .hash("hash2")
+                    .blockHash("blockHash2")
+                    .blockNo(2L)
+                    .fee("fee2")
+                    .size(2L)
+                    .scriptSize(2L)
+                    .invalid(false)
+                    .stakeRegistrations(newStakeRegistrations(3, 4))
+                    .stakePoolDelegations(newDelegations(3, 4))
+                    .poolRegistrations(newPoolRegistrations(3, 4))
+                    .poolRetirements(newPoolRetirements(3, 4))
+                    .dRepDelegations(List.of()) // TODO drep vote delegation
+                    .build(),
+        BlockTx.builder()
+                    .hash("hash3")
+                    .blockHash("blockHash3")
+                    .blockNo(3L)
+                    .fee("fee3")
+                    .size(3L)
+                    .scriptSize(3L)
+                    .invalid(false)
+                    .stakeRegistrations(newStakeRegistrations(5, 6))
+                    .stakePoolDelegations(newDelegations(5, 6))
+                    .poolRegistrations(newPoolRegistrations(5, 6))
+                    .poolRetirements(newPoolRetirements(5, 6))
+                    .dRepDelegations(List.of()) // TODO drep vote delegation
+                    .build()
+    );
   }
 
-  private List<Delegation> newDelegations(int... instances) {
+  private List<StakePoolDelegation> newDelegations(int... instances) {
     return Arrays.stream(instances)
-        .mapToObj(ver -> Delegation.builder()
+        .mapToObj(ver -> StakePoolDelegation.builder()
             .txHash("txHash" + ver)
             .certIndex(1L + ver)
             .poolId("poolDlg" + ver)

@@ -320,4 +320,12 @@ public class ExceptionFactory {
     return new ApiException(RosettaErrorType.MISCONFIGURED_TIME.toRosettaError(false, Details.builder().message("Current time: " + now).build()));
   }
 
+  public static ApiException missingDRepId() {
+    return new ApiException(RosettaErrorType.MISSING_DREP_ID.toRosettaError(false));
+  }
+
+  public static ApiException missingDrep() {
+    return new ApiException(RosettaErrorType.MISSING_DREP_TYPE.toRosettaError(false));
+  }
+
 }

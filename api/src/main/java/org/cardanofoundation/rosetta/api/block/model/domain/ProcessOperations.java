@@ -32,4 +32,5 @@ public class ProcessOperations {
   private double stakeKeyDeRegistrationsCount = 0.0;
   private double poolRegistrationsCount = 0.0;
   private AuxiliaryData voteRegistrationMetadata = null;
+
 }

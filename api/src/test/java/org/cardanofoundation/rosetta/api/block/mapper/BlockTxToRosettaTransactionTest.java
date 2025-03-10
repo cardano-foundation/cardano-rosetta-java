@@ -24,9 +24,9 @@ import org.cardanofoundation.rosetta.api.BaseMapperSetup;
 import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
-import org.cardanofoundation.rosetta.api.block.model.domain.Delegation;
 import org.cardanofoundation.rosetta.api.block.model.domain.PoolRegistration;
 import org.cardanofoundation.rosetta.api.block.model.domain.PoolRetirement;
+import org.cardanofoundation.rosetta.api.block.model.domain.StakePoolDelegation;
 import org.cardanofoundation.rosetta.api.block.model.domain.StakeRegistration;
 import org.cardanofoundation.rosetta.api.block.model.domain.Withdrawal;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
@@ -105,7 +105,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperSetup {
     BlockTx from = newTran();
     CertificateType stakeType = CertificateType.STAKE_DELEGATION;
 
-    from.setDelegations(List.of(Delegation.builder()
+    from.setStakePoolDelegations(List.of(StakePoolDelegation.builder()
         .address("stake_addr1")
         .poolId("pool_id1")
         .build()));
@@ -127,7 +127,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperSetup {
     assertThat(opt).isPresent();
 
     Operation stakeInto = opt.get();
-    Delegation firstFrom = from.getDelegations().getFirst();
+    StakePoolDelegation firstFrom = from.getStakePoolDelegations().getFirst();
     assertThat(stakeInto.getType()).isEqualTo(type);
     assertThat(stakeInto.getStatus()).isEqualTo("success");
     assertThat(stakeInto.getOperationIdentifier().getIndex()).isEqualTo(1); //index in array
