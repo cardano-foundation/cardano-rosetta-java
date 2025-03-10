@@ -9,6 +9,8 @@ config:
       - 'transaction_size'
       - 'relative_ttl'
       - 'transaction_hash'
+    delimiter: ','
+    skipHeaders: true
   http:
     timeout: 240
     defaults:
