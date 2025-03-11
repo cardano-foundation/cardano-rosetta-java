@@ -35,11 +35,10 @@ public class SearchApiImpl implements SearchApi {
   @Override
   public ResponseEntity<SearchTransactionsResponse> searchTransactions(
       SearchTransactionsRequest searchTransactionsRequest) {
-    if(offlineMode) {
+    if (offlineMode) {
       throw ExceptionFactory.notSupportedInOfflineMode();
     }
     networkService.verifyNetworkRequest(searchTransactionsRequest.getNetworkIdentifier());
-
 
     Long pageSize = Optional.ofNullable(searchTransactionsRequest.getLimit()).orElse(PAGE_SIZE);
     pageSize = pageSize > PAGE_SIZE ? PAGE_SIZE : pageSize;
@@ -51,6 +50,6 @@ public class SearchApiImpl implements SearchApi {
 
     return ResponseEntity.ok(searchMapper.mapToSearchTransactionsResponse(
         blockTransactions, nextOffset));
-
   }
+
 }
