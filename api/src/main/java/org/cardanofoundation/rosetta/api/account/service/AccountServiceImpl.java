@@ -53,7 +53,7 @@ public class AccountServiceImpl implements AccountService {
     CardanoAddressUtils.verifyAddress(accountAddress);
 
     PartialBlockIdentifier blockIdentifier = accountBalanceRequest.getBlockIdentifier();
-    log.info("[accountBalance] Looking for block: {} || latest}", blockIdentifier);
+    log.debug("[accountBalance] Looking for block: {} || latest}", blockIdentifier);
 
     if (Objects.nonNull(blockIdentifier)) {
       index = blockIdentifier.getIndex();
@@ -92,7 +92,7 @@ public class AccountServiceImpl implements AccountService {
 
     return findBlockOrLast(number, hash)
             .map(blockDto -> {
-              log.info("Looking for utxos for address {} and block {}",
+              log.debug("Looking for utxos for address {} and block {}",
                       address,
                       blockDto.getHash()
               );
