@@ -3,20 +3,18 @@ package org.cardanofoundation.rosetta.api.block.model.entity;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Set;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.IdClass;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import com.bloxbean.cardano.yaci.core.model.Relay;
 import io.hypersistence.utils.hibernate.type.json.JsonType;
 import org.hibernate.annotations.Type;
 
 @Getter
+@Setter
 @NoArgsConstructor
 @Entity
 @Table(name = "pool_registration")
