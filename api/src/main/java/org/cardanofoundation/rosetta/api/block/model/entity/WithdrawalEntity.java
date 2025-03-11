@@ -1,17 +1,15 @@
 package org.cardanofoundation.rosetta.api.block.model.entity;
 
 import java.math.BigInteger;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.IdClass;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
@@ -29,4 +27,5 @@ public class WithdrawalEntity {
 
   @Column(name = "amount")
   private BigInteger amount;
+
 }
