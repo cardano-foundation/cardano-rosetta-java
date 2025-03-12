@@ -5,12 +5,12 @@ spring:
     url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5433}/${DB_NAME:test}?currentSchema=${DB_SCHEMA:preprod}
     hikari:
       connectionTimeout: 100000 #default connection-timeout is 30 seconds
-      minimumIdle: 2
-      connections: 48 # ((core_count * 2) + effective_spindle_count), 48 for 16 cores, NVMe Storage, spindle count 16
+      minimumIdle: 10 # default minimumIdle is 10
+      #connections: 48 # ((core_count * 2) + effective_spindle_count), 48 for 16 cores, NVMe Storage, spindle count 16
 
       keepaliveTime: 60000 # Sends a keep-alive query every 60s to prevent connection closure
 
-      maximumPoolSize: 20 # default pool size is 10
+      maximumPoolSize: 10 # default pool size is 10
       leakDetectionThreshold: 60000
 
   jpa:
