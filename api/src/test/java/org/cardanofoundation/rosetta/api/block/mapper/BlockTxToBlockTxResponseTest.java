@@ -16,9 +16,9 @@ import org.cardanofoundation.rosetta.api.BaseMapperSetup;
 import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
-import org.cardanofoundation.rosetta.api.block.model.domain.Delegation;
 import org.cardanofoundation.rosetta.api.block.model.domain.PoolRegistration;
 import org.cardanofoundation.rosetta.api.block.model.domain.PoolRetirement;
+import org.cardanofoundation.rosetta.api.block.model.domain.StakePoolDelegation;
 import org.cardanofoundation.rosetta.api.block.model.domain.StakeRegistration;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -54,7 +54,7 @@ class BlockTxToBlockTxResponseTest extends BaseMapperSetup {
         .hash("hash12")
         .scriptSize(0L)
         .inputs(List.of(newUtxo()))
-        .delegations(newDelegations())
+        .stakePoolDelegations(newDelegations())
         .poolRegistrations(newPoolRegistrations())
         .poolRetirements(newPoolRetirements())
         .stakeRegistrations(newStakeRegistrations())
@@ -109,8 +109,8 @@ class BlockTxToBlockTxResponseTest extends BaseMapperSetup {
         .build());
   }
 
-  private List<Delegation> newDelegations() {
-    return List.of(Delegation.builder()
+  private List<StakePoolDelegation> newDelegations() {
+    return List.of(StakePoolDelegation.builder()
         .certIndex(33L)
         .poolId("delegation_poolId1")
         .txHash("delegation_txHash1")

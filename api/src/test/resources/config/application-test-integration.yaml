@@ -53,6 +53,10 @@ cardano:
     DEVKIT_PORT: ${DEVKIT_PORT:3333}
     SEARCH_PAGE_SIZE: ${SEARCH_PAGE_SIZE:10}
     OFFLINE_MODE: ${OFFLINE_MODE:false}
+    #The number of safe blocks to keep in the store. 2160 blocks *(20 seconds/block in average)=4320 seconds=12 hours.
+    PRUNING_SAFE_BLOCKS: ${PRUNING_SAFE_BLOCKS}
+    #Run transaction pruning every 600 seconds or 10 minutes.
+    PRUNING_INTERVAL: ${PRUNING_INTERVAL}
 
     YACI_HTTP_BASE_URL: http://localhost:9095/api/v1
     HTTP_CONNECT_TIMEOUT_SECONDS: 5

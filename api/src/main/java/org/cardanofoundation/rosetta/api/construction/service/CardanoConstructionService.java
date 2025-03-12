@@ -1,6 +1,5 @@
 package org.cardanofoundation.rosetta.api.construction.service;
 
-
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
@@ -26,7 +25,6 @@ import org.cardanofoundation.rosetta.common.model.cardano.transaction.Transactio
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.UnsignedTransaction;
 
 public interface CardanoConstructionService {
-
 
   Array decodeTransaction(String encoded);
   Long calculateTtl(Long ttlOffset);

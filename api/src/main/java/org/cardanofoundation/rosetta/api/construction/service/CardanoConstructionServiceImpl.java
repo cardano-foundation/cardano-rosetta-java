@@ -379,25 +379,21 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
                     transactionBodyHash, SignatureType.ED25519)).toList();
   }
 
-  private ProcessOperationsReturn processOperations(Network network, List<Operation> operations) {
+  private ProcessOperationsReturn processOperations(Network network,
+                                                    List<Operation> operations) {
     ProcessOperations result = convertRosettaOperations(network, operations);
 
-    return fillProcessOperationsReturnObject(result);
-  }
-
-  @NotNull
-  private ProcessOperationsReturn fillProcessOperationsReturnObject(ProcessOperations result) {
-    ProcessOperationsReturn processOperationsDto = new ProcessOperationsReturn();
-    processOperationsDto.setTransactionInputs(result.getTransactionInputs());
-    processOperationsDto.setTransactionOutputs(result.getTransactionOutputs());
-    processOperationsDto.setCertificates(result.getCertificates());
-    processOperationsDto.setWithdrawals(result.getWithdrawals());
+    ProcessOperationsReturn operationsReturn = new ProcessOperationsReturn();
+    operationsReturn.setTransactionInputs(result.getTransactionInputs());
+    operationsReturn.setTransactionOutputs(result.getTransactionOutputs());
+    operationsReturn.setCertificates(result.getCertificates());
+    operationsReturn.setWithdrawals(result.getWithdrawals());
     Set<String> addresses = new HashSet<>(result.getAddresses());
-    processOperationsDto.setAddresses(addresses);
-    processOperationsDto.setFee(MIN_DUMMY_FEE);
-    processOperationsDto.setVoteRegistrationMetadata(result.getVoteRegistrationMetadata());
+    operationsReturn.setAddresses(addresses);
+    operationsReturn.setFee(MIN_DUMMY_FEE);
+    operationsReturn.setVoteRegistrationMetadata(result.getVoteRegistrationMetadata());
 
-    return processOperationsDto;
+    return operationsReturn;
   }
 
   @Override
@@ -406,14 +402,17 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
 
     for (Operation operation : operations) {
       String type = operation.getType();
-      processor = OperationParseUtil.parseOperation(operation, network, processor,
-              type);
+
+      processor = OperationParseUtil.parseOperation(operation, network, processor, type);
+
       if (processor == null) {
         log.error("[processOperations] Operation with id {} has invalid type",
                 operation.getOperationIdentifier());
+
         throw ExceptionFactory.invalidOperationTypeError();
       }
     }
+
     return processor;
   }
 
@@ -462,6 +461,7 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
   @Override
   public DepositParameters getDepositParameters() {
     ProtocolParams pp = protocolParamService.findProtocolParameters();
+
     return new DepositParameters(pp.getKeyDeposit().toString(), pp.getPoolDeposit().toString());
   }
 
@@ -546,6 +546,7 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
       log.error("Invalid public key length: {}", pubKeyBytes.length);
       throw new IllegalArgumentException("Invalid public key length");
     }
+
     return pubKey;
   }
 

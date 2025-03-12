@@ -103,23 +103,31 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
   public List<BlockTx> findTransactionsByBlock(Long blk, String blkHash) {
     log.debug("query blockNumber: {} blockHash: {}", blk, blkHash);
     Optional<BlockEntity> blkEntity = blockRepository.findByNumberAndHash(blk, blkHash);
+
     if (blkEntity.isEmpty()) {
       log.debug("Block Not found: {} blockHash: {}", blk, blkHash);
+
       return Collections.emptyList();
     }
+
     List<TxnEntity> txList = txRepository.findTransactionsByBlockHash(blkEntity.get().getHash());
     log.debug("Found {} transactions", txList.size());
+
     if (ObjectUtils.isNotEmpty(txList)) {
       return mapTxnEntitiesToBlockTxList(txList);
     }
+
     return Collections.emptyList();
   }
 
   @Override
   public List<BlockTx> mapTxnEntitiesToBlockTxList(List<TxnEntity> txList) {
-    List<BlockTx> transactions = txList.stream().map(blockMapper::mapToBlockTx).toList();
+    List<BlockTx> transactions = txList.stream().map(blockMapper::mapToBlockTx)
+            .toList();
+
     TransactionInfo fetched = findByTxHash(transactions);
     Map<UtxoKey, AddressUtxoEntity> utxoMap = getUtxoMapFromEntities(fetched);
+
     transactions.forEach(tx -> populateTransaction(tx, fetched, utxoMap));
 
     return transactions;
@@ -181,18 +189,22 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
     }
   }
 
-  private void populateTransaction(BlockTx transaction, TransactionInfo fetched,
-      Map<UtxoKey, AddressUtxoEntity> utxoMap) {
+  void populateTransaction(BlockTx transaction,
+                           TransactionInfo fetched,
+                           Map<UtxoKey, AddressUtxoEntity> utxoMap) {
     boolean invalid = invalidTransactionRepository.findById(transaction.getHash()).isPresent();
     transaction.setInvalid(invalid);
+
     Optional.ofNullable(transaction.getInputs())
         .stream()
         .flatMap(List::stream)
         .forEach(utxo -> populateUtxo(utxo, utxoMap));
+
       Optional.ofNullable(transaction.getOutputs())
           .stream()
           .flatMap(List::stream)
           .forEach(utxo -> populateUtxo(utxo, utxoMap));
+
     transaction.setStakeRegistrations(
         fetched.stakeRegistrations
             .stream()
@@ -200,7 +212,7 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
             .map(transactionMapper::mapStakeRegistrationEntityToStakeRegistration)
             .toList());
 
-    transaction.setDelegations(
+    transaction.setStakePoolDelegations(
         fetched.delegations
             .stream()
             .filter(tx -> tx.getTxHash().equals(transaction.getHash()))
@@ -217,12 +229,14 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
     transaction.setPoolRegistrations(
         fetched.poolRegistrations
             .stream()
+            .filter(tx -> tx.getTxHash().equals(transaction.getHash()))
             .map(transactionMapper::mapEntityToPoolRegistration)
             .toList());
 
     transaction.setPoolRetirements(
         fetched.poolRetirements
             .stream()
+            .filter(tx -> tx.getTxHash().equals(transaction.getHash()))
             .map(transactionMapper::mapEntityToPoolRetirement)
             .toList());
   }
@@ -230,6 +244,7 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
   private void populateUtxo(Utxo utxo, Map<UtxoKey, AddressUtxoEntity> utxoMap) {
     AddressUtxoEntity entity = utxoMap.get(
         new UtxoKey(utxo.getTxHash(), utxo.getOutputIndex()));
+
     Optional.ofNullable(entity)
         .ifPresent(e -> addressUtxoEntityToUtxo.overWriteDto(utxo, e));
   }
@@ -243,7 +258,7 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
         ));
   }
 
-  private record TransactionInfo(List<AddressUtxoEntity> utxos,
+  record TransactionInfo(List<AddressUtxoEntity> utxos,
                                  List<StakeRegistrationEntity> stakeRegistrations,
                                  List<DelegationEntity> delegations,
                                  List<PoolRegistrationEntity> poolRegistrations,
@@ -252,7 +267,7 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
 
   }
 
-  private record UtxoKey(String txHash, Integer outputIndex) {
+  record UtxoKey(String txHash, Integer outputIndex) {
 
   }
 

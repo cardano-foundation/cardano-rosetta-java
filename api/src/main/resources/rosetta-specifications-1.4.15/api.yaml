@@ -1719,8 +1719,11 @@ components:
         staking_credential:
           $ref: '#/components/schemas/PublicKey'
         pool_key_hash:
-          description: PoolKey
+          description: Pool key as hex bytes.
           type: string
+        drep:
+          description: DRep
+          $ref: '#/components/schemas/DRepParams'
         epoch:
           description: Epoch
           type: integer
@@ -1767,6 +1770,24 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Amount'
+    DRepTypeParams:
+      description: DRepTypeParams
+      type: string
+      enum:
+        - key_hash
+        - script_hash
+        - no_confidence
+        - abstain
+    DRepParams:
+        description: DRep
+        type: object
+        properties:
+            id:
+              description: DRepId
+              type: string
+            type:
+              description: DRepType
+              $ref: '#/components/schemas/DRepTypeParams'
     PoolRegistrationParams:
       description: PoolRegistrationParams
       type: object
