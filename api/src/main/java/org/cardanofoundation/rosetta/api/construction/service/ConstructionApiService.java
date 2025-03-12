@@ -18,7 +18,6 @@ import org.openapitools.client.model.ConstructionPreprocessResponse;
 import org.openapitools.client.model.ConstructionSubmitRequest;
 import org.openapitools.client.model.TransactionIdentifierResponse;
 
-
 public interface ConstructionApiService {
 
   ConstructionDeriveResponse constructionDeriveService(
@@ -46,4 +45,5 @@ public interface ConstructionApiService {
 
   TransactionIdentifierResponse constructionSubmitService(
       ConstructionSubmitRequest constructionSubmitRequest);
+
 }

@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Delegation {
+public class StakePoolDelegation {
 
   private String txHash;
 

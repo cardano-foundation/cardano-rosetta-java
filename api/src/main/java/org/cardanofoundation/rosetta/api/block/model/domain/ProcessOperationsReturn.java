@@ -14,7 +14,6 @@ import com.bloxbean.cardano.client.transaction.spec.TransactionOutput;
 import com.bloxbean.cardano.client.transaction.spec.Withdrawal;
 import com.bloxbean.cardano.client.transaction.spec.cert.Certificate;
 
-
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
