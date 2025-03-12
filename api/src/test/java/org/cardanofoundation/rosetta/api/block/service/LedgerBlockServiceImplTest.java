@@ -199,7 +199,7 @@ class LedgerBlockServiceImplTest {
     List<DelegationEntity> delegations = List.of(entity1, entity2);
 
     when(transactionMapper.mapDelegationEntityToDelegation(entity1))
-            .thenReturn(new Delegation());
+            .thenReturn(new StakePoolDelegation());
 
     val transactionInfo = new LedgerBlockServiceImpl.TransactionInfo(
             Collections.emptyList(),
@@ -211,7 +211,7 @@ class LedgerBlockServiceImplTest {
     );
 
     ledgerBlockService.populateTransaction(transaction, transactionInfo, utxoMap);
-    assertThat(transaction.getDelegations().size()).isEqualTo(1);
+    assertThat(transaction.getStakePoolDelegations().size()).isEqualTo(1);
   }
 
   @Test
