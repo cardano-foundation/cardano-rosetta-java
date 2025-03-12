@@ -151,6 +151,7 @@ public class NetworkServiceImpl implements NetworkService {
 
   private NetworkStatus networkStatus() {
     log.info("[networkStatus] Looking for latest block");
+
     BlockIdentifierExtended latestBlock = ledgerBlockService.findLatestBlockIdentifier();
     log.debug("[networkStatus] Latest block found {}", latestBlock);
 

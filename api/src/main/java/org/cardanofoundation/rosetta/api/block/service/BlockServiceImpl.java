@@ -24,11 +24,13 @@ public class BlockServiceImpl implements BlockService {
 
   @Override
   public Block findBlock(Long index, String hash) {
-    log.info("[block] Looking for block: hash={}, index={}", hash, index);
+    log.debug("[block] Looking for block: hash={}, index={}", hash, index);
+
     Optional<Block> blockOpt = ledgerBlockService.findBlock(index, hash);
     if (blockOpt.isPresent()) {
       var block = blockOpt.get();
-      log.info("Block was found, hash={}", block.getHash());
+      log.debug("Block was found, hash={}", block.getHash());
+
       block.setPoolDeposit(String.valueOf(protocolParamService.findProtocolParameters().getPoolDeposit()));
       log.debug("full data {}", block);
 
