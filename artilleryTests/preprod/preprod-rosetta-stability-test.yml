@@ -1,0 +1,175 @@
+config:
+  target: "http://127.0.0.1:8082"
+  payload:
+    path: 'preprod-data.csv'
+    fields:
+      - 'address'
+      - 'block_index'
+      - 'block_hash'
+      - 'transaction_size'
+      - 'relative_ttl'
+      - 'transaction_hash'
+    delimiter: ','
+    skipHeaders: true
+  http:
+    timeout: 240
+    defaults:
+      headers:
+        Content-Type: application/json
+
+  # Optional test-wide thresholds:
+  ensure:
+    thresholds:
+      - vusers.failed: 1
+
+  # Example phases to ramp up load
+  phases:
+    - duration: 60      # 1 minute
+      arrivalRate: 1
+      name: "Warm-up (1 user/s)"
+    - duration: 60      # 1 minute
+      arrivalRate: 1
+      rampTo: 5
+      name: "Ramp to 5 user/s"
+    - duration: 60
+      arrivalRate: 5
+      rampTo: 10
+      name: "Ramp to 10 user/s"
+    - duration: 60
+      arrivalRate: 10
+      rampTo: 20
+      name: "Ramp to 20 user/s"
+    - duration: 60
+      arrivalRate: 20
+      rampTo: 50
+      name: "Ramp to 50 user/s"
+    # Example high-load phase (5000 requests/min -> ~83 req/s):
+    - duration: 300     # 5 minutes
+      arrivalRate: 50
+      rampTo: 83
+      name: "High Load ~5000 req/min"
+
+  plugins:
+    # keep or remove as needed
+    ensure: {}
+    expect:
+      expectDefault200: true
+      outputFormat: silent
+      reportFailuresAsErrors: true
+    metrics-by-endpoint:
+      useOnlyRequestNames: true
+      metricsNamespace: "latency_metrics"
+
+# --------------------------------------------------------------------------
+# SCENARIOS
+# --------------------------------------------------------------------------
+scenarios:
+  - name: "Network status test"
+    flow:
+      - post:
+          url: "/network/status"
+          body: |
+            {
+              "network_identifier": {
+                "blockchain": "cardano",
+                "network": "preprod"
+              },
+              "metadata": {}
+            }
+
+  - name: "Account balance test"
+    flow:
+      - post:
+          url: "/account/balance"
+          body: |
+            {
+              "network_identifier": {
+                "blockchain": "cardano",
+                "network": "preprod"
+              },
+              "account_identifier": {
+                "address": "{{ address }}"
+              }
+            }
+
+  - name: "Account coins test"
+    flow:
+      - post:
+          url: "/account/coins"
+          body: |
+            {
+              "network_identifier": {
+                "blockchain": "cardano",
+                "network": "preprod"
+              },
+              "account_identifier": {
+                "address": "{{ address }}"
+              },
+              "include_mempool": true
+            }
+
+  - name: "Block test"
+    flow:
+      - post:
+          url: "/block"
+          body: |
+            {
+              "network_identifier": {
+                "blockchain": "cardano",
+                "network": "preprod"
+              },
+              "block_identifier": {
+                "index": {{ block_index }},
+                "hash": "{{ block_hash }}"
+              }
+            }
+
+  - name: "Block transaction test"
+    flow:
+      - post:
+          url: "/block/transaction"
+          body: |
+            {
+              "network_identifier": {
+                "blockchain": "cardano",
+                "network": "preprod"
+              },
+              "block_identifier": {
+                "index": {{ block_index }},
+                "hash": "{{ block_hash }}"
+              },
+              "transaction_identifier": {
+                "hash": "{{ transaction_hash }}"
+              }
+            }
+
+  - name: "Search transactions test"
+    flow:
+      - post:
+          url: "/search/transactions"
+          body: |
+            {
+              "network_identifier": {
+                "blockchain": "cardano",
+                "network": "preprod"
+              },
+              "transaction_identifier": {
+                "hash": "{{ transaction_hash }}"
+              }
+            }
+
+  - name: "Construction metadata test"
+    flow:
+      - post:
+          url: "/construction/metadata"
+          body: |
+            {
+              "network_identifier": {
+                "blockchain": "cardano",
+                "network": "preprod"
+              },
+              "options": {
+                "transaction_size": {{ transaction_size }},
+                "relative_ttl": {{ relative_ttl }}
+              }
+            }
