@@ -115,7 +115,7 @@ get_current_index() {
     if [[ -z "$current_index" || "$current_index" == "null" ]]; then current_index=0; fi
 }
 
-download_mithril_snapshot(){
+download_mithril_snapshot() {
     echo "Downloading Mithril Snapshot..."
     export CARDANO_NETWORK=$NETWORK
     case $NETWORK in
