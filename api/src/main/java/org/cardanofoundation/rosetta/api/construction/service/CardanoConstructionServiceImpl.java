@@ -36,7 +36,6 @@ import com.bloxbean.cardano.client.exception.AddressExcepion;
 import com.bloxbean.cardano.client.exception.CborDeserializationException;
 import com.bloxbean.cardano.client.exception.CborSerializationException;
 import com.bloxbean.cardano.client.transaction.spec.*;
-import com.bloxbean.cardano.client.transaction.spec.Transaction;
 import com.bloxbean.cardano.client.transaction.spec.TransactionBody.TransactionBodyBuilder;
 import com.bloxbean.cardano.client.util.HexUtil;
 import org.apache.commons.lang3.ObjectUtils;
@@ -223,7 +222,7 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
       log.info(
               "[buildTransaction] Creating transaction using transaction body and extracted witnesses");
 
-      Transaction transaction = new Transaction();
+      var transaction = new com.bloxbean.cardano.client.transaction.spec.Transaction();
       transaction.setBody(transactionBodyFuture.join());
       transaction.setAuxiliaryData(auxiliaryDataFuture.join());
       transaction.setWitnessSet(witnessesFuture.join());
