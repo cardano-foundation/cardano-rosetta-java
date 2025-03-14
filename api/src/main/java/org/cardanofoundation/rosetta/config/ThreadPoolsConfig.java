@@ -18,11 +18,4 @@ public class ThreadPoolsConfig {
         return Executors.newVirtualThreadPerTaskExecutor();
     }
 
-    @Bean
-    @Qualifier("cpuBoundExecutorService")
-    @SuppressWarnings("java:S6831")
-    public ExecutorService cpuBoundExecutorService() {
-        return Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-    }
-
 }

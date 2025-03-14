@@ -2,8 +2,6 @@ package org.cardanofoundation.rosetta.api.construction.service;
 
 import java.math.BigInteger;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
 import jakarta.validation.constraints.NotNull;
 import javax.annotation.Nullable;
 
@@ -11,8 +9,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -78,11 +74,6 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
   private final OperationService operationService;
   private final RestTemplate restTemplate;
   private final OfflineSlotService offlineSlotService;
-
-  @Autowired
-  @Qualifier("cpuBoundExecutorService")
-  @SuppressWarnings("java:S6813")
-  private ExecutorService cpuBoundExecutorService;
 
   @Value("${cardano.rosetta.NODE_SUBMIT_API_PORT}")
   private int nodeSubmitApiPort;
@@ -204,28 +195,18 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
     log.info("[buildTransaction] About to signed a transaction with {} signatures",
             signaturesList.size());
 
-    // TODO I am very dubious that it makes any sense to use cpuBoundExecutorService here
-    // there is a cost to switch threads
-    // we should check this with scalability / artilerly tests
-    // for those 3 operations
-
-    CompletableFuture<TransactionBody> transactionBodyFuture =
-            CompletableFuture.supplyAsync(() -> deserializeTransactionBody(unsignedTransaction), cpuBoundExecutorService);
-
-    CompletableFuture<TransactionWitnessSet> witnessesFuture =
-            CompletableFuture.supplyAsync(() -> getWitnessesForTransaction(signaturesList), cpuBoundExecutorService);
-
-    CompletableFuture<AuxiliaryData> auxiliaryDataFuture =
-            CompletableFuture.supplyAsync(() -> deserializeAuxiliaryData(transactionMetadata), cpuBoundExecutorService);
+    TransactionBody transactionBody = deserializeTransactionBody(unsignedTransaction);
+    TransactionWitnessSet witnesses = getWitnessesForTransaction(signaturesList);
+    AuxiliaryData auxiliaryData = deserializeAuxiliaryData(transactionMetadata);
 
     try {
       log.info(
               "[buildTransaction] Creating transaction using transaction body and extracted witnesses");
 
       var transaction = new com.bloxbean.cardano.client.transaction.spec.Transaction();
-      transaction.setBody(transactionBodyFuture.join());
-      transaction.setAuxiliaryData(auxiliaryDataFuture.join());
-      transaction.setWitnessSet(witnessesFuture.join());
+      transaction.setBody(transactionBody);
+      transaction.setAuxiliaryData(auxiliaryData);
+      transaction.setWitnessSet(witnesses);
       transaction.setValid(true);
 
       Array cborTransactionsArray = (Array) CborSerializationUtil.deserialize(transaction.serialize());
