@@ -5,11 +5,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import lombok.val;
 
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import org.junit.jupiter.api.Test;
@@ -71,6 +74,9 @@ class LedgerBlockServiceImplTest {
 
   @Mock
   private InvalidTransactionRepository invalidTransactionRepository;
+
+  @Spy
+  private ExecutorService ioBoundExecutorService = Executors.newSingleThreadExecutor();
 
   @Test
   void testExecutorServiceExceptions() {
