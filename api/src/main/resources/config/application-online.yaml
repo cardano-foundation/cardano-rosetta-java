@@ -6,19 +6,19 @@ spring:
     hikari:
       poolName: "CardanoRosettaJavaDBPool"
 
-      minimumIdle: ${DB_POOL_MIN_COUNT:10} # default minimumIdle is 10
-      maximumPoolSize: ${DB_POOL_MAX_COUNT:10} # default pool size is 10
+      minimumIdle: ${API_DB_POOL_MIN_COUNT:10} # default minimumIdle is 10
+      maximumPoolSize: ${API_DB_POOL_MAX_COUNT:10} # default pool size is 10
 
-      maxLifetime: ${DB_POOL_MAX_LIFETIME_MS:2000000}  # Connections are retired after ~33 minutes (default is 30 mins)
-      connectionTimeout: ${DB_POOL_CONNECTION_TIMEOUT_MS:100000} # the default connection timeout for HikariCP in Spring Boot is 30 seconds (30000 ms).
-      keepaliveTime: ${DB_KEEP_ALIVE_MS:60000}  # Sends keep-alive query every 60s to prevent idle disconnects
-      leakDetectionThreshold: ${DB_LEAK_CONNECTIONS_WARNING_MS:60000}  # Logs warnings if a connection is held for 60s+
-    registerMbeans: ${DB_MONITOR_PERFORMANCE:false}  # Enables JMX monitoring via MBeans
+      maxLifetime: ${API_DB_POOL_MAX_LIFETIME_MS:2000000}  # Connections are retired after ~33 minutes (default is 30 mins)
+      connectionTimeout: ${API_DB_POOL_CONNECTION_TIMEOUT_MS:100000} # the default connection timeout for HikariCP in Spring Boot is 30 seconds (30000 ms).
+      keepaliveTime: ${API_DB_KEEP_ALIVE_MS:60000}  # Sends keep-alive query every 60s to prevent idle disconnects
+      leakDetectionThreshold: ${API_DB_LEAK_CONNECTIONS_WARNING_MS:60000}  # Logs warnings if a connection is held for 60s+
+    registerMbeans: ${API_DB_MONITOR_PERFORMANCE:false}  # Enables JMX monitoring via MBeans
 
   jpa:
     properties:
       hibernate:
-        format_sql: ${DB_SHOW_SQL:false}
+        format_sql: ${API_DB_SHOW_SQL:false}
     hibernate:
       ddl-auto: none
     show-sql: false
