@@ -179,11 +179,24 @@ RUN apt update --fix-missing \
         postgresql-${PG_VERSION} \
     && apt-get clean
 
+# Allow remote connections
 RUN echo "host all  all    0.0.0.0/0  md5" >> /etc/postgresql/${PG_VERSION}/main/pg_hba.conf
+# Listen on all interfaces
 RUN echo "listen_addresses='*'" >> /etc/postgresql/${PG_VERSION}/main/postgresql.conf
-RUN sed -i "s/var\/lib\/postgresql\/${PG_VERSION}\/main/node\/postgres/" /etc/postgresql/${PG_VERSION}/main/postgresql.conf
+# Change data directory path
+RUN sed -i "s|var/lib/postgresql/${PG_VERSION}/main|node/postgres|" /etc/postgresql/${PG_VERSION}/main/postgresql.conf
 RUN mkdir -p /node/postgres
 RUN rm -rf /var/lib/postgresql/${PG_VERSION}/main
+
+# Set PostgreSQL performance parameters
+RUN echo "max_connections = ${DB_POSTGRES_MAX_CONNECTIONS:-100}" >> /etc/postgresql/${PG_VERSION}/main/postgresql.conf
+RUN echo "shared_buffers = ${DB_POSTGRES_SHARED_BUFFERS:-128MB}" >> /etc/postgresql/${PG_VERSION}/main/postgresql.conf
+RUN echo "effective_cache_size = ${DB_POSTGRES_EFFECTIVE_CACHE_SIZE:-4GB}" >> /etc/postgresql/${PG_VERSION}/main/postgresql.conf
+RUN echo "work_mem = ${DB_POSTGRES_WORK_MEM:-4MB}" >> /etc/postgresql/${PG_VERSION}/main/postgresql.conf
+RUN echo "maintenance_work_mem = ${DB_POSTGRES_MAINTENANCE_WORK_MEM:-64MB}" >> /etc/postgresql/${PG_VERSION}/main/postgresql.conf
+RUN echo "wal_buffers = ${DB_POSTGRES_WAL_BUFFERS:-16MB}" >> /etc/postgresql/${PG_VERSION}/main/postgresql.conf
+RUN echo "checkpoint_completion_target = ${DB_POSTGRES_CHECKPOINT_COMPLETION_TARGET:-0.5}" >> /etc/postgresql/${PG_VERSION}/main/postgresql.conf
+RUN echo "random_page_cost = ${DB_POSTGRES_RANDOM_PAGE_COST:-4.0}" >> /etc/postgresql/${PG_VERSION}/main/postgresql.conf
 
 # Install jdk 21
 RUN apt install -y --no-install-recommends openjdk-21-jdk jq bc sudo curl \
