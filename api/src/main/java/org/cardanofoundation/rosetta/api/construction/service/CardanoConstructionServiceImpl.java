@@ -59,15 +59,14 @@ import org.cardanofoundation.rosetta.common.util.OperationParseUtil;
 import org.cardanofoundation.rosetta.common.util.ValidateParseUtil;
 
 import static com.bloxbean.cardano.client.util.HexUtil.decodeHexString;
+import static java.math.BigInteger.ZERO;
 import static java.math.BigInteger.valueOf;
-import static org.cardanofoundation.rosetta.common.util.Constants.DEFAULT_RELATIVE_TTL;
+import static org.cardanofoundation.rosetta.common.util.Constants.*;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class CardanoConstructionServiceImpl implements CardanoConstructionService {
-
-  private static final long MIN_DUMMY_FEE = 17_0000L;
 
   private final LedgerBlockService ledgerBlockService;
   private final ProtocolParamService protocolParamService;
@@ -165,7 +164,7 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
               network,
               operations,
               ttl,
-              Optional.empty()
+              MIN_DUMMY_FEE // for this use case we don't know the fee, we cannot know this for sure, so we assume some dummy fee placeholder
       );
 
       List<Signatures> signaturesList = (unsignedTransaction.addresses()).stream()
@@ -186,6 +185,39 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
     } catch (CborSerializationException | AddressExcepion | CborException e) {
       throw ExceptionFactory.cantCreateUnsignedTransactionFromBytes();
     }
+  }
+
+  /**
+   * Fees are calculated based on adding all inputs and subtracting all outputs. Withdrawals will
+   * be added as well.
+   *
+   * @param inputAmounts      Sum of all Input ADA Amounts
+   * @param outputAmounts     Sum of all Output ADA Amounts
+   * @param withdrawalAmounts Sum of all Withdrawals
+   * @param depositsSumMap    Map of refund and deposit values
+   * @return Payed Fee
+   */
+  @Override
+  public Long calculateRosettaSpecificTransactionFee(List<BigInteger> inputAmounts, List<BigInteger> outputAmounts,
+                                                     List<BigInteger> withdrawalAmounts, Map<String, Double> depositsSumMap) {
+    long inputsSum = -1 * inputAmounts.stream().reduce(ZERO, BigInteger::add).longValue();
+
+    long outputsSum = outputAmounts.stream().reduce(ZERO, BigInteger::add).longValue();
+
+    long withdrawalsSum = withdrawalAmounts.stream().reduce(ZERO, BigInteger::add)
+            .longValue();
+
+    long calculatedFee = (long) (inputsSum + withdrawalsSum * (-1) + depositsSumMap.get(
+            KEY_REFUNDS_SUM) - outputsSum
+            - depositsSumMap.get(KEY_DEPOSITS_SUM) - depositsSumMap.get(
+            POOL_DEPOSITS_SUM)
+    ); // withdrawals -1 because it's a negative value, but must be added to the
+
+    if (calculatedFee < 0) {
+      throw ExceptionFactory.outputsAreBiggerThanInputsError();
+    }
+
+    return calculatedFee;
   }
 
   @Override
@@ -269,29 +301,13 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
   }
 
   public UnsignedTransaction createUnsignedTransaction(Network network,
-                                                       List<Operation> operations,
-                                                       long ttl,
-                                                       Long calculatedFee) throws CborSerializationException, AddressExcepion, CborException {
-    return createUnsignedTransaction(network, operations, ttl, Optional.of(calculatedFee));
-  }
-
-  @Override
-  public UnsignedTransaction createUnsignedTransaction(Network network,
-                                                       List<Operation> operations,
-                                                       long ttl)
-          throws CborSerializationException, AddressExcepion, CborException {
-    return createUnsignedTransaction(network, operations, ttl, Optional.empty());
-  }
-
-  private UnsignedTransaction createUnsignedTransaction(Network network,
                                                         List<Operation> operations,
                                                         long ttl,
-                                                        Optional<Long> calculatedFee) throws CborSerializationException, CborException, AddressExcepion {
-
+                                                        Long calculatedFee) throws CborSerializationException, CborException, AddressExcepion {
     log.info(
             "[createUnsignedTransaction] About to create an unsigned transaction with {} operations",
             operations.size());
-    ProcessOperationsReturn opRetDto = processOperations(network, operations);
+    ProcessOperationsReturn opRetDto = fillProcessOperationsReturnObject(convertRosettaOperations(network, operations), calculatedFee);
 
     log.info("[createUnsignedTransaction] About to create transaction body");
     TransactionBodyBuilder transactionBodyBuilder = TransactionBody.builder()
@@ -314,11 +330,7 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
     if (!CollectionUtils.isEmpty(opRetDto.getWithdrawals())) {
       transactionBodyBuilder.withdrawals(opRetDto.getWithdrawals());
     }
-    if (calculatedFee.isPresent()) {
-      log.info("[createUnsignedTransaction] Calculated fee is present, adding to transaction body, fee:" + calculatedFee.orElseThrow());
-
-      transactionBodyBuilder.fee(BigInteger.valueOf(calculatedFee.orElseThrow()));
-    }
+    transactionBodyBuilder.fee(BigInteger.valueOf(calculatedFee));
 
     TransactionBody transactionBody = transactionBodyBuilder.build();
     co.nstant.in.cbor.model.Map mapCbor = transactionBody.serialize();
@@ -368,14 +380,22 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
                     transactionBodyHash, SignatureType.ED25519)).toList();
   }
 
-  private ProcessOperationsReturn processOperations(Network network, List<Operation> operations) {
-    ProcessOperations result = convertRosettaOperations(network, operations);
+  @NotNull
+  public Map<String, Double> getDepositsSumMap(DepositParameters depositParameters, ProcessOperations result, double refundsSum) {
+    double keyDepositsSum =
+            result.getStakeKeyRegistrationsCount() * Long.parseLong(depositParameters.getKeyDeposit());
+    double poolDepositsSum =
+            result.getPoolRegistrationsCount() * Long.parseLong(depositParameters.getPoolDeposit());
+    Map<String, Double> depositsSumMap = new HashMap<>();
+    depositsSumMap.put(Constants.KEY_REFUNDS_SUM, refundsSum);
+    depositsSumMap.put(Constants.KEY_DEPOSITS_SUM, keyDepositsSum);
+    depositsSumMap.put(Constants.POOL_DEPOSITS_SUM, poolDepositsSum);
 
-    return fillProcessOperationsReturnObject(result);
+    return depositsSumMap;
   }
 
   @NotNull
-  private ProcessOperationsReturn fillProcessOperationsReturnObject(ProcessOperations result) {
+  private ProcessOperationsReturn fillProcessOperationsReturnObject(ProcessOperations result, long calculatedFee) {
     ProcessOperationsReturn processOperationsDto = new ProcessOperationsReturn();
     processOperationsDto.setTransactionInputs(result.getTransactionInputs());
     processOperationsDto.setTransactionOutputs(result.getTransactionOutputs());
@@ -383,7 +403,7 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
     processOperationsDto.setWithdrawals(result.getWithdrawals());
     Set<String> addresses = new HashSet<>(result.getAddresses());
     processOperationsDto.setAddresses(addresses);
-    processOperationsDto.setFee(MIN_DUMMY_FEE);
+    processOperationsDto.setFee(calculatedFee);
     processOperationsDto.setVoteRegistrationMetadata(result.getVoteRegistrationMetadata());
 
     return processOperationsDto;
