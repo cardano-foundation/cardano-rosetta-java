@@ -3,7 +3,6 @@ package org.cardanofoundation.rosetta.api.construction.service;
 import java.io.File;
 import java.io.IOException;
 import java.util.Objects;
-import java.util.concurrent.CompletionException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -72,20 +71,19 @@ class CombineApiTest extends IntegrationTest {
     ConstructionCombineRequest combineRequest = getCombineRequest(
         "testdata/construction/combine/combine_with_byron_addresses_missing_chaincode.json");
 
-    // API Exception is wrapped in CompletionException when thrown from CompletableFuture
-    CompletionException actualException = assertThrows(CompletionException.class, () ->
+    ApiException actualException = assertThrows(ApiException.class, () ->
         constructionApiService.constructionCombineService(combineRequest));
 
-    assertInstanceOf(ApiException.class, actualException.getCause());
-    ApiException apiException = (ApiException) actualException.getCause();
-    assertEquals(RosettaErrorType.CHAIN_CODE_MISSING.getCode(), apiException.getError().getCode());
-    assertEquals(RosettaErrorType.CHAIN_CODE_MISSING.getMessage(), apiException.getError().getMessage());
+    assertEquals(RosettaErrorType.CHAIN_CODE_MISSING.getCode(), actualException.getError().getCode());
+    assertEquals(RosettaErrorType.CHAIN_CODE_MISSING.getMessage(), actualException.getError().getMessage());
   }
 
   private ConstructionCombineRequest getCombineRequest(String fileName) throws IOException {
     File file = new File(
         Objects.requireNonNull(this.getClass().getClassLoader().getResource(fileName)).getFile());
     ObjectMapper mapper = new ObjectMapper();
+
     return mapper.readValue(file, ConstructionCombineRequest.class);
   }
+
 }
