@@ -317,7 +317,7 @@ public class ExceptionFactory {
   }
 
   public static ApiException misconfiguredTime(LocalDateTime now) {
-    return new ApiException(RosettaErrorType.MISCONFIGURED_TIME.toRosettaError(false, Details.builder().message("Current time: " + now).build()));
+    return new ApiException(RosettaErrorType.MISCONFIGURED_TIME.toRosettaError(false, Details.builder().message(STR."Current time: \{now}").build()));
   }
 
   public static ApiException missingDRepId() {
@@ -326,6 +326,10 @@ public class ExceptionFactory {
 
   public static ApiException missingDrep() {
     return new ApiException(RosettaErrorType.MISSING_DREP_TYPE.toRosettaError(false));
+  }
+
+  public static ApiException timeOut(String detailMessage) {
+    return new ApiException(RosettaErrorType.TIMEOUT.toRosettaError(true, Details.builder().message(STR."Timeout, details: \{detailMessage}").build()));
   }
 
 }
