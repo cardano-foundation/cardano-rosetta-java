@@ -2,9 +2,6 @@ package org.cardanofoundation.rosetta.api.construction.service;
 
 import java.math.BigInteger;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import jakarta.validation.constraints.NotNull;
 import javax.annotation.Nullable;
 
@@ -35,7 +32,6 @@ import com.bloxbean.cardano.client.exception.AddressExcepion;
 import com.bloxbean.cardano.client.exception.CborDeserializationException;
 import com.bloxbean.cardano.client.exception.CborSerializationException;
 import com.bloxbean.cardano.client.transaction.spec.*;
-import com.bloxbean.cardano.client.transaction.spec.Transaction;
 import com.bloxbean.cardano.client.transaction.spec.TransactionBody.TransactionBodyBuilder;
 import com.bloxbean.cardano.client.util.HexUtil;
 import org.apache.commons.lang3.ObjectUtils;
@@ -78,8 +74,6 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
   private final OperationService operationService;
   private final RestTemplate restTemplate;
   private final OfflineSlotService offlineSlotService;
-
-  private final ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor(); // TODO this probably gives more overhead than it should
 
   @Value("${cardano.rosetta.NODE_SUBMIT_API_PORT}")
   private int nodeSubmitApiPort;
@@ -201,23 +195,18 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
     log.info("[buildTransaction] About to signed a transaction with {} signatures",
             signaturesList.size());
 
-    CompletableFuture<TransactionBody> transactionBodyFuture =
-            CompletableFuture.supplyAsync(() -> deserializeTransactionBody(unsignedTransaction), executorService);
-
-    CompletableFuture<TransactionWitnessSet> witnessesFuture =
-            CompletableFuture.supplyAsync(() -> getWitnessesForTransaction(signaturesList), executorService);
-
-    CompletableFuture<AuxiliaryData> auxiliaryDataFuture =
-            CompletableFuture.supplyAsync(() -> deserializeAuxiliaryData(transactionMetadata), executorService);
+    TransactionBody transactionBody = deserializeTransactionBody(unsignedTransaction);
+    TransactionWitnessSet witnesses = getWitnessesForTransaction(signaturesList);
+    AuxiliaryData auxiliaryData = deserializeAuxiliaryData(transactionMetadata);
 
     try {
       log.info(
               "[buildTransaction] Creating transaction using transaction body and extracted witnesses");
 
-      Transaction transaction = new Transaction();
-      transaction.setBody(transactionBodyFuture.join());
-      transaction.setAuxiliaryData(auxiliaryDataFuture.join());
-      transaction.setWitnessSet(witnessesFuture.join());
+      var transaction = new com.bloxbean.cardano.client.transaction.spec.Transaction();
+      transaction.setBody(transactionBody);
+      transaction.setAuxiliaryData(auxiliaryData);
+      transaction.setWitnessSet(witnesses);
       transaction.setValid(true);
 
       Array cborTransactionsArray = (Array) CborSerializationUtil.deserialize(transaction.serialize());
@@ -379,21 +368,25 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
                     transactionBodyHash, SignatureType.ED25519)).toList();
   }
 
-  private ProcessOperationsReturn processOperations(Network network,
-                                                    List<Operation> operations) {
+  private ProcessOperationsReturn processOperations(Network network, List<Operation> operations) {
     ProcessOperations result = convertRosettaOperations(network, operations);
 
-    ProcessOperationsReturn operationsReturn = new ProcessOperationsReturn();
-    operationsReturn.setTransactionInputs(result.getTransactionInputs());
-    operationsReturn.setTransactionOutputs(result.getTransactionOutputs());
-    operationsReturn.setCertificates(result.getCertificates());
-    operationsReturn.setWithdrawals(result.getWithdrawals());
-    Set<String> addresses = new HashSet<>(result.getAddresses());
-    operationsReturn.setAddresses(addresses);
-    operationsReturn.setFee(MIN_DUMMY_FEE);
-    operationsReturn.setVoteRegistrationMetadata(result.getVoteRegistrationMetadata());
+    return fillProcessOperationsReturnObject(result);
+  }
 
-    return operationsReturn;
+  @NotNull
+  private ProcessOperationsReturn fillProcessOperationsReturnObject(ProcessOperations result) {
+    ProcessOperationsReturn processOperationsDto = new ProcessOperationsReturn();
+    processOperationsDto.setTransactionInputs(result.getTransactionInputs());
+    processOperationsDto.setTransactionOutputs(result.getTransactionOutputs());
+    processOperationsDto.setCertificates(result.getCertificates());
+    processOperationsDto.setWithdrawals(result.getWithdrawals());
+    Set<String> addresses = new HashSet<>(result.getAddresses());
+    processOperationsDto.setAddresses(addresses);
+    processOperationsDto.setFee(MIN_DUMMY_FEE);
+    processOperationsDto.setVoteRegistrationMetadata(result.getVoteRegistrationMetadata());
+
+    return processOperationsDto;
   }
 
   @Override
@@ -402,17 +395,14 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
 
     for (Operation operation : operations) {
       String type = operation.getType();
-
-      processor = OperationParseUtil.parseOperation(operation, network, processor, type);
-
+      processor = OperationParseUtil.parseOperation(operation, network, processor,
+              type);
       if (processor == null) {
         log.error("[processOperations] Operation with id {} has invalid type",
                 operation.getOperationIdentifier());
-
         throw ExceptionFactory.invalidOperationTypeError();
       }
     }
-
     return processor;
   }
 
@@ -461,7 +451,6 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
   @Override
   public DepositParameters getDepositParameters() {
     ProtocolParams pp = protocolParamService.findProtocolParameters();
-
     return new DepositParameters(pp.getKeyDeposit().toString(), pp.getPoolDeposit().toString());
   }
 
@@ -546,7 +535,6 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
       log.error("Invalid public key length: {}", pubKeyBytes.length);
       throw new IllegalArgumentException("Invalid public key length");
     }
-
     return pubKey;
   }
 

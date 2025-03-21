@@ -26,10 +26,10 @@
     </licenses>
 
     <properties>
-        <revision>1.2.4</revision>
+        <revision>1.2.5</revision>
         <java.version>21</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <version.spring-boot>3.2.4</version.spring-boot>
+        <version.spring-boot>3.4.3</version.spring-boot>
         <version.springdoc-openapi-ui>1.6.15</version.springdoc-openapi-ui>
         <version.openapi-generator-maven-plugin>6.4.0</version.openapi-generator-maven-plugin>
         <version.maven-compiler-plugin>3.13.0</version.maven-compiler-plugin>
@@ -39,11 +39,9 @@
         <version.lombok>1.18.30</version.lombok>
         <version.swagger-annotations>2.2.8</version.swagger-annotations>
         <version.log4j>2.20.0</version.log4j>
-        <version.nimbusds>9.25.6</version.nimbusds>
-        <version.bloxbean>0.4.3</version.bloxbean>
         <version.client-lib>0.6.3</version.client-lib>
         <version.yaci>0.3.4.1</version.yaci>
-        <version.yaci-store>0.1.0</version.yaci-store>
+        <version.yaci-store>0.1.1</version.yaci-store>
         <version.commons-io>2.14.0</version.commons-io>
         <version.javax-validation-api>2.0.1.Final</version.javax-validation-api>
         <version.spotless-maven-plugin>2.43.0</version.spotless-maven-plugin>
@@ -55,6 +53,7 @@
         <version.lombok.mapstruct.binding>0.2.0</version.lombok.mapstruct.binding>
         <version.cardano.conversions>1.2.0</version.cardano.conversions>
         <version.vavr>0.10.6</version.vavr>
+        <version.jupiter>5.11.4</version.jupiter>
         <test.exclusions>
             **/testgenerator/**,
             **/yaciindexer/**,
@@ -154,11 +153,22 @@
                 <artifactId>h2</artifactId>
                 <version>${version.h2}</version>
             </dependency>
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter</artifactId>
+                <version>${version.jupiter}</version>
+                <scope>test</scope>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>versions-maven-plugin</artifactId>
+                <version>2.16.2</version>
+            </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>flatten-maven-plugin</artifactId>

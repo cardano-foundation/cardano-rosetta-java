@@ -1,21 +1,23 @@
 package org.cardanofoundation.rosetta.yaciindexer.resource;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
+import java.math.BigInteger;
+import java.util.Optional;
 import jakarta.annotation.PostConstruct;
+
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.cardanofoundation.rosetta.yaciindexer.domain.model.StakeAccountRewardInfo;
-import org.cardanofoundation.rosetta.yaciindexer.service.AccountService;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
-import java.math.BigInteger;
-import java.util.Optional;
+import org.cardanofoundation.rosetta.yaciindexer.domain.model.StakeAccountRewardInfo;
+import org.cardanofoundation.rosetta.yaciindexer.service.AccountService;
 
 import static com.bloxbean.cardano.yaci.store.common.util.Bech32Prefixes.STAKE_ADDR_PREFIX;
 

@@ -6,15 +6,14 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import jakarta.validation.constraints.NotNull;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.apache.commons.lang3.ObjectUtils;
@@ -32,10 +31,9 @@ import org.cardanofoundation.rosetta.api.block.model.entity.*;
 import org.cardanofoundation.rosetta.api.block.model.repository.*;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 
-import static java.util.concurrent.TimeUnit.MINUTES;
+import static java.util.concurrent.TimeUnit.SECONDS;
 
 @Slf4j
-@RequiredArgsConstructor
 @Component
 @Transactional(readOnly = true)
 public class LedgerBlockServiceImpl implements LedgerBlockService {
@@ -53,8 +51,38 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
   private final BlockMapper blockMapper;
   private final TransactionMapper transactionMapper;
   private final AddressUtxoEntityToUtxo addressUtxoEntityToUtxo;
+  private final ExecutorService ioBoundExecutorService;
+
+  public LedgerBlockServiceImpl(BlockRepository blockRepository,
+                                TxRepository txRepository,
+                                StakeRegistrationRepository stakeRegistrationRepository,
+                                DelegationRepository delegationRepository,
+                                PoolRegistrationRepository poolRegistrationRepository,
+                                PoolRetirementRepository poolRetirementRepository,
+                                WithdrawalRepository withdrawalRepository,
+                                AddressUtxoRepository addressUtxoRepository,
+                                InvalidTransactionRepository invalidTransactionRepository,
+                                BlockMapper blockMapper,
+                                TransactionMapper transactionMapper,
+                                AddressUtxoEntityToUtxo addressUtxoEntityToUtxo,
+                                @Qualifier("ioBoundExecutorService") ExecutorService ioBoundExecutorService) {
+    this.blockRepository = blockRepository;
+    this.txRepository = txRepository;
+    this.stakeRegistrationRepository = stakeRegistrationRepository;
+    this.delegationRepository = delegationRepository;
+    this.poolRegistrationRepository = poolRegistrationRepository;
+    this.poolRetirementRepository = poolRetirementRepository;
+    this.withdrawalRepository = withdrawalRepository;
+    this.addressUtxoRepository = addressUtxoRepository;
+    this.invalidTransactionRepository = invalidTransactionRepository;
+    this.blockMapper = blockMapper;
+    this.transactionMapper = transactionMapper;
+    this.addressUtxoEntityToUtxo = addressUtxoEntityToUtxo;
+    this.ioBoundExecutorService = ioBoundExecutorService;
+  }
 
   private BlockIdentifierExtended cachedGenesisBlock;
+
 
   @Override
   public Optional<Block> findBlock(Long blockNumber, String blockHash) {
@@ -75,6 +103,7 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
   @Override
   public Optional<BlockIdentifierExtended> findBlockIdentifier(Long blockNumber, String blockHash) {
     log.debug("Query blockNumber: {} , blockHash: {}", blockNumber, blockHash);
+
     if (blockHash == null && blockNumber != null) {
       return blockRepository.findBlockIdentifierByNumber(blockNumber)
           .map(blockMapper::mapToBlockIdentifierExtended);
@@ -171,15 +200,22 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
             .map(Utxo::getTxHash)
             .toList();
 
-    try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
-      var utxos = executor.submit(() -> addressUtxoRepository.findByTxHashIn(utxHashes));
-      var sReg = executor.submit(() -> stakeRegistrationRepository.findByTxHashIn(txHashes));
-      var delegations = executor.submit(() -> delegationRepository.findByTxHashIn(txHashes));
-      var pReg = executor.submit(() -> poolRegistrationRepository.findByTxHashIn(txHashes));
-      var pRet = executor.submit(() -> poolRetirementRepository.findByTxHashIn(txHashes));
-      var withdrawals = executor.submit(() -> withdrawalRepository.findByTxHashIn(txHashes));
+    try {
+      var utxos = ioBoundExecutorService.submit(() -> addressUtxoRepository.findByTxHashIn(utxHashes));
+      var sReg = ioBoundExecutorService.submit(() -> stakeRegistrationRepository.findByTxHashIn(txHashes));
+      var delegations = ioBoundExecutorService.submit(() -> delegationRepository.findByTxHashIn(txHashes));
+      var pReg = ioBoundExecutorService.submit(() -> poolRegistrationRepository.findByTxHashIn(txHashes));
+      var pRet = ioBoundExecutorService.submit(() -> poolRetirementRepository.findByTxHashIn(txHashes));
+      var withdrawals = ioBoundExecutorService.submit(() -> withdrawalRepository.findByTxHashIn(txHashes));
 
-      return new TransactionInfo(utxos.get(10, MINUTES), sReg.get(10, MINUTES), delegations.get(10, MINUTES), pReg.get(10, MINUTES), pRet.get(10, MINUTES), withdrawals.get(10, MINUTES));
+      return new TransactionInfo(
+              utxos.get(10, SECONDS),
+              sReg.get(10, SECONDS),
+              delegations.get(10, SECONDS),
+              pReg.get(10, SECONDS),
+              pRet.get(10, SECONDS),
+              withdrawals.get(10, SECONDS)
+      );
     } catch (InterruptedException | ExecutionException | TimeoutException e) {
       log.error("Error fetching transaction data", e);
 
