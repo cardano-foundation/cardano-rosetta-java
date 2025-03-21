@@ -15,7 +15,7 @@ public class TestConfig {
     @Bean
     @Primary
     public Clock clockFixed() {
-        return Clock.fixed(Instant.ofEpochMilli(1740053291446L), UTC);
+        return Clock.fixed(Instant.now(), UTC);
     }
 
 }
