@@ -17,6 +17,6 @@ WORKDIR /app
 RUN cp /build/api/target/*.jar /app/api.jar
 RUN rm -rf /build
 
-ENTRYPOINT ["java", "-jar",  "/app/api.jar"]
+ENTRYPOINT ["java", "--enable-preview", "-jar",  "/app/api.jar"]
 
 CMD ["/bin/sh", "-c", "bash"]
