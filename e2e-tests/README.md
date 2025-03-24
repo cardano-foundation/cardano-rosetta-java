@@ -16,17 +16,21 @@ Simple end-to-end testing framework for Cardano's Rosetta API implementation.
 ### Prerequisites
 
 - Python 3.11+
-- Poetry (recommended) or pip
+- pip
 - Cardano Rosetta API endpoint
 - Test wallet with funds
 
 ### Quick Start
 
 ```bash
-# Using Poetry (recommended)
-poetry install
-
-# Using pip
+cd e2e-tests
+# First create a virtual environment
+python3 -m venv .venv
+# Activate the virtual environment
+source .venv/bin/activate  # On Linux/macOS
+# OR
+.\.venv\Scripts\activate   # On Windows
+# Then install dependencies
 pip install -r requirements.txt
 ```
 
@@ -49,7 +53,7 @@ DREP_SCRIPT_HASH_ID=2d4cb680b5f400d3521d272b4295d61150e0eff3950ef4285406a953 # R
 
 ```bash
 # Run all tests
-pytest # minimal verbose
+pytest --log-cli-level=INFO # minimal verbose
 pytest --log-cli-level=DEBUG # verbose, include request/response data
 
 # Run specific test scenarios
@@ -74,8 +78,7 @@ pytest tests/test_stake_scenarios.py -k test_scenario2_drep_vote_delegation_scri
 ```
 ├── rosetta_client/      # Rosetta API client
 ├── wallet_utils/        # PyCardano wallet wrapper
-├── tests/               # Test suites
-└── pyproject.toml       # Project configuration
+└── tests/               # Test suites
 ```
 
 ## Test Scenarios
