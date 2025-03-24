@@ -386,7 +386,9 @@ class RosettaClient:
             "=" * 80,
         )
 
-    def construct_transaction(self, inputs: List[Dict], outputs: List[Dict]) -> Dict:
+    def construct_transaction(
+        self, inputs: List[Dict], outputs: List[Dict], fixed_fee: bool = False
+    ) -> Dict:
         """
         Construct a transaction using the Construction API.
 
@@ -394,6 +396,10 @@ class RosettaClient:
         1) /construction/preprocess - Generates metadata required for transaction construction
         2) /construction/metadata - Fetches network-specific metadata for transaction construction
         3) /construction/payloads - Creates an unsigned transaction and payloads to sign
+
+        For fixed fee scenarios, set fixed_fee=True. In this case, the fee is expressed
+        implicitly as the difference between inputs and outputs, and we won't adjust
+        the outputs again based on suggested fee.
 
         Args:
             inputs: List of UTXOs to spend. Each item must contain:
@@ -403,6 +409,8 @@ class RosettaClient:
             outputs: List of outputs. Each item must contain:
                     - address: str (recipient address)
                     - value: int (amount in lovelace)
+            fixed_fee: If True, use the fixed fee approach where fee is the difference
+                      between inputs and outputs.
 
         Returns:
             Dict containing at minimum:
@@ -421,9 +429,11 @@ class RosettaClient:
             NetworkError: If server/network error occurs (HTTP 5xx, timeouts, etc)
         """
         try:
+            operations = self._build_operations(inputs, outputs)
+            metadata_object = {}
+
             # Step 1: /construction/preprocess
             # Generates options object required for metadata
-            operations = self._build_operations(inputs, outputs)
             preprocess_payload = {
                 "network_identifier": self._get_network_identifier(),
                 "operations": operations,
@@ -437,9 +447,6 @@ class RosettaClient:
                 headers=self.headers,
             )
             preprocess_data = preprocess_response.json()
-
-            # Initialize suggested fee info
-            suggested_fee_info = []
 
             # Step 2: /construction/metadata
             # Fetches network-specific metadata (e.g. recent block hash, suggested fee)
@@ -456,43 +463,51 @@ class RosettaClient:
                 headers=self.headers,
             )
             metadata = metadata_response.json()
+            metadata_object = metadata.get("metadata", {})
 
-            # Extract suggested fee if available and adjust outputs
-            suggested_fee_info = metadata.get("suggested_fee", [])
-            if suggested_fee_info:
-                suggested_fee = int(suggested_fee_info[0]["value"])
+            # Only adjust outputs for fee if not using fixed fee approach
+            if not fixed_fee:
+                # Extract suggested fee if available and adjust outputs
+                suggested_fee_info = metadata.get("suggested_fee", [])
+                if suggested_fee_info:
+                    suggested_fee = int(suggested_fee_info[0]["value"])
 
-                # Calculate total input value
+                    # Calculate total input value
+                    total_input = sum(int(input_data["value"]) for input_data in inputs)
+
+                    # Calculate total output value
+                    total_output = sum(int(output_data["value"]) for output_data in outputs)
+
+                    # Verify we have enough to cover the fee
+                    if suggested_fee > total_input:
+                        error_msg = (
+                            f"\nTransaction Fee Error:\n"
+                            f"  Input amount:  {total_input:,} lovelace\n"
+                            f"  Output amount: {total_output:,} lovelace\n"
+                            f"  Required fee:  {suggested_fee:,} lovelace\n"
+                            f"\nInsufficient funds to cover fee. Need {suggested_fee - total_input:,} more lovelace."
+                        )
+                        logger.error(error_msg)
+                        raise ValidationError(error_msg)
+
+                    # Adjust the last output (assumed to be change) to account for the fee
+                    if outputs:
+                        outputs[-1]["value"] = int(outputs[-1]["value"]) - suggested_fee
+
+                    # Rebuild operations with adjusted outputs
+                    operations = self._build_operations(inputs, outputs)
+            else:
+                # For fixed fee approach, log the implicit fee
                 total_input = sum(int(input_data["value"]) for input_data in inputs)
-
-                # Calculate total output value
                 total_output = sum(int(output_data["value"]) for output_data in outputs)
-
-                # Verify we have enough to cover the fee
-                if suggested_fee > total_input:
-                    error_msg = (
-                        f"\nTransaction Fee Error:\n"
-                        f"  Input amount:  {total_input:,} lovelace\n"
-                        f"  Output amount: {total_output:,} lovelace\n"
-                        f"  Required fee:  {suggested_fee:,} lovelace\n"
-                        f"\nInsufficient funds to cover fee. Need {suggested_fee - total_input:,} more lovelace."
-                    )
-                    logger.error(error_msg)
-                    raise ValidationError(error_msg)
-
-                # Adjust the last output (assumed to be change) to account for the fee
-                if outputs:
-                    outputs[-1]["value"] = int(outputs[-1]["value"]) - suggested_fee
-
-                # Rebuild operations with adjusted outputs
-                operations = self._build_operations(inputs, outputs)
-
+                implicit_fee = total_input - total_output
+                
             # Step 3: /construction/payloads
             # Creates unsigned transaction and signing payloads
             payloads_payload = {
                 "network_identifier": self._get_network_identifier(),
                 "operations": operations,
-                "metadata": metadata["metadata"],
+                "metadata": metadata_object,
             }
 
             self._log_request("/construction/payloads", payloads_payload)
