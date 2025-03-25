@@ -20,6 +20,7 @@ import com.bloxbean.cardano.client.exception.CborSerializationException;
 import com.bloxbean.cardano.client.transaction.util.TransactionUtil;
 import org.openapitools.client.model.*;
 
+import org.cardanofoundation.rosetta.api.block.model.domain.ProcessOperations;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
 import org.cardanofoundation.rosetta.api.construction.enumeration.AddressType;
 import org.cardanofoundation.rosetta.api.construction.mapper.ConstructionMapper;
@@ -142,7 +143,6 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
     log.debug("[constructionMetadata] received protocol parameters from block-service {}",
             protocolParams);
 
-
     Long suggestedFee = cardanoConstructionService.calculateTxMinimumFee(
             txSize,
             protocolParams
@@ -162,6 +162,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
     log.info("{} [constructionPayloads] Operations about to be processed", operations);
 
     ConstructionPayloadsRequestMetadata metadata = constructionPayloadsRequest.getMetadata();
+    DepositParameters depositParameters = getDepositParameters(metadata);
 
     long ttl = calculateTtl(metadata);
 
@@ -173,16 +174,34 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
 
     long txSize = cardanoConstructionService.calculateTxSize(network, operations, ttl);
 
-    long calculatedFee = cardanoConstructionService.calculateTxMinimumFee(
+    long calculatedMinFee = cardanoConstructionService.calculateTxMinimumFee(
             txSize,
             convertProtocolParams(metadata)
     );
+
+    ProcessOperations processOperations = cardanoConstructionService.convertRosettaOperations(network, operations);
+
+    double refundsSum = processOperations.getStakeKeyDeRegistrationsCount() * Long.parseLong(
+            depositParameters.getKeyDeposit());
+
+    Map<String, Double> depositsSumMap = cardanoConstructionService.getDepositsSumMap(depositParameters, processOperations, refundsSum);
+
+    long calculatedRosettaFee = cardanoConstructionService.calculateRosettaSpecificTransactionFee(processOperations.getInputAmounts(),
+            processOperations.getOutputAmounts(),
+            processOperations.getWithdrawalAmounts(), depositsSumMap);
+
+    if (calculatedRosettaFee < calculatedMinFee) {
+      //throw ExceptionFactory.feeBelowMinimumError(calculatedFee, calculatedMinFee);
+      log.warn("CalculatedRosettaFee is below minimum calculatedMinFee (based on tx size). Consider adjusting inputs and outputs to set higher fee, calculatedRosettaFee: {} to minFee: {}", calculatedRosettaFee, calculatedMinFee);
+
+      // TODO throw error in the future?
+    }
 
     UnsignedTransaction unsignedTransaction = createUnsignedTransaction
             (network,
                     operations,
                     ttl,
-                    calculatedFee
+                    calculatedRosettaFee
             );
 
     List<SigningPayload> payloads = cardanoConstructionService.constructPayloadsForTransactionBody(
@@ -340,6 +359,14 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
       log.error("Error encoding unsigned transaction: {}", e.getMessage());
       throw ExceptionFactory.cantEncodeExtraData();
     }
+  }
+
+  private DepositParameters getDepositParameters(ConstructionPayloadsRequestMetadata metadata) {
+    return metadata != null && metadata.getProtocolParameters() != null ?
+            new DepositParameters(metadata.getProtocolParameters().getKeyDeposit(),
+                    metadata.getProtocolParameters().getPoolDeposit()) :
+
+            cardanoConstructionService.getDepositParameters();
   }
 
 }

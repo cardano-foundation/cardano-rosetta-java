@@ -1,7 +1,9 @@
 package org.cardanofoundation.rosetta.api.construction.service;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import co.nstant.in.cbor.CborException;
@@ -32,12 +34,27 @@ public interface CardanoConstructionService {
   TransactionParsed parseTransaction(Network network, String transaction, boolean signed);
 
   Integer checkOrReturnDefaultTtl(Integer relativeTtl);
+
   Long calculateTxMinimumFee(Long transactionSize, ProtocolParams protocolParameters);
 
   Signatures signatureProcessor(EraAddressType eraAddressType, AddressType addressType,
       String address);
 
   Integer calculateTxSize(Network network, List<Operation> operations, long ttl);
+
+  /**
+   * Calculates remaining fee based on inputs and outputs
+   *
+   * @param inputAmounts
+   * @param outputAmounts
+   * @param withdrawalAmounts
+   * @param depositsSumMap
+   * @return
+   */
+  Long calculateRosettaSpecificTransactionFee(List<BigInteger> inputAmounts,
+                                              List<BigInteger> outputAmounts,
+                                              List<BigInteger> withdrawalAmounts,
+                                              Map<String, Double> depositsSumMap);
 
   String buildTransaction(String unsignedTransaction,
       List<Signatures> signaturesList, String transactionMetadata);
@@ -48,19 +65,19 @@ public interface CardanoConstructionService {
   List<SigningPayload> constructPayloadsForTransactionBody(String transactionBodyHash,
       Set<String> addresses);
 
-  ProcessOperations convertRosettaOperations(Network network,
-      List<Operation> operations) throws IOException;
+  ProcessOperations convertRosettaOperations(Network network, List<Operation> operations);
 
   UnsignedTransaction createUnsignedTransaction(Network network, List<Operation> operations, long ttl, Long calculatedFee) throws IOException, CborSerializationException, AddressExcepion, CborException;
 
-  UnsignedTransaction createUnsignedTransaction(Network network, List<Operation> operations, long ttl) throws IOException, CborSerializationException, AddressExcepion, CborException;
-
   String submitTransaction(String signedTransaction);
+
   DepositParameters getDepositParameters();
 
   String extractTransactionIfNeeded(String txWithExtraData);
 
   String getCardanoAddress(AddressType addressType, PublicKey stakingCredential,
       PublicKey publicKey, NetworkEnum networkEnum);
+
+  Map<String, Double> getDepositsSumMap(DepositParameters depositParameters, ProcessOperations result, double refundsSum);
 
 }
