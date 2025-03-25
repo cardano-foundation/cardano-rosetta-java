@@ -15,14 +15,14 @@ const config = {
   favicon: 'img/favicon.ico',
 
   // Set the production url of your site here
-  url: 'https://linconvidal.github.io',
+  url: 'https://cardano-foundation.github.io',
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
   baseUrl: '/cardano-rosetta-java/',
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
-  organizationName: 'linconvidal', // Usually your GitHub org/user name.
+  organizationName: 'cardano-foundation', // Usually your GitHub org/user name.
   projectName: 'cardano-rosetta-java', // Usually your repo name.
   deploymentBranch: 'gh-pages',  // Branch for GitHub Pages deployment
 
@@ -47,7 +47,7 @@ const config = {
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:
-            'https://github.com/linconvidal/cardano-rosetta-java/tree/main/docs/',
+            'https://github.com/cardano-foundation/cardano-rosetta-java/tree/main/docs/',
         },
         theme: {
           customCss: './src/css/custom.css',
@@ -75,7 +75,7 @@ const config = {
             label: 'Docs',
           },
           {
-            href: 'https://github.com/linconvidal/cardano-rosetta-java',
+            href: 'https://github.com/cardano-foundation/cardano-rosetta-java',
             className: 'header-github-link',
             'aria-label': 'GitHub repository',
             position: 'right',
@@ -96,16 +96,10 @@ const config = {
                       <a href="/cardano-rosetta-java/api" class="footer-icon-link" aria-label="API Reference">
                         <span class="footer-icon footer-icon-api"></span>
                       </a>
-                      <a href="https://stackoverflow.com/questions/tagged/cardano" class="footer-icon-link" aria-label="Stack Overflow">
-                        <span class="footer-icon footer-icon-stackoverflow"></span>
-                      </a>
-                      <a href="https://discord.gg/cardano" class="footer-icon-link" aria-label="Discord">
-                        <span class="footer-icon footer-icon-discord"></span>
-                      </a>
                       <a href="https://twitter.com/cardano" class="footer-icon-link" aria-label="Twitter">
                         <span class="footer-icon footer-icon-twitter"></span>
                       </a>
-                      <a href="https://github.com/linconvidal/cardano-rosetta-java" class="footer-icon-link" aria-label="GitHub">
+                      <a href="https://github.com/cardano-foundation/cardano-rosetta-java" class="footer-icon-link" aria-label="GitHub">
                         <span class="footer-icon footer-icon-github"></span>
                       </a>
                       <a href="https://cardano.org" class="footer-icon-link" aria-label="Cardano">
