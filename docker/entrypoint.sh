@@ -191,12 +191,12 @@ else
 
 
   echo "Starting Yaci indexer..."
-  exec java -jar /yaci-indexer/app.jar > /logs/indexer.log &
+  exec java --enable-preview -jar /yaci-indexer/app.jar > /logs/indexer.log &
   YACI_STORE_PID=$!
 
 fi
 echo "Starting Rosetta API..."
-exec java -jar /api/app.jar > /logs/api.log &
+exec java --enable-preview -jar /api/app.jar > /logs/api.log &
 API_PID=$!
 
 
