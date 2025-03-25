@@ -1,12 +1,10 @@
 package org.cardanofoundation.rosetta.api.block.service;
 
+import java.time.Clock;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import lombok.val;
 
@@ -25,15 +23,9 @@ import org.cardanofoundation.rosetta.api.block.mapper.TransactionMapper;
 import org.cardanofoundation.rosetta.api.block.model.domain.*;
 import org.cardanofoundation.rosetta.api.block.model.entity.*;
 import org.cardanofoundation.rosetta.api.block.model.repository.*;
-import org.cardanofoundation.rosetta.common.exception.ApiException;
 import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
-import org.cardanofoundation.rosetta.common.util.RosettaConstants.RosettaErrorType;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -76,39 +68,7 @@ class LedgerBlockServiceImplTest {
   private InvalidTransactionRepository invalidTransactionRepository;
 
   @Spy
-  private ExecutorService ioBoundExecutorService = Executors.newSingleThreadExecutor();
-
-  @Test
-  void testExecutorServiceExceptions() {
-    //given
-    long index = 1;
-    String hash = "hash1";
-
-    BlockEntity blockEntity = mock(BlockEntity.class);
-
-    when(blockRepository.findByNumberAndHash(index, hash)).thenReturn(Optional.of(blockEntity));
-    Block model = mock(Block.class);
-    BlockTx blockTx = mock(BlockTx.class);
-    when(blockTx.getHash()).thenReturn(hash);
-    when(model.getTransactions()).thenReturn(Collections.singletonList(blockTx));
-    when(blockMapper.mapToBlock(blockEntity)).thenReturn(model);
-    ProtocolParams protocolParams = mock(ProtocolParams.class);
-    when(protocolParamService.findProtocolParameters()).thenReturn(protocolParams);
-    ExecutionException exception = new ExecutionException(new Throwable());
-
-    given(addressUtxoRepository.findByTxHashIn(Collections.singletonList(hash)))
-            .willAnswer(t -> exception);
-
-    //when
-    ApiException actualException = assertThrows(ApiException.class,
-            () -> ledgerBlockService.findBlock(index, hash));
-
-    //then
-    assertEquals(RosettaErrorType.UNSPECIFIED_ERROR.getMessage(),
-            actualException.getError().getMessage());
-    assertEquals("Error fetching transaction data",
-            actualException.getError().getDetails().getMessage());
-  }
+  private Clock clock = Clock.systemUTC();
 
   @Test
   void populateTransaction_marksTransactionAsInvalid_ifFoundInInvalidTransactionRepository() {
