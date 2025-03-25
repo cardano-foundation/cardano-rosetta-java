@@ -99,15 +99,6 @@ create_database_and_user() {
     fi
 }
 
-create_index() {
-    export DB_SCHEMA=$NETWORK
-
-    if [[ -z $(sudo -u postgres psql -U postgres -Atc "SELECT * FROM \"pg_indexes\" WHERE translate(indexdef, ' ', '') ilike '%btree(tx_hash)%' AND tablename = 'address_utxo' AND schemaname='$DB_SCHEMA'";) ]]; then
-      echo "Creating index..."
-      sudo -u postgres psql -U postgres -d $DB_NAME -c "CREATE INDEX \"idx_address_utxo_tx_hash\" ON \"$DB_SCHEMA\".\"address_utxo\" USING btree (tx_hash);" >/dev/null
-    fi
-}
-
 get_current_index() {
     json="{\"network_identifier\":{\"blockchain\":\"cardano\",\"network\":\"${NETWORK}\"},\"metadata\":{}}"
     response=$(curl -s -X POST -H "Content-Type: application/json" -H "Content-length: 1000" -H "Host: localhost.com" --data "$json" "localhost:{$API_PORT}/network/status")
@@ -115,7 +106,7 @@ get_current_index() {
     if [[ -z "$current_index" || "$current_index" == "null" ]]; then current_index=0; fi
 }
 
-download_mithril_snapshot(){
+download_mithril_snapshot() {
     echo "Downloading Mithril Snapshot..."
     export CARDANO_NETWORK=$NETWORK
     case $NETWORK in
@@ -217,8 +208,6 @@ if [ "$API_SPRING_PROFILES_ACTIVE" == "online" ]; then
       get_current_index
       sleep 2
   done
-
-  create_index
 fi
 
 
