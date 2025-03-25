@@ -42,7 +42,23 @@ settings.xml
 
 *.trace.db
 
-# Allow files
-!.env.docker-compose
-!.env.IntegrationTest
+# Allow files for a docker-compose entry point
 !.env.h2
+!.env.docker-compose
+!.env.docker-compose-profile-1-entry-level
+!.env.docker-compose-profile-2-basic-hardware
+!.env.docker-compose-profile-3-mid-level
+!.env.docker-compose-profile-4-advanced-hardware
+!.env.docker-compose-profile-5-high-performance
+!.env.docker-compose-profile-6-top-tier-hardware
+!.env.docker-compose-profile-7-ultra-performance
+
+# Allow files for a single docker image
+!docker/docker-compose.yaml
+!docker/.env.docker-profile-1-entry-level
+!docker/.env.docker-profile-2-basic-hardware
+!docker/.env.docker-profile-3-mid-level
+!docker/.env.docker-profile-4-advanced-hardware
+!docker/.env.docker-profile-5-high-performance
+!docker/.env.docker-profile-6-top-tier-hardware
+!docker/.env.docker-profile-7-ultra-performance
