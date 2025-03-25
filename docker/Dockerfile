@@ -1,13 +1,13 @@
-FROM ubuntu:22.04 AS cardano-builder
+FROM openjdk:24-rc-jdk-bookworm AS cardano-builder
 
 WORKDIR /root/src
 
 # Install dependencies
-RUN apt update --fix-missing \
-    && apt install -y --no-install-recommends \
+RUN /usr/bin/apt update --fix-missing \
+    && /usr/bin/apt install -y --no-install-recommends \
         automake build-essential pkg-config libffi-dev libgmp-dev libssl-dev libncurses-dev libsystemd-dev zlib1g-dev make \
         g++ tmux git jq wget libncursesw5-dev libtool autoconf liblmdb-dev curl ca-certificates \
-    && apt-get clean
+    && /usr/bin/apt clean
 
 WORKDIR /root/src
 
@@ -35,11 +35,11 @@ ARG MITHRIL_VERSION=2450.0
 # Install dependencies
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | bash -s -- -y \
     && export PATH="$HOME/.cargo/bin:$PATH" \
-    && apt update --fix-missing \
-    && apt install -y --no-install-recommends \
+    && /usr/bin/apt update --fix-missing \
+    && /usr/bin/apt install -y --no-install-recommends \
        build-essential m4 libssl-dev docker jq git \
     && rustup update stable \
-    && apt-get clean
+    && /usr/bin/apt clean
 RUN git clone https://github.com/input-output-hk/mithril.git \
     && export PATH="$HOME/.cargo/bin:$PATH" \
     && cd mithril \
@@ -68,8 +68,8 @@ RUN export IOHKNIX_VERSION=$(curl https://raw.githubusercontent.com/IntersectMBO
     && make install
 
 # Install libsodium
-RUN apt install -y --no-install-recommends libsodium-dev \
-    && apt-get clean
+RUN /usr/bin/apt install -y --no-install-recommends libsodium-dev \
+    && /usr/bin/apt clean
 
 # Install secp256k1
 RUN export IOHKNIX_VERSION=$(curl https://raw.githubusercontent.com/IntersectMBO/cardano-node/${CARDANO_NODE_VERSION}/flake.lock | jq -r '.nodes.iohkNix.locked.rev') \
@@ -105,8 +105,8 @@ RUN export BLST_VERSION=$(curl https://raw.githubusercontent.com/input-output-hk
     && cp libblst.a /usr/local/lib \
     && bash -c "chmod u=rw,go=r /usr/local/{lib/{libblst.a,pkgconfig/libblst.pc},include/{blst.{h,hpp},blst_aux.h}}"
 
-RUN apt install -y --no-install-recommends libsecp256k1-dev \
-    && apt-get clean
+RUN /usr/bin/apt install -y --no-install-recommends libsecp256k1-dev \
+    && /usr/bin/apt clean
 
 # Install node
 RUN git clone https://github.com/intersectmbo/cardano-node.git \
@@ -141,13 +141,13 @@ RUN mkdir -p /root/.local/bin \
 
     
 # Compile java applications
-FROM ubuntu:22.04 AS java-builder
+FROM openjdk:24-rc-jdk-bookworm AS java-builder
 
 WORKDIR /root/app
 
-RUN apt update --fix-missing \
-    && apt install -y --no-install-recommends openjdk-21-jdk maven \
-    && apt-get clean
+RUN /usr/bin/apt update --fix-missing \
+    && /usr/bin/apt install -y --no-install-recommends maven \
+    && /usr/bin/apt clean
 
 COPY ./pom.xml /root/app/pom.xml
 
@@ -159,7 +159,7 @@ COPY ./.git /root/app/.git
 RUN --mount=type=cache,target=/root/.m2 mvn -U clean package -DskipTests
 
 # Main
-FROM ubuntu:22.04
+FROM openjdk:24-rc-jdk-bookworm
 
 WORKDIR /
 
@@ -168,16 +168,16 @@ ARG PG_VERSION=14
 ARG PG_VERSION_TEMP=$PG_VERSION
 ENV PG_VERSION=$PG_VERSION_TEMP
 
-RUN apt update --fix-missing \
-    && DEBIAN_FRONTEND=noninteractive apt install -y wget sudo gnupg \
+RUN /usr/bin/apt update --fix-missing \
+    && DEBIAN_FRONTEND=noninteractive /usr/bin/apt install -y wget sudo gnupg \
     && wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
     && echo 'deb http://apt.postgresql.org/pub/repos/apt/ jammy-pgdg main' >> /etc/apt/sources.list \
-    && apt-get clean
+    && /usr/bin/apt clean
 
-RUN apt update --fix-missing \
-    && DEBIAN_FRONTEND=noninteractive apt install -y --no-install-recommends  \
+RUN /usr/bin/apt update --fix-missing \
+    && DEBIAN_FRONTEND=noninteractive /usr/bin/apt install -y --no-install-recommends  \
         postgresql-${PG_VERSION} \
-    && apt-get clean
+    && /usr/bin/apt clean
 
 # Allow remote connections
 RUN echo "host all  all    0.0.0.0/0  md5" >> /etc/postgresql/${PG_VERSION}/main/pg_hba.conf
@@ -199,8 +199,8 @@ RUN echo "checkpoint_completion_target = ${DB_POSTGRES_CHECKPOINT_COMPLETION_TAR
 RUN echo "random_page_cost = ${DB_POSTGRES_RANDOM_PAGE_COST:-4.0}" >> /etc/postgresql/${PG_VERSION}/main/postgresql.conf
 
 # Install jdk 21
-RUN apt install -y --no-install-recommends openjdk-21-jdk jq bc sudo curl \
-    && apt clean
+RUN /usr/bin/apt install -y --no-install-recommends jq bc sudo curl \
+    && /usr/bin/apt clean
 
 # Copy cardano node
 COPY --from=cardano-builder /usr/local/lib /usr/local/lib
