@@ -99,18 +99,18 @@ This will start:
 
 ### Entry level hardware profile
 ```bash
-   docker-compose --env-file .env.docker-compose --env-file .env.docker-compose-profile-1-entry-level -f docker-compose.yaml up -d 
+   docker-compose --env-file .env.docker-compose --env-file .env.docker-compose-profile-entry-level -f docker-compose.yaml up -d 
 ```
 
 ### A complete list of hardware profiles:
 ```
-.env.docker-compose-profile-1-entry-level
-.env.docker-compose-profile-2-basic-hardware
-.env.docker-compose-profile-3-mid-level
-.env.docker-compose-profile-4-advanced-hardware
-.env.docker-compose-profile-5-high-performance
-.env.docker-compose-profile-6-top-tier-hardware
-.env.docker-compose-profile-7-ultimate-performance
+.env.docker-compose-profile-entry-level
+.env.docker-compose-profile-basic-hardware
+.env.docker-compose-profile-mid-level
+.env.docker-compose-profile-advanced-hardware
+.env.docker-compose-profile-high-performance
+.env.docker-compose-profile-top-tier-hardware
+.env.docker-compose-profile-ultimate-performance
 ```
 
 See https://github.com/cardano-foundation/cardano-rosetta-java/wiki/9.-Hardware-Profiles a full list of hardware profiles and their configurations.
