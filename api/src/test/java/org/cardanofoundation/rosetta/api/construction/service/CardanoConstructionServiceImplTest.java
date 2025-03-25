@@ -5,6 +5,7 @@ import java.time.Clock;
 import java.time.ZoneOffset;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -451,6 +452,33 @@ class CardanoConstructionServiceImplTest {
       mocked.verify(() -> com.bloxbean.cardano.client.common.cbor.CborSerializationUtil.deserialize(any()),
           times(1));
     }
+  }
+
+  @Test
+  void calculateRosettaSpecificTransactionFeeTest() {
+    List<BigInteger> inputAmounts = List.of(BigInteger.valueOf(5L));
+    List<BigInteger> outputAmounts = List.of(BigInteger.valueOf(2L));
+    List<BigInteger> withdrawalAmounts = List.of(BigInteger.valueOf(-5L));
+    Map<String, Double> depositsSumMap = Map.of(Constants.KEY_REFUNDS_SUM, (double) 6L,
+            Constants.KEY_DEPOSITS_SUM, (double) 2L, Constants.POOL_DEPOSITS_SUM, (double) 2L);
+    Long l = cardanoService.calculateRosettaSpecificTransactionFee(inputAmounts, outputAmounts, withdrawalAmounts,
+            depositsSumMap);
+
+    assertEquals(0, l);
+  }
+
+  @Test
+  void outputMoreThanInputTest() {
+    List<BigInteger> inputAmounts = List.of(BigInteger.valueOf(-5L));
+    List<BigInteger> outputAmounts = List.of(BigInteger.valueOf(2L));
+    List<BigInteger> withdrawalAmounts = List.of(BigInteger.valueOf(7L));
+    Map<String, Double> depositsSumMap = Map.of(Constants.KEY_REFUNDS_SUM, (double) 6L,
+            Constants.KEY_DEPOSITS_SUM, (double) 2L, Constants.POOL_DEPOSITS_SUM, (double) 2L);
+    ApiException exception = assertThrows(ApiException.class,
+            () -> cardanoService.calculateRosettaSpecificTransactionFee(inputAmounts, outputAmounts, withdrawalAmounts, depositsSumMap));
+
+    assertEquals(4010, exception.getError().getCode());
+    assertEquals("The transaction you are trying to build has more outputs than inputs", exception.getError().getMessage());
   }
 
   @NotNull
