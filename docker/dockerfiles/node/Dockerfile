@@ -1,13 +1,13 @@
-FROM ubuntu:22.04 AS cardano-builder
+FROM openjdk:24-rc-jdk-bookworm AS cardano-builder
 
 WORKDIR /root/src
 
 # Install dependencies
-RUN apt update --fix-missing \
-    && apt install -y --no-install-recommends \
+RUN /usr/bin/apt update --fix-missing \
+    && /usr/bin/apt install -y --no-install-recommends \
         automake build-essential pkg-config libffi-dev libgmp-dev libssl-dev libncurses-dev libsystemd-dev zlib1g-dev make \
         g++ tmux git jq wget libncursesw5-dev libtool autoconf liblmdb-dev curl ca-certificates \
-    && apt-get clean
+    && /usr/bin/apt clean
 
 
 # Install ghcup
@@ -49,8 +49,8 @@ ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 ENV PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH
 
 # Install libsodium
-RUN apt install -y --no-install-recommends libsodium-dev \
-    && apt-get clean
+RUN /usr/bin/apt install -y --no-install-recommends libsodium-dev \
+    && /usr/bin/apt clean
 
 # Install secp256k1
 RUN export IOHKNIX_VERSION=$(curl https://raw.githubusercontent.com/IntersectMBO/cardano-node/${CARDANO_NODE_VERSION}/flake.lock | jq -r '.nodes.iohkNix.locked.rev') \
@@ -86,8 +86,8 @@ RUN export BLST_VERSION=$(curl https://raw.githubusercontent.com/input-output-hk
     && cp libblst.a /usr/local/lib \
     && bash -c "chmod u=rw,go=r /usr/local/{lib/{libblst.a,pkgconfig/libblst.pc},include/{blst.{h,hpp},blst_aux.h}}"
 
-RUN apt install -y --no-install-recommends libsecp256k1-dev \
-    && apt-get clean
+RUN /usr/bin/apt install -y --no-install-recommends libsecp256k1-dev \
+    && /usr/bin/apt clean
 
 # Install node
 RUN git clone https://github.com/intersectmbo/cardano-node.git \
@@ -121,5 +121,5 @@ RUN mkdir -p /root/.local/bin \
     && cp -p "$(./scripts/bin-path.sh cardano-submit-api)" /root/.local/bin/
 
 
-FROM ubuntu:22.04 AS node-runner
+FROM openjdk:24-rc-jdk-bookworm AS node-runner
 COPY --from=cardano-builder /root/.local/bin/cardano-* /usr/local/bin/

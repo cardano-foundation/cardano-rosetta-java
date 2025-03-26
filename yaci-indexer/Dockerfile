@@ -1,9 +1,9 @@
-FROM ubuntu:22.04 AS build-common
+FROM openjdk:24-rc-jdk-bookworm AS build-common
 WORKDIR /build
 
-RUN apt update --fix-missing \
-    && apt install -y --no-install-recommends openjdk-21-jdk maven curl \
-    && apt clean
+RUN /usr/bin/apt update --fix-missing \
+    && /usr/bin/apt install -y --no-install-recommends maven curl \
+    && /usr/bin/apt clean
 
 COPY ./pom.xml /build/pom.xml
 COPY ./api /build/api

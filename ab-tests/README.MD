@@ -51,14 +51,14 @@ lsblk
 sudo hdparm -I /dev/sda | grep Model
 
 # All-in-one detailed hardware report
-sudo apt install inxi
+sudo /usr/bin/apt install inxi
 inxi -Fxz
 ```
 
 For a GUI tool with comprehensive hardware information:
 
 ```bash
-sudo apt install hardinfo
+sudo /usr/bin/apt install hardinfo
 hardinfo
 ```
 
