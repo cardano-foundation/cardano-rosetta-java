@@ -130,6 +130,10 @@ class SwissDesignFormatter(logging.Formatter):
                         record.msg = f"{Style.CYAN}{method}{Style.RESET} {Style.GRAY}{endpoint}{Style.RESET}"
                     else:
                         record.msg = f"{Style.CYAN}{method}{Style.RESET}"
+                        
+                    # For HTTP requests/responses, use a custom format without file/line number
+                    return f"{self.formatTime(record, self.datefmt)}  {record.levelname}  {Style.GRAY}http{' '*7}{Style.RESET}  {record.getMessage()}"
+                    
                 elif "[RESPONSE " in msg:
                     if "Status: 2" in msg or "Status: 3" in msg:
                         # Success response - just show status code and timing
@@ -166,6 +170,9 @@ class SwissDesignFormatter(logging.Formatter):
                             )
                         else:
                             record.msg = f"{Style.RED}✗{Style.RESET} {status_code}"
+                            
+                    # For HTTP requests/responses, use a custom format without file/line number
+                    return f"{self.formatTime(record, self.datefmt)}  {record.levelname}  {Style.GRAY}http{' '*7}{Style.RESET}  {record.getMessage()}"
                 elif "[ERROR " in msg:
                     # Extract just the core error message
                     error_msg = msg.split(" ", 1)[1] if " " in msg else msg
@@ -190,23 +197,37 @@ class SwissDesignFormatter(logging.Formatter):
 
         # For non-INFO logs (DEBUG, WARNING, ERROR, CRITICAL), use the detailed format
         else:
-            # Special formatting for HTTP-related logs
+            # Special formatting for HTTP-related logs with detailed data at DEBUG level
             if hasattr(record, "msg") and isinstance(record.msg, str):
                 msg = record.msg
 
-                # Format HTTP request/response logs with style
+                # Format HTTP request logs with full payload data
                 if "[REQUEST " in msg:
-                    # Balance spacing perfectly with a light touch
+                    # Extract and include request data
                     record.msg = f"{Style.CYAN}{Style.HTTP_ICON} {Style.RESET} {msg}"
+                    
+                    # Add payload data if available
+                    if "Payload:" in msg:
+                        data_parts = msg.split("Payload:", 1)
+                        if len(data_parts) > 1:
+                            payload = data_parts[1].strip()
+                            # Add the payload data in a formatted block
+                            record.msg = f"{Style.CYAN}{Style.HTTP_ICON} REQUEST DETAILS {Style.RESET}\n{data_parts[0]}\n{Style.GRAY}Payload: {payload}{Style.RESET}"
+                
+                # Format HTTP response logs with full response data
                 elif "[RESPONSE " in msg:
-                    if "Status: 2" in msg or "Status: 3" in msg:
-                        # Success response - subtle but clear indicator
-                        record.msg = (
-                            f"{Style.GREEN}{Style.HTTP_ICON} {Style.RESET} {msg}"
-                        )
+                    response_style = Style.GREEN if "Status: 2" in msg or "Status: 3" in msg else Style.RED
+                    
+                    # Add response data if available
+                    if "Body:" in msg:
+                        data_parts = msg.split("Body:", 1)
+                        if len(data_parts) > 1:
+                            body = data_parts[1].strip()
+                            # Add the response body in a formatted block
+                            record.msg = f"{response_style}{Style.HTTP_ICON} RESPONSE DETAILS {Style.RESET}\n{data_parts[0]}\n{Style.GRAY}Body: {body}{Style.RESET}"
                     else:
-                        # Error response - visually distinct but not overwhelming
-                        record.msg = f"{Style.RED}{Style.HTTP_ICON} {Style.RESET} {msg}"
+                        record.msg = f"{response_style}{Style.HTTP_ICON} {Style.RESET} {msg}"
+                
                 elif "[ERROR " in msg:
                     record.msg = f"{Style.RED}{Style.HTTP_ICON} {Style.RESET} {msg}"
 
@@ -249,16 +270,19 @@ def pytest_runtest_protocol(item, nextitem):
 def pytest_report_teststatus(report, config):
     """
     Disable default status markers (F, s, etc.) completely by returning
-    an empty string for the shortletter.
+    a tuple with empty string values.
     """
-    # By returning a completely empty string as the "shortletter" (second value),
-    # we prevent pytest from printing any status marker at all
-    return report.outcome, "", report.outcome
+    # Return a tuple with empty string values to suppress test status output
+    # but allow our own custom output to show
+    return "", "", ""
 
 
 # Store collected tests for accurate reporting
 collected_tests = {"items": [], "nodeids": []}
-
+# Track completed test results by nodeid
+completed_tests = {}
+# Track which tests have already been reported in output
+reported_tests = set()
 # Track session start time for accurate duration reporting
 session_start_time = None
 
@@ -312,12 +336,6 @@ def pytest_unconfigure(config):
     # Get the terminal reporter
     terminal = config.pluginmanager.getplugin("terminalreporter")
     if terminal:
-        # Get all test outcomes before the terminalreporter can use them
-        reports = {}
-        for outcome in ["failed", "passed", "skipped"]:
-            if outcome in terminal.stats:
-                reports[outcome] = list(terminal.stats[outcome])
-
         # Clear the terminal reporter's stats to prevent it from generating a summary
         terminal.stats.clear()
 
@@ -330,43 +348,6 @@ def pytest_unconfigure(config):
         # Let other hooks run
         yield
 
-        # Get all unique test nodeids for proper counting
-        all_nodeids = set()
-        for outcome, reports_list in reports.items():
-            for report in reports_list:
-                all_nodeids.add(report.nodeid)
-
-        # Count tests correctly - failed tests are in the call phase
-        failed_nodeids = set(
-            r.nodeid for r in reports.get("failed", []) if r.when == "call"
-        )
-
-        # Skipped tests are usually not in call phase, often in setup
-        # Get all skipped test nodeids
-        skipped_nodeids = set(r.nodeid for r in reports.get("skipped", []))
-
-        # A test is counted as passed if it has a passed call phase and is not failed/skipped
-        passed_nodeids = set()
-        for r in reports.get("passed", []):
-            if (
-                r.when == "call"
-                and r.nodeid not in failed_nodeids
-                and r.nodeid not in skipped_nodeids
-            ):
-                passed_nodeids.add(r.nodeid)
-
-        # Calculate final counts
-        failed = len(failed_nodeids)
-        passed = len(passed_nodeids)
-        skipped = len(skipped_nodeids)
-
-        # For total tests, use all unique nodeids we've collected if available
-        total_tests = len(all_nodeids) if all_nodeids else 0
-
-        # If no unique nodeids collected, fall back to collected_tests global
-        if total_tests == 0 and collected_tests["items"]:
-            total_tests = len(collected_tests["items"])
-
         # Calculate session duration from our own timer
         duration = 0
         if session_start_time is not None:
@@ -378,33 +359,14 @@ def pytest_unconfigure(config):
         # Print the separator line first
         print("\n" + "=" * 80)
 
-        # Add detailed test results table if there are any tests executed
-        if total_tests > 0:
-            # Collect duration info for each test and categorize by status
-            test_info = {}
-            for outcome, reports_list in reports.items():
-                for report in reports_list:
-                    # Only process "call" phase and actual test results
-                    if report.when == "call" or (
-                        report.when == "setup" and report.skipped
-                    ):
-                        nodeid = report.nodeid
-
-                        # Initialize test info if not already present
-                        if nodeid not in test_info:
-                            test_info[nodeid] = {"status": "unknown", "duration": 0.0}
-
-                        # Set status based on outcome
-                        if outcome == "failed" and report.when == "call":
-                            test_info[nodeid]["status"] = "failed"
-                        elif outcome == "passed" and report.when == "call":
-                            test_info[nodeid]["status"] = "passed"
-                        elif outcome == "skipped":
-                            test_info[nodeid]["status"] = "skipped"
-
-                        # Add duration (might be overwritten by call phase, which is what we want)
-                        if hasattr(report, "duration"):
-                            test_info[nodeid]["duration"] = report.duration
+        # Generate the summary
+        if completed_tests:
+            # Count the outcomes correctly
+            passed = sum(1 for info in completed_tests.values() if info["outcome"] == "passed")
+            failed = sum(1 for info in completed_tests.values() if info["outcome"] == "failed")
+            skipped = sum(1 for info in completed_tests.values() if info["outcome"] == "skipped")
+            total_completed = len(completed_tests)
+            total_collected = len(collected_tests["nodeids"])
 
             # Print table header with clean separator
             print(f"{Style.GRAY}TEST RESULTS{Style.RESET}")
@@ -421,11 +383,11 @@ def pytest_unconfigure(config):
             )
             print(f"{Style.GRAY}{'─' * 80}{Style.RESET}")
 
-            # Sort tests by execution order
-            sorted_tests = sorted(test_info.items(), key=lambda x: x[0])
+            # Sort completed tests by nodeid for consistent display
+            sorted_tests = sorted(completed_tests.items(), key=lambda x: x[0])
 
             # Print each test result
-            for nodeid, info in sorted_tests:
+            for nodeid, result in sorted_tests:
                 # Format test name: remove common prefix and make more readable
                 test_name = nodeid
                 if "::" in test_name:
@@ -437,32 +399,36 @@ def pytest_unconfigure(config):
                     test_name = test_name[: test_width - 3] + "..."
 
                 # Format status with appropriate color
-                if info["status"] == "passed":
+                if result["outcome"] == "passed":
                     status = f"{Style.GREEN}{'✓':<{status_width-1}}{Style.RESET}"
-                elif info["status"] == "failed":
+                elif result["outcome"] == "failed":
                     status = f"{Style.RED}{'✗':<{status_width-1}}{Style.RESET}"
-                elif info["status"] == "skipped":
+                elif result["outcome"] == "skipped":
                     status = f"{Style.YELLOW}{'○':<{status_width-1}}{Style.RESET}"
                 else:
                     status = f"{Style.GRAY}{'?':<{status_width-1}}{Style.RESET}"
 
                 # Format duration
-                duration_str = f"{info['duration']:.2f}s"
+                duration_str = f"{result['duration']:.2f}s"
 
                 # Print formatted row
                 print(f"{status} {duration_str:<{duration_width}} {test_name}")
 
             print(f"{Style.GRAY}{'─' * 80}{Style.RESET}")
 
-        # Print our custom summary after the test results table
-        print(
-            f"{Style.GRAY}SUMMARY · {Style.RESET}{Style.BOLD}{duration:.2f}s{Style.RESET} · "
-            f"{Style.GREEN}✓{Style.RESET} {passed} passed · "
-            f"{Style.RED}✗{Style.RESET} {failed} failed · "
-            f"{Style.YELLOW}○{Style.RESET} {skipped} skipped · "
-            f"{Style.BLUE}{total_tests}{Style.RESET} total"
-        )
-        print("=" * 80)
+            # Print our custom summary after the test results table
+            print(
+                f"{Style.GRAY}SUMMARY · {Style.RESET}{Style.BOLD}{duration:.2f}s{Style.RESET} · "
+                f"{Style.GREEN}✓{Style.RESET} {passed} passed · "
+                f"{Style.RED}✗{Style.RESET} {failed} failed · "
+                f"{Style.YELLOW}○{Style.RESET} {skipped} skipped · "
+                f"{Style.BLUE}{total_completed}/{total_collected}{Style.RESET} total"
+            )
+            print("=" * 80)
+        else:
+            # No tests were executed, show basic summary
+            print(f"{Style.GRAY}No tests executed. {Style.RESET}")
+            print("=" * 80)
 
         # Now restore stdout and close the log file
         if hasattr(sys, "_original_stdout") and hasattr(sys, "_log_file"):
@@ -495,63 +461,96 @@ def pytest_runtest_setup(item):
 @pytest.hookimpl(trylast=True)
 def pytest_runtest_logreport(report):
     """Display result at the end of each test with minimalist design principles."""
-    if report.when == "call" or (report.when == "setup" and report.skipped):
-        if report.passed:
-            print(f"\n{Style.GREEN}✓ {Style.BOLD}PASSED{Style.RESET}")
+    # We only care about the setup phase (for skips) and call phase (for pass/fail)
+    # Teardown phase is ignored for test result purposes
+    if report.when == "teardown":
+        return
 
-            # Add request metrics if available
-            if hasattr(report, "node") and hasattr(report.node, "funcargs"):
-                if "rosetta_client" in report.node.funcargs:
-                    client = report.node.funcargs["rosetta_client"]
-                    if hasattr(client, "request_debugger"):
-                        # Use the new summary report method
-                        client.request_debugger.print_summary_report()
-
-        elif report.failed:
-            print(f"\n{Style.RED}× {Style.BOLD}FAILED{Style.RESET}")
-
-            # Add request metrics if available
-            if hasattr(report, "node") and hasattr(report.node, "funcargs"):
-                if "rosetta_client" in report.node.funcargs:
-                    client = report.node.funcargs["rosetta_client"]
-                    if hasattr(client, "request_debugger"):
-                        # Use the new summary report method
-                        client.request_debugger.print_summary_report()
-
-            # Add detailed failure information
+    nodeid = report.nodeid
+    
+    # For setup failures, we want to report those as test failures
+    if report.when == "setup" and report.failed:
+        if nodeid not in reported_tests:
+            reported_tests.add(nodeid)
+            print(f"\n{Style.RED}× {Style.BOLD}FAILED (setup){Style.RESET}")
+            completed_tests[nodeid] = {
+                "outcome": "failed",
+                "duration": getattr(report, "duration", 0.0),
+                "phase": "setup"
+            }
+            # Show error details for setup failures
             if hasattr(report, "longrepr") and report.longrepr:
-                # Get the failure message
                 if isinstance(report.longrepr, tuple) and len(report.longrepr) >= 3:
                     _, _, error_msg = report.longrepr
                     lines = str(error_msg).strip().split("\n")
-
-                    # Display a cleanly formatted error message
                     print(f"{Style.RED}Error details:{Style.RESET}")
-                    for line in lines[:10]:  # Limit to first 10 lines
+                    for line in lines[:10]:
                         print(f"{Style.GRAY}  {line.strip()}{Style.RESET}")
-
                     if len(lines) > 10:
-                        print(
-                            f"{Style.GRAY}  ... ({len(lines) - 10} more lines){Style.RESET}"
-                        )
+                        print(f"{Style.GRAY}  ... ({len(lines) - 10} more lines){Style.RESET}")
                 elif isinstance(report.longrepr, str):
-                    print(
-                        f"{Style.RED}Error: {Style.GRAY}{report.longrepr}{Style.RESET}"
-                    )
-        elif report.skipped:
-            # Extract the reason in a cleaner way
+                    print(f"{Style.RED}Error: {Style.GRAY}{report.longrepr}{Style.RESET}")
+        return
+    
+    # For skipped tests, only report once during setup phase
+    if report.when == "setup" and report.skipped:
+        if nodeid not in reported_tests:
+            reported_tests.add(nodeid)
+            completed_tests[nodeid] = {
+                "outcome": "skipped",
+                "duration": getattr(report, "duration", 0.0),
+                "phase": "setup"
+            }
+            # Extract skip reason
             reason = ""
             if hasattr(report, "longrepr"):
                 if isinstance(report.longrepr, tuple) and len(report.longrepr) >= 3:
                     reason = report.longrepr[2]
                 elif isinstance(report.longrepr, str):
                     reason = report.longrepr
-                # Clean up the format
                 if "Skipped:" in reason:
                     reason = reason.split("Skipped:")[1].strip().strip("'")
-            print(
-                f"\n{Style.YELLOW}○ {Style.BOLD}SKIPPED{Style.RESET} {Style.GRAY}{reason}{Style.RESET}"
-            )
+            print(f"\n{Style.YELLOW}○ {Style.BOLD}SKIPPED{Style.RESET} {Style.GRAY}{reason}{Style.RESET}")
+        return
+        
+    # For call phase, this is the "real" test result
+    if report.when == "call":
+        if nodeid not in reported_tests:
+            reported_tests.add(nodeid)
+            completed_tests[nodeid] = {
+                "outcome": report.outcome,
+                "duration": getattr(report, "duration", 0.0),
+                "phase": "call"
+            }
+            
+            if report.passed:
+                print(f"\n{Style.GREEN}✓ {Style.BOLD}PASSED{Style.RESET}")
+                # Add request metrics if available
+                if hasattr(report, "node") and hasattr(report.node, "funcargs"):
+                    if "rosetta_client" in report.node.funcargs:
+                        client = report.node.funcargs["rosetta_client"]
+                        if hasattr(client, "request_debugger"):
+                            client.request_debugger.print_summary_report()
+            elif report.failed:
+                print(f"\n{Style.RED}× {Style.BOLD}FAILED{Style.RESET}")
+                # Add request metrics if available
+                if hasattr(report, "node") and hasattr(report.node, "funcargs"):
+                    if "rosetta_client" in report.node.funcargs:
+                        client = report.node.funcargs["rosetta_client"]
+                        if hasattr(client, "request_debugger"):
+                            client.request_debugger.print_summary_report()
+                # Add detailed failure information
+                if hasattr(report, "longrepr") and report.longrepr:
+                    if isinstance(report.longrepr, tuple) and len(report.longrepr) >= 3:
+                        _, _, error_msg = report.longrepr
+                        lines = str(error_msg).strip().split("\n")
+                        print(f"{Style.RED}Error details:{Style.RESET}")
+                        for line in lines[:10]:
+                            print(f"{Style.GRAY}  {line.strip()}{Style.RESET}")
+                        if len(lines) > 10:
+                            print(f"{Style.GRAY}  ... ({len(lines) - 10} more lines){Style.RESET}")
+                    elif isinstance(report.longrepr, str):
+                        print(f"{Style.RED}Error: {Style.GRAY}{report.longrepr}{Style.RESET}")
 
 
 def pytest_configure(config):
@@ -562,9 +561,16 @@ def pytest_configure(config):
     config.option.no_header = True
     config.option.no_progressbar = True
 
-    # Completely disable pytest's logging system to prevent duplicates
-    config.option.log_cli = False
-    config.option.log_cli_level = None
+    # Set log_cli_level from command line or environment variable
+    if not config.option.log_cli_level:
+        config.option.log_cli = False
+        config.option.log_cli_level = os.environ.get('LOG_LEVEL', 'INFO')
+    else:
+        # CLI logging is being used, customize its format
+        config.option.log_cli = True
+        # Use a minimal format for CLI logging to hide file locations
+        config.option.log_cli_format = "%(asctime)s %(levelname)s %(message)s"
+        config.option.log_cli_date_format = "%H:%M:%S"
 
     # Simplify terminal reporter handling
     terminal = config.pluginmanager.getplugin("terminalreporter")
@@ -586,6 +592,10 @@ def pytest_configure(config):
         datefmt="%H:%M:%S",
     )
     handler.setFormatter(formatter)
+    
+    # Set handler level based on command line or environment
+    log_level = config.option.log_cli_level
+    handler.setLevel(getattr(logging, log_level) if hasattr(logging, log_level) else logging.INFO)
 
     # Add a file handler with a simple formatter (no ANSI colors)
     file_handler = logging.FileHandler("test_output.log", mode="w")
@@ -594,10 +604,11 @@ def pytest_configure(config):
         datefmt="%H:%M:%S",
     )
     file_handler.setFormatter(file_formatter)
+    file_handler.setLevel(logging.DEBUG)  # Always keep debug level for the file
 
     root_logger = logging.getLogger()
     root_logger.handlers = [handler, file_handler]  # Add file_handler here
-    root_logger.setLevel(logging.DEBUG)
+    root_logger.setLevel(logging.DEBUG)  # Set to DEBUG to capture all logs
 
     # Silence noisy libraries
     logging.getLogger("urllib3").setLevel(logging.ERROR)
@@ -608,11 +619,11 @@ def pytest_configure(config):
 
     # Configure rosetta client logging
     client_logger = logging.getLogger("rosetta_client")
-    client_logger.setLevel(logging.DEBUG)
+    client_logger.setLevel(logging.DEBUG)  # Set to DEBUG to capture detailed request/response data
 
     # Configure HTTP request logging specifically
     http_logger = logging.getLogger("rosetta_client.http")
-    http_logger.setLevel(logging.DEBUG)
+    http_logger.setLevel(logging.DEBUG)  # Set to DEBUG to capture detailed request/response data
 
     # Silence wallet_utils messages at INFO level (only show in DEBUG)
     wallet_logger = logging.getLogger("wallet_utils")
