@@ -138,12 +138,12 @@ class LedgerBlockServiceImplIntTest extends IntegrationTest {
     assertThat(blockTx.getStakePoolDelegations().getFirst().getAddress())
         .isEqualTo(STAKE_ADDRESS_WITH_EARNED_REWARDS);
 
-    List<DelegationEntity> delegations = entityManager
-        .createQuery("FROM DelegationEntity b where b.txHash=:hash", DelegationEntity.class)
+    List<PoolDelegationEntity> delegations = entityManager
+        .createQuery("FROM DelegationEntity b where b.txHash=:hash", PoolDelegationEntity.class)
         .setParameter("hash", tx.txHash())
         .getResultList();
     assertThat(delegations).isNotNull().hasSize(1);
-    DelegationEntity expected = delegations.getFirst();
+    PoolDelegationEntity expected = delegations.getFirst();
     assertThat(expected.getAddress()).isEqualTo(STAKE_ADDRESS_WITH_EARNED_REWARDS);
 
     StakePoolDelegation actual = blockTx.getStakePoolDelegations().getFirst();

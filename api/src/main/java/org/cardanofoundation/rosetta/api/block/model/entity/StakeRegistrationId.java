@@ -9,4 +9,5 @@ public class StakeRegistrationId implements Serializable {
 
   private String txHash;
   private long certIndex;
+
 }
