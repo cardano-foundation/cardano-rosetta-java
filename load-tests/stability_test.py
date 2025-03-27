@@ -15,6 +15,7 @@ import os
 import datetime
 import random
 import string
+import time
 from textwrap import dedent
 
 ###############################################################################
@@ -40,7 +41,7 @@ HARDWARE_PROFILE = "entry_level"  # Set to one of the profile IDs above
 MACHINE_SPECS = "16 cores, 16 threads, 125GB RAM, 3.9TB HDD, QEMU Virtual CPU v2.5+"  # Detailed specs of the test machine
 
 # Concurrency steps (e.g. 1, 2, 4, 8, 12, 16, 24, 32)
-CONCURRENCIES = [1, 2, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52, 56, 60, 64, 68, 72, 76, 80, 84, 88, 92, 96, 100]
+CONCURRENCIES = [1, 2, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52, 56, 60, 64, 68, 72, 76, 80, 84, 88, 92, 96, 100, 125, 150, 175, 200]
 
 # Time-based test length for each concurrency step (in seconds)
 TEST_DURATION = 60
@@ -561,10 +562,16 @@ def main():
 
     # 2) Test each endpoint with the same CSV row
     summary_id = 1
-    for (ep_name, ep_path, ep_func) in ENDPOINTS:
+    for idx, (ep_name, ep_path, ep_func) in enumerate(ENDPOINTS):
         print("====================================================================")
         print(f"TESTING ENDPOINT: {ep_name} ({ep_path})")
         print("====================================================================")
+
+        # Add a sleep of 60 seconds between tests (except before the first test)
+        if idx > 0:
+            print(f"Sleeping for 60 seconds to allow connection pool recovery...")
+            time.sleep(60)
+            print("Resuming tests...")
 
         max_conc, p95_val, p99_val = test_endpoint(ep_name, ep_path, ep_func, first_line)
 
