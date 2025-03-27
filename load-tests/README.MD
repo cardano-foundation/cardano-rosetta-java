@@ -77,7 +77,7 @@ hardinfo
 
 2. Execute the script:
    ```bash
-   ./ab-tests/stability_test.py
+   ./load-tests/stability_test.py
    ```
 
 ## Output
