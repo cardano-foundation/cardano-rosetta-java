@@ -1,0 +1,30 @@
+.features {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 0;
+  width: 100%;
+}
+
+.featureSvg {
+  max-width: 128px;
+  height: auto;
+  margin-bottom: 1rem;
+}
+
+.featureCard {
+  flex: 0 0 30%;
+  margin: 0 1%;
+  max-width: 400px;
+}
+
+@media screen and (max-width: 768px) {
+  .features {
+    padding: 3rem 1rem;
+  }
+  
+  .featureCard {
+    flex: 0 0 100%;
+    margin: 1rem 0;
+  }
+}
