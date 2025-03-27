@@ -19,19 +19,12 @@ This script performs stability testing of Cardano Rosetta API endpoints by:
 
 ## Hardware Specifications
 
-The test records hardware specifications to provide context for performance results. To set your environment specs:
+The test records hardware specifications to provide context for performance results. You can specify your hardware details using the command-line options:
 
-1. Edit the `MACHINE_SPECS` variable in `stability_test.py`:
-
-   ```python
-   MACHINE_SPECS = "16 cores, 16 threads, 125GB RAM, 3.9TB HDD, QEMU Virtual CPU v2.5+"
-   ```
-
-2. Include relevant details that impact performance:
-   - CPU (cores, threads, model)
-   - RAM (total amount)
-   - Storage type and size
-   - Any virtualization environment
+```
+--hardware-profile HARDWARE_PROFILE
+--machine-specs MACHINE_SPECS
+```
 
 This information appears in test reports, allowing meaningful comparison between different hardware configurations.
 
@@ -64,21 +57,103 @@ hardinfo
 
 ## Running the Test
 
-1. Configure the test parameters in the script header (or use defaults):
+### Basic Usage
 
-   ```python
-   BASE_URL = "http://127.0.0.1:8082"
-   CSV_FILE = "mainnet-data.csv"
-   CONCURRENCIES = [1, 2, 4, 8, 12, 16, 24, 32]
-   TEST_DURATION = 10  # seconds per concurrency level
-   SLA_THRESHOLD = 1000  # ms
-   ...
-   ```
+Run with default parameters:
 
-2. Execute the script:
-   ```bash
-   ./ab-tests/stability_test.py
-   ```
+```bash
+./load-tests/stability_test.py
+```
+
+### Command-Line Options
+
+The script supports several command-line options to customize the test:
+
+```
+usage: stability_test.py [-h] [--url BASE_URL] [--csv CSV_FILE]
+                         [--release RELEASE_VERSION]
+                         [--hardware-profile HARDWARE_PROFILE]
+                         [--machine-specs MACHINE_SPECS]
+                         [--concurrency CONCURRENCIES] [--duration TEST_DURATION]
+                         [--sla SLA_THRESHOLD] [--skip-header] [-v]
+                         [--cooldown COOLDOWN] [--endpoints SELECTED_ENDPOINTS]
+                         [--list-endpoints]
+
+Cardano Rosetta API Stability Testing Tool
+
+options:
+  -h, --help            show this help message and exit
+  --url BASE_URL        Base URL for the Rosetta API service (default: http://127.0.0.1:8082)
+  --csv CSV_FILE        Path to CSV file with test data (default: ./mainnet-data.csv)
+  --release RELEASE_VERSION
+                        Release version for reporting (default: 1.2.5-dev)
+  --hardware-profile HARDWARE_PROFILE
+                        Hardware profile ID for reporting (default: entry_level)
+  --machine-specs MACHINE_SPECS
+                        Detailed machine specifications for reporting (default: 16 cores, 16 threads, 125GB RAM, 3.9TB HDD, QEMU Virtual CPU v2.5+)
+  --concurrency CONCURRENCIES
+                        Comma-separated list of concurrency levels to test (default: 1,2,4,8,12,16,20,24,28,32,36,40,44,48,52,56,60,64,68,72,76,80,84,88,92,96,100,125,150,175,200)
+  --duration TEST_DURATION
+                        Duration in seconds for each concurrency level test (default: 60)
+  --sla SLA_THRESHOLD   SLA threshold in milliseconds (default: 1000)
+  --skip-header         Skip the header row in the CSV file (default: False)
+  -v, --verbose         Enable verbose output (default: False)
+  --cooldown COOLDOWN   Cooldown period in seconds between endpoint tests (default: 60)
+  --endpoints SELECTED_ENDPOINTS
+                        Comma-separated list of endpoint names or paths to test (e.g. "Network Status,Block"
+                        or "/account/balance,/block"). If not specified, all endpoints will be tested.
+  --list-endpoints      List all available endpoints and exit without running tests
+```
+
+### Example Usage
+
+Test against a different API server:
+
+```bash
+./load-tests/stability_test.py --url http://example.com:8082
+```
+
+Use a custom CSV file and reduce test duration:
+
+```bash
+./load-tests/stability_test.py --csv custom-data.csv --duration 30
+```
+
+Test a specific set of concurrency levels:
+
+```bash
+./load-tests/stability_test.py --concurrency 1,2,4,8,16,32
+```
+
+Test only specific endpoints by name:
+
+```bash
+./load-tests/stability_test.py --endpoints "Network Status,Block,Account Balance"
+```
+
+Test only specific endpoints by path:
+
+```bash
+./load-tests/stability_test.py --endpoints "/network/status,/block,/account/balance"
+```
+
+Test only search/transactions endpoint with stake address data:
+
+```bash
+./load-tests/stability_test.py --endpoints "/search/transactions" --csv load-tests/data/mainnet-data-stake-address.csv
+```
+
+List all available endpoints without running tests:
+
+```bash
+./load-tests/stability_test.py --list-endpoints
+```
+
+Set custom hardware profile and SLA:
+
+```bash
+./load-tests/stability_test.py --hardware-profile high_performance --machine-specs "16 cores, 64GB RAM, SSD" --sla 500
+```
 
 ## Output
 
