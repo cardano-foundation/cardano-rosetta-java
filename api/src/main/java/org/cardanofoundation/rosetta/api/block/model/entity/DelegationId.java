@@ -9,4 +9,5 @@ public class DelegationId implements Serializable {
 
   private String txHash;
   private long certIndex;
+
 }
