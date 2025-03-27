@@ -76,7 +76,8 @@ usage: stability_test.py [-h] [--url BASE_URL] [--csv CSV_FILE]
                          [--machine-specs MACHINE_SPECS]
                          [--concurrency CONCURRENCIES] [--duration TEST_DURATION]
                          [--sla SLA_THRESHOLD] [--skip-header] [-v]
-                         [--cooldown COOLDOWN]
+                         [--cooldown COOLDOWN] [--endpoints SELECTED_ENDPOINTS]
+                         [--list-endpoints]
 
 Cardano Rosetta API Stability Testing Tool
 
@@ -98,6 +99,10 @@ options:
   --skip-header         Skip the header row in the CSV file (default: False)
   -v, --verbose         Enable verbose output (default: False)
   --cooldown COOLDOWN   Cooldown period in seconds between endpoint tests (default: 60)
+  --endpoints SELECTED_ENDPOINTS
+                        Comma-separated list of endpoint names or paths to test (e.g. "Network Status,Block"
+                        or "/account/balance,/block"). If not specified, all endpoints will be tested.
+  --list-endpoints      List all available endpoints and exit without running tests
 ```
 
 ### Example Usage
@@ -118,6 +123,30 @@ Test a specific set of concurrency levels:
 
 ```bash
 ./load-tests/stability_test.py --concurrency 1,2,4,8,16,32
+```
+
+Test only specific endpoints by name:
+
+```bash
+./load-tests/stability_test.py --endpoints "Network Status,Block,Account Balance"
+```
+
+Test only specific endpoints by path:
+
+```bash
+./load-tests/stability_test.py --endpoints "/network/status,/block,/account/balance"
+```
+
+Test only search/transactions endpoint with stake address data:
+
+```bash
+./load-tests/stability_test.py --endpoints "/search/transactions" --csv load-tests/data/mainnet-data-stake-address.csv
+```
+
+List all available endpoints without running tests:
+
+```bash
+./load-tests/stability_test.py --list-endpoints
 ```
 
 Set custom hardware profile and SLA:
