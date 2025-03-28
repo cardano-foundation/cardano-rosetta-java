@@ -64,6 +64,8 @@ public class Constants {
 
   public static final Integer SIGNATURE_LENGTH = 128;
 
+  public static final long MIN_DUMMY_FEE = 170_000L;
+
   // Shelley
   public static final Long DEFAULT_POOL_DEPOSIT = 500000000L;
 

@@ -20,6 +20,7 @@ import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.UnsignedTransaction;
 
+import static org.cardanofoundation.rosetta.common.util.Constants.MIN_DUMMY_FEE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class CborEncodeUtilTest {
@@ -90,7 +91,8 @@ class CborEncodeUtilTest {
     UnsignedTransaction unsignedTransaction = cardanoService.createUnsignedTransaction(
             network,
             operations,
-            ttl
+            ttl,
+            MIN_DUMMY_FEE
     );
 
     return CborEncodeUtil.encodeExtraData(

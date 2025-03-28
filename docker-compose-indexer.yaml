@@ -46,7 +46,29 @@ services:
     shm_size: 30g
     ports:
       - ${DB_PORT}:${DB_PORT}
-    command: -p ${DB_PORT}
+    command: [
+      # "postgres",
+      "-p", "${DB_PORT}",
+      "-c", "max_connections=${DB_POSTGRES_MAX_CONNECTIONS}",
+      "-c", "shared_buffers=${DB_POSTGRES_SHARED_BUFFERS}",
+      "-c", "effective_cache_size=${DB_POSTGRES_EFFECTIVE_CACHE_SIZE}",
+      "-c", "work_mem=${DB_POSTGRES_WORK_MEM}",
+      "-c", "maintenance_work_mem=${DB_POSTGRES_MAINTENANCE_WORK_MEM}",
+      "-c", "wal_buffers=${DB_POSTGRES_WAL_BUFFERS}",
+      "-c", "checkpoint_completion_target=${DB_POSTGRES_CHECKPOINT_COMPLETION_TARGET}",
+      "-c", "random_page_cost=${DB_POSTGRES_RANDOM_PAGE_COST}",
+
+      # Additional settings for advanced PostgreSQL tuning
+      "-c", "effective_io_concurrency=${DB_POSTGRES_EFFECTIVE_IO_CONCURRENCY}",
+      "-c", "parallel_tuple_cost=${DB_POSTGRES_PARALLEL_TUPLE_COST}",
+      "-c", "parallel_setup_cost=${DB_POSTGRES_PARALLEL_SETUP_COST}",
+      "-c", "max_parallel_workers_per_gather=${DB_POSTGRES_MAX_PARALLEL_WORKERS_PER_GATHER}",
+      "-c", "max_parallel_workers=${DB_POSTGRES_MAX_PARALLEL_WORKERS}",
+      "-c", "seq_page_cost=${DB_POSTGRES_SEQ_PAGE_COST}",
+      "-c", "jit=${DB_POSTGRES_JIT}",
+      "-c", "bgwriter_lru_maxpages=${DB_POSTGRES_BGWRITER_LRU_MAXPAGES}",
+      "-c", "bgwriter_delay=${DB_POSTGRES_BGWRITER_DELAY}"
+    ]
     environment:
       POSTGRES_PASSWORD: ${DB_SECRET}
       POSTGRES_USER: ${DB_USER}

@@ -5,6 +5,11 @@ A Python script for stability testing of Cardano Rosetta API endpoints:
 - Monitors endpoint stability across multiple concurrent connections
 - Measures response times (p95, p99) and validates against SLA thresholds
 - Identifies potential degradation or failures during sustained operation
+
+Usage examples:
+  ./stability_test.py --url=http://127.0.0.1:8082 --csv=./my-data.csv --duration=30
+  ./stability_test.py --hardware-profile=mid_level --machine-specs="8 cores, 64GB RAM" --sla=500
+  ./stability_test.py --concurrency=1,2,4,8,16,32 --verbose --no-header
 """
 
 import csv
@@ -15,44 +20,82 @@ import os
 import datetime
 import random
 import string
+import time
+import argparse
 from textwrap import dedent
+
+###############################################################################
+# COMMAND LINE ARGUMENTS
+###############################################################################
+
+def parse_args():
+    """Parse command line arguments."""
+    parser = argparse.ArgumentParser(
+        description='Cardano Rosetta API Stability Testing Tool',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
+
+    # Basic configuration options
+    parser.add_argument('--url', dest='base_url', default="http://127.0.0.1:8082",
+                        help='Base URL for the Rosetta API service')
+    parser.add_argument('--csv', dest='csv_file', 
+                        default=os.path.join(os.path.dirname(os.path.abspath(__file__)), "data/mainnet-data.csv"),
+                        help='Path to CSV file with test data')
+    parser.add_argument('--release', dest='release_version', default="1.2.6-dev",
+                        help='Release version for reporting')
+    
+    # Hardware profile options
+    parser.add_argument('--hardware-profile', dest='hardware_profile', default="entry_level",
+                        help='Hardware profile ID for reporting')
+    parser.add_argument('--machine-specs', dest='machine_specs', 
+                        default="16 cores, 16 threads, 125GB RAM, 3.9TB NVMe, QEMU Virtual CPU v2.5+",
+                        help='Detailed machine specifications for reporting')
+    
+    # Test configuration options
+    parser.add_argument('--concurrency', dest='concurrencies', type=lambda s: [int(item) for item in s.split(',')],
+                        default=[1, 2, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52, 56, 60, 64, 68, 72, 76, 80, 84, 88, 92, 96, 100, 125, 150, 175, 200],
+                        help='Comma-separated list of concurrency levels to test')
+    parser.add_argument('--duration', dest='test_duration', type=int, default=60,
+                        help='Duration in seconds for each concurrency level test')
+    parser.add_argument('--sla', dest='sla_threshold', type=int, default=1000,
+                        help='SLA threshold in milliseconds')
+    
+    # Misc options
+    parser.add_argument('--no-header', dest='no_header', action='store_true',
+                        help='Specify this flag if the CSV file does not have a header row')
+    parser.add_argument('-v', '--verbose', dest='verbose', action='store_true',
+                        help='Enable verbose output')
+    parser.add_argument('--cooldown', dest='cooldown', type=int, default=60,
+                        help='Cooldown period in seconds between endpoint tests')
+    
+    # Endpoint selection
+    parser.add_argument('--endpoints', dest='selected_endpoints', type=str,
+                        help='Comma-separated list of endpoint names or paths to test (e.g. "Network Status,Block" or "/account/balance,/block"). If not specified, all endpoints will be tested.')
+    
+    # List available endpoints without running tests
+    parser.add_argument('--list-endpoints', dest='list_endpoints', action='store_true',
+                        help='List all available endpoints and exit without running tests')
+    
+    return parser.parse_args()
 
 ###############################################################################
 # CONFIGURATION
 ###############################################################################
 
-BASE_URL = "http://127.0.0.1:8082"
-# Get the directory where the script is located
+args = parse_args()
+
+BASE_URL = args.base_url
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-CSV_FILE = os.path.join(SCRIPT_DIR, "mainnet-data.csv")
-RELEASE_VERSION = "1.2.5-dev"  # For final summary table
-
-# Hardware profile and machine specs
-# Available profiles:
-# - entry_level: 4 cores, 8 threads, 32GB RAM, SSD, Intel Core i3/AMD Ryzen 3
-# - basic_hardware: 8 cores, 16 threads, 32GB RAM, SSD, AMD Ryzen 5/Intel Core i5
-# - mid_level: 8 cores, 16 threads, 64GB RAM, SSD, Intel Xeon/AMD Ryzen 7
-# - advanced_hardware: 16 cores, 32 threads, 64GB RAM, NVMe SSD, AMD Ryzen Threadripper/Intel Xeon
-# - high_performance: 16 cores, 32 threads, 64GB RAM, NVMe SSD, Intel Xeon Gold/AMD Ryzen Threadripper
-# - top_tier_hardware: 32 cores, 64 threads, 128GB RAM, NVMe SSD, Intel Xeon Platinum/AMD Ryzen Threadripper
-# - ultra_tier_hardware: 64 cores, 128 threads, 256GB RAM, NVMe SSD, Intel Xeon Platinum/AMD Ryzen Threadripper
-HARDWARE_PROFILE = "entry_level"  # Set to one of the profile IDs above
-MACHINE_SPECS = "16 cores, 16 threads, 125GB RAM, 3.9TB HDD, QEMU Virtual CPU v2.5+"  # Detailed specs of the test machine
-
-# Concurrency steps (e.g. 1, 2, 4, 8, 12, 16, 24, 32)
-CONCURRENCIES = [1, 2, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52, 56, 60, 64, 68, 72, 76, 80, 84, 88, 92, 96, 100]
-
-# Time-based test length for each concurrency step (in seconds)
-TEST_DURATION = 60
-
-# SLA threshold in ms (e.g., 1000 = 1s)
-SLA_THRESHOLD = 1000
-
-# If your CSV has headers, set SKIP_HEADER = True
-SKIP_HEADER = False
-
-# Enable verbose output during tests
-VERBOSE = True
+CSV_FILE = args.csv_file
+RELEASE_VERSION = args.release_version
+HARDWARE_PROFILE = args.hardware_profile
+MACHINE_SPECS = args.machine_specs
+CONCURRENCIES = args.concurrencies
+TEST_DURATION = args.test_duration
+SLA_THRESHOLD = args.sla_threshold
+NO_HEADER = args.no_header
+VERBOSE = args.verbose
+COOLDOWN_PERIOD = args.cooldown
 
 ###############################################################################
 # FILES AND DIRECTORIES
@@ -321,97 +364,58 @@ def initialize_csv_files():
 def generate_markdown_tables():
     """Generate markdown versions of the results tables with properly spaced columns."""
     # --- Details markdown table ---
-    # First determine max width for each column in details table
-    details_cols = ["Hardware", "Machine Specs", "Endpoint", "Concurrency", "p95 (ms)", "p99 (ms)", 
-                    "Meets SLA", "Complete Reqs", "Reqs/sec", "Mean Time (ms)"]
-    details_widths = {col: len(col) for col in details_cols}
-    
-    # Calculate max width needed for each column
-    for record in details_results:
-        details_widths["Hardware"] = max(details_widths["Hardware"], len(HARDWARE_PROFILE))
-        details_widths["Machine Specs"] = max(details_widths["Machine Specs"], len(MACHINE_SPECS))
-        details_widths["Endpoint"] = max(details_widths["Endpoint"], len(record["endpoint"]))
-        details_widths["Concurrency"] = max(details_widths["Concurrency"], len(str(record["concurrency"])))
-        details_widths["p95 (ms)"] = max(details_widths["p95 (ms)"], len(f"{record['p95']}ms"))
-        details_widths["p99 (ms)"] = max(details_widths["p99 (ms)"], len(f"{record['p99']}ms"))
-        details_widths["Meets SLA"] = max(details_widths["Meets SLA"], len(record["meets_sla"]))
-        details_widths["Complete Reqs"] = max(details_widths["Complete Reqs"], len(str(record["complete_requests"])))
-        details_widths["Reqs/sec"] = max(details_widths["Reqs/sec"], len(f"{record['requests_per_sec']:.2f}"))
-        details_widths["Mean Time (ms)"] = max(details_widths["Mean Time (ms)"], len(f"{record['mean_time']:.2f}ms"))
-    
-    # Add padding to each column width
-    details_widths = {k: v + 2 for k, v in details_widths.items()}
-    
     with open(DETAILS_MD_FILE, 'w') as f:
         f.write("# Detailed Load Test Results\n\n")
         f.write("Per concurrency step results for each endpoint\n\n")
         
         # Write header with proper spacing
-        header = "| " + " | ".join(f"{col:{details_widths[col]}}" for col in details_cols) + " |"
+        header = "| Hardware | Machine Specs | Endpoint | Concurrency | p95 (ms) | p99 (ms) | Meets SLA | Complete Reqs | Reqs/sec | Mean Time (ms) |"
         f.write(header + "\n")
         
-        # Write separator with proper width
-        separator = "|" + "|".join(f"{'-' * details_widths[col]}" for col in details_cols) + "|"
+        # Write separator with proper width - at least 3 dashes per column
+        separator = "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |"
         f.write(separator + "\n")
         
-        # Table rows with proper spacing
+        # Table rows
         for record in details_results:
             row_values = [
-                f"{HARDWARE_PROFILE:{details_widths['Hardware']}}",
-                f"{MACHINE_SPECS:{details_widths['Machine Specs']}}",
-                f"{record['endpoint']:{details_widths['Endpoint']}}",
-                f"{record['concurrency']:{details_widths['Concurrency']}}",
-                f"{record['p95']}ms".ljust(details_widths["p95 (ms)"]),
-                f"{record['p99']}ms".ljust(details_widths["p99 (ms)"]),
-                f"{record['meets_sla']:{details_widths['Meets SLA']}}",
-                f"{record['complete_requests']:{details_widths['Complete Reqs']}}",
-                f"{record['requests_per_sec']:.2f}".ljust(details_widths["Reqs/sec"]),
-                f"{record['mean_time']:.2f}ms".ljust(details_widths["Mean Time (ms)"])
+                f"{HARDWARE_PROFILE}",
+                f"{MACHINE_SPECS}",
+                f"{record['endpoint']}",
+                f"{record['concurrency']}",
+                f"{record['p95']}ms",
+                f"{record['p99']}ms",
+                f"{record['meets_sla']}",
+                f"{record['complete_requests']}",
+                f"{record['requests_per_sec']:.2f}",
+                f"{record['mean_time']:.2f}ms"
             ]
             f.write("| " + " | ".join(row_values) + " |\n")
     
     # --- Summary markdown table ---
-    # First determine max width for each column in summary table
-    summary_cols = ["ID", "Release", "Hardware", "Machine Specs", "Endpoint", "Max Concurrency", "p95 (ms)", "p99 (ms)"]
-    summary_widths = {col: len(col) for col in summary_cols}
-    
-    # Calculate max width needed for each column
-    for sr in summary_results:
-        summary_widths["ID"] = max(summary_widths["ID"], len(str(sr["id"])))
-        summary_widths["Release"] = max(summary_widths["Release"], len(sr["release"]))
-        summary_widths["Hardware"] = max(summary_widths["Hardware"], len(HARDWARE_PROFILE))
-        summary_widths["Machine Specs"] = max(summary_widths["Machine Specs"], len(MACHINE_SPECS))
-        summary_widths["Endpoint"] = max(summary_widths["Endpoint"], len(sr["endpoint"]))
-        summary_widths["Max Concurrency"] = max(summary_widths["Max Concurrency"], len(str(sr["max_concurrency"])))
-        summary_widths["p95 (ms)"] = max(summary_widths["p95 (ms)"], len(f"{sr['p95']}ms"))
-        summary_widths["p99 (ms)"] = max(summary_widths["p99 (ms)"], len(f"{sr['p99']}ms"))
-    
-    # Add padding to each column width
-    summary_widths = {k: v + 2 for k, v in summary_widths.items()}
-    
     with open(SUMMARY_MD_FILE, 'w') as f:
         f.write("# Summary Load Test Results\n\n")
         f.write("Maximum concurrency achieved per endpoint\n\n")
         
         # Write header with proper spacing
-        header = "| " + " | ".join(f"{col:{summary_widths[col]}}" for col in summary_cols) + " |"
+        header = "| ID | Release | Hardware | Machine Specs | Endpoint | Max Concurrency | p95 (ms) | p99 (ms) |"
         f.write(header + "\n")
         
-        # Write separator with proper width
-        separator = "|" + "|".join(f"{'-' * summary_widths[col]}" for col in summary_cols) + "|"
+        # Write separator with proper width - at least 3 dashes per column
+        separator = "| --- | --- | --- | --- | --- | --- | --- | --- |"
         f.write(separator + "\n")
         
-        # Table rows with proper spacing
+        # Table rows
         for sr in summary_results:
             row_values = [
-                f"{sr['id']:{summary_widths['ID']}}",
-                f"{sr['release']:{summary_widths['Release']}}",
-                f"{HARDWARE_PROFILE:{summary_widths['Hardware']}}",
-                f"{MACHINE_SPECS:{summary_widths['Machine Specs']}}",
-                f"{sr['endpoint']:{summary_widths['Endpoint']}}",
-                f"{sr['max_concurrency']:{summary_widths['Max Concurrency']}}",
-                f"{sr['p95']}ms".ljust(summary_widths["p95 (ms)"]),
-                f"{sr['p99']}ms".ljust(summary_widths["p99 (ms)"])
+                f"{sr['id']}",
+                f"{sr['release']}",
+                f"{HARDWARE_PROFILE}",
+                f"{MACHINE_SPECS}",
+                f"{sr['endpoint']}",
+                f"{sr['max_concurrency']}",
+                f"{sr['p95']}ms",
+                f"{sr['p99']}ms"
             ]
             f.write("| " + " | ".join(row_values) + " |\n")
 
@@ -433,10 +437,6 @@ def test_endpoint(endpoint_name, endpoint_path, payload_func, csv_row):
     # Adjust if your CSV has different columns or order.
     address, block_index, block_hash, transaction_size, relative_ttl, transaction_hash = csv_row
 
-    # Convert numeric fields if needed
-    # block_index, transaction_size, relative_ttl might be numeric
-    # We'll let payload function handle them as strings or cast them as integers.
-    # Just be consistent.
     # Generate JSON payload
     json_payload = payload_func(address, block_index, block_hash, transaction_size, relative_ttl, transaction_hash)
 
@@ -452,10 +452,10 @@ def test_endpoint(endpoint_name, endpoint_path, payload_func, csv_row):
 
     for c in CONCURRENCIES:
         if VERBOSE:
-            print(f"-----------------------------------------------------------")
+            print(f"{'-' * 80}")
             print(f"Endpoint: {endpoint_name}, Concurrency: {c}")
             print(f"Running ab for {TEST_DURATION} seconds against {endpoint_path}")
-            print("-----------------------------------------------------------")
+            print(f"{'-' * 80}")
         
         # Generate and log the ab command
         cmd = get_ab_command(endpoint_path, c, tmp_file)
@@ -466,9 +466,9 @@ def test_endpoint(endpoint_name, endpoint_path, payload_func, csv_row):
             ab_output = proc.stdout
         except subprocess.CalledProcessError as e:
             print(f"ERROR: ab command failed at concurrency {c} for endpoint {endpoint_name}")
-            print("---- Output ----")
+            print("-" * 80)
             print(e.output)
-            print("---------------")
+            print("-" * 80)
             break
 
         # Parse p95, p99 and additional metrics
@@ -531,131 +531,220 @@ def test_endpoint(endpoint_name, endpoint_path, payload_func, csv_row):
 ###############################################################################
 
 def main():
-    # Create output directory and initialize CSV files
-    print(f"Creating output directory: {OUTPUT_DIR}")
-    initialize_csv_files()
-    
-    # 1) Read CSV
     try:
-        with open(CSV_FILE, "r", newline="") as f:
-            reader = csv.reader(f)
-            rows = list(reader)
-    except FileNotFoundError:
-        print(f"ERROR: CSV file '{CSV_FILE}' not found.")
-        sys.exit(1)
-
-    if not rows:
-        print(f"ERROR: CSV file '{CSV_FILE}' is empty.")
-        sys.exit(1)
-
-    if SKIP_HEADER:
-        rows = rows[1:]
-
-    # For demonstration, pick the *first* row only.
-    # If you want to test multiple rows, you can loop here or adapt logic.
-    if not rows:
-        print("ERROR: No CSV data after skipping header.")
-        sys.exit(1)
-
-    first_line = rows[0]
-
-    # 2) Test each endpoint with the same CSV row
-    summary_id = 1
-    for (ep_name, ep_path, ep_func) in ENDPOINTS:
-        print("====================================================================")
-        print(f"TESTING ENDPOINT: {ep_name} ({ep_path})")
-        print("====================================================================")
-
-        max_conc, p95_val, p99_val = test_endpoint(ep_name, ep_path, ep_func, first_line)
-
-        # Add summary record to memory
-        summary_results.append({
-            "id": summary_id,
-            "release": RELEASE_VERSION,
-            "endpoint": ep_path,
-            "max_concurrency": max_conc,
-            "p95": p95_val,
-            "p99": p99_val,
-        })
+        # Check if we just need to list available endpoints
+        if args.list_endpoints:
+            print("\nAvailable endpoints:")
+            print("-" * 80)
+            for name, path, _ in ENDPOINTS:
+                print(f"{name:<25} {path}")
+            print()
+            sys.exit(0)
+            
+        # Create output directory and initialize CSV files
+        print(f"Creating output directory: {OUTPUT_DIR}")
+        initialize_csv_files()
         
-        # Write to summary CSV file
-        with open(SUMMARY_FILE, 'a', newline='') as f:
-            writer = csv.writer(f)
-            writer.writerow([
-                summary_id,
-                RELEASE_VERSION,
+        # 1) Read CSV
+        try:
+            with open(CSV_FILE, "r", newline="") as f:
+                reader = csv.reader(f)
+                rows = list(reader)
+        except FileNotFoundError:
+            print(f"ERROR: CSV file '{CSV_FILE}' not found.")
+            sys.exit(1)
+
+        if not rows:
+            print(f"ERROR: CSV file '{CSV_FILE}' is empty.")
+            sys.exit(1)
+
+        # By default, assume the CSV file has a header row (column names)
+        # Skip the header row when processing the data
+        # Only if --no-header is specified, treat all rows as data
+        if not NO_HEADER:
+            header_row = rows[0]
+            rows = rows[1:]
+            if VERBOSE:
+                print(f"\n{'-' * 80}")
+                print(f"CSV DATA INFORMATION")
+                print(f"{'-' * 80}")
+                print(f"Header: {', '.join(header_row)}")
+                print(f"Data row: {', '.join(rows[0]) if rows else 'No data available'}")
+                print(f"{'-' * 80}\n")
+
+        # For demonstration, pick the *first* row only.
+        # If you want to test multiple rows, you can loop here or adapt logic.
+        if not rows:
+            print("ERROR: No CSV data after skipping header.")
+            sys.exit(1)
+
+        first_line = rows[0]
+
+        # 2) Test each endpoint with the same CSV row
+        summary_id = 1
+        
+        # Filter endpoints based on command-line parameter if specified
+        endpoints_to_test = ENDPOINTS
+        if args.selected_endpoints:
+            selected = [item.strip() for item in args.selected_endpoints.split(',')]
+            # Try to match by name first, then by path if no name matches are found
+            endpoints_to_test = [(name, path, func) for (name, path, func) in ENDPOINTS if name in selected]
+            
+            # If no matches by name, try matching by path
+            if not endpoints_to_test:
+                endpoints_to_test = [(name, path, func) for (name, path, func) in ENDPOINTS if path in selected]
+            
+            if not endpoints_to_test:
+                print(f"ERROR: None of the specified endpoints were found.")
+                print(f"Available endpoints (name): {', '.join(ep[0] for ep in ENDPOINTS)}")
+                print(f"Available endpoints (path): {', '.join(ep[1] for ep in ENDPOINTS)}")
+                sys.exit(1)
+                
+            print(f"\nTesting {len(endpoints_to_test)} of {len(ENDPOINTS)} endpoints:")
+            for name, path, _ in endpoints_to_test:
+                print(f" - {name} ({path})")
+            print()
+        
+        for idx, (ep_name, ep_path, ep_func) in enumerate(endpoints_to_test):
+            print("=" * 80)
+            print(f"TESTING ENDPOINT: {ep_name} ({ep_path})")
+            print("=" * 80)
+
+            # Add a sleep between tests (except before the first test)
+            if idx > 0:
+                print(f"Sleeping for {COOLDOWN_PERIOD} seconds to allow connection pool recovery...")
+                time.sleep(COOLDOWN_PERIOD)
+                print("Resuming tests...")
+
+            max_conc, p95_val, p99_val = test_endpoint(ep_name, ep_path, ep_func, first_line)
+
+            # Add summary record to memory
+            summary_results.append({
+                "id": summary_id,
+                "release": RELEASE_VERSION,
+                "endpoint": ep_path,
+                "max_concurrency": max_conc,
+                "p95": p95_val,
+                "p99": p99_val,
+            })
+            
+            # Write to summary CSV file
+            with open(SUMMARY_FILE, 'a', newline='') as f:
+                writer = csv.writer(f)
+                writer.writerow([
+                    summary_id,
+                    RELEASE_VERSION,
+                    HARDWARE_PROFILE,
+                    MACHINE_SPECS,
+                    ep_path,
+                    max_conc,
+                    f"{p95_val}ms",
+                    f"{p99_val}ms"
+                ])
+            
+            summary_id += 1
+
+            print()
+            print(f"Completed testing for {ep_name} - Max concurrency: {max_conc}, p95: {p95_val}ms, p99: {p99_val}ms")
+            print()
+
+        # Generate markdown files from our results
+        generate_markdown_tables()
+
+        # 3) Print tables
+        print("\n" + "=" * 80)
+        print(" DETAILED RESULTS (per concurrency step) ")
+        print("=" * 80)
+
+        # Print header
+        print("| %-15s | %-15s | %-20s | %-10s | %-18s | %-18s | %-12s | %-18s | %-18s | %-18s |" % (
+            "Hardware", "Machine Specs", "Endpoint", "Concurrency", "p95 (ms)", "p99 (ms)", "SLA?", "Complete Reqs", "Reqs/sec", "Mean Time (ms)"
+        ))
+        print("-" * 80)
+
+        for record in details_results:
+            print("| %-15s | %-15s | %-20s | %-10s | %-18s | %-18s | %-12s | %-18s | %-18s | %-18s |" % (
                 HARDWARE_PROFILE,
                 MACHINE_SPECS,
-                ep_path,
-                max_conc,
-                f"{p95_val}ms",
-                f"{p99_val}ms"
-            ])
-        
-        summary_id += 1
+                record["endpoint"],
+                record["concurrency"],
+                f"{record['p95']}ms",
+                f"{record['p99']}ms",
+                record["meets_sla"],
+                record["complete_requests"],
+                f"{record['requests_per_sec']:.2f}",
+                f"{record['mean_time']:.2f}ms"
+            ))
 
-        print()
-        print(f"Completed testing for {ep_name} - Max concurrency: {max_conc}, p95: {p95_val}ms, p99: {p99_val}ms")
-        print()
+        print("\n" + "=" * 80)
+        print(" FINAL SUMMARY (maximum concurrency per endpoint) ")
+        print("=" * 80)
 
-    # Generate markdown files from our results
-    generate_markdown_tables()
-
-    # 3) Print tables
-    print("\n=============================================================")
-    print(" DETAILED RESULTS (per concurrency step) ")
-    print("=============================================================")
-
-    # Print header
-    print("| %-15s | %-15s | %-20s | %-10s | %-18s | %-18s | %-12s | %-18s | %-18s | %-18s |" % (
-        "Hardware", "Machine Specs", "Endpoint", "Concurrency", "p95 (ms)", "p99 (ms)", "SLA?", "Complete Reqs", "Reqs/sec", "Mean Time (ms)"
-    ))
-    print("|" + "-"*17 + "|" + "-"*17 + "|" + "-"*22 + "|" + "-"*12 + "|" + "-"*20 + "|" + "-"*20 + "|" + "-"*14 + "|" + "-"*20 + "|" + "-"*20 + "|" + "-"*20 + "|")
-
-    for record in details_results:
-        print("| %-15s | %-15s | %-20s | %-10s | %-18s | %-18s | %-12s | %-18s | %-18s | %-18s |" % (
-            HARDWARE_PROFILE,
-            MACHINE_SPECS,
-            record["endpoint"],
-            record["concurrency"],
-            f"{record['p95']}ms",
-            f"{record['p99']}ms",
-            record["meets_sla"],
-            record["complete_requests"],
-            f"{record['requests_per_sec']:.2f}",
-            f"{record['mean_time']:.2f}ms"
-        ))
-
-    print("\n=============================================================")
-    print(" FINAL SUMMARY (maximum concurrency per endpoint) ")
-    print("=============================================================")
-
-    # Print header
-    print("| %-2s | %-6s | %-15s | %-15s | %-22s | %-16s | %-16s | %-16s |" % (
-        "ID", "Rel.", "Hardware", "Machine Specs", "Endpoint", "Max Concurrency", "p95 (ms)", "p99 (ms)"
-    ))
-    print("|" + "-"*4 + "|" + "-"*8 + "|" + "-"*17 + "|" + "-"*17 + "|" + "-"*24 + "|" + "-"*18 + "|" + "-"*18 + "|" + "-"*18 + "|")
-
-    for sr in summary_results:
+        # Print header
         print("| %-2s | %-6s | %-15s | %-15s | %-22s | %-16s | %-16s | %-16s |" % (
-            sr["id"],
-            sr["release"],
-            HARDWARE_PROFILE,
-            MACHINE_SPECS,
-            sr["endpoint"],
-            sr["max_concurrency"],
-            f"{sr['p95']}ms",
-            f"{sr['p99']}ms"
+            "ID", "Rel.", "Hardware", "Machine Specs", "Endpoint", "Max Concurrency", "p95 (ms)", "p99 (ms)"
         ))
+        print("-" * 80)
 
-    print(f"\nDone. Results saved to: {OUTPUT_DIR}")
-    print(f"Files generated:")
-    print(f"  - {DETAILS_FILE}")
-    print(f"  - {SUMMARY_FILE}")
-    print(f"  - {DETAILS_MD_FILE}")
-    print(f"  - {SUMMARY_MD_FILE}")
-    print(f"  - {COMMANDS_FILE}")
-    print(f"  - JSON payload files for each endpoint")
+        for sr in summary_results:
+            print("| %-2s | %-6s | %-15s | %-15s | %-22s | %-16s | %-16s | %-16s |" % (
+                sr["id"],
+                sr["release"],
+                HARDWARE_PROFILE,
+                MACHINE_SPECS,
+                sr["endpoint"],
+                sr["max_concurrency"],
+                f"{sr['p95']}ms",
+                f"{sr['p99']}ms"
+            ))
+
+        print(f"\nDone. Results saved to: {OUTPUT_DIR}")
+        print(f"Files generated:")
+        print(f"  - {DETAILS_FILE}")
+        print(f"  - {SUMMARY_FILE}")
+        print(f"  - {DETAILS_MD_FILE}")
+        print(f"  - {SUMMARY_MD_FILE}")
+        print(f"  - {COMMANDS_FILE}")
+        print(f"  - JSON payload files for each endpoint")
+        
+    except KeyboardInterrupt:
+        print("\n\n" + "=" * 80)
+        print("Test interrupted by user (Ctrl+C)")
+        print("=" * 80)
+        
+        # Get the current endpoint being tested (if available)
+        current_endpoint = None
+        if 'ep_name' in locals() and 'c' in locals():
+            current_endpoint = f"{ep_name} at concurrency level {c}"
+        
+        if current_endpoint:
+            print(f"\nTest was interrupted while testing: {current_endpoint}")
+        
+        if details_results:
+            print("\nPartial results were collected and saved to:", OUTPUT_DIR)
+            print(f"\nResults collected for {len(details_results)} test iterations.")
+            
+            # Generate markdown files from the partial results
+            try:
+                generate_markdown_tables()
+                print("Partial markdown reports were generated successfully.")
+            except Exception as e:
+                print(f"Could not generate markdown reports: {e}")
+        else:
+            print("\nNo results were collected before interruption.")
+        
+        print("\nExiting gracefully...")
+        sys.exit(0)
+    except Exception as e:
+        print("\n\n" + "=" * 80)
+        print(f"An error occurred: {str(e)}")
+        print("=" * 80)
+        
+        if details_results:
+            print("\nPartial results were saved to:", OUTPUT_DIR)
+        
+        print("\nExiting with error...")
+        sys.exit(1)
 
 
 if __name__ == "__main__":

@@ -55,7 +55,6 @@ class BlockServiceImplIntTest extends IntegrationTest {
     assertEquals(simpleTx.txHash(), receiverUtxoDto.getTxHash());
     assertEquals(ACCOUNT_BALANCE_LOVELACE_AMOUNT,
         receiverUtxoDto.getAmounts().getFirst().getQuantity().toString());
-
   }
 
   @Test

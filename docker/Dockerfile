@@ -5,8 +5,8 @@ WORKDIR /root/src
 # Install dependencies
 RUN apt update --fix-missing \
     && apt install -y --no-install-recommends \
-        automake build-essential pkg-config libffi-dev libgmp-dev libssl-dev libncurses-dev libsystemd-dev zlib1g-dev make \
-        g++ tmux git jq wget libncursesw5-dev libtool autoconf liblmdb-dev curl ca-certificates \
+    automake build-essential pkg-config libffi-dev libgmp-dev libssl-dev libncurses-dev libsystemd-dev zlib1g-dev make \
+    g++ tmux git jq wget libncursesw5-dev libtool autoconf liblmdb-dev curl ca-certificates \
     && apt-get clean
 
 WORKDIR /root/src
@@ -37,7 +37,7 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | bash -s -- -y \
     && export PATH="$HOME/.cargo/bin:$PATH" \
     && apt update --fix-missing \
     && apt install -y --no-install-recommends \
-       build-essential m4 libssl-dev docker jq git \
+    build-essential m4 libssl-dev docker jq git \
     && rustup update stable \
     && apt-get clean
 RUN git clone https://github.com/input-output-hk/mithril.git \
@@ -139,7 +139,7 @@ RUN mkdir -p /root/.local/bin \
     && cp -p "$(./scripts/bin-path.sh cardano-cli)" /root/.local/bin/ \
     && cp -p "$(./scripts/bin-path.sh cardano-submit-api)" /root/.local/bin/
 
-    
+
 # Compile java applications
 FROM ubuntu:22.04 AS java-builder
 
@@ -176,14 +176,38 @@ RUN apt update --fix-missing \
 
 RUN apt update --fix-missing \
     && DEBIAN_FRONTEND=noninteractive apt install -y --no-install-recommends  \
-        postgresql-${PG_VERSION} \
+    postgresql-${PG_VERSION} \
     && apt-get clean
 
+# Allow remote connections
 RUN echo "host all  all    0.0.0.0/0  md5" >> /etc/postgresql/${PG_VERSION}/main/pg_hba.conf
+# Listen on all interfaces
 RUN echo "listen_addresses='*'" >> /etc/postgresql/${PG_VERSION}/main/postgresql.conf
-RUN sed -i "s/var\/lib\/postgresql\/${PG_VERSION}\/main/node\/postgres/" /etc/postgresql/${PG_VERSION}/main/postgresql.conf
+# Change data directory path
+RUN sed -i "s|var/lib/postgresql/${PG_VERSION}/main|node/postgres|" /etc/postgresql/${PG_VERSION}/main/postgresql.conf
 RUN mkdir -p /node/postgres
 RUN rm -rf /var/lib/postgresql/${PG_VERSION}/main
+
+# Set PostgreSQL performance parameters
+RUN echo "max_connections = ${DB_POSTGRES_MAX_CONNECTIONS}" >> /etc/postgresql/${PG_VERSION}/main/postgresql.conf
+RUN echo "shared_buffers = ${DB_POSTGRES_SHARED_BUFFERS}" >> /etc/postgresql/${PG_VERSION}/main/postgresql.conf
+RUN echo "effective_cache_size = ${DB_POSTGRES_EFFECTIVE_CACHE_SIZE}" >> /etc/postgresql/${PG_VERSION}/main/postgresql.conf
+RUN echo "work_mem = ${DB_POSTGRES_WORK_MEM}" >> /etc/postgresql/${PG_VERSION}/main/postgresql.conf
+RUN echo "maintenance_work_mem = ${DB_POSTGRES_MAINTENANCE_WORK_MEM}" >> /etc/postgresql/${PG_VERSION}/main/postgresql.conf
+RUN echo "wal_buffers = ${DB_POSTGRES_WAL_BUFFERS}" >> /etc/postgresql/${PG_VERSION}/main/postgresql.conf
+RUN echo "checkpoint_completion_target = ${DB_POSTGRES_CHECKPOINT_COMPLETION_TARGET}" >> /etc/postgresql/${PG_VERSION}/main/postgresql.conf
+RUN echo "random_page_cost = ${DB_POSTGRES_RANDOM_PAGE_COST}" >> /etc/postgresql/${PG_VERSION}/main/postgresql.conf
+
+# Additional PostgreSQL Tuning
+RUN echo "effective_io_concurrency = ${DB_POSTGRES_EFFECTIVE_IO_CONCURRENCY}" >> /etc/postgresql/${PG_VERSION}/main/postgresql.conf
+RUN echo "parallel_tuple_cost = ${DB_POSTGRES_PARALLEL_TUPLE_COST}" >> /etc/postgresql/${PG_VERSION}/main/postgresql.conf
+RUN echo "parallel_setup_cost = ${DB_POSTGRES_PARALLEL_SETUP_COST}" >> /etc/postgresql/${PG_VERSION}/main/postgresql.conf
+RUN echo "max_parallel_workers_per_gather = ${DB_POSTGRES_MAX_PARALLEL_WORKERS_PER_GATHER}" >> /etc/postgresql/${PG_VERSION}/main/postgresql.conf
+RUN echo "max_parallel_workers = ${DB_POSTGRES_MAX_PARALLEL_WORKERS}" >> /etc/postgresql/${PG_VERSION}/main/postgresql.conf
+RUN echo "seq_page_cost = ${DB_POSTGRES_SEQ_PAGE_COST}" >> /etc/postgresql/${PG_VERSION}/main/postgresql.conf
+RUN echo "jit = ${DB_POSTGRES_JIT:-off}" >> /etc/postgresql/${PG_VERSION}/main/postgresql.conf
+RUN echo "bgwriter_lru_maxpages = ${DB_POSTGRES_BGWRITER_LRU_MAXPAGES}" >> /etc/postgresql/${PG_VERSION}/main/postgresql.conf
+RUN echo "bgwriter_delay = ${DB_POSTGRES_BGWRITER_DELAY:-500ms}" >> /etc/postgresql/${PG_VERSION}/main/postgresql.conf
 
 # Install jdk 21
 RUN apt install -y --no-install-recommends openjdk-21-jdk jq bc sudo curl \
