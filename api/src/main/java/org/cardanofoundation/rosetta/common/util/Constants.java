@@ -100,10 +100,12 @@ public class Constants {
           OperationType.STAKE_KEY_REGISTRATION.getValue(),
           OperationType.STAKE_KEY_DEREGISTRATION.getValue(),
           OperationType.WITHDRAWAL.getValue());
+
   public static final List<String> POOL_OPERATIONS =
       List.of(OperationType.POOL_RETIREMENT.getValue(),
           OperationType.POOL_REGISTRATION.getValue(),
           OperationType.POOL_REGISTRATION_WITH_CERT.getValue());
+
   public static final List<String> STAKE_POOL_OPERATIONS =
       List.of(OperationType.STAKE_DELEGATION.getValue(),
           OperationType.STAKE_KEY_REGISTRATION.getValue(),
@@ -111,6 +113,7 @@ public class Constants {
           OperationType.POOL_RETIREMENT.getValue(),
           OperationType.POOL_REGISTRATION.getValue(),
           OperationType.POOL_REGISTRATION_WITH_CERT.getValue());
+
   public static final List<String> VOTE_OPERATIONS =
       List.of(OperationType.VOTE_REGISTRATION.getValue());
 
@@ -124,6 +127,10 @@ public class Constants {
   public static final String OPERATION_TYPE_POOL_REGISTRATION_WITH_CERT = "poolRegistrationWithCert";
   public static final String OPERATION_TYPE_POOL_RETIREMENT = "poolRetirement";
   public static final String OPERATION_TYPE_VOTE_REGISTRATION = "voteRegistration";
+
+  public static final List<String> GOVERNANCE_OPERATIONS = List.of(
+        OperationType.VOTE_DREP_DELEGATION.getValue()
+  );
 
   // Plomin hard fork governance related
   public static final String OPERATION_TYPE_DREP_VOTE_DELEGATION = "dRepVoteDelegation";
