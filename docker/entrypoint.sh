@@ -1,5 +1,24 @@
 #!/bin/bash
 
+# Default values for DB_POSTGRES variables
+DB_POSTGRES_MAX_CONNECTIONS="${DB_POSTGRES_MAX_CONNECTIONS:-100}"
+DB_POSTGRES_SHARED_BUFFERS="${DB_POSTGRES_SHARED_BUFFERS:-'128MB'}"
+DB_POSTGRES_EFFECTIVE_CACHE_SIZE="${DB_POSTGRES_EFFECTIVE_CACHE_SIZE:-'4GB'}"
+DB_POSTGRES_WORK_MEM="${DB_POSTGRES_WORK_MEM:-'8MB'}"
+DB_POSTGRES_MAINTENANCE_WORK_MEM="${DB_POSTGRES_MAINTENANCE_WORK_MEM:-'512MB'}"
+DB_POSTGRES_WAL_BUFFERS="${DB_POSTGRES_WAL_BUFFERS:-'16MB'}"
+DB_POSTGRES_CHECKPOINT_COMPLETION_TARGET="${DB_POSTGRES_CHECKPOINT_COMPLETION_TARGET:-0.9}"
+DB_POSTGRES_RANDOM_PAGE_COST="${DB_POSTGRES_RANDOM_PAGE_COST:-1.5}"
+DB_POSTGRES_EFFECTIVE_IO_CONCURRENCY="${DB_POSTGRES_EFFECTIVE_IO_CONCURRENCY:-2}"
+DB_POSTGRES_PARALLEL_TUPLE_COST="${DB_POSTGRES_PARALLEL_TUPLE_COST:-0.1}"
+DB_POSTGRES_PARALLEL_SETUP_COST="${DB_POSTGRES_PARALLEL_SETUP_COST:-1000}"
+DB_POSTGRES_MAX_PARALLEL_WORKERS_PER_GATHER="${DB_POSTGRES_MAX_PARALLEL_WORKERS_PER_GATHER:-2}"
+DB_POSTGRES_MAX_PARALLEL_WORKERS="${DB_POSTGRES_MAX_PARALLEL_WORKERS:-2}"
+DB_POSTGRES_SEQ_PAGE_COST="${DB_POSTGRES_SEQ_PAGE_COST:-1}"
+DB_POSTGRES_JIT="${DB_POSTGRES_JIT:-off}"
+DB_POSTGRES_BGWRITER_LRU_MAXPAGES="${DB_POSTGRES_BGWRITER_LRU_MAXPAGES:-100}"
+DB_POSTGRES_BGWRITER_DELAY="${DB_POSTGRES_BGWRITER_DELAY:-500ms}"
+
 function clean_up() {
   # Killing all processes before exiting
   kill -2 "$CARDANO_NODE_PID" "$API_PID" "$MITHRIL_PID" "$CARDANO_SUBMIT_PID" "$YACI_STORE_PID"
@@ -73,6 +92,25 @@ database_initialization() {
     echo "postgres" >> /tmp/password
     initdb_command="/usr/lib/postgresql/$PG_VERSION/bin/initdb --pgdata=/node/postgres --auth=md5 --auth-local=md5 --auth-host=md5 --username=postgres --pwfile=/tmp/password"
     sudo -H -u postgres bash -c "$initdb_command"
+
+    # Set PostgreSQL performance parameters
+    echo "max_connections = ${DB_POSTGRES_MAX_CONNECTIONS}" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
+    echo "shared_buffers = ${DB_POSTGRES_SHARED_BUFFERS}" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
+    echo "effective_cache_size = ${DB_POSTGRES_EFFECTIVE_CACHE_SIZE}" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
+    echo "work_mem = ${DB_POSTGRES_WORK_MEM}" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
+    echo "maintenance_work_mem = ${DB_POSTGRES_MAINTENANCE_WORK_MEM}" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
+    echo "wal_buffers = ${DB_POSTGRES_WAL_BUFFERS}" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
+    echo "checkpoint_completion_target = ${DB_POSTGRES_CHECKPOINT_COMPLETION_TARGET}" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
+    echo "random_page_cost = ${DB_POSTGRES_RANDOM_PAGE_COST}" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
+    echo "effective_io_concurrency = ${DB_POSTGRES_EFFECTIVE_IO_CONCURRENCY}" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
+    echo "parallel_tuple_cost = ${DB_POSTGRES_PARALLEL_TUPLE_COST}" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
+    echo "parallel_setup_cost = ${DB_POSTGRES_PARALLEL_SETUP_COST}" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
+    echo "max_parallel_workers_per_gather = ${DB_POSTGRES_MAX_PARALLEL_WORKERS_PER_GATHER}" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
+    echo "max_parallel_workers = ${DB_POSTGRES_MAX_PARALLEL_WORKERS}" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
+    echo "seq_page_cost = ${DB_POSTGRES_SEQ_PAGE_COST}" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
+    echo "jit = ${DB_POSTGRES_JIT:-off}" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
+    echo "bgwriter_lru_maxpages = ${DB_POSTGRES_BGWRITER_LRU_MAXPAGES}" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
+    echo "bgwriter_delay = ${DB_POSTGRES_BGWRITER_DELAY:-500ms}" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
 }
 
 create_database_and_user() {
@@ -158,7 +196,6 @@ else
       fi
   fi
 
-
   mkdir -p "$(dirname "$CARDANO_NODE_SOCKET_PATH")"
   sleep 1
   cardano-node run --socket-path "$CARDANO_NODE_SOCKET_PATH" --port $CARDANO_NODE_PORT --database-path /node/db --config /config/config.json --topology /config/topology.json > /logs/node.log &
@@ -177,7 +214,6 @@ else
   cardano-submit-api --listen-address 0.0.0.0 --socket-path "$CARDANO_NODE_SOCKET_PATH" --port $NODE_SUBMIT_API_PORT $NETWORK_STR  --config /cardano-submit-api-config/cardano-submit-api.yaml > /logs/submit-api.log &
   CARDANO_SUBMIT_PID=$!
 
-
   mkdir -p /node/postgres
   chown -R postgres:postgres /node/postgres
   chmod -R 0700 /node/postgres
@@ -189,7 +225,6 @@ else
   /etc/init.d/postgresql start
   create_database_and_user
 
-
   echo "Starting Yaci indexer..."
   exec java --enable-preview -jar /yaci-indexer/app.jar > /logs/indexer.log &
   YACI_STORE_PID=$!
@@ -198,7 +233,6 @@ fi
 echo "Starting Rosetta API..."
 exec java --enable-preview -jar /api/app.jar > /logs/api.log &
 API_PID=$!
-
 
 if [ "$API_SPRING_PROFILES_ACTIVE" == "online" ]; then
   echo "Waiting Rosetta API initialization..."
@@ -209,7 +243,6 @@ if [ "$API_SPRING_PROFILES_ACTIVE" == "online" ]; then
       sleep 2
   done
 fi
-
 
 echo "DONE"
 

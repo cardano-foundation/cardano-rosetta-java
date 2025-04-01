@@ -188,27 +188,6 @@ RUN sed -i "s|var/lib/postgresql/${PG_VERSION}/main|node/postgres|" /etc/postgre
 RUN mkdir -p /node/postgres
 RUN rm -rf /var/lib/postgresql/${PG_VERSION}/main
 
-# Set PostgreSQL performance parameters
-RUN echo "max_connections = ${DB_POSTGRES_MAX_CONNECTIONS}" >> /etc/postgresql/${PG_VERSION}/main/postgresql.conf
-RUN echo "shared_buffers = ${DB_POSTGRES_SHARED_BUFFERS}" >> /etc/postgresql/${PG_VERSION}/main/postgresql.conf
-RUN echo "effective_cache_size = ${DB_POSTGRES_EFFECTIVE_CACHE_SIZE}" >> /etc/postgresql/${PG_VERSION}/main/postgresql.conf
-RUN echo "work_mem = ${DB_POSTGRES_WORK_MEM}" >> /etc/postgresql/${PG_VERSION}/main/postgresql.conf
-RUN echo "maintenance_work_mem = ${DB_POSTGRES_MAINTENANCE_WORK_MEM}" >> /etc/postgresql/${PG_VERSION}/main/postgresql.conf
-RUN echo "wal_buffers = ${DB_POSTGRES_WAL_BUFFERS}" >> /etc/postgresql/${PG_VERSION}/main/postgresql.conf
-RUN echo "checkpoint_completion_target = ${DB_POSTGRES_CHECKPOINT_COMPLETION_TARGET}" >> /etc/postgresql/${PG_VERSION}/main/postgresql.conf
-RUN echo "random_page_cost = ${DB_POSTGRES_RANDOM_PAGE_COST}" >> /etc/postgresql/${PG_VERSION}/main/postgresql.conf
-
-# Additional PostgreSQL Tuning
-RUN echo "effective_io_concurrency = ${DB_POSTGRES_EFFECTIVE_IO_CONCURRENCY}" >> /etc/postgresql/${PG_VERSION}/main/postgresql.conf
-RUN echo "parallel_tuple_cost = ${DB_POSTGRES_PARALLEL_TUPLE_COST}" >> /etc/postgresql/${PG_VERSION}/main/postgresql.conf
-RUN echo "parallel_setup_cost = ${DB_POSTGRES_PARALLEL_SETUP_COST}" >> /etc/postgresql/${PG_VERSION}/main/postgresql.conf
-RUN echo "max_parallel_workers_per_gather = ${DB_POSTGRES_MAX_PARALLEL_WORKERS_PER_GATHER}" >> /etc/postgresql/${PG_VERSION}/main/postgresql.conf
-RUN echo "max_parallel_workers = ${DB_POSTGRES_MAX_PARALLEL_WORKERS}" >> /etc/postgresql/${PG_VERSION}/main/postgresql.conf
-RUN echo "seq_page_cost = ${DB_POSTGRES_SEQ_PAGE_COST}" >> /etc/postgresql/${PG_VERSION}/main/postgresql.conf
-RUN echo "jit = ${DB_POSTGRES_JIT:-off}" >> /etc/postgresql/${PG_VERSION}/main/postgresql.conf
-RUN echo "bgwriter_lru_maxpages = ${DB_POSTGRES_BGWRITER_LRU_MAXPAGES}" >> /etc/postgresql/${PG_VERSION}/main/postgresql.conf
-RUN echo "bgwriter_delay = ${DB_POSTGRES_BGWRITER_DELAY:-500ms}" >> /etc/postgresql/${PG_VERSION}/main/postgresql.conf
-
 # Install jdk 21
 RUN apt install -y --no-install-recommends openjdk-21-jdk jq bc sudo curl \
     && apt clean
