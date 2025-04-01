@@ -31,9 +31,7 @@ in terms of scalability / concurrent users count, a whole list of hardware profi
 and their description can be found here: https://github.com/cardano-foundation/cardano-rosetta-java/wiki/9.-Hardware-Profiles
 ``
 .env.docker-profile-entry-level
-.env.docker-profile-basic-hardware
 .env.docker-profile-mid-level
-.env.docker-profile-advanced-hardware
 .env.docker-profile-high-performance
 .env.docker-profile-top-tier-hardware
 .env.docker-profile-ultimate-performance

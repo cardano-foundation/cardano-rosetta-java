@@ -105,9 +105,7 @@ This will start:
 ### A complete list of hardware profiles:
 ```
 .env.docker-compose-profile-entry-level
-.env.docker-compose-profile-basic-hardware
 .env.docker-compose-profile-mid-level
-.env.docker-compose-profile-advanced-hardware
 .env.docker-compose-profile-high-performance
 .env.docker-compose-profile-top-tier-hardware
 .env.docker-compose-profile-ultimate-performance
