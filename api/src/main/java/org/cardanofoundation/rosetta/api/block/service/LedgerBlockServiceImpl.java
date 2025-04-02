@@ -201,12 +201,12 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
     } catch (ExecutionException e) {
       log.error("Error fetching transaction data", e);
 
-      throw ExceptionFactory.unspecifiedError(STR."Error fetching transaction data, msg:\{e.getMessage()}");
+      throw ExceptionFactory.unspecifiedError("Error fetching transaction data, msg:%s".formatted(e.getMessage()));
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       log.error("Error fetching transaction data", e);
 
-      throw ExceptionFactory.unspecifiedError(STR."Error fetching transaction data, msg:\{e.getMessage()}");
+      throw ExceptionFactory.unspecifiedError("Error fetching transaction data, msg:%s".formatted(e.getMessage()));
     } catch (TimeoutException e) {
       log.error("Error fetching transaction data", e);
 
