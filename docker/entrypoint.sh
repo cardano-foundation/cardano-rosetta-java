@@ -73,25 +73,27 @@ database_initialization() {
     echo "postgres" >> /tmp/password
     initdb_command="/usr/lib/postgresql/$PG_VERSION/bin/initdb --pgdata=/node/postgres --auth=md5 --auth-local=md5 --auth-host=md5 --username=postgres --pwfile=/tmp/password"
     sudo -H -u postgres bash -c "$initdb_command"
+}
 
-    # Set PostgreSQL performance parameters
-    echo "max_connections = ${DB_POSTGRES_MAX_CONNECTIONS}" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
-    echo "shared_buffers = ${DB_POSTGRES_SHARED_BUFFERS}" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
-    echo "effective_cache_size = ${DB_POSTGRES_EFFECTIVE_CACHE_SIZE}" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
-    echo "work_mem = ${DB_POSTGRES_WORK_MEM}" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
-    echo "maintenance_work_mem = ${DB_POSTGRES_MAINTENANCE_WORK_MEM}" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
-    echo "wal_buffers = ${DB_POSTGRES_WAL_BUFFERS}" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
-    echo "checkpoint_completion_target = ${DB_POSTGRES_CHECKPOINT_COMPLETION_TARGET}" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
-    echo "random_page_cost = ${DB_POSTGRES_RANDOM_PAGE_COST}" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
-    echo "effective_io_concurrency = ${DB_POSTGRES_EFFECTIVE_IO_CONCURRENCY}" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
-    echo "parallel_tuple_cost = ${DB_POSTGRES_PARALLEL_TUPLE_COST}" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
-    echo "parallel_setup_cost = ${DB_POSTGRES_PARALLEL_SETUP_COST}" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
-    echo "max_parallel_workers_per_gather = ${DB_POSTGRES_MAX_PARALLEL_WORKERS_PER_GATHER}" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
-    echo "max_parallel_workers = ${DB_POSTGRES_MAX_PARALLEL_WORKERS}" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
-    echo "seq_page_cost = ${DB_POSTGRES_SEQ_PAGE_COST}" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
-    echo "jit = ${DB_POSTGRES_JIT:-off}" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
-    echo "bgwriter_lru_maxpages = ${DB_POSTGRES_BGWRITER_LRU_MAXPAGES}" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
-    echo "bgwriter_delay = ${DB_POSTGRES_BGWRITER_DELAY:-500ms}" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
+configure_postgres() {
+      # Set PostgreSQL performance parameters
+      echo "max_connections = ${DB_POSTGRES_MAX_CONNECTIONS}" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
+      echo "shared_buffers = ${DB_POSTGRES_SHARED_BUFFERS}" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
+      echo "effective_cache_size = ${DB_POSTGRES_EFFECTIVE_CACHE_SIZE}" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
+      echo "work_mem = ${DB_POSTGRES_WORK_MEM}" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
+      echo "maintenance_work_mem = ${DB_POSTGRES_MAINTENANCE_WORK_MEM}" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
+      echo "wal_buffers = ${DB_POSTGRES_WAL_BUFFERS}" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
+      echo "checkpoint_completion_target = ${DB_POSTGRES_CHECKPOINT_COMPLETION_TARGET}" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
+      echo "random_page_cost = ${DB_POSTGRES_RANDOM_PAGE_COST}" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
+      echo "effective_io_concurrency = ${DB_POSTGRES_EFFECTIVE_IO_CONCURRENCY}" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
+      echo "parallel_tuple_cost = ${DB_POSTGRES_PARALLEL_TUPLE_COST}" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
+      echo "parallel_setup_cost = ${DB_POSTGRES_PARALLEL_SETUP_COST}" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
+      echo "max_parallel_workers_per_gather = ${DB_POSTGRES_MAX_PARALLEL_WORKERS_PER_GATHER}" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
+      echo "max_parallel_workers = ${DB_POSTGRES_MAX_PARALLEL_WORKERS}" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
+      echo "seq_page_cost = ${DB_POSTGRES_SEQ_PAGE_COST}" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
+      echo "jit = ${DB_POSTGRES_JIT}" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
+      echo "bgwriter_lru_maxpages = ${DB_POSTGRES_BGWRITER_LRU_MAXPAGES}" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
+      echo "bgwriter_delay = ${DB_POSTGRES_BGWRITER_DELAY}" >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
 }
 
 create_database_and_user() {
@@ -201,6 +203,8 @@ else
   if [ ! -f "/node/postgres/PG_VERSION" ]; then
       database_initialization
   fi
+
+  configure_postgres
 
   echo "Starting Postgres..."
   /etc/init.d/postgresql start
