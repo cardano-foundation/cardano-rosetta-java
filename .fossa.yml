@@ -1,0 +1,19 @@
+version: 3
+project:
+  name: cardano-rosetta-java
+ignore:
+  - jakarta.servlet:jakarta.servlet-api
+  - jakarta.websocket:jakarta.websocket-api
+  - jakarta.websocket:jakarta.websocket-client-api
+  - org.jboss.threads:jboss-threads
+
+policies:
+  - id: ignore-jakarta
+    type: license
+    description: "Ignore flagged Jakarta dependencies"
+    conditions:
+      license:
+        - "GPL-2.0-with-classpath-exception"
+        - "LGPL-2.1-or-later"
+    actions:
+      - allow
