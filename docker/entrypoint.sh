@@ -76,15 +76,37 @@ database_initialization() {
 }
 
 configure_postgres() {
-    # List of required environment variables
-    required_vars=(
-        DB_POSTGRES_MAX_CONNECTIONS DB_POSTGRES_SHARED_BUFFERS DB_POSTGRES_EFFECTIVE_CACHE_SIZE
-        DB_POSTGRES_WORK_MEM DB_POSTGRES_MAINTENANCE_WORK_MEM DB_POSTGRES_WAL_BUFFERS
-        DB_POSTGRES_CHECKPOINT_COMPLETION_TARGET DB_POSTGRES_RANDOM_PAGE_COST DB_POSTGRES_EFFECTIVE_IO_CONCURRENCY
-        DB_POSTGRES_PARALLEL_TUPLE_COST DB_POSTGRES_PARALLEL_SETUP_COST DB_POSTGRES_MAX_PARALLEL_WORKERS_PER_GATHER
-        DB_POSTGRES_MAX_PARALLEL_WORKERS DB_POSTGRES_SEQ_PAGE_COST DB_POSTGRES_JIT
-        DB_POSTGRES_BGWRITER_LRU_MAXPAGES DB_POSTGRES_BGWRITER_DELAY
+    local config_file="/etc/postgresql/${PG_VERSION}/main/postgresql.conf"
+
+    # List of parameter names and their corresponding environment variables
+    declare -A param_vars=(
+        ["max_connections"]="DB_POSTGRES_MAX_CONNECTIONS"
+        ["shared_buffers"]="DB_POSTGRES_SHARED_BUFFERS"
+        ["effective_cache_size"]="DB_POSTGRES_EFFECTIVE_CACHE_SIZE"
+        ["work_mem"]="DB_POSTGRES_WORK_MEM"
+        ["maintenance_work_mem"]="DB_POSTGRES_MAINTENANCE_WORK_MEM"
+        ["wal_buffers"]="DB_POSTGRES_WAL_BUFFERS"
+        ["checkpoint_completion_target"]="DB_POSTGRES_CHECKPOINT_COMPLETION_TARGET"
+        ["random_page_cost"]="DB_POSTGRES_RANDOM_PAGE_COST"
+        ["effective_io_concurrency"]="DB_POSTGRES_EFFECTIVE_IO_CONCURRENCY"
+        ["parallel_tuple_cost"]="DB_POSTGRES_PARALLEL_TUPLE_COST"
+        ["parallel_setup_cost"]="DB_POSTGRES_PARALLEL_SETUP_COST"
+        ["max_parallel_workers_per_gather"]="DB_POSTGRES_MAX_PARALLEL_WORKERS_PER_GATHER"
+        ["max_parallel_workers"]="DB_POSTGRES_MAX_PARALLEL_WORKERS"
+        ["seq_page_cost"]="DB_POSTGRES_SEQ_PAGE_COST"
+        ["jit"]="DB_POSTGRES_JIT"
+        ["bgwriter_lru_maxpages"]="DB_POSTGRES_BGWRITER_LRU_MAXPAGES"
+        ["bgwriter_delay"]="DB_POSTGRES_BGWRITER_DELAY"
     )
+
+    # Check for missing required environment variables
+    local missing_vars=()
+    for param in "${!param_vars[@]}"; do
+        local env_var="${param_vars[$param]}"
+        if [ -z "${!env_var}" ]; then
+            missing_vars+=("$env_var")
+        fi
+    done
 
     # If there are missing variables, print an error and exit
     if [ ${#missing_vars[@]} -gt 0 ]; then
@@ -102,26 +124,24 @@ configure_postgres() {
         exit 1
     fi
 
-    # Set PostgreSQL performance parameters
-    {
-        echo "max_connections = ${DB_POSTGRES_MAX_CONNECTIONS}"
-        echo "shared_buffers = ${DB_POSTGRES_SHARED_BUFFERS}"
-        echo "effective_cache_size = ${DB_POSTGRES_EFFECTIVE_CACHE_SIZE}"
-        echo "work_mem = ${DB_POSTGRES_WORK_MEM}"
-        echo "maintenance_work_mem = ${DB_POSTGRES_MAINTENANCE_WORK_MEM}"
-        echo "wal_buffers = ${DB_POSTGRES_WAL_BUFFERS}"
-        echo "checkpoint_completion_target = ${DB_POSTGRES_CHECKPOINT_COMPLETION_TARGET}"
-        echo "random_page_cost = ${DB_POSTGRES_RANDOM_PAGE_COST}"
-        echo "effective_io_concurrency = ${DB_POSTGRES_EFFECTIVE_IO_CONCURRENCY}"
-        echo "parallel_tuple_cost = ${DB_POSTGRES_PARALLEL_TUPLE_COST}"
-        echo "parallel_setup_cost = ${DB_POSTGRES_PARALLEL_SETUP_COST}"
-        echo "max_parallel_workers_per_gather = ${DB_POSTGRES_MAX_PARALLEL_WORKERS_PER_GATHER}"
-        echo "max_parallel_workers = ${DB_POSTGRES_MAX_PARALLEL_WORKERS}"
-        echo "seq_page_cost = ${DB_POSTGRES_SEQ_PAGE_COST}"
-        echo "jit = ${DB_POSTGRES_JIT}"
-        echo "bgwriter_lru_maxpages = ${DB_POSTGRES_BGWRITER_LRU_MAXPAGES}"
-        echo "bgwriter_delay = ${DB_POSTGRES_BGWRITER_DELAY}"
-    } >> /etc/postgresql/$PG_VERSION/main/postgresql.conf
+    # Remove all commented-out lines for the parameters we are about to update
+    for param in "${!param_vars[@]}"; do
+        sed -i "/^#$param /d" "$config_file"
+    done
+
+    # Update or add parameters
+    for param in "${!param_vars[@]}"; do
+        local env_var="${param_vars[$param]}"
+        local value="${!env_var}"
+
+        # Try to replace existing parameter
+        sed -i "s/^$param = .*/$param = $value/" "$config_file"
+
+        # Parameter not found, append it
+        if ! grep -q "^$param =" "$config_file"; then
+            echo "$param = $value" >> "$config_file"
+        fi
+    done
 
     echo "PostgreSQL configuration updated successfully!"
 }
