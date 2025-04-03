@@ -10,7 +10,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v2
       - name: "Set up environment"
-        run: docker compose --env-file .env.docker-compose -f docker-compose.yaml up --build -d --wait
+        run: docker compose --env-file .env.docker-compose --env-file .env.docker-compose-profile-entry-level -f docker-compose.yaml up --build -d --wait
       - name: "Wait for node to be populated"
         run: sleep 30s
       - name: "Install Node"

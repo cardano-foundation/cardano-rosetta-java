@@ -15,21 +15,12 @@ import org.junit.jupiter.api.parallel.ExecutionMode;
 
 import org.cardanofoundation.rosetta.api.IntegrationTest;
 import org.cardanofoundation.rosetta.api.block.model.domain.*;
-import org.cardanofoundation.rosetta.api.block.model.domain.StakePoolDelegation;
-import org.cardanofoundation.rosetta.api.block.model.entity.BlockEntity;
-import org.cardanofoundation.rosetta.api.block.model.entity.DelegationEntity;
-import org.cardanofoundation.rosetta.api.block.model.entity.PoolRegistrationEntity;
-import org.cardanofoundation.rosetta.api.block.model.entity.PoolRetirementEntity;
-import org.cardanofoundation.rosetta.api.block.model.entity.StakeRegistrationEntity;
+import org.cardanofoundation.rosetta.api.block.model.entity.*;
 import org.cardanofoundation.rosetta.testgenerator.common.TransactionBlockDetails;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.cardanofoundation.rosetta.testgenerator.common.TestConstants.STAKE_ADDRESS_WITH_EARNED_REWARDS;
-import static org.cardanofoundation.rosetta.testgenerator.common.TestTransactionNames.POOL_DELEGATION_TRANSACTION;
-import static org.cardanofoundation.rosetta.testgenerator.common.TestTransactionNames.POOL_REGISTRATION_TRANSACTION;
-import static org.cardanofoundation.rosetta.testgenerator.common.TestTransactionNames.POOL_RETIREMENT_TRANSACTION;
-import static org.cardanofoundation.rosetta.testgenerator.common.TestTransactionNames.SIMPLE_TRANSACTION;
-import static org.cardanofoundation.rosetta.testgenerator.common.TestTransactionNames.STAKE_KEY_REGISTRATION_TRANSACTION;
+import static org.cardanofoundation.rosetta.testgenerator.common.TestTransactionNames.*;
 
 @Transactional
 class LedgerBlockServiceImplIntTest extends IntegrationTest {

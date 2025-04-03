@@ -88,7 +88,6 @@ If you want to use the `cardano-submit-api` you can additionally expose port `80
 ```bash
     docker run --name rosetta -v {CUSTOM_MOUNT_PATH}:/node --env-file ./docker/.env.dockerfile -p 8090:8090 -p 8082:8082 -d cardanofoundation/cardano-rosetta-java:1.2.5
 ```
-
 ### Docker compose
 If needed we also provide all components needed to run Rosetta in a docker-compose file.
 This will start:
@@ -98,10 +97,23 @@ This will start:
 - Rosetta-API
 - Postgres
 
+### Entry level hardware profile
 ```bash
-    docker-compose --env-file .env.docker-compose -f docker-compose.yaml up -d 
+   docker-compose --env-file .env.docker-compose --env-file .env.docker-compose-profile-entry-level -f docker-compose.yaml up -d 
 ```
-Adjustments can be made by changing `.env.docker-compose` file. For more information on the environment variables, please refer to the [Wiki](https://github.com/cardano-foundation/cardano-rosetta-java/wiki/5.-Environment-Variables).
+
+### A complete list of hardware profiles:
+```
+.env.docker-compose-profile-entry-level
+.env.docker-compose-profile-mid-level
+.env.docker-compose-profile-high-performance
+.env.docker-compose-profile-top-tier-hardware
+.env.docker-compose-profile-ultimate-performance
+```
+
+See https://github.com/cardano-foundation/cardano-rosetta-java/wiki/9.-Hardware-Profiles a full list of hardware profiles and their configurations.
+
+Further adjustments can be made by changing `.env.docker-compose` file. For more information on the environment variables, please refer to the [Wiki](https://github.com/cardano-foundation/cardano-rosetta-java/wiki/5.-Environment-Variables).
 
 ---
 Thanks for visiting us and enjoy :heart:!
