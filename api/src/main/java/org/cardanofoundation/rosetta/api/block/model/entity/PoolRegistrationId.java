@@ -9,4 +9,5 @@ public class PoolRegistrationId implements Serializable {
 
   private String txHash;
   private int certIndex;
+
 }

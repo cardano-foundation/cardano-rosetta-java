@@ -30,6 +30,7 @@ class SearchControllerTest extends BaseSpringMvcSetup {
 
   @Mock
   SearchService service;
+
   @Mock
   NetworkService networkService;
 
