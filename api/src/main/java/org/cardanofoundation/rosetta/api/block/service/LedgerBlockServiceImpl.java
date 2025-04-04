@@ -146,6 +146,7 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
     BlockEntity latestBlock = blockRepository.findLatestBlock()
             .orElseThrow(ExceptionFactory::genesisBlockNotFound);
     log.debug("Returning latest block {}", latestBlock);
+
     return toModelFrom(latestBlock);
   }
 
@@ -155,6 +156,7 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
     BlockIdentifierExtended latestBlock = blockRepository.findLatestBlockIdentifier()
             .map(blockMapper::mapToBlockIdentifierExtended)
             .orElseThrow(ExceptionFactory::genesisBlockNotFound);
+
     log.debug("Returning latest findLatestBlockIdentifier {}", latestBlock);
 
     return latestBlock;
@@ -169,6 +171,7 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
               .orElseThrow(ExceptionFactory::genesisBlockNotFound);
     }
     log.debug("Returning genesis block {}", cachedGenesisBlock);
+
     return cachedGenesisBlock;
   }
 

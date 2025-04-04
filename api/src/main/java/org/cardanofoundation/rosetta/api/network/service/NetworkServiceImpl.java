@@ -132,7 +132,8 @@ public class NetworkServiceImpl implements NetworkService {
   public NetworkStatusResponse getNetworkStatus(NetworkRequest networkRequest) {
     log.debug("[networkStatus] Request received: {}", networkRequest.toString());
     log.info("[networkStatus] Looking for latest block");
-    NetworkStatus networkStatus = networkStatus();
+    NetworkStatus networkStatus = createNetworkStatus();
+
     return networkMapper.toNetworkStatusResponse(networkStatus);
   }
 
@@ -149,7 +150,7 @@ public class NetworkServiceImpl implements NetworkService {
     };
   }
 
-  private NetworkStatus networkStatus() {
+  private NetworkStatus createNetworkStatus() {
     log.info("[networkStatus] Looking for latest block");
 
     BlockIdentifierExtended latestBlock = ledgerBlockService.findLatestBlockIdentifier();
@@ -157,13 +158,16 @@ public class NetworkServiceImpl implements NetworkService {
 
     log.debug("[networkStatus] Looking for genesis block");
     BlockIdentifierExtended genesisBlock = ledgerBlockService.findGenesisBlockIdentifier();
+
     log.debug("[networkStatus] Genesis block found {}", genesisBlock);
 
     List<Peer> peers = topologyConfigService.getPeers();
 
     return NetworkStatus.builder()
         .latestBlock(latestBlock)
-        .genesisBlock(genesisBlock)
+        .genesisBlock(genesisBlock.toBuilder()
+                .number(genesisBlock.getNumber() + 1)
+                .build())
         .peers(peers)
         .build();
   }

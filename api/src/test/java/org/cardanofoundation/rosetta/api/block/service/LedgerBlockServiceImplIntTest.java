@@ -1,22 +1,20 @@
 package org.cardanofoundation.rosetta.api.block.service;
 
-import java.util.List;
-import java.util.Optional;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
-
-import org.junit.jupiter.api.RepeatedTest;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.parallel.Execution;
-import org.junit.jupiter.api.parallel.ExecutionMode;
-
 import org.cardanofoundation.rosetta.api.IntegrationTest;
 import org.cardanofoundation.rosetta.api.block.model.domain.*;
 import org.cardanofoundation.rosetta.api.block.model.entity.*;
 import org.cardanofoundation.rosetta.testgenerator.common.TransactionBlockDetails;
+import org.junit.jupiter.api.RepeatedTest;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.cardanofoundation.rosetta.testgenerator.common.TestConstants.STAKE_ADDRESS_WITH_EARNED_REWARDS;
@@ -299,6 +297,7 @@ class LedgerBlockServiceImplIntTest extends IntegrationTest {
     BlockIdentifierExtended genesisBlock = ledgerBlockService.findGenesisBlockIdentifier();
     //then
     assertThat(fromBlockB).isNotNull();
+    assertThat(fromBlockB.getNumber()).isEqualTo(-1);
     assertBlockIdentifier(genesisBlock, fromBlockB);
     assertThat(genesisBlock.getHash()).isEqualTo("Genesis");
   }

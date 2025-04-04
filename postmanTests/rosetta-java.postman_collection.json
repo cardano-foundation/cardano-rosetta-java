@@ -857,6 +857,7 @@
 									"",
 									"pm.test(\"Body includes correct genesis block\", function () {",
 									"    const genesisBlock = pm.environment.get(\"genesisBlockHash\");",
+									"    pm.expect(pm.response.json().genesis_block_identifier.index).to.eql(0);",
 									"    pm.expect(pm.response.json().genesis_block_identifier.hash).to.eql(genesisBlock);",
 									"});",
 									""

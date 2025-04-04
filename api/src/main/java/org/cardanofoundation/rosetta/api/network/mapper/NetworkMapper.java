@@ -23,4 +23,5 @@ public interface NetworkMapper {
   @Mapping(target = "genesisBlockIdentifier.hash", source = "genesisBlock.hash")
   @Mapping(target = "peers", qualifiedByName = "getPeerWithoutMetadata")
   NetworkStatusResponse toNetworkStatusResponse(NetworkStatus networkStatus);
+
 }

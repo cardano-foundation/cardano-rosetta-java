@@ -80,10 +80,9 @@ class NetworkServiceImplTest extends IntegrationTest {
     NetworkStatusResponse networkStatus = networkService.getNetworkStatus(networkRequest);
     //then
     assertNotNull(networkStatus);
-    assertEquals(-1, networkStatus.getGenesisBlockIdentifier().getIndex());
-    assertEquals("Genesis",
-            networkStatus.getGenesisBlockIdentifier().getHash());
-
+    // check index, for Rosetta CLI / spec, they expect index to be 0 for a genesis block for mesh-cli tests to pass
+    assertEquals(0, networkStatus.getGenesisBlockIdentifier().getIndex());
+    assertEquals("Genesis", networkStatus.getGenesisBlockIdentifier().getHash());
   }
 
   @Test
