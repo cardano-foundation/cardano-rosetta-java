@@ -73,6 +73,7 @@ public class SimpleTransactions implements TransactionRunner {
         stakeKeyDeregistrationTransaction());
     generatedDataMap.put(TestTransactionNames.SIMPLE_TRANSACTION.getName() + "_2",
         simpleTransaction());
+
     return generatedDataMap;
   }
 
