@@ -7,5 +7,8 @@ import org.openapitools.client.model.SearchTransactionsRequest;
 
 public interface SearchService {
 
-  List<BlockTransaction> searchTransaction(SearchTransactionsRequest searchTransactionsRequest, Long offset, Long pageSize);
+  List<BlockTransaction> searchTransaction(SearchTransactionsRequest searchTransactionsRequest,
+                                           Long offset,
+                                           Long pageSize);
+
 }

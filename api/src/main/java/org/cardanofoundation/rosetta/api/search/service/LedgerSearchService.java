@@ -9,6 +9,15 @@ import org.cardanofoundation.rosetta.api.block.model.entity.UtxoKey;
 
 public interface LedgerSearchService {
 
-  List<BlockTx> searchTransaction(Operator operator, String txHash, String address, UtxoKey utxoKey,
-      String symbol, String blockHash, Long blockIndex, Long maxBlock, int page, int size);
+  List<BlockTx> searchTransaction(Operator operator,
+                                  String txHash,
+                                  String address,
+                                  UtxoKey utxoKey,
+                                  String symbol,
+                                  String blockHash,
+                                  Long blockIndex,
+                                  Long maxBlock,
+                                  int page,
+                                  int size);
+
 }
