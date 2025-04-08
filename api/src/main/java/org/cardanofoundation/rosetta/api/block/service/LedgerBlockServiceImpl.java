@@ -2,7 +2,6 @@ package org.cardanofoundation.rosetta.api.block.service;
 
 import java.time.Clock;
 import java.time.Instant;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -18,6 +17,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.apache.commons.lang3.ObjectUtils;
@@ -107,32 +108,31 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
   }
 
   @Override
-  public List<BlockTx> findTransactionsByBlock(Long blk, String blkHash) {
+  public Slice<BlockTx> findTransactionsByBlock(Long blk, String blkHash) {
     log.debug("query blockNumber: {} blockHash: {}", blk, blkHash);
     Optional<BlockEntity> blkEntity = blockRepository.findByNumberAndHash(blk, blkHash);
 
     if (blkEntity.isEmpty()) {
       log.debug("Block Not found: {} blockHash: {}", blk, blkHash);
 
-      return Collections.emptyList();
+      return Page.empty();
     }
 
-    List<TxnEntity> txList = txRepository.findTransactionsByBlockHash(blkEntity.get().getHash());
-    log.debug("Found {} transactions", txList.size());
+    Slice<TxnEntity> txList = txRepository.findTransactionsByBlockHash(blkEntity.get().getHash());
+    log.debug("Found {} transactions", txList.getNumberOfElements());
 
     if (ObjectUtils.isNotEmpty(txList)) {
       return mapTxnEntitiesToBlockTxList(txList);
     }
 
-    return Collections.emptyList();
+    return Page.empty();
   }
 
   @Override
-  public List<BlockTx> mapTxnEntitiesToBlockTxList(List<TxnEntity> txList) {
-    List<BlockTx> transactions = txList.stream().map(blockMapper::mapToBlockTx)
-            .toList();
+  public Slice<BlockTx> mapTxnEntitiesToBlockTxList(Slice<TxnEntity> txList) {
+    Slice<BlockTx> transactions = txList.map(blockMapper::mapToBlockTx);
 
-    TransactionInfo fetched = findByTxHash(transactions);
+    TransactionInfo fetched = findByTxHash(transactions.getContent());
     Map<UtxoKey, AddressUtxoEntity> utxoMap = getUtxoMapFromEntities(fetched);
 
     transactions.forEach(tx -> populateTransaction(tx, fetched, utxoMap));

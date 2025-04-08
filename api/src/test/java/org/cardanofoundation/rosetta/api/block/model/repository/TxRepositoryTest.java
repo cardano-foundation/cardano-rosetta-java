@@ -6,6 +6,7 @@ import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.test.context.jdbc.Sql;
 
 import org.junit.jupiter.api.Test;
@@ -26,10 +27,10 @@ public class TxRepositoryTest extends IntegrationTest {
     @Sql(scripts = "classpath:/testdata/sql/tx-repository-test-init.sql", executionPhase = BEFORE_TEST_METHOD)
     @Sql(scripts = "classpath:/testdata/sql/tx-repository-test-cleanup.sql", executionPhase = AFTER_TEST_METHOD)
     public void testSearchTxnEntitiesOR_NoDuplicates() {
-        List<TxnEntity> results = txRepository.searchTxnEntitiesOR(
+        Slice<TxnEntity> results = txRepository.searchTxnEntitiesOR(
                 null, null, null, null, Pageable.unpaged());
 
-        assertThat(hasDuplicateTxHashes(results)).isFalse();
+        assertThat(hasDuplicateTxHashes(results.getContent())).isFalse();
     }
 
     public static boolean hasDuplicateTxHashes(List<TxnEntity> results) {

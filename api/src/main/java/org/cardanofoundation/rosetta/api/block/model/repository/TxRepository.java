@@ -1,10 +1,10 @@
 package org.cardanofoundation.rosetta.api.block.model.repository;
 
-import java.util.List;
 import java.util.Set;
 import javax.annotation.Nullable;
 
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -15,7 +15,7 @@ import org.cardanofoundation.rosetta.api.block.model.entity.TxnEntity;
 @Repository
 public interface TxRepository extends JpaRepository<TxnEntity, Long> {
 
-  List<TxnEntity> findTransactionsByBlockHash(@Param("blockHash") String blockHash);
+  Slice<TxnEntity> findTransactionsByBlockHash(@Param("blockHash") String blockHash);
 
   @Query(value = """
         SELECT DISTINCT tx FROM TxnEntity tx
@@ -25,11 +25,11 @@ public interface TxRepository extends JpaRepository<TxnEntity, Long> {
         (:blockHash IS NULL OR tx.block.hash = :blockHash) AND
         (:blockNo IS NULL OR tx.block.number = :blockNo)
         """)
-  List<TxnEntity> searchTxnEntitiesAND(@Nullable @Param("txHashes") Set<String> txHashes,
-                                       @Nullable @Param("blockHash") String blockHash,
-                                       @Nullable @Param("blockNo") Long blockNumber,
-                                       @Nullable @Param("maxBlock") Long maxBlock,
-                                       Pageable pageable);
+  Slice<TxnEntity> searchTxnEntitiesAND(@Nullable @Param("txHashes") Set<String> txHashes,
+                                        @Nullable @Param("blockHash") String blockHash,
+                                        @Nullable @Param("blockNo") Long blockNumber,
+                                        @Nullable @Param("maxBlock") Long maxBlock,
+                                        Pageable pageable);
 
   @Query(value = """
         SELECT DISTINCT tx FROM TxnEntity tx
@@ -40,7 +40,7 @@ public interface TxRepository extends JpaRepository<TxnEntity, Long> {
         (:blockHash IS NULL OR tx.block.hash = :blockHash) OR
         (:blockNo IS NULL OR tx.block.number = :blockNo)
         """)
-  List<TxnEntity> searchTxnEntitiesOR(@Nullable @Param("txHashes") Set<String> txHashes,
+  Slice<TxnEntity> searchTxnEntitiesOR(@Nullable @Param("txHashes") Set<String> txHashes,
                                       @Nullable @Param("blockHash") String blockHash,
                                       @Nullable @Param("blockNo") Long blockNumber,
                                       @Nullable @Param("maxBlock") Long maxBlock,

@@ -1,10 +1,10 @@
 package org.cardanofoundation.rosetta.api.search.controller;
 
 import java.lang.reflect.Field;
-import java.util.Collections;
 
 import lombok.SneakyThrows;
 
+import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -49,7 +49,7 @@ class SearchControllerTest extends BaseSpringMvcSetup {
   @Test
   void searchControllerNetworkIsMissing() {
     SearchTransactionsRequest request = new SearchTransactionsRequest();
-    Mockito.when(service.searchTransaction(any(), any(), any())).thenReturn(Collections.emptyList());
+    Mockito.when(service.searchTransaction(any(), any(), any())).thenReturn(Page.empty());
     mockMvc.perform(post("/search/transactions")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(request)))
@@ -65,7 +65,7 @@ class SearchControllerTest extends BaseSpringMvcSetup {
             .network(TestConstants.TEST_NETWORK)
             .build())
         .build();
-    Mockito.when(service.searchTransaction(any(), any(), any())).thenReturn(Collections.emptyList());
+    Mockito.when(service.searchTransaction(any(), any(), any())).thenReturn(Page.empty());
 
     mockMvc.perform(post("/search/transactions")
             .contentType(MediaType.APPLICATION_JSON)
