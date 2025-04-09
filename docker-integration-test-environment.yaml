@@ -16,4 +16,13 @@ services:
       - ${HOST_KUPO_PORT}:1442
     env_file:
       - .env.IntegrationTest
-    entrypoint: ["java", "-jar", "/app/yaci-cli.jar", "create-node -o --start" ]
+
+    environment:
+      yaci_cli_mode: "native"
+      yaci_store_mode: "native"
+      conwayHardForkAtEpoch: 1
+      shiftStartTimeBehind: true
+      yaci_store_enabled: true
+      ogmios_enabled: false
+
+    entrypoint: ["/app/yaci-cli", "create-node", "-o", "--start"]
