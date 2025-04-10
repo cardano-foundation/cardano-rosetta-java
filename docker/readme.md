@@ -32,9 +32,6 @@ and their description can be found here: https://github.com/cardano-foundation/c
 ``
 .env.docker-profile-entry-level
 .env.docker-profile-mid-level
-.env.docker-profile-high-performance
-.env.docker-profile-top-tier-hardware
-.env.docker-profile-ultimate-performance
 ``
 
 ### 4. Changing build parameters

@@ -41,7 +41,7 @@ The default config is focused on mainnet. If you want to test this on other Card
     git clone https://github.com/cardano-foundation/cardano-rosetta-java
     cd cardano-rosetta-java
     docker build -t rosetta-java -f ./docker/Dockerfile .
-    docker run --name rosetta -v {CUSTOM_MOUNT_PATH}:/node --env-file ./docker/.env.dockerfile -p 8082:8082 -d rosetta-java
+    docker run --name rosetta -v {CUSTOM_MOUNT_PATH}:/node --env-file ./docker/.env.dockerfile --env-file ./docker/.env.docker-profile-entry-level -p 8082:8082 -d rosetta-java
 ```
 Detailed explanation can be found in the [Wiki](https://github.com/cardano-foundation/cardano-rosetta-java/wiki/3.-Getting-Started-with-Docker).
 
@@ -80,13 +80,13 @@ Default is `online`.
 For every Release we provide pre-built docker images stored in the DockerHub Repositories of the Cardano Foundation ([DockerHub](https://hub.docker.com/orgs/cardanofoundation/repositories))
 To start it use the following command:
 ```bash
-    docker run --name rosetta -v {CUSTOM_MOUNT_PATH}:/node --env-file ./docker/.env.dockerfile -p 8082:8082 -d cardanofoundation/cardano-rosetta-java:1.2.5
+    docker run --name rosetta -v {CUSTOM_MOUNT_PATH}:/node --env-file ./docker/.env.dockerfile --env-file ./docker/.env.docker-profile-entry-level -p 8082:8082 -d cardanofoundation/cardano-rosetta-java:1.2.5
 ```
 Changes to the configuration can be made by adjusting the `docker/.env.dockerfile` file. For more information on the environment variables, please refer to the [Wiki](https://github.com/cardano-foundation/cardano-rosetta-java/wiki/5.-Environment-Variables).
 
 If you want to use the `cardano-submit-api` you can additionally expose port `8090`. It can then be used to submit raw cbor transaction (API documentation here: [Link](https://input-output-hk.github.io/cardano-rest/submit-api/))
 ```bash
-    docker run --name rosetta -v {CUSTOM_MOUNT_PATH}:/node --env-file ./docker/.env.dockerfile -p 8090:8090 -p 8082:8082 -d cardanofoundation/cardano-rosetta-java:1.2.5
+    docker run --name rosetta -v {CUSTOM_MOUNT_PATH}:/node --env-file ./docker/.env.dockerfile --env-file ./docker/.env.docker-profile-entry-level -p 8090:8090 -p 8082:8082 -d cardanofoundation/cardano-rosetta-java:1.2.6
 ```
 ### Docker compose
 If needed we also provide all components needed to run Rosetta in a docker-compose file.
@@ -106,9 +106,6 @@ This will start:
 ```
 .env.docker-compose-profile-entry-level
 .env.docker-compose-profile-mid-level
-.env.docker-compose-profile-high-performance
-.env.docker-compose-profile-top-tier-hardware
-.env.docker-compose-profile-ultimate-performance
 ```
 
 See https://github.com/cardano-foundation/cardano-rosetta-java/wiki/9.-Hardware-Profiles a full list of hardware profiles and their configurations.

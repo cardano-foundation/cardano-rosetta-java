@@ -86,7 +86,7 @@ options:
   --url BASE_URL        Base URL for the Rosetta API service (default: http://127.0.0.1:8082)
   --csv CSV_FILE        Path to CSV file with test data (default: ./mainnet-data.csv)
   --release RELEASE_VERSION
-                        Release version for reporting (default: 1.2.5-dev)
+                        Release version for reporting (default: 1.2.6-dev)
   --hardware-profile HARDWARE_PROFILE
                         Hardware profile ID for reporting (default: entry_level)
   --machine-specs MACHINE_SPECS
@@ -188,11 +188,11 @@ The script creates a timestamped directory containing:
 ### Summary Results
 
 | ID  | Release   | Hardware    | Machine Specs                                    | Endpoint               | Max Concurrency | p95 (ms) | p99 (ms) |
-| --- | --------- | ----------- | ------------------------------------------------ | ---------------------- | --------------- | -------- | -------- |
-| 1   | 1.2.5-dev | entry_level | 4 cores, 8 threads, 32GB RAM, SSD, Intel Core i3 | /network/status        | 4               | 1ms      | 1ms      |
-| 2   | 1.2.5-dev | entry_level | 4 cores, 8 threads, 32GB RAM, SSD, Intel Core i3 | /account/balance       | 4               | 35ms     | 39ms     |
-| 3   | 1.2.5-dev | entry_level | 4 cores, 8 threads, 32GB RAM, SSD, Intel Core i3 | /account/coins         | 4               | 33ms     | 39ms     |
-| 4   | 1.2.5-dev | entry_level | 4 cores, 8 threads, 32GB RAM, SSD, Intel Core i3 | /block                 | 4               | 120ms    | 129ms    |
-| 5   | 1.2.5-dev | entry_level | 4 cores, 8 threads, 32GB RAM, SSD, Intel Core i3 | /block/transaction     | 4               | 84ms     | 95ms     |
-| 6   | 1.2.5-dev | entry_level | 4 cores, 8 threads, 32GB RAM, SSD, Intel Core i3 | /search/transactions   | 4               | 4ms      | 4ms      |
-| 7   | 1.2.5-dev | entry_level | 4 cores, 8 threads, 32GB RAM, SSD, Intel Core i3 | /construction/metadata | 4               | 1ms      | 1ms      |
+| --- |-----------| ----------- | ------------------------------------------------ | ---------------------- | --------------- | -------- | -------- |
+| 1   | 1.2.6-dev | entry_level | 4 cores, 8 threads, 32GB RAM, SSD, Intel Core i3 | /network/status        | 4               | 1ms      | 1ms      |
+| 2   | 1.2.6-dev | entry_level | 4 cores, 8 threads, 32GB RAM, SSD, Intel Core i3 | /account/balance       | 4               | 35ms     | 39ms     |
+| 3   | 1.2.6-dev | entry_level | 4 cores, 8 threads, 32GB RAM, SSD, Intel Core i3 | /account/coins         | 4               | 33ms     | 39ms     |
+| 4   | 1.2.6-dev | entry_level | 4 cores, 8 threads, 32GB RAM, SSD, Intel Core i3 | /block                 | 4               | 120ms    | 129ms    |
+| 5   | 1.2.6-dev | entry_level | 4 cores, 8 threads, 32GB RAM, SSD, Intel Core i3 | /block/transaction     | 4               | 84ms     | 95ms     |
+| 6   | 1.2.6-dev | entry_level | 4 cores, 8 threads, 32GB RAM, SSD, Intel Core i3 | /search/transactions   | 4               | 4ms      | 4ms      |
+| 7   | 1.2.6-dev | entry_level | 4 cores, 8 threads, 32GB RAM, SSD, Intel Core i3 | /construction/metadata | 4               | 1ms      | 1ms      |
