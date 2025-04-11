@@ -48,7 +48,7 @@ CABAL_VERSION=3.8.1.0
 GHC_VERSION=8.10.7  
 ``  
 ``
-CARDANO_NODE_VERSION=10.1.4  
+CARDANO_NODE_VERSION=10.2.1  
 ``  
 ``
 PG_VERSION=14  
@@ -77,7 +77,7 @@ If you want to use a custom configuration without rebuilding the image, we can m
 
 ### 8. Synchronization mode
 ````
-docker run -e SYNC=true --env-file .\docker\.env.dockerfile --env-file ./docker/.env.docker-profile-entry-level -p 8082:8082 -d {image_name}:latest
+docker run -e SYNC=true --env-file .\docker\.env.dockerfile -p 8082:8082 -d {image_name}:latest
 ````
 The container can be started in synchronization mode. In this case, the container will verify chunks and synchronize all nodes when it is started and run ``Rosseta Api`` after that  
 To start it you need to change the ``SYNC`` variable in ``.env.dockerfile`` or by adding the ``-e SYNC=true`` key when starting the container.  

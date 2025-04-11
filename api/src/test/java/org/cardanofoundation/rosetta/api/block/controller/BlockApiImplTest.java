@@ -3,14 +3,11 @@ package org.cardanofoundation.rosetta.api.block.controller;
 import java.lang.reflect.Field;
 import java.math.BigInteger;
 
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.openapitools.client.model.BlockRequest;
-import org.openapitools.client.model.BlockResponse;
-import org.openapitools.client.model.BlockTransactionRequest;
-import org.openapitools.client.model.BlockTransactionResponse;
+import org.openapitools.client.model.*;
 
 import org.junit.jupiter.api.Test;
 
@@ -23,29 +20,23 @@ import org.cardanofoundation.rosetta.api.block.service.BlockService;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
 
-import static org.cardanofoundation.rosetta.EntityGenerator.newBlockRequest;
-import static org.cardanofoundation.rosetta.EntityGenerator.newBlockResponse;
-import static org.cardanofoundation.rosetta.EntityGenerator.newBlockTransactionRequest;
-import static org.cardanofoundation.rosetta.EntityGenerator.newBlockTransactionResponse;
+import static org.cardanofoundation.rosetta.EntityGenerator.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-
 class BlockApiImplTest extends BaseSpringMvcSetup {
 
-  @MockBean
+  @MockitoBean
   private BlockService blockService;
 
-  @MockBean
+  @MockitoBean
   private ProtocolParamService protocolParamService;
 
-  @MockBean
+  @MockitoBean
   BlockMapper blockMapper;
 
   @Mock
@@ -53,6 +44,15 @@ class BlockApiImplTest extends BaseSpringMvcSetup {
 
   @InjectMocks
   private BlockApiImpl blockApi;
+
+  @Test
+  void blockInvalidIndex() {
+    BlockRequest blockRequest = newBlockRequest();
+    PartialBlockIdentifier partialBlockIdentifier = new PartialBlockIdentifier(-1L, blockRequest.getBlockIdentifier().getHash());
+
+    blockRequest.setBlockIdentifier(partialBlockIdentifier);
+    assertThrows(ExceptionFactory.invalidBlockIdentifier(-1L).getClass(), () -> blockApi.block(blockRequest));
+  }
 
   @Test
   void blockOfflineModeTest() throws NoSuchFieldException, IllegalAccessException {
@@ -64,6 +64,14 @@ class BlockApiImplTest extends BaseSpringMvcSetup {
     field.set(blockApi, true);
     //then
     assertThrows(ExceptionFactory.notSupportedInOfflineMode().getClass(), () -> blockApi.block(blockRequest));
+  }
+
+  @Test
+  void blockTransactionInvalidIndex() {
+    BlockTransactionRequest blockTransactionRequest = newBlockTransactionRequest();
+    blockTransactionRequest.setBlockIdentifier(new BlockIdentifier(-1L, blockTransactionRequest.getBlockIdentifier().getHash()));
+
+    assertThrows(ExceptionFactory.invalidBlockIdentifier(-1L).getClass(), () -> blockApi.blockTransaction(blockTransactionRequest));
   }
 
   @Test
@@ -87,6 +95,7 @@ class BlockApiImplTest extends BaseSpringMvcSetup {
     //then
     Long index = blockRequest.getBlockIdentifier().getIndex();
     String hash = blockRequest.getBlockIdentifier().getHash();
+
     mockMvc.perform(post("/block")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(blockRequest)))
@@ -120,7 +129,7 @@ class BlockApiImplTest extends BaseSpringMvcSetup {
         new BlockTx());
     when(protocolParamService.findProtocolParameters()).thenReturn(protocolParams);
     when(protocolParams.getPoolDeposit()).thenReturn(new BigInteger("1000"));
-//any string
+    //any string
     when(blockMapper.mapToBlockTransactionResponse(any(BlockTx.class))).thenReturn(resp);
     //when
     //then

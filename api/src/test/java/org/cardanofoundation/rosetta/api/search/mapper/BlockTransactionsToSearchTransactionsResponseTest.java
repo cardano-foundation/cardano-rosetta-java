@@ -3,11 +3,7 @@ package org.cardanofoundation.rosetta.api.search.mapper;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.openapitools.client.model.BlockIdentifier;
-import org.openapitools.client.model.BlockTransaction;
-import org.openapitools.client.model.SearchTransactionsResponse;
-import org.openapitools.client.model.Transaction;
-import org.openapitools.client.model.TransactionMetadata;
+import org.openapitools.client.model.*;
 
 import org.junit.jupiter.api.Test;
 
@@ -22,7 +18,8 @@ class BlockTransactionsToSearchTransactionsResponseTest extends BaseMapperSetup 
 
   @Test
   void mapToSearchResponse_test_Ok() {
-    List<BlockTransaction> blockTransactions = List.of(BlockTransaction.builder()
+    List<BlockTransaction> blockTransactions = List.of(
+            BlockTransaction.builder()
             .blockIdentifier(BlockIdentifier.builder()
                 .hash("hash")
                 .index(1L)
@@ -35,12 +32,12 @@ class BlockTransactionsToSearchTransactionsResponseTest extends BaseMapperSetup 
           .build())
         .build());
 
-    SearchTransactionsResponse searchTransactionsResponse = my.mapToSearchTransactionsResponse(
-        blockTransactions, 2L);
+    SearchTransactionsResponse searchTransactionsResponse = my.mapToSearchTransactionsResponse(blockTransactions, 1L, 1);
 
-    assertEquals(1,searchTransactionsResponse.getTransactions().size());
-    assertEquals(2L, searchTransactionsResponse.getNextOffset());
+    assertEquals(1, searchTransactionsResponse.getTransactions().size());
+    assertEquals(1, searchTransactionsResponse.getNextOffset());
     assertEquals(1, searchTransactionsResponse.getTotalCount());
+
     assertEquals("hash", searchTransactionsResponse.getTransactions().getFirst().getBlockIdentifier().getHash());
     assertEquals(1L, searchTransactionsResponse.getTransactions().getFirst().getBlockIdentifier().getIndex());
   }

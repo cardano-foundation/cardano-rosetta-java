@@ -1,4 +1,4 @@
-package org.cardanofoundation.rosetta.yaciindexer.stores.txsize;
+package org.cardanofoundation.rosetta.yaciindexer.domain.model;
 
 public class TransactionBuildingConstants {
 

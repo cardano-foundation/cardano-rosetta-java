@@ -2,15 +2,11 @@ package org.cardanofoundation.rosetta.api.network.controller;
 
 import java.lang.reflect.Field;
 
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import org.mockito.InjectMocks;
-import org.openapitools.client.model.MetadataRequest;
-import org.openapitools.client.model.NetworkListResponse;
-import org.openapitools.client.model.NetworkOptionsResponse;
-import org.openapitools.client.model.NetworkRequest;
-import org.openapitools.client.model.NetworkStatusResponse;
+import org.openapitools.client.model.*;
 
 import org.junit.jupiter.api.Test;
 
@@ -19,11 +15,7 @@ import org.cardanofoundation.rosetta.api.network.service.NetworkService;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 
-import static org.cardanofoundation.rosetta.EntityGenerator.givenMetadataRequest;
-import static org.cardanofoundation.rosetta.EntityGenerator.givenNetworkListResponse;
-import static org.cardanofoundation.rosetta.EntityGenerator.givenNetworkOptionsResponse;
-import static org.cardanofoundation.rosetta.EntityGenerator.givenNetworkRequest;
-import static org.cardanofoundation.rosetta.EntityGenerator.givenNetworkStatusResponse;
+import static org.cardanofoundation.rosetta.EntityGenerator.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -33,7 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 class NetworkApiDelegateImplTest extends BaseSpringMvcSetup {
 
-    @MockBean
+    @MockitoBean
     private NetworkService networkService;
 
     @InjectMocks

@@ -4,6 +4,7 @@ import java.math.BigInteger;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.PageImpl;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -123,7 +124,7 @@ class BlockServiceImplTest {
     long blockId = 1L;
     String blockHash = "hash1";
     when(ledgerBlockService.findTransactionsByBlock(blockId, blockHash))
-        .thenReturn(List.of(tx));
+        .thenReturn(new PageImpl<>(List.of(tx)));
     //when
     BlockTx blockTransaction = blockService.getBlockTransaction(blockId, blockHash, txHash);
     //then
@@ -137,7 +138,7 @@ class BlockServiceImplTest {
     long blockId = 1L;
     String blockHash = "hash1";
     when(ledgerBlockService.findTransactionsByBlock(blockId, blockHash))
-        .thenReturn(List.of(newTran("any")));
+        .thenReturn(new PageImpl<>(List.of(newTran("any"))));
     try {
       //when
       blockService.getBlockTransaction(blockId, blockHash, "differentFromAny");

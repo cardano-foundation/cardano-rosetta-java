@@ -2,25 +2,11 @@ package org.cardanofoundation.rosetta.api.construction.controller;
 
 import java.lang.reflect.Field;
 
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import org.mockito.InjectMocks;
-import org.openapitools.client.model.ConstructionCombineRequest;
-import org.openapitools.client.model.ConstructionCombineResponse;
-import org.openapitools.client.model.ConstructionDeriveRequest;
-import org.openapitools.client.model.ConstructionDeriveResponse;
-import org.openapitools.client.model.ConstructionHashRequest;
-import org.openapitools.client.model.ConstructionMetadataRequest;
-import org.openapitools.client.model.ConstructionMetadataResponse;
-import org.openapitools.client.model.ConstructionParseRequest;
-import org.openapitools.client.model.ConstructionParseResponse;
-import org.openapitools.client.model.ConstructionPayloadsRequest;
-import org.openapitools.client.model.ConstructionPayloadsResponse;
-import org.openapitools.client.model.ConstructionPreprocessRequest;
-import org.openapitools.client.model.ConstructionPreprocessResponse;
-import org.openapitools.client.model.ConstructionSubmitRequest;
-import org.openapitools.client.model.TransactionIdentifierResponse;
+import org.openapitools.client.model.*;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,21 +15,7 @@ import org.cardanofoundation.rosetta.api.BaseSpringMvcSetup;
 import org.cardanofoundation.rosetta.api.construction.service.ConstructionApiService;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 
-import static org.cardanofoundation.rosetta.EntityGenerator.givenConstructionCombineRequest;
-import static org.cardanofoundation.rosetta.EntityGenerator.givenConstructionCombineResponse;
-import static org.cardanofoundation.rosetta.EntityGenerator.givenConstructionDeriveRequest;
-import static org.cardanofoundation.rosetta.EntityGenerator.givenConstructionDeriveResponse;
-import static org.cardanofoundation.rosetta.EntityGenerator.givenConstructionHashRequest;
-import static org.cardanofoundation.rosetta.EntityGenerator.givenConstructionMetadataRequest;
-import static org.cardanofoundation.rosetta.EntityGenerator.givenConstructionMetadataResponse;
-import static org.cardanofoundation.rosetta.EntityGenerator.givenConstructionParseRequest;
-import static org.cardanofoundation.rosetta.EntityGenerator.givenConstructionPayloadsRequest;
-import static org.cardanofoundation.rosetta.EntityGenerator.givenConstructionPayloadsResponse;
-import static org.cardanofoundation.rosetta.EntityGenerator.givenConstructionPreprocessRequest;
-import static org.cardanofoundation.rosetta.EntityGenerator.givenConstructionPreprocessResponse;
-import static org.cardanofoundation.rosetta.EntityGenerator.givenConstructionSubmitRequest;
-import static org.cardanofoundation.rosetta.EntityGenerator.givenTransactionIdentifierResponse;
-import static org.cardanofoundation.rosetta.EntityGenerator.givenTransactionMetadataResponse;
+import static org.cardanofoundation.rosetta.EntityGenerator.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -52,7 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 class ConstructionApiImplTest extends BaseSpringMvcSetup {
 
-    @MockBean
+    @MockitoBean
     private ConstructionApiService constructionApiService;
 
     @InjectMocks

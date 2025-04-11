@@ -4,6 +4,7 @@
 
 ## What the project is about?
 
+
 This repository provides a lightweight java implementation of the [Rosetta API](https://github.com/coinbase/mesh-specifications). It uses [Yaci-Store](https://github.com/bloxbean/yaci-store) as an indexer
 to fetch the data from a Cardano node. 
 
@@ -114,3 +115,4 @@ Further adjustments can be made by changing `.env.docker-compose` file. For more
 
 ---
 Thanks for visiting us and enjoy :heart:!
+

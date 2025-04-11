@@ -1,12 +1,14 @@
 FROM ubuntu:22.04 AS cardano-builder
 
+SHELL ["/bin/bash", "-c"]
+
 WORKDIR /root/src
 
 # Install dependencies
 RUN apt update --fix-missing \
     && apt install -y --no-install-recommends \
     automake build-essential pkg-config libffi-dev libgmp-dev libssl-dev libncurses-dev libsystemd-dev zlib1g-dev make \
-    g++ tmux git jq wget libncursesw5-dev libtool autoconf liblmdb-dev curl ca-certificates \
+    g++ tmux git jq wget libncursesw5-dev libtool autoconf liblmdb-dev curl ca-certificates pkg-config \
     && apt-get clean
 
 WORKDIR /root/src
@@ -31,8 +33,9 @@ RUN bash -c "ghcup set ghc ${GHC_VERSION}"
 
 
 # Mithril setup
-ARG MITHRIL_VERSION=2450.0
+ARG MITHRIL_VERSION=2513.0
 # Install dependencies
+
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | bash -s -- -y \
     && export PATH="$HOME/.cargo/bin:$PATH" \
     && apt update --fix-missing \
@@ -40,6 +43,7 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | bash -s -- -y \
     build-essential m4 libssl-dev docker jq git \
     && rustup update stable \
     && apt-get clean
+
 RUN git clone https://github.com/input-output-hk/mithril.git \
     && export PATH="$HOME/.cargo/bin:$PATH" \
     && cd mithril \
@@ -49,9 +53,8 @@ RUN git clone https://github.com/input-output-hk/mithril.git \
     && mkdir -p /root/.local/bin \
     && cp mithril-client /root/.local/bin/
 
-
 # Cardano node version
-ARG CARDANO_NODE_VERSION=10.1.4
+ARG CARDANO_NODE_VERSION=10.2.1
 
 # Install sodium
 RUN export IOHKNIX_VERSION=$(curl https://raw.githubusercontent.com/IntersectMBO/cardano-node/${CARDANO_NODE_VERSION}/flake.lock | jq -r '.nodes.iohkNix.locked.rev') \

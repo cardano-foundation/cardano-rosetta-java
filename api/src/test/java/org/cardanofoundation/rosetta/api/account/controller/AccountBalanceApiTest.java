@@ -2,8 +2,8 @@ package org.cardanofoundation.rosetta.api.account.controller;
 
 import java.math.BigInteger;
 
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.openapitools.client.model.*;
 
@@ -36,7 +36,8 @@ class AccountBalanceApiTest extends BaseSpringMvcSetup {
   private final String currentAdaBalance = "3636394";
   private final String previousAdaBalance = "1636394";
 
-  @MockBean // we want to replace the real implementation with a mock bean since we do not actually want to test full http layer here but only business logic
+  @MockitoBean
+  // we want to replace the real implementation with a mock bean since we do not actually want to test full http layer here but only business logic
   private YaciHttpGateway yaciHttpGateway;
 
   @BeforeEach

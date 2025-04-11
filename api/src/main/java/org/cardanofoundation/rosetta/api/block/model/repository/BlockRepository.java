@@ -12,7 +12,7 @@ import org.cardanofoundation.rosetta.api.block.model.entity.projection.BlockIden
 @Repository
 public interface BlockRepository extends JpaRepository<BlockEntity, Long> {
 
-  @Query("FROM BlockEntity b WHERE b.prev.hash IS NULL ORDER BY b.number ASC LIMIT 1")
+  @Query("FROM BlockEntity b WHERE b.number = 0 ORDER BY b.number ASC LIMIT 1")
   Optional<BlockIdentifierProjection> findGenesisBlockIdentifier();
 
   Optional<BlockEntity> findByNumber(Long blockNumber);
