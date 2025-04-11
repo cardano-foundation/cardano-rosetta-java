@@ -1,4 +1,8 @@
 spring:
+  threads:
+    virtual:
+      enabled: true
+
   datasource:
     username: ${DB_USER:rosetta_db_admin}
     password: ${DB_SECRET:weakpwd#123_d}
