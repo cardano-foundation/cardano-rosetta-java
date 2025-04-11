@@ -292,7 +292,7 @@ class LedgerBlockServiceImplIntTest extends IntegrationTest {
     //given
     BlockEntity fromBlockB = entityManager
         .createQuery("FROM BlockEntity b "
-            + "WHERE b.prev.hash IS NULL ORDER BY b.number ASC LIMIT 1", BlockEntity.class)
+            + "WHERE b.number = 0 ORDER BY b.number ASC LIMIT 1", BlockEntity.class)
         .setMaxResults(1)
         .getSingleResult();
     //when

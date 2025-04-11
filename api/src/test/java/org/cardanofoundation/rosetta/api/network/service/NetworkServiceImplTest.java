@@ -80,7 +80,7 @@ class NetworkServiceImplTest extends IntegrationTest {
     NetworkStatusResponse networkStatus = networkService.getNetworkStatus(networkRequest);
     //then
     assertNotNull(networkStatus);
-    assertEquals(-1, networkStatus.getGenesisBlockIdentifier().getIndex());
+    assertEquals(0, networkStatus.getGenesisBlockIdentifier().getIndex());
     assertEquals("Genesis",
             networkStatus.getGenesisBlockIdentifier().getHash());
 

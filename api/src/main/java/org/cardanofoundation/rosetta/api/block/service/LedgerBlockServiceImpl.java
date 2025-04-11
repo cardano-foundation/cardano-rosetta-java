@@ -169,6 +169,7 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
               .orElseThrow(ExceptionFactory::genesisBlockNotFound);
     }
     log.debug("Returning genesis block {}", cachedGenesisBlock);
+
     return cachedGenesisBlock;
   }
 
