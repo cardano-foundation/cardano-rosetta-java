@@ -6,6 +6,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Slice;
 import org.springframework.transaction.annotation.Transactional;
 
 import org.junit.jupiter.api.RepeatedTest;
@@ -115,7 +116,7 @@ class LedgerBlockServiceImplIntTest extends IntegrationTest {
   void findTransactionsByBlock_Test_empty_tx() {
     //given
     //when
-    List<BlockTx> txs = ledgerBlockService.findTransactionsByBlock(-123L, "#####");
+    Slice<BlockTx> txs = ledgerBlockService.findTransactionsByBlock(-123L, "#####");
     //then
     assertThat(txs).isEmpty();
   }
@@ -125,12 +126,12 @@ class LedgerBlockServiceImplIntTest extends IntegrationTest {
     //given
     TransactionBlockDetails tx = generatedDataMap.get(POOL_DELEGATION_TRANSACTION.getName());
     //when
-    List<BlockTx> txs =
+    Slice<BlockTx> txs =
         ledgerBlockService.findTransactionsByBlock(tx.blockNumber(), tx.blockHash());
     //then
     assertThat(txs).isNotNull().hasSize(1);
 
-    BlockTx blockTx = txs.getFirst();
+    BlockTx blockTx = txs.getContent().getFirst();
     assertThat(blockTx.getHash()).isEqualTo(tx.txHash());
     assertThat(blockTx.getBlockNo()).isEqualTo(tx.blockNumber());
     assertThat(blockTx.getBlockHash()).isEqualTo(tx.blockHash());
@@ -158,12 +159,12 @@ class LedgerBlockServiceImplIntTest extends IntegrationTest {
     //given
     TransactionBlockDetails tx = generatedDataMap.get(POOL_REGISTRATION_TRANSACTION.getName());
     //when
-    List<BlockTx> txs =
+    Slice<BlockTx> txs =
         ledgerBlockService.findTransactionsByBlock(tx.blockNumber(), tx.blockHash());
     //then
     assertThat(txs).isNotNull().hasSize(1);
 
-    BlockTx blockTx = txs.getFirst();
+    BlockTx blockTx = txs.getContent().getFirst();
     assertThat(blockTx.getHash()).isEqualTo(tx.txHash());
     assertThat(blockTx.getBlockNo()).isEqualTo(tx.blockNumber());
     assertThat(blockTx.getBlockHash()).isEqualTo(tx.blockHash());
@@ -202,12 +203,12 @@ class LedgerBlockServiceImplIntTest extends IntegrationTest {
     //given
     TransactionBlockDetails tx = generatedDataMap.get(POOL_RETIREMENT_TRANSACTION.getName());
     //when
-    List<BlockTx> txs =
+    Slice<BlockTx> txs =
         ledgerBlockService.findTransactionsByBlock(tx.blockNumber(), tx.blockHash());
     //then
     assertThat(txs).isNotNull().hasSize(1);
 
-    BlockTx blockTx = txs.getFirst();
+    BlockTx blockTx = txs.getContent().getFirst();
     assertThat(blockTx.getHash()).isEqualTo(tx.txHash());
     assertThat(blockTx.getBlockNo()).isEqualTo(tx.blockNumber());
     assertThat(blockTx.getBlockHash()).isEqualTo(tx.blockHash());
@@ -232,12 +233,12 @@ class LedgerBlockServiceImplIntTest extends IntegrationTest {
     //given
     TransactionBlockDetails tx = generatedDataMap.get(STAKE_KEY_REGISTRATION_TRANSACTION.getName());
     //when
-    List<BlockTx> txs =
+    Slice<BlockTx> txs =
         ledgerBlockService.findTransactionsByBlock(tx.blockNumber(), tx.blockHash());
     //then
     assertThat(txs).isNotNull().hasSize(1);
 
-    BlockTx blockTx = txs.getFirst();
+    BlockTx blockTx = txs.getContent().getFirst();
     assertThat(blockTx.getHash()).isEqualTo(tx.txHash());
     assertThat(blockTx.getBlockNo()).isEqualTo(tx.blockNumber());
     assertThat(blockTx.getBlockHash()).isEqualTo(tx.blockHash());

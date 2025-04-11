@@ -1,15 +1,16 @@
 package org.cardanofoundation.rosetta.api.search.service;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.openapitools.client.model.Operator;
@@ -21,6 +22,8 @@ import org.cardanofoundation.rosetta.api.block.model.entity.UtxoKey;
 import org.cardanofoundation.rosetta.api.block.model.repository.TxInputRepository;
 import org.cardanofoundation.rosetta.api.block.model.repository.TxRepository;
 import org.cardanofoundation.rosetta.api.block.service.LedgerBlockService;
+
+import static org.openapitools.client.model.Operator.AND;
 
 @Slf4j
 @Service
@@ -34,7 +37,7 @@ public class LedgerSearchServiceImpl implements LedgerSearchService {
   private final AddressUtxoRepository addressUtxoRepository;
 
   @Override
-  public List<BlockTx> searchTransaction(Operator operator,
+  public Slice<BlockTx> searchTransaction(Operator operator,
                                          String txHash,
                                          String address,
                                          UtxoKey utxoKey,
@@ -44,8 +47,12 @@ public class LedgerSearchServiceImpl implements LedgerSearchService {
                                          Long maxBlock,
                                          int page,
                                          int size) {
+
+    log.info("page: {}, size: {}", page, size);
+
     Pageable pageable = PageRequest.of(page, size);
-    List<TxnEntity> txnEntities;
+
+    Slice<TxnEntity> txnEntities;
     Set<String> txHashes = new HashSet<>();
 
     Optional.ofNullable(txHash).ifPresent(txHashes::add);
@@ -56,7 +63,7 @@ public class LedgerSearchServiceImpl implements LedgerSearchService {
     // If Address was set and there weren't any transactions found, return empty list
 
     if (addressOptional.isPresent() && addressTxHashes.isEmpty()) {
-      return List.of();
+      return Page.empty();
     }
 
     txHashes.addAll(addressTxHashes);
@@ -66,11 +73,19 @@ public class LedgerSearchServiceImpl implements LedgerSearchService {
       txHashes.addAll(txInputRepository.findSpentTxHashByUtxoKey(utxoKey.getTxHash(), utxoKey.getOutputIndex()));
     });
 
-    if (operator == Operator.AND) {
+    log.info("txHashesSize: {}", txHashes.size());
+    log.info("addressTxHashesSize: {}", addressTxHashes.size());
+    log.info("blockHash: {}", blockHash);
+    log.info("blockNo: {}", blockNo);
+    log.info("maxBlock: {}", maxBlock);
+
+    if (operator == AND) {
       txnEntities = txRepository.searchTxnEntitiesAND(txHashes.isEmpty() ? null : txHashes, blockHash, blockNo, maxBlock, pageable);
     } else {
       txnEntities = txRepository.searchTxnEntitiesOR(txHashes.isEmpty() ? null : txHashes, blockHash, blockNo, maxBlock, pageable);
     }
+
+    log.info("TxEntities size: {}", txnEntities.get());
 
     return ledgerBlockService.mapTxnEntitiesToBlockTxList(txnEntities);
   }
