@@ -47,9 +47,6 @@ public class LedgerSearchServiceImpl implements LedgerSearchService {
                                          Long maxBlock,
                                          int page,
                                          int size) {
-
-    log.info("page: {}, size: {}", page, size);
-
     Pageable pageable = PageRequest.of(page, size);
 
     Slice<TxnEntity> txnEntities;
@@ -73,19 +70,11 @@ public class LedgerSearchServiceImpl implements LedgerSearchService {
       txHashes.addAll(txInputRepository.findSpentTxHashByUtxoKey(utxoKey.getTxHash(), utxoKey.getOutputIndex()));
     });
 
-    log.info("txHashesSize: {}", txHashes.size());
-    log.info("addressTxHashesSize: {}", addressTxHashes.size());
-    log.info("blockHash: {}", blockHash);
-    log.info("blockNo: {}", blockNo);
-    log.info("maxBlock: {}", maxBlock);
-
     if (operator == AND) {
       txnEntities = txRepository.searchTxnEntitiesAND(txHashes.isEmpty() ? null : txHashes, blockHash, blockNo, maxBlock, pageable);
     } else {
       txnEntities = txRepository.searchTxnEntitiesOR(txHashes.isEmpty() ? null : txHashes, blockHash, blockNo, maxBlock, pageable);
     }
-
-    log.info("TxEntities size: {}", txnEntities.get());
 
     return ledgerBlockService.mapTxnEntitiesToBlockTxList(txnEntities);
   }
