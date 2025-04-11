@@ -38,11 +38,16 @@ public class SearchApiImpl implements SearchApi {
     if (offlineMode) {
       throw ExceptionFactory.notSupportedInOfflineMode();
     }
+
     networkService.verifyNetworkRequest(searchTransactionsRequest.getNetworkIdentifier());
 
     Long pageSize = Optional.ofNullable(searchTransactionsRequest.getLimit()).orElse(PAGE_SIZE);
+
     pageSize = pageSize > PAGE_SIZE ? PAGE_SIZE : pageSize;
-    Long offset = Optional.ofNullable(searchTransactionsRequest.getOffset()).orElse(0L);
+
+    Long offset = Optional.ofNullable(searchTransactionsRequest.getOffset())
+            .orElse(0L);
+
     Long nextOffset = offset + pageSize;
 
     List<BlockTransaction> blockTransactions = searchService.searchTransaction(

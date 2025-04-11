@@ -34,32 +34,45 @@ public class LedgerSearchServiceImpl implements LedgerSearchService {
   private final AddressUtxoRepository addressUtxoRepository;
 
   @Override
-  public List<BlockTx> searchTransaction(Operator operator, String txHash, String address, UtxoKey utxoKey,
-      String symbol, String blockHash, Long blockNo, Long maxBlock, int page, int size) {
+  public List<BlockTx> searchTransaction(Operator operator,
+                                         String txHash,
+                                         String address,
+                                         UtxoKey utxoKey,
+                                         String symbol,
+                                         String blockHash,
+                                         Long blockNo,
+                                         Long maxBlock,
+                                         int page,
+                                         int size) {
     Pageable pageable = PageRequest.of(page, size);
     List<TxnEntity> txnEntities;
     Set<String> txHashes = new HashSet<>();
+
     Optional.ofNullable(txHash).ifPresent(txHashes::add);
 
     Optional<String> addressOptional = Optional.ofNullable(address);
     Set<String> addressTxHashes = new HashSet<>();
     addressOptional.ifPresent(addr -> addressTxHashes.addAll(addressUtxoRepository.findTxHashesByOwnerAddr(addr)));
     // If Address was set and there weren't any transactions found, return empty list
+
     if (addressOptional.isPresent() && addressTxHashes.isEmpty()) {
       return List.of();
-    } else {
-      txHashes.addAll(addressTxHashes);
     }
+
+    txHashes.addAll(addressTxHashes);
 
     Optional.ofNullable(utxoKey).ifPresent(utxo -> {
       txHashes.add(utxo.getTxHash());
       txHashes.addAll(txInputRepository.findSpentTxHashByUtxoKey(utxoKey.getTxHash(), utxoKey.getOutputIndex()));
     });
-    if(operator == Operator.AND) {
+
+    if (operator == Operator.AND) {
       txnEntities = txRepository.searchTxnEntitiesAND(txHashes.isEmpty() ? null : txHashes, blockHash, blockNo, maxBlock, pageable);
     } else {
       txnEntities = txRepository.searchTxnEntitiesOR(txHashes.isEmpty() ? null : txHashes, blockHash, blockNo, maxBlock, pageable);
     }
+
     return ledgerBlockService.mapTxnEntitiesToBlockTxList(txnEntities);
   }
+
 }
