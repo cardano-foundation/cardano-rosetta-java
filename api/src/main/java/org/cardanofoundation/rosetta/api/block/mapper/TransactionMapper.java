@@ -35,6 +35,20 @@ public interface TransactionMapper {
 
   PoolRetirement mapEntityToPoolRetirement(PoolRetirementEntity entity);
 
+  @Mapping(source = "txHash", target = "txHash")
+  @Mapping(source = "certIndex", target = "certIndex")
+  @Mapping(source = "address", target = "address")
+  @Mapping(source = "drepHash", target = "drep.drepId") // no this is not a mistake we don't have bech32 representation in rosetta
+  @Mapping(source = "drepType", target = "drep.drepType")
+  DRepDelegation mapEntityToDRepDelegation(DrepDelegationVoteEntity entity);
+
+  @Mapping(source = "txHash", target = "txHash")
+  @Mapping(source = "certIndex", target = "certIndex")
+  @Mapping(source = "address", target = "address")
+  @Mapping(source = "drep.drepId", target = "drepHash")
+  @Mapping(source = "drep.drepType", target = "drepType")
+  DrepDelegationVoteEntity mapDRepDelegationToEntity(DRepDelegation dRepDelegation);
+
   @Mapping(target = "type", constant = Constants.OPERATION_TYPE_POOL_RETIREMENT)
   @Mapping(target = "status", source = "status.status")
   @Mapping(target = "account.address", source = "model.poolId")
@@ -42,7 +56,7 @@ public interface TransactionMapper {
   @Mapping(target = "operationIdentifier", source = "index", qualifiedByName = "OperationIdentifier")
   Operation mapPoolRetirementToOperation(PoolRetirement model, OperationStatus status, int index);
 
-  StakePoolDelegation mapDelegationEntityToDelegation(DelegationEntity entity);
+  StakePoolDelegation mapPoolDelegationEntityToDelegation(PoolDelegationEntity entity);
 
   @Mapping(target = "status", source = "status.status")
   @Mapping(target = "type", constant = Constants.OPERATION_TYPE_STAKE_DELEGATION)

@@ -1,22 +1,20 @@
 package org.cardanofoundation.rosetta.api.block.service;
 
-import java.util.List;
-import java.util.Optional;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
-
-import org.junit.jupiter.api.RepeatedTest;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.parallel.Execution;
-import org.junit.jupiter.api.parallel.ExecutionMode;
-
 import org.cardanofoundation.rosetta.api.IntegrationTest;
 import org.cardanofoundation.rosetta.api.block.model.domain.*;
 import org.cardanofoundation.rosetta.api.block.model.entity.*;
 import org.cardanofoundation.rosetta.testgenerator.common.TransactionBlockDetails;
+import org.junit.jupiter.api.RepeatedTest;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.cardanofoundation.rosetta.testgenerator.common.TestConstants.STAKE_ADDRESS_WITH_EARNED_REWARDS;
@@ -138,12 +136,12 @@ class LedgerBlockServiceImplIntTest extends IntegrationTest {
     assertThat(blockTx.getStakePoolDelegations().getFirst().getAddress())
         .isEqualTo(STAKE_ADDRESS_WITH_EARNED_REWARDS);
 
-    List<DelegationEntity> delegations = entityManager
-        .createQuery("FROM DelegationEntity b where b.txHash=:hash", DelegationEntity.class)
+    List<PoolDelegationEntity> delegations = entityManager
+        .createQuery("FROM DelegationEntity b where b.txHash=:hash", PoolDelegationEntity.class)
         .setParameter("hash", tx.txHash())
         .getResultList();
     assertThat(delegations).isNotNull().hasSize(1);
-    DelegationEntity expected = delegations.getFirst();
+    PoolDelegationEntity expected = delegations.getFirst();
     assertThat(expected.getAddress()).isEqualTo(STAKE_ADDRESS_WITH_EARNED_REWARDS);
 
     StakePoolDelegation actual = blockTx.getStakePoolDelegations().getFirst();
@@ -301,6 +299,19 @@ class LedgerBlockServiceImplIntTest extends IntegrationTest {
     assertThat(fromBlockB).isNotNull();
     assertBlockIdentifier(genesisBlock, fromBlockB);
     assertThat(genesisBlock.getHash()).isEqualTo("Genesis");
+  }
+
+  @Test
+  void findDelegationVote() {
+    List<DrepDelegationVoteEntity> drepVoteDelegationEntities = entityManager
+            .createQuery("FROM DrepDelegationVoteEntity e", DrepDelegationVoteEntity.class)
+            .setMaxResults(1)
+            .getResultList();
+
+    assertThat(drepVoteDelegationEntities.isEmpty()).isTrue();
+
+//    assertBlockIdentifier(genesisBlock, drepVoteDelegationEntities);
+//    assertThat(genesisBlock.getHash()).isEqualTo("Genesis");
   }
 
   private static void assertBlocks(Block latestBlock, BlockEntity fromBlockB) {
