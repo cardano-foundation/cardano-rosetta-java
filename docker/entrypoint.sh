@@ -75,6 +75,77 @@ database_initialization() {
     sudo -H -u postgres bash -c "$initdb_command"
 }
 
+configure_postgres() {
+    local config_file="/etc/postgresql/${PG_VERSION}/main/postgresql.conf"
+
+    # List of parameter names and their corresponding environment variables
+    declare -A param_vars=(
+        ["max_connections"]="DB_POSTGRES_MAX_CONNECTIONS"
+        ["shared_buffers"]="DB_POSTGRES_SHARED_BUFFERS"
+        ["effective_cache_size"]="DB_POSTGRES_EFFECTIVE_CACHE_SIZE"
+        ["work_mem"]="DB_POSTGRES_WORK_MEM"
+        ["maintenance_work_mem"]="DB_POSTGRES_MAINTENANCE_WORK_MEM"
+        ["wal_buffers"]="DB_POSTGRES_WAL_BUFFERS"
+        ["checkpoint_completion_target"]="DB_POSTGRES_CHECKPOINT_COMPLETION_TARGET"
+        ["random_page_cost"]="DB_POSTGRES_RANDOM_PAGE_COST"
+        ["effective_io_concurrency"]="DB_POSTGRES_EFFECTIVE_IO_CONCURRENCY"
+        ["parallel_tuple_cost"]="DB_POSTGRES_PARALLEL_TUPLE_COST"
+        ["parallel_setup_cost"]="DB_POSTGRES_PARALLEL_SETUP_COST"
+        ["max_parallel_workers_per_gather"]="DB_POSTGRES_MAX_PARALLEL_WORKERS_PER_GATHER"
+        ["max_parallel_workers"]="DB_POSTGRES_MAX_PARALLEL_WORKERS"
+        ["seq_page_cost"]="DB_POSTGRES_SEQ_PAGE_COST"
+        ["jit"]="DB_POSTGRES_JIT"
+        ["bgwriter_lru_maxpages"]="DB_POSTGRES_BGWRITER_LRU_MAXPAGES"
+        ["bgwriter_delay"]="DB_POSTGRES_BGWRITER_DELAY"
+    )
+
+    # Check for missing required environment variables
+    local missing_vars=()
+    for param in "${!param_vars[@]}"; do
+        local env_var="${param_vars[$param]}"
+        if [ -z "${!env_var}" ]; then
+            missing_vars+=("$env_var")
+        fi
+    done
+
+    # If there are missing variables, print an error and exit
+    if [ ${#missing_vars[@]} -gt 0 ]; then
+        echo "Error: The following required environment variables are missing or empty:"
+        for var in "${missing_vars[@]}"; do
+            echo "   - $var"
+        done
+        echo ""
+        echo "Most likely, you are missing a hardware profile in your environment configuration."
+        echo "Make sure to pass an additional --env-file parameter when running the container."
+        echo ""
+        echo "Example Docker run command for an 'entry_level' hardware profile:"
+        echo "docker run --env-file ./docker/.env.dockerfile --env-file ./docker/.env.docker-profile-entry-level -p 8082:8082 -d cardanofoundation/cardano-rosetta-java:latest"
+        echo ""
+        exit 1
+    fi
+
+    # Remove all commented-out lines for the parameters we are about to update
+    for param in "${!param_vars[@]}"; do
+        sed -i "/^#$param /d" "$config_file"
+    done
+
+    # Update or add parameters
+    for param in "${!param_vars[@]}"; do
+        local env_var="${param_vars[$param]}"
+        local value="${!env_var}"
+
+        # Try to replace existing parameter
+        sed -i "s/^$param = .*/$param = $value/" "$config_file"
+
+        # Parameter not found, append it
+        if ! grep -q "^$param =" "$config_file"; then
+            echo "$param = $value" >> "$config_file"
+        fi
+    done
+
+    echo "PostgreSQL configuration updated successfully!"
+}
+
 create_database_and_user() {
     export DB_SCHEMA=$NETWORK
 
@@ -158,7 +229,6 @@ else
       fi
   fi
 
-
   mkdir -p "$(dirname "$CARDANO_NODE_SOCKET_PATH")"
   sleep 1
   cardano-node run --socket-path "$CARDANO_NODE_SOCKET_PATH" --port $CARDANO_NODE_PORT --database-path /node/db --config /config/config.json --topology /config/topology.json > /logs/node.log &
@@ -177,7 +247,6 @@ else
   cardano-submit-api --listen-address 0.0.0.0 --socket-path "$CARDANO_NODE_SOCKET_PATH" --port $NODE_SUBMIT_API_PORT $NETWORK_STR  --config /cardano-submit-api-config/cardano-submit-api.yaml > /logs/submit-api.log &
   CARDANO_SUBMIT_PID=$!
 
-
   mkdir -p /node/postgres
   chown -R postgres:postgres /node/postgres
   chmod -R 0700 /node/postgres
@@ -185,20 +254,20 @@ else
       database_initialization
   fi
 
+  configure_postgres
+
   echo "Starting Postgres..."
   /etc/init.d/postgresql start
   create_database_and_user
 
-
   echo "Starting Yaci indexer..."
-  exec java -jar /yaci-indexer/app.jar > /logs/indexer.log &
+  exec java --enable-preview -jar /yaci-indexer/app.jar > /logs/indexer.log &
   YACI_STORE_PID=$!
 
 fi
 echo "Starting Rosetta API..."
-exec java -jar /api/app.jar > /logs/api.log &
+exec java --enable-preview -jar /api/app.jar > /logs/api.log &
 API_PID=$!
-
 
 if [ "$API_SPRING_PROFILES_ACTIVE" == "online" ]; then
   echo "Waiting Rosetta API initialization..."
@@ -209,7 +278,6 @@ if [ "$API_SPRING_PROFILES_ACTIVE" == "online" ]; then
       sleep 2
   done
 fi
-
 
 echo "DONE"
 

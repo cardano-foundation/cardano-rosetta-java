@@ -89,7 +89,7 @@ The default values:
 ### 2. How to run the container
 
 ```
-docker run --env-file ./docker/.env.dockerfile -p 8082:8082 -it {image_name}:latest
+docker run --env-file ./docker/.env.dockerfile --env-file .env.docker-profile-entry-level -p 8082:8082 -it {image_name}:latest
 ```
 
 You need to specify the path to the environment variables file and open the port. The standard Port for the API is `8082`.
@@ -99,7 +99,7 @@ It is recommended to use a fully synced node, otherwise it can lead to instabili
 To mount Node data into the container use the following command:
 
 ```
-docker run --env-file ./docker/.env.dockerfile -p 8082:8082 -v {node_snapshot}:/node/db -it {image_name}:latest
+docker run --env-file ./docker/.env.dockerfile --env-file .env.docker-profile-entry-level -p 8082:8082 -v {node_snapshot}:/node/db -it {image_name}:latest
 ```
 
 Relevant datapathes within the container:

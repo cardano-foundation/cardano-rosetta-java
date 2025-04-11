@@ -10,6 +10,9 @@ import com.bloxbean.cardano.client.common.model.Network;
 import com.bloxbean.cardano.client.exception.AddressExcepion;
 import com.bloxbean.cardano.client.exception.CborSerializationException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.mockito.Mockito;
+import org.openapitools.client.model.CoinAction;
+import org.openapitools.client.model.CoinChange;
 import org.openapitools.client.model.ConstructionPayloadsRequest;
 import org.openapitools.client.model.Operation;
 
@@ -20,7 +23,9 @@ import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.UnsignedTransaction;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.cardanofoundation.rosetta.common.util.Constants.MIN_DUMMY_FEE;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.when;
 
 class CborEncodeUtilTest {
 
@@ -90,7 +95,8 @@ class CborEncodeUtilTest {
     UnsignedTransaction unsignedTransaction = cardanoService.createUnsignedTransaction(
             network,
             operations,
-            ttl
+            ttl,
+            MIN_DUMMY_FEE
     );
 
     return CborEncodeUtil.encodeExtraData(
@@ -99,6 +105,51 @@ class CborEncodeUtilTest {
             unsignedTransaction.metadata()
     );
   }
+
+    @Test
+    void testGetTxExtraData() {
+        Operation coinSpentOperation = createOperation(CoinAction.SPENT, "someType");
+        Operation stakingOperation = createOperation(null, Constants.OPERATION_TYPE_STAKE_KEY_REGISTRATION);
+        Operation poolOperation = createOperation(null, Constants.OPERATION_TYPE_POOL_REGISTRATION);
+        Operation voteOperation = createOperation(null, Constants.OPERATION_TYPE_VOTE_REGISTRATION);
+        Operation drepVoteDelegation = createOperation(null, Constants.OPERATION_TYPE_DREP_VOTE_DELEGATION);
+
+        Operation unrelatedOperation = createOperation(null, "unrelatedType");
+
+        List<Operation> inputOperations = List.of(
+                coinSpentOperation,
+                stakingOperation,
+                poolOperation,
+                voteOperation,
+                drepVoteDelegation,
+                unrelatedOperation
+        );
+
+        List<Operation> result = CborEncodeUtil.getTxExtraData(inputOperations);
+
+        assertEquals(5, result.size());
+        assertTrue(result.contains(coinSpentOperation));
+        assertTrue(result.contains(stakingOperation));
+        assertTrue(result.contains(poolOperation));
+        assertTrue(result.contains(voteOperation));
+        assertTrue(result.contains(drepVoteDelegation));
+
+        assertFalse(result.contains(unrelatedOperation));
+    }
+
+    private Operation createOperation(CoinAction coinAction, String type) {
+        Operation operation = Mockito.mock(Operation.class);
+        CoinChange coinChange = Mockito.mock(CoinChange.class);
+
+        if (coinAction != null) {
+            when(coinChange.getCoinAction()).thenReturn(coinAction);
+            when(operation.getCoinChange()).thenReturn(coinChange);
+        }
+
+        when(operation.getType()).thenReturn(type);
+
+        return operation;
+    }
 
   private ConstructionPayloadsRequest getRequest(String fileName) throws IOException {
     File file = new File(Objects.requireNonNull(this.getClass().getClassLoader().getResource(fileName)).getFile());
