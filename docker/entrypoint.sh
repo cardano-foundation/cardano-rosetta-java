@@ -119,7 +119,7 @@ configure_postgres() {
         echo "Make sure to pass an additional --env-file parameter when running the container."
         echo ""
         echo "Example Docker run command for an 'entry_level' hardware profile:"
-        echo "docker run --env-file ./docker/.env.dockerfile --env-file ./docker/.env.docker-profile-entry-level -p 8082:8082 -d cardanofoundation/cardano-rosetta-java:latest"
+        echo "docker run --env-file ./docker/.env.dockerfile --env-file ./docker/.env.docker-profile-mid-level -p 8082:8082 --shm-size=4g -d cardanofoundation/cardano-rosetta-java:latest"
         echo ""
         exit 1
     fi
