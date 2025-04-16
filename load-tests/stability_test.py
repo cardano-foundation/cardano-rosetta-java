@@ -68,6 +68,8 @@ def parse_args():
                         help='Enable verbose output')
     parser.add_argument('--cooldown', dest='cooldown', type=int, default=60,
                         help='Cooldown period in seconds between endpoint tests')
+    parser.add_argument('--max-retries', dest='max_retries', type=int, default=2,
+                        help='Maximum number of retries when an ab command fails')
     
     # Endpoint selection
     parser.add_argument('--endpoints', dest='selected_endpoints', type=str,
@@ -97,6 +99,7 @@ SLA_THRESHOLD = args.sla_threshold
 NO_HEADER = args.no_header
 VERBOSE = args.verbose
 COOLDOWN_PERIOD = args.cooldown
+MAX_RETRIES = args.max_retries
 
 # Global logger variable
 logger = None
@@ -494,67 +497,96 @@ def test_endpoint(endpoint_name, endpoint_path, payload_func, csv_row):
         cmd = get_ab_command(endpoint_path, c, tmp_file)
         log_command(cmd, endpoint_name, c)
 
-        # Execute ab command using Popen for real-time output in verbose mode
-        ab_output_lines = []
-        try:
-            # Use Popen to start the process
-            proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, bufsize=1)
-            
-            # Read stdout line by line
-            if VERBOSE:
-                box_width = 80
-                logger.debug("┌" + "─" * (box_width - 2) + "┐")
-                logger.debug("│ AB OUTPUT" + " " * (box_width - 12) + "│")
-                logger.debug("├" + "─" * (box_width - 2) + "┤")
-            for line in iter(proc.stdout.readline, ''):
-                line_stripped = line.strip()
-                ab_output_lines.append(line)
+        max_retries = MAX_RETRIES
+        retry_count = 0
+        ab_success = False
+
+        while retry_count <= max_retries and not ab_success:
+            # Execute ab command using Popen for real-time output in verbose mode
+            ab_output_lines = []
+            try:
+                # Use Popen to start the process
+                proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, bufsize=1)
+                
+                # Read stdout line by line
                 if VERBOSE:
-                    # Format each line with box borders
-                    if line_stripped:
-                        # Fixed width approach
-                        content = "│ " + line_stripped
-                        logger.debug(content + " " * (box_width - len(content) - 1) + "│")
+                    box_width = 80
+                    logger.debug("┌" + "─" * (box_width - 2) + "┐")
+                    logger.debug("│ AB OUTPUT" + " " * (box_width - 12) + "│")
+                    logger.debug("├" + "─" * (box_width - 2) + "┤")
+                for line in iter(proc.stdout.readline, ''):
+                    line_stripped = line.strip()
+                    ab_output_lines.append(line)
+                    if VERBOSE:
+                        # Format each line with box borders
+                        if line_stripped:
+                            # Fixed width approach
+                            content = "│ " + line_stripped
+                            logger.debug(content + " " * (box_width - len(content) - 1) + "│")
+                        else:
+                            logger.debug("│" + " " * (box_width - 2) + "│")
+                proc.stdout.close()
+
+                # Read stderr line by line (only log if verbose, but always capture)
+                stderr_lines = []
+                for line in iter(proc.stderr.readline, ''):
+                    stderr_lines.append(line)
+                proc.stderr.close()
+
+                # Wait for the process to complete and get the return code
+                return_code = proc.wait()
+                
+                ab_output = "".join(ab_output_lines)
+                ab_stderr = "".join(stderr_lines)
+
+                # Close the box before showing any error messages
+                if VERBOSE:
+                    logger.debug("└" + "─" * (box_width - 2) + "┘")
+                    
+                if return_code != 0:
+                    # Log error if ab command failed
+                    logger.error(f"ab command failed with exit code {return_code} at concurrency {c} for endpoint {endpoint_name}")
+                    logger.error(f"Command: {' '.join(cmd)}")
+                    if ab_stderr: # Log stderr if it contains anything
+                        logger.error(f"Stderr: {ab_stderr.strip()}")
+                    
+                    # Retry logic
+                    retry_count += 1
+                    if retry_count <= max_retries:
+                        logger.info(f"Retrying in {COOLDOWN_PERIOD} seconds... (attempt {retry_count}/{max_retries})")
+                        time.sleep(COOLDOWN_PERIOD)
+                        continue  # Try again
                     else:
-                        logger.debug("│" + " " * (box_width - 2) + "│")
-            proc.stdout.close()
-
-            # Read stderr line by line (only log if verbose, but always capture)
-            stderr_lines = []
-            for line in iter(proc.stderr.readline, ''):
-                stderr_lines.append(line)
-            proc.stderr.close()
-
-            # Wait for the process to complete and get the return code
-            return_code = proc.wait()
-            
-            ab_output = "".join(ab_output_lines)
-            ab_stderr = "".join(stderr_lines)
-
-            # Close the box before showing any error messages
-            if VERBOSE:
-                logger.debug("└" + "─" * (box_width - 2) + "┘")
+                        logger.warning(f"Max retries ({max_retries}) reached for {endpoint_name} at concurrency {c}. Moving to next concurrency level.")
+                        break  # Stop retrying this concurrency level
+                else:
+                    ab_success = True  # Command succeeded
+                    
+            except FileNotFoundError:
+                # Make sure to close the box if open
+                if VERBOSE:
+                    logger.debug("└" + "─" * (box_width - 2) + "┘")
+                logger.error(f"'ab' command not found. Please ensure ApacheBench is installed and in your PATH.")
+                sys.exit(1) # Exit script if ab is not found
+            except Exception as e:
+                # Make sure to close the box if open
+                if VERBOSE:
+                    logger.debug("└" + "─" * (box_width - 2) + "┘")
+                logger.exception(f"An unexpected error occurred while running ab for {endpoint_name} at concurrency {c}: {e}")
                 
-            if return_code != 0:
-                # Log error if ab command failed
-                logger.error(f"ab command failed with exit code {return_code} at concurrency {c} for endpoint {endpoint_name}")
-                logger.error(f"Command: {' '.join(cmd)}")
-                if ab_stderr: # Log stderr if it contains anything
-                    logger.error(f"Stderr: {ab_stderr.strip()}")
-                break # Stop testing this endpoint for higher concurrencies
-                
-        except FileNotFoundError:
-            # Make sure to close the box if open
-            if VERBOSE:
-                logger.debug("└" + "─" * (box_width - 2) + "┘")
-            logger.error(f"'ab' command not found. Please ensure ApacheBench is installed and in your PATH.")
-            sys.exit(1) # Exit script if ab is not found
-        except Exception as e:
-            # Make sure to close the box if open
-            if VERBOSE:
-                logger.debug("└" + "─" * (box_width - 2) + "┘")
-            logger.exception(f"An unexpected error occurred while running ab for {endpoint_name} at concurrency {c}: {e}")
-            break # Stop testing this endpoint
+                # Retry logic
+                retry_count += 1
+                if retry_count <= max_retries:
+                    logger.info(f"Retrying in {COOLDOWN_PERIOD} seconds... (attempt {retry_count}/{max_retries})")
+                    time.sleep(COOLDOWN_PERIOD)
+                    continue  # Try again
+                else:
+                    logger.warning(f"Max retries ({max_retries}) reached for {endpoint_name} at concurrency {c} due to exception. Moving to next concurrency level.")
+                    break  # Stop retrying this concurrency level
+
+        # If we didn't succeed after all retries, move to the next concurrency level
+        if not ab_success:
+            break
 
         # Parse p95, p99 and additional metrics from the captured stdout
         p95, p99, complete_requests, requests_per_sec, mean_time = parse_ab_output(ab_output)
