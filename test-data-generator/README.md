@@ -1,7 +1,7 @@
 # Test Data Generator
 
 This submodule offer a reproducable way to populate the database with test data. It is not intended to be used in production.
-We are using yaci-devkit and yaci-store to populate a m2 database. The default path will be ``./testData//devkit.db``.
+We are using yaci-devkit and yaci-store to populate a m2 database. The default path will be ``./testData/devkit.db``.
 
 The results and corresponding hashes will be saved in JSON file. This can be consumed by the integration tests to get the right hashes.
 

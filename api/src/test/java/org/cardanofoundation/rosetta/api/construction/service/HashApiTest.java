@@ -29,7 +29,7 @@ class HashApiTest extends IntegrationTest {
   @Test
   void hashTest() throws IOException {
     ConstructionHashRequest hashRequest = getHashRequest(
-        "testData//construction/hash/hash_request.json");
+        "testdata/construction/hash/hash_request.json");
     TransactionIdentifierResponse transactionIdentifierResponse = constructionApiService.constructionHashService(
         hashRequest);
 

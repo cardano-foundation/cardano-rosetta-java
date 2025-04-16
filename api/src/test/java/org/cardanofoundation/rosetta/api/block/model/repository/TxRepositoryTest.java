@@ -24,8 +24,8 @@ public class TxRepositoryTest extends IntegrationTest {
     private TxRepository txRepository;
 
     @Test
-    @Sql(scripts = "classpath:/testData//sql/tx-repository-test-init.sql", executionPhase = BEFORE_TEST_METHOD)
-    @Sql(scripts = "classpath:/testData//sql/tx-repository-test-cleanup.sql", executionPhase = AFTER_TEST_METHOD)
+    @Sql(scripts = "classpath:/testdata//sql/tx-repository-test-init.sql", executionPhase = BEFORE_TEST_METHOD)
+    @Sql(scripts = "classpath:/testdata//sql/tx-repository-test-cleanup.sql", executionPhase = AFTER_TEST_METHOD)
     public void testSearchTxnEntitiesOR_NoDuplicates() {
         Slice<TxnEntity> results = txRepository.searchTxnEntitiesOR(
                 null, null, null, null, Pageable.unpaged());

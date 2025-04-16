@@ -32,7 +32,7 @@ class CombineApiTest extends IntegrationTest {
   @RepeatedTest(10)
   void combineWithMetadataTest() throws IOException {
     ConstructionCombineRequest combineRequest = getCombineRequest(
-        "testData//construction/combine/combine_with_metadata.json");
+        "testdata/construction/combine/combine_with_metadata.json");
 
     ConstructionCombineResponse constructionCombineResponse =
         constructionApiService.constructionCombineService(combineRequest);
@@ -45,7 +45,7 @@ class CombineApiTest extends IntegrationTest {
   @RepeatedTest(10)
   void combineWithByronAddressTest() throws IOException {
     ConstructionCombineRequest combineRequest = getCombineRequest(
-        "testData//construction/combine/combine_with_byron_addresses.json");
+        "testdata/construction/combine/combine_with_byron_addresses.json");
 
     ConstructionCombineResponse constructionCombineResponse =
         constructionApiService.constructionCombineService(combineRequest);
@@ -58,7 +58,7 @@ class CombineApiTest extends IntegrationTest {
   @Test
   void combineWithInvalidSignatureTest() throws IOException {
     ConstructionCombineRequest combineRequest = getCombineRequest(
-        "testData//construction/combine/combine_with_invalid_transaction.json");
+        "testdata/construction/combine/combine_with_invalid_transaction.json");
 
     ApiException actualException = assertThrows(ApiException.class, () ->
         constructionApiService.constructionCombineService(combineRequest));
@@ -69,7 +69,7 @@ class CombineApiTest extends IntegrationTest {
   @RepeatedTest(10)
   void combineWithByronAddressMissingChaincodeTest() throws IOException {
     ConstructionCombineRequest combineRequest = getCombineRequest(
-        "testData//construction/combine/combine_with_byron_addresses_missing_chaincode.json");
+        "testdata/construction/combine/combine_with_byron_addresses_missing_chaincode.json");
 
     ApiException actualException = assertThrows(ApiException.class, () ->
         constructionApiService.constructionCombineService(combineRequest));

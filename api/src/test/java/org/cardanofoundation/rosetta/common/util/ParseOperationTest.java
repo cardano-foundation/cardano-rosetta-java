@@ -36,7 +36,7 @@ class ParseOperationTest {
 
   @Test
   void parseInputOperationTest() throws IOException {
-    Operation operation = getOperation("testData//construction/Operations/inputOperation.json");
+    Operation operation = getOperation("testdata/construction/Operations/inputOperation.json");
     ProcessOperations resultAccumulator = new ProcessOperations();
     resultAccumulator = OperationParseUtil.parseOperation(operation, NetworkEnum.PREPROD.getNetwork(), resultAccumulator, OperationType.INPUT.getValue());
 
@@ -48,7 +48,7 @@ class ParseOperationTest {
   }
   @Test
   void parseOutputOperationTest() throws IOException {
-    Operation operation = getOperation("testData//construction/Operations/outputOperation.json");
+    Operation operation = getOperation("testdata/construction/Operations/outputOperation.json");
     ProcessOperations resultAccumulator = new ProcessOperations();
     resultAccumulator = OperationParseUtil.parseOperation(operation, NetworkEnum.PREPROD.getNetwork(), resultAccumulator, OperationType.OUTPUT.getValue());
 
@@ -61,7 +61,7 @@ class ParseOperationTest {
   @Test
   void stakeKeyRegistrationTest() throws IOException, CborSerializationException {
     Operation operation = getOperation(
-        "testData//construction/Operations/stakeKeyRegistrationOperation.json");
+        "testdata/construction/Operations/stakeKeyRegistrationOperation.json");
     ProcessOperations resultAccumulator = new ProcessOperations();
     resultAccumulator = OperationParseUtil.parseOperation(operation, NetworkEnum.MAINNET.getNetwork(), resultAccumulator,
         OperationType.STAKE_KEY_REGISTRATION.getValue());
@@ -76,7 +76,7 @@ class ParseOperationTest {
   @Test
   void stakeKeyDeregistrationTest() throws IOException, CborSerializationException {
     Operation operation = getOperation(
-        "testData//construction/Operations/stakeKeyDeregistrationOperation.json");
+        "testdata/construction/Operations/stakeKeyDeregistrationOperation.json");
     ProcessOperations resultAccumulator = new ProcessOperations();
     resultAccumulator = OperationParseUtil.parseOperation(operation, NetworkEnum.MAINNET.getNetwork(), resultAccumulator,
         OperationType.STAKE_KEY_DEREGISTRATION.getValue());
@@ -88,7 +88,7 @@ class ParseOperationTest {
   @Test
   void stakeDelegationOperationTest() throws IOException {
     Operation operation = getOperation(
-        "testData//construction/Operations/stakeDelegationOperation.json");
+        "testdata/construction/Operations/stakeDelegationOperation.json");
     ProcessOperations resultAccumulator = new ProcessOperations();
     resultAccumulator = OperationParseUtil.parseOperation(operation, NetworkEnum.MAINNET.getNetwork(), resultAccumulator,
         OperationType.STAKE_DELEGATION.getValue());
@@ -99,7 +99,7 @@ class ParseOperationTest {
   @Test
   void dRepDelegationKeyHashOperationTest() throws IOException, CborSerializationException {
     Operation operation = getOperation(
-            "testData//construction/Operations/drepDelegationOperation-keyhash.json");
+            "testdata/construction/Operations/drepDelegationOperation-keyhash.json");
 
     ProcessOperations resultAccumulator = new ProcessOperations();
 
@@ -118,7 +118,7 @@ class ParseOperationTest {
   @Test
   void dRepDelegationScriptHashOperationTest() throws IOException, CborSerializationException {
     Operation operation = getOperation(
-            "testData//construction/Operations/drepDelegationOperation-scripthash.json");
+            "testdata/construction/Operations/drepDelegationOperation-scripthash.json");
 
     ProcessOperations resultAccumulator = new ProcessOperations();
 
@@ -137,7 +137,7 @@ class ParseOperationTest {
   @Test
   void dRepDelegationAbstainOperationTest() throws IOException, CborSerializationException {
     Operation operation = getOperation(
-            "testData//construction/Operations/drepDelegationOperation-abstain.json");
+            "testdata/construction/Operations/drepDelegationOperation-abstain.json");
 
     ProcessOperations resultAccumulator = new ProcessOperations();
 
@@ -155,7 +155,7 @@ class ParseOperationTest {
   @Test
   void dRepDelegationNoConfidenceOperationTest() throws IOException, CborSerializationException {
     Operation operation = getOperation(
-            "testData//construction/Operations/drepDelegationOperation-noconfidence.json");
+            "testdata/construction/Operations/drepDelegationOperation-noconfidence.json");
 
     ProcessOperations resultAccumulator = new ProcessOperations();
 
@@ -172,7 +172,7 @@ class ParseOperationTest {
 
   @Test
   void withdrawalOperationTest() throws IOException {
-    Operation operation = getOperation("testData//construction/Operations/withdrawalOperation.json");
+    Operation operation = getOperation("testdata/construction/Operations/withdrawalOperation.json");
     ProcessOperations resultAccumulator = new ProcessOperations();
     resultAccumulator = OperationParseUtil.parseOperation(operation, NetworkEnum.MAINNET.getNetwork(), resultAccumulator, OperationType.WITHDRAWAL.getValue());
 
@@ -183,7 +183,7 @@ class ParseOperationTest {
   @Test
   void poolRegistrationOperationTest() throws IOException {
     Operation operation = getOperation(
-        "testData//construction/Operations/poolRegistrationOperation.json");
+        "testdata/construction/Operations/poolRegistrationOperation.json");
     ProcessOperations resultAccumulator = new ProcessOperations();
     resultAccumulator = OperationParseUtil.parseOperation(operation, NetworkEnum.MAINNET.getNetwork(), resultAccumulator,
         OperationType.POOL_REGISTRATION.getValue());
@@ -196,7 +196,7 @@ class ParseOperationTest {
   @Test
   void poolRetirementOperationTest() throws IOException {
     Operation operation = getOperation(
-        "testData//construction/Operations/poolRetirementOperation.json");
+        "testdata/construction/Operations/poolRetirementOperation.json");
     ProcessOperations resultAccumulator = new ProcessOperations();
     resultAccumulator = OperationParseUtil.parseOperation(operation, NetworkEnum.MAINNET.getNetwork(), resultAccumulator,
         OperationType.POOL_RETIREMENT.getValue());

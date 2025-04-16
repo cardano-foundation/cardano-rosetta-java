@@ -30,7 +30,7 @@ class ParseApiTest extends IntegrationTest {
   @Test
   void depositParseTest() throws IOException {
     ConstructionParseRequest parseRequest = getParseRequest(
-        "testData//construction/parse/deposit_request.json");
+        "testdata/construction/parse/deposit_request.json");
     ConstructionParseResponse parseResponse = constructionApiService.constructionParseService(
         parseRequest);
 
@@ -44,7 +44,7 @@ class ParseApiTest extends IntegrationTest {
   @Test
   void refundParseTest() throws IOException {
     ConstructionParseRequest parseRequest = getParseRequest(
-        "testData//construction/parse/refund_request.json");
+        "testdata/construction/parse/refund_request.json");
     ConstructionParseResponse parseResponse = constructionApiService.constructionParseService(
         parseRequest);
 
@@ -58,7 +58,7 @@ class ParseApiTest extends IntegrationTest {
   @Test
   void signedMultiAssetTest() throws IOException {
     ConstructionParseRequest parseRequest = getParseRequest(
-        "testData//construction/parse/signed_multiasset_request.json");
+        "testdata/construction/parse/signed_multiasset_request.json");
     ConstructionParseResponse parseResponse = constructionApiService.constructionParseService(
         parseRequest);
 
