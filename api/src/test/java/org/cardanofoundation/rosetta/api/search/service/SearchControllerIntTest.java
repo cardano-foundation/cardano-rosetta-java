@@ -53,6 +53,7 @@ class SearchControllerIntTest extends IntegrationTest {
   void searchByUtxo() {
     TransactionBlockDetails txDetails = generatedDataMap.get(
         "simple_transaction");
+
     SearchTransactionsRequest req = SearchTransactionsRequest.builder()
         .transactionIdentifier(TransactionIdentifier.builder()
             .hash(txDetails.txHash())

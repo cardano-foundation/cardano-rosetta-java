@@ -111,8 +111,6 @@ class BlockServiceImplIntTest extends IntegrationTest {
     assertEquals(expected, outUtxo2.getAmounts().getFirst().getQuantity());
 
   }
-
-
   @Test
   void getDepositPool_Test() {
     assertThat(protocolParamService.findProtocolParameters().getPoolDeposit())

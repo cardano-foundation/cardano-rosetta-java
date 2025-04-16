@@ -18,7 +18,7 @@ spring:
     driver-class-name: org.h2.Driver
     username: rosetta_db_admin
     password: weakpwd#123_d
-    url: jdbc:h2:file:../testdata/devkit.db
+    url: jdbc:h2:file:../testData/devkit.db
   #    url: jdbc:h2:mem:${DB_NAME:rosetta-java};INIT=RUNSCRIPT FROM 'classpath:init.sql;DB_CLOSE_DELAY=-1;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH
   sql:
     init:
@@ -29,7 +29,7 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: false
     hibernate:
-      ddl-auto: none
+      ddl-auto: create-drop
     show-sql: true
     defer-datasource-initialization: true
     database-platform: org.hibernate.dialect.PostgreSQLDialect

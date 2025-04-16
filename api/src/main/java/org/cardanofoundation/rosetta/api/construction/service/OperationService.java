@@ -42,7 +42,7 @@ import static org.cardanofoundation.rosetta.common.util.Constants.OPERATION_TYPE
 public class OperationService {
 
   public List<Operation> getOperationsFromTransactionData(TransactionData data, Network network)
-      throws CborDeserializationException, CborException, CborSerializationException {
+          throws CborDeserializationException, CborException, CborSerializationException {
     TransactionBody transactionBody = data.transactionBody();
     TransactionExtraData extraData = data.transactionExtraData();
 
@@ -69,27 +69,27 @@ public class OperationService {
     }
     validateMetadataForStakingCredential(operation);
     HdPublicKey hdPublicKey =
-        CardanoAddressUtils.publicKeyToHdPublicKey(operation.getMetadata().getStakingCredential());
+            CardanoAddressUtils.publicKeyToHdPublicKey(operation.getMetadata().getStakingCredential());
 
     return Collections.singletonList(
-        CardanoAddressUtils.generateRewardAddress(network, hdPublicKey));
+            CardanoAddressUtils.generateRewardAddress(network, hdPublicKey));
   }
 
   private void fillInputOperations(TransactionBody transactionBody,
-      TransactionExtraData extraData,
-      List<Operation> operations) {
+                                   TransactionExtraData extraData,
+                                   List<Operation> operations) {
     List<TransactionInput> inputs = transactionBody.getInputs();
     log.info("[fillInputOperations] About to parse {} inputs", inputs.size());
     List<Operation> inputOperations = extraData.operations().stream()
-        .filter(o -> o.getType().equals(OperationType.INPUT.getValue()))
-        .toList();
+            .filter(o -> o.getType().equals(OperationType.INPUT.getValue()))
+            .toList();
     for (int i = 0; i < inputs.size(); i++) {
       if (!inputOperations.isEmpty() && inputOperations.size() <= inputs.size()) {
         operations.add(inputOperations.get(i));
       } else {
         TransactionInput input = inputs.get(i);
         Operation inputParsed = ParseConstructionUtil.transactionInputToOperation(input,
-            (long) operations.size());
+                (long) operations.size());
         operations.add(inputParsed);
       }
     }
@@ -98,50 +98,58 @@ public class OperationService {
   private void fillOutputOperations(TransactionBody transactionBody, List<Operation> operations) {
     List<TransactionOutput> outputs = transactionBody.getOutputs();
     List<OperationIdentifier> relatedOperations = ParseConstructionUtil.getRelatedOperationsFromInputs(
-        operations);
+            operations);
     log.info("[parseOperationsFromTransactionBody] About to parse {} outputs", outputs.size());
     for (TransactionOutput output : outputs) {
       Operation outputParsed = ParseConstructionUtil.transActionOutputToOperation(output,
-          (long) operations.size(),
-          relatedOperations);
+              (long) operations.size(),
+              relatedOperations);
       operations.add(outputParsed);
     }
   }
 
   private void fillCertOperations(TransactionBody transactionBody, TransactionExtraData extraData,
-      Network network, List<Operation> operations)
-      throws CborException, CborSerializationException {
+                                  Network network, List<Operation> operations)
+          throws CborException, CborSerializationException {
+
     List<Operation> certOps = extraData.operations().stream()
-        .filter(o -> Constants.STAKE_POOL_OPERATIONS.contains(o.getType())
-        ).toList();
+            .filter(o -> Constants.STAKE_POOL_OPERATIONS.contains(o.getType())
+                    || Constants.GOVERNANCE_OPERATIONS.contains(o.getType()))
+
+            .toList();
+
     List<Operation> parsedCertOperations = ParseConstructionUtil.parseCertsToOperations(
             transactionBody, certOps, network);
+
     operations.addAll(parsedCertOperations);
   }
 
   private void fillWithdrawalOperations(TransactionBody transactionBody,
-      TransactionExtraData extraData,
-      Network network, List<Operation> operations) {
+                                        TransactionExtraData extraData,
+                                        Network network, List<Operation> operations) {
     List<Operation> withdrawalOps = extraData.operations().stream()
-        .filter(o -> o.getType().equals(OperationType.WITHDRAWAL.getValue()))
-        .toList();
+            .filter(o -> o.getType().equals(OperationType.WITHDRAWAL.getValue()))
+            .toList();
     int withdrawalsCount = ObjectUtils.isEmpty(transactionBody.getWithdrawals()) ? 0
-        : transactionBody.getWithdrawals().size();
+            : transactionBody.getWithdrawals().size();
     List<Operation> withdrawalsOperations = ParseConstructionUtil.parseWithdrawalsToOperations(
             withdrawalOps, withdrawalsCount, network);
+
     operations.addAll(withdrawalsOperations);
   }
 
   private void fillVoteOperations(TransactionExtraData extraData, List<Operation> operations)
-      throws CborDeserializationException {
+          throws CborDeserializationException {
     List<Operation> voteOp = extraData.operations().stream()
-        .filter(o -> o.getType().equals(OperationType.VOTE_REGISTRATION.getValue()))
-        .toList();
+            .filter(o -> o.getType().equals(OperationType.VOTE_REGISTRATION.getValue()))
+            .toList();
+
     if (!ObjectUtils.isEmpty(voteOp)) {
       Operation parsedVoteOperations = ParseConstructionUtil.parseVoteMetadataToOperation(
-          voteOp.getFirst().getOperationIdentifier().getIndex(),
-          extraData.transactionMetadataHex()
+              voteOp.getFirst().getOperationIdentifier().getIndex(),
+              extraData.transactionMetadataHex()
       );
+
       operations.add(parsedVoteOperations);
     }
   }
@@ -154,20 +162,20 @@ public class OperationService {
           signers.add(operation.getAccount().getAddress());
         }
         Optional.ofNullable(operation.getMetadata())
-            .map(OperationMetadata::getPoolRegistrationParams)
-            .ifPresent(poolRegistrationParameters -> {
-              signers.add(poolRegistrationParameters.getRewardAddress());
-              signers.addAll(poolRegistrationParameters.getPoolOwners());
-            });
+                .map(OperationMetadata::getPoolRegistrationParams)
+                .ifPresent(poolRegistrationParameters -> {
+                  signers.add(poolRegistrationParameters.getRewardAddress());
+                  signers.addAll(poolRegistrationParameters.getPoolOwners());
+                });
       }
       case OPERATION_TYPE_POOL_REGISTRATION_WITH_CERT -> {
         String poolCertAsHex = Optional.ofNullable(operation.getMetadata())
-            .map(OperationMetadata::getPoolRegistrationCert)
-            .orElse(null);
+                .map(OperationMetadata::getPoolRegistrationCert)
+                .orElse(null);
         PoolRegistrationCertReturn dto = ValidateParseUtil.validateAndParsePoolRegistrationCert(
-            network,
-            poolCertAsHex,
-            operation.getAccount() == null ? null : operation.getAccount().getAddress()
+                network,
+                poolCertAsHex,
+                operation.getAccount() == null ? null : operation.getAccount().getAddress()
         );
         signers.addAll(dto.getAddress());
       }
@@ -180,7 +188,7 @@ public class OperationService {
       }
     }
     log.info("[getPoolSigners] About to return {} signers for {} operation", signers.size(),
-        operation.getType());
+            operation.getType());
 
     return signers;
   }

@@ -5,7 +5,6 @@ import jakarta.validation.constraints.NotNull;
 
 import static org.cardanofoundation.rosetta.common.util.RosettaConstants.RosettaErrorType;
 
-
 public class ExceptionFactory {
 
   public static ApiException blockNotFoundException() {
