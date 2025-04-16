@@ -1,11 +1,5 @@
 package org.cardanofoundation.rosetta.testgenerator.transactions.impl;
 
-import java.math.BigInteger;
-import java.util.HashMap;
-import java.util.Map;
-
-import lombok.extern.slf4j.Slf4j;
-
 import com.bloxbean.cardano.client.account.Account;
 import com.bloxbean.cardano.client.api.exception.ApiRuntimeException;
 import com.bloxbean.cardano.client.api.model.Amount;
@@ -19,12 +13,17 @@ import com.bloxbean.cardano.client.function.helper.SignerProviders;
 import com.bloxbean.cardano.client.quicktx.Tx;
 import com.bloxbean.cardano.client.transaction.spec.Asset;
 import com.bloxbean.cardano.client.transaction.spec.Policy;
-
+import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.testgenerator.common.BaseFunctions;
 import org.cardanofoundation.rosetta.testgenerator.common.TestConstants;
 import org.cardanofoundation.rosetta.testgenerator.common.TestTransactionNames;
 import org.cardanofoundation.rosetta.testgenerator.common.TransactionBlockDetails;
 import org.cardanofoundation.rosetta.testgenerator.transactions.TransactionRunner;
+
+import java.math.BigInteger;
+import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.cardanofoundation.rosetta.testgenerator.common.BaseFunctions.quickTxBuilder;
 
@@ -73,6 +72,7 @@ public class SimpleTransactions implements TransactionRunner {
         stakeKeyDeregistrationTransaction());
     generatedDataMap.put(TestTransactionNames.SIMPLE_TRANSACTION.getName() + "_2",
         simpleTransaction());
+
     return generatedDataMap;
   }
 
@@ -132,7 +132,7 @@ public class SimpleTransactions implements TransactionRunner {
     Result<String> complete = quickTxBuilder.compose(tx)
         .withSigner(SignerProviders.signerFrom(sender1))
         .withSigner(SignerProviders.signerFrom(policy))
-        .complete();
+        .completeAndWait(Duration.ofMinutes(1));
 
     return getTransactionOutput(sender1Addr, complete);
   }
@@ -150,7 +150,7 @@ public class SimpleTransactions implements TransactionRunner {
     Result<String> complete = quickTxBuilder.compose(tx)
         .withSigner(SignerProviders.signerFrom(sender1))
         .withSigner(SignerProviders.signerFrom(policy))
-        .complete();
+        .completeAndWait(Duration.ofMinutes(1));
 
     return getTransactionOutput(sender1Addr, complete);
   }
@@ -163,16 +163,21 @@ public class SimpleTransactions implements TransactionRunner {
         .payToAddress(TestConstants.RECEIVER_3, Amount.ada(1.0))
         .from(sender2Addr);
 
-    Result<String> complete = quickTxBuilder.compose(tx)
+    Result<String> result = quickTxBuilder.compose(tx)
         .withSigner(SignerProviders.signerFrom(sender2))
-        .complete();
-    log.info("Stake key registration tx: {}", complete.getValue());
+        .completeAndWait(Duration.ofMinutes(1));
 
-    String txHash = complete.getValue();
-    BaseFunctions.checkIfUtxoAvailable(txHash, sender2Addr);
-    Block block = BaseFunctions.getBlock(txHash);
+    log.info("Stake key registration tx: {}", result.getValue());
 
-    return new TransactionBlockDetails(txHash, block.getHash(), block.getHeight());
+    if (result.isSuccessful()) {
+      String txHash = result.getValue();
+      BaseFunctions.checkIfUtxoAvailable(txHash, sender2Addr);
+      Block block = BaseFunctions.getBlock(txHash);
+
+      return new TransactionBlockDetails(txHash, block.getHash(), block.getHeight());
+    }
+
+    throw new RuntimeException("Error in registering stake key, reason: " + result.getResponse());
   }
 
   public TransactionBlockDetails stakeKeyDeregistrationTransaction() {
@@ -183,11 +188,12 @@ public class SimpleTransactions implements TransactionRunner {
         .payToAddress(TestConstants.RECEIVER_3, Amount.ada(1.0))
         .from(sender2Addr);
 
-    Result<String> complete = quickTxBuilder.compose(tx)
+    Result<String> result = quickTxBuilder.compose(tx)
         .withSigner(SignerProviders.stakeKeySignerFrom(sender2))
         .withSigner(SignerProviders.signerFrom(sender2))
-        .complete();
-    String txHash = complete.getValue();
+        .completeAndWait(Duration.ofMinutes(1));
+
+    String txHash = result.getValue();
     BaseFunctions.checkIfUtxoAvailable(txHash, sender2Addr);
     Block block = BaseFunctions.getBlock(txHash);
 
@@ -198,13 +204,12 @@ public class SimpleTransactions implements TransactionRunner {
       String addressTo) {
     Result<String> complete = quickTxBuilder.compose(tx)
         .withSigner(SignerProviders.signerFrom(from))
-        .complete();
+        .completeAndWait(Duration.ofMinutes(1));
 
     return getTransactionOutput(addressTo, complete);
   }
 
-  private TransactionBlockDetails getTransactionOutput(String addressTo,
-      Result<String> result) {
+  private TransactionBlockDetails getTransactionOutput(String addressTo, Result<String> result) {
     String txHash = result.getValue();
     log.info("Transaction hash: {}", txHash);
     BaseFunctions.checkIfUtxoAvailable(txHash, addressTo);
@@ -214,4 +219,5 @@ public class SimpleTransactions implements TransactionRunner {
 
     return new TransactionBlockDetails(txHash, hash, transactionBlock.getHeight());
   }
+
 }

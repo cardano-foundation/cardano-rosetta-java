@@ -309,6 +309,6 @@ class AccountBalanceApiTest extends BaseSpringMvcSetup {
     } catch (Exception e) {
       throw new AssertionError(e);
     }
+ }
 
-  }
 }
