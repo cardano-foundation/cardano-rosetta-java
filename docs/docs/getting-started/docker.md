@@ -89,7 +89,7 @@ The default values:
 ### 2. How to run the container
 
 ```
-docker run --env-file ./docker/.env.dockerfile --env-file .env.docker-profile-entry-level -p 8082:8082 -it {image_name}:latest
+docker run --env-file ./docker/.env.dockerfile --env-file .env.docker-profile-mid-level -p 8082:8082 -it {image_name}:latest
 ```
 
 You need to specify the path to the environment variables file and open the port. The standard Port for the API is `8082`.
@@ -99,7 +99,7 @@ It is recommended to use a fully synced node, otherwise it can lead to instabili
 To mount Node data into the container use the following command:
 
 ```
-docker run --env-file ./docker/.env.dockerfile --env-file .env.docker-profile-entry-level -p 8082:8082 -v {node_snapshot}:/node/db -it {image_name}:latest
+docker run --env-file ./docker/.env.dockerfile --env-file .env.docker-profile-mid-level -p 8082:8082 --shm-size=4g -v {node_snapshot}:/node/db -it {image_name}:latest
 ```
 
 Relevant datapathes within the container:
@@ -114,7 +114,7 @@ Relevant datapathes within the container:
 The synchronization mode is to for users who don't have a fully synced node and need to start from scratch without using a snapshot.
 
 ```
-docker run -e SYNC=true --env-file .\docker\.env.dockerfile -p 8082:8082 -d {image_name}:latest
+docker run -e SYNC=true --env-file .\docker\.env.dockerfile -p 8082:8082 --shm-size=4g -d {image_name}:latest
 ```
 
 The container can be started in synchronization mode. In this case, the container will verify chunks and synchronize the node, when it reaches the tip, the API is started automatically.

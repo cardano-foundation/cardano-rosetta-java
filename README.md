@@ -1,5 +1,7 @@
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=cardano-foundation_cardano-rosetta-java&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=cardano-foundation_cardano-rosetta-java)
-[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=cardano-foundation_cardano-rosetta-java&metric=coverage)](https://sonarcloud.io/summary/new_code?id=cardano-foundation_cardano-rosetta-java)
+[![Build](https://github.com/cardano-foundation/cardano-rosetta-java/actions/workflows/feature-mvn-build.yaml/badge.svg)](https://github.com/cardano-foundation/cardano-rosetta-java/actions/workflows/feature-mvn-build.yaml)
+[![License](https://img.shields.io:/github/license/cardano-foundation/cardano-rosetta-java?label=license)](https://github.com/cardano-foundation/cardano-rosetta-java/blob/master/LICENSE)
+![Discord](https://img.shields.io/discord/1022471509173882950)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=cardano-foundation_cardano-rosetta-java&metric=coverage)](https://sonarcloud.io/summary/overall?id=cardano-foundation_cardano-rosetta-java)
 [![FOSSA Status](https://app.fossa.com/api/projects/custom%2B45571%2Fgithub.com%2Fcardano-foundation%2Fcardano-rosetta-java.svg?type=shield&issueType=license)](https://app.fossa.com/projects/custom%2B45571%2Fgithub.com%2Fcardano-foundation%2Fcardano-rosetta-java?ref=badge_shield&issueType=license)
 
 ## What the project is about?
@@ -42,7 +44,7 @@ The default config is focused on mainnet. If you want to test this on other Card
     git clone https://github.com/cardano-foundation/cardano-rosetta-java
     cd cardano-rosetta-java
     docker build -t rosetta-java -f ./docker/Dockerfile .
-    docker run --name rosetta -v {CUSTOM_MOUNT_PATH}:/node --env-file ./docker/.env.dockerfile --env-file ./docker/.env.docker-profile-entry-level -p 8082:8082 -d rosetta-java
+    docker run --name rosetta -v {CUSTOM_MOUNT_PATH}:/node --env-file ./docker/.env.dockerfile --env-file ./docker/.env.docker-profile-mid-level -p 8082:8082 --shm-size=4g -d rosetta-java
 ```
 Detailed explanation can be found in the [Wiki](https://github.com/cardano-foundation/cardano-rosetta-java/wiki/3.-Getting-Started-with-Docker).
 
@@ -81,13 +83,13 @@ Default is `online`.
 For every Release we provide pre-built docker images stored in the DockerHub Repositories of the Cardano Foundation ([DockerHub](https://hub.docker.com/orgs/cardanofoundation/repositories))
 To start it use the following command:
 ```bash
-    docker run --name rosetta -v {CUSTOM_MOUNT_PATH}:/node --env-file ./docker/.env.dockerfile --env-file ./docker/.env.docker-profile-entry-level -p 8082:8082 -d cardanofoundation/cardano-rosetta-java:1.2.5
+    docker run --name rosetta -v {CUSTOM_MOUNT_PATH}:/node --env-file ./docker/.env.dockerfile --env-file ./docker/.env.docker-profile-mid-level -p 8082:8082 --shm-size=4g -d cardanofoundation/cardano-rosetta-java:1.2.6
 ```
 Changes to the configuration can be made by adjusting the `docker/.env.dockerfile` file. For more information on the environment variables, please refer to the [Wiki](https://github.com/cardano-foundation/cardano-rosetta-java/wiki/5.-Environment-Variables).
 
 If you want to use the `cardano-submit-api` you can additionally expose port `8090`. It can then be used to submit raw cbor transaction (API documentation here: [Link](https://input-output-hk.github.io/cardano-rest/submit-api/))
 ```bash
-    docker run --name rosetta -v {CUSTOM_MOUNT_PATH}:/node --env-file ./docker/.env.dockerfile --env-file ./docker/.env.docker-profile-entry-level -p 8090:8090 -p 8082:8082 -d cardanofoundation/cardano-rosetta-java:1.2.6
+    docker run --name rosetta -v {CUSTOM_MOUNT_PATH}:/node --env-file ./docker/.env.dockerfile --env-file ./docker/.env.docker-profile-mid-level -p 8090:8090 -p 8082:8082 --shm-size=4g -d cardanofoundation/cardano-rosetta-java:1.2.6
 ```
 ### Docker compose
 If needed we also provide all components needed to run Rosetta in a docker-compose file.
@@ -100,7 +102,7 @@ This will start:
 
 ### Entry level hardware profile
 ```bash
-   docker-compose --env-file .env.docker-compose --env-file .env.docker-compose-profile-entry-level -f docker-compose.yaml up -d 
+   docker-compose --env-file .env.docker-compose --env-file .env.docker-compose-profile-mid-level -f docker-compose.yaml up -d 
 ```
 
 ### A complete list of hardware profiles:
