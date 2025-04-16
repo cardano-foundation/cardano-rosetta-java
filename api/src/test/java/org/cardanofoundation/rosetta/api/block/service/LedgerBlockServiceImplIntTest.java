@@ -126,15 +126,18 @@ class LedgerBlockServiceImplIntTest extends IntegrationTest {
     //given
     TransactionBlockDetails tx = generatedDataMap.get(POOL_DELEGATION_TRANSACTION.getName());
     //when
-    Slice<BlockTx> txs =
-        ledgerBlockService.findTransactionsByBlock(tx.blockNumber(), tx.blockHash());
+
+    List<BlockTx> txs =
+        ledgerBlockService.findTransactionsByBlock(tx.blockNumber(), tx.blockHash()).getContent();
+
     //then
     assertThat(txs).isNotNull().hasSize(1);
 
-    BlockTx blockTx = txs.getContent().getFirst();
+    BlockTx blockTx = txs.getFirst();
     assertThat(blockTx.getHash()).isEqualTo(tx.txHash());
     assertThat(blockTx.getBlockNo()).isEqualTo(tx.blockNumber());
     assertThat(blockTx.getBlockHash()).isEqualTo(tx.blockHash());
+
     assertThat(blockTx.getStakePoolDelegations()).hasSize(1);
     assertThat(blockTx.getStakePoolDelegations().getFirst().getAddress())
         .isEqualTo(STAKE_ADDRESS_WITH_EARNED_REWARDS);
@@ -297,6 +300,7 @@ class LedgerBlockServiceImplIntTest extends IntegrationTest {
         .setMaxResults(1)
         .getSingleResult();
     //when
+
     BlockIdentifierExtended genesisBlock = ledgerBlockService.findGenesisBlockIdentifier();
     //then
     assertThat(fromBlockB).isNotNull();
