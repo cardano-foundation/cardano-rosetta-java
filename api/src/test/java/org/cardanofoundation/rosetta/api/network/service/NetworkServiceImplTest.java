@@ -98,14 +98,14 @@ class NetworkServiceImplTest extends IntegrationTest {
 
   private NetworkRequest getNetworkRequest() throws IOException {
     File file = new File(this.getClass().getClassLoader()
-            .getResource("testdata/networkIdentifier.json").getFile());
+            .getResource("testData//networkIdentifier.json").getFile());
     ObjectMapper mapper = new ObjectMapper();
     return mapper.readValue(file, NetworkRequest.class);
   }
 
   private List<Error> getErrors() throws IOException {
     File file = new File(this.getClass().getClassLoader()
-            .getResource("testdata/errors.json").getFile());
+            .getResource("testData//errors.json").getFile());
     ObjectMapper mapper = new ObjectMapper();
     return mapper.readValue(file, new TypeReference<>() {});
   }

@@ -25,7 +25,7 @@ class MetadataApiTest extends IntegrationTest {
 
     private ConstructionMetadataRequest getCombineRequest() throws IOException {
         File file = new File(this.getClass().getClassLoader()
-                .getResource("testdata/construction/metadata/metadata_request.json")
+                .getResource("testData//construction/metadata/metadata_request.json")
                 .getFile());
         ObjectMapper mapper = new ObjectMapper();
         return mapper.readValue(file, ConstructionMetadataRequest.class);

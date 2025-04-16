@@ -33,22 +33,22 @@ class PreprocessApiTest extends IntegrationTest {
 
   @Test
   void simplePreprocessTest() throws IOException {
-    assertPreprocessRequest("testdata/construction/preprocess/simple_preprocess.json", 1000, 234);
+    assertPreprocessRequest("testData//construction/preprocess/simple_preprocess.json", 1000, 234);
   }
 
   @Test
   void twoWithdrawalsTest() throws IOException {
-    assertPreprocessRequest("testdata/construction/preprocess/two_withdrawals.json", 100, 409);
+    assertPreprocessRequest("testData//construction/preprocess/two_withdrawals.json", 100, 409);
   }
 
   @Test
   void poolRegistrationTest() throws IOException {
-    assertPreprocessRequest("testdata/construction/preprocess/pool_registration.json", 100, 930);
+    assertPreprocessRequest("testData//construction/preprocess/pool_registration.json", 100, 930);
   }
 
   @Test
   void dRepDelegationTest() throws IOException {
-    assertPreprocessRequest("testdata/construction/preprocess/drep_vote_delegation.json", 100, 405);
+    assertPreprocessRequest("testData//construction/preprocess/drep_vote_delegation.json", 100, 405);
   }
 
   private void assertPreprocessRequest(String constructionPayloadFile, int expectedTtl,

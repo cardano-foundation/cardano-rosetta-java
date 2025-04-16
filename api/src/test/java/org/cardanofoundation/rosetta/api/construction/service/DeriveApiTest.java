@@ -32,7 +32,7 @@ class DeriveApiTest extends IntegrationTest {
   @Test
   void deriveAddressTest() throws IOException {
     ConstructionDeriveRequest deriveRequest = getDeriveRequest(
-        "testdata/construction/derive/derive_request.json");
+        "testData//construction/derive/derive_request.json");
     ConstructionDeriveResponse constructionDeriveResponse = constructionApiService.constructionDeriveService(
         deriveRequest);
 
@@ -43,7 +43,7 @@ class DeriveApiTest extends IntegrationTest {
   @Test
   void deriveAddressTestWithInvalidNetworkConfigurationTest() throws IOException {
     ConstructionDeriveRequest deriveRequest = getDeriveRequest(
-            "testdata/construction/derive/derive_request.json");
+            "testData//construction/derive/derive_request.json");
     deriveRequest.setNetworkIdentifier(new NetworkIdentifier());
     ApiException exception  = assertThrows(ApiException. class,
             () -> constructionApiService.constructionDeriveService(

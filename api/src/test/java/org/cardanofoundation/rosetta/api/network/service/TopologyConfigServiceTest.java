@@ -84,7 +84,7 @@ class TopologyConfigServiceTest {
   void getPeersNegativeTest_getProducers() {
     // given
     String jsonPath = this.getClass().getClassLoader()
-        .getResource("testdata/topology_with_producers.json").getFile();
+        .getResource("testData//topology_with_producers.json").getFile();
     ReflectionTestUtils.setField(topologyConfigService, "topologyFilepath", jsonPath);
 
     // when
