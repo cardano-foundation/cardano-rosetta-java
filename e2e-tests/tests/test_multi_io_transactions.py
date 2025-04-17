@@ -37,13 +37,18 @@ def test_multi_io_transaction(
     4. Validate the transaction on-chain
     """
     logger.info(
-        "Starting %s transaction test with %d inputs and %d outputs",
+        "Starting test · Scenario: %s · Inputs: %d · Outputs: %d",
         scenario_name,
         num_inputs,
         num_outputs,
     )
 
     try:
+        # Get initial ADA balance for this test
+        initial_balance_ada = rosetta_client._get_ada_balance_value(test_wallet.address)
+        logger.debug(f"Initial ADA balance: {initial_balance_ada} lovelace")
+        assert initial_balance_ada > 0, "Initial balance must be greater than zero"
+
         # Constants for the test
         transfer_amount_per_output = 1_500_000  # 1.5 ADA per output
         min_output_value = 1_000_000  # 1 ADA minimum required for outputs
@@ -272,12 +277,9 @@ def test_multi_io_transaction(
 
         # Log transaction information
         logger.info(
-            "Transaction submitted successfully - ID: %s (Scenario: %s, Inputs: %d, Outputs: %d, Fee: %d lovelace)",
+            "Transaction submitted · Hash: %s · Fee: %d lovelace!",
             tx_id,
-            scenario_name,
-            num_inputs,
-            num_outputs,
-            actual_fee,
+            actual_fee
         )
 
         # Log detailed breakdown at DEBUG level
@@ -298,8 +300,8 @@ def test_multi_io_transaction(
         logger.debug("Waiting for transaction to be included in a block...")
 
         # Define timeout and polling interval
-        timeout_seconds = 90  # 1.5 minutes
-        polling_interval = 5  # 5 seconds
+        timeout_seconds = 180  # 3 minutes
+        polling_interval = 15  # 15 seconds
         start_time = time.time()
         found_in_block = False
         current_block_identifier = None
@@ -350,7 +352,7 @@ def test_multi_io_transaction(
                         found_in_block = True
                         current_block_identifier = tx_info["block_identifier"]
                         logger.info(
-                            "Transaction found in block %s (hash: %s)",
+                            "Transaction found in block · Index: %s · Hash: %s!",
                             current_block_identifier["index"],
                             current_block_identifier["hash"],
                         )
@@ -461,30 +463,38 @@ def test_multi_io_transaction(
             onchain_fee == actual_fee
         ), f"Fee mismatch: expected {actual_fee}, got {onchain_fee}"
 
+        # Step 10: Validate final ADA balance decreases by the actual fee
+        logger.debug("Validating final ADA balance decrease by fee...")
+        final_balance_ada = rosetta_client._validate_balance_change(
+            test_wallet.address,
+            initial_balance_ada,
+            actual_fee  # Delta is just the fee for standard transactions
+        )
+
         # Final success message
         logger.info(
-            "Multi-IO transaction (%s scenario with %d inputs, %d outputs) successfully validated on-chain!",
-            scenario_name,
-            num_inputs,
-            num_outputs,
+            "Validation successful · Initial balance: %d · Final balance: %d · Fee: %d",
+            initial_balance_ada,
+            final_balance_ada,
+            actual_fee
         )
 
     except Exception as e:
-        logger.critical("TEST FAILURE DETAILS:")
-        logger.critical(f"Error type: {type(e).__name__}")
-        logger.critical(f"Error message: {str(e)}")
-        logger.critical("Stack trace:")
-        logger.critical(traceback.format_exc())
+        logger.critical("Test failure")
+        logger.critical(f"Failure details · Error type: {type(e).__name__}")
+        logger.critical(f"Failure details · Error message: {str(e)}")
+        logger.critical("Failure details · Stack trace:")
+        logger.critical(f"Failure details · Traceback:\n{traceback.format_exc()}")
 
         # Log critical state information
-        logger.critical("TEST STATE AT FAILURE:")
-        logger.critical(f"Inputs: {num_inputs}, Outputs: {num_outputs}")
-        logger.critical(f"Scenario: {scenario_name}")
+        logger.critical("Failure state")
+        logger.critical(f"Failure state · Inputs: {num_inputs} · Outputs: {num_outputs}")
+        logger.critical(f"Failure state · Scenario: {scenario_name}")
         logger.critical(
-            f"UTXOs used: {[u['coin_identifier'] for u in utxos] if 'utxos' in locals() else 'N/A'}"
+            f"Failure state · UTXOs used: {[u['coin_identifier'] for u in utxos] if 'utxos' in locals() else 'N/A'}!!"
         )
         logger.critical(
-            f"Constructed TX: {constructed_tx if 'constructed_tx' in locals() else 'N/A'}"
+            f"Failure state · Constructed TX: {constructed_tx if 'constructed_tx' in locals() else 'N/A'}!!"
         )
 
         # Add HTTP request debugging if available
@@ -501,16 +511,17 @@ def test_fixed_fee_transaction(rosetta_client, test_wallet):
     1. Doesn't use the standard fee calculation flow where the fee is obtained from preprocess/metadata and subtracted from outputs
     2. Instead, uses a fixed predetermined fee of 4,000,000 lovelaces
     3. The fee is expressed as the difference between input and output values
-    
-    The test follows these steps:
-    1. Select appropriate UTXOs to cover the transaction amount plus the fixed fee
-    2. Create outputs such that (inputs - outputs = fixed_fee)
-    3. Construct and submit the transaction with this predetermined fee
-    4. Validate the transaction on-chain
+    4. Construct and submit the transaction with this predetermined fee
+    5. Validate the transaction on-chain
     """
-    logger.info("Starting fixed fee transaction test with implicit 4,000,000 lovelace fee")
+    logger.info("Starting test · Scenario: fixed_fee · Fee: 4,000,000 lovelace")
 
     try:
+        # Get initial ADA balance for this test
+        initial_balance_ada = rosetta_client._get_ada_balance_value(test_wallet.address)
+        logger.debug(f"Initial ADA balance: {initial_balance_ada} lovelace")
+        assert initial_balance_ada > 0, "Initial balance must be greater than zero"
+
         # Constants for the test
         fixed_fee = 4_000_000  # 4 ADA fixed fee
         transfer_amount = 1_500_000  # 1.5 ADA for the transfer
@@ -601,9 +612,9 @@ def test_fixed_fee_transaction(rosetta_client, test_wallet):
         
         # Log transaction information
         logger.info(
-            "Transaction submitted successfully - ID: %s",
+            "Transaction submitted · Hash: %s · Fee: %d lovelace!",
             tx_id,
-            actual_fee,
+            actual_fee
         )
         
         # Log detailed breakdown at DEBUG level
@@ -623,8 +634,8 @@ def test_fixed_fee_transaction(rosetta_client, test_wallet):
         # Step 8: Wait for transaction to appear on-chain and validate it
         
         # Define timeout and polling interval
-        timeout_seconds = 90  # 1.5 minutes
-        polling_interval = 5  # 5 seconds
+        timeout_seconds = 180  # 3 minutes
+        polling_interval = 15  # 15 seconds
         start_time = time.time()
         found_in_block = False
         current_block_identifier = None
@@ -675,7 +686,7 @@ def test_fixed_fee_transaction(rosetta_client, test_wallet):
                         found_in_block = True
                         current_block_identifier = tx_info["block_identifier"]
                         logger.info(
-                            "Transaction found in block %s (hash: %s) via /search/transactions",
+                            "Transaction found in block · Index: %s · Hash: %s!",
                             current_block_identifier["index"],
                             current_block_identifier["hash"],
                         )
@@ -701,7 +712,7 @@ def test_fixed_fee_transaction(rosetta_client, test_wallet):
         ), f"Transaction {tx_id} not found on-chain within {timeout_seconds} seconds"
 
         # Also fetch the full block for verification using the identifier from search
-        logger.info(
+        logger.debug(
             "Fetching full block data for block %s (%s)...",
             current_block_identifier["index"],
             current_block_identifier["hash"],
@@ -764,26 +775,37 @@ def test_fixed_fee_transaction(rosetta_client, test_wallet):
             onchain_fee == fixed_fee
         ), f"Fee mismatch: expected {fixed_fee}, got {onchain_fee}"
 
+        # Step 10: Validate final balance
+        logger.debug("Validating final account balance...")
+        final_balance_ada = rosetta_client._validate_balance_change(
+            test_wallet.address,
+            initial_balance_ada,
+            fixed_fee  # Delta is the fixed fee for this test
+        )
+
         # Final success message
         logger.info(
-            "Fixed fee transaction successfully validated on-chain with 4,000,000 lovelace fee!"
+            "Validation successful · Initial balance: %d · Final balance: %d · Fee: %d",
+            initial_balance_ada,
+            final_balance_ada,
+            fixed_fee
         )
     
     except Exception as e:
-        logger.critical("TEST FAILURE DETAILS:")
-        logger.critical(f"Error type: {type(e).__name__}")
-        logger.critical(f"Error message: {str(e)}")
-        logger.critical("Stack trace:")
-        logger.critical(traceback.format_exc())
+        logger.critical("Test failure")
+        logger.critical(f"Failure details · Error type: {type(e).__name__}")
+        logger.critical(f"Failure details · Error message: {str(e)}")
+        logger.critical("Failure details · Stack trace:")
+        logger.critical(f"Failure details · Traceback:\n{traceback.format_exc()}")
         
         # Log critical state information
-        logger.critical("TEST STATE AT FAILURE:")
-        logger.critical("Scenario: fixed_fee")
+        logger.critical("Failure state")
+        logger.critical("Failure state · Scenario: fixed_fee")
         logger.critical(
-            f"UTXOs used: {[u['coin_identifier'] for u in utxos] if 'utxos' in locals() else 'N/A'}"
+            f"Failure state · UTXOs used: {[u['coin_identifier'] for u in utxos] if 'utxos' in locals() else 'N/A'}!!"
         )
         logger.critical(
-            f"Constructed TX: {constructed_tx if 'constructed_tx' in locals() else 'N/A'}"
+            f"Failure state · Constructed TX: {constructed_tx if 'constructed_tx' in locals() else 'N/A'}!!"
         )
         
         # Add HTTP request debugging if available

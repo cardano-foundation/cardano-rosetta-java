@@ -75,39 +75,28 @@ class SwissDesignFormatter(logging.Formatter):
             if hasattr(record, "msg") and isinstance(record.msg, str):
                 msg = record.msg
 
-                # Special formatting for test logs
+                # Special formatting for test logs based on punctuation
                 if original_name == "test":
-                    if "Starting" in msg and "transaction test" in msg:
-                        # Make the "Starting test" message stand out with green color
-                        # Apply singular/plural consistency
-                        msg = msg.replace(" with ", " · ")
-                        msg = msg.replace("1 inputs", "1 input")
-                        msg = msg.replace("1 outputs", "1 output")
-                        record.msg = f"{Style.GREEN}{msg}{Style.RESET}"
-                    elif "Transaction submitted successfully" in msg:
-                        # Highlight transaction IDs in a different color
-                        parts = msg.split(" - ID: ")
-                        if len(parts) == 2:
-                            tx_id_part = parts[1].split(" ")[0]
-                            remaining = parts[1][len(tx_id_part) :]
-                            # Add success icon and replace dash with dot separator
-                            record.msg = f"{Style.GREEN}✓ Transaction submitted successfully{Style.RESET} · ID: {Style.CYAN}{tx_id_part}{Style.RESET}{Style.GRAY}{remaining}{Style.RESET}"
-                    elif "Transaction found in block" in msg:
-                        # Highlight block info
-                        parts = msg.split("Transaction found in block ")
-                        if len(parts) == 2:
-                            # Add success icon
-                            record.msg = f"{Style.GREEN}✓ Transaction found in block {Style.CYAN}{parts[1]}{Style.RESET}"
-                    elif "Validating" in msg or "Waiting" in msg:
-                        # Light gray for processing messages
-                        record.msg = f"{Style.GRAY}{msg}{Style.RESET}"
-                    elif "successfully validated" in msg:
-                        # Bold green for success messages with success icon
-                        # Replace parentheses with minimal dot separators for better Swiss design
-                        msg = msg.replace(" (", " · ")
-                        msg = msg.replace(", ", " · ")
-                        msg = msg.replace(")", "")
-                        record.msg = f"{Style.GREEN}{Style.BOLD}✓ {msg}{Style.RESET}"
+                    if msg.endswith("!!"):
+                        # Error/Failure: Red color, !! icon
+                        record.msg = f"{Style.RED}!! {msg[:-2].strip()}{Style.RESET}"
+                    elif msg.endswith("!"):
+                        # Success: Green color, ✓ icon, highlight values
+                        base_msg = msg[:-1].strip()
+                        parts = base_msg.split(" · ")
+                        formatted_parts = [f"{Style.GREEN}✓ {parts[0]}{Style.RESET}"]
+                        if len(parts) > 1:
+                            for part in parts[1:]:
+                                if ":" in part:
+                                    key, value = part.split(":", 1)
+                                    formatted_parts.append(f"{Style.GRAY}{key.strip()}:{Style.RESET} {Style.CYAN}{value.strip()}{Style.RESET}")
+                                else:
+                                    # Fallback for parts without a colon
+                                    formatted_parts.append(f"{Style.CYAN}{part.strip()}{Style.RESET}")
+                        record.msg = " · ".join(formatted_parts)
+                    else:
+                        # Normal test message: Blue color
+                        record.msg = f"{Style.BLUE}{msg}{Style.RESET}"
 
                 # Highly minimal HTTP request/response formatting
                 elif "[REQUEST " in msg:

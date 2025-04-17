@@ -784,3 +784,49 @@ class RosettaClient:
             logger.error(f"Unexpected error during /search/transactions: {str(e)}")
             # Re-raise using the standard handler for consistency, although it might not be a NetworkError
             self._handle_request_error(e, context="/search/transactions request unexpected error")
+
+    # --- Internal Helper Methods ---
+
+    def _get_ada_balance_value(self, address: str) -> int:
+        """
+        Fetch ADA balance (in lovelace) for the given address.
+        Raises AssertionError if no ADA balance entry is found.
+        """
+        try:
+            balance_data = self.get_balance(str(address))
+            for balance_info in balance_data.get("balances", []):
+                if (
+                    balance_info.get("currency", {}).get("symbol") == "ADA"
+                    and "value" in balance_info
+                ):
+                    return int(balance_info["value"])
+            # If loop completes without finding ADA balance
+            logger.error(f"ADA balance not found in response for {address}: {balance_data}")
+            raise AssertionError(f"ADA balance not found for address {address}")
+        except Exception as e:
+            logger.error(f"Error fetching balance for {address}: {str(e)}")
+            raise # Re-raise after logging
+
+    def _validate_balance_change(self, address: str, initial_balance: int, expected_delta: int) -> int:
+        """
+        Fetch final balance and assert it equals initial_balance - expected_delta.
+        expected_delta should represent the net decrease (fee + deposit - refund).
+        """
+        try:
+            logger.debug(
+                f"Validating balance change for {address}. Initial: {initial_balance}, Expected Delta: {expected_delta}"
+            )
+            final_balance = self._get_ada_balance_value(address)
+            expected_final_balance = initial_balance - expected_delta
+
+            logger.debug(f"Final ADA balance: {final_balance} lovelace")
+            assert (
+                final_balance == expected_final_balance
+            ), f"Final balance mismatch: expected {expected_final_balance}, got {final_balance}"
+            logger.debug(f"Balance validation successful for {address}")
+            
+            return final_balance
+
+        except Exception as e:
+            logger.error(f"Error during balance validation for {address}: {str(e)}")
+            raise # Re-raise after logging

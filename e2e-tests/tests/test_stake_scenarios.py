@@ -11,6 +11,25 @@ from tests.stake_operations import execute_stake_operation_test
 logger = logging.getLogger("test")
 
 
+def _log_stake_operation_success(rosetta_client, test_wallet, result, message_template):
+    """Helper function to log the success message with balance details."""
+    final_balance_ada = rosetta_client._get_ada_balance_value(test_wallet.address)
+    logger.debug(f"Final ADA balance: {final_balance_ada} lovelace")
+
+    initial_balance = result.get("initial_balance", "N/A")
+    fee = result.get("fee", "N/A")
+    deposit = result.get("deposit", 0)
+    refund = result.get("refund", 0)
+
+    log_msg = f"{message_template} · Initial: {initial_balance} · Final: {final_balance_ada} · Fee: {fee}"
+    if deposit > 0:
+        log_msg += f" · Deposit: {deposit}"
+    if refund > 0:
+        log_msg += f" · Refund: {refund}"
+
+    logger.info(log_msg)
+
+
 @pytest.mark.order(1)
 def test_scenario1_stake_key_registration(rosetta_client, test_wallet):
     """
@@ -24,8 +43,8 @@ def test_scenario1_stake_key_registration(rosetta_client, test_wallet):
     logger.debug("Skipping registration check and assuming stake key is unregistered")
 
     try:
-        logger.info("▹ Executing registration operation")
-        execute_stake_operation_test(
+        logger.debug("▹ Executing registration operation")
+        result = execute_stake_operation_test(
             rosetta_client=rosetta_client,
             test_wallet=test_wallet,
             operation_type="stake key registration",
@@ -37,10 +56,12 @@ def test_scenario1_stake_key_registration(rosetta_client, test_wallet):
             operation_types=["registration"],
             pool_id=None,
         )
-        logger.info("✓ Stake key registered successfully")
+
+        # Log using the helper function
+        message_template = "Stake key registered successfully!"
+        _log_stake_operation_success(rosetta_client, test_wallet, result, message_template)
+
     except Exception as e:
-        logger.error(f"✗ Registration failed: {str(e)}")
-        logger.debug(f"Traceback: {traceback.format_exc()}")
         raise
 
 
@@ -61,7 +82,7 @@ def test_scenario1_stake_delegation(rosetta_client, test_wallet):
             "STAKE_POOL_HASH environment variable is required for delegation tests"
         )
 
-    logger.info(f"⬧ Scenario 1.2: Delegation » {pool_hash[:8]}...")
+    logger.info(f"⬧ Scenario 1.2: Delegation » {pool_hash}")
 
     # Check if stake key is already registered by querying account
     stake_address = test_wallet.get_stake_address()
@@ -72,14 +93,14 @@ def test_scenario1_stake_delegation(rosetta_client, test_wallet):
         logger.debug(f"Stake key is registered as expected: {account_info}")
     except Exception as e:
         # If we get an error, the stake key is likely not registered
-        logger.error(f"✗ Stake key not registered: {str(e)}")
+        logger.error(f"Stake key not registered · Error: {str(e)}!!")
         pytest.skip(
             "Stake key must be registered before delegation. Run test_stake_key_registration first."
         )
 
     try:
-        logger.info("▹ Executing delegation operation")
-        execute_stake_operation_test(
+        logger.debug("▹ Executing delegation operation")
+        result = execute_stake_operation_test(
             rosetta_client=rosetta_client,
             test_wallet=test_wallet,
             operation_type="stake delegation",
@@ -90,10 +111,12 @@ def test_scenario1_stake_delegation(rosetta_client, test_wallet):
             operation_types=["delegation"],
             pool_id=pool_hash,
         )
-        logger.info(f"✓ Stake key delegated to pool {pool_hash[:8]}...")
+
+        # Log using the helper function
+        message_template = f"Stake key delegated · Pool: {pool_hash}"
+        _log_stake_operation_success(rosetta_client, test_wallet, result, message_template)
+
     except Exception as e:
-        logger.error(f"✗ Delegation failed: {str(e)}")
-        logger.debug(f"Traceback: {traceback.format_exc()}")
         raise
 
 
@@ -111,7 +134,7 @@ def test_scenario1_stake_key_deregistration(rosetta_client, test_wallet):
 
     # Check if stake key is registered by querying account
     stake_address = test_wallet.get_stake_address()
-    logger.info("▹ Checking registration status")
+    logger.debug("▹ Checking registration status")
 
     try:
         # Try to get account information
@@ -123,15 +146,15 @@ def test_scenario1_stake_key_deregistration(rosetta_client, test_wallet):
         pass
     except Exception as e:
         # If we get an error, the stake key is likely not registered
-        logger.error(f"✗ Cannot check stake key: {str(e)}")
+        logger.error(f"Cannot check stake key · Error: {str(e)}!!")
         logger.debug(f"Traceback: {traceback.format_exc()}")
         pytest.skip(
             "Stake key is not registered. Run test_stake_key_registration first."
         )
 
     try:
-        logger.info("▹ Executing deregistration operation")
-        execute_stake_operation_test(
+        logger.debug("▹ Executing deregistration operation")
+        result = execute_stake_operation_test(
             rosetta_client=rosetta_client,
             test_wallet=test_wallet,
             operation_type="stake key deregistration",
@@ -142,10 +165,12 @@ def test_scenario1_stake_key_deregistration(rosetta_client, test_wallet):
             operation_types=["deregistration"],
             pool_id=None,
         )
-        logger.info("✓ Stake key deregistered successfully")
+
+        # Log using the helper function
+        message_template = "Stake key deregistered successfully!"
+        _log_stake_operation_success(rosetta_client, test_wallet, result, message_template)
+
     except Exception as e:
-        logger.error(f"✗ Deregistration failed: {str(e)}")
-        logger.debug(f"Traceback: {traceback.format_exc()}")
         raise
 
 
@@ -166,11 +191,11 @@ def test_scenario2_combined_registration_delegation(rosetta_client, test_wallet)
             "STAKE_POOL_HASH environment variable is required for delegation tests"
         )
 
-    logger.info(f"⬧ Scenario 2.1: Register+Delegate » {pool_hash[:8]}...")
+    logger.info(f"⬧ Scenario 2.1: Register+Delegate » {pool_hash}")
 
     try:
-        logger.info("▹ Executing combined operation")
-        execute_stake_operation_test(
+        logger.debug("▹ Executing combined operation")
+        result = execute_stake_operation_test(
             rosetta_client=rosetta_client,
             test_wallet=test_wallet,
             operation_type="combined stake registration and delegation",
@@ -182,10 +207,12 @@ def test_scenario2_combined_registration_delegation(rosetta_client, test_wallet)
             operation_types=["registration", "delegation"],
             pool_id=pool_hash,
         )
-        logger.info(f"✓ Stake key registered and delegated to pool {pool_hash[:8]}...")
+
+        # Log using the helper function
+        message_template = f"Stake key registered and delegated · Pool: {pool_hash}"
+        _log_stake_operation_success(rosetta_client, test_wallet, result, message_template)
+
     except Exception as e:
-        logger.error(f"✗ Combined operation failed: {str(e)}")
-        logger.debug(f"Traceback: {traceback.format_exc()}")
         raise
 
 
@@ -208,14 +235,14 @@ def test_scenario2_drep_vote_delegation_abstain(rosetta_client, test_wallet):
         logger.debug(f"Stake key is registered as expected: {account_info}")
     except Exception as e:
         # If we get an error, the stake key is likely not registered
-        logger.error(f"✗ Stake key not registered: {str(e)}")
+        logger.error(f"Stake key not registered · Error: {str(e)}!!")
         pytest.skip(
             "Stake key must be registered before vote delegation. Run test_scenario2_combined_registration_delegation first."
         )
 
     try:
-        logger.info("▹ Executing DRep vote delegation operation - Abstain")
-        execute_stake_operation_test(
+        logger.debug("▹ Executing DRep vote delegation operation - Abstain")
+        result = execute_stake_operation_test(
             rosetta_client=rosetta_client,
             test_wallet=test_wallet,
             operation_type="DRep vote delegation",
@@ -228,10 +255,12 @@ def test_scenario2_drep_vote_delegation_abstain(rosetta_client, test_wallet):
             drep_id=None,  # Not needed for abstain
             drep_type="abstain",
         )
-        logger.info("✓ Vote delegated to DRep type: abstain")
+
+        # Log using the helper function
+        message_template = "Vote delegated · Type: abstain"
+        _log_stake_operation_success(rosetta_client, test_wallet, result, message_template)
+
     except Exception as e:
-        logger.error(f"✗ DRep vote delegation failed: {str(e)}")
-        logger.debug(f"Traceback: {traceback.format_exc()}")
         raise
 
 
@@ -254,14 +283,14 @@ def test_scenario2_drep_vote_delegation_no_confidence(rosetta_client, test_walle
         logger.debug(f"Stake key is registered as expected: {account_info}")
     except Exception as e:
         # If we get an error, the stake key is likely not registered
-        logger.error(f"✗ Stake key not registered: {str(e)}")
+        logger.error(f"Stake key not registered · Error: {str(e)}!!")
         pytest.skip(
             "Stake key must be registered before vote delegation. Run test_scenario2_combined_registration_delegation first."
         )
 
     try:
-        logger.info("▹ Executing DRep vote delegation operation - No Confidence")
-        execute_stake_operation_test(
+        logger.debug("▹ Executing DRep vote delegation operation - No Confidence")
+        result = execute_stake_operation_test(
             rosetta_client=rosetta_client,
             test_wallet=test_wallet,
             operation_type="DRep vote delegation",
@@ -274,10 +303,12 @@ def test_scenario2_drep_vote_delegation_no_confidence(rosetta_client, test_walle
             drep_id=None,  # Not needed for no_confidence
             drep_type="no_confidence",
         )
-        logger.info("✓ Vote delegated to DRep type: no_confidence")
+
+        # Log using the helper function
+        message_template = "Vote delegated · Type: no_confidence"
+        _log_stake_operation_success(rosetta_client, test_wallet, result, message_template)
+
     except Exception as e:
-        logger.error(f"✗ DRep vote delegation failed: {str(e)}")
-        logger.debug(f"Traceback: {traceback.format_exc()}")
         raise
 
 
@@ -297,7 +328,7 @@ def test_scenario2_drep_vote_delegation_key_hash(rosetta_client, test_wallet):
         )
 
     logger.info(
-        f"⬧ Scenario 2.4: DRep Vote Delegation » Type: key_hash, ID: {drep_id[:8]}..."
+        f"⬧ Scenario 2.4: DRep Vote Delegation » Type: key_hash, ID: {drep_id}"
     )
 
     # Check if stake key is already registered by querying account
@@ -309,14 +340,14 @@ def test_scenario2_drep_vote_delegation_key_hash(rosetta_client, test_wallet):
         logger.debug(f"Stake key is registered as expected: {account_info}")
     except Exception as e:
         # If we get an error, the stake key is likely not registered
-        logger.error(f"✗ Stake key not registered: {str(e)}")
+        logger.error(f"Stake key not registered · Error: {str(e)}!!")
         pytest.skip(
             "Stake key must be registered before vote delegation. Run test_scenario2_combined_registration_delegation first."
         )
 
     try:
-        logger.info("▹ Executing DRep vote delegation operation - Key Hash")
-        execute_stake_operation_test(
+        logger.debug("▹ Executing DRep vote delegation operation - Key Hash")
+        result = execute_stake_operation_test(
             rosetta_client=rosetta_client,
             test_wallet=test_wallet,
             operation_type="DRep vote delegation",
@@ -329,10 +360,12 @@ def test_scenario2_drep_vote_delegation_key_hash(rosetta_client, test_wallet):
             drep_id=drep_id,
             drep_type="key_hash",
         )
-        logger.info(f"✓ Vote delegated to DRep type: key_hash, ID: {drep_id[:8]}...")
+
+        # Log using the helper function
+        message_template = f"Vote delegated · Type: key_hash · ID: {drep_id}"
+        _log_stake_operation_success(rosetta_client, test_wallet, result, message_template)
+
     except Exception as e:
-        logger.error(f"✗ DRep vote delegation failed: {str(e)}")
-        logger.debug(f"Traceback: {traceback.format_exc()}")
         raise
 
 
@@ -352,7 +385,7 @@ def test_scenario2_drep_vote_delegation_script_hash(rosetta_client, test_wallet)
         )
 
     logger.info(
-        f"⬧ Scenario 2.5: DRep Vote Delegation » Type: script_hash, ID: {drep_id[:8]}..."
+        f"⬧ Scenario 2.5: DRep Vote Delegation » Type: script_hash, ID: {drep_id}"
     )
 
     # Check if stake key is already registered by querying account
@@ -364,14 +397,14 @@ def test_scenario2_drep_vote_delegation_script_hash(rosetta_client, test_wallet)
         logger.debug(f"Stake key is registered as expected: {account_info}")
     except Exception as e:
         # If we get an error, the stake key is likely not registered
-        logger.error(f"✗ Stake key not registered: {str(e)}")
+        logger.error(f"Stake key not registered · Error: {str(e)}!!")
         pytest.skip(
             "Stake key must be registered before vote delegation. Run test_scenario2_combined_registration_delegation first."
         )
 
     try:
-        logger.info("▹ Executing DRep vote delegation operation - Script Hash")
-        execute_stake_operation_test(
+        logger.debug("▹ Executing DRep vote delegation operation - Script Hash")
+        result = execute_stake_operation_test(
             rosetta_client=rosetta_client,
             test_wallet=test_wallet,
             operation_type="DRep vote delegation",
@@ -384,10 +417,12 @@ def test_scenario2_drep_vote_delegation_script_hash(rosetta_client, test_wallet)
             drep_id=drep_id,
             drep_type="script_hash",
         )
-        logger.info(f"✓ Vote delegated to DRep type: script_hash, ID: {drep_id[:8]}...")
+
+        # Log using the helper function
+        message_template = f"Vote delegated · Type: script_hash · ID: {drep_id}"
+        _log_stake_operation_success(rosetta_client, test_wallet, result, message_template)
+
     except Exception as e:
-        logger.error(f"✗ DRep vote delegation failed: {str(e)}")
-        logger.debug(f"Traceback: {traceback.format_exc()}")
         raise
 
 
@@ -404,7 +439,7 @@ def test_scenario2_stake_key_deregistration(rosetta_client, test_wallet):
 
     # Check if stake key is registered by querying account
     stake_address = test_wallet.get_stake_address()
-    logger.info("▹ Checking registration status")
+    logger.debug("▹ Checking registration status")
 
     try:
         # Try to get account information
@@ -416,15 +451,15 @@ def test_scenario2_stake_key_deregistration(rosetta_client, test_wallet):
         pass
     except Exception as e:
         # If we get an error, the stake key is likely not registered
-        logger.error(f"✗ Cannot check stake key: {str(e)}")
+        logger.error(f"Cannot check stake key · Error: {str(e)}!!")
         logger.debug(f"Traceback: {traceback.format_exc()}")
         pytest.skip(
             "Stake key is not registered. Run combined registration and delegation test first."
         )
 
     try:
-        logger.info("▹ Executing deregistration operation")
-        execute_stake_operation_test(
+        logger.debug("▹ Executing deregistration operation")
+        result = execute_stake_operation_test(
             rosetta_client=rosetta_client,
             test_wallet=test_wallet,
             operation_type="stake key deregistration",
@@ -435,8 +470,10 @@ def test_scenario2_stake_key_deregistration(rosetta_client, test_wallet):
             operation_types=["deregistration"],
             pool_id=None,
         )
-        logger.info("✓ Stake key deregistered successfully")
+
+        # Log using the helper function
+        message_template = "Stake key deregistered successfully!"
+        _log_stake_operation_success(rosetta_client, test_wallet, result, message_template)
+
     except Exception as e:
-        logger.error(f"✗ Deregistration failed: {str(e)}")
-        logger.debug(f"Traceback: {traceback.format_exc()}")
         raise

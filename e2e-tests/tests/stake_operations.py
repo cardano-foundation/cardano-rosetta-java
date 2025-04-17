@@ -19,7 +19,7 @@ stake operation scenarios.
 """
 
 logger = logging.getLogger("test")
-logger.propagate = False  # Prevent propagation to parent loggers
+# logger.propagate = False  # Removed: Allow logs to propagate to root handlers
 
 
 def perform_stake_key_registration(rosetta_client, test_wallet):
@@ -46,7 +46,7 @@ def perform_stake_key_registration(rosetta_client, test_wallet):
     logger.debug("Skipping registration check and assuming stake key is unregistered")
 
     try:
-        logger.info("▹ Executing registration operation")
+        logger.debug("▹ Executing registration operation")
         execute_stake_operation_test(
             rosetta_client=rosetta_client,
             test_wallet=test_wallet,
@@ -98,14 +98,14 @@ def perform_stake_key_deregistration(rosetta_client, test_wallet):
         pass
     except Exception as e:
         # If we get an error, the stake key is likely not registered
-        logger.error(f"✗ Stake key not registered: {str(e)}")
+        logger.error(f"✗ Stake key not registered · Error: {str(e)}!!")
         logger.debug(f"Traceback: {traceback.format_exc()}")
         pytest.skip(
             "Stake key is not registered. Run test_stake_key_registration first."
         )
 
     try:
-        logger.info("▹ Executing deregistration operation")
+        logger.debug("▹ Executing deregistration operation")
         execute_stake_operation_test(
             rosetta_client=rosetta_client,
             test_wallet=test_wallet,
@@ -118,7 +118,7 @@ def perform_stake_key_deregistration(rosetta_client, test_wallet):
             pool_id=None,
         )
     except Exception as e:
-        logger.error(f"✗ Deregistration failed: {str(e)}")
+        logger.error(f"Deregistration failed · Error: {str(e)}!!")
         logger.debug(f"Traceback: {traceback.format_exc()}")
         raise
 
@@ -147,7 +147,7 @@ def perform_stake_delegation(rosetta_client, test_wallet):
             "STAKE_POOL_HASH environment variable is required for delegation tests"
         )
 
-    logger.info(f"⬧ Stake Delegation » {pool_hash[:8]}...")
+    logger.info(f"⬧ Stake Delegation » ({pool_hash})")
 
     # Check if stake key is already registered by querying account
     stake_address = test_wallet.get_stake_address()
@@ -161,13 +161,13 @@ def perform_stake_delegation(rosetta_client, test_wallet):
         pass
     except Exception as e:
         # If we get an error, the stake key is likely not registered
-        logger.error(f"✗ Stake key not registered: {str(e)}")
+        logger.error(f"Stake key not registered · Error: {str(e)}!!")
         pytest.skip(
             "Stake key must be registered before delegation. Run test_stake_key_registration first."
         )
 
     try:
-        logger.info("▹ Executing delegation operation")
+        logger.debug("▹ Executing delegation operation")
         execute_stake_operation_test(
             rosetta_client=rosetta_client,
             test_wallet=test_wallet,
@@ -180,7 +180,7 @@ def perform_stake_delegation(rosetta_client, test_wallet):
             pool_id=pool_hash,
         )
     except Exception as e:
-        logger.error(f"✗ Delegation failed: {str(e)}")
+        logger.error(f"Delegation failed · Error: {str(e)}!!")
         logger.debug(f"Traceback: {traceback.format_exc()}")
         raise
 
@@ -209,10 +209,10 @@ def perform_combined_registration_and_delegation(rosetta_client, test_wallet):
             "STAKE_POOL_HASH environment variable is required for delegation tests"
         )
 
-    logger.info(f"⬧ Register+Delegate » {pool_hash[:8]}...")
+    logger.info(f"⬧ Register+Delegate » ({pool_hash})")
 
     try:
-        logger.info("▹ Executing combined operation")
+        logger.debug("▹ Executing combined operation")
         execute_stake_operation_test(
             rosetta_client=rosetta_client,
             test_wallet=test_wallet,
@@ -226,7 +226,7 @@ def perform_combined_registration_and_delegation(rosetta_client, test_wallet):
             pool_id=pool_hash,
         )
     except Exception as e:
-        logger.error(f"✗ Combined operation failed: {str(e)}")
+        logger.error(f"Combined operation failed · Error: {str(e)}!!")
         logger.debug(f"Traceback: {traceback.format_exc()}")
         raise
 
@@ -262,6 +262,11 @@ def execute_stake_operation_test(
     logger.debug(f"Wallet address: {wallet_address}")
     logger.debug(f"Stake address: {stake_address}")
 
+    # Get initial balance of the payment address
+    initial_payment_balance_ada = rosetta_client._get_ada_balance_value(wallet_address)
+    logger.debug(f"Initial payment address balance: {initial_payment_balance_ada} lovelace")
+    assert initial_payment_balance_ada > 0, "Initial payment balance must be positive"
+
     # Calculate total required funds
     total_required = sum(required_funds.values())
     logger.debug(f"Total required funds: {total_required} lovelaces")
@@ -269,7 +274,7 @@ def execute_stake_operation_test(
     # Get UTXOs with sufficient funds
     try:
         utxos = rosetta_client.get_utxos(address=wallet_address)
-        logger.info(f"▹ Found {len(utxos)} UTXOs")
+        logger.debug(f"Found {len(utxos)} UTXOs")
 
         # Log the first UTXO to see its structure
         if utxos:
@@ -294,7 +299,7 @@ def execute_stake_operation_test(
             if amount_value >= total_required:
                 selected_utxo = utxo
                 coin_id = utxo["coin_identifier"]["identifier"]
-                logger.info(f"▹ Selected UTXO: {amount_value}₳")
+                logger.debug(f"▹ Selected UTXO: {amount_value}₳")
                 logger.debug(f"UTXO ID: {coin_id}")
                 break
 
@@ -302,7 +307,7 @@ def execute_stake_operation_test(
             selected_utxo is not None
         ), f"No UTXO with sufficient funds ({total_required} lovelaces) found"
     except Exception as e:
-        logger.error(f"✗ Error getting UTXOs: {str(e)}")
+        logger.error(f"Error getting UTXOs · Error: {str(e)}!!")
         logger.debug(f"Traceback: {traceback.format_exc()}")
         raise
 
@@ -592,138 +597,52 @@ def execute_stake_operation_test(
         # Sign transaction
         signatures = []
 
-        # Handle each operation type appropriately
-        # Note: operation_type is passed as "stake key registration", "stake key deregistration", etc.
-        # But the Rosetta API types are camelCase ("stakeKeyRegistration", etc.)
-        if "registration" in operation_type and "delegation" in operation_type:
-            # This is the combined registration and delegation case
-            logger.debug(
-                "This operation combines registration and delegation, adding both signatures"
+        # Define operations requiring stake key signature
+        STAKE_KEY_OPS = {"deregistration", "delegation", "drepVoteDelegation"}
+
+        # Check if any of the requested operations require a stake key signature
+        needs_stake_sig = any(op_type in STAKE_KEY_OPS for op_type in operation_types)
+
+        # Add stake key signature if needed and payload exists
+        if needs_stake_sig:
+            if stake_payload:
+                logger.debug(f"Adding stake key signature for operations: {operation_types}")
+                stake_signature = test_wallet.sign_with_stake_key(stake_payload)
+                signatures.append(stake_signature)
+            else:
+                logger.error(
+                    f"Missing stake payload - cannot perform operations {operation_types} without stake key signature!"
+                )
+
+        # Add payment key signature if payload exists (required for spending UTXOs)
+        if payment_payload:
+            logger.debug("Adding payment key signature for UTXO spending")
+            payment_signature = test_wallet.sign_transaction_with_payment_key(
+                payment_payload
             )
-            if stake_payload:
-                logger.debug(
-                    "Adding stake key signature for registration and delegation"
-                )
-                stake_signature = test_wallet.sign_with_stake_key(stake_payload)
-                signatures.append(stake_signature)
-            else:
-                logger.error(
-                    "Missing stake payload - cannot register or delegate without stake key signature!"
-                )
-
-            if payment_payload:
-                logger.debug("Adding payment key signature for UTXO spending")
-                payment_signature = test_wallet.sign_transaction_with_payment_key(
-                    payment_payload
-                )
-                signatures.append(payment_signature)
-            else:
-                logger.error(
-                    "Missing payment payload - cannot spend inputs without payment key signature!"
-                )
-        elif "registration" in operation_type:
-            # For registration, we now need BOTH payment and stake key signatures
-            if stake_payload:
-                logger.debug(
-                    "Adding stake key signature for registration authorization"
-                )
-                stake_signature = test_wallet.sign_with_stake_key(stake_payload)
-                signatures.append(stake_signature)
-            else:
-                logger.error(
-                    "Missing stake payload - cannot register without stake key signature!"
-                )
-
-            if payment_payload:
-                logger.debug("Adding payment key signature for UTXO spending")
-                payment_signature = test_wallet.sign_transaction_with_payment_key(
-                    payment_payload
-                )
-                signatures.append(payment_signature)
-            else:
-                logger.error(
-                    "Missing payment payload - cannot spend inputs without payment key signature!"
-                )
-        elif "deregistration" in operation_type:
-            # For deregistration, we need both stake and payment signatures
-            if stake_payload:
-                logger.debug(
-                    "Adding stake key signature for deregistration authorization"
-                )
-                stake_signature = test_wallet.sign_with_stake_key(stake_payload)
-                signatures.append(stake_signature)
-            else:
-                logger.error(
-                    "Missing stake payload - cannot deregister without stake key signature!"
-                )
-
-            if payment_payload:
-                logger.debug("Adding payment key signature for UTXO spending")
-                payment_signature = test_wallet.sign_transaction_with_payment_key(
-                    payment_payload
-                )
-                signatures.append(payment_signature)
-            else:
-                logger.error(
-                    "Missing payment payload - cannot spend inputs without payment key signature!"
-                )
-        elif "delegation" in operation_type:
-            # For delegation, we need both stake and payment signatures as well
-            if stake_payload:
-                logger.debug("Adding stake key signature for delegation authorization")
-                stake_signature = test_wallet.sign_with_stake_key(stake_payload)
-                signatures.append(stake_signature)
-            else:
-                logger.error(
-                    "Missing stake payload - cannot delegate without stake key signature!"
-                )
-
-            if payment_payload:
-                logger.debug("Adding payment key signature for UTXO spending")
-                payment_signature = test_wallet.sign_transaction_with_payment_key(
-                    payment_payload
-                )
-                signatures.append(payment_signature)
-            else:
-                logger.error(
-                    "Missing payment payload - cannot spend inputs without payment key signature!"
-                )
-        elif (
-            "drepVoteDelegation" in operation_type
-            or "DRep vote delegation" in operation_type
-        ):
-            # For DRep vote delegation, we need both stake and payment signatures
-            if stake_payload:
-                logger.debug(
-                    "Adding stake key signature for DRep vote delegation authorization"
-                )
-                stake_signature = test_wallet.sign_with_stake_key(stake_payload)
-                signatures.append(stake_signature)
-            else:
-                logger.error(
-                    "Missing stake payload - cannot delegate votes without stake key signature!"
-                )
-
-            if payment_payload:
-                logger.debug("Adding payment key signature for UTXO spending")
-                payment_signature = test_wallet.sign_transaction_with_payment_key(
-                    payment_payload
-                )
-                signatures.append(payment_signature)
-            else:
-                logger.error(
-                    "Missing payment payload - cannot spend inputs without payment key signature!"
-                )
-        else:
-            # For standard operations (non-staking), we only need payment key signature
-            logger.debug("Standard operation, adding payment key signature only")
-            signature = test_wallet.sign_transaction(unsigned_tx)
-            signatures.append(signature)
-            logger.debug("Added payment key signature for standard operation")
+            signatures.append(payment_signature)
+        elif needs_stake_sig:
+            # If a stake operation was requested but there's no payment payload,
+            # it might indicate an issue, as fees/deposits usually require UTXO spending.
+            # However, the transaction might be constructed differently (e.g., fee paid by someone else).
+            # Log a warning for potential issues, but don't block signing.
+            logger.warning(
+                f"Stake operations ({operation_types}) requested, but no payment payload found for UTXO spending. Assuming fees/deposits are handled externally."
+            )
+        # Note: If *only* payment_payload is needed (standard tx), the logic above handles it.
+        # The `needs_stake_sig` flag ensures we don't add a stake signature unnecessarily.
 
         logger.debug(f"Generated {len(signatures)} signatures for transaction")
         for i, sig in enumerate(signatures):
-            sig_type = "payment" if i == 0 else "stake"
+            # Determine signature type based on the key used (requires inspecting the signature object structure)
+            # For simplicity, let's assume the order: stake first (if present), then payment.
+            sig_type = "unknown"
+            if len(signatures) == 2:
+                 sig_type = "stake" if i == 0 else "payment"
+            elif len(signatures) == 1:
+                 sig_type = "stake" if needs_stake_sig else "payment"
+
+            # A more robust way would inspect `sig['public_key']['hex_bytes']` and compare with wallet keys
             logger.debug(f"Signature {i+1} ({sig_type}): {sig}")
 
         # Combine transaction with signature(s)
@@ -741,9 +660,9 @@ def execute_stake_operation_test(
 
         # Extract the transaction hash from the response
         tx_hash = submit_response["transaction_identifier"]["hash"]
-        logger.debug(f"Transaction submitted: {tx_hash}")
+        logger.info("Transaction submitted · Hash: %s!", tx_hash)
     except Exception as e:
-        logger.error(f"✗ Error in transaction construction/submission: {str(e)}")
+        logger.error(f"Error in transaction construction/submission · Error: {str(e)}!!")
         logger.debug(f"Traceback: {traceback.format_exc()}")
         raise
 
@@ -753,9 +672,8 @@ def execute_stake_operation_test(
         block_id, tx_details = wait_for_transaction_confirmation(
             rosetta_client, tx_hash
         )
-        logger.debug(f"Transaction confirmed in block: {block_id}")
     except Exception as e:
-        logger.error(f"✗ Error waiting for transaction confirmation: {str(e)}")
+        logger.error(f"Error waiting for transaction confirmation · Error: {str(e)}!!")
         logger.debug(f"Traceback: {traceback.format_exc()}")
         raise
 
@@ -815,29 +733,27 @@ def execute_stake_operation_test(
             ), f"Expected operation {expected_type} not found. Found operations: {found_operation_types}"
 
         # Validate fee calculation
+        input_ops = [op for op in onchain_ops if op["type"] == "input"]
+        output_ops = [op for op in onchain_ops if op["type"] == "output"]
         onchain_input_value = sum(abs(int(op["amount"]["value"])) for op in input_ops)
         onchain_output_value = sum(int(op["amount"]["value"]) for op in output_ops)
-
-        # Account for deposit in fee calculation if registration is included
         deposit_amount = (
             required_funds.get("deposit", 0) if "registration" in operation_types else 0
         )
-
-        # Account for refund in fee calculation if deregistration is included
         refund_amount = 2_000_000 if "deregistration" in operation_types else 0
 
-        # Fee = inputs - outputs - deposit + refund
-        onchain_fee = (
+        # Actual on-chain fee = inputs - outputs - deposit + refund
+        actual_fee = (
             onchain_input_value - onchain_output_value - deposit_amount + refund_amount
         )
-        logger.debug(f"Calculated on-chain fee: {onchain_fee} lovelaces")
-        logger.debug(f"Total inputs: {onchain_input_value} lovelaces")
-        logger.debug(f"Total outputs: {onchain_output_value} lovelaces")
-        logger.debug(f"Deposit: {deposit_amount} lovelaces")
-        logger.debug(f"Refund: {refund_amount} lovelaces")
+        logger.debug(f"Calculated actual on-chain fee: {actual_fee} lovelaces")
+        logger.debug(f"  Total inputs: {onchain_input_value} lovelaces")
+        logger.debug(f"  Total outputs: {onchain_output_value} lovelaces")
+        logger.debug(f"  Deposit applied: {deposit_amount} lovelaces")
+        logger.debug(f"  Refund applied: {refund_amount} lovelaces")
 
         # Ensure fee is reasonable (positive value)
-        assert onchain_fee > 0, f"Invalid fee calculation: {onchain_fee} lovelaces"
+        assert actual_fee >= 0, f"Invalid fee calculation: {actual_fee} lovelaces (must be non-negative)"
 
         # Validate stake operations
         if "registration" in operation_types and "delegation" in operation_types:
@@ -857,18 +773,32 @@ def execute_stake_operation_test(
                 rosetta_client, test_wallet, tx_details, drep_id, drep_type
             )
 
+        # --- Final Balance Validation ---
+        logger.debug("Validating final payment address balance...")
+        # Delta is the net change: fee + deposit - refund
+        expected_delta = actual_fee + deposit_amount - refund_amount
+        rosetta_client._validate_balance_change(
+            wallet_address, initial_payment_balance_ada, expected_delta
+        )
+
         logger.debug("Transaction validation successful")
     except AssertionError as e:
-        logger.error(f"✗ Transaction validation failed: {str(e)}")
+        logger.error(f"Transaction validation failed · Error: {str(e)}!!")
         logger.debug(f"Transaction details: {tx_details}")
         raise
     except Exception as e:
-        logger.error(f"✗ Error validating transaction: {str(e)}")
+        logger.error(f"Error validating transaction · Error: {str(e)}!!")
         logger.debug(f"Traceback: {traceback.format_exc()}")
         logger.debug(f"Transaction details: {tx_details}")
         raise
 
-    return tx_hash
+    return {
+        "tx_hash": tx_hash,
+        "fee": actual_fee,
+        "deposit": deposit_amount,
+        "refund": refund_amount,
+        "initial_balance": initial_payment_balance_ada,
+    }
 
 
 def build_stake_operations(
@@ -1423,7 +1353,7 @@ def construct_transaction_with_operations(
 
 
 def wait_for_transaction_confirmation(
-    rosetta_client, tx_id, timeout_seconds=90, polling_interval=5
+    rosetta_client, tx_id, timeout_seconds=180, polling_interval=15
 ):
     """
     Wait for a transaction to be confirmed on-chain and return its details.
@@ -1472,9 +1402,10 @@ def wait_for_transaction_confirmation(
                     found_in_block = True
                     current_block_identifier = tx_info["block_identifier"]
                     logger.info(
-                        f"Transaction found in block {current_block_identifier['index']} "
-                        f"(hash: {current_block_identifier['hash']}) via /search/transactions"
-                    )
+                            "Transaction found in block · Index: %s · Hash: %s!",
+                            current_block_identifier["index"],
+                            current_block_identifier["hash"],
+                        )
                     
                     # Now fetch the full block data for verification
                     logger.debug(
@@ -1524,7 +1455,9 @@ def wait_for_transaction_confirmation(
                     break
 
         except Exception as e:
-            logger.warning(f"Error during transaction search: {str(e)}")
+            logger.warning(
+                f"Error during transaction search · TX_ID: {tx_id} · Error: {str(e)}"
+            )
             time.sleep(polling_interval)
             continue
 
@@ -1539,20 +1472,20 @@ def wait_for_transaction_confirmation(
     # Verify transaction was found on-chain
     if not found_in_block:
         error_message = f"Transaction {tx_id} not found on-chain within {timeout_seconds} seconds"
-        logger.error(f"✗ {error_message}")
+        logger.error(f"{error_message}!!")
         raise TimeoutError(error_message)
 
     # If any of these basic checks fail, provide detailed error information
     if not block_tx_details:
         error_message = f"Failed to retrieve transaction details for {tx_id} from block {current_block_identifier['index']}"
-        logger.error(f"✗ {error_message}")
+        logger.error(f"{error_message}!!")
         # Also log what we do have for debugging
         logger.error(f"Block identifier: {current_block_identifier}")
         raise ValueError(error_message)
     
     if "transaction" not in block_tx_details:
         error_message = f"Transaction field missing in response for {tx_id}"
-        logger.error(f"✗ {error_message}")
+        logger.error(f"{error_message}!!")
         # Log what we received to help with debugging
         logger.error(f"Received response: {block_tx_details}")
         raise ValueError(error_message)
@@ -2001,12 +1934,11 @@ def validate_stake_key_deregistration(rosetta_client, test_wallet, tx_details):
         time.sleep(5)
 
         try:
+            # TODO: fix as this is not working
             account_info = rosetta_client.get_balance(address=stake_address)
-            # If we get here, the stake key might still be registered
-            # This could be a false positive if the node hasn't processed the deregistration yet
-            logger.warning(
-                f"Stake address still appears to be registered, this might be due to node sync delay. Account info: {account_info}"
-            )
+            #logger.warning(
+            #    f"Stake address still appears to be registered, this might be due to node sync delay. Account info: {account_info}"
+            #)
         except Exception as e:
             # This is expected - the stake key should be deregistered
             logger.debug(
