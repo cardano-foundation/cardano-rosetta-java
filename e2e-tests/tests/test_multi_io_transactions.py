@@ -295,7 +295,7 @@ def test_multi_io_transaction(
         assert verified_hash == tx_id, "Transaction hash mismatch!"
 
         # Step 8: Wait for transaction to appear on-chain and validate it
-        logger.info("Waiting for transaction to be included in a block...")
+        logger.debug("Waiting for transaction to be included in a block...")
 
         # Define timeout and polling interval
         timeout_seconds = 90  # 1.5 minutes
@@ -329,82 +329,75 @@ def test_multi_io_transaction(
                 }
             )
 
-        # Poll the network until we find the transaction in a block
+        # Poll the network until we find the transaction in a block using /search/transactions
         while not found_in_block and (time.time() - start_time < timeout_seconds):
-            # Get current network status
-            network_status = rosetta_client.network_status()
-            current_block_identifier = network_status.get("current_block_identifier")
+            try:
+                search_result = rosetta_client.search_transactions(tx_id)
+                
+                # Check if the transaction was found
+                if (
+                    search_result
+                    and "transactions" in search_result
+                    and search_result["transactions"]
+                ):
+                    # Assuming the first transaction in the list is the one we're looking for
+                    tx_info = search_result["transactions"][0]
+                    if (
+                        "transaction" in tx_info
+                        and tx_info["transaction"]["transaction_identifier"]["hash"] == tx_id
+                        and "block_identifier" in tx_info
+                    ):
+                        found_in_block = True
+                        current_block_identifier = tx_info["block_identifier"]
+                        logger.info(
+                            "Transaction found in block %s (hash: %s)",
+                            current_block_identifier["index"],
+                            current_block_identifier["hash"],
+                        )
+                        break # Exit loop once found
 
-            if not current_block_identifier:
-                logger.warning("Could not get current block identifier, retrying...")
-                time.sleep(polling_interval)
-                continue
-
-            current_block_index = int(current_block_identifier.get("index", 0))
-
-            # Initialize last checked block index if not already set
-            if last_checked_block_index is None:
-                last_checked_block_index = current_block_index
-
-            # Check all blocks from last checked to current
-            blocks_to_check = range(last_checked_block_index, current_block_index + 1)
-            logger.debug(
-                f"Checking blocks {last_checked_block_index} to {current_block_index}"
-            )
-
-            # Update last checked block index for next iteration
-            last_checked_block_index = current_block_index + 1
-
-            # Check each block in range for our transaction
-            for block_index in blocks_to_check:
-                block_identifier = {"index": block_index}
-                try:
-                    # Get the block
-                    block_data = rosetta_client.get_block(block_identifier)
-
-                    # Check if our transaction is in this block
-                    if "block" in block_data and "transactions" in block_data["block"]:
-                        for tx in block_data["block"]["transactions"]:
-                            if tx["transaction_identifier"]["hash"] == tx_id:
-                                found_in_block = True
-                                logger.info(
-                                    "Transaction found in block %s",
-                                    block_index,
-                                )
-                                # Extract the complete block identifier with hash from the block data
-                                if "block_identifier" in block_data["block"]:
-                                    current_block_identifier = block_data["block"][
-                                        "block_identifier"
-                                    ]
-                                    logger.debug(
-                                        f"Block identifier with hash: {current_block_identifier}"
-                                    )
-                                else:
-                                    logger.warning(
-                                        f"Block {block_index} does not contain block_identifier with hash"
-                                    )
-                                break
-
-                        if found_in_block:
-                            break
-                except Exception as e:
-                    logger.warning(f"Error checking block {block_index}: {str(e)}")
+            except Exception as e:
+                logger.warning(
+                    f"Error during /search/transactions polling for {tx_id}: {str(e)}"
+                )
+                # Handle specific cases or just wait and retry
 
             if not found_in_block:
                 logger.debug(
-                    "Transaction not found in blocks up to %s, waiting %d seconds...",
-                    current_block_index,
+                    "Transaction %s not yet found via /search/transactions, waiting %d seconds...",
+                    tx_id,
                     polling_interval,
                 )
                 time.sleep(polling_interval)
 
         # Verify transaction was found on-chain
         assert (
-            found_in_block
+            found_in_block and current_block_identifier
         ), f"Transaction {tx_id} not found on-chain within {timeout_seconds} seconds"
 
-        # Step 9: Fetch and validate the on-chain transaction details
-        logger.info("Validating on-chain transaction data...")
+        # Also fetch the full block for verification using the identifier from search
+        logger.debug(
+            "Fetching full block data for block %s (%s)...",
+            current_block_identifier["index"],
+            current_block_identifier["hash"],
+        )
+        block_data = rosetta_client.get_block(current_block_identifier)
+        assert block_data and "block" in block_data, "Failed to fetch block data"
+        assert (
+            block_data["block"]["block_identifier"]["index"]
+            == current_block_identifier["index"]
+        ), "Block index mismatch in fetched block data"
+        assert (
+            block_data["block"]["block_identifier"]["hash"]
+            == current_block_identifier["hash"],
+        ), "Block hash mismatch in fetched block data"
+        logger.debug("Successfully fetched and verified block data.")
+
+        # Step 9: Fetch and validate the on-chain transaction details using /block/transaction
+        logger.debug(
+            "Validating on-chain transaction data using /block/transaction for block %s...",
+             current_block_identifier["index"],
+        )
 
         block_tx_details = rosetta_client.get_block_transaction(
             current_block_identifier, tx_id
@@ -608,7 +601,7 @@ def test_fixed_fee_transaction(rosetta_client, test_wallet):
         
         # Log transaction information
         logger.info(
-            "Transaction submitted successfully - ID: %s (Scenario: fixed_fee, Fee: %d lovelace)",
+            "Transaction submitted successfully - ID: %s",
             tx_id,
             actual_fee,
         )
@@ -661,123 +654,116 @@ def test_fixed_fee_transaction(rosetta_client, test_wallet):
                 }
             )
         
-        # Poll the network until we find the transaction in a block
+        # Poll the network until we find the transaction in a block using /search/transactions
         while not found_in_block and (time.time() - start_time < timeout_seconds):
-            # Get current network status
-            network_status = rosetta_client.network_status()
-            current_block_identifier = network_status.get("current_block_identifier")
-            
-            if not current_block_identifier:
-                logger.warning("Could not get current block identifier, retrying...")
-                time.sleep(polling_interval)
-                continue
-            
-            current_block_index = int(current_block_identifier.get("index", 0))
-            
-            # Initialize last checked block index if not already set
-            if last_checked_block_index is None:
-                last_checked_block_index = current_block_index
-            
-            # Check all blocks from last checked to current
-            blocks_to_check = range(last_checked_block_index, current_block_index + 1)
-            logger.debug(
-                f"Checking blocks {last_checked_block_index} to {current_block_index}"
-            )
-            
-            # Update last checked block index for next iteration
-            last_checked_block_index = current_block_index + 1
-            
-            # Check each block in range for our transaction
-            for block_index in blocks_to_check:
-                block_identifier = {"index": block_index}
-                try:
-                    # Get the block
-                    block_data = rosetta_client.get_block(block_identifier)
-                    
-                    # Check if our transaction is in this block
-                    if "block" in block_data and "transactions" in block_data["block"]:
-                        for tx in block_data["block"]["transactions"]:
-                            if tx["transaction_identifier"]["hash"] == tx_id:
-                                found_in_block = True
-                                logger.info(
-                                    "Transaction found in block %s",
-                                    block_index,
-                                )
-                                # Extract the complete block identifier with hash from the block data
-                                if "block_identifier" in block_data["block"]:
-                                    current_block_identifier = block_data["block"][
-                                        "block_identifier"
-                                    ]
-                                    logger.debug(
-                                        f"Block identifier with hash: {current_block_identifier}"
-                                    )
-                                else:
-                                    logger.warning(
-                                        f"Block {block_index} does not contain block_identifier with hash"
-                                    )
-                                break
-                        
-                        if found_in_block:
-                            break
-                except Exception as e:
-                    logger.warning(f"Error checking block {block_index}: {str(e)}")
-            
+            try:
+                search_result = rosetta_client.search_transactions(tx_id)
+                
+                # Check if the transaction was found
+                if (
+                    search_result
+                    and "transactions" in search_result
+                    and search_result["transactions"]
+                ):
+                    # Assuming the first transaction in the list is the one we're looking for
+                    tx_info = search_result["transactions"][0]
+                    if (
+                        "transaction" in tx_info
+                        and tx_info["transaction"]["transaction_identifier"]["hash"] == tx_id
+                        and "block_identifier" in tx_info
+                    ):
+                        found_in_block = True
+                        current_block_identifier = tx_info["block_identifier"]
+                        logger.info(
+                            "Transaction found in block %s (hash: %s) via /search/transactions",
+                            current_block_identifier["index"],
+                            current_block_identifier["hash"],
+                        )
+                        break # Exit loop once found
+
+            except Exception as e:
+                logger.warning(
+                    f"Error during /search/transactions polling for {tx_id}: {str(e)}"
+                )
+                # Handle specific cases or just wait and retry
+
             if not found_in_block:
                 logger.debug(
-                    "Transaction not found in blocks up to %s, waiting %d seconds...",
-                    current_block_index,
+                    "Transaction %s not yet found via /search/transactions, waiting %d seconds...",
+                    tx_id,
                     polling_interval,
                 )
                 time.sleep(polling_interval)
-        
+
         # Verify transaction was found on-chain
         assert (
-            found_in_block
+            found_in_block and current_block_identifier
         ), f"Transaction {tx_id} not found on-chain within {timeout_seconds} seconds"
-        
-        # Step 9: Fetch and validate the on-chain transaction details
-        logger.info("Validating on-chain transaction data...")
-        
+
+        # Also fetch the full block for verification using the identifier from search
+        logger.info(
+            "Fetching full block data for block %s (%s)...",
+            current_block_identifier["index"],
+            current_block_identifier["hash"],
+        )
+        block_data = rosetta_client.get_block(current_block_identifier)
+        assert block_data and "block" in block_data, "Failed to fetch block data"
+        assert (
+            block_data["block"]["block_identifier"]["index"]
+            == current_block_identifier["index"]
+        ), "Block index mismatch in fetched block data"
+        assert (
+            block_data["block"]["block_identifier"]["hash"]
+            == current_block_identifier["hash"],
+        ), "Block hash mismatch in fetched block data"
+        logger.debug("Successfully fetched and verified block data.")
+
+        # Step 9: Fetch and validate the on-chain transaction details using /block/transaction
+        logger.debug(
+            "Validating on-chain transaction data using /block/transaction for block %s...",
+             current_block_identifier["index"],
+        )
+
         block_tx_details = rosetta_client.get_block_transaction(
             current_block_identifier, tx_id
         )
-        
+
         # Verify transaction exists in response
         assert (
             "transaction" in block_tx_details
         ), "Transaction details not found in response"
         onchain_tx = block_tx_details["transaction"]
-        
+
         # Verify operations exist
         assert "operations" in onchain_tx, "Operations not found in transaction"
         onchain_ops = onchain_tx["operations"]
-        
+
         # Validate number of operations
         assert len(onchain_ops) == len(original_operations), (
             f"Operation count mismatch: expected {len(original_operations)}, "
             f"got {len(onchain_ops)}"
         )
-        
+
         # Validate operations
         input_ops = [op for op in onchain_ops if op["type"] == "input"]
         output_ops = [op for op in onchain_ops if op["type"] == "output"]
-        
+
         # Validate input operations
         assert len(input_ops) == 1, f"Expected 1 input operation, got {len(input_ops)}"
-        
+
         # Validate output operations
         assert len(output_ops) == 1, f"Expected 1 output operation, got {len(output_ops)}"
-        
+
         # Calculate and validate the actual on-chain fee
         onchain_input_value = sum(abs(int(op["amount"]["value"])) for op in input_ops)
         onchain_output_value = sum(int(op["amount"]["value"]) for op in output_ops)
         onchain_fee = onchain_input_value - onchain_output_value
-        
+
         logger.debug("On-chain fee: %d lovelace", onchain_fee)
         assert (
             onchain_fee == fixed_fee
         ), f"Fee mismatch: expected {fixed_fee}, got {onchain_fee}"
-        
+
         # Final success message
         logger.info(
             "Fixed fee transaction successfully validated on-chain with 4,000,000 lovelace fee!"

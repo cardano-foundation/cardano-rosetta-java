@@ -542,15 +542,28 @@ def pytest_runtest_logreport(report):
                 # Add detailed failure information
                 if hasattr(report, "longrepr") and report.longrepr:
                     if isinstance(report.longrepr, tuple) and len(report.longrepr) >= 3:
-                        _, _, error_msg = report.longrepr
+                        _, lineno, error_msg = report.longrepr
                         lines = str(error_msg).strip().split("\n")
-                        print(f"{Style.RED}Error details:{Style.RESET}")
-                        for line in lines[:10]:
-                            print(f"{Style.GRAY}  {line.strip()}{Style.RESET}")
-                        if len(lines) > 10:
-                            print(f"{Style.GRAY}  ... ({len(lines) - 10} more lines){Style.RESET}")
+                        
+                        # Print a more prominent error section
+                        print(f"\n{Style.RED}══════ ERROR DETAILS ══════{Style.RESET}")
+                        print(f"{Style.RED}Error at line {lineno}{Style.RESET}")
+                        
+                        # Print more lines of the error message (up to 20)
+                        for line in lines[:20]:
+                            if "E   " in line:  # Highlight actual error lines
+                                print(f"{Style.RED}{line.strip()}{Style.RESET}")
+                            else:
+                                print(f"{Style.GRAY}  {line.strip()}{Style.RESET}")
+                        
+                        if len(lines) > 20:
+                            print(f"{Style.GRAY}  ... ({len(lines) - 20} more lines){Style.RESET}")
+                        
+                        print(f"{Style.RED}═════════════════════════{Style.RESET}\n")
                     elif isinstance(report.longrepr, str):
-                        print(f"{Style.RED}Error: {Style.GRAY}{report.longrepr}{Style.RESET}")
+                        print(f"\n{Style.RED}══════ ERROR DETAILS ══════{Style.RESET}")
+                        print(f"{Style.RED}{report.longrepr}{Style.RESET}")
+                        print(f"{Style.RED}═════════════════════════{Style.RESET}\n")
 
 
 def pytest_configure(config):

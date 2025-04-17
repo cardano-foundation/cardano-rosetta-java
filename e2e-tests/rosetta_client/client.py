@@ -146,11 +146,6 @@ class RequestDebugger:
                 try:
                     response_json = response.json()
                     debug_info["response_body"] = response_json
-                    self.logger.debug(
-                        "[RESPONSE %s] Body: %s",
-                        request_id,
-                        json.dumps(response_json, indent=2),
-                    )
                 except Exception as e:
                     self.logger.debug(
                         "[RESPONSE %s] JSON parse error: %s", request_id, str(e)
@@ -168,17 +163,8 @@ class RequestDebugger:
             if "response" in locals():
                 debug_info["status_code"] = response.status_code
                 debug_info["error"] = str(e)
-                self.logger.warning(
-                    "[ERROR %s] %s - Endpoint: %s", request_id, str(e), endpoint
-                )
             else:
                 debug_info["error"] = str(e)
-                self.logger.warning(
-                    "[ERROR %s] Connection error: %s - Endpoint: %s",
-                    request_id,
-                    str(e),
-                    endpoint,
-                )
 
             self._request_history[request_id] = debug_info
             raise  # Re-raise the exception
@@ -767,55 +753,34 @@ class RosettaClient:
         except requests.exceptions.RequestException as err:
             self._handle_request_error(err, "Get block transaction")
 
-    def get_transaction(self, transaction_hash: str) -> Dict:
-        """
-        Get transaction details by hash.
 
-        This method searches for a transaction across blocks by its hash.
-        It first gets the current block and then searches backward through blocks
-        until it finds the transaction or reaches a reasonable search limit.
+    def search_transactions(self, transaction_hash: str) -> Dict:
+        """
+        Search for a transaction by its hash across blocks.
+        Useful for polling until a transaction is confirmed.
 
         Args:
-            transaction_hash: Hash of the transaction to retrieve
+            transaction_hash: The hash of the transaction to search for.
 
         Returns:
-            Dict containing transaction data or None if not found
+            A dictionary containing the search results, which includes a list of
+            transactions found (typically one when searching by hash) and block
+            identifiers if the transaction is confirmed.
         """
+        payload = {
+            "network_identifier": self._get_network_identifier(),
+            "transaction_identifier": {"hash": transaction_hash},
+        }
+        self._log_request("/search/transactions", payload)
         try:
-            # Get current network status to find the latest block
-            network_status = self.network_status()
-            current_block = network_status.get("current_block_identifier")
-
-            if not current_block:
-                raise ValueError("Could not get current block identifier")
-
-            # Start from the current block and search backward
-            max_blocks_to_search = 20  # Limit the search to avoid excessive API calls
-            current_block_index = int(current_block.get("index", 0))
-
-            for i in range(max_blocks_to_search):
-                block_identifier = {"index": current_block_index - i}
-
-                try:
-                    # Get the block
-                    block_data = self.get_block(block_identifier)
-
-                    # Check if our transaction is in this block
-                    if "block" in block_data and "transactions" in block_data["block"]:
-                        for tx in block_data["block"]["transactions"]:
-                            if tx["transaction_identifier"]["hash"] == transaction_hash:
-                                # Found the transaction, get detailed data
-                                return self.get_block_transaction(
-                                    block_identifier, transaction_hash
-                                )
-                except Exception as e:
-                    # If we can't get a specific block, continue to the next one
-                    continue
-
-            # Transaction not found in the searched blocks
-            return None
-
+            response = self.request_debugger.post(f"{self.endpoint}/search/transactions", json=payload)
+            # Successful request, return the JSON response whether found or not
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            # Handle actual HTTP or network errors
+            self._handle_request_error(e, context="/search/transactions request")
         except Exception as e:
-            # Log the error but don't raise it - this allows callers to handle the None return
-            logger.error(f"Error retrieving transaction {transaction_hash}: {str(e)}")
-            return None
+            # Handle other potential errors like JSON decoding
+            logger.error(f"Unexpected error during /search/transactions: {str(e)}")
+            # Re-raise using the standard handler for consistency, although it might not be a NetworkError
+            self._handle_request_error(e, context="/search/transactions request unexpected error")

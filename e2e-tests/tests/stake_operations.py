@@ -764,7 +764,9 @@ def execute_stake_operation_test(
         logger.debug(f"Validating transaction for operation type: {operation_types}")
 
         # Verify transaction exists in response
-        assert "transaction" in tx_details, "Transaction details not found in response"
+        assert (
+            "transaction" in tx_details
+        ), "Transaction details not found in response"
         onchain_tx = tx_details["transaction"]
 
         # Verify operations exist
@@ -777,8 +779,8 @@ def execute_stake_operation_test(
         stake_ops = [op for op in onchain_ops if op["type"] not in ["input", "output"]]
 
         # Basic validation for inputs and outputs
-        assert len(input_ops) > 0, "No input operations found"
-        assert len(output_ops) > 0, "No output operations found"
+        assert len(input_ops) > 0, f"No input operations found in transaction {tx_details.get('transaction_identifier', {}).get('hash', 'unknown')}"
+        assert len(output_ops) > 0, f"No output operations found in transaction {tx_details.get('transaction_identifier', {}).get('hash', 'unknown')}"
 
         # Log all operations for debugging
         logger.debug(f"Found {len(onchain_ops)} operations in transaction:")
@@ -788,8 +790,8 @@ def execute_stake_operation_test(
         # Validate the number of stake operations based on operation types
         expected_stake_ops_count = len(operation_types)
         assert len(stake_ops) == expected_stake_ops_count, (
-            f"Expected {expected_stake_ops_count} stake operations, "
-            f"got {len(stake_ops)}"
+            f"Expected {expected_stake_ops_count} stake operations ({', '.join(operation_types)}), "
+            f"got {len(stake_ops)} ({', '.join([op['type'] for op in stake_ops])})"
         )
 
         # Detailed validation of stake operations
@@ -810,7 +812,7 @@ def execute_stake_operation_test(
 
             assert (
                 expected_type in found_operation_types
-            ), f"Expected operation {expected_type} not found"
+            ), f"Expected operation {expected_type} not found. Found operations: {found_operation_types}"
 
         # Validate fee calculation
         onchain_input_value = sum(abs(int(op["amount"]["value"])) for op in input_ops)
@@ -1426,12 +1428,11 @@ def wait_for_transaction_confirmation(
     """
     Wait for a transaction to be confirmed on-chain and return its details.
 
-    This improved implementation:
-    1. Tracks the last checked block to ensure no blocks are skipped
-    2. Checks each block sequentially to avoid missing transactions
-    3. Uses block identifiers for detailed data retrieval
-    4. Provides better logging for transaction discovery
-
+    This implementation:
+    1. Uses /search/transactions to find the transaction
+    2. Validates the block itself using /block endpoint
+    3. Retrieves transaction details using /block/transaction for final validation
+    
     Args:
         rosetta_client: The Rosetta client instance
         tx_id: The transaction hash to wait for
@@ -1445,120 +1446,118 @@ def wait_for_transaction_confirmation(
 
     start_time = time.time()
     found_in_block = False
-    last_checked_block_index = None
     current_block_identifier = None
     block_tx_details = None
 
-    # Get current network status to know where to start checking
-    network_status = rosetta_client.network_status()
-    current_block_index = network_status.get("current_block_identifier", {}).get(
-        "index"
-    )
-
-    if not current_block_index:
-        logger.warning("Could not get current block index, will use index tracking")
-    else:
-        # Start checking from a few blocks before current in case tx was already included
-        last_checked_block_index = max(0, current_block_index - 3)
-        logger.debug(f"Starting block check from index {last_checked_block_index}")
-
-    # Poll the network until we find the transaction in a block
+    # Poll the network until we find the transaction using /search/transactions
     while not found_in_block and (time.time() - start_time < timeout_seconds):
-        # Get current network status with latest block info
-        network_status = rosetta_client.network_status()
-        current_block_identifier = network_status.get("current_block_identifier")
+        try:
+            # Use search_transactions to find the transaction
+            search_result = rosetta_client.search_transactions(tx_id)
+            
+            # Check if the transaction was found
+            if (
+                search_result
+                and "transactions" in search_result
+                and search_result["transactions"]
+            ):
+                # Assuming the first transaction in the list is the one we're looking for
+                # since we search by specific hash
+                tx_info = search_result["transactions"][0]
+                if (
+                    "transaction" in tx_info
+                    and tx_info["transaction"]["transaction_identifier"]["hash"] == tx_id
+                    and "block_identifier" in tx_info
+                ):
+                    found_in_block = True
+                    current_block_identifier = tx_info["block_identifier"]
+                    logger.info(
+                        f"Transaction found in block {current_block_identifier['index']} "
+                        f"(hash: {current_block_identifier['hash']}) via /search/transactions"
+                    )
+                    
+                    # Now fetch the full block data for verification
+                    logger.debug(
+                        f"Fetching full block data for block {current_block_identifier['index']} "
+                        f"({current_block_identifier['hash']})..."
+                    )
+                    block_data = rosetta_client.get_block(current_block_identifier)
+                    
+                    # Verify block data
+                    if not block_data or "block" not in block_data:
+                        logger.warning("Failed to fetch block data, will retry...")
+                        found_in_block = False
+                        time.sleep(polling_interval)
+                        continue
+                        
+                    # Verify block identifiers match
+                    if (
+                        block_data["block"]["block_identifier"]["index"] 
+                        != current_block_identifier["index"]
+                        or block_data["block"]["block_identifier"]["hash"] 
+                        != current_block_identifier["hash"]
+                    ):
+                        logger.warning("Block identifier mismatch in fetched block data, will retry...")
+                        found_in_block = False
+                        time.sleep(polling_interval)
+                        continue
+                        
+                    logger.debug("Successfully verified block data")
+                    
+                    # Get detailed transaction information using /block/transaction
+                    block_tx_details = rosetta_client.get_block_transaction(
+                        current_block_identifier, tx_id
+                    )
 
-        if not current_block_identifier:
-            logger.warning("Could not get current block identifier, retrying...")
+                    # Verify we got the transaction details
+                    if not block_tx_details or "transaction" not in block_tx_details:
+                        logger.warning(
+                            "Transaction found in block but details retrieval failed, will retry..."
+                        )
+                        found_in_block = False
+                        time.sleep(polling_interval)
+                        continue
+
+                    logger.debug(
+                        f"Successfully retrieved transaction details from block {current_block_identifier['index']}"
+                    )
+                    break
+
+        except Exception as e:
+            logger.warning(f"Error during transaction search: {str(e)}")
             time.sleep(polling_interval)
             continue
 
-        current_block_index = current_block_identifier.get("index")
-
-        # If this is our first check, initialize last_checked_block_index
-        if last_checked_block_index is None:
-            # Start from a few blocks back to be safe
-            last_checked_block_index = max(0, current_block_index - 3)
-            logger.debug(f"Starting block check from index {last_checked_block_index}")
-
-        # Check all blocks from last checked to current
-        for block_index in range(last_checked_block_index, current_block_index + 1):
-            block_identifier = {
-                "index": block_index,
-                # We don't have the hash, but the index is sufficient for querying
-            }
-
-            logger.debug(f"Checking block {block_index} for transaction {tx_id}...")
-
-            # Get the block
-            try:
-                block_data = rosetta_client.get_block(block_identifier)
-
-                # Check if our transaction is in this block
-                if "block" in block_data and "transactions" in block_data["block"]:
-                    transactions = block_data["block"]["transactions"]
-                    logger.debug(
-                        f"Found {len(transactions)} transactions in block {block_index}"
-                    )
-
-                    # Log all transaction hashes for debugging
-                    for i, tx in enumerate(transactions):
-                        tx_hash = tx["transaction_identifier"]["hash"]
-
-                        # Check if this is our transaction
-                        if tx_hash == tx_id:
-                            found_in_block = True
-                            logger.debug(
-                                f"Transaction {tx_id} found in block {block_index} (position {i+1}/{len(transactions)})"
-                            )
-
-                            # Update block_identifier with hash if available
-                            if "block_identifier" in block_data["block"]:
-                                current_block_identifier = block_data["block"][
-                                    "block_identifier"
-                                ]
-
-                            # Get detailed transaction information
-                            block_tx_details = rosetta_client.get_block_transaction(
-                                current_block_identifier, tx_id
-                            )
-
-                            # Verify we got the transaction details
-                            if (
-                                not block_tx_details
-                                or "transaction" not in block_tx_details
-                            ):
-                                logger.warning(
-                                    "Transaction found in block but details retrieval failed, will retry..."
-                                )
-                                found_in_block = False
-                                break
-
-                            logger.debug(
-                                f"Successfully retrieved transaction details from block {block_index}"
-                            )
-                            break
-
-                    if found_in_block:
-                        break
-            except Exception as e:
-                logger.warning(f"Error checking block {block_index}: {str(e)}")
-
-        # Update the last checked block index for the next polling interval
+        # If transaction not found yet, wait before retrying
         if not found_in_block:
-            last_checked_block_index = current_block_index + 1
             logger.debug(
-                f"Transaction not found up to block {current_block_index}, "
-                f"waiting {polling_interval} seconds before checking newer blocks..."
+                f"Transaction {tx_id} not yet found via /search/transactions, "
+                f"waiting {polling_interval} seconds before retrying..."
             )
             time.sleep(polling_interval)
 
     # Verify transaction was found on-chain
     if not found_in_block:
-        raise TimeoutError(
-            f"Transaction {tx_id} not found on-chain within {timeout_seconds} seconds"
-        )
+        error_message = f"Transaction {tx_id} not found on-chain within {timeout_seconds} seconds"
+        logger.error(f"✗ {error_message}")
+        raise TimeoutError(error_message)
 
+    # If any of these basic checks fail, provide detailed error information
+    if not block_tx_details:
+        error_message = f"Failed to retrieve transaction details for {tx_id} from block {current_block_identifier['index']}"
+        logger.error(f"✗ {error_message}")
+        # Also log what we do have for debugging
+        logger.error(f"Block identifier: {current_block_identifier}")
+        raise ValueError(error_message)
+    
+    if "transaction" not in block_tx_details:
+        error_message = f"Transaction field missing in response for {tx_id}"
+        logger.error(f"✗ {error_message}")
+        # Log what we received to help with debugging
+        logger.error(f"Received response: {block_tx_details}")
+        raise ValueError(error_message)
+
+    logger.debug(f"Successfully retrieved and validated transaction {tx_id}")
     return current_block_identifier, block_tx_details
 
 
@@ -1594,6 +1593,10 @@ def validate_stake_key_registration(
         operations = tx_details["transaction"]["operations"]
         logger.debug(f"Found {len(operations)} operations in transaction")
         pool_hash_match = False  # Initialize to false
+
+        # Log all operations for debugging when validation fails
+        all_op_types = [op.get("type", "unknown") for op in operations]
+        logger.debug(f"All operation types in transaction: {all_op_types}")
 
         for op in operations:
             if op.get("type") == "stakeKeyRegistration":
@@ -1663,13 +1666,13 @@ def validate_stake_key_registration(
     # Always require registration operation to be found
     assert (
         found_registration
-    ), "Stake key registration operation/certificate not found in transaction"
+    ), f"Stake key registration operation/certificate not found in transaction. Available operations: {all_op_types if 'all_op_types' in locals() else 'unknown'}"
 
     # Only require delegation if we're validating a combined operation
     if is_combined_with_delegation:
         assert (
             found_delegation
-        ), "Stake delegation operation/certificate not found in transaction"
+        ), f"Stake delegation operation/certificate not found in transaction. Available operations: {all_op_types if 'all_op_types' in locals() else 'unknown'}"
 
     # 2. Verify the stake address is now recognized on-chain
     logger.debug(f"Verifying stake address {stake_address} is registered")
@@ -1684,7 +1687,7 @@ def validate_stake_key_registration(
         error_msg = f"Failed to verify stake address registration: {str(e)}"
         logger.error(error_msg)
         logger.debug(f"Traceback: {traceback.format_exc()}")
-        assert False, error_msg
+        raise AssertionError(error_msg) from e
 
     # 3. Check that the deposit amount was correctly applied
     # If we haven't found deposit in operations, try transaction metadata

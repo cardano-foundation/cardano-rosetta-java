@@ -54,18 +54,17 @@ DREP_SCRIPT_HASH_ID=2d4cb680b5f400d3521d272b4295d61150e0eff3950ef4285406a953 # R
 - Create at least 11 new utxos with at least 1500000 lovelaces each (you can use the fan-out test 2x for this)
 - Run the tests
 
-### Running the tests
+### Running All Test Scenarios
 
 ```bash
-pytest --log-cli-level=INFO tests/test_multi_io_transactions.py -k complex
+# verbose, include request/response data
+pytest --log-cli-level=DEBUG
 ```
 
-## Test Scenarios
+### Running Specific Test Scenarios
 
-pytest --log-cli-level=DEBUG # verbose, include request/response data
-
+```bash
 # Run specific test scenarios
-
 pytest --log-cli-level=INFO tests/test_multi_io_transactions.py -k basic
 pytest --log-cli-level=INFO tests/test_multi_io_transactions.py -k fan-out
 pytest --log-cli-level=INFO tests/test_multi_io_transactions.py -k consolidation
@@ -73,27 +72,25 @@ pytest --log-cli-level=INFO tests/test_multi_io_transactions.py -k complex
 pytest --log-cli-level=INFO tests/test_multi_io_transactions.py -k test_fixed_fee_transaction
 
 # Run stake tests
-
 pytest --log-cli-level=INFO tests/test_stake_scenarios.py
+pytest --log-cli-level=INFO tests/test_stake_scenarios.py -k test_scenario1_stake_key_registration
+pytest --log-cli-level=INFO tests/test_stake_scenarios.py -k test_scenario1_stake_delegation
+pytest --log-cli-level=INFO tests/test_stake_scenarios.py -k test_scenario2_stake_key_deregistration
 
 # Run only specific DRep vote delegation tests
-
 pytest --log-cli-level=INFO tests/test_stake_scenarios.py -k test_scenario2_combined_registration_delegation
 pytest --log-cli-level=INFO tests/test_stake_scenarios.py -k test_scenario2_drep_vote_delegation_abstain
 pytest --log-cli-level=INFO tests/test_stake_scenarios.py -k test_scenario2_drep_vote_delegation_no_confidence
 pytest --log-cli-level=INFO tests/test_stake_scenarios.py -k test_scenario2_drep_vote_delegation_key_hash
 pytest --log-cli-level=INFO tests/test_stake_scenarios.py -k test_scenario2_drep_vote_delegation_script_hash
-
 ```
 
 ## Project Structure
 
 ```
-
 ├── rosetta_client/ # Rosetta API client
 ├── wallet_utils/ # PyCardano wallet wrapper
 └── tests/ # Test suites
-
 ```
 
 ## Test Scenarios
@@ -118,4 +115,3 @@ pytest --log-cli-level=INFO tests/test_stake_scenarios.py -k test_scenario2_drep
 2. **DRep Vote Delegation - No Confidence**: Delegate voting power to no confidence
 3. **DRep Vote Delegation - Key Hash**: Delegate voting power to a DRep with key hash
 4. **DRep Vote Delegation - Script Hash**: Delegate voting power to a DRep with script hash
-```
