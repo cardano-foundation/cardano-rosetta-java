@@ -53,7 +53,7 @@ YACI_SPRING_PROFILES=postgres,n2c-socket
 PRUNING_ENABLED=false
 PRUNING_INTERVAL=600
 PRUNING_SAFE_BLOCKS=2160
-# database profiles: h2, h2-testData, postgres
+# database profiles: h2, h2-testdata, postgres
 MEMPOOL_ENABLED=false
 # Haven't implemented yet
 INITIAL_BALANCE_CALCULATION_BLOCK=0
