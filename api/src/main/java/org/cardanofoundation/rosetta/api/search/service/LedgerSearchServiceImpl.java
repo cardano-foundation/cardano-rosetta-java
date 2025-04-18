@@ -7,10 +7,7 @@ import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.openapitools.client.model.Operator;
@@ -76,7 +73,7 @@ public class LedgerSearchServiceImpl implements LedgerSearchService {
       txnEntities = txRepository.searchTxnEntitiesOR(txHashes.isEmpty() ? null : txHashes, blockHash, blockNo, maxBlock, pageable);
     }
 
-    return ledgerBlockService.mapTxnEntitiesToBlockTxList(txnEntities);
+    return new PageImpl<>(ledgerBlockService.mapTxnEntitiesToBlockTxList(txnEntities.getContent()));
   }
 
 }
