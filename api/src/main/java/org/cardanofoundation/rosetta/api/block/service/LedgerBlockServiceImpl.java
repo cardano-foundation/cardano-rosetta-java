@@ -2,7 +2,6 @@ package org.cardanofoundation.rosetta.api.block.service;
 
 import java.time.Clock;
 import java.time.Instant;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -18,9 +17,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import org.apache.commons.lang3.ObjectUtils;
 
 import org.cardanofoundation.rosetta.api.account.mapper.AddressUtxoEntityToUtxo;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
@@ -114,25 +113,32 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
     if (blkEntity.isEmpty()) {
       log.debug("Block Not found: {} blockHash: {}", blk, blkHash);
 
-      return Collections.emptyList();
+      return List.of();
     }
 
     List<TxnEntity> txList = txRepository.findTransactionsByBlockHash(blkEntity.get().getHash());
     log.debug("Found {} transactions", txList.size());
 
-    if (ObjectUtils.isNotEmpty(txList)) {
-      return mapTxnEntitiesToBlockTxList(txList);
-    }
-
-    return Collections.emptyList();
+    return mapTxnEntitiesToBlockTxList(txList);
   }
 
   @Override
   public List<BlockTx> mapTxnEntitiesToBlockTxList(List<TxnEntity> txList) {
-    List<BlockTx> transactions = txList.stream().map(blockMapper::mapToBlockTx)
-            .toList();
+    List<BlockTx> transactions = txList.stream().map(blockMapper::mapToBlockTx).toList();
 
     TransactionInfo fetched = findByTxHash(transactions);
+    Map<UtxoKey, AddressUtxoEntity> utxoMap = getUtxoMapFromEntities(fetched);
+
+    transactions.forEach(tx -> populateTransaction(tx, fetched, utxoMap));
+
+    return transactions;
+  }
+
+  @Override
+  public Slice<BlockTx> mapTxnEntitiesToBlockTxList(Slice<TxnEntity> txList) {
+    Slice<BlockTx> transactions = txList.map(blockMapper::mapToBlockTx);
+
+    TransactionInfo fetched = findByTxHash(transactions.getContent());
     Map<UtxoKey, AddressUtxoEntity> utxoMap = getUtxoMapFromEntities(fetched);
 
     transactions.forEach(tx -> populateTransaction(tx, fetched, utxoMap));
@@ -169,6 +175,7 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
               .orElseThrow(ExceptionFactory::genesisBlockNotFound);
     }
     log.debug("Returning genesis block {}", cachedGenesisBlock);
+
     return cachedGenesisBlock;
   }
 

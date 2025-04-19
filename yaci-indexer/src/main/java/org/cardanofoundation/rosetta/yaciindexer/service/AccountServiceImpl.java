@@ -1,37 +1,31 @@
 package org.cardanofoundation.rosetta.yaciindexer.service;
 
-import java.math.BigInteger;
-import java.time.Duration;
-import java.util.Optional;
-import java.util.Set;
-import jakarta.annotation.Nullable;
-
-import lombok.extern.slf4j.Slf4j;
-
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
-import org.springframework.stereotype.Service;
 import com.bloxbean.cardano.client.address.Address;
 import com.bloxbean.cardano.yaci.core.protocol.localstate.api.Era;
 import com.bloxbean.cardano.yaci.core.protocol.localstate.queries.DelegationsAndRewardAccountsQuery;
 import com.bloxbean.cardano.yaci.core.protocol.localstate.queries.DelegationsAndRewardAccountsResult;
 import com.bloxbean.cardano.yaci.helper.LocalClientProvider;
 import com.bloxbean.cardano.yaci.store.core.service.local.LocalClientProviderManager;
-import com.bloxbean.cardano.yaci.store.core.storage.api.EraStorage;
+import jakarta.annotation.Nullable;
+import lombok.extern.slf4j.Slf4j;
+import org.cardanofoundation.rosetta.yaciindexer.domain.model.StakeAccountRewardInfo;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
-import org.cardanofoundation.rosetta.yaciindexer.domain.model.StakeAccountRewardInfo;
+import java.math.BigInteger;
+import java.time.Duration;
+import java.util.Optional;
+import java.util.Set;
 
 @Service
 @Slf4j
 @ConditionalOnExpression("'${store.cardano.n2c-node-socket-path:}' != '' || '${store.cardano.n2c-host:}' != ''")
 public class AccountServiceImpl implements AccountService {
 
-    private final EraStorage eraStorage;
     private final LocalClientProviderManager localClientProviderManager;
 
-    public AccountServiceImpl(@Nullable LocalClientProviderManager localClientProviderManager,
-                              EraStorage eraStorage) {
-        this.eraStorage = eraStorage;
+    public AccountServiceImpl(@Nullable LocalClientProviderManager localClientProviderManager) {
         this.localClientProviderManager = localClientProviderManager;
     }
 

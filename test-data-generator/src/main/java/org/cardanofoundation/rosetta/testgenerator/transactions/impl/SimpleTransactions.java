@@ -1,11 +1,5 @@
 package org.cardanofoundation.rosetta.testgenerator.transactions.impl;
 
-import java.math.BigInteger;
-import java.util.HashMap;
-import java.util.Map;
-
-import lombok.extern.slf4j.Slf4j;
-
 import com.bloxbean.cardano.client.account.Account;
 import com.bloxbean.cardano.client.api.exception.ApiRuntimeException;
 import com.bloxbean.cardano.client.api.model.Amount;
@@ -19,12 +13,17 @@ import com.bloxbean.cardano.client.function.helper.SignerProviders;
 import com.bloxbean.cardano.client.quicktx.Tx;
 import com.bloxbean.cardano.client.transaction.spec.Asset;
 import com.bloxbean.cardano.client.transaction.spec.Policy;
-
+import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.testgenerator.common.BaseFunctions;
 import org.cardanofoundation.rosetta.testgenerator.common.TestConstants;
 import org.cardanofoundation.rosetta.testgenerator.common.TestTransactionNames;
 import org.cardanofoundation.rosetta.testgenerator.common.TransactionBlockDetails;
 import org.cardanofoundation.rosetta.testgenerator.transactions.TransactionRunner;
+
+import java.math.BigInteger;
+import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.cardanofoundation.rosetta.testgenerator.common.BaseFunctions.quickTxBuilder;
 
@@ -60,19 +59,20 @@ public class SimpleTransactions implements TransactionRunner {
     Map<String, TransactionBlockDetails> generatedDataMap = HashMap.newHashMap(6);
     generatedDataMap.put(TestTransactionNames.SIMPLE_TRANSACTION.getName(), simpleTransaction());
     generatedDataMap.put(TestTransactionNames.SIMPLE_LOVELACE_FIRST_TRANSACTION.getName(),
-        simpleLovelaceTransaction());
+            simpleLovelaceTransaction());
     generatedDataMap.put(TestTransactionNames.SIMPLE_LOVELACE_SECOND_TRANSACTION.getName(),
-        simpleLovelaceTransaction());
+            simpleLovelaceTransaction());
     generatedDataMap.put(TestTransactionNames.SIMPLE_NEW_COINS_TRANSACTION.getName(),
-        simpleNewCoinsTransaction());
+            simpleNewCoinsTransaction());
     generatedDataMap.put(TestTransactionNames.SIMPLE_NEW_EMPTY_NAME_COINS_TRANSACTION.getName(),
-        simpleNewEmptyNameCoinsTransaction());
+            simpleNewEmptyNameCoinsTransaction());
     generatedDataMap.put(TestTransactionNames.STAKE_KEY_REGISTRATION_TRANSACTION.getName(),
-        stakeKeyRegistrationTransaction());
+            stakeKeyRegistrationTransaction());
     generatedDataMap.put(TestTransactionNames.STAKE_KEY_DEREGISTRATION_TRANSACTION.getName(),
-        stakeKeyDeregistrationTransaction());
+            stakeKeyDeregistrationTransaction());
     generatedDataMap.put(TestTransactionNames.SIMPLE_TRANSACTION.getName() + "_2",
-        simpleTransaction());
+            simpleTransaction());
+
     return generatedDataMap;
   }
 
@@ -86,10 +86,10 @@ public class SimpleTransactions implements TransactionRunner {
   public TransactionBlockDetails simpleTransaction() {
     double adaToSend = BaseFunctions.lovelaceToAda(TestConstants.ACCOUNT_BALANCE_LOVELACE_AMOUNT);
     log.info("Is about to send {} ADA to the address: \n{}\nfrom the address: \n{}",
-        adaToSend, sender1Addr, sender2Addr);
+            adaToSend, sender1Addr, sender2Addr);
     Tx tx = new Tx()
-        .payToAddress(sender1Addr, Amount.ada(adaToSend))
-        .from(sender2Addr);
+            .payToAddress(sender1Addr, Amount.ada(adaToSend))
+            .from(sender2Addr);
 
     return completeTransaction(tx, sender2, sender1Addr);
   }
@@ -100,11 +100,11 @@ public class SimpleTransactions implements TransactionRunner {
   public TransactionBlockDetails simpleLovelaceTransaction() {
     long lovelace = Long.parseLong(TestConstants.ACCOUNT_BALANCE_LOVELACE_SMALL_AMOUNT);
     log.info("Is about to send {} lovelace to the address: \n{}\nfrom the address: \n{}",
-        lovelace, TestConstants.RECEIVER_1, sender2Addr);
+            lovelace, TestConstants.RECEIVER_1, sender2Addr);
     Tx tx = new Tx()
-        .payToAddress(TestConstants.RECEIVER_1,
-            Amount.lovelace(BigInteger.valueOf(lovelace)))
-        .from(sender2Addr);
+            .payToAddress(TestConstants.RECEIVER_1,
+                    Amount.lovelace(BigInteger.valueOf(lovelace)))
+            .from(sender2Addr);
 
     return completeTransaction(tx, sender2, TestConstants.RECEIVER_1);
   }
@@ -115,7 +115,7 @@ public class SimpleTransactions implements TransactionRunner {
   public TransactionBlockDetails simpleNewCoinsTransaction() {
     BigInteger quantity = BigInteger.valueOf(1000);
     log.info("Minting {} of the new coins ({}) to the {}", quantity, TestConstants.MY_ASSET_NAME,
-        sender1Addr);
+            sender1Addr);
 
     try {
       policy = PolicyUtil.createMultiSigScriptAtLeastPolicy("test_policy", 1, 1);
@@ -124,15 +124,15 @@ public class SimpleTransactions implements TransactionRunner {
     }
 
     Tx tx = new Tx()
-        .mintAssets(policy.getPolicyScript(),
-            new Asset(TestConstants.MY_ASSET_NAME, quantity), sender1Addr)
-        .attachMetadata(MessageMetadata.create().add("Minting tx"))
-        .from(sender1Addr);
+            .mintAssets(policy.getPolicyScript(),
+                    new Asset(TestConstants.MY_ASSET_NAME, quantity), sender1Addr)
+            .attachMetadata(MessageMetadata.create().add("Minting tx"))
+            .from(sender1Addr);
 
     Result<String> complete = quickTxBuilder.compose(tx)
-        .withSigner(SignerProviders.signerFrom(sender1))
-        .withSigner(SignerProviders.signerFrom(policy))
-        .complete();
+            .withSigner(SignerProviders.signerFrom(sender1))
+            .withSigner(SignerProviders.signerFrom(policy))
+            .completeAndWait(Duration.ofMinutes(1));
 
     return getTransactionOutput(sender1Addr, complete);
   }
@@ -143,51 +143,57 @@ public class SimpleTransactions implements TransactionRunner {
     log.info("Minting {} of the new coins ({}) to the {}", quantity, emptyAssetName, sender1Addr);
 
     Tx tx = new Tx()
-        .mintAssets(policy.getPolicyScript(), new Asset(emptyAssetName, quantity), sender1Addr)
-        .attachMetadata(MessageMetadata.create().add("Minting tx"))
-        .from(sender1Addr);
+            .mintAssets(policy.getPolicyScript(), new Asset(emptyAssetName, quantity), sender1Addr)
+            .attachMetadata(MessageMetadata.create().add("Minting tx"))
+            .from(sender1Addr);
 
     Result<String> complete = quickTxBuilder.compose(tx)
-        .withSigner(SignerProviders.signerFrom(sender1))
-        .withSigner(SignerProviders.signerFrom(policy))
-        .complete();
+            .withSigner(SignerProviders.signerFrom(sender1))
+            .withSigner(SignerProviders.signerFrom(policy))
+            .completeAndWait(Duration.ofMinutes(1));
 
     return getTransactionOutput(sender1Addr, complete);
   }
 
   public TransactionBlockDetails stakeKeyRegistrationTransaction() {
     log.info("Stake key registration transaction for the address: \n{} \nand the address \n{}",
-        sender2Addr, TestConstants.RECEIVER_3);
+            sender2Addr, TestConstants.RECEIVER_3);
     Tx tx = new Tx()
-        .registerStakeAddress(sender2Addr)
-        .payToAddress(TestConstants.RECEIVER_3, Amount.ada(1.0))
-        .from(sender2Addr);
+            .registerStakeAddress(sender2Addr)
+            .payToAddress(TestConstants.RECEIVER_3, Amount.ada(1.0))
+            .from(sender2Addr);
 
-    Result<String> complete = quickTxBuilder.compose(tx)
-        .withSigner(SignerProviders.signerFrom(sender2))
-        .complete();
-    log.info("Stake key registration tx: {}", complete.getValue());
+    Result<String> result = quickTxBuilder.compose(tx)
+            .withSigner(SignerProviders.signerFrom(sender2))
+            .completeAndWait(Duration.ofMinutes(1));
 
-    String txHash = complete.getValue();
-    BaseFunctions.checkIfUtxoAvailable(txHash, sender2Addr);
-    Block block = BaseFunctions.getBlock(txHash);
+    log.info("Stake key registration tx: {}", result.getValue());
 
-    return new TransactionBlockDetails(txHash, block.getHash(), block.getHeight());
+    if (result.isSuccessful()) {
+      String txHash = result.getValue();
+      BaseFunctions.checkIfUtxoAvailable(txHash, sender2Addr);
+      Block block = BaseFunctions.getBlock(txHash);
+
+      return new TransactionBlockDetails(txHash, block.getHash(), block.getHeight());
+    }
+
+    throw new RuntimeException("Error in registering stake key, reason: " + result.getResponse());
   }
 
   public TransactionBlockDetails stakeKeyDeregistrationTransaction() {
     log.info("Stake key deregistration transaction for the address: \n{} \nand the address \n{}",
-        sender2Addr, TestConstants.RECEIVER_3);
+            sender2Addr, TestConstants.RECEIVER_3);
     Tx tx = new Tx()
-        .deregisterStakeAddress(sender2Addr)
-        .payToAddress(TestConstants.RECEIVER_3, Amount.ada(1.0))
-        .from(sender2Addr);
+            .deregisterStakeAddress(sender2Addr)
+            .payToAddress(TestConstants.RECEIVER_3, Amount.ada(1.0))
+            .from(sender2Addr);
 
-    Result<String> complete = quickTxBuilder.compose(tx)
-        .withSigner(SignerProviders.stakeKeySignerFrom(sender2))
-        .withSigner(SignerProviders.signerFrom(sender2))
-        .complete();
-    String txHash = complete.getValue();
+    Result<String> result = quickTxBuilder.compose(tx)
+            .withSigner(SignerProviders.stakeKeySignerFrom(sender2))
+            .withSigner(SignerProviders.signerFrom(sender2))
+            .completeAndWait(Duration.ofMinutes(1));
+
+    String txHash = result.getValue();
     BaseFunctions.checkIfUtxoAvailable(txHash, sender2Addr);
     Block block = BaseFunctions.getBlock(txHash);
 
@@ -195,16 +201,15 @@ public class SimpleTransactions implements TransactionRunner {
   }
 
   private TransactionBlockDetails completeTransaction(Tx tx, Account from,
-      String addressTo) {
+                                                      String addressTo) {
     Result<String> complete = quickTxBuilder.compose(tx)
-        .withSigner(SignerProviders.signerFrom(from))
-        .complete();
+            .withSigner(SignerProviders.signerFrom(from))
+            .completeAndWait(Duration.ofMinutes(1));
 
     return getTransactionOutput(addressTo, complete);
   }
 
-  private TransactionBlockDetails getTransactionOutput(String addressTo,
-      Result<String> result) {
+  private TransactionBlockDetails getTransactionOutput(String addressTo, Result<String> result) {
     String txHash = result.getValue();
     log.info("Transaction hash: {}", txHash);
     BaseFunctions.checkIfUtxoAvailable(txHash, addressTo);
@@ -214,4 +219,5 @@ public class SimpleTransactions implements TransactionRunner {
 
     return new TransactionBlockDetails(txHash, hash, transactionBlock.getHeight());
   }
+
 }

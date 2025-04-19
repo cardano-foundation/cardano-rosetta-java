@@ -3,6 +3,8 @@ package org.cardanofoundation.rosetta.api.block.service;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Slice;
+
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockIdentifierExtended;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
@@ -29,6 +31,8 @@ public interface LedgerBlockService {
   List<BlockTx> findTransactionsByBlock(Long number, String hash);
 
   List<BlockTx> mapTxnEntitiesToBlockTxList(List<TxnEntity> txList);
+
+  Slice<BlockTx> mapTxnEntitiesToBlockTxList(Slice<TxnEntity> txList);
 
   /**
    * Returns the latest block.

@@ -1,12 +1,5 @@
 package org.cardanofoundation.rosetta.testgenerator.transactions.impl;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.MissingResourceException;
-
-import lombok.extern.slf4j.Slf4j;
-
 import com.bloxbean.cardano.client.account.Account;
 import com.bloxbean.cardano.client.address.Address;
 import com.bloxbean.cardano.client.address.AddressProvider;
@@ -23,12 +16,18 @@ import com.bloxbean.cardano.client.function.helper.SignerProviders;
 import com.bloxbean.cardano.client.quicktx.Tx;
 import com.bloxbean.cardano.client.transaction.spec.cert.PoolRegistration;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
+import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.testgenerator.common.BaseFunctions;
 import org.cardanofoundation.rosetta.testgenerator.common.TestConstants;
 import org.cardanofoundation.rosetta.testgenerator.common.TestTransactionNames;
 import org.cardanofoundation.rosetta.testgenerator.common.TransactionBlockDetails;
 import org.cardanofoundation.rosetta.testgenerator.transactions.TransactionRunner;
+
+import java.io.IOException;
+import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.MissingResourceException;
 
 import static org.cardanofoundation.rosetta.testgenerator.common.BaseFunctions.checkIfUtxoAvailable;
 import static org.cardanofoundation.rosetta.testgenerator.common.BaseFunctions.quickTxBuilder;
@@ -53,11 +52,16 @@ public class PoolTransactions implements TransactionRunner {
   @Override
   public Map<String, TransactionBlockDetails> runTransactions() {
     Map<String, TransactionBlockDetails> generatedDataMap = HashMap.newHashMap(3);
+
     generatedDataMap.put(TestTransactionNames.POOL_REGISTRATION_TRANSACTION.getName(),
-        registerPool());
+            registerPool());
+
     generatedDataMap.put(TestTransactionNames.POOL_DELEGATION_TRANSACTION.getName(),
-        delegateStakeToPool());
-    generatedDataMap.put(TestTransactionNames.POOL_RETIREMENT_TRANSACTION.getName(), retirePool());
+            delegateStakeToPool());
+
+    generatedDataMap.put(TestTransactionNames.POOL_RETIREMENT_TRANSACTION.getName(),
+            retirePool());
+
     return generatedDataMap;
   }
 
@@ -72,23 +76,25 @@ public class PoolTransactions implements TransactionRunner {
 
     try {
       coldSkey = objectMapper.readValue(this.getClass().getResourceAsStream("/pool1/cold.skey"),
-          SecretKey.class);
+              SecretKey.class);
       stakeSkey = objectMapper.readValue(this.getClass().getResourceAsStream("/pool1/stake.skey"),
-          SecretKey.class);
+              SecretKey.class);
       stakeVKey = objectMapper.readValue(this.getClass().getResourceAsStream("/pool1/stake.vkey"),
-          VerificationKey.class);
+              VerificationKey.class);
+
       String poolRegistrationCborHex = objectMapper.readTree(
-              this.getClass().getResourceAsStream("/pool1/pool-registration.cert")).get("cborHex")
-          .asText();
+                      this.getClass().getResourceAsStream("/pool1/pool-registration.cert")).get("cborHex")
+              .asText();
+
       poolRegistration = PoolRegistration.deserialize(poolRegistrationCborHex);
     } catch (IOException e) {
       log.error("Error reading and parsing pool registration files");
       throw new MissingResourceException(e.getMessage(), this.getClass().getName(),
-          "pool-registration.cert");
+              "pool-registration.cert");
     }
 
     Address stakeAddr = AddressProvider.getRewardAddress(
-        Credential.fromKey(Blake2bUtil.blake2bHash224(stakeVKey.getBytes())), Networks.testnet());
+            Credential.fromKey(Blake2bUtil.blake2bHash224(stakeVKey.getBytes())), Networks.testnet());
     log.info("Stake Addr: {}", stakeAddr.toBech32());
 
     poolRegistration.setPoolMetadataUrl("https://my-pool.com");
@@ -100,21 +106,21 @@ public class PoolTransactions implements TransactionRunner {
     log.info("Sender1 address: {}", sender1.baseAddress());
     log.info("Sender2 address: {}", sender2.baseAddress());
     Tx registerPoolTx = new Tx()
-        .registerStakeAddress(stakeAddr)
-        .registerPool(poolRegistration)
-        .from(sender2Addr);
+            .registerStakeAddress(stakeAddr)
+            .registerPool(poolRegistration)
+            .from(sender2Addr);
 
     Result<String> result = quickTxBuilder.compose(registerPoolTx)
-        .withSigner(SignerProviders.signerFrom(coldSkey))
-        .withSigner(SignerProviders.signerFrom(stakeSkey))
-        .withSigner(SignerProviders.signerFrom(sender2))
-        .completeAndWait(log::info);
+            .withSigner(SignerProviders.signerFrom(coldSkey))
+            .withSigner(SignerProviders.signerFrom(stakeSkey))
+            .withSigner(SignerProviders.signerFrom(sender2))
+            .completeAndWait(Duration.ofMinutes(1));
 
     String txHash = result.getValue();
     checkIfUtxoAvailable(result.getValue(), sender2Addr);
     Block value1 = BaseFunctions.getBlock(txHash);
     String hash = value1.getHash();
-    log.info(BLOCK_HASH_MASSAGE + hash);
+    log.info("%s%s".formatted(BLOCK_HASH_MASSAGE, hash));
 
     return new TransactionBlockDetails(txHash, hash, value1.getHeight());
   }
@@ -122,37 +128,42 @@ public class PoolTransactions implements TransactionRunner {
   public TransactionBlockDetails delegateStakeToPool() {
     log.info("Delegating stake to pool");
     // registering Stake keys first
+
     Tx tx = new Tx()
-        .registerStakeAddress(sender2Addr)
-        .payToAddress(TestConstants.RECEIVER_3, Amount.ada(1.0))
-        .from(sender2Addr);
+            .registerStakeAddress(sender2Addr)
+            .payToAddress(TestConstants.RECEIVER_3, Amount.ada(1.0))
+            .from(sender2Addr);
 
     Result<String> result = quickTxBuilder.compose(tx)
-        .withSigner(SignerProviders.signerFrom(sender2))
-        .complete();
+            .withSigner(SignerProviders.signerFrom(sender2))
+            .completeAndWait(Duration.ofMinutes(1));
+
     if (result.isSuccessful()) {
       BaseFunctions.checkIfUtxoAvailable(result.getValue(), sender2Addr);
+
+      String poolId = getPoolId();
+
+      Tx delegateStake = new Tx()
+              .delegateTo(sender2Addr, poolId)
+              .payToAddress(TestConstants.RECEIVER_3, Amount.ada(2))
+              .from(sender2Addr);
+
+      Result<String> complete = quickTxBuilder.compose(delegateStake)
+              .withSigner(SignerProviders.signerFrom(sender2))
+              .withSigner(SignerProviders.stakeKeySignerFrom(sender2))
+              .completeAndWait(Duration.ofMinutes(1));
+
+      String txHash = complete.getValue();
+      checkIfUtxoAvailable(complete.getValue(), sender2Addr);
+      Block value1 = BaseFunctions.getBlock(txHash);
+      String hash = value1.getHash();
+
+      log.info("%s%s".formatted(BLOCK_HASH_MASSAGE, hash));
+
+      return new TransactionBlockDetails(txHash, hash, value1.getHeight());
     }
 
-    String poolId = getPoolId();
-
-    Tx delegateStake = new Tx()
-        .delegateTo(sender2Addr, poolId)
-        .payToAddress(TestConstants.RECEIVER_3, Amount.ada(2))
-        .from(sender2Addr);
-
-    Result<String> complete = quickTxBuilder.compose(delegateStake)
-        .withSigner(SignerProviders.signerFrom(sender2))
-        .withSigner(SignerProviders.stakeKeySignerFrom(sender2))
-        .complete();
-
-    String txHash = complete.getValue();
-    checkIfUtxoAvailable(complete.getValue(), sender2Addr);
-    Block value1 = BaseFunctions.getBlock(txHash);
-    String hash = value1.getHash();
-    log.info(BLOCK_HASH_MASSAGE + hash);
-
-    return new TransactionBlockDetails(txHash, hash, value1.getHeight());
+    throw new RuntimeException("delegating stake to pool transaction failed, reason:" + result.getResponse());
   }
 
   public TransactionBlockDetails retirePool() {
@@ -162,27 +173,33 @@ public class PoolTransactions implements TransactionRunner {
     SecretKey coldSkey = null;
     try {
       coldSkey = objectMapper.readValue(this.getClass().getResourceAsStream("/pool1/cold.skey"),
-          SecretKey.class);
+              SecretKey.class);
     } catch (IOException e) {
       log.error("Error reading and parsing cold.skey file");
       throw new MissingResourceException(e.getMessage(), this.getClass().getName(), "cold.skey");
     }
     log.info("Sender2 address: {}", sender2Addr);
+
     Tx retirePool = new Tx()
-        .retirePool(poolId, 1)
-        .from(sender2Addr);
-    Result<String> complete = quickTxBuilder.compose(retirePool)
-        .withSigner(SignerProviders.signerFrom(sender2))
-        .withSigner(SignerProviders.signerFrom(coldSkey))
-        .complete();
+            .retirePool(poolId, 19)
+            .from(sender2Addr);
 
-    String txHash = complete.getValue();
-    checkIfUtxoAvailable(complete.getValue(), sender2Addr);
-    Block value1 = BaseFunctions.getBlock(txHash);
-    String hash = value1.getHash();
-    log.info(BLOCK_HASH_MASSAGE + hash);
+    Result<String> result = quickTxBuilder.compose(retirePool)
+            .withSigner(SignerProviders.signerFrom(sender2))
+            .withSigner(SignerProviders.signerFrom(coldSkey))
+            .completeAndWait(Duration.ofMinutes(1));
 
-    return new TransactionBlockDetails(txHash, hash, value1.getHeight());
+    if (result.isSuccessful()) {
+      String txHash = result.getValue();
+      checkIfUtxoAvailable(result.getValue(), sender2Addr);
+      Block value1 = BaseFunctions.getBlock(txHash);
+      String hash = value1.getHash();
+      log.info(BLOCK_HASH_MASSAGE + hash);
+
+      return new TransactionBlockDetails(txHash, hash, value1.getHeight());
+    }
+
+    throw new RuntimeException("retiring pool transaction failed, reason:" + result.getResponse());
   }
 
   private String getPoolId() {
@@ -190,15 +207,16 @@ public class PoolTransactions implements TransactionRunner {
     String poolRegistrationCborHex = null;
     try {
       poolRegistrationCborHex = objectMapper.readTree(
-              this.getClass().getResourceAsStream("/pool1/pool-registration.cert")).get("cborHex")
-          .asText();
+                      this.getClass().getResourceAsStream("/pool1/pool-registration.cert")).get("cborHex")
+              .asText();
     } catch (IOException e) {
       log.error("Error reading and parsing pool-registration.cert file");
       throw new MissingResourceException(e.getMessage(), this.getClass().getName(),
-          "pool-registration.cert");
+              "pool-registration.cert");
     }
     PoolRegistration poolRegistration = PoolRegistration.deserialize(poolRegistrationCborHex);
 
     return poolRegistration.getBech32PoolId();
   }
+
 }

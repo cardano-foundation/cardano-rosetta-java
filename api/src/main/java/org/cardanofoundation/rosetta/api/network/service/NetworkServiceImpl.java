@@ -133,6 +133,7 @@ public class NetworkServiceImpl implements NetworkService {
     log.debug("[networkStatus] Request received: {}", networkRequest.toString());
     log.info("[networkStatus] Looking for latest block");
     NetworkStatus networkStatus = networkStatus();
+
     return networkMapper.toNetworkStatusResponse(networkStatus);
   }
 

@@ -1,14 +1,15 @@
 package org.cardanofoundation.rosetta.api.search.controller;
 
 import java.lang.reflect.Field;
-import java.util.Collections;
 
 import lombok.SneakyThrows;
 
+import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.openapitools.client.model.AccountIdentifier;
 import org.openapitools.client.model.NetworkIdentifier;
 import org.openapitools.client.model.SearchTransactionsRequest;
 
@@ -20,8 +21,9 @@ import org.cardanofoundation.rosetta.api.search.service.SearchService;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.testgenerator.common.TestConstants;
 
+import static org.cardanofoundation.rosetta.testgenerator.common.TestConstants.TEST_ACCOUNT_ADDRESS;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -29,12 +31,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class SearchControllerTest extends BaseSpringMvcSetup {
 
   @Mock
-  SearchService service;
+  private SearchService service;
+
   @Mock
-  NetworkService networkService;
+  private NetworkService networkService;
 
   @InjectMocks
-  SearchApiImpl searchApi;
+  private SearchApiImpl searchApi;
 
   @Test
   void searchOfflineModeTest() throws NoSuchFieldException, IllegalAccessException {
@@ -49,7 +52,7 @@ class SearchControllerTest extends BaseSpringMvcSetup {
   @Test
   void searchControllerNetworkIsMissing() {
     SearchTransactionsRequest request = new SearchTransactionsRequest();
-    Mockito.when(service.searchTransaction(any(), any(), any())).thenReturn(Collections.emptyList());
+    Mockito.when(service.searchTransaction(any(), any(), any())).thenReturn(Page.empty());
     mockMvc.perform(post("/search/transactions")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(request)))
@@ -65,7 +68,6 @@ class SearchControllerTest extends BaseSpringMvcSetup {
             .network(TestConstants.TEST_NETWORK)
             .build())
         .build();
-    Mockito.when(service.searchTransaction(any(), any(), any())).thenReturn(Collections.emptyList());
 
     mockMvc.perform(post("/search/transactions")
             .contentType(MediaType.APPLICATION_JSON)
@@ -74,4 +76,26 @@ class SearchControllerTest extends BaseSpringMvcSetup {
         .andExpect(jsonPath("$.total_count").value(10))
         .andExpect(jsonPath("$.next_offset").value(10));
   }
+
+  @SneakyThrows
+  @Test
+  void searchControllerOnLastPage() {
+    SearchTransactionsRequest request = SearchTransactionsRequest.builder()
+            .networkIdentifier(NetworkIdentifier.builder()
+                    .blockchain(TestConstants.TEST_BLOCKCHAIN)
+                    .network(TestConstants.TEST_NETWORK)
+                    .build())
+            .accountIdentifier(AccountIdentifier.builder()
+                    .address(TEST_ACCOUNT_ADDRESS)
+                    .build())
+            .build();
+
+    mockMvc.perform(post("/search/transactions")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.total_count").value(4))
+            .andExpect(jsonPath("$.next_offset").doesNotExist());
+  }
+
 }

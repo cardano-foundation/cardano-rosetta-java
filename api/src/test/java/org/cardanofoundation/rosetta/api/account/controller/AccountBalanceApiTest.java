@@ -2,8 +2,8 @@ package org.cardanofoundation.rosetta.api.account.controller;
 
 import java.math.BigInteger;
 
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.openapitools.client.model.*;
 
@@ -18,6 +18,7 @@ import org.cardanofoundation.rosetta.common.util.Constants;
 import org.cardanofoundation.rosetta.testgenerator.common.TestConstants;
 import org.cardanofoundation.rosetta.testgenerator.common.TestTransactionNames;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.cardanofoundation.rosetta.testgenerator.common.TestConstants.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -33,10 +34,11 @@ class AccountBalanceApiTest extends BaseSpringMvcSetup {
   private final Long upToBlockNumber = generatedDataMap.get(
           TestTransactionNames.SIMPLE_LOVELACE_FIRST_TRANSACTION.getName()).blockNumber();
 
-  private final String currentAdaBalance = "3636394";
-  private final String previousAdaBalance = "1636394";
+  private final String currentAdaBalance = "3635602";
+  private final String previousAdaBalance = "1635602";
 
-  @MockBean // we want to replace the real implementation with a mock bean since we do not actually want to test full http layer here but only business logic
+  @MockitoBean
+  // we want to replace the real implementation with a mock bean since we do not actually want to test full http layer here but only business logic
   private YaciHttpGateway yaciHttpGateway;
 
   @BeforeEach
@@ -65,7 +67,6 @@ class AccountBalanceApiTest extends BaseSpringMvcSetup {
 
   @Test
   void accountBalance2Lovelace_Test() {
-
     AccountBalanceResponse accountBalanceResponse = post(newAccBalance(RECEIVER_1));
 
     assertNotNull(accountBalanceResponse);
@@ -75,17 +76,43 @@ class AccountBalanceApiTest extends BaseSpringMvcSetup {
   }
 
   @Test
-  void accountBalanceMintedTokenAndEmptyName_Test() {
+  void accountBalanceMintedTokenAndEmptyName_TestORG() {
 
     AccountBalanceResponse accountBalanceResponse = post(newAccBalance(TEST_ACCOUNT_ADDRESS));
     assertNotNull(accountBalanceResponse);
     assertEquals(3, accountBalanceResponse.getBalances().size());
     assertAdaCurrency(accountBalanceResponse);
+
     assertEquals(TestConstants.ACCOUNT_BALANCE_MINTED_TOKENS_AMOUNT,
-            accountBalanceResponse.getBalances().get(1).getValue());
+            accountBalanceResponse.getBalances().get(2).getValue());
+
     assertNotEquals(accountBalanceResponse.getBalances().getFirst().getCurrency().getSymbol(),
-            accountBalanceResponse.getBalances().get(1).getCurrency().getSymbol());
-    assertEquals("", accountBalanceResponse.getBalances().get(1).getCurrency().getSymbol());
+            accountBalanceResponse.getBalances().get(2).getCurrency().getSymbol());
+
+    assertEquals("", accountBalanceResponse.getBalances().get(2).getCurrency().getSymbol());
+  }
+
+  @Test
+  void accountBalanceMintedTokenAndEmptyName_Test() {
+    AccountBalanceResponse accountBalanceResponse = post(newAccBalance(TEST_ACCOUNT_ADDRESS));
+    assertNotNull(accountBalanceResponse);
+    assertEquals(3, accountBalanceResponse.getBalances().size());
+    assertAdaCurrency(accountBalanceResponse);
+
+    var maybeEmptySymbolAmount = accountBalanceResponse.getBalances().stream()
+            .filter(b -> b.getCurrency().getSymbol().isEmpty())
+            .findFirst();
+
+    assertThat(maybeEmptySymbolAmount).isPresent();
+    var emptySymbolAmount = maybeEmptySymbolAmount.orElseThrow();
+
+    assertEquals(TestConstants.ACCOUNT_BALANCE_MINTED_TOKENS_AMOUNT,
+            emptySymbolAmount.getValue());
+
+    assertNotEquals(accountBalanceResponse.getBalances().getFirst().getCurrency().getSymbol(),
+            emptySymbolAmount.getCurrency().getSymbol());
+
+    assertEquals("", emptySymbolAmount.getCurrency().getSymbol());
   }
 
   @Test
@@ -163,6 +190,7 @@ class AccountBalanceApiTest extends BaseSpringMvcSetup {
 
   @Test
   @Disabled("No test setup for stake address with rewards yet implemented")
+  // TODO do a test with rewards?
   void accountBalanceStakeAddressWithNoEarnedRewards_Test() {
     AccountBalanceRequest accountBalanceRequest = newAccBalance(
             TestConstants.STAKE_ADDRESS_WITH_NO_EARNED_REWARDS);
@@ -222,6 +250,7 @@ class AccountBalanceApiTest extends BaseSpringMvcSetup {
 
     AccountBalanceRequest accountBalanceRequest = newAccBalanceUntilBlock(
             TEST_ACCOUNT_ADDRESS, upToBlockNumberTestAccount, null);
+
     AccountBalanceResponse accountBalanceResponseWith3Tokens =  post(accountBalanceRequest);
 
     accountBalanceRequest = newAccBalanceUntilBlock(

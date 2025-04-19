@@ -28,4 +28,5 @@ public class TransactionSizeEntity {
 
   @Column(name = "script_size")
   private int scriptSize;
+
 }

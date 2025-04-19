@@ -1,6 +1,6 @@
 #!/bin/bash
 
-download_mithril_snapshot(){
+download_mithril_snapshot() {
     echo "Downloading Mithril Snapshot..."
     export CARDANO_NETWORK=$NETWORK
     case $NETWORK in
@@ -21,6 +21,8 @@ download_mithril_snapshot(){
       GENESIS_VERIFICATION_KEY=${GENESIS_VERIFICATION_KEY:-$(wget -q -O - https://raw.githubusercontent.com/input-output-hk/mithril/main/mithril-infra/configuration/testing-sanchonet/genesis.vkey)}
       ;;
     esac
+    echo "Listing content of /node dir:"
+    ls -la /node
     mithril-client cardano-db download latest --download-dir /node &
     MITHRIL_PID=$!
     wait $MITHRIL_PID
