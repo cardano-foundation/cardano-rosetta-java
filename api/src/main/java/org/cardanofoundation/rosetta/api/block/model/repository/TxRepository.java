@@ -1,5 +1,6 @@
 package org.cardanofoundation.rosetta.api.block.model.repository;
 
+import java.util.List;
 import java.util.Set;
 import javax.annotation.Nullable;
 
@@ -15,7 +16,7 @@ import org.cardanofoundation.rosetta.api.block.model.entity.TxnEntity;
 @Repository
 public interface TxRepository extends JpaRepository<TxnEntity, Long> {
 
-  Slice<TxnEntity> findTransactionsByBlockHash(@Param("blockHash") String blockHash);
+  List<TxnEntity> findTransactionsByBlockHash(@Param("blockHash") String blockHash);
 
   @Query(value = """
         SELECT DISTINCT tx FROM TxnEntity tx
