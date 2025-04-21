@@ -1,4 +1,4 @@
-FROM ubuntu:22.04 AS cardano-builder
+FROM ubuntu:24.04 AS cardano-builder
 
 SHELL ["/bin/bash", "-c"]
 
@@ -40,7 +40,7 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | bash -s -- -y \
     && export PATH="$HOME/.cargo/bin:$PATH" \
     && apt update --fix-missing \
     && apt install -y --no-install-recommends \
-    build-essential m4 libssl-dev docker jq git \
+    build-essential m4 libssl-dev docker.io jq git \
     && rustup update stable \
     && apt-get clean
 
@@ -144,7 +144,7 @@ RUN mkdir -p /root/.local/bin \
 
 
 # Compile java applications
-FROM ubuntu:22.04 AS java-builder
+FROM ubuntu:24.04 AS java-builder
 
 WORKDIR /root/app
 
@@ -162,7 +162,7 @@ COPY ./.git /root/app/.git
 RUN --mount=type=cache,target=/root/.m2 mvn -U clean package -DskipTests
 
 # Main
-FROM ubuntu:22.04
+FROM ubuntu:24.04
 
 WORKDIR /
 
