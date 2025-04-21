@@ -192,7 +192,7 @@ RUN mkdir -p /node/postgres
 RUN rm -rf /var/lib/postgresql/${PG_VERSION}/main
 
 # Install jdk 21
-RUN apt install -y --no-install-recommends openjdk-21-jdk jq bc sudo curl \
+RUN apt install -y --no-install-recommends jq bc sudo curl \
     && apt clean
 
 # Copy cardano node
