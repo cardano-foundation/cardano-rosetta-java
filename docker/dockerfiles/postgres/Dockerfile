@@ -1,0 +1,2 @@
+ARG DB_IMAGE_TAG
+FROM postgres:${DB_IMAGE_TAG}
