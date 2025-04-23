@@ -94,7 +94,7 @@ class SearchControllerTest extends BaseSpringMvcSetup {
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(request)))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.total_count").value(4))
+            .andExpect(jsonPath("$.total_count").value(6))
             .andExpect(jsonPath("$.next_offset").doesNotExist());
   }
 

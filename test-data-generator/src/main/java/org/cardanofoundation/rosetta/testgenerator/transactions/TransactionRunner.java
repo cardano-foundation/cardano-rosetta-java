@@ -15,4 +15,5 @@ public interface TransactionRunner {
    * @return a map of transaction block details
    */
   Map<String, TransactionBlockDetails> runTransactions();
+
 }

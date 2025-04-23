@@ -227,17 +227,27 @@ public class ParseConstructionUtil {
     return DataMapper.mapAmount(assetValue.toString(), assetSymbol, 0, null);
   }
 
-  public static List<Operation> parseCertsToOperations(TransactionBody transactionBody,
-      List<Operation> certOps, Network network)
+  public static List<Operation> parseCertsToOperations(
+          TransactionBody transactionBody,
+          List<Operation> certOps,
+          Network network)
       throws CborException, CborSerializationException {
     List<Operation> parsedOperations = new ArrayList<>();
     List<Certificate> certs = transactionBody.getCerts();
+
     int certsCount = getCertSize(certs);
     log.info("[parseCertsToOperations] About to parse {} certs", certsCount);
 
+    if (certOps.size() != certsCount) {
+        log.warn("[parseCertsToOperations] Certs count mismatch, this doesn't bode well");
+
+        //throw ExceptionFactory.certCountMismatchError();
+    }
+
     for (int i = 0; i < certsCount; i++) {
       Operation certOperation = certOps.get(i);
-      if (Constants.STAKING_OPERATIONS.contains(certOperation.getType())) {
+      if (Constants.STAKING_OPERATIONS.contains(certOperation.getType())
+              || Constants.GOVERNANCE_OPERATIONS.contains(certOperation.getType())) {
         String hex = getStakingCredentialHex(certOperation);
         HdPublicKey hdPublicKey = new HdPublicKey();
         hdPublicKey.setKeyData(HexUtil.decodeHexString(hex));

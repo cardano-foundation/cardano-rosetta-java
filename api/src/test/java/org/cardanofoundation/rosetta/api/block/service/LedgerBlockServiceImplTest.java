@@ -50,7 +50,7 @@ class LedgerBlockServiceImplTest {
   private StakeRegistrationRepository stakeRegistrationRepository;
 
   @Mock
-  private DelegationRepository delegationRepository;
+  private PoolDelegationRepository delegationRepository;
 
   @Mock
   private PoolRegistrationRepository poolRegistrationRepository;
@@ -80,10 +80,11 @@ class LedgerBlockServiceImplTest {
     val transactionInfo = new LedgerBlockServiceImpl.TransactionInfo(
             Collections.emptyList(), // utxos
             Collections.emptyList(), // stakeRegistrations
-            Collections.emptyList(), // delegations
-            Collections.emptyList(), // poolRegistrations
-            Collections.emptyList(), // poolRetirements
-            Collections.emptyList()  // withdrawals
+            Collections.emptyList(), // stakePoolDelegations
+            Collections.emptyList(), // stakePoolRegistrations
+            Collections.emptyList(), // stakePoolRetirements
+            Collections.emptyList(), // withdrawals
+            Collections.emptyList()  // drepVoteDelegations
     );
 
     val utxoMap = new HashMap<LedgerBlockServiceImpl.UtxoKey, AddressUtxoEntity>();
@@ -103,10 +104,11 @@ class LedgerBlockServiceImplTest {
     val transactionInfo = new LedgerBlockServiceImpl.TransactionInfo(
             Collections.emptyList(), // utxos
             Collections.emptyList(), // stakeRegistrations
-            Collections.emptyList(), // delegations
-            Collections.emptyList(), // poolRegistrations
-            Collections.emptyList(), // poolRetirements
-            Collections.emptyList()  // withdrawals
+            Collections.emptyList(), // stakePoolDelegations
+            Collections.emptyList(), // stakePoolRegistrations
+            Collections.emptyList(), // stakePoolRetirements
+            Collections.emptyList(), // withdrawals
+            Collections.emptyList()  // drepVoteDelegations
     );
 
     val utxoMap = new HashMap<LedgerBlockServiceImpl.UtxoKey, AddressUtxoEntity>();
@@ -140,6 +142,7 @@ class LedgerBlockServiceImplTest {
             Collections.emptyList(),
             Collections.emptyList(),
             Collections.emptyList(),
+            Collections.emptyList(),
             Collections.emptyList()
     );
 
@@ -149,28 +152,63 @@ class LedgerBlockServiceImplTest {
   }
 
   @Test
-  void populateTransaction_populatesDelegations() {
+  void populateTransaction_populatesStakePoolDelegations() {
     val transaction = new BlockTx();
     transaction.setHash("txHash1");
     transaction.setInputs(Collections.emptyList());
     transaction.setOutputs(Collections.emptyList());
 
     val utxoMap = new HashMap<LedgerBlockServiceImpl.UtxoKey, AddressUtxoEntity>();
-    DelegationEntity entity1 = new DelegationEntity();
+
+    DrepDelegationVoteEntity entity1 = new DrepDelegationVoteEntity();
     entity1.setTxHash("txHash1");
 
-    DelegationEntity entity2 = new DelegationEntity();
+    DrepDelegationVoteEntity entity2 = new DrepDelegationVoteEntity();
     entity2.setTxHash("txHash2");
 
-    List<DelegationEntity> delegations = List.of(entity1, entity2);
+    List<DrepDelegationVoteEntity> drepDelegationVoteEntities = List.of(entity1, entity2);
 
-    when(transactionMapper.mapDelegationEntityToDelegation(entity1))
+    when(transactionMapper.mapEntityToDRepDelegation(entity1))
+            .thenReturn(new DRepDelegation());
+
+    val transactionInfo = new LedgerBlockServiceImpl.TransactionInfo(
+            Collections.emptyList(),
+            Collections.emptyList(),
+            Collections.emptyList(),
+            Collections.emptyList(),
+            Collections.emptyList(),
+            Collections.emptyList(),
+            drepDelegationVoteEntities
+    );
+
+    ledgerBlockService.populateTransaction(transaction, transactionInfo, utxoMap);
+    assertThat(transaction.getDRepDelegations().size()).isEqualTo(1);
+  }
+
+  @Test
+  void populateTransaction_populatesDrepDelegationx() {
+    val transaction = new BlockTx();
+    transaction.setHash("txHash1");
+    transaction.setInputs(Collections.emptyList());
+    transaction.setOutputs(Collections.emptyList());
+
+    val utxoMap = new HashMap<LedgerBlockServiceImpl.UtxoKey, AddressUtxoEntity>();
+    PoolDelegationEntity entity1 = new PoolDelegationEntity();
+    entity1.setTxHash("txHash1");
+
+    PoolDelegationEntity entity2 = new PoolDelegationEntity();
+    entity2.setTxHash("txHash2");
+
+    List<PoolDelegationEntity> poolDelegationEntities = List.of(entity1, entity2);
+
+    when(transactionMapper.mapPoolDelegationEntityToDelegation(entity1))
             .thenReturn(new StakePoolDelegation());
 
     val transactionInfo = new LedgerBlockServiceImpl.TransactionInfo(
             Collections.emptyList(),
             Collections.emptyList(),
-            delegations,
+            poolDelegationEntities,
+            Collections.emptyList(),
             Collections.emptyList(),
             Collections.emptyList(),
             Collections.emptyList()
@@ -207,6 +245,7 @@ class LedgerBlockServiceImplTest {
             Collections.emptyList(),
             Collections.emptyList(),
             withdrawals
+            , Collections.emptyList()
     );
 
     ledgerBlockService.populateTransaction(transaction, transactionInfo, utxoMap);
@@ -238,7 +277,8 @@ class LedgerBlockServiceImplTest {
             Collections.emptyList(),
             poolRegistrations,
             Collections.emptyList(),
-            Collections.emptyList()
+            Collections.emptyList(), // withdrawals
+            Collections.emptyList()  // drepVoteDelegations
     );
 
     ledgerBlockService.populateTransaction(transaction, transactionInfo, utxoMap);
@@ -270,6 +310,7 @@ class LedgerBlockServiceImplTest {
             Collections.emptyList(),
             Collections.emptyList(),
             poolRetirements,
+            Collections.emptyList(),
             Collections.emptyList()
     );
 

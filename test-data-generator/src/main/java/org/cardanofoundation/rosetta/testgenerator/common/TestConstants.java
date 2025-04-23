@@ -1,5 +1,8 @@
 package org.cardanofoundation.rosetta.testgenerator.common;
 
+import lombok.experimental.UtilityClass;
+
+@UtilityClass
 public class TestConstants {
 
   public static final String FILE_SAVE_PATH = "./testData/testdata.json";
@@ -8,7 +11,6 @@ public class TestConstants {
   public static final String ACCOUNT_BALANCE_LOVELACE_SMALL_AMOUNT = "1";
   public static final String ACCOUNT_BALANCE_MINTED_TOKENS_AMOUNT = "1000";
   public static final String STAKE_ACCOUNT_BALANCE_AMOUNT = "996685608";
-  public static final String URL = "http://localhost:";
   public static final String TEST_BLOCKCHAIN = "cardano";
   public static final String TEST_NETWORK = "devkit";
   public static final String MY_ASSET_SYMBOL = "\\x";
@@ -27,7 +29,6 @@ public class TestConstants {
   public static final String STAKE_ADDRESS_WITH_NO_EARNED_REWARDS = "stake_test1uzz49ldva0xpzucv2q8rt0tk0r3ekyl3r8j9e3tf5zf834qet948h";
   public static final String STAKE_ADDRESS_WITH_EARNED_REWARDS = "stake_test1uqjg6peuwpjaexgdd2vy2h69zn6pjz33pdsvekjcq88uxmgc6qc7u";
   public static final String STAKE_ADDRESS_WITH_MINTED_TOKENS = "stake_test1uq54hxr3x4ssv9hnca8prj2dw7mva4wveya86uvulvf4qcsceluue";
+  public static final String STAKE_ADDRESS_DREP = "stake_test1uz89q57sawqdmfgeapdl3cypgjldk4y9lzqg2q422wzywucvsxnhw";
 
-  private TestConstants() {
-  }
 }

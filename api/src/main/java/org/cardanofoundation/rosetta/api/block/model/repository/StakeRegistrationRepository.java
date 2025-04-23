@@ -11,4 +11,5 @@ public interface StakeRegistrationRepository extends
     JpaRepository<StakeRegistrationEntity, StakeRegistrationId> {
 
   List<StakeRegistrationEntity> findByTxHashIn(List<String> txHashes);
+
 }

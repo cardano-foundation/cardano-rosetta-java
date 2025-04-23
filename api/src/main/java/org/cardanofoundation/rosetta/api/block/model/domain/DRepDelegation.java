@@ -10,6 +10,7 @@ import org.openapitools.client.model.DRepTypeParams;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Setter
 public class DRepDelegation {
 
     private String txHash;
@@ -20,10 +21,10 @@ public class DRepDelegation {
     @AllArgsConstructor
     @NoArgsConstructor
     @Getter
+    @Setter
     public static class DRep {
 
         private String drepId;
-
         private DRepType drepType;
 
         public static DRepDelegation.DRep convertDRepToRosetta(DRepParams dRepParams) {

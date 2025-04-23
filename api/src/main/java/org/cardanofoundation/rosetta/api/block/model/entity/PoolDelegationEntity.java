@@ -12,7 +12,7 @@ import lombok.Setter;
 @Entity
 @Table(name = "delegation")
 @IdClass(DelegationId.class)
-public class DelegationEntity {
+public class PoolDelegationEntity {
 
   @Id
   @Column(name = "tx_hash")

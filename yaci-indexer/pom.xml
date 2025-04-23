@@ -69,16 +69,22 @@
             <artifactId>yaci-store-transaction-spring-boot-starter</artifactId>
             <version>${yaci-store.version}</version>
         </dependency>
-        <!-- Used for address_utxo table -->
+        <!-- Used for address_utxo table (basic) -->
         <dependency>
             <groupId>com.bloxbean.cardano</groupId>
             <artifactId>yaci-store-utxo-spring-boot-starter</artifactId>
             <version>${yaci-store.version}</version>
         </dependency>
-        <!-- Used for staking info including pool infos -->
+        <!-- Used for staking info including pool infos (Shelley) -->
         <dependency>
             <groupId>com.bloxbean.cardano</groupId>
             <artifactId>yaci-store-staking-spring-boot-starter</artifactId>
+            <version>${yaci-store.version}</version>
+        </dependency>
+        <!-- Used for governance data (Voltaire) -->
+        <dependency>
+            <groupId>com.bloxbean.cardano</groupId>
+            <artifactId>yaci-store-governance-spring-boot-starter</artifactId>
             <version>${yaci-store.version}</version>
         </dependency>
         <!-- Used for epoch_params  -> protocolparams-->

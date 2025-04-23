@@ -34,8 +34,8 @@ class AccountBalanceApiTest extends BaseSpringMvcSetup {
   private final Long upToBlockNumber = generatedDataMap.get(
           TestTransactionNames.SIMPLE_LOVELACE_FIRST_TRANSACTION.getName()).blockNumber();
 
-  private final String currentAdaBalance = "3635602";
-  private final String previousAdaBalance = "1635602";
+  private final String currentAdaBalance = "1000000001462357";
+  private final String previousAdaBalance = "1000000001635910";
 
   @MockitoBean
   // we want to replace the real implementation with a mock bean since we do not actually want to test full http layer here but only business logic
@@ -77,19 +77,22 @@ class AccountBalanceApiTest extends BaseSpringMvcSetup {
 
   @Test
   void accountBalanceMintedTokenAndEmptyName_TestORG() {
-
     AccountBalanceResponse accountBalanceResponse = post(newAccBalance(TEST_ACCOUNT_ADDRESS));
     assertNotNull(accountBalanceResponse);
     assertEquals(3, accountBalanceResponse.getBalances().size());
     assertAdaCurrency(accountBalanceResponse);
 
+    var amount = accountBalanceResponse.getBalances().stream()
+            .filter(a -> a.getCurrency().getSymbol().isEmpty())
+            .findFirst().orElseThrow();
+
     assertEquals(TestConstants.ACCOUNT_BALANCE_MINTED_TOKENS_AMOUNT,
-            accountBalanceResponse.getBalances().get(2).getValue());
+            amount.getValue());
 
     assertNotEquals(accountBalanceResponse.getBalances().getFirst().getCurrency().getSymbol(),
-            accountBalanceResponse.getBalances().get(2).getCurrency().getSymbol());
+            amount.getCurrency().getSymbol());
 
-    assertEquals("", accountBalanceResponse.getBalances().get(2).getCurrency().getSymbol());
+    assertEquals("", amount.getCurrency().getSymbol());
   }
 
   @Test

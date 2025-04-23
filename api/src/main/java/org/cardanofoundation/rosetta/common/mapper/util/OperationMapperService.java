@@ -59,11 +59,6 @@ public class OperationMapperService {
             .map(delegation -> transactionMapper.mapStakeDelegationToOperation(delegation, txStatus, ix.getAndIncrement()))
             .toList());
 
-    operations.addAll(Optional.ofNullable(source.getDRepDelegations()).stream()
-        .flatMap(List::stream)
-        .map(delegation -> transactionMapper.mapDRepDelegationToOperation(delegation, txStatus, ix.getAndIncrement()))
-        .toList());
-
     operations.addAll(Optional.ofNullable(source.getPoolRegistrations()).stream()
         .flatMap(List::stream)
         .map(poolRegistration -> transactionMapper.mapPoolRegistrationToOperation(poolRegistration,
@@ -76,7 +71,12 @@ public class OperationMapperService {
             txStatus, ix.getAndIncrement()))
         .toList());
 
-    if(!source.isInvalid()) {
+    operations.addAll(Optional.ofNullable(source.getDRepDelegations()).stream()
+            .flatMap(List::stream)
+            .map(delegation -> transactionMapper.mapDRepDelegationToOperation(delegation, txStatus, ix.getAndIncrement()))
+            .toList());
+
+    if (!source.isInvalid()) {
       List<Operation> outOps = Optional.ofNullable(source.getOutputs()).stream()
           .flatMap(List::stream)
           .map(output -> {

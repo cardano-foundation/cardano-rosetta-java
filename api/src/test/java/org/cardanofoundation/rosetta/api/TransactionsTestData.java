@@ -22,7 +22,7 @@ abstract class TransactionsTestData {
   @BeforeAll
   public static void init(@Autowired ObjectMapper objectMapper) throws IOException {
     generatedDataMap = objectMapper.readValue(
-        new File("." + TestConstants.FILE_SAVE_PATH),
+        new File(".%s".formatted(TestConstants.FILE_SAVE_PATH)),
         new TypeReference<>() {});
   }
 

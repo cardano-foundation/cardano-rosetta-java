@@ -12,13 +12,13 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.Ordered;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.filter.CommonsRequestLoggingFilter;
 import org.springframework.web.filter.ForwardedHeaderFilter;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.info.Info;
 import org.openapitools.jackson.nullable.JsonNullableModule;
-
 
 @SpringBootApplication
 @EntityScan({
@@ -29,6 +29,7 @@ import org.openapitools.jackson.nullable.JsonNullableModule;
     "org.cardanofoundation.rosetta.api.common.model.entity"})
 @OpenAPIDefinition(info = @Info(title = "APIs", version = "1.0", description = "Rosetta APIs v1.0"))
 @EnableScheduling
+@EnableTransactionManagement
 public class RosettaApiApplication {
 
   public static void main(String[] args) {
@@ -44,6 +45,7 @@ public class RosettaApiApplication {
         DispatcherType.ERROR);
     registration.setOrder(Ordered.HIGHEST_PRECEDENCE);
     registration.setUrlPatterns(List.of("/**"));
+
     return registration;
   }
 
