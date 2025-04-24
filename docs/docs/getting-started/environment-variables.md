@@ -14,13 +14,13 @@ Within root folder of the project there are example `.env` files, which can be c
 - `.env.docker-compose` - Is used for standard docker-compose setup (Copy this file and adjusted it to your needs)
 
 | Variable                     | Description                  | Default                               |
-| ---------------------------- | ---------------------------- | ------------------------------------- |
+| ---------------------------- | ---------------------------- |---------------------------------------|
 | `LOG`                        | Log level                    | INFO                                  |
 | `NETWORK`                    | Network                      | mainnet                               |
 | `MITHRIL_SYNC`               | Sync from Mithril snapshot   | true                                  |
 | `PROTOCOL_MAGIC`             | Cardano protocol magic       | 764824073                             |
 | `DB_IMAGE_NAME`              | Postgres docker image name   | postgres                              |
-| `DB_IMAGE_TAG`               | Postgres docker image tag    | 14.11-bullseye                        |
+| `DB_IMAGE_TAG`               | Postgres docker image tag    | 17.4-bookworm                         |
 | `DB_NAME`                    | Postgres database            | rosetta-java                          |
 | `DB_USER`                    | Postgres admin user          | rosetta_db_admin                      |
 | `DB_SECRET`                  | Postgres admin secret        | weakpwd#123_d                         |
@@ -30,7 +30,7 @@ Within root folder of the project there are example `.env` files, which can be c
 | `DB_PATH`                    | Database path                | /data                                 |
 | `CARDANO_NODE_HOST`          | Cardano node host            | cardano-node                          |
 | `CARDANO_NODE_PORT`          | Cardano node port            | 3001                                  |
-| `CARDANO_NODE_VERSION`       | Cardano node version         | 8.9.2                                 |
+| `CARDANO_NODE_VERSION`       | Cardano node version         | 10.2.1                                |
 | `CARDANO_NODE_SUBMIT_HOST`   | Cardano node submit api host | cardano-submit-api                    |
 | `NODE_SUBMIT_API_PORT`       | Cardano node submit api port | 8090                                  |
 | `CARDANO_NODE_SOCKET_PATH`   | Cardano node socket path     | /node                                 |
