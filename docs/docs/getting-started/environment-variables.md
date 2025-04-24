@@ -14,7 +14,7 @@ Within root folder of the project there are example `.env` files, which can be c
 - `.env.docker-compose` - Is used for standard docker-compose setup (Copy this file and adjusted it to your needs)
 
 | Variable                     | Description                  | Default                               |
-| ---------------------------- | ---------------------------- | ------------------------------------- |
+| ---------------------------- | ---------------------------- |---------------------------------------|
 | `LOG`                        | Log level                    | INFO                                  |
 | `NETWORK`                    | Network                      | mainnet                               |
 | `MITHRIL_SYNC`               | Sync from Mithril snapshot   | true                                  |
@@ -26,7 +26,7 @@ Within root folder of the project there are example `.env` files, which can be c
 | `DB_SECRET`                  | Postgres admin secret        | weakpwd#123_d                         |
 | `DB_HOST`                    | Postgres host                | db                                    |
 | `DB_PORT`                    | Postgres port                | 5432                                  |
-| `DB_SCHEMA`                  | Database schema              | mainnet                               |
+| `DB_SCHEMA`                  | Database schema              | public                                |
 | `DB_PATH`                    | Database path                | /data                                 |
 | `CARDANO_NODE_HOST`          | Cardano node host            | cardano-node                          |
 | `CARDANO_NODE_PORT`          | Cardano node port            | 3001                                  |
