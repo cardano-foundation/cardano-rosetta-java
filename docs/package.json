@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "docusaurus": "docusaurus",
+    "prestart": "mkdir -p static && cp ../api/src/main/resources/rosetta-specifications-1.4.15/api.yaml static/api.yaml",
     "start": "docusaurus start",
     "build": "docusaurus build",
     "swizzle": "docusaurus swizzle",
