@@ -11,7 +11,7 @@ import {themes as prismThemes} from 'prism-react-renderer';
 /** @type {import('@docusaurus/types').Config} */
 const config = {
   title: 'Cardano Rosetta Java',
-  tagline: 'Java implementation of the Rosetta API for Cardano',
+  tagline: 'A lightweight Java implementation of the Mesh (formerly Rosetta) API for Cardano',
   favicon: 'img/favicon.ico',
 
   // Set the production url of your site here
