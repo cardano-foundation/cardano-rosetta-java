@@ -74,6 +74,10 @@ const config = {
             label: 'Docs',
           },
           {
+            type: 'search',
+            position: 'right',
+          },
+          {
             href: 'https://github.com/cardano-foundation/cardano-rosetta-java',
             className: 'header-github-link',
             'aria-label': 'GitHub repository',
@@ -89,7 +93,7 @@ const config = {
                 html: `
                   <div class="footer-container">
                     <div class="footer-row">
-                      <a href="/docs/intro" class="footer-icon-link" aria-label="Documentation">
+                      <a href="/cardano-rosetta-java/docs/intro" class="footer-icon-link" aria-label="Documentation">
                         <span class="footer-icon footer-icon-docs"></span>
                       </a>
                       <a href="/cardano-rosetta-java/api" class="footer-icon-link" aria-label="API Reference">
@@ -137,6 +141,15 @@ const config = {
             },
           ],
         },
+      },
+    ],
+    [
+      require.resolve("docusaurus-plugin-search-local"),
+      {
+        // Options for the local search plugin
+        hashed: true,
+        indexDocs: true,
+        indexPages: true,
       },
     ],
   ],

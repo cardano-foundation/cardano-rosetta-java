@@ -13,7 +13,7 @@ function HomepageHeader() {
       <div className="container text--center">
         <h1 className="hero__title">{siteConfig.title}</h1>
         <p className="hero__subtitle">
-          A lightweight Java implementation of the Mesh API for Cardano blockchain
+          A lightweight Java implementation of the Mesh (formerly Rosetta) API for Cardano blockchain
         </p>
         <div className="buttons">
           <Link
