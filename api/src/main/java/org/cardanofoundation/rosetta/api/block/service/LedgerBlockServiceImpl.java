@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.StructuredTaskScope;
-import java.util.concurrent.StructuredTaskScope.ShutdownOnFailure;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -43,17 +42,18 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
   private final BlockRepository blockRepository;
   private final TxRepository txRepository;
   private final StakeRegistrationRepository stakeRegistrationRepository;
-  private final DelegationRepository delegationRepository;
   private final PoolRegistrationRepository poolRegistrationRepository;
+  private final PoolDelegationRepository poolDelegationRepository;
   private final PoolRetirementRepository poolRetirementRepository;
   private final WithdrawalRepository withdrawalRepository;
   private final AddressUtxoRepository addressUtxoRepository;
   private final InvalidTransactionRepository invalidTransactionRepository;
+  private final DRepVoteDelegationRepository dRepVoteDelegationRepository;
+  private final Clock clock;
 
   private final BlockMapper blockMapper;
   private final TransactionMapper transactionMapper;
   private final AddressUtxoEntityToUtxo addressUtxoEntityToUtxo;
-  private final Clock clock;
 
   private BlockIdentifierExtended cachedGenesisBlock;
 
@@ -186,13 +186,14 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
             .map(Utxo::getTxHash)
             .toList();
 
-    try (ShutdownOnFailure scope = new ShutdownOnFailure()) {
+    try (StructuredTaskScope.ShutdownOnFailure scope = new StructuredTaskScope.ShutdownOnFailure()) {
       StructuredTaskScope.Subtask<List<AddressUtxoEntity>> utxos = scope.fork(() -> addressUtxoRepository.findByTxHashIn(utxHashes));
       StructuredTaskScope.Subtask<List<StakeRegistrationEntity>> sReg = scope.fork(() -> stakeRegistrationRepository.findByTxHashIn(txHashes));
-      StructuredTaskScope.Subtask<List<DelegationEntity>> delegations = scope.fork(() -> delegationRepository.findByTxHashIn(txHashes));
+      StructuredTaskScope.Subtask<List<PoolDelegationEntity>> delegations = scope.fork(() -> poolDelegationRepository.findByTxHashIn(txHashes));
       StructuredTaskScope.Subtask<List<PoolRegistrationEntity>> pReg = scope.fork(() -> poolRegistrationRepository.findByTxHashIn(txHashes));
       StructuredTaskScope.Subtask<List<PoolRetirementEntity>> pRet = scope.fork(() -> poolRetirementRepository.findByTxHashIn(txHashes));
       StructuredTaskScope.Subtask<List<WithdrawalEntity>> withdrawals = scope.fork(() -> withdrawalRepository.findByTxHashIn(txHashes));
+      StructuredTaskScope.Subtask<List<DrepDelegationVoteEntity>> voteDelegations = scope.fork(() -> dRepVoteDelegationRepository.findByTxHashIn(txHashes));
 
       scope.joinUntil(Instant.now(clock).plusSeconds(blockFetchTimeoutInSeconds));
       scope.throwIfFailed(); // Propagate any failure
@@ -203,21 +204,26 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
               delegations.get(),
               pReg.get(),
               pRet.get(),
-              withdrawals.get()
+              withdrawals.get(),
+              voteDelegations.get()
       );
     } catch (ExecutionException e) {
-      log.error("Error fetching transaction data", e);
+      String errorMsg = "Error fetching transaction data, msg:%s".formatted(e.getMessage());
 
-      throw ExceptionFactory.unspecifiedError("Error fetching transaction data, msg:%s".formatted(e.getMessage()));
+      log.error(errorMsg);
+
+      throw ExceptionFactory.unspecifiedError(errorMsg);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       log.error("Error fetching transaction data", e);
 
       throw ExceptionFactory.unspecifiedError("Error fetching transaction data, msg:%s".formatted(e.getMessage()));
     } catch (TimeoutException e) {
-      log.error("Error fetching transaction data", e);
+      String errorMsg = "Timeout while fetching transaction data from db, timeout(secs): %d".formatted(blockFetchTimeoutInSeconds);
 
-      throw ExceptionFactory.timeOut("timeout while fetching transaction data from db.");
+      log.error(errorMsg);
+
+      throw ExceptionFactory.timeOut(errorMsg);
     }
   }
 
@@ -245,10 +251,10 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
                     .toList());
 
     transaction.setStakePoolDelegations(
-            fetched.delegations
+            fetched.stakePoolDelegations
                     .stream()
                     .filter(tx -> tx.getTxHash().equals(transaction.getHash()))
-                    .map(transactionMapper::mapDelegationEntityToDelegation)
+                    .map(transactionMapper::mapPoolDelegationEntityToDelegation)
                     .toList());
 
     transaction.setWithdrawals(
@@ -259,18 +265,27 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
                     .toList());
 
     transaction.setPoolRegistrations(
-            fetched.poolRegistrations
+            fetched.stakePoolRegistrations
                     .stream()
                     .filter(tx -> tx.getTxHash().equals(transaction.getHash()))
                     .map(transactionMapper::mapEntityToPoolRegistration)
                     .toList());
 
     transaction.setPoolRetirements(
-            fetched.poolRetirements
+            fetched.stakePoolRetirements
                     .stream()
                     .filter(tx -> tx.getTxHash().equals(transaction.getHash()))
                     .map(transactionMapper::mapEntityToPoolRetirement)
                     .toList());
+
+    transaction.setDRepDelegations(
+            fetched.drepVoteDelegations
+                    .stream()
+                    .filter(tx -> tx.getTxHash().equals(transaction.getHash()))
+                    .filter(tx -> tx.getCertIndex() == 0) // 0 represents the single drep delegation
+                    .map(transactionMapper::mapEntityToDRepDelegation)
+                    .toList()
+    );
   }
 
   private void populateUtxo(Utxo utxo, Map<UtxoKey, AddressUtxoEntity> utxoMap) {
@@ -292,15 +307,14 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
 
   record TransactionInfo(List<AddressUtxoEntity> utxos,
                          List<StakeRegistrationEntity> stakeRegistrations,
-                         List<DelegationEntity> delegations,
-                         List<PoolRegistrationEntity> poolRegistrations,
-                         List<PoolRetirementEntity> poolRetirements,
-                         List<WithdrawalEntity> withdrawals) {
-
+                         List<PoolDelegationEntity> stakePoolDelegations,
+                         List<PoolRegistrationEntity> stakePoolRegistrations,
+                         List<PoolRetirementEntity> stakePoolRetirements,
+                         List<WithdrawalEntity> withdrawals,
+                         List<DrepDelegationVoteEntity> drepVoteDelegations) {
   }
 
   record UtxoKey(String txHash, Integer outputIndex) {
-
   }
 
 }

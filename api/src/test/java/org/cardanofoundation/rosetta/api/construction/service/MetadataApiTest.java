@@ -43,7 +43,7 @@ class MetadataApiTest extends IntegrationTest {
         assertEquals(ADA, constructionMetadataResponse.getSuggestedFee().getFirst().getCurrency().getSymbol());
         assertEquals(ADA_DECIMALS, constructionMetadataResponse.getSuggestedFee().getFirst().getCurrency().getDecimals());
 
-        assertEquals(BigDecimal.valueOf(719), constructionMetadataResponse.getMetadata().getTtl());
+        assertEquals(BigDecimal.valueOf(753), constructionMetadataResponse.getMetadata().getTtl());
         assertEquals("4310", constructionMetadataResponse.getMetadata().getProtocolParameters().getCoinsPerUtxoSize());
         assertEquals("2000000", constructionMetadataResponse.getMetadata().getProtocolParameters().getKeyDeposit());
         assertEquals("500000000", constructionMetadataResponse.getMetadata().getProtocolParameters().getPoolDeposit());

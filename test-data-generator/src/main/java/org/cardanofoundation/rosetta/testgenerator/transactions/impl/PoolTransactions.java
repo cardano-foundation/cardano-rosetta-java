@@ -83,8 +83,8 @@ public class PoolTransactions implements TransactionRunner {
               VerificationKey.class);
 
       String poolRegistrationCborHex = objectMapper.readTree(
-                      this.getClass().getResourceAsStream("/pool1/pool-registration.cert")).get("cborHex")
-              .asText();
+              this.getClass().getResourceAsStream("/pool1/pool-registration.cert")).get("cborHex")
+          .asText();
 
       poolRegistration = PoolRegistration.deserialize(poolRegistrationCborHex);
     } catch (IOException e) {
@@ -154,7 +154,7 @@ public class PoolTransactions implements TransactionRunner {
               .completeAndWait(Duration.ofMinutes(1));
 
       String txHash = complete.getValue();
-      checkIfUtxoAvailable(complete.getValue(), sender2Addr);
+      checkIfUtxoAvailable(result.getValue(), sender2Addr);
       Block value1 = BaseFunctions.getBlock(txHash);
       String hash = value1.getHash();
 

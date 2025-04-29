@@ -19,6 +19,7 @@ import org.cardanofoundation.rosetta.api.block.model.entity.*;
 import org.cardanofoundation.rosetta.testgenerator.common.TransactionBlockDetails;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.cardanofoundation.rosetta.testgenerator.common.TestConstants.STAKE_ADDRESS_DREP;
 import static org.cardanofoundation.rosetta.testgenerator.common.TestConstants.STAKE_ADDRESS_WITH_EARNED_REWARDS;
 import static org.cardanofoundation.rosetta.testgenerator.common.TestTransactionNames.*;
 
@@ -121,7 +122,7 @@ class LedgerBlockServiceImplIntTest extends IntegrationTest {
   }
 
   @Test
-  void findTransactionsByBlock_Test_delegation_tx() {
+  void findTransactionsByBlock_Test_pool_delegation_tx() {
     //given
     TransactionBlockDetails tx = generatedDataMap.get(POOL_DELEGATION_TRANSACTION.getName());
     //when
@@ -141,18 +142,54 @@ class LedgerBlockServiceImplIntTest extends IntegrationTest {
     assertThat(blockTx.getStakePoolDelegations().getFirst().getAddress())
         .isEqualTo(STAKE_ADDRESS_WITH_EARNED_REWARDS);
 
-    List<DelegationEntity> delegations = entityManager
-        .createQuery("FROM DelegationEntity b where b.txHash=:hash", DelegationEntity.class)
+    List<PoolDelegationEntity> delegations = entityManager
+        .createQuery("FROM PoolDelegationEntity b where b.txHash=:hash", PoolDelegationEntity.class)
         .setParameter("hash", tx.txHash())
         .getResultList();
     assertThat(delegations).isNotNull().hasSize(1);
-    DelegationEntity expected = delegations.getFirst();
+    PoolDelegationEntity expected = delegations.getFirst();
     assertThat(expected.getAddress()).isEqualTo(STAKE_ADDRESS_WITH_EARNED_REWARDS);
 
     StakePoolDelegation actual = blockTx.getStakePoolDelegations().getFirst();
     assertThat(actual.getTxHash()).isEqualTo(expected.getTxHash());
     assertThat(actual.getAddress()).isEqualTo(expected.getAddress());
     assertThat(actual.getPoolId()).isEqualTo(expected.getPoolId());
+    assertThat(actual.getCertIndex()).isEqualTo(expected.getCertIndex());
+  }
+
+  @Test
+  void findTransactionsByBlock_Test_drep_delegation_tx() {
+    TransactionBlockDetails tx = generatedDataMap.get(DREP_VOTE_DELEGATION.getName());
+
+    long number = tx.blockNumber();
+    String hash = tx.blockHash();
+
+    List<BlockTx> txs = ledgerBlockService.findTransactionsByBlock(number, hash);
+
+    assertThat(txs).isNotNull().hasSize(1);
+
+    BlockTx blockTx = txs.getFirst();
+    assertThat(blockTx.getHash()).isEqualTo(tx.txHash());
+    assertThat(blockTx.getBlockNo()).isEqualTo(tx.blockNumber());
+    assertThat(blockTx.getBlockHash()).isEqualTo(hash);
+
+    assertThat(blockTx.getDRepDelegations()).hasSize(1);
+    assertThat(blockTx.getDRepDelegations().getFirst().getAddress())
+            .isEqualTo(STAKE_ADDRESS_DREP);
+
+    List<DrepDelegationVoteEntity> delegations = entityManager
+            .createQuery("FROM DrepDelegationVoteEntity b where b.txHash=:hash", DrepDelegationVoteEntity.class)
+            .setParameter("hash", tx.txHash())
+            .getResultList();
+
+    assertThat(delegations).isNotNull().hasSize(1);
+    DrepDelegationVoteEntity expected = delegations.getFirst();
+    assertThat(expected.getAddress()).isEqualTo(STAKE_ADDRESS_DREP);
+
+    DRepDelegation actual = blockTx.getDRepDelegations().getFirst();
+    assertThat(actual.getTxHash()).isEqualTo(expected.getTxHash());
+    assertThat(actual.getAddress()).isEqualTo(expected.getAddress());
+    assertThat(actual.getDrep().getDrepId()).isEqualTo(expected.getDrepHash());
     assertThat(actual.getCertIndex()).isEqualTo(expected.getCertIndex());
   }
 
