@@ -22,6 +22,7 @@ import random
 import string
 import time
 import argparse
+import logging
 from textwrap import dedent
 
 ###############################################################################
@@ -53,7 +54,7 @@ def parse_args():
     
     # Test configuration options
     parser.add_argument('--concurrency', dest='concurrencies', type=lambda s: [int(item) for item in s.split(',')],
-                        default=[1, 2, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52, 56, 60, 64, 68, 72, 76, 80, 84, 88, 92, 96, 100, 125, 150, 175, 200],
+                        default=[1, 2, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52, 56, 60, 64, 68, 72, 76, 80, 84, 88, 92, 96, 100, 125, 150, 175, 200, 225, 250, 275, 300, 325, 350, 375, 400, 425, 450, 475, 500],
                         help='Comma-separated list of concurrency levels to test')
     parser.add_argument('--duration', dest='test_duration', type=int, default=60,
                         help='Duration in seconds for each concurrency level test')
@@ -67,6 +68,8 @@ def parse_args():
                         help='Enable verbose output')
     parser.add_argument('--cooldown', dest='cooldown', type=int, default=60,
                         help='Cooldown period in seconds between endpoint tests')
+    parser.add_argument('--max-retries', dest='max_retries', type=int, default=2,
+                        help='Maximum number of retries when an ab command fails')
     
     # Endpoint selection
     parser.add_argument('--endpoints', dest='selected_endpoints', type=str,
@@ -96,6 +99,10 @@ SLA_THRESHOLD = args.sla_threshold
 NO_HEADER = args.no_header
 VERBOSE = args.verbose
 COOLDOWN_PERIOD = args.cooldown
+MAX_RETRIES = args.max_retries
+
+# Global logger variable
+logger = None
 
 ###############################################################################
 # FILES AND DIRECTORIES
@@ -121,6 +128,35 @@ SUMMARY_FILE = os.path.join(OUTPUT_DIR, "summary_results.csv")
 DETAILS_MD_FILE = os.path.join(OUTPUT_DIR, "details_results.md")
 SUMMARY_MD_FILE = os.path.join(OUTPUT_DIR, "summary_results.md")
 COMMANDS_FILE = os.path.join(OUTPUT_DIR, "ab_commands.log")
+
+###############################################################################
+# LOGGING SETUP
+###############################################################################
+
+def setup_logging(output_dir, verbose):
+    """Configure logging to file and console."""
+    global logger
+    logger = logging.getLogger('stability_test')
+    logger.setLevel(logging.DEBUG) # Capture all levels
+
+    log_format = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+
+    # File handler - always logs DEBUG level and above
+    log_file = os.path.join(output_dir, 'stability_test.log')
+    file_handler = logging.FileHandler(log_file)
+    file_handler.setLevel(logging.DEBUG)
+    file_handler.setFormatter(log_format)
+    logger.addHandler(file_handler)
+
+    # Console handler - logs INFO or DEBUG based on verbosity
+    console_handler = logging.StreamHandler(sys.stdout)
+    console_level = logging.DEBUG if verbose else logging.INFO
+    console_handler.setLevel(console_level)
+    console_handler.setFormatter(log_format)
+    logger.addHandler(console_handler)
+
+    # Prevent double logging if run multiple times (e.g., in tests)
+    logger.propagate = False
 
 ###############################################################################
 # AB COMMAND GENERATOR AND PARSER 
@@ -451,27 +487,108 @@ def test_endpoint(endpoint_name, endpoint_path, payload_func, csv_row):
     best_p99 = 0
 
     for c in CONCURRENCIES:
-        if VERBOSE:
-            print(f"{'-' * 80}")
-            print(f"Endpoint: {endpoint_name}, Concurrency: {c}")
-            print(f"Running ab for {TEST_DURATION} seconds against {endpoint_path}")
-            print(f"{'-' * 80}")
+        # Use logger.debug for verbose output
+        logger.debug(f"{'-' * 80}")
+        logger.debug(f"Endpoint: {endpoint_name}, Concurrency: {c}")
+        logger.debug(f"Running ab for {TEST_DURATION} seconds against {endpoint_path}")
+        logger.debug(f"{'-' * 80}")
         
         # Generate and log the ab command
         cmd = get_ab_command(endpoint_path, c, tmp_file)
         log_command(cmd, endpoint_name, c)
 
-        try:
-            proc = subprocess.run(cmd, capture_output=True, text=True, check=True)
-            ab_output = proc.stdout
-        except subprocess.CalledProcessError as e:
-            print(f"ERROR: ab command failed at concurrency {c} for endpoint {endpoint_name}")
-            print("-" * 80)
-            print(e.output)
-            print("-" * 80)
+        max_retries = MAX_RETRIES
+        retry_count = 0
+        ab_success = False
+
+        while retry_count <= max_retries and not ab_success:
+            # Execute ab command using Popen for real-time output in verbose mode
+            ab_output_lines = []
+            try:
+                # Use Popen to start the process
+                proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, bufsize=1)
+                
+                # Read stdout line by line
+                if VERBOSE:
+                    box_width = 80
+                    logger.debug("┌" + "─" * (box_width - 2) + "┐")
+                    logger.debug("│ AB OUTPUT" + " " * (box_width - 12) + "│")
+                    logger.debug("├" + "─" * (box_width - 2) + "┤")
+                for line in iter(proc.stdout.readline, ''):
+                    line_stripped = line.strip()
+                    ab_output_lines.append(line)
+                    if VERBOSE:
+                        # Format each line with box borders
+                        if line_stripped:
+                            # Fixed width approach
+                            content = "│ " + line_stripped
+                            logger.debug(content + " " * (box_width - len(content) - 1) + "│")
+                        else:
+                            logger.debug("│" + " " * (box_width - 2) + "│")
+                proc.stdout.close()
+
+                # Read stderr line by line (only log if verbose, but always capture)
+                stderr_lines = []
+                for line in iter(proc.stderr.readline, ''):
+                    stderr_lines.append(line)
+                proc.stderr.close()
+
+                # Wait for the process to complete and get the return code
+                return_code = proc.wait()
+                
+                ab_output = "".join(ab_output_lines)
+                ab_stderr = "".join(stderr_lines)
+
+                # Close the box before showing any error messages
+                if VERBOSE:
+                    logger.debug("└" + "─" * (box_width - 2) + "┘")
+                    
+                if return_code != 0:
+                    # Log error if ab command failed
+                    logger.error(f"ab command failed with exit code {return_code} at concurrency {c} for endpoint {endpoint_name}")
+                    logger.error(f"Command: {' '.join(cmd)}")
+                    if ab_stderr: # Log stderr if it contains anything
+                        logger.error(f"Stderr: {ab_stderr.strip()}")
+                    
+                    # Retry logic
+                    retry_count += 1
+                    if retry_count <= max_retries:
+                        logger.info(f"Retrying in {COOLDOWN_PERIOD} seconds... (attempt {retry_count}/{max_retries})")
+                        time.sleep(COOLDOWN_PERIOD)
+                        continue  # Try again
+                    else:
+                        logger.warning(f"Max retries ({max_retries}) reached for {endpoint_name} at concurrency {c}. Moving to next concurrency level.")
+                        break  # Stop retrying this concurrency level
+                else:
+                    ab_success = True  # Command succeeded
+                    
+            except FileNotFoundError:
+                # Make sure to close the box if open
+                if VERBOSE:
+                    logger.debug("└" + "─" * (box_width - 2) + "┘")
+                logger.error(f"'ab' command not found. Please ensure ApacheBench is installed and in your PATH.")
+                sys.exit(1) # Exit script if ab is not found
+            except Exception as e:
+                # Make sure to close the box if open
+                if VERBOSE:
+                    logger.debug("└" + "─" * (box_width - 2) + "┘")
+                logger.exception(f"An unexpected error occurred while running ab for {endpoint_name} at concurrency {c}: {e}")
+                
+                # Retry logic
+                retry_count += 1
+                if retry_count <= max_retries:
+                    logger.info(f"Retrying in {COOLDOWN_PERIOD} seconds... (attempt {retry_count}/{max_retries})")
+                    time.sleep(COOLDOWN_PERIOD)
+                    continue  # Try again
+                else:
+                    logger.warning(f"Max retries ({max_retries}) reached for {endpoint_name} at concurrency {c} due to exception. Moving to next concurrency level.")
+                    break  # Stop retrying this concurrency level
+
+        # If we didn't succeed after all retries, move to the next concurrency level
+        if not ab_success:
             break
 
-        # Parse p95, p99 and additional metrics
+        # Parse p95, p99 and additional metrics from the captured stdout
         p95, p99, complete_requests, requests_per_sec, mean_time = parse_ab_output(ab_output)
 
         meets_sla = (p95 < SLA_THRESHOLD) and (p99 < SLA_THRESHOLD)
@@ -505,22 +622,22 @@ def test_endpoint(endpoint_name, endpoint_path, payload_func, csv_row):
                 f"{mean_time}ms"
             ])
 
-        if VERBOSE:
-            print(f"Results for {endpoint_name} at concurrency {c}:")
-            print(f"  p95: {p95}ms")
-            print(f"  p99: {p99}ms")
-            print(f"  Meets SLA: {meets_sla_str}")
-            print(f"  Complete Requests: {complete_requests}")
-            print(f"  Requests/sec: {requests_per_sec}")
-            print(f"  Mean Time/Request: {mean_time}ms")
-            print()
+        # Use logger.debug for verbose results
+        logger.debug(f"Results for {endpoint_name} at concurrency {c}:")
+        logger.debug(f"  p95: {p95}ms")
+        logger.debug(f"  p99: {p99}ms")
+        logger.debug(f"  Meets SLA: {meets_sla_str}")
+        logger.debug(f"  Complete Requests: {complete_requests}")
+        logger.debug(f"  Requests/sec: {requests_per_sec}")
+        logger.debug(f"  Mean Time/Request: {mean_time}ms")
 
         if meets_sla:
             max_sla_conc = c
             best_p95 = p95
             best_p99 = p99
         else:
-            print(f"SLA threshold of {SLA_THRESHOLD}ms exceeded at concurrency {c}. Stopping tests for {endpoint_name}.")
+            # Use logger.info for standard flow messages
+            logger.info(f"SLA threshold of {SLA_THRESHOLD}ms exceeded at concurrency {c}. Stopping tests for {endpoint_name}.")
             break
 
     return max_sla_conc, best_p95, best_p99
@@ -534,28 +651,38 @@ def main():
     try:
         # Check if we just need to list available endpoints
         if args.list_endpoints:
-            print("\nAvailable endpoints:")
+            # Keep print for direct user output like this list
+            print("Available endpoints:")
             print("-" * 80)
             for name, path, _ in ENDPOINTS:
                 print(f"{name:<25} {path}")
             print()
             sys.exit(0)
             
-        # Create output directory and initialize CSV files
-        print(f"Creating output directory: {OUTPUT_DIR}")
+        # Create output directory
+        print(f"Creating output directory: {OUTPUT_DIR}") # Keep initial print before logger is set up
+
+        # Set up logging *after* OUTPUT_DIR is created
+        setup_logging(OUTPUT_DIR, VERBOSE)
+        logger.info(f"Logging initialized. Log file: {os.path.join(OUTPUT_DIR, 'stability_test.log')}")
+        logger.info(f"Script arguments: {vars(args)}")
+
         initialize_csv_files()
-        
+        logger.info(f"Output files initialized in {OUTPUT_DIR}")
+
         # 1) Read CSV
         try:
             with open(CSV_FILE, "r", newline="") as f:
                 reader = csv.reader(f)
                 rows = list(reader)
         except FileNotFoundError:
-            print(f"ERROR: CSV file '{CSV_FILE}' not found.")
+            # Use logger.error and exit
+            logger.error(f"CSV file '{CSV_FILE}' not found.")
             sys.exit(1)
 
         if not rows:
-            print(f"ERROR: CSV file '{CSV_FILE}' is empty.")
+            # Use logger.error and exit
+            logger.error(f"CSV file '{CSV_FILE}' is empty.")
             sys.exit(1)
 
         # By default, assume the CSV file has a header row (column names)
@@ -564,21 +691,23 @@ def main():
         if not NO_HEADER:
             header_row = rows[0]
             rows = rows[1:]
-            if VERBOSE:
-                print(f"\n{'-' * 80}")
-                print(f"CSV DATA INFORMATION")
-                print(f"{'-' * 80}")
-                print(f"Header: {', '.join(header_row)}")
-                print(f"Data row: {', '.join(rows[0]) if rows else 'No data available'}")
-                print(f"{'-' * 80}\n")
+            # Use logger.debug for verbose info
+            logger.debug(f"{'-' * 80}")
+            logger.debug(f"CSV DATA INFORMATION")
+            logger.debug(f"{'-' * 80}")
+            logger.debug(f"Header: {', '.join(header_row)}")
+            logger.debug(f"Data row: {', '.join(rows[0]) if rows else 'No data available'}")
+            logger.debug(f"{'-' * 80}")
 
         # For demonstration, pick the *first* row only.
         # If you want to test multiple rows, you can loop here or adapt logic.
         if not rows:
-            print("ERROR: No CSV data after skipping header.")
+            # Use logger.error and exit
+            logger.error("No CSV data after skipping header.")
             sys.exit(1)
 
         first_line = rows[0]
+        logger.info(f"Using CSV data row: {first_line}")
 
         # 2) Test each endpoint with the same CSV row
         summary_id = 1
@@ -595,26 +724,29 @@ def main():
                 endpoints_to_test = [(name, path, func) for (name, path, func) in ENDPOINTS if path in selected]
             
             if not endpoints_to_test:
-                print(f"ERROR: None of the specified endpoints were found.")
+                # Use logger.error and exit
+                logger.error("None of the specified endpoints were found.")
+                # Keep print for user help message
                 print(f"Available endpoints (name): {', '.join(ep[0] for ep in ENDPOINTS)}")
                 print(f"Available endpoints (path): {', '.join(ep[1] for ep in ENDPOINTS)}")
                 sys.exit(1)
                 
-            print(f"\nTesting {len(endpoints_to_test)} of {len(ENDPOINTS)} endpoints:")
+            # Use logger.info
+            logger.info(f"Testing {len(endpoints_to_test)} of {len(ENDPOINTS)} endpoints:")
             for name, path, _ in endpoints_to_test:
-                print(f" - {name} ({path})")
+                logger.info(f" - {name} ({path})")
             print()
         
         for idx, (ep_name, ep_path, ep_func) in enumerate(endpoints_to_test):
-            print("=" * 80)
-            print(f"TESTING ENDPOINT: {ep_name} ({ep_path})")
-            print("=" * 80)
+            logger.info("=" * 80)
+            logger.info(f"STARTING TEST FOR ENDPOINT: {ep_name} ({ep_path})")
+            logger.info("=" * 80)
 
             # Add a sleep between tests (except before the first test)
             if idx > 0:
-                print(f"Sleeping for {COOLDOWN_PERIOD} seconds to allow connection pool recovery...")
+                logger.info(f"Sleeping for {COOLDOWN_PERIOD} seconds to allow connection pool recovery...")
                 time.sleep(COOLDOWN_PERIOD)
-                print("Resuming tests...")
+                logger.info("Resuming tests...")
 
             max_conc, p95_val, p99_val = test_endpoint(ep_name, ep_path, ep_func, first_line)
 
@@ -644,15 +776,16 @@ def main():
             
             summary_id += 1
 
-            print()
-            print(f"Completed testing for {ep_name} - Max concurrency: {max_conc}, p95: {p95_val}ms, p99: {p99_val}ms")
+            # Use logger.info for completion summary
+            logger.info(f"Completed testing for {ep_name} - Max concurrency: {max_conc}, p95: {p95_val}ms, p99: {p99_val}ms")
             print()
 
         # Generate markdown files from our results
         generate_markdown_tables()
+        logger.info("Generated markdown report files.")
 
-        # 3) Print tables
-        print("\n" + "=" * 80)
+        # 3) Print tables - Keep these as print for final console summary
+        print("=" * 80)
         print(" DETAILED RESULTS (per concurrency step) ")
         print("=" * 80)
 
@@ -676,7 +809,7 @@ def main():
                 f"{record['mean_time']:.2f}ms"
             ))
 
-        print("\n" + "=" * 80)
+        print("=" * 80)
         print(" FINAL SUMMARY (maximum concurrency per endpoint) ")
         print("=" * 80)
 
@@ -698,53 +831,64 @@ def main():
                 f"{sr['p99']}ms"
             ))
 
-        print(f"\nDone. Results saved to: {OUTPUT_DIR}")
+        # Keep print for final summary message
+        print(f"Done. Results saved to: {OUTPUT_DIR}")
         print(f"Files generated:")
         print(f"  - {DETAILS_FILE}")
         print(f"  - {SUMMARY_FILE}")
         print(f"  - {DETAILS_MD_FILE}")
         print(f"  - {SUMMARY_MD_FILE}")
         print(f"  - {COMMANDS_FILE}")
+        print(f"  - {os.path.join(OUTPUT_DIR, 'stability_test.log')} (Log File)") # <-- Add log file here
         print(f"  - JSON payload files for each endpoint")
         
     except KeyboardInterrupt:
-        print("\n\n" + "=" * 80)
-        print("Test interrupted by user (Ctrl+C)")
-        print("=" * 80)
-        
-        # Get the current endpoint being tested (if available)
-        current_endpoint = None
-        if 'ep_name' in locals() and 'c' in locals():
-            current_endpoint = f"{ep_name} at concurrency level {c}"
-        
-        if current_endpoint:
-            print(f"\nTest was interrupted while testing: {current_endpoint}")
-        
-        if details_results:
-            print("\nPartial results were collected and saved to:", OUTPUT_DIR)
-            print(f"\nResults collected for {len(details_results)} test iterations.")
-            
-            # Generate markdown files from the partial results
-            try:
-                generate_markdown_tables()
-                print("Partial markdown reports were generated successfully.")
-            except Exception as e:
-                print(f"Could not generate markdown reports: {e}")
+        # Use logger.warning for interruptions
+        if logger: # Check if logger was initialized
+             logger.warning("=" * 80)
+             logger.warning("Test interrupted by user (Ctrl+C)")
+             logger.warning("=" * 80)
+
+             current_endpoint = None
+             if 'ep_name' in locals() and 'c' in locals():
+                 current_endpoint = f"{ep_name} at concurrency level {c}"
+
+             if current_endpoint:
+                 logger.warning(f"Test was interrupted while testing: {current_endpoint}")
+
+             if details_results:
+                 logger.warning(f"Partial results were collected and saved to: {OUTPUT_DIR}")
+                 logger.warning(f"Results collected for {len(details_results)} test iterations.")
+
+                 # Attempt to generate markdown from partial results
+                 try:
+                     generate_markdown_tables()
+                     logger.warning("Partial markdown reports were generated successfully.")
+                 except Exception as e_md:
+                     logger.error(f"Could not generate markdown reports from partial results: {e_md}")
+             else:
+                 logger.warning("No results were collected before interruption.")
+
+             logger.warning("Exiting gracefully...")
         else:
-            print("\nNo results were collected before interruption.")
-        
-        print("\nExiting gracefully...")
-        sys.exit(0)
+            # Fallback print if logger isn't set up yet
+            print("Test interrupted by user (Ctrl+C) before logging was fully configured. Exiting.")
+        sys.exit(0) # Use exit code 0 for graceful exit on interrupt
+
     except Exception as e:
-        print("\n\n" + "=" * 80)
-        print(f"An error occurred: {str(e)}")
-        print("=" * 80)
-        
-        if details_results:
-            print("\nPartial results were saved to:", OUTPUT_DIR)
-        
-        print("\nExiting with error...")
-        sys.exit(1)
+        # Use logger.exception for unexpected errors to capture traceback
+        if logger:
+            logger.exception("=" * 80)
+            logger.exception(f"An unexpected error occurred: {str(e)}")
+            logger.exception("=" * 80)
+
+            if details_results:
+                 logger.warning(f"Partial results (if any) were saved to: {OUTPUT_DIR}")
+            logger.error("Exiting with error...")
+        else:
+             # Fallback print if logger isn't set up yet
+             print(f"An unexpected error occurred before logging was fully configured: {str(e)}. Exiting.")
+        sys.exit(1) # Use non-zero exit code for errors
 
 
 if __name__ == "__main__":
