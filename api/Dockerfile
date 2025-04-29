@@ -1,4 +1,4 @@
-FROM ubuntu:22.04 AS build-common
+FROM ubuntu:24.04 AS build-common
 WORKDIR /build
 
 RUN apt update --fix-missing \

@@ -1,4 +1,4 @@
-FROM ubuntu:22.04 AS cardano-builder
+FROM ubuntu:24.04 AS cardano-builder
 
 WORKDIR /root/src
 
@@ -118,8 +118,7 @@ RUN mkdir -p /root/.local/bin \
     && cp -p "$(./scripts/bin-path.sh cardano-submit-api)" /root/.local/bin/
 
 
-FROM ubuntu:22.04 AS node-runner
-
+FROM ubuntu:24.04 AS node-runner
 COPY --from=cardano-builder /usr/local/lib /usr/local/lib
 COPY --from=cardano-builder /root/.local/bin/cardano-* /usr/local/bin/
 COPY --from=cardano-builder /root/src/cardano-node/cardano-submit-api/config/tx-submit-mainnet-config.yaml /cardano-submit-api-config/cardano-submit-api.yaml
