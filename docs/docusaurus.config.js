@@ -47,6 +47,10 @@ const config = {
           // Remove this to remove the "edit this page" links.
           editUrl:
             'https://github.com/cardano-foundation/cardano-rosetta-java/tree/main/docs/',
+          exclude: [
+            '**/test-results/**',  // Exclude all test-results directories
+            '**/_test-results/**',  // Exclude directories with underscore prefix
+          ],
         },
         theme: {
           customCss: './src/css/custom.css',
@@ -54,6 +58,12 @@ const config = {
       }),
     ],
   ],
+
+  // Configure the mermaid theme
+  markdown: {
+    mermaid: true,
+  },
+  themes: ['@docusaurus/theme-mermaid'],
 
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
@@ -84,6 +94,13 @@ const config = {
             position: 'right',
           },
         ],
+      },
+      // Add mermaid configuration to themeConfig
+      mermaid: {
+        theme: {light: 'neutral', dark: 'dark'},
+        options: {
+          maxTextSize: 50000,
+        },
       },
       footer: {
         links: [
