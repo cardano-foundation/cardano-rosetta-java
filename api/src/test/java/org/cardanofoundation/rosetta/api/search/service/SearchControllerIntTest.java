@@ -1,8 +1,7 @@
 package org.cardanofoundation.rosetta.api.search.service;
 
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Slice;
 import org.openapitools.client.model.BlockTransaction;
 import org.openapitools.client.model.CoinIdentifier;
 import org.openapitools.client.model.SearchTransactionsRequest;
@@ -27,8 +26,8 @@ class SearchControllerIntTest extends IntegrationTest {
         .address(TestConstants.TEST_ACCOUNT_ADDRESS)
         .build();
 
-    List<BlockTransaction> blockTransactions = service.searchTransaction(req, 0L, 5L);
-    assertEquals(4, blockTransactions.size());
+    Slice<BlockTransaction> blockTransactions = service.searchTransaction(req, 0L, 5L);
+    assertEquals(4, blockTransactions.getNumberOfElements());
   }
 
   @Test
@@ -41,9 +40,9 @@ class SearchControllerIntTest extends IntegrationTest {
             .build())
         .build();
 
-    List<BlockTransaction> blockTransactions = service.searchTransaction(req, 0L, 10L);
-    assertEquals(1, blockTransactions.size());
-    BlockTransaction tx = blockTransactions.getFirst();
+    Slice<BlockTransaction> blockTransactions = service.searchTransaction(req, 0L, 10L);
+    assertEquals(1, blockTransactions.getNumberOfElements());
+    BlockTransaction tx = blockTransactions.getContent().getFirst();
     assertEquals(stakeKeyDeregistration.blockHash(), tx.getBlockIdentifier().getHash());
     assertEquals(stakeKeyDeregistration.blockNumber(), tx.getBlockIdentifier().getIndex());
     assertEquals(stakeKeyDeregistration.txHash(), tx.getTransaction().getTransactionIdentifier().getHash());
@@ -60,9 +59,9 @@ class SearchControllerIntTest extends IntegrationTest {
             .build())
         .build();
 
-    List<BlockTransaction> blockTransactions = service.searchTransaction(req, 0L, 10L);
-    assertEquals(1, blockTransactions.size());
-    String identifier = blockTransactions.getFirst().getTransaction().getOperations().getFirst()
+    Slice<BlockTransaction> blockTransactions = service.searchTransaction(req, 0L, 10L);
+    assertEquals(1, blockTransactions.getNumberOfElements());
+    String identifier = blockTransactions.getContent().getFirst().getTransaction().getOperations().getFirst()
         .getCoinChange().getCoinIdentifier().getIdentifier();
     req = SearchTransactionsRequest.builder()
         .coinIdentifier(CoinIdentifier.builder()
@@ -71,7 +70,7 @@ class SearchControllerIntTest extends IntegrationTest {
         .build();
 
     blockTransactions = service.searchTransaction(req, 0L, 10L);
-    assertEquals(2, blockTransactions.size());
+    assertEquals(2, blockTransactions.getNumberOfElements());
   }
 
 }

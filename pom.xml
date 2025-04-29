@@ -26,7 +26,7 @@
     </licenses>
 
     <properties>
-        <revision>1.2.6</revision>
+        <revision>1.2.7</revision>
         <java.version>21</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <version.spring-boot>3.4.3</version.spring-boot>
@@ -39,9 +39,8 @@
         <version.lombok>1.18.30</version.lombok>
         <version.swagger-annotations>2.2.8</version.swagger-annotations>
         <version.log4j>2.20.0</version.log4j>
-        <version.client-lib>0.6.3</version.client-lib>
-        <version.yaci>0.3.4.1</version.yaci>
-        <version.yaci-store>0.1.1</version.yaci-store>
+        <version.client-lib>0.6.4</version.client-lib>
+        <version.yaci>0.3.5</version.yaci>
         <version.commons-io>2.14.0</version.commons-io>
         <version.javax-validation-api>2.0.1.Final</version.javax-validation-api>
         <version.spotless-maven-plugin>2.43.0</version.spotless-maven-plugin>
@@ -125,11 +124,6 @@
                 <version>${version.client-lib}</version>
             </dependency>
             <dependency>
-                <groupId>com.bloxbean.cardano</groupId>
-                <artifactId>yaci</artifactId>
-                <version>${version.yaci}</version>
-            </dependency>
-            <dependency>
                 <groupId>javax.validation</groupId>
                 <artifactId>validation-api</artifactId>
                 <version>${version.javax-validation-api}</version>
@@ -145,8 +139,9 @@
                 <version>${version.swagger-annotations}</version>
             </dependency>
             <dependency>
-                <groupId>org.assertj</groupId>
-                <artifactId>assertj-core</artifactId>
+                <groupId>com.bloxbean.cardano</groupId>
+                <artifactId>yaci</artifactId>
+                <version>${version.yaci}</version>
             </dependency>
             <dependency>
                 <groupId>com.h2database</groupId>
@@ -157,6 +152,11 @@
                 <groupId>org.junit.jupiter</groupId>
                 <artifactId>junit-jupiter</artifactId>
                 <version>${version.jupiter}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.assertj</groupId>
+                <artifactId>assertj-core</artifactId>
                 <scope>test</scope>
             </dependency>
         </dependencies>

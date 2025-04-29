@@ -6,6 +6,7 @@
 
 ## What the project is about?
 
+
 This repository provides a lightweight java implementation of the [Rosetta API](https://github.com/coinbase/mesh-specifications). It uses [Yaci-Store](https://github.com/bloxbean/yaci-store) as an indexer
 to fetch the data from a Cardano node. 
 
@@ -82,13 +83,13 @@ Default is `online`.
 For every Release we provide pre-built docker images stored in the DockerHub Repositories of the Cardano Foundation ([DockerHub](https://hub.docker.com/orgs/cardanofoundation/repositories))
 To start it use the following command:
 ```bash
-    docker run --name rosetta -v {CUSTOM_MOUNT_PATH}:/node --env-file ./docker/.env.dockerfile --env-file ./docker/.env.docker-profile-mid-level -p 8082:8082 --shm-size=4g -d cardanofoundation/cardano-rosetta-java:1.2.6
+    docker run --name rosetta -v {CUSTOM_MOUNT_PATH}:/node --env-file ./docker/.env.dockerfile --env-file ./docker/.env.docker-profile-mid-level -p 8082:8082 --shm-size=4g -d cardanofoundation/cardano-rosetta-java:1.2.7
 ```
 Changes to the configuration can be made by adjusting the `docker/.env.dockerfile` file. For more information on the environment variables, please refer to the [Wiki](https://github.com/cardano-foundation/cardano-rosetta-java/wiki/5.-Environment-Variables).
 
 If you want to use the `cardano-submit-api` you can additionally expose port `8090`. It can then be used to submit raw cbor transaction (API documentation here: [Link](https://input-output-hk.github.io/cardano-rest/submit-api/))
 ```bash
-    docker run --name rosetta -v {CUSTOM_MOUNT_PATH}:/node --env-file ./docker/.env.dockerfile --env-file ./docker/.env.docker-profile-mid-level -p 8090:8090 -p 8082:8082 --shm-size=4g -d cardanofoundation/cardano-rosetta-java:1.2.6
+    docker run --name rosetta -v {CUSTOM_MOUNT_PATH}:/node --env-file ./docker/.env.dockerfile --env-file ./docker/.env.docker-profile-mid-level -p 8090:8090 -p 8082:8082 --shm-size=4g -d cardanofoundation/cardano-rosetta-java:1.2.7
 ```
 ### Docker compose
 If needed we also provide all components needed to run Rosetta in a docker-compose file.
@@ -116,3 +117,4 @@ Further adjustments can be made by changing `.env.docker-compose` file. For more
 
 ---
 Thanks for visiting us and enjoy :heart:!
+

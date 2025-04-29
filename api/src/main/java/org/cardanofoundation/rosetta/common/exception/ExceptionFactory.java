@@ -1,6 +1,7 @@
 package org.cardanofoundation.rosetta.common.exception;
 
 import java.time.LocalDateTime;
+import jakarta.validation.constraints.NotNull;
 
 import static org.cardanofoundation.rosetta.common.util.RosettaConstants.RosettaErrorType;
 
@@ -330,6 +331,10 @@ public class ExceptionFactory {
 
   public static ApiException timeOut(String detailMessage) {
     return new ApiException(RosettaErrorType.TIMEOUT.toRosettaError(true, Details.builder().message("Timeout, details: %s".formatted(detailMessage)).build()));
+  }
+
+  public static ApiException invalidBlockIdentifier(@NotNull long index) {
+    return new ApiException(RosettaErrorType.INVALID_BLOCK_INDEX.toRosettaError(false, Details.builder().message("Invalid block index, must be greater than or equal to 0, supplied index:%d".formatted(index)).build()));
   }
 
 }

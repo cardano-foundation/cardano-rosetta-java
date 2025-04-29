@@ -4,11 +4,11 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.interceptor.SimpleKey;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,12 +21,8 @@ import org.cardanofoundation.rosetta.api.block.model.repository.LocalProtocolPar
 import org.cardanofoundation.rosetta.common.mapper.ProtocolParamsMapper;
 import org.cardanofoundation.rosetta.common.services.ProtocolParamServiceImpl;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 @SpringBootTest
 @EnableCaching
@@ -34,13 +30,13 @@ class ProtocolParamsCacheTest {
 
   private final static String PROTOCOL_PARAMS_CACHE = "protocolParamsCache";
 
-  @MockBean
+  @MockitoBean
   private EpochParamRepository epochParamRepository;
 
-  @MockBean
+  @MockitoBean
   private LocalProtocolParamsRepository localProtocolParamsRepository;
 
-  @MockBean
+  @MockitoBean
   private ProtocolParamsMapper protocolParamsToEntity;
 
   @Autowired

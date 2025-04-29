@@ -1,7 +1,7 @@
 package org.cardanofoundation.rosetta.api.construction.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.openapitools.client.model.ConstructionSubmitRequest;
 import org.openapitools.client.model.TransactionIdentifierResponse;
 
@@ -11,16 +11,14 @@ import org.cardanofoundation.rosetta.api.IntegrationTest;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 class SubmitApiTest extends IntegrationTest {
 
     @Autowired
     private ConstructionApiServiceImpl constructionApiService;
 
-    @MockBean
+    @MockitoBean
     private CardanoConstructionService cardanoService;
 
     @Test

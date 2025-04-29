@@ -21,7 +21,7 @@ import org.cardanofoundation.rosetta.testgenerator.common.TransactionBlockDetail
 import org.cardanofoundation.rosetta.testgenerator.transactions.TransactionRunner;
 
 @Slf4j
-public class Main {
+public class TestDataGeneratorApp {
 
   public static void main(String[] args) {
     Map<String, TransactionBlockDetails> allTransactions = getTransactionRunners()
@@ -57,7 +57,7 @@ public class Main {
     try {
       objectMapper.writeValue(new File(TestConstants.FILE_SAVE_PATH), generatedDataMap);
     } catch (IOException e) {
-      throw new MissingResourceException(e.getMessage(), Main.class.getName(),
+      throw new MissingResourceException(e.getMessage(), TestDataGeneratorApp.class.getName(),
           TestConstants.FILE_SAVE_PATH);
     }
   }
