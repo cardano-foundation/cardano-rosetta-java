@@ -24,8 +24,8 @@ Cardano Rosetta Java provides preconfigured hardware profiles to match different
 
 Designed for development environments or smaller deployments with limited resources:
 
-- 4-8 CPU cores
-- 8-32 GB RAM
+- 4 CPU cores
+- 32 GB RAM
 - Suitable for development, testing, or light production use
 
 </TabItem>
@@ -35,8 +35,8 @@ Designed for development environments or smaller deployments with limited resour
 
 Optimized for production environments with moderate resources:
 
-- 8-16 CPU cores
-- 40-64 GB RAM
+- 8 CPU cores
+- 48 GB RAM
 - Suitable for standard production deployments with moderate traffic
 
 </TabItem>
