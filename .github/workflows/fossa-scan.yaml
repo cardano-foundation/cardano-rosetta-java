@@ -12,15 +12,16 @@ jobs:
       - name: "Checkout Code"
         uses: actions/checkout@v3
 
-      - name: "Run FOSSA Scan"
-        uses: fossas/fossa-action@main # Use a specific version if locking is preferred
-        with:
-          api-key: ${{secrets.FOSSA_API_KEY}}
-          config: .fossa.yml
+      - name: "Download and Install FOSSA CLI"
+        shell: bash
+        run: |
+          wget https://github.com/fossas/fossa-cli/releases/download/v3.10.6/fossa_3.10.6_linux_amd64.zip
+          unzip fossa_3.10.6_linux_amd64.zip
+          chmod +x fossa
+          mv fossa fossa-cli
 
-      - name: "Run FOSSA Test"
-        uses: fossas/fossa-action@main # Use a specific version if locking is preferred
-        with:
-          api-key: ${{secrets.FOSSA_API_KEY}}
-          run-tests: true
-          config: .fossa.yml
+      - name: "Run FOSSA Test with Config"
+        shell: bash
+        run: |
+          ./fossa-cli test --config .fossa.yml --fossa-api-key ${{secrets.FOSSA_API_KEY}}
+
