@@ -11,7 +11,7 @@ import {themes as prismThemes} from 'prism-react-renderer';
 /** @type {import('@docusaurus/types').Config} */
 const config = {
   title: 'Cardano Rosetta Java',
-  tagline: 'Java implementation of the Rosetta API for Cardano',
+  tagline: 'A lightweight Java implementation of the Mesh (formerly Rosetta) API for Cardano',
   favicon: 'img/favicon.ico',
 
   // Set the production url of your site here
@@ -44,10 +44,13 @@ const config = {
       ({
         docs: {
           sidebarPath: './sidebars.js',
-          // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:
             'https://github.com/cardano-foundation/cardano-rosetta-java/tree/main/docs/',
+          exclude: [
+            '**/test-results/**',  // Exclude all test-results directories
+            '**/_test-results/**',  // Exclude directories with underscore prefix
+          ],
         },
         theme: {
           customCss: './src/css/custom.css',
@@ -55,6 +58,12 @@ const config = {
       }),
     ],
   ],
+
+  // Configure the mermaid theme
+  markdown: {
+    mermaid: true,
+  },
+  themes: ['@docusaurus/theme-mermaid'],
 
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
@@ -75,12 +84,23 @@ const config = {
             label: 'Docs',
           },
           {
+            type: 'search',
+            position: 'right',
+          },
+          {
             href: 'https://github.com/cardano-foundation/cardano-rosetta-java',
             className: 'header-github-link',
             'aria-label': 'GitHub repository',
             position: 'right',
           },
         ],
+      },
+      // Add mermaid configuration to themeConfig
+      mermaid: {
+        theme: {light: 'neutral', dark: 'dark'},
+        options: {
+          maxTextSize: 50000,
+        },
       },
       footer: {
         links: [
@@ -90,7 +110,7 @@ const config = {
                 html: `
                   <div class="footer-container">
                     <div class="footer-row">
-                      <a href="/docs/intro" class="footer-icon-link" aria-label="Documentation">
+                      <a href="/cardano-rosetta-java/docs/intro" class="footer-icon-link" aria-label="Documentation">
                         <span class="footer-icon footer-icon-docs"></span>
                       </a>
                       <a href="/cardano-rosetta-java/api" class="footer-icon-link" aria-label="API Reference">
@@ -138,6 +158,15 @@ const config = {
             },
           ],
         },
+      },
+    ],
+    [
+      require.resolve("docusaurus-plugin-search-local"),
+      {
+        // Options for the local search plugin
+        hashed: true,
+        indexDocs: true,
+        indexPages: true,
       },
     ],
   ],

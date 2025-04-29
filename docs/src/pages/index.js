@@ -13,18 +13,13 @@ function HomepageHeader() {
       <div className="container text--center">
         <h1 className="hero__title">{siteConfig.title}</h1>
         <p className="hero__subtitle">
-          A lightweight Java implementation of the Rosetta API for Cardano blockchain
+          A lightweight Java implementation of the Mesh (formerly Rosetta) API for Cardano blockchain
         </p>
         <div className="buttons">
           <Link
             className="button button--secondary button--lg"
             to="/docs/intro">
             Get Started
-          </Link>
-          <Link
-            className="button button--outline button--lg margin-left--md"
-            to="https://github.com/linconvidal/cardano-rosetta-java">
-            GitHub
           </Link>
         </div>
       </div>
@@ -36,8 +31,7 @@ export default function Home() {
   const {siteConfig} = useDocusaurusContext();
   return (
     <Layout
-      title={siteConfig.title}
-      description="Java implementation of the Rosetta API for Cardano">
+      description={siteConfig.tagline}>
       <HomepageHeader />
       <main>
         <HomepageFeatures />
