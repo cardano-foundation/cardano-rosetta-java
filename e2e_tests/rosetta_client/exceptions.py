@@ -8,4 +8,16 @@ class NetworkError(RosettaClientError):
 
 class ValidationError(RosettaClientError):
     """Raised when transaction validation fails"""
+    pass
+
+class BalanceError(RosettaClientError):
+    """Raised when balance validation fails"""
+    pass
+
+class TransactionError(RosettaClientError):
+    """Raised when transaction processing fails"""
+    pass
+
+class TimeoutError(RosettaClientError):
+    """Raised when an operation times out"""
     pass 
