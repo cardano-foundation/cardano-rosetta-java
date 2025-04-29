@@ -1,20 +1,22 @@
 package org.cardanofoundation.rosetta.yaciindexer.stores.txsize;
 
+import java.util.List;
+
 import com.bloxbean.cardano.yaci.store.events.TransactionEvent;
 import org.assertj.core.api.Assertions;
+import org.mockito.*;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
 import org.cardanofoundation.rosetta.yaciindexer.TestDataGenerator;
 import org.cardanofoundation.rosetta.yaciindexer.service.TransactionScriptSizeCalculator;
 import org.cardanofoundation.rosetta.yaciindexer.service.TransactionScriptSizeCalculatorImpl;
 import org.cardanofoundation.rosetta.yaciindexer.service.TransactionSizeCalculatorImpl;
 import org.cardanofoundation.rosetta.yaciindexer.stores.txsize.model.TransactionSizeEntity;
 import org.cardanofoundation.rosetta.yaciindexer.stores.txsize.model.TransactionSizeRepository;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.*;
-import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.List;
 
 @ExtendWith(MockitoExtension.class)
 class CustomTransactionSizeStoreTest {
