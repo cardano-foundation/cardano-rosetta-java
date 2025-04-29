@@ -2,37 +2,21 @@ package org.cardanofoundation.rosetta.api.network.service;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import javax.annotation.PostConstruct;
+import java.util.*;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
 import com.bloxbean.cardano.client.common.model.Network;
 import com.bloxbean.cardano.client.common.model.Networks;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.parser.OpenAPIV3Parser;
-import org.openapitools.client.model.Allow;
+import org.openapitools.client.model.*;
 import org.openapitools.client.model.Error;
-import org.openapitools.client.model.MetadataRequest;
-import org.openapitools.client.model.NetworkIdentifier;
-import org.openapitools.client.model.NetworkListResponse;
-import org.openapitools.client.model.NetworkOptionsResponse;
-import org.openapitools.client.model.NetworkRequest;
-import org.openapitools.client.model.NetworkStatusResponse;
-import org.openapitools.client.model.OperationStatus;
-import org.openapitools.client.model.Peer;
-import org.openapitools.client.model.Version;
 
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockIdentifierExtended;
 import org.cardanofoundation.rosetta.api.block.model.domain.NetworkStatus;
@@ -41,42 +25,40 @@ import org.cardanofoundation.rosetta.api.network.mapper.NetworkMapper;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.common.enumeration.OperationTypeStatus;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
+import org.cardanofoundation.rosetta.common.time.OfflineSlotService;
 import org.cardanofoundation.rosetta.common.util.Constants;
-import org.cardanofoundation.rosetta.common.util.FileUtils;
 import org.cardanofoundation.rosetta.common.util.RosettaConstants;
-import org.cardanofoundation.rosetta.config.RosettaConfig;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class NetworkServiceImpl implements NetworkService {
 
-  private final RosettaConfig rosettaConfig;
   private final LedgerBlockService ledgerBlockService;
+  private final OfflineSlotService offlineSlotService;
   private final NetworkMapper networkMapper;
   private final TopologyConfigService topologyConfigService;
   private final ResourceLoader resourceLoader;
-
-  private Integer cachedMagicNumber;
+  private final GenesisDataProvider genesisDataProvider;
+  private final SlotRangeChecker slotRangeChecker;
 
   @Value("${cardano.rosetta.GENESIS_SHELLEY_PATH}")
   private String genesisShelleyPath;
+
   @Value("${cardano.rosetta.CARDANO_NODE_VERSION}")
   private String cardanoNodeVersion;
+
   @Value("${cardano.rosetta.middleware-version}")
   private String revision;
 
-  @PostConstruct
-  public void init() {
-    Map<String, Object> jsonMap = loadGenesisShelleyConfig();
-    cachedMagicNumber = (Integer) jsonMap.get(Constants.NETWORK_MAGIC_NAME);
-    log.info("Magic number {} loaded from genesis config json", cachedMagicNumber);
-  }
+  @Value("${cardano.rosetta.ALLOWED_SLOTS_DELTA:100}")
+  private int allowedSlotsDelta;
 
   @Override
   public NetworkListResponse getNetworkList(MetadataRequest metadataRequest) {
     log.info("[networkList] Looking for all supported networks");
     Network supportedNetwork = getSupportedNetwork();
+
     return networkMapper.toNetworkListResponse(supportedNetwork);
   }
 
@@ -86,42 +68,42 @@ public class NetworkServiceImpl implements NetworkService {
 
     String rosettaVersion = getRosettaVersion();
     OperationStatus success = new OperationStatus().successful(true)
-        .status(OperationTypeStatus.SUCCESS.getValue());
+            .status(OperationTypeStatus.SUCCESS.getValue());
     OperationStatus invalid = new OperationStatus().successful(false)
-        .status(OperationTypeStatus.INVALID.getValue());
+            .status(OperationTypeStatus.INVALID.getValue());
     List<OperationStatus> operationStatuses = List.of(success, invalid);
 
     return NetworkOptionsResponse.builder()
-        .version(new Version().nodeVersion(cardanoNodeVersion)
-            .rosettaVersion(rosettaVersion)
-            .middlewareVersion(revision)
-            .metadata(new LinkedHashMap<>()))
-        .allow(new Allow().operationStatuses(operationStatuses)
-            .operationTypes(
-                Arrays.stream(OperationType.values()).map(OperationType::getValue).toList())
-            .errors(RosettaConstants.ROSETTA_ERRORS.stream()
-                .map(error ->
-                    new Error().code(error.getCode())
-                        .message(error.getMessage())
-                        .retriable(error.isRetriable())
-                        .description(error.getDescription())
-                        .code(error.getCode())
-                )
-                .sorted(Comparator.comparingInt(Error::getCode))
-                .toList())
-            .historicalBalanceLookup(true)
-            .callMethods(new ArrayList<>())
-            .mempoolCoins(false))
-        .build();
+            .version(new Version().nodeVersion(cardanoNodeVersion)
+                    .rosettaVersion(rosettaVersion)
+                    .middlewareVersion(revision)
+                    .metadata(new LinkedHashMap<>()))
+            .allow(new Allow().operationStatuses(operationStatuses)
+                    .operationTypes(
+                            Arrays.stream(OperationType.values()).map(OperationType::getValue).toList())
+                    .errors(RosettaConstants.ROSETTA_ERRORS.stream()
+                            .map(error ->
+                                    new Error().code(error.getCode())
+                                            .message(error.getMessage())
+                                            .retriable(error.isRetriable())
+                                            .description(error.getDescription())
+                                            .code(error.getCode())
+                            )
+                            .sorted(Comparator.comparingInt(Error::getCode))
+                            .toList())
+                    .historicalBalanceLookup(true)
+                    .callMethods(new ArrayList<>())
+                    .mempoolCoins(false))
+            .build();
   }
 
   private String getRosettaVersion() {
     try {
       InputStream openAPIStream = resourceLoader.getResource(
-          Constants.ROSETTA_API_PATH).getInputStream();
+              Constants.ROSETTA_API_PATH).getInputStream();
       OpenAPI openAPI = new OpenAPIV3Parser().readContents(new String(openAPIStream.readAllBytes()),
-              null, null)
-          .getOpenAPI();
+                      null, null)
+              .getOpenAPI();
       return openAPI.getInfo().getVersion();
     } catch (IOException e) {
       throw ExceptionFactory.configNotFoundException(Constants.ROSETTA_API_PATH);
@@ -139,13 +121,15 @@ public class NetworkServiceImpl implements NetworkService {
 
   @Override
   public Network getSupportedNetwork() {
-    Integer networkMagic = getNetworkMagic();
+    int networkMagic = genesisDataProvider.getProtocolMagic();
+
     return switch (networkMagic) {
       case Constants.MAINNET_NETWORK_MAGIC -> Networks.mainnet();
       case Constants.PREPROD_NETWORK_MAGIC -> Networks.preprod();
       case Constants.PREVIEW_NETWORK_MAGIC -> Networks.preview();
       case Constants.SANCHONET_NETWORK_MAGIC -> new Network(0b0000, Constants.SANCHONET_NETWORK_MAGIC);
       case Constants.DEVKIT_NETWORK_MAGIC -> new Network(0b0000, Constants.DEVKIT_NETWORK_MAGIC);
+
       default -> throw ExceptionFactory.invalidNetworkError();
     };
   }
@@ -162,11 +146,28 @@ public class NetworkServiceImpl implements NetworkService {
 
     List<Peer> peers = topologyConfigService.getPeers();
 
-    return NetworkStatus.builder()
-        .latestBlock(latestBlock)
-        .genesisBlock(genesisBlock)
-        .peers(peers)
-        .build();
+    val networkStatusBuilder = NetworkStatus.builder()
+            .latestBlock(latestBlock)
+            .genesisBlock(genesisBlock)
+            .peers(peers);
+
+    calculateSyncStatus(latestBlock).ifPresent(networkStatusBuilder::syncStatus);
+
+    return networkStatusBuilder.build();
+  }
+
+  private Optional<SyncStatus> calculateSyncStatus(BlockIdentifierExtended latestBlock) {
+    return offlineSlotService.getCurrentSlotBasedOnTime().map(slotBasedOnTime -> {
+      long slotBasedOnLatestBlock = latestBlock.getSlot();
+
+      boolean isSynced = slotRangeChecker.isSlotWithinEpsilon(slotBasedOnTime, slotBasedOnLatestBlock, allowedSlotsDelta);
+
+      return SyncStatus.builder()
+              .targetIndex(slotBasedOnTime)
+              .currentIndex(slotBasedOnLatestBlock)
+              .synced(isSynced)
+              .build();
+    });
   }
 
   @Override
@@ -210,16 +211,5 @@ public class NetworkServiceImpl implements NetworkService {
     }
   }
 
-  public Integer getNetworkMagic() {
-    return cachedMagicNumber;
-  }
 
-  private Map<String, Object> loadGenesisShelleyConfig() {
-    try {
-      String content = FileUtils.fileReader(genesisShelleyPath);
-      return new ObjectMapper().readValue(content, new TypeReference<Map<String, Object>>() {});
-    } catch (IOException e) {
-      throw ExceptionFactory.configNotFoundException(genesisShelleyPath);
-    }
-  }
 }

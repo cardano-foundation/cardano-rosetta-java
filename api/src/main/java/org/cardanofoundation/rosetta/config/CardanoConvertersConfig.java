@@ -6,6 +6,7 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import jakarta.annotation.Nullable;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -14,49 +15,53 @@ import org.springframework.context.annotation.Configuration;
 
 import org.cardanofoundation.conversions.CardanoConverters;
 import org.cardanofoundation.conversions.ClasspathConversionsFactory;
-import org.cardanofoundation.conversions.domain.NetworkType;
-import org.cardanofoundation.rosetta.api.network.service.NetworkService;
+import org.cardanofoundation.rosetta.api.network.service.GenesisDataProvider;
 import org.cardanofoundation.rosetta.common.util.Constants;
 
+import static org.cardanofoundation.conversions.domain.NetworkType.*;
 import static org.cardanofoundation.rosetta.common.util.Constants.MAINNET_NETWORK_MAGIC;
 
 @Configuration
 @Slf4j
+@RequiredArgsConstructor
 public class CardanoConvertersConfig {
+
+    private final GenesisDataProvider genesisDataProvider;
 
     @Bean
     @Nullable
-    public CardanoConverters cardanoConverters(NetworkService networkService) {
-         if (networkService.getSupportedNetwork() == null) { // mostly helper for unit tests and integration tests
-             return null;
-         }
-
-        long protocolMagic = networkService.getSupportedNetwork().getProtocolMagic();
+    public CardanoConverters cardanoConverters() {
+        int protocolMagic = genesisDataProvider.getProtocolMagic();
 
         log.info("Creating CardanoConverters for network magic: {}", protocolMagic);
 
         if (protocolMagic == MAINNET_NETWORK_MAGIC) {
-            return ClasspathConversionsFactory.createConverters(NetworkType.MAINNET);
+            log.info("Creating CardanoConverters for mainnet");
+            return ClasspathConversionsFactory.createConverters(MAINNET);
         }
 
         if (protocolMagic == Constants.PREPROD_NETWORK_MAGIC) {
-            return ClasspathConversionsFactory.createConverters(NetworkType.PREPROD);
+            log.info("Creating CardanoConverters for preprod");
+            return ClasspathConversionsFactory.createConverters(PREPROD);
         }
 
         if (protocolMagic == Constants.PREVIEW_NETWORK_MAGIC) {
-            return ClasspathConversionsFactory.createConverters(NetworkType.PREVIEW);
+            log.info("Creating CardanoConverters for preview");
+            return ClasspathConversionsFactory.createConverters(PREVIEW);
         }
 
         if (protocolMagic == Constants.SANCHONET_NETWORK_MAGIC) {
-            return ClasspathConversionsFactory.createConverters(NetworkType.SANCHONET);
+            log.info("Creating CardanoConverters for sanchonet");
+            return ClasspathConversionsFactory.createConverters(SANCHONET);
         }
 
         if (protocolMagic == Constants.DEVKIT_NETWORK_MAGIC) {
+            log.info("Creating CardanoConverters for devkit, no converters available");
             // Cardano Converters for DevKit is not supported but we still need to return something sensible
             return null;
         }
 
-        throw new IllegalArgumentException("Unsupported network magic: " + protocolMagic);
+        throw new IllegalArgumentException("Unsupported network magic: %d".formatted(protocolMagic));
     }
 
     @Bean
