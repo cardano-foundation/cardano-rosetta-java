@@ -11,7 +11,7 @@ description: Guide to deploying Cardano Rosetta Java using Docker
 - Docker
 - Docker Compose
 - Java 21
-- For integration tests: Node 14+
+- For integration tests: Node 17+
 
 ### Node Prerequisites
 
@@ -82,9 +82,9 @@ docker build -t {image_name} --build-arg PG_VERSION=14 -f ./docker/Dockerfile .
 
 The default values:  
 `CABAL_VERSION=3.8.1.0`  
-`GHC_VERSION=8.10.7  `  
-`CARDANO_NODE_VERSION=8.9.2  `  
-`PG_VERSION=14  `
+`GHC_VERSION=8.10.7`  
+`CARDANO_NODE_VERSION=10.2.1`  
+`PG_VERSION=17`
 
 ### 2. How to run the container
 

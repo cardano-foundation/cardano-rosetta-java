@@ -51,7 +51,7 @@ GHC_VERSION=8.10.7
 CARDANO_NODE_VERSION=10.2.1  
 ``  
 ``
-PG_VERSION=14  
+PG_VERSION=17  
 ``
 
 ### 5. Volume with Cardano node data
