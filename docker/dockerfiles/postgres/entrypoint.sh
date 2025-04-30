@@ -84,11 +84,13 @@ configure_postgres() {
         fi
     done
 
-    echo "host all all 0.0.0.0/0 md5" \
-     >> $PG_DATA/pg_hba.conf
+    if ! grep -q "^host all all 0.0.0.0/0 md5\$" "$PG_DATA/pg_hba.conf"; then
+        echo "host all all 0.0.0.0/0 md5" >> "$PG_DATA/pg_hba.conf"
+    fi
 
-    echo "listen_addresses='*'" \
-     >> $PG_DATA/postgresql.conf
+    if ! grep -q "^listen_addresses *= *'\*'\$" "$PG_DATA/postgresql.conf"; then
+        echo "listen_addresses='*'" >> "$PG_DATA/postgresql.conf"
+    fi
 
     echo "PostgreSQL configuration updated successfully!"
 }
