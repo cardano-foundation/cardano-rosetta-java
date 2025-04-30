@@ -1,22 +1,20 @@
 package org.cardanofoundation.rosetta.api;
 
-import java.math.BigInteger;
-
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.mockito.Mock;
-import org.openapitools.jackson.nullable.JsonNullableModule;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.extension.ExtendWith;
-
 import org.cardanofoundation.rosetta.api.BaseMapperSetup.BaseMappersConfig;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
 import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.openapitools.jackson.nullable.JsonNullableModule;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+import java.math.BigInteger;
 
 import static org.mockito.Mockito.when;
 
@@ -24,7 +22,7 @@ import static org.mockito.Mockito.when;
 @ContextConfiguration(classes = { BaseMappersConfig.class})
 public class BaseMapperSetup {
 
-  @MockitoBean
+  @MockBean
   protected ProtocolParamService protocolParamService;
 
   @Mock

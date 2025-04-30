@@ -1,18 +1,5 @@
 package org.cardanofoundation.rosetta.common.cache;
 
-import java.util.Optional;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cache.Cache;
-import org.springframework.cache.CacheManager;
-import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.cache.interceptor.SimpleKey;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
 import org.cardanofoundation.rosetta.api.block.model.entity.LocalProtocolParamsEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.ProtocolParamsEntity;
@@ -20,6 +7,17 @@ import org.cardanofoundation.rosetta.api.block.model.repository.EpochParamReposi
 import org.cardanofoundation.rosetta.api.block.model.repository.LocalProtocolParamsRepository;
 import org.cardanofoundation.rosetta.common.mapper.ProtocolParamsMapper;
 import org.cardanofoundation.rosetta.common.services.ProtocolParamServiceImpl;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.cache.interceptor.SimpleKey;
+
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -30,13 +28,13 @@ class ProtocolParamsCacheTest {
 
   private final static String PROTOCOL_PARAMS_CACHE = "protocolParamsCache";
 
-  @MockitoBean
+  @MockBean
   private EpochParamRepository epochParamRepository;
 
-  @MockitoBean
+  @MockBean
   private LocalProtocolParamsRepository localProtocolParamsRepository;
 
-  @MockitoBean
+  @MockBean
   private ProtocolParamsMapper protocolParamsToEntity;
 
   @Autowired

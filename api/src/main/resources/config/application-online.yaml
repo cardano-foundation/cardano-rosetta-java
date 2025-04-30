@@ -22,6 +22,7 @@ spring:
   jpa:
     properties:
       hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: ${API_DB_SHOW_SQL:false}
     hibernate:
       ddl-auto: none

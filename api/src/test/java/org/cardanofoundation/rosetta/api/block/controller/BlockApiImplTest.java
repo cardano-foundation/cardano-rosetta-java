@@ -1,16 +1,5 @@
 package org.cardanofoundation.rosetta.api.block.controller;
 
-import java.lang.reflect.Field;
-import java.math.BigInteger;
-
-import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.openapitools.client.model.*;
-
-import org.junit.jupiter.api.Test;
-
 import org.cardanofoundation.rosetta.api.BaseSpringMvcSetup;
 import org.cardanofoundation.rosetta.api.block.mapper.BlockMapper;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
@@ -19,6 +8,15 @@ import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
 import org.cardanofoundation.rosetta.api.block.service.BlockService;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
+import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.openapitools.client.model.*;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
+
+import java.lang.reflect.Field;
+import java.math.BigInteger;
 
 import static org.cardanofoundation.rosetta.EntityGenerator.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -30,13 +28,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 class BlockApiImplTest extends BaseSpringMvcSetup {
 
-  @MockitoBean
+  @MockBean
   private BlockService blockService;
 
-  @MockitoBean
+  @MockBean
   private ProtocolParamService protocolParamService;
 
-  @MockitoBean
+  @MockBean
   BlockMapper blockMapper;
 
   @Mock

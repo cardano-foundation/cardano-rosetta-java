@@ -1,22 +1,20 @@
 package org.cardanofoundation.rosetta.api.account.controller;
 
-import java.math.BigInteger;
-
-import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.openapitools.client.model.*;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
-
 import org.cardanofoundation.rosetta.api.BaseSpringMvcSetup;
 import org.cardanofoundation.rosetta.client.YaciHttpGateway;
 import org.cardanofoundation.rosetta.client.model.domain.StakeAccountInfo;
 import org.cardanofoundation.rosetta.common.util.Constants;
 import org.cardanofoundation.rosetta.testgenerator.common.TestConstants;
 import org.cardanofoundation.rosetta.testgenerator.common.TestTransactionNames;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.openapitools.client.model.*;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+
+import java.math.BigInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.cardanofoundation.rosetta.testgenerator.common.TestConstants.*;
@@ -37,7 +35,7 @@ class AccountBalanceApiTest extends BaseSpringMvcSetup {
   private final String currentAdaBalance = "3635602";
   private final String previousAdaBalance = "1635602";
 
-  @MockitoBean
+  @MockBean
   // we want to replace the real implementation with a mock bean since we do not actually want to test full http layer here but only business logic
   private YaciHttpGateway yaciHttpGateway;
 

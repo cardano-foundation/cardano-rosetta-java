@@ -1,19 +1,17 @@
 package org.cardanofoundation.rosetta.api.construction.controller;
 
-import java.lang.reflect.Field;
-
-import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import org.mockito.InjectMocks;
-import org.openapitools.client.model.*;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
 import org.cardanofoundation.rosetta.api.BaseSpringMvcSetup;
 import org.cardanofoundation.rosetta.api.construction.service.ConstructionApiService;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.openapitools.client.model.*;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
+
+import java.lang.reflect.Field;
 
 import static org.cardanofoundation.rosetta.EntityGenerator.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -24,7 +22,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 class ConstructionApiImplTest extends BaseSpringMvcSetup {
 
-    @MockitoBean
+    @MockBean
     private ConstructionApiService constructionApiService;
 
     @InjectMocks
