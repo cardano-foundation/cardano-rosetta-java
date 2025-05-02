@@ -1,19 +1,19 @@
 #!/bin/bash
 
 database_initialization() {
+    echo "$PGPASSWORD" > /tmp/password
+    echo "*:*:*:postgres:$PGPASSWORD" > /home/postgres/.pgpass
+
+    chmod 600 /home/postgres/.pgpass
+    chown postgres:postgres /home/postgres/.pgpass
+
     if [ -z "$(ls -A "$PG_DATA")" ]; then
-        echo "$PGPASSWORD" > /tmp/password
-        echo "*:*:*:postgres:$PGPASSWORD" > /home/postgres/.pgpass
-
-        chmod 600 /home/postgres/.pgpass
-        chown postgres:postgres /home/postgres/.pgpass
-
         sudo -u postgres "$PG_BIN/initdb" --pgdata="$PG_DATA" --auth=md5 --auth-local=md5 --auth-host=md5 --username=postgres --pwfile=/tmp/password
-
-        rm -f /tmp/password
     else
         echo "Database already initialized, skipping initdb."
     fi
+
+    rm -f /tmp/password
 }
 
 configure_postgres() {
@@ -96,7 +96,7 @@ configure_postgres() {
 }
 
 start_postgres() {
-    sudo -u postgres "$PG_BIN/postgres" -D "$PG_DATA" -c config_file="$PG_DATA/postgresql.conf" &
+    sudo -u postgres "$PG_BIN/postgres" -D "$PG_DATA" -p "$DB_PORT" -c config_file="$PG_DATA/postgresql.conf" &
     PG_PID=$!
 
     until "$PG_BIN/pg_isready" -U postgres > /dev/null; do sleep 1; done
@@ -124,6 +124,8 @@ create_database_and_user() {
         sudo -u postgres "$PG_BIN/psql" -U postgres -c "CREATE DATABASE \"$DB_NAME\";" >/dev/null
         sudo -u postgres "$PG_BIN/psql" -U postgres -c "GRANT ALL PRIVILEGES ON DATABASE \"$DB_NAME\" to \"$DB_USER\";" > /dev/null
     fi
+
+    echo "User configured"
 }
 
 chown -R postgres:postgres "$PG_DATA"
