@@ -10,6 +10,10 @@ RUN apt update && apt install -y \
   git \
   ca-certificates \
   sudo \
+  locales \
+  && sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen \
+  && locale-gen \
+  && update-locale LANG=en_US.UTF-8 \
   && apt clean
 
 ENV PG_VERSION_TAG=REL_14_11

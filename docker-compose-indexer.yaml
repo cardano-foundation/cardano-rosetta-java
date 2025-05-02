@@ -53,6 +53,7 @@ services:
       DB_SECRET: ${DB_SECRET}
       DB_USER: ${DB_USER}
       DB_NAME: ${DB_NAME}
+      DB_PORT: ${DB_PORT}
       NETWORK: ${NETWORK}
       PGPASSWORD: postgres
 
@@ -79,7 +80,7 @@ services:
     volumes:
       - ${DB_PATH}:/var/lib/postgresql/data
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME} -p ${DB_PORT} -h localhost"]
+      test: [ "CMD-SHELL", "PGPASSWORD=${DB_SECRET} pg_isready -U ${DB_USER} -d ${DB_NAME} -p ${DB_PORT} -h localhost"]
       interval: 10s
       timeout: 3s
       retries: 10
