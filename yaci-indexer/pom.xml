@@ -17,7 +17,7 @@
     <packaging>jar</packaging>
 
     <properties>
-        <java.version>21</java.version>
+        <java.version>24</java.version>
         <maven.compiler.proc>full</maven.compiler.proc>
         <yaci-store.version>0.1.2</yaci-store.version>
         <sonar.exclusions>src/main/java/org/cardanofoundation/rosetta/yaciindexer/stores/txsize/model/*</sonar.exclusions>
@@ -121,7 +121,7 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>${version.maven-compiler-plugin}</version>
                 <configuration>
-                    <release>21</release>
+                    <release>24</release>
                     <annotationProcessorPaths>
                         <path>
                             <groupId>org.projectlombok</groupId>
