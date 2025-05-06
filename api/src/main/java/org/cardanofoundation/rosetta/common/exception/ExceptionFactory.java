@@ -337,4 +337,8 @@ public class ExceptionFactory {
     return new ApiException(RosettaErrorType.INVALID_BLOCK_INDEX.toRosettaError(false, Details.builder().message("Invalid block index, must be greater than or equal to 0, supplied index:%d".formatted(index)).build()));
   }
 
+  public static ApiException oldestBlockNotFound() {
+    return new ApiException(RosettaErrorType.OLDEST_BLOCK_NOT_FOUND.toRosettaError(false));
+  }
+
 }

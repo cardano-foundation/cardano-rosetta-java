@@ -38,6 +38,7 @@ public class BlockServiceImpl implements BlockService {
     }
 
     log.error("Block was not found");
+
     throw ExceptionFactory.blockNotFoundException();
   }
 

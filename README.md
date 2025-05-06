@@ -30,8 +30,8 @@ Since [Yaci-Store](https://github.com/bloxbean/yaci-store) is a comparatively li
 
 - 4CPU Cores
 - 32GB RAM
-- 1TB of storage (PRUNING_ENABLED=false) [default]
-- 400GB of storage (PRUNING_ENABLED=true)
+- ca. > 1TB of storage (REMOVE_SPENT_UTXOS=false) [default]
+- ca > 400GB of storage (REMOVE_SPENT_UTXOS=true)
 
 Better hardware will improve the performance of the indexer and the node, which will result in faster syncing times.
 
