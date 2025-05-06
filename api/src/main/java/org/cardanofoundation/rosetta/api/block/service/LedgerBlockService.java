@@ -47,6 +47,12 @@ public interface LedgerBlockService {
   BlockIdentifierExtended findLatestBlockIdentifier();
 
   /**
+   * Returns the oldest full block (block for which we have full data)
+   * @return the oldest block identifier
+   */
+  BlockIdentifierExtended findOldestBlockIdentifier(BlockIdentifierExtended latestBlock);
+
+  /**
    * Returns the genesis block identifier.
    * @return the genesis block identifier
    */

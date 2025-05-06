@@ -22,10 +22,15 @@ import org.cardanofoundation.rosetta.api.block.mapper.BlockMapper;
 import org.cardanofoundation.rosetta.api.block.mapper.TransactionMapper;
 import org.cardanofoundation.rosetta.api.block.model.domain.*;
 import org.cardanofoundation.rosetta.api.block.model.entity.*;
+import org.cardanofoundation.rosetta.api.block.model.entity.projection.BlockIdentifierProjection;
 import org.cardanofoundation.rosetta.api.block.model.repository.*;
+import org.cardanofoundation.rosetta.common.exception.ApiException;
 import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.cardanofoundation.rosetta.common.util.RosettaConstants.RosettaErrorType.OLDEST_BLOCK_NOT_FOUND;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -275,6 +280,110 @@ class LedgerBlockServiceImplTest {
 
     ledgerBlockService.populateTransaction(transaction, transactionInfo, utxoMap);
     assertThat(transaction.getPoolRetirements().size()).isEqualTo(1);
+  }
+
+  @Test
+  void findOldestBlockIdentifier_throwsException_whenPruningIsEnabled() {
+    // Given
+    ledgerBlockService.setPruningEnabled(true);
+    BlockIdentifierExtended latestBlock = new BlockIdentifierExtended();
+    latestBlock.setNumber(5000L);
+
+    // When & Then
+    ApiException exception = assertThrows(ApiException.class, () ->
+        ledgerBlockService.findOldestBlockIdentifier(latestBlock));
+
+    // Verify the exception is the correct type
+    assertThat(exception.getError().getCode()).isEqualTo(OLDEST_BLOCK_NOT_FOUND.getCode());
+  }
+
+  @Test
+  void findOldestBlockIdentifier_returnsGenesisBlock_whenTargetBlockNumberIsNegative() {
+    // Given
+    ledgerBlockService.setPruningEnabled(false);
+    ledgerBlockService.setPruningSafeBlocksCount(100);
+
+    BlockIdentifierExtended latestBlock = new BlockIdentifierExtended();
+    latestBlock.setNumber(50L); // Less than pruningSafeBlocksCount
+
+    BlockIdentifierExtended genesisBlock = new BlockIdentifierExtended();
+    genesisBlock.setNumber(0L);
+    genesisBlock.setHash("Genesis");
+    ledgerBlockService.setCachedGenesisBlock(genesisBlock);
+
+    // When
+    BlockIdentifierExtended result = ledgerBlockService.findOldestBlockIdentifier(latestBlock);
+
+    // Then
+    assertThat(result).isSameAs(genesisBlock);
+  }
+
+  @Test
+  void findOldestBlockIdentifier_returnsCorrectBlock_whenTargetBlockNumberIsValid() {
+    // Given
+    ledgerBlockService.setPruningEnabled(false);
+    ledgerBlockService.setPruningSafeBlocksCount(100);
+
+    BlockIdentifierExtended latestBlock = new BlockIdentifierExtended();
+    latestBlock.setNumber(500L);
+
+    BlockIdentifierProjection blockProjection = new BlockIdentifierProjection() {
+      @Override
+      public String getHash() {
+        return "oldestHash";
+      }
+
+      @Override
+      public Long getNumber() {
+        return 400L; // 500 - 100 = 400
+      }
+
+      @Override
+      public Long getBlockTimeInSeconds() {
+        return 0L;
+      }
+
+      @Override
+      public Long getSlot() {
+        return 0L;
+      }
+    };
+
+    BlockIdentifierExtended expectedBlock = new BlockIdentifierExtended();
+    expectedBlock.setNumber(400L);
+    expectedBlock.setHash("oldestHash");
+
+    when(blockRepository.findBlockProjectionByNumber(400L)).thenReturn(Optional.of(blockProjection));
+    when(blockMapper.mapToBlockIdentifierExtended(blockProjection)).thenReturn(expectedBlock);
+
+    // When
+    BlockIdentifierExtended result = ledgerBlockService.findOldestBlockIdentifier(latestBlock);
+
+    // Then
+    assertThat(result).isEqualTo(expectedBlock);
+    verify(blockRepository).findBlockProjectionByNumber(400L);
+    verify(blockMapper).mapToBlockIdentifierExtended(blockProjection);
+  }
+
+
+  @Test
+  void findOldestBlockIdentifier_throwsException_whenTargetBlockIsNotFound() {
+    // Given
+    ledgerBlockService.setPruningEnabled(false);
+    ledgerBlockService.setPruningSafeBlocksCount(100);
+
+    BlockIdentifierExtended latestBlock = new BlockIdentifierExtended();
+    latestBlock.setNumber(500L);
+
+    when(blockRepository.findBlockProjectionByNumber(400L)).thenReturn(Optional.empty());
+
+    // When & Then
+    ApiException exception = assertThrows(ApiException.class, () ->
+        ledgerBlockService.findOldestBlockIdentifier(latestBlock));
+
+    // Verify the exception is the correct type
+    assertThat(exception.getError().getCode()).isEqualTo(OLDEST_BLOCK_NOT_FOUND.getCode());
+    verify(blockRepository).findBlockProjectionByNumber(400L);
   }
 
 }
