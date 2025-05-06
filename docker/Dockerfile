@@ -64,12 +64,12 @@ RUN git clone https://github.com/input-output-hk/mithril.git \
     && cp mithril-client /root/.local/bin/
 
 # Cardano node version
-ARG CARDANO_NODE_VERSION=10.2.1
+ARG CARDANO_NODE_VERSION=10.3.1
 
 # Install sodium
-RUN export IOHKNIX_VERSION=$(curl https://raw.githubusercontent.com/IntersectMBO/cardano-node/${CARDANO_NODE_VERSION}/flake.lock | jq -r '.nodes.iohkNix.locked.rev') \
+RUN export IOHKNIX_VERSION=$(curl -L https://raw.githubusercontent.com/IntersectMBO/cardano-node/${CARDANO_NODE_VERSION}/flake.lock | jq -r '.nodes.iohkNix.locked.rev') \
     && echo "iohk-nix version: $IOHKNIX_VERSION" \
-    && export SODIUM_VERSION=$(curl https://raw.githubusercontent.com/input-output-hk/iohk-nix/${IOHKNIX_VERSION}/flake.lock | jq -r '.nodes.sodium.original.rev') \
+    && export SODIUM_VERSION=$(curl -L https://raw.githubusercontent.com/input-output-hk/iohk-nix/${IOHKNIX_VERSION}/flake.lock | jq -r '.nodes.sodium.original.rev') \
     && echo "Using sodium version: $SODIUM_VERSION" \
     && git clone https://github.com/intersectmbo/libsodium \
     && cd libsodium \
@@ -85,9 +85,9 @@ RUN apt install -y --no-install-recommends libsodium-dev \
     && apt-get clean
 
 # Install secp256k1
-RUN export IOHKNIX_VERSION=$(curl https://raw.githubusercontent.com/IntersectMBO/cardano-node/${CARDANO_NODE_VERSION}/flake.lock | jq -r '.nodes.iohkNix.locked.rev') \
+RUN export IOHKNIX_VERSION=$(curl -L https://raw.githubusercontent.com/IntersectMBO/cardano-node/${CARDANO_NODE_VERSION}/flake.lock | jq -r '.nodes.iohkNix.locked.rev') \
     && echo "iohk-nix version: ${IOHKNIX_VERSION}" \
-    && export SECP256K1_VERSION=$(curl https://raw.githubusercontent.com/input-output-hk/iohk-nix/${IOHKNIX_VERSION}/flake.lock | jq -r '.nodes.secp256k1.original.ref') \
+    && export SECP256K1_VERSION=$(curl -L https://raw.githubusercontent.com/input-output-hk/iohk-nix/${IOHKNIX_VERSION}/flake.lock | jq -r '.nodes.secp256k1.original.ref') \
     && echo "Using secp256k1 version:${SECP256K1_VERSION}" \
     && git clone --depth 1 --branch ${SECP256K1_VERSION} https://github.com/bitcoin-core/secp256k1 \
     && cd secp256k1 \
@@ -98,7 +98,7 @@ RUN export IOHKNIX_VERSION=$(curl https://raw.githubusercontent.com/IntersectMBO
     && make install
 
 # Install blst
-RUN export BLST_VERSION=$(curl https://raw.githubusercontent.com/input-output-hk/iohk-nix/master/flake.lock | jq -r '.nodes.blst.original.ref') \
+RUN export BLST_VERSION=$(curl -L https://raw.githubusercontent.com/input-output-hk/iohk-nix/master/flake.lock | jq -r '.nodes.blst.original.ref') \
     && git clone --depth 1 --branch ${BLST_VERSION} https://github.com/supranational/blst \
     && cd blst \
     && ./build.sh \
