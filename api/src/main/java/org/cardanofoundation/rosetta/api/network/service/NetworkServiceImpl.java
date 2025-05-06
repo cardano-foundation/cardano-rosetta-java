@@ -3,10 +3,10 @@ package org.cardanofoundation.rosetta.api.network.service;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
+import javax.annotation.PostConstruct;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import lombok.val;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ResourceLoader;
@@ -53,8 +53,18 @@ public class NetworkServiceImpl implements NetworkService {
   @Value("${cardano.rosetta.middleware-version}")
   private String revision;
 
-  @Value("${cardano.rosetta.ALLOWED_SLOTS_DELTA:100}")
+  @Value("${cardano.rosetta.SYNC_GRACE_SLOTS_COUNT:100}")
   private int allowedSlotsDelta;
+
+  @Value("${cardano.rosetta.REMOVE_SPENT_UTXOS:false}")
+  private boolean isRemovalOfSpentUTxOsEnabled;
+
+  @PostConstruct
+  public void init() {
+    log.info("NetworkServiceImpl initializing...");
+    log.info("allowedSlotsDelta: {}", allowedSlotsDelta);
+    log.info("isRemovalOfSpentUTxOsEnabled: {}", isRemovalOfSpentUTxOsEnabled);
+  }
 
   @Override
   public NetworkListResponse getNetworkList(MetadataRequest metadataRequest) {
@@ -114,7 +124,7 @@ public class NetworkServiceImpl implements NetworkService {
 
   @Override
   public NetworkStatusResponse getNetworkStatus(NetworkRequest networkRequest) {
-    log.debug("[networkStatus] Request received: {}", networkRequest.toString());
+    log.info("[networkStatus] Request received: {}", networkRequest.toString());
     log.info("[networkStatus] Looking for latest block");
     NetworkStatus networkStatus = networkStatus();
 
@@ -137,21 +147,28 @@ public class NetworkServiceImpl implements NetworkService {
   }
 
   private NetworkStatus networkStatus() {
-    log.info("[networkStatus] Looking for latest block");
+    log.info("[networkStatus] Looking for network status");
 
     BlockIdentifierExtended latestBlock = ledgerBlockService.findLatestBlockIdentifier();
     log.debug("[networkStatus] Latest block found {}", latestBlock);
 
     log.debug("[networkStatus] Looking for genesis block");
     BlockIdentifierExtended genesisBlock = ledgerBlockService.findGenesisBlockIdentifier();
+
     log.debug("[networkStatus] Genesis block found {}", genesisBlock);
 
     List<Peer> peers = topologyConfigService.getPeers();
 
-    val networkStatusBuilder = NetworkStatus.builder()
+    NetworkStatus.NetworkStatusBuilder networkStatusBuilder = NetworkStatus.builder()
             .latestBlock(latestBlock)
             .genesisBlock(genesisBlock)
             .peers(peers);
+
+    if (isRemovalOfSpentUTxOsEnabled) {
+      BlockIdentifierExtended oldestBlockIdentifier = ledgerBlockService.findOldestBlockIdentifier(latestBlock);
+
+      networkStatusBuilder.oldestBlock(oldestBlockIdentifier);
+    }
 
     calculateSyncStatus(latestBlock).ifPresent(networkStatusBuilder::syncStatus);
 

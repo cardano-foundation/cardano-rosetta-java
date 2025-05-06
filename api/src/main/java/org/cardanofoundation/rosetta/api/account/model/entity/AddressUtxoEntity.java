@@ -44,4 +44,5 @@ public class AddressUtxoEntity {
 
   @Column(name = "block")
   private Long blockNumber;
+
 }
