@@ -29,6 +29,8 @@ import org.cardanofoundation.rosetta.common.time.OfflineSlotService;
 import org.cardanofoundation.rosetta.common.util.Constants;
 import org.cardanofoundation.rosetta.common.util.RosettaConstants;
 
+import static org.cardanofoundation.rosetta.common.util.Constants.*;
+
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -124,11 +126,11 @@ public class NetworkServiceImpl implements NetworkService {
     int networkMagic = genesisDataProvider.getProtocolMagic();
 
     return switch (networkMagic) {
-      case Constants.MAINNET_NETWORK_MAGIC -> Networks.mainnet();
-      case Constants.PREPROD_NETWORK_MAGIC -> Networks.preprod();
-      case Constants.PREVIEW_NETWORK_MAGIC -> Networks.preview();
+      case MAINNET_NETWORK_MAGIC -> Networks.mainnet();
+      case PREPROD_NETWORK_MAGIC -> Networks.preprod();
+      case PREVIEW_NETWORK_MAGIC -> Networks.preview();
       case Constants.SANCHONET_NETWORK_MAGIC -> new Network(0b0000, Constants.SANCHONET_NETWORK_MAGIC);
-      case Constants.DEVKIT_NETWORK_MAGIC -> new Network(0b0000, Constants.DEVKIT_NETWORK_MAGIC);
+      case DEVKIT_NETWORK_MAGIC -> new Network(0b0000, DEVKIT_NETWORK_MAGIC);
 
       default -> throw ExceptionFactory.invalidNetworkError();
     };
@@ -186,30 +188,17 @@ public class NetworkServiceImpl implements NetworkService {
     return blockchain.equals(Constants.CARDANO_BLOCKCHAIN);
   }
 
-  private boolean verifyNetwork(String network) {
-    Network supportedNetwork = getSupportedNetwork();
+  private boolean verifyNetwork(String inputNetwork) {
+    Network currentNetwork = getSupportedNetwork();
 
-    switch ((int) supportedNetwork.getProtocolMagic()) {
-      case Constants.MAINNET_NETWORK_MAGIC -> {
-        return network.equalsIgnoreCase(Constants.MAINNET);
-      }
-      case Constants.PREPROD_NETWORK_MAGIC -> {
-        return network.equals(Constants.PREPROD);
-      }
-      case Constants.PREVIEW_NETWORK_MAGIC -> {
-        return network.equals(Constants.PREVIEW);
-      }
-      case Constants.DEVKIT_NETWORK_MAGIC -> {
-        return network.equals(Constants.DEVKIT);
-      }
-      case Constants.SANCHONET_NETWORK_MAGIC -> {
-        return network.equals(Constants.SANCHONET);
-      }
-      default -> {
-        return false;
-      }
-    }
+    return switch ((int) currentNetwork.getProtocolMagic()) {
+      case MAINNET_NETWORK_MAGIC -> inputNetwork.equalsIgnoreCase(MAINNET);
+      case PREPROD_NETWORK_MAGIC -> inputNetwork.equals(PREPROD);
+      case PREVIEW_NETWORK_MAGIC -> inputNetwork.equals(PREVIEW);
+      case DEVKIT_NETWORK_MAGIC -> inputNetwork.equals(DEVKIT);
+
+      default -> false;
+    };
   }
-
 
 }
