@@ -1,7 +1,7 @@
 /*******************************************************
  *               Global & Theme Variables              *
  *******************************************************/
-:root {
+ :root {
   /* Primary Grey Colors */
   --grey-1000: #272727;
   --grey-800: #404040;
@@ -142,24 +142,19 @@
 
   /* Constrain the navbar content */
   .navbar__inner {
-    max-width: var(--content-max-width);
-    margin: 0 8%;
+    max-width: 1800px;
+    margin: 0 auto;
   }
 
   /* Constrain the main wrapper for the whole page content below navbar */
   .main-wrapper {
-      max-width: var(--content-max-width);
-      margin: 0 8%;
+      max-width: 1800px;
+      margin: 0 auto;
       display: flex;
+      justify-content: space-between;
+      padding: 0 2rem;
+      width: 100%;
   }
-
-  /* Keep sidebar width fixed */
-  .theme-doc-sidebar-container {
-    width: 300px;
-    min-width: 300px;
-    flex-shrink: 0; /* Prevent sidebar from shrinking */
-    position: sticky; /* should now be relative to the centered main-wrapper */
-  } 
 
 }
 
@@ -831,14 +826,10 @@ html[data-theme='dark'] .choice-card .button--secondary {
   color: var(--ifm-color-emphasis-900);
 }
 
-.markdown {
-  padding: 1.68rem;
-}
-
 .theme-edit-this-page {
   background-color: var(--ifm-color-emphasis-100);
-  border-radius: 12px;
-  padding: 8px 12px;
+  border-radius: 8px;
+  padding: 8px 2px;
   margin-bottom: 12px;
   margin-top: 12px;
   border: 1px solid var(--ifm-color-emphasis-200);
@@ -850,6 +841,11 @@ html[data-theme='dark'] .choice-card .button--secondary {
   transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
   cursor: pointer;
   user-select: none;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  max-width: 152px;
 }
 
 /*******************************************************
@@ -1306,15 +1302,38 @@ div[class*='codeBlockContainer'] {
 }
 
 [data-theme='dark'] .card {
-  background-color: #1c2128;
-  border-color: rgba(255, 255, 255, 0.1);
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  background-color: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 [data-theme='dark'] .card:hover {
-  background-color: #242a33;
-  border-color: rgba(255, 255, 255, 0.15);
+  background-color: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.2);
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* Hide icons in User Guides category card titles */
+.cardTitle_rnsV {
+  font-size: 0 !important;
+  line-height: normal;
+}
+
+.cardTitle_rnsV::before {
+  content: attr(title);
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-weight: 700;
+  font-size: 1.25rem;
+  line-height: 1.4;
+}
+
+/* Explicit color settings for the ::before pseudo-element, matching h2 styles */
+[data-theme='light'] .cardTitle_rnsV::before {
+  color: var(--grey-1000);
+}
+
+[data-theme='dark'] .cardTitle_rnsV::before {
+  color: #fff;
 }
 
 /*******************************************************

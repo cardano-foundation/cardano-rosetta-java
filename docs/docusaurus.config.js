@@ -154,18 +154,18 @@ const config = {
           forceDarkModeState: 'light',
           withDefaultFonts: false,
           hideClientButton: true,
-          searchHotKey: 'l',
-          proxyUrl: 'https://proxy.scalar.com',
+          hideTestRequestButton: true,
+          //proxyUrl: 'https://proxy.scalar.com',
           servers: [
             {
               url: 'http://localhost:8082',
               name: 'Local',
             },
           ],
-            customCss: `* { 
-              --scalar-background-1: transparent;
-              --scalar-font: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-            }`
+          customCss: `* {
+            --scalar-font: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+          }
+          `
           
 
         },
