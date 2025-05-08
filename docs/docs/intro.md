@@ -23,12 +23,12 @@ For a more detailed architecture overview, see the [Architecture](core-concepts/
 
 Running Cardano Rosetta Java requires the following minimum resources:
 
-| Component   | Requirement | Notes                    |
-| :---------- | :---------- | :----------------------- |
-| **CPU**     | 4 Cores     |                          |
-| **RAM**     | 32 GB       |                          |
-| **Storage** | 1 TB        | When pruning is disabled |
-|             | 400 GB      | When pruning is enabled  |
+| Component   | Requirement | Notes                               |
+| :---------- | :---------- |:------------------------------------|
+| **CPU**     | 4 Cores     |                                     |
+| **RAM**     | 32 GB       |                                     |
+| **Storage** | 1 TB        | When remove spent UTxOs is disabled |
+|             | 400 GB      | When remove spent UTxOs is enabled  |
 
 :::tip Performance Note
 Better hardware resources (more CPU cores, RAM) will improve indexer and node performance, resulting in faster chain synchronization and better API response times.

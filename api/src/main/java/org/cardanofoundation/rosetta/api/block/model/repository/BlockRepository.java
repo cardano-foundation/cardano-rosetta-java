@@ -15,6 +15,9 @@ public interface BlockRepository extends JpaRepository<BlockEntity, Long> {
   @Query("FROM BlockEntity b WHERE b.number = 0 ORDER BY b.number ASC LIMIT 1")
   Optional<BlockIdentifierProjection> findGenesisBlockIdentifier();
 
+  @Query("FROM BlockEntity b WHERE b.number = :blockNumber ORDER BY b.number ASC LIMIT 1")
+  Optional<BlockIdentifierProjection> findBlockProjectionByNumber(long blockNumber);
+
   Optional<BlockEntity> findByNumber(Long blockNumber);
 
   Optional<BlockEntity> findByHash(String blockHash);
@@ -32,6 +35,6 @@ public interface BlockRepository extends JpaRepository<BlockEntity, Long> {
   Optional<BlockIdentifierProjection> findBlockIdentifierByHash(String blockHash);
 
   Optional<BlockIdentifierProjection> findBlockIdentifierByNumberAndHash(
-      Long blockNumber,
-      String blockHash);
+          Long blockNumber,
+          String blockHash);
 }
