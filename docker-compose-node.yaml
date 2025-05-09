@@ -1,6 +1,7 @@
 version: '3.8'
 services:
   mithril:
+    image: cardanofoundation/rosetta-mithril:${MITHRIL_VERSION}
     build:
       context: ./docker/dockerfiles/mithril
     environment:
@@ -9,22 +10,25 @@ services:
       - SNAPSHOT_DIGEST=${SNAPSHOT_DIGEST}
       - AGGREGATOR_ENDPOINT=${AGGREGATOR_ENDPOINT}
       - GENESIS_VERIFICATION_KEY=${GENESIS_VERIFICATION_KEY}
+      - ANCILLARY_VERIFICATION_KEY=${ANCILLARY_VERIFICATION_KEY}
+
     volumes:
       - ${CARDANO_NODE_DIR}:/node
 
   cardano-node:
     image: ghcr.io/intersectmbo/cardano-node:${CARDANO_NODE_VERSION}
-    build:
-      context: ./
-      dockerfile: ./docker/dockerfiles/node/Dockerfile
-      args:
-        CARDANO_NODE_VERSION: ${CARDANO_NODE_VERSION}
+    #image: cardano-foundation/rosetta-cardano-node:${CARDANO_NODE_VERSION}
+#    build:
+#      context: ./
+#      dockerfile: ./docker/dockerfiles/node/Dockerfile
+#      args:
+#        CARDANO_NODE_VERSION: ${CARDANO_NODE_VERSION}
     environment:
       - NETWORK=${NETWORK}
-      - PROTOCOL_MAGIC=${PROTOCOL_MAGIC}
-      - CARDANO_NODE_SOCKET_PATH=${CARDANO_NODE_SOCKET_PATH}
-      - CARDANO_NODE_PORT=${CARDANO_NODE_PORT}
-      - NODE_SUBMIT_API_PORT=${NODE_SUBMIT_API_PORT}
+#      - PROTOCOL_MAGIC=${PROTOCOL_MAGIC}
+#      - CARDANO_NODE_SOCKET_PATH=${CARDANO_NODE_SOCKET_PATH}
+#      - CARDANO_NODE_PORT=${CARDANO_NODE_PORT}
+#      - NODE_SUBMIT_API_PORT=${NODE_SUBMIT_API_PORT}
     volumes:
       - ${CARDANO_NODE_DIR}:/node/
       - ${CARDANO_NODE_DB}:/node/db
@@ -33,6 +37,7 @@ services:
     ports:
       - ${CARDANO_NODE_PORT}:${CARDANO_NODE_PORT}
       - ${NODE_SUBMIT_API_PORT}:${NODE_SUBMIT_API_PORT}
+    entrypoint: cardano-node run --database-path /node/db --port ${CARDANO_NODE_PORT} --socket-path /node/node.socket --topology /config/topology.json --config /config/config.json
     depends_on:
       mithril:
         condition: service_completed_successfully

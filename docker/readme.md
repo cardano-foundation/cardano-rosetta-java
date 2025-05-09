@@ -42,13 +42,13 @@ You can specify Cabal, GHC, Cardano node, and Postgres versions when building an
 
 The default values:  
 ``
-CABAL_VERSION=3.8.1.0
+CABAL_VERSION=3.12.1.0
 ``  
 ``
-GHC_VERSION=8.10.7  
+GHC_VERSION=9.6.7  
 ``  
 ``
-CARDANO_NODE_VERSION=10.2.1  
+CARDANO_NODE_VERSION=10.3.1  
 ``  
 ``
 PG_VERSION=14  

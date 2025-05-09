@@ -53,11 +53,11 @@ _Figure 2: Component Diagram showing internal architecture_
 The Cardano Node is a full implementation of the Cardano blockchain protocol that connects to the Cardano network, validates transactions and blocks, and maintains the blockchain state.
 
 :::info
-**Version**: 10.2.1 (configurable via build args)  
-**Built with**: GHC 8.10.7 and Cabal 3.8.1.0  
+**Version**: 10.3.1 (configurable via build args)  
+**Built with**: GHC 9.6.7 and Cabal 3.12.1.0  
 **Runtime socket path**: `/node/node.socket`  
 **Data directory**: `/node/db`  
-**Network options**: mainnet, preprod, preview, sanchonet, devkit  
+**Network options**: mainnet, preprod, preview, devkit  
 **Configuration files**: stored in `/config` directory
 :::
 
