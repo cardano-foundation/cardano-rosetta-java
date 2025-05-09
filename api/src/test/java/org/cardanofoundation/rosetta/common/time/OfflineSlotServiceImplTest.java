@@ -4,6 +4,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.Optional;
 
 import org.mockito.Mock;
 import org.mockito.Spy;
@@ -35,15 +36,20 @@ class OfflineSlotServiceImplTest {
     private final Instant shellyStartTime = Instant.parse("2020-07-29T21:44:51Z");
     private final long shelleyStartSlot = 1000L; // Example slot value
 
-    private OfflineSlotServiceImpl offlineSlotService;
+    private OfflineSlotServiceImpl offlineSlotServiceWithConverters;
+    private OfflineSlotServiceImpl offlineSlotServiceWithoutConverters;
 
     @BeforeEach
     @SuppressWarnings("java:S5786")
     public void setup() {
-        this.offlineSlotService = new OfflineSlotServiceImpl(clock, zoneOffset);
-        this.offlineSlotService.cardanoConverters = cardanoConverters;
-        this.offlineSlotService.shelleyStartSlot = shelleyStartSlot;
-        this.offlineSlotService.shellyStartTime = shellyStartTime;
+        this.offlineSlotServiceWithConverters = new OfflineSlotServiceImpl(clock, zoneOffset);
+        this.offlineSlotServiceWithConverters.cardanoConverters = cardanoConverters;
+        this.offlineSlotServiceWithConverters.shelleyStartSlot = shelleyStartSlot;
+        this.offlineSlotServiceWithConverters.shellyStartTime = shellyStartTime;
+
+        this.offlineSlotServiceWithoutConverters = new OfflineSlotServiceImpl(clock, zoneOffset);
+        this.offlineSlotServiceWithoutConverters.shelleyStartSlot = shelleyStartSlot;
+        this.offlineSlotServiceWithoutConverters.shellyStartTime = shellyStartTime;
     }
 
     @Test
@@ -54,7 +60,7 @@ class OfflineSlotServiceImplTest {
         when(clock.getZone()).thenReturn(zoneOffset);
 
         // When
-        long slot = offlineSlotService.getCurrentSlotBasedOnTime();
+        long slot = offlineSlotServiceWithConverters.getCurrentSlotBasedOnTimeWithFallback();
 
         // Then
         assertThat(slot).isEqualTo(105366319L);
@@ -68,7 +74,7 @@ class OfflineSlotServiceImplTest {
         when(clock.getZone()).thenReturn(zoneOffset);
 
         // When / Then
-        assertThatThrownBy(() -> offlineSlotService.getCurrentSlotBasedOnTime())
+        assertThatThrownBy(() -> offlineSlotServiceWithConverters.getCurrentSlotBasedOnTimeWithFallback())
                 .isInstanceOf(ApiException.class);
     }
 
@@ -80,11 +86,37 @@ class OfflineSlotServiceImplTest {
         when(clock.getZone()).thenReturn(zoneOffset);
 
         // When
-        long slot = offlineSlotService.getCurrentSlotBasedOnTime();
+        long slot = offlineSlotServiceWithConverters.getCurrentSlotBasedOnTimeWithFallback();
 
         // Then
         assertThat(slot).isEqualTo(105366319L);
         verify(cardanoConverters, atLeastOnce()).time();
+    }
+
+    @Test
+    void shouldVerifyCardanoConvertersSlotMethodIsCalledWithoutFallback() {
+        // Given
+        LocalDateTime now = LocalDateTime.of(2023, 10, 10, 10, 10, 10);
+        when(clock.instant()).thenReturn(now.toInstant(zoneOffset));
+        when(clock.getZone()).thenReturn(zoneOffset);
+
+        // When
+        Optional<Long> slotM = offlineSlotServiceWithConverters.getCurrentSlotBasedOnTime();
+
+        // Then
+        assertThat(slotM).isPresent();
+        assertThat(slotM.orElseThrow()).isEqualTo(105366319L);
+        verify(cardanoConverters, atLeastOnce()).time();
+    }
+
+    @Test
+    public void cardanoConvertersNotAvailableNoCurrentSlot() {
+        assertThat(offlineSlotServiceWithoutConverters.getCurrentSlotBasedOnTime()).isNotPresent();
+    }
+
+    @Test
+    public void cardanoConvertersNotAvailableCurrentSlotFallback() {
+        assertThat(offlineSlotServiceWithoutConverters.getCurrentSlotBasedOnTimeWithFallback()).isEqualTo(shelleyStartSlot);
     }
 
 }

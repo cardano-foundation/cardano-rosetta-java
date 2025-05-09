@@ -7,9 +7,9 @@ API_SPRING_PROFILES_ACTIVE=online
 ## Main variables
 LOG=INFO
 NETWORK=mainnet
-# mainnet, preprod, preview, sanchonet, devkit
+# mainnet, preprod, preview, devkit
 PROTOCOL_MAGIC=764824073
-# mainnet 764824073, preprod 1, preview 2, sanchonet 4, devkit 42
+# mainnet 764824073, preprod 1, preview 2, devkit 42
 
 # Node synchronization
 SYNC=true
@@ -33,7 +33,7 @@ DB_PORT=5432
 ## Cardano node variables
 CARDANO_NODE_HOST=localhost
 CARDANO_NODE_PORT=3001
-CARDANO_NODE_VERSION=10.2.1
+CARDANO_NODE_VERSION=10.3.1
 CARDANO_NODE_SUBMIT_HOST=localhost
 NODE_SUBMIT_API_PORT=8090
 CARDANO_NODE_SOCKET_PATH=/node/node.socket

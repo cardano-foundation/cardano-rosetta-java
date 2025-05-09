@@ -1,4 +1,4 @@
-FROM ubuntu:22.04 AS cardano-builder
+FROM ubuntu:24.04 AS cardano-builder
 
 SHELL ["/bin/bash", "-c"]
 
@@ -11,6 +11,16 @@ RUN apt update --fix-missing \
     g++ tmux git jq wget libncursesw5-dev libtool autoconf liblmdb-dev curl ca-certificates pkg-config \
     && apt-get clean
 
+# Download and setup JDK 24.0.1
+RUN mkdir -p /opt/java \
+    && curl -L https://download.java.net/java/GA/jdk24.0.1/24a58e0e276943138bf3e963e6291ac2/9/GPL/openjdk-24.0.1_linux-x64_bin.tar.gz -o /opt/jdk.tar.gz \
+    && tar -xzf /opt/jdk.tar.gz -C /opt/java \
+    && rm /opt/jdk.tar.gz
+
+# Set JAVA_HOME and update PATH
+ENV JAVA_HOME=/opt/java/jdk-24.0.1
+ENV PATH="${JAVA_HOME}/bin:${PATH}"
+
 WORKDIR /root/src
 
 # Install ghcup
@@ -19,28 +29,30 @@ RUN bash -c "curl --proto '=https' --tlsv1.2 -sSf https://get-ghcup.haskell.org 
 
 ENV PATH=/root/.local/bin:/root/.ghcup/bin:/root/.cabal/bin:${PATH}
 
-# Install cabal
-ARG CABAL_VERSION=3.8.1.0
+ARG BLST_VERSION=0.3.11
+ARG LIBSODIUM_VERSION=dbb48cc
+ARG SECP256K1_VERSION=ac83be33
+
+ARG CABAL_VERSION=${CABAL_VERSION:-3.12.1.0}
+ARG GHC_VERSION=${GHC_VERSION:-9.6.7}
+
+# Cardano node version
+ARG CARDANO_NODE_VERSION=${CARDANO_NODE_VERSION:-10.3.1}
+
+ARG MITHRIL_VERSION=${MITHRIL_VERSION:-2517.1}
 
 RUN bash -c "ghcup install cabal ${CABAL_VERSION}"
 RUN bash -c "ghcup set cabal ${CABAL_VERSION}"
 
-# Install GHC
-ARG GHC_VERSION=8.10.7
-
 RUN bash -c "ghcup install ghc ${GHC_VERSION}"
 RUN bash -c "ghcup set ghc ${GHC_VERSION}"
 
-
-# Mithril setup
-ARG MITHRIL_VERSION=2513.0
-# Install dependencies
-
+# Install mithril
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | bash -s -- -y \
     && export PATH="$HOME/.cargo/bin:$PATH" \
     && apt update --fix-missing \
     && apt install -y --no-install-recommends \
-    build-essential m4 libssl-dev docker jq git \
+    build-essential m4 libssl-dev docker.io jq git \
     && rustup update stable \
     && apt-get clean
 
@@ -53,44 +65,33 @@ RUN git clone https://github.com/input-output-hk/mithril.git \
     && mkdir -p /root/.local/bin \
     && cp mithril-client /root/.local/bin/
 
-# Cardano node version
-ARG CARDANO_NODE_VERSION=10.2.1
+WORKDIR /usr/local/src
 
 # Install sodium
-RUN export IOHKNIX_VERSION=$(curl https://raw.githubusercontent.com/IntersectMBO/cardano-node/${CARDANO_NODE_VERSION}/flake.lock | jq -r '.nodes.iohkNix.locked.rev') \
-    && echo "iohk-nix version: $IOHKNIX_VERSION" \
-    && export SODIUM_VERSION=$(curl https://raw.githubusercontent.com/input-output-hk/iohk-nix/${IOHKNIX_VERSION}/flake.lock | jq -r '.nodes.sodium.original.rev') \
-    && echo "Using sodium version: $SODIUM_VERSION" \
-    && git clone https://github.com/intersectmbo/libsodium \
+RUN git clone --branch master https://github.com/IntersectMBO/libsodium.git \
     && cd libsodium \
-    && git checkout ${SODIUM_VERSION} \
+    && git checkout ${LIBSODIUM_VERSION} \
     && ./autogen.sh \
     && ./configure \
     && make \
     && make check \
     && make install
 
-# Install libsodium
-RUN apt install -y --no-install-recommends libsodium-dev \
-    && apt-get clean
+WORKDIR /usr/local/src
 
-# Install secp256k1
-RUN export IOHKNIX_VERSION=$(curl https://raw.githubusercontent.com/IntersectMBO/cardano-node/${CARDANO_NODE_VERSION}/flake.lock | jq -r '.nodes.iohkNix.locked.rev') \
-    && echo "iohk-nix version: ${IOHKNIX_VERSION}" \
-    && export SECP256K1_VERSION=$(curl https://raw.githubusercontent.com/input-output-hk/iohk-nix/${IOHKNIX_VERSION}/flake.lock | jq -r '.nodes.secp256k1.original.ref') \
-    && echo "Using secp256k1 version:${SECP256K1_VERSION}" \
-    && git clone --depth 1 --branch ${SECP256K1_VERSION} https://github.com/bitcoin-core/secp256k1 \
+RUN git clone --branch master https://github.com/bitcoin-core/secp256k1.git \
     && cd secp256k1 \
+    && git checkout ${SECP256K1_VERSION} \
     && ./autogen.sh \
-    && ./configure --enable-module-schnorrsig --enable-experimental \
+    && ./configure --prefix=/usr --enable-module-schnorrsig --enable-experimental \
     && make \
     && make check \
     && make install
 
 # Install blst
-RUN export BLST_VERSION=$(curl https://raw.githubusercontent.com/input-output-hk/iohk-nix/master/flake.lock | jq -r '.nodes.blst.original.ref') \
-    && git clone --depth 1 --branch ${BLST_VERSION} https://github.com/supranational/blst \
+RUN git clone --branch master https://github.com/supranational/blst.git \
     && cd blst \
+    && git checkout v$BLST_VERSION \
     && ./build.sh \
     && echo "prefix=/usr/local" >> libblst.pc \
     && echo "exec_prefix=\${prefix}" >> libblst.pc \
@@ -108,10 +109,9 @@ RUN export BLST_VERSION=$(curl https://raw.githubusercontent.com/input-output-hk
     && cp libblst.a /usr/local/lib \
     && bash -c "chmod u=rw,go=r /usr/local/{lib/{libblst.a,pkgconfig/libblst.pc},include/{blst.{h,hpp},blst_aux.h}}"
 
-RUN apt install -y --no-install-recommends libsecp256k1-dev \
-    && apt-get clean
+WORKDIR /usr/local/src
 
-# Install node
+# Install cardano-node
 RUN git clone https://github.com/intersectmbo/cardano-node.git \
     && cd cardano-node \
     && git checkout tags/${CARDANO_NODE_VERSION} \
@@ -130,7 +130,7 @@ RUN git clone https://github.com/intersectmbo/cardano-node.git \
     && ln -s /opt/homebrew/opt/openssl@3/lib /usr/local/opt/openssl/lib \
     && ln -s /opt/homebrew/opt/openssl@3/include /usr/local/opt/openssl/include
 
-WORKDIR /root/src/cardano-node
+WORKDIR /usr/local/src/cardano-node
 
 RUN bash -c "cabal update"
 RUN bash -c "cabal build all"
@@ -144,12 +144,12 @@ RUN mkdir -p /root/.local/bin \
 
 
 # Compile java applications
-FROM ubuntu:22.04 AS java-builder
+FROM ubuntu:24.04 AS java-builder
 
 WORKDIR /root/app
 
 RUN apt update --fix-missing \
-    && apt install -y --no-install-recommends openjdk-21-jdk maven \
+    && apt install -y --no-install-recommends maven \
     && apt-get clean
 
 COPY ./pom.xml /root/app/pom.xml
@@ -159,10 +159,12 @@ COPY ./yaci-indexer /root/app/yaci-indexer
 COPY ./test-data-generator /root/app/test-data-generator
 COPY ./.git /root/app/.git
 
-RUN --mount=type=cache,target=/root/.m2 mvn -U clean package -DskipTests
+RUN java --version
+
+RUN --mount=type=cache,target=/root/.m2 mvn clean package -am -DskipTests
 
 # Main
-FROM ubuntu:22.04
+FROM ubuntu:24.04
 
 WORKDIR /
 
@@ -192,14 +194,37 @@ RUN mkdir -p /node/postgres
 RUN rm -rf /var/lib/postgresql/${PG_VERSION}/main
 
 # Install jdk 21
-RUN apt install -y --no-install-recommends openjdk-21-jdk jq bc sudo curl \
+RUN apt install -y --no-install-recommends jq bc sudo curl \
     && apt clean
+
+# Download and setup JDK 24.0.1
+RUN mkdir -p /opt/java \
+    && curl -L https://download.java.net/java/GA/jdk24.0.1/24a58e0e276943138bf3e963e6291ac2/9/GPL/openjdk-24.0.1_linux-x64_bin.tar.gz -o /opt/jdk.tar.gz \
+    && tar -xzf /opt/jdk.tar.gz -C /opt/java \
+    && rm /opt/jdk.tar.gz
+
+# Set JAVA_HOME and update PATH
+ENV JAVA_HOME=/opt/java/jdk-24.0.1
+ENV PATH="${JAVA_HOME}/bin:${PATH}"
 
 # Copy cardano node
 COPY --from=cardano-builder /usr/local/lib /usr/local/lib
 COPY --from=cardano-builder /root/.local/bin/cardano-* /usr/local/bin/
 COPY --from=cardano-builder /root/.local/bin/mithril-client /usr/local/bin/
-COPY --from=cardano-builder /root/src/cardano-node/cardano-submit-api/config/tx-submit-mainnet-config.yaml /cardano-submit-api-config/cardano-submit-api.yaml
+COPY --from=cardano-builder /usr/local/src/cardano-node/cardano-submit-api/config/tx-submit-mainnet-config.yaml /cardano-submit-api-config/cardano-submit-api.yaml
+
+# Link libsodium library
+COPY --from=cardano-builder --chown=root:root /usr/local/lib/libsodium.so /usr/local/lib
+RUN ln -snf /usr/local/lib/libsodium.so /usr/local/lib/libsodium.so.23 \
+    && ln -snf /usr/local/lib/libsodium.so /usr/local/lib/libsodium.so.23.3.0
+RUN ldconfig
+
+# Link secp256k1 library
+COPY --from=cardano-builder --chown=root:root /usr/local/src/secp256k1/.libs/libsecp256k1.so /usr/local/lib
+RUN ln -snf /usr/local/lib/libsecp256k1.so /usr/local/lib/libsecp256k1.so.0 \
+    && ln -snf /usr/local/lib/libsecp256k1.so /usr/local/lib/libsecp256k1.so.1 \
+    && ln -snf /usr/local/lib/libsecp256k1.so /usr/local/lib/libsecp256k1.so.1.0.1
+RUN ldconfig
 
 ENV LD_LIBRARY_PATH=/usr/local/lib
 ENV PATH=/usr/local/lib/:$PATH

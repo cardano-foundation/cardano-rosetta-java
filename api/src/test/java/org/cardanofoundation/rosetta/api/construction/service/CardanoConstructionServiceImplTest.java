@@ -181,19 +181,6 @@ class CardanoConstructionServiceImplTest {
     assertFalse(actualException.getError().isRetriable());
   }
 
-  @SuppressWarnings("java:S5778")
-  @Test
-  void parseTransactionSignedThrowSanchonetTest() {
-    ApiException actualException = assertThrows(ApiException.class, () ->
-            cardanoService.parseTransaction(NetworkEnum.SANCHONET.getNetwork(), TRANSACTION_NOT_SIGNED, true));
-
-    assertEquals(RosettaErrorType.CANT_CREATE_SIGNED_TRANSACTION_ERROR.getMessage(),
-            actualException.getError().getMessage());
-    assertEquals(RosettaErrorType.CANT_CREATE_SIGNED_TRANSACTION_ERROR.getCode(),
-            actualException.getError().getCode());
-    assertFalse(actualException.getError().isRetriable());
-  }
-
   @Test
   void parseTransactionNotSignedTest() {
     TransactionParsed actual = cardanoService.parseTransaction(NetworkEnum.PREVIEW.getNetwork(), TRANSACTION_NOT_SIGNED, false);

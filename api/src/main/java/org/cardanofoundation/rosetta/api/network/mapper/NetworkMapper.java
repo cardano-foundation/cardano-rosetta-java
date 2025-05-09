@@ -17,6 +17,7 @@ public interface NetworkMapper {
 
   @Mapping(target = "currentBlockIdentifier.index", source = "latestBlock.number")
   @Mapping(target = "currentBlockIdentifier.hash", source = "latestBlock.hash")
+  @Mapping(target = "syncStatus", source = "syncStatus")
   @Mapping(target = "currentBlockTimestamp",
       expression = "java(java.util.concurrent.TimeUnit.SECONDS.toMillis(networkStatus.getLatestBlock().getBlockTimeInSeconds()))")
   @Mapping(target = "genesisBlockIdentifier.index", source = "genesisBlock.number", defaultValue = "0L")

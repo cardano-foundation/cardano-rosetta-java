@@ -64,7 +64,7 @@ docker compose --env-file .env.docker-compose -f docker-compose.yaml up
 :::tip Node Synchronization
 To speed up the initial synchronization process, you can use [Mithril](https://mithril.network/doc/) snapshots by setting `MITHRIL_SYNC=true` in your environment file.
 
-Mithril provides cryptographically certified blockchain snapshots for multiple Cardano networks (mainnet, preprod, preview, sanchonet) and is integrated directly into the Docker setup. This can reduce synchronization time from days to hours.
+Mithril provides cryptographically certified blockchain snapshots for multiple Cardano networks (mainnet, preprod, preview) and is integrated directly into the Docker setup. This can reduce synchronization time from days to hours.
 :::
 
   </TabItem>
@@ -128,9 +128,9 @@ docker build -t {image_name} --build-arg PG_VERSION=14 -f ./docker/Dockerfile .
 
 Default values:
 
-- `CABAL_VERSION=3.8.1.0`
-- `GHC_VERSION=8.10.7`
-- `CARDANO_NODE_VERSION=8.9.2`
+- `CABAL_VERSION=3.12.1.0`
+- `GHC_VERSION=9.6.7`
+- `CARDANO_NODE_VERSION=10.2.1`
 - `PG_VERSION=14`
 
 #### Configuration

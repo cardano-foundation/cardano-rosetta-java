@@ -1,9 +1,10 @@
 package org.cardanofoundation.rosetta.yaciindexer.service;
 
+import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.stereotype.Service;
 import co.nstant.in.cbor.model.Map;
 import com.bloxbean.cardano.yaci.core.util.CborSerializationUtil;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
