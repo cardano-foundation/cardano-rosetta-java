@@ -17,6 +17,7 @@ VERIFICATION=true
 
 # Mithril snapshots
 MITHRIL_SYNC=true
+MITHRIL_VERSION=2513.0
 SNAPSHOT_DIGEST=latest
 # if not set standard values will be used
 AGGREGATOR_ENDPOINT=
