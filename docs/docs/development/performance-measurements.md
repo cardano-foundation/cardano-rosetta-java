@@ -10,7 +10,7 @@ This page documents the performance measurements and load test results for diffe
 
 ## Load Test Results
 
-Below you can find the load test results for various releases, comparing different deployment options.
+Below you can find the load test results for various releases, comparing different deployment options. All performance tests are evaluated against a Service Level Agreement (SLA) target of 1 second response time, which we consider the acceptable threshold for API responsiveness in production environments.
 
 <details>
 <summary>
