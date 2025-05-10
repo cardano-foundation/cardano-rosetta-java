@@ -29,9 +29,10 @@ services:
       - CARDANO_NODE_SOCKET_PATH=${CARDANO_NODE_SOCKET_PATH}
       - CARDANO_NODE_PORT=${CARDANO_NODE_PORT}
       - NODE_SUBMIT_API_PORT=${NODE_SUBMIT_API_PORT}
+      - CARDANO_NODE_DB=${CARDANO_NODE_DB}
     volumes:
-      - ${CARDANO_NODE_DIR}:/node/
-      - ${CARDANO_NODE_DB}:/node/db
+      - ${CARDANO_NODE_DIR}:${CARDANO_NODE_DIR}
+      - ${CARDANO_NODE_DB}:${CARDANO_NODE_DB}
       - ${CARDANO_CONFIG}:/config
     restart: unless-stopped
     ports:
