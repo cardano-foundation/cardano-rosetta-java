@@ -1,8 +1,12 @@
 version: '3.8'
 services:
   mithril:
+    image: cardanofoundation/rosetta-mithril:${MITHRIL_VERSION}
     build:
-      context: ./docker/dockerfiles/mithril
+      context: ./
+      dockerfile: ./docker/dockerfiles/mithril/Dockerfile
+      args: 
+        MITHRIL_VERSION: ${MITHRIL_VERSION}
     environment:
       - NETWORK=${NETWORK}
       - MITHRIL_SYNC=${MITHRIL_SYNC}
