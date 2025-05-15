@@ -9,14 +9,14 @@ RUN apt update --fix-missing \
     && apt-get clean
 
 # Mithril setup
-ARG MITHRIL_VERSION=2513.0
+ARG MITHRIL_VERSION=2517.1
 
 # Install dependencies
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | bash -s -- -y \
     && export PATH="$HOME/.cargo/bin:$PATH" \
     && apt update --fix-missing \
     && apt install -y --no-install-recommends \
-       build-essential m4 libssl-dev docker jq git pkg-config \
+    build-essential m4 libssl-dev docker jq git pkg-config \
     && apt-get clean
 
 RUN git clone https://github.com/input-output-hk/mithril.git \
