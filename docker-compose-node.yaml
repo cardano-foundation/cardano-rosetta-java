@@ -17,7 +17,7 @@ services:
       - ${CARDANO_NODE_DIR}:/node
 
   cardano-node:
-    image: ghcr.io/intersectmbo/cardano-node:${CARDANO_NODE_VERSION}
+    image: cardano-foundation/rosetta-cardano-node:${CARDANO_NODE_VERSION}
     build:
       context: ./
       dockerfile: ./docker/dockerfiles/node/Dockerfile
@@ -26,7 +26,7 @@ services:
     environment:
       - NETWORK=${NETWORK}
       - PROTOCOL_MAGIC=${PROTOCOL_MAGIC}
-      - CARDANO_NODE_SOCKET_PATH=${CARDANO_NODE_SOCKET_PATH}
+      - CARDANO_NODE_SOCKET_PATH=${CARDANO_NODE_DIR}/node.socket
       - CARDANO_NODE_PORT=${CARDANO_NODE_PORT}
       - NODE_SUBMIT_API_PORT=${NODE_SUBMIT_API_PORT}
       - CARDANO_NODE_DB=${CARDANO_NODE_DB}
