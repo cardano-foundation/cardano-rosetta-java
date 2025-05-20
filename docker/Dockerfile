@@ -20,13 +20,13 @@ RUN bash -c "curl --proto '=https' --tlsv1.2 -sSf https://get-ghcup.haskell.org 
 ENV PATH=/root/.local/bin:/root/.ghcup/bin:/root/.cabal/bin:${PATH}
 
 # Install cabal
-ARG CABAL_VERSION=3.8.1.0
+ARG CABAL_VERSION=3.12.1.0
 
 RUN bash -c "ghcup install cabal ${CABAL_VERSION}"
 RUN bash -c "ghcup set cabal ${CABAL_VERSION}"
 
 # Install GHC
-ARG GHC_VERSION=8.10.7
+ARG GHC_VERSION=9.6.7
 
 RUN bash -c "ghcup install ghc ${GHC_VERSION}"
 RUN bash -c "ghcup set ghc ${GHC_VERSION}"
@@ -70,10 +70,6 @@ RUN export IOHKNIX_VERSION=$(curl https://raw.githubusercontent.com/IntersectMBO
     && make check \
     && make install
 
-# Install libsodium
-RUN apt install -y --no-install-recommends libsodium-dev \
-    && apt-get clean
-
 # Install secp256k1
 RUN export IOHKNIX_VERSION=$(curl https://raw.githubusercontent.com/IntersectMBO/cardano-node/${CARDANO_NODE_VERSION}/flake.lock | jq -r '.nodes.iohkNix.locked.rev') \
     && echo "iohk-nix version: ${IOHKNIX_VERSION}" \
@@ -107,9 +103,6 @@ RUN export BLST_VERSION=$(curl https://raw.githubusercontent.com/input-output-hk
     && cp bindings/blst_aux.h bindings/blst.h bindings/blst.hpp  /usr/local/include/ \
     && cp libblst.a /usr/local/lib \
     && bash -c "chmod u=rw,go=r /usr/local/{lib/{libblst.a,pkgconfig/libblst.pc},include/{blst.{h,hpp},blst_aux.h}}"
-
-RUN apt install -y --no-install-recommends libsecp256k1-dev \
-    && apt-get clean
 
 # Install node
 RUN git clone https://github.com/intersectmbo/cardano-node.git \
@@ -200,6 +193,16 @@ COPY --from=cardano-builder /usr/local/lib /usr/local/lib
 COPY --from=cardano-builder /root/.local/bin/cardano-* /usr/local/bin/
 COPY --from=cardano-builder /root/.local/bin/mithril-client /usr/local/bin/
 COPY --from=cardano-builder /root/src/cardano-node/cardano-submit-api/config/tx-submit-mainnet-config.yaml /cardano-submit-api-config/cardano-submit-api.yaml
+
+RUN ln -snf /usr/local/lib/libsodium.so /usr/local/lib/libsodium.so.23 \
+      || true && \
+    ln -snf /usr/local/lib/libsodium.so /usr/local/lib/libsodium.so.23.3.0 \
+      || true
+
+RUN ln -snf /usr/local/lib/libsecp256k1.so /usr/local/lib/libsecp256k1.so.1 \
+      || true && \
+    ln -snf /usr/local/lib/libsecp256k1.so /usr/local/lib/libsecp256k1.so.1.0.1 \
+      || true
 
 ENV LD_LIBRARY_PATH=/usr/local/lib
 ENV PATH=/usr/local/lib/:$PATH
