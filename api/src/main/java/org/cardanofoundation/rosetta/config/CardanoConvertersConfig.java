@@ -50,11 +50,6 @@ public class CardanoConvertersConfig {
             return ClasspathConversionsFactory.createConverters(PREVIEW);
         }
 
-        if (protocolMagic == Constants.SANCHONET_NETWORK_MAGIC) {
-            log.info("Creating CardanoConverters for sanchonet");
-            return ClasspathConversionsFactory.createConverters(SANCHONET);
-        }
-
         if (protocolMagic == Constants.DEVKIT_NETWORK_MAGIC) {
             log.info("Creating CardanoConverters for devkit, no converters available");
             // Cardano Converters for DevKit is not supported but we still need to return something sensible
