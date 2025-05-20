@@ -17,7 +17,7 @@ services:
       - ${CARDANO_NODE_DIR}:/node
 
   cardano-node:
-    image: cardano-foundation/rosetta-cardano-node:${CARDANO_NODE_VERSION}
+    image: cardanofoundation/rosetta-cardano-node:${CARDANO_NODE_VERSION}
     build:
       context: ./
       dockerfile: ./docker/dockerfiles/node/Dockerfile
