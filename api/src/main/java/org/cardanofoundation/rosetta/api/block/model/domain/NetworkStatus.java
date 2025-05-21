@@ -17,6 +17,7 @@ import org.openapitools.client.model.SyncStatus;
 public class NetworkStatus {
 
   private BlockIdentifierExtended latestBlock;
+  private BlockIdentifierExtended oldestBlock;
   private BlockIdentifierExtended genesisBlock;
   private SyncStatus syncStatus;
   private List<Peer> peers;
