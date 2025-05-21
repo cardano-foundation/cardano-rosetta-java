@@ -28,7 +28,6 @@ public class Constants {
   public static final int MAINNET_NETWORK_MAGIC = 764824073;
   public static final int PREPROD_NETWORK_MAGIC = 1;
   public static final int PREVIEW_NETWORK_MAGIC = 2;
-  public static final int SANCHONET_NETWORK_MAGIC = 4;
   public static final int DEVKIT_NETWORK_MAGIC = 42;
 
   public static final int OPERATION_TYPE_VOTE_DELEGATION = 43;

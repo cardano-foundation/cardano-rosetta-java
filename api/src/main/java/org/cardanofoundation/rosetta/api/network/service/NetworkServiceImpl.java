@@ -139,7 +139,6 @@ public class NetworkServiceImpl implements NetworkService {
       case MAINNET_NETWORK_MAGIC -> Networks.mainnet();
       case PREPROD_NETWORK_MAGIC -> Networks.preprod();
       case PREVIEW_NETWORK_MAGIC -> Networks.preview();
-      case Constants.SANCHONET_NETWORK_MAGIC -> new Network(0b0000, Constants.SANCHONET_NETWORK_MAGIC);
       case DEVKIT_NETWORK_MAGIC -> new Network(0b0000, DEVKIT_NETWORK_MAGIC);
 
       default -> throw ExceptionFactory.invalidNetworkError();
