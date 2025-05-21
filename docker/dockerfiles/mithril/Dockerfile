@@ -33,7 +33,7 @@ FROM ubuntu:24.04 AS mithril-runner
 COPY --from=cardano-builder /root/.local/bin/mithril-client /usr/local/bin
 RUN apt update --fix-missing \
     && apt install -y wget
-COPY entrypoint.sh /sbin/entrypoint.sh
+COPY ./docker/dockerfiles/mithril/entrypoint.sh /sbin/entrypoint.sh
 RUN chmod +x /sbin/entrypoint.sh
 
 CMD ["/sbin/entrypoint.sh"]

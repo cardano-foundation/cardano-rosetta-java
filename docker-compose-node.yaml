@@ -3,7 +3,10 @@ services:
   mithril:
     image: cardanofoundation/rosetta-mithril:${MITHRIL_VERSION}
     build:
-      context: ./docker/dockerfiles/mithril
+      context: ./
+      dockerfile: ./docker/dockerfiles/mithril/Dockerfile
+      args: 
+        MITHRIL_VERSION: ${MITHRIL_VERSION}
     environment:
       - NETWORK=${NETWORK}
       - MITHRIL_SYNC=${MITHRIL_SYNC}
@@ -16,28 +19,27 @@ services:
       - ${CARDANO_NODE_DIR}:/node
 
   cardano-node:
-    image: ghcr.io/intersectmbo/cardano-node:${CARDANO_NODE_VERSION}
-    #image: cardano-foundation/rosetta-cardano-node:${CARDANO_NODE_VERSION}
-#    build:
-#      context: ./
-#      dockerfile: ./docker/dockerfiles/node/Dockerfile
-#      args:
-#        CARDANO_NODE_VERSION: ${CARDANO_NODE_VERSION}
+    image: cardanofoundation/rosetta-cardano-node:${CARDANO_NODE_VERSION}
+    build:
+      context: ./
+      dockerfile: ./docker/dockerfiles/node/Dockerfile
+      args:
+        CARDANO_NODE_VERSION: ${CARDANO_NODE_VERSION}
     environment:
       - NETWORK=${NETWORK}
-#      - PROTOCOL_MAGIC=${PROTOCOL_MAGIC}
-#      - CARDANO_NODE_SOCKET_PATH=${CARDANO_NODE_SOCKET_PATH}
-#      - CARDANO_NODE_PORT=${CARDANO_NODE_PORT}
-#      - NODE_SUBMIT_API_PORT=${NODE_SUBMIT_API_PORT}
+      - PROTOCOL_MAGIC=${PROTOCOL_MAGIC}
+      - CARDANO_NODE_SOCKET_PATH=${CARDANO_NODE_SOCKET_PATH}
+      - CARDANO_NODE_PORT=${CARDANO_NODE_PORT}
+      - NODE_SUBMIT_API_PORT=${NODE_SUBMIT_API_PORT}
+      - CARDANO_NODE_DB=${CARDANO_NODE_DB}
     volumes:
-      - ${CARDANO_NODE_DIR}:/node/
-      - ${CARDANO_NODE_DB}:/node/db
+      - ${CARDANO_NODE_DIR}:${CARDANO_NODE_DIR}
+      - ${CARDANO_NODE_DB}:${CARDANO_NODE_DB}
       - ${CARDANO_CONFIG}:/config
     restart: unless-stopped
     ports:
       - ${CARDANO_NODE_PORT}:${CARDANO_NODE_PORT}
       - ${NODE_SUBMIT_API_PORT}:${NODE_SUBMIT_API_PORT}
-    entrypoint: cardano-node run --database-path /node/db --port ${CARDANO_NODE_PORT} --socket-path /node/node.socket --topology /config/topology.json --config /config/config.json
     depends_on:
       mithril:
         condition: service_completed_successfully
