@@ -15,21 +15,12 @@ import org.junit.jupiter.api.parallel.ExecutionMode;
 
 import org.cardanofoundation.rosetta.api.IntegrationTest;
 import org.cardanofoundation.rosetta.api.block.model.domain.*;
-import org.cardanofoundation.rosetta.api.block.model.domain.StakePoolDelegation;
-import org.cardanofoundation.rosetta.api.block.model.entity.BlockEntity;
-import org.cardanofoundation.rosetta.api.block.model.entity.DelegationEntity;
-import org.cardanofoundation.rosetta.api.block.model.entity.PoolRegistrationEntity;
-import org.cardanofoundation.rosetta.api.block.model.entity.PoolRetirementEntity;
-import org.cardanofoundation.rosetta.api.block.model.entity.StakeRegistrationEntity;
+import org.cardanofoundation.rosetta.api.block.model.entity.*;
 import org.cardanofoundation.rosetta.testgenerator.common.TransactionBlockDetails;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.cardanofoundation.rosetta.testgenerator.common.TestConstants.STAKE_ADDRESS_WITH_EARNED_REWARDS;
-import static org.cardanofoundation.rosetta.testgenerator.common.TestTransactionNames.POOL_DELEGATION_TRANSACTION;
-import static org.cardanofoundation.rosetta.testgenerator.common.TestTransactionNames.POOL_REGISTRATION_TRANSACTION;
-import static org.cardanofoundation.rosetta.testgenerator.common.TestTransactionNames.POOL_RETIREMENT_TRANSACTION;
-import static org.cardanofoundation.rosetta.testgenerator.common.TestTransactionNames.SIMPLE_TRANSACTION;
-import static org.cardanofoundation.rosetta.testgenerator.common.TestTransactionNames.STAKE_KEY_REGISTRATION_TRANSACTION;
+import static org.cardanofoundation.rosetta.testgenerator.common.TestTransactionNames.*;
 
 @Transactional
 class LedgerBlockServiceImplIntTest extends IntegrationTest {
@@ -134,8 +125,10 @@ class LedgerBlockServiceImplIntTest extends IntegrationTest {
     //given
     TransactionBlockDetails tx = generatedDataMap.get(POOL_DELEGATION_TRANSACTION.getName());
     //when
+
     List<BlockTx> txs =
         ledgerBlockService.findTransactionsByBlock(tx.blockNumber(), tx.blockHash());
+
     //then
     assertThat(txs).isNotNull().hasSize(1);
 
@@ -143,6 +136,7 @@ class LedgerBlockServiceImplIntTest extends IntegrationTest {
     assertThat(blockTx.getHash()).isEqualTo(tx.txHash());
     assertThat(blockTx.getBlockNo()).isEqualTo(tx.blockNumber());
     assertThat(blockTx.getBlockHash()).isEqualTo(tx.blockHash());
+
     assertThat(blockTx.getStakePoolDelegations()).hasSize(1);
     assertThat(blockTx.getStakePoolDelegations().getFirst().getAddress())
         .isEqualTo(STAKE_ADDRESS_WITH_EARNED_REWARDS);
@@ -301,10 +295,11 @@ class LedgerBlockServiceImplIntTest extends IntegrationTest {
     //given
     BlockEntity fromBlockB = entityManager
         .createQuery("FROM BlockEntity b "
-            + "WHERE b.prev.hash IS NULL ORDER BY b.number ASC LIMIT 1", BlockEntity.class)
+            + "WHERE b.number = 0 ORDER BY b.number ASC LIMIT 1", BlockEntity.class)
         .setMaxResults(1)
         .getSingleResult();
     //when
+
     BlockIdentifierExtended genesisBlock = ledgerBlockService.findGenesisBlockIdentifier();
     //then
     assertThat(fromBlockB).isNotNull();

@@ -108,5 +108,4 @@ public interface TransactionMapper {
   @Mapping(target = "amount", ignore = true)
   Operation mapWithdrawalToOperation(Withdrawal model, OperationStatus status, int index);
 
-
 }

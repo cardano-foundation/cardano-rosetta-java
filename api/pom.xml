@@ -33,6 +33,16 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-tomcat</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-undertow</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -198,6 +208,9 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <version>${version.spring-boot}</version>
+                <configuration>
+                    <jvmArguments>--enable-preview</jvmArguments>
+                </configuration>
                 <executions>
                     <execution>
                         <goals>
@@ -212,8 +225,7 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>${version.maven-compiler-plugin}</version>
                 <configuration>
-                    <source>21</source>
-                    <target>21</target>
+                    <release>21</release>
                     <annotationProcessorPaths>
                         <path>
                             <groupId>org.projectlombok</groupId>
@@ -231,6 +243,7 @@
                             <version>${version.lombok.mapstruct.binding}</version>
                         </path>
                     </annotationProcessorPaths>
+                    <compilerArgs>--enable-preview</compilerArgs>
                 </configuration>
             </plugin>
             <plugin>
@@ -300,6 +313,7 @@
                 <configuration>
                     <argLine>-XX:+EnableDynamicAgentLoading</argLine>
                     <argLine>${argLine}</argLine>
+                    <argLine>--enable-preview</argLine>
                 </configuration>
             </plugin>
             <plugin>

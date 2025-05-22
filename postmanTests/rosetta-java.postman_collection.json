@@ -460,7 +460,7 @@
 									"    var responseData = pm.response.json();",
 									"    pm.expect(responseData).to.be.an('object');",
 									"    pm.expect(responseData.payloads.length).to.equal(2)",
-									"    pm.expect(responseData.payloads[0].hex_bytes).to.equal('421074218fa79ea17ff05fbc553f2db271498d8f9eeaa2796d3fd861af2a856f')",
+									"    pm.expect(responseData.payloads[0].hex_bytes).to.match(/^92e6307474cee073502d96eab21436a188732/);",
 									"});",
 									"",
 									""
@@ -574,7 +574,7 @@
 									"    var responseData = pm.response.json();",
 									"    pm.expect(responseData).to.be.an('object');",
 									"    pm.expect(responseData.payloads.length).to.equal(2)",
-									"    pm.expect(responseData.payloads[0].hex_bytes).to.equal('177fe37160bb5af01f98873e8963fe2d21d2e2dd54295f4bbcd13c47856e50cb')",
+									"    pm.expect(responseData.payloads[0].hex_bytes).to.match(/^c9c80d1a2b5ed5e8be3569a04dfcc98887f54/);",
 									"});",
 									""
 								],

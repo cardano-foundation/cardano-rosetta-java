@@ -18,6 +18,10 @@
   max-width: 400px;
 }
 
+.features :global(.row) {
+  justify-content: center;
+}
+
 @media screen and (max-width: 768px) {
   .features {
     padding: 3rem 1rem;
@@ -26,5 +30,6 @@
   .featureCard {
     flex: 0 0 100%;
     margin: 1rem 0;
+    max-width: none;
   }
 }

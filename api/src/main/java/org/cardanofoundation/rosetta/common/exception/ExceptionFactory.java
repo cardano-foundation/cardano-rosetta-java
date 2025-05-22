@@ -1,6 +1,7 @@
 package org.cardanofoundation.rosetta.common.exception;
 
 import java.time.LocalDateTime;
+import jakarta.validation.constraints.NotNull;
 
 import static org.cardanofoundation.rosetta.common.util.RosettaConstants.RosettaErrorType;
 
@@ -317,7 +318,7 @@ public class ExceptionFactory {
   }
 
   public static ApiException misconfiguredTime(LocalDateTime now) {
-    return new ApiException(RosettaErrorType.MISCONFIGURED_TIME.toRosettaError(false, Details.builder().message("Current time: " + now).build()));
+    return new ApiException(RosettaErrorType.MISCONFIGURED_TIME.toRosettaError(false, Details.builder().message("Current time: %s".formatted(now)).build()));
   }
 
   public static ApiException missingDRepId() {
@@ -326,6 +327,14 @@ public class ExceptionFactory {
 
   public static ApiException missingDrep() {
     return new ApiException(RosettaErrorType.MISSING_DREP_TYPE.toRosettaError(false));
+  }
+
+  public static ApiException timeOut(String detailMessage) {
+    return new ApiException(RosettaErrorType.TIMEOUT.toRosettaError(true, Details.builder().message("Timeout, details: %s".formatted(detailMessage)).build()));
+  }
+
+  public static ApiException invalidBlockIdentifier(@NotNull long index) {
+    return new ApiException(RosettaErrorType.INVALID_BLOCK_INDEX.toRosettaError(false, Details.builder().message("Invalid block index, must be greater than or equal to 0, supplied index:%d".formatted(index)).build()));
   }
 
 }

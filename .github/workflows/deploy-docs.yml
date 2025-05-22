@@ -27,6 +27,11 @@ jobs:
         working-directory: docs
     steps:
       - uses: actions/checkout@v4
+
+      - name: Copy OpenAPI spec
+        run: mkdir -p docs/static && cp api/src/main/resources/rosetta-specifications-1.4.15/api.yaml docs/static/api.yaml
+        working-directory: ${{ github.workspace }} # Run from root
+
       - uses: actions/setup-node@v4
         with:
           node-version: 18

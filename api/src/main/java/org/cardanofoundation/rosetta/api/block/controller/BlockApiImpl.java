@@ -7,11 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.openapitools.client.api.BlockApi;
-import org.openapitools.client.model.BlockRequest;
-import org.openapitools.client.model.BlockResponse;
-import org.openapitools.client.model.BlockTransactionRequest;
-import org.openapitools.client.model.BlockTransactionResponse;
-import org.openapitools.client.model.PartialBlockIdentifier;
+import org.openapitools.client.model.*;
 
 import org.cardanofoundation.rosetta.api.block.mapper.BlockMapper;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
@@ -37,6 +33,11 @@ public class BlockApiImpl implements BlockApi {
     if (offlineMode) {
       throw ExceptionFactory.notSupportedInOfflineMode();
     }
+
+    if (blockRequest.getBlockIdentifier().getIndex() != null && blockRequest.getBlockIdentifier().getIndex() < 0) {
+      throw ExceptionFactory.invalidBlockIdentifier(blockRequest.getBlockIdentifier().getIndex());
+    }
+
     networkService.verifyNetworkRequest(blockRequest.getNetworkIdentifier());
 
     PartialBlockIdentifier bid = blockRequest.getBlockIdentifier();
@@ -54,6 +55,10 @@ public class BlockApiImpl implements BlockApi {
     if (offlineMode) {
       throw ExceptionFactory.notSupportedInOfflineMode();
     }
+    if (blockReq.getBlockIdentifier().getIndex() != null && blockReq.getBlockIdentifier().getIndex() < 0) {
+      throw ExceptionFactory.invalidBlockIdentifier(blockReq.getBlockIdentifier().getIndex());
+    }
+
     networkService.verifyNetworkRequest(blockReq.getNetworkIdentifier());
 
     Long blockId = blockReq.getBlockIdentifier().getIndex();

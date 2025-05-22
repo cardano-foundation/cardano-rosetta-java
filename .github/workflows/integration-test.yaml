@@ -21,14 +21,19 @@ jobs:
         with:
           node-version: '21.x'
       - name: "Update Genesis block number"
-        run: | 
+        run: |
           source ./.env.IntegrationTest
           echo "$UPDATE_GENESIS_BLOCK_QUERY" > temp.sql
           PGPASSWORD=$DB_SECRET psql -h localhost -p 5432 -d $DB_NAME -U $DB_USER -f temp.sql
       - name: "Install newman"
         run: npm install -g newman
-      - name: "Install rosetta-cli"
-        run: curl -sSfL https://raw.githubusercontent.com/coinbase/rosetta-cli/master/scripts/install.sh | sh -s
+#      - name: "Install mesh-cli"
+#        run: curl -sSfL https://raw.githubusercontent.com/coinbase/mesh-cli/master/scripts/install.sh | sh -s
+
+      # https://github.com/coinbase/mesh-cli/issues/422
+      - name: "Install mesh-cli"
+        run: curl -sSfL https://raw.githubusercontent.com/coinbase/mesh-cli/v0.10.3/scripts/install.sh | sed -e 's/^REPO=.*/REPO=mesh-cli/' | sh -s
+
       - name: "Run tests"
         run: newman run ./postmanTests/rosetta-java.postman_collection.json -e postmanTests/Rosetta-java-env.postman_environment.json -r cli
       - name: "Run rosetta check:data tests"

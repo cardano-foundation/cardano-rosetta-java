@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "docusaurus": "docusaurus",
+    "prestart": "mkdir -p static && cp ../api/src/main/resources/rosetta-specifications-1.4.15/api.yaml static/api.yaml",
     "start": "docusaurus start",
     "build": "docusaurus build",
     "swizzle": "docusaurus swizzle",
@@ -16,6 +17,7 @@
   "dependencies": {
     "@docusaurus/core": "3.7.0",
     "@docusaurus/preset-classic": "3.7.0",
+    "@docusaurus/theme-mermaid": "^3.7.0",
     "@mdx-js/react": "^3.0.0",
     "@scalar/docusaurus": "^0.5.5",
     "clsx": "^2.0.0",
@@ -25,7 +27,8 @@
   },
   "devDependencies": {
     "@docusaurus/module-type-aliases": "3.7.0",
-    "@docusaurus/types": "3.7.0"
+    "@docusaurus/types": "3.7.0",
+    "docusaurus-plugin-search-local": "^2.1.2"
   },
   "browserslist": {
     "production": [

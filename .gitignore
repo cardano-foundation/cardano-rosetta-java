@@ -42,7 +42,14 @@ settings.xml
 
 *.trace.db
 
-# Allow files
-!.env.docker-compose
-!.env.IntegrationTest
+# Allow files for a docker-compose entry point
 !.env.h2
+!.env.h2-testdata
+!.env.docker-compose
+!.env.docker-compose-profile-entry-level
+!.env.docker-compose-profile-mid-level
+
+# Allow files for a single docker image
+!docker/docker-compose.yaml
+!docker/.env.docker-profile-entry-level
+!docker/.env.docker-profile-mid-level

@@ -4,12 +4,12 @@ import styles from './styles.module.css';
 
 const FeatureList = [
   {
-    title: 'Rosetta API for Cardano',
+    title: 'Mesh API for Cardano',
     Svg: require('@site/static/img/api-interface-svgrepo-com.svg').default,
     description: (
       <>
-        A lightweight Java implementation of the Rosetta API tailored to Cardano, 
-        ideal for exchanges and enterprise integrations.
+        Built to the Coinbase Mesh specification with Cardano-specific 
+        extensions for supporting native assets, governance, and stake operations.
       </>
     ),
   },
@@ -18,8 +18,8 @@ const FeatureList = [
     Svg: require('@site/static/img/multiple-defenses-svgrepo-com.svg').default,
     description: (
       <>
-        All-in-one Cardano node, Submit API, Mesh API, and Yaci-Store indexer 
-        with Postgres—simplifying your Cardano integration workflow.
+        All-in-one package with Cardano node, Submit API, Mesh API, and Yaci-Store indexer 
+        with Postgres database—streamlining your Cardano integration workflow.
       </>
     ),
   },
@@ -28,8 +28,8 @@ const FeatureList = [
     Svg: require('@site/static/img/cloud-acceleration-svgrepo-com.svg').default,
     description: (
       <>
-        Built with Yaci-Store for faster sync, reduced resource usage, and lower 
-        operational costs, optimized for exchange-grade performance.
+        Powered by Yaci-Store for faster synchronization, reduced resource usage, 
+        and lower operational costs, optimized for production-grade performance.
       </>
     ),
   },
