@@ -91,7 +91,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
 
     int relativeTtl = calculateRelativeTtl(metadata);
 
-    long currentSlotBasedOnTime = offlineSlotService.getCurrentSlotBasedOnTime() + relativeTtl;
+    long currentSlotBasedOnTime = offlineSlotService.getCurrentSlotBasedOnTimeWithFallback() + relativeTtl;
 
     NetworkEnum networkEnum = NetworkEnum.findByName(
                     networkIdentifier.getNetwork())
@@ -216,7 +216,7 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
   private long calculateTtl(ConstructionPayloadsRequestMetadata metadata) {
     return metadata != null ?
             cardanoConstructionService.checkOrReturnDefaultTtl(metadata.getTtl()) :
-            offlineSlotService.getCurrentSlotBasedOnTime() + Constants.DEFAULT_RELATIVE_TTL;
+            offlineSlotService.getCurrentSlotBasedOnTimeWithFallback() + Constants.DEFAULT_RELATIVE_TTL;
   }
 
   private ProtocolParams convertProtocolParams(@Nullable ConstructionPayloadsRequestMetadata metadata) {

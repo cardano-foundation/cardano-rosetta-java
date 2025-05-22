@@ -1,6 +1,7 @@
 package org.cardanofoundation.rosetta.common.time;
 
 import java.time.*;
+import java.util.Optional;
 import javax.annotation.Nullable;
 
 import lombok.RequiredArgsConstructor;
@@ -39,19 +40,33 @@ public class OfflineSlotServiceImpl implements OfflineSlotService {
     protected CardanoConverters cardanoConverters;
 
     @Override
-    public long getCurrentSlotBasedOnTime() {
+    public long getCurrentSlotBasedOnTimeWithFallback() {
         if (cardanoConverters != null) {
-            LocalDateTime nowDateTime = LocalDateTime.now(clock);
-            ZoneOffset zoneOffset = ZonedDateTime.now(zoneId).getOffset();
-
-            if (nowDateTime.toInstant(zoneOffset).isBefore(shellyStartTime)) {
-                throw new ApiException(ExceptionFactory.misconfiguredTime(nowDateTime).getError());
-            }
-
-            return cardanoConverters.time().toSlot(nowDateTime);
+            return timeToAbsoluteSlotNo();
         }
 
         return shelleyStartSlot;
+    }
+
+    @Override
+    public Optional<Long> getCurrentSlotBasedOnTime() {
+        if (cardanoConverters != null) {
+            return Optional.of(timeToAbsoluteSlotNo());
+        }
+
+        return Optional.empty();
+    }
+
+    private Long timeToAbsoluteSlotNo() {
+        LocalDateTime nowDateTime = LocalDateTime.now(clock);
+        ZoneOffset zoneOffset = ZonedDateTime.now(zoneId).getOffset();
+
+        if (nowDateTime.toInstant(zoneOffset).isBefore(shellyStartTime)) {
+            throw new ApiException(ExceptionFactory.misconfiguredTime(nowDateTime).getError());
+
+        }
+
+        return cardanoConverters.time().toSlot(nowDateTime);
     }
 
 }

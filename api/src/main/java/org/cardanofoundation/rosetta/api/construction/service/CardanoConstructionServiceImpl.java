@@ -126,7 +126,7 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
 
   @Override
   public Long calculateTtl(Long ttlOffset) {
-    long absoluteSlot = offlineMode ? offlineSlotService.getCurrentSlotBasedOnTime()
+    long absoluteSlot = offlineMode ? offlineSlotService.getCurrentSlotBasedOnTimeWithFallback()
             : ledgerBlockService.findLatestBlockIdentifier().getSlot();
 
     return absoluteSlot + ttlOffset;

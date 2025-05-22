@@ -23,31 +23,32 @@ public class NetworkApiImpl implements NetworkApi {
 
   @Override
   public ResponseEntity<NetworkListResponse> networkList(
-      @RequestBody MetadataRequest metadataRequest) {
+          @RequestBody MetadataRequest metadataRequest) {
     final NetworkListResponse networkListResponse = networkService.getNetworkList(metadataRequest);
     return ResponseEntity.ok(networkListResponse);
   }
 
   @Override
   public ResponseEntity<NetworkOptionsResponse> networkOptions(
-      @RequestBody NetworkRequest networkRequest) {
+          @RequestBody NetworkRequest networkRequest) {
     networkService.verifyNetworkRequest(networkRequest.getNetworkIdentifier());
     final NetworkOptionsResponse networkOptionsResponse = networkService.getNetworkOptions(
-        networkRequest);
+            networkRequest);
 
     return ResponseEntity.ok(networkOptionsResponse);
   }
 
   @Override
   public ResponseEntity<NetworkStatusResponse> networkStatus(
-      @RequestBody NetworkRequest networkRequest) {
+          @RequestBody NetworkRequest networkRequest) {
     if (offlineMode) {
       throw ExceptionFactory.notSupportedInOfflineMode();
     }
 
     networkService.verifyNetworkRequest(networkRequest.getNetworkIdentifier());
+
     final NetworkStatusResponse networkStatusResponse = networkService.getNetworkStatus(
-        networkRequest);
+            networkRequest);
 
     return ResponseEntity.ok(networkStatusResponse);
   }

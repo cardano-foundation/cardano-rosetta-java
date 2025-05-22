@@ -16,8 +16,7 @@ public enum NetworkEnum {
     MAINNET(Constants.MAINNET, Networks.mainnet()),
     PREPROD(Constants.PREPROD, Networks.preprod()),
     DEVNET(Constants.DEVKIT, new Network(0b0000, 42)),
-    PREVIEW(Constants.PREVIEW, Networks.preview()),
-    SANCHONET(Constants.SANCHONET, new Network(0b0000,  4));
+    PREVIEW(Constants.PREVIEW, Networks.preview());
 
     private final String name;
     private final Network network;

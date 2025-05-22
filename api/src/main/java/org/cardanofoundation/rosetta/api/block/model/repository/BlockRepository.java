@@ -4,6 +4,7 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import org.cardanofoundation.rosetta.api.block.model.entity.BlockEntity;
@@ -14,6 +15,9 @@ public interface BlockRepository extends JpaRepository<BlockEntity, Long> {
 
   @Query("FROM BlockEntity b WHERE b.number = 0 ORDER BY b.number ASC LIMIT 1")
   Optional<BlockIdentifierProjection> findGenesisBlockIdentifier();
+
+  @Query("FROM BlockEntity b WHERE b.number = :blockNumber ORDER BY b.number ASC LIMIT 1")
+  Optional<BlockIdentifierProjection> findBlockProjectionByNumber(@Param("blockNumber") long blockNumber);
 
   Optional<BlockEntity> findByNumber(Long blockNumber);
 
@@ -32,6 +36,6 @@ public interface BlockRepository extends JpaRepository<BlockEntity, Long> {
   Optional<BlockIdentifierProjection> findBlockIdentifierByHash(String blockHash);
 
   Optional<BlockIdentifierProjection> findBlockIdentifierByNumberAndHash(
-      Long blockNumber,
-      String blockHash);
+          Long blockNumber,
+          String blockHash);
 }

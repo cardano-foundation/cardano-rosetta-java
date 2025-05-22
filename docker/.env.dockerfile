@@ -7,9 +7,9 @@ API_SPRING_PROFILES_ACTIVE=online
 ## Main variables
 LOG=INFO
 NETWORK=mainnet
-# mainnet, preprod, preview, sanchonet, devkit
+# mainnet, preprod, preview, devkit
 PROTOCOL_MAGIC=764824073
-# mainnet 764824073, preprod 1, preview 2, sanchonet 4, devkit 42
+# mainnet 764824073, preprod 1, preview 2, devkit 42
 
 # Node synchronization
 SYNC=true
@@ -52,9 +52,10 @@ PRINT_EXCEPTION=true
 
 ## Yaci Indexer env
 YACI_SPRING_PROFILES=postgres,n2c-socket
-PRUNING_ENABLED=false
-PRUNING_INTERVAL=600
-PRUNING_SAFE_BLOCKS=2160
+REMOVE_SPENT_UTXOS=false
+
+REMOVE_SPENT_UTXOS_LAST_BLOCKS_GRACE_COUNT=2160
+
 # database profiles: h2, h2-testdata, postgres
 MEMPOOL_ENABLED=false
 # Haven't implemented yet
@@ -74,3 +75,5 @@ API_DB_POOL_CONNECTION_TIMEOUT_MS=100000
 API_DB_KEEP_ALIVE_MS=60000
 API_DB_LEAK_CONNECTIONS_WARNING_MS=60000
 API_DB_MONITOR_PERFORMANCE=false
+
+SYNC_GRACE_SLOTS_COUNT=100

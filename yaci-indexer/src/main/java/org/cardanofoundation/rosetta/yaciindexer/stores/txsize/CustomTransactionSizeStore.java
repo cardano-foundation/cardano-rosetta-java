@@ -1,5 +1,14 @@
 package org.cardanofoundation.rosetta.yaciindexer.stores.txsize;
 
+import java.util.List;
+import java.util.Optional;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.context.event.EventListener;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import co.nstant.in.cbor.model.Array;
 import co.nstant.in.cbor.model.DataItem;
 import co.nstant.in.cbor.model.Map;
@@ -8,19 +17,12 @@ import com.bloxbean.cardano.client.util.HexUtil;
 import com.bloxbean.cardano.yaci.core.util.CborSerializationUtil;
 import com.bloxbean.cardano.yaci.helper.model.Transaction;
 import com.bloxbean.cardano.yaci.store.events.TransactionEvent;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.cardanofoundation.rosetta.yaciindexer.domain.model.TransactionBuildingConstants;
 import org.cardanofoundation.rosetta.yaciindexer.service.TransactionScriptSizeCalculator;
 import org.cardanofoundation.rosetta.yaciindexer.service.TransactionSizeCalculator;
 import org.cardanofoundation.rosetta.yaciindexer.stores.txsize.model.TransactionSizeEntity;
 import org.cardanofoundation.rosetta.yaciindexer.stores.txsize.model.TransactionSizeRepository;
-import org.springframework.context.event.EventListener;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.Optional;
 
 import static co.nstant.in.cbor.model.SimpleValue.TRUE;
 import static org.cardanofoundation.rosetta.yaciindexer.domain.model.TransactionBuildingConstants.*;

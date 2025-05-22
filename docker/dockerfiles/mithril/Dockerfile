@@ -1,4 +1,4 @@
-FROM ubuntu:22.04 AS cardano-builder
+FROM ubuntu:24.04 AS cardano-builder
 
 SHELL ["/bin/bash", "-c"]
 
@@ -16,7 +16,7 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | bash -s -- -y \
     && export PATH="$HOME/.cargo/bin:$PATH" \
     && apt update --fix-missing \
     && apt install -y --no-install-recommends \
-    build-essential m4 libssl-dev docker jq git pkg-config \
+       build-essential m4 libssl-dev docker.io jq git pkg-config \
     && apt-get clean
 
 RUN git clone https://github.com/input-output-hk/mithril.git \
@@ -28,12 +28,12 @@ RUN git clone https://github.com/input-output-hk/mithril.git \
     && mkdir -p /root/.local/bin \
     && cp mithril-client /root/.local/bin/
 
-FROM ubuntu:22.04 AS mithril-runner
+FROM ubuntu:24.04 AS mithril-runner
 
 COPY --from=cardano-builder /root/.local/bin/mithril-client /usr/local/bin
 RUN apt update --fix-missing \
     && apt install -y wget
-COPY entrypoint.sh /sbin/entrypoint.sh
+COPY ./docker/dockerfiles/mithril/entrypoint.sh /sbin/entrypoint.sh
 RUN chmod +x /sbin/entrypoint.sh
 
 CMD ["/sbin/entrypoint.sh"]

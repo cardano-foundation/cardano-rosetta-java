@@ -194,11 +194,7 @@ download_mithril_snapshot() {
     preview)
       AGGREGATOR_ENDPOINT=${AGGREGATOR_ENDPOINT:-https://aggregator.pre-release-preview.api.mithril.network/aggregator}
       GENESIS_VERIFICATION_KEY=${GENESIS_VERIFICATION_KEY:-$(wget -q -O - https://raw.githubusercontent.com/input-output-hk/mithril/main/mithril-infra/configuration/pre-release-preview/genesis.vkey)}
-      ANCILLARY_VERIFICATION_KEY=${ANCILLARY_VERIFICATION_KEY:-$(wget -q -O - https://raw.githubusercontent.com/input-output-hk/mithril/main/mithril-infra/configuration/pre-release-preview/ancillary.vkey)}
-      ;;
-    sanchonet)
-      AGGREGATOR_ENDPOINT=${AGGREGATOR_ENDPOINT:-https://aggregator.testing-sanchonet.api.mithril.network/aggregator}
-      GENESIS_VERIFICATION_KEY=${GENESIS_VERIFICATION_KEY:-$(wget -q -O - https://raw.githubusercontent.com/input-output-hk/mithril/main/mithril-infra/configuration/testing-sanchonet/genesis.vkey)}
+      ANCILLARY_VERIFICATION_KEY=${ANCILLARY_VERIFICATION_KEY:-$(wget -q -O - https://raw.githubusercontent.com/input-output-hk/mithril/main/mithril-infra/configuration/pre-release-testing-preview/ancillary.vkey)}
       ;;
     esac
     echo "Listing content of /node dir:"
