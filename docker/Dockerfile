@@ -159,8 +159,6 @@ COPY ./yaci-indexer /root/app/yaci-indexer
 COPY ./test-data-generator /root/app/test-data-generator
 COPY ./.git /root/app/.git
 
-RUN java --version
-
 RUN --mount=type=cache,target=/root/.m2 mvn clean package -am -DskipTests
 
 # Main

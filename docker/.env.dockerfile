@@ -22,6 +22,8 @@ SNAPSHOT_DIGEST=latest
 AGGREGATOR_ENDPOINT=
 # if not set standard values will be used
 GENESIS_VERIFICATION_KEY=
+# if not set standard values will be used
+ANCILLARY_VERIFICATION_KEY=
 
 ## Postgres variables
 DB_NAME=rosetta-java
