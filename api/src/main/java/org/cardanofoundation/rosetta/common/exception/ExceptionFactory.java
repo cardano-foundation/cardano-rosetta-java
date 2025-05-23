@@ -341,4 +341,15 @@ public class ExceptionFactory {
     return new ApiException(RosettaErrorType.OLDEST_BLOCK_NOT_FOUND.toRosettaError(false));
   }
 
+  public static ApiException unsupportedVoterType() {
+    return new ApiException(RosettaErrorType.INVALID_GOVERNANCE_VOTE.toRosettaError(false));
+  }
+
+  public static ApiException invalidGovernanceVote(String reasonText) {
+    Details details = Details.builder()
+        .message("Invalid governance vote, reason: %s".formatted(reasonText))
+        .build();
+    return new ApiException(RosettaErrorType.INVALID_GOVERNANCE_VOTE.toRosettaError(false, details));
+  }
+
 }
