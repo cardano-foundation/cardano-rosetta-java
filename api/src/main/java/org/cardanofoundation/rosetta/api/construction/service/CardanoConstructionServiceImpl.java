@@ -330,6 +330,9 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
     if (!CollectionUtils.isEmpty(opRetDto.getWithdrawals())) {
       transactionBodyBuilder.withdrawals(opRetDto.getWithdrawals());
     }
+    if (opRetDto.getVotingProcedures() != null && !opRetDto.getVotingProcedures().getVoting().isEmpty()) {
+      transactionBodyBuilder.votingProcedures(opRetDto.getVotingProcedures());
+    }
     transactionBodyBuilder.fee(BigInteger.valueOf(calculatedFee));
 
     TransactionBody transactionBody = transactionBodyBuilder.build();
@@ -400,6 +403,7 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
     processOperationsDto.setTransactionInputs(result.getTransactionInputs());
     processOperationsDto.setTransactionOutputs(result.getTransactionOutputs());
     processOperationsDto.setCertificates(result.getCertificates());
+    processOperationsDto.setVotingProcedures(result.getVotingProcedures());
     processOperationsDto.setWithdrawals(result.getWithdrawals());
     Set<String> addresses = new HashSet<>(result.getAddresses());
     processOperationsDto.setAddresses(addresses);

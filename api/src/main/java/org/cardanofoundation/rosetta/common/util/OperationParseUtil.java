@@ -62,6 +62,8 @@ public class OperationParseUtil {
               parsePoolRetirement(operation, resultAccumulator);
       case OperationType.VOTE_REGISTRATION ->
               parseVoteRegistration(operation, resultAccumulator);
+      case OperationType.GOVERNANCE_VOTE ->
+              parseVoteRegistration(operation, resultAccumulator);
     };
   }
 
@@ -195,6 +197,13 @@ public class OperationParseUtil {
     resultAccumulator.setPoolRegistrationsCount(++poolNumber);
 
     return resultAccumulator;
+  }
+
+  private static ProcessOperations parseVotingProcedures(Operation operation,
+                                                         ProcessOperations processOperations) {
+
+    ProcessConstructions.getStakeRegistrationCertificateFromOperation()
+
   }
 
 }

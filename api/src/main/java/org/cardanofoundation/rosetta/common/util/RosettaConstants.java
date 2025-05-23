@@ -1,11 +1,10 @@
 package org.cardanofoundation.rosetta.common.util;
 
-import java.util.List;
-
-import org.openapitools.client.model.OperationStatus;
-
 import org.cardanofoundation.rosetta.common.exception.Details;
 import org.cardanofoundation.rosetta.common.exception.Error;
+import org.openapitools.client.model.OperationStatus;
+
+import java.util.List;
 
 public class RosettaConstants {
 
@@ -199,7 +198,8 @@ public class RosettaConstants {
     MISSING_DREP_TYPE("Missing drep type", 5040),
     TIMEOUT("Downstream timeout", 5041),
     INVALID_BLOCK_INDEX("Invalid block index", 5042),
-    OLDEST_BLOCK_NOT_FOUND("Oldest block not found", 5043);
+    OLDEST_BLOCK_NOT_FOUND("Oldest block not found", 5043),
+    INVALID_VOTER_TYPE("Voter Type not found", 5044);
 
     final String message;
     final int code;

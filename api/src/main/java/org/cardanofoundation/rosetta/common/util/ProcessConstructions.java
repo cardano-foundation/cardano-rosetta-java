@@ -1,9 +1,5 @@
 package org.cardanofoundation.rosetta.common.util;
 
-import java.util.*;
-
-import lombok.extern.slf4j.Slf4j;
-
 import com.bloxbean.cardano.client.address.Address;
 import com.bloxbean.cardano.client.address.AddressProvider;
 import com.bloxbean.cardano.client.common.model.Network;
@@ -17,11 +13,11 @@ import com.bloxbean.cardano.client.transaction.spec.cert.*;
 import com.bloxbean.cardano.client.transaction.spec.cert.Relay;
 import com.bloxbean.cardano.client.transaction.spec.governance.DRep;
 import com.bloxbean.cardano.client.transaction.spec.governance.DRepType;
+import com.bloxbean.cardano.client.transaction.spec.governance.VotingProcedures;
 import com.bloxbean.cardano.client.util.HexUtil;
 import io.vavr.control.Either;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
-import org.openapitools.client.model.*;
-
 import org.cardanofoundation.rosetta.api.block.model.domain.DRepDelegation;
 import org.cardanofoundation.rosetta.api.construction.enumeration.CatalystLabels;
 import org.cardanofoundation.rosetta.common.enumeration.CatalystDataIndexes;
@@ -31,6 +27,9 @@ import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.model.cardano.CertificateWithAddress;
 import org.cardanofoundation.rosetta.common.model.cardano.pool.*;
 import org.cardanofoundation.rosetta.common.model.cardano.pool.PoolRetirement;
+import org.openapitools.client.model.*;
+
+import java.util.*;
 
 import static java.math.BigInteger.valueOf;
 
@@ -67,60 +66,82 @@ public class ProcessConstructions {
         String address = CardanoAddressUtils.generateRewardAddress(network, hdPublicKey);
 
         if (operation.getType().equals(OperationType.STAKE_DELEGATION.getValue())) {
-            if (operationMetadata.getPoolKeyHash() == null) {
-                throw ExceptionFactory.missingPoolKeyError();
-            }
-            Certificate certificate = new StakeDelegation(credential, new StakePoolId(
-                    ObjectUtils.isEmpty(operation.getMetadata()) ? null
-                            : HexUtil.decodeHexString(operationMetadata.getPoolKeyHash())));
-
-            return Optional.of(new CertificateWithAddress(certificate, address));
+            return handleStakeDelegation(operation, operationMetadata, credential, address);
         }
         if (operation.getType().equals(OperationType.STAKE_KEY_DEREGISTRATION.getValue())) {
             return Optional.of(new CertificateWithAddress(new StakeDeregistration(credential), address));
         }
         if (operation.getType().equals(OperationType.VOTE_DREP_DELEGATION.getValue())) {
-            DRepParams drep = operationMetadata.getDrep();
-
-            if (drep == null) {
-                throw ExceptionFactory.missingDrep();
-            }
-
-            DRepDelegation.DRep delegationDrep = DRepDelegation.DRep.convertDRepToRosetta(drep);
-
-            Either<ApiException, Optional<String>> drepIdE = switch (delegationDrep.getDrepType()) {
-                case ADDR_KEYHASH, SCRIPTHASH -> {
-                    if (delegationDrep.getDrepId() == null) {
-                        yield Either.left(ExceptionFactory.missingDRepId());
-                    }
-
-                    yield Either.right(Optional.of(delegationDrep.getDrepId()));
-                }
-
-                case ABSTAIN, NO_CONFIDENCE -> Either.right(Optional.empty());
-            };
-
-            if (drepIdE.isLeft()) {
-                throw drepIdE.getLeft();
-            }
-
-            Optional<String> drepIdM = drepIdE.get();
-            DRepType drepType = delegationDrep.getDrepType();
-
-            DRep dRep = switch (drepType) {
-                case ADDR_KEYHASH -> DRep.addrKeyHash(drepIdM.orElseThrow());
-                case SCRIPTHASH -> DRep.scriptHash(drepIdM.orElseThrow());
-                case ABSTAIN -> DRep.abstain();
-                case NO_CONFIDENCE -> DRep.noConfidence();
-            };
-
-            return Optional.of(new CertificateWithAddress(VoteDelegCert.builder()
-                    .stakeCredential(credential)
-                    .drep(dRep)
-                    .build(), address));
+            return handleDrepVoteDelegation(operationMetadata, credential, address);
+        }
+        if (operation.getType().equals(OperationType.GOVERNANCE_VOTE.getValue())) {
+            return handleGovernanceVote();
         }
 
         return Optional.empty();
+    }
+
+    private static Object handleGovernanceVote() {
+        log.info("[processGovernanceVote] About to process governance vote");
+        Certificate certificate = new Vote();
+
+        return Optional.of(new CertificateWithAddress(certificate, null));
+
+
+    }
+
+    private static Optional<CertificateWithAddress> handleDrepVoteDelegation(OperationMetadata operationMetadata,
+                                                                             StakeCredential credential,
+                                                                             String address) {
+        DRepParams drep = operationMetadata.getDrep();
+
+        if (drep == null) {
+            throw ExceptionFactory.missingDrep();
+        }
+
+        DRepDelegation.DRep delegationDrep = DRepDelegation.DRep.convertDRepToRosetta(drep);
+
+        Either<ApiException, Optional<String>> drepIdE = switch (delegationDrep.getDrepType()) {
+            case ADDR_KEYHASH, SCRIPTHASH -> {
+                if (delegationDrep.getDrepId() == null) {
+                    yield Either.left(ExceptionFactory.missingDRepId());
+                }
+
+                yield Either.right(Optional.of(delegationDrep.getDrepId()));
+            }
+
+            case ABSTAIN, NO_CONFIDENCE -> Either.right(Optional.empty());
+        };
+
+        if (drepIdE.isLeft()) {
+            throw drepIdE.getLeft();
+        }
+
+        Optional<String> drepIdM = drepIdE.get();
+        DRepType drepType = delegationDrep.getDrepType();
+
+        DRep dRep = switch (drepType) {
+            case ADDR_KEYHASH -> DRep.addrKeyHash(drepIdM.orElseThrow());
+            case SCRIPTHASH -> DRep.scriptHash(drepIdM.orElseThrow());
+            case ABSTAIN -> DRep.abstain();
+            case NO_CONFIDENCE -> DRep.noConfidence();
+        };
+
+        return Optional.of(new CertificateWithAddress(VoteDelegCert.builder()
+                .stakeCredential(credential)
+                .drep(dRep)
+                .build(), address));
+    }
+
+    private static Optional<CertificateWithAddress> handleStakeDelegation(Operation operation, OperationMetadata operationMetadata, StakeCredential credential, String address) {
+        if (operationMetadata.getPoolKeyHash() == null) {
+            throw ExceptionFactory.missingPoolKeyError();
+        }
+        Certificate certificate = new StakeDelegation(credential, new StakePoolId(
+                ObjectUtils.isEmpty(operation.getMetadata()) ? null
+                        : HexUtil.decodeHexString(operationMetadata.getPoolKeyHash())));
+
+        return Optional.of(new CertificateWithAddress(certificate, address));
     }
 
     public static ProcessWithdrawalReturn getWithdrawalsReturnFromOperation(Network network, Operation operation) {
@@ -288,6 +309,12 @@ public class ProcessConstructions {
         auxiliaryData.setMetadata(metadata);
 
         return auxiliaryData;
+    }
+
+    public static VotingProcedures processVotingProcedures(Operation operation) {
+
+        operation.getMetadata().getVoter();
+
     }
 
 }

@@ -1,7 +1,8 @@
 package org.cardanofoundation.rosetta.common.exception;
 
-import java.time.LocalDateTime;
 import jakarta.validation.constraints.NotNull;
+
+import java.time.LocalDateTime;
 
 import static org.cardanofoundation.rosetta.common.util.RosettaConstants.RosettaErrorType;
 
@@ -339,6 +340,10 @@ public class ExceptionFactory {
 
   public static ApiException oldestBlockNotFound() {
     return new ApiException(RosettaErrorType.OLDEST_BLOCK_NOT_FOUND.toRosettaError(false));
+  }
+
+  public static ApiException invalidVoterType() {
+    return new ApiException(RosettaErrorType.INVALID_VOTER_TYPE.toRosettaError(false));
   }
 
 }

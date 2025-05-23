@@ -1,10 +1,9 @@
 package org.cardanofoundation.rosetta.common.util;
 
-import java.util.List;
-
+import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 import org.openapitools.client.model.CurveType;
 
-import org.cardanofoundation.rosetta.common.enumeration.OperationType;
+import java.util.List;
 
 public class Constants {
 
@@ -126,6 +125,7 @@ public class Constants {
   public static final String OPERATION_TYPE_POOL_REGISTRATION_WITH_CERT = "poolRegistrationWithCert";
   public static final String OPERATION_TYPE_POOL_RETIREMENT = "poolRetirement";
   public static final String OPERATION_TYPE_VOTE_REGISTRATION = "voteRegistration";
+  public static final String OPERATION_TYPE_GOVERNANCE_VOTE = "governanceVote";
 
   public static final List<String> GOVERNANCE_OPERATIONS = List.of(
         OperationType.VOTE_DREP_DELEGATION.getValue()

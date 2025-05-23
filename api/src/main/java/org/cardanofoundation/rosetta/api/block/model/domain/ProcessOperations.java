@@ -1,18 +1,18 @@
 package org.cardanofoundation.rosetta.api.block.model.domain;
 
-import java.math.BigInteger;
-import java.util.ArrayList;
-
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
 import com.bloxbean.cardano.client.transaction.spec.AuxiliaryData;
 import com.bloxbean.cardano.client.transaction.spec.TransactionInput;
 import com.bloxbean.cardano.client.transaction.spec.TransactionOutput;
 import com.bloxbean.cardano.client.transaction.spec.Withdrawal;
 import com.bloxbean.cardano.client.transaction.spec.cert.Certificate;
+import com.bloxbean.cardano.client.transaction.spec.governance.VotingProcedures;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.math.BigInteger;
+import java.util.ArrayList;
 
 @Getter
 @Setter
@@ -32,5 +32,6 @@ public class ProcessOperations {
   private double stakeKeyDeRegistrationsCount = 0.0;
   private double poolRegistrationsCount = 0.0;
   private AuxiliaryData voteRegistrationMetadata = null;
+  private VotingProcedures votingProcedures = new VotingProcedures();
 
 }

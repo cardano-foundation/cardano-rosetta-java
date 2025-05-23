@@ -1,33 +1,42 @@
 package org.cardanofoundation.rosetta.api.block.mapper;
 
+import com.bloxbean.cardano.yaci.core.model.certs.CertificateType;
+import lombok.RequiredArgsConstructor;
+import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
+import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
+import org.cardanofoundation.rosetta.api.block.model.domain.DRepDelegation;
+import org.cardanofoundation.rosetta.api.block.model.domain.StakeRegistration;
+import org.cardanofoundation.rosetta.api.block.model.domain.Vote;
+import org.cardanofoundation.rosetta.common.enumeration.OperationType;
+import org.cardanofoundation.rosetta.common.mapper.DataMapper;
+import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
+import org.cardanofoundation.rosetta.common.util.Constants;
+import org.mapstruct.Named;
+import org.openapitools.client.model.*;
+import org.springframework.stereotype.Component;
+
+import javax.annotation.Nullable;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import javax.annotation.Nullable;
-
-import lombok.RequiredArgsConstructor;
-
-import org.springframework.stereotype.Component;
-import com.bloxbean.cardano.yaci.core.model.certs.CertificateType;
-import org.mapstruct.Named;
-import org.openapitools.client.model.*;
-
-import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
-import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
-import org.cardanofoundation.rosetta.api.block.model.domain.DRepDelegation;
-import org.cardanofoundation.rosetta.api.block.model.domain.StakeRegistration;
-import org.cardanofoundation.rosetta.common.enumeration.OperationType;
-import org.cardanofoundation.rosetta.common.mapper.DataMapper;
-import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
-import org.cardanofoundation.rosetta.common.util.Constants;
 
 @Component
 @RequiredArgsConstructor
 public class TransactionMapperUtils {
 
   final ProtocolParamService protocolParamService;
+
+  @Named("convertVoterToRosetta")
+  public Vote.Voter convertVoterToRosetta(VoterParams voterParams) {
+    return Vote.Voter.convertVoterToRosetta(voterParams);
+  }
+
+  @Named("convertVoterFromRosetta")
+  public VoterParams convertVoterFromRosetta(Vote.Voter voter) {
+    return Vote.Voter.convertVoterFromRosetta(voter);
+  }
 
   @Named("convertDRepToRosetta")
   public DRepDelegation.DRep convertDRepToRosetta(DRepParams dRepParams) {
