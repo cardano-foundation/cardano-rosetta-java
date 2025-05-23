@@ -184,14 +184,17 @@ download_mithril_snapshot() {
     mainnet)
       AGGREGATOR_ENDPOINT=${AGGREGATOR_ENDPOINT:-https://aggregator.release-mainnet.api.mithril.network/aggregator}
       GENESIS_VERIFICATION_KEY=${GENESIS_VERIFICATION_KEY:-$(wget -q -O - https://raw.githubusercontent.com/input-output-hk/mithril/main/mithril-infra/configuration/release-mainnet/genesis.vkey)}
+      ANCILLARY_VERIFICATION_KEY=${ANCILLARY_VERIFICATION_KEY:-$(wget -q -O - https://raw.githubusercontent.com/input-output-hk/mithril/main/mithril-infra/configuration/release-mainnet/ancillary.vkey)}
       ;;
     preprod)
       AGGREGATOR_ENDPOINT=${AGGREGATOR_ENDPOINT:-https://aggregator.release-preprod.api.mithril.network/aggregator}
       GENESIS_VERIFICATION_KEY=${GENESIS_VERIFICATION_KEY:-$(wget -q -O - https://raw.githubusercontent.com/input-output-hk/mithril/main/mithril-infra/configuration/release-preprod/genesis.vkey)}
+      ANCILLARY_VERIFICATION_KEY=${ANCILLARY_VERIFICATION_KEY:-$(wget -q -O - https://raw.githubusercontent.com/input-output-hk/mithril/main/mithril-infra/configuration/release-preprod/ancillary.vkey)}
       ;;
     preview)
       AGGREGATOR_ENDPOINT=${AGGREGATOR_ENDPOINT:-https://aggregator.pre-release-preview.api.mithril.network/aggregator}
       GENESIS_VERIFICATION_KEY=${GENESIS_VERIFICATION_KEY:-$(wget -q -O - https://raw.githubusercontent.com/input-output-hk/mithril/main/mithril-infra/configuration/pre-release-preview/genesis.vkey)}
+      ANCILLARY_VERIFICATION_KEY=${ANCILLARY_VERIFICATION_KEY:-$(wget -q -O - https://raw.githubusercontent.com/input-output-hk/mithril/main/mithril-infra/configuration/pre-release-preview/ancillary.vkey)}
       ;;
     sanchonet)
       AGGREGATOR_ENDPOINT=${AGGREGATOR_ENDPOINT:-https://aggregator.testing-sanchonet.api.mithril.network/aggregator}
@@ -200,7 +203,7 @@ download_mithril_snapshot() {
     esac
     echo "Listing content of /node dir:"
     ls -la /node
-    mithril-client cardano-db download latest --download-dir /node > >(tee $logf) &
+    mithril-client cardano-db download latest --include-ancillary --ancillary-verification-key $ANCILLARY_VERIFICATION_KEY --download-dir /node > >(tee $logf) &
     MITHRIL_PID=$!
     wait $MITHRIL_PID
     echo "Done downloading Mithril Snapshot"
