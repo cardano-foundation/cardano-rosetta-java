@@ -49,6 +49,21 @@ runs:
           file: ./yaci-indexer/Dockerfile
           tags: cardanofoundation/cardano-rosetta-java-indexer:latest
           push: true
+      - name: Cardano Node - Build and push Docker ${{ inputs.tag }} image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ./docker/node/Dockerfile
+          tags: cardanofoundation/cardano-rosetta-java-cardano-node:${{ inputs.tag }}
+          push: true
+      - name: Cardano Node - Build and push Docker latest image
+        uses: docker/build-push-action@v4
+        if: ${{ inputs.isRelease == 'true' }}
+        with:
+          context: .
+          file: ./docker/node/Dockerfile
+          tags: cardanofoundation/cardano-rosetta-java-cardano-node:latest
+          push: true
       - name: All-in-one - Build and push Docker image
         uses: docker/build-push-action@v4
         with:
