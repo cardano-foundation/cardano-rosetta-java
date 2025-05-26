@@ -15,43 +15,43 @@ Within root folder of the project there are example `.env` files, which can be c
 
 | Variable                     | Description                  | Default                               | Notes |
 | ---------------------------- | ---------------------------- | ------------------------------------- | ----- |
-| `LOG`                        | Log level                    | INFO                                  |       |
-| `NETWORK`                    | Network                      | mainnet                               |       |
-| `MITHRIL_SYNC`               | Sync from Mithril snapshot   | true                                  |       |
-| `PROTOCOL_MAGIC`             | Cardano protocol magic       | 764824073                             |       |
-| `DB_IMAGE_NAME`              | Postgres docker image name   | postgres                              |       |
-| `DB_IMAGE_TAG`               | Postgres docker image tag    | 14.11-bullseye                        |       |
-| `DB_NAME`                    | Postgres database            | rosetta-java                          |       |
-| `DB_USER`                    | Postgres admin user          | rosetta_db_admin                      |       |
-| `DB_SECRET`                  | Postgres admin secret        | weakpwd#123_d                         |       |
-| `DB_HOST`                    | Postgres host                | db                                    |       |
-| `DB_PORT`                    | Postgres port                | 5432                                  |       |
-| `DB_SCHEMA`                  | Database schema              | mainnet                               |       |
-| `DB_PATH`                    | Database path                | /data                                 |       |
-| `CARDANO_NODE_HOST`          | Cardano node host            | cardano-node                          |       |
-| `CARDANO_NODE_PORT`          | Cardano node port            | 3001                                  |       |
-| `CARDANO_NODE_VERSION`       | Cardano node version         | 8.9.2                                 |       |
-| `CARDANO_NODE_SUBMIT_HOST`   | Cardano node submit api host | cardano-submit-api                    |       |
-| `NODE_SUBMIT_API_PORT`       | Cardano node submit api port | 8090                                  |       |
-| `CARDANO_NODE_SOCKET_PATH`   | Cardano node socket path     | /node                                 |       |
-| `CARDANO_NODE_SOCKET`        | Cardano node socket file     | /node/node.socket                     |       |
-| `CARDANO_NODE_DB`            | Cardano node db path         | /node/db                              |       |
-| `CARDANO_CONFIG`             | Cardano node config path     | /config/mainnet                       |       |
-| `API_DOCKER_IMAGE_TAG`       | Docker Tag for API Image     | main                                  |       |
-| `API_SPRING_PROFILES_ACTIVE` | Api spring profile           | staging                               |       |
-| `API_PORT`                   | Rosetta api exposed port     | 8082                                  |       |
-| `ROSETTA_VERSION`            | Rosetta version              | 1.4.13                                |       |
-| `TOPOLOGY_FILEPATH`          | Topology file path           | ./config/mainnet/topology.json        |       |
-| `GENESIS_SHELLEY_PATH`       | Genesis file path            | ./config/mainnet/shelley-genesis.json |       |
-| `GENESIS_BYRON_PATH`         | Genesis file path            | ./config/mainnet/byron-genesis.json   |       |
-| `GENESIS_ALONZO_PATH `       | Genesis file path            | ./config/mainnet/alonzo-genesis.json  |       |
-| `GENESIS_CONWAY_PATH`        | Genesis file path            | ./config/mainnet/conway-genesis.json  |       |
-| `INDEXER_DOCKER_IMAGE_TAG`   | Yaci indexer Docker version  | main                                  |       |
-| `PRUNING_ENABLED`            | If pruning should be enabled | false                                 |       |
+| `LOG`                        | Log level                    | INFO                                  | added in release 1.0.0      |
+| `NETWORK`                    | Network                      | mainnet                               | added in release 1.0.0      |
+| `MITHRIL_SYNC`               | Sync from Mithril snapshot   | true                                  | added in release 1.0.0      |
+| `PROTOCOL_MAGIC`             | Cardano protocol magic       | 764824073                             | added in release 1.0.0      |
+| `DB_IMAGE_NAME`              | Postgres docker image name   | postgres                              | added in release 1.0.0      |
+| `DB_IMAGE_TAG`               | Postgres docker image tag    | 14.11-bullseye                        | added in release 1.0.0      |
+| `DB_NAME`                    | Postgres database            | rosetta-java                          | added in release 1.0.0      |
+| `DB_USER`                    | Postgres admin user          | rosetta_db_admin                      | added in release 1.0.0      |
+| `DB_SECRET`                  | Postgres admin secret        | weakpwd#123_d                         | added in release 1.0.0      |
+| `DB_HOST`                    | Postgres host                | db                                    | added in release 1.0.0      |
+| `DB_PORT`                    | Postgres port                | 5432                                  | added in release 1.0.0      |
+| `DB_SCHEMA`                  | Database schema              | mainnet                               | added in release 1.0.0      |
+| `DB_PATH`                    | Database path                | /data                                 | added in release 1.0.0      |
+| `CARDANO_NODE_HOST`          | Cardano node host            | cardano-node                          | added in release 1.0.0      |
+| `CARDANO_NODE_PORT`          | Cardano node port            | 3001                                  | added in release 1.0.0      |
+| `CARDANO_NODE_VERSION`       | Cardano node version         | 8.9.2                                 | added in release 1.0.0      |
+| `CARDANO_NODE_SUBMIT_HOST`   | Cardano node submit api host | cardano-submit-api                    | added in release 1.0.0      |
+| `NODE_SUBMIT_API_PORT`       | Cardano node submit api port | 8090                                  | added in release 1.0.0      |
+| `CARDANO_NODE_SOCKET_PATH`   | Cardano node socket path     | /node                                 | added in release 1.0.0      |
+| `CARDANO_NODE_SOCKET`        | Cardano node socket file     | /node/node.socket                     | added in release 1.0.0      |
+| `CARDANO_NODE_DB`            | Cardano node db path         | /node/db                              | added in release 1.0.0      |
+| `CARDANO_CONFIG`             | Cardano node config path     | /config/mainnet                       | added in release 1.0.0      |
+| `API_DOCKER_IMAGE_TAG`       | Docker Tag for API Image     | main                                  | added in release 1.0.0      |
+| `API_SPRING_PROFILES_ACTIVE` | Api spring profile           | staging                               | added in release 1.0.0      |
+| `API_PORT`                   | Rosetta api exposed port     | 8082                                  | added in release 1.0.0      |
+| `ROSETTA_VERSION`            | Rosetta version              | 1.4.13                                | added in release 1.0.0      |
+| `TOPOLOGY_FILEPATH`          | Topology file path           | ./config/mainnet/topology.json        | added in release 1.0.0      |
+| `GENESIS_SHELLEY_PATH`       | Genesis file path            | ./config/mainnet/shelley-genesis.json | added in release 1.0.0      |
+| `GENESIS_BYRON_PATH`         | Genesis file path            | ./config/mainnet/byron-genesis.json   | added in release 1.0.0      |
+| `GENESIS_ALONZO_PATH `       | Genesis file path            | ./config/mainnet/alonzo-genesis.json  | added in release 1.0.0      |
+| `GENESIS_CONWAY_PATH`        | Genesis file path            | ./config/mainnet/conway-genesis.json  | added in release 1.0.0      |
+| `INDEXER_DOCKER_IMAGE_TAG`   | Yaci indexer Docker version  | main                                  | added in release 1.0.0      |
+| `PRUNING_ENABLED`            | If pruning should be enabled | false                                 | added in release 1.0.0      |
 | `PRUNING_INTERVAL`           | The prunning interval in seconds               | 600                 | added in release 1.2.4      |
 | `PRUNING_SAFE_BLOCKS`        | The number of safe blocks to keep in the store | 2160                | added in release 1.2.4      |
-| `YACI_SPRING_PROFILES`       | Yaci indexer spring profile  | postgres                              |       |
-| `DEVKIT_ENABLED`             | Devkit enabled               | false                                 |       |
+| `YACI_SPRING_PROFILES`       | Yaci indexer spring profile  | postgres                              | added in release 1.0.0      |
+| `DEVKIT_ENABLED`             | Devkit enabled               | false                                 | added in release 1.0.0      |
 | `YACI_HTTP_BASE_URL`         | Yaci Indexer's URL           | http://yaci-indexer:9095/api/v1       | added in release 1.2.1      |
 | `YACI_INDEXER_PORT`          | Yaci Indexer's port          | 9095                                  | added in release 1.2.1      |
 | `HTTP_CONNECT_TIMEOUT_SECONDS`   | Yaci connection timeout in second       | 5                      | added in release 1.2.1      |
@@ -80,3 +80,4 @@ Within root folder of the project there are example `.env` files, which can be c
 | `DB_POSTGRES_JIT`                     | Disables Just-In-Time compilation to reduce overhead           | off                          | added in release 1.2.6      |
 | `DB_POSTGRES_BGWRITER_LRU_MAXPAGES`   | Limits background writer to clean 50 pages per cycle           | 100 (mid-level profile)                         | added in release 1.2.6      |
 | `DB_POSTGRES_BGWRITER_DELAY`          | Delay between background writer cycles                         | 200ms (mid-level profile)                       | added in release 1.2.6      |
+
