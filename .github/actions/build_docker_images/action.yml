@@ -77,7 +77,7 @@ runs:
         with:
           context: .
           file: ./docker/postgres/Dockerfile
-          tags: cardanofoundation/cardano-rosetta-java-mithril:latest
+          tags: cardanofoundation/cardano-rosetta-java-postgres:latest
           push: true
       - name: Mithril - Build and push Docker ${{ inputs.tag }} image
         uses: docker/build-push-action@v4
@@ -92,7 +92,7 @@ runs:
         with:
           context: .
           file: ./docker/mithril/Dockerfile
-          tags: cardanofoundation/cardano-rosetta-java-postgres:latest
+          tags: cardanofoundation/cardano-rosetta-java-mithril:latest
           push: true
       - name: All-in-one - Build and push Docker image
         uses: docker/build-push-action@v4
