@@ -1,7 +1,7 @@
 version: '3.8'
 services:
   mithril:
-    image: cardanofoundation/rosetta-mithril:${MITHRIL_VERSION}
+    image: cardanofoundation/cardano-rosetta-java-mithril:${MITHRIL_VERSION}
     build:
       context: ./
       dockerfile: ./docker/dockerfiles/mithril/Dockerfile
@@ -14,12 +14,11 @@ services:
       - AGGREGATOR_ENDPOINT=${AGGREGATOR_ENDPOINT}
       - GENESIS_VERIFICATION_KEY=${GENESIS_VERIFICATION_KEY}
       - ANCILLARY_VERIFICATION_KEY=${ANCILLARY_VERIFICATION_KEY}
-
     volumes:
       - ${CARDANO_NODE_DIR}:/node
 
   cardano-node:
-    image: cardanofoundation/rosetta-cardano-node:${CARDANO_NODE_VERSION}
+    image: cardanofoundation/cardano-rosetta-java-cardano-node:${CARDANO_NODE_VERSION}
     build:
       context: ./
       dockerfile: ./docker/dockerfiles/node/Dockerfile
@@ -42,7 +41,7 @@ services:
         condition: service_completed_successfully
 
   cardano-submit-api:
-    image: cardanofoundation/rosetta-cardano-node:${CARDANO_NODE_VERSION}
+    image: cardanofoundation/cardano-rosetta-java-cardano-node:${CARDANO_NODE_VERSION}
     build:
       context: ./
       dockerfile: ./docker/dockerfiles/node/Dockerfile
