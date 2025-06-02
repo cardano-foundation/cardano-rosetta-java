@@ -10,6 +10,7 @@ Usage examples:
   ./stability_test.py --url=http://127.0.0.1:8082 --csv=./my-data.csv --duration=30
   ./stability_test.py --hardware-profile=mid_level --machine-specs="8 cores, 64GB RAM" --sla=500
   ./stability_test.py --concurrency=1,2,4,8,16,32 --verbose --no-header
+  ./stability_test.py --error-threshold=1.0 --sla=500
 """
 
 import csv
@@ -60,6 +61,8 @@ def parse_args():
                         help='Duration in seconds for each concurrency level test')
     parser.add_argument('--sla', dest='sla_threshold', type=int, default=1000,
                         help='SLA threshold in milliseconds')
+    parser.add_argument('--error-threshold', dest='error_threshold', type=float, default=1.0,
+                        help='Threshold for non-2xx errors (percentage, e.g., 1.0 means 1%%)')
     
     # Misc options
     parser.add_argument('--no-header', dest='no_header', action='store_true',
@@ -96,6 +99,7 @@ MACHINE_SPECS = args.machine_specs
 CONCURRENCIES = args.concurrencies
 TEST_DURATION = args.test_duration
 SLA_THRESHOLD = args.sla_threshold
+ERROR_THRESHOLD = args.error_threshold
 NO_HEADER = args.no_header
 VERBOSE = args.verbose
 COOLDOWN_PERIOD = args.cooldown
@@ -188,14 +192,15 @@ def log_command(cmd, endpoint_name, concurrency):
 def parse_ab_output(ab_stdout: str):
     """
     Given the raw output from `ab`, parse out the 95% and 99% lines and additional metrics.
-    Returns (p95, p99, complete_requests, requests_per_sec, mean_time) as integers/floats.
-    If not found, returns large defaults.
+    Returns a tuple with various metrics. If not found, returns large defaults.
     """
     p95 = 999999
     p99 = 999999
     complete_requests = 0
     requests_per_sec = 0.0
     mean_time = 0.0
+    non_2xx_responses = 0
+    failed_requests = 0
 
     # Parse each metric
     for line in ab_stdout.splitlines():
@@ -224,8 +229,18 @@ def parse_ab_output(ab_stdout: str):
             parts = line.split()
             if len(parts) >= 4:
                 mean_time = float(parts[3])
+        # Parse Non-2xx responses
+        elif "Non-2xx responses:" in line:
+            parts = line.split()
+            if len(parts) >= 3:
+                non_2xx_responses = int(parts[2])
+        # Parse Failed requests
+        elif "Failed requests:" in line:
+            parts = line.split()
+            if len(parts) >= 3:
+                failed_requests = int(parts[2])
 
-    return p95, p99, complete_requests, requests_per_sec, mean_time
+    return p95, p99, complete_requests, requests_per_sec, mean_time, non_2xx_responses, failed_requests
 
 ###############################################################################
 # PAYLOAD GENERATORS
@@ -382,11 +397,13 @@ def initialize_csv_files():
     with open(DETAILS_FILE, 'w', newline='') as f:
         writer = csv.writer(f)
         writer.writerow(["Hardware_Profile", "Machine_Specs", "Endpoint", "Concurrency", "p95(ms)", "p99(ms)", 
-                        "Meets_SLA", "Complete_Requests", "Requests_per_sec", "Mean_Time(ms)"])
+                        "Meets_SLA", "Complete_Requests", "Requests_per_sec", "Mean_Time(ms)", 
+                        "Non_2xx_Responses", "Error_Rate(%)", "Meets_Error_Threshold"])
     
     with open(SUMMARY_FILE, 'w', newline='') as f:
         writer = csv.writer(f)
-        writer.writerow(["ID", "Release", "Hardware_Profile", "Machine_Specs", "Endpoint", "Max_Concurrency", "p95(ms)", "p99(ms)"])
+        writer.writerow(["ID", "Release", "Hardware_Profile", "Machine_Specs", "Endpoint", 
+                         "Max_Concurrency", "p95(ms)", "p99(ms)", "Non_2xx_Responses", "Error_Rate(%)", "Requests_per_sec"])
     
     # Initialize command log file
     with open(COMMANDS_FILE, 'w') as f:
@@ -405,11 +422,11 @@ def generate_markdown_tables():
         f.write("Per concurrency step results for each endpoint\n\n")
         
         # Write header with proper spacing
-        header = "| Hardware | Machine Specs | Endpoint | Concurrency | p95 (ms) | p99 (ms) | Meets SLA | Complete Reqs | Reqs/sec | Mean Time (ms) |"
+        header = "| Hardware | Machine Specs | Endpoint | Concurrency | p95 (ms) | p99 (ms) | Meets SLA | Complete Reqs | Reqs/sec | Mean Time (ms) | Non-2xx | Error Rate (%) | Meets Error Threshold |"
         f.write(header + "\n")
         
         # Write separator with proper width - at least 3 dashes per column
-        separator = "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |"
+        separator = "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |"
         f.write(separator + "\n")
         
         # Table rows
@@ -424,7 +441,10 @@ def generate_markdown_tables():
                 f"{record['meets_sla']}",
                 f"{record['complete_requests']}",
                 f"{record['requests_per_sec']:.2f}",
-                f"{record['mean_time']:.2f}ms"
+                f"{record['mean_time']:.2f}ms",
+                f"{record['non_2xx_responses']}",
+                f"{record['error_rate']:.2f}%",
+                f"{record['meets_error_threshold']}"
             ]
             f.write("| " + " | ".join(row_values) + " |\n")
     
@@ -434,11 +454,11 @@ def generate_markdown_tables():
         f.write("Maximum concurrency achieved per endpoint\n\n")
         
         # Write header with proper spacing
-        header = "| ID | Release | Hardware | Machine Specs | Endpoint | Max Concurrency | p95 (ms) | p99 (ms) |"
+        header = "| ID | Release | Hardware | Machine Specs | Endpoint | Max Concurrency | p95 (ms) | p99 (ms) | Non-2xx | Error Rate (%) | Reqs/sec |"
         f.write(header + "\n")
         
         # Write separator with proper width - at least 3 dashes per column
-        separator = "| --- | --- | --- | --- | --- | --- | --- | --- |"
+        separator = "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |"
         f.write(separator + "\n")
         
         # Table rows
@@ -451,7 +471,10 @@ def generate_markdown_tables():
                 f"{sr['endpoint']}",
                 f"{sr['max_concurrency']}",
                 f"{sr['p95']}ms",
-                f"{sr['p99']}ms"
+                f"{sr['p99']}ms",
+                f"{sr['non_2xx_responses']}",
+                f"{sr['error_rate']:.2f}%",
+                f"{sr['requests_per_sec']:.2f}"
             ]
             f.write("| " + " | ".join(row_values) + " |\n")
 
@@ -465,7 +488,7 @@ def test_endpoint(endpoint_name, endpoint_path, payload_func, csv_row):
     - Generate payload once
     - Step through concurrency
     - For each concurrency, call `ab`, parse p95/p99, record details, check SLA
-    - Return (max_sla_concurrency, p95_at_that_concurrency, p99_at_that_concurrency)
+    - Return (max_sla_concurrency, p95_at_that_concurrency, p99_at_that_concurrency, non_2xx_at_that_concurrency, error_rate_at_that_concurrency, reqs_per_sec_at_that_concurrency)
     """
     # Example CSV columns:
     # address, block_index, block_hash, transaction_size, relative_ttl, transaction_hash
@@ -485,6 +508,9 @@ def test_endpoint(endpoint_name, endpoint_path, payload_func, csv_row):
     max_sla_conc = 0
     best_p95 = 0
     best_p99 = 0
+    best_non_2xx = 0
+    best_error_rate = 0.0
+    best_requests_per_sec = 0.0
 
     for c in CONCURRENCIES:
         # Use logger.debug for verbose output
@@ -589,10 +615,18 @@ def test_endpoint(endpoint_name, endpoint_path, payload_func, csv_row):
             break
 
         # Parse p95, p99 and additional metrics from the captured stdout
-        p95, p99, complete_requests, requests_per_sec, mean_time = parse_ab_output(ab_output)
+        p95, p99, complete_requests, requests_per_sec, mean_time, non_2xx_responses, failed_requests = parse_ab_output(ab_output)
 
+        # Calculate error rate as a percentage
+        error_rate = 0.0
+        if complete_requests > 0:
+            error_rate = (non_2xx_responses / complete_requests) * 100
+
+        # Check both SLA and error threshold
         meets_sla = (p95 < SLA_THRESHOLD) and (p99 < SLA_THRESHOLD)
+        meets_error_threshold = error_rate <= ERROR_THRESHOLD
         meets_sla_str = "Yes" if meets_sla else "No"
+        meets_error_threshold_str = "Yes" if meets_error_threshold else "No"
 
         # Store detail record in memory - use endpoint_path instead of endpoint_name
         details_results.append({
@@ -603,7 +637,10 @@ def test_endpoint(endpoint_name, endpoint_path, payload_func, csv_row):
             "meets_sla": meets_sla_str,
             "complete_requests": complete_requests,
             "requests_per_sec": requests_per_sec,
-            "mean_time": mean_time
+            "mean_time": mean_time,
+            "non_2xx_responses": non_2xx_responses,
+            "error_rate": error_rate,
+            "meets_error_threshold": meets_error_threshold_str
         })
         
         # Write to CSV file - use endpoint_path instead of endpoint_name
@@ -619,7 +656,10 @@ def test_endpoint(endpoint_name, endpoint_path, payload_func, csv_row):
                 meets_sla_str,
                 complete_requests,
                 requests_per_sec,
-                f"{mean_time}ms"
+                f"{mean_time}ms",
+                non_2xx_responses,
+                f"{error_rate:.2f}%",
+                meets_error_threshold_str
             ])
 
         # Use logger.debug for verbose results
@@ -630,17 +670,26 @@ def test_endpoint(endpoint_name, endpoint_path, payload_func, csv_row):
         logger.debug(f"  Complete Requests: {complete_requests}")
         logger.debug(f"  Requests/sec: {requests_per_sec}")
         logger.debug(f"  Mean Time/Request: {mean_time}ms")
+        logger.debug(f"  Non-2xx Responses: {non_2xx_responses}")
+        logger.debug(f"  Error Rate: {error_rate:.2f}%")
+        logger.debug(f"  Meets Error Threshold: {meets_error_threshold_str}")
 
-        if meets_sla:
+        if meets_sla and meets_error_threshold:
             max_sla_conc = c
             best_p95 = p95
             best_p99 = p99
+            best_non_2xx = non_2xx_responses
+            best_error_rate = error_rate
+            best_requests_per_sec = requests_per_sec
         else:
             # Use logger.info for standard flow messages
-            logger.info(f"SLA threshold of {SLA_THRESHOLD}ms exceeded at concurrency {c}. Stopping tests for {endpoint_name}.")
+            if not meets_sla:
+                logger.info(f"SLA threshold of {SLA_THRESHOLD}ms exceeded at concurrency {c}. Stopping tests for {endpoint_name}.")
+            if not meets_error_threshold:
+                logger.info(f"Error threshold of {ERROR_THRESHOLD}% exceeded at concurrency {c} (actual: {error_rate:.2f}%). Stopping tests for {endpoint_name}.")
             break
 
-    return max_sla_conc, best_p95, best_p99
+    return max_sla_conc, best_p95, best_p99, best_non_2xx, best_error_rate, best_requests_per_sec
 
 
 ###############################################################################
@@ -748,7 +797,7 @@ def main():
                 time.sleep(COOLDOWN_PERIOD)
                 logger.info("Resuming tests...")
 
-            max_conc, p95_val, p99_val = test_endpoint(ep_name, ep_path, ep_func, first_line)
+            max_conc, p95_val, p99_val, non_2xx_val, error_rate_val, reqs_per_sec_val = test_endpoint(ep_name, ep_path, ep_func, first_line)
 
             # Add summary record to memory
             summary_results.append({
@@ -758,6 +807,9 @@ def main():
                 "max_concurrency": max_conc,
                 "p95": p95_val,
                 "p99": p99_val,
+                "non_2xx_responses": non_2xx_val,
+                "error_rate": error_rate_val,
+                "requests_per_sec": reqs_per_sec_val
             })
             
             # Write to summary CSV file
@@ -771,13 +823,16 @@ def main():
                     ep_path,
                     max_conc,
                     f"{p95_val}ms",
-                    f"{p99_val}ms"
+                    f"{p99_val}ms",
+                    non_2xx_val,
+                    f"{error_rate_val:.2f}%",
+                    f"{reqs_per_sec_val:.2f}"
                 ])
             
             summary_id += 1
 
             # Use logger.info for completion summary
-            logger.info(f"Completed testing for {ep_name} - Max concurrency: {max_conc}, p95: {p95_val}ms, p99: {p99_val}ms")
+            logger.info(f"Completed testing for {ep_name} - Max concurrency: {max_conc}, p95: {p95_val}ms, p99: {p99_val}ms, Non-2xx: {non_2xx_val}, Error rate: {error_rate_val:.2f}%, Requests/sec: {reqs_per_sec_val:.2f}")
             print()
 
         # Generate markdown files from our results
@@ -790,13 +845,13 @@ def main():
         print("=" * 80)
 
         # Print header
-        print("| %-15s | %-15s | %-20s | %-10s | %-18s | %-18s | %-12s | %-18s | %-18s | %-18s |" % (
-            "Hardware", "Machine Specs", "Endpoint", "Concurrency", "p95 (ms)", "p99 (ms)", "SLA?", "Complete Reqs", "Reqs/sec", "Mean Time (ms)"
+        print("| %-15s | %-15s | %-20s | %-10s | %-18s | %-18s | %-12s | %-18s | %-18s | %-18s | %-12s | %-15s | %-20s |" % (
+            "Hardware", "Machine Specs", "Endpoint", "Concurrency", "p95 (ms)", "p99 (ms)", "SLA?", "Complete Reqs", "Reqs/sec", "Mean Time (ms)", "Non-2xx", "Error Rate (%)", "Meets Error Threshold"
         ))
         print("-" * 80)
 
         for record in details_results:
-            print("| %-15s | %-15s | %-20s | %-10s | %-18s | %-18s | %-12s | %-18s | %-18s | %-18s |" % (
+            print("| %-15s | %-15s | %-20s | %-10s | %-18s | %-18s | %-12s | %-18s | %-18s | %-18s | %-12s | %-15s | %-20s |" % (
                 HARDWARE_PROFILE,
                 MACHINE_SPECS,
                 record["endpoint"],
@@ -806,7 +861,10 @@ def main():
                 record["meets_sla"],
                 record["complete_requests"],
                 f"{record['requests_per_sec']:.2f}",
-                f"{record['mean_time']:.2f}ms"
+                f"{record['mean_time']:.2f}ms",
+                record["non_2xx_responses"],
+                f"{record['error_rate']:.2f}%",
+                record["meets_error_threshold"]
             ))
 
         print("=" * 80)
@@ -814,13 +872,13 @@ def main():
         print("=" * 80)
 
         # Print header
-        print("| %-2s | %-6s | %-15s | %-15s | %-22s | %-16s | %-16s | %-16s |" % (
-            "ID", "Rel.", "Hardware", "Machine Specs", "Endpoint", "Max Concurrency", "p95 (ms)", "p99 (ms)"
+        print("| %-2s | %-6s | %-15s | %-15s | %-22s | %-16s | %-16s | %-16s | %-12s | %-15s | %-15s |" % (
+            "ID", "Rel.", "Hardware", "Machine Specs", "Endpoint", "Max Concurrency", "p95 (ms)", "p99 (ms)", "Non-2xx", "Error Rate (%)", "Reqs/sec"
         ))
         print("-" * 80)
 
         for sr in summary_results:
-            print("| %-2s | %-6s | %-15s | %-15s | %-22s | %-16s | %-16s | %-16s |" % (
+            print("| %-2s | %-6s | %-15s | %-15s | %-22s | %-16s | %-16s | %-16s | %-12s | %-15s | %-15s |" % (
                 sr["id"],
                 sr["release"],
                 HARDWARE_PROFILE,
@@ -828,7 +886,10 @@ def main():
                 sr["endpoint"],
                 sr["max_concurrency"],
                 f"{sr['p95']}ms",
-                f"{sr['p99']}ms"
+                f"{sr['p99']}ms",
+                sr["non_2xx_responses"],
+                f"{sr['error_rate']:.2f}%",
+                f"{sr['requests_per_sec']:.2f}"
             ))
 
         # Keep print for final summary message
@@ -839,7 +900,7 @@ def main():
         print(f"  - {DETAILS_MD_FILE}")
         print(f"  - {SUMMARY_MD_FILE}")
         print(f"  - {COMMANDS_FILE}")
-        print(f"  - {os.path.join(OUTPUT_DIR, 'stability_test.log')} (Log File)") # <-- Add log file here
+        print(f"  - {os.path.join(OUTPUT_DIR, 'stability_test.log')}")
         print(f"  - JSON payload files for each endpoint")
         
     except KeyboardInterrupt:

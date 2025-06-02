@@ -10,6 +10,7 @@ This script performs stability testing of Cardano Rosetta API endpoints by:
 - Monitoring endpoint stability across multiple concurrent connections
 - Measuring response times (p95, p99) and validating against SLA thresholds
 - Identifying potential degradation during sustained operation
+- Tracking non-2xx error responses and validating against error thresholds
 
 ## Requirements
 
@@ -75,9 +76,9 @@ usage: stability_test.py [-h] [--url BASE_URL] [--csv CSV_FILE]
                          [--hardware-profile HARDWARE_PROFILE]
                          [--machine-specs MACHINE_SPECS]
                          [--concurrency CONCURRENCIES] [--duration TEST_DURATION]
-                         [--sla SLA_THRESHOLD] [--skip-header] [-v]
-                         [--cooldown COOLDOWN] [--endpoints SELECTED_ENDPOINTS]
-                         [--list-endpoints]
+                         [--sla SLA_THRESHOLD] [--error-threshold ERROR_THRESHOLD]
+                         [--skip-header] [-v] [--cooldown COOLDOWN]
+                         [--endpoints SELECTED_ENDPOINTS] [--list-endpoints]
 
 Cardano Rosetta API Stability Testing Tool
 
@@ -96,6 +97,8 @@ options:
   --duration TEST_DURATION
                         Duration in seconds for each concurrency level test (default: 60)
   --sla SLA_THRESHOLD   SLA threshold in milliseconds (default: 1000)
+  --error-threshold ERROR_THRESHOLD
+                        Threshold for non-2xx errors as percentage (default: 1.0)
   --skip-header         Skip the header row in the CSV file (default: False)
   -v, --verbose         Enable verbose output (default: False)
   --cooldown COOLDOWN   Cooldown period in seconds between endpoint tests (default: 60)
@@ -155,6 +158,12 @@ Set custom hardware profile and SLA:
 ./load-tests/stability_test.py --hardware-profile high_performance --machine-specs "16 cores, 64GB RAM, SSD" --sla 500
 ```
 
+Test with custom SLA and error thresholds:
+
+```bash
+./load-tests/stability_test.py --sla 500 --error-threshold 0.5
+```
+
 ## Output
 
 The script creates a timestamped directory containing:
@@ -177,22 +186,22 @@ The script creates a timestamped directory containing:
 
 ### Detailed Results (excerpt)
 
-| Hardware    | Machine Specs                                    | Endpoint         | Concurrency | p95 (ms) | p99 (ms) | Meets SLA | Complete Reqs | Reqs/sec | Mean Time (ms) |
-| ----------- | ------------------------------------------------ | ---------------- | ----------- | -------- | -------- | --------- | ------------- | -------- | -------------- |
-| entry_level | 4 cores, 8 threads, 32GB RAM, SSD, Intel Core i3 | /network/status  | 1           | 1ms      | 2ms      | Yes       | 9441          | 943.97   | 1.06ms         |
-| entry_level | 4 cores, 8 threads, 32GB RAM, SSD, Intel Core i3 | /network/status  | 2           | 1ms      | 1ms      | Yes       | 20538         | 2053.68  | 0.49ms         |
-| entry_level | 4 cores, 8 threads, 32GB RAM, SSD, Intel Core i3 | /network/status  | 4           | 1ms      | 1ms      | Yes       | 39249         | 3924.89  | 0.26ms         |
-| entry_level | 4 cores, 8 threads, 32GB RAM, SSD, Intel Core i3 | /account/balance | 1           | 34ms     | 40ms     | Yes       | 454           | 45.32    | 22.06ms        |
-| entry_level | 4 cores, 8 threads, 32GB RAM, SSD, Intel Core i3 | /block           | 4           | 120ms    | 129ms    | Yes       | 361           | 36.02    | 27.76ms        |
+| Hardware    | Machine Specs                                    | Endpoint         | Concurrency | p95 (ms) | p99 (ms) | Meets SLA | Complete Reqs | Reqs/sec | Mean Time (ms) | Non-2xx | Error Rate (%) | Meets Error Threshold |
+| ----------- | ------------------------------------------------ | ---------------- | ----------- | -------- | -------- | --------- | ------------- | -------- | -------------- | ------- | -------------- | --------------------- |
+| entry_level | 4 cores, 8 threads, 32GB RAM, SSD, Intel Core i3 | /network/status  | 1           | 1ms      | 2ms      | Yes       | 9441          | 943.97   | 1.06ms         | 0       | 0.00%          | Yes                   |
+| entry_level | 4 cores, 8 threads, 32GB RAM, SSD, Intel Core i3 | /network/status  | 2           | 1ms      | 1ms      | Yes       | 20538         | 2053.68  | 0.49ms         | 0       | 0.00%          | Yes                   |
+| entry_level | 4 cores, 8 threads, 32GB RAM, SSD, Intel Core i3 | /network/status  | 4           | 1ms      | 1ms      | Yes       | 39249         | 3924.89  | 0.26ms         | 0       | 0.00%          | Yes                   |
+| entry_level | 4 cores, 8 threads, 32GB RAM, SSD, Intel Core i3 | /account/balance | 1           | 34ms     | 40ms     | Yes       | 454           | 45.32    | 22.06ms        | 0       | 0.00%          | Yes                   |
+| entry_level | 4 cores, 8 threads, 32GB RAM, SSD, Intel Core i3 | /block           | 4           | 120ms    | 129ms    | Yes       | 361           | 36.02    | 27.76ms        | 0       | 0.00%          | Yes                   |
 
 ### Summary Results
 
-| ID  | Release | Hardware    | Machine Specs                                    | Endpoint               | Max Concurrency | p95 (ms) | p99 (ms) |
-| --- | ------- | ----------- | ------------------------------------------------ | ---------------------- | --------------- | -------- | -------- |
-| 1   | 1.2.6   | entry_level | 4 cores, 8 threads, 32GB RAM, SSD, Intel Core i3 | /network/status        | 4               | 1ms      | 1ms      |
-| 2   | 1.2.6   | entry_level | 4 cores, 8 threads, 32GB RAM, SSD, Intel Core i3 | /account/balance       | 4               | 35ms     | 39ms     |
-| 3   | 1.2.6   | entry_level | 4 cores, 8 threads, 32GB RAM, SSD, Intel Core i3 | /account/coins         | 4               | 33ms     | 39ms     |
-| 4   | 1.2.6   | entry_level | 4 cores, 8 threads, 32GB RAM, SSD, Intel Core i3 | /block                 | 4               | 120ms    | 129ms    |
-| 5   | 1.2.6   | entry_level | 4 cores, 8 threads, 32GB RAM, SSD, Intel Core i3 | /block/transaction     | 4               | 84ms     | 95ms     |
-| 6   | 1.2.6   | entry_level | 4 cores, 8 threads, 32GB RAM, SSD, Intel Core i3 | /search/transactions   | 4               | 4ms      | 4ms      |
-| 7   | 1.2.6   | entry_level | 4 cores, 8 threads, 32GB RAM, SSD, Intel Core i3 | /construction/metadata | 4               | 1ms      | 1ms      |
+| ID  | Release | Hardware    | Machine Specs                                    | Endpoint               | Max Concurrency | p95 (ms) | p99 (ms) | Non-2xx | Error Rate (%) | Reqs/sec |
+| --- | ------- | ----------- | ------------------------------------------------ | ---------------------- | --------------- | -------- | -------- | ------- | -------------- | -------- |
+| 1   | 1.2.6   | entry_level | 4 cores, 8 threads, 32GB RAM, SSD, Intel Core i3 | /network/status        | 4               | 1ms      | 1ms      | 0       | 0.00%          | 3924.89  |
+| 2   | 1.2.6   | entry_level | 4 cores, 8 threads, 32GB RAM, SSD, Intel Core i3 | /account/balance       | 4               | 35ms     | 39ms     | 0       | 0.00%          | 107.42   |
+| 3   | 1.2.6   | entry_level | 4 cores, 8 threads, 32GB RAM, SSD, Intel Core i3 | /account/coins         | 4               | 33ms     | 39ms     | 0       | 0.00%          | 102.51   |
+| 4   | 1.2.6   | entry_level | 4 cores, 8 threads, 32GB RAM, SSD, Intel Core i3 | /block                 | 4               | 120ms    | 129ms    | 0       | 0.00%          | 36.02    |
+| 5   | 1.2.6   | entry_level | 4 cores, 8 threads, 32GB RAM, SSD, Intel Core i3 | /block/transaction     | 4               | 84ms     | 95ms     | 0       | 0.00%          | 24.75    |
+| 6   | 1.2.6   | entry_level | 4 cores, 8 threads, 32GB RAM, SSD, Intel Core i3 | /search/transactions   | 4               | 4ms      | 4ms      | 0       | 0.00%          | 1854.29  |
+| 7   | 1.2.6   | entry_level | 4 cores, 8 threads, 32GB RAM, SSD, Intel Core i3 | /construction/metadata | 4               | 1ms      | 1ms      | 0       | 0.00%          | 4015.67  |
