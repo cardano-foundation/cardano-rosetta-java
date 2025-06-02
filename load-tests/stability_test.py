@@ -43,7 +43,7 @@ def parse_args():
     parser.add_argument('--csv', dest='csv_file', 
                         default=os.path.join(os.path.dirname(os.path.abspath(__file__)), "data/mainnet-data.csv"),
                         help='Path to CSV file with test data')
-    parser.add_argument('--release', dest='release_version', default="1.2.7",
+    parser.add_argument('--release', dest='release_version', default="1.2.8",
                         help='Release version for reporting')
     
     # Hardware profile options

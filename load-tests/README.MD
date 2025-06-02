@@ -87,7 +87,7 @@ options:
   --url BASE_URL        Base URL for the Rosetta API service (default: http://127.0.0.1:8082)
   --csv CSV_FILE        Path to CSV file with test data (default: ./mainnet-data.csv)
   --release RELEASE_VERSION
-                        Release version for reporting (default: 1.2.7)
+                        Release version for reporting (default: 1.2.8)
   --hardware-profile HARDWARE_PROFILE
                         Hardware profile ID for reporting (default: entry_level)
   --machine-specs MACHINE_SPECS

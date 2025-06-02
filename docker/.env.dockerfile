@@ -22,6 +22,8 @@ SNAPSHOT_DIGEST=latest
 AGGREGATOR_ENDPOINT=
 # if not set standard values will be used
 GENESIS_VERIFICATION_KEY=
+# if not set standard values will be used
+ANCILLARY_VERIFICATION_KEY=
 
 ## Postgres variables
 DB_NAME=rosetta-java
@@ -33,7 +35,7 @@ DB_PORT=5432
 ## Cardano node variables
 CARDANO_NODE_HOST=localhost
 CARDANO_NODE_PORT=3001
-CARDANO_NODE_VERSION=10.2.1
+CARDANO_NODE_VERSION=10.3.1
 CARDANO_NODE_SUBMIT_HOST=localhost
 NODE_SUBMIT_API_PORT=8090
 CARDANO_NODE_SOCKET_PATH=/node/node.socket
