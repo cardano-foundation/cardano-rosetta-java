@@ -11,16 +11,6 @@ RUN apt update --fix-missing \
     g++ tmux git jq wget libncursesw5-dev libtool autoconf liblmdb-dev curl ca-certificates pkg-config \
     && apt-get clean
 
-# Download and setup JDK 24.0.1
-RUN mkdir -p /opt/java \
-    && curl -L https://download.java.net/java/GA/jdk24.0.1/24a58e0e276943138bf3e963e6291ac2/9/GPL/openjdk-24.0.1_linux-x64_bin.tar.gz -o /opt/jdk.tar.gz \
-    && tar -xzf /opt/jdk.tar.gz -C /opt/java \
-    && rm /opt/jdk.tar.gz
-
-# Set JAVA_HOME and update PATH
-ENV JAVA_HOME=/opt/java/jdk-24.0.1
-ENV PATH="${JAVA_HOME}/bin:${PATH}"
-
 WORKDIR /root/src
 
 # Install ghcup
@@ -178,11 +168,23 @@ RUN mkdir -p /root/.local/bin \
 # Compile java applications
 FROM ubuntu:24.04 AS java-builder
 
-WORKDIR /root/app
-
+# Install dependencies
 RUN apt update --fix-missing \
-    && apt install -y --no-install-recommends maven \
+    && apt install -y --no-install-recommends \
+    maven curl \
     && apt-get clean
+
+# Download and setup JDK 24.0.1
+RUN mkdir -p /opt/java \
+    && curl -L https://download.java.net/java/GA/jdk24.0.1/24a58e0e276943138bf3e963e6291ac2/9/GPL/openjdk-24.0.1_linux-x64_bin.tar.gz -o /opt/jdk.tar.gz \
+    && tar -xzf /opt/jdk.tar.gz -C /opt/java \
+    && rm /opt/jdk.tar.gz
+
+# Set JAVA_HOME and update PATH
+ENV JAVA_HOME=/opt/java/jdk-24.0.1
+ENV PATH="${JAVA_HOME}/bin:${PATH}"
+
+WORKDIR /root/app
 
 COPY ./pom.xml /root/app/pom.xml
 
@@ -191,7 +193,7 @@ COPY ./yaci-indexer /root/app/yaci-indexer
 COPY ./test-data-generator /root/app/test-data-generator
 COPY ./.git /root/app/.git
 
-RUN --mount=type=cache,target=/root/.m2 mvn clean package -am -DskipTests
+RUN --mount=type=cache,target=/root/.m2 mvn -U clean package -DskipTests
 
 # Main
 FROM ubuntu:24.04
@@ -223,19 +225,8 @@ RUN sed -i "s|var/lib/postgresql/${PG_VERSION}/main|node/postgres|" /etc/postgre
 RUN mkdir -p /node/postgres
 RUN rm -rf /var/lib/postgresql/${PG_VERSION}/main
 
-# Install jdk 21
 RUN apt install -y --no-install-recommends jq bc sudo curl \
     && apt clean
-
-# Download and setup JDK 24.0.1
-RUN mkdir -p /opt/java \
-    && curl -L https://download.java.net/java/GA/jdk24.0.1/24a58e0e276943138bf3e963e6291ac2/9/GPL/openjdk-24.0.1_linux-x64_bin.tar.gz -o /opt/jdk.tar.gz \
-    && tar -xzf /opt/jdk.tar.gz -C /opt/java \
-    && rm /opt/jdk.tar.gz
-
-# Set JAVA_HOME and update PATH
-ENV JAVA_HOME=/opt/java/jdk-24.0.1
-ENV PATH="${JAVA_HOME}/bin:${PATH}"
 
 # Copy cardano node
 COPY --from=cardano-builder /usr/local/lib /usr/local/lib
