@@ -542,10 +542,8 @@ components:
         network:
           description: This field contains the specific network identifier for the blockchain, such as 'mainnet', 'preprod', or 'preview' for Cardano. This helps identify which network you are connecting to.
           type: string
-          examples:
+          example:
             - mainnet
-            - preprod
-            - preview
     BlockIdentifier:
       description: The block_identifier uniquely identifies a block in a particular network.
       type: object
@@ -831,24 +829,13 @@ components:
         type:
           description: Type is the network-specific type of the operation. Ensure that any type that can be returned here is also specified in the NetworkOptionsResponse. This can be very useful to downstream consumers that parse all block data.
           type: string
-          examples:
+          example:
             - 'input'
-            - 'output'
-            - 'stakeKeyRegistration'
-            - 'stakeDelegation'
-            - 'stakeKeyDeregistration'
-            - 'poolRegistration'
-            - 'poolRegistrationWithCert'
-            - 'poolRetirement'
-            - 'voteRegistration'
-            - 'dRepVoteDelegation'
-            - 'withdrawal'
         status:
           description: Status is the network-specific status of the operation. Status is not defined on the transaction object because blockchains with smart contracts may have transactions that partially apply (some operations are successful and some are not). Blockchains with atomic transactions (all operations succeed or all operations fail) will have the same status for each operation. Cardano transactions are generally atomic; they either succeed entirely and are included in a block or fail validation and are rejected. Therefore, the status for operations within a block transaction will typically be a single success value defined in NetworkOptionsResponse. On-chain operations (operations retrieved in the `/block` and `/block/transaction` endpoints) MUST have a populated status field. Operations provided during transaction construction (often called "intent") MUST NOT have a populated status field.
           type: string
-          examples:
+          example:
             - 'success'
-            - 'failure'
         account:
           $ref: '#/components/schemas/AccountIdentifier'
         amount:
