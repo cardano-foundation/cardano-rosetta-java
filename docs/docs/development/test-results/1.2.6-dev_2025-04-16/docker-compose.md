@@ -1,5 +1,12 @@
-**Hardware:** mid-level  
+**Hardware Profile:** mid_level 
+
 **Machine Specs:** 8 cores, 8 threads, 47GB RAM, 3.9TB NVMe, QEMU Virtual CPU v2.5+
+
+<Link
+className="button button--secondary button--block"
+to="./install-and-deploy/hardware-profiles">
+Hardware Profiles
+</Link>
 
 Maximum concurrency achieved per endpoint
 
