@@ -1,8 +1,8 @@
 openapi: 3.0.2
 info:
   version: 1.4.13
-  title: Rosetta
-  description: Build Once. Integrate Your Blockchain Everywhere.
+  title: Mesh (formerly Rosetta) API for Cardano
+  description: A lightweight Java implementation, built on Yaci-store for reduced resource footprint.
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
@@ -36,7 +36,7 @@ paths:
   /network/status:
     post:
       summary: Get Network Status
-      description: This endpoint returns the current status of the network requested. Any NetworkIdentifier returned by /network/list should be accessible here.
+      description: This endpoint returns the current status of the network requested. Any NetworkIdentifier returned by /network/list is accessible here.
       operationId: networkStatus
       tags:
         - Network
@@ -62,7 +62,7 @@ paths:
   /network/options:
     post:
       summary: Get Network Options
-      description: This endpoint returns the version information and allowed network-specific types for a NetworkIdentifier. Any NetworkIdentifier returned by /network/list should be accessible here. Because options are retrievable in the context of a NetworkIdentifier, it is possible to define unique options for each network.
+      description: This endpoint provides version information and supported types for the specified network. It helps users understand what features and options are available on the network they're connecting to. Each network may have different capabilities, so this endpoint allows you to discover what's supported before making other API calls.
       operationId: networkOptions
       tags:
         - Network
@@ -114,7 +114,7 @@ paths:
   /block/transaction:
     post:
       summary: Get a Block Transaction
-      description: 'Get a transaction in a block by its Transaction Identifier. This endpoint should only be used when querying a node for a block does not return all transactions contained within it. All transactions returned by this endpoint must be appended to any transactions returned by the /block method by consumers of this data. Fetching a transaction by hash is considered an Explorer Method (which is classified under the Future Work section). This method can be used to let consumers to paginate results when the  block trasactions count is too big to be returned in a single BlockResponse. Calling this endpoint requires reference to a BlockIdentifier because transaction parsing can change depending on which block contains the transaction. For example, in Bitcoin it is necessary to know which block contains a transaction to determine the destination of fee payments. Without specifying a block identifier, the node would have to infer which block to use (which could change during a re-org). Implementations that require fetching previous transactions to populate the response (ex: Previous UTXOs in Bitcoin) may find it useful to run a cache within the Rosetta server in the /data directory (on a path that does not conflict with the node).'
+      description: 'Get a transaction in a block by its Transaction Identifier. This endpoint should only be used when querying a node for a block does not return all transactions contained within it (e.g., only hashes are returned in /block). All transactions returned by this endpoint must be appended to any transactions returned by the /block method by consumers of this data. Calling this endpoint requires reference to a BlockIdentifier because transaction parsing (especially script context) can change depending on which block contains the transaction. Cardano transactions include inputs, outputs (which may contain native assets), certificates (e.g., staking, pool registration), withdrawals, metadata, minting information, and script witnesses. Implementations that require fetching previous transactions to populate the response (ex: UTXOs for inputs) may find it useful to run a cache.'
       operationId: blockTransaction
       tags:
         - Block
@@ -137,62 +137,62 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-  /mempool:
-    post:
-      summary: Get All Mempool Transactions
-      description: Get all Transaction Identifiers in the mempool
-      operationId: mempool
-      tags:
-        - Mempool
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/NetworkRequest'
-      responses:
-        '200':
-          description: Expected response to a valid request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MempoolResponse'
-        '500':
-          description: unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-  /mempool/transaction:
-    post:
-      summary: Get a Mempool Transaction
-      description: 'Get a transaction in the mempool by its Transaction Identifier. This is a separate request than fetching a block transaction (/block/transaction) because some blockchain nodes need to know that a transaction query is for something in the mempool instead of a transaction in a block. Transactions may not be fully parsable until they are in a block (ex: may not be possible to determine the fee to pay before a transaction is executed). On this endpoint, it is ok that returned transactions are only estimates of what may actually be included in a block.'
-      operationId: mempoolTransaction
-      tags:
-        - Mempool
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/MempoolTransactionRequest'
-      responses:
-        '200':
-          description: Expected response to a valid request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MempoolTransactionResponse'
-        '500':
-          description: unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+  # /mempool: # TODO: Add mempool endpoint support
+  #   post:
+  #     summary: Get All Mempool Transactions
+  #     description: Not implemented.
+  #     operationId: mempool
+  #     tags:
+  #       - Mempool
+  #     requestBody:
+  #       required: true
+  #       content:
+  #         application/json:
+  #           schema:
+  #             $ref: '#/components/schemas/NetworkRequest'
+  #     responses:
+  #       '200':
+  #         description: Expected response to a valid request
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/MempoolResponse'
+  #       '500':
+  #         description: unexpected error
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/Error'
+  # /mempool/transaction: # TODO: Add mempool transaction endpoint support
+  # post:
+  #   summary: Get a Mempool Transaction
+  #   description: Not implemented.
+  #   operationId: mempoolTransaction
+  #   tags:
+  #     - Mempool
+  #   requestBody:
+  #     required: true
+  #     content:
+  #       application/json:
+  #         schema:
+  #           $ref: '#/components/schemas/MempoolTransactionRequest'
+  #   responses:
+  #     '200':
+  #       description: Expected response to a valid request
+  #       content:
+  #         application/json:
+  #           schema:
+  #             $ref: '#/components/schemas/MempoolTransactionResponse'
+  #     '500':
+  #       description: unexpected error
+  #       content:
+  #         application/json:
+  #           schema:
+  #             $ref: '#/components/schemas/Error'
   /account/balance:
     post:
       summary: Get an Account's Balance
-      description: Get an array of all AccountBalances for an AccountIdentifier and the BlockIdentifier at which the balance lookup was performed. The BlockIdentifier must always be returned because some consumers of account balance data need to know specifically at which block the balance was calculated to compare balances they compute from operations with the balance returned by the node. It is important to note that making a balance request for an account without populating the SubAccountIdentifier should not result in the balance of all possible SubAccountIdentifiers being returned. Rather, it should result in the balance pertaining to no SubAccountIdentifiers being returned (sometimes called the liquid balance). To get all balances associated with an account, it may be necessary to perform multiple balance requests with unique AccountIdentifiers. It is also possible to perform a historical balance lookup (if the server supports it) by passing in an optional BlockIdentifier.
+      description: 'Get an array of all AccountBalances for an AccountIdentifier (typically a Cardano payment address `addr...`) and the BlockIdentifier at which the balance lookup was performed. Balances include ADA and any native assets (tokens) held by the account at that block. The BlockIdentifier must always be returned for reconciliation. In Cardano, accounts often consist of a payment part (controlled by payment credentials) and an optional delegation part (controlled by stake credentials/address `stake...`). This endpoint typically queries based on the payment address. Querying rewards or stake delegation status might require specific handling or different endpoints/calls. Making a balance request without populating SubAccountIdentifier should return the balance associated with the main address, not aggregated sub-balances. It is also possible to perform a historical balance lookup (if the server supports it) by passing in an optional BlockIdentifier.'
       operationId: accountBalance
       tags:
         - Account
@@ -217,8 +217,8 @@ paths:
                 $ref: '#/components/schemas/Error'
   /account/coins:
     post:
-      summary: Get an Account's Unspent Coins
-      description: Get an array of all unspent coins for an AccountIdentifier and the BlockIdentifier at which the lookup was performed. If your implementation does not support coins (i.e. it is for an account-based blockchain), you do not need to implement this endpoint. If you implementation does support coins (i.e. it is fro a UTXO-based blockchain), you MUST also complete the `/account/balance` endpoint. It is important to note that making a coins request for an account without populating the SubAccountIdentifier should not result in the coins of all possible SubAccountIdentifiers being returned. Rather, it should result in the coins pertaining to no SubAccountIdentifiers being returned. To get all coins associated with an account, it may be necessary to perform multiple coin requests with unique AccountIdentifiers. Optionally, an implementation may choose to support updating an AccountIdentifier's unspent coins based on the contents of the mempool. Note, using this functionality breaks any guarantee of idempotency.
+      summary: Get an Account's Unspent Coins (UTXOs)
+      description: Get an array of all unspent coins (UTXOs) for an AccountIdentifier (typically a Cardano payment address `addr...`) and the BlockIdentifier at which the lookup was performed. This endpoint is essential for UTXO-based blockchains like Cardano. Each Coin (UTXO) includes its identifier (tx_hash:index), its ADA value, and potentially native assets held within it (often returned in Coin.metadata). Implementations MUST also complete the `/account/balance` endpoint. Making a coins request without populating SubAccountIdentifier should return coins associated with the main address. Optionally, an implementation may support `include_mempool` to show coins considering pending transactions, but this breaks idempotency guarantees.
       operationId: accountCoins
       tags:
         - Account
@@ -244,7 +244,7 @@ paths:
   /construction/derive:
     post:
       summary: Derive an AccountIdentifier from a PublicKey
-      description: Derive returns the AccountIdentifier associated with a public key. Blockchains that require an on-chain action to create an account should not implement this method.
+      description: Derive returns the AccountIdentifier (typically a payment address `addr...` potentially associated with a stake address `stake...`) associated with a public key and optional derivation parameters (e.g., specifying network or address type). Cardano uses hierarchical deterministic key derivation (e.g., BIP-44, CIP-1852) and different address types (Base, Enterprise, Reward). Metadata might be needed to specify the desired address type or associated staking key.
       operationId: constructionDerive
       tags:
         - Construction
@@ -269,8 +269,8 @@ paths:
                 $ref: '#/components/schemas/Error'
   /construction/preprocess:
     post:
-      summary: Create a Request to Fetch Metadata
-      description: Preprocess is called prior to `/construction/payloads` to construct a request for any metadata that is needed for transaction construction given (i.e. account nonce). The `options` object returned from this endpoint will be sent to the `/construction/metadata` endpoint UNMODIFIED by the caller (in an offline execution environment). If your Construction API implementation has configuration options, they MUST be specified in the `/construction/preprocess` request (in the `metadata` field).
+      summary: Create a Request to Fetch Metadata for Construction
+      description: Preprocess is called prior to `/construction/payloads` to construct a request for any metadata needed for transaction construction given the intended operations (e.g., calculating fees requires estimated transaction size, which depends on inputs, outputs, certificates etc.; deposit amounts might be needed). The `options` object returned (e.g., containing relative TTL, estimated size) will be sent to `/construction/metadata`. Configuration options (like specific era constraints) MUST be specified in the `metadata` field of this request if needed. Cardano transaction construction involves details like TTL (slot number), fees, potentially certificates, withdrawals, scripts, and native assets.
       operationId: constructionPreprocess
       tags:
         - Construction
@@ -296,7 +296,7 @@ paths:
   /construction/metadata:
     post:
       summary: Get Metadata for Transaction Construction
-      description: Get any information required to construct a transaction for a specific network. Metadata returned here could be a recent hash to use, an account sequence number, or even arbitrary chain state. The request used when calling this endpoint is created by calling `/construction/preprocess` in an offline environment. You should NEVER assume that the request sent to this endpoint will be created by the caller or populated with any custom parameters. This must occur in `/construction/preprocess`. It is important to clarify that this endpoint should not pre-construct any transactions for the client (this should happen in `/construction/payloads`). This endpoint is left purposely unstructured because of the wide scope of metadata that could be required.
+      description: Get network-specific information required to construct a transaction based on the request from `/construction/preprocess`. For Cardano, this typically includes current protocol parameters (needed for fee calculation, deposit amounts, script cost models), and potentially the current slot number to calculate absolute TTL. The request is created by calling `/construction/preprocess` offline. You should NEVER assume the request sent to this endpoint will be populated with custom parameters; they must come from `/construction/preprocess`. This endpoint returns metadata like protocol parameters and calculated absolute TTL, not a pre-constructed transaction.
       operationId: constructionMetadata
       tags:
         - Construction
@@ -322,7 +322,7 @@ paths:
   /construction/payloads:
     post:
       summary: Generate an Unsigned Transaction and Signing Payloads
-      description: Payloads is called with an array of operations and the response from `/construction/metadata`. It returns an unsigned transaction blob and a collection of payloads that must be signed by particular AccountIdentifiers using a certain SignatureType. The array of operations provided in transaction construction often times can not specify all "effects" of a transaction (consider invoked transactions in Ethereum). However, they can deterministically specify the "intent" of the transaction, which is sufficient for construction. For this reason, parsing the corresponding transaction in the Data API (when it lands on chain) will contain a superset of whatever operations were provided during construction.
+      description: Payloads is called with an array of intended operations and the response from `/construction/metadata`. It returns an unsigned transaction blob (typically the CBOR transaction body for Cardano) and a collection of signing payloads (hashes of the transaction body) that must be signed by specific keys (identified by AccountIdentifiers). The operations provided specify the "intent" (inputs, outputs, certificates, withdrawals, minting). Parsing the final transaction on-chain might yield a superset of these operations if intermediary steps occurred (though less common in Cardano than EVM). Cardano signing requires witnesses (signatures) for inputs, certificates, withdrawals, and potentially scripts.
       operationId: constructionPayloads
       tags:
         - Construction
@@ -348,7 +348,7 @@ paths:
   /construction/combine:
     post:
       summary: Create Network Transaction from Signatures
-      description: Combine creates a network-specific transaction from an unsigned transaction and an array of provided signatures. The signed transaction returned from this method will be sent to the `/construction/submit` endpoint by the caller.
+      description: Combine creates a network-specific signed transaction from an unsigned transaction blob (the CBOR transaction body from `/construction/payloads`) and an array of provided signatures (typically forming a Cardano `TransactionWitnessSet`). The signed transaction returned (the full CBOR transaction including body and witness set) will be sent to the `/construction/submit` endpoint by the caller.
       operationId: constructionCombine
       tags:
         - Construction
@@ -374,7 +374,7 @@ paths:
   /construction/parse:
     post:
       summary: Parse a Transaction
-      description: 'Parse is called on both unsigned and signed transactions to understand the intent of the formulated transaction. This is run as a sanity check before signing (after `/construction/payloads`) and before broadcast (after `/construction/combine`). '
+      description: 'Parse is called on both unsigned (CBOR tx body) and signed (CBOR full tx) Cardano transactions to understand the intent and verify signers. This is run as a sanity check before signing (after `/construction/payloads`) and before broadcast (after `/construction/combine`). The response should detail the operations (inputs, outputs, certificates, withdrawals, minting) and the required/provided signers.'
       operationId: constructionParse
       tags:
         - Construction
@@ -400,7 +400,7 @@ paths:
   /construction/hash:
     post:
       summary: Get the Hash of a Signed Transaction
-      description: TransactionHash returns the network-specific transaction hash for a signed transaction.
+      description: TransactionHash returns the network-specific transaction hash (typically Blake2b-256 of the CBOR transaction body) for a signed Cardano transaction (CBOR full transaction including body and witnesses).
       operationId: constructionHash
       tags:
         - Construction
@@ -426,7 +426,7 @@ paths:
   /construction/submit:
     post:
       summary: Submit a Signed Transaction
-      description: Submit a pre-signed transaction to the node. This call should not block on the transaction being included in a block. Rather, it should return immediately with an indication of whether or not the transaction was included in the mempool. The transaction submission response should only return a 200 status if the submitted transaction could be included in the mempool. Otherwise, it should return an error.
+      description: Submit a pre-signed Cardano transaction (full CBOR transaction) to the node. This call should not block on the transaction being included in a block. Rather, it should return immediately with an indication of whether or not the transaction was accepted into the mempool. The transaction submission response should only return a 200 status if the submitted transaction could be included in the mempool. Otherwise, it should return an error detailing the rejection reason (e.g., invalid TTL, fee too low, validation error).
       operationId: constructionSubmit
       tags:
         - Construction
@@ -449,62 +449,62 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-  /call:
-    post:
-      summary: Make a Network-Specific Procedure Call
-      description: Call invokes an arbitrary, network-specific procedure call with network-specific parameters. The guidance for what this endpoint should or could do is purposely left vague. In Ethereum, this could be used to invoke `eth_call` to implement an entire Rosetta API interface for some smart contract that is not parsed by the implementation creator (like a DEX). This endpoint could also be used to provide access to data that does not map to any Rosetta models instead of requiring an integrator to use some network-specific SDK and call some network-specific endpoint (like surfacing staking parameters). Call is NOT a replacement for implementing Rosetta API endpoints or mapping network-specific data to Rosetta models. Rather, it enables developers to build additional Rosetta API interfaces for things they care about without introducing complexity into a base-level Rosetta implementation. Simply put, imagine that the average integrator will use layered Rosetta API implementations that each surfaces unique data.
-      operationId: call
-      tags:
-        - Call
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CallRequest'
-      responses:
-        '200':
-          description: Expected response to a valid request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CallResponse'
-        '500':
-          description: unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-  /events/blocks:
-    post:
-      summary: '[INDEXER] Get a range of BlockEvents'
-      description: '`/events/blocks` allows the caller to query a sequence of BlockEvents indicating which blocks were added and removed from storage to reach the current state. Following BlockEvents allows lightweight clients to update their state without needing to implement their own syncing logic (like finding the common parent in a reorg). `/events/blocks` is considered an "indexer" endpoint and Rosetta implementations are not required to complete it to adhere to the Rosetta spec. However, any Rosetta "indexer" MUST support this endpoint.'
-      operationId: eventsBlocks
-      tags:
-        - Events
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/EventsBlocksRequest'
-      responses:
-        '200':
-          description: Expected response to a valid request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/EventsBlocksResponse'
-        '500':
-          description: unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+  # /call:
+  #   post:
+  #     summary: Make a Network-Specific Procedure Call
+  #     description: Call invokes an arbitrary, network-specific procedure call with network-specific parameters. The guidance for what this endpoint should or could do is purposely left vague. In Ethereum, this could be used to invoke `eth_call` to implement an entire Rosetta API interface for some smart contract that is not parsed by the implementation creator (like a DEX). This endpoint could also be used to provide access to data that does not map to any Rosetta models instead of requiring an integrator to use some network-specific SDK and call some network-specific endpoint (like surfacing staking parameters). Call is NOT a replacement for implementing Rosetta API endpoints or mapping network-specific data to Rosetta models. Rather, it enables developers to build additional Rosetta API interfaces for things they care about without introducing complexity into a base-level Rosetta implementation. Simply put, imagine that the average integrator will use layered Rosetta API implementations that each surfaces unique data.
+  #     operationId: call
+  #     tags:
+  #       - Call
+  #     requestBody:
+  #       required: true
+  #       content:
+  #         application/json:
+  #           schema:
+  #             $ref: '#/components/schemas/CallRequest'
+  #     responses:
+  #       '200':
+  #         description: Expected response to a valid request
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/CallResponse'
+  #       '500':
+  #         description: unexpected error
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/Error'
+  # /events/blocks:
+  #   post:
+  #     summary: '[INDEXER] Get a range of BlockEvents'
+  #     description: '`/events/blocks` allows the caller to query a sequence of BlockEvents indicating which blocks were added and removed from storage to reach the current state. Following BlockEvents allows lightweight clients to update their state without needing to implement their own syncing logic (like finding the common parent in a reorg). `/events/blocks` is considered an "indexer" endpoint and Rosetta implementations are not required to complete it to adhere to the Rosetta spec. However, any Rosetta "indexer" MUST support this endpoint.'
+  #     operationId: eventsBlocks
+  #     tags:
+  #       - Events
+  #     requestBody:
+  #       required: true
+  #       content:
+  #         application/json:
+  #           schema:
+  #             $ref: '#/components/schemas/EventsBlocksRequest'
+  #     responses:
+  #       '200':
+  #         description: Expected response to a valid request
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/EventsBlocksResponse'
+  #       '500':
+  #         description: unexpected error
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/Error'
   /search/transactions:
     post:
       summary: '[INDEXER] Search for Transactions'
-      description: '`/search/transactions` allows the caller to search for transactions that meet certain conditions. Some conditions include matching a transaction hash, containing an operation with a certain status, or containing an operation that affects a certain account. `/search/transactions` is considered an "indexer" endpoint and Rosetta implementations are not required to complete it to adhere to the Rosetta spec. However, any Rosetta "indexer" MUST support this endpoint.'
+      description: '`/search/transactions` allows the caller to search for transactions that meet certain conditions within canonical blocks. Conditions can include matching a transaction hash, involving a specific address (`AccountIdentifier.Address`), containing operations of a specific type (e.g., `StakeDelegation`) or status, or involving a specific native asset (`Currency`). `/search/transactions` is considered an indexer endpoint and Rosetta implementations are not required to complete it to adhere to the Rosetta spec. However, any Rosetta "indexer" MUST support this endpoint.'
       operationId: searchTransactions
       tags:
         - Search
@@ -538,26 +538,11 @@ components:
       properties:
         blockchain:
           type: string
-          example: bitcoin
+          example: cardano
         network:
-          description: If a blockchain has a specific chain-id or network identifier, it should go in this field. It is up to the client to determine which network-specific identifier is mainnet or testnet.
+          description: This field contains the specific network identifier for the blockchain, such as 'mainnet', 'preprod', or 'preview' for Cardano. This helps identify which network you are connecting to.
           type: string
           example: mainnet
-        sub_network_identifier:
-          $ref: '#/components/schemas/SubNetworkIdentifier'
-    SubNetworkIdentifier:
-      description: In blockchains with sharded state, the SubNetworkIdentifier is required to query some object on a specific shard. This identifier is optional for all non-sharded blockchains.
-      type: object
-      required:
-        - network
-      properties:
-        network:
-          type: string
-          example: shard 1
-        metadata:
-          type: object
-          example:
-            producer: '0x52bc44d5378309ee2abf1539bf71de1b7d7be3b5'
     BlockIdentifier:
       description: The block_identifier uniquely identifies a block in a particular network.
       type: object
@@ -569,10 +554,10 @@ components:
           description: This is also known as the block height.
           type: integer
           format: int64
-          example: 1123941
+          example: 11832620
         hash:
           type: string
-          example: '0x1f2cc6c5027d2f201a5453ad1119574d2aed23a392654742ac3c78783c071f85'
+          example: '4797bd63a225277231bd02f87be986c33a1ff61eb12681fb5eaa5620f638fa05'
           description: This should be normalized according to the case specified in the block_hash_case network options.
     PartialBlockIdentifier:
       type: object
@@ -581,10 +566,10 @@ components:
         index:
           type: integer
           format: int64
-          example: 1123941
+          example: 3430923
         hash:
           type: string
-          example: '0x1f2cc6c5027d2f201a5453ad1119574d2aed23a392654742ac3c78783c071f85'
+          example: '7985774c96490dfcde55b80523ac4c2dc27243a479ee8d236800ed4e1773fd8b'
     TransactionIdentifier:
       description: The transaction_identifier uniquely identifies a transaction in a particular network and block or in the mempool.
       type: object
@@ -594,7 +579,7 @@ components:
         hash:
           description: 'Any transactions that are attributable only to a block (ex: a block event) should use the hash of the block as the identifier.  This should be normalized according to the case specified in the transaction_hash_case in network options.'
           type: string
-          example: '0x2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f'
+          example: 'a4020acf2e7d743dda705593c758295ebe46b31e61b970797ace0524ffbbdc73'
     OperationIdentifier:
       description: The operation_identifier uniquely identifies an operation within a transaction.
       type: object
@@ -614,7 +599,7 @@ components:
           minimum: 0
           example: 0
     AccountIdentifier:
-      description: The account_identifier uniquely identifies an account within a network. All fields in the account_identifier are utilized to determine this uniqueness (including the metadata field, if populated).
+      description: The account_identifier uniquely identifies an account within a network. All fields in the account_identifier are utilized to determine this uniqueness (including the metadata field, if populated). For Cardano, the `address` field typically contains the bech32 payment address (`addr...`). The associated stake address (`stake...`) might be derivable or stored/queried separately, potentially indicated via `metadata` or specific API calls if supported. Implementations should clarify how stake addresses and rewards are handled.
       type: object
       required:
         - address
@@ -622,23 +607,25 @@ components:
         address:
           description: The address may be a cryptographic public key (or some encoding of it) or a provided username.
           type: string
-          example: '0x3a065000ab4183c6bf581dc1e55a605455fc6d61'
-        sub_account:
-          $ref: '#/components/schemas/SubAccountIdentifier'
+          example: 'addr1qxx6qfrre0mynlmcst5wj3h0flk093zjx9wl86k6gnksztp693mm58mml2ckdm09rgycahv5ex68c36a7kp4r2sgcx7q3rqcx8'
+          # Not implemented for Cardano
+          #sub_account:
+          # $ref: '#/components/schemas/SubAccountIdentifier'
         metadata:
           $ref: '#/components/schemas/AccountIdentifierMetadata'
-    SubAccountIdentifier:
-      description: An account may have state specific to a contract address (ERC-20 token) and/or a stake (delegated balance). The sub_account_identifier should specify which state (if applicable) an account instantiation refers to.
-      type: object
-      required:
-        - address
-      properties:
-        address:
-          description: 'The SubAccount address may be a cryptographic value or some other identifier (ex: bonded) that uniquely specifies a SubAccount.'
-          type: string
-          example: '0x6b175474e89094c44da98b954eedeac495271d0f'
-        metadata:
-          $ref: '#/components/schemas/AccountIdentifierMetadata'
+    # Not implemented for Cardano
+    # SubAccountIdentifier:
+    #   description: An account may have state specific to a contract address (ERC-20 token) and/or a stake (delegated balance). The sub_account_identifier should specify which state (if applicable) an account instantiation refers to.
+    #   type: object
+    #   required:
+    #     - address
+    #   properties:
+    #     address:
+    #       description: 'The SubAccount address may be a cryptographic value or some other identifier (ex: bonded) that uniquely specifies a SubAccount.'
+    #       type: string
+    #       example: '0x6b175474e89094c44da98b954eedeac495271d0f'
+    #     metadata:
+    #       $ref: '#/components/schemas/AccountIdentifierMetadata'
     Block:
       description: 'Blocks contain an array of Transactions that occurred at a particular BlockIdentifier. A hard requirement for blocks returned by Rosetta implementations is that they MUST be _inalterable_: once a client has requested and received a block identified by a specific BlockIndentifier, all future calls for that same BlockIdentifier must return the same block contents.'
       type: object
@@ -660,6 +647,84 @@ components:
             $ref: '#/components/schemas/Transaction'
         metadata:
           $ref: '#/components/schemas/BlockMetadata'
+      example:
+        block_identifier:
+          index: 11832620
+          hash: '4797bd63a225277231bd02f87be986c33a1ff61eb12681fb5eaa5620f638fa05'
+        parent_block_identifier:
+          index: 11832619
+          hash: 'b5781a495eb21b613136fe09a19321c9a9f7fa8978e8d26105e3306287061625'
+        timestamp: 1746607844000
+        transactions:
+          - transaction_identifier:
+              hash: 'a4020acf2e7d743dda705593c758295ebe46b31e61b970797ace0524ffbbdc73'
+            operations:
+              - operation_identifier:
+                  index: 0
+                type: 'input'
+                status: 'success'
+                account:
+                  address: 'addr1q8n85ymr09p8czlya59z5k6vyrfuhmg0zf3vfll46jqn25pgjy6j9tzkpzlupfjgmssf25nkudk6dk8nraesvygnntjs3m5fnu'
+                amount:
+                  value: '-3000000'
+                  currency:
+                    symbol: 'ADA'
+                    decimals: 6
+                coin_change:
+                  coin_identifier:
+                    identifier: '48163f224d387426bf05c0a22a2415a7e071602e717aeb43ce46d7909ee5ba46:0'
+                  coin_action: 'coin_spent'
+                metadata:
+                  tokenBundle:
+                    - policyId: 'f43a62fdc3965df486de8a0d32fe800963589c41b38946602a0dc535'
+                      tokens:
+                        - value: '-161333000000'
+                          currency:
+                            symbol: '41474958'
+                            decimals: 0
+              - operation_identifier:
+                  index: 1
+                type: 'input'
+                status: 'success'
+                account:
+                  address: 'addr1q9alhvsg2v0frsx4a020jhmsh4jurlfxay5rq5x7d694cmcln5rrwydxdct67zxv62ue507wzevh2357hyusmxnz7aysqaa8q7'
+                amount:
+                  value: '-502066491'
+                  currency:
+                    symbol: 'ADA'
+                    decimals: 6
+                coin_change:
+                  coin_identifier:
+                    identifier: 'f81b467c4c23af80d498956ea0540427a325cb87e0881b1d8a3d63d47d17fa2d:0'
+                  coin_action: 'coin_spent'
+              - operation_identifier:
+                  index: 2
+                  network_index: 0
+                related_operations:
+                  - index: 0
+                  - index: 1
+                type: 'output'
+                status: 'success'
+                account:
+                  address: 'addr1q9alhvsg2v0frsx4a020jhmsh4jurlfxay5rq5x7d694cmcln5rrwydxdct67zxv62ue507wzevh2357hyusmxnz7aysqaa8q7'
+                amount:
+                  value: '504663471'
+                  currency:
+                    symbol: 'ADA'
+                    decimals: 6
+                coin_change:
+                  coin_identifier:
+                    identifier: 'a4020acf2e7d743dda705593c758295ebe46b31e61b970797ace0524ffbbdc73:0'
+                  coin_action: 'coin_created'
+            metadata:
+              size: 503
+              scriptSize: 2932
+        metadata:
+          transactionsCount: 1
+          createdBy: '2a748e3885f6f73320ad16a8331247b81fe01b8d39f57eec9caa5091'
+          size: 3674
+          epochNo: 556
+          slotNo: 155041553
     Transaction:
       description: Transactions contain an array of Operations that are attributable to the same TransactionIdentifier.
       type: object
@@ -679,6 +744,70 @@ components:
             $ref: '#/components/schemas/RelatedTransaction'
         metadata:
           $ref: '#/components/schemas/TransactionMetadata'
+      example:
+        transaction_identifier:
+          hash: 'a4020acf2e7d743dda705593c758295ebe46b31e61b970797ace0524ffbbdc73'
+        operations:
+          - operation_identifier:
+              index: 0
+            type: 'input'
+            status: 'success'
+            account:
+              address: 'addr1q8n85ymr09p8czlya59z5k6vyrfuhmg0zf3vfll46jqn25pgjy6j9tzkpzlupfjgmssf25nkudk6dk8nraesvygnntjs3m5fnu'
+            amount:
+              value: '-3000000'
+              currency:
+                symbol: 'ADA'
+                decimals: 6
+            coin_change:
+              coin_identifier:
+                identifier: '48163f224d387426bf05c0a22a2415a7e071602e717aeb43ce46d7909ee5ba46:0'
+              coin_action: 'coin_spent'
+            metadata:
+              tokenBundle:
+                - policyId: 'f43a62fdc3965df486de8a0d32fe800963589c41b38946602a0dc535'
+                  tokens:
+                    - value: '-161333000000'
+                      currency:
+                        symbol: '41474958'
+                        decimals: 0
+          - operation_identifier:
+              index: 1
+            type: 'input'
+            status: 'success'
+            account:
+              address: 'addr1q9alhvsg2v0frsx4a020jhmsh4jurlfxay5rq5x7d694cmcln5rrwydxdct67zxv62ue507wzevh2357hyusmxnz7aysqaa8q7'
+            amount:
+              value: '-502066491'
+              currency:
+                symbol: 'ADA'
+                decimals: 6
+            coin_change:
+              coin_identifier:
+                identifier: 'f81b467c4c23af80d498956ea0540427a325cb87e0881b1d8a3d63d47d17fa2d:0'
+              coin_action: 'coin_spent'
+          - operation_identifier:
+              index: 2
+              network_index: 0
+            related_operations:
+              - index: 0
+              - index: 1
+            type: 'output'
+            status: 'success'
+            account:
+              address: 'addr1q9alhvsg2v0frsx4a020jhmsh4jurlfxay5rq5x7d694cmcln5rrwydxdct67zxv62ue507wzevh2357hyusmxnz7aysqaa8q7'
+            amount:
+              value: '504663471'
+              currency:
+                symbol: 'ADA'
+                decimals: 6
+            coin_change:
+              coin_identifier:
+                identifier: 'a4020acf2e7d743dda705593c758295ebe46b31e61b970797ace0524ffbbdc73:0'
+              coin_action: 'coin_created'
+        metadata:
+          size: 503
+          scriptSize: 2932
     Operation:
       description: Operations contain all balance-changing information within a transaction. They are always one-sided (only affect 1 AccountIdentifier) and can succeed or fail independently from a Transaction. Operations are used both to represent on-chain data (Data API) and to construct new transactions (Construction API), creating a standard interface for reading and writing to blockchains.
       type: object
@@ -694,16 +823,16 @@ components:
           items:
             $ref: '#/components/schemas/OperationIdentifier'
           example:
+            - index: 0
             - index: 1
-            - index: 2
         type:
           description: Type is the network-specific type of the operation. Ensure that any type that can be returned here is also specified in the NetworkOptionsResponse. This can be very useful to downstream consumers that parse all block data.
           type: string
-          example: Transfer
+          example: input
         status:
-          description: Status is the network-specific status of the operation. Status is not defined on the transaction object because blockchains with smart contracts may have transactions that partially apply (some operations are successful and some are not). Blockchains with atomic transactions (all operations succeed or all operations fail) will have the same status for each operation. On-chain operations (operations retrieved in the `/block` and `/block/transaction` endpoints) MUST have a populated status field (anything on-chain must have succeeded or failed). However, operations provided during transaction construction (often times called "intent" in the documentation) MUST NOT have a populated status field (operations yet to be included on-chain have not yet succeeded or failed).
+          description: Status is the network-specific status of the operation. Status is not defined on the transaction object because blockchains with smart contracts may have transactions that partially apply (some operations are successful and some are not). Blockchains with atomic transactions (all operations succeed or all operations fail) will have the same status for each operation. Cardano transactions are generally atomic; they either succeed entirely and are included in a block or fail validation and are rejected. Therefore, the status for operations within a block transaction will typically be a single success value defined in NetworkOptionsResponse. On-chain operations (operations retrieved in the `/block` and `/block/transaction` endpoints) MUST have a populated status field. Operations provided during transaction construction (often called "intent") MUST NOT have a populated status field.
           type: string
-          example: Reverted
+          example: success
         account:
           $ref: '#/components/schemas/AccountIdentifier'
         amount:
@@ -722,13 +851,18 @@ components:
         value:
           description: Value of the transaction in atomic units represented as an arbitrary-sized signed integer. For example, 1 BTC would be represented by a value of 100000000.
           type: string
-          example: '1238089899992'
+          example: '-3000000'
         currency:
           $ref: '#/components/schemas/Currency'
         metadata:
           type: object
+      example:
+        value: '-3000000'
+        currency:
+          symbol: 'ADA'
+          decimals: 6
     Currency:
-      description: Currency is composed of a canonical Symbol and Decimals. This Decimals value is used to convert an Amount.Value from atomic units (Satoshis) to standard units (Bitcoins).
+      description: Currency is composed of a canonical Symbol and Decimals. This Decimals value is used to convert an Amount.Value from atomic units (e.g., Lovelace for ADA) to standard units (e.g., ADA). For Cardano native assets, the `symbol` is often the asset name (or hex-encoded name), `decimals` is 0, and `metadata` contains the `policyId` and potentially the human-readable `assetName`.
       type: object
       required:
         - symbol
@@ -737,15 +871,18 @@ components:
         symbol:
           description: Canonical symbol associated with a currency.
           type: string
-          example: BTC
+          example: 'ADA'
         decimals:
-          description: Number of decimal places in the standard unit representation of the amount. For example, BTC has 8 decimals. Note that it is not possible to represent the value of some currency in atomic units that is not base 10.
+          description: Number of decimal places in the standard unit representation of the amount. For example, ADA has 6 decimals. Note that it is not possible to represent the value of some currency in atomic units that is not base 10.
           type: integer
           format: int32
           minimum: 0
-          example: 8
+          example: 6
         metadata:
           $ref: '#/components/schemas/CurrencyMetadata'
+      example:
+        symbol: 'ADA'
+        decimals: 6
     SyncStatus:
       description: SyncStatus is used to provide additional context about an implementation's sync status. This object is often used by implementations to indicate healthiness when block data cannot be queried until some sync phase completes or cannot be determined by comparing the timestamp of the most recent block with the current time.
       type: object
@@ -759,11 +896,11 @@ components:
           description: TargetIndex is the index of the block that the implementation is attempting to sync to in the current stage.
           type: integer
           format: int64
-          example: 150
-        stage:
-          description: Stage is the phase of the sync process.
-          type: string
-          example: header sync
+          example: 3430923
+        #stage: # TODO: Add stage property to SyncStatus
+        #  description: Stage is the phase of the sync process.
+        #  type: string
+        #  example: header sync
         synced:
           description: synced is a boolean that indicates if an implementation has synced up to the most recent block. If this field is not populated, the caller should rely on a traditional tip timestamp comparison to determine if an implementation is synced. This field is particularly useful for quiescent blockchains (blocks only produced when there are pending transactions). In these blockchains, the most recent block could have a timestamp far behind the current time but the node could be healthy and at tip.
           type: boolean
@@ -775,7 +912,7 @@ components:
       properties:
         peer_id:
           type: string
-          example: '0x52bc44d5378309ee2abf1539bf71de1b7d7be3b5'
+          example: '' # TODO: Add a proper example for peer_id (issue #450)
         metadata:
           type: object
     Version:
@@ -788,18 +925,19 @@ components:
         rosetta_version:
           description: The rosetta_version is the version of the Rosetta interface the implementation adheres to. This can be useful for clients looking to reliably parse responses.
           type: string
-          example: 1.2.5
+          example: 1.4.13
         node_version:
           description: The node_version is the canonical version of the node runtime. This can help clients manage deployments.
           type: string
-          example: 1.0.2
+          example: 10.2.1
         middleware_version:
           description: When a middleware server is used to adhere to the Rosetta interface, it should return its version here. This can help clients manage deployments.
           type: string
-          example: 0.2.7
+          example: 1.2.8
         metadata:
           description: Any other information that may be useful about versioning of dependent services should be returned here.
           type: object
+          example: {}
     Allow:
       description: Allow specifies supported Operation status, Operation types, and all possible error statuses. This Allow object is used by clients to validate the correctness of a Rosetta Server implementation. It is expected that these clients will error if they receive some response that contains any of the above information that is not specified here.
       type: object
@@ -813,24 +951,205 @@ components:
         - mempool_coins
       properties:
         operation_statuses:
-          description: All Operation.Status this implementation supports. Any status that is returned during parsing that is not listed here will cause client validation to error.
+          description: All Operation.Status this implementation supports. For Cardano, typically only a single status representing success is needed for block transactions, as failed transactions are usually rejected by the node before inclusion.
           type: array
           items:
             $ref: '#/components/schemas/OperationStatus'
+          example:
+            - status: success
+              successful: true
         operation_types:
-          description: All Operation.Type this implementation supports. Any type that is returned during parsing that is not listed here will cause client validation to error.
+          description: All Operation.Type this implementation supports (input, output, stakeKeyRegistration, stakeDelegation, withdrawal, stakeKeyDeregistration, poolRegistration, poolRegistrationWithCert, poolRetirement, voteRegistration, dRepVoteDelegation). This is crucial for Cardano, which has many distinct operation types beyond simple transfers.
           type: array
           items:
             type: string
-            example: TRANSFER
+          example:
+            - 'input'
+            - 'output'
+            - 'stakeKeyRegistration'
+            - 'stakeDelegation'
+            - 'withdrawal'
+            - 'stakeKeyDeregistration'
+            - 'poolRegistration'
+            - 'poolRegistrationWithCert'
+            - 'poolRetirement'
+            - 'voteRegistration'
+            - 'dRepVoteDelegation'
         errors:
-          description: All Errors that this implementation could return. Any error that is returned during parsing that is not listed here will cause client validation to error.
+          description: All Errors that this implementation could return. Include Cardano-specific transaction submission errors and node query errors.
           type: array
           items:
             $ref: '#/components/schemas/Error'
+          example: # Add relevant Cardano error examples
+            - code: 4001
+              message: 'Block not found'
+              retriable: false
+            - code: 4002
+              message: 'Network not found'
+              retriable: false
+            - code: 4003
+              message: 'Networks not found'
+              retriable: false
+            - code: 4004
+              message: 'Invalid blockchain'
+              retriable: false
+            - code: 4005
+              message: 'Genesis block not found'
+              retriable: false
+            - code: 4006
+              message: 'Transaction not found'
+              retriable: false
+            - code: 4007
+              message: 'Invalid public key format'
+              retriable: false
+            - code: 4008
+              message: 'Transaction inputs parameters errors in operations array'
+              retriable: false
+            - code: 4009
+              message: 'Transaction outputs parameters errors in operations array'
+              retriable: false
+            - code: 4010
+              message: 'The transaction you are trying to build has more outputs than inputs'
+              retriable: false
+            - code: 4011
+              message: 'Cant create signed transaction from transaction bytes'
+              retriable: false
+            - code: 4012
+              message: 'Cant create unsigned transaction from transaction bytes'
+              retriable: false
+            - code: 4013
+              message: 'Cant deserialize transaction input from transaction body'
+              retriable: false
+            - code: 4014
+              message: 'Cant deserialize transaction output from transaction body'
+              retriable: false
+            - code: 4015
+              message: 'Provided address is invalid'
+              retriable: true
+            - code: 4016
+              message: 'Provided address type is invalid'
+              retriable: true
+            - code: 4017
+              message: 'Invalid staking key format'
+              retriable: false
+            - code: 4018
+              message: 'Staking key is required for this type of address'
+              retriable: false
+            - code: 4019
+              message: 'Provided operation type is invalid'
+              retriable: true
+            - code: 4020
+              message: 'Pool key hash is required to operate'
+              retriable: false
+            - code: 4021
+              message: 'Assets are required for output operation token bundle'
+              retriable: false
+            - code: 4022
+              message: 'Asset value is required for token asset'
+              retriable: false
+            - code: 4023
+              message: 'Invalid policy id'
+              retriable: false
+            - code: 4024
+              message: 'Invalid token name'
+              retriable: false
+            - code: 4025
+              message: 'Provided pool key hash has invalid format'
+              retriable: false
+            - code: 4026
+              message: 'Pool registration certificate is required for pool registration'
+              retriable: false
+            - code: 4027
+              message: 'Invalid pool registration certificate format'
+              retriable: false
+            - code: 4028
+              message: 'Invalid certificate type. Expected pool registration certificate'
+              retriable: false
+            - code: 4029
+              message: 'Pool registration parameters were expected'
+              retriable: false
+            - code: 4030
+              message: 'Pool relays are invalid'
+              retriable: false
+            - code: 4031
+              message: 'Pool metadata is invalid'
+              retriable: false
+            - code: 4032
+              message: 'Dns name expected for pool relay'
+              retriable: false
+            - code: 4033
+              message: 'Invalid pool relay type received'
+              retriable: false
+            - code: 4034
+              message: 'Invalid pool owners received'
+              retriable: false
+            - code: 4035
+              message: 'Invalid pool registration parameters received'
+              retriable: false
+            - code: 4036
+              message: 'Mandatory parameter is missing: Epoch'
+              retriable: false
+            - code: 4037
+              message: 'Error when sending the transaction - OutsideValidityIntervalUTxO'
+              retriable: false
+            - code: 5000
+              message: 'An error occurred'
+              retriable: true
+            - code: 5001
+              message: 'Not implemented'
+              retriable: false
+            - code: 5002
+              message: 'Address generation error'
+              retriable: false
+            - code: 5003
+              message: 'Parse signed transaction error'
+              retriable: false
+            - code: 5004
+              message: 'Cant create signed transaction probably because of unsigned transaction bytes'
+              retriable: false
+            - code: 5005
+              message: 'Cant build witnesses set for transaction probably because of provided signatures'
+              retriable: false
+            - code: 5006
+              message: 'Error when sending the transaction'
+              retriable: true
+            - code: 5007
+              message: 'Voting nonce not valid'
+              retriable: false
+            - code: 5008
+              message: 'Invalid voting signature'
+              retriable: false
+            - code: 5009
+              message: 'Voting key is missing'
+              retriable: false
+            - code: 5010
+              message: 'Voting key format is invalid'
+              retriable: false
+            - code: 5011
+              message: 'Missing vote registration metadata'
+              retriable: false
+            - code: 5012
+              message: 'Missing chain code'
+              retriable: false
+            - code: 5013
+              message: 'Invalid operation status'
+              retriable: false
+            - code: 5014
+              message: 'Given operation status and success state does not match'
+              retriable: false
+            - code: 5015
+              message: 'Transaction hash does not match to given coin identifier'
+              retriable: false
+            - code: 5016
+              message: 'Address and account identifier does not match'
+              retriable: false
+            - code: 5017
+              message: 'Coin identifier has an invalid format'
+              retriable: false
         historical_balance_lookup:
           type: boolean
           description: Any Rosetta implementation that supports querying the balance of an account at any height in the past should set this to true.
+          example: true
         timestamp_start_index:
           type: integer
           format: int64
@@ -841,18 +1160,22 @@ components:
           description: All methods that are supported by the /call endpoint. Communicating which parameters should be provided to /call is the responsibility of the implementer (this is en lieu of defining an entire type system and requiring the implementer to define that in Allow).
           items:
             type: string
-            example: eth_call
+          example: []
         balance_exemptions:
           type: array
           description: BalanceExemptions is an array of BalanceExemption indicating which account balances could change without a corresponding Operation. BalanceExemptions should be used sparingly as they may introduce significant complexity for integrators that attempt to reconcile all account balance changes. If your implementation relies on any BalanceExemptions, you MUST implement historical balance lookup (the ability to query an account balance at any BlockIdentifier).
           items:
             $ref: '#/components/schemas/BalanceExemption'
+          example: []
         mempool_coins:
           type: boolean
           description: Any Rosetta implementation that can update an AccountIdentifier's unspent coins based on the contents of the mempool should populate this field as true. If false, requests to `/account/coins` that set `include_mempool` as true will be automatically rejected.
+          example: false
+        # TODO: Verify if block_hash_case is implemented
         block_hash_case:
           $ref: '#/components/schemas/Case'
           description: This specifies the normalized case for block hash in the BlockIdentifier. If not specified, it's assumed to be case sensitive.
+        # TODO: Verify if transaction_hash_case is implemented
         transaction_hash_case:
           $ref: '#/components/schemas/Case'
           description: This specifies the normalized case for transaction hash in the TransactionIdentifier. If not specified, it's assumed to be case sensitive.
@@ -877,7 +1200,7 @@ components:
       type: integer
       format: int64
       minimum: 0
-      example: 1582833600000
+      example: 1746607844000
     PublicKey:
       description: PublicKey contains a public key byte array for a particular CurveType encoded in hex. Note that there is no PrivateKey struct as this is NEVER the concern of an implementation.
       type: object
@@ -958,7 +1281,7 @@ components:
         identifier:
           description: Identifier should be populated with a globally unique identifier of a Coin. In Bitcoin, this identifier would be transaction_hash:index.
           type: string
-          example: 0x2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f:1
+          example: '48163f224d387426bf05c0a22a2415a7e071602e717aeb43ce46d7909ee5ba46:0'
     CoinChange:
       description: CoinChange is used to represent a change in state of a some coin identified by a coin_identifier. This object is part of the Operation model and must be populated for UTXO-based blockchains. Coincidentally, this abstraction of UTXOs allows for supporting both account-based transfers and UTXO-based transfers on the same blockchain (when a transfer is account-based, don't populate this model).
       type: object
@@ -970,6 +1293,10 @@ components:
           $ref: '#/components/schemas/CoinIdentifier'
         coin_action:
           $ref: '#/components/schemas/CoinAction'
+      example:
+        coin_identifier:
+          identifier: '48163f224d387426bf05c0a22a2415a7e071602e717aeb43ce46d7909ee5ba46:0'
+        coin_action: 'coin_spent'
     Coin:
       description: Coin contains its unique identifier and the amount it represents.
       type: object
@@ -983,6 +1310,7 @@ components:
           $ref: '#/components/schemas/Amount'
         metadata:
           $ref: '#/components/schemas/CoinMetadata'
+    # TODO: Verify if BalanceExemption is implemented
     BalanceExemption:
       description: BalanceExemption indicates that the balance for an exempt account could change without a corresponding Operation. This typically occurs with staking rewards, vesting balances, and Currencies with a dynamic supply. Currently, it is possible to exempt an account from strict reconciliation by SubAccountIdentifier.Address or by Currency. This means that any account with SubAccountIdentifier.Address would be exempt or any balance of a particular Currency would be exempt, respectively. BalanceExemptions should be used sparingly as they may introduce significant complexity for integrators that attempt to reconcile all account balance changes. If your implementation relies on any BalanceExemptions, you MUST implement historical balance lookup (the ability to query an account balance at any BlockIdentifier).
       type: object
@@ -1002,30 +1330,31 @@ components:
         - greater_or_equal
         - less_or_equal
         - dynamic
-    BlockEvent:
-      description: BlockEvent represents the addition or removal of a BlockIdentifier from storage. Streaming BlockEvents allows lightweight clients to update their own state without needing to implement their own syncing logic.
-      type: object
-      required:
-        - sequence
-        - block_identifier
-        - type
-      properties:
-        sequence:
-          description: sequence is the unique identifier of a BlockEvent within the context of a NetworkIdentifier.
-          type: integer
-          format: int64
-          minimum: 0
-          example: 5
-        block_identifier:
-          $ref: '#/components/schemas/BlockIdentifier'
-        type:
-          $ref: '#/components/schemas/BlockEventType'
-    BlockEventType:
-      description: BlockEventType determines if a BlockEvent represents the addition or removal of a block.
-      type: string
-      enum:
-        - block_added
-        - block_removed
+    # Not implemented for Cardano
+    # BlockEvent:
+    #   description: BlockEvent represents the addition or removal of a BlockIdentifier from storage. Streaming BlockEvents allows lightweight clients to update their own state without needing to implement their own syncing logic.
+    #   type: object
+    #   required:
+    #     - sequence
+    #     - block_identifier
+    #     - type
+    #   properties:
+    #     sequence:
+    #       description: sequence is the unique identifier of a BlockEvent within the context of a NetworkIdentifier.
+    #       type: integer
+    #       format: int64
+    #       minimum: 0
+    #       example: 5
+    #     block_identifier:
+    #       $ref: '#/components/schemas/BlockIdentifier'
+    #     type:
+    #       $ref: '#/components/schemas/BlockEventType'
+    # BlockEventType:
+    #   description: BlockEventType determines if a BlockEvent represents the addition or removal of a block.
+    #   type: string
+    #   enum:
+    #     - block_added
+    #     - block_removed
     Operator:
       description: Operator is used by query-related endpoints to determine how to apply conditions. If this field is not populated, the default `and` value will be used.
       type: string
@@ -1090,6 +1419,22 @@ components:
           description: In some cases, the caller may not want to retrieve all available balances for an AccountIdentifier. If the currencies field is populated, only balances for the specified currencies will be returned. If not populated, all available balances will be returned.
           items:
             $ref: '#/components/schemas/Currency'
+      example:
+        network_identifier:
+          blockchain: 'cardano'
+          network: 'mainnet'
+        account_identifier:
+          address: 'addr1qxx6qfrre0mynlmcst5wj3h0flk093zjx9wl86k6gnksztp693mm58mml2ckdm09rgycahv5ex68c36a7kp4r2sgcx7q3rqcx8'
+        block_identifier:
+          index: 11835193
+          hash: '63a22fe4206c78794a54d5837e0f35d93f3c6eedb8689bcc73842795e3f425cd'
+        currencies:
+          - symbol: 'ADA'
+            decimals: 6
+          - symbol: '0014df1047454e53'
+            decimals: 0
+            metadata:
+              policyId: 'dda5fdb1002f7389b33e036b6afee82a8189becb6cba852e8b79b4fb'
     AccountBalanceResponse:
       description: 'An AccountBalanceResponse is returned on the /account/balance endpoint. If an account has a balance for each AccountIdentifier describing it (ex: an ERC-20 token balance on a few smart contracts), an account balance request must be made with each AccountIdentifier. The `coins` field was removed and replaced by by `/account/coins` in `v1.4.7`.'
       type: object
@@ -1104,11 +1449,27 @@ components:
           description: A single account may have a balance in multiple currencies.
           items:
             $ref: '#/components/schemas/Amount'
-        metadata:
-          description: Account-based blockchains that utilize a nonce or sequence number should include that number in the metadata. This number could be unique to the identifier or global across the account address.
-          type: object
-          example:
-            sequence_number: 23
+        # Not implemented for Cardano
+        # metadata:
+        #   description: Account-based blockchains that utilize a nonce or sequence number should include that number in the metadata. This number could be unique to the identifier or global across the account address.
+        #   type: object
+        #   example:
+        #   sequence_number: 23
+      example:
+        block_identifier:
+          index: 11835193
+          hash: '63a22fe4206c78794a54d5837e0f35d93f3c6eedb8689bcc73842795e3f425cd'
+        balances:
+          - value: '1988397'
+            currency:
+              symbol: 'ADA'
+              decimals: 6
+          - value: '60000000000'
+            currency:
+              symbol: '0014df1047454e53'
+              decimals: 0
+              metadata:
+                policyId: 'dda5fdb1002f7389b33e036b6afee82a8189becb6cba852e8b79b4fb'
     AccountCoinsRequest:
       description: AccountCoinsRequest is utilized to make a request on the /account/coins endpoint.
       type: object
@@ -1120,15 +1481,29 @@ components:
           $ref: '#/components/schemas/NetworkIdentifier'
         account_identifier:
           $ref: '#/components/schemas/AccountIdentifier'
-        include_mempool:
-          type: boolean
-          default: false
-          description: Include state from the mempool when looking up an account's unspent coins. Note, using this functionality breaks any guarantee of idempotency.
+        # Not implemented for Cardano
+        # include_mempool:
+        #   type: boolean
+        #   default: false
+        #   description: Include state from the mempool when looking up an account's unspent coins. Note, using this functionality breaks any guarantee of idempotency.
         currencies:
           type: array
           description: In some cases, the caller may not want to retrieve coins for all currencies for an AccountIdentifier. If the currencies field is populated, only coins for the specified currencies will be returned. If not populated, all unspent coins will be returned.
           items:
             $ref: '#/components/schemas/Currency'
+      example:
+        network_identifier:
+          blockchain: 'cardano'
+          network: 'mainnet'
+        account_identifier:
+          address: 'addr1qxx6qfrre0mynlmcst5wj3h0flk093zjx9wl86k6gnksztp693mm58mml2ckdm09rgycahv5ex68c36a7kp4r2sgcx7q3rqcx8'
+        currencies:
+          - symbol: 'ADA'
+            decimals: 6
+          - symbol: '0014df1047454e53'
+            decimals: 0
+            metadata:
+              policyId: 'dda5fdb1002f7389b33e036b6afee82a8189becb6cba852e8b79b4fb'
     AccountCoinsResponse:
       description: AccountCoinsResponse is returned on the /account/coins endpoint and includes all unspent Coins owned by an AccountIdentifier.
       type: object
@@ -1148,6 +1523,28 @@ components:
           type: object
           example:
             sequence_number: 23
+      example:
+        block_identifier:
+          index: 11835240
+          hash: 'ade2395f21cc26ebfb86c1e74fd910193902a87b289be18b67a3903813141b39'
+        coins:
+          - coin_identifier:
+              identifier: '82014e975b195c77d296fa1c8947c4614bb6392ade219dffb47b2fdda88f837f:1'
+            amount:
+              value: '1988397'
+              currency:
+                symbol: 'ADA'
+                decimals: 6
+            metadata:
+              '82014e975b195c77d296fa1c8947c4614bb6392ade219dffb47b2fdda88f837f:1': # The metadata key here is the coin_identifier.identifier, this needs to be reflected in the CoinMetadata schema or a specific Coin.metadata schema
+                - policyId: 'dda5fdb1002f7389b33e036b6afee82a8189becb6cba852e8b79b4fb'
+                  tokens:
+                    - value: '60000000000'
+                      currency:
+                        symbol: '0014df1047454e53'
+                        decimals: 0
+                        metadata:
+                          policyId: 'dda5fdb1002f7389b33e036b6afee82a8189becb6cba852e8b79b4fb'
     BlockRequest:
       description: A BlockRequest is utilized to make a block request on the /block endpoint.
       type: object
@@ -1166,10 +1563,89 @@ components:
         block:
           $ref: '#/components/schemas/Block'
         other_transactions:
-          description: 'Some blockchains may require additional transactions to be fetched that weren''t returned in the block response (ex: block only returns transaction hashes). For blockchains with a lot of transactions in each block, this can be very useful as consumers can concurrently fetch all transactions returned.'
+          description: "Some blockchains may require additional transactions to be fetched that weren't returned in the block response (ex: block only returns transaction hashes). For blockchains with a lot of transactions in each block, this can be very useful as consumers can concurrently fetch all transactions returned."
           type: array
           items:
             $ref: '#/components/schemas/TransactionIdentifier'
+      example:
+        block:
+          block_identifier:
+            index: 11832620
+            hash: '4797bd63a225277231bd02f87be986c33a1ff61eb12681fb5eaa5620f638fa05'
+          parent_block_identifier:
+            index: 11832619
+            hash: 'b5781a495eb21b613136fe09a19321c9a9f7fa8978e8d26105e3306287061625'
+          timestamp: 1746607844000
+          transactions:
+            - transaction_identifier:
+                hash: 'a4020acf2e7d743dda705593c758295ebe46b31e61b970797ace0524ffbbdc73'
+              operations:
+                - operation_identifier:
+                    index: 0
+                  type: 'input'
+                  status: 'success'
+                  account:
+                    address: 'addr1q8n85ymr09p8czlya59z5k6vyrfuhmg0zf3vfll46jqn25pgjy6j9tzkpzlupfjgmssf25nkudk6dk8nraesvygnntjs3m5fnu'
+                  amount:
+                    value: '-3000000'
+                    currency:
+                      symbol: 'ADA'
+                      decimals: 6
+                  coin_change:
+                    coin_identifier:
+                      identifier: '48163f224d387426bf05c0a22a2415a7e071602e717aeb43ce46d7909ee5ba46:0'
+                    coin_action: 'coin_spent'
+                  metadata:
+                    tokenBundle:
+                      - policyId: 'f43a62fdc3965df486de8a0d32fe800963589c41b38946602a0dc535'
+                        tokens:
+                          - value: '-161333000000'
+                            currency:
+                              symbol: '41474958'
+                              decimals: 0
+                - operation_identifier:
+                    index: 1
+                  type: 'input'
+                  status: 'success'
+                  account:
+                    address: 'addr1q9alhvsg2v0frsx4a020jhmsh4jurlfxay5rq5x7d694cmcln5rrwydxdct67zxv62ue507wzevh2357hyusmxnz7aysqaa8q7'
+                  amount:
+                    value: '-502066491'
+                    currency:
+                      symbol: 'ADA'
+                      decimals: 6
+                  coin_change:
+                    coin_identifier:
+                      identifier: 'f81b467c4c23af80d498956ea0540427a325cb87e0881b1d8a3d63d47d17fa2d:0'
+                    coin_action: 'coin_spent'
+                - operation_identifier:
+                    index: 2
+                    network_index: 0
+                  related_operations:
+                    - index: 0
+                    - index: 1
+                  type: 'output'
+                  status: 'success'
+                  account:
+                    address: 'addr1q9alhvsg2v0frsx4a020jhmsh4jurlfxay5rq5x7d694cmcln5rrwydxdct67zxv62ue507wzevh2357hyusmxnz7aysqaa8q7'
+                  amount:
+                    value: '504663471'
+                    currency:
+                      symbol: 'ADA'
+                      decimals: 6
+                  coin_change:
+                    coin_identifier:
+                      identifier: 'a4020acf2e7d743dda705593c758295ebe46b31e61b970797ace0524ffbbdc73:0'
+                    coin_action: 'coin_created'
+              metadata:
+                size: 503
+                scriptSize: 2932
+          metadata:
+            transactionsCount: 1
+            createdBy: '2a748e3885f6f73320ad16a8331247b81fe01b8d39f57eec9caa5091'
+            size: 3674
+            epochNo: 556
+            slotNo: 155041553
     BlockTransactionRequest:
       description: A BlockTransactionRequest is used to fetch a Transaction included in a block that is not returned in a BlockResponse.
       type: object
@@ -1192,40 +1668,41 @@ components:
       properties:
         transaction:
           $ref: '#/components/schemas/Transaction'
-    MempoolResponse:
-      description: A MempoolResponse contains all transaction identifiers in the mempool for a particular network_identifier.
-      type: object
-      required:
-        - transaction_identifiers
-      properties:
-        transaction_identifiers:
-          type: array
-          items:
-            $ref: '#/components/schemas/TransactionIdentifier'
-    MempoolTransactionRequest:
-      description: A MempoolTransactionRequest is utilized to retrieve a transaction from the mempool.
-      type: object
-      required:
-        - network_identifier
-        - transaction_identifier
-      properties:
-        network_identifier:
-          $ref: '#/components/schemas/NetworkIdentifier'
-        transaction_identifier:
-          $ref: '#/components/schemas/TransactionIdentifier'
-    MempoolTransactionResponse:
-      description: 'A MempoolTransactionResponse contains an estimate of a mempool transaction. It may not be possible to know the full impact of a transaction in the mempool (ex: fee paid).'
-      type: object
-      required:
-        - transaction
-      properties:
-        transaction:
-          $ref: '#/components/schemas/Transaction'
-        metadata:
-          type: object
-          example:
-            descendant_fees: 123923
-            ancestor_count: 2
+    # Not implemented for Cardano
+    # MempoolResponse:
+    #   description: A MempoolResponse contains all transaction identifiers in the mempool for a particular network_identifier.
+    #   type: object
+    #   required:
+    #     - transaction_identifiers
+    #   properties:
+    #     transaction_identifiers:
+    #       type: array
+    #       items:
+    #         $ref: '#/components/schemas/TransactionIdentifier'
+    # MempoolTransactionRequest:
+    #   description: A MempoolTransactionRequest is utilized to retrieve a transaction from the mempool.
+    #   type: object
+    #   required:
+    #     - network_identifier
+    #     - transaction_identifier
+    #   properties:
+    #     network_identifier:
+    #       $ref: '#/components/schemas/NetworkIdentifier'
+    #     transaction_identifier:
+    #       $ref: '#/components/schemas/TransactionIdentifier'
+    # MempoolTransactionResponse:
+    # description: 'A MempoolTransactionResponse contains an estimate of a mempool transaction. It may not be possible to know the full impact of a transaction in the mempool (ex: fee paid).'
+    # type: object
+    # required:
+    #   - transaction
+    # properties:
+    #   transaction:
+    #     $ref: '#/components/schemas/Transaction'
+    #   metadata:
+    #     type: object
+    #     example:
+    #       descendant_fees: 123923
+    #       ancestor_count: 2
     MetadataRequest:
       description: A MetadataRequest is utilized in any request where the only argument is optional metadata.
       type: object
@@ -1266,14 +1743,15 @@ components:
           $ref: '#/components/schemas/Timestamp'
         genesis_block_identifier:
           $ref: '#/components/schemas/BlockIdentifier'
-        oldest_block_identifier:
-          $ref: '#/components/schemas/BlockIdentifier'
+        #oldest_block_identifier: # TODO: Add oldest_block_identifier property to NetworkStatusResponse (issue #439)
+        #  description: Not implemented.
+        #  $ref: '#/components/schemas/BlockIdentifier'
         sync_status:
           $ref: '#/components/schemas/SyncStatus'
-        peers:
-          type: array
-          items:
-            $ref: '#/components/schemas/Peer'
+        #peers: # TODO: Fix empty peers property in NetworkStatusResponse (issue #450)
+        #  type: array
+        #  items:
+        #    $ref: '#/components/schemas/Peer'
     NetworkOptionsResponse:
       description: NetworkOptionsResponse contains information about the versioning of the node and the allowed operation statuses, operation types, and errors.
       type: object
@@ -1417,6 +1895,7 @@ components:
       properties:
         signed_transaction:
           type: string
+          description: Hex-encoded CBOR bytes of the fully signed Cardano transaction, including the transaction body and the transaction witness set. This is ready for submission to the network.
     ConstructionParseRequest:
       description: ConstructionParseRequest is the input to the `/construction/parse` endpoint. It allows the caller to parse either an unsigned or signed transaction.
       type: object
@@ -1432,7 +1911,7 @@ components:
           description: Signed is a boolean indicating whether the transaction is signed.
         transaction:
           type: string
-          description: This must be either the unsigned transaction blob returned by `/construction/payloads` or the signed transaction blob returned by `/construction/combine`.
+          description: This must be either the hex-encoded unsigned transaction blob (CBOR transaction body) returned by `/construction/payloads` or the hex-encoded signed transaction blob (CBOR full transaction) returned by `/construction/combine`.
     ConstructionParseResponse:
       description: ConstructionParseResponse contains an array of operations that occur in a transaction blob. This should match the array of operations provided to `/construction/preprocess` and `/construction/payloads`.
       type: object
@@ -1454,6 +1933,9 @@ components:
             $ref: '#/components/schemas/AccountIdentifier'
         metadata:
           type: object
+        signed_transaction:
+          type: string
+          description: Hex-encoded CBOR bytes of the fully signed Cardano transaction.
     ConstructionHashRequest:
       description: ConstructionHashRequest is the input to the `/construction/hash` endpoint.
       type: object
@@ -1476,6 +1958,7 @@ components:
           $ref: '#/components/schemas/NetworkIdentifier'
         signed_transaction:
           type: string
+          description: Hex-encoded CBOR bytes of the fully signed Cardano transaction, ready for submission.
     TransactionIdentifierResponse:
       description: TransactionIdentifierResponse contains the transaction_identifier of a transaction that was submitted to either `/construction/hash` or `/construction/submit`.
       type: object
@@ -1486,79 +1969,79 @@ components:
           $ref: '#/components/schemas/TransactionIdentifier'
         metadata:
           type: object
-    CallRequest:
-      description: CallRequest is the input to the `/call` endpoint.
-      type: object
-      required:
-        - network_identifier
-        - method
-        - parameters
-      properties:
-        network_identifier:
-          $ref: '#/components/schemas/NetworkIdentifier'
-        method:
-          type: string
-          description: Method is some network-specific procedure call. This method could map to a network-specific RPC endpoint, a method in an SDK generated from a smart contract, or some hybrid of the two. The implementation must define all available methods in the Allow object. However, it is up to the caller to determine which parameters to provide when invoking `/call`.
-          example: eth_call
-        parameters:
-          type: object
-          description: Parameters is some network-specific argument for a method. It is up to the caller to determine which parameters to provide when invoking `/call`.
-          example:
-            block_number: 23
-            address: '0x52bc44d5378309ee2abf1539bf71de1b7d7be3b5'
-    CallResponse:
-      description: CallResponse contains the result of a `/call` invocation.
-      type: object
-      required:
-        - result
-        - idempotent
-      properties:
-        result:
-          type: object
-          description: Result contains the result of the `/call` invocation. This result will not be inspected or interpreted by Rosetta tooling and is left to the caller to decode.
-          example:
-            count: 1000
-        idempotent:
-          type: boolean
-          description: Idempotent indicates that if `/call` is invoked with the same CallRequest again, at any point in time, it will return the same CallResponse. Integrators may cache the CallResponse if this is set to true to avoid making unnecessary calls to the Rosetta implementation. For this reason, implementers should be very conservative about returning true here or they could cause issues for the caller.
-    EventsBlocksRequest:
-      description: EventsBlocksRequest is utilized to fetch a sequence of BlockEvents indicating which blocks were added and removed from storage to reach the current state.
-      type: object
-      required:
-        - network_identifier
-      properties:
-        network_identifier:
-          $ref: '#/components/schemas/NetworkIdentifier'
-        offset:
-          description: offset is the offset into the event stream to sync events from. If this field is not populated, we return the limit events backwards from tip. If this is set to 0, we start from the beginning.
-          type: integer
-          format: int64
-          minimum: 0
-          example: 5
-        limit:
-          description: limit is the maximum number of events to fetch in one call. The implementation may return <= limit events.
-          type: integer
-          format: int64
-          minimum: 0
-          example: 5
-    EventsBlocksResponse:
-      description: EventsBlocksResponse contains an ordered collection of BlockEvents and the max retrievable sequence.
-      type: object
-      required:
-        - max_sequence
-        - events
-      properties:
-        max_sequence:
-          description: max_sequence is the maximum available sequence number to fetch.
-          type: integer
-          format: int64
-          minimum: 0
-          example: 5
-        events:
-          type: array
-          description: events is an array of BlockEvents indicating the order to add and remove blocks to maintain a canonical view of blockchain state. Lightweight clients can use this event stream to update state without implementing their own block syncing logic.
-          items:
-            $ref: '#/components/schemas/BlockEvent'
+    # CallRequest:
+    #   description: CallRequest is the input to the `/call` endpoint.
+    #   type: object
+    #   required:
+    #     - network_identifier
+    #     - method
+    #     - parameters
+    #   properties:
+    #     network_identifier:
+    #       $ref: '#/components/schemas/NetworkIdentifier'
+    #     method:
+    #       type: string
+    #       description: Method is some network-specific procedure call. This method could map to a network-specific RPC endpoint, a method in an SDK generated from a smart contract, or some hybrid of the two. The implementation must define all available methods in the Allow object. However, it is up to the caller to determine which parameters to provide when invoking `/call`.
+    #       example: eth_call
+    #     parameters:
+    #       type: object
+    #       description: Parameters is some network-specific argument for a method. It is up to the caller to determine which parameters to provide when invoking `/call`.
+    #       example:
+    #         block_number: 23
+    #         address: '0x52bc44d5378309ee2abf1539bf71de1b7d7be3b5'
+    # CallResponse:
+    #   description: CallResponse contains the result of a `/call` invocation.
+    #   type: object
+    #   required:
+    #     - result
+    #     - idempotent
+    #   properties:
+    #     result:
+    #       type: object
+    #       description: Result contains the result of the `/call` invocation. This result will not be inspected or interpreted by Rosetta tooling and is left to the caller to decode.
+    #       example:
+    #         count: 1000
+    #     idempotent:
+    #       type: boolean
+    #       description: Idempotent indicates that if `/call` is invoked with the same CallRequest again, at any point in time, it will return the same CallResponse. Integrators may cache the CallResponse if this is set to true to avoid making unnecessary calls to the Rosetta implementation. For this reason, implementers should be very conservative about returning true here or they could cause issues for the caller.
+    # EventsBlocksRequest:
+    #   description: EventsBlocksRequest is utilized to fetch a sequence of BlockEvents indicating which blocks were added and removed from storage to reach the current state.
+    #   type: object
+    #   required:
+    #     - network_identifier
+    #   properties:
+    #     network_identifier:
+    #       $ref: '#/components/schemas/NetworkIdentifier'
+    #     offset:
+    #       description: offset is the offset into the event stream to sync events from. If this field is not populated, we return the limit events backwards from tip. If this is set to 0, we start from the beginning.
+    #       type: integer
+    #       format: int64
+    #       minimum: 0
+    #       example: 5
+    #     limit:
+    #       description: limit is the maximum number of events to fetch in one call. The implementation may return <= limit events.
+    #       type: integer
+    #       format: int64
+    #       minimum: 0
+    #       example: 5
+    # EventsBlocksResponse:
+    #   description: EventsBlocksResponse contains an ordered collection of BlockEvents and the max retrievable sequence.
+    #   type: object
+    #   required:
+    #     - max_sequence
+    #     - events
+    #   properties:
+    #     max_sequence:
+    #       description: max_sequence is the maximum available sequence number to fetch.
+    #       type: integer
+    #       format: int64
+    #       minimum: 0
+    #       example: 5
+    #     events:
+    #       type: array
+    #       description: events is an array of BlockEvents indicating the order to add and remove blocks to maintain a canonical view of blockchain state. Lightweight clients can use this event stream to update state without implementing their own block syncing logic.
+    #       items:
+    #         $ref: '#/components/schemas/BlockEvent'
     SearchTransactionsRequest:
       description: SearchTransactionsRequest is used to search for transactions matching a set of provided conditions in canonical blocks.
       type: object
@@ -1668,7 +2151,7 @@ components:
             address: '0x1dcc4de8dec75d7aab85b567b6'
             error: not base64
     BlockMetadata:
-      description: BlockMetadata is used to provide any additional data needed for a Block. It is important to populate this object with any data a consumer will need to fully understand a Block.
+      description: BlockMetadata contains Cardano-specific block information, such as epoch, slot, transaction count, size, and block creator (slot leader), beyond the standard Rosetta Block fields.
       type: object
       properties:
         transactionsCount:
@@ -1688,8 +2171,14 @@ components:
           description: slotNo
           type: integer
           format: int64
+      example:
+        transactionsCount: 1
+        createdBy: '2a748e3885f6f73320ad16a8331247b81fe01b8d39f57eec9caa5091'
+        size: 3674
+        epochNo: 556
+        slotNo: 155041553
     TransactionMetadata:
-      description: Transactions that are related to other transactions (like a cross-shard transaction) should include the tranaction_identifier of these transactions in the metadata.
+      description: Contains Cardano-specific transaction details beyond the core operations, such as fees, TTL, certificates, withdrawals, minting information, collateral, script data hash, and required signers.
       type: object
       properties:
         size:
@@ -1697,14 +2186,54 @@ components:
           type: integer
           format: int64
         scriptSize:
-          description: ScriptSize is the size of the transaction script in bytes.
+          description: ScriptSize is the size of the transaction script section in bytes.
           type: integer
           format: int64
+        fee:
+          description: Transaction fee in Lovelace.
+          $ref: '#/components/schemas/Amount'
+        ttl:
+          description: Time-To-Live. The absolute slot number after which the transaction is no longer valid.
+          type: integer
+          format: int64
+        validity_interval_start:
+          description: Optional absolute slot number indicating the start of the transaction's validity interval.
+          type: integer
+          format: int64
+        certificates:
+          description: List of certificates included in the transaction (e.g., stake registration, delegation, pool registration).
+          type: array
+          items:
+            type: object # Define specific certificate schemas or use a generic object
+            description: Represents a Cardano certificate (structure varies by type).
+        withdrawals:
+          description: Map of stake addresses (`stake...`) to the amount of ADA withdrawn.
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/Amount'
+        mint:
+          description: Net mint/burn amount for native assets in this transaction. Positive values for minting, negative for burning.
+          type: array
+          items:
+            $ref: '#/components/schemas/Amount'
+        collateral:
+          description: List of UTXO inputs provided as collateral for Plutus script execution.
+          type: array
+          items:
+            $ref: '#/components/schemas/CoinIdentifier'
+        script_data_hash:
+          description: Optional hash of the datums provided in the transaction witness set.
+          type: string
+        required_signers:
+          description: Optional list of key hashes required as signers by Plutus scripts.
+          type: array
+          items:
+            type: string
       example:
-        size: 12378
-        lockTime: 1582272577
+        size: 503
+        scriptSize: 2932
     OperationMetadata:
-      description: OperationMetadata is used to provide any additional data needed for an Operation. It is important to populate this object with any data a consumer will need to fully understand an Operation.
+      description: OperationMetadata provides Cardano-specific context for an Operation, such as withdrawal/deposit amounts, staking credentials, pool details, DRep information, voting metadata, or the native assets involved (via tokenBundle if the operation affects a UTXO).
       type: object
       properties:
         withdrawalAmount:
@@ -1725,10 +2254,10 @@ components:
           description: DRep
           $ref: '#/components/schemas/DRepParams'
         epoch:
-          description: Epoch
+          description: Epoch associated with the operation, if relevant (e.g., for rewards).
           type: integer
         tokenBundle:
-          description: TokenBundle
+          description: Represents native assets associated with a UTXO output operation. Each item contains a policy ID and the amounts of tokens under that policy.
           type: array
           items:
             $ref: '#/components/schemas/TokenBundleItem'
@@ -1739,6 +2268,14 @@ components:
           $ref: '#/components/schemas/PoolRegistrationParams'
         voteRegistrationMetadata:
           $ref: '#/components/schemas/VoteRegistrationMetadata'
+      example:
+        tokenBundle:
+          - policyId: 'f43a62fdc3965df486de8a0d32fe800963589c41b38946602a0dc535'
+            tokens:
+              - value: '-161333000000'
+                currency:
+                  symbol: '41474958'
+                  decimals: 0
     VoteRegistrationMetadata:
       description: VoteRegistrationMetadata
       type: object
@@ -1770,24 +2307,33 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Amount'
-    DRepTypeParams:
+      example:
+        policyId: 'f43a62fdc3965df486de8a0d32fe800963589c41b38946602a0dc535'
+        tokens:
+          - value: '-161333000000'
+            currency:
+              symbol: '41474958'
+              decimals: 0
+    DRepTypeParams: # required if id has 29 bytes, otherwise not required
       description: DRepTypeParams
       type: string
+      required:
+        - id
       enum:
         - key_hash
         - script_hash
         - no_confidence
         - abstain
     DRepParams:
-        description: DRep
-        type: object
-        properties:
-            id:
-              description: DRepId
-              type: string
-            type:
-              description: DRepType
-              $ref: '#/components/schemas/DRepTypeParams'
+      description: DRep
+      type: object
+      properties:
+        id:
+          description: DRepId
+          type: string
+        type:
+          description: DRepType
+          $ref: '#/components/schemas/DRepTypeParams'
     PoolRegistrationParams:
       description: PoolRegistrationParams
       type: object
@@ -1951,12 +2497,17 @@ components:
           description: 'ChainCode '
           type: string
     CurrencyMetadata:
-      description: ''
+      description: Contains metadata specific to a Cardano currency, particularly for native assets.
       type: object
       properties:
         policyId:
-          description: ''
+          description: The hex-encoded policy ID of the native asset.
           type: string
+        assetName:
+          description: Optional human-readable asset name (UTF-8 encoded, then hex-encoded if needed).
+          type: string
+      example:
+        policyId: 'dda5fdb1002f7389b33e036b6afee82a8189becb6cba852e8b79b4fb'
     ConstructionMetadataRequestOption:
       description: ''
       type: object
@@ -1977,24 +2528,22 @@ components:
         protocol_parameters:
           $ref: '#/components/schemas/ProtocolParameters'
     CoinMetadata:
-      description: CoinMetadata is used to provide additional data for a Coin object. It is often used to store human-readable information that a client can use to display information to a user.
-      type: object
-      additionalProperties:
-        type: array
-        items:
-          $ref: '#/components/schemas/CoinTokens'
-    CoinTokens:
       description: |
-        CoinTokens contains the policyId and the tokens
-        it represents.
+        Contains the native assets held by this UTXO (Coin). The ADA amount is represented in the main Coin.Amount field.
+      #TODO: BUG/INCONSISTENCY - The AccountCoinsResponse example shows Coin.metadata having a dynamic key (the coin_identifier.identifier)
+      #and a value structure like [{policyId: string, tokens: Amount[]}].
+      #This contradicts this CoinMetadata schema, which expects a fixed "assets" key.
+      #Investigate whether the schema or the example (and potentially API implementation) is correct and align them.
       type: object
-      required:
-        - policyId
-        - tokens
       properties:
-        policyId:
-          type: string
-        tokens:
+        assets:
           type: array
+          description: List of Amounts representing native assets (excluding ADA) held by the coin.
           items:
             $ref: '#/components/schemas/Amount'
+    #CoinTokens:
+    # This schema is no longer used by CoinMetadata and can potentially be removed if not used elsewhere.
+    #description: |
+    #  DEPRECATED by simplified CoinMetadata.assets. CoinTokens contains the policyId and the tokens
+    #  it represents.
+    #type: object
