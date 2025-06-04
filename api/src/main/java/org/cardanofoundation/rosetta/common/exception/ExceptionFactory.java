@@ -334,7 +334,7 @@ public class ExceptionFactory {
   }
 
   public static ApiException invalidBlockIdentifier(@NotNull long index) {
-    return new ApiException(RosettaErrorType.INVALID_BLOCK_INDEX.toRosettaError(false, Details.builder().message("Invalid block index, must be greater than or equal to 0, supplied index:%d".formatted(index)).build()));
+    return new ApiException(RosettaErrorType.INVALID_BLOCK_INDEX.toRosettaError(false, Details.builder().message("Invalid block index, must be greater than or equal to 0, supplied index: %d".formatted(index)).build()));
   }
 
   public static ApiException oldestBlockNotFound() {
@@ -349,6 +349,7 @@ public class ExceptionFactory {
     Details details = Details.builder()
         .message("Invalid governance vote, reason: %s".formatted(reasonText))
         .build();
+
     return new ApiException(RosettaErrorType.INVALID_GOVERNANCE_VOTE.toRosettaError(false, details));
   }
 

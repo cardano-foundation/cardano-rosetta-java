@@ -1,7 +1,7 @@
 version: '3.8'
 services:
   mithril:
-    image: cardanofoundation/rosetta-mithril:${MITHRIL_VERSION}
+    image: cardanofoundation/cardano-rosetta-java-mithril:${MITHRIL_VERSION}
     build:
       context: ./
       dockerfile: ./docker/dockerfiles/mithril/Dockerfile
@@ -14,12 +14,34 @@ services:
       - AGGREGATOR_ENDPOINT=${AGGREGATOR_ENDPOINT}
       - GENESIS_VERIFICATION_KEY=${GENESIS_VERIFICATION_KEY}
       - ANCILLARY_VERIFICATION_KEY=${ANCILLARY_VERIFICATION_KEY}
-
     volumes:
       - ${CARDANO_NODE_DIR}:/node
 
   cardano-node:
-    image: cardanofoundation/rosetta-cardano-node:${CARDANO_NODE_VERSION}
+    image: cardanofoundation/cardano-rosetta-java-cardano-node:${CARDANO_NODE_VERSION}
+    build:
+      context: ./
+      dockerfile: ./docker/dockerfiles/node/Dockerfile
+      args:
+        CARDANO_NODE_VERSION: ${CARDANO_NODE_VERSION}
+    environment:
+      - CARDANO_NODE_SOCKET_PATH=${CARDANO_NODE_SOCKET_PATH}
+      - CARDANO_NODE_PORT=${CARDANO_NODE_PORT}
+      - CARDANO_NODE_DB=${CARDANO_NODE_DB}
+    volumes:
+      - ${CARDANO_NODE_DIR}:${CARDANO_NODE_DIR}
+      - ${CARDANO_NODE_DB}:${CARDANO_NODE_DB}
+      - ${CARDANO_CONFIG}:/config
+    restart: unless-stopped
+    ports:
+      - ${CARDANO_NODE_PORT}:${CARDANO_NODE_PORT}
+    entrypoint: ["/sbin/entrypoint.sh", "cardano-node"]
+    depends_on:
+      mithril:
+        condition: service_completed_successfully
+
+  cardano-submit-api:
+    image: cardanofoundation/cardano-rosetta-java-cardano-node:${CARDANO_NODE_VERSION}
     build:
       context: ./
       dockerfile: ./docker/dockerfiles/node/Dockerfile
@@ -29,17 +51,14 @@ services:
       - NETWORK=${NETWORK}
       - PROTOCOL_MAGIC=${PROTOCOL_MAGIC}
       - CARDANO_NODE_SOCKET_PATH=${CARDANO_NODE_SOCKET_PATH}
-      - CARDANO_NODE_PORT=${CARDANO_NODE_PORT}
       - NODE_SUBMIT_API_PORT=${NODE_SUBMIT_API_PORT}
-      - CARDANO_NODE_DB=${CARDANO_NODE_DB}
     volumes:
       - ${CARDANO_NODE_DIR}:${CARDANO_NODE_DIR}
-      - ${CARDANO_NODE_DB}:${CARDANO_NODE_DB}
       - ${CARDANO_CONFIG}:/config
     restart: unless-stopped
     ports:
-      - ${CARDANO_NODE_PORT}:${CARDANO_NODE_PORT}
       - ${NODE_SUBMIT_API_PORT}:${NODE_SUBMIT_API_PORT}
+    entrypoint: ["/sbin/entrypoint.sh", "cardano-submit-api"]
     depends_on:
       mithril:
         condition: service_completed_successfully
