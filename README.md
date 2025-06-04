@@ -125,7 +125,7 @@ This will start:
 ### Entry level hardware profile
 
 ```bash
-   docker-compose --env-file .env.docker-compose --env-file .env.docker-compose-profile-mid-level -f docker-compose.yaml up -d
+   docker compose --env-file .env.docker-compose --env-file .env.docker-compose-profile-mid-level -f docker-compose.yaml up -d
 ```
 
 ### A complete list of hardware profiles:
