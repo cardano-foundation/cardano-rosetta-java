@@ -79,7 +79,7 @@ docker run --name rosetta -v {CUSTOM_MOUNT_PATH}:/node \
   --env-file ./docker/.env.dockerfile \
   --env-file ./docker/.env.docker-profile-mid-level \
   -p 8082:8082 --shm-size=4g -d \
-  cardanofoundation/cardano-rosetta-java:1.2.7
+  cardanofoundation/cardano-rosetta-java:1.2.8
 ```
 
 #### Using the Submit API
@@ -91,7 +91,7 @@ docker run --name rosetta -v {CUSTOM_MOUNT_PATH}:/node \
   --env-file ./docker/.env.dockerfile \
   --env-file ./docker/.env.docker-profile-mid-level \
   -p 8090:8090 -p 8082:8082 --shm-size=4g -d \
-  cardanofoundation/cardano-rosetta-java:1.2.7
+  cardanofoundation/cardano-rosetta-java:1.2.8
 ```
 
 :::tip

@@ -1,42 +1,136 @@
 ---
 sidebar_position: 1
-title: Pruning UTXOs
-description: Optimizing disk usage with pruning
+title: Spent UTXO Pruning
+description: Optimizing disk usage with spent UTXO pruning
 ---
 
-# Pruning UTXOs
+# Spent UTXO Pruning
 
-This guide explains how to optimize disk usage in **cardano-rosetta-java** through pruning.
+This guide explains how to optimize disk usage in **cardano-rosetta-java** through spent UTXO pruning, including its impact on Rosetta API endpoints and configuration options.
 
-## What is Pruning?
+## Understanding Spent UTXO Pruning
 
-Pruning removes spent (consumed) UTXOs from local storage, keeping only unspent UTXOs. This can reduce on-disk storage from ~1TB down to ~400GB, but discards historical transaction data.
+Spent UTXO pruning is a disk optimization mechanism in `cardano-rosetta-java`, powered by its underlying indexer, Yaci-Store. This feature selectively removes data related to spent UTXOs from the local database.
 
-- Only unspent outputs are preserved.
-- You can still validate the chain's current state (and spend tokens), since active UTXOs remain.
-- **Enable Pruning**: Set `PRUNING_ENABLED=true` in your environment (e.g., in `.env.dockerfile` or `.env.docker-compose`).
-- **Disable Pruning** (default): Set `PRUNING_ENABLED=false`.
+**Core Principles:**
+
+- **Targeted Deletion**: Only _spent_ UTXOs are removed. All _current, unspent_ UTXOs are preserved, ensuring the accuracy of the present blockchain state and balances.
+- **Distinction from Other Pruning**: This mechanism differs from what is commonly understood as 'pruning' in some other blockchain contexts, including certain descriptions in the Coinbase Mesh API (formerly Rosetta). Unlike methods such as Bitcoin's pruning (which removes entire historical blocks), our approach retains full block history but selectively trims the UTXO set by removing only spent outputs.
+
+**How it Works:**
+When enabled, the pruning process operates as follows:
+
+1.  New UTXOs are indexed as transactions occur.
+2.  UTXOs are marked as spent when consumed in subsequent transactions.
+3.  A background job (default: every 10 minutes) permanently deletes spent UTXOs that are older than a configurable safety margin (default: 2,160 blocks, ~12 hours on mainnet). This buffer safeguards data integrity against chain rollbacks within Cardano's finality window.
+
+**Impact Summary:**
+
+| Aspect                     | Effect                                                       |
+| :------------------------- | :----------------------------------------------------------- |
+| **Disk Storage**           | ✅ Significantly reduced (e.g., mainnet from ~1TB to ~400GB) |
+| **Current UTXO Set**       | ✅ Fully preserved; current balances remain accurate         |
+| **Historical Spent UTXOs** | ⚠️ Permanently deleted beyond the safety margin              |
+| **Query Performance**      | ✅ Improved for queries against the current UTXO set         |
+
+## Impact on Rosetta API Endpoints
+
+Spent UTXO pruning affects Rosetta API endpoints differently based on their reliance on historical transaction data. The table below summarizes the impact. Note that "Recent" refers to data within the safety margin (default ~12 hours).
+
+:::info Oldest Block Identifier
+When pruning is enabled, the `/network/status` endpoint includes an additional `oldest_block_identifier` object in its response. This identifier corresponds to the latest fully queryable block with complete data. Below this block index, blocks might have missing data due to pruning, making historical queries unreliable.
+:::
+
+| **Endpoint**           | **Current State** | **Historical Queries** | **Impact & Notes**                                                           |
+| ---------------------- | ----------------- | ---------------------- | ---------------------------------------------------------------------------- |
+| `/account/balance`     | ✅ Works          | ⚠️ Limited             | **Low** - Current balances unaffected                                        |
+| `/account/coins`       | ✅ Works          | ⚠️ Limited             | **Low** - Current UTXO lists complete                                        |
+| `/block`               | ✅ Recent only    | ❌ Incomplete          | **High** - Missing old transaction inputs                                    |
+| `/block/transaction`   | ✅ Recent only    | ❌ Incomplete          | **High** - Missing input operation details                                   |
+| `/search/transactions` | ⚠️ Recent only    | ❌ Limited             | **Medium** - Hash search works, address limited                              |
+| `/network/status`      | ✅ Works          | ✅ Works               | **None** - Returns additional `oldest_block_identifier` when pruning enabled |
+| `/network/*`           | ✅ Works          | ✅ Works               | **None** - Independent of UTXO data                                          |
+| `/construction/*`      | ✅ Works          | ✅ Works               | **None** - Uses current UTXOs only                                           |
 
 ## When to Enable Pruning
 
-- **Low Disk Environments**: If you need to minimize disk usage and only require UTXO data for current balances.
-- **Exploratory / Dev Environments**: If historical queries are not critical.
+:::tip Recommended Use Cases
+Pruning is beneficial in scenarios where optimizing disk space and focusing on current data is prioritized over maintaining a complete historical record. Consider enabling pruning if your use case aligns with the following:
+
+- **Exchange Integrations & Wallet Services**: Primarily for tracking current balances, processing recent deposits/withdrawals, and validating recent transactions.
+- **Resource-Constrained Environments**: Ideal when disk space is a significant limitation (e.g., under 1TB available for mainnet data).
+- **Tip-of-Chain Operations**: For applications focused on the latest blockchain state rather than deep historical analysis.
+- **Development and Testing**: Useful when a full historical dataset is not essential for development or testing purposes.
+  :::
 
 ## When to Avoid Pruning
 
-- **Full Historical Data Requirements**: If you need the complete transaction history—whether for exchange operations, audit trails, or compliance mandates—do not enable pruning. Pruning discards spent UTXOs, which removes older transaction data and prevents certain types of historical lookups or reporting.
+:::warning Not Suitable For
+Avoid pruning if your operational or regulatory requirements necessitate access to complete and auditable historical blockchain data. Pruning is generally not suitable if you need:
 
-## Example Configuration
+- **Complete Historical Data & Deep Queries**: For comprehensive auditing, compliance, data analytics, or block explorer-like functionality that requires querying full transaction history from any point in time.
+- **Strict Compliance and Audit Trails**: If regulatory mandates demand immutable, complete historical records. Pruned data cannot be recovered without a full resync, and historical queries for `/block` and `/block/transaction` become unreliable beyond the safety window.
+  :::
 
-Below is a snippet of how you might configure `.env.dockerfile` or `.env.docker-compose` for pruning:
+:::danger Data Loss Warning
+Once data is pruned, it cannot be recovered without a full blockchain resynchronization. Assess your historical data needs carefully before enabling pruning.
+:::
+
+## Configuration
+
+Spent UTXO pruning is configured via environment variables, typically set in your `.env.dockerfile` or `.env.docker-compose` file. Below is an example demonstrating the available settings and their default values:
 
 ```bash
-# --- Pruning Toggle ---
-PRUNING_ENABLED=true
-# Enables pruning to reduce disk space requirements
+# --- Spent UTXO Pruning Configuration ---
+
+# Enable or disable spent UTXO pruning.
+# Default: false (Pruning is disabled by default)
+# To enable, set to: true
+REMOVE_SPENT_UTXOS=true
+
+# Pruning interval in seconds: How often the cleanup job runs.
+# Default: 600 (10 minutes)
+# Example: To run every hour, set to 3600.
+PRUNING_INTERVAL=600
+
+# Safety margin: Number of recent blocks for which spent UTXOs are retained.
+# Default: 2160 (approximately 12 hours of blocks on mainnet)
+# This value balances safety for rollbacks against storage savings.
+# Example: To keep ~24 hours of spent UTXOs, set to 4320.
+# Note: Larger PRUNING_SAFE_BLOCKS values provide longer historical query support
+# but use more disk space and delay the realization of storage benefits.
+PRUNING_SAFE_BLOCKS=2160
 ```
+
+:::note Configuration Guidelines
+
+- Start with the default settings (`REMOVE_SPENT_UTXOS=false` means pruning is initially off).
+- If enabling, the provided defaults (`PRUNING_INTERVAL=600`, `PRUNING_SAFE_BLOCKS=2160`) are sensible starting points.
+- Adjust `PRUNING_SAFE_BLOCKS` based on your specific needs for recent historical data access. A larger value offers a longer window for historical queries but increases storage.
+- The default `PRUNING_INTERVAL` (10 minutes) provides regular cleanup without excessive overhead. Adjust only if you have specific performance considerations.
+  :::
+
+## Migration and Operational Notes
+
+This section outlines key considerations when changing pruning settings or managing a system with pruning enabled.
+
+### Enabling Pruning on an Existing Deployment
+
+1.  **Configuration**: Update the necessary environment variables (e.g., `REMOVE_SPENT_UTXOS=true`) and restart your cardano-rosetta-java services.
+2.  **Initial Monitoring**: After enabling, closely monitor your application for any errors. Disk usage benefits will typically appear after the first pruning cycle completes.
+
+### Disabling Pruning
+
+:::caution Important Considerations
+
+- **Halts Deletion, No Restoration**: Setting `REMOVE_SPENT_UTXOS=false` and restarting services will stop further deletion of spent UTXOs. However, this action **does not restore** any data already pruned.
+- **Full Resync for Complete History**: To regain a complete historical dataset after pruning has been active, a full resynchronization of the blockchain data is required.
+- **Storage Growth Resumes**: Once pruning is disabled, expect storage usage to gradually increase again as new UTXOs (both spent and unspent) accumulate.
+  :::
 
 ## Further Reading
 
-- [Rosetta API Reference](https://docs.cdp.coinbase.com/mesh/docs/api-reference/)
+- [Environment Variables Reference](../install-and-deploy/env-vars.md)
 - [Yaci-Store Repository](https://github.com/bloxbean/yaci-store)
+- [Coinbase Mesh (formerly Rosetta) API Specification](https://docs.cdp.coinbase.com/mesh/docs/api-reference/)
+- [Cardano UTXO Model Documentation](https://docs.cardano.org/learn/eutxo-explainer/)

@@ -30,8 +30,8 @@ Since [Yaci-Store](https://github.com/bloxbean/yaci-store) is a comparatively li
 
 - 4CPU Cores
 - 32GB RAM
-- 1TB of storage (PRUNING_ENABLED=false) [default]
-- 400GB of storage (PRUNING_ENABLED=true)
+- 1TB of storage (spent UTXO pruning disabled) [default]
+- 400GB of storage (spent UTXO pruning enabled)
 
 Better hardware will improve the performance of the indexer and the node, which will result in faster syncing times.
 
@@ -125,7 +125,7 @@ This will start:
 ### Entry level hardware profile
 
 ```bash
-   docker-compose --env-file .env.docker-compose --env-file .env.docker-compose-profile-mid-level -f docker-compose.yaml up -d
+   docker compose --env-file .env.docker-compose --env-file .env.docker-compose-profile-mid-level -f docker-compose.yaml up -d
 ```
 
 ### A complete list of hardware profiles:
