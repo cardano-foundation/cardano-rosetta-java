@@ -165,6 +165,12 @@ For accounts that have a multi asset balance, these will be returned with the co
 
 Also, `coins` will be returned with the token bundle list corresponding to each coin as metadata.
 
+:::info Note on Stake Addresses
+When the `/account/balance` endpoint is queried with a stake address (also known as a reward address), the response will include the available rewards that can be withdrawn from the stake address.
+
+This means the API provides a consolidated view of both spendable funds (from payment addresses) and claimable rewards when a stake address is used in the query.
+:::
+
 ### `/account/coins`
 
 :::warning

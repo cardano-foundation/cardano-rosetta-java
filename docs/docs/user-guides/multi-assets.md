@@ -1,17 +1,17 @@
 ---
 sidebar_position: 1
-title: Multi-Assets
+title: Native Tokens
 description: Native token support in Cardano Rosetta implementation
 ---
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-# Multi-Assets
+# Native Tokens
 
 ## Overview
 
-Native tokens (Multi-Assets) on Cardano allow users to create and transact with custom tokens alongside ADA. In the Rosetta API implementation, these tokens are represented in both transaction operations and account balances.
+Native tokens on Cardano allow users to create and transact with custom tokens alongside ADA. In the Rosetta API implementation, these tokens are represented in both transaction operations and account balances.
 
 :::info
 More information about Native Tokens can be found in the [Cardano Documentation](https://docs.cardano.org/developer-resources/native-tokens).
@@ -27,9 +27,9 @@ More information about Native Tokens can be found in the [Cardano Documentation]
 Token Name is not required by Cardano protocol rules. Since Rosetta [symbol](https://www.rosetta-api.org/docs/1.4.4/models/Currency.html) is a required field, it will be represented as `\\x` when no name is provided.
 :::
 
-## Operations with Multi-Assets
+## Operations with Native Tokens
 
-Multi-Assets can be included in both input and output operations. The token bundles are associated with each operation as metadata.
+Native tokens can be included in both input and output operations. The token bundles are associated with each operation as metadata.
 
 <Tabs>
   <TabItem value="input" label="Input Operation" default>
@@ -106,6 +106,12 @@ Multi-Assets can be included in both input and output operations. The token bund
 ## Account Balance Queries
 
 When querying account balances using `/account/balance`, the response will include both ADA and any native tokens owned by the address.
+
+:::info Note on Stake Addresses
+When the `/account/balance` endpoint is queried with a stake address (also known as a reward address), the response will include the available rewards that can be withdrawn from the stake address.
+
+This means the API provides a consolidated view of both spendable funds (from payment addresses) and claimable rewards when a stake address is used in the query.
+:::
 
 ```json
 {
