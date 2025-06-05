@@ -195,44 +195,57 @@ COPY ./.git /root/app/.git
 
 RUN --mount=type=cache,target=/root/.m2 mvn -U clean package -DskipTests
 
+# Build postgres
+FROM ubuntu:24.04 AS postgres-builder
+
+RUN apt update && apt install -y \
+  build-essential \
+  libreadline-dev \
+  zlib1g-dev \
+  flex \
+  bison \
+  wget \
+  git \
+  ca-certificates \
+  sudo \
+  locales \
+  && sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen \
+  && locale-gen \
+  && update-locale LANG=en_US.UTF-8 \
+  && apt clean
+
+ENV PG_VERSION_TAG=REL_14_11
+
+WORKDIR /usr/src
+
+RUN git clone --branch $PG_VERSION_TAG https://github.com/postgres/postgres.git \
+  && cd postgres \
+  && ./configure --prefix=/usr/local/pgsql \
+  && make -j$(nproc) \
+  && make install
+
+
 # Main
 FROM ubuntu:24.04
 
+RUN apt update && apt install -y --no-install-recommends jq bc sudo curl \
+  libreadline-dev \
+  sudo \
+  locales \
+  && sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen \
+  && locale-gen \
+  && update-locale LANG=en_US.UTF-8 \
+  && apt clean
+
 WORKDIR /
-
-# Install postgres
-ARG PG_VERSION=14
-ARG PG_VERSION_TEMP=$PG_VERSION
-ENV PG_VERSION=$PG_VERSION_TEMP
-
-RUN apt update --fix-missing \
-    && DEBIAN_FRONTEND=noninteractive apt install -y wget sudo gnupg \
-    && wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
-    && echo 'deb http://apt.postgresql.org/pub/repos/apt/ jammy-pgdg main' >> /etc/apt/sources.list \
-    && apt-get clean
-
-RUN apt update --fix-missing \
-    && DEBIAN_FRONTEND=noninteractive apt install -y --no-install-recommends  \
-    postgresql-${PG_VERSION} \
-    && apt-get clean
-
-# Allow remote connections
-RUN echo "host all  all    0.0.0.0/0  md5" >> /etc/postgresql/${PG_VERSION}/main/pg_hba.conf
-# Listen on all interfaces
-RUN echo "listen_addresses='*'" >> /etc/postgresql/${PG_VERSION}/main/postgresql.conf
-# Change data directory path
-RUN sed -i "s|var/lib/postgresql/${PG_VERSION}/main|node/postgres|" /etc/postgresql/${PG_VERSION}/main/postgresql.conf
-RUN mkdir -p /node/postgres
-RUN rm -rf /var/lib/postgresql/${PG_VERSION}/main
-
-RUN apt install -y --no-install-recommends jq bc sudo curl \
-    && apt clean
 
 # Copy cardano node
 COPY --from=cardano-builder /usr/local/lib /usr/local/lib
 COPY --from=cardano-builder /root/.local/bin/cardano-* /usr/local/bin/
 COPY --from=cardano-builder /root/.local/bin/mithril-client /usr/local/bin/
 COPY --from=cardano-builder /usr/local/src/cardano-node/cardano-submit-api/config/tx-submit-mainnet-config.yaml /cardano-submit-api-config/cardano-submit-api.yaml
+ENV NODE_DATA="/node/db"
+RUN mkdir -p $NODE_DATA
 
 # Link libsodium library
 COPY --from=cardano-builder --chown=root:root /usr/local/lib/libsodium.so /usr/local/lib
@@ -253,12 +266,21 @@ ENV PATH=/usr/local/lib/:$PATH
 COPY ./config /networks
 RUN mkdir /config
 
-RUN mkdir -p /node/db
-RUN mkdir -p /node/postgres
-
 # Copy jars
 COPY --from=java-builder /root/app/api/target/*.jar /api/app.jar
 COPY --from=java-builder /root/app/yaci-indexer/target/*.jar /yaci-indexer/app.jar
+# Copy JDK
+COPY --from=java-builder /opt/java/jdk-24.0.1 /opt/java/jdk-24.0.1
+ENV JAVA_HOME=/opt/java/jdk-24.0.1
+ENV PATH="${JAVA_HOME}/bin:${PATH}"
+
+# Copy and configure postgres
+COPY --from=postgres-builder /usr/local/pgsql /usr/local/pgsql
+ENV PG_BIN="/usr/local/pgsql/bin"
+ENV PG_DATA="/var/lib/postgresql/data"
+ENV PATH="$PG_BIN:$PATH"
+RUN mkdir -p $PG_DATA 
+RUN useradd -m -U -s /bin/bash postgres
 
 # Run
 RUN mkdir /logs
