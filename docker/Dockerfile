@@ -244,7 +244,8 @@ COPY --from=cardano-builder /usr/local/lib /usr/local/lib
 COPY --from=cardano-builder /root/.local/bin/cardano-* /usr/local/bin/
 COPY --from=cardano-builder /root/.local/bin/mithril-client /usr/local/bin/
 COPY --from=cardano-builder /usr/local/src/cardano-node/cardano-submit-api/config/tx-submit-mainnet-config.yaml /cardano-submit-api-config/cardano-submit-api.yaml
-RUN mkdir -p /node/postgres
+ENV NODE_DATA="/node/db"
+RUN mkdir -p $NODE_DATA
 
 # Link libsodium library
 COPY --from=cardano-builder --chown=root:root /usr/local/lib/libsodium.so /usr/local/lib
