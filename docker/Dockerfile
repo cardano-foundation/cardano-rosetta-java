@@ -268,6 +268,10 @@ RUN mkdir /config
 # Copy jars
 COPY --from=java-builder /root/app/api/target/*.jar /api/app.jar
 COPY --from=java-builder /root/app/yaci-indexer/target/*.jar /yaci-indexer/app.jar
+# Copy JDK
+COPY --from=java-builder /opt/java/jdk-24.0.1 /opt/java/jdk-24.0.1
+ENV JAVA_HOME=/opt/java/jdk-24.0.1
+ENV PATH="${JAVA_HOME}/bin:${PATH}"
 
 # Copy and configure postgres
 COPY --from=postgres-builder /usr/local/pgsql /usr/local/pgsql
