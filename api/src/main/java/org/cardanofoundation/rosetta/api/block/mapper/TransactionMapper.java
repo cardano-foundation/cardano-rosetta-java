@@ -58,6 +58,17 @@ public interface TransactionMapper {
   @Mapping(target = "metadata.drep", source = "model.drep", qualifiedByName = "convertDRepFromRosetta")
   Operation mapDRepDelegationToOperation(DRepDelegation model, OperationStatus status, int index);
 
+  // TODO do we need account.address here?
+  //@Mapping(target = "account.address", source = "model.address")
+  @Mapping(target = "status", source = "status.status")
+  @Mapping(target = "type", constant = Constants.OPERATION_TYPE_GOVERNANCE_CAST_VOTE)
+  @Mapping(target = "operationIdentifier", source = "index", qualifiedByName = "OperationIdentifier")
+  @Mapping(target = "metadata.actionId", source = "governanceVote.govActionId", qualifiedByName = "convertGovActionIdFromRosetta")
+  @Mapping(target = "metadata.voter", source = "governanceVote.voter", qualifiedByName = "convertGovVoterFromRosetta")
+  @Mapping(target = "metadata.vote", source = "governanceVote.vote", qualifiedByName = "convertGovVoteFromRosetta")
+  @Mapping(target = "metadata.anchor", source = "governanceVote.anchor", qualifiedByName = "convertGovAnchorFromRosetta")
+  Operation mapGovernanceVoteToOperation(GovernanceVote governanceVote, OperationStatus status, int index);
+
   @Mapping(target = "type", constant = Constants.INPUT)
   @Mapping(target = "coinChange.coinAction", source = "model", qualifiedByName = "getCoinSpentAction")
   @Mapping(target = "metadata", source = "model.amounts", qualifiedByName = "mapAmountsToOperationMetadataInput")
