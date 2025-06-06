@@ -14,6 +14,7 @@ import java.util.stream.Stream;
 import jakarta.validation.constraints.NotNull;
 
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -38,6 +39,7 @@ import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 @Component
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
+@Setter
 public class LedgerBlockServiceImpl implements LedgerBlockService {
 
   private final BlockRepository blockRepository;
@@ -57,8 +59,14 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
 
   private BlockIdentifierExtended cachedGenesisBlock;
 
-  @Value("${rosetta.blockFetchTimeoutInSeconds:5}")
+  @Value("${cardano.rosetta.BLOCK_FETCH_TIMEOUT_SECS:5}")
   private int blockFetchTimeoutInSeconds;
+
+  @Value("${cardano.rosetta.REMOVE_SPENT_UTXOS:false}")
+  private boolean isRemovalOfSpentUTxOsEnabled;
+
+  @Value("${cardano.rosetta.REMOVE_SPENT_UTXOS_LAST_BLOCKS_GRACE_COUNT:2160}")
+  private int removeSpentUTxOsLastBlocksGraceCount;
 
   @Override
   public Optional<Block> findBlock(Long blockNumber, String blockHash) {
@@ -177,6 +185,30 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
     log.debug("Returning genesis block {}", cachedGenesisBlock);
 
     return cachedGenesisBlock;
+  }
+
+  public BlockIdentifierExtended findOldestBlockIdentifier(BlockIdentifierExtended latestBlock) {
+    log.debug("About to run findOldestBlock query");
+
+    if (!isRemovalOfSpentUTxOsEnabled) {
+      throw ExceptionFactory.oldestBlockNotFound();
+    }
+
+    long targetBlockNo = latestBlock.getNumber() - removeSpentUTxOsLastBlocksGraceCount; // this could result in less than 0
+
+    if (targetBlockNo < 0) {
+        log.debug("Oldest block number is less than 0, returning genesis block");
+
+        return cachedGenesisBlock;
+    }
+
+    BlockIdentifierExtended oldestBlock = blockRepository.findBlockProjectionByNumber(targetBlockNo)
+    .map(blockMapper::mapToBlockIdentifierExtended)
+    .orElseThrow(ExceptionFactory::oldestBlockNotFound);
+
+    log.debug("Returning oldest block {}", oldestBlock);
+
+    return oldestBlock;
   }
 
   private TransactionInfo findByTxHash(List<BlockTx> transactions) {
@@ -300,7 +332,6 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
   }
 
   record UtxoKey(String txHash, Integer outputIndex) {
-
   }
 
 }

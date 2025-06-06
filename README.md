@@ -2,7 +2,6 @@
 [![License](https://img.shields.io:/github/license/cardano-foundation/cardano-rosetta-java?label=license)](https://github.com/cardano-foundation/cardano-rosetta-java/blob/master/LICENSE)
 ![Discord](https://img.shields.io/discord/1022471509173882950)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=cardano-foundation_cardano-rosetta-java&metric=coverage)](https://sonarcloud.io/summary/overall?id=cardano-foundation_cardano-rosetta-java)
-[![FOSSA Status](https://app.fossa.com/api/projects/custom%2B45571%2Fgithub.com%2Fcardano-foundation%2Fcardano-rosetta-java.svg?type=shield&issueType=license)](https://app.fossa.com/projects/custom%2B45571%2Fgithub.com%2Fcardano-foundation%2Fcardano-rosetta-java?ref=badge_shield&issueType=license)
 
 ## What the project is about?
 
@@ -30,8 +29,8 @@ Since [Yaci-Store](https://github.com/bloxbean/yaci-store) is a comparatively li
 
 - 4CPU Cores
 - 32GB RAM
-- 1TB of storage (PRUNING_ENABLED=false) [default]
-- 400GB of storage (PRUNING_ENABLED=true)
+- ca. > 1TB of storage (REMOVE_SPENT_UTXOS=false) [default]
+- ca > 400GB of storage (REMOVE_SPENT_UTXOS=true)
 
 Better hardware will improve the performance of the indexer and the node, which will result in faster syncing times.
 
@@ -100,7 +99,7 @@ For every Release we provide pre-built docker images stored in the DockerHub Rep
 To start it use the following command:
 
 ```bash
-    docker run --name rosetta -v {CUSTOM_MOUNT_PATH}:/node --env-file ./docker/.env.dockerfile --env-file ./docker/.env.docker-profile-mid-level -p 8082:8082 --shm-size=4g -d cardanofoundation/cardano-rosetta-java:1.2.8
+    docker run --name rosetta -v {CUSTOM_MOUNT_PATH}:/node --env-file ./docker/.env.dockerfile --env-file ./docker/.env.docker-profile-mid-level -p 8082:8082 --shm-size=4g -d cardanofoundation/cardano-rosetta-java:1.2.9
 ```
 
 Changes to the configuration can be made by adjusting the `docker/.env.dockerfile` file. For more information on the environment variables, please refer to the [documentation](https://cardano-foundation.github.io/cardano-rosetta-java/docs/install-and-deploy/env-vars).
@@ -108,7 +107,7 @@ Changes to the configuration can be made by adjusting the `docker/.env.dockerfil
 If you want to use the `cardano-submit-api` you can additionally expose port `8090`. It can then be used to submit raw cbor transaction (API documentation here: [Link](https://input-output-hk.github.io/cardano-rest/submit-api/))
 
 ```bash
-    docker run --name rosetta -v {CUSTOM_MOUNT_PATH}:/node --env-file ./docker/.env.dockerfile --env-file ./docker/.env.docker-profile-mid-level -p 8090:8090 -p 8082:8082 --shm-size=4g -d cardanofoundation/cardano-rosetta-java:1.2.8
+    docker run --name rosetta -v {CUSTOM_MOUNT_PATH}:/node --env-file ./docker/.env.dockerfile --env-file ./docker/.env.docker-profile-mid-level -p 8090:8090 -p 8082:8082 --shm-size=4g -d cardanofoundation/cardano-rosetta-java:1.2.9
 ```
 
 ### Docker compose
@@ -142,3 +141,4 @@ Further adjustments can be made by changing `.env.docker-compose` file. For more
 ---
 
 Thanks for visiting us and enjoy :heart:!
+

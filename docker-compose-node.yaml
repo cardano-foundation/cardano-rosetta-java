@@ -1,49 +1,67 @@
 version: '3.8'
 services:
   mithril:
+    image: cardanofoundation/cardano-rosetta-java-mithril:${MITHRIL_VERSION}
     build:
-      context: ./docker/dockerfiles/mithril
+      context: ./
+      dockerfile: ./docker/dockerfiles/mithril/Dockerfile
+      args: 
+        MITHRIL_VERSION: ${MITHRIL_VERSION}
     environment:
       - NETWORK=${NETWORK}
       - MITHRIL_SYNC=${MITHRIL_SYNC}
       - SNAPSHOT_DIGEST=${SNAPSHOT_DIGEST}
       - AGGREGATOR_ENDPOINT=${AGGREGATOR_ENDPOINT}
       - GENESIS_VERIFICATION_KEY=${GENESIS_VERIFICATION_KEY}
+      - ANCILLARY_VERIFICATION_KEY=${ANCILLARY_VERIFICATION_KEY}
     volumes:
       - ${CARDANO_NODE_DIR}:/node
 
   cardano-node:
-    image: ghcr.io/intersectmbo/cardano-node:${CARDANO_NODE_VERSION}
+    image: cardanofoundation/cardano-rosetta-java-cardano-node:${CARDANO_NODE_VERSION}
+    build:
+      context: ./
+      dockerfile: ./docker/dockerfiles/node/Dockerfile
+      args:
+        CARDANO_NODE_VERSION: ${CARDANO_NODE_VERSION}
     environment:
-      - NETWORK=${NETWORK}
+      - CARDANO_NODE_SOCKET_PATH=${CARDANO_NODE_SOCKET_PATH}
+      - CARDANO_NODE_PORT=${CARDANO_NODE_PORT}
+      - CARDANO_NODE_DB=${CARDANO_NODE_DB}
     volumes:
-      - ${CARDANO_NODE_DIR}:/node/
-      - ${CARDANO_NODE_DB}:/node/db
+      - ${CARDANO_NODE_DIR}:${CARDANO_NODE_DIR}
+      - ${CARDANO_NODE_DB}:${CARDANO_NODE_DB}
       - ${CARDANO_CONFIG}:/config
     restart: unless-stopped
     ports:
       - ${CARDANO_NODE_PORT}:${CARDANO_NODE_PORT}
-    entrypoint: cardano-node run --database-path /node/db --port ${CARDANO_NODE_PORT} --socket-path /node/node.socket --topology /config/topology.json --config /config/config.json
+    entrypoint: ["/sbin/entrypoint.sh", "cardano-node"]
     depends_on:
       mithril:
         condition: service_completed_successfully
+
   cardano-submit-api:
-    image: ghcr.io/intersectmbo/cardano-submit-api:${CARDANO_NODE_VERSION}
+    image: cardanofoundation/cardano-rosetta-java-cardano-node:${CARDANO_NODE_VERSION}
+    build:
+      context: ./
+      dockerfile: ./docker/dockerfiles/node/Dockerfile
+      args:
+        CARDANO_NODE_VERSION: ${CARDANO_NODE_VERSION}
     environment:
       - NETWORK=${NETWORK}
-    depends_on:
-      - cardano-node
+      - PROTOCOL_MAGIC=${PROTOCOL_MAGIC}
+      - CARDANO_NODE_SOCKET_PATH=${CARDANO_NODE_SOCKET_PATH}
+      - NODE_SUBMIT_API_PORT=${NODE_SUBMIT_API_PORT}
     volumes:
-      - ${CARDANO_NODE_DIR}:/node-ipc
+      - ${CARDANO_NODE_DIR}:${CARDANO_NODE_DIR}
+      - ${CARDANO_CONFIG}:/config
+    restart: unless-stopped
     ports:
-      - ${NODE_SUBMIT_API_PORT}:8090
-    restart: on-failure
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "200k"
-        max-file: "10"
-
+      - ${NODE_SUBMIT_API_PORT}:${NODE_SUBMIT_API_PORT}
+    entrypoint: ["/sbin/entrypoint.sh", "cardano-submit-api"]
+    depends_on:
+      mithril:
+        condition: service_completed_successfully
 
 networks:
   default:

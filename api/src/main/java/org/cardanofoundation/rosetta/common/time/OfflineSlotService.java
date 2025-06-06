@@ -1,7 +1,11 @@
 package org.cardanofoundation.rosetta.common.time;
 
+import java.util.Optional;
+
 public interface OfflineSlotService {
 
-    long getCurrentSlotBasedOnTime();
+    long getCurrentSlotBasedOnTimeWithFallback();
+
+    Optional<Long> getCurrentSlotBasedOnTime();
 
 }

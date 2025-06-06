@@ -1,4 +1,4 @@
-FROM ubuntu:22.04 AS cardano-builder
+FROM ubuntu:24.04 AS cardano-builder
 
 SHELL ["/bin/bash", "-c"]
 
@@ -19,28 +19,30 @@ RUN bash -c "curl --proto '=https' --tlsv1.2 -sSf https://get-ghcup.haskell.org 
 
 ENV PATH=/root/.local/bin:/root/.ghcup/bin:/root/.cabal/bin:${PATH}
 
-# Install cabal
-ARG CABAL_VERSION=3.12.1.0
+ARG BLST_VERSION=0.3.11
+ARG LIBSODIUM_VERSION=dbb48cc
+ARG SECP256K1_VERSION=ac83be33
+
+ARG CABAL_VERSION=${CABAL_VERSION:-3.12.1.0}
+ARG GHC_VERSION=${GHC_VERSION:-9.6.7}
+
+# Cardano node version
+ARG CARDANO_NODE_VERSION=${CARDANO_NODE_VERSION:-10.3.1}
+
+ARG MITHRIL_VERSION=${MITHRIL_VERSION:-2517.1}
 
 RUN bash -c "ghcup install cabal ${CABAL_VERSION}"
 RUN bash -c "ghcup set cabal ${CABAL_VERSION}"
 
-# Install GHC
-ARG GHC_VERSION=9.6.7
-
 RUN bash -c "ghcup install ghc ${GHC_VERSION}"
 RUN bash -c "ghcup set ghc ${GHC_VERSION}"
 
-
-# Mithril setup
-ARG MITHRIL_VERSION=2517.1
-# Install dependencies
-
+# Install mithril
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | bash -s -- -y \
     && export PATH="$HOME/.cargo/bin:$PATH" \
     && apt update --fix-missing \
     && apt install -y --no-install-recommends \
-    build-essential m4 libssl-dev docker jq git \
+    build-essential m4 libssl-dev docker.io jq git \
     && rustup update stable \
     && apt-get clean
 
@@ -53,58 +55,85 @@ RUN git clone https://github.com/input-output-hk/mithril.git \
     && mkdir -p /root/.local/bin \
     && cp mithril-client /root/.local/bin/
 
-# Cardano node version
-ARG CARDANO_NODE_VERSION=10.3.1
+WORKDIR /usr/local/src
 
 # Install sodium
-RUN export IOHKNIX_VERSION=$(curl https://raw.githubusercontent.com/IntersectMBO/cardano-node/${CARDANO_NODE_VERSION}/flake.lock | jq -r '.nodes.iohkNix.locked.rev') \
-    && echo "iohk-nix version: $IOHKNIX_VERSION" \
-    && export SODIUM_VERSION=$(curl https://raw.githubusercontent.com/input-output-hk/iohk-nix/${IOHKNIX_VERSION}/flake.lock | jq -r '.nodes.sodium.original.rev') \
-    && echo "Using sodium version: $SODIUM_VERSION" \
-    && git clone https://github.com/intersectmbo/libsodium \
-    && cd libsodium \
-    && git checkout ${SODIUM_VERSION} \
-    && ./autogen.sh \
-    && ./configure \
-    && make \
-    && make check \
-    && make install
+RUN git clone --branch master https://github.com/IntersectMBO/libsodium.git \
+ && cd libsodium \
+ && git checkout ${LIBSODIUM_VERSION} \
+ && \
+    for i in $(seq 1 10); do \
+      echo "Attempt $i/10: building libsodium…"; \
+      if ./autogen.sh && ./configure && make && make check && make install; then \
+        echo "Success on attempt $i"; \
+        break; \
+      elif [ "$i" -eq 10 ]; then \
+        echo "All 10 attempts failed, aborting" >&2; \
+        exit 1; \
+      else \
+        echo "Build failed, retrying in 10s…"; \
+        sleep 10; \
+      fi; \
+    done
 
 # Install secp256k1
-RUN export IOHKNIX_VERSION=$(curl https://raw.githubusercontent.com/IntersectMBO/cardano-node/${CARDANO_NODE_VERSION}/flake.lock | jq -r '.nodes.iohkNix.locked.rev') \
-    && echo "iohk-nix version: ${IOHKNIX_VERSION}" \
-    && export SECP256K1_VERSION=$(curl https://raw.githubusercontent.com/input-output-hk/iohk-nix/${IOHKNIX_VERSION}/flake.lock | jq -r '.nodes.secp256k1.original.ref') \
-    && echo "Using secp256k1 version:${SECP256K1_VERSION}" \
-    && git clone --depth 1 --branch ${SECP256K1_VERSION} https://github.com/bitcoin-core/secp256k1 \
-    && cd secp256k1 \
-    && ./autogen.sh \
-    && ./configure --enable-module-schnorrsig --enable-experimental \
-    && make \
-    && make check \
-    && make install
+RUN git clone --branch master https://github.com/bitcoin-core/secp256k1.git \
+ && cd secp256k1 \
+ && git checkout ${SECP256K1_VERSION} \
+ && \
+    for i in $(seq 1 10); do \
+      echo "Attempt $i/10: building secp256k1…"; \
+      if ./autogen.sh \
+         && ./configure --prefix=/usr --enable-module-schnorrsig --enable-experimental \
+         && make \
+         && make check \
+         && make install; then \
+        echo "secp256k1 built successfully on attempt $i"; \
+        break; \
+      elif [ "$i" -eq 10 ]; then \
+        echo "All 10 attempts failed for secp256k1, aborting." >&2; \
+        exit 1; \
+      else \
+        echo "Build failed on attempt $i — retrying in 10s…"; \
+        sleep 10; \
+      fi; \
+    done
 
 # Install blst
-RUN export BLST_VERSION=$(curl https://raw.githubusercontent.com/input-output-hk/iohk-nix/master/flake.lock | jq -r '.nodes.blst.original.ref') \
-    && git clone --depth 1 --branch ${BLST_VERSION} https://github.com/supranational/blst \
-    && cd blst \
-    && ./build.sh \
-    && echo "prefix=/usr/local" >> libblst.pc \
-    && echo "exec_prefix=\${prefix}" >> libblst.pc \
-    && echo "libdir=\${exec_prefix}/lib" >> libblst.pc \
-    && echo "includedir=\${prefix}/include" >> libblst.pc \
-    && echo "" >> libblst.pc \
-    && echo "Name: libblst" >> libblst.pc \
-    && echo "Description: Multilingual BLS12-381 signature library" >> libblst.pc \
-    && echo "URL: https://github.com/supranational/blst" >> libblst.pc \
-    && echo "Version: ${BLST_VERSION#v}" >> libblst.pc \
-    && echo "Cflags: -I\${includedir}" >> libblst.pc \
-    && echo "Libs: -L\${libdir} -lblst" >> libblst.pc \
-    && cp libblst.pc /usr/local/lib/pkgconfig/ \
-    && cp bindings/blst_aux.h bindings/blst.h bindings/blst.hpp  /usr/local/include/ \
-    && cp libblst.a /usr/local/lib \
-    && bash -c "chmod u=rw,go=r /usr/local/{lib/{libblst.a,pkgconfig/libblst.pc},include/{blst.{h,hpp},blst_aux.h}}"
+RUN git clone --branch master https://github.com/supranational/blst.git \
+ && cd blst \
+ && git checkout v${BLST_VERSION} \
+ && \
+    for i in $(seq 1 10); do \
+      echo "Attempt $i/10: building blst…"; \
+      if ./build.sh \
+        && echo "prefix=/usr/local" >> libblst.pc \
+        && echo "exec_prefix=\${prefix}" >> libblst.pc \
+        && echo "libdir=\${exec_prefix}/lib" >> libblst.pc \
+        && echo "includedir=\${prefix}/include" >> libblst.pc \
+        && echo "" >> libblst.pc \
+        && echo "Name: libblst" >> libblst.pc \
+        && echo "Description: Multilingual BLS12-381 signature library" >> libblst.pc \
+        && echo "URL: https://github.com/supranational/blst" >> libblst.pc \
+        && echo "Version: ${BLST_VERSION#v}" >> libblst.pc \
+        && echo "Cflags: -I\${includedir}" >> libblst.pc \
+        && echo "Libs: -L\${libdir} -lblst" >> libblst.pc \
+        && cp libblst.pc /usr/local/lib/pkgconfig/ \
+        && cp bindings/blst_aux.h bindings/blst.h bindings/blst.hpp  /usr/local/include/ \
+        && cp libblst.a /usr/local/lib \
+        && bash -c "chmod u=rw,go=r /usr/local/{lib/{libblst.a,pkgconfig/libblst.pc},include/{blst.{h,hpp},blst_aux.h}}"; then \
+        echo "blst built successfully on attempt $i"; \
+        break; \
+      elif [ "$i" -eq 10 ]; then \
+        echo "All 10 attempts failed for blst, aborting." >&2; \
+        exit 1; \
+      else \
+        echo "blst build failed on attempt $i — retrying in 10s…"; \
+        sleep 10; \
+      fi; \
+    done
 
-# Install node
+# Install cardano-node
 RUN git clone https://github.com/intersectmbo/cardano-node.git \
     && cd cardano-node \
     && git checkout tags/${CARDANO_NODE_VERSION} \
@@ -123,7 +152,7 @@ RUN git clone https://github.com/intersectmbo/cardano-node.git \
     && ln -s /opt/homebrew/opt/openssl@3/lib /usr/local/opt/openssl/lib \
     && ln -s /opt/homebrew/opt/openssl@3/include /usr/local/opt/openssl/include
 
-WORKDIR /root/src/cardano-node
+WORKDIR /usr/local/src/cardano-node
 
 RUN bash -c "cabal update"
 RUN bash -c "cabal build all"
@@ -137,13 +166,25 @@ RUN mkdir -p /root/.local/bin \
 
 
 # Compile java applications
-FROM ubuntu:22.04 AS java-builder
+FROM ubuntu:24.04 AS java-builder
+
+# Install dependencies
+RUN apt update --fix-missing \
+    && apt install -y --no-install-recommends \
+    maven curl \
+    && apt-get clean
+
+# Download and setup JDK 24.0.1
+RUN mkdir -p /opt/java \
+    && curl -L https://download.java.net/java/GA/jdk24.0.1/24a58e0e276943138bf3e963e6291ac2/9/GPL/openjdk-24.0.1_linux-x64_bin.tar.gz -o /opt/jdk.tar.gz \
+    && tar -xzf /opt/jdk.tar.gz -C /opt/java \
+    && rm /opt/jdk.tar.gz
+
+# Set JAVA_HOME and update PATH
+ENV JAVA_HOME=/opt/java/jdk-24.0.1
+ENV PATH="${JAVA_HOME}/bin:${PATH}"
 
 WORKDIR /root/app
-
-RUN apt update --fix-missing \
-    && apt install -y --no-install-recommends openjdk-21-jdk maven \
-    && apt-get clean
 
 COPY ./pom.xml /root/app/pom.xml
 
@@ -154,55 +195,70 @@ COPY ./.git /root/app/.git
 
 RUN --mount=type=cache,target=/root/.m2 mvn -U clean package -DskipTests
 
+# Build postgres
+FROM ubuntu:24.04 AS postgres-builder
+
+RUN apt update && apt install -y \
+  build-essential \
+  libreadline-dev \
+  zlib1g-dev \
+  flex \
+  bison \
+  wget \
+  git \
+  ca-certificates \
+  sudo \
+  locales \
+  && sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen \
+  && locale-gen \
+  && update-locale LANG=en_US.UTF-8 \
+  && apt clean
+
+ENV PG_VERSION_TAG=REL_14_11
+
+WORKDIR /usr/src
+
+RUN git clone --branch $PG_VERSION_TAG https://github.com/postgres/postgres.git \
+  && cd postgres \
+  && ./configure --prefix=/usr/local/pgsql \
+  && make -j$(nproc) \
+  && make install
+
+
 # Main
-FROM ubuntu:22.04
+FROM ubuntu:24.04
+
+RUN apt update && apt install -y --no-install-recommends jq bc sudo curl \
+  libreadline-dev \
+  sudo \
+  locales \
+  && sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen \
+  && locale-gen \
+  && update-locale LANG=en_US.UTF-8 \
+  && apt clean
 
 WORKDIR /
-
-# Install postgres
-ARG PG_VERSION=14
-ARG PG_VERSION_TEMP=$PG_VERSION
-ENV PG_VERSION=$PG_VERSION_TEMP
-
-RUN apt update --fix-missing \
-    && DEBIAN_FRONTEND=noninteractive apt install -y wget sudo gnupg \
-    && wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
-    && echo 'deb http://apt.postgresql.org/pub/repos/apt/ jammy-pgdg main' >> /etc/apt/sources.list \
-    && apt-get clean
-
-RUN apt update --fix-missing \
-    && DEBIAN_FRONTEND=noninteractive apt install -y --no-install-recommends  \
-    postgresql-${PG_VERSION} \
-    && apt-get clean
-
-# Allow remote connections
-RUN echo "host all  all    0.0.0.0/0  md5" >> /etc/postgresql/${PG_VERSION}/main/pg_hba.conf
-# Listen on all interfaces
-RUN echo "listen_addresses='*'" >> /etc/postgresql/${PG_VERSION}/main/postgresql.conf
-# Change data directory path
-RUN sed -i "s|var/lib/postgresql/${PG_VERSION}/main|node/postgres|" /etc/postgresql/${PG_VERSION}/main/postgresql.conf
-RUN mkdir -p /node/postgres
-RUN rm -rf /var/lib/postgresql/${PG_VERSION}/main
-
-# Install jdk 21
-RUN apt install -y --no-install-recommends openjdk-21-jdk jq bc sudo curl \
-    && apt clean
 
 # Copy cardano node
 COPY --from=cardano-builder /usr/local/lib /usr/local/lib
 COPY --from=cardano-builder /root/.local/bin/cardano-* /usr/local/bin/
 COPY --from=cardano-builder /root/.local/bin/mithril-client /usr/local/bin/
-COPY --from=cardano-builder /root/src/cardano-node/cardano-submit-api/config/tx-submit-mainnet-config.yaml /cardano-submit-api-config/cardano-submit-api.yaml
+COPY --from=cardano-builder /usr/local/src/cardano-node/cardano-submit-api/config/tx-submit-mainnet-config.yaml /cardano-submit-api-config/cardano-submit-api.yaml
+ENV NODE_DATA="/node/db"
+RUN mkdir -p $NODE_DATA
 
+# Link libsodium library
+COPY --from=cardano-builder --chown=root:root /usr/local/lib/libsodium.so /usr/local/lib
 RUN ln -snf /usr/local/lib/libsodium.so /usr/local/lib/libsodium.so.23 \
-      || true && \
-    ln -snf /usr/local/lib/libsodium.so /usr/local/lib/libsodium.so.23.3.0 \
-      || true
+    && ln -snf /usr/local/lib/libsodium.so /usr/local/lib/libsodium.so.23.3.0
+RUN ldconfig
 
-RUN ln -snf /usr/local/lib/libsecp256k1.so /usr/local/lib/libsecp256k1.so.1 \
-      || true && \
-    ln -snf /usr/local/lib/libsecp256k1.so /usr/local/lib/libsecp256k1.so.1.0.1 \
-      || true
+# Link secp256k1 library
+COPY --from=cardano-builder --chown=root:root /usr/local/src/secp256k1/.libs/libsecp256k1.so /usr/local/lib
+RUN ln -snf /usr/local/lib/libsecp256k1.so /usr/local/lib/libsecp256k1.so.0 \
+    && ln -snf /usr/local/lib/libsecp256k1.so /usr/local/lib/libsecp256k1.so.1 \
+    && ln -snf /usr/local/lib/libsecp256k1.so /usr/local/lib/libsecp256k1.so.1.0.1
+RUN ldconfig
 
 ENV LD_LIBRARY_PATH=/usr/local/lib
 ENV PATH=/usr/local/lib/:$PATH
@@ -210,12 +266,21 @@ ENV PATH=/usr/local/lib/:$PATH
 COPY ./config /networks
 RUN mkdir /config
 
-RUN mkdir -p /node/db
-RUN mkdir -p /node/postgres
-
 # Copy jars
 COPY --from=java-builder /root/app/api/target/*.jar /api/app.jar
 COPY --from=java-builder /root/app/yaci-indexer/target/*.jar /yaci-indexer/app.jar
+# Copy JDK
+COPY --from=java-builder /opt/java/jdk-24.0.1 /opt/java/jdk-24.0.1
+ENV JAVA_HOME=/opt/java/jdk-24.0.1
+ENV PATH="${JAVA_HOME}/bin:${PATH}"
+
+# Copy and configure postgres
+COPY --from=postgres-builder /usr/local/pgsql /usr/local/pgsql
+ENV PG_BIN="/usr/local/pgsql/bin"
+ENV PG_DATA="/var/lib/postgresql/data"
+ENV PATH="$PG_BIN:$PATH"
+RUN mkdir -p $PG_DATA 
+RUN useradd -m -U -s /bin/bash postgres
 
 # Run
 RUN mkdir /logs

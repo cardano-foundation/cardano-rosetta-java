@@ -198,7 +198,8 @@ public class RosettaConstants {
     MISSING_DREP_ID("Missing drep id", 5039),
     MISSING_DREP_TYPE("Missing drep type", 5040),
     TIMEOUT("Downstream timeout", 5041),
-    INVALID_BLOCK_INDEX("Invalid block index", 5042);
+    INVALID_BLOCK_INDEX("Invalid block index", 5042),
+    OLDEST_BLOCK_NOT_FOUND("Oldest block not found", 5043);
 
     final String message;
     final int code;
