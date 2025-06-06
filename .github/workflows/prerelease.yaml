@@ -1,9 +1,9 @@
-name: Build release
+name: Build pre-release
 
 on:
   release:
     types:
-      - released
+      - prereleased
 
 jobs:
   build:
@@ -18,8 +18,7 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Build Cardano Rosetta Release
+      - name: Build Cardano Rosetta Pre-Release
         uses: ./.github/actions/build_docker_images
         with:
-          tag: ${{ github.event.release.tag_name }}
-          isRelease: true
+          tag: ${{ github.event.release.tag_name }}-pre-release
