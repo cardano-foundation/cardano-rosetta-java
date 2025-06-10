@@ -22,38 +22,12 @@ import com.bloxbean.cardano.client.exception.CborDeserializationException;
 import com.bloxbean.cardano.client.exception.CborSerializationException;
 import com.bloxbean.cardano.client.metadata.cbor.CBORMetadata;
 import com.bloxbean.cardano.client.metadata.cbor.CBORMetadataMap;
-import com.bloxbean.cardano.client.transaction.spec.Asset;
-import com.bloxbean.cardano.client.transaction.spec.AuxiliaryData;
-import com.bloxbean.cardano.client.transaction.spec.MultiAsset;
-import com.bloxbean.cardano.client.transaction.spec.TransactionBody;
-import com.bloxbean.cardano.client.transaction.spec.TransactionInput;
-import com.bloxbean.cardano.client.transaction.spec.TransactionOutput;
-import com.bloxbean.cardano.client.transaction.spec.cert.Certificate;
-import com.bloxbean.cardano.client.transaction.spec.cert.MultiHostName;
-import com.bloxbean.cardano.client.transaction.spec.cert.PoolRegistration;
-import com.bloxbean.cardano.client.transaction.spec.cert.PoolRetirement;
-import com.bloxbean.cardano.client.transaction.spec.cert.SingleHostAddr;
-import com.bloxbean.cardano.client.transaction.spec.cert.SingleHostName;
-import com.bloxbean.cardano.client.transaction.spec.cert.StakeDelegation;
+import com.bloxbean.cardano.client.transaction.spec.*;
+import com.bloxbean.cardano.client.transaction.spec.cert.*;
 import com.bloxbean.cardano.client.util.HexUtil;
 import org.apache.commons.lang3.ObjectUtils;
-import org.openapitools.client.model.AccountIdentifier;
-import org.openapitools.client.model.Amount;
-import org.openapitools.client.model.CoinAction;
-import org.openapitools.client.model.CoinChange;
-import org.openapitools.client.model.CoinIdentifier;
-import org.openapitools.client.model.Currency;
-import org.openapitools.client.model.CurveType;
-import org.openapitools.client.model.Operation;
-import org.openapitools.client.model.OperationIdentifier;
-import org.openapitools.client.model.OperationMetadata;
-import org.openapitools.client.model.PoolMargin;
-import org.openapitools.client.model.PoolMetadata;
-import org.openapitools.client.model.PoolRegistrationParams;
-import org.openapitools.client.model.PublicKey;
+import org.openapitools.client.model.*;
 import org.openapitools.client.model.Relay;
-import org.openapitools.client.model.TokenBundleItem;
-import org.openapitools.client.model.VoteRegistrationMetadata;
 
 import org.cardanofoundation.rosetta.api.construction.enumeration.CatalystLabels;
 import org.cardanofoundation.rosetta.common.enumeration.CatalystDataIndexes;
@@ -281,6 +255,7 @@ public class ParseConstructionUtil {
       log.error("[parseCertsToOperations] Missing staking key");
       throw ExceptionFactory.missingStakingKeyError();
     }
+
     return hex;
   }
 
@@ -384,7 +359,9 @@ public class ParseConstructionUtil {
         HexUtil.decodeHexString(transactionMetadataHex));
     AuxiliaryData transactionMetadata = AuxiliaryData.deserialize(
         (co.nstant.in.cbor.model.Map) array.getDataItems().getFirst());
+
     CBORMetadata metadata = (CBORMetadata) transactionMetadata.getMetadata();
+
     CBORMetadataMap data = (CBORMetadataMap) metadata.get(
         valueOf(Long.parseLong(CatalystLabels.DATA.getLabel())));
     CBORMetadataMap sig = (CBORMetadataMap) metadata.get(
