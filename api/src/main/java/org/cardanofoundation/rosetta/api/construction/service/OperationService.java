@@ -52,8 +52,17 @@ public class OperationService {
     fillCertOperations(transactionBody, extraData, network, operations);
     fillWithdrawalOperations(transactionBody, extraData, network, operations);
     fillVoteOperations(extraData, operations);
+    fillGovOperations(extraData, operations, network);
 
     return operations;
+  }
+
+  private void fillGovOperations(TransactionExtraData transactionBody, List<Operation> operations, Network network) {
+    List<Operation> governanceOperations = transactionBody.operations().stream()
+            .filter(o -> Constants.GOVERNANCE_OPERATIONS.contains(o.getType())
+            ).toList();
+
+    operations.addAll(governanceOperations);
   }
 
   public List<String> getSignerFromOperation(Network network, Operation operation) {

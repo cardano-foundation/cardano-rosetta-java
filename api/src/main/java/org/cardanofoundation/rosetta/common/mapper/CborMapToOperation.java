@@ -5,31 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import co.nstant.in.cbor.model.Array;
-import co.nstant.in.cbor.model.DataItem;
-import co.nstant.in.cbor.model.Map;
-import co.nstant.in.cbor.model.UnicodeString;
-import co.nstant.in.cbor.model.UnsignedInteger;
-import org.openapitools.client.model.AccountIdentifier;
-import org.openapitools.client.model.AccountIdentifierMetadata;
-import org.openapitools.client.model.Amount;
-import org.openapitools.client.model.CoinAction;
-import org.openapitools.client.model.CoinChange;
-import org.openapitools.client.model.CoinIdentifier;
-import org.openapitools.client.model.Currency;
-import org.openapitools.client.model.CurrencyMetadata;
-import org.openapitools.client.model.CurveType;
-import org.openapitools.client.model.Operation;
-import org.openapitools.client.model.OperationIdentifier;
-import org.openapitools.client.model.OperationMetadata;
-import org.openapitools.client.model.PoolMargin;
-import org.openapitools.client.model.PoolMetadata;
-import org.openapitools.client.model.PoolRegistrationParams;
-import org.openapitools.client.model.PublicKey;
-import org.openapitools.client.model.Relay;
-import org.openapitools.client.model.SubAccountIdentifier;
-import org.openapitools.client.model.TokenBundleItem;
-import org.openapitools.client.model.VoteRegistrationMetadata;
+import co.nstant.in.cbor.model.*;
+import org.openapitools.client.model.*;
 
 import org.cardanofoundation.rosetta.common.util.Constants;
 
@@ -414,9 +391,65 @@ public class CborMapToOperation {
             addPoolRegistrationCert(metadataMap, operationMetadata);
             addPoolRegistrationParams(metadataMap, operationMetadata);
             addVoteRegistrationMetadata(metadataMap, operationMetadata);
+            addGovCastVoteParams(metadataMap, operationMetadata);
 
             operation.setMetadata(operationMetadata);
         });
+    }
+
+    private static void addGovCastVoteParams(Map metadataMap, OperationMetadata operationMetadata) {
+        Optional.ofNullable(metadataMap.get(key("govCastVoteParams"))).ifPresent(o -> {
+            Map govCastVoteParamsMap = (Map) o;
+            GovCastVoteParams govCastVoteParams = new GovCastVoteParams();
+            addGovActionId(govCastVoteParamsMap, govCastVoteParams);
+            addGovVoter(govCastVoteParamsMap, govCastVoteParams);
+            addGovVote(govCastVoteParamsMap, govCastVoteParams);
+            addGovAnchor(govCastVoteParamsMap, govCastVoteParams);
+
+            operationMetadata.setGovCastVoteParams(govCastVoteParams);
+        });
+    }
+
+    private static void addGovAnchor(Map metadataMap, GovCastVoteParams operationMetadata) {
+        Optional.ofNullable(metadataMap.get(key(Constants.ANCHOR)))
+                .ifPresent(o -> {
+                    Map voterMap = (Map) o;
+                    UnicodeString url = (UnicodeString) voterMap.get(new UnicodeString("url"));
+                    UnicodeString dataHash = (UnicodeString) voterMap.get(new UnicodeString("data_hash"));
+
+                    operationMetadata.setAnchor(new GovAnchorParams(url.getString(), dataHash.getString()));
+                });
+    }
+
+    private static void addGovActionId(Map metadataMap, GovCastVoteParams operationMetadata) {
+        Optional.ofNullable(metadataMap.get(key(Constants.ACTION_ID)))
+                .ifPresent(o -> {
+                    Map voterMap = (Map) o;
+                    UnicodeString txId = (UnicodeString) voterMap.get(new UnicodeString("tx_id"));
+                    UnsignedInteger index = (UnsignedInteger) voterMap.get(new UnicodeString("index"));
+
+                    operationMetadata.setActionId(new GovActionIdParams(txId.getString(), index.getValue().intValue()));
+                });
+    }
+
+    private static void addGovVote(Map metadataMap, GovCastVoteParams operationMetadata) {
+        Optional.ofNullable(metadataMap.get(key(Constants.VOTE)))
+                .ifPresent(o -> {
+                    UnicodeString voteValue = (UnicodeString) o;
+
+                    operationMetadata.setVote(GovVoteParams.fromValue(voteValue.toString().toUpperCase()));
+                });
+    }
+
+    private static void addGovVoter(Map metadataMap, GovCastVoteParams operationMetadata) {
+        Optional.ofNullable(metadataMap.get(key(Constants.VOTER)))
+                .ifPresent(o -> {
+                    Map voterMap = (Map) o;
+                    UnicodeString voterId = (UnicodeString) voterMap.get(new UnicodeString("id"));
+                    UnicodeString type = (UnicodeString) voterMap.get(new UnicodeString("type"));
+
+                    operationMetadata.setVoter(new GovVoterParams(voterId.getString(), GovVoterTypeParams.fromValue(type.getString())));
+                });
     }
 
     /**

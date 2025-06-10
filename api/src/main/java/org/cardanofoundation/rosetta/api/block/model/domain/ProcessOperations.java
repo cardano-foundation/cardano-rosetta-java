@@ -2,6 +2,7 @@ package org.cardanofoundation.rosetta.api.block.model.domain;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.List;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -20,14 +21,16 @@ import com.bloxbean.cardano.client.transaction.spec.cert.Certificate;
 @NoArgsConstructor
 public class ProcessOperations {
 
-  private ArrayList<TransactionInput> transactionInputs = new ArrayList<>();
-  private ArrayList<TransactionOutput> transactionOutputs = new ArrayList<>();
-  private ArrayList<Certificate> certificates = new ArrayList<>();
-  private ArrayList<Withdrawal> withdrawals = new ArrayList<>();
-  private ArrayList<String> addresses = new ArrayList<>();
-  private ArrayList<BigInteger> inputAmounts = new ArrayList<>();
-  private ArrayList<BigInteger> outputAmounts = new ArrayList<>();
-  private ArrayList<BigInteger> withdrawalAmounts = new ArrayList<>();
+  private List<TransactionInput> transactionInputs = new ArrayList<>();
+  private List<TransactionOutput> transactionOutputs = new ArrayList<>();
+  private List<Certificate> certificates = new ArrayList<>();
+  private List<Withdrawal> withdrawals = new ArrayList<>();
+  private List<String> addresses = new ArrayList<>();
+  private List<BigInteger> inputAmounts = new ArrayList<>();
+  private List<BigInteger> outputAmounts = new ArrayList<>();
+  private List<BigInteger> withdrawalAmounts = new ArrayList<>();
+  private List<GovernanceVote> governanceVotes = new ArrayList<>();
+
   private double stakeKeyRegistrationsCount = 0.0;
   private double stakeKeyDeRegistrationsCount = 0.0;
   private double poolRegistrationsCount = 0.0;
