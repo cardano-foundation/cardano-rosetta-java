@@ -12,6 +12,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import jakarta.validation.constraints.NotNull;
+import javax.annotation.PostConstruct;
 
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -67,6 +68,12 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
 
   @Value("${cardano.rosetta.REMOVE_SPENT_UTXOS_LAST_BLOCKS_GRACE_COUNT:2160}")
   private int removeSpentUTxOsLastBlocksGraceCount;
+
+  @PostConstruct
+  public void init() {
+    log.info("LedgerBlockServiceImpl initialized with blockFetchTimeoutInSeconds: {}, isRemovalOfSpentUTxOsEnabled: {}, removeSpentUTxOsLastBlocksGraceCount: {}",
+            blockFetchTimeoutInSeconds, isRemovalOfSpentUTxOsEnabled, removeSpentUTxOsLastBlocksGraceCount);
+  }
 
   @Override
   public Optional<Block> findBlock(Long blockNumber, String blockHash) {
