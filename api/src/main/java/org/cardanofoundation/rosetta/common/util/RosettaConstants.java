@@ -199,7 +199,9 @@ public class RosettaConstants {
     MISSING_DREP_TYPE("Missing drep type", 5040),
     TIMEOUT("Downstream timeout", 5041),
     INVALID_BLOCK_INDEX("Invalid block index", 5042),
-    OLDEST_BLOCK_NOT_FOUND("Oldest block not found", 5043);
+    OLDEST_BLOCK_NOT_FOUND("Oldest block not found", 5043),
+    INVALID_GOVERNANCE_VOTE("Governance vote is invalid", 5044),
+    UNSUPPORTED_VOTER_TYPE("VoterType not supported", 5045);
 
     final String message;
     final int code;

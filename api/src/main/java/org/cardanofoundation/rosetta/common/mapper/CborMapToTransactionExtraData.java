@@ -38,6 +38,7 @@ public class CborMapToTransactionExtraData {
       Operation operation = CborMapToOperation.cborMapToOperation(operationMap);
       operations.add(operation);
     });
+
     return new TransactionExtraData(operations, transactionMetadataHex);
   }
 
