@@ -4,10 +4,9 @@ import java.io.File;
 import java.io.IOException;
 
 import com.bloxbean.cardano.client.exception.CborSerializationException;
-import com.bloxbean.cardano.client.transaction.spec.cert.StakeDeregistration;
-import com.bloxbean.cardano.client.transaction.spec.cert.StakeRegistration;
-import com.bloxbean.cardano.client.transaction.spec.cert.VoteDelegCert;
+import com.bloxbean.cardano.client.transaction.spec.cert.*;
 import com.bloxbean.cardano.client.transaction.spec.governance.DRepType;
+import com.bloxbean.cardano.client.util.HexUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.openapitools.client.model.Operation;
 import org.openapitools.client.model.OperationMetadata;
@@ -20,6 +19,7 @@ import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.common.exception.ApiException;
 
 import static com.bloxbean.cardano.client.transaction.spec.cert.CertificateType.VOTE_DELEG_CERT;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -86,14 +86,20 @@ class ParseOperationTest {
   }
 
   @Test
-  void stakeDelegationOperationTest() throws IOException {
+  void stakeDelegationOperationTest() throws IOException, CborSerializationException {
     Operation operation = getOperation(
         "testdata/construction/Operations/stakeDelegationOperation.json");
     ProcessOperations resultAccumulator = new ProcessOperations();
     resultAccumulator = OperationParseUtil.parseOperation(operation, NetworkEnum.MAINNET.getNetwork(), resultAccumulator,
         OperationType.STAKE_DELEGATION.getValue());
 
-    assertEquals(operation.getAccount().getAddress(), resultAccumulator.getAddresses().getFirst());
+    StakeDelegation stakeDelegation = (StakeDelegation) resultAccumulator.getCertificates().getFirst();
+
+    assertThat(stakeDelegation.getCborHex()).isEqualTo("83028200581cbb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb581c1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5");
+    assertThat(stakeDelegation.getType()).isEqualTo(CertificateType.STAKE_DELEGATION);
+    assertThat(stakeDelegation.getStakePoolId().getPoolKeyHash()).isEqualTo(HexUtil.decodeHexString("1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5"));
+
+    assertThat(resultAccumulator.getAddresses().getFirst()).isEqualTo("stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5");
   }
 
   @Test
@@ -106,7 +112,6 @@ class ParseOperationTest {
     resultAccumulator = OperationParseUtil.parseOperation(operation, NetworkEnum.MAINNET.getNetwork(), resultAccumulator,
             OperationType.VOTE_DREP_DELEGATION.getValue());
 
-    assertEquals(operation.getAccount().getAddress(), resultAccumulator.getAddresses().getFirst());
     VoteDelegCert voteRegDelegCert = (VoteDelegCert) resultAccumulator.getCertificates().getFirst();
 
     assertEquals("83098200581cbb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb8200581c74984fae4ca1715fa1f8759f9d871015ac87f449a85dea6cf9956da1", voteRegDelegCert.getCborHex());
@@ -125,7 +130,6 @@ class ParseOperationTest {
     resultAccumulator = OperationParseUtil.parseOperation(operation, NetworkEnum.MAINNET.getNetwork(), resultAccumulator,
             OperationType.VOTE_DREP_DELEGATION.getValue());
 
-    assertEquals(operation.getAccount().getAddress(), resultAccumulator.getAddresses().getFirst());
     VoteDelegCert voteRegDelegCert = (VoteDelegCert) resultAccumulator.getCertificates().getFirst();
 
     assertEquals("83098200581cbb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb8201581c41868c2b4e5289022a3a1f6f47f86823bc605c609d2c47a2db58e04a", voteRegDelegCert.getCborHex());
@@ -144,7 +148,6 @@ class ParseOperationTest {
     resultAccumulator = OperationParseUtil.parseOperation(operation, NetworkEnum.MAINNET.getNetwork(), resultAccumulator,
             OperationType.VOTE_DREP_DELEGATION.getValue());
 
-    assertEquals(operation.getAccount().getAddress(), resultAccumulator.getAddresses().getFirst());
     VoteDelegCert voteRegDelegCert = (VoteDelegCert) resultAccumulator.getCertificates().getFirst();
 
     assertEquals("83098200581cbb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb8102", voteRegDelegCert.getCborHex());
@@ -162,7 +165,6 @@ class ParseOperationTest {
     resultAccumulator = OperationParseUtil.parseOperation(operation, NetworkEnum.MAINNET.getNetwork(), resultAccumulator,
             OperationType.VOTE_DREP_DELEGATION.getValue());
 
-    assertEquals(operation.getAccount().getAddress(), resultAccumulator.getAddresses().getFirst());
     VoteDelegCert voteRegDelegCert = (VoteDelegCert) resultAccumulator.getCertificates().getFirst();
 
     assertEquals("83098200581cbb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb8103", voteRegDelegCert.getCborHex());
