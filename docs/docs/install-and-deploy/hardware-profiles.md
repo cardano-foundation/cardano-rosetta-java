@@ -18,26 +18,22 @@ Hardware profiles are implemented as environment files that are passed to Docker
 Cardano Rosetta Java provides preconfigured hardware profiles to match different deployment scenarios:
 
 <Tabs>
-<TabItem value="entry" label="Entry-Level">
+<TabItem value="mid" label="⭐ Mid-Level (recommended)">
 
-### Entry-Level Hardware Profile
-
-Designed for development environments or smaller deployments with limited resources:
-
-- 4 CPU cores
-- 32 GB RAM
-- Suitable for development, testing, or light production use
-
-</TabItem>
-<TabItem value="mid" label="Mid-Level">
-
-### Mid-Level Hardware Profile
-
-Optimized for production environments with moderate resources:
+Optimized for **production environments** with moderate resources:
 
 - 8 CPU cores
 - 48 GB RAM
 - Suitable for standard production deployments with moderate traffic
+
+</TabItem>
+<TabItem value="entry" label="Entry-Level">
+
+Designed for **development environments** or smaller deployments with limited resources:
+
+- 4 CPU cores
+- 32 GB RAM
+- Suitable for development, testing, or light production use
 
 </TabItem>
 </Tabs>

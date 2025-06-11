@@ -22,16 +22,15 @@ When enabled, the pruning process operates as follows:
 
 1.  New UTXOs are indexed as transactions occur.
 2.  UTXOs are marked as spent when consumed in subsequent transactions.
-3.  A background job (default: every 10 minutes) permanently deletes spent UTXOs that are older than a configurable safety margin (default: 2,160 blocks, ~12 hours on mainnet). This buffer safeguards data integrity against chain rollbacks within Cardano's finality window.
+3.  A background job periodically permanently deletes spent UTXOs that are older than a configurable safety margin (default: 2,160 blocks, ~12 hours on mainnet). This buffer safeguards data integrity against chain rollbacks within Cardano's finality window.
 
 **Impact Summary:**
-
-| Aspect                     | Effect                                                       |
+| Aspect | Effect |
 | :------------------------- | :----------------------------------------------------------- |
-| **Disk Storage**           | ✅ Significantly reduced (e.g., mainnet from ~1TB to ~400GB) |
-| **Current UTXO Set**       | ✅ Fully preserved; current balances remain accurate         |
-| **Historical Spent UTXOs** | ⚠️ Permanently deleted beyond the safety margin              |
-| **Query Performance**      | ✅ Improved for queries against the current UTXO set         |
+| **Disk Storage** | ✅ Significantly reduced (e.g., mainnet from ~1TB to ~400GB) |
+| **Current UTXO Set** | ✅ Fully preserved; current balances remain accurate |
+| **Historical Spent UTXOs** | ⚠️ Permanently deleted beyond the safety margin |
+| **Query Performance** | ✅ Improved for queries against the current UTXO set |
 
 ## Impact on Rosetta API Endpoints
 
@@ -46,7 +45,7 @@ When pruning is enabled, the `/network/status` endpoint includes an additional `
 | `/account/balance`     | ✅ Works          | ⚠️ Limited             | **Low** - Current balances unaffected                                        |
 | `/account/coins`       | ✅ Works          | ⚠️ Limited             | **Low** - Current UTXO lists complete                                        |
 | `/block`               | ✅ Recent only    | ❌ Incomplete          | **High** - Missing old transaction inputs                                    |
-| `/block/transaction`   | ✅ Recent only    | ❌ Incomplete          | **High** - Missing input operation details                                   |
+| `/block/transaction`   | ✅ Recent only    | ❌ Incomplete          | **High** - Missing spent UTXOs operation details                             |
 | `/search/transactions` | ⚠️ Recent only    | ❌ Limited             | **Medium** - Hash search works, address limited                              |
 | `/network/status`      | ✅ Works          | ✅ Works               | **None** - Returns additional `oldest_block_identifier` when pruning enabled |
 | `/network/*`           | ✅ Works          | ✅ Works               | **None** - Independent of UTXO data                                          |
@@ -88,26 +87,20 @@ Spent UTXO pruning is configured via environment variables, typically set in you
 # To enable, set to: true
 REMOVE_SPENT_UTXOS=true
 
-# Pruning interval in seconds: How often the cleanup job runs.
-# Default: 600 (10 minutes)
-# Example: To run every hour, set to 3600.
-PRUNING_INTERVAL=600
-
 # Safety margin: Number of recent blocks for which spent UTXOs are retained.
 # Default: 2160 (approximately 12 hours of blocks on mainnet)
 # This value balances safety for rollbacks against storage savings.
 # Example: To keep ~24 hours of spent UTXOs, set to 4320.
-# Note: Larger PRUNING_SAFE_BLOCKS values provide longer historical query support
+# Note: Larger REMOVE_SPENT_UTXOS_LAST_BLOCKS_GRACE_COUNT values provide longer historical query support
 # but use more disk space and delay the realization of storage benefits.
-PRUNING_SAFE_BLOCKS=2160
+REMOVE_SPENT_UTXOS_LAST_BLOCKS_GRACE_COUNT=2160
 ```
 
 :::note Configuration Guidelines
 
 - Start with the default settings (`REMOVE_SPENT_UTXOS=false` means pruning is initially off).
-- If enabling, the provided defaults (`PRUNING_INTERVAL=600`, `PRUNING_SAFE_BLOCKS=2160`) are sensible starting points.
-- Adjust `PRUNING_SAFE_BLOCKS` based on your specific needs for recent historical data access. A larger value offers a longer window for historical queries but increases storage.
-- The default `PRUNING_INTERVAL` (10 minutes) provides regular cleanup without excessive overhead. Adjust only if you have specific performance considerations.
+- If enabling, the provided defaults (`REMOVE_SPENT_UTXOS_LAST_BLOCKS_GRACE_COUNT=2160`) are sensible starting points.
+- Adjust `REMOVE_SPENT_UTXOS_LAST_BLOCKS_GRACE_COUNT` based on your specific needs for recent historical data access. A larger value offers a longer window for historical queries but increases storage.
   :::
 
 ## Migration and Operational Notes
