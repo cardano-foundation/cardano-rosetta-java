@@ -60,8 +60,8 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
 
   private BlockIdentifierExtended cachedGenesisBlock;
 
-  @Value("${cardano.rosetta.BLOCK_FETCH_TIMEOUT_SECS:5}")
-  private int blockFetchTimeoutInSeconds;
+  @Value("${cardano.rosetta.BLOCK_TRANSACTION_API_TIMEOUT_SECS:5}")
+  private int blockTransactionApiTimeoutSecs;
 
   @Value("${cardano.rosetta.REMOVE_SPENT_UTXOS:false}")
   private boolean isRemovalOfSpentUTxOsEnabled;
@@ -71,8 +71,12 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
 
   @PostConstruct
   public void init() {
-    log.info("LedgerBlockServiceImpl initialized with blockFetchTimeoutInSeconds: {}, isRemovalOfSpentUTxOsEnabled: {}, removeSpentUTxOsLastBlocksGraceCount: {}",
-            blockFetchTimeoutInSeconds, isRemovalOfSpentUTxOsEnabled, removeSpentUTxOsLastBlocksGraceCount);
+    log.info("LedgerBlockServiceImpl initialized with " +
+                    "blockFetchTimeoutInSeconds: {}" +
+                    ", isRemovalOfSpentUTxOsEnabled: {}" +
+                    ", removeSpentUTxOsLastBlocksGraceCount: {}",
+
+            blockTransactionApiTimeoutSecs, isRemovalOfSpentUTxOsEnabled, removeSpentUTxOsLastBlocksGraceCount);
   }
 
   @Override
@@ -233,7 +237,7 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
       StructuredTaskScope.Subtask<List<PoolRetirementEntity>> pRet = scope.fork(() -> poolRetirementRepository.findByTxHashIn(txHashes));
       StructuredTaskScope.Subtask<List<WithdrawalEntity>> withdrawals = scope.fork(() -> withdrawalRepository.findByTxHashIn(txHashes));
 
-      scope.joinUntil(Instant.now(clock).plusSeconds(blockFetchTimeoutInSeconds));
+      scope.joinUntil(Instant.now(clock).plusSeconds(blockTransactionApiTimeoutSecs));
       scope.throwIfFailed(); // Propagate any failure
 
       return new TransactionInfo(
