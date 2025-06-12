@@ -53,7 +53,10 @@ When pruning is enabled, the `/network/status` endpoint includes an additional `
 
 After enabling pruning, searching for transactions by their hash will always work, because transaction records themselves are never pruned. However, searching by address is limited: address-based searches rely on the UTXO set, and once spent UTXOs older than the pruning window are deleted, only transactions involving current or recently spent UTXOs can be found by address. Older history is not returned once pruned.
 
-## When to Enable Pruning
+**Enable Spent UTxO removal **: Set `REMOVE_SPENT_UTXOS=true` in your environment (e.g., in `.env.dockerfile` or `.env.docker-compose`).
+**Disable Spent UTxO removal ** (default): Set `REMOVE_SPENT_UTXOS=false`.
+
+## When Spent UTxO Removal should be enabled?   
 
 :::tip Recommended Use Cases
 Pruning is beneficial in scenarios where optimizing disk space and focusing on current data is prioritized over maintaining a complete historical record. Consider enabling pruning if your use case aligns with the following:
@@ -64,7 +67,7 @@ Pruning is beneficial in scenarios where optimizing disk space and focusing on c
 - **Development and Testing**: Useful when a full historical dataset is not essential for development or testing purposes.
   :::
 
-## When to Avoid Pruning
+## When to avoid setting UtxO Removal feature?
 
 :::warning Not Suitable For
 Avoid pruning if your operational or regulatory requirements necessitate access to complete and auditable historical blockchain data. Pruning is generally not suitable if you need:

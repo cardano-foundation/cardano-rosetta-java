@@ -9,6 +9,7 @@ function clean_up() {
 
 trap clean_up SIGHUP SIGINT SIGTERM
 
+# NODE FUNCTIONS
 show_progress() {
     message="$1"; percent="$2"
     done=$(bc <<< "scale=0; 40 * ${percent%.*} / 100" )
@@ -68,15 +69,25 @@ node_synchronization() {
     echo "Node synchronization: DONE"
 }
 
+# POSTGRES FUNCTIONS
 database_initialization() {
-    echo "Starting database initialization..."
-    echo "postgres" >> /tmp/password
-    initdb_command="/usr/lib/postgresql/$PG_VERSION/bin/initdb --pgdata=/node/postgres --auth=md5 --auth-local=md5 --auth-host=md5 --username=postgres --pwfile=/tmp/password"
-    sudo -H -u postgres bash -c "$initdb_command"
+    echo "postgres" > /tmp/password
+    echo "*:*:*:postgres:postgres" > /home/postgres/.pgpass
+
+    chmod 600 /home/postgres/.pgpass
+    chown postgres:postgres /home/postgres/.pgpass
+
+    if [ -z "$(ls -A "$PG_DATA")" ]; then
+        sudo -u postgres "$PG_BIN/initdb" --pgdata="$PG_DATA" --auth=md5 --auth-local=md5 --auth-host=md5 --username=postgres --pwfile=/tmp/password
+    else
+        echo "Database already initialized, skipping initdb."
+    fi
+
+    rm -f /tmp/password
 }
 
 configure_postgres() {
-    local config_file="/etc/postgresql/${PG_VERSION}/main/postgresql.conf"
+    local config_file="$PG_DATA/postgresql.conf"
 
     # List of parameter names and their corresponding environment variables
     declare -A param_vars=(
@@ -143,14 +154,29 @@ configure_postgres() {
         fi
     done
 
+    if ! grep -q "^host all all 0.0.0.0/0 md5\$" "$PG_DATA/pg_hba.conf"; then
+        echo "host all all 0.0.0.0/0 md5" >> "$PG_DATA/pg_hba.conf"
+    fi
+
+    if ! grep -q "^listen_addresses *= *'\*'\$" "$PG_DATA/postgresql.conf"; then
+        echo "listen_addresses='*'" >> "$PG_DATA/postgresql.conf"
+    fi
+
     echo "PostgreSQL configuration updated successfully!"
 }
 
+start_postgres() {
+    sudo -u postgres "$PG_BIN/postgres" -D "$PG_DATA" -p "$DB_PORT" -c config_file="$PG_DATA/postgresql.conf" > /logs/postgres.log 2>&1 &
+    POSTGRES_PID=$!
+
+    until "$PG_BIN/pg_isready" -U postgres > /dev/null; do sleep 1; done
+}
+
 create_database_and_user() {
-    export DB_SCHEMA=$NETWORK
+    export DB_SCHEMA="$NETWORK"
 
     flag=true
-    while [ $(sudo -u postgres psql -U postgres -Atc "SELECT pg_is_in_recovery()";) == "t" ]; do
+    while [ $(sudo -u postgres "$PG_BIN/psql" -U postgres -Atc "SELECT pg_is_in_recovery()";) == "t" ]; do
         if $flag ; then
             echo "Waiting for database recovery..."
             flag=false
@@ -158,18 +184,21 @@ create_database_and_user() {
         sleep 1
     done
 
-    if [[ -z $(sudo -u postgres psql -U postgres -Atc "SELECT 1 FROM pg_catalog.pg_user WHERE usename = '$DB_USER'";) ]]; then
-      echo "Creating database..."
-      sudo -u postgres psql -U postgres -c "CREATE ROLE \"$DB_USER\" with LOGIN CREATEDB PASSWORD '$DB_SECRET';" > /dev/null
+    if [[ -z $(sudo -u postgres "$PG_BIN/psql" -U postgres -Atc "SELECT 1 FROM pg_catalog.pg_user WHERE usename = '$DB_USER'";) ]]; then
+        echo "Creating database..."
+        sudo -u postgres "$PG_BIN/psql" -U postgres -c "CREATE ROLE \"$DB_USER\" with LOGIN CREATEDB PASSWORD '$DB_SECRET';" > /dev/null
     fi
 
-    if [[ -z $(sudo -u postgres psql -U postgres -Atc "SELECT 1 FROM pg_catalog.pg_database WHERE datname = '$DB_NAME'";) ]]; then
-      echo "Creating user..."
-      sudo -u postgres psql -U postgres -c "CREATE DATABASE \"$DB_NAME\";" >/dev/null
-      sudo -u postgres psql -U postgres -c "GRANT ALL PRIVILEGES ON DATABASE \"$DB_NAME\" to \"$DB_USER\";" > /dev/null
+    if [[ -z $(sudo -u postgres "$PG_BIN/psql" -U postgres -Atc "SELECT 1 FROM pg_catalog.pg_database WHERE datname = '$DB_NAME'";) ]]; then
+        echo "Creating user..."
+        sudo -u postgres "$PG_BIN/psql" -U postgres -c "CREATE DATABASE \"$DB_NAME\";" >/dev/null
+        sudo -u postgres "$PG_BIN/psql" -U postgres -c "GRANT ALL PRIVILEGES ON DATABASE \"$DB_NAME\" to \"$DB_USER\";" > /dev/null
     fi
+
+    echo "User configured"
 }
 
+# API FUNCTIONS
 get_current_index() {
     json="{\"network_identifier\":{\"blockchain\":\"cardano\",\"network\":\"${NETWORK}\"},\"metadata\":{}}"
     response=$(curl -s -X POST -H "Content-Type: application/json" -H "Content-length: 1000" -H "Host: localhost.com" --data "$json" "localhost:{$API_PORT}/network/status")
@@ -177,6 +206,7 @@ get_current_index() {
     if [[ -z "$current_index" || "$current_index" == "null" ]]; then current_index=0; fi
 }
 
+# MITHRIL FUNCTIONS
 download_mithril_snapshot() {
     echo "Downloading Mithril Snapshot..."
     export CARDANO_NETWORK=$NETWORK
@@ -194,11 +224,7 @@ download_mithril_snapshot() {
     preview)
       AGGREGATOR_ENDPOINT=${AGGREGATOR_ENDPOINT:-https://aggregator.pre-release-preview.api.mithril.network/aggregator}
       GENESIS_VERIFICATION_KEY=${GENESIS_VERIFICATION_KEY:-$(wget -q -O - https://raw.githubusercontent.com/input-output-hk/mithril/main/mithril-infra/configuration/pre-release-preview/genesis.vkey)}
-      ANCILLARY_VERIFICATION_KEY=${ANCILLARY_VERIFICATION_KEY:-$(wget -q -O - https://raw.githubusercontent.com/input-output-hk/mithril/main/mithril-infra/configuration/pre-release-preview/ancillary.vkey)}
-      ;;
-    sanchonet)
-      AGGREGATOR_ENDPOINT=${AGGREGATOR_ENDPOINT:-https://aggregator.testing-sanchonet.api.mithril.network/aggregator}
-      GENESIS_VERIFICATION_KEY=${GENESIS_VERIFICATION_KEY:-$(wget -q -O - https://raw.githubusercontent.com/input-output-hk/mithril/main/mithril-infra/configuration/testing-sanchonet/genesis.vkey)}
+      ANCILLARY_VERIFICATION_KEY=${ANCILLARY_VERIFICATION_KEY:-$(wget -q -O - https://raw.githubusercontent.com/input-output-hk/mithril/main/mithril-infra/configuration/pre-release-testing-preview/ancillary.vkey)}
       ;;
     esac
     echo "Listing content of /node dir:"
@@ -252,17 +278,18 @@ else
   cardano-submit-api --listen-address 0.0.0.0 --socket-path "$CARDANO_NODE_SOCKET_PATH" --port $NODE_SUBMIT_API_PORT $NETWORK_STR  --config /cardano-submit-api-config/cardano-submit-api.yaml > /logs/submit-api.log &
   CARDANO_SUBMIT_PID=$!
 
-  mkdir -p /node/postgres
-  chown -R postgres:postgres /node/postgres
-  chmod -R 0700 /node/postgres
-  if [ ! -f "/node/postgres/PG_VERSION" ]; then
-      database_initialization
-  fi
+  echo "Initializing Database..."
+  chown -R postgres:postgres "$PG_DATA"
+  chmod -R 0700 "$PG_DATA"
+  database_initialization
 
+  echo "Configuring the Database..."
   configure_postgres
 
   echo "Starting Postgres..."
-  /etc/init.d/postgresql start
+  start_postgres
+
+  echo "Creating database and user..."
   create_database_and_user
 
   echo "Starting Yaci indexer..."

@@ -2,20 +2,23 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+
     <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.4</version>
-        <relativePath/> <!-- lookup parent from repository -->
+        <artifactId>base</artifactId>
+        <groupId>org.cardanofoundation.rosetta-java</groupId>
+        <version>${revision}</version>
     </parent>
 
-    <groupId>org.cardanofoundation.rosetta-java</groupId>
     <artifactId>yaci-indexer</artifactId>
     <version>1.0.0</version>
     <name>yaci-indexer</name>
+
     <description>yaci-indexer</description>
+    <packaging>jar</packaging>
+
     <properties>
-        <java.version>21</java.version>
+        <java.version>24</java.version>
+        <maven.compiler.proc>full</maven.compiler.proc>
         <yaci-store.version>0.1.2</yaci-store.version>
         <sonar.exclusions>src/main/java/org/cardanofoundation/rosetta/yaciindexer/stores/txsize/model/*</sonar.exclusions>
         <version.spotless-maven-plugin>2.43.0</version.spotless-maven-plugin>
@@ -37,7 +40,6 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
         </dependency>
-
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
@@ -87,6 +89,10 @@
             <artifactId>yaci-store-epoch-spring-boot-starter</artifactId>
             <version>${yaci-store.version}</version>
         </dependency>
+        <dependency>
+            <groupId>io.hypersistence</groupId>
+            <artifactId>hypersistence-utils-hibernate-63</artifactId>
+        </dependency>
         <!-- Add mysql or H2 or Postgres dependency based on your database -->
         <dependency>
             <groupId>org.postgresql</groupId>
@@ -99,6 +105,31 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>${version.spring-boot}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                            <goal>build-info</goal>
+                        </goals>
+                    </execution>
+                </executions>
+
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${version.maven-compiler-plugin}</version>
+                <configuration>
+                    <release>24</release>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${version.lombok}</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>com.diffplug.spotless</groupId>
