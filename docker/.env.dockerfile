@@ -53,8 +53,8 @@ PRINT_EXCEPTION=true
 ## Yaci Indexer env
 YACI_SPRING_PROFILES=postgres,n2c-socket
 REMOVE_SPENT_UTXOS=false
-
 REMOVE_SPENT_UTXOS_LAST_BLOCKS_GRACE_COUNT=2160
+BLOCK_TRANSACTION_API_TIMEOUT_SECS=5
 
 # database profiles: h2, h2-testdata, postgres
 MEMPOOL_ENABLED=false
