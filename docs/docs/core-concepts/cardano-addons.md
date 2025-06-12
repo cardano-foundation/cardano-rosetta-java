@@ -73,6 +73,10 @@ Max amount of transactions allowed to be requested is defined by `PAGE_SIZE` env
 `status` and `maxBlock` filters work as excluding filters, if they are set, besides operator value.
 :::
 
+:::warning Pruning limitation
+Searching for transactions by hash is always possible, because transaction records themselves are never pruned. However, searching by address is limited: address-based searches depend on the UTXO set, and once spent UTXOs older than the pruning window are deleted, only transactions involving current or recently spent UTXOs can be found by address. Older history is not returned once pruned.
+:::
+
 ### `/block`
 
 The following metadata is also returned, when querying for block information:
@@ -163,13 +167,23 @@ For accounts that have a multi asset balance, these will be returned with the co
 }
 ```
 
-Also, `coins` will be returned with the token bundle list corresponding to each coin as metadata.
+When querying `/account/balance`, the result depends on the type of address:
+
+- For a **payment address** (Base or Enterprise), the response contains the sum of all unspent UTXOs for that address (the "spendable" balance).
+- For a **stake address** (reward address), the response contains only the available rewards that can be withdrawn from that stake address.
+
+To present a wallet's total value, clients should query both the payment address (for spendable funds) and the stake address (for rewards), then combine the results.
 
 :::info Note on Stake Addresses
-When the `/account/balance` endpoint is queried with a stake address (also known as a reward address), the response will include the available rewards that can be withdrawn from the stake address.
-
-This means the API provides a consolidated view of both spendable funds (from payment addresses) and claimable rewards when a stake address is used in the query.
+A stake address never holds UTXOs and cannot have a spendable balance. The `/account/balance` response for a stake address always reflects only the withdrawable rewards.
 :::
+
+Internally, the Rosetta service gathers these two figures from different subsystems:
+
+- **Spendable funds** (ADA and native tokens) are obtained by summing all unspent UTXOs that belong to the payment address(es). These UTXOs are stored in the PostgreSQL database maintained by the **Yaci Indexer**.
+- **Rewards balance** is fetched directly from the **Yaci Store** through a lightweight internal HTTP call, which queries the current withdrawable rewards for the stake address.
+
+As a consequence, the spendable portion updates whenever new blocks modify the UTXO set for the payment address, whereas the rewards portion changes only after the protocol distributes staking rewards (typically once per epoch).
 
 ### `/account/coins`
 

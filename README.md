@@ -30,8 +30,8 @@ Since [Yaci-Store](https://github.com/bloxbean/yaci-store) is a comparatively li
 
 - 4CPU Cores
 - 32GB RAM
-- 1TB of storage (spent UTXO pruning disabled) [default]
-- 400GB of storage (spent UTXO pruning enabled)
+- ~1.3 TB total storage (node ~250 GB + Rosetta DB ~1 TB) — pruning disabled [default]
+- ~750 GB total storage (node ~250 GB + Rosetta DB ~500 GB) — pruning enabled
 
 Better hardware will improve the performance of the indexer and the node, which will result in faster syncing times.
 

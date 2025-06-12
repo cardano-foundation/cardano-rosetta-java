@@ -27,7 +27,7 @@ When enabled, the pruning process operates as follows:
 **Impact Summary:**
 | Aspect | Effect |
 | :------------------------- | :----------------------------------------------------------- |
-| **Disk Storage** | ✅ Significantly reduced (e.g., mainnet from ~1TB to ~400GB) |
+| **Disk Storage** | ✅ Significantly reduced (e.g., mainnet from ~1TB to ~500GB) |
 | **Current UTXO Set** | ✅ Fully preserved; current balances remain accurate |
 | **Historical Spent UTXOs** | ⚠️ Permanently deleted beyond the safety margin |
 | **Query Performance** | ✅ Improved for queries against the current UTXO set |
@@ -50,6 +50,8 @@ When pruning is enabled, the `/network/status` endpoint includes an additional `
 | `/network/status`      | ✅ Works          | ✅ Works               | **None** - Returns additional `oldest_block_identifier` when pruning enabled |
 | `/network/*`           | ✅ Works          | ✅ Works               | **None** - Independent of UTXO data                                          |
 | `/construction/*`      | ✅ Works          | ✅ Works               | **None** - Uses current UTXOs only                                           |
+
+After enabling pruning, searching for transactions by their hash will always work, because transaction records themselves are never pruned. However, searching by address is limited: address-based searches rely on the UTXO set, and once spent UTXOs older than the pruning window are deleted, only transactions involving current or recently spent UTXOs can be found by address. Older history is not returned once pruned.
 
 ## When to Enable Pruning
 
