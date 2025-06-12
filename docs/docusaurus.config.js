@@ -47,6 +47,8 @@ const config = {
           // Remove this to remove the "edit this page" links.
           editUrl:
             'https://github.com/cardano-foundation/cardano-rosetta-java/tree/main/docs/',
+          showLastUpdateAuthor: true,
+          showLastUpdateTime: true,
           exclude: [
             '**/test-results/**',  // Exclude all test-results directories
             '**/_test-results/**',  // Exclude directories with underscore prefix
@@ -144,6 +146,7 @@ const config = {
       {
         label: 'API Reference',
         route: '/cardano-rosetta-java/api',
+        
         configuration: {
           url: '/cardano-rosetta-java/api.yaml',
           hideDownloadButton: true,
@@ -151,12 +154,20 @@ const config = {
           forceDarkModeState: 'light',
           withDefaultFonts: false,
           hideClientButton: true,
+          hideTestRequestButton: true,
+          //proxyUrl: 'https://proxy.scalar.com',
           servers: [
             {
               url: 'http://localhost:8082',
               name: 'Local',
             },
           ],
+          customCss: `* {
+            --scalar-font: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+          }
+          `
+          
+
         },
       },
     ],

@@ -4,36 +4,98 @@ title: Performance Measurements
 description: Performance measurement methodologies and results
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # Performance Measurements
 
-This page documents the performance measurements and load test results for different releases of `cardano-rosetta-java`.
+This page documents load test results for different releases of `cardano-rosetta-java`, evaluating performance across various deployment scenarios.
 
-## Load Test Results
+### Service Level Agreements (SLAs)
 
-Below you can find the load test results for various releases, comparing different deployment options.
+Our performance evaluation is based on the following Service Level Agreements (SLAs), which define the acceptable thresholds for production environments:
+
+- **Response Time**: A **p99 of less than 1 second** is the target for all standard API endpoints.
+- **Error Rate**: A **non-2xx response rate of less than 1%** is considered acceptable.
+
+In specific high-load scenarios, such as querying addresses with hundreds of thousands of transactions, these SLAs may be adjusted to assess system stability under extreme conditions. Any such adjustments are noted in the relevant test results.
+
+:::note
+Load tests are conducted using Apache Bench (ab) with a ramp-up strategy, progressively increasing concurrency to a predefined ceiling of 500 simultaneous requests.
+:::
+
+:::tip
+To better understand the environments in which these results were obtained, please refer to our [hardware profiles documentation](../install-and-deploy/hardware-profiles).
+:::
 
 <details>
 <summary>
 
-### Release 1.2.7 (Test Run: 2025-04-16)
+### v1.2.9 (Jun 11, 2025)
 
 </summary>
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
-import SingleDocker from './\_test-results/1.2.6-dev_2025-04-16/single-docker.md';
-import DockerCompose from './\_test-results/1.2.6-dev_2025-04-16/docker-compose.md';
+- [Release Notes](https://github.com/cardano-foundation/cardano-rosetta-java/releases/tag/1.2.9)
+
+The following tests were conducted on a **mid-level** hardware profile with the following specifications: **8 cores, 8 threads, 47GB RAM, 3.9TB NVMe, QEMU Virtual CPU v2.5+**.
+
+import DockerCompose129 from './test-results/1.2.9/docker-compose.md';
+import HugeAddress373k from './test-results/1.2.9/huge-address-373k.md';
+import HugeAddress16M from './test-results/1.2.9/huge-address-1.6M.md';
 
 <Tabs>
-  <TabItem value="single" label="Single Docker" default>
-    <SingleDocker />
+  <TabItem value="compose" label="Docker Compose" default>
+    <DockerCompose129 />
   </TabItem>
-  <TabItem value="compose" label="Docker Compose">
-    <DockerCompose />
+  <TabItem value="huge-373k" label="Huge Address (~373k txs)">
+    <HugeAddress373k />
+  </TabItem>
+  <TabItem value="huge-1.6M" label="Huge Address (~1.6M txs)">
+    <HugeAddress16M />
   </TabItem>
 </Tabs>
 </details>
 
----
+<details>
+<summary>
 
-_Future results will be added here, each as a collapsible section._
+### v1.2.7 (Apr 29, 2025)
+
+</summary>
+
+import SingleDocker127 from './test-results/1.2.7/single-docker.md';
+import DockerCompose127 from './test-results/1.2.7/docker-compose.md';
+
+- [Release Notes](https://github.com/cardano-foundation/cardano-rosetta-java/releases/tag/1.2.7)
+
+<Tabs>
+  <!-- <TabItem value="single" label="Single Docker" default>
+    <SingleDocker127 />
+  </TabItem> -->
+  <TabItem value="compose" label="Docker Compose">
+    <DockerCompose127 />
+  </TabItem>
+</Tabs>
+</details>
+
+<details>
+<summary>
+
+### v1.2.6 (Apr 15, 2025)
+
+</summary>
+
+import SingleDocker126 from './test-results/1.2.6/single-docker.md';
+import DockerCompose126 from './test-results/1.2.6/docker-compose.md';
+
+- [Release Notes](https://github.com/cardano-foundation/cardano-rosetta-java/releases/tag/1.2.6)
+
+<Tabs>
+  <TabItem value="single" label="Single Docker" default>
+    <SingleDocker126 />
+  </TabItem>
+  <TabItem value="compose" label="Docker Compose">
+    <DockerCompose126 />
+  </TabItem>
+</Tabs>
+</details>
