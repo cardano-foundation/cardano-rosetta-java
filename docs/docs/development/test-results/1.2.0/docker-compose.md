@@ -1,6 +1,3 @@
-- **Hardware Profile:** mid-level
-- **Machine Specs:** 16 cores, 16 threads, 94GB RAM, 3.9TB NVMe, QEMU Virtual CPU v2.5+
-
 **Maximum concurrency achieved per endpoint**
 
 | ID  | Endpoint               | Max Concurrency | p95 (ms) | p99 (ms) | Non-2xx | Error Rate (%) | Reqs/sec |
