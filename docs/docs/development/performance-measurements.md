@@ -99,3 +99,21 @@ import DockerCompose126 from './test-results/1.2.6/docker-compose.md';
   </TabItem>
 </Tabs>
 </details>
+
+<details>
+<summary>
+
+### v1.2.0 (Feb 13, 2025)
+
+</summary>
+
+import DockerCompose120 from './test-results/1.2.0/docker-compose.md';
+
+- [Release Notes](https://github.com/cardano-foundation/cardano-rosetta-java/releases/tag/1.2.0)
+
+<Tabs>
+  <TabItem value="compose" label="Docker Compose">
+    <DockerCompose120 />
+  </TabItem>
+</Tabs>
+</details>
