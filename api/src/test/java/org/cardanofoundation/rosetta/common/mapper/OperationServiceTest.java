@@ -9,14 +9,7 @@ import com.bloxbean.cardano.client.transaction.spec.TransactionBody;
 import com.bloxbean.cardano.client.transaction.spec.TransactionInput;
 import com.bloxbean.cardano.client.transaction.spec.Withdrawal;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.openapitools.client.model.AccountIdentifier;
-import org.openapitools.client.model.Amount;
-import org.openapitools.client.model.CurveType;
-import org.openapitools.client.model.Operation;
-import org.openapitools.client.model.OperationIdentifier;
-import org.openapitools.client.model.OperationMetadata;
-import org.openapitools.client.model.PoolRegistrationParams;
-import org.openapitools.client.model.PublicKey;
+import org.openapitools.client.model.*;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,7 +32,7 @@ class OperationServiceTest {
 
   @Test
   void getSignerFromOperation_poolOperationType_test() {
-    Operation operation = getOperation("addr1", "rewardAddress",
+    Operation operation = creteTestPoolRegistrationOperation("addr1", "rewardAddress",
         List.of("poolOwner1", "poolOwner2"));
 
     List<String> poolSigners = operationService.getSignerFromOperation(NetworkEnum.MAINNET.getNetwork(), operation);
@@ -51,7 +44,7 @@ class OperationServiceTest {
 
   @Test
   void getSignerFromOperation_poolOperationRetirementType_test() {
-    Operation operation = getOperation("addr1", "rewardAddress",
+    Operation operation = creteTestPoolRegistrationOperation("addr1", "rewardAddress",
         List.of("poolOwner1", "poolOwner2"));
     operation.setType(OperationType.POOL_RETIREMENT.getValue());
 
@@ -62,7 +55,7 @@ class OperationServiceTest {
 
   @Test
   void getSignerFromOperation_poolOperationTypeWithCertificate_test() {
-    Operation operation = getOperation("addr1", "", null);
+    Operation operation = creteTestPoolRegistrationOperation("addr1", "", null);
     operation.setType(OperationType.POOL_REGISTRATION_WITH_CERT.getValue());
     operation.getMetadata().setPoolRegistrationCert(
         "8a03581c1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b558208dd154228946bd12967c12bedb1cb6038b78f8b84a1760b1a788fa72a4af3db01a004c4b401a002dc6c0d81e820101581de1bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb81581c7a9a4d5a6ac7a9d8702818fa3ea533e56c4f1de16da611a730ee3f008184001820445820f5d9505820f5d9ea167fd2e0b19647f18dd1e0826f706f6f6c4d6574616461746155726c58209ac2217288d1ae0b4e15c41b58d3e05a13206fd9ab81cb15943e4174bf30c90b");
@@ -78,7 +71,7 @@ class OperationServiceTest {
   @SuppressWarnings("java:S5778")
   @Test
   void getSignerFromOperation_poolOperationTypeWithCertificateNullable_test() {
-    Operation operation = getOperation("addr1", null, null);
+    Operation operation = creteTestPoolRegistrationOperation("addr1", null, null);
     operation.setType(OperationType.POOL_REGISTRATION_WITH_CERT.getValue());
     operation.getMetadata().setPoolRegistrationCert(null);
 
@@ -102,7 +95,7 @@ class OperationServiceTest {
 
   @Test
   void getSignerFromOperation_poolOperationTypeNullable_test() {
-    Operation operation = getOperation(null, "rewardAddress",
+    Operation operation = creteTestPoolRegistrationOperation(null, "rewardAddress",
         List.of("poolOwner1", "poolOwner2"));
 
     List<String> poolSigners = operationService.getSignerFromOperation(NetworkEnum.MAINNET.getNetwork(), operation);
@@ -175,7 +168,7 @@ class OperationServiceTest {
   @Test
   void getOperationsFromTransactionData()
       throws CborException, CborDeserializationException, CborSerializationException {
-    TransactionData transactionData = getTransactionData();
+    TransactionData transactionData = getPoolTransactionData1();
     transactionData.transactionBody().setInputs(List.of(new TransactionInput()));
     transactionData.transactionBody().setWithdrawals(List.of(new Withdrawal()));
     Operation withdrawalOperation = transactionData.transactionExtraData().operations().getFirst();
@@ -201,8 +194,8 @@ class OperationServiceTest {
         .isEqualTo("1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F");
   }
 
-  private static Operation getOperation(String accountAddress, String rewardAddress,
-      List<String> poolOwners) {
+  private static Operation creteTestPoolRegistrationOperation(String accountAddress, String rewardAddress,
+                                                              List<String> poolOwners) {
     return Operation.builder()
         .type(OperationType.POOL_REGISTRATION.getValue())
         .account(AccountIdentifier.builder()
@@ -217,13 +210,15 @@ class OperationServiceTest {
         .build();
   }
 
-  private static TransactionData getTransactionData() {
+  private static TransactionData getPoolTransactionData1() {
+    Operation operation1 = creteTestPoolRegistrationOperation("addr1", "rewardAddress", List.of("poolOwner1", "poolOwner2"));
+    Operation operation2 = creteTestPoolRegistrationOperation("addr2", "rewardAddress", List.of("poolOwner3", "poolOwner4"));
+    TransactionExtraData transactionExtraData = new TransactionExtraData(List.of(operation1, operation2), "81a100a0");
+
     return new TransactionData(
         TransactionBody.builder().build(),
-        new TransactionExtraData(
-            List.of(getOperation("addr1", "rewardAddress", List.of("poolOwner1", "poolOwner2")),
-                getOperation("addr2", "rewardAddress", List.of("poolOwner3", "poolOwner4"))),
-            "81a100a0")
+            transactionExtraData
     );
   }
+
 }

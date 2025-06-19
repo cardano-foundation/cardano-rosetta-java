@@ -25,10 +25,14 @@ public class CborArrayToTransactionData {
     TransactionExtraData extraData = CborMapToTransactionExtraData.convertCborMapToTransactionExtraData(
         (Map) decodedTransaction.getDataItems().get(1));
 
-    byte[] bytes = HexUtil.decodeHexString(
+    byte[] transactionBytes = HexUtil.decodeHexString(
         ((UnicodeString) decodedTransaction.getDataItems().get(0)).getString());
 
-    return signed ? processSignedTransaction(bytes, extraData) : processUnsignedTransaction(bytes, extraData);
+    if (signed) {
+      return processSignedTransaction(transactionBytes, extraData);
+    }
+
+    return processUnsignedTransaction(transactionBytes, extraData);
   }
 
   private static TransactionData processSignedTransaction(byte[] bytes, TransactionExtraData extraData)
