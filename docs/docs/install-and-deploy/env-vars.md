@@ -81,6 +81,7 @@ Within root folder of the project there are example `.env` files, which can be c
 | `DB_POSTGRES_BGWRITER_LRU_MAXPAGES`           | Max pages for background writer per cycle        | 100 (mid-level profile)               | added in release 1.2.6  |
 | `DB_POSTGRES_BGWRITER_DELAY`                  | Delay between background writer cycles           | 200ms (mid-level profile)             | added in release 1.2.6  |
 | `BLOCK_FETCH_TIMEOUT_SECS`                    | Timeout for fetching blocks in seconds           | 5                                     | added in release 1.2.10 |
+| `CONTINUE_ON_PARSE_ERROR`                     | If a block parsing error occurs, continue processing the next block      | true                                  | added in release 1.2.10 |
 
 ## Deprecated Environment Variables (Previous Versions)
 
