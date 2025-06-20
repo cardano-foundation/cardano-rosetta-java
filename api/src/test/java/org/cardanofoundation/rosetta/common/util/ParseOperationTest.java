@@ -184,7 +184,7 @@ class ParseOperationTest {
     ProcessOperations resultAccumulator = new ProcessOperations();
 
     resultAccumulator = OperationParseUtil.parseOperation(operation, NetworkEnum.MAINNET.getNetwork(), resultAccumulator,
-            OperationType.GOVERNANCE_CAST_VOTE.getValue());
+            OperationType.POOL_GOVERNANCE_VOTE.getValue());
 
     GovernanceVote vote = resultAccumulator.getGovernanceVotes().getFirst();
 
@@ -209,7 +209,7 @@ class ParseOperationTest {
     ProcessOperations resultAccumulator = new ProcessOperations();
 
     resultAccumulator = OperationParseUtil.parseOperation(operation, NetworkEnum.MAINNET.getNetwork(), resultAccumulator,
-            OperationType.GOVERNANCE_CAST_VOTE.getValue());
+            OperationType.POOL_GOVERNANCE_VOTE.getValue());
 
     GovernanceVote vote = resultAccumulator.getGovernanceVotes().getFirst();
 
@@ -234,7 +234,7 @@ class ParseOperationTest {
     ProcessOperations resultAccumulator = new ProcessOperations();
 
     resultAccumulator = OperationParseUtil.parseOperation(operation, NetworkEnum.MAINNET.getNetwork(), resultAccumulator,
-            OperationType.GOVERNANCE_CAST_VOTE.getValue());
+            OperationType.POOL_GOVERNANCE_VOTE.getValue());
 
     GovernanceVote vote = resultAccumulator.getGovernanceVotes().getFirst();
 

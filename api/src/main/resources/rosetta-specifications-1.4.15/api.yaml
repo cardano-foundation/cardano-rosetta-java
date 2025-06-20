@@ -1724,10 +1724,10 @@ components:
         drep:
           description: DRep
           $ref: '#/components/schemas/DRepParams'
-        govCastVoteParams:
-          description: GovCastVoteParams contains parameters related to casting a governance vote.
+        poolGovernanceVoteParams:
+          description: PoolGovernanceVoteParams contains parameters related to casting a governance vote by a pool operator.
           type: object
-          $ref: '#/components/schemas/GovCastVoteParams'
+          $ref: '#/components/schemas/PoolGovernanceVoteParams'
         epoch:
           description: Epoch
           type: integer
@@ -1744,8 +1744,8 @@ components:
         voteRegistrationMetadata:
           $ref: '#/components/schemas/VoteRegistrationMetadata'
 
-    GovCastVoteParams:
-      description: Parameters for a governance vote.
+    PoolGovernanceVoteParams:
+      description: Parameters for a governance vote by a pool operator.
       type: object
       properties:
         action_id:
@@ -1797,6 +1797,7 @@ components:
         - drep_key_hash
         - drep_script_hash
         - staking_pool_key_hash
+
     GovVoteParams:
       description: The vote cast by the voter.
       type: string
@@ -1815,6 +1816,7 @@ components:
         data_hash:
           type: string
           description: Hash of the anchor data.
+
     VoteRegistrationMetadata:
       description: VoteRegistrationMetadata
       type: object

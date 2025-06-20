@@ -64,7 +64,7 @@ public class OperationParseUtil {
               parsePoolRetirement(operation, resultAccumulator);
       case OperationType.VOTE_REGISTRATION ->
               parseVoteRegistration(operation, resultAccumulator);
-      case OperationType.GOVERNANCE_CAST_VOTE ->
+      case OperationType.POOL_GOVERNANCE_VOTE ->
               parseGovernanceVote(operation, resultAccumulator);
     };
   }
@@ -209,7 +209,7 @@ public class OperationParseUtil {
 
   private static ProcessOperations parseGovernanceVote(Operation operation,
                                                        ProcessOperations processOperations) {
-    Optional.of(operation.getMetadata().getGovCastVoteParams()).ifPresent(govCastVoteParams -> {
+    Optional.of(operation.getMetadata().getPoolGovernanceVoteParams()).ifPresent(poolGovernanceVoteParams -> {
       GovernanceVote governanceVote = ProcessConstructions.processGovernanceVote(operation);
 
       processOperations.getGovernanceVotes().add(governanceVote);

@@ -310,20 +310,20 @@ public class ProcessConstructions {
 
         OperationMetadata metadata = operation.getMetadata();
 
-        GovCastVoteParams govCastVoteParams = metadata.getGovCastVoteParams();
-        GovVoterParams govVoterParams = govCastVoteParams.getVoter();
+        PoolGovernanceVoteParams poolGovernanceVoteParams = metadata.getPoolGovernanceVoteParams();
+        GovVoterParams govVoterParams = poolGovernanceVoteParams.getVoter();
         if (govVoterParams == null) {
             log.error("[processCastVote] Voter parameters were not provided");
 
             throw ExceptionFactory.invalidGovernanceVote("Voter not provided (GovVoterParams)!");
         }
-        GovActionIdParams govActionId = govCastVoteParams.getActionId();
+        GovActionIdParams govActionId = poolGovernanceVoteParams.getActionId();
         if (govActionId == null) {
             log.error("[processCastVote] Action ID parameters were not provided");
 
             throw ExceptionFactory.invalidGovernanceVote("Action ID not provided (GovActionIdParams)!");
         }
-        GovVoteParams voteParams = govCastVoteParams.getVote();
+        GovVoteParams voteParams = poolGovernanceVoteParams.getVote();
 
         if (voteParams == null) {
             log.error("[processCastVote] Vote parameters were not provided");
@@ -331,7 +331,7 @@ public class ProcessConstructions {
             throw ExceptionFactory.invalidGovernanceVote("Vote not provided (GovVoteParams)!");
         }
 
-        return GovernanceVote.convertToRosetta(govCastVoteParams);
+        return GovernanceVote.convertToRosetta(poolGovernanceVoteParams);
     }
 
 }

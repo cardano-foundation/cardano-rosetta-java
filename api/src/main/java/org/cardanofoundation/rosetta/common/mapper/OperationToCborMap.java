@@ -49,7 +49,7 @@ public class OperationToCborMap {
                     addTokenBundleToMap(operationMetadata.getTokenBundle(), metadataMap);
                     addPoolRegistrationPramsToMap(operationMetadata.getPoolRegistrationParams(), metadataMap);
                     addVoteRegistrationMetadataToMap(operationMetadata.getVoteRegistrationMetadata(), metadataMap);
-                    addGovCastVoteMetadataToMap(operationMetadata, metadataMap);
+                    addPoolGovernanceVoteMetadataToMap(operationMetadata, metadataMap);
 
                     // add simple values
                     putStringDataItemToMap(metadataMap,Constants.POOLREGISTRATIONCERT,operationMetadata.getPoolRegistrationCert());
@@ -60,35 +60,35 @@ public class OperationToCborMap {
                 });
     }
 
-    private static void addGovCastVoteMetadataToMap(OperationMetadata operationMetadata, Map metadataMap) {
-        Optional.ofNullable(operationMetadata.getGovCastVoteParams()).ifPresent(govCastVoteParams -> {
-            Map govCastVoteParamsMap = new Map();
+    private static void addPoolGovernanceVoteMetadataToMap(OperationMetadata operationMetadata, Map metadataMap) {
+        Optional.ofNullable(operationMetadata.getPoolGovernanceVoteParams()).ifPresent(poolGovernanceVoteParams -> {
+            Map poolGovernanceVoteParamsMap = new Map();
 
             Map voterMap = new Map();
 
-            putStringDataItemToMap(voterMap, "id", govCastVoteParams.getVoter().getId());
-            putStringDataItemToMap(voterMap, "type", govCastVoteParams.getVoter().getType().getValue());
+            putStringDataItemToMap(voterMap, "id", poolGovernanceVoteParams.getVoter().getId());
+            putStringDataItemToMap(voterMap, "type", poolGovernanceVoteParams.getVoter().getType().getValue());
 
-            govCastVoteParamsMap.put(key(Constants.VOTER), voterMap);
+            poolGovernanceVoteParamsMap.put(key(Constants.VOTER), voterMap);
 
-            govCastVoteParamsMap.put(key(Constants.VOTE), new UnicodeString(govCastVoteParams.getVote().getValue()));
+            poolGovernanceVoteParamsMap.put(key(Constants.VOTE), new UnicodeString(poolGovernanceVoteParams.getVote().getValue()));
 
-            Optional.ofNullable(govCastVoteParams.getAnchor()).ifPresent(anchorParams -> {
+            Optional.ofNullable(poolGovernanceVoteParams.getAnchor()).ifPresent(anchorParams -> {
                 Map anchorMap = new Map();
 
                 putStringDataItemToMap(anchorMap, "url", anchorParams.getUrl());
                 putStringDataItemToMap(anchorMap, "data_hash", anchorParams.getDataHash());
 
-                govCastVoteParamsMap.put(key(Constants.ANCHOR), anchorMap);
+                poolGovernanceVoteParamsMap.put(key(Constants.ANCHOR), anchorMap);
             });
 
             Map actionMap = new Map();
-            putStringDataItemToMap(actionMap, "tx_id", govCastVoteParams.getActionId().getTxId());
-            putUnsignedIntegerToMap(actionMap, "index", govCastVoteParams.getActionId().getIndex());
+            putStringDataItemToMap(actionMap, "tx_id", poolGovernanceVoteParams.getActionId().getTxId());
+            putUnsignedIntegerToMap(actionMap, "index", poolGovernanceVoteParams.getActionId().getIndex());
 
-            govCastVoteParamsMap.put(key(Constants.ACTION_ID), actionMap);
+            poolGovernanceVoteParamsMap.put(key(Constants.ACTION_ID), actionMap);
 
-            metadataMap.put(key(Constants.GOV_CAST_VOTE_PARAMS), govCastVoteParamsMap);
+            metadataMap.put(key(Constants.POOL_GOVERNANCE_VOTE_PARAMS), poolGovernanceVoteParamsMap);
         });
     }
 

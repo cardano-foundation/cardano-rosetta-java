@@ -1,13 +1,5 @@
 package org.cardanofoundation.rosetta.api.block.model.domain;
 
-import java.util.Optional;
-import javax.annotation.Nullable;
-
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import com.bloxbean.cardano.client.address.Credential;
 import com.bloxbean.cardano.client.transaction.spec.governance.Anchor;
 import com.bloxbean.cardano.client.transaction.spec.governance.Vote;
@@ -15,9 +7,15 @@ import com.bloxbean.cardano.client.transaction.spec.governance.Voter;
 import com.bloxbean.cardano.client.transaction.spec.governance.VoterType;
 import com.bloxbean.cardano.client.transaction.spec.governance.actions.GovActionId;
 import com.bloxbean.cardano.client.util.HexUtil;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.openapitools.client.model.*;
 
-import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
+import javax.annotation.Nullable;
+import java.util.Optional;
 
 @Data
 @Builder
@@ -32,7 +30,7 @@ public class GovernanceVote {
     @Nullable
     private Anchor anchor;
 
-    public static GovernanceVote convertToRosetta(GovCastVoteParams voteParams) {
+    public static GovernanceVote convertToRosetta(PoolGovernanceVoteParams voteParams) {
         GovernanceVoteBuilder governanceVoteBuilder = GovernanceVote.builder()
                 .govActionId(convertToRosetta(voteParams.getActionId()))
                 .voter(convertToRosetta(voteParams.getVoter()))
@@ -45,12 +43,13 @@ public class GovernanceVote {
         return governanceVoteBuilder.build();
     }
 
-    public static GovCastVoteParams convertFromRosetta(GovernanceVote governanceVote) {
-        GovCastVoteParams.GovCastVoteParamsBuilder builder = GovCastVoteParams.builder();
+    public static PoolGovernanceVoteParams convertFromRosetta(GovernanceVote governanceVote) {
+        PoolGovernanceVoteParams.PoolGovernanceVoteParamsBuilder builder = PoolGovernanceVoteParams.builder();
 
         builder.actionId(convertFromRosetta(governanceVote.getGovActionId()));
         builder.voter(convertFromRosetta(governanceVote.getVoter()));
         builder.vote(convertFromRosetta(governanceVote.getVote()));
+
         Optional.ofNullable(governanceVote.getAnchor()).ifPresent(govAnchorParams -> {
             builder.anchor(convertFromRosetta(govAnchorParams));
         });

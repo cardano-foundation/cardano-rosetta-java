@@ -129,11 +129,11 @@ public class Constants {
 
   // Plomin hard fork governance related
   public static final String OPERATION_TYPE_DREP_VOTE_DELEGATION = "dRepVoteDelegation";
-  public static final String OPERATION_TYPE_GOVERNANCE_CAST_VOTE = "governanceCastVote";
+  public static final String OPERATION_TYPE_POOL_GOVERNANCE_VOTE = "poolGovernanceVote";
 
   public static final List<String> GOVERNANCE_OPERATIONS = List.of(
         OperationType.VOTE_DREP_DELEGATION.getValue(),
-        OperationType.GOVERNANCE_CAST_VOTE.getValue()
+        OperationType.POOL_GOVERNANCE_VOTE.getValue()
   );
 
   public static final Integer ED_25519_KEY_SIGNATURE_BYTE_LENGTH = 64;
@@ -169,7 +169,8 @@ public class Constants {
   public static final String OUTPUT = "output";
   public static final String SUCCESS = "success";
   public static final String STAKING_CREDENTIAL = "staking_credential";
-  public static final String GOV_CAST_VOTE_PARAMS = "govCastVoteParams";
+  public static final String POOL_CREDENTIAL = "pool_credential";
+  public static final String POOL_GOVERNANCE_VOTE_PARAMS = "poolGovernanceVoteParams";
   public static final String VOTER = "voter";
   public static final String VOTE = "vote";
   public static final String ANCHOR = "anchor";

@@ -1,12 +1,9 @@
 {
   "network_identifier": {
     "blockchain": "cardano",
-    "network": "preprod"
+    "network": "mainnet"
   },
-  "metadata": {
-    "relative_ttl": 100
-  },
-  "operations" : [
+  "operations": [
     {
       "operation_identifier": {
         "index": 0,
@@ -79,10 +76,10 @@
       "operation_identifier": {
         "index": 3
       },
-      "type": "governanceCastVote",
+      "type": "poolGovernanceVote",
       "status": "success",
       "metadata": {
-        "govCastVoteParams": {
+        "poolGovernanceVoteParams": {
           "action_id": {
             "tx_id": "40c2a42fe324759a640dcfddbc69ef2e3b7fe5a998af8d6660359772bf44c9dc",
             "index": 0
@@ -95,5 +92,20 @@
         }
       }
     }
-  ]
+  ],
+  "metadata": {
+    "ttl": "1000",
+    "protocol_parameters": {
+      "coinsPerUtxoSize": "0",
+      "maxTxSize": 16384,
+      "maxValSize": 0,
+      "keyDeposit": "2000000",
+      "maxCollateralInputs": 0,
+      "minFeeCoefficient": 44,
+      "minFeeConstant": 155381,
+      "minPoolCost": "340000000",
+      "poolDeposit": "500000000",
+      "protocol": 4
+    }
+  }
 }

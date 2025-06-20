@@ -1,14 +1,13 @@
 package org.cardanofoundation.rosetta.common.mapper;
 
+import co.nstant.in.cbor.model.*;
+import org.cardanofoundation.rosetta.common.util.Constants;
+import org.openapitools.client.model.*;
+
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-
-import co.nstant.in.cbor.model.*;
-import org.openapitools.client.model.*;
-
-import org.cardanofoundation.rosetta.common.util.Constants;
 
 import static org.cardanofoundation.rosetta.common.util.Formatters.key;
 
@@ -96,6 +95,7 @@ public class CborMapToOperation {
             operation.setType(status);
         });
     }
+
     /**
      * Filling the status field of the Operation object from the cbor MAP  if not null.
      * Accessed through {@value Constants#STATUS}
@@ -391,26 +391,26 @@ public class CborMapToOperation {
             addPoolRegistrationCert(metadataMap, operationMetadata);
             addPoolRegistrationParams(metadataMap, operationMetadata);
             addVoteRegistrationMetadata(metadataMap, operationMetadata);
-            addGovCastVoteParams(metadataMap, operationMetadata);
+            addPoolGovernanceVoteParams(metadataMap, operationMetadata);
 
             operation.setMetadata(operationMetadata);
         });
     }
 
-    private static void addGovCastVoteParams(Map metadataMap, OperationMetadata operationMetadata) {
-        Optional.ofNullable(metadataMap.get(key("govCastVoteParams"))).ifPresent(o -> {
-            Map govCastVoteParamsMap = (Map) o;
-            GovCastVoteParams govCastVoteParams = new GovCastVoteParams();
-            addGovActionId(govCastVoteParamsMap, govCastVoteParams);
-            addGovVoter(govCastVoteParamsMap, govCastVoteParams);
-            addGovVote(govCastVoteParamsMap, govCastVoteParams);
-            addGovAnchor(govCastVoteParamsMap, govCastVoteParams);
+    private static void addPoolGovernanceVoteParams(Map metadataMap, OperationMetadata operationMetadata) {
+        Optional.ofNullable(metadataMap.get(key("poolGovernanceVoteParams"))).ifPresent(poolGovernanceVoteParamsDi -> {
+            Map poolGovernanceVoteParamsMap = (Map) poolGovernanceVoteParamsDi;
+            PoolGovernanceVoteParams poolGovernanceVoteParams = new PoolGovernanceVoteParams();
+            addGovActionId(poolGovernanceVoteParamsMap, poolGovernanceVoteParams);
+            addGovVoter(poolGovernanceVoteParamsMap, poolGovernanceVoteParams);
+            addGovVote(poolGovernanceVoteParamsMap, poolGovernanceVoteParams);
+            addGovAnchor(poolGovernanceVoteParamsMap, poolGovernanceVoteParams);
 
-            operationMetadata.setGovCastVoteParams(govCastVoteParams);
+            operationMetadata.setPoolGovernanceVoteParams(poolGovernanceVoteParams);
         });
     }
 
-    private static void addGovAnchor(Map metadataMap, GovCastVoteParams operationMetadata) {
+    private static void addGovAnchor(Map metadataMap, PoolGovernanceVoteParams operationMetadata) {
         Optional.ofNullable(metadataMap.get(key(Constants.ANCHOR)))
                 .ifPresent(o -> {
                     Map voterMap = (Map) o;
@@ -421,7 +421,7 @@ public class CborMapToOperation {
                 });
     }
 
-    private static void addGovActionId(Map metadataMap, GovCastVoteParams operationMetadata) {
+    private static void addGovActionId(Map metadataMap, PoolGovernanceVoteParams operationMetadata) {
         Optional.ofNullable(metadataMap.get(key(Constants.ACTION_ID)))
                 .ifPresent(o -> {
                     Map voterMap = (Map) o;
@@ -432,7 +432,7 @@ public class CborMapToOperation {
                 });
     }
 
-    private static void addGovVote(Map metadataMap, GovCastVoteParams operationMetadata) {
+    private static void addGovVote(Map metadataMap, PoolGovernanceVoteParams operationMetadata) {
         Optional.ofNullable(metadataMap.get(key(Constants.VOTE)))
                 .ifPresent(o -> {
                     UnicodeString voteValue = (UnicodeString) o;
@@ -441,7 +441,7 @@ public class CborMapToOperation {
                 });
     }
 
-    private static void addGovVoter(Map metadataMap, GovCastVoteParams operationMetadata) {
+    private static void addGovVoter(Map metadataMap, PoolGovernanceVoteParams operationMetadata) {
         Optional.ofNullable(metadataMap.get(key(Constants.VOTER)))
                 .ifPresent(o -> {
                     Map voterMap = (Map) o;
