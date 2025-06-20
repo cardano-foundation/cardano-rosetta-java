@@ -23,6 +23,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.openapitools.client.model.*;
 
 import org.cardanofoundation.rosetta.api.block.model.domain.DRepDelegation;
+import org.cardanofoundation.rosetta.api.block.model.domain.GovernanceVote;
 import org.cardanofoundation.rosetta.api.construction.enumeration.CatalystLabels;
 import org.cardanofoundation.rosetta.common.enumeration.CatalystDataIndexes;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
@@ -51,7 +52,6 @@ public class ProcessConstructions {
         log.info(
                 "[processOperationCertification] About to process operation of type {}",
                 operation.getType());
-
         OperationMetadata operationMetadata = operation.getMetadata();
 
         PublicKey publicKey = ObjectUtils.isEmpty(operation.getMetadata()) ? null
@@ -67,60 +67,70 @@ public class ProcessConstructions {
         String address = CardanoAddressUtils.generateRewardAddress(network, hdPublicKey);
 
         if (operation.getType().equals(OperationType.STAKE_DELEGATION.getValue())) {
-            if (operationMetadata.getPoolKeyHash() == null) {
-                throw ExceptionFactory.missingPoolKeyError();
-            }
-            Certificate certificate = new StakeDelegation(credential, new StakePoolId(
-                    ObjectUtils.isEmpty(operation.getMetadata()) ? null
-                            : HexUtil.decodeHexString(operationMetadata.getPoolKeyHash())));
-
-            return Optional.of(new CertificateWithAddress(certificate, address));
+            return handleStakeDelegation(operation, operationMetadata, credential, address);
         }
         if (operation.getType().equals(OperationType.STAKE_KEY_DEREGISTRATION.getValue())) {
             return Optional.of(new CertificateWithAddress(new StakeDeregistration(credential), address));
         }
         if (operation.getType().equals(OperationType.VOTE_DREP_DELEGATION.getValue())) {
-            DRepParams drep = operationMetadata.getDrep();
-
-            if (drep == null) {
-                throw ExceptionFactory.missingDrep();
-            }
-
-            DRepDelegation.DRep delegationDrep = DRepDelegation.DRep.convertDRepToRosetta(drep);
-
-            Either<ApiException, Optional<String>> drepIdE = switch (delegationDrep.getDrepType()) {
-                case ADDR_KEYHASH, SCRIPTHASH -> {
-                    if (delegationDrep.getDrepId() == null) {
-                        yield Either.left(ExceptionFactory.missingDRepId());
-                    }
-
-                    yield Either.right(Optional.of(delegationDrep.getDrepId()));
-                }
-
-                case ABSTAIN, NO_CONFIDENCE -> Either.right(Optional.empty());
-            };
-
-            if (drepIdE.isLeft()) {
-                throw drepIdE.getLeft();
-            }
-
-            Optional<String> drepIdM = drepIdE.get();
-            DRepType drepType = delegationDrep.getDrepType();
-
-            DRep dRep = switch (drepType) {
-                case ADDR_KEYHASH -> DRep.addrKeyHash(drepIdM.orElseThrow());
-                case SCRIPTHASH -> DRep.scriptHash(drepIdM.orElseThrow());
-                case ABSTAIN -> DRep.abstain();
-                case NO_CONFIDENCE -> DRep.noConfidence();
-            };
-
-            return Optional.of(new CertificateWithAddress(VoteDelegCert.builder()
-                    .stakeCredential(credential)
-                    .drep(dRep)
-                    .build(), address));
+            return handleDrepVoteDelegation(operationMetadata, credential, address);
         }
 
         return Optional.empty();
+    }
+
+    private static Optional<CertificateWithAddress> handleDrepVoteDelegation(OperationMetadata operationMetadata,
+                                                                             StakeCredential credential,
+                                                                             String address) {
+        DRepParams drep = operationMetadata.getDrep();
+
+        if (drep == null) {
+            throw ExceptionFactory.missingDrep();
+        }
+
+        DRepDelegation.DRep delegationDrep = DRepDelegation.DRep.convertDRepToRosetta(drep);
+
+        Either<ApiException, Optional<String>> drepIdE = switch (delegationDrep.getDrepType()) {
+            case ADDR_KEYHASH, SCRIPTHASH -> {
+                if (delegationDrep.getDrepId() == null) {
+                    yield Either.left(ExceptionFactory.missingDRepId());
+                }
+
+                yield Either.right(Optional.of(delegationDrep.getDrepId()));
+            }
+
+            case ABSTAIN, NO_CONFIDENCE -> Either.right(Optional.empty());
+        };
+
+        if (drepIdE.isLeft()) {
+            throw drepIdE.getLeft();
+        }
+
+        Optional<String> drepIdM = drepIdE.get();
+        DRepType drepType = delegationDrep.getDrepType();
+
+        DRep dRep = switch (drepType) {
+            case ADDR_KEYHASH -> DRep.addrKeyHash(drepIdM.orElseThrow());
+            case SCRIPTHASH -> DRep.scriptHash(drepIdM.orElseThrow());
+            case ABSTAIN -> DRep.abstain();
+            case NO_CONFIDENCE -> DRep.noConfidence();
+        };
+
+        return Optional.of(new CertificateWithAddress(VoteDelegCert.builder()
+                .stakeCredential(credential)
+                .drep(dRep)
+                .build(), address));
+    }
+
+    private static Optional<CertificateWithAddress> handleStakeDelegation(Operation operation, OperationMetadata operationMetadata, StakeCredential credential, String address) {
+        if (operationMetadata.getPoolKeyHash() == null) {
+            throw ExceptionFactory.missingPoolKeyError();
+        }
+        Certificate certificate = new StakeDelegation(credential, new StakePoolId(
+                ObjectUtils.isEmpty(operation.getMetadata()) ? null
+                        : HexUtil.decodeHexString(operationMetadata.getPoolKeyHash())));
+
+        return Optional.of(new CertificateWithAddress(certificate, address));
     }
 
     public static ProcessWithdrawalReturn getWithdrawalsReturnFromOperation(Network network, Operation operation) {
@@ -141,7 +151,7 @@ public class ProcessConstructions {
 
             processWithdrawalReturnDto.setReward(AddressProvider.getRewardAddress(hdPublicKey1, network));
             processWithdrawalReturnDto.setAddress(address);
-        } else if(operation.getAccount() != null && operation.getAccount().getAddress() != null) {
+        } else if (operation.getAccount() != null && operation.getAccount().getAddress() != null) {
             address = operation.getAccount().getAddress();
             processWithdrawalReturnDto.setAddress(address);
             processWithdrawalReturnDto.setReward(new Address(address));
@@ -158,6 +168,7 @@ public class ProcessConstructions {
         if (!ObjectUtils.isEmpty(operation) && !ObjectUtils.isEmpty(operation.getMetadata())
                 && ObjectUtils.isEmpty(operationMetadata.getPoolRegistrationParams())) {
             log.error("[processPoolRegistration] Pool_registration was not provided");
+
             throw ExceptionFactory.missingPoolRegistrationParameters();
         }
         PoolRegistrationParams poolRegistrationParams =
@@ -166,6 +177,7 @@ public class ProcessConstructions {
 
         PoolRegistationParametersReturn poolRegistationParametersReturn = ValidateParseUtil.validateAndParsePoolRegistationParameters(
                 poolRegistrationParams);
+
         byte[] poolKeyHash = ValidateParseUtil.validateAndParsePoolKeyHash(
                 ObjectUtils.isEmpty(operation.getAccount()) ? null : operation.getAccount().getAddress());
 
@@ -217,6 +229,7 @@ public class ProcessConstructions {
         ProcessPoolRegistrationReturn processPoolRegistrationReturnDto = new ProcessPoolRegistrationReturn();
         processPoolRegistrationReturnDto.setTotalAddresses(totalAddresses);
         processPoolRegistrationReturnDto.setCertificate(wasmPoolRegistration);
+
         return processPoolRegistrationReturnDto;
     }
 
@@ -227,6 +240,7 @@ public class ProcessConstructions {
             operationMetadata = operation.getMetadata();
             account = operation.getAccount();
         }
+
         return ValidateParseUtil.validateAndParsePoolRegistrationCert(
                 network,
                 operationMetadata == null ? null : operationMetadata.getPoolRegistrationCert(),
@@ -244,6 +258,7 @@ public class ProcessConstructions {
             double epoch = operationMetadata.getEpoch();
             byte[] keyHash = ValidateParseUtil.validateAndParsePoolKeyHash(
                     ObjectUtils.isEmpty(operation.getAccount()) ? null : operation.getAccount().getAddress());
+
             return new PoolRetirement(new com.bloxbean.cardano.client.transaction.spec.cert.PoolRetirement(keyHash, Math.round(epoch)), ObjectUtils.isEmpty(operation.getAccount()) ? null : operation.getAccount().getAddress());
         }
 
@@ -288,6 +303,35 @@ public class ProcessConstructions {
         auxiliaryData.setMetadata(metadata);
 
         return auxiliaryData;
+    }
+
+    public static GovernanceVote processGovernanceVote(Operation operation) {
+        log.info("[processCastVote] About to process cast vote operation");
+
+        OperationMetadata metadata = operation.getMetadata();
+
+        PoolGovernanceVoteParams poolGovernanceVoteParams = metadata.getPoolGovernanceVoteParams();
+        GovVoterParams govVoterParams = poolGovernanceVoteParams.getVoter();
+        if (govVoterParams == null) {
+            log.error("[processCastVote] Voter parameters were not provided");
+
+            throw ExceptionFactory.invalidGovernanceVote("Voter not provided (GovVoterParams)!");
+        }
+        GovActionIdParams govActionId = poolGovernanceVoteParams.getActionId();
+        if (govActionId == null) {
+            log.error("[processCastVote] Action ID parameters were not provided");
+
+            throw ExceptionFactory.invalidGovernanceVote("Action ID not provided (GovActionIdParams)!");
+        }
+        GovVoteParams voteParams = poolGovernanceVoteParams.getVote();
+
+        if (voteParams == null) {
+            log.error("[processCastVote] Vote parameters were not provided");
+
+            throw ExceptionFactory.invalidGovernanceVote("Vote not provided (GovVoteParams)!");
+        }
+
+        return GovernanceVote.convertToRosetta(poolGovernanceVoteParams);
     }
 
 }

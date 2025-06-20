@@ -1724,6 +1724,10 @@ components:
         drep:
           description: DRep
           $ref: '#/components/schemas/DRepParams'
+        poolGovernanceVoteParams:
+          description: PoolGovernanceVoteParams contains parameters related to casting a governance vote by a pool operator.
+          type: object
+          $ref: '#/components/schemas/PoolGovernanceVoteParams'
         epoch:
           description: Epoch
           type: integer
@@ -1739,6 +1743,80 @@ components:
           $ref: '#/components/schemas/PoolRegistrationParams'
         voteRegistrationMetadata:
           $ref: '#/components/schemas/VoteRegistrationMetadata'
+
+    PoolGovernanceVoteParams:
+      description: Parameters for a governance vote by a pool operator.
+      type: object
+      properties:
+        action_id:
+          description: GovActionId is a unique identifier for governance action
+          $ref: '#/components/schemas/GovActionIdParams'
+        voter:
+          description: GovVoter
+          $ref: '#/components/schemas/GovVoterParams'
+        vote:
+          description: GovVote
+          $ref: '#/components/schemas/GovVoteParams'
+        anchor:
+          description: GovAnchor
+          $ref: '#/components/schemas/GovAnchorParams'
+
+    GovActionIdParams:
+      description: Unique identifier for a governance action.
+      type: object
+      required:
+        - tx_id
+        - index
+      properties:
+        tx_id:
+          type: string
+          description: Transaction hash where the action was originated.
+          example: "df58f714c0765f3489afb6909384a16c31d600695be7e86ff9c59cf2e8a48c79"
+        index:
+          type: integer
+          description: Index of the action within the transaction.
+          example: 0
+
+    GovVoterParams:
+      description: Information about the voter.
+      type: object
+      required:
+        - id
+        - type
+      properties:
+        id:
+          type: string
+          description: Identifier of the voter.
+          example: "CF7C1CCEE5015A8DD8E563224EB4F7A07B8...97B"
+        type:
+          $ref: '#/components/schemas/GovVoterTypeParams'
+    GovVoterTypeParams:
+      description: Type of the voter.
+      type: string
+      enum:
+        - drep_key_hash
+        - drep_script_hash
+        - staking_pool_key_hash
+
+    GovVoteParams:
+      description: The vote cast by the voter.
+      type: string
+      enum:
+        - "YES"
+        - "NO"
+        - "ABSTAIN"
+
+    GovAnchorParams:
+      description: Optional anchor for the vote.
+      type: object
+      properties:
+        url:
+          type: string
+          description: URL of the anchor.
+        data_hash:
+          type: string
+          description: Hash of the anchor data.
+
     VoteRegistrationMetadata:
       description: VoteRegistrationMetadata
       type: object

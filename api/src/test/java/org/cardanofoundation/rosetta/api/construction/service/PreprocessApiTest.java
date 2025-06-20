@@ -51,6 +51,11 @@ class PreprocessApiTest extends IntegrationTest {
     assertPreprocessRequest("testdata/construction/preprocess/drep_vote_delegation.json", 100, 405);
   }
 
+  @Test
+  void govActionVoteTest() throws IOException {
+    assertPreprocessRequest("testdata/construction/preprocess/pool_governance_vote.json", 100, 311);
+  }
+
   private void assertPreprocessRequest(String constructionPayloadFile, int expectedTtl,
       int expectedTransactionSize)
       throws IOException {

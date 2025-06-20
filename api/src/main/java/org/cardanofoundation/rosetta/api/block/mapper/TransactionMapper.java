@@ -58,6 +58,15 @@ public interface TransactionMapper {
   @Mapping(target = "metadata.drep", source = "model.drep", qualifiedByName = "convertDRepFromRosetta")
   Operation mapDRepDelegationToOperation(DRepDelegation model, OperationStatus status, int index);
 
+  @Mapping(target = "status", source = "status.status")
+  @Mapping(target = "type", constant = Constants.OPERATION_TYPE_POOL_GOVERNANCE_VOTE)
+  @Mapping(target = "operationIdentifier", source = "index", qualifiedByName = "OperationIdentifier")
+  @Mapping(target = "metadata.poolGovernanceVoteParams.actionId", source = "governanceVote.govActionId", qualifiedByName = "convertGovActionIdFromRosetta")
+  @Mapping(target = "metadata.poolGovernanceVoteParams.voter", source = "governanceVote.voter", qualifiedByName = "convertGovVoterFromRosetta")
+  @Mapping(target = "metadata.poolGovernanceVoteParams.vote", source = "governanceVote.vote", qualifiedByName = "convertGovVoteFromRosetta")
+  @Mapping(target = "metadata.poolGovernanceVoteParams.anchor", source = "governanceVote.anchor", qualifiedByName = "convertGovAnchorFromRosetta")
+  Operation mapGovernanceVoteToOperation(GovernanceVote governanceVote, OperationStatus status, int index);
+
   @Mapping(target = "type", constant = Constants.INPUT)
   @Mapping(target = "coinChange.coinAction", source = "model", qualifiedByName = "getCoinSpentAction")
   @Mapping(target = "metadata", source = "model.amounts", qualifiedByName = "mapAmountsToOperationMetadataInput")

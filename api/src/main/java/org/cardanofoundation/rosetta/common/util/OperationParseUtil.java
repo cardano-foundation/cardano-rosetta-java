@@ -2,6 +2,7 @@ package org.cardanofoundation.rosetta.common.util;
 
 import java.math.BigInteger;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
@@ -14,6 +15,7 @@ import com.bloxbean.cardano.client.transaction.spec.Withdrawal;
 import org.apache.commons.lang3.ObjectUtils;
 import org.openapitools.client.model.Operation;
 
+import org.cardanofoundation.rosetta.api.block.model.domain.GovernanceVote;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProcessOperations;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.common.model.cardano.pool.PoolRegistrationCertReturn;
@@ -62,6 +64,8 @@ public class OperationParseUtil {
               parsePoolRetirement(operation, resultAccumulator);
       case OperationType.VOTE_REGISTRATION ->
               parseVoteRegistration(operation, resultAccumulator);
+      case OperationType.POOL_GOVERNANCE_VOTE ->
+              parseGovernanceVote(operation, resultAccumulator);
     };
   }
 
@@ -168,14 +172,19 @@ public class OperationParseUtil {
 
   @NotNull
   private static ProcessOperations parsePoolRegistrationWithCert(Operation operation,
-                                                                 Network network, ProcessOperations resultAccumulator) {
+                                                                 Network network,
+                                                                 ProcessOperations resultAccumulator) {
     PoolRegistrationCertReturn poolRegistrationCertReturn = ProcessConstructions.getPoolRegistrationCertFromOperation(
             operation, network);
 
     resultAccumulator.getCertificates().add(poolRegistrationCertReturn.getCertificate());
+
     Set<String> set = poolRegistrationCertReturn.getAddress();
+
     resultAccumulator.getAddresses().addAll(set);
+
     double poolNumber = resultAccumulator.getPoolRegistrationsCount();
+
     resultAccumulator.setPoolRegistrationsCount(++poolNumber);
 
     return resultAccumulator;
@@ -192,9 +201,21 @@ public class OperationParseUtil {
             .addAll(processPoolRegistrationReturn.getTotalAddresses());
 
     double poolNumber = resultAccumulator.getPoolRegistrationsCount();
+
     resultAccumulator.setPoolRegistrationsCount(++poolNumber);
 
     return resultAccumulator;
+  }
+
+  private static ProcessOperations parseGovernanceVote(Operation operation,
+                                                       ProcessOperations processOperations) {
+    Optional.of(operation.getMetadata().getPoolGovernanceVoteParams()).ifPresent(poolGovernanceVoteParams -> {
+      GovernanceVote governanceVote = ProcessConstructions.processGovernanceVote(operation);
+
+      processOperations.getGovernanceVotes().add(governanceVote);
+    });
+
+    return processOperations;
   }
 
 }
