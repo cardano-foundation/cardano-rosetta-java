@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS error_review (
+    id INT NOT NULL PRIMARY KEY,
+    status VARCHAR(255) NOT NULL,
+    comment VARCHAR(255),
+    checked_by VARCHAR(255),
+    last_updated TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP()
+);

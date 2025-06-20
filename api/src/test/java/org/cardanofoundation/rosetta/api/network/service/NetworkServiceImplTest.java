@@ -120,5 +120,4 @@ class NetworkServiceImplTest extends IntegrationTest {
         .build();
   }
 
-
 }
