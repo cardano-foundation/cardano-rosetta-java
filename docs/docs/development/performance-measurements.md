@@ -37,7 +37,7 @@ To better understand the environments in which these results were obtained, plea
 
 - [Release Notes](https://github.com/cardano-foundation/cardano-rosetta-java/releases/tag/1.2.9)
 
-The following tests were conducted on a **mid-level** hardware profile with the following specifications: **8 cores, 8 threads, 47GB RAM, 3.9TB NVMe, QEMU Virtual CPU v2.5+**.
+The following tests were conducted on a **mid-level** hardware profile with the following specifications: **8 cores, 8 threads, 48GB RAM, 3.9TB NVMe, QEMU Virtual CPU v2.5+**.
 
 import DockerCompose129 from './test-results/1.2.9/docker-compose.md';
 import HugeAddress373kv129 from './test-results/1.2.9/huge-address-373k.md';
@@ -112,7 +112,7 @@ import HugeAddress373kv120 from './test-results/1.2.0/huge-address-373k.md';
 
 - [Release Notes](https://github.com/cardano-foundation/cardano-rosetta-java/releases/tag/1.2.0)
 
-The following tests were conducted on a **mid-level** hardware profile with the following specifications: **16 cores, 16 threads, 46GB RAM, 3.9TB NVMe, QEMU Virtual CPU v2.5+**.
+The following tests were conducted on a **mid-level** hardware profile with the following specifications: **8 cores, 8 threads, 48GB RAM, 3.9TB NVMe, QEMU Virtual CPU v2.5+**.
 
 <Tabs>
   <TabItem value="compose" label="Docker Compose">
