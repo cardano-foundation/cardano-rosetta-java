@@ -1,10 +1,14 @@
 package org.cardanofoundation.rosetta.api.block.model.domain;
 
+import com.bloxbean.cardano.client.util.HexUtil;
 import lombok.*;
 
 import com.bloxbean.cardano.client.transaction.spec.governance.DRepType;
 import org.openapitools.client.model.DRepParams;
 import org.openapitools.client.model.DRepTypeParams;
+import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
+
+import java.util.Arrays;
 
 @Data
 @Builder
@@ -25,18 +29,48 @@ public class DRepDelegation {
         private String drepId;
         private DRepType drepType;
 
-        public static DRepDelegation.DRep convertDRepToRosetta(DRepParams dRepParams) {
-            DRepType dRepType = switch (dRepParams.getType()) {
-                case KEY_HASH -> DRepType.ADDR_KEYHASH;
-                case SCRIPT_HASH -> DRepType.SCRIPTHASH;
-                case ABSTAIN -> DRepType.ABSTAIN;
-                case NO_CONFIDENCE -> DRepType.NO_CONFIDENCE;
-            };
+        public static DRep convertDRepToRosetta(DRepParams dRepParams) {
 
-            return new DRepDelegation.DRep(dRepParams.getId(), dRepType);
+            byte[] idBytes = HexUtil.decodeHexString(dRepParams.getId());
+
+            if (idBytes.length == 29) {
+                byte tag = idBytes[0];
+                byte[] stripped = Arrays.copyOfRange(idBytes, 1, 29);
+                String strippedHex = HexUtil.encodeHexString(stripped);
+
+                DRepType dRepHashType = switch (tag) {
+                    case 0x22 -> DRepType.ADDR_KEYHASH;
+                    case 0x23 -> DRepType.SCRIPTHASH;
+                    default -> throw ExceptionFactory.invalidDrepType();
+                };
+
+                if (dRepParams.getType() != null) {
+                    DRepType declaredType = switch (dRepParams.getType()) {
+                        case KEY_HASH -> DRepType.ADDR_KEYHASH;
+                        case SCRIPT_HASH -> DRepType.SCRIPTHASH;
+                        default -> throw ExceptionFactory.invalidDrepType();
+                    };
+
+                    if (!declaredType.equals(dRepHashType)) {
+                        throw ExceptionFactory.invalidDrepType();
+                    }
+                }
+
+                return new DRep(strippedHex, dRepHashType);
+            } else {
+                DRepType dRepType = switch (dRepParams.getType()) {
+                    case KEY_HASH -> DRepType.ADDR_KEYHASH;
+                    case SCRIPT_HASH -> DRepType.SCRIPTHASH;
+                    case ABSTAIN -> DRepType.ABSTAIN;
+                    case NO_CONFIDENCE -> DRepType.NO_CONFIDENCE;
+                };
+
+                return new DRep(dRepParams.getId(), dRepType);
+            }
+
         }
 
-        public static DRepParams convertDRepFromRosetta(DRepDelegation.DRep drep) {
+        public static DRepParams convertDRepFromRosetta(DRep drep) {
             DRepTypeParams dRepTypeParams = switch (drep.getDrepType()) {
                 case ADDR_KEYHASH -> DRepTypeParams.KEY_HASH;
                 case SCRIPTHASH -> DRepTypeParams.SCRIPT_HASH;

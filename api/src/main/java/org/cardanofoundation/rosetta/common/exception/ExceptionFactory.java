@@ -1,7 +1,8 @@
 package org.cardanofoundation.rosetta.common.exception;
 
-import java.time.LocalDateTime;
 import jakarta.validation.constraints.NotNull;
+
+import java.time.LocalDateTime;
 
 import static org.cardanofoundation.rosetta.common.util.RosettaConstants.RosettaErrorType;
 
@@ -329,6 +330,10 @@ public class ExceptionFactory {
     return new ApiException(RosettaErrorType.MISSING_DREP_TYPE.toRosettaError(false));
   }
 
+  public static ApiException invalidDrepType() {
+    return new ApiException(RosettaErrorType.INVALID_DREP_TYPE.toRosettaError(false));
+  }
+
   public static ApiException timeOut(String detailMessage) {
     return new ApiException(RosettaErrorType.TIMEOUT.toRosettaError(true, Details.builder().message("Timeout, details: %s".formatted(detailMessage)).build()));
   }
@@ -344,5 +349,4 @@ public class ExceptionFactory {
   public static ApiException withdrawalAmountsNegativeError() {
     return new ApiException(RosettaErrorType.WITHDRAWAL_AMOUNT_CANNOT_BE_NEGATIVE.toRosettaError(false));
   }
-
 }
