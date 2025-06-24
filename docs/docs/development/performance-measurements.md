@@ -37,21 +37,21 @@ To better understand the environments in which these results were obtained, plea
 
 - [Release Notes](https://github.com/cardano-foundation/cardano-rosetta-java/releases/tag/1.2.9)
 
-The following tests were conducted on a **mid-level** hardware profile with the following specifications: **8 cores, 8 threads, 47GB RAM, 3.9TB NVMe, QEMU Virtual CPU v2.5+**.
+The following tests were conducted on a **mid-level** hardware profile with the following specifications: **8 cores, 8 threads, 48GB RAM, 3.9TB NVMe, QEMU Virtual CPU v2.5+**.
 
 import DockerCompose129 from './test-results/1.2.9/docker-compose.md';
-import HugeAddress373k from './test-results/1.2.9/huge-address-373k.md';
-import HugeAddress16M from './test-results/1.2.9/huge-address-1.6M.md';
+import HugeAddress373kv129 from './test-results/1.2.9/huge-address-373k.md';
+import HugeAddress16Mv129 from './test-results/1.2.9/huge-address-1.6M.md';
 
 <Tabs>
   <TabItem value="compose" label="Docker Compose" default>
     <DockerCompose129 />
   </TabItem>
-  <TabItem value="huge-373k" label="Huge Address (~373k txs)">
-    <HugeAddress373k />
+  <TabItem value="huge-373k-v129" label="Huge Address (~373k txs)">
+    <HugeAddress373kv129 />
   </TabItem>
-  <TabItem value="huge-1.6M" label="Huge Address (~1.6M txs)">
-    <HugeAddress16M />
+  <TabItem value="huge-1.6M-v129" label="Huge Address (~1.6M txs)">
+    <HugeAddress16Mv129 />
   </TabItem>
 </Tabs>
 </details>
@@ -96,6 +96,30 @@ import DockerCompose126 from './test-results/1.2.6/docker-compose.md';
   </TabItem>
   <TabItem value="compose" label="Docker Compose">
     <DockerCompose126 />
+  </TabItem>
+</Tabs>
+</details>
+
+<details>
+<summary>
+
+### v1.2.0 (Feb 13, 2025)
+
+</summary>
+
+import DockerCompose120 from './test-results/1.2.0/docker-compose.md';
+import HugeAddress373kv120 from './test-results/1.2.0/huge-address-373k.md';
+
+- [Release Notes](https://github.com/cardano-foundation/cardano-rosetta-java/releases/tag/1.2.0)
+
+The following tests were conducted on a **mid-level** hardware profile with the following specifications: **8 cores, 8 threads, 48GB RAM, 3.9TB NVMe, QEMU Virtual CPU v2.5+**.
+
+<Tabs>
+  <TabItem value="compose" label="Docker Compose">
+    <DockerCompose120 />
+  </TabItem>
+  <TabItem value="huge-373k-v120" label="Huge Address (~373k txs)">
+    <HugeAddress373kv120 />
   </TabItem>
 </Tabs>
 </details>

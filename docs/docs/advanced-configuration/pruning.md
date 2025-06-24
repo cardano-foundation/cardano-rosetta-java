@@ -53,10 +53,7 @@ When pruning is enabled, the `/network/status` endpoint includes an additional `
 
 After enabling pruning, searching for transactions by their hash will always work, because transaction records themselves are never pruned. However, searching by address is limited: address-based searches rely on the UTXO set, and once spent UTXOs older than the pruning window are deleted, only transactions involving current or recently spent UTXOs can be found by address. Older history is not returned once pruned.
 
-**Enable Spent UTxO removal **: Set `REMOVE_SPENT_UTXOS=true` in your environment (e.g., in `.env.dockerfile` or `.env.docker-compose`).
-**Disable Spent UTxO removal ** (default): Set `REMOVE_SPENT_UTXOS=false`.
-
-## When Spent UTxO Removal should be enabled?   
+## When Spent UTxO Removal should be enabled?
 
 :::tip Recommended Use Cases
 Pruning is beneficial in scenarios where optimizing disk space and focusing on current data is prioritized over maintaining a complete historical record. Consider enabling pruning if your use case aligns with the following:
@@ -82,7 +79,7 @@ Once data is pruned, it cannot be recovered without a full blockchain resynchron
 
 ## Configuration
 
-Spent UTXO pruning is configured via environment variables, typically set in your `.env.dockerfile` or `.env.docker-compose` file. Below is an example demonstrating the available settings and their default values:
+Spent UTXO pruning is configured via environment variables, typically set in your `.env.dockerfile` or `.env.docker-compose` file:
 
 ```bash
 # --- Spent UTXO Pruning Configuration ---
@@ -103,28 +100,53 @@ REMOVE_SPENT_UTXOS_LAST_BLOCKS_GRACE_COUNT=2160
 
 :::note Configuration Guidelines
 
-- Start with the default settings (`REMOVE_SPENT_UTXOS=false` means pruning is initially off).
-- If enabling, the provided defaults (`REMOVE_SPENT_UTXOS_LAST_BLOCKS_GRACE_COUNT=2160`) are sensible starting points.
-- Adjust `REMOVE_SPENT_UTXOS_LAST_BLOCKS_GRACE_COUNT` based on your specific needs for recent historical data access. A larger value offers a longer window for historical queries but increases storage.
+- Start with the default settings (`REMOVE_SPENT_UTXOS=false` keeps pruning off).
+- The provided defaults (`REMOVE_SPENT_UTXOS_LAST_BLOCKS_GRACE_COUNT=2160`) offer ~12 h of rollback safety on mainnet.
+- Increase `REMOVE_SPENT_UTXOS_LAST_BLOCKS_GRACE_COUNT` if you need a longer historical query window; decrease it for more aggressive space savings.
   :::
 
 ## Migration and Operational Notes
 
 This section outlines key considerations when changing pruning settings or managing a system with pruning enabled.
 
-### Enabling Pruning on an Existing Deployment
+### Changing Pruning Settings on an Existing Deployment
 
-1.  **Configuration**: Update the necessary environment variables (e.g., `REMOVE_SPENT_UTXOS=true`) and restart your cardano-rosetta-java services.
-2.  **Initial Monitoring**: After enabling, closely monitor your application for any errors. Disk usage benefits will typically appear after the first pruning cycle completes.
+To change the pruning configuration, update the `REMOVE_SPENT_UTXOS` variable in your environment (to either `true` or `false`) and restart your `cardano-rosetta-java` services.
 
-### Disabling Pruning
+:::info Resynchronization Is Required to Apply Changes
+It is critical to understand that this change **only affects how new blocks are handled**; it does not retroactively alter your existing database. To fully apply the new setting across all historical data, you must perform an [indexer resynchronization](#how-to-resynchronize-the-indexer).
 
-:::caution Important Considerations
+- **When enabling pruning (`true`)**, a resync is required to clear out historically spent UTXOs and reclaim disk space.
+- **When disabling pruning (`false`)**, a resync is required to rebuild the complete transaction history that was previously pruned away.
 
-- **Halts Deletion, No Restoration**: Setting `REMOVE_SPENT_UTXOS=false` and restarting services will stop further deletion of spent UTXOs. However, this action **does not restore** any data already pruned.
-- **Full Resync for Complete History**: To regain a complete historical dataset after pruning has been active, a full resynchronization of the blockchain data is required.
-- **Storage Growth Resumes**: Once pruning is disabled, expect storage usage to gradually increase again as new UTXOs (both spent and unspent) accumulate.
-  :::
+Without a resynchronization, your database will exist in a mixed state, and you will not see the expected results of your configuration change immediately.
+:::
+
+### How to Resynchronize the Indexer
+
+The resynchronization process rebuilds the indexer database from your existing Cardano node data, which is much faster than resyncing the entire blockchain from scratch.
+
+This is necessary in two main scenarios:
+
+- **To reclaim disk space**: When you enable pruning on an existing instance, a resync will clear out historically spent UTXOs.
+- **To restore full history**: When you disable pruning, a resync will rebuild the complete transaction history that was previously pruned away.
+
+:::tip Quick Resynchronization Steps
+
+1.  **Stop the stack**: Gracefully shut down your services using `docker compose down`.
+2.  **Remove the indexer volume**: Delete the persistent storage used by the indexer's Postgres database (do **not** touch the Cardano node data).
+
+    ```bash
+    # If your compose file uses a **bind mount** (default):
+    sudo rm -rf ${DB_PATH}        # replace ${DB_PATH} with the value from your .env file
+    ```
+
+3.  **Restart the stack**: Start the services again with `docker compose up -d`. The indexer will begin resyncing from the node, applying your new configuration.
+    :::
+
+:::danger Do Not Delete Cardano Node Data
+Removing the node's data volume is unnecessary for this process and will trigger a full, time-consuming blockchain resynchronization, leading to significant downtime.
+:::
 
 ## Further Reading
 
