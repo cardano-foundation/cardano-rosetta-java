@@ -139,9 +139,6 @@ This is necessary in two main scenarios:
     ```bash
     # If your compose file uses a **bind mount** (default):
     sudo rm -rf ${DB_PATH}        # replace ${DB_PATH} with the value from your .env file
-
-    # If you switched to a **named volume** setup instead:
-    docker volume rm <your_project>_data
     ```
 
 3.  **Restart the stack**: Start the services again with `docker compose up -d`. The indexer will begin resyncing from the node, applying your new configuration.
