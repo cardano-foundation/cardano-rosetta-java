@@ -30,6 +30,24 @@ public class DRepDelegation {
         private DRepType drepType;
 
         public static DRep convertDRepToRosetta(DRepParams dRepParams) {
+            if (dRepParams == null || dRepParams.getType() == null) {
+                throw ExceptionFactory.missingDrep();
+            }
+
+            DRepType dRepType = switch (dRepParams.getType()) {
+                case KEY_HASH -> DRepType.ADDR_KEYHASH;
+                case SCRIPT_HASH -> DRepType.SCRIPTHASH;
+                case ABSTAIN -> DRepType.ABSTAIN;
+                case NO_CONFIDENCE -> DRepType.NO_CONFIDENCE;
+            };
+
+            if (dRepType == DRepType.ABSTAIN || dRepType == DRepType.NO_CONFIDENCE) {
+                return new DRep(null, dRepType);
+            }
+
+            if (dRepParams.getId() == null || dRepParams.getId().isBlank()) {
+                throw ExceptionFactory.missingDRepId();
+            }
 
             byte[] idBytes = HexUtil.decodeHexString(dRepParams.getId());
 
@@ -44,30 +62,14 @@ public class DRepDelegation {
                     default -> throw ExceptionFactory.invalidDrepType();
                 };
 
-                if (dRepParams.getType() != null) {
-                    DRepType declaredType = switch (dRepParams.getType()) {
-                        case KEY_HASH -> DRepType.ADDR_KEYHASH;
-                        case SCRIPT_HASH -> DRepType.SCRIPTHASH;
-                        default -> throw ExceptionFactory.invalidDrepType();
-                    };
-
-                    if (!declaredType.equals(dRepHashType)) {
-                        throw ExceptionFactory.invalidDrepType();
-                    }
+                if (!dRepHashType.equals(dRepType)) {
+                    throw ExceptionFactory.invalidDrepType();
                 }
 
                 return new DRep(strippedHex, dRepHashType);
-            } else {
-                DRepType dRepType = switch (dRepParams.getType()) {
-                    case KEY_HASH -> DRepType.ADDR_KEYHASH;
-                    case SCRIPT_HASH -> DRepType.SCRIPTHASH;
-                    case ABSTAIN -> DRepType.ABSTAIN;
-                    case NO_CONFIDENCE -> DRepType.NO_CONFIDENCE;
-                };
-
-                return new DRep(dRepParams.getId(), dRepType);
             }
 
+            return new DRep(dRepParams.getId(), dRepType);
         }
 
         public static DRepParams convertDRepFromRosetta(DRep drep) {
