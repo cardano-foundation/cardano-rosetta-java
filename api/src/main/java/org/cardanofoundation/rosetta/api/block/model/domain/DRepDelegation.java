@@ -1,14 +1,15 @@
 package org.cardanofoundation.rosetta.api.block.model.domain;
 
-import com.bloxbean.cardano.client.util.HexUtil;
+import java.util.Arrays;
+
 import lombok.*;
 
 import com.bloxbean.cardano.client.transaction.spec.governance.DRepType;
+import com.bloxbean.cardano.client.util.HexUtil;
 import org.openapitools.client.model.DRepParams;
 import org.openapitools.client.model.DRepTypeParams;
-import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 
-import java.util.Arrays;
+import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 
 @Data
 @Builder
