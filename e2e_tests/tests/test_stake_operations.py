@@ -101,6 +101,118 @@ def test_stake_key_registration(
         raise
 
 
+@pytest.mark.order(9)
+def test_reward_withdrawal_zero(
+    rosetta_client,
+    test_wallet,
+    transaction_orchestrator,
+    signing_handler,
+    utxo_selector
+):
+    """
+    Withdraw 0 ADA rewards after stake delegation.
+    Scenario A, Step 2b.
+    """
+    logger.info("⬧ Scenario A.2b: Reward Withdrawal (0 ADA)")
+
+    # Set up addresses and keys
+    payment_address = test_wallet.get_address()
+    stake_address = test_wallet.get_stake_address()
+    stake_key_hex = test_wallet.get_stake_verification_key_hex()
+
+    try:
+        # Verify Reward address derivation first
+        verify_address_derivation(rosetta_client, test_wallet, logger, "Reward")
+
+        # 1. Get initial balance
+        initial_balance = rosetta_client.get_ada_balance(payment_address)
+        logger.debug(f"Initial balance: {initial_balance:,} lovelace")
+
+        # Withdrawal only requires tx fee
+        required_amount = 200_000 + 1_000_000  # est. fee + min change
+
+        # 2. Select a single UTXO
+        input_utxos = utxo_selector.select_utxos(
+            client=rosetta_client,
+            address=payment_address,
+            required_amount=required_amount,
+            strategy="single"
+        )
+
+        # 3. Build operations (1 input, 1 withdrawal, 1 output)
+        operations = []
+        total_input = 0
+        for utxo in input_utxos:
+            utxo_value = int(utxo["amount"]["value"])
+            total_input += utxo_value
+            operations.append(
+                OperationBuilder.build_input_operation(
+                    index=len(operations),
+                    address=payment_address,
+                    amount=utxo_value,
+                    utxo_id=utxo["coin_identifier"]["identifier"]
+                )
+            )
+
+        # Withdrawal (0 ADA) operation
+        operations.append({
+            "operation_identifier": {"index": len(operations)},
+            "type": "withdrawal",
+            "status": "",
+            "account": {"address": stake_address},
+            "amount": {"value": "0", "currency": {"symbol": "ADA", "decimals": 6}},
+            "metadata": {
+                "staking_credential": {
+                    "hex_bytes": stake_key_hex,
+                    "curve_type": "edwards25519"
+                }
+            }
+        })
+
+        # Change output back to self (fee will be deducted automatically)
+        operations.append(
+            OperationBuilder.build_output_operation(
+                index=len(operations),
+                address=payment_address,
+                amount=total_input  # fee adjustment handled by orchestrator
+            )
+        )
+
+        # 4. Build transaction
+        unsigned_tx, payloads, metadata, fee = transaction_orchestrator.build_transaction(
+            operations=operations
+        )
+        logger.debug(f"Transaction built with fee: {fee:,} lovelace")
+
+        # 5. Sign and submit transaction
+        signing_function = signing_handler.create_combined_signing_function(payloads)
+
+        tx_hash, tx_details = transaction_orchestrator.sign_and_submit(
+            unsigned_transaction=unsigned_tx,
+            payloads=payloads,
+            signing_function=signing_function,
+            expected_operations=["withdrawal"]
+        )
+
+        # 6. Verify balance (no deposit or refund)
+        verify_final_balance(
+            rosetta_client,
+            logger,
+            payment_address,
+            initial_balance,
+            fee
+        )
+
+        logger.info(f"Reward withdrawal (0 ADA) successful: {tx_hash} · Fee: {fee:,} lovelace")
+
+    except ValidationError as e:
+        logger.error(f"Transaction validation failed · Error: {str(e)}!!")
+        raise
+    except Exception as e:
+        logger.error(f"‼ Test failed: {str(e)}")
+        raise
+
+
 @pytest.mark.order(2)
 def test_stake_delegation(
     rosetta_client,
@@ -724,7 +836,7 @@ def test_drep_vote_delegation_script_hash(
         raise
 
 # New test function for final deregistration
-@pytest.mark.order(9) 
+@pytest.mark.order(10) 
 def test_scenario_B_final_deregistration(
     rosetta_client,
     test_wallet,
