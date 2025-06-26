@@ -451,7 +451,7 @@ class CborMapToOperationTest {
         voteRegMap.put(key(Constants.VOTING_NONCE), new UnsignedInteger(12345));
         voteRegMap.put(key(Constants.VOTING_SIGNATURE), new UnicodeString("vote_signature_hex"));
 
-        metadataMap.put(key(Constants.VOTEREGISTRATIONMETADATA), voteRegMap);
+        metadataMap.put(key(Constants.VOTE_REGISTRATION_METADATA), voteRegMap);
         operationMap.put(key(Constants.METADATA), metadataMap);
 
         // Expected

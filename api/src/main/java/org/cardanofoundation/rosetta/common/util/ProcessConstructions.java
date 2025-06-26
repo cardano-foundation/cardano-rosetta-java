@@ -79,6 +79,7 @@ public class ProcessConstructions {
         if (operation.getType().equals(OperationType.STAKE_KEY_DEREGISTRATION.getValue())) {
             return Optional.of(new CertificateWithAddress(new StakeDeregistration(credential), address));
         }
+
         if (operation.getType().equals(OperationType.VOTE_DREP_DELEGATION.getValue())) {
             DRepParams drep = operationMetadata.getDrep();
 

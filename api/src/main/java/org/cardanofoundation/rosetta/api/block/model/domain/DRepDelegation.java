@@ -23,7 +23,6 @@ public class DRepDelegation {
     public static class DRep {
 
         private String drepId;
-
         private DRepType drepType;
 
         public static DRepDelegation.DRep convertDRepToRosetta(DRepParams dRepParams) {
