@@ -196,6 +196,7 @@ class CardanoConstructionServiceImplTest {
       assertEquals("-90000000", op.getAmount().getValue());
       assertEquals("coin_spent", op.getCoinChange().getCoinAction().getValue());
     });
+
     actual.operations().stream().filter(op -> op.getType().equals("output")).forEach(op -> {
       assertNotNull(op.getOperationIdentifier());
       assertNotNull(op.getRelatedOperations());

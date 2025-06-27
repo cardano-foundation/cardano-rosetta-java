@@ -117,10 +117,15 @@ public class OperationService {
       Network network, List<Operation> operations)
       throws CborException, CborSerializationException {
     List<Operation> certOps = extraData.operations().stream()
-        .filter(o -> Constants.STAKE_POOL_OPERATIONS.contains(o.getType())
+        .filter(o -> {
+                    return Constants.STAKE_POOL_OPERATIONS.contains(o.getType())
+                            || OperationType.VOTE_DREP_DELEGATION.getValue().equals(o.getType());
+                }
         ).toList();
+
     List<Operation> parsedCertOperations = ParseConstructionUtil.parseCertsToOperations(
             transactionBody, certOps, network);
+
     operations.addAll(parsedCertOperations);
   }
 

@@ -186,7 +186,7 @@ public class Constants {
   public static final String RELAYS = "relays";
   public static final String MARGIN = "margin";
   public static final String MARGIN_PERCENTAGE = "margin_percentage";
-  public static final String VOTEREGISTRATIONMETADATA = "voteRegistrationMetadata";
+  public static final String VOTE_REGISTRATION_METADATA = "voteRegistrationMetadata";
   public static final String OPERATIONS = "operations";
   public static final String TRANSACTIONMETADATAHEX = "transactionMetadataHex";
   public static final String HEX_BYTES = "hex_bytes";
@@ -200,10 +200,11 @@ public class Constants {
   public static final String HASH = "hash";
   public static final String PORT = "port";
   public static final String IDENTIFIER = "identifier";
+  public static final String ID = "id";
+  public static final String DREP = "drep";
   public static final String COST = "cost";
   public static final String EMPTY_SYMBOL = "0x";
   public static final String SYMBOL_REGEX = "\\x";
-
 
   public static final String LOVELACE = "lovelace";
   public static final String DEVKIT = "devkit";

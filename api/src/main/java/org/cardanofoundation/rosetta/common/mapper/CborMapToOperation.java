@@ -5,31 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import co.nstant.in.cbor.model.Array;
-import co.nstant.in.cbor.model.DataItem;
-import co.nstant.in.cbor.model.Map;
-import co.nstant.in.cbor.model.UnicodeString;
-import co.nstant.in.cbor.model.UnsignedInteger;
-import org.openapitools.client.model.AccountIdentifier;
-import org.openapitools.client.model.AccountIdentifierMetadata;
-import org.openapitools.client.model.Amount;
-import org.openapitools.client.model.CoinAction;
-import org.openapitools.client.model.CoinChange;
-import org.openapitools.client.model.CoinIdentifier;
-import org.openapitools.client.model.Currency;
-import org.openapitools.client.model.CurrencyMetadata;
-import org.openapitools.client.model.CurveType;
-import org.openapitools.client.model.Operation;
-import org.openapitools.client.model.OperationIdentifier;
-import org.openapitools.client.model.OperationMetadata;
-import org.openapitools.client.model.PoolMargin;
-import org.openapitools.client.model.PoolMetadata;
-import org.openapitools.client.model.PoolRegistrationParams;
-import org.openapitools.client.model.PublicKey;
-import org.openapitools.client.model.Relay;
-import org.openapitools.client.model.SubAccountIdentifier;
-import org.openapitools.client.model.TokenBundleItem;
-import org.openapitools.client.model.VoteRegistrationMetadata;
+import co.nstant.in.cbor.model.*;
+import org.openapitools.client.model.*;
 
 import org.cardanofoundation.rosetta.common.util.Constants;
 
@@ -103,6 +80,7 @@ public class CborMapToOperation {
                                                 OperationIdentifier operationIdentifier) {
         Optional.ofNullable(operationIdentifierMap.get(key(Constants.INDEX)))
                 .ifPresent(index -> operationIdentifier.setIndex(((UnsignedInteger) index).getValue().longValue()));
+
         Optional.ofNullable(operationIdentifierMap.get(key(Constants.NETWORK_INDEX)))
                 .ifPresent(index -> operationIdentifier.setNetworkIndex(((UnsignedInteger) index).getValue().longValue()));
     }
@@ -403,6 +381,7 @@ public class CborMapToOperation {
     private static void addMetadata(Map operationMap, Operation operation) {
         Optional.ofNullable(operationMap.get(new UnicodeString(Constants.METADATA))).ifPresent(o -> {
             Map metadataMap = (Map) operationMap.get(new UnicodeString(Constants.METADATA));
+
             OperationMetadata operationMetadata = new OperationMetadata();
             addWithdrawalAmount(metadataMap, operationMetadata);
             addDepositAmount(metadataMap, operationMetadata);
@@ -414,23 +393,43 @@ public class CborMapToOperation {
             addPoolRegistrationCert(metadataMap, operationMetadata);
             addPoolRegistrationParams(metadataMap, operationMetadata);
             addVoteRegistrationMetadata(metadataMap, operationMetadata);
+            addDrepVoteDelegationParams(metadataMap, operationMetadata);
 
             operation.setMetadata(operationMetadata);
         });
     }
 
+    private static void addDrepVoteDelegationParams(Map metadataMap, OperationMetadata operationMetadata) {
+        Optional.ofNullable(metadataMap.get(key(Constants.DREP))).ifPresent(o -> {
+            Map drepVoteDelegationMap = (Map) o;
+            DRepParams drepParams = new DRepParams();
+
+            Optional.ofNullable(drepVoteDelegationMap.get(new UnicodeString(Constants.ID)))
+                    .ifPresent(di -> {
+                        drepParams.setId(((UnicodeString) di).getString());
+                    });
+
+            Optional.ofNullable(drepVoteDelegationMap.get(new UnicodeString(Constants.TYPE)))
+                    .ifPresent(di -> {
+                        drepParams.setType(DRepTypeParams.fromValue(((UnicodeString) di).getString()));
+                    });
+
+            operationMetadata.setDrep(drepParams);
+        });
+    }
+
     /**
-     * Add a vote registration metadata to Operation object. The vote registration metadata object is accessed through {@value Constants#VOTEREGISTRATIONMETADATA}.
+     * Add a vote registration metadata to Operation object. The vote registration metadata object is accessed through {@value Constants#VOTE_REGISTRATION_METADATA}.
      * The vote registration metadata object contains a list of different metadata objects.
      * @param metadataMap The map containing the metadata field
      * @param operationMetadata The OperationMetadata object to fill
      */
     private static void addVoteRegistrationMetadata(Map metadataMap,
                                                     OperationMetadata operationMetadata) {
-        Optional.ofNullable(metadataMap.get(key(Constants.VOTEREGISTRATIONMETADATA)))
+        Optional.ofNullable(metadataMap.get(key(Constants.VOTE_REGISTRATION_METADATA)))
                 .ifPresent(voteRegMetadata -> {
                     VoteRegistrationMetadata voteRegistrationMetadata = new VoteRegistrationMetadata();
-                    Map voteRegistrationMetadataMap = (Map) metadataMap.get(key(Constants.VOTEREGISTRATIONMETADATA));
+                    Map voteRegistrationMetadataMap = (Map) metadataMap.get(key(Constants.VOTE_REGISTRATION_METADATA));
                     // filling the voteRegistrationMetadata object
                     addStakeKeyToVoteMetadata(voteRegistrationMetadataMap, voteRegistrationMetadata);
                     addVoteKeyToVoteMetadata(voteRegistrationMetadataMap, voteRegistrationMetadata);
@@ -917,7 +916,6 @@ public class CborMapToOperation {
         Optional.ofNullable(metadataMap.get(key(Constants.REFUNDAMOUNT))).ifPresent(o -> {
             Map refundAmountMap = (Map) o;
             operationMetadata.setRefundAmount(getAmountFromMap(refundAmountMap));
-
         });
     }
 
