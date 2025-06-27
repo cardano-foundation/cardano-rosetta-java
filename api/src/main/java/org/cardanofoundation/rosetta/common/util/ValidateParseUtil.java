@@ -354,8 +354,8 @@ public class ValidateParseUtil {
         PoolRegistrationCertReturn poolRegistrationCertReturnDto = new PoolRegistrationCertReturn();
         poolRegistrationCertReturnDto.setCertificate(parsedCertificate);
         poolRegistrationCertReturnDto.setAddress(addresses);
-        return poolRegistrationCertReturnDto;
 
+        return poolRegistrationCertReturnDto;
     }
 
     public static String validateAndParseVotingKey(PublicKey votingKey) {

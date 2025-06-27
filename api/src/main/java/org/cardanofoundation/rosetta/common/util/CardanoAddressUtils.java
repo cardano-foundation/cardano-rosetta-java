@@ -246,6 +246,7 @@ public class CardanoAddressUtils {
     byte[] stakingKeyBuffer = HexUtil.decodeHexString(publicKey.getHexBytes());
     HdPublicKey hdPublicKey = new HdPublicKey();
     hdPublicKey.setKeyData(stakingKeyBuffer);
+
     return hdPublicKey;
   }
 

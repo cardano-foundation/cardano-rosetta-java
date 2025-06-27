@@ -117,7 +117,7 @@ public class RosettaConstants {
     TRANSACTION_OUTPUTS_PARAMETERS_MISSING_ERROR(
         "Transaction outputs parameters errors in operations array", 4009),
     OUTPUTS_BIGGER_THAN_INPUTS_ERROR(
-        "The transaction you are trying to build has more outputs than inputs", 4010),
+        "The transaction you are trying to build has more value in outputs than value of inputs", 4010),
     CANT_CREATE_SIGNED_TRANSACTION_ERROR("Cant create signed transaction from transaction bytes",
         4011),
     CANT_CREATE_UNSIGNED_TRANSACTION_ERROR(
@@ -199,7 +199,8 @@ public class RosettaConstants {
     MISSING_DREP_TYPE("Missing drep type", 5040),
     TIMEOUT("Downstream timeout", 5041),
     INVALID_BLOCK_INDEX("Invalid block index", 5042),
-    OLDEST_BLOCK_NOT_FOUND("Oldest block not found", 5043);
+    OLDEST_BLOCK_NOT_FOUND("Oldest block not found", 5043),
+    WITHDRAWAL_AMOUNT_CANNOT_BE_NEGATIVE("Withdrawal amounts cannot be negative", 5044);
 
     final String message;
     final int code;

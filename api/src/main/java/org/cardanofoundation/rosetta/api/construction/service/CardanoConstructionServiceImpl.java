@@ -198,23 +198,32 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
    * @return Payed Fee
    */
   @Override
-  public Long calculateRosettaSpecificTransactionFee(List<BigInteger> inputAmounts, List<BigInteger> outputAmounts,
-                                                     List<BigInteger> withdrawalAmounts, Map<String, Double> depositsSumMap) {
-    long inputsSum = -1 * inputAmounts.stream().reduce(ZERO, BigInteger::add).longValue();
+  public Long calculateRosettaSpecificTransactionFee(List<BigInteger> inputAmounts,
+                                                     List<BigInteger> outputAmounts,
+                                                     List<BigInteger> withdrawalAmounts,
+                                                     Map<String, Double> depositsSumMap) {
+    boolean isAnyWithdrawalNegative = withdrawalAmounts
+            .stream()
+            .anyMatch(value -> value.longValue() < 0L);
 
+    if (isAnyWithdrawalNegative) {
+      throw ExceptionFactory.withdrawalAmountsNegativeError();
+    }
+
+    long inputsSum = -1 * inputAmounts.stream().reduce(ZERO, BigInteger::add).longValue();
     long outputsSum = outputAmounts.stream().reduce(ZERO, BigInteger::add).longValue();
 
     long withdrawalsSum = withdrawalAmounts.stream().reduce(ZERO, BigInteger::add)
             .longValue();
 
-    long calculatedFee = (long) (inputsSum + withdrawalsSum * (-1) + depositsSumMap.get(
+    long calculatedFee = (long) (inputsSum + withdrawalsSum + depositsSumMap.get(
             KEY_REFUNDS_SUM) - outputsSum
             - depositsSumMap.get(KEY_DEPOSITS_SUM) - depositsSumMap.get(
             POOL_DEPOSITS_SUM)
-    ); // withdrawals -1 because it's a negative value, but must be added to the
+    );
 
     if (calculatedFee < 0) {
-      throw ExceptionFactory.outputsAreBiggerThanInputsError();
+      throw ExceptionFactory.totalOutputValuesIsBiggerThanTotalInputValues();
     }
 
     return calculatedFee;
@@ -384,8 +393,10 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
   public Map<String, Double> getDepositsSumMap(DepositParameters depositParameters, ProcessOperations result, double refundsSum) {
     double keyDepositsSum =
             result.getStakeKeyRegistrationsCount() * Long.parseLong(depositParameters.getKeyDeposit());
+
     double poolDepositsSum =
             result.getPoolRegistrationsCount() * Long.parseLong(depositParameters.getPoolDeposit());
+
     Map<String, Double> depositsSumMap = new HashMap<>();
     depositsSumMap.put(Constants.KEY_REFUNDS_SUM, refundsSum);
     depositsSumMap.put(Constants.KEY_DEPOSITS_SUM, keyDepositsSum);

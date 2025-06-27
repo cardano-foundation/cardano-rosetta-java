@@ -45,8 +45,9 @@ class OperationToCborMapTest {
         OperationMetadata operationMetadata = OperationMetadata.builder()
                 .poolRegistrationParams(poolRegistrationParams)
                 .refundAmount(new Amount("2", new Currency(Constants.ADA, 2, new CurrencyMetadata("policyId")), new Object()))
-                .tokenBundle(List.of(new TokenBundleItem("tokenBunlePolicyId", List.of(new Amount()))))
+                .tokenBundle(List.of(new TokenBundleItem("tokenBundlePolicyId", List.of(new Amount()))))
                 .build();
+
         Operation operation = Operation
                 .builder()
                 .operationIdentifier(new OperationIdentifier())
@@ -68,4 +69,5 @@ class OperationToCborMapTest {
         assertEquals(operation.getMetadata().getPoolRegistrationParams().getMargin(), opr.getMetadata().getPoolRegistrationParams().getMargin());
         assertEquals(operation.getMetadata().getPoolRegistrationParams().getPoolMetadata(), opr.getMetadata().getPoolRegistrationParams().getPoolMetadata());
     }
+
 }

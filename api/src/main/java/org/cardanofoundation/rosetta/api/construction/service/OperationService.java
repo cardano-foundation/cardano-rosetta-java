@@ -80,16 +80,19 @@ public class OperationService {
       List<Operation> operations) {
     List<TransactionInput> inputs = transactionBody.getInputs();
     log.info("[fillInputOperations] About to parse {} inputs", inputs.size());
-    List<Operation> inputOperations = extraData.operations().stream()
+    List<Operation> extraDataInputOperations = extraData.operations().stream()
         .filter(o -> o.getType().equals(OperationType.INPUT.getValue()))
         .toList();
+
     for (int i = 0; i < inputs.size(); i++) {
-      if (!inputOperations.isEmpty() && inputOperations.size() <= inputs.size()) {
-        operations.add(inputOperations.get(i));
-      } else {
+      if (!extraDataInputOperations.isEmpty() && extraDataInputOperations.size() <= inputs.size()) {
+        operations.add(extraDataInputOperations.get(i));
+      } else { // fallback in case of no extra data input operations
         TransactionInput input = inputs.get(i);
+
         Operation inputParsed = ParseConstructionUtil.transactionInputToOperation(input,
             (long) operations.size());
+
         operations.add(inputParsed);
       }
     }
@@ -99,7 +102,9 @@ public class OperationService {
     List<TransactionOutput> outputs = transactionBody.getOutputs();
     List<OperationIdentifier> relatedOperations = ParseConstructionUtil.getRelatedOperationsFromInputs(
         operations);
+
     log.info("[parseOperationsFromTransactionBody] About to parse {} outputs", outputs.size());
+
     for (TransactionOutput output : outputs) {
       Operation outputParsed = ParseConstructionUtil.transActionOutputToOperation(output,
           (long) operations.size(),
@@ -112,10 +117,15 @@ public class OperationService {
       Network network, List<Operation> operations)
       throws CborException, CborSerializationException {
     List<Operation> certOps = extraData.operations().stream()
-        .filter(o -> Constants.STAKE_POOL_OPERATIONS.contains(o.getType())
+        .filter(o -> {
+                    return Constants.STAKE_POOL_OPERATIONS.contains(o.getType())
+                            || OperationType.VOTE_DREP_DELEGATION.getValue().equals(o.getType());
+                }
         ).toList();
+
     List<Operation> parsedCertOperations = ParseConstructionUtil.parseCertsToOperations(
             transactionBody, certOps, network);
+
     operations.addAll(parsedCertOperations);
   }
 
@@ -132,6 +142,7 @@ public class OperationService {
     operations.addAll(withdrawalsOperations);
   }
 
+  // TODO catalyst voting renaming?
   private void fillVoteOperations(TransactionExtraData extraData, List<Operation> operations)
       throws CborDeserializationException {
     List<Operation> voteOp = extraData.operations().stream()
