@@ -30,6 +30,7 @@ public class BlockTx {
   protected List<StakeRegistration> stakeRegistrations;
   protected List<StakePoolDelegation> stakePoolDelegations;
   protected List<DRepDelegation> dRepDelegations;
+  protected List<GovernanceVote> governanceVotes;
   protected List<PoolRegistration> poolRegistrations;
   protected List<PoolRetirement> poolRetirements;
   protected List<Withdrawal> withdrawals;

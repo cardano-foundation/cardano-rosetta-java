@@ -2,19 +2,7 @@ package org.cardanofoundation.rosetta.common.util;
 
 import java.util.List;
 
-import org.openapitools.client.model.AccountIdentifier;
-import org.openapitools.client.model.Amount;
-import org.openapitools.client.model.CoinChange;
-import org.openapitools.client.model.CoinIdentifier;
-import org.openapitools.client.model.Currency;
-import org.openapitools.client.model.CurrencyMetadata;
-import org.openapitools.client.model.CurveType;
-import org.openapitools.client.model.Operation;
-import org.openapitools.client.model.PoolMargin;
-import org.openapitools.client.model.PoolRegistrationParams;
-import org.openapitools.client.model.PublicKey;
-import org.openapitools.client.model.TokenBundleItem;
-import org.openapitools.client.model.VoteRegistrationMetadata;
+import org.openapitools.client.model.*;
 
 import org.junit.jupiter.api.Test;
 
@@ -22,20 +10,8 @@ import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
 import org.cardanofoundation.rosetta.common.exception.ApiException;
 
 import static org.cardanofoundation.rosetta.EntityGenerator.givenPublicKey;
-import static org.cardanofoundation.rosetta.common.util.ValidateParseUtil.validateAndParsePoolKeyHash;
-import static org.cardanofoundation.rosetta.common.util.ValidateParseUtil.validateAndParsePoolOwners;
-import static org.cardanofoundation.rosetta.common.util.ValidateParseUtil.validateAndParsePoolRegistationParameters;
-import static org.cardanofoundation.rosetta.common.util.ValidateParseUtil.validateAndParsePoolRegistrationCert;
-import static org.cardanofoundation.rosetta.common.util.ValidateParseUtil.validateAndParseTokenBundle;
-import static org.cardanofoundation.rosetta.common.util.ValidateParseUtil.validateAndParseTransactionInput;
-import static org.cardanofoundation.rosetta.common.util.ValidateParseUtil.validateAndParseVoteRegistrationMetadata;
-import static org.cardanofoundation.rosetta.common.util.ValidateParseUtil.validateAndParseVotingKey;
-import static org.cardanofoundation.rosetta.common.util.ValidateParseUtil.validateChainCode;
-import static org.cardanofoundation.rosetta.common.util.ValidateParseUtil.validateDnsName;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.cardanofoundation.rosetta.common.util.ValidateParseUtil.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.openapitools.client.model.CurveType.EDWARDS25519;
 
 @SuppressWarnings("java:S5778")
@@ -95,6 +71,7 @@ class ValidateParseUtilTest {
                 .votingkey(stakingCredential)
                 .stakeKey(new PublicKey("hex", EDWARDS25519))
                 .build();
+
         ApiException exception = assertThrows(ApiException.class,
                 () -> validateAndParseVoteRegistrationMetadata(voteRegistrationMetadata));
         assertEquals("Invalid staking key format", exception.getError().getMessage());
@@ -177,6 +154,7 @@ class ValidateParseUtilTest {
     void validateAndParseVotingKeyWithInvalidKeyFormatTest() {
         PublicKey publicKey = givenPublicKey();
         publicKey.setCurveType(CurveType.PALLAS);
+
         ApiException exception = assertThrows(ApiException.class,
                 () -> validateAndParseVotingKey(publicKey));
         assertEquals("Voting key format is invalid", exception.getError().getMessage());

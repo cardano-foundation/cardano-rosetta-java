@@ -53,6 +53,7 @@ public class CardanoAddressUtils {
     String prefix = var10000 + AddressEncoderDecoderUtil.getPrefixTail(network);
     byte header = AddressEncoderDecoderUtil.getAddressHeader(headerKind, networkInfo, addressType);
     byte[] addressArray = getAddressBytes(paymentKeyHash, stakeKeyHash, addressType, header);
+
     return new Address(prefix, addressArray);
   }
 
@@ -230,6 +231,15 @@ public class CardanoAddressUtils {
     HdPublicKey stakingKey = publicKeyToHdPublicKey(stakingCredential);
 
     return StakeCredential.fromKeyHash(stakingKey.getKeyHash());
+  }
+
+  public static boolean isValidBech32(String value) {
+    try {
+          Bech32.decode(value);
+       return true;
+        } catch (Exception e) {
+        return false;
+    }
   }
 
   public static HdPublicKey publicKeyToHdPublicKey(PublicKey publicKey) {

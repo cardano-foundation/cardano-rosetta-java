@@ -8,18 +8,24 @@ import com.bloxbean.cardano.client.transaction.spec.cert.StakeDeregistration;
 import com.bloxbean.cardano.client.transaction.spec.cert.StakeRegistration;
 import com.bloxbean.cardano.client.transaction.spec.cert.VoteDelegCert;
 import com.bloxbean.cardano.client.transaction.spec.governance.DRepType;
+import com.bloxbean.cardano.client.transaction.spec.governance.VoterType;
+import com.bloxbean.cardano.client.util.HexUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.openapitools.client.model.Operation;
 import org.openapitools.client.model.OperationMetadata;
 
 import org.junit.jupiter.api.Test;
 
+import org.cardanofoundation.rosetta.api.block.model.domain.GovernanceVote;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProcessOperations;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.common.exception.ApiException;
 
+import static com.bloxbean.cardano.client.address.CredentialType.Key;
 import static com.bloxbean.cardano.client.transaction.spec.cert.CertificateType.VOTE_DELEG_CERT;
+import static com.bloxbean.cardano.client.transaction.spec.governance.Vote.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -168,6 +174,127 @@ class ParseOperationTest {
     assertEquals("83098200581cbb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb8103", voteRegDelegCert.getCborHex());
     assertEquals(VOTE_DELEG_CERT, voteRegDelegCert.getType());
     assertEquals(DRepType.NO_CONFIDENCE, voteRegDelegCert.getDrep().getType());
+  }
+
+  @Test
+  void govPoolVote_VotedYes() throws IOException {
+    Operation operation = getOperation(
+            "testdata/construction/Operations/govPoolVoteOperation-YES.json");
+
+    ProcessOperations resultAccumulator = new ProcessOperations();
+
+    resultAccumulator = OperationParseUtil.parseOperation(operation, NetworkEnum.MAINNET.getNetwork(), resultAccumulator,
+            OperationType.POOL_GOVERNANCE_VOTE.getValue());
+
+    assertEquals(operation.getAccount().getAddress(), resultAccumulator.getAddresses().getFirst());
+
+    GovernanceVote vote = resultAccumulator.getGovernanceVotes().getFirst();
+
+    assertEquals("40c2a42fe324759a640dcfddbc69ef2e3b7fe5a998af8d6660359772bf44c9dc", vote.getGovActionId().getTransactionId());
+    assertEquals(0, vote.getGovActionId().getGovActionIndex());
+
+    assertEquals(Key, vote.getVoter().getCredential().getType());
+    assertEquals("60afbe982faaee34b02ad0e75cd50d5d7a734f5daaf7b67bc8c492eb5299af2b", HexUtil.encodeHexString(vote.getVoter().getCredential().getBytes()));
+    assertEquals(VoterType.STAKING_POOL_KEY_HASH, vote.getVoter().getType());
+
+    assertEquals("https://ipfs.io/ipfs/bafybeihkoviema7g3gxyt6la7vd5ho32ictqbilu3wnlo3rs7ewhnp7lly", vote.getVoteRationale().getAnchorUrl());
+    assertEquals("b15f9c28d23e7ba4f06d13c9a84e5db09afc7e9b2d34f182eab61cf7a023d1c5", HexUtil.encodeHexString(vote.getVoteRationale().getAnchorDataHash()));
+
+    assertEquals(YES, vote.getVote());
+  }
+
+  @Test
+  void govPoolVote_VotedNo() throws IOException {
+    Operation operation = getOperation(
+            "testdata/construction/Operations/govPoolVoteOperation-NO.json");
+
+    ProcessOperations resultAccumulator = new ProcessOperations();
+
+    resultAccumulator = OperationParseUtil.parseOperation(operation, NetworkEnum.MAINNET.getNetwork(), resultAccumulator,
+            OperationType.POOL_GOVERNANCE_VOTE.getValue());
+
+    assertEquals(operation.getAccount().getAddress(), resultAccumulator.getAddresses().getFirst());
+
+    GovernanceVote vote = resultAccumulator.getGovernanceVotes().getFirst();
+
+    assertEquals("40c2a42fe324759a640dcfddbc69ef2e3b7fe5a998af8d6660359772bf44c9dc", vote.getGovActionId().getTransactionId());
+    assertEquals(1, vote.getGovActionId().getGovActionIndex());
+
+    assertEquals(Key, vote.getVoter().getCredential().getType());
+    assertEquals("60afbe982faaee34b02ad0e75cd50d5d7a734f5daaf7b67bc8c492eb5299af2b", HexUtil.encodeHexString(vote.getVoter().getCredential().getBytes()));
+    assertEquals(VoterType.STAKING_POOL_KEY_HASH, vote.getVoter().getType());
+
+    assertEquals("https://ipfs.io/ipfs/bafybeihkoviema7g3gxyt6la7vd5ho32ictqbilu3wnlo3rs7ewhnp7lly", vote.getVoteRationale().getAnchorUrl());
+    assertEquals("b15f9c28d23e7ba4f06d13c9a84e5db09afc7e9b2d34f182eab61cf7a023d1c5", HexUtil.encodeHexString(vote.getVoteRationale().getAnchorDataHash()));
+
+    assertEquals(NO, vote.getVote());
+  }
+
+  @Test
+  void govPoolVote_VotedAbstain_MissingVoteRationale() throws IOException {
+    Operation operation = getOperation(
+            "testdata/construction/Operations/govPoolVoteOperation-ABSTAIN.json");
+
+    ProcessOperations resultAccumulator = new ProcessOperations();
+
+    resultAccumulator = OperationParseUtil.parseOperation(operation, NetworkEnum.MAINNET.getNetwork(), resultAccumulator,
+            OperationType.POOL_GOVERNANCE_VOTE.getValue());
+
+    assertEquals(operation.getAccount().getAddress(), resultAccumulator.getAddresses().getFirst());
+
+    GovernanceVote vote = resultAccumulator.getGovernanceVotes().getFirst();
+
+    String address = resultAccumulator.getAddresses().getFirst(); // to ensure addresses are processed
+
+    assertEquals("6c518b4861bb88b1395ceb116342cecbcfb8736282655f9a61c4c368", address);
+    assertEquals("40c2a42fe324759a640dcfddbc69ef2e3b7fe5a998af8d6660359772bf44c9dc", vote.getGovActionId().getTransactionId());
+    assertEquals(2, vote.getGovActionId().getGovActionIndex());
+
+    assertEquals(Key, vote.getVoter().getCredential().getType());
+    assertEquals("60afbe982faaee34b02ad0e75cd50d5d7a734f5daaf7b67bc8c492eb5299af2b", HexUtil.encodeHexString(vote.getVoter().getCredential().getBytes()));
+    assertEquals(VoterType.STAKING_POOL_KEY_HASH, vote.getVoter().getType());
+
+    assertEquals(ABSTAIN, vote.getVote());
+  }
+
+  @Test
+  void govPoolVote_VotedAbstain_CheckPoolHashCheckError() throws IOException {
+    Operation operation = getOperation(
+            "testdata/construction/Operations/govPoolVoteOperation-ABSTAIN-PoolHashMismatch.json");
+
+    ProcessOperations resultAccumulator = new ProcessOperations();
+
+    ApiException exception = assertThrows(ApiException.class, () -> {
+      OperationParseUtil.parseOperation(operation, NetworkEnum.MAINNET.getNetwork(), resultAccumulator,
+              OperationType.POOL_GOVERNANCE_VOTE.getValue());
+    });
+
+    assertThat(exception.getError().getCode()).isEqualTo(5045);
+  }
+
+  @Test
+  void govPoolVote_VotedYes_Extras() throws IOException {
+    Operation operation = getOperation(
+            "testdata/construction/Operations/govPoolVoteOperation-EXTRAS-YES.json");
+
+    ProcessOperations resultAccumulator = new ProcessOperations();
+
+    resultAccumulator = OperationParseUtil.parseOperation(operation, NetworkEnum.MAINNET.getNetwork(), resultAccumulator,
+            OperationType.POOL_GOVERNANCE_VOTE.getValue());
+
+    GovernanceVote vote = resultAccumulator.getGovernanceVotes().getFirst();
+
+    String address = resultAccumulator.getAddresses().getFirst(); // to ensure addresses are processed
+
+    assertEquals("6c518b4861bb88b1395ceb116342cecbcfb8736282655f9a61c4c368", address);
+    assertEquals("40c2a42fe324759a640dcfddbc69ef2e3b7fe5a998af8d6660359772bf44c9dc", vote.getGovActionId().getTransactionId());
+    assertEquals(2, vote.getGovActionId().getGovActionIndex());
+
+    assertEquals(Key, vote.getVoter().getCredential().getType());
+    assertEquals("60afbe982faaee34b02ad0e75cd50d5d7a734f5daaf7b67bc8c492eb5299af2b", HexUtil.encodeHexString(vote.getVoter().getCredential().getBytes()));
+    assertEquals(VoterType.STAKING_POOL_KEY_HASH, vote.getVoter().getType());
+
+    assertEquals(ABSTAIN, vote.getVote());
   }
 
   @Test
