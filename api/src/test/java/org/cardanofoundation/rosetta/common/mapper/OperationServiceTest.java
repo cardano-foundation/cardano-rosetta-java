@@ -175,7 +175,7 @@ class OperationServiceTest {
     withdrawalOperation.setType(OperationType.WITHDRAWAL.getValue());
     withdrawalOperation.setMetadata(OperationMetadata.builder()
         .stakingCredential(
-            PublicKey.builder()
+              PublicKey.builder()
                 .curveType(CurveType.EDWARDS25519)
                 .hexBytes("1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F")
                 .build())

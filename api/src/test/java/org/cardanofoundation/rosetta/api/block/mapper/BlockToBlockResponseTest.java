@@ -308,7 +308,8 @@ class BlockToBlockResponseTest extends BaseMapperSetup {
                     .stakePoolDelegations(newDelegations(1, 2))
                     .poolRegistrations(newPoolRegistrations(1, 2))
                     .poolRetirements(newPoolRetirements(1, 2))
-                    .dRepDelegations(List.of()) // TODO drep vote delegation
+                    .governanceVotes(List.of()) // TODO governance votes (from db)
+                    .dRepDelegations(List.of()) // TODO drep vote delegation (from db)
                     .build(),
             BlockTx.builder()
                     .hash("hash2")
@@ -322,7 +323,8 @@ class BlockToBlockResponseTest extends BaseMapperSetup {
                     .stakePoolDelegations(newDelegations(3, 4))
                     .poolRegistrations(newPoolRegistrations(3, 4))
                     .poolRetirements(newPoolRetirements(3, 4))
-                    .dRepDelegations(List.of()) // TODO drep vote delegation
+                    .dRepDelegations(List.of()) // TODO drep vote delegation (from db)
+                    .governanceVotes(List.of()) // TODO governance votes (from db)
                     .build(),
         BlockTx.builder()
                     .hash("hash3")
@@ -336,7 +338,8 @@ class BlockToBlockResponseTest extends BaseMapperSetup {
                     .stakePoolDelegations(newDelegations(5, 6))
                     .poolRegistrations(newPoolRegistrations(5, 6))
                     .poolRetirements(newPoolRetirements(5, 6))
-                    .dRepDelegations(List.of()) // TODO drep vote delegation
+                    .dRepDelegations(List.of()) // TODO drep vote delegation (from db)
+                    .governanceVotes(List.of()) // TODO governance votes (from db)
                     .build()
     );
   }

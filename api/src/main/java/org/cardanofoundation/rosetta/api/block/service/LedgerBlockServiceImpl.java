@@ -314,6 +314,12 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
                     .filter(tx -> tx.getTxHash().equals(transaction.getHash()))
                     .map(transactionMapper::mapEntityToPoolRetirement)
                     .toList());
+    // TODO dRep Vote Delegations
+    //transaction.setDRepDelegations(fetched.delegations
+
+    // TODO governance votes
+    //transaction.setGovernanceVotes(fetched.);
+
   }
 
   private void populateUtxo(Utxo utxo, Map<UtxoKey, AddressUtxoEntity> utxoMap) {

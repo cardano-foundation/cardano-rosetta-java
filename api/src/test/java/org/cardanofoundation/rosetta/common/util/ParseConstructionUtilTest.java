@@ -14,12 +14,7 @@ import com.bloxbean.cardano.client.exception.CborSerializationException;
 import com.bloxbean.cardano.client.spec.UnitInterval;
 import com.bloxbean.cardano.client.transaction.spec.MultiAsset;
 import com.bloxbean.cardano.client.transaction.spec.TransactionInput;
-import com.bloxbean.cardano.client.transaction.spec.cert.Certificate;
-import com.bloxbean.cardano.client.transaction.spec.cert.MultiHostName;
-import com.bloxbean.cardano.client.transaction.spec.cert.PoolRegistration;
-import com.bloxbean.cardano.client.transaction.spec.cert.PoolRetirement;
-import com.bloxbean.cardano.client.transaction.spec.cert.SingleHostAddr;
-import com.bloxbean.cardano.client.transaction.spec.cert.SingleHostName;
+import com.bloxbean.cardano.client.transaction.spec.cert.*;
 import org.openapitools.client.model.Operation;
 import org.openapitools.client.model.PoolMetadata;
 import org.openapitools.client.model.PoolRegistrationParams;
@@ -33,28 +28,8 @@ import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.common.exception.ApiException;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.cardanofoundation.rosetta.common.util.ParseConstructionUtil.addRelayToPoolReLayOfTypeSingleHostAddr;
-import static org.cardanofoundation.rosetta.common.util.ParseConstructionUtil.addRelayToPoolReLayOfTypeSingleHostName;
-import static org.cardanofoundation.rosetta.common.util.ParseConstructionUtil.addRelayToPoolRelayOfTypeMultiHost;
-import static org.cardanofoundation.rosetta.common.util.ParseConstructionUtil.checkStakeCredential;
-import static org.cardanofoundation.rosetta.common.util.ParseConstructionUtil.getMultiHostRelay;
-import static org.cardanofoundation.rosetta.common.util.ParseConstructionUtil.getOwnerAddressesFromPoolRegistrations;
-import static org.cardanofoundation.rosetta.common.util.ParseConstructionUtil.getRewardAddressFromPoolRegistration;
-import static org.cardanofoundation.rosetta.common.util.ParseConstructionUtil.getSingleHostAddr;
-import static org.cardanofoundation.rosetta.common.util.ParseConstructionUtil.getSingleHostName;
-import static org.cardanofoundation.rosetta.common.util.ParseConstructionUtil.parseAsset;
-import static org.cardanofoundation.rosetta.common.util.ParseConstructionUtil.parseIpv4;
-import static org.cardanofoundation.rosetta.common.util.ParseConstructionUtil.parseIpv6;
-import static org.cardanofoundation.rosetta.common.util.ParseConstructionUtil.parsePoolCertToOperation;
-import static org.cardanofoundation.rosetta.common.util.ParseConstructionUtil.parsePoolMetadata;
-import static org.cardanofoundation.rosetta.common.util.ParseConstructionUtil.parsePoolRegistration;
-import static org.cardanofoundation.rosetta.common.util.ParseConstructionUtil.parseTokenAsset;
-import static org.cardanofoundation.rosetta.common.util.ParseConstructionUtil.parseVoteMetadataToOperation;
-import static org.cardanofoundation.rosetta.common.util.ParseConstructionUtil.parseWithdrawalToOperation;
-import static org.cardanofoundation.rosetta.common.util.ParseConstructionUtil.transactionInputToOperation;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.cardanofoundation.rosetta.common.util.ParseConstructionUtil.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -191,14 +166,14 @@ class ParseConstructionUtilTest {
     @Test
     void shouldThrowExceptionWhenIp4EmptyTest() {
         //when //then
-        Exception exception = Assertions.assertThrows(UnknownHostException.class, () -> parseIpv4(""));
+        Exception exception = Assertions.assertThrows(UnknownHostException.class, () -> IPV4Parser.parseIpv4(""));
         assertEquals("Error Parsing IP Address", exception.getMessage());
     }
 
     @Test
     void shouldThrowExceptionWhenIp6EmptyTest() {
         //when //then
-        Exception exception = Assertions.assertThrows(UnknownHostException.class, () -> parseIpv6(""));
+        Exception exception = Assertions.assertThrows(UnknownHostException.class, () -> IPV4Parser.parseIpv6(""));
         assertEquals("Error Parsing IP Address", exception.getMessage());
     }
 

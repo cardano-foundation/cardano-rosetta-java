@@ -200,7 +200,10 @@ public class RosettaConstants {
     TIMEOUT("Downstream timeout", 5041),
     INVALID_BLOCK_INDEX("Invalid block index", 5042),
     OLDEST_BLOCK_NOT_FOUND("Oldest block not found", 5043),
-    WITHDRAWAL_AMOUNT_CANNOT_BE_NEGATIVE("Withdrawal amounts cannot be negative", 5044);
+    WITHDRAWAL_AMOUNT_CANNOT_BE_NEGATIVE("Withdrawal amounts cannot be negative", 5044),
+    GOVERNANCE_INVALID_VOTE("Governance vote is invalid", 5045),
+    GOVERNANCE_ONLY_POOL_VOTING_POSSIBLE("Only pool voting possible", 5046),
+    GOVERNANCE_KEY_HASH_ONLY("Only hash hash is supported", 5047);
 
     final String message;
     final int code;

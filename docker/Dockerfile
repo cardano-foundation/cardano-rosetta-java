@@ -279,7 +279,7 @@ COPY --from=postgres-builder /usr/local/pgsql /usr/local/pgsql
 ENV PG_BIN="/usr/local/pgsql/bin"
 ENV PG_DATA="/var/lib/postgresql/data"
 ENV PATH="$PG_BIN:$PATH"
-RUN mkdir -p $PG_DATA 
+RUN mkdir -p $PG_DATA
 RUN useradd -m -U -s /bin/bash postgres
 
 # Run

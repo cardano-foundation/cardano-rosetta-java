@@ -33,10 +33,16 @@ import com.bloxbean.cardano.client.exception.CborDeserializationException;
 import com.bloxbean.cardano.client.exception.CborSerializationException;
 import com.bloxbean.cardano.client.transaction.spec.*;
 import com.bloxbean.cardano.client.transaction.spec.TransactionBody.TransactionBodyBuilder;
+import com.bloxbean.cardano.client.transaction.spec.governance.Anchor;
+import com.bloxbean.cardano.client.transaction.spec.governance.Voter;
+import com.bloxbean.cardano.client.transaction.spec.governance.VotingProcedure;
+import com.bloxbean.cardano.client.transaction.spec.governance.VotingProcedures;
+import com.bloxbean.cardano.client.transaction.spec.governance.actions.GovActionId;
 import com.bloxbean.cardano.client.util.HexUtil;
 import org.apache.commons.lang3.ObjectUtils;
 import org.openapitools.client.model.*;
 
+import org.cardanofoundation.rosetta.api.block.model.domain.GovernanceVote;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProcessOperations;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProcessOperationsReturn;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
@@ -310,9 +316,9 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
   }
 
   public UnsignedTransaction createUnsignedTransaction(Network network,
-                                                        List<Operation> operations,
-                                                        long ttl,
-                                                        Long calculatedFee) throws CborSerializationException, CborException, AddressExcepion {
+                                                       List<Operation> operations,
+                                                       long ttl,
+                                                       Long calculatedFee) throws CborSerializationException, CborException, AddressExcepion {
     log.info(
             "[createUnsignedTransaction] About to create an unsigned transaction with {} operations",
             operations.size());
@@ -339,6 +345,37 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
     if (!CollectionUtils.isEmpty(opRetDto.getWithdrawals())) {
       transactionBodyBuilder.withdrawals(opRetDto.getWithdrawals());
     }
+    if (!opRetDto.getGovernanceVotes().isEmpty()) {
+      VotingProcedures votingProcedures = new VotingProcedures();
+
+      for (GovernanceVote governanceVote : opRetDto.getGovernanceVotes()) {
+        log.info("[createUnsignedTransaction] Processing governance vote: {}",
+                governanceVote);
+
+        GovActionId govActionId = governanceVote.getGovActionId();
+
+        VotingProcedure.VotingProcedureBuilder votingProcedureBuilder = VotingProcedure.builder();
+        votingProcedureBuilder
+                .vote(governanceVote.getVote());
+
+        if (governanceVote.getVoteRationale() != null) {
+          Anchor anchor = governanceVote.getVoteRationale();
+
+          votingProcedureBuilder.anchor(Anchor.builder()
+                  .anchorDataHash(anchor.getAnchorDataHash())
+                  .anchorUrl(anchor.getAnchorUrl())
+                  .build());
+        }
+
+        Voter voter = governanceVote.getVoter();
+        VotingProcedure votingProcedure = votingProcedureBuilder.build();
+
+        votingProcedures.add(voter, govActionId, votingProcedure);
+      }
+
+      transactionBodyBuilder.votingProcedures(votingProcedures);
+    }
+
     transactionBodyBuilder.fee(BigInteger.valueOf(calculatedFee));
 
     TransactionBody transactionBody = transactionBodyBuilder.build();
@@ -411,6 +448,7 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
     processOperationsDto.setTransactionInputs(result.getTransactionInputs());
     processOperationsDto.setTransactionOutputs(result.getTransactionOutputs());
     processOperationsDto.setCertificates(result.getCertificates());
+    processOperationsDto.setGovernanceVotes(result.getGovernanceVotes());
     processOperationsDto.setWithdrawals(result.getWithdrawals());
     Set<String> addresses = new HashSet<>(result.getAddresses());
     processOperationsDto.setAddresses(addresses);
@@ -514,8 +552,10 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
   }
 
   @Override
-  public String getCardanoAddress(AddressType addressType, PublicKey stakingCredential,
-                                  PublicKey publicKey, NetworkEnum networkEnum) {
+  public String getCardanoAddress(AddressType addressType,
+                                  PublicKey stakingCredential,
+                                  PublicKey publicKey,
+                                  NetworkEnum networkEnum) {
     if(publicKey == null) {
       throw ExceptionFactory.publicKeyMissing();
     }
@@ -577,6 +617,10 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
     if (CardanoAddressUtils.isEd25519KeyHash(address)) {
       return signatureProcessor(null, AddressType.POOL_KEY_HASH, address);
     }
+    if (CardanoAddressUtils.isValidBech32(address)) {
+      return signatureProcessor(null, AddressType.POOL_KEY_KASH_BECH_32, address);
+    }
+
     throw ExceptionFactory.invalidAddressError(address);
   }
 
