@@ -329,6 +329,10 @@ public class ExceptionFactory {
     return new ApiException(RosettaErrorType.MISSING_DREP_TYPE.toRosettaError(false));
   }
 
+  public static ApiException invalidDrepType() {
+    return new ApiException(RosettaErrorType.INVALID_DREP_TYPE.toRosettaError(false));
+  }
+
   public static ApiException timeOut(String detailMessage) {
     return new ApiException(RosettaErrorType.TIMEOUT.toRosettaError(true, Details.builder().message("Timeout, details: %s".formatted(detailMessage)).build()));
   }
