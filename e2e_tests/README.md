@@ -116,6 +116,7 @@ pytest --log-cli-level=INFO tests/test_stake_operations.py
 # Run specific stake tests (Scenario A: Separate Operations)
 pytest --log-cli-level=INFO tests/test_stake_operations.py::test_stake_key_registration
 pytest --log-cli-level=INFO tests/test_stake_operations.py::test_stake_delegation
+pytest --log-cli-level=INFO tests/test_stake_operations.py::test_reward_withdrawal_zero
 pytest --log-cli-level=INFO tests/test_stake_operations.py::test_scenario_A_deregistration
 
 # Run specific stake tests (Scenario B: Combined Operations + Votes)
