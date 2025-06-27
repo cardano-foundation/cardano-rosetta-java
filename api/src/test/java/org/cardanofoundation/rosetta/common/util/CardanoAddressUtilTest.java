@@ -23,12 +23,7 @@ import org.cardanofoundation.rosetta.common.exception.ApiException;
 import org.cardanofoundation.rosetta.common.util.RosettaConstants.RosettaErrorType;
 
 import static org.cardanofoundation.rosetta.common.util.CardanoAddressUtils.*;
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 class CardanoAddressUtilTest {
 
@@ -154,6 +149,7 @@ class CardanoAddressUtilTest {
   void isEd25519KeyHashTest() {
     String validKeyHash = "5d16cc1a177b5d9ba9cfa9793b07e60f1fb70fea1f8aef064415d114";
     assertTrue(isEd25519KeyHash(validKeyHash));
+
     String invalidKeyHash = "5d16cc1a177b5d9ba9cfa9793b07e60f1fb70fea1f8aef06441gg";
     assertFalse(isEd25519KeyHash(invalidKeyHash));
   }
@@ -173,9 +169,10 @@ class CardanoAddressUtilTest {
 
   @Test
   void multipleBytesTest() {
-    byte[] input = {0x00, 0x0F, 0x10, 0x7F};
+    byte[] input = { 0x00, 0x0F, 0x10, 0x7F };
     String expected = "000f107f";
     String actual = hex(input);
+
     assertEquals(expected, actual);
   }
 
@@ -224,6 +221,7 @@ class CardanoAddressUtilTest {
         .hexBytes("")
         .curveType(CurveType.EDWARDS25519)
         .build();
+
     ApiException actualException = assertThrows(ApiException.class,
         () -> publicKeyToHdPublicKey(publicKey));
 
@@ -239,6 +237,7 @@ class CardanoAddressUtilTest {
         .hexBytes("invalid")
         .curveType(CurveType.EDWARDS25519)
         .build();
+
     ApiException actualException = assertThrows(ApiException.class,
         () -> publicKeyToHdPublicKey(publicKey));
 
@@ -260,6 +259,6 @@ class CardanoAddressUtilTest {
     // wrong Casing
     String wrongCasingAddress = "addr1qyj9der2u29gcuwcxum7ylyfqrcg86d0l76khlazmn9cnxgqk2v9xpzd89c93yaszz2zgczqshqvf424cmpmswlr2lnqt6j3lU";
     assertThrows(ApiException.class, () -> CardanoAddressUtils.verifyAddress(wrongCasingAddress));
-
   }
+
 }

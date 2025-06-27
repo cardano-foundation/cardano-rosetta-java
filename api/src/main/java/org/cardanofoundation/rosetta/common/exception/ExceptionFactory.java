@@ -325,7 +325,7 @@ public class ExceptionFactory {
     return new ApiException(RosettaErrorType.MISSING_DREP_ID.toRosettaError(false));
   }
 
-  public static ApiException missingDrep() {
+  public static ApiException missingDrepType() {
     return new ApiException(RosettaErrorType.MISSING_DREP_TYPE.toRosettaError(false));
   }
 
@@ -334,7 +334,7 @@ public class ExceptionFactory {
   }
 
   public static ApiException invalidBlockIdentifier(@NotNull long index) {
-    return new ApiException(RosettaErrorType.INVALID_BLOCK_INDEX.toRosettaError(false, Details.builder().message("Invalid block index, must be greater than or equal to 0, supplied index:%d".formatted(index)).build()));
+    return new ApiException(RosettaErrorType.INVALID_BLOCK_INDEX.toRosettaError(false, Details.builder().message("Invalid block index, must be greater than or equal to 0, supplied index: %d".formatted(index)).build()));
   }
 
   public static ApiException oldestBlockNotFound() {
@@ -343,6 +343,22 @@ public class ExceptionFactory {
 
   public static ApiException withdrawalAmountsNegativeError() {
     return new ApiException(RosettaErrorType.WITHDRAWAL_AMOUNT_CANNOT_BE_NEGATIVE.toRosettaError(false));
+  }
+
+  public static ApiException invalidGovernanceVote(String reasonText) {
+    Details details = Details.builder()
+        .message("Invalid governance vote, reason: %s".formatted(reasonText))
+        .build();
+
+    return new ApiException(RosettaErrorType.GOVERNANCE_INVALID_VOTE.toRosettaError(false, details));
+  }
+
+  public static ApiException governanceOnlyPoolVotingPossible() {
+    return new ApiException(RosettaErrorType.GOVERNANCE_ONLY_POOL_VOTING_POSSIBLE.toRosettaError(false));
+  }
+
+  public static ApiException governanceKeyHashOnlySupported() {
+    return new ApiException(RosettaErrorType.GOVERNANCE_KEY_HASH_ONLY.toRosettaError(false));
   }
 
 }

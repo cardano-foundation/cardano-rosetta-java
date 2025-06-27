@@ -1,13 +1,7 @@
 package org.cardanofoundation.rosetta.common.util;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -15,24 +9,12 @@ import co.nstant.in.cbor.model.DataItem;
 import com.bloxbean.cardano.client.address.Address;
 import com.bloxbean.cardano.client.address.ByronAddress;
 import com.bloxbean.cardano.client.common.model.Network;
-import com.bloxbean.cardano.client.transaction.spec.Asset;
-import com.bloxbean.cardano.client.transaction.spec.MultiAsset;
-import com.bloxbean.cardano.client.transaction.spec.TransactionInput;
-import com.bloxbean.cardano.client.transaction.spec.TransactionOutput;
-import com.bloxbean.cardano.client.transaction.spec.Value;
+import com.bloxbean.cardano.client.transaction.spec.*;
 import com.bloxbean.cardano.client.transaction.spec.cert.Certificate;
 import com.bloxbean.cardano.client.transaction.spec.cert.PoolRegistration;
 import com.bloxbean.cardano.client.util.HexUtil;
 import org.apache.commons.lang3.ObjectUtils;
-import org.openapitools.client.model.Amount;
-import org.openapitools.client.model.Operation;
-import org.openapitools.client.model.OperationMetadata;
-import org.openapitools.client.model.PoolMetadata;
-import org.openapitools.client.model.PoolRegistrationParams;
-import org.openapitools.client.model.PublicKey;
-import org.openapitools.client.model.Relay;
-import org.openapitools.client.model.TokenBundleItem;
-import org.openapitools.client.model.VoteRegistrationMetadata;
+import org.openapitools.client.model.*;
 
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.model.cardano.pool.PoolRegistationParametersReturn;
@@ -44,7 +26,6 @@ import static java.math.BigInteger.valueOf;
 public class ValidateParseUtil {
 
     private ValidateParseUtil() {
-
     }
 
     public static TransactionInput validateAndParseTransactionInput(Operation input) {
@@ -267,14 +248,15 @@ public class ValidateParseUtil {
             log.error("[validateAndParsePoolKeyHash] no pool key hash provided");
             throw ExceptionFactory.missingPoolKeyError();
         }
+
         byte[] parsedPoolKeyHash;
         try {
             parsedPoolKeyHash = HexUtil.decodeHexString(poolKeyHash);
-
         } catch (Exception error) {
             log.error("[validateAndParsePoolKeyHash] invalid pool key hash");
             throw ExceptionFactory.invalidPoolKeyError(error.getMessage());
         }
+
         return parsedPoolKeyHash;
     }
 
@@ -371,9 +353,10 @@ public class ValidateParseUtil {
         return votingKey.getHexBytes();
     }
 
+    // catalyst ?
     public static VoteRegistrationMetadata validateAndParseVoteRegistrationMetadata(VoteRegistrationMetadata voteRegistrationMetadata) {
-
         log.info("[validateAndParseVoteRegistrationMetadata] About to validate and parse voting key");
+
         String parsedVotingKey = validateAndParseVotingKey(voteRegistrationMetadata.getVotingkey());
         log.info("[validateAndParseVoteRegistrationMetadata] About to validate and parse stake key");
         if (ObjectUtils.isEmpty(voteRegistrationMetadata.getStakeKey().getHexBytes())) {
@@ -415,7 +398,9 @@ public class ValidateParseUtil {
         String rewardAddressHex = CardanoAddressUtils.add0xPrefix(parsedAddress);
         String votingSignatureHex = CardanoAddressUtils.add0xPrefix(voteRegistrationMetadata.getVotingSignature());
 
-        return new VoteRegistrationMetadata(PublicKey.builder().hexBytes(stakeKeyHex).build(), PublicKey.builder().hexBytes(votingKeyHex).build(), rewardAddressHex, voteRegistrationMetadata.getVotingNonce(), votingSignatureHex);
+        return new VoteRegistrationMetadata(PublicKey.builder()
+                .hexBytes(stakeKeyHex).build(), PublicKey.builder().hexBytes(votingKeyHex).build(),
+                rewardAddressHex, voteRegistrationMetadata.getVotingNonce(), votingSignatureHex);
     }
 
     public static boolean validateAddressPresence(Operation operation) {
@@ -426,4 +411,5 @@ public class ValidateParseUtil {
     public static Certificate validateCert(List<Certificate> certs, int i) {
         return ObjectUtils.isEmpty(certs) ? null : certs.get(i);
     }
+
 }
