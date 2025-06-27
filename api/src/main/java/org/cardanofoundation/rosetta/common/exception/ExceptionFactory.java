@@ -60,7 +60,7 @@ public class ExceptionFactory {
     return new ApiException(RosettaErrorType.CHAIN_CODE_MISSING.toRosettaError(false));
   }
 
-  public static ApiException outputsAreBiggerThanInputsError() {
+  public static ApiException totalOutputValuesIsBiggerThanTotalInputValues() {
     return new ApiException(
         RosettaErrorType.OUTPUTS_BIGGER_THAN_INPUTS_ERROR.toRosettaError(false));
   }
@@ -339,6 +339,10 @@ public class ExceptionFactory {
 
   public static ApiException oldestBlockNotFound() {
     return new ApiException(RosettaErrorType.OLDEST_BLOCK_NOT_FOUND.toRosettaError(false));
+  }
+
+  public static ApiException withdrawalAmountsNegativeError() {
+    return new ApiException(RosettaErrorType.WITHDRAWAL_AMOUNT_CANNOT_BE_NEGATIVE.toRosettaError(false));
   }
 
 }
