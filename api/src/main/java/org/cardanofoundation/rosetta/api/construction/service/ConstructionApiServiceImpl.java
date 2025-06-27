@@ -186,7 +186,8 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
 
     Map<String, Double> depositsSumMap = cardanoConstructionService.getDepositsSumMap(depositParameters, processOperations, refundsSum);
 
-    long calculatedRosettaFee = cardanoConstructionService.calculateRosettaSpecificTransactionFee(processOperations.getInputAmounts(),
+    long calculatedRosettaFee = cardanoConstructionService.calculateRosettaSpecificTransactionFee(
+            processOperations.getInputAmounts(),
             processOperations.getOutputAmounts(),
             processOperations.getWithdrawalAmounts(), depositsSumMap);
 
