@@ -3,7 +3,6 @@ package org.cardanofoundation.rosetta.api.block.model.domain;
 import lombok.*;
 
 import com.bloxbean.cardano.client.transaction.spec.governance.DRepType;
-import com.bloxbean.cardano.client.util.HexUtil;
 import org.openapitools.client.model.DRepParams;
 import org.openapitools.client.model.DRepTypeParams;
 
