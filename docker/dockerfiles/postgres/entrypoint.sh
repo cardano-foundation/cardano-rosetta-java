@@ -96,17 +96,17 @@ configure_postgres() {
 }
 
 start_postgres() {
-    sudo -u postgres "$PG_BIN/postgres" -D "$PG_DATA" -p "$DB_PORT" -c config_file="$PG_DATA/postgresql.conf" &
+    sudo -u postgres "$PG_BIN/postgres" -p "$DB_PORT" -D "$PG_DATA" -c config_file="$PG_DATA/postgresql.conf" &
     PG_PID=$!
 
-    until "$PG_BIN/pg_isready" -U postgres > /dev/null; do sleep 1; done
+    until "$PG_BIN/pg_isready" -U postgres -p "$DB_PORT" > /dev/null; do sleep 1; done
 }
 
 create_database_and_user() {
     export DB_SCHEMA="$NETWORK"
 
     flag=true
-    while [ $(sudo -u postgres "$PG_BIN/psql" -U postgres -Atc "SELECT pg_is_in_recovery()";) == "t" ]; do
+    while [ $(sudo -u postgres "$PG_BIN/psql" -p "$DB_PORT" -U postgres -Atc "SELECT pg_is_in_recovery()";) == "t" ]; do
         if $flag ; then
             echo "Waiting for database recovery..."
             flag=false
@@ -114,15 +114,15 @@ create_database_and_user() {
         sleep 1
     done
 
-    if [[ -z $(sudo -u postgres "$PG_BIN/psql" -U postgres -Atc "SELECT 1 FROM pg_catalog.pg_user WHERE usename = '$DB_USER'";) ]]; then
+    if [[ -z $(sudo -u postgres "$PG_BIN/psql" -p "$DB_PORT" -U postgres -Atc "SELECT 1 FROM pg_catalog.pg_user WHERE usename = '$DB_USER'";) ]]; then
         echo "Creating database..."
-        sudo -u postgres "$PG_BIN/psql" -U postgres -c "CREATE ROLE \"$DB_USER\" with LOGIN CREATEDB PASSWORD '$DB_SECRET';" > /dev/null
+        sudo -u postgres "$PG_BIN/psql" -U postgres -p "$DB_PORT" -c "CREATE ROLE \"$DB_USER\" with LOGIN CREATEDB PASSWORD '$DB_SECRET';" > /dev/null
     fi
 
-    if [[ -z $(sudo -u postgres "$PG_BIN/psql" -U postgres -Atc "SELECT 1 FROM pg_catalog.pg_database WHERE datname = '$DB_NAME'";) ]]; then
+    if [[ -z $(sudo -u postgres "$PG_BIN/psql" -U postgres -p "$DB_PORT" -Atc "SELECT 1 FROM pg_catalog.pg_database WHERE datname = '$DB_NAME'";) ]]; then
         echo "Creating user..."
-        sudo -u postgres "$PG_BIN/psql" -U postgres -c "CREATE DATABASE \"$DB_NAME\";" >/dev/null
-        sudo -u postgres "$PG_BIN/psql" -U postgres -c "GRANT ALL PRIVILEGES ON DATABASE \"$DB_NAME\" to \"$DB_USER\";" > /dev/null
+        sudo -u postgres "$PG_BIN/psql" -U postgres -p "$DB_PORT" -c "CREATE DATABASE \"$DB_NAME\";" >/dev/null
+        sudo -u postgres "$PG_BIN/psql" -U postgres -p "$DB_PORT" -c "GRANT ALL PRIVILEGES ON DATABASE \"$DB_NAME\" to \"$DB_USER\";" > /dev/null
     fi
 
     echo "User configured"
