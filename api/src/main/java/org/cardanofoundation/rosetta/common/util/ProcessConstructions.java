@@ -83,7 +83,7 @@ public class ProcessConstructions {
         if (operation.getType().equals(OperationType.VOTE_DREP_DELEGATION.getValue())) {
             DRepParams drep = operationMetadata.getDrep();
 
-            if (drep == null) {
+            if (drep == null || drep.getType() == null) {
                 throw ExceptionFactory.missingDrep();
             }
 
@@ -91,8 +91,34 @@ public class ProcessConstructions {
 
             Either<ApiException, Optional<String>> drepIdE = switch (delegationDrep.getDrepType()) {
                 case ADDR_KEYHASH, SCRIPTHASH -> {
-                    if (delegationDrep.getDrepId() == null) {
+
+                    if (delegationDrep.getDrepId() == null || delegationDrep.getDrepId().isBlank()) {
                         yield Either.left(ExceptionFactory.missingDRepId());
+                    }
+
+                    if (delegationDrep.getDrepId().length() < 56 || delegationDrep.getDrepId().length() > 58) {
+                        yield Either.left(ExceptionFactory.invalidDrepIdLength());
+                    }
+
+                    byte[] idBytes = HexUtil.decodeHexString(delegationDrep.getDrepId());
+
+                    if (idBytes.length == 29) {
+                        byte tag = idBytes[0];
+                        byte[] stripped = Arrays.copyOfRange(idBytes, 1, 29);
+                        String strippedHex = HexUtil.encodeHexString(stripped);
+
+                        DRepType dRepHeaderType = switch (tag) {
+                            case 0x22 -> DRepType.ADDR_KEYHASH;
+                            case 0x23 -> DRepType.SCRIPTHASH;
+                            default -> throw ExceptionFactory.invalidDrepType();
+                        };
+
+                        if (!dRepHeaderType.equals(delegationDrep.getDrepType())) {
+                            yield Either.left(ExceptionFactory.mismatchDrepType());
+                        }
+
+                        drep.setId(strippedHex);
+                        yield Either.right(Optional.of(strippedHex));
                     }
 
                     yield Either.right(Optional.of(delegationDrep.getDrepId()));

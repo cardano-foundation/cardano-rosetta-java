@@ -325,6 +325,14 @@ public class ExceptionFactory {
     return new ApiException(RosettaErrorType.MISSING_DREP_ID.toRosettaError(false));
   }
 
+  public static ApiException invalidDrepIdLength() {
+    return new ApiException(RosettaErrorType.INVALID_DREP_ID_LENGTH.toRosettaError(false));
+  }
+
+  public static ApiException mismatchDrepType() {
+    return new ApiException(RosettaErrorType.MISMATCH_DREP_TYPE.toRosettaError(false));
+  }
+
   public static ApiException missingDrep() {
     return new ApiException(RosettaErrorType.MISSING_DREP_TYPE.toRosettaError(false));
   }
