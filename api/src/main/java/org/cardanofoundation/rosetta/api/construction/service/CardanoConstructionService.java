@@ -75,8 +75,10 @@ public interface CardanoConstructionService {
 
   String extractTransactionIfNeeded(String txWithExtraData);
 
-  String getCardanoAddress(AddressType addressType, PublicKey stakingCredential,
-      PublicKey publicKey, NetworkEnum networkEnum);
+  String getCardanoAddress(AddressType addressType,
+                           PublicKey stakingCredential,
+                           PublicKey publicKey,
+                           NetworkEnum networkEnum);
 
   Map<String, Double> getDepositsSumMap(DepositParameters depositParameters, ProcessOperations result, double refundsSum);
 

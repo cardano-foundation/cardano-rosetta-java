@@ -127,12 +127,14 @@ public class Constants {
   public static final String OPERATION_TYPE_POOL_RETIREMENT = "poolRetirement";
   public static final String OPERATION_TYPE_VOTE_REGISTRATION = "voteRegistration";
 
-  public static final List<String> GOVERNANCE_OPERATIONS = List.of(
-        OperationType.VOTE_DREP_DELEGATION.getValue()
-  );
-
   // Plomin hard fork governance related
   public static final String OPERATION_TYPE_DREP_VOTE_DELEGATION = "dRepVoteDelegation";
+  public static final String OPERATION_TYPE_POOL_GOVERNANCE_VOTE = "poolGovernanceVote";
+
+  public static final List<String> GOVERNANCE_OPERATIONS = List.of(
+        OperationType.VOTE_DREP_DELEGATION.getValue(),
+        OperationType.POOL_GOVERNANCE_VOTE.getValue()
+  );
 
   public static final Integer ED_25519_KEY_SIGNATURE_BYTE_LENGTH = 64;
 
@@ -167,6 +169,12 @@ public class Constants {
   public static final String OUTPUT = "output";
   public static final String SUCCESS = "success";
   public static final String STAKING_CREDENTIAL = "staking_credential";
+  public static final String POOL_CREDENTIAL = "pool_credential";
+  public static final String POOL_GOVERNANCE_VOTE_PARAMS = "poolGovernanceVoteParams";
+  public static final String VOTE = "vote";
+  public static final String VOTE_RATIONALE = "vote_rationale";
+  public static final String GOVERNANCE_ACTION = "governance_action";
+
   public static final String WITHDRAWALAMOUNT = "withdrawalAmount";
   public static final String DEPOSITAMOUNT = "depositAmount";
   public static final String REFUNDAMOUNT = "refundAmount";
@@ -210,4 +218,5 @@ public class Constants {
   public static final String DEVKIT = "devkit";
 
   public static final String ROSETTA_API_PATH = "classpath:/rosetta-specifications-1.4.15/api.yaml";
+
 }

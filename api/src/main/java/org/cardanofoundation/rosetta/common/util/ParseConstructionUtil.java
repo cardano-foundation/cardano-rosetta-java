@@ -1,18 +1,5 @@
 package org.cardanofoundation.rosetta.common.util;
 
-import java.math.BigInteger;
-import java.net.Inet4Address;
-import java.net.Inet6Address;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicLong;
-
-import lombok.extern.slf4j.Slf4j;
-
 import co.nstant.in.cbor.CborException;
 import co.nstant.in.cbor.model.Array;
 import com.bloxbean.cardano.client.address.Address;
@@ -26,10 +13,9 @@ import com.bloxbean.cardano.client.transaction.spec.*;
 import com.bloxbean.cardano.client.transaction.spec.cert.*;
 import com.bloxbean.cardano.client.transaction.spec.governance.DRep;
 import com.bloxbean.cardano.client.util.HexUtil;
+import lombok.experimental.UtilityClass;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
-import org.openapitools.client.model.*;
-import org.openapitools.client.model.Relay;
-
 import org.cardanofoundation.rosetta.api.construction.enumeration.CatalystLabels;
 import org.cardanofoundation.rosetta.common.enumeration.CatalystDataIndexes;
 import org.cardanofoundation.rosetta.common.enumeration.CatalystSigIndexes;
@@ -37,6 +23,19 @@ import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.mapper.DataMapper;
 import org.cardanofoundation.rosetta.common.model.cardano.network.RelayType;
+import org.openapitools.client.model.*;
+import org.openapitools.client.model.Relay;
+
+import java.math.BigInteger;
+import java.net.Inet4Address;
+import java.net.Inet6Address;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static com.bloxbean.cardano.client.address.AddressType.Reward;
 import static java.math.BigInteger.valueOf;
@@ -46,31 +45,8 @@ import static org.openapitools.client.model.CoinAction.SPENT;
 @Slf4j
 public class ParseConstructionUtil {
 
-  private ParseConstructionUtil() {
-  }
-
-  public static Inet4Address parseIpv4(String ip) throws UnknownHostException {
-    if (!ObjectUtils.isEmpty(ip)) {
-      String[] ipNew = ip.split("\\.");
-      byte[] bytes = new byte[ipNew.length];
-      for (int i = 0; i < ipNew.length; i++) {
-        bytes[i] = Byte.parseByte(ipNew[i]);
-      }
-      return (Inet4Address) InetAddress.getByAddress(bytes);
+    private ParseConstructionUtil() {
     }
-
-    throw new UnknownHostException("Error Parsing IP Address");
-  }
-
-  public static Inet6Address parseIpv6(String ip) throws UnknownHostException {
-    if (!ObjectUtils.isEmpty(ip)) {
-      String ipNew = ip.replace(":", "");
-      byte[] parsedIp = HexUtil.decodeHexString(ipNew);
-      return (Inet6Address) InetAddress.getByAddress(parsedIp);
-    }
-
-    throw new UnknownHostException("Error Parsing IP Address");
-  }
 
   public static List<String> getOwnerAddressesFromPoolRegistrations(Network network,
                                                                     PoolRegistration poolRegistration) {
@@ -84,216 +60,217 @@ public class ParseConstructionUtil {
                 Constants.STAKE_KEY_HASH_HEADER_KIND,
                 network,
                 Reward);
+
         poolOwners.add(address.getAddress());
       }
     }
 
-    return poolOwners;
-  }
-
-  public static String getRewardAddressFromPoolRegistration(Network network, PoolRegistration poolRegistration) {
-    String cutRewardAccount = poolRegistration.getRewardAccount();
-    if (cutRewardAccount.length() == Constants.HEX_PREFIX_AND_REWARD_ACCOUNT_LENGTH) {
-      // removing prefix 0x from reward account, reward account is 56 bytes
-      cutRewardAccount = poolRegistration.getRewardAccount().substring(2);
-    }
-    if (network != null) {
-      return CardanoAddressUtils.getAddress(
-                      null,
-                      HexUtil.decodeHexString(cutRewardAccount),
-                      Constants.STAKE_KEY_HASH_HEADER_KIND,
-                      network,
-                      Reward)
-              .getAddress();
+        return poolOwners;
     }
 
-    throw ExceptionFactory.invalidAddressError("Can't get Reward address from PoolRegistration");
-  }
+    public static String getRewardAddressFromPoolRegistration(Network network, PoolRegistration poolRegistration) {
+        String cutRewardAccount = poolRegistration.getRewardAccount();
+        if (cutRewardAccount.length() == Constants.HEX_PREFIX_AND_REWARD_ACCOUNT_LENGTH) {
+            // removing prefix 0x from reward account, reward account is 56 bytes
+            cutRewardAccount = poolRegistration.getRewardAccount().substring(2);
+        }
+        if (network != null) {
+            return CardanoAddressUtils.getAddress(
+                            null,
+                            HexUtil.decodeHexString(cutRewardAccount),
+                            Constants.STAKE_KEY_HASH_HEADER_KIND,
+                            network,
+                            Reward)
+                    .getAddress();
+        }
 
-  public static Operation transactionInputToOperation(TransactionInput input, Long index) {
-    String identifier = "%s:%d".formatted(input.getTransactionId(), input.getIndex());
-    CoinChange coinChange = new CoinChange(new CoinIdentifier(identifier), SPENT);
-    OperationIdentifier operationIdentifier = new OperationIdentifier(index, null);
-    String inputValue = OperationType.INPUT.getValue();
-
-    return new Operation(operationIdentifier,
-            null,
-            inputValue,
-            "",
-            null,
-            null,
-            coinChange,
-            null);
-  }
-
-  public static Operation transActionOutputToOperation(TransactionOutput output,
-                                                       Long index,
-                                                       List<OperationIdentifier> relatedOperations) {
-    OperationIdentifier operationIdentifier = new OperationIdentifier(index, null);
-    AccountIdentifier account = new AccountIdentifier(output.getAddress(), null, null);
-    Amount amount = new Amount(output.getValue().getCoin().toString(),
-            new Currency(Constants.ADA, Constants.ADA_DECIMALS, null), null);
-
-    return new Operation(operationIdentifier, relatedOperations, OperationType.OUTPUT.getValue(),
-            "",
-            account,
-            amount,
-            null,
-            parseTokenBundle(output));
-  }
-
-  public static List<OperationIdentifier> getRelatedOperationsFromInputs(List<Operation> inputs) {
-    return inputs.stream()
-            .map(input -> new OperationIdentifier(input.getOperationIdentifier().getIndex(), null))
-            .toList();
-  }
-
-  public static OperationMetadata parseTokenBundle(TransactionOutput output) {
-    List<MultiAsset> multiAssets = output.getValue().getMultiAssets();
-    List<TokenBundleItem> tokenBundle = new ArrayList<>();
-
-    if (!ObjectUtils.isEmpty(multiAssets)) {
-      log.info("[parseTokenBundle] About to parse {} multiAssets from token bundle",
-              multiAssets.size());
-
-      tokenBundle = multiAssets.stream()
-              .map(key -> parseTokenAsset(multiAssets, key.getPolicyId()))
-              .sorted(Comparator.comparing(TokenBundleItem::getPolicyId))
-              .toList();
+        throw ExceptionFactory.invalidAddressError("Can't get Reward address from PoolRegistration");
     }
 
-    return !ObjectUtils.isEmpty(multiAssets) ? OperationMetadata.builder().tokenBundle(tokenBundle)
-            .build() : null;
-  }
+    public static Operation transactionInputToOperation(TransactionInput input, Long index) {
+        String identifier = "%s:%d".formatted(input.getTransactionId(), input.getIndex());
+        CoinChange coinChange = new CoinChange(new CoinIdentifier(identifier), SPENT);
+        OperationIdentifier operationIdentifier = new OperationIdentifier(index, null);
+        String inputValue = OperationType.INPUT.getValue();
 
-  public static TokenBundleItem parseTokenAsset(List<MultiAsset> multiAssets, String policyId) {
-    MultiAsset mergedMultiAssets = multiAssets.getFirst();
-    for (int i = 1; i < multiAssets.size(); i++) {
-      mergedMultiAssets.plus(multiAssets.get(i));
+        return new Operation(operationIdentifier,
+                null,
+                inputValue,
+                "",
+                null,
+                null,
+                coinChange,
+                null);
     }
-    if (ObjectUtils.isEmpty(mergedMultiAssets.getAssets())) {
-      log.error("[parseTokenBundle] assets for policyId: {} not provided", policyId);
-      throw ExceptionFactory.tokenBundleAssetsMissingError();
+
+    public static Operation transActionOutputToOperation(TransactionOutput output,
+                                                         Long index,
+                                                         List<OperationIdentifier> relatedOperations) {
+        OperationIdentifier operationIdentifier = new OperationIdentifier(index, null);
+        AccountIdentifier account = new AccountIdentifier(output.getAddress(), null, null);
+        Amount amount = new Amount(output.getValue().getCoin().toString(),
+                new Currency(Constants.ADA, Constants.ADA_DECIMALS, null), null);
+
+        return new Operation(operationIdentifier, relatedOperations, OperationType.OUTPUT.getValue(),
+                "",
+                account,
+                amount,
+                null,
+                parseTokenBundle(output));
     }
-    List<Amount> tokens = (keys(mergedMultiAssets.getAssets())).stream()
-            .map(key -> {
-              try {
-                return ParseConstructionUtil.parseAsset(mergedMultiAssets.getAssets(), key);
-              } catch (CborException e) {
-                throw ExceptionFactory.unspecifiedError(e.getMessage());
-              }
-            })
-            .sorted(Comparator.comparing(assetA -> assetA.getCurrency().getSymbol())).toList();
-    return new TokenBundleItem(policyId, tokens);
-  }
 
-  public static List<String> keys(List<Asset> collection) {
-    return collection.stream().map(Asset::getName).toList();
-  }
+    public static List<OperationIdentifier> getRelatedOperationsFromInputs(List<Operation> inputs) {
+        return inputs.stream()
+                .map(input -> new OperationIdentifier(input.getOperationIdentifier().getIndex(), null))
+                .toList();
+    }
 
-  public static Amount parseAsset(List<Asset> assets, String key) throws CborException {
+    public static OperationMetadata parseTokenBundle(TransactionOutput output) {
+        List<MultiAsset> multiAssets = output.getValue().getMultiAssets();
+        List<TokenBundleItem> tokenBundle = new ArrayList<>();
+
+        if (!ObjectUtils.isEmpty(multiAssets)) {
+            log.info("[parseTokenBundle] About to parse {} multiAssets from token bundle",
+                    multiAssets.size());
+
+            tokenBundle = multiAssets.stream()
+                    .map(key -> parseTokenAsset(multiAssets, key.getPolicyId()))
+                    .sorted(Comparator.comparing(TokenBundleItem::getPolicyId))
+                    .toList();
+        }
+
+        return !ObjectUtils.isEmpty(multiAssets) ? OperationMetadata.builder().tokenBundle(tokenBundle)
+                .build() : null;
+    }
+
+    public static TokenBundleItem parseTokenAsset(List<MultiAsset> multiAssets, String policyId) {
+        MultiAsset mergedMultiAssets = multiAssets.getFirst();
+        for (int i = 1; i < multiAssets.size(); i++) {
+            mergedMultiAssets.plus(multiAssets.get(i));
+        }
+        if (ObjectUtils.isEmpty(mergedMultiAssets.getAssets())) {
+            log.error("[parseTokenBundle] assets for policyId: {} not provided", policyId);
+            throw ExceptionFactory.tokenBundleAssetsMissingError();
+        }
+        List<Amount> tokens = (keys(mergedMultiAssets.getAssets())).stream()
+                .map(key -> {
+                    try {
+                        return ParseConstructionUtil.parseAsset(mergedMultiAssets.getAssets(), key);
+                    } catch (CborException e) {
+                        throw ExceptionFactory.unspecifiedError(e.getMessage());
+                    }
+                })
+                .sorted(Comparator.comparing(assetA -> assetA.getCurrency().getSymbol())).toList();
+        return new TokenBundleItem(policyId, tokens);
+    }
+
+    public static List<String> keys(List<Asset> collection) {
+        return collection.stream().map(Asset::getName).toList();
+    }
+
+    public static Amount parseAsset(List<Asset> assets, String key) throws CborException {
 // When getting the key we are obtaining a cbor encoded string instead of the actual name.
-    // This might need to be changed in the serialization lib in the future
-    for (Asset a : assets) {
-      if (a.getName().startsWith("0x")) {
-        a.setName(a.getName().substring(2));
-        if (a.getName().isEmpty()) {
-          a.setName("\\x");
+        // This might need to be changed in the serialization lib in the future
+        for (Asset a : assets) {
+            if (a.getName().startsWith("0x")) {
+                a.setName(a.getName().substring(2));
+                if (a.getName().isEmpty()) {
+                    a.setName("\\x");
+                }
+            }
         }
-      }
-    }
-    if (key.startsWith("0x")) {
-      key = key.substring(2);
-    }
-    if (key.isEmpty()) {
-      key = "\\x";
-    }
-    String assetSymbol = key;
-    AtomicLong assetValue = new AtomicLong();
-    for (Asset a : assets) {
-      if (a.getName().equals(key) && !ObjectUtils.isEmpty(a.getValue())) {
-        assetValue.addAndGet(a.getValue().longValue());
-      }
-    }
-    if (assetValue.get() == 0) {
-      log.error("[parseAsset] asset value for symbol: {} not provided", assetSymbol);
-      throw ExceptionFactory.tokenAssetValueMissingError();
-    }
-    return DataMapper.mapAmount(assetValue.toString(), assetSymbol, 0, null);
-  }
-
-  public static List<Operation> parseCertsToOperations(TransactionBody transactionBody,
-                                                       List<Operation> certOps,
-                                                       Network network)
-          throws CborException, CborSerializationException {
-    List<Operation> parsedOperations = new ArrayList<>();
-    List<Certificate> certs = transactionBody.getCerts();
-    int certsCount = getCertSize(certs);
-    log.info("[parseCertsToOperations] About to parse {} certs", certsCount);
-
-    for (int i = 0; i < certsCount; i++) {
-      Operation certOperation = certOps.get(i);
-
-      Certificate cert = ValidateParseUtil.validateCert(certs, i);
-
-      if (ObjectUtils.isEmpty(cert)) {
-        continue;
-      }
-
-      if (Constants.STAKING_OPERATIONS.contains(certOperation.getType())) {
-        String hex = getStakingCredentialHex(certOperation);
-        HdPublicKey hdPublicKey = new HdPublicKey();
-        hdPublicKey.setKeyData(HexUtil.decodeHexString(hex));
-        String address = CardanoAddressUtils.generateRewardAddress(network, hdPublicKey);
-
-        Operation parsedOperation = parseStakingCertToOperation(
-                cert,
-                certOperation.getOperationIdentifier().getIndex(),
-                hex,
-                certOperation.getType(),
-                address
-        );
-
-        parsedOperation.setAccount(certOperation.getAccount());
-        parsedOperations.add(parsedOperation);
-      }
-
-      // all certificates related to pool operations
-      if (Constants.POOL_OPERATIONS.contains(certOperation.getType())) {
-        if (!ObjectUtils.isEmpty(cert)) {
-          Operation parsedOperation = parsePoolCertToOperation(
-                  network,
-                  cert,
-                  certOperation.getOperationIdentifier().getIndex(),
-                  certOperation.getType()
-          );
-          parsedOperation.setAccount(certOperation.getAccount());
-          parsedOperations.add(parsedOperation);
+        if (key.startsWith("0x")) {
+            key = key.substring(2);
         }
-      }
-
-      // extra type of certificate for vote delegation
-      if (VOTE_DREP_DELEGATION.getValue().equals(certOperation.getType())) {
-        String hex = getStakingCredentialHex(certOperation);
-        HdPublicKey hdPublicKey = new HdPublicKey();
-        hdPublicKey.setKeyData(HexUtil.decodeHexString(hex));
-        String address = CardanoAddressUtils.generateRewardAddress(network, hdPublicKey);
-
-        Operation parsedOperation = parseDRepVoteDelegation(
-                cert,
-                certOperation.getOperationIdentifier().getIndex(),
-                hex,
-                certOperation.getType(),
-                address
-        );
-        parsedOperation.setAccount(certOperation.getAccount());
-        parsedOperations.add(parsedOperation);
-      }
-
+        if (key.isEmpty()) {
+            key = "\\x";
+        }
+        String assetSymbol = key;
+        AtomicLong assetValue = new AtomicLong();
+        for (Asset a : assets) {
+            if (a.getName().equals(key) && !ObjectUtils.isEmpty(a.getValue())) {
+                assetValue.addAndGet(a.getValue().longValue());
+            }
+        }
+        if (assetValue.get() == 0) {
+            log.error("[parseAsset] asset value for symbol: {} not provided", assetSymbol);
+            throw ExceptionFactory.tokenAssetValueMissingError();
+        }
+        return DataMapper.mapAmount(assetValue.toString(), assetSymbol, 0, null);
     }
 
-    return parsedOperations;
-  }
+    public static List<Operation> parseCertsToOperations(TransactionBody transactionBody,
+                                                         List<Operation> certOps,
+                                                         Network network)
+            throws CborException, CborSerializationException {
+        List<Operation> parsedOperations = new ArrayList<>();
+        List<Certificate> certs = transactionBody.getCerts();
+        int certsCount = getCertSize(certs);
+        log.info("[parseCertsToOperations] About to parse {} certs", certsCount);
+
+        for (int i = 0; i < certsCount; i++) {
+            Operation certOperation = certOps.get(i);
+
+            Certificate cert = ValidateParseUtil.validateCert(certs, i);
+
+            if (ObjectUtils.isEmpty(cert)) {
+                continue;
+            }
+
+            if (Constants.STAKING_OPERATIONS.contains(certOperation.getType())) {
+                String hex = getStakingCredentialHex(certOperation);
+                HdPublicKey hdPublicKey = new HdPublicKey();
+                hdPublicKey.setKeyData(HexUtil.decodeHexString(hex));
+                String address = CardanoAddressUtils.generateRewardAddress(network, hdPublicKey);
+
+                Operation parsedOperation = parseStakingCertToOperation(
+                        cert,
+                        certOperation.getOperationIdentifier().getIndex(),
+                        hex,
+                        certOperation.getType(),
+                        address
+                );
+
+                parsedOperation.setAccount(certOperation.getAccount());
+                parsedOperations.add(parsedOperation);
+            }
+
+            // all certificates related to pool operations
+            if (Constants.POOL_OPERATIONS.contains(certOperation.getType())) {
+                if (!ObjectUtils.isEmpty(cert)) {
+                    Operation parsedOperation = parsePoolCertToOperation(
+                            network,
+                            cert,
+                            certOperation.getOperationIdentifier().getIndex(),
+                            certOperation.getType()
+                    );
+                    parsedOperation.setAccount(certOperation.getAccount());
+                    parsedOperations.add(parsedOperation);
+                }
+            }
+
+            // extra type of certificate for vote delegation
+            if (VOTE_DREP_DELEGATION.getValue().equals(certOperation.getType())) {
+                String hex = getStakingCredentialHex(certOperation);
+                HdPublicKey hdPublicKey = new HdPublicKey();
+                hdPublicKey.setKeyData(HexUtil.decodeHexString(hex));
+                String address = CardanoAddressUtils.generateRewardAddress(network, hdPublicKey);
+
+                Operation parsedOperation = parseDRepVoteDelegation(
+                        cert,
+                        certOperation.getOperationIdentifier().getIndex(),
+                        hex,
+                        certOperation.getType(),
+                        address
+                );
+                parsedOperation.setAccount(certOperation.getAccount());
+                parsedOperations.add(parsedOperation);
+            }
+
+        }
+
+        return parsedOperations;
+    }
 
   private static String getStakingCredentialHex(Operation certOperation) {
     String hex = null;
@@ -349,57 +326,57 @@ public class ParseConstructionUtil {
     return operation;
   }
 
-  public static PoolRegistrationParams parsePoolRegistration(Network network,
-                                                             PoolRegistration poolRegistration) {
-    return new PoolRegistrationParams(
-            HexUtil.encodeHexString(poolRegistration.getVrfKeyHash()),
-            parsePoolRewardAccount(network, poolRegistration),
-            poolRegistration.getPledge().toString(),
-            poolRegistration.getCost().toString(),
-            parsePoolOwners(network, poolRegistration),
-            parsePoolRelays(poolRegistration),
-            parsePoolMargin(poolRegistration), null,
-            parsePoolMetadata(poolRegistration)
-    );
-  }
-
-  public static List<Operation> parseWithdrawalsToOperations(List<Operation> withdrawalOps,
-                                                             Integer withdrawalsCount, Network network) {
-
-    log.info("[parseWithdrawalsToOperations] About to parse {} withdrawals", withdrawalsCount);
-    List<Operation> withdrawalOperations = new ArrayList<>();
-    for (int i = 0; i < withdrawalsCount; i++) {
-      Operation withdrawalOperation = withdrawalOps.get(i);
-      String stakingCredentialHex = getStakingCredentialHex(withdrawalOperation);
-      HdPublicKey hdPublicKey = new HdPublicKey();
-      hdPublicKey.setKeyData(HexUtil.decodeHexString(stakingCredentialHex));
-      String address = CardanoAddressUtils.generateRewardAddress(network, hdPublicKey);
-      Operation parsedOperation = parseWithdrawalToOperation(
-              withdrawalOperation.getAmount().getValue(),
-              stakingCredentialHex,
-              withdrawalOperation.getOperationIdentifier().getIndex(),
-              address
-      );
-      withdrawalOperations.add(parsedOperation);
+    public static PoolRegistrationParams parsePoolRegistration(Network network,
+                                                               PoolRegistration poolRegistration) {
+        return new PoolRegistrationParams(
+                HexUtil.encodeHexString(poolRegistration.getVrfKeyHash()),
+                parsePoolRewardAccount(network, poolRegistration),
+                poolRegistration.getPledge().toString(),
+                poolRegistration.getCost().toString(),
+                parsePoolOwners(network, poolRegistration),
+                parsePoolRelays(poolRegistration),
+                parsePoolMargin(poolRegistration), null,
+                parsePoolMetadata(poolRegistration)
+        );
     }
-    return withdrawalOperations;
-  }
 
-  public static Operation parseWithdrawalToOperation(String value, String hex, Long index,
-                                                     String address) {
-    return Operation.builder()
-            .operationIdentifier(new OperationIdentifier(index, null))
-            .type(OperationType.WITHDRAWAL.getValue())
-            .status("")
-            .account(new AccountIdentifier(address, null, null))
-            .amount(Amount.builder().value(value)
-                    .currency(new Currency(Constants.ADA, Constants.ADA_DECIMALS, null))
-                    .build())
-            .metadata(OperationMetadata.builder()
-                    .stakingCredential(new PublicKey(hex, CurveType.EDWARDS25519))
-                    .build())
-            .build();
-  }
+    public static List<Operation> parseWithdrawalsToOperations(List<Operation> withdrawalOps,
+                                                               Integer withdrawalsCount, Network network) {
+
+        log.info("[parseWithdrawalsToOperations] About to parse {} withdrawals", withdrawalsCount);
+        List<Operation> withdrawalOperations = new ArrayList<>();
+        for (int i = 0; i < withdrawalsCount; i++) {
+            Operation withdrawalOperation = withdrawalOps.get(i);
+            String stakingCredentialHex = getStakingCredentialHex(withdrawalOperation);
+            HdPublicKey hdPublicKey = new HdPublicKey();
+            hdPublicKey.setKeyData(HexUtil.decodeHexString(stakingCredentialHex));
+            String address = CardanoAddressUtils.generateRewardAddress(network, hdPublicKey);
+            Operation parsedOperation = parseWithdrawalToOperation(
+                    withdrawalOperation.getAmount().getValue(),
+                    stakingCredentialHex,
+                    withdrawalOperation.getOperationIdentifier().getIndex(),
+                    address
+            );
+            withdrawalOperations.add(parsedOperation);
+        }
+        return withdrawalOperations;
+    }
+
+    public static Operation parseWithdrawalToOperation(String value, String hex, Long index,
+                                                       String address) {
+        return Operation.builder()
+                .operationIdentifier(new OperationIdentifier(index, null))
+                .type(OperationType.WITHDRAWAL.getValue())
+                .status("")
+                .account(new AccountIdentifier(address, null, null))
+                .amount(Amount.builder().value(value)
+                        .currency(new Currency(Constants.ADA, Constants.ADA_DECIMALS, null))
+                        .build())
+                .metadata(OperationMetadata.builder()
+                        .stakingCredential(new PublicKey(hex, CurveType.EDWARDS25519))
+                        .build())
+                .build();
+    }
 
   public static Operation parseVoteMetadataToOperation(Long index, String transactionMetadataHex)
           throws CborDeserializationException {
@@ -457,20 +434,20 @@ public class ParseConstructionUtil {
             .build();
   }
 
-  public static List<String> parsePoolOwners(Network network, PoolRegistration poolRegistration) {
-    List<String> poolOwners = new ArrayList<>();
-    Set<String> owners = poolRegistration.getPoolOwners();
-    for (String owner : owners) {
-      Address address = CardanoAddressUtils.getAddress(
-              null,
-              HexUtil.decodeHexString(owner),
-              (byte) -32,
-              network,
-              com.bloxbean.cardano.client.address.AddressType.Reward);
-      poolOwners.add(address.getAddress());
+    public static List<String> parsePoolOwners(Network network, PoolRegistration poolRegistration) {
+        List<String> poolOwners = new ArrayList<>();
+        Set<String> owners = poolRegistration.getPoolOwners();
+        for (String owner : owners) {
+            Address address = CardanoAddressUtils.getAddress(
+                    null,
+                    HexUtil.decodeHexString(owner),
+                    (byte) -32,
+                    network,
+                    com.bloxbean.cardano.client.address.AddressType.Reward);
+            poolOwners.add(address.getAddress());
+        }
+        return poolOwners;
     }
-    return poolOwners;
-  }
 
   public static String parsePoolRewardAccount(Network network, PoolRegistration poolRegistration) {
     String cutRewardAccount = poolRegistration.getRewardAccount();
@@ -486,44 +463,44 @@ public class ParseConstructionUtil {
             com.bloxbean.cardano.client.address.AddressType.Reward).getAddress();
   }
 
-  public static PoolMetadata parsePoolMetadata(PoolRegistration poolRegistration) {
-    if (poolRegistration.getPoolMetadataUrl() != null
-            || poolRegistration.getPoolMetadataHash() != null) {
-      return new PoolMetadata(poolRegistration.getPoolMetadataUrl(), poolRegistration.getPoolMetadataHash());
+    public static PoolMetadata parsePoolMetadata(PoolRegistration poolRegistration) {
+        if (poolRegistration.getPoolMetadataUrl() != null
+                || poolRegistration.getPoolMetadataHash() != null) {
+            return new PoolMetadata(poolRegistration.getPoolMetadataUrl(), poolRegistration.getPoolMetadataHash());
+        }
+        return null;
     }
-    return null;
-  }
 
-  public static PoolMargin parsePoolMargin(PoolRegistration poolRegistration) {
-    return new PoolMargin(poolRegistration.getMargin().getDenominator().toString(),
-            poolRegistration.getMargin().getNumerator().toString());
-  }
-
-  public static List<Relay> parsePoolRelays(PoolRegistration poolRegistration) {
-    List<Relay> poolRelays = new ArrayList<>();
-    List<com.bloxbean.cardano.client.transaction.spec.cert.Relay> relays = poolRegistration.getRelays();
-    for (com.bloxbean.cardano.client.transaction.spec.cert.Relay relay : relays) {
-      MultiHostName multiHostRelay = getMultiHostRelay(relay);
-      SingleHostName singleHostName = getSingleHostName(relay);
-      SingleHostAddr singleHostAddr = getSingleHostAddr(relay);
-
-      addRelayToPoolRelayOfTypeMultiHost(poolRelays, multiHostRelay);
-      addRelayToPoolReLayOfTypeSingleHostName(poolRelays, singleHostName);
-      addRelayToPoolReLayOfTypeSingleHostAddr(poolRelays, singleHostAddr);
-
+    public static PoolMargin parsePoolMargin(PoolRegistration poolRegistration) {
+        return new PoolMargin(poolRegistration.getMargin().getDenominator().toString(),
+                poolRegistration.getMargin().getNumerator().toString());
     }
-    return poolRelays;
-  }
 
-  public static void addRelayToPoolReLayOfTypeSingleHostAddr(List<Relay> poolRelays,
-                                                             SingleHostAddr singleHostAddr) {
-    if (!ObjectUtils.isEmpty(singleHostAddr)) {
-      Relay relay1 = new Relay(RelayType.SINGLE_HOST_ADDR.getValue(),
-              singleHostAddr.getIpv4().getHostAddress(), singleHostAddr.getIpv6().getHostAddress(),
-              null, String.valueOf(singleHostAddr.getPort()));
-      poolRelays.add(relay1);
+    public static List<Relay> parsePoolRelays(PoolRegistration poolRegistration) {
+        List<Relay> poolRelays = new ArrayList<>();
+        List<com.bloxbean.cardano.client.transaction.spec.cert.Relay> relays = poolRegistration.getRelays();
+        for (com.bloxbean.cardano.client.transaction.spec.cert.Relay relay : relays) {
+            MultiHostName multiHostRelay = getMultiHostRelay(relay);
+            SingleHostName singleHostName = getSingleHostName(relay);
+            SingleHostAddr singleHostAddr = getSingleHostAddr(relay);
+
+            addRelayToPoolRelayOfTypeMultiHost(poolRelays, multiHostRelay);
+            addRelayToPoolReLayOfTypeSingleHostName(poolRelays, singleHostName);
+            addRelayToPoolReLayOfTypeSingleHostAddr(poolRelays, singleHostAddr);
+
+        }
+        return poolRelays;
     }
-  }
+
+    public static void addRelayToPoolReLayOfTypeSingleHostAddr(List<Relay> poolRelays,
+                                                               SingleHostAddr singleHostAddr) {
+        if (!ObjectUtils.isEmpty(singleHostAddr)) {
+            Relay relay1 = new Relay(RelayType.SINGLE_HOST_ADDR.getValue(),
+                    singleHostAddr.getIpv4().getHostAddress(), singleHostAddr.getIpv6().getHostAddress(),
+                    null, String.valueOf(singleHostAddr.getPort()));
+            poolRelays.add(relay1);
+        }
+    }
 
   public static MultiHostName getMultiHostRelay(
           com.bloxbean.cardano.client.transaction.spec.cert.Relay relay) {
@@ -555,38 +532,38 @@ public class ParseConstructionUtil {
     return null;
   }
 
-  public static void addRelayToPoolRelayOfTypeMultiHost(List<Relay> poolRelays,
-                                                        MultiHostName multiHostRelay) {
-    if (!ObjectUtils.isEmpty(multiHostRelay)) {
-      poolRelays.add(
-              Relay.builder()
-                      .type(RelayType.MULTI_HOST_NAME.getValue())
-                      .dnsName(multiHostRelay.getDnsName())
-                      .build());
+    public static void addRelayToPoolRelayOfTypeMultiHost(List<Relay> poolRelays,
+                                                          MultiHostName multiHostRelay) {
+        if (!ObjectUtils.isEmpty(multiHostRelay)) {
+            poolRelays.add(
+                    Relay.builder()
+                            .type(RelayType.MULTI_HOST_NAME.getValue())
+                            .dnsName(multiHostRelay.getDnsName())
+                            .build());
+        }
     }
-  }
 
-  public static void addRelayToPoolReLayOfTypeSingleHostName(List<Relay> poolRelays,
-                                                             SingleHostName singleHostName) {
+    public static void addRelayToPoolReLayOfTypeSingleHostName(List<Relay> poolRelays,
+                                                               SingleHostName singleHostName) {
 
-    if (!ObjectUtils.isEmpty(singleHostName)) {
-      poolRelays.add(
-              Relay.builder()
-                      .type(RelayType.SINGLE_HOST_NAME.getValue())
-                      .dnsName(singleHostName.getDnsName())
-                      .port(singleHostName.getPort())
-                      .build());
+        if (!ObjectUtils.isEmpty(singleHostName)) {
+            poolRelays.add(
+                    Relay.builder()
+                            .type(RelayType.SINGLE_HOST_NAME.getValue())
+                            .dnsName(singleHostName.getDnsName())
+                            .port(singleHostName.getPort())
+                            .build());
+        }
     }
-  }
 
-  public static int getCertSize(List<Certificate> certs) {
-    return ObjectUtils.isEmpty(certs) ? 0 : certs.size();
-  }
+    public static int getCertSize(List<Certificate> certs) {
+        return ObjectUtils.isEmpty(certs) ? 0 : certs.size();
+    }
 
-  public static boolean checkStakeCredential(Operation certOperation) {
-    return certOperation.getMetadata() != null
-            && certOperation.getMetadata().getStakingCredential() != null;
-  }
+    public static boolean checkStakeCredential(Operation certOperation) {
+        return certOperation.getMetadata() != null
+                && certOperation.getMetadata().getStakingCredential() != null;
+    }
 
   public static Operation parseStakingCertToOperation(Certificate cert,
                                                       Long index,

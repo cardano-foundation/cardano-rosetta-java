@@ -182,7 +182,7 @@ public class RosettaConstants {
     PROTOCOL_PARAMETERS_MISSING("body.metadata must have required property 'protocol_parameters'", 5023),
     COINS_PER_UTXO_SIZE_MISSING("body.metadata must have required property 'coinsPerUtxoSize'", 5024),
     MAX_TX_SIZE_MISSING("body.metadata must have required property 'maxTxSize'", 5025),
-    MAX_VAL_SIZE_MISSING("body.metadata must have reqåuired property 'maxValSize'", 5026),
+    MAX_VAL_SIZE_MISSING("body.metadata must have required property 'maxValSize'", 5026),
     KEY_DEPOSIT_MISSING("body.metadata must have required property 'keyDeposit'", 5027),
     MAX_COLLATERAL_INPUTS_MISSING("body.metadata must have required property 'maxCollateralInputs'", 5028),
     MIN_FEE_COEFFICIENT_MISSING("body.metadata must have required property 'minFeeCoefficient'", 5029),
@@ -202,7 +202,10 @@ public class RosettaConstants {
     OLDEST_BLOCK_NOT_FOUND("Oldest block not found", 5043),
     WITHDRAWAL_AMOUNT_CANNOT_BE_NEGATIVE("Withdrawal amounts cannot be negative", 5044),
     MISMATCH_DREP_TYPE("There is a mismatch in the drep id header and drep type. Drep id header type and drep type should match.", 5045),
-    INVALID_DREP_ID_LENGTH("Invalid drep id length. Should be 28 or 29 bytes", 5046);
+    INVALID_DREP_ID_LENGTH("Invalid drep id length. Should be 28 or 29 bytes", 5046),
+    GOVERNANCE_INVALID_VOTE("Governance vote is invalid", 5047),
+    GOVERNANCE_ONLY_POOL_VOTING_POSSIBLE("Only pool voting possible", 5048),
+    GOVERNANCE_KEY_HASH_ONLY("Only hash hash is supported", 5049);
 
     final String message;
     final int code;

@@ -1,10 +1,5 @@
 package org.cardanofoundation.rosetta.common.util;
 
-import java.util.Objects;
-import java.util.Optional;
-
-import lombok.extern.slf4j.Slf4j;
-
 import com.bloxbean.cardano.client.address.Address;
 import com.bloxbean.cardano.client.address.AddressProvider;
 import com.bloxbean.cardano.client.address.AddressType;
@@ -22,42 +17,45 @@ import com.bloxbean.cardano.client.transaction.spec.cert.SingleHostAddr;
 import com.bloxbean.cardano.client.transaction.spec.cert.SingleHostName;
 import com.bloxbean.cardano.client.transaction.spec.cert.StakeCredential;
 import com.bloxbean.cardano.client.util.HexUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.InetAddressValidator;
-import org.openapitools.client.model.PublicKey;
-import org.openapitools.client.model.Relay;
-
 import org.cardanofoundation.rosetta.common.enumeration.EraAddressType;
 import org.cardanofoundation.rosetta.common.enumeration.StakeAddressPrefix;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
+import org.openapitools.client.model.PublicKey;
+import org.openapitools.client.model.Relay;
+
+import java.util.Objects;
+import java.util.Optional;
 
 @Slf4j
 public class CardanoAddressUtils {
 
   private CardanoAddressUtils() {
-
   }
 
   public static boolean isStakeAddress(String address) {
     String addressPrefix = address.substring(0, Constants.PREFIX_LENGTH);
 
     return addressPrefix.contains(StakeAddressPrefix.MAIN.getPrefix())
-        || addressPrefix.contains(StakeAddressPrefix.TEST.getPrefix());
+            || addressPrefix.contains(StakeAddressPrefix.TEST.getPrefix());
   }
 
   public static Address getAddress(byte[] paymentKeyHash, byte[] stakeKeyHash, byte headerKind,
-      Network networkInfo, AddressType addressType) {
+                                   Network networkInfo, AddressType addressType) {
     NetworkId network = AddressEncoderDecoderUtil.getNetworkId(networkInfo);
     String var10000 = AddressEncoderDecoderUtil.getPrefixHeader(addressType);
     String prefix = var10000 + AddressEncoderDecoderUtil.getPrefixTail(network);
     byte header = AddressEncoderDecoderUtil.getAddressHeader(headerKind, networkInfo, addressType);
     byte[] addressArray = getAddressBytes(paymentKeyHash, stakeKeyHash, addressType, header);
+
     return new Address(prefix, addressArray);
   }
 
   private static byte[] getAddressBytes(byte[] paymentKeyHash, byte[] stakeKeyHash,
-      AddressType addressType, byte header) {
+                                        AddressType addressType, byte header) {
     byte[] addressArray;
     switch (addressType) {
       case Base, Ptr -> {
@@ -65,7 +63,7 @@ public class CardanoAddressUtils {
         addressArray[0] = header;
         System.arraycopy(paymentKeyHash, 0, addressArray, 1, paymentKeyHash.length);
         System.arraycopy(stakeKeyHash, 0, addressArray, paymentKeyHash.length + 1,
-            stakeKeyHash.length);
+                stakeKeyHash.length);
       }
       case Enterprise -> {
         addressArray = new byte[1 + paymentKeyHash.length];
@@ -87,7 +85,7 @@ public class CardanoAddressUtils {
     StringBuilder result = new StringBuilder();
     for (byte aByte : bytes) {
       int decimal =
-          aByte & 0xff;               // bytes widen to int, need mask, prevent sign extension
+              aByte & 0xff;               // bytes widen to int, need mask, prevent sign extension
       // get last 8 bits
       String hex = Integer.toHexString(decimal);
       if (hex.length() % 2 == 1) {                    // if half hex, pad with zero, e.g \t
@@ -103,7 +101,7 @@ public class CardanoAddressUtils {
       return false;
     }
     return publicKeyBytes.length() == Constants.PUBLIC_KEY_BYTES_LENGTH && curveType.equals(
-        Constants.VALID_CURVE_TYPE);
+            Constants.VALID_CURVE_TYPE);
   }
 
   public static String add0xPrefix(String hex) {
@@ -117,7 +115,7 @@ public class CardanoAddressUtils {
 
 
   public static com.bloxbean.cardano.client.transaction.spec.cert.Relay generateSpecificRelay(
-      Relay relay) {
+          Relay relay) {
     try {
       String type = relay.getType();
       if (type == null) {
@@ -132,15 +130,15 @@ public class CardanoAddressUtils {
             }
           }
           Integer port =
-              ObjectUtils.isEmpty(relay.getPort()) ? null : relay.getPort();
+                  ObjectUtils.isEmpty(relay.getPort()) ? null : relay.getPort();
           return new SingleHostAddr(Objects.requireNonNullElse(port, 0),
-              ParseConstructionUtil.parseIpv4(relay.getIpv4()),
-              ParseConstructionUtil.parseIpv6(relay.getIpv6()));
+                  IPV4Parser.parseIpv4(relay.getIpv4()),
+                  IPV4Parser.parseIpv6(relay.getIpv6()));
         }
         case Constants.SINGLE_HOST_NAME -> {
           ValidateParseUtil.validateDnsName(relay.getDnsName());
           Integer port =
-              ObjectUtils.isEmpty(relay.getPort()) ? null : relay.getPort();
+                  ObjectUtils.isEmpty(relay.getPort()) ? null : relay.getPort();
           return new SingleHostName(Objects.requireNonNullElse(port, 0), relay.getDnsName());
         }
         case Constants.MULTI_HOST_NAME -> {
@@ -169,7 +167,7 @@ public class CardanoAddressUtils {
       if(address == null || !AddressUtil.isValidAddress(address))
         return null;
       if (address.startsWith(Constants.ADDRESS_PREFIX)
-          || address.startsWith(StakeAddressPrefix.MAIN.getPrefix())) {
+              || address.startsWith(StakeAddressPrefix.MAIN.getPrefix())) {
         // validate bech32 address. Unfortunately, it will throw a runtime exception in case of invalid address
         Bech32.decode(address);
         return EraAddressType.SHELLEY;
@@ -195,17 +193,17 @@ public class CardanoAddressUtils {
 
   public static String generateRewardAddress(Network network, HdPublicKey paymentCredential) {
     log.info(
-        "[generateRewardAddress] Deriving cardano reward address from valid public staking key");
+            "[generateRewardAddress] Deriving cardano reward address from valid public staking key");
     Address rewardAddress = AddressProvider.getRewardAddress(paymentCredential, network);
     log.info("[generateRewardAddress] reward address is {}", rewardAddress.toBech32());
     return rewardAddress.toBech32();
   }
 
   public static String generateBaseAddress(Network network,
-      HdPublicKey paymentCredential, HdPublicKey stakingCredential) {
+                                           HdPublicKey paymentCredential, HdPublicKey stakingCredential) {
     log.info("[generateAddress] Deriving cardano address from valid public key and staking key");
     Address baseAddress = AddressProvider.getBaseAddress(paymentCredential, stakingCredential,
-        network);
+            network);
     log.info("generateAddress] base address is {}", baseAddress.toBech32());
     return baseAddress.toBech32();
   }
@@ -232,13 +230,22 @@ public class CardanoAddressUtils {
     return StakeCredential.fromKeyHash(stakingKey.getKeyHash());
   }
 
+  public static boolean isValidBech32(String value) {
+    try {
+      Bech32.decode(value);
+      return true;
+    } catch (Exception e) {
+      return false;
+    }
+  }
+
   public static HdPublicKey publicKeyToHdPublicKey(PublicKey publicKey) {
     if (publicKey == null || ObjectUtils.isEmpty(publicKey.getHexBytes())) {
       log.error("[getPublicKey] Staking key not provided");
       throw ExceptionFactory.missingStakingKeyError();
     }
     boolean isKeyValid = CardanoAddressUtils.isKeyValid(publicKey.getHexBytes(),
-        publicKey.getCurveType().toString());
+            publicKey.getCurveType().toString());
     if (!isKeyValid) {
       log.info("[getPublicKey] Staking key has an invalid format");
       throw ExceptionFactory.invalidStakingKeyFormat();
@@ -271,8 +278,8 @@ public class CardanoAddressUtils {
     // Shelley era checking for lower case, upper case characters can lead to problems with other tools
     // if Shelley Era and contains upper case characters
     if (Objects.equals(getEraAddressType(address), EraAddressType.SHELLEY) && address.chars().anyMatch(Character::isUpperCase)) {
-        log.debug("[verifyAddress] Provided address is invalid {}", address);
-        throw ExceptionFactory.invalidAddressCasingError(address);
+      log.debug("[verifyAddress] Provided address is invalid {}", address);
+      throw ExceptionFactory.invalidAddressCasingError(address);
     }
   }
 }

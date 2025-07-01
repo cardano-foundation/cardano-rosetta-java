@@ -1,6 +1,6 @@
 package org.cardanofoundation.rosetta.api.block.model.domain;
 
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import lombok.AllArgsConstructor;
@@ -20,10 +20,11 @@ import com.bloxbean.cardano.client.transaction.spec.cert.Certificate;
 @Setter
 public class ProcessOperationsReturn {
 
-  private ArrayList<TransactionInput> transactionInputs;
-  private ArrayList<TransactionOutput> transactionOutputs;
-  private ArrayList<Certificate> certificates;
-  private ArrayList<Withdrawal> withdrawals;
+  private List<TransactionInput> transactionInputs;
+  private List<TransactionOutput> transactionOutputs;
+  private List<Certificate> certificates;
+  private List<GovernanceVote> governanceVotes;
+  private List<Withdrawal> withdrawals;
   private Set<String> addresses;
   private Long fee;
   private AuxiliaryData voteRegistrationMetadata;

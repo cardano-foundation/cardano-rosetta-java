@@ -1,15 +1,15 @@
 package org.cardanofoundation.rosetta.common.mapper;
 
+import co.nstant.in.cbor.model.*;
+import org.cardanofoundation.rosetta.common.util.Constants;
+import org.openapitools.client.model.*;
+
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import co.nstant.in.cbor.model.*;
-import org.openapitools.client.model.*;
-
-import org.cardanofoundation.rosetta.common.util.Constants;
-
+import static org.cardanofoundation.rosetta.common.util.Constants.*;
 import static org.cardanofoundation.rosetta.common.util.Formatters.key;
 
 public class CborMapToOperation {
@@ -97,6 +97,7 @@ public class CborMapToOperation {
             operation.setType(status);
         });
     }
+
     /**
      * Filling the status field of the Operation object from the cbor MAP  if not null.
      * Accessed through {@value Constants#STATUS}
@@ -394,6 +395,7 @@ public class CborMapToOperation {
             addPoolRegistrationParams(metadataMap, operationMetadata);
             addVoteRegistrationMetadata(metadataMap, operationMetadata);
             addDrepVoteDelegationParams(metadataMap, operationMetadata);
+            addPoolGovernanceVoteParams(metadataMap, operationMetadata);
 
             operation.setMetadata(operationMetadata);
         });
@@ -416,6 +418,62 @@ public class CborMapToOperation {
 
             operationMetadata.setDrep(drepParams);
         });
+    }
+
+    private static void addPoolGovernanceVoteParams(Map metadataMap, OperationMetadata operationMetadata) {
+        Optional.ofNullable(metadataMap.get(key("poolGovernanceVoteParams"))).ifPresent(poolGovernanceVoteParamsDi -> {
+            Map poolGovernanceVoteParamsMap = (Map) poolGovernanceVoteParamsDi;
+            PoolGovernanceVoteParams poolGovernanceVoteParams = new PoolGovernanceVoteParams();
+            addGovActionId(poolGovernanceVoteParamsMap, poolGovernanceVoteParams);
+            addGovPoolCredential(poolGovernanceVoteParamsMap, poolGovernanceVoteParams);
+            addGovVote(poolGovernanceVoteParamsMap, poolGovernanceVoteParams);
+            addGovPoolGovernanceVoteParams(poolGovernanceVoteParamsMap, poolGovernanceVoteParams);
+
+            operationMetadata.setPoolGovernanceVoteParams(poolGovernanceVoteParams);
+        });
+    }
+
+    private static void addGovPoolGovernanceVoteParams(Map metadataMap, PoolGovernanceVoteParams operationMetadata) {
+        Optional.ofNullable(metadataMap.get(key(Constants.VOTE_RATIONALE)))
+                .ifPresent(o -> {
+                    Map voterMap = (Map) o;
+                    UnicodeString url = (UnicodeString) voterMap.get(new UnicodeString("url"));
+                    UnicodeString dataHash = (UnicodeString) voterMap.get(new UnicodeString("data_hash"));
+
+                    operationMetadata.setVoteRationale(new GovVoteRationaleParams(url.getString(), dataHash.getString()));
+                });
+    }
+
+    private static void addGovActionId(Map metadataMap, PoolGovernanceVoteParams operationMetadata) {
+        Optional.ofNullable(metadataMap.get(key(Constants.GOVERNANCE_ACTION)))
+                .ifPresent(governanceAction -> {
+                    Map governanceActionMap = (Map) governanceAction;
+                    UnicodeString txId = (UnicodeString) governanceActionMap.get(new UnicodeString("tx_id"));
+                    UnsignedInteger index = (UnsignedInteger) governanceActionMap.get(new UnicodeString("index"));
+
+                    operationMetadata.setGovernanceAction(new GovActionParams(txId.getString(), index.getValue().intValue()));
+                });
+    }
+
+    private static void addGovVote(Map metadataMap, PoolGovernanceVoteParams operationMetadata) {
+        Optional.ofNullable(metadataMap.get(key(Constants.VOTE)))
+                .ifPresent(o -> {
+                    UnicodeString voteValue = (UnicodeString) o;
+
+                    operationMetadata.setVote(GovVoteParams.fromValue(voteValue.toString().toLowerCase()));
+                });
+    }
+
+    private static void addGovPoolCredential(Map metadataMap, PoolGovernanceVoteParams operationMetadata) {
+        Optional.ofNullable(metadataMap.get(key(POOL_CREDENTIAL)))
+                .ifPresent(poolCredentialDi -> {
+                    Map poolCredentialMap = (Map) poolCredentialDi;
+
+                    UnicodeString hexBytes = (UnicodeString) poolCredentialMap.get(key(HEX_BYTES));
+                    UnicodeString curveType = (UnicodeString) poolCredentialMap.get(key(CURVE_TYPE));
+
+                    operationMetadata.setPoolCredential(new PublicKey(hexBytes.getString(), CurveType.fromValue(curveType.getString())));
+                });
     }
 
     /**
@@ -449,7 +507,7 @@ public class CborMapToOperation {
     private static void addVoteNonceToVoteMetadata(Map voteRegistrationMetadataMap,
                                                    VoteRegistrationMetadata voteRegistrationMetadata) {
         Optional.ofNullable(
-                        voteRegistrationMetadataMap.get(key(Constants.VOTING_NONCE)))
+                        voteRegistrationMetadataMap.get(key(VOTING_NONCE)))
                 .ifPresent(votingNonce -> {
                     int votingNonceInt = ((UnsignedInteger) votingNonce).getValue().intValue();
                     voteRegistrationMetadata.setVotingNonce(votingNonceInt);
@@ -464,7 +522,7 @@ public class CborMapToOperation {
     private static void addVoteSignatureToVoteMetadata(Map voteRegistrationMetadataMap,
                                                        VoteRegistrationMetadata voteRegistrationMetadata) {
         Optional.ofNullable(
-                        voteRegistrationMetadataMap.get(key(Constants.VOTING_SIGNATURE)))
+                        voteRegistrationMetadataMap.get(key(VOTING_SIGNATURE)))
                 .ifPresent(votingSignature -> {
                     String votingSignatureStr = ((UnicodeString) votingSignature).getString();
                     voteRegistrationMetadata.setVotingSignature(votingSignatureStr);
@@ -509,12 +567,11 @@ public class CborMapToOperation {
      */
     private static void addStakeKeyToVoteMetadata(Map voteRegistrationMetadataMap,
                                                   VoteRegistrationMetadata voteRegistrationMetadata) {
-        Optional.ofNullable(
-                        voteRegistrationMetadataMap.get(new UnicodeString(Constants.STAKE_KEY)))
+        Optional.ofNullable(voteRegistrationMetadataMap.get(new UnicodeString(Constants.STAKE_KEY)))
                 .ifPresent(stakeKey -> {
                     Map stakeKeyMap = (Map) stakeKey;
-                    PublicKey publicKey1 = getPublicKeyFromMap(stakeKeyMap);
-                    voteRegistrationMetadata.setStakeKey(publicKey1);
+                    PublicKey publicKey = getPublicKeyFromMap(stakeKeyMap);
+                    voteRegistrationMetadata.setStakeKey(publicKey);
                 });
     }
 
@@ -954,10 +1011,13 @@ public class CborMapToOperation {
      */
     private static PublicKey getPublicKeyFromMap(Map stakingCredentialMap) {
         PublicKey publicKey = new PublicKey();
-        Optional.ofNullable(stakingCredentialMap.get(new UnicodeString(Constants.HEX_BYTES)))
+
+        Optional.ofNullable(stakingCredentialMap.get(new UnicodeString(HEX_BYTES)))
                 .ifPresent(o -> publicKey.setHexBytes(((UnicodeString) o).getString()));
-        Optional.ofNullable(stakingCredentialMap.get(new UnicodeString(Constants.CURVE_TYPE)))
+
+        Optional.ofNullable(stakingCredentialMap.get(new UnicodeString(CURVE_TYPE)))
                 .ifPresent(o -> publicKey.setCurveType(CurveType.fromValue(((UnicodeString) o).getString())));
+
         return publicKey;
     }
 
