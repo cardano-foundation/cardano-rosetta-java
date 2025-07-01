@@ -1,9 +1,5 @@
 package org.cardanofoundation.rosetta.common.util;
 
-import java.util.*;
-
-import lombok.extern.slf4j.Slf4j;
-
 import com.bloxbean.cardano.client.address.Address;
 import com.bloxbean.cardano.client.address.AddressProvider;
 import com.bloxbean.cardano.client.common.model.Network;
@@ -19,9 +15,8 @@ import com.bloxbean.cardano.client.transaction.spec.governance.DRep;
 import com.bloxbean.cardano.client.transaction.spec.governance.DRepType;
 import com.bloxbean.cardano.client.util.HexUtil;
 import io.vavr.control.Either;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
-import org.openapitools.client.model.*;
-
 import org.cardanofoundation.rosetta.api.block.model.domain.DRepDelegation;
 import org.cardanofoundation.rosetta.api.construction.enumeration.CatalystLabels;
 import org.cardanofoundation.rosetta.common.enumeration.CatalystDataIndexes;
@@ -31,6 +26,9 @@ import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.model.cardano.CertificateWithAddress;
 import org.cardanofoundation.rosetta.common.model.cardano.pool.*;
 import org.cardanofoundation.rosetta.common.model.cardano.pool.PoolRetirement;
+import org.openapitools.client.model.*;
+
+import java.util.*;
 
 import static java.math.BigInteger.valueOf;
 
@@ -107,17 +105,24 @@ public class ProcessConstructions {
                         byte[] stripped = Arrays.copyOfRange(idBytes, 1, 29);
                         String strippedHex = HexUtil.encodeHexString(stripped);
 
-                        DRepType dRepHeaderType = switch (tag) {
-                            case 0x22 -> DRepType.ADDR_KEYHASH;
-                            case 0x23 -> DRepType.SCRIPTHASH;
-                            default -> throw ExceptionFactory.invalidDrepType();
+                        Either<ApiException, DRepType> dRepHeaderTypeE = switch (tag) {
+                            case 0x22 -> Either.right(DRepType.ADDR_KEYHASH);
+                            case 0x23 -> Either.right(DRepType.SCRIPTHASH);
+                            default -> Either.left(ExceptionFactory.invalidDrepType());
                         };
 
-                        if (!dRepHeaderType.equals(delegationDrep.getDrepType())) {
+                        if (dRepHeaderTypeE.isLeft()) {
+                            yield Either.left(dRepHeaderTypeE.getLeft());
+                        }
+
+                        DRepType dRepHeaderType = dRepHeaderTypeE.get();
+
+                        if (dRepHeaderType != delegationDrep.getDrepType()) {
                             yield Either.left(ExceptionFactory.mismatchDrepType());
                         }
 
                         drep.setId(strippedHex);
+
                         yield Either.right(Optional.of(strippedHex));
                     }
 
