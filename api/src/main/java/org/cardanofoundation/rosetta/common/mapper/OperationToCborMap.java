@@ -48,12 +48,11 @@ public class OperationToCborMap {
                     addRefundToMap(operationMetadata.getRefundAmount(), metadataMap);
                     addTokenBundleToMap(operationMetadata.getTokenBundle(), metadataMap);
                     addPoolRegistrationPramsToMap(operationMetadata.getPoolRegistrationParams(), metadataMap);
-                    addVoteRegistrationMetadataToMap(operationMetadata.getVoteRegistrationMetadata(), metadataMap);
                     addDrepDelegationMetadataToMap(operationMetadata.getDrep(), metadataMap, Constants.DREP);
                     addPoolGovernanceVoteMetadataToMap(operationMetadata, metadataMap);
 
                     // add simple values
-                    putStringDataItemToMap(metadataMap, Constants.POOLREGISTRATIONCERT, operationMetadata.getPoolRegistrationCert());
+                    putStringDataItemToMap(metadataMap, Constants.POOL_REGISTRATION_CERT, operationMetadata.getPoolRegistrationCert());
                     putStringDataItemToMap(metadataMap, Constants.POOL_KEY_HASH, operationMetadata.getPoolKeyHash());
                     putUnsignedIntegerToMap(metadataMap, Constants.EPOCH, operationMetadata.getEpoch());
 
@@ -102,26 +101,8 @@ public class OperationToCborMap {
         });
     }
 
-    private static void addVoteRegistrationMetadataToMap(
-            VoteRegistrationMetadata voteRegistrationMetadata, Map metadataMap) {
-        Optional.ofNullable(voteRegistrationMetadata)
-                .ifPresent(o -> {
-                    Map voteRegistrationMetadataMap = new Map();
-                    // fill values
-                    addPublicKeyToMap(voteRegistrationMetadata.getStakeKey(), voteRegistrationMetadataMap, Constants.STAKE_KEY);
-                    addPublicKeyToMap(voteRegistrationMetadata.getVotingkey(), voteRegistrationMetadataMap, Constants.VOTING_KEY);
-                    putUnsignedIntegerToMap(voteRegistrationMetadataMap, Constants.VOTING_NONCE,
-                            voteRegistrationMetadata.getVotingNonce()
-                    );
-                    putStringDataItemToMap(voteRegistrationMetadataMap,Constants.REWARD_ADDRESS,voteRegistrationMetadata.getRewardAddress());
-                    putStringDataItemToMap(voteRegistrationMetadataMap,Constants.VOTING_SIGNATURE,voteRegistrationMetadata.getVotingSignature());
-                    // write back
-                    metadataMap.put(key(Constants.VOTE_REGISTRATION_METADATA), voteRegistrationMetadataMap);
-                });
-    }
-
   /**
-   * Add PoolRegistrationParams to metadataMap with the key {@value Constants#POOLREGISTRATIONPARAMS}
+   * Add PoolRegistrationParams to metadataMap with the key {@value Constants#POOL_REGISTRATION_PARAMS}
    * @param poolRegistrationParams poolRegistrationParams
    * @param metadataMap metadataMap
    */
@@ -138,16 +119,16 @@ public class OperationToCborMap {
           // fill simple values
           putStringDataItemToMap(poolRegistrationParamsMap, Constants.PLEDGE, poolRegistrationParams1.getPledge());
           putStringDataItemToMap(poolRegistrationParamsMap, Constants.REWARD_ADDRESS, poolRegistrationParams1.getRewardAddress());
-          putStringDataItemToMap(poolRegistrationParamsMap, Constants.VRFKEYHASH, poolRegistrationParams1.getVrfKeyHash());
+          putStringDataItemToMap(poolRegistrationParamsMap, Constants.VRF_KEY_HASH, poolRegistrationParams1.getVrfKeyHash());
           putStringDataItemToMap(poolRegistrationParamsMap, Constants.COST, poolRegistrationParams1.getCost());
           putStringDataItemToMap(poolRegistrationParamsMap, Constants.MARGIN_PERCENTAGE, poolRegistrationParams1.getMarginPercentage());
           // write back
-          metadataMap.put(key(Constants.POOLREGISTRATIONPARAMS), poolRegistrationParamsMap);
+          metadataMap.put(key(Constants.POOL_REGISTRATION_PARAMS), poolRegistrationParamsMap);
         });
   }
 
   /**
-   * Add PoolMetadata to poolRegistrationParamsMap with the key {@value Constants#POOLMETADATA}
+   * Add PoolMetadata to poolRegistrationParamsMap with the key {@value Constants#POOL_METADATA}
    * @param poolMetadata poolMetadata
    * @param poolRegistrationParamsMap poolRegistrationParamsMap
    */
@@ -156,9 +137,9 @@ public class OperationToCborMap {
     Optional.ofNullable(poolMetadata)
         .ifPresent(o -> {
           Map poolMetadataMap = new Map();
-          putStringDataItemToMap(poolMetadataMap,Constants.HASH,poolMetadata.getHash());
-          putStringDataItemToMap(poolMetadataMap,Constants.URL,poolMetadata.getUrl());
-          poolRegistrationParamsMap.put(key(Constants.POOLMETADATA), poolMetadataMap);
+          putStringDataItemToMap(poolMetadataMap,Constants.HASH, poolMetadata.getHash());
+          putStringDataItemToMap(poolMetadataMap,Constants.URL, poolMetadata.getUrl());
+          poolRegistrationParamsMap.put(key(Constants.POOL_METADATA), poolMetadataMap);
         });
   }
 
@@ -199,13 +180,12 @@ public class OperationToCborMap {
 
             relaysArray.add(relayMap);
           });
-
           poolRegistrationParamsMap.put(key(Constants.RELAYS), relaysArray);
         });
   }
 
   /**
-   * Add PoolOwners to poolRegistrationParamsMap with the key {@value Constants#POOLOWNERS}
+   * Add PoolOwners to poolRegistrationParamsMap with the key {@value Constants#POOL_OWNERS}
    * @param poolOwners poolOwners
    * @param poolRegistrationParamsMap poolRegistrationParamsMap
    */
@@ -214,12 +194,12 @@ public class OperationToCborMap {
         .ifPresent(poolOwners1 -> {
           Array poolOwnersArray = new Array();
           poolOwners1.forEach(poolOwner -> poolOwnersArray.add(new UnicodeString(poolOwner)));
-          poolRegistrationParamsMap.put(key(Constants.POOLOWNERS), poolOwnersArray);
+          poolRegistrationParamsMap.put(key(Constants.POOL_OWNERS), poolOwnersArray);
         });
   }
 
   /**
-   * Add TokenBundle to metadataMap with the key {@value Constants#TOKENBUNDLE}
+   * Add TokenBundle to metadataMap with the key {@value Constants#TOKEN_BUNDLE}
    * @param tokenBundle tokenBundle
    * @param metadataMap metadataMap
    */
@@ -234,7 +214,7 @@ public class OperationToCborMap {
             putStringDataItemToMap(tokenBundleMap, Constants.POLICYID, tokenBundleItem.getPolicyId());
             tokenBundleArray.add(tokenBundleMap);
           });
-          metadataMap.put(key(Constants.TOKENBUNDLE), tokenBundleArray);
+          metadataMap.put(key(Constants.TOKEN_BUNDLE), tokenBundleArray);
         });
   }
 
@@ -471,6 +451,7 @@ public class OperationToCborMap {
   private static DataItem objectToDataItem(Object metadata) {
     Map map = new Map();
     HashMap<String, Object> metadataMap = (HashMap<String, Object>) metadata;
+
     metadataMap.forEach((key, value) -> {
       if (value instanceof String valueString) {
         map.put(new UnicodeString(key), new UnicodeString(valueString));
@@ -478,10 +459,11 @@ public class OperationToCborMap {
         map.put(new UnicodeString(key), objectToDataItem(value));
       }
     });
+
     return map;
   }
 
-  private static void putStringDataItemToMap(Map map,String key,String value){
+  private static void putStringDataItemToMap(Map map,String key,String value) {
     Optional.ofNullable(value)
         .ifPresent(o -> map.put(new UnicodeString(key), new UnicodeString(value)));
   }
@@ -491,8 +473,8 @@ public class OperationToCborMap {
     Optional.ofNullable(value)
         .ifPresent(votingNonce -> map.put(key(key), new UnsignedInteger(value)));
   }
-  private static void putUnsignedIntegerToMap(Map map, String key,
-      Long value) {
+
+  private static void putUnsignedIntegerToMap(Map map, String key, Long value) {
     Optional.ofNullable(value)
         .ifPresent(votingNonce -> map.put(key(key), new UnsignedInteger(value)));
   }

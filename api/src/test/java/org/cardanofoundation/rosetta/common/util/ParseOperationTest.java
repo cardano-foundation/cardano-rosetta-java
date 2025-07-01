@@ -355,17 +355,6 @@ class ParseOperationTest {
   }
 
   @Test
-  void parseVoteRegistrationWOMetadataTest() {
-    ProcessOperations resultAccumulator = new ProcessOperations();
-    Operation operation = new Operation();
-    ApiException exception = assertThrows(ApiException.class,
-            () -> OperationParseUtil.parseOperation(operation, NetworkEnum.PREPROD.getNetwork(),
-                    resultAccumulator, OperationType.VOTE_REGISTRATION.getValue()));
-
-    assertEquals("Missing vote registration metadata", exception.getError().getMessage());
-  }
-
-  @Test
   void parseOperationWOAddressStakingKey() {
     ProcessOperations resultAccumulator = new ProcessOperations();
     Operation operation = new Operation();
