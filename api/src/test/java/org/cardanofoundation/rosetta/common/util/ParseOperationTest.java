@@ -52,6 +52,7 @@ class ParseOperationTest {
 
     assertEquals(operation.getAmount().getValue(), resultAccumulator.getInputAmounts().getFirst().toString());
   }
+
   @Test
   void parseOutputOperationTest() throws IOException {
     Operation operation = getOperation("testdata/construction/Operations/outputOperation.json");
@@ -269,7 +270,7 @@ class ParseOperationTest {
               OperationType.POOL_GOVERNANCE_VOTE.getValue());
     });
 
-    assertThat(exception.getError().getCode()).isEqualTo(5045);
+    assertThat(exception.getError().getCode()).isEqualTo(5047);
   }
 
   @Test
