@@ -1,19 +1,16 @@
 package org.cardanofoundation.rosetta.common.mapper;
 
-import java.util.Collections;
-import java.util.List;
-
 import co.nstant.in.cbor.model.Array;
 import co.nstant.in.cbor.model.Map;
 import co.nstant.in.cbor.model.UnicodeString;
 import co.nstant.in.cbor.model.UnsignedInteger;
 import org.assertj.core.api.Assertions;
+import org.cardanofoundation.rosetta.common.util.Constants;
+import org.junit.jupiter.api.Test;
 import org.openapitools.client.model.*;
 
-import org.junit.jupiter.api.Test;
-
-import org.cardanofoundation.rosetta.common.util.Constants;
-
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Unit tests for the {@link CborMapToOperation} class.
@@ -115,39 +112,6 @@ class CborMapToOperationTest {
                 .usingRecursiveComparison()
                 .isEqualTo(expected);
     }
-
-//    @Test
-//    void cborMapToOperation_shouldMapFullAccountIdentifier() {
-//        // Arrange
-//        Map operationMap = new Map();
-//        Map accountMap = new Map();
-//        accountMap.put(key(Constants.ADDRESS), new UnicodeString("addr1..."));
-//
-//        Map subAccountMap = new Map();
-//        subAccountMap.put(key(Constants.ADDRESS), new UnicodeString("stake1..."));
-//        accountMap.put(key(Constants.SUB_ACCOUNT), subAccountMap);
-//
-//        Map accountMetadataMap = new Map();
-//        accountMetadataMap.put(key(Constants.CHAIN_CODE), new UnicodeString("chain_code_hex"));
-//        accountMap.put(key(Constants.METADATA), accountMetadataMap);
-//        operationMap.put(key(Constants.ACCOUNT), accountMap);
-//
-//        Operation expected = new Operation();
-//        AccountIdentifierMetadata accountIdentifierMetadata = new AccountIdentifierMetadata().chainCode("chain_code_hex");
-//        SubAccountIdentifier subAccount = new SubAccountIdentifier("stake1...", accountIdentifierMetadata);
-//        AccountIdentifier account = new AccountIdentifier("addr1...", subAccount, accountIdentifierMetadata);
-//        account.setSubAccount(subAccount);
-//        account.setMetadata(accountIdentifierMetadata);
-//        expected.setAccount(account);
-//
-//        // Act
-//        Operation actual = CborMapToOperation.cborMapToOperation(operationMap);
-//
-//        // Assert
-//        Assertions.assertThat(actual)
-//                .usingRecursiveComparison()
-//                .isEqualTo(expected);
-//    }
 
     @Test
     void cborMapToOperation_shouldMapAmountWithCurrencyAndPolicyId() {
