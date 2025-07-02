@@ -132,6 +132,7 @@ This will start:
 ```
 .env.docker-compose-profile-entry-level
 .env.docker-compose-profile-mid-level
+.env.docker-compose-profile-advanced-level
 ```
 
 See the [hardware profiles documentation](https://cardano-foundation.github.io/cardano-rosetta-java/docs/install-and-deploy/hardware-profiles) for a full list of hardware profiles and their configurations.
