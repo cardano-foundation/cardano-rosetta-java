@@ -93,7 +93,7 @@ public class NetworkServiceImpl implements NetworkService {
             .allow(new Allow().operationStatuses(operationStatuses)
                     .operationTypes(
                             Arrays.stream(OperationType.values()).map(OperationType::getValue).toList())
-                    .errors(RosettaConstants.ROSETTA_ERRORS.stream()
+                    .errors(RosettaConstants.ALL_ROSETTA_ERRORS.stream()
                             .map(error ->
                                     new Error().code(error.getCode())
                                             .message(error.getMessage())

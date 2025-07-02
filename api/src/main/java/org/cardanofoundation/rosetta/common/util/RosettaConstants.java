@@ -4,7 +4,13 @@ import org.cardanofoundation.rosetta.common.exception.Details;
 import org.cardanofoundation.rosetta.common.exception.Error;
 import org.openapitools.client.model.OperationStatus;
 
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static org.cardanofoundation.rosetta.common.util.RosettaConstants.RosettaErrorType.SEND_TRANSACTION_ERROR;
 
 public class RosettaConstants {
 
@@ -12,6 +18,7 @@ public class RosettaConstants {
 
   public static final OperationStatus INVALID_OPERATION_STATUS = buildOperationStatus("invalid",
       false);
+
   public static final OperationStatus SUCCESS_OPERATION_STATUS = buildOperationStatus("success",
       true);
 
@@ -33,58 +40,21 @@ public class RosettaConstants {
 //      "voteRegistration"
 //  );
 
-  public static final List<Error> ROSETTA_ERRORS = List.of(
-      RosettaErrorType.BLOCK_NOT_FOUND.toRosettaError(false),
-      RosettaErrorType.INVALID_BLOCKCHAIN.toRosettaError(false),
-      RosettaErrorType.NETWORK_NOT_FOUND.toRosettaError(false),
-      RosettaErrorType.NETWORKS_NOT_FOUND.toRosettaError(false),
-      RosettaErrorType.UNSPECIFIED_ERROR.toRosettaError(true),
-      RosettaErrorType.NOT_IMPLEMENTED.toRosettaError(false),
-      RosettaErrorType.GENESIS_BLOCK_NOT_FOUND.toRosettaError(false),
-      RosettaErrorType.TRANSACTION_NOT_FOUND.toRosettaError(false),
-      RosettaErrorType.ADDRESS_GENERATION_ERROR.toRosettaError(false),
-      RosettaErrorType.INVALID_PUBLIC_KEY_FORMAT.toRosettaError(false),
-      RosettaErrorType.INVALID_STAKING_KEY_FORMAT.toRosettaError(false),
-      RosettaErrorType.STAKING_KEY_MISSING.toRosettaError(false),
-      RosettaErrorType.CHAIN_CODE_MISSING.toRosettaError(false),
-      RosettaErrorType.DNS_NAME_MISSING.toRosettaError(false),
-      RosettaErrorType.POOL_CERT_MISSING.toRosettaError(false),
-      RosettaErrorType.POOL_KEY_MISSING.toRosettaError(false),
-      RosettaErrorType.POOL_REGISTRATION_PARAMS_MISSING.toRosettaError(false),
-      RosettaErrorType.INVALID_POOL_CERT.toRosettaError(false),
-      RosettaErrorType.INVALID_POOL_CERT_TYPE.toRosettaError(false),
-      RosettaErrorType.INVALID_POOL_KEY_HASH.toRosettaError(false),
-      RosettaErrorType.INVALID_POOL_RELAYS.toRosettaError(false),
-      RosettaErrorType.INVALID_POOL_REGISTRATION_PARAMS.toRosettaError(false),
-      RosettaErrorType.INVALID_POOL_RELAY_TYPE.toRosettaError(false),
-      RosettaErrorType.INVALID_POOL_OWNERS.toRosettaError(false),
-      RosettaErrorType.INVALID_POOL_METADATA.toRosettaError(false),
-      RosettaErrorType.PARSE_SIGNED_TRANSACTION_ERROR.toRosettaError(false),
-      RosettaErrorType.CANT_BUILD_WITNESSES_SET.toRosettaError(false),
-      RosettaErrorType.CANT_CREATE_SIGN_TRANSACTION.toRosettaError(false),
-      RosettaErrorType.TRANSACTION_INPUTS_PARAMETERS_MISSING_ERROR.toRosettaError(false),
-      RosettaErrorType.TRANSACTION_OUTPUTS_PARAMETERS_MISSING_ERROR.toRosettaError(false),
-      RosettaErrorType.OUTPUTS_BIGGER_THAN_INPUTS_ERROR.toRosettaError(false),
-      RosettaErrorType.MISSING_METADATA_PARAMETERS_FOR_POOL_RETIREMENT.toRosettaError(false),
-      RosettaErrorType.CANT_CREATE_SIGNED_TRANSACTION_ERROR.toRosettaError(false),
-      RosettaErrorType.CANT_CREATE_UNSIGNED_TRANSACTION_ERROR.toRosettaError(false),
-      RosettaErrorType.SEND_TRANSACTION_ERROR.toRosettaError(true),
-      RosettaErrorType.TRANSACTION_INPUT_DESERIALIZATION_ERROR.toRosettaError(false),
-      RosettaErrorType.TRANSACTION_OUTPUT_DESERIALIZATION_ERROR.toRosettaError(false),
-      RosettaErrorType.INVALID_ADDRESS.toRosettaError(true),
-      RosettaErrorType.INVALID_ADDRESS_TYPE.toRosettaError(true),
-      RosettaErrorType.INVALID_OPERATION_TYPE.toRosettaError(true),
-      RosettaErrorType.INVALID_POLICY_ID.toRosettaError(false),
-      RosettaErrorType.INVALID_TOKEN_NAME.toRosettaError(false),
-      RosettaErrorType.TOKEN_BUNDLE_ASSETS_MISSING.toRosettaError(false),
-      RosettaErrorType.TOKEN_ASSET_VALUE_MISSING.toRosettaError(false),
-      RosettaErrorType.OUTSIDE_VALIDITY_INTERVAL_UTXO.toRosettaError(false),
-      RosettaErrorType.INVALID_OPERATION_STATUS.toRosettaError(false),
-      RosettaErrorType.STATUS_SUCCESS_MATCH_ERROR.toRosettaError(false),
-      RosettaErrorType.TX_HASH_COIN_NOT_MATCH.toRosettaError(false),
-      RosettaErrorType.ADDRESS_AND_ACCOUNT_ID_NOT_MATCH.toRosettaError(false),
-      RosettaErrorType.BAD_FORMED_COIN_ERROR.toRosettaError(false)
-  );
+  public static final List<Error> REPEATABLE_ROSETTA_ERRORS = Stream.of(RosettaErrorType.SEND_TRANSACTION_ERROR)
+          .map(error -> error.toRosettaError(true))
+          .toList();
+
+  public static final List<Error> NOT_REPEATABLE_ROSETTA_ERRORS = Arrays.stream(RosettaErrorType.values())
+          .map(error -> error.toRosettaError(false))
+          .filter(e -> REPEATABLE_ROSETTA_ERRORS.stream().noneMatch(r -> r.getCode() == e.getCode()))
+          .toList();
+
+  public static final List<Error> ALL_ROSETTA_ERRORS = Stream.concat(
+                  REPEATABLE_ROSETTA_ERRORS.stream(),
+                  NOT_REPEATABLE_ROSETTA_ERRORS.stream())
+          .sorted(Comparator.comparingInt(Error::getCode))
+          .distinct()
+          .toList();
 
   private static OperationStatus buildOperationStatus(final String status,
       final boolean successful) {
@@ -96,6 +66,7 @@ public class RosettaConstants {
   }
 
   public enum RosettaErrorType {
+
     INVALID_NETWORK("Invalid Network configuration", 4000),
     BLOCK_NOT_FOUND("Block not found", 4001),
     NETWORK_NOT_FOUND("Network not found", 4002),
@@ -106,8 +77,6 @@ public class RosettaConstants {
     INVALID_PUBLIC_KEY_FORMAT("Invalid public key format", 4007),
     TRANSACTION_NOT_FOUND("Transaction not found", 4006),
     PUBLIC_KEY_MISSING("Public key is missing", 4008),
-    TRANSACTION_INPUTS_PARAMETERS_MISSING_ERROR(
-        "Transaction inputs parameters errors in operations array", 4008),
     TRANSACTION_OUTPUTS_PARAMETERS_MISSING_ERROR(
         "Transaction outputs parameters errors in operations array", 4009),
     OUTPUTS_BIGGER_THAN_INPUTS_ERROR(
@@ -116,7 +85,6 @@ public class RosettaConstants {
         4011),
     CANT_CREATE_UNSIGNED_TRANSACTION_ERROR(
         "Cant create unsigned transaction from transaction bytes", 4012),
-    CANT_ENCODE_EXTRA_DATA("Cant encode extra data", 4012),
     TRANSACTION_INPUT_DESERIALIZATION_ERROR(
         "Cant deserialize transaction input from transaction body", 4013),
     TRANSACTION_OUTPUT_DESERIALIZATION_ERROR(
@@ -194,7 +162,10 @@ public class RosettaConstants {
     INVALID_DREP_ID_LENGTH("Invalid drep id length. Should be 28 or 29 bytes", 5046),
     GOVERNANCE_INVALID_VOTE("Governance vote is invalid", 5047),
     GOVERNANCE_ONLY_POOL_VOTING_POSSIBLE("Only pool voting possible", 5048),
-    GOVERNANCE_KEY_HASH_ONLY("Only hash hash is supported", 5049);
+    GOVERNANCE_KEY_HASH_ONLY("Only key hash is supported", 5049),
+    TRANSACTION_INPUTS_PARAMETERS_MISSING_ERROR(
+        "Transaction inputs parameters errors in operations array", 5050),
+    CANT_ENCODE_EXTRA_DATA("Cant encode extra data", 5051),;
 
     final String message;
     final int code;

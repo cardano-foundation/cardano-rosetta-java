@@ -43,7 +43,7 @@ class ValidateParseUtilTest {
                 () -> validateAndParseTransactionInput(new Operation()));
         assertEquals("Transaction inputs parameters errors in operations array",
                 exception.getError().getMessage());
-        assertEquals(4008, exception.getError().getCode());
+        assertEquals(5050, exception.getError().getCode());
     }
 
     @Test
