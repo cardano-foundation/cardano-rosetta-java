@@ -1,14 +1,13 @@
 package org.cardanofoundation.rosetta.common.mapper;
 
+import co.nstant.in.cbor.model.*;
+import org.cardanofoundation.rosetta.common.util.Constants;
+import org.openapitools.client.model.*;
+
+import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
-import javax.annotation.Nullable;
-
-import co.nstant.in.cbor.model.*;
-import org.openapitools.client.model.*;
-
-import org.cardanofoundation.rosetta.common.util.Constants;
 
 import static org.cardanofoundation.rosetta.common.util.Formatters.key;
 
@@ -141,7 +140,7 @@ public class OperationToCborMap {
           putStringDataItemToMap(poolRegistrationParamsMap, Constants.REWARD_ADDRESS, poolRegistrationParams1.getRewardAddress());
           putStringDataItemToMap(poolRegistrationParamsMap, Constants.VRFKEYHASH, poolRegistrationParams1.getVrfKeyHash());
           putStringDataItemToMap(poolRegistrationParamsMap, Constants.COST, poolRegistrationParams1.getCost());
-          putStringDataItemToMap(poolRegistrationParamsMap,Constants.MARGIN_PERCENTAGE,poolRegistrationParams1.getMarginPercentage());
+          putStringDataItemToMap(poolRegistrationParamsMap, Constants.MARGIN_PERCENTAGE, poolRegistrationParams1.getMarginPercentage());
           // write back
           metadataMap.put(key(Constants.POOLREGISTRATIONPARAMS), poolRegistrationParamsMap);
         });
@@ -185,17 +184,22 @@ public class OperationToCborMap {
    */
   private static void addRelaysToMap(List<Relay> relays, Map poolRegistrationParamsMap) {
     Optional.ofNullable(relays)
-        .ifPresent(relays1 -> {
+        .ifPresent(relayList -> {
           Array relaysArray = new Array();
-          relays1.forEach(r -> {
+
+          relayList.forEach(r -> {
             Map relayMap = new Map();
-            putStringDataItemToMap(relayMap,Constants.TYPE,r.getType());
-            putStringDataItemToMap(relayMap,Constants.IPV4,r.getIpv4());
-            putStringDataItemToMap(relayMap,Constants.IPV6,r.getIpv6());
-            putStringDataItemToMap(relayMap,Constants.DNSNAME,r.getDnsName());
-            putStringDataItemToMap(relayMap,Constants.PORT,r.getPort().toString());
+            putStringDataItemToMap(relayMap, Constants.TYPE, r.getType());
+            putStringDataItemToMap(relayMap, Constants.IPV4, r.getIpv4());
+            putStringDataItemToMap(relayMap, Constants.IPV6, r.getIpv6());
+            putStringDataItemToMap(relayMap, Constants.DNSNAME, r.getDnsName());
+
+            // port is mandatory in a relay object
+            putStringDataItemToMap(relayMap, Constants.PORT, r.getPort().toString());
+
             relaysArray.add(relayMap);
           });
+
           poolRegistrationParamsMap.put(key(Constants.RELAYS), relaysArray);
         });
   }
@@ -492,4 +496,5 @@ public class OperationToCborMap {
     Optional.ofNullable(value)
         .ifPresent(votingNonce -> map.put(key(key), new UnsignedInteger(value)));
   }
+
 }

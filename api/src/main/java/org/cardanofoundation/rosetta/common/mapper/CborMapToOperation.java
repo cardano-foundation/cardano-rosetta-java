@@ -727,6 +727,8 @@ public class CborMapToOperation {
                         addIpv4(rAMap, relay);
                         addIpv6(rAMap, relay);
                         addDnsName(rAMap, relay);
+                        addPort(rAMap, relay);
+
                         relayList.add(relay);
                     });
                     poolRegistrationParams.setRelays(relayList);
@@ -777,6 +779,14 @@ public class CborMapToOperation {
         Optional.ofNullable(rAMap.get(new UnicodeString(Constants.TYPE))).ifPresent(o -> {
             String typeR = ((UnicodeString) rAMap.get(new UnicodeString(Constants.TYPE))).getString();
             relay.setType(typeR);
+        });
+    }
+
+    private static void addPort(Map rAMap, Relay relay) {
+        Optional.ofNullable(rAMap.get(new UnicodeString(PORT))).ifPresent(o -> {
+            String port = ((UnicodeString) o).getString();
+
+            relay.setPort(Integer.parseInt(port));
         });
     }
 
