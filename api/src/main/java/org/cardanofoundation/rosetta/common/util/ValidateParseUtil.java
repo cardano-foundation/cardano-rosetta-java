@@ -1,10 +1,5 @@
 package org.cardanofoundation.rosetta.common.util;
 
-import java.math.BigInteger;
-import java.util.*;
-
-import lombok.extern.slf4j.Slf4j;
-
 import co.nstant.in.cbor.model.DataItem;
 import com.bloxbean.cardano.client.address.Address;
 import com.bloxbean.cardano.client.address.ByronAddress;
@@ -13,12 +8,15 @@ import com.bloxbean.cardano.client.transaction.spec.*;
 import com.bloxbean.cardano.client.transaction.spec.cert.Certificate;
 import com.bloxbean.cardano.client.transaction.spec.cert.PoolRegistration;
 import com.bloxbean.cardano.client.util.HexUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
-import org.openapitools.client.model.*;
-
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.model.cardano.pool.PoolRegistationParametersReturn;
 import org.cardanofoundation.rosetta.common.model.cardano.pool.PoolRegistrationCertReturn;
+import org.openapitools.client.model.*;
+
+import java.math.BigInteger;
+import java.util.*;
 
 import static java.math.BigInteger.valueOf;
 
@@ -128,8 +126,9 @@ public class ValidateParseUtil {
     }
 
     public static void validateCheckKey(String policyId) {
-        boolean checckKey = CardanoAddressUtils.isPolicyIdValid(policyId);
-        if (!checckKey) {
+        boolean checkKey = CardanoAddressUtils.isPolicyIdValid(policyId);
+
+        if (!checkKey) {
             log.error("[validateAndParseTokenBundle] PolicyId {} is not valid", policyId);
             throw ExceptionFactory.transactionOutputsParametersMissingError("PolicyId " + policyId + " is not valid");
         }
@@ -190,7 +189,7 @@ public class ValidateParseUtil {
         }
     }
 
-    public static PoolRegistationParametersReturn validateAndParsePoolRegistationParameters(PoolRegistrationParams poolRegistrationParameters) {
+    public static PoolRegistationParametersReturn validateAndParsePoolRegistrationParameters(PoolRegistrationParams poolRegistrationParameters) {
         String denominator = null;
         String numerator = null;
         if (!ObjectUtils.isEmpty(poolRegistrationParameters) && !ObjectUtils.isEmpty(poolRegistrationParameters.getMargin())) {
@@ -338,69 +337,6 @@ public class ValidateParseUtil {
         poolRegistrationCertReturnDto.setAddress(addresses);
 
         return poolRegistrationCertReturnDto;
-    }
-
-    public static String validateAndParseVotingKey(PublicKey votingKey) {
-        if (ObjectUtils.isEmpty(votingKey.getHexBytes())) {
-            log.error("[validateAndParsePublicKey] Voting key not provided");
-            throw ExceptionFactory.missingVotingKeyError();
-        }
-        boolean checkKey = CardanoAddressUtils.isKeyValid(votingKey.getHexBytes(), votingKey.getCurveType().toString());
-        if (!checkKey) {
-            log.info("[validateAndParsePublicKey] Voting key has an invalid format");
-            throw ExceptionFactory.invalidVotingKeyFormat();
-        }
-        return votingKey.getHexBytes();
-    }
-
-    // catalyst ?
-    public static VoteRegistrationMetadata validateAndParseVoteRegistrationMetadata(VoteRegistrationMetadata voteRegistrationMetadata) {
-        log.info("[validateAndParseVoteRegistrationMetadata] About to validate and parse voting key");
-
-        String parsedVotingKey = validateAndParseVotingKey(voteRegistrationMetadata.getVotingkey());
-        log.info("[validateAndParseVoteRegistrationMetadata] About to validate and parse stake key");
-        if (ObjectUtils.isEmpty(voteRegistrationMetadata.getStakeKey().getHexBytes())) {
-            throw ExceptionFactory.missingStakingKeyError();
-        }
-        boolean checkKey = CardanoAddressUtils.isKeyValid(voteRegistrationMetadata.getStakeKey().getHexBytes(), voteRegistrationMetadata.getStakeKey().getCurveType().toString());
-        if (!checkKey) {
-            throw ExceptionFactory.invalidStakingKeyFormat();
-        }
-        String parsedStakeKey = voteRegistrationMetadata.getStakeKey().getHexBytes();
-        log.info("[validateAndParseVoteRegistrationMetadata] About to validate and parse reward address");
-        String parsedAddress;
-        try {
-            if (voteRegistrationMetadata.getRewardAddress().startsWith("addr")) {
-                throw ExceptionFactory.invalidAddressError();
-            }
-            Address address = new Address(voteRegistrationMetadata.getRewardAddress());
-            parsedAddress = HexUtil.encodeHexString(address.getBytes());
-        } catch (Exception exception) {
-            throw ExceptionFactory.invalidAddressError();
-        }
-
-        log.info("[validateAndParseVoteRegistrationMetadata] About to validate voting nonce");
-        if (voteRegistrationMetadata.getVotingNonce() <= 0) {
-            log.error("[validateAndParseVoteRegistrationMetadata] Given voting nonce {} is invalid", voteRegistrationMetadata.getVotingNonce());
-            throw ExceptionFactory.votingNonceNotValid();
-        }
-
-        log.info("[validateAndParseVoteRegistrationMetadata] About to validate voting signature");
-        if (ObjectUtils.isEmpty(voteRegistrationMetadata.getVotingSignature())) {
-            throw ExceptionFactory.invalidVotingSignature();
-        }
-        if (!CardanoAddressUtils.isEd25519Signature(voteRegistrationMetadata.getVotingSignature())) {
-            log.error("[validateAndParseVoteRegistrationMetadata] Voting signature has an invalid format");
-            throw ExceptionFactory.invalidVotingSignature();
-        }
-        String votingKeyHex = CardanoAddressUtils.add0xPrefix(parsedVotingKey);
-        String stakeKeyHex = CardanoAddressUtils.add0xPrefix(parsedStakeKey);
-        String rewardAddressHex = CardanoAddressUtils.add0xPrefix(parsedAddress);
-        String votingSignatureHex = CardanoAddressUtils.add0xPrefix(voteRegistrationMetadata.getVotingSignature());
-
-        return new VoteRegistrationMetadata(PublicKey.builder()
-                .hexBytes(stakeKeyHex).build(), PublicKey.builder().hexBytes(votingKeyHex).build(),
-                rewardAddressHex, voteRegistrationMetadata.getVotingNonce(), votingSignatureHex);
     }
 
     public static boolean validateAddressPresence(Operation operation) {

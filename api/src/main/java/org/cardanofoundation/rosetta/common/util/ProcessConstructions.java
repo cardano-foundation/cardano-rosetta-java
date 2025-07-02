@@ -6,10 +6,7 @@ import com.bloxbean.cardano.client.common.model.Network;
 import com.bloxbean.cardano.client.crypto.Bech32;
 import com.bloxbean.cardano.client.crypto.Blake2bUtil;
 import com.bloxbean.cardano.client.crypto.bip32.key.HdPublicKey;
-import com.bloxbean.cardano.client.metadata.cbor.CBORMetadata;
-import com.bloxbean.cardano.client.metadata.cbor.CBORMetadataMap;
 import com.bloxbean.cardano.client.spec.UnitInterval;
-import com.bloxbean.cardano.client.transaction.spec.AuxiliaryData;
 import com.bloxbean.cardano.client.transaction.spec.cert.*;
 import com.bloxbean.cardano.client.transaction.spec.cert.Relay;
 import com.bloxbean.cardano.client.transaction.spec.governance.DRep;
@@ -20,8 +17,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.cardanofoundation.rosetta.api.block.model.domain.DRepDelegation;
 import org.cardanofoundation.rosetta.api.block.model.domain.GovernanceVote;
-import org.cardanofoundation.rosetta.api.construction.enumeration.CatalystLabels;
-import org.cardanofoundation.rosetta.common.enumeration.CatalystDataIndexes;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.common.exception.ApiException;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
@@ -31,8 +26,6 @@ import org.cardanofoundation.rosetta.common.model.cardano.pool.PoolRetirement;
 import org.openapitools.client.model.*;
 
 import java.util.*;
-
-import static java.math.BigInteger.valueOf;
 
 @Slf4j
 public class ProcessConstructions {
@@ -208,7 +201,7 @@ public class ProcessConstructions {
                 ObjectUtils.isEmpty(operation.getMetadata()) ? null
                         : operationMetadata.getPoolRegistrationParams();
 
-        PoolRegistationParametersReturn poolRegistationParametersReturn = ValidateParseUtil.validateAndParsePoolRegistationParameters(
+        PoolRegistationParametersReturn poolRegistationParametersReturn = ValidateParseUtil.validateAndParsePoolRegistrationParameters(
                 poolRegistrationParams);
 
         byte[] poolKeyHash = ValidateParseUtil.validateAndParsePoolKeyHash(
@@ -298,44 +291,6 @@ public class ProcessConstructions {
         log.error("[processPoolRetiring] Epoch operation metadata is missing");
 
         throw ExceptionFactory.missingMetadataParametersForPoolRetirement();
-    }
-
-    public static AuxiliaryData processVoteRegistration(Operation operation) {
-        log.info("[processVoteRegistration] About to process vote registration");
-        if (!ObjectUtils.isEmpty(operation) && ObjectUtils.isEmpty(operation.getMetadata())) {
-            log.error("[processVoteRegistration] Vote registration metadata was not provided");
-            throw ExceptionFactory.missingVoteRegistrationMetadata();
-        }
-        OperationMetadata operationMetadata = operation.getMetadata();
-        if (!ObjectUtils.isEmpty(operation) && !ObjectUtils.isEmpty(operation.getMetadata())
-                && ObjectUtils.isEmpty(operationMetadata.getVoteRegistrationMetadata())) {
-            log.error("[processVoteRegistration] Vote registration metadata was not provided");
-            throw ExceptionFactory.missingVoteRegistrationMetadata();
-        }
-        VoteRegistrationMetadata voteRegistrationMetadata = ValidateParseUtil.validateAndParseVoteRegistrationMetadata(
-            operationMetadata.getVoteRegistrationMetadata());
-
-        CBORMetadata metadata = new CBORMetadata();
-
-        CBORMetadataMap map2 = new CBORMetadataMap();
-        byte[] votingKeyByte = HexUtil.decodeHexString(voteRegistrationMetadata.getVotingkey().getHexBytes());
-        map2.put(valueOf(CatalystDataIndexes.VOTING_KEY.getValue()), votingKeyByte);
-        map2.put(valueOf(CatalystDataIndexes.STAKE_KEY.getValue()),
-                HexUtil.decodeHexString(voteRegistrationMetadata.getStakeKey().getHexBytes()));
-        map2.put(valueOf(CatalystDataIndexes.REWARD_ADDRESS.getValue()),
-                HexUtil.decodeHexString(voteRegistrationMetadata.getRewardAddress()));
-        map2.put(valueOf(CatalystDataIndexes.VOTING_NONCE.getValue()),
-                valueOf(voteRegistrationMetadata.getVotingNonce()));
-        metadata.put(valueOf(Long.parseLong(CatalystLabels.DATA.getLabel())), map2);
-        CBORMetadataMap map3 = new CBORMetadataMap();
-        map3.put(valueOf(1L), HexUtil.decodeHexString(
-                operationMetadata.getVoteRegistrationMetadata().getVotingSignature()));
-        metadata.put(valueOf(Long.parseLong(CatalystLabels.SIG.getLabel())), map3);
-
-        AuxiliaryData auxiliaryData = new AuxiliaryData();
-        auxiliaryData.setMetadata(metadata);
-
-        return auxiliaryData;
     }
 
     public static GovernanceVote processGovernanceVote(Operation operation) {

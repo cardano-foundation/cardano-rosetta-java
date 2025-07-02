@@ -1,13 +1,5 @@
 package org.cardanofoundation.rosetta.api.construction.service;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-
-import lombok.extern.slf4j.Slf4j;
-
-import org.springframework.stereotype.Service;
 import co.nstant.in.cbor.CborException;
 import com.bloxbean.cardano.client.common.model.Network;
 import com.bloxbean.cardano.client.crypto.bip32.key.HdPublicKey;
@@ -16,11 +8,8 @@ import com.bloxbean.cardano.client.exception.CborSerializationException;
 import com.bloxbean.cardano.client.transaction.spec.TransactionBody;
 import com.bloxbean.cardano.client.transaction.spec.TransactionInput;
 import com.bloxbean.cardano.client.transaction.spec.TransactionOutput;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
-import org.openapitools.client.model.Operation;
-import org.openapitools.client.model.OperationIdentifier;
-import org.openapitools.client.model.OperationMetadata;
-
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.model.cardano.pool.PoolRegistrationCertReturn;
@@ -30,6 +19,15 @@ import org.cardanofoundation.rosetta.common.util.CardanoAddressUtils;
 import org.cardanofoundation.rosetta.common.util.Constants;
 import org.cardanofoundation.rosetta.common.util.ParseConstructionUtil;
 import org.cardanofoundation.rosetta.common.util.ValidateParseUtil;
+import org.openapitools.client.model.Operation;
+import org.openapitools.client.model.OperationIdentifier;
+import org.openapitools.client.model.OperationMetadata;
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
 import static org.cardanofoundation.rosetta.common.util.Constants.OPERATION_TYPE_POOL_REGISTRATION;
 import static org.cardanofoundation.rosetta.common.util.Constants.OPERATION_TYPE_POOL_REGISTRATION_WITH_CERT;
@@ -51,7 +49,6 @@ public class OperationService {
     fillOutputOperations(transactionBody, operations);
     fillCertOperations(transactionBody, extraData, network, operations);
     fillWithdrawalOperations(transactionBody, extraData, network, operations);
-    fillVoteOperations(extraData, operations);
     fillGovOperations(extraData, operations, network);
 
     return operations;
@@ -72,9 +69,6 @@ public class OperationService {
     if (operation.getAccount() != null) {
       // org.openapitools.client.model.AccountIdentifier.getAddress() is always not null
       return Collections.singletonList(operation.getAccount().getAddress());
-    }
-    if (operation.getType().equals(OperationType.VOTE_REGISTRATION.getValue())) {
-      return Collections.emptyList();
     }
     validateMetadataForStakingCredential(operation);
     HdPublicKey hdPublicKey =
@@ -149,21 +143,6 @@ public class OperationService {
     List<Operation> withdrawalsOperations = ParseConstructionUtil.parseWithdrawalsToOperations(
             withdrawalOps, withdrawalsCount, network);
     operations.addAll(withdrawalsOperations);
-  }
-
-  // TODO catalyst voting renaming?
-  private void fillVoteOperations(TransactionExtraData extraData, List<Operation> operations)
-      throws CborDeserializationException {
-    List<Operation> voteOp = extraData.operations().stream()
-        .filter(o -> o.getType().equals(OperationType.VOTE_REGISTRATION.getValue()))
-        .toList();
-    if (!ObjectUtils.isEmpty(voteOp)) {
-      Operation parsedVoteOperations = ParseConstructionUtil.parseVoteMetadataToOperation(
-          voteOp.getFirst().getOperationIdentifier().getIndex(),
-          extraData.transactionMetadataHex()
-      );
-      operations.add(parsedVoteOperations);
-    }
   }
 
   private List<String> getPoolSigners(Network network, Operation operation) {

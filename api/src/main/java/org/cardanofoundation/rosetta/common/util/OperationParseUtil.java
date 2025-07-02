@@ -1,22 +1,13 @@
 package org.cardanofoundation.rosetta.common.util;
 
-import java.math.BigInteger;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import jakarta.annotation.Nullable;
-import jakarta.validation.constraints.NotNull;
-
-import lombok.extern.slf4j.Slf4j;
-
 import com.bloxbean.cardano.client.common.model.Network;
 import com.bloxbean.cardano.client.crypto.Bech32;
-import com.bloxbean.cardano.client.transaction.spec.AuxiliaryData;
 import com.bloxbean.cardano.client.transaction.spec.Withdrawal;
 import com.bloxbean.cardano.client.util.HexUtil;
+import jakarta.annotation.Nullable;
+import jakarta.validation.constraints.NotNull;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
-import org.openapitools.client.model.*;
-
 import org.cardanofoundation.rosetta.api.block.model.domain.GovernanceVote;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProcessOperations;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
@@ -24,6 +15,13 @@ import org.cardanofoundation.rosetta.common.model.cardano.pool.PoolRegistrationC
 import org.cardanofoundation.rosetta.common.model.cardano.pool.PoolRetirement;
 import org.cardanofoundation.rosetta.common.model.cardano.pool.ProcessPoolRegistrationReturn;
 import org.cardanofoundation.rosetta.common.model.cardano.pool.ProcessWithdrawalReturn;
+import org.openapitools.client.model.AccountIdentifier;
+import org.openapitools.client.model.Operation;
+
+import java.math.BigInteger;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 
 @Slf4j
 public class OperationParseUtil {
@@ -64,8 +62,6 @@ public class OperationParseUtil {
               parsePoolRegistrationWithCert(operation, network, resultAccumulator);
       case OperationType.POOL_RETIREMENT ->
               parsePoolRetirement(operation, resultAccumulator);
-      case OperationType.VOTE_REGISTRATION ->
-              parseVoteRegistration(operation, resultAccumulator);
       case OperationType.POOL_GOVERNANCE_VOTE ->
               parsePoolGovernanceVote(operation, resultAccumulator);
     };
@@ -147,16 +143,6 @@ public class OperationParseUtil {
             withdrawalAmount));
 
     resultAccumulator.getAddresses().add(processWithdrawalReturn.getAddress());
-
-    return resultAccumulator;
-  }
-
-  @NotNull
-  private static ProcessOperations parseVoteRegistration(Operation operation,
-                                                         ProcessOperations resultAccumulator) {
-    AuxiliaryData voteRegistrationMetadata = ProcessConstructions.processVoteRegistration(
-            operation);
-    resultAccumulator.setVoteRegistrationMetadata(voteRegistrationMetadata);
 
     return resultAccumulator;
   }

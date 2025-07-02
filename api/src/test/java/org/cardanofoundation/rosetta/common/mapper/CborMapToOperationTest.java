@@ -12,6 +12,7 @@ import org.openapitools.client.model.*;
 import java.util.Collections;
 import java.util.List;
 
+
 /**
  * Unit tests for the {@link CborMapToOperation} class.
  * These tests validate that a CBOR Map is correctly transformed into a Rosetta Operation object.
@@ -181,7 +182,7 @@ class CborMapToOperationTest {
         Map metadataMap = new Map();
         metadataMap.put(key(Constants.EPOCH), new UnsignedInteger(100));
         metadataMap.put(key(Constants.POOL_KEY_HASH), new UnicodeString("pool_hash_123"));
-        metadataMap.put(key(Constants.POOLREGISTRATIONCERT), new UnicodeString("cert_cbor_hex"));
+        metadataMap.put(key(Constants.POOL_REGISTRATION_CERT), new UnicodeString("cert_cbor_hex"));
         operationMap.put(key(Constants.METADATA), metadataMap);
 
         Operation expected = new Operation();
@@ -300,7 +301,7 @@ class CborMapToOperationTest {
         item2Map.put(key(Constants.TOKENS), tokens2Array);
         tokenBundleArray.add(item2Map);
 
-        metadataMap.put(key(Constants.TOKENBUNDLE), tokenBundleArray);
+        metadataMap.put(key(Constants.TOKEN_BUNDLE), tokenBundleArray);
         operationMap.put(key(Constants.METADATA), metadataMap);
 
         Operation expected = new Operation();
@@ -334,7 +335,7 @@ class CborMapToOperationTest {
         Map metadataMap = new Map();
         Map poolParamsMap = new Map();
 
-        poolParamsMap.put(key(Constants.VRFKEYHASH), new UnicodeString("vrf_hash"));
+        poolParamsMap.put(key(Constants.VRF_KEY_HASH), new UnicodeString("vrf_hash"));
         poolParamsMap.put(key(Constants.REWARD_ADDRESS), new UnicodeString("reward_addr"));
         poolParamsMap.put(key(Constants.PLEDGE), new UnicodeString("1000000"));
         poolParamsMap.put(key(Constants.COST), new UnicodeString("340000000"));
@@ -342,7 +343,7 @@ class CborMapToOperationTest {
         Array ownersArray = new Array();
         ownersArray.add(new UnicodeString("owner1_hex"));
         ownersArray.add(new UnicodeString("owner2_hex"));
-        poolParamsMap.put(key(Constants.POOLOWNERS), ownersArray);
+        poolParamsMap.put(key(Constants.POOL_OWNERS), ownersArray);
 
         Map marginMap = new Map();
         marginMap.put(key(Constants.NUMERATOR), new UnicodeString("1"));
@@ -354,7 +355,7 @@ class CborMapToOperationTest {
         Map poolMetadataMap = new Map();
         poolMetadataMap.put(key(Constants.URL), new UnicodeString("http://pool.io"));
         poolMetadataMap.put(key(Constants.HASH), new UnicodeString("pool_metadata_hash"));
-        poolParamsMap.put(key(Constants.POOLMETADATA), poolMetadataMap);
+        poolParamsMap.put(key(Constants.POOL_METADATA), poolMetadataMap);
 
         Array relaysArray = new Array();
         Map relayMap = new Map();
@@ -363,7 +364,7 @@ class CborMapToOperationTest {
         relaysArray.add(relayMap);
         poolParamsMap.put(key(Constants.RELAYS), relaysArray);
 
-        metadataMap.put(key(Constants.POOLREGISTRATIONPARAMS), poolParamsMap);
+        metadataMap.put(key(Constants.POOL_REGISTRATION_PARAMS), poolParamsMap);
         operationMap.put(key(Constants.METADATA), metadataMap);
 
         // Expected
@@ -393,52 +394,6 @@ class CborMapToOperationTest {
                 .usingRecursiveComparison()
                 .isEqualTo(expected);
     }
-
-    @Test
-    void cborMapToOperation_shouldMapVoteRegistrationMetadata() {
-        // Arrange
-        Map operationMap = new Map();
-        Map metadataMap = new Map();
-        Map voteRegMap = new Map();
-
-        Map stakeKeyMap = new Map();
-        stakeKeyMap.put(key(Constants.HEX_BYTES), new UnicodeString("stake_key_hex"));
-        stakeKeyMap.put(key(Constants.CURVE_TYPE), new UnicodeString(CurveType.EDWARDS25519.getValue()));
-        voteRegMap.put(key(Constants.STAKE_KEY), stakeKeyMap);
-
-        Map votingKeyMap = new Map();
-        votingKeyMap.put(key(Constants.HEX_BYTES), new UnicodeString("voting_key_hex"));
-        votingKeyMap.put(key(Constants.CURVE_TYPE), new UnicodeString(CurveType.EDWARDS25519.getValue()));
-        voteRegMap.put(key(Constants.VOTING_KEY), votingKeyMap);
-
-        voteRegMap.put(key(Constants.REWARD_ADDRESS), new UnicodeString("reward_addr_for_vote"));
-        voteRegMap.put(key(Constants.VOTING_NONCE), new UnsignedInteger(12345));
-        voteRegMap.put(key(Constants.VOTING_SIGNATURE), new UnicodeString("vote_signature_hex"));
-
-        metadataMap.put(key(Constants.VOTE_REGISTRATION_METADATA), voteRegMap);
-        operationMap.put(key(Constants.METADATA), metadataMap);
-
-        // Expected
-        Operation expected = new Operation();
-        OperationMetadata metadata = new OperationMetadata();
-        VoteRegistrationMetadata voteMetadata = new VoteRegistrationMetadata();
-        voteMetadata.setStakeKey(new PublicKey("stake_key_hex", CurveType.EDWARDS25519));
-        voteMetadata.setVotingkey(new PublicKey("voting_key_hex", CurveType.EDWARDS25519));
-        voteMetadata.setRewardAddress("reward_addr_for_vote");
-        voteMetadata.setVotingNonce(12345);
-        voteMetadata.setVotingSignature("vote_signature_hex");
-        metadata.setVoteRegistrationMetadata(voteMetadata);
-        expected.setMetadata(metadata);
-
-        // Act
-        Operation actual = CborMapToOperation.cborMapToOperation(operationMap);
-
-        // Assert
-        Assertions.assertThat(actual)
-                .usingRecursiveComparison()
-                .isEqualTo(expected);
-    }
-
 
     // Helper methods to convert Rosetta models back to CBOR DataItems for test setup
     private Map fromCurrency(Currency currency) {

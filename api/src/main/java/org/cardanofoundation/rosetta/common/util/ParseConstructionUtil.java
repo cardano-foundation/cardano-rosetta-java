@@ -1,24 +1,16 @@
 package org.cardanofoundation.rosetta.common.util;
 
 import co.nstant.in.cbor.CborException;
-import co.nstant.in.cbor.model.Array;
 import com.bloxbean.cardano.client.address.Address;
 import com.bloxbean.cardano.client.common.model.Network;
 import com.bloxbean.cardano.client.crypto.bip32.key.HdPublicKey;
-import com.bloxbean.cardano.client.exception.CborDeserializationException;
 import com.bloxbean.cardano.client.exception.CborSerializationException;
-import com.bloxbean.cardano.client.metadata.cbor.CBORMetadata;
-import com.bloxbean.cardano.client.metadata.cbor.CBORMetadataMap;
 import com.bloxbean.cardano.client.transaction.spec.*;
 import com.bloxbean.cardano.client.transaction.spec.cert.*;
 import com.bloxbean.cardano.client.transaction.spec.governance.DRep;
 import com.bloxbean.cardano.client.util.HexUtil;
-import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
-import org.cardanofoundation.rosetta.api.construction.enumeration.CatalystLabels;
-import org.cardanofoundation.rosetta.common.enumeration.CatalystDataIndexes;
-import org.cardanofoundation.rosetta.common.enumeration.CatalystSigIndexes;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.mapper.DataMapper;
@@ -26,11 +18,6 @@ import org.cardanofoundation.rosetta.common.model.cardano.network.RelayType;
 import org.openapitools.client.model.*;
 import org.openapitools.client.model.Relay;
 
-import java.math.BigInteger;
-import java.net.Inet4Address;
-import java.net.Inet6Address;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -38,7 +25,6 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static com.bloxbean.cardano.client.address.AddressType.Reward;
-import static java.math.BigInteger.valueOf;
 import static org.cardanofoundation.rosetta.common.enumeration.OperationType.VOTE_DREP_DELEGATION;
 import static org.openapitools.client.model.CoinAction.SPENT;
 
@@ -377,62 +363,6 @@ public class ParseConstructionUtil {
                         .build())
                 .build();
     }
-
-  public static Operation parseVoteMetadataToOperation(Long index, String transactionMetadataHex)
-          throws CborDeserializationException {
-    log.info("[parseVoteMetadataToOperation] About to parse a vote registration operation");
-    if (ObjectUtils.isEmpty(transactionMetadataHex)) {
-      log.error("[parseVoteMetadataToOperation] Missing vote registration metadata");
-      throw ExceptionFactory.missingVoteRegistrationMetadata();
-    }
-    Array array = (Array) com.bloxbean.cardano.client.common.cbor.CborSerializationUtil.deserialize(
-            HexUtil.decodeHexString(transactionMetadataHex));
-    AuxiliaryData transactionMetadata = AuxiliaryData.deserialize(
-            (co.nstant.in.cbor.model.Map) array.getDataItems().getFirst());
-    CBORMetadata metadata = (CBORMetadata) transactionMetadata.getMetadata();
-    CBORMetadataMap data = (CBORMetadataMap) metadata.get(
-            valueOf(Long.parseLong(CatalystLabels.DATA.getLabel())));
-    CBORMetadataMap sig = (CBORMetadataMap) metadata.get(
-            valueOf(Long.parseLong(CatalystLabels.SIG.getLabel())));
-    if (ObjectUtils.isEmpty(data)) {
-      throw ExceptionFactory.missingVoteRegistrationMetadata();
-    }
-    if (ObjectUtils.isEmpty(sig)) {
-      throw ExceptionFactory.invalidVotingSignature();
-    }
-    byte[] rewardAddressP = (byte[]) data.get(
-            valueOf(CatalystDataIndexes.REWARD_ADDRESS.getValue()));
-    //need to revise
-    Address rewardAddress = CardanoAddressUtils.getAddressFromHexString(
-            Formatters.remove0xPrefix(HexUtil.encodeHexString(rewardAddressP))
-    );
-    if (rewardAddress.getAddress() == null) {
-      throw ExceptionFactory.invalidAddressError();
-    }
-
-    BigInteger votingNonce = (BigInteger) data.get(
-            valueOf(CatalystDataIndexes.VOTING_NONCE.getValue()));
-    VoteRegistrationMetadata parsedMetadata = new VoteRegistrationMetadata(
-            new PublicKey(Formatters.remove0xPrefix(HexUtil.encodeHexString(
-                    (byte[]) data.get(valueOf(CatalystDataIndexes.STAKE_KEY.getValue())))),
-                    CurveType.EDWARDS25519),
-            new PublicKey(Formatters.remove0xPrefix(HexUtil.encodeHexString(
-                    (byte[]) data.get(valueOf(CatalystDataIndexes.VOTING_KEY.getValue())))),
-                    CurveType.EDWARDS25519),
-            rewardAddress.toBech32(), votingNonce.intValue(),
-            Formatters.remove0xPrefix(HexUtil.encodeHexString((byte[]) sig.get(valueOf(
-                    CatalystSigIndexes.VOTING_SIGNATURE.getValue())))
-            ));
-
-    return Operation.builder()
-            .operationIdentifier(new OperationIdentifier(index, null))
-            .type(OperationType.VOTE_REGISTRATION.getValue())
-            .status("")
-            .metadata(OperationMetadata.builder()
-                    .voteRegistrationMetadata(parsedMetadata)
-                    .build())
-            .build();
-  }
 
     public static List<String> parsePoolOwners(Network network, PoolRegistration poolRegistration) {
         List<String> poolOwners = new ArrayList<>();

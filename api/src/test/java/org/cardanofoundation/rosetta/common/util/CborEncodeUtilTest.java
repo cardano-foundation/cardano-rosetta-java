@@ -1,24 +1,22 @@
 package org.cardanofoundation.rosetta.common.util;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-import java.util.Objects;
-
 import co.nstant.in.cbor.CborException;
 import com.bloxbean.cardano.client.common.model.Network;
 import com.bloxbean.cardano.client.exception.AddressExcepion;
 import com.bloxbean.cardano.client.exception.CborSerializationException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.openapitools.client.model.ConstructionPayloadsRequest;
-import org.openapitools.client.model.Operation;
-
-import org.junit.jupiter.api.Test;
-
 import org.cardanofoundation.rosetta.api.construction.service.CardanoConstructionServiceImpl;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.UnsignedTransaction;
+import org.junit.jupiter.api.Test;
+import org.openapitools.client.model.ConstructionPayloadsRequest;
+import org.openapitools.client.model.Operation;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+import java.util.Objects;
 
 import static org.cardanofoundation.rosetta.common.util.Constants.MIN_DUMMY_FEE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -100,8 +98,7 @@ class CborEncodeUtilTest {
 
     return CborEncodeUtil.encodeExtraData(
             unsignedTransaction.bytes(),
-            operations,
-            unsignedTransaction.metadata()
+            operations
     );
   }
 

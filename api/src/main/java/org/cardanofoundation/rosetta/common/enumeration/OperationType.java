@@ -1,8 +1,8 @@
 package org.cardanofoundation.rosetta.common.enumeration;
 
-import java.util.Arrays;
-
 import lombok.Getter;
+
+import java.util.Arrays;
 
 import static org.cardanofoundation.rosetta.common.util.Constants.*;
 
@@ -18,7 +18,6 @@ public enum OperationType {
   POOL_REGISTRATION(OPERATION_TYPE_POOL_REGISTRATION),
   POOL_REGISTRATION_WITH_CERT(OPERATION_TYPE_POOL_REGISTRATION_WITH_CERT),
   POOL_RETIREMENT(OPERATION_TYPE_POOL_RETIREMENT),
-  VOTE_REGISTRATION(OPERATION_TYPE_VOTE_REGISTRATION),
 
   VOTE_DREP_DELEGATION(OPERATION_TYPE_DREP_VOTE_DELEGATION),
   POOL_GOVERNANCE_VOTE(OPERATION_TYPE_POOL_GOVERNANCE_VOTE);

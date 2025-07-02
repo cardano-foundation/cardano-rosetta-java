@@ -1,22 +1,8 @@
 package org.cardanofoundation.rosetta.api.construction.service;
 
-import java.io.IOException;
-import java.util.Collections;
-
-import lombok.SneakyThrows;
-
 import co.nstant.in.cbor.CborException;
 import com.bloxbean.cardano.client.common.model.Network;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.openapitools.client.model.*;
-
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-
+import lombok.SneakyThrows;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProcessOperations;
 import org.cardanofoundation.rosetta.common.exception.ApiException;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.UnsignedTransaction;
@@ -24,6 +10,17 @@ import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
 import org.cardanofoundation.rosetta.common.time.OfflineSlotService;
 import org.cardanofoundation.rosetta.common.util.CborEncodeUtil;
 import org.cardanofoundation.rosetta.common.util.RosettaConstants.RosettaErrorType;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.openapitools.client.model.*;
+
+import java.io.IOException;
+import java.util.Collections;
 
 import static org.cardanofoundation.rosetta.EntityGenerator.givenConstructionPayloadsRequest;
 import static org.cardanofoundation.rosetta.EntityGenerator.givenSigningPayload;
@@ -56,7 +53,7 @@ class ConstructionApiServiceImplTest {
     SigningPayload expectedSigningPayload = givenSigningPayload();
 
     try (MockedStatic<CborEncodeUtil> mocked = Mockito.mockStatic(CborEncodeUtil.class)) {
-      mocked.when(() -> CborEncodeUtil.encodeExtraData(anyString(), anyList(), anyString()))
+      mocked.when(() -> CborEncodeUtil.encodeExtraData(anyString(), anyList()))
               .thenReturn(expectedEncodedUnsignedTransaction);
 
       when(cardanoConstructionService.createUnsignedTransaction(any(), anyList(), anyLong(), anyLong()))
@@ -200,7 +197,7 @@ class ConstructionApiServiceImplTest {
     when(cardanoConstructionService.getDepositParameters()).thenReturn(new DepositParameters("1", "1"));
 
     try (MockedStatic<CborEncodeUtil> mocked = Mockito.mockStatic(CborEncodeUtil.class)) {
-      mocked.when(() -> CborEncodeUtil.encodeExtraData(anyString(), anyList(), anyString()))
+      mocked.when(() -> CborEncodeUtil.encodeExtraData(anyString(), anyList()))
               .thenThrow(new CborException("CborException"));
 
       when(cardanoConstructionService.createUnsignedTransaction(any(), anyList(), anyLong(), anyLong()))
@@ -220,7 +217,7 @@ class ConstructionApiServiceImplTest {
   }
 
   private UnsignedTransaction createUnsignedTransaction() {
-    return new UnsignedTransaction("hash", "bytes", Collections.singleton("address"), "metadata");
+    return new UnsignedTransaction("hash", "bytes", Collections.singleton("address"));
   }
 
 }

@@ -132,8 +132,8 @@ public class CardanoAddressUtils {
           Integer port =
                   ObjectUtils.isEmpty(relay.getPort()) ? null : relay.getPort();
           return new SingleHostAddr(Objects.requireNonNullElse(port, 0),
-                  IPV4Parser.parseIpv4(relay.getIpv4()),
-                  IPV4Parser.parseIpv6(relay.getIpv6()));
+                  IPVParser.parseIpv4(relay.getIpv4()),
+                  IPVParser.parseIpv6(relay.getIpv6()));
         }
         case Constants.SINGLE_HOST_NAME -> {
           ValidateParseUtil.validateDnsName(relay.getDnsName());

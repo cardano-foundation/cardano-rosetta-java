@@ -1,11 +1,10 @@
 package org.cardanofoundation.rosetta.common.util;
 
-import java.util.List;
-
-import org.openapitools.client.model.OperationStatus;
-
 import org.cardanofoundation.rosetta.common.exception.Details;
 import org.cardanofoundation.rosetta.common.exception.Error;
+import org.openapitools.client.model.OperationStatus;
+
+import java.util.List;
 
 public class RosettaConstants {
 
@@ -80,11 +79,6 @@ public class RosettaConstants {
       RosettaErrorType.TOKEN_BUNDLE_ASSETS_MISSING.toRosettaError(false),
       RosettaErrorType.TOKEN_ASSET_VALUE_MISSING.toRosettaError(false),
       RosettaErrorType.OUTSIDE_VALIDITY_INTERVAL_UTXO.toRosettaError(false),
-      RosettaErrorType.VOTING_NONCE_NOT_VALID.toRosettaError(false),
-      RosettaErrorType.INVALID_VOTING_SIGNATURE.toRosettaError(false),
-      RosettaErrorType.MISSING_VOTING_KEY.toRosettaError(false),
-      RosettaErrorType.INVALID_VOTING_KEY_FORMAT.toRosettaError(false),
-      RosettaErrorType.MISSING_VOTE_REGISTRATION_METADATA.toRosettaError(false),
       RosettaErrorType.INVALID_OPERATION_STATUS.toRosettaError(false),
       RosettaErrorType.STATUS_SUCCESS_MATCH_ERROR.toRosettaError(false),
       RosettaErrorType.TX_HASH_COIN_NOT_MATCH.toRosettaError(false),
@@ -163,11 +157,6 @@ public class RosettaConstants {
     CANT_BUILD_WITNESSES_SET(
         "Cant build witnesses set for transaction probably because of provided signatures", 5005),
     SEND_TRANSACTION_ERROR("Error when sending the transaction", 5006),
-    VOTING_NONCE_NOT_VALID("Voting nonce not valid", 5007),
-    INVALID_VOTING_SIGNATURE("Invalid voting signature", 5008),
-    MISSING_VOTING_KEY("Voting key is missing", 5009),
-    INVALID_VOTING_KEY_FORMAT("Voting key format is invalid", 5010),
-    MISSING_VOTE_REGISTRATION_METADATA("Missing vote registration metadata", 5011),
     CHAIN_CODE_MISSING("Missing chain code", 5012),
     INVALID_OPERATION_STATUS("Invalid operation status", 5013),
     STATUS_SUCCESS_MATCH_ERROR("Given operation status and success state does not match", 5014),

@@ -1,7 +1,8 @@
 package org.cardanofoundation.rosetta.common.exception;
 
-import java.time.LocalDateTime;
 import jakarta.validation.constraints.NotNull;
+
+import java.time.LocalDateTime;
 
 import static org.cardanofoundation.rosetta.common.util.RosettaConstants.RosettaErrorType;
 
@@ -90,29 +91,8 @@ public class ExceptionFactory {
     return new ApiException(RosettaErrorType.PUBLIC_KEY_MISSING.toRosettaError(false));
   }
 
-  public static ApiException missingVoteRegistrationMetadata() {
-    return new ApiException(
-        RosettaErrorType.MISSING_VOTE_REGISTRATION_METADATA.toRosettaError(false));
-  }
-
   public static ApiException invalidStakingKeyFormat() {
     return new ApiException(RosettaErrorType.INVALID_STAKING_KEY_FORMAT.toRosettaError(false));
-  }
-
-  public static ApiException votingNonceNotValid() {
-    return new ApiException(RosettaErrorType.VOTING_NONCE_NOT_VALID.toRosettaError(false));
-  }
-
-  public static ApiException invalidVotingSignature() {
-    return new ApiException(RosettaErrorType.INVALID_VOTING_SIGNATURE.toRosettaError(false));
-  }
-
-  public static ApiException missingVotingKeyError() {
-    return new ApiException(RosettaErrorType.MISSING_VOTING_KEY.toRosettaError(false));
-  }
-
-  public static ApiException invalidVotingKeyFormat() {
-    return new ApiException(RosettaErrorType.INVALID_VOTING_KEY_FORMAT.toRosettaError(false));
   }
 
   public static ApiException missingMetadataParametersForPoolRetirement() {

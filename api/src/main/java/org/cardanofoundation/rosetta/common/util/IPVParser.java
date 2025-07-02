@@ -10,7 +10,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 @UtilityClass
-public class IPV4Parser {
+public class IPVParser {
 
     public Inet4Address parseIpv4(String ip) throws UnknownHostException {
         if (!ObjectUtils.isEmpty(ip)) {
