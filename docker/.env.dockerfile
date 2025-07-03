@@ -5,7 +5,7 @@
 API_SPRING_PROFILES_ACTIVE=online
 
 ## Main variables
-LOG=INFO
+LOG=ERROR
 NETWORK=mainnet
 # mainnet, preprod, preview, devkit
 PROTOCOL_MAGIC=764824073
