@@ -1,7 +1,8 @@
 package org.cardanofoundation.rosetta.common.exception;
 
-import java.time.LocalDateTime;
 import jakarta.validation.constraints.NotNull;
+
+import java.time.LocalDateTime;
 
 import static org.cardanofoundation.rosetta.common.util.RosettaConstants.RosettaErrorType;
 
@@ -90,29 +91,8 @@ public class ExceptionFactory {
     return new ApiException(RosettaErrorType.PUBLIC_KEY_MISSING.toRosettaError(false));
   }
 
-  public static ApiException missingVoteRegistrationMetadata() {
-    return new ApiException(
-        RosettaErrorType.MISSING_VOTE_REGISTRATION_METADATA.toRosettaError(false));
-  }
-
   public static ApiException invalidStakingKeyFormat() {
     return new ApiException(RosettaErrorType.INVALID_STAKING_KEY_FORMAT.toRosettaError(false));
-  }
-
-  public static ApiException votingNonceNotValid() {
-    return new ApiException(RosettaErrorType.VOTING_NONCE_NOT_VALID.toRosettaError(false));
-  }
-
-  public static ApiException invalidVotingSignature() {
-    return new ApiException(RosettaErrorType.INVALID_VOTING_SIGNATURE.toRosettaError(false));
-  }
-
-  public static ApiException missingVotingKeyError() {
-    return new ApiException(RosettaErrorType.MISSING_VOTING_KEY.toRosettaError(false));
-  }
-
-  public static ApiException invalidVotingKeyFormat() {
-    return new ApiException(RosettaErrorType.INVALID_VOTING_KEY_FORMAT.toRosettaError(false));
   }
 
   public static ApiException missingMetadataParametersForPoolRetirement() {
@@ -325,16 +305,12 @@ public class ExceptionFactory {
     return new ApiException(RosettaErrorType.MISSING_DREP_ID.toRosettaError(false));
   }
 
-  public static ApiException missingDrep() {
-    return new ApiException(RosettaErrorType.MISSING_DREP_TYPE.toRosettaError(false));
-  }
-
   public static ApiException timeOut(String detailMessage) {
     return new ApiException(RosettaErrorType.TIMEOUT.toRosettaError(true, Details.builder().message("Timeout, details: %s".formatted(detailMessage)).build()));
   }
 
   public static ApiException invalidBlockIdentifier(@NotNull long index) {
-    return new ApiException(RosettaErrorType.INVALID_BLOCK_INDEX.toRosettaError(false, Details.builder().message("Invalid block index, must be greater than or equal to 0, supplied index:%d".formatted(index)).build()));
+    return new ApiException(RosettaErrorType.INVALID_BLOCK_INDEX.toRosettaError(false, Details.builder().message("Invalid block index, must be greater than or equal to 0, supplied index: %d".formatted(index)).build()));
   }
 
   public static ApiException oldestBlockNotFound() {
@@ -343,6 +319,38 @@ public class ExceptionFactory {
 
   public static ApiException withdrawalAmountsNegativeError() {
     return new ApiException(RosettaErrorType.WITHDRAWAL_AMOUNT_CANNOT_BE_NEGATIVE.toRosettaError(false));
+  }
+
+  public static ApiException invalidGovernanceVote(String reasonText) {
+    Details details = Details.builder()
+        .message("Invalid governance vote, reason: %s".formatted(reasonText))
+        .build();
+
+    return new ApiException(RosettaErrorType.GOVERNANCE_INVALID_VOTE.toRosettaError(false, details));
+  }
+
+  public static ApiException governanceOnlyPoolVotingPossible() {
+    return new ApiException(RosettaErrorType.GOVERNANCE_ONLY_POOL_VOTING_POSSIBLE.toRosettaError(false));
+  }
+
+  public static ApiException governanceKeyHashOnlySupported() {
+    return new ApiException(RosettaErrorType.GOVERNANCE_KEY_HASH_ONLY.toRosettaError(false));
+  }
+
+  public static ApiException invalidDrepIdLength() {
+    return new ApiException(RosettaErrorType.INVALID_DREP_ID_LENGTH.toRosettaError(false));
+  }
+
+  public static ApiException mismatchDrepType() {
+    return new ApiException(RosettaErrorType.MISMATCH_DREP_TYPE.toRosettaError(false));
+  }
+
+  public static ApiException missingDrep() {
+    return new ApiException(RosettaErrorType.MISSING_DREP_TYPE.toRosettaError(false));
+  }
+
+  public static ApiException invalidDrepType() {
+    return new ApiException(RosettaErrorType.INVALID_DREP_TYPE.toRosettaError(false));
   }
 
 }

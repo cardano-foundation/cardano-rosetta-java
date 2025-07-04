@@ -1,0 +1,25 @@
+JBang scripts (https://www.jbang.dev)
+
+Scripts:
+- pool_credential_to_pool_hash
+
+pool_credential_to_pool_hash:
+```
+brew install jbang
+
+jbang StakePoolVerificationKeyParser.java 582060afbe982faaee34b02ad0e75cd50d5d7a734f5daaf7b67bc8c492eb5299af2b
+```
+
+Example:
+```
+mati@mczeladka-CF cardano-rosetta-java % jbang examples/StakePoolVerificationKeyParser.java 582060afbe982faaee34b02ad0e75cd50d5d7a734f5daaf7b67bc8c492eb5299af2b
+[jbang] Building jar for StakePoolVerificationKeyParser.java...
+pool_verification_key: 582060afbe982faaee34b02ad0e75cd50d5d7a734f5daaf7b67bc8c492eb5299af2b
+pool_verification_key_stripped: 60afbe982faaee34b02ad0e75cd50d5d7a734f5daaf7b67bc8c492eb5299af2b
+pool_verification_key_length: 68
+pool_verification_key_stripped_length: 64
+pool_hash: 6c518b4861bb88b1395ceb116342cecbcfb8736282655f9a61c4c368
+pool_hash_as_bech32: pool1d3gckjrphwytzw2uavgkxskwe08msumzsfj4lxnpcnpks3zjml3
+decoded_bech32_hrp: pool
+decoded_bech32_data: 6c518b4861bb88b1395ceb116342cecbcfb8736282655f9a61c4c368
+```

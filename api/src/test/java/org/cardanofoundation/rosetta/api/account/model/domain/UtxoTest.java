@@ -17,6 +17,7 @@ class UtxoTest extends BaseMapperSetup {
 
   @Inject
   BlockMapper mapper;
+
   @Inject
   AddressUtxoEntityToUtxo addressUtxoEntityToUtxo;
 
