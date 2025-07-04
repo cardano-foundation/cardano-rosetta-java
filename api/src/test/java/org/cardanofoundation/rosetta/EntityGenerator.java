@@ -5,57 +5,12 @@ import java.util.List;
 
 import lombok.experimental.UtilityClass;
 
-import org.openapitools.client.model.AccountIdentifier;
-import org.openapitools.client.model.Allow;
-import org.openapitools.client.model.Amount;
-import org.openapitools.client.model.Block;
-import org.openapitools.client.model.BlockIdentifier;
-import org.openapitools.client.model.BlockRequest;
-import org.openapitools.client.model.BlockResponse;
-import org.openapitools.client.model.BlockTransactionRequest;
-import org.openapitools.client.model.BlockTransactionResponse;
-import org.openapitools.client.model.CoinAction;
-import org.openapitools.client.model.CoinChange;
-import org.openapitools.client.model.CoinIdentifier;
-import org.openapitools.client.model.ConstructionCombineRequest;
-import org.openapitools.client.model.ConstructionCombineResponse;
-import org.openapitools.client.model.ConstructionDeriveRequest;
-import org.openapitools.client.model.ConstructionDeriveResponse;
-import org.openapitools.client.model.ConstructionHashRequest;
-import org.openapitools.client.model.ConstructionMetadataRequest;
-import org.openapitools.client.model.ConstructionMetadataRequestOption;
-import org.openapitools.client.model.ConstructionMetadataResponse;
-import org.openapitools.client.model.ConstructionMetadataResponseMetadata;
-import org.openapitools.client.model.ConstructionParseRequest;
-import org.openapitools.client.model.ConstructionParseResponse;
-import org.openapitools.client.model.ConstructionPayloadsRequest;
-import org.openapitools.client.model.ConstructionPayloadsResponse;
-import org.openapitools.client.model.ConstructionPreprocessRequest;
-import org.openapitools.client.model.ConstructionPreprocessResponse;
-import org.openapitools.client.model.ConstructionSubmitRequest;
-import org.openapitools.client.model.Currency;
-import org.openapitools.client.model.CurveType;
-import org.openapitools.client.model.MetadataRequest;
-import org.openapitools.client.model.NetworkIdentifier;
-import org.openapitools.client.model.NetworkListResponse;
-import org.openapitools.client.model.NetworkOptionsResponse;
-import org.openapitools.client.model.NetworkRequest;
-import org.openapitools.client.model.NetworkStatusResponse;
-import org.openapitools.client.model.Operation;
-import org.openapitools.client.model.OperationIdentifier;
-import org.openapitools.client.model.OperationStatus;
-import org.openapitools.client.model.PartialBlockIdentifier;
-import org.openapitools.client.model.PublicKey;
-import org.openapitools.client.model.Signature;
-import org.openapitools.client.model.SignatureType;
-import org.openapitools.client.model.SigningPayload;
-import org.openapitools.client.model.TransactionIdentifier;
-import org.openapitools.client.model.TransactionIdentifierResponse;
-import org.openapitools.client.model.Version;
+import org.openapitools.client.model.*;
 
 import org.cardanofoundation.rosetta.common.model.cardano.crypto.Signatures;
 
-import static org.cardanofoundation.rosetta.common.util.Constants.*;
+import static org.cardanofoundation.rosetta.common.util.Constants.CARDANO_BLOCKCHAIN;
+import static org.cardanofoundation.rosetta.common.util.Constants.DEVKIT;
 import static org.openapitools.client.model.CurveType.EDWARDS25519;
 
 @UtilityClass
@@ -312,9 +267,7 @@ public class EntityGenerator {
     }
 
     public static PublicKey givenPublicKey() {
-        return new PublicKey("1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F",
-                EDWARDS25519);
-
+        return new PublicKey("1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F", EDWARDS25519);
     }
 
     public static SigningPayload givenSigningPayload() {
