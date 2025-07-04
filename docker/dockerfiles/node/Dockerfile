@@ -18,11 +18,12 @@ ENV PATH=/root/.local/bin:/root/.ghcup/bin:/root/.cabal/bin:${PATH}
 ARG BLST_VERSION="0.3.11"
 ARG LIBSODIUM_VERSION="dbb48cc"
 ARG SECP256K1_VERSION="ac83be33"
+ARG LMDB_VERSION="ce20108"
 
 ARG CABAL_VERSION=${CABAL_VERSION:-3.12.1.0}
 ARG GHC_VERSION=${GHC_VERSION:-9.6.7}
 
-ARG CARDANO_NODE_VERSION=${CARDANO_NODE_VERSION:-10.3.1}
+ARG CARDANO_NODE_VERSION=${CARDANO_NODE_VERSION:-10.4.1}
 
 RUN bash -c "ghcup install cabal ${CABAL_VERSION}"
 RUN bash -c "ghcup set cabal ${CABAL_VERSION}"
@@ -108,6 +109,14 @@ RUN git clone --branch master https://github.com/supranational/blst.git \
       fi; \
     done
 
+# Install lmdb
+RUN git clone --branch mdb.master https://github.com/LMDB/lmdb.git \
+ && cd lmdb \
+ && git checkout ${LMDB_VERSION} \
+ && cd libraries/liblmdb \
+ && make \
+ && make install
+
 # Install cardano-node
 RUN git clone https://github.com/intersectmbo/cardano-node.git \
     && cd cardano-node \
@@ -156,6 +165,11 @@ COPY --from=cardano-builder --chown=root:root /usr/local/src/secp256k1/.libs/lib
 RUN ln -snf /usr/local/lib/libsecp256k1.so /usr/local/lib/libsecp256k1.so.0 \
     && ln -snf /usr/local/lib/libsecp256k1.so /usr/local/lib/libsecp256k1.so.1 \
     && ln -snf /usr/local/lib/libsecp256k1.so /usr/local/lib/libsecp256k1.so.1.0.1
+RUN ldconfig
+
+# Link lmdb library
+COPY --from=cardano-builder --chown=root:root /usr/local/src/secp256k1/.libs/libsecp256k1.so /usr/local/lib
+RUN ln -snf /usr/local/lib/liblmdb.so /usr/local/lib/liblmdb.so.0
 RUN ldconfig
 
 ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
