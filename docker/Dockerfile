@@ -246,7 +246,7 @@ RUN ln -snf /usr/local/lib/libsecp256k1.so /usr/local/lib/libsecp256k1.so.0 \
 RUN ldconfig
 
 # Link lmdb library
-COPY --from=cardano-builder --chown=root:root /usr/local/src/secp256k1/.libs/libsecp256k1.so /usr/local/lib
+COPY --from=cardano-builder /usr/local/lib/liblmdb.so /usr/local/lib/
 RUN ln -snf /usr/local/lib/liblmdb.so /usr/local/lib/liblmdb.so.0
 RUN ldconfig
 
