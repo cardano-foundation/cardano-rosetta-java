@@ -7,6 +7,22 @@ description: Performance measurement methodologies and results
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
+import DockerCompose129 from './test-results/1.2.9/docker-compose.md';
+import HugeAddress373kv129 from './test-results/1.2.9/huge-address-373k.md';
+import HugeAddress16Mv129 from './test-results/1.2.9/huge-address-1.6M.md';
+import AdvDockerCompose129  from './test-results/1.2.9/advanced_profiles/docker-compose.md';
+import AdvHugeAddress373kv129  from './test-results/1.2.9/advanced_profiles/huge-address-373k.md';
+import AdvHugeAddress16Mv129  from './test-results/1.2.9/advanced_profiles/huge-address-1.6M.md';
+
+import SingleDocker127 from './test-results/1.2.7/single-docker.md';
+import DockerCompose127 from './test-results/1.2.7/docker-compose.md';
+
+import SingleDocker126 from './test-results/1.2.6/single-docker.md';
+import DockerCompose126 from './test-results/1.2.6/docker-compose.md';
+
+import DockerCompose120 from './test-results/1.2.0/docker-compose.md';
+import HugeAddress373kv120 from './test-results/1.2.0/huge-address-373k.md';
+
 # Performance Measurements
 
 This page documents load test results for different releases of `cardano-rosetta-java`, evaluating performance across various deployment scenarios.
@@ -39,10 +55,6 @@ To better understand the environments in which these results were obtained, plea
 
 The following tests were conducted on a **mid-level** hardware profile with the following specifications: **8 cores, 8 threads, 48GB RAM, 3.9TB NVMe, QEMU Virtual CPU v2.5+**.
 
-import DockerCompose129 from './test-results/1.2.9/docker-compose.md';
-import HugeAddress373kv129 from './test-results/1.2.9/huge-address-373k.md';
-import HugeAddress16Mv129 from './test-results/1.2.9/huge-address-1.6M.md';
-
 <Tabs>
   <TabItem value="compose" label="Docker Compose" default>
     <DockerCompose129 />
@@ -54,6 +66,21 @@ import HugeAddress16Mv129 from './test-results/1.2.9/huge-address-1.6M.md';
     <HugeAddress16Mv129 />
   </TabItem>
 </Tabs>
+
+The following tests were conducted on an **advanced-level** hardware profile with the following specifications: **16 cores, 16 threads, 94GB RAM, 3.9TB NVMe, QEMU Virtual CPU v2.5+**.
+
+<Tabs>
+  <TabItem value="adv_docker_compose129" label="Docker Compose" default>
+    <AdvDockerCompose129 />
+  </TabItem>
+  <TabItem value="adv_docker_compose129_huge-373k-v129" label="Huge Address (~373k txs)">
+    <AdvHugeAddress373kv129 />
+  </TabItem>
+  <TabItem value="adv_docker_compose129_huge-1.6M-v129" label="Huge Address (~1.6M txs)">
+    <AdvHugeAddress16Mv129 />
+  </TabItem>
+</Tabs>
+
 </details>
 
 <details>
@@ -62,9 +89,6 @@ import HugeAddress16Mv129 from './test-results/1.2.9/huge-address-1.6M.md';
 ### v1.2.7 (Apr 29, 2025)
 
 </summary>
-
-import SingleDocker127 from './test-results/1.2.7/single-docker.md';
-import DockerCompose127 from './test-results/1.2.7/docker-compose.md';
 
 - [Release Notes](https://github.com/cardano-foundation/cardano-rosetta-java/releases/tag/1.2.7)
 
@@ -85,8 +109,6 @@ import DockerCompose127 from './test-results/1.2.7/docker-compose.md';
 
 </summary>
 
-import SingleDocker126 from './test-results/1.2.6/single-docker.md';
-import DockerCompose126 from './test-results/1.2.6/docker-compose.md';
 
 - [Release Notes](https://github.com/cardano-foundation/cardano-rosetta-java/releases/tag/1.2.6)
 
@@ -106,9 +128,6 @@ import DockerCompose126 from './test-results/1.2.6/docker-compose.md';
 ### v1.2.0 (Feb 13, 2025)
 
 </summary>
-
-import DockerCompose120 from './test-results/1.2.0/docker-compose.md';
-import HugeAddress373kv120 from './test-results/1.2.0/huge-address-373k.md';
 
 - [Release Notes](https://github.com/cardano-foundation/cardano-rosetta-java/releases/tag/1.2.0)
 
