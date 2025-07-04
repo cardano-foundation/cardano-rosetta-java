@@ -2,6 +2,7 @@ package org.cardanofoundation.rosetta.api.error.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.cardanofoundation.rosetta.api.error.controller.requests.AllErrorRequest;
 import org.cardanofoundation.rosetta.api.error.model.domain.ErrorDTO;
 import org.cardanofoundation.rosetta.api.error.model.domain.entity.ErrorReview;
 import org.cardanofoundation.rosetta.api.error.service.ErrorReviewService;
