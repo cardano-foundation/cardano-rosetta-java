@@ -4,7 +4,7 @@ This scenario evaluates the performance of querying an address with approximatel
 #### Pruning Disabled (`REMOVE_SPENT_UTXOS=false`)
 
 :::note SLA Adjustment for Extreme Load
-For this specific test with pruning disabled on an address with ~1.6M transactions, the standard 1-second Service Level Agreement (SLA) is not achievable. The SLA was adjusted to 10 seconds to evaluate system stability under extreme load. The results for `/account/balance` at concurrency 1 are reported despite slightly exceeding this adjusted SLA to provide a transparent view of the performance boundary.
+For this specific test with pruning disabled on an address with ~1.6M transactions, the standard 1-second Service Level Agreement (SLA) is not achievable. The SLA was adjusted to 10 seconds to evaluate system stability under extreme load.
 :::
 
 **Maximum concurrency achieved per endpoint**
