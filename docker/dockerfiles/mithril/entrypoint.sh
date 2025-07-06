@@ -23,9 +23,19 @@ download_mithril_snapshot() {
     echo "Listing content of /node dir:"
     ls -la /node
     mithril-client cardano-db download latest --include-ancillary --ancillary-verification-key $ANCILLARY_VERIFICATION_KEY --download-dir /node &
+
     MITHRIL_PID=$!
     wait $MITHRIL_PID
     echo "Done downloading Mithril Snapshot"
+
+    case $MITHRIL_SNAPSHOT_VERSION in
+    lmdb)
+      mithril-client --unstable tools utxo-hd snapshot-converter --db-directory /node/db --cardano-node-version $CARDANO_NODE_VERSION --cardano-network $NETWORK --utxo-hd-flavor LMDB --commit
+      ;;
+    legacy)
+      mithril-client --unstable tools utxo-hd snapshot-converter --db-directory /node/db --cardano-node-version $CARDANO_NODE_VERSION --cardano-network $NETWORK --utxo-hd-flavor Legacy --commit
+      ;;
+    esac
 }
 
 echo $NETWORK
