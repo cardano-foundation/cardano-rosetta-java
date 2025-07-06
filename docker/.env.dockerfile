@@ -17,7 +17,7 @@ VERIFICATION=true
 
 # Mithril snapshots
 MITHRIL_SYNC=true
-# Snaphot version: legacy (for node <= 10.3.1) or lmdb (for node >= 10.4.1)
+# Snapshot version: legacy (for node <= 10.3.1) or lmdb (for node >= 10.4.1)
 MITHRIL_SNAPSHOT_VERSION=lmdb
 MITHRIL_VERSION=2524.0
 SNAPSHOT_DIGEST=latest
