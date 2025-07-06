@@ -17,6 +17,9 @@ VERIFICATION=true
 
 # Mithril snapshots
 MITHRIL_SYNC=true
+# Snaphot version: legacy (for node <= 10.3.1) or lmdb (for node >= 10.4.1)
+MITHRIL_SNAPSHOT_VERSION=lmdb
+MITHRIL_VERSION=2524.0
 SNAPSHOT_DIGEST=latest
 # if not set standard values will be used
 AGGREGATOR_ENDPOINT=
@@ -35,7 +38,7 @@ DB_PORT=5432
 ## Cardano node variables
 CARDANO_NODE_HOST=localhost
 CARDANO_NODE_PORT=3001
-CARDANO_NODE_VERSION=10.3.1
+CARDANO_NODE_VERSION=10.4.1
 CARDANO_NODE_SUBMIT_HOST=localhost
 NODE_SUBMIT_API_PORT=8090
 CARDANO_NODE_SOCKET_PATH=/node/node.socket
