@@ -237,10 +237,10 @@ download_mithril_snapshot() {
 
     case $MITHRIL_SNAPSHOT_VERSION in
     lmdb)
-      mithril-client --unstable tools utxo-hd snapshot-converter --db-directory /node/db --cardano-node-version $CARDANO_NODE_VERSION --cardano-network $NETWORK --utxo-hd-flavor LMDB --commit
+      mithril-client --unstable tools utxo-hd snapshot-converter --db-directory /node/db --cardano-node-version latest --cardano-network $NETWORK --utxo-hd-flavor LMDB --commit
       ;;
     legacy)
-      mithril-client --unstable tools utxo-hd snapshot-converter --db-directory /node/db --cardano-node-version $CARDANO_NODE_VERSION --cardano-network $NETWORK --utxo-hd-flavor Legacy --commit
+      mithril-client --unstable tools utxo-hd snapshot-converter --db-directory /node/db --cardano-node-version latest --cardano-network $NETWORK --utxo-hd-flavor Legacy --commit
       ;;
     esac
 }
