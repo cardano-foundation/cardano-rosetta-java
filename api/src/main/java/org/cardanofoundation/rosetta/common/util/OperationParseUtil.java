@@ -8,7 +8,7 @@ import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
-import org.cardanofoundation.rosetta.api.block.model.domain.GovernanceVote;
+import org.cardanofoundation.rosetta.api.block.model.domain.GovernancePoolVote;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProcessOperations;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.common.model.cardano.pool.PoolRegistrationCertReturn;
@@ -210,9 +210,9 @@ public class OperationParseUtil {
     ValidateParseUtil.validateAndParsePoolKeyHash(poolKeyHash);
 
     Optional.of(operation.getMetadata().getPoolGovernanceVoteParams()).ifPresent(poolGovernanceVoteParams -> {
-      GovernanceVote governanceVote = ProcessConstructions.processGovernanceVote(operation);
+      GovernancePoolVote governancePoolVote = ProcessConstructions.processGovernanceVote(operation);
 
-      processOperations.getGovernanceVotes().add(governanceVote);
+      processOperations.getGovernancePoolVotes().add(governancePoolVote);
     });
 
     return processOperations;

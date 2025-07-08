@@ -1,32 +1,29 @@
 package org.cardanofoundation.rosetta.api.block.mapper;
 
-import java.math.BigInteger;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import javax.annotation.Nullable;
-
-import lombok.RequiredArgsConstructor;
-
-import org.springframework.stereotype.Component;
 import com.bloxbean.cardano.client.transaction.spec.governance.Anchor;
 import com.bloxbean.cardano.client.transaction.spec.governance.Vote;
-import com.bloxbean.cardano.client.transaction.spec.governance.Voter;
 import com.bloxbean.cardano.client.transaction.spec.governance.actions.GovActionId;
 import com.bloxbean.cardano.yaci.core.model.certs.CertificateType;
-import org.mapstruct.Named;
-import org.openapitools.client.model.*;
-
+import lombok.RequiredArgsConstructor;
 import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.block.model.domain.DRepDelegation;
-import org.cardanofoundation.rosetta.api.block.model.domain.GovernanceVote;
+import org.cardanofoundation.rosetta.api.block.model.domain.GovernancePoolVote;
 import org.cardanofoundation.rosetta.api.block.model.domain.StakeRegistration;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.common.mapper.DataMapper;
 import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
 import org.cardanofoundation.rosetta.common.util.Constants;
+import org.mapstruct.Named;
+import org.openapitools.client.model.*;
+import org.springframework.stereotype.Component;
+
+import javax.annotation.Nullable;
+import java.math.BigInteger;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -36,42 +33,37 @@ public class TransactionMapperUtils {
 
   @Named("convertGovAnchorFromRosetta")
   public GovVoteRationaleParams convertGovAnchorFromRosetta(Anchor anchor) {
-    return GovernanceVote.convertFromRosetta(anchor);
+    return GovernancePoolVote.convertFromRosetta(anchor);
   }
 
   @Named("convertGovVoteRationaleToRosetta")
   public Anchor convertGovVoteRationaleToRosetta(GovVoteRationaleParams params) {
-    return GovernanceVote.convertToRosetta(params);
+    return GovernancePoolVote.convertToRosetta(params);
   }
 
   @Named("convertGovVoteToRosetta")
   public GovVoteParams convertGovVoteFromRosetta(Vote vote) {
-    return GovernanceVote.convertFromRosetta(vote);
+    return GovernancePoolVote.convertFromRosetta(vote);
   }
 
   @Named("convertGovVoteToRosetta")
   public Vote convertGovVoteToRosetta(GovVoteParams voteParams) {
-    return GovernanceVote.convertToRosetta(voteParams);
+    return GovernancePoolVote.convertToRosetta(voteParams);
   }
 
   @Named("convertGovActionIdToRosetta")
   public GovActionParams convertGovActionIdFromRosetta(GovActionId govActionId) {
-    return GovernanceVote.convertFromRosetta(govActionId);
+    return GovernancePoolVote.convertFromRosetta(govActionId);
   }
 
   @Named("convertGovActionIdToRosetta")
   public GovActionId convertGovActionIdToRosetta(GovActionParams govActionIdParams) {
-    return GovernanceVote.convertToRosetta(govActionIdParams);
+    return GovernancePoolVote.convertToRosetta(govActionIdParams);
   }
 
-  @Named("convertGovVoterToRosetta")
-  public PublicKey convertGovVoterToRosetta(Voter voter) {
-    return GovernanceVote.convertToRosetta(voter);
-  }
-
-  @Named("convertGovPoolCredentialFromRosetta")
-  public Voter convertGovVoterFromRosetta(PublicKey publicKey) {
-    return GovernanceVote.convertFromRosetta(publicKey);
+  @Named("convertPoolCredentialToRosetta")
+  public PublicKey convertPoolCredentialToRosetta(String poolCredentialHex) {
+    return GovernancePoolVote.convertToRosetta(poolCredentialHex);
   }
 
   @Named("convertDRepToRosetta")

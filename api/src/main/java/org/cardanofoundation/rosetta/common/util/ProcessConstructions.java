@@ -16,7 +16,7 @@ import io.vavr.control.Either;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.cardanofoundation.rosetta.api.block.model.domain.DRepDelegation;
-import org.cardanofoundation.rosetta.api.block.model.domain.GovernanceVote;
+import org.cardanofoundation.rosetta.api.block.model.domain.GovernancePoolVote;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.common.exception.ApiException;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
@@ -293,7 +293,7 @@ public class ProcessConstructions {
         throw ExceptionFactory.missingMetadataParametersForPoolRetirement();
     }
 
-    public static GovernanceVote processGovernanceVote(Operation operation) {
+    public static GovernancePoolVote processGovernanceVote(Operation operation) {
         log.info("[processCastVote] About to process cast vote operation as a pool operator..");
 
         OperationMetadata metadata = operation.getMetadata();
@@ -355,7 +355,7 @@ public class ProcessConstructions {
             throw ExceptionFactory.invalidGovernanceVote("Pool key hash passed as account.address does not match with pool credential key hash!");
         }
 
-        return GovernanceVote.convertToRosetta(poolGovernanceVoteParams);
+        return GovernancePoolVote.convertToRosetta(poolGovernanceVoteParams);
     }
 
 }

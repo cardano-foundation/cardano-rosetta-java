@@ -29,7 +29,7 @@ public class ProcessOperations {
   private List<BigInteger> inputAmounts = new ArrayList<>();
   private List<BigInteger> outputAmounts = new ArrayList<>();
   private List<BigInteger> withdrawalAmounts = new ArrayList<>();
-  private List<GovernanceVote> governanceVotes = new ArrayList<>();
+  private List<GovernancePoolVote> governancePoolVotes = new ArrayList<>();
 
   private double stakeKeyRegistrationsCount = 0.0;
   private double stakeKeyDeRegistrationsCount = 0.0;

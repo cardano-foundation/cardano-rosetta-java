@@ -1,22 +1,19 @@
 package org.cardanofoundation.rosetta.api.block.model.domain;
 
-import java.util.Optional;
-import javax.annotation.Nullable;
-
-import lombok.*;
-
 import com.bloxbean.cardano.client.address.Credential;
-import com.bloxbean.cardano.client.address.CredentialType;
 import com.bloxbean.cardano.client.transaction.spec.governance.Anchor;
 import com.bloxbean.cardano.client.transaction.spec.governance.Vote;
 import com.bloxbean.cardano.client.transaction.spec.governance.Voter;
 import com.bloxbean.cardano.client.transaction.spec.governance.actions.GovActionId;
-import com.bloxbean.cardano.client.util.HexUtil;
+import lombok.*;
 import org.openapitools.client.model.*;
 
-import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
+import javax.annotation.Nullable;
+import java.util.Optional;
 
+import static com.bloxbean.cardano.client.crypto.Blake2bUtil.blake2bHash224;
 import static com.bloxbean.cardano.client.transaction.spec.governance.VoterType.STAKING_POOL_KEY_HASH;
+import static com.bloxbean.cardano.client.util.HexUtil.decodeHexString;
 import static com.bloxbean.cardano.client.util.HexUtil.encodeHexString;
 import static org.openapitools.client.model.CurveType.EDWARDS25519;
 
@@ -25,18 +22,20 @@ import static org.openapitools.client.model.CurveType.EDWARDS25519;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
-public class GovernanceVote {
+public class GovernancePoolVote {
 
     private GovActionId govActionId;
+    private String poolCredentialHex;
     private Vote vote;
     private Voter voter;
 
     @Nullable
     private Anchor voteRationale;
 
-    public static GovernanceVote convertToRosetta(PoolGovernanceVoteParams voteParams) {
-        GovernanceVoteBuilder governanceVoteBuilder = GovernanceVote.builder()
+    public static GovernancePoolVote convertToRosetta(PoolGovernanceVoteParams voteParams) {
+        GovernancePoolVoteBuilder governanceVoteBuilder = GovernancePoolVote.builder()
                 .govActionId(convertToRosetta(voteParams.getGovernanceAction()))
+                .poolCredentialHex(voteParams.getPoolCredential().getHexBytes())
                 .voter(convertFromRosetta(voteParams.getPoolCredential())) // for now only support pool credential
                 .vote(convertToRosetta(voteParams.getVote()));
 
@@ -45,20 +44,6 @@ public class GovernanceVote {
         });
 
         return governanceVoteBuilder.build();
-    }
-
-    public static PoolGovernanceVoteParams convertFromRosetta(GovernanceVote governanceVote) {
-        PoolGovernanceVoteParams.PoolGovernanceVoteParamsBuilder builder = PoolGovernanceVoteParams.builder();
-
-        builder.governanceAction(convertFromRosetta(governanceVote.getGovActionId()));
-        builder.poolCredential(convertToRosetta(governanceVote.getVoter()));
-        builder.vote(convertFromRosetta(governanceVote.getVote()));
-
-        Optional.ofNullable(governanceVote.getVoteRationale()).ifPresent(anchor -> {
-            builder.voteRationale(convertFromRosetta(anchor));
-        });
-
-        return builder.build();
     }
 
     public static GovVoteRationaleParams convertFromRosetta(Anchor anchor) {
@@ -71,7 +56,7 @@ public class GovernanceVote {
     public static Anchor convertToRosetta(GovVoteRationaleParams govAnchorParams) {
         return Anchor.builder()
                 .anchorUrl(govAnchorParams.getUrl())
-                .anchorDataHash(HexUtil.decodeHexString(govAnchorParams.getDataHash()))
+                .anchorDataHash(decodeHexString(govAnchorParams.getDataHash()))
                 .build();
     }
 
@@ -98,27 +83,13 @@ public class GovernanceVote {
     }
 
     public static Voter convertFromRosetta(PublicKey poolCredential) {
-        Credential credential = Credential.fromKey(poolCredential.getHexBytes());
+        Credential credential = Credential.fromKey(blake2bHash224(decodeHexString(poolCredential.getHexBytes())));
 
         return new Voter(STAKING_POOL_KEY_HASH, credential);
     }
 
-    public static PublicKey convertToRosetta(Voter voter) {
-        if (voter.getType() != STAKING_POOL_KEY_HASH) {
-            throw ExceptionFactory.governanceOnlyPoolVotingPossible();
-        }
-
-        if (voter.getCredential().getType() != CredentialType.Key) {
-            throw ExceptionFactory.governanceKeyHashOnlySupported();
-        }
-
-        byte[] credentialBytes = voter.getCredential().getBytes();
-
-        return new PublicKey(encodeHexString(credentialBytes), EDWARDS25519);
-    }
-
-    private static String convertFromRosetta(Credential credential) {
-        return encodeHexString(credential.getBytes());
+    public static PublicKey convertToRosetta(String poolCredentialHex) {
+        return new PublicKey(poolCredentialHex, EDWARDS25519);
     }
 
     public static Vote convertToRosetta(GovVoteParams voteParams) {

@@ -61,11 +61,11 @@ public interface TransactionMapper {
   @Mapping(target = "status", source = "status.status")
   @Mapping(target = "type", constant = Constants.OPERATION_TYPE_POOL_GOVERNANCE_VOTE)
   @Mapping(target = "operationIdentifier", source = "index", qualifiedByName = "OperationIdentifier")
-  @Mapping(target = "metadata.poolGovernanceVoteParams.governanceAction", source = "governanceVote.govActionId", qualifiedByName = "convertGovActionIdToRosetta")
-  @Mapping(target = "metadata.poolGovernanceVoteParams.poolCredential", source = "governanceVote.voter", qualifiedByName = "convertGovVoterToRosetta")
-  @Mapping(target = "metadata.poolGovernanceVoteParams.vote", source = "governanceVote.vote", qualifiedByName = "convertGovVoteToRosetta")
-  @Mapping(target = "metadata.poolGovernanceVoteParams.voteRationale", source = "governanceVote.voteRationale", qualifiedByName = "convertGovAnchorFromRosetta")
-  Operation mapGovernanceVoteToOperation(GovernanceVote governanceVote, OperationStatus status, int index);
+  @Mapping(target = "metadata.poolGovernanceVoteParams.governanceAction", source = "governancePoolVote.govActionId", qualifiedByName = "convertGovActionIdToRosetta")
+  @Mapping(target = "metadata.poolGovernanceVoteParams.poolCredential", source = "governancePoolVote.poolCredentialHex", qualifiedByName = "convertPoolCredentialToRosetta")
+  @Mapping(target = "metadata.poolGovernanceVoteParams.vote", source = "governancePoolVote.vote", qualifiedByName = "convertGovVoteToRosetta")
+  @Mapping(target = "metadata.poolGovernanceVoteParams.voteRationale", source = "governancePoolVote.voteRationale", qualifiedByName = "convertGovAnchorFromRosetta")
+  Operation mapGovernanceVoteToOperation(GovernancePoolVote governancePoolVote, OperationStatus status, int index);
 
   @Mapping(target = "type", constant = Constants.INPUT)
   @Mapping(target = "coinChange.coinAction", source = "model", qualifiedByName = "getCoinSpentAction")

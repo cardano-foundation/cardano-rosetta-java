@@ -1,21 +1,19 @@
 package org.cardanofoundation.rosetta.common.mapper.util;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
 import lombok.RequiredArgsConstructor;
-
-import org.springframework.stereotype.Component;
 import org.apache.commons.lang3.mutable.MutableInt;
+import org.cardanofoundation.rosetta.api.block.mapper.TransactionMapper;
+import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
+import org.cardanofoundation.rosetta.common.util.RosettaConstants;
 import org.mapstruct.Named;
 import org.openapitools.client.model.Operation;
 import org.openapitools.client.model.OperationIdentifier;
 import org.openapitools.client.model.OperationStatus;
+import org.springframework.stereotype.Component;
 
-import org.cardanofoundation.rosetta.api.block.mapper.TransactionMapper;
-import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
-import org.cardanofoundation.rosetta.common.util.RosettaConstants;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
@@ -70,7 +68,7 @@ public class OperationMapperService {
                     txStatus, ix.getAndIncrement()))
             .toList());
 
-    operations.addAll(Optional.ofNullable(source.getGovernanceVotes()).stream()
+    operations.addAll(Optional.ofNullable(source.getGovernancePoolVotes()).stream()
             .flatMap(List::stream)
             .map(governanceVote -> transactionMapper.mapGovernanceVoteToOperation(governanceVote,
                     txStatus, ix.getAndIncrement()))

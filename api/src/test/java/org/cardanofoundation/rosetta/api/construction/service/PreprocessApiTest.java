@@ -63,7 +63,7 @@ class PreprocessApiTest extends IntegrationTest {
 
   @Test
   void govPoolActionVoteTest() throws IOException {
-    assertPreprocessRequest("testdata/construction/preprocess/pool_governance_vote.json", 100, 412);
+    assertPreprocessRequest("testdata/construction/preprocess/pool_governance_vote.json", 100, 408);
   }
 
   private void assertPreprocessRequest(String constructionPayloadFile, int expectedTtl,

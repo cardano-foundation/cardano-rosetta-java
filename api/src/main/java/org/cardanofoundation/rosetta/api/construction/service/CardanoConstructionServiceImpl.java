@@ -27,7 +27,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
-import org.cardanofoundation.rosetta.api.block.model.domain.GovernanceVote;
+import org.cardanofoundation.rosetta.api.block.model.domain.GovernancePoolVote;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProcessOperations;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProcessOperationsReturn;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
@@ -329,21 +329,21 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
     if (!CollectionUtils.isEmpty(opRetDto.getWithdrawals())) {
       transactionBodyBuilder.withdrawals(opRetDto.getWithdrawals());
     }
-    if (!opRetDto.getGovernanceVotes().isEmpty()) {
+    if (!opRetDto.getGovernancePoolVotes().isEmpty()) {
       VotingProcedures votingProcedures = new VotingProcedures();
 
-      for (GovernanceVote governanceVote : opRetDto.getGovernanceVotes()) {
+      for (GovernancePoolVote governancePoolVote : opRetDto.getGovernancePoolVotes()) {
         log.info("[createUnsignedTransaction] Processing governance vote: {}",
-                governanceVote);
+                governancePoolVote);
 
-        GovActionId govActionId = governanceVote.getGovActionId();
+        GovActionId govActionId = governancePoolVote.getGovActionId();
 
         VotingProcedure.VotingProcedureBuilder votingProcedureBuilder = VotingProcedure.builder();
         votingProcedureBuilder
-                .vote(governanceVote.getVote());
+                .vote(governancePoolVote.getVote());
 
-        if (governanceVote.getVoteRationale() != null) {
-          Anchor anchor = governanceVote.getVoteRationale();
+        if (governancePoolVote.getVoteRationale() != null) {
+          Anchor anchor = governancePoolVote.getVoteRationale();
 
           votingProcedureBuilder.anchor(Anchor.builder()
                   .anchorDataHash(anchor.getAnchorDataHash())
@@ -351,7 +351,7 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
                   .build());
         }
 
-        Voter voter = governanceVote.getVoter();
+        Voter voter = governancePoolVote.getVoter();
         VotingProcedure votingProcedure = votingProcedureBuilder.build();
 
         votingProcedures.add(voter, govActionId, votingProcedure);
@@ -432,7 +432,7 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
     processOperationsDto.setTransactionInputs(result.getTransactionInputs());
     processOperationsDto.setTransactionOutputs(result.getTransactionOutputs());
     processOperationsDto.setCertificates(result.getCertificates());
-    processOperationsDto.setGovernanceVotes(result.getGovernanceVotes());
+    processOperationsDto.setGovernancePoolVotes(result.getGovernancePoolVotes());
     processOperationsDto.setWithdrawals(result.getWithdrawals());
     Set<String> addresses = new HashSet<>(result.getAddresses());
     processOperationsDto.setAddresses(addresses);
