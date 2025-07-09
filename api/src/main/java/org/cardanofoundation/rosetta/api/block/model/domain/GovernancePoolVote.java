@@ -6,7 +6,10 @@ import com.bloxbean.cardano.client.transaction.spec.governance.Vote;
 import com.bloxbean.cardano.client.transaction.spec.governance.Voter;
 import com.bloxbean.cardano.client.transaction.spec.governance.actions.GovActionId;
 import lombok.*;
-import org.openapitools.client.model.*;
+import org.openapitools.client.model.GovVoteParams;
+import org.openapitools.client.model.GovVoteRationaleParams;
+import org.openapitools.client.model.PoolGovernanceVoteParams;
+import org.openapitools.client.model.PublicKey;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
@@ -34,7 +37,7 @@ public class GovernancePoolVote {
 
     public static GovernancePoolVote convertToRosetta(PoolGovernanceVoteParams voteParams) {
         GovernancePoolVoteBuilder governanceVoteBuilder = GovernancePoolVote.builder()
-                .govActionId(convertToRosetta(voteParams.getGovernanceAction()))
+                .govActionId(convertGovActionIdToRosetta(voteParams.getGovernanceAction()))
                 .poolCredentialHex(voteParams.getPoolCredential().getHexBytes())
                 .voter(convertFromRosetta(voteParams.getPoolCredential())) // for now only support pool credential
                 .vote(convertToRosetta(voteParams.getVote()));
@@ -68,18 +71,15 @@ public class GovernancePoolVote {
         };
     }
 
-    public static GovActionId convertToRosetta(GovActionParams govActionIdParams) {
-        return GovActionId.builder()
-                .govActionIndex(govActionIdParams.getIndex())
-                .transactionId(govActionIdParams.getTxId())
-                .build();
+    public static GovActionId convertGovActionIdToRosetta(String govActionParamsString) {
+        return org.cardanofoundation.rosetta.common.util.GovActionParamsUtil
+                .parseAndValidate(govActionParamsString)
+                .toGovActionId();
     }
 
-    public static GovActionParams convertFromRosetta(GovActionId govActionId) {
-        return GovActionParams.builder()
-                .index(govActionId.getGovActionIndex())
-                .txId(govActionId.getTransactionId())
-                .build();
+    public static String convertFromRosetta(GovActionId govActionId) {
+        return org.cardanofoundation.rosetta.common.util.GovActionParamsUtil
+                .formatGovActionString(govActionId.getTransactionId(), govActionId.getGovActionIndex());
     }
 
     public static Voter convertFromRosetta(PublicKey poolCredential) {

@@ -52,13 +52,13 @@ public class TransactionMapperUtils {
   }
 
   @Named("convertGovActionIdToRosetta")
-  public GovActionParams convertGovActionIdFromRosetta(GovActionId govActionId) {
+  public String convertGovActionIdFromRosetta(GovActionId govActionId) {
     return GovernancePoolVote.convertFromRosetta(govActionId);
   }
 
   @Named("convertGovActionIdToRosetta")
-  public GovActionId convertGovActionIdToRosetta(GovActionParams govActionIdParams) {
-    return GovernancePoolVote.convertToRosetta(govActionIdParams);
+  public GovActionId convertGovActionIdToRosetta(String govActionParamsString) {
+    return GovernancePoolVote.convertGovActionIdToRosetta(govActionParamsString);
   }
 
   @Named("convertPoolCredentialToRosetta")

@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
 import static org.cardanofoundation.rosetta.common.util.RosettaConstants.RosettaErrorType;
+import static org.cardanofoundation.rosetta.common.util.RosettaConstants.RosettaErrorType.GOVERNANCE_INVALID_VOTE;
 
 
 public class ExceptionFactory {
@@ -321,22 +322,6 @@ public class ExceptionFactory {
     return new ApiException(RosettaErrorType.WITHDRAWAL_AMOUNT_CANNOT_BE_NEGATIVE.toRosettaError(false));
   }
 
-  public static ApiException invalidGovernanceVote(String reasonText) {
-    Details details = Details.builder()
-        .message("Invalid governance vote, reason: %s".formatted(reasonText))
-        .build();
-
-    return new ApiException(RosettaErrorType.GOVERNANCE_INVALID_VOTE.toRosettaError(false, details));
-  }
-
-  public static ApiException governanceOnlyPoolVotingPossible() {
-    return new ApiException(RosettaErrorType.GOVERNANCE_ONLY_POOL_VOTING_POSSIBLE.toRosettaError(false));
-  }
-
-  public static ApiException governanceKeyHashOnlySupported() {
-    return new ApiException(RosettaErrorType.GOVERNANCE_KEY_HASH_ONLY.toRosettaError(false));
-  }
-
   public static ApiException invalidDrepIdLength() {
     return new ApiException(RosettaErrorType.INVALID_DREP_ID_LENGTH.toRosettaError(false));
   }
@@ -351,6 +336,16 @@ public class ExceptionFactory {
 
   public static ApiException invalidDrepType() {
     return new ApiException(RosettaErrorType.INVALID_DREP_TYPE.toRosettaError(false));
+  }
+
+  public static ApiException invalidGovernanceVote(String reasonText) {
+    Error error = Error.builder()
+            .code(GOVERNANCE_INVALID_VOTE.getCode())
+            .message("Invalid governance vote, reason: %s".formatted(reasonText))
+            .retriable(false)
+            .build();
+
+    return new ApiException(error);
   }
 
 }

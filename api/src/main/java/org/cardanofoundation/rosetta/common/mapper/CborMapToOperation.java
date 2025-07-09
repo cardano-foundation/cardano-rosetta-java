@@ -451,7 +451,9 @@ public class CborMapToOperation {
                     UnicodeString txId = (UnicodeString) governanceActionMap.get(new UnicodeString("tx_id"));
                     UnsignedInteger index = (UnsignedInteger) governanceActionMap.get(new UnicodeString("index"));
 
-                    operationMetadata.setGovernanceAction(new GovActionParams(txId.getString(), index.getValue().intValue()));
+                    String concatenatedGovAction = org.cardanofoundation.rosetta.common.util.GovActionParamsUtil
+                            .formatGovActionString(txId.getString(), index.getValue().intValue());
+                    operationMetadata.setGovernanceAction(concatenatedGovAction);
                 });
     }
 

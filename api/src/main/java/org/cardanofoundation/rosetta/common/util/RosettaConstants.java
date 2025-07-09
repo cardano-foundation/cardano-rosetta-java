@@ -7,10 +7,7 @@ import org.openapitools.client.model.OperationStatus;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static org.cardanofoundation.rosetta.common.util.RosettaConstants.RosettaErrorType.SEND_TRANSACTION_ERROR;
 
 public class RosettaConstants {
 
@@ -161,11 +158,9 @@ public class RosettaConstants {
     MISMATCH_DREP_TYPE("There is a mismatch in the drep id header and drep type. Drep id header type and drep type should match.", 5045),
     INVALID_DREP_ID_LENGTH("Invalid drep id length. Should be 28 or 29 bytes", 5046),
     GOVERNANCE_INVALID_VOTE("Governance vote is invalid", 5047),
-    GOVERNANCE_ONLY_POOL_VOTING_POSSIBLE("Only pool voting possible", 5048),
-    GOVERNANCE_KEY_HASH_ONLY("Only key hash is supported", 5049),
     TRANSACTION_INPUTS_PARAMETERS_MISSING_ERROR(
-        "Transaction inputs parameters errors in operations array", 5050),
-    CANT_ENCODE_EXTRA_DATA("Cant encode extra data", 5051),;
+        "Transaction inputs parameters errors in operations array", 5048),
+    CANT_ENCODE_EXTRA_DATA("Cant encode extra data", 5049);
 
     final String message;
     final int code;

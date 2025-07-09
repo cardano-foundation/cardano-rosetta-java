@@ -33,9 +33,8 @@ class ParseOperationTest {
   private Operation getOperation(String fileName) throws IOException {
     File file = new File(this.getClass().getClassLoader().getResource(fileName).getFile());
     ObjectMapper mapper = new ObjectMapper();
-    Operation operation = mapper.readValue(file, Operation.class);
 
-    return operation;
+      return mapper.readValue(file, Operation.class);
   }
 
   @Test

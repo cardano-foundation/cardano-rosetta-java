@@ -1750,20 +1750,9 @@ components:
           $ref: '#/components/schemas/GovVoteRationaleParams'
 
     GovActionParams:
-      description: Unique identifier for a governance action.
-      type: object
-      required:
-        - tx_id
-        - index
-      properties:
-        tx_id:
-          type: string
-          description: Transaction hash where the action was originated.
-          example: "df58f714c0765f3489afb6909384a16c31d600695be7e86ff9c59cf2e8a48c79"
-        index:
-          type: integer
-          description: Index of the action within the transaction.
-          example: 0
+      description: Unique identifier for a governance action, consisting of tx_id and index concatenated.
+      type: string
+      example: "df58f714c0765f3489afb6909384a16c31d600695be7e86ff9c59cf2e8a48c7900"
 
     GovVoteParams:
       description: The vote cast by the voter.
