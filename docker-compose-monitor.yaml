@@ -1,0 +1,46 @@
+version: "3"
+services:
+  prometheus:
+    image: prom/prometheus:v3.4.1
+    restart: unless-stopped
+    command: ["--config.file=/etc/prometheus/prometheus.yml",
+    "--storage.tsdb.path=/prometheus", 
+    "--storage.tsdb.retention.time=60d",
+    "--web.console.libraries=/usr/share/prometheus/console_libraries", 
+    "--web.console.templates=/usr/share/prometheus/consoles",
+    "--web.enable-lifecycle"]
+    volumes:
+      - ./config/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    ports:
+      - ${PROMETHEUS_PORT}:9090
+
+  grafana:
+    image: grafana/grafana:12.0.1
+    restart: unless-stopped
+    ports:
+      - ${GRAFANA_PORT}:3000
+    volumes:
+      - grafana-data:/var/lib/grafana
+
+  postgresql-exporter:
+    image: prometheuscommunity/postgres-exporter
+    environment:
+      - DATA_SOURCE_URI=${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=disable
+      - DATA_SOURCE_USER=${DB_USER}
+      - DATA_SOURCE_PASS=${DB_SECRET}
+      - EXTEND_QUERY_PATH=""
+    ports:
+      - ${POSTGRESQL_EXPORTER_PORT:-9187}:9187
+    depends_on:
+      prometheus:
+        condition: service_started
+      db:
+        condition: service_healthy
+    restart: unless-stopped     
+volumes:
+  prometheus-data:
+  grafana-data:
+networks:
+  default:
+    name: cardano-rosetta-java-${NETWORK}
