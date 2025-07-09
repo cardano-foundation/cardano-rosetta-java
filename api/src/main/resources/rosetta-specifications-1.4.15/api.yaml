@@ -452,7 +452,33 @@ paths:
   /call:
     post:
       summary: Make a Network-Specific Procedure Call
-      description: Call invokes an arbitrary, network-specific procedure call with network-specific parameters. The guidance for what this endpoint should or could do is purposely left vague. In Ethereum, this could be used to invoke `eth_call` to implement an entire Rosetta API interface for some smart contract that is not parsed by the implementation creator (like a DEX). This endpoint could also be used to provide access to data that does not map to any Rosetta models instead of requiring an integrator to use some network-specific SDK and call some network-specific endpoint (like surfacing staking parameters). Call is NOT a replacement for implementing Rosetta API endpoints or mapping network-specific data to Rosetta models. Rather, it enables developers to build additional Rosetta API interfaces for things they care about without introducing complexity into a base-level Rosetta implementation. Simply put, imagine that the average integrator will use layered Rosetta API implementations that each surfaces unique data.
+      description: |
+        Call invokes an arbitrary, network-specific procedure call with network-specific parameters. The guidance for what this endpoint should or could do is purposely left vague. In Ethereum, this could be used to invoke `eth_call` to implement an entire Rosetta API interface for some smart contract that is not parsed by the implementation creator (like a DEX). This endpoint could also be used to provide access to data that does not map to any Rosetta models instead of requiring an integrator to use some network-specific SDK and call some network-specific endpoint (like surfacing staking parameters). Call is NOT a replacement for implementing Rosetta API endpoints or mapping network-specific data to Rosetta models. Rather, it enables developers to build additional Rosetta API interfaces for things they care about without introducing complexity into a base-level Rosetta implementation. Simply put, imagine that the average integrator will use layered Rosetta API implementations that each surfaces unique data.
+        
+        ## Supported Methods
+        
+        ### get_parse_error_blocks
+        Retrieves blocks that encountered parsing errors during processing. This method allows exchanges and integrators to identify and review blocks that could not be fully parsed by the Rosetta implementation.
+        
+        **Request Parameters:**
+        - `status` (optional): Filter by review status. Valid values: "UNREVIEWED", "REVIEWED_AFFECTS_US", "REVIEWED_DOES_NOT_AFFECT_US"
+        
+        **Response:**
+        - `parse_error_blocks`: Array of block numbers with parsing errors and their review status
+        - `idempotent`: false (as error review status may change over time)
+        
+        ### mark_parse_error_block_checked
+        Marks all parsing errors for a specific block as reviewed with a given status. This method allows operators to bulk update the review status of all errors that occurred during the parsing of a particular block.
+        
+        **Request Parameters:**
+        - `block_number` (required): Block number to mark as checked
+        - `status` (required): Review status to set. Valid values: "REVIEWED_AFFECTS_US", "REVIEWED_DOES_NOT_AFFECT_US"
+        - `checked_by` (optional): Identifier of who reviewed the block
+        - `comment` (optional): Comment about the review
+        
+        **Response:**
+        - `parse_error_blocks_response`: array of block numbers with parsing errors and their updated review status
+        - `idempotent`: false (as this operation modifies error review status)
       operationId: call
       tags:
         - Call
@@ -1486,14 +1512,29 @@ components:
           $ref: '#/components/schemas/NetworkIdentifier'
         method:
           type: string
-          description: Method is some network-specific procedure call. This method could map to a network-specific RPC endpoint, a method in an SDK generated from a smart contract, or some hybrid of the two. The implementation must define all available methods in the Allow object. However, it is up to the caller to determine which parameters to provide when invoking `/call`.
-          example: eth_call
+          description: |
+            Method is some network-specific procedure call. This method could map to a network-specific RPC endpoint, a method in an SDK generated from a smart contract, or some hybrid of the two. The implementation must define all available methods in the Allow object. However, it is up to the caller to determine which parameters to provide when invoking `/call`.
+            
+            For Cardano Rosetta, supported methods:
+            - `get_parse_error_blocks`: Retrieves blocks with parsing errors
+            - `mark_parse_error_block_checked`: Marks all errors for a block as reviewed
+          example: get_parse_error_blocks
         parameters:
           type: object
-          description: Parameters is some network-specific argument for a method. It is up to the caller to determine which parameters to provide when invoking `/call`.
+          additionalProperties: true
+          description: |
+            Parameters is some network-specific argument for a method. It is up to the caller to determine which parameters to provide when invoking `/call`.
+            
+            For `get_parse_error_blocks`:
+            - `status` (optional): Filter by review status. Valid values: "UNREVIEWED", "REVIEWED_AFFECTS_US", "REVIEWED_DOES_NOT_AFFECT_US"
+            
+            For `mark_parse_error_block_checked`:
+            - `block_number` (required): Block number to mark as checked
+            - `status` (required): Review status to set. Valid values: "REVIEWED_AFFECTS_US", "REVIEWED_DOES_NOT_AFFECT_US"
+            - `checked_by` (optional): Identifier of who reviewed the block
+            - `comment` (optional): Comment about the review
           example:
-            block_number: 23
-            address: '0x52bc44d5378309ee2abf1539bf71de1b7d7be3b5'
+            status: UNREVIEWED
     CallResponse:
       description: CallResponse contains the result of a `/call` invocation.
       type: object
@@ -1503,9 +1544,19 @@ components:
       properties:
         result:
           type: object
-          description: Result contains the result of the `/call` invocation. This result will not be inspected or interpreted by Rosetta tooling and is left to the caller to decode.
+          description: |
+            Result contains the result of the `/call` invocation. This result will not be inspected or interpreted by Rosetta tooling and is left to the caller to decode.
+            
+            For `get_parse_error_blocks`, the result contains:
+            - `parse_error_blocks`: Array of error entries with block numbers and review status
           example:
-            count: 1000
+            parse_error_blocks:
+              - error_id: 1
+                block_number: 12345
+                status: "UNREVIEWED"
+              - error_id: 2
+                block_number: 12346
+                status: "REVIEWED_AFFECTS_US"
         idempotent:
           type: boolean
           description: Idempotent indicates that if `/call` is invoked with the same CallRequest again, at any point in time, it will return the same CallResponse. Integrators may cache the CallResponse if this is set to true to avoid making unnecessary calls to the Rosetta implementation. For this reason, implementers should be very conservative about returning true here or they could cause issues for the caller.
@@ -2035,3 +2086,42 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Amount'
+    GetParseErrorBlocksParameters:
+      description: Parameters for the get_parse_error_blocks call method
+      type: object
+      properties:
+        status:
+          type: string
+          description: Filter by review status
+          enum:
+            - UNREVIEWED
+            - REVIEWED_AFFECTS_US
+            - REVIEWED_DOES_NOT_AFFECT_US
+          example: UNREVIEWED
+    MarkParseErrorBlockCheckedParameters:
+      description: Parameters for the mark_parse_error_block_checked call method
+      type: object
+      required:
+        - block_number
+        - status
+      properties:
+        block_number:
+          type: integer
+          format: int64
+          description: Block number to mark as checked
+          example: 12345
+        status:
+          type: string
+          description: Review status to set for all errors in this block
+          enum:
+            - REVIEWED_AFFECTS_US
+            - REVIEWED_DOES_NOT_AFFECT_US
+          example: REVIEWED_AFFECTS_US
+        checked_by:
+          type: string
+          description: Optional identifier of who reviewed the block
+          example: "admin_user"
+        comment:
+          type: string
+          description: Optional comment about the review
+          example: "Block parsing error resolved after investigation"
