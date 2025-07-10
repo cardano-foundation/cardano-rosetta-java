@@ -154,8 +154,7 @@ class RosettaClient:
         url = f"{self.endpoint}/account/coins"
         payload = {
             "network_identifier": self.network_identifier,
-            "account_identifier": {"address": address},
-            "include_mempool": False
+            "account_identifier": {"address": address}
         }
         
         try:

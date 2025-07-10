@@ -182,6 +182,24 @@ def drep_script_hash_id():
     return drep_id
 
 
+@pytest.fixture(scope="session")
+def pool_governance_proposal_id():
+    """Get the governance proposal ID from environment variables."""
+    proposal_id = os.environ.get("POOL_GOVERNANCE_PROPOSAL_ID")
+    if not proposal_id:
+        pytest.skip("POOL_GOVERNANCE_PROPOSAL_ID environment variable is required for pool governance vote tests")
+    return proposal_id
+
+
+@pytest.fixture(scope="session")
+def pool_registration_cert():
+    """Get the pool registration certificate (hex) from environment variables."""
+    cert = os.environ.get("POOL_REGISTRATION_CERT")
+    if not cert:
+        pytest.skip("POOL_REGISTRATION_CERT environment variable is required for poolRegistrationWithCert test")
+    return cert
+
+
 # --- Pytest Hooks for Custom Reporting --- 
 
 # Store collected tests for accurate reporting

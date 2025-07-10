@@ -10,6 +10,7 @@ class KeyType(enum.Enum):
     """Enum for key types used in Cardano transactions."""
     PAYMENT = "payment"
     STAKE = "stake"
+    POOL_COLD = "pool_cold"
 
 class SigningHandler:
     """
@@ -66,6 +67,26 @@ class SigningHandler:
             logger.error(f"Failed to sign with stake key: {str(e)}")
             raise ValueError(f"Stake key signing failed: {str(e)}")
             
+    def sign_with_pool_cold_key(self, payload: Dict) -> Dict:
+        """
+        Sign a payload with the pool cold key.
+        
+        Args:
+            payload: Signing payload from Rosetta API
+            
+        Returns:
+            Signature dictionary for the Rosetta API
+            
+        Raises:
+            ValueError: If signing fails
+        """
+        logger.debug("Signing with pool cold key")
+        try:
+            return self.wallet.sign_with_pool_cold_key(payload)
+        except Exception as e:
+            logger.error(f"Failed to sign with pool cold key: {str(e)}")
+            raise ValueError(f"Pool cold key signing failed: {str(e)}")
+            
     def get_signing_function(self, key_type: KeyType = KeyType.PAYMENT) -> Callable:
         """
         Get a function that signs payloads with the specified key type.
@@ -80,6 +101,8 @@ class SigningHandler:
             return self.sign_with_payment_key
         elif key_type == KeyType.STAKE:
             return self.sign_with_stake_key
+        elif key_type == KeyType.POOL_COLD:
+            return self.sign_with_pool_cold_key
         else:
             raise ValueError(f"Unsupported key type: {key_type}")
             
@@ -106,6 +129,8 @@ class SigningHandler:
                 return self.sign_with_payment_key(payload)
             elif key_type == KeyType.STAKE:
                 return self.sign_with_stake_key(payload)
+            elif key_type == KeyType.POOL_COLD:
+                return self.sign_with_pool_cold_key(payload)
             else:
                 raise ValueError(f"Unsupported key type for payload {index}: {key_type}")
                 
