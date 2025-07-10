@@ -337,7 +337,7 @@ public class ProcessConstructions {
         if (governanceAction == null || governanceAction.trim().isEmpty()) {
             log.error("[processCastVote] governance action parameters were not provided");
 
-            throw ExceptionFactory.invalidGovernanceVote("Parameter 'governance_action' not provided!");
+            throw ExceptionFactory.invalidGovernanceVote("Parameter 'governance_action_hash' not provided!");
         }
         
         // Validate the governance action format

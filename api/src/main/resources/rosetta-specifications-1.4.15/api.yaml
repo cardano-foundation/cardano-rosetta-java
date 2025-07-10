@@ -1787,7 +1787,7 @@ components:
       description: Parameters for a governance vote by a pool operator.
       type: object
       properties:
-        governance_action:
+        governance_action_hash:
           description: GovAction is a unique identifier for governance action
           $ref: '#/components/schemas/GovActionParams'
         pool_credential:
