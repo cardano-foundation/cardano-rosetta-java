@@ -446,10 +446,10 @@ public class CborMapToOperation {
 
     private static void addGovActionId(Map metadataMap, PoolGovernanceVoteParams operationMetadata) {
         Optional.ofNullable(metadataMap.get(key(Constants.GOVERNANCE_ACTION)))
-                .ifPresent(governanceAction -> {
-                    Map governanceActionMap = (Map) governanceAction;
-                    UnicodeString txId = (UnicodeString) governanceActionMap.get(new UnicodeString("tx_id"));
-                    UnsignedInteger index = (UnsignedInteger) governanceActionMap.get(new UnicodeString("index"));
+                .ifPresent(governanceActionHash -> {
+                    Map governanceActionHashMap = (Map) governanceActionHash;
+                    UnicodeString txId = (UnicodeString) governanceActionHashMap.get(new UnicodeString("tx_id"));
+                    UnsignedInteger index = (UnsignedInteger) governanceActionHashMap.get(new UnicodeString("index"));
 
                     String concatenatedGovAction = org.cardanofoundation.rosetta.common.util.GovActionParamsUtil
                             .formatGovActionString(txId.getString(), index.getValue().intValue());

@@ -333,15 +333,15 @@ public class ProcessConstructions {
             throw ExceptionFactory.invalidGovernanceVote("Invalid pool credential key length: " + poolCredentialKeyHexBytes.length());
         }
 
-        String governanceAction = poolGovernanceVoteParams.getGovernanceAction();
-        if (governanceAction == null || governanceAction.trim().isEmpty()) {
+        String governanceActionHash = poolGovernanceVoteParams.getGovernanceAction();
+        if (governanceActionHash == null || governanceActionHash.trim().isEmpty()) {
             log.error("[processCastVote] governance action parameters were not provided");
 
             throw ExceptionFactory.invalidGovernanceVote("Parameter 'governance_action_hash' not provided!");
         }
         
         // Validate the governance action format
-        GovActionParamsUtil.parseAndValidate(governanceAction);
+        GovActionParamsUtil.parseAndValidate(governanceActionHash);
         GovVoteParams voteParams = poolGovernanceVoteParams.getVote();
 
         if (voteParams == null) {
