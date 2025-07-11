@@ -453,7 +453,7 @@ public class CborMapToOperation {
 
                     String concatenatedGovAction = org.cardanofoundation.rosetta.common.util.GovActionParamsUtil
                             .formatGovActionString(txId.getString(), index.getValue().intValue());
-                    operationMetadata.setGovernanceAction(concatenatedGovAction);
+                    operationMetadata.setGovernanceActionHash(concatenatedGovAction);
                 });
     }
 

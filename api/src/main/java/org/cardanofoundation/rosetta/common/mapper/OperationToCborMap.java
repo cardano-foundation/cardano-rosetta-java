@@ -94,7 +94,7 @@ public class OperationToCborMap {
             Map actionMap = new Map();
             // Parse the concatenated governance action string
             org.cardanofoundation.rosetta.common.util.GovActionParamsUtil.ParsedGovActionParams parsedGovAction = 
-                    org.cardanofoundation.rosetta.common.util.GovActionParamsUtil.parseAndValidate(poolGovernanceVoteParams.getGovernanceAction());
+                    org.cardanofoundation.rosetta.common.util.GovActionParamsUtil.parseAndValidate(poolGovernanceVoteParams.getGovernanceActionHash());
             
             putStringDataItemToMap(actionMap, "tx_id", parsedGovAction.getTxId());
             putUnsignedIntegerToMap(actionMap, "index", parsedGovAction.getIndex());

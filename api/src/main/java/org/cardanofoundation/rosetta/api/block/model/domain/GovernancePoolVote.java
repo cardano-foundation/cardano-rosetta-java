@@ -37,7 +37,7 @@ public class GovernancePoolVote {
 
     public static GovernancePoolVote convertToRosetta(PoolGovernanceVoteParams voteParams) {
         GovernancePoolVoteBuilder governanceVoteBuilder = GovernancePoolVote.builder()
-                .govActionId(convertGovActionIdToRosetta(voteParams.getGovernanceAction()))
+                .govActionId(convertGovActionIdToRosetta(voteParams.getGovernanceActionHash()))
                 .poolCredentialHex(voteParams.getPoolCredential().getHexBytes())
                 .voter(convertFromRosetta(voteParams.getPoolCredential())) // for now only support pool credential
                 .vote(convertToRosetta(voteParams.getVote()));
