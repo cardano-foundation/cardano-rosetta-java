@@ -1,4 +1,3 @@
-**Maximum concurrency achieved per endpoint**
 
 | ID  | Endpoint               | Max Concurrency | p95 (ms) | p99 (ms) | Non-2xx | Error Rate (%) | Reqs/sec |
 | --- | ---------------------- | --------------- | -------- | -------- | ------- | -------------- | -------- |

@@ -18,7 +18,16 @@ Hardware profiles are implemented as environment files that are passed to Docker
 Cardano Rosetta Java provides preconfigured hardware profiles to match different deployment scenarios:
 
 <Tabs>
-<TabItem value="mid" label="⭐ Mid-Level (recommended)">
+<TabItem value="advance" label="Advanced-Level ">
+
+Optimized for **high-performance production environments** with robust resources:
+
+- 16 CPU cores
+- 94 GB RAM
+- Ideal for large-scale production deployments with high traffic and intensive workloads
+
+</TabItem>
+<TabItem value="mid" label="⭐ Mid-Level (recommended)" default>
 
 Optimized for **production environments** with moderate resources:
 
@@ -48,17 +57,19 @@ Hardware profiles define two main sets of configuration parameters:
 
 ### Profile Parameters Comparison
 
-| Parameter                        | Entry-Level | Mid-Level | Purpose                                       |
-| -------------------------------- | ----------- | --------- | --------------------------------------------- |
-| API_DB_POOL_MIN_COUNT            | 12          | 150       | Minimum database connections                  |
-| API_DB_POOL_MAX_COUNT            | 12          | 150       | Maximum database connections                  |
-| DB_POSTGRES_MAX_CONNECTIONS      | 120         | 300       | Maximum PostgreSQL connections                |
-| DB_POSTGRES_SHARED_BUFFERS       | 1GB         | 4GB       | Memory for data caching                       |
-| DB_POSTGRES_EFFECTIVE_CACHE_SIZE | 2GB         | 8GB       | Estimate of memory available for disk caching |
-| DB_POSTGRES_WORK_MEM             | 16MB        | 64MB      | Memory for query operations                   |
-| DB_POSTGRES_MAINTENANCE_WORK_MEM | 128MB       | 512MB     | Memory for maintenance operations             |
-| DB_POSTGRES_WAL_BUFFERS          | 16MB        | 512MB     | Memory for write-ahead logging                |
-| DB_POSTGRES_MAX_PARALLEL_WORKERS | 4           | 8         | Maximum parallel query workers                |
+| Parameter                        | Entry-Level | Mid-Level | Advanced-Level | Purpose                                       |
+|----------------------------------|-------------|-----------|----------------|-----------------------------------------------|
+| API_DB_POOL_MIN_COUNT            | 12          | 150       | 100            | Minimum database connections                  |
+| API_DB_POOL_MAX_COUNT            | 12          | 150       | 550            | Maximum database connections                  |
+| DB_POSTGRES_MAX_CONNECTIONS      | 120         | 300       | 600            | Maximum PostgreSQL connections                |
+| DB_POSTGRES_SHARED_BUFFERS       | 1GB         | 4GB       | 32GB           | Memory for data caching                       |
+| DB_POSTGRES_EFFECTIVE_CACHE_SIZE | 2GB         | 8GB       | 32GB           | Estimate of memory available for disk caching |
+| DB_POSTGRES_WORK_MEM             | 16MB        | 64MB      | 96GB           | Memory for query operations                   |
+| DB_POSTGRES_MAINTENANCE_WORK_MEM | 128MB       | 512MB     | 2GB            | Memory for maintenance operations             |
+| DB_POSTGRES_WAL_BUFFERS          | 16MB        | 512MB     | 512MB          | Memory for write-ahead logging                |
+| DB_POSTGRES_MAX_PARALLEL_WORKERS | 4           | 8         | 16             | Maximum parallel query workers                |
+
+
 
 ## How to Use Hardware Profiles
 
