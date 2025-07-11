@@ -1,0 +1,31 @@
+# # my global config
+global:
+  scrape_interval: 15s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
+  evaluation_interval: 15s # Evaluate rules every 15 seconds. The default is every 1 minute.
+scrape_configs:
+  # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
+  - job_name: 'prometheus'
+    static_configs:
+       - targets: ['prometheus:9090']
+
+  - job_name: 'postgres_exporter and cardano_node'
+    static_configs:
+      - targets: ['postgresql-exporter:9187']
+        labels:
+          application: 'postgreSQL_exporter'
+      - targets: ['cardano-node:12798']
+        labels:
+          application: 'cardano_node'     
+    fallback_scrape_protocol: 'PrometheusText0.0.4'     
+
+  - job_name: 'api and yaci_indexer'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 10s
+    static_configs:
+      - targets: ['yaci-indexer:9095']
+        labels:
+          application: 'yaci_indexer'
+      - targets: ['api:8082']
+        labels:
+          application: 'api'
+
