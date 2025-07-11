@@ -61,7 +61,7 @@ public interface TransactionMapper {
   @Mapping(target = "status", source = "status.status")
   @Mapping(target = "type", constant = Constants.OPERATION_TYPE_POOL_GOVERNANCE_VOTE)
   @Mapping(target = "operationIdentifier", source = "index", qualifiedByName = "OperationIdentifier")
-  @Mapping(target = "metadata.poolGovernanceVoteParams.governanceAction", source = "governancePoolVote.govActionId", qualifiedByName = "convertGovActionIdToRosetta")
+  @Mapping(target = "metadata.poolGovernanceVoteParams.governanceActionHash", source = "governancePoolVote.govActionId", qualifiedByName = "convertGovActionIdToRosetta")
   @Mapping(target = "metadata.poolGovernanceVoteParams.poolCredential", source = "governancePoolVote.poolCredentialHex", qualifiedByName = "convertPoolCredentialToRosetta")
   @Mapping(target = "metadata.poolGovernanceVoteParams.vote", source = "governancePoolVote.vote", qualifiedByName = "convertGovVoteToRosetta")
   @Mapping(target = "metadata.poolGovernanceVoteParams.voteRationale", source = "governancePoolVote.voteRationale", qualifiedByName = "convertGovAnchorFromRosetta")
