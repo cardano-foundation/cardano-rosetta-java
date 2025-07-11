@@ -125,6 +125,8 @@ RUN mkdir -p /root/.local/bin \
 
 
 FROM ubuntu:24.04 AS node-runner
+
+RUN apt-get update && apt-get install -y jq bc && apt-get clean
 COPY --from=cardano-builder /usr/local/lib /usr/local/lib
 COPY --from=cardano-builder /root/.local/bin/cardano-* /usr/local/bin/
 COPY --from=cardano-builder /usr/local/src/cardano-node/cardano-submit-api/config/tx-submit-mainnet-config.yaml /cardano-submit-api-config/cardano-submit-api.yaml
@@ -151,6 +153,9 @@ ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 ENV PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH
 
 RUN mkdir /logs
+
+COPY ./docker/dockerfiles/node/wait-for-node-sync.sh /sbin/wait-for-node-sync.sh
+RUN chmod +x /sbin/wait-for-node-sync.sh
 
 COPY ./docker/dockerfiles/node/entrypoint.sh /sbin/entrypoint.sh
 RUN chmod +x /sbin/entrypoint.sh
