@@ -7,12 +7,22 @@ description: Performance measurement methodologies and results
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-import DockerCompose129 from './test-results/1.2.9/docker-compose.md';
-import HugeAddress373kv129 from './test-results/1.2.9/huge-address-373k.md';
-import HugeAddress16Mv129 from './test-results/1.2.9/huge-address-1.6M.md';
-import AdvDockerCompose129  from './test-results/1.2.9/advanced_profiles/docker-compose.md';
-import AdvHugeAddress373kv129  from './test-results/1.2.9/advanced_profiles/huge-address-373k.md';
-import AdvHugeAddress16Mv129  from './test-results/1.2.9/advanced_profiles/huge-address-1.6M.md';
+import MidDockerCompose129 from './test-results/1.2.9/mid_profile/docker-compose.md';
+import MidHugeAddress373kv129 from './test-results/1.2.9/mid_profile/huge-address-373k.md';
+import MidHugeAddress16Mv129 from './test-results/1.2.9/mid_profile/huge-address-1.6M.md';
+
+import MidDockerCompose129_pruned from './test-results/1.2.9/mid_profile/docker-compose-pruned.md';
+import MidHugeAddress373kv129_pruned from './test-results/1.2.9/mid_profile/huge-address-373k-pruned.md';
+import MidHugeAddress16Mv129_pruned from './test-results/1.2.9/mid_profile/huge-address-1.6M-pruned.md';
+
+import AdvDockerCompose129  from './test-results/1.2.9/advanced_profile/docker-compose.md';
+import AdvHugeAddress373kv129  from './test-results/1.2.9/advanced_profile/huge-address-373k.md';
+import AdvHugeAddress16Mv129  from './test-results/1.2.9/advanced_profile/huge-address-1.6M.md';
+
+import AdvDockerCompose129_pruned  from './test-results/1.2.9/advanced_profile/docker-compose-pruned.md';
+import AdvHugeAddress373kv129_pruned  from './test-results/1.2.9/advanced_profile/huge-address-373k-pruned.md';
+import AdvHugeAddress16Mv129_pruned   from './test-results/1.2.9/advanced_profile/huge-address-1.6M-pruned.md';
+
 
 import SingleDocker127 from './test-results/1.2.7/single-docker.md';
 import DockerCompose127 from './test-results/1.2.7/docker-compose.md';
@@ -46,29 +56,80 @@ To better understand the environments in which these results were obtained, plea
 
 <details>
 <summary>
-
 ### v1.2.9 (Jun 11, 2025)
-
 </summary>
-
 - [Release Notes](https://github.com/cardano-foundation/cardano-rosetta-java/releases/tag/1.2.9)
 
-The following tests were conducted on a **mid-level** hardware profile with the following specifications: **8 cores, 8 threads, 48GB RAM, 3.9TB NVMe, QEMU Virtual CPU v2.5+**.
+<details>
+<summary>
+ **Mid-level Hardware Profile** 
+</summary>
+**Machine Specs:** 8 cores, 8 threads, 47GB RAM, 3.9TB NVMe, QEMU Virtual CPU v2.5+
 
+Maximum concurrency achieved for each modes:
+<details>
+<summary>
+#### Pruning Enabled (`REMOVE_SPENT_UTXOS=true`)
+</summary>
 <Tabs>
   <TabItem value="compose" label="Docker Compose" default>
-    <DockerCompose129 />
+    <MidDockerCompose129_pruned />
   </TabItem>
   <TabItem value="huge-373k-v129" label="Huge Address (~373k txs)">
-    <HugeAddress373kv129 />
+    <MidHugeAddress373kv129_pruned />
   </TabItem>
   <TabItem value="huge-1.6M-v129" label="Huge Address (~1.6M txs)">
-    <HugeAddress16Mv129 />
+    <MidHugeAddress16Mv129_pruned />
   </TabItem>
 </Tabs>
+</details>
 
-The following tests were conducted on an **advanced-level** hardware profile with the following specifications: **16 cores, 16 threads, 94GB RAM, 3.9TB NVMe, QEMU Virtual CPU v2.5+**.
+<details>
+<summary>
+#### Pruning Disabled (`REMOVE_SPENT_UTXOS=false`)
+</summary>
+<Tabs>
+  <TabItem value="adv_docker_compose129" label="Docker Compose" default>
+    <MidDockerCompose129 />
+  </TabItem>
+  <TabItem value="adv_docker_compose129_huge-373k-v129" label="Huge Address (~373k txs)">
+    <MidHugeAddress373kv129 />
+  </TabItem>
+  <TabItem value="adv_docker_compose129_huge-1.6M-v129" label="Huge Address (~1.6M txs)">
+    <MidHugeAddress16Mv129 />
+  </TabItem>
+</Tabs>
+</details>
+</details>
 
+<details>
+<summary>
+ **Advanced-level Hardware Profile** 
+</summary>
+**Machine Specs:** 16 cores, 16 threads, 47GB RAM, 3.9TB NVMe, QEMU Virtual CPU v2.5+
+
+Maximum concurrency achieved for each modes:
+<details>
+<summary>
+#### Pruning Enabled (`REMOVE_SPENT_UTXOS=true`)
+</summary>
+<Tabs>
+  <TabItem value="compose" label="Docker Compose" default>
+    <AdvDockerCompose129_pruned />
+  </TabItem>
+  <TabItem value="huge-373k-v129" label="Huge Address (~373k txs)">
+    <AdvHugeAddress373kv129_pruned />
+  </TabItem>
+  <TabItem value="huge-1.6M-v129" label="Huge Address (~1.6M txs)">
+    <AdvHugeAddress16Mv129_pruned />
+  </TabItem>
+</Tabs>
+</details>
+
+<details>
+<summary>
+#### Pruning Disabled (`REMOVE_SPENT_UTXOS=false`)
+</summary>
 <Tabs>
   <TabItem value="adv_docker_compose129" label="Docker Compose" default>
     <AdvDockerCompose129 />
@@ -80,14 +141,15 @@ The following tests were conducted on an **advanced-level** hardware profile wit
     <AdvHugeAddress16Mv129 />
   </TabItem>
 </Tabs>
+</details>
+</details>
 
 </details>
 
+
 <details>
 <summary>
-
 ### v1.2.7 (Apr 29, 2025)
-
 </summary>
 
 - [Release Notes](https://github.com/cardano-foundation/cardano-rosetta-java/releases/tag/1.2.7)
