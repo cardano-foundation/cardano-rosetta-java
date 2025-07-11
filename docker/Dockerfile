@@ -35,7 +35,7 @@ ARG CONFIG_FORK_REPO="VladislavKudrin/gnu-config-fork"
 ARG CONFIG_FORK_BRANCH="master"
 
 # Mithril version
-ARG MITHRIL_VERSION=${MITHRIL_VERSION:-2517.1}
+ARG MITHRIL_VERSION=${MITHRIL_VERSION:-2524.0}
 
 RUN bash -c "ghcup install cabal ${CABAL_VERSION}"
 RUN bash -c "ghcup set cabal ${CABAL_VERSION}"
@@ -269,7 +269,7 @@ COPY --from=postgres-builder /usr/local/pgsql /usr/local/pgsql
 ENV PG_BIN="/usr/local/pgsql/bin"
 ENV PG_DATA="/var/lib/postgresql/data"
 ENV PATH="$PG_BIN:$PATH"
-RUN mkdir -p $PG_DATA 
+RUN mkdir -p $PG_DATA
 RUN useradd -m -U -s /bin/bash postgres
 
 # Run

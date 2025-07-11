@@ -1,25 +1,27 @@
 package org.cardanofoundation.rosetta.common.util;
 
-import java.math.BigInteger;
-import java.util.Objects;
-import java.util.Set;
+import com.bloxbean.cardano.client.common.model.Network;
+import com.bloxbean.cardano.client.crypto.Bech32;
+import com.bloxbean.cardano.client.transaction.spec.Withdrawal;
+import com.bloxbean.cardano.client.util.HexUtil;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
-
 import lombok.extern.slf4j.Slf4j;
-
-import com.bloxbean.cardano.client.common.model.Network;
-import com.bloxbean.cardano.client.transaction.spec.AuxiliaryData;
-import com.bloxbean.cardano.client.transaction.spec.Withdrawal;
 import org.apache.commons.lang3.ObjectUtils;
-import org.openapitools.client.model.Operation;
-
+import org.cardanofoundation.rosetta.api.block.model.domain.GovernancePoolVote;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProcessOperations;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.common.model.cardano.pool.PoolRegistrationCertReturn;
 import org.cardanofoundation.rosetta.common.model.cardano.pool.PoolRetirement;
 import org.cardanofoundation.rosetta.common.model.cardano.pool.ProcessPoolRegistrationReturn;
 import org.cardanofoundation.rosetta.common.model.cardano.pool.ProcessWithdrawalReturn;
+import org.openapitools.client.model.AccountIdentifier;
+import org.openapitools.client.model.Operation;
+
+import java.math.BigInteger;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 
 @Slf4j
 public class OperationParseUtil {
@@ -38,7 +40,7 @@ public class OperationParseUtil {
 
     OperationType operationType = OperationType.fromValue(type);
     if (operationType == null) {
-        return null;
+      return null;
     }
 
     return switch (OperationType.fromValue(type)) {
@@ -60,8 +62,8 @@ public class OperationParseUtil {
               parsePoolRegistrationWithCert(operation, network, resultAccumulator);
       case OperationType.POOL_RETIREMENT ->
               parsePoolRetirement(operation, resultAccumulator);
-      case OperationType.VOTE_REGISTRATION ->
-              parseVoteRegistration(operation, resultAccumulator);
+      case OperationType.POOL_GOVERNANCE_VOTE ->
+              parsePoolGovernanceVote(operation, resultAccumulator);
     };
   }
 
@@ -146,16 +148,6 @@ public class OperationParseUtil {
   }
 
   @NotNull
-  private static ProcessOperations parseVoteRegistration(Operation operation,
-                                                         ProcessOperations resultAccumulator) {
-    AuxiliaryData voteRegistrationMetadata = ProcessConstructions.processVoteRegistration(
-            operation);
-    resultAccumulator.setVoteRegistrationMetadata(voteRegistrationMetadata);
-
-    return resultAccumulator;
-  }
-
-  @NotNull
   private static ProcessOperations parsePoolRetirement(Operation operation,
                                                        ProcessOperations resultAccumulator) {
     PoolRetirement poolRetirement = ProcessConstructions.getPoolRetirementFromOperation(
@@ -168,14 +160,19 @@ public class OperationParseUtil {
 
   @NotNull
   private static ProcessOperations parsePoolRegistrationWithCert(Operation operation,
-                                                                 Network network, ProcessOperations resultAccumulator) {
+                                                                 Network network,
+                                                                 ProcessOperations resultAccumulator) {
     PoolRegistrationCertReturn poolRegistrationCertReturn = ProcessConstructions.getPoolRegistrationCertFromOperation(
             operation, network);
 
     resultAccumulator.getCertificates().add(poolRegistrationCertReturn.getCertificate());
+
     Set<String> set = poolRegistrationCertReturn.getAddress();
+
     resultAccumulator.getAddresses().addAll(set);
+
     double poolNumber = resultAccumulator.getPoolRegistrationsCount();
+
     resultAccumulator.setPoolRegistrationsCount(++poolNumber);
 
     return resultAccumulator;
@@ -192,9 +189,33 @@ public class OperationParseUtil {
             .addAll(processPoolRegistrationReturn.getTotalAddresses());
 
     double poolNumber = resultAccumulator.getPoolRegistrationsCount();
+
     resultAccumulator.setPoolRegistrationsCount(++poolNumber);
 
     return resultAccumulator;
+  }
+
+  private static ProcessOperations parsePoolGovernanceVote(Operation operation,
+                                                           ProcessOperations processOperations) {
+    AccountIdentifier account = operation.getAccount();
+    String poolKeyHash = account.getAddress();
+
+    if (CardanoAddressUtils.isValidBech32(poolKeyHash)) {
+      poolKeyHash = HexUtil.encodeHexString(Bech32.decode(poolKeyHash).data);
+    }
+
+    processOperations.getAddresses().add(poolKeyHash);
+
+    // at this point we should no longer have the bech32 of hashed address, only pool hash
+    ValidateParseUtil.validateAndParsePoolKeyHash(poolKeyHash);
+
+    Optional.of(operation.getMetadata().getPoolGovernanceVoteParams()).ifPresent(poolGovernanceVoteParams -> {
+      GovernancePoolVote governancePoolVote = ProcessConstructions.processGovernanceVote(operation);
+
+      processOperations.getGovernancePoolVotes().add(governancePoolVote);
+    });
+
+    return processOperations;
   }
 
 }

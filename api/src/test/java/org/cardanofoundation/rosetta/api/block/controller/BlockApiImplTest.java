@@ -162,6 +162,7 @@ class BlockApiImplTest extends BaseSpringMvcSetup {
     BlockRequest blockRequest = newBlockRequest();
     BlockResponse blockResp = newBlockResponse();
     when(blockMapper.mapToBlockResponse(any(Block.class))).thenReturn(blockResp);
+
     return blockRequest;
   }
 

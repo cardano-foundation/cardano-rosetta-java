@@ -62,7 +62,7 @@ Within root folder of the project there are example `.env` files, which can be c
 | `API_DB_KEEP_ALIVE_MS`                        | Keep alive in milliseconds                       | 60000                                 | added in release 1.2.5  |
 | `API_DB_LEAK_CONNECTIONS_WARNING_MS`          | Leak connection warning threshold (ms)           | 60000                                 | added in release 1.2.5  |
 | `API_DB_MONITOR_PERFORMANCE`                  | Monitor performance enable?                      | false                                 | added in release 1.2.5  |
-| `API_DB_SHOW_SQL`                             | Show formatted SQL queries in logs for debugging | false                                 | added in release 1.2.5                                     |
+| `API_DB_SHOW_SQL`                             | Show formatted SQL queries in logs for debugging | false                                 | added in release 1.2.5  |
 | `DB_POSTGRES_MAX_CONNECTIONS`                 | Maximum concurrent database connections          | 300 (mid-level profile)               | added in release 1.2.6  |
 | `DB_POSTGRES_SHARED_BUFFERS`                  | Memory for caching                               | 4GB (mid-level profile)               | added in release 1.2.6  |
 | `DB_POSTGRES_EFFECTIVE_CACHE_SIZE`            | Disk cache size                                  | 8GB (mid-level profile)               | added in release 1.2.6  |
@@ -80,7 +80,8 @@ Within root folder of the project there are example `.env` files, which can be c
 | `DB_POSTGRES_JIT`                             | Just-In-Time compilation setting                 | off                                   | added in release 1.2.6  |
 | `DB_POSTGRES_BGWRITER_LRU_MAXPAGES`           | Max pages for background writer per cycle        | 100 (mid-level profile)               | added in release 1.2.6  |
 | `DB_POSTGRES_BGWRITER_DELAY`                  | Delay between background writer cycles           | 200ms (mid-level profile)             | added in release 1.2.6  |
-| `BLOCK_FETCH_TIMEOUT_SECS`                    | Timeout for fetching blocks in seconds           | 5                                     | added in release 1.2.10 |
+| `BLOCK_TRANSACTION_API_TIMEOUT_SECS`          | Timeout for fetching blocks in seconds           | 5                                     | added in release 1.2.11 |
+| `CONTINUE_ON_PARSE_ERROR`                     | Continue processing failed to parse blocks       | true                                  | added in release 1.2.12 |
 
 ## Deprecated Environment Variables (Previous Versions)
 

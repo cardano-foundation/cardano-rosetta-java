@@ -1,5 +1,10 @@
 [
   {
+    "code": 4000,
+    "message": "Invalid Network configuration",
+    "retriable": false
+  },
+  {
     "code": 4001,
     "message": "Block not found",
     "retriable": false
@@ -36,7 +41,7 @@
   },
   {
     "code": 4008,
-    "message": "Transaction inputs parameters errors in operations array",
+    "message": "Public key is missing",
     "retriable": false
   },
   {
@@ -72,12 +77,12 @@
   {
     "code": 4015,
     "message": "Provided address is invalid",
-    "retriable": true
+    "retriable": false
   },
   {
     "code": 4016,
     "message": "Provided address type is invalid",
-    "retriable": true
+    "retriable": false
   },
   {
     "code": 4017,
@@ -92,7 +97,7 @@
   {
     "code": 4019,
     "message": "Provided operation type is invalid",
-    "retriable": true
+    "retriable": false
   },
   {
     "code": 4020,
@@ -185,9 +190,19 @@
     "retriable": false
   },
   {
+    "code": 4038,
+    "message": "Environment configurations needed to run server were not found",
+    "retriable": false
+  },
+  {
+    "code": 4039,
+    "message": "Provided address has wrong casing, this might lead to problems with other tools",
+    "retriable": false
+  },
+  {
     "code": 5000,
     "message": "An error occurred",
-    "retriable": true
+    "retriable": false
   },
   {
     "code": 5001,
@@ -220,31 +235,6 @@
     "retriable": true
   },
   {
-    "code": 5007,
-    "message": "Voting nonce not valid",
-    "retriable": false
-  },
-  {
-    "code": 5008,
-    "message": "Invalid voting signature",
-    "retriable": false
-  },
-  {
-    "code": 5009,
-    "message": "Voting key is missing",
-    "retriable": false
-  },
-  {
-    "code": 5010,
-    "message": "Voting key format is invalid",
-    "retriable": false
-  },
-  {
-    "code": 5011,
-    "message": "Missing vote registration metadata",
-    "retriable": false
-  },
-  {
     "code": 5012,
     "message": "Missing chain code",
     "retriable": false
@@ -273,5 +263,186 @@
     "code": 5017,
     "message": "Coin identifier has an invalid format",
     "retriable": false
+  },
+  {
+    "code": 5018,
+    "message": "Cant decode mempool transaction",
+    "retriable": false
+  },
+  {
+    "code": 5019,
+    "message": "Can't decode Transaction",
+    "retriable": false
+  },
+  {
+    "code": 5020,
+    "message": "Error during serialization process",
+    "retriable": false
+  },
+  {
+    "code": 5021,
+    "message": "Error during deserialization process",
+    "retriable": false
+  },
+  {
+    "code": 5022,
+    "message": "body.metadata must have required property 'ttl'",
+    "retriable": false
+  },
+  {
+    "code": 5023,
+    "message": "body.metadata must have required property 'protocol_parameters'",
+    "retriable": false
+  },
+  {
+    "code": 5024,
+    "message": "body.metadata must have required property 'coinsPerUtxoSize'",
+    "retriable": false
+  },
+  {
+    "code": 5025,
+    "message": "body.metadata must have required property 'maxTxSize'",
+    "retriable": false
+  },
+  {
+    "code": 5026,
+    "message": "body.metadata must have required property 'maxValSize'",
+    "retriable": false
+  },
+  {
+    "code": 5027,
+    "message": "body.metadata must have required property 'keyDeposit'",
+    "retriable": false
+  },
+  {
+    "code": 5028,
+    "message": "body.metadata must have required property 'maxCollateralInputs'",
+    "retriable": false
+  },
+  {
+    "code": 5029,
+    "message": "body.metadata must have required property 'minFeeCoefficient'",
+    "retriable": false
+  },
+  {
+    "code": 5030,
+    "message": "body.metadata must have required property 'minFeeConstant'",
+    "retriable": false
+  },
+  {
+    "code": 5031,
+    "message": "body.metadata must have required property 'minPoolCost'",
+    "retriable": false
+  },
+  {
+    "code": 5032,
+    "message": "body.metadata must have required property 'protocol'",
+    "retriable": false
+  },
+  {
+    "code": 5033,
+    "message": "body.metadata must have required property 'poolDeposit'",
+    "retriable": false
+  },
+  {
+    "code": 5034,
+    "message": "This operation is not supported in offline mode",
+    "retriable": false
+  },
+  {
+    "code": 5035,
+    "message": "Unable to get data from the downstream gateway",
+    "retriable": false
+  },
+  {
+    "code": 5036,
+    "message": "Time is misconfigured on the server, check system date and time, current time is before Cardano's Shelly start time, which is impossible.",
+    "retriable": false
+  },
+  {
+    "code": 5037,
+    "message": "Invalid drep type",
+    "retriable": false
+  },
+  {
+    "code": 5038,
+    "message": "Missing drep",
+    "retriable": false
+  },
+  {
+    "code": 5039,
+    "message": "Missing drep id",
+    "retriable": false
+  },
+  {
+    "code": 5040,
+    "message": "Missing drep type",
+    "retriable": false
+  },
+  {
+    "code": 5041,
+    "message": "Downstream timeout",
+    "retriable": false
+  },
+  {
+    "code": 5042,
+    "message": "Invalid block index",
+    "retriable": false
+  },
+  {
+    "code": 5043,
+    "message": "Oldest block not found",
+    "retriable": false
+  },
+  {
+    "code": 5044,
+    "message": "Withdrawal amounts cannot be negative",
+    "retriable": false
+  },
+  {
+    "code": 5045,
+    "message": "There is a mismatch in the drep id header and drep type. Drep id header type and drep type should match.",
+    "retriable": false
+  },
+  {
+    "code": 5046,
+    "message": "Invalid drep id length. Should be 28 or 29 bytes",
+    "retriable": false
+  },
+  {
+    "code": 5047,
+    "message": "Governance vote is invalid",
+    "retriable": false
+  },
+  {
+    "code": 5048,
+    "message": "Transaction inputs parameters errors in operations array",
+    "retriable": false
+  },
+  {
+    "code": 5049,
+    "message": "Cant encode extra data",
+    "retriable": false
+  },
+  {
+    "code": 5050,
+    "message": "Call method not supported",
+    "description": null,
+    "retriable": false,
+    "details": null
+  },
+  {
+    "code": 5051,
+    "message": "Call parameter missing",
+    "description": null,
+    "retriable": false,
+    "details": null
+  },
+  {
+    "code": 5052,
+    "message": "Invalid block error review status",
+    "description": null,
+    "retriable": false,
+    "details": null
   }
 ]

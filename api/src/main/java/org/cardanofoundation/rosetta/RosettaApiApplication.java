@@ -23,6 +23,7 @@ import org.openapitools.jackson.nullable.JsonNullableModule;
 @SpringBootApplication
 @EntityScan({
     "org.cardanofoundation.rosetta.api.account.model.entity",
+    "org.cardanofoundation.rosetta.api.error.model.entity",
     "org.cardanofoundation.rosetta.api.block.model.entity",
     "org.cardanofoundation.rosetta.api.construction.model.entity",
     "org.cardanofoundation.rosetta.api.network.model.entity",
