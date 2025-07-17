@@ -66,6 +66,9 @@ TEST_WALLET_MNEMONIC="your mnemonic here"
 STAKE_POOL_HASH=d9812f8d30b5db4b03e5b76cfd242db9cd2763da4671ed062be808a0 # Required for stake delegation tests
 DREP_KEY_HASH_ID=03ccae794affbe27a5f5f74da6266002db11daa6ae446aea783b972d # Required for DRep vote delegation tests with key_hash type
 DREP_SCRIPT_HASH_ID=2d4cb680b5f400d3521d272b4295d61150e0eff3950ef4285406a953 # Required for DRep vote delegation tests with script_hash type
+POOL_REGISTRATION_CERT=<hex-encoded-cert> # Required for poolRegistrationWithCert test
+POOL_GOVERNANCE_PROPOSAL_ID=df58f714c0765f3489afb6909384a16c31d600695be7e86ff9c59cf2e8a48c7900 # Required for pool governance vote tests
+POOL_VOTE_CHOICE=yes # Optional: Vote choice for pool governance vote (yes/no/abstain, default: yes)
 ```
 
 ## Usage
@@ -126,6 +129,17 @@ pytest --log-cli-level=INFO tests/test_stake_operations.py::test_drep_vote_deleg
 pytest --log-cli-level=INFO tests/test_stake_operations.py::test_drep_vote_delegation_key_hash
 pytest --log-cli-level=INFO tests/test_stake_operations.py::test_drep_vote_delegation_script_hash
 pytest --log-cli-level=INFO tests/test_stake_operations.py::test_scenario_B_final_deregistration
+
+# Pool operation tests
+
+# Run all pool operation tests
+pytest --log-cli-level=INFO tests/test_pool_operations.py
+
+# Run specific pool operation tests
+pytest --log-cli-level=INFO tests/test_pool_operations.py::test_pool_registration
+pytest --log-cli-level=INFO tests/test_pool_operations.py::test_pool_registration_with_cert
+pytest --log-cli-level=INFO tests/test_pool_operations.py::test_pool_governance_vote
+pytest --log-cli-level=INFO tests/test_pool_operations.py::test_pool_retirement
 ```
 
 ## Test Scenarios
@@ -150,6 +164,13 @@ pytest --log-cli-level=INFO tests/test_stake_operations.py::test_scenario_B_fina
 2. **DRep Vote Delegation - No Confidence**: Delegate voting power to no confidence
 3. **DRep Vote Delegation - Key Hash**: Delegate voting power to a DRep with key hash
 4. **DRep Vote Delegation - Script Hash**: Delegate voting power to a DRep with script hash
+
+### Pool Operations
+
+1. **Pool Registration**: Register a new stake pool with generated parameters
+2. **Pool Registration With Certificate**: Register a pool using a pre-created certificate
+3. **Pool Governance Vote**: Submit governance votes as a Stake Pool Operator (SPO)
+4. **Pool Retirement**: Retire the registered stake pool and reclaim deposit
 
 ## API Coverage
 

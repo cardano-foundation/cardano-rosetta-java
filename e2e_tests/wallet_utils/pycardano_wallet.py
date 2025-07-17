@@ -328,4 +328,148 @@ class PyCardanoWallet:
             pool_hash = PoolId.from_bech32(pool_id)
             return bytes(pool_hash).hex()
         else:
-            raise ValueError(f"Invalid pool ID format: {pool_id}") 
+            raise ValueError(f"Invalid pool ID format: {pool_id}")
+
+    def generate_pool_keys(self) -> None:
+        """Generate pool cold keys for stake pool operations.
+        
+        This creates the cold keys needed for pool registration and voting.
+        Uses a deterministic derivation path from the wallet's HD root.
+        """
+        if not self.hd_wallet:
+            raise ValueError("HD wallet not initialized")
+            
+        # Derive pool cold keys using path m/1853'/1815'/0'/0' (pool cold key path)
+        # see https://cips.cardano.org/cip/CIP-1853
+        pool_derived_wallet = self.hd_wallet.derive_from_path("m/1853'/1815'/0'/0'")
+        self.pool_cold_signing_key = PaymentExtendedSigningKey.from_hdwallet(
+            pool_derived_wallet
+        )
+        self.pool_cold_verification_key = (
+            self.pool_cold_signing_key.to_verification_key()
+        )
+        
+    def get_pool_cold_verification_key_hex(self) -> str:
+        """Get the pool cold verification key as hex bytes.
+        
+        Returns:
+            Hex string of the pool cold verification key (32 bytes)
+            
+        Raises:
+            ValueError: If pool keys not generated
+        """
+        if not hasattr(self, 'pool_cold_verification_key') or not self.pool_cold_verification_key:
+            self.generate_pool_keys()
+            
+        # Get the raw verification key bytes (32 bytes)
+        vkey_bytes = bytes(self.pool_cold_verification_key)[:32]
+        return vkey_bytes.hex()
+        
+    def get_pool_cold_address(self) -> str:
+        """Get the pool cold key address as hex bytes.
+        
+        Returns:
+            Pool cold key address in hex format
+            
+        Raises:
+            ValueError: If pool keys not generated
+        """
+        if not hasattr(self, 'pool_cold_verification_key') or not self.pool_cold_verification_key:
+            self.generate_pool_keys()
+            
+        # Pool address is the verification key hash in hex
+        pool_key_hash = self.pool_cold_verification_key.hash()
+        return bytes(pool_key_hash).hex()
+        
+    def sign_with_pool_cold_key(self, signing_payload: Dict) -> Dict:
+        """
+        Sign a transaction payload with the pool cold key for pool operations.
+        
+        Args:
+            signing_payload: Signing payload from Rosetta construction/payloads endpoint
+            
+        Returns:
+            Dictionary containing the signature information required by the /construction/combine endpoint
+        """
+        if not hasattr(self, 'pool_cold_signing_key') or not self.pool_cold_signing_key:
+            self.generate_pool_keys()
+            
+        # Get the hex bytes to sign
+        hex_bytes = signing_payload.get("hex_bytes")
+        if not hex_bytes:
+            raise ValueError("No hex_bytes found in signing payload")
+            
+        # Sign the payload with the pool cold key
+        signature = self.pool_cold_signing_key.sign(bytes.fromhex(hex_bytes))
+        
+        # Get the raw verification key bytes (32 bytes)
+        vkey_bytes = bytes(self.pool_cold_verification_key)[:32]
+        
+        logger.debug("Pool cold verification key length: %d bytes", len(vkey_bytes))
+        logger.debug("Pool cold verification key hex: %s", vkey_bytes.hex())
+        
+        # Return the signature in the format expected by /construction/combine
+        return {
+            "signing_payload": signing_payload,
+            "public_key": {"hex_bytes": vkey_bytes.hex(), "curve_type": "edwards25519"},
+            "signature_type": "ed25519",
+            "hex_bytes": signature.hex(),
+        }
+        
+    def generate_pool_registration_params(
+        self,
+        cost: int = 340_000_000,  # 340 ADA
+        margin_numerator: int = 5,  # 5%
+        margin_denominator: int = 100,
+        pledge: int = 1_000_000_000,  # 1000 ADA
+        metadata_url: str = "https://example.com/pool-metadata.json",
+        metadata_hash: str = "9ac2217288d1ae0b4e15c41b58d3e05a13206fd9ab81cb15943e4174bf30c90b"
+    ) -> Dict:
+        """
+        Generate pool registration parameters for testing.
+        
+        Args:
+            cost: Pool cost in lovelace (default: 340 ADA)
+            margin_numerator: Margin numerator (default: 5 for 5%)
+            margin_denominator: Margin denominator (default: 100 for 5%)
+            pledge: Pool pledge in lovelace (default: 1000 ADA)
+            metadata_url: Pool metadata URL
+            metadata_hash: Pool metadata hash (hex)
+            
+        Returns:
+            Dictionary containing pool registration parameters
+        """
+        if not hasattr(self, 'pool_cold_verification_key') or not self.pool_cold_verification_key:
+            self.generate_pool_keys()
+            
+        # Generate a VRF key hash (in practice this would be a real VRF key)
+        # For testing, we'll use a deterministic hash based on the pool key
+        import hashlib
+        pool_key_bytes = bytes(self.pool_cold_verification_key)[:32]
+        vrf_key_hash = hashlib.sha256(pool_key_bytes + b"vrf").hexdigest()
+        
+        return {
+            "vrfKeyHash": vrf_key_hash,
+            "rewardAddress": self.get_stake_address(),
+            "pledge": str(pledge),
+            "cost": str(cost),
+            "poolOwners": [
+                self.get_stake_address()
+            ],
+            "relays": [
+                {
+                    "type": "single_host_addr",
+                    "ipv4": "127.0.0.1",
+                    "ipv6": "2345:0425:2ca1:0000:0000:0567:5673:23b5",
+                    "port": "6000"
+                }
+            ],
+            "margin": {
+                "numerator": str(margin_numerator),
+                "denominator": str(margin_denominator)
+            },
+            "poolMetadata": {
+                "url": metadata_url,
+                "hash": metadata_hash
+            }
+        } 
