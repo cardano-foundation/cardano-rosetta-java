@@ -62,7 +62,7 @@ public class CallServiceImpl implements CallService {
         
         CallResponse response = new CallResponse();
         response.setResult(result);
-        response.setIdempotent(true);
+        response.setIdempotent(false);
         
         log.info("Returning {} parse error blocks", parseErrorBlocks.size());
 
