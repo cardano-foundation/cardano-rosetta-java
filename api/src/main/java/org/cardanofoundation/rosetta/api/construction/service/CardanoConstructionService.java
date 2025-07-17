@@ -1,22 +1,11 @@
 package org.cardanofoundation.rosetta.api.construction.service;
 
-import java.io.IOException;
-import java.math.BigInteger;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import co.nstant.in.cbor.CborException;
 import co.nstant.in.cbor.model.Array;
 import com.bloxbean.cardano.client.common.model.Network;
 import com.bloxbean.cardano.client.exception.AddressExcepion;
 import com.bloxbean.cardano.client.exception.CborSerializationException;
 import com.bloxbean.cardano.client.transaction.spec.TransactionWitnessSet;
-import org.openapitools.client.model.DepositParameters;
-import org.openapitools.client.model.Operation;
-import org.openapitools.client.model.PublicKey;
-import org.openapitools.client.model.SigningPayload;
-
 import org.cardanofoundation.rosetta.api.block.model.domain.ProcessOperations;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
 import org.cardanofoundation.rosetta.api.construction.enumeration.AddressType;
@@ -25,6 +14,16 @@ import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
 import org.cardanofoundation.rosetta.common.model.cardano.crypto.Signatures;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.TransactionParsed;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.UnsignedTransaction;
+import org.openapitools.client.model.DepositParameters;
+import org.openapitools.client.model.Operation;
+import org.openapitools.client.model.PublicKey;
+import org.openapitools.client.model.SigningPayload;
+
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public interface CardanoConstructionService {
 
@@ -56,8 +55,7 @@ public interface CardanoConstructionService {
                                               List<BigInteger> withdrawalAmounts,
                                               Map<String, Double> depositsSumMap);
 
-  String buildTransaction(String unsignedTransaction,
-      List<Signatures> signaturesList, String transactionMetadata);
+  String buildTransaction(String unsignedTransaction, List<Signatures> signaturesList);
 
   TransactionWitnessSet getWitnessesForTransaction(
       List<Signatures> signaturesList);
@@ -75,8 +73,10 @@ public interface CardanoConstructionService {
 
   String extractTransactionIfNeeded(String txWithExtraData);
 
-  String getCardanoAddress(AddressType addressType, PublicKey stakingCredential,
-      PublicKey publicKey, NetworkEnum networkEnum);
+  String getCardanoAddress(AddressType addressType,
+                           PublicKey stakingCredential,
+                           PublicKey publicKey,
+                           NetworkEnum networkEnum);
 
   Map<String, Double> getDepositsSumMap(DepositParameters depositParameters, ProcessOperations result, double refundsSum);
 

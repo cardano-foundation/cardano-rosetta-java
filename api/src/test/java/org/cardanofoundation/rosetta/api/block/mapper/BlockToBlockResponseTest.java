@@ -1,24 +1,22 @@
 package org.cardanofoundation.rosetta.api.block.mapper;
 
-import java.math.BigInteger;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.IntStream;
-import java.util.stream.LongStream;
-import jakarta.validation.constraints.NotNull;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import com.bloxbean.cardano.yaci.core.model.certs.CertificateType;
-import org.openapitools.client.model.*;
-import org.openapitools.client.model.Currency;
-
-import org.junit.jupiter.api.Test;
-
+import jakarta.validation.constraints.NotNull;
 import org.cardanofoundation.rosetta.api.BaseMapperSetup;
 import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.block.model.domain.*;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
+import org.junit.jupiter.api.Test;
+import org.openapitools.client.model.*;
+import org.openapitools.client.model.Currency;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.math.BigInteger;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.IntStream;
+import java.util.stream.LongStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.cardanofoundation.rosetta.common.util.RosettaConstants.SUCCESS_OPERATION_STATUS;
@@ -308,7 +306,8 @@ class BlockToBlockResponseTest extends BaseMapperSetup {
                     .stakePoolDelegations(newDelegations(1, 2))
                     .poolRegistrations(newPoolRegistrations(1, 2))
                     .poolRetirements(newPoolRetirements(1, 2))
-                    .dRepDelegations(List.of()) // TODO drep vote delegation
+                    .governancePoolVotes(List.of()) // TODO governance votes (from db)
+                    .dRepDelegations(List.of()) // TODO drep vote delegation (from db)
                     .build(),
             BlockTx.builder()
                     .hash("hash2")
@@ -322,7 +321,8 @@ class BlockToBlockResponseTest extends BaseMapperSetup {
                     .stakePoolDelegations(newDelegations(3, 4))
                     .poolRegistrations(newPoolRegistrations(3, 4))
                     .poolRetirements(newPoolRetirements(3, 4))
-                    .dRepDelegations(List.of()) // TODO drep vote delegation
+                    .dRepDelegations(List.of()) // TODO drep vote delegation (from db)
+                    .governancePoolVotes(List.of()) // TODO governance votes (from db)
                     .build(),
         BlockTx.builder()
                     .hash("hash3")
@@ -336,7 +336,8 @@ class BlockToBlockResponseTest extends BaseMapperSetup {
                     .stakePoolDelegations(newDelegations(5, 6))
                     .poolRegistrations(newPoolRegistrations(5, 6))
                     .poolRetirements(newPoolRetirements(5, 6))
-                    .dRepDelegations(List.of()) // TODO drep vote delegation
+                    .dRepDelegations(List.of()) // TODO drep vote delegation (from db)
+                    .governancePoolVotes(List.of()) // TODO governance votes (from db)
                     .build()
     );
   }

@@ -452,7 +452,33 @@ paths:
   /call:
     post:
       summary: Make a Network-Specific Procedure Call
-      description: Call invokes an arbitrary, network-specific procedure call with network-specific parameters. The guidance for what this endpoint should or could do is purposely left vague. In Ethereum, this could be used to invoke `eth_call` to implement an entire Rosetta API interface for some smart contract that is not parsed by the implementation creator (like a DEX). This endpoint could also be used to provide access to data that does not map to any Rosetta models instead of requiring an integrator to use some network-specific SDK and call some network-specific endpoint (like surfacing staking parameters). Call is NOT a replacement for implementing Rosetta API endpoints or mapping network-specific data to Rosetta models. Rather, it enables developers to build additional Rosetta API interfaces for things they care about without introducing complexity into a base-level Rosetta implementation. Simply put, imagine that the average integrator will use layered Rosetta API implementations that each surfaces unique data.
+      description: |
+        Call invokes an arbitrary, network-specific procedure call with network-specific parameters. The guidance for what this endpoint should or could do is purposely left vague. In Ethereum, this could be used to invoke `eth_call` to implement an entire Rosetta API interface for some smart contract that is not parsed by the implementation creator (like a DEX). This endpoint could also be used to provide access to data that does not map to any Rosetta models instead of requiring an integrator to use some network-specific SDK and call some network-specific endpoint (like surfacing staking parameters). Call is NOT a replacement for implementing Rosetta API endpoints or mapping network-specific data to Rosetta models. Rather, it enables developers to build additional Rosetta API interfaces for things they care about without introducing complexity into a base-level Rosetta implementation. Simply put, imagine that the average integrator will use layered Rosetta API implementations that each surfaces unique data.
+        
+        ## Supported Methods
+        
+        ### get_parse_error_blocks
+        Retrieves blocks that encountered parsing errors during processing. This method allows exchanges and integrators to identify and review blocks that could not be fully parsed by the Rosetta implementation.
+        
+        **Request Parameters:**
+        - `status` (optional): Filter by review status. Valid values: "UNREVIEWED", "REVIEWED_AFFECTS_US", "REVIEWED_DOES_NOT_AFFECT_US"
+        
+        **Response:**
+        - `parse_error_blocks`: Array of block numbers with parsing errors and their review status
+        - `idempotent`: false (as error review status may change over time)
+        
+        ### mark_parse_error_block_checked
+        Marks all parsing errors for a specific block as reviewed with a given status. This method allows operators to bulk update the review status of all errors that occurred during the parsing of a particular block.
+        
+        **Request Parameters:**
+        - `block_number` (required): Block number to mark as checked
+        - `status` (required): Review status to set. Valid values: "REVIEWED_AFFECTS_US", "REVIEWED_DOES_NOT_AFFECT_US"
+        - `checked_by` (optional): Identifier of who reviewed the block
+        - `comment` (optional): Comment about the review
+        
+        **Response:**
+        - `parse_error_blocks_response`: array of block numbers with parsing errors and their updated review status
+        - `idempotent`: false (as this operation modifies error review status)
       operationId: call
       tags:
         - Call
@@ -878,18 +904,6 @@ components:
       format: int64
       minimum: 0
       example: 1582833600000
-    PublicKey:
-      description: PublicKey contains a public key byte array for a particular CurveType encoded in hex. Note that there is no PrivateKey struct as this is NEVER the concern of an implementation.
-      type: object
-      required:
-        - hex_bytes
-        - curve_type
-      properties:
-        hex_bytes:
-          type: string
-          description: Hex-encoded public key bytes in the format specified by the CurveType.
-        curve_type:
-          $ref: '#/components/schemas/CurveType'
     CurveType:
       description: 'CurveType is the type of cryptographic curve associated with a PublicKey. * secp256k1: SEC compressed - `33 bytes` (https://secg.org/sec1-v2.pdf#subsubsection.2.3.3) * secp256k1_bip340: x-only - `32 bytes`  (implicitly even `Y` coord. Secp256k1 compressed keys may be repurposed by dropping the first byte. (https://github.com/bitcoin/bips/blob/master/bip-0340.mediawiki#Public_Key_Generation)) * secp256r1: SEC compressed - `33 bytes` (https://secg.org/sec1-v2.pdf#subsubsection.2.3.3) * edwards25519: `y (255-bits) || x-sign-bit (1-bit)` - `32 bytes` (https://ed25519.cr.yp.to/ed25519-20110926.pdf) * tweedle: 1st pk : Fq.t (32 bytes) || 2nd pk : Fq.t (32 bytes) (https://github.com/CodaProtocol/coda/blob/develop/rfcs/0038-rosetta-construction-api.md#marshal-keys) * pallas: `x (255 bits) || y-parity-bit (1-bit) - 32 bytes` (https://github.com/zcash/pasta)'
       type: string
@@ -1498,14 +1512,29 @@ components:
           $ref: '#/components/schemas/NetworkIdentifier'
         method:
           type: string
-          description: Method is some network-specific procedure call. This method could map to a network-specific RPC endpoint, a method in an SDK generated from a smart contract, or some hybrid of the two. The implementation must define all available methods in the Allow object. However, it is up to the caller to determine which parameters to provide when invoking `/call`.
-          example: eth_call
+          description: |
+            Method is some network-specific procedure call. This method could map to a network-specific RPC endpoint, a method in an SDK generated from a smart contract, or some hybrid of the two. The implementation must define all available methods in the Allow object. However, it is up to the caller to determine which parameters to provide when invoking `/call`.
+            
+            For Cardano Rosetta, supported methods:
+            - `get_parse_error_blocks`: Retrieves blocks with parsing errors
+            - `mark_parse_error_block_checked`: Marks all errors for a block as reviewed
+          example: get_parse_error_blocks
         parameters:
           type: object
-          description: Parameters is some network-specific argument for a method. It is up to the caller to determine which parameters to provide when invoking `/call`.
+          additionalProperties: true
+          description: |
+            Parameters is some network-specific argument for a method. It is up to the caller to determine which parameters to provide when invoking `/call`.
+            
+            For `get_parse_error_blocks`:
+            - `status` (optional): Filter by review status. Valid values: "UNREVIEWED", "REVIEWED_AFFECTS_US", "REVIEWED_DOES_NOT_AFFECT_US"
+            
+            For `mark_parse_error_block_checked`:
+            - `block_number` (required): Block number to mark as checked
+            - `status` (required): Review status to set. Valid values: "REVIEWED_AFFECTS_US", "REVIEWED_DOES_NOT_AFFECT_US"
+            - `checked_by` (optional): Identifier of who reviewed the block
+            - `comment` (optional): Comment about the review
           example:
-            block_number: 23
-            address: '0x52bc44d5378309ee2abf1539bf71de1b7d7be3b5'
+            status: UNREVIEWED
     CallResponse:
       description: CallResponse contains the result of a `/call` invocation.
       type: object
@@ -1515,9 +1544,19 @@ components:
       properties:
         result:
           type: object
-          description: Result contains the result of the `/call` invocation. This result will not be inspected or interpreted by Rosetta tooling and is left to the caller to decode.
+          description: |
+            Result contains the result of the `/call` invocation. This result will not be inspected or interpreted by Rosetta tooling and is left to the caller to decode.
+            
+            For `get_parse_error_blocks`, the result contains:
+            - `parse_error_blocks`: Array of error entries with block numbers and review status
           example:
-            count: 1000
+            parse_error_blocks:
+              - error_id: 1
+                block_number: 12345
+                status: "UNREVIEWED"
+              - error_id: 2
+                block_number: 12346
+                status: "REVIEWED_AFFECTS_US"
         idempotent:
           type: boolean
           description: Idempotent indicates that if `/call` is invoked with the same CallRequest again, at any point in time, it will return the same CallResponse. Integrators may cache the CallResponse if this is set to true to avoid making unnecessary calls to the Rosetta implementation. For this reason, implementers should be very conservative about returning true here or they could cause issues for the caller.
@@ -1724,6 +1763,10 @@ components:
         drep:
           description: DRep
           $ref: '#/components/schemas/DRepParams'
+        poolGovernanceVoteParams:
+          description: PoolGovernanceVoteParams contains parameters related to casting a governance vote by a pool operator.
+          type: object
+          $ref: '#/components/schemas/PoolGovernanceVoteParams'
         epoch:
           description: Epoch
           type: integer
@@ -1739,6 +1782,48 @@ components:
           $ref: '#/components/schemas/PoolRegistrationParams'
         voteRegistrationMetadata:
           $ref: '#/components/schemas/VoteRegistrationMetadata'
+
+    PoolGovernanceVoteParams:
+      description: Parameters for a governance vote by a pool operator.
+      type: object
+      properties:
+        governance_action_hash:
+          description: GovAction is a unique identifier for governance action
+          $ref: '#/components/schemas/GovActionParams'
+        pool_credential:
+          description: Pool Credential is the credential of the pool operator casting the vote.
+          $ref: '#/components/schemas/PublicKey'
+        vote:
+          description: GovVoteParams is the vote cast by the pool operator, which can be "yes", "no", or "abstain".
+          $ref: '#/components/schemas/GovVoteParams'
+        vote_rationale:
+          description: GovVoteRationale is an optional rationale for the vote cast by the pool operator.
+          $ref: '#/components/schemas/GovVoteRationaleParams'
+
+    GovActionParams:
+      description: Unique identifier for a governance action, consisting of tx_id and index concatenated.
+      type: string
+      example: "df58f714c0765f3489afb6909384a16c31d600695be7e86ff9c59cf2e8a48c7900"
+
+    GovVoteParams:
+      description: The vote cast by the voter.
+      type: string
+      enum:
+        - "yes"
+        - "no"
+        - "abstain"
+
+    GovVoteRationaleParams:
+      description: The rationale for the vote cast by the voter.
+      type: object
+      properties:
+        url:
+          type: string
+          description: URL of the anchor.
+        data_hash:
+          type: string
+          description: Hash of the anchor data.
+
     VoteRegistrationMetadata:
       description: VoteRegistrationMetadata
       type: object
@@ -1852,6 +1937,7 @@ components:
         type:
           description: Type
           type: string
+
     PoolMargin:
       description: PoolMargin
       type: object
@@ -1871,8 +1957,9 @@ components:
           description: AddressType is the type of address that will be derived from the PublicKey. This field is used to indicate that a PublicKey is associated with a particular address type. If this field is not populated, it is assumed that the PublicKey is associated with the default address type for the network.
         staking_credential:
           $ref: '#/components/schemas/PublicKey'
-    StakingCredential:
-      description: StakingCredential contains the staking key hash of a staking key.
+
+    PublicKey:
+      description: StakingCredential / PoolCredential or a PublicKey.
       type: object
       properties:
         hex_bytes:
@@ -1880,6 +1967,7 @@ components:
           description: Hex-encoded staking key hash.
         curve_type:
           $ref: '#/components/schemas/CurveType'
+
     ConstructionPreprocessMetadata:
       description: ConstructionPreprocessMetadata is returned by `/construction/preprocess` and contains any network-specific metadata that is needed to construct a valid transaction. This metadata should be a product of live data (i.e. the caller must follow some network-specific data fetching strategy outside of the Construction API to populate required Metadata). If live data is required for construction, it MUST be fetched in the call to `/construction/metadata`.
       type: object
@@ -1998,3 +2086,42 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Amount'
+    GetParseErrorBlocksParameters:
+      description: Parameters for the get_parse_error_blocks call method
+      type: object
+      properties:
+        status:
+          type: string
+          description: Filter by review status
+          enum:
+            - UNREVIEWED
+            - REVIEWED_AFFECTS_US
+            - REVIEWED_DOES_NOT_AFFECT_US
+          example: UNREVIEWED
+    MarkParseErrorBlockCheckedParameters:
+      description: Parameters for the mark_parse_error_block_checked call method
+      type: object
+      required:
+        - block_number
+        - status
+      properties:
+        block_number:
+          type: integer
+          format: int64
+          description: Block number to mark as checked
+          example: 12345
+        status:
+          type: string
+          description: Review status to set for all errors in this block
+          enum:
+            - REVIEWED_AFFECTS_US
+            - REVIEWED_DOES_NOT_AFFECT_US
+          example: REVIEWED_AFFECTS_US
+        checked_by:
+          type: string
+          description: Optional identifier of who reviewed the block
+          example: "admin_user"
+        comment:
+          type: string
+          description: Optional comment about the review
+          example: "Block parsing error resolved after investigation"

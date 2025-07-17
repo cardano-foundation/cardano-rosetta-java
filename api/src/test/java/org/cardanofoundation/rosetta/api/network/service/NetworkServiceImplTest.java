@@ -67,6 +67,7 @@ class NetworkServiceImplTest extends IntegrationTest {
     NetworkRequest networkRequest = getNetworkRequest();
     //when
     NetworkOptionsResponse networkOptions = networkService.getNetworkOptions(networkRequest);
+
     //then
     assertNotNull(networkOptions);
     assertEquals(getErrors(), networkOptions.getAllow().getErrors());
@@ -100,6 +101,7 @@ class NetworkServiceImplTest extends IntegrationTest {
     File file = new File(this.getClass().getClassLoader()
             .getResource("testdata/networkIdentifier.json").getFile());
     ObjectMapper mapper = new ObjectMapper();
+
     return mapper.readValue(file, NetworkRequest.class);
   }
 
@@ -107,6 +109,7 @@ class NetworkServiceImplTest extends IntegrationTest {
     File file = new File(this.getClass().getClassLoader()
             .getResource("testdata/errors.json").getFile());
     ObjectMapper mapper = new ObjectMapper();
+
     return mapper.readValue(file, new TypeReference<>() {});
   }
 
@@ -116,6 +119,5 @@ class NetworkServiceImplTest extends IntegrationTest {
         .network(network)
         .build();
   }
-
 
 }
