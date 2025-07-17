@@ -58,4 +58,4 @@ management:
   endpoints:
     web:
       exposure:
-        include: "info"
+        include: health,info,prometheus
