@@ -29,7 +29,7 @@ class TopologyConfigServiceTest {
   @BeforeEach
   void setup() {
     ReflectionTestUtils.setField(topologyConfigService, "topologyFilepath",
-        "../config/devkit/topology.json");
+        "../config/node/devkit/topology.json");
   }
 
   @Test
