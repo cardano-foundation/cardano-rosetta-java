@@ -21,7 +21,14 @@ services:
     ports:
       - ${GRAFANA_PORT}:3000
     volumes:
+      - ./config/monitoring/provisioning/datasources:/etc/grafana/provisioning/datasources
+      - ./config/monitoring/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+      - ./config/monitoring/dashboards:/etc/grafana/provisioning/dashboards/json
       - grafana-data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+
 
   postgresql-exporter:
     image: prometheuscommunity/postgres-exporter

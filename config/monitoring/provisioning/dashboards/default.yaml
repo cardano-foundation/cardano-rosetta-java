@@ -1,0 +1,9 @@
+apiVersion: 1
+
+providers:
+  - name: 'default'
+    folder: 'Rossetta-java-dashboards'
+    type: file
+    updateIntervalSeconds: 10
+    options:
+      path: /etc/grafana/provisioning/dashboards/json

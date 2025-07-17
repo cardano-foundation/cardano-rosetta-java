@@ -44,7 +44,7 @@
       "id": 34,
       "panels": [
         {
-         "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+         "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
           "fieldConfig": {
             "defaults": {
               "decimals": 1,
@@ -99,7 +99,7 @@
           "pluginVersion": "12.0.1",
           "targets": [
             {
-              "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+              "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
               "editorMode": "code",
               "expr": "process_uptime_seconds{application=\"api\", instance=\"api:8082\", job=\"api and yaci_indexer\"}",
               "format": "time_series",
@@ -115,7 +115,7 @@
           "type": "stat"
         },
         {
-         "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+         "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
           "fieldConfig": {
             "defaults": {
               "decimals": 1,
@@ -172,7 +172,7 @@
           "pluginVersion": "12.0.1",
           "targets": [
             {
-              "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+              "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
               "editorMode": "code",
               "expr": "sum(jvm_memory_used_bytes{application=\"api\", instance=\"api:8082\"})",
               "format": "time_series",
@@ -187,7 +187,7 @@
           "type": "stat"
         },
         {
-         "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+         "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
           "fieldConfig": {
             "defaults": {
               "mappings": [
@@ -245,7 +245,7 @@
           "pluginVersion": "12.0.1",
           "targets": [
             {
-              "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+              "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
               "editorMode": "code",
               "expr": "hikaricp_connections_max{application=\"api\",instance=\"api:8082\",job=\"api and yaci_indexer\",pool=\"CardanoRosettaJavaDBPool\"}",
               "format": "time_series",
@@ -259,7 +259,7 @@
           "type": "stat"
         },
         {
-         "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+         "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
           "fieldConfig": {
             "defaults": {
               "mappings": [
@@ -317,7 +317,7 @@
           "pluginVersion": "12.0.1",
           "targets": [
             {
-              "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+              "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
               "editorMode": "code",
               "expr": "hikaricp_connections_active{application=\"api\",instance=\"api:8082\",job=\"api and yaci_indexer\",pool=\"CardanoRosettaJavaDBPool\"}",
               "format": "time_series",
@@ -331,7 +331,7 @@
           "type": "stat"
         },
         {
-         "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+         "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
           "fieldConfig": {
             "defaults": {
               "mappings": [
@@ -389,7 +389,7 @@
           "pluginVersion": "12.0.1",
           "targets": [
             {
-              "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+              "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
               "editorMode": "code",
               "expr": "hikaricp_connections_idle{application=\"api\",instance=\"api:8082\",job=\"api and yaci_indexer\",pool=\"CardanoRosettaJavaDBPool\"}",
               "format": "time_series",
@@ -403,7 +403,7 @@
           "type": "stat"
         },
         {
-         "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+         "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
           "fieldConfig": {
             "defaults": {
               "mappings": [
@@ -461,7 +461,7 @@
           "pluginVersion": "12.0.1",
           "targets": [
             {
-              "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+              "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
               "editorMode": "code",
               "expr": "hikaricp_connections_timeout_total{application=\"api\", instance=\"api:8082\", job=\"api and yaci_indexer\", pool=\"CardanoRosettaJavaDBPool\"}",
               "format": "time_series",
@@ -475,7 +475,7 @@
           "type": "stat"
         },
         {
-         "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+         "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -585,7 +585,7 @@
           "pluginVersion": "12.0.1",
           "targets": [
             {
-              "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+              "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
               "editorMode": "code",
               "expr": "hikaricp_connections_active{application=\"api\", instance=\"api:8082\", job=\"api and yaci_indexer\", pool=\"CardanoRosettaJavaDBPool\"}",
               "format": "time_series",
@@ -595,7 +595,7 @@
               "refId": "B"
             },
             {
-              "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+              "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
               "editorMode": "code",
               "expr": "hikaricp_connections_idle{application=\"api\", instance=\"api:8082\", job=\"api and yaci_indexer\", pool=\"CardanoRosettaJavaDBPool\"}",
               "format": "time_series",
@@ -605,7 +605,7 @@
               "refId": "A"
             },
             {
-              "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+              "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
               "editorMode": "code",
               "expr": "hikaricp_connections_pending{application=\"api\", instance=\"api:8082\", job=\"api and yaci_indexer\", pool=\"CardanoRosettaJavaDBPool\"}",
               "format": "time_series",
@@ -619,7 +619,7 @@
           "type": "timeseries"
         },
         {
-         "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+         "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -727,7 +727,7 @@
           "pluginVersion": "12.0.1",
           "targets": [
             {
-              "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+              "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
               "editorMode": "code",
               "expr": "irate(hikaricp_connections_usage_seconds_sum{application=\"api\",instance=\"api:8082\",job=\"api and yaci_indexer\",pool=\"CardanoRosettaJavaDBPool\"}[5m]) / irate(hikaricp_connections_usage_seconds_count{application=\"api\",instance=\"api:8082\",job=\"api and yaci_indexer\",pool=\"CardanoRosettaJavaDBPool\"}[5m])",
               "format": "time_series",
@@ -737,7 +737,7 @@
               "refId": "C"
             },
             {
-              "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+              "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
               "editorMode": "code",
               "expr": "irate(hikaricp_connections_creation_seconds_sum{application=\"api\",instance=\"api:8082\",job=\"api and yaci_indexer\",pool=\"CardanoRosettaJavaDBPool\"}[5m]) / \r\nirate(hikaricp_connections_creation_seconds_count{application=\"api\",instance=\"api:8082\",job=\"api and yaci_indexer\",pool=\"CardanoRosettaJavaDBPool\"}[5m])",
               "format": "time_series",
@@ -747,7 +747,7 @@
               "refId": "A"
             },
             {
-              "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+              "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
               "editorMode": "code",
               "expr": "irate(hikaricp_connections_acquire_seconds_sum{application=\"api\",instance=\"api:8082\",job=\"api and yaci_indexer\",pool=\"CardanoRosettaJavaDBPool\"}[5m]) / irate(hikaricp_connections_acquire_seconds_count{application=\"api\",instance=\"api:8082\",job=\"api and yaci_indexer\",pool=\"CardanoRosettaJavaDBPool\"}[5m])",
               "format": "time_series",
@@ -775,7 +775,7 @@
       "id": 65,
       "panels": [
         {
-         "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+         "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
           "fieldConfig": {
             "defaults": {
               "decimals": 1,
@@ -830,7 +830,7 @@
           "pluginVersion": "12.0.1",
           "targets": [
             {
-              "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+              "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
               "editorMode": "code",
               "expr": "process_uptime_seconds{application=\"yaci_indexer\", instance=\"yaci-indexer:9095\", job=\"api and yaci_indexer\"}",
               "format": "time_series",
@@ -846,7 +846,7 @@
           "type": "stat"
         },
         {
-         "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+         "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
           "fieldConfig": {
             "defaults": {
               "decimals": 1,
@@ -903,7 +903,7 @@
           "pluginVersion": "12.0.1",
           "targets": [
             {
-              "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+              "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
               "editorMode": "code",
               "expr": "sum(jvm_memory_used_bytes{application=\"yaci_indexer\", instance=\"yaci-indexer:9095\"})",
               "format": "time_series",
@@ -918,7 +918,7 @@
           "type": "stat"
         },
         {
-         "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+         "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
           "fieldConfig": {
             "defaults": {
               "mappings": [
@@ -976,7 +976,7 @@
           "pluginVersion": "12.0.1",
           "targets": [
             {
-              "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+              "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
               "editorMode": "code",
               "expr": "hikaricp_connections_max{application=\"yaci_indexer\", instance=\"yaci-indexer:9095\", job=\"api and yaci_indexer\", pool=\"HikariPool-1\"}",
               "format": "time_series",
@@ -990,7 +990,7 @@
           "type": "stat"
         },
         {
-         "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+         "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
           "fieldConfig": {
             "defaults": {
               "mappings": [
@@ -1048,7 +1048,7 @@
           "pluginVersion": "12.0.1",
           "targets": [
             {
-              "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+              "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
               "editorMode": "code",
               "expr": "hikaricp_connections_active{application=\"yaci_indexer\",instance=\"yaci-indexer:9095\",job=\"api and yaci_indexer\"}",
               "format": "time_series",
@@ -1062,7 +1062,7 @@
           "type": "stat"
         },
         {
-         "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+         "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
           "fieldConfig": {
             "defaults": {
               "mappings": [
@@ -1120,7 +1120,7 @@
           "pluginVersion": "12.0.1",
           "targets": [
             {
-              "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+              "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
               "editorMode": "code",
               "expr": "hikaricp_connections_min{application=\"yaci_indexer\", instance=\"yaci-indexer:9095\", job=\"api and yaci_indexer\", pool=\"HikariPool-1\"}",
               "format": "time_series",
@@ -1134,7 +1134,7 @@
           "type": "stat"
         },
         {
-         "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+         "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
           "fieldConfig": {
             "defaults": {
               "mappings": [
@@ -1192,7 +1192,7 @@
           "pluginVersion": "12.0.1",
           "targets": [
             {
-              "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+              "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
               "editorMode": "code",
               "expr": "hikaricp_connections_timeout_total{application=\"yaci_indexer\", instance=\"yaci-indexer:9095\", job=\"api and yaci_indexer\", pool=\"HikariPool-1\"}",
               "format": "time_series",
@@ -1206,7 +1206,7 @@
           "type": "stat"
         },
         {
-         "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+         "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -1314,7 +1314,7 @@
           "pluginVersion": "12.0.1",
           "targets": [
             {
-              "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+              "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
               "editorMode": "code",
               "expr": "hikaricp_connections_active{application=\"yaci_indexer\", instance=\"yaci-indexer:9095\", job=\"api and yaci_indexer\", pool=\"HikariPool-1\"}",
               "format": "time_series",
@@ -1324,7 +1324,7 @@
               "refId": "B"
             },
             {
-              "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+              "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
               "editorMode": "code",
               "expr": "hikaricp_connections_idle{application=\"yaci_indexer\", instance=\"yaci-indexer:9095\", job=\"api and yaci_indexer\", pool=\"HikariPool-1\"}",
               "format": "time_series",
@@ -1334,7 +1334,7 @@
               "refId": "A"
             },
             {
-              "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+              "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
               "editorMode": "code",
               "expr": "hikaricp_connections_pending{application=\"yaci_indexer\", instance=\"yaci-indexer:9095\", job=\"api and yaci_indexer\", pool=\"HikariPool-1\"}",
               "format": "time_series",
@@ -1348,7 +1348,7 @@
           "type": "timeseries"
         },
         {
-         "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+         "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -1456,7 +1456,7 @@
           "pluginVersion": "12.0.1",
           "targets": [
             {
-              "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+              "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
               "editorMode": "code",
               "expr": "irate(hikaricp_connections_usage_seconds_sum{application=\"yaci_indexer\",instance=\"yaci-indexer:9095\",pool=\"HikariPool-1\"}[5m]) / irate(hikaricp_connections_usage_seconds_count{application=\"yaci_indexer\",instance=\"yaci-indexer:9095\",pool=\"HikariPool-1\"}[5m])",
               "format": "time_series",
@@ -1466,7 +1466,7 @@
               "refId": "C"
             },
             {
-              "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+              "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
               "editorMode": "code",
               "expr": "irate(hikaricp_connections_creation_seconds_sum{application=\"yaci_indexer\",instance=\"yaci-indexer:9095\",pool=\"HikariPool-1\"}[5m]) / \r\nirate(hikaricp_connections_creation_seconds_count{application=\"yaci_indexer\",instance=\"yaci-indexer:9095\",pool=\"HikariPool-1\"}[5m])",
               "format": "time_series",
@@ -1476,7 +1476,7 @@
               "refId": "A"
             },
             {
-              "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+              "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
               "editorMode": "code",
               "expr": "irate(hikaricp_connections_acquire_seconds_sum{application=\"yaci_indexer\",instance=\"yaci-indexer:9095\",job=\"api and yaci_indexer\"}[5m]) / irate(hikaricp_connections_acquire_seconds_count{application=\"yaci_indexer\",instance=\"yaci-indexer:9095\",job=\"api and yaci_indexer\"}[5m])",
               "format": "time_series",
@@ -1504,7 +1504,7 @@
       "id": 74,
       "panels": [
         {
-         "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+         "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -1576,7 +1576,7 @@
           "type": "stat"
         },
         {
-         "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+         "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -1632,7 +1632,7 @@
           "type": "stat"
         },
         {
-         "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+         "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -1688,7 +1688,7 @@
           "type": "stat"
         },
         {
-         "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+         "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -1744,7 +1744,7 @@
           "type": "stat"
         },
         {
-         "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+         "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -1800,7 +1800,7 @@
           "type": "stat"
         },
         {
-         "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+         "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -1857,7 +1857,7 @@
           "type": "stat"
         },
         {
-         "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+         "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -1914,7 +1914,7 @@
           "type": "stat"
         },
         {
-         "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+         "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -1971,7 +1971,7 @@
           "type": "stat"
         },
         {
-         "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+         "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -2028,7 +2028,7 @@
           "type": "stat"
         },
         {
-         "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+         "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -2085,7 +2085,7 @@
           "type": "stat"
         },
         {
-         "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+         "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -2142,7 +2142,7 @@
           "type": "stat"
         },
         {
-         "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+         "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -2199,7 +2199,7 @@
           "type": "stat"
         },
         {
-         "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+         "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -2322,7 +2322,7 @@
       "id": 88,
       "panels": [
         {
-         "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+         "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -2379,7 +2379,7 @@
           "type": "stat"
         },
         {
-         "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+         "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -2436,7 +2436,7 @@
           "type": "stat"
         },
         {
-         "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+         "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
           "fieldConfig": {
             "defaults": {
               "mappings": [
@@ -2498,7 +2498,7 @@
           "pluginVersion": "12.0.1",
           "targets": [
             {
-              "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+              "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
               "editorMode": "code",
               "expr": "cardano_node_metrics_connectionManager_incomingConns",
               "format": "time_series",
@@ -2512,7 +2512,7 @@
           "type": "stat"
         },
         {
-         "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+         "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
           "fieldConfig": {
             "defaults": {
               "mappings": [
@@ -2574,7 +2574,7 @@
           "pluginVersion": "12.0.1",
           "targets": [
             {
-              "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+              "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
               "editorMode": "code",
               "expr": "cardano_node_metrics_connectionManager_outgoingConns",
               "format": "time_series",
@@ -2588,7 +2588,7 @@
           "type": "stat"
         },
         {
-         "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+         "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
           "fieldConfig": {
             "defaults": {
               "mappings": [
@@ -2650,7 +2650,7 @@
           "pluginVersion": "12.0.1",
           "targets": [
             {
-              "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+              "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
               "editorMode": "code",
               "expr": "cardano_node_metrics_epoch_int{application=\"cardano_node\",instance=\"cardano-node:12798\"}",
               "format": "time_series",
@@ -2664,7 +2664,7 @@
           "type": "stat"
         },
         {
-         "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+         "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -2783,7 +2783,7 @@
           "pluginVersion": "12.0.1",
           "targets": [
             {
-              "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+              "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
               "editorMode": "code",
               "expr": "cardano_node_metrics_blockNum_int{application=\"cardano_node\",instance=\"cardano-node:12798\"}",
               "format": "time_series",
@@ -2797,7 +2797,7 @@
           "type": "timeseries"
         },
         {
-         "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+         "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -2921,7 +2921,7 @@
           "pluginVersion": "12.0.1",
           "targets": [
             {
-              "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+              "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
               "editorMode": "code",
               "expr": "cardano_node_metrics_slotNum_int{application=\"cardano_node\",instance=\"cardano-node:12798\"}",
               "format": "time_series",
@@ -2936,7 +2936,7 @@
           "type": "timeseries"
         },
         {
-         "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+         "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -3034,7 +3034,7 @@
           "pluginVersion": "12.0.1",
           "targets": [
             {
-              "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+              "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
               "editorMode": "code",
               "expr": "cardano_node_metrics_density_real{application=\"cardano_node\",instance=\"cardano-node:12798\"}*100",
               "format": "time_series",
@@ -3048,7 +3048,7 @@
           "type": "timeseries"
         },
         {
-         "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+         "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -3114,7 +3114,7 @@
           "pluginVersion": "12.0.1",
           "targets": [
             {
-              "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+              "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
               "editorMode": "code",
               "expr": "cardano_node_metrics_slotInEpoch_int{application=\"cardano_node\",instance=\"cardano-node:12798\"}*10/43200",
               "format": "time_series",
@@ -3128,7 +3128,7 @@
           "type": "bargauge"
         },
         {
-         "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+         "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -3198,7 +3198,7 @@
           "pluginVersion": "12.0.1",
           "targets": [
             {
-              "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+              "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
               "editorMode": "code",
               "expr": "cardano_node_metrics_blockfetchclient_blockdelay_cdfOne{application=\"cardano_node\",instance=\"cardano-node:12798\"}*100",
               "format": "time_series",
@@ -3212,7 +3212,7 @@
           "type": "bargauge"
         },
         {
-         "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+         "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -3282,7 +3282,7 @@
           "pluginVersion": "12.0.1",
           "targets": [
             {
-              "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+              "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
               "editorMode": "code",
               "expr": "cardano_node_metrics_blockfetchclient_blockdelay_cdfThree{application=\"cardano_node\",instance=\"cardano-node:12798\"}*100",
               "format": "time_series",
@@ -3296,7 +3296,7 @@
           "type": "bargauge"
         },
         {
-         "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+         "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -3366,7 +3366,7 @@
           "pluginVersion": "12.0.1",
           "targets": [
             {
-              "datasource": {  "type": "prometheus",  "uid": "${DS_PROMETHEUS}"},
+              "datasource": {  "type": "prometheus",  "uid": "DS_PROMETHEUS"},
               "editorMode": "code",
               "expr": "cardano_node_metrics_blockfetchclient_blockdelay_cdfFive{application=\"cardano_node\",instance=\"cardano-node:12798\"}*100",
               "format": "time_series",
