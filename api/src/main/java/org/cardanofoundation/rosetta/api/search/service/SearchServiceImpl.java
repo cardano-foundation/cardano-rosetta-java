@@ -1,19 +1,18 @@
 package org.cardanofoundation.rosetta.api.search.service;
 
-import java.util.Optional;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
-import org.springframework.data.domain.Slice;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.apache.commons.lang3.ObjectUtils;
-import org.openapitools.client.model.*;
-
 import org.cardanofoundation.rosetta.api.block.mapper.BlockMapper;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.model.entity.UtxoKey;
+import org.openapitools.client.model.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Slice;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Optional;
 
 import static org.openapitools.client.model.Operator.AND;
 
@@ -27,7 +26,7 @@ public class SearchServiceImpl implements SearchService {
     private final LedgerSearchService ledgerSearchService;
 
     @Override
-    public Slice<BlockTransaction> searchTransaction(
+    public Page<BlockTransaction> searchTransaction(
             SearchTransactionsRequest searchTransactionsRequest,
             Long offset,
             Long pageSize) {
@@ -50,10 +49,15 @@ public class SearchServiceImpl implements SearchService {
                     if (ObjectUtils.isNotEmpty(coinIdentifier.getIdentifier())) {
                         String[] split = coinIdentifier.getIdentifier().split(":");
 
-                        return new UtxoKey(split[0], Integer.parseInt(split[1]));
+                        String txHash_ = split[0];
+                        int outputIndex_ = Integer.parseInt(split[1]);
+
+                        return new UtxoKey(txHash_, outputIndex_);
                     }
+
                     return null;
-                }).orElse(null);
+                })
+                .orElse(null);
 
         Operator operator = Optional.ofNullable(searchTransactionsRequest.getOperator()).orElse(AND);
 
@@ -62,7 +66,7 @@ public class SearchServiceImpl implements SearchService {
                 .orElse(BlockIdentifier.builder()
                         .build());
 
-        Slice<BlockTx> blockTxes = ledgerSearchService.searchTransaction(
+        Page<BlockTx> blockTxes = ledgerSearchService.searchTransaction(
                 operator,
                 txHash,
                 address,

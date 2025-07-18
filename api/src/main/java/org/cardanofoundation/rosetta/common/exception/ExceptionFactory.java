@@ -360,4 +360,9 @@ public class ExceptionFactory {
                 Details.builder().message("Parameter 'status' must be one of: [REVIEWED_AFFECTS_US, REVIEWED_DOES_NOT_AFFECT_US]").build()));
     }
 
+    public static ApiException invalidPageSize(Long requestedPageSize, Long maxPageSize) {
+        return new ApiException(RosettaErrorType.INVALID_PAGE_SIZE.toRosettaError(false,
+                Details.builder().message("Requested page size %d exceeds maximum allowed size %d".formatted(requestedPageSize, maxPageSize)).build()));
+    }
+
 }
