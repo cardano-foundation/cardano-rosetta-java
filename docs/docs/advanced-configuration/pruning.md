@@ -56,13 +56,17 @@ After enabling pruning, searching for transactions by their hash will always wor
 ## When Spent UTxO Removal should be enabled?
 
 :::tip Recommended Use Cases
-Pruning is beneficial in scenarios where optimizing disk space and focusing on current data is prioritized over maintaining a complete historical record. Consider enabling pruning if your use case aligns with the following:
+Pruning improves performance by reducing the amount of data processed during API responses, leading to faster query times and lower resource consumption. It also optimizes disk space by focusing on current data rather than maintaining a complete historical record. Consider enabling pruning if your use case aligns with the following:
 
 - **Exchange Integrations & Wallet Services**: Primarily for tracking current balances, processing recent deposits/withdrawals, and validating recent transactions.
 - **Resource-Constrained Environments**: Ideal when disk space is a significant limitation (e.g., under 1TB available for mainnet data).
 - **Tip-of-Chain Operations**: For applications focused on the latest blockchain state rather than deep historical analysis.
 - **Development and Testing**: Useful when a full historical dataset is not essential for development or testing purposes.
   :::
+
+:::note Hybrid Deployment Strategy
+We recommend running **pruned nodes for live, day-to-day operations** to benefit from performance improvements and reduced storage needs, while maintaining **non-pruned (full-history) backup nodes** to handle historical transaction reconciliation or audit-related queries as needed.
+:::
 
 ## When to avoid setting UtxO Removal feature?
 
@@ -114,10 +118,10 @@ This section outlines key considerations when changing pruning settings or manag
 To change the pruning configuration, update the `REMOVE_SPENT_UTXOS` variable in your environment (to either `true` or `false`) and restart your `cardano-rosetta-java` services.
 
 :::info Resynchronization Is Required to Apply Changes
-It is critical to understand that this change **only affects how new blocks are handled**; it does not retroactively alter your existing database. To fully apply the new setting across all historical data, you must perform an [indexer resynchronization](#how-to-resynchronize-the-indexer).
+It is critical to understand that disabling pruning **only affects how new blocks are handled**; it does not retroactively alter your existing database. To have entire historical data again for a pruned enabled instance, an [indexer resynchronization](#how-to-resynchronize-the-indexer) is required.
 
-- **When enabling pruning (`true`)**, a resync is required to clear out historically spent UTXOs and reclaim disk space.
 - **When disabling pruning (`false`)**, a resync is required to rebuild the complete transaction history that was previously pruned away.
+- **When enabling pruning (`true`)**, a resync is not required to clear out historically spent UTXOs and reclaim disk space.
 
 Without a resynchronization, your database will exist in a mixed state, and you will not see the expected results of your configuration change immediately.
 :::
