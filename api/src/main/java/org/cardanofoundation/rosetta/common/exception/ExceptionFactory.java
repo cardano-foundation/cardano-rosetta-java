@@ -360,4 +360,13 @@ public class ExceptionFactory {
                 Details.builder().message("Parameter 'status' must be one of: [REVIEWED_AFFECTS_US, REVIEWED_DOES_NOT_AFFECT_US]").build()));
     }
 
+    public static ApiException invalidLimitSize(Long limit, Long maxLimitSize) {
+        return new ApiException(RosettaErrorType.INVALID_LIMIT.toRosettaError(false,
+                Details.builder().message("Requested limit size %d exceeds maximum allowed size %d".formatted(limit, maxLimitSize)).build()));
+    }
+
+    public static ApiException bothSuccessAndStatusProvided() {
+        return new ApiException(RosettaErrorType.BOTH_SUCCESS_AND_STATUS_PROVIDED.toRosettaError(false));
+    }
+
 }

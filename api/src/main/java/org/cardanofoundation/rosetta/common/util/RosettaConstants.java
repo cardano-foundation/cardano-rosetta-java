@@ -163,7 +163,9 @@ public class RosettaConstants {
         CANT_ENCODE_EXTRA_DATA("Cant encode extra data", 5049),
         CALL_METHOD_NOT_SUPPORTED("Call method not supported", 5050),
         CALL_PARAMETER_MISSING("Call parameter missing", 5051),
-        INVALID_BLOCK_ERROR_REVIEW_STATUS("Invalid block error review status", 5052);
+        INVALID_BLOCK_ERROR_REVIEW_STATUS("Invalid block error review status", 5052),
+        INVALID_LIMIT("Invalid limit size", 5053),
+        BOTH_SUCCESS_AND_STATUS_PROVIDED("Cannot specify both 'success' and 'status' parameters simultaneously", 5054);
 
         final String message;
         final int code;
