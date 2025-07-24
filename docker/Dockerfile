@@ -213,7 +213,7 @@ RUN git clone --branch $PG_VERSION_TAG https://github.com/postgres/postgres.git 
 # Main
 FROM ubuntu:24.04
 
-RUN apt update && apt install -y --no-install-recommends jq bc sudo curl \
+RUN apt update && apt install -y --no-install-recommends jq bc sudo curl  wget ca-certificates \
   libreadline-dev \
   sudo \
   locales \
@@ -253,7 +253,7 @@ RUN ldconfig
 ENV LD_LIBRARY_PATH=/usr/local/lib
 ENV PATH=/usr/local/lib/:$PATH
 
-COPY ./config /networks
+COPY ./config/node/ /networks
 RUN mkdir /config
 
 # Copy jars
