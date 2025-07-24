@@ -1,19 +1,20 @@
 package org.cardanofoundation.rosetta.api.search.service;
 
-import java.util.Optional;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
-import org.springframework.data.domain.Slice;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.apache.commons.lang3.ObjectUtils;
-import org.openapitools.client.model.*;
-
 import org.cardanofoundation.rosetta.api.block.mapper.BlockMapper;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.model.entity.UtxoKey;
+import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
+import org.openapitools.client.model.*;
+import org.springframework.data.domain.Page;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import javax.annotation.Nullable;
+import java.util.Optional;
+import java.util.function.Function;
 
 import static org.openapitools.client.model.Operator.AND;
 
@@ -27,55 +28,105 @@ public class SearchServiceImpl implements SearchService {
     private final LedgerSearchService ledgerSearchService;
 
     @Override
-    public Slice<BlockTransaction> searchTransaction(
+    public Page<BlockTransaction> searchTransaction(
             SearchTransactionsRequest searchTransactionsRequest,
             Long offset,
-            Long pageSize) {
+            Long limit) {
 
-        // Using address either from searchTransactionsRequest.address or from searchTransactionsRequest.accountIdentifier.address
-        String address = Optional.ofNullable(searchTransactionsRequest.getAddress())
-                .orElse(Optional.ofNullable(searchTransactionsRequest.getAccountIdentifier()).orElse(
-                        AccountIdentifier.builder().build()).getAddress());
+        // Validate and normalize success/status parameters
+        @Nullable Boolean isSuccess = validateAndNormalizeSuccessStatus(
+                searchTransactionsRequest.getSuccess(),
+                searchTransactionsRequest.getStatus()
+        );
 
-        String txHash = Optional.ofNullable(searchTransactionsRequest.getTransactionIdentifier()).orElse(
+        @Nullable String address = validateAndNormaliseAddress(
+                searchTransactionsRequest.getAddress(),
+                searchTransactionsRequest.getAccountIdentifier()
+        );
+
+        @Nullable String txHash = Optional.ofNullable(searchTransactionsRequest.getTransactionIdentifier()).orElse(
                 TransactionIdentifier.builder().build()).getHash();
 
-        String symbol = Optional.ofNullable(searchTransactionsRequest.getCurrency())
-                .orElse(Currency.builder().build()).getSymbol();
+        // Currency search is not supported yet
+        Optional.ofNullable(searchTransactionsRequest.getCurrency())
+                .ifPresent(c -> {
+                    throw ExceptionFactory.currencySearchNotSupported();
+                });
 
-        Long maxBlock = searchTransactionsRequest.getMaxBlock();
+        @Nullable Long maxBlock = searchTransactionsRequest.getMaxBlock();
 
-        UtxoKey utxoKey = Optional.ofNullable(searchTransactionsRequest.getCoinIdentifier())
-                .map(coinIdentifier -> {
-                    if (ObjectUtils.isNotEmpty(coinIdentifier.getIdentifier())) {
-                        String[] split = coinIdentifier.getIdentifier().split(":");
+        @Nullable UtxoKey utxoKey = Optional.ofNullable(searchTransactionsRequest.getCoinIdentifier())
+                .flatMap(extractUTxOFromCoinIdentifier())
+                .orElse(null);
 
-                        return new UtxoKey(split[0], Integer.parseInt(split[1]));
-                    }
-                    return null;
-                }).orElse(null);
+        Operator operator = Optional.ofNullable(searchTransactionsRequest.getOperator())
+                .orElse(AND);
 
-        Operator operator = Optional.ofNullable(searchTransactionsRequest.getOperator()).orElse(AND);
+        BlockIdentifier blockIdentifier = Optional.ofNullable(searchTransactionsRequest.getBlockIdentifier())
+                .orElse(BlockIdentifier.builder().build());
 
-        BlockIdentifier blockIdentifier = Optional.ofNullable(
-                        searchTransactionsRequest.getBlockIdentifier())
-                .orElse(BlockIdentifier.builder()
-                        .build());
-
-        Slice<BlockTx> blockTxes = ledgerSearchService.searchTransaction(
+        Page<BlockTx> blockTxes = ledgerSearchService.searchTransaction(
                 operator,
                 txHash,
                 address,
                 utxoKey,
-                symbol,
+                null,
                 blockIdentifier.getHash(),
                 blockIdentifier.getIndex(),
                 maxBlock,
-                offset.intValue(),
-                pageSize.intValue()
+                isSuccess,
+                offset,
+                limit
         );
 
         return blockTxes.map(blockMapper::mapToBlockTransaction);
+    }
+
+    static Function<CoinIdentifier, Optional<UtxoKey>> extractUTxOFromCoinIdentifier() {
+        return coinIdentifier -> {
+            if (ObjectUtils.isNotEmpty(coinIdentifier.getIdentifier())) {
+                String[] split = coinIdentifier.getIdentifier().split(":");
+
+                String txHash_ = split[0];
+                int outputIndex_ = Integer.parseInt(split[1]);
+
+                return Optional.of(new UtxoKey(txHash_, outputIndex_));
+            }
+
+            return Optional.empty();
+        };
+    }
+
+    @Nullable
+    Boolean validateAndNormalizeSuccessStatus(@Nullable Boolean success,
+                                              @Nullable String status) {
+        log.info("Validating success and status parameters: success={}, status={}", success, status);
+
+        if (success != null && status != null) {
+            throw ExceptionFactory.bothSuccessAndStatusProvided();
+        }
+
+        if (status != null) {
+            return "success".equalsIgnoreCase(status);
+        }
+
+        return success;
+    }
+
+    @Nullable
+    String validateAndNormaliseAddress(@Nullable String address,
+                                       @Nullable AccountIdentifier accountIdentifier) {
+        if (address != null && accountIdentifier != null) {
+            throw ExceptionFactory.bothAccountAndAccountIdentifierProvided();
+        }
+
+        if (address != null) {
+            return address;
+        }
+
+        return Optional.ofNullable(accountIdentifier)
+                .map(AccountIdentifier::getAddress)
+                .orElse(null);
     }
 
 }

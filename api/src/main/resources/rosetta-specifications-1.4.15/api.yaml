@@ -1638,8 +1638,9 @@ components:
           $ref: '#/components/schemas/Currency'
         status:
           type: string
+          pattern: '^(?i)(success|invalid)$'  # (?i) means case-insensitive in regex
           description: status is the network-specific operation type.
-          example: reverted
+          example: success
         type:
           type: string
           description: type is the network-specific operation type.

@@ -18,6 +18,6 @@ public interface SearchMapper {
   @Mapping(target = "totalCount", source = "totalCount")
   SearchTransactionsResponse mapToSearchTransactionsResponse(List<BlockTransaction> transactions,
                                                              @Nullable Long nextOffset,
-                                                             int totalCount);
+                                                             long totalCount);
 
 }
