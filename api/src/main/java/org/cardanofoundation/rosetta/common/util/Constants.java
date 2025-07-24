@@ -168,7 +168,7 @@ public class Constants {
   public static final String POOL_GOVERNANCE_VOTE_PARAMS = "poolGovernanceVoteParams";
   public static final String VOTE = "vote";
   public static final String VOTE_RATIONALE = "vote_rationale";
-  public static final String GOVERNANCE_ACTION = "governance_action_hash";
+  public static final String GOVERNANCE_ACTION_HASH = "governance_action_hash";
 
   public static final String WITHDRAWALAMOUNT = "withdrawalAmount";
   public static final String DEPOSITAMOUNT = "depositAmount";

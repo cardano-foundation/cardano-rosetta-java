@@ -2,6 +2,7 @@ package org.cardanofoundation.rosetta.common.mapper;
 
 import co.nstant.in.cbor.model.*;
 import org.cardanofoundation.rosetta.common.util.Constants;
+import org.cardanofoundation.rosetta.common.util.GovActionParamsUtil;
 import org.openapitools.client.model.*;
 
 import javax.annotation.Nullable;
@@ -91,15 +92,13 @@ public class OperationToCborMap {
                 poolGovernanceVoteParamsMap.put(key(Constants.VOTE_RATIONALE), voteRationaleMap);
             });
 
-            Map actionMap = new Map();
             // Parse the concatenated governance action string
             org.cardanofoundation.rosetta.common.util.GovActionParamsUtil.ParsedGovActionParams parsedGovAction = 
                     org.cardanofoundation.rosetta.common.util.GovActionParamsUtil.parseAndValidate(poolGovernanceVoteParams.getGovernanceActionHash());
-            
-            putStringDataItemToMap(actionMap, "tx_id", parsedGovAction.getTxId());
-            putUnsignedIntegerToMap(actionMap, "index", parsedGovAction.getIndex());
 
-            poolGovernanceVoteParamsMap.put(key(Constants.GOVERNANCE_ACTION), actionMap);
+            String govActionHash = GovActionParamsUtil.formatGovActionString(parsedGovAction.getTxId(), parsedGovAction.getIndex());
+
+            poolGovernanceVoteParamsMap.put(key(Constants.GOVERNANCE_ACTION_HASH), new UnicodeString(govActionHash));
 
             metadataMap.put(key(Constants.POOL_GOVERNANCE_VOTE_PARAMS), poolGovernanceVoteParamsMap);
         });

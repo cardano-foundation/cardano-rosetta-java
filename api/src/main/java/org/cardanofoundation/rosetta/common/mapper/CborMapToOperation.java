@@ -444,15 +444,26 @@ public class CborMapToOperation {
                 });
     }
 
-    private static void addGovActionId(Map metadataMap, PoolGovernanceVoteParams operationMetadata) {
-        Optional.ofNullable(metadataMap.get(key(Constants.GOVERNANCE_ACTION)))
+    static void addGovActionId(Map metadataMap, PoolGovernanceVoteParams operationMetadata) {
+        Optional.ofNullable(metadataMap.get(key(Constants.GOVERNANCE_ACTION_HASH)))
                 .ifPresent(governanceActionHash -> {
-                    Map governanceActionHashMap = (Map) governanceActionHash;
-                    UnicodeString txId = (UnicodeString) governanceActionHashMap.get(new UnicodeString("tx_id"));
-                    UnsignedInteger index = (UnsignedInteger) governanceActionHashMap.get(new UnicodeString("index"));
-
+                    String govActionString = ((UnicodeString) governanceActionHash).getString();
+                    
+                    // Validate that the governance action hash is exactly 66 characters (64 + 2)
+                    if (govActionString.length() != 66) {
+                        // Invalid length, ignore the value
+                        return;
+                    }
+                    
+                    // Parse tx_id and index from the concatenated string
+                    // Index is always the last 2 hex characters
+                    String txId = govActionString.substring(0, 64);
+                    String indexHex = govActionString.substring(64);
+                    int index = Integer.parseInt(indexHex, 16);
+                    
                     String concatenatedGovAction = org.cardanofoundation.rosetta.common.util.GovActionParamsUtil
-                            .formatGovActionString(txId.getString(), index.getValue().intValue());
+                            .formatGovActionString(txId, index);
+
                     operationMetadata.setGovernanceActionHash(concatenatedGovAction);
                 });
     }

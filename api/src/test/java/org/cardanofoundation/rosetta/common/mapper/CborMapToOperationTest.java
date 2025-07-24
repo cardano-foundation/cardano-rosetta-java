@@ -395,6 +395,143 @@ class CborMapToOperationTest {
                 .isEqualTo(expected);
     }
 
+    @Test
+    void cborMapToOperation_shouldMapPoolGovernanceVoteParamsWithGovActionId() {
+        // Arrange
+        Map operationMap = new Map();
+        Map metadataMap = new Map();
+        Map poolGovernanceVoteParamsMap = new Map();
+        
+        // Test the concatenated governance action string: 64-char tx_id + 2-char hex index
+        String testTxId = "abc123def456789012345678901234567890123456789012345678901234abcd";
+        String testIndexHex = "0a"; // hex for 10
+        String concatenatedGovAction = testTxId + testIndexHex;
+        
+        poolGovernanceVoteParamsMap.put(key(Constants.GOVERNANCE_ACTION_HASH), new UnicodeString(concatenatedGovAction));
+        
+        metadataMap.put(key("poolGovernanceVoteParams"), poolGovernanceVoteParamsMap);
+        operationMap.put(key(Constants.METADATA), metadataMap);
+
+        Operation expected = new Operation();
+        OperationMetadata metadata = new OperationMetadata();
+        PoolGovernanceVoteParams poolGovVoteParams = new PoolGovernanceVoteParams();
+        
+        // The method should reconstruct this format using GovActionParamsUtil.formatGovActionString
+        String expectedGovActionHash = org.cardanofoundation.rosetta.common.util.GovActionParamsUtil
+                .formatGovActionString(testTxId, 10);
+        poolGovVoteParams.setGovernanceActionHash(expectedGovActionHash);
+        metadata.setPoolGovernanceVoteParams(poolGovVoteParams);
+        expected.setMetadata(metadata);
+
+        // Act
+        Operation actual = CborMapToOperation.cborMapToOperation(operationMap);
+
+        // Assert
+        Assertions.assertThat(actual)
+                .usingRecursiveComparison()
+                .isEqualTo(expected);
+    }
+
+    @Test
+    void addGovActionId_shouldParseGovernanceActionString() {
+        // Arrange
+        Map metadataMap = new Map();
+        String testTxId = "abcdef12345678901234567890123456789012345678901234567890123456ef"; // 64 chars
+        String testIndexHex = "63"; // hex for 99 (max allowed)
+        String concatenatedGovAction = testTxId + testIndexHex;
+        
+        metadataMap.put(key(Constants.GOVERNANCE_ACTION_HASH), new UnicodeString(concatenatedGovAction));
+        
+        PoolGovernanceVoteParams poolGovVoteParams = new PoolGovernanceVoteParams();
+
+        // Act
+        CborMapToOperation.addGovActionId(metadataMap, poolGovVoteParams);
+
+        // Assert
+        String expectedGovActionHash = org.cardanofoundation.rosetta.common.util.GovActionParamsUtil
+                .formatGovActionString(testTxId, 99);
+        Assertions.assertThat(poolGovVoteParams.getGovernanceActionHash())
+                .isEqualTo(expectedGovActionHash);
+    }
+
+    @Test
+    void addGovActionId_shouldParseRealGovernanceActionString() {
+        // Arrange
+        Map metadataMap = new Map();
+        String realGovActionString = "40c2a42fe324759a640dcfddbc69ef2e3b7fe5a998af8d6660359772bf44c9dc00";
+        String expectedTxId = "40c2a42fe324759a640dcfddbc69ef2e3b7fe5a998af8d6660359772bf44c9dc";
+        String expectedIndexHex = "00";
+        int expectedIndex = 0; // hex "00" = decimal 0
+        
+        metadataMap.put(key(Constants.GOVERNANCE_ACTION_HASH), new UnicodeString(realGovActionString));
+        
+        PoolGovernanceVoteParams poolGovVoteParams = new PoolGovernanceVoteParams();
+
+        // Act
+        CborMapToOperation.addGovActionId(metadataMap, poolGovVoteParams);
+
+        // Assert
+        String expectedGovActionHash = org.cardanofoundation.rosetta.common.util.GovActionParamsUtil
+                .formatGovActionString(expectedTxId, expectedIndex);
+        Assertions.assertThat(poolGovVoteParams.getGovernanceActionHash())
+                .isEqualTo(expectedGovActionHash);
+        
+        // Additional verification - ensure the parsed components are correct
+        Assertions.assertThat(expectedTxId).hasSize(64);
+        Assertions.assertThat(expectedIndex).isEqualTo(0);
+    }
+
+    @Test
+    void addGovActionId_shouldIgnoreInvalidLengthGovernanceActionString_tooShort() {
+        // Arrange
+        Map metadataMap = new Map();
+        String invalidGovActionString = "40c2a42fe324759a640dcfddbc69ef2e3b7fe5a998af8d6660359772bf44c9"; // 63 chars
+        
+        metadataMap.put(key(Constants.GOVERNANCE_ACTION_HASH), new UnicodeString(invalidGovActionString));
+        
+        PoolGovernanceVoteParams poolGovVoteParams = new PoolGovernanceVoteParams();
+
+        // Act
+        CborMapToOperation.addGovActionId(metadataMap, poolGovVoteParams);
+
+        // Assert - governance action hash should remain null since invalid length was ignored
+        Assertions.assertThat(poolGovVoteParams.getGovernanceActionHash()).isNull();
+    }
+
+    @Test
+    void addGovActionId_shouldIgnoreInvalidLengthGovernanceActionString_tooLong() {
+        // Arrange
+        Map metadataMap = new Map();
+        String invalidGovActionString = "40c2a42fe324759a640dcfddbc69ef2e3b7fe5a998af8d6660359772bf44c9dc000"; // 67 chars
+        
+        metadataMap.put(key(Constants.GOVERNANCE_ACTION_HASH), new UnicodeString(invalidGovActionString));
+        
+        PoolGovernanceVoteParams poolGovVoteParams = new PoolGovernanceVoteParams();
+
+        // Act
+        CborMapToOperation.addGovActionId(metadataMap, poolGovVoteParams);
+
+        // Assert - governance action hash should remain null since invalid length was ignored
+        Assertions.assertThat(poolGovVoteParams.getGovernanceActionHash()).isNull();
+    }
+
+    @Test
+    void addGovActionId_shouldIgnoreEmptyGovernanceActionString() {
+        // Arrange
+        Map metadataMap = new Map();
+        String emptyGovActionString = "";
+        
+        metadataMap.put(key(Constants.GOVERNANCE_ACTION_HASH), new UnicodeString(emptyGovActionString));
+        
+        PoolGovernanceVoteParams poolGovVoteParams = new PoolGovernanceVoteParams();
+
+        // Act
+        CborMapToOperation.addGovActionId(metadataMap, poolGovVoteParams);
+
+        // Assert - governance action hash should remain null since empty string was ignored
+        Assertions.assertThat(poolGovVoteParams.getGovernanceActionHash()).isNull();
+    }
+
     // Helper methods to convert Rosetta models back to CBOR DataItems for test setup
     private Map fromCurrency(Currency currency) {
         Map currencyMap = new Map();
