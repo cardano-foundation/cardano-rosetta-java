@@ -1,33 +1,70 @@
 package org.cardanofoundation.rosetta.api.block.mapper;
 
-import java.math.BigInteger;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import javax.annotation.Nullable;
-
-import lombok.RequiredArgsConstructor;
-
-import org.springframework.stereotype.Component;
+import com.bloxbean.cardano.client.transaction.spec.governance.Anchor;
+import com.bloxbean.cardano.client.transaction.spec.governance.Vote;
+import com.bloxbean.cardano.client.transaction.spec.governance.actions.GovActionId;
 import com.bloxbean.cardano.yaci.core.model.certs.CertificateType;
-import org.mapstruct.Named;
-import org.openapitools.client.model.*;
-
+import lombok.RequiredArgsConstructor;
 import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.block.model.domain.DRepDelegation;
+import org.cardanofoundation.rosetta.api.block.model.domain.GovernancePoolVote;
 import org.cardanofoundation.rosetta.api.block.model.domain.StakeRegistration;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.common.mapper.DataMapper;
 import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
 import org.cardanofoundation.rosetta.common.util.Constants;
+import org.mapstruct.Named;
+import org.openapitools.client.model.*;
+import org.springframework.stereotype.Component;
+
+import javax.annotation.Nullable;
+import java.math.BigInteger;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
 public class TransactionMapperUtils {
 
   final ProtocolParamService protocolParamService;
+
+  @Named("convertGovAnchorFromRosetta")
+  public GovVoteRationaleParams convertGovAnchorFromRosetta(Anchor anchor) {
+    return GovernancePoolVote.convertFromRosetta(anchor);
+  }
+
+  @Named("convertGovVoteRationaleToRosetta")
+  public Anchor convertGovVoteRationaleToRosetta(GovVoteRationaleParams params) {
+    return GovernancePoolVote.convertToRosetta(params);
+  }
+
+  @Named("convertGovVoteToRosetta")
+  public GovVoteParams convertGovVoteFromRosetta(Vote vote) {
+    return GovernancePoolVote.convertFromRosetta(vote);
+  }
+
+  @Named("convertGovVoteToRosetta")
+  public Vote convertGovVoteToRosetta(GovVoteParams voteParams) {
+    return GovernancePoolVote.convertToRosetta(voteParams);
+  }
+
+  @Named("convertGovActionIdToRosetta")
+  public String convertGovActionIdFromRosetta(GovActionId govActionId) {
+    return GovernancePoolVote.convertFromRosetta(govActionId);
+  }
+
+  @Named("convertGovActionIdToRosetta")
+  public GovActionId convertGovActionIdToRosetta(String govActionParamsString) {
+    return GovernancePoolVote.convertGovActionIdToRosetta(govActionParamsString);
+  }
+
+  @Named("convertPoolCredentialToRosetta")
+  public PublicKey convertPoolCredentialToRosetta(String poolCredentialHex) {
+    return GovernancePoolVote.convertToRosetta(poolCredentialHex);
+  }
 
   @Named("convertDRepToRosetta")
   public DRepDelegation.DRep convertDRepToRosetta(DRepParams dRepParams) {
@@ -72,6 +109,7 @@ public class TransactionMapperUtils {
                                     .build()
                     )
             );
+
     return Objects.isNull(operationMetadata.getTokenBundle()) ? null : operationMetadata;
   }
 

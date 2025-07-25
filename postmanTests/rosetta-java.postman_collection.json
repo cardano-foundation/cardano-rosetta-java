@@ -1,10 +1,9 @@
 {
 	"info": {
-		"_postman_id": "7d6c45ee-566f-44f2-bb93-bb9cd8b30bb1",
+		"_postman_id": "344bcd4d-686e-4cee-a0a4-ceea5d7562fb",
 		"name": "rosetta-java",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "22770953",
-		"_collection_link": "https://universal-water-431619.postman.co/workspace/My-Workspace~207852b0-2ada-455f-838b-25731ed1d6fa/collection/22770953-7d6c45ee-566f-44f2-bb93-bb9cd8b30bb1?action=share&source=collection_link&creator=22770953"
+		"_exporter_id": "15925891"
 	},
 	"item": [
 		{
@@ -220,6 +219,347 @@
 							]
 						},
 						{
+							"name": "spo_voting",
+							"item": [
+								{
+									"name": "gov pool voting - account - vote yes, no vote rationale",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test('Status code is 200', function () {",
+													"    pm.response.to.have.status(200);",
+													"})",
+													"console.log(pm.response.json())",
+													"",
+													"pm.test('Contains Json Body', function () {",
+													"    pm.response.to.have.jsonBody('options');",
+													"})",
+													"",
+													"pm.test(\"Correct Values\", function () {",
+													"    var responseData = pm.response.json();",
+													"    pm.expect(responseData).to.be.an('object');",
+													"    pm.expect(responseData.options.relative_ttl).to.eql(100.0);",
+													"    pm.expect(responseData.options.transaction_size).to.be.oneOf([411.0, 408.0]);",
+													"});",
+													"",
+													""
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"{{networkId}}\"\n    },\n    \"metadata\": {\n        \"relative_ttl\": 100,\n        \"deposit_parameters\": {\n            \"poolDeposit\": \"500000000\",\n            \"keyDeposit\": \"2000000\"\n        }\n    },\n    \"operations\": [\n        {\n            \"operation_identifier\": {\n                \"index\": 0,\n                \"network_index\": 0\n            },\n            \"type\": \"input\",\n            \"status\": \"success\",\n            \"account\": {\n                \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n            },\n            \"amount\": {\n                \"value\": \"-90000000000\",\n                \"currency\": {\n                    \"symbol\": \"ADA\",\n                    \"decimals\": 6\n                }\n            },\n            \"coin_change\": {\n                \"coin_identifier\": {\n                    \"identifier\": \"2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f:1\"\n                },\n                \"coin_action\": \"coin_spent\"\n            }\n        },\n        {\n            \"operation_identifier\": {\n                \"index\": 1\n            },\n            \"related_operations\": [\n                {\n                    \"index\": 0\n                }\n            ],\n            \"type\": \"output\",\n            \"status\": \"success\",\n            \"account\": {\n                \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n            },\n            \"amount\": {\n                \"value\": \"10000\",\n                \"currency\": {\n                    \"symbol\": \"ADA\",\n                    \"decimals\": 6\n                }\n            }\n        },\n        {\n            \"operation_identifier\": {\n                \"index\": 2\n            },\n            \"related_operations\": [\n                {\n                    \"index\": 0\n                }\n            ],\n            \"type\": \"output\",\n            \"status\": \"success\",\n            \"account\": {\n                \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n            },\n            \"amount\": {\n                \"value\": \"40000\",\n                \"currency\": {\n                    \"symbol\": \"ADA\",\n                    \"decimals\": 6\n                }\n            }\n        },\n        {\n            \"operation_identifier\": {\n                \"index\": 3\n            },\n            \"type\": \"poolGovernanceVote\",\n            \"status\": \"success\",\n            \"account\": {\n                \"address\": \"6c518b4861bb88b1395ceb116342cecbcfb8736282655f9a61c4c368\"\n            },\n            \"metadata\": {\n                \"poolGovernanceVoteParams\": {\n                    \"governance_action_hash\": \"40c2a42fe324759a640dcfddbc69ef2e3b7fe5a998af8d6660359772bf44c9dc00\",\n                    \"pool_credential\": {\n                        \"hex_bytes\": \"60afbe982faaee34b02ad0e75cd50d5d7a734f5daaf7b67bc8c492eb5299af2b\",\n                        \"curve_type\": \"edwards25519\"\n                    },\n                    \"vote\": \"yes\"\n                }\n            }\n        },\n        {\n            \"operation_identifier\": {\n                \"index\": 4\n            },\n            \"type\": \"poolGovernanceVote\",\n            \"status\": \"success\",\n            \"account\": {\n                \"address\": \"6c518b4861bb88b1395ceb116342cecbcfb8736282655f9a61c4c368\"\n            },\n            \"metadata\": {\n                \"poolGovernanceVoteParams\": {\n                    \"governance_action_hash\": \"40c2a42fe324759a640dcfddbc69ef2e3b7fe5a998af8d6660359772bf44c9dc00\",\n                    \"pool_credential\": {\n                        \"hex_bytes\": \"582060afbe982faaee34b02ad0e75cd50d5d7a734f5daaf7b67bc8c492eb5299af2b\",\n                        \"curve_type\": \"edwards25519\"\n                    },\n                    \"vote\": \"yes\"\n                }\n            }\n        }\n    ]\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{URL}}/construction/preprocess",
+											"host": [
+												"{{URL}}"
+											],
+											"path": [
+												"construction",
+												"preprocess"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "gov pool voting - account - vote yes, keys mismatch",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Status code is 500\", function () {",
+													"    pm.response.to.have.status(500);",
+													"});",
+													"",
+													"pm.test(\"Error code is 5047\", function () {",
+													"    var jsonData = pm.response.json();",
+													"    pm.expect(jsonData.code).to.eql(5047);",
+													"});",
+													"",
+													"pm.test(\"Error message is 'Governance vote is invalid'\", function () {",
+													"    var jsonData = pm.response.json();",
+													"    pm.expect(jsonData.message).to.eql(\"Invalid governance vote, reason: Pool key hash passed as account.address does not match with pool credential key hash!\");",
+													"});",
+													"",
+													"pm.test(\"Retriable is false\", function () {",
+													"    var jsonData = pm.response.json();",
+													"    pm.expect(jsonData.retriable).to.eql(false);",
+													"});",
+													""
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"{{networkId}}\"\n    },\n    \"metadata\": {\n        \"relative_ttl\": 100,\n        \"deposit_parameters\": {\n            \"poolDeposit\": \"500000000\",\n            \"keyDeposit\": \"2000000\"\n        }\n    },\n    \"operations\": [\n        {\n            \"operation_identifier\": {\n                \"index\": 0,\n                \"network_index\": 0\n            },\n            \"type\": \"input\",\n            \"status\": \"success\",\n            \"account\": {\n                \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n            },\n            \"amount\": {\n                \"value\": \"-90000000000\",\n                \"currency\": {\n                    \"symbol\": \"ADA\",\n                    \"decimals\": 6\n                }\n            },\n            \"coin_change\": {\n                \"coin_identifier\": {\n                    \"identifier\": \"2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f:1\"\n                },\n                \"coin_action\": \"coin_spent\"\n            }\n        },\n        {\n            \"operation_identifier\": {\n                \"index\": 1\n            },\n            \"related_operations\": [\n                {\n                    \"index\": 0\n                }\n            ],\n            \"type\": \"output\",\n            \"status\": \"success\",\n            \"account\": {\n                \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n            },\n            \"amount\": {\n                \"value\": \"10000\",\n                \"currency\": {\n                    \"symbol\": \"ADA\",\n                    \"decimals\": 6\n                }\n            }\n        },\n        {\n            \"operation_identifier\": {\n                \"index\": 2\n            },\n            \"related_operations\": [\n                {\n                    \"index\": 0\n                }\n            ],\n            \"type\": \"output\",\n            \"status\": \"success\",\n            \"account\": {\n                \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n            },\n            \"amount\": {\n                \"value\": \"40000\",\n                \"currency\": {\n                    \"symbol\": \"ADA\",\n                    \"decimals\": 6\n                }\n            }\n        },\n        {\n            \"operation_identifier\": {\n                \"index\": 3\n            },\n            \"type\": \"poolGovernanceVote\",\n            \"status\": \"success\",\n            \"account\": {\n                \"address\": \"6c518b4861bb88b1395ceb116342cecbcfb8736282655f9a61c4c368\"\n            },\n            \"metadata\": {\n                \"poolGovernanceVoteParams\": {\n                    \"governance_action_hash\": \"40c2a42fe324759a640dcfddbc69ef2e3b7fe5a998af8d6660359772bf44c9dc00\",\n                    \"pool_credential\": {\n                        \"hex_bytes\": \"60afbe982faaee34b02ad0e75cd50d5d7a734f5daaf7b67bc8c492eb5299af2b\",\n                        \"curve_type\": \"edwards25519\"\n                    },\n                    \"vote\": \"yes\"\n                }\n            }\n        },\n        {\n            \"operation_identifier\": {\n                \"index\": 4\n            },\n            \"type\": \"poolGovernanceVote\",\n            \"status\": \"success\",\n            \"account\": {\n                \"address\": \"6c518b4861bb88b1395ceb116342cecbcfb8736282655f9a61c4c368\"\n            },\n            \"metadata\": {\n                \"poolGovernanceVoteParams\": {\n                    \"governance_action_hash\": \"40c2a42fe324759a640dcfddbc69ef2e3b7fe5a998af8d6660359772bf44c9dc00\",\n                    \"pool_credential\": {\n                        \"hex_bytes\": \"582060afbe982faaee34b02ad0e75cd50d5d7a734f5daaf7b67bc8c492eb5299af2c\",\n                        \"curve_type\": \"edwards25519\"\n                    },\n                    \"vote\": \"yes\"\n                }\n            }\n        }\n    ]\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{URL}}/construction/preprocess",
+											"host": [
+												"{{URL}}"
+											],
+											"path": [
+												"construction",
+												"preprocess"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "gov pool voting - account bech32 - vote no, no vote rationale",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test('Status code is 200', function () {",
+													"    pm.response.to.have.status(200);",
+													"})",
+													"console.log(pm.response.json())",
+													"",
+													"pm.test('Contains Json Body', function () {",
+													"    pm.response.to.have.jsonBody('options');",
+													"})",
+													"",
+													"pm.test(\"Correct Values\", function () {",
+													"    var responseData = pm.response.json();",
+													"    pm.expect(responseData).to.be.an('object');",
+													"    pm.expect(responseData.options.relative_ttl).to.eql(100.0);",
+													"    pm.expect(responseData.options.transaction_size).to.be.oneOf([411.0, 408.0]);",
+													"});",
+													"",
+													""
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"{{networkId}}\"\n    },\n    \"metadata\": {\n        \"relative_ttl\": 100,\n        \"deposit_parameters\": {\n            \"poolDeposit\": \"500000000\",\n            \"keyDeposit\": \"2000000\"\n        }\n    },\n    \"operations\": [\n        {\n            \"operation_identifier\": {\n                \"index\": 0,\n                \"network_index\": 0\n            },\n            \"type\": \"input\",\n            \"status\": \"success\",\n            \"account\": {\n                \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n            },\n            \"amount\": {\n                \"value\": \"-90000000000\",\n                \"currency\": {\n                    \"symbol\": \"ADA\",\n                    \"decimals\": 6\n                }\n            },\n            \"coin_change\": {\n                \"coin_identifier\": {\n                    \"identifier\": \"2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f:1\"\n                },\n                \"coin_action\": \"coin_spent\"\n            }\n        },\n        {\n            \"operation_identifier\": {\n                \"index\": 1\n            },\n            \"related_operations\": [\n                {\n                    \"index\": 0\n                }\n            ],\n            \"type\": \"output\",\n            \"status\": \"success\",\n            \"account\": {\n                \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n            },\n            \"amount\": {\n                \"value\": \"10000\",\n                \"currency\": {\n                    \"symbol\": \"ADA\",\n                    \"decimals\": 6\n                }\n            }\n        },\n        {\n            \"operation_identifier\": {\n                \"index\": 2\n            },\n            \"related_operations\": [\n                {\n                    \"index\": 0\n                }\n            ],\n            \"type\": \"output\",\n            \"status\": \"success\",\n            \"account\": {\n                \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n            },\n            \"amount\": {\n                \"value\": \"40000\",\n                \"currency\": {\n                    \"symbol\": \"ADA\",\n                    \"decimals\": 6\n                }\n            }\n        },\n        {\n            \"operation_identifier\": {\n                \"index\": 3\n            },\n            \"type\": \"poolGovernanceVote\",\n            \"status\": \"success\",\n            \"account\": {\n                \"address\": \"6c518b4861bb88b1395ceb116342cecbcfb8736282655f9a61c4c368\"\n            },\n            \"metadata\": {\n                \"poolGovernanceVoteParams\": {\n                    \"governance_action_hash\": \"40c2a42fe324759a640dcfddbc69ef2e3b7fe5a998af8d6660359772bf44c9dc00\",\n                    \"pool_credential\": {\n                        \"hex_bytes\": \"60afbe982faaee34b02ad0e75cd50d5d7a734f5daaf7b67bc8c492eb5299af2b\",\n                        \"curve_type\": \"edwards25519\"\n                    },\n                    \"vote\": \"yes\"\n                }\n            }\n        },\n        {\n            \"operation_identifier\": {\n                \"index\": 4\n            },\n            \"type\": \"poolGovernanceVote\",\n            \"status\": \"success\",\n            \"account\": {\n                \"address\": \"pool1d3gckjrphwytzw2uavgkxskwe08msumzsfj4lxnpcnpks3zjml3\"\n            },\n            \"metadata\": {\n                \"poolGovernanceVoteParams\": {\n                    \"governance_action_hash\": \"40c2a42fe324759a640dcfddbc69ef2e3b7fe5a998af8d6660359772bf44c9dc00\",\n                    \"pool_credential\": {\n                        \"hex_bytes\": \"582060afbe982faaee34b02ad0e75cd50d5d7a734f5daaf7b67bc8c492eb5299af2b\",\n                        \"curve_type\": \"edwards25519\"\n                    },\n                    \"vote\": \"no\"\n                }\n            }\n        }\n    ]\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{URL}}/construction/preprocess",
+											"host": [
+												"{{URL}}"
+											],
+											"path": [
+												"construction",
+												"preprocess"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "gov pool voting - account bech32 - vote abstain, no vote rationale",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test('Status code is 200', function () {",
+													"    pm.response.to.have.status(200);",
+													"})",
+													"console.log(pm.response.json())",
+													"",
+													"pm.test('Contains Json Body', function () {",
+													"    pm.response.to.have.jsonBody('options');",
+													"})",
+													"",
+													"pm.test(\"Correct Values\", function () {",
+													"    var responseData = pm.response.json();",
+													"    pm.expect(responseData).to.be.an('object');",
+													"    pm.expect(responseData.options.relative_ttl).to.eql(100.0);",
+													"    pm.expect(responseData.options.transaction_size).to.be.oneOf([411.0, 408.0]);",
+													"});",
+													"",
+													""
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"{{networkId}}\"\n    },\n    \"metadata\": {\n        \"relative_ttl\": 100,\n        \"deposit_parameters\": {\n            \"poolDeposit\": \"500000000\",\n            \"keyDeposit\": \"2000000\"\n        }\n    },\n    \"operations\": [\n        {\n            \"operation_identifier\": {\n                \"index\": 0,\n                \"network_index\": 0\n            },\n            \"type\": \"input\",\n            \"status\": \"success\",\n            \"account\": {\n                \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n            },\n            \"amount\": {\n                \"value\": \"-90000000000\",\n                \"currency\": {\n                    \"symbol\": \"ADA\",\n                    \"decimals\": 6\n                }\n            },\n            \"coin_change\": {\n                \"coin_identifier\": {\n                    \"identifier\": \"2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f:1\"\n                },\n                \"coin_action\": \"coin_spent\"\n            }\n        },\n        {\n            \"operation_identifier\": {\n                \"index\": 1\n            },\n            \"related_operations\": [\n                {\n                    \"index\": 0\n                }\n            ],\n            \"type\": \"output\",\n            \"status\": \"success\",\n            \"account\": {\n                \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n            },\n            \"amount\": {\n                \"value\": \"10000\",\n                \"currency\": {\n                    \"symbol\": \"ADA\",\n                    \"decimals\": 6\n                }\n            }\n        },\n        {\n            \"operation_identifier\": {\n                \"index\": 2\n            },\n            \"related_operations\": [\n                {\n                    \"index\": 0\n                }\n            ],\n            \"type\": \"output\",\n            \"status\": \"success\",\n            \"account\": {\n                \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n            },\n            \"amount\": {\n                \"value\": \"40000\",\n                \"currency\": {\n                    \"symbol\": \"ADA\",\n                    \"decimals\": 6\n                }\n            }\n        },\n        {\n            \"operation_identifier\": {\n                \"index\": 3\n            },\n            \"type\": \"poolGovernanceVote\",\n            \"status\": \"success\",\n            \"account\": {\n                \"address\": \"6c518b4861bb88b1395ceb116342cecbcfb8736282655f9a61c4c368\"\n            },\n            \"metadata\": {\n                \"poolGovernanceVoteParams\": {\n                    \"governance_action_hash\": \"40c2a42fe324759a640dcfddbc69ef2e3b7fe5a998af8d6660359772bf44c9dc00\",\n                    \"pool_credential\": {\n                        \"hex_bytes\": \"60afbe982faaee34b02ad0e75cd50d5d7a734f5daaf7b67bc8c492eb5299af2b\",\n                        \"curve_type\": \"edwards25519\"\n                    },\n                    \"vote\": \"yes\"\n                }\n            }\n        },\n        {\n            \"operation_identifier\": {\n                \"index\": 4\n            },\n            \"type\": \"poolGovernanceVote\",\n            \"status\": \"success\",\n            \"account\": {\n                \"address\": \"pool1d3gckjrphwytzw2uavgkxskwe08msumzsfj4lxnpcnpks3zjml3\"\n            },\n            \"metadata\": {\n                \"poolGovernanceVoteParams\": {\n                    \"governance_action_hash\": \"40c2a42fe324759a640dcfddbc69ef2e3b7fe5a998af8d6660359772bf44c9dc00\",\n                    \"pool_credential\": {\n                        \"hex_bytes\": \"582060afbe982faaee34b02ad0e75cd50d5d7a734f5daaf7b67bc8c492eb5299af2b\",\n                        \"curve_type\": \"edwards25519\"\n                    },\n                    \"vote\": \"abstain\"\n                }\n            }\n        }\n    ]\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{URL}}/construction/preprocess",
+											"host": [
+												"{{URL}}"
+											],
+											"path": [
+												"construction",
+												"preprocess"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "gov pool voting - account bech32 - vote yes, vote rationale present",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test('Status code is 200', function () {",
+													"    pm.response.to.have.status(200);",
+													"})",
+													"console.log(pm.response.json())",
+													"",
+													"pm.test('Contains Json Body', function () {",
+													"    pm.response.to.have.jsonBody('options');",
+													"})",
+													"",
+													"pm.test(\"Correct Values\", function () {",
+													"    var responseData = pm.response.json();",
+													"    pm.expect(responseData).to.be.an('object');",
+													"    pm.expect(responseData.options.relative_ttl).to.eql(100.0);",
+													"    pm.expect(responseData.options.transaction_size).to.be.oneOf([513, 510.0]);",
+													"});",
+													"",
+													""
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"network_identifier\": {\n    \"blockchain\": \"cardano\",\n    \"network\": \"{{networkId}}\"\n  },\n  \"metadata\": {\n    \"relative_ttl\": 100,\n    \"deposit_parameters\": {\n      \"poolDeposit\": \"500000000\",\n      \"keyDeposit\": \"2000000\"\n    }\n  },\n  \"operations\": [\n    {\n      \"operation_identifier\": {\n        \"index\": 0,\n        \"network_index\": 0\n      },\n      \"type\": \"input\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n      },\n      \"amount\": {\n        \"value\": \"-90000000000\",\n        \"currency\": {\n          \"symbol\": \"ADA\",\n          \"decimals\": 6\n        }\n      },\n      \"coin_change\": {\n        \"coin_identifier\": {\n          \"identifier\": \"2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f:1\"\n        },\n        \"coin_action\": \"coin_spent\"\n      }\n    },\n    {\n      \"operation_identifier\": {\n        \"index\": 1\n      },\n      \"related_operations\": [\n        {\n          \"index\": 0\n        }\n      ],\n      \"type\": \"output\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n      },\n      \"amount\": {\n        \"value\": \"10000\",\n        \"currency\": {\n          \"symbol\": \"ADA\",\n          \"decimals\": 6\n        }\n      }\n    },\n    {\n      \"operation_identifier\": {\n        \"index\": 2\n      },\n      \"related_operations\": [\n        {\n          \"index\": 0\n        }\n      ],\n      \"type\": \"output\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n      },\n      \"amount\": {\n        \"value\": \"40000\",\n        \"currency\": {\n          \"symbol\": \"ADA\",\n          \"decimals\": 6\n        }\n      }\n    },\n    {\n      \"operation_identifier\": {\n        \"index\": 3\n      },\n      \"type\": \"poolGovernanceVote\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"6c518b4861bb88b1395ceb116342cecbcfb8736282655f9a61c4c368\"\n      },\n      \"metadata\": {\n        \"poolGovernanceVoteParams\": {\n          \"governance_action_hash\": \"40c2a42fe324759a640dcfddbc69ef2e3b7fe5a998af8d6660359772bf44c9dc00\",\n          \"pool_credential\": {\n            \"hex_bytes\": \"60afbe982faaee34b02ad0e75cd50d5d7a734f5daaf7b67bc8c492eb5299af2b\",\n            \"curve_type\": \"edwards25519\"\n          },\n          \"vote\": \"yes\"\n        }\n      }\n    },\n    {\n      \"operation_identifier\": {\n        \"index\": 4\n      },\n      \"type\": \"poolGovernanceVote\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"pool1d3gckjrphwytzw2uavgkxskwe08msumzsfj4lxnpcnpks3zjml3\"\n      },\n      \"metadata\": {\n        \"poolGovernanceVoteParams\": {\n          \"governance_action_hash\": \"40c2a42fe324759a640dcfddbc69ef2e3b7fe5a998af8d6660359772bf44c9dc00\",\n          \"pool_credential\": {\n            \"hex_bytes\": \"582060afbe982faaee34b02ad0e75cd50d5d7a734f5daaf7b67bc8c492eb5299af2b\",\n            \"curve_type\": \"edwards25519\"\n          },\n          \"vote\": \"yes\",\n          \"vote_rationale\": {\n            \"data_hash\": \"c77f8427e2808cbd4c7093aa704fb0fcb48b2ab3bdd84fa7f4dec2eb7de344c9\",\n            \"url\": \"ipfs://bafybeig7hluox6xefqdgmwcntvsguxcziw2oeogg2fbvygex2aj6qcfo64\"\n          }\n        }\n      }\n    }\n  ]\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{URL}}/construction/preprocess",
+											"host": [
+												"{{URL}}"
+											],
+											"path": [
+												"construction",
+												"preprocess"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "drep vote delegation",
+							"item": [
+								{
+									"name": "drep as key_hash",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test('Status code is 200', function () {",
+													"    pm.response.to.have.status(200);",
+													"})",
+													"console.log(pm.response.json())",
+													"",
+													"pm.test('Contains Json Body', function () {",
+													"    pm.response.to.have.jsonBody('options');",
+													"})",
+													"",
+													"pm.test(\"Correct Values\", function () {",
+													"    var responseData = pm.response.json();",
+													"    pm.expect(responseData).to.be.an('object');",
+													"    pm.expect(responseData.options.relative_ttl).to.eql(100.0);",
+													"    pm.expect(responseData.options.transaction_size).to.be.oneOf([932.0, 935.0]);",
+													"});",
+													""
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"network_identifier\": {\n    \"blockchain\": \"cardano\",\n    \"network\": \"{{networkId}}\"\n  },\n  \"metadata\": {\n    \"relative_ttl\": 100,\n    \"deposit_parameters\": {\n      \"poolDeposit\": \"500000000\",\n      \"keyDeposit\": \"2000000\"\n    }\n  },\n  \"operations\" : [\n    {\n      \"operation_identifier\": {\n        \"index\": 0,\n        \"network_index\": 0\n      },\n      \"type\": \"input\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n      },\n      \"amount\": {\n        \"value\": \"-90000000000\",\n        \"currency\": {\n          \"symbol\": \"ADA\",\n          \"decimals\": 6\n        }\n      },\n      \"coin_change\": {\n        \"coin_identifier\": {\n          \"identifier\": \"2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f:1\"\n        },\n        \"coin_action\": \"coin_spent\"\n      }\n    },\n    {\n      \"operation_identifier\": {\n        \"index\": 1\n      },\n      \"related_operations\": [\n        {\n          \"index\": 0\n        }\n      ],\n      \"type\": \"output\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n      },\n      \"amount\": {\n        \"value\": \"10000\",\n        \"currency\": {\n          \"symbol\": \"ADA\",\n          \"decimals\": 6\n        }\n      }\n    },\n    {\n      \"operation_identifier\": {\n        \"index\": 2\n      },\n      \"related_operations\": [\n        {\n          \"index\": 0\n        }\n      ],\n      \"type\": \"output\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n      },\n      \"amount\": {\n        \"value\": \"40000\",\n        \"currency\": {\n          \"symbol\": \"ADA\",\n          \"decimals\": 6\n        }\n      }\n    },\n    {\n      \"operation_identifier\": {\n        \"index\": 3\n      },\n      \"type\": \"poolRegistration\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5\"\n      },\n      \"metadata\": {\n        \"poolRegistrationParams\": {\n          \"vrfKeyHash\": \"8dd154228946bd12967c12bedb1cb6038b78f8b84a1760b1a788fa72a4af3db0\",\n          \"rewardAddress\": \"stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5\",\n          \"pledge\": \"5000000\",\n          \"cost\": \"3000000\",\n          \"poolOwners\": [\"stake1uxly0q2cnpxrjrqm9vpnr9dwkr0j945gulhhgs3dx33l47sweg9er\"],\n          \"relays\": [\n            {\n              \"type\": \"single_host_addr\",\n              \"ipv4\": \"127.0.0.1\",\n              \"ipv6\": \"2345:0425:2ca1:0000:0000:0567:5673:23b5\",\n              \"port\": \"32\"\n            }\n          ],\n          \"margin\": {\n            \"numerator\": \"1\",\n            \"denominator\": \"1\"\n          },\n          \"poolMetadata\": {\n            \"url\": \"poolMetadataUrl\",\n            \"hash\": \"9ac2217288d1ae0b4e15c41b58d3e05a13206fd9ab81cb15943e4174bf30c90b\"\n          }\n        }\n      }\n    },\n    {\n      \"operation_identifier\": {\n        \"index\": 3\n      },\n      \"type\": \"dRepVoteDelegation\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5\"\n      },\n      \"metadata\": {\n        \"staking_credential\": {\n          \"hex_bytes\": \"1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F\",\n          \"curve_type\": \"edwards25519\"\n        },\n        \"drep\": {\n          \"id\": \"74984fae4ca1715fa1f8759f9d871015ac87f449a85dea6cf9956da1\",\n          \"type\": \"key_hash\"\n        }\n      }\n    }\n  ]\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{URL}}/construction/preprocess",
+											"host": [
+												"{{URL}}"
+											],
+											"path": [
+												"construction",
+												"preprocess"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
 							"name": "simple",
 							"event": [
 								{
@@ -420,60 +760,6 @@
 								"body": {
 									"mode": "raw",
 									"raw": "{\n  \"network_identifier\": {\n    \"blockchain\": \"cardano\",\n    \"network\": \"{{networkId}}\"\n  },\n  \"metadata\": {\n    \"relative_ttl\": 100,\n    \"deposit_parameters\": {\n      \"poolDeposit\": \"500000000\",\n      \"keyDeposit\": \"2000000\"\n    }\n  },\n  \"operations\" : [\n    {\n      \"operation_identifier\": {\n        \"index\": 0,\n        \"network_index\": 0\n      },\n      \"type\": \"input\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n      },\n      \"amount\": {\n        \"value\": \"-90000000000\",\n        \"currency\": {\n          \"symbol\": \"ADA\",\n          \"decimals\": 6\n        }\n      },\n      \"coin_change\": {\n        \"coin_identifier\": {\n          \"identifier\": \"2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f:1\"\n        },\n        \"coin_action\": \"coin_spent\"\n      }\n    },\n    {\n      \"operation_identifier\": {\n        \"index\": 1\n      },\n      \"related_operations\": [\n        {\n          \"index\": 0\n        }\n      ],\n      \"type\": \"output\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n      },\n      \"amount\": {\n        \"value\": \"10000\",\n        \"currency\": {\n          \"symbol\": \"ADA\",\n          \"decimals\": 6\n        }\n      }\n    },\n    {\n      \"operation_identifier\": {\n        \"index\": 2\n      },\n      \"related_operations\": [\n        {\n          \"index\": 0\n        }\n      ],\n      \"type\": \"output\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n      },\n      \"amount\": {\n        \"value\": \"40000\",\n        \"currency\": {\n          \"symbol\": \"ADA\",\n          \"decimals\": 6\n        }\n      }\n    },\n    {\n      \"operation_identifier\": {\n        \"index\": 3\n      },\n      \"type\": \"stakeDelegation\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5\"\n      },\n      \"metadata\": {\n        \"staking_credential\": {\n          \"hex_bytes\": \"1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F\",\n          \"curve_type\": \"edwards25519\"\n        },\n        \"pool_key_hash\": \"1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5\"\n      }\n    }\n  ]\n}",
-									"options": {
-										"raw": {
-											"language": "json"
-										}
-									}
-								},
-								"url": {
-									"raw": "{{URL}}/construction/preprocess",
-									"host": [
-										"{{URL}}"
-									],
-									"path": [
-										"construction",
-										"preprocess"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "drep vote delegation",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"exec": [
-											"pm.test('Status code is 200', function () {",
-											"    pm.response.to.have.status(200);",
-											"})",
-											"console.log(pm.response.json())",
-											"",
-											"pm.test('Contains Json Body', function () {",
-											"    pm.response.to.have.jsonBody('options');",
-											"})",
-											"",
-											"pm.test(\"Correct Values\", function () {",
-											"    var responseData = pm.response.json();",
-											"    pm.expect(responseData).to.be.an('object');",
-											"    pm.expect(responseData.options.relative_ttl).to.eql(100.0);",
-											"    pm.expect(responseData.options.transaction_size).to.be.oneOf([932.0, 935.0]);",
-											"});",
-											""
-										],
-										"type": "text/javascript",
-										"packages": {}
-									}
-								}
-							],
-							"request": {
-								"method": "POST",
-								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n  \"network_identifier\": {\n    \"blockchain\": \"cardano\",\n    \"network\": \"{{networkId}}\"\n  },\n  \"metadata\": {\n    \"relative_ttl\": 100,\n    \"deposit_parameters\": {\n      \"poolDeposit\": \"500000000\",\n      \"keyDeposit\": \"2000000\"\n    }\n  },\n  \"operations\" : [\n    {\n      \"operation_identifier\": {\n        \"index\": 0,\n        \"network_index\": 0\n      },\n      \"type\": \"input\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n      },\n      \"amount\": {\n        \"value\": \"-90000000000\",\n        \"currency\": {\n          \"symbol\": \"ADA\",\n          \"decimals\": 6\n        }\n      },\n      \"coin_change\": {\n        \"coin_identifier\": {\n          \"identifier\": \"2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f:1\"\n        },\n        \"coin_action\": \"coin_spent\"\n      }\n    },\n    {\n      \"operation_identifier\": {\n        \"index\": 1\n      },\n      \"related_operations\": [\n        {\n          \"index\": 0\n        }\n      ],\n      \"type\": \"output\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n      },\n      \"amount\": {\n        \"value\": \"10000\",\n        \"currency\": {\n          \"symbol\": \"ADA\",\n          \"decimals\": 6\n        }\n      }\n    },\n    {\n      \"operation_identifier\": {\n        \"index\": 2\n      },\n      \"related_operations\": [\n        {\n          \"index\": 0\n        }\n      ],\n      \"type\": \"output\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n      },\n      \"amount\": {\n        \"value\": \"40000\",\n        \"currency\": {\n          \"symbol\": \"ADA\",\n          \"decimals\": 6\n        }\n      }\n    },\n    {\n      \"operation_identifier\": {\n        \"index\": 3\n      },\n      \"type\": \"poolRegistration\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5\"\n      },\n      \"metadata\": {\n        \"poolRegistrationParams\": {\n          \"vrfKeyHash\": \"8dd154228946bd12967c12bedb1cb6038b78f8b84a1760b1a788fa72a4af3db0\",\n          \"rewardAddress\": \"stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5\",\n          \"pledge\": \"5000000\",\n          \"cost\": \"3000000\",\n          \"poolOwners\": [\"stake1uxly0q2cnpxrjrqm9vpnr9dwkr0j945gulhhgs3dx33l47sweg9er\"],\n          \"relays\": [\n            {\n              \"type\": \"single_host_addr\",\n              \"ipv4\": \"127.0.0.1\",\n              \"ipv6\": \"2345:0425:2ca1:0000:0000:0567:5673:23b5\",\n              \"port\": \"32\"\n            }\n          ],\n          \"margin\": {\n            \"numerator\": \"1\",\n            \"denominator\": \"1\"\n          },\n          \"poolMetadata\": {\n            \"url\": \"poolMetadataUrl\",\n            \"hash\": \"9ac2217288d1ae0b4e15c41b58d3e05a13206fd9ab81cb15943e4174bf30c90b\"\n          }\n        }\n      }\n    },\n    {\n      \"operation_identifier\": {\n        \"index\": 3\n      },\n      \"type\": \"dRepVoteDelegation\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5\"\n      },\n      \"metadata\": {\n        \"staking_credential\": {\n          \"hex_bytes\": \"1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F\",\n          \"curve_type\": \"edwards25519\"\n        },\n        \"drep\": {\n          \"id\": \"74984fae4ca1715fa1f8759f9d871015ac87f449a85dea6cf9956da1\",\n          \"type\": \"key_hash\"\n        }\n      }\n    }\n  ]\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -1007,6 +1293,475 @@
 							]
 						},
 						{
+							"name": "spo_voting",
+							"item": [
+								{
+									"name": "gov pool voting - account - vote yes, no vote rationale",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Status code is 200\", function () {",
+													"    pm.response.to.have.status(200);",
+													"});",
+													"",
+													"const jsonData = pm.response.json();",
+													"",
+													"// 🔹 Exact match: unsigned_transaction",
+													"pm.test(\"Exact match for unsigned_transaction\", function () {",
+													"    const expectedUnsignedTransaction = \"827901946135303064393031303238313832353832303266323366643863636138333561663231663361633337356261633630316639376561643735663265373931343362646637316665326334626530343365386630313031383238323538316436316262343066316136343762633838633162643662373338646238656236363335376439323634373465613566666436626161373663396662313932373130383235383164363162623430663161363437626338386331626436623733386462386562363633353764393236343734656135666664366261613736633966623139396334303032316230303030303031346634366134306230303331393033653831336131383230343538316336633531386234383631626238386231333935636562313136333432636563626366623837333632383236353566396136316334633336386131383235383230343063326134326665333234373539613634306463666464626336396566326533623766653561393938616638643636363033353937373262663434633964633030383230316636a16a6f7065726174696f6e7384a6746f7065726174696f6e5f6964656e746966696572a265696e646578006d6e6574776f726b5f696e64657800676163636f756e74a16761646472657373783a616464723176786135707564786737376733736461646465636d773874766336686d796e79776e34396c6c747434666d766e3763706e6b63707866616d6f756e74a26863757272656e6379a26673796d626f6c6341444168646563696d616c73066576616c75656c2d39303030303030303030306b636f696e5f6368616e6765a26f636f696e5f6964656e746966696572a16a6964656e7469666965727842326632336664386363613833356166323166336163333735626163363031663937656164373566326537393134336264663731666532633462653034336538663a316b636f696e5f616374696f6e6a636f696e5f7370656e74667374617475736773756363657373647479706565696e707574a6746f7065726174696f6e5f6964656e746966696572a165696e646578017272656c617465645f6f7065726174696f6e7381a165696e64657800676163636f756e74a16761646472657373783a616464723176786135707564786737376733736461646465636d773874766336686d796e79776e34396c6c747434666d766e3763706e6b63707866616d6f756e74a26863757272656e6379a26673796d626f6c6341444168646563696d616c73066576616c75656531303030306673746174757367737563636573736474797065666f7574707574a6746f7065726174696f6e5f6964656e746966696572a165696e646578027272656c617465645f6f7065726174696f6e7381a165696e64657800676163636f756e74a16761646472657373783a616464723176786135707564786737376733736461646465636d773874766336686d796e79776e34396c6c747434666d766e3763706e6b63707866616d6f756e74a26863757272656e6379a26673796d626f6c6341444168646563696d616c73066576616c75656534303030306673746174757367737563636573736474797065666f7574707574a5746f7065726174696f6e5f6964656e746966696572a165696e64657803676163636f756e74a1676164647265737378383663353138623438363162623838623133393563656231313633343263656362636662383733363238323635356639613631633463333638686d65746164617461a17818706f6f6c476f7665726e616e6365566f7465506172616d73a36f706f6f6c5f63726564656e7469616ca2696865785f62797465737840363061666265393832666161656533346230326164306537356364353064356437613733346635646161663762363762633863343932656235323939616632626a63757276655f747970656c65647761726473323535313964766f74656379657376676f7665726e616e63655f616374696f6e5f686173687842343063326134326665333234373539613634306463666464626336396566326533623766653561393938616638643636363033353937373262663434633964633030667374617475736773756363657373647479706572706f6f6c476f7665726e616e6365566f7465\";",
+													"    pm.expect(jsonData.unsigned_transaction).to.eql(expectedUnsignedTransaction);",
+													"});",
+													"",
+													"// 🔹 Exact match: payloads array size",
+													"pm.test(\"payloads array has exactly 2 elements\", function () {",
+													"    pm.expect(jsonData.payloads).to.be.an(\"array\").with.lengthOf(2);",
+													"});",
+													"",
+													"// 🔸 Payload 1",
+													"pm.test(\"Payload 1 - full match\", function () {",
+													"    pm.expect(jsonData.payloads[0]).to.eql({",
+													"        account_identifier: {",
+													"            address: \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"",
+													"        },",
+													"        hex_bytes: \"963d3b2538bf571ab3f08fd047e6cdd13ec13cb6ec0c79d9ca35d7eac9d5bb94\",",
+													"        signature_type: \"ed25519\"",
+													"    });",
+													"});",
+													"",
+													"// 🔸 Payload 2",
+													"pm.test(\"Payload 2 - full match\", function () {",
+													"    pm.expect(jsonData.payloads[1]).to.eql({",
+													"        account_identifier: {",
+													"            address: \"6c518b4861bb88b1395ceb116342cecbcfb8736282655f9a61c4c368\"",
+													"        },",
+													"        hex_bytes: \"963d3b2538bf571ab3f08fd047e6cdd13ec13cb6ec0c79d9ca35d7eac9d5bb94\",",
+													"        signature_type: \"ed25519\"",
+													"    });",
+													"});"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"{{networkId}}\"\n    },\n    \"operations\": [\n        {\n            \"operation_identifier\": {\n                \"index\": 0,\n                \"network_index\": 0\n            },\n            \"type\": \"input\",\n            \"status\": \"success\",\n            \"account\": {\n                \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n            },\n            \"amount\": {\n                \"value\": \"-90000000000\",\n                \"currency\": {\n                    \"symbol\": \"ADA\",\n                    \"decimals\": 6\n                }\n            },\n            \"coin_change\": {\n                \"coin_identifier\": {\n                    \"identifier\": \"2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f:1\"\n                },\n                \"coin_action\": \"coin_spent\"\n            }\n        },\n        {\n            \"operation_identifier\": {\n                \"index\": 1\n            },\n            \"related_operations\": [\n                {\n                    \"index\": 0\n                }\n            ],\n            \"type\": \"output\",\n            \"status\": \"success\",\n            \"account\": {\n                \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n            },\n            \"amount\": {\n                \"value\": \"10000\",\n                \"currency\": {\n                    \"symbol\": \"ADA\",\n                    \"decimals\": 6\n                }\n            }\n        },\n        {\n            \"operation_identifier\": {\n                \"index\": 2\n            },\n            \"related_operations\": [\n                {\n                    \"index\": 0\n                }\n            ],\n            \"type\": \"output\",\n            \"status\": \"success\",\n            \"account\": {\n                \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n            },\n            \"amount\": {\n                \"value\": \"40000\",\n                \"currency\": {\n                    \"symbol\": \"ADA\",\n                    \"decimals\": 6\n                }\n            }\n        },\n        {\n            \"operation_identifier\": {\n                \"index\": 3\n            },\n            \"type\": \"poolGovernanceVote\",\n            \"status\": \"success\",\n            \"account\": {\n                \"address\": \"6c518b4861bb88b1395ceb116342cecbcfb8736282655f9a61c4c368\"\n            },\n            \"metadata\": {\n                \"poolGovernanceVoteParams\": {\n                    \"governance_action_hash\": \"40c2a42fe324759a640dcfddbc69ef2e3b7fe5a998af8d6660359772bf44c9dc00\",\n                    \"pool_credential\": {\n                        \"hex_bytes\": \"582060afbe982faaee34b02ad0e75cd50d5d7a734f5daaf7b67bc8c492eb5299af2b\",\n                        \"curve_type\": \"edwards25519\"\n                    },\n                    \"vote\": \"yes\"\n                }\n            }\n        }\n    ],\n    \"metadata\": {\n        \"ttl\": \"1000\",\n        \"protocol_parameters\": {\n            \"coinsPerUtxoSize\": \"0\",\n            \"maxTxSize\": 16384,\n            \"maxValSize\": 0,\n            \"keyDeposit\": \"2000000\",\n            \"maxCollateralInputs\": 0,\n            \"minFeeCoefficient\": 44,\n            \"minFeeConstant\": 155381,\n            \"minPoolCost\": \"340000000\",\n            \"poolDeposit\": \"500000000\",\n            \"protocol\": 4\n        }\n    }\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{URL}}/construction/payloads",
+											"host": [
+												"{{URL}}"
+											],
+											"path": [
+												"construction",
+												"payloads"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "gov pool voting - account - vote yes, no vote rationale, key mismatch",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Status code is 500\", function () {",
+													"    pm.response.to.have.status(500);",
+													"});",
+													"",
+													"pm.test(\"Error code is 5047\", function () {",
+													"    var jsonData = pm.response.json();",
+													"    pm.expect(jsonData.code).to.eql(5047);",
+													"});",
+													"",
+													"pm.test(\"Error message is 'Governance vote is invalid'\", function () {",
+													"    var jsonData = pm.response.json();",
+													"    pm.expect(jsonData.message).to.eql(\"Invalid governance vote, reason: Pool key hash passed as account.address does not match with pool credential key hash!\");",
+													"});",
+													"",
+													"pm.test(\"Retriable is false\", function () {",
+													"    var jsonData = pm.response.json();",
+													"    pm.expect(jsonData.retriable).to.eql(false);",
+													"});",
+													""
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"{{networkId}}\"\n    },\n    \"operations\": [\n        {\n            \"operation_identifier\": {\n                \"index\": 0,\n                \"network_index\": 0\n            },\n            \"type\": \"input\",\n            \"status\": \"success\",\n            \"account\": {\n                \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n            },\n            \"amount\": {\n                \"value\": \"-90000000000\",\n                \"currency\": {\n                    \"symbol\": \"ADA\",\n                    \"decimals\": 6\n                }\n            },\n            \"coin_change\": {\n                \"coin_identifier\": {\n                    \"identifier\": \"2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f:1\"\n                },\n                \"coin_action\": \"coin_spent\"\n            }\n        },\n        {\n            \"operation_identifier\": {\n                \"index\": 1\n            },\n            \"related_operations\": [\n                {\n                    \"index\": 0\n                }\n            ],\n            \"type\": \"output\",\n            \"status\": \"success\",\n            \"account\": {\n                \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n            },\n            \"amount\": {\n                \"value\": \"10000\",\n                \"currency\": {\n                    \"symbol\": \"ADA\",\n                    \"decimals\": 6\n                }\n            }\n        },\n        {\n            \"operation_identifier\": {\n                \"index\": 2\n            },\n            \"related_operations\": [\n                {\n                    \"index\": 0\n                }\n            ],\n            \"type\": \"output\",\n            \"status\": \"success\",\n            \"account\": {\n                \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n            },\n            \"amount\": {\n                \"value\": \"40000\",\n                \"currency\": {\n                    \"symbol\": \"ADA\",\n                    \"decimals\": 6\n                }\n            }\n        },\n        {\n            \"operation_identifier\": {\n                \"index\": 3\n            },\n            \"type\": \"poolGovernanceVote\",\n            \"status\": \"success\",\n            \"account\": {\n                \"address\": \"6c518b4861bb88b1395ceb116342cecbcfb8736282655f9a61c4c368\"\n            },\n            \"metadata\": {\n                \"poolGovernanceVoteParams\": {\n                    \"governance_action_hash\": \"40c2a42fe324759a640dcfddbc69ef2e3b7fe5a998af8d6660359772bf44c9dc00\",\n                    \"pool_credential\": {\n                        \"hex_bytes\": \"582060afbe982faaee34b02ad0e75cd50d5d7a734f5daaf7b67bc8c492eb5299af2a\",\n                        \"curve_type\": \"edwards25519\"\n                    },\n                    \"vote\": \"yes\"\n                }\n            }\n        }\n    ],\n    \"metadata\": {\n        \"ttl\": \"1000\",\n        \"protocol_parameters\": {\n            \"coinsPerUtxoSize\": \"0\",\n            \"maxTxSize\": 16384,\n            \"maxValSize\": 0,\n            \"keyDeposit\": \"2000000\",\n            \"maxCollateralInputs\": 0,\n            \"minFeeCoefficient\": 44,\n            \"minFeeConstant\": 155381,\n            \"minPoolCost\": \"340000000\",\n            \"poolDeposit\": \"500000000\",\n            \"protocol\": 4\n        }\n    }\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{URL}}/construction/payloads",
+											"host": [
+												"{{URL}}"
+											],
+											"path": [
+												"construction",
+												"payloads"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "gov pool voting - account bech32 - vote no, no vote rationale",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Status code is 200\", function () {",
+													"    pm.response.to.have.status(200);",
+													"});",
+													"",
+													"const jsonData = pm.response.json();",
+													"",
+													"// 🔹 Exact match: unsigned_transaction",
+													"pm.test(\"Exact match for unsigned_transaction\", function () {",
+													"    const expectedUnsignedTransaction = \"827901946135303064393031303238313832353832303266323366643863636138333561663231663361633337356261633630316639376561643735663265373931343362646637316665326334626530343365386630313031383238323538316436316262343066316136343762633838633162643662373338646238656236363335376439323634373465613566666436626161373663396662313932373130383235383164363162623430663161363437626338386331626436623733386462386562363633353764393236343734656135666664366261613736633966623139396334303032316230303030303031346634366134306230303331393033653831336131383230343538316336633531386234383631626238386231333935636562313136333432636563626366623837333632383236353566396136316334633336386131383235383230343063326134326665333234373539613634306463666464626336396566326533623766653561393938616638643636363033353937373262663434633964633030383230306636a16a6f7065726174696f6e7384a6746f7065726174696f6e5f6964656e746966696572a265696e646578006d6e6574776f726b5f696e64657800676163636f756e74a16761646472657373783a616464723176786135707564786737376733736461646465636d773874766336686d796e79776e34396c6c747434666d766e3763706e6b63707866616d6f756e74a26863757272656e6379a26673796d626f6c6341444168646563696d616c73066576616c75656c2d39303030303030303030306b636f696e5f6368616e6765a26f636f696e5f6964656e746966696572a16a6964656e7469666965727842326632336664386363613833356166323166336163333735626163363031663937656164373566326537393134336264663731666532633462653034336538663a316b636f696e5f616374696f6e6a636f696e5f7370656e74667374617475736773756363657373647479706565696e707574a6746f7065726174696f6e5f6964656e746966696572a165696e646578017272656c617465645f6f7065726174696f6e7381a165696e64657800676163636f756e74a16761646472657373783a616464723176786135707564786737376733736461646465636d773874766336686d796e79776e34396c6c747434666d766e3763706e6b63707866616d6f756e74a26863757272656e6379a26673796d626f6c6341444168646563696d616c73066576616c75656531303030306673746174757367737563636573736474797065666f7574707574a6746f7065726174696f6e5f6964656e746966696572a165696e646578027272656c617465645f6f7065726174696f6e7381a165696e64657800676163636f756e74a16761646472657373783a616464723176786135707564786737376733736461646465636d773874766336686d796e79776e34396c6c747434666d766e3763706e6b63707866616d6f756e74a26863757272656e6379a26673796d626f6c6341444168646563696d616c73066576616c75656534303030306673746174757367737563636573736474797065666f7574707574a5746f7065726174696f6e5f6964656e746966696572a165696e64657803676163636f756e74a1676164647265737378383663353138623438363162623838623133393563656231313633343263656362636662383733363238323635356639613631633463333638686d65746164617461a17818706f6f6c476f7665726e616e6365566f7465506172616d73a36f706f6f6c5f63726564656e7469616ca2696865785f62797465737840363061666265393832666161656533346230326164306537356364353064356437613733346635646161663762363762633863343932656235323939616632626a63757276655f747970656c65647761726473323535313964766f7465626e6f76676f7665726e616e63655f616374696f6e5f686173687842343063326134326665333234373539613634306463666464626336396566326533623766653561393938616638643636363033353937373262663434633964633030667374617475736773756363657373647479706572706f6f6c476f7665726e616e6365566f7465\";",
+													"    pm.expect(jsonData.unsigned_transaction).to.eql(expectedUnsignedTransaction);",
+													"});",
+													"",
+													"// 🔹 Exact match: payloads array size",
+													"pm.test(\"payloads array has exactly 2 elements\", function () {",
+													"    pm.expect(jsonData.payloads).to.be.an(\"array\").with.lengthOf(2);",
+													"});",
+													"",
+													"// 🔸 Payload 1",
+													"pm.test(\"Payload 1 - full match\", function () {",
+													"    pm.expect(jsonData.payloads[0]).to.eql({",
+													"        account_identifier: {",
+													"            address: \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"",
+													"        },",
+													"        hex_bytes: \"bcb5207bd633c0d3408f8af99c1bb587647e5663943eda5d27a75abea32120a0\",",
+													"        signature_type: \"ed25519\"",
+													"    });",
+													"});",
+													"",
+													"// 🔸 Payload 2",
+													"pm.test(\"Payload 2 - full match\", function () {",
+													"    pm.expect(jsonData.payloads[1]).to.eql({",
+													"        account_identifier: {",
+													"            address: \"6c518b4861bb88b1395ceb116342cecbcfb8736282655f9a61c4c368\"",
+													"        },",
+													"        hex_bytes: \"bcb5207bd633c0d3408f8af99c1bb587647e5663943eda5d27a75abea32120a0\",",
+													"        signature_type: \"ed25519\"",
+													"    });",
+													"});"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"{{networkId}}\"\n    },\n    \"operations\": [\n        {\n            \"operation_identifier\": {\n                \"index\": 0,\n                \"network_index\": 0\n            },\n            \"type\": \"input\",\n            \"status\": \"success\",\n            \"account\": {\n                \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n            },\n            \"amount\": {\n                \"value\": \"-90000000000\",\n                \"currency\": {\n                    \"symbol\": \"ADA\",\n                    \"decimals\": 6\n                }\n            },\n            \"coin_change\": {\n                \"coin_identifier\": {\n                    \"identifier\": \"2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f:1\"\n                },\n                \"coin_action\": \"coin_spent\"\n            }\n        },\n        {\n            \"operation_identifier\": {\n                \"index\": 1\n            },\n            \"related_operations\": [\n                {\n                    \"index\": 0\n                }\n            ],\n            \"type\": \"output\",\n            \"status\": \"success\",\n            \"account\": {\n                \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n            },\n            \"amount\": {\n                \"value\": \"10000\",\n                \"currency\": {\n                    \"symbol\": \"ADA\",\n                    \"decimals\": 6\n                }\n            }\n        },\n        {\n            \"operation_identifier\": {\n                \"index\": 2\n            },\n            \"related_operations\": [\n                {\n                    \"index\": 0\n                }\n            ],\n            \"type\": \"output\",\n            \"status\": \"success\",\n            \"account\": {\n                \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n            },\n            \"amount\": {\n                \"value\": \"40000\",\n                \"currency\": {\n                    \"symbol\": \"ADA\",\n                    \"decimals\": 6\n                }\n            }\n        },\n        {\n            \"operation_identifier\": {\n                \"index\": 3\n            },\n            \"type\": \"poolGovernanceVote\",\n            \"status\": \"success\",\n            \"account\": {\n                \"address\": \"pool1d3gckjrphwytzw2uavgkxskwe08msumzsfj4lxnpcnpks3zjml3\"\n            },\n            \"metadata\": {\n                \"poolGovernanceVoteParams\": {\n                    \"governance_action_hash\": \"40c2a42fe324759a640dcfddbc69ef2e3b7fe5a998af8d6660359772bf44c9dc00\",\n                    \"pool_credential\": {\n                        \"hex_bytes\": \"582060afbe982faaee34b02ad0e75cd50d5d7a734f5daaf7b67bc8c492eb5299af2b\",\n                        \"curve_type\": \"edwards25519\"\n                    },\n                    \"vote\": \"no\"\n                }\n            }\n        }\n    ],\n    \"metadata\": {\n        \"ttl\": \"1000\",\n        \"protocol_parameters\": {\n            \"coinsPerUtxoSize\": \"0\",\n            \"maxTxSize\": 16384,\n            \"maxValSize\": 0,\n            \"keyDeposit\": \"2000000\",\n            \"maxCollateralInputs\": 0,\n            \"minFeeCoefficient\": 44,\n            \"minFeeConstant\": 155381,\n            \"minPoolCost\": \"340000000\",\n            \"poolDeposit\": \"500000000\",\n            \"protocol\": 4\n        }\n    }\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{URL}}/construction/payloads",
+											"host": [
+												"{{URL}}"
+											],
+											"path": [
+												"construction",
+												"payloads"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "gov pool voting - account bech32 - vote abstain, no vote rationale",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Status code is 200\", function () {",
+													"    pm.response.to.have.status(200);",
+													"});",
+													"",
+													"const jsonData = pm.response.json();",
+													"",
+													"// 🔹 Exact match: unsigned_transaction",
+													"pm.test(\"Exact match for unsigned_transaction\", function () {",
+													"    const expectedUnsignedTransaction = \"827901946135303064393031303238313832353832303266323366643863636138333561663231663361633337356261633630316639376561643735663265373931343362646637316665326334626530343365386630313031383238323538316436316262343066316136343762633838633162643662373338646238656236363335376439323634373465613566666436626161373663396662313932373130383235383164363162623430663161363437626338386331626436623733386462386562363633353764393236343734656135666664366261613736633966623139396334303032316230303030303031346634366134306230303331393033653831336131383230343538316336633531386234383631626238386231333935636562313136333432636563626366623837333632383236353566396136316334633336386131383235383230343063326134326665333234373539613634306463666464626336396566326533623766653561393938616638643636363033353937373262663434633964633030383230326636a16a6f7065726174696f6e7384a6746f7065726174696f6e5f6964656e746966696572a265696e646578006d6e6574776f726b5f696e64657800676163636f756e74a16761646472657373783a616464723176786135707564786737376733736461646465636d773874766336686d796e79776e34396c6c747434666d766e3763706e6b63707866616d6f756e74a26863757272656e6379a26673796d626f6c6341444168646563696d616c73066576616c75656c2d39303030303030303030306b636f696e5f6368616e6765a26f636f696e5f6964656e746966696572a16a6964656e7469666965727842326632336664386363613833356166323166336163333735626163363031663937656164373566326537393134336264663731666532633462653034336538663a316b636f696e5f616374696f6e6a636f696e5f7370656e74667374617475736773756363657373647479706565696e707574a6746f7065726174696f6e5f6964656e746966696572a165696e646578017272656c617465645f6f7065726174696f6e7381a165696e64657800676163636f756e74a16761646472657373783a616464723176786135707564786737376733736461646465636d773874766336686d796e79776e34396c6c747434666d766e3763706e6b63707866616d6f756e74a26863757272656e6379a26673796d626f6c6341444168646563696d616c73066576616c75656531303030306673746174757367737563636573736474797065666f7574707574a6746f7065726174696f6e5f6964656e746966696572a165696e646578027272656c617465645f6f7065726174696f6e7381a165696e64657800676163636f756e74a16761646472657373783a616464723176786135707564786737376733736461646465636d773874766336686d796e79776e34396c6c747434666d766e3763706e6b63707866616d6f756e74a26863757272656e6379a26673796d626f6c6341444168646563696d616c73066576616c75656534303030306673746174757367737563636573736474797065666f7574707574a5746f7065726174696f6e5f6964656e746966696572a165696e64657803676163636f756e74a1676164647265737378383663353138623438363162623838623133393563656231313633343263656362636662383733363238323635356639613631633463333638686d65746164617461a17818706f6f6c476f7665726e616e6365566f7465506172616d73a36f706f6f6c5f63726564656e7469616ca2696865785f62797465737840363061666265393832666161656533346230326164306537356364353064356437613733346635646161663762363762633863343932656235323939616632626a63757276655f747970656c65647761726473323535313964766f7465676162737461696e76676f7665726e616e63655f616374696f6e5f686173687842343063326134326665333234373539613634306463666464626336396566326533623766653561393938616638643636363033353937373262663434633964633030667374617475736773756363657373647479706572706f6f6c476f7665726e616e6365566f7465\";",
+													"    pm.expect(jsonData.unsigned_transaction).to.eql(expectedUnsignedTransaction);",
+													"});",
+													"",
+													"// 🔹 Exact match: payloads array size",
+													"pm.test(\"payloads array has exactly 2 elements\", function () {",
+													"    pm.expect(jsonData.payloads).to.be.an(\"array\").with.lengthOf(2);",
+													"});",
+													"",
+													"// 🔸 Payload 1",
+													"pm.test(\"Payload 1 - full match\", function () {",
+													"    pm.expect(jsonData.payloads[0]).to.eql({",
+													"        account_identifier: {",
+													"            address: \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"",
+													"        },",
+													"        hex_bytes: \"0f1f79b59daa387c4e781e1b3ac5525ac571c6d77457c74c0a77b3ccc598d6a3\",",
+													"        signature_type: \"ed25519\"",
+													"    });",
+													"});",
+													"",
+													"// 🔸 Payload 2",
+													"pm.test(\"Payload 2 - full match\", function () {",
+													"    pm.expect(jsonData.payloads[1]).to.eql({",
+													"        account_identifier: {",
+													"            address: \"6c518b4861bb88b1395ceb116342cecbcfb8736282655f9a61c4c368\"",
+													"        },",
+													"        hex_bytes: \"0f1f79b59daa387c4e781e1b3ac5525ac571c6d77457c74c0a77b3ccc598d6a3\",",
+													"        signature_type: \"ed25519\"",
+													"    });",
+													"});"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"{{networkId}}\"\n    },\n    \"operations\": [\n        {\n            \"operation_identifier\": {\n                \"index\": 0,\n                \"network_index\": 0\n            },\n            \"type\": \"input\",\n            \"status\": \"success\",\n            \"account\": {\n                \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n            },\n            \"amount\": {\n                \"value\": \"-90000000000\",\n                \"currency\": {\n                    \"symbol\": \"ADA\",\n                    \"decimals\": 6\n                }\n            },\n            \"coin_change\": {\n                \"coin_identifier\": {\n                    \"identifier\": \"2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f:1\"\n                },\n                \"coin_action\": \"coin_spent\"\n            }\n        },\n        {\n            \"operation_identifier\": {\n                \"index\": 1\n            },\n            \"related_operations\": [\n                {\n                    \"index\": 0\n                }\n            ],\n            \"type\": \"output\",\n            \"status\": \"success\",\n            \"account\": {\n                \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n            },\n            \"amount\": {\n                \"value\": \"10000\",\n                \"currency\": {\n                    \"symbol\": \"ADA\",\n                    \"decimals\": 6\n                }\n            }\n        },\n        {\n            \"operation_identifier\": {\n                \"index\": 2\n            },\n            \"related_operations\": [\n                {\n                    \"index\": 0\n                }\n            ],\n            \"type\": \"output\",\n            \"status\": \"success\",\n            \"account\": {\n                \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n            },\n            \"amount\": {\n                \"value\": \"40000\",\n                \"currency\": {\n                    \"symbol\": \"ADA\",\n                    \"decimals\": 6\n                }\n            }\n        },\n        {\n            \"operation_identifier\": {\n                \"index\": 3\n            },\n            \"type\": \"poolGovernanceVote\",\n            \"status\": \"success\",\n            \"account\": {\n                \"address\": \"pool1d3gckjrphwytzw2uavgkxskwe08msumzsfj4lxnpcnpks3zjml3\"\n            },\n            \"metadata\": {\n                \"poolGovernanceVoteParams\": {\n                    \"governance_action_hash\": \"40c2a42fe324759a640dcfddbc69ef2e3b7fe5a998af8d6660359772bf44c9dc00\",\n                    \"pool_credential\": {\n                        \"hex_bytes\": \"582060afbe982faaee34b02ad0e75cd50d5d7a734f5daaf7b67bc8c492eb5299af2b\",\n                        \"curve_type\": \"edwards25519\"\n                    },\n                    \"vote\": \"abstain\"\n                }\n            }\n        }\n    ],\n    \"metadata\": {\n        \"ttl\": \"1000\",\n        \"protocol_parameters\": {\n            \"coinsPerUtxoSize\": \"0\",\n            \"maxTxSize\": 16384,\n            \"maxValSize\": 0,\n            \"keyDeposit\": \"2000000\",\n            \"maxCollateralInputs\": 0,\n            \"minFeeCoefficient\": 44,\n            \"minFeeConstant\": 155381,\n            \"minPoolCost\": \"340000000\",\n            \"poolDeposit\": \"500000000\",\n            \"protocol\": 4\n        }\n    }\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{URL}}/construction/payloads",
+											"host": [
+												"{{URL}}"
+											],
+											"path": [
+												"construction",
+												"payloads"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "gov pool voting - account bech32 - vote yes, vote rationale present",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test(\"Status code is 200\", function () {",
+													"    pm.response.to.have.status(200);",
+													"});",
+													"",
+													"const jsonData = pm.response.json();",
+													"",
+													"// 🔹 Exact match: unsigned_transaction",
+													"pm.test(\"Exact match for unsigned_transaction\", function () {",
+													"    const expectedUnsignedTransaction = \"827902606135303064393031303238313832353832303266323366643863636138333561663231663361633337356261633630316639376561643735663265373931343362646637316665326334626530343365386630313031383238323538316436316262343066316136343762633838633162643662373338646238656236363335376439323634373465613566666436626161373663396662313932373130383235383164363162623430663161363437626338386331626436623733386462386562363633353764393236343734656135666664366261613736633966623139396334303032316230303030303031346634366134306230303331393033653831336131383230343538316336633531386234383631626238386231333935636562313136333432636563626366623837333632383236353566396136316334633336386131383235383230343063326134326665333234373539613634306463666464626336396566326533623766653561393938616638643636363033353937373262663434633964633030383230313832373834323639373036363733336132663266363236313636373936323635363936373337363836633735366637383336373836353636373136343637366437373633366537343736373336373735373836333761363937373332366636353666363736373332363636323736373936373635373833323631366133363731363336363666333633343538323063373766383432376532383038636264346337303933616137303466623066636234386232616233626464383466613766346465633265623764653334346339a16a6f7065726174696f6e7384a6746f7065726174696f6e5f6964656e746966696572a265696e646578006d6e6574776f726b5f696e64657800676163636f756e74a16761646472657373783a616464723176786135707564786737376733736461646465636d773874766336686d796e79776e34396c6c747434666d766e3763706e6b63707866616d6f756e74a26863757272656e6379a26673796d626f6c6341444168646563696d616c73066576616c75656c2d39303030303030303030306b636f696e5f6368616e6765a26f636f696e5f6964656e746966696572a16a6964656e7469666965727842326632336664386363613833356166323166336163333735626163363031663937656164373566326537393134336264663731666532633462653034336538663a316b636f696e5f616374696f6e6a636f696e5f7370656e74667374617475736773756363657373647479706565696e707574a6746f7065726174696f6e5f6964656e746966696572a165696e646578017272656c617465645f6f7065726174696f6e7381a165696e64657800676163636f756e74a16761646472657373783a616464723176786135707564786737376733736461646465636d773874766336686d796e79776e34396c6c747434666d766e3763706e6b63707866616d6f756e74a26863757272656e6379a26673796d626f6c6341444168646563696d616c73066576616c75656531303030306673746174757367737563636573736474797065666f7574707574a6746f7065726174696f6e5f6964656e746966696572a165696e646578027272656c617465645f6f7065726174696f6e7381a165696e64657800676163636f756e74a16761646472657373783a616464723176786135707564786737376733736461646465636d773874766336686d796e79776e34396c6c747434666d766e3763706e6b63707866616d6f756e74a26863757272656e6379a26673796d626f6c6341444168646563696d616c73066576616c75656534303030306673746174757367737563636573736474797065666f7574707574a5746f7065726174696f6e5f6964656e746966696572a165696e64657803676163636f756e74a1676164647265737378383663353138623438363162623838623133393563656231313633343263656362636662383733363238323635356639613631633463333638686d65746164617461a17818706f6f6c476f7665726e616e6365566f7465506172616d73a46f706f6f6c5f63726564656e7469616ca2696865785f62797465737840363061666265393832666161656533346230326164306537356364353064356437613733346635646161663762363762633863343932656235323939616632626a63757276655f747970656c65647761726473323535313964766f7465637965736e766f74655f726174696f6e616c65a26375726c7842697066733a2f2f626166796265696737686c756f78367865667164676d77636e747673677578637a6977326f656f6767326662767967657832616a367163666f363469646174615f6861736878406337376638343237653238303863626434633730393361613730346662306663623438623261623362646438346661376634646563326562376465333434633976676f7665726e616e63655f616374696f6e5f686173687842343063326134326665333234373539613634306463666464626336396566326533623766653561393938616638643636363033353937373262663434633964633030667374617475736773756363657373647479706572706f6f6c476f7665726e616e6365566f7465\";",
+													"    pm.expect(jsonData.unsigned_transaction).to.eql(expectedUnsignedTransaction);",
+													"});",
+													"",
+													"// 🔹 Exact match: payloads array size",
+													"pm.test(\"payloads array has exactly 2 elements\", function () {",
+													"    pm.expect(jsonData.payloads).to.be.an(\"array\").with.lengthOf(2);",
+													"});",
+													"",
+													"// 🔸 Payload 1",
+													"pm.test(\"Payload 1 - full match\", function () {",
+													"    pm.expect(jsonData.payloads[0]).to.eql({",
+													"        account_identifier: {",
+													"            address: \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"",
+													"        },",
+													"        hex_bytes: \"e771128cc16fa017ec95f0d6b07ed8bdf8449a2c94d0468d89bdc1e54cdeeecc\",",
+													"        signature_type: \"ed25519\"",
+													"    });",
+													"});",
+													"",
+													"// 🔸 Payload 2",
+													"pm.test(\"Payload 2 - full match\", function () {",
+													"    pm.expect(jsonData.payloads[1]).to.eql({",
+													"        account_identifier: {",
+													"            address: \"6c518b4861bb88b1395ceb116342cecbcfb8736282655f9a61c4c368\"",
+													"        },",
+													"        hex_bytes: \"e771128cc16fa017ec95f0d6b07ed8bdf8449a2c94d0468d89bdc1e54cdeeecc\",",
+													"        signature_type: \"ed25519\"",
+													"    });",
+													"});"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"{{networkId}}\"\n    },\n    \"operations\": [\n        {\n            \"operation_identifier\": {\n                \"index\": 0,\n                \"network_index\": 0\n            },\n            \"type\": \"input\",\n            \"status\": \"success\",\n            \"account\": {\n                \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n            },\n            \"amount\": {\n                \"value\": \"-90000000000\",\n                \"currency\": {\n                    \"symbol\": \"ADA\",\n                    \"decimals\": 6\n                }\n            },\n            \"coin_change\": {\n                \"coin_identifier\": {\n                    \"identifier\": \"2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f:1\"\n                },\n                \"coin_action\": \"coin_spent\"\n            }\n        },\n        {\n            \"operation_identifier\": {\n                \"index\": 1\n            },\n            \"related_operations\": [\n                {\n                    \"index\": 0\n                }\n            ],\n            \"type\": \"output\",\n            \"status\": \"success\",\n            \"account\": {\n                \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n            },\n            \"amount\": {\n                \"value\": \"10000\",\n                \"currency\": {\n                    \"symbol\": \"ADA\",\n                    \"decimals\": 6\n                }\n            }\n        },\n        {\n            \"operation_identifier\": {\n                \"index\": 2\n            },\n            \"related_operations\": [\n                {\n                    \"index\": 0\n                }\n            ],\n            \"type\": \"output\",\n            \"status\": \"success\",\n            \"account\": {\n                \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n            },\n            \"amount\": {\n                \"value\": \"40000\",\n                \"currency\": {\n                    \"symbol\": \"ADA\",\n                    \"decimals\": 6\n                }\n            }\n        },\n        {\n            \"operation_identifier\": {\n                \"index\": 3\n            },\n            \"type\": \"poolGovernanceVote\",\n            \"status\": \"success\",\n            \"account\": {\n                \"address\": \"pool1d3gckjrphwytzw2uavgkxskwe08msumzsfj4lxnpcnpks3zjml3\"\n            },\n            \"metadata\": {\n                \"poolGovernanceVoteParams\": {\n                    \"governance_action_hash\": \"40c2a42fe324759a640dcfddbc69ef2e3b7fe5a998af8d6660359772bf44c9dc00\",\n                    \"pool_credential\": {\n                        \"hex_bytes\": \"582060afbe982faaee34b02ad0e75cd50d5d7a734f5daaf7b67bc8c492eb5299af2b\",\n                        \"curve_type\": \"edwards25519\"\n                    },\n                    \"vote\": \"yes\",\n                    \"vote_rationale\": {\n                        \"data_hash\": \"c77f8427e2808cbd4c7093aa704fb0fcb48b2ab3bdd84fa7f4dec2eb7de344c9\",\n                        \"url\": \"ipfs://bafybeig7hluox6xefqdgmwcntvsguxcziw2oeogg2fbvygex2aj6qcfo64\"\n                    }\n                }\n            }\n        }\n    ],\n    \"metadata\": {\n        \"ttl\": \"1000\",\n        \"protocol_parameters\": {\n            \"coinsPerUtxoSize\": \"0\",\n            \"maxTxSize\": 16384,\n            \"maxValSize\": 0,\n            \"keyDeposit\": \"2000000\",\n            \"maxCollateralInputs\": 0,\n            \"minFeeCoefficient\": 44,\n            \"minFeeConstant\": 155381,\n            \"minPoolCost\": \"340000000\",\n            \"poolDeposit\": \"500000000\",\n            \"protocol\": 4\n        }\n    }\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{URL}}/construction/payloads",
+											"host": [
+												"{{URL}}"
+											],
+											"path": [
+												"construction",
+												"payloads"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "drep vote delegation",
+							"item": [
+								{
+									"name": "drep as a key_hash",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test('Status code is 200', function () {",
+													"    pm.response.to.have.status(200);",
+													"})",
+													"console.log(pm.response.json())",
+													"",
+													"pm.test('Contains Json Body', function () {",
+													"    pm.response.to.have.jsonBody('payloads');",
+													"    pm.response.to.have.jsonBody('unsigned_transaction');",
+													"})",
+													"",
+													"pm.test(\"Correct Values\", function () {",
+													"    ",
+													"    var responseData = pm.response.json();",
+													"    pm.expect(responseData).to.be.an('object');",
+													"    pm.expect(responseData.payloads.length).to.equal(2)",
+													"    pm.expect(responseData.payloads[0].hex_bytes).to.match(/^c9c80d1a2b5ed5e8be3569a04dfcc98887f54/);",
+													"});",
+													"",
+													"let jsonData = pm.response.json();",
+													"",
+													"// Expected addresses for exact match",
+													"const expectedAddresses = [",
+													"    \"stake_test1uza5pudxg77g3sdaddecmw8tvc\",",
+													"    \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"",
+													"];",
+													"",
+													"// Check top-level keys",
+													"pm.test(\"Has 'unsigned_transaction' and 'payloads'\", function () {",
+													"    pm.expect(jsonData).to.have.property(\"unsigned_transaction\");",
+													"    pm.expect(jsonData).to.have.property(\"payloads\");",
+													"    pm.expect(jsonData.unsigned_transaction).to.be.a(\"string\").and.not.empty;",
+													"    pm.expect(jsonData.payloads).to.be.an(\"array\").with.lengthOf(2);",
+													"});",
+													"",
+													"// Validate unsigned_transaction is a valid hex string",
+													"pm.test(\"'unsigned_transaction' is valid hex\", function () {",
+													"    let isHex = /^[0-9a-fA-F]+$/.test(jsonData.unsigned_transaction);",
+													"    pm.expect(isHex).to.be.true;",
+													"});",
+													"",
+													"// Validate each payload with exact match",
+													"jsonData.payloads.forEach((payload, index) => {",
+													"    const expectedAddress = expectedAddresses[index];",
+													"",
+													"    pm.test(`Payload #${index} - exact address match`, function () {",
+													"        pm.expect(payload).to.have.property(\"account_identifier\");",
+													"        pm.expect(payload.account_identifier).to.be.an(\"object\");",
+													"        pm.expect(payload.account_identifier.address.startsWith(expectedAddress)).to.be.true;",
+													"",
+													"    });",
+													"",
+													"    pm.test(`Payload #${index} - hex_bytes is valid`, function () {",
+													"        pm.expect(payload).to.have.property(\"hex_bytes\");",
+													"        pm.expect(payload.hex_bytes).to.be.a(\"string\").and.match(/^[0-9a-fA-F]{64}$/);",
+													"    });",
+													"",
+													"    pm.test(`Payload #${index} - signature_type is ed25519`, function () {",
+													"        pm.expect(payload).to.have.property(\"signature_type\", \"ed25519\");",
+													"    });",
+													"});"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"network_identifier\": {\n    \"blockchain\": \"cardano\",\n    \"network\": \"{{networkId}}\"\n  },\n  \"operations\": [\n    {\n      \"operation_identifier\": {\n        \"index\": 0,\n        \"network_index\": 0\n      },\n      \"type\": \"input\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n      },\n      \"amount\": {\n        \"value\": \"-90000000000\",\n        \"currency\": {\n          \"symbol\": \"ADA\",\n          \"decimals\": 6\n        }\n      },\n      \"coin_change\": {\n        \"coin_identifier\": {\n          \"identifier\": \"2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f:1\"\n        },\n        \"coin_action\": \"coin_spent\"\n      }\n    },\n    {\n      \"operation_identifier\": {\n        \"index\": 1\n      },\n      \"related_operations\": [\n        {\n          \"index\": 0\n        }\n      ],\n      \"type\": \"output\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n      },\n      \"amount\": {\n        \"value\": \"10000\",\n        \"currency\": {\n          \"symbol\": \"ADA\",\n          \"decimals\": 6\n        }\n      }\n    },\n    {\n      \"operation_identifier\": {\n        \"index\": 2\n      },\n      \"related_operations\": [\n        {\n          \"index\": 0\n        }\n      ],\n      \"type\": \"output\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n      },\n      \"amount\": {\n        \"value\": \"40000\",\n        \"currency\": {\n          \"symbol\": \"ADA\",\n          \"decimals\": 6\n        }\n      }\n    },\n    {\n      \"operation_identifier\": {\n        \"index\": 3\n      },\n      \"type\": \"dRepVoteDelegation\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5\"\n      },\n      \"metadata\": {\n        \"staking_credential\": {\n          \"hex_bytes\": \"1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F\",\n          \"curve_type\": \"edwards25519\"\n        },\n        \"drep\": {\n          \"id\": \"74984fae4ca1715fa1f8759f9d871015ac87f449a85dea6cf9956da1\",\n          \"type\": \"key_hash\"\n        }\n      }\n    }\n  ],\n  \"metadata\": {\n    \"ttl\": \"1000\",\n    \"protocol_parameters\": {\n      \"coinsPerUtxoSize\": \"0\",\n      \"maxTxSize\": 16384,\n      \"maxValSize\": 0,\n      \"keyDeposit\": \"2000000\",\n      \"maxCollateralInputs\": 0,\n      \"minFeeCoefficient\": 44,\n      \"minFeeConstant\": 155381,\n      \"minPoolCost\": \"340000000\",\n      \"poolDeposit\": \"500000000\",\n      \"protocol\": 4\n    }\n  }\n}\n",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{URL}}/construction/payloads",
+											"host": [
+												"{{URL}}"
+											],
+											"path": [
+												"construction",
+												"payloads"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
 							"name": "simple",
 							"event": [
 								{
@@ -1205,104 +1960,6 @@
 								}
 							},
 							"response": []
-						},
-						{
-							"name": "drep vote delegation - keyhash",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"exec": [
-											"pm.test('Status code is 200', function () {",
-											"    pm.response.to.have.status(200);",
-											"})",
-											"console.log(pm.response.json())",
-											"",
-											"pm.test('Contains Json Body', function () {",
-											"    pm.response.to.have.jsonBody('payloads');",
-											"    pm.response.to.have.jsonBody('unsigned_transaction');",
-											"})",
-											"",
-											"pm.test(\"Correct Values\", function () {",
-											"    ",
-											"    var responseData = pm.response.json();",
-											"    pm.expect(responseData).to.be.an('object');",
-											"    pm.expect(responseData.payloads.length).to.equal(2)",
-											"    pm.expect(responseData.payloads[0].hex_bytes).to.match(/^c9c80d1a2b5ed5e8be3569a04dfcc98887f54/);",
-											"});",
-											"",
-											"let jsonData = pm.response.json();",
-											"",
-											"// Expected addresses for exact match",
-											"const expectedAddresses = [",
-											"    \"stake_test1uza5pudxg77g3sdaddecmw8tvc\",",
-											"    \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"",
-											"];",
-											"",
-											"// Check top-level keys",
-											"pm.test(\"Has 'unsigned_transaction' and 'payloads'\", function () {",
-											"    pm.expect(jsonData).to.have.property(\"unsigned_transaction\");",
-											"    pm.expect(jsonData).to.have.property(\"payloads\");",
-											"    pm.expect(jsonData.unsigned_transaction).to.be.a(\"string\").and.not.empty;",
-											"    pm.expect(jsonData.payloads).to.be.an(\"array\").with.lengthOf(2);",
-											"});",
-											"",
-											"// Validate unsigned_transaction is a valid hex string",
-											"pm.test(\"'unsigned_transaction' is valid hex\", function () {",
-											"    let isHex = /^[0-9a-fA-F]+$/.test(jsonData.unsigned_transaction);",
-											"    pm.expect(isHex).to.be.true;",
-											"});",
-											"",
-											"// Validate each payload with exact match",
-											"jsonData.payloads.forEach((payload, index) => {",
-											"    const expectedAddress = expectedAddresses[index];",
-											"",
-											"    pm.test(`Payload #${index} - exact address match`, function () {",
-											"        pm.expect(payload).to.have.property(\"account_identifier\");",
-											"        pm.expect(payload.account_identifier).to.be.an(\"object\");",
-											"        pm.expect(payload.account_identifier.address.startsWith(expectedAddress)).to.be.true;",
-											"",
-											"    });",
-											"",
-											"    pm.test(`Payload #${index} - hex_bytes is valid`, function () {",
-											"        pm.expect(payload).to.have.property(\"hex_bytes\");",
-											"        pm.expect(payload.hex_bytes).to.be.a(\"string\").and.match(/^[0-9a-fA-F]{64}$/);",
-											"    });",
-											"",
-											"    pm.test(`Payload #${index} - signature_type is ed25519`, function () {",
-											"        pm.expect(payload).to.have.property(\"signature_type\", \"ed25519\");",
-											"    });",
-											"});"
-										],
-										"type": "text/javascript",
-										"packages": {}
-									}
-								}
-							],
-							"request": {
-								"method": "POST",
-								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n  \"network_identifier\": {\n    \"blockchain\": \"cardano\",\n    \"network\": \"{{networkId}}\"\n  },\n  \"operations\": [\n    {\n      \"operation_identifier\": {\n        \"index\": 0,\n        \"network_index\": 0\n      },\n      \"type\": \"input\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n      },\n      \"amount\": {\n        \"value\": \"-90000000000\",\n        \"currency\": {\n          \"symbol\": \"ADA\",\n          \"decimals\": 6\n        }\n      },\n      \"coin_change\": {\n        \"coin_identifier\": {\n          \"identifier\": \"2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f:1\"\n        },\n        \"coin_action\": \"coin_spent\"\n      }\n    },\n    {\n      \"operation_identifier\": {\n        \"index\": 1\n      },\n      \"related_operations\": [\n        {\n          \"index\": 0\n        }\n      ],\n      \"type\": \"output\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n      },\n      \"amount\": {\n        \"value\": \"10000\",\n        \"currency\": {\n          \"symbol\": \"ADA\",\n          \"decimals\": 6\n        }\n      }\n    },\n    {\n      \"operation_identifier\": {\n        \"index\": 2\n      },\n      \"related_operations\": [\n        {\n          \"index\": 0\n        }\n      ],\n      \"type\": \"output\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n      },\n      \"amount\": {\n        \"value\": \"40000\",\n        \"currency\": {\n          \"symbol\": \"ADA\",\n          \"decimals\": 6\n        }\n      }\n    },\n    {\n      \"operation_identifier\": {\n        \"index\": 3\n      },\n      \"type\": \"dRepVoteDelegation\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5\"\n      },\n      \"metadata\": {\n        \"staking_credential\": {\n          \"hex_bytes\": \"1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F\",\n          \"curve_type\": \"edwards25519\"\n        },\n        \"drep\": {\n          \"id\": \"74984fae4ca1715fa1f8759f9d871015ac87f449a85dea6cf9956da1\",\n          \"type\": \"key_hash\"\n        }\n      }\n    }\n  ],\n  \"metadata\": {\n    \"ttl\": \"1000\",\n    \"protocol_parameters\": {\n      \"coinsPerUtxoSize\": \"0\",\n      \"maxTxSize\": 16384,\n      \"maxValSize\": 0,\n      \"keyDeposit\": \"2000000\",\n      \"maxCollateralInputs\": 0,\n      \"minFeeCoefficient\": 44,\n      \"minFeeConstant\": 155381,\n      \"minPoolCost\": \"340000000\",\n      \"poolDeposit\": \"500000000\",\n      \"protocol\": 4\n    }\n  }\n}\n",
-									"options": {
-										"raw": {
-											"language": "json"
-										}
-									}
-								},
-								"url": {
-									"raw": "{{URL}}/construction/payloads",
-									"host": [
-										"{{URL}}"
-									],
-									"path": [
-										"construction",
-										"payloads"
-									]
-								}
-							},
-							"response": []
 						}
 					]
 				},
@@ -1360,6 +2017,486 @@
 				{
 					"name": "parse",
 					"item": [
+						{
+							"name": "drep vote delegation",
+							"item": [
+								{
+									"name": "drep as a key hash",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test('Status code is 200', function () {",
+													"    pm.response.to.have.status(200);",
+													"});",
+													"",
+													"// Parse the response",
+													"const jsonData = pm.response.json();",
+													"",
+													"// Find the operation with operation_identifier.index === 3",
+													"const op = jsonData.operations.find(o => o.operation_identifier.index === 3);",
+													"",
+													"// Check if the operation exists",
+													"pm.test(\"Operation index 3 exists\", function () {",
+													"    pm.expect(op).to.not.be.undefined;",
+													"});",
+													"",
+													"// Check if the type is correct",
+													"pm.test(\"Type is dRepVoteDelegation\", function () {",
+													"    pm.expect(op.type).to.eql(\"dRepVoteDelegation\");",
+													"});",
+													"",
+													"// Check if the status is success",
+													"pm.test(\"Status is success\", function () {",
+													"    pm.expect(op.status).to.eql(\"\");",
+													"});",
+													"",
+													"// Check account address",
+													"pm.test(\"Account address is correct\", function () {",
+													"    pm.expect(op.account.address).contains(\"stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5\");",
+													"});",
+													"",
+													"// Check staking credential",
+													"pm.test(\"Staking credential hex_bytes is correct\", function () {",
+													"    pm.expect(op.metadata.staking_credential.hex_bytes)",
+													"        .to.eql(\"1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F\");",
+													"});",
+													"",
+													"pm.test(\"Staking credential curve_type is edwards25519\", function () {",
+													"    pm.expect(op.metadata.staking_credential.curve_type).to.eql(\"edwards25519\");",
+													"});",
+													"",
+													"// Check dRep id and type",
+													"pm.test(\"dRep id is correct\", function () {",
+													"    pm.expect(op.metadata.drep.id)",
+													"        .to.eql(\"74984fae4ca1715fa1f8759f9d871015ac87f449a85dea6cf9956da1\");",
+													"});",
+													"",
+													"pm.test(\"dRep type is key_hash\", function () {",
+													"    pm.expect(op.metadata.drep.type).to.eql(\"key_hash\");",
+													"});"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"network_identifier\": {\n    \"blockchain\": \"cardano\",\n    \"network\": \"{{networkId}}\"\n  },\n  \"signed\": false,\n  \"transaction\": \"8279018e6135303064393031303238313832353832303266323366643863636138333561663231663361633337356261633630316639376561643735663265373931343362646637316665326334626530343365386630313031383238323538316436316262343066316136343762633838633162643662373338646238656236363335376439323634373465613566666436626161373663396662313932373130383235383164363162623430663161363437626338386331626436623733386462386562363633353764393236343734656135666664366261613736633966623139396334303032316230303030303031346634366134306230303331393033653830346439303130323831383330393832303035383163626234306631613634376263383863316264366237333864623865623636333537643932363437346561356666643662616137366339666238323030353831633734393834666165346361313731356661316638373539663964383731303135616338376634343961383564656136636639393536646131a16a6f7065726174696f6e7384a6746f7065726174696f6e5f6964656e746966696572a265696e646578006d6e6574776f726b5f696e64657800676163636f756e74a16761646472657373783a616464723176786135707564786737376733736461646465636d773874766336686d796e79776e34396c6c747434666d766e3763706e6b63707866616d6f756e74a26863757272656e6379a26673796d626f6c6341444168646563696d616c73066576616c75656c2d39303030303030303030306b636f696e5f6368616e6765a26f636f696e5f6964656e746966696572a16a6964656e7469666965727842326632336664386363613833356166323166336163333735626163363031663937656164373566326537393134336264663731666532633462653034336538663a316b636f696e5f616374696f6e6a636f696e5f7370656e74667374617475736773756363657373647479706565696e707574a6746f7065726174696f6e5f6964656e746966696572a165696e646578017272656c617465645f6f7065726174696f6e7381a165696e64657800676163636f756e74a16761646472657373783a616464723176786135707564786737376733736461646465636d773874766336686d796e79776e34396c6c747434666d766e3763706e6b63707866616d6f756e74a26863757272656e6379a26673796d626f6c6341444168646563696d616c73066576616c75656531303030306673746174757367737563636573736474797065666f7574707574a6746f7065726174696f6e5f6964656e746966696572a165696e646578027272656c617465645f6f7065726174696f6e7381a165696e64657800676163636f756e74a16761646472657373783a616464723176786135707564786737376733736461646465636d773874766336686d796e79776e34396c6c747434666d766e3763706e6b63707866616d6f756e74a26863757272656e6379a26673796d626f6c6341444168646563696d616c73066576616c75656534303030306673746174757367737563636573736474797065666f7574707574a5746f7065726174696f6e5f6964656e746966696572a165696e64657803676163636f756e74a16761646472657373783b7374616b653175786135707564786737376733736461646465636d773874766336686d796e79776e34396c6c747434666d766e376361656b376135686d65746164617461a2727374616b696e675f63726564656e7469616ca2696865785f62797465737840314234303044363041414633344541463644434241423942424134363030314132333439373838364346313130363646373834363933334433304535414433466a63757276655f747970656c6564776172647332353531396464726570a2626964783837343938346661653463613137313566613166383735396639643837313031356163383766343439613835646561366366393935366461316474797065686b65795f6861736866737461747573677375636365737364747970657264526570566f746544656c65676174696f6e\"\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{URL}}/construction/parse",
+											"host": [
+												"{{URL}}"
+											],
+											"path": [
+												"construction",
+												"parse"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "spo_voting",
+							"item": [
+								{
+									"name": "gov pool voting - account - vote yes, no vote rationale",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test('Status code is 200', function () {",
+													"    pm.response.to.have.status(200);",
+													"});",
+													"",
+													"const json = pm.response.json();",
+													"",
+													"// ---- Assertions for Operation 0 ----",
+													"pm.test(\"Operation 0 is an input with correct address and amount\", () => {",
+													"    const op0 = json.operations[0];",
+													"    pm.expect(op0.type).to.eql(\"input\");",
+													"    pm.expect(op0.status).to.eql(\"success\");",
+													"    pm.expect(op0.account.address).to.eql(\"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\");",
+													"    pm.expect(op0.amount.value).to.eql(\"-90000000000\");",
+													"    pm.expect(op0.amount.currency.symbol).to.eql(\"ADA\");",
+													"    pm.expect(op0.amount.currency.decimals).to.eql(6);",
+													"    pm.expect(op0.coin_change.coin_action).to.eql(\"coin_spent\");",
+													"    pm.expect(op0.coin_change.coin_identifier.identifier).to.eql(\"2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f:1\");",
+													"});",
+													"",
+													"// ---- Assertions for Operation 1 ----",
+													"pm.test(\"Operation 1 is an output with 10000 ADA\", () => {",
+													"    const op1 = json.operations[1];",
+													"    pm.expect(op1.type).to.eql(\"output\");",
+													"    pm.expect(op1.related_operations[0].index).to.eql(0);",
+													"    pm.expect(op1.account.address).to.eql(\"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\");",
+													"    pm.expect(op1.amount.value).to.eql(\"10000\");",
+													"    pm.expect(op1.amount.currency.symbol).to.eql(\"ADA\");",
+													"    pm.expect(op1.amount.currency.decimals).to.eql(6);",
+													"});",
+													"",
+													"// ---- Assertions for Operation 2 ----",
+													"pm.test(\"Operation 2 is an output with 40000 ADA\", () => {",
+													"    const op2 = json.operations[2];",
+													"    pm.expect(op2.type).to.eql(\"output\");",
+													"    pm.expect(op2.related_operations[0].index).to.eql(0);",
+													"    pm.expect(op2.account.address).to.eql(\"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\");",
+													"    pm.expect(op2.amount.value).to.eql(\"40000\");",
+													"    pm.expect(op2.amount.currency.symbol).to.eql(\"ADA\");",
+													"    pm.expect(op2.amount.currency.decimals).to.eql(6);",
+													"});",
+													"",
+													"// ---- Assertions for Governance Vote (Operation 3) ----",
+													"pm.test(\"Operation 3 is a poolGovernanceVote with 'yes' vote\", () => {",
+													"    const op3 = json.operations[3];",
+													"    pm.expect(op3.type).to.eql(\"poolGovernanceVote\");",
+													"    //pm.expect(op3.status).to.eql(\"success\");",
+													"    pm.expect(op3.account.address).to.eql(\"6c518b4861bb88b1395ceb116342cecbcfb8736282655f9a61c4c368\");",
+													"    pm.expect(op3.metadata.poolGovernanceVoteParams.vote).to.eql(\"yes\");",
+													"    pm.expect(op3.metadata.poolGovernanceVoteParams.governance_action_hash).to.eql(\"40c2a42fe324759a640dcfddbc69ef2e3b7fe5a998af8d6660359772bf44c9dc00\");",
+													"    pm.expect(op3.metadata.poolGovernanceVoteParams.pool_credential.curve_type).to.eql(\"edwards25519\");",
+													"    pm.expect(op3.metadata.poolGovernanceVoteParams.pool_credential.hex_bytes).to.eql(\"60afbe982faaee34b02ad0e75cd50d5d7a734f5daaf7b67bc8c492eb5299af2b\");",
+													"});",
+													"",
+													"// ---- Sanity check: all 4 operations exist ----",
+													"pm.test(\"Response contains 4 operations\", () => {",
+													"    pm.expect(json.operations.length).to.eql(4);",
+													"});"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"network_identifier\": {\n    \"blockchain\": \"cardano\",\n    \"network\": \"{{networkId}}\"\n  },\n  \"signed\": false,\n  \"transaction\": \"8279019c61353030643930313032383138323538323032663233666438636361383335616632316633616333373562616336303166393765616437356632653739313433626466373166653263346265303433653866303130313832383235383164363162623430663161363437626338386331626436623733386462386562363633353764393236343734656135666664366261613736633966623139323731303832353831643631626234306631613634376263383863316264366237333864623865623636333537643932363437346561356666643662616137366339666231393963343030323162303030303030313466343661343062303033313930336538313361313832303435383230363061666265393832666161656533346230326164306537356364353064356437613733346635646161663762363762633863343932656235323939616632626131383235383230343063326134326665333234373539613634306463666464626336396566326533623766653561393938616638643636363033353937373262663434633964633030383230316636a16a6f7065726174696f6e7384a6746f7065726174696f6e5f6964656e746966696572a265696e646578006d6e6574776f726b5f696e64657800676163636f756e74a16761646472657373783a616464723176786135707564786737376733736461646465636d773874766336686d796e79776e34396c6c747434666d766e3763706e6b63707866616d6f756e74a26863757272656e6379a26673796d626f6c6341444168646563696d616c73066576616c75656c2d39303030303030303030306b636f696e5f6368616e6765a26f636f696e5f6964656e746966696572a16a6964656e7469666965727842326632336664386363613833356166323166336163333735626163363031663937656164373566326537393134336264663731666532633462653034336538663a316b636f696e5f616374696f6e6a636f696e5f7370656e74667374617475736773756363657373647479706565696e707574a6746f7065726174696f6e5f6964656e746966696572a165696e646578017272656c617465645f6f7065726174696f6e7381a165696e64657800676163636f756e74a16761646472657373783a616464723176786135707564786737376733736461646465636d773874766336686d796e79776e34396c6c747434666d766e3763706e6b63707866616d6f756e74a26863757272656e6379a26673796d626f6c6341444168646563696d616c73066576616c75656531303030306673746174757367737563636573736474797065666f7574707574a6746f7065726174696f6e5f6964656e746966696572a165696e646578027272656c617465645f6f7065726174696f6e7381a165696e64657800676163636f756e74a16761646472657373783a616464723176786135707564786737376733736461646465636d773874766336686d796e79776e34396c6c747434666d766e3763706e6b63707866616d6f756e74a26863757272656e6379a26673796d626f6c6341444168646563696d616c73066576616c75656534303030306673746174757367737563636573736474797065666f7574707574a5746f7065726174696f6e5f6964656e746966696572a165696e64657803676163636f756e74a1676164647265737378383663353138623438363162623838623133393563656231313633343263656362636662383733363238323635356639613631633463333638686d65746164617461a17818706f6f6c476f7665726e616e6365566f7465506172616d73a36f706f6f6c5f63726564656e7469616ca2696865785f62797465737840363061666265393832666161656533346230326164306537356364353064356437613733346635646161663762363762633863343932656235323939616632626a63757276655f747970656c65647761726473323535313964766f74656379657376676f7665726e616e63655f616374696f6e5f686173687842343063326134326665333234373539613634306463666464626336396566326533623766653561393938616638643636363033353937373262663434633964633030667374617475736773756363657373647479706572706f6f6c476f7665726e616e6365566f7465\"\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{URL}}/construction/parse",
+											"host": [
+												"{{URL}}"
+											],
+											"path": [
+												"construction",
+												"parse"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "gov pool voting - account bech32 - vote no, no vote rationale",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test('Status code is 200', function () {",
+													"    pm.response.to.have.status(200);",
+													"});",
+													"",
+													"const json = pm.response.json();",
+													"",
+													"// ---- Assertions for Operation 0 ----",
+													"pm.test(\"Operation 0 is an input with correct address and amount\", () => {",
+													"    const op0 = json.operations[0];",
+													"    pm.expect(op0.type).to.eql(\"input\");",
+													"    pm.expect(op0.status).to.eql(\"success\");",
+													"    pm.expect(op0.account.address).to.eql(\"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\");",
+													"    pm.expect(op0.amount.value).to.eql(\"-90000000000\");",
+													"    pm.expect(op0.amount.currency.symbol).to.eql(\"ADA\");",
+													"    pm.expect(op0.amount.currency.decimals).to.eql(6);",
+													"    pm.expect(op0.coin_change.coin_action).to.eql(\"coin_spent\");",
+													"    pm.expect(op0.coin_change.coin_identifier.identifier).to.eql(\"2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f:1\");",
+													"});",
+													"",
+													"// ---- Assertions for Operation 1 ----",
+													"pm.test(\"Operation 1 is an output with 10000 ADA\", () => {",
+													"    const op1 = json.operations[1];",
+													"    pm.expect(op1.type).to.eql(\"output\");",
+													"    pm.expect(op1.related_operations[0].index).to.eql(0);",
+													"    pm.expect(op1.account.address).to.eql(\"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\");",
+													"    pm.expect(op1.amount.value).to.eql(\"10000\");",
+													"    pm.expect(op1.amount.currency.symbol).to.eql(\"ADA\");",
+													"    pm.expect(op1.amount.currency.decimals).to.eql(6);",
+													"});",
+													"",
+													"// ---- Assertions for Operation 2 ----",
+													"pm.test(\"Operation 2 is an output with 40000 ADA\", () => {",
+													"    const op2 = json.operations[2];",
+													"    pm.expect(op2.type).to.eql(\"output\");",
+													"    pm.expect(op2.related_operations[0].index).to.eql(0);",
+													"    pm.expect(op2.account.address).to.eql(\"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\");",
+													"    pm.expect(op2.amount.value).to.eql(\"40000\");",
+													"    pm.expect(op2.amount.currency.symbol).to.eql(\"ADA\");",
+													"    pm.expect(op2.amount.currency.decimals).to.eql(6);",
+													"});",
+													"",
+													"// ---- Assertions for Governance Vote (Operation 3) ----",
+													"pm.test(\"Operation 3 is a poolGovernanceVote with 'no' vote\", () => {",
+													"    const op3 = json.operations[3];",
+													"    pm.expect(op3.type).to.eql(\"poolGovernanceVote\");",
+													"    //pm.expect(op3.status).to.eql(\"success\");",
+													"    pm.expect(op3.account.address).to.eql(\"6c518b4861bb88b1395ceb116342cecbcfb8736282655f9a61c4c368\");",
+													"    pm.expect(op3.metadata.poolGovernanceVoteParams.vote).to.eql(\"no\");",
+													"    pm.expect(op3.metadata.poolGovernanceVoteParams.governance_action_hash).to.eql(\"40c2a42fe324759a640dcfddbc69ef2e3b7fe5a998af8d6660359772bf44c9dc00\");",
+													"    pm.expect(op3.metadata.poolGovernanceVoteParams.pool_credential.curve_type).to.eql(\"edwards25519\");",
+													"    pm.expect(op3.metadata.poolGovernanceVoteParams.pool_credential.hex_bytes).to.eql(\"60afbe982faaee34b02ad0e75cd50d5d7a734f5daaf7b67bc8c492eb5299af2b\");",
+													"});",
+													"",
+													"// ---- Sanity check: all 4 operations exist ----",
+													"pm.test(\"Response contains 4 operations\", () => {",
+													"    pm.expect(json.operations.length).to.eql(4);",
+													"});"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"network_identifier\": {\n    \"blockchain\": \"cardano\",\n    \"network\": \"{{networkId}}\"\n  },\n  \"signed\": false,\n  \"transaction\": \"8279019c61353030643930313032383138323538323032663233666438636361383335616632316633616333373562616336303166393765616437356632653739313433626466373166653263346265303433653866303130313832383235383164363162623430663161363437626338386331626436623733386462386562363633353764393236343734656135666664366261613736633966623139323731303832353831643631626234306631613634376263383863316264366237333864623865623636333537643932363437346561356666643662616137366339666231393963343030323162303030303030313466343661343062303033313930336538313361313832303435383230363061666265393832666161656533346230326164306537356364353064356437613733346635646161663762363762633863343932656235323939616632626131383235383230343063326134326665333234373539613634306463666464626336396566326533623766653561393938616638643636363033353937373262663434633964633030383230306636a16a6f7065726174696f6e7384a6746f7065726174696f6e5f6964656e746966696572a265696e646578006d6e6574776f726b5f696e64657800676163636f756e74a16761646472657373783a616464723176786135707564786737376733736461646465636d773874766336686d796e79776e34396c6c747434666d766e3763706e6b63707866616d6f756e74a26863757272656e6379a26673796d626f6c6341444168646563696d616c73066576616c75656c2d39303030303030303030306b636f696e5f6368616e6765a26f636f696e5f6964656e746966696572a16a6964656e7469666965727842326632336664386363613833356166323166336163333735626163363031663937656164373566326537393134336264663731666532633462653034336538663a316b636f696e5f616374696f6e6a636f696e5f7370656e74667374617475736773756363657373647479706565696e707574a6746f7065726174696f6e5f6964656e746966696572a165696e646578017272656c617465645f6f7065726174696f6e7381a165696e64657800676163636f756e74a16761646472657373783a616464723176786135707564786737376733736461646465636d773874766336686d796e79776e34396c6c747434666d766e3763706e6b63707866616d6f756e74a26863757272656e6379a26673796d626f6c6341444168646563696d616c73066576616c75656531303030306673746174757367737563636573736474797065666f7574707574a6746f7065726174696f6e5f6964656e746966696572a165696e646578027272656c617465645f6f7065726174696f6e7381a165696e64657800676163636f756e74a16761646472657373783a616464723176786135707564786737376733736461646465636d773874766336686d796e79776e34396c6c747434666d766e3763706e6b63707866616d6f756e74a26863757272656e6379a26673796d626f6c6341444168646563696d616c73066576616c75656534303030306673746174757367737563636573736474797065666f7574707574a5746f7065726174696f6e5f6964656e746966696572a165696e64657803676163636f756e74a1676164647265737378383663353138623438363162623838623133393563656231313633343263656362636662383733363238323635356639613631633463333638686d65746164617461a17818706f6f6c476f7665726e616e6365566f7465506172616d73a36f706f6f6c5f63726564656e7469616ca2696865785f62797465737840363061666265393832666161656533346230326164306537356364353064356437613733346635646161663762363762633863343932656235323939616632626a63757276655f747970656c65647761726473323535313964766f7465626e6f76676f7665726e616e63655f616374696f6e5f686173687842343063326134326665333234373539613634306463666464626336396566326533623766653561393938616638643636363033353937373262663434633964633030667374617475736773756363657373647479706572706f6f6c476f7665726e616e6365566f7465\"\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{URL}}/construction/parse",
+											"host": [
+												"{{URL}}"
+											],
+											"path": [
+												"construction",
+												"parse"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "gov pool voting - account bech32 - vote abstain, no vote rationale",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test('Status code is 200', function () {",
+													"    pm.response.to.have.status(200);",
+													"});",
+													"",
+													"const json = pm.response.json();",
+													"",
+													"// ---- Assertions for Operation 0 ----",
+													"pm.test(\"Operation 0 is an input with correct address and amount\", () => {",
+													"    const op0 = json.operations[0];",
+													"    pm.expect(op0.type).to.eql(\"input\");",
+													"    pm.expect(op0.status).to.eql(\"success\");",
+													"    pm.expect(op0.account.address).to.eql(\"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\");",
+													"    pm.expect(op0.amount.value).to.eql(\"-90000000000\");",
+													"    pm.expect(op0.amount.currency.symbol).to.eql(\"ADA\");",
+													"    pm.expect(op0.amount.currency.decimals).to.eql(6);",
+													"    pm.expect(op0.coin_change.coin_action).to.eql(\"coin_spent\");",
+													"    pm.expect(op0.coin_change.coin_identifier.identifier).to.eql(\"2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f:1\");",
+													"});",
+													"",
+													"// ---- Assertions for Operation 1 ----",
+													"pm.test(\"Operation 1 is an output with 10000 ADA\", () => {",
+													"    const op1 = json.operations[1];",
+													"    pm.expect(op1.type).to.eql(\"output\");",
+													"    pm.expect(op1.related_operations[0].index).to.eql(0);",
+													"    pm.expect(op1.account.address).to.eql(\"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\");",
+													"    pm.expect(op1.amount.value).to.eql(\"10000\");",
+													"    pm.expect(op1.amount.currency.symbol).to.eql(\"ADA\");",
+													"    pm.expect(op1.amount.currency.decimals).to.eql(6);",
+													"});",
+													"",
+													"// ---- Assertions for Operation 2 ----",
+													"pm.test(\"Operation 2 is an output with 40000 ADA\", () => {",
+													"    const op2 = json.operations[2];",
+													"    pm.expect(op2.type).to.eql(\"output\");",
+													"    pm.expect(op2.related_operations[0].index).to.eql(0);",
+													"    pm.expect(op2.account.address).to.eql(\"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\");",
+													"    pm.expect(op2.amount.value).to.eql(\"40000\");",
+													"    pm.expect(op2.amount.currency.symbol).to.eql(\"ADA\");",
+													"    pm.expect(op2.amount.currency.decimals).to.eql(6);",
+													"});",
+													"",
+													"// ---- Assertions for Governance Vote (Operation 3) ----",
+													"pm.test(\"Operation 3 is a poolGovernanceVote with 'abstain' vote\", () => {",
+													"    const op3 = json.operations[3];",
+													"    pm.expect(op3.type).to.eql(\"poolGovernanceVote\");",
+													"    //pm.expect(op3.status).to.eql(\"success\");",
+													"    pm.expect(op3.account.address).to.eql(\"6c518b4861bb88b1395ceb116342cecbcfb8736282655f9a61c4c368\");",
+													"    pm.expect(op3.metadata.poolGovernanceVoteParams.vote).to.eql(\"abstain\");",
+													"    pm.expect(op3.metadata.poolGovernanceVoteParams.governance_action_hash).to.eql(\"40c2a42fe324759a640dcfddbc69ef2e3b7fe5a998af8d6660359772bf44c9dc00\");",
+													"    pm.expect(op3.metadata.poolGovernanceVoteParams.pool_credential.curve_type).to.eql(\"edwards25519\");",
+													"    pm.expect(op3.metadata.poolGovernanceVoteParams.pool_credential.hex_bytes).to.eql(\"60afbe982faaee34b02ad0e75cd50d5d7a734f5daaf7b67bc8c492eb5299af2b\");",
+													"});",
+													"",
+													"// ---- Sanity check: all 4 operations exist ----",
+													"pm.test(\"Response contains 4 operations\", () => {",
+													"    pm.expect(json.operations.length).to.eql(4);",
+													"});"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"network_identifier\": {\n    \"blockchain\": \"cardano\",\n    \"network\": \"{{networkId}}\"\n  },\n  \"signed\": false,\n  \"transaction\": \"8279019c61353030643930313032383138323538323032663233666438636361383335616632316633616333373562616336303166393765616437356632653739313433626466373166653263346265303433653866303130313832383235383164363162623430663161363437626338386331626436623733386462386562363633353764393236343734656135666664366261613736633966623139323731303832353831643631626234306631613634376263383863316264366237333864623865623636333537643932363437346561356666643662616137366339666231393963343030323162303030303030313466343661343062303033313930336538313361313832303435383230363061666265393832666161656533346230326164306537356364353064356437613733346635646161663762363762633863343932656235323939616632626131383235383230343063326134326665333234373539613634306463666464626336396566326533623766653561393938616638643636363033353937373262663434633964633030383230326636a16a6f7065726174696f6e7384a6746f7065726174696f6e5f6964656e746966696572a265696e646578006d6e6574776f726b5f696e64657800676163636f756e74a16761646472657373783a616464723176786135707564786737376733736461646465636d773874766336686d796e79776e34396c6c747434666d766e3763706e6b63707866616d6f756e74a26863757272656e6379a26673796d626f6c6341444168646563696d616c73066576616c75656c2d39303030303030303030306b636f696e5f6368616e6765a26f636f696e5f6964656e746966696572a16a6964656e7469666965727842326632336664386363613833356166323166336163333735626163363031663937656164373566326537393134336264663731666532633462653034336538663a316b636f696e5f616374696f6e6a636f696e5f7370656e74667374617475736773756363657373647479706565696e707574a6746f7065726174696f6e5f6964656e746966696572a165696e646578017272656c617465645f6f7065726174696f6e7381a165696e64657800676163636f756e74a16761646472657373783a616464723176786135707564786737376733736461646465636d773874766336686d796e79776e34396c6c747434666d766e3763706e6b63707866616d6f756e74a26863757272656e6379a26673796d626f6c6341444168646563696d616c73066576616c75656531303030306673746174757367737563636573736474797065666f7574707574a6746f7065726174696f6e5f6964656e746966696572a165696e646578027272656c617465645f6f7065726174696f6e7381a165696e64657800676163636f756e74a16761646472657373783a616464723176786135707564786737376733736461646465636d773874766336686d796e79776e34396c6c747434666d766e3763706e6b63707866616d6f756e74a26863757272656e6379a26673796d626f6c6341444168646563696d616c73066576616c75656534303030306673746174757367737563636573736474797065666f7574707574a5746f7065726174696f6e5f6964656e746966696572a165696e64657803676163636f756e74a1676164647265737378383663353138623438363162623838623133393563656231313633343263656362636662383733363238323635356639613631633463333638686d65746164617461a17818706f6f6c476f7665726e616e6365566f7465506172616d73a36f706f6f6c5f63726564656e7469616ca2696865785f62797465737840363061666265393832666161656533346230326164306537356364353064356437613733346635646161663762363762633863343932656235323939616632626a63757276655f747970656c65647761726473323535313964766f7465676162737461696e76676f7665726e616e63655f616374696f6e5f686173687842343063326134326665333234373539613634306463666464626336396566326533623766653561393938616638643636363033353937373262663434633964633030667374617475736773756363657373647479706572706f6f6c476f7665726e616e6365566f7465\"\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{URL}}/construction/parse",
+											"host": [
+												"{{URL}}"
+											],
+											"path": [
+												"construction",
+												"parse"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "gov pool voting - account bech32 - vote yes, vote rationale present",
+									"event": [
+										{
+											"listen": "test",
+											"script": {
+												"exec": [
+													"pm.test('Status code is 200', function () {",
+													"    pm.response.to.have.status(200);",
+													"});",
+													"",
+													"const json = pm.response.json();",
+													"",
+													"// ---- Assertions for Operation 0 ----",
+													"pm.test(\"Operation 0 is an input with correct address and amount\", () => {",
+													"    const op0 = json.operations[0];",
+													"    pm.expect(op0.type).to.eql(\"input\");",
+													"    pm.expect(op0.status).to.eql(\"success\");",
+													"    pm.expect(op0.account.address).to.eql(\"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\");",
+													"    pm.expect(op0.amount.value).to.eql(\"-90000000000\");",
+													"    pm.expect(op0.amount.currency.symbol).to.eql(\"ADA\");",
+													"    pm.expect(op0.amount.currency.decimals).to.eql(6);",
+													"    pm.expect(op0.coin_change.coin_action).to.eql(\"coin_spent\");",
+													"    pm.expect(op0.coin_change.coin_identifier.identifier).to.eql(\"2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f:1\");",
+													"});",
+													"",
+													"// ---- Assertions for Operation 1 ----",
+													"pm.test(\"Operation 1 is an output with 10000 ADA\", () => {",
+													"    const op1 = json.operations[1];",
+													"    pm.expect(op1.type).to.eql(\"output\");",
+													"    pm.expect(op1.related_operations[0].index).to.eql(0);",
+													"    pm.expect(op1.account.address).to.eql(\"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\");",
+													"    pm.expect(op1.amount.value).to.eql(\"10000\");",
+													"    pm.expect(op1.amount.currency.symbol).to.eql(\"ADA\");",
+													"    pm.expect(op1.amount.currency.decimals).to.eql(6);",
+													"});",
+													"",
+													"// ---- Assertions for Operation 2 ----",
+													"pm.test(\"Operation 2 is an output with 40000 ADA\", () => {",
+													"    const op2 = json.operations[2];",
+													"    pm.expect(op2.type).to.eql(\"output\");",
+													"    pm.expect(op2.related_operations[0].index).to.eql(0);",
+													"    pm.expect(op2.account.address).to.eql(\"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\");",
+													"    pm.expect(op2.amount.value).to.eql(\"40000\");",
+													"    pm.expect(op2.amount.currency.symbol).to.eql(\"ADA\");",
+													"    pm.expect(op2.amount.currency.decimals).to.eql(6);",
+													"});",
+													"",
+													"// ---- Assertions for Governance Vote (Operation 3) ----",
+													"pm.test(\"Operation 3 is a poolGovernanceVote with 'yes' vote\", () => {",
+													"    const op3 = json.operations[3];",
+													"    pm.expect(op3.type).to.eql(\"poolGovernanceVote\");",
+													"    //pm.expect(op3.status).to.eql(\"success\");",
+													"    pm.expect(op3.account.address).to.eql(\"6c518b4861bb88b1395ceb116342cecbcfb8736282655f9a61c4c368\");",
+													"    pm.expect(op3.metadata.poolGovernanceVoteParams.vote).to.eql(\"yes\");",
+													"    pm.expect(op3.metadata.poolGovernanceVoteParams.governance_action_hash).to.eql(\"40c2a42fe324759a640dcfddbc69ef2e3b7fe5a998af8d6660359772bf44c9dc00\");",
+													"    pm.expect(op3.metadata.poolGovernanceVoteParams.pool_credential.curve_type).to.eql(\"edwards25519\");",
+													"    pm.expect(op3.metadata.poolGovernanceVoteParams.pool_credential.hex_bytes).to.eql(\"60afbe982faaee34b02ad0e75cd50d5d7a734f5daaf7b67bc8c492eb5299af2b\");",
+													"",
+													"    pm.expect(op3.metadata.poolGovernanceVoteParams.vote_rationale.data_hash).to.eql(\"c77f8427e2808cbd4c7093aa704fb0fcb48b2ab3bdd84fa7f4dec2eb7de344c9\");",
+													"    pm.expect(op3.metadata.poolGovernanceVoteParams.vote_rationale.url).to.eql(\"ipfs://bafybeig7hluox6xefqdgmwcntvsguxcziw2oeogg2fbvygex2aj6qcfo64\");",
+													"});",
+													"",
+													"// ---- Sanity check: all 4 operations exist ----",
+													"pm.test(\"Response contains 4 operations\", () => {",
+													"    pm.expect(json.operations.length).to.eql(4);",
+													"});"
+												],
+												"type": "text/javascript",
+												"packages": {}
+											}
+										}
+									],
+									"request": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"network_identifier\": {\n    \"blockchain\": \"cardano\",\n    \"network\": \"{{networkId}}\"\n  },\n  \"signed\": false,\n  \"transaction\": \"8279026861353030643930313032383138323538323032663233666438636361383335616632316633616333373562616336303166393765616437356632653739313433626466373166653263346265303433653866303130313832383235383164363162623430663161363437626338386331626436623733386462386562363633353764393236343734656135666664366261613736633966623139323731303832353831643631626234306631613634376263383863316264366237333864623865623636333537643932363437346561356666643662616137366339666231393963343030323162303030303030313466343661343062303033313930336538313361313832303435383230363061666265393832666161656533346230326164306537356364353064356437613733346635646161663762363762633863343932656235323939616632626131383235383230343063326134326665333234373539613634306463666464626336396566326533623766653561393938616638643636363033353937373262663434633964633030383230313832373834323639373036363733336132663266363236313636373936323635363936373337363836633735366637383336373836353636373136343637366437373633366537343736373336373735373836333761363937373332366636353666363736373332363636323736373936373635373833323631366133363731363336363666333633343538323063373766383432376532383038636264346337303933616137303466623066636234386232616233626464383466613766346465633265623764653334346339a16a6f7065726174696f6e7384a6746f7065726174696f6e5f6964656e746966696572a265696e646578006d6e6574776f726b5f696e64657800676163636f756e74a16761646472657373783a616464723176786135707564786737376733736461646465636d773874766336686d796e79776e34396c6c747434666d766e3763706e6b63707866616d6f756e74a26863757272656e6379a26673796d626f6c6341444168646563696d616c73066576616c75656c2d39303030303030303030306b636f696e5f6368616e6765a26f636f696e5f6964656e746966696572a16a6964656e7469666965727842326632336664386363613833356166323166336163333735626163363031663937656164373566326537393134336264663731666532633462653034336538663a316b636f696e5f616374696f6e6a636f696e5f7370656e74667374617475736773756363657373647479706565696e707574a6746f7065726174696f6e5f6964656e746966696572a165696e646578017272656c617465645f6f7065726174696f6e7381a165696e64657800676163636f756e74a16761646472657373783a616464723176786135707564786737376733736461646465636d773874766336686d796e79776e34396c6c747434666d766e3763706e6b63707866616d6f756e74a26863757272656e6379a26673796d626f6c6341444168646563696d616c73066576616c75656531303030306673746174757367737563636573736474797065666f7574707574a6746f7065726174696f6e5f6964656e746966696572a165696e646578027272656c617465645f6f7065726174696f6e7381a165696e64657800676163636f756e74a16761646472657373783a616464723176786135707564786737376733736461646465636d773874766336686d796e79776e34396c6c747434666d766e3763706e6b63707866616d6f756e74a26863757272656e6379a26673796d626f6c6341444168646563696d616c73066576616c75656534303030306673746174757367737563636573736474797065666f7574707574a5746f7065726174696f6e5f6964656e746966696572a165696e64657803676163636f756e74a1676164647265737378383663353138623438363162623838623133393563656231313633343263656362636662383733363238323635356639613631633463333638686d65746164617461a17818706f6f6c476f7665726e616e6365566f7465506172616d73a46f706f6f6c5f63726564656e7469616ca2696865785f62797465737840363061666265393832666161656533346230326164306537356364353064356437613733346635646161663762363762633863343932656235323939616632626a63757276655f747970656c65647761726473323535313964766f7465637965736e766f74655f726174696f6e616c65a26375726c7842697066733a2f2f626166796265696737686c756f78367865667164676d77636e747673677578637a6977326f656f6767326662767967657832616a367163666f363469646174615f6861736878406337376638343237653238303863626434633730393361613730346662306663623438623261623362646438346661376634646563326562376465333434633976676f7665726e616e63655f616374696f6e5f686173687842343063326134326665333234373539613634306463666464626336396566326533623766653561393938616638643636363033353937373262663434633964633030667374617475736773756363657373647479706572706f6f6c476f7665726e616e6365566f7465\"\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{URL}}/construction/parse",
+											"host": [
+												"{{URL}}"
+											],
+											"path": [
+												"construction",
+												"parse"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
 						{
 							"name": "Deposit",
 							"request": {
@@ -1449,93 +2586,6 @@
 											"    let drep = operation.metadata.drep;",
 											"    pm.expect(drep.id).to.eql(expectedOperation.metadata.drep.id);",
 											"    pm.expect(drep.type).to.eql(expectedOperation.metadata.drep.type);",
-											"});"
-										],
-										"type": "text/javascript",
-										"packages": {}
-									}
-								}
-							],
-							"request": {
-								"method": "POST",
-								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n  \"network_identifier\": {\n    \"blockchain\": \"cardano\",\n    \"network\": \"{{networkId}}\"\n  },\n  \"signed\": false,\n  \"transaction\": \"8279018e6135303064393031303238313832353832303266323366643863636138333561663231663361633337356261633630316639376561643735663265373931343362646637316665326334626530343365386630313031383238323538316436316262343066316136343762633838633162643662373338646238656236363335376439323634373465613566666436626161373663396662313932373130383235383164363162623430663161363437626338386331626436623733386462386562363633353764393236343734656135666664366261613736633966623139396334303032316230303030303031346634366134306230303331393033653830346439303130323831383330393832303035383163626234306631613634376263383863316264366237333864623865623636333537643932363437346561356666643662616137366339666238323030353831633734393834666165346361313731356661316638373539663964383731303135616338376634343961383564656136636639393536646131a16a6f7065726174696f6e7384a6746f7065726174696f6e5f6964656e746966696572a265696e646578006d6e6574776f726b5f696e64657800676163636f756e74a16761646472657373783a616464723176786135707564786737376733736461646465636d773874766336686d796e79776e34396c6c747434666d766e3763706e6b63707866616d6f756e74a26863757272656e6379a26673796d626f6c6341444168646563696d616c73066576616c75656c2d39303030303030303030306b636f696e5f6368616e6765a26f636f696e5f6964656e746966696572a16a6964656e7469666965727842326632336664386363613833356166323166336163333735626163363031663937656164373566326537393134336264663731666532633462653034336538663a316b636f696e5f616374696f6e6a636f696e5f7370656e74667374617475736773756363657373647479706565696e707574a6746f7065726174696f6e5f6964656e746966696572a165696e646578017272656c617465645f6f7065726174696f6e7381a165696e64657800676163636f756e74a16761646472657373783a616464723176786135707564786737376733736461646465636d773874766336686d796e79776e34396c6c747434666d766e3763706e6b63707866616d6f756e74a26863757272656e6379a26673796d626f6c6341444168646563696d616c73066576616c75656531303030306673746174757367737563636573736474797065666f7574707574a6746f7065726174696f6e5f6964656e746966696572a165696e646578027272656c617465645f6f7065726174696f6e7381a165696e64657800676163636f756e74a16761646472657373783a616464723176786135707564786737376733736461646465636d773874766336686d796e79776e34396c6c747434666d766e3763706e6b63707866616d6f756e74a26863757272656e6379a26673796d626f6c6341444168646563696d616c73066576616c75656534303030306673746174757367737563636573736474797065666f7574707574a5746f7065726174696f6e5f6964656e746966696572a165696e64657803676163636f756e74a16761646472657373783b7374616b653175786135707564786737376733736461646465636d773874766336686d796e79776e34396c6c747434666d766e376361656b376135686d65746164617461a2727374616b696e675f63726564656e7469616ca2696865785f62797465737840314234303044363041414633344541463644434241423942424134363030314132333439373838364346313130363646373834363933334433304535414433466a63757276655f747970656c6564776172647332353531396464726570a2626964783837343938346661653463613137313566613166383735396639643837313031356163383766343439613835646561366366393935366461316474797065686b65795f6861736866737461747573677375636365737364747970657264526570566f746544656c65676174696f6e\"\n}",
-									"options": {
-										"raw": {
-											"language": "json"
-										}
-									}
-								},
-								"url": {
-									"raw": "{{URL}}/construction/parse",
-									"host": [
-										"{{URL}}"
-									],
-									"path": [
-										"construction",
-										"parse"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "drep delegation",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"exec": [
-											"pm.test('Status code is 200', function () {",
-											"    pm.response.to.have.status(200);",
-											"});",
-											"",
-											"// Parse the response",
-											"const jsonData = pm.response.json();",
-											"",
-											"// Find the operation with operation_identifier.index === 3",
-											"const op = jsonData.operations.find(o => o.operation_identifier.index === 3);",
-											"",
-											"// Check if the operation exists",
-											"pm.test(\"Operation index 3 exists\", function () {",
-											"    pm.expect(op).to.not.be.undefined;",
-											"});",
-											"",
-											"// Check if the type is correct",
-											"pm.test(\"Type is dRepVoteDelegation\", function () {",
-											"    pm.expect(op.type).to.eql(\"dRepVoteDelegation\");",
-											"});",
-											"",
-											"// Check if the status is success",
-											"pm.test(\"Status is success\", function () {",
-											"    pm.expect(op.status).to.eql(\"\");",
-											"});",
-											"",
-											"// Check account address",
-											"pm.test(\"Account address is correct\", function () {",
-											"    pm.expect(op.account.address).contains(\"stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5\");",
-											"});",
-											"",
-											"// Check staking credential",
-											"pm.test(\"Staking credential hex_bytes is correct\", function () {",
-											"    pm.expect(op.metadata.staking_credential.hex_bytes)",
-											"        .to.eql(\"1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F\");",
-											"});",
-											"",
-											"pm.test(\"Staking credential curve_type is edwards25519\", function () {",
-											"    pm.expect(op.metadata.staking_credential.curve_type).to.eql(\"edwards25519\");",
-											"});",
-											"",
-											"// Check dRep id and type",
-											"pm.test(\"dRep id is correct\", function () {",
-											"    pm.expect(op.metadata.drep.id)",
-											"        .to.eql(\"74984fae4ca1715fa1f8759f9d871015ac87f449a85dea6cf9956da1\");",
-											"});",
-											"",
-											"pm.test(\"dRep type is key_hash\", function () {",
-											"    pm.expect(op.metadata.drep.type).to.eql(\"key_hash\");",
 											"});"
 										],
 										"type": "text/javascript",

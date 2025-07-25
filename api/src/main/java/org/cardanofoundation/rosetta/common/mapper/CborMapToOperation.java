@@ -1,15 +1,15 @@
 package org.cardanofoundation.rosetta.common.mapper;
 
+import co.nstant.in.cbor.model.*;
+import org.cardanofoundation.rosetta.common.util.Constants;
+import org.openapitools.client.model.*;
+
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import co.nstant.in.cbor.model.*;
-import org.openapitools.client.model.*;
-
-import org.cardanofoundation.rosetta.common.util.Constants;
-
+import static org.cardanofoundation.rosetta.common.util.Constants.*;
 import static org.cardanofoundation.rosetta.common.util.Formatters.key;
 
 public class CborMapToOperation {
@@ -97,6 +97,7 @@ public class CborMapToOperation {
             operation.setType(status);
         });
     }
+
     /**
      * Filling the status field of the Operation object from the cbor MAP  if not null.
      * Accessed through {@value Constants#STATUS}
@@ -158,6 +159,7 @@ public class CborMapToOperation {
         Optional.ofNullable(accountIdentifierMetadataMap.get(key(Constants.CHAIN_CODE)))
                 .ifPresent(o -> {
                     String chainCode = ((UnicodeString) o).getString();
+
                     accountIdentifierMetadata.setChainCode(chainCode);
                 });
     }
@@ -392,8 +394,8 @@ public class CborMapToOperation {
             addTokenBundle(metadataMap, operationMetadata);
             addPoolRegistrationCert(metadataMap, operationMetadata);
             addPoolRegistrationParams(metadataMap, operationMetadata);
-            addVoteRegistrationMetadata(metadataMap, operationMetadata);
             addDrepVoteDelegationParams(metadataMap, operationMetadata);
+            addPoolGovernanceVoteParams(metadataMap, operationMetadata);
 
             operation.setMetadata(operationMetadata);
         });
@@ -418,115 +420,85 @@ public class CborMapToOperation {
         });
     }
 
-    /**
-     * Add a vote registration metadata to Operation object. The vote registration metadata object is accessed through {@value Constants#VOTE_REGISTRATION_METADATA}.
-     * The vote registration metadata object contains a list of different metadata objects.
-     * @param metadataMap The map containing the metadata field
-     * @param operationMetadata The OperationMetadata object to fill
-     */
-    private static void addVoteRegistrationMetadata(Map metadataMap,
-                                                    OperationMetadata operationMetadata) {
-        Optional.ofNullable(metadataMap.get(key(Constants.VOTE_REGISTRATION_METADATA)))
-                .ifPresent(voteRegMetadata -> {
-                    VoteRegistrationMetadata voteRegistrationMetadata = new VoteRegistrationMetadata();
-                    Map voteRegistrationMetadataMap = (Map) metadataMap.get(key(Constants.VOTE_REGISTRATION_METADATA));
-                    // filling the voteRegistrationMetadata object
-                    addStakeKeyToVoteMetadata(voteRegistrationMetadataMap, voteRegistrationMetadata);
-                    addVoteKeyToVoteMetadata(voteRegistrationMetadataMap, voteRegistrationMetadata);
-                    addRewardAddressToVoteMetadata(voteRegistrationMetadataMap, voteRegistrationMetadata);
-                    addVoteSignatureToVoteMetadata(voteRegistrationMetadataMap, voteRegistrationMetadata);
-                    addVoteNonceToVoteMetadata(voteRegistrationMetadataMap, voteRegistrationMetadata);
-                    // write back to operation
-                    operationMetadata.setVoteRegistrationMetadata(voteRegistrationMetadata);
+    private static void addPoolGovernanceVoteParams(Map metadataMap, OperationMetadata operationMetadata) {
+        Optional.ofNullable(metadataMap.get(key("poolGovernanceVoteParams"))).ifPresent(poolGovernanceVoteParamsDi -> {
+            Map poolGovernanceVoteParamsMap = (Map) poolGovernanceVoteParamsDi;
+            PoolGovernanceVoteParams poolGovernanceVoteParams = new PoolGovernanceVoteParams();
+            addGovActionId(poolGovernanceVoteParamsMap, poolGovernanceVoteParams);
+            addGovPoolCredential(poolGovernanceVoteParamsMap, poolGovernanceVoteParams);
+            addGovVote(poolGovernanceVoteParamsMap, poolGovernanceVoteParams);
+            addGovPoolGovernanceVoteParams(poolGovernanceVoteParamsMap, poolGovernanceVoteParams);
+
+            operationMetadata.setPoolGovernanceVoteParams(poolGovernanceVoteParams);
+        });
+    }
+
+    private static void addGovPoolGovernanceVoteParams(Map metadataMap, PoolGovernanceVoteParams operationMetadata) {
+        Optional.ofNullable(metadataMap.get(key(Constants.VOTE_RATIONALE)))
+                .ifPresent(o -> {
+                    Map voterMap = (Map) o;
+                    UnicodeString url = (UnicodeString) voterMap.get(new UnicodeString("url"));
+                    UnicodeString dataHash = (UnicodeString) voterMap.get(new UnicodeString("data_hash"));
+
+                    operationMetadata.setVoteRationale(new GovVoteRationaleParams(url.getString(), dataHash.getString()));
                 });
     }
 
-    /**
-     * Add Nonce to VoteMetadata object. The nonce is accessed through {@value Constants#VOTING_NONCE}.
-     * @param voteRegistrationMetadataMap The map containing the vote registration metadata field
-     * @param voteRegistrationMetadata The VoteRegistrationMetadata object to fill
-     */
-    private static void addVoteNonceToVoteMetadata(Map voteRegistrationMetadataMap,
-                                                   VoteRegistrationMetadata voteRegistrationMetadata) {
-        Optional.ofNullable(
-                        voteRegistrationMetadataMap.get(key(Constants.VOTING_NONCE)))
-                .ifPresent(votingNonce -> {
-                    int votingNonceInt = ((UnsignedInteger) votingNonce).getValue().intValue();
-                    voteRegistrationMetadata.setVotingNonce(votingNonceInt);
+    static void addGovActionId(Map metadataMap, PoolGovernanceVoteParams operationMetadata) {
+        Optional.ofNullable(metadataMap.get(key(Constants.GOVERNANCE_ACTION_HASH)))
+                .ifPresent(governanceActionHash -> {
+                    String govActionString = ((UnicodeString) governanceActionHash).getString();
+                    
+                    // Validate that the governance action hash is exactly 66 characters (64 + 2)
+                    if (govActionString.length() != 66) {
+                        // Invalid length, ignore the value
+                        return;
+                    }
+                    
+                    // Parse tx_id and index from the concatenated string
+                    // Index is always the last 2 hex characters
+                    String txId = govActionString.substring(0, 64);
+                    String indexHex = govActionString.substring(64);
+                    int index = Integer.parseInt(indexHex, 16);
+                    
+                    String concatenatedGovAction = org.cardanofoundation.rosetta.common.util.GovActionParamsUtil
+                            .formatGovActionString(txId, index);
+
+                    operationMetadata.setGovernanceActionHash(concatenatedGovAction);
                 });
     }
 
-    /**
-     * Add Signature to VoteMetadata object. The signature is accessed through {@value Constants#VOTING_SIGNATURE}.
-     * @param voteRegistrationMetadataMap The map containing the vote registration metadata field
-     * @param voteRegistrationMetadata The VoteRegistrationMetadata object to fill
-     */
-    private static void addVoteSignatureToVoteMetadata(Map voteRegistrationMetadataMap,
-                                                       VoteRegistrationMetadata voteRegistrationMetadata) {
-        Optional.ofNullable(
-                        voteRegistrationMetadataMap.get(key(Constants.VOTING_SIGNATURE)))
-                .ifPresent(votingSignature -> {
-                    String votingSignatureStr = ((UnicodeString) votingSignature).getString();
-                    voteRegistrationMetadata.setVotingSignature(votingSignatureStr);
+    private static void addGovVote(Map metadataMap, PoolGovernanceVoteParams operationMetadata) {
+        Optional.ofNullable(metadataMap.get(key(Constants.VOTE)))
+                .ifPresent(o -> {
+                    UnicodeString voteValue = (UnicodeString) o;
+
+                    operationMetadata.setVote(GovVoteParams.fromValue(voteValue.toString().toLowerCase()));
                 });
     }
 
-    /**
-     * Add Reward address to VoteMetadata object. The reward address is accessed through {@value Constants#REWARD_ADDRESS}.
-     * @param voteRegistrationMetadataMap The map containing the vote registration metadata field
-     * @param voteRegistrationMetadata The VoteRegistrationMetadata object to fill
-     */
-    private static void addRewardAddressToVoteMetadata(Map voteRegistrationMetadataMap,
-                                                       VoteRegistrationMetadata voteRegistrationMetadata) {
-        Optional.ofNullable(
-                        voteRegistrationMetadataMap.get(new UnicodeString(Constants.REWARD_ADDRESS)))
-                .ifPresent(rewardAddress -> {
-                    String rewardAddress2 = ((UnicodeString) rewardAddress).getString();
-                    voteRegistrationMetadata.setRewardAddress(rewardAddress2);
+    private static void addGovPoolCredential(Map metadataMap, PoolGovernanceVoteParams operationMetadata) {
+        Optional.ofNullable(metadataMap.get(key(POOL_CREDENTIAL)))
+                .ifPresent(poolCredentialDi -> {
+                    Map poolCredentialMap = (Map) poolCredentialDi;
+
+                    UnicodeString hexBytes = (UnicodeString) poolCredentialMap.get(key(HEX_BYTES));
+                    UnicodeString curveType = (UnicodeString) poolCredentialMap.get(key(CURVE_TYPE));
+
+                    operationMetadata.setPoolCredential(new PublicKey(hexBytes.getString(), CurveType.fromValue(curveType.getString())));
                 });
     }
 
-    /**
-     * Add VoteKey key to VoteMetadata object. The stake key is accessed through {@value Constants#VOTING_KEY}.
-     * @param voteRegistrationMetadataMap The map containing the vote registration metadata field
-     * @param voteRegistrationMetadata The VoteRegistrationMetadata object to fill
-     */
-    private static void addVoteKeyToVoteMetadata(Map voteRegistrationMetadataMap,
-                                                 VoteRegistrationMetadata voteRegistrationMetadata) {
-        Optional.ofNullable(
-                        voteRegistrationMetadataMap.get(new UnicodeString(Constants.VOTING_KEY)))
-                .ifPresent(votingKey -> {
-                    Map votingKeyMap = (Map) votingKey;
-                    PublicKey publicKey2 = getPublicKeyFromMap(votingKeyMap);
-                    voteRegistrationMetadata.setVotingkey(publicKey2);
-                });
-    }
 
     /**
-     * Add StakeKey to VoteMetadata object. The stake key is accessed through {@value Constants#STAKE_KEY}.
-     * @param voteRegistrationMetadataMap The map containing the vote registration metadata field
-     * @param voteRegistrationMetadata The VoteRegistrationMetadata object to fill
-     */
-    private static void addStakeKeyToVoteMetadata(Map voteRegistrationMetadataMap,
-                                                  VoteRegistrationMetadata voteRegistrationMetadata) {
-        Optional.ofNullable(
-                        voteRegistrationMetadataMap.get(new UnicodeString(Constants.STAKE_KEY)))
-                .ifPresent(stakeKey -> {
-                    Map stakeKeyMap = (Map) stakeKey;
-                    PublicKey publicKey1 = getPublicKeyFromMap(stakeKeyMap);
-                    voteRegistrationMetadata.setStakeKey(publicKey1);
-                });
-    }
-
-    /**
-     * Add PoolRegistrationParams to Operation metadata object. The pool registration params object is accessed through {@value Constants#POOLREGISTRATIONPARAMS}.
+     * Add PoolRegistrationParams to Operation metadata object. The pool registration params object is accessed through {@value Constants#POOL_REGISTRATION_PARAMS}.
      * The pool registration params object contains a list of different metadata objects.
      * @param metadataMap The map containing the metadata field
      * @param operationMetadata The OperationMetadata object to fill
      */
     private static void addPoolRegistrationParams(Map metadataMap,
                                                   OperationMetadata operationMetadata) {
-        Optional.ofNullable(metadataMap.get(key(Constants.POOLREGISTRATIONPARAMS)))
+        Optional.ofNullable(metadataMap.get(key(Constants.POOL_REGISTRATION_PARAMS)))
                 .ifPresent(poolMap -> {
                     Map poolRegistrationParamsMap = (Map) poolMap;
                     PoolRegistrationParams poolRegistrationParams = new PoolRegistrationParams();
@@ -546,13 +518,13 @@ public class CborMapToOperation {
     }
 
     /**
-     * Add PoolMetadata to Evapotranspirations object. The pool metadata object is accessed through {@value Constants#POOLMETADATA}.
+     * Add PoolMetadata to Evapotranspirations object. The pool metadata object is accessed through {@value Constants#POOL_METADATA}.
      * @param poolRegistrationParamsMap The map containing the pool registration params field
      * @param poolRegistrationParams The PoolRegistrationParams object to fill
      */
     private static void addPoolMetadata(Map poolRegistrationParamsMap,
                                         PoolRegistrationParams poolRegistrationParams) {
-        Optional.ofNullable(poolRegistrationParamsMap.get(key(Constants.POOLMETADATA)))
+        Optional.ofNullable(poolRegistrationParamsMap.get(key(Constants.POOL_METADATA)))
                 .ifPresent(pMap -> {
                     PoolMetadata poolMetadata = new PoolMetadata();
                     Map poolMetadataMap = (Map) pMap;
@@ -670,6 +642,8 @@ public class CborMapToOperation {
                         addIpv4(rAMap, relay);
                         addIpv6(rAMap, relay);
                         addDnsName(rAMap, relay);
+                        addPort(rAMap, relay);
+
                         relayList.add(relay);
                     });
                     poolRegistrationParams.setRelays(relayList);
@@ -723,14 +697,22 @@ public class CborMapToOperation {
         });
     }
 
+    private static void addPort(Map rAMap, Relay relay) {
+        Optional.ofNullable(rAMap.get(new UnicodeString(PORT))).ifPresent(o -> {
+            String port = ((UnicodeString) o).getString();
+
+            relay.setPort(Integer.parseInt(port));
+        });
+    }
+
     /**
-     * Add a List of PoolOwners to Pool registration params object. The pool owners are accessed through {@value Constants#POOLOWNERS}.
+     * Add a List of PoolOwners to Pool registration params object. The pool owners are accessed through {@value Constants#POOL_OWNERS}.
      * @param poolRegistrationParamsMap The map containing the pool registration params field
      * @param poolRegistrationParams The PoolRegistrationParams object to fill
      */
     private static void addPoolOwners(Map poolRegistrationParamsMap,
                                       PoolRegistrationParams poolRegistrationParams) {
-        Optional.ofNullable(poolRegistrationParamsMap.get(key(Constants.POOLOWNERS)))
+        Optional.ofNullable(poolRegistrationParamsMap.get(key(Constants.POOL_OWNERS)))
                 .ifPresent(o -> {
                     List<String> stringList = new ArrayList<>();
                     List<DataItem> poolOwners = ((Array) o).getDataItems();
@@ -786,13 +768,13 @@ public class CborMapToOperation {
     }
 
     /**
-     * Add VrfKeyHash to Pool registration params object. The vrf key hash is accessed through {@value Constants#VRFKEYHASH}.
+     * Add VrfKeyHash to Pool registration params object. The vrf key hash is accessed through {@value Constants#VRF_KEY_HASH}.
      * @param poolRegistrationParamsMap The map containing the pool registration params field
      * @param poolRegistrationParams The PoolRegistrationParams object to fill
      */
     public static void addVrfKeyHash(Map poolRegistrationParamsMap,
                                      PoolRegistrationParams poolRegistrationParams) {
-        Optional.ofNullable(poolRegistrationParamsMap.get(key(Constants.VRFKEYHASH)))
+        Optional.ofNullable(poolRegistrationParamsMap.get(key(Constants.VRF_KEY_HASH)))
                 .ifPresent(o -> {
                     String vrfKeyHash = ((UnicodeString) o).getString();
                     poolRegistrationParams.setVrfKeyHash(vrfKeyHash);
@@ -800,13 +782,13 @@ public class CborMapToOperation {
     }
 
     /**
-     * Add PoolRegistrationCert to Operation Metadata object. The pool registration cert is accessed through {@value Constants#POOLREGISTRATIONCERT}.
+     * Add PoolRegistrationCert to Operation Metadata object. The pool registration cert is accessed through {@value Constants#POOL_REGISTRATION_CERT}.
      * @param metadataMap The map containing the metadata field
      * @param operationMetadata The OperationMetadata object to fill
      */
     private static void addPoolRegistrationCert(Map metadataMap,
                                                 OperationMetadata operationMetadata) {
-        Optional.ofNullable(metadataMap.get(key(Constants.POOLREGISTRATIONCERT)))
+        Optional.ofNullable(metadataMap.get(key(Constants.POOL_REGISTRATION_CERT)))
                 .ifPresent(o -> {
                     String poolRegistrationCert = ((UnicodeString) o).getString();
                     operationMetadata.setPoolRegistrationCert(poolRegistrationCert);
@@ -814,12 +796,12 @@ public class CborMapToOperation {
     }
 
     /**
-     * Add TokenBundle to Operation metadata object. The token bundle is accessed through {@value Constants#TOKENBUNDLE}.
+     * Add TokenBundle to Operation metadata object. The token bundle is accessed through {@value Constants#TOKEN_BUNDLE}.
      * @param metadataMap The map containing the metadata field
      * @param operationMetadata The OperationMetadata object to fill
      */
     private static void addTokenBundle(Map metadataMap, OperationMetadata operationMetadata) {
-        Optional.ofNullable(metadataMap.get(key(Constants.TOKENBUNDLE))).ifPresent(o -> {
+        Optional.ofNullable(metadataMap.get(key(Constants.TOKEN_BUNDLE))).ifPresent(o -> {
             List<DataItem> tokenBundleArray = ((Array) o).getDataItems();
             List<TokenBundleItem> tokenBundleItems = new ArrayList<>();
             tokenBundleArray.forEach(t -> {
@@ -954,10 +936,13 @@ public class CborMapToOperation {
      */
     private static PublicKey getPublicKeyFromMap(Map stakingCredentialMap) {
         PublicKey publicKey = new PublicKey();
-        Optional.ofNullable(stakingCredentialMap.get(new UnicodeString(Constants.HEX_BYTES)))
+
+        Optional.ofNullable(stakingCredentialMap.get(new UnicodeString(HEX_BYTES)))
                 .ifPresent(o -> publicKey.setHexBytes(((UnicodeString) o).getString()));
-        Optional.ofNullable(stakingCredentialMap.get(new UnicodeString(Constants.CURVE_TYPE)))
+
+        Optional.ofNullable(stakingCredentialMap.get(new UnicodeString(CURVE_TYPE)))
                 .ifPresent(o -> publicKey.setCurveType(CurveType.fromValue(((UnicodeString) o).getString())));
+
         return publicKey;
     }
 

@@ -1,19 +1,11 @@
 package org.cardanofoundation.rosetta.common.mapper;
 
-import java.util.List;
-
 import co.nstant.in.cbor.CborException;
 import com.bloxbean.cardano.client.exception.CborDeserializationException;
 import com.bloxbean.cardano.client.exception.CborSerializationException;
 import com.bloxbean.cardano.client.transaction.spec.TransactionBody;
 import com.bloxbean.cardano.client.transaction.spec.TransactionInput;
 import com.bloxbean.cardano.client.transaction.spec.Withdrawal;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.openapitools.client.model.*;
-
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-
 import org.cardanofoundation.rosetta.api.construction.service.OperationService;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
@@ -21,6 +13,12 @@ import org.cardanofoundation.rosetta.common.exception.ApiException;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.TransactionData;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.TransactionExtraData;
 import org.cardanofoundation.rosetta.common.util.RosettaConstants.RosettaErrorType;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.openapitools.client.model.*;
+
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -120,18 +118,6 @@ class OperationServiceTest {
   }
 
   @Test
-  void getSignerFromOperation_voteRegistrationType_test() {
-    Operation operation = Operation
-        .builder()
-        .type(OperationType.VOTE_REGISTRATION.getValue())
-        .build();
-
-    List<String> poolSigners = operationService.getSignerFromOperation(NetworkEnum.MAINNET.getNetwork(), operation);
-
-    assertThat(poolSigners).isEmpty();
-  }
-
-  @Test
   void getSignerFromOperation_stakingCredentials_test() {
     Operation operation = Operation
         .builder()
@@ -175,7 +161,7 @@ class OperationServiceTest {
     withdrawalOperation.setType(OperationType.WITHDRAWAL.getValue());
     withdrawalOperation.setMetadata(OperationMetadata.builder()
         .stakingCredential(
-            PublicKey.builder()
+              PublicKey.builder()
                 .curveType(CurveType.EDWARDS25519)
                 .hexBytes("1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F")
                 .build())
@@ -213,7 +199,7 @@ class OperationServiceTest {
   private static TransactionData getPoolTransactionData1() {
     Operation operation1 = creteTestPoolRegistrationOperation("addr1", "rewardAddress", List.of("poolOwner1", "poolOwner2"));
     Operation operation2 = creteTestPoolRegistrationOperation("addr2", "rewardAddress", List.of("poolOwner3", "poolOwner4"));
-    TransactionExtraData transactionExtraData = new TransactionExtraData(List.of(operation1, operation2), "81a100a0");
+    TransactionExtraData transactionExtraData = new TransactionExtraData(List.of(operation1, operation2));
 
     return new TransactionData(
         TransactionBody.builder().build(),

@@ -396,7 +396,7 @@ class CardanoConstructionServiceImplTest {
   @Test
   void buildTransaction() {
     List<Signatures> signatures = Collections.singletonList(givenSignatures());
-    String result = cardanoService.buildTransaction(COMBINE_UNSIGNED_TRANSACTION, signatures, "");
+    String result = cardanoService.buildTransaction(COMBINE_UNSIGNED_TRANSACTION, signatures);
 
     assertEquals(encodeHexString(blake2bHash256(decodeHexString(COMBINE_SIGNED_TRANSACTION))), encodeHexString(blake2bHash256(decodeHexString(result))));
   }
@@ -410,33 +410,12 @@ class CardanoConstructionServiceImplTest {
           .thenThrow(new CborRuntimeException("CborException"));
 
       ApiException result = assertThrows(ApiException.class,
-          () -> cardanoService.buildTransaction(COMBINE_UNSIGNED_TRANSACTION, signatures, ""));
+          () -> cardanoService.buildTransaction(COMBINE_UNSIGNED_TRANSACTION, signatures));
 
       assertEquals(RosettaErrorType.CANT_CREATE_SIGN_TRANSACTION.getMessage(), result.getError().getMessage());
       assertEquals(RosettaErrorType.CANT_CREATE_SIGN_TRANSACTION.getCode(), result.getError().getCode());
       assertFalse(result.getError().isRetriable());
       mocked.verify(() -> CborSerializationUtil.deserialize(any(byte[].class)), times(1));
-    }
-  }
-
-  @Test
-  void buildTransaction_whenCannotDeserializeAuxiliaryData_thenThrowException() {
-    List<Signatures> signatures = Collections.singletonList(givenSignatures());
-
-    try (MockedStatic<com.bloxbean.cardano.client.common.cbor.CborSerializationUtil> mocked
-        = Mockito.mockStatic(com.bloxbean.cardano.client.common.cbor.CborSerializationUtil.class)) {
-      mocked.when(() -> com.bloxbean.cardano.client.common.cbor.CborSerializationUtil.deserialize(any()))
-          .thenThrow(new com.bloxbean.cardano.client.exception.CborRuntimeException("CborException"));
-
-      ApiException result = assertThrows(ApiException.class,
-          () -> cardanoService.buildTransaction(COMBINE_UNSIGNED_TRANSACTION, signatures, COMBINE_UNSIGNED_TRANSACTION));
-
-      assertEquals(RosettaErrorType.DESERIALIZATION_ERROR.getMessage(), result.getError().getMessage());
-      assertEquals(RosettaErrorType.DESERIALIZATION_ERROR.getCode(), result.getError().getCode());
-      assertEquals("CborException", result.getError().getDetails().getMessage());
-      assertFalse(result.getError().isRetriable());
-      mocked.verify(() -> com.bloxbean.cardano.client.common.cbor.CborSerializationUtil.deserialize(any()),
-          times(1));
     }
   }
 

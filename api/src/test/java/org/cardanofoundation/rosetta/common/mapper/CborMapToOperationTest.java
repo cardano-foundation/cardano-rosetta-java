@@ -1,19 +1,19 @@
 package org.cardanofoundation.rosetta.common.mapper;
 
-import java.util.Collections;
-import java.util.List;
-
 import co.nstant.in.cbor.model.Array;
 import co.nstant.in.cbor.model.Map;
 import co.nstant.in.cbor.model.UnicodeString;
 import co.nstant.in.cbor.model.UnsignedInteger;
 import org.assertj.core.api.Assertions;
+import org.cardanofoundation.rosetta.common.util.Constants;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.openapitools.client.model.*;
 
-import org.junit.jupiter.api.Test;
+import java.util.Collections;
+import java.util.List;
 
-import org.cardanofoundation.rosetta.common.util.Constants;
-
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Unit tests for the {@link CborMapToOperation} class.
@@ -31,450 +31,539 @@ class CborMapToOperationTest {
         return new UnicodeString(key);
     }
 
-    @Test
-    void cborMapToOperation_shouldReturnEmptyOperation_whenMapIsEmpty() {
-        // Arrange
-        Map operationMap = new Map();
-        Operation expectedOperation = new Operation();
+    @Nested
+    class BasicOperationMappingTests {
 
-        // Act
-        Operation actualOperation = CborMapToOperation.cborMapToOperation(operationMap);
+        @Test
+        void shouldReturnEmptyOperation_whenMapIsEmpty() {
+            // Arrange
+            Map operationMap = new Map();
+            Operation expectedOperation = new Operation();
 
-        // Assert
-        Assertions.assertThat(actualOperation)
-                .usingRecursiveComparison()
-                .isEqualTo(expectedOperation);
+            // Act
+            Operation actualOperation = CborMapToOperation.cborMapToOperation(operationMap);
+
+            // Assert
+            assertThat(actualOperation)
+                    .usingRecursiveComparison()
+                    .isEqualTo(expectedOperation);
+        }
+
+        @Test
+        void shouldMapTypeAndStatus() {
+            // Arrange
+            Map operationMap = new Map();
+            operationMap.put(key(Constants.TYPE), new UnicodeString("input"));
+            operationMap.put(key(Constants.STATUS), new UnicodeString("success"));
+
+            Operation expected = new Operation();
+            expected.setType("input");
+            expected.setStatus("success");
+
+            // Act
+            Operation actual = CborMapToOperation.cborMapToOperation(operationMap);
+
+            // Assert
+            assertThat(actual)
+                    .usingRecursiveComparison()
+                    .isEqualTo(expected);
+        }
     }
 
-    @Test
-    void cborMapToOperation_shouldMapOperationIdentifier() {
-        // Arrange
-        Map operationMap = new Map();
-        Map operationIdentifierMap = new Map();
-        operationIdentifierMap.put(key(Constants.INDEX), new UnsignedInteger(1L));
-        operationIdentifierMap.put(key(Constants.NETWORK_INDEX), new UnsignedInteger(2L));
-        operationMap.put(key(Constants.OPERATION_IDENTIFIER), operationIdentifierMap);
+    @Nested
+    class OperationIdentifierMappingTests {
 
-        Operation expected = new Operation();
-        expected.setOperationIdentifier(new OperationIdentifier(1L, 2L));
+        @Test
+        void shouldMapOperationIdentifier() {
+            // Arrange
+            Map operationMap = new Map();
+            Map operationIdentifierMap = new Map();
+            operationIdentifierMap.put(key(Constants.INDEX), new UnsignedInteger(1L));
+            operationIdentifierMap.put(key(Constants.NETWORK_INDEX), new UnsignedInteger(2L));
+            operationMap.put(key(Constants.OPERATION_IDENTIFIER), operationIdentifierMap);
 
-        // Act
-        Operation actual = CborMapToOperation.cborMapToOperation(operationMap);
+            Operation expected = new Operation();
+            expected.setOperationIdentifier(new OperationIdentifier(1L, 2L));
 
-        // Assert
-        Assertions.assertThat(actual)
-                .usingRecursiveComparison()
-                .isEqualTo(expected);
+            // Act
+            Operation actual = CborMapToOperation.cborMapToOperation(operationMap);
+
+            // Assert
+            assertThat(actual)
+                    .usingRecursiveComparison()
+                    .isEqualTo(expected);
+        }
+
+        @Test
+        void shouldMapRelatedOperations() {
+            // Arrange
+            Map operationMap = new Map();
+            Array relatedOperationsArray = new Array();
+            Map relatedOp1Map = new Map();
+            relatedOp1Map.put(key(Constants.INDEX), new UnsignedInteger(10L));
+            Map relatedOp2Map = new Map();
+            relatedOp2Map.put(key(Constants.INDEX), new UnsignedInteger(11L));
+            relatedOp2Map.put(key(Constants.NETWORK_INDEX), new UnsignedInteger(5L));
+            relatedOperationsArray.add(relatedOp1Map);
+            relatedOperationsArray.add(relatedOp2Map);
+            operationMap.put(key(Constants.RELATED_OPERATION), relatedOperationsArray);
+
+            Operation expected = new Operation();
+            expected.setRelatedOperations(List.of(
+                    new OperationIdentifier(10L, null),
+                    new OperationIdentifier(11L, 5L)
+            ));
+
+            // Act
+            Operation actual = CborMapToOperation.cborMapToOperation(operationMap);
+
+            // Assert
+            assertThat(actual)
+                    .usingRecursiveComparison()
+                    .isEqualTo(expected);
+        }
     }
 
-    @Test
-    void cborMapToOperation_shouldMapRelatedOperations() {
-        // Arrange
-        Map operationMap = new Map();
-        Array relatedOperationsArray = new Array();
-        Map relatedOp1Map = new Map();
-        relatedOp1Map.put(key(Constants.INDEX), new UnsignedInteger(10L));
-        Map relatedOp2Map = new Map();
-        relatedOp2Map.put(key(Constants.INDEX), new UnsignedInteger(11L));
-        relatedOp2Map.put(key(Constants.NETWORK_INDEX), new UnsignedInteger(5L));
-        relatedOperationsArray.add(relatedOp1Map);
-        relatedOperationsArray.add(relatedOp2Map);
-        operationMap.put(key(Constants.RELATED_OPERATION), relatedOperationsArray);
+    @Nested
+    class AmountAndCurrencyMappingTests {
 
-        Operation expected = new Operation();
-        expected.setRelatedOperations(List.of(
-                new OperationIdentifier(10L, null),
-                new OperationIdentifier(11L, 5L)
-        ));
+        @Test
+        void shouldMapAmountWithCurrencyAndPolicyId() {
+            // Arrange
+            Map operationMap = new Map();
+            Map amountMap = new Map();
+            amountMap.put(key(Constants.VALUE), new UnicodeString("1000000"));
 
-        // Act
-        Operation actual = CborMapToOperation.cborMapToOperation(operationMap);
+            Map currencyMap = new Map();
+            currencyMap.put(key(Constants.SYMBOL), new UnicodeString("tADA"));
+            currencyMap.put(key(Constants.DECIMALS), new UnsignedInteger(6));
 
-        // Assert
-        Assertions.assertThat(actual)
-                .usingRecursiveComparison()
-                .isEqualTo(expected);
+            Map currencyMetadataMap = new Map();
+            currencyMetadataMap.put(key(Constants.POLICYID), new UnicodeString("policy123"));
+            currencyMap.put(key(Constants.METADATA), currencyMetadataMap);
+
+            amountMap.put(key(Constants.CURRENCY), currencyMap);
+            operationMap.put(key(Constants.AMOUNT), amountMap);
+
+            Operation expected = new Operation();
+            Currency currency = new Currency("tADA", 6, null);
+            currency.setMetadata(new CurrencyMetadata().policyId("policy123"));
+            Amount amount = new Amount("1000000", currency, null);
+            expected.setAmount(amount);
+
+            // Act
+            Operation actual = CborMapToOperation.cborMapToOperation(operationMap);
+
+            // Assert
+            assertThat(actual)
+                    .usingRecursiveComparison()
+                    .isEqualTo(expected);
+        }
     }
 
-    @Test
-    void cborMapToOperation_shouldMapTypeAndStatus() {
-        // Arrange
-        Map operationMap = new Map();
-        operationMap.put(key(Constants.TYPE), new UnicodeString("input"));
-        operationMap.put(key(Constants.STATUS), new UnicodeString("success"));
+    @Nested
+    class CoinChangeMappingTests {
 
-        Operation expected = new Operation();
-        expected.setType("input");
-        expected.setStatus("success");
+        @Test
+        void shouldMapCoinChange() {
+            // Arrange
+            Map operationMap = new Map();
+            Map coinChangeMap = new Map();
+            coinChangeMap.put(key(Constants.COIN_ACTION), new UnicodeString(CoinAction.SPENT.getValue()));
 
-        // Act
-        Operation actual = CborMapToOperation.cborMapToOperation(operationMap);
+            Map coinIdentifierMap = new Map();
+            coinIdentifierMap.put(key(Constants.IDENTIFIER), new UnicodeString("tx1_hash:0"));
+            coinChangeMap.put(key(Constants.COIN_IDENTIFIER), coinIdentifierMap);
 
-        // Assert
-        Assertions.assertThat(actual)
-                .usingRecursiveComparison()
-                .isEqualTo(expected);
+            operationMap.put(key(Constants.COIN_CHANGE), coinChangeMap);
+
+            Operation expected = new Operation();
+            CoinChange coinChange = new CoinChange();
+            coinChange.setCoinAction(CoinAction.SPENT);
+            coinChange.setCoinIdentifier(new CoinIdentifier("tx1_hash:0"));
+            expected.setCoinChange(coinChange);
+
+            // Act
+            Operation actual = CborMapToOperation.cborMapToOperation(operationMap);
+
+            // Assert
+            assertThat(actual)
+                    .usingRecursiveComparison()
+                    .isEqualTo(expected);
+        }
     }
 
-//    @Test
-//    void cborMapToOperation_shouldMapFullAccountIdentifier() {
-//        // Arrange
-//        Map operationMap = new Map();
-//        Map accountMap = new Map();
-//        accountMap.put(key(Constants.ADDRESS), new UnicodeString("addr1..."));
-//
-//        Map subAccountMap = new Map();
-//        subAccountMap.put(key(Constants.ADDRESS), new UnicodeString("stake1..."));
-//        accountMap.put(key(Constants.SUB_ACCOUNT), subAccountMap);
-//
-//        Map accountMetadataMap = new Map();
-//        accountMetadataMap.put(key(Constants.CHAIN_CODE), new UnicodeString("chain_code_hex"));
-//        accountMap.put(key(Constants.METADATA), accountMetadataMap);
-//        operationMap.put(key(Constants.ACCOUNT), accountMap);
-//
-//        Operation expected = new Operation();
-//        AccountIdentifierMetadata accountIdentifierMetadata = new AccountIdentifierMetadata().chainCode("chain_code_hex");
-//        SubAccountIdentifier subAccount = new SubAccountIdentifier("stake1...", accountIdentifierMetadata);
-//        AccountIdentifier account = new AccountIdentifier("addr1...", subAccount, accountIdentifierMetadata);
-//        account.setSubAccount(subAccount);
-//        account.setMetadata(accountIdentifierMetadata);
-//        expected.setAccount(account);
-//
-//        // Act
-//        Operation actual = CborMapToOperation.cborMapToOperation(operationMap);
-//
-//        // Assert
-//        Assertions.assertThat(actual)
-//                .usingRecursiveComparison()
-//                .isEqualTo(expected);
-//    }
+    @Nested
+    class MetadataMappingTests {
 
-    @Test
-    void cborMapToOperation_shouldMapAmountWithCurrencyAndPolicyId() {
-        // Arrange
-        Map operationMap = new Map();
-        Map amountMap = new Map();
-        amountMap.put(key(Constants.VALUE), new UnicodeString("1000000"));
+        @Test
+        void shouldMapMetadataWithSimpleFields() {
+            // Arrange
+            Map operationMap = new Map();
+            Map metadataMap = new Map();
+            metadataMap.put(key(Constants.EPOCH), new UnsignedInteger(100));
+            metadataMap.put(key(Constants.POOL_KEY_HASH), new UnicodeString("pool_hash_123"));
+            metadataMap.put(key(Constants.POOL_REGISTRATION_CERT), new UnicodeString("cert_cbor_hex"));
+            operationMap.put(key(Constants.METADATA), metadataMap);
 
-        Map currencyMap = new Map();
-        currencyMap.put(key(Constants.SYMBOL), new UnicodeString("tADA"));
-        currencyMap.put(key(Constants.DECIMALS), new UnsignedInteger(6));
+            Operation expected = new Operation();
+            OperationMetadata metadata = new OperationMetadata();
+            metadata.setEpoch(100);
+            metadata.setPoolKeyHash("pool_hash_123");
+            metadata.setPoolRegistrationCert("cert_cbor_hex");
+            expected.setMetadata(metadata);
 
-        Map currencyMetadataMap = new Map();
-        currencyMetadataMap.put(key(Constants.POLICYID), new UnicodeString("policy123"));
-        currencyMap.put(key(Constants.METADATA), currencyMetadataMap);
+            // Act
+            Operation actual = CborMapToOperation.cborMapToOperation(operationMap);
 
-        amountMap.put(key(Constants.CURRENCY), currencyMap);
-        operationMap.put(key(Constants.AMOUNT), amountMap);
+            // Assert
+            assertThat(actual)
+                    .usingRecursiveComparison()
+                    .isEqualTo(expected);
+        }
 
-        Operation expected = new Operation();
-        Currency currency = new Currency("tADA", 6, null);
-        currency.setMetadata(new CurrencyMetadata().policyId("policy123"));
-        Amount amount = new Amount("1000000", currency, null);
-        expected.setAmount(amount);
+        @Test
+        void shouldMapMetadataWithAmountFields() {
+            // Arrange
+            Map operationMap = new Map();
+            Map metadataMap = new Map();
+            Currency ada = new Currency("ADA", 6, null);
 
-        // Act
-        Operation actual = CborMapToOperation.cborMapToOperation(operationMap);
+            // Withdrawal Amount
+            Map withdrawalAmountMap = new Map();
+            withdrawalAmountMap.put(key(Constants.VALUE), new UnicodeString("100"));
+            withdrawalAmountMap.put(key(Constants.CURRENCY), fromCurrency(ada));
+            metadataMap.put(key(Constants.WITHDRAWALAMOUNT), withdrawalAmountMap);
 
-        // Assert
-        Assertions.assertThat(actual)
-                .usingRecursiveComparison()
-                .isEqualTo(expected);
+            // Deposit Amount
+            Map depositAmountMap = new Map();
+            depositAmountMap.put(key(Constants.VALUE), new UnicodeString("200"));
+            depositAmountMap.put(key(Constants.CURRENCY), fromCurrency(ada));
+            metadataMap.put(key(Constants.DEPOSITAMOUNT), depositAmountMap);
+
+            // Refund Amount
+            Map refundAmountMap = new Map();
+            refundAmountMap.put(key(Constants.VALUE), new UnicodeString("50"));
+            refundAmountMap.put(key(Constants.CURRENCY), fromCurrency(ada));
+            metadataMap.put(key(Constants.REFUNDAMOUNT), refundAmountMap);
+
+            operationMap.put(key(Constants.METADATA), metadataMap);
+
+            Operation expected = new Operation();
+            OperationMetadata metadata = new OperationMetadata();
+            metadata.setWithdrawalAmount(new Amount("100", ada, null));
+            metadata.setDepositAmount(new Amount("200", ada, null));
+            metadata.setRefundAmount(new Amount("50", ada, null));
+            expected.setMetadata(metadata);
+
+            // Act
+            Operation actual = CborMapToOperation.cborMapToOperation(operationMap);
+
+            // Assert
+            assertThat(actual)
+                    .usingRecursiveComparison()
+                    .isEqualTo(expected);
+        }
+
+        @Test
+        void shouldMapStakingCredential() {
+            // Arrange
+            Map operationMap = new Map();
+            Map metadataMap = new Map();
+            Map stakingCredentialMap = new Map();
+            stakingCredentialMap.put(key(Constants.HEX_BYTES), new UnicodeString("hex_bytes_123"));
+            stakingCredentialMap.put(key(Constants.CURVE_TYPE), new UnicodeString(CurveType.EDWARDS25519.getValue()));
+            metadataMap.put(key(Constants.STAKING_CREDENTIAL), stakingCredentialMap);
+            operationMap.put(key(Constants.METADATA), metadataMap);
+
+            Operation expected = new Operation();
+            OperationMetadata metadata = new OperationMetadata();
+            PublicKey publicKey = new PublicKey("hex_bytes_123", CurveType.EDWARDS25519);
+            metadata.setStakingCredential(publicKey);
+            expected.setMetadata(metadata);
+
+            // Act
+            Operation actual = CborMapToOperation.cborMapToOperation(operationMap);
+
+            // Assert
+            assertThat(actual)
+                    .usingRecursiveComparison()
+                    .isEqualTo(expected);
+        }
+
+        @Test
+        void shouldMapTokenBundle() {
+            // Arrange
+            Map operationMap = new Map();
+            Map metadataMap = new Map();
+            Array tokenBundleArray = new Array();
+
+            // First Token Bundle Item
+            Map item1Map = new Map();
+            item1Map.put(key(Constants.POLICYID), new UnicodeString("policy1"));
+            Array tokens1Array = new Array();
+            Map amount1Wrapper = new Map();
+            amount1Wrapper.put(key(Constants.AMOUNT), fromAmount(new Amount("10", new Currency("tokenA", 0, null), null)));
+            tokens1Array.add(amount1Wrapper);
+            item1Map.put(key(Constants.TOKENS), tokens1Array);
+            tokenBundleArray.add(item1Map);
+
+            // Second Token Bundle Item
+            Map item2Map = new Map();
+            item2Map.put(key(Constants.POLICYID), new UnicodeString("policy2"));
+            Array tokens2Array = new Array();
+            Map amount2Wrapper = new Map();
+            amount2Wrapper.put(key(Constants.AMOUNT), fromAmount(new Amount("20", new Currency("tokenB", 0, null), null)));
+            Map amount3Wrapper = new Map();
+            amount3Wrapper.put(key(Constants.AMOUNT), fromAmount(new Amount("30", new Currency("tokenC", 0, null), null)));
+            tokens2Array.add(amount2Wrapper);
+            tokens2Array.add(amount3Wrapper);
+            item2Map.put(key(Constants.TOKENS), tokens2Array);
+            tokenBundleArray.add(item2Map);
+
+            metadataMap.put(key(Constants.TOKEN_BUNDLE), tokenBundleArray);
+            operationMap.put(key(Constants.METADATA), metadataMap);
+
+            Operation expected = new Operation();
+            OperationMetadata metadata = new OperationMetadata();
+            TokenBundleItem item1 = new TokenBundleItem();
+            item1.setPolicyId("policy1");
+            item1.setTokens(Collections.singletonList(new Amount("10", new Currency("tokenA", 0, null), null)));
+
+            TokenBundleItem item2 = new TokenBundleItem();
+            item2.setPolicyId("policy2");
+            item2.setTokens(List.of(
+                    new Amount("20", new Currency("tokenB", 0, null), null),
+                    new Amount("30", new Currency("tokenC", 0, null), null)
+            ));
+            metadata.setTokenBundle(List.of(item1, item2));
+            expected.setMetadata(metadata);
+
+            // Act
+            Operation actual = CborMapToOperation.cborMapToOperation(operationMap);
+
+            // Assert
+            assertThat(actual)
+                    .usingRecursiveComparison()
+                    .isEqualTo(expected);
+        }
     }
 
-    @Test
-    void cborMapToOperation_shouldMapCoinChange() {
-        // Arrange
-        Map operationMap = new Map();
-        Map coinChangeMap = new Map();
-        coinChangeMap.put(key(Constants.COIN_ACTION), new UnicodeString(CoinAction.SPENT.getValue()));
+    @Nested
+    class PoolRegistrationMappingTests {
 
-        Map coinIdentifierMap = new Map();
-        coinIdentifierMap.put(key(Constants.IDENTIFIER), new UnicodeString("tx1_hash:0"));
-        coinChangeMap.put(key(Constants.COIN_IDENTIFIER), coinIdentifierMap);
+        @Test
+        void shouldMapPoolRegistrationParams() {
+            // Arrange
+            Map operationMap = new Map();
+            Map metadataMap = new Map();
+            Map poolParamsMap = new Map();
 
-        operationMap.put(key(Constants.COIN_CHANGE), coinChangeMap);
+            poolParamsMap.put(key(Constants.VRF_KEY_HASH), new UnicodeString("vrf_hash"));
+            poolParamsMap.put(key(Constants.REWARD_ADDRESS), new UnicodeString("reward_addr"));
+            poolParamsMap.put(key(Constants.PLEDGE), new UnicodeString("1000000"));
+            poolParamsMap.put(key(Constants.COST), new UnicodeString("340000000"));
 
-        Operation expected = new Operation();
-        CoinChange coinChange = new CoinChange();
-        coinChange.setCoinAction(CoinAction.SPENT);
-        coinChange.setCoinIdentifier(new CoinIdentifier("tx1_hash:0"));
-        expected.setCoinChange(coinChange);
+            Array ownersArray = new Array();
+            ownersArray.add(new UnicodeString("owner1_hex"));
+            ownersArray.add(new UnicodeString("owner2_hex"));
+            poolParamsMap.put(key(Constants.POOL_OWNERS), ownersArray);
 
-        // Act
-        Operation actual = CborMapToOperation.cborMapToOperation(operationMap);
+            Map marginMap = new Map();
+            marginMap.put(key(Constants.NUMERATOR), new UnicodeString("1"));
+            marginMap.put(key(Constants.DENOMINATOR), new UnicodeString("10"));
+            poolParamsMap.put(key(Constants.MARGIN), marginMap);
 
-        // Assert
-        Assertions.assertThat(actual)
-                .usingRecursiveComparison()
-                .isEqualTo(expected);
+            poolParamsMap.put(key(Constants.MARGIN_PERCENTAGE), new UnicodeString("10.0"));
+
+            Map poolMetadataMap = new Map();
+            poolMetadataMap.put(key(Constants.URL), new UnicodeString("http://pool.io"));
+            poolMetadataMap.put(key(Constants.HASH), new UnicodeString("pool_metadata_hash"));
+            poolParamsMap.put(key(Constants.POOL_METADATA), poolMetadataMap);
+
+            Array relaysArray = new Array();
+            Map relayMap = new Map();
+            relayMap.put(key(Constants.TYPE), new UnicodeString("single_host_addr"));
+            relayMap.put(key(Constants.IPV4), new UnicodeString("127.0.0.1"));
+            relaysArray.add(relayMap);
+            poolParamsMap.put(key(Constants.RELAYS), relaysArray);
+
+            metadataMap.put(key(Constants.POOL_REGISTRATION_PARAMS), poolParamsMap);
+            operationMap.put(key(Constants.METADATA), metadataMap);
+
+            // Expected
+            Operation expected = new Operation();
+            OperationMetadata metadata = new OperationMetadata();
+            PoolRegistrationParams params = new PoolRegistrationParams();
+            params.setVrfKeyHash("vrf_hash");
+            params.setRewardAddress("reward_addr");
+            params.setPledge("1000000");
+            params.setCost("340000000");
+            params.setPoolOwners(List.of("owner1_hex", "owner2_hex"));
+            params.setMargin(new PoolMargin().numerator("1").denominator("10"));
+            params.setMarginPercentage("10.0");
+            params.setPoolMetadata(new PoolMetadata().url("http://pool.io").hash("pool_metadata_hash"));
+            Relay relay = new Relay();
+            relay.setType("single_host_addr");
+            relay.setIpv4("127.0.0.1");
+            params.setRelays(List.of(relay));
+            metadata.setPoolRegistrationParams(params);
+            expected.setMetadata(metadata);
+
+            // Act
+            Operation actual = CborMapToOperation.cborMapToOperation(operationMap);
+
+            // Assert
+            assertThat(actual)
+                    .usingRecursiveComparison()
+                    .isEqualTo(expected);
+        }
     }
 
-    @Test
-    void cborMapToOperation_shouldMapMetadataWithSimpleFields() {
-        // Arrange
-        Map operationMap = new Map();
-        Map metadataMap = new Map();
-        metadataMap.put(key(Constants.EPOCH), new UnsignedInteger(100));
-        metadataMap.put(key(Constants.POOL_KEY_HASH), new UnicodeString("pool_hash_123"));
-        metadataMap.put(key(Constants.POOLREGISTRATIONCERT), new UnicodeString("cert_cbor_hex"));
-        operationMap.put(key(Constants.METADATA), metadataMap);
+    @Nested
+    class GovernanceVoteMappingTests {
 
-        Operation expected = new Operation();
-        OperationMetadata metadata = new OperationMetadata();
-        metadata.setEpoch(100);
-        metadata.setPoolKeyHash("pool_hash_123");
-        metadata.setPoolRegistrationCert("cert_cbor_hex");
-        expected.setMetadata(metadata);
+        @Test
+        void shouldMapPoolGovernanceVoteParamsWithGovActionId() {
+            // Arrange
+            Map operationMap = new Map();
+            Map metadataMap = new Map();
+            Map poolGovernanceVoteParamsMap = new Map();
+            
+            // Test the concatenated governance action string: 64-char tx_id + 2-char hex index
+            String testTxId = "abc123def456789012345678901234567890123456789012345678901234abcd";
+            String testIndexHex = "0a"; // hex for 10
+            String concatenatedGovAction = testTxId + testIndexHex;
+            
+            poolGovernanceVoteParamsMap.put(key(Constants.GOVERNANCE_ACTION_HASH), new UnicodeString(concatenatedGovAction));
+            
+            metadataMap.put(key("poolGovernanceVoteParams"), poolGovernanceVoteParamsMap);
+            operationMap.put(key(Constants.METADATA), metadataMap);
 
-        // Act
-        Operation actual = CborMapToOperation.cborMapToOperation(operationMap);
+            Operation expected = new Operation();
+            OperationMetadata metadata = new OperationMetadata();
+            PoolGovernanceVoteParams poolGovVoteParams = new PoolGovernanceVoteParams();
+            
+            // The method should reconstruct this format using GovActionParamsUtil.formatGovActionString
+            String expectedGovActionHash = org.cardanofoundation.rosetta.common.util.GovActionParamsUtil
+                    .formatGovActionString(testTxId, 10);
+            poolGovVoteParams.setGovernanceActionHash(expectedGovActionHash);
+            metadata.setPoolGovernanceVoteParams(poolGovVoteParams);
+            expected.setMetadata(metadata);
 
-        // Assert
-        Assertions.assertThat(actual)
-                .usingRecursiveComparison()
-                .isEqualTo(expected);
+            // Act
+            Operation actual = CborMapToOperation.cborMapToOperation(operationMap);
+
+            // Assert
+            assertThat(actual)
+                    .usingRecursiveComparison()
+                    .isEqualTo(expected);
+        }
     }
 
-    @Test
-    void cborMapToOperation_shouldMapMetadataWithAmountFields() {
-        // Arrange
-        Map operationMap = new Map();
-        Map metadataMap = new Map();
-        Currency ada = new Currency("ADA", 6, null);
+    @Nested
+    class GovernanceActionIdParsingTests {
 
-        // Withdrawal Amount
-        Map withdrawalAmountMap = new Map();
-        withdrawalAmountMap.put(key(Constants.VALUE), new UnicodeString("100"));
-        withdrawalAmountMap.put(key(Constants.CURRENCY), fromCurrency(ada));
-        metadataMap.put(key(Constants.WITHDRAWALAMOUNT), withdrawalAmountMap);
+        @Test
+        void shouldParseGovernanceActionString() {
+            // Arrange
+            Map metadataMap = new Map();
+            String testTxId = "abcdef12345678901234567890123456789012345678901234567890123456ef"; // 64 chars
+            String testIndexHex = "63"; // hex for 99 (max allowed)
+            String concatenatedGovAction = testTxId + testIndexHex;
+            
+            metadataMap.put(key(Constants.GOVERNANCE_ACTION_HASH), new UnicodeString(concatenatedGovAction));
+            
+            PoolGovernanceVoteParams poolGovVoteParams = new PoolGovernanceVoteParams();
 
-        // Deposit Amount
-        Map depositAmountMap = new Map();
-        depositAmountMap.put(key(Constants.VALUE), new UnicodeString("200"));
-        depositAmountMap.put(key(Constants.CURRENCY), fromCurrency(ada));
-        metadataMap.put(key(Constants.DEPOSITAMOUNT), depositAmountMap);
+            // Act
+            CborMapToOperation.addGovActionId(metadataMap, poolGovVoteParams);
 
-        // Refund Amount
-        Map refundAmountMap = new Map();
-        refundAmountMap.put(key(Constants.VALUE), new UnicodeString("50"));
-        refundAmountMap.put(key(Constants.CURRENCY), fromCurrency(ada));
-        metadataMap.put(key(Constants.REFUNDAMOUNT), refundAmountMap);
+            // Assert
+            String expectedGovActionHash = org.cardanofoundation.rosetta.common.util.GovActionParamsUtil
+                    .formatGovActionString(testTxId, 99);
+            assertThat(poolGovVoteParams.getGovernanceActionHash())
+                    .isEqualTo(expectedGovActionHash);
+        }
 
-        operationMap.put(key(Constants.METADATA), metadataMap);
+        @Test
+        void shouldParseRealGovernanceActionString() {
+            // Arrange
+            Map metadataMap = new Map();
+            String realGovActionString = "40c2a42fe324759a640dcfddbc69ef2e3b7fe5a998af8d6660359772bf44c9dc00";
+            String expectedTxId = "40c2a42fe324759a640dcfddbc69ef2e3b7fe5a998af8d6660359772bf44c9dc";
+            String expectedIndexHex = "00";
+            int expectedIndex = 0; // hex "00" = decimal 0
+            
+            metadataMap.put(key(Constants.GOVERNANCE_ACTION_HASH), new UnicodeString(realGovActionString));
+            
+            PoolGovernanceVoteParams poolGovVoteParams = new PoolGovernanceVoteParams();
 
+            // Act
+            CborMapToOperation.addGovActionId(metadataMap, poolGovVoteParams);
 
-        Operation expected = new Operation();
-        OperationMetadata metadata = new OperationMetadata();
-        metadata.setWithdrawalAmount(new Amount("100", ada, null));
-        metadata.setDepositAmount(new Amount("200", ada, null));
-        metadata.setRefundAmount(new Amount("50", ada, null));
-        expected.setMetadata(metadata);
+            // Assert
+            String expectedGovActionHash = org.cardanofoundation.rosetta.common.util.GovActionParamsUtil
+                    .formatGovActionString(expectedTxId, expectedIndex);
+            assertThat(poolGovVoteParams.getGovernanceActionHash())
+                    .isEqualTo(expectedGovActionHash);
+            
+            // Additional verification - ensure the parsed components are correct
+            assertThat(expectedTxId).hasSize(64);
+            assertThat(expectedIndex).isEqualTo(0);
+        }
 
-        // Act
-        Operation actual = CborMapToOperation.cborMapToOperation(operationMap);
+        @Test
+        void shouldIgnoreInvalidLengthGovernanceActionString_tooShort() {
+            // Arrange
+            Map metadataMap = new Map();
+            String invalidGovActionString = "40c2a42fe324759a640dcfddbc69ef2e3b7fe5a998af8d6660359772bf44c9"; // 63 chars
+            
+            metadataMap.put(key(Constants.GOVERNANCE_ACTION_HASH), new UnicodeString(invalidGovActionString));
+            
+            PoolGovernanceVoteParams poolGovVoteParams = new PoolGovernanceVoteParams();
 
-        // Assert
-        Assertions.assertThat(actual)
-                .usingRecursiveComparison()
-                .isEqualTo(expected);
+            // Act
+            CborMapToOperation.addGovActionId(metadataMap, poolGovVoteParams);
+
+            // Assert - governance action hash should remain null since invalid length was ignored
+            assertThat(poolGovVoteParams.getGovernanceActionHash()).isNull();
+        }
+
+        @Test
+        void shouldIgnoreInvalidLengthGovernanceActionString_tooLong() {
+            // Arrange
+            Map metadataMap = new Map();
+            String invalidGovActionString = "40c2a42fe324759a640dcfddbc69ef2e3b7fe5a998af8d6660359772bf44c9dc000"; // 67 chars
+            
+            metadataMap.put(key(Constants.GOVERNANCE_ACTION_HASH), new UnicodeString(invalidGovActionString));
+            
+            PoolGovernanceVoteParams poolGovVoteParams = new PoolGovernanceVoteParams();
+
+            // Act
+            CborMapToOperation.addGovActionId(metadataMap, poolGovVoteParams);
+
+            // Assert - governance action hash should remain null since invalid length was ignored
+            assertThat(poolGovVoteParams.getGovernanceActionHash()).isNull();
+        }
+
+        @Test
+        void shouldIgnoreEmptyGovernanceActionString() {
+            // Arrange
+            Map metadataMap = new Map();
+            String emptyGovActionString = "";
+            
+            metadataMap.put(key(Constants.GOVERNANCE_ACTION_HASH), new UnicodeString(emptyGovActionString));
+            
+            PoolGovernanceVoteParams poolGovVoteParams = new PoolGovernanceVoteParams();
+
+            // Act
+            CborMapToOperation.addGovActionId(metadataMap, poolGovVoteParams);
+
+            // Assert - governance action hash should remain null since empty string was ignored
+            assertThat(poolGovVoteParams.getGovernanceActionHash()).isNull();
+        }
     }
-
-    @Test
-    void cborMapToOperation_shouldMapStakingCredential() {
-        // Arrange
-        Map operationMap = new Map();
-        Map metadataMap = new Map();
-        Map stakingCredentialMap = new Map();
-        stakingCredentialMap.put(key(Constants.HEX_BYTES), new UnicodeString("hex_bytes_123"));
-        stakingCredentialMap.put(key(Constants.CURVE_TYPE), new UnicodeString(CurveType.EDWARDS25519.getValue()));
-        metadataMap.put(key(Constants.STAKING_CREDENTIAL), stakingCredentialMap);
-        operationMap.put(key(Constants.METADATA), metadataMap);
-
-        Operation expected = new Operation();
-        OperationMetadata metadata = new OperationMetadata();
-        PublicKey publicKey = new PublicKey("hex_bytes_123", CurveType.EDWARDS25519);
-        metadata.setStakingCredential(publicKey);
-        expected.setMetadata(metadata);
-
-        // Act
-        Operation actual = CborMapToOperation.cborMapToOperation(operationMap);
-
-        // Assert
-        Assertions.assertThat(actual)
-                .usingRecursiveComparison()
-                .isEqualTo(expected);
-    }
-
-    @Test
-    void cborMapToOperation_shouldMapTokenBundle() {
-        // Arrange
-        Map operationMap = new Map();
-        Map metadataMap = new Map();
-        Array tokenBundleArray = new Array();
-
-        // First Token Bundle Item
-        Map item1Map = new Map();
-        item1Map.put(key(Constants.POLICYID), new UnicodeString("policy1"));
-        Array tokens1Array = new Array();
-        Map amount1Wrapper = new Map();
-        amount1Wrapper.put(key(Constants.AMOUNT), fromAmount(new Amount("10", new Currency("tokenA", 0, null), null)));
-        tokens1Array.add(amount1Wrapper);
-        item1Map.put(key(Constants.TOKENS), tokens1Array);
-        tokenBundleArray.add(item1Map);
-
-        // Second Token Bundle Item
-        Map item2Map = new Map();
-        item2Map.put(key(Constants.POLICYID), new UnicodeString("policy2"));
-        Array tokens2Array = new Array();
-        Map amount2Wrapper = new Map();
-        amount2Wrapper.put(key(Constants.AMOUNT), fromAmount(new Amount("20", new Currency("tokenB", 0, null), null)));
-        Map amount3Wrapper = new Map();
-        amount3Wrapper.put(key(Constants.AMOUNT), fromAmount(new Amount("30", new Currency("tokenC", 0, null), null)));
-        tokens2Array.add(amount2Wrapper);
-        tokens2Array.add(amount3Wrapper);
-        item2Map.put(key(Constants.TOKENS), tokens2Array);
-        tokenBundleArray.add(item2Map);
-
-        metadataMap.put(key(Constants.TOKENBUNDLE), tokenBundleArray);
-        operationMap.put(key(Constants.METADATA), metadataMap);
-
-        Operation expected = new Operation();
-        OperationMetadata metadata = new OperationMetadata();
-        TokenBundleItem item1 = new TokenBundleItem();
-        item1.setPolicyId("policy1");
-        item1.setTokens(Collections.singletonList(new Amount("10", new Currency("tokenA", 0, null), null)));
-
-        TokenBundleItem item2 = new TokenBundleItem();
-        item2.setPolicyId("policy2");
-        item2.setTokens(List.of(
-                new Amount("20", new Currency("tokenB", 0, null), null),
-                new Amount("30", new Currency("tokenC", 0, null), null)
-        ));
-        metadata.setTokenBundle(List.of(item1, item2));
-        expected.setMetadata(metadata);
-
-        // Act
-        Operation actual = CborMapToOperation.cborMapToOperation(operationMap);
-
-        // Assert
-        Assertions.assertThat(actual)
-                .usingRecursiveComparison()
-                .isEqualTo(expected);
-    }
-
-    @Test
-    void cborMapToOperation_shouldMapPoolRegistrationParams() {
-        // Arrange
-        Map operationMap = new Map();
-        Map metadataMap = new Map();
-        Map poolParamsMap = new Map();
-
-        poolParamsMap.put(key(Constants.VRFKEYHASH), new UnicodeString("vrf_hash"));
-        poolParamsMap.put(key(Constants.REWARD_ADDRESS), new UnicodeString("reward_addr"));
-        poolParamsMap.put(key(Constants.PLEDGE), new UnicodeString("1000000"));
-        poolParamsMap.put(key(Constants.COST), new UnicodeString("340000000"));
-
-        Array ownersArray = new Array();
-        ownersArray.add(new UnicodeString("owner1_hex"));
-        ownersArray.add(new UnicodeString("owner2_hex"));
-        poolParamsMap.put(key(Constants.POOLOWNERS), ownersArray);
-
-        Map marginMap = new Map();
-        marginMap.put(key(Constants.NUMERATOR), new UnicodeString("1"));
-        marginMap.put(key(Constants.DENOMINATOR), new UnicodeString("10"));
-        poolParamsMap.put(key(Constants.MARGIN), marginMap);
-
-        poolParamsMap.put(key(Constants.MARGIN_PERCENTAGE), new UnicodeString("10.0"));
-
-        Map poolMetadataMap = new Map();
-        poolMetadataMap.put(key(Constants.URL), new UnicodeString("http://pool.io"));
-        poolMetadataMap.put(key(Constants.HASH), new UnicodeString("pool_metadata_hash"));
-        poolParamsMap.put(key(Constants.POOLMETADATA), poolMetadataMap);
-
-        Array relaysArray = new Array();
-        Map relayMap = new Map();
-        relayMap.put(key(Constants.TYPE), new UnicodeString("single_host_addr"));
-        relayMap.put(key(Constants.IPV4), new UnicodeString("127.0.0.1"));
-        relaysArray.add(relayMap);
-        poolParamsMap.put(key(Constants.RELAYS), relaysArray);
-
-        metadataMap.put(key(Constants.POOLREGISTRATIONPARAMS), poolParamsMap);
-        operationMap.put(key(Constants.METADATA), metadataMap);
-
-        // Expected
-        Operation expected = new Operation();
-        OperationMetadata metadata = new OperationMetadata();
-        PoolRegistrationParams params = new PoolRegistrationParams();
-        params.setVrfKeyHash("vrf_hash");
-        params.setRewardAddress("reward_addr");
-        params.setPledge("1000000");
-        params.setCost("340000000");
-        params.setPoolOwners(List.of("owner1_hex", "owner2_hex"));
-        params.setMargin(new PoolMargin().numerator("1").denominator("10"));
-        params.setMarginPercentage("10.0");
-        params.setPoolMetadata(new PoolMetadata().url("http://pool.io").hash("pool_metadata_hash"));
-        Relay relay = new Relay();
-        relay.setType("single_host_addr");
-        relay.setIpv4("127.0.0.1");
-        params.setRelays(List.of(relay));
-        metadata.setPoolRegistrationParams(params);
-        expected.setMetadata(metadata);
-
-        // Act
-        Operation actual = CborMapToOperation.cborMapToOperation(operationMap);
-
-        // Assert
-        Assertions.assertThat(actual)
-                .usingRecursiveComparison()
-                .isEqualTo(expected);
-    }
-
-    @Test
-    void cborMapToOperation_shouldMapVoteRegistrationMetadata() {
-        // Arrange
-        Map operationMap = new Map();
-        Map metadataMap = new Map();
-        Map voteRegMap = new Map();
-
-        Map stakeKeyMap = new Map();
-        stakeKeyMap.put(key(Constants.HEX_BYTES), new UnicodeString("stake_key_hex"));
-        stakeKeyMap.put(key(Constants.CURVE_TYPE), new UnicodeString(CurveType.EDWARDS25519.getValue()));
-        voteRegMap.put(key(Constants.STAKE_KEY), stakeKeyMap);
-
-        Map votingKeyMap = new Map();
-        votingKeyMap.put(key(Constants.HEX_BYTES), new UnicodeString("voting_key_hex"));
-        votingKeyMap.put(key(Constants.CURVE_TYPE), new UnicodeString(CurveType.EDWARDS25519.getValue()));
-        voteRegMap.put(key(Constants.VOTING_KEY), votingKeyMap);
-
-        voteRegMap.put(key(Constants.REWARD_ADDRESS), new UnicodeString("reward_addr_for_vote"));
-        voteRegMap.put(key(Constants.VOTING_NONCE), new UnsignedInteger(12345));
-        voteRegMap.put(key(Constants.VOTING_SIGNATURE), new UnicodeString("vote_signature_hex"));
-
-        metadataMap.put(key(Constants.VOTE_REGISTRATION_METADATA), voteRegMap);
-        operationMap.put(key(Constants.METADATA), metadataMap);
-
-        // Expected
-        Operation expected = new Operation();
-        OperationMetadata metadata = new OperationMetadata();
-        VoteRegistrationMetadata voteMetadata = new VoteRegistrationMetadata();
-        voteMetadata.setStakeKey(new PublicKey("stake_key_hex", CurveType.EDWARDS25519));
-        voteMetadata.setVotingkey(new PublicKey("voting_key_hex", CurveType.EDWARDS25519));
-        voteMetadata.setRewardAddress("reward_addr_for_vote");
-        voteMetadata.setVotingNonce(12345);
-        voteMetadata.setVotingSignature("vote_signature_hex");
-        metadata.setVoteRegistrationMetadata(voteMetadata);
-        expected.setMetadata(metadata);
-
-        // Act
-        Operation actual = CborMapToOperation.cborMapToOperation(operationMap);
-
-        // Assert
-        Assertions.assertThat(actual)
-                .usingRecursiveComparison()
-                .isEqualTo(expected);
-    }
-
 
     // Helper methods to convert Rosetta models back to CBOR DataItems for test setup
     private Map fromCurrency(Currency currency) {
@@ -496,5 +585,4 @@ class CborMapToOperationTest {
 
         return amountMap;
     }
-
 }

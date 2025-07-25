@@ -1,10 +1,9 @@
 package org.cardanofoundation.rosetta.common.util;
 
-import java.util.List;
-
+import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 import org.openapitools.client.model.CurveType;
 
-import org.cardanofoundation.rosetta.common.enumeration.OperationType;
+import java.util.List;
 
 public class Constants {
 
@@ -113,9 +112,6 @@ public class Constants {
           OperationType.POOL_REGISTRATION.getValue(),
           OperationType.POOL_REGISTRATION_WITH_CERT.getValue());
 
-  public static final List<String> VOTE_OPERATIONS =
-      List.of(OperationType.VOTE_REGISTRATION.getValue());
-
   public static final String OPERATION_TYPE_INPUT = "input";
   public static final String OPERATION_TYPE_OUTPUT = "output";
   public static final String OPERATION_TYPE_STAKE_KEY_REGISTRATION = "stakeKeyRegistration";
@@ -125,14 +121,15 @@ public class Constants {
   public static final String OPERATION_TYPE_POOL_REGISTRATION = "poolRegistration";
   public static final String OPERATION_TYPE_POOL_REGISTRATION_WITH_CERT = "poolRegistrationWithCert";
   public static final String OPERATION_TYPE_POOL_RETIREMENT = "poolRetirement";
-  public static final String OPERATION_TYPE_VOTE_REGISTRATION = "voteRegistration";
-
-  public static final List<String> GOVERNANCE_OPERATIONS = List.of(
-        OperationType.VOTE_DREP_DELEGATION.getValue()
-  );
 
   // Plomin hard fork governance related
   public static final String OPERATION_TYPE_DREP_VOTE_DELEGATION = "dRepVoteDelegation";
+  public static final String OPERATION_TYPE_POOL_GOVERNANCE_VOTE = "poolGovernanceVote";
+
+  public static final List<String> GOVERNANCE_OPERATIONS = List.of(
+        OperationType.VOTE_DREP_DELEGATION.getValue(),
+        OperationType.POOL_GOVERNANCE_VOTE.getValue()
+  );
 
   public static final Integer ED_25519_KEY_SIGNATURE_BYTE_LENGTH = 64;
 
@@ -167,28 +164,32 @@ public class Constants {
   public static final String OUTPUT = "output";
   public static final String SUCCESS = "success";
   public static final String STAKING_CREDENTIAL = "staking_credential";
+  public static final String POOL_CREDENTIAL = "pool_credential";
+  public static final String POOL_GOVERNANCE_VOTE_PARAMS = "poolGovernanceVoteParams";
+  public static final String VOTE = "vote";
+  public static final String VOTE_RATIONALE = "vote_rationale";
+  public static final String GOVERNANCE_ACTION_HASH = "governance_action_hash";
+
   public static final String WITHDRAWALAMOUNT = "withdrawalAmount";
   public static final String DEPOSITAMOUNT = "depositAmount";
   public static final String REFUNDAMOUNT = "refundAmount";
   public static final String EPOCH = "epoch";
   public static final String POLICYID = "policyId";
   public static final String TOKENS = "tokens";
-  public static final String TOKENBUNDLE = "tokenBundle";
+  public static final String TOKEN_BUNDLE = "tokenBundle";
   public static final String NUMERATOR = "numerator";
   public static final String DENOMINATOR = "denominator";
-  public static final String POOLMETADATA = "poolMetadata";
-  public static final String POOLREGISTRATIONPARAMS = "poolRegistrationParams";
-  public static final String POOLREGISTRATIONCERT = "poolRegistrationCert";
+  public static final String POOL_METADATA = "poolMetadata";
+  public static final String POOL_REGISTRATION_PARAMS = "poolRegistrationParams";
+  public static final String POOL_REGISTRATION_CERT = "poolRegistrationCert";
   public static final String VALUE = "value";
-  public static final String VRFKEYHASH = "vrfKeyHash";
-  public static final String POOLOWNERS = "poolOwners";
+  public static final String VRF_KEY_HASH = "vrfKeyHash";
+  public static final String POOL_OWNERS = "poolOwners";
   public static final String DNSNAME = "dnsName";
   public static final String RELAYS = "relays";
   public static final String MARGIN = "margin";
   public static final String MARGIN_PERCENTAGE = "margin_percentage";
-  public static final String VOTE_REGISTRATION_METADATA = "voteRegistrationMetadata";
   public static final String OPERATIONS = "operations";
-  public static final String TRANSACTIONMETADATAHEX = "transactionMetadataHex";
   public static final String HEX_BYTES = "hex_bytes";
   public static final String CURVE_TYPE = "curve_type";
   public static final String CURRENCY = "currency";
@@ -210,4 +211,5 @@ public class Constants {
   public static final String DEVKIT = "devkit";
 
   public static final String ROSETTA_API_PATH = "classpath:/rosetta-specifications-1.4.15/api.yaml";
+
 }

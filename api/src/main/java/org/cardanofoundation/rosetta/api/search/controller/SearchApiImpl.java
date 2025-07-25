@@ -37,7 +37,7 @@ public class SearchApiImpl implements SearchApi {
 
   @Override
   public ResponseEntity<SearchTransactionsResponse> searchTransactions(
-      SearchTransactionsRequest searchTransactionsRequest) {
+          SearchTransactionsRequest searchTransactionsRequest) {
     if (offlineMode) {
       throw ExceptionFactory.notSupportedInOfflineMode();
     }

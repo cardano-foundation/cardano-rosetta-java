@@ -1,16 +1,5 @@
 package org.cardanofoundation.rosetta.api.construction.service;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import jakarta.annotation.Nullable;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
-import org.springframework.stereotype.Service;
 import co.nstant.in.cbor.CborException;
 import co.nstant.in.cbor.model.Array;
 import co.nstant.in.cbor.model.UnicodeString;
@@ -18,8 +7,9 @@ import com.bloxbean.cardano.client.common.model.Network;
 import com.bloxbean.cardano.client.exception.AddressExcepion;
 import com.bloxbean.cardano.client.exception.CborSerializationException;
 import com.bloxbean.cardano.client.transaction.util.TransactionUtil;
-import org.openapitools.client.model.*;
-
+import jakarta.annotation.Nullable;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProcessOperations;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
 import org.cardanofoundation.rosetta.api.construction.enumeration.AddressType;
@@ -34,6 +24,14 @@ import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
 import org.cardanofoundation.rosetta.common.time.OfflineSlotService;
 import org.cardanofoundation.rosetta.common.util.CborEncodeUtil;
 import org.cardanofoundation.rosetta.common.util.Constants;
+import org.openapitools.client.model.*;
+import org.springframework.stereotype.Service;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 import static com.bloxbean.cardano.client.util.HexUtil.decodeHexString;
 
@@ -301,12 +299,10 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
 
     String signedTransaction = cardanoConstructionService.buildTransaction(
             ((UnicodeString) array.getDataItems().getFirst()).getString(),
-            constructionMapper.mapRosettaSignatureToSignaturesList(constructionCombineRequest.getSignatures()),
-            extraData.transactionMetadataHex());
+            constructionMapper.mapRosettaSignatureToSignaturesList(constructionCombineRequest.getSignatures()));
     try {
       return new ConstructionCombineResponse(
-              CborEncodeUtil.encodeExtraData(signedTransaction, extraData.operations(),
-                      extraData.transactionMetadataHex()));
+              CborEncodeUtil.encodeExtraData(signedTransaction, extraData.operations()));
     } catch (CborException e) {
       throw ExceptionFactory.cantEncodeExtraData();
     }
@@ -353,9 +349,8 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
     try {
       return CborEncodeUtil.encodeExtraData(
               unsignedTransaction.bytes(),
-              operations,
-              unsignedTransaction.metadata()
-      );
+              operations);
+
     } catch (CborException e) {
       log.error("Error encoding unsigned transaction: {}", e.getMessage());
       throw ExceptionFactory.cantEncodeExtraData();

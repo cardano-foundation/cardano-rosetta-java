@@ -206,4 +206,5 @@ class AccountApiImplementationTest extends BaseSpringMvcSetup {
             .build())
         .build();
   }
+
 }
