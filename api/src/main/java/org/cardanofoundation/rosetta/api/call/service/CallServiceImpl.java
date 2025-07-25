@@ -21,7 +21,6 @@ import static org.cardanofoundation.rosetta.api.error.model.domain.ReviewStatus.
 @Service
 @RequiredArgsConstructor
 @Slf4j
-@Transactional(readOnly = true)
 public class CallServiceImpl implements CallService {
 
     private static final String METHOD_GET_PARSE_ERROR_BLOCKS = "get_parse_error_blocks";
@@ -36,9 +35,7 @@ public class CallServiceImpl implements CallService {
         log.info("Processing call request for method: {}", method);
 
         return switch (method) {
-            case METHOD_GET_PARSE_ERROR_BLOCKS -> getParseErrorBlocks(extractStatusParameter(callRequest.getParameters())
-                    .orElse(null));
-            
+            case METHOD_GET_PARSE_ERROR_BLOCKS -> getParseErrorBlocks(extractStatusParameter(callRequest.getParameters()).orElse(null));
             case METHOD_MARK_PARSE_ERROR_BLOCK_CHECKED -> markParseErrorBlockChecked(callRequest.getParameters());
 
             default -> throw ExceptionFactory.callMethodNotSupported();
@@ -46,13 +43,14 @@ public class CallServiceImpl implements CallService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public CallResponse getParseErrorBlocks(@Nullable ReviewStatus status) {
         log.info("Getting parse error blocks with status filter: {}", status);
         
         List<BlockParsingErrorReviewDTO> errorBlocks = blockParsingErrorReviewService.findTop1000(status);
         
         // Build the response according to the API specification
-        Map<String, Object> result = new HashMap<>();
+        Map<String, Object> result = new LinkedHashMap<>();
 
         List<Map<String, Object>> parseErrorBlocks = errorBlocks.stream()
                 .map(this::mapToParseErrorBlock)
@@ -81,7 +79,7 @@ public class CallServiceImpl implements CallService {
             } catch (IllegalArgumentException e) {
                 log.warn("Invalid status parameter: {}", statusStr);
 
-                throw ExceptionFactory.callParameterMissing(String.format("Status parameter must be one of: %s",
+                throw ExceptionFactory.callParameterMissing(String.format("'status' parameter must be one of: %s",
                         Arrays.toString(ReviewStatus.values())));
             }
         }
@@ -90,8 +88,7 @@ public class CallServiceImpl implements CallService {
     }
     
     @Override
-    @Transactional // This method modifies data, so remove readOnly
-    @Modifying
+    @Transactional(readOnly = false) // Explicitly allow writes
     public CallResponse markParseErrorBlockChecked(Map<String, Object> params) {
         if (params == null) {
             throw ExceptionFactory.callParameterMissing("Parameters cannot be null");
@@ -99,7 +96,7 @@ public class CallServiceImpl implements CallService {
 
         Long blockNumber = extractBlockNumber(params);
         ReviewStatus reviewStatus = extractStatusParameter(params)
-                .orElseThrow(() -> ExceptionFactory.callParameterMissing("reviewStatus parameter is required for mark_checked operation"));
+                .orElseThrow(() -> ExceptionFactory.callParameterMissing("'review_status' parameter is required for mark_checked operation"));
 
         // Only allow reviewed statuses for mark_checked operation
         if (reviewStatus == UNREVIEWED) {
@@ -114,7 +111,7 @@ public class CallServiceImpl implements CallService {
         // Find all errors for this block number
         List<BlockParsingErrorReviewDTO> errorBlocks = blockParsingErrorReviewService.findTop1000ByBlockNumber(blockNumber);
 
-        log.info("Found {} errors for block {}", errorBlocks, blockNumber);
+        log.info("Found {} errors for block {}", errorBlocks.size(), blockNumber);
 
         List<Map<String, Object>> errors = errorBlocks.stream()
                 .map(err -> blockParsingErrorReviewService.upsert(err.id(), reviewStatus, comment, checkedBy))
@@ -123,7 +120,7 @@ public class CallServiceImpl implements CallService {
                 .map(errorReviewEntity -> mapParseErrorBlockChecked(blockNumber, errorReviewEntity))
                 .toList();
 
-        Map<String, Object> result = new HashMap<>();
+        Map<String, Object> result = new LinkedHashMap<>();
         result.put("parse_error_blocks_response", errors);
 
         CallResponse response = new CallResponse();
