@@ -69,6 +69,7 @@ curl --location 'http://localhost:8082/call' \
     "idempotent": false
 }
 ```
+📚 For detailed information, please see the **[API page](/cardano-rosetta-java/api#tag/call/post/call)**.
 
 ### 2.2 Mark blocks as “checked” if they do not affect users or transactions
 After reviewing a block, you can mark it as reviewed with a comment and status.
@@ -115,4 +116,25 @@ curl --location 'http://localhost:8082/call' \
     "idempotent": true
 }
 ```
+📚 For detailed information, please see the **[API page](/cardano-rosetta-java/api#tag/call/post/call)**.
+
+### 2.3 What to do when unparsed blocks are detected
+When **yaci-core** encounters unparsed blocks, and you want to attempt parsing them again after resolving the issue (e.g. upgrading parser logic), follow these steps:
+
+1. **Upgrade `yaci-core`** to the latest version that supports parsing the problematic block(s).  
+2. **Remove the data volume** used by the indexer.  
+ ```bash
+  docker compose --env-file .env.docker-compose \
+  --env-file .env.docker-compose-profile-mid-level \
+  -f docker-compose.yaml stop yaci-indexer
+
+  docker volume rm cardano-rosetta-java_data
+   
+ ```
+3. **Restart the indexer service** using Docker Compose:
+ ```bash
+  docker compose --env-file .env.docker-compose \
+  --env-file .env.docker-compose-profile-mid-level \
+  -f docker-compose.yaml start yaci-indexer
+ ```
 
