@@ -1,9 +1,10 @@
 {
 	"info": {
-		"_postman_id": "49248cd8-055c-4ac7-bda0-f5b0f8385d34",
+		"_postman_id": "aa981df3-0cba-4af8-9495-06696089819f",
 		"name": "Rosetta Java | Data endpoints",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "15925891"
+		"_exporter_id": "22770953",
+		"_collection_link": "https://universal-water-431619.postman.co/workspace/My-Workspace~207852b0-2ada-455f-838b-25731ed1d6fa/collection/22770953-aa981df3-0cba-4af8-9495-06696089819f?action=share&source=collection_link&creator=22770953"
 	},
 	"item": [
 		{
@@ -224,6 +225,16 @@
 											"// ensure response is successful",
 											"pm.test(\"Response should be successful\", () => {",
 											"    pm.expect(pm.response.code).to.eql(200);",
+											"});",
+											"",
+											"pm.test(\"transactions should be an empty array\", function () {",
+											"    const jsonData = pm.response.json();",
+											"    pm.expect(jsonData.transactions).to.be.an(\"array\").that.is.empty;",
+											"});",
+											"",
+											"pm.test(\"total_count should be greater than 0\", function () {",
+											"    const jsonData = pm.response.json();",
+											"    pm.expect(jsonData.total_count).to.be.above(0);",
 											"});"
 										],
 										"type": "text/javascript",

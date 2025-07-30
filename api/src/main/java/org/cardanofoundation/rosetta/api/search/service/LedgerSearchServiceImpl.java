@@ -9,6 +9,7 @@ import org.cardanofoundation.rosetta.api.block.model.entity.UtxoKey;
 import org.cardanofoundation.rosetta.api.block.model.repository.TxInputRepository;
 import org.cardanofoundation.rosetta.api.block.model.repository.TxRepository;
 import org.cardanofoundation.rosetta.api.block.service.LedgerBlockService;
+import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.openapitools.client.model.Operator;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -31,6 +32,10 @@ public class LedgerSearchServiceImpl implements LedgerSearchService {
   private final LedgerBlockService ledgerBlockService;
   private final TxInputRepository txInputRepository;
   private final AddressUtxoRepository addressUtxoRepository;
+
+  // PostgreSQL has practical limits on IN clause parameters. 
+  // Set to 30000 to be safe (actual limit is around 32767)
+  private static final int MAX_UTXO_COUNT = 30000;
 
   @Override
   public Page<BlockTx> searchTransaction(Operator operator,
@@ -72,6 +77,13 @@ public class LedgerSearchServiceImpl implements LedgerSearchService {
     });
 
     Set<String> txHashes_ = txHashes.isEmpty() ? null : txHashes;
+
+    // Validate that we don't exceed PostgreSQL IN clause parameter limits
+    if (txHashes_ != null && txHashes_.size() > MAX_UTXO_COUNT) {
+      log.warn("Search request contains {} UTXOs, which exceeds the maximum limit of {}",
+              txHashes_.size(), MAX_UTXO_COUNT);
+      throw ExceptionFactory.tooManyUtxos(txHashes_.size(), MAX_UTXO_COUNT);
+    }
 
     Page<TxnEntity> txnEntities = switch (operator) {
       case AND -> txRepository.searchTxnEntitiesAND(txHashes_, blockHash, blockNo, maxBlock, isSuccess, pageable);
