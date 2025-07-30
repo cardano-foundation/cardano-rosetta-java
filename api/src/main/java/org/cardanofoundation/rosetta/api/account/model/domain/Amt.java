@@ -24,4 +24,5 @@ public class Amt implements Serializable {
   private String policyId;
   private String assetName;
   private BigInteger quantity;
+
 }

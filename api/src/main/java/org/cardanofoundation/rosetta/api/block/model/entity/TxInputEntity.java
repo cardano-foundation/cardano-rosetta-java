@@ -30,4 +30,5 @@ public class TxInputEntity {
 
   @Column(name = "spent_tx_hash")
   private String spentTxHash;
+
 }
