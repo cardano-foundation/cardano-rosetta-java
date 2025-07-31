@@ -16,6 +16,9 @@ spring:
     log-resolved-exception: true
   jooq:
     sql-dialect: POSTGRES
+    settings:
+      render-schema: false
+      render-catalog: false
 
 cardano:
   rosetta:

@@ -1,20 +1,18 @@
 package org.cardanofoundation.rosetta.api.block.model.repository;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
+import org.cardanofoundation.rosetta.api.IntegrationTest;
+import org.cardanofoundation.rosetta.api.block.model.entity.TxnEntity;
+import org.cardanofoundation.rosetta.common.spring.OffsetBasedPageRequest;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.test.context.jdbc.Sql;
 
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
-
-import org.cardanofoundation.rosetta.api.IntegrationTest;
-import org.cardanofoundation.rosetta.api.block.model.entity.TxnEntity;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
@@ -30,7 +28,7 @@ public class TxRepositoryTest extends IntegrationTest {
     @Sql(scripts = "classpath:/testdata//sql/tx-repository-test-cleanup.sql", executionPhase = AFTER_TEST_METHOD)
     public void testSearchTxnEntitiesOR_NoDuplicates() {
         Slice<TxnEntity> results = txRepository.searchTxnEntitiesOR(
-                null, null, null, null, null, Pageable.unpaged());
+                null, null, null, null, null, new OffsetBasedPageRequest(0, 100));
 
         assertThat(hasDuplicateTxHashes(results.getContent())).isFalse();
     }
@@ -40,7 +38,7 @@ public class TxRepositoryTest extends IntegrationTest {
     @Sql(scripts = "classpath:/testdata//sql/tx-repository-test-cleanup.sql", executionPhase = AFTER_TEST_METHOD)
     public void testSearchTxnEntitiesAND_NoDuplicates() {
         Slice<TxnEntity> results = txRepository.searchTxnEntitiesAND(
-                null, null, null, null, null, Pageable.unpaged());
+                null, null, null, null, null, new OffsetBasedPageRequest(0, 100));
 
         assertThat(hasDuplicateTxHashes(results.getContent())).isFalse();
     }
@@ -65,7 +63,7 @@ public class TxRepositoryTest extends IntegrationTest {
         @Sql(scripts = "classpath:/testdata/sql/tx-repository-ordering-test-cleanup.sql", executionPhase = AFTER_TEST_METHOD)
         public void testSearchTxnEntitiesAND_OrderByBlockTimeDesc() {
             Page<TxnEntity> results = txRepository.searchTxnEntitiesAND(
-                    null, null, null, null, null, Pageable.unpaged());
+                    null, null, null, null, null, new OffsetBasedPageRequest(0, 1));
 
             List<TxnEntity> txList = results.getContent();
             assertThat(txList).isNotEmpty();
@@ -82,7 +80,7 @@ public class TxRepositoryTest extends IntegrationTest {
         @Sql(scripts = "classpath:/testdata/sql/tx-repository-ordering-test-cleanup.sql", executionPhase = AFTER_TEST_METHOD)
         public void testSearchTxnEntitiesOR_OrderByBlockTimeDesc() {
             Page<TxnEntity> results = txRepository.searchTxnEntitiesOR(
-                    null, null, null, null, null, Pageable.unpaged());
+                    null, null, null, null, null, new OffsetBasedPageRequest(0, 1));
 
             List<TxnEntity> txList = results.getContent();
             assertThat(txList).isNotEmpty();
@@ -103,7 +101,7 @@ public class TxRepositoryTest extends IntegrationTest {
         @Sql(scripts = "classpath:/testdata/sql/tx-repository-success-test-cleanup.sql", executionPhase = AFTER_TEST_METHOD)
         public void testSearchTxnEntitiesAND_FilterSuccessfulTransactions() {
             Page<TxnEntity> results = txRepository.searchTxnEntitiesAND(
-                    null, null, null, null, true, Pageable.unpaged());
+                    null, null, null, null, true, new OffsetBasedPageRequest(0, 100));
 
             List<TxnEntity> txList = results.getContent();
             assertThat(txList).isNotEmpty();
@@ -120,7 +118,7 @@ public class TxRepositoryTest extends IntegrationTest {
         @Sql(scripts = "classpath:/testdata/sql/tx-repository-success-test-cleanup.sql", executionPhase = AFTER_TEST_METHOD)
         public void testSearchTxnEntitiesAND_FilterFailedTransactions() {
             Page<TxnEntity> results = txRepository.searchTxnEntitiesAND(
-                    null, null, null, null, false, Pageable.unpaged());
+                    null, null, null, null, false, new OffsetBasedPageRequest(0, 100));
 
             List<TxnEntity> txList = results.getContent();
             
@@ -136,7 +134,7 @@ public class TxRepositoryTest extends IntegrationTest {
         @Sql(scripts = "classpath:/testdata/sql/tx-repository-success-test-cleanup.sql", executionPhase = AFTER_TEST_METHOD)
         public void testSearchTxnEntitiesAND_NoSuccessFilter() {
             Page<TxnEntity> results = txRepository.searchTxnEntitiesAND(
-                    null, null, null, null, null, Pageable.unpaged());
+                    null, null, null, null, null, new OffsetBasedPageRequest(0, 100));
 
             List<TxnEntity> txList = results.getContent();
             assertThat(txList).isNotEmpty();
@@ -152,7 +150,7 @@ public class TxRepositoryTest extends IntegrationTest {
         @Sql(scripts = "classpath:/testdata/sql/tx-repository-success-test-cleanup.sql", executionPhase = AFTER_TEST_METHOD)
         public void testSearchTxnEntitiesOR_FilterSuccessfulTransactions() {
             Page<TxnEntity> results = txRepository.searchTxnEntitiesOR(
-                    null, null, null, null, true, Pageable.unpaged());
+                    null, null, null, null, true, new OffsetBasedPageRequest(0, 100));
 
             List<TxnEntity> txList = results.getContent();
             assertThat(txList).isNotEmpty();
@@ -168,7 +166,7 @@ public class TxRepositoryTest extends IntegrationTest {
         @Sql(scripts = "classpath:/testdata/sql/tx-repository-success-test-cleanup.sql", executionPhase = AFTER_TEST_METHOD)
         public void testSearchTxnEntitiesOR_FilterFailedTransactions() {
             Page<TxnEntity> results = txRepository.searchTxnEntitiesOR(
-                    null, null, null, null, false, Pageable.unpaged());
+                    null, null, null, null, false, new OffsetBasedPageRequest(0, 100));
 
             List<TxnEntity> txList = results.getContent();
             
@@ -184,7 +182,7 @@ public class TxRepositoryTest extends IntegrationTest {
         @Sql(scripts = "classpath:/testdata/sql/tx-repository-success-test-cleanup.sql", executionPhase = AFTER_TEST_METHOD)
         public void testSearchTxnEntitiesOR_NoSuccessFilter() {
             Page<TxnEntity> results = txRepository.searchTxnEntitiesOR(
-                    null, null, null, null, null, Pageable.unpaged());
+                    null, null, null, null, null, new OffsetBasedPageRequest(0, 100));
 
             List<TxnEntity> txList = results.getContent();
             assertThat(txList).isNotEmpty();

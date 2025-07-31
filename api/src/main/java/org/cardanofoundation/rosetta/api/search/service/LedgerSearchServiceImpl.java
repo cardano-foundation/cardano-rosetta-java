@@ -39,16 +39,16 @@ public class LedgerSearchServiceImpl implements LedgerSearchService {
 
   @Override
   public Page<BlockTx> searchTransaction(Operator operator,
-                                          @Nullable String txHash,
-                                          @Nullable String address,
-                                          @Nullable UtxoKey utxoKey,
-                                          @Nullable String currency,
-                                          @Nullable String blockHash,
-                                          @Nullable Long blockNo,
-                                          @Nullable Long maxBlock,
-                                          @Nullable Boolean isSuccess,
-                                          long offset,
-                                          long limit) {
+                                         @Nullable String txHash,
+                                         @Nullable String address,
+                                         @Nullable UtxoKey utxoKey,
+                                         @Nullable String currency,
+                                         @Nullable String blockHash,
+                                         @Nullable Long blockNo,
+                                         @Nullable Long maxBlock,
+                                         @Nullable Boolean isSuccess,
+                                         long offset,
+                                         long limit) {
     Pageable pageable = new OffsetBasedPageRequest(offset, (int) limit);
 
     Set<String> txHashes = new HashSet<>();

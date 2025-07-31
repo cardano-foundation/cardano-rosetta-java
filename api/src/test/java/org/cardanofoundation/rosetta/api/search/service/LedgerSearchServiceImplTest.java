@@ -1,7 +1,6 @@
 package org.cardanofoundation.rosetta.api.search.service;
 
 import org.cardanofoundation.rosetta.api.account.model.repository.AddressUtxoRepository;
-import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.model.repository.TxInputRepository;
 import org.cardanofoundation.rosetta.api.block.model.repository.TxRepository;
 import org.cardanofoundation.rosetta.api.block.service.LedgerBlockService;
@@ -15,7 +14,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.openapitools.client.model.Operator;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -165,6 +163,7 @@ class LedgerSearchServiceImplTest {
             // Mock the repository calls to avoid NullPointerException
             when(txRepository.searchTxnEntitiesOR(any(), any(), any(), any(), any(), any()))
                     .thenReturn(Page.empty());
+
             when(ledgerBlockService.mapTxnEntitiesToBlockTxList(any(Page.class)))
                     .thenReturn(Page.empty());
 

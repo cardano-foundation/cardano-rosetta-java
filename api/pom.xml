@@ -401,9 +401,12 @@
                                     <name>${jooq.db.meta}</name>
                                     <inputSchema>${jooq.db.schema}</inputSchema>
                                 </database>
+                                <generate>
+                                    <globalSchemaReferences>false</globalSchemaReferences>
+                                </generate>
                                 <target>
                                     <packageName>org.cardanofoundation.rosetta.api.jooq</packageName>
-                                    <directory>target/generated-sources/jooq</directory>
+                                    <directory>src/main/java</directory>
                                 </target>
                             </generator>
                         </configuration>
@@ -453,9 +456,12 @@
                                     <name>${jooq.db.meta}</name>
                                     <inputSchema>${jooq.db.schema}</inputSchema>
                                 </database>
+                                <generate>
+                                    <globalSchemaReferences>false</globalSchemaReferences>
+                                </generate>
                                 <target>
                                     <packageName>org.cardanofoundation.rosetta.api.jooq</packageName>
-                                    <directory>target/generated-sources/jooq</directory>
+                                    <directory>src/main/java</directory>
                                 </target>
                             </generator>
                         </configuration>
