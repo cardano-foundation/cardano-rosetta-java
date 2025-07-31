@@ -27,7 +27,7 @@ public class SearchApiImpl implements SearchApi {
   private final SearchService searchService;
   private final SearchMapper searchMapper;
 
-  @Value("${cardano.rosetta.LIMIT}")
+  @Value("${cardano.rosetta.SEARCH_LIMIT}")
   Long LIMIT;
 
   @Value("${cardano.rosetta.OFFLINE_MODE}")
