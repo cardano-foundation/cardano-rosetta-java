@@ -1,4 +1,4 @@
-package org.cardanofoundation.rosetta.api.config;
+package org.cardanofoundation.rosetta.config;
 
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.SQLDialect;

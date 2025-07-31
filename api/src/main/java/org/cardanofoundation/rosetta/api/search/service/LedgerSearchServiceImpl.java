@@ -9,6 +9,7 @@ import org.cardanofoundation.rosetta.api.block.model.entity.UtxoKey;
 import org.cardanofoundation.rosetta.api.block.model.repository.TxInputRepository;
 import org.cardanofoundation.rosetta.api.block.model.repository.TxRepository;
 import org.cardanofoundation.rosetta.api.block.service.LedgerBlockService;
+import org.cardanofoundation.rosetta.api.search.model.Currency;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.openapitools.client.model.Operator;
 import org.springframework.data.domain.Page;
@@ -42,7 +43,7 @@ public class LedgerSearchServiceImpl implements LedgerSearchService {
                                          @Nullable String txHash,
                                          @Nullable String address,
                                          @Nullable UtxoKey utxoKey,
-                                         @Nullable String currency,
+                                         @Nullable Currency currency,
                                          @Nullable String blockHash,
                                          @Nullable Long blockNo,
                                          @Nullable Long maxBlock,
@@ -86,8 +87,8 @@ public class LedgerSearchServiceImpl implements LedgerSearchService {
     }
 
     Page<TxnEntity> txnEntities = switch (operator) {
-      case AND -> txRepository.searchTxnEntitiesAND(txHashes_, blockHash, blockNo, maxBlock, isSuccess, pageable);
-      case OR -> txRepository.searchTxnEntitiesOR(txHashes_, blockHash, blockNo, maxBlock, isSuccess, pageable);
+      case AND -> txRepository.searchTxnEntitiesAND(txHashes_, blockHash, blockNo, maxBlock, isSuccess, currency, pageable);
+      case OR -> txRepository.searchTxnEntitiesOR(txHashes_, blockHash, blockNo, maxBlock, isSuccess, currency, pageable);
     };
 
     // this mapping is quite expensive, since it involves multiple database queries

@@ -1,6 +1,7 @@
 package org.cardanofoundation.rosetta.api.block.model.repository;
 
 import org.cardanofoundation.rosetta.api.block.model.entity.TxnEntity;
+import org.cardanofoundation.rosetta.api.search.model.Currency;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -17,6 +18,7 @@ public interface TxRepositoryCustom {
                                        @Nullable Long blockNumber,
                                        @Nullable Long maxBlock,
                                        @Nullable Boolean isSuccess,
+                                       @Nullable Currency currency,
                                        Pageable pageable);
 
   Page<TxnEntity> searchTxnEntitiesOR(@Nullable Set<String> txHashes,
@@ -24,5 +26,6 @@ public interface TxRepositoryCustom {
                                       @Nullable Long blockNumber,
                                       @Nullable Long maxBlock,
                                       @Nullable Boolean isSuccess,
+                                      @Nullable Currency currency,
                                       Pageable pageable);
 }

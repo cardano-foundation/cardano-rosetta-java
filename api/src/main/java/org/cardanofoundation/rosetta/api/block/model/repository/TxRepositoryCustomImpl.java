@@ -5,12 +5,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.api.block.model.entity.BlockEntity;
-import org.cardanofoundation.rosetta.api.block.model.entity.TxnEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.TransactionSizeEntity;
+import org.cardanofoundation.rosetta.api.block.model.entity.TxnEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.UtxoKey;
+import org.cardanofoundation.rosetta.api.search.model.Currency;
 import org.jooq.*;
 import org.jooq.Record;
 import org.jooq.impl.DSL;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -31,6 +34,7 @@ public class TxRepositoryCustomImpl implements TxRepository {
 
   private final DSLContext dsl;
   private final ObjectMapper objectMapper;
+  private final Environment environment;
 
   @Override
   public List<TxnEntity> findTransactionsByBlockHash(String blockHash) {
@@ -60,10 +64,11 @@ public class TxRepositoryCustomImpl implements TxRepository {
                                               @Nullable Long blockNumber,
                                               @Nullable Long maxBlock,
                                               @Nullable Boolean isSuccess,
+                                              @Nullable Currency currency,
                                               Pageable pageable) {
 
     // Build the inner subquery conditions
-    Condition conditions = buildAndConditions(txHashes, blockHash, blockNumber, maxBlock, isSuccess);
+    Condition conditions = buildAndConditions(txHashes, blockHash, blockNumber, maxBlock, isSuccess, currency);
 
     var baseQuery = dsl.select(
                     TRANSACTION.TX_HASH,
@@ -73,7 +78,7 @@ public class TxRepositoryCustomImpl implements TxRepository {
                     TRANSACTION.FEE,
                     TRANSACTION.SLOT,
                     BLOCK.HASH.as("joined_block_hash"),
-                    BLOCK.NUMBER.as("joined_block_number"),  
+                    BLOCK.NUMBER.as("joined_block_number"),
                     BLOCK.SLOT.as("joined_block_slot"),
                     TRANSACTION_SIZE.SIZE.as("joined_tx_size"),
                     TRANSACTION_SIZE.SCRIPT_SIZE.as("joined_tx_script_size")
@@ -121,10 +126,11 @@ public class TxRepositoryCustomImpl implements TxRepository {
                                              @Nullable Long blockNumber,
                                              @Nullable Long maxBlock,
                                              @Nullable Boolean isSuccess,
+                                             @Nullable Currency currency,
                                              Pageable pageable) {
 
     // Build the inner subquery conditions with OR logic
-    Condition conditions = buildOrConditions(txHashes, blockHash, blockNumber, maxBlock, isSuccess);
+    Condition conditions = buildOrConditions(txHashes, blockHash, blockNumber, maxBlock, isSuccess, currency);
 
     var baseQuery = dsl.select(
                     TRANSACTION.TX_HASH,
@@ -134,7 +140,7 @@ public class TxRepositoryCustomImpl implements TxRepository {
                     TRANSACTION.FEE,
                     TRANSACTION.SLOT,
                     BLOCK.HASH.as("joined_block_hash"),
-                    BLOCK.NUMBER.as("joined_block_number"),  
+                    BLOCK.NUMBER.as("joined_block_number"),
                     BLOCK.SLOT.as("joined_block_slot"),
                     TRANSACTION_SIZE.SIZE.as("joined_tx_size"),
                     TRANSACTION_SIZE.SCRIPT_SIZE.as("joined_tx_script_size")
@@ -182,7 +188,8 @@ public class TxRepositoryCustomImpl implements TxRepository {
                                        @Nullable String blockHash,
                                        @Nullable Long blockNumber,
                                        @Nullable Long maxBlock,
-                                       @Nullable Boolean isSuccess) {
+                                       @Nullable Boolean isSuccess,
+                                       @Nullable Currency currency) {
     Condition condition = DSL.trueCondition(); // Start with always true condition
 
     if (txHashes != null && !txHashes.isEmpty()) {
@@ -209,6 +216,11 @@ public class TxRepositoryCustomImpl implements TxRepository {
       condition = condition.and(successCondition);
     }
 
+    // Add currency filtering condition
+    if (currency != null) {
+      condition = condition.and(buildCurrencyCondition(currency));
+    }
+
     return condition;
   }
 
@@ -216,7 +228,8 @@ public class TxRepositoryCustomImpl implements TxRepository {
                                       @Nullable String blockHash,
                                       @Nullable Long blockNumber,
                                       @Nullable Long maxBlock,
-                                      @Nullable Boolean isSuccess) {
+                                      @Nullable Boolean isSuccess,
+                                      @Nullable Currency currency) {
     Condition orCondition = null;
 
     // Build OR conditions for the main search criteria
@@ -249,7 +262,87 @@ public class TxRepositoryCustomImpl implements TxRepository {
       orCondition = orCondition.and(successCondition);
     }
 
+    // Currency filtering should be AND condition even in OR mode
+    if (currency != null) {
+      orCondition = orCondition.and(buildCurrencyCondition(currency));
+    }
+
     return orCondition;
+  }
+
+  private Condition buildCurrencyCondition(Currency currency) {
+    // Currency object contains symbol, policyId, and decimals
+    // Strategy: Use policyId if available, otherwise fall back to symbol
+
+    String policyId = currency.getPolicyId();
+    String symbol = currency.getSymbol();
+
+    // Determine SQL dialect to use appropriate JSON operators
+    // Check for h2 profile first, as JOOQ might still be configured for PostgreSQL in application-h2.yaml
+
+    boolean isH2Profile = environment.acceptsProfiles(Profiles.of("test-integration", "h2"));
+    boolean isPostgreSQL = !isH2Profile && dsl.configuration().dialect().family() == SQLDialect.POSTGRES;
+
+    // If we have a policy ID, use it for precise matching
+    if (policyId != null && !policyId.trim().isEmpty()) {
+      String escapedPolicyId = policyId.trim().replace("\"", "\\\"");
+
+      // If we also have a symbol (asset name), match both policy ID and asset name
+      if (symbol != null && !symbol.trim().isEmpty() &&
+              !"lovelace".equalsIgnoreCase(symbol) && !"ada".equalsIgnoreCase(symbol)) {
+        String escapedSymbol = symbol.trim().replace("\"", "\\\"");
+
+        if (isPostgreSQL) {
+          return DSL.condition("EXISTS (SELECT 1 FROM address_utxo au WHERE au.tx_hash = transaction.tx_hash " +
+                  "AND au.amounts::jsonb @> '[{\"policy_id\": \"" + escapedPolicyId + "\", \"asset_name\": \"" + escapedSymbol + "\"}]')");
+        } else {
+          // H2 - use LIKE with JSON string matching
+          return DSL.condition("EXISTS (SELECT 1 FROM address_utxo au WHERE au.tx_hash = transaction.tx_hash " +
+                  "AND au.amounts LIKE '%\"policy_id\":\"" + escapedPolicyId + "\"%' " +
+                  "AND au.amounts LIKE '%\"asset_name\":\"" + escapedSymbol + "\"%')");
+        }
+      } else {
+        // Policy ID only - search for any asset with this policy ID
+        if (isPostgreSQL) {
+          return DSL.condition("EXISTS (SELECT 1 FROM address_utxo au WHERE au.tx_hash = transaction.tx_hash " +
+                  "AND au.amounts::jsonb @> '[{\"policy_id\": \"" + escapedPolicyId + "\"}]')");
+        } else {
+          // H2 - use LIKE with JSON string matching
+          return DSL.condition("EXISTS (SELECT 1 FROM address_utxo au WHERE au.tx_hash = transaction.tx_hash " +
+                  "AND au.amounts LIKE '%\"policy_id\":\"" + escapedPolicyId + "\"%')");
+        }
+      }
+    }
+
+    // Fall back to symbol-based matching
+    if (symbol != null && !symbol.trim().isEmpty()) {
+      if ("lovelace".equalsIgnoreCase(symbol) || "ada".equalsIgnoreCase(symbol)) {
+        // For ADA/lovelace, we check for unit = "lovelace" in the amounts array
+        if (isPostgreSQL) {
+          return DSL.condition("EXISTS (SELECT 1 FROM address_utxo au WHERE au.tx_hash = transaction.tx_hash " +
+                  "AND au.amounts::jsonb @> '[{\"unit\": \"lovelace\"}]')");
+        } else {
+          // H2 - use LIKE with JSON string matching
+          return DSL.condition("EXISTS (SELECT 1 FROM address_utxo au WHERE au.tx_hash = transaction.tx_hash " +
+                  "AND au.amounts LIKE '%\"unit\":\"lovelace\"%')");
+        }
+      } else {
+        // Search by asset name (symbol) across all policy IDs
+        String escapedSymbol = symbol.trim().replace("\"", "\\\"");
+
+        if (isPostgreSQL) {
+          return DSL.condition("EXISTS (SELECT 1 FROM address_utxo au WHERE au.tx_hash = transaction.tx_hash " +
+                  "AND au.amounts::jsonb @> '[{\"asset_name\": \"" + escapedSymbol + "\"}]')");
+        } else {
+          // H2 - use LIKE with JSON string matching
+          return DSL.condition("EXISTS (SELECT 1 FROM address_utxo au WHERE au.tx_hash = transaction.tx_hash " +
+                  "AND au.amounts LIKE '%\"asset_name\":\"" + escapedSymbol + "\"%')");
+        }
+      }
+    }
+
+    // If neither policy ID nor symbol is provided, return a condition that matches nothing
+    return DSL.falseCondition();
   }
 
   private TxnEntity mapRecordToTxnEntity(Record record) {
@@ -271,32 +364,28 @@ public class TxRepositoryCustomImpl implements TxRepository {
               .build();
     }
 
-    // Convert JSONB to List<UtxoKey>
-    List<UtxoKey> inputKeys = null;
-    List<UtxoKey> outputKeys = null;
+    List<UtxoKey> inputKeys = readUtxoKeys(inputs, txHash);
+    List<UtxoKey> outputKeys = readUtxoKeys(outputs, txHash);
 
-    if (inputs != null) {
-      try {
-        inputKeys = objectMapper.readValue(inputs.data(), new TypeReference<List<UtxoKey>>() {});
-      } catch (Exception e) {
-        log.warn("Failed to deserialize input keys for tx {}: {}", txHash, e.getMessage());
-        inputKeys = Collections.emptyList();
-      }
-    }
+    return TxnEntity.builder()
+            .txHash(txHash)
+            .block(blockEntity)
+            .sizeEntity(getTransactionSizeEntity(record, txHash, blockEntity))
+            .inputKeys(inputKeys)
+            .outputKeys(outputKeys)
+            .fee(fee != null ? BigInteger.valueOf(fee) : null)
+            .build();
+  }
 
-    if (outputs != null) {
-      try {
-        outputKeys = objectMapper.readValue(outputs.data(), new TypeReference<List<UtxoKey>>() {});
-      } catch (Exception e) {
-        log.warn("Failed to deserialize output keys for tx {}: {}", txHash, e.getMessage());
-        outputKeys = Collections.emptyList();
-      }
-    }
-
+  @Nullable
+  private static TransactionSizeEntity getTransactionSizeEntity(Record record,
+                                                                String txHash,
+                                                                BlockEntity blockEntity) {
     // Create transaction size entity
     TransactionSizeEntity sizeEntity = null;
     Integer size = record.get("joined_tx_size", Integer.class);
     Integer scriptSize = record.get("joined_tx_script_size", Integer.class);
+
     if (size != null || scriptSize != null) {
       sizeEntity = new TransactionSizeEntity(
               txHash,
@@ -306,14 +395,22 @@ public class TxRepositoryCustomImpl implements TxRepository {
       );
     }
 
-    return TxnEntity.builder()
-            .txHash(txHash)
-            .block(blockEntity)
-            .sizeEntity(sizeEntity)
-            .inputKeys(inputKeys)
-            .outputKeys(outputKeys)
-            .fee(fee != null ? BigInteger.valueOf(fee) : null)
-            .build();
+    return sizeEntity;
   }
-}
 
+  private List<UtxoKey> readUtxoKeys(@Nullable JSONB jsonB,
+                                     String txHash) {
+    if (jsonB == null) {
+        return Collections.emptyList();
+    }
+
+    try {
+      return objectMapper.readValue(jsonB.data(), new TypeReference<List<UtxoKey>>() {});
+    } catch (Exception e) {
+      log.warn("Failed to deserialize input keys for tx {}: {}", txHash, e.getMessage());
+    }
+
+    return Collections.emptyList();
+  }
+
+}
