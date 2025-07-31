@@ -1,24 +1,22 @@
 package org.cardanofoundation.rosetta.api.search.controller;
 
-import java.util.Optional;
-import jakarta.annotation.Nullable;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Slice;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RestController;
-import org.openapitools.client.api.SearchApi;
-import org.openapitools.client.model.BlockTransaction;
-import org.openapitools.client.model.SearchTransactionsRequest;
-import org.openapitools.client.model.SearchTransactionsResponse;
-
 import org.cardanofoundation.rosetta.api.network.service.NetworkService;
 import org.cardanofoundation.rosetta.api.search.mapper.SearchMapper;
 import org.cardanofoundation.rosetta.api.search.service.SearchService;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
+import org.openapitools.client.api.SearchApi;
+import org.openapitools.client.model.BlockTransaction;
+import org.openapitools.client.model.SearchTransactionsRequest;
+import org.openapitools.client.model.SearchTransactionsResponse;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
@@ -29,11 +27,11 @@ public class SearchApiImpl implements SearchApi {
   private final SearchService searchService;
   private final SearchMapper searchMapper;
 
-  @Value("${cardano.rosetta.SEARCH_PAGE_SIZE}")
-  private Long PAGE_SIZE;
+  @Value("${cardano.rosetta.SEARCH_LIMIT}")
+  Long LIMIT;
 
   @Value("${cardano.rosetta.OFFLINE_MODE}")
-  private boolean offlineMode;
+  boolean offlineMode;
 
   @Override
   public ResponseEntity<SearchTransactionsResponse> searchTransactions(
@@ -44,28 +42,60 @@ public class SearchApiImpl implements SearchApi {
 
     networkService.verifyNetworkRequest(searchTransactionsRequest.getNetworkIdentifier());
 
-    Long pageSize = Optional.ofNullable(searchTransactionsRequest.getLimit()).orElse(PAGE_SIZE);
+    Long limit = Optional.ofNullable(searchTransactionsRequest.getLimit())
+            .orElse(LIMIT);
 
-    // limit max pageSize to PAGE_SIZE variable
-    pageSize = pageSize > PAGE_SIZE ? PAGE_SIZE : pageSize;
-
-    Long offset = Optional.ofNullable(searchTransactionsRequest.getOffset())
-            .orElse(0L);
-
-    Slice<BlockTransaction> blockTransactionsSlice = searchService.searchTransaction(searchTransactionsRequest, offset, pageSize);
-
-    Long nextOffset = calculateNextOffset(offset, pageSize, blockTransactionsSlice);
-
-    return ResponseEntity.ok(searchMapper.mapToSearchTransactionsResponse(blockTransactionsSlice.getContent(), nextOffset, blockTransactionsSlice.getNumberOfElements()));
-  }
-
-  @Nullable
-  private static Long calculateNextOffset(Long offset, Long pageSize, Slice<BlockTransaction> blockTransactionsSlice) {
-    if (blockTransactionsSlice.isLast()) {
-      return null;
+    if (limit > LIMIT) {
+      log.warn("Requested limit {} exceeds maximum allowed size {}. Limiting to maximum size.", limit, LIMIT);
+      throw ExceptionFactory.invalidLimitSize(limit, LIMIT);
     }
 
-    return offset + pageSize;
+    long offset = Optional.ofNullable(searchTransactionsRequest.getOffset())
+            .orElse(0L);
+
+
+    SearchResults searchResults = performSearch(searchTransactionsRequest, limit, offset);
+
+    long totalElementsCount = searchResults.blockTransactionsPage().getTotalElements();
+    Optional<Long> nextOffsetM = calculateNextOffset(offset, limit, totalElementsCount);
+    SearchTransactionsResponse searchResponse = searchMapper.mapToSearchTransactionsResponse(searchResults.blockTransactionList(), nextOffsetM.orElse(null), totalElementsCount);
+
+    return ResponseEntity.ok(searchResponse);
   }
+
+  SearchResults performSearch(SearchTransactionsRequest searchTransactionsRequest, Long limit, long offset) {
+    Page<BlockTransaction> blockTransactionsPage;
+    List<BlockTransaction> blockTransactionList;
+    if (limit == 0) {
+      // For limit=0, we still need to get the total count, so we query with a minimal limit
+      blockTransactionsPage = searchService.searchTransaction(searchTransactionsRequest, offset, 1L);
+      blockTransactionList = List.of(); // Return empty list
+    } else {
+      blockTransactionsPage = searchService.searchTransaction(searchTransactionsRequest, offset, limit);
+      blockTransactionList = blockTransactionsPage.getContent();
+    }
+
+    return new SearchResults(blockTransactionsPage, blockTransactionList);
+  }
+
+  static Optional<Long> calculateNextOffset(long offset,
+                                            long limit,
+                                            long totalElements) {
+    // If limit is 0, there's no next offset since no results are returned
+    if (limit == 0) {
+      return Optional.of(0L);
+    }
+
+    long nextOffset = offset + limit;
+
+    // If the next offset would be beyond the total elements, there are no more pages
+    if (nextOffset >= totalElements) {
+      return Optional.empty();
+    }
+
+    return Optional.of(nextOffset);
+  }
+
+  record SearchResults(Page<BlockTransaction> blockTransactionsPage, List<BlockTransaction> blockTransactionList) {}
 
 }

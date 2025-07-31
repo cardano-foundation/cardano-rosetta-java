@@ -19,6 +19,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -154,8 +155,8 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
   }
 
   @Override
-  public Slice<BlockTx> mapTxnEntitiesToBlockTxList(Slice<TxnEntity> txList) {
-    Slice<BlockTx> transactions = txList.map(blockMapper::mapToBlockTx);
+  public Page<BlockTx> mapTxnEntitiesToBlockTxList(Page<TxnEntity> txList) {
+    Page<BlockTx> transactions = txList.map(blockMapper::mapToBlockTx);
 
     TransactionInfo fetched = findByTxHash(transactions.getContent());
     Map<UtxoKey, AddressUtxoEntity> utxoMap = getUtxoMapFromEntities(fetched);
