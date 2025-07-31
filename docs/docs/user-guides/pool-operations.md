@@ -47,7 +47,6 @@ A pool registration operation requires `poolRegistrationParams` as metadata. The
         "index": 3
       },
       "type": "poolRegistration",
-      "status": "success",
       "account": {
         "address": "1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5"
       },
@@ -97,7 +96,6 @@ For pool registration using a pre-created certificate, you need to include the c
     "index": 3
   },
   "type": "poolRegistrationWithCert",
-  "status": "success",
   "account": {
     "address": "1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5"
   },
@@ -118,7 +116,6 @@ To retire a stake pool, you need to specify the epoch in which the pool should b
     "index": 1
   },
   "type": "poolRetirement",
-  "status": "success",
   "account": {
     "address": "153806dbcd134ddee69a8c5204e38ac80448f62342f8c23cfe4b7edf"
   },
@@ -139,7 +136,6 @@ To vote for governance action, you need to specify value for `governance_action_
      "index": 3
  },
  "type": "poolGovernanceVote",
- "status": "success",
  "account": {
      "address": "6c518b4861bb88b1395ceb116342cecbcfb8736282655f9a61c4c368"
  },
