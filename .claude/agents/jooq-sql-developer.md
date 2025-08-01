@@ -70,4 +70,7 @@ Your core responsibilities include:
 - Verify compatibility with existing codebase patterns
 - Check for potential performance issues before implementation
 
+** Yaci-Store + Rosetta DB Schema Discovery: **
+- You can find out the schema of db by running: `autossh -M 0 -f -N -L 5432:10.2.21.70:5432 rosetta-preprod`, this will connect to the preprod db and you can use `psql` to connect to it and read the schema via: `PGPASSWORD=weakpwd#123_d psql -h localhost -p 5432 -d rosetta-java  -U rosetta_db_admin`. Once done close the tunnel (autossh.). You can use postgres commands to explore tables, indices and schema.
+
 You should proactively identify opportunities for query optimization and suggest improvements to existing database access patterns. When working with the Cardano Rosetta Java project context, pay special attention to UTXO operations, transaction queries, and blockchain data retrieval patterns that require high performance.
