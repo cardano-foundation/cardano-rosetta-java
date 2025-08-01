@@ -18,6 +18,11 @@ spring:
   output:
     ansi:
       enabled: detect
+  jooq:
+    sql-dialect: H2
+    settings:
+      render-schema: false
+      render-catalog: false
 
 logging:
   level:

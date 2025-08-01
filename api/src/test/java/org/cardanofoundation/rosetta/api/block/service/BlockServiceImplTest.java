@@ -70,8 +70,8 @@ class BlockServiceImplTest {
   @Test
   void getBlockByBlockRequest_blockNotFoundException() {
     //given
-    givenProtocolParam();
-    when(ledgerBlockService.findBlock(anyLong(), anyString())).thenReturn(newBlock());
+    //givenProtocolParam();
+    when(ledgerBlockService.findBlock(anyLong(), anyString())).thenReturn(Optional.empty());
     //when
     try {
       blockService.findBlock(1L, "hash");
