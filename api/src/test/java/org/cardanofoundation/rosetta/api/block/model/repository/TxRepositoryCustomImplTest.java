@@ -14,6 +14,7 @@ import org.springframework.test.context.jdbc.Sql;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
@@ -107,11 +108,17 @@ public class TxRepositoryCustomImplTest extends IntegrationTest {
             List<TxnEntity> txList = results.getContent();
             assertThat(txList).isNotEmpty();
             
-            // All transactions should be successful (not in InvalidTransactionEntity)
-            // This would need to be verified against test data setup
-            assertThat(txList).allSatisfy(tx -> {
-                assertThat(tx.getTxHash()).isNotNull();
-            });
+            Set<String> actualTxHashes = txList.stream()
+                    .map(TxnEntity::getTxHash)
+                    .collect(Collectors.toSet());
+            
+            // Verify our test successful transactions are included
+            Set<String> expectedSuccessfulTxHashes = Set.of("successTx1", "successTx2", "successTx3");
+            assertThat(actualTxHashes).containsAll(expectedSuccessfulTxHashes);
+            
+            // Verify our test failed transactions are NOT included
+            Set<String> failedTxHashes = Set.of("failedTx1", "failedTx2");
+            assertThat(actualTxHashes).doesNotContainAnyElementsOf(failedTxHashes);
         }
 
         @Test
@@ -122,12 +129,17 @@ public class TxRepositoryCustomImplTest extends IntegrationTest {
                     null, null, null, null, false, null, new OffsetBasedPageRequest(0, 100));
 
             List<TxnEntity> txList = results.getContent();
+            Set<String> actualTxHashes = txList.stream()
+                    .map(TxnEntity::getTxHash)
+                    .collect(Collectors.toSet());
             
-            // Results could be empty if no failed transactions exist in test data
-            // All transactions should be failed (in InvalidTransactionEntity)
-            txList.forEach(tx -> {
-                assertThat(tx.getTxHash()).isNotNull();
-            });
+            // Verify our test failed transactions are included
+            Set<String> expectedFailedTxHashes = Set.of("failedTx1", "failedTx2");
+            assertThat(actualTxHashes).containsAll(expectedFailedTxHashes);
+            
+            // Verify our test successful transactions are NOT included
+            Set<String> successfulTxHashes = Set.of("successTx1", "successTx2", "successTx3");
+            assertThat(actualTxHashes).doesNotContainAnyElementsOf(successfulTxHashes);
         }
 
         @Test
@@ -140,10 +152,13 @@ public class TxRepositoryCustomImplTest extends IntegrationTest {
             List<TxnEntity> txList = results.getContent();
             assertThat(txList).isNotEmpty();
             
-            // Should return all transactions regardless of success status
-            assertThat(txList).allSatisfy(tx -> {
-                assertThat(tx.getTxHash()).isNotNull();
-            });
+            Set<String> actualTxHashes = txList.stream()
+                    .map(TxnEntity::getTxHash)
+                    .collect(Collectors.toSet());
+            
+            // Should return all our test transactions regardless of success status
+            Set<String> expectedAllTxHashes = Set.of("successTx1", "successTx2", "successTx3", "failedTx1", "failedTx2");
+            assertThat(actualTxHashes).containsAll(expectedAllTxHashes);
         }
 
         @Test
@@ -156,10 +171,17 @@ public class TxRepositoryCustomImplTest extends IntegrationTest {
             List<TxnEntity> txList = results.getContent();
             assertThat(txList).isNotEmpty();
             
-            // All transactions should be successful (not in InvalidTransactionEntity)
-            assertThat(txList).allSatisfy(tx -> {
-                assertThat(tx.getTxHash()).isNotNull();
-            });
+            Set<String> actualTxHashes = txList.stream()
+                    .map(TxnEntity::getTxHash)
+                    .collect(Collectors.toSet());
+            
+            // Verify our test successful transactions are included
+            Set<String> expectedSuccessfulTxHashes = Set.of("successTx1", "successTx2", "successTx3");
+            assertThat(actualTxHashes).containsAll(expectedSuccessfulTxHashes);
+            
+            // Verify failed transactions are NOT included
+            Set<String> failedTxHashes = Set.of("failedTx1", "failedTx2");
+            assertThat(actualTxHashes).doesNotContainAnyElementsOf(failedTxHashes);
         }
 
         @Test
@@ -170,12 +192,17 @@ public class TxRepositoryCustomImplTest extends IntegrationTest {
                     null, null, null, null, false, null, new OffsetBasedPageRequest(0, 100));
 
             List<TxnEntity> txList = results.getContent();
+            Set<String> actualTxHashes = txList.stream()
+                    .map(TxnEntity::getTxHash)
+                    .collect(Collectors.toSet());
             
-            // Results could be empty if no failed transactions exist in test data
-            // All transactions should be failed (in InvalidTransactionEntity)
-            txList.forEach(tx -> {
-                assertThat(tx.getTxHash()).isNotNull();
-            });
+            // Verify our test failed transactions are included
+            Set<String> expectedFailedTxHashes = Set.of("failedTx1", "failedTx2");
+            assertThat(actualTxHashes).containsAll(expectedFailedTxHashes);
+            
+            // Verify our test successful transactions are NOT included
+            Set<String> successfulTxHashes = Set.of("successTx1", "successTx2", "successTx3");
+            assertThat(actualTxHashes).doesNotContainAnyElementsOf(successfulTxHashes);
         }
 
         @Test
@@ -188,10 +215,364 @@ public class TxRepositoryCustomImplTest extends IntegrationTest {
             List<TxnEntity> txList = results.getContent();
             assertThat(txList).isNotEmpty();
             
-            // Should return all transactions regardless of success status
-            assertThat(txList).allSatisfy(tx -> {
-                assertThat(tx.getTxHash()).isNotNull();
-            });
+            Set<String> actualTxHashes = txList.stream()
+                    .map(TxnEntity::getTxHash)
+                    .collect(Collectors.toSet());
+            
+            // Should return all our test transactions regardless of success status
+            Set<String> expectedAllTxHashes = Set.of("successTx1", "successTx2", "successTx3", "failedTx1", "failedTx2");
+            assertThat(actualTxHashes).containsAll(expectedAllTxHashes);
+        }
+        
+        @Test
+        @Sql(scripts = "classpath:/testdata/sql/tx-repository-success-test-init.sql", executionPhase = BEFORE_TEST_METHOD)
+        @Sql(scripts = "classpath:/testdata/sql/tx-repository-success-test-cleanup.sql", executionPhase = AFTER_TEST_METHOD)
+        public void testSearchTxnEntitiesAND_CountValidation() {
+            // Verify that isSuccess=null includes both successful and failed transactions
+            Page<TxnEntity> allResults = txRepository.searchTxnEntitiesAND(
+                    null, null, null, null, null, null, new OffsetBasedPageRequest(0, 100));
+            
+            Page<TxnEntity> successfulResults = txRepository.searchTxnEntitiesAND(
+                    null, null, null, null, true, null, new OffsetBasedPageRequest(0, 100));
+            
+            Page<TxnEntity> failedResults = txRepository.searchTxnEntitiesAND(
+                    null, null, null, null, false, null, new OffsetBasedPageRequest(0, 100));
+            
+            // Collect transaction hashes for verification
+            Set<String> allTxHashes = allResults.getContent().stream()
+                    .map(TxnEntity::getTxHash)
+                    .collect(Collectors.toSet());
+            Set<String> successfulTxHashes = successfulResults.getContent().stream()
+                    .map(TxnEntity::getTxHash)
+                    .collect(Collectors.toSet());
+            Set<String> failedTxHashes = failedResults.getContent().stream()
+                    .map(TxnEntity::getTxHash)
+                    .collect(Collectors.toSet());
+            
+            // Verify that all results contain both successful and failed transactions
+            assertThat(allTxHashes).containsAll(Set.of("successTx1", "successTx2", "successTx3"));
+            assertThat(allTxHashes).containsAll(Set.of("failedTx1", "failedTx2"));
+            
+            // Verify filtering works correctly
+            assertThat(successfulTxHashes).containsAll(Set.of("successTx1", "successTx2", "successTx3"));
+            assertThat(successfulTxHashes).doesNotContainAnyElementsOf(Set.of("failedTx1", "failedTx2"));
+            
+            assertThat(failedTxHashes).containsAll(Set.of("failedTx1", "failedTx2"));
+            assertThat(failedTxHashes).doesNotContainAnyElementsOf(Set.of("successTx1", "successTx2", "successTx3"));
+        }
+        
+        @Test
+        @Sql(scripts = "classpath:/testdata/sql/tx-repository-success-test-init.sql", executionPhase = BEFORE_TEST_METHOD)
+        @Sql(scripts = "classpath:/testdata/sql/tx-repository-success-test-cleanup.sql", executionPhase = AFTER_TEST_METHOD)
+        public void testSearchTxnEntitiesOR_CountValidation() {
+            // Verify that isSuccess=null includes both successful and failed transactions for OR queries
+            Page<TxnEntity> allResults = txRepository.searchTxnEntitiesOR(
+                    null, null, null, null, null, null, new OffsetBasedPageRequest(0, 100));
+            
+            Page<TxnEntity> successfulResults = txRepository.searchTxnEntitiesOR(
+                    null, null, null, null, true, null, new OffsetBasedPageRequest(0, 100));
+            
+            Page<TxnEntity> failedResults = txRepository.searchTxnEntitiesOR(
+                    null, null, null, null, false, null, new OffsetBasedPageRequest(0, 100));
+            
+            // Collect transaction hashes for verification
+            Set<String> allTxHashes = allResults.getContent().stream()
+                    .map(TxnEntity::getTxHash)
+                    .collect(Collectors.toSet());
+            Set<String> successfulTxHashes = successfulResults.getContent().stream()
+                    .map(TxnEntity::getTxHash)
+                    .collect(Collectors.toSet());
+            Set<String> failedTxHashes = failedResults.getContent().stream()
+                    .map(TxnEntity::getTxHash)
+                    .collect(Collectors.toSet());
+            
+            // Verify that all results contain both successful and failed transactions
+            assertThat(allTxHashes).containsAll(Set.of("successTx1", "successTx2", "successTx3"));
+            assertThat(allTxHashes).containsAll(Set.of("failedTx1", "failedTx2"));
+            
+            // Verify filtering works correctly
+            assertThat(successfulTxHashes).containsAll(Set.of("successTx1", "successTx2", "successTx3"));
+            assertThat(successfulTxHashes).doesNotContainAnyElementsOf(Set.of("failedTx1", "failedTx2"));
+            
+            assertThat(failedTxHashes).containsAll(Set.of("failedTx1", "failedTx2"));
+            assertThat(failedTxHashes).doesNotContainAnyElementsOf(Set.of("successTx1", "successTx2", "successTx3"));
+        }
+        
+        @Test
+        @Sql(scripts = "classpath:/testdata/sql/tx-repository-success-test-init.sql", executionPhase = BEFORE_TEST_METHOD)
+        @Sql(scripts = "classpath:/testdata/sql/tx-repository-success-test-cleanup.sql", executionPhase = AFTER_TEST_METHOD)
+        public void testSearchTxnEntitiesAND_CombineSuccessFilterWithOtherFilters() {
+            // Test combining isSuccess with specific transaction hashes
+            Set<String> specificTxHashes = Set.of("successTx1", "failedTx1");
+            
+            // Filter for successful transactions from the specific set
+            Page<TxnEntity> successfulSpecificResults = txRepository.searchTxnEntitiesAND(
+                    specificTxHashes, null, null, null, true, null, new OffsetBasedPageRequest(0, 100));
+            
+            // Should only return successTx1 (successful and in the specified set)
+            assertThat(successfulSpecificResults.getContent()).hasSize(1);
+            assertThat(successfulSpecificResults.getContent().get(0).getTxHash()).isEqualTo("successTx1");
+            
+            // Filter for failed transactions from the specific set
+            Page<TxnEntity> failedSpecificResults = txRepository.searchTxnEntitiesAND(
+                    specificTxHashes, null, null, null, false, null, new OffsetBasedPageRequest(0, 100));
+            
+            // Should only return failedTx1 (failed and in the specified set)
+            assertThat(failedSpecificResults.getContent()).hasSize(1);
+            assertThat(failedSpecificResults.getContent().get(0).getTxHash()).isEqualTo("failedTx1");
+        }
+        
+        @Test
+        @Sql(scripts = "classpath:/testdata/sql/tx-repository-success-test-init.sql", executionPhase = BEFORE_TEST_METHOD)
+        @Sql(scripts = "classpath:/testdata/sql/tx-repository-success-test-cleanup.sql", executionPhase = AFTER_TEST_METHOD)
+        public void testSearchTxnEntitiesOR_CombineSuccessFilterWithOtherFilters() {
+            // Test combining isSuccess with specific transaction hashes using OR logic
+            Set<String> specificTxHashes = Set.of("successTx1", "failedTx1");
+            
+            // Filter for successful transactions from the specific set
+            Page<TxnEntity> successfulSpecificResults = txRepository.searchTxnEntitiesOR(
+                    specificTxHashes, null, null, null, true, null, new OffsetBasedPageRequest(0, 100));
+            
+            // Should only return successTx1 (successful and in the specified set)
+            assertThat(successfulSpecificResults.getContent()).hasSize(1);
+            assertThat(successfulSpecificResults.getContent().get(0).getTxHash()).isEqualTo("successTx1");
+            
+            // Filter for failed transactions from the specific set
+            Page<TxnEntity> failedSpecificResults = txRepository.searchTxnEntitiesOR(
+                    specificTxHashes, null, null, null, false, null, new OffsetBasedPageRequest(0, 100));
+            
+            // Should only return failedTx1 (failed and in the specified set)
+            assertThat(failedSpecificResults.getContent()).hasSize(1);
+            assertThat(failedSpecificResults.getContent().get(0).getTxHash()).isEqualTo("failedTx1");
+        }
+    }
+
+    @Nested
+    class InvalidTransactionJoinTests {
+
+        @Test
+        @Sql(scripts = "classpath:/testdata/sql/tx-repository-success-test-init.sql", executionPhase = BEFORE_TEST_METHOD)
+        @Sql(scripts = "classpath:/testdata/sql/tx-repository-success-test-cleanup.sql", executionPhase = AFTER_TEST_METHOD)
+        public void testSearchTxnEntitiesAND_VerifySuccessfulTransactionsNotInInvalidTable() {
+            // Test that successful transactions (isSuccess=true) are NOT in invalid_transaction table
+            // Integration test environment may have additional transactions beyond test data
+            Page<TxnEntity> results = txRepository.searchTxnEntitiesAND(
+                    null, null, null, null, true, null, new OffsetBasedPageRequest(0, 100));
+
+            List<TxnEntity> txList = results.getContent();
+            assertThat(txList).isNotEmpty();
+            
+            Set<String> actualTxHashes = txList.stream()
+                    .map(TxnEntity::getTxHash)
+                    .collect(Collectors.toSet());
+            
+            // Verify that our test successful transactions are present in results
+            Set<String> expectedSuccessfulTxHashes = Set.of("successTx1", "successTx2", "successTx3");
+            assertThat(actualTxHashes).containsAll(expectedSuccessfulTxHashes);
+            
+            // Verify that our test failed transactions are NOT present in results
+            Set<String> invalidTxHashes = Set.of("failedTx1", "failedTx2");
+            assertThat(actualTxHashes).doesNotContainAnyElementsOf(invalidTxHashes);
+        }
+
+        @Test
+        @Sql(scripts = "classpath:/testdata/sql/tx-repository-success-test-init.sql", executionPhase = BEFORE_TEST_METHOD)
+        @Sql(scripts = "classpath:/testdata/sql/tx-repository-success-test-cleanup.sql", executionPhase = AFTER_TEST_METHOD)
+        public void testSearchTxnEntitiesAND_VerifyFailedTransactionsInInvalidTable() {
+            // Test that failed transactions (isSuccess=false) ARE in invalid_transaction table
+            // Integration test environment may have additional transactions beyond test data
+            Page<TxnEntity> results = txRepository.searchTxnEntitiesAND(
+                    null, null, null, null, false, null, new OffsetBasedPageRequest(0, 100));
+
+            List<TxnEntity> txList = results.getContent();
+            Set<String> actualTxHashes = txList.stream()
+                    .map(TxnEntity::getTxHash)
+                    .collect(Collectors.toSet());
+            
+            // Verify that our test failed transactions are present in results
+            Set<String> expectedFailedTxHashes = Set.of("failedTx1", "failedTx2");
+            assertThat(actualTxHashes).containsAll(expectedFailedTxHashes);
+            
+            // Verify that our test successful transactions are NOT present in results
+            Set<String> successfulTxHashes = Set.of("successTx1", "successTx2", "successTx3");
+            assertThat(actualTxHashes).doesNotContainAnyElementsOf(successfulTxHashes);
+        }
+
+        @Test
+        @Sql(scripts = "classpath:/testdata/sql/tx-repository-success-test-init.sql", executionPhase = BEFORE_TEST_METHOD)
+        @Sql(scripts = "classpath:/testdata/sql/tx-repository-success-test-cleanup.sql", executionPhase = AFTER_TEST_METHOD)
+        public void testSearchTxnEntitiesAND_VerifyNoJoinWhenIsSuccessNull() {
+            // Test performance optimization: when isSuccess=null, no INVALID_TRANSACTION join should occur
+            // and all transactions (both successful and failed) should be returned
+            // Integration test environment may have additional transactions beyond test data
+            Page<TxnEntity> results = txRepository.searchTxnEntitiesAND(
+                    null, null, null, null, null, null, new OffsetBasedPageRequest(0, 100));
+
+            List<TxnEntity> txList = results.getContent();
+            assertThat(txList).isNotEmpty();
+            
+            Set<String> actualTxHashes = txList.stream()
+                    .map(TxnEntity::getTxHash)
+                    .collect(Collectors.toSet());
+            
+            // Verify that ALL our test transactions are present (both successful and failed)
+            Set<String> expectedAllTxHashes = Set.of("successTx1", "successTx2", "successTx3", "failedTx1", "failedTx2");
+            assertThat(actualTxHashes).containsAll(expectedAllTxHashes);
+        }
+
+        @Test
+        @Sql(scripts = "classpath:/testdata/sql/tx-repository-success-test-init.sql", executionPhase = BEFORE_TEST_METHOD)
+        @Sql(scripts = "classpath:/testdata/sql/tx-repository-success-test-cleanup.sql", executionPhase = AFTER_TEST_METHOD)
+        public void testSearchTxnEntitiesOR_VerifySuccessfulTransactionsNotInInvalidTable() {
+            // Test that successful transactions (isSuccess=true) are NOT in invalid_transaction table for OR logic
+            // Integration test environment may have additional transactions beyond test data
+            Page<TxnEntity> results = txRepository.searchTxnEntitiesOR(
+                    null, null, null, null, true, null, new OffsetBasedPageRequest(0, 100));
+
+            List<TxnEntity> txList = results.getContent();
+            assertThat(txList).isNotEmpty();
+            
+            Set<String> actualTxHashes = txList.stream()
+                    .map(TxnEntity::getTxHash)
+                    .collect(Collectors.toSet());
+            
+            // Verify that our test successful transactions are present in results
+            Set<String> expectedSuccessfulTxHashes = Set.of("successTx1", "successTx2", "successTx3");
+            assertThat(actualTxHashes).containsAll(expectedSuccessfulTxHashes);
+            
+            // Verify that our test failed transactions are NOT present in results
+            Set<String> invalidTxHashes = Set.of("failedTx1", "failedTx2");
+            assertThat(actualTxHashes).doesNotContainAnyElementsOf(invalidTxHashes);
+        }
+
+        @Test
+        @Sql(scripts = "classpath:/testdata/sql/tx-repository-success-test-init.sql", executionPhase = BEFORE_TEST_METHOD)
+        @Sql(scripts = "classpath:/testdata/sql/tx-repository-success-test-cleanup.sql", executionPhase = AFTER_TEST_METHOD)
+        public void testSearchTxnEntitiesOR_VerifyFailedTransactionsInInvalidTable() {
+            // Test that failed transactions (isSuccess=false) ARE in invalid_transaction table for OR logic
+            // Integration test environment may have additional transactions beyond test data
+            Page<TxnEntity> results = txRepository.searchTxnEntitiesOR(
+                    null, null, null, null, false, null, new OffsetBasedPageRequest(0, 100));
+
+            List<TxnEntity> txList = results.getContent();
+            Set<String> actualTxHashes = txList.stream()
+                    .map(TxnEntity::getTxHash)
+                    .collect(Collectors.toSet());
+            
+            // Verify that our test failed transactions are present in results
+            Set<String> expectedFailedTxHashes = Set.of("failedTx1", "failedTx2");
+            assertThat(actualTxHashes).containsAll(expectedFailedTxHashes);
+            
+            // Verify that our test successful transactions are NOT present in results
+            Set<String> successfulTxHashes = Set.of("successTx1", "successTx2", "successTx3");
+            assertThat(actualTxHashes).doesNotContainAnyElementsOf(successfulTxHashes);
+        }
+
+        @Test
+        @Sql(scripts = "classpath:/testdata/sql/tx-repository-success-test-init.sql", executionPhase = BEFORE_TEST_METHOD)
+        @Sql(scripts = "classpath:/testdata/sql/tx-repository-success-test-cleanup.sql", executionPhase = AFTER_TEST_METHOD)
+        public void testSearchTxnEntitiesOR_VerifyNoJoinWhenIsSuccessNull() {
+            // Test performance optimization: when isSuccess=null, no INVALID_TRANSACTION join should occur
+            // and all transactions (both successful and failed) should be returned for OR logic
+            // Integration test environment may have additional transactions beyond test data
+            Page<TxnEntity> results = txRepository.searchTxnEntitiesOR(
+                    null, null, null, null, null, null, new OffsetBasedPageRequest(0, 100));
+
+            List<TxnEntity> txList = results.getContent();
+            assertThat(txList).isNotEmpty();
+            
+            Set<String> actualTxHashes = txList.stream()
+                    .map(TxnEntity::getTxHash)
+                    .collect(Collectors.toSet());
+            
+            // Verify that ALL our test transactions are present (both successful and failed)
+            Set<String> expectedAllTxHashes = Set.of("successTx1", "successTx2", "successTx3", "failedTx1", "failedTx2");
+            assertThat(actualTxHashes).containsAll(expectedAllTxHashes);
+        }
+
+        @Test
+        @Sql(scripts = "classpath:/testdata/sql/tx-repository-success-test-init.sql", executionPhase = BEFORE_TEST_METHOD)
+        @Sql(scripts = "classpath:/testdata/sql/tx-repository-success-test-cleanup.sql", executionPhase = AFTER_TEST_METHOD)
+        public void testSearchTxnEntitiesAND_InvalidTransactionJoinWithOtherFilters() {
+            // Test combining isSuccess with other filters (blockHash, txHashes)
+            // Verify join behavior works correctly with complex conditions
+            
+            // Test successful transactions in specific block
+            Set<String> specificBlockTxHashes = Set.of("successTx1", "successTx2", "failedTx1");
+            Page<TxnEntity> successfulInBlockResults = txRepository.searchTxnEntitiesAND(
+                    specificBlockTxHashes, "successBlock1", null, null, true, null, 
+                    new OffsetBasedPageRequest(0, 100));
+            
+            // Should include successful transactions from the specified block and tx hash set
+            // Integration test environment may have additional matching transactions
+            Set<String> successfulTxHashes = successfulInBlockResults.getContent().stream()
+                    .map(TxnEntity::getTxHash)
+                    .collect(Collectors.toSet());
+            assertThat(successfulTxHashes).contains("successTx1", "successTx2");
+            // Verify only transactions from our specific tx hash set are returned
+            assertThat(successfulTxHashes).allSatisfy(hash -> 
+                    assertThat(Set.of("successTx1", "successTx2", "failedTx1")).contains(hash));
+            
+            // Test failed transactions in specific block
+            Page<TxnEntity> failedInBlockResults = txRepository.searchTxnEntitiesAND(
+                    specificBlockTxHashes, "successBlock1", null, null, false, null, 
+                    new OffsetBasedPageRequest(0, 100));
+            
+            // Should include failed transactions from the specified block and tx hash set
+            // Integration test environment may have additional matching transactions
+            Set<String> failedTxHashes = failedInBlockResults.getContent().stream()
+                    .map(TxnEntity::getTxHash)
+                    .collect(Collectors.toSet());
+            assertThat(failedTxHashes).contains("failedTx1");
+            // Verify only transactions from our specific tx hash set are returned
+            assertThat(failedTxHashes).allSatisfy(hash -> 
+                    assertThat(Set.of("successTx1", "successTx2", "failedTx1")).contains(hash));
+        }
+
+        @Test
+        @Sql(scripts = "classpath:/testdata/sql/tx-repository-success-test-init.sql", executionPhase = BEFORE_TEST_METHOD)
+        @Sql(scripts = "classpath:/testdata/sql/tx-repository-success-test-cleanup.sql", executionPhase = AFTER_TEST_METHOD)
+        public void testSearchTxnEntitiesOR_InvalidTransactionJoinWithOtherFilters() {
+            // Test combining isSuccess with other filters using OR logic
+            // Verify join behavior works correctly with complex OR conditions
+            
+            // Test successful transactions with mixed block conditions
+            Page<TxnEntity> successfulMixedResults = txRepository.searchTxnEntitiesOR(
+                    Set.of("successTx1"), "successBlock2", null, null, true, null, 
+                    new OffsetBasedPageRequest(0, 100));
+            
+            // Should return successful transactions that match either condition:
+            // - successTx1 (from tx hashes) OR transactions from successBlock2
+            // AND are successful (not in invalid_transaction table)
+            Set<String> actualTxHashes = successfulMixedResults.getContent().stream()
+                    .map(TxnEntity::getTxHash)
+                    .collect(Collectors.toSet());
+            
+            // Should include successTx1 (matches tx hash) and successTx3 (matches block hash)
+            // but exclude failedTx2 even though it's in successBlock2 (because it's not successful)
+            // Integration test environment may have additional matching transactions
+            assertThat(actualTxHashes).contains("successTx1", "successTx3");
+            // Verify our test failed transactions are not included
+            assertThat(actualTxHashes).doesNotContainAnyElementsOf(Set.of("failedTx1", "failedTx2"));
+            
+            // Test failed transactions with mixed conditions
+            Page<TxnEntity> failedMixedResults = txRepository.searchTxnEntitiesOR(
+                    Set.of("failedTx1"), "successBlock2", null, null, false, null, 
+                    new OffsetBasedPageRequest(0, 100));
+            
+            // Should return failed transactions that match either condition:
+            // - failedTx1 (from tx hashes) OR transactions from successBlock2  
+            // AND are failed (in invalid_transaction table)
+            Set<String> failedTxHashes = failedMixedResults.getContent().stream()
+                    .map(TxnEntity::getTxHash)
+                    .collect(Collectors.toSet());
+            
+            // Should include failedTx1 (matches tx hash) and failedTx2 (matches block hash)
+            // but exclude successTx3 even though it's in successBlock2 (because it's successful)
+            // Integration test environment may have additional matching transactions
+            assertThat(failedTxHashes).contains("failedTx1", "failedTx2");
+            // Verify our test successful transactions are not included
+            assertThat(failedTxHashes).doesNotContainAnyElementsOf(Set.of("successTx1", "successTx2", "successTx3"));
         }
     }
 

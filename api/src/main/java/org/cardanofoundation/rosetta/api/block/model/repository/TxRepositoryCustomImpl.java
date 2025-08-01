@@ -23,6 +23,7 @@ import javax.annotation.Nullable;
 import java.math.BigInteger;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.cardanofoundation.rosetta.api.jooq.Tables.*;
@@ -70,7 +71,8 @@ public class TxRepositoryCustomImpl implements TxRepository {
     // Build the inner subquery conditions
     Condition conditions = buildAndConditions(txHashes, blockHash, blockNumber, maxBlock, isSuccess, currency);
 
-    var baseQuery = dsl.select(
+    // Build main query with conditional INVALID_TRANSACTION join
+    var baseQueryFrom = dsl.select(
                     TRANSACTION.TX_HASH,
                     TRANSACTION.BLOCK_HASH,
                     TRANSACTION.INPUTS,
@@ -83,30 +85,34 @@ public class TxRepositoryCustomImpl implements TxRepository {
                     TRANSACTION_SIZE.SIZE.as("joined_tx_size"),
                     TRANSACTION_SIZE.SCRIPT_SIZE.as("joined_tx_script_size")
             )
-            .from(TRANSACTION)
-            .leftJoin(INVALID_TRANSACTION).on(TRANSACTION.TX_HASH.eq(INVALID_TRANSACTION.TX_HASH))
+            .from(TRANSACTION);
+
+    // Conditionally add INVALID_TRANSACTION join only when isSuccess is not null
+    if (isSuccess != null) {
+      baseQueryFrom = baseQueryFrom.leftJoin(INVALID_TRANSACTION).on(TRANSACTION.TX_HASH.eq(INVALID_TRANSACTION.TX_HASH));
+    }
+
+    var baseQuery = baseQueryFrom
             .leftJoin(BLOCK).on(TRANSACTION.BLOCK_HASH.eq(BLOCK.HASH))
             .leftJoin(TRANSACTION_SIZE).on(TRANSACTION.TX_HASH.eq(TRANSACTION_SIZE.TX_HASH))
             .where(TRANSACTION.TX_HASH.in(
-                    dsl.selectDistinct(TRANSACTION.TX_HASH)
-                            .from(TRANSACTION)
-                            .leftJoin(INVALID_TRANSACTION).on(TRANSACTION.TX_HASH.eq(INVALID_TRANSACTION.TX_HASH))
-                            .leftJoin(BLOCK).on(TRANSACTION.BLOCK_HASH.eq(BLOCK.HASH))
-                            .where(conditions)
+                    buildSubquery(conditions, isSuccess)
             ))
             .orderBy(TRANSACTION.SLOT.desc());
 
-    // Count query for pagination
-    var countQuery = dsl.selectCount()
-            .from(TRANSACTION)
-            .leftJoin(INVALID_TRANSACTION).on(TRANSACTION.TX_HASH.eq(INVALID_TRANSACTION.TX_HASH))
+    // Build count query with conditional INVALID_TRANSACTION join
+    var countQueryFrom = dsl.selectCount()
+            .from(TRANSACTION);
+
+    // Conditionally add INVALID_TRANSACTION join only when isSuccess is not null
+    if (isSuccess != null) {
+      countQueryFrom = countQueryFrom.leftJoin(INVALID_TRANSACTION).on(TRANSACTION.TX_HASH.eq(INVALID_TRANSACTION.TX_HASH));
+    }
+
+    var countQuery = countQueryFrom
             .leftJoin(BLOCK).on(TRANSACTION.BLOCK_HASH.eq(BLOCK.HASH))
             .where(TRANSACTION.TX_HASH.in(
-                    dsl.selectDistinct(TRANSACTION.TX_HASH)
-                            .from(TRANSACTION)
-                            .leftJoin(INVALID_TRANSACTION).on(TRANSACTION.TX_HASH.eq(INVALID_TRANSACTION.TX_HASH))
-                            .leftJoin(BLOCK).on(TRANSACTION.BLOCK_HASH.eq(BLOCK.HASH))
-                            .where(conditions)
+                    buildSubquery(conditions, isSuccess)
             ));
 
     Integer totalElements = countQuery.fetchOne(0, Integer.class);
@@ -132,7 +138,8 @@ public class TxRepositoryCustomImpl implements TxRepository {
     // Build the inner subquery conditions with OR logic
     Condition conditions = buildOrConditions(txHashes, blockHash, blockNumber, maxBlock, isSuccess, currency);
 
-    var baseQuery = dsl.select(
+    // Build main query with conditional INVALID_TRANSACTION join
+    var baseQueryFrom = dsl.select(
                     TRANSACTION.TX_HASH,
                     TRANSACTION.BLOCK_HASH,
                     TRANSACTION.INPUTS,
@@ -145,32 +152,34 @@ public class TxRepositoryCustomImpl implements TxRepository {
                     TRANSACTION_SIZE.SIZE.as("joined_tx_size"),
                     TRANSACTION_SIZE.SCRIPT_SIZE.as("joined_tx_script_size")
             )
-            .from(TRANSACTION)
-            .leftJoin(INVALID_TRANSACTION).on(TRANSACTION.TX_HASH.eq(INVALID_TRANSACTION.TX_HASH))
+            .from(TRANSACTION);
+
+    // Conditionally add INVALID_TRANSACTION join only when isSuccess is not null
+    if (isSuccess != null) {
+      baseQueryFrom = baseQueryFrom.leftJoin(INVALID_TRANSACTION).on(TRANSACTION.TX_HASH.eq(INVALID_TRANSACTION.TX_HASH));
+    }
+
+    var baseQuery = baseQueryFrom
             .leftJoin(BLOCK).on(TRANSACTION.BLOCK_HASH.eq(BLOCK.HASH))
             .leftJoin(TRANSACTION_SIZE).on(TRANSACTION.TX_HASH.eq(TRANSACTION_SIZE.TX_HASH))
             .where(TRANSACTION.TX_HASH.in(
-                    dsl.selectDistinct(TRANSACTION.TX_HASH)
-                            .from(TRANSACTION)
-                            .leftJoin(ADDRESS_UTXO).on(TRANSACTION.TX_HASH.eq(ADDRESS_UTXO.TX_HASH))
-                            .leftJoin(INVALID_TRANSACTION).on(TRANSACTION.TX_HASH.eq(INVALID_TRANSACTION.TX_HASH))
-                            .leftJoin(BLOCK).on(TRANSACTION.BLOCK_HASH.eq(BLOCK.HASH))
-                            .where(conditions)
+                    buildOrSubquery(conditions, isSuccess)
             ))
             .orderBy(TRANSACTION.SLOT.desc());
 
-    // Count query for pagination
-    var countQuery = dsl.selectCount()
-            .from(TRANSACTION)
-            .leftJoin(INVALID_TRANSACTION).on(TRANSACTION.TX_HASH.eq(INVALID_TRANSACTION.TX_HASH))
+    // Build count query with conditional INVALID_TRANSACTION join
+    var countQueryFrom = dsl.selectCount()
+            .from(TRANSACTION);
+
+    // Conditionally add INVALID_TRANSACTION join only when isSuccess is not null
+    if (isSuccess != null) {
+      countQueryFrom = countQueryFrom.leftJoin(INVALID_TRANSACTION).on(TRANSACTION.TX_HASH.eq(INVALID_TRANSACTION.TX_HASH));
+    }
+
+    var countQuery = countQueryFrom
             .leftJoin(BLOCK).on(TRANSACTION.BLOCK_HASH.eq(BLOCK.HASH))
             .where(TRANSACTION.TX_HASH.in(
-                    dsl.selectDistinct(TRANSACTION.TX_HASH)
-                            .from(TRANSACTION)
-                            .leftJoin(ADDRESS_UTXO).on(TRANSACTION.TX_HASH.eq(ADDRESS_UTXO.TX_HASH))
-                            .leftJoin(INVALID_TRANSACTION).on(TRANSACTION.TX_HASH.eq(INVALID_TRANSACTION.TX_HASH))
-                            .leftJoin(BLOCK).on(TRANSACTION.BLOCK_HASH.eq(BLOCK.HASH))
-                            .where(conditions)
+                    buildOrSubquery(conditions, isSuccess)
             ));
 
     Integer totalElements = countQuery.fetchOne(0, Integer.class);
@@ -208,6 +217,8 @@ public class TxRepositoryCustomImpl implements TxRepository {
       condition = condition.and(BLOCK.NUMBER.eq(blockNumber));
     }
 
+    // Only add isSuccess condition if it's not null
+    // The INVALID_TRANSACTION join is conditionally added in the calling methods
     if (isSuccess != null) {
       Condition successCondition = isSuccess
               ? INVALID_TRANSACTION.TX_HASH.isNull()
@@ -255,6 +266,7 @@ public class TxRepositoryCustomImpl implements TxRepository {
     }
 
     // isSuccess should be AND condition even in OR mode
+    // The INVALID_TRANSACTION join is conditionally added in the calling methods
     if (isSuccess != null) {
       Condition successCondition = isSuccess
               ? INVALID_TRANSACTION.TX_HASH.isNull()
@@ -268,6 +280,41 @@ public class TxRepositoryCustomImpl implements TxRepository {
     }
 
     return orCondition;
+  }
+
+  /**
+   * Builds a subquery for AND search with conditional INVALID_TRANSACTION join
+   */
+  private SelectConditionStep<Record1<String>> buildSubquery(Condition conditions, @Nullable Boolean isSuccess) {
+    var subqueryFrom = dsl.selectDistinct(TRANSACTION.TX_HASH)
+            .from(TRANSACTION);
+
+    // Conditionally add INVALID_TRANSACTION join only when isSuccess is not null
+    if (isSuccess != null) {
+      subqueryFrom = subqueryFrom.leftJoin(INVALID_TRANSACTION).on(TRANSACTION.TX_HASH.eq(INVALID_TRANSACTION.TX_HASH));
+    }
+
+    return subqueryFrom
+            .leftJoin(BLOCK).on(TRANSACTION.BLOCK_HASH.eq(BLOCK.HASH))
+            .where(conditions);
+  }
+
+  /**
+   * Builds a subquery for OR search with conditional INVALID_TRANSACTION join
+   */
+  private SelectConditionStep<Record1<String>> buildOrSubquery(Condition conditions, @Nullable Boolean isSuccess) {
+    var subqueryFrom = dsl.selectDistinct(TRANSACTION.TX_HASH)
+            .from(TRANSACTION)
+            .leftJoin(ADDRESS_UTXO).on(TRANSACTION.TX_HASH.eq(ADDRESS_UTXO.TX_HASH));
+
+    // Conditionally add INVALID_TRANSACTION join only when isSuccess is not null
+    if (isSuccess != null) {
+      subqueryFrom = subqueryFrom.leftJoin(INVALID_TRANSACTION).on(TRANSACTION.TX_HASH.eq(INVALID_TRANSACTION.TX_HASH));
+    }
+
+    return subqueryFrom
+            .leftJoin(BLOCK).on(TRANSACTION.BLOCK_HASH.eq(BLOCK.HASH))
+            .where(conditions);
   }
 
   private Condition buildCurrencyCondition(Currency currency) {
@@ -347,11 +394,11 @@ public class TxRepositoryCustomImpl implements TxRepository {
 
   private TxnEntity mapRecordToTxnEntity(Record record) {
     String txHash = record.get(TRANSACTION.TX_HASH);
-    String blockHashValue = record.get(TRANSACTION.BLOCK_HASH);
+    //String blockHashValue = record.get(TRANSACTION.BLOCK_HASH);
     JSONB inputs = record.get(TRANSACTION.INPUTS);
     JSONB outputs = record.get(TRANSACTION.OUTPUTS);
-    Long fee = record.get(TRANSACTION.FEE);
-    Long slot = record.get(TRANSACTION.SLOT);
+    BigInteger fee = Optional.ofNullable(record.get(TRANSACTION.FEE)).map(BigInteger::valueOf).orElse(null);
+    //Long slot = record.get(TRANSACTION.SLOT);
 
     // Create block entity
     BlockEntity blockEntity = null;
@@ -364,16 +411,13 @@ public class TxRepositoryCustomImpl implements TxRepository {
               .build();
     }
 
-    List<UtxoKey> inputKeys = readUtxoKeys(inputs, txHash);
-    List<UtxoKey> outputKeys = readUtxoKeys(outputs, txHash);
-
     return TxnEntity.builder()
             .txHash(txHash)
             .block(blockEntity)
             .sizeEntity(getTransactionSizeEntity(record, txHash, blockEntity))
-            .inputKeys(inputKeys)
-            .outputKeys(outputKeys)
-            .fee(fee != null ? BigInteger.valueOf(fee) : null)
+            .inputKeys(readUtxoKeys(inputs, txHash))
+            .outputKeys(readUtxoKeys(outputs, txHash))
+            .fee(fee)
             .build();
   }
 

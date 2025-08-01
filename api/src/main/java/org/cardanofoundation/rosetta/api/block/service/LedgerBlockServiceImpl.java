@@ -268,6 +268,8 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
   void populateTransaction(BlockTx transaction,
                            TransactionInfo fetched,
                            Map<UtxoKey, AddressUtxoEntity> utxoMap) {
+    // TODO move this to make this call in parallel with utxo fetch
+
     boolean invalid = invalidTransactionRepository.findById(transaction.getHash()).isPresent();
     transaction.setInvalid(invalid);
 
