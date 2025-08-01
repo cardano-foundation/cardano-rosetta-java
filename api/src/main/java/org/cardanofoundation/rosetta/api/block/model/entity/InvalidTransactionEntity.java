@@ -17,6 +17,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @Table(name = "invalid_transaction")
 public class InvalidTransactionEntity {
+
     @Id
     @Column(name = "tx_hash")
     private String txHash;
@@ -26,4 +27,5 @@ public class InvalidTransactionEntity {
 
     @Column(name = "block_hash")
     private String blockHash;
+
 }

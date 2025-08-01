@@ -73,6 +73,8 @@ docker exec rosetta tail -f /logs/indexer.log
 - Generated code located in `/target/generated-sources/openapi/`
 - **NEVER** manually modify controller classes - edit `api.yaml` instead
 - Controller implementations in `api/{domain}/controller/` implement generated interfaces
+- Always use @Nullable annotation in case of optional fields for function methods parameter inputs and outputs, records, DTOs, and entities
+- Avoid if { return } else {} , if we already have a return statement, we can just return the value, no need for else block
 
 ### Database Architecture
 - **Hibernate JPA** for standard ORM operations

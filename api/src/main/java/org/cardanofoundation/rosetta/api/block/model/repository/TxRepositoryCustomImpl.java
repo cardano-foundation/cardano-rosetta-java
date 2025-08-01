@@ -8,6 +8,7 @@ import org.cardanofoundation.rosetta.api.block.model.entity.BlockEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.TransactionSizeEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.TxnEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.UtxoKey;
+import org.cardanofoundation.rosetta.api.block.model.repository.util.TxHashTempTableManager;
 import org.cardanofoundation.rosetta.api.search.model.Currency;
 import org.jooq.*;
 import org.jooq.Record;
@@ -18,6 +19,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
 import java.math.BigInteger;
@@ -36,6 +38,11 @@ public class TxRepositoryCustomImpl implements TxRepository {
   private final DSLContext dsl;
   private final ObjectMapper objectMapper;
   private final Environment environment;
+  private final TxHashTempTableManager tempTableManager;
+  
+  // Threshold for using temporary tables instead of IN clauses
+  // Above this threshold, we use temporary tables to avoid PostgreSQL parameter limits
+  private static final int TEMP_TABLE_THRESHOLD = 10000;
 
   @Override
   public List<TxnEntity> findTransactionsByBlockHash(String blockHash) {
@@ -60,6 +67,7 @@ public class TxRepositoryCustomImpl implements TxRepository {
   }
 
   @Override
+  @Transactional  // Ensure read-write transaction for potential temporary table creation
   public Page<TxnEntity> searchTxnEntitiesAND(@Nullable Set<String> txHashes,
                                               @Nullable String blockHash,
                                               @Nullable Long blockNumber,
@@ -67,6 +75,11 @@ public class TxRepositoryCustomImpl implements TxRepository {
                                               @Nullable Boolean isSuccess,
                                               @Nullable Currency currency,
                                               Pageable pageable) {
+    
+    // Use temporary table approach for large hash sets
+    if (txHashes != null && txHashes.size() > TEMP_TABLE_THRESHOLD) {
+      return searchTxnEntitiesANDWithTempTable(txHashes, blockHash, blockNumber, maxBlock, isSuccess, currency, pageable);
+    }
 
     // Build the inner subquery conditions
     Condition conditions = buildAndConditions(txHashes, blockHash, blockNumber, maxBlock, isSuccess, currency);
@@ -127,6 +140,7 @@ public class TxRepositoryCustomImpl implements TxRepository {
   }
 
   @Override
+  @Transactional  // Ensure read-write transaction for potential temporary table creation
   public Page<TxnEntity> searchTxnEntitiesOR(@Nullable Set<String> txHashes,
                                              @Nullable String blockHash,
                                              @Nullable Long blockNumber,
@@ -134,9 +148,14 @@ public class TxRepositoryCustomImpl implements TxRepository {
                                              @Nullable Boolean isSuccess,
                                              @Nullable Currency currency,
                                              Pageable pageable) {
+    
+    // Use temporary table approach for large hash sets
+    if (txHashes != null && txHashes.size() > TEMP_TABLE_THRESHOLD) {
+      return searchTxnEntitiesORWithTempTable(txHashes, blockHash, blockNumber, maxBlock, isSuccess, currency, pageable);
+    }
 
-    // Build the inner subquery conditions with OR logic
-    Condition conditions = buildOrConditions(txHashes, blockHash, blockNumber, maxBlock, isSuccess, currency);
+    // Build the inner subquery orConditions with OR logic
+    Condition orConditions = buildOrConditions(txHashes, blockHash, blockNumber, maxBlock, isSuccess, currency);
 
     // Build main query with conditional INVALID_TRANSACTION join
     var baseQueryFrom = dsl.select(
@@ -163,7 +182,7 @@ public class TxRepositoryCustomImpl implements TxRepository {
             .leftJoin(BLOCK).on(TRANSACTION.BLOCK_HASH.eq(BLOCK.HASH))
             .leftJoin(TRANSACTION_SIZE).on(TRANSACTION.TX_HASH.eq(TRANSACTION_SIZE.TX_HASH))
             .where(TRANSACTION.TX_HASH.in(
-                    buildOrSubquery(conditions, isSuccess)
+                    buildOrSubquery(orConditions, isSuccess)
             ))
             .orderBy(TRANSACTION.SLOT.desc());
 
@@ -179,7 +198,7 @@ public class TxRepositoryCustomImpl implements TxRepository {
     var countQuery = countQueryFrom
             .leftJoin(BLOCK).on(TRANSACTION.BLOCK_HASH.eq(BLOCK.HASH))
             .where(TRANSACTION.TX_HASH.in(
-                    buildOrSubquery(conditions, isSuccess)
+                    buildOrSubquery(orConditions, isSuccess)
             ));
 
     Integer totalElements = countQuery.fetchOne(0, Integer.class);
@@ -455,6 +474,249 @@ public class TxRepositoryCustomImpl implements TxRepository {
     }
 
     return Collections.emptyList();
+  }
+
+  /**
+   * AND search using temporary table for large transaction hash sets.
+   * This method is automatically used when txHashes size exceeds TEMP_TABLE_THRESHOLD.
+   * 
+   * IMPORTANT: This method must be called within an active transaction context
+   * to ensure temporary table creation and usage happen in the same transaction.
+   * NOTE: Cannot use readOnly=true because PostgreSQL doesn't allow CREATE TEMPORARY TABLE in read-only transactions.
+   */
+  @Transactional
+  private Page<TxnEntity> searchTxnEntitiesANDWithTempTable(@Nullable Set<String> txHashes,
+                                                            @Nullable String blockHash,
+                                                            @Nullable Long blockNumber,
+                                                            @Nullable Long maxBlock,
+                                                            @Nullable Boolean isSuccess,
+                                                            @Nullable Currency currency,
+                                                            Pageable pageable) {
+    if (txHashes == null || txHashes.isEmpty()) {
+      // Fall back to normal method for empty hash sets
+      return searchTxnEntitiesAND(null, blockHash, blockNumber, maxBlock, isSuccess, currency, pageable);
+    }
+
+    log.debug("Using temporary table approach for AND search with {} transaction hashes", txHashes.size());
+
+    String tempTableName = null;
+    try {
+      // Create and populate temporary table within the same transaction
+      tempTableName = tempTableManager.createAndPopulateTempTable(txHashes);
+      Table<?> tempTable = tempTableManager.getTempTable(tempTableName);
+      var tempTxHashField = tempTableManager.getTxHashField(tempTable);
+
+      // Build conditions without txHashes (since we'll use JOIN instead)
+      Condition conditions = buildAndConditions(null, blockHash, blockNumber, maxBlock, isSuccess, currency);
+
+      // Build main query with temporary table JOIN
+      var baseQueryFrom = dsl.select(
+                      TRANSACTION.TX_HASH,
+                      TRANSACTION.BLOCK_HASH,
+                      TRANSACTION.INPUTS,
+                      TRANSACTION.OUTPUTS,
+                      TRANSACTION.FEE,
+                      TRANSACTION.SLOT,
+                      BLOCK.HASH.as("joined_block_hash"),
+                      BLOCK.NUMBER.as("joined_block_number"),
+                      BLOCK.SLOT.as("joined_block_slot"),
+                      TRANSACTION_SIZE.SIZE.as("joined_tx_size"),
+                      TRANSACTION_SIZE.SCRIPT_SIZE.as("joined_tx_script_size")
+              )
+              .from(TRANSACTION)
+              .join(tempTable).on(TRANSACTION.TX_HASH.eq(tempTxHashField));
+
+      // Conditionally add INVALID_TRANSACTION join
+      if (isSuccess != null) {
+        baseQueryFrom = baseQueryFrom.leftJoin(INVALID_TRANSACTION).on(TRANSACTION.TX_HASH.eq(INVALID_TRANSACTION.TX_HASH));
+      }
+
+      var baseQuery = baseQueryFrom
+              .leftJoin(BLOCK).on(TRANSACTION.BLOCK_HASH.eq(BLOCK.HASH))
+              .leftJoin(TRANSACTION_SIZE).on(TRANSACTION.TX_HASH.eq(TRANSACTION_SIZE.TX_HASH))
+              .where(conditions)
+              .orderBy(TRANSACTION.SLOT.desc());
+
+      // Build count query with temporary table JOIN
+      var countQueryFrom = dsl.selectCount()
+              .from(TRANSACTION)
+              .join(tempTable).on(TRANSACTION.TX_HASH.eq(tempTxHashField));
+
+      if (isSuccess != null) {
+        countQueryFrom = countQueryFrom.leftJoin(INVALID_TRANSACTION).on(TRANSACTION.TX_HASH.eq(INVALID_TRANSACTION.TX_HASH));
+      }
+
+      var countQuery = countQueryFrom
+              .leftJoin(BLOCK).on(TRANSACTION.BLOCK_HASH.eq(BLOCK.HASH))
+              .where(conditions);
+
+      Integer totalElements = countQuery.fetchOne(0, Integer.class);
+
+      // Apply pagination and fetch results
+      List<TxnEntity> content = baseQuery
+              .limit(pageable.getPageSize())
+              .offset(pageable.getOffset())
+              .fetch(this::mapRecordToTxnEntity);
+
+      return new PageImpl<>(content, pageable, totalElements);
+      
+    } finally {
+      // Clean up temporary table for PostgreSQL (H2 tables are auto-dropped)
+      if (tempTableName != null) {
+        try {
+          tempTableManager.dropTempTableIfExists(tempTableName);
+        } catch (Exception e) {
+          log.warn("Failed to clean up temporary table {}: {}", tempTableName, e.getMessage());
+        }
+      }
+    }
+  }
+
+  /**
+   * OR search using temporary table for large transaction hash sets.
+   * This method is automatically used when txHashes size exceeds TEMP_TABLE_THRESHOLD.
+   * 
+   * IMPORTANT: This method must be called within an active transaction context
+   * to ensure temporary table creation and usage happen in the same transaction.
+   * NOTE: Cannot use readOnly=true because PostgreSQL doesn't allow CREATE TEMPORARY TABLE in read-only transactions.
+   */
+  @Transactional
+  private Page<TxnEntity> searchTxnEntitiesORWithTempTable(@Nullable Set<String> txHashes,
+                                                           @Nullable String blockHash,
+                                                           @Nullable Long blockNumber,
+                                                           @Nullable Long maxBlock,
+                                                           @Nullable Boolean isSuccess,
+                                                           @Nullable Currency currency,
+                                                           Pageable pageable) {
+    if (txHashes == null || txHashes.isEmpty()) {
+      // Fall back to normal method for empty hash sets
+      return searchTxnEntitiesOR(null, blockHash, blockNumber, maxBlock, isSuccess, currency, pageable);
+    }
+
+    log.debug("Using temporary table approach for OR search with {} transaction hashes", txHashes.size());
+
+    String tempTableName = null;
+    try {
+      // Create and populate temporary table within the same transaction
+      tempTableName = tempTableManager.createAndPopulateTempTable(txHashes);
+      Table<?> tempTable = tempTableManager.getTempTable(tempTableName);
+      var tempTxHashField = tempTableManager.getTxHashField(tempTable);
+
+      // Build base query from temp table
+    var tempTableQueryFrom = dsl.select(
+                    TRANSACTION.TX_HASH,
+                    TRANSACTION.BLOCK_HASH,
+                    TRANSACTION.INPUTS,
+                    TRANSACTION.OUTPUTS,
+                    TRANSACTION.FEE,
+                    TRANSACTION.SLOT,
+                    BLOCK.HASH.as("joined_block_hash"),
+                    BLOCK.NUMBER.as("joined_block_number"),
+                    BLOCK.SLOT.as("joined_block_slot"),
+                    TRANSACTION_SIZE.SIZE.as("joined_tx_size"),
+                    TRANSACTION_SIZE.SCRIPT_SIZE.as("joined_tx_script_size")
+            )
+            .from(TRANSACTION)
+            .join(tempTable).on(TRANSACTION.TX_HASH.eq(tempTxHashField))
+            .leftJoin(ADDRESS_UTXO).on(TRANSACTION.TX_HASH.eq(ADDRESS_UTXO.TX_HASH));
+
+    if (isSuccess != null) {
+      tempTableQueryFrom = tempTableQueryFrom.leftJoin(INVALID_TRANSACTION).on(TRANSACTION.TX_HASH.eq(INVALID_TRANSACTION.TX_HASH));
+    }
+
+    // Apply only isSuccess and currency conditions (not other OR conditions)
+    Condition andConditions = DSL.trueCondition();
+    if (isSuccess != null) {
+      Condition successCondition = isSuccess
+              ? INVALID_TRANSACTION.TX_HASH.isNull()
+              : INVALID_TRANSACTION.TX_HASH.isNotNull();
+      andConditions = andConditions.and(successCondition);
+    }
+    if (currency != null) {
+      andConditions = andConditions.and(buildCurrencyCondition(currency));
+    }
+
+    var tempTableQuery = tempTableQueryFrom
+            .leftJoin(BLOCK).on(TRANSACTION.BLOCK_HASH.eq(BLOCK.HASH))
+            .leftJoin(TRANSACTION_SIZE).on(TRANSACTION.TX_HASH.eq(TRANSACTION_SIZE.TX_HASH))
+            .where(andConditions);
+
+    // If we have other OR conditions, create additional queries and UNION them
+    if (blockHash != null || blockNumber != null || maxBlock != null) {
+      Condition otherOrConditions = buildOrConditions(null, blockHash, blockNumber, maxBlock, isSuccess, currency);
+      
+      var otherQueryFrom = dsl.select(
+                      TRANSACTION.TX_HASH,
+                      TRANSACTION.BLOCK_HASH,
+                      TRANSACTION.INPUTS,
+                      TRANSACTION.OUTPUTS,
+                      TRANSACTION.FEE,
+                      TRANSACTION.SLOT,
+                      BLOCK.HASH.as("joined_block_hash"),
+                      BLOCK.NUMBER.as("joined_block_number"),
+                      BLOCK.SLOT.as("joined_block_slot"),
+                      TRANSACTION_SIZE.SIZE.as("joined_tx_size"),
+                      TRANSACTION_SIZE.SCRIPT_SIZE.as("joined_tx_script_size")
+              )
+              .from(TRANSACTION)
+              .leftJoin(ADDRESS_UTXO).on(TRANSACTION.TX_HASH.eq(ADDRESS_UTXO.TX_HASH));
+
+      if (isSuccess != null) {
+        otherQueryFrom = otherQueryFrom.leftJoin(INVALID_TRANSACTION).on(TRANSACTION.TX_HASH.eq(INVALID_TRANSACTION.TX_HASH));
+      }
+
+      var otherQuery = otherQueryFrom
+              .leftJoin(BLOCK).on(TRANSACTION.BLOCK_HASH.eq(BLOCK.HASH))
+              .leftJoin(TRANSACTION_SIZE).on(TRANSACTION.TX_HASH.eq(TRANSACTION_SIZE.TX_HASH))
+              .where(otherOrConditions);
+
+      // Combine queries with UNION
+      var unionQuery = tempTableQuery.union(otherQuery)
+              .orderBy(DSL.field("slot").desc());
+
+      // For count, we need to count distinct tx_hashes from the union
+      var countQuery = dsl.selectCount()
+              .from(DSL.table("({0}) as union_result", unionQuery));
+
+      Integer totalElements = countQuery.fetchOne(0, Integer.class);
+
+      // Apply pagination
+      List<TxnEntity> content = unionQuery
+              .limit(pageable.getPageSize())
+              .offset((int) pageable.getOffset())
+              .fetch(this::mapRecordToTxnEntity);
+
+      return new PageImpl<>(content, pageable, totalElements);
+    } else {
+      // Only temp table results needed
+      var baseQuery = tempTableQuery.orderBy(TRANSACTION.SLOT.desc());
+
+      var countQuery = dsl.selectCount()
+              .from(TRANSACTION)
+              .join(tempTable).on(TRANSACTION.TX_HASH.eq(tempTxHashField))
+              .leftJoin(BLOCK).on(TRANSACTION.BLOCK_HASH.eq(BLOCK.HASH))
+              .where(andConditions);
+
+      Integer totalElements = countQuery.fetchOne(0, Integer.class);
+
+      List<TxnEntity> content = baseQuery
+              .limit(pageable.getPageSize())
+              .offset((int) pageable.getOffset())
+              .fetch(this::mapRecordToTxnEntity);
+
+      return new PageImpl<>(content, pageable, totalElements);
+    }
+    
+    } finally {
+      // Clean up temporary table for PostgreSQL (H2 tables are auto-dropped)
+      if (tempTableName != null) {
+        try {
+          tempTableManager.dropTempTableIfExists(tempTableName);
+        } catch (Exception e) {
+          log.warn("Failed to clean up temporary table {}: {}", tempTableName, e.getMessage());
+        }
+      }
+    }
   }
 
 }

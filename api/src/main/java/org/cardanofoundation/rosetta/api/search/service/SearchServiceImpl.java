@@ -28,6 +28,7 @@ public class SearchServiceImpl implements SearchService {
     private final LedgerSearchService ledgerSearchService;
 
     @Override
+    @Transactional  // Override class-level readOnly=true for methods that may use temporary tables
     public Page<BlockTransaction> searchTransaction(
             SearchTransactionsRequest searchTransactionsRequest,
             Long offset,
