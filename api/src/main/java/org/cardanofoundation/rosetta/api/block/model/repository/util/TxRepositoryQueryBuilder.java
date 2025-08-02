@@ -11,6 +11,9 @@ import org.cardanofoundation.rosetta.api.block.model.entity.UtxoKey;
 import org.cardanofoundation.rosetta.api.search.model.Currency;
 import org.jooq.*;
 import org.jooq.impl.DSL;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Nullable;
@@ -222,5 +225,64 @@ public class TxRepositoryQueryBuilder {
         }
 
         return Collections.emptyList();
+    }
+
+    /**
+     * Builds a query with count included using window functions.
+     * This eliminates the need for a separate count query.
+     */
+    public SelectJoinStep<Record12<String, String, JSONB, JSONB, Long, Long, String, Long, Long, Integer, Integer, Integer>> buildTransactionSelectQueryWithCount(DSLContext dsl) {
+        return dsl.select(
+                TRANSACTION.TX_HASH,
+                TRANSACTION.BLOCK_HASH,
+                TRANSACTION.INPUTS,
+                TRANSACTION.OUTPUTS,
+                TRANSACTION.FEE,
+                TRANSACTION.SLOT,
+                BLOCK.HASH.as("joined_block_hash"),
+                BLOCK.NUMBER.as("joined_block_number"),
+                BLOCK.SLOT.as("joined_block_slot"),
+                TRANSACTION_SIZE.SIZE.as("joined_tx_size"),
+                TRANSACTION_SIZE.SCRIPT_SIZE.as("joined_tx_script_size"),
+                DSL.count().over().as("total_count")  // Window function for total count
+        ).from(TRANSACTION);
+    }
+
+    /**
+     * Creates a Page from query results that include count via window function.
+     * Extracts the total count from the first record and maps all records to entities.
+     */
+    public Page<TxnEntity> createPageFromResultsWithCount(List<? extends org.jooq.Record> results, Pageable pageable) {
+        if (results.isEmpty()) {
+            return new PageImpl<>(Collections.emptyList(), pageable, 0);
+        }
+
+        // Extract total count from first record (same for all records due to window function)
+        Long totalCount = results.get(0).get("total_count", Integer.class).longValue();
+
+        // Map all records to entities
+        List<TxnEntity> entities = results.stream()
+                .map(this::mapRecordToTxnEntity)
+                .toList();
+
+        return new PageImpl<>(entities, pageable, totalCount);
+    }
+
+    /**
+     * Executes a query with pagination and count in a single database call.
+     */
+    public Page<TxnEntity> executeQueryWithCount(SelectJoinStep<?> baseQuery, 
+                                                Condition conditions, 
+                                                Pageable pageable) {
+        var queryWithCount = baseQuery
+                .leftJoin(BLOCK).on(TRANSACTION.BLOCK_HASH.eq(BLOCK.HASH))
+                .leftJoin(TRANSACTION_SIZE).on(TRANSACTION.TX_HASH.eq(TRANSACTION_SIZE.TX_HASH))
+                .where(conditions)
+                .orderBy(TRANSACTION.SLOT.desc())
+                .limit(pageable.getPageSize())
+                .offset(pageable.getOffset());
+
+        List<? extends org.jooq.Record> results = queryWithCount.fetch();
+        return createPageFromResultsWithCount(results, pageable);
     }
 }
