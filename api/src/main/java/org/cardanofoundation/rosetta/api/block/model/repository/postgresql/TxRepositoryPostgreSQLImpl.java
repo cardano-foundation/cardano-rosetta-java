@@ -6,13 +6,13 @@ import org.cardanofoundation.rosetta.api.block.model.repository.TxRepository;
 import org.cardanofoundation.rosetta.api.block.model.repository.TxRepositoryCustomBase;
 import org.cardanofoundation.rosetta.api.block.model.repository.util.TxRepositoryQueryBuilder;
 import org.cardanofoundation.rosetta.api.search.model.Currency;
+import org.cardanofoundation.rosetta.common.spring.OffsetBasedPageRequest;
 import org.jooq.*;
 import org.jooq.Record;
 import org.jooq.impl.DSL;
 import org.springframework.context.annotation.Profile;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,9 +48,9 @@ public class TxRepositoryPostgreSQLImpl extends TxRepositoryCustomBase implement
                                                                   @Nullable Long maxBlock,
                                                                   @Nullable Boolean isSuccess,
                                                                   @Nullable Currency currency,
-                                                                  Pageable pageable) {
-        if (txHashes == null || txHashes.isEmpty()) {
-            return searchTxnEntitiesAND(null, blockHash, blockNumber, maxBlock, isSuccess, currency, pageable);
+                                                                  OffsetBasedPageRequest offsetBasedPageRequest) {
+        if (txHashes.isEmpty()) {
+            return searchTxnEntitiesAND(txHashes, blockHash, blockNumber, maxBlock, isSuccess, currency, offsetBasedPageRequest);
         }
 
         log.debug("Using PostgreSQL VALUES approach for AND search with {} transaction hashes", txHashes.size());
@@ -74,13 +74,13 @@ public class TxRepositoryPostgreSQLImpl extends TxRepositoryCustomBase implement
                 .leftJoin(TRANSACTION_SIZE).on(TRANSACTION.TX_HASH.eq(TRANSACTION_SIZE.TX_HASH))
                 .where(conditions)
                 .orderBy(TRANSACTION.SLOT.desc())
-                .limit(pageable.getPageSize())
-                .offset(pageable.getOffset());
+                .limit(offsetBasedPageRequest.getLimit())
+                .offset(offsetBasedPageRequest.getOffset());
 
         // Single database call - get both results and count
         List<? extends Record> results = queryWithCount.fetch();
 
-        return queryBuilder.createPageFromResultsWithCount(results, pageable);
+        return queryBuilder.createPageFromResultsWithCount(results, offsetBasedPageRequest);
     }
 
     @Override
@@ -91,9 +91,9 @@ public class TxRepositoryPostgreSQLImpl extends TxRepositoryCustomBase implement
                                                                  @Nullable Long maxBlock,
                                                                  @Nullable Boolean isSuccess,
                                                                  @Nullable Currency currency,
-                                                                 Pageable pageable) {
-        if (txHashes == null || txHashes.isEmpty()) {
-            return searchTxnEntitiesOR(null, blockHash, blockNumber, maxBlock, isSuccess, currency, pageable);
+                                                                 OffsetBasedPageRequest offsetBasedPageRequest) {
+        if (txHashes.isEmpty()) {
+            return searchTxnEntitiesOR(txHashes, blockHash, blockNumber, maxBlock, isSuccess, currency, offsetBasedPageRequest);
         }
 
         log.debug("Using PostgreSQL VALUES approach for OR search with {} transaction hashes", txHashes.size());
@@ -155,23 +155,23 @@ public class TxRepositoryPostgreSQLImpl extends TxRepositoryCustomBase implement
             Integer totalElements = countQuery.fetchOne(0, Integer.class);
 
             List<TxnEntity> content = unionQuery
-                    .limit(pageable.getPageSize())
-                    .offset((int) pageable.getOffset())
+                    .limit(offsetBasedPageRequest.getLimit())
+                    .offset((int) offsetBasedPageRequest.getOffset())
                     .fetch(queryBuilder::mapRecordToTxnEntity);
 
-            return new PageImpl<>(content, pageable, totalElements);
+            return new PageImpl<>(content, offsetBasedPageRequest, totalElements);
         }
 
         // Only hash query needed - use single query with count
         var queryWithCount = hashQuery
                 .orderBy(TRANSACTION.SLOT.desc())
-                .limit(pageable.getPageSize())
-                .offset((int) pageable.getOffset());
+                .limit(offsetBasedPageRequest.getLimit())
+                .offset(offsetBasedPageRequest.getOffset());
 
         // Single database call - get both results and count
         List<? extends org.jooq.Record> results = queryWithCount.fetch();
 
-        return queryBuilder.createPageFromResultsWithCount(results, pageable);
+        return queryBuilder.createPageFromResultsWithCount(results, offsetBasedPageRequest);
     }
 
     /**
@@ -194,7 +194,6 @@ public class TxRepositoryPostgreSQLImpl extends TxRepositoryCustomBase implement
         // Create VALUES table with alias
         return DSL.values(rows).as("hash_values", "hash");
     }
-
 
     private static class PostgreSQLCurrencyConditionBuilder implements TxRepositoryQueryBuilder.CurrencyConditionBuilder {
 
@@ -232,4 +231,5 @@ public class TxRepositoryPostgreSQLImpl extends TxRepositoryCustomBase implement
             return DSL.falseCondition();
         }
     }
+
 }

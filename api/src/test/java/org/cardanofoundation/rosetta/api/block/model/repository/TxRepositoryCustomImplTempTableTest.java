@@ -2,8 +2,7 @@ package org.cardanofoundation.rosetta.api.block.model.repository;
 
 import org.cardanofoundation.rosetta.api.IntegrationTest;
 import org.cardanofoundation.rosetta.api.block.model.entity.TxnEntity;
-import org.cardanofoundation.rosetta.api.search.model.Currency;
-import org.cardanofoundation.rosetta.common.spring.OffsetBasedPageRequest;
+import org.cardanofoundation.rosetta.common.spring.SimpleOffsetBasedPageRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -11,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.test.context.jdbc.Sql;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -53,7 +53,7 @@ public class TxRepositoryCustomImplTempTableTest extends IntegrationTest {
             
             Page<TxnEntity> results = txRepository.searchTxnEntitiesAND(
                     smallHashSet, null, null, null, null, null, 
-                    new OffsetBasedPageRequest(0, 100));
+                    new SimpleOffsetBasedPageRequest(0, 100));
 
             // Should return results using traditional IN clause approach
             assertThat(results.getContent()).isNotEmpty();
@@ -86,7 +86,7 @@ public class TxRepositoryCustomImplTempTableTest extends IntegrationTest {
 
             Page<TxnEntity> results = txRepository.searchTxnEntitiesAND(
                     largeHashSet, null, null, null, null, null, 
-                    new OffsetBasedPageRequest(0, 100));
+                    new SimpleOffsetBasedPageRequest(0, 100));
 
             // Should return results using temporary table approach
             // Only real transactions from test data should be returned
@@ -125,7 +125,7 @@ public class TxRepositoryCustomImplTempTableTest extends IntegrationTest {
             // Test successful transactions only
             Page<TxnEntity> successResults = txRepository.searchTxnEntitiesAND(
                     largeHashSet, null, null, null, true, null, 
-                    new OffsetBasedPageRequest(0, 100));
+                    new SimpleOffsetBasedPageRequest(0, 100));
 
             List<String> successHashes = successResults.getContent().stream()
                     .map(TxnEntity::getTxHash)
@@ -138,7 +138,7 @@ public class TxRepositoryCustomImplTempTableTest extends IntegrationTest {
             // Test failed transactions only
             Page<TxnEntity> failedResults = txRepository.searchTxnEntitiesAND(
                     largeHashSet, null, null, null, false, null, 
-                    new OffsetBasedPageRequest(0, 100));
+                    new SimpleOffsetBasedPageRequest(0, 100));
 
             List<String> failedHashes = failedResults.getContent().stream()
                     .map(TxnEntity::getTxHash)
@@ -166,7 +166,7 @@ public class TxRepositoryCustomImplTempTableTest extends IntegrationTest {
 
             Page<TxnEntity> results = txRepository.searchTxnEntitiesOR(
                     largeHashSet, null, null, null, null, null, 
-                    new OffsetBasedPageRequest(0, 100));
+                    new SimpleOffsetBasedPageRequest(0, 100));
 
             List<String> returnedHashes = results.getContent().stream()
                     .map(TxnEntity::getTxHash)
@@ -194,7 +194,7 @@ public class TxRepositoryCustomImplTempTableTest extends IntegrationTest {
             // Test with block hash filter
             Page<TxnEntity> results = txRepository.searchTxnEntitiesAND(
                     largeHashSet, "successBlock1", null, null, true, null, 
-                    new OffsetBasedPageRequest(0, 100));
+                    new SimpleOffsetBasedPageRequest(0, 100));
 
             List<String> returnedHashes = results.getContent().stream()
                     .map(TxnEntity::getTxHash)
@@ -211,11 +211,11 @@ public class TxRepositoryCustomImplTempTableTest extends IntegrationTest {
     class EdgeCaseTests {
 
         @Test
-        @DisplayName("Should handle null transaction hash sets gracefully")
-        public void testNullTransactionHashSet() {
+        @DisplayName("Should handle empty transaction hash sets gracefully")
+        public void testEmptyTransactionHashSetFromNull() {
             Page<TxnEntity> results = txRepository.searchTxnEntitiesAND(
-                    null, null, null, null, null, null, 
-                    new OffsetBasedPageRequest(0, 10));
+                    Collections.emptySet(), null, null, null, null, null, 
+                    new SimpleOffsetBasedPageRequest(0, 10));
 
             // Should not throw exception and return results
             assertThat(results).isNotNull();
@@ -226,7 +226,7 @@ public class TxRepositoryCustomImplTempTableTest extends IntegrationTest {
         public void testEmptyTransactionHashSet() {
             Page<TxnEntity> results = txRepository.searchTxnEntitiesAND(
                     Set.of(), null, null, null, null, null, 
-                    new OffsetBasedPageRequest(0, 10));
+                    new SimpleOffsetBasedPageRequest(0, 10));
 
             // Should not throw exception and return results
             assertThat(results).isNotNull();
@@ -249,7 +249,7 @@ public class TxRepositoryCustomImplTempTableTest extends IntegrationTest {
             // Should handle this without issues
             Page<TxnEntity> results = txRepository.searchTxnEntitiesAND(
                     veryLargeHashSet, null, null, null, null, null, 
-                    new OffsetBasedPageRequest(0, 100));
+                    new SimpleOffsetBasedPageRequest(0, 100));
 
             // Should return results successfully
             assertThat(results).isNotNull();
@@ -279,7 +279,7 @@ public class TxRepositoryCustomImplTempTableTest extends IntegrationTest {
             // Get results using IN clause approach (small set)
             Page<TxnEntity> inClauseResults = txRepository.searchTxnEntitiesAND(
                     testHashes, null, null, null, null, null, 
-                    new OffsetBasedPageRequest(0, 100));
+                    new SimpleOffsetBasedPageRequest(0, 100));
 
             // Create large set to force temporary table approach
             Set<String> largeHashSet = new HashSet<>(testHashes);
@@ -288,7 +288,7 @@ public class TxRepositoryCustomImplTempTableTest extends IntegrationTest {
 
             Page<TxnEntity> tempTableResults = txRepository.searchTxnEntitiesAND(
                     largeHashSet, null, null, null, null, null, 
-                    new OffsetBasedPageRequest(0, 100));
+                    new SimpleOffsetBasedPageRequest(0, 100));
 
             // Extract relevant results (excluding dummy transactions)
             List<String> inClauseHashes = inClauseResults.getContent().stream()

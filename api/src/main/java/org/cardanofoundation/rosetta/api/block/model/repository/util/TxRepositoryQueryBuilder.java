@@ -11,9 +11,9 @@ import org.cardanofoundation.rosetta.api.block.model.entity.UtxoKey;
 import org.cardanofoundation.rosetta.api.search.model.Currency;
 import org.jooq.*;
 import org.jooq.impl.DSL;
+import org.cardanofoundation.rosetta.common.spring.OffsetBasedPageRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Nullable;
@@ -252,7 +252,7 @@ public class TxRepositoryQueryBuilder {
      * Creates a Page from query results that include count via window function.
      * Extracts the total count from the first record and maps all records to entities.
      */
-    public Page<TxnEntity> createPageFromResultsWithCount(List<? extends org.jooq.Record> results, Pageable pageable) {
+    public Page<TxnEntity> createPageFromResultsWithCount(List<? extends org.jooq.Record> results, OffsetBasedPageRequest pageable) {
         if (results.isEmpty()) {
             return new PageImpl<>(Collections.emptyList(), pageable, 0);
         }
@@ -273,7 +273,7 @@ public class TxRepositoryQueryBuilder {
      */
     public Page<TxnEntity> executeQueryWithCount(SelectJoinStep<?> baseQuery, 
                                                 Condition conditions, 
-                                                Pageable pageable) {
+                                                OffsetBasedPageRequest pageable) {
         var queryWithCount = baseQuery
                 .leftJoin(BLOCK).on(TRANSACTION.BLOCK_HASH.eq(BLOCK.HASH))
                 .leftJoin(TRANSACTION_SIZE).on(TRANSACTION.TX_HASH.eq(TRANSACTION_SIZE.TX_HASH))

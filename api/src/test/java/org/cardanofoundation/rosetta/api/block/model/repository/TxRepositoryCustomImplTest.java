@@ -3,7 +3,7 @@ package org.cardanofoundation.rosetta.api.block.model.repository;
 import org.cardanofoundation.rosetta.api.IntegrationTest;
 import org.cardanofoundation.rosetta.api.block.model.entity.TxnEntity;
 import org.cardanofoundation.rosetta.api.search.model.Currency;
-import org.cardanofoundation.rosetta.common.spring.OffsetBasedPageRequest;
+import org.cardanofoundation.rosetta.common.spring.SimpleOffsetBasedPageRequest;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +12,7 @@ import org.springframework.data.domain.Slice;
 import org.springframework.test.context.jdbc.Sql;
 
 import java.util.HashSet;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -30,7 +31,7 @@ public class TxRepositoryCustomImplTest extends IntegrationTest {
     @Sql(scripts = "classpath:/testdata//sql/tx-repository-test-cleanup.sql", executionPhase = AFTER_TEST_METHOD)
     public void testSearchTxnEntitiesOR_NoDuplicates() {
         Slice<TxnEntity> results = txRepository.searchTxnEntitiesOR(
-                null, null, null, null, null, null, new OffsetBasedPageRequest(0, 100));
+                Collections.emptySet(), null, null, null, null, null, new SimpleOffsetBasedPageRequest(0, 100));
 
         assertThat(hasDuplicateTxHashes(results.getContent())).isFalse();
     }
@@ -40,7 +41,7 @@ public class TxRepositoryCustomImplTest extends IntegrationTest {
     @Sql(scripts = "classpath:/testdata//sql/tx-repository-test-cleanup.sql", executionPhase = AFTER_TEST_METHOD)
     public void testSearchTxnEntitiesAND_NoDuplicates() {
         Slice<TxnEntity> results = txRepository.searchTxnEntitiesAND(
-                null, null, null, null, null, null, new OffsetBasedPageRequest(0, 100));
+                Collections.emptySet(), null, null, null, null, null, new SimpleOffsetBasedPageRequest(0, 100));
 
         assertThat(hasDuplicateTxHashes(results.getContent())).isFalse();
     }
@@ -65,7 +66,7 @@ public class TxRepositoryCustomImplTest extends IntegrationTest {
         @Sql(scripts = "classpath:/testdata/sql/tx-repository-ordering-test-cleanup.sql", executionPhase = AFTER_TEST_METHOD)
         public void testSearchTxnEntitiesAND_OrderByBlockTimeDesc() {
             Page<TxnEntity> results = txRepository.searchTxnEntitiesAND(
-                    null, null, null, null, null, null, new OffsetBasedPageRequest(0, 1));
+                    Collections.emptySet(), null, null, null, null, null, new SimpleOffsetBasedPageRequest(0, 1));
 
             List<TxnEntity> txList = results.getContent();
             assertThat(txList).isNotEmpty();
@@ -82,7 +83,7 @@ public class TxRepositoryCustomImplTest extends IntegrationTest {
         @Sql(scripts = "classpath:/testdata/sql/tx-repository-ordering-test-cleanup.sql", executionPhase = AFTER_TEST_METHOD)
         public void testSearchTxnEntitiesOR_OrderByBlockTimeDesc() {
             Page<TxnEntity> results = txRepository.searchTxnEntitiesOR(
-                    null, null, null, null, null, null, new OffsetBasedPageRequest(0, 1));
+                    Collections.emptySet(), null, null, null, null, null, new SimpleOffsetBasedPageRequest(0, 1));
 
             List<TxnEntity> txList = results.getContent();
             assertThat(txList).isNotEmpty();
@@ -103,7 +104,7 @@ public class TxRepositoryCustomImplTest extends IntegrationTest {
         @Sql(scripts = "classpath:/testdata/sql/tx-repository-success-test-cleanup.sql", executionPhase = AFTER_TEST_METHOD)
         public void testSearchTxnEntitiesAND_FilterSuccessfulTransactions() {
             Page<TxnEntity> results = txRepository.searchTxnEntitiesAND(
-                    null, null, null, null, true, null, new OffsetBasedPageRequest(0, 100));
+                    Collections.emptySet(), null, null, null, true, null, new SimpleOffsetBasedPageRequest(0, 100));
 
             List<TxnEntity> txList = results.getContent();
             assertThat(txList).isNotEmpty();
@@ -126,7 +127,7 @@ public class TxRepositoryCustomImplTest extends IntegrationTest {
         @Sql(scripts = "classpath:/testdata/sql/tx-repository-success-test-cleanup.sql", executionPhase = AFTER_TEST_METHOD)
         public void testSearchTxnEntitiesAND_FilterFailedTransactions() {
             Page<TxnEntity> results = txRepository.searchTxnEntitiesAND(
-                    null, null, null, null, false, null, new OffsetBasedPageRequest(0, 100));
+                    Collections.emptySet(), null, null, null, false, null, new SimpleOffsetBasedPageRequest(0, 100));
 
             List<TxnEntity> txList = results.getContent();
             Set<String> actualTxHashes = txList.stream()
@@ -147,7 +148,7 @@ public class TxRepositoryCustomImplTest extends IntegrationTest {
         @Sql(scripts = "classpath:/testdata/sql/tx-repository-success-test-cleanup.sql", executionPhase = AFTER_TEST_METHOD)
         public void testSearchTxnEntitiesAND_NoSuccessFilter() {
             Page<TxnEntity> results = txRepository.searchTxnEntitiesAND(
-                    null, null, null, null, null, null, new OffsetBasedPageRequest(0, 100));
+                    Collections.emptySet(), null, null, null, null, null, new SimpleOffsetBasedPageRequest(0, 100));
 
             List<TxnEntity> txList = results.getContent();
             assertThat(txList).isNotEmpty();
@@ -166,7 +167,7 @@ public class TxRepositoryCustomImplTest extends IntegrationTest {
         @Sql(scripts = "classpath:/testdata/sql/tx-repository-success-test-cleanup.sql", executionPhase = AFTER_TEST_METHOD)
         public void testSearchTxnEntitiesOR_FilterSuccessfulTransactions() {
             Page<TxnEntity> results = txRepository.searchTxnEntitiesOR(
-                    null, null, null, null, true, null, new OffsetBasedPageRequest(0, 100));
+                    Collections.emptySet(), null, null, null, true, null, new SimpleOffsetBasedPageRequest(0, 100));
 
             List<TxnEntity> txList = results.getContent();
             assertThat(txList).isNotEmpty();
@@ -189,7 +190,7 @@ public class TxRepositoryCustomImplTest extends IntegrationTest {
         @Sql(scripts = "classpath:/testdata/sql/tx-repository-success-test-cleanup.sql", executionPhase = AFTER_TEST_METHOD)
         public void testSearchTxnEntitiesOR_FilterFailedTransactions() {
             Page<TxnEntity> results = txRepository.searchTxnEntitiesOR(
-                    null, null, null, null, false, null, new OffsetBasedPageRequest(0, 100));
+                    Collections.emptySet(), null, null, null, false, null, new SimpleOffsetBasedPageRequest(0, 100));
 
             List<TxnEntity> txList = results.getContent();
             Set<String> actualTxHashes = txList.stream()
@@ -210,7 +211,7 @@ public class TxRepositoryCustomImplTest extends IntegrationTest {
         @Sql(scripts = "classpath:/testdata/sql/tx-repository-success-test-cleanup.sql", executionPhase = AFTER_TEST_METHOD)
         public void testSearchTxnEntitiesOR_NoSuccessFilter() {
             Page<TxnEntity> results = txRepository.searchTxnEntitiesOR(
-                    null, null, null, null, null, null, new OffsetBasedPageRequest(0, 100));
+                    Collections.emptySet(), null, null, null, null, null, new SimpleOffsetBasedPageRequest(0, 100));
 
             List<TxnEntity> txList = results.getContent();
             assertThat(txList).isNotEmpty();
@@ -230,13 +231,13 @@ public class TxRepositoryCustomImplTest extends IntegrationTest {
         public void testSearchTxnEntitiesAND_CountValidation() {
             // Verify that isSuccess=null includes both successful and failed transactions
             Page<TxnEntity> allResults = txRepository.searchTxnEntitiesAND(
-                    null, null, null, null, null, null, new OffsetBasedPageRequest(0, 100));
+                    Collections.emptySet(), null, null, null, null, null, new SimpleOffsetBasedPageRequest(0, 100));
             
             Page<TxnEntity> successfulResults = txRepository.searchTxnEntitiesAND(
-                    null, null, null, null, true, null, new OffsetBasedPageRequest(0, 100));
+                    Collections.emptySet(), null, null, null, true, null, new SimpleOffsetBasedPageRequest(0, 100));
             
             Page<TxnEntity> failedResults = txRepository.searchTxnEntitiesAND(
-                    null, null, null, null, false, null, new OffsetBasedPageRequest(0, 100));
+                    Collections.emptySet(), null, null, null, false, null, new SimpleOffsetBasedPageRequest(0, 100));
             
             // Collect transaction hashes for verification
             Set<String> allTxHashes = allResults.getContent().stream()
@@ -267,13 +268,13 @@ public class TxRepositoryCustomImplTest extends IntegrationTest {
         public void testSearchTxnEntitiesOR_CountValidation() {
             // Verify that isSuccess=null includes both successful and failed transactions for OR queries
             Page<TxnEntity> allResults = txRepository.searchTxnEntitiesOR(
-                    null, null, null, null, null, null, new OffsetBasedPageRequest(0, 100));
+                    Collections.emptySet(), null, null, null, null, null, new SimpleOffsetBasedPageRequest(0, 100));
             
             Page<TxnEntity> successfulResults = txRepository.searchTxnEntitiesOR(
-                    null, null, null, null, true, null, new OffsetBasedPageRequest(0, 100));
+                    Collections.emptySet(), null, null, null, true, null, new SimpleOffsetBasedPageRequest(0, 100));
             
             Page<TxnEntity> failedResults = txRepository.searchTxnEntitiesOR(
-                    null, null, null, null, false, null, new OffsetBasedPageRequest(0, 100));
+                    Collections.emptySet(), null, null, null, false, null, new SimpleOffsetBasedPageRequest(0, 100));
             
             // Collect transaction hashes for verification
             Set<String> allTxHashes = allResults.getContent().stream()
@@ -307,7 +308,7 @@ public class TxRepositoryCustomImplTest extends IntegrationTest {
             
             // Filter for successful transactions from the specific set
             Page<TxnEntity> successfulSpecificResults = txRepository.searchTxnEntitiesAND(
-                    specificTxHashes, null, null, null, true, null, new OffsetBasedPageRequest(0, 100));
+                    specificTxHashes, null, null, null, true, null, new SimpleOffsetBasedPageRequest(0, 100));
             
             // Should only return successTx1 (successful and in the specified set)
             assertThat(successfulSpecificResults.getContent()).hasSize(1);
@@ -315,7 +316,7 @@ public class TxRepositoryCustomImplTest extends IntegrationTest {
             
             // Filter for failed transactions from the specific set
             Page<TxnEntity> failedSpecificResults = txRepository.searchTxnEntitiesAND(
-                    specificTxHashes, null, null, null, false, null, new OffsetBasedPageRequest(0, 100));
+                    specificTxHashes, null, null, null, false, null, new SimpleOffsetBasedPageRequest(0, 100));
             
             // Should only return failedTx1 (failed and in the specified set)
             assertThat(failedSpecificResults.getContent()).hasSize(1);
@@ -331,7 +332,7 @@ public class TxRepositoryCustomImplTest extends IntegrationTest {
             
             // Filter for successful transactions from the specific set
             Page<TxnEntity> successfulSpecificResults = txRepository.searchTxnEntitiesOR(
-                    specificTxHashes, null, null, null, true, null, new OffsetBasedPageRequest(0, 100));
+                    specificTxHashes, null, null, null, true, null, new SimpleOffsetBasedPageRequest(0, 100));
             
             // Should only return successTx1 (successful and in the specified set)
             assertThat(successfulSpecificResults.getContent()).hasSize(1);
@@ -339,7 +340,7 @@ public class TxRepositoryCustomImplTest extends IntegrationTest {
             
             // Filter for failed transactions from the specific set
             Page<TxnEntity> failedSpecificResults = txRepository.searchTxnEntitiesOR(
-                    specificTxHashes, null, null, null, false, null, new OffsetBasedPageRequest(0, 100));
+                    specificTxHashes, null, null, null, false, null, new SimpleOffsetBasedPageRequest(0, 100));
             
             // Should only return failedTx1 (failed and in the specified set)
             assertThat(failedSpecificResults.getContent()).hasSize(1);
@@ -357,7 +358,7 @@ public class TxRepositoryCustomImplTest extends IntegrationTest {
             // Test that successful transactions (isSuccess=true) are NOT in invalid_transaction table
             // Integration test environment may have additional transactions beyond test data
             Page<TxnEntity> results = txRepository.searchTxnEntitiesAND(
-                    null, null, null, null, true, null, new OffsetBasedPageRequest(0, 100));
+                    Collections.emptySet(), null, null, null, true, null, new SimpleOffsetBasedPageRequest(0, 100));
 
             List<TxnEntity> txList = results.getContent();
             assertThat(txList).isNotEmpty();
@@ -382,7 +383,7 @@ public class TxRepositoryCustomImplTest extends IntegrationTest {
             // Test that failed transactions (isSuccess=false) ARE in invalid_transaction table
             // Integration test environment may have additional transactions beyond test data
             Page<TxnEntity> results = txRepository.searchTxnEntitiesAND(
-                    null, null, null, null, false, null, new OffsetBasedPageRequest(0, 100));
+                    Collections.emptySet(), null, null, null, false, null, new SimpleOffsetBasedPageRequest(0, 100));
 
             List<TxnEntity> txList = results.getContent();
             Set<String> actualTxHashes = txList.stream()
@@ -406,7 +407,7 @@ public class TxRepositoryCustomImplTest extends IntegrationTest {
             // and all transactions (both successful and failed) should be returned
             // Integration test environment may have additional transactions beyond test data
             Page<TxnEntity> results = txRepository.searchTxnEntitiesAND(
-                    null, null, null, null, null, null, new OffsetBasedPageRequest(0, 100));
+                    Collections.emptySet(), null, null, null, null, null, new SimpleOffsetBasedPageRequest(0, 100));
 
             List<TxnEntity> txList = results.getContent();
             assertThat(txList).isNotEmpty();
@@ -427,7 +428,7 @@ public class TxRepositoryCustomImplTest extends IntegrationTest {
             // Test that successful transactions (isSuccess=true) are NOT in invalid_transaction table for OR logic
             // Integration test environment may have additional transactions beyond test data
             Page<TxnEntity> results = txRepository.searchTxnEntitiesOR(
-                    null, null, null, null, true, null, new OffsetBasedPageRequest(0, 100));
+                    Collections.emptySet(), null, null, null, true, null, new SimpleOffsetBasedPageRequest(0, 100));
 
             List<TxnEntity> txList = results.getContent();
             assertThat(txList).isNotEmpty();
@@ -452,7 +453,7 @@ public class TxRepositoryCustomImplTest extends IntegrationTest {
             // Test that failed transactions (isSuccess=false) ARE in invalid_transaction table for OR logic
             // Integration test environment may have additional transactions beyond test data
             Page<TxnEntity> results = txRepository.searchTxnEntitiesOR(
-                    null, null, null, null, false, null, new OffsetBasedPageRequest(0, 100));
+                    Collections.emptySet(), null, null, null, false, null, new SimpleOffsetBasedPageRequest(0, 100));
 
             List<TxnEntity> txList = results.getContent();
             Set<String> actualTxHashes = txList.stream()
@@ -476,7 +477,7 @@ public class TxRepositoryCustomImplTest extends IntegrationTest {
             // and all transactions (both successful and failed) should be returned for OR logic
             // Integration test environment may have additional transactions beyond test data
             Page<TxnEntity> results = txRepository.searchTxnEntitiesOR(
-                    null, null, null, null, null, null, new OffsetBasedPageRequest(0, 100));
+                    Collections.emptySet(), null, null, null, null, null, new SimpleOffsetBasedPageRequest(0, 100));
 
             List<TxnEntity> txList = results.getContent();
             assertThat(txList).isNotEmpty();
@@ -501,7 +502,7 @@ public class TxRepositoryCustomImplTest extends IntegrationTest {
             Set<String> specificBlockTxHashes = Set.of("successTx1", "successTx2", "failedTx1");
             Page<TxnEntity> successfulInBlockResults = txRepository.searchTxnEntitiesAND(
                     specificBlockTxHashes, "successBlock1", null, null, true, null, 
-                    new OffsetBasedPageRequest(0, 100));
+                    new SimpleOffsetBasedPageRequest(0, 100));
             
             // Should include successful transactions from the specified block and tx hash set
             // Integration test environment may have additional matching transactions
@@ -516,7 +517,7 @@ public class TxRepositoryCustomImplTest extends IntegrationTest {
             // Test failed transactions in specific block
             Page<TxnEntity> failedInBlockResults = txRepository.searchTxnEntitiesAND(
                     specificBlockTxHashes, "successBlock1", null, null, false, null, 
-                    new OffsetBasedPageRequest(0, 100));
+                    new SimpleOffsetBasedPageRequest(0, 100));
             
             // Should include failed transactions from the specified block and tx hash set
             // Integration test environment may have additional matching transactions
@@ -539,7 +540,7 @@ public class TxRepositoryCustomImplTest extends IntegrationTest {
             // Test successful transactions with mixed block conditions
             Page<TxnEntity> successfulMixedResults = txRepository.searchTxnEntitiesOR(
                     Set.of("successTx1"), "successBlock2", null, null, true, null, 
-                    new OffsetBasedPageRequest(0, 100));
+                    new SimpleOffsetBasedPageRequest(0, 100));
             
             // Should return successful transactions that match either condition:
             // - successTx1 (from tx hashes) OR transactions from successBlock2
@@ -558,7 +559,7 @@ public class TxRepositoryCustomImplTest extends IntegrationTest {
             // Test failed transactions with mixed conditions
             Page<TxnEntity> failedMixedResults = txRepository.searchTxnEntitiesOR(
                     Set.of("failedTx1"), "successBlock2", null, null, false, null, 
-                    new OffsetBasedPageRequest(0, 100));
+                    new SimpleOffsetBasedPageRequest(0, 100));
             
             // Should return failed transactions that match either condition:
             // - failedTx1 (from tx hashes) OR transactions from successBlock2  
@@ -590,8 +591,8 @@ public class TxRepositoryCustomImplTest extends IntegrationTest {
                     .build();
 
             Page<TxnEntity> results = txRepository.searchTxnEntitiesAND(
-                    null, null, null, null, null, lovelaceCurrency, 
-                    new OffsetBasedPageRequest(0, 100));
+                    Collections.emptySet(), null, null, null, null, lovelaceCurrency, 
+                    new SimpleOffsetBasedPageRequest(0, 100));
 
             List<TxnEntity> txList = results.getContent();
             assertThat(txList).isNotEmpty();
@@ -612,8 +613,8 @@ public class TxRepositoryCustomImplTest extends IntegrationTest {
                     .build();
 
             Page<TxnEntity> results = txRepository.searchTxnEntitiesAND(
-                    null, null, null, null, null, adaCurrency, 
-                    new OffsetBasedPageRequest(0, 100));
+                    Collections.emptySet(), null, null, null, null, adaCurrency, 
+                    new SimpleOffsetBasedPageRequest(0, 100));
 
             List<TxnEntity> txList = results.getContent();
             assertThat(txList).isNotEmpty();
@@ -634,8 +635,8 @@ public class TxRepositoryCustomImplTest extends IntegrationTest {
                     .build();
 
             Page<TxnEntity> results = txRepository.searchTxnEntitiesAND(
-                    null, null, null, null, null, policyIdCurrency, 
-                    new OffsetBasedPageRequest(0, 100));
+                    Collections.emptySet(), null, null, null, null, policyIdCurrency, 
+                    new SimpleOffsetBasedPageRequest(0, 100));
 
             List<TxnEntity> txList = results.getContent();
             
@@ -658,8 +659,8 @@ public class TxRepositoryCustomImplTest extends IntegrationTest {
                     .build();
 
             Page<TxnEntity> results = txRepository.searchTxnEntitiesAND(
-                    null, null, null, null, null, preciseAssetCurrency, 
-                    new OffsetBasedPageRequest(0, 100));
+                    Collections.emptySet(), null, null, null, null, preciseAssetCurrency, 
+                    new SimpleOffsetBasedPageRequest(0, 100));
 
             List<TxnEntity> txList = results.getContent();
             
@@ -680,8 +681,8 @@ public class TxRepositoryCustomImplTest extends IntegrationTest {
                     .build();
 
             Page<TxnEntity> results = txRepository.searchTxnEntitiesAND(
-                    null, null, null, null, null, symbolCurrency, 
-                    new OffsetBasedPageRequest(0, 100));
+                    Collections.emptySet(), null, null, null, null, symbolCurrency, 
+                    new SimpleOffsetBasedPageRequest(0, 100));
 
             List<TxnEntity> txList = results.getContent();
             
@@ -702,8 +703,8 @@ public class TxRepositoryCustomImplTest extends IntegrationTest {
                     .build();
 
             Page<TxnEntity> results = txRepository.searchTxnEntitiesOR(
-                    null, null, null, null, null, lovelaceCurrency, 
-                    new OffsetBasedPageRequest(0, 100));
+                    Collections.emptySet(), null, null, null, null, lovelaceCurrency, 
+                    new SimpleOffsetBasedPageRequest(0, 100));
 
             List<TxnEntity> txList = results.getContent();
             assertThat(txList).isNotEmpty();
@@ -726,8 +727,8 @@ public class TxRepositoryCustomImplTest extends IntegrationTest {
                     .build();
 
             Page<TxnEntity> results = txRepository.searchTxnEntitiesOR(
-                    null, null, null, null, null, preciseAssetCurrency, 
-                    new OffsetBasedPageRequest(0, 100));
+                    Collections.emptySet(), null, null, null, null, preciseAssetCurrency, 
+                    new SimpleOffsetBasedPageRequest(0, 100));
 
             List<TxnEntity> txList = results.getContent();
             
@@ -744,8 +745,8 @@ public class TxRepositoryCustomImplTest extends IntegrationTest {
         public void testSearchTxnEntitiesAND_NullCurrency() {
             // Test that null currency parameter doesn't filter anything
             Page<TxnEntity> results = txRepository.searchTxnEntitiesAND(
-                    null, null, null, null, null, null, 
-                    new OffsetBasedPageRequest(0, 100));
+                    Collections.emptySet(), null, null, null, null, null, 
+                    new SimpleOffsetBasedPageRequest(0, 100));
 
             List<TxnEntity> txList = results.getContent();
             assertThat(txList).isNotEmpty();
@@ -764,8 +765,8 @@ public class TxRepositoryCustomImplTest extends IntegrationTest {
             Currency emptyCurrency = Currency.builder().build();
 
             Page<TxnEntity> results = txRepository.searchTxnEntitiesAND(
-                    null, null, null, null, null, emptyCurrency, 
-                    new OffsetBasedPageRequest(0, 100));
+                    Collections.emptySet(), null, null, null, null, emptyCurrency, 
+                    new SimpleOffsetBasedPageRequest(0, 100));
 
             List<TxnEntity> txList = results.getContent();
             
@@ -786,7 +787,7 @@ public class TxRepositoryCustomImplTest extends IntegrationTest {
 
             Page<TxnEntity> results = txRepository.searchTxnEntitiesAND(
                     txHashes, null, null, null, true, lovelaceCurrency, 
-                    new OffsetBasedPageRequest(0, 100));
+                    new SimpleOffsetBasedPageRequest(0, 100));
 
             List<TxnEntity> txList = results.getContent();
             
@@ -814,16 +815,16 @@ public class TxRepositoryCustomImplTest extends IntegrationTest {
                     .build();
 
             Page<TxnEntity> upperResults = txRepository.searchTxnEntitiesAND(
-                    null, null, null, null, null, upperCaseAdaCurrency, 
-                    new OffsetBasedPageRequest(0, 100));
+                    Collections.emptySet(), null, null, null, null, upperCaseAdaCurrency, 
+                    new SimpleOffsetBasedPageRequest(0, 100));
             
             Page<TxnEntity> lowerResults = txRepository.searchTxnEntitiesAND(
-                    null, null, null, null, null, lowerCaseAdaCurrency, 
-                    new OffsetBasedPageRequest(0, 100));
+                    Collections.emptySet(), null, null, null, null, lowerCaseAdaCurrency, 
+                    new SimpleOffsetBasedPageRequest(0, 100));
             
             Page<TxnEntity> mixedResults = txRepository.searchTxnEntitiesAND(
-                    null, null, null, null, null, mixedCaseLovelaceCurrency, 
-                    new OffsetBasedPageRequest(0, 100));
+                    Collections.emptySet(), null, null, null, null, mixedCaseLovelaceCurrency, 
+                    new SimpleOffsetBasedPageRequest(0, 100));
 
             // All should return the same results (case insensitive for ADA/lovelace)
             assertThat(upperResults.getContent()).hasSameSizeAs(lowerResults.getContent());

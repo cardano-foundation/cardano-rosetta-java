@@ -5,11 +5,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.api.block.model.entity.TxnEntity;
 import org.cardanofoundation.rosetta.api.block.model.repository.util.TxRepositoryQueryBuilder;
 import org.cardanofoundation.rosetta.api.search.model.Currency;
-import org.jooq.*;
-import org.jooq.impl.DSL;
+import org.cardanofoundation.rosetta.common.spring.OffsetBasedPageRequest;
+import org.jooq.Condition;
+import org.jooq.DSLContext;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
@@ -35,7 +34,7 @@ public abstract class TxRepositoryCustomBase implements TxRepositoryCustom {
                                                                            @Nullable Long maxBlock,
                                                                            @Nullable Boolean isSuccess,
                                                                            @Nullable Currency currency,
-                                                                           Pageable pageable);
+                                                                           OffsetBasedPageRequest pageable);
     
     protected abstract Page<TxnEntity> searchTxnEntitiesORWithLargeHashSet(Set<String> txHashes,
                                                                           @Nullable String blockHash,
@@ -43,7 +42,7 @@ public abstract class TxRepositoryCustomBase implements TxRepositoryCustom {
                                                                           @Nullable Long maxBlock,
                                                                           @Nullable Boolean isSuccess,
                                                                           @Nullable Currency currency,
-                                                                          Pageable pageable);
+                                                                          OffsetBasedPageRequest pageable);
 
     @Override
     public List<TxnEntity> findTransactionsByBlockHash(String blockHash) {
@@ -69,16 +68,16 @@ public abstract class TxRepositoryCustomBase implements TxRepositoryCustom {
 
     @Override
     @Transactional
-    public Page<TxnEntity> searchTxnEntitiesAND(@Nullable Set<String> txHashes,
+    public Page<TxnEntity> searchTxnEntitiesAND(Set<String> txHashes,
                                                @Nullable String blockHash,
                                                @Nullable Long blockNumber,
                                                @Nullable Long maxBlock,
                                                @Nullable Boolean isSuccess,
                                                @Nullable Currency currency,
-                                               Pageable pageable) {
+                                               OffsetBasedPageRequest offsetBasedPageRequest) {
         
-        if (txHashes != null && txHashes.size() > LARGE_HASH_SET_THRESHOLD) {
-            return searchTxnEntitiesANDWithLargeHashSet(txHashes, blockHash, blockNumber, maxBlock, isSuccess, currency, pageable);
+        if (txHashes.size() > LARGE_HASH_SET_THRESHOLD) {
+            return searchTxnEntitiesANDWithLargeHashSet(txHashes, blockHash, blockNumber, maxBlock, isSuccess, currency, offsetBasedPageRequest);
         }
 
         // Build conditions
@@ -98,26 +97,27 @@ public abstract class TxRepositoryCustomBase implements TxRepositoryCustom {
                         queryBuilder.buildSubquery(dsl, conditions, isSuccess)
                 ))
                 .orderBy(TRANSACTION.SLOT.desc())
-                .limit(pageable.getPageSize())
-                .offset(pageable.getOffset());
+                .limit(offsetBasedPageRequest.getLimit())
+                .offset(offsetBasedPageRequest.getOffset());
 
         // Single database call - get both results and count
         List<? extends org.jooq.Record> results = queryWithCount.fetch();
-        return queryBuilder.createPageFromResultsWithCount(results, pageable);
+
+        return queryBuilder.createPageFromResultsWithCount(results, offsetBasedPageRequest);
     }
 
     @Override
     @Transactional
-    public Page<TxnEntity> searchTxnEntitiesOR(@Nullable Set<String> txHashes,
+    public Page<TxnEntity> searchTxnEntitiesOR(Set<String> txHashes,
                                               @Nullable String blockHash,
                                               @Nullable Long blockNumber,
                                               @Nullable Long maxBlock,
                                               @Nullable Boolean isSuccess,
                                               @Nullable Currency currency,
-                                              Pageable pageable) {
+                                              OffsetBasedPageRequest offsetBasedPageRequest) {
         
-        if (txHashes != null && txHashes.size() > LARGE_HASH_SET_THRESHOLD) {
-            return searchTxnEntitiesORWithLargeHashSet(txHashes, blockHash, blockNumber, maxBlock, isSuccess, currency, pageable);
+        if (txHashes.size() > LARGE_HASH_SET_THRESHOLD) {
+            return searchTxnEntitiesORWithLargeHashSet(txHashes, blockHash, blockNumber, maxBlock, isSuccess, currency, offsetBasedPageRequest);
         }
 
         // Build OR conditions
@@ -137,12 +137,13 @@ public abstract class TxRepositoryCustomBase implements TxRepositoryCustom {
                         queryBuilder.buildOrSubquery(dsl, orConditions, isSuccess)
                 ))
                 .orderBy(TRANSACTION.SLOT.desc())
-                .limit(pageable.getPageSize())
-                .offset((int) pageable.getOffset());
+                .limit(offsetBasedPageRequest.getLimit())
+                .offset(offsetBasedPageRequest.getOffset());
 
         // Single database call - get both results and count
         List<? extends org.jooq.Record> results = queryWithCount.fetch();
-        return queryBuilder.createPageFromResultsWithCount(results, pageable);
+
+        return queryBuilder.createPageFromResultsWithCount(results, offsetBasedPageRequest);
     }
 
 }

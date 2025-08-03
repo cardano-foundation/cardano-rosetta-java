@@ -9,9 +9,9 @@ import org.cardanofoundation.rosetta.api.search.model.Currency;
 import org.jooq.*;
 import org.jooq.impl.DSL;
 import org.springframework.context.annotation.Profile;
+import org.cardanofoundation.rosetta.common.spring.OffsetBasedPageRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,7 +49,7 @@ public class TxRepositoryH2Impl extends TxRepositoryCustomBase implements TxRepo
                                                                   @Nullable Long maxBlock,
                                                                   @Nullable Boolean isSuccess,
                                                                   @Nullable Currency currency,
-                                                                  Pageable pageable) {
+                                                                  OffsetBasedPageRequest pageable) {
         if (txHashes == null || txHashes.isEmpty()) {
             return searchTxnEntitiesAND(null, blockHash, blockNumber, maxBlock, isSuccess, currency, pageable);
         }
@@ -100,7 +100,7 @@ public class TxRepositoryH2Impl extends TxRepositoryCustomBase implements TxRepo
                                                                  @Nullable Long maxBlock,
                                                                  @Nullable Boolean isSuccess,
                                                                  @Nullable Currency currency,
-                                                                 Pageable pageable) {
+                                                                 OffsetBasedPageRequest pageable) {
         if (txHashes == null || txHashes.isEmpty()) {
             return searchTxnEntitiesOR(null, blockHash, blockNumber, maxBlock, isSuccess, currency, pageable);
         }

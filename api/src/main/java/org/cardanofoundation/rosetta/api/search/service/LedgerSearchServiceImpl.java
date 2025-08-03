@@ -10,11 +10,10 @@ import org.cardanofoundation.rosetta.api.block.model.repository.TxInputRepositor
 import org.cardanofoundation.rosetta.api.block.model.repository.TxRepository;
 import org.cardanofoundation.rosetta.api.block.service.LedgerBlockService;
 import org.cardanofoundation.rosetta.api.search.model.Currency;
-import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.openapitools.client.model.Operator;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.cardanofoundation.rosetta.common.spring.OffsetBasedPageRequest;
+import org.cardanofoundation.rosetta.common.spring.SimpleOffsetBasedPageRequest;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -51,7 +50,7 @@ public class LedgerSearchServiceImpl implements LedgerSearchService {
                                          @Nullable Boolean isSuccess,
                                          long offset,
                                          long limit) {
-    Pageable pageable = new OffsetBasedPageRequest(offset, (int) limit);
+    OffsetBasedPageRequest pageable = new SimpleOffsetBasedPageRequest(offset, (int) limit);
 
     Set<String> txHashes = new HashSet<>();
     Optional.ofNullable(txHash).ifPresent(txHashes::add);
@@ -78,17 +77,15 @@ public class LedgerSearchServiceImpl implements LedgerSearchService {
       txHashes.addAll(txInputRepository.findSpentTxHashByUtxoKey(txHash_, outputIndex));
     });
 
-    Set<String> txHashes_ = txHashes.isEmpty() ? null : txHashes;
-
     // Log information about large transaction hash sets
-    if (txHashes_ != null && txHashes_.size() > 10000) {
-      log.info("Processing search request with {} transaction hashes - using temporary table approach", 
-               txHashes_.size());
+    if (txHashes.size() > 10000) {
+      log.info("Processing search request with {} transaction hashes - using temporary table approach",
+              txHashes.size());
     }
 
     Page<TxnEntity> txnEntities = switch (operator) {
-      case AND -> txRepository.searchTxnEntitiesAND(txHashes_, blockHash, blockNo, maxBlock, isSuccess, currency, pageable);
-      case OR -> txRepository.searchTxnEntitiesOR(txHashes_, blockHash, blockNo, maxBlock, isSuccess, currency, pageable);
+      case AND -> txRepository.searchTxnEntitiesAND(txHashes, blockHash, blockNo, maxBlock, isSuccess, currency, pageable);
+      case OR -> txRepository.searchTxnEntitiesOR(txHashes, blockHash, blockNo, maxBlock, isSuccess, currency, pageable);
     };
 
     // this mapping is quite expensive, since it involves multiple database queries
