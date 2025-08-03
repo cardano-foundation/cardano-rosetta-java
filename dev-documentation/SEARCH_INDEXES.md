@@ -126,3 +126,57 @@
   - Partial indexes for success/failure filtering
   - Specialized JSONB path indexes
   - Composite indexes for specific query patterns
+
+
+Search-Specific Indexes (Rosetta Search API Only)
+
+Pure Search Optimization:
+
+1. idx_transaction_slot_desc_hash - 🔍 Search Only - Powers searchAND/searchOR pagination
+2. idx_transaction_successful - 🔍 Search Only - Success/failure filtering in search queries
+3. idx_invalid_transaction_hash_slot - 🔍 Search Only - Failed transaction search filtering
+4. idx_address_utxo_amounts_policy_id - 🔍 Search Only - Currency filtering in search
+5. idx_address_utxo_amounts_asset_name - 🔍 Search Only - Asset symbol search filtering
+6. idx_address_utxo_amounts_lovelace - 🔍 Search Only - ADA filtering in search
+7. idx_transaction_hash_btree - 🔍 Search Only - Large hash set optimization (>10k hashes)
+8. idx_address_utxo_tx_hash_slot - 🔍 Search Only - OR query optimization
+9. idx_address_utxo_currency_composite - 🔍 Search Only - Multi-currency search edge cases
+10. idx_transaction_count_support - 🔍 Search Only - Window function COUNT() optimization
+
+Multi-Purpose Indexes (Search + Other Rosetta APIs)
+
+General Rosetta API Optimization:
+
+11. idx_transaction_block_hash_slot - 🔍➕ Search + Block/Transaction APIs
+    - Search: Powers transaction-block joins in search
+    - Other: Optimizes /block and /block/transaction endpoints
+12. idx_block_number_desc_hash - 🔍➕ Search + Block APIs
+    - Search: maxBlock filtering in search queries
+    - Other: Block range queries, chain tip lookups
+13. idx_block_hash_number - 🔍➕ Search + Block APIs
+    - Search: Direct block hash filtering in search
+    - Other: /block endpoint lookups by hash
+14. idx_transaction_size_hash - 🔍➕ Search + Transaction APIs
+    - Search: Transaction size data in search results
+    - Other: /block/transaction endpoint transaction details
+15. idx_block_epoch_slot_desc - 🔍➕ Search + Network APIs
+    - Search: Epoch-based search filtering (rare)
+    - Other: Network status, epoch boundary queries
+
+Summary Breakdown:
+
+- 🔍 Search-Only: 10 indexes (83%) - Purely for search performance
+- 🔍➕ Multi-Purpose: 5 indexes (17%) - Search + other Rosetta endpoints
+
+Recommendation Adjustment:
+
+If you want to focus purely on search optimization, prioritize indexes 1-10. The multi-purpose indexes (11-15) provide broader Rosetta API
+benefits but aren't strictly necessary for search functionality.
+
+Most Critical Search-Only Indexes:
+1. idx_transaction_slot_desc_hash - Core pagination
+2. idx_transaction_successful - Success filtering
+3. Currency JSONB indexes (5a-5c) - Asset searches
+4. idx_transaction_hash_btree - Large hash sets
+
+These 6 indexes alone would provide 80% of the search performance benefits while being purely search-focused.
