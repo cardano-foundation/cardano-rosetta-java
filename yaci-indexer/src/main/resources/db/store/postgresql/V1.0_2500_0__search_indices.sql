@@ -132,4 +132,4 @@ CREATE INDEX idx_transaction_block_join
 -- 4. Coverage indexes to reduce heap lookups
 -- 5. Hash index for large transaction set joins
 --
--- Monitor with: SELECT * FROM pg_stat_user_indexes WHERE schemaname = 'public';
+-- Monitor with: SELECT * FROM pg_stat_user_indexes WHERE schemaname = 'preprod';
