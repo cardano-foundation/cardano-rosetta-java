@@ -104,8 +104,6 @@ public class SearchServiceImpl implements SearchService {
     @Nullable
     Boolean validateAndNormalizeSuccessStatus(@Nullable Boolean success,
                                               @Nullable String status) {
-        log.info("Validating success and status parameters: success={}, status={}", success, status);
-
         if (success != null && status != null) {
             throw ExceptionFactory.bothSuccessAndStatusProvided();
         }
