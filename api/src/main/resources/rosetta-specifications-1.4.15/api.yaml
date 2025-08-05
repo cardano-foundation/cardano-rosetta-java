@@ -451,10 +451,12 @@ paths:
                 $ref: '#/components/schemas/Error'
   /call:
     post:
-      summary: Make a Network-Specific Procedure Call
+      summary: Cardano-Specific Procedure Call
       description: |
-        Call invokes an arbitrary, network-specific procedure call with network-specific parameters. The guidance for what this endpoint should or could do is purposely left vague. In Ethereum, this could be used to invoke `eth_call` to implement an entire Rosetta API interface for some smart contract that is not parsed by the implementation creator (like a DEX). This endpoint could also be used to provide access to data that does not map to any Rosetta models instead of requiring an integrator to use some network-specific SDK and call some network-specific endpoint (like surfacing staking parameters). Call is NOT a replacement for implementing Rosetta API endpoints or mapping network-specific data to Rosetta models. Rather, it enables developers to build additional Rosetta API interfaces for things they care about without introducing complexity into a base-level Rosetta implementation. Simply put, imagine that the average integrator will use layered Rosetta API implementations that each surfaces unique data.
-        
+        Starting from Rosetta-java version 1.3.0, the parameter `CONTINUE_PARSING_ON_ERROR=true|false` has been added to allow exchanges and integrators to configure yaci-core to ignore unparsed blocks and store them in a separate error table in the database.
+        This is a Cardano network-specific procedure call, using Coinbase Mesh’s generic /call endpoint. It enables exchanges and integrators to:
+        - Review blocks that could not be fully parsed.
+        - Mark blocks as “checked” if they do not affect their users or transactions.
         ## Supported Methods
         
         ### get_parse_error_blocks
@@ -564,13 +566,13 @@ components:
       properties:
         blockchain:
           type: string
-          example: bitcoin
+          example: cardano
         network:
           description: If a blockchain has a specific chain-id or network identifier, it should go in this field. It is up to the client to determine which network-specific identifier is mainnet or testnet.
           type: string
           example: mainnet
-        sub_network_identifier:
-          $ref: '#/components/schemas/SubNetworkIdentifier'
+        # sub_network_identifier:
+        #   $ref: '#/components/schemas/SubNetworkIdentifier'
     SubNetworkIdentifier:
       description: In blockchains with sharded state, the SubNetworkIdentifier is required to query some object on a specific shard. This identifier is optional for all non-sharded blockchains.
       type: object

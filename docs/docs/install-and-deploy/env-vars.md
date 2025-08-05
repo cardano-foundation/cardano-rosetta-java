@@ -83,6 +83,7 @@ Within root folder of the project there are example `.env` files, which can be c
 | `DB_POSTGRES_BGWRITER_DELAY`                  | Delay between background writer cycles           | 200ms (mid-level profile)             | added in release 1.2.6   |
 | `BLOCK_TRANSACTION_API_TIMEOUT_SECS`          | Timeout for fetching blocks in seconds           | 5                                     | added in release 1.2.11  |
 | `CONTINUE_PARSING_ON_ERROR`                   | Continue processing failed to parse blocks       | true                                  | added in release 1.3.0   |
+| `SYNC`                                        | DB, indexer containers only start once the cardano node is at the tip       | true: online mode, false: offline mode| added in release 1.2.0   |
 
 ## Deprecated Environment Variables (Previous Versions)
 

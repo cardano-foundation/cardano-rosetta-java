@@ -22,12 +22,13 @@ In addition to standard transaction operations, the following operations are ava
 | `poolRegistration`         | Register a new stake pool                       |
 | `poolRegistrationWithCert` | Register a pool using a pre-created certificate |
 | `poolRetirement`           | Retire an existing stake pool                   |
+| `poolGovernanceVote`       | SPO submit governance vote                      |
 
 :::note
 For all pool operations, the cold key is needed to sign the payloads, so it will be passed as an address.
 :::
 
-## Pool Registration
+## Pool Operations
 
 <Tabs>
   <TabItem value="standard" label="Standard Registration" default>
@@ -46,7 +47,6 @@ A pool registration operation requires `poolRegistrationParams` as metadata. The
         "index": 3
       },
       "type": "poolRegistration",
-      "status": "success",
       "account": {
         "address": "1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5"
       },
@@ -96,7 +96,6 @@ For pool registration using a pre-created certificate, you need to include the c
     "index": 3
   },
   "type": "poolRegistrationWithCert",
-  "status": "success",
   "account": {
     "address": "1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5"
   },
@@ -117,13 +116,43 @@ To retire a stake pool, you need to specify the epoch in which the pool should b
     "index": 1
   },
   "type": "poolRetirement",
-  "status": "success",
   "account": {
     "address": "153806dbcd134ddee69a8c5204e38ac80448f62342f8c23cfe4b7edf"
   },
   "metadata": {
     "epoch": 200
   }
+}
+```
+
+  </TabItem>
+    <TabItem value="Voting" label="Governance vote">
+
+To vote for governance action, you need to specify value for `governance_action_hash`, `pool_credential`, `vote` and `vote_rationale` is an option
+
+```json
+{
+ "operation_identifier": {
+     "index": 3
+ },
+ "type": "poolGovernanceVote",
+ "account": {
+     "address": "6c518b4861bb88b1395ceb116342cecbcfb8736282655f9a61c4c368"
+ },
+ "metadata": {
+     "poolGovernanceVoteParams": {
+         "governance_action_hash": "40c2a42fe324759a640dcfddbc69ef2e3b7fe5a998af8d6660359772bf44c9dc00",
+         "pool_credential": {
+             "hex_bytes": "60afbe982faaee34b02ad0e75cd50d5d7a734f5daaf7b67bc8c492eb5299af2b",
+             "curve_type": "edwards25519"
+         },
+         "vote": "yes",
+         "vote_rationale": {
+            "data_hash": "c77f8427e2808cbd4c7093aa704fb0fcb48b2ab3bdd84fa7f4dec2eb7de344c9",
+            "url": "ipfs://bafybeig7hluox6xefqdgmwcntvsguxcziw2oeogg2fbvygex2aj6qcfo64"
+          }
+     }
+ }
 }
 ```
 
