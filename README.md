@@ -100,7 +100,7 @@ For every Release we provide pre-built docker images stored in the DockerHub Rep
 To start it use the following command:
 
 ```bash
-    docker run --name rosetta -v {CUSTOM_MOUNT_PATH}:/node --env-file ./docker/.env.dockerfile --env-file ./docker/.env.docker-profile-mid-level -p 8082:8082 --shm-size=4g -d cardanofoundation/cardano-rosetta-java:1.3.0
+    docker run --name rosetta -v {CUSTOM_MOUNT_PATH}:/node --env-file ./docker/.env.dockerfile --env-file ./docker/.env.docker-profile-mid-level -p 8082:8082 --shm-size=4g -d cardanofoundation/cardano-rosetta-java:1.3.1
 ```
 
 Changes to the configuration can be made by adjusting the `docker/.env.dockerfile` file. For more information on the environment variables, please refer to the [documentation](https://cardano-foundation.github.io/cardano-rosetta-java/docs/install-and-deploy/env-vars).
@@ -108,7 +108,7 @@ Changes to the configuration can be made by adjusting the `docker/.env.dockerfil
 If you want to use the `cardano-submit-api` you can additionally expose port `8090`. It can then be used to submit raw cbor transaction (API documentation here: [Link](https://input-output-hk.github.io/cardano-rest/submit-api/))
 
 ```bash
-    docker run --name rosetta -v {CUSTOM_MOUNT_PATH}:/node --env-file ./docker/.env.dockerfile --env-file ./docker/.env.docker-profile-mid-level -p 8090:8090 -p 8082:8082 --shm-size=4g -d cardanofoundation/cardano-rosetta-java:1.3.0
+    docker run --name rosetta -v {CUSTOM_MOUNT_PATH}:/node --env-file ./docker/.env.dockerfile --env-file ./docker/.env.docker-profile-mid-level -p 8090:8090 -p 8082:8082 --shm-size=4g -d cardanofoundation/cardano-rosetta-java:1.3.1
 ```
 
 ### Docker compose

@@ -163,7 +163,13 @@ public class RosettaConstants {
         CANT_ENCODE_EXTRA_DATA("Cant encode extra data", 5049),
         CALL_METHOD_NOT_SUPPORTED("Call method not supported", 5050),
         CALL_PARAMETER_MISSING("Call parameter missing", 5051),
-        INVALID_BLOCK_ERROR_REVIEW_STATUS("Invalid block error review status", 5052);
+        INVALID_BLOCK_ERROR_REVIEW_STATUS("Invalid block error review status", 5052),
+        INVALID_LIMIT("Invalid limit size", 5053),
+        BOTH_SUCCESS_AND_STATUS_PROVIDED("Cannot specify both 'success' and 'status' parameters simultaneously", 5054),
+        BOTH_ACCOUNT_AND_ACCOUNT_IDENTIFIER_PROVIDED(
+                "Cannot specify both 'account' and 'accountIdentifier' parameters simultaneously", 5055),
+        CURRENCY_SEARCH_NOT_SUPPORTED("Currency search is not currently supported", 5056),
+        TOO_MANY_UTXOS("Too many UTXOs in search request", 5057);
 
         final String message;
         final int code;

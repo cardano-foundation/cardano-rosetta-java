@@ -360,4 +360,34 @@ public class ExceptionFactory {
                 Details.builder().message("Parameter 'status' must be one of: [REVIEWED_AFFECTS_US, REVIEWED_DOES_NOT_AFFECT_US]").build()));
     }
 
+    public static ApiException invalidLimitSize(Long limit, Long maxLimitSize) {
+        return new ApiException(RosettaErrorType.INVALID_LIMIT.toRosettaError(false,
+                Details.builder().message("Requested limit size %d exceeds maximum allowed size %d".formatted(limit, maxLimitSize)).build()));
+    }
+
+    public static ApiException bothSuccessAndStatusProvided() {
+        return new ApiException(RosettaErrorType.BOTH_SUCCESS_AND_STATUS_PROVIDED.toRosettaError(false));
+    }
+
+    public static ApiException bothAccountAndAccountIdentifierProvided() {
+        return new ApiException(RosettaErrorType.BOTH_ACCOUNT_AND_ACCOUNT_IDENTIFIER_PROVIDED.toRosettaError(false,
+                Details.builder().message("Both 'account' and 'account_identifier' parameters are provided, only one is allowed.").build()));
+    }
+
+    public static ApiException currencySearchNotSupported() {
+        var details =
+                Details.builder().message("Currency search is not supported in this version of the API. Request it being implemented in github's ticket: #%d.".formatted(542))
+                        .build();
+
+        return new ApiException(RosettaErrorType.CURRENCY_SEARCH_NOT_SUPPORTED.toRosettaError(false, details));
+    }
+
+    public static ApiException tooManyUtxos(int utxoCount, int maxUtxoCount) {
+        var details = Details.builder()
+                .message("Search request contains %d UTXOs, which exceeds the maximum limit of %d. Please refine your search criteria.".formatted(utxoCount, maxUtxoCount))
+                .build();
+
+        return new ApiException(RosettaErrorType.TOO_MANY_UTXOS.toRosettaError(false, details));
+    }
+
 }
