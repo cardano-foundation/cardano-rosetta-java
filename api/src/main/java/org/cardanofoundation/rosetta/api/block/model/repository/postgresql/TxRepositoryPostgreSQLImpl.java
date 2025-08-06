@@ -49,7 +49,7 @@ public class TxRepositoryPostgreSQLImpl extends TxRepositoryCustomBase implement
                                                                   @Nullable Boolean isSuccess,
                                                                   @Nullable Currency currency,
                                                                   OffsetBasedPageRequest offsetBasedPageRequest) {
-        if (txHashes.isEmpty()) {
+        if (txHashes == null || txHashes.isEmpty()) {
             return searchTxnEntitiesAND(txHashes, blockHash, blockNumber, maxBlock, isSuccess, currency, offsetBasedPageRequest);
         }
 
@@ -58,29 +58,16 @@ public class TxRepositoryPostgreSQLImpl extends TxRepositoryCustomBase implement
         // Create VALUES table with hash values
         Table<?> hashValues = createValuesTable(txHashes);
 
-        // Build conditions without txHashes (since we'll use JOIN)
-        Condition conditions = queryBuilder.buildAndConditions(null, blockHash, blockNumber, maxBlock, isSuccess, currency, getCurrencyConditionBuilder());
+        // Build base conditions without txHashes
+        Condition baseConditions = queryBuilder.buildAndConditions(null, blockHash, blockNumber, maxBlock, isSuccess, currency, getCurrencyConditionBuilder());
+        
+        // Execute count query first (much faster without window function)
+        int totalCount = executeCountQueryWithValues(hashValues, baseConditions, isSuccess, currency != null);
+        
+        // Execute results query (without COUNT(*) OVER())
+        List<? extends org.jooq.Record> results = executeResultsQueryWithValues(hashValues, baseConditions, isSuccess, currency != null, offsetBasedPageRequest);
 
-        // Build single query with COUNT using window function
-        var baseQueryFrom = queryBuilder.buildTransactionSelectQueryWithCount(dsl)
-                .join(hashValues).on(TRANSACTION.TX_HASH.eq(hashValues.field("hash", String.class)));
-
-        if (isSuccess != null) {
-            baseQueryFrom = baseQueryFrom.leftJoin(INVALID_TRANSACTION).on(TRANSACTION.TX_HASH.eq(INVALID_TRANSACTION.TX_HASH));
-        }
-
-        var queryWithCount = baseQueryFrom
-                .leftJoin(BLOCK).on(TRANSACTION.BLOCK_HASH.eq(BLOCK.HASH))
-                .leftJoin(TRANSACTION_SIZE).on(TRANSACTION.TX_HASH.eq(TRANSACTION_SIZE.TX_HASH))
-                .where(conditions)
-                .orderBy(TRANSACTION.SLOT.desc())
-                .limit(offsetBasedPageRequest.getLimit())
-                .offset(offsetBasedPageRequest.getOffset());
-
-        // Single database call - get both results and count
-        List<? extends Record> results = queryWithCount.fetch();
-
-        return queryBuilder.createPageFromResultsWithCount(results, offsetBasedPageRequest);
+        return createPageFromSeparateQueries(totalCount, results, offsetBasedPageRequest);
     }
 
     @Override
@@ -101,15 +88,7 @@ public class TxRepositoryPostgreSQLImpl extends TxRepositoryCustomBase implement
         // Create VALUES table with hash values
         Table<?> hashValues = createValuesTable(txHashes);
 
-        // Build base query for hash matches with count
-        var hashQueryFrom = queryBuilder.buildTransactionSelectQueryWithCount(dsl)
-                .join(hashValues).on(TRANSACTION.TX_HASH.eq(hashValues.field("hash", String.class)));
-
-        if (isSuccess != null) {
-            hashQueryFrom = hashQueryFrom.leftJoin(INVALID_TRANSACTION).on(TRANSACTION.TX_HASH.eq(INVALID_TRANSACTION.TX_HASH));
-        }
-
-        // Apply success and currency filters if needed
+        // Build base conditions for hash filtering
         Condition hashConditions = DSL.trueCondition();
         if (isSuccess != null) {
             Condition successCondition = isSuccess
@@ -121,57 +100,79 @@ public class TxRepositoryPostgreSQLImpl extends TxRepositoryCustomBase implement
             hashConditions = hashConditions.and(getCurrencyConditionBuilder().buildCurrencyCondition(currency));
         }
 
+        // If we have other OR conditions, fall back to the original approach for now
+        // TODO: Optimize complex OR + hash set cases later to avoid window functions
+        if (blockHash != null || blockNumber != null || maxBlock != null) {
+            log.warn("Using legacy window function approach for complex OR query with {} hashes - consider optimizing", txHashes.size());
+            return handleComplexORLegacy(hashValues, hashConditions, blockHash, blockNumber, maxBlock, isSuccess, currency, offsetBasedPageRequest);
+        }
+
+        // Simple case: only hash filtering - use separate count and results queries
+        // Execute count query first
+        int totalCount = executeCountQueryWithValues(hashValues, hashConditions, isSuccess, currency != null);
+        
+        // Execute results query 
+        List<? extends org.jooq.Record> results = executeResultsQueryWithValues(hashValues, hashConditions, isSuccess, currency != null, offsetBasedPageRequest);
+
+        return createPageFromSeparateQueries(totalCount, results, offsetBasedPageRequest);
+    }
+    
+    /**
+     * Legacy approach for complex OR queries with hash filtering.
+     * Uses window functions temporarily until complex UNION logic is optimized.
+     */
+    private Page<TxnEntity> handleComplexORLegacy(Table<?> hashValues, Condition hashConditions,
+                                                @Nullable String blockHash, @Nullable Long blockNumber, @Nullable Long maxBlock,
+                                                @Nullable Boolean isSuccess, @Nullable Currency currency,
+                                                OffsetBasedPageRequest offsetBasedPageRequest) {
+        // Simplified legacy approach - use existing working logic with window functions
+        // TODO: Replace with proper separate query optimization later
+
+        // Build base query for hash matches with count
+        var hashQueryFrom = queryBuilder.buildTransactionSelectQueryWithCount(dsl)
+                .join(hashValues).on(TRANSACTION.TX_HASH.eq(hashValues.field("hash", String.class)));
+
+        if (isSuccess != null) {
+            hashQueryFrom = hashQueryFrom.leftJoin(INVALID_TRANSACTION).on(TRANSACTION.TX_HASH.eq(INVALID_TRANSACTION.TX_HASH));
+        }
+
         var hashQuery = hashQueryFrom
                 .leftJoin(BLOCK).on(TRANSACTION.BLOCK_HASH.eq(BLOCK.HASH))
                 .leftJoin(TRANSACTION_SIZE).on(TRANSACTION.TX_HASH.eq(TRANSACTION_SIZE.TX_HASH))
                 .leftJoin(ADDRESS_UTXO).on(TRANSACTION.TX_HASH.eq(ADDRESS_UTXO.TX_HASH))
                 .where(hashConditions);
 
-        // If we have other OR conditions, create a UNION
-        if (blockHash != null || blockNumber != null || maxBlock != null) {
-            // Build the other OR conditions
-            Condition otherOrConditions = queryBuilder.buildOrConditions(null, blockHash, blockNumber, maxBlock, isSuccess, currency, getCurrencyConditionBuilder());
-            
-            var otherQueryFrom = queryBuilder.buildTransactionSelectQueryWithCount(dsl);
+        // Build the other OR conditions
+        Condition otherOrConditions = queryBuilder.buildOrConditions(null, blockHash, blockNumber, maxBlock, isSuccess, currency, getCurrencyConditionBuilder());
+        
+        var otherQueryFrom = queryBuilder.buildTransactionSelectQueryWithCount(dsl);
 
-            if (isSuccess != null) {
-                otherQueryFrom = otherQueryFrom.leftJoin(INVALID_TRANSACTION).on(TRANSACTION.TX_HASH.eq(INVALID_TRANSACTION.TX_HASH));
-            }
-
-            var otherQuery = otherQueryFrom
-                    .leftJoin(BLOCK).on(TRANSACTION.BLOCK_HASH.eq(BLOCK.HASH))
-                    .leftJoin(TRANSACTION_SIZE).on(TRANSACTION.TX_HASH.eq(TRANSACTION_SIZE.TX_HASH))
-                    .leftJoin(ADDRESS_UTXO).on(TRANSACTION.TX_HASH.eq(ADDRESS_UTXO.TX_HASH))
-                    .where(otherOrConditions);
-
-            // Combine with UNION
-            var unionQuery = hashQuery.union(otherQuery)
-                    .orderBy(DSL.field("slot").desc());
-
-            // Count query
-            var countQuery = dsl.selectCount()
-                    .from(DSL.table("({0}) as union_result", unionQuery));
-
-            Integer totalElements = countQuery.fetchOne(0, Integer.class);
-
-            List<TxnEntity> content = unionQuery
-                    .limit(offsetBasedPageRequest.getLimit())
-                    .offset((int) offsetBasedPageRequest.getOffset())
-                    .fetch(queryBuilder::mapRecordToTxnEntity);
-
-            return new PageImpl<>(content, offsetBasedPageRequest, totalElements);
+        if (isSuccess != null) {
+            otherQueryFrom = otherQueryFrom.leftJoin(INVALID_TRANSACTION).on(TRANSACTION.TX_HASH.eq(INVALID_TRANSACTION.TX_HASH));
         }
 
-        // Only hash query needed - use single query with count
-        var queryWithCount = hashQuery
-                .orderBy(TRANSACTION.SLOT.desc())
+        var otherQuery = otherQueryFrom
+                .leftJoin(BLOCK).on(TRANSACTION.BLOCK_HASH.eq(BLOCK.HASH))
+                .leftJoin(TRANSACTION_SIZE).on(TRANSACTION.TX_HASH.eq(TRANSACTION_SIZE.TX_HASH))
+                .leftJoin(ADDRESS_UTXO).on(TRANSACTION.TX_HASH.eq(ADDRESS_UTXO.TX_HASH))
+                .where(otherOrConditions);
+
+        // Combine with UNION
+        var unionQuery = hashQuery.union(otherQuery)
+                .orderBy(DSL.field("slot").desc());
+
+        // Count query
+        var countQuery = dsl.selectCount()
+                .from(DSL.table("({0}) as union_result", unionQuery));
+
+        Integer totalElements = countQuery.fetchOne(0, Integer.class);
+
+        List<TxnEntity> content = unionQuery
                 .limit(offsetBasedPageRequest.getLimit())
-                .offset(offsetBasedPageRequest.getOffset());
+                .offset((int) offsetBasedPageRequest.getOffset())
+                .fetch(queryBuilder::mapRecordToTxnEntity);
 
-        // Single database call - get both results and count
-        List<? extends org.jooq.Record> results = queryWithCount.fetch();
-
-        return queryBuilder.createPageFromResultsWithCount(results, offsetBasedPageRequest);
+        return new PageImpl<>(content, offsetBasedPageRequest, totalElements);
     }
 
     /**
@@ -194,41 +195,70 @@ public class TxRepositoryPostgreSQLImpl extends TxRepositoryCustomBase implement
         // Create VALUES table with alias
         return DSL.values(rows).as("hash_values", "hash");
     }
+    
+    /**
+     * Executes a count query using VALUES table for efficient hash filtering.
+     * Currency conditions use EXISTS subqueries - no additional JOIN needed.
+     */
+    private int executeCountQueryWithValues(Table<?> hashValues, Condition baseConditions, @Nullable Boolean isSuccess, boolean needsCurrencyJoin) {
+        var countQuery = dsl.selectCount()
+                .from(TRANSACTION)
+                .join(hashValues).on(TRANSACTION.TX_HASH.eq(hashValues.field("hash", String.class)))
+                .leftJoin(BLOCK).on(TRANSACTION.BLOCK_HASH.eq(BLOCK.HASH));
+        
+        if (isSuccess != null) {
+            countQuery = countQuery.leftJoin(INVALID_TRANSACTION).on(TRANSACTION.TX_HASH.eq(INVALID_TRANSACTION.TX_HASH));
+        }
+        
+        // Currency filtering uses EXISTS subqueries - no JOIN needed to avoid redundant table access
+        
+        return countQuery.where(baseConditions).fetchOne(0, Integer.class);
+    }
+    
+    /**
+     * Executes a results query using VALUES table for efficient hash filtering.
+     * Currency conditions use EXISTS subqueries - no additional JOIN needed.
+     */
+    private List<? extends org.jooq.Record> executeResultsQueryWithValues(Table<?> hashValues, Condition baseConditions, @Nullable Boolean isSuccess, boolean needsCurrencyJoin, OffsetBasedPageRequest offsetBasedPageRequest) {
+        // Start with VALUES JOIN for hash filtering - currency filtering uses EXISTS subqueries
+        var baseQuery = ((SelectJoinStep<?>) buildBaseQueryWithJoins(isSuccess, false)) // Never add currency JOIN
+                .join(hashValues).on(TRANSACTION.TX_HASH.eq(hashValues.field("hash", String.class)));
+        
+        return baseQuery
+                .where(baseConditions)
+                .orderBy(TRANSACTION.SLOT.desc())
+                .limit(offsetBasedPageRequest.getLimit())
+                .offset(offsetBasedPageRequest.getOffset())
+                .fetch();
+    }
 
-    private static class PostgreSQLCurrencyConditionBuilder implements TxRepositoryQueryBuilder.CurrencyConditionBuilder {
+    /**
+     * PostgreSQL-specific currency condition builder using JSONB @> operator.
+     */
+    private static class PostgreSQLCurrencyConditionBuilder extends BaseCurrencyConditionBuilder {
+        
+        @Override
+        protected Condition buildPolicyIdAndSymbolCondition(String escapedPolicyId, String escapedSymbol) {
+            return DSL.condition("EXISTS (SELECT 1 FROM address_utxo au WHERE au.tx_hash = transaction.tx_hash " +
+                    "AND au.amounts::jsonb @> '[{\"policy_id\": \"" + escapedPolicyId + "\", \"asset_name\": \"" + escapedSymbol + "\"}]')");
+        }
 
         @Override
-        public Condition buildCurrencyCondition(Currency currency) {
-            String policyId = currency.getPolicyId();
-            String symbol = currency.getSymbol();
+        protected Condition buildPolicyIdOnlyCondition(String escapedPolicyId) {
+            return DSL.condition("EXISTS (SELECT 1 FROM address_utxo au WHERE au.tx_hash = transaction.tx_hash " +
+                    "AND au.amounts::jsonb @> '[{\"policy_id\": \"" + escapedPolicyId + "\"}]')");
+        }
 
-            if (policyId != null && !policyId.trim().isEmpty()) {
-                String escapedPolicyId = policyId.trim().replace("\"", "\\\"");
+        @Override
+        protected Condition buildLovelaceCondition() {
+            return DSL.condition("EXISTS (SELECT 1 FROM address_utxo au WHERE au.tx_hash = transaction.tx_hash " +
+                    "AND au.amounts::jsonb @> '[{\"unit\": \"lovelace\"}]')");
+        }
 
-                if (symbol != null && !symbol.trim().isEmpty() &&
-                        !"lovelace".equalsIgnoreCase(symbol) && !"ada".equalsIgnoreCase(symbol)) {
-                    String escapedSymbol = symbol.trim().replace("\"", "\\\"");
-
-                    return DSL.condition("EXISTS (SELECT 1 FROM address_utxo au WHERE au.tx_hash = transaction.tx_hash " +
-                            "AND au.amounts::jsonb @> '[{\"policy_id\": \"" + escapedPolicyId + "\", \"asset_name\": \"" + escapedSymbol + "\"}]')");
-                } else {
-                    return DSL.condition("EXISTS (SELECT 1 FROM address_utxo au WHERE au.tx_hash = transaction.tx_hash " +
-                            "AND au.amounts::jsonb @> '[{\"policy_id\": \"" + escapedPolicyId + "\"}]')");
-                }
-            }
-
-            if (symbol != null && !symbol.trim().isEmpty()) {
-                if ("lovelace".equalsIgnoreCase(symbol) || "ada".equalsIgnoreCase(symbol)) {
-                    return DSL.condition("EXISTS (SELECT 1 FROM address_utxo au WHERE au.tx_hash = transaction.tx_hash " +
-                            "AND au.amounts::jsonb @> '[{\"unit\": \"lovelace\"}]')");
-                } else {
-                    String escapedSymbol = symbol.trim().replace("\"", "\\\"");
-                    return DSL.condition("EXISTS (SELECT 1 FROM address_utxo au WHERE au.tx_hash = transaction.tx_hash " +
-                            "AND au.amounts::jsonb @> '[{\"asset_name\": \"" + escapedSymbol + "\"}]')");
-                }
-            }
-
-            return DSL.falseCondition();
+        @Override
+        protected Condition buildSymbolOnlyCondition(String escapedSymbol) {
+            return DSL.condition("EXISTS (SELECT 1 FROM address_utxo au WHERE au.tx_hash = transaction.tx_hash " +
+                    "AND au.amounts::jsonb @> '[{\"asset_name\": \"" + escapedSymbol + "\"}]')");
         }
     }
 

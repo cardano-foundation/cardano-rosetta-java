@@ -10,9 +10,9 @@ import org.cardanofoundation.rosetta.api.block.model.repository.TxInputRepositor
 import org.cardanofoundation.rosetta.api.block.model.repository.TxRepository;
 import org.cardanofoundation.rosetta.api.block.service.LedgerBlockService;
 import org.cardanofoundation.rosetta.api.search.model.Currency;
-import org.openapitools.client.model.Operator;
 import org.cardanofoundation.rosetta.common.spring.OffsetBasedPageRequest;
 import org.cardanofoundation.rosetta.common.spring.SimpleOffsetBasedPageRequest;
+import org.openapitools.client.model.Operator;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -76,12 +76,6 @@ public class LedgerSearchServiceImpl implements LedgerSearchService {
 
       txHashes.addAll(txInputRepository.findSpentTxHashByUtxoKey(txHash_, outputIndex));
     });
-
-    // Log information about large transaction hash sets
-    if (txHashes.size() > 10000) {
-      log.info("Processing search request with {} transaction hashes - using temporary table approach",
-              txHashes.size());
-    }
 
     Page<TxnEntity> txnEntities = switch (operator) {
       case AND -> txRepository.searchTxnEntitiesAND(txHashes, blockHash, blockNo, maxBlock, isSuccess, currency, pageable);

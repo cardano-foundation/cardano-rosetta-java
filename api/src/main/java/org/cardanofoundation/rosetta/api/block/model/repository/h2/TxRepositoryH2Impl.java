@@ -72,24 +72,13 @@ public class TxRepositoryH2Impl extends TxRepositoryCustomBase implements TxRepo
         // Combine with AND
         Condition finalConditions = baseConditions.and(hashCondition);
 
-        // Build single query with count using window function
-        var baseQueryFrom = queryBuilder.buildTransactionSelectQueryWithCount(dsl);
+        // Execute count query first (faster without window function)
+        int totalCount = executeCountQuery(finalConditions, isSuccess, blockHash != null || blockNumber != null || maxBlock != null, false);
+        
+        // Execute results query (without COUNT(*) OVER())
+        List<? extends org.jooq.Record> results = executeResultsQuery(finalConditions, isSuccess, false, pageable);
 
-        if (isSuccess != null) {
-            baseQueryFrom = baseQueryFrom.leftJoin(INVALID_TRANSACTION).on(TRANSACTION.TX_HASH.eq(INVALID_TRANSACTION.TX_HASH));
-        }
-
-        var queryWithCount = baseQueryFrom
-                .leftJoin(BLOCK).on(TRANSACTION.BLOCK_HASH.eq(BLOCK.HASH))
-                .leftJoin(TRANSACTION_SIZE).on(TRANSACTION.TX_HASH.eq(TRANSACTION_SIZE.TX_HASH))
-                .where(finalConditions)
-                .orderBy(TRANSACTION.SLOT.desc())
-                .limit(pageable.getPageSize())
-                .offset(pageable.getOffset());
-
-        // Single database call - get both results and count
-        List<? extends org.jooq.Record> results = queryWithCount.fetch();
-        return queryBuilder.createPageFromResultsWithCount(results, pageable);
+        return createPageFromSeparateQueries(totalCount, results, pageable);
     }
 
     @Override
@@ -119,70 +108,44 @@ public class TxRepositoryH2Impl extends TxRepositoryCustomBase implements TxRepo
             baseOrConditions = baseOrConditions.or(TRANSACTION.TX_HASH.in(batch));
         }
 
-        // Build single query with count using window function
-        var baseQueryFrom = queryBuilder.buildTransactionSelectQueryWithCount(dsl);
+        // Execute count query first (faster without window function)
+        int totalCount = executeOrCountQuery(baseOrConditions, isSuccess, true);
+        
+        // Execute results query (without COUNT(*) OVER())
+        List<? extends org.jooq.Record> results = executeOrResultsQuery(baseOrConditions, isSuccess, true, pageable);
 
-        if (isSuccess != null) {
-            baseQueryFrom = baseQueryFrom.leftJoin(INVALID_TRANSACTION).on(TRANSACTION.TX_HASH.eq(INVALID_TRANSACTION.TX_HASH));
-        }
-
-        var queryWithCount = baseQueryFrom
-                .leftJoin(BLOCK).on(TRANSACTION.BLOCK_HASH.eq(BLOCK.HASH))
-                .leftJoin(TRANSACTION_SIZE).on(TRANSACTION.TX_HASH.eq(TRANSACTION_SIZE.TX_HASH))
-                .leftJoin(ADDRESS_UTXO).on(TRANSACTION.TX_HASH.eq(ADDRESS_UTXO.TX_HASH))
-                .where(baseOrConditions)
-                .orderBy(TRANSACTION.SLOT.desc())
-                .limit(pageable.getPageSize())
-                .offset((int) pageable.getOffset());
-
-        // Single database call - get both results and count
-        List<? extends org.jooq.Record> results = queryWithCount.fetch();
-        return queryBuilder.createPageFromResultsWithCount(results, pageable);
+        return createPageFromSeparateQueries(totalCount, results, pageable);
     }
 
-    private static <T> List<List<T>> partitionList(List<T> list, int batchSize) {
-        List<List<T>> batches = new ArrayList<>();
-        for (int i = 0; i < list.size(); i += batchSize) {
-            int end = Math.min(i + batchSize, list.size());
-            batches.add(list.subList(i, end));
-        }
-        return batches;
-    }
-
-    private static class H2CurrencyConditionBuilder implements TxRepositoryQueryBuilder.CurrencyConditionBuilder {
+    /**
+     * H2-specific currency condition builder using LIKE operator for JSON string matching.
+     */
+    private static class H2CurrencyConditionBuilder extends BaseCurrencyConditionBuilder {
+        
         @Override
-        public Condition buildCurrencyCondition(Currency currency) {
-            String policyId = currency.getPolicyId();
-            String symbol = currency.getSymbol();
+        protected Condition buildPolicyIdAndSymbolCondition(String escapedPolicyId, String escapedSymbol) {
+            return DSL.condition("EXISTS (SELECT 1 FROM address_utxo au WHERE au.tx_hash = transaction.tx_hash " +
+                    "AND au.amounts LIKE '%\"policy_id\":\"" + escapedPolicyId + "\"%' " +
+                    "AND au.amounts LIKE '%\"asset_name\":\"" + escapedSymbol + "\"%')");
+        }
 
-            if (policyId != null && !policyId.trim().isEmpty()) {
-                String escapedPolicyId = policyId.trim().replace("\"", "\\\"");
+        @Override
+        protected Condition buildPolicyIdOnlyCondition(String escapedPolicyId) {
+            return DSL.condition("EXISTS (SELECT 1 FROM address_utxo au WHERE au.tx_hash = transaction.tx_hash " +
+                    "AND au.amounts LIKE '%\"policy_id\":\"" + escapedPolicyId + "\"%')");
+        }
 
-                if (symbol != null && !symbol.trim().isEmpty() &&
-                        !"lovelace".equalsIgnoreCase(symbol) && !"ada".equalsIgnoreCase(symbol)) {
-                    String escapedSymbol = symbol.trim().replace("\"", "\\\"");
+        @Override
+        protected Condition buildLovelaceCondition() {
+            return DSL.condition("EXISTS (SELECT 1 FROM address_utxo au WHERE au.tx_hash = transaction.tx_hash " +
+                    "AND au.amounts LIKE '%\"unit\":\"lovelace\"%')");
+        }
 
-                    return DSL.condition("EXISTS (SELECT 1 FROM address_utxo au WHERE au.tx_hash = transaction.tx_hash " +
-                            "AND au.amounts LIKE '%\"policy_id\":\"" + escapedPolicyId + "\"%' " +
-                            "AND au.amounts LIKE '%\"asset_name\":\"" + escapedSymbol + "\"%')");
-                } else {
-                    return DSL.condition("EXISTS (SELECT 1 FROM address_utxo au WHERE au.tx_hash = transaction.tx_hash " +
-                            "AND au.amounts LIKE '%\"policy_id\":\"" + escapedPolicyId + "\"%')");
-                }
-            }
-
-            if (symbol != null && !symbol.trim().isEmpty()) {
-                if ("lovelace".equalsIgnoreCase(symbol) || "ada".equalsIgnoreCase(symbol)) {
-                    return DSL.condition("EXISTS (SELECT 1 FROM address_utxo au WHERE au.tx_hash = transaction.tx_hash " +
-                            "AND au.amounts LIKE '%\"unit\":\"lovelace\"%')");
-                } else {
-                    String escapedSymbol = symbol.trim().replace("\"", "\\\"");
-                    return DSL.condition("EXISTS (SELECT 1 FROM address_utxo au WHERE au.tx_hash = transaction.tx_hash " +
-                            "AND au.amounts LIKE '%\"asset_name\":\"" + escapedSymbol + "\"%')");
-                }
-            }
-
-            return DSL.falseCondition();
+        @Override
+        protected Condition buildSymbolOnlyCondition(String escapedSymbol) {
+            return DSL.condition("EXISTS (SELECT 1 FROM address_utxo au WHERE au.tx_hash = transaction.tx_hash " +
+                    "AND au.amounts LIKE '%\"asset_name\":\"" + escapedSymbol + "\"%')");
         }
     }
+
 }
