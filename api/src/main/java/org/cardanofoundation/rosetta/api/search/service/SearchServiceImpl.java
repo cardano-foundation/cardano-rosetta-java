@@ -28,6 +28,7 @@ public class SearchServiceImpl implements SearchService {
     private final LedgerSearchService ledgerSearchService;
 
     @Override
+    @Transactional  // Override class-level readOnly=true for methods that may use temporary tables
     public Page<BlockTransaction> searchTransaction(
             SearchTransactionsRequest searchTransactionsRequest,
             Long offset,
@@ -47,11 +48,14 @@ public class SearchServiceImpl implements SearchService {
         @Nullable String txHash = Optional.ofNullable(searchTransactionsRequest.getTransactionIdentifier()).orElse(
                 TransactionIdentifier.builder().build()).getHash();
 
-        // Currency search is not supported yet
-        Optional.ofNullable(searchTransactionsRequest.getCurrency())
-                .ifPresent(c -> {
-                    throw ExceptionFactory.currencySearchNotSupported();
-                });
+        // Extract currency for filtering (policy ID or asset identifier)
+        @Nullable org.cardanofoundation.rosetta.api.search.model.Currency currency = Optional.ofNullable(searchTransactionsRequest.getCurrency())
+                .map(c -> org.cardanofoundation.rosetta.api.search.model.Currency.builder()
+                        .symbol(c.getSymbol())
+                        .decimals(c.getDecimals())
+                        .policyId(Optional.ofNullable(c.getMetadata()).map(CurrencyMetadata::getPolicyId).orElse(null))
+                        .build())
+                .orElse(null);
 
         @Nullable Long maxBlock = searchTransactionsRequest.getMaxBlock();
 
@@ -70,7 +74,7 @@ public class SearchServiceImpl implements SearchService {
                 txHash,
                 address,
                 utxoKey,
-                null,
+                currency,
                 blockIdentifier.getHash(),
                 blockIdentifier.getIndex(),
                 maxBlock,
@@ -100,8 +104,6 @@ public class SearchServiceImpl implements SearchService {
     @Nullable
     Boolean validateAndNormalizeSuccessStatus(@Nullable Boolean success,
                                               @Nullable String status) {
-        log.info("Validating success and status parameters: success={}, status={}", success, status);
-
         if (success != null && status != null) {
             throw ExceptionFactory.bothSuccessAndStatusProvided();
         }
