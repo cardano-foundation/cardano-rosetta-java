@@ -72,10 +72,8 @@ public class TxRepositoryH2Impl extends TxRepositoryCustomBase implements TxRepo
         // Combine with AND
         Condition finalConditions = baseConditions.and(hashCondition);
 
-        boolean needsBlockJoin = blockHash != null || blockNumber != null || maxBlock != null;
-        
         // Execute separate count and results queries for optimal performance
-        int totalCount = executeCountQuery(finalConditions, isSuccess, needsBlockJoin);
+        int totalCount = executeCountQuery(finalConditions, isSuccess);
         List<? extends org.jooq.Record> results = executeResultsQuery(finalConditions, isSuccess, pageable);
 
         return createPageFromSeparateQueries(totalCount, results, pageable);
@@ -108,11 +106,8 @@ public class TxRepositoryH2Impl extends TxRepositoryCustomBase implements TxRepo
             baseOrConditions = baseOrConditions.or(TRANSACTION.TX_HASH.in(batch));
         }
 
-        // OR queries always need block join due to OR conditions on block fields
-        boolean needsBlockJoin = true;
-        
         // Execute separate count and results queries for optimal performance
-        int totalCount = executeCountQuery(baseOrConditions, isSuccess, needsBlockJoin);
+        int totalCount = executeCountQuery(baseOrConditions, isSuccess);
         List<? extends org.jooq.Record> results = executeResultsQuery(baseOrConditions, isSuccess, pageable);
 
         return createPageFromSeparateQueries(totalCount, results, pageable);

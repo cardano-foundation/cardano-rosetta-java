@@ -381,22 +381,4 @@ public class TxRepositoryQueryBuilder {
         return orCondition;
     }
 
-//    /**
-//     * Executes a query with pagination and count in a single database call.
-//     */
-//    public Page<TxnEntity> executeQueryWithCount(SelectJoinStep<?> baseQuery,
-//                                                Condition conditions,
-//                                                OffsetBasedPageRequest pageable) {
-//        var queryWithCount = baseQuery
-//                .leftJoin(BLOCK).on(TRANSACTION.BLOCK_HASH.eq(BLOCK.HASH))
-//                .leftJoin(TRANSACTION_SIZE).on(TRANSACTION.TX_HASH.eq(TRANSACTION_SIZE.TX_HASH))
-//                .where(conditions)
-//                .orderBy(TRANSACTION.SLOT.desc())
-//                .limit(pageable.getPageSize())
-//                .offset(pageable.getOffset());
-//
-//        List<? extends org.jooq.Record> results = queryWithCount.fetch();
-//
-//        return createPageFromResultsWithCount(results, pageable);
-//    }
 }

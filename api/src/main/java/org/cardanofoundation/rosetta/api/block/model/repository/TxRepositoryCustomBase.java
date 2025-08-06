@@ -99,29 +99,31 @@ public abstract class TxRepositoryCustomBase implements TxRepositoryCustom {
     /**
      * Builds a base query with common JOINs.
      * Currency filtering uses EXISTS subqueries, so no currency JOIN is ever needed.
+     * Always includes all JOINs for consistency between count and results queries.
      */
     protected SelectJoinStep<?> buildBaseResultsQuery(@Nullable Boolean isSuccess) {
         var baseQuery = queryBuilder.buildTransactionSelectQuery(dsl);
+        
+        // Always include block JOIN for consistency with count queries
+        baseQuery = baseQuery.leftJoin(BLOCK).on(TRANSACTION.BLOCK_HASH.eq(BLOCK.HASH));
         
         if (isSuccess != null) {
             baseQuery = baseQuery.leftJoin(INVALID_TRANSACTION).on(TRANSACTION.TX_HASH.eq(INVALID_TRANSACTION.TX_HASH));
         }
         
-        return baseQuery
-                .leftJoin(BLOCK).on(TRANSACTION.BLOCK_HASH.eq(BLOCK.HASH))
-                .leftJoin(TRANSACTION_SIZE).on(TRANSACTION.TX_HASH.eq(TRANSACTION_SIZE.TX_HASH));
+        return baseQuery.leftJoin(TRANSACTION_SIZE).on(TRANSACTION.TX_HASH.eq(TRANSACTION_SIZE.TX_HASH));
     }
     
     /**
-     * Builds a count query with necessary JOINs based on filtering requirements.
+     * Builds a count query with necessary JOINs.
      * Currency filtering uses EXISTS subqueries, so no currency JOIN is ever needed.
+     * Always includes block JOIN for consistency with results queries.
      */
-    protected SelectJoinStep<org.jooq.Record1<Integer>> buildBaseCountQuery(@Nullable Boolean isSuccess, boolean needsBlockJoin) {
+    protected SelectJoinStep<org.jooq.Record1<Integer>> buildBaseCountQuery(@Nullable Boolean isSuccess) {
         var countQuery = dsl.selectCount().from(TRANSACTION);
         
-        if (needsBlockJoin) {
-            countQuery = countQuery.leftJoin(BLOCK).on(TRANSACTION.BLOCK_HASH.eq(BLOCK.HASH));
-        }
+        // Always include block JOIN for consistency with results queries
+        countQuery = countQuery.leftJoin(BLOCK).on(TRANSACTION.BLOCK_HASH.eq(BLOCK.HASH));
         
         if (isSuccess != null) {
             countQuery = countQuery.leftJoin(INVALID_TRANSACTION).on(TRANSACTION.TX_HASH.eq(INVALID_TRANSACTION.TX_HASH));
@@ -177,10 +179,8 @@ public abstract class TxRepositoryCustomBase implements TxRepositoryCustom {
         // Build conditions
         Condition conditions = queryBuilder.buildAndConditions(txHashes, blockHash, blockNumber, maxBlock, isSuccess, currency, getCurrencyConditionBuilder());
         
-        boolean needsBlockJoin = blockHash != null || blockNumber != null || maxBlock != null;
-        
         // Execute separate count and results queries for optimal performance
-        int totalCount = executeCountQuery(conditions, isSuccess, needsBlockJoin);
+        int totalCount = executeCountQuery(conditions, isSuccess);
         List<? extends org.jooq.Record> results = executeResultsQuery(conditions, isSuccess, offsetBasedPageRequest);
 
         return queryBuilder.createPageFromSeparateQueries(results, totalCount, offsetBasedPageRequest);
@@ -202,11 +202,8 @@ public abstract class TxRepositoryCustomBase implements TxRepositoryCustom {
         // Build OR conditions
         Condition orConditions = queryBuilder.buildOrConditions(txHashes, blockHash, blockNumber, maxBlock, isSuccess, currency, getCurrencyConditionBuilder());
         
-        // OR queries always need block join due to OR conditions on block fields
-        boolean needsBlockJoin = true;
-        
         // Execute separate count and results queries for optimal performance
-        int totalCount = executeCountQuery(orConditions, isSuccess, needsBlockJoin);
+        int totalCount = executeCountQuery(orConditions, isSuccess);
         List<? extends org.jooq.Record> results = executeResultsQuery(orConditions, isSuccess, offsetBasedPageRequest);
 
         return queryBuilder.createPageFromSeparateQueries(results, totalCount, offsetBasedPageRequest);
@@ -217,8 +214,8 @@ public abstract class TxRepositoryCustomBase implements TxRepositoryCustom {
      * Ensures count and results queries use identical conditions and JOINs.
      * Currency conditions use EXISTS subqueries - no JOIN needed.
      */
-    protected int executeCountQuery(Condition conditions, @Nullable Boolean isSuccess, boolean needsBlockJoin) {
-        return buildBaseCountQuery(isSuccess, needsBlockJoin)
+    protected int executeCountQuery(Condition conditions, @Nullable Boolean isSuccess) {
+        return buildBaseCountQuery(isSuccess)
                 .where(conditions)
                 .fetchOne(0, Integer.class);
     }
