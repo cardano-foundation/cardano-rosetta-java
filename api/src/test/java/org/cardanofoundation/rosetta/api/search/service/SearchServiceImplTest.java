@@ -294,21 +294,42 @@ class SearchServiceImplTest {
     class CurrencySearchTests {
 
         @Test
-        void shouldThrowException_whenCurrencyIsProvided() {
+        void shouldSupportCurrencySearch() {
             // Given
             Currency currency = Currency.builder().symbol("ADA").build();
-
+            
             SearchTransactionsRequest request = SearchTransactionsRequest.builder()
                     .networkIdentifier(networkIdentifier)
                     .currency(currency)
                     .build();
 
-            // When & Then
-            assertThatThrownBy(() -> searchService.searchTransaction(request, 0L, 10L))
-                    .isInstanceOf(ApiException.class)
-                    .hasMessage("Currency search is not currently supported");
+            // Mock the ledgerSearchService to return an empty page
+            Page<BlockTx> emptyPage = new PageImpl<>(List.of());
+            when(ledgerSearchService.searchTransaction(
+                    any(), // operator
+                    any(), // txHash
+                    any(), // address
+                    any(), // utxoKey
+                    any(), // currency
+                    any(), // blockHash
+                    any(), // blockIndex
+                    any(), // maxBlock
+                    any(), // isSuccess
+                    anyLong(), // offset
+                    anyLong() // limit
+            )).thenReturn(emptyPage);
 
-            verifyNoInteractions(ledgerSearchService);
+            // When
+            Page<BlockTransaction> result = searchService.searchTransaction(request, 0L, 10L);
+
+            // Then
+            assertThat(result).isNotNull();
+            assertThat(result.getContent()).isEmpty();
+            
+            // Verify that ledgerSearchService was called (currency search is now supported)
+            verify(ledgerSearchService).searchTransaction(
+                    any(), any(), any(), any(), any(), any(), any(), any(), any(), anyLong(), anyLong()
+            );
         }
     }
 

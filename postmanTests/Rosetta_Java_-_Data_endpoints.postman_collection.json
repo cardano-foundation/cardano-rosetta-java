@@ -1266,6 +1266,87 @@
 								}
 							},
 							"response": []
+						},
+						{
+							"name": "valid payment address - shelley base using address field - large utxos",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"const responseJson = pm.response.json();",
+											"const transactions = responseJson.transactions || [];",
+											"const body = pm.request.body.raw ? JSON.parse(pm.request.body.raw) : {};",
+											"",
+											"// ensure response is successful",
+											"pm.test(\"Response should be successful\", () => {",
+											"    pm.expect(pm.response.code).to.eql(200);",
+											"});",
+											"",
+											"pm.test(\"Returns transactions for payment address\", () => {",
+											"    pm.expect(transactions, \"Should return transactions for payment address\")",
+											"        .to.be.an(\"array\").and.not.be.empty;",
+											"    ",
+											"    pm.expect(responseJson.total_count, \"total_count should be > 0\")",
+											"        .to.be.gt(0);",
+											"});",
+											"",
+											"pm.test(\"All transactions involve the requested payment address\", () => {",
+											"        if (body.account_identifier && body.account_identifier.address && transactions.length > 0) {",
+											"            const requestedAddress = body.account_identifier.address;",
+											"            ",
+											"            transactions.forEach((tx, txIndex) => {",
+											"                const operations = tx.transaction.operations;",
+											"                const addressFound = operations.some(op => ",
+											"                    op.account && op.account.address === requestedAddress",
+											"                );",
+											"                ",
+											"                pm.expect(addressFound, `Transaction ${txIndex} should involve the requested address`)",
+											"                    .to.be.true;",
+											"            });",
+											"        }",
+											"    });",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"preprod\"\n    },\n    \"address\": \"addr_test1wqd2qdzhh3x280q6erdksyku6k3eknrqsmrpkjnn6hsvjegk9gghn\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{URL}}/search/transactions",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"search",
+										"transactions"
+									]
+								}
+							},
+							"response": []
 						}
 					],
 					"description": "Verifies that querying by one or more transaction hashes returns the expected results, including not-found cases.",
@@ -3837,6 +3918,146 @@
 									"}"
 								]
 							}
+						}
+					]
+				},
+				{
+					"name": "currency",
+					"item": [
+						{
+							"name": "ada filter",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"preprod\"\n    },\n    \"currency\": {\n        \"symbol\": \"lovelace\",\n        \"decimals\": 6\n    }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{URL}}/search/transactions",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"search",
+										"transactions"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "ADA filter",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"preprod\"\n    },\n    \"currency\": {\n        \"symbol\": \"ADA\",\n        \"decimals\": 6\n    }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{URL}}/search/transactions",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"search",
+										"transactions"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "lovelace filter",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"preprod\"\n    },\n    \"currency\": {\n        \"symbol\": \"lovelace\",\n        \"decimals\": 6\n    }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{URL}}/search/transactions",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"search",
+										"transactions"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "asset - tTEURO by name",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"preprod\"\n    },\n    \"currency\": {\n        \"symbol\": \"tTEURO\",\n        \"decimals\": 6\n    }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{URL}}/search/transactions",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"search",
+										"transactions"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "asset - tTEURO by policyId",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"preprod\"\n    },\n    \"currency\": {\n        \"symbol\": \"tTEURO\",\n        \"decimals\": 6,\n        \"metadata\": {\n            \"policyId\": \"e68f1cea19752d1292b4be71b7f5d2b3219a15859c028f7454f66cdf\"\n        }\n    }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{URL}}/search/transactions",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"search",
+										"transactions"
+									]
+								}
+							},
+							"response": []
 						}
 					]
 				}

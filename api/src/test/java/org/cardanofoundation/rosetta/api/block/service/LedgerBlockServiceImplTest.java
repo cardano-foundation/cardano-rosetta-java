@@ -82,18 +82,21 @@ class LedgerBlockServiceImplTest {
     transaction.setInputs(Collections.emptyList());
     transaction.setOutputs(Collections.emptyList());
 
+    val invalidTransaction = new InvalidTransactionEntity();
+    invalidTransaction.setTxHash("txHash1");
+    
     val transactionInfo = new LedgerBlockServiceImpl.TransactionInfo(
             Collections.emptyList(), // utxos
             Collections.emptyList(), // stakeRegistrations
             Collections.emptyList(), // delegations
             Collections.emptyList(), // poolRegistrations
             Collections.emptyList(), // poolRetirements
-            Collections.emptyList()  // withdrawals
+            Collections.emptyList(), // withdrawals
+            List.of(invalidTransaction)  // invalidTransactions
     );
 
     val utxoMap = new HashMap<LedgerBlockServiceImpl.UtxoKey, AddressUtxoEntity>();
 
-    when(invalidTransactionRepository.findById("txHash1")).thenReturn(Optional.of(new InvalidTransactionEntity()));
     ledgerBlockService.populateTransaction(transaction, transactionInfo, utxoMap);
     assertThat(transaction.isInvalid()).isTrue();
   }
@@ -111,11 +114,11 @@ class LedgerBlockServiceImplTest {
             Collections.emptyList(), // delegations
             Collections.emptyList(), // poolRegistrations
             Collections.emptyList(), // poolRetirements
-            Collections.emptyList()  // withdrawals
+            Collections.emptyList(), // withdrawals
+            Collections.emptyList()  // invalidTransactions - empty list means transaction is valid
     );
 
     val utxoMap = new HashMap<LedgerBlockServiceImpl.UtxoKey, AddressUtxoEntity>();
-    when(invalidTransactionRepository.findById("txHash1")).thenReturn(Optional.empty());
     ledgerBlockService.populateTransaction(transaction, transactionInfo, utxoMap);
     assertThat(transaction.isInvalid()).isFalse();
   }
@@ -142,6 +145,7 @@ class LedgerBlockServiceImplTest {
     val transactionInfo = new LedgerBlockServiceImpl.TransactionInfo(
             Collections.emptyList(),
             stakeRegistrations,
+            Collections.emptyList(),
             Collections.emptyList(),
             Collections.emptyList(),
             Collections.emptyList(),
@@ -178,6 +182,7 @@ class LedgerBlockServiceImplTest {
             delegations,
             Collections.emptyList(),
             Collections.emptyList(),
+            Collections.emptyList(),
             Collections.emptyList()
     );
 
@@ -211,7 +216,8 @@ class LedgerBlockServiceImplTest {
             Collections.emptyList(),
             Collections.emptyList(),
             Collections.emptyList(),
-            withdrawals
+            withdrawals,
+            Collections.emptyList()
     );
 
     ledgerBlockService.populateTransaction(transaction, transactionInfo, utxoMap);
@@ -242,6 +248,7 @@ class LedgerBlockServiceImplTest {
             Collections.emptyList(),
             Collections.emptyList(),
             poolRegistrations,
+            Collections.emptyList(),
             Collections.emptyList(),
             Collections.emptyList()
     );
@@ -275,6 +282,7 @@ class LedgerBlockServiceImplTest {
             Collections.emptyList(),
             Collections.emptyList(),
             poolRetirements,
+            Collections.emptyList(),
             Collections.emptyList()
     );
 
