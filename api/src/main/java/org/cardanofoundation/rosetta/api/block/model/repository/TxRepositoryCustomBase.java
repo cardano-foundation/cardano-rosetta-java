@@ -97,18 +97,6 @@ public abstract class TxRepositoryCustomBase implements TxRepositoryCustom {
                                                                           OffsetBasedPageRequest pageable);
     
     /**
-     * Utility method for partitioning lists (used by H2 implementation).
-     */
-    protected static <T> List<List<T>> partitionList(List<T> list, int batchSize) {
-        List<List<T>> batches = new ArrayList<>();
-        for (int i = 0; i < list.size(); i += batchSize) {
-            int end = Math.min(i + batchSize, list.size());
-            batches.add(list.subList(i, end));
-        }
-        return batches;
-    }
-    
-    /**
      * Builds a base query with common JOINs.
      * Currency filtering uses EXISTS subqueries, so no currency JOIN is ever needed.
      */
@@ -138,22 +126,16 @@ public abstract class TxRepositoryCustomBase implements TxRepositoryCustom {
         if (isSuccess != null) {
             countQuery = countQuery.leftJoin(INVALID_TRANSACTION).on(TRANSACTION.TX_HASH.eq(INVALID_TRANSACTION.TX_HASH));
         }
-        
+
         return countQuery;
     }
     
     /**
-     * Creates a page result using separate count and results queries (PostgreSQL approach).
+     * Creates a page result using separate count and results queries.
+     * This is the only supported approach - window functions are not used.
      */
     protected Page<TxnEntity> createPageFromSeparateQueries(int totalCount, List<? extends org.jooq.Record> results, OffsetBasedPageRequest pageable) {
         return queryBuilder.createPageFromSeparateQueries(results, totalCount, pageable);
-    }
-    
-    /**
-     * Creates a page result using window function count (H2 approach).
-     */
-    protected Page<TxnEntity> createPageFromResultsWithCount(List<? extends org.jooq.Record> results, OffsetBasedPageRequest pageable) {
-        return queryBuilder.createPageFromResultsWithCount(results, pageable);
     }
 
     @Override
@@ -197,10 +179,8 @@ public abstract class TxRepositoryCustomBase implements TxRepositoryCustom {
         
         boolean needsBlockJoin = blockHash != null || blockNumber != null || maxBlock != null;
         
-        // Execute count query first (much faster without window function)
+        // Execute separate count and results queries for optimal performance
         int totalCount = executeCountQuery(conditions, isSuccess, needsBlockJoin);
-        
-        // Execute results query (without COUNT(*) OVER())
         List<? extends org.jooq.Record> results = executeResultsQuery(conditions, isSuccess, offsetBasedPageRequest);
 
         return queryBuilder.createPageFromSeparateQueries(results, totalCount, offsetBasedPageRequest);
@@ -225,10 +205,8 @@ public abstract class TxRepositoryCustomBase implements TxRepositoryCustom {
         // OR queries always need block join due to OR conditions on block fields
         boolean needsBlockJoin = true;
         
-        // Execute count query first (much faster without window function)
+        // Execute separate count and results queries for optimal performance
         int totalCount = executeCountQuery(orConditions, isSuccess, needsBlockJoin);
-        
-        // Execute results query (without COUNT(*) OVER())
         List<? extends org.jooq.Record> results = executeResultsQuery(orConditions, isSuccess, offsetBasedPageRequest);
 
         return queryBuilder.createPageFromSeparateQueries(results, totalCount, offsetBasedPageRequest);

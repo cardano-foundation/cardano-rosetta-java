@@ -74,10 +74,8 @@ public class TxRepositoryH2Impl extends TxRepositoryCustomBase implements TxRepo
 
         boolean needsBlockJoin = blockHash != null || blockNumber != null || maxBlock != null;
         
-        // Execute count query first (faster without window function)
+        // Execute separate count and results queries for optimal performance
         int totalCount = executeCountQuery(finalConditions, isSuccess, needsBlockJoin);
-        
-        // Execute results query (without COUNT(*) OVER())
         List<? extends org.jooq.Record> results = executeResultsQuery(finalConditions, isSuccess, pageable);
 
         return createPageFromSeparateQueries(totalCount, results, pageable);
@@ -113,10 +111,8 @@ public class TxRepositoryH2Impl extends TxRepositoryCustomBase implements TxRepo
         // OR queries always need block join due to OR conditions on block fields
         boolean needsBlockJoin = true;
         
-        // Execute count query first (faster without window function)
+        // Execute separate count and results queries for optimal performance
         int totalCount = executeCountQuery(baseOrConditions, isSuccess, needsBlockJoin);
-        
-        // Execute results query (without COUNT(*) OVER())
         List<? extends org.jooq.Record> results = executeResultsQuery(baseOrConditions, isSuccess, pageable);
 
         return createPageFromSeparateQueries(totalCount, results, pageable);
@@ -151,6 +147,18 @@ public class TxRepositoryH2Impl extends TxRepositoryCustomBase implements TxRepo
             return DSL.condition("EXISTS (SELECT 1 FROM address_utxo au WHERE au.tx_hash = transaction.tx_hash " +
                     "AND au.amounts LIKE '%\"asset_name\":\"" + escapedSymbol + "\"%')");
         }
+    }
+
+    /**
+     * Utility method for partitioning lists (used by H2 implementation).
+     */
+    protected static <T> List<List<T>> partitionList(List<T> list, int batchSize) {
+        List<List<T>> batches = new ArrayList<>();
+        for (int i = 0; i < list.size(); i += batchSize) {
+            int end = Math.min(i + batchSize, list.size());
+            batches.add(list.subList(i, end));
+        }
+        return batches;
     }
 
 }

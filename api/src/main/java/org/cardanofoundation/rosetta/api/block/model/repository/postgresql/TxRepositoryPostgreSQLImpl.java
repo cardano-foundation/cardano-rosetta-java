@@ -49,7 +49,7 @@ public class TxRepositoryPostgreSQLImpl extends TxRepositoryCustomBase implement
                                                                   @Nullable Boolean isSuccess,
                                                                   @Nullable Currency currency,
                                                                   OffsetBasedPageRequest offsetBasedPageRequest) {
-        if (txHashes == null || txHashes.isEmpty()) {
+        if (txHashes.isEmpty()) {
             return searchTxnEntitiesAND(txHashes, blockHash, blockNumber, maxBlock, isSuccess, currency, offsetBasedPageRequest);
         }
 
@@ -63,10 +63,8 @@ public class TxRepositoryPostgreSQLImpl extends TxRepositoryCustomBase implement
         
         boolean needsBlockJoin = blockHash != null || blockNumber != null || maxBlock != null;
         
-        // Execute count query first (much faster without window function)
+        // Execute separate count and results queries for optimal performance
         int totalCount = executeCountQueryWithValues(hashValues, baseConditions, isSuccess, needsBlockJoin);
-        
-        // Execute results query (without COUNT(*) OVER())
         List<? extends org.jooq.Record> results = executeResultsQueryWithValues(hashValues, baseConditions, isSuccess, offsetBasedPageRequest);
 
         return createPageFromSeparateQueries(totalCount, results, offsetBasedPageRequest);
@@ -102,81 +100,70 @@ public class TxRepositoryPostgreSQLImpl extends TxRepositoryCustomBase implement
             hashConditions = hashConditions.and(getCurrencyConditionBuilder().buildCurrencyCondition(currency));
         }
 
-        // If we have other OR conditions, fall back to the original approach for now
-        // TODO: Optimize complex OR + hash set cases later to avoid window functions
+        // If we have other OR conditions, we need to handle complex OR logic
         if (blockHash != null || blockNumber != null || maxBlock != null) {
-            log.warn("Using legacy window function approach for complex OR query with {} hashes - consider optimizing", txHashes.size());
-            return handleComplexORLegacy(hashValues, hashConditions, blockHash, blockNumber, maxBlock, isSuccess, currency, offsetBasedPageRequest);
+            return handleComplexORWithSeparateQueries(hashValues, hashConditions, blockHash, blockNumber, maxBlock, isSuccess, currency, offsetBasedPageRequest);
         }
 
         // Simple case: only hash filtering - use separate count and results queries
         // Execute count query first
         int totalCount = executeCountQueryWithValues(hashValues, hashConditions, isSuccess, false); // No block join for simple hash filtering
-        
-        // Execute results query 
+        // Execute results query
         List<? extends org.jooq.Record> results = executeResultsQueryWithValues(hashValues, hashConditions, isSuccess, offsetBasedPageRequest);
 
         return createPageFromSeparateQueries(totalCount, results, offsetBasedPageRequest);
     }
     
     /**
-     * Legacy approach for complex OR queries with hash filtering.
-     * Uses window functions temporarily until complex UNION logic is optimized.
+     * Handles complex OR queries with hash filtering using separate count and results queries.
+     * This avoids window functions for better performance.
      */
-    private Page<TxnEntity> handleComplexORLegacy(Table<?> hashValues,
-                                                  Condition hashConditions,
-                                                  @Nullable String blockHash,
-                                                  @Nullable Long blockNumber, @Nullable Long maxBlock,
-                                                  @Nullable Boolean isSuccess, @Nullable Currency currency,
-                                                OffsetBasedPageRequest offsetBasedPageRequest) {
-        // Simplified legacy approach - use existing working logic with window functions
-        // TODO: Replace with proper separate query optimization later
-
-        // Build base query for hash matches with count
-        var hashQueryFrom = queryBuilder.buildTransactionSelectQueryWithCount(dsl)
-                .join(hashValues).on(TRANSACTION.TX_HASH.eq(hashValues.field("hash", String.class)));
-
-        if (isSuccess != null) {
-            hashQueryFrom = hashQueryFrom.leftJoin(INVALID_TRANSACTION).on(TRANSACTION.TX_HASH.eq(INVALID_TRANSACTION.TX_HASH));
-        }
-
-        var hashQuery = hashQueryFrom
-                .leftJoin(BLOCK).on(TRANSACTION.BLOCK_HASH.eq(BLOCK.HASH))
-                .leftJoin(TRANSACTION_SIZE).on(TRANSACTION.TX_HASH.eq(TRANSACTION_SIZE.TX_HASH))
-                .leftJoin(ADDRESS_UTXO).on(TRANSACTION.TX_HASH.eq(ADDRESS_UTXO.TX_HASH))
-                .where(hashConditions);
-
-        // Build the other OR conditions
+    private Page<TxnEntity> handleComplexORWithSeparateQueries(Table<?> hashValues,
+                                                               Condition hashConditions,
+                                                               @Nullable String blockHash,
+                                                               @Nullable Long blockNumber, @Nullable Long maxBlock,
+                                                               @Nullable Boolean isSuccess, @Nullable Currency currency,
+                                                               OffsetBasedPageRequest offsetBasedPageRequest) {
+        // We need to handle: (hash matches with conditions) OR (other block/number conditions)
+        // This requires careful construction to avoid window functions
+        
+        // Build conditions for non-hash filters
         Condition otherOrConditions = queryBuilder.buildOrConditions(null, blockHash, blockNumber, maxBlock, isSuccess, currency, getCurrencyConditionBuilder());
         
-        var otherQueryFrom = queryBuilder.buildTransactionSelectQueryWithCount(dsl);
-
-        if (isSuccess != null) {
-            otherQueryFrom = otherQueryFrom.leftJoin(INVALID_TRANSACTION).on(TRANSACTION.TX_HASH.eq(INVALID_TRANSACTION.TX_HASH));
-        }
-
-        var otherQuery = otherQueryFrom
-                .leftJoin(BLOCK).on(TRANSACTION.BLOCK_HASH.eq(BLOCK.HASH))
-                .leftJoin(TRANSACTION_SIZE).on(TRANSACTION.TX_HASH.eq(TRANSACTION_SIZE.TX_HASH))
-                .leftJoin(ADDRESS_UTXO).on(TRANSACTION.TX_HASH.eq(ADDRESS_UTXO.TX_HASH))
-                .where(otherOrConditions);
-
-        // Combine with UNION
-        var unionQuery = hashQuery.union(otherQuery)
-                .orderBy(DSL.field("slot").desc());
-
-        // Count query
+        // Strategy: Use a single query with combined OR conditions
+        // The VALUES table join will naturally filter to matching hashes
+        // We add OR conditions for the other filters
+        
+        // First, count total matching records
         var countQuery = dsl.selectCount()
-                .from(DSL.table("({0}) as union_result", unionQuery));
-
-        Integer totalElements = countQuery.fetchOne(0, Integer.class);
-
-        List<TxnEntity> content = unionQuery
+                .from(TRANSACTION)
+                .leftJoin(BLOCK).on(TRANSACTION.BLOCK_HASH.eq(BLOCK.HASH));
+                
+        if (isSuccess != null) {
+            countQuery = countQuery.leftJoin(INVALID_TRANSACTION).on(TRANSACTION.TX_HASH.eq(INVALID_TRANSACTION.TX_HASH));
+        }
+        
+        // Complex condition: (tx_hash IN values AND hash conditions) OR (other conditions)
+        Condition hashMatchCondition = DSL.exists(
+            DSL.select(DSL.one())
+               .from(hashValues)
+               .where(TRANSACTION.TX_HASH.eq(hashValues.field("hash", String.class)))
+        ).and(hashConditions);
+        
+        Condition combinedCondition = hashMatchCondition.or(otherOrConditions);
+        
+        int totalCount = countQuery.where(combinedCondition).fetchOne(0, Integer.class);
+        
+        // Now get the results
+        var resultsQuery = buildBaseResultsQuery(isSuccess)
+                .where(combinedCondition)
+                .orderBy(TRANSACTION.SLOT.desc())
                 .limit(offsetBasedPageRequest.getLimit())
-                .offset((int) offsetBasedPageRequest.getOffset())
-                .fetch(queryBuilder::mapRecordToTxnEntity);
-
-        return new PageImpl<>(content, offsetBasedPageRequest, totalElements);
+                .offset(offsetBasedPageRequest.getOffset());
+        
+        List<? extends org.jooq.Record> results = resultsQuery.fetch();
+        
+        return createPageFromSeparateQueries(totalCount, results, offsetBasedPageRequest);
     }
 
     /**

@@ -60,23 +60,7 @@ public class TxRepositoryQueryBuilder {
         return dsl.selectCount().from(TRANSACTION);
     }
 
-    /**
-     * Builds an optimized count query with joins when filtering conditions require them.
-     * Use this when your WHERE conditions reference BLOCK or INVALID_TRANSACTION tables.
-     */
-    public SelectJoinStep<Record1<Integer>> buildCountQueryWithJoins(DSLContext dsl, boolean needsBlockJoin, boolean needsInvalidTxJoin) {
-        var query = dsl.selectCount().from(TRANSACTION);
-        
-        if (needsBlockJoin) {
-            query = query.leftJoin(BLOCK).on(TRANSACTION.BLOCK_HASH.eq(BLOCK.HASH));
-        }
-        
-        if (needsInvalidTxJoin) {
-            query = query.leftJoin(INVALID_TRANSACTION).on(TRANSACTION.TX_HASH.eq(INVALID_TRANSACTION.TX_HASH));
-        }
-        
-        return query;
-    }
+    // Removed buildCountQueryWithJoins - this logic is now in TxRepositoryCustomBase
 
     public Condition buildAndConditions(@Nullable Set<String> txHashes,
                                        @Nullable String blockHash,
@@ -249,49 +233,7 @@ public class TxRepositoryQueryBuilder {
         return Collections.emptyList();
     }
 
-    /**
-     * Builds a query with count included using window functions.
-     * @deprecated Use buildTransactionSelectQuery() and buildCountQuery() separately for better performance
-     */
-    @Deprecated
-    public SelectJoinStep<Record12<String, String, JSONB, JSONB, Long, Long, String, Long, Long, Integer, Integer, Integer>> buildTransactionSelectQueryWithCount(DSLContext dsl) {
-        return dsl.select(
-                TRANSACTION.TX_HASH,
-                TRANSACTION.BLOCK_HASH,
-                TRANSACTION.INPUTS,
-                TRANSACTION.OUTPUTS,
-                TRANSACTION.FEE,
-                TRANSACTION.SLOT,
-                BLOCK.HASH.as("joined_block_hash"),
-                BLOCK.NUMBER.as("joined_block_number"),
-                BLOCK.SLOT.as("joined_block_slot"),
-                TRANSACTION_SIZE.SIZE.as("joined_tx_size"),
-                TRANSACTION_SIZE.SCRIPT_SIZE.as("joined_tx_script_size"),
-                DSL.count().over().as("total_count")  // Window function for total count
-        ).from(TRANSACTION);
-    }
-
-    /**
-     * Creates a Page from query results that include count via window function.
-     * @deprecated Use createPageFromSeparateQueries() for better performance
-     */
-    @Deprecated
-    public Page<TxnEntity> createPageFromResultsWithCount(List<? extends org.jooq.Record> results,
-                                                          OffsetBasedPageRequest pageable) {
-        if (results.isEmpty()) {
-            return new PageImpl<>(Collections.emptyList(), pageable, 0);
-        }
-
-        // Extract total count from first record (same for all records due to window function)
-        Long totalCount = results.get(0).get("total_count", Integer.class).longValue();
-
-        // Map all records to entities
-        List<TxnEntity> entities = results.stream()
-                .map(this::mapRecordToTxnEntity)
-                .toList();
-
-        return new PageImpl<>(entities, pageable, totalCount);
-    }
+    // Window function methods have been removed to enforce separate count/results query pattern
 
     /**
      * Creates a Page from separate results and count queries.
