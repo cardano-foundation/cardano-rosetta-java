@@ -50,8 +50,8 @@ public class TxRepositoryH2Impl extends TxRepositoryCustomBase implements TxRepo
                                                                   @Nullable Boolean isSuccess,
                                                                   @Nullable Currency currency,
                                                                   OffsetBasedPageRequest pageable) {
-        if (txHashes == null || txHashes.isEmpty()) {
-            return searchTxnEntitiesAND(null, blockHash, blockNumber, maxBlock, isSuccess, currency, pageable);
+        if (txHashes.isEmpty()) {
+            return searchTxnEntitiesAND(Set.of(), blockHash, blockNumber, maxBlock, isSuccess, currency, pageable);
         }
 
         log.debug("Using H2 batch approach for AND search with {} transaction hashes", txHashes.size());
@@ -72,11 +72,13 @@ public class TxRepositoryH2Impl extends TxRepositoryCustomBase implements TxRepo
         // Combine with AND
         Condition finalConditions = baseConditions.and(hashCondition);
 
+        boolean needsBlockJoin = blockHash != null || blockNumber != null || maxBlock != null;
+        
         // Execute count query first (faster without window function)
-        int totalCount = executeCountQuery(finalConditions, isSuccess, blockHash != null || blockNumber != null || maxBlock != null, false);
+        int totalCount = executeCountQuery(finalConditions, isSuccess, needsBlockJoin);
         
         // Execute results query (without COUNT(*) OVER())
-        List<? extends org.jooq.Record> results = executeResultsQuery(finalConditions, isSuccess, false, pageable);
+        List<? extends org.jooq.Record> results = executeResultsQuery(finalConditions, isSuccess, pageable);
 
         return createPageFromSeparateQueries(totalCount, results, pageable);
     }
@@ -91,7 +93,7 @@ public class TxRepositoryH2Impl extends TxRepositoryCustomBase implements TxRepo
                                                                  @Nullable Currency currency,
                                                                  OffsetBasedPageRequest pageable) {
         if (txHashes == null || txHashes.isEmpty()) {
-            return searchTxnEntitiesOR(null, blockHash, blockNumber, maxBlock, isSuccess, currency, pageable);
+            return searchTxnEntitiesOR(Set.of(), blockHash, blockNumber, maxBlock, isSuccess, currency, pageable);
         }
 
         log.debug("Using H2 batch approach for OR search with {} transaction hashes", txHashes.size());
@@ -108,11 +110,14 @@ public class TxRepositoryH2Impl extends TxRepositoryCustomBase implements TxRepo
             baseOrConditions = baseOrConditions.or(TRANSACTION.TX_HASH.in(batch));
         }
 
+        // OR queries always need block join due to OR conditions on block fields
+        boolean needsBlockJoin = true;
+        
         // Execute count query first (faster without window function)
-        int totalCount = executeOrCountQuery(baseOrConditions, isSuccess, true);
+        int totalCount = executeCountQuery(baseOrConditions, isSuccess, needsBlockJoin);
         
         // Execute results query (without COUNT(*) OVER())
-        List<? extends org.jooq.Record> results = executeOrResultsQuery(baseOrConditions, isSuccess, true, pageable);
+        List<? extends org.jooq.Record> results = executeResultsQuery(baseOrConditions, isSuccess, pageable);
 
         return createPageFromSeparateQueries(totalCount, results, pageable);
     }

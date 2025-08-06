@@ -109,17 +109,14 @@ public abstract class TxRepositoryCustomBase implements TxRepositoryCustom {
     }
     
     /**
-     * Builds a base query with common JOINs based on the required conditions.
+     * Builds a base query with common JOINs.
+     * Currency filtering uses EXISTS subqueries, so no currency JOIN is ever needed.
      */
-    protected SelectJoinStep<?> buildBaseQueryWithJoins(@Nullable Boolean isSuccess, boolean needsCurrencyJoin) {
+    protected SelectJoinStep<?> buildBaseResultsQuery(@Nullable Boolean isSuccess) {
         var baseQuery = queryBuilder.buildTransactionSelectQuery(dsl);
         
         if (isSuccess != null) {
             baseQuery = baseQuery.leftJoin(INVALID_TRANSACTION).on(TRANSACTION.TX_HASH.eq(INVALID_TRANSACTION.TX_HASH));
-        }
-        
-        if (needsCurrencyJoin) {
-            baseQuery = baseQuery.leftJoin(ADDRESS_UTXO).on(TRANSACTION.TX_HASH.eq(ADDRESS_UTXO.TX_HASH));
         }
         
         return baseQuery
@@ -128,22 +125,21 @@ public abstract class TxRepositoryCustomBase implements TxRepositoryCustom {
     }
     
     /**
-     * Builds a base query with COUNT and common JOINs (for H2 implementation using window functions).
+     * Builds a count query with necessary JOINs based on filtering requirements.
+     * Currency filtering uses EXISTS subqueries, so no currency JOIN is ever needed.
      */
-    protected SelectJoinStep<?> buildBaseQueryWithCountAndJoins(@Nullable Boolean isSuccess, boolean needsCurrencyJoin) {
-        var baseQuery = queryBuilder.buildTransactionSelectQueryWithCount(dsl);
+    protected SelectJoinStep<org.jooq.Record1<Integer>> buildBaseCountQuery(@Nullable Boolean isSuccess, boolean needsBlockJoin) {
+        var countQuery = dsl.selectCount().from(TRANSACTION);
+        
+        if (needsBlockJoin) {
+            countQuery = countQuery.leftJoin(BLOCK).on(TRANSACTION.BLOCK_HASH.eq(BLOCK.HASH));
+        }
         
         if (isSuccess != null) {
-            baseQuery = baseQuery.leftJoin(INVALID_TRANSACTION).on(TRANSACTION.TX_HASH.eq(INVALID_TRANSACTION.TX_HASH));
+            countQuery = countQuery.leftJoin(INVALID_TRANSACTION).on(TRANSACTION.TX_HASH.eq(INVALID_TRANSACTION.TX_HASH));
         }
         
-        if (needsCurrencyJoin) {
-            baseQuery = baseQuery.leftJoin(ADDRESS_UTXO).on(TRANSACTION.TX_HASH.eq(ADDRESS_UTXO.TX_HASH));
-        }
-        
-        return baseQuery
-                .leftJoin(BLOCK).on(TRANSACTION.BLOCK_HASH.eq(BLOCK.HASH))
-                .leftJoin(TRANSACTION_SIZE).on(TRANSACTION.TX_HASH.eq(TRANSACTION_SIZE.TX_HASH));
+        return countQuery;
     }
     
     /**
@@ -199,11 +195,13 @@ public abstract class TxRepositoryCustomBase implements TxRepositoryCustom {
         // Build conditions
         Condition conditions = queryBuilder.buildAndConditions(txHashes, blockHash, blockNumber, maxBlock, isSuccess, currency, getCurrencyConditionBuilder());
         
+        boolean needsBlockJoin = blockHash != null || blockNumber != null || maxBlock != null;
+        
         // Execute count query first (much faster without window function)
-        int totalCount = executeCountQuery(conditions, isSuccess, blockHash != null || blockNumber != null || maxBlock != null, currency != null);
+        int totalCount = executeCountQuery(conditions, isSuccess, needsBlockJoin);
         
         // Execute results query (without COUNT(*) OVER())
-        List<? extends org.jooq.Record> results = executeResultsQuery(conditions, isSuccess, currency != null, offsetBasedPageRequest);
+        List<? extends org.jooq.Record> results = executeResultsQuery(conditions, isSuccess, offsetBasedPageRequest);
 
         return queryBuilder.createPageFromSeparateQueries(results, totalCount, offsetBasedPageRequest);
     }
@@ -224,91 +222,38 @@ public abstract class TxRepositoryCustomBase implements TxRepositoryCustom {
         // Build OR conditions
         Condition orConditions = queryBuilder.buildOrConditions(txHashes, blockHash, blockNumber, maxBlock, isSuccess, currency, getCurrencyConditionBuilder());
         
+        // OR queries always need block join due to OR conditions on block fields
+        boolean needsBlockJoin = true;
+        
         // Execute count query first (much faster without window function)
-        int totalCount = executeOrCountQuery(orConditions, isSuccess, currency != null);
+        int totalCount = executeCountQuery(orConditions, isSuccess, needsBlockJoin);
         
         // Execute results query (without COUNT(*) OVER())
-        List<? extends org.jooq.Record> results = executeOrResultsQuery(orConditions, isSuccess, currency != null, offsetBasedPageRequest);
+        List<? extends org.jooq.Record> results = executeResultsQuery(orConditions, isSuccess, offsetBasedPageRequest);
 
         return queryBuilder.createPageFromSeparateQueries(results, totalCount, offsetBasedPageRequest);
     }
 
     /**
-     * Executes a separate count query for AND operations.
-     * This is much faster than using COUNT(*) OVER() window function.
-     * 
-     * NOTE: Currency conditions use EXISTS subqueries - no JOIN needed!
+     * Generic method to execute a count query with proper JOINs.
+     * Ensures count and results queries use identical conditions and JOINs.
+     * Currency conditions use EXISTS subqueries - no JOIN needed.
      */
-    protected int executeCountQuery(Condition conditions,
-                                    @Nullable Boolean isSuccess,
-                                    boolean needsBlockJoin,
-                                    boolean needsCurrencyJoin) {
-        var countQuery = queryBuilder.buildCountQueryWithJoins(dsl, needsBlockJoin, isSuccess != null);
-        
-        // Currency filtering uses EXISTS subqueries in the condition - no JOIN needed
-        // Adding LEFT JOIN address_utxo would cause redundant table access and poor performance
-        
-        return countQuery.where(conditions).fetchOne(0, Integer.class);
-    }
-
-    /**
-     * Executes a separate results query for AND operations.
-     * This eliminates the need for window functions and subqueries.
-     * 
-     * NOTE: Currency conditions use EXISTS subqueries - no JOIN needed!
-     */
-    protected List<? extends org.jooq.Record> executeResultsQuery(Condition conditions, @Nullable Boolean isSuccess, boolean needsCurrencyJoin, OffsetBasedPageRequest offsetBasedPageRequest) {
-        var baseQuery = queryBuilder.buildTransactionSelectQuery(dsl);
-        
-        if (isSuccess != null) {
-            baseQuery = baseQuery.leftJoin(INVALID_TRANSACTION).on(TRANSACTION.TX_HASH.eq(INVALID_TRANSACTION.TX_HASH));
-        }
-        
-        // Currency filtering uses EXISTS subqueries in the condition - no JOIN needed
-        // Adding LEFT JOIN address_utxo would cause redundant table access and poor performance
-        
-        return baseQuery
-                .leftJoin(BLOCK).on(TRANSACTION.BLOCK_HASH.eq(BLOCK.HASH))
-                .leftJoin(TRANSACTION_SIZE).on(TRANSACTION.TX_HASH.eq(TRANSACTION_SIZE.TX_HASH))
+    protected int executeCountQuery(Condition conditions, @Nullable Boolean isSuccess, boolean needsBlockJoin) {
+        return buildBaseCountQuery(isSuccess, needsBlockJoin)
                 .where(conditions)
-                .orderBy(TRANSACTION.SLOT.desc())
-                .limit(offsetBasedPageRequest.getLimit())
-                .offset(offsetBasedPageRequest.getOffset())
-                .fetch();
+                .fetchOne(0, Integer.class);
     }
 
     /**
-     * Executes a separate count query for OR operations.
-     * 
-     * NOTE: Currency conditions use EXISTS subqueries - no JOIN needed!
+     * Generic method to execute a results query with proper JOINs and pagination.
+     * Ensures count and results queries use identical conditions and JOINs.
+     * Currency conditions use EXISTS subqueries - no JOIN needed.
      */
-    protected int executeOrCountQuery(Condition conditions, @Nullable Boolean isSuccess, boolean needsCurrencyJoin) {
-        var countQuery = queryBuilder.buildCountQueryWithJoins(dsl, true, isSuccess != null); // OR queries always need block join
-        
-        // Currency filtering uses EXISTS subqueries in the condition - no JOIN needed
-        // Adding LEFT JOIN address_utxo would cause redundant table access and poor performance
-        
-        return countQuery.where(conditions).fetchOne(0, Integer.class);
-    }
-
-    /**
-     * Executes a separate results query for OR operations.
-     * 
-     * NOTE: Currency conditions use EXISTS subqueries - no JOIN needed!
-     */
-    protected List<? extends org.jooq.Record> executeOrResultsQuery(Condition conditions, @Nullable Boolean isSuccess, boolean needsCurrencyJoin, OffsetBasedPageRequest offsetBasedPageRequest) {
-        var baseQuery = queryBuilder.buildTransactionSelectQuery(dsl);
-        
-        if (isSuccess != null) {
-            baseQuery = baseQuery.leftJoin(INVALID_TRANSACTION).on(TRANSACTION.TX_HASH.eq(INVALID_TRANSACTION.TX_HASH));
-        }
-        
-        // Currency filtering uses EXISTS subqueries in the condition - no JOIN needed
-        // Adding LEFT JOIN address_utxo would cause redundant table access and poor performance
-        
-        return baseQuery
-                .leftJoin(BLOCK).on(TRANSACTION.BLOCK_HASH.eq(BLOCK.HASH))
-                .leftJoin(TRANSACTION_SIZE).on(TRANSACTION.TX_HASH.eq(TRANSACTION_SIZE.TX_HASH))
+    protected List<? extends org.jooq.Record> executeResultsQuery(Condition conditions, 
+                                                                  @Nullable Boolean isSuccess, 
+                                                                  OffsetBasedPageRequest offsetBasedPageRequest) {
+        return buildBaseResultsQuery(isSuccess)
                 .where(conditions)
                 .orderBy(TRANSACTION.SLOT.desc())
                 .limit(offsetBasedPageRequest.getLimit())

@@ -61,11 +61,13 @@ public class TxRepositoryPostgreSQLImpl extends TxRepositoryCustomBase implement
         // Build base conditions without txHashes
         Condition baseConditions = queryBuilder.buildAndConditions(null, blockHash, blockNumber, maxBlock, isSuccess, currency, getCurrencyConditionBuilder());
         
+        boolean needsBlockJoin = blockHash != null || blockNumber != null || maxBlock != null;
+        
         // Execute count query first (much faster without window function)
-        int totalCount = executeCountQueryWithValues(hashValues, baseConditions, isSuccess, currency != null);
+        int totalCount = executeCountQueryWithValues(hashValues, baseConditions, isSuccess, needsBlockJoin);
         
         // Execute results query (without COUNT(*) OVER())
-        List<? extends org.jooq.Record> results = executeResultsQueryWithValues(hashValues, baseConditions, isSuccess, currency != null, offsetBasedPageRequest);
+        List<? extends org.jooq.Record> results = executeResultsQueryWithValues(hashValues, baseConditions, isSuccess, offsetBasedPageRequest);
 
         return createPageFromSeparateQueries(totalCount, results, offsetBasedPageRequest);
     }
@@ -109,10 +111,10 @@ public class TxRepositoryPostgreSQLImpl extends TxRepositoryCustomBase implement
 
         // Simple case: only hash filtering - use separate count and results queries
         // Execute count query first
-        int totalCount = executeCountQueryWithValues(hashValues, hashConditions, isSuccess, currency != null);
+        int totalCount = executeCountQueryWithValues(hashValues, hashConditions, isSuccess, false); // No block join for simple hash filtering
         
         // Execute results query 
-        List<? extends org.jooq.Record> results = executeResultsQueryWithValues(hashValues, hashConditions, isSuccess, currency != null, offsetBasedPageRequest);
+        List<? extends org.jooq.Record> results = executeResultsQueryWithValues(hashValues, hashConditions, isSuccess, offsetBasedPageRequest);
 
         return createPageFromSeparateQueries(totalCount, results, offsetBasedPageRequest);
     }
@@ -121,9 +123,11 @@ public class TxRepositoryPostgreSQLImpl extends TxRepositoryCustomBase implement
      * Legacy approach for complex OR queries with hash filtering.
      * Uses window functions temporarily until complex UNION logic is optimized.
      */
-    private Page<TxnEntity> handleComplexORLegacy(Table<?> hashValues, Condition hashConditions,
-                                                @Nullable String blockHash, @Nullable Long blockNumber, @Nullable Long maxBlock,
-                                                @Nullable Boolean isSuccess, @Nullable Currency currency,
+    private Page<TxnEntity> handleComplexORLegacy(Table<?> hashValues,
+                                                  Condition hashConditions,
+                                                  @Nullable String blockHash,
+                                                  @Nullable Long blockNumber, @Nullable Long maxBlock,
+                                                  @Nullable Boolean isSuccess, @Nullable Currency currency,
                                                 OffsetBasedPageRequest offsetBasedPageRequest) {
         // Simplified legacy approach - use existing working logic with window functions
         // TODO: Replace with proper separate query optimization later
@@ -198,30 +202,21 @@ public class TxRepositoryPostgreSQLImpl extends TxRepositoryCustomBase implement
     
     /**
      * Executes a count query using VALUES table for efficient hash filtering.
-     * Currency conditions use EXISTS subqueries - no additional JOIN needed.
+     * Uses the same JOIN logic as base class but adds VALUES JOIN.
      */
-    private int executeCountQueryWithValues(Table<?> hashValues, Condition baseConditions, @Nullable Boolean isSuccess, boolean needsCurrencyJoin) {
-        var countQuery = dsl.selectCount()
-                .from(TRANSACTION)
-                .join(hashValues).on(TRANSACTION.TX_HASH.eq(hashValues.field("hash", String.class)))
-                .leftJoin(BLOCK).on(TRANSACTION.BLOCK_HASH.eq(BLOCK.HASH));
-        
-        if (isSuccess != null) {
-            countQuery = countQuery.leftJoin(INVALID_TRANSACTION).on(TRANSACTION.TX_HASH.eq(INVALID_TRANSACTION.TX_HASH));
-        }
-        
-        // Currency filtering uses EXISTS subqueries - no JOIN needed to avoid redundant table access
-        
+    private int executeCountQueryWithValues(Table<?> hashValues, Condition baseConditions, @Nullable Boolean isSuccess, boolean needsBlockJoin) {
+        var countQuery = buildBaseCountQuery(isSuccess, needsBlockJoin)
+                .join(hashValues).on(TRANSACTION.TX_HASH.eq(hashValues.field("hash", String.class)));
+
         return countQuery.where(baseConditions).fetchOne(0, Integer.class);
     }
     
     /**
      * Executes a results query using VALUES table for efficient hash filtering.
-     * Currency conditions use EXISTS subqueries - no additional JOIN needed.
+     * Uses the same JOIN logic as base class but adds VALUES JOIN.
      */
-    private List<? extends org.jooq.Record> executeResultsQueryWithValues(Table<?> hashValues, Condition baseConditions, @Nullable Boolean isSuccess, boolean needsCurrencyJoin, OffsetBasedPageRequest offsetBasedPageRequest) {
-        // Start with VALUES JOIN for hash filtering - currency filtering uses EXISTS subqueries
-        var baseQuery = ((SelectJoinStep<?>) buildBaseQueryWithJoins(isSuccess, false)) // Never add currency JOIN
+    private List<? extends org.jooq.Record> executeResultsQueryWithValues(Table<?> hashValues, Condition baseConditions, @Nullable Boolean isSuccess, OffsetBasedPageRequest offsetBasedPageRequest) {
+        var baseQuery = buildBaseResultsQuery(isSuccess)
                 .join(hashValues).on(TRANSACTION.TX_HASH.eq(hashValues.field("hash", String.class)));
         
         return baseQuery
