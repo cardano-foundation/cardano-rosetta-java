@@ -7,6 +7,9 @@ description: Performance measurement methodologies and results
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
+import AdvDockerCompose131_pruned  from './test-results/1.3.1/advanced_profile/docker-compose-pruned.md';
+import MidDockerCompose131 from './test-results/1.3.1/mid_profile/docker-compose.md';
+
 import MidDockerCompose129 from './test-results/1.2.9/mid_profile/docker-compose.md';
 import MidHugeAddress373kv129 from './test-results/1.2.9/mid_profile/huge-address-373k.md';
 import MidHugeAddress16Mv129 from './test-results/1.2.9/mid_profile/huge-address-1.6M.md';
@@ -53,6 +56,53 @@ Load tests are conducted using Apache Bench (ab) with a ramp-up strategy, progre
 :::tip
 To better understand the environments in which these results were obtained, please refer to our [hardware profiles documentation](../install-and-deploy/hardware-profiles).
 :::
+
+<details>
+<summary>
+### v1.3.1 (Aug 7, 2025)
+</summary>
+- [Release Notes](https://github.com/cardano-foundation/cardano-rosetta-java/releases/tag/1.3.1)
+<details>
+<summary>
+ **Mid-level Hardware Profile** 
+</summary>
+**Machine Specs:** 8 cores, 8 threads, 47GB RAM, 3.9TB NVMe, QEMU Virtual CPU v2.5+
+
+Maximum concurrency achieved for each modes:
+<details>
+
+<summary>
+#### Pruning Disabled (`REMOVE_SPENT_UTXOS=false`)
+</summary>
+<Tabs>
+  <TabItem value="mid_docker_compose131" label="Docker Compose" default>
+    <MidDockerCompose131 />
+  </TabItem>
+</Tabs>
+</details>
+</details>
+
+<details>
+<summary>
+ **Advanced-level Hardware Profile** 
+</summary>
+**Machine Specs:** 16 cores, 16 threads, 47GB RAM, 3.9TB NVMe, QEMU Virtual CPU v2.5+
+
+Maximum concurrency achieved for each modes:
+<details>
+<summary>
+#### Pruning Enabled (`REMOVE_SPENT_UTXOS=true`)
+</summary>
+<Tabs>
+  <TabItem value="adv_docker_compose131_pruned" label="Docker Compose" default>
+    <AdvDockerCompose131_pruned />
+  </TabItem>
+</Tabs>
+</details>
+</details>
+</details>
+
+
 
 <details>
 <summary>
