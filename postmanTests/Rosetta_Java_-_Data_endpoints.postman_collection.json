@@ -1,10 +1,9 @@
 {
 	"info": {
-		"_postman_id": "aa981df3-0cba-4af8-9495-06696089819f",
+		"_postman_id": "a0d2170d-5282-4e2e-9a86-190cb23dfa88",
 		"name": "Rosetta Java | Data endpoints",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "22770953",
-		"_collection_link": "https://universal-water-431619.postman.co/workspace/My-Workspace~207852b0-2ada-455f-838b-25731ed1d6fa/collection/22770953-aa981df3-0cba-4af8-9495-06696089819f?action=share&source=collection_link&creator=22770953"
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "5364165"
 	},
 	"item": [
 		{
@@ -75,16 +74,7 @@
 										}
 									}
 								},
-								"url": {
-									"raw": "{{URL}}/search/transactions",
-									"host": [
-										"{{URL}}"
-									],
-									"path": [
-										"search",
-										"transactions"
-									]
-								}
+								"url": "{{URL}}/search/transactions"
 							},
 							"response": []
 						},
@@ -134,16 +124,7 @@
 										}
 									}
 								},
-								"url": {
-									"raw": "{{URL}}/search/transactions",
-									"host": [
-										"{{URL}}"
-									],
-									"path": [
-										"search",
-										"transactions"
-									]
-								}
+								"url": "{{URL}}/search/transactions"
 							},
 							"response": []
 						},
@@ -155,17 +136,12 @@
 									"script": {
 										"exec": [
 											"pm.test(\"Invalid network returns appropriate error\", () => {",
-											"    const res = pm.response.json();",
-											"",
+											"      const res = pm.response.json();",
 											"    pm.expect(pm.response.code, \"Should return error status code\")",
 											"        .to.be.gte(400);",
-											"",
-											"",
-											"    pm.expect(res.code, \"Error code should be 4002\")",
-											"",
-											"    const errorMessage = res.message.includes(\"Network not found\") ? res.message : res.details?.message;",
-											"    pm.expect(errorMessage, \"Error message should indicate network not found\")",
-											"        .to.include(\"Network not found\");",
+											"    pm.expect(res.code, \"Error code should be 4002\").to.eql(4002);",
+											"    pm.expect(res.message, \"Error message should indicate network not found\").to.eql(\"Network not found\");",
+											"    pm.expect(res.retriable, \"`retriable` must be false\").to.be.false;",
 											"});",
 											""
 										],
@@ -196,16 +172,7 @@
 										}
 									}
 								},
-								"url": {
-									"raw": "{{URL}}/search/transactions",
-									"host": [
-										"{{URL}}"
-									],
-									"path": [
-										"search",
-										"transactions"
-									]
-								}
+								"url": "{{URL}}/search/transactions"
 							},
 							"response": []
 						}
@@ -264,16 +231,7 @@
 										}
 									}
 								},
-								"url": {
-									"raw": "{{URL}}/search/transactions",
-									"host": [
-										"{{URL}}"
-									],
-									"path": [
-										"search",
-										"transactions"
-									]
-								}
+								"url": "{{URL}}/search/transactions"
 							},
 							"response": []
 						},
@@ -287,6 +245,26 @@
 											"// ensure response is successful",
 											"pm.test(\"Response should be successful\", () => {",
 											"    pm.expect(pm.response.code).to.eql(200);",
+											"});",
+											"pm.test(\"Operations index are sequential\", () => {",
+											"    const res = pm.response.json();",
+											"    const ops = res.transactions[0].transaction.operations.map(o => o.operation_identifier.index);",
+											"    for (let i = 0; i < ops.length; i++) {",
+											"        pm.expect(ops[i]).to.eql(i);",
+											"    }",
+											"});",
+											"",
+											"const transactions = pm.response.json().transactions; // Defined transactions here",
+											"pm.test(\"Transactions have unique hashes\", () => {",
+											"    const hashes = transactions.map(t => t.transaction.transaction_identifier.hash);",
+											"    const uniqueHashes = [...new Set(hashes)];",
+											"    pm.expect(uniqueHashes.length, \"Duplicate transaction hashes found\")",
+											"        .to.equal(hashes.length);",
+											"});",
+											"pm.test(\"Block indexes are non-negative\", () => {",
+											"    transactions.forEach(t => {",
+											"        pm.expect(t.block_identifier.index).to.be.at.least(0);",
+											"    });",
 											"});"
 										],
 										"type": "text/javascript",
@@ -316,16 +294,7 @@
 										}
 									}
 								},
-								"url": {
-									"raw": "{{URL}}/search/transactions",
-									"host": [
-										"{{URL}}"
-									],
-									"path": [
-										"search",
-										"transactions"
-									]
-								}
+								"url": "{{URL}}/search/transactions"
 							},
 							"response": []
 						},
@@ -339,7 +308,33 @@
 											"// ensure response is successful",
 											"pm.test(\"Response should be successful\", () => {",
 											"    pm.expect(pm.response.code).to.eql(200);",
-											"});"
+											"});",
+											"pm.test(\"Operations index are sequential in all transactions\", () => {",
+											"    const res = pm.response.json();",
+											"",
+											"    res.transactions.forEach((tx, txIndex) => {",
+											"        const ops = tx.transaction.operations.map(o => o.operation_identifier.index);",
+											"",
+											"        for (let i = 0; i < ops.length; i++) {",
+											"            pm.expect(ops[i], `Transaction ${txIndex} operation index mismatch at position ${i}`)",
+											"              .to.eql(i);",
+											"        }",
+											"    });",
+											"});",
+											"",
+											"const transactions = pm.response.json().transactions; // Defined transactions here",
+											"pm.test(\"Transactions have unique hashes\", () => {",
+											"    const hashes = transactions.map(t => t.transaction.transaction_identifier.hash);",
+											"    const uniqueHashes = [...new Set(hashes)];",
+											"    pm.expect(uniqueHashes.length, \"Duplicate transaction hashes found\")",
+											"        .to.equal(hashes.length);",
+											"});",
+											"pm.test(\"Block indexes are non-negative\", () => {",
+											"    transactions.forEach(t => {",
+											"        pm.expect(t.block_identifier.index).to.be.at.least(0);",
+											"    });",
+											"});",
+											""
 										],
 										"type": "text/javascript",
 										"packages": {}
@@ -368,16 +363,7 @@
 										}
 									}
 								},
-								"url": {
-									"raw": "{{URL}}/search/transactions",
-									"host": [
-										"{{URL}}"
-									],
-									"path": [
-										"search",
-										"transactions"
-									]
-								}
+								"url": "{{URL}}/search/transactions"
 							},
 							"response": []
 						},
@@ -391,7 +377,32 @@
 											"// ensure response is successful",
 											"pm.test(\"Response should be successful\", () => {",
 											"    pm.expect(pm.response.code).to.eql(200);",
-											"});"
+											"});",
+											"pm.test(\"Operations index are sequential in all transactions\", () => {",
+											"    const res = pm.response.json();",
+											"",
+											"    res.transactions.forEach((tx, txIndex) => {",
+											"        const ops = tx.transaction.operations.map(o => o.operation_identifier.index);",
+											"",
+											"        for (let i = 0; i < ops.length; i++) {",
+											"            pm.expect(ops[i], `Transaction ${txIndex} operation index mismatch at position ${i}`)",
+											"              .to.eql(i);",
+											"        }",
+											"    });",
+											"});",
+											"const transactions = pm.response.json().transactions; // Defined transactions here",
+											"pm.test(\"Transactions have unique hashes\", () => {",
+											"    const hashes = transactions.map(t => t.transaction.transaction_identifier.hash);",
+											"    const uniqueHashes = [...new Set(hashes)];",
+											"    pm.expect(uniqueHashes.length, \"Duplicate transaction hashes found\")",
+											"        .to.equal(hashes.length);",
+											"});",
+											"pm.test(\"Block indexes are non-negative\", () => {",
+											"    transactions.forEach(t => {",
+											"        pm.expect(t.block_identifier.index).to.be.at.least(0);",
+											"    });",
+											"});",
+											""
 										],
 										"type": "text/javascript",
 										"packages": {}
@@ -420,16 +431,7 @@
 										}
 									}
 								},
-								"url": {
-									"raw": "{{URL}}/search/transactions",
-									"host": [
-										"{{URL}}"
-									],
-									"path": [
-										"search",
-										"transactions"
-									]
-								}
+								"url": "{{URL}}/search/transactions"
 							},
 							"response": []
 						},
@@ -443,7 +445,32 @@
 											"// ensure response is successful",
 											"pm.test(\"Response should be successful\", () => {",
 											"    pm.expect(pm.response.code).to.eql(200);",
-											"});"
+											"});",
+											"pm.test(\"Operations index are sequential in all transactions\", () => {",
+											"    const res = pm.response.json();",
+											"",
+											"    res.transactions.forEach((tx, txIndex) => {",
+											"        const ops = tx.transaction.operations.map(o => o.operation_identifier.index);",
+											"",
+											"        for (let i = 0; i < ops.length; i++) {",
+											"            pm.expect(ops[i], `Transaction ${txIndex} operation index mismatch at position ${i}`)",
+											"              .to.eql(i);",
+											"        }",
+											"    });",
+											"});",
+											"const transactions = pm.response.json().transactions; // Defined transactions here",
+											"pm.test(\"Transactions have unique hashes\", () => {",
+											"    const hashes = transactions.map(t => t.transaction.transaction_identifier.hash);",
+											"    const uniqueHashes = [...new Set(hashes)];",
+											"    pm.expect(uniqueHashes.length, \"Duplicate transaction hashes found\")",
+											"        .to.equal(hashes.length);",
+											"});",
+											"pm.test(\"Block indexes are non-negative\", () => {",
+											"    transactions.forEach(t => {",
+											"        pm.expect(t.block_identifier.index).to.be.at.least(0);",
+											"    });",
+											"});",
+											""
 										],
 										"type": "text/javascript",
 										"packages": {}
@@ -472,16 +499,7 @@
 										}
 									}
 								},
-								"url": {
-									"raw": "{{URL}}/search/transactions",
-									"host": [
-										"{{URL}}"
-									],
-									"path": [
-										"search",
-										"transactions"
-									]
-								}
+								"url": "{{URL}}/search/transactions"
 							},
 							"response": []
 						},
@@ -493,9 +511,18 @@
 									"script": {
 										"exec": [
 											"// ensure response is successful",
-											"pm.test(\"Response should be successful\", () => {",
-											"    pm.expect(pm.response.code).to.eql(200);",
-											"});"
+											"pm.test(\"Response should NOT be successful\", () => {",
+											"    pm.expect(pm.response.code).to.eql(500);",
+											"});",
+											"const res = pm.response.json();",
+											"pm.test(\"Error code is 5053\", () => {",
+											"    pm.expect(res.code).to.eql(5053);",
+											"});",
+											"pm.test(\"Requested limit size exceeds maximum allowed size 100\", () => {",
+											"    pm.expect(res.message).to.eql(\"Invalid limit size\");",
+											"});",
+											"",
+											""
 										],
 										"type": "text/javascript",
 										"packages": {}
@@ -524,16 +551,7 @@
 										}
 									}
 								},
-								"url": {
-									"raw": "{{URL}}/search/transactions",
-									"host": [
-										"{{URL}}"
-									],
-									"path": [
-										"search",
-										"transactions"
-									]
-								}
+								"url": "{{URL}}/search/transactions"
 							},
 							"response": []
 						},
@@ -588,16 +606,7 @@
 										}
 									}
 								},
-								"url": {
-									"raw": "{{URL}}/search/transactions",
-									"host": [
-										"{{URL}}"
-									],
-									"path": [
-										"search",
-										"transactions"
-									]
-								}
+								"url": "{{URL}}/search/transactions"
 							},
 							"response": []
 						}
@@ -623,7 +632,7 @@
 									"const res = pm.response.json();",
 									"const transactions = res.transactions || [];",
 									"const body = pm.request.body.raw ? JSON.parse(pm.request.body.raw) : {};",
-									"",
+									"const limit = body.limit;",
 									"const testBlueprint = {",
 									"    expected: {",
 									"        counts: {",
@@ -638,10 +647,17 @@
 									"    testBlueprint.expected.counts.limit +",
 									"    (testBlueprint.expected.counts.limit === 1 ? \" transaction\" : \" transactions\") +",
 									"    \" in the response body\";",
-									"pm.test(testName, () => {",
-									"    pm.expect(transactions)",
-									"        .to.have.lengthOf.at.least(testBlueprint.expected.counts.limit);",
 									"",
+									"pm.test(testName, () => {",
+									"    if (limit > 100) {",
+									"        // Skip length assertion, only check for correct error response",
+									"        pm.expect(res.code).to.eql(5053);",
+									"        pm.expect(res.message).to.include(\"Invalid limit size\");",
+									"    } else {",
+									"        // Original assertion logic",
+									"        pm.expect(transactions)",
+									"            .to.have.lengthOf.at.least(testBlueprint.expected.counts.limit);",
+									"    }",
 									"});"
 								]
 							}
@@ -690,16 +706,7 @@
 										}
 									}
 								},
-								"url": {
-									"raw": "{{URL}}/search/transactions",
-									"host": [
-										"{{URL}}"
-									],
-									"path": [
-										"search",
-										"transactions"
-									]
-								}
+								"url": "{{URL}}/search/transactions"
 							},
 							"response": []
 						},
@@ -742,16 +749,7 @@
 										}
 									}
 								},
-								"url": {
-									"raw": "{{URL}}/search/transactions",
-									"host": [
-										"{{URL}}"
-									],
-									"path": [
-										"search",
-										"transactions"
-									]
-								}
+								"url": "{{URL}}/search/transactions"
 							},
 							"response": []
 						},
@@ -794,16 +792,7 @@
 										}
 									}
 								},
-								"url": {
-									"raw": "{{URL}}/search/transactions",
-									"host": [
-										"{{URL}}"
-									],
-									"path": [
-										"search",
-										"transactions"
-									]
-								}
+								"url": "{{URL}}/search/transactions"
 							},
 							"response": []
 						},
@@ -846,16 +835,7 @@
 										}
 									}
 								},
-								"url": {
-									"raw": "{{URL}}/search/transactions",
-									"host": [
-										"{{URL}}"
-									],
-									"path": [
-										"search",
-										"transactions"
-									]
-								}
+								"url": "{{URL}}/search/transactions"
 							},
 							"response": []
 						},
@@ -898,16 +878,7 @@
 										}
 									}
 								},
-								"url": {
-									"raw": "{{URL}}/search/transactions",
-									"host": [
-										"{{URL}}"
-									],
-									"path": [
-										"search",
-										"transactions"
-									]
-								}
+								"url": "{{URL}}/search/transactions"
 							},
 							"response": []
 						},
@@ -962,16 +933,7 @@
 										}
 									}
 								},
-								"url": {
-									"raw": "{{URL}}/search/transactions",
-									"host": [
-										"{{URL}}"
-									],
-									"path": [
-										"search",
-										"transactions"
-									]
-								}
+								"url": "{{URL}}/search/transactions"
 							},
 							"response": []
 						}
@@ -1106,16 +1068,7 @@
 										}
 									}
 								},
-								"url": {
-									"raw": "{{URL}}/search/transactions",
-									"host": [
-										"{{URL}}"
-									],
-									"path": [
-										"search",
-										"transactions"
-									]
-								}
+								"url": "{{URL}}/search/transactions"
 							},
 							"response": []
 						},
@@ -1180,16 +1133,7 @@
 										}
 									}
 								},
-								"url": {
-									"raw": "{{URL}}/search/transactions",
-									"host": [
-										"{{URL}}"
-									],
-									"path": [
-										"search",
-										"transactions"
-									]
-								}
+								"url": "{{URL}}/search/transactions"
 							},
 							"response": []
 						},
@@ -1254,16 +1198,7 @@
 										}
 									}
 								},
-								"url": {
-									"raw": "{{URL}}/search/transactions",
-									"host": [
-										"{{URL}}"
-									],
-									"path": [
-										"search",
-										"transactions"
-									]
-								}
+								"url": "{{URL}}/search/transactions"
 							},
 							"response": []
 						},
@@ -1335,16 +1270,7 @@
 										}
 									}
 								},
-								"url": {
-									"raw": "{{URL}}/search/transactions",
-									"host": [
-										"{{URL}}"
-									],
-									"path": [
-										"search",
-										"transactions"
-									]
-								}
+								"url": "{{URL}}/search/transactions"
 							},
 							"response": []
 						}
@@ -1482,16 +1408,7 @@
 										}
 									}
 								},
-								"url": {
-									"raw": "{{URL}}/search/transactions",
-									"host": [
-										"{{URL}}"
-									],
-									"path": [
-										"search",
-										"transactions"
-									]
-								}
+								"url": "{{URL}}/search/transactions"
 							},
 							"response": []
 						},
@@ -1563,16 +1480,7 @@
 										}
 									}
 								},
-								"url": {
-									"raw": "{{URL}}/search/transactions",
-									"host": [
-										"{{URL}}"
-									],
-									"path": [
-										"search",
-										"transactions"
-									]
-								}
+								"url": "{{URL}}/search/transactions"
 							},
 							"response": []
 						},
@@ -1644,16 +1552,7 @@
 										}
 									}
 								},
-								"url": {
-									"raw": "{{URL}}/search/transactions",
-									"host": [
-										"{{URL}}"
-									],
-									"path": [
-										"search",
-										"transactions"
-									]
-								}
+								"url": "{{URL}}/search/transactions"
 							},
 							"response": []
 						},
@@ -1725,16 +1624,7 @@
 										}
 									}
 								},
-								"url": {
-									"raw": "{{URL}}/search/transactions",
-									"host": [
-										"{{URL}}"
-									],
-									"path": [
-										"search",
-										"transactions"
-									]
-								}
+								"url": "{{URL}}/search/transactions"
 							},
 							"response": []
 						},
@@ -1823,16 +1713,7 @@
 										}
 									}
 								},
-								"url": {
-									"raw": "{{URL}}/search/transactions",
-									"host": [
-										"{{URL}}"
-									],
-									"path": [
-										"search",
-										"transactions"
-									]
-								}
+								"url": "{{URL}}/search/transactions"
 							},
 							"response": []
 						},
@@ -1886,16 +1767,7 @@
 										}
 									}
 								},
-								"url": {
-									"raw": "{{URL}}/search/transactions",
-									"host": [
-										"{{URL}}"
-									],
-									"path": [
-										"search",
-										"transactions"
-									]
-								}
+								"url": "{{URL}}/search/transactions"
 							},
 							"response": []
 						}
@@ -1977,16 +1849,7 @@
 										}
 									}
 								},
-								"url": {
-									"raw": "{{URL}}/search/transactions",
-									"host": [
-										"{{URL}}"
-									],
-									"path": [
-										"search",
-										"transactions"
-									]
-								}
+								"url": "{{URL}}/search/transactions"
 							},
 							"response": []
 						},
@@ -2030,16 +1893,7 @@
 										}
 									}
 								},
-								"url": {
-									"raw": "{{URL}}/search/transactions",
-									"host": [
-										"{{URL}}"
-									],
-									"path": [
-										"search",
-										"transactions"
-									]
-								}
+								"url": "{{URL}}/search/transactions"
 							},
 							"response": []
 						},
@@ -2083,16 +1937,7 @@
 										}
 									}
 								},
-								"url": {
-									"raw": "{{URL}}/search/transactions",
-									"host": [
-										"{{URL}}"
-									],
-									"path": [
-										"search",
-										"transactions"
-									]
-								}
+								"url": "{{URL}}/search/transactions"
 							},
 							"response": []
 						},
@@ -2136,16 +1981,7 @@
 										}
 									}
 								},
-								"url": {
-									"raw": "{{URL}}/search/transactions",
-									"host": [
-										"{{URL}}"
-									],
-									"path": [
-										"search",
-										"transactions"
-									]
-								}
+								"url": "{{URL}}/search/transactions"
 							},
 							"response": []
 						},
@@ -2189,16 +2025,7 @@
 										}
 									}
 								},
-								"url": {
-									"raw": "{{URL}}/search/transactions",
-									"host": [
-										"{{URL}}"
-									],
-									"path": [
-										"search",
-										"transactions"
-									]
-								}
+								"url": "{{URL}}/search/transactions"
 							},
 							"response": []
 						},
@@ -2250,16 +2077,7 @@
 										}
 									}
 								},
-								"url": {
-									"raw": "{{URL}}/search/transactions",
-									"host": [
-										"{{URL}}"
-									],
-									"path": [
-										"search",
-										"transactions"
-									]
-								}
+								"url": "{{URL}}/search/transactions"
 							},
 							"response": []
 						},
@@ -2311,16 +2129,7 @@
 										}
 									}
 								},
-								"url": {
-									"raw": "{{URL}}/search/transactions",
-									"host": [
-										"{{URL}}"
-									],
-									"path": [
-										"search",
-										"transactions"
-									]
-								}
+								"url": "{{URL}}/search/transactions"
 							},
 							"response": []
 						},
@@ -2372,16 +2181,7 @@
 										}
 									}
 								},
-								"url": {
-									"raw": "{{URL}}/search/transactions",
-									"host": [
-										"{{URL}}"
-									],
-									"path": [
-										"search",
-										"transactions"
-									]
-								}
+								"url": "{{URL}}/search/transactions"
 							},
 							"response": []
 						},
@@ -2435,16 +2235,7 @@
 										}
 									}
 								},
-								"url": {
-									"raw": "{{URL}}/search/transactions",
-									"host": [
-										"{{URL}}"
-									],
-									"path": [
-										"search",
-										"transactions"
-									]
-								}
+								"url": "{{URL}}/search/transactions"
 							},
 							"response": []
 						}
@@ -2532,16 +2323,7 @@
 										}
 									}
 								},
-								"url": {
-									"raw": "{{URL}}/search/transactions",
-									"host": [
-										"{{URL}}"
-									],
-									"path": [
-										"search",
-										"transactions"
-									]
-								}
+								"url": "{{URL}}/search/transactions"
 							},
 							"response": []
 						},
@@ -2585,16 +2367,7 @@
 										}
 									}
 								},
-								"url": {
-									"raw": "{{URL}}/search/transactions",
-									"host": [
-										"{{URL}}"
-									],
-									"path": [
-										"search",
-										"transactions"
-									]
-								}
+								"url": "{{URL}}/search/transactions"
 							},
 							"response": []
 						},
@@ -2637,16 +2410,7 @@
 										}
 									}
 								},
-								"url": {
-									"raw": "{{URL}}/search/transactions",
-									"host": [
-										"{{URL}}"
-									],
-									"path": [
-										"search",
-										"transactions"
-									]
-								}
+								"url": "{{URL}}/search/transactions"
 							},
 							"response": []
 						},
@@ -2689,16 +2453,7 @@
 										}
 									}
 								},
-								"url": {
-									"raw": "{{URL}}/search/transactions",
-									"host": [
-										"{{URL}}"
-									],
-									"path": [
-										"search",
-										"transactions"
-									]
-								}
+								"url": "{{URL}}/search/transactions"
 							},
 							"response": []
 						},
@@ -2752,16 +2507,7 @@
 										}
 									}
 								},
-								"url": {
-									"raw": "{{URL}}/search/transactions",
-									"host": [
-										"{{URL}}"
-									],
-									"path": [
-										"search",
-										"transactions"
-									]
-								}
+								"url": "{{URL}}/search/transactions"
 							},
 							"response": []
 						}
@@ -2861,16 +2607,7 @@
 										}
 									}
 								},
-								"url": {
-									"raw": "{{URL}}/search/transactions",
-									"host": [
-										"{{URL}}"
-									],
-									"path": [
-										"search",
-										"transactions"
-									]
-								}
+								"url": "{{URL}}/search/transactions"
 							},
 							"response": []
 						},
@@ -2912,16 +2649,7 @@
 										}
 									}
 								},
-								"url": {
-									"raw": "{{URL}}/search/transactions",
-									"host": [
-										"{{URL}}"
-									],
-									"path": [
-										"search",
-										"transactions"
-									]
-								}
+								"url": "{{URL}}/search/transactions"
 							},
 							"response": []
 						},
@@ -2963,16 +2691,7 @@
 										}
 									}
 								},
-								"url": {
-									"raw": "{{URL}}/search/transactions",
-									"host": [
-										"{{URL}}"
-									],
-									"path": [
-										"search",
-										"transactions"
-									]
-								}
+								"url": "{{URL}}/search/transactions"
 							},
 							"response": []
 						},
@@ -3014,16 +2733,7 @@
 										}
 									}
 								},
-								"url": {
-									"raw": "{{URL}}/search/transactions",
-									"host": [
-										"{{URL}}"
-									],
-									"path": [
-										"search",
-										"transactions"
-									]
-								}
+								"url": "{{URL}}/search/transactions"
 							},
 							"response": []
 						},
@@ -3065,16 +2775,7 @@
 										}
 									}
 								},
-								"url": {
-									"raw": "{{URL}}/search/transactions",
-									"host": [
-										"{{URL}}"
-									],
-									"path": [
-										"search",
-										"transactions"
-									]
-								}
+								"url": "{{URL}}/search/transactions"
 							},
 							"response": []
 						},
@@ -3116,16 +2817,7 @@
 										}
 									}
 								},
-								"url": {
-									"raw": "{{URL}}/search/transactions",
-									"host": [
-										"{{URL}}"
-									],
-									"path": [
-										"search",
-										"transactions"
-									]
-								}
+								"url": "{{URL}}/search/transactions"
 							},
 							"response": []
 						},
@@ -3167,16 +2859,7 @@
 										}
 									}
 								},
-								"url": {
-									"raw": "{{URL}}/search/transactions",
-									"host": [
-										"{{URL}}"
-									],
-									"path": [
-										"search",
-										"transactions"
-									]
-								}
+								"url": "{{URL}}/search/transactions"
 							},
 							"response": []
 						},
@@ -3218,16 +2901,7 @@
 										}
 									}
 								},
-								"url": {
-									"raw": "{{URL}}/search/transactions",
-									"host": [
-										"{{URL}}"
-									],
-									"path": [
-										"search",
-										"transactions"
-									]
-								}
+								"url": "{{URL}}/search/transactions"
 							},
 							"response": []
 						},
@@ -3281,16 +2955,7 @@
 										}
 									}
 								},
-								"url": {
-									"raw": "{{URL}}/search/transactions",
-									"host": [
-										"{{URL}}"
-									],
-									"path": [
-										"search",
-										"transactions"
-									]
-								}
+								"url": "{{URL}}/search/transactions"
 							},
 							"response": []
 						}
@@ -3396,16 +3061,7 @@
 										}
 									}
 								},
-								"url": {
-									"raw": "{{URL}}/search/transactions",
-									"host": [
-										"{{URL}}"
-									],
-									"path": [
-										"search",
-										"transactions"
-									]
-								}
+								"url": "{{URL}}/search/transactions"
 							},
 							"response": []
 						},
@@ -3464,16 +3120,7 @@
 										}
 									}
 								},
-								"url": {
-									"raw": "{{URL}}/search/transactions",
-									"host": [
-										"{{URL}}"
-									],
-									"path": [
-										"search",
-										"transactions"
-									]
-								}
+								"url": "{{URL}}/search/transactions"
 							},
 							"response": []
 						},
@@ -3532,16 +3179,7 @@
 										}
 									}
 								},
-								"url": {
-									"raw": "{{URL}}/search/transactions",
-									"host": [
-										"{{URL}}"
-									],
-									"path": [
-										"search",
-										"transactions"
-									]
-								}
+								"url": "{{URL}}/search/transactions"
 							},
 							"response": []
 						},
@@ -3600,16 +3238,7 @@
 										}
 									}
 								},
-								"url": {
-									"raw": "{{URL}}/search/transactions",
-									"host": [
-										"{{URL}}"
-									],
-									"path": [
-										"search",
-										"transactions"
-									]
-								}
+								"url": "{{URL}}/search/transactions"
 							},
 							"response": []
 						},
@@ -3668,16 +3297,7 @@
 										}
 									}
 								},
-								"url": {
-									"raw": "{{URL}}/search/transactions",
-									"host": [
-										"{{URL}}"
-									],
-									"path": [
-										"search",
-										"transactions"
-									]
-								}
+								"url": "{{URL}}/search/transactions"
 							},
 							"response": []
 						},
@@ -3736,16 +3356,7 @@
 										}
 									}
 								},
-								"url": {
-									"raw": "{{URL}}/search/transactions",
-									"host": [
-										"{{URL}}"
-									],
-									"path": [
-										"search",
-										"transactions"
-									]
-								}
+								"url": "{{URL}}/search/transactions"
 							},
 							"response": []
 						},
@@ -3804,16 +3415,7 @@
 										}
 									}
 								},
-								"url": {
-									"raw": "{{URL}}/search/transactions",
-									"host": [
-										"{{URL}}"
-									],
-									"path": [
-										"search",
-										"transactions"
-									]
-								}
+								"url": "{{URL}}/search/transactions"
 							},
 							"response": []
 						},
@@ -3868,16 +3470,7 @@
 										}
 									}
 								},
-								"url": {
-									"raw": "{{URL}}/search/transactions",
-									"host": [
-										"{{URL}}"
-									],
-									"path": [
-										"search",
-										"transactions"
-									]
-								}
+								"url": "{{URL}}/search/transactions"
 							},
 							"response": []
 						}
@@ -3938,16 +3531,7 @@
 										}
 									}
 								},
-								"url": {
-									"raw": "{{URL}}/search/transactions",
-									"host": [
-										"{{URL}}"
-									],
-									"path": [
-										"search",
-										"transactions"
-									]
-								}
+								"url": "{{URL}}/search/transactions"
 							},
 							"response": []
 						},
@@ -3965,16 +3549,7 @@
 										}
 									}
 								},
-								"url": {
-									"raw": "{{URL}}/search/transactions",
-									"host": [
-										"{{URL}}"
-									],
-									"path": [
-										"search",
-										"transactions"
-									]
-								}
+								"url": "{{URL}}/search/transactions"
 							},
 							"response": []
 						},
@@ -3992,16 +3567,7 @@
 										}
 									}
 								},
-								"url": {
-									"raw": "{{URL}}/search/transactions",
-									"host": [
-										"{{URL}}"
-									],
-									"path": [
-										"search",
-										"transactions"
-									]
-								}
+								"url": "{{URL}}/search/transactions"
 							},
 							"response": []
 						},
@@ -4019,16 +3585,7 @@
 										}
 									}
 								},
-								"url": {
-									"raw": "{{URL}}/search/transactions",
-									"host": [
-										"{{URL}}"
-									],
-									"path": [
-										"search",
-										"transactions"
-									]
-								}
+								"url": "{{URL}}/search/transactions"
 							},
 							"response": []
 						},
@@ -4046,16 +3603,7 @@
 										}
 									}
 								},
-								"url": {
-									"raw": "{{URL}}/search/transactions",
-									"host": [
-										"{{URL}}"
-									],
-									"path": [
-										"search",
-										"transactions"
-									]
-								}
+								"url": "{{URL}}/search/transactions"
 							},
 							"response": []
 						}
@@ -5100,8 +4648,7 @@
 							"        pm.test(\"📁 /search/transactions | Response includes next_offset only if it has multiple pages\", () => {",
 							"            const body = pm.request.body.raw ? JSON.parse(pm.request.body.raw) : {};",
 							"            const currentOffset = body.offset || 0;",
-							"            const limit = body.limit || defaultPageLimit;",
-							"",
+							"            ",
 							"            if (res.total_count > currentOffset + transactions.length) {",
 							"                pm.expect(res.next_offset, \"next_offset points to next page\")",
 							"                    .to.eql(currentOffset + transactions.length);",
