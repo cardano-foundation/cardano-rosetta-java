@@ -39,6 +39,7 @@ services:
       db:
         condition: service_healthy
 
+  
   db:
     image: cardanofoundation/cardano-rosetta-java-postgres:${PG_VERSION_TAG}
     build:
@@ -86,8 +87,7 @@ services:
       cardano-sync-waiter:
         condition: service_completed_successfully
 
-volumes:
-  data:
+# No volumes section needed - all services use bind mounts
 
 networks:
   default:

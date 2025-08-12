@@ -11,6 +11,9 @@ RUN apt update && apt install -y \
   ca-certificates \
   sudo \
   locales \
+  curl \
+  gzip \
+  pigz \
   && sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen \
   && locale-gen \
   && update-locale LANG=en_US.UTF-8 \

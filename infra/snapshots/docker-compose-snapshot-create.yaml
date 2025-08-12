@@ -1,0 +1,45 @@
+version: '3.8'
+
+# Infrastructure-only Docker Compose for Database Snapshot Creation
+# This is intended for infrastructure teams to create snapshots
+# that can later be used by client services for restoration
+#
+# Usage with multiple env files to avoid duplication:
+# docker-compose --env-file ../../.env.docker-compose-preprod --env-file .env.snapshot-create -f docker-compose-snapshot-create.yaml up
+
+services:
+  db-snapshot-create:
+    image: cardanofoundation/cardano-rosetta-java-postgres-client:${PG_CLIENT_VERSION_TAG:-14-alpine}
+    build:
+      context: ../../
+      dockerfile: ./docker/dockerfiles/postgres-client/Dockerfile
+    environment:
+      # Target database connection
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_SECRET: ${DB_SECRET}
+      DB_SCHEMA: ${DB_SCHEMA}
+      NETWORK: ${NETWORK}
+      
+      # Snapshot configuration
+      SNAPSHOT_DESTINATION_PATH: ${SNAPSHOT_DESTINATION_PATH:-/snapshots}
+      SNAPSHOT_RETENTION_DAYS: ${SNAPSHOT_RETENTION_DAYS:-30}
+      
+      # IAGON Upload Configuration
+      IAGON_UPLOAD_ENABLED: ${IAGON_UPLOAD_ENABLED:-false}
+      IAGON_API_KEY: ${IAGON_API_KEY:-""}
+      IAGON_GATEWAY: ${IAGON_GATEWAY:-https://gw.iagon.com}
+      IAGON_CHUNK_SIZE_MB: ${IAGON_CHUNK_SIZE_MB:-190}
+      
+      # Monitoring and logging
+      LOG: ${LOG:-INFO}
+    volumes:
+      - ./snapshots:${SNAPSHOT_DESTINATION_PATH:-/snapshots}
+    restart: "no"  # Run once and exit
+
+
+networks:
+  default:
+    name: cardano-rosetta-java-${NETWORK}
