@@ -30,7 +30,7 @@ Within root folder of the project there are example `.env` files, which can be c
 | `DB_PATH`                                     | Database path                                                         | /data                                  | added in release 1.0.0  |
 | `CARDANO_NODE_HOST`                           | Cardano node host                                                     | cardano-node                           | added in release 1.0.0  |
 | `CARDANO_NODE_PORT`                           | Cardano node port                                                     | 3001                                   | added in release 1.0.0  |
-| `CARDANO_NODE_VERSION`                        | Cardano node version                                                  | 10.3.1                                 | added in release 1.0.0  |
+| `CARDANO_NODE_VERSION`                        | Cardano node version                                                  | 10.4.1                                 | added in release 1.0.0  |
 | `CARDANO_NODE_SUBMIT_HOST`                    | Cardano node submit API host                                          | cardano-submit-api                     | added in release 1.0.0  |
 | `NODE_SUBMIT_API_PORT`                        | Cardano node submit API port                                          | 8090                                   | added in release 1.0.0  |
 | `CARDANO_NODE_SOCKET_PATH`                    | Cardano node socket path                                              | /node                                  | added in release 1.0.0  |

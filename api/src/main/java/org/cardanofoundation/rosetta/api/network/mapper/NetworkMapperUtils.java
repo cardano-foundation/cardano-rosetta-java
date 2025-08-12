@@ -14,9 +14,9 @@ import org.cardanofoundation.rosetta.common.util.Constants;
 @Component
 public class NetworkMapperUtils {
 
-  @Named("getPeerWithoutMetadata")
-  public Peer getPeerWithoutMetadata(Peer peer) {
-    return new Peer(peer.getPeerId(), null);
+  @Named("getPeerWithMetadata")
+  public Peer getPeerWithetadata(Peer peer) {
+    return new Peer(peer.getPeerId(), peer.getMetadata());
   }
 
   @Named("toNetworkIdentifier")

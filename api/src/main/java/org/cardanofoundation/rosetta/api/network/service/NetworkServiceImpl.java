@@ -157,7 +157,7 @@ public class NetworkServiceImpl implements NetworkService {
 
     log.debug("[networkStatus] Genesis block found {}", genesisBlock);
 
-    List<Peer> peers = topologyConfigService.getPeers();
+    List<Peer> peers = topologyConfigService.getDiscoveredPeers();
 
     NetworkStatus.NetworkStatusBuilder networkStatusBuilder = NetworkStatus.builder()
             .latestBlock(latestBlock)
