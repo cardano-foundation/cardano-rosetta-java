@@ -1,8 +1,5 @@
 package org.cardanofoundation.rosetta.api.network.model;
 
-
-import java.util.List;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,13 +13,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @AllArgsConstructor
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class TopologyConfig {
-  @JsonProperty("Producers")
-  private List<Producer> producers;
+public class BootstrapPeer {
+  @JsonProperty("address")
+  private String address;
   
-  @JsonProperty("publicRoots")
-  private List<PublicRoot> publicRoots;
-  
-  @JsonProperty("bootstrapPeers")
-  private List<BootstrapPeer> bootstrapPeers;
+  @JsonProperty("port")
+  private Integer port;
 }

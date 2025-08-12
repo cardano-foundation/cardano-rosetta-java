@@ -7,11 +7,13 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ComponentScans;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import com.bloxbean.cardano.yaci.core.config.YaciConfig;
 
 import org.cardanofoundation.rosetta.yaciindexer.config.ConfigurationH2;
 
 @SpringBootApplication
+@EnableScheduling
 @Import(ConfigurationH2.class)
 @EntityScan({
     "org.cardanofoundation.rosetta.yaciindexer.stores.txsize.model"
@@ -21,6 +23,7 @@ import org.cardanofoundation.rosetta.yaciindexer.config.ConfigurationH2;
 })
 @ComponentScans({
     @ComponentScan("org.cardanofoundation.rosetta.yaciindexer.service"),
+    @ComponentScan("org.cardanofoundation.rosetta.yaciindexer.job"),
     @ComponentScan("org.cardanofoundation.rosetta.yaciindexer.stores.txsize"),
     @ComponentScan("org.cardanofoundation.rosetta.yaciindexer.resource")
 })
