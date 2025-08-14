@@ -26,7 +26,7 @@ import static com.bloxbean.cardano.yaci.store.common.util.Bech32Prefixes.STAKE_A
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Rosetta Account API", description = "APIs for Rosetta's yaci-indexer account related operations.")
-public class AccountController {
+public class AccountResource {
 
     private final AccountService accountService;
 

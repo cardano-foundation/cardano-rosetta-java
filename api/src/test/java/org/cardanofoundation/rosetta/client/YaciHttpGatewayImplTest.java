@@ -15,12 +15,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import org.cardanofoundation.rosetta.client.model.domain.DiscoveredPeer;
 import org.cardanofoundation.rosetta.client.model.domain.StakeAccountInfo;
 import org.cardanofoundation.rosetta.common.exception.ApiException;
 import org.cardanofoundation.rosetta.common.util.RosettaConstants;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -109,6 +111,78 @@ class YaciHttpGatewayImplTest {
 
         ApiException exception = assertThrows(ApiException.class, () -> yaciHttpGateway.getStakeAccountRewards(stakeAddress));
         assertEquals(RosettaConstants.RosettaErrorType.GATEWAY_ERROR.toRosettaError(false).getCode(), exception.getError().getCode());
+    }
+
+    @Test
+    void getDiscoveredPeers_Success() throws Exception {
+        String jsonResponse = "[{\"type\":\"IPv4\",\"address\":\"192.168.1.1\",\"port\":30000},{\"type\":\"IPv6\",\"address\":\"2001:db8::1\",\"port\":30001}]";
+
+        when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class))).thenReturn(httpResponse);
+        when(httpResponse.statusCode()).thenReturn(200);
+        when(httpResponse.body()).thenReturn(jsonResponse);
+
+        List<DiscoveredPeer> actualResponse = yaciHttpGateway.getDiscoveredPeers();
+
+        assertNotNull(actualResponse);
+        assertEquals(2, actualResponse.size());
+        
+        DiscoveredPeer firstPeer = actualResponse.get(0);
+        assertEquals("IPv4", firstPeer.getType());
+        assertEquals("192.168.1.1", firstPeer.getAddress());
+        assertEquals(30000, firstPeer.getPort());
+        
+        DiscoveredPeer secondPeer = actualResponse.get(1);
+        assertEquals("IPv6", secondPeer.getType());
+        assertEquals("2001:db8::1", secondPeer.getAddress());
+        assertEquals(30001, secondPeer.getPort());
+
+        ArgumentCaptor<HttpRequest> requestCaptor = ArgumentCaptor.forClass(HttpRequest.class);
+        verify(httpClient, times(1)).send(requestCaptor.capture(), any(HttpResponse.BodyHandler.class));
+        assertEquals(yaciBaseUrl + "/rosetta/peers", requestCaptor.getValue().uri().toString());
+    }
+
+    @Test
+    void getDiscoveredPeers_EmptyResponse_ReturnsEmptyList() throws Exception {
+        String jsonResponse = "[]";
+
+        when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class))).thenReturn(httpResponse);
+        when(httpResponse.statusCode()).thenReturn(200);
+        when(httpResponse.body()).thenReturn(jsonResponse);
+
+        List<DiscoveredPeer> actualResponse = yaciHttpGateway.getDiscoveredPeers();
+
+        assertNotNull(actualResponse);
+        assertEquals(0, actualResponse.size());
+
+        ArgumentCaptor<HttpRequest> requestCaptor = ArgumentCaptor.forClass(HttpRequest.class);
+        verify(httpClient, times(1)).send(requestCaptor.capture(), any(HttpResponse.BodyHandler.class));
+        assertEquals(yaciBaseUrl + "/rosetta/peers", requestCaptor.getValue().uri().toString());
+    }
+
+    @Test
+    void getDiscoveredPeers_BadRequest_ThrowsApiException() throws Exception {
+        when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class))).thenReturn(httpResponse);
+        when(httpResponse.statusCode()).thenReturn(400);
+
+        ApiException exception = assertThrows(ApiException.class, () -> yaciHttpGateway.getDiscoveredPeers());
+        assertEquals(RosettaConstants.RosettaErrorType.GATEWAY_ERROR.toRosettaError(false).getCode(), exception.getError().getCode());
+    }
+
+    @Test
+    void getDiscoveredPeers_ServerError_ThrowsApiException() throws Exception {
+        when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class))).thenReturn(httpResponse);
+        when(httpResponse.statusCode()).thenReturn(500);
+
+        ApiException exception = assertThrows(ApiException.class, () -> yaciHttpGateway.getDiscoveredPeers());
+        assertEquals(RosettaConstants.RosettaErrorType.GATEWAY_ERROR.toRosettaError(true).getCode(), exception.getError().getCode());
+    }
+
+    @Test
+    void getDiscoveredPeers_IOException_ThrowsApiException() throws Exception {
+        when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class))).thenThrow(new IOException("Network error"));
+
+        ApiException exception = assertThrows(ApiException.class, () -> yaciHttpGateway.getDiscoveredPeers());
+        assertEquals(RosettaConstants.RosettaErrorType.GATEWAY_ERROR.toRosettaError(true).getCode(), exception.getError().getCode());
     }
 
 }
