@@ -59,7 +59,7 @@ public class LedgerSearchServiceImpl implements LedgerSearchService {
     Set<String> addressTxHashes = new HashSet<>();
 
     addressOptional.ifPresent(addr -> {
-      addressTxHashes.addAll(addressUtxoRepository.findTxHashesByOwnerAddr(addr));
+      addressTxHashes.addAll(addressUtxoRepository.findCompleteTransactionHistoryByAddress(addr));
     });
 
     // If address was set and there weren't any transactions found, return empty list
