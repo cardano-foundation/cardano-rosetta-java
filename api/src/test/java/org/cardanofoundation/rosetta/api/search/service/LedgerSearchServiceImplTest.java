@@ -57,7 +57,7 @@ class LedgerSearchServiceImplTest {
             IntStream.range(0, 15000)
                     .forEach(i -> manyUtxos.add("tx_hash_" + i));
             
-            when(addressUtxoRepository.findTxHashesByOwnerAddr(address))
+            when(addressUtxoRepository.findCompleteTransactionHistoryByAddress(address))
                     .thenReturn(manyUtxos);
 
             // Mock the repository calls to avoid NullPointerException
@@ -97,7 +97,7 @@ class LedgerSearchServiceImplTest {
             IntStream.range(0, 20000)
                     .forEach(i -> manyUtxos.add("tx_hash_" + i));
             
-            when(addressUtxoRepository.findTxHashesByOwnerAddr(address))
+            when(addressUtxoRepository.findCompleteTransactionHistoryByAddress(address))
                     .thenReturn(manyUtxos);
 
             // Mock the repository calls to avoid NullPointerException
@@ -136,7 +136,7 @@ class LedgerSearchServiceImplTest {
             IntStream.range(0, 50000)
                     .forEach(i -> veryLargeList.add("tx_hash_" + i));
             
-            when(addressUtxoRepository.findTxHashesByOwnerAddr(address))
+            when(addressUtxoRepository.findCompleteTransactionHistoryByAddress(address))
                     .thenReturn(veryLargeList);
 
             // Mock the repository calls to avoid NullPointerException
@@ -171,7 +171,7 @@ class LedgerSearchServiceImplTest {
             // Create a small list of UTXOs
             List<String> smallList = List.of("tx_hash_1", "tx_hash_2", "tx_hash_3");
             
-            when(addressUtxoRepository.findTxHashesByOwnerAddr(address))
+            when(addressUtxoRepository.findCompleteTransactionHistoryByAddress(address))
                     .thenReturn(smallList);
 
             // Mock the repository calls to avoid NullPointerException
@@ -204,7 +204,7 @@ class LedgerSearchServiceImplTest {
             // Given
             String address = "addr1_test_address_with_no_utxos";
             
-            when(addressUtxoRepository.findTxHashesByOwnerAddr(address))
+            when(addressUtxoRepository.findCompleteTransactionHistoryByAddress(address))
                     .thenReturn(List.of());
 
             // When & Then - should return empty page without validation
