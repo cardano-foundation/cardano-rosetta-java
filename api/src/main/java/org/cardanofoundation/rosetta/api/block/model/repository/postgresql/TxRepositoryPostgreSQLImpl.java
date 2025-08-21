@@ -175,7 +175,7 @@ public class TxRepositoryPostgreSQLImpl extends TxRepositoryCustomBase implement
         
         var finalResultsQuery = resultsQuery
                 .where(combinedCondition)
-                .orderBy(TRANSACTION.SLOT.desc())
+                .orderBy(TRANSACTION.SLOT.desc(), TRANSACTION.UPDATE_DATETIME.asc())
                 .limit(offsetBasedPageRequest.getLimit())
                 .offset(offsetBasedPageRequest.getOffset());
         
@@ -226,7 +226,7 @@ public class TxRepositoryPostgreSQLImpl extends TxRepositoryCustomBase implement
         
         return baseQuery
                 .where(baseConditions)
-                .orderBy(TRANSACTION.SLOT.desc())
+                .orderBy(TRANSACTION.SLOT.desc(), TRANSACTION.UPDATE_DATETIME.asc())
                 .limit(offsetBasedPageRequest.getLimit())
                 .offset(offsetBasedPageRequest.getOffset())
                 .fetch();
