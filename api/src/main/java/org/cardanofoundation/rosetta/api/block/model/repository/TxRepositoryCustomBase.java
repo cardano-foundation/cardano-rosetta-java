@@ -230,7 +230,7 @@ public abstract class TxRepositoryCustomBase implements TxRepositoryCustom {
                                                                   OffsetBasedPageRequest offsetBasedPageRequest) {
         return buildBaseResultsQuery(isSuccess)
                 .where(conditions)
-                .orderBy(TRANSACTION.SLOT.desc(), TRANSACTION.UPDATE_DATETIME.asc())
+                .orderBy(TRANSACTION.SLOT.desc(), TRANSACTION.UPDATE_DATETIME.desc())
                 .limit(offsetBasedPageRequest.getLimit())
                 .offset(offsetBasedPageRequest.getOffset())
                 .fetch();
