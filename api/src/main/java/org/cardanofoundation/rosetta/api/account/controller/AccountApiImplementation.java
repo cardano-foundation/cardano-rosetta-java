@@ -31,7 +31,7 @@ public class AccountApiImplementation implements AccountApi {
   @Override
   public ResponseEntity<AccountBalanceResponse> accountBalance(
       @Valid @RequestBody AccountBalanceRequest accountBalanceRequest) {
-    if(offlineMode) {
+    if (offlineMode) {
       throw ExceptionFactory.notSupportedInOfflineMode();
     }
     networkService.verifyNetworkRequest(accountBalanceRequest.getNetworkIdentifier());
@@ -42,11 +42,12 @@ public class AccountApiImplementation implements AccountApi {
   @Override
   public ResponseEntity<AccountCoinsResponse> accountCoins(
       @Valid @RequestBody AccountCoinsRequest accountCoinsRequest) {
-    if(offlineMode) {
+    if (offlineMode) {
       throw ExceptionFactory.notSupportedInOfflineMode();
     }
     networkService.verifyNetworkRequest(accountCoinsRequest.getNetworkIdentifier());
 
     return ResponseEntity.ok(accountService.getAccountCoins(accountCoinsRequest));
   }
+
 }

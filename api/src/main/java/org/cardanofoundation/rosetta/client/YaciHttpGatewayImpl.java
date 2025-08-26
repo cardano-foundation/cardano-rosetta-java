@@ -91,6 +91,7 @@ public class YaciHttpGatewayImpl implements YaciHttpGateway {
 
             if (statusCode >= 200 && statusCode < 300) {
                 DiscoveredPeer[] peersArray = objectMapper.readValue(responseBody, DiscoveredPeer[].class);
+
                 return Arrays.asList(peersArray);
             } else if (statusCode == 400) {
                 throw ExceptionFactory.gatewayError(false);
