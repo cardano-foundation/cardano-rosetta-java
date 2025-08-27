@@ -3,6 +3,7 @@ package org.cardanofoundation.rosetta.api.search.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.api.account.model.repository.AddressUtxoRepository;
+import org.cardanofoundation.rosetta.api.account.service.AddressHistoryService;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.model.entity.TxnEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.UtxoKey;
@@ -31,7 +32,7 @@ public class LedgerSearchServiceImpl implements LedgerSearchService {
   private final TxRepository txRepository;
   private final LedgerBlockService ledgerBlockService;
   private final TxInputRepository txInputRepository;
-  private final AddressUtxoRepository addressUtxoRepository;
+  private final AddressHistoryService addressHistoryService;
 
   // Note: MAX_UTXO_COUNT limitation has been removed.
   // The TxRepositoryCustomImpl now uses temporary tables for large transaction hash sets,
@@ -59,7 +60,7 @@ public class LedgerSearchServiceImpl implements LedgerSearchService {
     Set<String> addressTxHashes = new HashSet<>();
 
     addressOptional.ifPresent(addr -> {
-      addressTxHashes.addAll(addressUtxoRepository.findCompleteTransactionHistoryByAddress(addr));
+      addressTxHashes.addAll(addressHistoryService.findCompleteTransactionHistoryByAddress(addr));
     });
 
     // If address was set and there weren't any transactions found, return empty list
