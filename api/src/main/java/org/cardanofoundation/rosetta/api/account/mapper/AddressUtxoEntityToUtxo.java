@@ -11,5 +11,7 @@ import org.cardanofoundation.rosetta.common.mapper.util.BaseMapper;
 public interface AddressUtxoEntityToUtxo {
 
   Utxo toDto(AddressUtxoEntity entity);
+
   void overWriteDto(@MappingTarget Utxo utxo, AddressUtxoEntity entity);
+
 }

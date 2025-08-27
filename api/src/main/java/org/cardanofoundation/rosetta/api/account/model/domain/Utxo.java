@@ -22,4 +22,5 @@ public class Utxo {
     this.txHash = txHash;
     this.outputIndex = outputIndex;
   }
+
 }

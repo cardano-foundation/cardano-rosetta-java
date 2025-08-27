@@ -25,6 +25,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static org.cardanofoundation.rosetta.common.util.Constants.LOVELACE;
+
 @Component
 @RequiredArgsConstructor
 public class TransactionMapperUtils {
@@ -91,7 +93,7 @@ public class TransactionMapperUtils {
     Optional.ofNullable(amounts)
             .stream()
             .flatMap(List::stream)
-            .filter(amount -> !amount.getAssetName().equals(Constants.LOVELACE))
+            .filter(amount -> !amount.getAssetName().equals(LOVELACE))
             .collect(Collectors.groupingBy(Amt::getPolicyId))
             .forEach((policyId, policyIdAmounts) ->
                     operationMetadata.addTokenBundleItem(
@@ -101,7 +103,7 @@ public class TransactionMapperUtils {
                                             .map(amount -> Amount.builder()
                                                     .value(DataMapper.mapValue(amount.getQuantity().toString(), spent))
                                                     .currency(Currency.builder()
-                                                            .symbol(amount.getUnit().replace(amount.getPolicyId(), ""))
+                                                            .symbol(amount.getAssetName())
                                                             .decimals(0)
                                                             .build())
                                                     .build())
@@ -126,7 +128,7 @@ public class TransactionMapperUtils {
   public String getAdaAmount(Utxo f, boolean input) {
     BigInteger adaAmount = Optional.ofNullable(f.getAmounts())
             .map(amts -> amts.stream().filter(amt -> amt.getAssetName().equals(
-                    Constants.LOVELACE)).findFirst().map(Amt::getQuantity).orElse(BigInteger.ZERO))
+                    LOVELACE)).findFirst().map(Amt::getQuantity).orElse(BigInteger.ZERO))
             .orElse(BigInteger.ZERO);
     return input ? adaAmount.negate().toString() : adaAmount.toString();
   }

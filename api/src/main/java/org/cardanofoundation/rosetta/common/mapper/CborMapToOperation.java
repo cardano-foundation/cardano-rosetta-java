@@ -312,8 +312,14 @@ public class CborMapToOperation {
      */
     private static Currency getCurrencyMap(Map currencyMap) {
         Currency currency = new Currency();
-        Optional.ofNullable(currencyMap.get(key(Constants.SYMBOL))).ifPresent(o1 -> currency.setSymbol(((UnicodeString) o1).getString()));
-        Optional.ofNullable(currencyMap.get(key(Constants.DECIMALS))).ifPresent(o1 -> currency.setDecimals(((UnsignedInteger) o1).getValue().intValue()));
+        Optional.ofNullable(currencyMap.get(key(Constants.SYMBOL))).ifPresent(o1 -> {
+            currency.setSymbol(((UnicodeString) o1).getString());
+        });
+
+        Optional.ofNullable(currencyMap.get(key(Constants.DECIMALS))).ifPresent(o1 -> {
+            currency.setDecimals(((UnsignedInteger) o1).getValue().intValue());
+        });
+
         return currency;
     }
 
@@ -813,6 +819,7 @@ public class CborMapToOperation {
                 // write back to tokenBundleItems
                 tokenBundleItems.add(tokenBundleItem);
             });
+
             operationMetadata.setTokenBundle(tokenBundleItems);
         });
     }

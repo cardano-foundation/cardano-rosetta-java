@@ -206,7 +206,8 @@ public class OperationToCborMap {
    * @param tokenBundle tokenBundle
    * @param metadataMap metadataMap
    */
-  private static void addTokenBundleToMap(List<TokenBundleItem> tokenBundle, Map metadataMap) {
+  private static void addTokenBundleToMap(List<TokenBundleItem> tokenBundle,
+                                          Map metadataMap) {
     Optional.ofNullable(tokenBundle)
         .ifPresent(tokenBundleItems -> {
           Array tokenBundleArray = new Array();
@@ -217,6 +218,7 @@ public class OperationToCborMap {
             putStringDataItemToMap(tokenBundleMap, Constants.POLICYID, tokenBundleItem.getPolicyId());
             tokenBundleArray.add(tokenBundleMap);
           });
+
           metadataMap.put(key(Constants.TOKEN_BUNDLE), tokenBundleArray);
         });
   }
@@ -347,7 +349,7 @@ public class OperationToCborMap {
   private static void addCurrencyToAmountMap(Currency currency, Map amountMap) {
     Optional.ofNullable(currency).ifPresent(cur -> {
       Map currencyMap = new Map();
-      putStringDataItemToMap(currencyMap,Constants.SYMBOL,cur.getSymbol());
+      putStringDataItemToMap(currencyMap,Constants.SYMBOL, cur.getSymbol());
       putUnsignedIntegerToMap(currencyMap, Constants.DECIMALS, cur.getDecimals());
       addMetadataToCurrencyMap(cur.getMetadata(), currencyMap);
       amountMap.put(key(Constants.CURRENCY), currencyMap);

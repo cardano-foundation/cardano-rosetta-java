@@ -1,24 +1,20 @@
 package org.cardanofoundation.rosetta.api.block.mapper;
 
-import java.math.BigInteger;
-import java.util.Arrays;
-import java.util.List;
-
 import org.assertj.core.api.Assertions;
+import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
+import org.cardanofoundation.rosetta.common.util.Constants;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.openapitools.client.model.Amount;
 import org.openapitools.client.model.Currency;
 import org.openapitools.client.model.OperationMetadata;
 import org.openapitools.client.model.TokenBundleItem;
 
-import org.junit.jupiter.api.Test;
+import java.math.BigInteger;
+import java.util.Arrays;
+import java.util.List;
 
-import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
-import org.cardanofoundation.rosetta.common.util.Constants;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 class TransactionMapperUtilsTest {
 
@@ -49,13 +45,13 @@ class TransactionMapperUtilsTest {
     assertEquals(3, tokenBundle.size());
 
     Assertions.assertThat(getPolicyIdUnits(tokenBundle, "policyId1"))
-        .containsExactlyInAnyOrder("unit12", "unit13", "unit14");
+        .containsExactlyInAnyOrder("assetName12", "assetName13", "assetName14");
 
     Assertions.assertThat(getPolicyIdUnits(tokenBundle, "policyId2"))
-        .containsExactlyInAnyOrder("unit21");
+        .containsExactlyInAnyOrder("assetName21");
 
     Assertions.assertThat(getPolicyIdUnits(tokenBundle, "policyId3"))
-        .containsExactlyInAnyOrder("unit31", "unit33");
+        .containsExactlyInAnyOrder("assetName31", "assetName33");
   }
 
   @Test
