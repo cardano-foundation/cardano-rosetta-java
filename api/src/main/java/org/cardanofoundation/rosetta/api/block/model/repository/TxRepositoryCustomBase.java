@@ -27,8 +27,6 @@ public abstract class TxRepositoryCustomBase implements TxRepositoryCustom {
     protected final DSLContext dsl;
     protected final TxRepositoryQueryBuilder queryBuilder;
 
-    protected static final int LARGE_HASH_SET_THRESHOLD = 10000;
-
     protected abstract TxRepositoryQueryBuilder.CurrencyConditionBuilder getCurrencyConditionBuilder();
     
     /**
@@ -71,30 +69,6 @@ public abstract class TxRepositoryCustomBase implements TxRepositoryCustom {
         protected abstract Condition buildLovelaceCondition();
         protected abstract Condition buildSymbolOnlyCondition(String escapedSymbol);
     }
-    
-    /**
-     * DB-specific implementation for large hash set AND operations.
-     * PostgreSQL uses VALUES table, H2 uses batched IN clauses.
-     */
-    protected abstract Page<TxnEntity> searchTxnEntitiesANDWithLargeHashSet(Set<String> txHashes,
-                                                                           @Nullable String blockHash,
-                                                                           @Nullable Long blockNumber,
-                                                                           @Nullable Long maxBlock,
-                                                                           @Nullable Boolean isSuccess,
-                                                                           @Nullable Currency currency,
-                                                                           OffsetBasedPageRequest pageable);
-    
-    /**
-     * DB-specific implementation for large hash set OR operations.
-     * PostgreSQL uses VALUES table, H2 uses batched IN clauses.
-     */
-    protected abstract Page<TxnEntity> searchTxnEntitiesORWithLargeHashSet(Set<String> txHashes,
-                                                                          @Nullable String blockHash,
-                                                                          @Nullable Long blockNumber,
-                                                                          @Nullable Long maxBlock,
-                                                                          @Nullable Boolean isSuccess,
-                                                                          @Nullable Currency currency,
-                                                                          OffsetBasedPageRequest pageable);
     
     /**
      * Builds a base query with common JOINs.
@@ -162,52 +136,35 @@ public abstract class TxRepositoryCustomBase implements TxRepositoryCustom {
                 .fetch(queryBuilder::mapRecordToTxnEntity);
     }
 
+    /**
+     * Base implementation that delegates to database-specific implementations.
+     * No threshold logic - each DB implementation handles all sizes optimally.
+     */
     @Override
     @Transactional
-    public Page<TxnEntity> searchTxnEntitiesAND(Set<String> txHashes,
-                                               @Nullable String blockHash,
-                                               @Nullable Long blockNumber,
-                                               @Nullable Long maxBlock,
-                                               @Nullable Boolean isSuccess,
-                                               @Nullable Currency currency,
-                                               OffsetBasedPageRequest offsetBasedPageRequest) {
-        
-        if (txHashes.size() > LARGE_HASH_SET_THRESHOLD) {
-            return searchTxnEntitiesANDWithLargeHashSet(txHashes, blockHash, blockNumber, maxBlock, isSuccess, currency, offsetBasedPageRequest);
-        }
+    public abstract Page<TxnEntity> searchTxnEntitiesAND(Set<String> txHashes,
+                                                        Set<String> addressHashes,
+                                                        @Nullable String blockHash,
+                                                        @Nullable Long blockNumber,
+                                                        @Nullable Long maxBlock,
+                                                        @Nullable Boolean isSuccess,
+                                                        @Nullable Currency currency,
+                                                        OffsetBasedPageRequest offsetBasedPageRequest);
 
-        // Build conditions
-        Condition conditions = queryBuilder.buildAndConditions(txHashes, blockHash, blockNumber, maxBlock, isSuccess, currency, getCurrencyConditionBuilder());
-        
-        // Execute separate count and results queries for optimal performance
-        int totalCount = executeCountQuery(conditions, isSuccess);
-        List<? extends org.jooq.Record> results = executeResultsQuery(conditions, isSuccess, offsetBasedPageRequest);
-
-        return queryBuilder.createPageFromSeparateQueries(results, totalCount, offsetBasedPageRequest);
-    }
-
+    /**
+     * Base implementation that delegates to database-specific implementations.
+     * No threshold logic - each DB implementation handles all sizes optimally.
+     */
     @Override
     @Transactional
-    public Page<TxnEntity> searchTxnEntitiesOR(Set<String> txHashes,
-                                              @Nullable String blockHash,
-                                              @Nullable Long blockNumber,
-                                              @Nullable Long maxBlock,
-                                              @Nullable Boolean isSuccess,
-                                              @Nullable Currency currency,
-                                              OffsetBasedPageRequest offsetBasedPageRequest) {
-        if (txHashes.size() > LARGE_HASH_SET_THRESHOLD) {
-            return searchTxnEntitiesORWithLargeHashSet(txHashes, blockHash, blockNumber, maxBlock, isSuccess, currency, offsetBasedPageRequest);
-        }
-
-        // Build OR conditions
-        Condition orConditions = queryBuilder.buildOrConditions(txHashes, blockHash, blockNumber, maxBlock, isSuccess, currency, getCurrencyConditionBuilder());
-        
-        // Execute separate count and results queries for optimal performance
-        int totalCount = executeCountQuery(orConditions, isSuccess);
-        List<? extends org.jooq.Record> results = executeResultsQuery(orConditions, isSuccess, offsetBasedPageRequest);
-
-        return queryBuilder.createPageFromSeparateQueries(results, totalCount, offsetBasedPageRequest);
-    }
+    public abstract Page<TxnEntity> searchTxnEntitiesOR(Set<String> txHashes,
+                                                       Set<String> addressHashes,
+                                                       @Nullable String blockHash,
+                                                       @Nullable Long blockNumber,
+                                                       @Nullable Long maxBlock,
+                                                       @Nullable Boolean isSuccess,
+                                                       @Nullable Currency currency,
+                                                       OffsetBasedPageRequest offsetBasedPageRequest);
 
     /**
      * Generic method to execute a count query with proper JOINs.

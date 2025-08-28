@@ -65,7 +65,7 @@ class LedgerSearchServiceImplTest {
                     .thenReturn(manyUtxos);
 
             // Mock the repository calls to avoid NullPointerException
-            when(txRepository.searchTxnEntitiesAND(any(), any(), any(), any(), any(), any(), any()))
+            when(txRepository.searchTxnEntitiesAND(any(), any(), any(), any(), any(), any(), any(), any()))
                     .thenReturn(Page.empty());
             when(ledgerBlockService.mapTxnEntitiesToBlockTxList(any(Page.class)))
                     .thenReturn(Page.empty());
@@ -105,7 +105,7 @@ class LedgerSearchServiceImplTest {
                     .thenReturn(manyUtxos);
 
             // Mock the repository calls to avoid NullPointerException
-            when(txRepository.searchTxnEntitiesOR(any(), any(), any(), any(), any(), any(), any()))
+            when(txRepository.searchTxnEntitiesOR(any(), any(), any(), any(), any(), any(), any(), any()))
                     .thenReturn(Page.empty());
             when(ledgerBlockService.mapTxnEntitiesToBlockTxList(any(Page.class)))
                     .thenReturn(Page.empty());
@@ -144,7 +144,7 @@ class LedgerSearchServiceImplTest {
                     .thenReturn(veryLargeList);
 
             // Mock the repository calls to avoid NullPointerException
-            when(txRepository.searchTxnEntitiesAND(any(), any(), any(), any(), any(), any(), any()))
+            when(txRepository.searchTxnEntitiesAND(any(), any(), any(), any(), any(), any(), any(), any()))
                     .thenReturn(Page.empty());
             when(ledgerBlockService.mapTxnEntitiesToBlockTxList(any(Page.class)))
                     .thenReturn(Page.empty());
@@ -179,7 +179,7 @@ class LedgerSearchServiceImplTest {
                     .thenReturn(smallList);
 
             // Mock the repository calls to avoid NullPointerException
-            when(txRepository.searchTxnEntitiesOR(any(), any(), any(), any(), any(), any(), any()))
+            when(txRepository.searchTxnEntitiesOR(any(), any(), any(), any(), any(), any(), any(), any()))
                     .thenReturn(Page.empty());
 
             when(ledgerBlockService.mapTxnEntitiesToBlockTxList(any(Page.class)))

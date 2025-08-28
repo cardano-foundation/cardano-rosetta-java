@@ -14,6 +14,7 @@ public interface TxRepositoryCustom {
   List<TxnEntity> findTransactionsByBlockHash(String blockHash);
 
   Page<TxnEntity> searchTxnEntitiesAND(Set<String> txHashes,
+                                       Set<String> addressHashes,
                                        @Nullable String blockHash,
                                        @Nullable Long blockNumber,
                                        @Nullable Long maxBlock,
@@ -22,6 +23,7 @@ public interface TxRepositoryCustom {
                                        OffsetBasedPageRequest offsetBasedPageRequest);
 
   Page<TxnEntity> searchTxnEntitiesOR(Set<String> txHashes,
+                                      Set<String> addressHashes,
                                       @Nullable String blockHash,
                                       @Nullable Long blockNumber,
                                       @Nullable Long maxBlock,
