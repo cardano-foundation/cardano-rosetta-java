@@ -28,7 +28,7 @@ import java.util.concurrent.TimeoutException;
  */
 @Slf4j
 @Service
-@ConditionalOnProperty(name = "address-history.implementation", havingValue = "hibernate")
+@ConditionalOnProperty(name = "address-history.implementation", havingValue = "hibernate", matchIfMissing = true)
 @RequiredArgsConstructor
 public class AddressHistoryServiceHibernate implements AddressHistoryService {
 

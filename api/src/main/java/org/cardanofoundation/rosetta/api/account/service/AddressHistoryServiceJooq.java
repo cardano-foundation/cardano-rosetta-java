@@ -17,7 +17,7 @@ import java.util.List;
  */
 @Slf4j
 @Service
-@ConditionalOnProperty(name = "address-history.implementation", havingValue = "jooq", matchIfMissing = true)
+@ConditionalOnProperty(name = "address-history.implementation", havingValue = "jooq")
 @RequiredArgsConstructor
 public class AddressHistoryServiceJooq implements AddressHistoryService {
 
