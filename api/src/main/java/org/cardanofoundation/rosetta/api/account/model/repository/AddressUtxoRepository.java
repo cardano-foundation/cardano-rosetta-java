@@ -9,6 +9,10 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+/**
+ * Repository for address UTXO operations using JPA.
+ * For complex transaction history queries, use AddressTransactionHistoryService.
+ */
 @Repository
 public interface AddressUtxoRepository extends JpaRepository<AddressUtxoEntity, UtxoId> {
 
@@ -43,5 +47,28 @@ public interface AddressUtxoRepository extends JpaRepository<AddressUtxoEntity, 
   List<AddressUtxoEntity> findUnspentUtxosByAddressAndBlock(@Param("address") String address, @Param("block") long block);
 
   List<AddressUtxoEntity> findByTxHashIn(List<String> utxHashes);
+
+  /**
+   * Find all transaction hashes where the address received outputs.
+   */
+  @Query(value = """
+      SELECT DISTINCT au.txHash FROM AddressUtxoEntity au
+      WHERE au.ownerAddr = :address OR au.ownerStakeAddr = :address
+      """)
+  List<String> findOutputTransactionsByAddress(@Param("address") String address);
+
+  /**
+   * Find all transaction hashes where the address's outputs were spent as inputs.
+   */
+  @Query(value = """
+      SELECT DISTINCT ti.spentTxHash
+      FROM TxInputEntity ti
+      INNER JOIN AddressUtxoEntity au ON (
+          ti.txHash = au.txHash AND 
+          ti.outputIndex = au.outputIndex
+      )
+      WHERE au.ownerAddr = :address OR au.ownerStakeAddr = :address
+      """)
+  List<String> findInputTransactionsByAddress(@Param("address") String address);
 
 }

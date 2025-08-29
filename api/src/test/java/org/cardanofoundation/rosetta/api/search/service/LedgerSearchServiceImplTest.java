@@ -1,6 +1,7 @@
 package org.cardanofoundation.rosetta.api.search.service;
 
 import org.cardanofoundation.rosetta.api.account.model.repository.AddressUtxoRepository;
+import org.cardanofoundation.rosetta.api.account.service.AddressHistoryService;
 import org.cardanofoundation.rosetta.api.block.model.repository.TxInputRepository;
 import org.cardanofoundation.rosetta.api.block.model.repository.TxRepository;
 import org.cardanofoundation.rosetta.api.block.service.LedgerBlockService;
@@ -39,6 +40,9 @@ class LedgerSearchServiceImplTest {
     @Mock
     private AddressUtxoRepository addressUtxoRepository;
 
+    @Mock
+    private AddressHistoryService addressHistoryService;
+
     @InjectMocks
     private LedgerSearchServiceImpl ledgerSearchService;
 
@@ -57,11 +61,11 @@ class LedgerSearchServiceImplTest {
             IntStream.range(0, 15000)
                     .forEach(i -> manyUtxos.add("tx_hash_" + i));
             
-            when(addressUtxoRepository.findTxHashesByOwnerAddr(address))
+            when(addressHistoryService.findCompleteTransactionHistoryByAddress(address))
                     .thenReturn(manyUtxos);
 
             // Mock the repository calls to avoid NullPointerException
-            when(txRepository.searchTxnEntitiesAND(any(), any(), any(), any(), any(), any(), any()))
+            when(txRepository.searchTxnEntitiesAND(any(), any(), any(), any(), any(), any(), any(), any()))
                     .thenReturn(Page.empty());
             when(ledgerBlockService.mapTxnEntitiesToBlockTxList(any(Page.class)))
                     .thenReturn(Page.empty());
@@ -97,11 +101,11 @@ class LedgerSearchServiceImplTest {
             IntStream.range(0, 20000)
                     .forEach(i -> manyUtxos.add("tx_hash_" + i));
             
-            when(addressUtxoRepository.findTxHashesByOwnerAddr(address))
+            when(addressHistoryService.findCompleteTransactionHistoryByAddress(address))
                     .thenReturn(manyUtxos);
 
             // Mock the repository calls to avoid NullPointerException
-            when(txRepository.searchTxnEntitiesOR(any(), any(), any(), any(), any(), any(), any()))
+            when(txRepository.searchTxnEntitiesOR(any(), any(), any(), any(), any(), any(), any(), any()))
                     .thenReturn(Page.empty());
             when(ledgerBlockService.mapTxnEntitiesToBlockTxList(any(Page.class)))
                     .thenReturn(Page.empty());
@@ -136,11 +140,11 @@ class LedgerSearchServiceImplTest {
             IntStream.range(0, 50000)
                     .forEach(i -> veryLargeList.add("tx_hash_" + i));
             
-            when(addressUtxoRepository.findTxHashesByOwnerAddr(address))
+            when(addressHistoryService.findCompleteTransactionHistoryByAddress(address))
                     .thenReturn(veryLargeList);
 
             // Mock the repository calls to avoid NullPointerException
-            when(txRepository.searchTxnEntitiesAND(any(), any(), any(), any(), any(), any(), any()))
+            when(txRepository.searchTxnEntitiesAND(any(), any(), any(), any(), any(), any(), any(), any()))
                     .thenReturn(Page.empty());
             when(ledgerBlockService.mapTxnEntitiesToBlockTxList(any(Page.class)))
                     .thenReturn(Page.empty());
@@ -171,11 +175,11 @@ class LedgerSearchServiceImplTest {
             // Create a small list of UTXOs
             List<String> smallList = List.of("tx_hash_1", "tx_hash_2", "tx_hash_3");
             
-            when(addressUtxoRepository.findTxHashesByOwnerAddr(address))
+            when(addressHistoryService.findCompleteTransactionHistoryByAddress(address))
                     .thenReturn(smallList);
 
             // Mock the repository calls to avoid NullPointerException
-            when(txRepository.searchTxnEntitiesOR(any(), any(), any(), any(), any(), any(), any()))
+            when(txRepository.searchTxnEntitiesOR(any(), any(), any(), any(), any(), any(), any(), any()))
                     .thenReturn(Page.empty());
 
             when(ledgerBlockService.mapTxnEntitiesToBlockTxList(any(Page.class)))
@@ -204,7 +208,7 @@ class LedgerSearchServiceImplTest {
             // Given
             String address = "addr1_test_address_with_no_utxos";
             
-            when(addressUtxoRepository.findTxHashesByOwnerAddr(address))
+            when(addressHistoryService.findCompleteTransactionHistoryByAddress(address))
                     .thenReturn(List.of());
 
             // When & Then - should return empty page without validation

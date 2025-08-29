@@ -41,74 +41,111 @@ public class TxRepositoryH2Impl extends TxRepositoryCustomBase implements TxRepo
         return currencyConditionBuilder;
     }
 
+    /**
+     * H2 implementation using simple IN clauses with batching for integration testing.
+     * Optimized for simplicity rather than maximum performance.
+     */
     @Override
     @Transactional
-    protected Page<TxnEntity> searchTxnEntitiesANDWithLargeHashSet(Set<String> txHashes,
-                                                                  @Nullable String blockHash,
-                                                                  @Nullable Long blockNumber,
-                                                                  @Nullable Long maxBlock,
-                                                                  @Nullable Boolean isSuccess,
-                                                                  @Nullable Currency currency,
-                                                                  OffsetBasedPageRequest pageable) {
-        if (txHashes.isEmpty()) {
-            return searchTxnEntitiesAND(Set.of(), blockHash, blockNumber, maxBlock, isSuccess, currency, pageable);
+    public Page<TxnEntity> searchTxnEntitiesAND(Set<String> txHashes,
+                                               Set<String> addressHashes,
+                                               @Nullable String blockHash,
+                                               @Nullable Long blockNumber,
+                                               @Nullable Long maxBlock,
+                                               @Nullable Boolean isSuccess,
+                                               @Nullable Currency currency,
+                                               OffsetBasedPageRequest pageable) {
+        
+        log.debug("Using H2 simple approach for AND search with {} tx hashes and {} address hashes", 
+                 txHashes != null ? txHashes.size() : 0,
+                 addressHashes != null ? addressHashes.size() : 0);
+
+        // Build base conditions without hash filters
+        Condition baseConditions = queryBuilder.buildAndConditions(null, null, blockHash, blockNumber, maxBlock, isSuccess, currency, getCurrencyConditionBuilder());
+
+        // Add txHashes condition (AND logic)
+        if (txHashes != null && !txHashes.isEmpty()) {
+            baseConditions = baseConditions.and(createBatchedInCondition(txHashes));
         }
 
-        log.debug("Using H2 batch approach for AND search with {} transaction hashes", txHashes.size());
-
-        // For H2, we'll use a series of IN clauses with batches
-        List<String> hashList = new ArrayList<>(txHashes);
-        List<List<String>> batches = partitionList(hashList, H2_IN_CLAUSE_LIMIT);
-
-        // Build base conditions without txHashes
-        Condition baseConditions = queryBuilder.buildAndConditions(null, blockHash, blockNumber, maxBlock, isSuccess, currency, getCurrencyConditionBuilder());
-
-        // Create a condition for all batches using OR
-        Condition hashCondition = DSL.falseCondition();
-        for (List<String> batch : batches) {
-            hashCondition = hashCondition.or(TRANSACTION.TX_HASH.in(batch));
+        // Add addressHashes condition (AND logic)
+        if (addressHashes != null && !addressHashes.isEmpty()) {
+            baseConditions = baseConditions.and(createBatchedInCondition(addressHashes));
         }
-
-        // Combine with AND
-        Condition finalConditions = baseConditions.and(hashCondition);
 
         // Execute separate count and results queries for optimal performance
-        int totalCount = executeCountQuery(finalConditions, isSuccess);
-        List<? extends org.jooq.Record> results = executeResultsQuery(finalConditions, isSuccess, pageable);
+        int totalCount = executeCountQuery(baseConditions, isSuccess);
+        List<? extends org.jooq.Record> results = executeResultsQuery(baseConditions, isSuccess, pageable);
 
         return createPageFromSeparateQueries(totalCount, results, pageable);
     }
 
     @Override
     @Transactional
-    protected Page<TxnEntity> searchTxnEntitiesORWithLargeHashSet(Set<String> txHashes,
-                                                                 @Nullable String blockHash,
-                                                                 @Nullable Long blockNumber,
-                                                                 @Nullable Long maxBlock,
-                                                                 @Nullable Boolean isSuccess,
-                                                                 @Nullable Currency currency,
-                                                                 OffsetBasedPageRequest pageable) {
-        if (txHashes == null || txHashes.isEmpty()) {
-            return searchTxnEntitiesOR(Set.of(), blockHash, blockNumber, maxBlock, isSuccess, currency, pageable);
+    public Page<TxnEntity> searchTxnEntitiesOR(Set<String> txHashes,
+                                              Set<String> addressHashes,
+                                              @Nullable String blockHash,
+                                              @Nullable Long blockNumber,
+                                              @Nullable Long maxBlock,
+                                              @Nullable Boolean isSuccess,
+                                              @Nullable Currency currency,
+                                              OffsetBasedPageRequest pageable) {
+        
+        log.debug("Using H2 simple approach for OR search with {} tx hashes and {} address hashes", 
+                 txHashes != null ? txHashes.size() : 0,
+                 addressHashes != null ? addressHashes.size() : 0);
+
+        // Start with null and build OR conditions properly
+        Condition orConditions = null;
+        
+        // Add txHashes as OR condition if present
+        if (txHashes != null && !txHashes.isEmpty()) {
+            orConditions = createBatchedInCondition(txHashes);
         }
-
-        log.debug("Using H2 batch approach for OR search with {} transaction hashes", txHashes.size());
-
-        // For H2, we'll use a series of IN clauses with batches
-        List<String> hashList = new ArrayList<>(txHashes);
-        List<List<String>> batches = partitionList(hashList, H2_IN_CLAUSE_LIMIT);
-
-        // Build base OR conditions without txHashes
-        Condition baseOrConditions = queryBuilder.buildOrConditions(null, blockHash, blockNumber, maxBlock, isSuccess, currency, getCurrencyConditionBuilder());
-
-        // Add hash conditions as OR
-        for (List<String> batch : batches) {
-            baseOrConditions = baseOrConditions.or(TRANSACTION.TX_HASH.in(batch));
+        
+        // Add addressHashes as OR condition if present
+        if (addressHashes != null && !addressHashes.isEmpty()) {
+            Condition addressCondition = createBatchedInCondition(addressHashes);
+            orConditions = orConditions == null ? addressCondition : orConditions.or(addressCondition);
+        }
+        
+        // Add other OR conditions (blockHash, blockNumber, maxBlock, currency)
+        if (blockHash != null) {
+            Condition blockHashCondition = BLOCK.HASH.eq(blockHash);
+            orConditions = orConditions == null ? blockHashCondition : orConditions.or(blockHashCondition);
+        }
+        
+        if (blockNumber != null) {
+            Condition blockNumberCondition = BLOCK.NUMBER.eq(blockNumber);
+            orConditions = orConditions == null ? blockNumberCondition : orConditions.or(blockNumberCondition);
+        }
+        
+        if (maxBlock != null) {
+            Condition maxBlockCondition = BLOCK.NUMBER.le(maxBlock);
+            orConditions = orConditions == null ? maxBlockCondition : orConditions.or(maxBlockCondition);
+        }
+        
+        if (currency != null) {
+            Condition currencyCondition = getCurrencyConditionBuilder().buildCurrencyCondition(currency);
+            orConditions = orConditions == null ? currencyCondition : orConditions.or(currencyCondition);
+        }
+        
+        // If no OR conditions, default to true
+        if (orConditions == null) {
+            orConditions = DSL.trueCondition();
+        }
+        
+        // Success condition should be ANDed with the result of all OR conditions
+        if (isSuccess != null) {
+            Condition successCondition = isSuccess
+                    ? INVALID_TRANSACTION.TX_HASH.isNull()
+                    : INVALID_TRANSACTION.TX_HASH.isNotNull();
+            orConditions = orConditions.and(successCondition);
         }
 
         // Execute separate count and results queries for optimal performance
-        int totalCount = executeCountQuery(baseOrConditions, isSuccess);
-        List<? extends org.jooq.Record> results = executeResultsQuery(baseOrConditions, isSuccess, pageable);
+        int totalCount = executeCountQuery(orConditions, isSuccess);
+        List<? extends org.jooq.Record> results = executeResultsQuery(orConditions, isSuccess, pageable);
 
         return createPageFromSeparateQueries(totalCount, results, pageable);
     }
@@ -145,9 +182,34 @@ public class TxRepositoryH2Impl extends TxRepositoryCustomBase implements TxRepo
     }
 
     /**
-     * Utility method for partitioning lists (used by H2 implementation).
+     * Creates a batched IN condition for H2, handling IN clause size limitations.
+     * Simple approach suitable for integration testing.
      */
-    protected static <T> List<List<T>> partitionList(List<T> list, int batchSize) {
+    private Condition createBatchedInCondition(Set<String> hashes) {
+        if (hashes == null || hashes.isEmpty()) {
+            return DSL.trueCondition();
+        }
+        
+        List<String> hashList = new ArrayList<>(hashes);
+        
+        // For small sets, use simple IN clause
+        if (hashList.size() <= H2_IN_CLAUSE_LIMIT) {
+            return TRANSACTION.TX_HASH.in(hashList);
+        }
+        
+        // For larger sets, batch the IN clauses
+        List<List<String>> batches = partitionList(hashList, H2_IN_CLAUSE_LIMIT);
+        Condition batchedCondition = DSL.falseCondition();
+        for (List<String> batch : batches) {
+            batchedCondition = batchedCondition.or(TRANSACTION.TX_HASH.in(batch));
+        }
+        return batchedCondition;
+    }
+    
+    /**
+     * Utility method for partitioning lists into smaller batches.
+     */
+    private static <T> List<List<T>> partitionList(List<T> list, int batchSize) {
         List<List<T>> batches = new ArrayList<>();
         for (int i = 0; i < list.size(); i += batchSize) {
             int end = Math.min(i + batchSize, list.size());

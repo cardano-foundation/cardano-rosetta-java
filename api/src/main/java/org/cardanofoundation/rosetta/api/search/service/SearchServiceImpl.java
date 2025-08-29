@@ -34,6 +34,10 @@ public class SearchServiceImpl implements SearchService {
             Long offset,
             Long limit) {
 
+        Optional.ofNullable(searchTransactionsRequest.getType()).ifPresent(type -> {
+            throw ExceptionFactory.operationTypeSearchNotSupported(type);
+        });
+
         // Validate and normalize success/status parameters
         @Nullable Boolean isSuccess = validateAndNormalizeSuccessStatus(
                 searchTransactionsRequest.getSuccess(),

@@ -324,7 +324,6 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
 
     // TODO governance votes
     //transaction.setGovernanceVotes(fetched.);
-
   }
 
   private void populateUtxo(Utxo utxo, Map<UtxoKey, AddressUtxoEntity> utxoMap) {

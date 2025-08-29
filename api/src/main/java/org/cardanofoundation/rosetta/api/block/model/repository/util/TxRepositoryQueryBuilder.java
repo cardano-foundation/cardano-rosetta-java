@@ -9,9 +9,9 @@ import org.cardanofoundation.rosetta.api.block.model.entity.TransactionSizeEntit
 import org.cardanofoundation.rosetta.api.block.model.entity.TxnEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.UtxoKey;
 import org.cardanofoundation.rosetta.api.search.model.Currency;
+import org.cardanofoundation.rosetta.common.spring.OffsetBasedPageRequest;
 import org.jooq.*;
 import org.jooq.impl.DSL;
-import org.cardanofoundation.rosetta.common.spring.OffsetBasedPageRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Component;
@@ -52,17 +52,8 @@ public class TxRepositoryQueryBuilder {
         ).from(TRANSACTION);
     }
 
-    /**
-     * Builds a count query for transactions.
-     * This should be used separately from the main results query for better performance.
-     */
-    public SelectJoinStep<Record1<Integer>> buildCountQuery(DSLContext dsl) {
-        return dsl.selectCount().from(TRANSACTION);
-    }
-
-    // Removed buildCountQueryWithJoins - this logic is now in TxRepositoryCustomBase
-
     public Condition buildAndConditions(@Nullable Set<String> txHashes,
+                                       @Nullable Set<String> addressHashes,
                                        @Nullable String blockHash,
                                        @Nullable Long blockNumber,
                                        @Nullable Long maxBlock,
@@ -71,8 +62,13 @@ public class TxRepositoryQueryBuilder {
                                        CurrencyConditionBuilder currencyConditionBuilder) {
         Condition condition = DSL.trueCondition();
 
+        // For AND logic: transactions must match BOTH tx hash filter AND address hash filter
         if (txHashes != null && !txHashes.isEmpty()) {
             condition = condition.and(TRANSACTION.TX_HASH.in(txHashes));
+        }
+
+        if (addressHashes != null && !addressHashes.isEmpty()) {
+            condition = condition.and(TRANSACTION.TX_HASH.in(addressHashes));
         }
 
         if (maxBlock != null) {
@@ -103,6 +99,7 @@ public class TxRepositoryQueryBuilder {
     }
 
     public Condition buildOrConditions(@Nullable Set<String> txHashes,
+                                      @Nullable Set<String> addressHashes,
                                       @Nullable String blockHash,
                                       @Nullable Long blockNumber,
                                       @Nullable Long maxBlock,
@@ -110,9 +107,16 @@ public class TxRepositoryQueryBuilder {
                                       @Nullable Currency currency,
                                       CurrencyConditionBuilder currencyConditionBuilder) {
         Condition orCondition = null;
-
+        
+        // For OR logic: include transactions that match tx hash OR address hash
         if (txHashes != null && !txHashes.isEmpty()) {
             orCondition = TRANSACTION.TX_HASH.in(txHashes);
+        }
+
+        if (addressHashes != null && !addressHashes.isEmpty()) {
+            orCondition = orCondition == null 
+                    ? TRANSACTION.TX_HASH.in(addressHashes)
+                    : orCondition.or(TRANSACTION.TX_HASH.in(addressHashes));
         }
 
         if (maxBlock != null) {
@@ -127,10 +131,18 @@ public class TxRepositoryQueryBuilder {
             orCondition = orCondition == null ? BLOCK.NUMBER.eq(blockNumber) : orCondition.or(BLOCK.NUMBER.eq(blockNumber));
         }
 
+        if (currency != null) {
+            orCondition = orCondition == null 
+                    ? currencyConditionBuilder.buildCurrencyCondition(currency)
+                    : orCondition.or(currencyConditionBuilder.buildCurrencyCondition(currency));
+        }
+
         if (orCondition == null) {
             orCondition = DSL.trueCondition();
         }
 
+        // Success condition should be ANDed with the result of all OR conditions
+        // It acts as a filter on the entire result set
         if (isSuccess != null) {
             Condition successCondition = isSuccess
                     ? INVALID_TRANSACTION.TX_HASH.isNull()
@@ -138,47 +150,18 @@ public class TxRepositoryQueryBuilder {
             orCondition = orCondition.and(successCondition);
         }
 
-        if (currency != null) {
-            orCondition = orCondition.and(currencyConditionBuilder.buildCurrencyCondition(currency));
-        }
-
         return orCondition;
-    }
-
-    public SelectConditionStep<Record1<String>> buildSubquery(DSLContext dsl, Condition conditions, @Nullable Boolean isSuccess) {
-        var subqueryFrom = dsl.selectDistinct(TRANSACTION.TX_HASH)
-                .from(TRANSACTION);
-
-        if (isSuccess != null) {
-            subqueryFrom = subqueryFrom.leftJoin(INVALID_TRANSACTION).on(TRANSACTION.TX_HASH.eq(INVALID_TRANSACTION.TX_HASH));
-        }
-
-        return subqueryFrom
-                .leftJoin(BLOCK).on(TRANSACTION.BLOCK_HASH.eq(BLOCK.HASH))
-                .where(conditions);
-    }
-
-    public SelectConditionStep<Record1<String>> buildOrSubquery(DSLContext dsl, Condition conditions, @Nullable Boolean isSuccess) {
-        var subqueryFrom = dsl.selectDistinct(TRANSACTION.TX_HASH)
-                .from(TRANSACTION)
-                .leftJoin(ADDRESS_UTXO).on(TRANSACTION.TX_HASH.eq(ADDRESS_UTXO.TX_HASH));
-
-        if (isSuccess != null) {
-            subqueryFrom = subqueryFrom.leftJoin(INVALID_TRANSACTION).on(TRANSACTION.TX_HASH.eq(INVALID_TRANSACTION.TX_HASH));
-        }
-
-        return subqueryFrom
-                .leftJoin(BLOCK).on(TRANSACTION.BLOCK_HASH.eq(BLOCK.HASH))
-                .where(conditions);
     }
 
     public TxnEntity mapRecordToTxnEntity(org.jooq.Record record) {
         String txHash = record.get(TRANSACTION.TX_HASH);
         JSONB inputs = record.get(TRANSACTION.INPUTS);
         JSONB outputs = record.get(TRANSACTION.OUTPUTS);
-        BigInteger fee = Optional.ofNullable(record.get(TRANSACTION.FEE)).map(BigInteger::valueOf).orElse(null);
 
-        BlockEntity blockEntity = null;
+        @Nullable BigInteger fee = Optional.ofNullable(record.get(TRANSACTION.FEE))
+                .map(BigInteger::valueOf).orElse(null);
+
+        @Nullable BlockEntity blockEntity = null;
         String blockHashFromRecord = record.get("joined_block_hash", String.class);
         if (blockHashFromRecord != null) {
             blockEntity = BlockEntity.builder()
@@ -252,133 +235,6 @@ public class TxRepositoryQueryBuilder {
                 .toList();
 
         return new PageImpl<>(entities, pageable, totalCount);
-    }
-
-    /**
-     * Builds optimized AND conditions directly on the main query to avoid subqueries.
-     * This method handles the no-filter edge case and prevents full table scans.
-     * For cases where we truly need all transactions (test scenarios), add basic ordering constraint.
-     */
-    public Condition buildOptimizedAndConditions(@Nullable Set<String> txHashes,
-                                                @Nullable String blockHash,
-                                                @Nullable Long blockNumber,
-                                                @Nullable Long maxBlock,
-                                                @Nullable Boolean isSuccess,
-                                                @Nullable Currency currency,
-                                                CurrencyConditionBuilder currencyConditionBuilder) {
-        
-        boolean hasSpecificFilter = (txHashes != null && !txHashes.isEmpty()) ||
-                                   blockHash != null ||
-                                   blockNumber != null ||
-                                   maxBlock != null ||
-                                   currency != null;
-        
-        Condition condition = DSL.trueCondition();
-
-        if (txHashes != null && !txHashes.isEmpty()) {
-            condition = condition.and(TRANSACTION.TX_HASH.in(txHashes));
-        }
-
-        if (maxBlock != null) {
-            condition = condition.and(BLOCK.NUMBER.le(maxBlock));
-        }
-
-        if (blockHash != null) {
-            condition = condition.and(BLOCK.HASH.eq(blockHash));
-        }
-
-        if (blockNumber != null) {
-            condition = condition.and(BLOCK.NUMBER.eq(blockNumber));
-        }
-
-        if (isSuccess != null) {
-            Condition successCondition = isSuccess
-                    ? INVALID_TRANSACTION.TX_HASH.isNull()
-                    : INVALID_TRANSACTION.TX_HASH.isNotNull();
-
-            condition = condition.and(successCondition);
-        }
-
-        if (currency != null) {
-            condition = condition.and(currencyConditionBuilder.buildCurrencyCondition(currency));
-        }
-
-        // If no specific filters and no success filter, add a constraint to prevent complete full table scan
-        // This allows some queries to succeed (like tests) but prevents worst performance cases
-        if (!hasSpecificFilter && isSuccess == null) {
-            // Add a reasonable constraint - limit to recent transactions
-            // This prevents full table scan while still allowing functionality
-            condition = condition.and(TRANSACTION.SLOT.isNotNull());
-        }
-
-        return condition;
-    }
-
-    /**
-     * Builds optimized OR conditions directly on the main query to avoid subqueries.
-     * This method handles the no-filter edge case and prevents full table scans.
-     * For cases where we truly need all transactions (test scenarios), add basic ordering constraint.
-     */
-    public Condition buildOptimizedOrConditions(@Nullable Set<String> txHashes,
-                                               @Nullable String blockHash,
-                                               @Nullable Long blockNumber,
-                                               @Nullable Long maxBlock,
-                                               @Nullable Boolean isSuccess,
-                                               @Nullable Currency currency,
-                                               CurrencyConditionBuilder currencyConditionBuilder) {
-        
-        boolean hasSpecificFilter = (txHashes != null && !txHashes.isEmpty()) ||
-                                   blockHash != null ||
-                                   blockNumber != null ||
-                                   maxBlock != null ||
-                                   currency != null;
-        
-        Condition orCondition = null;
-
-        if (txHashes != null && !txHashes.isEmpty()) {
-            orCondition = TRANSACTION.TX_HASH.in(txHashes);
-        }
-
-        if (maxBlock != null) {
-            orCondition = orCondition == null ? BLOCK.NUMBER.le(maxBlock) : orCondition.or(BLOCK.NUMBER.le(maxBlock));
-        }
-
-        if (blockHash != null) {
-            orCondition = orCondition == null ? BLOCK.HASH.eq(blockHash) : orCondition.or(BLOCK.HASH.eq(blockHash));
-        }
-
-        if (blockNumber != null) {
-            orCondition = orCondition == null ? BLOCK.NUMBER.eq(blockNumber) : orCondition.or(BLOCK.NUMBER.eq(blockNumber));
-        }
-
-        // Handle case where we have no OR conditions yet
-        if (orCondition == null) {
-            if (isSuccess != null) {
-                // Only success filter - use it as the base condition
-                Condition successCondition = isSuccess
-                        ? INVALID_TRANSACTION.TX_HASH.isNull()
-                        : INVALID_TRANSACTION.TX_HASH.isNotNull();
-                orCondition = successCondition;
-            } else {
-                // No specific filters and no success filter - add basic constraint to prevent full scan
-                // This allows tests to pass while preventing worst performance cases
-                orCondition = TRANSACTION.SLOT.isNotNull();
-            }
-        } else {
-            // Apply success filter as AND condition if we have other OR conditions
-            if (isSuccess != null) {
-                Condition successCondition = isSuccess
-                        ? INVALID_TRANSACTION.TX_HASH.isNull()
-                        : INVALID_TRANSACTION.TX_HASH.isNotNull();
-                orCondition = orCondition.and(successCondition);
-            }
-        }
-
-        if (currency != null) {
-            orCondition = orCondition.and(currencyConditionBuilder.buildCurrencyCondition(currency));
-        }
-
-        return orCondition;
     }
 
 }

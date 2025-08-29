@@ -3,6 +3,7 @@ package org.cardanofoundation.rosetta.api.search.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.api.account.model.repository.AddressUtxoRepository;
+import org.cardanofoundation.rosetta.api.account.service.AddressHistoryService;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.model.entity.TxnEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.UtxoKey;
@@ -31,7 +32,7 @@ public class LedgerSearchServiceImpl implements LedgerSearchService {
   private final TxRepository txRepository;
   private final LedgerBlockService ledgerBlockService;
   private final TxInputRepository txInputRepository;
-  private final AddressUtxoRepository addressUtxoRepository;
+  private final AddressHistoryService addressHistoryService;
 
   // Note: MAX_UTXO_COUNT limitation has been removed.
   // The TxRepositoryCustomImpl now uses temporary tables for large transaction hash sets,
@@ -52,34 +53,39 @@ public class LedgerSearchServiceImpl implements LedgerSearchService {
                                          long limit) {
     OffsetBasedPageRequest pageable = new SimpleOffsetBasedPageRequest(offset, (int) limit);
 
-    Set<String> txHashes = new HashSet<>();
-    Optional.ofNullable(txHash).ifPresent(txHashes::add);
+    // Separate transaction hashes into plain hashes and address-related hashes
+    final Set<String> plainTxHashes = new HashSet<>();
+    final Set<String> addressRelatedHashes = new HashSet<>();
 
+    // Add direct transaction hash to plainTxHashes
+    Optional.ofNullable(txHash).ifPresent(plainTxHashes::add);
+
+    // Process address-related hashes
     Optional<String> addressOptional = Optional.ofNullable(address);
-    Set<String> addressTxHashes = new HashSet<>();
-
     addressOptional.ifPresent(addr -> {
-      addressTxHashes.addAll(addressUtxoRepository.findTxHashesByOwnerAddr(addr));
+      addressRelatedHashes.addAll(addressHistoryService.findCompleteTransactionHistoryByAddress(addr));
     });
 
     // If address was set and there weren't any transactions found, return empty list
-    if (addressOptional.isPresent() && addressTxHashes.isEmpty()) {
+    if (addressOptional.isPresent() && addressRelatedHashes.isEmpty()) {
       return Page.empty();
     }
 
-    txHashes.addAll(addressTxHashes);
-
+    // Process UTXO-related hashes - these go into plainTxHashes since they're direct lookups
     Optional.ofNullable(utxoKey).ifPresent(utxo -> {
-      txHashes.add(utxo.getTxHash());
+      plainTxHashes.add(utxo.getTxHash());
       String txHash_ = utxoKey.getTxHash();
       Integer outputIndex = utxoKey.getOutputIndex();
-
-      txHashes.addAll(txInputRepository.findSpentTxHashByUtxoKey(txHash_, outputIndex));
+      plainTxHashes.addAll(txInputRepository.findSpentTxHashByUtxoKey(txHash_, outputIndex));
     });
 
+    // Use the final sets or empty sets if they're empty
+    final Set<String> finalPlainTxHashes = plainTxHashes.isEmpty() ? Set.of() : plainTxHashes;
+    final Set<String> finalAddressRelatedHashes = addressRelatedHashes.isEmpty() ? Set.of() : addressRelatedHashes;
+
     Page<TxnEntity> txnEntities = switch (operator) {
-      case AND -> txRepository.searchTxnEntitiesAND(txHashes, blockHash, blockNo, maxBlock, isSuccess, currency, pageable);
-      case OR -> txRepository.searchTxnEntitiesOR(txHashes, blockHash, blockNo, maxBlock, isSuccess, currency, pageable);
+      case AND -> txRepository.searchTxnEntitiesAND(finalPlainTxHashes, finalAddressRelatedHashes, blockHash, blockNo, maxBlock, isSuccess, currency, pageable);
+      case OR -> txRepository.searchTxnEntitiesOR(finalPlainTxHashes, finalAddressRelatedHashes, blockHash, blockNo, maxBlock, isSuccess, currency, pageable);
     };
 
     // this mapping is quite expensive, since it involves multiple database queries

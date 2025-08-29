@@ -52,7 +52,7 @@ public class TxRepositoryCustomImplTempTableTest extends IntegrationTest {
             Set<String> smallHashSet = Set.of("successTx1", "successTx2", "successTx3");
             
             Page<TxnEntity> results = txRepository.searchTxnEntitiesAND(
-                    smallHashSet, null, null, null, null, null, 
+                    smallHashSet, Set.of(), null, null, null, null, null, 
                     new SimpleOffsetBasedPageRequest(0, 100));
 
             // Should return results using traditional IN clause approach
@@ -85,7 +85,7 @@ public class TxRepositoryCustomImplTempTableTest extends IntegrationTest {
                     .forEach(i -> largeHashSet.add(generateUniqueHash("testLargeHashSetUsesTempTable")));
 
             Page<TxnEntity> results = txRepository.searchTxnEntitiesAND(
-                    largeHashSet, null, null, null, null, null, 
+                    largeHashSet, Set.of(), null, null, null, null, null, 
                     new SimpleOffsetBasedPageRequest(0, 100));
 
             // Should return results using temporary table approach
@@ -124,7 +124,7 @@ public class TxRepositoryCustomImplTempTableTest extends IntegrationTest {
 
             // Test successful transactions only
             Page<TxnEntity> successResults = txRepository.searchTxnEntitiesAND(
-                    largeHashSet, null, null, null, true, null, 
+                    largeHashSet, Set.of(), null, null, null, true, null, 
                     new SimpleOffsetBasedPageRequest(0, 100));
 
             List<String> successHashes = successResults.getContent().stream()
@@ -137,7 +137,7 @@ public class TxRepositoryCustomImplTempTableTest extends IntegrationTest {
 
             // Test failed transactions only
             Page<TxnEntity> failedResults = txRepository.searchTxnEntitiesAND(
-                    largeHashSet, null, null, null, false, null, 
+                    largeHashSet, Set.of(), null, null, null, false, null, 
                     new SimpleOffsetBasedPageRequest(0, 100));
 
             List<String> failedHashes = failedResults.getContent().stream()
@@ -165,7 +165,7 @@ public class TxRepositoryCustomImplTempTableTest extends IntegrationTest {
                     .forEach(i -> largeHashSet.add(generateUniqueHash("testTempTableORSearch")));
 
             Page<TxnEntity> results = txRepository.searchTxnEntitiesOR(
-                    largeHashSet, null, null, null, null, null, 
+                    largeHashSet, Set.of(), null, null, null, null, null, 
                     new SimpleOffsetBasedPageRequest(0, 100));
 
             List<String> returnedHashes = results.getContent().stream()
@@ -193,7 +193,7 @@ public class TxRepositoryCustomImplTempTableTest extends IntegrationTest {
 
             // Test with block hash filter
             Page<TxnEntity> results = txRepository.searchTxnEntitiesAND(
-                    largeHashSet, "successBlock1", null, null, true, null, 
+                    largeHashSet, Set.of(), "successBlock1", null, null, true, null, 
                     new SimpleOffsetBasedPageRequest(0, 100));
 
             List<String> returnedHashes = results.getContent().stream()
@@ -214,7 +214,7 @@ public class TxRepositoryCustomImplTempTableTest extends IntegrationTest {
         @DisplayName("Should handle empty transaction hash sets gracefully")
         public void testEmptyTransactionHashSetFromNull() {
             Page<TxnEntity> results = txRepository.searchTxnEntitiesAND(
-                    Collections.emptySet(), null, null, null, null, null, 
+                    Collections.<String>emptySet(), Collections.<String>emptySet(), null, null, null, null, null, 
                     new SimpleOffsetBasedPageRequest(0, 10));
 
             // Should not throw exception and return results
@@ -225,7 +225,7 @@ public class TxRepositoryCustomImplTempTableTest extends IntegrationTest {
         @DisplayName("Should handle empty transaction hash sets gracefully")
         public void testEmptyTransactionHashSet() {
             Page<TxnEntity> results = txRepository.searchTxnEntitiesAND(
-                    Set.of(), null, null, null, null, null, 
+                    Collections.<String>emptySet(), Collections.<String>emptySet(), null, null, null, null, null, 
                     new SimpleOffsetBasedPageRequest(0, 10));
 
             // Should not throw exception and return results
@@ -248,7 +248,7 @@ public class TxRepositoryCustomImplTempTableTest extends IntegrationTest {
 
             // Should handle this without issues
             Page<TxnEntity> results = txRepository.searchTxnEntitiesAND(
-                    veryLargeHashSet, null, null, null, null, null, 
+                    veryLargeHashSet, Set.of(), null, null, null, null, null, 
                     new SimpleOffsetBasedPageRequest(0, 100));
 
             // Should return results successfully
@@ -278,7 +278,7 @@ public class TxRepositoryCustomImplTempTableTest extends IntegrationTest {
 
             // Get results using IN clause approach (small set)
             Page<TxnEntity> inClauseResults = txRepository.searchTxnEntitiesAND(
-                    testHashes, null, null, null, null, null, 
+                    testHashes, Set.of(), null, null, null, null, null, 
                     new SimpleOffsetBasedPageRequest(0, 100));
 
             // Create large set to force temporary table approach
@@ -287,7 +287,7 @@ public class TxRepositoryCustomImplTempTableTest extends IntegrationTest {
                     .forEach(i -> largeHashSet.add(generateUniqueHash("testResultConsistencyBetweenApproaches")));
 
             Page<TxnEntity> tempTableResults = txRepository.searchTxnEntitiesAND(
-                    largeHashSet, null, null, null, null, null, 
+                    largeHashSet, Set.of(), null, null, null, null, null, 
                     new SimpleOffsetBasedPageRequest(0, 100));
 
             // Extract relevant results (excluding dummy transactions)

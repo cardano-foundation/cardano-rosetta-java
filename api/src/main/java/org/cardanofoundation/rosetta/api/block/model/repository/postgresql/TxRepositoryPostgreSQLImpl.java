@@ -40,196 +40,153 @@ public class TxRepositoryPostgreSQLImpl extends TxRepositoryCustomBase implement
         return currencyConditionBuilder;
     }
 
+    /**
+     * PostgreSQL always uses VALUES table approach for all hash set sizes.
+     * This provides consistent performance and eliminates threshold complexity.
+     */
     @Override
     @Transactional
-    protected Page<TxnEntity> searchTxnEntitiesANDWithLargeHashSet(Set<String> txHashes,
-                                                                  @Nullable String blockHash,
-                                                                  @Nullable Long blockNumber,
-                                                                  @Nullable Long maxBlock,
-                                                                  @Nullable Boolean isSuccess,
-                                                                  @Nullable Currency currency,
-                                                                  OffsetBasedPageRequest offsetBasedPageRequest) {
-        if (txHashes.isEmpty()) {
-            return searchTxnEntitiesAND(txHashes, blockHash, blockNumber, maxBlock, isSuccess, currency, offsetBasedPageRequest);
+    public Page<TxnEntity> searchTxnEntitiesAND(Set<String> plainTxHashes,
+                                               Set<String> addressHashes,
+                                               @Nullable String blockHash,
+                                               @Nullable Long blockNumber,
+                                               @Nullable Long maxBlock,
+                                               @Nullable Boolean isSuccess,
+                                               @Nullable Currency currency,
+                                               OffsetBasedPageRequest offsetBasedPageRequest) {
+        
+        log.debug("Using PostgreSQL VALUES approach for AND search with {} tx hashes and {} address hashes",
+                 plainTxHashes != null ? plainTxHashes.size() : 0,
+                 addressHashes != null ? addressHashes.size() : 0);
+
+        // Build base conditions without hash filters
+        Condition baseConditions = queryBuilder.buildAndConditions(null, null, blockHash, blockNumber, maxBlock, isSuccess, currency, getCurrencyConditionBuilder());
+        
+        // Add plainTxHashes condition if present using VALUES table
+        if (plainTxHashes != null && !plainTxHashes.isEmpty()) {
+            baseConditions = baseConditions.and(createHashCondition(plainTxHashes));
         }
-
-        log.debug("Using PostgreSQL VALUES approach for AND search with {} transaction hashes", txHashes.size());
-
-        // Create VALUES table with hash values
-        Table<?> hashValues = createValuesTable(txHashes);
-
-        // Build base conditions without txHashes
-        Condition baseConditions = queryBuilder.buildAndConditions(null, blockHash, blockNumber, maxBlock, isSuccess, currency, getCurrencyConditionBuilder());
+        
+        // Add addressHashes condition if present using VALUES table
+        if (addressHashes != null && !addressHashes.isEmpty()) {
+            baseConditions = baseConditions.and(createHashCondition(addressHashes));
+        }
         
         // Execute separate count and results queries for optimal performance
-        int totalCount = executeCountQueryWithValues(hashValues, baseConditions, isSuccess);
-        List<? extends org.jooq.Record> results = executeResultsQueryWithValues(hashValues, baseConditions, isSuccess, offsetBasedPageRequest);
+        int totalCount = executeCountQuery(baseConditions, isSuccess);
+        List<? extends org.jooq.Record> results = executeResultsQuery(baseConditions, isSuccess, offsetBasedPageRequest);
 
         return createPageFromSeparateQueries(totalCount, results, offsetBasedPageRequest);
     }
 
     @Override
     @Transactional
-    protected Page<TxnEntity> searchTxnEntitiesORWithLargeHashSet(Set<String> txHashes,
-                                                                 @Nullable String blockHash,
-                                                                 @Nullable Long blockNumber,
-                                                                 @Nullable Long maxBlock,
-                                                                 @Nullable Boolean isSuccess,
-                                                                 @Nullable Currency currency,
-                                                                 OffsetBasedPageRequest offsetBasedPageRequest) {
-        if (txHashes.isEmpty()) {
-            return searchTxnEntitiesOR(txHashes, blockHash, blockNumber, maxBlock, isSuccess, currency, offsetBasedPageRequest);
+    public Page<TxnEntity> searchTxnEntitiesOR(Set<String> plainTxHashes,
+                                              Set<String> addressHashes,
+                                              @Nullable String blockHash,
+                                              @Nullable Long blockNumber,
+                                              @Nullable Long maxBlock,
+                                              @Nullable Boolean isSuccess,
+                                              @Nullable Currency currency,
+                                              OffsetBasedPageRequest offsetBasedPageRequest) {
+        
+        log.debug("Using PostgreSQL VALUES approach for OR search with {} tx hashes and {} address hashes",
+                 plainTxHashes != null ? plainTxHashes.size() : 0,
+                 addressHashes != null ? addressHashes.size() : 0);
+
+        // Start with null and build OR conditions properly
+        Condition orConditions = null;
+        
+        // Add plainTxHashes as OR condition if present using VALUES table
+        if (plainTxHashes != null && !plainTxHashes.isEmpty()) {
+            orConditions = createHashCondition(plainTxHashes);
         }
-
-        log.debug("Using PostgreSQL VALUES approach for OR search with {} transaction hashes", txHashes.size());
-
-        // Create VALUES table with hash values
-        Table<?> hashValues = createValuesTable(txHashes);
-
-        // Build base conditions for hash filtering
-        Condition hashConditions = DSL.trueCondition();
+        
+        // Add addressHashes as OR condition if present using VALUES table
+        if (addressHashes != null && !addressHashes.isEmpty()) {
+            Condition addressCondition = createHashCondition(addressHashes);
+            orConditions = orConditions == null ? addressCondition : orConditions.or(addressCondition);
+        }
+        
+        // Add other OR conditions (blockHash, blockNumber, maxBlock, currency)
+        if (blockHash != null) {
+            Condition blockHashCondition = BLOCK.HASH.eq(blockHash);
+            orConditions = orConditions == null ? blockHashCondition : orConditions.or(blockHashCondition);
+        }
+        
+        if (blockNumber != null) {
+            Condition blockNumberCondition = BLOCK.NUMBER.eq(blockNumber);
+            orConditions = orConditions == null ? blockNumberCondition : orConditions.or(blockNumberCondition);
+        }
+        
+        if (maxBlock != null) {
+            Condition maxBlockCondition = BLOCK.NUMBER.le(maxBlock);
+            orConditions = orConditions == null ? maxBlockCondition : orConditions.or(maxBlockCondition);
+        }
+        
+        if (currency != null) {
+            Condition currencyCondition = getCurrencyConditionBuilder().buildCurrencyCondition(currency);
+            orConditions = orConditions == null ? currencyCondition : orConditions.or(currencyCondition);
+        }
+        
+        // If no OR conditions, default to true
+        if (orConditions == null) {
+            orConditions = DSL.trueCondition();
+        }
+        
+        // Success condition should be ANDed with the result of all OR conditions
         if (isSuccess != null) {
             Condition successCondition = isSuccess
                     ? INVALID_TRANSACTION.TX_HASH.isNull()
                     : INVALID_TRANSACTION.TX_HASH.isNotNull();
-            hashConditions = hashConditions.and(successCondition);
-        }
-        if (currency != null) {
-            hashConditions = hashConditions.and(getCurrencyConditionBuilder().buildCurrencyCondition(currency));
+            orConditions = orConditions.and(successCondition);
         }
 
-        // If we have other OR conditions, we need to handle complex OR logic
-        if (blockHash != null || blockNumber != null || maxBlock != null) {
-            return handleComplexORWithSeparateQueries(hashValues, hashConditions, blockHash, blockNumber, maxBlock, isSuccess, currency, offsetBasedPageRequest);
-        }
-
-        // Simple case: only hash filtering - use separate count and results queries
-        // Execute count query first
-        int totalCount = executeCountQueryWithValues(hashValues, hashConditions, isSuccess);
-        // Execute results query
-        List<? extends org.jooq.Record> results = executeResultsQueryWithValues(hashValues, hashConditions, isSuccess, offsetBasedPageRequest);
+        // Execute separate count and results queries for optimal performance
+        int totalCount = executeCountQuery(orConditions, isSuccess);
+        List<? extends org.jooq.Record> results = executeResultsQuery(orConditions, isSuccess, offsetBasedPageRequest);
 
         return createPageFromSeparateQueries(totalCount, results, offsetBasedPageRequest);
     }
-    
     /**
-     * Handles complex OR queries with hash filtering using separate count and results queries.
-     * This avoids window functions for better performance.
-     */
-    private Page<TxnEntity> handleComplexORWithSeparateQueries(Table<?> hashValues,
-                                                               Condition hashConditions,
-                                                               @Nullable String blockHash,
-                                                               @Nullable Long blockNumber, @Nullable Long maxBlock,
-                                                               @Nullable Boolean isSuccess, @Nullable Currency currency,
-                                                               OffsetBasedPageRequest offsetBasedPageRequest) {
-        // We need to handle: (hash matches with conditions) OR (other block/number conditions)
-        // This requires careful construction to avoid window functions
-        
-        // Build conditions for non-hash filters
-        Condition otherOrConditions = queryBuilder.buildOrConditions(null, blockHash, blockNumber, maxBlock, isSuccess, currency, getCurrencyConditionBuilder());
-        
-        // Strategy: Use a single query with combined OR conditions
-        // The VALUES table join will naturally filter to matching hashes
-        // We add OR conditions for the other filters
-        
-        // First, count total matching records
-        var countQuery = dsl.selectCount()
-                .from(TRANSACTION)
-                .leftJoin(BLOCK).on(TRANSACTION.BLOCK_HASH.eq(BLOCK.HASH));
-                
-        if (isSuccess != null) {
-            countQuery = countQuery.leftJoin(INVALID_TRANSACTION).on(TRANSACTION.TX_HASH.eq(INVALID_TRANSACTION.TX_HASH));
-        }
-        
-        // Complex condition: (tx_hash IN values AND hash conditions) OR (other conditions)
-        Condition hashMatchCondition = DSL.exists(
-            DSL.select(DSL.one())
-               .from(hashValues)
-               .where(TRANSACTION.TX_HASH.eq(hashValues.field("hash", String.class)))
-        ).and(hashConditions);
-        
-        Condition combinedCondition = hashMatchCondition.or(otherOrConditions);
-        
-        int totalCount = countQuery.where(combinedCondition).fetchOne(0, Integer.class);
-        
-        // Now get the results - use same JOIN logic as count query
-        var resultsQuery = dsl.select(
-                        TRANSACTION.TX_HASH,
-                        TRANSACTION.BLOCK_HASH,
-                        TRANSACTION.INPUTS,
-                        TRANSACTION.OUTPUTS,
-                        TRANSACTION.FEE,
-                        TRANSACTION.SLOT,
-                        BLOCK.HASH.as("joined_block_hash"),
-                        BLOCK.NUMBER.as("joined_block_number"),
-                        BLOCK.SLOT.as("joined_block_slot"),
-                        TRANSACTION_SIZE.SIZE.as("joined_tx_size"),
-                        TRANSACTION_SIZE.SCRIPT_SIZE.as("joined_tx_script_size")
-                ).from(TRANSACTION)
-                .leftJoin(BLOCK).on(TRANSACTION.BLOCK_HASH.eq(BLOCK.HASH))
-                .leftJoin(TRANSACTION_SIZE).on(TRANSACTION.TX_HASH.eq(TRANSACTION_SIZE.TX_HASH));
-        
-        if (isSuccess != null) {
-            resultsQuery = resultsQuery.leftJoin(INVALID_TRANSACTION).on(TRANSACTION.TX_HASH.eq(INVALID_TRANSACTION.TX_HASH));
-        }
-        
-        var finalResultsQuery = resultsQuery
-                .where(combinedCondition)
-                .orderBy(TRANSACTION.SLOT.desc())
-                .limit(offsetBasedPageRequest.getLimit())
-                .offset(offsetBasedPageRequest.getOffset());
-        
-        List<? extends org.jooq.Record> results = finalResultsQuery.fetch();
-        
-        return createPageFromSeparateQueries(totalCount, results, offsetBasedPageRequest);
-    }
-
-    /**
-     * Creates a VALUES table for efficient JOIN operations with large hash sets.
-     * This approach is more performant than using ANY(array) for large datasets.
+     * Creates a hash condition using VALUES table approach.
+     * Used for all hash set sizes in PostgreSQL for consistency and performance.
      * 
-     * @param txHashes Set of transaction hashes
+     * @param hashes Set of transaction hashes
+     * @return Condition using EXISTS with VALUES table
+     */
+    private Condition createHashCondition(Set<String> hashes) {
+        if (hashes == null || hashes.isEmpty()) {
+            return DSL.trueCondition();
+        }
+        
+        Table<?> valuesTable = createValuesTable(hashes);
+        return DSL.exists(
+            DSL.select(DSL.one())
+               .from(valuesTable)
+               .where(TRANSACTION.TX_HASH.eq(valuesTable.field("hash", String.class)))
+        );
+    }
+
+    /**
+     * Creates a VALUES table for efficient operations with any hash set size.
+     * This approach provides consistent performance characteristics.
+     * 
+     * @param hashes Set of transaction hashes
      * @return Table representing the VALUES clause
      */
-    private Table<?> createValuesTable(Set<String> txHashes) {
-        if (txHashes.isEmpty()) {
+    private Table<?> createValuesTable(Set<String> hashes) {
+        if (hashes.isEmpty()) {
             throw new IllegalArgumentException("Hash set cannot be empty");
         }
 
         // Build VALUES rows
-        Row1<String>[] rows = txHashes.stream()
+        Row1<String>[] rows = hashes.stream()
                 .map(DSL::row)
                 .toArray(Row1[]::new);
 
         // Create VALUES table with alias
         return DSL.values(rows).as("hash_values", "hash");
-    }
-    
-    /**
-     * Executes a count query using VALUES table for efficient hash filtering.
-     * Uses the same JOIN logic as base class but adds VALUES JOIN.
-     */
-    private int executeCountQueryWithValues(Table<?> hashValues, Condition baseConditions, @Nullable Boolean isSuccess) {
-        var countQuery = buildBaseCountQuery(isSuccess)
-                .join(hashValues).on(TRANSACTION.TX_HASH.eq(hashValues.field("hash", String.class)));
-
-        return countQuery.where(baseConditions).fetchOne(0, Integer.class);
-    }
-    
-    /**
-     * Executes a results query using VALUES table for efficient hash filtering.
-     * Uses the same JOIN logic as base class but adds VALUES JOIN.
-     */
-    private List<? extends org.jooq.Record> executeResultsQueryWithValues(Table<?> hashValues, Condition baseConditions, @Nullable Boolean isSuccess, OffsetBasedPageRequest offsetBasedPageRequest) {
-        var baseQuery = buildBaseResultsQuery(isSuccess)
-                .join(hashValues).on(TRANSACTION.TX_HASH.eq(hashValues.field("hash", String.class)));
-        
-        return baseQuery
-                .where(baseConditions)
-                .orderBy(TRANSACTION.SLOT.desc())
-                .limit(offsetBasedPageRequest.getLimit())
-                .offset(offsetBasedPageRequest.getOffset())
-                .fetch();
     }
 
     /**
