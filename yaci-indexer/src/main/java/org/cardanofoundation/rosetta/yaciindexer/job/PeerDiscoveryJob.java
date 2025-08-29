@@ -1,8 +1,10 @@
 package org.cardanofoundation.rosetta.yaciindexer.job;
 
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.yaciindexer.service.PeerDiscoveryManager;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -11,9 +13,16 @@ import java.util.Optional;
 @Service
 @Slf4j
 @RequiredArgsConstructor
+// peer discovery disabled by default
+@ConditionalOnProperty(name = "jobs.peer-discovery.enabled", havingValue = "true", matchIfMissing = false)
 public class PeerDiscoveryJob {
 
     private final PeerDiscoveryManager peerDiscoveryManager;
+
+    @PostConstruct
+    public void init() {
+        log.info("Peer discovery activated.");
+    }
 
     @Scheduled(fixedDelay = 60000) // Run every minute
     public void refreshPeers() {
