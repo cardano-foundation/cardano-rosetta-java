@@ -374,20 +374,9 @@ public class ExceptionFactory {
                 Details.builder().message("Both 'account' and 'account_identifier' parameters are provided, only one is allowed.").build()));
     }
 
-    public static ApiException currencySearchNotSupported() {
-        var details =
-                Details.builder().message("Currency search is not supported in this version of the API. Request it being implemented in github's ticket: #%d.".formatted(542))
-                        .build();
-
-        return new ApiException(RosettaErrorType.CURRENCY_SEARCH_NOT_SUPPORTED.toRosettaError(false, details));
-    }
-
-    public static ApiException tooManyUtxos(int utxoCount, int maxUtxoCount) {
-        var details = Details.builder()
-                .message("Search request contains %d UTXOs, which exceeds the maximum limit of %d. Please refine your search criteria.".formatted(utxoCount, maxUtxoCount))
-                .build();
-
-        return new ApiException(RosettaErrorType.TOO_MANY_UTXOS.toRosettaError(false, details));
+    public static ApiException operationTypeSearchNotSupported(String type) {
+        return new ApiException(RosettaErrorType.OPERATION_TYPE_SEARCH_NOT_SUPPORTED.toRosettaError(false,
+                Details.builder().message("Operation type: '" + type + "'").build()));
     }
 
 }

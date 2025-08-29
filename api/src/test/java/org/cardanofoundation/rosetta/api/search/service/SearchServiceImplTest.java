@@ -51,6 +51,71 @@ class SearchServiceImplTest {
     }
 
     @Nested
+    class TypeParameterValidationTests {
+
+        @Test
+        void shouldThrowException_whenTypeParameterProvided() {
+            // Given
+            SearchTransactionsRequest request = SearchTransactionsRequest.builder()
+                    .networkIdentifier(networkIdentifier)
+                    .type("transfer")
+                    .build();
+
+            // When & Then
+            assertThatThrownBy(() -> searchService.searchTransaction(request, 0L, 10L))
+                    .isInstanceOf(ApiException.class)
+                    .hasMessage("Operation type filtering is not currently supported")
+                    .extracting("error.details.message")
+                    .isEqualTo("Operation type: 'transfer'");
+
+            verifyNoInteractions(ledgerSearchService);
+        }
+
+        @Test
+        void shouldThrowException_whenTypeParameterProvidedWithOtherValidParameters() {
+            // Given
+            SearchTransactionsRequest request = SearchTransactionsRequest.builder()
+                    .networkIdentifier(networkIdentifier)
+                    .type("output")
+                    .address("test_address")
+                    .success(true)
+                    .build();
+
+            // When & Then
+            assertThatThrownBy(() -> searchService.searchTransaction(request, 0L, 10L))
+                    .isInstanceOf(ApiException.class)
+                    .hasMessage("Operation type filtering is not currently supported")
+                    .extracting("error.details.message")
+                    .isEqualTo("Operation type: 'output'");
+
+            verifyNoInteractions(ledgerSearchService);
+        }
+
+        @Test
+        void shouldNotThrowException_whenTypeParameterIsNull() {
+            // Given
+            SearchTransactionsRequest request = SearchTransactionsRequest.builder()
+                    .networkIdentifier(networkIdentifier)
+                    .type(null)
+                    .build();
+
+            Page<BlockTx> mockBlockTxPage = new PageImpl<>(List.of());
+
+            when(ledgerSearchService.searchTransaction(any(), any(), any(), any(), any(), any(), any(), any(), any(), anyLong(), anyLong()))
+                    .thenReturn(mockBlockTxPage);
+
+            // When
+            Page<BlockTransaction> result = searchService.searchTransaction(request, 0L, 10L);
+
+            // Then
+            assertThat(result).isNotNull();
+            verify(ledgerSearchService, times(1)).searchTransaction(
+                    any(), any(), any(), any(), any(), any(), any(), any(), any(), anyLong(), anyLong()
+            );
+        }
+    }
+
+    @Nested
     class SuccessAndStatusValidationTests {
 
         @Test
