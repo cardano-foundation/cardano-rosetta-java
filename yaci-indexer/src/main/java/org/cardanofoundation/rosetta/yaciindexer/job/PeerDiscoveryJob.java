@@ -9,6 +9,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @Slf4j
@@ -24,7 +25,8 @@ public class PeerDiscoveryJob {
         log.info("Peer discovery activated.");
     }
 
-    @Scheduled(fixedDelay = 60000) // Run every minute
+    // Initial refresh after 1 minute, then every hour
+    @Scheduled(initialDelay = 1, fixedDelay = 60, timeUnit = TimeUnit.MINUTES)
     public void refreshPeers() {
         log.info("Starting a periodic / scheduled peer discovery refresh...");
 
