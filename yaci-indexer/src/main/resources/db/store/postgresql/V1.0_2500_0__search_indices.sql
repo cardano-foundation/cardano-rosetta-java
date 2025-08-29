@@ -1,151 +1,76 @@
 -- =============================================================================
--- ROSETTA SEARCH API PERFORMANCE INDEXES
---
--- This file creates indexes to optimize search queries in the Rosetta API.
--- Each index is mapped to specific query patterns in the codebase.
+-- Index 1: Currency/Asset Filtering with JSONB GIN Index
+-- Used by: PostgreSQLCurrencyConditionBuilder (TxRepositoryPostgreSQLImpl.java:195-220)
+-- Query pattern: EXISTS (...WHERE au.amounts::jsonb @> '[{"policy_id": "...", "asset_name": "..."}]')
+-- Optimizes: All currency-based filtering in search transactions API endpoints:
+--   - /search/transactions with currency parameter (ADA/lovelace and native assets)
+--   - JSONB @> operator queries for policy_id, asset_name, and unit matching
+-- Performance: Critical for currency searches - without this, full table scans on address_utxo
 -- =============================================================================
-
--- =============================================================================
--- REQUIRED INDEXES - These are actively used and needed for performance
--- =============================================================================
-
----- 1. Transaction Slot-Based Ordering with Hash Lookups
----- Used by: TxRepositoryCustomBase.executeResultsQuery (line 236)
----- Query pattern: SELECT ... FROM transaction WHERE ... ORDER BY slot DESC LIMIT/OFFSET
----- Optimizes: All paginated transaction searches ordered by slot
---CREATE INDEX idx_transaction_slot_desc_hash
---    ON transaction(slot DESC, tx_hash);
---
----- 2. Transaction Slot Ordering for Separate Query Performance
----- Used by: Both count queries and results queries with slot ordering
----- This partial index optimizes slot-based filtering in separate query approach
---CREATE INDEX IF NOT EXISTS idx_transaction_slot_desc_covering
---    ON transaction(slot DESC)
---    INCLUDE (tx_hash, block_hash, fee)
---    WHERE slot IS NOT NULL;
---
----- 3. Invalid Transaction Status Index
----- Used by: TxRepositoryCustomBase when isSuccess is not null (lines 107, 127)
----- Query pattern: LEFT JOIN invalid_transaction ON transaction.tx_hash = invalid_transaction.tx_hash
----- Optimizes: Transaction status filtering (success/failed)
---CREATE INDEX idx_invalid_transaction_hash_slot
---    ON invalid_transaction(tx_hash, slot DESC);
---
----- 4. Block Number Range Index
----- Used by: TxRepositoryQueryBuilder.buildAndConditions (line 79)
----- Query pattern: WHERE block.number <= ?
----- Optimizes: maxBlock filtering in search queries
---CREATE INDEX idx_block_number_desc_hash
---    ON block(number DESC, hash);
---
----- 5. Block Hash Direct Lookup
----- Used by: TxRepositoryQueryBuilder.buildAndConditions (lines 83, 87)
----- Query pattern: WHERE block.hash = ? AND block.number = ?
----- Optimizes: Block-specific searches
---CREATE INDEX idx_block_hash_number
---    ON block(hash, number);
---
----- 6. Block Hash Index for Transaction-Block Joins
----- Used by: TxRepositoryCustomBase (line 111)
----- Query pattern: LEFT JOIN block ON transaction.block_hash = block.hash
----- Optimizes: Block JOINs in transaction queries
---CREATE INDEX IF NOT EXISTS idx_block_hash_covering
---    ON block(hash)
---    INCLUDE (number, slot);
---
----- 7. Transaction Hash Lookup
----- Used by: TxRepositoryQueryBuilder for hash filtering (line 75)
----- Query pattern: WHERE transaction.tx_hash IN (...)
----- Optimizes: Hash-based transaction lookups
---CREATE INDEX idx_transaction_hash_btree
---    ON transaction USING hash(tx_hash);
---
----- 8. VALUES Table Join Optimization for PostgreSQL Large Hash Sets (>10,000)
----- Used by: TxRepositoryPostgreSQLImpl.executeCountQueryWithValues and executeResultsQueryWithValues
----- Query pattern: SELECT ... FROM transaction JOIN (VALUES ...) AS hash_values ON ...
----- Optimizes: Large hash set filtering using VALUES table approach
---CREATE INDEX IF NOT EXISTS idx_transaction_hash_values_join
---    ON transaction USING hash(tx_hash)
---    INCLUDE (slot, block_hash);
---
----- 9. Transaction Size Join Index
----- Used by: TxRepositoryCustomBase (line 112)
----- Query pattern: LEFT JOIN transaction_size ON transaction.tx_hash = transaction_size.tx_hash
----- Optimizes: Transaction size data retrieval
---CREATE INDEX idx_transaction_size_hash
---    ON transaction_size(tx_hash);
---
----- 10. JSONB GIN Index for Currency Filtering
----- Used by: PostgreSQLCurrencyConditionBuilder EXISTS queries (lines 224-244)
----- Query patterns: amounts::jsonb @> '[{"policy_id": "..."}]'
----- Optimizes: All currency-based filtering (native assets and ADA)
---CREATE INDEX idx_address_utxo_amounts_gin
---    ON address_utxo USING gin(amounts);
---
----- 11. ADA/Lovelace Optimized Partial Index
----- Used by: PostgreSQLCurrencyConditionBuilder.buildLovelaceCondition (line 237)
----- Query pattern: EXISTS (...WHERE amounts @> '[{"unit": "lovelace"}]')
----- Optimizes: ADA-specific searches (80%+ of currency queries)
---CREATE INDEX idx_address_utxo_tx_hash_lovelace
---    ON address_utxo(tx_hash)
---    WHERE amounts::jsonb @> '[{"unit": "lovelace"}]';
---
----- 12. Currency Filtering Optimization for EXISTS Subqueries
----- Used by: PostgreSQLCurrencyConditionBuilder EXISTS queries (lines 224-244)
----- Query pattern: EXISTS (SELECT 1 FROM address_utxo au WHERE au.tx_hash = transaction.tx_hash AND ...)
----- Optimizes: EXISTS subqueries by covering tx_hash lookup and amounts access
---CREATE INDEX idx_address_utxo_tx_hash_amounts
---    ON address_utxo(tx_hash)
---    INCLUDE (amounts);
---
----- 13. Address Owner Lookup Optimization
----- Used by: LedgerSearchServiceImpl.findTxHashesByOwnerAddr (line 62)
----- Query pattern: SELECT tx_hash FROM address_utxo WHERE owner_addr = ? OR owner_stake_addr = ?
----- Optimizes: Address-based transaction searches
---CREATE INDEX IF NOT EXISTS idx_address_utxo_owner_addr_tx_hash
---    ON address_utxo(owner_addr, tx_hash);
+CREATE INDEX idx_address_utxo_amounts_gin ON mainnet.address_utxo USING gin (amounts);
 
 -- =============================================================================
--- OPTIONAL/REDUNDANT INDEXES - These may be removed to reduce overhead
+-- Index 2: Address-to-Transaction Hash Mapping
+-- Used by: AddressHistoryRepositoryPostgresImpl.findCompleteTransactionHistoryByAddress (lines 35-38)
+-- Query pattern: SELECT DISTINCT tx_hash FROM address_utxo WHERE owner_addr = ? OR owner_stake_addr = ?
+-- Optimizes: Address-based transaction searches in search transactions API endpoints:
+--   - /search/transactions with account_identifier parameter
+--   - Address history lookups that feed into transaction search filters
+-- Performance: Enables fast owner_addr lookups with tx_hash in covering index
 -- =============================================================================
+CREATE INDEX idx_address_utxo_owner_addr_tx_hash ON mainnet.address_utxo USING btree (owner_addr, tx_hash);
 
--- REDUNDANT: Currency filtering uses EXISTS subqueries, not JOINs
--- CREATE INDEX idx_address_utxo_tx_hash_slot
---     ON address_utxo(tx_hash, slot DESC);
+-- =============================================================================
+-- Index 3: Payment Credential Lookup (Currently Unused - Consider Removal)
+-- Query pattern: WHERE owner_payment_credential = ?
+-- Status: No active usage found in current search codebase
+-- Note: May be used by account balance queries or future address resolution
+-- =============================================================================
+CREATE INDEX idx_address_utxo_owner_paykey_hash ON mainnet.address_utxo USING btree (owner_payment_credential);
 
--- REDUNDANT: Overlaps with idx_transaction_slot_desc_covering
--- CREATE INDEX idx_transaction_count_optimization
---     ON transaction(slot DESC)
---     INCLUDE (tx_hash, block_hash)
---     WHERE slot IS NOT NULL;
+-- =============================================================================
+-- Index 4: Block Hash Lookup with Covering Data
+-- Used by: TxRepositoryCustomBase.buildBaseResultsQuery and buildBaseCountQuery (lines 82, 100)
+-- Query pattern: LEFT JOIN block ON transaction.block_hash = block.hash
+-- Optimizes: All search transactions API endpoints that need block information:
+--   - /search/transactions with block_identifier parameter
+--   - Block number and slot data retrieval in transaction results
+--   - Block filtering with maxBlock parameter
+-- Performance: Covering index avoids heap lookups for number and slot
+-- =============================================================================
+CREATE INDEX idx_block_hash_covering ON mainnet.block USING btree (hash) INCLUDE (number, slot);
 
--- REDUNDANT: Overlaps with idx_transaction_slot_desc_covering
--- CREATE INDEX idx_transaction_results_coverage
---     ON transaction(slot DESC)
---     INCLUDE (tx_hash, block_hash, fee);
+-- =============================================================================
+-- Index 5: Transaction Success/Failure Status Filtering
+-- Used by: TxRepositoryCustomBase.buildBaseResultsQuery and buildBaseCountQuery (lines 85, 103)
+-- Query pattern: LEFT JOIN invalid_transaction ON transaction.tx_hash = invalid_transaction.tx_hash
+-- Optimizes: Search transactions API endpoints with status/success filtering:
+--   - /search/transactions with status parameter (success/failure)
+--   - Filtering by transaction validity status
+-- Performance: Fast JOIN for success condition evaluation (lines 87-91 in TxRepositoryQueryBuilder)
+-- =============================================================================
+CREATE INDEX idx_invalid_transaction_hash_slot ON mainnet.invalid_transaction USING btree (tx_hash, slot);
 
--- REDUNDANT: Not used by TxRepository or LedgerSearchServiceImpl
--- CREATE INDEX idx_address_utxo_slot_desc
---     ON address_utxo(slot DESC, tx_hash);
+-- =============================================================================
+-- Index 6: Transaction Hash Direct Lookups for VALUES Table Optimization  
+-- Used by: TxRepositoryPostgreSQLImpl VALUES table approach (lines 160-175)
+-- Query pattern: SELECT ... FROM transaction JOIN (VALUES ...) AS hash_values ON transaction.tx_hash = hash_values.hash
+-- Optimizes: Search transactions API endpoints with hash-based filtering:
+--   - /search/transactions with transaction_identifier parameter
+--   - Large hash set filtering using PostgreSQL VALUES tables
+--   - Both direct tx hash searches and address-derived hash searches
+-- Performance: Critical for hash-based searches - optimizes VALUES table JOINs
+-- =============================================================================
+CREATE INDEX idx_transaction_hash_values_join ON mainnet.transaction USING btree (tx_hash);
 
--- REDUNDANT: idx_block_hash_covering serves the same purpose better
--- CREATE INDEX idx_transaction_block_join
---     ON transaction(block_hash, slot DESC)
---     INCLUDE (tx_hash);
-
--- REDUNDANT: Overlaps with other slot-based indices
--- CREATE INDEX IF NOT EXISTS idx_transaction_slot_count_optimization
---     ON transaction(slot DESC, tx_hash)
---     WHERE slot IS NOT NULL;
-
--- REDUNDANT: idx_transaction_hash_values_join handles this case
--- CREATE INDEX IF NOT EXISTS idx_transaction_large_hashset_count
---     ON transaction(tx_hash, slot DESC)
---     WHERE slot IS NOT NULL;
-
--- NOT USED: The code reads full JSONB columns, doesn't search within them
--- CREATE INDEX idx_transaction_inputs_gin
---     ON transaction USING gin(inputs);
--- 
--- CREATE INDEX idx_transaction_outputs_gin
---     ON transaction USING gin(outputs);
+-- =============================================================================
+-- Index 7: Transaction Slot-Based Ordering and Pagination
+-- Used by: TxRepositoryCustomBase.executeResultsQuery (line 190)
+-- Query pattern: SELECT ... FROM transaction WHERE ... ORDER BY slot DESC LIMIT/OFFSET
+-- Optimizes: All paginated search transactions API endpoints:
+--   - /search/transactions pagination with chronological ordering
+--   - All search results ordered by slot descending (newest first)
+--   - LIMIT/OFFSET pagination performance
+-- Performance: Essential for pagination - avoids sorting large result sets
+-- =============================================================================
+CREATE INDEX idx_transaction_slot_desc_tx_hash ON mainnet.transaction USING btree (slot DESC, tx_hash);
