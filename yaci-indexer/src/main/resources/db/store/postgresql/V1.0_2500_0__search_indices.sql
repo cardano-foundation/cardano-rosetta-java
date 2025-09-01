@@ -7,7 +7,7 @@
 --   - JSONB @> operator queries for policy_id, asset_name, and unit matching
 -- Performance: Critical for currency searches - without this, full table scans on address_utxo
 -- =============================================================================
-CREATE INDEX idx_address_utxo_amounts_gin ON mainnet.address_utxo USING gin (amounts);
+CREATE INDEX idx_address_utxo_amounts_gin ON address_utxo USING gin (amounts);
 
 -- =============================================================================
 -- Index 2: Address-to-Transaction Hash Mapping
@@ -18,18 +18,10 @@ CREATE INDEX idx_address_utxo_amounts_gin ON mainnet.address_utxo USING gin (amo
 --   - Address history lookups that feed into transaction search filters
 -- Performance: Enables fast owner_addr lookups with tx_hash in covering index
 -- =============================================================================
-CREATE INDEX idx_address_utxo_owner_addr_tx_hash ON mainnet.address_utxo USING btree (owner_addr, tx_hash);
+CREATE INDEX idx_address_utxo_owner_addr_tx_hash ON address_utxo USING btree (owner_addr, tx_hash);
 
 -- =============================================================================
--- Index 3: Payment Credential Lookup (Currently Unused - Consider Removal)
--- Query pattern: WHERE owner_payment_credential = ?
--- Status: No active usage found in current search codebase
--- Note: May be used by account balance queries or future address resolution
--- =============================================================================
-CREATE INDEX idx_address_utxo_owner_paykey_hash ON mainnet.address_utxo USING btree (owner_payment_credential);
-
--- =============================================================================
--- Index 4: Block Hash Lookup with Covering Data
+-- Index 3: Block Hash Lookup with Covering Data
 -- Used by: TxRepositoryCustomBase.buildBaseResultsQuery and buildBaseCountQuery (lines 82, 100)
 -- Query pattern: LEFT JOIN block ON transaction.block_hash = block.hash
 -- Optimizes: All search transactions API endpoints that need block information:
@@ -38,10 +30,10 @@ CREATE INDEX idx_address_utxo_owner_paykey_hash ON mainnet.address_utxo USING bt
 --   - Block filtering with maxBlock parameter
 -- Performance: Covering index avoids heap lookups for number and slot
 -- =============================================================================
-CREATE INDEX idx_block_hash_covering ON mainnet.block USING btree (hash) INCLUDE (number, slot);
+CREATE INDEX idx_block_hash_covering ON block USING btree (hash) INCLUDE (number, slot);
 
 -- =============================================================================
--- Index 5: Transaction Success/Failure Status Filtering
+-- Index 4: Transaction Success/Failure Status Filtering
 -- Used by: TxRepositoryCustomBase.buildBaseResultsQuery and buildBaseCountQuery (lines 85, 103)
 -- Query pattern: LEFT JOIN invalid_transaction ON transaction.tx_hash = invalid_transaction.tx_hash
 -- Optimizes: Search transactions API endpoints with status/success filtering:
@@ -49,10 +41,10 @@ CREATE INDEX idx_block_hash_covering ON mainnet.block USING btree (hash) INCLUDE
 --   - Filtering by transaction validity status
 -- Performance: Fast JOIN for success condition evaluation (lines 87-91 in TxRepositoryQueryBuilder)
 -- =============================================================================
-CREATE INDEX idx_invalid_transaction_hash_slot ON mainnet.invalid_transaction USING btree (tx_hash, slot);
+CREATE INDEX idx_invalid_transaction_hash_slot ON invalid_transaction USING btree (tx_hash, slot);
 
 -- =============================================================================
--- Index 6: Transaction Hash Direct Lookups for VALUES Table Optimization  
+-- Index 5: Transaction Hash Direct Lookups for VALUES Table Optimization  
 -- Used by: TxRepositoryPostgreSQLImpl VALUES table approach (lines 160-175)
 -- Query pattern: SELECT ... FROM transaction JOIN (VALUES ...) AS hash_values ON transaction.tx_hash = hash_values.hash
 -- Optimizes: Search transactions API endpoints with hash-based filtering:
@@ -61,10 +53,10 @@ CREATE INDEX idx_invalid_transaction_hash_slot ON mainnet.invalid_transaction US
 --   - Both direct tx hash searches and address-derived hash searches
 -- Performance: Critical for hash-based searches - optimizes VALUES table JOINs
 -- =============================================================================
-CREATE INDEX idx_transaction_hash_values_join ON mainnet.transaction USING btree (tx_hash);
+CREATE INDEX idx_transaction_hash_values_join ON transaction USING btree (tx_hash);
 
 -- =============================================================================
--- Index 7: Transaction Slot-Based Ordering and Pagination
+-- Index 6: Transaction Slot-Based Ordering and Pagination
 -- Used by: TxRepositoryCustomBase.executeResultsQuery (line 190)
 -- Query pattern: SELECT ... FROM transaction WHERE ... ORDER BY slot DESC LIMIT/OFFSET
 -- Optimizes: All paginated search transactions API endpoints:
@@ -73,4 +65,4 @@ CREATE INDEX idx_transaction_hash_values_join ON mainnet.transaction USING btree
 --   - LIMIT/OFFSET pagination performance
 -- Performance: Essential for pagination - avoids sorting large result sets
 -- =============================================================================
-CREATE INDEX idx_transaction_slot_desc_tx_hash ON mainnet.transaction USING btree (slot DESC, tx_hash);
+CREATE INDEX idx_transaction_slot_desc_tx_hash ON transaction USING btree (slot DESC, tx_hash);
