@@ -13,13 +13,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.openapitools.client.model.Operator;
+import org.cardanofoundation.rosetta.api.search.model.Operator;
 import org.springframework.data.domain.Page;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -45,6 +46,135 @@ class LedgerSearchServiceImplTest {
 
     @InjectMocks
     private LedgerSearchServiceImpl ledgerSearchService;
+
+    @Nested
+    @DisplayName("Input Validation Tests")
+    class InputValidationTests {
+
+        @Test
+        @DisplayName("Should throw exception when maxBlock is negative")
+        void shouldThrowExceptionWhenMaxBlockIsNegative() {
+            // Given
+            Long negativeMaxBlock = -1L;
+
+            // When & Then
+            assertThatThrownBy(() -> ledgerSearchService.searchTransaction(
+                    Operator.AND,
+                    null,  // txHash
+                    null,  // address
+                    null,  // utxoKey
+                    null,  // currency
+                    null,  // blockHash
+                    null,  // blockIndex
+                    negativeMaxBlock,  // negative maxBlock
+                    null,  // isSuccess
+                    0L,    // offset
+                    10L    // limit
+            ))
+            .isInstanceOf(ApiException.class)
+            .satisfies(exception -> {
+                ApiException apiException = (ApiException) exception;
+                assertThat(apiException.getError()).isNotNull();
+                assertThat(apiException.getError().getCode()).isEqualTo(5042);
+                assertThat(apiException.getError().getMessage()).contains("Invalid block");
+                assertThat(apiException.getError().getDetails()).isNotNull();
+                assertThat(apiException.getError().getDetails().getMessage()).contains(String.valueOf(negativeMaxBlock));
+            });
+        }
+
+        @Test
+        @DisplayName("Should handle null maxBlock without throwing exception")
+        void shouldHandleNullMaxBlockWithoutException() {
+            // Given
+            Long nullMaxBlock = null;
+
+            // Mock the repository calls to avoid NullPointerException
+            when(txRepository.searchTxnEntitiesAND(any(), any(), any(), any(), any(), any(), any(), any()))
+                    .thenReturn(Page.empty());
+            when(ledgerBlockService.mapTxnEntitiesToBlockTxList(any(Page.class)))
+                    .thenReturn(Page.empty());
+
+            // When & Then - should not throw exception
+            var result = ledgerSearchService.searchTransaction(
+                    Operator.AND,
+                    null,  // txHash
+                    null,  // address
+                    null,  // utxoKey
+                    null,  // currency
+                    null,  // blockHash
+                    null,  // blockIndex
+                    nullMaxBlock,  // null maxBlock
+                    null,  // isSuccess
+                    0L,    // offset
+                    10L    // limit
+            );
+
+            // Should successfully return result without throwing exception
+            assertThat(result).isNotNull();
+        }
+
+        @Test
+        @DisplayName("Should handle positive maxBlock without throwing exception")
+        void shouldHandlePositiveMaxBlockWithoutException() {
+            // Given
+            Long positiveMaxBlock = 100L;
+
+            // Mock the repository calls to avoid NullPointerException
+            when(txRepository.searchTxnEntitiesAND(any(), any(), any(), any(), any(), any(), any(), any()))
+                    .thenReturn(Page.empty());
+            when(ledgerBlockService.mapTxnEntitiesToBlockTxList(any(Page.class)))
+                    .thenReturn(Page.empty());
+
+            // When & Then - should not throw exception
+            var result = ledgerSearchService.searchTransaction(
+                    Operator.AND,
+                    null,  // txHash
+                    null,  // address
+                    null,  // utxoKey
+                    null,  // currency
+                    null,  // blockHash
+                    null,  // blockIndex
+                    positiveMaxBlock,  // positive maxBlock
+                    null,  // isSuccess
+                    0L,    // offset
+                    10L    // limit
+            );
+
+            // Should successfully return result without throwing exception
+            assertThat(result).isNotNull();
+        }
+
+        @Test
+        @DisplayName("Should handle zero maxBlock without throwing exception")
+        void shouldHandleZeroMaxBlockWithoutException() {
+            // Given
+            Long zeroMaxBlock = 0L;
+
+            // Mock the repository calls to avoid NullPointerException
+            when(txRepository.searchTxnEntitiesAND(any(), any(), any(), any(), any(), any(), any(), any()))
+                    .thenReturn(Page.empty());
+            when(ledgerBlockService.mapTxnEntitiesToBlockTxList(any(Page.class)))
+                    .thenReturn(Page.empty());
+
+            // When & Then - should not throw exception
+            var result = ledgerSearchService.searchTransaction(
+                    Operator.AND,
+                    null,  // txHash
+                    null,  // address
+                    null,  // utxoKey
+                    null,  // currency
+                    null,  // blockHash
+                    null,  // blockIndex
+                    zeroMaxBlock,  // zero maxBlock
+                    null,  // isSuccess
+                    0L,    // offset
+                    10L    // limit
+            );
+
+            // Should successfully return result without throwing exception
+            assertThat(result).isNotNull();
+        }
+    }
 
     @Nested
     @DisplayName("Large Dataset Handling Tests")

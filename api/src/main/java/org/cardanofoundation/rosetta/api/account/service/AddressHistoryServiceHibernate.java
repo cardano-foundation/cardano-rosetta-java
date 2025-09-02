@@ -35,7 +35,7 @@ public class AddressHistoryServiceHibernate implements AddressHistoryService {
     private final AddressUtxoRepository addressUtxoRepository;
     private final Clock clock;
 
-    private int addressHistoryApiTimeoutSecs = 60;
+    private int addressHistoryApiTimeoutSecs = 5 * 60;
 
     @PostConstruct
     public void init() {

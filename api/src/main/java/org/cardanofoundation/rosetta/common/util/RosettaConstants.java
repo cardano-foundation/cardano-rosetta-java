@@ -168,9 +168,8 @@ public class RosettaConstants {
         BOTH_SUCCESS_AND_STATUS_PROVIDED("Cannot specify both 'success' and 'status' parameters simultaneously", 5054),
         BOTH_ACCOUNT_AND_ACCOUNT_IDENTIFIER_PROVIDED(
                 "Cannot specify both 'account' and 'accountIdentifier' parameters simultaneously", 5055),
-        CURRENCY_SEARCH_NOT_SUPPORTED("Currency search is not currently supported", 5056),
-        TOO_MANY_UTXOS("Too many UTXOs in search request", 5057),
-        OPERATION_TYPE_SEARCH_NOT_SUPPORTED("Operation type filtering is not currently supported", 5058);
+        OPERATION_TYPE_SEARCH_NOT_SUPPORTED("Operation type filtering is not currently supported", 5058),
+        UNKNOWN_OPERATOR("Unknown operator provided", 5059);
 
         final String message;
         final int code;

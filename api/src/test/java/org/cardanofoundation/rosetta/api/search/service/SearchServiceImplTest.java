@@ -185,11 +185,11 @@ class SearchServiceImplTest {
         }
 
         @Test
-        void shouldAcceptOnlyStatusParameter_fail() {
+        void shouldAcceptOnlyStatusParameter_invalid() {
             // Given
             SearchTransactionsRequest request = SearchTransactionsRequest.builder()
                     .networkIdentifier(networkIdentifier)
-                    .status("fail")
+                    .status("invalid")
                     .build();
 
             Page<BlockTx> mockBlockTxPage = new PageImpl<>(List.of());
@@ -203,7 +203,97 @@ class SearchServiceImplTest {
             // Then
             verify(ledgerSearchService).searchTransaction(
                     any(), any(), any(), any(), any(), any(), any(), any(),
-                    eq(false), // status "fail" should convert to isSuccess = false
+                    eq(false), // status "invalid" should convert to isSuccess = false
+                    eq(0L), eq(10L)
+            );
+        }
+
+        @Test
+        void shouldThrowException_whenInvalidStatusProvided() {
+            // Given
+            SearchTransactionsRequest request = SearchTransactionsRequest.builder()
+                    .networkIdentifier(networkIdentifier)
+                    .status("UNKNOWN_STATUS")
+                    .build();
+
+            // When & Then
+            assertThatThrownBy(() -> searchService.searchTransaction(request, 0L, 10L))
+                    .isInstanceOf(ApiException.class)
+                    .hasMessage("Invalid operation status")
+                    .extracting("error.details.message")
+                    .isEqualTo("Invalid operation status: 'UNKNOWN_STATUS'. Supported values are: 'success', 'invalid', 'true', 'false'");
+
+            verifyNoInteractions(ledgerSearchService);
+        }
+
+        @Test
+        void shouldReturnTrue_whenStatusIsTrue() {
+            // Given
+            SearchTransactionsRequest request = SearchTransactionsRequest.builder()
+                    .networkIdentifier(networkIdentifier)
+                    .status("true")
+                    .build();
+
+            Page<BlockTx> mockBlockTxPage = new PageImpl<>(List.of());
+
+            when(ledgerSearchService.searchTransaction(any(), any(), any(), any(), any(), any(), any(), any(), eq(true), anyLong(), anyLong()))
+                    .thenReturn(mockBlockTxPage);
+
+            // When
+            searchService.searchTransaction(request, 0L, 10L);
+
+            // Then
+            verify(ledgerSearchService).searchTransaction(
+                    any(), any(), any(), any(), any(), any(), any(), any(),
+                    eq(true), // status "true" should convert to isSuccess = true
+                    eq(0L), eq(10L)
+            );
+        }
+
+        @Test
+        void shouldReturnFalse_whenStatusIsFalse() {
+            // Given
+            SearchTransactionsRequest request = SearchTransactionsRequest.builder()
+                    .networkIdentifier(networkIdentifier)
+                    .status("false")
+                    .build();
+
+            Page<BlockTx> mockBlockTxPage = new PageImpl<>(List.of());
+
+            when(ledgerSearchService.searchTransaction(any(), any(), any(), any(), any(), any(), any(), any(), eq(false), anyLong(), anyLong()))
+                    .thenReturn(mockBlockTxPage);
+
+            // When
+            searchService.searchTransaction(request, 0L, 10L);
+
+            // Then
+            verify(ledgerSearchService).searchTransaction(
+                    any(), any(), any(), any(), any(), any(), any(), any(),
+                    eq(false), // status "false" should convert to isSuccess = false
+                    eq(0L), eq(10L)
+            );
+        }
+
+        @Test
+        void shouldAcceptStatusTrue_caseInsensitive() {
+            // Given
+            SearchTransactionsRequest request = SearchTransactionsRequest.builder()
+                    .networkIdentifier(networkIdentifier)
+                    .status("TRUE")
+                    .build();
+
+            Page<BlockTx> mockBlockTxPage = new PageImpl<>(List.of());
+
+            when(ledgerSearchService.searchTransaction(any(), any(), any(), any(), any(), any(), any(), any(), eq(true), anyLong(), anyLong()))
+                    .thenReturn(mockBlockTxPage);
+
+            // When
+            searchService.searchTransaction(request, 0L, 10L);
+
+            // Then
+            verify(ledgerSearchService).searchTransaction(
+                    any(), any(), any(), any(), any(), any(), any(), any(),
+                    eq(true), // "TRUE" should convert to isSuccess = true
                     eq(0L), eq(10L)
             );
         }
@@ -446,18 +536,18 @@ class SearchServiceImplTest {
         }
 
         @Test
-        void shouldReturnFalse_whenStatusIsNotSuccess() {
+        void shouldReturnFalse_whenStatusIsInvalid() {
             // When
-            Boolean result = searchService.validateAndNormalizeSuccessStatus(null, "failed");
+            Boolean result = searchService.validateAndNormalizeSuccessStatus(null, "invalid");
 
             // Then
             assertThat(result).isFalse();
         }
 
         @Test
-        void shouldReturnFalse_whenStatusIsFailIgnoreCase() {
+        void shouldReturnFalse_whenStatusIsInvalidIgnoreCase() {
             // When
-            Boolean result = searchService.validateAndNormalizeSuccessStatus(null, "FAILED");
+            Boolean result = searchService.validateAndNormalizeSuccessStatus(null, "INVALID");
 
             // Then
             assertThat(result).isFalse();
@@ -676,7 +766,7 @@ class SearchServiceImplTest {
                     .coinIdentifier(coinId)
                     .blockIdentifier(blockId)
                     .maxBlock(200L)
-                    .operator(Operator.OR)
+                    .operator("OR")
                     .success(false)
                     .build();
 
@@ -690,7 +780,7 @@ class SearchServiceImplTest {
 
             // Then
             verify(ledgerSearchService).searchTransaction(
-                    eq(Operator.OR),
+                    eq(org.cardanofoundation.rosetta.api.search.model.Operator.OR),
                     eq("tx123"),
                     eq("addr123"),
                     argThat(utxoKey -> utxoKey.getTxHash().equals("tx123") && utxoKey.getOutputIndex().equals(0)),
@@ -704,5 +794,157 @@ class SearchServiceImplTest {
             );
         }
 
+    }
+
+    @Nested
+    class OperatorValidationTests {
+
+        @Test
+        void shouldUseAndOperator_whenOperatorIsAND() {
+            // Given
+            SearchTransactionsRequest request = SearchTransactionsRequest.builder()
+                    .networkIdentifier(networkIdentifier)
+                    .operator("AND")
+                    .build();
+
+            Page<BlockTx> mockBlockTxPage = new PageImpl<>(List.of());
+
+            when(ledgerSearchService.searchTransaction(
+                    eq(org.cardanofoundation.rosetta.api.search.model.Operator.AND),
+                    any(), any(), any(), any(), any(), any(), any(), any(), anyLong(), anyLong()))
+                    .thenReturn(mockBlockTxPage);
+
+            // When
+            searchService.searchTransaction(request, 0L, 10L);
+
+            // Then
+            verify(ledgerSearchService).searchTransaction(
+                    eq(org.cardanofoundation.rosetta.api.search.model.Operator.AND),
+                    any(), any(), any(), any(), any(), any(), any(), any(),
+                    eq(0L), eq(10L)
+            );
+        }
+
+        @Test
+        void shouldUseOrOperator_whenOperatorIsOR() {
+            // Given
+            SearchTransactionsRequest request = SearchTransactionsRequest.builder()
+                    .networkIdentifier(networkIdentifier)
+                    .operator("OR")
+                    .build();
+
+            Page<BlockTx> mockBlockTxPage = new PageImpl<>(List.of());
+
+            when(ledgerSearchService.searchTransaction(
+                    eq(org.cardanofoundation.rosetta.api.search.model.Operator.OR),
+                    any(), any(), any(), any(), any(), any(), any(), any(), anyLong(), anyLong()))
+                    .thenReturn(mockBlockTxPage);
+
+            // When
+            searchService.searchTransaction(request, 0L, 10L);
+
+            // Then
+            verify(ledgerSearchService).searchTransaction(
+                    eq(org.cardanofoundation.rosetta.api.search.model.Operator.OR),
+                    any(), any(), any(), any(), any(), any(), any(), any(),
+                    eq(0L), eq(10L)
+            );
+        }
+
+        @Test
+        void shouldDefaultToAndOperator_whenOperatorIsNull() {
+            // Given
+            SearchTransactionsRequest request = SearchTransactionsRequest.builder()
+                    .networkIdentifier(networkIdentifier)
+                    .operator(null)
+                    .build();
+
+            Page<BlockTx> mockBlockTxPage = new PageImpl<>(List.of());
+
+            when(ledgerSearchService.searchTransaction(
+                    eq(org.cardanofoundation.rosetta.api.search.model.Operator.AND),
+                    any(), any(), any(), any(), any(), any(), any(), any(), anyLong(), anyLong()))
+                    .thenReturn(mockBlockTxPage);
+
+            // When
+            searchService.searchTransaction(request, 0L, 10L);
+
+            // Then
+            verify(ledgerSearchService).searchTransaction(
+                    eq(org.cardanofoundation.rosetta.api.search.model.Operator.AND),
+                    any(), any(), any(), any(), any(), any(), any(), any(),
+                    eq(0L), eq(10L)
+            );
+        }
+
+        @Test
+        void shouldThrowException_whenOperatorIsUnknown() {
+            // Given
+            SearchTransactionsRequest request = SearchTransactionsRequest.builder()
+                    .networkIdentifier(networkIdentifier)
+                    .operator("UNKNOWN")
+                    .build();
+
+            // When & Then
+            assertThatThrownBy(() -> searchService.searchTransaction(request, 0L, 10L))
+                    .isInstanceOf(ApiException.class)
+                    .hasMessage("Unknown operator provided")
+                    .extracting("error.details.message")
+                    .isEqualTo("Unknown operator: 'UNKNOWN'. Supported values are: 'AND', 'OR'");
+
+            verifyNoInteractions(ledgerSearchService);
+        }
+
+        @Test
+        void shouldHandleCaseInsensitiveOperator() {
+            // Given
+            SearchTransactionsRequest request = SearchTransactionsRequest.builder()
+                    .networkIdentifier(networkIdentifier)
+                    .operator("and")
+                    .build();
+
+            Page<BlockTx> mockBlockTxPage = new PageImpl<>(List.of());
+
+            when(ledgerSearchService.searchTransaction(
+                    eq(org.cardanofoundation.rosetta.api.search.model.Operator.AND),
+                    any(), any(), any(), any(), any(), any(), any(), any(), anyLong(), anyLong()))
+                    .thenReturn(mockBlockTxPage);
+
+            // When
+            searchService.searchTransaction(request, 0L, 10L);
+
+            // Then
+            verify(ledgerSearchService).searchTransaction(
+                    eq(org.cardanofoundation.rosetta.api.search.model.Operator.AND),
+                    any(), any(), any(), any(), any(), any(), any(), any(),
+                    eq(0L), eq(10L)
+            );
+        }
+
+        @Test
+        void shouldDefaultToAndOperator_whenOperatorIsEmpty() {
+            // Given
+            SearchTransactionsRequest request = SearchTransactionsRequest.builder()
+                    .networkIdentifier(networkIdentifier)
+                    .operator("")
+                    .build();
+
+            Page<BlockTx> mockBlockTxPage = new PageImpl<>(List.of());
+
+            when(ledgerSearchService.searchTransaction(
+                    eq(org.cardanofoundation.rosetta.api.search.model.Operator.AND),
+                    any(), any(), any(), any(), any(), any(), any(), any(), anyLong(), anyLong()))
+                    .thenReturn(mockBlockTxPage);
+
+            // When
+            searchService.searchTransaction(request, 0L, 10L);
+
+            // Then
+            verify(ledgerSearchService).searchTransaction(
+                    eq(org.cardanofoundation.rosetta.api.search.model.Operator.AND),
+                    any(), any(), any(), any(), any(), any(), any(), any(),
+                    eq(0L), eq(10L)
+            );
+        }
     }
 }

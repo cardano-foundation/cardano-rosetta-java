@@ -3,7 +3,7 @@ package org.cardanofoundation.rosetta.api.search.service;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.model.entity.UtxoKey;
 import org.cardanofoundation.rosetta.api.search.model.Currency;
-import org.openapitools.client.model.Operator;
+import org.cardanofoundation.rosetta.api.search.model.Operator;
 import org.springframework.data.domain.Page;
 
 import javax.annotation.Nullable;

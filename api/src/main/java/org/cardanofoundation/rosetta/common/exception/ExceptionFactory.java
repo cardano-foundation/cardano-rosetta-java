@@ -379,4 +379,14 @@ public class ExceptionFactory {
                 Details.builder().message("Operation type: '" + type + "'").build()));
     }
 
+    public static ApiException invalidOperationStatus(String status) {
+        return new ApiException(RosettaErrorType.INVALID_OPERATION_STATUS.toRosettaError(false,
+                Details.builder().message("Invalid operation status: '" + status + "'. Supported values are: 'success', 'invalid', 'true', 'false'").build()));
+    }
+
+    public static ApiException unknownOperator(String operator) {
+        return new ApiException(RosettaErrorType.UNKNOWN_OPERATOR.toRosettaError(false,
+                Details.builder().message("Unknown operator: '" + operator + "'. Supported values are: 'AND', 'OR'").build()));
+    }
+
 }

@@ -6,6 +6,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.cardanofoundation.rosetta.api.block.mapper.BlockMapper;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.model.entity.UtxoKey;
+import org.cardanofoundation.rosetta.api.search.model.Operator;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.openapitools.client.model.*;
 import org.springframework.data.domain.Page;
@@ -15,8 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Nullable;
 import java.util.Optional;
 import java.util.function.Function;
-
-import static org.openapitools.client.model.Operator.AND;
 
 @Slf4j
 @Service
@@ -67,8 +66,8 @@ public class SearchServiceImpl implements SearchService {
                 .flatMap(extractUTxOFromCoinIdentifier())
                 .orElse(null);
 
-        Operator operator = Optional.ofNullable(searchTransactionsRequest.getOperator())
-                .orElse(AND);
+        // Parse and validate operator
+        Operator operator = parseAndValidateOperator(searchTransactionsRequest.getOperator());
 
         BlockIdentifier blockIdentifier = Optional.ofNullable(searchTransactionsRequest.getBlockIdentifier())
                 .orElse(BlockIdentifier.builder().build());
@@ -113,7 +112,14 @@ public class SearchServiceImpl implements SearchService {
         }
 
         if (status != null) {
-            return "success".equalsIgnoreCase(status);
+            if ("success".equalsIgnoreCase(status) || "true".equalsIgnoreCase(status)) {
+                return true;
+            }
+            if ("invalid".equalsIgnoreCase(status) || "false".equalsIgnoreCase(status)) {
+                return false;
+            }
+
+            throw ExceptionFactory.invalidOperationStatus(status);
         }
 
         return success;
@@ -133,6 +139,19 @@ public class SearchServiceImpl implements SearchService {
         return Optional.ofNullable(accountIdentifier)
                 .map(AccountIdentifier::getAddress)
                 .orElse(null);
+    }
+
+    private Operator parseAndValidateOperator(@Nullable String operatorString) {
+        if (operatorString == null || operatorString.isEmpty()) {
+            // Default to AND if not specified
+            return Operator.AND;
+        }
+
+        try {
+            return Operator.valueOf(operatorString.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw ExceptionFactory.unknownOperator(operatorString);
+        }
     }
 
 }
