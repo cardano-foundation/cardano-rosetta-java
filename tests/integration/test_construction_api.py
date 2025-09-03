@@ -91,7 +91,10 @@ DIM = "\033[2m"
 GRAY = "\033[90m"
 
 # Fields that should be ignored when diffing
-VOLATILE_FIELDS = {"metadata": ["metadata.ttl"]}
+VOLATILE_FIELDS = {
+    "metadata": ["metadata.ttl"],
+    "preprocess": ["options.transaction_size"]
+}
 
 # Stats
 stats: Dict[str, Any] = {
