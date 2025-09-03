@@ -5,6 +5,7 @@ End-to-end testing framework for Cardano's Rosetta API implementation.
 ## Features
 
 - Basic ADA transfers
+- Native token transfers (tokenBundle)
 - UTXO management
 - Transaction construction and signing
 - Multi-input/output transactions
@@ -29,6 +30,7 @@ e2e_tests/
 │   └── pycardano_wallet.py  # PyCardano wallet wrapper
 └── tests/                   # Test cases
     ├── test_multi_io_transactions.py  # Multi-input/output tests
+    ├── test_native_asset_transfer.py  # Native asset transfer test
     └── test_stake_operations.py       # Stake operations tests
 ```
 
@@ -39,7 +41,8 @@ e2e_tests/
 - Python 3.11+
 - pip
 - Cardano Rosetta API endpoint
-- Test wallet with funds and at least 11 ada-only utxos
+- Test wallet with funds and at least 11 ada-only UTXOs
+- For native asset tests: at least 1 UTXO containing a token bundle and at least 1 ADA-only UTXO (≥ 5 ADA recommended to cover fee)
 
 ### Quick Start
 
@@ -69,7 +72,6 @@ DREP_SCRIPT_HASH_ID=2d4cb680b5f400d3521d272b4295d61150e0eff3950ef4285406a953 # R
 POOL_REGISTRATION_CERT=<hex-encoded-cert> # Required for poolRegistrationWithCert test
 POOL_GOVERNANCE_PROPOSAL_ID=df58f714c0765f3489afb6909384a16c31d600695be7e86ff9c59cf2e8a48c7900 # Required for pool governance vote tests
 POOL_VOTE_CHOICE=yes # Optional: Vote choice for pool governance vote (yes/no/abstain, default: yes)
-```
 
 ## Usage
 
@@ -140,6 +142,11 @@ pytest --log-cli-level=INFO tests/test_pool_operations.py::test_pool_registratio
 pytest --log-cli-level=INFO tests/test_pool_operations.py::test_pool_registration_with_cert
 pytest --log-cli-level=INFO tests/test_pool_operations.py::test_pool_governance_vote
 pytest --log-cli-level=INFO tests/test_pool_operations.py::test_pool_retirement
+
+# Native asset tests
+
+# Run the native asset self-transfer test (spends a token UTXO and recreates the token bundle to self)
+pytest --log-cli-level=INFO tests/test_native_asset_transfer.py::test_native_asset_self_transfer
 ```
 
 ## Test Scenarios
@@ -151,6 +158,13 @@ pytest --log-cli-level=INFO tests/test_pool_operations.py::test_pool_retirement
 3. **Fan-out**: Single input → Multiple outputs
 4. **Complex**: Multiple inputs → Multiple outputs
 5. **Fixed Fee**: Transaction with a fixed 4 ADA fee (4,000,000 lovelaces) that bypasses suggested fee
+6. **Native Asset Self-Transfer**: Spend a UTXO carrying native tokens (tokenBundle) and recreate the same bundle to self; add an ADA-only UTXO to comfortably cover fees.
+
+### Notes for Native Asset Tests
+
+- The Rosetta response for `/account/coins` is expected to include token bundles on UTXOs in `coin.metadata`.
+- The test attaches a `tokenBundle` to the input (with negative values) and to the token output (with positive values), matching the documented format in `docs/user-guides/multi-assets.md`.
+- Ensure your wallet has at least one UTXO that carries a token bundle and a separate ADA-only UTXO with enough ADA to pay fees.
 
 ### Stake Operations
 

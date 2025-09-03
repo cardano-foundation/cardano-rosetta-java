@@ -168,3 +168,48 @@ class UtxoSelector:
         logger.debug(f"Selected {len(selected_utxos)} UTXOs with total {total_selected} lovelace")
         
         return selected_utxos 
+
+    @staticmethod
+    def find_first_asset_utxo(client: RosettaClient, address: str, exclude_utxos: Optional[List[str]] = None) -> Dict:
+        """
+        Find the first UTXO that carries native assets (token bundle) for the given address.
+
+        Supports the Cardano Rosetta representation where `coin.metadata` contains
+        a map keyed by the UTXO identifier with a list of policyId + tokens.
+
+        Args:
+            client: RosettaClient instance
+            address: Address to inspect
+            exclude_utxos: Optional list of UTXO IDs to exclude
+
+        Returns:
+            The first matching UTXO dict containing assets
+
+        Raises:
+            ValidationError: If no asset UTXO found
+        """
+        coins = client.get_utxos(address)
+        if not coins:
+            raise ValidationError(f"No UTXOs found for address {address}")
+
+        for utxo in coins:
+            utxo_id = utxo.get("coin_identifier", {}).get("identifier")
+            if not utxo_id:
+                continue
+            if exclude_utxos and utxo_id in exclude_utxos:
+                continue
+
+            md = utxo.get("metadata") or {}
+            # Newer shape: metadata keyed by utxo id -> [ { policyId, tokens: [...] }, ... ]
+            bundle_list = md.get(utxo_id)
+            if isinstance(bundle_list, list) and len(bundle_list) > 0:
+                # Double-check presence of tokens in the first bundle
+                tokens = bundle_list[0].get("tokens") if isinstance(bundle_list[0], dict) else None
+                if isinstance(tokens, list) and len(tokens) > 0:
+                    return utxo
+
+            # Fallback for older shape (if any): metadata["assets"] exists and non-empty
+            if isinstance(md.get("assets"), list) and len(md.get("assets")) > 0:
+                return utxo
+
+        raise ValidationError(f"No native-asset UTXOs found for address {address}")
