@@ -15,8 +15,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import org.cardanofoundation.rosetta.client.model.domain.DiscoveredPeer;
 import org.cardanofoundation.rosetta.client.model.domain.StakeAccountInfo;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
+
+import java.util.Arrays;
+import java.util.List;
 
 @Service
 @Slf4j
@@ -63,6 +67,41 @@ public class YaciHttpGatewayImpl implements YaciHttpGateway {
             }
         } catch (IOException | InterruptedException e) {
             log.error("Error during yaci-indexer HTTP request", e);
+
+            Thread.currentThread().interrupt();
+
+            throw ExceptionFactory.gatewayError(true);
+        }
+    }
+
+    @Override
+    public List<DiscoveredPeer> getDiscoveredPeers() {
+        var getDiscoveredPeersHttpRequest = HttpRequest.newBuilder()
+                .uri(URI.create(yaciBaseUrl + "/rosetta/peers"))
+                .GET()
+                .timeout(Duration.ofSeconds(httpRequestTimeoutSeconds))
+                .header("Content-Type", "application/json")
+                .build();
+
+        try {
+            HttpResponse<String> response = httpClient.send(getDiscoveredPeersHttpRequest, HttpResponse.BodyHandlers.ofString());
+
+            int statusCode = response.statusCode();
+            String responseBody = response.body();
+
+            if (statusCode >= 200 && statusCode < 300) {
+                DiscoveredPeer[] peersArray = objectMapper.readValue(responseBody, DiscoveredPeer[].class);
+
+                return Arrays.asList(peersArray);
+            } else if (statusCode == 400) {
+                throw ExceptionFactory.gatewayError(false);
+            } else if (statusCode == 500) {
+                throw ExceptionFactory.gatewayError(true);
+            } else {
+                throw ExceptionFactory.gatewayError(false);
+            }
+        } catch (IOException | InterruptedException e) {
+            log.error("Error during yaci-indexer peers HTTP request", e);
 
             Thread.currentThread().interrupt();
 

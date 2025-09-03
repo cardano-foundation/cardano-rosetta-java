@@ -197,6 +197,10 @@
             <artifactId>json</artifactId>
             <version>20240303</version>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-jooq</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -355,6 +359,116 @@
     </build>
 
     <profiles>
+        <profile>
+            <id>jooq-codegen-postgres</id>
+            <properties>
+                <jooq.db.driver>org.postgresql.Driver</jooq.db.driver>
+                <jooq.db.url>jdbc:postgresql://localhost:5432/rosetta-java?currentSchema=preprod</jooq.db.url>
+                <jooq.db.user>rosetta_db_admin</jooq.db.user>
+                <jooq.db.password>weakpwd#123_d</jooq.db.password>
+                <jooq.db.meta>org.jooq.meta.postgres.PostgresDatabase</jooq.db.meta>
+                <jooq.db.schema>preprod</jooq.db.schema>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.jooq</groupId>
+                        <artifactId>jooq-codegen-maven</artifactId>
+                        <version>${version.jooq}</version>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>generate</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <dependencies>
+                            <dependency>
+                                <groupId>org.postgresql</groupId>
+                                <artifactId>postgresql</artifactId>
+                                <version>42.7.4</version>
+                            </dependency>
+                        </dependencies>
+                        <configuration>
+                            <jdbc>
+                                <driver>${jooq.db.driver}</driver>
+                                <url>${jooq.db.url}</url>
+                                <user>${jooq.db.user}</user>
+                                <password>${jooq.db.password}</password>
+                            </jdbc>
+                            <generator>
+                                <database>
+                                    <name>${jooq.db.meta}</name>
+                                    <inputSchema>${jooq.db.schema}</inputSchema>
+                                </database>
+                                <generate>
+                                    <globalSchemaReferences>false</globalSchemaReferences>
+                                </generate>
+                                <target>
+                                    <packageName>org.cardanofoundation.rosetta.api.jooq</packageName>
+                                    <directory>src/main/java</directory>
+                                </target>
+                            </generator>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>jooq-codegen-h2</id>
+            <properties>
+                <jooq.db.driver>org.h2.Driver</jooq.db.driver>
+                <jooq.db.url>jdbc:h2:mem:rosetta-java</jooq.db.url>
+                <jooq.db.user>rosetta_db_admin</jooq.db.user>
+                <jooq.db.password>weakpwd#123_d</jooq.db.password>
+                <jooq.db.meta>org.jooq.meta.h2.H2Database</jooq.db.meta>
+                <jooq.db.schema>PUBLIC</jooq.db.schema>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.jooq</groupId>
+                        <artifactId>jooq-codegen-maven</artifactId>
+                        <version>${version.jooq}</version>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>generate</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <dependencies>
+                            <dependency>
+                                <groupId>com.h2database</groupId>
+                                <artifactId>h2</artifactId>
+                                <version>${version.h2}</version>
+                            </dependency>
+                        </dependencies>
+                        <configuration>
+                            <jdbc>
+                                <driver>${jooq.db.driver}</driver>
+                                <url>${jooq.db.url}</url>
+                                <user>${jooq.db.user}</user>
+                                <password>${jooq.db.password}</password>
+                            </jdbc>
+                            <generator>
+                                <database>
+                                    <name>${jooq.db.meta}</name>
+                                    <inputSchema>${jooq.db.schema}</inputSchema>
+                                </database>
+                                <generate>
+                                    <globalSchemaReferences>false</globalSchemaReferences>
+                                </generate>
+                                <target>
+                                    <packageName>org.cardanofoundation.rosetta.api.jooq</packageName>
+                                    <directory>src/main/java</directory>
+                                </target>
+                            </generator>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
         <profile>
             <id>h2-api</id>
             <dependencies>

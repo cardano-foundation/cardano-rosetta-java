@@ -19,6 +19,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class TopologyConfig {
   @JsonProperty("Producers")
   private List<Producer> producers;
+  
   @JsonProperty("publicRoots")
   private List<PublicRoot> publicRoots;
+  
+  @JsonProperty("bootstrapPeers")
+  private List<BootstrapPeer> bootstrapPeers;
 }

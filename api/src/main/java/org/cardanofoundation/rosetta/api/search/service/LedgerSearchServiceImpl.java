@@ -2,18 +2,18 @@ package org.cardanofoundation.rosetta.api.search.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.cardanofoundation.rosetta.api.account.model.repository.AddressUtxoRepository;
+import org.cardanofoundation.rosetta.api.account.service.AddressHistoryService;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.model.entity.TxnEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.UtxoKey;
 import org.cardanofoundation.rosetta.api.block.model.repository.TxInputRepository;
 import org.cardanofoundation.rosetta.api.block.model.repository.TxRepository;
 import org.cardanofoundation.rosetta.api.block.service.LedgerBlockService;
-import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
-import org.openapitools.client.model.Operator;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.cardanofoundation.rosetta.api.search.model.Currency;
+import org.cardanofoundation.rosetta.api.search.model.Operator;
 import org.cardanofoundation.rosetta.common.spring.OffsetBasedPageRequest;
+import org.cardanofoundation.rosetta.common.spring.SimpleOffsetBasedPageRequest;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,63 +31,60 @@ public class LedgerSearchServiceImpl implements LedgerSearchService {
   private final TxRepository txRepository;
   private final LedgerBlockService ledgerBlockService;
   private final TxInputRepository txInputRepository;
-  private final AddressUtxoRepository addressUtxoRepository;
+  private final AddressHistoryService addressHistoryService;
 
-  // PostgreSQL has practical limits on IN clause parameters. 
-  // Set to 30000 to be safe (actual limit is around 32767)
-  private static final int MAX_UTXO_COUNT = 30000;
+  // Note: MAX_UTXO_COUNT limitation has been removed.
+  // The TxRepositoryCustomImpl now uses temporary tables for large transaction hash sets,
+  // eliminating the need for IN clause parameter limits.
 
   @Override
+  @Transactional  // Override class-level readOnly=true for methods that may use temporary tables
   public Page<BlockTx> searchTransaction(Operator operator,
-                                          @Nullable String txHash,
-                                          @Nullable String address,
-                                          @Nullable UtxoKey utxoKey,
-                                          @Nullable String currency,
-                                          @Nullable String blockHash,
-                                          @Nullable Long blockNo,
-                                          @Nullable Long maxBlock,
-                                          @Nullable Boolean isSuccess,
-                                          long offset,
-                                          long limit) {
-    Pageable pageable = new OffsetBasedPageRequest(offset, (int) limit);
+                                         @Nullable String txHash,
+                                         @Nullable String address,
+                                         @Nullable UtxoKey utxoKey,
+                                         @Nullable Currency currency,
+                                         @Nullable String blockHash,
+                                         @Nullable Long blockNo,
+                                         @Nullable Long maxBlock,
+                                         @Nullable Boolean isSuccess,
+                                         long offset,
+                                         long limit) {
+    OffsetBasedPageRequest pageable = new SimpleOffsetBasedPageRequest(offset, (int) limit);
 
-    Set<String> txHashes = new HashSet<>();
-    Optional.ofNullable(txHash).ifPresent(txHashes::add);
+    // Separate transaction hashes into plain hashes and address-related hashes
+    final Set<String> plainTxHashes = new HashSet<>();
+    final Set<String> addressRelatedHashes = new HashSet<>();
 
+    // Add direct transaction hash to plainTxHashes
+    Optional.ofNullable(txHash).ifPresent(plainTxHashes::add);
+
+    // Process address-related hashes
     Optional<String> addressOptional = Optional.ofNullable(address);
-    Set<String> addressTxHashes = new HashSet<>();
-
     addressOptional.ifPresent(addr -> {
-      addressTxHashes.addAll(addressUtxoRepository.findTxHashesByOwnerAddr(addr));
+      addressRelatedHashes.addAll(addressHistoryService.findCompleteTransactionHistoryByAddress(addr));
     });
 
     // If address was set and there weren't any transactions found, return empty list
-    if (addressOptional.isPresent() && addressTxHashes.isEmpty()) {
+    if (addressOptional.isPresent() && addressRelatedHashes.isEmpty()) {
       return Page.empty();
     }
 
-    txHashes.addAll(addressTxHashes);
-
+    // Process UTXO-related hashes - these go into plainTxHashes since they're direct lookups
     Optional.ofNullable(utxoKey).ifPresent(utxo -> {
-      txHashes.add(utxo.getTxHash());
+      plainTxHashes.add(utxo.getTxHash());
       String txHash_ = utxoKey.getTxHash();
       Integer outputIndex = utxoKey.getOutputIndex();
-
-      txHashes.addAll(txInputRepository.findSpentTxHashByUtxoKey(txHash_, outputIndex));
+      plainTxHashes.addAll(txInputRepository.findSpentTxHashByUtxoKey(txHash_, outputIndex));
     });
 
-    Set<String> txHashes_ = txHashes.isEmpty() ? null : txHashes;
-
-    // Validate that we don't exceed PostgreSQL IN clause parameter limits
-    if (txHashes_ != null && txHashes_.size() > MAX_UTXO_COUNT) {
-      log.warn("Search request contains {} UTXOs, which exceeds the maximum limit of {}",
-              txHashes_.size(), MAX_UTXO_COUNT);
-      throw ExceptionFactory.tooManyUtxos(txHashes_.size(), MAX_UTXO_COUNT);
-    }
+    // Use the final sets or empty sets if they're empty
+    final Set<String> finalPlainTxHashes = plainTxHashes.isEmpty() ? Set.of() : plainTxHashes;
+    final Set<String> finalAddressRelatedHashes = addressRelatedHashes.isEmpty() ? Set.of() : addressRelatedHashes;
 
     Page<TxnEntity> txnEntities = switch (operator) {
-      case AND -> txRepository.searchTxnEntitiesAND(txHashes_, blockHash, blockNo, maxBlock, isSuccess, pageable);
-      case OR -> txRepository.searchTxnEntitiesOR(txHashes_, blockHash, blockNo, maxBlock, isSuccess, pageable);
+      case AND -> txRepository.searchTxnEntitiesAND(finalPlainTxHashes, finalAddressRelatedHashes, blockHash, blockNo, maxBlock, isSuccess, currency, pageable);
+      case OR -> txRepository.searchTxnEntitiesOR(finalPlainTxHashes, finalAddressRelatedHashes, blockHash, blockNo, maxBlock, isSuccess, currency, pageable);
     };
 
     // this mapping is quite expensive, since it involves multiple database queries

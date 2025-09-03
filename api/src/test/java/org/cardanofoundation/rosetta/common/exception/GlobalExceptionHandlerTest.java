@@ -114,7 +114,7 @@ class GlobalExceptionHandlerTest {
   }
 
   @Test
-  void handleMethodArgumentNotValidException_shouldReturnInternalServerError() {
+  void handleMethodArgumentNotValidException_shouldReturnBadRequest() {
     when(methodArgumentNotValidException.getBindingResult()).thenReturn(bindingResult);
     when(bindingResult.getFieldErrors()).thenReturn(Collections.singletonList(fieldError));
     when(fieldError.getField()).thenReturn(FIELD_NAME);
@@ -124,7 +124,7 @@ class GlobalExceptionHandlerTest {
     ResponseEntity<Error> result = underTest.handleMethodArgumentNotValidException(
         methodArgumentNotValidException, request);
 
-    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, result.getStatusCode());
+    assertEquals(HttpStatus.BAD_REQUEST, result.getStatusCode());
     assertNotNull(result.getBody());
     assertEquals(ARGUMENT_NOT_VALID_EXCEPTION_MESSAGE, result.getBody().getDetails().getMessage());
     assertEquals(CARDANO_ERROR_CODE, result.getBody().getCode());

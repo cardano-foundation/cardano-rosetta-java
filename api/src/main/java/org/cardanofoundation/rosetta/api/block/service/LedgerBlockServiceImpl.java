@@ -237,6 +237,7 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
       StructuredTaskScope.Subtask<List<PoolRegistrationEntity>> pReg = scope.fork(() -> poolRegistrationRepository.findByTxHashIn(txHashes));
       StructuredTaskScope.Subtask<List<PoolRetirementEntity>> pRet = scope.fork(() -> poolRetirementRepository.findByTxHashIn(txHashes));
       StructuredTaskScope.Subtask<List<WithdrawalEntity>> withdrawals = scope.fork(() -> withdrawalRepository.findByTxHashIn(txHashes));
+      StructuredTaskScope.Subtask<List<InvalidTransactionEntity>> invalidTxs = scope.fork(() -> invalidTransactionRepository.findByTxHashIn(txHashes));
 
       scope.joinUntil(Instant.now(clock).plusSeconds(blockTransactionApiTimeoutSecs));
       scope.throwIfFailed(); // Propagate any failure
@@ -247,7 +248,8 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
               delegations.get(),
               pReg.get(),
               pRet.get(),
-              withdrawals.get()
+              withdrawals.get(),
+              invalidTxs.get()
       );
     } catch (ExecutionException e) {
       log.error("Error fetching transaction data", e);
@@ -268,7 +270,9 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
   void populateTransaction(BlockTx transaction,
                            TransactionInfo fetched,
                            Map<UtxoKey, AddressUtxoEntity> utxoMap) {
-    boolean invalid = invalidTransactionRepository.findById(transaction.getHash()).isPresent();
+    boolean invalid = fetched.invalidTransactions
+            .stream()
+            .anyMatch(invalidTx -> invalidTx.getTxHash().equals(transaction.getHash()));
     transaction.setInvalid(invalid);
 
     Optional.ofNullable(transaction.getInputs())
@@ -320,7 +324,6 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
 
     // TODO governance votes
     //transaction.setGovernanceVotes(fetched.);
-
   }
 
   private void populateUtxo(Utxo utxo, Map<UtxoKey, AddressUtxoEntity> utxoMap) {
@@ -345,7 +348,8 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
                          List<DelegationEntity> delegations,
                          List<PoolRegistrationEntity> poolRegistrations,
                          List<PoolRetirementEntity> poolRetirements,
-                         List<WithdrawalEntity> withdrawals) {
+                         List<WithdrawalEntity> withdrawals,
+                         List<InvalidTransactionEntity> invalidTransactions) {
 
   }
 

@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Sort;
 
 /**
- * Comprehensive test suite for {@link OffsetBasedPageRequest} class.
+ * Comprehensive test suite for {@link SimpleOffsetBasedPageRequest} class.
  * 
  * <p>This test class validates the custom implementation of Spring's {@code Pageable} interface
  * that provides offset-based pagination instead of Spring's default page-based pagination.
@@ -23,7 +23,7 @@ import org.springframework.data.domain.Sort;
  *   <li>String representation formatting</li>
  * </ul>
  * 
- * @see OffsetBasedPageRequest
+ * @see SimpleOffsetBasedPageRequest
  * @see org.springframework.data.domain.Pageable
  */
 class OffsetBasedPageRequestTest {
@@ -45,7 +45,7 @@ class OffsetBasedPageRequestTest {
          */
         @Test
         void shouldCreateValidOffsetBasedPageRequest() {
-            OffsetBasedPageRequest pageable = new OffsetBasedPageRequest(10, 5);
+            SimpleOffsetBasedPageRequest pageable = new SimpleOffsetBasedPageRequest(10, 5);
             
             Assertions.assertThat(pageable.getOffset()).isEqualTo(10);
             Assertions.assertThat(pageable.getPageSize()).isEqualTo(5);
@@ -61,7 +61,7 @@ class OffsetBasedPageRequestTest {
         @Test
         void shouldCreateValidOffsetBasedPageRequestWithSort() {
             Sort sort = Sort.by("name").descending();
-            OffsetBasedPageRequest pageable = new OffsetBasedPageRequest(10, 5, sort);
+            SimpleOffsetBasedPageRequest pageable = new SimpleOffsetBasedPageRequest(10, 5, sort);
             
             Assertions.assertThat(pageable.getOffset()).isEqualTo(10);
             Assertions.assertThat(pageable.getPageSize()).isEqualTo(5);
@@ -76,7 +76,7 @@ class OffsetBasedPageRequestTest {
          */
         @Test
         void shouldThrowExceptionForNegativeOffset() {
-            Assertions.assertThatThrownBy(() -> new OffsetBasedPageRequest(-1, 5))
+            Assertions.assertThatThrownBy(() -> new SimpleOffsetBasedPageRequest(-1, 5))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessage("Offset must not be less than zero");
         }
@@ -89,7 +89,7 @@ class OffsetBasedPageRequestTest {
          */
         @Test
         void shouldThrowExceptionForZeroLimit() {
-            Assertions.assertThatThrownBy(() -> new OffsetBasedPageRequest(0, 0))
+            Assertions.assertThatThrownBy(() -> new SimpleOffsetBasedPageRequest(0, 0))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessage("Limit must be greater than zero");
         }
@@ -102,7 +102,7 @@ class OffsetBasedPageRequestTest {
          */
         @Test
         void shouldThrowExceptionForNegativeLimit() {
-            Assertions.assertThatThrownBy(() -> new OffsetBasedPageRequest(0, -1))
+            Assertions.assertThatThrownBy(() -> new SimpleOffsetBasedPageRequest(0, -1))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessage("Limit must be greater than zero");
         }
@@ -115,7 +115,7 @@ class OffsetBasedPageRequestTest {
          */
         @Test
         void shouldHandleNullSort() {
-            Assertions.assertThatThrownBy(() -> new OffsetBasedPageRequest(0, 5, null))
+            Assertions.assertThatThrownBy(() -> new SimpleOffsetBasedPageRequest(0, 5, null))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessage("Sort must not be null");
         }
@@ -139,7 +139,7 @@ class OffsetBasedPageRequestTest {
         @Test
         void shouldCalculatePageNumberCorrectly_FirstPage() {
             // offset=0, limit=10 -> page 0
-            OffsetBasedPageRequest pageable = new OffsetBasedPageRequest(0, 10);
+            OffsetBasedPageRequest pageable = new SimpleOffsetBasedPageRequest(0, 10);
             Assertions.assertThat(pageable.getPageNumber()).isEqualTo(0);
         }
 
@@ -152,7 +152,7 @@ class OffsetBasedPageRequestTest {
         @Test
         void shouldCalculatePageNumberCorrectly_SecondPage() {
             // offset=10, limit=10 -> page 1
-            OffsetBasedPageRequest pageable = new OffsetBasedPageRequest(10, 10);
+            OffsetBasedPageRequest pageable = new SimpleOffsetBasedPageRequest(10, 10);
             Assertions.assertThat(pageable.getPageNumber()).isEqualTo(1);
         }
 
@@ -165,7 +165,7 @@ class OffsetBasedPageRequestTest {
         @Test
         void shouldCalculatePageNumberCorrectly_PartialPage() {
             // offset=15, limit=10 -> page 1 (15/10 = 1)
-            OffsetBasedPageRequest pageable = new OffsetBasedPageRequest(15, 10);
+            OffsetBasedPageRequest pageable = new SimpleOffsetBasedPageRequest(15, 10);
             Assertions.assertThat(pageable.getPageNumber()).isEqualTo(1);
         }
 
@@ -178,7 +178,7 @@ class OffsetBasedPageRequestTest {
         @Test
         void shouldCalculatePageNumberCorrectly_LargeOffset() {
             // offset=100, limit=25 -> page 4
-            OffsetBasedPageRequest pageable = new OffsetBasedPageRequest(100, 25);
+            OffsetBasedPageRequest pageable = new SimpleOffsetBasedPageRequest(100, 25);
             Assertions.assertThat(pageable.getPageNumber()).isEqualTo(4);
         }
     }
@@ -195,12 +195,12 @@ class OffsetBasedPageRequestTest {
         /**
          * SCENARIO: Generate pagination object for the next page of results.
          * 
-         * <p>Tests that the next() method creates a new OffsetBasedPageRequest with 
+         * <p>Tests that the next() method creates a new SimpleOffsetBasedPageRequest with 
          * offset increased by page size while preserving limit and sort settings.</p>
          */
         @Test
         void shouldCreateNextPageable() {
-            OffsetBasedPageRequest pageable = new OffsetBasedPageRequest(10, 5);
+            OffsetBasedPageRequest pageable = new SimpleOffsetBasedPageRequest(10, 5);
             OffsetBasedPageRequest next = (OffsetBasedPageRequest) pageable.next();
             
             Assertions.assertThat(next.getOffset()).isEqualTo(15); // 10 + 5
@@ -213,12 +213,12 @@ class OffsetBasedPageRequestTest {
         /**
          * SCENARIO: Generate pagination object for the first page from any current page.
          * 
-         * <p>Tests that the first() method creates a new OffsetBasedPageRequest with 
+         * <p>Tests that the first() method creates a new SimpleOffsetBasedPageRequest with 
          * offset=0 while preserving the original limit and sort settings.</p>
          */
         @Test
         void shouldCreateFirstPageable() {
-            OffsetBasedPageRequest pageable = new OffsetBasedPageRequest(50, 10);
+            OffsetBasedPageRequest pageable = new SimpleOffsetBasedPageRequest(50, 10);
             OffsetBasedPageRequest first = (OffsetBasedPageRequest) pageable.first();
             
             Assertions.assertThat(first.getOffset()).isEqualTo(0);
@@ -234,7 +234,7 @@ class OffsetBasedPageRequestTest {
          */
         @Test
         void shouldCreatePageableWithSpecificPageNumber() {
-            OffsetBasedPageRequest pageable = new OffsetBasedPageRequest(0, 10);
+            OffsetBasedPageRequest pageable = new SimpleOffsetBasedPageRequest(0, 10);
             OffsetBasedPageRequest page3 = (OffsetBasedPageRequest) pageable.withPage(3);
             
             Assertions.assertThat(page3.getOffset()).isEqualTo(30); // 3 * 10
@@ -250,7 +250,7 @@ class OffsetBasedPageRequestTest {
          */
         @Test
         void shouldCreatePreviousOrFirst_WhenHasPrevious() {
-            OffsetBasedPageRequest pageable = new OffsetBasedPageRequest(10, 5);
+            OffsetBasedPageRequest pageable = new SimpleOffsetBasedPageRequest(10, 5);
             OffsetBasedPageRequest result = (OffsetBasedPageRequest) pageable.previousOrFirst();
             
             Assertions.assertThat(result.getOffset()).isEqualTo(5); // 10 - 5
@@ -265,7 +265,7 @@ class OffsetBasedPageRequestTest {
          */
         @Test
         void shouldCreatePreviousOrFirst_WhenNoPrevious() {
-            OffsetBasedPageRequest pageable = new OffsetBasedPageRequest(0, 5);
+            OffsetBasedPageRequest pageable = new SimpleOffsetBasedPageRequest(0, 5);
             OffsetBasedPageRequest result = (OffsetBasedPageRequest) pageable.previousOrFirst();
             
             Assertions.assertThat(result.getOffset()).isEqualTo(0); // same as first()
@@ -289,7 +289,7 @@ class OffsetBasedPageRequestTest {
          */
         @Test
         void shouldReturnTrueForHasPrevious_WhenOffsetGreaterThanZero() {
-            OffsetBasedPageRequest pageable = new OffsetBasedPageRequest(10, 5);
+            OffsetBasedPageRequest pageable = new SimpleOffsetBasedPageRequest(10, 5);
             Assertions.assertThat(pageable.hasPrevious()).isTrue();
         }
 
@@ -301,7 +301,7 @@ class OffsetBasedPageRequestTest {
          */
         @Test
         void shouldReturnFalseForHasPrevious_WhenOffsetIsZero() {
-            OffsetBasedPageRequest pageable = new OffsetBasedPageRequest(0, 5);
+            OffsetBasedPageRequest pageable = new SimpleOffsetBasedPageRequest(0, 5);
             Assertions.assertThat(pageable.hasPrevious()).isFalse();
         }
     }
@@ -323,8 +323,8 @@ class OffsetBasedPageRequestTest {
          */
         @Test
         void shouldBeEqualWhenSameParameters() {
-            OffsetBasedPageRequest pageable1 = new OffsetBasedPageRequest(10, 5);
-            OffsetBasedPageRequest pageable2 = new OffsetBasedPageRequest(10, 5);
+            OffsetBasedPageRequest pageable1 = new SimpleOffsetBasedPageRequest(10, 5);
+            OffsetBasedPageRequest pageable2 = new SimpleOffsetBasedPageRequest(10, 5);
             
             Assertions.assertThat(pageable1).isEqualTo(pageable2);
             Assertions.assertThat(pageable1.hashCode()).isEqualTo(pageable2.hashCode());
@@ -339,8 +339,8 @@ class OffsetBasedPageRequestTest {
         @Test
         void shouldBeEqualWhenSameParametersWithSort() {
             Sort sort = Sort.by("name");
-            OffsetBasedPageRequest pageable1 = new OffsetBasedPageRequest(10, 5, sort);
-            OffsetBasedPageRequest pageable2 = new OffsetBasedPageRequest(10, 5, sort);
+            OffsetBasedPageRequest pageable1 = new SimpleOffsetBasedPageRequest(10, 5, sort);
+            OffsetBasedPageRequest pageable2 = new SimpleOffsetBasedPageRequest(10, 5, sort);
             
             Assertions.assertThat(pageable1).isEqualTo(pageable2);
             Assertions.assertThat(pageable1.hashCode()).isEqualTo(pageable2.hashCode());
@@ -354,8 +354,8 @@ class OffsetBasedPageRequestTest {
          */
         @Test
         void shouldNotBeEqualWhenDifferentOffset() {
-            OffsetBasedPageRequest pageable1 = new OffsetBasedPageRequest(10, 5);
-            OffsetBasedPageRequest pageable2 = new OffsetBasedPageRequest(15, 5);
+            OffsetBasedPageRequest pageable1 = new SimpleOffsetBasedPageRequest(10, 5);
+            OffsetBasedPageRequest pageable2 = new SimpleOffsetBasedPageRequest(15, 5);
             
             Assertions.assertThat(pageable1).isNotEqualTo(pageable2);
         }
@@ -368,8 +368,8 @@ class OffsetBasedPageRequestTest {
          */
         @Test
         void shouldNotBeEqualWhenDifferentLimit() {
-            OffsetBasedPageRequest pageable1 = new OffsetBasedPageRequest(10, 5);
-            OffsetBasedPageRequest pageable2 = new OffsetBasedPageRequest(10, 10);
+            OffsetBasedPageRequest pageable1 = new SimpleOffsetBasedPageRequest(10, 5);
+            OffsetBasedPageRequest pageable2 = new SimpleOffsetBasedPageRequest(10, 10);
             
             Assertions.assertThat(pageable1).isNotEqualTo(pageable2);
         }
@@ -382,8 +382,8 @@ class OffsetBasedPageRequestTest {
          */
         @Test
         void shouldNotBeEqualWhenDifferentSort() {
-            OffsetBasedPageRequest pageable1 = new OffsetBasedPageRequest(10, 5, Sort.by("name"));
-            OffsetBasedPageRequest pageable2 = new OffsetBasedPageRequest(10, 5, Sort.by("date"));
+            OffsetBasedPageRequest pageable1 = new SimpleOffsetBasedPageRequest(10, 5, Sort.by("name"));
+            OffsetBasedPageRequest pageable2 = new SimpleOffsetBasedPageRequest(10, 5, Sort.by("date"));
             
             Assertions.assertThat(pageable1).isNotEqualTo(pageable2);
         }
@@ -396,7 +396,7 @@ class OffsetBasedPageRequestTest {
          */
         @Test
         void shouldBeEqualToItself() {
-            OffsetBasedPageRequest pageable = new OffsetBasedPageRequest(10, 5);
+            OffsetBasedPageRequest pageable = new SimpleOffsetBasedPageRequest(10, 5);
             Assertions.assertThat(pageable).isEqualTo(pageable);
         }
 
@@ -408,7 +408,7 @@ class OffsetBasedPageRequestTest {
          */
         @Test
         void shouldNotBeEqualToNull() {
-            OffsetBasedPageRequest pageable = new OffsetBasedPageRequest(10, 5);
+            OffsetBasedPageRequest pageable = new SimpleOffsetBasedPageRequest(10, 5);
             Assertions.assertThat(pageable).isNotEqualTo(null);
         }
 
@@ -420,7 +420,7 @@ class OffsetBasedPageRequestTest {
          */
         @Test
         void shouldNotBeEqualToDifferentClass() {
-            OffsetBasedPageRequest pageable = new OffsetBasedPageRequest(10, 5);
+            OffsetBasedPageRequest pageable = new SimpleOffsetBasedPageRequest(10, 5);
             Assertions.assertThat(pageable).isNotEqualTo("not a pageable");
         }
     }
@@ -442,7 +442,7 @@ class OffsetBasedPageRequestTest {
          */
         @Test
         void shouldReturnCorrectStringRepresentation() {
-            OffsetBasedPageRequest pageable = new OffsetBasedPageRequest(10, 5);
+            OffsetBasedPageRequest pageable = new SimpleOffsetBasedPageRequest(10, 5);
             String result = pageable.toString();
             
             Assertions.assertThat(result).contains("offset=10");
@@ -459,7 +459,7 @@ class OffsetBasedPageRequestTest {
         @Test
         void shouldReturnCorrectStringRepresentationWithSort() {
             Sort sort = Sort.by("name").descending();
-            OffsetBasedPageRequest pageable = new OffsetBasedPageRequest(10, 5, sort);
+            OffsetBasedPageRequest pageable = new SimpleOffsetBasedPageRequest(10, 5, sort);
             String result = pageable.toString();
             
             Assertions.assertThat(result).contains("offset=10");

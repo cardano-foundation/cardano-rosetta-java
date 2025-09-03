@@ -27,7 +27,7 @@
 
     <properties>
         <maven.compiler.proc>full</maven.compiler.proc>
-        <revision>1.3.1</revision>
+        <revision>1.3.2</revision>
         <java.version>24</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <version.spring-boot>3.5.0</version.spring-boot>
@@ -42,7 +42,7 @@
         <version.swagger-annotations>2.2.8</version.swagger-annotations>
         <version.log4j>2.20.0</version.log4j>
         <version.client-lib>0.6.6</version.client-lib>
-        <version.yaci>0.3.7</version.yaci>
+        <version.yaci>0.3.8</version.yaci>
         <version.commons-io>2.14.0</version.commons-io>
         <version.javax-validation-api>2.0.1.Final</version.javax-validation-api>
         <version.findsecbugs-plugin>1.13.0</version.findsecbugs-plugin>
@@ -54,6 +54,7 @@
         <version.cardano.conversions>1.2.0</version.cardano.conversions>
         <version.vavr>0.10.6</version.vavr>
         <version.jupiter>5.11.4</version.jupiter>
+        <version.jooq>3.19.15</version.jooq>
         <test.exclusions>
             **/testgenerator/**,
             **/yaciindexer/**,
@@ -170,6 +171,31 @@
                 <groupId>org.assertj</groupId>
                 <artifactId>assertj-core</artifactId>
                 <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.jooq</groupId>
+                <artifactId>jooq</artifactId>
+                <version>${version.jooq}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.jooq</groupId>
+                <artifactId>jooq-meta</artifactId>
+                <version>${version.jooq}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.jooq</groupId>
+                <artifactId>jooq-codegen</artifactId>
+                <version>${version.jooq}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.postgresql</groupId>
+                <artifactId>postgresql</artifactId>
+                <version>42.7.4</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-jooq</artifactId>
+                <version>${version.spring-boot}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

@@ -6,5 +6,10 @@ import org.openapitools.client.model.Peer;
 
 public interface TopologyConfigService {
 
+  List<Peer> getStaticPeers();
+
+  List<Peer> getDiscoveredPeers();
+
   List<Peer> getPeers();
+
 }

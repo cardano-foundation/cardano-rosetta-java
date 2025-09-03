@@ -3,6 +3,9 @@ spring:
     virtual:
       enabled: true
 
+  jooq:
+    sql-dialect: POSTGRES
+
   datasource:
     username: ${DB_USER:rosetta_db_admin}
     password: ${DB_SECRET:weakpwd#123_d}

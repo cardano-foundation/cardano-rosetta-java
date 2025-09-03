@@ -1,7 +1,7 @@
 package org.cardanofoundation.rosetta.api.search.service;
 
 import org.cardanofoundation.rosetta.api.account.model.repository.AddressUtxoRepository;
-import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
+import org.cardanofoundation.rosetta.api.account.service.AddressHistoryService;
 import org.cardanofoundation.rosetta.api.block.model.repository.TxInputRepository;
 import org.cardanofoundation.rosetta.api.block.model.repository.TxRepository;
 import org.cardanofoundation.rosetta.api.block.service.LedgerBlockService;
@@ -13,14 +13,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.openapitools.client.model.Operator;
+import org.cardanofoundation.rosetta.api.search.model.Operator;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -41,29 +41,167 @@ class LedgerSearchServiceImplTest {
     @Mock
     private AddressUtxoRepository addressUtxoRepository;
 
+    @Mock
+    private AddressHistoryService addressHistoryService;
+
     @InjectMocks
     private LedgerSearchServiceImpl ledgerSearchService;
 
     @Nested
-    @DisplayName("UTXO Limit Validation Tests")
-    class UtxoLimitValidationTests {
+    @DisplayName("Input Validation Tests")
+    class InputValidationTests {
 
         @Test
-        @DisplayName("Should throw exception when address search returns too many UTXOs")
-        void shouldThrowExceptionWhenAddressSearchReturnsTooManyUtxos() {
+        @DisplayName("Should handle negative maxBlock without throwing exception")
+        void shouldHandleNegativeMaxBlockWithoutException() {
+            // Given
+            Long negativeMaxBlock = -1L;
+
+            // Mock the repository calls to avoid NullPointerException
+            when(txRepository.searchTxnEntitiesAND(any(), any(), any(), any(), any(), any(), any(), any()))
+                    .thenReturn(Page.empty());
+            when(ledgerBlockService.mapTxnEntitiesToBlockTxList(any(Page.class)))
+                    .thenReturn(Page.empty());
+
+            // When & Then - should not throw exception since validation was removed
+            var result = ledgerSearchService.searchTransaction(
+                    Operator.AND,
+                    null,  // txHash
+                    null,  // address
+                    null,  // utxoKey
+                    null,  // currency
+                    null,  // blockHash
+                    null,  // blockIndex
+                    negativeMaxBlock,  // negative maxBlock
+                    null,  // isSuccess
+                    0L,    // offset
+                    10L    // limit
+            );
+
+            // Should successfully return result without throwing exception
+            assertThat(result).isNotNull();
+        }
+
+        @Test
+        @DisplayName("Should handle null maxBlock without throwing exception")
+        void shouldHandleNullMaxBlockWithoutException() {
+            // Given
+            Long nullMaxBlock = null;
+
+            // Mock the repository calls to avoid NullPointerException
+            when(txRepository.searchTxnEntitiesAND(any(), any(), any(), any(), any(), any(), any(), any()))
+                    .thenReturn(Page.empty());
+            when(ledgerBlockService.mapTxnEntitiesToBlockTxList(any(Page.class)))
+                    .thenReturn(Page.empty());
+
+            // When & Then - should not throw exception
+            var result = ledgerSearchService.searchTransaction(
+                    Operator.AND,
+                    null,  // txHash
+                    null,  // address
+                    null,  // utxoKey
+                    null,  // currency
+                    null,  // blockHash
+                    null,  // blockIndex
+                    nullMaxBlock,  // null maxBlock
+                    null,  // isSuccess
+                    0L,    // offset
+                    10L    // limit
+            );
+
+            // Should successfully return result without throwing exception
+            assertThat(result).isNotNull();
+        }
+
+        @Test
+        @DisplayName("Should handle positive maxBlock without throwing exception")
+        void shouldHandlePositiveMaxBlockWithoutException() {
+            // Given
+            Long positiveMaxBlock = 100L;
+
+            // Mock the repository calls to avoid NullPointerException
+            when(txRepository.searchTxnEntitiesAND(any(), any(), any(), any(), any(), any(), any(), any()))
+                    .thenReturn(Page.empty());
+            when(ledgerBlockService.mapTxnEntitiesToBlockTxList(any(Page.class)))
+                    .thenReturn(Page.empty());
+
+            // When & Then - should not throw exception
+            var result = ledgerSearchService.searchTransaction(
+                    Operator.AND,
+                    null,  // txHash
+                    null,  // address
+                    null,  // utxoKey
+                    null,  // currency
+                    null,  // blockHash
+                    null,  // blockIndex
+                    positiveMaxBlock,  // positive maxBlock
+                    null,  // isSuccess
+                    0L,    // offset
+                    10L    // limit
+            );
+
+            // Should successfully return result without throwing exception
+            assertThat(result).isNotNull();
+        }
+
+        @Test
+        @DisplayName("Should handle zero maxBlock without throwing exception")
+        void shouldHandleZeroMaxBlockWithoutException() {
+            // Given
+            Long zeroMaxBlock = 0L;
+
+            // Mock the repository calls to avoid NullPointerException
+            when(txRepository.searchTxnEntitiesAND(any(), any(), any(), any(), any(), any(), any(), any()))
+                    .thenReturn(Page.empty());
+            when(ledgerBlockService.mapTxnEntitiesToBlockTxList(any(Page.class)))
+                    .thenReturn(Page.empty());
+
+            // When & Then - should not throw exception
+            var result = ledgerSearchService.searchTransaction(
+                    Operator.AND,
+                    null,  // txHash
+                    null,  // address
+                    null,  // utxoKey
+                    null,  // currency
+                    null,  // blockHash
+                    null,  // blockIndex
+                    zeroMaxBlock,  // zero maxBlock
+                    null,  // isSuccess
+                    0L,    // offset
+                    10L    // limit
+            );
+
+            // Should successfully return result without throwing exception
+            assertThat(result).isNotNull();
+        }
+    }
+
+    @Nested
+    @DisplayName("Large Dataset Handling Tests")
+    class LargeDatasetHandlingTests {
+
+        @Test
+        @DisplayName("Should handle address search with many UTXOs using temporary tables")
+        void shouldHandleAddressSearchWithManyUtxos() {
             // Given
             String address = "addr1_test_address_with_many_utxos";
             
-            // Create a list with more than 30000 UTXOs
-            List<String> tooManyUtxos = new ArrayList<>();
-            IntStream.range(0, 30001)
-                    .forEach(i -> tooManyUtxos.add("tx_hash_" + i));
+            // Create a list with more than 10000 UTXOs (to trigger temp table usage)
+            List<String> manyUtxos = new ArrayList<>();
+            IntStream.range(0, 15000)
+                    .forEach(i -> manyUtxos.add("tx_hash_" + i));
             
-            when(addressUtxoRepository.findTxHashesByOwnerAddr(address))
-                    .thenReturn(tooManyUtxos);
+            when(addressHistoryService.findCompleteTransactionHistoryByAddress(address))
+                    .thenReturn(manyUtxos);
 
-            // When & Then
-            assertThatThrownBy(() -> ledgerSearchService.searchTransaction(
+            // Mock the repository calls to avoid NullPointerException
+            when(txRepository.searchTxnEntitiesAND(any(), any(), any(), any(), any(), any(), any(), any()))
+                    .thenReturn(Page.empty());
+            when(ledgerBlockService.mapTxnEntitiesToBlockTxList(any(Page.class)))
+                    .thenReturn(Page.empty());
+
+            // When & Then - should handle gracefully without throwing exception
+            var result = ledgerSearchService.searchTransaction(
                     Operator.AND,
                     null,
                     address,
@@ -75,30 +213,37 @@ class LedgerSearchServiceImplTest {
                     null,
                     0L,
                     10L
-            ))
-                    .isInstanceOf(ApiException.class)
-                    .hasMessage("Too many UTXOs in search request");
+            );
+
+            // Should successfully return result without throwing exception
+            // The large transaction hash set should be handled via temporary tables
         }
 
         @Test
-        @DisplayName("Should throw exception when combined hash sources exceed limit")
-        void shouldThrowExceptionWhenCombinedHashSourcesExceedLimit() {
+        @DisplayName("Should handle combined hash sources with large datasets")
+        void shouldHandleCombinedHashSourcesWithLargeDatasets() {
             // Given
             String address = "addr1_test_address";
             String txHash = "single_tx_hash";
             
-            // Create a list that when combined with txHash will exceed the limit
+            // Create a list that when combined with txHash will be very large
             List<String> manyUtxos = new ArrayList<>();
-            IntStream.range(0, 30000)
+            IntStream.range(0, 20000)
                     .forEach(i -> manyUtxos.add("tx_hash_" + i));
             
-            when(addressUtxoRepository.findTxHashesByOwnerAddr(address))
+            when(addressHistoryService.findCompleteTransactionHistoryByAddress(address))
                     .thenReturn(manyUtxos);
 
-            // When & Then
-            assertThatThrownBy(() -> ledgerSearchService.searchTransaction(
+            // Mock the repository calls to avoid NullPointerException
+            when(txRepository.searchTxnEntitiesOR(any(), any(), any(), any(), any(), any(), any(), any()))
+                    .thenReturn(Page.empty());
+            when(ledgerBlockService.mapTxnEntitiesToBlockTxList(any(Page.class)))
+                    .thenReturn(Page.empty());
+
+            // When & Then - should handle gracefully without throwing exception
+            var result = ledgerSearchService.searchTransaction(
                     Operator.OR,
-                    txHash, // This will be added to the 30000, making it 30001
+                    txHash, // This will be added to the 20000 hashes
                     address,
                     null,
                     null,
@@ -108,27 +253,28 @@ class LedgerSearchServiceImplTest {
                     null,
                     0L,
                     10L
-            ))
-                    .isInstanceOf(ApiException.class)
-                    .hasMessage("Too many UTXOs in search request");
+            );
+
+            // Should successfully return result without throwing exception
+            // The large transaction hash set should be handled via temporary tables
         }
 
         @Test
-        @DisplayName("Should handle exactly at the limit without throwing exception")
-        void shouldHandleExactlyAtLimitWithoutThrowingException() {
+        @DisplayName("Should handle very large datasets gracefully")
+        void shouldHandleVeryLargeDatasetsGracefully() {
             // Given
             String address = "addr1_test_address";
             
-            // Create a list with exactly 30000 UTXOs (at the limit)
-            List<String> exactlyAtLimit = new ArrayList<>();
-            IntStream.range(0, 30000)
-                    .forEach(i -> exactlyAtLimit.add("tx_hash_" + i));
+            // Create a list with 50000 UTXOs (well above temp table threshold)
+            List<String> veryLargeList = new ArrayList<>();
+            IntStream.range(0, 50000)
+                    .forEach(i -> veryLargeList.add("tx_hash_" + i));
             
-            when(addressUtxoRepository.findTxHashesByOwnerAddr(address))
-                    .thenReturn(exactlyAtLimit);
+            when(addressHistoryService.findCompleteTransactionHistoryByAddress(address))
+                    .thenReturn(veryLargeList);
 
             // Mock the repository calls to avoid NullPointerException
-            when(txRepository.searchTxnEntitiesAND(any(), any(), any(), any(), any(), any()))
+            when(txRepository.searchTxnEntitiesAND(any(), any(), any(), any(), any(), any(), any(), any()))
                     .thenReturn(Page.empty());
             when(ledgerBlockService.mapTxnEntitiesToBlockTxList(any(Page.class)))
                     .thenReturn(Page.empty());
@@ -147,7 +293,7 @@ class LedgerSearchServiceImplTest {
                     0L,
                     10L
             );
-            // If we reach here, no exception was thrown
+            // Should handle gracefully using temporary tables
         }
 
         @Test
@@ -159,12 +305,13 @@ class LedgerSearchServiceImplTest {
             // Create a small list of UTXOs
             List<String> smallList = List.of("tx_hash_1", "tx_hash_2", "tx_hash_3");
             
-            when(addressUtxoRepository.findTxHashesByOwnerAddr(address))
+            when(addressHistoryService.findCompleteTransactionHistoryByAddress(address))
                     .thenReturn(smallList);
 
             // Mock the repository calls to avoid NullPointerException
-            when(txRepository.searchTxnEntitiesOR(any(), any(), any(), any(), any(), any()))
+            when(txRepository.searchTxnEntitiesOR(any(), any(), any(), any(), any(), any(), any(), any()))
                     .thenReturn(Page.empty());
+
             when(ledgerBlockService.mapTxnEntitiesToBlockTxList(any(Page.class)))
                     .thenReturn(Page.empty());
 
@@ -191,7 +338,7 @@ class LedgerSearchServiceImplTest {
             // Given
             String address = "addr1_test_address_with_no_utxos";
             
-            when(addressUtxoRepository.findTxHashesByOwnerAddr(address))
+            when(addressHistoryService.findCompleteTransactionHistoryByAddress(address))
                     .thenReturn(List.of());
 
             // When & Then - should return empty page without validation

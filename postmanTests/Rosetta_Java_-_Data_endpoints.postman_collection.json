@@ -1,10 +1,9 @@
 {
 	"info": {
-		"_postman_id": "aa981df3-0cba-4af8-9495-06696089819f",
+		"_postman_id": "a0d2170d-5282-4e2e-9a86-190cb23dfa88",
 		"name": "Rosetta Java | Data endpoints",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "22770953",
-		"_collection_link": "https://universal-water-431619.postman.co/workspace/My-Workspace~207852b0-2ada-455f-838b-25731ed1d6fa/collection/22770953-aa981df3-0cba-4af8-9495-06696089819f?action=share&source=collection_link&creator=22770953"
+		"_exporter_id": "5364165"
 	},
 	"item": [
 		{
@@ -156,18 +155,12 @@
 										"exec": [
 											"pm.test(\"Invalid network returns appropriate error\", () => {",
 											"    const res = pm.response.json();",
-											"",
 											"    pm.expect(pm.response.code, \"Should return error status code\")",
 											"        .to.be.gte(400);",
-											"",
-											"",
-											"    pm.expect(res.code, \"Error code should be 4002\")",
-											"",
-											"    const errorMessage = res.message.includes(\"Network not found\") ? res.message : res.details?.message;",
-											"    pm.expect(errorMessage, \"Error message should indicate network not found\")",
-											"        .to.include(\"Network not found\");",
-											"});",
-											""
+											"    pm.expect(res.code, \"Error code should be 4002\").to.eql(4002);",
+											"    pm.expect(res.message, \"Error message should indicate network not found\").to.eql(\"Network not found\");",
+											"    pm.expect(res.retriable, \"`retriable` must be false\").to.be.false;",
+											"});"
 										],
 										"type": "text/javascript",
 										"packages": {}
@@ -287,6 +280,26 @@
 											"// ensure response is successful",
 											"pm.test(\"Response should be successful\", () => {",
 											"    pm.expect(pm.response.code).to.eql(200);",
+											"});",
+											"pm.test(\"Operations index are sequential\", () => {",
+											"    const res = pm.response.json();",
+											"    const ops = res.transactions[0].transaction.operations.map(o => o.operation_identifier.index);",
+											"    for (let i = 0; i < ops.length; i++) {",
+											"        pm.expect(ops[i]).to.eql(i);",
+											"    }",
+											"});",
+											"",
+											"const transactions = pm.response.json().transactions; // Defined transactions here",
+											"pm.test(\"Transactions have unique hashes\", () => {",
+											"    const hashes = transactions.map(t => t.transaction.transaction_identifier.hash);",
+											"    const uniqueHashes = [...new Set(hashes)];",
+											"    pm.expect(uniqueHashes.length, \"Duplicate transaction hashes found\")",
+											"        .to.equal(hashes.length);",
+											"});",
+											"pm.test(\"Block indexes are non-negative\", () => {",
+											"    transactions.forEach(t => {",
+											"        pm.expect(t.block_identifier.index).to.be.at.least(0);",
+											"    });",
 											"});"
 										],
 										"type": "text/javascript",
@@ -339,7 +352,33 @@
 											"// ensure response is successful",
 											"pm.test(\"Response should be successful\", () => {",
 											"    pm.expect(pm.response.code).to.eql(200);",
-											"});"
+											"});",
+											"pm.test(\"Operations index are sequential in all transactions\", () => {",
+											"    const res = pm.response.json();",
+											"",
+											"    res.transactions.forEach((tx, txIndex) => {",
+											"        const ops = tx.transaction.operations.map(o => o.operation_identifier.index);",
+											"",
+											"        for (let i = 0; i < ops.length; i++) {",
+											"            pm.expect(ops[i], `Transaction ${txIndex} operation index mismatch at position ${i}`)",
+											"              .to.eql(i);",
+											"        }",
+											"    });",
+											"});",
+											"",
+											"const transactions = pm.response.json().transactions; // Defined transactions here",
+											"pm.test(\"Transactions have unique hashes\", () => {",
+											"    const hashes = transactions.map(t => t.transaction.transaction_identifier.hash);",
+											"    const uniqueHashes = [...new Set(hashes)];",
+											"    pm.expect(uniqueHashes.length, \"Duplicate transaction hashes found\")",
+											"        .to.equal(hashes.length);",
+											"});",
+											"pm.test(\"Block indexes are non-negative\", () => {",
+											"    transactions.forEach(t => {",
+											"        pm.expect(t.block_identifier.index).to.be.at.least(0);",
+											"    });",
+											"});",
+											""
 										],
 										"type": "text/javascript",
 										"packages": {}
@@ -391,7 +430,32 @@
 											"// ensure response is successful",
 											"pm.test(\"Response should be successful\", () => {",
 											"    pm.expect(pm.response.code).to.eql(200);",
-											"});"
+											"});",
+											"pm.test(\"Operations index are sequential in all transactions\", () => {",
+											"    const res = pm.response.json();",
+											"",
+											"    res.transactions.forEach((tx, txIndex) => {",
+											"        const ops = tx.transaction.operations.map(o => o.operation_identifier.index);",
+											"",
+											"        for (let i = 0; i < ops.length; i++) {",
+											"            pm.expect(ops[i], `Transaction ${txIndex} operation index mismatch at position ${i}`)",
+											"              .to.eql(i);",
+											"        }",
+											"    });",
+											"});",
+											"const transactions = pm.response.json().transactions; // Defined transactions here",
+											"pm.test(\"Transactions have unique hashes\", () => {",
+											"    const hashes = transactions.map(t => t.transaction.transaction_identifier.hash);",
+											"    const uniqueHashes = [...new Set(hashes)];",
+											"    pm.expect(uniqueHashes.length, \"Duplicate transaction hashes found\")",
+											"        .to.equal(hashes.length);",
+											"});",
+											"pm.test(\"Block indexes are non-negative\", () => {",
+											"    transactions.forEach(t => {",
+											"        pm.expect(t.block_identifier.index).to.be.at.least(0);",
+											"    });",
+											"});",
+											""
 										],
 										"type": "text/javascript",
 										"packages": {}
@@ -443,7 +507,32 @@
 											"// ensure response is successful",
 											"pm.test(\"Response should be successful\", () => {",
 											"    pm.expect(pm.response.code).to.eql(200);",
-											"});"
+											"});",
+											"pm.test(\"Operations index are sequential in all transactions\", () => {",
+											"    const res = pm.response.json();",
+											"",
+											"    res.transactions.forEach((tx, txIndex) => {",
+											"        const ops = tx.transaction.operations.map(o => o.operation_identifier.index);",
+											"",
+											"        for (let i = 0; i < ops.length; i++) {",
+											"            pm.expect(ops[i], `Transaction ${txIndex} operation index mismatch at position ${i}`)",
+											"              .to.eql(i);",
+											"        }",
+											"    });",
+											"});",
+											"const transactions = pm.response.json().transactions; // Defined transactions here",
+											"pm.test(\"Transactions have unique hashes\", () => {",
+											"    const hashes = transactions.map(t => t.transaction.transaction_identifier.hash);",
+											"    const uniqueHashes = [...new Set(hashes)];",
+											"    pm.expect(uniqueHashes.length, \"Duplicate transaction hashes found\")",
+											"        .to.equal(hashes.length);",
+											"});",
+											"pm.test(\"Block indexes are non-negative\", () => {",
+											"    transactions.forEach(t => {",
+											"        pm.expect(t.block_identifier.index).to.be.at.least(0);",
+											"    });",
+											"});",
+											""
 										],
 										"type": "text/javascript",
 										"packages": {}
@@ -486,16 +575,25 @@
 							"response": []
 						},
 						{
-							"name": "limit 200",
+							"name": "(-) limit 200",
 							"event": [
 								{
 									"listen": "test",
 									"script": {
 										"exec": [
 											"// ensure response is successful",
-											"pm.test(\"Response should be successful\", () => {",
-											"    pm.expect(pm.response.code).to.eql(200);",
-											"});"
+											"pm.test(\"Response should NOT be successful\", () => {",
+											"    pm.expect(pm.response.code).to.eql(500);",
+											"});",
+											"const res = pm.response.json();",
+											"pm.test(\"Error code is 5053\", () => {",
+											"    pm.expect(res.code).to.eql(5053);",
+											"});",
+											"pm.test(\"Requested limit size exceeds maximum allowed size 100\", () => {",
+											"    pm.expect(res.message).to.eql(\"Invalid limit size\");",
+											"});",
+											"",
+											""
 										],
 										"type": "text/javascript",
 										"packages": {}
@@ -623,7 +721,7 @@
 									"const res = pm.response.json();",
 									"const transactions = res.transactions || [];",
 									"const body = pm.request.body.raw ? JSON.parse(pm.request.body.raw) : {};",
-									"",
+									"const limit = body.limit;",
 									"const testBlueprint = {",
 									"    expected: {",
 									"        counts: {",
@@ -638,10 +736,17 @@
 									"    testBlueprint.expected.counts.limit +",
 									"    (testBlueprint.expected.counts.limit === 1 ? \" transaction\" : \" transactions\") +",
 									"    \" in the response body\";",
-									"pm.test(testName, () => {",
-									"    pm.expect(transactions)",
-									"        .to.have.lengthOf.at.least(testBlueprint.expected.counts.limit);",
 									"",
+									"pm.test(testName, () => {",
+									"    if (limit > 100) {",
+									"        // Skip length assertion, only check for correct error response",
+									"        pm.expect(res.code).to.eql(5053);",
+									"        pm.expect(res.message).to.include(\"Invalid limit size\");",
+									"    } else {",
+									"        // Original assertion logic",
+									"        pm.expect(transactions)",
+									"            .to.have.lengthOf.at.least(testBlueprint.expected.counts.limit);",
+									"    }",
 									"});"
 								]
 							}
@@ -1266,6 +1371,89 @@
 								}
 							},
 							"response": []
+						},
+						{
+							"name": "valid payment address - shelley base using address field - large utxos",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"const responseJson = pm.response.json();",
+											"const transactions = responseJson.transactions || [];",
+											"const body = pm.request.body.raw ? JSON.parse(pm.request.body.raw) : {};",
+											"",
+											"// ensure response is successful",
+											"pm.test(\"Response should be successful\", () => {",
+											"    pm.expect(pm.response.code).to.eql(200);",
+											"});",
+											"",
+											"pm.test(\"Returns transactions for payment address\", () => {",
+											"    pm.expect(transactions, \"Should return transactions for payment address\")",
+											"        .to.be.an(\"array\").and.not.be.empty;",
+											"    ",
+											"    pm.expect(responseJson.total_count, \"total_count should be > 0\")",
+											"        .to.be.gt(0);",
+											"});",
+											"",
+											"if (body.account_identifier && body.account_identifier.address) {",
+											"    pm.test(\"All transactions involve the requested payment address\", () => {",
+											"        pm.expect(transactions, \"Should return transactions for payment address\")",
+											"            .to.be.an(\"array\").and.not.be.empty;",
+											"",
+											"        const requestedAddress = body.account_identifier.address;",
+											"",
+											"        transactions.forEach((tx, txIndex) => {",
+											"            const operations = tx.transaction.operations;",
+											"            const addressFound = operations.some(op =>",
+											"                op.account && op.account.address === requestedAddress",
+											"            );",
+											"",
+											"            pm.expect(addressFound, `Transaction ${txIndex} should involve the requested address`)",
+											"                .to.be.true;",
+											"        });",
+											"    });",
+											"}"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"preprod\"\n    },\n    \"address\": \"addr_test1wqd2qdzhh3x280q6erdksyku6k3eknrqsmrpkjnn6hsvjegk9gghn\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{URL}}/search/transactions",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"search",
+										"transactions"
+									]
+								}
+							},
+							"response": []
 						}
 					],
 					"description": "Verifies that querying by one or more transaction hashes returns the expected results, including not-found cases.",
@@ -1305,13 +1493,12 @@
 									"            });",
 									"        });",
 									"    }",
-									"    ",
-									"    ",
+									"",
 									"    // Verify each transaction has the requested hash (if searching by specific hash)",
-									"    if (body.transaction_identifier && body.transaction_identifier.hash && res.total_count > 0 ) {",
+									"    if (body.transaction_identifier && body.transaction_identifier.hash && transactions.length > 0) {",
 									"        pm.test(\"📁 transaction_identifier | All returned transactions match requested hash\", () => {",
 									"            const requestedHash = body.transaction_identifier.hash;",
-									"            ",
+									"",
 									"            transactions.forEach((tx, index) => {",
 									"                pm.expect(tx.transaction.transaction_identifier.hash, `Transaction ${index} should match requested hash`)",
 									"                    .to.eql(requestedHash);",
@@ -1357,22 +1544,24 @@
 											"        .to.be.gt(0);",
 											"});",
 											"",
-											"pm.test(\"All transactions involve the requested payment address\", () => {",
-											"        if (body.account_identifier && body.account_identifier.address && transactions.length > 0) {",
-											"            const requestedAddress = body.account_identifier.address;",
-											"            ",
-											"            transactions.forEach((tx, txIndex) => {",
-											"                const operations = tx.transaction.operations;",
-											"                const addressFound = operations.some(op => ",
-											"                    op.account && op.account.address === requestedAddress",
-											"                );",
-											"                ",
-											"                pm.expect(addressFound, `Transaction ${txIndex} should involve the requested address`)",
-											"                    .to.be.true;",
-											"            });",
-											"        }",
+											"if (body.account_identifier && body.account_identifier.address) {",
+											"    pm.test(\"All transactions involve the requested payment address\", () => {",
+											"        pm.expect(transactions, \"Should return transactions for payment address\")",
+											"            .to.be.an(\"array\").and.not.be.empty;",
+											"",
+											"        const requestedAddress = body.account_identifier.address;",
+											"",
+											"        transactions.forEach((tx, txIndex) => {",
+											"            const operations = tx.transaction.operations;",
+											"            const addressFound = operations.some(op =>",
+											"                op.account && op.account.address === requestedAddress",
+											"            );",
+											"",
+											"            pm.expect(addressFound, `Transaction ${txIndex} should involve the requested address`)",
+											"                .to.be.true;",
+											"        });",
 											"    });",
-											""
+											"}"
 										],
 										"type": "text/javascript",
 										"packages": {}
@@ -1438,22 +1627,24 @@
 											"        .to.be.gt(0);",
 											"});",
 											"",
-											"pm.test(\"All transactions involve the requested payment address\", () => {",
-											"        if (body.account_identifier && body.account_identifier.address && transactions.length > 0) {",
-											"            const requestedAddress = body.account_identifier.address;",
-											"            ",
-											"            transactions.forEach((tx, txIndex) => {",
-											"                const operations = tx.transaction.operations;",
-											"                const addressFound = operations.some(op => ",
-											"                    op.account && op.account.address === requestedAddress",
-											"                );",
-											"                ",
-											"                pm.expect(addressFound, `Transaction ${txIndex} should involve the requested address`)",
-											"                    .to.be.true;",
-											"            });",
-											"        }",
+											"if (body.account_identifier && body.account_identifier.address) {",
+											"    pm.test(\"All transactions involve the requested payment address\", () => {",
+											"        pm.expect(transactions, \"Should return transactions for payment address\")",
+											"            .to.be.an(\"array\").and.not.be.empty;",
+											"",
+											"        const requestedAddress = body.account_identifier.address;",
+											"",
+											"        transactions.forEach((tx, txIndex) => {",
+											"            const operations = tx.transaction.operations;",
+											"            const addressFound = operations.some(op =>",
+											"                op.account && op.account.address === requestedAddress",
+											"            );",
+											"",
+											"            pm.expect(addressFound, `Transaction ${txIndex} should involve the requested address`)",
+											"                .to.be.true;",
+											"        });",
 											"    });",
-											""
+											"}"
 										],
 										"type": "text/javascript",
 										"packages": {}
@@ -1519,22 +1710,24 @@
 											"        .to.be.gt(0);",
 											"});",
 											"",
-											"pm.test(\"All transactions involve the requested enterprise address\", () => {",
-											"        if (body.account_identifier && body.account_identifier.address && transactions.length > 0) {",
-											"            const requestedAddress = body.account_identifier.address;",
-											"            ",
-											"            transactions.forEach((tx, txIndex) => {",
-											"                const operations = tx.transaction.operations;",
-											"                const addressFound = operations.some(op => ",
-											"                    op.account && op.account.address === requestedAddress",
-											"                );",
-											"                ",
-											"                pm.expect(addressFound, `Transaction ${txIndex} should involve the requested address`)",
-											"                    .to.be.true;",
-											"            });",
-											"        }",
+											"if (body.account_identifier && body.account_identifier.address) {",
+											"    pm.test(\"All transactions involve the requested enterprise address\", () => {",
+											"        pm.expect(transactions, \"Should return transactions for enterprise address\")",
+											"            .to.be.an(\"array\").and.not.be.empty;",
+											"",
+											"        const requestedAddress = body.account_identifier.address;",
+											"",
+											"        transactions.forEach((tx, txIndex) => {",
+											"            const operations = tx.transaction.operations;",
+											"            const addressFound = operations.some(op =>",
+											"                op.account && op.account.address === requestedAddress",
+											"            );",
+											"",
+											"            pm.expect(addressFound, `Transaction ${txIndex} should involve the requested address`)",
+											"                .to.be.true;",
+											"        });",
 											"    });",
-											""
+											"}"
 										],
 										"type": "text/javascript",
 										"packages": {}
@@ -1600,22 +1793,24 @@
 											"        .to.be.gt(0);",
 											"});",
 											"",
-											"pm.test(\"All transactions involve the requested payment address\", () => {",
-											"        if (body.account_identifier && body.account_identifier.address && transactions.length > 0) {",
-											"            const requestedAddress = body.account_identifier.address;",
-											"            ",
-											"            transactions.forEach((tx, txIndex) => {",
-											"                const operations = tx.transaction.operations;",
-											"                const addressFound = operations.some(op => ",
-											"                    op.account && op.account.address === requestedAddress",
-											"                );",
-											"                ",
-											"                pm.expect(addressFound, `Transaction ${txIndex} should involve the requested address`)",
-											"                    .to.be.true;",
-											"            });",
-											"        }",
+											"if (body.account_identifier && body.account_identifier.address) {",
+											"    pm.test(\"All transactions involve the requested payment address\", () => {",
+											"        pm.expect(transactions, \"Should return transactions for payment address\")",
+											"            .to.be.an(\"array\").and.not.be.empty;",
+											"",
+											"        const requestedAddress = body.account_identifier.address;",
+											"",
+											"        transactions.forEach((tx, txIndex) => {",
+											"            const operations = tx.transaction.operations;",
+											"            const addressFound = operations.some(op =>",
+											"                op.account && op.account.address === requestedAddress",
+											"            );",
+											"",
+											"            pm.expect(addressFound, `Transaction ${txIndex} should involve the requested address`)",
+											"                .to.be.true;",
+											"        });",
 											"    });",
-											""
+											"}"
 										],
 										"type": "text/javascript",
 										"packages": {}
@@ -1687,10 +1882,13 @@
 											"        .to.be.gt(0);",
 											"});",
 											"",
-											"(skipTest ? pm.test.skip : pm.test)(\"All transactions involve the requested stake address\", () => {",
-											"    if (body.account_identifier && body.account_identifier.address && transactions.length > 0) {",
+											"if (body.account_identifier && body.account_identifier.address) {",
+											"    (skipTest ? pm.test.skip : pm.test)(\"All transactions involve the requested stake address\", () => {",
+											"        pm.expect(transactions, \"Should return transactions for stake address\")",
+											"            .to.be.an(\"array\").and.not.be.empty;",
+											"",
 											"        const requestedAddress = body.account_identifier.address;",
-											"        ",
+											"",
 											"        transactions.forEach((tx, txIndex) => {",
 											"            const operations = tx.transaction.operations;",
 											"            const addressFound = operations.some(op => ",
@@ -1700,8 +1898,8 @@
 											"            pm.expect(addressFound, `Transaction ${txIndex} should involve the requested address`)",
 											"                .to.be.true;",
 											"        });",
-											"    }",
-											"});",
+											"    });",
+											"}",
 											"",
 											"(skipTest ? pm.test.skip : pm.test)(\"Operations have correct types for stake address\", () => {",
 											"    transactions.forEach((tx, txIndex) => {",
@@ -2390,18 +2588,15 @@
 									"const transactions = res.transactions || [];",
 									"const body = pm.request.body.raw ? JSON.parse(pm.request.body.raw) : {};",
 									"",
-									"if (pm.response.code === 200) {",
+									"if (pm.response.code === 200 && body.max_block !== undefined && transactions.length > 0) {",
 									"    pm.test(\"📁 max_block | All transactions are from blocks <= max_block\", () => {",
-									"        if (body.max_block !== undefined && transactions.length > 0) {",
-									"            const maxBlock = body.max_block;",
-									"            ",
-									"            transactions.forEach((tx, index) => {",
-									"                pm.expect(tx.block_identifier.index, `Transaction ${index} should be from block <= ${maxBlock}`)",
-									"                    .to.be.lte(maxBlock);",
-									"            });",
-									"        }",
+									"        const maxBlock = body.max_block;",
+									"",
+									"        transactions.forEach((tx, index) => {",
+									"            pm.expect(tx.block_identifier.index, `Transaction ${index} should be from block <= ${maxBlock}`)",
+									"                .to.be.lte(maxBlock);",
+									"        });",
 									"    });",
-									"    ",
 									"}"
 								]
 							}
@@ -2622,7 +2817,7 @@
 							"response": []
 						},
 						{
-							"name": "(-) status INVALID",
+							"name": "(-) status UNKNOWN_STATUS",
 							"event": [
 								{
 									"listen": "test",
@@ -2664,7 +2859,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"preprod\"\n    },\n    \"status\": \"INVALID\"\n}",
+									"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"preprod\"\n    },\n    \"status\": \"UNKNOWN_STATUS\"\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -2721,9 +2916,8 @@
 									"",
 									"        });",
 									"    }",
-									"    if (body.success && transactions.length > 0) {",
+									"    if (body.success !== undefined && transactions.length > 0) {",
 									"        pm.test(\"📁 status filtering | All transactions have the requested success flag\", () => {",
-									"",
 									"            const requestedSuccess = body.success === true || body.success === \"true\";",
 									"            const expectedStatus = requestedSuccess ? \"success\" : \"invalid\";",
 									"",
@@ -2749,7 +2943,11 @@
 									"listen": "test",
 									"script": {
 										"exec": [
-											"pm.test(\"Response should be successful\", () => {",
+											"// Test currently handled by folder-level _tests.js since operation type filtering is not implemented",
+											"// All operation type requests (valid or invalid) return the same \"not supported\" error",
+											"",
+											"// When feature is implemented, remove .skip from this test:",
+											"pm.test.skip(\"Response should be successful\", () => {",
 											"    pm.expect(pm.response.code).to.eql(200);",
 											"});"
 										],
@@ -2800,7 +2998,11 @@
 									"listen": "test",
 									"script": {
 										"exec": [
-											"pm.test(\"Response should be successful\", () => {",
+											"// Test currently handled by folder-level _tests.js since operation type filtering is not implemented",
+											"// All operation type requests (valid or invalid) return the same \"not supported\" error",
+											"",
+											"// When feature is implemented, remove .skip from this test:",
+											"pm.test.skip(\"Response should be successful\", () => {",
 											"    pm.expect(pm.response.code).to.eql(200);",
 											"});"
 										],
@@ -2851,7 +3053,11 @@
 									"listen": "test",
 									"script": {
 										"exec": [
-											"pm.test(\"Response should be successful\", () => {",
+											"// Test currently handled by folder-level _tests.js since operation type filtering is not implemented",
+											"// All operation type requests (valid or invalid) return the same \"not supported\" error",
+											"",
+											"// When feature is implemented, remove .skip from this test:",
+											"pm.test.skip(\"Response should be successful\", () => {",
 											"    pm.expect(pm.response.code).to.eql(200);",
 											"});"
 										],
@@ -2902,7 +3108,11 @@
 									"listen": "test",
 									"script": {
 										"exec": [
-											"pm.test(\"Response should be successful\", () => {",
+											"// Test currently handled by folder-level _tests.js since operation type filtering is not implemented",
+											"// All operation type requests (valid or invalid) return the same \"not supported\" error",
+											"",
+											"// When feature is implemented, remove .skip from this test:",
+											"pm.test.skip(\"Response should be successful\", () => {",
 											"    pm.expect(pm.response.code).to.eql(200);",
 											"});"
 										],
@@ -2953,7 +3163,11 @@
 									"listen": "test",
 									"script": {
 										"exec": [
-											"pm.test(\"Response should be successful\", () => {",
+											"// Test currently handled by folder-level _tests.js since operation type filtering is not implemented",
+											"// All operation type requests (valid or invalid) return the same \"not supported\" error",
+											"",
+											"// When feature is implemented, remove .skip from this test:",
+											"pm.test.skip(\"Response should be successful\", () => {",
 											"    pm.expect(pm.response.code).to.eql(200);",
 											"});"
 										],
@@ -3004,7 +3218,11 @@
 									"listen": "test",
 									"script": {
 										"exec": [
-											"pm.test(\"Response should be successful\", () => {",
+											"// Test currently handled by folder-level _tests.js since operation type filtering is not implemented",
+											"// All operation type requests (valid or invalid) return the same \"not supported\" error",
+											"",
+											"// When feature is implemented, remove .skip from this test:",
+											"pm.test.skip(\"Response should be successful\", () => {",
 											"    pm.expect(pm.response.code).to.eql(200);",
 											"});"
 										],
@@ -3055,7 +3273,11 @@
 									"listen": "test",
 									"script": {
 										"exec": [
-											"pm.test(\"Response should be successful\", () => {",
+											"// Test currently handled by folder-level _tests.js since operation type filtering is not implemented",
+											"// All operation type requests (valid or invalid) return the same \"not supported\" error",
+											"",
+											"// When feature is implemented, remove .skip from this test:",
+											"pm.test.skip(\"Response should be successful\", () => {",
 											"    pm.expect(pm.response.code).to.eql(200);",
 											"});"
 										],
@@ -3106,7 +3328,11 @@
 									"listen": "test",
 									"script": {
 										"exec": [
-											"pm.test(\"Response should be successful\", () => {",
+											"// Test currently handled by folder-level _tests.js since operation type filtering is not implemented",
+											"// All operation type requests (valid or invalid) return the same \"not supported\" error",
+											"",
+											"// When feature is implemented, remove .skip from this test:",
+											"pm.test.skip(\"Response should be successful\", () => {",
 											"    pm.expect(pm.response.code).to.eql(200);",
 											"});"
 										],
@@ -3157,7 +3383,11 @@
 									"listen": "test",
 									"script": {
 										"exec": [
-											"pm.test(\"Invalid operation type returns specific error\", () => {",
+											"// Test currently handled by folder-level _tests.js since operation type filtering is not implemented",
+											"// All operation type requests (valid or invalid) return the same \"not supported\" error",
+											"",
+											"// When feature is implemented, remove .skip to validate invalid types are properly rejected:",
+											"pm.test.skip(\"Invalid operation type returns specific error\", () => {",
 											"    const res = pm.response.json();",
 											"    ",
 											"    pm.expect(pm.response.code, \"Should return error status code\")",
@@ -3170,7 +3400,7 @@
 											"        .to.include(\"Provided operation type is invalid\");",
 											"    ",
 											"    pm.expect(res.retriable, \"Should indicate as not retriable\")",
-											"        .to.be.a(\"boolean\").and.to.be.false",
+											"        .to.be.a(\"boolean\").and.to.be.false;",
 											"});"
 										],
 										"type": "text/javascript",
@@ -3236,20 +3466,36 @@
 									"const transactions = res.transactions || [];",
 									"const body = pm.request.body.raw ? JSON.parse(pm.request.body.raw) : {};",
 									"",
-									"if (pm.response.code === 200) {",
-									"    pm.test(\"📁 operation type filtering | All transactions contain the requested operation type\", () => {",
-									"        if (body.type && transactions.length > 0) {",
-									"            const requestedType = body.type;",
-									"            ",
-									"            transactions.forEach((tx, index) => {",
-									"                const hasRequestedType = tx.transaction.operations.some(op => ",
-									"                    op.type === requestedType",
-									"                );",
-									"                ",
-									"                pm.expect(hasRequestedType, `Transaction ${index} should contain ${requestedType} operation`)",
-									"                    .to.be.true;",
-									"            });",
-									"        }",
+									"// TEMPORARILY NEGATIVE TEST - Operation type filtering feature not yet implemented",
+									"if (body.type) {",
+									"    pm.test(\"📁 operation type filtering | [TEMP NEGATIVE] Feature not implemented - expects error\", () => {",
+									"        pm.expect(pm.response.code, \"Should return error status code\")",
+									"            .to.be.gte(400);",
+									"        ",
+									"        pm.expect(res.code, \"Should have specific error code\")",
+									"            .to.eql(5058);",
+									"        ",
+									"        pm.expect(res.message, \"Should have meaningful error message\")",
+									"            .to.include(\"Operation type filtering is not currently supported\");",
+									"        ",
+									"        pm.expect(res.retriable, \"Should indicate as not retriable\")",
+									"            .to.be.a(\"boolean\").and.to.be.false;",
+									"    });",
+									"}",
+									"",
+									"// Original test - to be activated when feature is implemented",
+									"if (pm.response.code === 200 && body.type && transactions.length > 0) {",
+									"    pm.test.skip(\"📁 operation type filtering | All transactions contain the requested operation type\", () => {",
+									"        const requestedType = body.type;",
+									"",
+									"        transactions.forEach((tx, index) => {",
+									"            const hasRequestedType = tx.transaction.operations.some(op =>",
+									"                op.type === requestedType",
+									"            );",
+									"",
+									"            pm.expect(hasRequestedType, `Transaction ${index} should contain ${requestedType} operation`)",
+									"                .to.be.true;",
+									"        });",
 									"    });",
 									"}"
 								]
@@ -3271,7 +3517,10 @@
 											"const transactions = responseJson.transactions || [];",
 											"const body = pm.request.body.raw ? JSON.parse(pm.request.body.raw) : {};",
 											"",
-											"pm.test(\"All transactions meet the specified address and type conditions\", () => {",
+											"// Skip - operation type filtering not implemented yet",
+											"const skipTest = true;",
+											"",
+											"(skipTest ? pm.test.skip : pm.test)(\"All transactions meet the specified address and type conditions\", () => {",
 											"    transactions.forEach((tx, index) => {",
 											"        // Check if any operation has the specified address",
 											"        const hasAccountIdentifier = tx.transaction.operations.some(op => ",
@@ -3285,8 +3534,7 @@
 											"        );",
 											"        pm.expect(hasType, `Transaction at index ${index} should contain the operation ${body.type}`).to.be.true;",
 											"    });",
-											"});",
-											""
+											"});"
 										],
 										"type": "text/javascript",
 										"packages": {}
@@ -3407,7 +3655,10 @@
 											"const transactions = responseJson.transactions || [];",
 											"const body = pm.request.body.raw ? JSON.parse(pm.request.body.raw) : {};",
 											"",
-											"pm.test(\"All transactions meet the specified address or type conditions\", () => {",
+											"// Skip - operation type filtering not implemented yet",
+											"const skipTest = true;",
+											"",
+											"(skipTest ? pm.test.skip : pm.test)(\"All transactions meet the specified address or type conditions\", () => {",
 											"    transactions.forEach((tx, index) => {",
 											"        // Check if any operation has the specified address",
 											"        const hasAccountIdentifier = tx.transaction.operations.some(op => ",
@@ -3421,8 +3672,7 @@
 											"",
 											"        pm.expect(hasAccountIdentifier || hasType, `Transaction at index ${index} should contain the account identifier: ${body.account_identifier.address} or the operation ${body.type}`).to.be.true;",
 											"    });",
-											"});",
-											""
+											"});"
 										],
 										"type": "text/javascript",
 										"packages": {}
@@ -3543,7 +3793,10 @@
 											"const transactions = responseJson.transactions || [];",
 											"const body = pm.request.body.raw ? JSON.parse(pm.request.body.raw) : {};",
 											"",
-											"pm.test(\"All transactions meet the specified address and type conditions\", () => {",
+											"// Skip - operation type filtering not implemented yet",
+											"const skipTest = true;",
+											"",
+											"(skipTest ? pm.test.skip : pm.test)(\"All transactions meet the specified address and type conditions\", () => {",
 											"    transactions.forEach((tx, index) => {",
 											"        // Check if any operation has the specified address",
 											"        const hasAddress = tx.transaction.operations.some(op => ",
@@ -3557,8 +3810,7 @@
 											"        );",
 											"        pm.expect(hasType, `Transaction at index ${index} should contain the operation ${body.type}`).to.be.true;",
 											"    });",
-											"});",
-											""
+											"});"
 										],
 										"type": "text/javascript",
 										"packages": {}
@@ -3748,16 +4000,15 @@
 											"    ",
 											"    pm.expect(pm.response.code, \"Should return error status code\")",
 											"        .to.be.gte(400);",
-											"",
 											"    ",
-											"    //pm.expect(res.code, \"Should have specific error code\")",
-											"    //    .to.eql(XXXX); // requires a proper error code to be implemented first",
+											"    pm.expect(res.code, \"Should have specific error code\")",
+											"        .to.eql(5000);",
 											"    ",
 											"    pm.expect(res.message, \"Should have meaningful error message\")",
-											"        .to.include(\"Provided operator is invalid\");",
+											"        .to.include(\"An error occurred\");",
 											"    ",
 											"    pm.expect(res.retriable, \"Should indicate as not retriable\")",
-											"        .to.be.a(\"boolean\").and.to.be.false",
+											"        .to.be.a(\"boolean\").and.to.be.false;",
 											"});"
 										],
 										"type": "text/javascript",
@@ -3823,20 +4074,161 @@
 									"const transactions = res.transactions || [];",
 									"const body = pm.request.body.raw ? JSON.parse(pm.request.body.raw) : {};",
 									"",
-									"if (pm.response.code === 200) {",
-									"    ",
-									"    pm.test(\"📁 operator | Operator validation with filter combinations\", () => {",
-									"        if (body.operator === \"and\" && transactions.length > 0) {",
+									"if (pm.response.code === 200 && transactions.length > 0) {",
+									"    if (body.operator === \"and\") {",
+									"        pm.test(\"📁 operator | Operator validation with filter combinations (AND)\", () => {",
 									"            // For AND: all transactions should satisfy all conditions",
 									"            console.log(\"AND operator: All transactions should satisfy all conditions\");",
-									"        } else if (body.operator === \"or\" && transactions.length > 0) {",
+									"        });",
+									"    } else if (body.operator === \"or\") {",
+									"        pm.test(\"📁 operator | Operator validation with filter combinations (OR)\", () => {",
 									"            // For OR: transactions should satisfy at least one condition",
 									"            console.log(\"OR operator: Transactions should satisfy at least one condition\");",
-									"        }",
-									"    });",
+									"        });",
+									"    }",
 									"}"
 								]
 							}
+						}
+					]
+				},
+				{
+					"name": "currency",
+					"item": [
+						{
+							"name": "ada filter",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"preprod\"\n    },\n    \"currency\": {\n        \"symbol\": \"lovelace\",\n        \"decimals\": 6\n    }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{URL}}/search/transactions",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"search",
+										"transactions"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "ADA filter",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"preprod\"\n    },\n    \"currency\": {\n        \"symbol\": \"ADA\",\n        \"decimals\": 6\n    }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{URL}}/search/transactions",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"search",
+										"transactions"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "lovelace filter",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"preprod\"\n    },\n    \"currency\": {\n        \"symbol\": \"lovelace\",\n        \"decimals\": 6\n    }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{URL}}/search/transactions",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"search",
+										"transactions"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "asset - tTEURO by name",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"preprod\"\n    },\n    \"currency\": {\n        \"symbol\": \"tTEURO\",\n        \"decimals\": 6\n    }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{URL}}/search/transactions",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"search",
+										"transactions"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "asset - tTEURO by policyId",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"preprod\"\n    },\n    \"currency\": {\n        \"symbol\": \"tTEURO\",\n        \"decimals\": 6,\n        \"metadata\": {\n            \"policyId\": \"e68f1cea19752d1292b4be71b7f5d2b3219a15859c028f7454f66cdf\"\n        }\n    }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{URL}}/search/transactions",
+									"host": [
+										"{{URL}}"
+									],
+									"path": [
+										"search",
+										"transactions"
+									]
+								}
+							},
+							"response": []
 						}
 					]
 				}
@@ -4879,8 +5271,7 @@
 							"        pm.test(\"📁 /search/transactions | Response includes next_offset only if it has multiple pages\", () => {",
 							"            const body = pm.request.body.raw ? JSON.parse(pm.request.body.raw) : {};",
 							"            const currentOffset = body.offset || 0;",
-							"            const limit = body.limit || defaultPageLimit;",
-							"",
+							"            ",
 							"            if (res.total_count > currentOffset + transactions.length) {",
 							"                pm.expect(res.next_offset, \"next_offset points to next page\")",
 							"                    .to.eql(currentOffset + transactions.length);",

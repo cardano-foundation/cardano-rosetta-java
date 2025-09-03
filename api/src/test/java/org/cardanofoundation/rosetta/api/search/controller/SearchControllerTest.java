@@ -60,7 +60,7 @@ class SearchControllerTest extends BaseSpringMvcSetup {
 
     @Test
     @SneakyThrows
-    void shouldReturn5xxWhenNetworkIdentifierIsMissing() {
+    void shouldReturn4xxWhenNetworkIdentifierIsMissing() {
       // Given
       SearchTransactionsRequest request = new SearchTransactionsRequest();
       Mockito.when(service.searchTransaction(any(), any(), any())).thenReturn(Page.empty());
@@ -69,7 +69,7 @@ class SearchControllerTest extends BaseSpringMvcSetup {
       mockMvc.perform(post("/search/transactions")
               .contentType(MediaType.APPLICATION_JSON)
               .content(objectMapper.writeValueAsString(request)))
-          .andExpect(status().is5xxServerError());
+          .andExpect(status().is4xxClientError());
     }
   }
 
