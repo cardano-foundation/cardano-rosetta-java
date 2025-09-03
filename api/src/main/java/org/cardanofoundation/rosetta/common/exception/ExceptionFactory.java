@@ -30,6 +30,11 @@ public class ExceptionFactory {
                 Details.builder().message(details).build()));
     }
 
+    public static ApiException unspecifiedErrorNotRetriable(String details) {
+        return new ApiException(RosettaErrorType.UNSPECIFIED_ERROR.toRosettaError(false,
+                Details.builder().message(details).build()));
+    }
+
     public static ApiException invalidAddressError(String address) {
         return new ApiException(RosettaErrorType.INVALID_ADDRESS.toRosettaError(true,
                 Details.builder().message(address).build()));

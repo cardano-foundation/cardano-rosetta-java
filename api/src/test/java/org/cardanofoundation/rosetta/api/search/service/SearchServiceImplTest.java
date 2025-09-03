@@ -766,7 +766,7 @@ class SearchServiceImplTest {
                     .coinIdentifier(coinId)
                     .blockIdentifier(blockId)
                     .maxBlock(200L)
-                    .operator(org.openapitools.client.model.Operator.OR)
+                    .operator("OR")
                     .success(false)
                     .build();
 
@@ -804,7 +804,7 @@ class SearchServiceImplTest {
             // Given
             SearchTransactionsRequest request = SearchTransactionsRequest.builder()
                     .networkIdentifier(networkIdentifier)
-                    .operator(org.openapitools.client.model.Operator.AND)
+                    .operator("AND")
                     .build();
 
             Page<BlockTx> mockBlockTxPage = new PageImpl<>(List.of());
@@ -830,7 +830,7 @@ class SearchServiceImplTest {
             // Given
             SearchTransactionsRequest request = SearchTransactionsRequest.builder()
                     .networkIdentifier(networkIdentifier)
-                    .operator(org.openapitools.client.model.Operator.OR)
+                    .operator("OR")
                     .build();
 
             Page<BlockTx> mockBlockTxPage = new PageImpl<>(List.of());
