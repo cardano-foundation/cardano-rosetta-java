@@ -1,0 +1,19 @@
+{
+  "test_name": "(-) unsigned transaction",
+  "description": "Negative test: submit an unsigned transaction (valid CBOR but no witness)",
+  "request_body": {
+    "network_identifier": {
+      "blockchain": "cardano",
+      "network": "preprod"
+    },
+    "signed_transaction": "84a400818258204f25fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f00018182583900087074e5eb482b3e8560dc68d3659b01b062c93198d67217eb0ee0080f86557368329bb8f6e44131fee5e229c74ba6341db5ce72f8781d001a004c4b40021a00027ac0031a05f5e0d7"
+  },
+  "expected_error": {
+    "code": 5000,
+    "message": "An error occurred",
+    "retriable": true,
+    "details": {
+      "message": "An error occurred for request 31794: Cbor de-serialization error"
+    }
+  }
+}

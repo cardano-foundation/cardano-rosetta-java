@@ -1,0 +1,68 @@
+{
+  "test_name": "pool registration with cert",
+  "description": "Test case: pool registration with cert",
+  "request_body": {
+    "network_identifier": {
+      "blockchain": "cardano",
+      "network": "preprod"
+    },
+    "operations": [
+      {
+        "operation_identifier": {
+          "index": 0
+        },
+        "type": "input",
+        "account": {
+          "address": "addr_test1qz8swh9a7tga0u62lxs6dvnkmpxd0dyeeqx27csh6ywx7qplrv4wtdpvnh6wffzch0uakzhh7uwyvd4asda3zzay0qpqcplwh0"
+        },
+        "amount": {
+          "value": "-600000000",
+          "currency": {
+            "symbol": "ADA",
+            "decimals": 6
+          }
+        },
+        "coin_change": {
+          "coin_identifier": {
+            "identifier": "40c912e1e2076dde7f4beb39bf74ea484b1ffba29aa44c84a9e5a5ca671e1bfe:0"
+          },
+          "coin_action": "coin_spent"
+        }
+      },
+      {
+        "operation_identifier": {
+          "index": 1
+        },
+        "type": "output",
+        "account": {
+          "address": "addr_test1qz8swh9a7tga0u62lxs6dvnkmpxd0dyeeqx27csh6ywx7qplrv4wtdpvnh6wffzch0uakzhh7uwyvd4asda3zzay0qpqcplwh0"
+        },
+        "amount": {
+          "value": "99829000",
+          "currency": {
+            "symbol": "ADA",
+            "decimals": 6
+          }
+        }
+      },
+      {
+        "operation_identifier": {
+          "index": 2
+        },
+        "type": "poolRegistrationWithCert",
+        "account": {
+          "address": "c2bd8e75c6861b8e44c8d815dc9a5d4f1490745fffb4a7fc046a763b"
+        },
+        "metadata": {
+          "poolRegistrationCert": "8a03581c2dcfdb151c8f8688359b252034a987adb7ea952eefd1562e0fa3d6bd5820544a0e0979dbdcbbcfe8c2c93cf7c2007de142f25b4e7dc3afb1560410bee7b01a004c4b401a002dc6c0d81e820101581de06bc0fb7bf3fb63213db81655a33d8c4a7c1c7e4bd75fc33ff176784bd9010281581c6bc0fb7bf3fb63213db81655a33d8c4a7c1c7e4bd75fc33ff176784b8184001820445820f5d9505820f5d9ea167fd2e0b19647f18dd1e0826f706f6f6c4d6574616461746155726c58209ac2217288d1ae0b4e15c41b58d3e05a13206fd9ab81cb15943e4174bf30c90b"
+        }
+      }
+    ]
+  },
+  "expected_response": {
+    "options": {
+      "transaction_size": 662,
+      "relative_ttl": 1000
+    }
+  }
+}

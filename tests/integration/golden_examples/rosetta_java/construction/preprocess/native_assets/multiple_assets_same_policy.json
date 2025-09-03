@@ -1,0 +1,102 @@
+{
+  "test_name": "multiple assets same policy",
+  "description": "Test case: multiple assets same policy",
+  "request_body": {
+    "network_identifier": {
+      "blockchain": "cardano",
+      "network": "preprod"
+    },
+    "operations": [
+      {
+        "operation_identifier": {
+          "index": 0
+        },
+        "type": "input",
+        "account": {
+          "address": "addr_test1qz8swh9a7tga0u62lxs6dvnkmpxd0dyeeqx27csh6ywx7qplrv4wtdpvnh6wffzch0uakzhh7uwyvd4asda3zzay0qpqcplwh0"
+        },
+        "amount": {
+          "value": "-3000000",
+          "currency": {
+            "symbol": "ADA",
+            "decimals": 6
+          }
+        },
+        "coin_change": {
+          "coin_identifier": {
+            "identifier": "3f24fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f:0"
+          },
+          "coin_action": "coin_spent"
+        },
+        "metadata": {
+          "tokenBundle": [
+            {
+              "policyId": "849e6eb84653626eb800bb2fcfe95c4d5ba9f8f3061d9973614be234",
+              "tokens": [
+                {
+                  "value": "500",
+                  "currency": {
+                    "symbol": "457175696e65486f727365303034303130",
+                    "decimals": 0
+                  }
+                },
+                {
+                  "value": "1500",
+                  "currency": {
+                    "symbol": "546f6b656e4230303230",
+                    "decimals": 0
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "operation_identifier": {
+          "index": 1
+        },
+        "type": "output",
+        "account": {
+          "address": "addr_test1qz8swh9a7tga0u62lxs6dvnkmpxd0dyeeqx27csh6ywx7qplrv4wtdpvnh6wffzch0uakzhh7uwyvd4asda3zzay0qpqcplwh0"
+        },
+        "amount": {
+          "value": "2800000",
+          "currency": {
+            "symbol": "ADA",
+            "decimals": 6
+          }
+        },
+        "metadata": {
+          "tokenBundle": [
+            {
+              "policyId": "849e6eb84653626eb800bb2fcfe95c4d5ba9f8f3061d9973614be234",
+              "tokens": [
+                {
+                  "value": "500",
+                  "currency": {
+                    "symbol": "457175696e65486f727365303034303130",
+                    "decimals": 0
+                  }
+                },
+                {
+                  "value": "1500",
+                  "currency": {
+                    "symbol": "546f6b656e4230303230",
+                    "decimals": 0
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "expected_response": {
+    "options": {
+      "transaction_size": 299,
+      "relative_ttl": 1000
+    }
+  }
+}

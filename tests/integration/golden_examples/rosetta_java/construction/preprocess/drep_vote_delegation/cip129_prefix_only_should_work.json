@@ -1,0 +1,68 @@
+{
+  "test_name": "(SKIP) CIP-129 prefix-only should infer type",
+  "description": "SKIP: CIP-129 prefix should make type field optional. Currently not supported - needs investigation",
+  "request_body": {
+    "network_identifier": {
+      "blockchain": "cardano",
+      "network": "preprod"
+    },
+    "operations": [
+      {
+        "operation_identifier": {
+          "index": 0
+        },
+        "type": "input",
+        "account": {
+          "address": "addr_test1qz8swh9a7tga0u62lxs6dvnkmpxd0dyeeqx27csh6ywx7qplrv4wtdpvnh6wffzch0uakzhh7uwyvd4asda3zzay0qpqcplwh0"
+        },
+        "amount": {
+          "value": "-2000000",
+          "currency": {
+            "symbol": "ADA",
+            "decimals": 6
+          }
+        },
+        "coin_change": {
+          "coin_identifier": {
+            "identifier": "9f30fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f:0"
+          },
+          "coin_action": "coin_spent"
+        }
+      },
+      {
+        "operation_identifier": {
+          "index": 1
+        },
+        "type": "output",
+        "account": {
+          "address": "addr_test1qz8swh9a7tga0u62lxs6dvnkmpxd0dyeeqx27csh6ywx7qplrv4wtdpvnh6wffzch0uakzhh7uwyvd4asda3zzay0qpqcplwh0"
+        },
+        "amount": {
+          "value": "1800000",
+          "currency": {
+            "symbol": "ADA",
+            "decimals": 6
+          }
+        }
+      },
+      {
+        "operation_identifier": {
+          "index": 2
+        },
+        "type": "dRepVoteDelegation",
+        "account": {
+          "address": "stake_test1uql3k2h9kskfma8y53vth7wmptmlw8zxx67cx7c3pwj8sqs6zl0wr"
+        },
+        "metadata": {
+          "staking_credential": {
+            "hex_bytes": "fdbee86a702c49d23f45ab80e697b93ec48b744d5f413ef59c338c3f7b2d2de8",
+            "curve_type": "edwards25519"
+          },
+          "drep": {
+            "id": "22f72050aa252ccc6bf75747184910c0b9386298167656f935d6b6c26a"
+          }
+        }
+      }
+    ]
+  }
+}

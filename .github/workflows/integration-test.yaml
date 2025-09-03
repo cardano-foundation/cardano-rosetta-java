@@ -27,6 +27,12 @@ jobs:
           PGPASSWORD=$DB_SECRET psql -h localhost -p 5432 -d $DB_NAME -U $DB_USER -f temp.sql
       - name: "Install newman"
         run: npm install -g newman
+      - name: "Setup Python"
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+      - name: "Install uv"
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh
 #      - name: "Install mesh-cli"
 #        run: curl -sSfL https://raw.githubusercontent.com/coinbase/mesh-cli/master/scripts/install.sh | sh -s
 
@@ -36,6 +42,12 @@ jobs:
 
       - name: "Run tests"
         run: newman run ./postmanTests/rosetta-java.postman_collection.json -e postmanTests/Rosetta-java-env.postman_environment.json -r cli
+      - name: "Run construction API tests with schema validation"
+        run: |
+          cd ./tests/integration
+          ~/.local/bin/uv run test_construction_api.py \
+            -u http://localhost:8082 \
+            --openapi ../../api/src/main/resources/rosetta-specifications-1.4.15/api.yaml
       - name: "Run rosetta check:data tests"
         run: ./bin/rosetta-cli check:data --configuration-file ./rosetta-cli-tests/data/byron_sample.json
       - name: "Tear down environment"

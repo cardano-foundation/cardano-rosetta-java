@@ -1,0 +1,117 @@
+{
+  "test_name": "multiple votes in one tx",
+  "description": "Test case: multiple votes in one tx",
+  "request_body": {
+    "network_identifier": {
+      "blockchain": "cardano",
+      "network": "preprod"
+    },
+    "operations": [
+      {
+        "operation_identifier": {
+          "index": 0
+        },
+        "type": "input",
+        "account": {
+          "address": "addr_test1qz8swh9a7tga0u62lxs6dvnkmpxd0dyeeqx27csh6ywx7qplrv4wtdpvnh6wffzch0uakzhh7uwyvd4asda3zzay0qpqcplwh0"
+        },
+        "amount": {
+          "value": "-10000000",
+          "currency": {
+            "symbol": "ADA",
+            "decimals": 6
+          }
+        },
+        "coin_change": {
+          "coin_identifier": {
+            "identifier": "c0a912e1e2076dde7f4beb39bf74ea484b1ffba29aa44c84a9e5a5ca671e1bfe:0"
+          },
+          "coin_action": "coin_spent"
+        }
+      },
+      {
+        "operation_identifier": {
+          "index": 1
+        },
+        "type": "output",
+        "account": {
+          "address": "addr_test1qz8swh9a7tga0u62lxs6dvnkmpxd0dyeeqx27csh6ywx7qplrv4wtdpvnh6wffzch0uakzhh7uwyvd4asda3zzay0qpqcplwh0"
+        },
+        "amount": {
+          "value": "9829000",
+          "currency": {
+            "symbol": "ADA",
+            "decimals": 6
+          }
+        }
+      },
+      {
+        "operation_identifier": {
+          "index": 2
+        },
+        "type": "poolGovernanceVote",
+        "account": {
+          "address": "6c518b4861bb88b1395ceb116342cecbcfb8736282655f9a61c4c368"
+        },
+        "metadata": {
+          "poolGovernanceVoteParams": {
+            "governance_action_hash": "40111111def456789abcdef0123456789abcdef0123456789abcdef01234567a00",
+            "pool_credential": {
+              "hex_bytes": "60afbe982faaee34b02ad0e75cd50d5d7a734f5daaf7b67bc8c492eb5299af2b",
+              "curve_type": "edwards25519"
+            },
+            "vote": "yes",
+            "vote_rationale": {
+              "data_hash": "c77f8427e2808cbd4c7093aa704fb0fcb48b2ab3bdd84fa7f4dec2eb7de344c9",
+              "url": "ipfs://bafybeig7hluox6xefqdgmwcntvsguxcziw2oeogg2fbvygex2aj6qcfo64"
+            }
+          }
+        }
+      },
+      {
+        "operation_identifier": {
+          "index": 3
+        },
+        "type": "poolGovernanceVote",
+        "account": {
+          "address": "6c518b4861bb88b1395ceb116342cecbcfb8736282655f9a61c4c368"
+        },
+        "metadata": {
+          "poolGovernanceVoteParams": {
+            "governance_action_hash": "409abcdef0123456789abcdef0123456789abcdef0123456789abcdef012345602",
+            "pool_credential": {
+              "hex_bytes": "60afbe982faaee34b02ad0e75cd50d5d7a734f5daaf7b67bc8c492eb5299af2b",
+              "curve_type": "edwards25519"
+            },
+            "vote": "no"
+          }
+        }
+      },
+      {
+        "operation_identifier": {
+          "index": 4
+        },
+        "type": "poolGovernanceVote",
+        "account": {
+          "address": "6c518b4861bb88b1395ceb116342cecbcfb8736282655f9a61c4c368"
+        },
+        "metadata": {
+          "poolGovernanceVoteParams": {
+            "governance_action_hash": "409abcdef0223456789abcdef0123456789abcdef0123456789abcdef012345602",
+            "pool_credential": {
+              "hex_bytes": "60afbe982faaee34b02ad0e75cd50d5d7a734f5daaf7b67bc8c492eb5299af2b",
+              "curve_type": "edwards25519"
+            },
+            "vote": "abstain"
+          }
+        }
+      }
+    ]
+  },
+  "expected_response": {
+    "options": {
+      "transaction_size": 586,
+      "relative_ttl": 1000
+    }
+  }
+}

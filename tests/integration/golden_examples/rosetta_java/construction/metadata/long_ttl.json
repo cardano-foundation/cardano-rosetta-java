@@ -1,0 +1,40 @@
+{
+  "test_name": "metadata_long_ttl",
+  "description": "Metadata test for long_ttl",
+  "request_body": {
+    "network_identifier": {
+      "blockchain": "cardano",
+      "network": "preprod"
+    },
+    "options": {
+      "transaction_size": 300,
+      "relative_ttl": 10000
+    }
+  },
+  "expected_response": {
+    "metadata": {
+      "protocol_parameters": {
+        "coinsPerUtxoSize": "4310",
+        "maxTxSize": 16384,
+        "maxValSize": 5000,
+        "keyDeposit": "2000000",
+        "maxCollateralInputs": 3,
+        "minFeeCoefficient": 44,
+        "minFeeConstant": 155381,
+        "minPoolCost": "170000000",
+        "poolDeposit": "500000000",
+        "protocol": 10
+      },
+      "ttl": 100548202
+    },
+    "suggested_fee": [
+      {
+        "value": "168581",
+        "currency": {
+          "symbol": "ADA",
+          "decimals": 6
+        }
+      }
+    ]
+  }
+}

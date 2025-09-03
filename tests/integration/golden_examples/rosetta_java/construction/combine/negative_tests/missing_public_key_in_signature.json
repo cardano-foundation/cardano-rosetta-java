@@ -1,0 +1,29 @@
+{
+  "test_name": "(-) missing_public_key_in_signature",
+  "description": "Negative test: Signature missing required public_key field",
+  "request_body": {
+    "network_identifier": {
+      "blockchain": "cardano",
+      "network": "preprod"
+    },
+    "unsigned_transaction": "8278f26134303064393031303238313832353832303230613931326531653230373664646537663462656233396266373465613438346231666662613239616134346338346139653561356361363731653162666530303031383138323538333930303866303735636264663264316437663334616639613161366232373664383463643762343939633830636166363231376431316336663030336631623261653562343263396466346534613435386262663964623061663766373163343633366264383337623131306261343738303231613030343963343937303231613030346564316539303331613035666364303366",
+    "signatures": [
+      {
+        "signing_payload": {
+          "account_identifier": {
+            "address": "addr_test1qrtdh7587yz5m2w504sjhqnrfml5fpcuxu24fj8xwvk48artcrahhulmvvsnmwqk2k3nmrz20sw8uj7htlpnlutk0p9sjfnd3n"
+          },
+          "hex_bytes": "3f62c0a8f5f5cc37971de190458d9fa43d2311b0f5d20b86e5d408e0455e54ef",
+          "signature_type": "ed25519"
+        },
+        "signature_type": "ed25519",
+        "hex_bytes": "3a204bbf81e63ed55076a930677130ee19f70fbe59b5b41cfc0cd9bacfa5b113b45578872fc13c9fc01257490d274e9c9a766d6367fd8a92ca33e7d6fc413f36"
+      }
+    ]
+  },
+  "expected_error": {
+    "code": 5000,
+    "message": "An error occurred",
+    "retriable": false
+  }
+}
