@@ -85,6 +85,7 @@ Within root folder of the project there are example `.env` files, which can be c
 | `BLOCK_TRANSACTION_API_TIMEOUT_SECS`          | Timeout for fetching blocks in seconds                                | 5                                      | added in release 1.2.11 |
 | `CONTINUE_PARSING_ON_ERROR`                   | Continue processing failed to parse blocks                            | true                                   | added in release 1.3.0  |
 | `SEARCH_LIMIT`                                | Search limit used in search                                           | 100                                    | added in release 1.3.2  |
+| `PEER_DISCOVERY`                              | Enable peer discovery job for automatic peer refreshing               | false                                  | added in release 1.3.2  |
 
 ## Deprecated Environment Variables (Previous Versions)
 
