@@ -52,13 +52,19 @@ class LedgerSearchServiceImplTest {
     class InputValidationTests {
 
         @Test
-        @DisplayName("Should throw exception when maxBlock is negative")
-        void shouldThrowExceptionWhenMaxBlockIsNegative() {
+        @DisplayName("Should handle negative maxBlock without throwing exception")
+        void shouldHandleNegativeMaxBlockWithoutException() {
             // Given
             Long negativeMaxBlock = -1L;
 
-            // When & Then
-            assertThatThrownBy(() -> ledgerSearchService.searchTransaction(
+            // Mock the repository calls to avoid NullPointerException
+            when(txRepository.searchTxnEntitiesAND(any(), any(), any(), any(), any(), any(), any(), any()))
+                    .thenReturn(Page.empty());
+            when(ledgerBlockService.mapTxnEntitiesToBlockTxList(any(Page.class)))
+                    .thenReturn(Page.empty());
+
+            // When & Then - should not throw exception since validation was removed
+            var result = ledgerSearchService.searchTransaction(
                     Operator.AND,
                     null,  // txHash
                     null,  // address
@@ -70,16 +76,10 @@ class LedgerSearchServiceImplTest {
                     null,  // isSuccess
                     0L,    // offset
                     10L    // limit
-            ))
-            .isInstanceOf(ApiException.class)
-            .satisfies(exception -> {
-                ApiException apiException = (ApiException) exception;
-                assertThat(apiException.getError()).isNotNull();
-                assertThat(apiException.getError().getCode()).isEqualTo(5042);
-                assertThat(apiException.getError().getMessage()).contains("Invalid block");
-                assertThat(apiException.getError().getDetails()).isNotNull();
-                assertThat(apiException.getError().getDetails().getMessage()).contains(String.valueOf(negativeMaxBlock));
-            });
+            );
+
+            // Should successfully return result without throwing exception
+            assertThat(result).isNotNull();
         }
 
         @Test

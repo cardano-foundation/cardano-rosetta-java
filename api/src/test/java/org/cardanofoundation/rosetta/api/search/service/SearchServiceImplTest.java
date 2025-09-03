@@ -766,7 +766,7 @@ class SearchServiceImplTest {
                     .coinIdentifier(coinId)
                     .blockIdentifier(blockId)
                     .maxBlock(200L)
-                    .operator("OR")
+                    .operator(org.openapitools.client.model.Operator.OR)
                     .success(false)
                     .build();
 
@@ -804,7 +804,7 @@ class SearchServiceImplTest {
             // Given
             SearchTransactionsRequest request = SearchTransactionsRequest.builder()
                     .networkIdentifier(networkIdentifier)
-                    .operator("AND")
+                    .operator(org.openapitools.client.model.Operator.AND)
                     .build();
 
             Page<BlockTx> mockBlockTxPage = new PageImpl<>(List.of());
@@ -830,7 +830,7 @@ class SearchServiceImplTest {
             // Given
             SearchTransactionsRequest request = SearchTransactionsRequest.builder()
                     .networkIdentifier(networkIdentifier)
-                    .operator("OR")
+                    .operator(org.openapitools.client.model.Operator.OR)
                     .build();
 
             Page<BlockTx> mockBlockTxPage = new PageImpl<>(List.of());
@@ -877,74 +877,5 @@ class SearchServiceImplTest {
             );
         }
 
-        @Test
-        void shouldThrowException_whenOperatorIsUnknown() {
-            // Given
-            SearchTransactionsRequest request = SearchTransactionsRequest.builder()
-                    .networkIdentifier(networkIdentifier)
-                    .operator("UNKNOWN")
-                    .build();
-
-            // When & Then
-            assertThatThrownBy(() -> searchService.searchTransaction(request, 0L, 10L))
-                    .isInstanceOf(ApiException.class)
-                    .hasMessage("Unknown operator provided")
-                    .extracting("error.details.message")
-                    .isEqualTo("Unknown operator: 'UNKNOWN'. Supported values are: 'AND', 'OR'");
-
-            verifyNoInteractions(ledgerSearchService);
-        }
-
-        @Test
-        void shouldHandleCaseInsensitiveOperator() {
-            // Given
-            SearchTransactionsRequest request = SearchTransactionsRequest.builder()
-                    .networkIdentifier(networkIdentifier)
-                    .operator("and")
-                    .build();
-
-            Page<BlockTx> mockBlockTxPage = new PageImpl<>(List.of());
-
-            when(ledgerSearchService.searchTransaction(
-                    eq(org.cardanofoundation.rosetta.api.search.model.Operator.AND),
-                    any(), any(), any(), any(), any(), any(), any(), any(), anyLong(), anyLong()))
-                    .thenReturn(mockBlockTxPage);
-
-            // When
-            searchService.searchTransaction(request, 0L, 10L);
-
-            // Then
-            verify(ledgerSearchService).searchTransaction(
-                    eq(org.cardanofoundation.rosetta.api.search.model.Operator.AND),
-                    any(), any(), any(), any(), any(), any(), any(), any(),
-                    eq(0L), eq(10L)
-            );
-        }
-
-        @Test
-        void shouldDefaultToAndOperator_whenOperatorIsEmpty() {
-            // Given
-            SearchTransactionsRequest request = SearchTransactionsRequest.builder()
-                    .networkIdentifier(networkIdentifier)
-                    .operator("")
-                    .build();
-
-            Page<BlockTx> mockBlockTxPage = new PageImpl<>(List.of());
-
-            when(ledgerSearchService.searchTransaction(
-                    eq(org.cardanofoundation.rosetta.api.search.model.Operator.AND),
-                    any(), any(), any(), any(), any(), any(), any(), any(), anyLong(), anyLong()))
-                    .thenReturn(mockBlockTxPage);
-
-            // When
-            searchService.searchTransaction(request, 0L, 10L);
-
-            // Then
-            verify(ledgerSearchService).searchTransaction(
-                    eq(org.cardanofoundation.rosetta.api.search.model.Operator.AND),
-                    any(), any(), any(), any(), any(), any(), any(), any(),
-                    eq(0L), eq(10L)
-            );
-        }
     }
 }

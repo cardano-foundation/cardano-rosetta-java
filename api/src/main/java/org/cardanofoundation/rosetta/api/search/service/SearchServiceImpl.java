@@ -66,8 +66,8 @@ public class SearchServiceImpl implements SearchService {
                 .flatMap(extractUTxOFromCoinIdentifier())
                 .orElse(null);
 
-        // Parse and validate operator
-        Operator operator = parseAndValidateOperator(searchTransactionsRequest.getOperator());
+        // Convert OpenAPI Operator to domain Operator
+        Operator operator = convertToDomainOperator(searchTransactionsRequest.getOperator());
 
         BlockIdentifier blockIdentifier = Optional.ofNullable(searchTransactionsRequest.getBlockIdentifier())
                 .orElse(BlockIdentifier.builder().build());
@@ -141,17 +141,17 @@ public class SearchServiceImpl implements SearchService {
                 .orElse(null);
     }
 
-    private Operator parseAndValidateOperator(@Nullable String operatorString) {
-        if (operatorString == null || operatorString.isEmpty()) {
+    private Operator convertToDomainOperator(@Nullable org.openapitools.client.model.Operator apiOperator) {
+        if (apiOperator == null) {
             // Default to AND if not specified
             return Operator.AND;
         }
 
-        try {
-            return Operator.valueOf(operatorString.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            throw ExceptionFactory.unknownOperator(operatorString);
-        }
+        // Convert OpenAPI Operator to domain Operator without throwing exceptions
+        return switch (apiOperator) {
+            case AND -> Operator.AND;
+            case OR -> Operator.OR;
+        };
     }
 
 }

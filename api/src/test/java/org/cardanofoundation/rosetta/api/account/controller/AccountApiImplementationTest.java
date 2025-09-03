@@ -110,7 +110,7 @@ class AccountApiImplementationTest extends BaseSpringMvcSetup {
         .contentType(MediaType.APPLICATION_JSON)
         .content("{}");
     mockMvc.perform(requestBuilder)
-        .andExpect(status().is(500)).andReturn();
+        .andExpect(status().is(400)).andReturn();
   }
 
   @Test
@@ -120,7 +120,7 @@ class AccountApiImplementationTest extends BaseSpringMvcSetup {
         .contentType(MediaType.APPLICATION_JSON)
         .content("{}");
     mockMvc.perform(requestBuilder)
-        .andExpect(status().is(500)).andReturn();
+        .andExpect(status().is(400)).andReturn();
   }
 
   @Test
@@ -132,7 +132,7 @@ class AccountApiImplementationTest extends BaseSpringMvcSetup {
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(request));
     mockMvc.perform(requestBuilder)
-        .andExpect(status().is(HttpStatus.INTERNAL_SERVER_ERROR.value()))
+        .andExpect(status().is(HttpStatus.BAD_REQUEST.value()))
         .andExpect(jsonPath("$.code").value(RosettaErrorType.UNSPECIFIED_ERROR.getCode()))
         .andExpect(jsonPath("$.details.message", containsString("An error occurred for request")))
         .andReturn();
@@ -147,7 +147,7 @@ class AccountApiImplementationTest extends BaseSpringMvcSetup {
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(request));
     mockMvc.perform(requestBuilder)
-        .andExpect(status().is(HttpStatus.INTERNAL_SERVER_ERROR.value()))
+        .andExpect(status().is(HttpStatus.BAD_REQUEST.value()))
         .andExpect(jsonPath("$.code").value(RosettaErrorType.UNSPECIFIED_ERROR.getCode()))
         .andExpect(jsonPath("$.details.message", containsString("An error occurred for request")))
         .andReturn();

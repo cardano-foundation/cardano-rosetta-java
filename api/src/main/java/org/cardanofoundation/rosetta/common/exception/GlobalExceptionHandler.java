@@ -1,18 +1,16 @@
 package org.cardanofoundation.rosetta.common.exception;
 
-import java.util.List;
-import java.util.concurrent.CompletionException;
 import jakarta.servlet.http.HttpServletRequest;
-
 import lombok.extern.slf4j.Slf4j;
-
+import org.cardanofoundation.rosetta.common.util.RosettaConstants.RosettaErrorType;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import org.cardanofoundation.rosetta.common.util.RosettaConstants.RosettaErrorType;
+import java.util.List;
+import java.util.concurrent.CompletionException;
 
 @Slf4j
 @RestControllerAdvice
@@ -55,9 +53,10 @@ public class GlobalExceptionHandler {
         .stream()
         .map(error -> error.getField() + " " + error.getDefaultMessage())
         .toList();
-    Error errorResponse = RosettaErrorType.UNSPECIFIED_ERROR.toRosettaError(true,
+    Error errorResponse = RosettaErrorType.UNSPECIFIED_ERROR.toRosettaError(false,
         new Details("An error occurred for request " + request.getRequestId() + ": "
             + errors));
-    return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+
+    return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
   }
 }

@@ -2,7 +2,6 @@ package org.cardanofoundation.rosetta.api.search.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.cardanofoundation.rosetta.api.account.model.repository.AddressUtxoRepository;
 import org.cardanofoundation.rosetta.api.account.service.AddressHistoryService;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.model.entity.TxnEntity;
@@ -12,7 +11,6 @@ import org.cardanofoundation.rosetta.api.block.model.repository.TxRepository;
 import org.cardanofoundation.rosetta.api.block.service.LedgerBlockService;
 import org.cardanofoundation.rosetta.api.search.model.Currency;
 import org.cardanofoundation.rosetta.api.search.model.Operator;
-import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.spring.OffsetBasedPageRequest;
 import org.cardanofoundation.rosetta.common.spring.SimpleOffsetBasedPageRequest;
 import org.springframework.data.domain.Page;
@@ -52,10 +50,6 @@ public class LedgerSearchServiceImpl implements LedgerSearchService {
                                          @Nullable Boolean isSuccess,
                                          long offset,
                                          long limit) {
-    if (maxBlock != null && maxBlock < 0) {
-      throw ExceptionFactory.invalidBlockIdentifier(maxBlock);
-    }
-
     OffsetBasedPageRequest pageable = new SimpleOffsetBasedPageRequest(offset, (int) limit);
 
     // Separate transaction hashes into plain hashes and address-related hashes

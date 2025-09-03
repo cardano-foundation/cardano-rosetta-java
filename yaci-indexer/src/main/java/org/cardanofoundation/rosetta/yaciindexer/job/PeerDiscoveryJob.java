@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @RequiredArgsConstructor
 // peer discovery disabled by default
-@ConditionalOnProperty(name = "jobs.peer-discovery.enabled", havingValue = "true", matchIfMissing = false)
+@ConditionalOnProperty(name = "jobs.peer-discovery.enabled", havingValue = "true")
 public class PeerDiscoveryJob {
 
     private final PeerDiscoveryManager peerDiscoveryManager;
