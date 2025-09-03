@@ -47,6 +47,7 @@ jobs:
           cd ./tests/integration
           ~/.local/bin/uv run test_construction_api.py \
             -u http://localhost:8082 \
+            --network-id devkit \
             --openapi ../../api/src/main/resources/rosetta-specifications-1.4.15/api.yaml
       - name: "Run rosetta check:data tests"
         run: ./bin/rosetta-cli check:data --configuration-file ./rosetta-cli-tests/data/byron_sample.json

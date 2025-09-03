@@ -47,6 +47,7 @@ That's it! The `uv run` command automatically:
 
 - **Parallel execution**: Run tests in parallel with configurable workers (10x+ speedup)
 - **Snapshot testing**: Detects API response changes against stored expectations
+- **Network flexibility**: Support for different networks via `{{networkId}}` placeholders and `--network-id` parameter
 - **Schema validation**: Validates responses against OpenAPI spec (when using uv environment)
 - **Two modes**: Basic (Python only) or Full (with uv for schema validation)
 - **CLI interface**: Flexible path/pattern matching
@@ -55,6 +56,7 @@ That's it! The `uv run` command automatically:
 - **File output**: Save results to file with `-o` option
 - **Dynamic field handling**: Ignores expected volatile fields (TTL, signatures)
 - **Execution timing**: Total test suite execution time tracking
+- **CI/CD integration**: Proper exit codes for continuous integration pipelines
 
 ## Detailed Usage Examples
 
@@ -73,6 +75,10 @@ uv run test_construction_api.py "*/withdrawals/*.json"
 # Test specific file
 uv run test_construction_api.py parse/native_assets/multiple_assets_different_policies.json
 
+# Use specific network (for CI/CD with different networks)
+uv run test_construction_api.py --network-id devkit
+uv run test_construction_api.py -n preprod
+
 # Run with increased parallelism (20 workers instead of default 10)
 uv run test_construction_api.py -j 20
 
@@ -88,8 +94,8 @@ uv run test_construction_api.py -u http://localhost:8080
 # Verbose output
 uv run test_construction_api.py -v    # verbose prints schema details per test
 
-# Combine options
-uv run test_construction_api.py parse/ -v -u http://localhost:8080 -o results.txt -j 15
+# Combine options for CI/CD environment
+uv run test_construction_api.py --network-id devkit -v -u http://localhost:8080 -o results.txt -j 15
 ```
 
 ### Without uv (Basic Mode)
@@ -97,6 +103,7 @@ uv run test_construction_api.py parse/ -v -u http://localhost:8080 -o results.tx
 # Same commands work with python3 directly (no schema validation)
 python3 test_construction_api.py
 python3 test_construction_api.py parse/ -v
+python3 test_construction_api.py --network-id devkit  # for CI/CD with devkit network
 python3 test_construction_api.py --no-schema  # explicitly skip schema
 python3 test_construction_api.py -j 20  # parallel execution with 20 workers
 ```
@@ -106,6 +113,7 @@ python3 test_construction_api.py -j 20  # parallel execution with 20 workers
 - `[paths/patterns...]` - Test file paths or patterns (positional, optional)
 - `-o <file>` - Output results to file instead of stdout
 - `-u <url>` - Rosetta API URL (default: `http://localhost:8082`)
+- `-n, --network-id <id>` - Network ID to replace {{networkId}} placeholders (e.g., 'devkit', 'preprod', 'mainnet'). Defaults to 'preprod' when placeholders are found.
 - `-v, --verbose` - Show detailed output for each test
 - `-j, --workers <n>` - Number of parallel workers for test execution (default: 10)
 - `--openapi <path>` - OpenAPI spec file (YAML or JSON). Defaults to `api.yaml` next to the script

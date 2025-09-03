@@ -75,6 +75,7 @@ SHOW_SCHEMA_DETAILS = False
 RICH_CONSOLE: Optional["Console"] = None  # type: ignore
 USE_RICH = False
 WORKERS = 10
+NETWORK_ID: Optional[str] = None
 
 # ANSI colors
 RED = "\033[91m"
@@ -285,12 +286,41 @@ class SchemaValidator:
 
 
 # --------------------- HTTP + Diff utils ---------------------
+def replace_network_placeholder(payload: Dict[str, Any]) -> Tuple[Dict[str, Any], bool]:
+    """Replace {{networkId}} placeholders with actual network_id value.
+    Uses 'preprod' as default if no network_id is provided.
+    
+    Returns:
+        Tuple of (modified_payload, has_placeholder)
+    """
+    try:
+        # Convert to JSON string for safe replacement
+        json_str = json.dumps(payload)
+        
+        # Check if placeholder exists
+        has_placeholder = "{{networkId}}" in json_str
+        
+        if has_placeholder:
+            # Use provided network_id or default to 'preprod'
+            network_value = NETWORK_ID if NETWORK_ID is not None else "preprod"
+            json_str = json_str.replace("{{networkId}}", network_value)
+            # Parse back to dict
+            return json.loads(json_str), True
+        
+        return payload, False
+    except Exception:
+        # If anything goes wrong, return original payload
+        return payload, False
+
+
 def call_api(
     endpoint: str, payload: Dict[str, Any]
 ) -> Tuple[Optional[Dict[str, Any]], int, Optional[str], Dict[str, Any]]:
     url = f"{ROSETTA_URL}{endpoint}"
     try:
-        data = json.dumps(payload).encode("utf-8")
+        # Replace network placeholders if needed
+        modified_payload, _ = replace_network_placeholder(payload)
+        data = json.dumps(modified_payload).encode("utf-8")
         req = urllib.request.Request(
             url, data=data, headers={"Content-Type": "application/json"}
         )
@@ -516,6 +546,7 @@ def validate_file(file_path: Path) -> Dict[str, Any]:
                 }
             )
             return res
+
         endpoint = determine_endpoint(file_path)
         actual, http, err, metrics = call_api(endpoint, test["request_body"])
         if err:
@@ -743,6 +774,8 @@ def main() -> None:
             "  python3 test_construction_api.py 'preprocess/**/*.json'\n"
             "  python3 test_construction_api.py --base-dir /path/to/golden_examples/rosetta_java/construction\n"
             "  python3 test_construction_api.py -j 20  # Run with 20 parallel workers\n"
+            "  python3 test_construction_api.py --network-id devkit  # Replace {{networkId}} with 'devkit'\n"
+            "  python3 test_construction_api.py -n preprod -v  # Use preprod network with verbose output\n"
         ),
     )
     parser.add_argument(
@@ -781,6 +814,10 @@ def main() -> None:
         default=10,
         help="Number of parallel workers for test execution (default: 10)",
     )
+    parser.add_argument(
+        "-n", "--network-id",
+        help="Network ID to replace {{networkId}} placeholders in test files (e.g., 'devkit', 'preprod', 'mainnet')",
+    )
     args = parser.parse_args()
 
     global \
@@ -793,7 +830,8 @@ def main() -> None:
         SHOW_SCHEMA_DETAILS, \
         RICH_CONSOLE, \
         USE_RICH, \
-        WORKERS
+        WORKERS, \
+        NETWORK_ID
     ROSETTA_URL = args.url
     VERBOSE = args.verbose
     BASE_PATH = Path(args.base_dir)
@@ -801,6 +839,7 @@ def main() -> None:
     OPENAPI_SPEC_PATH = Path(args.openapi) if args.openapi else None
     SHOW_SCHEMA_DETAILS = bool(args.schema_details or args.verbose)
     WORKERS = args.workers
+    NETWORK_ID = args.network_id
 
     original_stdout = sys.stdout
     if args.output:
@@ -1167,6 +1206,12 @@ def main() -> None:
 
         elapsed = time.time() - start_time
         print_summary(elapsed)
+        
+        # Exit with proper code based on test results
+        failed = stats["files_failed"]
+        errors = stats["files_tested"] - stats["files_passed"] - stats["files_failed"] - stats["files_skipped"]
+        if failed > 0 or errors > 0:
+            sys.exit(1)  # Fail CI when tests fail or have errors
     finally:
         if args.output:
             sys.stdout.close()
