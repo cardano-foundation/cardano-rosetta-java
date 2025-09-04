@@ -29,13 +29,22 @@ The Cardano Rosetta Java implementation supports four different types of DRep de
 
 A DRep vote delegation operation requires a staking credential and the DRep information. The staking key must be registered before delegation.
 
-:::caution Important Notice about CIP-129 Hash Prefix
-[CIP-129](https://cips.cardano.org/cip/CIP-0129) defines a tagged format for hashes where the first byte indicates the credential type (e.g., DRep key hash or script hash). This results in a 29-byte hash.
+:::info CIP-129 Hash Support
+[CIP-129](https://cips.cardano.org/cip/CIP-0129) defines a tagged format for hashes where the first byte indicates the credential type (e.g., DRep key hash or script hash).
 
-However, the **cardano-rosetta-java API expects only the raw 28-byte hash**. When providing a DRep ID for `key_hash` or `script_hash` types, you **must remove the 1-byte prefix**.
+**cardano-rosetta-java now accepts both formats:**
+- **29-byte hash** (with CIP-129 prefix): The prefix will be automatically stripped internally
+- **28-byte hash** (raw, without prefix): Standard format
 
-_Example:_
-If your DRep key hash is `03_74984fae4ca1715fa1f8759f9d871015ac87f449a85dea6cf9956da1` (with prefix `03`), you must use `74984fae4ca1715fa1f8759f9d871015ac87f449a85dea6cf9956da1` in the API request.
+**Important:** The `type` field is always required regardless of hash format.
+
+_Examples:_
+- With prefix: `"id": "0374984fae4ca1715fa1f8759f9d871015ac87f449a85dea6cf9956da1"` (prefix `03` will be stripped)
+- Without prefix: `"id": "74984fae4ca1715fa1f8759f9d871015ac87f449a85dea6cf9956da1"`
+
+Both examples require `"type": "key_hash"` to be specified.
+
+The API automatically detects the format and handles the prefix internally. When returning data, the API maintains the 28-byte format with separate type field for consistency.
 :::
 
 import Tabs from '@theme/Tabs';
@@ -52,7 +61,6 @@ This option explicitly abstains from voting. **No DRep ID is required.**
     "index": 0
   },
   "type": "dRepVoteDelegation",
-  "status": "success",
   "account": {
     "address": "stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5"
   },
@@ -79,7 +87,6 @@ This option expresses no confidence in the current governance system. **No DRep 
     "index": 0
   },
   "type": "dRepVoteDelegation",
-  "status": "success",
   "account": {
     "address": "stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5"
   },
@@ -106,7 +113,6 @@ When delegating to a specific DRep with a key hash, you must provide the **DRep'
     "index": 0
   },
   "type": "dRepVoteDelegation",
-  "status": "success",
   "account": {
     "address": "stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5"
   },
@@ -134,7 +140,6 @@ Similar to key hash delegation, but delegating to a DRep managed by a script. Th
     "index": 0
   },
   "type": "dRepVoteDelegation",
-  "status": "success",
   "account": {
     "address": "stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5"
   },
@@ -163,7 +168,7 @@ Similar to key hash delegation, but delegating to a DRep managed by a script. Th
 ## Data API
 
 :::note
-The Data API support for DRep vote delegation is only available in version 1.3.0 and above (currently a work in progress).
+The Data API support for DRep vote delegation is only available in version 2.X and above (currently a work in progress).
 :::
 
 DRep vote delegation operations are also returned in `/block` and `/block/transaction` endpoints when applicable. Since a DRep delegation is included in the transaction as a certificate, every transaction that contains a DRep delegation certificate will include a corresponding DRep vote delegation operation in the API response.
@@ -185,7 +190,6 @@ DRep vote delegation operations are also returned in `/block` and `/block/transa
         "index": 3
       },
       "type": "dRepVoteDelegation",
-      "status": "success",
       "account": {
         "address": "stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5"
       },
@@ -219,7 +223,6 @@ DRep vote delegation operations are also returned in `/block` and `/block/transa
         "index": 3
       },
       "type": "dRepVoteDelegation",
-      "status": "success",
       "account": {
         "address": "stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5"
       },
@@ -253,7 +256,6 @@ DRep vote delegation operations are also returned in `/block` and `/block/transa
         "index": 3
       },
       "type": "dRepVoteDelegation",
-      "status": "success",
       "account": {
         "address": "stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5"
       },

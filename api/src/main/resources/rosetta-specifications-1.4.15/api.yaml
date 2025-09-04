@@ -1766,7 +1766,7 @@ components:
           description: Pool key as hex bytes.
           type: string
         drep:
-          description: DRep
+          description: DRep parameters for vote delegation operations
           $ref: '#/components/schemas/DRepParams'
         poolGovernanceVoteParams:
           description: PoolGovernanceVoteParams contains parameters related to casting a governance vote by a pool operator.
@@ -1867,7 +1867,7 @@ components:
           items:
             $ref: '#/components/schemas/Amount'
     DRepTypeParams:
-      description: DRepTypeParams
+      description: Type of DRep delegation (key_hash, script_hash, no_confidence, or abstain)
       type: string
       enum:
         - key_hash
@@ -1875,14 +1875,26 @@ components:
         - no_confidence
         - abstain
     DRepParams:
-        description: DRep
+        description: |
+          Delegated Representative (DRep) parameters for vote delegation.
+          Supports CIP-129 format: accepts both 29-byte hashes (with prefix) and 28-byte raw hashes.
+          The type field is required for all formats.
+          See https://cardano-foundation.github.io/cardano-rosetta-java/docs/user-guides/drep-delegation for details.
         type: object
+        required:
+          - type
         properties:
             id:
-              description: DRepId
+              description: |
+                DRep identifier. For key_hash and script_hash types:
+                - Accepts 29-byte hash with CIP-129 prefix (e.g., "03" for key_hash)
+                - Accepts 28-byte raw hash without prefix
+                - The API automatically strips the prefix if present
+                Not required for abstain and no_confidence types.
               type: string
+              example: "74984fae4ca1715fa1f8759f9d871015ac87f449a85dea6cf9956da1"
             type:
-              description: DRepType
+              description: Type of DRep delegation. Required for all operations.
               $ref: '#/components/schemas/DRepTypeParams'
     PoolRegistrationParams:
       description: PoolRegistrationParams
