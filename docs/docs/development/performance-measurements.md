@@ -7,6 +7,8 @@ description: Performance measurement methodologies and results
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
+import MidDockerCompose132 from './test-results/1.3.2/mid_profile/docker-compose.md';
+
 import AdvDockerCompose131_pruned  from './test-results/1.3.1/advanced_profile/docker-compose-pruned.md';
 import MidDockerCompose131 from './test-results/1.3.1/mid_profile/docker-compose.md';
 
@@ -56,6 +58,27 @@ Load tests are conducted using Apache Bench (ab) with a ramp-up strategy, progre
 :::tip
 To better understand the environments in which these results were obtained, please refer to our [hardware profiles documentation](../install-and-deploy/hardware-profiles).
 :::
+
+<details>
+<summary>
+### v1.3.2 (Sep 5, 2025)
+</summary>
+- [Release Notes](https://github.com/cardano-foundation/cardano-rosetta-java/releases/tag/1.3.2)
+
+<details>
+<summary>
+ **Mid-level Hardware Profile** 
+</summary>
+**Machine Specs:** 8 cores, 8 threads, 47GB RAM, 3.9TB NVMe, QEMU Virtual CPU v2.5+
+<details>
+<Tabs>
+  <TabItem value="mid_docker_compose132" label="Docker Compose" default>
+    <MidDockerCompose132 />
+  </TabItem>
+</Tabs>
+</details>
+</details>
+</details>
 
 <details>
 <summary>
