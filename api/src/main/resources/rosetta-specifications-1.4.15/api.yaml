@@ -708,7 +708,8 @@ components:
         metadata:
           $ref: '#/components/schemas/TransactionMetadata'
     Operation:
-      description: Operations contain all balance-changing information within a transaction. They are always one-sided (only affect 1 AccountIdentifier) and can succeed or fail independently from a Transaction. Operations are used both to represent on-chain data (Data API) and to construct new transactions (Construction API), creating a standard interface for reading and writing to blockchains.
+      description: |
+        Operations contain all balance-changing information within a transaction. They are always one-sided (only affect 1 AccountIdentifier) and can succeed or fail independently from a Transaction. Operations are used both to represent on-chain data (Data API) and to construct new transactions (Construction API), creating a standard interface for reading and writing to blockchains.\n        \n        For Cardano: Input operations use negative values for both ADA and native tokens (in tokenBundle metadata). Output operations use positive values. See https://cardano-foundation.github.io/cardano-rosetta-java/docs/user-guides/multi-assets for details.
       type: object
       required:
         - operation_identifier
@@ -748,7 +749,7 @@ components:
         - currency
       properties:
         value:
-          description: Value of the transaction in atomic units represented as an arbitrary-sized signed integer. For example, 1 BTC would be represented by a value of 100000000.
+          description: Value of the transaction in atomic units represented as an arbitrary-sized signed integer. For example, 1 ADA would be represented by a value of 1000000 (since ADA has 6 decimals).
           type: string
           example: '1238089899992'
         currency:
@@ -756,18 +757,20 @@ components:
         metadata:
           type: object
     Currency:
-      description: Currency is composed of a canonical Symbol and Decimals. This Decimals value is used to convert an Amount.Value from atomic units (Satoshis) to standard units (Bitcoins).
+      description: Currency is composed of a canonical Symbol and Decimals. This Decimals value is used to convert an Amount.Value from atomic units (Lovelaces for ADA, or smallest unit for native tokens) to standard units (ADA or token units).
       type: object
       required:
         - symbol
         - decimals
       properties:
         symbol:
-          description: Canonical symbol associated with a currency.
+          description: |
+            Canonical symbol associated with a currency. For Cardano native tokens, this should be the ASCII representation of the token name. 
+            Empty string "" should be used when a token has no name.
           type: string
-          example: BTC
+          example: ADA
         decimals:
-          description: Number of decimal places in the standard unit representation of the amount. For example, BTC has 8 decimals. Note that it is not possible to represent the value of some currency in atomic units that is not base 10.
+          description: Number of decimal places in the standard unit representation of the amount. For example, ADA has 6 decimals. Note that it is not possible to represent the value of some currency in atomic units that is not base 10.
           type: integer
           format: int32
           minimum: 0
@@ -1743,7 +1746,9 @@ components:
         size: 12378
         lockTime: 1582272577
     OperationMetadata:
-      description: OperationMetadata is used to provide any additional data needed for an Operation. It is important to populate this object with any data a consumer will need to fully understand an Operation.
+      description: |
+        OperationMetadata provides additional data needed for an Operation. For Cardano-specific operations, this includes native token bundles, staking credentials, and governance parameters. 
+        See https://cardano-foundation.github.io/cardano-rosetta-java/docs/core-concepts/cardano-addons for Cardano-specific metadata documentation.
       type: object
       properties:
         withdrawalAmount:
@@ -1771,7 +1776,9 @@ components:
           description: Epoch
           type: integer
         tokenBundle:
-          description: TokenBundle
+          description: |
+            Native token bundle associated with the operation. Token values MUST be negative for input operations (spending) and positive for output operations (receiving). 
+            See documentation at https://cardano-foundation.github.io/cardano-rosetta-java/docs/user-guides/multi-assets for details.
           type: array
           items:
             $ref: '#/components/schemas/TokenBundleItem'
@@ -1844,14 +1851,18 @@ components:
           description: votingSignature
           type: string
     TokenBundleItem:
-      description: TokenBundleItem
+      description: |
+        Represents a collection of native tokens under a single policy ID. Used in tokenBundle metadata to track native assets in operations.
+        Note: Minting and burning are not supported through Construction API - only transfers of existing tokens.
       type: object
       properties:
         policyId:
-          description: PolicyId
+          description: The policy ID that controls these native tokens (hex string)
           type: string
         tokens:
-          description: Tokens
+          description: |
+            Array of token amounts under this policy. Values must be negative for inputs (spending) and positive for outputs (receiving).
+            Symbol should be the ASCII representation of the token name.
           type: array
           items:
             $ref: '#/components/schemas/Amount'
@@ -2039,11 +2050,11 @@ components:
           description: 'ChainCode '
           type: string
     CurrencyMetadata:
-      description: ''
+      description: 'Cardano-specific metadata for native tokens'
       type: object
       properties:
         policyId:
-          description: ''
+          description: 'The policy ID that controls this native token (hex string). Required for all non-ADA currencies.'
           type: string
     ConstructionMetadataRequestOption:
       description: ''

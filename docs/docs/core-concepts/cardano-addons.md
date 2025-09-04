@@ -100,8 +100,15 @@ For transaction fields for the `size` and `scriptSize` are added to Transaction 
 
 ### `/block/transactions`
 
-When the block requested contains transactions with multi assets operations, the token bundles associated to each operation will be returned as metadata as follows:
+When the block requested contains transactions with multi assets operations, the token bundles associated to each operation will be returned as metadata. 
 
+:::note
+Token values are negative for input operations (spending) and positive for output operations (receiving).
+
+For comprehensive documentation on native token operations, including sign conventions, minting/burning observations, and construction examples, see the [Native Tokens User Guide](/user-guides/multi-assets).
+:::
+
+**Example for an input operation (spending tokens):**
 ```json
 {
   "metadata": {
@@ -112,7 +119,7 @@ When the block requested contains transactions with multi assets operations, the
           {
             "value": "-5",
             "currency": {
-              "symbol": "6a78546f6b656e31",
+              "symbol": "jxToken1",
               "decimals": 0
             }
           }
@@ -154,7 +161,7 @@ For accounts that have a multi asset balance, these will be returned with the co
     {
       "value": "10",
       "currency": {
-        "symbol": "7376c3a57274",
+        "symbol": "jxToken1",
         "decimals": 0,
         "metadata": {
           "policyId": "fc5a8a0aac159f035a147e5e2e3eb04fa3b5e67257c1b971647a717d"
