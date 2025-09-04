@@ -62,10 +62,10 @@ If you want to use already existing cardano data, you can mount the data volume 
 
 ### 6. Volume with Postgres data
 ````
-docker run --env-file .\docker\.env.dockerfile --env-file ./docker/.env.docker-profile-mid-level -p 8082:8082 -v {custom_folder}:/node/postgres --shm-size=4g -d {image_name}:latest
+docker run --env-file .\docker\.env.dockerfile --env-file ./docker/.env.docker-profile-mid-level -p 8082:8082 -v {custom_folder}:/var/lib/postgresql/data --shm-size=4g -d {image_name}:latest
 ````
 
-You can mount a volume with Postgres node data to ``/node/postgres`` point to use already existed data.  
+You can mount a volume with Postgres node data to ``/var/lib/postgresql/data`` point to use already existed data.  
 If the mounted volume does not contain the database or empty, new database will be created there.
 
 ### 7. Volume with custom network configurations

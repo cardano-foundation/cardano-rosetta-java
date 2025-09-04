@@ -227,12 +227,12 @@ docker restart yaci-indexer
 
 ### Important Container Paths
 
-| Path             | Description                |
-| ---------------- | -------------------------- |
-| `/node/db`       | Cardano Node Data          |
-| `/node/postgres` | PostgreSQL Data            |
-| `/networks`      | Network config location    |
-| `/logs`          | Log files for each service |
+| Path                       | Description                |
+| -------------------------- | -------------------------- |
+| `/node/db`                 | Cardano Node Data          |
+| `/var/lib/postgresql/data` | PostgreSQL Data            |
+| `/networks`                | Network config location    |
+| `/logs`                    | Log files for each service |
 
 ## Running Integration Tests
 
