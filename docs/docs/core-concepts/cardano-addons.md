@@ -27,7 +27,6 @@ Cardano Rosetta supports all operations available within the Cardano blockchain:
 - <a href="/cardano-rosetta-java/api#model/OperationMetadata" target="_blank">`Withdrawal`</a> - Withdraws rewards from a reward account
 - <a href="/cardano-rosetta-java/api#model/PoolRegistrationParams" target="_blank">`Pool_Registration`</a> - Registers a stake pool
 - <a href="/cardano-rosetta-java/api#model/OperationMetadata" target="_blank">`Pool_Retirement`</a> - Retires a stake pool
-- <a href="/cardano-rosetta-java/api#model/VoteRegistrationMetadata" target="_blank">`Vote_Registration`</a> - Registers for voting (Catalyst)
 - <a href="/cardano-rosetta-java/api#model/DRepParams" target="_blank">`dRepVoteDelegation`</a> - Delegates voting power to a Delegated Representative (DRep) for Cardano governance
 
 To support these operations, extra metadata is added to the standard Rosetta operation structure:
@@ -43,7 +42,6 @@ To support these operations, extra metadata is added to the standard Rosetta ope
   "tokenBundle": { "type": "TokenBundleItem" },
   "poolRegistrationCert": { "type": "string" },
   "poolRegistrationParams": { "type": "PoolRegistrationParams" },
-  "voteRegistrationMetadata": { "type": "VoteRegistrationMetadata" },
   "drep": { "type": "DRepObject" }
 }
 ```
@@ -376,7 +374,5 @@ In order to support Byron addresses an extra field called `chain_code` in the `a
 ### Encoded transactions
 
 Both `signed_unsigned` and `unsigned_transaction` don't correspond to a valid Cardano Transaction that can be forwarded to the network as they contain extra data required in the Rosetta workflow. This means that such transactions cannot be decoded nor sent directly to a `cardano-node`.
-
-Transaction's metadata, needed for example for vote registration operations, is also encoded as extra data.
 
 There is no expectation that the transactions which are constructed in Rosetta can be parsed by network-specific tools or broadcast on a non-Rosetta node. All parsing and broadcast of these transactions will occur exclusively over the Rosetta API.
