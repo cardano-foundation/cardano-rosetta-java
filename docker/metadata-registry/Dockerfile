@@ -1,0 +1,38 @@
+FROM ubuntu:24.04 AS builder
+
+ARG TOKEN_REGISTRY_VERSION=v1.2.0
+
+WORKDIR /build
+
+# Install dependencies including JDK, Maven and Git
+RUN apt update && apt install -y \
+    openjdk-21-jdk \
+    maven \
+    git \
+    ca-certificates \
+    && apt clean
+
+# Clone the metadata registry repository with specific version tag
+RUN git clone --branch ${TOKEN_REGISTRY_VERSION} --depth 1 \
+    https://github.com/cardano-foundation/cf-token-metadata-registry.git /build/registry
+
+WORKDIR /build/registry
+
+# Build the project from source
+RUN mvn clean package -DskipTests
+
+# Runtime stage
+FROM openjdk:21-jdk-slim
+
+WORKDIR /app
+
+# Copy the built JAR from builder stage
+COPY --from=builder /build/registry/api/target/*.jar /app/app.jar
+
+# Create a non-root user to run the application
+RUN useradd -m -U -s /bin/bash appuser && chown -R appuser:appuser /app
+USER appuser
+
+EXPOSE 8080
+
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]

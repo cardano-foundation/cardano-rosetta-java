@@ -114,18 +114,38 @@ create_database_and_user() {
         sleep 1
     done
 
+    # Create main rosetta user and database
     if [[ -z $(sudo -u postgres "$PG_BIN/psql" -p "$DB_PORT" -U postgres -Atc "SELECT 1 FROM pg_catalog.pg_user WHERE usename = '$DB_USER'";) ]]; then
-        echo "Creating database..."
+        echo "Creating rosetta user..."
         sudo -u postgres "$PG_BIN/psql" -U postgres -p "$DB_PORT" -c "CREATE ROLE \"$DB_USER\" with LOGIN CREATEDB PASSWORD '$DB_SECRET';" > /dev/null
     fi
 
     if [[ -z $(sudo -u postgres "$PG_BIN/psql" -U postgres -p "$DB_PORT" -Atc "SELECT 1 FROM pg_catalog.pg_database WHERE datname = '$DB_NAME'";) ]]; then
-        echo "Creating user..."
+        echo "Creating rosetta database..."
         sudo -u postgres "$PG_BIN/psql" -U postgres -p "$DB_PORT" -c "CREATE DATABASE \"$DB_NAME\";" >/dev/null
         sudo -u postgres "$PG_BIN/psql" -U postgres -p "$DB_PORT" -c "GRANT ALL PRIVILEGES ON DATABASE \"$DB_NAME\" to \"$DB_USER\";" > /dev/null
     fi
 
-    echo "User configured"
+    # Create metadata registry user if environment variables are set
+    if [ -n "$REGISTRY_DB_USER" ] && [ -n "$REGISTRY_DB_SECRET" ]; then
+        if [[ -z $(sudo -u postgres "$PG_BIN/psql" -p "$DB_PORT" -U postgres -Atc "SELECT 1 FROM pg_catalog.pg_user WHERE usename = '$REGISTRY_DB_USER'";) ]]; then
+            echo "Creating metadata registry user..."
+            sudo -u postgres "$PG_BIN/psql" -U postgres -p "$DB_PORT" -c "CREATE ROLE \"$REGISTRY_DB_USER\" with LOGIN PASSWORD '$REGISTRY_DB_SECRET';" > /dev/null
+        fi
+        
+        # Grant connect and usage on the database to registry user
+        sudo -u postgres "$PG_BIN/psql" -U postgres -p "$DB_PORT" -c "GRANT CONNECT ON DATABASE \"$DB_NAME\" to \"$REGISTRY_DB_USER\";" > /dev/null
+        
+        # Create metadata-registry schema and grant privileges
+        sudo -u postgres "$PG_BIN/psql" -U postgres -p "$DB_PORT" -d "$DB_NAME" -c "CREATE SCHEMA IF NOT EXISTS \"metadata-registry\";" > /dev/null
+        sudo -u postgres "$PG_BIN/psql" -U postgres -p "$DB_PORT" -d "$DB_NAME" -c "GRANT ALL PRIVILEGES ON SCHEMA \"metadata-registry\" to \"$REGISTRY_DB_USER\";" > /dev/null
+        sudo -u postgres "$PG_BIN/psql" -U postgres -p "$DB_PORT" -d "$DB_NAME" -c "ALTER DEFAULT PRIVILEGES IN SCHEMA \"metadata-registry\" GRANT ALL ON TABLES TO \"$REGISTRY_DB_USER\";" > /dev/null
+        sudo -u postgres "$PG_BIN/psql" -U postgres -p "$DB_PORT" -d "$DB_NAME" -c "ALTER DEFAULT PRIVILEGES IN SCHEMA \"metadata-registry\" GRANT ALL ON SEQUENCES TO \"$REGISTRY_DB_USER\";" > /dev/null
+        sudo -u postgres "$PG_BIN/psql" -U postgres -p "$DB_PORT" -d "$DB_NAME" -c "ALTER DEFAULT PRIVILEGES IN SCHEMA \"metadata-registry\" GRANT ALL ON FUNCTIONS TO \"$REGISTRY_DB_USER\";" > /dev/null
+        echo "Metadata registry schema configured"
+    fi
+
+    echo "Users and schemas configured"
 }
 
 chown -R postgres:postgres "$PG_DATA"
