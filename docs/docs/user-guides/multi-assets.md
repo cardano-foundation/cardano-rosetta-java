@@ -19,26 +19,41 @@ More information about Native Tokens can be found in the [Cardano Documentation]
 
 ## Key Concepts
 
-- `symbol` - The Asset Name stored in the Ledger (passed as hex string)
+- `symbol` - The Asset Name stored in the Ledger (passed as ASCII string, changed in [v1.3.2 released on 2025-09-05](https://github.com/cardano-foundation/cardano-rosetta-java/releases/tag/1.3.2))
 - `policyId` - The Policy ID that controls the asset (passed as hex string)
 - Both values are required for token operations
 
 :::note
-Token Name is not required by Cardano protocol rules. Since Rosetta [symbol](https://www.rosetta-api.org/docs/1.4.4/models/Currency.html) is a required field, it will be represented as `\\x` when no name is provided.
+Token Name is not required by Cardano protocol rules. Since Mesh [symbol](https://docs.cdp.coinbase.com/mesh/mesh-api-spec/models/models#currency) is a required field, it should be represented as an empty string `""` when no name is provided.
 :::
 
 ## Operations with Native Tokens
 
 Native tokens can be included in both input and output operations. The token bundles are associated with each operation as metadata.
 
+:::important Sign Convention
+When spending native tokens in **input operations**, the token values in the `tokenBundle` MUST be **negative**. This follows the same convention as ADA amounts in inputs. Output operations use positive values.
+:::
+
+:::info Minting and Burning Observations
+**Rosetta API only supports transferring existing native tokens through the Construction API.** Minting and burning operations cannot be initiated through Rosetta.
+
+However, when querying blockchain data through endpoints like `/block/transactions`, you may observe minting and burning transactions with these patterns:
+- **Minting**: Token appears only in outputs with positive value (no corresponding input)
+- **Burning**: Token appears only in inputs with negative value (no corresponding output)  
+- **Partial burning**: Token in inputs (negative) and outputs (positive remainder). The burned amount is the difference
+- **Transfer**: Token in both inputs (negative) and outputs (positive) with net zero change
+
+The Rosetta representation doesn't explicitly label these as mint/burn operations - this must be inferred from the token flow patterns.
+:::
+
 <Tabs>
   <TabItem value="input" label="Input Operation" default>
 
 ```json
 {
-  "operation_identifier": { "index": 0, "network_index": 0 },
+  "operation_identifier": { "index": 0 },
   "type": "input",
-  "status": "success",
   "account": {
     "address": "addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx"
   },
@@ -58,8 +73,8 @@ Native tokens can be included in both input and output operations. The token bun
         "policyId": "b0d07d45fe9514f80213f4020e5a61241458be626841cde717cb38a7",
         "tokens": [
           {
-            "value": "10000",
-            "currency": { "symbol": "6e7574636f696e", "decimals": 0 }
+            "value": "-10000",
+            "currency": { "symbol": "nutcoin", "decimals": 0 }
           }
         ]
       }
@@ -74,9 +89,7 @@ Native tokens can be included in both input and output operations. The token bun
 ```json
 {
   "operation_identifier": { "index": 1 },
-  "related_operations": [{ "index": 0 }],
   "type": "output",
-  "status": "success",
   "account": {
     "address": "addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx"
   },
@@ -91,7 +104,7 @@ Native tokens can be included in both input and output operations. The token bun
         "tokens": [
           {
             "value": "10000",
-            "currency": { "symbol": "6e7574636f696e", "decimals": 0 }
+            "currency": { "symbol": "nutcoin", "decimals": 0 }
           }
         ]
       }
@@ -124,22 +137,12 @@ This means the API provides a consolidated view of both spendable funds (from pa
       }
     },
     {
-      "value": "9648589196",
+      "value": "10000",
       "currency": {
-        "symbol": "4141504c",
+        "symbol": "nutcoin",
         "decimals": 0,
         "metadata": {
-          "policyId": "12e65fa3585d80cba39dcf4f59363bb68b77f9d3c0784734427b1517"
-        }
-      }
-    },
-    {
-      "value": "9648589196",
-      "currency": {
-        "symbol": "4150504c45",
-        "decimals": 0,
-        "metadata": {
-          "policyId": "12e65fa3585d80cba39dcf4f59363bb68b77f9d3c0784734427b1517"
+          "policyId": "b0d07d45fe9514f80213f4020e5a61241458be626841cde717cb38a7"
         }
       }
     }
@@ -159,26 +162,13 @@ This means the API provides a consolidated view of both spendable funds (from pa
       "metadata": {
         "414afe46bc6b7e52739dd5dd76eef30812168912a34bb31676b9872881aeacd2:0": [
           {
-            "policyId": "12e65fa3585d80cba39dcf4f59363bb68b77f9d3c0784734427b1517",
+            "policyId": "b0d07d45fe9514f80213f4020e5a61241458be626841cde717cb38a7",
             "tokens": [
               {
-                "value": "9648589196",
+                "value": "10000",
                 "currency": {
-                  "symbol": "4141504c",
-                  "decimals": 0,
-                  "metadata": {
-                    "policyId": "12e65fa3585d80cba39dcf4f59363bb68b77f9d3c0784734427b1517"
-                  }
-                }
-              },
-              {
-                "value": "9648589196",
-                "currency": {
-                  "symbol": "4150504c45",
-                  "decimals": 0,
-                  "metadata": {
-                    "policyId": "12e65fa3585d80cba39dcf4f59363bb68b77f9d3c0784734427b1517"
-                  }
+                  "symbol": "nutcoin",
+                  "decimals": 0
                 }
               }
             ]
