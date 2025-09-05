@@ -1,0 +1,33 @@
+{
+  "test_name": "(-) wrong_signature_type",
+  "description": "Negative test: Signature with ecdsa type instead of ed25519",
+  "request_body": {
+    "network_identifier": {
+      "blockchain": "cardano",
+      "network": "{{networkId}}"
+    },
+    "unsigned_transaction": "8278f26134303064393031303238313832353832303230613931326531653230373664646537663462656233396266373465613438346231666662613239616134346338346139653561356361363731653162666530303031383138323538333930303866303735636264663264316437663334616639613161366232373664383463643762343939633830636166363231376431316336663030336631623261653562343263396466346534613435386262663964623061663766373163343633366264383337623131306261343738303231613030343963343937303231613030346564316539303331613035666364303366",
+    "signatures": [
+      {
+        "signing_payload": {
+          "account_identifier": {
+            "address": "addr_test1qrtdh7587yz5m2w504sjhqnrfml5fpcuxu24fj8xwvk48artcrahhulmvvsnmwqk2k3nmrz20sw8uj7htlpnlutk0p9sjfnd3n"
+          },
+          "hex_bytes": "3f62c0a8f5f5cc37971de190458d9fa43d2311b0f5d20b86e5d408e0455e54ef",
+          "signature_type": "ed25519"
+        },
+        "public_key": {
+          "hex_bytes": "86a0158f258c5376ff7d9faeafa0ab01ef0e961846b504a9b73ec9e255b4b80c",
+          "curve_type": "edwards25519"
+        },
+        "signature_type": "ecdsa",
+        "hex_bytes": "301741ae61d0a56589865d4862756a5d4ebfabe945038f8e5584284462bac01cc5570b3176e608a56c13a95f414d1edb6ac7f590539872d85de5c5846e37939e"
+      }
+    ]
+  },
+  "expected_error": {
+    "code": 5019,
+    "message": "Can't decode Transaction",
+    "retriable": false
+  }
+}

@@ -1,0 +1,92 @@
+{
+  "test_name": "multiple stake key registrations",
+  "description": "Test case: multiple stake key registrations",
+  "request_body": {
+    "network_identifier": {
+      "blockchain": "cardano",
+      "network": "{{networkId}}"
+    },
+    "operations": [
+      {
+        "operation_identifier": {
+          "index": 0
+        },
+        "type": "input",
+        "account": {
+          "address": "addr_test1qz8swh9a7tga0u62lxs6dvnkmpxd0dyeeqx27csh6ywx7qplrv4wtdpvnh6wffzch0uakzhh7uwyvd4asda3zzay0qpqcplwh0"
+        },
+        "amount": {
+          "value": "-20000000",
+          "currency": {
+            "symbol": "ADA",
+            "decimals": 6
+          }
+        },
+        "coin_change": {
+          "coin_identifier": {
+            "identifier": "d54c597fbe4bd6725bba7cfac512b10b8732ed6b617c5d2b8315e61405ba7058:1"
+          },
+          "coin_action": "coin_spent"
+        }
+      },
+      {
+        "operation_identifier": {
+          "index": 1
+        },
+        "type": "output",
+        "account": {
+          "address": "addr_test1qz8swh9a7tga0u62lxs6dvnkmpxd0dyeeqx27csh6ywx7qplrv4wtdpvnh6wffzch0uakzhh7uwyvd4asda3zzay0qpqcplwh0"
+        },
+        "amount": {
+          "value": "15829000",
+          "currency": {
+            "symbol": "ADA",
+            "decimals": 6
+          }
+        }
+      },
+      {
+        "operation_identifier": {
+          "index": 2
+        },
+        "type": "stakeKeyRegistration",
+        "metadata": {
+          "staking_credential": {
+            "hex_bytes": "fdbee86a702c49d23f45ab80e697b93ec48b744d5f413ef59c338c3f7b2d2de8",
+            "curve_type": "edwards25519"
+          }
+        }
+      },
+      {
+        "operation_identifier": {
+          "index": 3
+        },
+        "type": "stakeKeyRegistration",
+        "metadata": {
+          "staking_credential": {
+            "hex_bytes": "337b62cfff6403a06a3acbc34f8c46003c69fe79a3628cefa9c4725100000000",
+            "curve_type": "edwards25519"
+          }
+        }
+      },
+      {
+        "operation_identifier": {
+          "index": 4
+        },
+        "type": "stakeKeyRegistration",
+        "metadata": {
+          "staking_credential": {
+            "hex_bytes": "4E733F82DD866FCF9FEDCD1EEC78223D56810CC9FA44399AB179C66A63F8DA6A",
+            "curve_type": "edwards25519"
+          }
+        }
+      }
+    ]
+  },
+  "expected_response": {
+    "options": {
+      "transaction_size": 338,
+      "relative_ttl": 1000
+    }
+  }
+}

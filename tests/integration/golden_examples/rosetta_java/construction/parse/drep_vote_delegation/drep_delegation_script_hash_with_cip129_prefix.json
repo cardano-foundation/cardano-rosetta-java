@@ -1,0 +1,18 @@
+{
+  "test_name": "drep delegation script hash with cip129 prefix",
+  "description": "Parse test: Test: Test case: drep delegation script hash with cip129 prefix",
+  "request_body": {
+    "network_identifier": {
+      "blockchain": "cardano",
+      "network": "{{networkId}}"
+    },
+    "signed": false,
+    "transaction": "malformed_cbor_hex"
+  },
+  "expected_error": {
+    "code": 5019,
+    "message": "Can't decode Transaction",
+    "description": "This should fail due to invalid transaction format",
+    "retriable": false
+  }
+}

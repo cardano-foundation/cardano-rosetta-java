@@ -1,0 +1,33 @@
+{
+  "test_name": "(-) invalid_hex_in_signature",
+  "description": "Negative test: Signature contains invalid hex characters",
+  "request_body": {
+    "network_identifier": {
+      "blockchain": "cardano",
+      "network": "{{networkId}}"
+    },
+    "unsigned_transaction": "8278f26134303064393031303238313832353832303230613931326531653230373664646537663462656233396266373465613438346231666662613239616134346338346139653561356361363731653162666530303031383138323538333930303866303735636264663264316437663334616639613161366232373664383463643762343939633830636166363231376431316336663030336631623261653562343263396466346534613435386262663964623061663766373163343633366264383337623131306261343738303231613030343963343937303231613030346564316539303331613035666364303366",
+    "signatures": [
+      {
+        "signing_payload": {
+          "account_identifier": {
+            "address": "addr_test1qrtdh7587yz5m2w504sjhqnrfml5fpcuxu24fj8xwvk48artcrahhulmvvsnmwqk2k3nmrz20sw8uj7htlpnlutk0p9sjfnd3n"
+          },
+          "hex_bytes": "3f62c0a8f5f5cc37971de190458d9fa43d2311b0f5d20b86e5d408e0455e54ef",
+          "signature_type": "ed25519"
+        },
+        "public_key": {
+          "hex_bytes": "c6ce2e6cb6cfc55bd1d1ad63040df907f02e3e3b9b66c2a85590f631382a16ef",
+          "curve_type": "edwards25519"
+        },
+        "signature_type": "ed25519",
+        "hex_bytes": "gg1143ad075204222de8f063028bd182006bd977d3b6f6aa3d5c733782ae6cd83e30da8046ce59e4e44483dfe5010f940174f8669bafdcdda7d47eef3a364b5c"
+      }
+    ]
+  },
+  "expected_error": {
+    "code": 5019,
+    "message": "Can't decode Transaction",
+    "retriable": false
+  }
+}

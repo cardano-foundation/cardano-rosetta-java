@@ -1,0 +1,74 @@
+{
+  "test_name": "(-) positive amount in input",
+  "description": "Test case: (-) positive amount in input",
+  "request_body": {
+    "network_identifier": {
+      "blockchain": "cardano",
+      "network": "{{networkId}}"
+    },
+    "operations": [
+      {
+        "operation_identifier": {
+          "index": 0
+        },
+        "type": "input",
+        "account": {
+          "address": "addr_test1qz8swh9a7tga0u62lxs6dvnkmpxd0dyeeqx27csh6ywx7qplrv4wtdpvnh6wffzch0uakzhh7uwyvd4asda3zzay0qpqcplwh0"
+        },
+        "amount": {
+          "value": "10000000",
+          "currency": {
+            "symbol": "ADA",
+            "decimals": 6
+          }
+        },
+        "coin_change": {
+          "coin_identifier": {
+            "identifier": "20a912e1e2076dde7f4beb39bf74ea484b1ffba29aa44c84a9e5a5ca671e1bfe:0"
+          },
+          "coin_action": "coin_spent"
+        }
+      },
+      {
+        "operation_identifier": {
+          "index": 1
+        },
+        "type": "output",
+        "account": {
+          "address": "addr_test1wqlcn3pks3xdptxjw9pqrqtcx6ev694sstsruw3phd57ttg0lh0zq"
+        },
+        "amount": {
+          "value": "5000000",
+          "currency": {
+            "symbol": "ADA",
+            "decimals": 6
+          }
+        }
+      },
+      {
+        "operation_identifier": {
+          "index": 2
+        },
+        "type": "output",
+        "account": {
+          "address": "addr_test1qz8swh9a7tga0u62lxs6dvnkmpxd0dyeeqx27csh6ywx7qplrv4wtdpvnh6wffzch0uakzhh7uwyvd4asda3zzay0qpqcplwh0"
+        },
+        "amount": {
+          "value": "4829000",
+          "currency": {
+            "symbol": "ADA",
+            "decimals": 6
+          }
+        }
+      }
+    ]
+  },
+  "expected_error": {
+    "code": 5048,
+    "message": "Transaction inputs parameters errors in operations array",
+    "retriable": false,
+    "details": {
+      "message": "Input has positive amount value"
+    }
+  }
+}

@@ -1,0 +1,86 @@
+{
+  "test_name": "(-) invalid address as output",
+  "description": "Negative test: Test case: (-) invalid address as output",
+  "request_body": {
+    "network_identifier": {
+      "blockchain": "cardano",
+      "network": "{{networkId}}"
+    },
+    "operations": [
+      {
+        "operation_identifier": {
+          "index": 0
+        },
+        "type": "input",
+        "account": {
+          "address": "addr_test1wqlcn3pks3xdptxjw9pqrqtcx6ev694sstsruw3phd57ttg0lh0zq"
+        },
+        "amount": {
+          "value": "-10000000",
+          "currency": {
+            "symbol": "ADA",
+            "decimals": 6
+          }
+        },
+        "coin_change": {
+          "coin_identifier": {
+            "identifier": "20a912e1e2076dde7f4beb39bf74ea484b1ffba29aa44c84a9e5a5ca671e1bfe:0"
+          },
+          "coin_action": "coin_spent"
+        }
+      },
+      {
+        "operation_identifier": {
+          "index": 1
+        },
+        "type": "output",
+        "account": {
+          "address": "addr_test1qpdl89ukah0z0s2rzs6sk3h8jeh4qe96ujf9pfukqhwkn0gv3kf2xpxe7xkyxgjvvw0txwruzxhq6q5vgau8a8lqax7qyxstez"
+        },
+        "amount": {
+          "value": "5000000",
+          "currency": {
+            "symbol": "ADA",
+            "decimals": 6
+          }
+        }
+      },
+      {
+        "operation_identifier": {
+          "index": 2
+        },
+        "type": "output",
+        "account": {
+          "address": "addr_test1qz8swh9a7tga0u62lxs6dvnkmpxd0dyeeqx27csh6ywx7qplrv4wtdpvnh6wffzch0uakzhh7uwyvd4asda3zzay0qpqcplwh0"
+        },
+        "amount": {
+          "value": "4829000",
+          "currency": {
+            "symbol": "ADA",
+            "decimals": 6
+          }
+        }
+      }
+    ],
+    "metadata": {
+      "ttl": 100452981,
+      "protocol_parameters": {
+        "coinsPerUtxoSize": "4310",
+        "maxTxSize": 16384,
+        "maxValSize": 5000,
+        "keyDeposit": "2000000",
+        "maxCollateralInputs": 3,
+        "minFeeCoefficient": 44,
+        "minFeeConstant": 155381,
+        "minPoolCost": "170000000",
+        "poolDeposit": "500000000",
+        "protocol": 10
+      }
+    }
+  },
+  "expected_error": {
+    "code": 4014,
+    "message": "Cant deserialize transaction output from transaction body",
+    "description": "This should fail due to invalid operations"
+  }
+}

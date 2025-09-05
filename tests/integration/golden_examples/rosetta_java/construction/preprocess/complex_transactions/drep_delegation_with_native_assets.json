@@ -1,0 +1,139 @@
+{
+  "test_name": "drep delegation with native assets",
+  "description": "Test case: drep delegation with native assets",
+  "request_body": {
+    "network_identifier": {
+      "blockchain": "cardano",
+      "network": "{{networkId}}"
+    },
+    "operations": [
+      {
+        "operation_identifier": {
+          "index": 0
+        },
+        "type": "input",
+        "account": {
+          "address": "addr_test1qz8swh9a7tga0u62lxs6dvnkmpxd0dyeeqx27csh6ywx7qplrv4wtdpvnh6wffzch0uakzhh7uwyvd4asda3zzay0qpqcplwh0"
+        },
+        "amount": {
+          "value": "-3000000",
+          "currency": {
+            "symbol": "ADA",
+            "decimals": 6
+          }
+        },
+        "coin_change": {
+          "coin_identifier": {
+            "identifier": "cf33fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f:0"
+          },
+          "coin_action": "coin_spent"
+        },
+        "metadata": {
+          "tokenBundle": [
+            {
+              "policyId": "849e6eb84653626eb800bb2fcfe95c4d5ba9f8f3061d9973614be234",
+              "tokens": [
+                {
+                  "value": "1000",
+                  "currency": {
+                    "symbol": "457175696e65486f727365303034303130",
+                    "decimals": 0
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "operation_identifier": {
+          "index": 1
+        },
+        "type": "output",
+        "account": {
+          "address": "addr_test1qra2njhhucffhtfwq3zyvz3h9huqd87d83zay44h2a6nj0lt8erv04n4weca43v4jhdrpqsc5f5mh2zx0pa4k04v34eq32w05z"
+        },
+        "amount": {
+          "value": "1500000",
+          "currency": {
+            "symbol": "ADA",
+            "decimals": 6
+          }
+        },
+        "metadata": {
+          "tokenBundle": [
+            {
+              "policyId": "849e6eb84653626eb800bb2fcfe95c4d5ba9f8f3061d9973614be234",
+              "tokens": [
+                {
+                  "value": "500",
+                  "currency": {
+                    "symbol": "457175696e65486f727365303034303130",
+                    "decimals": 0
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "operation_identifier": {
+          "index": 2
+        },
+        "type": "output",
+        "account": {
+          "address": "addr_test1qz8swh9a7tga0u62lxs6dvnkmpxd0dyeeqx27csh6ywx7qplrv4wtdpvnh6wffzch0uakzhh7uwyvd4asda3zzay0qpqcplwh0"
+        },
+        "amount": {
+          "value": "1300000",
+          "currency": {
+            "symbol": "ADA",
+            "decimals": 6
+          }
+        },
+        "metadata": {
+          "tokenBundle": [
+            {
+              "policyId": "849e6eb84653626eb800bb2fcfe95c4d5ba9f8f3061d9973614be234",
+              "tokens": [
+                {
+                  "value": "500",
+                  "currency": {
+                    "symbol": "457175696e65486f727365303034303130",
+                    "decimals": 0
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "operation_identifier": {
+          "index": 3
+        },
+        "type": "dRepVoteDelegation",
+        "account": {
+          "address": "stake_test1uql3k2h9kskfma8y53vth7wmptmlw8zxx67cx7c3pwj8sqs6zl0wr"
+        },
+        "metadata": {
+          "staking_credential": {
+            "hex_bytes": "fdbee86a702c49d23f45ab80e697b93ec48b744d5f413ef59c338c3f7b2d2de8",
+            "curve_type": "edwards25519"
+          },
+          "drep": {
+            "id": "2d4cb680b5f400d3521d272b4295d61150e0eff3950ef4285406a953",
+            "type": "script_hash"
+          }
+        }
+      }
+    ]
+  },
+  "expected_response": {
+    "options": {
+      "transaction_size": 576,
+      "relative_ttl": 1000
+    }
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "test_name": "(-) invalid hex",
+  "description": "Negative test: submit transaction with invalid hex characters",
+  "request_body": {
+    "network_identifier": {
+      "blockchain": "cardano",
+      "network": "{{networkId}}"
+    },
+    "signed_transaction": "INVALID_CBOR_NOT_HEX"
+  },
+  "expected_error": {
+    "code": 5000,
+    "message": "An error occurred",
+    "retriable": true,
+    "details": {
+      "message": "An error occurred for request 31791: Invalid Hexadecimal Character: I"
+    }
+  }
+}

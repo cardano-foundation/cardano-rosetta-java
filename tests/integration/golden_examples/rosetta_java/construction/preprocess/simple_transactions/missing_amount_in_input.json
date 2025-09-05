@@ -1,0 +1,51 @@
+{
+  "test_name": "(-) missing amount in input",
+  "description": "Test case: (-) missing amount in input",
+  "request_body": {
+    "network_identifier": {
+      "blockchain": "cardano",
+      "network": "{{networkId}}"
+    },
+    "operations": [
+      {
+        "operation_identifier": {
+          "index": 0
+        },
+        "type": "input",
+        "account": {
+          "address": "addr_test1qz8swh9a7tga0u62lxs6dvnkmpxd0dyeeqx27csh6ywx7qplrv4wtdpvnh6wffzch0uakzhh7uwyvd4asda3zzay0qpqcplwh0"
+        },
+        "coin_change": {
+          "coin_identifier": {
+            "identifier": "20a912e1e2076dde7f4beb39bf74ea484b1ffba29aa44c84a9e5a5ca671e1bfe:0"
+          },
+          "coin_action": "coin_spent"
+        }
+      },
+      {
+        "operation_identifier": {
+          "index": 1
+        },
+        "type": "output",
+        "account": {
+          "address": "addr_test1qpdl89ukah0z0s2rzs6sk3h8jeh4qe96ujf9pfukqhwkn0gv3kf2xpxe7xkyxgjvvw0txwruzxhq6q5vgau8a8lqax7qyxstez"
+        },
+        "amount": {
+          "value": "5000000",
+          "currency": {
+            "symbol": "ADA",
+            "decimals": 6
+          }
+        }
+      }
+    ]
+  },
+  "expected_error": {
+    "code": 5048,
+    "message": "Transaction inputs parameters errors in operations array",
+    "retriable": false,
+    "details": {
+      "message": "Input has missing amount value field"
+    }
+  }
+}

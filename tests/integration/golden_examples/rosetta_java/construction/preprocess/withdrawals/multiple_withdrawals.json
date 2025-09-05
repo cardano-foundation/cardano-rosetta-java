@@ -1,0 +1,100 @@
+{
+  "test_name": "multiple withdrawals",
+  "description": "Test case: multiple withdrawals",
+  "request_body": {
+    "network_identifier": {
+      "blockchain": "cardano",
+      "network": "{{networkId}}"
+    },
+    "operations": [
+      {
+        "operation_identifier": {
+          "index": 0
+        },
+        "type": "input",
+        "account": {
+          "address": "addr_test1qz8swh9a7tga0u62lxs6dvnkmpxd0dyeeqx27csh6ywx7qplrv4wtdpvnh6wffzch0uakzhh7uwyvd4asda3zzay0qpqcplwh0"
+        },
+        "amount": {
+          "value": "-10000000",
+          "currency": {
+            "symbol": "ADA",
+            "decimals": 6
+          }
+        },
+        "coin_change": {
+          "coin_identifier": {
+            "identifier": "20a912e1e2076dde7f4beb39bf74ea484b1ffba29aa44c84a9e5a5ca671e1bfe:1"
+          },
+          "coin_action": "coin_spent"
+        }
+      },
+      {
+        "operation_identifier": {
+          "index": 1
+        },
+        "type": "output",
+        "account": {
+          "address": "addr_test1qz8swh9a7tga0u62lxs6dvnkmpxd0dyeeqx27csh6ywx7qplrv4wtdpvnh6wffzch0uakzhh7uwyvd4asda3zzay0qpqcplwh0"
+        },
+        "amount": {
+          "value": "24829000",
+          "currency": {
+            "symbol": "ADA",
+            "decimals": 6
+          }
+        }
+      },
+      {
+        "operation_identifier": {
+          "index": 2
+        },
+        "type": "withdrawal",
+        "account": {
+          "address": "stake_test1uql3k2h9kskfma8y53vth7wmptmlw8zxx67cx7c3pwj8sqs6zl0wr"
+        },
+        "amount": {
+          "value": "5000000",
+          "currency": {
+            "symbol": "ADA",
+            "decimals": 6
+          }
+        },
+        "metadata": {
+          "staking_credential": {
+            "hex_bytes": "fdbee86a702c49d23f45ab80e697b93ec48b744d5f413ef59c338c3f7b2d2de8",
+            "curve_type": "edwards25519"
+          }
+        }
+      },
+      {
+        "operation_identifier": {
+          "index": 3
+        },
+        "type": "withdrawal",
+        "account": {
+          "address": "stake_test1upexk3nxl3vy0s2x8jlgwnyx3cqns8h8juk59jh6njx2tgrxwhdt"
+        },
+        "amount": {
+          "value": "10000000",
+          "currency": {
+            "symbol": "ADA",
+            "decimals": 6
+          }
+        },
+        "metadata": {
+          "staking_credential": {
+            "hex_bytes": "337b62cfff6403a06a3acbc34f8c46003c69fe79a3628cefa9c4725100000000",
+            "curve_type": "edwards25519"
+          }
+        }
+      }
+    ]
+  },
+  "expected_response": {
+    "options": {
+      "transaction_size": 507,
+      "relative_ttl": 1000
+    }
+  }
+}

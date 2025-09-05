@@ -1,0 +1,79 @@
+{
+  "test_name": "vote yes with rationale",
+  "description": "Test case: vote yes with rationale",
+  "request_body": {
+    "network_identifier": {
+      "blockchain": "cardano",
+      "network": "{{networkId}}"
+    },
+    "operations": [
+      {
+        "operation_identifier": {
+          "index": 0
+        },
+        "type": "input",
+        "account": {
+          "address": "addr_test1qz8swh9a7tga0u62lxs6dvnkmpxd0dyeeqx27csh6ywx7qplrv4wtdpvnh6wffzch0uakzhh7uwyvd4asda3zzay0qpqcplwh0"
+        },
+        "amount": {
+          "value": "-10000000",
+          "currency": {
+            "symbol": "ADA",
+            "decimals": 6
+          }
+        },
+        "coin_change": {
+          "coin_identifier": {
+            "identifier": "80a912e1e2076dde7f4beb39bf74ea484b1ffba29aa44c84a9e5a5ca671e1bfe:0"
+          },
+          "coin_action": "coin_spent"
+        }
+      },
+      {
+        "operation_identifier": {
+          "index": 1
+        },
+        "type": "output",
+        "account": {
+          "address": "addr_test1qz8swh9a7tga0u62lxs6dvnkmpxd0dyeeqx27csh6ywx7qplrv4wtdpvnh6wffzch0uakzhh7uwyvd4asda3zzay0qpqcplwh0"
+        },
+        "amount": {
+          "value": "9829000",
+          "currency": {
+            "symbol": "ADA",
+            "decimals": 6
+          }
+        }
+      },
+      {
+        "operation_identifier": {
+          "index": 2
+        },
+        "type": "poolGovernanceVote",
+        "account": {
+          "address": "6c518b4861bb88b1395ceb116342cecbcfb8736282655f9a61c4c368"
+        },
+        "metadata": {
+          "poolGovernanceVoteParams": {
+            "governance_action_hash": "40c2a42fe324759a640dcfddbc69ef2e3b7fe5a998af8d6660359772bf44c9dc00",
+            "pool_credential": {
+              "hex_bytes": "60afbe982faaee34b02ad0e75cd50d5d7a734f5daaf7b67bc8c492eb5299af2b",
+              "curve_type": "edwards25519"
+            },
+            "vote": "yes",
+            "vote_rationale": {
+              "data_hash": "c77f8427e2808cbd4c7093aa704fb0fcb48b2ab3bdd84fa7f4dec2eb7de344c9",
+              "url": "ipfs://bafybeig7hluox6xefqdgmwcntvsguxcziw2oeogg2fbvygex2aj6qcfo64"
+            }
+          }
+        }
+      }
+    ]
+  },
+  "expected_response": {
+    "options": {
+      "transaction_size": 508,
+      "relative_ttl": 1000
+    }
+  }
+}
