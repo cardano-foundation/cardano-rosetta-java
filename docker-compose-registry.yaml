@@ -1,0 +1,70 @@
+version: '3.8'
+services:
+  metadata-registry:
+    image: cardanofoundation/cardano-rosetta-java-token-metadata-registry-api:${REGISTRY_DOCKER_IMAGE_TAG}
+    build:
+      context: ./docker/metadata-registry
+      dockerfile: ./Dockerfile
+      args:
+        TOKEN_REGISTRY_VERSION: ${TOKEN_REGISTRY_VERSION}
+    ports:
+      - ${REGISTRY_PORT}:${REGISTRY_PORT}
+    environment:
+      NETWORK: ${NETWORK}
+      DB_URL: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}
+      DB_USERNAME: ${REGISTRY_DB_USER}
+      DB_PASSWORD: ${REGISTRY_DB_SECRET}
+      DB_SCHEMA: ${NETWORK}
+      SERVER_PORT: ${REGISTRY_PORT}
+      TOKEN_METADATA_SYNC_JOB: false
+      SPRING_PROFILES_ACTIVE: ${REGISTRY_SPRING_PROFILES}
+      LOG_LEVEL: ${LOG}
+      STORE_CARDANO_HOST: ${CARDANO_NODE_HOST}
+      STORE_CARDANO_PORT: ${CARDANO_NODE_PORT}
+      STORE_CARDANO_PROTOCOL_MAGIC: ${PROTOCOL_MAGIC}
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail http://localhost:${REGISTRY_PORT}/actuator/health || exit 1"]
+      interval: 30s
+      retries: 20
+      start_period: 40s
+      timeout: 10s
+
+  metadata-registry-sync:
+    image: cardanofoundation/cardano-rosetta-java-token-metadata-registry-sync:${REGISTRY_DOCKER_IMAGE_TAG}
+    build:
+      context: ./docker/metadata-registry
+      dockerfile: ./Dockerfile.sync-job
+      args:
+        TOKEN_REGISTRY_VERSION: ${TOKEN_REGISTRY_VERSION}
+    ports:
+      - ${REGISTRY_SYNC_PORT}:${REGISTRY_SYNC_PORT}
+    environment:
+      SERVER_PORT: ${REGISTRY_SYNC_PORT}
+      NETWORK: ${NETWORK}
+      DB_URL: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}
+      DB_USERNAME: ${REGISTRY_DB_USER}
+      DB_PASSWORD: ${REGISTRY_DB_SECRET}
+      DB_SCHEMA: ${NETWORK}
+      SPRING_PROFILES_ACTIVE: ${REGISTRY_SPRING_PROFILES}
+      LOG_LEVEL: ${LOG}
+      TOKEN_METADATA_SYNC_JOB: true
+      STORE_CARDANO_HOST: ${CARDANO_NODE_HOST}
+      STORE_CARDANO_PORT: ${CARDANO_NODE_PORT}
+      STORE_CARDANO_PROTOCOL_MAGIC: ${PROTOCOL_MAGIC}
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+      metadata-registry:
+        condition: service_healthy
+
+volumes:
+  data:
+
+networks:
+  default:
+    name: cardano-rosetta-java-${NETWORK}

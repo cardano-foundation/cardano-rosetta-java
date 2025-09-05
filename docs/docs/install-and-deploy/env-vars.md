@@ -86,6 +86,11 @@ Within root folder of the project there are example `.env` files, which can be c
 | `CONTINUE_PARSING_ON_ERROR`                   | Continue processing failed to parse blocks                            | true                                   | added in release 1.3.0  |
 | `SEARCH_LIMIT`                                | Search limit used in search                                           | 100                                    | added in release 1.3.2  |
 | `PEER_DISCOVERY`                              | Enable peer discovery job for automatic peer refreshing               | false                                  | added in release 1.3.2  |
+| `REGISTRY_DB_USER`                            | Metadata registry database user                                       | registry_user                          | added in release 1.4.0  |
+| `REGISTRY_DB_SECRET`                          | Metadata registry database password                                   | registry_pwd_123                       | added in release 1.4.0  |
+| `REGISTRY_PORT`                               | Metadata registry API port                                            | 8085                                   | added in release 1.4.0  |
+| `TOKEN_REGISTRY_VERSION`                      | Token metadata registry version tag to build from source              | v1.2.0                                 | added in release 1.4.0  |
+| `TOKEN_METADATA_SYNC_JOB`                     | Enable token metadata synchronization                                 | true                                   | added in release 1.4.0  |
 
 ## Deprecated Environment Variables (Previous Versions)
 
