@@ -1,0 +1,102 @@
+{
+  "test_name": "(-) invalid policy id",
+  "description": "Negative test: Test case: (-) invalid policy id",
+  "request_body": {
+    "network_identifier": {
+      "blockchain": "cardano",
+      "network": "{{networkId}}"
+    },
+    "operations": [
+      {
+        "operation_identifier": {
+          "index": 0
+        },
+        "type": "input",
+        "account": {
+          "address": "addr_test1qz8swh9a7tga0u62lxs6dvnkmpxd0dyeeqx27csh6ywx7qplrv4wtdpvnh6wffzch0uakzhh7uwyvd4asda3zzay0qpqcplwh0"
+        },
+        "amount": {
+          "value": "-2000000",
+          "currency": {
+            "symbol": "ADA",
+            "decimals": 6
+          }
+        },
+        "coin_change": {
+          "coin_identifier": {
+            "identifier": "7f28fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f:0"
+          },
+          "coin_action": "coin_spent"
+        },
+        "metadata": {
+          "tokenBundle": [
+            {
+              "policyId": "invalid_policy_id_format",
+              "tokens": [
+                {
+                  "value": "1000",
+                  "currency": {
+                    "symbol": "457175696e65486f727365303034303130",
+                    "decimals": 0
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "operation_identifier": {
+          "index": 1
+        },
+        "type": "output",
+        "account": {
+          "address": "addr_test1qz8swh9a7tga0u62lxs6dvnkmpxd0dyeeqx27csh6ywx7qplrv4wtdpvnh6wffzch0uakzhh7uwyvd4asda3zzay0qpqcplwh0"
+        },
+        "amount": {
+          "value": "1800000",
+          "currency": {
+            "symbol": "ADA",
+            "decimals": 6
+          }
+        },
+        "metadata": {
+          "tokenBundle": [
+            {
+              "policyId": "invalid_policy_id_format",
+              "tokens": [
+                {
+                  "value": "1000",
+                  "currency": {
+                    "symbol": "457175696e65486f727365303034303130",
+                    "decimals": 0
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ],
+    "metadata": {
+      "ttl": 100452981,
+      "protocol_parameters": {
+        "coinsPerUtxoSize": "4310",
+        "maxTxSize": 16384,
+        "maxValSize": 5000,
+        "keyDeposit": "2000000",
+        "maxCollateralInputs": 3,
+        "minFeeCoefficient": 44,
+        "minFeeConstant": 155381,
+        "minPoolCost": "170000000",
+        "poolDeposit": "500000000",
+        "protocol": 10
+      }
+    }
+  },
+  "expected_error": {
+    "code": 4009,
+    "message": "Transaction outputs parameters errors in operations array",
+    "description": "This should fail due to invalid operations"
+  }
+}

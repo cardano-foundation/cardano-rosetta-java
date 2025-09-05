@@ -1,0 +1,22 @@
+{
+  "test_name": "reward address",
+  "description": "Derive Reward (stake) address",
+  "request_body": {
+    "network_identifier": {
+      "blockchain": "cardano",
+      "network": "{{networkId}}"
+    },
+    "public_key": {
+      "hex_bytes": "964774728c8306a42252adbfb07ccd6ef42399f427ade25a5933ce190c5a8760",
+      "curve_type": "edwards25519"
+    },
+    "metadata": {
+      "address_type": "Reward"
+    }
+  },
+  "expected_response": {
+    "account_identifier": {
+      "address": "stake_test1uznjdq7ma0kqsmrny460fu5azvnqtap3486jvaudacuam3gkwjhhp"
+    }
+  }
+}

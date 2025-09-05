@@ -1,0 +1,19 @@
+{
+  "test_name": "enterprise address default",
+  "description": "Derive Enterprise address (default behavior without metadata)",
+  "request_body": {
+    "network_identifier": {
+      "blockchain": "cardano",
+      "network": "{{networkId}}"
+    },
+    "public_key": {
+      "hex_bytes": "159abeeecdf167ccc0ea60b30f9522154a0d74161aeb159fb43b6b0695f057b3",
+      "curve_type": "edwards25519"
+    }
+  },
+  "expected_response": {
+    "account_identifier": {
+      "address": "addr_test1vpdhy809valxaer3nlvg2h5nudd62pxp6lu0cs36zczhfrqqdzuwv"
+    }
+  }
+}

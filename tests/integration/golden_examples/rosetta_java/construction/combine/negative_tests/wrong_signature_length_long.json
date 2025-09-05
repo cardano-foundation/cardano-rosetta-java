@@ -1,0 +1,33 @@
+{
+  "test_name": "(-) wrong_signature_length_long",
+  "description": "Negative test: Signature with 128 bytes instead of required 64 bytes",
+  "request_body": {
+    "network_identifier": {
+      "blockchain": "cardano",
+      "network": "{{networkId}}"
+    },
+    "unsigned_transaction": "8278f26134303064393031303238313832353832303230613931326531653230373664646537663462656233396266373465613438346231666662613239616134346338346139653561356361363731653162666530303031383138323538333930303866303735636264663264316437663334616639613161366232373664383463643762343939633830636166363231376431316336663030336631623261653562343263396466346534613435386262663964623061663766373163343633366264383337623131306261343738303231613030343963343937303231613030346564316539303331613035666364303366",
+    "signatures": [
+      {
+        "signing_payload": {
+          "account_identifier": {
+            "address": "addr_test1qrtdh7587yz5m2w504sjhqnrfml5fpcuxu24fj8xwvk48artcrahhulmvvsnmwqk2k3nmrz20sw8uj7htlpnlutk0p9sjfnd3n"
+          },
+          "hex_bytes": "3f62c0a8f5f5cc37971de190458d9fa43d2311b0f5d20b86e5d408e0455e54ef",
+          "signature_type": "ed25519"
+        },
+        "public_key": {
+          "hex_bytes": "5e2875bbd82fd8b882a5ab237607d47e4b0cc40b8ca7c80d21a4939d3c7a40b2",
+          "curve_type": "edwards25519"
+        },
+        "signature_type": "ed25519",
+        "hex_bytes": "ef61a67177ab1029bf1b79a18e8b26ee7a97d07c7683f274be16328b98d5229ff42b9037bdbc534d8344784e65f155c6aa46037ae1a9fc21fc5822f76c5478ab4501c43e479c1ca8515c003636f4f778b953344e9a1f9a23ae8d28abd991a26dc658a3ce1ea5d3a7fbb085d5be42a54afc2a96ad2c2ef0c9316a41f172fd5311"
+      }
+    ]
+  },
+  "expected_error": {
+    "code": 5019,
+    "message": "Can't decode Transaction",
+    "retriable": false
+  }
+}

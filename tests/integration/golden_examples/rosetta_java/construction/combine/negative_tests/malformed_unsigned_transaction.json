@@ -1,0 +1,33 @@
+{
+  "test_name": "(-) malformed_unsigned_transaction",
+  "description": "Negative test: Invalid unsigned transaction hex",
+  "request_body": {
+    "network_identifier": {
+      "blockchain": "cardano",
+      "network": "{{networkId}}"
+    },
+    "unsigned_transaction": "not_a_valid_hex_transaction",
+    "signatures": [
+      {
+        "signing_payload": {
+          "account_identifier": {
+            "address": "addr_test1qrtdh7587yz5m2w504sjhqnrfml5fpcuxu24fj8xwvk48artcrahhulmvvsnmwqk2k3nmrz20sw8uj7htlpnlutk0p9sjfnd3n"
+          },
+          "hex_bytes": "3f62c0a8f5f5cc37971de190458d9fa43d2311b0f5d20b86e5d408e0455e54ef",
+          "signature_type": "ed25519"
+        },
+        "public_key": {
+          "hex_bytes": "d86e73073802ea17be8d56d4ffe2e254399093f7fffd0be371ae675d958ddd21",
+          "curve_type": "edwards25519"
+        },
+        "signature_type": "ed25519",
+        "hex_bytes": "42e3d11fd6874a6792e1508e154204b5ebde1aae85f9bab42b2c78bf88f24a936f6774f0be8b0a3ea0a75a45f03222df461e17fafb37ead13a18aae4ad1911a1"
+      }
+    ]
+  },
+  "expected_error": {
+    "code": 5019,
+    "message": "Can't decode Transaction",
+    "retriable": false
+  }
+}

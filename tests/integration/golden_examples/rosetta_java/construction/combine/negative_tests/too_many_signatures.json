@@ -1,0 +1,63 @@
+{
+  "test_name": "(-) too_many_signatures",
+  "description": "Negative test: 3 signatures provided when transaction only requires 1",
+  "request_body": {
+    "network_identifier": {
+      "blockchain": "cardano",
+      "network": "{{networkId}}"
+    },
+    "unsigned_transaction": "8278f26134303064393031303238313832353832303230613931326531653230373664646537663462656233396266373465613438346231666662613239616134346338346139653561356361363731653162666530303031383138323538333930303866303735636264663264316437663334616639613161366232373664383463643762343939633830636166363231376431316336663030336631623261653562343263396466346534613435386262663964623061663766373163343633366264383337623131306261343738303231613030343963343937303231613030346564316539303331613035666364303366",
+    "signatures": [
+      {
+        "signing_payload": {
+          "account_identifier": {
+            "address": "addr_test1qrtdh7587yz5m2w504sjhqnrfml5fpcuxu24fj8xwvk48artcrahhulmvvsnmwqk2k3nmrz20sw8uj7htlpnlutk0p9sjfnd3n"
+          },
+          "hex_bytes": "3f62c0a8f5f5cc37971de190458d9fa43d2311b0f5d20b86e5d408e0455e54ef",
+          "signature_type": "ed25519"
+        },
+        "public_key": {
+          "hex_bytes": "b0ae92d43db0d2a736a5fe6542434a939923cd4918d66fdf7fba33c36333884a",
+          "curve_type": "edwards25519"
+        },
+        "signature_type": "ed25519",
+        "hex_bytes": "8c975c844e226ff0f704d0efda5d4fec79f9b18677810e1053fda583710e48000d3af7b0f7d00aa3e7b7d479c806b7ccca88ea654774063cf0bcf64ed8ecea74"
+      },
+      {
+        "signing_payload": {
+          "account_identifier": {
+            "address": "addr_test1qrtdh7587yz5m2w504sjhqnrfml5fpcuxu24fj8xwvk48artcrahhulmvvsnmwqk2k3nmrz20sw8uj7htlpnlutk0p9sjfnd3n"
+          },
+          "hex_bytes": "3f62c0a8f5f5cc37971de190458d9fa43d2311b0f5d20b86e5d408e0455e54ef",
+          "signature_type": "ed25519"
+        },
+        "public_key": {
+          "hex_bytes": "fbd57b27ef860623c49d9a4773f8d68cea21b968ac97992903c12d5dd12e64ce",
+          "curve_type": "edwards25519"
+        },
+        "signature_type": "ed25519",
+        "hex_bytes": "4aa458f1e64a701bc9cf98a4847c7e1f9fdbdcf83ebe5f806685ed889e93372e8951a91c975a5411c0680eba64f19bcb3351fa1da2d8735be2576765c54de074"
+      },
+      {
+        "signing_payload": {
+          "account_identifier": {
+            "address": "addr_test1qrtdh7587yz5m2w504sjhqnrfml5fpcuxu24fj8xwvk48artcrahhulmvvsnmwqk2k3nmrz20sw8uj7htlpnlutk0p9sjfnd3n"
+          },
+          "hex_bytes": "3f62c0a8f5f5cc37971de190458d9fa43d2311b0f5d20b86e5d408e0455e54ef",
+          "signature_type": "ed25519"
+        },
+        "public_key": {
+          "hex_bytes": "3ad9dea9f4f370b26526ea6ef97f8fb426f401fdf592029892e528e1c9c216e4",
+          "curve_type": "edwards25519"
+        },
+        "signature_type": "ed25519",
+        "hex_bytes": "1f292b3cf86c8f5e6246945198b42016903550e442a2922e33067fd71395e7ffef8af2cf7ef52adb20cdbe2cf04c935fab5f8739634d13bbabcd367030b61495"
+      }
+    ]
+  },
+  "expected_error": {
+    "code": 5019,
+    "message": "Can't decode Transaction",
+    "retriable": false
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "test_name": "(-) signature_payload_mismatch",
+  "description": "Negative test: Signing payload doesn't match the unsigned transaction",
+  "request_body": {
+    "network_identifier": {
+      "blockchain": "cardano",
+      "network": "{{networkId}}"
+    },
+    "unsigned_transaction": "8278f26134303064393031303238313832353832303230613931326531653230373664646537663462656233396266373465613438346231666662613239616134346338346139653561356361363731653162666530303031383138323538333930303866303735636264663264316437663334616639613161366232373664383463643762343939633830636166363231376431316336663030336631623261653562343263396466346534613435386262663964623061663766373163343633366264383337623131306261343738303231613030343963343937303231613030346564316539303331613035666364303366",
+    "signatures": [
+      {
+        "signing_payload": {
+          "account_identifier": {
+            "address": "addr_test1qz8swh9a7tga0u62lxs6dvnkmpxd0dyeeqx27csh6ywx7qplrv4wtdpvnh6wffzch0uakzhh7uwyvd4asda3zzay0qpqcplwh0"
+          },
+          "hex_bytes": "a1b2c3d4e5f6789012345678901234567890123456789012345678901234567890",
+          "signature_type": "ed25519"
+        },
+        "public_key": {
+          "hex_bytes": "2ed364cfa0ee53745af0d918b35d9be064ec8f2a9af759520055ee746f20b781",
+          "curve_type": "edwards25519"
+        },
+        "signature_type": "ed25519",
+        "hex_bytes": "a48edda73552ffb01af8196a17677d7eb5194eb2156ff837b306c1638fab0d8707f1ad3318a1347e02ef5f5bc5bfd361f1fa6a5ca435e0e812fed65db4938759"
+      }
+    ]
+  },
+  "expected_error": {
+    "code": 5019,
+    "message": "Can't decode Transaction",
+    "retriable": false
+  }
+}

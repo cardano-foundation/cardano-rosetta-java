@@ -1,0 +1,88 @@
+{
+  "test_name": "basic pool registration",
+  "description": "Test case: basic pool registration",
+  "request_body": {
+    "network_identifier": {
+      "blockchain": "cardano",
+      "network": "{{networkId}}"
+    },
+    "operations": [
+      {
+        "operation_identifier": {
+          "index": 0
+        },
+        "type": "input",
+        "account": {
+          "address": "addr_test1qz8swh9a7tga0u62lxs6dvnkmpxd0dyeeqx27csh6ywx7qplrv4wtdpvnh6wffzch0uakzhh7uwyvd4asda3zzay0qpqcplwh0"
+        },
+        "amount": {
+          "value": "-600000000",
+          "currency": {
+            "symbol": "ADA",
+            "decimals": 6
+          }
+        },
+        "coin_change": {
+          "coin_identifier": {
+            "identifier": "20a912e1e2076dde7f4beb39bf74ea484b1ffba29aa44c84a9e5a5ca671e1bfe:0"
+          },
+          "coin_action": "coin_spent"
+        }
+      },
+      {
+        "operation_identifier": {
+          "index": 1
+        },
+        "type": "output",
+        "account": {
+          "address": "addr_test1qz8swh9a7tga0u62lxs6dvnkmpxd0dyeeqx27csh6ywx7qplrv4wtdpvnh6wffzch0uakzhh7uwyvd4asda3zzay0qpqcplwh0"
+        },
+        "amount": {
+          "value": "99829000",
+          "currency": {
+            "symbol": "ADA",
+            "decimals": 6
+          }
+        }
+      },
+      {
+        "operation_identifier": {
+          "index": 2
+        },
+        "type": "poolRegistration",
+        "account": {
+          "address": "1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5"
+        },
+        "metadata": {
+          "poolRegistrationParams": {
+            "vrfKeyHash": "8dd154228946bd12967c12bedb1cb6038b78f8b84a1760b1a788fa72a4af3db0",
+            "rewardAddress": "stake_test1uzw3g0wa8f3cvsyyf2k67p6cjqzu4g36s8anlz4lv5jt3fqsvu9xs",
+            "pledge": "10000000000",
+            "cost": "170000000",
+            "poolOwners": [
+              "stake_test1uzw3g0wa8f3cvsyyf2k67p6cjqzu4g36s8anlz4lv5jt3fqsvu9xs"
+            ],
+            "relays": [
+              {
+                "type": "single_host_addr",
+                "ipv4": "127.0.0.1",
+                "ipv6": "2345:0425:2ca1:0000:0000:0567:5673:23b5",
+                "port": "32"
+              }
+            ],
+            "margin": {
+              "numerator": "1",
+              "denominator": "1"
+            }
+          }
+        }
+      }
+    ]
+  },
+  "expected_response": {
+    "options": {
+      "transaction_size": 616,
+      "relative_ttl": 1000
+    }
+  }
+}
