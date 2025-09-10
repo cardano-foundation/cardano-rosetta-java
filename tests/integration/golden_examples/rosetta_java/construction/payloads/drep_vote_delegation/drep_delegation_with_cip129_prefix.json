@@ -1,6 +1,6 @@
 {
-  "test_name": "drep delegation with cip129 prefix",
-  "description": "Test: Test case: drep delegation with cip129 prefix",
+  "test_name": "(-) CIP-129 key prefix without type",
+  "description": "Negative: DRep id includes CIP-129 key-hash prefix but omits required drep.type",
   "request_body": {
     "network_identifier": {
       "blockchain": "cardano",
@@ -59,7 +59,7 @@
             "curve_type": "edwards25519"
           },
           "drep": {
-            "id": "03f72050aa252ccc6bf75747184910c0b9386298167656f935d6b6c26a"
+            "id": "22f72050aa252ccc6bf75747184910c0b9386298167656f935d6b6c26a"
           }
         }
       }
@@ -81,8 +81,11 @@
     }
   },
   "expected_error": {
-    "code": 5040,
-    "message": "Missing drep type",
+    "code": 5000,
+    "message": "An error occurred",
+    "details": {
+      "message": "An error occurred for request [ID]: [operations[2].metadata.drep.type must not be null]"
+    },
     "description": "This test case may fail due to specific operation requirements"
   }
 }

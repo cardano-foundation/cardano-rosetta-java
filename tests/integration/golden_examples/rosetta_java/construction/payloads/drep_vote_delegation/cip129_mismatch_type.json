@@ -1,6 +1,6 @@
 {
-  "test_name": "(-) cip129 mismatch type",
-  "description": "Negative test: Test case: (-) cip129 mismatch type",
+  "test_name": "(-) CIP-129 header type mismatch",
+  "description": "Negative: DRep id header indicates script-hash but declared drep.type is key_hash",
   "request_body": {
     "network_identifier": {
       "blockchain": "cardano",
@@ -59,8 +59,8 @@
             "curve_type": "edwards25519"
           },
           "drep": {
-            "id": "03f72050aa252ccc6bf75747184910c0b9386298167656f935d6b6c26a",
-            "type": "script_hash"
+            "id": "23f72050aa252ccc6bf75747184910c0b9386298167656f935d6b6c26a",
+            "type": "key_hash"
           }
         }
       }
@@ -82,8 +82,8 @@
     }
   },
   "expected_error": {
-    "code": 5037,
-    "message": "Invalid drep type",
-    "description": "This should fail due to invalid operations"
+    "code": 5045,
+    "message": "There is a mismatch in the drep id header and drep type. Drep id header type and drep type should match.",
+    "retriable": false
   }
 }
