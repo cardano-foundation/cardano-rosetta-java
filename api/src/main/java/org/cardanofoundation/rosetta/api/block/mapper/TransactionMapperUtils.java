@@ -3,6 +3,7 @@ package org.cardanofoundation.rosetta.api.block.mapper;
 import com.bloxbean.cardano.client.transaction.spec.governance.Anchor;
 import com.bloxbean.cardano.client.transaction.spec.governance.Vote;
 import com.bloxbean.cardano.client.transaction.spec.governance.actions.GovActionId;
+import com.bloxbean.cardano.client.util.HexUtil;
 import com.bloxbean.cardano.yaci.core.model.certs.CertificateType;
 import lombok.RequiredArgsConstructor;
 import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
@@ -10,21 +11,27 @@ import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.block.model.domain.DRepDelegation;
 import org.cardanofoundation.rosetta.api.block.model.domain.GovernancePoolVote;
 import org.cardanofoundation.rosetta.api.block.model.domain.StakeRegistration;
+import org.cardanofoundation.rosetta.client.TokenRegistryHttpGateway;
+import org.cardanofoundation.rosetta.client.model.domain.TokenMetadata;
+import org.cardanofoundation.rosetta.client.model.domain.TokenPropertyNumber;
+import org.cardanofoundation.rosetta.client.model.domain.TokenSubject;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.common.mapper.DataMapper;
 import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
 import org.cardanofoundation.rosetta.common.util.Constants;
 import org.mapstruct.Named;
 import org.openapitools.client.model.*;
+import org.openapitools.client.model.Currency;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Nullable;
+import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 import java.util.stream.Collectors;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.cardanofoundation.rosetta.common.util.Constants.LOVELACE;
 
 @Component
@@ -32,6 +39,7 @@ import static org.cardanofoundation.rosetta.common.util.Constants.LOVELACE;
 public class TransactionMapperUtils {
 
   final ProtocolParamService protocolParamService;
+  final TokenRegistryHttpGateway tokenRegistryHttpGateway;
 
   @Named("convertGovAnchorFromRosetta")
   public GovVoteRationaleParams convertGovAnchorFromRosetta(Anchor anchor) {
@@ -88,25 +96,40 @@ public class TransactionMapperUtils {
     return mapToOperationMetaData(false, amounts);
   }
 
+  @Nullable
   public OperationMetadata mapToOperationMetaData(boolean spent, List<Amt> amounts) {
     OperationMetadata operationMetadata = new OperationMetadata();
-    Optional.ofNullable(amounts)
-            .stream()
-            .flatMap(List::stream)
+
+    if (amounts == null || amounts.isEmpty()) {
+      return null;
+    }
+
+    // Filter out ADA amounts and collect subjects (policyId + assetName)
+    List<Amt> nonAdaAmounts = amounts.stream()
             .filter(amount -> !amount.getAssetName().equals(LOVELACE))
+            .toList();
+
+    if (nonAdaAmounts.isEmpty()) {
+      return null;
+    }
+
+    // Collect all subjects (policyId + assetName concatenated) for batch fetching
+    Set<String> subjects = nonAdaAmounts.stream()
+            .map(amount -> amount.getPolicyId() + HexUtil.encodeHexString(amount.getAssetName().getBytes(UTF_8)))
+            .collect(Collectors.toSet());
+
+    // Fetch token metadata for all subjects in batch
+    Map<String, Optional<TokenSubject>> tokenMetadataMap = tokenRegistryHttpGateway.getTokenMetadataBatch(subjects);
+
+    // Group amounts by policyId and create token bundles
+    nonAdaAmounts.stream()
             .collect(Collectors.groupingBy(Amt::getPolicyId))
             .forEach((policyId, policyIdAmounts) ->
                     operationMetadata.addTokenBundleItem(
                             TokenBundleItem.builder()
                                     .policyId(policyId)
                                     .tokens(policyIdAmounts.stream()
-                                            .map(amount -> Amount.builder()
-                                                    .value(DataMapper.mapValue(amount.getQuantity().toString(), spent))
-                                                    .currency(Currency.builder()
-                                                            .symbol(amount.getAssetName())
-                                                            .decimals(0)
-                                                            .build())
-                                                    .build())
+                                            .map(amount -> extractAmount(spent, policyId, amount, tokenMetadataMap))
                                             .toList())
                                     .build()
                     )
@@ -135,6 +158,7 @@ public class TransactionMapperUtils {
 
   public Amount getDepositAmountPool() {
     String deposit = String.valueOf(protocolParamService.findProtocolParameters().getPoolDeposit());
+
     return DataMapper.mapAmount(deposit, Constants.ADA, Constants.ADA_DECIMALS, null);
   }
 
@@ -190,6 +214,58 @@ public class TransactionMapperUtils {
   @Named("getCoinCreatedAction")
   public CoinAction getCoinCreatedAction(Utxo model) {
     return CoinAction.CREATED;
+  }
+
+  private static Amount extractAmount(boolean spent,
+                                      String policyId,
+                                      Amt amount,
+                                      Map<String, Optional<TokenSubject>> tokenMetadataMap) {
+    // Create subject for this token
+    String subject = amount.getPolicyId() + amount.getAssetName();
+
+    // Get metadata if available
+    Optional<TokenSubject> tokenMetadata = tokenMetadataMap.getOrDefault(subject, Optional.empty());
+
+    return Amount.builder()
+            .value(DataMapper.mapValue(amount.getQuantity().toString(), spent))
+            .currency(Currency.builder()
+                    .symbol(amount.getAssetName())
+                    .decimals(extractTokenDecimals(tokenMetadata))
+                    .metadata(extractTokenMetadata(policyId, subject, tokenMetadata))
+                    .build())
+            .build();
+  }
+
+  private static int extractTokenDecimals(Optional<TokenSubject> tokenMetadata) {
+    return tokenMetadata
+            .map(TokenSubject::getMetadata)
+            .map(TokenMetadata::getDecimals)
+            .map(TokenPropertyNumber::getValue)
+            .map(Long::intValue)
+            .orElse(0);
+  }
+
+  private static CurrencyMetadata extractTokenMetadata(String policyId,
+                                                       String subject,
+                                                       Optional<TokenSubject> tokenMetadata) {
+    CurrencyMetadata.CurrencyMetadataBuilder builder = CurrencyMetadata.builder()
+            .policyId(policyId)
+            .subject(subject);
+
+    tokenMetadata.ifPresent(metadata -> {
+      TokenMetadata tokenMeta = metadata.getMetadata();
+
+      // Add null checks for name and description even though they should be required
+      Optional.ofNullable(tokenMeta.getName()).ifPresent(name -> builder.name(name.getValue()));
+      Optional.ofNullable(tokenMeta.getDescription()).ifPresent(desc -> builder.description(desc.getValue()));
+
+      Optional.ofNullable(tokenMeta.getTicker()).ifPresent(ticker -> builder.ticker(ticker.getValue()));
+      Optional.ofNullable(tokenMeta.getUrl()).ifPresent(url -> builder.url(url.getValue()));
+      Optional.ofNullable(tokenMeta.getLogo()).ifPresent(logo -> builder.logo(logo.getValue()));
+      Optional.ofNullable(tokenMeta.getVersion()).ifPresent(version -> builder.version(BigDecimal.valueOf(version.getValue())));
+    });
+
+    return builder.build();
   }
 
 }

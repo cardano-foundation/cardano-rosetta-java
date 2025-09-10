@@ -40,3 +40,8 @@ logging:
     name: ${LOG_FILE_NAME:logs/rosetta-api.log}
     max-size: ${LOG_FILE_MAX_SIZE:10MB}
     max-history: ${LOG_FILE_MAX_HISTORY:10}
+
+cardano:
+  rosetta:
+    # Token Registry disabled for H2 test environment
+    TOKEN_REGISTRY_ENABLED: false
