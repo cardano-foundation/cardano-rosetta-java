@@ -41,7 +41,9 @@ public class AccountMapperUtil {
             DataMapper.mapAmount(b.quantity().toString(),
                 b.unit().substring(Constants.POLICY_ID_LENGTH),
                 Constants.MULTI_ASSET_DECIMALS,
-                new CurrencyMetadata(b.unit().substring(0, Constants.POLICY_ID_LENGTH)))
+                CurrencyMetadata.builder()
+                    .policyId(b.unit().substring(0, Constants.POLICY_ID_LENGTH))
+                    .build())
         ));
     return amounts;
   }
@@ -79,7 +81,9 @@ public class AccountMapperUtil {
               tokens.setTokens(List.of(DataMapper.mapAmount(amount.getQuantity().toString(),
                   // unit = assetName + policyId. To get the symbol policy ID must be removed from Unit. According to CIP67
                   amount.getUnit().replace(amount.getPolicyId(), ""),
-                  Constants.MULTI_ASSET_DECIMALS, new CurrencyMetadata(amount.getPolicyId()))));
+                  Constants.MULTI_ASSET_DECIMALS, CurrencyMetadata.builder()
+                      .policyId(amount.getPolicyId())
+                      .build())));
               return tokens;
             })
             .toList();
