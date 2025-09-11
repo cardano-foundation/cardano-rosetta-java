@@ -1,6 +1,6 @@
 {
-  "test_name": "(-) invalid cip129 prefix",
-  "description": "Negative test: Test case: (-) invalid cip129 prefix",
+  "test_name": "(-) invalid CIP-129 prefix",
+  "description": "Negative: DRep id has an invalid CIP-129 header byte (not key or script)",
   "request_body": {
     "network_identifier": {
       "blockchain": "cardano",
@@ -59,7 +59,8 @@
             "curve_type": "edwards25519"
           },
           "drep": {
-            "id": "01f72050aa252ccc6bf75747184910c0b9386298167656f935d6b6c26a"
+            "id": "01f72050aa252ccc6bf75747184910c0b9386298167656f935d6b6c26a",
+            "type": "key_hash"
           }
         }
       }
@@ -81,8 +82,8 @@
     }
   },
   "expected_error": {
-    "code": 5040,
-    "message": "Missing drep type",
-    "description": "This should fail due to invalid operations"
+    "code": 5037,
+    "message": "Invalid drep type",
+    "retriable": false
   }
 }
