@@ -2,9 +2,14 @@ package org.cardanofoundation.rosetta.api.block.mapper;
 
 import org.assertj.core.api.Assertions;
 import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
+import org.cardanofoundation.rosetta.client.TokenRegistryHttpGateway;
+import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
 import org.cardanofoundation.rosetta.common.util.Constants;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.openapitools.client.model.Amount;
 import org.openapitools.client.model.Currency;
 import org.openapitools.client.model.OperationMetadata;
@@ -12,15 +17,32 @@ import org.openapitools.client.model.TokenBundleItem;
 
 import java.math.BigInteger;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anySet;
+import static org.mockito.Mockito.lenient;
 
+@ExtendWith(MockitoExtension.class)
 class TransactionMapperUtilsTest {
 
-  final private TransactionMapperUtils transactionMapperUtils = Mockito.mock(
-      TransactionMapperUtils.class,
-      Mockito.CALLS_REAL_METHODS);
+  @Mock
+  private ProtocolParamService protocolParamService;
+  
+  @Mock
+  private TokenRegistryHttpGateway tokenRegistryHttpGateway;
+
+  private TransactionMapperUtils transactionMapperUtils;
+
+  @BeforeEach
+  void setUp() {
+    transactionMapperUtils = new TransactionMapperUtils(protocolParamService, tokenRegistryHttpGateway);
+    
+    // Mock token registry to return empty map (no metadata) - use lenient to avoid unnecessary stubbing errors
+    lenient().when(tokenRegistryHttpGateway.getTokenMetadataBatch(anySet())).thenReturn(Collections.emptyMap());
+  }
 
   @Test
   void mapToOperationMetaDataTest() {

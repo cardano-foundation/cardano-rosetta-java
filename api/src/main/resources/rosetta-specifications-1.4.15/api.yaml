@@ -2059,7 +2059,7 @@ components:
       type: object
       properties:
         chain_code:
-          description: 'ChainCode '
+          description: 'ChainCode'
           type: string
     CurrencyMetadata:
       description: 'Cardano-specific metadata for native tokens'
@@ -2068,6 +2068,28 @@ components:
         policyId:
           description: 'The policy ID that controls this native token (hex string). Required for all non-ADA currencies.'
           type: string
+        subject:
+          description: 'The base16-encoded policyId + base16-encoded assetName'
+          type: string
+        name:
+          description: 'Token Registry data representing an asset name'
+          type: string
+        description:
+          description: 'Token Registry data representing an asset description'
+          type: string
+        ticker:
+          description: 'Token Registry data representing an asset ticker symbol'
+          type: string
+        url:
+          description: 'Token Registry data representing an asset''s project url'
+          type: string
+        logo:
+          description: 'Token Registry data representing an asset''s logo (base64 encoded)'
+          type: string
+        version:
+          description: 'Token Registry data representing an asset''s version'
+          type: number
+
     ConstructionMetadataRequestOption:
       description: ''
       type: object

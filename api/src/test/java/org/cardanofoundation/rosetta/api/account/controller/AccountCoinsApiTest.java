@@ -267,7 +267,7 @@ class AccountCoinsApiTest extends BaseSpringMvcSetup {
         .collect(Collectors.joining());
     AccountCoinsRequest request = getAccountCoinsRequestWithCurrencies(TEST_ACCOUNT_ADDRESS,
         getCurrency(TestConstants.CURRENCY_HEX_SYMBOL, Constants.MULTI_ASSET_DECIMALS)
-            .metadata(new CurrencyMetadata(tooLongPolicyId)));
+            .metadata(CurrencyMetadata.builder().policyId(tooLongPolicyId).build()));
 
     mockMvc.perform(MockMvcRequestBuilders.post("/account/coins")
             .contentType(MediaType.APPLICATION_JSON)
@@ -282,7 +282,7 @@ class AccountCoinsApiTest extends BaseSpringMvcSetup {
   void accountCoinsNonHexPolicyIdException_Test() throws Exception {
     AccountCoinsRequest request = getAccountCoinsRequestWithCurrencies(TEST_ACCOUNT_ADDRESS,
         getCurrency(TestConstants.CURRENCY_HEX_SYMBOL, Constants.MULTI_ASSET_DECIMALS)
-            .metadata(new CurrencyMetadata("thisIsNonHexPolicyId")));
+            .metadata(CurrencyMetadata.builder().policyId("thisIsNonHexPolicyId").build()));
 
     mockMvc.perform(MockMvcRequestBuilders.post("/account/coins")
             .contentType(MediaType.APPLICATION_JSON)

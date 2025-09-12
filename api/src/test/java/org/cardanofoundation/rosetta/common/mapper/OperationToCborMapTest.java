@@ -59,7 +59,7 @@ class OperationToCborMapTest {
                     
             OperationMetadata operationMetadata = OperationMetadata.builder()
                     .poolRegistrationParams(poolRegistrationParams)
-                    .refundAmount(new Amount("2", new Currency(Constants.ADA, 2, new CurrencyMetadata("policyId")), new Object()))
+                    .refundAmount(new Amount("2", new Currency(Constants.ADA, 2, CurrencyMetadata.builder().policyId("policyId").build()), new Object()))
                     .tokenBundle(List.of(new TokenBundleItem("tokenBundlePolicyId", List.of(new Amount()))))
                     .build();
 
