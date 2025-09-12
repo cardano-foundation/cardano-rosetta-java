@@ -1,146 +1,264 @@
-[![Build](https://github.com/cardano-foundation/cardano-rosetta-java/actions/workflows/feature-mvn-build.yaml/badge.svg)](https://github.com/cardano-foundation/cardano-rosetta-java/actions/workflows/feature-mvn-build.yaml)
-[![License](https://img.shields.io:/github/license/cardano-foundation/cardano-rosetta-java?label=license)](https://github.com/cardano-foundation/cardano-rosetta-java/blob/master/LICENSE)
-![Discord](https://img.shields.io/discord/1022471509173882950)
-[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=cardano-foundation_cardano-rosetta-java&metric=coverage)](https://sonarcloud.io/summary/overall?id=cardano-foundation_cardano-rosetta-java)
+# Cardano Rosetta Java
 
-## What the project is about?
+**High-performance Java implementation of the Mesh API (formerly Rosetta) for Cardano blockchain integration.**
 
+[![Build](https://img.shields.io/github/actions/workflow/status/cardano-foundation/cardano-rosetta-java/feature-mvn-build.yaml?label=build)](https://github.com/cardano-foundation/cardano-rosetta-java/actions/workflows/feature-mvn-build.yaml)
+[![Tests](https://img.shields.io/github/actions/workflow/status/cardano-foundation/cardano-rosetta-java/integration-test.yaml?label=tests)](https://github.com/cardano-foundation/cardano-rosetta-java/actions/workflows/integration-test.yaml)
+[![Release](https://img.shields.io/github/v/release/cardano-foundation/cardano-rosetta-java)](https://github.com/cardano-foundation/cardano-rosetta-java/releases/latest)
+[![Docker](https://img.shields.io/docker/pulls/cardanofoundation/cardano-rosetta-java)](https://hub.docker.com/r/cardanofoundation/cardano-rosetta-java)
+[![Discord](https://img.shields.io/discord/1022471509173882950?logo=discord)](https://discord.gg/cardanofoundation)
+[![License](https://img.shields.io:/github/license/cardano-foundation/cardano-rosetta-java)](https://github.com/cardano-foundation/cardano-rosetta-java/blob/master/LICENSE)
 
-This repository provides a lightweight java implementation of the [Rosetta API](https://github.com/coinbase/mesh-specifications). It uses [Yaci-Store](https://github.com/bloxbean/yaci-store) as an indexer
-to fetch the data from a Cardano node.
+[![Java](https://img.shields.io/badge/Java-24-orange)](https://openjdk.org/projects/jdk/24/)
+[![Mesh API](https://img.shields.io/badge/Mesh%20API-1.4.15-blue)](https://docs.cdp.coinbase.com/mesh/docs/welcome)
+[![Networks](https://img.shields.io/badge/Networks-Mainnet%20%7C%20Preprod%20%7C%20Preview-green)](https://cardano-foundation.github.io/cardano-rosetta-java/docs/intro)
+[![Docker Size](https://img.shields.io/docker/image-size/cardanofoundation/cardano-rosetta-java/latest?label=docker%20size)](https://hub.docker.com/r/cardanofoundation/cardano-rosetta-java)
 
-This component consists of:
+## Overview
 
-- a full Cardano node
-- a Cardano Submit API
-- an indexer which stores data in Postgres
-- the Mesh (formerly Rosetta) API
+Cardano Rosetta Java provides a production-grade implementation of the [Mesh API specification](https://docs.cdp.coinbase.com/mesh/docs/welcome) (formerly Rosetta) for the Cardano blockchain. Built with Java and powered by [Yaci-Store](https://github.com/bloxbean/yaci-store), it offers significantly lower resource consumption compared to alternative implementations.
 
-This implementation follows the [Rosetta API](https://docs.cdp.coinbase.com/mesh/docs/api-reference/) specification and is compatible with the [Rosetta CLI](https://docs.cdp.coinbase.com/mesh/docs/mesh-cli/).
-It contains some extensions to fit the needs of the Cardano blockchain. These changes are documented in the [documentation](https://cardano-foundation.github.io/cardano-rosetta-java/docs/core-concepts/cardano-addons).
+### Architecture
 
-## Documentation
+```mermaid
+graph LR
+    Client[Client]
+    
+    subgraph "Docker Compose Stack"
+        API[rosetta-api<br/>:8082]
+        Indexer[yaci-indexer<br/>:9095]
+        DB[(postgres<br/>:5432)]
+        Node[cardano-node<br/>:3001]
+        Submit[submit-api<br/>:8090]
+        
+        API -->|query| Indexer
+        Indexer -->|store| DB
+        Indexer -->|sync| Node
+        API -->|submit tx| Submit
+        Submit -->|broadcast| Node
+    end
+    
+    Client -->|REST| API
+    Node -->|P2P| Network[Cardano<br/>Network]
+    
+    Mithril[mithril] -.->|bootstrap| Node
+    Monitoring[monitoring<br/>:3000/:9090] -.-> API
+    
+    style Client fill:#ffffff,stroke:#000000,stroke-width:2px,color:#000
+    style API fill:#ff0000,stroke:#000000,stroke-width:2px,color:#fff
+    style Indexer fill:#f5f5f5,stroke:#000000,stroke-width:2px,color:#000
+    style DB fill:#000000,stroke:#000000,stroke-width:2px,color:#fff
+    style Node fill:#f5f5f5,stroke:#000000,stroke-width:2px,color:#000
+    style Submit fill:#f5f5f5,stroke:#000000,stroke-width:2px,color:#000
+    style Network fill:#ffffff,stroke:#000000,stroke-width:2px,color:#000
+    style Mithril fill:#e6e6ff,stroke:#999999,stroke-width:1px,color:#000
+    style Monitoring fill:#ffe6e6,stroke:#999999,stroke-width:1px,color:#000
+```
 
-Detailed explanation to all components can be found in the [documentation](https://cardano-foundation.github.io/cardano-rosetta-java/docs/intro) of this repository.
-It includes explanations about the Architecture, how to build and run the components and explanations to environment variables.
+### Key Features
 
-## System requirements
+- **Mesh API (Rosetta) compliant** for standardized blockchain integration
+- **All-in-one Docker Compose deployment** with node, indexer, and API
+- **Spent UTXO pruning support** reducing storage by ~40% (enabled by default)
+- **Offline mode** for secure transaction construction
+- **Native asset support** including NFTs and custom tokens
+- **Governance operations** for Conway era features (DRep vote delegation, Pool governance vote)
+- **SPO operations** for stake pool features (registration, deregistration, retirement, update, etc.)
 
-Since [Yaci-Store](https://github.com/bloxbean/yaci-store) is a comparatively lightweight indexer, the system requirements are lower than for other chain indexers. The following are the recommended system requirements for running this component:
+## Quick Start
 
-- 4CPU Cores
-- 32GB RAM
-- ~1.3 TB total storage (node ~250 GB + Rosetta DB ~1 TB) — pruning disabled [default]
-- ~750 GB total storage (node ~250 GB + Rosetta DB ~500 GB) — pruning enabled
+<details>
+<summary><b>Preprod Testnet</b> (~3 hours sync time)</summary>
 
-Better hardware will improve the performance of the indexer and the node, which will result in faster syncing times.
+### Prerequisites
+- Docker and Docker Compose
+- 4+ CPU cores, 32GB RAM, 100GB storage
+
+### Steps
+
+1. **Clone and launch**
+```bash
+git clone https://github.com/cardano-foundation/cardano-rosetta-java.git
+cd cardano-rosetta-java
+
+docker compose --env-file .env.docker-compose-preprod \
+  --env-file .env.docker-compose-profile-entry-level \
+  -f docker-compose.yaml up -d
+```
+
+2. **Monitor sync progress**
+```bash
+# Check sync status
+curl -X POST http://localhost:8082/network/status \
+  -H "Content-Type: application/json" \
+  -d '{"network_identifier": {"blockchain": "cardano", "network": "preprod"}}'
+
+# View logs
+docker compose logs -f
+```
+
+</details>
+
+<details>
+<summary><b>Mainnet</b> (48-72 hours sync time with Mithril)</summary>
+
+### Prerequisites
+- Docker and Docker Compose
+- 8+ CPU cores, 48GB RAM, 750GB storage (with pruning)
+
+### Steps
+
+1. **Clone and launch**
+```bash
+git clone https://github.com/cardano-foundation/cardano-rosetta-java.git
+cd cardano-rosetta-java
+
+docker compose --env-file .env.docker-compose \
+  --env-file .env.docker-compose-profile-mid-level \
+  -f docker-compose.yaml up -d
+```
+
+2. **Monitor sync progress**
+```bash
+# Check sync status
+curl -X POST http://localhost:8082/network/status \
+  -H "Content-Type: application/json" \
+  -d '{"network_identifier": {"blockchain": "cardano", "network": "mainnet"}}'
+```
+
+> **Note**: Mithril snapshots are used automatically to accelerate initial sync. Full sync times vary based on hardware and network conditions.
+
+</details>
+
+## System Requirements
+
+Based on our [hardware profiles](https://cardano-foundation.github.io/cardano-rosetta-java/docs/install-and-deploy/hardware-profiles):
+
+| Profile | CPU | RAM | Storage* | Use Case |
+|---------|-----|-----|----------|----------|
+| **Entry-Level** | 4 cores | 32GB | 100GB (testnet) | Development & testing |
+| **Mid-Level** ⭐ | 8 cores | 48GB | 750GB | Production (recommended) |
+| **Advanced** | 16 cores | 94GB | 1TB+ | High-volume exchanges |
+
+*With UTXO pruning enabled (default). Add ~40% for full history.
 
 ## Installation
 
-By default this Cardano-node will sync the entire chain from Genesis.
-This will take up to 48-72 hours (dependening on the system resources).
+### Docker Compose (Recommended)
 
-### Docker (build from source)
+See [Quick Start](#quick-start) above or the [installation documentation](https://cardano-foundation.github.io/cardano-rosetta-java/docs/install-and-deploy/docker).
 
-If your user is not in the `docker` group you might have to execute these commands with `sudo`.
-The default config is focused on mainnet. If you want to test this on other Cardano netwoks (like `preview` or `preprod`) please adjust the `docker/.env.dockerfile` or read the documentation page on [Environment variables](https://cardano-foundation.github.io/cardano-rosetta-java/docs/install-and-deploy/env-vars) on other options and their default values.
+### Other Methods
 
+- **Pre-built images**: [DockerHub](https://hub.docker.com/r/cardanofoundation/cardano-rosetta-java)
+- **Build from source**: [Documentation](https://cardano-foundation.github.io/cardano-rosetta-java/docs/development/build)
+
+## Configuration
+
+### Key Settings
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `CARDANO_NETWORK` | Network to connect to | `mainnet` |
+| `API_SPRING_PROFILES_ACTIVE` | API mode (`online`/`offline`) | `online` |
+| `REMOVE_SPENT_UTXOS` | Enable spent UTXO pruning | `true` |
+| `API_PORT` | Mesh API port | `8082` |
+
+Full environment variable reference: [documentation](https://cardano-foundation.github.io/cardano-rosetta-java/docs/install-and-deploy/env-vars).
+
+### Spent UTXO Pruning
+
+Pruning is **enabled by default** to optimize for high-performance exchange operations:
+
+- **When enabled (default)**: Maintains current UTXO set and spent UTXOs within the safety margin (2,160 blocks/~12 hours), reducing storage by ~40% and improving query performance
+- **When disabled**: Functions as a full indexer maintaining complete historical data for all transactions and spent UTXOs
+
+For detailed configuration, see [pruning documentation](https://cardano-foundation.github.io/cardano-rosetta-java/docs/advanced-configuration/pruning).
+
+## API Usage
+
+<details>
+<summary><b>Common Operations</b></summary>
+
+### Check Network Status
 ```bash
-    git clone https://github.com/cardano-foundation/cardano-rosetta-java
-    cd cardano-rosetta-java
-    docker build -t rosetta-java -f ./docker/Dockerfile .
-    docker run --name rosetta -v {CUSTOM_MOUNT_PATH}:/node --env-file ./docker/.env.dockerfile --env-file ./docker/.env.docker-profile-mid-level -p 8082:8082 --shm-size=4g -d rosetta-java
+curl -X POST http://localhost:8082/network/status \
+  -H "Content-Type: application/json" \
+  -d '{"network_identifier": {"blockchain": "cardano", "network": "mainnet"}}'
 ```
 
-Detailed explanation can be found in the [documentation](https://cardano-foundation.github.io/cardano-rosetta-java/docs/install-and-deploy/docker).
-
-Depending on using a snapshot feature or not, this will take X amount of time. You can follow along with the commands below. Your instance is ready when you see: `DONE`.
-
-### Offline mode
-
-If you want to run rosetta-java in offline mode you need to set the `API_SPRING_PROFILES_ACTIVE` environment variable to `offline` in `./docker/.env.dockerfile`.
-This will disable the syncing of the node and won't start the db and the indexer.
-Default is `online`.
-
-**Useful commands:**
-
-- Following Docker container logs:
-
+### Get Account Balance
 ```bash
-    docker logs rosetta -f
+curl -X POST http://localhost:8082/account/balance \
+  -H "Content-Type: application/json" \
+  -d '{
+    "network_identifier": {"blockchain": "cardano", "network": "mainnet"},
+    "account_identifier": {"address": "addr1..."}
+  }'
 ```
 
-- Access node logs:
-
+### Submit Transaction
 ```bash
-    docker exec rosetta tail -f /logs/node.log
+curl -X POST http://localhost:8082/construction/submit \
+  -H "Content-Type: application/json" \
+  -d '{
+    "network_identifier": {"blockchain": "cardano", "network": "mainnet"},
+    "signed_transaction": "..."
+  }'
 ```
 
-- Access indexer logs:
+</details>
 
+## Operations
+
+<details>
+<summary><b>Monitoring & Troubleshooting</b></summary>
+
+### Health Checks
 ```bash
-    docker exec rosetta tail -f /logs/indexer.log
+# Container status
+docker compose ps
+
+# Service logs
+docker compose logs -f api
+docker compose logs -f yaci-indexer
+docker compose logs -f cardano-node
 ```
 
-- Interactive access to container:
+### Common Issues
 
-```bash
-    docker exec -it rosetta bash # direct bash access within the container
+| Symptom | Possible Cause | Action |
+|---------|---------------|--------|
+| API returns 503 | Services still starting | Wait 2-3 minutes for initialization, check `docker compose logs` |
+| Incorrect balances | Node not fully synced | Verify sync with `/network/status`, check `current_block_identifier` vs network tip |
+| Transaction submission fails | Invalid CBOR or network mismatch | Verify transaction format, ensure correct network in `network_identifier` |
+| High memory usage | Insufficient resources for profile | Switch to lower profile or increase RAM allocation |
+| Disk space warnings | Pruning disabled or safety margin too large | Enable pruning (`REMOVE_SPENT_UTXOS=true`) or reduce safety margin |
+| Historical queries fail | Pruning enabled (expected behavior) | Check `oldest_block_identifier` in `/network/status` for queryable range |
 
+</details>
 
-    # Useful commands within the container
-    cardano-cli query tip --mainnet # check node sync status
-    tail -f /logs/node.log # follow node logs
-    tail -f /logs/indexer.log # follow indexer logs
-```
+## Documentation
 
-### Docker (using pre-built image)
+- [Full Documentation](https://cardano-foundation.github.io/cardano-rosetta-java/docs/intro)
+- [Mesh API Reference](https://docs.cdp.coinbase.com/mesh/docs/api-reference)
+- [Cardano Specific API Additions](https://cardano-foundation.github.io/cardano-rosetta-java/docs/core-concepts/cardano-addons)
+- [Hardware Profiles](https://cardano-foundation.github.io/cardano-rosetta-java/docs/install-and-deploy/hardware-profiles)
 
-For every Release we provide pre-built docker images stored in the DockerHub Repositories of the Cardano Foundation ([DockerHub](https://hub.docker.com/orgs/cardanofoundation/repositories))
-To start it use the following command:
+## Support
 
-```bash
-    docker run --name rosetta -v {CUSTOM_MOUNT_PATH}:/node --env-file ./docker/.env.dockerfile --env-file ./docker/.env.docker-profile-mid-level -p 8082:8082 --shm-size=4g -d cardanofoundation/cardano-rosetta-java:1.3.2
-```
+- **Issues**: [GitHub Issues](https://github.com/cardano-foundation/cardano-rosetta-java/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/cardano-foundation/cardano-rosetta-java/discussions)
+- **Discord**: [Cardano Foundation Discord](https://discord.gg/arhwSrTsSj)
 
-Changes to the configuration can be made by adjusting the `docker/.env.dockerfile` file. For more information on the environment variables, please refer to the [documentation](https://cardano-foundation.github.io/cardano-rosetta-java/docs/install-and-deploy/env-vars).
+## Contributing
 
-If you want to use the `cardano-submit-api` you can additionally expose port `8090`. It can then be used to submit raw cbor transaction (API documentation here: [Link](https://input-output-hk.github.io/cardano-rest/submit-api/))
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup and guidelines.
 
-```bash
-    docker run --name rosetta -v {CUSTOM_MOUNT_PATH}:/node --env-file ./docker/.env.dockerfile --env-file ./docker/.env.docker-profile-mid-level -p 8090:8090 -p 8082:8082 --shm-size=4g -d cardanofoundation/cardano-rosetta-java:1.3.2
-```
+## License
 
-### Docker compose
-
-If needed we also provide all components needed to run Rosetta in a docker-compose file.
-This will start:
-
-- Cardano-node
-- Cardano-Submit-API
-- Yaci-Store
-- Rosetta-API
-- Postgres
-
-### Entry level hardware profile
-
-```bash
-   docker compose --env-file .env.docker-compose --env-file .env.docker-compose-profile-mid-level -f docker-compose.yaml up -d
-```
-
-### A complete list of hardware profiles:
-
-```
-.env.docker-compose-profile-entry-level
-.env.docker-compose-profile-mid-level
-.env.docker-compose-profile-advanced-level
-```
-
-See the [hardware profiles documentation](https://cardano-foundation.github.io/cardano-rosetta-java/docs/install-and-deploy/hardware-profiles) for a full list of hardware profiles and their configurations.
-
-Further adjustments can be made by changing `.env.docker-compose` file. For more information on the environment variables, please refer to the [documentation](https://cardano-foundation.github.io/cardano-rosetta-java/docs/install-and-deploy/env-vars).
+[Apache License 2.0](LICENSE)
 
 ---
 
-Thanks for visiting us and enjoy :heart:!
-
+Built with ❤️ by the [Cardano Foundation](https://cardanofoundation.org)
