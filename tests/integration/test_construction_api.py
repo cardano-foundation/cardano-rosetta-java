@@ -38,10 +38,10 @@ except Exception:  # pragma: no cover
 
 try:
     import jsonschema  # type: ignore
-    from jsonschema import Draft7Validator  # type: ignore
+    from jsonschema import Draft4Validator  # type: ignore
 except Exception:  # pragma: no cover
     jsonschema = None  # type: ignore
-    Draft7Validator = None  # type: ignore
+    Draft4Validator = None  # type: ignore
 
 try:
     from rich.console import Console  # type: ignore
@@ -93,7 +93,7 @@ GRAY = "\033[90m"
 # Fields that should be ignored when diffing
 VOLATILE_FIELDS = {
     "metadata": ["metadata.ttl"],
-    "preprocess": ["options.transaction_size"]
+    "preprocess": ["options.transaction_size"],
 }
 
 # Stats
@@ -276,9 +276,9 @@ class SchemaValidator:
             return self._basic_sanity(instance)
         try:
             d = self._deref(schema)
-            if Draft7Validator:
+            if Draft4Validator:
                 errs: List[str] = []
-                for e in Draft7Validator(d).iter_errors(instance):
+                for e in Draft4Validator(d).iter_errors(instance):
                     loc = ".".join([str(p) for p in e.path]) or "<root>"
                     errs.append(f"{loc}: {e.message}")
                 return errs
@@ -292,24 +292,24 @@ class SchemaValidator:
 def replace_network_placeholder(payload: Dict[str, Any]) -> Tuple[Dict[str, Any], bool]:
     """Replace {{networkId}} placeholders with actual network_id value.
     Uses 'preprod' as default if no network_id is provided.
-    
+
     Returns:
         Tuple of (modified_payload, has_placeholder)
     """
     try:
         # Convert to JSON string for safe replacement
         json_str = json.dumps(payload)
-        
+
         # Check if placeholder exists
         has_placeholder = "{{networkId}}" in json_str
-        
+
         if has_placeholder:
             # Use provided network_id or default to 'preprod'
             network_value = NETWORK_ID if NETWORK_ID is not None else "preprod"
             json_str = json_str.replace("{{networkId}}", network_value)
             # Parse back to dict
             return json.loads(json_str), True
-        
+
         return payload, False
     except Exception:
         # If anything goes wrong, return original payload
@@ -540,8 +540,9 @@ def validate_file(file_path: Path) -> Dict[str, Any]:
             return res
         has_ok, has_err = ("expected_response" in test), ("expected_error" in test)
         if not (has_ok or has_err):
-            skip_reason = test.get("description", 
-            "No expected_response or expected_error found")
+            skip_reason = test.get(
+                "description", "No expected_response or expected_error found"
+            )
             res.update(
                 {
                     "status": "skipped",
@@ -812,13 +813,16 @@ def main() -> None:
         help="Show concise schema details per test",
     )
     parser.add_argument(
-        "-j", "--workers",
+        "-j",
+        "--workers",
         type=int,
         default=10,
         help="Number of parallel workers for test execution (default: 10)",
     )
     parser.add_argument(
-        "-n", "--network-id",
+        "-n",
+        "--network-id",
+        default="preprod",
         help="Network ID to replace {{networkId}} placeholders in test files (e.g., 'devkit', 'preprod', 'mainnet')",
     )
     args = parser.parse_args()
@@ -969,16 +973,18 @@ def main() -> None:
                     with Live(root, console=RICH_CONSOLE, refresh_per_second=8):
                         # Process files in parallel, maintain order for display
                         with ThreadPoolExecutor(max_workers=WORKERS) as executor:
-                            future_to_fp = {executor.submit(validate_file, fp): fp for fp in gfiles}
+                            future_to_fp = {
+                                executor.submit(validate_file, fp): fp for fp in gfiles
+                            }
                             results = []
                             for future in as_completed(future_to_fp):
                                 fp = future_to_fp[future]
                                 r = future.result()
                                 results.append((fp, r))
-                            
+
                             # Sort results back to original order for consistent display
                             results.sort(key=lambda x: gfiles.index(x[0]))
-                            
+
                             # Process results in order
                             for fp, r in results:
                                 stats["files_tested"] += 1
@@ -991,7 +997,10 @@ def main() -> None:
                                     ep_failed += 1
                                     (
                                         ep_failures.append(
-                                            (r["file"], (r.get("differences") or [""])[0])
+                                            (
+                                                r["file"],
+                                                (r.get("differences") or [""])[0],
+                                            )
                                         )
                                         if r.get("differences")
                                         else None
@@ -1008,7 +1017,9 @@ def main() -> None:
                                     ep_error_cases.append(
                                         (r["file"], r.get("error") or "error")
                                     )
-                                row = print_result(r, verbose=VERBOSE, rich_collect=True)
+                                row = print_result(
+                                    r, verbose=VERBOSE, rich_collect=True
+                                )
                                 if row is not None:
                                     rt.add_row(
                                         fp.name,
@@ -1068,7 +1079,9 @@ def main() -> None:
                     print(f"\n  {DIM}[{name}/{gname}]{RESET}")
                     # Process files in parallel
                     with ThreadPoolExecutor(max_workers=WORKERS) as executor:
-                        future_to_fp = {executor.submit(validate_file, fp): fp for fp in gfiles}
+                        future_to_fp = {
+                            executor.submit(validate_file, fp): fp for fp in gfiles
+                        }
                         for future in as_completed(future_to_fp):
                             fp = future_to_fp[future]
                             r = future.result()
@@ -1090,7 +1103,9 @@ def main() -> None:
                             elif r["status"] == "skipped":
                                 stats["files_skipped"] += 1
                                 ep_skipped += 1
-                                ep_skips.append((r["file"], r.get("error") or "skipped"))
+                                ep_skips.append(
+                                    (r["file"], r.get("error") or "skipped")
+                                )
                             else:
                                 stats["errors_by_endpoint"][name] += 1
                                 ep_errors += 1
@@ -1209,10 +1224,15 @@ def main() -> None:
 
         elapsed = time.time() - start_time
         print_summary(elapsed)
-        
+
         # Exit with proper code based on test results
         failed = stats["files_failed"]
-        errors = stats["files_tested"] - stats["files_passed"] - stats["files_failed"] - stats["files_skipped"]
+        errors = (
+            stats["files_tested"]
+            - stats["files_passed"]
+            - stats["files_failed"]
+            - stats["files_skipped"]
+        )
         if failed > 0 or errors > 0:
             sys.exit(1)  # Fail CI when tests fail or have errors
     finally:
