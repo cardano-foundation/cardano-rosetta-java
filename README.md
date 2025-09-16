@@ -24,7 +24,7 @@ Cardano Rosetta Java provides a production-grade implementation of the [Mesh API
 graph LR
     Client[Client]
     
-    subgraph "Docker Compose Stack"
+    subgraph "Core Components"
         API[rosetta-api<br/>:8082]
         Indexer[yaci-indexer<br/>:9095]
         DB[(postgres<br/>:5432)]
@@ -72,7 +72,8 @@ graph LR
 
 ### Prerequisites
 - Docker and Docker Compose
-- 4+ CPU cores, 32GB RAM, 100GB storage
+- 4+ CPU cores, 32GB RAM
+- 100GB storage (pruning enabled) or 140GB (pruning disabled)
 
 ### Steps
 
@@ -104,7 +105,8 @@ docker compose logs -f
 
 ### Prerequisites
 - Docker and Docker Compose
-- 8+ CPU cores, 48GB RAM, 750GB storage (with pruning)
+- 8+ CPU cores, 48GB RAM
+- 750GB storage (pruning enabled) or 1.3TB (pruning disabled)
 
 ### Steps
 
@@ -134,13 +136,13 @@ curl -X POST http://localhost:8082/network/status \
 
 Based on our [hardware profiles](https://cardano-foundation.github.io/cardano-rosetta-java/docs/install-and-deploy/hardware-profiles):
 
-| Profile | CPU | RAM | Storage* | Use Case |
-|---------|-----|-----|----------|----------|
-| **Entry-Level** | 4 cores | 32GB | 100GB (testnet) | Development & testing |
-| **Mid-Level** ⭐ | 8 cores | 48GB | 750GB | Production (recommended) |
-| **Advanced** | 16 cores | 94GB | 1TB+ | High-volume exchanges |
+| Profile | CPU | RAM | Storage (Pruning Enabled)* | Storage (Pruning Disabled) | Use Case |
+|---------|-----|-----|----------------------------|----------------------------|----------|
+| **Entry-Level** | 4 cores | 32GB | 100GB (preprod) | 140GB (preprod) | Development & testing |
+| **Mid-Level** ⭐ | 8 cores | 48GB | 750GB (mainnet) | 1.3TB (mainnet) | Production (recommended) |
+| **Advanced** | 16 cores | 94GB | 750GB (mainnet) | 1.3TB (mainnet) | High-volume exchanges |
 
-*With UTXO pruning enabled (default). Add ~40% for full history.
+*Pruning enabled by default - reduces storage by ~40% while maintaining current UTXO set and recent history (configurable safety margin, default: 129,600 blocks/~30 days).
 
 ## Installation
 
@@ -162,6 +164,7 @@ See [Quick Start](#quick-start) above or the [installation documentation](https:
 | `CARDANO_NETWORK` | Network to connect to | `mainnet` |
 | `API_SPRING_PROFILES_ACTIVE` | API mode (`online`/`offline`) | `online` |
 | `REMOVE_SPENT_UTXOS` | Enable spent UTXO pruning | `true` |
+| `REMOVE_SPENT_UTXOS_LAST_BLOCKS_GRACE_COUNT` | Safety margin for pruning (in blocks) | `129600` (~30 days) |
 | `API_PORT` | Mesh API port | `8082` |
 
 Full environment variable reference: [documentation](https://cardano-foundation.github.io/cardano-rosetta-java/docs/install-and-deploy/env-vars).
@@ -170,8 +173,9 @@ Full environment variable reference: [documentation](https://cardano-foundation.
 
 Pruning is **enabled by default** to optimize for high-performance exchange operations:
 
-- **When enabled (default)**: Maintains current UTXO set and spent UTXOs within the safety margin (2,160 blocks/~12 hours), reducing storage by ~40% and improving query performance
+- **When enabled (default)**: Maintains current UTXO set and spent UTXOs within the configurable safety margin (default: 129,600 blocks/~30 days), reducing storage by ~40% and improving query performance
 - **When disabled**: Functions as a full indexer maintaining complete historical data for all transactions and spent UTXOs
+- **Safety margin**: Configurable via `REMOVE_SPENT_UTXOS_LAST_BLOCKS_GRACE_COUNT` (default: 129600)
 
 For detailed configuration, see [pruning documentation](https://cardano-foundation.github.io/cardano-rosetta-java/docs/advanced-configuration/pruning).
 
