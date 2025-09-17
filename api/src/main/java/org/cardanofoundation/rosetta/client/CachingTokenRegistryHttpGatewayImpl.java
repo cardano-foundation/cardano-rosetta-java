@@ -5,6 +5,8 @@ import com.google.common.cache.Cache;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.cardanofoundation.rosetta.client.model.domain.TokenCacheEntry;
+import org.cardanofoundation.rosetta.client.model.domain.TokenMetadata;
 import org.cardanofoundation.rosetta.client.model.domain.TokenRegistryBatchRequest;
 import org.cardanofoundation.rosetta.client.model.domain.TokenRegistryBatchResponse;
 import org.cardanofoundation.rosetta.client.model.domain.TokenSubject;
@@ -28,7 +30,7 @@ public class CachingTokenRegistryHttpGatewayImpl implements TokenRegistryHttpGat
 
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private final Cache<String, Optional<TokenSubject>> tokenMetadataCache;
+    private final Cache<String, TokenCacheEntry> tokenMetadataCache;
 
     @Value("${cardano.rosetta.TOKEN_REGISTRY_ENABLED:true}")
     protected boolean enabled;
@@ -67,12 +69,14 @@ public class CachingTokenRegistryHttpGatewayImpl implements TokenRegistryHttpGat
         Map<String, Optional<TokenSubject>> result = new HashMap<>();
 
         for (String subject : subjects) {
-            Optional<TokenSubject> cached = Optional.ofNullable(tokenMetadataCache.getIfPresent(subject))
-                    .flatMap(Function.identity());
+            TokenCacheEntry cached = tokenMetadataCache.getIfPresent(subject);
 
-            if (cached.isPresent()) {
-                result.put(subject, cached);
+            if (cached != null) {
+                // We have a cache entry (either found or not found)
+                result.put(subject, cached.getTokenSubject());
+                log.debug("Retrieved cached entry for subject: {} (found: {})", subject, cached.isFound());
             } else {
+                // Not in cache at all, need to fetch
                 subjectsToFetch.add(subject);
             }
         }
@@ -95,6 +99,8 @@ public class CachingTokenRegistryHttpGatewayImpl implements TokenRegistryHttpGat
             // Prepare HTTP request
             String requestBody = objectMapper.writeValueAsString(request);
 
+            log.info(requestBody);
+
             HttpRequest httpRequest = HttpRequest.newBuilder()
                     .uri(URI.create(batchEndpointUrl))
                     .POST(HttpRequest.BodyPublishers.ofString(requestBody))
@@ -113,26 +119,40 @@ public class CachingTokenRegistryHttpGatewayImpl implements TokenRegistryHttpGat
                 return result; // Return partial results from cache
             }
 
+            log.info("body:" + response.body());
+
             // Parse response
             TokenRegistryBatchResponse batchResponse = objectMapper.readValue(response.body(), TokenRegistryBatchResponse.class);
 
+            log.info("subjects count:" + batchResponse.getSubjects().size());
+
             if (batchResponse.getSubjects() != null) {
                 for (TokenSubject tokenSubject : batchResponse.getSubjects()) {
-                    result.put(tokenSubject.getSubject(), Optional.of(tokenSubject));
+                    // Validate that essential metadata exists
+                    if (isValidTokenSubject(tokenSubject)) {
+                        result.put(tokenSubject.getSubject(), Optional.of(tokenSubject));
 
-                    // Cache the result
-                    tokenMetadataCache.put(tokenSubject.getSubject(), Optional.of(tokenSubject));
+                        // Cache the valid result
+                        tokenMetadataCache.put(tokenSubject.getSubject(), TokenCacheEntry.found(tokenSubject));
 
-                    log.debug("Cached token metadata for subject: {}", tokenSubject.getSubject());
+                        log.debug("Cached valid token metadata for subject: {}", tokenSubject.getSubject());
+                    } else {
+                        // Token exists in registry but lacks essential metadata - treat as not found
+                        result.put(tokenSubject.getSubject(), Optional.empty());
+                        tokenMetadataCache.put(tokenSubject.getSubject(), TokenCacheEntry.notFound());
+                        
+//                        log.warn("Token subject {} returned from registry with invalid/incomplete metadata, caching as not found",
+//                                tokenSubject.getSubject());
+                    }
                 }
             }
 
-            // Cache empty results for subjects that were requested but not found
+            // Cache empty results for subjects that were requested but not found in the response
             for (String subjectToFetch : subjectsToFetch) {
                 if (!result.containsKey(subjectToFetch)) {
                     result.put(subjectToFetch, Optional.empty());
-                    tokenMetadataCache.put(subjectToFetch, Optional.empty());
-                    log.debug("Cached empty result for subject: {}", subjectToFetch);
+                    tokenMetadataCache.put(subjectToFetch, TokenCacheEntry.notFound());
+                    log.debug("Cached not-found result for subject: {}", subjectToFetch);
                 }
             }
 
@@ -156,7 +176,7 @@ public class CachingTokenRegistryHttpGatewayImpl implements TokenRegistryHttpGat
 
     void evictFromCache(String subject) {
         tokenMetadataCache.invalidate(subject);
-        log.debug("Evicted cache entries for subject: {}", subject);
+        log.debug("Evicted cache entry for subject: {}", subject);
     }
 
     @Scheduled(fixedRateString = "${cardano.rosetta.TOKEN_REGISTRY_CACHE_CLEAR_RATE:15m}")
@@ -185,6 +205,36 @@ public class CachingTokenRegistryHttpGatewayImpl implements TokenRegistryHttpGat
         }
         
         return properties;
+    }
+
+    /**
+     * Validates that a TokenSubject has the essential metadata required.
+     * Tokens without name and description are considered invalid and should be treated as not found.
+     * 
+     * @param tokenSubject The token subject to validate
+     * @return true if the token has valid essential metadata, false otherwise
+     */
+    private boolean isValidTokenSubject(TokenSubject tokenSubject) {
+        if (tokenSubject == null || tokenSubject.getSubject() == null) {
+            return false;
+        }
+        
+        TokenMetadata metadata = tokenSubject.getMetadata();
+        if (metadata == null) {
+            return false;
+        }
+        
+        // Name and description are essential fields - if they're null, the token data is incomplete
+        if (metadata.getName() == null || metadata.getDescription() == null) {
+            return false;
+        }
+        
+        // Further check that the actual values exist
+        if (metadata.getName().getValue() == null || metadata.getDescription().getValue() == null) {
+            return false;
+        }
+        
+        return true;
     }
 
 }

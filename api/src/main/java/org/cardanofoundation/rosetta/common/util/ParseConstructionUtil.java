@@ -185,6 +185,7 @@ public class ParseConstructionUtil {
             log.error("[parseAsset] asset value for symbol: {} not provided", assetSymbol);
             throw ExceptionFactory.tokenAssetValueMissingError();
         }
+
         return DataMapper.mapAmount(assetValue.toString(), assetSymbol, 0, null);
     }
 

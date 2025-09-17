@@ -221,7 +221,7 @@ public class TransactionMapperUtils {
                                       Amt amount,
                                       Map<String, Optional<TokenSubject>> tokenMetadataMap) {
     // Create subject for this token
-    String subject = amount.getPolicyId() + HexUtil.encodeHexString(amount.getAssetName().getBytes(UTF_8));
+    String subject = "%s%s".formatted(amount.getPolicyId(), HexUtil.encodeHexString(amount.getAssetName().getBytes(UTF_8)));
 
     // Get metadata if available
     Optional<TokenSubject> tokenMetadata = tokenMetadataMap.getOrDefault(subject, Optional.empty());
@@ -257,7 +257,7 @@ public class TransactionMapperUtils {
     tokenMetadata.ifPresent(t -> {
       TokenMetadata tokenMeta = t.getMetadata();
 
-      // Mandatory fields from registry API
+      // Mandatory fields from registry API related to token data
       builder.subject(t.getSubject());
       builder.name(tokenMeta.getName().getValue());
       builder.description(tokenMeta.getDescription().getValue());

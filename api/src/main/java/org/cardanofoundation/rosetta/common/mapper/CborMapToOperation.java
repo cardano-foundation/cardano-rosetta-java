@@ -291,6 +291,7 @@ public class CborMapToOperation {
             CurrencyMetadataResponse metadata = CurrencyMetadataResponse.builder()
                 .policyId(policyId)
                 .build();
+
             currency.setMetadata(metadata);
         });
     }

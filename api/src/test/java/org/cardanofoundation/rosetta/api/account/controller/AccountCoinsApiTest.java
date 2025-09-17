@@ -184,13 +184,13 @@ class AccountCoinsApiTest extends BaseSpringMvcSetup {
     assertEquals(coinsMetadata.getFirst().getPolicyId(), coinsMetadata.get(1).getPolicyId());
     assertEquals(TestConstants.ACCOUNT_BALANCE_MINTED_TOKENS_AMOUNT, coinsMetadata.getFirst()
         .getTokens().getFirst().getValue());
-    // Metadata no longer contains policyId - it's not duplicated in response
-    assertEquals(Constants.MULTI_ASSET_DECIMALS,
+    // With TokenRegistry integration, decimals come from metadata instead of default
+    assertEquals(6,
         coinsMetadata.getFirst().getTokens().getFirst().getCurrency().getDecimals());
     assertEquals(TestConstants.ACCOUNT_BALANCE_MINTED_TOKENS_AMOUNT, coinsMetadata.get(1)
         .getTokens().getFirst().getValue());
-    // Metadata no longer contains policyId - it's not duplicated in response
-    assertEquals(Constants.MULTI_ASSET_DECIMALS,
+    // With TokenRegistry integration, decimals come from metadata instead of default
+    assertEquals(6,
         coinsMetadata.get(1).getTokens().getFirst().getCurrency().getDecimals());
   }
 

@@ -1,15 +1,13 @@
 package org.cardanofoundation.rosetta.common.mapper;
 
-import java.util.Objects;
-
 import lombok.RequiredArgsConstructor;
-
+import org.cardanofoundation.rosetta.common.util.Constants;
 import org.openapitools.client.model.Amount;
-import org.openapitools.client.model.CurrencyMetadataRequest;
 import org.openapitools.client.model.CurrencyMetadataResponse;
 import org.openapitools.client.model.CurrencyResponse;
 
-import org.cardanofoundation.rosetta.common.util.Constants;
+import javax.annotation.Nullable;
+import java.util.Objects;
 
 @RequiredArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public class DataMapper {
@@ -38,7 +36,7 @@ public class DataMapper {
   public static Amount mapAmount(String value,
                                  String symbol,
                                  Integer decimals,
-                                 CurrencyMetadataResponse metadata) {
+                                 @Nullable CurrencyMetadataResponse metadata) {
     if (Objects.isNull(symbol)) {
       symbol = Constants.ADA;
     }

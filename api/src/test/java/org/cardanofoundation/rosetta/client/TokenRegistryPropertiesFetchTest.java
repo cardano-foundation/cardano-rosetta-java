@@ -2,6 +2,7 @@ package org.cardanofoundation.rosetta.client;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import org.cardanofoundation.rosetta.client.model.domain.TokenCacheEntry;
 import org.cardanofoundation.rosetta.client.model.domain.TokenSubject;
 import org.junit.jupiter.api.Test;
 
@@ -21,7 +22,7 @@ class TokenRegistryPropertiesFetchTest {
     void buildPropertiesList_WhenLogoFetchEnabled_IncludesAllProperties() {
         // Given
         HttpClient httpClient = mock(HttpClient.class);
-        Cache<String, Optional<TokenSubject>> cache = CacheBuilder.newBuilder().maximumSize(100).build();
+        Cache<String, TokenCacheEntry> cache = CacheBuilder.newBuilder().maximumSize(100).build();
         
         TestableTokenRegistryGateway gateway = new TestableTokenRegistryGateway(httpClient, cache, true);
         
@@ -36,7 +37,7 @@ class TokenRegistryPropertiesFetchTest {
     void buildPropertiesList_WhenLogoFetchDisabled_ExcludesLogo() {
         // Given
         HttpClient httpClient = mock(HttpClient.class);
-        Cache<String, Optional<TokenSubject>> cache = CacheBuilder.newBuilder().maximumSize(100).build();
+        Cache<String, TokenCacheEntry> cache = CacheBuilder.newBuilder().maximumSize(100).build();
         
         TestableTokenRegistryGateway gateway = new TestableTokenRegistryGateway(httpClient, cache, false);
         
@@ -54,7 +55,7 @@ class TokenRegistryPropertiesFetchTest {
     static class TestableTokenRegistryGateway extends CachingTokenRegistryHttpGatewayImpl {
         private final boolean testLogoFetchEnabled;
 
-        public TestableTokenRegistryGateway(HttpClient httpClient, Cache<String, Optional<TokenSubject>> cache, boolean logoFetchEnabled) {
+        public TestableTokenRegistryGateway(HttpClient httpClient, Cache<String, TokenCacheEntry> cache, boolean logoFetchEnabled) {
             super(httpClient, cache);
             this.testLogoFetchEnabled = logoFetchEnabled;
         }

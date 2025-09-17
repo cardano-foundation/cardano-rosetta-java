@@ -123,10 +123,10 @@ public class AccountServiceImpl implements AccountService {
   private Optional<BlockIdentifierExtended> findBlockOrLast(Long number, String hash) {
     if (number != null || hash != null) {
       return ledgerBlockService.findBlockIdentifier(number, hash);
-    } else {
+    }
+
       return Optional.of(ledgerBlockService.findLatestBlockIdentifier());
     }
-  }
 
   private void validateCurrencies(List<CurrencyRequest> currencies) {
     for (CurrencyRequest currency : currencies) {
@@ -155,6 +155,8 @@ public class AccountServiceImpl implements AccountService {
     boolean isAdaAbsent = Optional.ofNullable(currencies)
             .map(c -> c.stream().map(CurrencyRequest::getSymbol).noneMatch(Constants.ADA::equals))
             .orElse(false);
+
     return isAdaAbsent ? currencies : Collections.emptyList();
   }
+
 }
