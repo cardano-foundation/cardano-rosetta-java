@@ -3,11 +3,8 @@ package org.cardanofoundation.rosetta.api.account.mapper;
 import org.cardanofoundation.rosetta.api.account.model.domain.AddressBalance;
 import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
-import org.cardanofoundation.rosetta.client.TokenRegistryHttpGateway;
-import org.cardanofoundation.rosetta.client.model.domain.TokenMetadata;
-import org.cardanofoundation.rosetta.client.model.domain.TokenProperty;
-import org.cardanofoundation.rosetta.client.model.domain.TokenPropertyNumber;
-import org.cardanofoundation.rosetta.client.model.domain.TokenSubject;
+import org.cardanofoundation.rosetta.api.common.model.Asset;
+import org.cardanofoundation.rosetta.api.common.service.TokenRegistryService;
 import org.cardanofoundation.rosetta.common.util.Constants;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -19,6 +16,7 @@ import org.openapitools.client.model.Amount;
 import org.openapitools.client.model.Coin;
 import org.openapitools.client.model.CoinTokens;
 import org.openapitools.client.model.CurrencyMetadataResponse;
+import org.openapitools.client.model.LogoType;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -33,16 +31,16 @@ import static org.mockito.Mockito.when;
 class AccountMapperUtilTest {
 
     @Mock
-    private TokenRegistryHttpGateway tokenRegistryHttpGateway;
+    private TokenRegistryService tokenRegistryService;
 
     private AccountMapperUtil accountMapperUtil;
 
     @BeforeEach
     void setUp() {
-        accountMapperUtil = new AccountMapperUtil(tokenRegistryHttpGateway);
+        accountMapperUtil = new AccountMapperUtil(tokenRegistryService);
         
         // Default mock behavior - returns empty map (no metadata)
-        lenient().when(tokenRegistryHttpGateway.getTokenMetadataBatch(anySet()))
+        lenient().when(tokenRegistryService.getTokenMetadataBatch(anySet()))
                 .thenReturn(Collections.emptyMap());
     }
 
@@ -74,6 +72,14 @@ class AccountMapperUtilTest {
             String policyId = "a0b1c2d3e4f5a0b1c2d3e4f5a0b1c2d3e4f5a0b1c2d3e4f5a0b1c2d3"; // exactly 56 chars
             String assetName = "TestToken";
             String unit = policyId + assetName;
+            
+            // Mock service to return fallback metadata (service always returns something now)
+            Asset asset = Asset.builder().policyId(policyId).assetName(assetName).build();
+            CurrencyMetadataResponse fallbackMetadata = CurrencyMetadataResponse.builder()
+                .policyId(policyId)
+                .build();
+            Map<Asset, CurrencyMetadataResponse> tokenMetadataMap = Map.of(asset, fallbackMetadata);
+            when(tokenRegistryService.getTokenMetadataBatch(anySet())).thenReturn(tokenMetadataMap);
             
             List<AddressBalance> balances = List.of(
                     createAddressBalance(Constants.LOVELACE, BigInteger.valueOf(2000000)),
@@ -114,13 +120,14 @@ class AccountMapperUtilTest {
             String subject = policyId + "54657374546f6b656e"; // hex encoding of "TestToken"
             
             // Mock token registry response
-            TokenSubject tokenSubject = createTokenSubject(subject, "Test Token", "Test description", 
-                    "TST", "https://test.com", "logo", 6L, 1L);
+            CurrencyMetadataResponse currencyMetadata = createCurrencyMetadata(policyId, subject, "Test Token", "Test description", 
+                    "TST", "https://test.com", "logo", 6, 1L);
             
-            Map<String, Optional<TokenSubject>> tokenMetadataMap = new HashMap<>();
-            tokenMetadataMap.put(subject, Optional.of(tokenSubject));
+            Map<Asset, CurrencyMetadataResponse> tokenMetadataMap = new HashMap<>();
+            Asset asset = Asset.builder().policyId(policyId).assetName(assetName).build();
+            tokenMetadataMap.put(asset, currencyMetadata);
             
-            when(tokenRegistryHttpGateway.getTokenMetadataBatch(anySet())).thenReturn(tokenMetadataMap);
+            when(tokenRegistryService.getTokenMetadataBatch(anySet())).thenReturn(tokenMetadataMap);
             
             List<AddressBalance> balances = List.of(
                     createAddressBalance(Constants.LOVELACE, BigInteger.valueOf(1500000)),
@@ -148,7 +155,8 @@ class AccountMapperUtilTest {
             assertEquals("Test description", metadata.getDescription());
             assertEquals("TST", metadata.getTicker());
             assertEquals("https://test.com", metadata.getUrl());
-            assertEquals("logo", metadata.getLogo());
+            assertNotNull(metadata.getLogo());
+            assertEquals("logo", metadata.getLogo().getValue());
             assertEquals(BigDecimal.valueOf(1L), metadata.getVersion());
         }
 
@@ -165,11 +173,13 @@ class AccountMapperUtilTest {
             String subject2 = policyId2 + "546f6b656e32"; // hex of "Token2"
             
             // Mock batch registry response
-            Map<String, Optional<TokenSubject>> tokenMetadataMap = new HashMap<>();
-            tokenMetadataMap.put(subject1, Optional.of(createTokenSubject(subject1, "First Token", "First desc", "TK1", null, null, 8L, null)));
-            tokenMetadataMap.put(subject2, Optional.empty()); // No metadata for second token
+            Map<Asset, CurrencyMetadataResponse> tokenMetadataMap = new HashMap<>();
+            Asset asset1 = Asset.builder().policyId(policyId1).assetName(assetName1).build();
+            Asset asset2 = Asset.builder().policyId(policyId2).assetName(assetName2).build();
+            tokenMetadataMap.put(asset1, createCurrencyMetadata(policyId1, subject1, "First Token", "First desc", "TK1", null, null, 8, null));
+            tokenMetadataMap.put(asset2, CurrencyMetadataResponse.builder().policyId(policyId2).build()); // Fallback metadata for second token
             
-            when(tokenRegistryHttpGateway.getTokenMetadataBatch(anySet())).thenReturn(tokenMetadataMap);
+            when(tokenRegistryService.getTokenMetadataBatch(anySet())).thenReturn(tokenMetadataMap);
             
             List<AddressBalance> balances = List.of(
                     createAddressBalance(Constants.LOVELACE, BigInteger.valueOf(3000000)),
@@ -225,9 +235,10 @@ class AccountMapperUtilTest {
                 createAddressBalance(unit, BigInteger.valueOf(500))
             );
 
-            // Token with null metadata fields should be filtered out by TokenRegistry and returned as Optional.empty()
-            when(tokenRegistryHttpGateway.getTokenMetadataBatch(anySet()))
-                .thenReturn(Map.of(subject, Optional.empty()));
+            // Token with null metadata fields should return fallback metadata with only policyId
+            Asset asset = Asset.builder().policyId(policyId).assetName(assetName).build();
+            when(tokenRegistryService.getTokenMetadataBatch(anySet()))
+                .thenReturn(Map.of(asset, CurrencyMetadataResponse.builder().policyId(policyId).build()));
 
             // when
             List<Amount> amounts = accountMapperUtil.mapAddressBalancesToAmounts(balances);
@@ -263,9 +274,10 @@ class AccountMapperUtilTest {
                 createAddressBalance(unit, BigInteger.valueOf(500))
             );
 
-            // Token with null metadata should be filtered out by TokenRegistry and returned as Optional.empty()
-            when(tokenRegistryHttpGateway.getTokenMetadataBatch(anySet()))
-                .thenReturn(Map.of(subject, Optional.empty()));
+            // Token with null metadata should return fallback metadata with only policyId
+            Asset asset = Asset.builder().policyId(policyId).assetName(assetName).build();
+            when(tokenRegistryService.getTokenMetadataBatch(anySet()))
+                .thenReturn(Map.of(asset, CurrencyMetadataResponse.builder().policyId(policyId).build()));
 
             // when
             List<Amount> amounts = accountMapperUtil.mapAddressBalancesToAmounts(balances);
@@ -321,9 +333,10 @@ class AccountMapperUtilTest {
             String subject = policyId + "54657374546f6b656e"; // hex of "TestToken"
             
             // Mock registry response
-            TokenSubject tokenSubject = createTokenSubject(subject, "Test Token", "Test desc", "TST", null, null, 4L, null);
-            Map<String, Optional<TokenSubject>> tokenMetadataMap = Map.of(subject, Optional.of(tokenSubject));
-            when(tokenRegistryHttpGateway.getTokenMetadataBatch(anySet())).thenReturn(tokenMetadataMap);
+            CurrencyMetadataResponse currencyMetadata = createCurrencyMetadata(policyId, subject, "Test Token", "Test desc", "TST", null, null, 4, null);
+            Asset asset = Asset.builder().policyId(policyId).assetName(assetName).build();
+            Map<Asset, CurrencyMetadataResponse> tokenMetadataMap = Map.of(asset, currencyMetadata);
+            when(tokenRegistryService.getTokenMetadataBatch(anySet())).thenReturn(tokenMetadataMap);
             
             List<Utxo> utxos = List.of(
                     createUtxo("txhash1", 0, List.of(
@@ -437,32 +450,30 @@ class AccountMapperUtilTest {
                 .build();
     }
 
-    private TokenSubject createTokenSubject(String subject, String name, String description, 
-                                          String ticker, String url, String logo, Long decimals, Long version) {
-        TokenSubject tokenSubject = new TokenSubject();
-        tokenSubject.setSubject(subject);
-        
-        TokenMetadata metadata = new TokenMetadata();
-        metadata.setName(TokenProperty.builder().value(name).source("test").build());
-        metadata.setDescription(TokenProperty.builder().value(description).source("test").build());
+    private CurrencyMetadataResponse createCurrencyMetadata(String policyId, String subject, String name, String description, 
+                                          String ticker, String url, String logo, Integer decimals, Long version) {
+        CurrencyMetadataResponse.CurrencyMetadataResponseBuilder builder = CurrencyMetadataResponse.builder()
+                .policyId(policyId)
+                .subject(subject)
+                .name(name)
+                .description(description);
         
         if (ticker != null) {
-            metadata.setTicker(TokenProperty.builder().value(ticker).source("test").build());
+            builder.ticker(ticker);
         }
         if (url != null) {
-            metadata.setUrl(TokenProperty.builder().value(url).source("test").build());
+            builder.url(url);
         }
         if (logo != null) {
-            metadata.setLogo(TokenProperty.builder().value(logo).source("test").build());
+            builder.logo(LogoType.builder().format(LogoType.FormatEnum.BASE64).value(logo).build());
         }
         if (decimals != null) {
-            metadata.setDecimals(TokenPropertyNumber.builder().value(decimals).source("test").build());
+            builder.decimals(decimals);
         }
         if (version != null) {
-            metadata.setVersion(TokenPropertyNumber.builder().value(version).source("test").build());
+            builder.version(BigDecimal.valueOf(version));
         }
         
-        tokenSubject.setMetadata(metadata);
-        return tokenSubject;
+        return builder.build();
     }
 }

@@ -9,25 +9,26 @@ import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.concurrent.TimeUnit;
+import static java.util.concurrent.TimeUnit.HOURS;
 
 @Configuration
 @EnableCaching
 public class CacheConfig {
-
 
   @Bean
   public ConcurrentMapCacheManager cacheManager() {
     return new ConcurrentMapCacheManager("protocolParamsCache");
   }
 
+  //a cache for token metadata from token registry
   @Bean
   public Cache<String, TokenCacheEntry> tokenMetadataCache(
       @Value("${cardano.rosetta.TOKEN_REGISTRY_CACHE_TTL_HOURS:1}") int cacheTtlHours) {
     return CacheBuilder.newBuilder()
         .maximumSize(10_000) // Maximum 10k cached entries
-        .expireAfterWrite(cacheTtlHours, TimeUnit.HOURS)
+        .expireAfterWrite(cacheTtlHours, HOURS)
         .recordStats()
         .build();
   }
+
 }

@@ -16,7 +16,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.cardanofoundation.rosetta.api.BaseMapperSetup.BaseMappersConfig;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
-import org.cardanofoundation.rosetta.client.TokenRegistryHttpGateway;
+import org.cardanofoundation.rosetta.api.common.service.TokenRegistryService;
 import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
 
 import static org.mockito.Mockito.when;
@@ -29,7 +29,7 @@ public class BaseMapperSetup {
   protected ProtocolParamService protocolParamService;
 
   @MockitoBean
-  protected TokenRegistryHttpGateway tokenRegistryHttpGateway;
+  protected TokenRegistryService tokenRegistryService;
 
   @Mock
   ProtocolParams protocolParams;

@@ -214,6 +214,7 @@ public class CachingTokenRegistryHttpGatewayImpl implements TokenRegistryHttpGat
      * @param tokenSubject The token subject to validate
      * @return true if the token has valid essential metadata, false otherwise
      */
+    // THIS IS A WORKAROUND for https://github.com/cardano-foundation/cf-token-metadata-registry/issues/30
     private boolean isValidTokenSubject(TokenSubject tokenSubject) {
         if (tokenSubject == null || tokenSubject.getSubject() == null) {
             return false;

@@ -24,7 +24,7 @@ import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockIdentifierExtended;
 import org.cardanofoundation.rosetta.api.block.service.LedgerBlockService;
-import org.cardanofoundation.rosetta.client.TokenRegistryHttpGateway;
+import org.cardanofoundation.rosetta.api.common.service.TokenRegistryService;
 import org.cardanofoundation.rosetta.client.YaciHttpGateway;
 import org.cardanofoundation.rosetta.client.model.domain.StakeAccountInfo;
 import org.cardanofoundation.rosetta.common.exception.ApiException;
@@ -50,7 +50,7 @@ class AccountServiceImplTest {
   YaciHttpGateway yaciHttpGateway;
 
   @Mock
-  TokenRegistryHttpGateway tokenRegistryHttpGateway;
+  TokenRegistryService tokenRegistryService;
 
   @Spy
   AddressBalanceMapperImpl addressBalanceMapper;
@@ -62,7 +62,7 @@ class AccountServiceImplTest {
 
   @BeforeEach
   void setUp() {
-    accountMapper = new AccountMapperImpl(new AccountMapperUtil(tokenRegistryHttpGateway));
+    accountMapper = new AccountMapperImpl(new AccountMapperUtil(tokenRegistryService));
     accountService = new AccountServiceImpl(ledgerAccountService, ledgerBlockService, accountMapper, yaciHttpGateway, addressBalanceMapper);
   }
 
@@ -148,7 +148,7 @@ class AccountServiceImplTest {
                             BigInteger.valueOf(10)).build()));
     BlockIdentifierExtended block = getMockedBlockIdentifierExtended();
     when(ledgerBlockService.findLatestBlockIdentifier()).thenReturn(block);
-    when(tokenRegistryHttpGateway.getTokenMetadataBatch(any())).thenReturn(Collections.emptyMap());
+    when(tokenRegistryService.getTokenMetadataBatch(any())).thenReturn(Collections.emptyMap());
     AccountBalanceRequest accountBalanceRequest = AccountBalanceRequest.builder()
             .accountIdentifier(AccountIdentifier.builder().address(address).build())
             .blockIdentifier(null)

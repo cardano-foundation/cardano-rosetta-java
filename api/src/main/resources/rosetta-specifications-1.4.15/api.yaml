@@ -2087,6 +2087,22 @@ components:
           description: 'The policy ID that controls this native token (hex string). Required for all non-ADA currencies.'
           type: string
 
+    LogoType:
+      description: 'Token logo representation that can be either base64 encoded data (CIP_26) or URL (CIP_68)'
+      type: object
+      required:
+        - format
+        - value
+      properties:
+        format:
+          description: 'The format of the logo data'
+          type: string
+          enum:
+            - base64
+            - url
+        value:
+          description: 'The logo content - either base64 encoded string or URL'
+          type: string
     CurrencyMetadataResponse:
       description: 'Cardano-specific response metadata for native tokens'
       type: object
@@ -2112,11 +2128,16 @@ components:
           description: 'Token Registry data representing an asset''s project url'
           type: string
         logo:
-          description: 'Token Registry data representing an asset''s logo (base64 encoded)'
-          type: string
+          description: 'Token Registry data representing an asset''s logo'
+          $ref: '#/components/schemas/LogoType'
         version:
           description: 'Token Registry data representing an asset''s version'
           type: number
+        decimals:
+          description: 'Number of decimal places for this token'
+          type: integer
+          format: int32
+          minimum: 0
 
     ConstructionMetadataRequestOption:
       description: ''

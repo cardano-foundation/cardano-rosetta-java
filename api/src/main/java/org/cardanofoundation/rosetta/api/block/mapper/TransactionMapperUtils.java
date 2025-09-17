@@ -3,7 +3,6 @@ package org.cardanofoundation.rosetta.api.block.mapper;
 import com.bloxbean.cardano.client.transaction.spec.governance.Anchor;
 import com.bloxbean.cardano.client.transaction.spec.governance.Vote;
 import com.bloxbean.cardano.client.transaction.spec.governance.actions.GovActionId;
-import com.bloxbean.cardano.client.util.HexUtil;
 import com.bloxbean.cardano.yaci.core.model.certs.CertificateType;
 import lombok.RequiredArgsConstructor;
 import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
@@ -11,10 +10,8 @@ import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.block.model.domain.DRepDelegation;
 import org.cardanofoundation.rosetta.api.block.model.domain.GovernancePoolVote;
 import org.cardanofoundation.rosetta.api.block.model.domain.StakeRegistration;
-import org.cardanofoundation.rosetta.client.TokenRegistryHttpGateway;
-import org.cardanofoundation.rosetta.client.model.domain.TokenMetadata;
-import org.cardanofoundation.rosetta.client.model.domain.TokenPropertyNumber;
-import org.cardanofoundation.rosetta.client.model.domain.TokenSubject;
+import org.cardanofoundation.rosetta.api.common.model.Asset;
+import org.cardanofoundation.rosetta.api.common.service.TokenRegistryService;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.common.mapper.DataMapper;
 import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
@@ -24,12 +21,10 @@ import org.openapitools.client.model.*;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Nullable;
-import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.cardanofoundation.rosetta.common.util.Constants.LOVELACE;
 
 @Component
@@ -37,7 +32,7 @@ import static org.cardanofoundation.rosetta.common.util.Constants.LOVELACE;
 public class TransactionMapperUtils {
 
   final ProtocolParamService protocolParamService;
-  final TokenRegistryHttpGateway tokenRegistryHttpGateway;
+  final TokenRegistryService tokenRegistryService;
 
   @Named("convertGovAnchorFromRosetta")
   public GovVoteRationaleParams convertGovAnchorFromRosetta(Anchor anchor) {
@@ -107,18 +102,21 @@ public class TransactionMapperUtils {
             .filter(amount -> !amount.getAssetName().equals(LOVELACE))
             .toList();
 
-    // token bundle is only for native assets
+    // token bundle is only for ada, no native assets present
     if (nonAdaAmounts.isEmpty()) {
       return null;
     }
 
-    // Collect all subjects (policyId + assetName concatenated) for batch fetching
-    Set<String> subjects = nonAdaAmounts.stream()
-            .map(amount -> amount.getPolicyId() + HexUtil.encodeHexString(amount.getAssetName().getBytes(UTF_8)))
+    // Collect all unique assets for bulk metadata fetch
+    Set<Asset> assets = nonAdaAmounts.stream()
+            .map(amount -> Asset.builder()
+                    .policyId(amount.getPolicyId())
+                    .assetName(amount.getAssetName())
+                    .build())
             .collect(Collectors.toSet());
 
-    // Fetch token metadata for all subjects in batch
-    Map<String, Optional<TokenSubject>> tokenMetadataMap = tokenRegistryHttpGateway.getTokenMetadataBatch(subjects);
+    // Bulk fetch token metadata
+    Map<Asset, CurrencyMetadataResponse> metadataMap = tokenRegistryService.getTokenMetadataBatch(assets);
 
     // Group amounts by policyId and create token bundles
     nonAdaAmounts.stream()
@@ -128,7 +126,7 @@ public class TransactionMapperUtils {
                             TokenBundleItem.builder()
                                     .policyId(policyId)
                                     .tokens(policyIdAmounts.stream()
-                                            .map(amount -> extractAmount(spent, amount, tokenMetadataMap))
+                                            .map(amount -> extractAmount(spent, amount, metadataMap))
                                             .toList())
                                     .build()
                     )
@@ -217,59 +215,30 @@ public class TransactionMapperUtils {
     return CoinAction.CREATED;
   }
 
-  private static Amount extractAmount(boolean spent,
-                                      Amt amount,
-                                      Map<String, Optional<TokenSubject>> tokenMetadataMap) {
-    // Create subject for this token
-    String subject = "%s%s".formatted(amount.getPolicyId(), HexUtil.encodeHexString(amount.getAssetName().getBytes(UTF_8)));
+  private Amount extractAmount(boolean spent, Amt amount, 
+                               Map<Asset, CurrencyMetadataResponse> metadataMap) {
+    Asset asset = Asset.builder()
+            .policyId(amount.getPolicyId())
+            .assetName(amount.getAssetName())
+            .build();
 
-    // Get metadata if available
-    Optional<TokenSubject> tokenMetadata = tokenMetadataMap.getOrDefault(subject, Optional.empty());
+    CurrencyMetadataResponse metadataCurrencyResponse = metadataMap.get(asset);
 
     CurrencyResponse c = CurrencyResponse.builder()
             .symbol(amount.getAssetName())
-            .decimals(extractTokenDecimals(tokenMetadata))
+            .decimals(getDecimalsWithFallback(metadataCurrencyResponse))
             .build();
-
-    CurrencyMetadataResponse currencyMetadataResponse = extractTokenMetadata(amount.getPolicyId(), tokenMetadata);
-    c.metadata(currencyMetadataResponse);
-
+    
+    c.metadata(metadataCurrencyResponse);
+    
     return Amount.builder()
             .value(DataMapper.mapValue(amount.getQuantity().toString(), spent))
             .currency(c)
             .build();
   }
 
-  private static int extractTokenDecimals(Optional<TokenSubject> tokenMetadata) {
-    return tokenMetadata
-            .map(TokenSubject::getMetadata)
-            .map(TokenMetadata::getDecimals)
-            .map(TokenPropertyNumber::getValue)
-            .map(Long::intValue)
-            .orElse(0);
-  }
-
-  private static CurrencyMetadataResponse extractTokenMetadata(String policyId,
-                                                               Optional<TokenSubject> tokenMetadata) {
-    CurrencyMetadataResponse.CurrencyMetadataResponseBuilder builder = CurrencyMetadataResponse.builder()
-            .policyId(policyId);
-
-    tokenMetadata.ifPresent(t -> {
-      TokenMetadata tokenMeta = t.getMetadata();
-
-      // Mandatory fields from registry API related to token data
-      builder.subject(t.getSubject());
-      builder.name(tokenMeta.getName().getValue());
-      builder.description(tokenMeta.getDescription().getValue());
-
-      // Optional fields
-      Optional.ofNullable(tokenMeta.getTicker()).ifPresent(ticker -> builder.ticker(ticker.getValue()));
-      Optional.ofNullable(tokenMeta.getUrl()).ifPresent(url -> builder.url(url.getValue()));
-      Optional.ofNullable(tokenMeta.getLogo()).ifPresent(logo -> builder.logo(logo.getValue()));
-      Optional.ofNullable(tokenMeta.getVersion()).ifPresent(version -> builder.version(BigDecimal.valueOf(version.getValue())));
-    });
-
-    return builder.build();
+  private static int getDecimalsWithFallback(CurrencyMetadataResponse metadataResponse) {
+    return Optional.ofNullable(metadataResponse.getDecimals()).orElse(0);
   }
 
 }

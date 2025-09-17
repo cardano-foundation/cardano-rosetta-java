@@ -2,11 +2,8 @@ package org.cardanofoundation.rosetta.api.block.mapper;
 
 import org.assertj.core.api.Assertions;
 import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
-import org.cardanofoundation.rosetta.client.TokenRegistryHttpGateway;
-import org.cardanofoundation.rosetta.client.model.domain.TokenMetadata;
-import org.cardanofoundation.rosetta.client.model.domain.TokenProperty;
-import org.cardanofoundation.rosetta.client.model.domain.TokenPropertyNumber;
-import org.cardanofoundation.rosetta.client.model.domain.TokenSubject;
+import org.cardanofoundation.rosetta.api.common.model.Asset;
+import org.cardanofoundation.rosetta.api.common.service.TokenRegistryService;
 import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
 import org.cardanofoundation.rosetta.common.util.Constants;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,6 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.openapitools.client.model.Amount;
 import org.openapitools.client.model.CurrencyMetadataResponse;
 import org.openapitools.client.model.CurrencyResponse;
+import org.openapitools.client.model.LogoType;
 import org.openapitools.client.model.OperationMetadata;
 import org.openapitools.client.model.TokenBundleItem;
 
@@ -36,16 +34,16 @@ class TransactionMapperUtilsTest {
   private ProtocolParamService protocolParamService;
   
   @Mock
-  private TokenRegistryHttpGateway tokenRegistryHttpGateway;
+  private TokenRegistryService tokenRegistryService;
 
   private TransactionMapperUtils transactionMapperUtils;
 
   @BeforeEach
   void setUp() {
-    transactionMapperUtils = new TransactionMapperUtils(protocolParamService, tokenRegistryHttpGateway);
+    transactionMapperUtils = new TransactionMapperUtils(protocolParamService, tokenRegistryService);
     
     // Mock token registry to return empty map (no metadata) - use lenient to avoid unnecessary stubbing errors
-    lenient().when(tokenRegistryHttpGateway.getTokenMetadataBatch(anySet())).thenReturn(Collections.emptyMap());
+    lenient().when(tokenRegistryService.getTokenMetadataBatch(anySet())).thenReturn(Collections.emptyMap());
   }
 
   @Test
@@ -99,25 +97,29 @@ class TransactionMapperUtilsTest {
     String assetName = "testAsset";
     String subject = policyId + "746573744173736574";  // hex encoding of "testAsset"
     
+    // Create Asset object for the request
+    Asset asset = Asset.builder()
+        .policyId(policyId)
+        .assetName(assetName)
+        .build();
+    
     // Mock token registry response with full metadata
-    TokenSubject tokenSubject = new TokenSubject();
-    tokenSubject.setSubject(subject);
+    CurrencyMetadataResponse currencyMetadata = CurrencyMetadataResponse.builder()
+        .policyId(policyId)
+        .subject(subject)
+        .name("Test Token")
+        .description("Test description")
+        .ticker("TST")
+        .url("https://test.com")
+        .logo(LogoType.builder().format(LogoType.FormatEnum.BASE64).value("base64logo").build())
+        .decimals(6)
+        .version(BigDecimal.valueOf(1L))
+        .build();
     
-    TokenMetadata metadata = new TokenMetadata();
-    metadata.setName(TokenProperty.builder().value("Test Token").source("registry").build());
-    metadata.setDescription(TokenProperty.builder().value("Test description").source("registry").build());
-    metadata.setTicker(TokenProperty.builder().value("TST").source("registry").build());
-    metadata.setUrl(TokenProperty.builder().value("https://test.com").source("registry").build());
-    metadata.setLogo(TokenProperty.builder().value("base64logo").source("registry").build());
-    metadata.setDecimals(TokenPropertyNumber.builder().value(6L).source("registry").build());
-    metadata.setVersion(TokenPropertyNumber.builder().value(1L).source("registry").build());
+    Map<Asset, CurrencyMetadataResponse> tokenMetadataMap = new HashMap<>();
+    tokenMetadataMap.put(asset, currencyMetadata);
     
-    tokenSubject.setMetadata(metadata);
-    
-    Map<String, Optional<TokenSubject>> tokenMetadataMap = new HashMap<>();
-    tokenMetadataMap.put(subject, Optional.of(tokenSubject));
-    
-    when(tokenRegistryHttpGateway.getTokenMetadataBatch(anySet())).thenReturn(tokenMetadataMap);
+    when(tokenRegistryService.getTokenMetadataBatch(anySet())).thenReturn(tokenMetadataMap);
     
     List<Amt> amtList = Arrays.asList(
         newAmtWithCustomName(policyId, assetName, false)
@@ -143,25 +145,41 @@ class TransactionMapperUtilsTest {
     assertEquals(6, currency.getDecimals());
     
     // Verify metadata injection
-    CurrencyMetadataResponse currencyMetadata = currency.getMetadata();
-    assertNotNull(currencyMetadata);
-    assertEquals(policyId, currencyMetadata.getPolicyId());
-    assertEquals(subject, currencyMetadata.getSubject());
-    assertEquals("Test Token", currencyMetadata.getName());
-    assertEquals("Test description", currencyMetadata.getDescription());
-    assertEquals("TST", currencyMetadata.getTicker());
-    assertEquals("https://test.com", currencyMetadata.getUrl());
-    assertEquals("base64logo", currencyMetadata.getLogo());
-    assertEquals(BigDecimal.valueOf(1L), currencyMetadata.getVersion());
+    CurrencyMetadataResponse responseMetadata = currency.getMetadata();
+    assertNotNull(responseMetadata);
+    assertEquals(policyId, responseMetadata.getPolicyId());
+    assertEquals(subject, responseMetadata.getSubject());
+    assertEquals("Test Token", responseMetadata.getName());
+    assertEquals("Test description", responseMetadata.getDescription());
+    assertEquals("TST", responseMetadata.getTicker());
+    assertEquals("https://test.com", responseMetadata.getUrl());
+    assertNotNull(responseMetadata.getLogo());
+    assertEquals(LogoType.FormatEnum.BASE64, responseMetadata.getLogo().getFormat());
+    assertEquals("base64logo", responseMetadata.getLogo().getValue());
+    assertEquals(BigDecimal.valueOf(1L), responseMetadata.getVersion());
+    assertEquals(6, responseMetadata.getDecimals());
   }
 
   @Test
   void mapToOperationMetaDataWithoutTokenRegistryTest() {
-    // given - no token metadata available
-    when(tokenRegistryHttpGateway.getTokenMetadataBatch(anySet())).thenReturn(Collections.emptyMap());
-    
+    // given - token registry returns fallback metadata with only policyId
     String policyId = "testPolicyId";
     String assetName = "testAsset";
+    
+    Asset asset = Asset.builder()
+        .policyId(policyId)
+        .assetName(assetName)
+        .build();
+    
+    // Mock service to return fallback metadata (service always returns something now)
+    CurrencyMetadataResponse fallbackMetadata = CurrencyMetadataResponse.builder()
+        .policyId(policyId)
+        .build();
+    
+    Map<Asset, CurrencyMetadataResponse> tokenMetadataMap = new HashMap<>();
+    tokenMetadataMap.put(asset, fallbackMetadata);
+    
+    when(tokenRegistryService.getTokenMetadataBatch(anySet())).thenReturn(tokenMetadataMap);
     
     List<Amt> amtList = Arrays.asList(
         newAmtWithCustomName(policyId, assetName, false)
@@ -186,17 +204,13 @@ class TransactionMapperUtilsTest {
     assertEquals(assetName, currency.getSymbol());
     assertEquals(0, currency.getDecimals()); // Default when no metadata
     
-    // Verify metadata contains only policyId (mandatory field)
+    // Verify fallback metadata is present with at least policyId
     CurrencyMetadataResponse currencyMetadata = currency.getMetadata();
     assertNotNull(currencyMetadata);
     assertEquals(policyId, currencyMetadata.getPolicyId());
-    assertNull(currencyMetadata.getSubject());
+    // Other fields should be null since this is fallback metadata
     assertNull(currencyMetadata.getName());
     assertNull(currencyMetadata.getDescription());
-    assertNull(currencyMetadata.getTicker());
-    assertNull(currencyMetadata.getUrl());
-    assertNull(currencyMetadata.getLogo());
-    assertNull(currencyMetadata.getVersion());
   }
 
   @Test
@@ -205,7 +219,20 @@ class TransactionMapperUtilsTest {
     String policyId = "testPolicyId";
     String assetName = "testAsset";
     
-    when(tokenRegistryHttpGateway.getTokenMetadataBatch(anySet())).thenReturn(Collections.emptyMap());
+    Asset asset = Asset.builder()
+        .policyId(policyId)
+        .assetName(assetName)
+        .build();
+    
+    // Mock service to return fallback metadata
+    CurrencyMetadataResponse fallbackMetadata = CurrencyMetadataResponse.builder()
+        .policyId(policyId)
+        .build();
+    
+    Map<Asset, CurrencyMetadataResponse> tokenMetadataMap = new HashMap<>();
+    tokenMetadataMap.put(asset, fallbackMetadata);
+    
+    when(tokenRegistryService.getTokenMetadataBatch(anySet())).thenReturn(tokenMetadataMap);
     
     List<Amt> amtList = Arrays.asList(
         Amt.builder()
