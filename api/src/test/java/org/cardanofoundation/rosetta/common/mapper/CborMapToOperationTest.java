@@ -141,13 +141,20 @@ class CborMapToOperationTest {
             Map currencyMetadataMap = new Map();
             currencyMetadataMap.put(key(Constants.POLICYID), new UnicodeString("policy123"));
             currencyMap.put(key(Constants.METADATA), currencyMetadataMap);
+            currencyMap.put(key(Constants.POLICYID), new UnicodeString("policy123"));
 
             amountMap.put(key(Constants.CURRENCY), currencyMap);
             operationMap.put(key(Constants.AMOUNT), amountMap);
 
             Operation expected = new Operation();
-            Currency currency = new Currency("tADA", 6, null);
-            currency.setMetadata(new CurrencyMetadata().policyId("policy123"));
+            CurrencyMetadataResponse metadata = CurrencyMetadataResponse.builder()
+                    .policyId("policy123")
+                    .build();
+            CurrencyResponse currency = CurrencyResponse.builder()
+                    .symbol("tADA")
+                    .decimals(6)
+                    .metadata(metadata)
+                    .build();
             Amount amount = new Amount("1000000", currency, null);
             expected.setAmount(amount);
 
@@ -227,7 +234,7 @@ class CborMapToOperationTest {
             // Arrange
             Map operationMap = new Map();
             Map metadataMap = new Map();
-            Currency ada = new Currency("ADA", 6, null);
+            CurrencyResponse ada = CurrencyResponse.builder().symbol("ADA").decimals(6).build();
 
             // Withdrawal Amount
             Map withdrawalAmountMap = new Map();
@@ -303,7 +310,7 @@ class CborMapToOperationTest {
             item1Map.put(key(Constants.POLICYID), new UnicodeString("policy1"));
             Array tokens1Array = new Array();
             Map amount1Wrapper = new Map();
-            amount1Wrapper.put(key(Constants.AMOUNT), fromAmount(new Amount("10", new Currency("tokenA", 0, null), null)));
+            amount1Wrapper.put(key(Constants.AMOUNT), fromAmount(new Amount("10", CurrencyResponse.builder().symbol("tokenA").decimals(0).build(), null)));
             tokens1Array.add(amount1Wrapper);
             item1Map.put(key(Constants.TOKENS), tokens1Array);
             tokenBundleArray.add(item1Map);
@@ -313,9 +320,9 @@ class CborMapToOperationTest {
             item2Map.put(key(Constants.POLICYID), new UnicodeString("policy2"));
             Array tokens2Array = new Array();
             Map amount2Wrapper = new Map();
-            amount2Wrapper.put(key(Constants.AMOUNT), fromAmount(new Amount("20", new Currency("tokenB", 0, null), null)));
+            amount2Wrapper.put(key(Constants.AMOUNT), fromAmount(new Amount("20", CurrencyResponse.builder().symbol("tokenB").decimals(0).build(), null)));
             Map amount3Wrapper = new Map();
-            amount3Wrapper.put(key(Constants.AMOUNT), fromAmount(new Amount("30", new Currency("tokenC", 0, null), null)));
+            amount3Wrapper.put(key(Constants.AMOUNT), fromAmount(new Amount("30", CurrencyResponse.builder().symbol("tokenC").decimals(0).build(), null)));
             tokens2Array.add(amount2Wrapper);
             tokens2Array.add(amount3Wrapper);
             item2Map.put(key(Constants.TOKENS), tokens2Array);
@@ -328,13 +335,13 @@ class CborMapToOperationTest {
             OperationMetadata metadata = new OperationMetadata();
             TokenBundleItem item1 = new TokenBundleItem();
             item1.setPolicyId("policy1");
-            item1.setTokens(Collections.singletonList(new Amount("10", new Currency("tokenA", 0, null), null)));
+            item1.setTokens(Collections.singletonList(new Amount("10", CurrencyResponse.builder().symbol("tokenA").decimals(0).build(), null)));
 
             TokenBundleItem item2 = new TokenBundleItem();
             item2.setPolicyId("policy2");
             item2.setTokens(List.of(
-                    new Amount("20", new Currency("tokenB", 0, null), null),
-                    new Amount("30", new Currency("tokenC", 0, null), null)
+                    new Amount("20", CurrencyResponse.builder().symbol("tokenB").decimals(0).build(), null),
+                    new Amount("30", CurrencyResponse.builder().symbol("tokenC").decimals(0).build(), null)
             ));
             metadata.setTokenBundle(List.of(item1, item2));
             expected.setMetadata(metadata);
@@ -566,7 +573,7 @@ class CborMapToOperationTest {
     }
 
     // Helper methods to convert Rosetta models back to CBOR DataItems for test setup
-    private Map fromCurrency(Currency currency) {
+    private Map fromCurrency(CurrencyResponse currency) {
         Map currencyMap = new Map();
         currencyMap.put(key(Constants.SYMBOL), new UnicodeString(currency.getSymbol()));
         currencyMap.put(key(Constants.DECIMALS), new UnsignedInteger(currency.getDecimals()));

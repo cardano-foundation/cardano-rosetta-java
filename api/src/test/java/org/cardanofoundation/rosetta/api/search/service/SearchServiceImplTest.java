@@ -451,7 +451,7 @@ class SearchServiceImplTest {
         @Test
         void shouldSupportCurrencySearch() {
             // Given
-            Currency currency = Currency.builder().symbol("ADA").build();
+            CurrencyRequest currency = CurrencyRequest.builder().symbol("ADA").build();
             
             SearchTransactionsRequest request = SearchTransactionsRequest.builder()
                     .networkIdentifier(networkIdentifier)

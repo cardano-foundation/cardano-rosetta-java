@@ -56,7 +56,7 @@ public class SearchServiceImpl implements SearchService {
                 .map(c -> org.cardanofoundation.rosetta.api.search.model.Currency.builder()
                         .symbol(c.getSymbol())
                         .decimals(c.getDecimals())
-                        .policyId(Optional.ofNullable(c.getMetadata()).map(CurrencyMetadata::getPolicyId).orElse(null))
+                        .policyId(Optional.ofNullable(c.getMetadata()).map(CurrencyMetadataRequest::getPolicyId).orElse(null))
                         .build())
                 .orElse(null);
 

@@ -142,7 +142,7 @@ class AccountServiceImplTest {
     when(ledgerBlockService.findLatestBlockIdentifier()).thenReturn(block);
     AccountBalanceRequest accountBalanceRequest = AccountBalanceRequest.builder()
             .accountIdentifier(AccountIdentifier.builder().address(address).build())
-            .currencies(List.of(Currency.builder().symbol("ADA").build()))
+            .currencies(List.of(CurrencyRequest.builder().symbol("ADA").build()))
             .build();
     AccountBalanceResponse accountBalanceResponse = accountService.getAccountBalance(
             accountBalanceRequest);
@@ -306,7 +306,7 @@ class AccountServiceImplTest {
     String accountAddress = "Ae2tdPwUPEZGvXJ3ebp4LDgBhbxekAH2oKZgfahKq896fehv8oCJxmGJgLt";
     AccountCoinsRequest accountCoinsRequest = Mockito.mock(AccountCoinsRequest.class);
     AccountIdentifier accountIdentifier = Mockito.mock(AccountIdentifier.class);
-    Currency currency = Mockito.mock(Currency.class);
+    CurrencyRequest currency = Mockito.mock(CurrencyRequest.class);
     BlockIdentifierExtended block = Mockito.mock(BlockIdentifierExtended.class);
     Utxo utxo = Mockito.mock(Utxo.class);
     when(utxo.getTxHash()).thenReturn("txHash");

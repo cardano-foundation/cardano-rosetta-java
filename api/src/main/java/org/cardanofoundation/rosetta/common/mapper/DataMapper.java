@@ -5,8 +5,9 @@ import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 
 import org.openapitools.client.model.Amount;
-import org.openapitools.client.model.Currency;
-import org.openapitools.client.model.CurrencyMetadata;
+import org.openapitools.client.model.CurrencyMetadataRequest;
+import org.openapitools.client.model.CurrencyMetadataResponse;
+import org.openapitools.client.model.CurrencyResponse;
 
 import org.cardanofoundation.rosetta.common.util.Constants;
 
@@ -34,8 +35,10 @@ public class DataMapper {
    * @param metadata The metadata of the token
    * @return The Rosetta compatible Amount
    */
-  public static Amount mapAmount(String value, String symbol, Integer decimals,
-      CurrencyMetadata metadata) {
+  public static Amount mapAmount(String value,
+                                 String symbol,
+                                 Integer decimals,
+                                 CurrencyMetadataResponse metadata) {
     if (Objects.isNull(symbol)) {
       symbol = Constants.ADA;
     }
@@ -44,11 +47,13 @@ public class DataMapper {
     }
     Amount amount = new Amount();
     amount.setValue(value);
-    amount.setCurrency(Currency.builder()
+    amount.setCurrency(CurrencyResponse.builder()
         .symbol(symbol)
         .decimals(decimals)
         .metadata(metadata)
-        .build());
+        .build()
+    );
+
     return amount;
   }
 

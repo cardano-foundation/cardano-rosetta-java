@@ -9,7 +9,7 @@ import org.cardanofoundation.rosetta.api.block.model.domain.*;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.junit.jupiter.api.Test;
 import org.openapitools.client.model.*;
-import org.openapitools.client.model.Currency;
+import org.openapitools.client.model.CurrencyResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.math.BigInteger;
@@ -157,7 +157,7 @@ class BlockToBlockResponseTest extends BaseMapperSetup {
             .toList())
         .allSatisfy(BlockToBlockResponseTest::assertAllElementsIsNull);
 
-    Currency ada = Currency
+    CurrencyResponse ada = CurrencyResponse
         .builder()
         .symbol("ADA")
         .decimals(6)

@@ -21,13 +21,11 @@ import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
 import org.cardanofoundation.rosetta.common.util.Constants;
 import org.mapstruct.Named;
 import org.openapitools.client.model.*;
-import org.openapitools.client.model.Currency;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Nullable;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -109,6 +107,7 @@ public class TransactionMapperUtils {
             .filter(amount -> !amount.getAssetName().equals(LOVELACE))
             .toList();
 
+    // token bundle is only for native assets
     if (nonAdaAmounts.isEmpty()) {
       return null;
     }
@@ -129,7 +128,7 @@ public class TransactionMapperUtils {
                             TokenBundleItem.builder()
                                     .policyId(policyId)
                                     .tokens(policyIdAmounts.stream()
-                                            .map(amount -> extractAmount(spent, policyId, amount, tokenMetadataMap))
+                                            .map(amount -> extractAmount(spent, amount, tokenMetadataMap))
                                             .toList())
                                     .build()
                     )
@@ -167,9 +166,11 @@ public class TransactionMapperUtils {
     CertificateType type = model.getType();
     BigInteger keyDeposit = Optional.ofNullable(protocolParamService.findProtocolParameters()
             .getKeyDeposit()).orElse(BigInteger.ZERO);
+
     if (type == CertificateType.STAKE_DEREGISTRATION) {
       keyDeposit = keyDeposit.negate();
     }
+
     return DataMapper.mapAmount(keyDeposit.toString(), Constants.ADA, Constants.ADA_DECIMALS, null);
   }
 
@@ -180,7 +181,7 @@ public class TransactionMapperUtils {
 
   @Named("getUtxoName")
   public String getUtxoName(Utxo model) {
-    return model.getTxHash() + ":" + model.getOutputIndex();
+    return "%s:%d".formatted(model.getTxHash(), model.getOutputIndex());
   }
 
   @Named("updateDepositAmountNegate")
@@ -217,22 +218,25 @@ public class TransactionMapperUtils {
   }
 
   private static Amount extractAmount(boolean spent,
-                                      String policyId,
                                       Amt amount,
                                       Map<String, Optional<TokenSubject>> tokenMetadataMap) {
     // Create subject for this token
-    String subject = amount.getPolicyId() + amount.getAssetName();
+    String subject = amount.getPolicyId() + HexUtil.encodeHexString(amount.getAssetName().getBytes(UTF_8));
 
     // Get metadata if available
     Optional<TokenSubject> tokenMetadata = tokenMetadataMap.getOrDefault(subject, Optional.empty());
 
+    CurrencyResponse c = CurrencyResponse.builder()
+            .symbol(amount.getAssetName())
+            .decimals(extractTokenDecimals(tokenMetadata))
+            .build();
+
+    CurrencyMetadataResponse currencyMetadataResponse = extractTokenMetadata(amount.getPolicyId(), tokenMetadata);
+    c.metadata(currencyMetadataResponse);
+
     return Amount.builder()
             .value(DataMapper.mapValue(amount.getQuantity().toString(), spent))
-            .currency(Currency.builder()
-                    .symbol(amount.getAssetName())
-                    .decimals(extractTokenDecimals(tokenMetadata))
-                    .metadata(extractTokenMetadata(policyId, subject, tokenMetadata))
-                    .build())
+            .currency(c)
             .build();
   }
 
@@ -245,20 +249,20 @@ public class TransactionMapperUtils {
             .orElse(0);
   }
 
-  private static CurrencyMetadata extractTokenMetadata(String policyId,
-                                                       String subject,
-                                                       Optional<TokenSubject> tokenMetadata) {
-    CurrencyMetadata.CurrencyMetadataBuilder builder = CurrencyMetadata.builder()
-            .policyId(policyId)
-            .subject(subject);
+  private static CurrencyMetadataResponse extractTokenMetadata(String policyId,
+                                                               Optional<TokenSubject> tokenMetadata) {
+    CurrencyMetadataResponse.CurrencyMetadataResponseBuilder builder = CurrencyMetadataResponse.builder()
+            .policyId(policyId);
 
-    tokenMetadata.ifPresent(metadata -> {
-      TokenMetadata tokenMeta = metadata.getMetadata();
+    tokenMetadata.ifPresent(t -> {
+      TokenMetadata tokenMeta = t.getMetadata();
 
-      // Add null checks for name and description even though they should be required
-      Optional.ofNullable(tokenMeta.getName()).ifPresent(name -> builder.name(name.getValue()));
-      Optional.ofNullable(tokenMeta.getDescription()).ifPresent(desc -> builder.description(desc.getValue()));
+      // Mandatory fields from registry API
+      builder.subject(t.getSubject());
+      builder.name(tokenMeta.getName().getValue());
+      builder.description(tokenMeta.getDescription().getValue());
 
+      // Optional fields
       Optional.ofNullable(tokenMeta.getTicker()).ifPresent(ticker -> builder.ticker(ticker.getValue()));
       Optional.ofNullable(tokenMeta.getUrl()).ifPresent(url -> builder.url(url.getValue()));
       Optional.ofNullable(tokenMeta.getLogo()).ifPresent(logo -> builder.logo(logo.getValue()));

@@ -11,7 +11,7 @@ import org.assertj.core.util.introspection.CaseFormatUtils;
 import org.openapitools.client.model.Amount;
 import org.openapitools.client.model.CoinAction;
 import org.openapitools.client.model.CoinChange;
-import org.openapitools.client.model.Currency;
+import org.openapitools.client.model.CurrencyResponse;
 import org.openapitools.client.model.Operation;
 import org.openapitools.client.model.PoolRegistrationParams;
 import org.openapitools.client.model.Relay;
@@ -367,7 +367,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperSetup {
 
   private static Amount amountActual(String value) {
     return Amount.builder()
-        .currency(Currency.builder().symbol(ADA).decimals(ADA_DECIMALS).build())
+        .currency(CurrencyResponse.builder().symbol(ADA).decimals(ADA_DECIMALS).build())
         .value(value)
         .build();
   }

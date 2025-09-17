@@ -70,14 +70,14 @@ public class AccountServiceImpl implements AccountService {
     String accountAddress = accountCoinsRequest.getAccountIdentifier().getAddress();
     CardanoAddressUtils.verifyAddress(accountAddress);
 
-    List<Currency> currencies = accountCoinsRequest.getCurrencies();
+    List<CurrencyRequest> currencies = accountCoinsRequest.getCurrencies();
 //    accountCoinsRequest.getIncludeMempool(); // TODO
     log.debug("[accountCoins] Request received {}", accountCoinsRequest);
 
     if (Objects.nonNull(currencies)) {
       validateCurrencies(currencies);
     }
-    List<Currency> currenciesRequested = filterRequestedCurrencies(currencies);
+    List<CurrencyRequest> currenciesRequested = filterRequestedCurrencies(currencies);
     log.debug("[accountCoins] Filter currency is {}", currenciesRequested);
     BlockIdentifierExtended latestBlock = ledgerBlockService.findLatestBlockIdentifier();
     log.debug("[accountCoins] Latest block is {}", latestBlock);
@@ -88,7 +88,7 @@ public class AccountServiceImpl implements AccountService {
   }
 
   private AccountBalanceResponse findBalanceDataByAddressAndBlock(String address, Long number,
-                                                                  String hash, List<Currency> currencies) {
+                                                                  String hash, List<CurrencyRequest> currencies) {
 
     return findBlockOrLast(number, hash)
             .map(blockDto -> {
@@ -128,10 +128,10 @@ public class AccountServiceImpl implements AccountService {
     }
   }
 
-  private void validateCurrencies(List<Currency> currencies) {
-    for (Currency currency : currencies) {
+  private void validateCurrencies(List<CurrencyRequest> currencies) {
+    for (CurrencyRequest currency : currencies) {
       String symbol = currency.getSymbol();
-      CurrencyMetadata metadata = currency.getMetadata();
+      CurrencyMetadataRequest metadata = currency.getMetadata();
       if (!isTokenNameValid(symbol)) {
         throw invalidTokenNameError("Given name is " + symbol);
       }
@@ -151,9 +151,9 @@ public class AccountServiceImpl implements AccountService {
     return POLICY_ID_VALIDATION.matcher(policyId).matches();
   }
 
-  private List<Currency> filterRequestedCurrencies(List<Currency> currencies) {
+  private List<CurrencyRequest> filterRequestedCurrencies(List<CurrencyRequest> currencies) {
     boolean isAdaAbsent = Optional.ofNullable(currencies)
-            .map(c -> c.stream().map(Currency::getSymbol).noneMatch(Constants.ADA::equals))
+            .map(c -> c.stream().map(CurrencyRequest::getSymbol).noneMatch(Constants.ADA::equals))
             .orElse(false);
     return isAdaAbsent ? currencies : Collections.emptyList();
   }
