@@ -94,7 +94,8 @@ curl -X POST http://localhost:8082/network/status \
   -H "Content-Type: application/json" \
   -d '{"network_identifier": {"blockchain": "cardano", "network": "preprod"}}'
 
-# View logs
+# View logs (merge env files to avoid warnings)
+cat .env.docker-compose-preprod .env.docker-compose-profile-entry-level > .env
 docker compose logs -f
 ```
 
@@ -126,6 +127,10 @@ docker compose --env-file .env.docker-compose \
 curl -X POST http://localhost:8082/network/status \
   -H "Content-Type: application/json" \
   -d '{"network_identifier": {"blockchain": "cardano", "network": "mainnet"}}'
+
+# View logs (merge env files to avoid warnings)
+cat .env.docker-compose .env.docker-compose-profile-mid-level > .env
+docker compose logs -f
 ```
 
 > **Note**: Mithril snapshots are used automatically to accelerate initial sync. Full sync times vary based on hardware and network conditions.
@@ -153,6 +158,7 @@ See [Quick Start](#quick-start) above or the [installation documentation](https:
 ### Other Methods
 
 - **Pre-built images**: [DockerHub](https://hub.docker.com/r/cardanofoundation/cardano-rosetta-java)
+  > ⚠️ **Note**: The single Docker image deployment (cardanofoundation/cardano-rosetta-java) is deprecated. We strongly recommend using Docker Compose deployment for better modularity, resource management, and maintenance.
 - **Build from source**: [Documentation](https://cardano-foundation.github.io/cardano-rosetta-java/docs/development/build)
 
 ## Configuration
