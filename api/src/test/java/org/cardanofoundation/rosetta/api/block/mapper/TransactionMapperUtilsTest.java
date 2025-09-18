@@ -42,8 +42,19 @@ class TransactionMapperUtilsTest {
   void setUp() {
     transactionMapperUtils = new TransactionMapperUtils(protocolParamService, tokenRegistryService);
     
-    // Mock token registry to return empty map (no metadata) - use lenient to avoid unnecessary stubbing errors
-    lenient().when(tokenRegistryService.getTokenMetadataBatch(anySet())).thenReturn(Collections.emptyMap());
+    // Configure TokenRegistryService to return fallback metadata for any asset
+    lenient().when(tokenRegistryService.getTokenMetadataBatch(anySet())).thenAnswer(invocation -> {
+      Map<Asset, CurrencyMetadataResponse> result = new HashMap<>();
+      @SuppressWarnings("unchecked")
+      Set<Asset> assets = (Set<Asset>) invocation.getArgument(0);
+      for (Asset asset : assets) {
+        result.put(asset, CurrencyMetadataResponse.builder()
+            .policyId(asset.getPolicyId())
+            .decimals(0) // Default decimals
+            .build());
+      }
+      return result;
+    });
   }
 
   @Test

@@ -39,9 +39,19 @@ class AccountMapperUtilTest {
     void setUp() {
         accountMapperUtil = new AccountMapperUtil(tokenRegistryService);
         
-        // Default mock behavior - returns empty map (no metadata)
-        lenient().when(tokenRegistryService.getTokenMetadataBatch(anySet()))
-                .thenReturn(Collections.emptyMap());
+        // Configure TokenRegistryService to return fallback metadata for any asset
+        lenient().when(tokenRegistryService.getTokenMetadataBatch(anySet())).thenAnswer(invocation -> {
+            java.util.Map<Asset, CurrencyMetadataResponse> result = new java.util.HashMap<>();
+            @SuppressWarnings("unchecked")
+            java.util.Set<Asset> assets = (java.util.Set<Asset>) invocation.getArgument(0);
+            for (Asset asset : assets) {
+                result.put(asset, CurrencyMetadataResponse.builder()
+                    .policyId(asset.getPolicyId())
+                    .decimals(0) // Default decimals
+                    .build());
+            }
+            return result;
+        });
     }
 
     @Nested

@@ -1,8 +1,7 @@
-package org.cardanofoundation.rosetta.api.common.service.impl;
+package org.cardanofoundation.rosetta.api.common.service;
 
 import lombok.RequiredArgsConstructor;
 import org.cardanofoundation.rosetta.api.common.model.Asset;
-import org.cardanofoundation.rosetta.api.common.service.TokenRegistryService;
 import org.cardanofoundation.rosetta.client.TokenRegistryHttpGateway;
 import org.cardanofoundation.rosetta.client.model.domain.TokenMetadata;
 import org.cardanofoundation.rosetta.client.model.domain.TokenProperty;
@@ -12,6 +11,8 @@ import org.openapitools.client.model.CurrencyMetadataResponse;
 import org.openapitools.client.model.LogoType;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Nullable;
+import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
@@ -38,7 +39,7 @@ public class TokenRegistryServiceImpl implements TokenRegistryService {
         
         // Make the batch call to the gateway
         Map<String, Optional<TokenSubject>> tokenSubjectMap = tokenRegistryHttpGateway.getTokenMetadataBatch(subjects);
-        
+
         // Convert back to Asset -> CurrencyMetadataResponse mapping
         Map<Asset, CurrencyMetadataResponse> result = new HashMap<>();
         for (Asset asset : assets) {
@@ -56,8 +57,6 @@ public class TokenRegistryServiceImpl implements TokenRegistryService {
         return result;
     }
 
-
-
     private CurrencyMetadataResponse extractTokenMetadata(String policyId, TokenSubject tokenSubject) {
         CurrencyMetadataResponse.CurrencyMetadataResponseBuilder builder = CurrencyMetadataResponse.builder()
                 .policyId(policyId);
@@ -74,7 +73,7 @@ public class TokenRegistryServiceImpl implements TokenRegistryService {
         Optional.ofNullable(tokenMeta.getUrl()).ifPresent(url -> builder.url(url.getValue()));
         Optional.ofNullable(tokenMeta.getLogo()).ifPresent(logo -> builder.logo(convertToLogoType(logo)));
         Optional.ofNullable(tokenMeta.getVersion()).ifPresent(version -> builder.version(BigDecimal.valueOf(version.getValue())));
-        
+
         // Set decimals, defaulting to 0 if not found
         int decimals = Optional.ofNullable(tokenMeta.getDecimals())
                 .map(TokenPropertyNumber::getValue)
@@ -85,37 +84,27 @@ public class TokenRegistryServiceImpl implements TokenRegistryService {
         return builder.build();
     }
 
+    @Nullable
     private LogoType convertToLogoType(TokenProperty logoProperty) {
-        if (logoProperty == null || logoProperty.getValue() == null) {
+        if (logoProperty == null) {
             return null;
         }
-        
         String source = logoProperty.getSource();
         String value = logoProperty.getValue();
 
-        LogoType.FormatEnum format = getFormatEnum(source);
-
         return LogoType.builder()
-                .format(format)
+                .format(getFormatEnum(source))
                 .value(value)
                 .build();
     }
 
-    private static LogoType.FormatEnum getFormatEnum(String source) {
-        // Determine format based on CIP source
-        LogoType.FormatEnum format;
-        if ("CIP_26".equalsIgnoreCase(source)) {
-            // CIP_26 uses hex bytes - convert to base64
-            format = LogoType.FormatEnum.BASE64;
-        } else if ("CIP_68".equalsIgnoreCase(source)) {
-            // CIP_68 uses URLs
-            format = LogoType.FormatEnum.URL;
-        } else {
-            // Default to URL for unknown sources
-            format = LogoType.FormatEnum.URL;
-        }
-
-        return format;
+    @Nullable
+    private static LogoType.FormatEnum getFormatEnum(@NotNull String source) {
+        return switch (source.toLowerCase()) {
+            case "cip_26" -> LogoType.FormatEnum.BASE64;
+            case "cip_68" -> LogoType.FormatEnum.URL;
+            default -> null;
+        };
     }
 
     private CurrencyMetadataResponse createFallbackMetadata(String policyId) {

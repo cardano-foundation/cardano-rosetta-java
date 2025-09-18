@@ -1,6 +1,8 @@
 package org.cardanofoundation.rosetta.api;
 
 import java.math.BigInteger;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -16,9 +18,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.cardanofoundation.rosetta.api.BaseMapperSetup.BaseMappersConfig;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
+import org.cardanofoundation.rosetta.api.common.model.Asset;
 import org.cardanofoundation.rosetta.api.common.service.TokenRegistryService;
 import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
+import org.openapitools.client.model.CurrencyMetadataResponse;
 
+import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
@@ -38,6 +43,20 @@ public class BaseMapperSetup {
   public void before() {
     when(protocolParamService.findProtocolParameters()).thenReturn(protocolParams);
     when(protocolParams.getPoolDeposit()).thenReturn(new BigInteger("500"));
+    
+    // Configure TokenRegistryService to return fallback metadata for any asset
+    when(tokenRegistryService.getTokenMetadataBatch(anySet())).thenAnswer(invocation -> {
+      Map<Asset, CurrencyMetadataResponse> result = new HashMap<>();
+      @SuppressWarnings("unchecked")
+      java.util.Set<Asset> assets = (java.util.Set<Asset>) invocation.getArgument(0);
+      for (Asset asset : assets) {
+        result.put(asset, CurrencyMetadataResponse.builder()
+            .policyId(asset.getPolicyId())
+            .decimals(0) // Default decimals
+            .build());
+      }
+      return result;
+    });
   }
 
   @TestConfiguration

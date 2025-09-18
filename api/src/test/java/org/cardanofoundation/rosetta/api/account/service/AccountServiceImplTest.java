@@ -1,9 +1,7 @@
 package org.cardanofoundation.rosetta.api.account.service;
 
 import java.math.BigInteger;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Optional;
 import jakarta.validation.constraints.NotNull;
 
@@ -148,7 +146,18 @@ class AccountServiceImplTest {
                             BigInteger.valueOf(10)).build()));
     BlockIdentifierExtended block = getMockedBlockIdentifierExtended();
     when(ledgerBlockService.findLatestBlockIdentifier()).thenReturn(block);
-    when(tokenRegistryService.getTokenMetadataBatch(any())).thenReturn(Collections.emptyMap());
+    when(tokenRegistryService.getTokenMetadataBatch(any())).thenAnswer(invocation -> {
+      Map<org.cardanofoundation.rosetta.api.common.model.Asset, CurrencyMetadataResponse> result = new HashMap<>();
+      @SuppressWarnings("unchecked")
+      java.util.Set<org.cardanofoundation.rosetta.api.common.model.Asset> assets = (java.util.Set<org.cardanofoundation.rosetta.api.common.model.Asset>) invocation.getArgument(0);
+      for (org.cardanofoundation.rosetta.api.common.model.Asset asset : assets) {
+        result.put(asset, CurrencyMetadataResponse.builder()
+            .policyId(asset.getPolicyId())
+            .decimals(0)
+            .build());
+      }
+      return result;
+    });
     AccountBalanceRequest accountBalanceRequest = AccountBalanceRequest.builder()
             .accountIdentifier(AccountIdentifier.builder().address(address).build())
             .blockIdentifier(null)

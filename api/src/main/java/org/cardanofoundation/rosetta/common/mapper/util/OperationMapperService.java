@@ -39,6 +39,7 @@ public class OperationMapperService {
             .flatMap(List::stream)
             .map(input -> transactionMapper.mapInputUtxoToOperation(input, txStatus, ix.getAndIncrement()))
             .toList();
+
     operations.addAll(inpOps);
 
     operations.addAll(Optional.ofNullable(source.getWithdrawals()).stream()
