@@ -39,10 +39,11 @@ A DRep vote delegation operation requires a staking credential and the DRep info
 **Important:** The `type` field is always required regardless of hash format.
 
 _Examples:_
-- With prefix: `"id": "0374984fae4ca1715fa1f8759f9d871015ac87f449a85dea6cf9956da1"` (prefix `03` will be stripped)
-- Without prefix: `"id": "74984fae4ca1715fa1f8759f9d871015ac87f449a85dea6cf9956da1"`
+- With prefix (key hash): `"id": "22abcdef0123456789abcdef0123456789abcdef0123456789abcdef01"` (header `0x22` indicates DRep key_hash)
+- With prefix (script hash): `"id": "23abcdef0123456789abcdef0123456789abcdef0123456789abcdef01"` (header `0x23` indicates DRep script_hash)
+- Without prefix: `"id": "abcdef0123456789abcdef0123456789abcdef0123456789abcdef01"`
 
-Both examples require `"type": "key_hash"` to be specified.
+Both prefixed and raw formats still require a `"type"` to be specified (`"key_hash"` or `"script_hash"`).
 
 The API automatically detects the format and handles the prefix internally. When returning data, the API maintains the 28-byte format with separate type field for consistency.
 :::
