@@ -16,6 +16,7 @@ import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.common.mapper.DataMapper;
 import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
 import org.cardanofoundation.rosetta.common.util.Constants;
+import org.mapstruct.Context;
 import org.mapstruct.Named;
 import org.openapitools.client.model.*;
 import org.springframework.stereotype.Component;
@@ -89,6 +90,16 @@ public class TransactionMapperUtils {
     return mapToOperationMetaData(false, amounts);
   }
 
+  @Named("mapAmountsToOperationMetadataInputWithCache")
+  public OperationMetadata mapToOperationMetaDataInputWithCache(List<Amt> amounts, @Context Map<Asset, CurrencyMetadataResponse> metadataMap) {
+    return mapToOperationMetaDataWithCache(true, amounts, metadataMap);
+  }
+
+  @Named("mapAmountsToOperationMetadataOutputWithCache")
+  public OperationMetadata mapToOperationMetaDataOutputWithCache(List<Amt> amounts, @Context Map<Asset, CurrencyMetadataResponse> metadataMap) {
+    return mapToOperationMetaDataWithCache(false, amounts, metadataMap);
+  }
+
   @Nullable
   public OperationMetadata mapToOperationMetaData(boolean spent, List<Amt> amounts) {
     OperationMetadata operationMetadata = new OperationMetadata();
@@ -127,6 +138,41 @@ public class TransactionMapperUtils {
                                     .policyId(policyId)
                                     .tokens(policyIdAmounts.stream()
                                             .map(amount -> extractAmount(spent, amount, metadataMap))
+                                            .toList())
+                                    .build()
+                    )
+            );
+
+    return Objects.isNull(operationMetadata.getTokenBundle()) ? null : operationMetadata;
+  }
+
+  @Nullable
+  public OperationMetadata mapToOperationMetaDataWithCache(boolean spent, List<Amt> amounts, Map<Asset, CurrencyMetadataResponse> metadataMap) {
+    OperationMetadata operationMetadata = new OperationMetadata();
+
+    if (amounts == null || amounts.isEmpty()) {
+      return null;
+    }
+
+    // Filter out ADA amounts
+    List<Amt> nonAdaAmounts = amounts.stream()
+            .filter(amount -> !amount.getAssetName().equals(LOVELACE))
+            .toList();
+
+    // token bundle is only for ada, no native assets present
+    if (nonAdaAmounts.isEmpty()) {
+      return null;
+    }
+
+    // Group amounts by policyId and create token bundles using the pre-fetched metadata
+    nonAdaAmounts.stream()
+            .collect(Collectors.groupingBy(Amt::getPolicyId))
+            .forEach((policyId, policyIdAmounts) ->
+                    operationMetadata.addTokenBundleItem(
+                            TokenBundleItem.builder()
+                                    .policyId(policyId)
+                                    .tokens(policyIdAmounts.stream()
+                                            .map(amount -> extractAmountWithCache(spent, amount, metadataMap))
                                             .toList())
                                     .build()
                     )
@@ -217,6 +263,28 @@ public class TransactionMapperUtils {
 
   private Amount extractAmount(boolean spent, Amt amount, 
                                Map<Asset, CurrencyMetadataResponse> metadataMap) {
+    Asset asset = Asset.builder()
+            .policyId(amount.getPolicyId())
+            .assetName(amount.getAssetName())
+            .build();
+
+    CurrencyMetadataResponse metadataCurrencyResponse = metadataMap.get(asset);
+
+    CurrencyResponse c = CurrencyResponse.builder()
+            .symbol(amount.getAssetName())
+            .decimals(getDecimalsWithFallback(metadataCurrencyResponse))
+            .build();
+    
+    c.metadata(metadataCurrencyResponse);
+    
+    return Amount.builder()
+            .value(DataMapper.mapValue(amount.getQuantity().toString(), spent))
+            .currency(c)
+            .build();
+  }
+
+  private Amount extractAmountWithCache(boolean spent, Amt amount, 
+                                        Map<Asset, CurrencyMetadataResponse> metadataMap) {
     Asset asset = Asset.builder()
             .policyId(amount.getPolicyId())
             .assetName(amount.getAssetName())
