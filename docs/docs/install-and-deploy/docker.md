@@ -14,7 +14,7 @@ Before you begin, ensure you have the following installed:
 
 - Docker
 - Docker Compose
-- Java 21
+- Java 24
 - For integration tests: Node 14+
 
 ## Deployment Options
