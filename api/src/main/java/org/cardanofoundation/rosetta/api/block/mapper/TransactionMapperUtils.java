@@ -23,7 +23,10 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.Nullable;
 import java.math.BigInteger;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.cardanofoundation.rosetta.common.util.Constants.LOVELACE;
@@ -80,74 +83,22 @@ public class TransactionMapperUtils {
     return DRepDelegation.DRep.convertDRepFromRosetta(drep);
   }
 
-  @Named("mapAmountsToOperationMetadataInput")
-  public OperationMetadata mapToOperationMetaDataInput(List<Amt> amounts) {
-    return mapToOperationMetaData(true, amounts);
-  }
-
-  @Named("mapAmountsToOperationMetadataOutput")
-  public OperationMetadata mapToOperationMetaDataOutput(List<Amt> amounts) {
-    return mapToOperationMetaData(false, amounts);
-  }
-
   @Named("mapAmountsToOperationMetadataInputWithCache")
-  public OperationMetadata mapToOperationMetaDataInputWithCache(List<Amt> amounts, @Context Map<Asset, CurrencyMetadataResponse> metadataMap) {
+  public OperationMetadata mapToOperationMetaDataInputWithCache(List<Amt> amounts,
+                                                                @Context Map<Asset, CurrencyMetadataResponse> metadataMap) {
     return mapToOperationMetaDataWithCache(true, amounts, metadataMap);
   }
 
   @Named("mapAmountsToOperationMetadataOutputWithCache")
-  public OperationMetadata mapToOperationMetaDataOutputWithCache(List<Amt> amounts, @Context Map<Asset, CurrencyMetadataResponse> metadataMap) {
+  public OperationMetadata mapToOperationMetaDataOutputWithCache(List<Amt> amounts,
+                                                                 @Context Map<Asset, CurrencyMetadataResponse> metadataMap) {
     return mapToOperationMetaDataWithCache(false, amounts, metadataMap);
   }
 
   @Nullable
-  public OperationMetadata mapToOperationMetaData(boolean spent, List<Amt> amounts) {
-    OperationMetadata operationMetadata = new OperationMetadata();
-
-    if (amounts == null || amounts.isEmpty()) {
-      return null;
-    }
-
-    // Filter out ADA amounts and collect subjects (policyId + assetName)
-    List<Amt> nonAdaAmounts = amounts.stream()
-            .filter(amount -> !amount.getAssetName().equals(LOVELACE))
-            .toList();
-
-    // token bundle is only for ada, no native assets present
-    if (nonAdaAmounts.isEmpty()) {
-      return null;
-    }
-
-    // Collect all unique assets for bulk metadata fetch
-    Set<Asset> assets = nonAdaAmounts.stream()
-            .map(amount -> Asset.builder()
-                    .policyId(amount.getPolicyId())
-                    .assetName(amount.getAssetName())
-                    .build())
-            .collect(Collectors.toSet());
-
-    // Bulk fetch token metadata
-    Map<Asset, CurrencyMetadataResponse> metadataMap = tokenRegistryService.getTokenMetadataBatch(assets);
-
-    // Group amounts by policyId and create token bundles
-    nonAdaAmounts.stream()
-            .collect(Collectors.groupingBy(Amt::getPolicyId))
-            .forEach((policyId, policyIdAmounts) ->
-                    operationMetadata.addTokenBundleItem(
-                            TokenBundleItem.builder()
-                                    .policyId(policyId)
-                                    .tokens(policyIdAmounts.stream()
-                                            .map(amount -> extractAmount(spent, amount, metadataMap))
-                                            .toList())
-                                    .build()
-                    )
-            );
-
-    return Objects.isNull(operationMetadata.getTokenBundle()) ? null : operationMetadata;
-  }
-
-  @Nullable
-  public OperationMetadata mapToOperationMetaDataWithCache(boolean spent, List<Amt> amounts, Map<Asset, CurrencyMetadataResponse> metadataMap) {
+  public OperationMetadata mapToOperationMetaDataWithCache(boolean spent,
+                                                           List<Amt> amounts,
+                                                           Map<Asset, CurrencyMetadataResponse> metadataMap) {
     OperationMetadata operationMetadata = new OperationMetadata();
 
     if (amounts == null || amounts.isEmpty()) {

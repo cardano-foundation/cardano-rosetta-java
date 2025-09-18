@@ -72,8 +72,12 @@ class TransactionMapperUtilsTest {
         newAmt(3, 33, false),
         newAmt(4, 41, true)
     );
+    
+    // Create metadata map for the cached method
+    Map<Asset, CurrencyMetadataResponse> metadataMap = createMetadataMapForAmounts(amtList);
+    
     // when
-    OperationMetadata operationMetadata = transactionMapperUtils.mapToOperationMetaData(true, amtList);
+    OperationMetadata operationMetadata = transactionMapperUtils.mapToOperationMetaDataWithCache(true, amtList, metadataMap);
     // then
     assertNotNull(operationMetadata);
     List<TokenBundleItem> tokenBundle = operationMetadata.getTokenBundle();
@@ -95,8 +99,12 @@ class TransactionMapperUtilsTest {
     List<Amt> amtList = Arrays.asList(
         newAmt(1, 11, true),
         newAmt(2, 21, true));
+    
+    // Create metadata map for the cached method
+    Map<Asset, CurrencyMetadataResponse> metadataMap = createMetadataMapForAmounts(amtList);
+    
     // when
-    OperationMetadata operationMetadata = transactionMapperUtils.mapToOperationMetaData(true, amtList);
+    OperationMetadata operationMetadata = transactionMapperUtils.mapToOperationMetaDataWithCache(true, amtList, metadataMap);
     // then
     assertNull(operationMetadata);
   }
@@ -130,14 +138,12 @@ class TransactionMapperUtilsTest {
     Map<Asset, CurrencyMetadataResponse> tokenMetadataMap = new HashMap<>();
     tokenMetadataMap.put(asset, currencyMetadata);
     
-    when(tokenRegistryService.getTokenMetadataBatch(anySet())).thenReturn(tokenMetadataMap);
-    
     List<Amt> amtList = Arrays.asList(
         newAmtWithCustomName(policyId, assetName, false)
     );
     
     // when
-    OperationMetadata operationMetadata = transactionMapperUtils.mapToOperationMetaData(false, amtList);
+    OperationMetadata operationMetadata = transactionMapperUtils.mapToOperationMetaDataWithCache(false, amtList, tokenMetadataMap);
     
     // then
     assertNotNull(operationMetadata);
@@ -190,14 +196,12 @@ class TransactionMapperUtilsTest {
     Map<Asset, CurrencyMetadataResponse> tokenMetadataMap = new HashMap<>();
     tokenMetadataMap.put(asset, fallbackMetadata);
     
-    when(tokenRegistryService.getTokenMetadataBatch(anySet())).thenReturn(tokenMetadataMap);
-    
     List<Amt> amtList = Arrays.asList(
         newAmtWithCustomName(policyId, assetName, false)
     );
     
     // when
-    OperationMetadata operationMetadata = transactionMapperUtils.mapToOperationMetaData(false, amtList);
+    OperationMetadata operationMetadata = transactionMapperUtils.mapToOperationMetaDataWithCache(false, amtList, tokenMetadataMap);
     
     // then
     assertNotNull(operationMetadata);
@@ -243,8 +247,6 @@ class TransactionMapperUtilsTest {
     Map<Asset, CurrencyMetadataResponse> tokenMetadataMap = new HashMap<>();
     tokenMetadataMap.put(asset, fallbackMetadata);
     
-    when(tokenRegistryService.getTokenMetadataBatch(anySet())).thenReturn(tokenMetadataMap);
-    
     List<Amt> amtList = Arrays.asList(
         Amt.builder()
             .assetName(assetName)
@@ -255,7 +257,7 @@ class TransactionMapperUtilsTest {
     );
     
     // when - test spent=true
-    OperationMetadata operationMetadata = transactionMapperUtils.mapToOperationMetaData(true, amtList);
+    OperationMetadata operationMetadata = transactionMapperUtils.mapToOperationMetaDataWithCache(true, amtList, tokenMetadataMap);
     
     // then
     assertNotNull(operationMetadata);
@@ -263,12 +265,30 @@ class TransactionMapperUtilsTest {
     assertEquals("-1000", amount.getValue()); // Negative for spent
     
     // when - test spent=false  
-    operationMetadata = transactionMapperUtils.mapToOperationMetaData(false, amtList);
+    operationMetadata = transactionMapperUtils.mapToOperationMetaDataWithCache(false, amtList, createMetadataMapForAmounts(amtList));
     
     // then
     assertNotNull(operationMetadata);
     amount = operationMetadata.getTokenBundle().get(0).getTokens().get(0);
     assertEquals("1000", amount.getValue()); // Positive for received
+  }
+
+  private Map<Asset, CurrencyMetadataResponse> createMetadataMapForAmounts(List<Amt> amtList) {
+    Map<Asset, CurrencyMetadataResponse> metadataMap = new HashMap<>();
+    for (Amt amt : amtList) {
+      if (!Constants.LOVELACE.equals(amt.getAssetName())) {
+        Asset asset = Asset.builder()
+            .policyId(amt.getPolicyId())
+            .assetName(amt.getAssetName())
+            .build();
+        CurrencyMetadataResponse metadata = CurrencyMetadataResponse.builder()
+            .policyId(amt.getPolicyId())
+            .decimals(0) // Default decimals
+            .build();
+        metadataMap.put(asset, metadata);
+      }
+    }
+    return metadataMap;
   }
 
   private static List<String> getPolicyIdUnits(List<TokenBundleItem> tokenBundle, String policyId) {

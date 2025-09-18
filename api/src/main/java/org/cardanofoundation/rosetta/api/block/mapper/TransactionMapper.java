@@ -70,18 +70,6 @@ public interface TransactionMapper {
 
   @Mapping(target = "type", constant = Constants.INPUT)
   @Mapping(target = "coinChange.coinAction", source = "model", qualifiedByName = "getCoinSpentAction")
-  @Mapping(target = "metadata", source = "model.amounts", qualifiedByName = "mapAmountsToOperationMetadataInput")
-  @Mapping(target = "operationIdentifier", source = "index", qualifiedByName = "OperationIdentifier")
-  @Mapping(target = "amount.value", source = "model", qualifiedByName = "getAdaAmountInput")
-  @Mapping(target = "status", source = "status.status")
-  @Mapping(target = "account.address", source = "model.ownerAddr")
-  @Mapping(target = "amount.currency.symbol", constant = Constants.ADA)
-  @Mapping(target = "amount.currency.decimals", constant = Constants.ADA_DECIMALS_STRING)
-  @Mapping(target = "coinChange.coinIdentifier.identifier", source = "model", qualifiedByName = "getUtxoName")
-  Operation mapInputUtxoToOperation(Utxo model, OperationStatus status, int index);
-
-  @Mapping(target = "type", constant = Constants.INPUT)
-  @Mapping(target = "coinChange.coinAction", source = "model", qualifiedByName = "getCoinSpentAction")
   @Mapping(target = "metadata", source = "model.amounts", qualifiedByName = "mapAmountsToOperationMetadataInputWithCache")
   @Mapping(target = "operationIdentifier", source = "index", qualifiedByName = "OperationIdentifier")
   @Mapping(target = "amount.value", source = "model", qualifiedByName = "getAdaAmountInput")
@@ -91,18 +79,6 @@ public interface TransactionMapper {
   @Mapping(target = "amount.currency.decimals", constant = Constants.ADA_DECIMALS_STRING)
   @Mapping(target = "coinChange.coinIdentifier.identifier", source = "model", qualifiedByName = "getUtxoName")
   Operation mapInputUtxoToOperation(Utxo model, OperationStatus status, int index, @Context java.util.Map<org.cardanofoundation.rosetta.api.common.model.Asset, org.openapitools.client.model.CurrencyMetadataResponse> metadataMap);
-
-  @Mapping(target = "type", constant = Constants.OUTPUT)
-  @Mapping(target = "status", source = "status.status")
-  @Mapping(target = "coinChange.coinAction", source = "model", qualifiedByName = "getCoinCreatedAction")
-  @Mapping(target = "operationIdentifier", source = "index", qualifiedByName = "OperationIdentifier")
-  @Mapping(target = "metadata", source = "model.amounts", qualifiedByName = "mapAmountsToOperationMetadataOutput")
-  @Mapping(target = "account.address", source = "model.ownerAddr")
-  @Mapping(target = "amount.value", source = "model", qualifiedByName = "getAdaAmountOutput")
-  @Mapping(target = "amount.currency.symbol", constant = Constants.ADA)
-  @Mapping(target = "amount.currency.decimals", constant = Constants.ADA_DECIMALS_STRING)
-  @Mapping(target = "coinChange.coinIdentifier.identifier", source = "model", qualifiedByName = "getUtxoName")
-  Operation mapOutputUtxoToOperation(Utxo model, OperationStatus status, int index);
 
   @Mapping(target = "type", constant = Constants.OUTPUT)
   @Mapping(target = "status", source = "status.status")

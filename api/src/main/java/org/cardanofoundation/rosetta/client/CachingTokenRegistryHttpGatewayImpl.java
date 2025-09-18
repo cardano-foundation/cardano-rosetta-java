@@ -105,7 +105,7 @@ public class CachingTokenRegistryHttpGatewayImpl implements TokenRegistryHttpGat
                     .uri(URI.create(batchEndpointUrl))
                     .POST(HttpRequest.BodyPublishers.ofString(requestBody))
                     .timeout(Duration.ofSeconds(httpRequestTimeoutSeconds))
-                    //.header("Content-Type", "application/json")
+                    .header("Content-Type", "application/json")
                     .header("Accept", "application/json")
                     .build();
 
