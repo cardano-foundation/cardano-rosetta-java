@@ -116,18 +116,38 @@ The Rosetta representation doesn't explicitly label these as mint/burn operation
   </TabItem>
 </Tabs>
 
-## Account Balance Queries
+## Account Balance and UTXO Queries
 
-When querying account balances using `/account/balance`, the response will include both ADA and any native tokens owned by the address.
+Cardano Rosetta provides two separate endpoints for querying account information:
+
+<Tabs>
+  <TabItem value="balance" label="/account/balance" default>
+
+### Account Balance
+
+The `/account/balance` endpoint returns the **aggregated balance** of all ADA and native tokens owned by an address.
 
 :::info Note on Stake Addresses
-When the `/account/balance` endpoint is queried with a stake address (also known as a reward address), the response will include the available rewards that can be withdrawn from the stake address.
+When queried with a stake address (reward address), the response includes available rewards that can be withdrawn.
 
-This means the API provides a consolidated view of both spendable funds (from payment addresses) and claimable rewards when a stake address is used in the query.
+**Known Issue:** Historical queries for stake address rewards currently return the current reward value instead of the historical value at the specified block. See [Issue #590](https://github.com/cardano-foundation/cardano-rosetta-java/issues/590).
 :::
 
+**Request:**
 ```json
 {
+  "network_identifier": {"blockchain": "cardano", "network": "mainnet"},
+  "account_identifier": {"address": "addr1..."}
+}
+```
+
+**Response:**
+```json
+{
+  "block_identifier": {
+    "index": 10453789,
+    "hash": "6e9e89632bc5c72030d3a486647e889c48d63e4da0643191b13566ad816d2d57"
+  },
   "balances": [
     {
       "value": "71103107",
@@ -146,7 +166,32 @@ This means the API provides a consolidated view of both spendable funds (from pa
         }
       }
     }
-  ],
+  ]
+}
+```
+
+  </TabItem>
+  <TabItem value="coins" label="/account/coins">
+
+### Account UTXOs
+
+The `/account/coins` endpoint returns the **individual UTXOs** (unspent transaction outputs) owned by an address, including any native tokens attached to each UTXO.
+
+**Request:**
+```json
+{
+  "network_identifier": {"blockchain": "cardano", "network": "mainnet"},
+  "account_identifier": {"address": "addr1..."}
+}
+```
+
+**Response:**
+```json
+{
+  "block_identifier": {
+    "index": 10453789,
+    "hash": "6e9e89632bc5c72030d3a486647e889c48d63e4da0643191b13566ad816d2d57"
+  },
   "coins": [
     {
       "coin_identifier": {
@@ -179,3 +224,10 @@ This means the API provides a consolidated view of both spendable funds (from pa
   ]
 }
 ```
+
+:::tip
+Native tokens in Cardano are always attached to UTXOs containing ADA. The `metadata` field shows which tokens are contained in each specific UTXO.
+:::
+
+  </TabItem>
+</Tabs>
