@@ -56,7 +56,7 @@ public class NetworkServiceImpl implements NetworkService {
   @Value("${cardano.rosetta.SYNC_GRACE_SLOTS_COUNT:100}")
   private int allowedSlotsDelta;
 
-  @Value("${cardano.rosetta.REMOVE_SPENT_UTXOS:false}")
+  @Value("${cardano.rosetta.REMOVE_SPENT_UTXOS:true}")
   private boolean isRemovalOfSpentUTxOsEnabled;
 
   @PostConstruct

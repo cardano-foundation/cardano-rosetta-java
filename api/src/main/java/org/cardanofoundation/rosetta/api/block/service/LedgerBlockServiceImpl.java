@@ -64,10 +64,10 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
   @Value("${cardano.rosetta.BLOCK_TRANSACTION_API_TIMEOUT_SECS:5}")
   private int blockTransactionApiTimeoutSecs;
 
-  @Value("${cardano.rosetta.REMOVE_SPENT_UTXOS:false}")
+  @Value("${cardano.rosetta.REMOVE_SPENT_UTXOS:true}")
   private boolean isRemovalOfSpentUTxOsEnabled;
 
-  @Value("${cardano.rosetta.REMOVE_SPENT_UTXOS_LAST_BLOCKS_GRACE_COUNT:2160}")
+  @Value("${cardano.rosetta.REMOVE_SPENT_UTXOS_LAST_BLOCKS_GRACE_COUNT:129600}")
   private int removeSpentUTxOsLastBlocksGraceCount;
 
   @PostConstruct
