@@ -58,7 +58,8 @@ public class AccountMapperUtil {
                 .collect(Collectors.toSet());
 
         // Bulk fetch token metadata
-        Map<Asset, CurrencyMetadataResponse> metadataMap = tokenRegistryService.getTokenMetadataBatch(assets);
+        //Map<Asset, CurrencyMetadataResponse> metadataMap = tokenRegistryService.getTokenMetadataBatch(assets);
+        Map<Asset, CurrencyMetadataResponse> metadataMap = new HashMap<>();
 
         // Process each native token balance with metadata
         for (AddressBalance b : nativeTokenBalances) {
@@ -129,7 +130,8 @@ public class AccountMapperUtil {
                 .collect(Collectors.toSet());
 
         // Bulk fetch token metadata
-        Map<Asset, CurrencyMetadataResponse> metadataMap = tokenRegistryService.getTokenMetadataBatch(assets);
+        //Map<Asset, CurrencyMetadataResponse> metadataMap = tokenRegistryService.getTokenMetadataBatch(assets);
+        Map<Asset, CurrencyMetadataResponse> metadataMap = new HashMap<>();
 
         // Create separate CoinTokens entry for each native token (one token per entry)
         List<CoinTokens> coinTokens = nativeTokenAmounts.stream()

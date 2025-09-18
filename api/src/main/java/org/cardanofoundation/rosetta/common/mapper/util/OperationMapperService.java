@@ -1,6 +1,7 @@
 package org.cardanofoundation.rosetta.common.mapper.util;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
 import org.cardanofoundation.rosetta.api.block.mapper.TransactionMapper;
@@ -22,6 +23,7 @@ import static org.cardanofoundation.rosetta.common.util.Constants.LOVELACE;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class OperationMapperService {
 
   final TransactionMapper transactionMapper;
@@ -117,6 +119,8 @@ public class OperationMapperService {
    * then makes a single batch call to fetch token metadata for all assets.
    */
   private Map<Asset, CurrencyMetadataResponse> collectAndFetchTokenMetadata(BlockTx source) {
+    log.info("collectAndFetchTokenMetadata...");
+
     Set<Asset> allAssets = new HashSet<>();
     
     // Collect assets from inputs
