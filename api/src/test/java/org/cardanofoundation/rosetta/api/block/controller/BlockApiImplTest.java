@@ -17,6 +17,7 @@ import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
 import org.cardanofoundation.rosetta.api.block.service.BlockService;
+import org.cardanofoundation.rosetta.api.common.service.TokenRegistryService;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
 
@@ -35,6 +36,9 @@ class BlockApiImplTest extends BaseSpringMvcSetup {
 
   @MockitoBean
   private ProtocolParamService protocolParamService;
+
+  @MockitoBean
+  private TokenRegistryService tokenRegistryService;
 
   @MockitoBean
   BlockMapper blockMapper;
@@ -130,7 +134,7 @@ class BlockApiImplTest extends BaseSpringMvcSetup {
     when(protocolParamService.findProtocolParameters()).thenReturn(protocolParams);
     when(protocolParams.getPoolDeposit()).thenReturn(new BigInteger("1000"));
     //any string
-    when(blockMapper.mapToBlockTransactionResponse(any(BlockTx.class))).thenReturn(resp);
+    when(blockMapper.mapToBlockTransactionResponseWithMetadata(any(BlockTx.class), any())).thenReturn(resp);
     //when
     //then
     String txHash = resp.getTransaction().getTransactionIdentifier().getHash();

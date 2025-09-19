@@ -21,6 +21,7 @@ import org.openapitools.client.model.LogoType;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anySet;
@@ -38,7 +39,7 @@ class AccountMapperUtilTest {
     @BeforeEach
     void setUp() {
         accountMapperUtil = new AccountMapperUtil(tokenRegistryService);
-        
+
         // Configure TokenRegistryService to return fallback metadata for any asset
         lenient().when(tokenRegistryService.getTokenMetadataBatch(anySet())).thenAnswer(invocation -> {
             java.util.Map<Asset, CurrencyMetadataResponse> result = new java.util.HashMap<>();
@@ -54,6 +55,51 @@ class AccountMapperUtilTest {
         });
     }
 
+    // Helper method to create metadata map from balances
+    private Map<Asset, CurrencyMetadataResponse> createMetadataMapFromBalances(List<AddressBalance> balances) {
+        Set<Asset> assets = balances.stream()
+            .filter(b -> !Constants.LOVELACE.equals(b.unit()))
+            .filter(b -> b.unit().length() >= Constants.POLICY_ID_LENGTH)
+            .map(b -> {
+                String symbol = b.unit().substring(Constants.POLICY_ID_LENGTH);
+                String policyId = b.unit().substring(0, Constants.POLICY_ID_LENGTH);
+                return Asset.builder()
+                    .policyId(policyId)
+                    .assetName(symbol)
+                    .build();
+            })
+            .collect(Collectors.toSet());
+
+        if (assets.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        return tokenRegistryService.getTokenMetadataBatch(assets);
+    }
+
+    // Helper method to create metadata map from UTXOs
+    private Map<Asset, CurrencyMetadataResponse> createMetadataMapFromUtxos(List<Utxo> utxos) {
+        Set<Asset> assets = new HashSet<>();
+        for (Utxo utxo : utxos) {
+            if (utxo.getAmounts() != null) {
+                for (Amt amount : utxo.getAmounts()) {
+                    if (!Constants.LOVELACE.equals(amount.getAssetName()) && amount.getPolicyId() != null) {
+                        assets.add(Asset.builder()
+                            .policyId(amount.getPolicyId())
+                            .assetName(amount.getAssetName())
+                            .build());
+                    }
+                }
+            }
+        }
+
+        if (assets.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        return tokenRegistryService.getTokenMetadataBatch(assets);
+    }
+
     @Nested
     class MapAddressBalancesToAmountsTests {
 
@@ -65,7 +111,8 @@ class AccountMapperUtilTest {
             );
 
             // when
-            List<Amount> amounts = accountMapperUtil.mapAddressBalancesToAmounts(balances);
+            Map<Asset, CurrencyMetadataResponse> metadataMap = createMetadataMapFromBalances(balances);
+            List<Amount> amounts = accountMapperUtil.mapAddressBalancesToAmounts(balances, metadataMap);
 
             // then
             assertEquals(1, amounts.size());
@@ -97,7 +144,8 @@ class AccountMapperUtilTest {
             );
 
             // when
-            List<Amount> amounts = accountMapperUtil.mapAddressBalancesToAmounts(balances);
+            Map<Asset, CurrencyMetadataResponse> metadataMap = createMetadataMapFromBalances(balances);
+            List<Amount> amounts = accountMapperUtil.mapAddressBalancesToAmounts(balances, metadataMap);
 
             // then
             assertEquals(2, amounts.size());
@@ -145,7 +193,8 @@ class AccountMapperUtilTest {
             );
 
             // when
-            List<Amount> amounts = accountMapperUtil.mapAddressBalancesToAmounts(balances);
+            Map<Asset, CurrencyMetadataResponse> metadataMap = createMetadataMapFromBalances(balances);
+            List<Amount> amounts = accountMapperUtil.mapAddressBalancesToAmounts(balances, metadataMap);
 
             // then
             assertEquals(2, amounts.size());
@@ -198,7 +247,8 @@ class AccountMapperUtilTest {
             );
 
             // when
-            List<Amount> amounts = accountMapperUtil.mapAddressBalancesToAmounts(balances);
+            Map<Asset, CurrencyMetadataResponse> metadataMap = createMetadataMapFromBalances(balances);
+            List<Amount> amounts = accountMapperUtil.mapAddressBalancesToAmounts(balances, metadataMap);
 
             // then
             assertEquals(3, amounts.size());
@@ -223,7 +273,8 @@ class AccountMapperUtilTest {
             List<AddressBalance> balances = Collections.emptyList();
 
             // when
-            List<Amount> amounts = accountMapperUtil.mapAddressBalancesToAmounts(balances);
+            Map<Asset, CurrencyMetadataResponse> metadataMap = createMetadataMapFromBalances(balances);
+            List<Amount> amounts = accountMapperUtil.mapAddressBalancesToAmounts(balances, metadataMap);
 
             // then
             assertEquals(1, amounts.size()); // Only ADA with 0 amount
@@ -251,7 +302,8 @@ class AccountMapperUtilTest {
                 .thenReturn(Map.of(asset, CurrencyMetadataResponse.builder().policyId(policyId).build()));
 
             // when
-            List<Amount> amounts = accountMapperUtil.mapAddressBalancesToAmounts(balances);
+            Map<Asset, CurrencyMetadataResponse> metadataMap = createMetadataMapFromBalances(balances);
+            List<Amount> amounts = accountMapperUtil.mapAddressBalancesToAmounts(balances, metadataMap);
 
             // then
             assertEquals(2, amounts.size());
@@ -290,7 +342,8 @@ class AccountMapperUtilTest {
                 .thenReturn(Map.of(asset, CurrencyMetadataResponse.builder().policyId(policyId).build()));
 
             // when
-            List<Amount> amounts = accountMapperUtil.mapAddressBalancesToAmounts(balances);
+            Map<Asset, CurrencyMetadataResponse> metadataMap = createMetadataMapFromBalances(balances);
+            List<Amount> amounts = accountMapperUtil.mapAddressBalancesToAmounts(balances, metadataMap);
 
             // then
             assertEquals(2, amounts.size());
@@ -323,7 +376,8 @@ class AccountMapperUtilTest {
             );
 
             // when
-            List<Coin> coins = accountMapperUtil.mapUtxosToCoins(utxos);
+            Map<Asset, CurrencyMetadataResponse> metadataMap = createMetadataMapFromUtxos(utxos);
+            List<Coin> coins = accountMapperUtil.mapUtxosToCoins(utxos, metadataMap);
 
             // then
             assertEquals(1, coins.size());
@@ -356,7 +410,8 @@ class AccountMapperUtilTest {
             );
 
             // when
-            List<Coin> coins = accountMapperUtil.mapUtxosToCoins(utxos);
+            Map<Asset, CurrencyMetadataResponse> metadataMap = createMetadataMapFromUtxos(utxos);
+            List<Coin> coins = accountMapperUtil.mapUtxosToCoins(utxos, metadataMap);
 
             // then
             assertEquals(1, coins.size());
@@ -398,7 +453,8 @@ class AccountMapperUtilTest {
             );
 
             // when
-            List<Coin> coins = accountMapperUtil.mapUtxosToCoins(utxos);
+            Map<Asset, CurrencyMetadataResponse> metadataMap = createMetadataMapFromUtxos(utxos);
+            List<Coin> coins = accountMapperUtil.mapUtxosToCoins(utxos, metadataMap);
 
             // then
             assertEquals(1, coins.size());
@@ -421,7 +477,8 @@ class AccountMapperUtilTest {
             List<Utxo> utxos = Collections.emptyList();
 
             // when
-            List<Coin> coins = accountMapperUtil.mapUtxosToCoins(utxos);
+            Map<Asset, CurrencyMetadataResponse> metadataMap = createMetadataMapFromUtxos(utxos);
+            List<Coin> coins = accountMapperUtil.mapUtxosToCoins(utxos, metadataMap);
 
             // then
             assertTrue(coins.isEmpty());

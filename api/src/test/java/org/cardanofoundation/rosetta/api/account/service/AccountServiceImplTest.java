@@ -60,8 +60,13 @@ class AccountServiceImplTest {
 
   @BeforeEach
   void setUp() {
+    // Mock TokenRegistryService to return empty metadata maps
+    lenient().when(tokenRegistryService.getTokenMetadataBatch(any())).thenReturn(Collections.emptyMap());
+    lenient().when(tokenRegistryService.fetchMetadataForAddressBalances(any())).thenReturn(Collections.emptyMap());
+    lenient().when(tokenRegistryService.fetchMetadataForUtxos(any())).thenReturn(Collections.emptyMap());
+
     accountMapper = new AccountMapperImpl(new AccountMapperUtil(tokenRegistryService));
-    accountService = new AccountServiceImpl(ledgerAccountService, ledgerBlockService, accountMapper, yaciHttpGateway, addressBalanceMapper);
+    accountService = new AccountServiceImpl(ledgerAccountService, ledgerBlockService, accountMapper, yaciHttpGateway, addressBalanceMapper, tokenRegistryService);
   }
 
   @Test
@@ -146,16 +151,17 @@ class AccountServiceImplTest {
                             BigInteger.valueOf(10)).build()));
     BlockIdentifierExtended block = getMockedBlockIdentifierExtended();
     when(ledgerBlockService.findLatestBlockIdentifier()).thenReturn(block);
-    when(tokenRegistryService.getTokenMetadataBatch(any())).thenAnswer(invocation -> {
+    when(tokenRegistryService.fetchMetadataForAddressBalances(any())).thenAnswer(invocation -> {
       Map<org.cardanofoundation.rosetta.api.common.model.Asset, CurrencyMetadataResponse> result = new HashMap<>();
-      @SuppressWarnings("unchecked")
-      java.util.Set<org.cardanofoundation.rosetta.api.common.model.Asset> assets = (java.util.Set<org.cardanofoundation.rosetta.api.common.model.Asset>) invocation.getArgument(0);
-      for (org.cardanofoundation.rosetta.api.common.model.Asset asset : assets) {
-        result.put(asset, CurrencyMetadataResponse.builder()
-            .policyId(asset.getPolicyId())
-            .decimals(0)
-            .build());
-      }
+      // Create an asset for the native token in the test data
+      org.cardanofoundation.rosetta.api.common.model.Asset asset = org.cardanofoundation.rosetta.api.common.model.Asset.builder()
+          .policyId("bd976e131cfc3956b806967b06530e48c20ed5498b46a5eb836b61c2")
+          .assetName("")  // Empty asset name
+          .build();
+      result.put(asset, CurrencyMetadataResponse.builder()
+          .policyId("bd976e131cfc3956b806967b06530e48c20ed5498b46a5eb836b61c2")
+          .decimals(0)
+          .build());
       return result;
     });
     AccountBalanceRequest accountBalanceRequest = AccountBalanceRequest.builder()

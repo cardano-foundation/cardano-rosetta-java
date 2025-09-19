@@ -1,24 +1,40 @@
 package org.cardanofoundation.rosetta.api.common.service;
 
 import lombok.RequiredArgsConstructor;
+import org.cardanofoundation.rosetta.api.account.model.domain.AddressBalance;
+import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
+import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
+import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.common.model.Asset;
+import org.cardanofoundation.rosetta.common.util.Constants;
 import org.cardanofoundation.rosetta.client.TokenRegistryHttpGateway;
 import org.cardanofoundation.rosetta.client.model.domain.TokenMetadata;
 import org.cardanofoundation.rosetta.client.model.domain.TokenProperty;
 import org.cardanofoundation.rosetta.client.model.domain.TokenPropertyNumber;
 import org.cardanofoundation.rosetta.client.model.domain.TokenSubject;
+import org.openapitools.client.model.Amount;
+import org.openapitools.client.model.BlockTransaction;
 import org.openapitools.client.model.CurrencyMetadataResponse;
 import org.openapitools.client.model.LogoType;
+import org.openapitools.client.model.Operation;
+import org.openapitools.client.model.OperationMetadata;
+import org.openapitools.client.model.TokenBundleItem;
+import org.openapitools.client.model.Transaction;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static org.cardanofoundation.rosetta.common.util.Constants.LOVELACE;
 
 @Service
 @RequiredArgsConstructor
@@ -111,6 +127,206 @@ public class TokenRegistryServiceImpl implements TokenRegistryService {
         return CurrencyMetadataResponse.builder()
                 .policyId(policyId)
                 .build();
+    }
+    
+    @Override
+    public Set<Asset> extractAssetsFromBlockTx(BlockTx blockTx) {
+        if (blockTx == null) {
+            return Set.of();
+        }
+        
+        Set<Asset> allAssets = new HashSet<>();
+        
+        // Collect assets from inputs
+        Optional.ofNullable(blockTx.getInputs()).ifPresent(inputs ->
+            inputs.forEach(input ->
+                Optional.ofNullable(input.getAmounts()).ifPresent(amounts ->
+                    allAssets.addAll(extractAssetsFromAmounts(amounts)))));
+        
+        // Collect assets from outputs
+        Optional.ofNullable(blockTx.getOutputs()).ifPresent(outputs ->
+            outputs.forEach(output ->
+                Optional.ofNullable(output.getAmounts()).ifPresent(amounts ->
+                    allAssets.addAll(extractAssetsFromAmounts(amounts)))));
+        
+        return allAssets;
+    }
+    
+    @Override
+    public Set<Asset> extractAssetsFromAmounts(List<Amt> amounts) {
+        if (amounts == null || amounts.isEmpty()) {
+            return Set.of();
+        }
+        
+        return amounts.stream()
+            .filter(amount -> !LOVELACE.equals(amount.getAssetName()))
+            .map(amount -> Asset.builder()
+                .policyId(amount.getPolicyId())
+                .assetName(amount.getAssetName())
+                .build())
+            .collect(Collectors.toSet());
+    }
+    
+    @Override
+    public Set<Asset> extractAssetsFromBlockTransactions(List<BlockTransaction> transactions) {
+        if (transactions == null || transactions.isEmpty()) {
+            return Set.of();
+        }
+        
+        Set<Asset> allAssets = new HashSet<>();
+        
+        for (BlockTransaction blockTx : transactions) {
+            Transaction tx = blockTx.getTransaction();
+            if (tx != null && tx.getOperations() != null) {
+                allAssets.addAll(extractAssetsFromOperations(tx.getOperations()));
+            }
+        }
+        
+        return allAssets;
+    }
+    
+    @Override
+    public Set<Asset> extractAssetsFromOperations(List<Operation> operations) {
+        if (operations == null || operations.isEmpty()) {
+            return Set.of();
+        }
+        
+        Set<Asset> allAssets = new HashSet<>();
+        
+        for (Operation operation : operations) {
+            // Check operation metadata for token bundles
+            if (operation.getMetadata() != null) {
+                OperationMetadata metadata = operation.getMetadata();
+                if (metadata.getTokenBundle() != null) {
+                    for (TokenBundleItem bundleItem : metadata.getTokenBundle()) {
+                        String policyId = bundleItem.getPolicyId();
+                        if (bundleItem.getTokens() != null) {
+                            for (Amount tokenAmount : bundleItem.getTokens()) {
+                                if (tokenAmount.getCurrency() != null) {
+                                    String assetName = tokenAmount.getCurrency().getSymbol();
+                                    if (!LOVELACE.equals(assetName)) {
+                                        allAssets.add(Asset.builder()
+                                            .policyId(policyId)
+                                            .assetName(assetName)
+                                            .build());
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Also check the amount field if it contains native tokens
+            if (operation.getAmount() != null && operation.getAmount().getCurrency() != null) {
+                String symbol = operation.getAmount().getCurrency().getSymbol();
+                if (!LOVELACE.equals(symbol) && operation.getAmount().getCurrency().getMetadata() != null) {
+                    CurrencyMetadataResponse metadata = operation.getAmount().getCurrency().getMetadata();
+                    if (metadata.getPolicyId() != null) {
+                        allAssets.add(Asset.builder()
+                            .policyId(metadata.getPolicyId())
+                            .assetName(symbol)
+                            .build());
+                    }
+                }
+            }
+        }
+        
+        return allAssets;
+    }
+
+    @Override
+    public Map<Asset, CurrencyMetadataResponse> fetchMetadataForBlockTx(BlockTx blockTx) {
+        Set<Asset> assets = extractAssetsFromBlockTx(blockTx);
+        if (assets.isEmpty()) {
+            return Collections.emptyMap();
+        }
+        return getTokenMetadataBatch(assets);
+    }
+
+    @Override
+    public Map<Asset, CurrencyMetadataResponse> fetchMetadataForBlockTransactions(List<BlockTransaction> transactions) {
+        if (transactions == null || transactions.isEmpty()) {
+            return Collections.emptyMap();
+        }
+        Set<Asset> assets = extractAssetsFromBlockTransactions(transactions);
+        if (assets.isEmpty()) {
+            return Collections.emptyMap();
+        }
+        return getTokenMetadataBatch(assets);
+    }
+
+    @Override
+    public Map<Asset, CurrencyMetadataResponse> fetchMetadataForBlockTxList(List<BlockTx> blockTxList) {
+        if (blockTxList == null || blockTxList.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        // Extract all assets from all transactions in the list
+        Set<Asset> allAssets = new HashSet<>();
+        for (BlockTx tx : blockTxList) {
+            allAssets.addAll(extractAssetsFromBlockTx(tx));
+        }
+
+        // If there are native tokens, make single batch call for metadata
+        if (!allAssets.isEmpty()) {
+            return getTokenMetadataBatch(allAssets);
+        } else {
+            return Collections.emptyMap();
+        }
+    }
+
+    @Override
+    public Map<Asset, CurrencyMetadataResponse> fetchMetadataForAddressBalances(List<AddressBalance> balances) {
+        if (balances == null || balances.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        Set<Asset> assets = balances.stream()
+            .filter(b -> !LOVELACE.equals(b.unit()))
+            .filter(b -> b.unit().length() >= Constants.POLICY_ID_LENGTH)
+            .map(b -> {
+                String symbol = b.unit().substring(Constants.POLICY_ID_LENGTH);
+                String policyId = b.unit().substring(0, Constants.POLICY_ID_LENGTH);
+                return Asset.builder()
+                    .policyId(policyId)
+                    .assetName(symbol)
+                    .build();
+            })
+            .collect(Collectors.toSet());
+
+        if (assets.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        return getTokenMetadataBatch(assets);
+    }
+
+    @Override
+    public Map<Asset, CurrencyMetadataResponse> fetchMetadataForUtxos(List<Utxo> utxos) {
+        if (utxos == null || utxos.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        Set<Asset> assets = new HashSet<>();
+        for (Utxo utxo : utxos) {
+            if (utxo.getAmounts() != null) {
+                for (Amt amount : utxo.getAmounts()) {
+                    if (!LOVELACE.equals(amount.getAssetName()) && amount.getPolicyId() != null) {
+                        assets.add(Asset.builder()
+                            .policyId(amount.getPolicyId())
+                            .assetName(amount.getAssetName())
+                            .build());
+                    }
+                }
+            }
+        }
+
+        if (assets.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        return getTokenMetadataBatch(assets);
     }
 
 }

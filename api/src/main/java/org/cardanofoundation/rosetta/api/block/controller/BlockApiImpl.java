@@ -2,6 +2,8 @@ package org.cardanofoundation.rosetta.api.block.controller;
 
 import lombok.RequiredArgsConstructor;
 
+import org.cardanofoundation.rosetta.api.common.model.Asset;
+import org.cardanofoundation.rosetta.api.common.service.TokenRegistryService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -16,12 +18,15 @@ import org.cardanofoundation.rosetta.api.block.service.BlockService;
 import org.cardanofoundation.rosetta.api.network.service.NetworkService;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 
+import java.util.Map;
+
 @RestController
 @RequiredArgsConstructor
 public class BlockApiImpl implements BlockApi {
 
   private final BlockService blockService;
   private final NetworkService networkService;
+  private final TokenRegistryService tokenRegistryService;
 
   private final BlockMapper mapper;
 
@@ -49,6 +54,7 @@ public class BlockApiImpl implements BlockApi {
     return ResponseEntity.ok(mapper.mapToBlockResponse(block));
   }
 
+
   @Override
   public ResponseEntity<BlockTransactionResponse> blockTransaction(
       @RequestBody BlockTransactionRequest blockReq) {
@@ -67,7 +73,11 @@ public class BlockApiImpl implements BlockApi {
 
     BlockTx blockTx = blockService.getBlockTransaction(blockId, blockHash, txHash);
 
-    return ResponseEntity.ok(mapper.mapToBlockTransactionResponse(blockTx));
+    // Make single batch call to fetch all token metadata for this transaction (empty map if no native tokens)
+    Map<Asset, CurrencyMetadataResponse> metadataMap = tokenRegistryService.fetchMetadataForBlockTx(blockTx);
+    
+    // Always use metadata version - downstream code won't lookup from empty map if no native tokens
+    return ResponseEntity.ok(mapper.mapToBlockTransactionResponseWithMetadata(blockTx, metadataMap));
   }
 
 }

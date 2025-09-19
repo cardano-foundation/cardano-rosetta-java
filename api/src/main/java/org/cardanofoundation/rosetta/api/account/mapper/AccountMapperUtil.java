@@ -8,6 +8,7 @@ import org.cardanofoundation.rosetta.api.common.model.Asset;
 import org.cardanofoundation.rosetta.api.common.service.TokenRegistryService;
 import org.cardanofoundation.rosetta.common.mapper.DataMapper;
 import org.cardanofoundation.rosetta.common.util.Constants;
+import org.mapstruct.Context;
 import org.mapstruct.Named;
 import org.openapitools.client.model.*;
 import org.springframework.stereotype.Component;
@@ -24,7 +25,8 @@ public class AccountMapperUtil {
     private final TokenRegistryService tokenRegistryService;
 
     @Named("mapAddressBalancesToAmounts")
-    public List<Amount> mapAddressBalancesToAmounts(List<AddressBalance> balances) {
+    public List<Amount> mapAddressBalancesToAmounts(List<AddressBalance> balances,
+                                                     @Context Map<Asset, CurrencyMetadataResponse> metadataMap) {
         BigInteger lovelaceAmount = balances.stream()
                 .filter(b -> Constants.LOVELACE.equals(b.unit()))
                 .map(AddressBalance::quantity)
@@ -45,22 +47,7 @@ public class AccountMapperUtil {
             return amounts;
         }
 
-        // Collect all unique assets for bulk metadata fetch
-        Set<Asset> assets = nativeTokenBalances.stream()
-                .map(b -> {
-                    String symbol = b.unit().substring(Constants.POLICY_ID_LENGTH);
-                    String policyId = b.unit().substring(0, Constants.POLICY_ID_LENGTH);
-                    return Asset.builder()
-                            .policyId(policyId)
-                            .assetName(symbol)
-                            .build();
-                })
-                .collect(Collectors.toSet());
-
-        // Bulk fetch token metadata
-        //Map<Asset, CurrencyMetadataResponse> metadataMap = tokenRegistryService.getTokenMetadataBatch(assets);
-        Map<Asset, CurrencyMetadataResponse> metadataMap = new HashMap<>();
-
+        // Use pre-fetched metadata passed via @Context from service layer
         // Process each native token balance with metadata
         for (AddressBalance b : nativeTokenBalances) {
             String symbol = b.unit().substring(Constants.POLICY_ID_LENGTH);
@@ -86,7 +73,8 @@ public class AccountMapperUtil {
     }
 
     @Named("mapUtxosToCoins")
-    public List<Coin> mapUtxosToCoins(List<Utxo> utxos) {
+    public List<Coin> mapUtxosToCoins(List<Utxo> utxos,
+                                       @Context Map<Asset, CurrencyMetadataResponse> metadataMap) {
         return utxos.stream().map(utxo -> {
             Amt adaAsset = utxo.getAmounts().stream()
                     .filter(amt -> Constants.LOVELACE.equals(amt.getUnit()))
@@ -101,13 +89,14 @@ public class AccountMapperUtil {
                             .currency(getAdaCurrency())
                             .build())
 
-                    .metadata(mapCoinMetadata(utxo, coinIdentifier))
+                    .metadata(mapCoinMetadata(utxo, coinIdentifier, metadataMap))
                     .build();
         }).toList();
     }
 
     @Nullable
-    private Map<String, List<CoinTokens>> mapCoinMetadata(Utxo utxo, String coinIdentifier) {
+    private Map<String, List<CoinTokens>> mapCoinMetadata(Utxo utxo, String coinIdentifier,
+                                                           Map<Asset, CurrencyMetadataResponse> metadataMap) {
         // Filter only native tokens (non-ADA amounts with policyId)
         List<Amt> nativeTokenAmounts = utxo.getAmounts().stream()
                 .filter(Objects::nonNull)
@@ -121,18 +110,7 @@ public class AccountMapperUtil {
             return null;
         }
 
-        // Collect all unique assets for bulk metadata fetch
-        Set<Asset> assets = nativeTokenAmounts.stream()
-                .map(amount -> Asset.builder()
-                        .policyId(amount.getPolicyId())
-                        .assetName(amount.getAssetName())
-                        .build())
-                .collect(Collectors.toSet());
-
-        // Bulk fetch token metadata
-        //Map<Asset, CurrencyMetadataResponse> metadataMap = tokenRegistryService.getTokenMetadataBatch(assets);
-        Map<Asset, CurrencyMetadataResponse> metadataMap = new HashMap<>();
-
+        // Use pre-fetched metadata passed via @Context from service layer
         // Create separate CoinTokens entry for each native token (one token per entry)
         List<CoinTokens> coinTokens = nativeTokenAmounts.stream()
                 .map(amount -> {
