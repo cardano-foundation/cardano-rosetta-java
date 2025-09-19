@@ -274,7 +274,7 @@ public class CborMapToOperation {
     private static void addCurrencyToAmount(Map amountMap, Amount amount) {
         Optional.ofNullable(amountMap.get(key(Constants.CURRENCY))).ifPresent(o -> {
             Map currencyMap = (Map) o;
-            Currency currency = getCurrencyMap(currencyMap);
+            CurrencyResponse currency = getCurrencyMap(currencyMap);
             addMetadataToCurrency(currencyMap, currency);
             amount.setCurrency(currency);
         });
@@ -285,24 +285,17 @@ public class CborMapToOperation {
      * @param currencyMap The map containing the currency field
      * @param currency The Currency object to fill
      */
-    private static void addMetadataToCurrency(Map currencyMap, Currency currency) {
-        Optional.ofNullable(currencyMap.get(key(Constants.METADATA))).ifPresent(o -> {
-            CurrencyMetadata metadata = new CurrencyMetadata();
-            Map addedMetadataMap = (Map) o;
-            addPolicyIdToMetadata(addedMetadataMap, metadata);
+    private static void addMetadataToCurrency(Map currencyMap, CurrencyResponse currency) {
+        Optional.ofNullable(currencyMap.get(key(Constants.POLICYID))).ifPresent(o -> {
+            String policyId = ((UnicodeString) o).getString();
+            CurrencyMetadataResponse metadata = CurrencyMetadataResponse.builder()
+                .policyId(policyId)
+                .build();
+
             currency.setMetadata(metadata);
         });
     }
 
-    /**
-     * Add PolicyId to CurrencyMetadata object. The policyId is accessed through {@value Constants#POLICYID}
-     * @param addedMetadataMap The map containing the metadata field
-     * @param metadata The CurrencyMetadata object to fill
-     */
-    private static void addPolicyIdToMetadata(Map addedMetadataMap, CurrencyMetadata metadata) {
-        Optional.ofNullable(addedMetadataMap.get(key(Constants.POLICYID)))
-                .ifPresent(o -> metadata.setPolicyId(((UnicodeString) o).getString()));
-    }
 
     /**
      * Returns a Currency object populated from the cbor MAP  if not null.
@@ -310,8 +303,8 @@ public class CborMapToOperation {
      * @param currencyMap The map containing the currency field
      * @return The populated Currency object
      */
-    private static Currency getCurrencyMap(Map currencyMap) {
-        Currency currency = new Currency();
+    private static CurrencyResponse getCurrencyMap(Map currencyMap) {
+        CurrencyResponse currency = new CurrencyResponse();
         Optional.ofNullable(currencyMap.get(key(Constants.SYMBOL))).ifPresent(o1 -> {
             currency.setSymbol(((UnicodeString) o1).getString());
         });

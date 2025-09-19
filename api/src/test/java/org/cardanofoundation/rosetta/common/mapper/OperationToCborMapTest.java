@@ -9,8 +9,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.openapitools.client.model.AccountIdentifier;
 import org.openapitools.client.model.AccountIdentifierMetadata;
 import org.openapitools.client.model.Amount;
-import org.openapitools.client.model.Currency;
-import org.openapitools.client.model.CurrencyMetadata;
+import org.openapitools.client.model.CurrencyResponse;
+import org.openapitools.client.model.CurrencyMetadataResponse;
 import org.openapitools.client.model.CurveType;
 import org.openapitools.client.model.GovVoteParams;
 import org.openapitools.client.model.GovVoteRationaleParams;
@@ -59,7 +59,7 @@ class OperationToCborMapTest {
                     
             OperationMetadata operationMetadata = OperationMetadata.builder()
                     .poolRegistrationParams(poolRegistrationParams)
-                    .refundAmount(new Amount("2", new Currency(Constants.ADA, 2, new CurrencyMetadata("policyId")), new Object()))
+                    .refundAmount(new Amount("2", CurrencyResponse.builder().symbol(Constants.ADA).decimals(2).metadata(CurrencyMetadataResponse.builder().policyId("policyId").build()).build(), new Object()))
                     .tokenBundle(List.of(new TokenBundleItem("tokenBundlePolicyId", List.of(new Amount()))))
                     .build();
 

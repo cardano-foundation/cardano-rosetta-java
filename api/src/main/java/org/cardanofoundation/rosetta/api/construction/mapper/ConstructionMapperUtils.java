@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 import org.mapstruct.Named;
 import org.openapitools.client.model.AccountIdentifier;
 import org.openapitools.client.model.Amount;
-import org.openapitools.client.model.Currency;
+import org.openapitools.client.model.CurrencyResponse;
 import org.openapitools.client.model.Signature;
 
 import org.cardanofoundation.rosetta.common.model.cardano.crypto.Signatures;
@@ -37,8 +37,8 @@ public class ConstructionMapperUtils {
         chainCode, address);
   }
 
-  private Currency getAdaCurrency() {
-    return Currency.builder()
+  private CurrencyResponse getAdaCurrency() {
+    return CurrencyResponse.builder()
         .symbol(Constants.ADA)
         .decimals(Constants.ADA_DECIMALS)
         .build();

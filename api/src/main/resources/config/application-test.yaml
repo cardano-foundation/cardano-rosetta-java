@@ -23,3 +23,8 @@ logging:
         web:
           filter:
             CommonsRequestLoggingFilter: DEBUG
+
+cardano:
+  rosetta:
+    # Token Registry disabled for test environment
+    TOKEN_REGISTRY_ENABLED: false

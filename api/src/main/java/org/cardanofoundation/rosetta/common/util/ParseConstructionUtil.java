@@ -95,7 +95,10 @@ public class ParseConstructionUtil {
         OperationIdentifier operationIdentifier = new OperationIdentifier(index, null);
         AccountIdentifier account = new AccountIdentifier(output.getAddress(), null, null);
         Amount amount = new Amount(output.getValue().getCoin().toString(),
-                new Currency(Constants.ADA, Constants.ADA_DECIMALS, null), null);
+                CurrencyResponse.builder()
+                        .symbol(Constants.ADA)
+                        .decimals(Constants.ADA_DECIMALS)
+                        .build(), null);
 
         return new Operation(operationIdentifier, relatedOperations, OperationType.OUTPUT.getValue(),
                 "",
@@ -182,6 +185,7 @@ public class ParseConstructionUtil {
             log.error("[parseAsset] asset value for symbol: {} not provided", assetSymbol);
             throw ExceptionFactory.tokenAssetValueMissingError();
         }
+
         return DataMapper.mapAmount(assetValue.toString(), assetSymbol, 0, null);
     }
 
@@ -356,7 +360,10 @@ public class ParseConstructionUtil {
                 .status("")
                 .account(new AccountIdentifier(address, null, null))
                 .amount(Amount.builder().value(value)
-                        .currency(new Currency(Constants.ADA, Constants.ADA_DECIMALS, null))
+                        .currency(CurrencyResponse.builder()
+                                .symbol(Constants.ADA)
+                                .decimals(Constants.ADA_DECIMALS)
+                                .build())
                         .build())
                 .metadata(OperationMetadata.builder()
                         .stakingCredential(new PublicKey(hex, CurveType.EDWARDS25519))
