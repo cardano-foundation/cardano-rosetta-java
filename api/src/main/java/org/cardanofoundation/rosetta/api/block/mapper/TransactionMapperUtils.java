@@ -36,7 +36,6 @@ import static org.cardanofoundation.rosetta.common.util.Constants.LOVELACE;
 public class TransactionMapperUtils {
 
   final ProtocolParamService protocolParamService;
-  final TokenRegistryService tokenRegistryService;
 
   @Named("convertGovAnchorFromRosetta")
   public GovVoteRationaleParams convertGovAnchorFromRosetta(Anchor anchor) {

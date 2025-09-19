@@ -5,11 +5,7 @@ import com.google.common.cache.Cache;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.cardanofoundation.rosetta.client.model.domain.TokenCacheEntry;
-import org.cardanofoundation.rosetta.client.model.domain.TokenMetadata;
-import org.cardanofoundation.rosetta.client.model.domain.TokenRegistryBatchRequest;
-import org.cardanofoundation.rosetta.client.model.domain.TokenRegistryBatchResponse;
-import org.cardanofoundation.rosetta.client.model.domain.TokenSubject;
+import org.cardanofoundation.rosetta.client.model.domain.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -21,7 +17,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.*;
-import java.util.function.Function;
 
 @Service
 @Slf4j
@@ -99,8 +94,6 @@ public class CachingTokenRegistryHttpGatewayImpl implements TokenRegistryHttpGat
             // Prepare HTTP request
             String requestBody = objectMapper.writeValueAsString(request);
 
-            log.info(requestBody);
-
             HttpRequest httpRequest = HttpRequest.newBuilder()
                     .uri(URI.create(batchEndpointUrl))
                     .POST(HttpRequest.BodyPublishers.ofString(requestBody))
@@ -108,9 +101,6 @@ public class CachingTokenRegistryHttpGatewayImpl implements TokenRegistryHttpGat
                     .header("Content-Type", "application/json")
                     .header("Accept", "application/json")
                     .build();
-
-            log.info("Sending batch request to token registry URL: {} with {} subjects", batchEndpointUrl, subjectsToFetch.size());
-            //log.info("Request headers: Content-Type=application/json, Accept=application/json");
 
             // Execute request
             HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
@@ -120,12 +110,8 @@ public class CachingTokenRegistryHttpGatewayImpl implements TokenRegistryHttpGat
                 return result; // Return partial results from cache
             }
 
-            log.info("body:" + response.body());
-
             // Parse response
             TokenRegistryBatchResponse batchResponse = objectMapper.readValue(response.body(), TokenRegistryBatchResponse.class);
-
-            log.info("subjects count:" + batchResponse.getSubjects().size());
 
             if (batchResponse.getSubjects() != null) {
                 for (TokenSubject tokenSubject : batchResponse.getSubjects()) {
@@ -141,9 +127,6 @@ public class CachingTokenRegistryHttpGatewayImpl implements TokenRegistryHttpGat
                         // Token exists in registry but lacks essential metadata - treat as not found
                         result.put(tokenSubject.getSubject(), Optional.empty());
                         tokenMetadataCache.put(tokenSubject.getSubject(), TokenCacheEntry.notFound());
-                        
-//                        log.warn("Token subject {} returned from registry with invalid/incomplete metadata, caching as not found",
-//                                tokenSubject.getSubject());
                     }
                 }
             }
@@ -183,7 +166,7 @@ public class CachingTokenRegistryHttpGatewayImpl implements TokenRegistryHttpGat
     @Scheduled(fixedRateString = "${cardano.rosetta.TOKEN_REGISTRY_CACHE_CLEAR_RATE:15m}")
     void clearCache() {
         tokenMetadataCache.invalidateAll();
-        log.info("Cleared all token metadata cache entries");
+        log.info("Cleared all token metadata cache entries.");
     }
 
     List<String> buildPropertiesList() {

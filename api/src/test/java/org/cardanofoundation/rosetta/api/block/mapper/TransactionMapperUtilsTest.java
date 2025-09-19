@@ -11,12 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.openapitools.client.model.Amount;
-import org.openapitools.client.model.CurrencyMetadataResponse;
-import org.openapitools.client.model.CurrencyResponse;
-import org.openapitools.client.model.LogoType;
-import org.openapitools.client.model.OperationMetadata;
-import org.openapitools.client.model.TokenBundleItem;
+import org.openapitools.client.model.*;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -25,7 +20,6 @@ import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class TransactionMapperUtilsTest {
@@ -40,7 +34,7 @@ class TransactionMapperUtilsTest {
 
   @BeforeEach
   void setUp() {
-    transactionMapperUtils = new TransactionMapperUtils(protocolParamService, tokenRegistryService);
+    transactionMapperUtils = new TransactionMapperUtils(protocolParamService);
     
     // Configure TokenRegistryService to return fallback metadata for any asset
     lenient().when(tokenRegistryService.getTokenMetadataBatch(anySet())).thenAnswer(invocation -> {

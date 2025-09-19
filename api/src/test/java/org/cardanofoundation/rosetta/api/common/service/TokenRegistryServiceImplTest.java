@@ -1,11 +1,16 @@
 package org.cardanofoundation.rosetta.api.common.service;
 
+import org.cardanofoundation.rosetta.api.account.model.domain.AddressBalance;
+import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
+import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
+import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.common.model.Asset;
 import org.cardanofoundation.rosetta.client.TokenRegistryHttpGateway;
 import org.cardanofoundation.rosetta.client.model.domain.TokenMetadata;
 import org.cardanofoundation.rosetta.client.model.domain.TokenProperty;
 import org.cardanofoundation.rosetta.client.model.domain.TokenPropertyNumber;
 import org.cardanofoundation.rosetta.client.model.domain.TokenSubject;
+import org.cardanofoundation.rosetta.common.util.Constants;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -13,8 +18,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.openapitools.client.model.CurrencyMetadataResponse;
-import org.openapitools.client.model.LogoType;
+import org.openapitools.client.model.*;
+
+import static org.cardanofoundation.rosetta.common.util.Constants.LOVELACE;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -447,6 +453,579 @@ class TokenRegistryServiceImplTest {
         }
     }
 
+    @Nested
+    @DisplayName("Asset Extraction from BlockTx Tests")
+    class AssetExtractionFromBlockTxTests {
+
+        @Test
+        @DisplayName("Should return empty set when BlockTx is null")
+        void shouldReturnEmptySetWhenBlockTxIsNull() {
+            // when
+            Set<Asset> result = tokenRegistryService.extractAssetsFromBlockTx(null);
+
+            // then
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        @DisplayName("Should extract assets from inputs only")
+        void shouldExtractAssetsFromInputsOnly() {
+            // given
+            BlockTx blockTx = createBlockTxWithInputs();
+
+            // when
+            Set<Asset> result = tokenRegistryService.extractAssetsFromBlockTx(blockTx);
+
+            // then
+            assertThat(result).hasSize(2);
+            assertThat(result).contains(
+                Asset.builder().policyId("policy1").assetName("token1").build(),
+                Asset.builder().policyId("policy2").assetName("token2").build()
+            );
+        }
+
+        @Test
+        @DisplayName("Should extract assets from outputs only")
+        void shouldExtractAssetsFromOutputsOnly() {
+            // given
+            BlockTx blockTx = createBlockTxWithOutputs();
+
+            // when
+            Set<Asset> result = tokenRegistryService.extractAssetsFromBlockTx(blockTx);
+
+            // then
+            assertThat(result).hasSize(2);
+            assertThat(result).contains(
+                Asset.builder().policyId("policy3").assetName("token3").build(),
+                Asset.builder().policyId("policy4").assetName("token4").build()
+            );
+        }
+
+        @Test
+        @DisplayName("Should extract assets from both inputs and outputs")
+        void shouldExtractAssetsFromBothInputsAndOutputs() {
+            // given
+            BlockTx blockTx = createBlockTxWithInputsAndOutputs();
+
+            // when
+            Set<Asset> result = tokenRegistryService.extractAssetsFromBlockTx(blockTx);
+
+            // then
+            assertThat(result).hasSize(4);
+            assertThat(result).contains(
+                Asset.builder().policyId("policy1").assetName("token1").build(),
+                Asset.builder().policyId("policy2").assetName("token2").build(),
+                Asset.builder().policyId("policy3").assetName("token3").build(),
+                Asset.builder().policyId("policy4").assetName("token4").build()
+            );
+        }
+
+        @Test
+        @DisplayName("Should exclude lovelace from extraction")
+        void shouldExcludeLovelaceFromExtraction() {
+            // given
+            BlockTx blockTx = createBlockTxWithLovelaceAndTokens();
+
+            // when
+            Set<Asset> result = tokenRegistryService.extractAssetsFromBlockTx(blockTx);
+
+            // then
+            assertThat(result).hasSize(1);
+            assertThat(result).contains(
+                Asset.builder().policyId("policy1").assetName("token1").build()
+            );
+        }
+
+        @Test
+        @DisplayName("Should handle empty inputs and outputs")
+        void shouldHandleEmptyInputsAndOutputs() {
+            // given
+            BlockTx blockTx = BlockTx.builder()
+                .inputs(List.of())
+                .outputs(List.of())
+                .build();
+
+            // when
+            Set<Asset> result = tokenRegistryService.extractAssetsFromBlockTx(blockTx);
+
+            // then
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        @DisplayName("Should handle null amounts in utxos")
+        void shouldHandleNullAmountsInUtxos() {
+            // given
+            Utxo utxoWithNullAmounts = Utxo.builder().amounts(null).build();
+            BlockTx blockTx = BlockTx.builder()
+                .inputs(List.of(utxoWithNullAmounts))
+                .build();
+
+            // when
+            Set<Asset> result = tokenRegistryService.extractAssetsFromBlockTx(blockTx);
+
+            // then
+            assertThat(result).isEmpty();
+        }
+    }
+
+    @Nested
+    @DisplayName("Asset Extraction from Amounts Tests")
+    class AssetExtractionFromAmountsTests {
+
+        @Test
+        @DisplayName("Should return empty set when amounts is null")
+        void shouldReturnEmptySetWhenAmountsIsNull() {
+            // when
+            Set<Asset> result = tokenRegistryService.extractAssetsFromAmounts(null);
+
+            // then
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        @DisplayName("Should return empty set when amounts is empty")
+        void shouldReturnEmptySetWhenAmountsIsEmpty() {
+            // when
+            Set<Asset> result = tokenRegistryService.extractAssetsFromAmounts(List.of());
+
+            // then
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        @DisplayName("Should extract native tokens only")
+        void shouldExtractNativeTokensOnly() {
+            // given
+            List<Amt> amounts = List.of(
+                createAmt(LOVELACE, null, LOVELACE), // ADA - should be excluded
+                createAmt("token1", "policy1", "token1"),
+                createAmt("token2", "policy2", "token2")
+            );
+
+            // when
+            Set<Asset> result = tokenRegistryService.extractAssetsFromAmounts(amounts);
+
+            // then
+            assertThat(result).hasSize(2);
+            assertThat(result).contains(
+                Asset.builder().policyId("policy1").assetName("token1").build(),
+                Asset.builder().policyId("policy2").assetName("token2").build()
+            );
+        }
+
+        @Test
+        @DisplayName("Should return empty set when only lovelace present")
+        void shouldReturnEmptySetWhenOnlyLovelacePresent() {
+            // given
+            List<Amt> amounts = List.of(
+                createAmt(LOVELACE, null, LOVELACE)
+            );
+
+            // when
+            Set<Asset> result = tokenRegistryService.extractAssetsFromAmounts(amounts);
+
+            // then
+            assertThat(result).isEmpty();
+        }
+    }
+
+    @Nested
+    @DisplayName("Asset Extraction from BlockTransactions Tests")
+    class AssetExtractionFromBlockTransactionsTests {
+
+        @Test
+        @DisplayName("Should return empty set when transactions is null")
+        void shouldReturnEmptySetWhenTransactionsIsNull() {
+            // when
+            Set<Asset> result = tokenRegistryService.extractAssetsFromBlockTransactions(null);
+
+            // then
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        @DisplayName("Should return empty set when transactions is empty")
+        void shouldReturnEmptySetWhenTransactionsIsEmpty() {
+            // when
+            Set<Asset> result = tokenRegistryService.extractAssetsFromBlockTransactions(List.of());
+
+            // then
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        @DisplayName("Should extract assets from operation metadata token bundles")
+        void shouldExtractAssetsFromOperationMetadataTokenBundles() {
+            // given
+            List<BlockTransaction> transactions = List.of(createBlockTransactionWithTokenBundles());
+
+            // when
+            Set<Asset> result = tokenRegistryService.extractAssetsFromBlockTransactions(transactions);
+
+            // then
+            assertThat(result).hasSize(2);
+            assertThat(result).contains(
+                Asset.builder().policyId("policy1").assetName("token1").build(),
+                Asset.builder().policyId("policy2").assetName("token2").build()
+            );
+        }
+
+        @Test
+        @DisplayName("Should extract assets from operation amount currency metadata")
+        void shouldExtractAssetsFromOperationAmountCurrencyMetadata() {
+            // given
+            List<BlockTransaction> transactions = List.of(createBlockTransactionWithCurrencyMetadata());
+
+            // when
+            Set<Asset> result = tokenRegistryService.extractAssetsFromBlockTransactions(transactions);
+
+            // then
+            assertThat(result).hasSize(1);
+            assertThat(result).contains(
+                Asset.builder().policyId("policy1").assetName("token1").build()
+            );
+        }
+
+        @Test
+        @DisplayName("Should handle transactions with null operations")
+        void shouldHandleTransactionsWithNullOperations() {
+            // given
+            BlockTransaction blockTx = BlockTransaction.builder()
+                .transaction(Transaction.builder().operations(null).build())
+                .build();
+            List<BlockTransaction> transactions = List.of(blockTx);
+
+            // when
+            Set<Asset> result = tokenRegistryService.extractAssetsFromBlockTransactions(transactions);
+
+            // then
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        @DisplayName("Should handle transactions with null transaction")
+        void shouldHandleTransactionsWithNullTransaction() {
+            // given
+            BlockTransaction blockTx = BlockTransaction.builder()
+                .transaction(null)
+                .build();
+            List<BlockTransaction> transactions = List.of(blockTx);
+
+            // when
+            Set<Asset> result = tokenRegistryService.extractAssetsFromBlockTransactions(transactions);
+
+            // then
+            assertThat(result).isEmpty();
+        }
+    }
+
+    @Nested
+    @DisplayName("Asset Extraction from Operations Tests")
+    class AssetExtractionFromOperationsTests {
+
+        @Test
+        @DisplayName("Should return empty set when operations is null")
+        void shouldReturnEmptySetWhenOperationsIsNull() {
+            // when
+            Set<Asset> result = tokenRegistryService.extractAssetsFromOperations(null);
+
+            // then
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        @DisplayName("Should return empty set when operations is empty")
+        void shouldReturnEmptySetWhenOperationsIsEmpty() {
+            // when
+            Set<Asset> result = tokenRegistryService.extractAssetsFromOperations(List.of());
+
+            // then
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        @DisplayName("Should extract assets from token bundles in operation metadata")
+        void shouldExtractAssetsFromTokenBundles() {
+            // given
+            List<Operation> operations = List.of(createOperationWithTokenBundle());
+
+            // when
+            Set<Asset> result = tokenRegistryService.extractAssetsFromOperations(operations);
+
+            // then
+            assertThat(result).hasSize(2);
+            assertThat(result).contains(
+                Asset.builder().policyId("policy1").assetName("token1").build(),
+                Asset.builder().policyId("policy1").assetName("token2").build()
+            );
+        }
+
+        @Test
+        @DisplayName("Should extract assets from operation amount currency metadata")
+        void shouldExtractAssetsFromAmountCurrencyMetadata() {
+            // given
+            List<Operation> operations = List.of(createOperationWithCurrencyMetadata());
+
+            // when
+            Set<Asset> result = tokenRegistryService.extractAssetsFromOperations(operations);
+
+            // then
+            assertThat(result).hasSize(1);
+            assertThat(result).contains(
+                Asset.builder().policyId("policy1").assetName("token1").build()
+            );
+        }
+
+        @Test
+        @DisplayName("Should exclude lovelace from extraction")
+        void shouldExcludeLovelaceFromExtractionInOperations() {
+            // given
+            List<Operation> operations = List.of(createOperationWithLovelaceAndTokens());
+
+            // when
+            Set<Asset> result = tokenRegistryService.extractAssetsFromOperations(operations);
+
+            // then
+            assertThat(result).hasSize(1);
+            assertThat(result).contains(
+                Asset.builder().policyId("policy1").assetName("token1").build()
+            );
+        }
+
+        @Test
+        @DisplayName("Should handle operations with null metadata")
+        void shouldHandleOperationsWithNullMetadata() {
+            // given
+            Operation operation = Operation.builder()
+                .metadata(null)
+                .amount(null)
+                .build();
+            List<Operation> operations = List.of(operation);
+
+            // when
+            Set<Asset> result = tokenRegistryService.extractAssetsFromOperations(operations);
+
+            // then
+            assertThat(result).isEmpty();
+        }
+    }
+
+    @Nested
+    @DisplayName("Helper Method Tests - fetchMetadataFor* variants")
+    class FetchMetadataHelperMethodTests {
+
+        @Test
+        @DisplayName("fetchMetadataForBlockTx should return empty map for null BlockTx")
+        void fetchMetadataForBlockTxShouldReturnEmptyMapForNull() {
+            // when
+            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.fetchMetadataForBlockTx(null);
+
+            // then
+            assertThat(result).isEmpty();
+            verifyNoInteractions(tokenRegistryHttpGateway);
+        }
+
+        @Test
+        @DisplayName("fetchMetadataForBlockTx should call gateway for BlockTx with assets")
+        void fetchMetadataForBlockTxShouldCallGatewayWithAssets() {
+            // given
+            BlockTx blockTx = createBlockTxWithInputs();
+            when(tokenRegistryHttpGateway.getTokenMetadataBatch(anySet()))
+                .thenReturn(Map.of());
+
+            // when
+            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.fetchMetadataForBlockTx(blockTx);
+
+            // then
+            assertThat(result).hasSize(2);
+            verify(tokenRegistryHttpGateway).getTokenMetadataBatch(anySet());
+        }
+
+        @Test
+        @DisplayName("fetchMetadataForBlockTransactions should return empty map for null transactions")
+        void fetchMetadataForBlockTransactionsShouldReturnEmptyMapForNull() {
+            // when
+            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.fetchMetadataForBlockTransactions(null);
+
+            // then
+            assertThat(result).isEmpty();
+            verifyNoInteractions(tokenRegistryHttpGateway);
+        }
+
+        @Test
+        @DisplayName("fetchMetadataForBlockTransactions should return empty map for empty transactions")
+        void fetchMetadataForBlockTransactionsShouldReturnEmptyMapForEmpty() {
+            // when
+            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.fetchMetadataForBlockTransactions(List.of());
+
+            // then
+            assertThat(result).isEmpty();
+            verifyNoInteractions(tokenRegistryHttpGateway);
+        }
+
+        @Test
+        @DisplayName("fetchMetadataForBlockTxList should return empty map for null list")
+        void fetchMetadataForBlockTxListShouldReturnEmptyMapForNull() {
+            // when
+            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.fetchMetadataForBlockTxList(null);
+
+            // then
+            assertThat(result).isEmpty();
+            verifyNoInteractions(tokenRegistryHttpGateway);
+        }
+
+        @Test
+        @DisplayName("fetchMetadataForBlockTxList should return empty map for empty list")
+        void fetchMetadataForBlockTxListShouldReturnEmptyMapForEmpty() {
+            // when
+            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.fetchMetadataForBlockTxList(List.of());
+
+            // then
+            assertThat(result).isEmpty();
+            verifyNoInteractions(tokenRegistryHttpGateway);
+        }
+
+        @Test
+        @DisplayName("fetchMetadataForBlockTxList should aggregate assets from multiple transactions")
+        void fetchMetadataForBlockTxListShouldAggregateAssetsFromMultipleTx() {
+            // given
+            List<BlockTx> blockTxList = List.of(
+                createBlockTxWithInputs(),
+                createBlockTxWithOutputs()
+            );
+            when(tokenRegistryHttpGateway.getTokenMetadataBatch(anySet()))
+                .thenReturn(Map.of());
+
+            // when
+            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.fetchMetadataForBlockTxList(blockTxList);
+
+            // then
+            assertThat(result).hasSize(4); // 2 from inputs + 2 from outputs
+            verify(tokenRegistryHttpGateway).getTokenMetadataBatch(anySet());
+        }
+
+        @Test
+        @DisplayName("fetchMetadataForAddressBalances should return empty map for null balances")
+        void fetchMetadataForAddressBalancesShouldReturnEmptyMapForNull() {
+            // when
+            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.fetchMetadataForAddressBalances(null);
+
+            // then
+            assertThat(result).isEmpty();
+            verifyNoInteractions(tokenRegistryHttpGateway);
+        }
+
+        @Test
+        @DisplayName("fetchMetadataForAddressBalances should return empty map for empty balances")
+        void fetchMetadataForAddressBalancesShouldReturnEmptyMapForEmpty() {
+            // when
+            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.fetchMetadataForAddressBalances(List.of());
+
+            // then
+            assertThat(result).isEmpty();
+            verifyNoInteractions(tokenRegistryHttpGateway);
+        }
+
+        @Test
+        @DisplayName("fetchMetadataForAddressBalances should extract assets from valid balances")
+        void fetchMetadataForAddressBalancesShouldExtractAssetsFromValidBalances() {
+            // given
+            List<AddressBalance> balances = List.of(
+                createAddressBalance(LOVELACE), // Should be excluded
+                createAddressBalance("a0b1c2d3e4f5a0b1c2d3e4f5a0b1c2d3e4f5a0b1c2d3e4f5a0b1c2d3token1"),
+                createAddressBalance("short") // Should be excluded - too short
+            );
+            when(tokenRegistryHttpGateway.getTokenMetadataBatch(anySet()))
+                .thenReturn(Map.of());
+
+            // when
+            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.fetchMetadataForAddressBalances(balances);
+
+            // then
+            assertThat(result).hasSize(1);
+            verify(tokenRegistryHttpGateway).getTokenMetadataBatch(anySet());
+        }
+
+        @Test
+        @DisplayName("fetchMetadataForUtxos should return empty map for null utxos")
+        void fetchMetadataForUtxosShouldReturnEmptyMapForNull() {
+            // when
+            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.fetchMetadataForUtxos(null);
+
+            // then
+            assertThat(result).isEmpty();
+            verifyNoInteractions(tokenRegistryHttpGateway);
+        }
+
+        @Test
+        @DisplayName("fetchMetadataForUtxos should return empty map for empty utxos")
+        void fetchMetadataForUtxosShouldReturnEmptyMapForEmpty() {
+            // when
+            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.fetchMetadataForUtxos(List.of());
+
+            // then
+            assertThat(result).isEmpty();
+            verifyNoInteractions(tokenRegistryHttpGateway);
+        }
+
+        @Test
+        @DisplayName("fetchMetadataForUtxos should extract assets from utxos with native tokens")
+        void fetchMetadataForUtxosShouldExtractAssetsFromUtxosWithNativeTokens() {
+            // given
+            List<Utxo> utxos = List.of(
+                createUtxoWithAmounts(List.of(
+                    createAmt(LOVELACE, null, LOVELACE), // Should be excluded
+                    createAmt("token1", "policy1", "token1"),
+                    createAmt("token2", "policy2", "token2")
+                ))
+            );
+            when(tokenRegistryHttpGateway.getTokenMetadataBatch(anySet()))
+                .thenReturn(Map.of());
+
+            // when
+            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.fetchMetadataForUtxos(utxos);
+
+            // then
+            assertThat(result).hasSize(2);
+            verify(tokenRegistryHttpGateway).getTokenMetadataBatch(anySet());
+        }
+
+        @Test
+        @DisplayName("fetchMetadataForUtxos should handle utxos with null amounts")
+        void fetchMetadataForUtxosShouldHandleUtxosWithNullAmounts() {
+            // given
+            List<Utxo> utxos = List.of(
+                Utxo.builder().amounts(null).build()
+            );
+
+            // when
+            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.fetchMetadataForUtxos(utxos);
+
+            // then
+            assertThat(result).isEmpty();
+            verifyNoInteractions(tokenRegistryHttpGateway);
+        }
+
+        @Test
+        @DisplayName("fetchMetadataForUtxos should handle amounts with null policyId")
+        void fetchMetadataForUtxosShouldHandleAmountsWithNullPolicyId() {
+            // given
+            List<Utxo> utxos = List.of(
+                createUtxoWithAmounts(List.of(
+                    createAmt("token1", null, "token1") // null policyId should be excluded
+                ))
+            );
+
+            // when
+            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.fetchMetadataForUtxos(utxos);
+
+            // then
+            assertThat(result).isEmpty();
+            verifyNoInteractions(tokenRegistryHttpGateway);
+        }
+    }
+
     // Helper methods
     private Asset createAsset(String policyId, String assetName) {
         return Asset.builder()
@@ -585,7 +1164,230 @@ class TokenRegistryServiceImplTest {
         when(tokenMetadata.getDescription()).thenReturn(description);
         
         when(tokenMetadata.getDecimals()).thenReturn(null);
-        
+
         return tokenSubject;
+    }
+
+    // Additional helper methods for new tests
+    private BlockTx createBlockTxWithInputs() {
+        return BlockTx.builder()
+            .inputs(List.of(
+                createUtxoWithAmounts(List.of(
+                    createAmt("token1", "policy1", "token1"),
+                    createAmt(LOVELACE, null, LOVELACE)
+                )),
+                createUtxoWithAmounts(List.of(
+                    createAmt("token2", "policy2", "token2")
+                ))
+            ))
+            .build();
+    }
+
+    private BlockTx createBlockTxWithOutputs() {
+        return BlockTx.builder()
+            .outputs(List.of(
+                createUtxoWithAmounts(List.of(
+                    createAmt("token3", "policy3", "token3"),
+                    createAmt(LOVELACE, null, LOVELACE)
+                )),
+                createUtxoWithAmounts(List.of(
+                    createAmt("token4", "policy4", "token4")
+                ))
+            ))
+            .build();
+    }
+
+    private BlockTx createBlockTxWithInputsAndOutputs() {
+        return BlockTx.builder()
+            .inputs(List.of(
+                createUtxoWithAmounts(List.of(
+                    createAmt("token1", "policy1", "token1")
+                )),
+                createUtxoWithAmounts(List.of(
+                    createAmt("token2", "policy2", "token2")
+                ))
+            ))
+            .outputs(List.of(
+                createUtxoWithAmounts(List.of(
+                    createAmt("token3", "policy3", "token3")
+                )),
+                createUtxoWithAmounts(List.of(
+                    createAmt("token4", "policy4", "token4")
+                ))
+            ))
+            .build();
+    }
+
+    private BlockTx createBlockTxWithLovelaceAndTokens() {
+        return BlockTx.builder()
+            .inputs(List.of(
+                createUtxoWithAmounts(List.of(
+                    createAmt(LOVELACE, null, LOVELACE),
+                    createAmt("token1", "policy1", "token1")
+                ))
+            ))
+            .build();
+    }
+
+    private Utxo createUtxoWithAmounts(List<Amt> amounts) {
+        return Utxo.builder().amounts(amounts).build();
+    }
+
+    private Amt createAmt(String assetName, String policyId, String unit) {
+        return Amt.builder()
+            .assetName(assetName)
+            .policyId(policyId)
+            .unit(unit)
+            .quantity(BigDecimal.valueOf(1000000).toBigInteger())
+            .build();
+    }
+
+    private BlockTransaction createBlockTransactionWithTokenBundles() {
+        List<Amount> tokens1 = List.of(
+            Amount.builder()
+                .currency(CurrencyResponse.builder().symbol("token1").build())
+                .value("1000")
+                .build()
+        );
+
+        List<Amount> tokens2 = List.of(
+            Amount.builder()
+                .currency(CurrencyResponse.builder().symbol("token2").build())
+                .value("2000")
+                .build()
+        );
+
+        TokenBundleItem bundle1 = TokenBundleItem.builder()
+            .policyId("policy1")
+            .tokens(tokens1)
+            .build();
+
+        TokenBundleItem bundle2 = TokenBundleItem.builder()
+            .policyId("policy2")
+            .tokens(tokens2)
+            .build();
+
+        OperationMetadata metadata = OperationMetadata.builder()
+            .tokenBundle(List.of(bundle1, bundle2))
+            .build();
+
+        Operation operation = Operation.builder()
+            .metadata(metadata)
+            .build();
+
+        Transaction transaction = Transaction.builder()
+            .operations(List.of(operation))
+            .build();
+
+        return BlockTransaction.builder()
+            .transaction(transaction)
+            .build();
+    }
+
+    private BlockTransaction createBlockTransactionWithCurrencyMetadata() {
+        CurrencyMetadataResponse metadata = CurrencyMetadataResponse.builder()
+            .policyId("policy1")
+            .build();
+
+        CurrencyResponse currency = CurrencyResponse.builder()
+            .symbol("token1")
+            .metadata(metadata)
+            .build();
+
+        Amount amount = Amount.builder()
+            .currency(currency)
+            .value("1000")
+            .build();
+
+        Operation operation = Operation.builder()
+            .amount(amount)
+            .build();
+
+        Transaction transaction = Transaction.builder()
+            .operations(List.of(operation))
+            .build();
+
+        return BlockTransaction.builder()
+            .transaction(transaction)
+            .build();
+    }
+
+    private Operation createOperationWithTokenBundle() {
+        List<Amount> tokens = List.of(
+            Amount.builder()
+                .currency(CurrencyResponse.builder().symbol("token1").build())
+                .value("1000")
+                .build(),
+            Amount.builder()
+                .currency(CurrencyResponse.builder().symbol("token2").build())
+                .value("2000")
+                .build()
+        );
+
+        TokenBundleItem bundle = TokenBundleItem.builder()
+            .policyId("policy1")
+            .tokens(tokens)
+            .build();
+
+        OperationMetadata metadata = OperationMetadata.builder()
+            .tokenBundle(List.of(bundle))
+            .build();
+
+        return Operation.builder()
+            .metadata(metadata)
+            .build();
+    }
+
+    private Operation createOperationWithCurrencyMetadata() {
+        CurrencyMetadataResponse metadata = CurrencyMetadataResponse.builder()
+            .policyId("policy1")
+            .build();
+
+        CurrencyResponse currency = CurrencyResponse.builder()
+            .symbol("token1")
+            .metadata(metadata)
+            .build();
+
+        Amount amount = Amount.builder()
+            .currency(currency)
+            .value("1000")
+            .build();
+
+        return Operation.builder()
+            .amount(amount)
+            .build();
+    }
+
+    private Operation createOperationWithLovelaceAndTokens() {
+        List<Amount> tokens = List.of(
+            Amount.builder()
+                .currency(CurrencyResponse.builder().symbol(LOVELACE).build())
+                .value("1000000")
+                .build(),
+            Amount.builder()
+                .currency(CurrencyResponse.builder().symbol("token1").build())
+                .value("1000")
+                .build()
+        );
+
+        TokenBundleItem bundle = TokenBundleItem.builder()
+            .policyId("policy1")
+            .tokens(tokens)
+            .build();
+
+        OperationMetadata metadata = OperationMetadata.builder()
+            .tokenBundle(List.of(bundle))
+            .build();
+
+        return Operation.builder()
+            .metadata(metadata)
+            .build();
+    }
+
+    private AddressBalance createAddressBalance(String unit) {
+        return AddressBalance.builder()
+            .unit(unit)
+            .quantity(BigDecimal.valueOf(1000000).toBigInteger())
+            .build();
     }
 }

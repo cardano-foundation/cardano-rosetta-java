@@ -27,7 +27,6 @@ import java.util.Optional;
 public class OperationMapperService {
 
   final TransactionMapper transactionMapper;
-  final TokenRegistryService tokenRegistryService;
 
   final OperationStatus successOperationStatus = OperationStatus.builder()
           .status(RosettaConstants.SUCCESS_OPERATION_STATUS.getStatus())

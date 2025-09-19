@@ -21,8 +21,6 @@ import java.util.*;
 @RequiredArgsConstructor
 public class AccountMapperUtil {
 
-    private final TokenRegistryService tokenRegistryService;
-
     @Named("mapAddressBalancesToAmounts")
     public List<Amount> mapAddressBalancesToAmounts(List<AddressBalance> balances,
                                                      @Context Map<Asset, CurrencyMetadataResponse> metadataMap) {
