@@ -7,6 +7,7 @@ import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.block.model.domain.*;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
+import org.cardanofoundation.rosetta.api.common.model.Asset;
 import org.junit.jupiter.api.Test;
 import org.openapitools.client.model.*;
 import org.openapitools.client.model.CurrencyResponse;
@@ -42,7 +43,14 @@ class BlockToBlockResponseTest extends BaseMapperSetup {
                     Amt.builder().unit("tAda123").policyId("tAda").assetName("tAda").quantity(BigInteger.valueOf(10L)).build()))
                 .build()))
         .build();
-    BlockTransactionResponse blockTransactionResponse = my.mapToBlockTransactionResponse(build);
+
+    // Create test metadata map for the asset
+    Map<Asset, CurrencyMetadataResponse> metadataMap = Map.of(
+        Asset.builder().policyId("tAda").assetName("tAda").build(),
+        CurrencyMetadataResponse.builder().decimals(6).build()
+    );
+
+    BlockTransactionResponse blockTransactionResponse = my.mapToBlockTransactionResponseWithMetadata(build, metadataMap);
     // Since the Transaction is invalid we are not returning any outputs. The outputs will be removed, since there aren't any outputs
     assertThat(blockTransactionResponse.getTransaction().getOperations()).hasSize(1);
   }
@@ -53,8 +61,11 @@ class BlockToBlockResponseTest extends BaseMapperSetup {
     //given
     Block from = newBlock();
 
+    // Create empty metadata map since this test uses only stake operations, no native tokens
+    Map<Asset, CurrencyMetadataResponse> metadataMap = Map.of();
+
     //when
-    BlockResponse into = my.mapToBlockResponse(newBlock());
+    BlockResponse into = my.mapToBlockResponseWithMetadata(newBlock(), metadataMap);
 
     //then
     assertThat(from.getHash()).isEqualTo(into.getBlock().getBlockIdentifier().getHash());

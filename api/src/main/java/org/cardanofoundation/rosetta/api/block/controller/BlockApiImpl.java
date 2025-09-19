@@ -51,7 +51,11 @@ public class BlockApiImpl implements BlockApi {
 
     Block block = blockService.findBlock(index, hash);
 
-    return ResponseEntity.ok(mapper.mapToBlockResponse(block));
+    // Make single batch call to fetch all token metadata for all transactions in this block (empty map if no native tokens)
+    Map<Asset, CurrencyMetadataResponse> metadataMap = tokenRegistryService.fetchMetadataForBlockTxList(block.getTransactions());
+
+    // Always use metadata version - downstream code won't lookup from empty map if no native tokens
+    return ResponseEntity.ok(mapper.mapToBlockResponseWithMetadata(block, metadataMap));
   }
 
 

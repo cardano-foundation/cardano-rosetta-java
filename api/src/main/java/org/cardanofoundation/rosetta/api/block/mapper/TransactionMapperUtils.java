@@ -212,29 +212,7 @@ public class TransactionMapperUtils {
     return CoinAction.CREATED;
   }
 
-  private Amount extractAmount(boolean spent, Amt amount, 
-                               Map<Asset, CurrencyMetadataResponse> metadataMap) {
-    Asset asset = Asset.builder()
-            .policyId(amount.getPolicyId())
-            .assetName(amount.getAssetName())
-            .build();
-
-    CurrencyMetadataResponse metadataCurrencyResponse = metadataMap.get(asset);
-
-    CurrencyResponse c = CurrencyResponse.builder()
-            .symbol(amount.getAssetName())
-            .decimals(getDecimalsWithFallback(metadataCurrencyResponse))
-            .build();
-    
-    c.metadata(metadataCurrencyResponse);
-    
-    return Amount.builder()
-            .value(DataMapper.mapValue(amount.getQuantity().toString(), spent))
-            .currency(c)
-            .build();
-  }
-
-  private Amount extractAmountWithCache(boolean spent, Amt amount, 
+  private Amount extractAmountWithCache(boolean spent, Amt amount,
                                         Map<Asset, CurrencyMetadataResponse> metadataMap) {
     Asset asset = Asset.builder()
             .policyId(amount.getPolicyId())

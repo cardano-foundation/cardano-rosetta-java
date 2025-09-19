@@ -1,7 +1,9 @@
 package org.cardanofoundation.rosetta.api.block.mapper;
 
 import java.math.BigInteger;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.TreeSet;
 
@@ -11,6 +13,7 @@ import org.assertj.core.util.introspection.CaseFormatUtils;
 import org.openapitools.client.model.Amount;
 import org.openapitools.client.model.CoinAction;
 import org.openapitools.client.model.CoinChange;
+import org.openapitools.client.model.CurrencyMetadataResponse;
 import org.openapitools.client.model.CurrencyResponse;
 import org.openapitools.client.model.Operation;
 import org.openapitools.client.model.PoolRegistrationParams;
@@ -23,6 +26,7 @@ import org.junit.jupiter.api.Test;
 import org.cardanofoundation.rosetta.api.BaseMapperSetup;
 import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
+import org.cardanofoundation.rosetta.api.common.model.Asset;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.model.domain.PoolRegistration;
 import org.cardanofoundation.rosetta.api.block.model.domain.PoolRetirement;
@@ -48,7 +52,8 @@ class BlockTxToRosettaTransactionTest extends BaseMapperSetup {
     from.setInputs(List.of());
     from.setOutputs(List.of());
     //when
-    Transaction into = my.mapToRosettaTransaction(from);
+    Map<Asset, CurrencyMetadataResponse> emptyMetadataMap = Collections.emptyMap();
+    Transaction into = my.mapToRosettaTransactionWithMetadata(from, emptyMetadataMap);
     //then
     assertThat(into.getMetadata().getSize()).isEqualTo(from.getSize());
     assertThat(into.getMetadata().getScriptSize()).isEqualTo(from.getScriptSize());
@@ -71,7 +76,8 @@ class BlockTxToRosettaTransactionTest extends BaseMapperSetup {
           .type(stakeType)
           .build()));
       //when
-      Transaction into = my.mapToRosettaTransaction(from);
+      Map<Asset, CurrencyMetadataResponse> metadataMap = createTestMetadataMap();
+    Transaction into = my.mapToRosettaTransactionWithMetadata(from, metadataMap);
       //then
       assertThat(into.getMetadata().getSize()).isEqualTo(from.getSize());
       assertThat(into.getMetadata().getScriptSize()).isEqualTo(from.getScriptSize());
@@ -110,7 +116,8 @@ class BlockTxToRosettaTransactionTest extends BaseMapperSetup {
         .poolId("pool_id1")
         .build()));
     //when
-    Transaction into = my.mapToRosettaTransaction(from);
+    Map<Asset, CurrencyMetadataResponse> metadataMap = createTestMetadataMap();
+    Transaction into = my.mapToRosettaTransactionWithMetadata(from, metadataMap);
     //then
     assertThat(into.getMetadata().getSize()).isEqualTo(from.getSize());
     assertThat(into.getMetadata().getScriptSize()).isEqualTo(from.getScriptSize());
@@ -161,7 +168,8 @@ class BlockTxToRosettaTransactionTest extends BaseMapperSetup {
         .relays(relays)
         .build()));
     //when
-    Transaction into = my.mapToRosettaTransaction(from);
+    Map<Asset, CurrencyMetadataResponse> metadataMap = createTestMetadataMap();
+    Transaction into = my.mapToRosettaTransactionWithMetadata(from, metadataMap);
     //then
     assertThat(into.getMetadata().getSize()).isEqualTo(from.getSize());
     assertThat(into.getMetadata().getScriptSize()).isEqualTo(from.getScriptSize());
@@ -207,7 +215,8 @@ class BlockTxToRosettaTransactionTest extends BaseMapperSetup {
         .build()));
 
     //when
-    Transaction into = my.mapToRosettaTransaction(from);
+    Map<Asset, CurrencyMetadataResponse> metadataMap = createTestMetadataMap();
+    Transaction into = my.mapToRosettaTransactionWithMetadata(from, metadataMap);
     //then
     assertThat(into.getMetadata().getSize()).isEqualTo(from.getSize());
     assertThat(into.getMetadata().getScriptSize()).isEqualTo(from.getScriptSize());
@@ -238,7 +247,8 @@ class BlockTxToRosettaTransactionTest extends BaseMapperSetup {
     //given
     BlockTx from = newTran();
     //when
-    Transaction into = my.mapToRosettaTransaction(from);
+    Map<Asset, CurrencyMetadataResponse> metadataMap = createTestMetadataMap();
+    Transaction into = my.mapToRosettaTransactionWithMetadata(from, metadataMap);
     //then
     assertThat(into.getMetadata().getSize()).isEqualTo(from.getSize());
     assertThat(into.getMetadata().getScriptSize()).isEqualTo(from.getScriptSize());
@@ -294,7 +304,8 @@ class BlockTxToRosettaTransactionTest extends BaseMapperSetup {
     //given
     BlockTx from = newTran();
     //when
-    Transaction into = my.mapToRosettaTransaction(from);
+    Map<Asset, CurrencyMetadataResponse> metadataMap = createTestMetadataMap();
+    Transaction into = my.mapToRosettaTransactionWithMetadata(from, metadataMap);
     //then
     assertThat(into.getMetadata().getSize()).isEqualTo(from.getSize());
     assertThat(into.getMetadata().getScriptSize()).isEqualTo(from.getScriptSize());
@@ -345,7 +356,8 @@ class BlockTxToRosettaTransactionTest extends BaseMapperSetup {
         .stakeAddress("stake_addr1_for_withdraw")
         .build()));
     //when
-    Transaction into = my.mapToRosettaTransaction(from);
+    Map<Asset, CurrencyMetadataResponse> metadataMap = createTestMetadataMap();
+    Transaction into = my.mapToRosettaTransactionWithMetadata(from, metadataMap);
     //then
     assertThat(into.getOperations()).hasSize(3);
     Optional<Operation> opt = into.getOperations()
@@ -426,5 +438,19 @@ class BlockTxToRosettaTransactionTest extends BaseMapperSetup {
         .quantity(BigInteger.ONE)
         .unit("unit1")
         .build();
+  }
+
+  private static Map<Asset, CurrencyMetadataResponse> createTestMetadataMap() {
+    Map<Asset, CurrencyMetadataResponse> metadataMap = new java.util.HashMap<>();
+    Asset testAsset = Asset.builder()
+        .policyId("policyId1")
+        .assetName("assetName1")
+        .build();
+    CurrencyMetadataResponse metadata = CurrencyMetadataResponse.builder()
+        .policyId("policyId1")
+        .decimals(0) // Default decimals for test
+        .build();
+    metadataMap.put(testAsset, metadata);
+    return metadataMap;
   }
 }

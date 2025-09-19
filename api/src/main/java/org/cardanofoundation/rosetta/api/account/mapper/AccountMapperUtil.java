@@ -16,7 +16,6 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Nullable;
 import java.math.BigInteger;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -135,6 +134,7 @@ public class AccountMapperUtil {
                     CoinTokens tokens = new CoinTokens();
                     tokens.setPolicyId(policyId);
                     tokens.setTokens(List.of(tokenAmount));
+
                     return tokens;
                 })
                 .toList();

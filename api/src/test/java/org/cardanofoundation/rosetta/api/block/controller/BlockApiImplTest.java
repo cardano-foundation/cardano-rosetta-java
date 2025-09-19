@@ -2,6 +2,7 @@ package org.cardanofoundation.rosetta.api.block.controller;
 
 import java.lang.reflect.Field;
 import java.math.BigInteger;
+import java.util.Map;
 
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -165,7 +166,7 @@ class BlockApiImplTest extends BaseSpringMvcSetup {
   private BlockRequest givenBlockRequest() {
     BlockRequest blockRequest = newBlockRequest();
     BlockResponse blockResp = newBlockResponse();
-    when(blockMapper.mapToBlockResponse(any(Block.class))).thenReturn(blockResp);
+    when(blockMapper.mapToBlockResponseWithMetadata(any(Block.class), any(Map.class))).thenReturn(blockResp);
 
     return blockRequest;
   }

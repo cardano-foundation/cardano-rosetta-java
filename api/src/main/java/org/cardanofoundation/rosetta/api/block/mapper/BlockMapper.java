@@ -39,6 +39,20 @@ public interface BlockMapper {
   @Mapping(target = "block.transactions", source = "transactions")
   BlockResponse mapToBlockResponse(Block model);
 
+  @Mapping(target = "block.blockIdentifier.hash", source = "model.hash")
+  @Mapping(target = "block.blockIdentifier.index", source = "model.number")
+  @Mapping(target = "block.parentBlockIdentifier.hash", source = "model.previousBlockHash")
+  @Mapping(target = "block.parentBlockIdentifier.index", source = "model.previousBlockNumber")
+  @Mapping(target = "block.timestamp", source = "model.createdAt")
+  @Mapping(target = "block.metadata.transactionsCount", source = "model.transactionsCount")
+  @Mapping(target = "block.metadata.createdBy", source = "model.createdBy")
+  @Mapping(target = "block.metadata.size", source = "model.size")
+  @Mapping(target = "block.metadata.slotNo", source = "model.slotNo")
+  @Mapping(target = "block.metadata.epochNo", source = "model.epochNo")
+  @Mapping(target = "block.transactions", source = "model.transactions", qualifiedByName = "mapToRosettaTransactionWithMetadata")
+  BlockResponse mapToBlockResponseWithMetadata(Block model, @Context Map<Asset, CurrencyMetadataResponse> metadataMap);
+
+  @Named("mapToBlockTransactionWithMetadata")
   @Mapping(target = "blockIdentifier", source = "source")
   @Mapping(target = "transaction", source = "source", qualifiedByName = "mapToRosettaTransactionWithMetadata")
   BlockTransaction mapToBlockTransactionWithMetadata(BlockTx source, @Context Map<Asset, CurrencyMetadataResponse> metadataMap);
@@ -47,11 +61,6 @@ public interface BlockMapper {
   @Mapping(target = "index", source = "blockNo")
   BlockIdentifier mapToBlockIdentifier(BlockTx source);
 
-  @Mapping(target = "transactionIdentifier", source = "hash")
-  @Mapping(target = "metadata.size", source = "size")
-  @Mapping(target = "metadata.scriptSize", source = "scriptSize")
-  @Mapping(target = "operations", source = "source", qualifiedByName = "mapTransactionsToOperations")
-  Transaction mapToRosettaTransaction(BlockTx source);
   
   @Named("mapToRosettaTransactionWithMetadata")
   @Mapping(target = "transactionIdentifier", source = "source.hash")
@@ -85,6 +94,12 @@ public interface BlockMapper {
   @Mapping(target = "transaction", source = "model", qualifiedByName = "mapToRosettaTransactionWithMetadata")
   BlockTransactionResponse mapToBlockTransactionResponseWithMetadata(BlockTx model,
                                                                      @Context java.util.Map<Asset, CurrencyMetadataResponse> metadataMap);
+
+  @Mapping(target = "transactionIdentifier", source = "hash")
+  @Mapping(target = "metadata.size", source = "size")
+  @Mapping(target = "metadata.scriptSize", source = "scriptSize")
+  @Mapping(target = "operations", ignore = true)
+  Transaction mapToRosettaTransactionBasic(BlockTx source);
 
   TransactionIdentifier getTransactionIdentifier(String hash);
 
