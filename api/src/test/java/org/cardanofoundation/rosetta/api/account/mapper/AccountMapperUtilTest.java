@@ -38,7 +38,7 @@ class AccountMapperUtilTest {
 
     @BeforeEach
     void setUp() {
-        accountMapperUtil = new AccountMapperUtil(tokenRegistryService);
+        accountMapperUtil = new AccountMapperUtil();
 
         // Configure TokenRegistryService to return fallback metadata for any asset
         lenient().when(tokenRegistryService.getTokenMetadataBatch(anySet())).thenAnswer(invocation -> {

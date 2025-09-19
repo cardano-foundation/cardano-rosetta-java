@@ -65,7 +65,7 @@ class AccountServiceImplTest {
     lenient().when(tokenRegistryService.fetchMetadataForAddressBalances(any())).thenReturn(Collections.emptyMap());
     lenient().when(tokenRegistryService.fetchMetadataForUtxos(any())).thenReturn(Collections.emptyMap());
 
-    accountMapper = new AccountMapperImpl(new AccountMapperUtil(tokenRegistryService));
+    accountMapper = new AccountMapperImpl(new AccountMapperUtil());
     accountService = new AccountServiceImpl(ledgerAccountService, ledgerBlockService, accountMapper, yaciHttpGateway, addressBalanceMapper, tokenRegistryService);
   }
 
