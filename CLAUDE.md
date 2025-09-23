@@ -75,6 +75,8 @@ docker exec rosetta tail -f /logs/indexer.log
 - Controller implementations in `api/{domain}/controller/` implement generated interfaces
 - Always use @Nullable annotation in case of optional fields for function methods parameter inputs and outputs, records, DTOs, and entities
 - Avoid if { return } else {} , if we already have a return statement, we can just return the value, no need for else block
+- Use @NotNull annotation everywhere where we can be sure that value will not be null, use @Nullable in case value can be null sometimes
+- Considering that we will have @NotNull and @Nullable annotations, just put nulls checks only when you actually need it, if a field / property is annotated with @NonNull, there is no need for a null check in the code
 
 ### Database Architecture
 - **Hibernate JPA** for standard ORM operations

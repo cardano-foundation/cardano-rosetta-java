@@ -2,25 +2,54 @@ package org.cardanofoundation.rosetta.api.block.mapper;
 
 import org.assertj.core.api.Assertions;
 import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
+import org.cardanofoundation.rosetta.api.common.model.Asset;
+import org.cardanofoundation.rosetta.api.common.service.TokenRegistryService;
+import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
 import org.cardanofoundation.rosetta.common.util.Constants;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-import org.openapitools.client.model.Amount;
-import org.openapitools.client.model.Currency;
-import org.openapitools.client.model.OperationMetadata;
-import org.openapitools.client.model.TokenBundleItem;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.openapitools.client.model.*;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anySet;
+import static org.mockito.Mockito.lenient;
 
+@ExtendWith(MockitoExtension.class)
 class TransactionMapperUtilsTest {
 
-  final private TransactionMapperUtils transactionMapperUtils = Mockito.mock(
-      TransactionMapperUtils.class,
-      Mockito.CALLS_REAL_METHODS);
+  @Mock
+  private ProtocolParamService protocolParamService;
+  
+  @Mock
+  private TokenRegistryService tokenRegistryService;
+
+  private TransactionMapperUtils transactionMapperUtils;
+
+  @BeforeEach
+  void setUp() {
+    transactionMapperUtils = new TransactionMapperUtils(protocolParamService);
+    
+    // Configure TokenRegistryService to return fallback metadata for any asset
+    lenient().when(tokenRegistryService.getTokenMetadataBatch(anySet())).thenAnswer(invocation -> {
+      Map<Asset, CurrencyMetadataResponse> result = new HashMap<>();
+      @SuppressWarnings("unchecked")
+      Set<Asset> assets = (Set<Asset>) invocation.getArgument(0);
+      for (Asset asset : assets) {
+        result.put(asset, CurrencyMetadataResponse.builder()
+            .policyId(asset.getPolicyId())
+            .decimals(0) // Default decimals
+            .build());
+      }
+      return result;
+    });
+  }
 
   @Test
   void mapToOperationMetaDataTest() {
@@ -37,8 +66,12 @@ class TransactionMapperUtilsTest {
         newAmt(3, 33, false),
         newAmt(4, 41, true)
     );
+    
+    // Create metadata map for the cached method
+    Map<Asset, CurrencyMetadataResponse> metadataMap = createMetadataMapForAmounts(amtList);
+    
     // when
-    OperationMetadata operationMetadata = transactionMapperUtils.mapToOperationMetaData(true, amtList);
+    OperationMetadata operationMetadata = transactionMapperUtils.mapToOperationMetaDataWithCache(true, amtList, metadataMap);
     // then
     assertNotNull(operationMetadata);
     List<TokenBundleItem> tokenBundle = operationMetadata.getTokenBundle();
@@ -60,10 +93,196 @@ class TransactionMapperUtilsTest {
     List<Amt> amtList = Arrays.asList(
         newAmt(1, 11, true),
         newAmt(2, 21, true));
+    
+    // Create metadata map for the cached method
+    Map<Asset, CurrencyMetadataResponse> metadataMap = createMetadataMapForAmounts(amtList);
+    
     // when
-    OperationMetadata operationMetadata = transactionMapperUtils.mapToOperationMetaData(true, amtList);
+    OperationMetadata operationMetadata = transactionMapperUtils.mapToOperationMetaDataWithCache(true, amtList, metadataMap);
     // then
     assertNull(operationMetadata);
+  }
+
+  @Test
+  void mapToOperationMetaDataWithTokenRegistryTest() {
+    // given
+    String policyId = "testPolicyId";
+    String assetName = "testAsset";
+    String subject = policyId + "746573744173736574";  // hex encoding of "testAsset"
+    
+    // Create Asset object for the request
+    Asset asset = Asset.builder()
+        .policyId(policyId)
+        .assetName(assetName)
+        .build();
+    
+    // Mock token registry response with full metadata
+    CurrencyMetadataResponse currencyMetadata = CurrencyMetadataResponse.builder()
+        .policyId(policyId)
+        .subject(subject)
+        .name("Test Token")
+        .description("Test description")
+        .ticker("TST")
+        .url("https://test.com")
+        .logo(LogoType.builder().format(LogoType.FormatEnum.BASE64).value("base64logo").build())
+        .decimals(6)
+        .version(BigDecimal.valueOf(1L))
+        .build();
+    
+    Map<Asset, CurrencyMetadataResponse> tokenMetadataMap = new HashMap<>();
+    tokenMetadataMap.put(asset, currencyMetadata);
+    
+    List<Amt> amtList = Arrays.asList(
+        newAmtWithCustomName(policyId, assetName, false)
+    );
+    
+    // when
+    OperationMetadata operationMetadata = transactionMapperUtils.mapToOperationMetaDataWithCache(false, amtList, tokenMetadataMap);
+    
+    // then
+    assertNotNull(operationMetadata);
+    List<TokenBundleItem> tokenBundle = operationMetadata.getTokenBundle();
+    assertEquals(1, tokenBundle.size());
+    
+    TokenBundleItem item = tokenBundle.get(0);
+    assertEquals(policyId, item.getPolicyId());
+    assertEquals(1, item.getTokens().size());
+    
+    Amount amount = item.getTokens().get(0);
+    assertNotNull(amount.getCurrency());
+    
+    CurrencyResponse currency = amount.getCurrency();
+    assertEquals(assetName, currency.getSymbol());
+    assertEquals(6, currency.getDecimals());
+    
+    // Verify metadata injection
+    CurrencyMetadataResponse responseMetadata = currency.getMetadata();
+    assertNotNull(responseMetadata);
+    assertEquals(policyId, responseMetadata.getPolicyId());
+    assertEquals(subject, responseMetadata.getSubject());
+    assertEquals("Test Token", responseMetadata.getName());
+    assertEquals("Test description", responseMetadata.getDescription());
+    assertEquals("TST", responseMetadata.getTicker());
+    assertEquals("https://test.com", responseMetadata.getUrl());
+    assertNotNull(responseMetadata.getLogo());
+    assertEquals(LogoType.FormatEnum.BASE64, responseMetadata.getLogo().getFormat());
+    assertEquals("base64logo", responseMetadata.getLogo().getValue());
+    assertEquals(BigDecimal.valueOf(1L), responseMetadata.getVersion());
+    assertEquals(6, responseMetadata.getDecimals());
+  }
+
+  @Test
+  void mapToOperationMetaDataWithoutTokenRegistryTest() {
+    // given - token registry returns fallback metadata with only policyId
+    String policyId = "testPolicyId";
+    String assetName = "testAsset";
+    
+    Asset asset = Asset.builder()
+        .policyId(policyId)
+        .assetName(assetName)
+        .build();
+    
+    // Mock service to return fallback metadata (service always returns something now)
+    CurrencyMetadataResponse fallbackMetadata = CurrencyMetadataResponse.builder()
+        .policyId(policyId)
+        .build();
+    
+    Map<Asset, CurrencyMetadataResponse> tokenMetadataMap = new HashMap<>();
+    tokenMetadataMap.put(asset, fallbackMetadata);
+    
+    List<Amt> amtList = Arrays.asList(
+        newAmtWithCustomName(policyId, assetName, false)
+    );
+    
+    // when
+    OperationMetadata operationMetadata = transactionMapperUtils.mapToOperationMetaDataWithCache(false, amtList, tokenMetadataMap);
+    
+    // then
+    assertNotNull(operationMetadata);
+    List<TokenBundleItem> tokenBundle = operationMetadata.getTokenBundle();
+    assertEquals(1, tokenBundle.size());
+    
+    TokenBundleItem item = tokenBundle.get(0);
+    assertEquals(policyId, item.getPolicyId());
+    assertEquals(1, item.getTokens().size());
+    
+    Amount amount = item.getTokens().get(0);
+    assertNotNull(amount.getCurrency());
+    
+    CurrencyResponse currency = amount.getCurrency();
+    assertEquals(assetName, currency.getSymbol());
+    assertEquals(0, currency.getDecimals()); // Default when no metadata
+    
+    // Verify fallback metadata is present with at least policyId
+    CurrencyMetadataResponse currencyMetadata = currency.getMetadata();
+    assertNotNull(currencyMetadata);
+    assertEquals(policyId, currencyMetadata.getPolicyId());
+    // Other fields should be null since this is fallback metadata
+    assertNull(currencyMetadata.getName());
+    assertNull(currencyMetadata.getDescription());
+  }
+
+  @Test
+  void mapToOperationMetaDataSpentAmountTest() {
+    // given
+    String policyId = "testPolicyId";
+    String assetName = "testAsset";
+    
+    Asset asset = Asset.builder()
+        .policyId(policyId)
+        .assetName(assetName)
+        .build();
+    
+    // Mock service to return fallback metadata
+    CurrencyMetadataResponse fallbackMetadata = CurrencyMetadataResponse.builder()
+        .policyId(policyId)
+        .build();
+    
+    Map<Asset, CurrencyMetadataResponse> tokenMetadataMap = new HashMap<>();
+    tokenMetadataMap.put(asset, fallbackMetadata);
+    
+    List<Amt> amtList = Arrays.asList(
+        Amt.builder()
+            .assetName(assetName)
+            .policyId(policyId)
+            .quantity(BigInteger.valueOf(1000))
+            .unit("testUnit")
+            .build()
+    );
+    
+    // when - test spent=true
+    OperationMetadata operationMetadata = transactionMapperUtils.mapToOperationMetaDataWithCache(true, amtList, tokenMetadataMap);
+    
+    // then
+    assertNotNull(operationMetadata);
+    Amount amount = operationMetadata.getTokenBundle().get(0).getTokens().get(0);
+    assertEquals("-1000", amount.getValue()); // Negative for spent
+    
+    // when - test spent=false  
+    operationMetadata = transactionMapperUtils.mapToOperationMetaDataWithCache(false, amtList, createMetadataMapForAmounts(amtList));
+    
+    // then
+    assertNotNull(operationMetadata);
+    amount = operationMetadata.getTokenBundle().get(0).getTokens().get(0);
+    assertEquals("1000", amount.getValue()); // Positive for received
+  }
+
+  private Map<Asset, CurrencyMetadataResponse> createMetadataMapForAmounts(List<Amt> amtList) {
+    Map<Asset, CurrencyMetadataResponse> metadataMap = new HashMap<>();
+    for (Amt amt : amtList) {
+      if (!Constants.LOVELACE.equals(amt.getAssetName())) {
+        Asset asset = Asset.builder()
+            .policyId(amt.getPolicyId())
+            .assetName(amt.getAssetName())
+            .build();
+        CurrencyMetadataResponse metadata = CurrencyMetadataResponse.builder()
+            .policyId(amt.getPolicyId())
+            .decimals(0) // Default decimals
+            .build();
+        metadataMap.put(asset, metadata);
+      }
+    }
+    return metadataMap;
   }
 
   private static List<String> getPolicyIdUnits(List<TokenBundleItem> tokenBundle, String policyId) {
@@ -72,7 +291,7 @@ class TransactionMapperUtilsTest {
         .map(TokenBundleItem::getTokens)
         .flatMap(List::stream)
         .map(Amount::getCurrency)
-        .map(Currency::getSymbol)
+        .map(CurrencyResponse::getSymbol)
         .toList();
   }
 
@@ -82,6 +301,15 @@ class TransactionMapperUtilsTest {
         .policyId("policyId" + policy)
         .quantity(BigInteger.ONE)
         .unit("unit" + number)
+        .build();
+  }
+
+  private static Amt newAmtWithCustomName(String policyId, String assetName, boolean isLovelace) {
+    return Amt.builder()
+        .assetName(isLovelace ? Constants.LOVELACE : assetName)
+        .policyId(policyId)
+        .quantity(BigInteger.ONE)
+        .unit("customUnit")
         .build();
   }
 

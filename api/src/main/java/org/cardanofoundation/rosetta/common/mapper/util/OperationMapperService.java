@@ -1,11 +1,16 @@
 package org.cardanofoundation.rosetta.common.mapper.util;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.cardanofoundation.rosetta.api.block.mapper.TransactionMapper;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
+import org.cardanofoundation.rosetta.api.common.model.Asset;
+import org.cardanofoundation.rosetta.api.common.service.TokenRegistryService;
 import org.cardanofoundation.rosetta.common.util.RosettaConstants;
+import org.mapstruct.Context;
 import org.mapstruct.Named;
+import org.openapitools.client.model.CurrencyMetadataResponse;
 import org.openapitools.client.model.Operation;
 import org.openapitools.client.model.OperationIdentifier;
 import org.openapitools.client.model.OperationStatus;
@@ -13,10 +18,12 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class OperationMapperService {
 
   final TransactionMapper transactionMapper;
@@ -29,16 +36,20 @@ public class OperationMapperService {
           .status(RosettaConstants.INVALID_OPERATION_STATUS.getStatus())
           .build();
 
-  @Named("mapTransactionsToOperations")
-  public List<Operation> mapTransactionsToOperations(BlockTx source){
+
+  @Named("mapTransactionsToOperationsWithMetadata")
+  public List<Operation> mapTransactionsToOperationsWithMetadata(BlockTx source, 
+                                                                 @Context Map<Asset, CurrencyMetadataResponse> metadataMap) {
     List<Operation> operations = new ArrayList<>();
     MutableInt ix = new MutableInt(0);
     OperationStatus txStatus = source.isInvalid() ? invalidOperationStatus: successOperationStatus;
 
+    // Use the pre-fetched metadata map instead of fetching again
     List<Operation> inpOps = Optional.ofNullable(source.getInputs()).stream()
             .flatMap(List::stream)
-            .map(input -> transactionMapper.mapInputUtxoToOperation(input, txStatus, ix.getAndIncrement()))
+            .map(input -> transactionMapper.mapInputUtxoToOperation(input, txStatus, ix.getAndIncrement(), metadataMap))
             .toList();
+
     operations.addAll(inpOps);
 
     operations.addAll(Optional.ofNullable(source.getWithdrawals()).stream()
@@ -85,7 +96,7 @@ public class OperationMapperService {
               .flatMap(List::stream)
               .map(output -> {
                 Operation operation = transactionMapper.mapOutputUtxoToOperation(output,
-                        txStatus, ix.getAndIncrement());
+                        txStatus, ix.getAndIncrement(), metadataMap);
                 // It's needed to add output index for output Operations, this represents the output index of these utxos
                 Optional.ofNullable(operation.getOperationIdentifier())
                         .ifPresent(operationIdentifier ->

@@ -1,9 +1,9 @@
 package org.cardanofoundation.rosetta.common.util;
 
+import lombok.experimental.UtilityClass;
+
 import java.util.Arrays;
 import java.util.Optional;
-
-import lombok.experimental.UtilityClass;
 
 @UtilityClass
 public class MoreEnums {
