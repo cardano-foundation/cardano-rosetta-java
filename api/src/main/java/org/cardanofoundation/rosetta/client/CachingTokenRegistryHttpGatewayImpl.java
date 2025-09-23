@@ -116,19 +116,10 @@ public class CachingTokenRegistryHttpGatewayImpl implements TokenRegistryHttpGat
 
             if (batchResponse.getSubjects() != null) {
                 for (TokenSubject tokenSubject : batchResponse.getSubjects()) {
-                    // Validate that essential metadata exists
-                    if (isValidTokenSubject(tokenSubject)) {
-                        result.put(tokenSubject.getSubject(), Optional.of(tokenSubject));
-
-                        // Cache the valid result
-                        tokenMetadataCache.put(tokenSubject.getSubject(), TokenCacheEntry.found(tokenSubject));
-
-                        log.debug("Cached valid token metadata for subject: {}", tokenSubject.getSubject());
-                    } else {
-                        // Token exists in registry but lacks essential metadata - treat as not found
-                        result.put(tokenSubject.getSubject(), Optional.empty());
-                        tokenMetadataCache.put(tokenSubject.getSubject(), TokenCacheEntry.notFound());
-                    }
+                    // If subject is in response, cache it as found
+                    result.put(tokenSubject.getSubject(), Optional.of(tokenSubject));
+                    tokenMetadataCache.put(tokenSubject.getSubject(), TokenCacheEntry.found(tokenSubject));
+                    log.debug("Cached token metadata for subject: {}", tokenSubject.getSubject());
                 }
             }
 
@@ -192,35 +183,5 @@ public class CachingTokenRegistryHttpGatewayImpl implements TokenRegistryHttpGat
         return properties;
     }
 
-    /**
-     * Validates that a TokenSubject has the essential metadata required.
-     * Tokens without name and description are considered invalid and should be treated as not found.
-     * 
-     * @param tokenSubject The token subject to validate
-     * @return true if the token has valid essential metadata, false otherwise
-     */
-    // THIS IS A WORKAROUND for https://github.com/cardano-foundation/cf-token-metadata-registry/issues/30
-    private boolean isValidTokenSubject(TokenSubject tokenSubject) {
-        if (tokenSubject == null || tokenSubject.getSubject() == null) {
-            return false;
-        }
-        
-        TokenMetadata metadata = tokenSubject.getMetadata();
-        if (metadata == null) {
-            return false;
-        }
-        
-        // Name and description are essential fields - if they're null, the token data is incomplete
-        if (metadata.getName() == null || metadata.getDescription() == null) {
-            return false;
-        }
-        
-        // Further check that the actual values exist
-        if (metadata.getName().getValue() == null || metadata.getDescription().getValue() == null) {
-            return false;
-        }
-        
-        return true;
-    }
 
 }
