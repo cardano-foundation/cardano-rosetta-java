@@ -3,6 +3,7 @@ package org.cardanofoundation.rosetta.client;
 import org.cardanofoundation.rosetta.client.model.domain.TokenSubject;
 import org.springframework.lang.Nullable;
 
+import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -18,6 +19,6 @@ public interface TokenRegistryHttpGateway {
      * @param subjects Set of subject identifiers (policy_id + asset_name hex)
      * @return Map of subject -> Optional<TokenSubject> with metadata
      */
-    Map<String, Optional<TokenSubject>> getTokenMetadataBatch(Set<String> subjects);
+    Map<String, Optional<TokenSubject>> getTokenMetadataBatch(@NotNull Set<String> subjects);
 
 }

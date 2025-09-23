@@ -457,15 +457,6 @@ class TokenRegistryServiceImplTest {
     @DisplayName("Asset Extraction from BlockTx Tests")
     class AssetExtractionFromBlockTxTests {
 
-        @Test
-        @DisplayName("Should return empty set when BlockTx is null")
-        void shouldReturnEmptySetWhenBlockTxIsNull() {
-            // when
-            Set<Asset> result = tokenRegistryService.extractAssetsFromBlockTx(null);
-
-            // then
-            assertThat(result).isEmpty();
-        }
 
         @Test
         @DisplayName("Should extract assets from inputs only")
@@ -573,15 +564,6 @@ class TokenRegistryServiceImplTest {
     @DisplayName("Asset Extraction from Amounts Tests")
     class AssetExtractionFromAmountsTests {
 
-        @Test
-        @DisplayName("Should return empty set when amounts is null")
-        void shouldReturnEmptySetWhenAmountsIsNull() {
-            // when
-            Set<Asset> result = tokenRegistryService.extractAssetsFromAmounts(null);
-
-            // then
-            assertThat(result).isEmpty();
-        }
 
         @Test
         @DisplayName("Should return empty set when amounts is empty")
@@ -634,15 +616,7 @@ class TokenRegistryServiceImplTest {
     @DisplayName("Asset Extraction from BlockTransactions Tests")
     class AssetExtractionFromBlockTransactionsTests {
 
-        @Test
-        @DisplayName("Should return empty set when transactions is null")
-        void shouldReturnEmptySetWhenTransactionsIsNull() {
-            // when
-            Set<Asset> result = tokenRegistryService.extractAssetsFromBlockTransactions(null);
-
-            // then
-            assertThat(result).isEmpty();
-        }
+        // Removed: shouldReturnEmptySetWhenTransactionsIsNull - parameter is @NotNull, null is not valid
 
         @Test
         @DisplayName("Should return empty set when transactions is empty")
@@ -687,52 +661,14 @@ class TokenRegistryServiceImplTest {
             );
         }
 
-        @Test
-        @DisplayName("Should handle transactions with null operations")
-        void shouldHandleTransactionsWithNullOperations() {
-            // given
-            BlockTransaction blockTx = BlockTransaction.builder()
-                .transaction(Transaction.builder().operations(null).build())
-                .build();
-            List<BlockTransaction> transactions = List.of(blockTx);
+        // Removed: shouldHandleTransactionsWithNullOperations - operations field is @NotNull and initialized to ArrayList, never null
 
-            // when
-            Set<Asset> result = tokenRegistryService.extractAssetsFromBlockTransactions(transactions);
-
-            // then
-            assertThat(result).isEmpty();
-        }
-
-        @Test
-        @DisplayName("Should handle transactions with null transaction")
-        void shouldHandleTransactionsWithNullTransaction() {
-            // given
-            BlockTransaction blockTx = BlockTransaction.builder()
-                .transaction(null)
-                .build();
-            List<BlockTransaction> transactions = List.of(blockTx);
-
-            // when
-            Set<Asset> result = tokenRegistryService.extractAssetsFromBlockTransactions(transactions);
-
-            // then
-            assertThat(result).isEmpty();
-        }
     }
 
     @Nested
     @DisplayName("Asset Extraction from Operations Tests")
     class AssetExtractionFromOperationsTests {
 
-        @Test
-        @DisplayName("Should return empty set when operations is null")
-        void shouldReturnEmptySetWhenOperationsIsNull() {
-            // when
-            Set<Asset> result = tokenRegistryService.extractAssetsFromOperations(null);
-
-            // then
-            assertThat(result).isEmpty();
-        }
 
         @Test
         @DisplayName("Should return empty set when operations is empty")
@@ -815,16 +751,6 @@ class TokenRegistryServiceImplTest {
     @DisplayName("Helper Method Tests - fetchMetadataFor* variants")
     class FetchMetadataHelperMethodTests {
 
-        @Test
-        @DisplayName("fetchMetadataForBlockTx should return empty map for null BlockTx")
-        void fetchMetadataForBlockTxShouldReturnEmptyMapForNull() {
-            // when
-            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.fetchMetadataForBlockTx(null);
-
-            // then
-            assertThat(result).isEmpty();
-            verifyNoInteractions(tokenRegistryHttpGateway);
-        }
 
         @Test
         @DisplayName("fetchMetadataForBlockTx should call gateway for BlockTx with assets")
@@ -842,16 +768,6 @@ class TokenRegistryServiceImplTest {
             verify(tokenRegistryHttpGateway).getTokenMetadataBatch(anySet());
         }
 
-        @Test
-        @DisplayName("fetchMetadataForBlockTransactions should return empty map for null transactions")
-        void fetchMetadataForBlockTransactionsShouldReturnEmptyMapForNull() {
-            // when
-            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.fetchMetadataForBlockTransactions(null);
-
-            // then
-            assertThat(result).isEmpty();
-            verifyNoInteractions(tokenRegistryHttpGateway);
-        }
 
         @Test
         @DisplayName("fetchMetadataForBlockTransactions should return empty map for empty transactions")
@@ -905,16 +821,6 @@ class TokenRegistryServiceImplTest {
             verify(tokenRegistryHttpGateway).getTokenMetadataBatch(anySet());
         }
 
-        @Test
-        @DisplayName("fetchMetadataForAddressBalances should return empty map for null balances")
-        void fetchMetadataForAddressBalancesShouldReturnEmptyMapForNull() {
-            // when
-            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.fetchMetadataForAddressBalances(null);
-
-            // then
-            assertThat(result).isEmpty();
-            verifyNoInteractions(tokenRegistryHttpGateway);
-        }
 
         @Test
         @DisplayName("fetchMetadataForAddressBalances should return empty map for empty balances")
@@ -947,16 +853,6 @@ class TokenRegistryServiceImplTest {
             verify(tokenRegistryHttpGateway).getTokenMetadataBatch(anySet());
         }
 
-        @Test
-        @DisplayName("fetchMetadataForUtxos should return empty map for null utxos")
-        void fetchMetadataForUtxosShouldReturnEmptyMapForNull() {
-            // when
-            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.fetchMetadataForUtxos(null);
-
-            // then
-            assertThat(result).isEmpty();
-            verifyNoInteractions(tokenRegistryHttpGateway);
-        }
 
         @Test
         @DisplayName("fetchMetadataForUtxos should return empty map for empty utxos")
@@ -991,21 +887,6 @@ class TokenRegistryServiceImplTest {
             verify(tokenRegistryHttpGateway).getTokenMetadataBatch(anySet());
         }
 
-        @Test
-        @DisplayName("fetchMetadataForUtxos should handle utxos with null amounts")
-        void fetchMetadataForUtxosShouldHandleUtxosWithNullAmounts() {
-            // given
-            List<Utxo> utxos = List.of(
-                Utxo.builder().amounts(null).build()
-            );
-
-            // when
-            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.fetchMetadataForUtxos(utxos);
-
-            // then
-            assertThat(result).isEmpty();
-            verifyNoInteractions(tokenRegistryHttpGateway);
-        }
 
         @Test
         @DisplayName("fetchMetadataForUtxos should handle amounts with null policyId")

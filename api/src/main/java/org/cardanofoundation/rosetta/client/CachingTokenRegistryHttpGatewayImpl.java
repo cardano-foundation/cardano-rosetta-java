@@ -3,6 +3,7 @@ package org.cardanofoundation.rosetta.client;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.cache.Cache;
 import jakarta.annotation.PostConstruct;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.client.model.domain.*;
@@ -49,7 +50,7 @@ public class CachingTokenRegistryHttpGatewayImpl implements TokenRegistryHttpGat
     }
 
     @Override
-    public Map<String, Optional<TokenSubject>> getTokenMetadataBatch(Set<String> subjects) {
+    public Map<String, Optional<TokenSubject>> getTokenMetadataBatch(@NonNull Set<String> subjects) {
         if (!enabled) {
             log.debug("Token registry is disabled, returning empty map");
             return Collections.emptyMap();

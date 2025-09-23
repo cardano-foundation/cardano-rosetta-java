@@ -67,6 +67,7 @@ public class LedgerAccountServiceImpl implements LedgerAccountService {
   private Utxo createUtxoModel(List<CurrencyRequest> currencies, AddressUtxoEntity entity) {
     Utxo utxo = addressUtxoEntityToUtxo.toDto(entity);
     utxo.setAmounts(getAmts(currencies, entity));
+
     return utxo;
   }
 
