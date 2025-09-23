@@ -32,8 +32,9 @@ class TestSanityChecks:
 
         error = response.json()
         error_message = error.get("message", "").lower()
-        assert "network" in error_message or "identifier" in error_message, \
+        assert "network" in error_message or "identifier" in error_message, (
             "Error message should indicate missing network_identifier"
+        )
 
     @allure.feature("Search Transactions")
     @allure.story("Sanity Checks")
@@ -44,7 +45,9 @@ class TestSanityChecks:
 
         error = response.json()
         assert error["code"] == 4002, "Error code should be 4002"
-        assert error["message"] == "Network not found", "Error message should indicate network not found"
+        assert error["message"] == "Network not found", (
+            "Error message should indicate network not found"
+        )
         assert error["retriable"] is False, "`retriable` must be false"
 
 
@@ -63,10 +66,16 @@ class TestPaginationLimits:
         transactions = data.get("transactions", [])
 
         if limit == 0:
-            assert len(transactions) == 0, f"Limit {limit} should return no transactions"
+            assert len(transactions) == 0, (
+                f"Limit {limit} should return no transactions"
+            )
         else:
-            assert len(transactions) <= limit, f"Should return at most {limit} transactions"
-            assert data["total_count"] >= len(transactions), "total_count should be >= returned count"
+            assert len(transactions) <= limit, (
+                f"Should return at most {limit} transactions"
+            )
+            assert data["total_count"] >= len(transactions), (
+                "total_count should be >= returned count"
+            )
 
     @allure.feature("Search Transactions")
     @allure.story("Pagination - Limits")
@@ -84,18 +93,20 @@ class TestPaginationLimits:
         """Negative limit should return error."""
         response = client.search_transactions(limit=-1)
         # TODO: Standardize error codes for client validation errors
-        assert response.status_code in [400, 500], \
+        assert response.status_code in [400, 500], (
             f"Expected 400 or 500, got {response.status_code}"
+        )
 
         error = response.json()
         # Handle different error response structures
         error_message = (
-            error.get("message", "") or
-            error.get("details", {}).get("message", "") or
-            str(error)
+            error.get("message", "")
+            or error.get("details", {}).get("message", "")
+            or str(error)
         ).lower()
-        assert any(word in error_message for word in ["negative", "invalid", "limit"]), \
-            f"Error should mention negative/invalid/limit, got: {error}"
+        assert any(
+            word in error_message for word in ["negative", "invalid", "limit"]
+        ), f"Error should mention negative/invalid/limit, got: {error}"
 
 
 class TestPaginationOffsets:
@@ -119,18 +130,20 @@ class TestPaginationOffsets:
         """Negative offset should return error."""
         response = client.search_transactions(offset=-1)
         # TODO: Standardize error codes for client validation errors
-        assert response.status_code in [400, 500], \
+        assert response.status_code in [400, 500], (
             f"Expected 400 or 500, got {response.status_code}"
+        )
 
         error = response.json()
         # Handle different error response structures
         error_message = (
-            error.get("message", "") or
-            error.get("details", {}).get("message", "") or
-            str(error)
+            error.get("message", "")
+            or error.get("details", {}).get("message", "")
+            or str(error)
         ).lower()
-        assert any(word in error_message for word in ["negative", "invalid", "offset"]), \
-            f"Error should mention negative/invalid/offset, got: {error}"
+        assert any(
+            word in error_message for word in ["negative", "invalid", "offset"]
+        ), f"Error should mention negative/invalid/offset, got: {error}"
 
 
 class TestTransactionIdentifier:
@@ -142,9 +155,7 @@ class TestTransactionIdentifier:
         """Search by valid transaction hash returns that transaction."""
         # Using correct tx hash from extracted test data
         tx_hash = "d8d35a05f3f31e955b57a78b8d39410332bd21bd8a61f8aca670916b96a0200f"
-        response = client.search_transactions(
-            transaction_identifier={"hash": tx_hash}
-        )
+        response = client.search_transactions(transaction_identifier={"hash": tx_hash})
         assert response.status_code == 200
 
         data = response.json()
@@ -189,12 +200,12 @@ class TestTransactionIdentifier:
 
     @allure.feature("Search Transactions")
     @allure.story("Transaction Identifier")
-    def test_valid_payment_address_shelley_base_using_address_field_large_utxos(self, client):
+    def test_valid_payment_address_shelley_base_using_address_field_large_utxos(
+        self, client
+    ):
         """Test with address that has large UTXOs."""
         address = "addr_test1qpq7kns8auvhntmchwfq7rh7upyx0a9gzm3s0sxvzfse8kz8d5ez5hv0fm53j4cetqvqvjcm4k69h5mxts7s0ylevxqs0wwqu3"
-        response = client.search_transactions(
-            account_identifier={"address": address}
-        )
+        response = client.search_transactions(account_identifier={"address": address})
         assert response.status_code == 200
 
         data = response.json()
@@ -215,9 +226,7 @@ class TestAccountIdentifier:
     @pytest.mark.parametrize("address_type,address", ADDRESSES.items())
     def test_valid_payment_addresses(self, client, address_type, address):
         """Test filtering by different address types."""
-        response = client.search_transactions(
-            account_identifier={"address": address}
-        )
+        response = client.search_transactions(account_identifier={"address": address})
         assert response.status_code == 200
 
         data = response.json()
@@ -231,8 +240,9 @@ class TestAccountIdentifier:
                     addresses_in_tx.append(op["account"]["address"])
 
             if addresses_in_tx:  # Only assert if transaction has addresses
-                assert address in addresses_in_tx, \
+                assert address in addresses_in_tx, (
                     f"Transaction should involve {address_type} address"
+                )
 
     @allure.feature("Search Transactions")
     @allure.story("Account Identifier")
@@ -249,7 +259,9 @@ class TestAccountIdentifier:
 
     @allure.feature("Search Transactions")
     @allure.story("Account Identifier")
-    @pytest.mark.skip(reason="Future feature: stake address filtering not yet implemented")
+    @pytest.mark.skip(
+        reason="Future feature: stake address filtering not yet implemented"
+    )
     def test_future_feature_stake_address(self, client):
         """Stake address filtering (marked as future feature)."""
         # Correct stake address from extracted test data
@@ -299,12 +311,14 @@ class TestMaxBlock:
         response = client.search_transactions(
             account_identifier={"address": self.ADDRESS},
             max_block=3665905,
-            limit=10  # Must specify limit to get exact count, not default 100
+            limit=10,  # Must specify limit to get exact count, not default 100
         )
         assert response.status_code == 200
 
         data = response.json()
-        assert len(data["transactions"]) == 6, f"Should have 6 txs at block 3665905, got {len(data['transactions'])}"
+        assert len(data["transactions"]) == 6, (
+            f"Should have 6 txs at block 3665905, got {len(data['transactions'])}"
+        )
         assert data["total_count"] == 6
 
     @allure.feature("Search Transactions")
@@ -314,12 +328,14 @@ class TestMaxBlock:
         response = client.search_transactions(
             account_identifier={"address": self.ADDRESS},
             max_block=3381969,
-            limit=10  # Must specify limit to get exact count, not default 100
+            limit=10,  # Must specify limit to get exact count, not default 100
         )
         assert response.status_code == 200
 
         data = response.json()
-        assert len(data["transactions"]) == 1, f"Should have 1 tx at block 3381969, got {len(data['transactions'])}"
+        assert len(data["transactions"]) == 1, (
+            f"Should have 1 tx at block 3381969, got {len(data['transactions'])}"
+        )
         assert data["total_count"] == 1
 
     @allure.feature("Search Transactions")
@@ -329,12 +345,14 @@ class TestMaxBlock:
         response = client.search_transactions(
             account_identifier={"address": self.ADDRESS},
             max_block=3381968,
-            limit=10  # Must specify limit to get exact count, not default 100
+            limit=10,  # Must specify limit to get exact count, not default 100
         )
         assert response.status_code == 200
 
         data = response.json()
-        assert len(data["transactions"]) == 0, f"Should have 0 txs at block 3381968, got {len(data['transactions'])}"
+        assert len(data["transactions"]) == 0, (
+            f"Should have 0 txs at block 3381968, got {len(data['transactions'])}"
+        )
         assert data["total_count"] == 0
 
     @allure.feature("Search Transactions")
@@ -343,11 +361,14 @@ class TestMaxBlock:
         """Invalid max_block should return error."""
         response = client.search_transactions(max_block=-1)
         # TODO: Standardize error codes for client validation errors
-        assert response.status_code in [400, 500], \
+        assert response.status_code in [400, 500], (
             f"Expected 400 or 500, got {response.status_code}"
+        )
 
         error = response.json()
-        assert "code" in error or "message" in error, "Error response should have code or message"
+        assert "code" in error or "message" in error, (
+            "Error response should have code or message"
+        )
 
 
 class TestStatusFiltering:
@@ -411,8 +432,9 @@ class TestStatusFiltering:
         """Unknown status should return error."""
         response = client.search_transactions(status="UNKNOWN_STATUS")
         # TODO: Standardize error codes for invalid enum values
-        assert response.status_code in [400, 500], \
+        assert response.status_code in [400, 500], (
             f"Expected 400 or 500, got {response.status_code}"
+        )
 
 
 class TestOperationTypeFiltering:
@@ -442,7 +464,9 @@ class TestOperationTypeFiltering:
         # All transactions should contain this operation type
         for tx in data.get("transactions", []):
             op_types = [op["type"] for op in tx.get("operations", [])]
-            assert op_type in op_types, f"Transaction should contain {op_type} operation"
+            assert op_type in op_types, (
+                f"Transaction should contain {op_type} operation"
+            )
 
     @allure.feature("Search Transactions")
     @allure.story("Operation Type Filtering")
@@ -451,13 +475,16 @@ class TestOperationTypeFiltering:
         """Invalid operation type returns error code 5053."""
         response = client.search_transactions(type="INVALID_OPERATION")
         # TODO: Standardize error codes for invalid enum values
-        assert response.status_code in [400, 500], \
+        assert response.status_code in [400, 500], (
             f"Expected 400 or 500, got {response.status_code}"
+        )
 
         error = response.json()
         # API returns 5058 instead of expected 5053
         if "code" in error:
-            assert error["code"] in [5053, 5058], f"Expected error code 5053 or 5058, got {error.get('code')}"
+            assert error["code"] in [5053, 5058], (
+                f"Expected error code 5053 or 5058, got {error.get('code')}"
+            )
 
 
 class TestLogicalOperators:
@@ -473,7 +500,7 @@ class TestLogicalOperators:
         response = client.search_transactions(
             operator="and",
             account_identifier={"address": self.ADDRESS},
-            type="withdrawal"
+            type="withdrawal",
         )
         assert response.status_code == 200
 
@@ -489,7 +516,9 @@ class TestLogicalOperators:
 
             # Must have withdrawal operation
             op_types = [op["type"] for op in tx["operations"]]
-            assert "withdrawal" in op_types, "Transaction should contain withdrawal operation"
+            assert "withdrawal" in op_types, (
+                "Transaction should contain withdrawal operation"
+            )
 
     @allure.feature("Search Transactions")
     @allure.story("Logical Operators")
@@ -498,7 +527,7 @@ class TestLogicalOperators:
         response = client.search_transactions(
             operator="and",
             account_identifier={"address": self.ADDRESS},
-            status="invalid"
+            status="invalid",
         )
         assert response.status_code == 200
 
@@ -524,7 +553,7 @@ class TestLogicalOperators:
         response = client.search_transactions(
             operator="or",
             account_identifier={"address": self.ADDRESS},
-            type="stakeDelegation"
+            type="stakeDelegation",
         )
         assert response.status_code == 200
 
@@ -547,7 +576,7 @@ class TestLogicalOperators:
         response = client.search_transactions(
             operator="or",
             account_identifier={"address": self.ADDRESS},
-            status="invalid"
+            status="invalid",
         )
         assert response.status_code == 200
 
@@ -569,9 +598,7 @@ class TestLogicalOperators:
     def test_address_and_withdrawal_explicit(self, client):
         """AND operator with address field and withdrawal."""
         response = client.search_transactions(
-            operator="and",
-            address=self.ADDRESS,
-            type="withdrawal"
+            operator="and", address=self.ADDRESS, type="withdrawal"
         )
         assert response.status_code == 200
 
@@ -592,9 +619,7 @@ class TestLogicalOperators:
     def test_address_and_invalid_explicit(self, client):
         """AND operator with address field and invalid status."""
         response = client.search_transactions(
-            operator="and",
-            address=self.ADDRESS,
-            status="invalid"
+            operator="and", address=self.ADDRESS, status="invalid"
         )
         assert response.status_code == 200
 
@@ -617,11 +642,12 @@ class TestLogicalOperators:
         response = client.search_transactions(
             operator="xor",
             account_identifier={"address": self.ADDRESS},
-            type="withdrawal"
+            type="withdrawal",
         )
         # TODO: Standardize error codes for invalid enum values
-        assert response.status_code in [400, 500], \
+        assert response.status_code in [400, 500], (
             f"Expected 400 or 500, got {response.status_code}"
+        )
 
 
 class TestCurrencyFiltering:
@@ -631,9 +657,7 @@ class TestCurrencyFiltering:
     @allure.story("Currency Filtering")
     def test_ada_filter(self, client):
         """Filter by ada currency."""
-        response = client.search_transactions(
-            currency={"symbol": "ada", "decimals": 6}
-        )
+        response = client.search_transactions(currency={"symbol": "ada", "decimals": 6})
         assert response.status_code == 200
 
         data = response.json()
@@ -643,9 +667,7 @@ class TestCurrencyFiltering:
     @allure.story("Currency Filtering")
     def test_ada_uppercase_filter(self, client):
         """Filter by ADA currency (uppercase)."""
-        response = client.search_transactions(
-            currency={"symbol": "ADA", "decimals": 6}
-        )
+        response = client.search_transactions(currency={"symbol": "ADA", "decimals": 6})
         assert response.status_code == 200
 
         data = response.json()
@@ -690,7 +712,7 @@ class TestCurrencyFiltering:
         response = client.search_transactions(
             currency={
                 "symbol": "b4f2af836715c2b13e64fd4bb1a7a2e6b3290c866ff74033b6bfbd8d",
-                "decimals": 0
+                "decimals": 0,
             }
         )
         assert response.status_code == 200

@@ -1,0 +1,150 @@
+"""
+Cross-cutting error handling tests for all Rosetta endpoints.
+
+Tests common error scenarios across all endpoints that require network_identifier.
+Uses lambda pattern to handle different parameter requirements per endpoint.
+"""
+
+import pytest
+import allure
+
+
+@allure.feature("Error Handling")
+@allure.story("Missing Network Identifier")
+class TestMissingNetworkIdentifier:
+    """Test that all endpoints properly handle missing/empty network identifier."""
+
+    @pytest.mark.parametrize(
+        "endpoint_name,make_request",
+        [
+            pytest.param(
+                "network_status",
+                lambda c: c.network_status(network=""),
+                id="network_status",
+            ),
+            pytest.param(
+                "network_options",
+                lambda c: c.network_options(network=""),
+                id="network_options",
+            ),
+            pytest.param(
+                "search_transactions",
+                lambda c: c.search_transactions(network=""),
+                id="search_transactions",
+            ),
+        ],
+    )
+    def test_empty_network_returns_error_4002(
+        self, client, endpoint_name, make_request
+    ):
+        """Empty network string should return error 4002 - Network not found."""
+        response = make_request(client)
+
+        assert response.status_code == 500, (
+            f"{endpoint_name} should return 500 for empty network"
+        )
+
+        error = response.json()
+        assert error.get("code") == 4002, (
+            f"{endpoint_name} should return error code 4002"
+        )
+        assert error.get("message") == "Network not found", (
+            f"{endpoint_name} error message mismatch"
+        )
+        assert error.get("retriable") is False, (
+            f"{endpoint_name} should not be retriable"
+        )
+
+
+@allure.feature("Error Handling")
+@allure.story("Invalid Network Identifier")
+class TestInvalidNetworkIdentifier:
+    """Test that all endpoints properly handle invalid network identifiers."""
+
+    @pytest.mark.parametrize(
+        "endpoint_name,make_request",
+        [
+            pytest.param(
+                "network_status",
+                lambda c: c.network_status(network="invalid_network"),
+                id="network_status",
+            ),
+            pytest.param(
+                "network_options",
+                lambda c: c.network_options(network="invalid_network"),
+                id="network_options",
+            ),
+            pytest.param(
+                "search_transactions",
+                lambda c: c.search_transactions(network="invalid_network"),
+                id="search_transactions",
+            ),
+        ],
+    )
+    def test_invalid_network_returns_error_4002(
+        self, client, endpoint_name, make_request
+    ):
+        """Invalid network name should return error 4002 - Network not found."""
+        response = make_request(client)
+
+        assert response.status_code == 500, (
+            f"{endpoint_name} should return 500 for invalid network"
+        )
+
+        error = response.json()
+        assert error.get("code") == 4002, (
+            f"{endpoint_name} should return error code 4002"
+        )
+        assert error.get("message") == "Network not found", (
+            f"{endpoint_name} error message mismatch"
+        )
+        assert error.get("retriable") is False, (
+            f"{endpoint_name} should not be retriable"
+        )
+
+
+@allure.feature("Error Handling")
+@allure.story("Unsupported Network")
+class TestUnsupportedNetwork:
+    """Test that all endpoints reject networks that exist but aren't supported."""
+
+    @pytest.mark.parametrize(
+        "endpoint_name,make_request",
+        [
+            pytest.param(
+                "network_status",
+                lambda c: c.network_status(network="mainnet"),
+                id="network_status",
+            ),
+            pytest.param(
+                "network_options",
+                lambda c: c.network_options(network="mainnet"),
+                id="network_options",
+            ),
+            pytest.param(
+                "search_transactions",
+                lambda c: c.search_transactions(network="mainnet"),
+                id="search_transactions",
+            ),
+        ],
+    )
+    def test_unsupported_network_returns_error_4002(
+        self, client, endpoint_name, make_request
+    ):
+        """Unsupported network (like mainnet) should return error 4002."""
+        response = make_request(client)
+
+        assert response.status_code == 500, (
+            f"{endpoint_name} should return 500 for unsupported network"
+        )
+
+        error = response.json()
+        assert error.get("code") == 4002, (
+            f"{endpoint_name} should return error code 4002"
+        )
+        assert error.get("message") == "Network not found", (
+            f"{endpoint_name} error message mismatch"
+        )
+        assert error.get("retriable") is False, (
+            f"{endpoint_name} should not be retriable"
+        )
