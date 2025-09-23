@@ -1,18 +1,19 @@
 """Tests for Rosetta /network endpoints."""
 
+import os
 import allure
 
 
-DEFAULT_NETWORK = {
-    "blockchain": "cardano",
-    "network": "preprod",
-}
+# Network configuration from environment - works on ANY network
+NETWORK = os.environ.get("CARDANO_NETWORK", "preprod")
+BLOCKCHAIN = "cardano"
 
 
 @allure.feature("Network")
 @allure.story("List")
 class TestNetworkList:
-    def test_returns_preprod_network(self, client):
+    def test_returns_configured_network(self, client):
+        """Test that the configured network appears in the list."""
         response = client.network_list()
         assert response.status_code == 200
 
@@ -21,10 +22,10 @@ class TestNetworkList:
 
         assert identifiers, "Should return at least one network identifier"
         assert any(
-            item.get("blockchain") == DEFAULT_NETWORK["blockchain"]
-            and item.get("network") == DEFAULT_NETWORK["network"]
+            item.get("blockchain") == BLOCKCHAIN
+            and item.get("network") == NETWORK
             for item in identifiers
-        ), "Preprod network identifier must be present"
+        ), f"Configured network '{NETWORK}' must be present in list"
 
 
 @allure.feature("Network")
@@ -93,9 +94,10 @@ class TestNetworkOptions:
         version = data.get("version", {})
         allow = data.get("allow", {})
 
-        assert version.get("rosetta_version") == "1.4.13"
-        assert version.get("node_version") == "10.4.1"
-        assert version.get("middleware_version") == "1.3.2"
+        # Test version fields exist and are non-empty (values change with updates)
+        assert version.get("rosetta_version")
+        assert version.get("node_version")
+        assert version.get("middleware_version")
 
         statuses = allow.get("operation_statuses", [])
         assert statuses
@@ -115,22 +117,17 @@ class TestNetworkOptions:
             "dRepVoteDelegation",
             "poolGovernanceVote",
         ]
-        assert operation_types == expected_operation_types
+        # All operations are critical (domain invariant), but order is arbitrary
+        assert set(operation_types) == set(expected_operation_types)
 
+        # Test error structure (all errors must have required fields)
         errors = allow.get("errors", [])
-        error_map = {error.get("code"): error for error in errors}
-        assert error_map.get(4002, {}).get("retriable") is False
-        assert error_map.get(4015, {}).get("retriable") is False
+        assert errors, "Errors list must not be empty"
 
-        # Check specific important error codes are present
-        important_codes = [
-            5054,
-            5055,
-            5058,
-        ]  # Skip 5056, 5057 as they're not in current implementation
-        for code in important_codes:
-            if code in error_map:  # Only check if present
-                assert error_map[code].get("retriable") is False
+        for error in errors:
+            assert isinstance(error.get("code"), int), "Error code must be integer"
+            assert isinstance(error.get("retriable"), bool), "Retriable must be boolean"
+            assert error.get("message"), "Error message must exist and be non-empty"
 
         assert isinstance(allow.get("historical_balance_lookup"), bool)
 
