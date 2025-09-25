@@ -23,7 +23,7 @@ public class CacheConfig {
   //a cache for token metadata from token registry
   @Bean
   public Cache<String, TokenCacheEntry> tokenMetadataCache(
-      @Value("${cardano.rosetta.TOKEN_REGISTRY_CACHE_TTL_HOURS:1}") int cacheTtlHours) {
+      @Value("${cardano.rosetta.TOKEN_REGISTRY_CACHE_TTL_HOURS:12}") int cacheTtlHours) {
     return CacheBuilder.newBuilder()
         .maximumSize(10_000) // Maximum 10k cached entries
         .expireAfterWrite(cacheTtlHours, HOURS)

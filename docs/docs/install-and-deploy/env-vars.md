@@ -89,7 +89,6 @@ Within root folder of the project there are example `.env` files, which can be c
 | `TOKEN_REGISTRY_ENABLED`                      | Enable token registry integration for native token metadata           | true                                   | added in release 1.4.0  |
 | `TOKEN_REGISTRY_BASE_URL`                     | Base URL for the token registry API                                   | https://tokens.cardano.org/api         | added in release 1.4.0  |
 | `TOKEN_REGISTRY_CACHE_TTL_HOURS`              | Cache TTL for token metadata in hours                                 | 1                                      | added in release 1.4.0  |
-| `TOKEN_REGISTRY_CACHE_CLEAR_RATE`             | Scheduled rate for clearing token metadata cache (Spring format)      | 15m                                    | added in release 1.4.0  |
 | `TOKEN_REGISTRY_LOGO_FETCH`                   | Enable fetching token logos from registry (increases response size)   | false                                  | added in release 1.4.0  |
 
 ## Deprecated Environment Variables (Previous Versions)

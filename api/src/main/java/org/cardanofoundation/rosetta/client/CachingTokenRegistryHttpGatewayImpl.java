@@ -1,14 +1,17 @@
 package org.cardanofoundation.rosetta.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Stopwatch;
 import com.google.common.cache.Cache;
 import jakarta.annotation.PostConstruct;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.cardanofoundation.rosetta.client.model.domain.*;
+import org.cardanofoundation.rosetta.client.model.domain.TokenCacheEntry;
+import org.cardanofoundation.rosetta.client.model.domain.TokenRegistryBatchRequest;
+import org.cardanofoundation.rosetta.client.model.domain.TokenRegistryBatchResponse;
+import org.cardanofoundation.rosetta.client.model.domain.TokenSubject;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -34,7 +37,7 @@ public class CachingTokenRegistryHttpGatewayImpl implements TokenRegistryHttpGat
     @Value("${cardano.rosetta.TOKEN_REGISTRY_BASE_URL:https://tokens.cardano.org/api}")
     protected String tokenRegistryBaseUrl;
 
-    @Value("${cardano.rosetta.HTTP_REQUEST_TIMEOUT_SECONDS:5}")
+    @Value("${cardano.rosetta.TOKEN_REGISTRY_REQUEST_TIMEOUT_SECONDS:2}") // aggressive timeout as we do not want to block the request
     protected int httpRequestTimeoutSeconds;
 
     @Value("${cardano.rosetta.TOKEN_REGISTRY_LOGO_FETCH:false}")
@@ -83,7 +86,10 @@ public class CachingTokenRegistryHttpGatewayImpl implements TokenRegistryHttpGat
             return result;
         }
 
-        log.debug("Fetching {} subjects from token registry: {}", subjectsToFetch.size(), subjectsToFetch);
+        log.info("Initiating remote token registry HTTP POST request: {} for {} subjects", batchEndpointUrl, subjectsToFetch.size());
+        log.debug("Subjects to fetch from token registry: {}", subjectsToFetch);
+
+        Stopwatch stopwatch = Stopwatch.createStarted();
 
         try {
             // Create batch request with selective properties
@@ -105,6 +111,10 @@ public class CachingTokenRegistryHttpGatewayImpl implements TokenRegistryHttpGat
 
             // Execute request
             HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+
+            long elapsedMillis = stopwatch.elapsed().toMillis();
+            log.info("Token registry remote fetch completed in {} ms for {} subjects (HTTP status: {})",
+                    elapsedMillis, subjectsToFetch.size(), response.statusCode());
 
             if (response.statusCode() != 200) {
                 log.error("Token registry returned non-200 status: {} for batch request", response.statusCode());
@@ -132,33 +142,32 @@ public class CachingTokenRegistryHttpGatewayImpl implements TokenRegistryHttpGat
                 }
             }
 
-            log.debug("Successfully fetched and cached {} token metadata entries", 
-                    batchResponse.getSubjects() != null ? batchResponse.getSubjects().size() : 0);
+            int fetchedCount = batchResponse.getSubjects() != null ? batchResponse.getSubjects().size() : 0;
+            log.info("Successfully fetched and cached {} token metadata entries out of {} requested subjects",
+                    fetchedCount, subjectsToFetch.size());
 
             return result;
 
         } catch (IOException e) {
-            log.error("IO error while fetching token metadata batch", e);
+            long elapsedMillis = stopwatch.elapsed().toMillis();
+            log.error("IO error while fetching token metadata batch after {} ms for {} subjects", elapsedMillis, subjectsToFetch.size(), e);
             return result; // Return partial results from cache
         } catch (InterruptedException e) {
-            log.error("Request interrupted while fetching token metadata batch", e);
+            long elapsedMillis = stopwatch.elapsed().toMillis();
+            log.error("Request interrupted while fetching token metadata batch after {} ms for {} subjects", elapsedMillis, subjectsToFetch.size(), e);
             Thread.currentThread().interrupt();
             return result; // Return partial results from cache
         } catch (Exception e) {
-            log.error("Unexpected error while fetching token metadata batch", e);
+            long elapsedMillis = stopwatch.elapsed().toMillis();
+            log.error("Unexpected error while fetching token metadata batch after {} ms for {} subjects", elapsedMillis, subjectsToFetch.size(), e);
             return result; // Return partial results from cache
         }
     }
 
+    /** helper for testing */
     void evictFromCache(String subject) {
         tokenMetadataCache.invalidate(subject);
         log.debug("Evicted cache entry for subject: {}", subject);
-    }
-
-    @Scheduled(fixedRateString = "${cardano.rosetta.TOKEN_REGISTRY_CACHE_CLEAR_RATE:15m}")
-    void clearCache() {
-        tokenMetadataCache.invalidateAll();
-        log.info("Cleared all token metadata cache entries.");
     }
 
     List<String> buildPropertiesList() {

@@ -295,12 +295,6 @@ class CachingTokenRegistryHttpGatewayImplTest {
             verify(tokenMetadataCache).invalidate("");
         }
 
-        @Test
-        void clearCache_InvalidatesAllEntries() {
-            tokenRegistryHttpGateway.clearCache();
-
-            verify(tokenMetadataCache).invalidateAll();
-        }
     }
 
     @Nested
