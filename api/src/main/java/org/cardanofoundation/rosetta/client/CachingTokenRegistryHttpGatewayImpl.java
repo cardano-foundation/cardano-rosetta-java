@@ -7,9 +7,11 @@ import jakarta.annotation.PostConstruct;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.cardanofoundation.rosetta.client.model.domain.*;
+import org.cardanofoundation.rosetta.client.model.domain.TokenCacheEntry;
+import org.cardanofoundation.rosetta.client.model.domain.TokenRegistryBatchRequest;
+import org.cardanofoundation.rosetta.client.model.domain.TokenRegistryBatchResponse;
+import org.cardanofoundation.rosetta.client.model.domain.TokenSubject;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -35,7 +37,7 @@ public class CachingTokenRegistryHttpGatewayImpl implements TokenRegistryHttpGat
     @Value("${cardano.rosetta.TOKEN_REGISTRY_BASE_URL:https://tokens.cardano.org/api}")
     protected String tokenRegistryBaseUrl;
 
-    @Value("${cardano.rosetta.HTTP_REQUEST_TIMEOUT_SECONDS:2}") // aggressive timeout as we do not want to block the request
+    @Value("${cardano.rosetta.TOKEN_REGISTRY_REQUEST_TIMEOUT_SECONDS:2}") // aggressive timeout as we do not want to block the request
     protected int httpRequestTimeoutSeconds;
 
     @Value("${cardano.rosetta.TOKEN_REGISTRY_LOGO_FETCH:false}")
@@ -84,7 +86,7 @@ public class CachingTokenRegistryHttpGatewayImpl implements TokenRegistryHttpGat
             return result;
         }
 
-        log.info("Initiating remote token registry request for {} subjects", subjectsToFetch.size());
+        log.info("Initiating remote token registry HTTP POST request: {} for {} subjects", batchEndpointUrl, subjectsToFetch.size());
         log.debug("Subjects to fetch from token registry: {}", subjectsToFetch);
 
         Stopwatch stopwatch = Stopwatch.createStarted();
@@ -162,15 +164,10 @@ public class CachingTokenRegistryHttpGatewayImpl implements TokenRegistryHttpGat
         }
     }
 
+    /** helper for testing */
     void evictFromCache(String subject) {
         tokenMetadataCache.invalidate(subject);
         log.debug("Evicted cache entry for subject: {}", subject);
-    }
-
-    @Scheduled(fixedRateString = "${cardano.rosetta.TOKEN_REGISTRY_CACHE_CLEAR_RATE:15m}")
-    void clearCache() {
-        tokenMetadataCache.invalidateAll();
-        log.info("Cleared all token metadata cache entries.");
     }
 
     List<String> buildPropertiesList() {
