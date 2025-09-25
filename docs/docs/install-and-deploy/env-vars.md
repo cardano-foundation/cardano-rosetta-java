@@ -47,8 +47,8 @@ Within root folder of the project there are example `.env` files, which can be c
 | `GENESIS_ALONZO_PATH`                         | Genesis file path                                                     | ./config/mainnet/alonzo-genesis.json   | added in release 1.0.0  |
 | `GENESIS_CONWAY_PATH`                         | Genesis file path                                                     | ./config/mainnet/conway-genesis.json   | added in release 1.0.0  |
 | `INDEXER_DOCKER_IMAGE_TAG`                    | Yaci indexer Docker version                                           | main                                   | added in release 1.0.0  |
-| `REMOVE_SPENT_UTXOS`                          | If pruning should be enabled                                          | false                                  | added in release 1.0.0  |
-| `REMOVE_SPENT_UTXOS_LAST_BLOCKS_GRACE_COUNT`  | Number of safe blocks to keep in the store                            | 2160                                   | added in release 1.2.4  |
+| `REMOVE_SPENT_UTXOS`                          | If pruning should be enabled                                          | true                                   | added in release 1.0.0  |
+| `REMOVE_SPENT_UTXOS_LAST_BLOCKS_GRACE_COUNT`  | Number of safe blocks to keep in the store (~30 days)                | 129600                                 | added in release 1.2.4  |
 | `YACI_SPRING_PROFILES`                        | Yaci indexer spring profile                                           | postgres                               | added in release 1.0.0  |
 | `DEVKIT_ENABLED`                              | Devkit enabled                                                        | false                                  | added in release 1.0.0  |
 | `LOG`                                         | Log level                                                             | ERROR                                  | added in release 1.0.0  |
@@ -93,7 +93,7 @@ The following environment variables were available in previous versions but are 
 
 | Variable              | Description                                                     | Default | Notes                                                                                         |
 |-----------------------|-----------------------------------------------------------------|---------|-----------------------------------------------------------------------------------------------|
-| `PRUNING_ENABLED`     | Enable spent UTXO pruning to reduce storage requirements        | false   | available in releases 1.0.0 - 1.2.8, replaced by `REMOVE_SPENT_UTXOS`                         |
-| `PRUNING_SAFE_BLOCKS` | Number of recent blocks to keep spent UTXOs for (safety margin) | 2160    | available in releases 1.2.4 - 1.2.8, replaced by `REMOVE_SPENT_UTXOS_LAST_BLOCKS_GRACE_COUNT` |
+| `PRUNING_ENABLED`     | Enable spent UTXO pruning to reduce storage requirements        | false   | available in releases 1.0.0 - 1.2.8, replaced by `REMOVE_SPENT_UTXOS` (now defaults to true)  |
+| `PRUNING_SAFE_BLOCKS` | Number of recent blocks to keep spent UTXOs for (safety margin) | 2160    | available in releases 1.2.4 - 1.2.8, replaced by `REMOVE_SPENT_UTXOS_LAST_BLOCKS_GRACE_COUNT` (now defaults to 129600) |
 | `PRUNING_INTERVAL`    | Interval in seconds between pruning cleanup jobs                | 600     | available in releases 1.2.4 - 1.2.8, no longer configurable                                   |
 | `LIMIT`               | Search limit                                                    | 100     | available in releases 1.0.0 - 1.3.0, no longer configurable, replaced by `SEARCH_LIMIT`       |

@@ -14,7 +14,7 @@ Before you begin, ensure you have the following installed:
 
 - Docker
 - Docker Compose
-- Java 21
+- Java 24
 - For integration tests: Node 14+
 
 ## Deployment Options
@@ -28,6 +28,9 @@ import TabItem from '@theme/TabItem';
 ### Using Docker Compose
 
 1. Clone the repository
+```bash
+git clone https://github.com/cardano-foundation/cardano-rosetta-java.git
+```
 2. Use the provided environment files or modify them if necessary:
    - The default configuration is in `.env.docker-compose`
    - Choose a hardware profile from the available options (see [Hardware Profiles](./hardware-profiles) for details):
@@ -43,6 +46,21 @@ docker compose --env-file .env.docker-compose \
   --env-file .env.docker-compose-profile-mid-level \
   -f docker-compose.yaml up -d
 ```
+
+:::tip Managing Environment Files
+To avoid environment variable warnings when running `docker compose` commands later (like `docker compose logs`), you can merge the environment files:
+```bash
+# For mainnet with mid-level profile:
+cat .env.docker-compose .env.docker-compose-profile-mid-level > .env
+
+# For preprod with entry-level profile:
+cat .env.docker-compose-preprod .env.docker-compose-profile-entry-level > .env
+
+# Now you can run commands without warnings:
+docker compose ps
+docker compose logs -f
+```
+:::
 
 :::note
 The first time you run the command, it will take significant time to build the cardano-node.
@@ -68,9 +86,21 @@ Mithril provides cryptographically certified blockchain snapshots for multiple C
 :::
 
   </TabItem>
-  <TabItem value="prebuilt" label="Pre-built Docker Image">
+  <TabItem value="prebuilt" label="Pre-built Docker Image (Deprecated)">
 
-### Using Pre-built Docker Image
+### Using Pre-built Docker Image (Deprecated)
+
+:::danger Deprecated Feature
+⚠️ **The single Docker image deployment is deprecated and not recommended for production use.**
+
+This method bundles all components (cardano-node, indexer, API, and PostgreSQL) into a single container, which:
+- Makes resource management difficult
+- Complicates debugging and maintenance
+- Prevents independent component scaling
+- Is less reliable for production workloads
+
+**We strongly recommend using the Docker Compose deployment method instead**, which offers better modularity, resource management, and maintainability.
+:::
 
 For every release, pre-built docker images are available on [DockerHub](https://hub.docker.com/orgs/cardanofoundation/repositories):
 
@@ -100,9 +130,13 @@ API documentation is available [here](https://input-output-hk.github.io/cardano-
 :::
 
   </TabItem>
-  <TabItem value="source" label="Build from Source">
+  <TabItem value="source" label="Build from Source (Single Image)">
 
-### Building Docker Image from Source
+### Building Docker Image from Source (Single Container)
+
+:::warning Deprecated Approach
+This builds the deprecated single Docker image that bundles all components together. For production deployments, use the Docker Compose method which builds and manages components separately.
+:::
 
 ```bash
 git clone https://github.com/cardano-foundation/cardano-rosetta-java
@@ -188,13 +222,14 @@ For information about running in online mode (default) or offline mode (for air-
   <TabItem value="logs" label="Viewing Logs" default>
 
 ```bash
-# Follow Docker container logs
+# For Docker Compose deployments:
+docker compose logs -f api
+docker compose logs -f yaci-indexer
+docker compose logs -f cardano-node
+
+# For single container deployments (deprecated):
 docker logs rosetta -f
-
-# Access node logs
 docker exec rosetta tail -f /logs/node.log
-
-# Access indexer logs
 docker exec rosetta tail -f /logs/indexer.log
 ```
 
@@ -202,7 +237,12 @@ docker exec rosetta tail -f /logs/indexer.log
   <TabItem value="interactive" label="Interactive Shell">
 
 ```bash
-# Get interactive bash shell
+# For Docker Compose deployments:
+docker exec -it cardano-rosetta-java-cardano-node-1 bash
+docker exec -it cardano-rosetta-java-api-1 bash
+docker exec -it cardano-rosetta-java-yaci-indexer-1 bash
+
+# For single container deployments (deprecated):
 docker exec -it rosetta bash
 
 # Useful commands within the container
