@@ -132,7 +132,31 @@ The resynchronization process rebuilds the indexer database from your existing C
 
 This is necessary in two main scenarios:
 
-- **To reclaim disk space**: When you enable pruning on an existing instance, a resync will clear out historically spent UTXOs.
+- **To reclaim disk space**: When you enable pruning on an existing instance, a resync will clear out historically spent UTXOs. However, to actually reduce the file size on disk after `REMOVE_SPENT_UTXOS` is enabled and the indexer has fully synced, you must manually reclaim the space using PostgreSQL's VACUUM FULL command on the affected tables:
+
+  ```bash
+  # Connect to the PostgreSQL database
+  docker exec -e PGPASSWORD="<password>" -it <postgres-container-name> psql -U <username> -d rosetta-java
+
+  # set schema
+  set search_path to mainnet;
+
+  # Run VACUUM FULL on the tables that store UTXO data
+  VACUUM FULL tx_input;
+  VACUUM FULL address_utxo;
+  ```
+
+    :::warning Database Maintenance Required
+    The VACUUM FULL operation requires an exclusive lock on the tables and can take significant time to complete.   Plan for potential downtime during this maintenance operation. In addition, sufficient free disk space must be available, since VACUUM FULL rewrites each table by creating a new copy before replacing the old one. For example, in this case you would need approximately 400 GB of free space to complete the operation. The process will:
+
+    - **Reclaim disk space**: Remove the gaps left by deleted spent UTXOs
+    - **Reorganize table data**: Compact the remaining data for better performance
+    - **Require exclusive access**: Block all other operations on these tables during execution
+    :::
+
+    :::tip Alternative Approach
+    If you prefer to avoid the VACUUM FULL maintenance window, performing a complete indexer resynchronization (as described above) will achieve the same disk space reclamation while rebuilding the database from scratch with the new pruning configuration.
+    :::
 - **To restore full history**: When you disable pruning, a resync will rebuild the complete transaction history that was previously pruned away.
 
 :::tip Quick Resynchronization Steps

@@ -28,6 +28,9 @@ import TabItem from '@theme/TabItem';
 ### Using Docker Compose
 
 1. Clone the repository
+```bash
+git clone https://github.com/cardano-foundation/cardano-rosetta-java.git
+```
 2. Use the provided environment files or modify them if necessary:
    - The default configuration is in `.env.docker-compose`
    - Choose a hardware profile from the available options (see [Hardware Profiles](./hardware-profiles) for details):
