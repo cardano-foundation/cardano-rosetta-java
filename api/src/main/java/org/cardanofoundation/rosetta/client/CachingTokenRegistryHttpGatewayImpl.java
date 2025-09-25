@@ -35,7 +35,7 @@ public class CachingTokenRegistryHttpGatewayImpl implements TokenRegistryHttpGat
     @Value("${cardano.rosetta.TOKEN_REGISTRY_BASE_URL:https://tokens.cardano.org/api}")
     protected String tokenRegistryBaseUrl;
 
-    @Value("${cardano.rosetta.HTTP_REQUEST_TIMEOUT_SECONDS:5}")
+    @Value("${cardano.rosetta.HTTP_REQUEST_TIMEOUT_SECONDS:2}") // aggressive timeout as we do not want to block the request
     protected int httpRequestTimeoutSeconds;
 
     @Value("${cardano.rosetta.TOKEN_REGISTRY_LOGO_FETCH:false}")
