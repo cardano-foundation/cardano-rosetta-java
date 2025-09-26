@@ -336,7 +336,7 @@ public class OperationToCborMap {
     Optional.ofNullable(amount).ifPresent(am -> {
       Map amountMap = new Map();
       addCurrencyToAmountMap(am.getCurrency(), amountMap);
-      putStringDataItemToMap(amountMap,Constants.VALUE,am.getValue());
+      putStringDataItemToMap(amountMap,Constants.VALUE, am.getValue());
       operationMap.put(key(Constants.AMOUNT), amountMap);
     });
   }
@@ -346,10 +346,10 @@ public class OperationToCborMap {
    * @param currency currency
    * @param amountMap amountMap
    */
-  private static void addCurrencyToAmountMap(Currency currency, Map amountMap) {
+  private static void addCurrencyToAmountMap(CurrencyResponse currency, Map amountMap) {
     Optional.ofNullable(currency).ifPresent(cur -> {
       Map currencyMap = new Map();
-      putStringDataItemToMap(currencyMap,Constants.SYMBOL, cur.getSymbol());
+      putStringDataItemToMap(currencyMap, Constants.SYMBOL, cur.getSymbol());
       putUnsignedIntegerToMap(currencyMap, Constants.DECIMALS, cur.getDecimals());
       addMetadataToCurrencyMap(cur.getMetadata(), currencyMap);
       amountMap.put(key(Constants.CURRENCY), currencyMap);
@@ -361,11 +361,11 @@ public class OperationToCborMap {
    * @param metadata metadata
    * @param currencyMap currencyMap
    */
-  private static void addMetadataToCurrencyMap(CurrencyMetadata metadata, Map currencyMap) {
-    Optional.ofNullable(metadata).ifPresent(m -> {
-      Map metadataMap = new Map();
-      Optional.ofNullable(metadata.getPolicyId()).ifPresent(policyId -> metadataMap.put(key(Constants.POLICYID), new UnicodeString(policyId)));
-      currencyMap.put(key(Constants.METADATA), metadataMap);
+  private static void addMetadataToCurrencyMap(CurrencyMetadataResponse metadata, Map currencyMap) {
+    Optional.ofNullable(metadata).ifPresent(meta -> {
+      Optional.ofNullable(meta.getPolicyId()).ifPresent(policyId -> {
+        currencyMap.put(key(Constants.POLICYID), new UnicodeString(policyId));
+      });
     });
   }
 

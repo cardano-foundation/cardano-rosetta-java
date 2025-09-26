@@ -86,8 +86,8 @@ class ValidateParseUtilTest {
         ApiException exception = assertThrows(ApiException.class,
                 () -> validateAndParseTokenBundle(List.of(
                         new TokenBundleItem("11111111111111111111111111111111111111111111111111111111",
-                                List.of(new Amount("6", new Currency("ADA", 6, new CurrencyMetadata()), new Object()),
-                                        new Amount("6", new Currency("ADA", 6, new CurrencyMetadata()), new Object()))))));
+                                List.of(new Amount("6", CurrencyResponse.builder().symbol("ADA").decimals(6).metadata(CurrencyMetadataResponse.builder().build()).build(), new Object()),
+                                        new Amount("6", CurrencyResponse.builder().symbol("ADA").decimals(6).metadata(CurrencyMetadataResponse.builder().build()).build(), new Object()))))));
         assertEquals("Transaction outputs parameters errors in operations array", exception.getError().getMessage());
         assertEquals(4009, exception.getError().getCode());
     }

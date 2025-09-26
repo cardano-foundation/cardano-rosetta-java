@@ -3,7 +3,7 @@ package org.cardanofoundation.rosetta.api.account.service;
 
 import java.util.List;
 
-import org.openapitools.client.model.Currency;
+import org.openapitools.client.model.CurrencyRequest;
 
 import org.cardanofoundation.rosetta.api.account.model.domain.AddressBalance;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
@@ -15,6 +15,6 @@ public interface LedgerAccountService {
 
   List<AddressBalance> findBalanceByAddressAndBlock(String address, Long number);
 
-  List<Utxo> findUtxoByAddressAndCurrency(String address, List<Currency> currencies);
+  List<Utxo> findUtxoByAddressAndCurrency(String address, List<CurrencyRequest> currencies);
 
 }

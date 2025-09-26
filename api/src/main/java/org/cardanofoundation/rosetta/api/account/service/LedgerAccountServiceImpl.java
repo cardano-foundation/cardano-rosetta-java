@@ -10,7 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import org.openapitools.client.model.Currency;
+import org.openapitools.client.model.CurrencyRequest;
 
 import org.cardanofoundation.rosetta.api.account.mapper.AddressUtxoEntityToUtxo;
 import org.cardanofoundation.rosetta.api.account.model.domain.AddressBalance;
@@ -56,7 +56,7 @@ public class LedgerAccountServiceImpl implements LedgerAccountService {
   }
 
   @Override
-  public List<Utxo> findUtxoByAddressAndCurrency(String address, List<Currency> currencies) {
+  public List<Utxo> findUtxoByAddressAndCurrency(String address, List<CurrencyRequest> currencies) {
     log.debug("Finding UTXOs for address {} with currencies {}", address, currencies);
     List<AddressUtxoEntity> addressUtxoEntities = addressUtxoRepository.findunspentUtxosByAddress(address);
     return addressUtxoEntities.stream()
@@ -64,13 +64,14 @@ public class LedgerAccountServiceImpl implements LedgerAccountService {
         .toList();
   }
 
-  private Utxo createUtxoModel(List<Currency> currencies, AddressUtxoEntity entity) {
+  private Utxo createUtxoModel(List<CurrencyRequest> currencies, AddressUtxoEntity entity) {
     Utxo utxo = addressUtxoEntityToUtxo.toDto(entity);
     utxo.setAmounts(getAmts(currencies, entity));
+
     return utxo;
   }
 
-  private static List<Amt> getAmts(List<Currency> currencies, AddressUtxoEntity entity) {
+  private static List<Amt> getAmts(List<CurrencyRequest> currencies, AddressUtxoEntity entity) {
     return currencies.isEmpty()
         ? entity.getAmounts().stream().toList()
         : entity.getAmounts().stream()
@@ -78,7 +79,7 @@ public class LedgerAccountServiceImpl implements LedgerAccountService {
             .toList();
   }
 
-  private static boolean isAmountMatchesCurrency(List<Currency> currencies, Amt amt) {
+  private static boolean isAmountMatchesCurrency(List<CurrencyRequest> currencies, Amt amt) {
     return currencies.stream()
         .anyMatch(currency -> {
           String currencyUnit = Formatters.isEmptyHexString(currency.getSymbol()) ?

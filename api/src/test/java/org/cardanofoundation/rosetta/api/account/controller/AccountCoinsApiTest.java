@@ -30,10 +30,10 @@ class AccountCoinsApiTest extends BaseSpringMvcSetup {
           TestTransactionNames.SIMPLE_NEW_EMPTY_NAME_COINS_TRANSACTION.getName()).txHash());
 
   private final String expectedTestAccountCoinAmount = "1635602";
-  private final Currency myAssetCurrency =
+  private final CurrencyRequest myAssetCurrency =
       getCurrency(TestConstants.MY_ASSET_SYMBOL,Constants.MULTI_ASSET_DECIMALS, myAssetPolicyId);
-  private final Currency ada = getCurrency(Constants.ADA, Constants.ADA_DECIMALS);
-  private final Currency lovelace = getCurrency(Constants.LOVELACE, Constants.MULTI_ASSET_DECIMALS);
+  private final CurrencyRequest ada = getCurrency(Constants.ADA, Constants.ADA_DECIMALS);
+  private final CurrencyRequest lovelace = getCurrency(Constants.LOVELACE, Constants.MULTI_ASSET_DECIMALS);
 
   @Test
   void accountCoins2Ada_Test() {
@@ -108,10 +108,7 @@ class AccountCoinsApiTest extends BaseSpringMvcSetup {
         .get(latestTxHashOnZeroSlot);
     assertEquals(2, metadata.size());
     assertEquals(metadata.get(1).getPolicyId(), metadata.getFirst().getPolicyId());
-    assertEquals(metadata.getFirst().getPolicyId(), metadata
-        .getFirst().getTokens().getFirst().getCurrency().getMetadata().getPolicyId());
-    assertEquals(metadata.get(1).getPolicyId(), metadata
-        .get(1).getTokens().getFirst().getCurrency().getMetadata().getPolicyId());
+    // Metadata no longer contains policyId - it's not duplicated in response
     assertEquals(TestConstants.ACCOUNT_BALANCE_MINTED_TOKENS_AMOUNT,
         metadata.getFirst().getTokens().getFirst().getValue());
     assertEquals(TestConstants.ACCOUNT_BALANCE_MINTED_TOKENS_AMOUNT,
@@ -187,15 +184,13 @@ class AccountCoinsApiTest extends BaseSpringMvcSetup {
     assertEquals(coinsMetadata.getFirst().getPolicyId(), coinsMetadata.get(1).getPolicyId());
     assertEquals(TestConstants.ACCOUNT_BALANCE_MINTED_TOKENS_AMOUNT, coinsMetadata.getFirst()
         .getTokens().getFirst().getValue());
-    assertEquals(coinsMetadata.getFirst().getPolicyId(),
-        coinsMetadata.getFirst().getTokens().getFirst().getCurrency().getMetadata().getPolicyId());
-    assertEquals(Constants.MULTI_ASSET_DECIMALS,
+    // With TokenRegistry integration, decimals come from metadata instead of default
+    assertEquals(6,
         coinsMetadata.getFirst().getTokens().getFirst().getCurrency().getDecimals());
     assertEquals(TestConstants.ACCOUNT_BALANCE_MINTED_TOKENS_AMOUNT, coinsMetadata.get(1)
         .getTokens().getFirst().getValue());
-    assertEquals(coinsMetadata.get(1).getPolicyId(),
-        coinsMetadata.get(1).getTokens().getFirst().getCurrency().getMetadata().getPolicyId());
-    assertEquals(Constants.MULTI_ASSET_DECIMALS,
+    // With TokenRegistry integration, decimals come from metadata instead of default
+    assertEquals(6,
         coinsMetadata.get(1).getTokens().getFirst().getCurrency().getDecimals());
   }
 
@@ -267,7 +262,7 @@ class AccountCoinsApiTest extends BaseSpringMvcSetup {
         .collect(Collectors.joining());
     AccountCoinsRequest request = getAccountCoinsRequestWithCurrencies(TEST_ACCOUNT_ADDRESS,
         getCurrency(TestConstants.CURRENCY_HEX_SYMBOL, Constants.MULTI_ASSET_DECIMALS)
-            .metadata(new CurrencyMetadata(tooLongPolicyId)));
+            .metadata(CurrencyMetadataRequest.builder().policyId(tooLongPolicyId).build()));
 
     mockMvc.perform(MockMvcRequestBuilders.post("/account/coins")
             .contentType(MediaType.APPLICATION_JSON)
@@ -282,7 +277,7 @@ class AccountCoinsApiTest extends BaseSpringMvcSetup {
   void accountCoinsNonHexPolicyIdException_Test() throws Exception {
     AccountCoinsRequest request = getAccountCoinsRequestWithCurrencies(TEST_ACCOUNT_ADDRESS,
         getCurrency(TestConstants.CURRENCY_HEX_SYMBOL, Constants.MULTI_ASSET_DECIMALS)
-            .metadata(new CurrencyMetadata("thisIsNonHexPolicyId")));
+            .metadata(CurrencyMetadataRequest.builder().policyId("thisIsNonHexPolicyId").build()));
 
     mockMvc.perform(MockMvcRequestBuilders.post("/account/coins")
             .contentType(MediaType.APPLICATION_JSON)
@@ -308,7 +303,7 @@ class AccountCoinsApiTest extends BaseSpringMvcSetup {
   }
 
   private AccountCoinsRequest getAccountCoinsRequestWithCurrencies(String accountAddress,
-      Currency... currencies) {
+      CurrencyRequest... currencies) {
     return AccountCoinsRequest.builder()
         .networkIdentifier(NetworkIdentifier.builder()
             .blockchain(TestConstants.TEST_BLOCKCHAIN)
@@ -322,18 +317,18 @@ class AccountCoinsApiTest extends BaseSpringMvcSetup {
         .build();
   }
 
-  private Currency getCurrency(String symbol, int decimals) {
-    return Currency.builder()
+  private CurrencyRequest getCurrency(String symbol, int decimals) {
+    return CurrencyRequest.builder()
         .symbol(symbol)
         .decimals(decimals)
         .build();
   }
 
-  private Currency getCurrency(String symbol, int decimals, String policyId) {
-    return Currency.builder()
+  private CurrencyRequest getCurrency(String symbol, int decimals, String policyId) {
+    return CurrencyRequest.builder()
         .symbol(symbol)
         .decimals(decimals)
-        .metadata(CurrencyMetadata.builder().policyId(policyId).build())
+        .metadata(CurrencyMetadataRequest.builder().policyId(policyId).build())
         .build();
   }
 

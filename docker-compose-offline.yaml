@@ -1,0 +1,7 @@
+version: '3.8'
+include:
+  - docker-compose-api.yaml
+
+networks:
+  default:
+    name: cardano-rosetta-java-${NETWORK}

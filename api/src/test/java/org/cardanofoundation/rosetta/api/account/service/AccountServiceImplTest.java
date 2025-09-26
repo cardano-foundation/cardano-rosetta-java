@@ -1,8 +1,7 @@
 package org.cardanofoundation.rosetta.api.account.service;
 
 import java.math.BigInteger;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.Optional;
 import jakarta.validation.constraints.NotNull;
 
@@ -13,6 +12,7 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.openapitools.client.model.*;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -22,6 +22,7 @@ import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockIdentifierExtended;
 import org.cardanofoundation.rosetta.api.block.service.LedgerBlockService;
+import org.cardanofoundation.rosetta.api.common.service.TokenRegistryService;
 import org.cardanofoundation.rosetta.client.YaciHttpGateway;
 import org.cardanofoundation.rosetta.client.model.domain.StakeAccountInfo;
 import org.cardanofoundation.rosetta.common.exception.ApiException;
@@ -46,17 +47,27 @@ class AccountServiceImplTest {
   @Mock
   YaciHttpGateway yaciHttpGateway;
 
-  @Spy
-  AccountMapper accountMapper = new AccountMapperImpl(new AccountMapperUtil());
+  @Mock
+  TokenRegistryService tokenRegistryService;
 
   @Spy
   AddressBalanceMapperImpl addressBalanceMapper;
 
-  @Spy
-  @InjectMocks
+  AccountMapper accountMapper;
   AccountServiceImpl accountService;
 
   private final String HASH = "hash";
+
+  @BeforeEach
+  void setUp() {
+    // Mock TokenRegistryService to return empty metadata maps
+    lenient().when(tokenRegistryService.getTokenMetadataBatch(any())).thenReturn(Collections.emptyMap());
+    lenient().when(tokenRegistryService.fetchMetadataForAddressBalances(any())).thenReturn(Collections.emptyMap());
+    lenient().when(tokenRegistryService.fetchMetadataForUtxos(any())).thenReturn(Collections.emptyMap());
+
+    accountMapper = new AccountMapperImpl(new AccountMapperUtil());
+    accountService = new AccountServiceImpl(ledgerAccountService, ledgerBlockService, accountMapper, yaciHttpGateway, addressBalanceMapper, tokenRegistryService);
+  }
 
   @Test
   void getAccountBalanceNoStakeAddressPositiveTest() {
@@ -140,9 +151,23 @@ class AccountServiceImplTest {
                             BigInteger.valueOf(10)).build()));
     BlockIdentifierExtended block = getMockedBlockIdentifierExtended();
     when(ledgerBlockService.findLatestBlockIdentifier()).thenReturn(block);
+    when(tokenRegistryService.fetchMetadataForAddressBalances(any())).thenAnswer(invocation -> {
+      Map<org.cardanofoundation.rosetta.api.common.model.Asset, CurrencyMetadataResponse> result = new HashMap<>();
+      // Create an asset for the native token in the test data
+      org.cardanofoundation.rosetta.api.common.model.Asset asset = org.cardanofoundation.rosetta.api.common.model.Asset.builder()
+          .policyId("bd976e131cfc3956b806967b06530e48c20ed5498b46a5eb836b61c2")
+          .assetName("")  // Empty asset name
+          .build();
+      result.put(asset, CurrencyMetadataResponse.builder()
+          .policyId("bd976e131cfc3956b806967b06530e48c20ed5498b46a5eb836b61c2")
+          .decimals(0)
+          .build());
+      return result;
+    });
     AccountBalanceRequest accountBalanceRequest = AccountBalanceRequest.builder()
             .accountIdentifier(AccountIdentifier.builder().address(address).build())
-            .currencies(List.of(Currency.builder().symbol("ADA").build()))
+            .blockIdentifier(null)
+            .currencies(List.of(CurrencyRequest.builder().symbol("ADA").build()))
             .build();
     AccountBalanceResponse accountBalanceResponse = accountService.getAccountBalance(
             accountBalanceRequest);
@@ -158,6 +183,8 @@ class AccountServiceImplTest {
 
     AccountIdentifier accountIdentifier = Mockito.mock(AccountIdentifier.class);
     when(accountBalanceRequest.getAccountIdentifier()).thenReturn(accountIdentifier);
+    when(accountBalanceRequest.getBlockIdentifier()).thenReturn(null);
+    when(accountBalanceRequest.getCurrencies()).thenReturn(null);
     when(accountIdentifier.getAddress()).thenReturn(accountAddress);
     BlockIdentifierExtended block = getMockedBlockIdentifierExtended();
     AddressBalance addressBalance = new AddressBalance(accountAddress, LOVELACE, 1L,
@@ -306,7 +333,7 @@ class AccountServiceImplTest {
     String accountAddress = "Ae2tdPwUPEZGvXJ3ebp4LDgBhbxekAH2oKZgfahKq896fehv8oCJxmGJgLt";
     AccountCoinsRequest accountCoinsRequest = Mockito.mock(AccountCoinsRequest.class);
     AccountIdentifier accountIdentifier = Mockito.mock(AccountIdentifier.class);
-    Currency currency = Mockito.mock(Currency.class);
+    CurrencyRequest currency = Mockito.mock(CurrencyRequest.class);
     BlockIdentifierExtended block = Mockito.mock(BlockIdentifierExtended.class);
     Utxo utxo = Mockito.mock(Utxo.class);
     when(utxo.getTxHash()).thenReturn("txHash");
@@ -390,6 +417,7 @@ class AccountServiceImplTest {
     AccountIdentifier accountIdentifier = Mockito.mock(AccountIdentifier.class);
     when(accountBalanceRequest.getAccountIdentifier()).thenReturn(accountIdentifier);
     when(accountBalanceRequest.getBlockIdentifier()).thenReturn(blockIdentifier);
+    when(accountBalanceRequest.getCurrencies()).thenReturn(null);
     when(accountIdentifier.getAddress()).thenReturn(accountAddress);
     return accountIdentifier;
   }

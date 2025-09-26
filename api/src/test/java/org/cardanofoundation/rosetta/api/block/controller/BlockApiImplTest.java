@@ -2,6 +2,7 @@ package org.cardanofoundation.rosetta.api.block.controller;
 
 import java.lang.reflect.Field;
 import java.math.BigInteger;
+import java.util.Map;
 
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -17,6 +18,7 @@ import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
 import org.cardanofoundation.rosetta.api.block.service.BlockService;
+import org.cardanofoundation.rosetta.api.common.service.TokenRegistryService;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
 
@@ -35,6 +37,9 @@ class BlockApiImplTest extends BaseSpringMvcSetup {
 
   @MockitoBean
   private ProtocolParamService protocolParamService;
+
+  @MockitoBean
+  private TokenRegistryService tokenRegistryService;
 
   @MockitoBean
   BlockMapper blockMapper;
@@ -130,7 +135,7 @@ class BlockApiImplTest extends BaseSpringMvcSetup {
     when(protocolParamService.findProtocolParameters()).thenReturn(protocolParams);
     when(protocolParams.getPoolDeposit()).thenReturn(new BigInteger("1000"));
     //any string
-    when(blockMapper.mapToBlockTransactionResponse(any(BlockTx.class))).thenReturn(resp);
+    when(blockMapper.mapToBlockTransactionResponseWithMetadata(any(BlockTx.class), any())).thenReturn(resp);
     //when
     //then
     String txHash = resp.getTransaction().getTransactionIdentifier().getHash();
@@ -161,7 +166,7 @@ class BlockApiImplTest extends BaseSpringMvcSetup {
   private BlockRequest givenBlockRequest() {
     BlockRequest blockRequest = newBlockRequest();
     BlockResponse blockResp = newBlockResponse();
-    when(blockMapper.mapToBlockResponse(any(Block.class))).thenReturn(blockResp);
+    when(blockMapper.mapToBlockResponseWithMetadata(any(Block.class), any(Map.class))).thenReturn(blockResp);
 
     return blockRequest;
   }
