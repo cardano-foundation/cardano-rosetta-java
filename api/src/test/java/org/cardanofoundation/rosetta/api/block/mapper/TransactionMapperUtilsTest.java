@@ -78,13 +78,13 @@ class TransactionMapperUtilsTest {
     assertEquals(3, tokenBundle.size());
 
     Assertions.assertThat(getPolicyIdUnits(tokenBundle, "policyId1"))
-        .containsExactlyInAnyOrder("assetName12", "assetName13", "assetName14");
+        .containsExactlyInAnyOrder("unit12", "unit13", "unit14");
 
     Assertions.assertThat(getPolicyIdUnits(tokenBundle, "policyId2"))
-        .containsExactlyInAnyOrder("assetName21");
+        .containsExactlyInAnyOrder("unit21");
 
     Assertions.assertThat(getPolicyIdUnits(tokenBundle, "policyId3"))
-        .containsExactlyInAnyOrder("assetName31", "assetName33");
+        .containsExactlyInAnyOrder("unit31", "unit33");
   }
 
   @Test
@@ -152,7 +152,7 @@ class TransactionMapperUtilsTest {
     assertNotNull(amount.getCurrency());
     
     CurrencyResponse currency = amount.getCurrency();
-    assertEquals(assetName, currency.getSymbol());
+    assertEquals("customUnit", currency.getSymbol());
     assertEquals(6, currency.getDecimals());
     
     // Verify metadata injection
@@ -210,7 +210,7 @@ class TransactionMapperUtilsTest {
     assertNotNull(amount.getCurrency());
     
     CurrencyResponse currency = amount.getCurrency();
-    assertEquals(assetName, currency.getSymbol());
+    assertEquals("customUnit", currency.getSymbol());
     assertEquals(0, currency.getDecimals()); // Default when no metadata
     
     // Verify fallback metadata is present with at least policyId

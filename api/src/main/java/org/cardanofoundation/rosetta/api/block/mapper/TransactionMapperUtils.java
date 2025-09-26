@@ -11,7 +11,6 @@ import org.cardanofoundation.rosetta.api.block.model.domain.DRepDelegation;
 import org.cardanofoundation.rosetta.api.block.model.domain.GovernancePoolVote;
 import org.cardanofoundation.rosetta.api.block.model.domain.StakeRegistration;
 import org.cardanofoundation.rosetta.api.common.model.Asset;
-import org.cardanofoundation.rosetta.api.common.service.TokenRegistryService;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.common.mapper.DataMapper;
 import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
@@ -211,7 +210,8 @@ public class TransactionMapperUtils {
     return CoinAction.CREATED;
   }
 
-  private Amount extractAmountWithCache(boolean spent, Amt amount,
+  private Amount extractAmountWithCache(boolean spent,
+                                        Amt amount,
                                         Map<Asset, CurrencyMetadataResponse> metadataMap) {
     Asset asset = Asset.builder()
             .policyId(amount.getPolicyId())
@@ -220,13 +220,15 @@ public class TransactionMapperUtils {
 
     CurrencyMetadataResponse metadataCurrencyResponse = metadataMap.get(asset);
 
+    String assetHex = amount.getUnit().replace(amount.getPolicyId(), "");
+
     CurrencyResponse c = CurrencyResponse.builder()
-            .symbol(amount.getAssetName())
+            .symbol(assetHex)
             .decimals(getDecimalsWithFallback(metadataCurrencyResponse))
             .build();
-    
+
     c.metadata(metadataCurrencyResponse);
-    
+
     return Amount.builder()
             .value(DataMapper.mapValue(amount.getQuantity().toString(), spent))
             .currency(c)
