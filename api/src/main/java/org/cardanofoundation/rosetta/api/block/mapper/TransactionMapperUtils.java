@@ -103,7 +103,7 @@ public class TransactionMapperUtils {
                                             .map(amount -> Amount.builder()
                                                     .value(DataMapper.mapValue(amount.getQuantity().toString(), spent))
                                                     .currency(Currency.builder()
-                                                            .symbol(amount.getAssetName())
+                                                            .symbol(amount.getUnit().replace(amount.getPolicyId(), ""))
                                                             .decimals(0)
                                                             .build())
                                                     .build())
