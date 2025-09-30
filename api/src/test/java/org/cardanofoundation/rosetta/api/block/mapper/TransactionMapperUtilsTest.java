@@ -3,7 +3,9 @@ package org.cardanofoundation.rosetta.api.block.mapper;
 import org.assertj.core.api.Assertions;
 import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
 import org.cardanofoundation.rosetta.api.common.model.Asset;
+import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
 import org.cardanofoundation.rosetta.api.common.service.TokenRegistryService;
+import org.cardanofoundation.rosetta.common.mapper.DataMapper;
 import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
 import org.cardanofoundation.rosetta.common.util.Constants;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,23 +28,29 @@ class TransactionMapperUtilsTest {
 
   @Mock
   private ProtocolParamService protocolParamService;
-  
+
   @Mock
   private TokenRegistryService tokenRegistryService;
 
   private TransactionMapperUtils transactionMapperUtils;
+  private DataMapper dataMapper;
 
   @BeforeEach
   void setUp() {
-    transactionMapperUtils = new TransactionMapperUtils(protocolParamService);
-    
+    // Create real DataMapper instance with its dependency
+    org.cardanofoundation.rosetta.api.common.mapper.TokenRegistryMapper tokenRegistryMapper =
+        new org.cardanofoundation.rosetta.api.common.mapper.TokenRegistryMapperImpl();
+    dataMapper = new DataMapper(tokenRegistryMapper);
+
+    transactionMapperUtils = new TransactionMapperUtils(protocolParamService, dataMapper);
+
     // Configure TokenRegistryService to return fallback metadata for any asset
     lenient().when(tokenRegistryService.getTokenMetadataBatch(anySet())).thenAnswer(invocation -> {
-      Map<Asset, CurrencyMetadataResponse> result = new HashMap<>();
+      Map<Asset, TokenRegistryCurrencyData> result = new HashMap<>();
       @SuppressWarnings("unchecked")
       Set<Asset> assets = (Set<Asset>) invocation.getArgument(0);
       for (Asset asset : assets) {
-        result.put(asset, CurrencyMetadataResponse.builder()
+        result.put(asset, TokenRegistryCurrencyData.builder()
             .policyId(asset.getPolicyId())
             .decimals(0) // Default decimals
             .build());
@@ -68,7 +76,7 @@ class TransactionMapperUtilsTest {
     );
     
     // Create metadata map for the cached method
-    Map<Asset, CurrencyMetadataResponse> metadataMap = createMetadataMapForAmounts(amtList);
+    Map<Asset, TokenRegistryCurrencyData> metadataMap = createMetadataMapForAmounts(amtList);
     
     // when
     OperationMetadata operationMetadata = transactionMapperUtils.mapToOperationMetaDataWithCache(true, amtList, metadataMap);
@@ -95,7 +103,7 @@ class TransactionMapperUtilsTest {
         newAmt(2, 21, true));
     
     // Create metadata map for the cached method
-    Map<Asset, CurrencyMetadataResponse> metadataMap = createMetadataMapForAmounts(amtList);
+    Map<Asset, TokenRegistryCurrencyData> metadataMap = createMetadataMapForAmounts(amtList);
     
     // when
     OperationMetadata operationMetadata = transactionMapperUtils.mapToOperationMetaDataWithCache(true, amtList, metadataMap);
@@ -117,19 +125,19 @@ class TransactionMapperUtilsTest {
         .build();
     
     // Mock token registry response with full metadata
-    CurrencyMetadataResponse currencyMetadata = CurrencyMetadataResponse.builder()
+    TokenRegistryCurrencyData currencyMetadata = TokenRegistryCurrencyData.builder()
         .policyId(policyId)
         .subject(subject)
         .name("Test Token")
         .description("Test description")
         .ticker("TST")
         .url("https://test.com")
-        .logo(LogoType.builder().format(LogoType.FormatEnum.BASE64).value("base64logo").build())
+        .logo(TokenRegistryCurrencyData.LogoData.builder().format(TokenRegistryCurrencyData.LogoFormat.BASE64).value("base64logo").build())
         .decimals(6)
         .version(BigDecimal.valueOf(1L))
         .build();
-    
-    Map<Asset, CurrencyMetadataResponse> tokenMetadataMap = new HashMap<>();
+
+    Map<Asset, TokenRegistryCurrencyData> tokenMetadataMap = new HashMap<>();
     tokenMetadataMap.put(asset, currencyMetadata);
     
     List<Amt> amtList = Arrays.asList(
@@ -156,7 +164,7 @@ class TransactionMapperUtilsTest {
     assertEquals(6, currency.getDecimals());
     
     // Verify metadata injection
-    CurrencyMetadataResponse responseMetadata = currency.getMetadata();
+    org.openapitools.client.model.CurrencyMetadataResponse responseMetadata = currency.getMetadata();
     assertNotNull(responseMetadata);
     assertEquals(policyId, responseMetadata.getPolicyId());
     assertEquals(subject, responseMetadata.getSubject());
@@ -165,10 +173,9 @@ class TransactionMapperUtilsTest {
     assertEquals("TST", responseMetadata.getTicker());
     assertEquals("https://test.com", responseMetadata.getUrl());
     assertNotNull(responseMetadata.getLogo());
-    assertEquals(LogoType.FormatEnum.BASE64, responseMetadata.getLogo().getFormat());
+    assertEquals(org.openapitools.client.model.LogoType.FormatEnum.BASE64, responseMetadata.getLogo().getFormat());
     assertEquals("base64logo", responseMetadata.getLogo().getValue());
     assertEquals(BigDecimal.valueOf(1L), responseMetadata.getVersion());
-    assertEquals(6, responseMetadata.getDecimals());
   }
 
   @Test
@@ -183,11 +190,12 @@ class TransactionMapperUtilsTest {
         .build();
     
     // Mock service to return fallback metadata (service always returns something now)
-    CurrencyMetadataResponse fallbackMetadata = CurrencyMetadataResponse.builder()
+    TokenRegistryCurrencyData fallbackMetadata = TokenRegistryCurrencyData.builder()
         .policyId(policyId)
+        .decimals(0)
         .build();
-    
-    Map<Asset, CurrencyMetadataResponse> tokenMetadataMap = new HashMap<>();
+
+    Map<Asset, TokenRegistryCurrencyData> tokenMetadataMap = new HashMap<>();
     tokenMetadataMap.put(asset, fallbackMetadata);
     
     List<Amt> amtList = Arrays.asList(
@@ -214,7 +222,7 @@ class TransactionMapperUtilsTest {
     assertEquals(0, currency.getDecimals()); // Default when no metadata
     
     // Verify fallback metadata is present with at least policyId
-    CurrencyMetadataResponse currencyMetadata = currency.getMetadata();
+    org.openapitools.client.model.CurrencyMetadataResponse currencyMetadata = currency.getMetadata();
     assertNotNull(currencyMetadata);
     assertEquals(policyId, currencyMetadata.getPolicyId());
     // Other fields should be null since this is fallback metadata
@@ -234,11 +242,12 @@ class TransactionMapperUtilsTest {
         .build();
     
     // Mock service to return fallback metadata
-    CurrencyMetadataResponse fallbackMetadata = CurrencyMetadataResponse.builder()
+    TokenRegistryCurrencyData fallbackMetadata = TokenRegistryCurrencyData.builder()
         .policyId(policyId)
+        .decimals(0)
         .build();
-    
-    Map<Asset, CurrencyMetadataResponse> tokenMetadataMap = new HashMap<>();
+
+    Map<Asset, TokenRegistryCurrencyData> tokenMetadataMap = new HashMap<>();
     tokenMetadataMap.put(asset, fallbackMetadata);
     
     List<Amt> amtList = Arrays.asList(
@@ -267,15 +276,15 @@ class TransactionMapperUtilsTest {
     assertEquals("1000", amount.getValue()); // Positive for received
   }
 
-  private Map<Asset, CurrencyMetadataResponse> createMetadataMapForAmounts(List<Amt> amtList) {
-    Map<Asset, CurrencyMetadataResponse> metadataMap = new HashMap<>();
+  private Map<Asset, TokenRegistryCurrencyData> createMetadataMapForAmounts(List<Amt> amtList) {
+    Map<Asset, TokenRegistryCurrencyData> metadataMap = new HashMap<>();
     for (Amt amt : amtList) {
       if (!Constants.LOVELACE.equals(amt.getAssetName())) {
         Asset asset = Asset.builder()
             .policyId(amt.getPolicyId())
             .assetName(amt.getAssetName())
             .build();
-        CurrencyMetadataResponse metadata = CurrencyMetadataResponse.builder()
+        TokenRegistryCurrencyData metadata = TokenRegistryCurrencyData.builder()
             .policyId(amt.getPolicyId())
             .decimals(0) // Default decimals
             .build();

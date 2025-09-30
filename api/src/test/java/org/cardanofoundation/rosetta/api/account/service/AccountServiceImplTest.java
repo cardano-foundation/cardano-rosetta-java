@@ -22,7 +22,9 @@ import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockIdentifierExtended;
 import org.cardanofoundation.rosetta.api.block.service.LedgerBlockService;
+import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
 import org.cardanofoundation.rosetta.api.common.service.TokenRegistryService;
+import org.cardanofoundation.rosetta.common.mapper.DataMapper;
 import org.cardanofoundation.rosetta.client.YaciHttpGateway;
 import org.cardanofoundation.rosetta.client.model.domain.StakeAccountInfo;
 import org.cardanofoundation.rosetta.common.exception.ApiException;
@@ -55,6 +57,7 @@ class AccountServiceImplTest {
 
   AccountMapper accountMapper;
   AccountServiceImpl accountService;
+  DataMapper dataMapper;
 
   private final String HASH = "hash";
 
@@ -65,7 +68,12 @@ class AccountServiceImplTest {
     lenient().when(tokenRegistryService.fetchMetadataForAddressBalances(any())).thenReturn(Collections.emptyMap());
     lenient().when(tokenRegistryService.fetchMetadataForUtxos(any())).thenReturn(Collections.emptyMap());
 
-    accountMapper = new AccountMapperImpl(new AccountMapperUtil());
+    // Create real DataMapper instance with its dependency
+    org.cardanofoundation.rosetta.api.common.mapper.TokenRegistryMapper tokenRegistryMapper =
+        new org.cardanofoundation.rosetta.api.common.mapper.TokenRegistryMapperImpl();
+    dataMapper = new DataMapper(tokenRegistryMapper);
+
+    accountMapper = new AccountMapperImpl(new AccountMapperUtil(dataMapper));
     accountService = new AccountServiceImpl(ledgerAccountService, ledgerBlockService, accountMapper, yaciHttpGateway, addressBalanceMapper, tokenRegistryService);
   }
 
@@ -152,13 +160,13 @@ class AccountServiceImplTest {
     BlockIdentifierExtended block = getMockedBlockIdentifierExtended();
     when(ledgerBlockService.findLatestBlockIdentifier()).thenReturn(block);
     when(tokenRegistryService.fetchMetadataForAddressBalances(any())).thenAnswer(invocation -> {
-      Map<org.cardanofoundation.rosetta.api.common.model.Asset, CurrencyMetadataResponse> result = new HashMap<>();
+      Map<org.cardanofoundation.rosetta.api.common.model.Asset, TokenRegistryCurrencyData> result = new HashMap<>();
       // Create an asset for the native token in the test data
       org.cardanofoundation.rosetta.api.common.model.Asset asset = org.cardanofoundation.rosetta.api.common.model.Asset.builder()
           .policyId("bd976e131cfc3956b806967b06530e48c20ed5498b46a5eb836b61c2")
           .assetName("")  // Empty asset name
           .build();
-      result.put(asset, CurrencyMetadataResponse.builder()
+      result.put(asset, TokenRegistryCurrencyData.builder()
           .policyId("bd976e131cfc3956b806967b06530e48c20ed5498b46a5eb836b61c2")
           .decimals(0)
           .build());

@@ -18,6 +18,7 @@ import org.cardanofoundation.rosetta.api.account.mapper.AddressBalanceMapper;
 import org.cardanofoundation.rosetta.api.account.model.domain.AddressBalance;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.common.model.Asset;
+import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
 import org.cardanofoundation.rosetta.api.common.service.TokenRegistryService;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockIdentifierExtended;
 import org.cardanofoundation.rosetta.api.block.service.LedgerBlockService;
@@ -90,7 +91,7 @@ public class AccountServiceImpl implements AccountService {
     log.debug("[accountCoins] found {} Utxos for Address {}", utxos.size(), accountAddress);
 
     // Extract assets from UTXOs and fetch metadata in single batch call
-    Map<Asset, CurrencyMetadataResponse> metadataMap = tokenRegistryService.fetchMetadataForUtxos(utxos);
+    Map<Asset, TokenRegistryCurrencyData> metadataMap = tokenRegistryService.fetchMetadataForUtxos(utxos);
 
     return accountMapper.mapToAccountCoinsResponse(latestBlock, utxos, metadataMap);
   }
@@ -115,7 +116,7 @@ public class AccountServiceImpl implements AccountService {
               }
 
               // Extract assets from balances and fetch metadata in single batch call
-              Map<Asset, CurrencyMetadataResponse> metadataMap = tokenRegistryService.fetchMetadataForAddressBalances(balances);
+              Map<Asset, TokenRegistryCurrencyData> metadataMap = tokenRegistryService.fetchMetadataForAddressBalances(balances);
 
               AccountBalanceResponse accountBalanceResponse = accountMapper.mapToAccountBalanceResponse(blockDto, balances, metadataMap);
 

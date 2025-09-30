@@ -5,8 +5,8 @@ import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.common.model.Asset;
+import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
 import org.openapitools.client.model.BlockTransaction;
-import org.openapitools.client.model.CurrencyMetadataResponse;
 import org.openapitools.client.model.Operation;
 
 import lombok.NonNull;
@@ -18,7 +18,7 @@ import java.util.Set;
 
 /**
  * Service for retrieving token metadata from the token registry.
- * Provides normalized currency metadata responses for use in the API layer.
+ * Provides normalized token registry currency data for use in the domain layer.
  * Designed to encourage bulk operations for efficiency.
  */
 public interface TokenRegistryService {
@@ -26,9 +26,9 @@ public interface TokenRegistryService {
     /**
      * Get token metadata for multiple assets using batch request
      * @param assets Set of Asset objects containing policyId and optional assetName
-     * @return Map of Asset -> CurrencyMetadataResponse with metadata (always returns at least policyId)
+     * @return Map of Asset -> TokenRegistryCurrencyData with metadata (always returns at least policyId)
      */
-    Map<Asset, CurrencyMetadataResponse> getTokenMetadataBatch(@NotNull Set<Asset> assets);
+    Map<Asset, TokenRegistryCurrencyData> getTokenMetadataBatch(@NotNull Set<Asset> assets);
 
     /**
      * Extract all native token assets from a BlockTx (inputs and outputs)
@@ -61,16 +61,16 @@ public interface TokenRegistryService {
     /**
      * Convenience method to extract assets and fetch metadata for a BlockTx in one call
      * @param blockTx The block transaction to process
-     * @return Map of Asset -> CurrencyMetadataResponse with metadata
+     * @return Map of Asset -> TokenRegistryCurrencyData with metadata
      */
-    Map<Asset, CurrencyMetadataResponse> fetchMetadataForBlockTx(@NotNull BlockTx blockTx);
-    
+    Map<Asset, TokenRegistryCurrencyData> fetchMetadataForBlockTx(@NotNull BlockTx blockTx);
+
     /**
      * Convenience method to extract assets and fetch metadata for BlockTransactions in one call
      * @param transactions List of BlockTransaction objects from search results
-     * @return Map of Asset -> CurrencyMetadataResponse with metadata
+     * @return Map of Asset -> TokenRegistryCurrencyData with metadata
      */
-    Map<Asset, CurrencyMetadataResponse> fetchMetadataForBlockTransactions(@NotNull List<BlockTransaction> transactions);
+    Map<Asset, TokenRegistryCurrencyData> fetchMetadataForBlockTransactions(@NotNull List<BlockTransaction> transactions);
 
     /**
      * Convenience method to extract assets and fetch metadata for a list of BlockTx objects in one call.
@@ -78,22 +78,22 @@ public interface TokenRegistryService {
      * in a single batch call for optimal performance.
      *
      * @param blockTxList List of BlockTx objects to process
-     * @return Map of Asset -> CurrencyMetadataResponse with metadata (empty map if no native tokens)
+     * @return Map of Asset -> TokenRegistryCurrencyData with metadata (empty map if no native tokens)
      */
-    Map<Asset, CurrencyMetadataResponse> fetchMetadataForBlockTxList(@NotNull List<BlockTx> blockTxList);
+    Map<Asset, TokenRegistryCurrencyData> fetchMetadataForBlockTxList(@NotNull List<BlockTx> blockTxList);
 
     /**
      * Extract all native token assets from AddressBalance list and fetch metadata in a single batch call
      * @param balances List of address balances potentially containing native tokens
-     * @return Map of Asset -> CurrencyMetadataResponse with metadata
+     * @return Map of Asset -> TokenRegistryCurrencyData with metadata
      */
-    Map<Asset, CurrencyMetadataResponse> fetchMetadataForAddressBalances(@NotNull List<AddressBalance> balances);
+    Map<Asset, TokenRegistryCurrencyData> fetchMetadataForAddressBalances(@NotNull List<AddressBalance> balances);
 
     /**
      * Extract all native token assets from UTXO list and fetch metadata in a single batch call
      * @param utxos List of UTXOs potentially containing native tokens
-     * @return Map of Asset -> CurrencyMetadataResponse with metadata
+     * @return Map of Asset -> TokenRegistryCurrencyData with metadata
      */
-    Map<Asset, CurrencyMetadataResponse> fetchMetadataForUtxos(@NotNull List<Utxo> utxos);
+    Map<Asset, TokenRegistryCurrencyData> fetchMetadataForUtxos(@NotNull List<Utxo> utxos);
 
 }

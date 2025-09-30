@@ -8,6 +8,7 @@ import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.block.model.domain.*;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.common.model.Asset;
+import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
 import org.junit.jupiter.api.Test;
 import org.openapitools.client.model.*;
 import org.openapitools.client.model.CurrencyResponse;
@@ -45,9 +46,9 @@ class BlockToBlockResponseTest extends BaseMapperSetup {
         .build();
 
     // Create test metadata map for the asset
-    Map<Asset, CurrencyMetadataResponse> metadataMap = Map.of(
+    Map<Asset, TokenRegistryCurrencyData> metadataMap = Map.of(
         Asset.builder().policyId("tAda").assetName("tAda").build(),
-        CurrencyMetadataResponse.builder().decimals(6).build()
+        TokenRegistryCurrencyData.builder().decimals(6).build()
     );
 
     BlockTransactionResponse blockTransactionResponse = my.mapToBlockTransactionResponseWithMetadata(build, metadataMap);
@@ -62,7 +63,7 @@ class BlockToBlockResponseTest extends BaseMapperSetup {
     Block from = newBlock();
 
     // Create empty metadata map since this test uses only stake operations, no native tokens
-    Map<Asset, CurrencyMetadataResponse> metadataMap = Map.of();
+    Map<Asset, TokenRegistryCurrencyData> metadataMap = Map.of();
 
     //when
     BlockResponse into = my.mapToBlockResponseWithMetadata(newBlock(), metadataMap);

@@ -7,6 +7,7 @@ import org.cardanofoundation.rosetta.api.block.mapper.BlockMapper;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.model.entity.UtxoKey;
 import org.cardanofoundation.rosetta.api.common.model.Asset;
+import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
 import org.cardanofoundation.rosetta.api.common.service.TokenRegistryService;
 import org.cardanofoundation.rosetta.api.search.model.Operator;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
@@ -91,11 +92,11 @@ public class SearchServiceImpl implements SearchService {
         );
 
         // Always fetch metadata for all transactions in this page (will be empty map if no native tokens)
-        final Map<Asset, CurrencyMetadataResponse> metadataMap = 
+        final Map<Asset, TokenRegistryCurrencyData> metadataMap =
             tokenRegistryService.fetchMetadataForBlockTxList(blockTxes.getContent());
-        
+
         // Always use the metadata version (with empty map when no native tokens)
-        return blockTxes.map(tx -> 
+        return blockTxes.map(tx ->
             blockMapper.mapToBlockTransactionWithMetadata(tx, metadataMap));
     }
 

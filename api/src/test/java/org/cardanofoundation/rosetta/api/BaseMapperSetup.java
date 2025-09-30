@@ -19,9 +19,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.cardanofoundation.rosetta.api.BaseMapperSetup.BaseMappersConfig;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
 import org.cardanofoundation.rosetta.api.common.model.Asset;
+import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
 import org.cardanofoundation.rosetta.api.common.service.TokenRegistryService;
 import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
-import org.openapitools.client.model.CurrencyMetadataResponse;
 
 import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.Mockito.when;
@@ -46,11 +46,11 @@ public class BaseMapperSetup {
     
     // Configure TokenRegistryService to return fallback metadata for any asset
     when(tokenRegistryService.getTokenMetadataBatch(anySet())).thenAnswer(invocation -> {
-      Map<Asset, CurrencyMetadataResponse> result = new HashMap<>();
+      Map<Asset, TokenRegistryCurrencyData> result = new HashMap<>();
       @SuppressWarnings("unchecked")
       java.util.Set<Asset> assets = (java.util.Set<Asset>) invocation.getArgument(0);
       for (Asset asset : assets) {
-        result.put(asset, CurrencyMetadataResponse.builder()
+        result.put(asset, TokenRegistryCurrencyData.builder()
             .policyId(asset.getPolicyId())
             .decimals(0) // Default decimals
             .build());
@@ -64,6 +64,7 @@ public class BaseMapperSetup {
       "org.cardanofoundation.rosetta.api.block.mapper",
       "org.cardanofoundation.rosetta.api.account.mapper",
       "org.cardanofoundation.rosetta.api.search.mapper",
+      "org.cardanofoundation.rosetta.api.common.mapper",
       "org.cardanofoundation.rosetta.common.mapper"})
   public static class BaseMappersConfig {
 

@@ -5,6 +5,7 @@ import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.common.model.Asset;
+import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
 import org.cardanofoundation.rosetta.client.TokenRegistryHttpGateway;
 import org.cardanofoundation.rosetta.client.model.domain.TokenMetadata;
 import org.cardanofoundation.rosetta.client.model.domain.TokenProperty;
@@ -59,7 +60,7 @@ class TokenRegistryServiceImplTest {
             Set<Asset> emptyAssets = Set.of();
 
             // when
-            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.getTokenMetadataBatch(emptyAssets);
+            Map<Asset, TokenRegistryCurrencyData> result = tokenRegistryService.getTokenMetadataBatch(emptyAssets);
 
             // then
             assertThat(result).isEmpty();
@@ -72,16 +73,16 @@ class TokenRegistryServiceImplTest {
             // given
             Asset asset = createAsset(POLICY_ID, ASSET_NAME);
             Set<Asset> assets = Set.of(asset);
-            
+
             when(tokenRegistryHttpGateway.getTokenMetadataBatch(anySet()))
                 .thenReturn(Map.of(SUBJECT, Optional.empty()));
 
             // when
-            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.getTokenMetadataBatch(assets);
+            Map<Asset, TokenRegistryCurrencyData> result = tokenRegistryService.getTokenMetadataBatch(assets);
 
             // then
             assertThat(result).hasSize(1);
-            CurrencyMetadataResponse metadata = result.get(asset);
+            TokenRegistryCurrencyData metadata = result.get(asset);
             assertThat(metadata).isNotNull();
             assertThat(metadata.getPolicyId()).isEqualTo(POLICY_ID);
             assertThat(metadata.getSubject()).isNull();
@@ -96,19 +97,19 @@ class TokenRegistryServiceImplTest {
             // given
             Asset asset = createAsset(POLICY_ID, ASSET_NAME);
             Set<Asset> assets = Set.of(asset);
-            
+
             Map<String, Optional<TokenSubject>> gatewayResponse = new HashMap<>();
             gatewayResponse.put(SUBJECT, null);
-            
+
             when(tokenRegistryHttpGateway.getTokenMetadataBatch(anySet()))
                 .thenReturn(gatewayResponse);
 
             // when
-            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.getTokenMetadataBatch(assets);
+            Map<Asset, TokenRegistryCurrencyData> result = tokenRegistryService.getTokenMetadataBatch(assets);
 
             // then
             assertThat(result).hasSize(1);
-            CurrencyMetadataResponse metadata = result.get(asset);
+            TokenRegistryCurrencyData metadata = result.get(asset);
             assertThat(metadata).isNotNull();
             assertThat(metadata.getPolicyId()).isEqualTo(POLICY_ID);
             assertThat(metadata.getSubject()).isNull();
@@ -121,16 +122,16 @@ class TokenRegistryServiceImplTest {
             // given
             Asset asset = createAsset(POLICY_ID, ASSET_NAME);
             Set<Asset> assets = Set.of(asset);
-            
+
             when(tokenRegistryHttpGateway.getTokenMetadataBatch(anySet()))
                 .thenReturn(Map.of()); // Empty map - subject not found
 
             // when
-            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.getTokenMetadataBatch(assets);
+            Map<Asset, TokenRegistryCurrencyData> result = tokenRegistryService.getTokenMetadataBatch(assets);
 
             // then
             assertThat(result).hasSize(1);
-            CurrencyMetadataResponse metadata = result.get(asset);
+            TokenRegistryCurrencyData metadata = result.get(asset);
             assertThat(metadata).isNotNull();
             assertThat(metadata.getPolicyId()).isEqualTo(POLICY_ID);
         }
@@ -141,18 +142,18 @@ class TokenRegistryServiceImplTest {
             // given
             Asset asset = createAsset(POLICY_ID, ASSET_NAME);
             Set<Asset> assets = Set.of(asset);
-            
+
             TokenSubject tokenSubject = createCompleteTokenSubject();
             when(tokenRegistryHttpGateway.getTokenMetadataBatch(anySet()))
                 .thenReturn(Map.of(SUBJECT, Optional.of(tokenSubject)));
 
             // when
-            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.getTokenMetadataBatch(assets);
+            Map<Asset, TokenRegistryCurrencyData> result = tokenRegistryService.getTokenMetadataBatch(assets);
 
             // then
             assertThat(result).hasSize(1);
-            CurrencyMetadataResponse metadata = result.get(asset);
-            
+            TokenRegistryCurrencyData metadata = result.get(asset);
+
             assertThat(metadata.getPolicyId()).isEqualTo(POLICY_ID);
             assertThat(metadata.getSubject()).isEqualTo(SUBJECT);
             assertThat(metadata.getName()).isEqualTo("Test Token");
@@ -161,9 +162,9 @@ class TokenRegistryServiceImplTest {
             assertThat(metadata.getUrl()).isEqualTo("https://test.com");
             assertThat(metadata.getDecimals()).isEqualTo(6);
             assertThat(metadata.getVersion()).isEqualTo(BigDecimal.valueOf(1L));
-            
+
             assertThat(metadata.getLogo()).isNotNull();
-            assertThat(metadata.getLogo().getFormat()).isEqualTo(LogoType.FormatEnum.BASE64);
+            assertThat(metadata.getLogo().getFormat()).isEqualTo(TokenRegistryCurrencyData.LogoFormat.BASE64);
             assertThat(metadata.getLogo().getValue()).isEqualTo("base64logo");
         }
 
@@ -174,31 +175,31 @@ class TokenRegistryServiceImplTest {
             Asset asset1 = createAsset(POLICY_ID, ASSET_NAME);
             Asset asset2 = createAsset("policy2", "Asset2");
             Set<Asset> assets = Set.of(asset1, asset2);
-            
+
             String subject2 = "policy2" + "417373657432"; // hex encoding of "Asset2"
             TokenSubject tokenSubject1 = createCompleteTokenSubject();
-            
+
             Map<String, Optional<TokenSubject>> gatewayResponse = Map.of(
                 SUBJECT, Optional.of(tokenSubject1),
                 subject2, Optional.empty() // No data for second asset
             );
-            
+
             when(tokenRegistryHttpGateway.getTokenMetadataBatch(anySet()))
                 .thenReturn(gatewayResponse);
 
             // when
-            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.getTokenMetadataBatch(assets);
+            Map<Asset, TokenRegistryCurrencyData> result = tokenRegistryService.getTokenMetadataBatch(assets);
 
             // then
             assertThat(result).hasSize(2);
-            
+
             // First asset should have complete metadata
-            CurrencyMetadataResponse metadata1 = result.get(asset1);
+            TokenRegistryCurrencyData metadata1 = result.get(asset1);
             assertThat(metadata1.getName()).isEqualTo("Test Token");
             assertThat(metadata1.getPolicyId()).isEqualTo(POLICY_ID);
-            
+
             // Second asset should have fallback metadata only
-            CurrencyMetadataResponse metadata2 = result.get(asset2);
+            TokenRegistryCurrencyData metadata2 = result.get(asset2);
             assertThat(metadata2.getPolicyId()).isEqualTo("policy2");
             assertThat(metadata2.getName()).isNull();
         }
@@ -209,24 +210,24 @@ class TokenRegistryServiceImplTest {
             // given
             Asset asset = createAsset(POLICY_ID, ASSET_NAME);
             Set<Asset> assets = Set.of(asset);
-            
+
             TokenSubject tokenSubject = createMinimalTokenSubject();
             when(tokenRegistryHttpGateway.getTokenMetadataBatch(anySet()))
                 .thenReturn(Map.of(SUBJECT, Optional.of(tokenSubject)));
 
             // when
-            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.getTokenMetadataBatch(assets);
+            Map<Asset, TokenRegistryCurrencyData> result = tokenRegistryService.getTokenMetadataBatch(assets);
 
             // then
             assertThat(result).hasSize(1);
-            CurrencyMetadataResponse metadata = result.get(asset);
-            
+            TokenRegistryCurrencyData metadata = result.get(asset);
+
             assertThat(metadata.getPolicyId()).isEqualTo(POLICY_ID);
             assertThat(metadata.getSubject()).isEqualTo(SUBJECT);
             assertThat(metadata.getName()).isEqualTo("Minimal Token");
             assertThat(metadata.getDescription()).isEqualTo("Minimal Description");
             assertThat(metadata.getDecimals()).isEqualTo(0); // Default value
-            
+
             // Optional fields should be null
             assertThat(metadata.getTicker()).isNull();
             assertThat(metadata.getUrl()).isNull();
@@ -245,18 +246,18 @@ class TokenRegistryServiceImplTest {
             // given
             Asset asset = createAsset(POLICY_ID, ASSET_NAME);
             Set<Asset> assets = Set.of(asset);
-            
+
             TokenSubject tokenSubject = createTokenSubjectWithLogo("CIP_26", "hexdata123");
             when(tokenRegistryHttpGateway.getTokenMetadataBatch(anySet()))
                 .thenReturn(Map.of(SUBJECT, Optional.of(tokenSubject)));
 
             // when
-            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.getTokenMetadataBatch(assets);
+            Map<Asset, TokenRegistryCurrencyData> result = tokenRegistryService.getTokenMetadataBatch(assets);
 
             // then
-            CurrencyMetadataResponse metadata = result.get(asset);
+            TokenRegistryCurrencyData metadata = result.get(asset);
             assertThat(metadata.getLogo()).isNotNull();
-            assertThat(metadata.getLogo().getFormat()).isEqualTo(LogoType.FormatEnum.BASE64);
+            assertThat(metadata.getLogo().getFormat()).isEqualTo(TokenRegistryCurrencyData.LogoFormat.BASE64);
             assertThat(metadata.getLogo().getValue()).isEqualTo("hexdata123");
         }
 
@@ -266,18 +267,18 @@ class TokenRegistryServiceImplTest {
             // given
             Asset asset = createAsset(POLICY_ID, ASSET_NAME);
             Set<Asset> assets = Set.of(asset);
-            
+
             TokenSubject tokenSubject = createTokenSubjectWithLogo("CIP_68", "https://example.com/logo.png");
             when(tokenRegistryHttpGateway.getTokenMetadataBatch(anySet()))
                 .thenReturn(Map.of(SUBJECT, Optional.of(tokenSubject)));
 
             // when
-            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.getTokenMetadataBatch(assets);
+            Map<Asset, TokenRegistryCurrencyData> result = tokenRegistryService.getTokenMetadataBatch(assets);
 
             // then
-            CurrencyMetadataResponse metadata = result.get(asset);
+            TokenRegistryCurrencyData metadata = result.get(asset);
             assertThat(metadata.getLogo()).isNotNull();
-            assertThat(metadata.getLogo().getFormat()).isEqualTo(LogoType.FormatEnum.URL);
+            assertThat(metadata.getLogo().getFormat()).isEqualTo(TokenRegistryCurrencyData.LogoFormat.URL);
             assertThat(metadata.getLogo().getValue()).isEqualTo("https://example.com/logo.png");
         }
 
@@ -287,17 +288,17 @@ class TokenRegistryServiceImplTest {
             // given
             Asset asset = createAsset(POLICY_ID, ASSET_NAME);
             Set<Asset> assets = Set.of(asset);
-            
+
             TokenSubject tokenSubject = createTokenSubjectWithLogo("cip_26", "data");
             when(tokenRegistryHttpGateway.getTokenMetadataBatch(anySet()))
                 .thenReturn(Map.of(SUBJECT, Optional.of(tokenSubject)));
 
             // when
-            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.getTokenMetadataBatch(assets);
+            Map<Asset, TokenRegistryCurrencyData> result = tokenRegistryService.getTokenMetadataBatch(assets);
 
             // then
-            CurrencyMetadataResponse metadata = result.get(asset);
-            assertThat(metadata.getLogo().getFormat()).isEqualTo(LogoType.FormatEnum.BASE64);
+            TokenRegistryCurrencyData metadata = result.get(asset);
+            assertThat(metadata.getLogo().getFormat()).isEqualTo(TokenRegistryCurrencyData.LogoFormat.BASE64);
         }
 
         @Test
@@ -306,16 +307,16 @@ class TokenRegistryServiceImplTest {
             // given
             Asset asset = createAsset(POLICY_ID, ASSET_NAME);
             Set<Asset> assets = Set.of(asset);
-            
+
             TokenSubject tokenSubject = createTokenSubjectWithLogo("UNKNOWN", "data");
             when(tokenRegistryHttpGateway.getTokenMetadataBatch(anySet()))
                 .thenReturn(Map.of(SUBJECT, Optional.of(tokenSubject)));
 
             // when
-            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.getTokenMetadataBatch(assets);
+            Map<Asset, TokenRegistryCurrencyData> result = tokenRegistryService.getTokenMetadataBatch(assets);
 
             // then
-            CurrencyMetadataResponse metadata = result.get(asset);
+            TokenRegistryCurrencyData metadata = result.get(asset);
             assertThat(metadata.getLogo()).isNotNull();
             assertThat(metadata.getLogo().getFormat()).isNull();
             assertThat(metadata.getLogo().getValue()).isEqualTo("data");
@@ -327,16 +328,16 @@ class TokenRegistryServiceImplTest {
             // given
             Asset asset = createAsset(POLICY_ID, ASSET_NAME);
             Set<Asset> assets = Set.of(asset);
-            
+
             TokenSubject tokenSubject = createTokenSubjectWithLogo(null, null);
             when(tokenRegistryHttpGateway.getTokenMetadataBatch(anySet()))
                 .thenReturn(Map.of(SUBJECT, Optional.of(tokenSubject)));
 
             // when
-            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.getTokenMetadataBatch(assets);
+            Map<Asset, TokenRegistryCurrencyData> result = tokenRegistryService.getTokenMetadataBatch(assets);
 
             // then
-            CurrencyMetadataResponse metadata = result.get(asset);
+            TokenRegistryCurrencyData metadata = result.get(asset);
             assertThat(metadata.getLogo()).isNull();
         }
 
@@ -346,22 +347,22 @@ class TokenRegistryServiceImplTest {
             // given
             Asset asset = createAsset(POLICY_ID, ASSET_NAME);
             Set<Asset> assets = Set.of(asset);
-            
+
             TokenProperty logoProperty = mock(TokenProperty.class);
             when(logoProperty.getValue()).thenReturn(null);
             when(logoProperty.getSource()).thenReturn("CIP_26");
-            
+
             TokenSubject tokenSubject = createTokenSubjectWithCustomLogo(logoProperty);
             when(tokenRegistryHttpGateway.getTokenMetadataBatch(anySet()))
                 .thenReturn(Map.of(SUBJECT, Optional.of(tokenSubject)));
 
             // when
-            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.getTokenMetadataBatch(assets);
+            Map<Asset, TokenRegistryCurrencyData> result = tokenRegistryService.getTokenMetadataBatch(assets);
 
             // then
-            CurrencyMetadataResponse metadata = result.get(asset);
+            TokenRegistryCurrencyData metadata = result.get(asset);
             assertThat(metadata.getLogo()).isNotNull();
-            assertThat(metadata.getLogo().getFormat()).isEqualTo(LogoType.FormatEnum.BASE64);
+            assertThat(metadata.getLogo().getFormat()).isEqualTo(TokenRegistryCurrencyData.LogoFormat.BASE64);
             assertThat(metadata.getLogo().getValue()).isNull();
         }
 
@@ -391,16 +392,16 @@ class TokenRegistryServiceImplTest {
             // given
             Asset asset = createAsset(POLICY_ID, ASSET_NAME);
             Set<Asset> assets = Set.of(asset);
-            
+
             TokenSubject tokenSubject = createTokenSubjectWithNullDecimals();
             when(tokenRegistryHttpGateway.getTokenMetadataBatch(anySet()))
                 .thenReturn(Map.of(SUBJECT, Optional.of(tokenSubject)));
 
             // when
-            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.getTokenMetadataBatch(assets);
+            Map<Asset, TokenRegistryCurrencyData> result = tokenRegistryService.getTokenMetadataBatch(assets);
 
             // then
-            CurrencyMetadataResponse metadata = result.get(asset);
+            TokenRegistryCurrencyData metadata = result.get(asset);
             assertThat(metadata.getDecimals()).isEqualTo(0); // Default value
         }
 
@@ -427,22 +428,22 @@ class TokenRegistryServiceImplTest {
             // given
             Set<Asset> assets = new HashSet<>();
             Map<String, Optional<TokenSubject>> gatewayResponse = new HashMap<>();
-            
+
             for (int i = 0; i < 100; i++) {
                 String policyId = "policy" + String.format("%02d", i);
                 String assetName = "Asset" + i;
                 Asset asset = createAsset(policyId, assetName);
                 assets.add(asset);
-                
+
                 String subject = asset.toSubject();
                 gatewayResponse.put(subject, Optional.empty());
             }
-            
+
             when(tokenRegistryHttpGateway.getTokenMetadataBatch(anySet()))
                 .thenReturn(gatewayResponse);
 
             // when
-            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.getTokenMetadataBatch(assets);
+            Map<Asset, TokenRegistryCurrencyData> result = tokenRegistryService.getTokenMetadataBatch(assets);
 
             // then
             assertThat(result).hasSize(100);
@@ -761,7 +762,7 @@ class TokenRegistryServiceImplTest {
                 .thenReturn(Map.of());
 
             // when
-            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.fetchMetadataForBlockTx(blockTx);
+            Map<Asset, TokenRegistryCurrencyData> result = tokenRegistryService.fetchMetadataForBlockTx(blockTx);
 
             // then
             assertThat(result).hasSize(2);
@@ -773,7 +774,7 @@ class TokenRegistryServiceImplTest {
         @DisplayName("fetchMetadataForBlockTransactions should return empty map for empty transactions")
         void fetchMetadataForBlockTransactionsShouldReturnEmptyMapForEmpty() {
             // when
-            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.fetchMetadataForBlockTransactions(List.of());
+            Map<Asset, TokenRegistryCurrencyData> result = tokenRegistryService.fetchMetadataForBlockTransactions(List.of());
 
             // then
             assertThat(result).isEmpty();
@@ -784,7 +785,7 @@ class TokenRegistryServiceImplTest {
         @DisplayName("fetchMetadataForBlockTxList should return empty map for null list")
         void fetchMetadataForBlockTxListShouldReturnEmptyMapForNull() {
             // when
-            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.fetchMetadataForBlockTxList(null);
+            Map<Asset, TokenRegistryCurrencyData> result = tokenRegistryService.fetchMetadataForBlockTxList(null);
 
             // then
             assertThat(result).isEmpty();
@@ -795,7 +796,7 @@ class TokenRegistryServiceImplTest {
         @DisplayName("fetchMetadataForBlockTxList should return empty map for empty list")
         void fetchMetadataForBlockTxListShouldReturnEmptyMapForEmpty() {
             // when
-            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.fetchMetadataForBlockTxList(List.of());
+            Map<Asset, TokenRegistryCurrencyData> result = tokenRegistryService.fetchMetadataForBlockTxList(List.of());
 
             // then
             assertThat(result).isEmpty();
@@ -814,7 +815,7 @@ class TokenRegistryServiceImplTest {
                 .thenReturn(Map.of());
 
             // when
-            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.fetchMetadataForBlockTxList(blockTxList);
+            Map<Asset, TokenRegistryCurrencyData> result = tokenRegistryService.fetchMetadataForBlockTxList(blockTxList);
 
             // then
             assertThat(result).hasSize(4); // 2 from inputs + 2 from outputs
@@ -826,7 +827,7 @@ class TokenRegistryServiceImplTest {
         @DisplayName("fetchMetadataForAddressBalances should return empty map for empty balances")
         void fetchMetadataForAddressBalancesShouldReturnEmptyMapForEmpty() {
             // when
-            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.fetchMetadataForAddressBalances(List.of());
+            Map<Asset, TokenRegistryCurrencyData> result = tokenRegistryService.fetchMetadataForAddressBalances(List.of());
 
             // then
             assertThat(result).isEmpty();
@@ -846,7 +847,7 @@ class TokenRegistryServiceImplTest {
                 .thenReturn(Map.of());
 
             // when
-            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.fetchMetadataForAddressBalances(balances);
+            Map<Asset, TokenRegistryCurrencyData> result = tokenRegistryService.fetchMetadataForAddressBalances(balances);
 
             // then
             assertThat(result).hasSize(1);
@@ -858,7 +859,7 @@ class TokenRegistryServiceImplTest {
         @DisplayName("fetchMetadataForUtxos should return empty map for empty utxos")
         void fetchMetadataForUtxosShouldReturnEmptyMapForEmpty() {
             // when
-            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.fetchMetadataForUtxos(List.of());
+            Map<Asset, TokenRegistryCurrencyData> result = tokenRegistryService.fetchMetadataForUtxos(List.of());
 
             // then
             assertThat(result).isEmpty();
@@ -880,7 +881,7 @@ class TokenRegistryServiceImplTest {
                 .thenReturn(Map.of());
 
             // when
-            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.fetchMetadataForUtxos(utxos);
+            Map<Asset, TokenRegistryCurrencyData> result = tokenRegistryService.fetchMetadataForUtxos(utxos);
 
             // then
             assertThat(result).hasSize(2);
@@ -899,7 +900,7 @@ class TokenRegistryServiceImplTest {
             );
 
             // when
-            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.fetchMetadataForUtxos(utxos);
+            Map<Asset, TokenRegistryCurrencyData> result = tokenRegistryService.fetchMetadataForUtxos(utxos);
 
             // then
             assertThat(result).isEmpty();

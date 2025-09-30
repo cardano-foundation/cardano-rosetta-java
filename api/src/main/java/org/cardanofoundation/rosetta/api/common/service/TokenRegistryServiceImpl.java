@@ -7,6 +7,7 @@ import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.common.model.Asset;
+import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
 import org.cardanofoundation.rosetta.client.TokenRegistryHttpGateway;
 import org.cardanofoundation.rosetta.client.model.domain.TokenMetadata;
 import org.cardanofoundation.rosetta.client.model.domain.TokenProperty;
@@ -31,25 +32,26 @@ public class TokenRegistryServiceImpl implements TokenRegistryService {
     private final TokenRegistryHttpGateway tokenRegistryHttpGateway;
 
     @Override
-    public Map<Asset, CurrencyMetadataResponse> getTokenMetadataBatch(@NotNull Set<Asset> assets) {
+    public Map<Asset, TokenRegistryCurrencyData> getTokenMetadataBatch(@NotNull Set<Asset> assets) {
         if (assets.isEmpty()) {
             return Map.of();
         }
-        
+
         // Convert assets to subjects for the gateway call
         Set<String> subjects = assets.stream()
                 .map(Asset::toSubject)
                 .collect(Collectors.toSet());
-        
+
         // Make the batch call to the gateway
         Map<String, Optional<TokenSubject>> tokenSubjectMap = tokenRegistryHttpGateway.getTokenMetadataBatch(subjects);
 
-        // Convert back to Asset -> CurrencyMetadataResponse mapping
-        Map<Asset, CurrencyMetadataResponse> result = new HashMap<>();
+        // Convert back to Asset -> TokenRegistryCurrencyData mapping
+        Map<Asset, TokenRegistryCurrencyData> result = new HashMap<>();
+
         for (Asset asset : assets) {
             String subject = asset.toSubject();
             Optional<TokenSubject> tokenSubject = tokenSubjectMap.get(subject);
-            
+
             if (tokenSubject != null && tokenSubject.isPresent()) {
                 result.put(asset, extractTokenMetadata(asset.getPolicyId(), tokenSubject.get()));
             } else {
@@ -57,25 +59,25 @@ public class TokenRegistryServiceImpl implements TokenRegistryService {
                 result.put(asset, createFallbackMetadata(asset.getPolicyId()));
             }
         }
-        
+
         return result;
     }
 
-    private CurrencyMetadataResponse extractTokenMetadata(String policyId, TokenSubject tokenSubject) {
-        CurrencyMetadataResponse.CurrencyMetadataResponseBuilder builder = CurrencyMetadataResponse.builder()
+    private TokenRegistryCurrencyData extractTokenMetadata(String policyId, TokenSubject tokenSubject) {
+        TokenRegistryCurrencyData.TokenRegistryCurrencyDataBuilder builder = TokenRegistryCurrencyData.builder()
                 .policyId(policyId);
-        
+
         TokenMetadata tokenMeta = tokenSubject.getMetadata();
-        
+
         // Mandatory fields from registry API related to token data
         builder.subject(tokenSubject.getSubject());
         builder.name(tokenMeta.getName().getValue());
         builder.description(tokenMeta.getDescription().getValue());
-        
+
         // Optional fields
         Optional.ofNullable(tokenMeta.getTicker()).ifPresent(ticker -> builder.ticker(ticker.getValue()));
         Optional.ofNullable(tokenMeta.getUrl()).ifPresent(url -> builder.url(url.getValue()));
-        Optional.ofNullable(tokenMeta.getLogo()).ifPresent(logo -> builder.logo(convertToLogoType(logo)));
+        Optional.ofNullable(tokenMeta.getLogo()).ifPresent(logo -> builder.logo(convertToLogoData(logo)));
         Optional.ofNullable(tokenMeta.getVersion()).ifPresent(version -> builder.version(BigDecimal.valueOf(version.getValue())));
 
         // Set decimals, defaulting to 0 if not found
@@ -84,35 +86,35 @@ public class TokenRegistryServiceImpl implements TokenRegistryService {
                 .map(Long::intValue)
                 .orElse(0);
         builder.decimals(decimals);
-        
+
         return builder.build();
     }
 
     @Nullable
-    private LogoType convertToLogoType(TokenProperty logoProperty) {
+    private TokenRegistryCurrencyData.LogoData convertToLogoData(TokenProperty logoProperty) {
         if (logoProperty == null) {
             return null;
         }
         String source = logoProperty.getSource();
         String value = logoProperty.getValue();
 
-        return LogoType.builder()
-                .format(getFormatEnum(source))
+        return TokenRegistryCurrencyData.LogoData.builder()
+                .format(getLogoFormat(source))
                 .value(value)
                 .build();
     }
 
     @Nullable
-    private static LogoType.FormatEnum getFormatEnum(@NonNull String source) {
+    private static TokenRegistryCurrencyData.LogoFormat getLogoFormat(@NonNull String source) {
         return switch (source.toLowerCase()) {
-            case "cip_26" -> LogoType.FormatEnum.BASE64;
-            case "cip_68" -> LogoType.FormatEnum.URL;
+            case "cip_26" -> TokenRegistryCurrencyData.LogoFormat.BASE64;
+            case "cip_68" -> TokenRegistryCurrencyData.LogoFormat.URL;
             default -> null;
         };
     }
 
-    private CurrencyMetadataResponse createFallbackMetadata(String policyId) {
-        return CurrencyMetadataResponse.builder()
+    private TokenRegistryCurrencyData createFallbackMetadata(String policyId) {
+        return TokenRegistryCurrencyData.builder()
                 .policyId(policyId)
                 .build();
     }
@@ -222,7 +224,7 @@ public class TokenRegistryServiceImpl implements TokenRegistryService {
     }
 
     @Override
-    public Map<Asset, CurrencyMetadataResponse> fetchMetadataForBlockTx(@NotNull BlockTx blockTx) {
+    public Map<Asset, TokenRegistryCurrencyData> fetchMetadataForBlockTx(@NotNull BlockTx blockTx) {
         Set<Asset> assets = extractAssetsFromBlockTx(blockTx);
         if (assets.isEmpty()) {
             return Collections.emptyMap();
@@ -231,7 +233,7 @@ public class TokenRegistryServiceImpl implements TokenRegistryService {
     }
 
     @Override
-    public Map<Asset, CurrencyMetadataResponse> fetchMetadataForBlockTransactions(@NotNull List<BlockTransaction> transactions) {
+    public Map<Asset, TokenRegistryCurrencyData> fetchMetadataForBlockTransactions(@NotNull List<BlockTransaction> transactions) {
         if (transactions.isEmpty()) {
             return Collections.emptyMap();
         }
@@ -245,7 +247,7 @@ public class TokenRegistryServiceImpl implements TokenRegistryService {
     }
 
     @Override
-    public Map<Asset, CurrencyMetadataResponse> fetchMetadataForBlockTxList(@NotNull List<BlockTx> blockTxList) {
+    public Map<Asset, TokenRegistryCurrencyData> fetchMetadataForBlockTxList(@NotNull List<BlockTx> blockTxList) {
         if (blockTxList == null || blockTxList.isEmpty()) {
             return Collections.emptyMap();
         }
@@ -265,7 +267,7 @@ public class TokenRegistryServiceImpl implements TokenRegistryService {
     }
 
     @Override
-    public Map<Asset, CurrencyMetadataResponse> fetchMetadataForAddressBalances(@NotNull List<AddressBalance> balances) {
+    public Map<Asset, TokenRegistryCurrencyData> fetchMetadataForAddressBalances(@NotNull List<AddressBalance> balances) {
         Set<Asset> assets = balances.stream()
             .filter(b -> !LOVELACE.equals(b.unit()))
             .filter(b -> b.unit().length() >= Constants.POLICY_ID_LENGTH)
@@ -287,7 +289,7 @@ public class TokenRegistryServiceImpl implements TokenRegistryService {
     }
 
     @Override
-    public Map<Asset, CurrencyMetadataResponse> fetchMetadataForUtxos(@NotNull List<Utxo> utxos) {
+    public Map<Asset, TokenRegistryCurrencyData> fetchMetadataForUtxos(@NotNull List<Utxo> utxos) {
         Set<Asset> assets = new HashSet<>();
         for (Utxo utxo : utxos) {
             for (Amt amount : utxo.getAmounts()) {

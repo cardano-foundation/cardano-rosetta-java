@@ -10,10 +10,10 @@ import java.util.TreeSet;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.bloxbean.cardano.yaci.core.model.certs.CertificateType;
 import org.assertj.core.util.introspection.CaseFormatUtils;
+import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
 import org.openapitools.client.model.Amount;
 import org.openapitools.client.model.CoinAction;
 import org.openapitools.client.model.CoinChange;
-import org.openapitools.client.model.CurrencyMetadataResponse;
 import org.openapitools.client.model.CurrencyResponse;
 import org.openapitools.client.model.Operation;
 import org.openapitools.client.model.PoolRegistrationParams;
@@ -52,7 +52,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperSetup {
     from.setInputs(List.of());
     from.setOutputs(List.of());
     //when
-    Map<Asset, CurrencyMetadataResponse> emptyMetadataMap = Collections.emptyMap();
+    Map<Asset, TokenRegistryCurrencyData> emptyMetadataMap = Collections.emptyMap();
     Transaction into = my.mapToRosettaTransactionWithMetadata(from, emptyMetadataMap);
     //then
     assertThat(into.getMetadata().getSize()).isEqualTo(from.getSize());
@@ -76,7 +76,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperSetup {
           .type(stakeType)
           .build()));
       //when
-      Map<Asset, CurrencyMetadataResponse> metadataMap = createTestMetadataMap();
+      Map<Asset, TokenRegistryCurrencyData> metadataMap = createTestMetadataMap();
     Transaction into = my.mapToRosettaTransactionWithMetadata(from, metadataMap);
       //then
       assertThat(into.getMetadata().getSize()).isEqualTo(from.getSize());
@@ -116,7 +116,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperSetup {
         .poolId("pool_id1")
         .build()));
     //when
-    Map<Asset, CurrencyMetadataResponse> metadataMap = createTestMetadataMap();
+    Map<Asset, TokenRegistryCurrencyData> metadataMap = createTestMetadataMap();
     Transaction into = my.mapToRosettaTransactionWithMetadata(from, metadataMap);
     //then
     assertThat(into.getMetadata().getSize()).isEqualTo(from.getSize());
@@ -168,7 +168,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperSetup {
         .relays(relays)
         .build()));
     //when
-    Map<Asset, CurrencyMetadataResponse> metadataMap = createTestMetadataMap();
+    Map<Asset, TokenRegistryCurrencyData> metadataMap = createTestMetadataMap();
     Transaction into = my.mapToRosettaTransactionWithMetadata(from, metadataMap);
     //then
     assertThat(into.getMetadata().getSize()).isEqualTo(from.getSize());
@@ -215,7 +215,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperSetup {
         .build()));
 
     //when
-    Map<Asset, CurrencyMetadataResponse> metadataMap = createTestMetadataMap();
+    Map<Asset, TokenRegistryCurrencyData> metadataMap = createTestMetadataMap();
     Transaction into = my.mapToRosettaTransactionWithMetadata(from, metadataMap);
     //then
     assertThat(into.getMetadata().getSize()).isEqualTo(from.getSize());
@@ -247,7 +247,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperSetup {
     //given
     BlockTx from = newTran();
     //when
-    Map<Asset, CurrencyMetadataResponse> metadataMap = createTestMetadataMap();
+    Map<Asset, TokenRegistryCurrencyData> metadataMap = createTestMetadataMap();
     Transaction into = my.mapToRosettaTransactionWithMetadata(from, metadataMap);
     //then
     assertThat(into.getMetadata().getSize()).isEqualTo(from.getSize());
@@ -304,7 +304,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperSetup {
     //given
     BlockTx from = newTran();
     //when
-    Map<Asset, CurrencyMetadataResponse> metadataMap = createTestMetadataMap();
+    Map<Asset, TokenRegistryCurrencyData> metadataMap = createTestMetadataMap();
     Transaction into = my.mapToRosettaTransactionWithMetadata(from, metadataMap);
     //then
     assertThat(into.getMetadata().getSize()).isEqualTo(from.getSize());
@@ -356,7 +356,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperSetup {
         .stakeAddress("stake_addr1_for_withdraw")
         .build()));
     //when
-    Map<Asset, CurrencyMetadataResponse> metadataMap = createTestMetadataMap();
+    Map<Asset, TokenRegistryCurrencyData> metadataMap = createTestMetadataMap();
     Transaction into = my.mapToRosettaTransactionWithMetadata(from, metadataMap);
     //then
     assertThat(into.getOperations()).hasSize(3);
@@ -440,13 +440,13 @@ class BlockTxToRosettaTransactionTest extends BaseMapperSetup {
         .build();
   }
 
-  private static Map<Asset, CurrencyMetadataResponse> createTestMetadataMap() {
-    Map<Asset, CurrencyMetadataResponse> metadataMap = new java.util.HashMap<>();
+  private static Map<Asset, TokenRegistryCurrencyData> createTestMetadataMap() {
+    Map<Asset, TokenRegistryCurrencyData> metadataMap = new java.util.HashMap<>();
     Asset testAsset = Asset.builder()
         .policyId("policyId1")
         .assetName("assetName1")
         .build();
-    CurrencyMetadataResponse metadata = CurrencyMetadataResponse.builder()
+    TokenRegistryCurrencyData metadata = TokenRegistryCurrencyData.builder()
         .policyId("policyId1")
         .decimals(0) // Default decimals for test
         .build();
