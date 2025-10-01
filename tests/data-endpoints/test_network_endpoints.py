@@ -1,18 +1,12 @@
 """Tests for Rosetta /network endpoints."""
 
-import os
 import allure
-
-
-# Network configuration from environment - works on ANY network
-NETWORK = os.environ.get("CARDANO_NETWORK", "preprod")
-BLOCKCHAIN = "cardano"
 
 
 @allure.feature("Network")
 @allure.story("List")
 class TestNetworkList:
-    def test_returns_configured_network(self, client):
+    def test_returns_configured_network(self, client, network):
         """Test that the configured network appears in the list."""
         response = client.network_list()
         assert response.status_code == 200
@@ -22,17 +16,16 @@ class TestNetworkList:
 
         assert identifiers, "Should return at least one network identifier"
         assert any(
-            item.get("blockchain") == BLOCKCHAIN
-            and item.get("network") == NETWORK
+            item.get("blockchain") == "cardano" and item.get("network") == network
             for item in identifiers
-        ), f"Configured network '{NETWORK}' must be present in list"
+        ), f"Configured network '{network}' must be present in list"
 
 
 @allure.feature("Network")
 @allure.story("Status")
 class TestNetworkStatus:
-    def test_returns_current_network_status(self, client):
-        response = client.network_status()
+    def test_returns_current_network_status(self, client, network):
+        response = client.network_status(network=network)
         assert response.status_code == 200
 
         data = response.json()
@@ -86,8 +79,8 @@ class TestNetworkStatus:
 @allure.feature("Network")
 @allure.story("Options")
 class TestNetworkOptions:
-    def test_returns_network_capabilities(self, client):
-        response = client.network_options()
+    def test_returns_network_capabilities(self, client, network):
+        response = client.network_options(network=network)
         assert response.status_code == 200
 
         data = response.json()

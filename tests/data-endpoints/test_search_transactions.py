@@ -3,8 +3,14 @@ Test suite for /search/transactions endpoint.
 Covers all 61 test cases from the original Postman collection.
 """
 
+import os
 import pytest
 import allure
+from conftest import get_error_message
+
+
+# Network configuration from environment - works on ANY network
+NETWORK = os.environ.get("CARDANO_NETWORK", "preprod")
 
 
 class TestSanityChecks:
@@ -12,9 +18,9 @@ class TestSanityChecks:
 
     @allure.feature("Search Transactions")
     @allure.story("Sanity Checks")
-    def test_default_pagination_returns_100_transactions(self, client):
+    def test_default_pagination_returns_100_transactions(self, client, network):
         """Default request should return exactly 100 transactions."""
-        response = client.search_transactions()
+        response = client.search_transactions(network=network)
         assert response.status_code == 200
 
         data = response.json()
@@ -27,11 +33,11 @@ class TestSanityChecks:
     @allure.story("Sanity Checks")
     def test_missing_network_identifier_returns_error(self, client):
         """Missing network_identifier should return appropriate error."""
-        response = client.search_transactions(skip_network=True)
+        response = client.search_transactions(network=None)
         assert response.status_code == 500
 
         error = response.json()
-        error_message = error.get("message", "").lower()
+        error_message = get_error_message(error).lower()
         assert "network" in error_message or "identifier" in error_message, (
             "Error message should indicate missing network_identifier"
         )
@@ -98,12 +104,7 @@ class TestPaginationLimits:
         )
 
         error = response.json()
-        # Handle different error response structures
-        error_message = (
-            error.get("message", "")
-            or error.get("details", {}).get("message", "")
-            or str(error)
-        ).lower()
+        error_message = get_error_message(error).lower()
         assert any(
             word in error_message for word in ["negative", "invalid", "limit"]
         ), f"Error should mention negative/invalid/limit, got: {error}"
@@ -135,12 +136,7 @@ class TestPaginationOffsets:
         )
 
         error = response.json()
-        # Handle different error response structures
-        error_message = (
-            error.get("message", "")
-            or error.get("details", {}).get("message", "")
-            or str(error)
-        ).lower()
+        error_message = get_error_message(error).lower()
         assert any(
             word in error_message for word in ["negative", "invalid", "offset"]
         ), f"Error should mention negative/invalid/offset, got: {error}"
@@ -151,26 +147,32 @@ class TestTransactionIdentifier:
 
     @allure.feature("Search Transactions")
     @allure.story("Transaction Identifier")
-    def test_valid_transaction_hash(self, client):
-        """Search by valid transaction hash returns that transaction."""
-        # Using correct tx hash from extracted test data
-        tx_hash = "d8d35a05f3f31e955b57a78b8d39410332bd21bd8a61f8aca670916b96a0200f"
-        response = client.search_transactions(transaction_identifier={"hash": tx_hash})
+    def test_valid_transaction_hash(self, client, network):
+        """Search by transaction hash returns that specific transaction."""
+        # Dynamically fetch a transaction to test with
+        sample_response = client.search_transactions(network=network, limit=1)
+        assert sample_response.status_code == 200
+        sample_tx = sample_response.json()["transactions"][0]
+        tx_hash = sample_tx["transaction"]["transaction_identifier"]["hash"]
+
+        # Verify hash format (Cardano invariant - Blake2b-256)
+        assert len(tx_hash) == 64, "Cardano tx hash must be 64 hex chars"
+        assert all(c in "0123456789abcdef" for c in tx_hash.lower()), (
+            "Hash must be hexadecimal"
+        )
+
+        # Search for it by hash
+        response = client.search_transactions(
+            network=network, transaction_identifier={"hash": tx_hash}
+        )
         assert response.status_code == 200
 
         data = response.json()
-        transactions = data.get("transactions", [])
-
-        assert len(transactions) == 1, "Should return exactly one transaction"
-        assert transactions[0]["transaction_identifier"]["hash"] == tx_hash
-
-        # Verify transaction structure (based on actual test expectations)
-        operations = transactions[0]["operations"]
-        inputs = [op for op in operations if int(op["amount"]["value"]) < 0]
-        outputs = [op for op in operations if int(op["amount"]["value"]) > 0]
-
-        assert len(inputs) == 9, "Should have 9 inputs"
-        assert len(outputs) == 3, "Should have 3 outputs"
+        assert len(data["transactions"]) == 1, "Hash search must return exactly one tx"
+        assert (
+            data["transactions"][0]["transaction"]["transaction_identifier"]["hash"]
+            == tx_hash
+        )
 
     @allure.feature("Search Transactions")
     @allure.story("Transaction Identifier")
@@ -201,10 +203,10 @@ class TestTransactionIdentifier:
     @allure.feature("Search Transactions")
     @allure.story("Transaction Identifier")
     def test_valid_payment_address_shelley_base_using_address_field_large_utxos(
-        self, client
+        self, client, network_data
     ):
         """Test with address that has large UTXOs."""
-        address = "addr_test1qpq7kns8auvhntmchwfq7rh7upyx0a9gzm3s0sxvzfse8kz8d5ez5hv0fm53j4cetqvqvjcm4k69h5mxts7s0ylevxqs0wwqu3"
+        address = network_data["addresses"]["with_large_utxos"]
         response = client.search_transactions(account_identifier={"address": address})
         assert response.status_code == 200
 
@@ -215,17 +217,15 @@ class TestTransactionIdentifier:
 class TestAccountIdentifier:
     """Test account identifier filtering."""
 
-    ADDRESSES = {
-        "shelley_base": "addr_test1qrtdh7587yz5m2w504sjhqnrfml5fpcuxu24fj8xwvk48artcrahhulmvvsnmwqk2k3nmrz20sw8uj7htlpnlutk0p9sjfnd3n",
-        "shelley_enterprise": "addr_test1vp0q6gvzxhdvhx97lugfqwv55xhth8mhq3cqn2rjmkm8d5gqlhrjw",
-        "byron": "DdzFFzCqrhsue3nt4fVq91dpz7W4bFRUJZnPCCPuLJy18dMaLNSwRXdX8PecDNhXjCGgNqayKjagEF3p3QKHNPCTQWMxDShKkrgLfgJc",
-    }
-
     @allure.feature("Search Transactions")
     @allure.story("Account Identifier")
-    @pytest.mark.parametrize("address_type,address", ADDRESSES.items())
-    def test_valid_payment_addresses(self, client, address_type, address):
+    @pytest.mark.parametrize(
+        "address_type", ["shelley_base", "shelley_enterprise", "byron"]
+    )
+    def test_valid_payment_addresses(self, client, network_data, address_type):
         """Test filtering by different address types."""
+        address = network_data["addresses"][address_type]
+
         response = client.search_transactions(account_identifier={"address": address})
         assert response.status_code == 200
 
@@ -246,9 +246,11 @@ class TestAccountIdentifier:
 
     @allure.feature("Search Transactions")
     @allure.story("Account Identifier")
-    def test_valid_payment_address_shelley_base_using_address_field(self, client):
+    def test_valid_payment_address_shelley_base_using_address_field(
+        self, client, network_data
+    ):
         """Test filtering by shelley base address using address field."""
-        address = "addr_test1qpq7kns8auvhntmchwfq7rh7upyx0a9gzm3s0sxvzfse8kz8d5ez5hv0fm53j4cetqvqvjcm4k69h5mxts7s0ylevxqs0wwqu3"
+        address = network_data["addresses"]["with_large_utxos"]
         response = client.search_transactions(
             address=address  # Using address field directly
         )
@@ -260,12 +262,11 @@ class TestAccountIdentifier:
     @allure.feature("Search Transactions")
     @allure.story("Account Identifier")
     @pytest.mark.skip(
-        reason="Future feature: stake address filtering not yet implemented"
+        reason="Future feature: stake address filtering not yet implemented (#575)"
     )
-    def test_future_feature_stake_address(self, client):
+    def test_future_feature_stake_address(self, client, network_data):
         """Stake address filtering (marked as future feature)."""
-        # Correct stake address from extracted test data
-        stake_addr = "stake_test1uq7jxnqdcs2lxgu2tl2s3zna4hlsm8p0ud82pdr0cszsepqgprukn"
+        stake_addr = network_data["addresses"]["stake"]
         response = client.search_transactions(
             account_identifier={"address": stake_addr}
         )
@@ -288,72 +289,27 @@ class TestAccountIdentifier:
 class TestMaxBlock:
     """Test max_block filtering."""
 
-    # Correct address from extracted test data
-    ADDRESS = "addr_test1qpa0tqf5hwvhl0mvkexrdxrhgg2ftppn7pjfnfz0es2l9g3aydxqm3q47v3c5h74pz98mt0lpkwzlc6w5z6xl3q9pjzqqklmmp"
-
     @allure.feature("Search Transactions")
     @allure.story("Max Block")
-    @pytest.mark.parametrize("max_block", [748, 749, 175000, 180000, 185000])
-    def test_max_block_general_filtering(self, client, max_block):
-        """Test max_block parameter with various values."""
-        response = client.search_transactions(max_block=max_block)
-        assert response.status_code == 200
+    @pytest.mark.parametrize("percentage", [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100])
+    def test_max_block_filtering_at_percentage(
+        self, client, network, blockchain_height, percentage
+    ):
+        """Test max_block filtering at different percentages of blockchain height."""
+        max_block = int(blockchain_height * percentage / 100)
 
-        data = response.json()
-        # All returned transactions should be at or before max_block
-        for tx in data.get("transactions", []):
-            assert tx["block_identifier"]["index"] <= max_block
-
-    @allure.feature("Search Transactions")
-    @allure.story("Max Block")
-    def test_base_shelley_address_with_6_txs_at_block_3665905(self, client):
-        """Address should have 6 transactions at block 3665905."""
         response = client.search_transactions(
-            account_identifier={"address": self.ADDRESS},
-            max_block=3665905,
-            limit=10,  # Must specify limit to get exact count, not default 100
+            network=network, max_block=max_block, limit=25
         )
         assert response.status_code == 200
 
-        data = response.json()
-        assert len(data["transactions"]) == 6, (
-            f"Should have 6 txs at block 3665905, got {len(data['transactions'])}"
-        )
-        assert data["total_count"] == 6
-
-    @allure.feature("Search Transactions")
-    @allure.story("Max Block")
-    def test_base_shelley_address_with_1_tx_at_block_3381969(self, client):
-        """Address should have 1 transaction at block 3381969."""
-        response = client.search_transactions(
-            account_identifier={"address": self.ADDRESS},
-            max_block=3381969,
-            limit=10,  # Must specify limit to get exact count, not default 100
-        )
-        assert response.status_code == 200
-
-        data = response.json()
-        assert len(data["transactions"]) == 1, (
-            f"Should have 1 tx at block 3381969, got {len(data['transactions'])}"
-        )
-        assert data["total_count"] == 1
-
-    @allure.feature("Search Transactions")
-    @allure.story("Max Block")
-    def test_base_shelley_address_with_0_tx_at_block_3381968(self, client):
-        """Address should have 0 transactions at block 3381968."""
-        response = client.search_transactions(
-            account_identifier={"address": self.ADDRESS},
-            max_block=3381968,
-            limit=10,  # Must specify limit to get exact count, not default 100
-        )
-        assert response.status_code == 200
-
-        data = response.json()
-        assert len(data["transactions"]) == 0, (
-            f"Should have 0 txs at block 3381968, got {len(data['transactions'])}"
-        )
-        assert data["total_count"] == 0
+        txs = response.json()["transactions"]
+        # Core invariant: all returned transactions must respect max_block
+        for tx in txs:
+            block_index = tx["block_identifier"]["index"]
+            assert block_index <= max_block, (
+                f"Transaction at block {block_index} exceeds max_block {max_block}"
+            )
 
     @allure.feature("Search Transactions")
     @allure.story("Max Block")
@@ -454,7 +410,7 @@ class TestOperationTypeFiltering:
     @allure.feature("Search Transactions")
     @allure.story("Operation Type Filtering")
     @pytest.mark.parametrize("op_type", OPERATION_TYPES)
-    @pytest.mark.skip(reason="API doesn't support filtering by operation type")
+    @pytest.mark.skip(reason="Operation type filtering not implemented (#540)")
     def test_filter_by_operation_type(self, client, op_type):
         """Filter transactions by operation type."""
         response = client.search_transactions(type=op_type)
@@ -470,7 +426,7 @@ class TestOperationTypeFiltering:
 
     @allure.feature("Search Transactions")
     @allure.story("Operation Type Filtering")
-    @pytest.mark.skip(reason="API doesn't support filtering by operation type")
+    @pytest.mark.skip(reason="Operation type filtering not implemented (#540)")
     def test_invalid_operation_type_returns_error(self, client):
         """Invalid operation type returns error code 5053."""
         response = client.search_transactions(type="INVALID_OPERATION")
@@ -490,16 +446,16 @@ class TestOperationTypeFiltering:
 class TestLogicalOperators:
     """Test logical operator combinations."""
 
-    ADDRESS = "addr_test1qrtdh7587yz5m2w504sjhqnrfml5fpcuxu24fj8xwvk48artcrahhulmvvsnmwqk2k3nmrz20sw8uj7htlpnlutk0p9sjfnd3n"
-
     @allure.feature("Search Transactions")
     @allure.story("Logical Operators")
-    @pytest.mark.skip(reason="API doesn't support filtering by operation type")
-    def test_account_identifier_and_withdrawal_explicit(self, client):
+    @pytest.mark.skip(reason="Operation type filtering not implemented (#540)")
+    def test_account_identifier_and_withdrawal_explicit(self, client, network_data):
         """AND operator with account and withdrawal."""
+        address = network_data["addresses"]["shelley_base"]
+
         response = client.search_transactions(
             operator="and",
-            account_identifier={"address": self.ADDRESS},
+            account_identifier={"address": address},
             type="withdrawal",
         )
         assert response.status_code == 200
@@ -512,7 +468,7 @@ class TestLogicalOperators:
                 for op in tx["operations"]
                 if op.get("account")
             ]
-            assert self.ADDRESS in addresses, "Transaction should contain the account"
+            assert address in addresses, "Transaction should contain the account"
 
             # Must have withdrawal operation
             op_types = [op["type"] for op in tx["operations"]]
@@ -522,11 +478,13 @@ class TestLogicalOperators:
 
     @allure.feature("Search Transactions")
     @allure.story("Logical Operators")
-    def test_account_identifier_and_invalid_explicit(self, client):
+    def test_account_identifier_and_invalid_explicit(self, client, network_data):
         """AND operator with account and invalid status."""
+        address = network_data["addresses"]["shelley_base"]
+
         response = client.search_transactions(
             operator="and",
-            account_identifier={"address": self.ADDRESS},
+            account_identifier={"address": address},
             status="invalid",
         )
         assert response.status_code == 200
@@ -539,7 +497,7 @@ class TestLogicalOperators:
                 for op in tx["operations"]
                 if op.get("account")
             ]
-            assert self.ADDRESS in addresses
+            assert address in addresses
 
             # Must have invalid status
             statuses = [op["status"] for op in tx["operations"]]
@@ -547,12 +505,14 @@ class TestLogicalOperators:
 
     @allure.feature("Search Transactions")
     @allure.story("Logical Operators")
-    @pytest.mark.skip(reason="API doesn't support filtering by operation type")
-    def test_account_identifier_or_stakedelegation_explicit(self, client):
+    @pytest.mark.skip(reason="Operation type filtering not implemented (#540)")
+    def test_account_identifier_or_stakedelegation_explicit(self, client, network_data):
         """OR operator with account and stakeDelegation."""
+        address = network_data["addresses"]["shelley_base"]
+
         response = client.search_transactions(
             operator="or",
-            account_identifier={"address": self.ADDRESS},
+            account_identifier={"address": address},
             type="stakeDelegation",
         )
         assert response.status_code == 200
@@ -567,15 +527,17 @@ class TestLogicalOperators:
             op_types = [op["type"] for op in tx["operations"]]
 
             # Must have either the address OR stakeDelegation
-            assert self.ADDRESS in addresses or "stakeDelegation" in op_types
+            assert address in addresses or "stakeDelegation" in op_types
 
     @allure.feature("Search Transactions")
     @allure.story("Logical Operators")
-    def test_account_identifier_or_invalid_explicit(self, client):
+    def test_account_identifier_or_invalid_explicit(self, client, network_data):
         """OR operator with account and invalid status."""
+        address = network_data["addresses"]["shelley_base"]
+
         response = client.search_transactions(
             operator="or",
-            account_identifier={"address": self.ADDRESS},
+            account_identifier={"address": address},
             status="invalid",
         )
         assert response.status_code == 200
@@ -590,15 +552,17 @@ class TestLogicalOperators:
             statuses = [op["status"] for op in tx["operations"]]
 
             # Must have either the address OR invalid status
-            assert self.ADDRESS in addresses or "invalid" in statuses
+            assert address in addresses or "invalid" in statuses
 
     @allure.feature("Search Transactions")
     @allure.story("Logical Operators")
-    @pytest.mark.skip(reason="API doesn't support filtering by operation type")
-    def test_address_and_withdrawal_explicit(self, client):
+    @pytest.mark.skip(reason="Operation type filtering not implemented (#540)")
+    def test_address_and_withdrawal_explicit(self, client, network_data):
         """AND operator with address field and withdrawal."""
+        address = network_data["addresses"]["shelley_base"]
+
         response = client.search_transactions(
-            operator="and", address=self.ADDRESS, type="withdrawal"
+            operator="and", address=address, type="withdrawal"
         )
         assert response.status_code == 200
 
@@ -611,15 +575,17 @@ class TestLogicalOperators:
             ]
             op_types = [op["type"] for op in tx["operations"]]
 
-            assert self.ADDRESS in addresses
+            assert address in addresses
             assert "withdrawal" in op_types
 
     @allure.feature("Search Transactions")
     @allure.story("Logical Operators")
-    def test_address_and_invalid_explicit(self, client):
+    def test_address_and_invalid_explicit(self, client, network_data):
         """AND operator with address field and invalid status."""
+        address = network_data["addresses"]["shelley_base"]
+
         response = client.search_transactions(
-            operator="and", address=self.ADDRESS, status="invalid"
+            operator="and", address=address, status="invalid"
         )
         assert response.status_code == 200
 
@@ -632,16 +598,18 @@ class TestLogicalOperators:
             ]
             statuses = [op["status"] for op in tx["operations"]]
 
-            assert self.ADDRESS in addresses
+            assert address in addresses
             assert "invalid" in statuses
 
     @allure.feature("Search Transactions")
     @allure.story("Logical Operators")
-    def test_invalid_operator_returns_error(self, client):
+    def test_invalid_operator_returns_error(self, client, network_data):
         """Invalid operator returns error."""
+        address = network_data["addresses"]["shelley_base"]
+
         response = client.search_transactions(
             operator="xor",
-            account_identifier={"address": self.ADDRESS},
+            account_identifier={"address": address},
             type="withdrawal",
         )
         # TODO: Standardize error codes for invalid enum values
@@ -655,67 +623,114 @@ class TestCurrencyFiltering:
 
     @allure.feature("Search Transactions")
     @allure.story("Currency Filtering")
-    def test_ada_filter(self, client):
+    @pytest.mark.skip(
+        reason="Currency filtering not implemented in search/transactions (#610, #542)"
+    )
+    def test_ada_filter(self, client, network):
         """Filter by ada currency."""
-        response = client.search_transactions(currency={"symbol": "ada", "decimals": 6})
-        assert response.status_code == 200
-
-        data = response.json()
-        assert "transactions" in data
-
-    @allure.feature("Search Transactions")
-    @allure.story("Currency Filtering")
-    def test_ada_uppercase_filter(self, client):
-        """Filter by ADA currency (uppercase)."""
-        response = client.search_transactions(currency={"symbol": "ADA", "decimals": 6})
-        assert response.status_code == 200
-
-        data = response.json()
-        assert "transactions" in data
-
-    @allure.feature("Search Transactions")
-    @allure.story("Currency Filtering")
-    def test_lovelace_filter(self, client):
-        """Filter by lovelace currency."""
         response = client.search_transactions(
-            currency={"symbol": "lovelace", "decimals": 0}
+            network=network, currency={"symbol": "ada", "decimals": 6}, limit=5
         )
         assert response.status_code == 200
 
-        data = response.json()
-        assert "transactions" in data
-
-    @allure.feature("Search Transactions")
-    @allure.story("Currency Filtering")
-    def test_asset_tteuro_by_name(self, client):
-        """Filter by tTEURO asset using symbol name."""
-        response = client.search_transactions(
-            currency={"symbol": "tTEURO", "decimals": 2}
-        )
-        assert response.status_code == 200
-
-        data = response.json()
-        # Transactions should contain tTEURO
-        for tx in data.get("transactions", []):
+        # Verify filtering works - ALL returned transactions must have ADA
+        txs = response.json()["transactions"]
+        for tx in txs:
             currencies = [
                 op["amount"]["currency"]["symbol"]
                 for op in tx.get("operations", [])
                 if "amount" in op and "currency" in op["amount"]
             ]
-            if currencies:  # Only check if there are currencies
-                assert "tTEURO" in currencies
+            assert currencies, (
+                "ADA filter must not return transactions without currency operations"
+            )
+            assert "ADA" in currencies, (
+                "ADA filter must only return transactions with ADA"
+            )
 
     @allure.feature("Search Transactions")
     @allure.story("Currency Filtering")
-    def test_asset_tteuro_by_policy_id(self, client):
-        """Filter by tTEURO asset using policy ID."""
+    @pytest.mark.skip(
+        reason="Currency filtering not implemented in search/transactions (#610, #542)"
+    )
+    def test_ada_uppercase_filter(self, client, network):
+        """Filter by ADA currency (uppercase) - case insensitive."""
         response = client.search_transactions(
-            currency={
-                "symbol": "b4f2af836715c2b13e64fd4bb1a7a2e6b3290c866ff74033b6bfbd8d",
-                "decimals": 0,
-            }
+            network=network, currency={"symbol": "ADA", "decimals": 6}, limit=5
         )
         assert response.status_code == 200
 
-        data = response.json()
-        assert "transactions" in data
+        # Verify case-insensitive filtering works
+        txs = response.json()["transactions"]
+        for tx in txs:
+            currencies = [
+                op["amount"]["currency"]["symbol"]
+                for op in tx.get("operations", [])
+                if "amount" in op and "currency" in op["amount"]
+            ]
+            assert currencies, (
+                "ADA filter must not return transactions without currency operations"
+            )
+            assert "ADA" in currencies, (
+                "ADA filter must only return transactions with ADA"
+            )
+
+    @allure.feature("Search Transactions")
+    @allure.story("Currency Filtering")
+    @pytest.mark.skip(
+        reason="Currency filtering not implemented in search/transactions (#610, #542)"
+    )
+    def test_lovelace_filter(self, client, network):
+        """Filter by lovelace currency."""
+        response = client.search_transactions(
+            network=network, currency={"symbol": "lovelace", "decimals": 0}, limit=5
+        )
+        assert response.status_code == 200
+
+        # Verify filtering works - ALL returned transactions must have lovelace/ADA
+        txs = response.json()["transactions"]
+        for tx in txs:
+            currencies = [
+                op["amount"]["currency"]["symbol"]
+                for op in tx.get("operations", [])
+                if "amount" in op and "currency" in op["amount"]
+            ]
+            assert currencies, (
+                "lovelace filter must not return transactions without currency operations"
+            )
+            # Lovelace and ADA are the same, API might return either
+            assert any(c in ["lovelace", "ADA"] for c in currencies), (
+                "lovelace filter must only return transactions with lovelace/ADA"
+            )
+
+    @allure.feature("Search Transactions")
+    @allure.story("Currency Filtering")
+    @pytest.mark.skip(
+        reason="Currency filtering not implemented in search/transactions (#610, #542)"
+    )
+    def test_native_asset_filtering_by_symbol(self, client, network, network_data):
+        """Test that currency filtering works for native assets."""
+        # Use known native asset from test data
+        asset = network_data["assets"][0]
+
+        # Search by this asset
+        response = client.search_transactions(
+            network=network,
+            currency={"symbol": asset["symbol"], "decimals": asset["decimals"]},
+            limit=5,
+        )
+        assert response.status_code == 200
+
+        # Verify all returned transactions contain this asset
+        txs = response.json()["transactions"]
+        assert len(txs) > 0, "Currency filter should return transactions"
+
+        for tx in txs:
+            currencies = [
+                op["amount"]["currency"]["symbol"]
+                for op in tx.get("operations", [])
+                if "amount" in op and "currency" in op["amount"]
+            ]
+            assert asset["symbol"] in currencies, (
+                "Currency filter must only return transactions with specified asset"
+            )

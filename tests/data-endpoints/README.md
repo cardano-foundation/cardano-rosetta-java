@@ -14,52 +14,67 @@ uv sync
 
 ## Running Tests
 
+**Note**: Parallel execution (`-n auto`) is enabled by default in pytest.ini
+
 ```bash
-# Run all tests
+# Recommended: Run smoke tests first, then behavioral tests
+uv run pytest test_smoke_network_data.py && uv run pytest -m "not smoke"
+
+# Run all tests (includes smoke tests, runs in parallel by default)
 uv run pytest
+
+# Run only behavioral tests (skip smoke tests - for CI)
+uv run pytest -m "not smoke"
+
+# Run only smoke tests (validate test data)
+uv run pytest -m smoke
 
 # Run with verbose output
 uv run pytest -v
 
+# Run sequentially (disable default parallelization)
+uv run pytest -n 0
+
 # Run specific test class
 uv run pytest test_search_transactions.py::TestPagination -v
 
-# Run specific test
-uv run pytest test_search_transactions.py::TestPagination::test_valid_limits -v
-
-# Run in parallel (faster)
-uv run pytest -n auto
+# Run specific test file
+uv run pytest test_block_endpoints.py -v
 
 # Run with Allure reporting
 uv run pytest --alluredir=./allure-results
-
-# Generate and serve Allure report (requires allure CLI)
 allure serve allure-results
 ```
 
 ## Environment Variables
 
 - `ROSETTA_URL`: Base URL for Rosetta API (default: `http://localhost:8082`)
+- `CARDANO_NETWORK`: Network to test against (default: `preprod`, options: `mainnet`, `preview`)
 
 ```bash
-# Run against different environment
-ROSETTA_URL=http://localhost:8082 uv run pytest
+# Run against mainnet (requires mainnet test data in network_test_data.yaml)
+CARDANO_NETWORK=mainnet uv run pytest -m "not smoke"
+
+# Run against different port
+ROSETTA_URL=http://localhost:8083 uv run pytest
 ```
 
 ## Test Organization
 
-All 61 tests are organized in `test_search_transactions.py`:
+**125 total tests** organized across 6 files:
 
-- **TestSanityChecks**: Basic endpoint availability (3 tests)
-- **TestPaginationLimits**: Limit parameter tests (7 tests)
-- **TestPaginationOffsets**: Offset parameter tests (6 tests)
-- **TestTransactionIdentifier**: Transaction hash filtering (4 tests)
-- **TestAccountIdentifier**: Address filtering (6 tests)
-- **TestMaxBlock**: Block height filtering (9 tests)
-- **TestStatusFiltering**: Status and success filtering (5 tests)
-- **TestOperationTypeFiltering**: Operation type filtering (9 tests)
-- **TestLogicalOperators**: AND/OR operator tests (7 tests)
-- **TestCurrencyFiltering**: Currency filtering (5 tests)
+### Behavioral Tests (113 tests, 19 properly skipped)
+- `test_network_endpoints.py` - /network/* endpoints (3 tests)
+- `test_search_transactions.py` - /search/transactions (72 tests including parametrized)
+- `test_block_endpoints.py` - /block and /block/transaction (18 tests)
+- `test_account_endpoints.py` - /account/balance and /account/coins (13 tests)
+- `test_error_handling.py` - Cross-cutting error tests for all 7 endpoints (14 tests)
+
+### Smoke Tests (12 tests)
+- `test_smoke_network_data.py` - Validates network_test_data.yaml entries across endpoints
+
+### Test Data
+- `network_test_data.yaml` - Network-specific addresses and assets (extensible for mainnet)
 
 ## Features
 

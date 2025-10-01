@@ -113,14 +113,21 @@ class RosettaClient:
 
         return response
 
-    def search_transactions(self, network: str = "preprod", **kwargs) -> httpx.Response:
+    def search_transactions(
+        self, network: Optional[str] = "preprod", **kwargs
+    ) -> httpx.Response:
         """
         Search transactions endpoint.
 
-        Parameters: limit, offset, max_block, status, success, type,
-                    account_identifier, transaction_identifier, currency, operator
+        Parameters:
+            network: Network name (preprod, mainnet, etc). Pass None to omit network_identifier.
+            **kwargs: limit, offset, max_block, status, success, type,
+                     account_identifier, transaction_identifier, currency, operator
         """
-        body = {"network_identifier": {"blockchain": "cardano", "network": network}}
+        if network is not None:
+            body = {"network_identifier": {"blockchain": "cardano", "network": network}}
+        else:
+            body = {}
 
         # Add optional parameters
         body.update({k: v for k, v in kwargs.items() if v is not None})
@@ -144,6 +151,84 @@ class RosettaClient:
         return self._post(
             "/network/options", body, schema_name="NetworkOptionsResponse"
         )
+
+    def block(self, network: Optional[str] = "preprod", **kwargs) -> httpx.Response:
+        """
+        Get block by identifier.
+
+        Parameters:
+            network: Network name. Pass None to omit network_identifier.
+            **kwargs: block_identifier (dict with 'index' and/or 'hash')
+        """
+        if network is not None:
+            body = {"network_identifier": {"blockchain": "cardano", "network": network}}
+        else:
+            body = {}
+
+        body.update({k: v for k, v in kwargs.items() if v is not None})
+        return self._post("/block", body, schema_name="BlockResponse")
+
+    def block_transaction(
+        self, network: Optional[str] = "preprod", **kwargs
+    ) -> httpx.Response:
+        """
+        Get transaction from specific block.
+
+        Parameters:
+            network: Network name. Pass None to omit network_identifier.
+            **kwargs: block_identifier (requires both index AND hash),
+                     transaction_identifier
+        """
+        if network is not None:
+            body = {"network_identifier": {"blockchain": "cardano", "network": network}}
+        else:
+            body = {}
+
+        body.update({k: v for k, v in kwargs.items() if v is not None})
+        return self._post(
+            "/block/transaction", body, schema_name="BlockTransactionResponse"
+        )
+
+    def account_balance(
+        self, network: Optional[str] = "preprod", **kwargs
+    ) -> httpx.Response:
+        """
+        Get account balance (current or historical).
+
+        Parameters:
+            network: Network name. Pass None to omit network_identifier.
+            **kwargs: account_identifier (required),
+                     block_identifier (optional for historical queries)
+        """
+        if network is not None:
+            body = {"network_identifier": {"blockchain": "cardano", "network": network}}
+        else:
+            body = {}
+
+        body.update({k: v for k, v in kwargs.items() if v is not None})
+        return self._post(
+            "/account/balance", body, schema_name="AccountBalanceResponse"
+        )
+
+    def account_coins(
+        self, network: Optional[str] = "preprod", **kwargs
+    ) -> httpx.Response:
+        """
+        Get account unspent coins (UTXOs).
+
+        Note: Returns current unspent UTXOs only (by definition).
+
+        Parameters:
+            network: Network name. Pass None to omit network_identifier.
+            **kwargs: account_identifier (required)
+        """
+        if network is not None:
+            body = {"network_identifier": {"blockchain": "cardano", "network": network}}
+        else:
+            body = {}
+
+        body.update({k: v for k, v in kwargs.items() if v is not None})
+        return self._post("/account/coins", body, schema_name="AccountCoinsResponse")
 
     def __enter__(self):
         return self
