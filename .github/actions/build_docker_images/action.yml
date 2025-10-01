@@ -9,16 +9,66 @@ inputs:
     description: Is this a release build? If true, the latest tag will be applied
     required: false
     default: false
+  node_version_key:
+    required: false
+    default: CARDANO_NODE_VERSION
+  pg_version_key:
+    required: false
+    default: PG_VERSION_TAG
+  mithril_version_key:
+    required: false
+    default: MITHRIL_VERSION
+
 secrets:
   DOCKERHUB_USERNAME:
     description: Docker Hub username
     required: true
-    DOCKERHUB_TOKEN:
-      description: Docker Hub token
-      required: true
+  DOCKERHUB_TOKEN:
+    description: Docker Hub token
+    required: true
 runs:
     using: composite
     steps:
+      - name: Read versions from .env
+        id: envver
+        shell: bash
+        run: |
+          NODE_KEY='${{ inputs.node_version_key }}'
+          PG_KEY='${{ inputs.pg_version_key }}'
+          MITHRIL_KEY='${{ inputs.mithril_version_key }}'
+
+          if [[ ! -f .env ]]; then
+           echo ".env not found"
+           exit 0
+          fi
+
+          get_val() {
+           local key="$1"
+           grep -E "^${key}=" .env | head -1 | cut -d= -f2- | tr -d '\r'
+          }
+
+          NODE_VAL="$(get_val "$NODE_KEY")"
+          PG_VAL="$(get_val "$PG_KEY")"
+          MITHRIL_VAL="$(get_val "$MITHRIL_KEY")"
+        
+          if [[ -n "$NODE_VAL" ]]; then
+            echo "node_version=$NODE_VAL" >> "$GITHUB_OUTPUT"
+          else
+            echo "No value for $NODE_KEY in .env"
+          fi
+
+          if [[ -n "$PG_VAL" ]]; then
+            echo "pg_version=$PG_VAL" >> "$GITHUB_OUTPUT"
+          else
+            echo "No value for $PG_KEY in .env"
+          fi
+
+          if [[ -n "$MITHRIL_VAL" ]]; then
+            echo "mithril_version=$MITHRIL_VAL" >> "$GITHUB_OUTPUT"
+          else
+            echo "No value for $MITHRIL_KEY in .env"
+          fi
+
       - name: API - Build and push Docker ${{ inputs.tag }} image
         uses: docker/build-push-action@v4
         with:
@@ -26,6 +76,7 @@ runs:
           file: ./api/Dockerfile
           tags: cardanofoundation/cardano-rosetta-java-api:${{ inputs.tag }}
           push: true
+
       - name: API - Build and push Docker latest image
         uses: docker/build-push-action@v4
         if: ${{ inputs.isRelease == 'true' }}
@@ -34,6 +85,7 @@ runs:
           file: ./api/Dockerfile
           tags: cardanofoundation/cardano-rosetta-java-api:latest
           push: true
+
       - name: Indexer - Build and push Docker ${{ inputs.tag }} image
         uses: docker/build-push-action@v4
         with:
@@ -41,6 +93,7 @@ runs:
           file: ./yaci-indexer/Dockerfile
           tags: cardanofoundation/cardano-rosetta-java-indexer:${{ inputs.tag }}
           push: true
+
       - name: Indexer - Build and push Docker latest image
         uses: docker/build-push-action@v4
         if: ${{ inputs.isRelease == 'true' }}
@@ -49,51 +102,31 @@ runs:
           file: ./yaci-indexer/Dockerfile
           tags: cardanofoundation/cardano-rosetta-java-indexer:latest
           push: true
+
       - name: Cardano Node - Build and push Docker ${{ inputs.tag }} image
         uses: docker/build-push-action@v4
         with:
           context: .
           file: ./docker/dockerfiles/node/Dockerfile
-          tags: cardanofoundation/cardano-rosetta-java-cardano-node:${{ inputs.tag }}
+          tags: cardanofoundation/cardano-rosetta-java-cardano-node:${{ steps.envver.outputs.node_version }}
           push: true
-      - name: Cardano Node - Build and push Docker latest image
-        uses: docker/build-push-action@v4
-        if: ${{ inputs.isRelease == 'true' }}
-        with:
-          context: .
-          file: ./docker/dockerfiles/node/Dockerfile
-          tags: cardanofoundation/cardano-rosetta-java-cardano-node:latest
-          push: true
+
       - name: Postgres - Build and push Docker ${{ inputs.tag }} image
         uses: docker/build-push-action@v4
         with:
           context: .
           file: ./docker/dockerfiles/postgres/Dockerfile
-          tags: cardanofoundation/cardano-rosetta-java-postgres:${{ inputs.tag }}
+          tags: cardanofoundation/cardano-rosetta-java-postgres:${{ steps.envver.outputs.pg_version }}
           push: true
-      - name: Postgres - Build and push Docker latest image
-        uses: docker/build-push-action@v4
-        if: ${{ inputs.isRelease == 'true' }}
-        with:
-          context: .
-          file: ./docker/dockerfiles/postgres/Dockerfile
-          tags: cardanofoundation/cardano-rosetta-java-postgres:latest
-          push: true
+
       - name: Mithril - Build and push Docker ${{ inputs.tag }} image
         uses: docker/build-push-action@v4
         with:
           context: .
           file: ./docker/dockerfiles/mithril/Dockerfile
-          tags: cardanofoundation/cardano-rosetta-java-mithril:${{ inputs.tag }}
+          tags: cardanofoundation/cardano-rosetta-java-mithril:${{ steps.envver.outputs.mithril_version }}
           push: true
-      - name: Mithril - Build and push Docker latest image
-        uses: docker/build-push-action@v4
-        if: ${{ inputs.isRelease == 'true' }}
-        with:
-          context: .
-          file: ./docker/dockerfiles/mithril/Dockerfile
-          tags: cardanofoundation/cardano-rosetta-java-mithril:latest
-          push: true
+
       - name: All-in-one - Build and push Docker image
         uses: docker/build-push-action@v4
         with:
@@ -101,6 +134,7 @@ runs:
           file: ./docker/Dockerfile
           tags: cardanofoundation/cardano-rosetta-java:${{ inputs.tag }}
           push: true
+
       - name: All-in-one - Build and push Docker latest image
         uses: docker/build-push-action@v4
         if: ${{ inputs.isRelease == 'true' }}
