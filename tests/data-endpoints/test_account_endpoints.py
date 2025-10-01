@@ -334,7 +334,7 @@ class TestAccountErrors:
     def test_missing_account_identifier_returns_error(self, client, network):
         """Missing account_identifier should return error for /account/balance."""
         response = client.account_balance(network=network)
-        assert response.status_code == 500
+        assert response.status_code == 400, "Missing required parameter should return 400"
 
         error = response.json()
         error_message = get_error_message(error).lower()

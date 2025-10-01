@@ -197,7 +197,7 @@ class TestBlockErrors:
     def test_missing_block_identifier_returns_error(self, client, network):
         """Missing block_identifier should return error."""
         response = client.block(network=network)
-        assert response.status_code == 500
+        assert response.status_code == 400, "Missing required parameter should return 400"
 
         error = response.json()
         error_message = get_error_message(error).lower()
@@ -243,7 +243,7 @@ class TestBlockTransactionLookup:
                 "hash": tx_data["transaction"]["transaction_identifier"]["hash"]
             },
         )
-        assert response.status_code == 500
+        assert response.status_code == 400, "Missing required parameter should return 400"
 
         error = response.json()
         error_message = get_error_message(error)
@@ -296,7 +296,7 @@ class TestBlockTransactionErrors:
             network=network,
             block_identifier={"index": 100, "hash": "a" * 64},
         )
-        assert response.status_code == 500
+        assert response.status_code == 400, "Missing required parameter should return 400"
 
     def test_invalid_transaction_hash_returns_error(self, client, network):
         """Invalid transaction hash should return error."""

@@ -49,10 +49,10 @@ class TestNetworkDataValidity:
     def test_configured_assets_have_transactions(self, client, network, network_data):
         """Configured native assets should have transactions on the network."""
         for asset in network_data["assets"]:
+            # Note: Do NOT add limit parameter - currency filter + limit causes timeout (#615)
             response = client.search_transactions(
                 network=network,
                 currency={"symbol": asset["symbol"], "decimals": asset["decimals"]},
-                limit=1,
             )
             assert response.status_code == 200
 
