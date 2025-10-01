@@ -6,7 +6,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.cardanofoundation.rosetta.api.block.mapper.BlockMapper;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.model.entity.UtxoKey;
-import org.cardanofoundation.rosetta.api.common.model.Asset;
+import org.cardanofoundation.rosetta.api.common.model.AssetFingerprint;
 import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
 import org.cardanofoundation.rosetta.api.common.service.TokenRegistryService;
 import org.cardanofoundation.rosetta.api.search.model.Operator;
@@ -92,7 +92,7 @@ public class SearchServiceImpl implements SearchService {
         );
 
         // Always fetch metadata for all transactions in this page (will be empty map if no native tokens)
-        final Map<Asset, TokenRegistryCurrencyData> metadataMap =
+        final Map<AssetFingerprint, TokenRegistryCurrencyData> metadataMap =
             tokenRegistryService.fetchMetadataForBlockTxList(blockTxes.getContent());
 
         // Always use the metadata version (with empty map when no native tokens)

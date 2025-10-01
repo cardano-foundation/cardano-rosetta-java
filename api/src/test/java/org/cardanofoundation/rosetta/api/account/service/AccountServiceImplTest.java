@@ -5,7 +5,7 @@ import java.util.*;
 import java.util.Optional;
 import jakarta.validation.constraints.NotNull;
 
-import org.mockito.InjectMocks;
+import org.cardanofoundation.rosetta.api.common.model.AssetFingerprint;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.Spy;
@@ -160,13 +160,10 @@ class AccountServiceImplTest {
     BlockIdentifierExtended block = getMockedBlockIdentifierExtended();
     when(ledgerBlockService.findLatestBlockIdentifier()).thenReturn(block);
     when(tokenRegistryService.fetchMetadataForAddressBalances(any())).thenAnswer(invocation -> {
-      Map<org.cardanofoundation.rosetta.api.common.model.Asset, TokenRegistryCurrencyData> result = new HashMap<>();
+      Map<AssetFingerprint, TokenRegistryCurrencyData> result = new HashMap<>();
       // Create an asset for the native token in the test data
-      org.cardanofoundation.rosetta.api.common.model.Asset asset = org.cardanofoundation.rosetta.api.common.model.Asset.builder()
-          .policyId("bd976e131cfc3956b806967b06530e48c20ed5498b46a5eb836b61c2")
-          .assetName("")  // Empty asset name
-          .build();
-      result.put(asset, TokenRegistryCurrencyData.builder()
+      AssetFingerprint assetFingerprint = AssetFingerprint.of("bd976e131cfc3956b806967b06530e48c20ed5498b46a5eb836b61c2", "");  // Empty asset name
+      result.put(assetFingerprint, TokenRegistryCurrencyData.builder()
           .policyId("bd976e131cfc3956b806967b06530e48c20ed5498b46a5eb836b61c2")
           .decimals(0)
           .build());

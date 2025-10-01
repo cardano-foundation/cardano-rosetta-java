@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.TreeSet;
 
+import org.cardanofoundation.rosetta.api.common.model.AssetFingerprint;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.bloxbean.cardano.yaci.core.model.certs.CertificateType;
 import org.assertj.core.util.introspection.CaseFormatUtils;
@@ -26,7 +27,6 @@ import org.junit.jupiter.api.Test;
 import org.cardanofoundation.rosetta.api.BaseMapperSetup;
 import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
-import org.cardanofoundation.rosetta.api.common.model.Asset;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.model.domain.PoolRegistration;
 import org.cardanofoundation.rosetta.api.block.model.domain.PoolRetirement;
@@ -52,7 +52,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperSetup {
     from.setInputs(List.of());
     from.setOutputs(List.of());
     //when
-    Map<Asset, TokenRegistryCurrencyData> emptyMetadataMap = Collections.emptyMap();
+    Map<AssetFingerprint, TokenRegistryCurrencyData> emptyMetadataMap = Collections.emptyMap();
     Transaction into = my.mapToRosettaTransactionWithMetadata(from, emptyMetadataMap);
     //then
     assertThat(into.getMetadata().getSize()).isEqualTo(from.getSize());
@@ -76,7 +76,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperSetup {
           .type(stakeType)
           .build()));
       //when
-      Map<Asset, TokenRegistryCurrencyData> metadataMap = createTestMetadataMap();
+      Map<AssetFingerprint, TokenRegistryCurrencyData> metadataMap = createTestMetadataMap();
     Transaction into = my.mapToRosettaTransactionWithMetadata(from, metadataMap);
       //then
       assertThat(into.getMetadata().getSize()).isEqualTo(from.getSize());
@@ -116,7 +116,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperSetup {
         .poolId("pool_id1")
         .build()));
     //when
-    Map<Asset, TokenRegistryCurrencyData> metadataMap = createTestMetadataMap();
+    Map<AssetFingerprint, TokenRegistryCurrencyData> metadataMap = createTestMetadataMap();
     Transaction into = my.mapToRosettaTransactionWithMetadata(from, metadataMap);
     //then
     assertThat(into.getMetadata().getSize()).isEqualTo(from.getSize());
@@ -168,7 +168,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperSetup {
         .relays(relays)
         .build()));
     //when
-    Map<Asset, TokenRegistryCurrencyData> metadataMap = createTestMetadataMap();
+    Map<AssetFingerprint, TokenRegistryCurrencyData> metadataMap = createTestMetadataMap();
     Transaction into = my.mapToRosettaTransactionWithMetadata(from, metadataMap);
     //then
     assertThat(into.getMetadata().getSize()).isEqualTo(from.getSize());
@@ -215,7 +215,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperSetup {
         .build()));
 
     //when
-    Map<Asset, TokenRegistryCurrencyData> metadataMap = createTestMetadataMap();
+    Map<AssetFingerprint, TokenRegistryCurrencyData> metadataMap = createTestMetadataMap();
     Transaction into = my.mapToRosettaTransactionWithMetadata(from, metadataMap);
     //then
     assertThat(into.getMetadata().getSize()).isEqualTo(from.getSize());
@@ -247,7 +247,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperSetup {
     //given
     BlockTx from = newTran();
     //when
-    Map<Asset, TokenRegistryCurrencyData> metadataMap = createTestMetadataMap();
+    Map<AssetFingerprint, TokenRegistryCurrencyData> metadataMap = createTestMetadataMap();
     Transaction into = my.mapToRosettaTransactionWithMetadata(from, metadataMap);
     //then
     assertThat(into.getMetadata().getSize()).isEqualTo(from.getSize());
@@ -294,7 +294,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperSetup {
 
     Amount token = bundle.getTokens().getFirst();
     assertThat(token.getCurrency().getSymbol())
-        .isEqualTo("unit1");
+        .isEqualTo("assetName1");
     assertThat(token.getCurrency().getDecimals()).isZero();
   }
 
@@ -304,7 +304,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperSetup {
     //given
     BlockTx from = newTran();
     //when
-    Map<Asset, TokenRegistryCurrencyData> metadataMap = createTestMetadataMap();
+    Map<AssetFingerprint, TokenRegistryCurrencyData> metadataMap = createTestMetadataMap();
     Transaction into = my.mapToRosettaTransactionWithMetadata(from, metadataMap);
     //then
     assertThat(into.getMetadata().getSize()).isEqualTo(from.getSize());
@@ -342,7 +342,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperSetup {
 
     Amount token = bundle.getTokens().getFirst();
     assertThat(token.getCurrency().getSymbol())
-        .isEqualTo("unit1");
+        .isEqualTo("assetName1");
     assertThat(token.getCurrency().getDecimals()).isZero();
   }
 
@@ -356,7 +356,7 @@ class BlockTxToRosettaTransactionTest extends BaseMapperSetup {
         .stakeAddress("stake_addr1_for_withdraw")
         .build()));
     //when
-    Map<Asset, TokenRegistryCurrencyData> metadataMap = createTestMetadataMap();
+    Map<AssetFingerprint, TokenRegistryCurrencyData> metadataMap = createTestMetadataMap();
     Transaction into = my.mapToRosettaTransactionWithMetadata(from, metadataMap);
     //then
     assertThat(into.getOperations()).hasSize(3);
@@ -432,25 +432,24 @@ class BlockTxToRosettaTransactionTest extends BaseMapperSetup {
   }
 
   private static Amt newTokenAmt() {
+    String policyId = "policyId1";
+    String symbol = "assetName1";
     return Amt.builder()
         .assetName("assetName1")
-        .policyId("policyId1")
+        .policyId(policyId)
         .quantity(BigInteger.ONE)
-        .unit("unit1")
+        .unit(policyId + symbol)
         .build();
   }
 
-  private static Map<Asset, TokenRegistryCurrencyData> createTestMetadataMap() {
-    Map<Asset, TokenRegistryCurrencyData> metadataMap = new java.util.HashMap<>();
-    Asset testAsset = Asset.builder()
-        .policyId("policyId1")
-        .assetName("assetName1")
-        .build();
+  private static Map<AssetFingerprint, TokenRegistryCurrencyData> createTestMetadataMap() {
+    Map<AssetFingerprint, TokenRegistryCurrencyData> metadataMap = new java.util.HashMap<>();
+    AssetFingerprint testAssetFingerprint = AssetFingerprint.of("policyId1", "assetName1");
     TokenRegistryCurrencyData metadata = TokenRegistryCurrencyData.builder()
         .policyId("policyId1")
         .decimals(0) // Default decimals for test
         .build();
-    metadataMap.put(testAsset, metadata);
+    metadataMap.put(testAssetFingerprint, metadata);
     return metadataMap;
   }
 }

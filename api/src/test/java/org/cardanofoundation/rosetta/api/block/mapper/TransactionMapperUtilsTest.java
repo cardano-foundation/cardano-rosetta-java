@@ -2,7 +2,7 @@ package org.cardanofoundation.rosetta.api.block.mapper;
 
 import org.assertj.core.api.Assertions;
 import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
-import org.cardanofoundation.rosetta.api.common.model.Asset;
+import org.cardanofoundation.rosetta.api.common.model.AssetFingerprint;
 import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
 import org.cardanofoundation.rosetta.api.common.service.TokenRegistryService;
 import org.cardanofoundation.rosetta.common.mapper.DataMapper;
@@ -46,12 +46,12 @@ class TransactionMapperUtilsTest {
 
     // Configure TokenRegistryService to return fallback metadata for any asset
     lenient().when(tokenRegistryService.getTokenMetadataBatch(anySet())).thenAnswer(invocation -> {
-      Map<Asset, TokenRegistryCurrencyData> result = new HashMap<>();
+      Map<AssetFingerprint, TokenRegistryCurrencyData> result = new HashMap<>();
       @SuppressWarnings("unchecked")
-      Set<Asset> assets = (Set<Asset>) invocation.getArgument(0);
-      for (Asset asset : assets) {
-        result.put(asset, TokenRegistryCurrencyData.builder()
-            .policyId(asset.getPolicyId())
+      Set<AssetFingerprint> assetFingerprints = (Set<AssetFingerprint>) invocation.getArgument(0);
+      for (AssetFingerprint assetFingerprint : assetFingerprints) {
+        result.put(assetFingerprint, TokenRegistryCurrencyData.builder()
+            .policyId(assetFingerprint.getPolicyId())
             .decimals(0) // Default decimals
             .build());
       }
@@ -76,7 +76,7 @@ class TransactionMapperUtilsTest {
     );
     
     // Create metadata map for the cached method
-    Map<Asset, TokenRegistryCurrencyData> metadataMap = createMetadataMapForAmounts(amtList);
+    Map<AssetFingerprint, TokenRegistryCurrencyData> metadataMap = createMetadataMapForAmounts(amtList);
     
     // when
     OperationMetadata operationMetadata = transactionMapperUtils.mapToOperationMetaDataWithCache(true, amtList, metadataMap);
@@ -103,7 +103,7 @@ class TransactionMapperUtilsTest {
         newAmt(2, 21, true));
     
     // Create metadata map for the cached method
-    Map<Asset, TokenRegistryCurrencyData> metadataMap = createMetadataMapForAmounts(amtList);
+    Map<AssetFingerprint, TokenRegistryCurrencyData> metadataMap = createMetadataMapForAmounts(amtList);
     
     // when
     OperationMetadata operationMetadata = transactionMapperUtils.mapToOperationMetaDataWithCache(true, amtList, metadataMap);
@@ -119,10 +119,7 @@ class TransactionMapperUtilsTest {
     String subject = policyId + "746573744173736574";  // hex encoding of "testAsset"
     
     // Create Asset object for the request
-    Asset asset = Asset.builder()
-        .policyId(policyId)
-        .assetName(assetName)
-        .build();
+    AssetFingerprint assetFingerprint = AssetFingerprint.of(policyId, assetName);
     
     // Mock token registry response with full metadata
     TokenRegistryCurrencyData currencyMetadata = TokenRegistryCurrencyData.builder()
@@ -137,8 +134,8 @@ class TransactionMapperUtilsTest {
         .version(BigDecimal.valueOf(1L))
         .build();
 
-    Map<Asset, TokenRegistryCurrencyData> tokenMetadataMap = new HashMap<>();
-    tokenMetadataMap.put(asset, currencyMetadata);
+    Map<AssetFingerprint, TokenRegistryCurrencyData> tokenMetadataMap = new HashMap<>();
+    tokenMetadataMap.put(assetFingerprint, currencyMetadata);
     
     List<Amt> amtList = Arrays.asList(
         newAmtWithCustomName(policyId, assetName, false)
@@ -158,9 +155,9 @@ class TransactionMapperUtilsTest {
     
     Amount amount = item.getTokens().get(0);
     assertNotNull(amount.getCurrency());
-    
+
     CurrencyResponse currency = amount.getCurrency();
-    assertEquals("customUnit", currency.getSymbol());
+    assertEquals(assetName, currency.getSymbol());
     assertEquals(6, currency.getDecimals());
     
     // Verify metadata injection
@@ -184,10 +181,7 @@ class TransactionMapperUtilsTest {
     String policyId = "testPolicyId";
     String assetName = "testAsset";
     
-    Asset asset = Asset.builder()
-        .policyId(policyId)
-        .assetName(assetName)
-        .build();
+    AssetFingerprint assetFingerprint = AssetFingerprint.of(policyId, assetName);
     
     // Mock service to return fallback metadata (service always returns something now)
     TokenRegistryCurrencyData fallbackMetadata = TokenRegistryCurrencyData.builder()
@@ -195,8 +189,8 @@ class TransactionMapperUtilsTest {
         .decimals(0)
         .build();
 
-    Map<Asset, TokenRegistryCurrencyData> tokenMetadataMap = new HashMap<>();
-    tokenMetadataMap.put(asset, fallbackMetadata);
+    Map<AssetFingerprint, TokenRegistryCurrencyData> tokenMetadataMap = new HashMap<>();
+    tokenMetadataMap.put(assetFingerprint, fallbackMetadata);
     
     List<Amt> amtList = Arrays.asList(
         newAmtWithCustomName(policyId, assetName, false)
@@ -216,9 +210,9 @@ class TransactionMapperUtilsTest {
     
     Amount amount = item.getTokens().get(0);
     assertNotNull(amount.getCurrency());
-    
+
     CurrencyResponse currency = amount.getCurrency();
-    assertEquals("customUnit", currency.getSymbol());
+    assertEquals(assetName, currency.getSymbol());
     assertEquals(0, currency.getDecimals()); // Default when no metadata
     
     // Verify fallback metadata is present with at least policyId
@@ -236,10 +230,7 @@ class TransactionMapperUtilsTest {
     String policyId = "testPolicyId";
     String assetName = "testAsset";
     
-    Asset asset = Asset.builder()
-        .policyId(policyId)
-        .assetName(assetName)
-        .build();
+    AssetFingerprint assetFingerprint = AssetFingerprint.of(policyId, assetName);
     
     // Mock service to return fallback metadata
     TokenRegistryCurrencyData fallbackMetadata = TokenRegistryCurrencyData.builder()
@@ -247,15 +238,15 @@ class TransactionMapperUtilsTest {
         .decimals(0)
         .build();
 
-    Map<Asset, TokenRegistryCurrencyData> tokenMetadataMap = new HashMap<>();
-    tokenMetadataMap.put(asset, fallbackMetadata);
+    Map<AssetFingerprint, TokenRegistryCurrencyData> tokenMetadataMap = new HashMap<>();
+    tokenMetadataMap.put(assetFingerprint, fallbackMetadata);
     
     List<Amt> amtList = Arrays.asList(
         Amt.builder()
             .assetName(assetName)
             .policyId(policyId)
             .quantity(BigInteger.valueOf(1000))
-            .unit("testUnit")
+            .unit(policyId + assetName)
             .build()
     );
     
@@ -276,19 +267,17 @@ class TransactionMapperUtilsTest {
     assertEquals("1000", amount.getValue()); // Positive for received
   }
 
-  private Map<Asset, TokenRegistryCurrencyData> createMetadataMapForAmounts(List<Amt> amtList) {
-    Map<Asset, TokenRegistryCurrencyData> metadataMap = new HashMap<>();
+  private Map<AssetFingerprint, TokenRegistryCurrencyData> createMetadataMapForAmounts(List<Amt> amtList) {
+    Map<AssetFingerprint, TokenRegistryCurrencyData> metadataMap = new HashMap<>();
     for (Amt amt : amtList) {
-      if (!Constants.LOVELACE.equals(amt.getAssetName())) {
-        Asset asset = Asset.builder()
-            .policyId(amt.getPolicyId())
-            .assetName(amt.getAssetName())
-            .build();
+      if (!Constants.LOVELACE.equals(amt.getUnit())) {
+        String symbol = amt.getSymbolHex();
+        AssetFingerprint assetFingerprint = AssetFingerprint.of(amt.getPolicyId(), symbol);
         TokenRegistryCurrencyData metadata = TokenRegistryCurrencyData.builder()
             .policyId(amt.getPolicyId())
             .decimals(0) // Default decimals
             .build();
-        metadataMap.put(asset, metadata);
+        metadataMap.put(assetFingerprint, metadata);
       }
     }
     return metadataMap;
@@ -305,20 +294,26 @@ class TransactionMapperUtilsTest {
   }
 
   private static Amt newAmt(int policy, int number, boolean isLovelace) {
+    String policyId = "policyId" + policy;
+    String symbol = isLovelace ? "" : "unit" + number;
+    String unit = isLovelace ? Constants.LOVELACE : policyId + symbol;
+
     return Amt.builder()
         .assetName(isLovelace ? Constants.LOVELACE : "assetName" + number)
-        .policyId("policyId" + policy)
+        .policyId(policyId)
         .quantity(BigInteger.ONE)
-        .unit("unit" + number)
+        .unit(unit)
         .build();
   }
 
   private static Amt newAmtWithCustomName(String policyId, String assetName, boolean isLovelace) {
+    String unit = isLovelace ? Constants.LOVELACE : policyId + assetName;
+
     return Amt.builder()
         .assetName(isLovelace ? Constants.LOVELACE : assetName)
         .policyId(policyId)
         .quantity(BigInteger.ONE)
-        .unit("customUnit")
+        .unit(unit)
         .build();
   }
 

@@ -10,7 +10,7 @@ import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.block.model.domain.DRepDelegation;
 import org.cardanofoundation.rosetta.api.block.model.domain.GovernancePoolVote;
 import org.cardanofoundation.rosetta.api.block.model.domain.StakeRegistration;
-import org.cardanofoundation.rosetta.api.common.model.Asset;
+import org.cardanofoundation.rosetta.api.common.model.AssetFingerprint;
 import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.common.mapper.DataMapper;
@@ -86,20 +86,20 @@ public class TransactionMapperUtils {
 
   @Named("mapAmountsToOperationMetadataInputWithCache")
   public OperationMetadata mapToOperationMetaDataInputWithCache(List<Amt> amounts,
-                                                                @Context Map<Asset, TokenRegistryCurrencyData> metadataMap) {
+                                                                @Context Map<AssetFingerprint, TokenRegistryCurrencyData> metadataMap) {
     return mapToOperationMetaDataWithCache(true, amounts, metadataMap);
   }
 
   @Named("mapAmountsToOperationMetadataOutputWithCache")
   public OperationMetadata mapToOperationMetaDataOutputWithCache(List<Amt> amounts,
-                                                                 @Context Map<Asset, TokenRegistryCurrencyData> metadataMap) {
+                                                                 @Context Map<AssetFingerprint, TokenRegistryCurrencyData> metadataMap) {
     return mapToOperationMetaDataWithCache(false, amounts, metadataMap);
   }
 
   @Nullable
   public OperationMetadata mapToOperationMetaDataWithCache(boolean spent,
                                                            List<Amt> amounts,
-                                                           Map<Asset, TokenRegistryCurrencyData> metadataMap) {
+                                                           Map<AssetFingerprint, TokenRegistryCurrencyData> metadataMap) {
     OperationMetadata operationMetadata = new OperationMetadata();
 
     if (amounts == null || amounts.isEmpty()) {
@@ -108,7 +108,7 @@ public class TransactionMapperUtils {
 
     // Filter out ADA amounts
     List<Amt> nonAdaAmounts = amounts.stream()
-            .filter(amount -> !amount.getAssetName().equals(LOVELACE))
+            .filter(amount -> !LOVELACE.equals(amount.getUnit()))
             .toList();
 
     // token bundle is only for ada, no native assets present
@@ -145,8 +145,10 @@ public class TransactionMapperUtils {
 
   public String getAdaAmount(Utxo f, boolean input) {
     BigInteger adaAmount = Optional.ofNullable(f.getAmounts())
-            .map(amts -> amts.stream().filter(amt -> amt.getAssetName().equals(
-                    LOVELACE)).findFirst().map(Amt::getQuantity).orElse(BigInteger.ZERO))
+            .map(amts -> amts.stream().filter(amt -> LOVELACE.equals(amt.getUnit()))
+                    .findFirst()
+                    .map(Amt::getQuantity)
+                    .orElse(BigInteger.ZERO))
             .orElse(BigInteger.ZERO);
     return input ? adaAmount.negate().toString() : adaAmount.toString();
   }
@@ -215,19 +217,16 @@ public class TransactionMapperUtils {
 
   private Amount extractAmountWithCache(boolean spent,
                                         Amt amount,
-                                        Map<Asset, TokenRegistryCurrencyData> metadataMap) {
-    Asset asset = Asset.builder()
-            .policyId(amount.getPolicyId())
-            .assetName(amount.getAssetName())
-            .build();
+                                        Map<AssetFingerprint, TokenRegistryCurrencyData> metadataMap) {
+    String symbol = amount.getSymbolHex();
 
-    TokenRegistryCurrencyData metadata = metadataMap.get(asset);
+    AssetFingerprint assetFingerprint = AssetFingerprint.of(amount.getPolicyId(), symbol);
 
-    String assetHex = amount.getUnit().replace(amount.getPolicyId(), "");
+    TokenRegistryCurrencyData metadata = metadataMap.get(assetFingerprint);
 
     return dataMapper.mapAmount(
             dataMapper.mapValue(amount.getQuantity().toString(), spent),
-            assetHex,
+            symbol,
             getDecimalsWithFallback(metadata),
             metadata
     );

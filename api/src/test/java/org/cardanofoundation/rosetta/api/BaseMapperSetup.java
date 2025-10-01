@@ -4,6 +4,7 @@ import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.cardanofoundation.rosetta.api.common.model.AssetFingerprint;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -18,7 +19,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.cardanofoundation.rosetta.api.BaseMapperSetup.BaseMappersConfig;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
-import org.cardanofoundation.rosetta.api.common.model.Asset;
 import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
 import org.cardanofoundation.rosetta.api.common.service.TokenRegistryService;
 import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
@@ -46,12 +46,12 @@ public class BaseMapperSetup {
     
     // Configure TokenRegistryService to return fallback metadata for any asset
     when(tokenRegistryService.getTokenMetadataBatch(anySet())).thenAnswer(invocation -> {
-      Map<Asset, TokenRegistryCurrencyData> result = new HashMap<>();
+      Map<AssetFingerprint, TokenRegistryCurrencyData> result = new HashMap<>();
       @SuppressWarnings("unchecked")
-      java.util.Set<Asset> assets = (java.util.Set<Asset>) invocation.getArgument(0);
-      for (Asset asset : assets) {
-        result.put(asset, TokenRegistryCurrencyData.builder()
-            .policyId(asset.getPolicyId())
+      java.util.Set<AssetFingerprint> assetFingerprints = (java.util.Set<AssetFingerprint>) invocation.getArgument(0);
+      for (AssetFingerprint assetFingerprint : assetFingerprints) {
+        result.put(assetFingerprint, TokenRegistryCurrencyData.builder()
+            .policyId(assetFingerprint.getPolicyId())
             .decimals(0) // Default decimals
             .build());
       }

@@ -4,9 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.cardanofoundation.rosetta.api.account.model.domain.AddressBalance;
 import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
-import org.cardanofoundation.rosetta.api.common.model.Asset;
+import org.cardanofoundation.rosetta.api.common.model.AssetFingerprint;
 import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
-import org.cardanofoundation.rosetta.api.common.service.TokenRegistryService;
 import org.cardanofoundation.rosetta.common.mapper.DataMapper;
 import org.cardanofoundation.rosetta.common.util.Constants;
 import org.mapstruct.Context;
@@ -27,7 +26,7 @@ public class AccountMapperUtil {
 
     @Named("mapAddressBalancesToAmounts")
     public List<Amount> mapAddressBalancesToAmounts(List<AddressBalance> balances,
-                                                    @Context Map<Asset, TokenRegistryCurrencyData> metadataMap) {
+                                                    @Context Map<AssetFingerprint, TokenRegistryCurrencyData> metadataMap) {
         BigInteger lovelaceAmount = balances.stream()
                 .filter(b -> Constants.LOVELACE.equals(b.unit()))
                 .map(AddressBalance::quantity)
@@ -51,16 +50,13 @@ public class AccountMapperUtil {
         // Use pre-fetched metadata passed via @Context from service layer
         // Process each native token balance with metadata
         for (AddressBalance b : nativeTokenBalances) {
-            String symbol = b.unit().substring(Constants.POLICY_ID_LENGTH);
-            String policyId = b.unit().substring(0, Constants.POLICY_ID_LENGTH);
+            String symbol = b.getSymbol();
+            String policyId = b.getPolicyId();
 
-            Asset asset = Asset.builder()
-                    .policyId(policyId)
-                    .assetName(symbol)
-                    .build();
+            AssetFingerprint assetFingerprint = AssetFingerprint.of(policyId, symbol);
 
             // Get metadata from pre-fetched map
-            TokenRegistryCurrencyData metadata = metadataMap.get(asset);
+            TokenRegistryCurrencyData metadata = metadataMap.get(assetFingerprint);
 
             amounts.add(
                     dataMapper.mapAmount(b.quantity().toString(),
@@ -75,7 +71,7 @@ public class AccountMapperUtil {
 
     @Named("mapUtxosToCoins")
     public List<Coin> mapUtxosToCoins(List<Utxo> utxos,
-                                      @Context Map<Asset, TokenRegistryCurrencyData> metadataMap) {
+                                      @Context Map<AssetFingerprint, TokenRegistryCurrencyData> metadataMap) {
         return utxos.stream().map(utxo -> {
             Amt adaAsset = utxo.getAmounts().stream()
                     .filter(amt -> Constants.LOVELACE.equals(amt.getUnit()))
@@ -97,14 +93,13 @@ public class AccountMapperUtil {
 
     @Nullable
     private Map<String, List<CoinTokens>> mapCoinMetadata(Utxo utxo, String coinIdentifier,
-                                                          Map<Asset, TokenRegistryCurrencyData> metadataMap) {
+                                                          Map<AssetFingerprint, TokenRegistryCurrencyData> metadataMap) {
         // Filter only native tokens (non-ADA amounts with policyId)
         List<Amt> nativeTokenAmounts = utxo.getAmounts().stream()
                 .filter(Objects::nonNull)
                 .filter(amount -> amount.getPolicyId() != null
-                        && amount.getAssetName() != null // assetName can be empty string for tokens with no name
                         && amount.getQuantity() != null)
-                .filter(amount -> !Constants.LOVELACE.equals(amount.getAssetName())) // exclude ADA
+                .filter(amount -> !Constants.LOVELACE.equals(amount.getUnit())) // exclude ADA
                 .toList();
 
         if (nativeTokenAmounts.isEmpty()) {
@@ -116,17 +111,12 @@ public class AccountMapperUtil {
         List<CoinTokens> coinTokens = nativeTokenAmounts.stream()
                 .map(amount -> {
                     String policyId = amount.getPolicyId();
+                    String symbol = amount.getSymbolHex();
 
-                    Asset asset = Asset.builder()
-                            .policyId(policyId)
-                            .assetName(amount.getAssetName())
-                            .build();
+                    AssetFingerprint assetFingerprint = AssetFingerprint.of(policyId, symbol);
 
                     // Get metadata from pre-fetched map
-                    TokenRegistryCurrencyData metadata = metadataMap.get(asset);
-
-                    // unit = assetName + policyId. To get the symbol policy ID must be removed from Unit. According to CIP67
-                    String symbol = amount.getUnit().replace(amount.getPolicyId(), "");
+                    TokenRegistryCurrencyData metadata = metadataMap.get(assetFingerprint);
 
                     Amount tokenAmount = dataMapper.mapAmount(
                             amount.getQuantity().toString(),

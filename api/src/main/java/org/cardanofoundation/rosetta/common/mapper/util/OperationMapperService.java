@@ -5,9 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.cardanofoundation.rosetta.api.block.mapper.TransactionMapper;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
-import org.cardanofoundation.rosetta.api.common.model.Asset;
+import org.cardanofoundation.rosetta.api.common.model.AssetFingerprint;
 import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
-import org.cardanofoundation.rosetta.api.common.service.TokenRegistryService;
 import org.cardanofoundation.rosetta.common.util.RosettaConstants;
 import org.mapstruct.Context;
 import org.mapstruct.Named;
@@ -39,7 +38,7 @@ public class OperationMapperService {
 
   @Named("mapTransactionsToOperationsWithMetadata")
   public List<Operation> mapTransactionsToOperationsWithMetadata(BlockTx source,
-                                                                 @Context Map<Asset, TokenRegistryCurrencyData> metadataMap) {
+                                                                 @Context Map<AssetFingerprint, TokenRegistryCurrencyData> metadataMap) {
     List<Operation> operations = new ArrayList<>();
     MutableInt ix = new MutableInt(0);
     OperationStatus txStatus = source.isInvalid() ? invalidOperationStatus: successOperationStatus;

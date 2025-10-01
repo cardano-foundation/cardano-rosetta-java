@@ -1,7 +1,7 @@
 package org.cardanofoundation.rosetta.api.block.mapper;
 
 import com.bloxbean.cardano.yaci.core.model.certs.CertificateType;
-import org.cardanofoundation.rosetta.api.common.model.Asset;
+import org.cardanofoundation.rosetta.api.common.model.AssetFingerprint;
 import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;
@@ -82,7 +82,7 @@ public interface TransactionMapper {
   @Mapping(target = "amount.currency.symbol", constant = Constants.ADA)
   @Mapping(target = "amount.currency.decimals", constant = Constants.ADA_DECIMALS_STRING)
   @Mapping(target = "coinChange.coinIdentifier.identifier", source = "model", qualifiedByName = "getUtxoName")
-  Operation mapInputUtxoToOperation(Utxo model, OperationStatus status, int index, @Context Map<Asset, TokenRegistryCurrencyData> metadataMap);
+  Operation mapInputUtxoToOperation(Utxo model, OperationStatus status, int index, @Context Map<AssetFingerprint, TokenRegistryCurrencyData> metadataMap);
 
   @Mapping(target = "type", constant = Constants.OUTPUT)
   @Mapping(target = "status", source = "status.status")
@@ -94,7 +94,7 @@ public interface TransactionMapper {
   @Mapping(target = "amount.currency.symbol", constant = Constants.ADA)
   @Mapping(target = "amount.currency.decimals", constant = Constants.ADA_DECIMALS_STRING)
   @Mapping(target = "coinChange.coinIdentifier.identifier", source = "model", qualifiedByName = "getUtxoName")
-  Operation mapOutputUtxoToOperation(Utxo model, OperationStatus status, int index, @Context Map<Asset, TokenRegistryCurrencyData> metadataMap);
+  Operation mapOutputUtxoToOperation(Utxo model, OperationStatus status, int index, @Context Map<AssetFingerprint, TokenRegistryCurrencyData> metadataMap);
 
   StakeRegistration mapStakeRegistrationEntityToStakeRegistration(StakeRegistrationEntity entity);
 
