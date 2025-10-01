@@ -88,8 +88,7 @@ public class CachingTokenRegistryHttpGatewayImpl implements TokenRegistryHttpGat
             return result;
         }
 
-        log.info("Initiating remote token registry HTTP POST request: {} for {} subjects", batchEndpointUrl, subjectsToFetch.size());
-        log.debug("Subjects to fetch from token registry: {}", subjectsToFetch);
+        log.info("Initiating remote token registry HTTP POST request: {} for {} subjects: {}", batchEndpointUrl, subjectsToFetch.size(), subjectsToFetch);
 
         Stopwatch stopwatch = Stopwatch.createStarted();
 
@@ -127,12 +126,16 @@ public class CachingTokenRegistryHttpGatewayImpl implements TokenRegistryHttpGat
             TokenRegistryBatchResponse batchResponse = objectMapper.readValue(response.body(), TokenRegistryBatchResponse.class);
 
             if (batchResponse.getSubjects() != null) {
+                List<String> receivedSubjects = new ArrayList<>();
                 for (TokenSubject tokenSubject : batchResponse.getSubjects()) {
                     // If subject is in response, cache it as found
                     result.put(tokenSubject.getSubject(), Optional.of(tokenSubject));
                     tokenMetadataCache.put(tokenSubject.getSubject(), TokenCacheEntry.found(tokenSubject));
-                    log.debug("Cached token metadata for subject: {}", tokenSubject.getSubject());
+                    receivedSubjects.add(tokenSubject.getSubject());
                 }
+                log.info("Token registry returned {} subjects: {}", receivedSubjects.size(), receivedSubjects);
+            } else {
+                log.info("Token registry returned no subjects");
             }
 
             // Cache empty results for subjects that were requested but not found in the response
