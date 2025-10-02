@@ -22,6 +22,8 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.*;
 
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -86,8 +88,7 @@ public class CachingTokenRegistryHttpGatewayImpl implements TokenRegistryHttpGat
             return result;
         }
 
-        log.info("Initiating remote token registry HTTP POST request: {} for {} subjects", batchEndpointUrl, subjectsToFetch.size());
-        log.debug("Subjects to fetch from token registry: {}", subjectsToFetch);
+        log.info("Initiating token registry request for {} subjects", subjectsToFetch.size());
 
         Stopwatch stopwatch = Stopwatch.createStarted();
 
@@ -112,9 +113,8 @@ public class CachingTokenRegistryHttpGatewayImpl implements TokenRegistryHttpGat
             // Execute request
             HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
 
-            long elapsedMillis = stopwatch.elapsed().toMillis();
-            log.info("Token registry remote fetch completed in {} ms for {} subjects (HTTP status: {})",
-                    elapsedMillis, subjectsToFetch.size(), response.statusCode());
+            long elapsedMillis = stopwatch.elapsed(MILLISECONDS);
+            log.info("Token registry fetch completed in {} ms (HTTP status: {})", elapsedMillis, response.statusCode());
 
             if (response.statusCode() != 200) {
                 log.error("Token registry returned non-200 status: {} for batch request", response.statusCode());
@@ -129,7 +129,6 @@ public class CachingTokenRegistryHttpGatewayImpl implements TokenRegistryHttpGat
                     // If subject is in response, cache it as found
                     result.put(tokenSubject.getSubject(), Optional.of(tokenSubject));
                     tokenMetadataCache.put(tokenSubject.getSubject(), TokenCacheEntry.found(tokenSubject));
-                    log.debug("Cached token metadata for subject: {}", tokenSubject.getSubject());
                 }
             }
 
@@ -138,27 +137,26 @@ public class CachingTokenRegistryHttpGatewayImpl implements TokenRegistryHttpGat
                 if (!result.containsKey(subjectToFetch)) {
                     result.put(subjectToFetch, Optional.empty());
                     tokenMetadataCache.put(subjectToFetch, TokenCacheEntry.notFound());
-                    log.debug("Cached not-found result for subject: {}", subjectToFetch);
                 }
             }
 
             int fetchedCount = batchResponse.getSubjects() != null ? batchResponse.getSubjects().size() : 0;
-            log.info("Successfully fetched and cached {} token metadata entries out of {} requested subjects",
+            log.info("Successfully fetched {} token metadata entries out of {} requested subjects",
                     fetchedCount, subjectsToFetch.size());
 
             return result;
 
         } catch (IOException e) {
-            long elapsedMillis = stopwatch.elapsed().toMillis();
+            long elapsedMillis = stopwatch.elapsed(MILLISECONDS);
             log.error("IO error while fetching token metadata batch after {} ms for {} subjects", elapsedMillis, subjectsToFetch.size(), e);
             return result; // Return partial results from cache
         } catch (InterruptedException e) {
-            long elapsedMillis = stopwatch.elapsed().toMillis();
+            long elapsedMillis = stopwatch.elapsed(MILLISECONDS);
             log.error("Request interrupted while fetching token metadata batch after {} ms for {} subjects", elapsedMillis, subjectsToFetch.size(), e);
             Thread.currentThread().interrupt();
             return result; // Return partial results from cache
         } catch (Exception e) {
-            long elapsedMillis = stopwatch.elapsed().toMillis();
+            long elapsedMillis = stopwatch.elapsed(MILLISECONDS);
             log.error("Unexpected error while fetching token metadata batch after {} ms for {} subjects", elapsedMillis, subjectsToFetch.size(), e);
             return result; // Return partial results from cache
         }
@@ -191,6 +189,5 @@ public class CachingTokenRegistryHttpGatewayImpl implements TokenRegistryHttpGat
         
         return properties;
     }
-
 
 }

@@ -4,13 +4,13 @@ import org.cardanofoundation.rosetta.api.account.model.domain.AddressBalance;
 import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
-import org.cardanofoundation.rosetta.api.common.model.Asset;
+import org.cardanofoundation.rosetta.api.common.model.AssetFingerprint;
+import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
 import org.cardanofoundation.rosetta.client.TokenRegistryHttpGateway;
 import org.cardanofoundation.rosetta.client.model.domain.TokenMetadata;
 import org.cardanofoundation.rosetta.client.model.domain.TokenProperty;
 import org.cardanofoundation.rosetta.client.model.domain.TokenPropertyNumber;
 import org.cardanofoundation.rosetta.client.model.domain.TokenSubject;
-import org.cardanofoundation.rosetta.common.util.Constants;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -40,8 +40,9 @@ class TokenRegistryServiceImplTest {
     private TokenRegistryServiceImpl tokenRegistryService;
 
     private static final String POLICY_ID = "a0b1c2d3e4f5a0b1c2d3e4f5a0b1c2d3e4f5a0b1c2d3e4f5a0b1c2d3";
-    private static final String ASSET_NAME = "TestToken";
-    private static final String SUBJECT = POLICY_ID + "54657374546f6b656e"; // hex encoding of "TestToken"
+    private static final String ASSET_NAME = "TestToken"; // Human-readable name
+    private static final String ASSET_SYMBOL_HEX = "54657374546f6b656e"; // hex encoding of "TestToken"
+    private static final String SUBJECT = POLICY_ID + ASSET_SYMBOL_HEX;
 
     @BeforeEach
     void setUp() {
@@ -56,10 +57,10 @@ class TokenRegistryServiceImplTest {
         @DisplayName("Should return empty map when assets set is empty")
         void shouldReturnEmptyMapForEmptyAssets() {
             // given
-            Set<Asset> emptyAssets = Set.of();
+            Set<AssetFingerprint> emptyAssetFingerprints = Set.of();
 
             // when
-            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.getTokenMetadataBatch(emptyAssets);
+            Map<AssetFingerprint, TokenRegistryCurrencyData> result = tokenRegistryService.getTokenMetadataBatch(emptyAssetFingerprints);
 
             // then
             assertThat(result).isEmpty();
@@ -70,18 +71,18 @@ class TokenRegistryServiceImplTest {
         @DisplayName("Should return fallback metadata when gateway returns no data")
         void shouldReturnFallbackMetadataWhenNoGatewayData() {
             // given
-            Asset asset = createAsset(POLICY_ID, ASSET_NAME);
-            Set<Asset> assets = Set.of(asset);
-            
+            AssetFingerprint assetFingerprint = createAsset(POLICY_ID, ASSET_SYMBOL_HEX);
+            Set<AssetFingerprint> assetFingerprints = Set.of(assetFingerprint);
+
             when(tokenRegistryHttpGateway.getTokenMetadataBatch(anySet()))
                 .thenReturn(Map.of(SUBJECT, Optional.empty()));
 
             // when
-            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.getTokenMetadataBatch(assets);
+            Map<AssetFingerprint, TokenRegistryCurrencyData> result = tokenRegistryService.getTokenMetadataBatch(assetFingerprints);
 
             // then
             assertThat(result).hasSize(1);
-            CurrencyMetadataResponse metadata = result.get(asset);
+            TokenRegistryCurrencyData metadata = result.get(assetFingerprint);
             assertThat(metadata).isNotNull();
             assertThat(metadata.getPolicyId()).isEqualTo(POLICY_ID);
             assertThat(metadata.getSubject()).isNull();
@@ -94,21 +95,21 @@ class TokenRegistryServiceImplTest {
         @DisplayName("Should return fallback metadata when gateway returns null entry")
         void shouldReturnFallbackMetadataWhenGatewayReturnsNull() {
             // given
-            Asset asset = createAsset(POLICY_ID, ASSET_NAME);
-            Set<Asset> assets = Set.of(asset);
-            
+            AssetFingerprint assetFingerprint = createAsset(POLICY_ID, ASSET_SYMBOL_HEX);
+            Set<AssetFingerprint> assetFingerprints = Set.of(assetFingerprint);
+
             Map<String, Optional<TokenSubject>> gatewayResponse = new HashMap<>();
             gatewayResponse.put(SUBJECT, null);
-            
+
             when(tokenRegistryHttpGateway.getTokenMetadataBatch(anySet()))
                 .thenReturn(gatewayResponse);
 
             // when
-            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.getTokenMetadataBatch(assets);
+            Map<AssetFingerprint, TokenRegistryCurrencyData> result = tokenRegistryService.getTokenMetadataBatch(assetFingerprints);
 
             // then
             assertThat(result).hasSize(1);
-            CurrencyMetadataResponse metadata = result.get(asset);
+            TokenRegistryCurrencyData metadata = result.get(assetFingerprint);
             assertThat(metadata).isNotNull();
             assertThat(metadata.getPolicyId()).isEqualTo(POLICY_ID);
             assertThat(metadata.getSubject()).isNull();
@@ -119,18 +120,18 @@ class TokenRegistryServiceImplTest {
         @DisplayName("Should return fallback metadata when subject not found in gateway response")
         void shouldReturnFallbackMetadataWhenSubjectNotFound() {
             // given
-            Asset asset = createAsset(POLICY_ID, ASSET_NAME);
-            Set<Asset> assets = Set.of(asset);
-            
+            AssetFingerprint assetFingerprint = createAsset(POLICY_ID, ASSET_SYMBOL_HEX);
+            Set<AssetFingerprint> assetFingerprints = Set.of(assetFingerprint);
+
             when(tokenRegistryHttpGateway.getTokenMetadataBatch(anySet()))
                 .thenReturn(Map.of()); // Empty map - subject not found
 
             // when
-            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.getTokenMetadataBatch(assets);
+            Map<AssetFingerprint, TokenRegistryCurrencyData> result = tokenRegistryService.getTokenMetadataBatch(assetFingerprints);
 
             // then
             assertThat(result).hasSize(1);
-            CurrencyMetadataResponse metadata = result.get(asset);
+            TokenRegistryCurrencyData metadata = result.get(assetFingerprint);
             assertThat(metadata).isNotNull();
             assertThat(metadata.getPolicyId()).isEqualTo(POLICY_ID);
         }
@@ -139,20 +140,20 @@ class TokenRegistryServiceImplTest {
         @DisplayName("Should extract complete metadata when gateway returns full token data")
         void shouldExtractCompleteMetadataWhenFullDataAvailable() {
             // given
-            Asset asset = createAsset(POLICY_ID, ASSET_NAME);
-            Set<Asset> assets = Set.of(asset);
-            
+            AssetFingerprint assetFingerprint = createAsset(POLICY_ID, ASSET_SYMBOL_HEX);
+            Set<AssetFingerprint> assetFingerprints = Set.of(assetFingerprint);
+
             TokenSubject tokenSubject = createCompleteTokenSubject();
             when(tokenRegistryHttpGateway.getTokenMetadataBatch(anySet()))
                 .thenReturn(Map.of(SUBJECT, Optional.of(tokenSubject)));
 
             // when
-            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.getTokenMetadataBatch(assets);
+            Map<AssetFingerprint, TokenRegistryCurrencyData> result = tokenRegistryService.getTokenMetadataBatch(assetFingerprints);
 
             // then
             assertThat(result).hasSize(1);
-            CurrencyMetadataResponse metadata = result.get(asset);
-            
+            TokenRegistryCurrencyData metadata = result.get(assetFingerprint);
+
             assertThat(metadata.getPolicyId()).isEqualTo(POLICY_ID);
             assertThat(metadata.getSubject()).isEqualTo(SUBJECT);
             assertThat(metadata.getName()).isEqualTo("Test Token");
@@ -161,9 +162,9 @@ class TokenRegistryServiceImplTest {
             assertThat(metadata.getUrl()).isEqualTo("https://test.com");
             assertThat(metadata.getDecimals()).isEqualTo(6);
             assertThat(metadata.getVersion()).isEqualTo(BigDecimal.valueOf(1L));
-            
+
             assertThat(metadata.getLogo()).isNotNull();
-            assertThat(metadata.getLogo().getFormat()).isEqualTo(LogoType.FormatEnum.BASE64);
+            assertThat(metadata.getLogo().getFormat()).isEqualTo(TokenRegistryCurrencyData.LogoFormat.BASE64);
             assertThat(metadata.getLogo().getValue()).isEqualTo("base64logo");
         }
 
@@ -171,34 +172,34 @@ class TokenRegistryServiceImplTest {
         @DisplayName("Should handle multiple assets correctly")
         void shouldHandleMultipleAssetsCorrectly() {
             // given
-            Asset asset1 = createAsset(POLICY_ID, ASSET_NAME);
-            Asset asset2 = createAsset("policy2", "Asset2");
-            Set<Asset> assets = Set.of(asset1, asset2);
-            
+            AssetFingerprint assetFingerprint1 = createAsset(POLICY_ID, ASSET_SYMBOL_HEX);
+            AssetFingerprint assetFingerprint2 = createAsset("policy2", "Asset2");
+            Set<AssetFingerprint> assetFingerprints = Set.of(assetFingerprint1, assetFingerprint2);
+
             String subject2 = "policy2" + "417373657432"; // hex encoding of "Asset2"
             TokenSubject tokenSubject1 = createCompleteTokenSubject();
-            
+
             Map<String, Optional<TokenSubject>> gatewayResponse = Map.of(
                 SUBJECT, Optional.of(tokenSubject1),
                 subject2, Optional.empty() // No data for second asset
             );
-            
+
             when(tokenRegistryHttpGateway.getTokenMetadataBatch(anySet()))
                 .thenReturn(gatewayResponse);
 
             // when
-            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.getTokenMetadataBatch(assets);
+            Map<AssetFingerprint, TokenRegistryCurrencyData> result = tokenRegistryService.getTokenMetadataBatch(assetFingerprints);
 
             // then
             assertThat(result).hasSize(2);
-            
+
             // First asset should have complete metadata
-            CurrencyMetadataResponse metadata1 = result.get(asset1);
+            TokenRegistryCurrencyData metadata1 = result.get(assetFingerprint1);
             assertThat(metadata1.getName()).isEqualTo("Test Token");
             assertThat(metadata1.getPolicyId()).isEqualTo(POLICY_ID);
-            
+
             // Second asset should have fallback metadata only
-            CurrencyMetadataResponse metadata2 = result.get(asset2);
+            TokenRegistryCurrencyData metadata2 = result.get(assetFingerprint2);
             assertThat(metadata2.getPolicyId()).isEqualTo("policy2");
             assertThat(metadata2.getName()).isNull();
         }
@@ -207,26 +208,26 @@ class TokenRegistryServiceImplTest {
         @DisplayName("Should handle minimal metadata correctly")
         void shouldHandleMinimalMetadataCorrectly() {
             // given
-            Asset asset = createAsset(POLICY_ID, ASSET_NAME);
-            Set<Asset> assets = Set.of(asset);
-            
+            AssetFingerprint assetFingerprint = createAsset(POLICY_ID, ASSET_SYMBOL_HEX);
+            Set<AssetFingerprint> assetFingerprints = Set.of(assetFingerprint);
+
             TokenSubject tokenSubject = createMinimalTokenSubject();
             when(tokenRegistryHttpGateway.getTokenMetadataBatch(anySet()))
                 .thenReturn(Map.of(SUBJECT, Optional.of(tokenSubject)));
 
             // when
-            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.getTokenMetadataBatch(assets);
+            Map<AssetFingerprint, TokenRegistryCurrencyData> result = tokenRegistryService.getTokenMetadataBatch(assetFingerprints);
 
             // then
             assertThat(result).hasSize(1);
-            CurrencyMetadataResponse metadata = result.get(asset);
-            
+            TokenRegistryCurrencyData metadata = result.get(assetFingerprint);
+
             assertThat(metadata.getPolicyId()).isEqualTo(POLICY_ID);
             assertThat(metadata.getSubject()).isEqualTo(SUBJECT);
             assertThat(metadata.getName()).isEqualTo("Minimal Token");
             assertThat(metadata.getDescription()).isEqualTo("Minimal Description");
             assertThat(metadata.getDecimals()).isEqualTo(0); // Default value
-            
+
             // Optional fields should be null
             assertThat(metadata.getTicker()).isNull();
             assertThat(metadata.getUrl()).isNull();
@@ -243,20 +244,20 @@ class TokenRegistryServiceImplTest {
         @DisplayName("Should convert CIP_26 logo to BASE64 format")
         void shouldConvertCip26LogoToBase64() {
             // given
-            Asset asset = createAsset(POLICY_ID, ASSET_NAME);
-            Set<Asset> assets = Set.of(asset);
-            
+            AssetFingerprint assetFingerprint = createAsset(POLICY_ID, ASSET_SYMBOL_HEX);
+            Set<AssetFingerprint> assetFingerprints = Set.of(assetFingerprint);
+
             TokenSubject tokenSubject = createTokenSubjectWithLogo("CIP_26", "hexdata123");
             when(tokenRegistryHttpGateway.getTokenMetadataBatch(anySet()))
                 .thenReturn(Map.of(SUBJECT, Optional.of(tokenSubject)));
 
             // when
-            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.getTokenMetadataBatch(assets);
+            Map<AssetFingerprint, TokenRegistryCurrencyData> result = tokenRegistryService.getTokenMetadataBatch(assetFingerprints);
 
             // then
-            CurrencyMetadataResponse metadata = result.get(asset);
+            TokenRegistryCurrencyData metadata = result.get(assetFingerprint);
             assertThat(metadata.getLogo()).isNotNull();
-            assertThat(metadata.getLogo().getFormat()).isEqualTo(LogoType.FormatEnum.BASE64);
+            assertThat(metadata.getLogo().getFormat()).isEqualTo(TokenRegistryCurrencyData.LogoFormat.BASE64);
             assertThat(metadata.getLogo().getValue()).isEqualTo("hexdata123");
         }
 
@@ -264,20 +265,20 @@ class TokenRegistryServiceImplTest {
         @DisplayName("Should convert CIP_68 logo to URL format")
         void shouldConvertCip68LogoToUrl() {
             // given
-            Asset asset = createAsset(POLICY_ID, ASSET_NAME);
-            Set<Asset> assets = Set.of(asset);
-            
+            AssetFingerprint assetFingerprint = createAsset(POLICY_ID, ASSET_SYMBOL_HEX);
+            Set<AssetFingerprint> assetFingerprints = Set.of(assetFingerprint);
+
             TokenSubject tokenSubject = createTokenSubjectWithLogo("CIP_68", "https://example.com/logo.png");
             when(tokenRegistryHttpGateway.getTokenMetadataBatch(anySet()))
                 .thenReturn(Map.of(SUBJECT, Optional.of(tokenSubject)));
 
             // when
-            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.getTokenMetadataBatch(assets);
+            Map<AssetFingerprint, TokenRegistryCurrencyData> result = tokenRegistryService.getTokenMetadataBatch(assetFingerprints);
 
             // then
-            CurrencyMetadataResponse metadata = result.get(asset);
+            TokenRegistryCurrencyData metadata = result.get(assetFingerprint);
             assertThat(metadata.getLogo()).isNotNull();
-            assertThat(metadata.getLogo().getFormat()).isEqualTo(LogoType.FormatEnum.URL);
+            assertThat(metadata.getLogo().getFormat()).isEqualTo(TokenRegistryCurrencyData.LogoFormat.URL);
             assertThat(metadata.getLogo().getValue()).isEqualTo("https://example.com/logo.png");
         }
 
@@ -285,37 +286,37 @@ class TokenRegistryServiceImplTest {
         @DisplayName("Should handle case insensitive CIP standards")
         void shouldHandleCaseInsensitiveCipStandards() {
             // given
-            Asset asset = createAsset(POLICY_ID, ASSET_NAME);
-            Set<Asset> assets = Set.of(asset);
-            
+            AssetFingerprint assetFingerprint = createAsset(POLICY_ID, ASSET_SYMBOL_HEX);
+            Set<AssetFingerprint> assetFingerprints = Set.of(assetFingerprint);
+
             TokenSubject tokenSubject = createTokenSubjectWithLogo("cip_26", "data");
             when(tokenRegistryHttpGateway.getTokenMetadataBatch(anySet()))
                 .thenReturn(Map.of(SUBJECT, Optional.of(tokenSubject)));
 
             // when
-            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.getTokenMetadataBatch(assets);
+            Map<AssetFingerprint, TokenRegistryCurrencyData> result = tokenRegistryService.getTokenMetadataBatch(assetFingerprints);
 
             // then
-            CurrencyMetadataResponse metadata = result.get(asset);
-            assertThat(metadata.getLogo().getFormat()).isEqualTo(LogoType.FormatEnum.BASE64);
+            TokenRegistryCurrencyData metadata = result.get(assetFingerprint);
+            assertThat(metadata.getLogo().getFormat()).isEqualTo(TokenRegistryCurrencyData.LogoFormat.BASE64);
         }
 
         @Test
         @DisplayName("Should return null format for unknown CIP standard")
         void shouldReturnNullFormatForUnknownCipStandard() {
             // given
-            Asset asset = createAsset(POLICY_ID, ASSET_NAME);
-            Set<Asset> assets = Set.of(asset);
-            
+            AssetFingerprint assetFingerprint = createAsset(POLICY_ID, ASSET_SYMBOL_HEX);
+            Set<AssetFingerprint> assetFingerprints = Set.of(assetFingerprint);
+
             TokenSubject tokenSubject = createTokenSubjectWithLogo("UNKNOWN", "data");
             when(tokenRegistryHttpGateway.getTokenMetadataBatch(anySet()))
                 .thenReturn(Map.of(SUBJECT, Optional.of(tokenSubject)));
 
             // when
-            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.getTokenMetadataBatch(assets);
+            Map<AssetFingerprint, TokenRegistryCurrencyData> result = tokenRegistryService.getTokenMetadataBatch(assetFingerprints);
 
             // then
-            CurrencyMetadataResponse metadata = result.get(asset);
+            TokenRegistryCurrencyData metadata = result.get(assetFingerprint);
             assertThat(metadata.getLogo()).isNotNull();
             assertThat(metadata.getLogo().getFormat()).isNull();
             assertThat(metadata.getLogo().getValue()).isEqualTo("data");
@@ -325,18 +326,18 @@ class TokenRegistryServiceImplTest {
         @DisplayName("Should return null logo when logo property is null")
         void shouldReturnNullLogoWhenPropertyIsNull() {
             // given
-            Asset asset = createAsset(POLICY_ID, ASSET_NAME);
-            Set<Asset> assets = Set.of(asset);
-            
+            AssetFingerprint assetFingerprint = createAsset(POLICY_ID, ASSET_SYMBOL_HEX);
+            Set<AssetFingerprint> assetFingerprints = Set.of(assetFingerprint);
+
             TokenSubject tokenSubject = createTokenSubjectWithLogo(null, null);
             when(tokenRegistryHttpGateway.getTokenMetadataBatch(anySet()))
                 .thenReturn(Map.of(SUBJECT, Optional.of(tokenSubject)));
 
             // when
-            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.getTokenMetadataBatch(assets);
+            Map<AssetFingerprint, TokenRegistryCurrencyData> result = tokenRegistryService.getTokenMetadataBatch(assetFingerprints);
 
             // then
-            CurrencyMetadataResponse metadata = result.get(asset);
+            TokenRegistryCurrencyData metadata = result.get(assetFingerprint);
             assertThat(metadata.getLogo()).isNull();
         }
 
@@ -344,24 +345,24 @@ class TokenRegistryServiceImplTest {
         @DisplayName("Should create logo with null value when logo value is null")
         void shouldCreateLogoWithNullValueWhenValueIsNull() {
             // given
-            Asset asset = createAsset(POLICY_ID, ASSET_NAME);
-            Set<Asset> assets = Set.of(asset);
-            
+            AssetFingerprint assetFingerprint = createAsset(POLICY_ID, ASSET_SYMBOL_HEX);
+            Set<AssetFingerprint> assetFingerprints = Set.of(assetFingerprint);
+
             TokenProperty logoProperty = mock(TokenProperty.class);
             when(logoProperty.getValue()).thenReturn(null);
             when(logoProperty.getSource()).thenReturn("CIP_26");
-            
+
             TokenSubject tokenSubject = createTokenSubjectWithCustomLogo(logoProperty);
             when(tokenRegistryHttpGateway.getTokenMetadataBatch(anySet()))
                 .thenReturn(Map.of(SUBJECT, Optional.of(tokenSubject)));
 
             // when
-            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.getTokenMetadataBatch(assets);
+            Map<AssetFingerprint, TokenRegistryCurrencyData> result = tokenRegistryService.getTokenMetadataBatch(assetFingerprints);
 
             // then
-            CurrencyMetadataResponse metadata = result.get(asset);
+            TokenRegistryCurrencyData metadata = result.get(assetFingerprint);
             assertThat(metadata.getLogo()).isNotNull();
-            assertThat(metadata.getLogo().getFormat()).isEqualTo(LogoType.FormatEnum.BASE64);
+            assertThat(metadata.getLogo().getFormat()).isEqualTo(TokenRegistryCurrencyData.LogoFormat.BASE64);
             assertThat(metadata.getLogo().getValue()).isNull();
         }
 
@@ -375,32 +376,32 @@ class TokenRegistryServiceImplTest {
         @DisplayName("Should handle gateway throwing exception gracefully")
         void shouldHandleGatewayExceptionGracefully() {
             // given
-            Asset asset = createAsset(POLICY_ID, ASSET_NAME);
-            Set<Asset> assets = Set.of(asset);
+            AssetFingerprint assetFingerprint = createAsset(POLICY_ID, ASSET_SYMBOL_HEX);
+            Set<AssetFingerprint> assetFingerprints = Set.of(assetFingerprint);
             
             when(tokenRegistryHttpGateway.getTokenMetadataBatch(anySet()))
                 .thenThrow(new RuntimeException("Gateway error"));
 
             // when & then
-            assertThrows(RuntimeException.class, () -> tokenRegistryService.getTokenMetadataBatch(assets));
+            assertThrows(RuntimeException.class, () -> tokenRegistryService.getTokenMetadataBatch(assetFingerprints));
         }
 
         @Test
         @DisplayName("Should handle null decimals gracefully")
         void shouldHandleNullDecimalsGracefully() {
             // given
-            Asset asset = createAsset(POLICY_ID, ASSET_NAME);
-            Set<Asset> assets = Set.of(asset);
-            
+            AssetFingerprint assetFingerprint = createAsset(POLICY_ID, ASSET_SYMBOL_HEX);
+            Set<AssetFingerprint> assetFingerprints = Set.of(assetFingerprint);
+
             TokenSubject tokenSubject = createTokenSubjectWithNullDecimals();
             when(tokenRegistryHttpGateway.getTokenMetadataBatch(anySet()))
                 .thenReturn(Map.of(SUBJECT, Optional.of(tokenSubject)));
 
             // when
-            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.getTokenMetadataBatch(assets);
+            Map<AssetFingerprint, TokenRegistryCurrencyData> result = tokenRegistryService.getTokenMetadataBatch(assetFingerprints);
 
             // then
-            CurrencyMetadataResponse metadata = result.get(asset);
+            TokenRegistryCurrencyData metadata = result.get(assetFingerprint);
             assertThat(metadata.getDecimals()).isEqualTo(0); // Default value
         }
 
@@ -408,14 +409,14 @@ class TokenRegistryServiceImplTest {
         @DisplayName("Should verify correct subject generation for asset")
         void shouldVerifyCorrectSubjectGenerationForAsset() {
             // given
-            Asset asset = createAsset(POLICY_ID, ASSET_NAME);
-            Set<Asset> assets = Set.of(asset);
+            AssetFingerprint assetFingerprint = createAsset(POLICY_ID, ASSET_SYMBOL_HEX);
+            Set<AssetFingerprint> assetFingerprints = Set.of(assetFingerprint);
             
             when(tokenRegistryHttpGateway.getTokenMetadataBatch(anySet()))
                 .thenReturn(Map.of());
 
             // when
-            tokenRegistryService.getTokenMetadataBatch(assets);
+            tokenRegistryService.getTokenMetadataBatch(assetFingerprints);
 
             // then
             verify(tokenRegistryHttpGateway).getTokenMetadataBatch(eq(Set.of(SUBJECT)));
@@ -425,24 +426,24 @@ class TokenRegistryServiceImplTest {
         @DisplayName("Should handle large batch of assets")
         void shouldHandleLargeBatchOfAssets() {
             // given
-            Set<Asset> assets = new HashSet<>();
+            Set<AssetFingerprint> assetFingerprints = new HashSet<>();
             Map<String, Optional<TokenSubject>> gatewayResponse = new HashMap<>();
-            
+
             for (int i = 0; i < 100; i++) {
                 String policyId = "policy" + String.format("%02d", i);
                 String assetName = "Asset" + i;
-                Asset asset = createAsset(policyId, assetName);
-                assets.add(asset);
-                
-                String subject = asset.toSubject();
+                AssetFingerprint assetFingerprint = createAsset(policyId, assetName);
+                assetFingerprints.add(assetFingerprint);
+
+                String subject = assetFingerprint.toSubject();
                 gatewayResponse.put(subject, Optional.empty());
             }
-            
+
             when(tokenRegistryHttpGateway.getTokenMetadataBatch(anySet()))
                 .thenReturn(gatewayResponse);
 
             // when
-            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.getTokenMetadataBatch(assets);
+            Map<AssetFingerprint, TokenRegistryCurrencyData> result = tokenRegistryService.getTokenMetadataBatch(assetFingerprints);
 
             // then
             assertThat(result).hasSize(100);
@@ -455,7 +456,7 @@ class TokenRegistryServiceImplTest {
 
     @Nested
     @DisplayName("Asset Extraction from BlockTx Tests")
-    class AssetExtractionFromBlockTxTests {
+    class AssetFingerprintExtractionFromBlockTxTests {
 
 
         @Test
@@ -465,13 +466,13 @@ class TokenRegistryServiceImplTest {
             BlockTx blockTx = createBlockTxWithInputs();
 
             // when
-            Set<Asset> result = tokenRegistryService.extractAssetsFromBlockTx(blockTx);
+            Set<AssetFingerprint> result = tokenRegistryService.extractAssetsFromBlockTx(blockTx);
 
             // then
             assertThat(result).hasSize(2);
             assertThat(result).contains(
-                Asset.builder().policyId("policy1").assetName("token1").build(),
-                Asset.builder().policyId("policy2").assetName("token2").build()
+                AssetFingerprint.of("policy1", "token1"),
+                AssetFingerprint.of("policy2", "token2")
             );
         }
 
@@ -482,13 +483,13 @@ class TokenRegistryServiceImplTest {
             BlockTx blockTx = createBlockTxWithOutputs();
 
             // when
-            Set<Asset> result = tokenRegistryService.extractAssetsFromBlockTx(blockTx);
+            Set<AssetFingerprint> result = tokenRegistryService.extractAssetsFromBlockTx(blockTx);
 
             // then
             assertThat(result).hasSize(2);
             assertThat(result).contains(
-                Asset.builder().policyId("policy3").assetName("token3").build(),
-                Asset.builder().policyId("policy4").assetName("token4").build()
+                AssetFingerprint.of("policy3", "token3"),
+                AssetFingerprint.of("policy4", "token4")
             );
         }
 
@@ -499,15 +500,15 @@ class TokenRegistryServiceImplTest {
             BlockTx blockTx = createBlockTxWithInputsAndOutputs();
 
             // when
-            Set<Asset> result = tokenRegistryService.extractAssetsFromBlockTx(blockTx);
+            Set<AssetFingerprint> result = tokenRegistryService.extractAssetsFromBlockTx(blockTx);
 
             // then
             assertThat(result).hasSize(4);
             assertThat(result).contains(
-                Asset.builder().policyId("policy1").assetName("token1").build(),
-                Asset.builder().policyId("policy2").assetName("token2").build(),
-                Asset.builder().policyId("policy3").assetName("token3").build(),
-                Asset.builder().policyId("policy4").assetName("token4").build()
+                AssetFingerprint.of("policy1", "token1"),
+                AssetFingerprint.of("policy2", "token2"),
+                AssetFingerprint.of("policy3", "token3"),
+                AssetFingerprint.of("policy4", "token4")
             );
         }
 
@@ -518,12 +519,12 @@ class TokenRegistryServiceImplTest {
             BlockTx blockTx = createBlockTxWithLovelaceAndTokens();
 
             // when
-            Set<Asset> result = tokenRegistryService.extractAssetsFromBlockTx(blockTx);
+            Set<AssetFingerprint> result = tokenRegistryService.extractAssetsFromBlockTx(blockTx);
 
             // then
             assertThat(result).hasSize(1);
             assertThat(result).contains(
-                Asset.builder().policyId("policy1").assetName("token1").build()
+                AssetFingerprint.of("policy1", "token1")
             );
         }
 
@@ -537,7 +538,7 @@ class TokenRegistryServiceImplTest {
                 .build();
 
             // when
-            Set<Asset> result = tokenRegistryService.extractAssetsFromBlockTx(blockTx);
+            Set<AssetFingerprint> result = tokenRegistryService.extractAssetsFromBlockTx(blockTx);
 
             // then
             assertThat(result).isEmpty();
@@ -553,7 +554,7 @@ class TokenRegistryServiceImplTest {
                 .build();
 
             // when
-            Set<Asset> result = tokenRegistryService.extractAssetsFromBlockTx(blockTx);
+            Set<AssetFingerprint> result = tokenRegistryService.extractAssetsFromBlockTx(blockTx);
 
             // then
             assertThat(result).isEmpty();
@@ -562,14 +563,14 @@ class TokenRegistryServiceImplTest {
 
     @Nested
     @DisplayName("Asset Extraction from Amounts Tests")
-    class AssetExtractionFromAmountsTests {
+    class AssetFingerprintExtractionFromAmountsTests {
 
 
         @Test
         @DisplayName("Should return empty set when amounts is empty")
         void shouldReturnEmptySetWhenAmountsIsEmpty() {
             // when
-            Set<Asset> result = tokenRegistryService.extractAssetsFromAmounts(List.of());
+            Set<AssetFingerprint> result = tokenRegistryService.extractAssetsFromAmounts(List.of());
 
             // then
             assertThat(result).isEmpty();
@@ -586,13 +587,13 @@ class TokenRegistryServiceImplTest {
             );
 
             // when
-            Set<Asset> result = tokenRegistryService.extractAssetsFromAmounts(amounts);
+            Set<AssetFingerprint> result = tokenRegistryService.extractAssetsFromAmounts(amounts);
 
             // then
             assertThat(result).hasSize(2);
             assertThat(result).contains(
-                Asset.builder().policyId("policy1").assetName("token1").build(),
-                Asset.builder().policyId("policy2").assetName("token2").build()
+                AssetFingerprint.of("policy1", "token1"),
+                AssetFingerprint.of("policy2", "token2")
             );
         }
 
@@ -605,7 +606,7 @@ class TokenRegistryServiceImplTest {
             );
 
             // when
-            Set<Asset> result = tokenRegistryService.extractAssetsFromAmounts(amounts);
+            Set<AssetFingerprint> result = tokenRegistryService.extractAssetsFromAmounts(amounts);
 
             // then
             assertThat(result).isEmpty();
@@ -614,7 +615,7 @@ class TokenRegistryServiceImplTest {
 
     @Nested
     @DisplayName("Asset Extraction from BlockTransactions Tests")
-    class AssetExtractionFromBlockTransactionsTests {
+    class AssetFingerprintExtractionFromBlockTransactionsTests {
 
         // Removed: shouldReturnEmptySetWhenTransactionsIsNull - parameter is @NotNull, null is not valid
 
@@ -622,7 +623,7 @@ class TokenRegistryServiceImplTest {
         @DisplayName("Should return empty set when transactions is empty")
         void shouldReturnEmptySetWhenTransactionsIsEmpty() {
             // when
-            Set<Asset> result = tokenRegistryService.extractAssetsFromBlockTransactions(List.of());
+            Set<AssetFingerprint> result = tokenRegistryService.extractAssetsFromBlockTransactions(List.of());
 
             // then
             assertThat(result).isEmpty();
@@ -635,13 +636,13 @@ class TokenRegistryServiceImplTest {
             List<BlockTransaction> transactions = List.of(createBlockTransactionWithTokenBundles());
 
             // when
-            Set<Asset> result = tokenRegistryService.extractAssetsFromBlockTransactions(transactions);
+            Set<AssetFingerprint> result = tokenRegistryService.extractAssetsFromBlockTransactions(transactions);
 
             // then
             assertThat(result).hasSize(2);
             assertThat(result).contains(
-                Asset.builder().policyId("policy1").assetName("token1").build(),
-                Asset.builder().policyId("policy2").assetName("token2").build()
+                AssetFingerprint.of("policy1", "token1"),
+                AssetFingerprint.of("policy2", "token2")
             );
         }
 
@@ -652,12 +653,12 @@ class TokenRegistryServiceImplTest {
             List<BlockTransaction> transactions = List.of(createBlockTransactionWithCurrencyMetadata());
 
             // when
-            Set<Asset> result = tokenRegistryService.extractAssetsFromBlockTransactions(transactions);
+            Set<AssetFingerprint> result = tokenRegistryService.extractAssetsFromBlockTransactions(transactions);
 
             // then
             assertThat(result).hasSize(1);
             assertThat(result).contains(
-                Asset.builder().policyId("policy1").assetName("token1").build()
+                AssetFingerprint.of("policy1", "token1")
             );
         }
 
@@ -667,14 +668,14 @@ class TokenRegistryServiceImplTest {
 
     @Nested
     @DisplayName("Asset Extraction from Operations Tests")
-    class AssetExtractionFromOperationsTests {
+    class AssetFingerprintExtractionFromOperationsTests {
 
 
         @Test
         @DisplayName("Should return empty set when operations is empty")
         void shouldReturnEmptySetWhenOperationsIsEmpty() {
             // when
-            Set<Asset> result = tokenRegistryService.extractAssetsFromOperations(List.of());
+            Set<AssetFingerprint> result = tokenRegistryService.extractAssetsFromOperations(List.of());
 
             // then
             assertThat(result).isEmpty();
@@ -687,13 +688,13 @@ class TokenRegistryServiceImplTest {
             List<Operation> operations = List.of(createOperationWithTokenBundle());
 
             // when
-            Set<Asset> result = tokenRegistryService.extractAssetsFromOperations(operations);
+            Set<AssetFingerprint> result = tokenRegistryService.extractAssetsFromOperations(operations);
 
             // then
             assertThat(result).hasSize(2);
             assertThat(result).contains(
-                Asset.builder().policyId("policy1").assetName("token1").build(),
-                Asset.builder().policyId("policy1").assetName("token2").build()
+                AssetFingerprint.of("policy1", "token1"),
+                AssetFingerprint.of("policy1", "token2")
             );
         }
 
@@ -704,12 +705,12 @@ class TokenRegistryServiceImplTest {
             List<Operation> operations = List.of(createOperationWithCurrencyMetadata());
 
             // when
-            Set<Asset> result = tokenRegistryService.extractAssetsFromOperations(operations);
+            Set<AssetFingerprint> result = tokenRegistryService.extractAssetsFromOperations(operations);
 
             // then
             assertThat(result).hasSize(1);
             assertThat(result).contains(
-                Asset.builder().policyId("policy1").assetName("token1").build()
+                AssetFingerprint.of("policy1", "token1")
             );
         }
 
@@ -720,12 +721,12 @@ class TokenRegistryServiceImplTest {
             List<Operation> operations = List.of(createOperationWithLovelaceAndTokens());
 
             // when
-            Set<Asset> result = tokenRegistryService.extractAssetsFromOperations(operations);
+            Set<AssetFingerprint> result = tokenRegistryService.extractAssetsFromOperations(operations);
 
             // then
             assertThat(result).hasSize(1);
             assertThat(result).contains(
-                Asset.builder().policyId("policy1").assetName("token1").build()
+                AssetFingerprint.of("policy1", "token1")
             );
         }
 
@@ -740,7 +741,7 @@ class TokenRegistryServiceImplTest {
             List<Operation> operations = List.of(operation);
 
             // when
-            Set<Asset> result = tokenRegistryService.extractAssetsFromOperations(operations);
+            Set<AssetFingerprint> result = tokenRegistryService.extractAssetsFromOperations(operations);
 
             // then
             assertThat(result).isEmpty();
@@ -761,7 +762,7 @@ class TokenRegistryServiceImplTest {
                 .thenReturn(Map.of());
 
             // when
-            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.fetchMetadataForBlockTx(blockTx);
+            Map<AssetFingerprint, TokenRegistryCurrencyData> result = tokenRegistryService.fetchMetadataForBlockTx(blockTx);
 
             // then
             assertThat(result).hasSize(2);
@@ -773,7 +774,7 @@ class TokenRegistryServiceImplTest {
         @DisplayName("fetchMetadataForBlockTransactions should return empty map for empty transactions")
         void fetchMetadataForBlockTransactionsShouldReturnEmptyMapForEmpty() {
             // when
-            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.fetchMetadataForBlockTransactions(List.of());
+            Map<AssetFingerprint, TokenRegistryCurrencyData> result = tokenRegistryService.fetchMetadataForBlockTransactions(List.of());
 
             // then
             assertThat(result).isEmpty();
@@ -784,7 +785,7 @@ class TokenRegistryServiceImplTest {
         @DisplayName("fetchMetadataForBlockTxList should return empty map for null list")
         void fetchMetadataForBlockTxListShouldReturnEmptyMapForNull() {
             // when
-            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.fetchMetadataForBlockTxList(null);
+            Map<AssetFingerprint, TokenRegistryCurrencyData> result = tokenRegistryService.fetchMetadataForBlockTxList(null);
 
             // then
             assertThat(result).isEmpty();
@@ -795,7 +796,7 @@ class TokenRegistryServiceImplTest {
         @DisplayName("fetchMetadataForBlockTxList should return empty map for empty list")
         void fetchMetadataForBlockTxListShouldReturnEmptyMapForEmpty() {
             // when
-            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.fetchMetadataForBlockTxList(List.of());
+            Map<AssetFingerprint, TokenRegistryCurrencyData> result = tokenRegistryService.fetchMetadataForBlockTxList(List.of());
 
             // then
             assertThat(result).isEmpty();
@@ -814,7 +815,7 @@ class TokenRegistryServiceImplTest {
                 .thenReturn(Map.of());
 
             // when
-            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.fetchMetadataForBlockTxList(blockTxList);
+            Map<AssetFingerprint, TokenRegistryCurrencyData> result = tokenRegistryService.fetchMetadataForBlockTxList(blockTxList);
 
             // then
             assertThat(result).hasSize(4); // 2 from inputs + 2 from outputs
@@ -826,7 +827,7 @@ class TokenRegistryServiceImplTest {
         @DisplayName("fetchMetadataForAddressBalances should return empty map for empty balances")
         void fetchMetadataForAddressBalancesShouldReturnEmptyMapForEmpty() {
             // when
-            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.fetchMetadataForAddressBalances(List.of());
+            Map<AssetFingerprint, TokenRegistryCurrencyData> result = tokenRegistryService.fetchMetadataForAddressBalances(List.of());
 
             // then
             assertThat(result).isEmpty();
@@ -846,7 +847,7 @@ class TokenRegistryServiceImplTest {
                 .thenReturn(Map.of());
 
             // when
-            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.fetchMetadataForAddressBalances(balances);
+            Map<AssetFingerprint, TokenRegistryCurrencyData> result = tokenRegistryService.fetchMetadataForAddressBalances(balances);
 
             // then
             assertThat(result).hasSize(1);
@@ -858,7 +859,7 @@ class TokenRegistryServiceImplTest {
         @DisplayName("fetchMetadataForUtxos should return empty map for empty utxos")
         void fetchMetadataForUtxosShouldReturnEmptyMapForEmpty() {
             // when
-            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.fetchMetadataForUtxos(List.of());
+            Map<AssetFingerprint, TokenRegistryCurrencyData> result = tokenRegistryService.fetchMetadataForUtxos(List.of());
 
             // then
             assertThat(result).isEmpty();
@@ -880,7 +881,7 @@ class TokenRegistryServiceImplTest {
                 .thenReturn(Map.of());
 
             // when
-            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.fetchMetadataForUtxos(utxos);
+            Map<AssetFingerprint, TokenRegistryCurrencyData> result = tokenRegistryService.fetchMetadataForUtxos(utxos);
 
             // then
             assertThat(result).hasSize(2);
@@ -899,7 +900,7 @@ class TokenRegistryServiceImplTest {
             );
 
             // when
-            Map<Asset, CurrencyMetadataResponse> result = tokenRegistryService.fetchMetadataForUtxos(utxos);
+            Map<AssetFingerprint, TokenRegistryCurrencyData> result = tokenRegistryService.fetchMetadataForUtxos(utxos);
 
             // then
             assertThat(result).isEmpty();
@@ -908,11 +909,8 @@ class TokenRegistryServiceImplTest {
     }
 
     // Helper methods
-    private Asset createAsset(String policyId, String assetName) {
-        return Asset.builder()
-                .policyId(policyId)
-                .assetName(assetName)
-                .build();
+    private AssetFingerprint createAsset(String policyId, String symbolHex) {
+        return AssetFingerprint.of(policyId, symbolHex);
     }
 
     private TokenSubject createCompleteTokenSubject() {

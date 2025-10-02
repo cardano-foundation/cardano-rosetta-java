@@ -1,6 +1,8 @@
 package org.cardanofoundation.rosetta.api.block.mapper;
 
 import com.bloxbean.cardano.yaci.core.model.certs.CertificateType;
+import org.cardanofoundation.rosetta.api.common.model.AssetFingerprint;
+import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -13,6 +15,8 @@ import org.cardanofoundation.rosetta.api.block.model.domain.*;
 import org.cardanofoundation.rosetta.api.block.model.entity.*;
 import org.cardanofoundation.rosetta.common.mapper.util.BaseMapper;
 import org.cardanofoundation.rosetta.common.util.Constants;
+
+import java.util.Map;
 
 @Mapper(config = BaseMapper.class, uses = {TransactionMapperUtils.class})
 public interface TransactionMapper {
@@ -78,7 +82,7 @@ public interface TransactionMapper {
   @Mapping(target = "amount.currency.symbol", constant = Constants.ADA)
   @Mapping(target = "amount.currency.decimals", constant = Constants.ADA_DECIMALS_STRING)
   @Mapping(target = "coinChange.coinIdentifier.identifier", source = "model", qualifiedByName = "getUtxoName")
-  Operation mapInputUtxoToOperation(Utxo model, OperationStatus status, int index, @Context java.util.Map<org.cardanofoundation.rosetta.api.common.model.Asset, org.openapitools.client.model.CurrencyMetadataResponse> metadataMap);
+  Operation mapInputUtxoToOperation(Utxo model, OperationStatus status, int index, @Context Map<AssetFingerprint, TokenRegistryCurrencyData> metadataMap);
 
   @Mapping(target = "type", constant = Constants.OUTPUT)
   @Mapping(target = "status", source = "status.status")
@@ -90,7 +94,7 @@ public interface TransactionMapper {
   @Mapping(target = "amount.currency.symbol", constant = Constants.ADA)
   @Mapping(target = "amount.currency.decimals", constant = Constants.ADA_DECIMALS_STRING)
   @Mapping(target = "coinChange.coinIdentifier.identifier", source = "model", qualifiedByName = "getUtxoName")
-  Operation mapOutputUtxoToOperation(Utxo model, OperationStatus status, int index, @Context java.util.Map<org.cardanofoundation.rosetta.api.common.model.Asset, org.openapitools.client.model.CurrencyMetadataResponse> metadataMap);
+  Operation mapOutputUtxoToOperation(Utxo model, OperationStatus status, int index, @Context Map<AssetFingerprint, TokenRegistryCurrencyData> metadataMap);
 
   StakeRegistration mapStakeRegistrationEntityToStakeRegistration(StakeRegistrationEntity entity);
 

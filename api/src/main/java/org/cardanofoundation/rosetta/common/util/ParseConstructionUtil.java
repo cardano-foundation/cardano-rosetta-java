@@ -13,7 +13,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
-import org.cardanofoundation.rosetta.common.mapper.DataMapper;
 import org.cardanofoundation.rosetta.common.model.cardano.network.RelayType;
 import org.openapitools.client.model.*;
 import org.openapitools.client.model.Relay;
@@ -186,7 +185,14 @@ public class ParseConstructionUtil {
             throw ExceptionFactory.tokenAssetValueMissingError();
         }
 
-        return DataMapper.mapAmount(assetValue.toString(), assetSymbol, 0, null);
+        // Create Amount without metadata (metadata is null for parsing operations)
+        return Amount.builder()
+                .value(assetValue.toString())
+                .currency(CurrencyResponse.builder()
+                        .symbol(assetSymbol)
+                        .decimals(0)
+                        .build())
+                .build();
     }
 
     public static List<Operation> parseCertsToOperations(TransactionBody transactionBody,

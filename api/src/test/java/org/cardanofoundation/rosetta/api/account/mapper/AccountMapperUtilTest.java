@@ -3,7 +3,7 @@ package org.cardanofoundation.rosetta.api.account.mapper;
 import org.cardanofoundation.rosetta.api.account.model.domain.AddressBalance;
 import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
-import org.cardanofoundation.rosetta.api.common.model.Asset;
+import org.cardanofoundation.rosetta.api.common.model.AssetFingerprint;
 import org.cardanofoundation.rosetta.api.common.service.TokenRegistryService;
 import org.cardanofoundation.rosetta.common.util.Constants;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,11 +12,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
+import org.cardanofoundation.rosetta.common.mapper.DataMapper;
 import org.openapitools.client.model.Amount;
 import org.openapitools.client.model.Coin;
 import org.openapitools.client.model.CoinTokens;
-import org.openapitools.client.model.CurrencyMetadataResponse;
-import org.openapitools.client.model.LogoType;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -35,19 +35,25 @@ class AccountMapperUtilTest {
     private TokenRegistryService tokenRegistryService;
 
     private AccountMapperUtil accountMapperUtil;
+    private DataMapper dataMapper;
 
     @BeforeEach
     void setUp() {
-        accountMapperUtil = new AccountMapperUtil();
+        // Create real DataMapper instance with its dependency
+        org.cardanofoundation.rosetta.api.common.mapper.TokenRegistryMapper tokenRegistryMapper =
+            new org.cardanofoundation.rosetta.api.common.mapper.TokenRegistryMapperImpl();
+        dataMapper = new DataMapper(tokenRegistryMapper);
+
+        accountMapperUtil = new AccountMapperUtil(dataMapper);
 
         // Configure TokenRegistryService to return fallback metadata for any asset
         lenient().when(tokenRegistryService.getTokenMetadataBatch(anySet())).thenAnswer(invocation -> {
-            java.util.Map<Asset, CurrencyMetadataResponse> result = new java.util.HashMap<>();
+            java.util.Map<AssetFingerprint, TokenRegistryCurrencyData> result = new java.util.HashMap<>();
             @SuppressWarnings("unchecked")
-            java.util.Set<Asset> assets = (java.util.Set<Asset>) invocation.getArgument(0);
-            for (Asset asset : assets) {
-                result.put(asset, CurrencyMetadataResponse.builder()
-                    .policyId(asset.getPolicyId())
+            java.util.Set<AssetFingerprint> assetFingerprints = (java.util.Set<AssetFingerprint>) invocation.getArgument(0);
+            for (AssetFingerprint assetFingerprint : assetFingerprints) {
+                result.put(assetFingerprint, TokenRegistryCurrencyData.builder()
+                    .policyId(assetFingerprint.getPolicyId())
                     .decimals(0) // Default decimals
                     .build());
             }
@@ -56,48 +62,42 @@ class AccountMapperUtilTest {
     }
 
     // Helper method to create metadata map from balances
-    private Map<Asset, CurrencyMetadataResponse> createMetadataMapFromBalances(List<AddressBalance> balances) {
-        Set<Asset> assets = balances.stream()
+    private Map<AssetFingerprint, TokenRegistryCurrencyData> createMetadataMapFromBalances(List<AddressBalance> balances) {
+        Set<AssetFingerprint> assetFingerprints = balances.stream()
             .filter(b -> !Constants.LOVELACE.equals(b.unit()))
             .filter(b -> b.unit().length() >= Constants.POLICY_ID_LENGTH)
             .map(b -> {
-                String symbol = b.unit().substring(Constants.POLICY_ID_LENGTH);
-                String policyId = b.unit().substring(0, Constants.POLICY_ID_LENGTH);
-                return Asset.builder()
-                    .policyId(policyId)
-                    .assetName(symbol)
-                    .build();
+                String symbol = b.getSymbol();
+                String policyId = b.getPolicyId();
+
+                return AssetFingerprint.of(policyId, symbol);
+
             })
             .collect(Collectors.toSet());
 
-        if (assets.isEmpty()) {
+        if (assetFingerprints.isEmpty()) {
             return Collections.emptyMap();
         }
 
-        return tokenRegistryService.getTokenMetadataBatch(assets);
+        return tokenRegistryService.getTokenMetadataBatch(assetFingerprints);
     }
 
     // Helper method to create metadata map from UTXOs
-    private Map<Asset, CurrencyMetadataResponse> createMetadataMapFromUtxos(List<Utxo> utxos) {
-        Set<Asset> assets = new HashSet<>();
+    private Map<AssetFingerprint, TokenRegistryCurrencyData> createMetadataMapFromUtxos(List<Utxo> utxos) {
+        Set<AssetFingerprint> assetFingerprints = new HashSet<>();
         for (Utxo utxo : utxos) {
-            if (utxo.getAmounts() != null) {
-                for (Amt amount : utxo.getAmounts()) {
-                    if (!Constants.LOVELACE.equals(amount.getAssetName()) && amount.getPolicyId() != null) {
-                        assets.add(Asset.builder()
-                            .policyId(amount.getPolicyId())
-                            .assetName(amount.getAssetName())
-                            .build());
-                    }
+            for (Amt amount : utxo.getAmounts()) {
+                if (!Constants.LOVELACE.equals(amount.getUnit()) && amount.getPolicyId() != null) {
+                    assetFingerprints.add(AssetFingerprint.of(amount.getPolicyId(), amount.getSymbolHex()));
                 }
             }
         }
 
-        if (assets.isEmpty()) {
+        if (assetFingerprints.isEmpty()) {
             return Collections.emptyMap();
         }
 
-        return tokenRegistryService.getTokenMetadataBatch(assets);
+        return tokenRegistryService.getTokenMetadataBatch(assetFingerprints);
     }
 
     @Nested
@@ -111,7 +111,7 @@ class AccountMapperUtilTest {
             );
 
             // when
-            Map<Asset, CurrencyMetadataResponse> metadataMap = createMetadataMapFromBalances(balances);
+            Map<AssetFingerprint, TokenRegistryCurrencyData> metadataMap = createMetadataMapFromBalances(balances);
             List<Amount> amounts = accountMapperUtil.mapAddressBalancesToAmounts(balances, metadataMap);
 
             // then
@@ -131,11 +131,12 @@ class AccountMapperUtilTest {
             String unit = policyId + assetName;
             
             // Mock service to return fallback metadata (service always returns something now)
-            Asset asset = Asset.builder().policyId(policyId).assetName(assetName).build();
-            CurrencyMetadataResponse fallbackMetadata = CurrencyMetadataResponse.builder()
+            AssetFingerprint assetFingerprint = AssetFingerprint.of(policyId, assetName);
+            TokenRegistryCurrencyData fallbackMetadata = TokenRegistryCurrencyData.builder()
                 .policyId(policyId)
+                .decimals(0)
                 .build();
-            Map<Asset, CurrencyMetadataResponse> tokenMetadataMap = Map.of(asset, fallbackMetadata);
+            Map<AssetFingerprint, TokenRegistryCurrencyData> tokenMetadataMap = Map.of(assetFingerprint, fallbackMetadata);
             when(tokenRegistryService.getTokenMetadataBatch(anySet())).thenReturn(tokenMetadataMap);
             
             List<AddressBalance> balances = List.of(
@@ -144,7 +145,7 @@ class AccountMapperUtilTest {
             );
 
             // when
-            Map<Asset, CurrencyMetadataResponse> metadataMap = createMetadataMapFromBalances(balances);
+            Map<AssetFingerprint, TokenRegistryCurrencyData> metadataMap = createMetadataMapFromBalances(balances);
             List<Amount> amounts = accountMapperUtil.mapAddressBalancesToAmounts(balances, metadataMap);
 
             // then
@@ -162,7 +163,7 @@ class AccountMapperUtilTest {
             assertEquals(Constants.MULTI_ASSET_DECIMALS, tokenAmount.getCurrency().getDecimals());
             
             // Verify metadata contains only policyId (no registry data)
-            CurrencyMetadataResponse metadata = tokenAmount.getCurrency().getMetadata();
+            org.openapitools.client.model.CurrencyMetadataResponse metadata = tokenAmount.getCurrency().getMetadata();
             assertNotNull(metadata);
             assertEquals(policyId, metadata.getPolicyId());
             assertNull(metadata.getName());
@@ -178,12 +179,12 @@ class AccountMapperUtilTest {
             String subject = policyId + "54657374546f6b656e"; // hex encoding of "TestToken"
             
             // Mock token registry response
-            CurrencyMetadataResponse currencyMetadata = createCurrencyMetadata(policyId, subject, "Test Token", "Test description", 
+            TokenRegistryCurrencyData currencyMetadata = createCurrencyMetadata(policyId, subject, "Test Token", "Test description",
                     "TST", "https://test.com", "logo", 6, 1L);
-            
-            Map<Asset, CurrencyMetadataResponse> tokenMetadataMap = new HashMap<>();
-            Asset asset = Asset.builder().policyId(policyId).assetName(assetName).build();
-            tokenMetadataMap.put(asset, currencyMetadata);
+
+            Map<AssetFingerprint, TokenRegistryCurrencyData> tokenMetadataMap = new HashMap<>();
+            AssetFingerprint assetFingerprint = AssetFingerprint.of(policyId, assetName);
+            tokenMetadataMap.put(assetFingerprint, currencyMetadata);
             
             when(tokenRegistryService.getTokenMetadataBatch(anySet())).thenReturn(tokenMetadataMap);
             
@@ -193,7 +194,7 @@ class AccountMapperUtilTest {
             );
 
             // when
-            Map<Asset, CurrencyMetadataResponse> metadataMap = createMetadataMapFromBalances(balances);
+            Map<AssetFingerprint, TokenRegistryCurrencyData> metadataMap = createMetadataMapFromBalances(balances);
             List<Amount> amounts = accountMapperUtil.mapAddressBalancesToAmounts(balances, metadataMap);
 
             // then
@@ -206,7 +207,7 @@ class AccountMapperUtilTest {
             assertEquals(6, tokenAmount.getCurrency().getDecimals()); // From registry
             
             // Verify full metadata from registry
-            CurrencyMetadataResponse metadata = tokenAmount.getCurrency().getMetadata();
+            org.openapitools.client.model.CurrencyMetadataResponse metadata = tokenAmount.getCurrency().getMetadata();
             assertNotNull(metadata);
             assertEquals(policyId, metadata.getPolicyId());
             assertEquals(subject, metadata.getSubject());
@@ -232,11 +233,11 @@ class AccountMapperUtilTest {
             String subject2 = policyId2 + "546f6b656e32"; // hex of "Token2"
             
             // Mock batch registry response
-            Map<Asset, CurrencyMetadataResponse> tokenMetadataMap = new HashMap<>();
-            Asset asset1 = Asset.builder().policyId(policyId1).assetName(assetName1).build();
-            Asset asset2 = Asset.builder().policyId(policyId2).assetName(assetName2).build();
-            tokenMetadataMap.put(asset1, createCurrencyMetadata(policyId1, subject1, "First Token", "First desc", "TK1", null, null, 8, null));
-            tokenMetadataMap.put(asset2, CurrencyMetadataResponse.builder().policyId(policyId2).build()); // Fallback metadata for second token
+            Map<AssetFingerprint, TokenRegistryCurrencyData> tokenMetadataMap = new HashMap<>();
+            AssetFingerprint assetFingerprint1 = AssetFingerprint.of(policyId1, assetName1);
+            AssetFingerprint assetFingerprint2 = AssetFingerprint.of(policyId2, assetName2);
+            tokenMetadataMap.put(assetFingerprint1, createCurrencyMetadata(policyId1, subject1, "First Token", "First desc", "TK1", null, null, 8, null));
+            tokenMetadataMap.put(assetFingerprint2, TokenRegistryCurrencyData.builder().policyId(policyId2).decimals(0).build()); // Fallback metadata for second token
             
             when(tokenRegistryService.getTokenMetadataBatch(anySet())).thenReturn(tokenMetadataMap);
             
@@ -247,7 +248,7 @@ class AccountMapperUtilTest {
             );
 
             // when
-            Map<Asset, CurrencyMetadataResponse> metadataMap = createMetadataMapFromBalances(balances);
+            Map<AssetFingerprint, TokenRegistryCurrencyData> metadataMap = createMetadataMapFromBalances(balances);
             List<Amount> amounts = accountMapperUtil.mapAddressBalancesToAmounts(balances, metadataMap);
 
             // then
@@ -273,7 +274,7 @@ class AccountMapperUtilTest {
             List<AddressBalance> balances = Collections.emptyList();
 
             // when
-            Map<Asset, CurrencyMetadataResponse> metadataMap = createMetadataMapFromBalances(balances);
+            Map<AssetFingerprint, TokenRegistryCurrencyData> metadataMap = createMetadataMapFromBalances(balances);
             List<Amount> amounts = accountMapperUtil.mapAddressBalancesToAmounts(balances, metadataMap);
 
             // then
@@ -297,12 +298,12 @@ class AccountMapperUtilTest {
             );
 
             // Token with null metadata fields should return fallback metadata with only policyId
-            Asset asset = Asset.builder().policyId(policyId).assetName(assetName).build();
+            AssetFingerprint assetFingerprint = AssetFingerprint.of(policyId, assetName);
             when(tokenRegistryService.getTokenMetadataBatch(anySet()))
-                .thenReturn(Map.of(asset, CurrencyMetadataResponse.builder().policyId(policyId).build()));
+                .thenReturn(Map.of(assetFingerprint, TokenRegistryCurrencyData.builder().policyId(policyId).decimals(0).build()));
 
             // when
-            Map<Asset, CurrencyMetadataResponse> metadataMap = createMetadataMapFromBalances(balances);
+            Map<AssetFingerprint, TokenRegistryCurrencyData> metadataMap = createMetadataMapFromBalances(balances);
             List<Amount> amounts = accountMapperUtil.mapAddressBalancesToAmounts(balances, metadataMap);
 
             // then
@@ -314,7 +315,7 @@ class AccountMapperUtilTest {
             assertEquals(assetName, tokenAmount.getCurrency().getSymbol());
             assertEquals(Constants.MULTI_ASSET_DECIMALS, tokenAmount.getCurrency().getDecimals());
             
-            CurrencyMetadataResponse metadata = tokenAmount.getCurrency().getMetadata();
+            org.openapitools.client.model.CurrencyMetadataResponse metadata = tokenAmount.getCurrency().getMetadata();
             assertNotNull(metadata);
             assertEquals(policyId, metadata.getPolicyId());
             // Should not have enriched fields when token is not in registry
@@ -337,12 +338,12 @@ class AccountMapperUtilTest {
             );
 
             // Token with null metadata should return fallback metadata with only policyId
-            Asset asset = Asset.builder().policyId(policyId).assetName(assetName).build();
+            AssetFingerprint assetFingerprint = AssetFingerprint.of(policyId, assetName);
             when(tokenRegistryService.getTokenMetadataBatch(anySet()))
-                .thenReturn(Map.of(asset, CurrencyMetadataResponse.builder().policyId(policyId).build()));
+                .thenReturn(Map.of(assetFingerprint, TokenRegistryCurrencyData.builder().policyId(policyId).decimals(0).build()));
 
             // when
-            Map<Asset, CurrencyMetadataResponse> metadataMap = createMetadataMapFromBalances(balances);
+            Map<AssetFingerprint, TokenRegistryCurrencyData> metadataMap = createMetadataMapFromBalances(balances);
             List<Amount> amounts = accountMapperUtil.mapAddressBalancesToAmounts(balances, metadataMap);
 
             // then
@@ -353,7 +354,7 @@ class AccountMapperUtilTest {
             assertEquals(assetName, tokenAmount.getCurrency().getSymbol());
             assertEquals(Constants.MULTI_ASSET_DECIMALS, tokenAmount.getCurrency().getDecimals());
             
-            CurrencyMetadataResponse metadata = tokenAmount.getCurrency().getMetadata();
+            org.openapitools.client.model.CurrencyMetadataResponse metadata = tokenAmount.getCurrency().getMetadata();
             assertNotNull(metadata);
             assertEquals(policyId, metadata.getPolicyId());
             // Should not have enriched fields when token is not in registry
@@ -376,7 +377,7 @@ class AccountMapperUtilTest {
             );
 
             // when
-            Map<Asset, CurrencyMetadataResponse> metadataMap = createMetadataMapFromUtxos(utxos);
+            Map<AssetFingerprint, TokenRegistryCurrencyData> metadataMap = createMetadataMapFromUtxos(utxos);
             List<Coin> coins = accountMapperUtil.mapUtxosToCoins(utxos, metadataMap);
 
             // then
@@ -397,9 +398,9 @@ class AccountMapperUtilTest {
             String subject = policyId + "54657374546f6b656e"; // hex of "TestToken"
             
             // Mock registry response
-            CurrencyMetadataResponse currencyMetadata = createCurrencyMetadata(policyId, subject, "Test Token", "Test desc", "TST", null, null, 4, null);
-            Asset asset = Asset.builder().policyId(policyId).assetName(assetName).build();
-            Map<Asset, CurrencyMetadataResponse> tokenMetadataMap = Map.of(asset, currencyMetadata);
+            TokenRegistryCurrencyData currencyMetadata = createCurrencyMetadata(policyId, subject, "Test Token", "Test desc", "TST", null, null, 4, null);
+            AssetFingerprint assetFingerprint = AssetFingerprint.of(policyId, assetName);
+            Map<AssetFingerprint, TokenRegistryCurrencyData> tokenMetadataMap = Map.of(assetFingerprint, currencyMetadata);
             when(tokenRegistryService.getTokenMetadataBatch(anySet())).thenReturn(tokenMetadataMap);
             
             List<Utxo> utxos = List.of(
@@ -410,7 +411,7 @@ class AccountMapperUtilTest {
             );
 
             // when
-            Map<Asset, CurrencyMetadataResponse> metadataMap = createMetadataMapFromUtxos(utxos);
+            Map<AssetFingerprint, TokenRegistryCurrencyData> metadataMap = createMetadataMapFromUtxos(utxos);
             List<Coin> coins = accountMapperUtil.mapUtxosToCoins(utxos, metadataMap);
 
             // then
@@ -453,7 +454,7 @@ class AccountMapperUtilTest {
             );
 
             // when
-            Map<Asset, CurrencyMetadataResponse> metadataMap = createMetadataMapFromUtxos(utxos);
+            Map<AssetFingerprint, TokenRegistryCurrencyData> metadataMap = createMetadataMapFromUtxos(utxos);
             List<Coin> coins = accountMapperUtil.mapUtxosToCoins(utxos, metadataMap);
 
             // then
@@ -477,7 +478,7 @@ class AccountMapperUtilTest {
             List<Utxo> utxos = Collections.emptyList();
 
             // when
-            Map<Asset, CurrencyMetadataResponse> metadataMap = createMetadataMapFromUtxos(utxos);
+            Map<AssetFingerprint, TokenRegistryCurrencyData> metadataMap = createMetadataMapFromUtxos(utxos);
             List<Coin> coins = accountMapperUtil.mapUtxosToCoins(utxos, metadataMap);
 
             // then
@@ -517,14 +518,14 @@ class AccountMapperUtilTest {
                 .build();
     }
 
-    private CurrencyMetadataResponse createCurrencyMetadata(String policyId, String subject, String name, String description, 
+    private TokenRegistryCurrencyData createCurrencyMetadata(String policyId, String subject, String name, String description,
                                           String ticker, String url, String logo, Integer decimals, Long version) {
-        CurrencyMetadataResponse.CurrencyMetadataResponseBuilder builder = CurrencyMetadataResponse.builder()
+        TokenRegistryCurrencyData.TokenRegistryCurrencyDataBuilder builder = TokenRegistryCurrencyData.builder()
                 .policyId(policyId)
                 .subject(subject)
                 .name(name)
                 .description(description);
-        
+
         if (ticker != null) {
             builder.ticker(ticker);
         }
@@ -532,7 +533,7 @@ class AccountMapperUtilTest {
             builder.url(url);
         }
         if (logo != null) {
-            builder.logo(LogoType.builder().format(LogoType.FormatEnum.BASE64).value(logo).build());
+            builder.logo(TokenRegistryCurrencyData.LogoData.builder().format(TokenRegistryCurrencyData.LogoFormat.BASE64).value(logo).build());
         }
         if (decimals != null) {
             builder.decimals(decimals);
@@ -540,7 +541,7 @@ class AccountMapperUtilTest {
         if (version != null) {
             builder.version(BigDecimal.valueOf(version));
         }
-        
+
         return builder.build();
     }
 }
