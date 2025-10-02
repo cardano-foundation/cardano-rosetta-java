@@ -458,10 +458,10 @@ class SearchServiceImplTest {
     class CurrencySearchTests {
 
         @Test
-        void shouldSupportCurrencySearch() {
+        void shouldSupportCurrencySearch_withLovelace() {
             // Given
             CurrencyRequest currency = CurrencyRequest.builder().symbol("ADA").build();
-            
+
             SearchTransactionsRequest request = SearchTransactionsRequest.builder()
                     .networkIdentifier(networkIdentifier)
                     .currency(currency)
@@ -489,11 +489,148 @@ class SearchServiceImplTest {
             // Then
             assertThat(result).isNotNull();
             assertThat(result.getContent()).isEmpty();
-            
+
             // Verify that ledgerSearchService was called (currency search is now supported)
             verify(ledgerSearchService).searchTransaction(
                     any(), any(), any(), any(), any(), any(), any(), any(), any(), anyLong(), anyLong()
             );
+        }
+
+        @Test
+        void shouldAcceptHexEncodedCurrencySymbol() {
+            // Given - hex-encoded asset name from issue #610
+            CurrencyRequest currency = CurrencyRequest.builder()
+                    .symbol("000de1404469616d6f6e64486f6f76657332363938")
+                    .build();
+
+            SearchTransactionsRequest request = SearchTransactionsRequest.builder()
+                    .networkIdentifier(networkIdentifier)
+                    .currency(currency)
+                    .build();
+
+            Page<BlockTx> emptyPage = new PageImpl<>(List.of());
+            when(ledgerSearchService.searchTransaction(
+                    any(), any(), any(), any(), any(), any(), any(), any(), any(), anyLong(), anyLong()
+            )).thenReturn(emptyPage);
+
+            // When
+            Page<BlockTransaction> result = searchService.searchTransaction(request, 0L, 10L);
+
+            // Then - should not throw exception
+            assertThat(result).isNotNull();
+            verify(ledgerSearchService).searchTransaction(
+                    any(), any(), any(), any(), any(), any(), any(), any(), any(), anyLong(), anyLong()
+            );
+        }
+
+        @Test
+        void shouldAcceptCIP68HexEncodedSymbol() {
+            // Given - CIP-68 asset with binary prefix
+            CurrencyRequest currency = CurrencyRequest.builder()
+                    .symbol("000643b04469616d6f6e64")
+                    .build();
+
+            SearchTransactionsRequest request = SearchTransactionsRequest.builder()
+                    .networkIdentifier(networkIdentifier)
+                    .currency(currency)
+                    .build();
+
+            Page<BlockTx> emptyPage = new PageImpl<>(List.of());
+            when(ledgerSearchService.searchTransaction(
+                    any(), any(), any(), any(), any(), any(), any(), any(), any(), anyLong(), anyLong()
+            )).thenReturn(emptyPage);
+
+            // When
+            Page<BlockTransaction> result = searchService.searchTransaction(request, 0L, 10L);
+
+            // Then - should not throw exception
+            assertThat(result).isNotNull();
+        }
+
+        @Test
+        void shouldRejectAsciiCurrencySymbol() {
+            // Given - ASCII asset name (not hex-encoded) - issue #610 regression case
+            CurrencyRequest currency = CurrencyRequest.builder()
+                    .symbol("Diamond")
+                    .build();
+
+            SearchTransactionsRequest request = SearchTransactionsRequest.builder()
+                    .networkIdentifier(networkIdentifier)
+                    .currency(currency)
+                    .build();
+
+            // When & Then
+            assertThatThrownBy(() -> searchService.searchTransaction(request, 0L, 10L))
+                    .isInstanceOf(ApiException.class)
+                    .hasMessage("Currency symbol must be hex-encoded")
+                    .extracting("error.details.message")
+                    .isEqualTo("Currency symbol must be hex-encoded, but got: 'Diamond'");
+
+            verifyNoInteractions(ledgerSearchService);
+        }
+
+        @Test
+        void shouldRejectCurrencySymbolWithSpaces() {
+            // Given
+            CurrencyRequest currency = CurrencyRequest.builder()
+                    .symbol("invalid hex")
+                    .build();
+
+            SearchTransactionsRequest request = SearchTransactionsRequest.builder()
+                    .networkIdentifier(networkIdentifier)
+                    .currency(currency)
+                    .build();
+
+            // When & Then
+            assertThatThrownBy(() -> searchService.searchTransaction(request, 0L, 10L))
+                    .isInstanceOf(ApiException.class)
+                    .hasMessage("Currency symbol must be hex-encoded");
+
+            verifyNoInteractions(ledgerSearchService);
+        }
+
+        @Test
+        void shouldRejectCurrencySymbolWithSpecialCharacters() {
+            // Given
+            CurrencyRequest currency = CurrencyRequest.builder()
+                    .symbol("test@123")
+                    .build();
+
+            SearchTransactionsRequest request = SearchTransactionsRequest.builder()
+                    .networkIdentifier(networkIdentifier)
+                    .currency(currency)
+                    .build();
+
+            // When & Then
+            assertThatThrownBy(() -> searchService.searchTransaction(request, 0L, 10L))
+                    .isInstanceOf(ApiException.class)
+                    .hasMessage("Currency symbol must be hex-encoded");
+
+            verifyNoInteractions(ledgerSearchService);
+        }
+
+        @Test
+        void shouldAllowNullCurrencySymbol() {
+            // Given
+            CurrencyRequest currency = CurrencyRequest.builder()
+                    .symbol(null)
+                    .build();
+
+            SearchTransactionsRequest request = SearchTransactionsRequest.builder()
+                    .networkIdentifier(networkIdentifier)
+                    .currency(currency)
+                    .build();
+
+            Page<BlockTx> emptyPage = new PageImpl<>(List.of());
+            when(ledgerSearchService.searchTransaction(
+                    any(), any(), any(), any(), any(), any(), any(), any(), any(), anyLong(), anyLong()
+            )).thenReturn(emptyPage);
+
+            // When
+            Page<BlockTransaction> result = searchService.searchTransaction(request, 0L, 10L);
+
+            // Then - should not throw exception for null symbol
+            assertThat(result).isNotNull();
         }
     }
 
