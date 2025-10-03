@@ -122,6 +122,7 @@ jobs:
 
           # Run tests with Allure reporting
           uv run pytest \
+            -n 0 \
             --alluredir=./allure-results \
             --tb=short \
             -v || TEST_RESULT=$?
