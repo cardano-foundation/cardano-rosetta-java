@@ -65,7 +65,9 @@ jobs:
 
           # Wait for API to respond
           for i in {1..60}; do
-            if curl -sf http://localhost:8082/network/status > /dev/null 2>&1; then
+            if curl -sf -X POST http://localhost:8082/network/list \
+              -H 'Content-Type: application/json' \
+              -d '{}' > /dev/null 2>&1; then
               echo "API is responding"
               break
             fi
@@ -76,14 +78,18 @@ jobs:
           # Check sync status
           echo "Checking sync status..."
           while true; do
-            SYNC_STATUS=$(curl -s http://localhost:8082/network/status | \
+            SYNC_STATUS=$(curl -s -X POST http://localhost:8082/network/status \
+              -H 'Content-Type: application/json' \
+              -d '{"network_identifier": {"blockchain": "cardano", "network": "preprod"}}' | \
               jq -r '.sync_status.synced' 2>/dev/null || echo "false")
 
             if [ "$SYNC_STATUS" = "true" ]; then
               echo "✓ API is synced and ready!"
 
               # Show current block for verification
-              CURRENT_BLOCK=$(curl -s http://localhost:8082/network/status | \
+              CURRENT_BLOCK=$(curl -s -X POST http://localhost:8082/network/status \
+                -H 'Content-Type: application/json' \
+                -d '{"network_identifier": {"blockchain": "cardano", "network": "preprod"}}' | \
                 jq -r '.current_block_identifier.index')
               echo "Current block: $CURRENT_BLOCK"
               break
@@ -263,5 +269,18 @@ jobs:
             --env-file .env.docker-compose-profile-entry-level \
             -f docker-compose.yaml \
             up -d
+
+          # Wait for API to be ready after rollback
+          echo "Waiting for API to be ready after rollback..."
+          for i in {1..30}; do
+            if curl -sf -X POST http://localhost:8082/network/list \
+              -H 'Content-Type: application/json' \
+              -d '{}' > /dev/null 2>&1; then
+              echo "✓ API is responding"
+              break
+            fi
+            echo "Waiting... ($i/30)"
+            sleep 5
+          done
 
           echo "✅ Rollback to $LAST_TAG completed"
