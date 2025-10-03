@@ -1,0 +1,204 @@
+name: PR Preprod Tests
+
+on:
+  pull_request:
+    branches: [develop, main]
+  workflow_dispatch:  # Allow manual trigger for debugging
+
+# Permissions needed for GitHub Pages deployment and PR comments
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+  pull-requests: write
+
+jobs:
+  test-on-preprod:
+    runs-on: [self-hosted, preprod]
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Update local repository
+        run: |
+          cd /home/integration/git/cardano-rosetta-java
+          git fetch origin
+          git checkout ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Stop current services
+        run: |
+          cd /home/integration/git/cardano-rosetta-java
+
+          # Stop all services
+          docker compose \
+            --env-file .env.docker-compose-preprod \
+            --env-file .env.docker-compose-profile-entry-level \
+            -f docker-compose.yaml \
+            down
+
+          # Clean up containers and networks
+          docker container prune -f
+          docker network prune -f
+
+      - name: Build and start services with PR code
+        run: |
+          cd /home/integration/git/cardano-rosetta-java
+
+          # Build and start all services
+          docker compose \
+            --env-file .env.docker-compose-preprod \
+            --env-file .env.docker-compose-profile-entry-level \
+            -f docker-compose.yaml \
+            up --build -d --wait
+
+      - name: Wait for API to sync
+        timeout-minutes: 10
+        run: |
+          echo "Waiting for API to be ready..."
+
+          # Wait for API to respond
+          for i in {1..60}; do
+            if curl -sf http://localhost:8082/network/status > /dev/null 2>&1; then
+              echo "API is responding"
+              break
+            fi
+            echo "Waiting for API to start... ($i/60)"
+            sleep 10
+          done
+
+          # Check sync status
+          echo "Checking sync status..."
+          while true; do
+            SYNC_STATUS=$(curl -s http://localhost:8082/network/status | \
+              jq -r '.sync_status.synced' 2>/dev/null || echo "false")
+
+            if [ "$SYNC_STATUS" = "true" ]; then
+              echo "✓ API is synced and ready!"
+
+              # Show current block for verification
+              CURRENT_BLOCK=$(curl -s http://localhost:8082/network/status | \
+                jq -r '.current_block_identifier.index')
+              echo "Current block: $CURRENT_BLOCK"
+              break
+            fi
+
+            echo "Waiting for sync... (synced=$SYNC_STATUS)"
+            sleep 10
+          done
+
+      - name: Install test dependencies
+        run: |
+          # Ensure uv is in PATH
+          export PATH="$HOME/.local/bin:$PATH"
+
+          cd /home/integration/git/cardano-rosetta-java/tests/data-endpoints
+
+          # Sync Python dependencies
+          uv sync
+
+      - name: Run data endpoint tests
+        id: test
+        run: |
+          export PATH="$HOME/.local/bin:$PATH"
+
+          cd /home/integration/git/cardano-rosetta-java/tests/data-endpoints
+
+          # Run tests with Allure reporting
+          uv run pytest \
+            --alluredir=./allure-results \
+            --tb=short \
+            -v || TEST_RESULT=$?
+
+          # Output test result for later steps
+          echo "test_result=${TEST_RESULT:-0}" >> $GITHUB_OUTPUT
+
+          # Fail if tests failed
+          exit ${TEST_RESULT:-0}
+        env:
+          ROSETTA_URL: http://localhost:8082
+          CARDANO_NETWORK: preprod
+
+      - name: Generate Allure report
+        if: always()
+        run: |
+          export PATH="/opt/allure-2.24.0/bin:$HOME/.local/bin:$PATH"
+
+          cd /home/integration/git/cardano-rosetta-java/tests/data-endpoints
+
+          # Generate Allure HTML report
+          if command -v allure &> /dev/null; then
+            allure generate allure-results --clean -o allure-report
+            echo "Allure report generated successfully"
+          else
+            echo "Allure CLI not installed, skipping HTML report generation"
+            echo "Raw results are in allure-results directory"
+          fi
+
+      - name: Deploy report to GitHub Pages
+        if: always() && github.event_name == 'pull_request'
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: /home/integration/git/cardano-rosetta-java/tests/data-endpoints/allure-report
+          destination_dir: test-reports/pr-${{ github.event.pull_request.number }}
+          keep_files: true
+          user_name: 'github-actions[bot]'
+          user_email: '41898282+github-actions[bot]@users.noreply.github.com'
+
+      - name: Comment PR with results
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const prNumber = context.issue.number;
+            const testResult = '${{ steps.test.outputs.test_result }}';
+            const emoji = testResult === '0' ? '✅' : '❌';
+            const status = testResult === '0' ? 'PASSED' : 'FAILED';
+
+            // Build report URL
+            const reportUrl = `https://cardano-foundation.github.io/cardano-rosetta-java/test-reports/pr-${prNumber}/`;
+
+            // Build comment body
+            const comment = `## ${emoji} Preprod Tests: ${status}
+
+            📊 **[View Detailed Test Report](${reportUrl})**
+
+            🔗 [Action Run #${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+
+            _Tests run against preprod network with live blockchain data_`;
+
+            // Post comment
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              body: comment
+            });
+
+      - name: Rollback to stable version on failure
+        if: failure()
+        run: |
+          cd /home/integration/git/cardano-rosetta-java
+
+          # Get latest release tag
+          LAST_TAG=$(git describe --tags --abbrev=0)
+          echo "Rolling back to release: $LAST_TAG"
+
+          # Checkout stable release
+          git checkout $LAST_TAG
+
+          # Rebuild with stable version
+          docker compose \
+            --env-file .env.docker-compose-preprod \
+            --env-file .env.docker-compose-profile-entry-level \
+            -f docker-compose.yaml \
+            down
+
+          docker compose \
+            --env-file .env.docker-compose-preprod \
+            --env-file .env.docker-compose-profile-entry-level \
+            -f docker-compose.yaml \
+            up --build -d
+
+          echo "Rollback to $LAST_TAG completed"
