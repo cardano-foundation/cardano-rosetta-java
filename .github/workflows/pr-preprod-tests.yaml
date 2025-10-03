@@ -132,9 +132,9 @@ jobs:
           CARDANO_NETWORK: preprod
 
       - name: Generate Allure report
-        if: always() && steps.test.outcome != 'skipped'
+        if: always()
         run: |
-          export PATH="/opt/allure-2.24.0/bin:$HOME/.local/bin:$PATH"
+          export PATH="$HOME/.local/bin:$PATH"
 
           cd /home/integration/git/cardano-rosetta-java/tests/data-endpoints
 
@@ -209,7 +209,7 @@ jobs:
             down
 
           # Check if migrations changed in this PR
-          LAST_TAG=$(git describe --tags --abbrev=0)
+          LAST_TAG=$(git tag --sort=-version:refname | head -1)
           git checkout $LAST_TAG
 
           STABLE_MIGRATION_HASH=$(find . -path "*/db/migration/*.sql" -type f -exec md5sum {} \; | sort | md5sum | cut -d' ' -f1)
@@ -261,6 +261,7 @@ jobs:
           fi
 
           # Now safe to rollback
+          LAST_TAG=$(git tag --sort=-version:refname | head -1)
           echo "Rolling back to stable version: $LAST_TAG"
           git checkout $LAST_TAG
 
