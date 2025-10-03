@@ -46,9 +46,6 @@ jobs:
             -f docker-compose.yaml \
             down
 
-          # Clean up containers and networks
-          docker container prune -f
-          docker network prune -f
 
       - name: Build and start services with PR code
         run: |
@@ -214,6 +211,6 @@ jobs:
             --env-file .env.docker-compose-preprod \
             --env-file .env.docker-compose-profile-entry-level \
             -f docker-compose.yaml \
-            up --build -d
+            up -d
 
           echo "Rollback to $LAST_TAG completed"
