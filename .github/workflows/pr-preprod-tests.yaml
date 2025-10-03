@@ -113,16 +113,38 @@ jobs:
           # Sync Python dependencies
           uv sync
 
-      - name: Run data endpoint tests
+      - name: Run smoke tests (validate test data)
+        id: smoke_tests
+        run: |
+          export PATH="$HOME/.local/bin:$PATH"
+
+          cd /home/integration/git/cardano-rosetta-java/tests/data-endpoints
+
+          # Run smoke tests to validate network_test_data.yaml
+          uv run pytest -m smoke \
+            -n 0 \
+            --alluredir=./allure-results \
+            --tb=short \
+            -v || SMOKE_RESULT=$?
+
+          # Output smoke test result
+          echo "smoke_result=${SMOKE_RESULT:-0}" >> $GITHUB_OUTPUT
+
+          # Fail if smoke tests failed
+          exit ${SMOKE_RESULT:-0}
+        env:
+          ROSETTA_URL: http://localhost:8082
+          CARDANO_NETWORK: preprod
+
+      - name: Run behavioral tests
         id: test
         run: |
           export PATH="$HOME/.local/bin:$PATH"
 
           cd /home/integration/git/cardano-rosetta-java/tests/data-endpoints
 
-          # Run tests with Allure reporting
-          uv run pytest \
-            -n 0 \
+          # Run behavioral tests (skip smoke tests)
+          uv run pytest -m "not smoke" \
             --alluredir=./allure-results \
             --tb=short \
             -v || TEST_RESULT=$?
