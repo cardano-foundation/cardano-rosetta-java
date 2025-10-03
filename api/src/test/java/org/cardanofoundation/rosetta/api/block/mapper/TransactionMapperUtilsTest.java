@@ -45,13 +45,13 @@ class TransactionMapperUtilsTest {
     assertEquals(3, tokenBundle.size());
 
     Assertions.assertThat(getPolicyIdUnits(tokenBundle, "policyId1"))
-        .containsExactlyInAnyOrder("assetName12", "assetName13", "assetName14");
+        .containsExactlyInAnyOrder("unit12", "unit13", "unit14");
 
     Assertions.assertThat(getPolicyIdUnits(tokenBundle, "policyId2"))
-        .containsExactlyInAnyOrder("assetName21");
+        .containsExactlyInAnyOrder("unit21");
 
     Assertions.assertThat(getPolicyIdUnits(tokenBundle, "policyId3"))
-        .containsExactlyInAnyOrder("assetName31", "assetName33");
+        .containsExactlyInAnyOrder("unit31", "unit33");
   }
 
   @Test
