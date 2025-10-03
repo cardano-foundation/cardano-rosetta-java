@@ -188,24 +188,75 @@ jobs:
               body: comment
             });
 
-      - name: Rollback to stable version on failure
+      - name: Clean shutdown on failure
         if: failure() && (steps.test.outcome == 'failure' || steps.test.outcome == 'cancelled')
         run: |
           cd /home/integration/git/cardano-rosetta-java
 
-          # Get latest release tag
-          LAST_TAG=$(git describe --tags --abbrev=0)
-          echo "Rolling back to release: $LAST_TAG"
+          echo "⚠️ Test failed - stopping services"
 
-          # Checkout stable release
-          git checkout $LAST_TAG
-
-          # Rebuild with stable version
+          # Stop all services cleanly
           docker compose \
             --env-file .env.docker-compose-preprod \
             --env-file .env.docker-compose-profile-entry-level \
             -f docker-compose.yaml \
             down
+
+          # Check if migrations changed in this PR
+          LAST_TAG=$(git describe --tags --abbrev=0)
+          git checkout $LAST_TAG
+
+          STABLE_MIGRATION_HASH=$(find . -path "*/db/migration/*.sql" -type f -exec md5sum {} \; | sort | md5sum | cut -d' ' -f1)
+
+          git checkout -
+          PR_MIGRATION_HASH=$(find . -path "*/db/migration/*.sql" -type f -exec md5sum {} \; | sort | md5sum | cut -d' ' -f1)
+
+          if [ "$STABLE_MIGRATION_HASH" != "$PR_MIGRATION_HASH" ]; then
+            echo "⚠️ Database migrations changed in PR - fixing Flyway metadata only"
+
+            # Start only the database
+            docker compose \
+              --env-file .env.docker-compose-preprod \
+              --env-file .env.docker-compose-profile-entry-level \
+              -f docker-compose.yaml \
+              up -d db
+
+            # Wait for db to be ready
+            sleep 5
+
+            # Find which specific migration files changed
+            CHANGED_MIGRATIONS=$(git diff $LAST_TAG --name-only | grep "db/migration" | grep -oP "V[\d._]+" | sort -u)
+
+            if [ -n "$CHANGED_MIGRATIONS" ]; then
+              echo "Changed migration versions: $CHANGED_MIGRATIONS"
+
+              # Delete ONLY the Flyway metadata for changed migrations
+              # This preserves all blockchain data!
+              for VERSION in $CHANGED_MIGRATIONS; do
+                echo "Removing Flyway metadata for version: $VERSION"
+                docker exec cardano-rosetta-java-db-1 sh -c \
+                  "PGPASSWORD=weakpwd#123_d psql -U rosetta_db_admin -d rosetta-java \
+                   -c \"DELETE FROM preprod.flyway_schema_history WHERE version LIKE '${VERSION}%';\""
+              done
+
+              echo "✓ Flyway metadata cleaned - all blockchain data preserved"
+            else
+              echo "No specific migration versions detected - truncating flyway history"
+              docker exec cardano-rosetta-java-db-1 sh -c \
+                "PGPASSWORD=weakpwd#123_d psql -U rosetta_db_admin -d rosetta-java \
+                 -c 'TRUNCATE preprod.flyway_schema_history;'"
+            fi
+
+            docker compose \
+              --env-file .env.docker-compose-preprod \
+              --env-file .env.docker-compose-profile-entry-level \
+              -f docker-compose.yaml \
+              down
+          fi
+
+          # Now safe to rollback
+          echo "Rolling back to stable version: $LAST_TAG"
+          git checkout $LAST_TAG
 
           docker compose \
             --env-file .env.docker-compose-preprod \
@@ -213,4 +264,4 @@ jobs:
             -f docker-compose.yaml \
             up -d
 
-          echo "Rollback to $LAST_TAG completed"
+          echo "✅ Rollback to $LAST_TAG completed"
