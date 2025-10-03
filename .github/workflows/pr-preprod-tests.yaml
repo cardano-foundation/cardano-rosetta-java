@@ -23,8 +23,17 @@ jobs:
       - name: Update local repository
         run: |
           cd /home/integration/git/cardano-rosetta-java
-          git fetch origin
-          git checkout ${{ github.event.pull_request.head.sha || github.sha }}
+
+          # Add the fork as a remote if this is a fork PR
+          if [ "${{ github.event.pull_request.head.repo.fork }}" == "true" ]; then
+            git remote add fork https://github.com/${{ github.event.pull_request.head.repo.full_name }}.git || true
+            git fetch fork ${{ github.event.pull_request.head.ref }}
+            git checkout -B pr-test FETCH_HEAD
+          else
+            # Regular PR from the same repo
+            git fetch origin pull/${{ github.event.pull_request.number }}/head:pr-${{ github.event.pull_request.number }}
+            git checkout pr-${{ github.event.pull_request.number }}
+          fi
 
       - name: Stop current services
         run: |
@@ -120,7 +129,7 @@ jobs:
           CARDANO_NETWORK: preprod
 
       - name: Generate Allure report
-        if: always()
+        if: always() && steps.test.outcome != 'skipped'
         run: |
           export PATH="/opt/allure-2.24.0/bin:$HOME/.local/bin:$PATH"
 
@@ -136,7 +145,12 @@ jobs:
           fi
 
       - name: Deploy report to GitHub Pages
-        if: always() && github.event_name == 'pull_request'
+        # Only deploy for non-fork PRs due to permission limitations
+        if: |
+          always() &&
+          steps.test.outcome != 'skipped' &&
+          github.event_name == 'pull_request' &&
+          github.event.pull_request.head.repo.fork == false
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -147,7 +161,7 @@ jobs:
           user_email: '41898282+github-actions[bot]@users.noreply.github.com'
 
       - name: Comment PR with results
-        if: always() && github.event_name == 'pull_request'
+        if: always() && github.event_name == 'pull_request' && steps.test.outcome != 'skipped'
         uses: actions/github-script@v6
         with:
           script: |
@@ -155,18 +169,19 @@ jobs:
             const testResult = '${{ steps.test.outputs.test_result }}';
             const emoji = testResult === '0' ? '✅' : '❌';
             const status = testResult === '0' ? 'PASSED' : 'FAILED';
-
-            // Build report URL
-            const reportUrl = `https://cardano-foundation.github.io/cardano-rosetta-java/test-reports/pr-${prNumber}/`;
+            const isFork = ${{ github.event.pull_request.head.repo.fork }};
 
             // Build comment body
-            const comment = `## ${emoji} Preprod Tests: ${status}
+            let comment = `## ${emoji} Preprod Tests: ${status}\n\n`;
 
-            📊 **[View Detailed Test Report](${reportUrl})**
+            // Only add report link for non-fork PRs
+            if (!isFork) {
+              const reportUrl = `https://cardano-foundation.github.io/cardano-rosetta-java/test-reports/pr-${prNumber}/`;
+              comment += `📊 **[View Detailed Test Report](${reportUrl})**\n\n`;
+            }
 
-            🔗 [Action Run #${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
-
-            _Tests run against preprod network with live blockchain data_`;
+            comment += `🔗 [Action Run #${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})\n\n`;
+            comment += `_Tests run against preprod network with live blockchain data_`;
 
             // Post comment
             await github.rest.issues.createComment({
@@ -177,7 +192,7 @@ jobs:
             });
 
       - name: Rollback to stable version on failure
-        if: failure()
+        if: failure() && (steps.test.outcome == 'failure' || steps.test.outcome == 'cancelled')
         run: |
           cd /home/integration/git/cardano-rosetta-java
 
