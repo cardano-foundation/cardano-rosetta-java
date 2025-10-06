@@ -239,10 +239,10 @@ jobs:
           LAST_TAG=$(git tag --sort=-version:refname | head -1)
           git checkout $LAST_TAG
 
-          STABLE_MIGRATION_HASH=$(find . -path "*/db/migration/*.sql" -type f -exec md5sum {} \; | sort | md5sum | cut -d' ' -f1)
+          STABLE_MIGRATION_HASH=$(find yaci-indexer/src/main/resources/db/store -type f -name 'V*.sql' -exec md5sum {} \; | sort | md5sum | cut -d' ' -f1)
 
           git checkout -
-          PR_MIGRATION_HASH=$(find . -path "*/db/migration/*.sql" -type f -exec md5sum {} \; | sort | md5sum | cut -d' ' -f1)
+          PR_MIGRATION_HASH=$(find yaci-indexer/src/main/resources/db/store -type f -name 'V*.sql' -exec md5sum {} \; | sort | md5sum | cut -d' ' -f1)
 
           if [ "$STABLE_MIGRATION_HASH" != "$PR_MIGRATION_HASH" ]; then
             echo "⚠️ Database migrations changed in PR - fixing Flyway metadata only"
@@ -258,7 +258,9 @@ jobs:
             sleep 5
 
             # Find which specific migration files changed
-            CHANGED_MIGRATIONS=$(git diff $LAST_TAG --name-only | grep "db/migration" | grep -oP "V[\d._]+" | sort -u)
+            CHANGED_MIGRATIONS=$(git diff $LAST_TAG --name-only -- "yaci-indexer/src/main/resources/db/store" | \
+            grep -E "db/store/.*/V[0-9].*\\.sql$" | \
+            grep -oP "V[\\d._]+" | sort -u)
 
             if [ -n "$CHANGED_MIGRATIONS" ]; then
               echo "Changed migration versions: $CHANGED_MIGRATIONS"
