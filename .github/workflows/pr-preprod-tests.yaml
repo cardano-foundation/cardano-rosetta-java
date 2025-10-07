@@ -24,16 +24,13 @@ jobs:
         run: |
           cd /home/integration/git/cardano-rosetta-java
 
-          # Add the fork as a remote if this is a fork PR
-          if [ "${{ github.event.pull_request.head.repo.fork }}" == "true" ]; then
-            git remote add fork https://github.com/${{ github.event.pull_request.head.repo.full_name }}.git || true
-            git fetch fork ${{ github.event.pull_request.head.ref }}
-            git checkout -B pr-test FETCH_HEAD
-          else
-            # Regular PR from the same repo
-            git fetch origin pull/${{ github.event.pull_request.number }}/head:pr-${{ github.event.pull_request.number }}
-            git checkout pr-${{ github.event.pull_request.number }}
-          fi
+          # Clean up any existing PR branch and switch to main first
+          git checkout main || git checkout develop
+          git branch -D pr-${{ github.event.pull_request.number }} 2>/dev/null || true
+
+          # Fetch and checkout the PR
+          git fetch origin pull/${{ github.event.pull_request.number }}/head:pr-${{ github.event.pull_request.number }}
+          git checkout pr-${{ github.event.pull_request.number }}
 
       - name: Stop current services
         run: |
@@ -175,12 +172,10 @@ jobs:
           fi
 
       - name: Deploy report to GitHub Pages
-        # Only deploy for non-fork PRs due to permission limitations
         if: |
           always() &&
           steps.test.outcome != 'skipped' &&
-          github.event_name == 'pull_request' &&
-          github.event.pull_request.head.repo.fork == false
+          github.event_name == 'pull_request'
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -199,16 +194,13 @@ jobs:
             const testResult = '${{ steps.test.outputs.test_result }}';
             const emoji = testResult === '0' ? '✅' : '❌';
             const status = testResult === '0' ? 'PASSED' : 'FAILED';
-            const isFork = ${{ github.event.pull_request.head.repo.fork }};
 
             // Build comment body
             let comment = `## ${emoji} Preprod Tests: ${status}\n\n`;
 
-            // Only add report link for non-fork PRs
-            if (!isFork) {
-              const reportUrl = `https://cardano-foundation.github.io/cardano-rosetta-java/test-reports/pr-${prNumber}/`;
-              comment += `📊 **[View Detailed Test Report](${reportUrl})**\n\n`;
-            }
+            // Add report link
+            const reportUrl = `https://cardano-foundation.github.io/cardano-rosetta-java/test-reports/pr-${prNumber}/`;
+            comment += `📊 **[View Detailed Test Report](${reportUrl})**\n\n`;
 
             comment += `🔗 [Action Run #${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})\n\n`;
             comment += `_Tests run against preprod network with live blockchain data_`;
