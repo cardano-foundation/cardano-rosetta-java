@@ -7,7 +7,7 @@ on:
 
 # Permissions needed for GitHub Pages deployment and PR comments
 permissions:
-  contents: read
+  contents: write  # Changed from 'read' to 'write' to allow pushing to gh-pages branch
   pages: write
   id-token: write
   pull-requests: write
