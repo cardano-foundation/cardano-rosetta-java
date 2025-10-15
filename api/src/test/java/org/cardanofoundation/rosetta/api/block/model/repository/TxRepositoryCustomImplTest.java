@@ -717,21 +717,22 @@ public class TxRepositoryCustomImplTest extends IntegrationTest {
         @Sql(scripts = "classpath:/testdata/sql/tx-repository-currency-test-init.sql", executionPhase = BEFORE_TEST_METHOD)
         @Sql(scripts = "classpath:/testdata/sql/tx-repository-currency-test-cleanup.sql", executionPhase = AFTER_TEST_METHOD)
         public void testSearchTxnEntitiesAND_FilterByPolicyIdAndSymbol() {
-            // Test filtering by both policy ID and asset name (most precise)
+            // Test filtering by both policy ID and hex-encoded symbol (most precise)
+            // MIN in hex: 4d494e
             Currency preciseAssetCurrency = Currency.builder()
                     .policyId("29d222ce763455e3d7a09a665ce554f00ac89d2e99a1a83d267170c6")
-                    .symbol("MIN")
+                    .symbol("4d494e") // hex-encoded "MIN"
                     .decimals(6)
                     .build();
 
             Page<TxnEntity> results = txRepository.searchTxnEntitiesAND(
-                    Collections.emptySet(), Set.of(), null, null, null, null, preciseAssetCurrency, 
+                    Collections.emptySet(), Set.of(), null, null, null, null, preciseAssetCurrency,
                     new SimpleOffsetBasedPageRequest(0, 100));
 
             List<TxnEntity> txList = results.getContent();
-            
+
             // Results could be empty if no transactions with this specific asset exist
-            // All transactions should contain the exact asset (policy ID + asset name)
+            // All transactions should contain the exact asset (policy ID + hex-encoded symbol)
             txList.forEach(tx -> {
                 assertThat(tx.getTxHash()).isNotNull();
             });
@@ -741,19 +742,20 @@ public class TxRepositoryCustomImplTest extends IntegrationTest {
         @Sql(scripts = "classpath:/testdata/sql/tx-repository-currency-test-init.sql", executionPhase = BEFORE_TEST_METHOD)
         @Sql(scripts = "classpath:/testdata/sql/tx-repository-currency-test-cleanup.sql", executionPhase = AFTER_TEST_METHOD)
         public void testSearchTxnEntitiesAND_FilterBySymbolOnly() {
-            // Test filtering by symbol/asset name only (searches across all policy IDs)
+            // Test filtering by hex-encoded symbol only (searches across all policy IDs)
+            // MIN in hex: 4d494e
             Currency symbolCurrency = Currency.builder()
-                    .symbol("MIN")
+                    .symbol("4d494e") // hex-encoded "MIN"
                     .build();
 
             Page<TxnEntity> results = txRepository.searchTxnEntitiesAND(
-                    Collections.emptySet(), Set.of(), null, null, null, null, symbolCurrency, 
+                    Collections.emptySet(), Set.of(), null, null, null, null, symbolCurrency,
                     new SimpleOffsetBasedPageRequest(0, 100));
 
             List<TxnEntity> txList = results.getContent();
-            
+
             // Results could be empty if no transactions with MIN tokens exist
-            // All transactions should contain assets with "MIN" as asset name
+            // All transactions should contain assets with hex-encoded "MIN" symbol
             txList.forEach(tx -> {
                 assertThat(tx.getTxHash()).isNotNull();
             });

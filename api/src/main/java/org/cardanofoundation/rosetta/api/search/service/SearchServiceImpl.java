@@ -11,6 +11,8 @@ import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
 import org.cardanofoundation.rosetta.api.common.service.TokenRegistryService;
 import org.cardanofoundation.rosetta.api.search.model.Operator;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
+import org.cardanofoundation.rosetta.common.util.Constants;
+import org.cardanofoundation.rosetta.common.util.HexUtils;
 import org.openapitools.client.model.*;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
@@ -20,6 +22,8 @@ import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
+
+import static org.cardanofoundation.rosetta.common.util.HexUtils.isHexString;
 
 @Slf4j
 @Service
@@ -58,11 +62,15 @@ public class SearchServiceImpl implements SearchService {
 
         // Extract currency for filtering (policy ID or asset identifier)
         @Nullable org.cardanofoundation.rosetta.api.search.model.Currency currency = Optional.ofNullable(searchTransactionsRequest.getCurrency())
-                .map(c -> org.cardanofoundation.rosetta.api.search.model.Currency.builder()
-                        .symbol(c.getSymbol())
-                        .decimals(c.getDecimals())
-                        .policyId(Optional.ofNullable(c.getMetadata()).map(CurrencyMetadataRequest::getPolicyId).orElse(null))
-                        .build())
+                .map(c -> {
+                    validateCurrencySymbolIsHex(c); // Validate that currency symbol is hex-encoded (for native assets)
+
+                    return org.cardanofoundation.rosetta.api.search.model.Currency.builder()
+                            .symbol(c.getSymbol())
+                            .decimals(c.getDecimals())
+                            .policyId(Optional.ofNullable(c.getMetadata()).map(CurrencyMetadataRequest::getPolicyId).orElse(null))
+                            .build();
+                })
                 .orElse(null);
 
         @Nullable Long maxBlock = searchTransactionsRequest.getMaxBlock();
@@ -163,6 +171,22 @@ public class SearchServiceImpl implements SearchService {
         } catch (IllegalArgumentException e) {
             String details = String.format("Unknown operator: '%s'. Supported values are: 'AND', 'OR'", operatorString);
             throw ExceptionFactory.unspecifiedErrorNotRetriable(details);
+        }
+    }
+
+    private void validateCurrencySymbolIsHex(CurrencyRequest currencyRequest) {
+        String symbol = currencyRequest.getSymbol();
+
+        // Skip validation for ADA (lovelace) as it doesn't have a symbol
+        if (symbol == null
+                || Constants.LOVELACE.equalsIgnoreCase(symbol)
+                || Constants.ADA.equals(symbol)) {
+            return;
+        }
+
+        // For native assets, symbol must be hex-encoded
+        if (!isHexString(symbol)) {
+            throw ExceptionFactory.currencySymbolNotHex(symbol);
         }
     }
 

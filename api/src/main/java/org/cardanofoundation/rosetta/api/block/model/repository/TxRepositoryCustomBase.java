@@ -46,9 +46,9 @@ public abstract class TxRepositoryCustomBase implements TxRepositoryCustom {
                         !"lovelace".equalsIgnoreCase(symbol) && !"ada".equalsIgnoreCase(symbol)) {
                     String escapedSymbol = symbol.trim().replace("\"", "\\\"");
                     return buildPolicyIdAndSymbolCondition(escapedPolicyId, escapedSymbol);
-                } else {
-                    return buildPolicyIdOnlyCondition(escapedPolicyId);
                 }
+
+                return buildPolicyIdOnlyCondition(escapedPolicyId);
             }
 
             if (symbol != null && !symbol.trim().isEmpty()) {
