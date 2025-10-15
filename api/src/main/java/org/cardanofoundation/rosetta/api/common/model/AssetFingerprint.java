@@ -1,12 +1,13 @@
 package org.cardanofoundation.rosetta.api.common.model;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.cardanofoundation.rosetta.common.util.Constants;
 
 import javax.annotation.Nullable;
+
+import static org.cardanofoundation.rosetta.common.util.HexUtils.isHexString;
 
 @Data
 @AllArgsConstructor
@@ -54,7 +55,7 @@ public class AssetFingerprint {
         }
 
         // Validate that subject is valid hex
-        if (!isHex(subject)) {
+        if (!isHexString(subject)) {
             throw new IllegalArgumentException("subject is not a hex string");
         }
 
@@ -62,14 +63,6 @@ public class AssetFingerprint {
         String symbol = subject.substring(Constants.POLICY_ID_LENGTH);
 
         return new AssetFingerprint(policyId, symbol);
-    }
-
-    private static boolean isHex(String str) {
-        if (str == null || str.isEmpty()) {
-            return false;
-        }
-
-        return str.matches("^[0-9a-fA-F]+$");
     }
 
 }
