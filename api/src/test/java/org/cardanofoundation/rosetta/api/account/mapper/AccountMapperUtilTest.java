@@ -512,7 +512,6 @@ class AccountMapperUtilTest {
     private Amt createAmt(String policyId, String assetName, BigInteger quantity, String unit) {
         return Amt.builder()
                 .policyId(policyId)
-                .assetName(assetName)
                 .quantity(quantity)
                 .unit(unit != null ? unit : (policyId != null ? policyId + assetName : assetName))
                 .build();

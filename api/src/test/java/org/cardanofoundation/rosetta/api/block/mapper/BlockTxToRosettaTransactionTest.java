@@ -425,7 +425,6 @@ class BlockTxToRosettaTransactionTest extends BaseMapperSetup {
 
   private static Amt newAdaAmt() {
     return Amt.builder()
-        .assetName(Constants.LOVELACE)
         .quantity(BigInteger.TEN)
         .unit(Constants.LOVELACE)
         .build();
@@ -435,7 +434,6 @@ class BlockTxToRosettaTransactionTest extends BaseMapperSetup {
     String policyId = "policyId1";
     String symbol = "assetName1";
     return Amt.builder()
-        .assetName("assetName1")
         .policyId(policyId)
         .quantity(BigInteger.ONE)
         .unit(policyId + symbol)
