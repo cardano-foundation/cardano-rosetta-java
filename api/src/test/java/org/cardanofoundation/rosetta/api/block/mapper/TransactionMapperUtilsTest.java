@@ -243,7 +243,6 @@ class TransactionMapperUtilsTest {
     
     List<Amt> amtList = Arrays.asList(
         Amt.builder()
-            .assetName(assetName)
             .policyId(policyId)
             .quantity(BigInteger.valueOf(1000))
             .unit(policyId + assetName)
@@ -299,7 +298,6 @@ class TransactionMapperUtilsTest {
     String unit = isLovelace ? Constants.LOVELACE : policyId + symbol;
 
     return Amt.builder()
-        .assetName(isLovelace ? Constants.LOVELACE : "assetName" + number)
         .policyId(policyId)
         .quantity(BigInteger.ONE)
         .unit(unit)
@@ -310,7 +308,6 @@ class TransactionMapperUtilsTest {
     String unit = isLovelace ? Constants.LOVELACE : policyId + assetName;
 
     return Amt.builder()
-        .assetName(isLovelace ? Constants.LOVELACE : assetName)
         .policyId(policyId)
         .quantity(BigInteger.ONE)
         .unit(unit)

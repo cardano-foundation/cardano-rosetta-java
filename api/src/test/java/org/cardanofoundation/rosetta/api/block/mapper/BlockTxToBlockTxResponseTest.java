@@ -72,7 +72,6 @@ class BlockTxToBlockTxResponseTest extends BaseMapperSetup {
 
   private static Amt newAmt() {
     return Amt.builder()
-        .assetName("assetName1")
         .policyId("policyId1")
         .quantity(BigInteger.ONE)
         .unit("unit1")
