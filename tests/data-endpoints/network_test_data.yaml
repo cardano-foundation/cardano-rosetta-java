@@ -1,0 +1,60 @@
+# Network-specific test data for Cardano Rosetta API tests
+# This file contains addresses, assets, and other network-specific data
+# used in integration tests. Add new networks as needed.
+
+preprod:
+  # Test addresses on preprod network (from Postman collection)
+  # All addresses verified to have transactions as of 2025-09-30
+  addresses:
+    # Shelley base address (payment + stake) - 604 transactions
+    shelley_base: "addr_test1qrtdh7587yz5m2w504sjhqnrfml5fpcuxu24fj8xwvk48artcrahhulmvvsnmwqk2k3nmrz20sw8uj7htlpnlutk0p9sjfnd3n"
+
+    # Shelley enterprise address (payment only, no stake) - 47,336 transactions
+    shelley_enterprise: "addr_test1vqnku6rsllyln4fa5s4tlv5ujx0y6kvu4mzzfh5jaht8nfq8584jf"
+
+    # Byron-era address (legacy format) - 39 transactions
+    byron: "37btjrVyb4KEB2STADSsj3MYSAdj52X5FrFWpw2r7Wmj2GDzXjFRsHWuZqrw7zSkwopv8Ci3VWeg6bisU9dgJxW5hb2MZYeduNKbQJrqz3zVBsu9nT"
+
+    # Address used in max_block tests - 6 transactions
+    with_large_utxos: "addr_test1qpa0tqf5hwvhl0mvkexrdxrhgg2ftppn7pjfnfz0es2l9g3aydxqm3q47v3c5h74pz98mt0lpkwzlc6w5z6xl3q9pjzqqklmmp"
+
+    # Stake address (for future stake operation tests)
+    stake: "stake_test1uq7jxnqdcs2lxgu2tl2s3zna4hlsm8p0ud82pdr0cszsepqgprukn"
+
+  # Native assets available on preprod for testing
+  # All assets verified to have transactions as of 2025-09-30
+  assets:
+    - name: "tTEURO"
+      description: "Test Euro stablecoin on preprod - 11,081 transactions"
+      symbol: "tTEURO"
+      decimals: 6
+      policy_id: "e68f1cea19752d1292b4be71b7f5d2b3219a15859c028f7454f66cdf"
+
+# mainnet:
+#   addresses:
+#     shelley_base: "addr1qy..."
+#     shelley_enterprise: "addr1vx..."
+#     byron: "Ae2td..."
+#     with_large_utxos: "addr1..."
+#     stake: "stake1..."
+#
+#   assets:
+#     - name: "HOSKY"
+#       description: "Popular mainnet meme token"
+#       symbol: "HOSKY"
+#       decimals: 0
+#       policy_id: "a0028f350aaabe0545fdcb56b039bfb08e4bb4d8c4d7c3c7d481c235"
+#
+#     - name: "MIN"
+#       description: "Minswap DEX token"
+#       symbol: "MIN"
+#       decimals: 0
+#       policy_id: "29d222ce763455e3d7a09a665ce554f00ac89d2e99a1a83d267170c6"
+
+# preview:
+#   # Preview network test data
+#   addresses:
+#     shelley_base: "addr_test1..."
+#     shelley_enterprise: "addr_test1..."
+#     byron: "..."
+#   assets: []
