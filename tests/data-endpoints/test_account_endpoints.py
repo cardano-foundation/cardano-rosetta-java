@@ -215,6 +215,7 @@ class TestAccountCoins:
         assert all(c in "0123456789abcdef" for c in tx_hash.lower())
         assert output_index.isdigit(), "Output index must be numeric"
 
+    @pytest.mark.requires_full_history
     def test_utxos_match_search_transactions_outputs(
         self, client, network, network_data
     ):
@@ -261,6 +262,7 @@ class TestAccountCoins:
         assert "coins" in data
         assert isinstance(data["coins"], list)
 
+    @pytest.mark.requires_full_history
     def test_all_coins_are_unspent(self, client, network, network_data):
         """All returned coins should be unspent (not consumed in later transactions)."""
         address = network_data["addresses"]["shelley_base"]

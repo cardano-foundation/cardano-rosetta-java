@@ -203,8 +203,9 @@ class TestTransactionIdentifier:
 
     @allure.feature("Search Transactions")
     @allure.story("Transaction Identifier")
+    @pytest.mark.pruning_compatible
     def test_valid_payment_address_shelley_base_using_address_field_large_utxos(
-        self, client, network_data
+        self, client, network_data, is_pruned_instance
     ):
         """Test with address that has large UTXOs."""
         address = network_data["addresses"]["with_large_utxos"]
@@ -223,7 +224,8 @@ class TestAccountIdentifier:
     @pytest.mark.parametrize(
         "address_type", ["shelley_base", "shelley_enterprise", "byron"]
     )
-    def test_valid_payment_addresses(self, client, network_data, address_type):
+    @pytest.mark.pruning_compatible
+    def test_valid_payment_addresses(self, client, network_data, address_type, is_pruned_instance):
         """Test filtering by different address types."""
         address = network_data["addresses"][address_type]
 
@@ -247,8 +249,9 @@ class TestAccountIdentifier:
 
     @allure.feature("Search Transactions")
     @allure.story("Account Identifier")
+    @pytest.mark.pruning_compatible
     def test_valid_payment_address_shelley_base_using_address_field(
-        self, client, network_data
+        self, client, network_data, is_pruned_instance
     ):
         """Test filtering by shelley base address using address field."""
         address = network_data["addresses"]["with_large_utxos"]
@@ -294,10 +297,14 @@ class TestMaxBlock:
     @allure.story("Max Block")
     @pytest.mark.parametrize("percentage", [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100])
     def test_max_block_filtering_at_percentage(
-        self, client, network, blockchain_height, percentage
+        self, client, network, blockchain_height, percentage, oldest_block_identifier
     ):
         """Test max_block filtering at different percentages of blockchain height."""
         max_block = int(blockchain_height * percentage / 100)
+
+        # Skip test if max_block is before oldest queryable block in pruned instance
+        if oldest_block_identifier and max_block < oldest_block_identifier:
+            pytest.skip(f"max_block {max_block} is before oldest_block_identifier {oldest_block_identifier}")
 
         response = client.search_transactions(
             network=network, max_block=max_block, limit=25
@@ -685,7 +692,8 @@ class TestCurrencyFiltering:
 
     @allure.feature("Search Transactions")
     @allure.story("Currency Filtering")
-    def test_native_asset_filtering_by_ascii_symbol(self, client, network, network_data):
+    @pytest.mark.pruning_compatible
+    def test_native_asset_filtering_by_ascii_symbol(self, client, network, network_data, is_pruned_instance):
         """Currency filter works with ASCII symbols (backwards compat in v1.3.3)."""
         asset = network_data["assets"][0]
         hex_symbol = asset["symbol"].encode().hex().lower()  # Lowercase hex
@@ -772,7 +780,8 @@ class TestCurrencyFiltering:
 
     @allure.feature("Search Transactions")
     @allure.story("Currency Filtering")
-    def test_native_asset_filtering_with_policy_id(self, client, network, network_data):
+    @pytest.mark.pruning_compatible
+    def test_native_asset_filtering_with_policy_id(self, client, network, network_data, is_pruned_instance):
         """Test currency filtering with metadata.policyId."""
         asset = network_data["assets"][0]
 

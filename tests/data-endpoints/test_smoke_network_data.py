@@ -29,8 +29,9 @@ class TestNetworkDataValidity:
         "address_type",
         ["shelley_base", "shelley_enterprise", "byron", "with_large_utxos"],
     )
+    @pytest.mark.pruning_compatible
     def test_configured_address_has_transactions(
-        self, client, network, network_data, address_type
+        self, client, network, network_data, address_type, is_pruned_instance
     ):
         """Configured addresses should have transactions on the network."""
         address = network_data["addresses"][address_type]
@@ -46,7 +47,8 @@ class TestNetworkDataValidity:
             f"Network may have changed or address is wrong - update network_test_data.yaml"
         )
 
-    def test_configured_assets_have_transactions(self, client, network, network_data):
+    @pytest.mark.pruning_compatible
+    def test_configured_assets_have_transactions(self, client, network, network_data, is_pruned_instance):
         """Configured native assets should have transactions on the network."""
         for asset in network_data["assets"]:
             # Note: Do NOT add limit parameter - currency filter + limit causes timeout (#615)
