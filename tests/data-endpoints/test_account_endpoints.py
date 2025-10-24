@@ -8,12 +8,15 @@ import pytest
 import allure
 from conftest import get_error_message
 
+pytestmark = pytest.mark.pr
+
 
 @allure.feature("Account")
 @allure.story("Account Balance")
 class TestAccountBalance:
     """Test /account/balance endpoint."""
 
+    @pytest.mark.pr
     def test_get_current_balance(self, client, network, network_data):
         """Get current account balance."""
         address = network_data["addresses"]["shelley_base"]

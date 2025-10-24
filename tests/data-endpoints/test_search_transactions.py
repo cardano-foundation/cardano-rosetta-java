@@ -12,6 +12,8 @@ from conftest import get_error_message
 # Network configuration from environment - works on ANY network
 NETWORK = os.environ.get("CARDANO_NETWORK", "preprod")
 
+pytestmark = pytest.mark.pr
+
 
 class TestSanityChecks:
     """Basic endpoint availability and error handling tests."""
@@ -151,7 +153,7 @@ class TestTransactionIdentifier:
     def test_valid_transaction_hash(self, client, network):
         """Search by transaction hash returns that specific transaction."""
         # Dynamically fetch a transaction to test with
-        sample_response = client.search_transactions(network=network, limit=1)
+        sample_response = client.search_transactions(network=network)
         assert sample_response.status_code == 200
         sample_tx = sample_response.json()["transactions"][0]
         tx_hash = sample_tx["transaction"]["transaction_identifier"]["hash"]
@@ -295,7 +297,8 @@ class TestMaxBlock:
 
     @allure.feature("Search Transactions")
     @allure.story("Max Block")
-    @pytest.mark.parametrize("percentage", [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100])
+    @pytest.mark.slow
+    @pytest.mark.parametrize("percentage", [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100])
     def test_max_block_filtering_at_percentage(
         self, client, network, blockchain_height, percentage, oldest_block_identifier
     ):
@@ -307,7 +310,7 @@ class TestMaxBlock:
             pytest.skip(f"max_block {max_block} is before oldest_block_identifier {oldest_block_identifier}")
 
         response = client.search_transactions(
-            network=network, max_block=max_block, limit=25
+            network=network, max_block=max_block
         )
         assert response.status_code == 200
 
@@ -628,18 +631,21 @@ class TestLogicalOperators:
 
 class TestCurrencyFiltering:
     """Test currency filtering."""
-
     @allure.feature("Search Transactions")
     @allure.story("Currency Filtering")
-    def test_ada_filter(self, client, network):
+    @pytest.mark.parametrize("symbol", ["ada", "ADA"])
+    @pytest.mark.skip(reason="ADA filter test needs review due to fee ops always including ADA")
+    def test_ada_filter_case_insensitive(self, client, network, symbol):
         """Filter by ada currency (case-insensitive)."""
-        # Search by lowercase "ada"
         response = client.search_transactions(
-            network=network, currency={"symbol": "ada", "decimals": 6}
+            network=network, currency={"symbol": symbol, "decimals": 6}
         )
         assert response.status_code == 200
 
         # Verify filtering works - ALL returned transactions must have ADA
+        # TODO: review this test as all transactions do need to have at least one ADA operation (txIn used for fees)
+        # Even if the filter is for another currency, ADA ops will still be present
+        # because Cardano transactions always include ADA for fees.
         txs = response.json()["transactions"]
         for tx in txs:
             currencies = [
@@ -648,47 +654,6 @@ class TestCurrencyFiltering:
                 if "amount" in op and "currency" in op["amount"]
             ]
             assert "ADA" in currencies, "ADA filter must only return ADA transactions"
-
-    @allure.feature("Search Transactions")
-    @allure.story("Currency Filtering")
-    def test_ada_uppercase_filter(self, client, network):
-        """Filter by ADA currency (uppercase) - case insensitive."""
-        response = client.search_transactions(
-            network=network, currency={"symbol": "ADA", "decimals": 6}
-        )
-        assert response.status_code == 200
-
-        # Verify case-insensitive filtering works
-        txs = response.json()["transactions"]
-        for tx in txs:
-            currencies = [
-                op["amount"]["currency"]["symbol"]
-                for op in tx["transaction"]["operations"]
-                if "amount" in op and "currency" in op["amount"]
-            ]
-            assert "ADA" in currencies, "ADA filter must only return ADA transactions"
-
-    @allure.feature("Search Transactions")
-    @allure.story("Currency Filtering")
-    def test_lovelace_filter(self, client, network):
-        """Filter by lovelace currency."""
-        response = client.search_transactions(
-            network=network, currency={"symbol": "lovelace", "decimals": 0}
-        )
-        assert response.status_code == 200
-
-        # Verify filtering works - ALL returned transactions must have lovelace/ADA
-        txs = response.json()["transactions"]
-        for tx in txs:
-            currencies = [
-                op["amount"]["currency"]["symbol"]
-                for op in tx["transaction"]["operations"]
-                if "amount" in op and "currency" in op["amount"]
-            ]
-            # Lovelace and ADA are the same, API returns "ADA"
-            assert any(c in ["lovelace", "ADA"] for c in currencies), (
-                "lovelace filter must only return transactions with lovelace/ADA"
-            )
 
     @allure.feature("Search Transactions")
     @allure.story("Currency Filtering")

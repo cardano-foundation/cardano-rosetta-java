@@ -4,7 +4,13 @@ Shared fixtures for data endpoint tests.
 
 import os
 import pytest
+from pathlib import Path
+from dotenv import load_dotenv
 from client import RosettaClient
+
+
+# Load .env file at module import time; explicit .env values override the parent env
+load_dotenv(Path(__file__).parent / ".env", override=True)
 
 
 @pytest.fixture(scope="session")
@@ -57,13 +63,25 @@ def network_status(rosetta_url, network):
 
 
 @pytest.fixture(scope="session")
-def is_pruned_instance(network_status):
-    """
-    Detect if running against a pruned instance.
+def pruning_enabled():
+    """Read REMOVE_SPENT_UTXOS from environment."""
+    return os.environ.get("REMOVE_SPENT_UTXOS", "false").lower() == "true"
 
-    Pruned instances return oldest_block_identifier in network status.
+
+@pytest.fixture(scope="session")
+def grace_window():
+    """Read pruning grace window from environment."""
+    return int(os.environ.get("REMOVE_SPENT_UTXOS_LAST_BLOCKS_GRACE_COUNT", "2160"))
+
+
+@pytest.fixture(scope="session")
+def is_pruned_instance(pruning_enabled):
     """
-    return "oldest_block_identifier" in network_status
+    Check if running against a pruned instance.
+
+    Reads from environment configuration instead of API detection.
+    """
+    return pruning_enabled
 
 
 @pytest.fixture(scope="session")
@@ -73,66 +91,25 @@ def oldest_block_identifier(network_status, is_pruned_instance):
 
     Returns None for non-pruned instances.
     Below this block index, blocks might have missing data due to pruning.
+
+    NOTE: This reads from API response, not configuration.
+    Use this to validate the API behavior, not to detect pruning.
     """
     if is_pruned_instance:
-        return network_status["oldest_block_identifier"]["index"]
+        return network_status.get("oldest_block_identifier", {}).get("index")
     return None
 
 
 @pytest.fixture(scope="session")
-def has_token_registry(rosetta_url, network):
-    """
-    Detect if token registry is enabled.
-
-    Checks for token metadata in a known token transaction.
-    This is a best-effort detection - returns False if unsure.
-    """
-    # This would need a known token transaction to check
-    # For now, we'll default to assuming it's enabled in v1.4.0
-    # TODO: Implement actual detection logic
-    return True
+def has_token_registry():
+    """Read TOKEN_REGISTRY_ENABLED from environment."""
+    return os.environ.get("TOKEN_REGISTRY_ENABLED", "false").lower() == "true"
 
 
 @pytest.fixture(scope="session")
-def has_peer_discovery(network_status, network):
-    """
-    Detect if peer discovery is enabled.
-
-    When peer discovery is DISABLED: API returns only static bootstrap peers from topology
-    When peer discovery is ENABLED: API returns dynamic peers discovered via P2P
-
-    We detect this by checking if returned peers differ from known bootstrap peers.
-    """
-    if "peers" not in network_status:
-        return False
-
-    # Known bootstrap peers per network
-    bootstrap_peers = {
-        "mainnet": [
-            "backbone.cardano.iog.io",
-            "backbone.mainnet.cardanofoundation.org",
-            "backbone.mainnet.emurgornd.com"
-        ],
-        "preprod": [
-            "preprod-node.play.dev.cardano.org"
-        ],
-        "preview": [
-            "preview-node.play.dev.cardano.org"
-        ]
-    }
-
-    known_bootstraps = bootstrap_peers.get(network, [])
-    peers = network_status.get("peers", [])
-
-    # Check if any peer is NOT a bootstrap peer (indicating dynamic discovery)
-    for peer in peers:
-        peer_address = peer.get("metadata", {}).get("address", "")
-        # If we find a peer that's not in bootstrap list, discovery is enabled
-        if peer_address and not any(bootstrap in peer_address for bootstrap in known_bootstraps):
-            return True
-
-    # If all peers are bootstrap peers, discovery is disabled
-    return False
+def has_peer_discovery():
+    """Read PEER_DISCOVERY from environment."""
+    return os.environ.get("PEER_DISCOVERY", "false").lower() == "true"
 
 
 @pytest.fixture(scope="session")
@@ -183,20 +160,3 @@ def get_error_message(error_response):
     details_message = error_response.get("details", {}).get("message", "")
     return (message + " " + details_message).strip()
 
-
-def pytest_configure(config):
-    """Configure pytest hooks for handling pruning markers."""
-    config.addinivalue_line(
-        "markers",
-        "requires_full_history: mark test as requiring complete historical data"
-    )
-
-
-def pytest_runtest_setup(item):
-    """Skip tests based on pruning configuration."""
-    # Skip tests marked with requires_full_history when running against pruned instance
-    if item.get_closest_marker("requires_full_history"):
-        # Check if we're running against a pruned instance
-        network_status = item.funcargs.get("network_status")
-        if network_status and "oldest_block_identifier" in network_status:
-            pytest.skip("Test requires full history - skipping on pruned instance")

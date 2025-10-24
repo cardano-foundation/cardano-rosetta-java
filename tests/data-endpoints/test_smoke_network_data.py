@@ -19,6 +19,7 @@ import pytest
 import allure
 
 
+@pytest.mark.pr
 @pytest.mark.smoke
 @allure.feature("Smoke Tests")
 @allure.story("Network Test Data Validation")
@@ -31,13 +32,12 @@ class TestNetworkDataValidity:
     )
     @pytest.mark.pruning_compatible
     def test_configured_address_has_transactions(
-        self, client, network, network_data, address_type, is_pruned_instance
-    ):
+        self, client, network, network_data, address_type):
         """Configured addresses should have transactions on the network."""
         address = network_data["addresses"][address_type]
 
         response = client.search_transactions(
-            network=network, account_identifier={"address": address}, limit=1
+            network=network, account_identifier={"address": address}
         )
         assert response.status_code == 200
 
@@ -48,7 +48,7 @@ class TestNetworkDataValidity:
         )
 
     @pytest.mark.pruning_compatible
-    def test_configured_assets_have_transactions(self, client, network, network_data, is_pruned_instance):
+    def test_configured_assets_have_transactions(self, client, network, network_data):
         """Configured native assets should have transactions on the network."""
         for asset in network_data["assets"]:
             # Note: Do NOT add limit parameter - currency filter + limit causes timeout (#615)

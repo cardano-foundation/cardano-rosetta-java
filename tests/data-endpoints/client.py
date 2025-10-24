@@ -2,6 +2,7 @@
 Rosetta API client with schema validation.
 """
 
+import os
 import httpx
 import yaml
 from pathlib import Path
@@ -124,30 +125,20 @@ class RosettaClient:
         Args:
             base_url: Base URL for Rosetta API
             validate_schemas: Whether to validate responses against OpenAPI schemas
-            relaxed_validation: If True, use relaxed schema validation for pruned instances.
-                              If None (default), auto-detect based on network status.
+            relaxed_validation: Enable relaxed schema validation (makes account address optional).
+                              If None (default) and schema validation stays enabled, the setting is
+                              derived from REMOVE_SPENT_UTXOS. Ignored when validate_schemas=False.
         """
         self.base_url = base_url
         self.client = httpx.Client(timeout=httpx.Timeout(600.0))
         self.validate_schemas = validate_schemas
-        self.relaxed_validation = relaxed_validation
 
-        # Auto-detect if we need relaxed validation
+        # Read pruning config from environment instead of API detection
         if relaxed_validation is None and validate_schemas:
-            try:
-                # Check network status for pruning indicators
-                response = self.client.post(
-                    f"{self.base_url}/network/status",
-                    json={"network_identifier": {"blockchain": "cardano", "network": "preprod"}},
-                    headers={"Content-Type": "application/json"},
-                )
-                if response.status_code == 200:
-                    status = response.json()
-                    # If oldest_block_identifier exists, pruning is enabled
-                    self.relaxed_validation = "oldest_block_identifier" in status
-            except:
-                # Default to strict validation if detection fails
-                self.relaxed_validation = False
+            pruning_enabled = os.environ.get("REMOVE_SPENT_UTXOS", "false").lower() == "true"
+            self.relaxed_validation = pruning_enabled
+        else:
+            self.relaxed_validation = relaxed_validation
 
         self.validator = SchemaValidator(relaxed_mode=self.relaxed_validation) if validate_schemas else None
 

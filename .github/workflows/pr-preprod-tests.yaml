@@ -39,9 +39,33 @@ jobs:
           # Stop all services
           docker compose \
             --env-file .env.docker-compose-preprod \
-            --env-file .env.docker-compose-profile-entry-level \
+            --env-file .env.docker-compose-profile-mid-level \
             -f docker-compose.yaml \
             down
+
+      - name: Configure environment for full-history tests
+        run: |
+          cd /home/integration/git/cardano-rosetta-java
+
+          ensure_var() {
+            local key="$1"
+            local value="$2"
+            local file=".env.docker-compose-preprod"
+            if grep -q "^${key}=" "$file"; then
+              sed -i "s#^${key}=.*#${key}=${value}#" "$file"
+            else
+              echo "${key}=${value}" >> "$file"
+            fi
+          }
+
+          ensure_var REMOVE_SPENT_UTXOS false
+          ensure_var REMOVE_SPENT_UTXOS_LAST_BLOCKS_GRACE_COUNT 129600
+          ensure_var TOKEN_REGISTRY_ENABLED true
+          ensure_var TOKEN_REGISTRY_BASE_URL http://preview.integrations.cf-systems.internal:8080/api
+          ensure_var TOKEN_REGISTRY_CACHE_TTL_HOURS 1
+          ensure_var TOKEN_REGISTRY_LOGO_FETCH true
+          ensure_var TOKEN_REGISTRY_REQUEST_TIMEOUT_SECONDS 2
+          ensure_var PEER_DISCOVERY true
 
 
       - name: Build and start services with PR code
@@ -55,7 +79,7 @@ jobs:
           # Build and start all services
           docker compose \
             --env-file .env.docker-compose-preprod \
-            --env-file .env.docker-compose-profile-entry-level \
+            --env-file .env.docker-compose-profile-mid-level \
             -f docker-compose.yaml \
             up --build -d --wait
 
@@ -110,6 +134,17 @@ jobs:
           # Sync Python dependencies
           uv sync
 
+      - name: Create test environment file
+        run: |
+          cd /home/integration/git/cardano-rosetta-java
+
+          # Merge env files so tests can read actual configuration
+          cat .env.docker-compose-preprod > .env.test
+          cat .env.docker-compose-profile-mid-level >> .env.test
+
+          # Copy to tests directory
+          cp .env.test tests/data-endpoints/.env
+
       - name: Run smoke tests (validate test data)
         id: smoke_tests
         run: |
@@ -142,6 +177,7 @@ jobs:
 
           # Run behavioral tests (skip smoke tests)
           uv run pytest -m "not smoke" \
+            -n auto \
             --alluredir=./allure-results \
             --tb=short \
             -v || TEST_RESULT=$?
@@ -151,6 +187,27 @@ jobs:
 
           # Fail if tests failed
           exit ${TEST_RESULT:-0}
+        env:
+          ROSETTA_URL: http://localhost:8082
+          CARDANO_NETWORK: preprod
+
+      - name: Run construction API tests
+        id: construction_test
+        run: |
+          export PATH="$HOME/.local/bin:$PATH"
+
+          cd /home/integration/git/cardano-rosetta-java/tests/integration
+
+          # Run construction API snapshot tests
+          uv run test_construction_api.py \
+            -v || CONSTRUCTION_RESULT=$?
+
+          # Output test result
+          echo "construction_result=${CONSTRUCTION_RESULT:-0}" >> $GITHUB_OUTPUT
+
+          # Don't fail the whole job if construction tests fail
+          # These are informational for now
+          exit 0
         env:
           ROSETTA_URL: http://localhost:8082
           CARDANO_NETWORK: preprod
@@ -223,7 +280,7 @@ jobs:
           # Stop all services cleanly
           docker compose \
             --env-file .env.docker-compose-preprod \
-            --env-file .env.docker-compose-profile-entry-level \
+            --env-file .env.docker-compose-profile-mid-level \
             -f docker-compose.yaml \
             down
 
@@ -242,7 +299,7 @@ jobs:
             # Start only the database
             docker compose \
               --env-file .env.docker-compose-preprod \
-              --env-file .env.docker-compose-profile-entry-level \
+              --env-file .env.docker-compose-profile-mid-level \
               -f docker-compose.yaml \
               up -d db
 
@@ -276,7 +333,7 @@ jobs:
 
             docker compose \
               --env-file .env.docker-compose-preprod \
-              --env-file .env.docker-compose-profile-entry-level \
+              --env-file .env.docker-compose-profile-mid-level \
               -f docker-compose.yaml \
               down
           fi
@@ -288,7 +345,7 @@ jobs:
 
           docker compose \
             --env-file .env.docker-compose-preprod \
-            --env-file .env.docker-compose-profile-entry-level \
+            --env-file .env.docker-compose-profile-mid-level \
             -f docker-compose.yaml \
             up -d
 
@@ -306,3 +363,9 @@ jobs:
           done
 
           echo "✅ Rollback to $LAST_TAG completed"
+
+      - name: Restore baseline configuration
+        if: always()
+        run: |
+          cd /home/integration/git/cardano-rosetta-java
+          git restore .env.docker-compose-preprod
