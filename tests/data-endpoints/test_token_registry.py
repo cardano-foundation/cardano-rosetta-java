@@ -130,9 +130,8 @@ def _block_operations_for_token(client, network: str, token: Dict) -> List[Tuple
 
 
 def _search_operations_for_token(client, network: str, token: Dict) -> List[Tuple[Dict, Dict]]:
-    # Deterministic selection: CIP-26 (base64 logo) uses ASCII; CIP-68 (url logo) uses HEX.
-    use_hex = token.get("logo_format") == "url"
-    symbol = token["symbol_hex"] if use_hex else token.get("symbol_ascii", "")
+    # Use ASCII symbol in search request (known API quirk). No fallbacks.
+    symbol = token["symbol_ascii"]
     response = client.search_transactions(
         network=network,
         currency={
@@ -140,7 +139,6 @@ def _search_operations_for_token(client, network: str, token: Dict) -> List[Tupl
             "decimals": token["decimals"],
             "metadata": {"policyId": token["policy_id"]},
         },
-        limit=10,
     )
 
     if response.status_code != 200:
@@ -233,10 +231,9 @@ class TestTokenRegistryEnrichment:
 
         for token in _tokens_config(network_data):
             matches = _search_operations_for_token(client, network, token)
-            tried_symbol = token["symbol_hex"] if token.get("logo_format") == "url" else token.get("symbol_ascii", "")
             assert matches, (
                 f"/search/transactions returned no results for token {token['ticker']} "
-                f"(symbol tried: {tried_symbol})"
+                f"(symbol tried: {token['symbol_ascii']})"
             )
             for tx, op in matches:
                 currency = op.get("amount", {}).get("currency", {})
