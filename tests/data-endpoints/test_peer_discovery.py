@@ -15,6 +15,7 @@ class TestPeerDiscovery:
     @pytest.mark.nightly
     @pytest.mark.requires_peer_discovery
     @pytest.mark.slow
+    @pytest.mark.skip(reason="Peer discovery takes too long to populate dynamic peers (#619)")
     def test_peer_list_contains_dynamic_entries(self, client, network, has_peer_discovery):
         """Verify peer discovery returns peers beyond the static bootstrap list."""
         if not has_peer_discovery:

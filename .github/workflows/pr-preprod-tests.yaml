@@ -18,7 +18,7 @@ jobs:
     timeout-minutes: 30
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Update local repository
         run: |
@@ -60,6 +60,7 @@ jobs:
 
           ensure_var REMOVE_SPENT_UTXOS false
           ensure_var REMOVE_SPENT_UTXOS_LAST_BLOCKS_GRACE_COUNT 129600
+          ensure_var DB_PORT 5433
           ensure_var TOKEN_REGISTRY_ENABLED true
           ensure_var TOKEN_REGISTRY_BASE_URL http://preview.integrations.cf-systems.internal:8080/api
           ensure_var TOKEN_REGISTRY_CACHE_TTL_HOURS 1
@@ -274,6 +275,7 @@ jobs:
         if: failure() && (steps.test.outcome == 'failure' || steps.test.outcome == 'cancelled')
         run: |
           cd /home/integration/git/cardano-rosetta-java
+          sed -i "s#^DB_PORT=.*#DB_PORT=5433#" .env.docker-compose-preprod
 
           echo "⚠️ Test failed - stopping services"
 
@@ -286,11 +288,13 @@ jobs:
 
           # Check if migrations changed in this PR
           LAST_TAG=$(git tag --sort=-version:refname | head -1)
-          git checkout $LAST_TAG
+          git checkout -f $LAST_TAG
+          sed -i "s#^DB_PORT=.*#DB_PORT=5433#" .env.docker-compose-preprod
 
           STABLE_MIGRATION_HASH=$(find yaci-indexer/src/main/resources/db/store -type f -name 'V*.sql' -exec md5sum {} \; | sort | md5sum | cut -d' ' -f1)
 
-          git checkout -
+          git checkout -f -
+          sed -i "s#^DB_PORT=.*#DB_PORT=5433#" .env.docker-compose-preprod
           PR_MIGRATION_HASH=$(find yaci-indexer/src/main/resources/db/store -type f -name 'V*.sql' -exec md5sum {} \; | sort | md5sum | cut -d' ' -f1)
 
           if [ "$STABLE_MIGRATION_HASH" != "$PR_MIGRATION_HASH" ]; then
@@ -319,7 +323,7 @@ jobs:
               for VERSION in $CHANGED_MIGRATIONS; do
                 echo "Removing Flyway metadata for version: $VERSION"
                 docker exec cardano-rosetta-java-db-1 sh -c \
-                  "PGPASSWORD=weakpwd#123_d psql -U rosetta_db_admin -d rosetta-java \
+                  "PGPASSWORD=weakpwd#123_d psql -U rosetta_db_admin -d rosetta-java -p 5433 \
                    -c \"DELETE FROM preprod.flyway_schema_history WHERE version LIKE '${VERSION}%';\""
               done
 
@@ -327,7 +331,7 @@ jobs:
             else
               echo "No specific migration versions detected - truncating flyway history"
               docker exec cardano-rosetta-java-db-1 sh -c \
-                "PGPASSWORD=weakpwd#123_d psql -U rosetta_db_admin -d rosetta-java \
+                "PGPASSWORD=weakpwd#123_d psql -U rosetta_db_admin -d rosetta-java -p 5433 \
                  -c 'TRUNCATE preprod.flyway_schema_history;'"
             fi
 
@@ -341,7 +345,8 @@ jobs:
           # Now safe to rollback
           LAST_TAG=$(git tag --sort=-version:refname | head -1)
           echo "Rolling back to stable version: $LAST_TAG"
-          git checkout $LAST_TAG
+          git checkout -f $LAST_TAG
+          sed -i "s#^DB_PORT=.*#DB_PORT=5433#" .env.docker-compose-preprod
 
           docker compose \
             --env-file .env.docker-compose-preprod \
