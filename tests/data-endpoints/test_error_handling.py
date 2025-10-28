@@ -8,6 +8,8 @@ Uses lambda pattern to handle different parameter requirements per endpoint.
 import pytest
 import allure
 
+pytestmark = pytest.mark.pr
+
 
 @allure.feature("Error Handling")
 @allure.story("Missing Network Identifier")

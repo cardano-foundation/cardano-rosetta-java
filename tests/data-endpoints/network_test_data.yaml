@@ -12,6 +12,9 @@ preprod:
     # Shelley enterprise address (payment only, no stake) - 47,336 transactions
     shelley_enterprise: "addr_test1vqnku6rsllyln4fa5s4tlv5ujx0y6kvu4mzzfh5jaht8nfq8584jf"
 
+    # Whale address with lots of historical activity (for pruning comparison tests)
+    whale: "addr_test1vqnku6rsllyln4fa5s4tlv5ujx0y6kvu4mzzfh5jaht8nfq8584jf"  # Same as shelley_enterprise
+
     # Byron-era address (legacy format) - 39 transactions
     byron: "37btjrVyb4KEB2STADSsj3MYSAdj52X5FrFWpw2r7Wmj2GDzXjFRsHWuZqrw7zSkwopv8Ci3VWeg6bisU9dgJxW5hb2MZYeduNKbQJrqz3zVBsu9nT"
 
@@ -29,6 +32,38 @@ preprod:
       symbol: "tTEURO"
       decimals: 6
       policy_id: "e68f1cea19752d1292b4be71b7f5d2b3219a15859c028f7454f66cdf"
+
+  # Tokens registered in metadata server (for v1.4.0 token registry tests)
+  # These tokens have enriched metadata (name, ticker, description) when registry enabled
+  # Verified in metadata server DB as of 2025-10-22
+  tokens_in_registry:
+    - name: "Genius Yield Test Token"
+      ticker: "tGENS"
+      symbol_hex: "7447454e53"  # Symbol in hexadecimal
+      symbol_ascii: "tGENS"
+      decimals: 6
+      policy_id: "c6e65ba7878b2f8ea0ad39287d3e2fd256dc5c4160fc19bdf4c4d87e"
+      subject: "c6e65ba7878b2f8ea0ad39287d3e2fd256dc5c4160fc19bdf4c4d87e7447454e53"
+      description: "Test token for Genius Yield"
+      url: "https://preprod.genius-x.co"
+      logo_format: "base64"
+      logo_value_prefix: "89504e47"
+      # Known location where this token exists (for historical queries)
+      test_address: "addr_test1qqzdcr8caujvm4kjdv3mh90xvc3gh8k3d0et4cnja47cy74aavghhj8e4rryf0xyth5yj0yu7lcxulk6rqhwfvel7p0qa8czcz"
+      test_block: 486800  # Block where test_address held this token
+    - name: "tUSDM"
+      ticker: "tUSDM"
+      symbol_hex: "0014df10745553444d"
+      symbol_ascii: ""
+      decimals: 6
+      policy_id: "16a55b2a349361ff88c03788f93e1e966e5d689605d044fef722ddde"
+      subject: "16a55b2a349361ff88c03788f93e1e966e5d689605d044fef722ddde0014df10745553444d"
+      description: "Fiat-backed stablecoin native to the Cardano blockchain"
+      url: "https://moneta.global/"
+      logo_format: "url"
+      logo_value_prefix: "ipfs://"
+      test_address: "addr_test1qpq4x7rrrh3pxx0w8ng3xxjkshd070zg6hmux638ej57xtakfrrt9cwl632xwcrg8mumxfz5wvphzuxnrluexy2g4z5qxz5t2c"
+      test_block: 4042548  # Block containing CIP-68 logo (URL) metadata
 
 # mainnet:
 #   addresses:

@@ -4,7 +4,13 @@ Shared fixtures for data endpoint tests.
 
 import os
 import pytest
+from pathlib import Path
+from dotenv import load_dotenv
 from client import RosettaClient
+
+
+# Load .env file at module import time; explicit .env values override the parent env
+load_dotenv(Path(__file__).parent / ".env", override=True)
 
 
 @pytest.fixture(scope="session")
@@ -27,24 +33,83 @@ def client(rosetta_url):
 
 
 @pytest.fixture(scope="module")
-def blockchain_height(rosetta_url, network):
+def blockchain_height(network_status):
     """
     Get current blockchain height once per test module.
 
     Cached to avoid repeated network_status calls.
     Fails loudly if blockchain is too young for integration testing.
     """
+    height = network_status["current_block_identifier"]["index"]
+
+    if height < 100:
+        raise AssertionError(
+            f"Blockchain too young ({height} blocks). "
+            f"Need at least 100 blocks for integration testing."
+        )
+
+    return height
+
+
+@pytest.fixture(scope="session")
+def network_status(rosetta_url, network):
+    """
+    Get network status once per test session.
+
+    Cached to avoid repeated calls and used for configuration detection.
+    """
     with RosettaClient(base_url=rosetta_url) as client:
-        status = client.network_status(network=network).json()
-        height = status["current_block_identifier"]["index"]
+        return client.network_status(network=network).json()
 
-        if height < 100:
-            raise AssertionError(
-                f"Blockchain too young ({height} blocks). "
-                f"Need at least 100 blocks for integration testing."
-            )
 
-        return height
+@pytest.fixture(scope="session")
+def pruning_enabled():
+    """Read REMOVE_SPENT_UTXOS from environment."""
+    return os.environ.get("REMOVE_SPENT_UTXOS", "false").lower() == "true"
+
+
+@pytest.fixture(scope="session")
+def grace_window():
+    """Read pruning grace window from environment."""
+    return int(os.environ.get("REMOVE_SPENT_UTXOS_LAST_BLOCKS_GRACE_COUNT", "2160"))
+
+
+@pytest.fixture(scope="session")
+def is_pruned_instance(pruning_enabled):
+    """
+    Check if running against a pruned instance.
+
+    Reads from environment configuration instead of API detection.
+    """
+    return pruning_enabled
+
+
+@pytest.fixture(scope="session")
+def oldest_block_identifier(network_status, is_pruned_instance):
+    """
+    Get oldest fully queryable block if pruning is enabled.
+
+    Returns None for non-pruned instances.
+    Below this block index, blocks might have missing data due to pruning.
+
+    NOTE: This reads from API response, not configuration.
+    Use this to validate the API behavior, not to detect pruning.
+    """
+    if is_pruned_instance:
+        return network_status.get("oldest_block_identifier", {}).get("index")
+    return None
+
+
+@pytest.fixture(scope="session")
+def has_token_registry():
+    """Read TOKEN_REGISTRY_ENABLED from environment."""
+    return os.environ.get("TOKEN_REGISTRY_ENABLED", "false").lower() == "true"
+
+
+@pytest.fixture(scope="session")
+def has_peer_discovery():
+    """Read PEER_DISCOVERY from environment."""
+    return os.environ.get("PEER_DISCOVERY", "false").lower() == "true"
 
 
 @pytest.fixture(scope="session")
@@ -94,3 +159,4 @@ def get_error_message(error_response):
     message = error_response.get("message", "")
     details_message = error_response.get("details", {}).get("message", "")
     return (message + " " + details_message).strip()
+

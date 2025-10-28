@@ -19,6 +19,7 @@ import pytest
 import allure
 
 
+@pytest.mark.pr
 @pytest.mark.smoke
 @allure.feature("Smoke Tests")
 @allure.story("Network Test Data Validation")
@@ -29,14 +30,14 @@ class TestNetworkDataValidity:
         "address_type",
         ["shelley_base", "shelley_enterprise", "byron", "with_large_utxos"],
     )
+    @pytest.mark.pruning_compatible
     def test_configured_address_has_transactions(
-        self, client, network, network_data, address_type
-    ):
+        self, client, network, network_data, address_type):
         """Configured addresses should have transactions on the network."""
         address = network_data["addresses"][address_type]
 
         response = client.search_transactions(
-            network=network, account_identifier={"address": address}, limit=1
+            network=network, account_identifier={"address": address}
         )
         assert response.status_code == 200
 
@@ -46,6 +47,7 @@ class TestNetworkDataValidity:
             f"Network may have changed or address is wrong - update network_test_data.yaml"
         )
 
+    @pytest.mark.pruning_compatible
     def test_configured_assets_have_transactions(self, client, network, network_data):
         """Configured native assets should have transactions on the network."""
         for asset in network_data["assets"]:

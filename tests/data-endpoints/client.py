@@ -2,6 +2,7 @@
 Rosetta API client with schema validation.
 """
 
+import os
 import httpx
 import yaml
 from pathlib import Path
@@ -12,7 +13,15 @@ from jsonschema import Draft4Validator
 class SchemaValidator:
     """Validates API responses against OpenAPI schemas."""
 
-    def __init__(self, openapi_path: Optional[Path] = None):
+    def __init__(self, openapi_path: Optional[Path] = None, relaxed_mode: bool = False):
+        """
+        Initialize schema validator.
+
+        Args:
+            openapi_path: Path to OpenAPI spec file
+            relaxed_mode: If True, relaxes validation for pruned instances
+                         (makes address field optional in account objects)
+        """
         if openapi_path is None:
             openapi_path = (
                 Path(__file__).parent.parent.parent
@@ -29,12 +38,50 @@ class SchemaValidator:
             raise ValueError("Invalid OpenAPI spec")
 
         self.schemas = self.spec["components"]["schemas"]
+        self.relaxed_mode = relaxed_mode
         self.validators = {}
 
         # Load ALL schemas with resolved references
         for schema_name in self.schemas:
             resolved = self._resolve_refs(self.schemas[schema_name])
+            # Apply pruning-specific schema relaxations
+            if self.relaxed_mode:
+                resolved = self._apply_pruning_relaxations(resolved, schema_name)
             self.validators[schema_name] = Draft4Validator(resolved)
+
+    def _apply_pruning_relaxations(self, schema: dict, schema_name: str) -> dict:
+        """
+        Apply schema relaxations for pruned instances.
+
+        When pruning is enabled, historical transactions may have empty account objects.
+        This method makes the 'address' field optional in AccountIdentifier objects.
+        """
+        if schema_name in ["SearchTransactionsResponse", "BlockResponse", "BlockTransactionResponse"]:
+            # These responses contain operations with account identifiers
+            # We need to make address field optional in nested account objects
+            schema = self._make_account_address_optional(schema)
+        return schema
+
+    def _make_account_address_optional(self, obj: Any) -> Any:
+        """
+        Recursively traverse schema and make address field optional in AccountIdentifier.
+
+        This handles the case where pruned instances return empty account objects.
+        """
+        if isinstance(obj, dict):
+            # Check if this is an AccountIdentifier schema
+            if obj.get("type") == "object" and "properties" in obj:
+                props = obj.get("properties", {})
+                # If this object has an address property that's required
+                if "address" in props and "required" in obj:
+                    # Remove 'address' from required fields
+                    obj["required"] = [r for r in obj["required"] if r != "address"]
+
+            # Recursively process all nested objects
+            return {k: self._make_account_address_optional(v) for k, v in obj.items()}
+        elif isinstance(obj, list):
+            return [self._make_account_address_optional(item) for item in obj]
+        return obj
 
     def _resolve_refs(self, obj, depth=0):
         """Recursively resolve all $ref references."""
@@ -68,12 +115,32 @@ class RosettaClient:
     """Rosetta API client with schema validation."""
 
     def __init__(
-        self, base_url: str = "http://localhost:8082", validate_schemas: bool = True
+        self, base_url: str = "http://localhost:8082",
+        validate_schemas: bool = True,
+        relaxed_validation: bool = None
     ):
+        """
+        Initialize Rosetta client.
+
+        Args:
+            base_url: Base URL for Rosetta API
+            validate_schemas: Whether to validate responses against OpenAPI schemas
+            relaxed_validation: Enable relaxed schema validation (makes account address optional).
+                              If None (default) and schema validation stays enabled, the setting is
+                              derived from REMOVE_SPENT_UTXOS. Ignored when validate_schemas=False.
+        """
         self.base_url = base_url
         self.client = httpx.Client(timeout=httpx.Timeout(600.0))
         self.validate_schemas = validate_schemas
-        self.validator = SchemaValidator() if validate_schemas else None
+
+        # Read pruning config from environment instead of API detection
+        if relaxed_validation is None and validate_schemas:
+            pruning_enabled = os.environ.get("REMOVE_SPENT_UTXOS", "false").lower() == "true"
+            self.relaxed_validation = pruning_enabled
+        else:
+            self.relaxed_validation = relaxed_validation
+
+        self.validator = SchemaValidator(relaxed_mode=self.relaxed_validation) if validate_schemas else None
 
     def _post(
         self, path: str, body: Dict[str, Any], schema_name: Optional[str] = None

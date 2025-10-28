@@ -1,11 +1,15 @@
 """Tests for Rosetta /network endpoints."""
 
+import pytest
 import allure
+
+pytestmark = pytest.mark.pr
 
 
 @allure.feature("Network")
 @allure.story("List")
 class TestNetworkList:
+    @pytest.mark.pr
     def test_returns_configured_network(self, client, network):
         """Test that the configured network appears in the list."""
         response = client.network_list()
@@ -24,6 +28,7 @@ class TestNetworkList:
 @allure.feature("Network")
 @allure.story("Status")
 class TestNetworkStatus:
+    @pytest.mark.pr
     def test_returns_current_network_status(self, client, network):
         response = client.network_status(network=network)
         assert response.status_code == 200
