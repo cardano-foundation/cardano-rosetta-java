@@ -13,7 +13,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
-import org.cardanofoundation.rosetta.common.mapper.DataMapper;
 import org.cardanofoundation.rosetta.common.model.cardano.network.RelayType;
 import org.openapitools.client.model.*;
 import org.openapitools.client.model.Relay;
@@ -95,7 +94,10 @@ public class ParseConstructionUtil {
         OperationIdentifier operationIdentifier = new OperationIdentifier(index, null);
         AccountIdentifier account = new AccountIdentifier(output.getAddress(), null, null);
         Amount amount = new Amount(output.getValue().getCoin().toString(),
-                new Currency(Constants.ADA, Constants.ADA_DECIMALS, null), null);
+                CurrencyResponse.builder()
+                        .symbol(Constants.ADA)
+                        .decimals(Constants.ADA_DECIMALS)
+                        .build(), null);
 
         return new Operation(operationIdentifier, relatedOperations, OperationType.OUTPUT.getValue(),
                 "",
@@ -182,7 +184,15 @@ public class ParseConstructionUtil {
             log.error("[parseAsset] asset value for symbol: {} not provided", assetSymbol);
             throw ExceptionFactory.tokenAssetValueMissingError();
         }
-        return DataMapper.mapAmount(assetValue.toString(), assetSymbol, 0, null);
+
+        // Create Amount without metadata (metadata is null for parsing operations)
+        return Amount.builder()
+                .value(assetValue.toString())
+                .currency(CurrencyResponse.builder()
+                        .symbol(assetSymbol)
+                        .decimals(0)
+                        .build())
+                .build();
     }
 
     public static List<Operation> parseCertsToOperations(TransactionBody transactionBody,
@@ -356,7 +366,10 @@ public class ParseConstructionUtil {
                 .status("")
                 .account(new AccountIdentifier(address, null, null))
                 .amount(Amount.builder().value(value)
-                        .currency(new Currency(Constants.ADA, Constants.ADA_DECIMALS, null))
+                        .currency(CurrencyResponse.builder()
+                                .symbol(Constants.ADA)
+                                .decimals(Constants.ADA_DECIMALS)
+                                .build())
                         .build())
                 .metadata(OperationMetadata.builder()
                         .stakingCredential(new PublicKey(hex, CurveType.EDWARDS25519))

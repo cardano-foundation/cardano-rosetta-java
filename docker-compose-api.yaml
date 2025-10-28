@@ -1,4 +1,3 @@
-version: '3.8'
 services:
   api:
     image: cardanofoundation/cardano-rosetta-java-api:${API_DOCKER_IMAGE_TAG}
@@ -48,6 +47,13 @@ services:
 
       # DB tuning debugging
       API_DB_SHOW_SQL: ${API_DB_SHOW_SQL}
+
+      # Token Registry configuration
+      TOKEN_REGISTRY_ENABLED: ${TOKEN_REGISTRY_ENABLED}
+      TOKEN_REGISTRY_BASE_URL: ${TOKEN_REGISTRY_BASE_URL}
+      TOKEN_REGISTRY_CACHE_TTL_HOURS: ${TOKEN_REGISTRY_CACHE_TTL_HOURS}
+      TOKEN_REGISTRY_LOGO_FETCH: ${TOKEN_REGISTRY_LOGO_FETCH}
+      TOKEN_REGISTRY_REQUEST_TIMEOUT_SECONDS: ${TOKEN_REGISTRY_REQUEST_TIMEOUT_SECONDS}
 
     volumes:
       - ${CARDANO_CONFIG}:/config

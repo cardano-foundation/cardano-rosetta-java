@@ -1,95 +1,151 @@
 package org.cardanofoundation.rosetta.api.account.mapper;
 
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import javax.annotation.Nullable;
-
-import org.springframework.stereotype.Component;
-import org.mapstruct.Named;
-import org.openapitools.client.model.Amount;
-import org.openapitools.client.model.Coin;
-import org.openapitools.client.model.CoinIdentifier;
-import org.openapitools.client.model.CoinTokens;
-import org.openapitools.client.model.Currency;
-import org.openapitools.client.model.CurrencyMetadata;
-
+import lombok.RequiredArgsConstructor;
 import org.cardanofoundation.rosetta.api.account.model.domain.AddressBalance;
 import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
+import org.cardanofoundation.rosetta.api.common.model.AssetFingerprint;
+import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
 import org.cardanofoundation.rosetta.common.mapper.DataMapper;
 import org.cardanofoundation.rosetta.common.util.Constants;
+import org.mapstruct.Context;
+import org.mapstruct.Named;
+import org.openapitools.client.model.*;
+import org.springframework.stereotype.Component;
+
+import javax.annotation.Nullable;
+import javax.validation.constraints.NotNull;
+import java.math.BigInteger;
+import java.util.*;
 
 @Component
+@RequiredArgsConstructor
 public class AccountMapperUtil {
 
-  @Named("mapAddressBalancesToAmounts")
-  public List<Amount> mapAddressBalancesToAmounts(List<AddressBalance> balances) {
-    BigInteger lovelaceAmount = balances.stream()
-        .filter(b -> Constants.LOVELACE.equals(b.unit()))
-        .map(AddressBalance::quantity)
-        .findFirst()
-        .orElse(BigInteger.ZERO);
-    List<Amount> amounts = new ArrayList<>();
-    // always adding lovelace amount to the beginning of the list. Even if lovelace amount is 0
-    amounts.add(DataMapper.mapAmount(String.valueOf(lovelaceAmount), null, null, null));
-    balances.stream()
-        .filter(b -> !Constants.LOVELACE.equals(b.unit()))
-        .forEach(b -> amounts.add(
-            DataMapper.mapAmount(b.quantity().toString(),
-                b.unit().substring(Constants.POLICY_ID_LENGTH),
-                Constants.MULTI_ASSET_DECIMALS,
-                new CurrencyMetadata(b.unit().substring(0, Constants.POLICY_ID_LENGTH)))
-        ));
-    return amounts;
-  }
+    private final DataMapper dataMapper;
 
-  @Named("mapUtxosToCoins")
-  public List<Coin> mapUtxosToCoins(List<Utxo> utxos) {
-    return utxos.stream().map(utxo -> {
-      Amt adaAsset = utxo.getAmounts().stream()
-          .filter(amt -> Constants.LOVELACE.equals(amt.getAssetName()))
-          .findFirst()
-          .orElseGet(() -> new Amt(null, null, Constants.ADA, BigInteger.ZERO));
-      String coinIdentifier = utxo.getTxHash() + ":" + utxo.getOutputIndex();
-      return Coin.builder()
-          .coinIdentifier(new CoinIdentifier(coinIdentifier))
-          .amount(Amount.builder()
-              .value(adaAsset.getQuantity().toString())
-              .currency(getAdaCurrency())
-              .build())
-          .metadata(mapCoinMetadata(utxo, coinIdentifier))
-          .build();
-    }).toList();
-  }
+    @Named("mapAddressBalancesToAmounts")
+    public List<Amount> mapAddressBalancesToAmounts(List<AddressBalance> balances,
+                                                    @Context Map<AssetFingerprint, TokenRegistryCurrencyData> metadataMap) {
+        BigInteger lovelaceAmount = balances.stream()
+                .filter(b -> Constants.LOVELACE.equals(b.unit()))
+                .map(AddressBalance::quantity)
+                .findFirst()
+                .orElse(BigInteger.ZERO);
 
-  @Nullable
-  private Map<String, List<CoinTokens>> mapCoinMetadata(Utxo utxo, String coinIdentifier) {
-    List<CoinTokens> coinTokens =
-        utxo.getAmounts().stream()
-            .filter(Objects::nonNull)
-            .filter(amount -> amount.getPolicyId() != null
-                && amount.getAssetName() != null
-                && amount.getQuantity() != null)
-            .map(amount -> {
-              CoinTokens tokens = new CoinTokens();
-              tokens.setPolicyId(amount.getPolicyId());
-              tokens.setTokens(List.of(DataMapper.mapAmount(amount.getQuantity().toString(),
-                  // unit = assetName + policyId. To get the symbol policy ID must be removed from Unit. According to CIP67
-                  amount.getUnit().replace(amount.getPolicyId(), ""),
-                  Constants.MULTI_ASSET_DECIMALS, new CurrencyMetadata(amount.getPolicyId()))));
-              return tokens;
-            })
-            .toList();
-    return coinTokens.isEmpty() ? null : Map.of(coinIdentifier, coinTokens);
-  }
+        List<Amount> amounts = new ArrayList<>();
+        // always adding lovelace amount to the beginning of the list. Even if lovelace amount is 0
+        amounts.add(dataMapper.mapAmount(String.valueOf(lovelaceAmount), null, null, null));
 
-  private Currency getAdaCurrency() {
-    return Currency.builder()
-        .symbol(Constants.ADA)
-        .decimals(Constants.ADA_DECIMALS)
-        .build();
-  }
+        // Filter native token balances (those with proper unit format)
+        List<AddressBalance> nativeTokenBalances = balances.stream()
+                .filter(b -> !Constants.LOVELACE.equals(b.unit()))
+                .filter(b -> b.unit().length() >= Constants.POLICY_ID_LENGTH) // Has policyId + assetName (assetName can be empty)
+                .toList();
+
+        if (nativeTokenBalances.isEmpty()) {
+            return amounts;
+        }
+
+        // Use pre-fetched metadata passed via @Context from service layer
+        // Process each native token balance with metadata
+        for (AddressBalance b : nativeTokenBalances) {
+            String symbol = b.getSymbol();
+            String policyId = b.getPolicyId();
+
+            AssetFingerprint assetFingerprint = AssetFingerprint.of(policyId, symbol);
+
+            // Get metadata from pre-fetched map
+            TokenRegistryCurrencyData metadata = metadataMap.get(assetFingerprint);
+
+            amounts.add(
+                    dataMapper.mapAmount(b.quantity().toString(),
+                            symbol,
+                            getDecimalsWithFallback(metadata),
+                            metadata)
+            );
+        }
+
+        return amounts;
+    }
+
+    @Named("mapUtxosToCoins")
+    public List<Coin> mapUtxosToCoins(List<Utxo> utxos,
+                                      @Context Map<AssetFingerprint, TokenRegistryCurrencyData> metadataMap) {
+        return utxos.stream().map(utxo -> {
+            Amt adaAsset = utxo.getAmounts().stream()
+                    .filter(amt -> Constants.LOVELACE.equals(amt.getUnit()))
+                    .findFirst()
+                    .orElseGet(() -> new Amt(null, null, Constants.ADA, BigInteger.ZERO));
+            String coinIdentifier = "%s:%d".formatted(utxo.getTxHash(), utxo.getOutputIndex());
+
+            return Coin.builder()
+                    .coinIdentifier(new CoinIdentifier(coinIdentifier))
+                    .amount(Amount.builder()
+                            .value(adaAsset.getQuantity().toString())
+                            .currency(getAdaCurrency())
+                            .build())
+
+                    .metadata(mapCoinMetadata(utxo, coinIdentifier, metadataMap))
+                    .build();
+        }).toList();
+    }
+
+    @Nullable
+    private Map<String, List<CoinTokens>> mapCoinMetadata(Utxo utxo, String coinIdentifier,
+                                                          Map<AssetFingerprint, TokenRegistryCurrencyData> metadataMap) {
+        // Filter only native tokens (non-ADA amounts with policyId)
+        List<Amt> nativeTokenAmounts = utxo.getAmounts().stream()
+                .filter(Objects::nonNull)
+                .filter(amount -> amount.getPolicyId() != null
+                        && amount.getQuantity() != null)
+                .filter(amount -> !Constants.LOVELACE.equals(amount.getUnit())) // exclude ADA
+                .toList();
+
+        if (nativeTokenAmounts.isEmpty()) {
+            return null;
+        }
+
+        // Use pre-fetched metadata passed via @Context from service layer
+        // Create separate CoinTokens entry for each native token (one token per entry)
+        List<CoinTokens> coinTokens = nativeTokenAmounts.stream()
+                .map(amount -> {
+                    String policyId = amount.getPolicyId();
+                    String symbol = amount.getSymbolHex();
+
+                    AssetFingerprint assetFingerprint = AssetFingerprint.of(policyId, symbol);
+
+                    // Get metadata from pre-fetched map
+                    TokenRegistryCurrencyData metadata = metadataMap.get(assetFingerprint);
+
+                    Amount tokenAmount = dataMapper.mapAmount(
+                            amount.getQuantity().toString(),
+                            symbol,
+                            getDecimalsWithFallback(metadata),
+                            metadata
+                    );
+
+                    CoinTokens tokens = new CoinTokens();
+                    tokens.setPolicyId(policyId);
+                    tokens.setTokens(List.of(tokenAmount));
+
+                    return tokens;
+                })
+                .toList();
+
+        return coinTokens.isEmpty() ? null : Map.of(coinIdentifier, coinTokens);
+    }
+
+    private static int getDecimalsWithFallback(@NotNull TokenRegistryCurrencyData metadata) {
+        return Optional.ofNullable(metadata.getDecimals())
+                .orElse(0);
+    }
+
+    private CurrencyResponse getAdaCurrency() {
+        return CurrencyResponse.builder()
+                .symbol(Constants.ADA)
+                .decimals(Constants.ADA_DECIMALS)
+                .build();
+    }
+
 }

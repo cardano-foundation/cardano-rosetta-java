@@ -10,17 +10,22 @@ import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.block.model.domain.DRepDelegation;
 import org.cardanofoundation.rosetta.api.block.model.domain.GovernancePoolVote;
 import org.cardanofoundation.rosetta.api.block.model.domain.StakeRegistration;
+import org.cardanofoundation.rosetta.api.common.model.AssetFingerprint;
+import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.common.mapper.DataMapper;
 import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
 import org.cardanofoundation.rosetta.common.util.Constants;
+import org.mapstruct.Context;
 import org.mapstruct.Named;
 import org.openapitools.client.model.*;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Nullable;
+import javax.validation.constraints.NotNull;
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -31,7 +36,8 @@ import static org.cardanofoundation.rosetta.common.util.Constants.LOVELACE;
 @RequiredArgsConstructor
 public class TransactionMapperUtils {
 
-  final ProtocolParamService protocolParamService;
+  private final ProtocolParamService protocolParamService;
+  private final DataMapper dataMapper;
 
   @Named("convertGovAnchorFromRosetta")
   public GovVoteRationaleParams convertGovAnchorFromRosetta(Anchor anchor) {
@@ -78,35 +84,47 @@ public class TransactionMapperUtils {
     return DRepDelegation.DRep.convertDRepFromRosetta(drep);
   }
 
-  @Named("mapAmountsToOperationMetadataInput")
-  public OperationMetadata mapToOperationMetaDataInput(List<Amt> amounts) {
-    return mapToOperationMetaData(true, amounts);
+  @Named("mapAmountsToOperationMetadataInputWithCache")
+  public OperationMetadata mapToOperationMetaDataInputWithCache(List<Amt> amounts,
+                                                                @Context Map<AssetFingerprint, TokenRegistryCurrencyData> metadataMap) {
+    return mapToOperationMetaDataWithCache(true, amounts, metadataMap);
   }
 
-  @Named("mapAmountsToOperationMetadataOutput")
-  public OperationMetadata mapToOperationMetaDataOutput(List<Amt> amounts) {
-    return mapToOperationMetaData(false, amounts);
+  @Named("mapAmountsToOperationMetadataOutputWithCache")
+  public OperationMetadata mapToOperationMetaDataOutputWithCache(List<Amt> amounts,
+                                                                 @Context Map<AssetFingerprint, TokenRegistryCurrencyData> metadataMap) {
+    return mapToOperationMetaDataWithCache(false, amounts, metadataMap);
   }
 
-  public OperationMetadata mapToOperationMetaData(boolean spent, List<Amt> amounts) {
+  @Nullable
+  public OperationMetadata mapToOperationMetaDataWithCache(boolean spent,
+                                                           List<Amt> amounts,
+                                                           Map<AssetFingerprint, TokenRegistryCurrencyData> metadataMap) {
     OperationMetadata operationMetadata = new OperationMetadata();
-    Optional.ofNullable(amounts)
-            .stream()
-            .flatMap(List::stream)
-            .filter(amount -> !amount.getAssetName().equals(LOVELACE))
+
+    if (amounts == null || amounts.isEmpty()) {
+      return null;
+    }
+
+    // Filter out ADA amounts
+    List<Amt> nonAdaAmounts = amounts.stream()
+            .filter(amount -> !LOVELACE.equals(amount.getUnit()))
+            .toList();
+
+    // token bundle is only for ada, no native assets present
+    if (nonAdaAmounts.isEmpty()) {
+      return null;
+    }
+
+    // Group amounts by policyId and create token bundles using the pre-fetched metadata
+    nonAdaAmounts.stream()
             .collect(Collectors.groupingBy(Amt::getPolicyId))
             .forEach((policyId, policyIdAmounts) ->
                     operationMetadata.addTokenBundleItem(
                             TokenBundleItem.builder()
                                     .policyId(policyId)
                                     .tokens(policyIdAmounts.stream()
-                                            .map(amount -> Amount.builder()
-                                                    .value(DataMapper.mapValue(amount.getQuantity().toString(), spent))
-                                                    .currency(Currency.builder()
-                                                            .symbol(amount.getUnit().replace(amount.getPolicyId(), ""))
-                                                            .decimals(0)
-                                                            .build())
-                                                    .build())
+                                            .map(amount -> extractAmountWithCache(spent, amount, metadataMap))
                                             .toList())
                                     .build()
                     )
@@ -127,15 +145,18 @@ public class TransactionMapperUtils {
 
   public String getAdaAmount(Utxo f, boolean input) {
     BigInteger adaAmount = Optional.ofNullable(f.getAmounts())
-            .map(amts -> amts.stream().filter(amt -> amt.getAssetName().equals(
-                    LOVELACE)).findFirst().map(Amt::getQuantity).orElse(BigInteger.ZERO))
+            .map(amts -> amts.stream().filter(amt -> LOVELACE.equals(amt.getUnit()))
+                    .findFirst()
+                    .map(Amt::getQuantity)
+                    .orElse(BigInteger.ZERO))
             .orElse(BigInteger.ZERO);
     return input ? adaAmount.negate().toString() : adaAmount.toString();
   }
 
   public Amount getDepositAmountPool() {
     String deposit = String.valueOf(protocolParamService.findProtocolParameters().getPoolDeposit());
-    return DataMapper.mapAmount(deposit, Constants.ADA, Constants.ADA_DECIMALS, null);
+
+    return dataMapper.mapAmount(deposit, Constants.ADA, Constants.ADA_DECIMALS, null);
   }
 
   @Named("getDepositAmountStake")
@@ -143,10 +164,12 @@ public class TransactionMapperUtils {
     CertificateType type = model.getType();
     BigInteger keyDeposit = Optional.ofNullable(protocolParamService.findProtocolParameters()
             .getKeyDeposit()).orElse(BigInteger.ZERO);
+
     if (type == CertificateType.STAKE_DEREGISTRATION) {
       keyDeposit = keyDeposit.negate();
     }
-    return DataMapper.mapAmount(keyDeposit.toString(), Constants.ADA, Constants.ADA_DECIMALS, null);
+
+    return dataMapper.mapAmount(keyDeposit.toString(), Constants.ADA, Constants.ADA_DECIMALS, null);
   }
 
   @Named("OperationIdentifier")
@@ -156,7 +179,7 @@ public class TransactionMapperUtils {
 
   @Named("getUtxoName")
   public String getUtxoName(Utxo model) {
-    return model.getTxHash() + ":" + model.getOutputIndex();
+    return "%s:%d".formatted(model.getTxHash(), model.getOutputIndex());
   }
 
   @Named("updateDepositAmountNegate")
@@ -165,7 +188,7 @@ public class TransactionMapperUtils {
             .map(BigInteger::negate)
             .orElse(BigInteger.ZERO);
 
-    return DataMapper.mapAmount(bigInteger.toString(), Constants.ADA, Constants.ADA_DECIMALS, null);
+    return dataMapper.mapAmount(bigInteger.toString(), Constants.ADA, Constants.ADA_DECIMALS, null);
   }
 
   @Named("convertStakeCertificateType")
@@ -190,6 +213,28 @@ public class TransactionMapperUtils {
   @Named("getCoinCreatedAction")
   public CoinAction getCoinCreatedAction(Utxo model) {
     return CoinAction.CREATED;
+  }
+
+  private Amount extractAmountWithCache(boolean spent,
+                                        Amt amount,
+                                        Map<AssetFingerprint, TokenRegistryCurrencyData> metadataMap) {
+    String symbol = amount.getSymbolHex();
+
+    AssetFingerprint assetFingerprint = AssetFingerprint.of(amount.getPolicyId(), symbol);
+
+    TokenRegistryCurrencyData metadata = metadataMap.get(assetFingerprint);
+
+    return dataMapper.mapAmount(
+            dataMapper.mapValue(amount.getQuantity().toString(), spent),
+            symbol,
+            getDecimalsWithFallback(metadata),
+            metadata
+    );
+  }
+
+  private static int getDecimalsWithFallback(@NotNull TokenRegistryCurrencyData metadata) {
+    return Optional.ofNullable(metadata.getDecimals())
+            .orElse(0);
   }
 
 }

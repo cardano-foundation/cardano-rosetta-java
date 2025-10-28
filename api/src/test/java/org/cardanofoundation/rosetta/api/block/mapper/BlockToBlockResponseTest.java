@@ -7,9 +7,11 @@ import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.block.model.domain.*;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
+import org.cardanofoundation.rosetta.api.common.model.AssetFingerprint;
+import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
 import org.junit.jupiter.api.Test;
 import org.openapitools.client.model.*;
-import org.openapitools.client.model.Currency;
+import org.openapitools.client.model.CurrencyResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.math.BigInteger;
@@ -29,20 +31,31 @@ class BlockToBlockResponseTest extends BaseMapperSetup {
 
   @Test
   void mapToBlockResponse_test_invalidTransaction() {
+    String policyId = "tAda";
+    String symbol = "123";
+    String unit = policyId + symbol;
+
     BlockTx build = BlockTx.builder()
         .invalid(true)
         .blockHash("Hash")
         .blockNo(1L)
         .inputs(
             List.of(Utxo.builder().txHash("Hash").outputIndex(0).ownerAddr("Owner").amounts(List.of(
-                    Amt.builder().unit("tAda123").policyId("tAda").assetName("tAda").quantity(BigInteger.valueOf(10L)).build()))
+                    Amt.builder().unit(unit).policyId(policyId).assetName("tAda").quantity(BigInteger.valueOf(10L)).build()))
                 .build()))
         .outputs(
             List.of(Utxo.builder().txHash("Hash").outputIndex(0).ownerAddr("Owner").amounts(List.of(
-                    Amt.builder().unit("tAda123").policyId("tAda").assetName("tAda").quantity(BigInteger.valueOf(10L)).build()))
+                    Amt.builder().unit(unit).policyId(policyId).assetName("tAda").quantity(BigInteger.valueOf(10L)).build()))
                 .build()))
         .build();
-    BlockTransactionResponse blockTransactionResponse = my.mapToBlockTransactionResponse(build);
+
+    // Create test metadata map for the asset
+    Map<AssetFingerprint, TokenRegistryCurrencyData> metadataMap = Map.of(
+        AssetFingerprint.of(policyId, symbol),
+        TokenRegistryCurrencyData.builder().decimals(6).build()
+    );
+
+    BlockTransactionResponse blockTransactionResponse = my.mapToBlockTransactionResponseWithMetadata(build, metadataMap);
     // Since the Transaction is invalid we are not returning any outputs. The outputs will be removed, since there aren't any outputs
     assertThat(blockTransactionResponse.getTransaction().getOperations()).hasSize(1);
   }
@@ -53,8 +66,11 @@ class BlockToBlockResponseTest extends BaseMapperSetup {
     //given
     Block from = newBlock();
 
+    // Create empty metadata map since this test uses only stake operations, no native tokens
+    Map<AssetFingerprint, TokenRegistryCurrencyData> metadataMap = Map.of();
+
     //when
-    BlockResponse into = my.mapToBlockResponse(newBlock());
+    BlockResponse into = my.mapToBlockResponseWithMetadata(newBlock(), metadataMap);
 
     //then
     assertThat(from.getHash()).isEqualTo(into.getBlock().getBlockIdentifier().getHash());
@@ -157,7 +173,7 @@ class BlockToBlockResponseTest extends BaseMapperSetup {
             .toList())
         .allSatisfy(BlockToBlockResponseTest::assertAllElementsIsNull);
 
-    Currency ada = Currency
+    CurrencyResponse ada = CurrencyResponse
         .builder()
         .symbol("ADA")
         .decimals(6)

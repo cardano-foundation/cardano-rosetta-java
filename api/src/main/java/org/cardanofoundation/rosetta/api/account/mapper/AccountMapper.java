@@ -1,7 +1,10 @@
 package org.cardanofoundation.rosetta.api.account.mapper;
 
 import java.util.List;
+import java.util.Map;
 
+import org.cardanofoundation.rosetta.api.common.model.AssetFingerprint;
+import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.openapitools.client.model.AccountBalanceResponse;
@@ -10,6 +13,7 @@ import org.openapitools.client.model.AccountCoinsResponse;
 import org.cardanofoundation.rosetta.api.account.model.domain.AddressBalance;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockIdentifierExtended;
+import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
 import org.cardanofoundation.rosetta.common.mapper.util.BaseMapper;
 
 @Mapper(config = BaseMapper.class, uses = {AccountMapperUtil.class})
@@ -26,13 +30,15 @@ public interface AccountMapper {
    */
   @Mapping(target = "blockIdentifier.hash", source = "block.hash")
   @Mapping(target = "blockIdentifier.index", source = "block.number")
-  @Mapping(target = "balances", qualifiedByName = "mapAddressBalancesToAmounts")
+  @Mapping(target = "balances", source = "balances", qualifiedByName = "mapAddressBalancesToAmounts")
   AccountBalanceResponse mapToAccountBalanceResponse(BlockIdentifierExtended block,
-      List<AddressBalance> balances);
+      List<AddressBalance> balances,
+      @Context Map<AssetFingerprint, TokenRegistryCurrencyData> metadataMap);
 
   @Mapping(target = "blockIdentifier.hash", source = "block.hash")
   @Mapping(target = "blockIdentifier.index", source = "block.number")
   @Mapping(target = "coins", source = "utxos", qualifiedByName = "mapUtxosToCoins")
   AccountCoinsResponse mapToAccountCoinsResponse(BlockIdentifierExtended block,
-      List<Utxo> utxos);
+      List<Utxo> utxos,
+      @Context Map<AssetFingerprint, TokenRegistryCurrencyData> metadataMap);
 }

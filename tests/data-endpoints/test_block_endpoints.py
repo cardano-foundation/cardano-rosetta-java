@@ -4,8 +4,11 @@ Tests for Rosetta /block endpoints.
 Tests both /block and /block/transaction endpoints with behavioral assertions.
 """
 
+import pytest
 import allure
 from conftest import get_error_message
+
+pytestmark = pytest.mark.pr
 
 
 @allure.feature("Block")
@@ -13,6 +16,7 @@ from conftest import get_error_message
 class TestBlockLookup:
     """Test /block endpoint with different lookup methods."""
 
+    @pytest.mark.pr
     def test_lookup_by_index(self, client, network, blockchain_height):
         """Lookup block by index."""
         # Test at multiple points to ensure it works across blockchain
@@ -212,7 +216,7 @@ class TestBlockTransactionLookup:
     def test_get_transaction_from_block(self, client, network):
         """Get specific transaction from block."""
         # Find a block with transactions
-        search_response = client.search_transactions(network=network, limit=1)
+        search_response = client.search_transactions(network=network)
         tx_data = search_response.json()["transactions"][0]
 
         block_id = tx_data["block_identifier"]
@@ -232,7 +236,7 @@ class TestBlockTransactionLookup:
     def test_requires_block_hash_not_just_index(self, client, network):
         """block_identifier requires both index AND hash."""
         # Get a transaction
-        search_response = client.search_transactions(network=network, limit=1)
+        search_response = client.search_transactions(network=network)
         tx_data = search_response.json()["transactions"][0]
 
         # Try with only index (should fail)
@@ -254,7 +258,7 @@ class TestBlockTransactionLookup:
     def test_transaction_not_in_block_returns_error(self, client, network):
         """Requesting transaction not in specified block should error."""
         # Get transactions and ensure they're from different blocks
-        search_response = client.search_transactions(network=network, limit=10)
+        search_response = client.search_transactions(network=network)
         txs = search_response.json()["transactions"]
 
         # Find two transactions from different blocks
