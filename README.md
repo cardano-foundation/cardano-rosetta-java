@@ -249,10 +249,6 @@ docker compose logs -f cardano-node
 - [GitHub Issues](https://github.com/cardano-foundation/cardano-rosetta-java/issues)
 - [GitHub Discussions](https://github.com/cardano-foundation/cardano-rosetta-java/discussions)
 
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup and guidelines.
-
 ## License
 
 [Apache License 2.0](LICENSE)
