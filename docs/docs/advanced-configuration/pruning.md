@@ -22,7 +22,7 @@ When enabled, the pruning process operates as follows:
 
 1.  New UTXOs are indexed as transactions occur.
 2.  UTXOs are marked as spent when consumed in subsequent transactions.
-3.  A background job periodically permanently deletes spent UTXOs that are older than a configurable safety margin (default: 2,160 blocks, ~12 hours on mainnet). This buffer safeguards data integrity against chain rollbacks within Cardano's finality window.
+3.  A background job periodically permanently deletes spent UTXOs that are older than a configurable safety margin (default: 129,600 blocks, ~30 days on mainnet). This buffer safeguards data integrity against chain rollbacks within Cardano's finality window.
 
 **Impact Summary:**
 | Aspect | Effect |
@@ -34,7 +34,7 @@ When enabled, the pruning process operates as follows:
 
 ## Impact on Rosetta API Endpoints
 
-Spent UTXO pruning affects Rosetta API endpoints differently based on their reliance on historical transaction data. The table below summarizes the impact. Note that "Recent" refers to data within the safety margin (default ~12 hours).
+Spent UTXO pruning affects Rosetta API endpoints differently based on their reliance on historical transaction data. The table below summarizes the impact. Note that "Recent" refers to data within the safety margin (default ~30 days).
 
 :::info Oldest Block Identifier
 When pruning is enabled, the `/network/status` endpoint includes an additional `oldest_block_identifier` object in its response. This identifier corresponds to the latest fully queryable block with complete data. Below this block index, blocks might have missing data due to pruning, making historical queries unreliable.
@@ -89,24 +89,24 @@ Spent UTXO pruning is configured via environment variables, typically set in you
 # --- Spent UTXO Pruning Configuration ---
 
 # Enable or disable spent UTXO pruning.
-# Default: false (Pruning is disabled by default)
-# To enable, set to: true
+# Default: true (Pruning is enabled by default)
+# To disable, set to: false
 REMOVE_SPENT_UTXOS=true
 
 # Safety margin: Number of recent blocks for which spent UTXOs are retained.
-# Default: 2160 (approximately 12 hours of blocks on mainnet)
+# Default: 129600 (approximately 30 days of blocks on mainnet)
 # This value balances safety for rollbacks against storage savings.
-# Example: To keep ~24 hours of spent UTXOs, set to 4320.
+# Example: To keep ~7 days of spent UTXOs, set to 30240.
 # Note: Larger REMOVE_SPENT_UTXOS_LAST_BLOCKS_GRACE_COUNT values provide longer historical query support
 # but use more disk space and delay the realization of storage benefits.
-REMOVE_SPENT_UTXOS_LAST_BLOCKS_GRACE_COUNT=2160
+REMOVE_SPENT_UTXOS_LAST_BLOCKS_GRACE_COUNT=129600
 ```
 
 :::note Configuration Guidelines
 
-- Start with the default settings (`REMOVE_SPENT_UTXOS=false` keeps pruning off).
-- The provided defaults (`REMOVE_SPENT_UTXOS_LAST_BLOCKS_GRACE_COUNT=2160`) offer ~12 h of rollback safety on mainnet.
-- Increase `REMOVE_SPENT_UTXOS_LAST_BLOCKS_GRACE_COUNT` if you need a longer historical query window; decrease it for more aggressive space savings.
+- Default settings have pruning enabled (`REMOVE_SPENT_UTXOS=true`) for optimal storage efficiency.
+- The provided defaults (`REMOVE_SPENT_UTXOS_LAST_BLOCKS_GRACE_COUNT=129600`) offer ~30 days of rollback safety on mainnet.
+- Decrease `REMOVE_SPENT_UTXOS_LAST_BLOCKS_GRACE_COUNT` for more aggressive space savings (e.g., 2160 for ~12 hours); increase it if you need a longer historical query window.
   :::
 
 ## Migration and Operational Notes
@@ -132,7 +132,31 @@ The resynchronization process rebuilds the indexer database from your existing C
 
 This is necessary in two main scenarios:
 
-- **To reclaim disk space**: When you enable pruning on an existing instance, a resync will clear out historically spent UTXOs.
+- **To reclaim disk space**: When you enable pruning on an existing instance, a resync will clear out historically spent UTXOs. However, to actually reduce the file size on disk after `REMOVE_SPENT_UTXOS` is enabled and the indexer has fully synced, you must manually reclaim the space using PostgreSQL's VACUUM FULL command on the affected tables:
+
+  ```bash
+  # Connect to the PostgreSQL database
+  docker exec -e PGPASSWORD="<password>" -it <postgres-container-name> psql -U <username> -d rosetta-java
+
+  # set schema
+  set search_path to mainnet;
+
+  # Run VACUUM FULL on the tables that store UTXO data
+  VACUUM FULL tx_input;
+  VACUUM FULL address_utxo;
+  ```
+
+    :::warning Database Maintenance Required
+    The VACUUM FULL operation requires an exclusive lock on the tables and can take significant time to complete.   Plan for potential downtime during this maintenance operation. In addition, sufficient free disk space must be available, since VACUUM FULL rewrites each table by creating a new copy before replacing the old one. For example, in this case you would need approximately 400 GB of free space to complete the operation. The process will:
+
+    - **Reclaim disk space**: Remove the gaps left by deleted spent UTXOs
+    - **Reorganize table data**: Compact the remaining data for better performance
+    - **Require exclusive access**: Block all other operations on these tables during execution
+    :::
+
+    :::tip Alternative Approach
+    If you prefer to avoid the VACUUM FULL maintenance window, performing a complete indexer resynchronization (as described above) will achieve the same disk space reclamation while rebuilding the database from scratch with the new pruning configuration.
+    :::
 - **To restore full history**: When you disable pruning, a resync will rebuild the complete transaction history that was previously pruned away.
 
 :::tip Quick Resynchronization Steps
