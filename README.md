@@ -1,3 +1,5 @@
+Test commit
+
 [![Build](https://github.com/cardano-foundation/cardano-rosetta-java/actions/workflows/feature-mvn-build.yaml/badge.svg)](https://github.com/cardano-foundation/cardano-rosetta-java/actions/workflows/feature-mvn-build.yaml)
 [![License](https://img.shields.io:/github/license/cardano-foundation/cardano-rosetta-java?label=license)](https://github.com/cardano-foundation/cardano-rosetta-java/blob/master/LICENSE)
 ![Discord](https://img.shields.io/discord/1022471509173882950)
