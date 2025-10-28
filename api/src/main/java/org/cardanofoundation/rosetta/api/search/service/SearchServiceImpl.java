@@ -6,6 +6,9 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.cardanofoundation.rosetta.api.block.mapper.BlockMapper;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.model.entity.UtxoKey;
+import org.cardanofoundation.rosetta.api.common.model.AssetFingerprint;
+import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
+import org.cardanofoundation.rosetta.api.common.service.TokenRegistryService;
 import org.cardanofoundation.rosetta.api.search.model.Operator;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.openapitools.client.model.*;
@@ -14,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -25,6 +29,7 @@ public class SearchServiceImpl implements SearchService {
 
     private final BlockMapper blockMapper;
     private final LedgerSearchService ledgerSearchService;
+    private final TokenRegistryService tokenRegistryService;
 
     @Override
     @Transactional  // Override class-level readOnly=true for methods that may use temporary tables
@@ -56,7 +61,7 @@ public class SearchServiceImpl implements SearchService {
                 .map(c -> org.cardanofoundation.rosetta.api.search.model.Currency.builder()
                         .symbol(c.getSymbol())
                         .decimals(c.getDecimals())
-                        .policyId(Optional.ofNullable(c.getMetadata()).map(CurrencyMetadata::getPolicyId).orElse(null))
+                        .policyId(Optional.ofNullable(c.getMetadata()).map(CurrencyMetadataRequest::getPolicyId).orElse(null))
                         .build())
                 .orElse(null);
 
@@ -86,7 +91,13 @@ public class SearchServiceImpl implements SearchService {
                 limit
         );
 
-        return blockTxes.map(blockMapper::mapToBlockTransaction);
+        // Always fetch metadata for all transactions in this page (will be empty map if no native tokens)
+        final Map<AssetFingerprint, TokenRegistryCurrencyData> metadataMap =
+            tokenRegistryService.fetchMetadataForBlockTxList(blockTxes.getContent());
+
+        // Always use the metadata version (with empty map when no native tokens)
+        return blockTxes.map(tx ->
+            blockMapper.mapToBlockTransactionWithMetadata(tx, metadataMap));
     }
 
     static Function<CoinIdentifier, Optional<UtxoKey>> extractUTxOFromCoinIdentifier() {

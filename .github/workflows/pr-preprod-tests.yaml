@@ -1,0 +1,376 @@
+name: PR Preprod Tests
+
+on:
+  pull_request:
+    branches: [develop, main]
+  workflow_dispatch:  # Allow manual trigger for debugging
+
+# Permissions needed for GitHub Pages deployment and PR comments
+permissions:
+  contents: write  # Changed from 'read' to 'write' to allow pushing to gh-pages branch
+  pages: write
+  id-token: write
+  pull-requests: write
+
+jobs:
+  test-on-preprod:
+    runs-on: [self-hosted]
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update local repository
+        run: |
+          cd /home/integration/git/cardano-rosetta-java
+
+          # Clean up any existing PR branch and switch to main first
+          git checkout main || git checkout develop
+          git branch -D pr-${{ github.event.pull_request.number }} 2>/dev/null || true
+
+          # Fetch and checkout the PR
+          git fetch origin pull/${{ github.event.pull_request.number }}/head:pr-${{ github.event.pull_request.number }}
+          git checkout pr-${{ github.event.pull_request.number }}
+
+      - name: Stop current services
+        run: |
+          cd /home/integration/git/cardano-rosetta-java
+
+          # Stop all services
+          docker compose \
+            --env-file .env.docker-compose-preprod \
+            --env-file .env.docker-compose-profile-mid-level \
+            -f docker-compose.yaml \
+            down
+
+      - name: Configure environment for full-history tests
+        run: |
+          cd /home/integration/git/cardano-rosetta-java
+
+          ensure_var() {
+            local key="$1"
+            local value="$2"
+            local file=".env.docker-compose-preprod"
+            if grep -q "^${key}=" "$file"; then
+              sed -i "s#^${key}=.*#${key}=${value}#" "$file"
+            else
+              echo "${key}=${value}" >> "$file"
+            fi
+          }
+
+          ensure_var REMOVE_SPENT_UTXOS false
+          ensure_var REMOVE_SPENT_UTXOS_LAST_BLOCKS_GRACE_COUNT 129600
+          ensure_var DB_PORT 5433
+          ensure_var TOKEN_REGISTRY_ENABLED true
+          ensure_var TOKEN_REGISTRY_BASE_URL http://preview.integrations.cf-systems.internal:8080/api
+          ensure_var TOKEN_REGISTRY_CACHE_TTL_HOURS 1
+          ensure_var TOKEN_REGISTRY_LOGO_FETCH true
+          ensure_var TOKEN_REGISTRY_REQUEST_TIMEOUT_SECONDS 2
+          ensure_var PEER_DISCOVERY true
+
+
+      - name: Build and start services with PR code
+        run: |
+          cd /home/integration/git/cardano-rosetta-java
+
+          # Use PR-specific tags for API and indexer to force rebuild
+          export API_DOCKER_IMAGE_TAG=pr-${{ github.event.pull_request.number }}-${{ github.sha }}
+          export INDEXER_DOCKER_IMAGE_TAG=pr-${{ github.event.pull_request.number }}-${{ github.sha }}
+
+          # Build and start all services
+          docker compose \
+            --env-file .env.docker-compose-preprod \
+            --env-file .env.docker-compose-profile-mid-level \
+            -f docker-compose.yaml \
+            up --build -d --wait
+
+      - name: Wait for API to sync
+        timeout-minutes: 10
+        run: |
+          echo "Waiting for API to be ready..."
+
+          # Wait for API to respond
+          for i in {1..60}; do
+            if curl -sf -X POST http://localhost:8082/network/list \
+              -H 'Content-Type: application/json' \
+              -d '{}' > /dev/null 2>&1; then
+              echo "API is responding"
+              break
+            fi
+            echo "Waiting for API to start... ($i/60)"
+            sleep 10
+          done
+
+          # Check sync status
+          echo "Checking sync status..."
+          while true; do
+            SYNC_STATUS=$(curl -s -X POST http://localhost:8082/network/status \
+              -H 'Content-Type: application/json' \
+              -d '{"network_identifier": {"blockchain": "cardano", "network": "preprod"}}' | \
+              jq -r '.sync_status.synced' 2>/dev/null || echo "false")
+
+            if [ "$SYNC_STATUS" = "true" ]; then
+              echo "✓ API is synced and ready!"
+
+              # Show current block for verification
+              CURRENT_BLOCK=$(curl -s -X POST http://localhost:8082/network/status \
+                -H 'Content-Type: application/json' \
+                -d '{"network_identifier": {"blockchain": "cardano", "network": "preprod"}}' | \
+                jq -r '.current_block_identifier.index')
+              echo "Current block: $CURRENT_BLOCK"
+              break
+            fi
+
+            echo "Waiting for sync... (synced=$SYNC_STATUS)"
+            sleep 10
+          done
+
+      - name: Install test dependencies
+        run: |
+          # Ensure uv is in PATH
+          export PATH="$HOME/.local/bin:$PATH"
+
+          cd /home/integration/git/cardano-rosetta-java/tests/data-endpoints
+
+          # Sync Python dependencies
+          uv sync
+
+      - name: Create test environment file
+        run: |
+          cd /home/integration/git/cardano-rosetta-java
+
+          # Merge env files so tests can read actual configuration
+          cat .env.docker-compose-preprod > .env.test
+          cat .env.docker-compose-profile-mid-level >> .env.test
+
+          # Copy to tests directory
+          cp .env.test tests/data-endpoints/.env
+
+      - name: Run smoke tests (validate test data)
+        id: smoke_tests
+        run: |
+          export PATH="$HOME/.local/bin:$PATH"
+
+          cd /home/integration/git/cardano-rosetta-java/tests/data-endpoints
+
+          # Run smoke tests to validate network_test_data.yaml
+          uv run pytest -m smoke \
+            -n 0 \
+            --alluredir=./allure-results \
+            --tb=short \
+            -v || SMOKE_RESULT=$?
+
+          # Output smoke test result
+          echo "smoke_result=${SMOKE_RESULT:-0}" >> $GITHUB_OUTPUT
+
+          # Fail if smoke tests failed
+          exit ${SMOKE_RESULT:-0}
+        env:
+          ROSETTA_URL: http://localhost:8082
+          CARDANO_NETWORK: preprod
+
+      - name: Run behavioral tests
+        id: test
+        run: |
+          export PATH="$HOME/.local/bin:$PATH"
+
+          cd /home/integration/git/cardano-rosetta-java/tests/data-endpoints
+
+          # Run behavioral tests (skip smoke tests)
+          uv run pytest -m "not smoke" \
+            -n auto \
+            --alluredir=./allure-results \
+            --tb=short \
+            -v || TEST_RESULT=$?
+
+          # Output test result for later steps
+          echo "test_result=${TEST_RESULT:-0}" >> $GITHUB_OUTPUT
+
+          # Fail if tests failed
+          exit ${TEST_RESULT:-0}
+        env:
+          ROSETTA_URL: http://localhost:8082
+          CARDANO_NETWORK: preprod
+
+      - name: Run construction API tests
+        id: construction_test
+        run: |
+          export PATH="$HOME/.local/bin:$PATH"
+
+          cd /home/integration/git/cardano-rosetta-java/tests/integration
+
+          # Run construction API snapshot tests
+          uv run test_construction_api.py \
+            -v || CONSTRUCTION_RESULT=$?
+
+          # Output test result
+          echo "construction_result=${CONSTRUCTION_RESULT:-0}" >> $GITHUB_OUTPUT
+
+          # Don't fail the whole job if construction tests fail
+          # These are informational for now
+          exit 0
+        env:
+          ROSETTA_URL: http://localhost:8082
+          CARDANO_NETWORK: preprod
+
+      - name: Generate Allure report
+        if: always()
+        run: |
+          export PATH="$HOME/.local/bin:$PATH"
+
+          cd /home/integration/git/cardano-rosetta-java/tests/data-endpoints
+
+          # Generate Allure HTML report
+          if command -v allure &> /dev/null; then
+            allure generate allure-results --clean -o allure-report
+            echo "Allure report generated successfully"
+          else
+            echo "Allure CLI not installed, skipping HTML report generation"
+            echo "Raw results are in allure-results directory"
+          fi
+
+      - name: Deploy report to GitHub Pages
+        if: |
+          always() &&
+          steps.test.outcome != 'skipped' &&
+          github.event_name == 'pull_request'
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: /home/integration/git/cardano-rosetta-java/tests/data-endpoints/allure-report
+          destination_dir: test-reports/pr-${{ github.event.pull_request.number }}
+          keep_files: true
+          user_name: 'github-actions[bot]'
+          user_email: '41898282+github-actions[bot]@users.noreply.github.com'
+
+      - name: Comment PR with results
+        if: always() && github.event_name == 'pull_request' && steps.test.outcome != 'skipped'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const prNumber = context.issue.number;
+            const testResult = '${{ steps.test.outputs.test_result }}';
+            const emoji = testResult === '0' ? '✅' : '❌';
+            const status = testResult === '0' ? 'PASSED' : 'FAILED';
+
+            // Build comment body
+            let comment = `## ${emoji} Preprod Tests: ${status}\n\n`;
+
+            // Add report link
+            const reportUrl = `https://cardano-foundation.github.io/cardano-rosetta-java/test-reports/pr-${prNumber}/`;
+            comment += `📊 **[View Detailed Test Report](${reportUrl})**\n\n`;
+
+            comment += `🔗 [Action Run #${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})\n\n`;
+            comment += `_Tests run against preprod network with live blockchain data_`;
+
+            // Post comment
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              body: comment
+            });
+
+      - name: Clean shutdown on failure
+        if: failure() && (steps.test.outcome == 'failure' || steps.test.outcome == 'cancelled')
+        run: |
+          cd /home/integration/git/cardano-rosetta-java
+          sed -i "s#^DB_PORT=.*#DB_PORT=5433#" .env.docker-compose-preprod
+
+          echo "⚠️ Test failed - stopping services"
+
+          # Stop all services cleanly
+          docker compose \
+            --env-file .env.docker-compose-preprod \
+            --env-file .env.docker-compose-profile-mid-level \
+            -f docker-compose.yaml \
+            down
+
+          # Check if migrations changed in this PR
+          LAST_TAG=$(git tag --sort=-version:refname | head -1)
+          git checkout -f $LAST_TAG
+          sed -i "s#^DB_PORT=.*#DB_PORT=5433#" .env.docker-compose-preprod
+
+          STABLE_MIGRATION_HASH=$(find yaci-indexer/src/main/resources/db/store -type f -name 'V*.sql' -exec md5sum {} \; | sort | md5sum | cut -d' ' -f1)
+
+          git checkout -f -
+          sed -i "s#^DB_PORT=.*#DB_PORT=5433#" .env.docker-compose-preprod
+          PR_MIGRATION_HASH=$(find yaci-indexer/src/main/resources/db/store -type f -name 'V*.sql' -exec md5sum {} \; | sort | md5sum | cut -d' ' -f1)
+
+          if [ "$STABLE_MIGRATION_HASH" != "$PR_MIGRATION_HASH" ]; then
+            echo "⚠️ Database migrations changed in PR - fixing Flyway metadata only"
+
+            # Start only the database
+            docker compose \
+              --env-file .env.docker-compose-preprod \
+              --env-file .env.docker-compose-profile-mid-level \
+              -f docker-compose.yaml \
+              up -d db
+
+            # Wait for db to be ready
+            sleep 5
+
+            # Find which specific migration files changed
+            CHANGED_MIGRATIONS=$(git diff $LAST_TAG --name-only -- "yaci-indexer/src/main/resources/db/store" | \
+            grep -E "db/store/.*/V[0-9].*\\.sql$" | \
+            grep -oP "V[\\d._]+" | sort -u)
+
+            if [ -n "$CHANGED_MIGRATIONS" ]; then
+              echo "Changed migration versions: $CHANGED_MIGRATIONS"
+
+              # Delete ONLY the Flyway metadata for changed migrations
+              # This preserves all blockchain data!
+              for VERSION in $CHANGED_MIGRATIONS; do
+                echo "Removing Flyway metadata for version: $VERSION"
+                docker exec cardano-rosetta-java-db-1 sh -c \
+                  "PGPASSWORD=weakpwd#123_d psql -U rosetta_db_admin -d rosetta-java -p 5433 \
+                   -c \"DELETE FROM preprod.flyway_schema_history WHERE version LIKE '${VERSION}%';\""
+              done
+
+              echo "✓ Flyway metadata cleaned - all blockchain data preserved"
+            else
+              echo "No specific migration versions detected - truncating flyway history"
+              docker exec cardano-rosetta-java-db-1 sh -c \
+                "PGPASSWORD=weakpwd#123_d psql -U rosetta_db_admin -d rosetta-java -p 5433 \
+                 -c 'TRUNCATE preprod.flyway_schema_history;'"
+            fi
+
+            docker compose \
+              --env-file .env.docker-compose-preprod \
+              --env-file .env.docker-compose-profile-mid-level \
+              -f docker-compose.yaml \
+              down
+          fi
+
+          # Now safe to rollback
+          LAST_TAG=$(git tag --sort=-version:refname | head -1)
+          echo "Rolling back to stable version: $LAST_TAG"
+          git checkout -f $LAST_TAG
+          sed -i "s#^DB_PORT=.*#DB_PORT=5433#" .env.docker-compose-preprod
+
+          docker compose \
+            --env-file .env.docker-compose-preprod \
+            --env-file .env.docker-compose-profile-mid-level \
+            -f docker-compose.yaml \
+            up -d
+
+          # Wait for API to be ready after rollback
+          echo "Waiting for API to be ready after rollback..."
+          for i in {1..30}; do
+            if curl -sf -X POST http://localhost:8082/network/list \
+              -H 'Content-Type: application/json' \
+              -d '{}' > /dev/null 2>&1; then
+              echo "✓ API is responding"
+              break
+            fi
+            echo "Waiting... ($i/30)"
+            sleep 5
+          done
+
+          echo "✅ Rollback to $LAST_TAG completed"
+
+      - name: Restore baseline configuration
+        if: always()
+        run: |
+          cd /home/integration/git/cardano-rosetta-java
+          git restore .env.docker-compose-preprod

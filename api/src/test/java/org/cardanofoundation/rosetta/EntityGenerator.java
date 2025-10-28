@@ -289,7 +289,7 @@ public class EntityGenerator {
                 .build())
             .amount(Amount.builder()
                 .value("-90000")
-                .currency(Currency.builder().symbol("ADA").build())
+                .currency(CurrencyResponse.builder().symbol("ADA").build())
                 .build())
             .coinChange(CoinChange.builder()
                 .coinIdentifier(CoinIdentifier.builder()

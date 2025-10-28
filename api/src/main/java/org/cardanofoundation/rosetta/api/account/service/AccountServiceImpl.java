@@ -2,6 +2,7 @@ package org.cardanofoundation.rosetta.api.account.service;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Pattern;
@@ -16,6 +17,9 @@ import org.cardanofoundation.rosetta.api.account.mapper.AccountMapper;
 import org.cardanofoundation.rosetta.api.account.mapper.AddressBalanceMapper;
 import org.cardanofoundation.rosetta.api.account.model.domain.AddressBalance;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
+import org.cardanofoundation.rosetta.api.common.model.AssetFingerprint;
+import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
+import org.cardanofoundation.rosetta.api.common.service.TokenRegistryService;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockIdentifierExtended;
 import org.cardanofoundation.rosetta.api.block.service.LedgerBlockService;
 import org.cardanofoundation.rosetta.client.YaciHttpGateway;
@@ -44,6 +48,7 @@ public class AccountServiceImpl implements AccountService {
   private final AccountMapper accountMapper;
   private final YaciHttpGateway yaciHttpGateway;
   private final AddressBalanceMapper balanceMapper;
+  private final TokenRegistryService tokenRegistryService;
 
   @Override
   public AccountBalanceResponse getAccountBalance(AccountBalanceRequest accountBalanceRequest) {
@@ -70,25 +75,31 @@ public class AccountServiceImpl implements AccountService {
     String accountAddress = accountCoinsRequest.getAccountIdentifier().getAddress();
     CardanoAddressUtils.verifyAddress(accountAddress);
 
-    List<Currency> currencies = accountCoinsRequest.getCurrencies();
+    List<CurrencyRequest> currencies = accountCoinsRequest.getCurrencies();
 //    accountCoinsRequest.getIncludeMempool(); // TODO
     log.debug("[accountCoins] Request received {}", accountCoinsRequest);
 
     if (Objects.nonNull(currencies)) {
       validateCurrencies(currencies);
     }
-    List<Currency> currenciesRequested = filterRequestedCurrencies(currencies);
+    List<CurrencyRequest> currenciesRequested = filterRequestedCurrencies(currencies);
     log.debug("[accountCoins] Filter currency is {}", currenciesRequested);
     BlockIdentifierExtended latestBlock = ledgerBlockService.findLatestBlockIdentifier();
     log.debug("[accountCoins] Latest block is {}", latestBlock);
     List<Utxo> utxos = ledgerAccountService.findUtxoByAddressAndCurrency(accountAddress,
             currenciesRequested);
     log.debug("[accountCoins] found {} Utxos for Address {}", utxos.size(), accountAddress);
-    return accountMapper.mapToAccountCoinsResponse(latestBlock, utxos);
+
+    // Extract assets from UTXOs and fetch metadata in single batch call
+    Map<AssetFingerprint, TokenRegistryCurrencyData> metadataMap = tokenRegistryService.fetchMetadataForUtxos(utxos);
+
+    return accountMapper.mapToAccountCoinsResponse(latestBlock, utxos, metadataMap);
   }
 
-  private AccountBalanceResponse findBalanceDataByAddressAndBlock(String address, Long number,
-                                                                  String hash, List<Currency> currencies) {
+  private AccountBalanceResponse findBalanceDataByAddressAndBlock(String address,
+                                                                  Long number,
+                                                                  String hash,
+                                                                  List<CurrencyRequest> currencies) {
 
     return findBlockOrLast(number, hash)
             .map(blockDto -> {
@@ -106,7 +117,10 @@ public class AccountServiceImpl implements AccountService {
                 balances = ledgerAccountService.findBalanceByAddressAndBlock(address, blockDto.getNumber());
               }
 
-              AccountBalanceResponse accountBalanceResponse = accountMapper.mapToAccountBalanceResponse(blockDto, balances);
+              // Extract assets from balances and fetch metadata in single batch call
+              Map<AssetFingerprint, TokenRegistryCurrencyData> metadataMap = tokenRegistryService.fetchMetadataForAddressBalances(balances);
+
+              AccountBalanceResponse accountBalanceResponse = accountMapper.mapToAccountBalanceResponse(blockDto, balances, metadataMap);
 
               if (Objects.nonNull(currencies) && !currencies.isEmpty()) {
                 validateCurrencies(currencies);
@@ -123,15 +137,15 @@ public class AccountServiceImpl implements AccountService {
   private Optional<BlockIdentifierExtended> findBlockOrLast(Long number, String hash) {
     if (number != null || hash != null) {
       return ledgerBlockService.findBlockIdentifier(number, hash);
-    } else {
+    }
+
       return Optional.of(ledgerBlockService.findLatestBlockIdentifier());
     }
-  }
 
-  private void validateCurrencies(List<Currency> currencies) {
-    for (Currency currency : currencies) {
+  private void validateCurrencies(List<CurrencyRequest> currencies) {
+    for (CurrencyRequest currency : currencies) {
       String symbol = currency.getSymbol();
-      CurrencyMetadata metadata = currency.getMetadata();
+      CurrencyMetadataRequest metadata = currency.getMetadata();
       if (!isTokenNameValid(symbol)) {
         throw invalidTokenNameError("Given name is " + symbol);
       }
@@ -151,10 +165,12 @@ public class AccountServiceImpl implements AccountService {
     return POLICY_ID_VALIDATION.matcher(policyId).matches();
   }
 
-  private List<Currency> filterRequestedCurrencies(List<Currency> currencies) {
+  private List<CurrencyRequest> filterRequestedCurrencies(List<CurrencyRequest> currencies) {
     boolean isAdaAbsent = Optional.ofNullable(currencies)
-            .map(c -> c.stream().map(Currency::getSymbol).noneMatch(Constants.ADA::equals))
+            .map(c -> c.stream().map(CurrencyRequest::getSymbol).noneMatch(Constants.ADA::equals))
             .orElse(false);
+
     return isAdaAbsent ? currencies : Collections.emptyList();
   }
+
 }

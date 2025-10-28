@@ -753,30 +753,46 @@ components:
           type: string
           example: '1238089899992'
         currency:
-          $ref: '#/components/schemas/Currency'
+          $ref: '#/components/schemas/CurrencyResponse'
         metadata:
           type: object
-    Currency:
-      description: Currency is composed of a canonical Symbol and Decimals. This Decimals value is used to convert an Amount.Value from atomic units (Lovelaces for ADA, or smallest unit for native tokens) to standard units (ADA or token units).
+
+    CurrencyRequest:
+      description: Currency for request operations
       type: object
       required:
         - symbol
         - decimals
       properties:
         symbol:
-          description: |
-            Canonical symbol associated with a currency. For Cardano native tokens, this should be the ASCII representation of the token name. 
-            Empty string "" should be used when a token has no name.
           type: string
           example: ADA
         decimals:
-          description: Number of decimal places in the standard unit representation of the amount. For example, ADA has 6 decimals. Note that it is not possible to represent the value of some currency in atomic units that is not base 10.
           type: integer
           format: int32
           minimum: 0
           example: 8
         metadata:
-          $ref: '#/components/schemas/CurrencyMetadata'
+          $ref: '#/components/schemas/CurrencyMetadataRequest'
+
+    CurrencyResponse:
+      description: Currency for response operations
+      type: object
+      required:
+        - symbol
+        - decimals
+      properties:
+        symbol:
+          type: string
+          example: ADA
+        decimals:
+          type: integer
+          format: int32
+          minimum: 0
+          example: 8
+        metadata:
+          $ref: '#/components/schemas/CurrencyMetadataResponse'
+
     SyncStatus:
       description: SyncStatus is used to provide additional context about an implementation's sync status. This object is often used by implementations to indicate healthiness when block data cannot be queried until some sync phase completes or cannot be determined by comparing the timestamp of the most recent block with the current time.
       type: object
@@ -1011,7 +1027,7 @@ components:
           type: string
           example: staking
         currency:
-          $ref: '#/components/schemas/Currency'
+          $ref: '#/components/schemas/CurrencyResponse'
         exemption_type:
           $ref: '#/components/schemas/ExemptionType'
     ExemptionType:
@@ -1106,7 +1122,7 @@ components:
           type: array
           description: In some cases, the caller may not want to retrieve all available balances for an AccountIdentifier. If the currencies field is populated, only balances for the specified currencies will be returned. If not populated, all available balances will be returned.
           items:
-            $ref: '#/components/schemas/Currency'
+            $ref: '#/components/schemas/CurrencyRequest'
     AccountBalanceResponse:
       description: 'An AccountBalanceResponse is returned on the /account/balance endpoint. If an account has a balance for each AccountIdentifier describing it (ex: an ERC-20 token balance on a few smart contracts), an account balance request must be made with each AccountIdentifier. The `coins` field was removed and replaced by by `/account/coins` in `v1.4.7`.'
       type: object
@@ -1145,7 +1161,7 @@ components:
           type: array
           description: In some cases, the caller may not want to retrieve coins for all currencies for an AccountIdentifier. If the currencies field is populated, only coins for the specified currencies will be returned. If not populated, all unspent coins will be returned.
           items:
-            $ref: '#/components/schemas/Currency'
+            $ref: '#/components/schemas/CurrencyRequest'
     AccountCoinsResponse:
       description: AccountCoinsResponse is returned on the /account/coins endpoint and includes all unspent Coins owned by an AccountIdentifier.
       type: object
@@ -1638,7 +1654,7 @@ components:
         coin_identifier:
           $ref: '#/components/schemas/CoinIdentifier'
         currency:
-          $ref: '#/components/schemas/Currency'
+          $ref: '#/components/schemas/CurrencyRequest'
         status:
           type: string
           description: status is the network-specific operation type.
@@ -2059,15 +2075,65 @@ components:
       type: object
       properties:
         chain_code:
-          description: 'ChainCode '
+          description: 'ChainCode'
           type: string
-    CurrencyMetadata:
-      description: 'Cardano-specific metadata for native tokens'
+    CurrencyMetadataRequest:
+      description: 'Cardano-specific currency metadata for native tokens'
       type: object
+      required:
+        - policyId
       properties:
         policyId:
           description: 'The policy ID that controls this native token (hex string). Required for all non-ADA currencies.'
           type: string
+
+    LogoType:
+      description: 'Token logo representation that can be either base64 encoded data (CIP_26) or URL (CIP_68)'
+      type: object
+      required:
+        - format
+        - value
+      properties:
+        format:
+          description: 'The format of the logo data'
+          type: string
+          enum:
+            - base64
+            - url
+        value:
+          description: 'The logo content - either base64 encoded string or URL'
+          type: string
+    CurrencyMetadataResponse:
+      description: 'Cardano-specific response metadata for native tokens'
+      type: object
+      required:
+        - policyId
+      properties:
+        policyId:
+          description: 'The policy ID that controls this native token (hex string). Required for all non-ADA currencies.'
+          type: string
+        subject:
+          description: 'The base16-encoded policyId + base16-encoded assetName'
+          type: string
+        name:
+          description: 'Token Registry data representing an asset name'
+          type: string
+        description:
+          description: 'Token Registry data representing an asset description'
+          type: string
+        ticker:
+          description: 'Token Registry data representing an asset ticker symbol'
+          type: string
+        url:
+          description: 'Token Registry data representing an asset''s project url'
+          type: string
+        logo:
+          description: 'Token Registry data representing an asset''s logo'
+          $ref: '#/components/schemas/LogoType'
+        version:
+          description: 'Token Registry data representing an asset''s version'
+          type: number
+
     ConstructionMetadataRequestOption:
       description: ''
       type: object

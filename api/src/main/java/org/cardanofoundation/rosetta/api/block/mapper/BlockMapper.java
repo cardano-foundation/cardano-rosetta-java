@@ -1,16 +1,15 @@
 package org.cardanofoundation.rosetta.api.block.mapper;
 
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import org.cardanofoundation.rosetta.api.common.model.AssetFingerprint;
+import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
+import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
-import org.openapitools.client.model.BlockIdentifier;
-import org.openapitools.client.model.BlockResponse;
-import org.openapitools.client.model.BlockTransaction;
-import org.openapitools.client.model.BlockTransactionResponse;
-import org.openapitools.client.model.Transaction;
-import org.openapitools.client.model.TransactionIdentifier;
+import org.openapitools.client.model.*;
 
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
@@ -41,19 +40,35 @@ public interface BlockMapper {
   @Mapping(target = "block.transactions", source = "transactions")
   BlockResponse mapToBlockResponse(Block model);
 
+  @Mapping(target = "block.blockIdentifier.hash", source = "model.hash")
+  @Mapping(target = "block.blockIdentifier.index", source = "model.number")
+  @Mapping(target = "block.parentBlockIdentifier.hash", source = "model.previousBlockHash")
+  @Mapping(target = "block.parentBlockIdentifier.index", source = "model.previousBlockNumber")
+  @Mapping(target = "block.timestamp", source = "model.createdAt")
+  @Mapping(target = "block.metadata.transactionsCount", source = "model.transactionsCount")
+  @Mapping(target = "block.metadata.createdBy", source = "model.createdBy")
+  @Mapping(target = "block.metadata.size", source = "model.size")
+  @Mapping(target = "block.metadata.slotNo", source = "model.slotNo")
+  @Mapping(target = "block.metadata.epochNo", source = "model.epochNo")
+  @Mapping(target = "block.transactions", source = "model.transactions", qualifiedByName = "mapToRosettaTransactionWithMetadata")
+  BlockResponse mapToBlockResponseWithMetadata(Block model, @Context Map<AssetFingerprint, TokenRegistryCurrencyData> metadataMap);
+
+  @Named("mapToBlockTransactionWithMetadata")
   @Mapping(target = "blockIdentifier", source = "source")
-  @Mapping(target = "transaction", source = "source")
-  BlockTransaction mapToBlockTransaction(BlockTx source);
+  @Mapping(target = "transaction", source = "source", qualifiedByName = "mapToRosettaTransactionWithMetadata")
+  BlockTransaction mapToBlockTransactionWithMetadata(BlockTx source, @Context Map<AssetFingerprint, TokenRegistryCurrencyData> metadataMap);
 
   @Mapping(target = "hash", source = "blockHash")
   @Mapping(target = "index", source = "blockNo")
   BlockIdentifier mapToBlockIdentifier(BlockTx source);
 
-  @Mapping(target = "transactionIdentifier", source = "hash")
-  @Mapping(target = "metadata.size", source = "size")
-  @Mapping(target = "metadata.scriptSize", source = "scriptSize")
-  @Mapping(target = "operations", source = "source", qualifiedByName = "mapTransactionsToOperations")
-  Transaction mapToRosettaTransaction(BlockTx source);
+  
+  @Named("mapToRosettaTransactionWithMetadata")
+  @Mapping(target = "transactionIdentifier", source = "source.hash")
+  @Mapping(target = "metadata.size", source = "source.size")
+  @Mapping(target = "metadata.scriptSize", source = "source.scriptSize")
+  @Mapping(target = "operations", source = "source", qualifiedByName = "mapTransactionsToOperationsWithMetadata")
+  Transaction mapToRosettaTransactionWithMetadata(BlockTx source, @Context Map<AssetFingerprint, TokenRegistryCurrencyData> metadataMap);
 
   @Mapping(target = "hash", source = "txHash")
   @Mapping(target = "blockHash", source = "block.hash")
@@ -76,6 +91,16 @@ public interface BlockMapper {
 
   @Mapping(target = "transaction", source = "model")
   BlockTransactionResponse mapToBlockTransactionResponse(BlockTx model);
+  
+  @Mapping(target = "transaction", source = "model", qualifiedByName = "mapToRosettaTransactionWithMetadata")
+  BlockTransactionResponse mapToBlockTransactionResponseWithMetadata(BlockTx model,
+                                                                     @Context Map<AssetFingerprint, TokenRegistryCurrencyData> metadataMap);
+
+  @Mapping(target = "transactionIdentifier", source = "hash")
+  @Mapping(target = "metadata.size", source = "size")
+  @Mapping(target = "metadata.scriptSize", source = "scriptSize")
+  @Mapping(target = "operations", ignore = true)
+  Transaction mapToRosettaTransactionBasic(BlockTx source);
 
   TransactionIdentifier getTransactionIdentifier(String hash);
 
