@@ -11,12 +11,14 @@ RUN apt update && apt install -y \
   ca-certificates \
   sudo \
   locales \
+  libicu-dev \
+  pkg-config \
   && sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen \
   && locale-gen \
   && update-locale LANG=en_US.UTF-8 \
   && apt clean
 
-ENV PG_VERSION_TAG=REL_14_11
+ENV PG_VERSION_TAG=REL_18_0
 ENV PG_DATA="/var/lib/postgresql/data"
 ENV PG_BIN="/usr/local/pgsql/bin"
 ENV PATH="$PG_BIN:$PATH"
