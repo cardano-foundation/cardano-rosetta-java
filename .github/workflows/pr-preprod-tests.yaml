@@ -15,7 +15,7 @@ permissions:
 jobs:
   test-on-preprod:
     runs-on: [self-hosted]
-    timeout-minutes: 30
+    timeout-minutes: 60
 
     steps:
       - uses: actions/checkout@v4
