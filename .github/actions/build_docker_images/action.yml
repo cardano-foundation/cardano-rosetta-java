@@ -127,19 +127,11 @@ runs:
           tags: cardanofoundation/cardano-rosetta-java-mithril:${{ steps.envver.outputs.mithril_version }}
           push: true
 
-      - name: All-in-one - Build and push Docker image
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          file: ./docker/Dockerfile
-          tags: cardanofoundation/cardano-rosetta-java:${{ inputs.tag }}
-          push: true
-
-      - name: All-in-one - Build and push Docker latest image
+      - name: Mithril - Build and push Docker latest image
         uses: docker/build-push-action@v4
         if: ${{ inputs.isRelease == 'true' }}
         with:
           context: .
-          file: ./docker/Dockerfile
-          tags: cardanofoundation/cardano-rosetta-java:latest
+          file: ./docker/dockerfiles/mithril/Dockerfile
+          tags: cardanofoundation/cardano-rosetta-java-mithril:latest
           push: true
