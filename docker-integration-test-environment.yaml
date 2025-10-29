@@ -24,4 +24,8 @@ services:
       yaci_store_enabled: true
       ogmios_enabled: false
 
+    depends_on:
+      db:
+        condition: service_healthy
+
     entrypoint: ["/app/yaci-cli", "create-node", "-o", "--start"]

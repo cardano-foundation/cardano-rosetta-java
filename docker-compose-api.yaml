@@ -58,12 +58,17 @@ services:
     volumes:
       - ${CARDANO_CONFIG}:/config
       - ${CARDANO_NODE_DIR}:${CARDANO_NODE_DIR}
+    depends_on:
+      db:
+        condition: service_healthy
+      yaci-indexer:
+        condition: service_started
     healthcheck:
       test: [ "CMD-SHELL", "curl --fail http://localhost:${API_PORT}/network/options -H 'Content-Type: application/json' --data '{\"network_identifier\": {\"blockchain\": \"cardano\",\"network\": \"${NETWORK}\"},\"metadata\": {}}' -X POST" ]
-      interval: 30s
-      retries: 20
-      start_period: 20s
-      timeout: 10s
+      interval: 10s
+      retries: 40
+      start_period: 60s
+      timeout: 5s
     restart: always
 
 
