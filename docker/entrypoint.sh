@@ -173,7 +173,7 @@ start_postgres() {
 }
 
 create_database_and_user() {
-    export DB_SCHEMA="$NETWORK"
+    export DB_SCHEMA=public
 
     flag=true
     while [ $(sudo -u postgres "$PG_BIN/psql" -U postgres -Atc "SELECT pg_is_in_recovery()";) == "t" ]; do

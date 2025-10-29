@@ -9,7 +9,7 @@ spring:
   datasource:
     username: ${DB_USER:rosetta_db_admin}
     password: ${DB_SECRET:weakpwd#123_d}
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5433}/${DB_NAME:test}?currentSchema=${DB_SCHEMA:preprod}
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5433}/${DB_NAME:test}?currentSchema=${DB_SCHEMA:public}
     hikari:
       poolName: "CardanoRosettaJavaDBPool"
 
