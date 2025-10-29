@@ -27,6 +27,8 @@ jobs:
         working-directory: docs
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Copy OpenAPI spec
         run: mkdir -p docs/static && cp api/src/main/resources/rosetta-specifications-1.4.15/api.yaml docs/static/api.yaml

@@ -26,9 +26,13 @@ The root folder contains several example `.env` files for different deployment s
 **Testing:**
 - `.env.IntegrationTest` - Integration tests with yaci devkit
 
-> **Note**: Hardware profile files should be used **in combination** with a base `.env.docker-compose` file to apply performance tuning settings. See the Hardware Profile Variables section below.
+:::note
+Hardware profile files should be used **in combination** with a base `.env.docker-compose` file to apply performance tuning settings. See the Hardware Profile Variables section below.
+:::
 
 ## Main Environment Variables
+
+<div class="env-vars-table">
 
 | Variable                                      | Description                                                           | Default                                | Notes                   |
 |-----------------------------------------------|-----------------------------------------------------------------------|----------------------------------------|-------------------------|
@@ -50,14 +54,14 @@ The root folder contains several example `.env` files for different deployment s
 | `CARDANO_NODE_SUBMIT_HOST`                    | Cardano node submit API host                                          | cardano-submit-api                     | added in release 1.0.0  |
 | `NODE_SUBMIT_API_PORT`                        | Cardano node submit API port                                          | 8090                                   | added in release 1.0.0  |
 | `CARDANO_NODE_DIR`                            | Cardano node base directory                                           | /node                                  | added in release 1.0.0  |
-| `CARDANO_NODE_SOCKET_PATH`                    | Cardano node socket file path                                         | ${CARDANO_NODE_DIR}/node.socket        | added in release 1.0.0  |
+| `CARDANO_NODE_SOCKET_PATH`                    | Cardano node socket file path                                         | /node/node.socket                      | added in release 1.0.0  |
 | `CARDANO_NODE_DB`                             | Cardano node db path                                                  | /node/db                               | added in release 1.0.0  |
-| `CARDANO_CONFIG`                              | Cardano node config path                                              | ./config/node/${NETWORK}               | added in release 1.0.0  |
+| `CARDANO_CONFIG`                              | Cardano node config path                                              | ./config/node/mainnet                  | added in release 1.0.0  |
 | `MITHRIL_VERSION`                             | Mithril client version                                                | 2524.0                                 | added in release 1.2.9  |
 | `SNAPSHOT_DIGEST`                             | Mithril snapshot digest                                               | latest                                 | added in release 1.0.0  |
-| `AGGREGATOR_ENDPOINT`                         | Mithril aggregator endpoint (uses default if not set)                 |                                        | added in release 1.0.0  |
-| `GENESIS_VERIFICATION_KEY`                    | Mithril genesis verification key (uses default if not set)            |                                        | added in release 1.0.0  |
-| `ANCILLARY_VERIFICATION_KEY`                  | Mithril ancillary verification key (uses default if not set)          |                                        | added in release 1.2.9  |
+| `AGGREGATOR_ENDPOINT`                         | Mithril aggregator endpoint (uses default if not set)                 | (empty)                                | added in release 1.0.0  |
+| `GENESIS_VERIFICATION_KEY`                    | Mithril genesis verification key (uses default if not set)            | (empty)                                | added in release 1.0.0  |
+| `ANCILLARY_VERIFICATION_KEY`                  | Mithril ancillary verification key (uses default if not set)          | (empty)                                | added in release 1.2.9  |
 | `API_DOCKER_IMAGE_TAG`                        | Docker Tag for API Image                                              | main                                   | added in release 1.0.0  |
 | `API_SPRING_PROFILES_ACTIVE`                  | API spring profile                                                    | staging                                | added in release 1.0.0  |
 | `API_PORT`                                    | Rosetta API exposed port                                              | 8082                                   | added in release 1.0.0  |
@@ -101,14 +105,18 @@ The root folder contains several example `.env` files for different deployment s
 | `POSTGRESQL_EXPORTER_PORT`                    | PostgreSQL exporter port for Prometheus                               | 9187                                   | added in release 1.3.0  |
 | `PEER_DISCOVERY`                              | Enable peer discovery job for automatic peer refreshing               | false                                  | added in release 1.3.2  |
 | `TOKEN_REGISTRY_ENABLED`                      | Enable token registry integration for native token metadata           | false                                  | added in release 1.4.0  |
-| `TOKEN_REGISTRY_BASE_URL`                     | Base URL for the token registry API                                   |                                        | added in release 1.4.0  |
+| `TOKEN_REGISTRY_BASE_URL`                     | Base URL for the token registry API                                   | (empty)                                | added in release 1.4.0  |
 | `TOKEN_REGISTRY_CACHE_TTL_HOURS`              | Cache TTL for token metadata in hours                                 | 12                                     | added in release 1.4.0  |
 | `TOKEN_REGISTRY_LOGO_FETCH`                   | Enable fetching token logos from registry (increases response size)   | false                                  | added in release 1.4.0  |
 | `TOKEN_REGISTRY_REQUEST_TIMEOUT_SECONDS`      | Token registry request timeout in seconds                             | 2                                      | added in release 1.4.0  |
 
+</div>
+
 ## Hardware Profile Variables
 
 The following variables are available only in hardware profile configuration files (`.env.docker-compose-profile-*-level`).
+
+<div class="env-vars-table">
 
 | Variable                                      | Description                                                           | Default (mid-level profile)            | Notes                   |
 |-----------------------------------------------|-----------------------------------------------------------------------|----------------------------------------|-------------------------|
@@ -133,9 +141,13 @@ The following variables are available only in hardware profile configuration fil
 | `DB_POSTGRES_BGWRITER_DELAY`                  | Delay between background writer cycles                                | 200ms                                  | added in release 1.2.5  |
 | `DB_POSTGRES_AUTOVACUUM_MAX_WORKERS`          | Maximum number of autovacuum workers                                  | 5                                      | added in release 1.4.0  |
 
+</div>
+
 ## Deprecated Environment Variables (Previous Versions)
 
 The following environment variables were available in previous versions but are no longer supported:
+
+<div class="env-vars-table">
 
 | Variable              | Description                                                     | Default            | Notes                                                                                         |
 |-----------------------|-----------------------------------------------------------------|--------------------|-----------------------------------------------------------------------------------------------|
@@ -145,3 +157,5 @@ The following environment variables were available in previous versions but are 
 | `PRUNING_SAFE_BLOCKS` | Number of recent blocks to keep spent UTXOs for (safety margin) | 2160               | available in releases 1.2.4 - 1.2.8, replaced by `REMOVE_SPENT_UTXOS_LAST_BLOCKS_GRACE_COUNT` |
 | `PRUNING_INTERVAL`    | Interval in seconds between pruning cleanup jobs                | 600                | available in releases 1.2.4 - 1.2.8, no longer configurable                                   |
 | `LIMIT`               | Search limit                                                    | 100                | available in releases 1.0.0 - 1.3.1, replaced by `SEARCH_LIMIT` in 1.3.2                      |
+
+</div>
