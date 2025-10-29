@@ -18,8 +18,7 @@
 
     <properties>
         <java.version>24</java.version>
-        <maven.compiler.proc>full</maven.compiler.proc>
-        <yaci-store.version>0.1.5</yaci-store.version>
+        <yaci-store.version>2.0.0-beta4</yaci-store.version>
         <sonar.exclusions>src/main/java/org/cardanofoundation/rosetta/yaciindexer/stores/txsize/model/*</sonar.exclusions>
 <!--        <version.spotless-maven-plugin>2.43.0</version.spotless-maven-plugin>-->
     </properties>
@@ -99,12 +98,12 @@
             <artifactId>yaci-store-admin-spring-boot-starter</artifactId>
             <version>${yaci-store.version}</version>
         </dependency>
-<!--        &lt;!&ndash; Used for governance data (Voltaire) &ndash;&gt;-->
-<!--        <dependency>-->
-<!--            <groupId>com.bloxbean.cardano</groupId>-->
-<!--            <artifactId>yaci-store-governance-spring-boot-starter</artifactId>-->
-<!--            <version>${yaci-store.version}</version>-->
-<!--        </dependency>-->
+        <!-- Used for governance data (Voltaire) -->
+        <dependency>
+            <groupId>com.bloxbean.cardano</groupId>
+            <artifactId>yaci-store-governance-spring-boot-starter</artifactId>
+            <version>${yaci-store.version}</version>
+        </dependency>
         <!-- Used for epoch_params  -> protocolparams-->
         <dependency>
             <groupId>com.bloxbean.cardano</groupId>
