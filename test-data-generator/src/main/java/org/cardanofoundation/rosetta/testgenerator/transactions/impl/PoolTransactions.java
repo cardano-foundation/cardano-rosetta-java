@@ -181,7 +181,8 @@ public class PoolTransactions implements TransactionRunner {
     log.info("Sender2 address: {}", sender2Addr);
 
     Tx retirePool = new Tx()
-            .retirePool(poolId, 19)
+            //.retirePool(poolId, 19)
+            .retirePool(poolId, 2)
             .from(sender2Addr);
 
     Result<String> result = quickTxBuilder.compose(retirePool)
