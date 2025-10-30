@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +26,7 @@ import java.util.Map;
 public class TopologyConfigServiceImpl implements TopologyConfigService {
 
   private final YaciHttpGateway yaciHttpGateway;
+  private final PeerSnapshotService peerSnapshotService;
 
   @Value("${cardano.rosetta.TOPOLOGY_FILEPATH}")
   private String topologyFilepath;
@@ -55,18 +57,31 @@ public class TopologyConfigServiceImpl implements TopologyConfigService {
   }
 
   public List<Peer> getPeerFromConfig(TopologyConfig topologyConfig) {
-    log.info("[getPeersFromConfig] Looking for bootstrap peers from topologyFile");
+    log.info("[getPeersFromConfig] Looking for peers from topology configuration");
 
     if (topologyConfig == null) {
       log.warn("Topology config is null");
       return new ArrayList<>();
     }
 
-    // Only read bootstrap peers now
+    // For Genesis mode (Cardano Node 10.5.1+), try peer snapshot first
+    String peerSnapshotFile = topologyConfig.getPeerSnapshotFile();
+    if (peerSnapshotFile != null && !peerSnapshotFile.isEmpty()) {
+      log.info("[getPeersFromConfig] Peer snapshot file configured: {}", peerSnapshotFile);
+      String baseDirectory = Paths.get(topologyFilepath).getParent().toString();
+      List<Peer> peersFromSnapshot = peerSnapshotService.loadPeersFromSnapshot(peerSnapshotFile, baseDirectory);
+      if (!peersFromSnapshot.isEmpty()) {
+        log.info("[getPeersFromConfig] Loaded {} peers from peer snapshot", peersFromSnapshot.size());
+        return peersFromSnapshot;
+      }
+      log.warn("[getPeersFromConfig] Failed to load peers from snapshot, falling back to bootstrap peers");
+    }
+
+    // Fallback to bootstrap peers for backward compatibility
     List<BootstrapPeer> bootstrapPeers = topologyConfig.getBootstrapPeers();
-    
+
     if (bootstrapPeers == null || bootstrapPeers.isEmpty()) {
-      log.warn("No bootstrap peers found in topology config");
+      log.warn("No bootstrap peers or peer snapshot found in topology config");
       return new ArrayList<>();
     }
 

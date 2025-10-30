@@ -33,11 +33,14 @@ class TopologyConfigServiceTest {
   @Mock
   private YaciHttpGateway yaciHttpGateway;
 
+  @Mock
+  private PeerSnapshotService peerSnapshotService;
+
   private TopologyConfigServiceImpl topologyConfigService;
 
   @BeforeEach
   void setup() {
-    topologyConfigService = new TopologyConfigServiceImpl(yaciHttpGateway);
+    topologyConfigService = new TopologyConfigServiceImpl(yaciHttpGateway, peerSnapshotService);
     ReflectionTestUtils.setField(topologyConfigService, "topologyFilepath",
         "../config/node/devkit/topology.json");
   }
