@@ -54,6 +54,7 @@ const config = {
             '**/_test-results/**',  // Exclude directories with underscore prefix
           ],
         },
+        blog: false,  // Disable blog functionality
         theme: {
           customCss: './src/css/custom.css',
         },
@@ -146,7 +147,7 @@ const config = {
       {
         label: 'API Reference',
         route: '/cardano-rosetta-java/api',
-        
+
         configuration: {
           url: '/cardano-rosetta-java/api.yaml',
           hideDownloadButton: true,
@@ -166,7 +167,7 @@ const config = {
             --scalar-font: 'Helvetica Neue', Helvetica, Arial, sans-serif;
           }
           `
-          
+
 
         },
       },
@@ -180,6 +181,49 @@ const config = {
         indexPages: true,
       },
     ],
+    function suppressDrawioSvgWarnings() {
+      // Store original console methods
+      const originalWarn = console.warn;
+      const originalError = console.error;
+
+      // Filter function to check if message should be suppressed
+      // @ts-ignore
+      const shouldSuppress = (args) => {
+        const message = args[0]?.toString() || '';
+        return message.includes('.drawio.svg') ||
+               message.includes('unsupported file type');
+      };
+
+      return {
+        name: 'suppress-drawio-svg-warnings',
+        configureWebpack() {
+          // Patch console.warn and console.error
+          console.warn = function(...args) {
+            if (!shouldSuppress(args)) {
+              originalWarn.apply(console, args);
+            }
+          };
+
+          console.error = function(...args) {
+            if (!shouldSuppress(args)) {
+              originalError.apply(console, args);
+            }
+          };
+
+          return {
+            ignoreWarnings: [
+              (warning) => {
+                if (!warning.message) return false;
+                return (
+                  warning.message.includes('.drawio.svg') ||
+                  warning.message.includes('unsupported file type')
+                );
+              },
+            ],
+          };
+        },
+      };
+    },
   ],
 };
 
