@@ -73,7 +73,10 @@ def parse_args():
                         help='Cooldown period in seconds between endpoint tests')
     parser.add_argument('--max-retries', dest='max_retries', type=int, default=2,
                         help='Maximum number of retries when an ab command fails')
-    
+    parser.add_argument('--network', dest='network', default="mainnet",
+                        choices=['mainnet', 'preprod'],
+                        help='Network identifier for API requests')
+
     # Endpoint selection
     parser.add_argument('--endpoints', dest='selected_endpoints', type=str,
                         help='Comma-separated list of endpoint names or paths to test (e.g. "Network Status,Block" or "/account/balance,/block"). If not specified, all endpoints will be tested.')
@@ -104,6 +107,7 @@ NO_HEADER = args.no_header
 VERBOSE = args.verbose
 COOLDOWN_PERIOD = args.cooldown
 MAX_RETRIES = args.max_retries
+NETWORK_ID = args.network
 
 # Global logger variable
 logger = None
@@ -200,7 +204,6 @@ def parse_ab_output(ab_stdout: str):
     requests_per_sec = 0.0
     mean_time = 0.0
     non_2xx_responses = 0
-    failed_requests = 0
 
     # Parse each metric
     for line in ab_stdout.splitlines():
@@ -234,13 +237,8 @@ def parse_ab_output(ab_stdout: str):
             parts = line.split()
             if len(parts) >= 3:
                 non_2xx_responses = int(parts[2])
-        # Parse Failed requests
-        elif "Failed requests:" in line:
-            parts = line.split()
-            if len(parts) >= 3:
-                failed_requests = int(parts[2])
 
-    return p95, p99, complete_requests, requests_per_sec, mean_time, non_2xx_responses, failed_requests
+    return p95, p99, complete_requests, requests_per_sec, mean_time, non_2xx_responses
 
 ###############################################################################
 # PAYLOAD GENERATORS
@@ -252,14 +250,14 @@ def payload_network_status(*_):
     """
     /network/status does not really need CSV data.
     """
-    return dedent("""\
-    {
-      "network_identifier": {
+    return dedent(f"""\
+    {{
+      "network_identifier": {{
         "blockchain": "cardano",
-        "network": "mainnet"
-      },
-      "metadata": {}
-    }
+        "network": "{NETWORK_ID}"
+      }},
+      "metadata": {{}}
+    }}
     """)
 
 def payload_account_balance(address, *_):
@@ -270,7 +268,7 @@ def payload_account_balance(address, *_):
     {{
       "network_identifier": {{
         "blockchain": "cardano",
-        "network": "mainnet"
+        "network": "{NETWORK_ID}"
       }},
       "account_identifier": {{
         "address": "{address}"
@@ -286,7 +284,7 @@ def payload_account_coins(address, *_):
     {{
       "network_identifier": {{
         "blockchain": "cardano",
-        "network": "mainnet"
+        "network": "{NETWORK_ID}"
       }},
       "account_identifier": {{
         "address": "{address}"
@@ -303,7 +301,7 @@ def payload_block(_addr, block_index, block_hash, *_):
     {{
       "network_identifier": {{
         "blockchain": "cardano",
-        "network": "mainnet"
+        "network": "{NETWORK_ID}"
       }},
       "block_identifier": {{
         "index": {block_index},
@@ -320,7 +318,7 @@ def payload_block_transaction(_addr, block_index, block_hash, _tx_size, _ttl, tr
     {{
       "network_identifier": {{
         "blockchain": "cardano",
-        "network": "mainnet"
+        "network": "{NETWORK_ID}"
       }},
       "block_identifier": {{
         "index": {block_index},
@@ -332,7 +330,7 @@ def payload_block_transaction(_addr, block_index, block_hash, _tx_size, _ttl, tr
     }}
     """)
 
-def payload_search_transactions(_addr, _block_index, _block_hash, _tx_size, _ttl, transaction_hash):
+def payload_search_transactions_by_hash(_addr, _block_index, _block_hash, _tx_size, _ttl, transaction_hash):
     """
     /search/transactions requires transaction_hash.
     """
@@ -340,10 +338,26 @@ def payload_search_transactions(_addr, _block_index, _block_hash, _tx_size, _ttl
     {{
       "network_identifier": {{
         "blockchain": "cardano",
-        "network": "mainnet"
+        "network": "{NETWORK_ID}"
       }},
       "transaction_identifier": {{
         "hash": "{transaction_hash}"
+      }}
+    }}
+    """)
+
+def payload_search_transactions_by_address(address, *_):
+    """
+    /search/transactions with account_identifier (address-based query).
+    """
+    return dedent(f"""\
+    {{
+      "network_identifier": {{
+        "blockchain": "cardano",
+        "network": "{NETWORK_ID}"
+      }},
+      "account_identifier": {{
+        "address": "{address}"
       }}
     }}
     """)
@@ -356,7 +370,7 @@ def payload_construction_metadata(_addr, _block_index, _block_hash, transaction_
     {{
       "network_identifier": {{
         "blockchain": "cardano",
-        "network": "mainnet"
+        "network": "{NETWORK_ID}"
       }},
       "options": {{
         "transaction_size": {transaction_size},
@@ -368,15 +382,16 @@ def payload_construction_metadata(_addr, _block_index, _block_hash, transaction_
 ###############################################################################
 # ENDPOINT DEFINITION
 ###############################################################################
-# We'll define 7 endpoints with: (Name, Path, Payload Generator Function)
+# We'll define 8 endpoints with: (Name, Path, Payload Generator Function)
 ENDPOINTS = [
-    ("Network Status",       "/network/status",          payload_network_status),
-    ("Account Balance",      "/account/balance",         payload_account_balance),
-    ("Account Coins",        "/account/coins",           payload_account_coins),
-    ("Block",                "/block",                   payload_block),
-    ("Block Transaction",    "/block/transaction",       payload_block_transaction),
-    ("Search Transactions",  "/search/transactions",     payload_search_transactions),
-    ("Construction Metadata","/construction/metadata",   payload_construction_metadata),
+    ("Network Status",                  "/network/status",          payload_network_status),
+    ("Account Balance",                 "/account/balance",         payload_account_balance),
+    ("Account Coins",                   "/account/coins",           payload_account_coins),
+    ("Block",                           "/block",                   payload_block),
+    ("Block Transaction",               "/block/transaction",       payload_block_transaction),
+    ("Search Transactions by Hash",     "/search/transactions",     payload_search_transactions_by_hash),
+    ("Search Transactions by Address",  "/search/transactions",     payload_search_transactions_by_address),
+    ("Construction Metadata",           "/construction/metadata",   payload_construction_metadata),
 ]
 
 ###############################################################################
@@ -493,7 +508,13 @@ def test_endpoint(endpoint_name, endpoint_path, payload_func, csv_row):
     # Example CSV columns:
     # address, block_index, block_hash, transaction_size, relative_ttl, transaction_hash
     #
-    # Adjust if your CSV has different columns or order.
+    # Validate CSV structure
+    if len(csv_row) != 6:
+        logger.error(f"Invalid CSV format for endpoint {endpoint_name}.")
+        logger.error(f"Expected 6 columns (address, block_index, block_hash, transaction_size, relative_ttl, transaction_hash)")
+        logger.error(f"Got {len(csv_row)} columns: {csv_row}")
+        sys.exit(1)
+
     address, block_index, block_hash, transaction_size, relative_ttl, transaction_hash = csv_row
 
     # Generate JSON payload
@@ -546,9 +567,13 @@ def test_endpoint(endpoint_name, endpoint_path, payload_func, csv_row):
                     if VERBOSE:
                         # Format each line with box borders
                         if line_stripped:
-                            # Fixed width approach
+                            # Truncate long lines to fit box width
+                            max_content_width = box_width - 4  # 2 for borders, 2 for padding
+                            if len(line_stripped) > max_content_width:
+                                line_stripped = line_stripped[:max_content_width - 3] + "..."
                             content = "│ " + line_stripped
-                            logger.debug(content + " " * (box_width - len(content) - 1) + "│")
+                            padding = " " * (box_width - len(content) - 1)
+                            logger.debug(content + padding + "│")
                         else:
                             logger.debug("│" + " " * (box_width - 2) + "│")
                 proc.stdout.close()
@@ -615,7 +640,7 @@ def test_endpoint(endpoint_name, endpoint_path, payload_func, csv_row):
             break
 
         # Parse p95, p99 and additional metrics from the captured stdout
-        p95, p99, complete_requests, requests_per_sec, mean_time, non_2xx_responses, failed_requests = parse_ab_output(ab_output)
+        p95, p99, complete_requests, requests_per_sec, mean_time, non_2xx_responses = parse_ab_output(ab_output)
 
         # Calculate error rate as a percentage
         error_rate = 0.0
@@ -748,8 +773,9 @@ def main():
             logger.debug(f"Data row: {', '.join(rows[0]) if rows else 'No data available'}")
             logger.debug(f"{'-' * 80}")
 
-        # For demonstration, pick the *first* row only.
-        # If you want to test multiple rows, you can loop here or adapt logic.
+        # Use only the first CSV row for consistency across all endpoints and concurrency levels.
+        # This ensures that performance comparisons are based on the same data characteristics.
+        # All endpoints will be tested with identical input data to measure their relative performance.
         if not rows:
             # Use logger.error and exit
             logger.error("No CSV data after skipping header.")
@@ -911,8 +937,8 @@ def main():
              logger.warning("=" * 80)
 
              current_endpoint = None
-             if 'ep_name' in locals() and 'c' in locals():
-                 current_endpoint = f"{ep_name} at concurrency level {c}"
+             if 'ep_name' in locals():
+                 current_endpoint = ep_name
 
              if current_endpoint:
                  logger.warning(f"Test was interrupted while testing: {current_endpoint}")
