@@ -76,7 +76,8 @@ public class AccountMapperUtil {
             Amt adaAsset = utxo.getAmounts().stream()
                     .filter(amt -> Constants.LOVELACE.equals(amt.getUnit()))
                     .findFirst()
-                    .orElseGet(() -> new Amt(null, null, Constants.ADA, BigInteger.ZERO));
+                    .orElseGet(() -> new Amt(null, Constants.ADA, BigInteger.ZERO));
+
             String coinIdentifier = "%s:%d".formatted(utxo.getTxHash(), utxo.getOutputIndex());
 
             return Coin.builder()

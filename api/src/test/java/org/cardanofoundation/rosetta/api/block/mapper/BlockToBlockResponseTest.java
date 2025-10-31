@@ -41,11 +41,11 @@ class BlockToBlockResponseTest extends BaseMapperSetup {
         .blockNo(1L)
         .inputs(
             List.of(Utxo.builder().txHash("Hash").outputIndex(0).ownerAddr("Owner").amounts(List.of(
-                    Amt.builder().unit(unit).policyId(policyId).assetName("tAda").quantity(BigInteger.valueOf(10L)).build()))
+                    Amt.builder().unit(unit).policyId(policyId).quantity(BigInteger.valueOf(10L)).build()))
                 .build()))
         .outputs(
             List.of(Utxo.builder().txHash("Hash").outputIndex(0).ownerAddr("Owner").amounts(List.of(
-                    Amt.builder().unit(unit).policyId(policyId).assetName("tAda").quantity(BigInteger.valueOf(10L)).build()))
+                    Amt.builder().unit(unit).policyId(policyId).quantity(BigInteger.valueOf(10L)).build()))
                 .build()))
         .build();
 

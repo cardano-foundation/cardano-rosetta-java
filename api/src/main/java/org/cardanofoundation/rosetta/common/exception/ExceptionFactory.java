@@ -389,4 +389,9 @@ public class ExceptionFactory {
                 Details.builder().message("Invalid operation status: '" + status + "'. Supported values are: 'success', 'invalid', 'true', 'false'").build()));
     }
 
+    public static ApiException currencySymbolNotHex(String symbol) {
+        return new ApiException(RosettaErrorType.CURRENCY_SYMBOL_NOT_HEX.toRosettaError(false,
+                Details.builder().message("Currency symbol must be hex-encoded, but got: '" + symbol + "'").build()));
+    }
+
 }

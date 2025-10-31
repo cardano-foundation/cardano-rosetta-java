@@ -152,14 +152,17 @@ public class TxRepositoryH2Impl extends TxRepositoryCustomBase implements TxRepo
 
     /**
      * H2-specific currency condition builder using LIKE operator for JSON string matching.
+     * Searches by hex-encoded symbols in the unit field to support CIP-68 assets.
      */
     private static class H2CurrencyConditionBuilder extends BaseCurrencyConditionBuilder {
-        
+
         @Override
         protected Condition buildPolicyIdAndSymbolCondition(String escapedPolicyId, String escapedSymbol) {
+            // Search for unit field containing policyId+symbol (hex-encoded)
+            // unit = policyId + symbol where symbol is hex-encoded asset name
+            String expectedUnit = escapedPolicyId + escapedSymbol;
             return DSL.condition("EXISTS (SELECT 1 FROM address_utxo au WHERE au.tx_hash = transaction.tx_hash " +
-                    "AND au.amounts LIKE '%\"policy_id\":\"" + escapedPolicyId + "\"%' " +
-                    "AND au.amounts LIKE '%\"asset_name\":\"" + escapedSymbol + "\"%')");
+                    "AND au.amounts LIKE '%\"unit\":\"" + expectedUnit + "\"%')");
         }
 
         @Override
@@ -176,8 +179,12 @@ public class TxRepositoryH2Impl extends TxRepositoryCustomBase implements TxRepo
 
         @Override
         protected Condition buildSymbolOnlyCondition(String escapedSymbol) {
+            // Search for unit field containing the hex-encoded symbol
+            // Since unit = policyId + symbol, the unit will contain the symbol substring
+            // We need to exclude lovelace since it's a special case
             return DSL.condition("EXISTS (SELECT 1 FROM address_utxo au WHERE au.tx_hash = transaction.tx_hash " +
-                    "AND au.amounts LIKE '%\"asset_name\":\"" + escapedSymbol + "\"%')");
+                    "AND au.amounts LIKE '%\"unit\":\"%"  + escapedSymbol + "\"%' " +
+                    "AND au.amounts NOT LIKE '%\"unit\":\"lovelace\"%')");
         }
     }
 

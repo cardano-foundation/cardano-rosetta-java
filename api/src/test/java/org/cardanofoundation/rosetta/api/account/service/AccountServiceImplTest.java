@@ -344,7 +344,7 @@ class AccountServiceImplTest {
     when(utxo.getTxHash()).thenReturn("txHash");
     when(utxo.getOutputIndex()).thenReturn(1);
     when(utxo.getAmounts()).thenReturn(
-            Collections.singletonList(new Amt(LOVELACE, "", LOVELACE, BigInteger.valueOf(1000L))));
+            Collections.singletonList(new Amt(LOVELACE, null, BigInteger.valueOf(1000L))));
     when(accountCoinsRequest.getAccountIdentifier()).thenReturn(accountIdentifier);
     when(accountCoinsRequest.getCurrencies()).thenReturn(Collections.singletonList(currency));
     when(accountIdentifier.getAddress()).thenReturn(accountAddress);
@@ -369,7 +369,7 @@ class AccountServiceImplTest {
     when(utxo.getTxHash()).thenReturn("txHash");
     when(utxo.getOutputIndex()).thenReturn(1);
     when(utxo.getAmounts()).thenReturn(
-            Collections.singletonList(new Amt(LOVELACE, "", LOVELACE, BigInteger.valueOf(1000L))));
+            Collections.singletonList(new Amt(LOVELACE, null, BigInteger.valueOf(1000L))));
     when(accountCoinsRequest.getAccountIdentifier()).thenReturn(accountIdentifier);
     when(accountCoinsRequest.getCurrencies()).thenReturn(null);
     when(accountIdentifier.getAddress()).thenReturn(accountAddress);

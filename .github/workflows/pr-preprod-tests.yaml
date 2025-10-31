@@ -58,15 +58,19 @@ jobs:
             fi
           }
 
-          ensure_var REMOVE_SPENT_UTXOS false
-          ensure_var REMOVE_SPENT_UTXOS_LAST_BLOCKS_GRACE_COUNT 129600
-          ensure_var DB_PORT 5433
-          ensure_var TOKEN_REGISTRY_ENABLED true
-          ensure_var TOKEN_REGISTRY_BASE_URL http://preview.integrations.cf-systems.internal:8080/api
-          ensure_var TOKEN_REGISTRY_CACHE_TTL_HOURS 1
-          ensure_var TOKEN_REGISTRY_LOGO_FETCH true
-          ensure_var TOKEN_REGISTRY_REQUEST_TIMEOUT_SECONDS 2
-          ensure_var PEER_DISCOVERY true
+          configure_test_env() {
+            ensure_var REMOVE_SPENT_UTXOS false
+            ensure_var REMOVE_SPENT_UTXOS_LAST_BLOCKS_GRACE_COUNT 129600
+            ensure_var DB_PORT 5433
+            ensure_var TOKEN_REGISTRY_ENABLED true
+            ensure_var TOKEN_REGISTRY_BASE_URL http://preview.integrations.cf-systems.internal:8080/api
+            ensure_var TOKEN_REGISTRY_CACHE_TTL_HOURS 1
+            ensure_var TOKEN_REGISTRY_LOGO_FETCH true
+            ensure_var TOKEN_REGISTRY_REQUEST_TIMEOUT_SECONDS 2
+            ensure_var PEER_DISCOVERY true
+          }
+
+          configure_test_env
 
 
       - name: Build and start services with PR code
@@ -275,7 +279,29 @@ jobs:
         if: failure() && (steps.test.outcome == 'failure' || steps.test.outcome == 'cancelled')
         run: |
           cd /home/integration/git/cardano-rosetta-java
-          sed -i "s#^DB_PORT=.*#DB_PORT=5433#" .env.docker-compose-preprod
+
+          ensure_var() {
+            local key="$1"
+            local value="$2"
+            local file=".env.docker-compose-preprod"
+            if grep -q "^${key}=" "$file"; then
+              sed -i "s#^${key}=.*#${key}=${value}#" "$file"
+            else
+              echo "${key}=${value}" >> "$file"
+            fi
+          }
+
+          configure_test_env() {
+            ensure_var REMOVE_SPENT_UTXOS false
+            ensure_var REMOVE_SPENT_UTXOS_LAST_BLOCKS_GRACE_COUNT 129600
+            ensure_var DB_PORT 5433
+            ensure_var TOKEN_REGISTRY_ENABLED true
+            ensure_var TOKEN_REGISTRY_BASE_URL http://preview.integrations.cf-systems.internal:8080/api
+            ensure_var TOKEN_REGISTRY_CACHE_TTL_HOURS 1
+            ensure_var TOKEN_REGISTRY_LOGO_FETCH true
+            ensure_var TOKEN_REGISTRY_REQUEST_TIMEOUT_SECONDS 2
+            ensure_var PEER_DISCOVERY true
+          }
 
           echo "⚠️ Test failed - stopping services"
 
@@ -346,7 +372,9 @@ jobs:
           LAST_TAG=$(git tag --sort=-version:refname | head -1)
           echo "Rolling back to stable version: $LAST_TAG"
           git checkout -f $LAST_TAG
-          sed -i "s#^DB_PORT=.*#DB_PORT=5433#" .env.docker-compose-preprod
+
+          # Re-apply test configuration for stable version
+          configure_test_env
 
           docker compose \
             --env-file .env.docker-compose-preprod \

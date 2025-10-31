@@ -1112,11 +1112,10 @@ class TokenRegistryServiceImplTest {
         return Utxo.builder().amounts(amounts).build();
     }
 
-    private Amt createAmt(String assetName, String policyId, String unit) {
+    private Amt createAmt(String unit, String policyId, String lovelaceOrUnit) {
         return Amt.builder()
-            .assetName(assetName)
             .policyId(policyId)
-            .unit(unit)
+            .unit(lovelaceOrUnit)
             .quantity(BigDecimal.valueOf(1000000).toBigInteger())
             .build();
     }

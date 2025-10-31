@@ -1,5 +1,6 @@
 """Tests for Rosetta /network endpoints."""
 
+import time
 import pytest
 import allure
 
@@ -65,18 +66,32 @@ class TestNetworkStatus:
         assert sync_current >= current_index, "sync progress cannot trail current block"
         assert sync_current <= sync_target, "sync progress cannot exceed target"
 
-        peers = data.get("peers")
-        assert isinstance(peers, list) and peers, "Peers list must not be empty"
+        peers = data.get("peers", [])
+
+        if not peers:
+            max_wait_seconds = 300
+            retry_interval = 30
+            for _ in range(max_wait_seconds // retry_interval):
+                time.sleep(retry_interval)
+                peers = client.network_status(network=network).json().get("peers", [])
+                if peers:
+                    break
+
+        assert isinstance(peers, list), "Peers must be a list"
+        assert peers, "Peers list empty after 5 minutes (peer discovery initial delay)"
+
         for peer in peers:
             peer_id = peer.get("peer_id")
             metadata = peer.get("metadata")
+
             assert isinstance(peer_id, str) and ":" in peer_id, (
                 "peer_id must include hostname and port"
             )
             assert isinstance(metadata, dict) and metadata.get("type") in {
                 "IPv4",
                 "IPv6",
-            }
+                "domain",
+            }, f"Peer type must be IPv4, IPv6, or domain (Genesis mode), got: {metadata.get('type')}"
 
     # Error handling tests moved to test_error_handling.py
 
