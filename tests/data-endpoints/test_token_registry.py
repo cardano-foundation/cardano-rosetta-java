@@ -21,47 +21,65 @@ TOKEN_REGISTRY_BASE_URL = os.environ.get("TOKEN_REGISTRY_BASE_URL")
 TOKEN_REGISTRY_LOGO_FETCH = os.environ.get("TOKEN_REGISTRY_LOGO_FETCH", "false").lower() == "true"
 
 
-def _tokens_config(network_data: Dict) -> List[Dict]:
+@pytest.fixture
+def tokens_config(network_data):
+    """Extract and validate tokens_in_registry configuration from network test data."""
     tokens = network_data.get("tokens_in_registry")
     assert tokens, "network_test_data.yaml must define tokens_in_registry for the configured network"
     return tokens
 
 
-def _ensure_token_registry_base_url() -> str:
+@pytest.fixture
+def token_registry_base_url():
+    """Validate and return token registry base URL from environment."""
     assert TOKEN_REGISTRY_BASE_URL, "TOKEN_REGISTRY_BASE_URL environment variable must be set"
     return TOKEN_REGISTRY_BASE_URL.rstrip("/")
 
 
 @lru_cache(maxsize=None)
-def _registry_metadata(subject: str) -> Dict:
-    base_url = _ensure_token_registry_base_url()
-    # Use v2 endpoint shape: {base}/v2/subjects/{subject}
-    response = requests.get(f"{base_url}/v2/subjects/{subject}", timeout=15)
+def _registry_metadata(base_url: str, subject: str) -> Dict | None:
+    """Fetch token metadata from upstream registry by subject ID.
+
+    Registry v2 API returns: {"subject": {"metadata": {"name": {"value": "...", "source": "CIP_26"}, ...}}}
+    Extracts metadata and unwraps {value, source} structure to just values.
+
+    Returns: Simplified metadata dict with unwrapped values, or None if subject not found (404).
+    Raises: HTTPError for other request failures (network issues, 500, etc).
+    """
+    response = requests.get(f"{base_url}/v2/subjects/{subject}", timeout=60)
+
+    if response.status_code == 404:
+        return None
+
     response.raise_for_status()
-    return _simplify_registry_metadata(response.json())
+    raw = response.json()
+    metadata = raw.get("subject", {}).get("metadata", {})
 
-
-def _simplify_registry_metadata(raw: Dict) -> Dict:
-    """Simplify v2 registry payload: keep only scalar values as-is."""
     simple: Dict[str, object] = {}
-    for key, value in raw.items():
+    for key, field_obj in metadata.items():
         if key in {"subject", "policy"}:
             continue
-        if not isinstance(value, (dict, list)):
-            simple[key] = value
+        if isinstance(field_obj, dict) and "value" in field_obj:
+            simple[key] = field_obj["value"]
+        elif not isinstance(field_obj, (dict, list)):
+            simple[key] = field_obj
+
     return simple
 
 
-def _account_token_metadata(client, network: str, token: Dict) -> Tuple[Dict, Dict]:
+def _fetch_token_from_account(client, network: str, token: Dict) -> Tuple[Dict | None, Dict | None]:
+    """Fetch token currency and metadata from /account/balance at configured test block.
+
+    Returns: (currency, metadata) tuple, or (None, None) if token not found or request fails.
+    """
     response = client.account_balance(
         network=network,
         account_identifier={"address": token["test_address"]},
         block_identifier={"index": token["test_block"]},
     )
-    assert response.status_code == 200, (
-        f"/account/balance returned {response.status_code} for {token['test_address']} "
-        f"at block {token['test_block']}"
-    )
+
+    if response.status_code != 200:
+        return None, None
 
     for balance in response.json().get("balances", []):
         currency = balance.get("currency", {})
@@ -69,13 +87,16 @@ def _account_token_metadata(client, network: str, token: Dict) -> Tuple[Dict, Di
         if metadata.get("policyId") == token["policy_id"]:
             return currency, metadata
 
-    raise AssertionError(
-        f"Token with policyId {token['policy_id']} not found in /account/balance response "
-        f"for address {token['test_address']} at block {token['test_block']}"
-    )
+    return None, None
 
 
-def _assert_basic_metadata(currency: Dict, metadata: Dict, token: Dict) -> None:
+def _verify_all_metadata_fields_match(currency: Dict, metadata: Dict, token: Dict) -> None:
+    """Verify currency and enriched metadata fields match expected token configuration.
+
+    Validates:
+    - currency: symbol_hex, decimals
+    - metadata: policyId, subject (if configured), name, description, ticker, url
+    """
     assert metadata.get("policyId") == token["policy_id"]
     if token.get("subject"):
         subject = metadata.get("subject")
@@ -99,6 +120,11 @@ def _assert_basic_metadata(currency: Dict, metadata: Dict, token: Dict) -> None:
 
 
 def _block_operations_for_token(client, network: str, token: Dict) -> List[Tuple[Dict, Dict]]:
+    """Find operations containing token in /block response at configured test block.
+
+    Asserts: Response is 200.
+    Returns: List of (transaction, operation) tuples (may be empty if token not in block).
+    """
     response = client.block(network=network, block_identifier={"index": token["test_block"]})
     assert response.status_code == 200, (
         f"/block {token['test_block']} returned {response.status_code}"
@@ -130,8 +156,13 @@ def _block_operations_for_token(client, network: str, token: Dict) -> List[Tuple
 
 
 def _search_operations_for_token(client, network: str, token: Dict) -> List[Tuple[Dict, Dict]]:
-    # Use ASCII symbol in search request (known API quirk). No fallbacks.
-    symbol = token["symbol_ascii"]
+    """Find operations containing token in /search/transactions response using hex symbol.
+
+    Returns: List of (transaction, operation) tuples from operation amounts or tokenBundle.
+             Empty list if non-200 response.
+    """
+    # Use hex-encoded symbol in search request (canonical format in v1.4.1+)
+    symbol = token["symbol_hex"]
     response = client.search_transactions(
         network=network,
         currency={
@@ -178,11 +209,13 @@ class TestPolicyIdMetadata:
     """Verify policy identifiers are exposed for configured tokens."""
 
     @pytest.mark.pr
-    def test_tokens_expose_policy_id(self, client, network, network_data, has_token_registry):
+    def test_tokens_expose_policy_id(self, client, network, tokens_config, has_token_registry):
         assert has_token_registry, "Token registry must be enabled for this test"
 
-        for token in _tokens_config(network_data):
-            currency, metadata = _account_token_metadata(client, network, token)
+        for token in tokens_config:
+            currency, metadata = _fetch_token_from_account(client, network, token)
+
+            assert currency is not None, f"Token {token['ticker']} not found"
             assert "policyId" in metadata, "Missing policyId in enriched metadata"
             if token.get("subject"):
                 symbol = currency.get("symbol", "")
@@ -196,12 +229,17 @@ class TestPolicyIdMetadata:
 class TestTokenRegistryHealth:
     """Validate metadata enrichment for configured tokens using account balances."""
 
-    def test_configured_tokens_have_enrichment(self, client, network, network_data, has_token_registry):
+    def test_configured_tokens_have_enrichment(self, client, network, tokens_config, has_token_registry):
         assert has_token_registry, "Token registry must be enabled for this test"
 
-        for token in _tokens_config(network_data):
-            currency, metadata = _account_token_metadata(client, network, token)
-            _assert_basic_metadata(currency, metadata, token)
+        for token in tokens_config:
+            currency, metadata = _fetch_token_from_account(client, network, token)
+
+            assert currency is not None, (
+                f"Token {token['ticker']} not found in /account/balance for "
+                f"{token['test_address']} at block {token['test_block']}"
+            )
+            _verify_all_metadata_fields_match(currency, metadata, token)
 
 
 @allure.feature("Token Registry")
@@ -211,34 +249,34 @@ class TestTokenRegistryEnrichment:
 
     @pytest.mark.nightly
     @pytest.mark.requires_token_registry
-    def test_enriched_metadata_in_block_operations(self, client, network, network_data, has_token_registry):
+    def test_enriched_metadata_in_block_operations(self, client, network, tokens_config, has_token_registry):
         assert has_token_registry, "Token registry must be enabled for this test"
 
-        for token in _tokens_config(network_data):
+        for token in tokens_config:
             matches = _block_operations_for_token(client, network, token)
             assert matches, (
                 f"No operations found with token {token['ticker']} in block {token['test_block']}"
             )
-            for tx, op in matches:
+            for _, op in matches:
                 currency = op.get("amount", {}).get("currency", {})
                 metadata = currency.get("metadata", {})
-                _assert_basic_metadata(currency, metadata, token)
+                _verify_all_metadata_fields_match(currency, metadata, token)
 
     @pytest.mark.nightly
     @pytest.mark.requires_token_registry
-    def test_enriched_metadata_in_search_results(self, client, network, network_data, has_token_registry):
+    def test_enriched_metadata_in_search_results(self, client, network, tokens_config, has_token_registry):
         assert has_token_registry, "Token registry must be enabled for this test"
 
-        for token in _tokens_config(network_data):
+        for token in tokens_config:
             matches = _search_operations_for_token(client, network, token)
             assert matches, (
                 f"/search/transactions returned no results for token {token['ticker']} "
-                f"(symbol tried: {token['symbol_ascii']})"
+                f"(hex symbol used: {token['symbol_hex']})"
             )
-            for tx, op in matches:
+            for _, op in matches:
                 currency = op.get("amount", {}).get("currency", {})
                 metadata = currency.get("metadata", {})
-                _assert_basic_metadata(currency, metadata, token)
+                _verify_all_metadata_fields_match(currency, metadata, token)
 
 
 @allure.feature("Token Registry")
@@ -249,21 +287,24 @@ class TestTokenRegistryLogos:
     @pytest.mark.nightly
     @pytest.mark.requires_token_registry
     @pytest.mark.requires_logo_fetch
-    def test_logo_formats_match_expected_standard(self, client, network, network_data, has_token_registry):
+    def test_logo_formats_match_expected_standard(self, client, network, tokens_config, has_token_registry):
         assert has_token_registry, "Token registry must be enabled for this test"
         if not TOKEN_REGISTRY_LOGO_FETCH:
             pytest.skip("TOKEN_REGISTRY_LOGO_FETCH must be true to validate logo payloads")
 
-        for token in _tokens_config(network_data):
-            _, metadata = _account_token_metadata(client, network, token)
-            logo = metadata.get("logo")
-            assert isinstance(logo, dict), "Logo metadata missing or malformed"
+        for token in tokens_config:
+            currency, metadata = _fetch_token_from_account(client, network, token)
+            logo = metadata.get("logo") if metadata else None
             expected_format = token.get("logo_format")
+            prefix = token.get("logo_value_prefix")
+
+            assert currency is not None, f"Token {token['ticker']} not found"
+            assert isinstance(logo, dict), "Logo metadata missing or malformed"
+
             if expected_format:
                 assert logo.get("format") == expected_format, (
                     f"Expected logo format '{expected_format}' for token {token['ticker']}"
                 )
-            prefix = token.get("logo_value_prefix")
             if prefix:
                 assert str(logo.get("value", "")).startswith(prefix), (
                     f"Logo value does not start with expected prefix '{prefix}' for token {token['ticker']}"
@@ -277,22 +318,17 @@ class TestTokenRegistryParity:
 
     @pytest.mark.weekly
     @pytest.mark.requires_token_registry
-    def test_rosetta_metadata_matches_registry(self, client, network, network_data, has_token_registry):
+    def test_rosetta_metadata_matches_registry(self, client, network, tokens_config, token_registry_base_url, has_token_registry):
         assert has_token_registry, "Token registry must be enabled for this test"
-        _ensure_token_registry_base_url()
 
-        for token in _tokens_config(network_data):
-            currency, rosetta_metadata = _account_token_metadata(client, network, token)
-            try:
-                registry_metadata = _registry_metadata(token["subject"])
-            except requests.HTTPError as e:
-                if getattr(e.response, "status_code", None) == 404:
-                    pytest.fail(
-                        f"Registry missing subject {token['subject']} at {TOKEN_REGISTRY_BASE_URL}"
-                    )
-                raise
+        for token in tokens_config:
+            currency, rosetta_metadata = _fetch_token_from_account(client, network, token)
+            registry_metadata = _registry_metadata(token_registry_base_url, token["subject"])
 
-            _assert_basic_metadata(currency, rosetta_metadata, token)
+            assert currency is not None, f"Token {token['ticker']} not found"
+            assert registry_metadata is not None, (
+                f"Registry missing subject {token['subject']} at {token_registry_base_url}"
+            )
 
             for field in ("name", "description", "ticker", "url"):
                 registry_value = registry_metadata.get(field)
@@ -303,18 +339,26 @@ class TestTokenRegistryParity:
 
             registry_decimals = registry_metadata.get("decimals")
             if registry_decimals is not None:
-                assert int(registry_decimals) == token["decimals"], (
-                    f"Decimals mismatch for {token['ticker']}: registry={registry_decimals}"
+                assert currency.get("decimals") == int(registry_decimals), (
+                    f"Decimals mismatch between Rosetta and registry for {token['ticker']}: "
+                    f"rosetta={currency.get('decimals')}, registry={registry_decimals}"
                 )
 
             registry_logo = registry_metadata.get("logo")
             rosetta_logo = rosetta_metadata.get("logo")
-            if registry_logo and TOKEN_REGISTRY_LOGO_FETCH:
-                assert isinstance(rosetta_logo, dict), "Rosetta logo metadata missing"
-                assert rosetta_logo.get("value") == registry_logo, (
-                    f"Logo value mismatch between Rosetta and registry for {token['ticker']}"
-                )
-            elif not TOKEN_REGISTRY_LOGO_FETCH:
+
+            if TOKEN_REGISTRY_LOGO_FETCH:
+                if registry_logo:
+                    assert isinstance(rosetta_logo, dict), "Rosetta logo metadata missing or not a dict"
+                    assert rosetta_logo.get("value") == registry_logo, (
+                        f"Logo value mismatch between Rosetta and registry for {token['ticker']}: "
+                        f"rosetta={rosetta_logo.get('value')[:50]}..., registry={registry_logo[:50] if isinstance(registry_logo, str) else registry_logo}..."
+                    )
+                else:
+                    assert rosetta_logo is None or rosetta_logo == {}, (
+                        f"Rosetta should have no logo when registry has none for {token['ticker']}"
+                    )
+            else:
                 assert rosetta_logo is None or rosetta_logo == {}, (
                     "Logo metadata should be absent when TOKEN_REGISTRY_LOGO_FETCH is disabled"
                 )
