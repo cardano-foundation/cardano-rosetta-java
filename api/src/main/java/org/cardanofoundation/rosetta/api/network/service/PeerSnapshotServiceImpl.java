@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -24,6 +25,12 @@ import java.util.Map;
 @Service
 @Slf4j
 public class PeerSnapshotServiceImpl implements PeerSnapshotService {
+
+  /**
+   * Maximum number of peers to return. This limit prevents returning excessive peer lists
+   * and ensures randomization of peer selection rather than always returning the same peers.
+   */
+  private static final int MAX_PEERS = 25;
 
   @Override
   public List<Peer> loadPeersFromSnapshot(@NotNull String peerSnapshotFile, @NotNull String baseDirectory) {
@@ -70,9 +77,18 @@ public class PeerSnapshotServiceImpl implements PeerSnapshotService {
   }
 
   private List<Peer> extractPeersFromSnapshot(PeerSnapshotConfig peerSnapshot) {
-    return peerSnapshot.getBigLedgerPools().stream()
+    List<Peer> allPeers = peerSnapshot.getBigLedgerPools().stream()
         .flatMap(pool -> pool.getRelays().stream())
         .map(this::mapRelayToPeer)
+        .toList();
+
+    // Shuffle to randomize peer selection and limit to MAX_PEERS
+    // This ensures we don't always return the same peers
+    List<Peer> shuffledPeers = new ArrayList<>(allPeers);
+    Collections.shuffle(shuffledPeers);
+
+    return shuffledPeers.stream()
+        .limit(MAX_PEERS)
         .toList();
   }
 

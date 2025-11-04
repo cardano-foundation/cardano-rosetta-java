@@ -9,6 +9,8 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -16,7 +18,11 @@ import java.util.concurrent.CopyOnWriteArrayList;
 @Slf4j
 public class PeerDiscoveryManager {
 
-    public static final int PEERS_REQUEST_AMOUNT = 50;
+    /**
+     * Maximum number of peers to request from the Cardano node and cache.
+     * Limited to avoid excessive peer lists and allow randomization.
+     */
+    public static final int PEERS_REQUEST_AMOUNT = 25;
     public static final int PEERS_REQUEST_TIMEOUT_SECS = 60;
 
     @Value("${store.cardano.host:preprod-node.world.dev.cardano.org}")
@@ -32,10 +38,20 @@ public class PeerDiscoveryManager {
     private final CopyOnWriteArrayList<PeerAddress> cachedPeers = new CopyOnWriteArrayList<>();
 
     public void updateCachedPeers(List<PeerAddress> peers) {
-        this.cachedPeers.clear();
-        this.cachedPeers.addAll(peers);
+        // Shuffle to randomize peer selection and limit to PEERS_REQUEST_AMOUNT
+        // This ensures we don't always return the same peers
+        List<PeerAddress> shuffledPeers = new ArrayList<>(peers);
+        Collections.shuffle(shuffledPeers);
 
-        log.debug("Updated cached peers: {} peers available", this.cachedPeers.size());
+        List<PeerAddress> limitedPeers = shuffledPeers.stream()
+            .limit(PEERS_REQUEST_AMOUNT)
+            .toList();
+
+        this.cachedPeers.clear();
+        this.cachedPeers.addAll(limitedPeers);
+
+        log.debug("Updated cached peers: {} peers available (from {} discovered)",
+            this.cachedPeers.size(), peers.size());
     }
 
     public List<PeerAddress> discoverPeers() {
