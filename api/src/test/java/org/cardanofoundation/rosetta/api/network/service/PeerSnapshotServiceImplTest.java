@@ -36,7 +36,8 @@ class PeerSnapshotServiceImplTest {
       // then
       assertNotNull(peers);
       assertThat(peers).isNotEmpty();
-      assertThat(peers.size()).isGreaterThan(100); // Mainnet has many big ledger pools
+      assertThat(peers.size()).isLessThanOrEqualTo(25); // Limited to MAX_PEERS (25)
+      assertThat(peers.size()).isEqualTo(25); // Should have exactly 25 peers if snapshot has enough
     }
 
     @Test
@@ -56,11 +57,18 @@ class PeerSnapshotServiceImplTest {
           })
           .toList();
 
+      // Due to randomization, we can't guarantee specific domains are present
+      // Just verify that domain peers exist and have correct format
       assertThat(domainPeers).isNotEmpty();
 
-      // Verify at least one known domain relay
-      assertThat(domainPeers)
-          .anyMatch(peer -> peer.getPeerId().contains("cardano.figment.io"));
+      domainPeers.forEach(peer -> {
+        // Domain peers should have format address:port
+        assertThat(peer.getPeerId()).contains(":");
+
+        // Metadata should indicate domain type
+        Map<String, Object> metadata = (Map<String, Object>) peer.getMetadata();
+        assertThat(metadata.get("type")).isEqualTo("domain");
+      });
     }
 
     @Test
@@ -182,13 +190,19 @@ class PeerSnapshotServiceImplTest {
       List<Peer> peers = peerSnapshotService.loadPeersFromSnapshot(peerSnapshotFile, baseDirectory);
 
       // then
-      // Nordic pool has multiple relays (Relay1-6.NordicPool.org)
-      List<Peer> nordicPoolRelays = peers.stream()
-          .filter(peer -> peer.getPeerId().contains("NordicPool.org"))
-          .toList();
+      // Due to randomization, we can't guarantee specific pools are in the selection
+      // Verify we have peers limited to MAX_PEERS
+      assertThat(peers).hasSizeLessThanOrEqualTo(25);
+      assertThat(peers).isNotEmpty();
 
-      assertThat(nordicPoolRelays).isNotEmpty();
-      assertThat(nordicPoolRelays.size()).isGreaterThan(1);
+      // Verify all peers have valid format (address:port)
+      peers.forEach(peer -> {
+        assertThat(peer.getPeerId()).contains(":");
+
+        // All peers should have metadata with type
+        Map<String, Object> metadata = (Map<String, Object>) peer.getMetadata();
+        assertThat(metadata).containsKey("type");
+      });
     }
 
     @Test
@@ -216,15 +230,20 @@ class PeerSnapshotServiceImplTest {
       List<Peer> peers = peerSnapshotService.loadPeersFromSnapshot(peerSnapshotFile, baseDirectory);
 
       // then
-      List<String> peerIds = peers.stream()
-          .map(Peer::getPeerId)
-          .toList();
+      // Due to randomization, we can't guarantee specific relays are present
+      // Instead verify that all peers have valid format and metadata
+      assertThat(peers).isNotEmpty();
+      assertThat(peers.size()).isEqualTo(25);
 
-      // Verify some known mainnet relays exist
-      assertThat(peerIds)
-          .anyMatch(id -> id.contains("cardano.figment.io"))
-          .anyMatch(id -> id.contains("NordicPool.org"))
-          .anyMatch(id -> id.contains("cardanosuisse.com"));
+      peers.forEach(peer -> {
+        // All peers should have a peer ID with port
+        assertThat(peer.getPeerId()).contains(":");
+
+        // All peers should have metadata with type
+        Map<String, Object> metadata = (Map<String, Object>) peer.getMetadata();
+        assertThat(metadata).containsKey("type");
+        assertThat(metadata.get("type")).isIn("domain", "IPv4", "IPv6");
+      });
     }
 
     @Test
@@ -237,9 +256,9 @@ class PeerSnapshotServiceImplTest {
       List<Peer> peers = peerSnapshotService.loadPeersFromSnapshot(peerSnapshotFile, baseDirectory);
 
       // then
-      // Mainnet snapshot has many pools with multiple relays each
-      // Total should be significantly higher than the number of pools
-      assertThat(peers.size()).isGreaterThan(200);
+      // Peers are now limited to MAX_PEERS (25) and randomized
+      assertThat(peers.size()).isLessThanOrEqualTo(25);
+      assertThat(peers.size()).isEqualTo(25); // Should have exactly 25 peers
     }
 
     @Test
@@ -289,6 +308,32 @@ class PeerSnapshotServiceImplTest {
       // Common Cardano relay ports
       assertThat(ports)
           .contains("3001", "6000");
+    }
+
+    @Test
+    void shouldRandomizePeerSelection() {
+      // given
+      String peerSnapshotFile = "peer-snapshot.json";
+      String baseDirectory = "../config/node/mainnet";
+
+      // when - load peers multiple times
+      List<Peer> firstLoad = peerSnapshotService.loadPeersFromSnapshot(peerSnapshotFile, baseDirectory);
+      List<Peer> secondLoad = peerSnapshotService.loadPeersFromSnapshot(peerSnapshotFile, baseDirectory);
+
+      // then - both should have 25 peers
+      assertThat(firstLoad.size()).isEqualTo(25);
+      assertThat(secondLoad.size()).isEqualTo(25);
+
+      // And they should be different due to randomization (very high probability)
+      // We check if at least 5 peers are different in order
+      long differentPeers = 0;
+      for (int i = 0; i < Math.min(firstLoad.size(), secondLoad.size()); i++) {
+        if (!firstLoad.get(i).getPeerId().equals(secondLoad.get(i).getPeerId())) {
+          differentPeers++;
+        }
+      }
+
+      assertThat(differentPeers).isGreaterThan(5);
     }
   }
 }
