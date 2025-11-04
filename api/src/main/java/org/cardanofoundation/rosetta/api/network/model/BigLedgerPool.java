@@ -1,6 +1,5 @@
 package org.cardanofoundation.rosetta.api.network.model;
 
-
 import java.util.List;
 
 import lombok.AllArgsConstructor;
@@ -16,16 +15,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @AllArgsConstructor
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class TopologyConfig {
-  @JsonProperty("Producers")
-  private List<Producer> producers;
+public class BigLedgerPool {
+  @JsonProperty("accumulatedStake")
+  private Double accumulatedStake;
 
-  @JsonProperty("publicRoots")
-  private List<PublicRoot> publicRoots;
+  @JsonProperty("relativeStake")
+  private Double relativeStake;
 
-  @JsonProperty("bootstrapPeers")
-  private List<BootstrapPeer> bootstrapPeers;
-
-  @JsonProperty("peerSnapshotFile")
-  private String peerSnapshotFile;
+  @JsonProperty("relays")
+  private List<Relay> relays;
 }

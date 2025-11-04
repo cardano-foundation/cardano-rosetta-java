@@ -659,42 +659,35 @@ class TestCurrencyFiltering:
     @allure.story("Currency Filtering")
     @pytest.mark.pruning_compatible
     def test_native_asset_filtering_by_ascii_symbol(self, client, network, network_data, is_pruned_instance):
-        """Currency filter works with ASCII symbols (backwards compat in v1.3.3)."""
+        """Currency filter with ASCII symbols should return error (negative test for v1.4.1+)."""
         asset = network_data["assets"][0]
-        hex_symbol = asset["symbol"].encode().hex().lower()  # Lowercase hex
 
-        # Search by ASCII symbol (backwards compat)
+        # Search by ASCII symbol (should return error in v1.4.1+)
         response = client.search_transactions(
             network=network,
             currency={"symbol": asset["symbol"], "decimals": asset["decimals"]},
         )
-        assert response.status_code == 200
 
-        # Verify returns transactions
-        txs = response.json()["transactions"]
-        assert len(txs) > 0, "Currency filter should return transactions"
+        # API should return error for non-hex-encoded symbols
+        assert response.status_code == 500, (
+            f"Expected error status code when using ASCII symbol '{asset['symbol']}'"
+        )
 
-        # Verify transactions contain the asset (in metadata.tokenBundle)
-        for tx in txs:
-            found_asset = False
-            for op in tx["transaction"]["operations"]:
-                # Check metadata.tokenBundle for native assets
-                if "metadata" in op and "tokenBundle" in op["metadata"]:
-                    for bundle in op["metadata"]["tokenBundle"]:
-                        for token in bundle.get("tokens", []):
-                            if token["currency"]["symbol"].lower() == hex_symbol:
-                                found_asset = True
-                                break
-
-            assert found_asset, (
-                f"Transaction must contain native asset with hex symbol {hex_symbol}"
-            )
+        error_data = response.json()
+        assert error_data["code"] == 5059, "Expected error code 5059 for non-hex symbol"
+        assert "hex-encoded" in error_data["message"].lower(), (
+            "Error message should mention hex encoding requirement"
+        )
+        assert asset["symbol"] in error_data.get("details", {}).get("message", ""), (
+            f"Error details should mention the invalid symbol '{asset['symbol']}'"
+        )
 
     @allure.feature("Search Transactions")
     @allure.story("Currency Filtering")
-    @pytest.mark.skip(
-        reason="Currency filter + limit parameter causes timeout (#615)"
-    )
+    # TODO: investigate and update the ticket; seems to be working now, although response time is ~2min
+    # @pytest.mark.skip(
+    #     reason="Currency filter + limit parameter causes timeout (#615)"
+    # )
     def test_currency_filter_with_limit_parameter(self, client, network, network_data):
         """Currency filter with explicit limit should not cause timeout."""
         asset = network_data["assets"][0]
@@ -702,27 +695,39 @@ class TestCurrencyFiltering:
         # This combination causes 600s+ timeout in v1.3.3
         response = client.search_transactions(
             network=network,
-            currency={"symbol": asset["symbol"], "decimals": asset["decimals"]},
+            currency={"symbol": asset["symbol_hex"], "decimals": asset["decimals"]},
             limit=1,
         )
         assert response.status_code == 200
 
         txs = response.json()["transactions"]
-        assert len(txs) <= 1, "Should respect limit parameter"
+        assert len(txs) == 1, "Should respect limit parameter"
+
+        # Verify the returned transaction contains the filtered asset
+        tx = txs[0]
+        currencies_in_tx = []
+        for op in tx["transaction"]["operations"]:
+            if "metadata" in op and "tokenBundle" in op["metadata"]:
+                for bundle in op["metadata"]["tokenBundle"]:
+                    for token in bundle.get("tokens", []):
+                        currencies_in_tx.append(token["currency"]["symbol"].lower())
+
+        assert asset["symbol_hex"].lower() in currencies_in_tx, (
+            f"Transaction must contain filtered asset {asset['symbol_hex']}. "
+            f"Found currencies: {currencies_in_tx}"
+        )
 
     @allure.feature("Search Transactions")
     @allure.story("Currency Filtering")
-    @pytest.mark.skip(
-        reason="Hex symbol search not working until v1.4.x (#610)"
-    )
-    def test_currency_filter_with_hex_encoded_symbol(self, client, network, network_data):
-        """Currency filter should accept hex-encoded symbols (canonical format in v1.4.x+)."""
+    @pytest.mark.pruning_compatible
+    def test_currency_filter_with_hex_encoded_symbol(self, client, network, network_data, is_pruned_instance):
+        """Currency filter accepts hex-encoded symbols (canonical format in v1.4.x+, issue #610 fixed)."""
         asset = network_data["assets"][0]
 
-        # Convert ASCII symbol to hex (canonical format)
-        hex_symbol = asset["symbol"].encode().hex().upper()  # "tTEURO" → "74544555524F"
+        # Use hex-encoded symbol from test data (canonical format)
+        hex_symbol = asset["symbol_hex"]  # e.g., "74544555524f"
 
-        # Search by hex-encoded symbol (will work in v1.4.x when #610 is fixed)
+        # Search by hex-encoded symbol (supported in v1.4.x+ after #610 fix)
         response = client.search_transactions(
             network=network,
             currency={"symbol": hex_symbol, "decimals": asset["decimals"]},
@@ -732,49 +737,59 @@ class TestCurrencyFiltering:
         txs = response.json()["transactions"]
         assert len(txs) > 0, "Hex symbol search should return transactions"
 
-        # Verify transactions contain the asset
+        # Verify ALL transactions contain the filtered asset (currency filter was applied)
         for tx in txs:
-            currencies = [
-                op["amount"]["currency"]["symbol"]
-                for op in tx.get("operations", [])
-                if "amount" in op and "currency" in op["amount"]
-            ]
-            # In v1.4.x+, API will return hex symbols
-            assert hex_symbol in currencies, \
-                "Currency filter with hex symbol should return matching transactions"
+            # Collect all currency symbols from tokenBundle across all operations
+            currencies_in_tx = []
+            for op in tx["transaction"]["operations"]:
+                # Native assets are always in tokenBundle (they sit in UTXOs with ADA)
+                if "metadata" in op and "tokenBundle" in op["metadata"]:
+                    for bundle in op["metadata"]["tokenBundle"]:
+                        for token in bundle.get("tokens", []):
+                            currencies_in_tx.append(token["currency"]["symbol"].lower())
+
+            # Assert filtered currency is in this transaction
+            assert hex_symbol.lower() in currencies_in_tx, (
+                f"Transaction must contain native asset with hex symbol {hex_symbol} in tokenBundle. "
+                f"Found currencies: {currencies_in_tx}"
+            )
 
     @allure.feature("Search Transactions")
     @allure.story("Currency Filtering")
     @pytest.mark.pruning_compatible
     def test_native_asset_filtering_with_policy_id(self, client, network, network_data, is_pruned_instance):
-        """Test currency filtering with metadata.policyId."""
+        """Test currency filtering with hex-encoded symbol and metadata.policyId."""
         asset = network_data["assets"][0]
 
-        # Search by asset with policyId in metadata
+        # Search by hex-encoded asset symbol with policyId in metadata
         response = client.search_transactions(
             network=network,
             currency={
-                "symbol": asset["symbol"],
+                "symbol": asset["symbol_hex"],
                 "decimals": asset["decimals"],
                 "metadata": {"policyId": asset["policy_id"]}
             },
         )
         assert response.status_code == 200
 
-        # Verify all returned transactions contain this specific asset with policyId
+        # Verify ALL transactions contain the filtered asset with matching policyId and symbol
         txs = response.json()["transactions"]
         assert len(txs) > 0, "Currency filter with policyId should return transactions"
 
         for tx in txs:
-            # Check metadata.tokenBundle for matching policyId
-            found_asset = False
+            # Collect all (policyId, symbol) pairs from tokenBundle across all operations
+            assets_in_tx = []
             for op in tx["transaction"]["operations"]:
                 if "metadata" in op and "tokenBundle" in op["metadata"]:
                     for bundle in op["metadata"]["tokenBundle"]:
-                        if bundle.get("policyId") == asset["policy_id"]:
-                            found_asset = True
-                            break
+                        policy_id = bundle.get("policyId")
+                        for token in bundle.get("tokens", []):
+                            symbol = token["currency"]["symbol"].lower()
+                            assets_in_tx.append((policy_id, symbol))
 
-            assert found_asset, (
-                f"Transaction must contain asset with policyId {asset['policy_id']}"
+            # Assert filtered asset (policyId + symbol) is in this transaction
+            expected_asset = (asset["policy_id"], asset["symbol_hex"].lower())
+            assert expected_asset in assets_in_tx, (
+                f"Transaction must contain asset with policyId {asset['policy_id']} "
+                f"and symbol {asset['symbol_hex']}. Found assets: {assets_in_tx}"
             )

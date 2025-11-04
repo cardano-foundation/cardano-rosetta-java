@@ -1,10 +1,7 @@
 """Peer discovery TTL validation (v1.4.0)."""
-import os
+import time
 import pytest
 import allure
-from pathlib import Path
-
-import yaml
 
 
 @allure.feature("Peer Discovery")
@@ -12,43 +9,30 @@ import yaml
 class TestPeerDiscovery:
     """Validate dynamic peer discovery with TTL."""
 
-    @pytest.mark.nightly
+    @pytest.mark.weekly
     @pytest.mark.requires_peer_discovery
     @pytest.mark.slow
-    @pytest.mark.skip(reason="Peer discovery takes too long to populate dynamic peers (#619)")
-    def test_peer_list_contains_dynamic_entries(self, client, network, has_peer_discovery):
-        """Verify peer discovery returns peers beyond the static bootstrap list."""
+    @pytest.mark.skip(reason="Peer discovery refresh takes 65+ minutes - reserved for weekly tests (#619)")
+    def test_peer_list_changes_over_time(self, client, network, has_peer_discovery):
+        """Verify peer discovery refreshes and peers change over time (60 min refresh cycle)."""
         if not has_peer_discovery:
             pytest.skip("Peer discovery not enabled")
 
-        repo_root = Path(__file__).resolve().parents[2]
-        topology_file = repo_root / "config" / "node" / network / "topology.json"
-        assert topology_file.exists(), f"Bootstrap topology file not found: {topology_file}"
+        # Get initial peer list
+        peers_t0 = client.network_status(network=network).json().get("peers", [])
+        assert peers_t0, "Initial peer list should not be empty"
 
-        bootstrap_hosts = set()
-        try:
-            topology = yaml.safe_load(topology_file.read_text(encoding="utf-8"))
-            for peer in topology.get("bootstrapPeers", []):
-                host = peer.get("address")
-                if host:
-                    bootstrap_hosts.add(host)
-        except Exception as exc:
-            pytest.fail(f"Unable to parse bootstrap topology {topology_file}: {exc}")
-        assert bootstrap_hosts, f"Bootstrap topology {topology_file} does not define any bootstrap peers"
+        # Wait for peer discovery refresh cycle (60 min + 5 min buffer)
+        wait_minutes = 65
+        print(f"Waiting {wait_minutes} minutes for peer discovery refresh...")
+        time.sleep(wait_minutes * 60)
 
-        peers = client.network_status(network=network).json().get("peers", [])
-        peer_hosts = set()
-        for peer in peers:
-            peer_id = peer.get("peer_id", "")
-            if ":" in peer_id:
-                host = peer_id.split(":", 1)[0]
-                if host:
-                    peer_hosts.add(host)
+        # Get peer list after refresh
+        peers_t1 = client.network_status(network=network).json().get("peers", [])
+        assert peers_t1, "Peer list after refresh should not be empty"
 
-        assert peer_hosts, "Peer discovery should return peers with peer_id host values"
-
-        dynamic_hosts = peer_hosts - bootstrap_hosts
-        assert dynamic_hosts, (
-            "Peer discovery did not return any dynamic peers beyond bootstrap list. "
-            f"Bootstrap hosts: {sorted(bootstrap_hosts)}; Reported peers: {sorted(peer_hosts)}"
+        # Verify peers changed (dynamic discovery is working)
+        assert peers_t0 != peers_t1, (
+            f"Peers should change after {wait_minutes} minutes (discovery refresh cycle). "
+            f"T0 peers: {len(peers_t0)}, T1 peers: {len(peers_t1)}"
         )

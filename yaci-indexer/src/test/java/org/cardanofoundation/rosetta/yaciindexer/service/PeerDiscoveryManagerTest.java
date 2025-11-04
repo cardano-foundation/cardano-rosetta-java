@@ -62,7 +62,8 @@ class PeerDiscoveryManagerTest {
             // Then
             List<PeerAddress> cachedPeers = peerDiscoveryManager.getCachedPeers();
             assertThat(cachedPeers).hasSize(3);
-            assertThat(cachedPeers).containsExactlyElementsOf(newPeers);
+            // Peers are shuffled, so we can't check for exact order
+            assertThat(cachedPeers).containsExactlyInAnyOrderElementsOf(newPeers);
         }
 
         @Test
@@ -85,7 +86,8 @@ class PeerDiscoveryManagerTest {
             // Then
             List<PeerAddress> cachedPeers = peerDiscoveryManager.getCachedPeers();
             assertThat(cachedPeers).hasSize(2);
-            assertThat(cachedPeers).containsExactlyElementsOf(newPeers);
+            // Peers are shuffled, so we can't check for exact order
+            assertThat(cachedPeers).containsExactlyInAnyOrderElementsOf(newPeers);
             assertThat(cachedPeers).doesNotContainAnyElementsOf(initialPeers);
         }
 
