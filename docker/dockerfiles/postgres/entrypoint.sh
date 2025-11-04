@@ -125,6 +125,12 @@ create_database_and_user() {
         sudo -u postgres "$PG_BIN/psql" -U postgres -p "$DB_PORT" -c "GRANT ALL PRIVILEGES ON DATABASE \"$DB_NAME\" to \"$DB_USER\";" > /dev/null
     fi
 
+    # Grant schema privileges (required for PostgreSQL 15+)
+    echo "Granting schema privileges..."
+    sudo -u postgres "$PG_BIN/psql" -U postgres -p "$DB_PORT" -d "$DB_NAME" -c "GRANT ALL ON SCHEMA public TO \"$DB_USER\";" > /dev/null
+    sudo -u postgres "$PG_BIN/psql" -U postgres -p "$DB_PORT" -d "$DB_NAME" -c "GRANT ALL ON ALL TABLES IN SCHEMA public TO \"$DB_USER\";" > /dev/null
+    sudo -u postgres "$PG_BIN/psql" -U postgres -p "$DB_PORT" -d "$DB_NAME" -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO \"$DB_USER\";" > /dev/null
+
     echo "User configured"
 }
 
