@@ -2,6 +2,7 @@ package org.cardanofoundation.rosetta.api.block.model.entity;
 
 import java.math.BigInteger;
 import java.util.List;
+import jakarta.annotation.Nullable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ConstraintMode;
 import jakarta.persistence.Entity;
@@ -49,6 +50,10 @@ public class TxnEntity {
 
   @Column(name = "fee")
   private BigInteger fee;
+
+  @Column(name = "tx_index")
+  @Nullable
+  private Integer txIndex;
 
   @OneToMany(mappedBy = "txHash")
   private List<TxScriptEntity> script;
