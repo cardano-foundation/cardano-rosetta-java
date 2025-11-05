@@ -18,56 +18,56 @@ public class TransactionSizeRecord extends UpdatableRecordImpl<TransactionSizeRe
     private static final long serialVersionUID = 1L;
 
     /**
-     * Setter for <code>preprod.transaction_size.tx_hash</code>.
+     * Setter for <code>public.transaction_size.tx_hash</code>.
      */
     public void setTxHash(String value) {
         set(0, value);
     }
 
     /**
-     * Getter for <code>preprod.transaction_size.tx_hash</code>.
+     * Getter for <code>public.transaction_size.tx_hash</code>.
      */
     public String getTxHash() {
         return (String) get(0);
     }
 
     /**
-     * Setter for <code>preprod.transaction_size.block_number</code>.
+     * Setter for <code>public.transaction_size.block_number</code>.
      */
     public void setBlockNumber(Long value) {
         set(1, value);
     }
 
     /**
-     * Getter for <code>preprod.transaction_size.block_number</code>.
+     * Getter for <code>public.transaction_size.block_number</code>.
      */
     public Long getBlockNumber() {
         return (Long) get(1);
     }
 
     /**
-     * Setter for <code>preprod.transaction_size.size</code>.
+     * Setter for <code>public.transaction_size.size</code>.
      */
     public void setSize(Integer value) {
         set(2, value);
     }
 
     /**
-     * Getter for <code>preprod.transaction_size.size</code>.
+     * Getter for <code>public.transaction_size.size</code>.
      */
     public Integer getSize() {
         return (Integer) get(2);
     }
 
     /**
-     * Setter for <code>preprod.transaction_size.script_size</code>.
+     * Setter for <code>public.transaction_size.script_size</code>.
      */
     public void setScriptSize(Integer value) {
         set(3, value);
     }
 
     /**
-     * Getter for <code>preprod.transaction_size.script_size</code>.
+     * Getter for <code>public.transaction_size.script_size</code>.
      */
     public Integer getScriptSize() {
         return (Integer) get(3);

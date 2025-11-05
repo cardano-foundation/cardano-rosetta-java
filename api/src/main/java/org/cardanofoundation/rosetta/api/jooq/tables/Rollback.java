@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 import java.util.Collection;
 
 import org.cardanofoundation.rosetta.api.jooq.Keys;
-import org.cardanofoundation.rosetta.api.jooq.Preprod;
+import org.cardanofoundation.rosetta.api.jooq.Public;
 import org.cardanofoundation.rosetta.api.jooq.tables.records.RollbackRecord;
 import org.jooq.Condition;
 import org.jooq.Field;
@@ -38,7 +38,7 @@ public class Rollback extends TableImpl<RollbackRecord> {
     private static final long serialVersionUID = 1L;
 
     /**
-     * The reference instance of <code>preprod.rollback</code>
+     * The reference instance of <code>public.rollback</code>
      */
     public static final Rollback ROLLBACK = new Rollback();
 
@@ -51,42 +51,42 @@ public class Rollback extends TableImpl<RollbackRecord> {
     }
 
     /**
-     * The column <code>preprod.rollback.id</code>.
+     * The column <code>public.rollback.id</code>.
      */
     public final TableField<RollbackRecord, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).identity(true), this, "");
 
     /**
-     * The column <code>preprod.rollback.rollback_to_block_hash</code>.
+     * The column <code>public.rollback.rollback_to_block_hash</code>.
      */
     public final TableField<RollbackRecord, String> ROLLBACK_TO_BLOCK_HASH = createField(DSL.name("rollback_to_block_hash"), SQLDataType.VARCHAR(64), this, "");
 
     /**
-     * The column <code>preprod.rollback.rollback_to_slot</code>.
+     * The column <code>public.rollback.rollback_to_slot</code>.
      */
     public final TableField<RollbackRecord, Long> ROLLBACK_TO_SLOT = createField(DSL.name("rollback_to_slot"), SQLDataType.BIGINT, this, "");
 
     /**
-     * The column <code>preprod.rollback.current_block_hash</code>.
+     * The column <code>public.rollback.current_block_hash</code>.
      */
     public final TableField<RollbackRecord, String> CURRENT_BLOCK_HASH = createField(DSL.name("current_block_hash"), SQLDataType.VARCHAR(64), this, "");
 
     /**
-     * The column <code>preprod.rollback.current_slot</code>.
+     * The column <code>public.rollback.current_slot</code>.
      */
     public final TableField<RollbackRecord, Long> CURRENT_SLOT = createField(DSL.name("current_slot"), SQLDataType.BIGINT, this, "");
 
     /**
-     * The column <code>preprod.rollback.current_block</code>.
+     * The column <code>public.rollback.current_block</code>.
      */
     public final TableField<RollbackRecord, Long> CURRENT_BLOCK = createField(DSL.name("current_block"), SQLDataType.BIGINT, this, "");
 
     /**
-     * The column <code>preprod.rollback.create_datetime</code>.
+     * The column <code>public.rollback.create_datetime</code>.
      */
     public final TableField<RollbackRecord, LocalDateTime> CREATE_DATETIME = createField(DSL.name("create_datetime"), SQLDataType.LOCALDATETIME(6), this, "");
 
     /**
-     * The column <code>preprod.rollback.update_datetime</code>.
+     * The column <code>public.rollback.update_datetime</code>.
      */
     public final TableField<RollbackRecord, LocalDateTime> UPDATE_DATETIME = createField(DSL.name("update_datetime"), SQLDataType.LOCALDATETIME(6), this, "");
 
@@ -99,21 +99,21 @@ public class Rollback extends TableImpl<RollbackRecord> {
     }
 
     /**
-     * Create an aliased <code>preprod.rollback</code> table reference
+     * Create an aliased <code>public.rollback</code> table reference
      */
     public Rollback(String alias) {
         this(DSL.name(alias), ROLLBACK);
     }
 
     /**
-     * Create an aliased <code>preprod.rollback</code> table reference
+     * Create an aliased <code>public.rollback</code> table reference
      */
     public Rollback(Name alias) {
         this(alias, ROLLBACK);
     }
 
     /**
-     * Create a <code>preprod.rollback</code> table reference
+     * Create a <code>public.rollback</code> table reference
      */
     public Rollback() {
         this(DSL.name("rollback"), null);
@@ -121,7 +121,7 @@ public class Rollback extends TableImpl<RollbackRecord> {
 
     @Override
     public Schema getSchema() {
-        return aliased() ? null : Preprod.PREPROD;
+        return aliased() ? null : Public.PUBLIC;
     }
 
     @Override

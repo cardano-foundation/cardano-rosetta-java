@@ -21,294 +21,294 @@ public class TransactionRecord extends UpdatableRecordImpl<TransactionRecord> {
     private static final long serialVersionUID = 1L;
 
     /**
-     * Setter for <code>preprod.transaction.tx_hash</code>.
+     * Setter for <code>public.transaction.tx_hash</code>.
      */
     public void setTxHash(String value) {
         set(0, value);
     }
 
     /**
-     * Getter for <code>preprod.transaction.tx_hash</code>.
+     * Getter for <code>public.transaction.tx_hash</code>.
      */
     public String getTxHash() {
         return (String) get(0);
     }
 
     /**
-     * Setter for <code>preprod.transaction.auxiliary_datahash</code>.
+     * Setter for <code>public.transaction.auxiliary_datahash</code>.
      */
     public void setAuxiliaryDatahash(String value) {
         set(1, value);
     }
 
     /**
-     * Getter for <code>preprod.transaction.auxiliary_datahash</code>.
+     * Getter for <code>public.transaction.auxiliary_datahash</code>.
      */
     public String getAuxiliaryDatahash() {
         return (String) get(1);
     }
 
     /**
-     * Setter for <code>preprod.transaction.block_hash</code>.
+     * Setter for <code>public.transaction.block_hash</code>.
      */
     public void setBlockHash(String value) {
         set(2, value);
     }
 
     /**
-     * Getter for <code>preprod.transaction.block_hash</code>.
+     * Getter for <code>public.transaction.block_hash</code>.
      */
     public String getBlockHash() {
         return (String) get(2);
     }
 
     /**
-     * Setter for <code>preprod.transaction.collateral_inputs</code>.
+     * Setter for <code>public.transaction.collateral_inputs</code>.
      */
     public void setCollateralInputs(JSONB value) {
         set(3, value);
     }
 
     /**
-     * Getter for <code>preprod.transaction.collateral_inputs</code>.
+     * Getter for <code>public.transaction.collateral_inputs</code>.
      */
     public JSONB getCollateralInputs() {
         return (JSONB) get(3);
     }
 
     /**
-     * Setter for <code>preprod.transaction.collateral_return</code>.
+     * Setter for <code>public.transaction.collateral_return</code>.
      */
     public void setCollateralReturn(JSONB value) {
         set(4, value);
     }
 
     /**
-     * Getter for <code>preprod.transaction.collateral_return</code>.
+     * Getter for <code>public.transaction.collateral_return</code>.
      */
     public JSONB getCollateralReturn() {
         return (JSONB) get(4);
     }
 
     /**
-     * Setter for <code>preprod.transaction.fee</code>.
+     * Setter for <code>public.transaction.fee</code>.
      */
     public void setFee(Long value) {
         set(5, value);
     }
 
     /**
-     * Getter for <code>preprod.transaction.fee</code>.
+     * Getter for <code>public.transaction.fee</code>.
      */
     public Long getFee() {
         return (Long) get(5);
     }
 
     /**
-     * Setter for <code>preprod.transaction.inputs</code>.
+     * Setter for <code>public.transaction.inputs</code>.
      */
     public void setInputs(JSONB value) {
         set(6, value);
     }
 
     /**
-     * Getter for <code>preprod.transaction.inputs</code>.
+     * Getter for <code>public.transaction.inputs</code>.
      */
     public JSONB getInputs() {
         return (JSONB) get(6);
     }
 
     /**
-     * Setter for <code>preprod.transaction.invalid</code>.
+     * Setter for <code>public.transaction.invalid</code>.
      */
     public void setInvalid(Boolean value) {
         set(7, value);
     }
 
     /**
-     * Getter for <code>preprod.transaction.invalid</code>.
+     * Getter for <code>public.transaction.invalid</code>.
      */
     public Boolean getInvalid() {
         return (Boolean) get(7);
     }
 
     /**
-     * Setter for <code>preprod.transaction.network_id</code>.
+     * Setter for <code>public.transaction.network_id</code>.
      */
     public void setNetworkId(Short value) {
         set(8, value);
     }
 
     /**
-     * Getter for <code>preprod.transaction.network_id</code>.
+     * Getter for <code>public.transaction.network_id</code>.
      */
     public Short getNetworkId() {
         return (Short) get(8);
     }
 
     /**
-     * Setter for <code>preprod.transaction.outputs</code>.
+     * Setter for <code>public.transaction.outputs</code>.
      */
     public void setOutputs(JSONB value) {
         set(9, value);
     }
 
     /**
-     * Getter for <code>preprod.transaction.outputs</code>.
+     * Getter for <code>public.transaction.outputs</code>.
      */
     public JSONB getOutputs() {
         return (JSONB) get(9);
     }
 
     /**
-     * Setter for <code>preprod.transaction.reference_inputs</code>.
+     * Setter for <code>public.transaction.reference_inputs</code>.
      */
     public void setReferenceInputs(JSONB value) {
         set(10, value);
     }
 
     /**
-     * Getter for <code>preprod.transaction.reference_inputs</code>.
+     * Getter for <code>public.transaction.reference_inputs</code>.
      */
     public JSONB getReferenceInputs() {
         return (JSONB) get(10);
     }
 
     /**
-     * Setter for <code>preprod.transaction.required_signers</code>.
+     * Setter for <code>public.transaction.required_signers</code>.
      */
     public void setRequiredSigners(JSONB value) {
         set(11, value);
     }
 
     /**
-     * Getter for <code>preprod.transaction.required_signers</code>.
+     * Getter for <code>public.transaction.required_signers</code>.
      */
     public JSONB getRequiredSigners() {
         return (JSONB) get(11);
     }
 
     /**
-     * Setter for <code>preprod.transaction.script_datahash</code>.
+     * Setter for <code>public.transaction.script_datahash</code>.
      */
     public void setScriptDatahash(String value) {
         set(12, value);
     }
 
     /**
-     * Getter for <code>preprod.transaction.script_datahash</code>.
+     * Getter for <code>public.transaction.script_datahash</code>.
      */
     public String getScriptDatahash() {
         return (String) get(12);
     }
 
     /**
-     * Setter for <code>preprod.transaction.slot</code>.
+     * Setter for <code>public.transaction.slot</code>.
      */
     public void setSlot(Long value) {
         set(13, value);
     }
 
     /**
-     * Getter for <code>preprod.transaction.slot</code>.
+     * Getter for <code>public.transaction.slot</code>.
      */
     public Long getSlot() {
         return (Long) get(13);
     }
 
     /**
-     * Setter for <code>preprod.transaction.total_collateral</code>.
+     * Setter for <code>public.transaction.total_collateral</code>.
      */
     public void setTotalCollateral(Long value) {
         set(14, value);
     }
 
     /**
-     * Getter for <code>preprod.transaction.total_collateral</code>.
+     * Getter for <code>public.transaction.total_collateral</code>.
      */
     public Long getTotalCollateral() {
         return (Long) get(14);
     }
 
     /**
-     * Setter for <code>preprod.transaction.ttl</code>.
+     * Setter for <code>public.transaction.ttl</code>.
      */
     public void setTtl(Long value) {
         set(15, value);
     }
 
     /**
-     * Getter for <code>preprod.transaction.ttl</code>.
+     * Getter for <code>public.transaction.ttl</code>.
      */
     public Long getTtl() {
         return (Long) get(15);
     }
 
     /**
-     * Setter for <code>preprod.transaction.validity_interval_start</code>.
+     * Setter for <code>public.transaction.validity_interval_start</code>.
      */
     public void setValidityIntervalStart(Long value) {
         set(16, value);
     }
 
     /**
-     * Getter for <code>preprod.transaction.validity_interval_start</code>.
+     * Getter for <code>public.transaction.validity_interval_start</code>.
      */
     public Long getValidityIntervalStart() {
         return (Long) get(16);
     }
 
     /**
-     * Setter for <code>preprod.transaction.collateral_return_json</code>.
+     * Setter for <code>public.transaction.collateral_return_json</code>.
      */
     public void setCollateralReturnJson(JSONB value) {
         set(17, value);
     }
 
     /**
-     * Getter for <code>preprod.transaction.collateral_return_json</code>.
+     * Getter for <code>public.transaction.collateral_return_json</code>.
      */
     public JSONB getCollateralReturnJson() {
         return (JSONB) get(17);
     }
 
     /**
-     * Setter for <code>preprod.transaction.block</code>.
+     * Setter for <code>public.transaction.block</code>.
      */
     public void setBlock(Long value) {
         set(18, value);
     }
 
     /**
-     * Getter for <code>preprod.transaction.block</code>.
+     * Getter for <code>public.transaction.block</code>.
      */
     public Long getBlock() {
         return (Long) get(18);
     }
 
     /**
-     * Setter for <code>preprod.transaction.block_time</code>.
+     * Setter for <code>public.transaction.block_time</code>.
      */
     public void setBlockTime(Long value) {
         set(19, value);
     }
 
     /**
-     * Getter for <code>preprod.transaction.block_time</code>.
+     * Getter for <code>public.transaction.block_time</code>.
      */
     public Long getBlockTime() {
         return (Long) get(19);
     }
 
     /**
-     * Setter for <code>preprod.transaction.update_datetime</code>.
+     * Setter for <code>public.transaction.update_datetime</code>.
      */
     public void setUpdateDatetime(LocalDateTime value) {
         set(20, value);
     }
 
     /**
-     * Getter for <code>preprod.transaction.update_datetime</code>.
+     * Getter for <code>public.transaction.update_datetime</code>.
      */
     public LocalDateTime getUpdateDatetime() {
         return (LocalDateTime) get(20);

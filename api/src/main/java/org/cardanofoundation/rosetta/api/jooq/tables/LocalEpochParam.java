@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 import java.util.Collection;
 
 import org.cardanofoundation.rosetta.api.jooq.Keys;
-import org.cardanofoundation.rosetta.api.jooq.Preprod;
+import org.cardanofoundation.rosetta.api.jooq.Public;
 import org.cardanofoundation.rosetta.api.jooq.tables.records.LocalEpochParamRecord;
 import org.jooq.Condition;
 import org.jooq.Field;
@@ -38,7 +38,7 @@ public class LocalEpochParam extends TableImpl<LocalEpochParamRecord> {
     private static final long serialVersionUID = 1L;
 
     /**
-     * The reference instance of <code>preprod.local_epoch_param</code>
+     * The reference instance of <code>public.local_epoch_param</code>
      */
     public static final LocalEpochParam LOCAL_EPOCH_PARAM = new LocalEpochParam();
 
@@ -51,17 +51,17 @@ public class LocalEpochParam extends TableImpl<LocalEpochParamRecord> {
     }
 
     /**
-     * The column <code>preprod.local_epoch_param.epoch</code>.
+     * The column <code>public.local_epoch_param.epoch</code>.
      */
     public final TableField<LocalEpochParamRecord, Integer> EPOCH = createField(DSL.name("epoch"), SQLDataType.INTEGER.nullable(false), this, "");
 
     /**
-     * The column <code>preprod.local_epoch_param.params</code>.
+     * The column <code>public.local_epoch_param.params</code>.
      */
     public final TableField<LocalEpochParamRecord, JSONB> PARAMS = createField(DSL.name("params"), SQLDataType.JSONB, this, "");
 
     /**
-     * The column <code>preprod.local_epoch_param.update_datetime</code>.
+     * The column <code>public.local_epoch_param.update_datetime</code>.
      */
     public final TableField<LocalEpochParamRecord, LocalDateTime> UPDATE_DATETIME = createField(DSL.name("update_datetime"), SQLDataType.LOCALDATETIME(6), this, "");
 
@@ -74,21 +74,21 @@ public class LocalEpochParam extends TableImpl<LocalEpochParamRecord> {
     }
 
     /**
-     * Create an aliased <code>preprod.local_epoch_param</code> table reference
+     * Create an aliased <code>public.local_epoch_param</code> table reference
      */
     public LocalEpochParam(String alias) {
         this(DSL.name(alias), LOCAL_EPOCH_PARAM);
     }
 
     /**
-     * Create an aliased <code>preprod.local_epoch_param</code> table reference
+     * Create an aliased <code>public.local_epoch_param</code> table reference
      */
     public LocalEpochParam(Name alias) {
         this(alias, LOCAL_EPOCH_PARAM);
     }
 
     /**
-     * Create a <code>preprod.local_epoch_param</code> table reference
+     * Create a <code>public.local_epoch_param</code> table reference
      */
     public LocalEpochParam() {
         this(DSL.name("local_epoch_param"), null);
@@ -96,7 +96,7 @@ public class LocalEpochParam extends TableImpl<LocalEpochParamRecord> {
 
     @Override
     public Schema getSchema() {
-        return aliased() ? null : Preprod.PREPROD;
+        return aliased() ? null : Public.PUBLIC;
     }
 
     @Override

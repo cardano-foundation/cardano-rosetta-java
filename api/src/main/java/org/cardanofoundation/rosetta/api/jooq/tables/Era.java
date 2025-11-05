@@ -7,7 +7,7 @@ package org.cardanofoundation.rosetta.api.jooq.tables;
 import java.util.Collection;
 
 import org.cardanofoundation.rosetta.api.jooq.Keys;
-import org.cardanofoundation.rosetta.api.jooq.Preprod;
+import org.cardanofoundation.rosetta.api.jooq.Public;
 import org.cardanofoundation.rosetta.api.jooq.tables.records.EraRecord;
 import org.jooq.Condition;
 import org.jooq.Field;
@@ -36,7 +36,7 @@ public class Era extends TableImpl<EraRecord> {
     private static final long serialVersionUID = 1L;
 
     /**
-     * The reference instance of <code>preprod.era</code>
+     * The reference instance of <code>public.era</code>
      */
     public static final Era ERA = new Era();
 
@@ -49,22 +49,22 @@ public class Era extends TableImpl<EraRecord> {
     }
 
     /**
-     * The column <code>preprod.era.era</code>.
+     * The column <code>public.era.era</code>.
      */
     public final TableField<EraRecord, Integer> ERA_ = createField(DSL.name("era"), SQLDataType.INTEGER.nullable(false), this, "");
 
     /**
-     * The column <code>preprod.era.start_slot</code>.
+     * The column <code>public.era.start_slot</code>.
      */
     public final TableField<EraRecord, Long> START_SLOT = createField(DSL.name("start_slot"), SQLDataType.BIGINT.nullable(false), this, "");
 
     /**
-     * The column <code>preprod.era.block</code>.
+     * The column <code>public.era.block</code>.
      */
     public final TableField<EraRecord, Long> BLOCK = createField(DSL.name("block"), SQLDataType.BIGINT.nullable(false), this, "");
 
     /**
-     * The column <code>preprod.era.block_hash</code>.
+     * The column <code>public.era.block_hash</code>.
      */
     public final TableField<EraRecord, String> BLOCK_HASH = createField(DSL.name("block_hash"), SQLDataType.VARCHAR(64).nullable(false), this, "");
 
@@ -77,21 +77,21 @@ public class Era extends TableImpl<EraRecord> {
     }
 
     /**
-     * Create an aliased <code>preprod.era</code> table reference
+     * Create an aliased <code>public.era</code> table reference
      */
     public Era(String alias) {
         this(DSL.name(alias), ERA);
     }
 
     /**
-     * Create an aliased <code>preprod.era</code> table reference
+     * Create an aliased <code>public.era</code> table reference
      */
     public Era(Name alias) {
         this(alias, ERA);
     }
 
     /**
-     * Create a <code>preprod.era</code> table reference
+     * Create a <code>public.era</code> table reference
      */
     public Era() {
         this(DSL.name("era"), null);
@@ -99,7 +99,7 @@ public class Era extends TableImpl<EraRecord> {
 
     @Override
     public Schema getSchema() {
-        return aliased() ? null : Preprod.PREPROD;
+        return aliased() ? null : Public.PUBLIC;
     }
 
     @Override

@@ -11,7 +11,7 @@ import java.util.List;
 
 import org.cardanofoundation.rosetta.api.jooq.Indexes;
 import org.cardanofoundation.rosetta.api.jooq.Keys;
-import org.cardanofoundation.rosetta.api.jooq.Preprod;
+import org.cardanofoundation.rosetta.api.jooq.Public;
 import org.cardanofoundation.rosetta.api.jooq.tables.records.AddressUtxoRecord;
 import org.jooq.Condition;
 import org.jooq.Field;
@@ -42,7 +42,7 @@ public class AddressUtxo extends TableImpl<AddressUtxoRecord> {
     private static final long serialVersionUID = 1L;
 
     /**
-     * The reference instance of <code>preprod.address_utxo</code>
+     * The reference instance of <code>public.address_utxo</code>
      */
     public static final AddressUtxo ADDRESS_UTXO = new AddressUtxo();
 
@@ -55,102 +55,102 @@ public class AddressUtxo extends TableImpl<AddressUtxoRecord> {
     }
 
     /**
-     * The column <code>preprod.address_utxo.tx_hash</code>.
+     * The column <code>public.address_utxo.tx_hash</code>.
      */
     public final TableField<AddressUtxoRecord, String> TX_HASH = createField(DSL.name("tx_hash"), SQLDataType.VARCHAR(64).nullable(false), this, "");
 
     /**
-     * The column <code>preprod.address_utxo.output_index</code>.
+     * The column <code>public.address_utxo.output_index</code>.
      */
     public final TableField<AddressUtxoRecord, Short> OUTPUT_INDEX = createField(DSL.name("output_index"), SQLDataType.SMALLINT.nullable(false), this, "");
 
     /**
-     * The column <code>preprod.address_utxo.slot</code>.
+     * The column <code>public.address_utxo.slot</code>.
      */
     public final TableField<AddressUtxoRecord, Long> SLOT = createField(DSL.name("slot"), SQLDataType.BIGINT, this, "");
 
     /**
-     * The column <code>preprod.address_utxo.block_hash</code>.
+     * The column <code>public.address_utxo.block_hash</code>.
      */
     public final TableField<AddressUtxoRecord, String> BLOCK_HASH = createField(DSL.name("block_hash"), SQLDataType.VARCHAR(64), this, "");
 
     /**
-     * The column <code>preprod.address_utxo.epoch</code>.
+     * The column <code>public.address_utxo.epoch</code>.
      */
     public final TableField<AddressUtxoRecord, Integer> EPOCH = createField(DSL.name("epoch"), SQLDataType.INTEGER, this, "");
 
     /**
-     * The column <code>preprod.address_utxo.lovelace_amount</code>.
+     * The column <code>public.address_utxo.lovelace_amount</code>.
      */
     public final TableField<AddressUtxoRecord, Long> LOVELACE_AMOUNT = createField(DSL.name("lovelace_amount"), SQLDataType.BIGINT, this, "");
 
     /**
-     * The column <code>preprod.address_utxo.amounts</code>.
+     * The column <code>public.address_utxo.amounts</code>.
      */
     public final TableField<AddressUtxoRecord, JSONB> AMOUNTS = createField(DSL.name("amounts"), SQLDataType.JSONB, this, "");
 
     /**
-     * The column <code>preprod.address_utxo.data_hash</code>.
+     * The column <code>public.address_utxo.data_hash</code>.
      */
     public final TableField<AddressUtxoRecord, String> DATA_HASH = createField(DSL.name("data_hash"), SQLDataType.VARCHAR(64), this, "");
 
     /**
-     * The column <code>preprod.address_utxo.inline_datum</code>.
+     * The column <code>public.address_utxo.inline_datum</code>.
      */
     public final TableField<AddressUtxoRecord, String> INLINE_DATUM = createField(DSL.name("inline_datum"), SQLDataType.CLOB, this, "");
 
     /**
-     * The column <code>preprod.address_utxo.owner_addr</code>.
+     * The column <code>public.address_utxo.owner_addr</code>.
      */
     public final TableField<AddressUtxoRecord, String> OWNER_ADDR = createField(DSL.name("owner_addr"), SQLDataType.VARCHAR(500), this, "");
 
     /**
-     * The column <code>preprod.address_utxo.owner_addr_full</code>.
+     * The column <code>public.address_utxo.owner_addr_full</code>.
      */
     public final TableField<AddressUtxoRecord, String> OWNER_ADDR_FULL = createField(DSL.name("owner_addr_full"), SQLDataType.CLOB, this, "");
 
     /**
-     * The column <code>preprod.address_utxo.owner_stake_addr</code>.
+     * The column <code>public.address_utxo.owner_stake_addr</code>.
      */
     public final TableField<AddressUtxoRecord, String> OWNER_STAKE_ADDR = createField(DSL.name("owner_stake_addr"), SQLDataType.VARCHAR(255), this, "");
 
     /**
-     * The column <code>preprod.address_utxo.owner_payment_credential</code>.
+     * The column <code>public.address_utxo.owner_payment_credential</code>.
      */
     public final TableField<AddressUtxoRecord, String> OWNER_PAYMENT_CREDENTIAL = createField(DSL.name("owner_payment_credential"), SQLDataType.VARCHAR(56), this, "");
 
     /**
-     * The column <code>preprod.address_utxo.owner_stake_credential</code>.
+     * The column <code>public.address_utxo.owner_stake_credential</code>.
      */
     public final TableField<AddressUtxoRecord, String> OWNER_STAKE_CREDENTIAL = createField(DSL.name("owner_stake_credential"), SQLDataType.VARCHAR(56), this, "");
 
     /**
-     * The column <code>preprod.address_utxo.script_ref</code>.
+     * The column <code>public.address_utxo.script_ref</code>.
      */
     public final TableField<AddressUtxoRecord, String> SCRIPT_REF = createField(DSL.name("script_ref"), SQLDataType.CLOB, this, "");
 
     /**
-     * The column <code>preprod.address_utxo.reference_script_hash</code>.
+     * The column <code>public.address_utxo.reference_script_hash</code>.
      */
     public final TableField<AddressUtxoRecord, String> REFERENCE_SCRIPT_HASH = createField(DSL.name("reference_script_hash"), SQLDataType.VARCHAR(56), this, "");
 
     /**
-     * The column <code>preprod.address_utxo.is_collateral_return</code>.
+     * The column <code>public.address_utxo.is_collateral_return</code>.
      */
     public final TableField<AddressUtxoRecord, Boolean> IS_COLLATERAL_RETURN = createField(DSL.name("is_collateral_return"), SQLDataType.BOOLEAN, this, "");
 
     /**
-     * The column <code>preprod.address_utxo.block</code>.
+     * The column <code>public.address_utxo.block</code>.
      */
     public final TableField<AddressUtxoRecord, Long> BLOCK = createField(DSL.name("block"), SQLDataType.BIGINT, this, "");
 
     /**
-     * The column <code>preprod.address_utxo.block_time</code>.
+     * The column <code>public.address_utxo.block_time</code>.
      */
     public final TableField<AddressUtxoRecord, Long> BLOCK_TIME = createField(DSL.name("block_time"), SQLDataType.BIGINT, this, "");
 
     /**
-     * The column <code>preprod.address_utxo.update_datetime</code>.
+     * The column <code>public.address_utxo.update_datetime</code>.
      */
     public final TableField<AddressUtxoRecord, LocalDateTime> UPDATE_DATETIME = createField(DSL.name("update_datetime"), SQLDataType.LOCALDATETIME(6), this, "");
 
@@ -163,21 +163,21 @@ public class AddressUtxo extends TableImpl<AddressUtxoRecord> {
     }
 
     /**
-     * Create an aliased <code>preprod.address_utxo</code> table reference
+     * Create an aliased <code>public.address_utxo</code> table reference
      */
     public AddressUtxo(String alias) {
         this(DSL.name(alias), ADDRESS_UTXO);
     }
 
     /**
-     * Create an aliased <code>preprod.address_utxo</code> table reference
+     * Create an aliased <code>public.address_utxo</code> table reference
      */
     public AddressUtxo(Name alias) {
         this(alias, ADDRESS_UTXO);
     }
 
     /**
-     * Create a <code>preprod.address_utxo</code> table reference
+     * Create a <code>public.address_utxo</code> table reference
      */
     public AddressUtxo() {
         this(DSL.name("address_utxo"), null);
@@ -185,7 +185,7 @@ public class AddressUtxo extends TableImpl<AddressUtxoRecord> {
 
     @Override
     public Schema getSchema() {
-        return aliased() ? null : Preprod.PREPROD;
+        return aliased() ? null : Public.PUBLIC;
     }
 
     @Override

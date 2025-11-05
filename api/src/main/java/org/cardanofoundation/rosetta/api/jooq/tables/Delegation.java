@@ -11,7 +11,7 @@ import java.util.List;
 
 import org.cardanofoundation.rosetta.api.jooq.Indexes;
 import org.cardanofoundation.rosetta.api.jooq.Keys;
-import org.cardanofoundation.rosetta.api.jooq.Preprod;
+import org.cardanofoundation.rosetta.api.jooq.Public;
 import org.cardanofoundation.rosetta.api.jooq.tables.records.DelegationRecord;
 import org.jooq.Condition;
 import org.jooq.Field;
@@ -41,7 +41,7 @@ public class Delegation extends TableImpl<DelegationRecord> {
     private static final long serialVersionUID = 1L;
 
     /**
-     * The reference instance of <code>preprod.delegation</code>
+     * The reference instance of <code>public.delegation</code>
      */
     public static final Delegation DELEGATION = new Delegation();
 
@@ -54,57 +54,57 @@ public class Delegation extends TableImpl<DelegationRecord> {
     }
 
     /**
-     * The column <code>preprod.delegation.tx_hash</code>.
+     * The column <code>public.delegation.tx_hash</code>.
      */
     public final TableField<DelegationRecord, String> TX_HASH = createField(DSL.name("tx_hash"), SQLDataType.VARCHAR(64).nullable(false), this, "");
 
     /**
-     * The column <code>preprod.delegation.cert_index</code>.
+     * The column <code>public.delegation.cert_index</code>.
      */
     public final TableField<DelegationRecord, Integer> CERT_INDEX = createField(DSL.name("cert_index"), SQLDataType.INTEGER.nullable(false), this, "");
 
     /**
-     * The column <code>preprod.delegation.credential</code>.
+     * The column <code>public.delegation.credential</code>.
      */
     public final TableField<DelegationRecord, String> CREDENTIAL = createField(DSL.name("credential"), SQLDataType.VARCHAR(56).nullable(false), this, "");
 
     /**
-     * The column <code>preprod.delegation.pool_id</code>.
+     * The column <code>public.delegation.pool_id</code>.
      */
     public final TableField<DelegationRecord, String> POOL_ID = createField(DSL.name("pool_id"), SQLDataType.VARCHAR(56), this, "");
 
     /**
-     * The column <code>preprod.delegation.address</code>.
+     * The column <code>public.delegation.address</code>.
      */
     public final TableField<DelegationRecord, String> ADDRESS = createField(DSL.name("address"), SQLDataType.VARCHAR(255), this, "");
 
     /**
-     * The column <code>preprod.delegation.epoch</code>.
+     * The column <code>public.delegation.epoch</code>.
      */
     public final TableField<DelegationRecord, Integer> EPOCH = createField(DSL.name("epoch"), SQLDataType.INTEGER, this, "");
 
     /**
-     * The column <code>preprod.delegation.slot</code>.
+     * The column <code>public.delegation.slot</code>.
      */
     public final TableField<DelegationRecord, Long> SLOT = createField(DSL.name("slot"), SQLDataType.BIGINT, this, "");
 
     /**
-     * The column <code>preprod.delegation.block_hash</code>.
+     * The column <code>public.delegation.block_hash</code>.
      */
     public final TableField<DelegationRecord, String> BLOCK_HASH = createField(DSL.name("block_hash"), SQLDataType.VARCHAR(64), this, "");
 
     /**
-     * The column <code>preprod.delegation.block</code>.
+     * The column <code>public.delegation.block</code>.
      */
     public final TableField<DelegationRecord, Long> BLOCK = createField(DSL.name("block"), SQLDataType.BIGINT, this, "");
 
     /**
-     * The column <code>preprod.delegation.block_time</code>.
+     * The column <code>public.delegation.block_time</code>.
      */
     public final TableField<DelegationRecord, Long> BLOCK_TIME = createField(DSL.name("block_time"), SQLDataType.BIGINT, this, "");
 
     /**
-     * The column <code>preprod.delegation.update_datetime</code>.
+     * The column <code>public.delegation.update_datetime</code>.
      */
     public final TableField<DelegationRecord, LocalDateTime> UPDATE_DATETIME = createField(DSL.name("update_datetime"), SQLDataType.LOCALDATETIME(6), this, "");
 
@@ -117,21 +117,21 @@ public class Delegation extends TableImpl<DelegationRecord> {
     }
 
     /**
-     * Create an aliased <code>preprod.delegation</code> table reference
+     * Create an aliased <code>public.delegation</code> table reference
      */
     public Delegation(String alias) {
         this(DSL.name(alias), DELEGATION);
     }
 
     /**
-     * Create an aliased <code>preprod.delegation</code> table reference
+     * Create an aliased <code>public.delegation</code> table reference
      */
     public Delegation(Name alias) {
         this(alias, DELEGATION);
     }
 
     /**
-     * Create a <code>preprod.delegation</code> table reference
+     * Create a <code>public.delegation</code> table reference
      */
     public Delegation() {
         this(DSL.name("delegation"), null);
@@ -139,7 +139,7 @@ public class Delegation extends TableImpl<DelegationRecord> {
 
     @Override
     public Schema getSchema() {
-        return aliased() ? null : Preprod.PREPROD;
+        return aliased() ? null : Public.PUBLIC;
     }
 
     @Override
