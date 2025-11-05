@@ -36,7 +36,7 @@ public class TransactionSize extends TableImpl<TransactionSizeRecord> {
     private static final long serialVersionUID = 1L;
 
     /**
-     * The reference instance of <code>preprod.transaction_size</code>
+     * The reference instance of <code>public.transaction_size</code>
      */
     public static final TransactionSize TRANSACTION_SIZE = new TransactionSize();
 
@@ -49,22 +49,22 @@ public class TransactionSize extends TableImpl<TransactionSizeRecord> {
     }
 
     /**
-     * The column <code>preprod.transaction_size.tx_hash</code>.
+     * The column <code>public.transaction_size.tx_hash</code>.
      */
     public final TableField<TransactionSizeRecord, String> TX_HASH = createField(DSL.name("tx_hash"), SQLDataType.CLOB.nullable(false), this, "");
 
     /**
-     * The column <code>preprod.transaction_size.block_number</code>.
+     * The column <code>public.transaction_size.block_number</code>.
      */
     public final TableField<TransactionSizeRecord, Long> BLOCK_NUMBER = createField(DSL.name("block_number"), SQLDataType.BIGINT.nullable(false), this, "");
 
     /**
-     * The column <code>preprod.transaction_size.size</code>.
+     * The column <code>public.transaction_size.size</code>.
      */
     public final TableField<TransactionSizeRecord, Integer> SIZE = createField(DSL.name("size"), SQLDataType.INTEGER.nullable(false), this, "");
 
     /**
-     * The column <code>preprod.transaction_size.script_size</code>.
+     * The column <code>public.transaction_size.script_size</code>.
      */
     public final TableField<TransactionSizeRecord, Integer> SCRIPT_SIZE = createField(DSL.name("script_size"), SQLDataType.INTEGER.nullable(false), this, "");
 
@@ -77,21 +77,21 @@ public class TransactionSize extends TableImpl<TransactionSizeRecord> {
     }
 
     /**
-     * Create an aliased <code>preprod.transaction_size</code> table reference
+     * Create an aliased <code>public.transaction_size</code> table reference
      */
     public TransactionSize(String alias) {
         this(DSL.name(alias), TRANSACTION_SIZE);
     }
 
     /**
-     * Create an aliased <code>preprod.transaction_size</code> table reference
+     * Create an aliased <code>public.transaction_size</code> table reference
      */
     public TransactionSize(Name alias) {
         this(alias, TRANSACTION_SIZE);
     }
 
     /**
-     * Create a <code>preprod.transaction_size</code> table reference
+     * Create a <code>public.transaction_size</code> table reference
      */
     public TransactionSize() {
         this(DSL.name("transaction_size"), null);

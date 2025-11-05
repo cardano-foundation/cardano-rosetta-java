@@ -44,7 +44,7 @@ public class PoolRegistration extends TableImpl<PoolRegistrationRecord> {
     private static final long serialVersionUID = 1L;
 
     /**
-     * The reference instance of <code>preprod.pool_registration</code>
+     * The reference instance of <code>public.pool_registration</code>
      */
     public static final PoolRegistration POOL_REGISTRATION = new PoolRegistration();
 
@@ -57,92 +57,92 @@ public class PoolRegistration extends TableImpl<PoolRegistrationRecord> {
     }
 
     /**
-     * The column <code>preprod.pool_registration.tx_hash</code>.
+     * The column <code>public.pool_registration.tx_hash</code>.
      */
     public final TableField<PoolRegistrationRecord, String> TX_HASH = createField(DSL.name("tx_hash"), SQLDataType.VARCHAR(64).nullable(false), this, "");
 
     /**
-     * The column <code>preprod.pool_registration.cert_index</code>.
+     * The column <code>public.pool_registration.cert_index</code>.
      */
     public final TableField<PoolRegistrationRecord, Integer> CERT_INDEX = createField(DSL.name("cert_index"), SQLDataType.INTEGER.nullable(false), this, "");
 
     /**
-     * The column <code>preprod.pool_registration.pool_id</code>.
+     * The column <code>public.pool_registration.pool_id</code>.
      */
     public final TableField<PoolRegistrationRecord, String> POOL_ID = createField(DSL.name("pool_id"), SQLDataType.VARCHAR(56), this, "");
 
     /**
-     * The column <code>preprod.pool_registration.vrf_key</code>.
+     * The column <code>public.pool_registration.vrf_key</code>.
      */
     public final TableField<PoolRegistrationRecord, String> VRF_KEY = createField(DSL.name("vrf_key"), SQLDataType.VARCHAR(64), this, "");
 
     /**
-     * The column <code>preprod.pool_registration.pledge</code>.
+     * The column <code>public.pool_registration.pledge</code>.
      */
     public final TableField<PoolRegistrationRecord, BigInteger> PLEDGE = createField(DSL.name("pledge"), SQLDataType.DECIMAL_INTEGER(20), this, "");
 
     /**
-     * The column <code>preprod.pool_registration.cost</code>.
+     * The column <code>public.pool_registration.cost</code>.
      */
     public final TableField<PoolRegistrationRecord, BigInteger> COST = createField(DSL.name("cost"), SQLDataType.DECIMAL_INTEGER(20), this, "");
 
     /**
-     * The column <code>preprod.pool_registration.margin</code>.
+     * The column <code>public.pool_registration.margin</code>.
      */
     public final TableField<PoolRegistrationRecord, BigDecimal> MARGIN = createField(DSL.name("margin"), SQLDataType.NUMERIC(10, 8), this, "");
 
     /**
-     * The column <code>preprod.pool_registration.reward_account</code>.
+     * The column <code>public.pool_registration.reward_account</code>.
      */
     public final TableField<PoolRegistrationRecord, String> REWARD_ACCOUNT = createField(DSL.name("reward_account"), SQLDataType.VARCHAR(255), this, "");
 
     /**
-     * The column <code>preprod.pool_registration.pool_owners</code>.
+     * The column <code>public.pool_registration.pool_owners</code>.
      */
     public final TableField<PoolRegistrationRecord, JSONB> POOL_OWNERS = createField(DSL.name("pool_owners"), SQLDataType.JSONB, this, "");
 
     /**
-     * The column <code>preprod.pool_registration.relays</code>.
+     * The column <code>public.pool_registration.relays</code>.
      */
     public final TableField<PoolRegistrationRecord, JSONB> RELAYS = createField(DSL.name("relays"), SQLDataType.JSONB, this, "");
 
     /**
-     * The column <code>preprod.pool_registration.metadata_url</code>.
+     * The column <code>public.pool_registration.metadata_url</code>.
      */
     public final TableField<PoolRegistrationRecord, String> METADATA_URL = createField(DSL.name("metadata_url"), SQLDataType.CLOB, this, "");
 
     /**
-     * The column <code>preprod.pool_registration.metadata_hash</code>.
+     * The column <code>public.pool_registration.metadata_hash</code>.
      */
     public final TableField<PoolRegistrationRecord, String> METADATA_HASH = createField(DSL.name("metadata_hash"), SQLDataType.VARCHAR(64), this, "");
 
     /**
-     * The column <code>preprod.pool_registration.epoch</code>.
+     * The column <code>public.pool_registration.epoch</code>.
      */
     public final TableField<PoolRegistrationRecord, Integer> EPOCH = createField(DSL.name("epoch"), SQLDataType.INTEGER, this, "");
 
     /**
-     * The column <code>preprod.pool_registration.slot</code>.
+     * The column <code>public.pool_registration.slot</code>.
      */
     public final TableField<PoolRegistrationRecord, Long> SLOT = createField(DSL.name("slot"), SQLDataType.BIGINT, this, "");
 
     /**
-     * The column <code>preprod.pool_registration.block_hash</code>.
+     * The column <code>public.pool_registration.block_hash</code>.
      */
     public final TableField<PoolRegistrationRecord, String> BLOCK_HASH = createField(DSL.name("block_hash"), SQLDataType.VARCHAR(64), this, "");
 
     /**
-     * The column <code>preprod.pool_registration.block</code>.
+     * The column <code>public.pool_registration.block</code>.
      */
     public final TableField<PoolRegistrationRecord, Long> BLOCK = createField(DSL.name("block"), SQLDataType.BIGINT, this, "");
 
     /**
-     * The column <code>preprod.pool_registration.block_time</code>.
+     * The column <code>public.pool_registration.block_time</code>.
      */
     public final TableField<PoolRegistrationRecord, Long> BLOCK_TIME = createField(DSL.name("block_time"), SQLDataType.BIGINT, this, "");
 
     /**
-     * The column <code>preprod.pool_registration.update_datetime</code>.
+     * The column <code>public.pool_registration.update_datetime</code>.
      */
     public final TableField<PoolRegistrationRecord, LocalDateTime> UPDATE_DATETIME = createField(DSL.name("update_datetime"), SQLDataType.LOCALDATETIME(6), this, "");
 
@@ -155,21 +155,21 @@ public class PoolRegistration extends TableImpl<PoolRegistrationRecord> {
     }
 
     /**
-     * Create an aliased <code>preprod.pool_registration</code> table reference
+     * Create an aliased <code>public.pool_registration</code> table reference
      */
     public PoolRegistration(String alias) {
         this(DSL.name(alias), POOL_REGISTRATION);
     }
 
     /**
-     * Create an aliased <code>preprod.pool_registration</code> table reference
+     * Create an aliased <code>public.pool_registration</code> table reference
      */
     public PoolRegistration(Name alias) {
         this(alias, POOL_REGISTRATION);
     }
 
     /**
-     * Create a <code>preprod.pool_registration</code> table reference
+     * Create a <code>public.pool_registration</code> table reference
      */
     public PoolRegistration() {
         this(DSL.name("pool_registration"), null);

@@ -42,7 +42,7 @@ public class EpochParam extends TableImpl<EpochParamRecord> {
     private static final long serialVersionUID = 1L;
 
     /**
-     * The reference instance of <code>preprod.epoch_param</code>
+     * The reference instance of <code>public.epoch_param</code>
      */
     public static final EpochParam EPOCH_PARAM = new EpochParam();
 
@@ -55,37 +55,37 @@ public class EpochParam extends TableImpl<EpochParamRecord> {
     }
 
     /**
-     * The column <code>preprod.epoch_param.epoch</code>.
+     * The column <code>public.epoch_param.epoch</code>.
      */
     public final TableField<EpochParamRecord, Integer> EPOCH = createField(DSL.name("epoch"), SQLDataType.INTEGER.nullable(false), this, "");
 
     /**
-     * The column <code>preprod.epoch_param.params</code>.
+     * The column <code>public.epoch_param.params</code>.
      */
     public final TableField<EpochParamRecord, JSONB> PARAMS = createField(DSL.name("params"), SQLDataType.JSONB, this, "");
 
     /**
-     * The column <code>preprod.epoch_param.cost_model_hash</code>.
+     * The column <code>public.epoch_param.cost_model_hash</code>.
      */
     public final TableField<EpochParamRecord, String> COST_MODEL_HASH = createField(DSL.name("cost_model_hash"), SQLDataType.VARCHAR(64), this, "");
 
     /**
-     * The column <code>preprod.epoch_param.slot</code>.
+     * The column <code>public.epoch_param.slot</code>.
      */
     public final TableField<EpochParamRecord, Long> SLOT = createField(DSL.name("slot"), SQLDataType.BIGINT, this, "");
 
     /**
-     * The column <code>preprod.epoch_param.block</code>.
+     * The column <code>public.epoch_param.block</code>.
      */
     public final TableField<EpochParamRecord, Long> BLOCK = createField(DSL.name("block"), SQLDataType.BIGINT, this, "");
 
     /**
-     * The column <code>preprod.epoch_param.block_time</code>.
+     * The column <code>public.epoch_param.block_time</code>.
      */
     public final TableField<EpochParamRecord, Long> BLOCK_TIME = createField(DSL.name("block_time"), SQLDataType.BIGINT, this, "");
 
     /**
-     * The column <code>preprod.epoch_param.update_datetime</code>.
+     * The column <code>public.epoch_param.update_datetime</code>.
      */
     public final TableField<EpochParamRecord, LocalDateTime> UPDATE_DATETIME = createField(DSL.name("update_datetime"), SQLDataType.LOCALDATETIME(6), this, "");
 
@@ -98,21 +98,21 @@ public class EpochParam extends TableImpl<EpochParamRecord> {
     }
 
     /**
-     * Create an aliased <code>preprod.epoch_param</code> table reference
+     * Create an aliased <code>public.epoch_param</code> table reference
      */
     public EpochParam(String alias) {
         this(DSL.name(alias), EPOCH_PARAM);
     }
 
     /**
-     * Create an aliased <code>preprod.epoch_param</code> table reference
+     * Create an aliased <code>public.epoch_param</code> table reference
      */
     public EpochParam(Name alias) {
         this(alias, EPOCH_PARAM);
     }
 
     /**
-     * Create a <code>preprod.epoch_param</code> table reference
+     * Create a <code>public.epoch_param</code> table reference
      */
     public EpochParam() {
         this(DSL.name("epoch_param"), null);

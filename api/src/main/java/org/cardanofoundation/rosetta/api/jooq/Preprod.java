@@ -49,117 +49,117 @@ public class Preprod extends SchemaImpl {
     public static final Preprod PREPROD = new Preprod();
 
     /**
-     * The table <code>preprod.address</code>.
+     * The table <code>public.address</code>.
      */
     public final Address ADDRESS = Address.ADDRESS;
 
     /**
-     * The table <code>preprod.address_utxo</code>.
+     * The table <code>public.address_utxo</code>.
      */
     public final AddressUtxo ADDRESS_UTXO = AddressUtxo.ADDRESS_UTXO;
 
     /**
-     * The table <code>preprod.block</code>.
+     * The table <code>public.block</code>.
      */
     public final Block BLOCK = Block.BLOCK;
 
     /**
-     * The table <code>preprod.cost_model</code>.
+     * The table <code>public.cost_model</code>.
      */
     public final CostModel COST_MODEL = CostModel.COST_MODEL;
 
     /**
-     * The table <code>preprod.cursor_</code>.
+     * The table <code>public.cursor_</code>.
      */
     public final Cursor_ CURSOR_ = Cursor_.CURSOR_;
 
     /**
-     * The table <code>preprod.delegation</code>.
+     * The table <code>public.delegation</code>.
      */
     public final Delegation DELEGATION = Delegation.DELEGATION;
 
     /**
-     * The table <code>preprod.epoch_param</code>.
+     * The table <code>public.epoch_param</code>.
      */
     public final EpochParam EPOCH_PARAM = EpochParam.EPOCH_PARAM;
 
     /**
-     * The table <code>preprod.era</code>.
+     * The table <code>public.era</code>.
      */
     public final Era ERA = Era.ERA;
 
     /**
-     * The table <code>preprod.error</code>.
+     * The table <code>public.error</code>.
      */
     public final Error ERROR = Error.ERROR;
 
     /**
-     * The table <code>preprod.error_review</code>.
+     * The table <code>public.error_review</code>.
      */
     public final ErrorReview ERROR_REVIEW = ErrorReview.ERROR_REVIEW;
 
     /**
-     * The table <code>preprod.flyway_schema_history</code>.
+     * The table <code>public.flyway_schema_history</code>.
      */
     public final FlywaySchemaHistory FLYWAY_SCHEMA_HISTORY = FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY;
 
     /**
-     * The table <code>preprod.invalid_transaction</code>.
+     * The table <code>public.invalid_transaction</code>.
      */
     public final InvalidTransaction INVALID_TRANSACTION = InvalidTransaction.INVALID_TRANSACTION;
 
     /**
-     * The table <code>preprod.local_epoch_param</code>.
+     * The table <code>public.local_epoch_param</code>.
      */
     public final LocalEpochParam LOCAL_EPOCH_PARAM = LocalEpochParam.LOCAL_EPOCH_PARAM;
 
     /**
-     * The table <code>preprod.pool_registration</code>.
+     * The table <code>public.pool_registration</code>.
      */
     public final PoolRegistration POOL_REGISTRATION = PoolRegistration.POOL_REGISTRATION;
 
     /**
-     * The table <code>preprod.pool_retirement</code>.
+     * The table <code>public.pool_retirement</code>.
      */
     public final PoolRetirement POOL_RETIREMENT = PoolRetirement.POOL_RETIREMENT;
 
     /**
-     * The table <code>preprod.protocol_params_proposal</code>.
+     * The table <code>public.protocol_params_proposal</code>.
      */
     public final ProtocolParamsProposal PROTOCOL_PARAMS_PROPOSAL = ProtocolParamsProposal.PROTOCOL_PARAMS_PROPOSAL;
 
     /**
-     * The table <code>preprod.rollback</code>.
+     * The table <code>public.rollback</code>.
      */
     public final Rollback ROLLBACK = Rollback.ROLLBACK;
 
     /**
-     * The table <code>preprod.stake_registration</code>.
+     * The table <code>public.stake_registration</code>.
      */
     public final StakeRegistration STAKE_REGISTRATION = StakeRegistration.STAKE_REGISTRATION;
 
     /**
-     * The table <code>preprod.transaction</code>.
+     * The table <code>public.transaction</code>.
      */
     public final Transaction TRANSACTION = Transaction.TRANSACTION;
 
     /**
-     * The table <code>preprod.transaction_size</code>.
+     * The table <code>public.transaction_size</code>.
      */
     public final TransactionSize TRANSACTION_SIZE = TransactionSize.TRANSACTION_SIZE;
 
     /**
-     * The table <code>preprod.transaction_witness</code>.
+     * The table <code>public.transaction_witness</code>.
      */
     public final TransactionWitness TRANSACTION_WITNESS = TransactionWitness.TRANSACTION_WITNESS;
 
     /**
-     * The table <code>preprod.tx_input</code>.
+     * The table <code>public.tx_input</code>.
      */
     public final TxInput TX_INPUT = TxInput.TX_INPUT;
 
     /**
-     * The table <code>preprod.withdrawal</code>.
+     * The table <code>public.withdrawal</code>.
      */
     public final Withdrawal WITHDRAWAL = Withdrawal.WITHDRAWAL;
 

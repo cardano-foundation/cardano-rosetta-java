@@ -43,7 +43,7 @@ public class Block extends TableImpl<BlockRecord> {
     private static final long serialVersionUID = 1L;
 
     /**
-     * The reference instance of <code>preprod.block</code>
+     * The reference instance of <code>public.block</code>
      */
     public static final Block BLOCK = new Block();
 
@@ -56,132 +56,132 @@ public class Block extends TableImpl<BlockRecord> {
     }
 
     /**
-     * The column <code>preprod.block.hash</code>.
+     * The column <code>public.block.hash</code>.
      */
     public final TableField<BlockRecord, String> HASH = createField(DSL.name("hash"), SQLDataType.VARCHAR(64).nullable(false), this, "");
 
     /**
-     * The column <code>preprod.block.number</code>.
+     * The column <code>public.block.number</code>.
      */
     public final TableField<BlockRecord, Long> NUMBER = createField(DSL.name("number"), SQLDataType.BIGINT, this, "");
 
     /**
-     * The column <code>preprod.block.body_hash</code>.
+     * The column <code>public.block.body_hash</code>.
      */
     public final TableField<BlockRecord, String> BODY_HASH = createField(DSL.name("body_hash"), SQLDataType.VARCHAR(64), this, "");
 
     /**
-     * The column <code>preprod.block.body_size</code>.
+     * The column <code>public.block.body_size</code>.
      */
     public final TableField<BlockRecord, Integer> BODY_SIZE = createField(DSL.name("body_size"), SQLDataType.INTEGER, this, "");
 
     /**
-     * The column <code>preprod.block.epoch</code>.
+     * The column <code>public.block.epoch</code>.
      */
     public final TableField<BlockRecord, Integer> EPOCH = createField(DSL.name("epoch"), SQLDataType.INTEGER, this, "");
 
     /**
-     * The column <code>preprod.block.total_output</code>.
+     * The column <code>public.block.total_output</code>.
      */
     public final TableField<BlockRecord, BigInteger> TOTAL_OUTPUT = createField(DSL.name("total_output"), SQLDataType.DECIMAL_INTEGER(38), this, "");
 
     /**
-     * The column <code>preprod.block.total_fees</code>.
+     * The column <code>public.block.total_fees</code>.
      */
     public final TableField<BlockRecord, Long> TOTAL_FEES = createField(DSL.name("total_fees"), SQLDataType.BIGINT, this, "");
 
     /**
-     * The column <code>preprod.block.block_time</code>.
+     * The column <code>public.block.block_time</code>.
      */
     public final TableField<BlockRecord, Long> BLOCK_TIME = createField(DSL.name("block_time"), SQLDataType.BIGINT, this, "");
 
     /**
-     * The column <code>preprod.block.era</code>.
+     * The column <code>public.block.era</code>.
      */
     public final TableField<BlockRecord, Short> ERA = createField(DSL.name("era"), SQLDataType.SMALLINT, this, "");
 
     /**
-     * The column <code>preprod.block.issuer_vkey</code>.
+     * The column <code>public.block.issuer_vkey</code>.
      */
     public final TableField<BlockRecord, String> ISSUER_VKEY = createField(DSL.name("issuer_vkey"), SQLDataType.VARCHAR(64), this, "");
 
     /**
-     * The column <code>preprod.block.leader_vrf</code>.
+     * The column <code>public.block.leader_vrf</code>.
      */
     public final TableField<BlockRecord, JSONB> LEADER_VRF = createField(DSL.name("leader_vrf"), SQLDataType.JSONB, this, "");
 
     /**
-     * The column <code>preprod.block.nonce_vrf</code>.
+     * The column <code>public.block.nonce_vrf</code>.
      */
     public final TableField<BlockRecord, JSONB> NONCE_VRF = createField(DSL.name("nonce_vrf"), SQLDataType.JSONB, this, "");
 
     /**
-     * The column <code>preprod.block.prev_hash</code>.
+     * The column <code>public.block.prev_hash</code>.
      */
     public final TableField<BlockRecord, String> PREV_HASH = createField(DSL.name("prev_hash"), SQLDataType.VARCHAR(64), this, "");
 
     /**
-     * The column <code>preprod.block.protocol_version</code>.
+     * The column <code>public.block.protocol_version</code>.
      */
     public final TableField<BlockRecord, String> PROTOCOL_VERSION = createField(DSL.name("protocol_version"), SQLDataType.VARCHAR(64), this, "");
 
     /**
-     * The column <code>preprod.block.slot</code>.
+     * The column <code>public.block.slot</code>.
      */
     public final TableField<BlockRecord, Long> SLOT = createField(DSL.name("slot"), SQLDataType.BIGINT, this, "");
 
     /**
-     * The column <code>preprod.block.vrf_result</code>.
+     * The column <code>public.block.vrf_result</code>.
      */
     public final TableField<BlockRecord, JSONB> VRF_RESULT = createField(DSL.name("vrf_result"), SQLDataType.JSONB, this, "");
 
     /**
-     * The column <code>preprod.block.vrf_vkey</code>.
+     * The column <code>public.block.vrf_vkey</code>.
      */
     public final TableField<BlockRecord, String> VRF_VKEY = createField(DSL.name("vrf_vkey"), SQLDataType.VARCHAR(64), this, "");
 
     /**
-     * The column <code>preprod.block.no_of_txs</code>.
+     * The column <code>public.block.no_of_txs</code>.
      */
     public final TableField<BlockRecord, Integer> NO_OF_TXS = createField(DSL.name("no_of_txs"), SQLDataType.INTEGER, this, "");
 
     /**
-     * The column <code>preprod.block.slot_leader</code>.
+     * The column <code>public.block.slot_leader</code>.
      */
     public final TableField<BlockRecord, String> SLOT_LEADER = createField(DSL.name("slot_leader"), SQLDataType.VARCHAR(56), this, "");
 
     /**
-     * The column <code>preprod.block.epoch_slot</code>.
+     * The column <code>public.block.epoch_slot</code>.
      */
     public final TableField<BlockRecord, Integer> EPOCH_SLOT = createField(DSL.name("epoch_slot"), SQLDataType.INTEGER, this, "");
 
     /**
-     * The column <code>preprod.block.op_cert_hot_vkey</code>.
+     * The column <code>public.block.op_cert_hot_vkey</code>.
      */
     public final TableField<BlockRecord, String> OP_CERT_HOT_VKEY = createField(DSL.name("op_cert_hot_vkey"), SQLDataType.VARCHAR(64), this, "");
 
     /**
-     * The column <code>preprod.block.op_cert_seq_number</code>.
+     * The column <code>public.block.op_cert_seq_number</code>.
      */
     public final TableField<BlockRecord, Long> OP_CERT_SEQ_NUMBER = createField(DSL.name("op_cert_seq_number"), SQLDataType.BIGINT, this, "");
 
     /**
-     * The column <code>preprod.block.op_cert_kes_period</code>.
+     * The column <code>public.block.op_cert_kes_period</code>.
      */
     public final TableField<BlockRecord, Long> OP_CERT_KES_PERIOD = createField(DSL.name("op_cert_kes_period"), SQLDataType.BIGINT, this, "");
 
     /**
-     * The column <code>preprod.block.op_cert_sigma</code>.
+     * The column <code>public.block.op_cert_sigma</code>.
      */
     public final TableField<BlockRecord, String> OP_CERT_SIGMA = createField(DSL.name("op_cert_sigma"), SQLDataType.VARCHAR(256), this, "");
 
     /**
-     * The column <code>preprod.block.create_datetime</code>.
+     * The column <code>public.block.create_datetime</code>.
      */
     public final TableField<BlockRecord, LocalDateTime> CREATE_DATETIME = createField(DSL.name("create_datetime"), SQLDataType.LOCALDATETIME(6), this, "");
 
     /**
-     * The column <code>preprod.block.update_datetime</code>.
+     * The column <code>public.block.update_datetime</code>.
      */
     public final TableField<BlockRecord, LocalDateTime> UPDATE_DATETIME = createField(DSL.name("update_datetime"), SQLDataType.LOCALDATETIME(6), this, "");
 
@@ -194,21 +194,21 @@ public class Block extends TableImpl<BlockRecord> {
     }
 
     /**
-     * Create an aliased <code>preprod.block</code> table reference
+     * Create an aliased <code>public.block</code> table reference
      */
     public Block(String alias) {
         this(DSL.name(alias), BLOCK);
     }
 
     /**
-     * Create an aliased <code>preprod.block</code> table reference
+     * Create an aliased <code>public.block</code> table reference
      */
     public Block(Name alias) {
         this(alias, BLOCK);
     }
 
     /**
-     * Create a <code>preprod.block</code> table reference
+     * Create a <code>public.block</code> table reference
      */
     public Block() {
         this(DSL.name("block"), null);

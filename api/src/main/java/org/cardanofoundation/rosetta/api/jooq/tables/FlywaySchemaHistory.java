@@ -41,7 +41,7 @@ public class FlywaySchemaHistory extends TableImpl<FlywaySchemaHistoryRecord> {
     private static final long serialVersionUID = 1L;
 
     /**
-     * The reference instance of <code>preprod.flyway_schema_history</code>
+     * The reference instance of <code>public.flyway_schema_history</code>
      */
     public static final FlywaySchemaHistory FLYWAY_SCHEMA_HISTORY = new FlywaySchemaHistory();
 
@@ -54,52 +54,52 @@ public class FlywaySchemaHistory extends TableImpl<FlywaySchemaHistoryRecord> {
     }
 
     /**
-     * The column <code>preprod.flyway_schema_history.installed_rank</code>.
+     * The column <code>public.flyway_schema_history.installed_rank</code>.
      */
     public final TableField<FlywaySchemaHistoryRecord, Integer> INSTALLED_RANK = createField(DSL.name("installed_rank"), SQLDataType.INTEGER.nullable(false), this, "");
 
     /**
-     * The column <code>preprod.flyway_schema_history.version</code>.
+     * The column <code>public.flyway_schema_history.version</code>.
      */
     public final TableField<FlywaySchemaHistoryRecord, String> VERSION = createField(DSL.name("version"), SQLDataType.VARCHAR(50), this, "");
 
     /**
-     * The column <code>preprod.flyway_schema_history.description</code>.
+     * The column <code>public.flyway_schema_history.description</code>.
      */
     public final TableField<FlywaySchemaHistoryRecord, String> DESCRIPTION = createField(DSL.name("description"), SQLDataType.VARCHAR(200).nullable(false), this, "");
 
     /**
-     * The column <code>preprod.flyway_schema_history.type</code>.
+     * The column <code>public.flyway_schema_history.type</code>.
      */
     public final TableField<FlywaySchemaHistoryRecord, String> TYPE = createField(DSL.name("type"), SQLDataType.VARCHAR(20).nullable(false), this, "");
 
     /**
-     * The column <code>preprod.flyway_schema_history.script</code>.
+     * The column <code>public.flyway_schema_history.script</code>.
      */
     public final TableField<FlywaySchemaHistoryRecord, String> SCRIPT = createField(DSL.name("script"), SQLDataType.VARCHAR(1000).nullable(false), this, "");
 
     /**
-     * The column <code>preprod.flyway_schema_history.checksum</code>.
+     * The column <code>public.flyway_schema_history.checksum</code>.
      */
     public final TableField<FlywaySchemaHistoryRecord, Integer> CHECKSUM = createField(DSL.name("checksum"), SQLDataType.INTEGER, this, "");
 
     /**
-     * The column <code>preprod.flyway_schema_history.installed_by</code>.
+     * The column <code>public.flyway_schema_history.installed_by</code>.
      */
     public final TableField<FlywaySchemaHistoryRecord, String> INSTALLED_BY = createField(DSL.name("installed_by"), SQLDataType.VARCHAR(100).nullable(false), this, "");
 
     /**
-     * The column <code>preprod.flyway_schema_history.installed_on</code>.
+     * The column <code>public.flyway_schema_history.installed_on</code>.
      */
     public final TableField<FlywaySchemaHistoryRecord, LocalDateTime> INSTALLED_ON = createField(DSL.name("installed_on"), SQLDataType.LOCALDATETIME(6).nullable(false).defaultValue(DSL.field(DSL.raw("now()"), SQLDataType.LOCALDATETIME)), this, "");
 
     /**
-     * The column <code>preprod.flyway_schema_history.execution_time</code>.
+     * The column <code>public.flyway_schema_history.execution_time</code>.
      */
     public final TableField<FlywaySchemaHistoryRecord, Integer> EXECUTION_TIME = createField(DSL.name("execution_time"), SQLDataType.INTEGER.nullable(false), this, "");
 
     /**
-     * The column <code>preprod.flyway_schema_history.success</code>.
+     * The column <code>public.flyway_schema_history.success</code>.
      */
     public final TableField<FlywaySchemaHistoryRecord, Boolean> SUCCESS = createField(DSL.name("success"), SQLDataType.BOOLEAN.nullable(false), this, "");
 
@@ -112,7 +112,7 @@ public class FlywaySchemaHistory extends TableImpl<FlywaySchemaHistoryRecord> {
     }
 
     /**
-     * Create an aliased <code>preprod.flyway_schema_history</code> table
+     * Create an aliased <code>public.flyway_schema_history</code> table
      * reference
      */
     public FlywaySchemaHistory(String alias) {
@@ -120,7 +120,7 @@ public class FlywaySchemaHistory extends TableImpl<FlywaySchemaHistoryRecord> {
     }
 
     /**
-     * Create an aliased <code>preprod.flyway_schema_history</code> table
+     * Create an aliased <code>public.flyway_schema_history</code> table
      * reference
      */
     public FlywaySchemaHistory(Name alias) {
@@ -128,7 +128,7 @@ public class FlywaySchemaHistory extends TableImpl<FlywaySchemaHistoryRecord> {
     }
 
     /**
-     * Create a <code>preprod.flyway_schema_history</code> table reference
+     * Create a <code>public.flyway_schema_history</code> table reference
      */
     public FlywaySchemaHistory() {
         this(DSL.name("flyway_schema_history"), null);

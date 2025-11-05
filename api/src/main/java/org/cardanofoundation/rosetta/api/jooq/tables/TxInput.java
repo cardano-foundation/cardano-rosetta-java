@@ -40,7 +40,7 @@ public class TxInput extends TableImpl<TxInputRecord> {
     private static final long serialVersionUID = 1L;
 
     /**
-     * The reference instance of <code>preprod.tx_input</code>
+     * The reference instance of <code>public.tx_input</code>
      */
     public static final TxInput TX_INPUT = new TxInput();
 
@@ -53,42 +53,42 @@ public class TxInput extends TableImpl<TxInputRecord> {
     }
 
     /**
-     * The column <code>preprod.tx_input.output_index</code>.
+     * The column <code>public.tx_input.output_index</code>.
      */
     public final TableField<TxInputRecord, Short> OUTPUT_INDEX = createField(DSL.name("output_index"), SQLDataType.SMALLINT.nullable(false), this, "");
 
     /**
-     * The column <code>preprod.tx_input.tx_hash</code>.
+     * The column <code>public.tx_input.tx_hash</code>.
      */
     public final TableField<TxInputRecord, String> TX_HASH = createField(DSL.name("tx_hash"), SQLDataType.VARCHAR(64).nullable(false), this, "");
 
     /**
-     * The column <code>preprod.tx_input.spent_at_slot</code>.
+     * The column <code>public.tx_input.spent_at_slot</code>.
      */
     public final TableField<TxInputRecord, Long> SPENT_AT_SLOT = createField(DSL.name("spent_at_slot"), SQLDataType.BIGINT, this, "");
 
     /**
-     * The column <code>preprod.tx_input.spent_at_block</code>.
+     * The column <code>public.tx_input.spent_at_block</code>.
      */
     public final TableField<TxInputRecord, Long> SPENT_AT_BLOCK = createField(DSL.name("spent_at_block"), SQLDataType.BIGINT, this, "");
 
     /**
-     * The column <code>preprod.tx_input.spent_at_block_hash</code>.
+     * The column <code>public.tx_input.spent_at_block_hash</code>.
      */
     public final TableField<TxInputRecord, String> SPENT_AT_BLOCK_HASH = createField(DSL.name("spent_at_block_hash"), SQLDataType.VARCHAR(64), this, "");
 
     /**
-     * The column <code>preprod.tx_input.spent_block_time</code>.
+     * The column <code>public.tx_input.spent_block_time</code>.
      */
     public final TableField<TxInputRecord, Long> SPENT_BLOCK_TIME = createField(DSL.name("spent_block_time"), SQLDataType.BIGINT, this, "");
 
     /**
-     * The column <code>preprod.tx_input.spent_epoch</code>.
+     * The column <code>public.tx_input.spent_epoch</code>.
      */
     public final TableField<TxInputRecord, Integer> SPENT_EPOCH = createField(DSL.name("spent_epoch"), SQLDataType.INTEGER, this, "");
 
     /**
-     * The column <code>preprod.tx_input.spent_tx_hash</code>.
+     * The column <code>public.tx_input.spent_tx_hash</code>.
      */
     public final TableField<TxInputRecord, String> SPENT_TX_HASH = createField(DSL.name("spent_tx_hash"), SQLDataType.VARCHAR(64), this, "");
 
@@ -101,21 +101,21 @@ public class TxInput extends TableImpl<TxInputRecord> {
     }
 
     /**
-     * Create an aliased <code>preprod.tx_input</code> table reference
+     * Create an aliased <code>public.tx_input</code> table reference
      */
     public TxInput(String alias) {
         this(DSL.name(alias), TX_INPUT);
     }
 
     /**
-     * Create an aliased <code>preprod.tx_input</code> table reference
+     * Create an aliased <code>public.tx_input</code> table reference
      */
     public TxInput(Name alias) {
         this(alias, TX_INPUT);
     }
 
     /**
-     * Create a <code>preprod.tx_input</code> table reference
+     * Create a <code>public.tx_input</code> table reference
      */
     public TxInput() {
         this(DSL.name("tx_input"), null);

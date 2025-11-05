@@ -42,7 +42,7 @@ public class ProtocolParamsProposal extends TableImpl<ProtocolParamsProposalReco
     private static final long serialVersionUID = 1L;
 
     /**
-     * The reference instance of <code>preprod.protocol_params_proposal</code>
+     * The reference instance of <code>public.protocol_params_proposal</code>
      */
     public static final ProtocolParamsProposal PROTOCOL_PARAMS_PROPOSAL = new ProtocolParamsProposal();
 
@@ -55,52 +55,52 @@ public class ProtocolParamsProposal extends TableImpl<ProtocolParamsProposalReco
     }
 
     /**
-     * The column <code>preprod.protocol_params_proposal.tx_hash</code>.
+     * The column <code>public.protocol_params_proposal.tx_hash</code>.
      */
     public final TableField<ProtocolParamsProposalRecord, String> TX_HASH = createField(DSL.name("tx_hash"), SQLDataType.VARCHAR(64).nullable(false), this, "");
 
     /**
-     * The column <code>preprod.protocol_params_proposal.key_hash</code>.
+     * The column <code>public.protocol_params_proposal.key_hash</code>.
      */
     public final TableField<ProtocolParamsProposalRecord, String> KEY_HASH = createField(DSL.name("key_hash"), SQLDataType.VARCHAR(56).nullable(false), this, "");
 
     /**
-     * The column <code>preprod.protocol_params_proposal.params</code>.
+     * The column <code>public.protocol_params_proposal.params</code>.
      */
     public final TableField<ProtocolParamsProposalRecord, JSONB> PARAMS = createField(DSL.name("params"), SQLDataType.JSONB, this, "");
 
     /**
-     * The column <code>preprod.protocol_params_proposal.target_epoch</code>.
+     * The column <code>public.protocol_params_proposal.target_epoch</code>.
      */
     public final TableField<ProtocolParamsProposalRecord, Integer> TARGET_EPOCH = createField(DSL.name("target_epoch"), SQLDataType.INTEGER, this, "");
 
     /**
-     * The column <code>preprod.protocol_params_proposal.epoch</code>.
+     * The column <code>public.protocol_params_proposal.epoch</code>.
      */
     public final TableField<ProtocolParamsProposalRecord, Integer> EPOCH = createField(DSL.name("epoch"), SQLDataType.INTEGER, this, "");
 
     /**
-     * The column <code>preprod.protocol_params_proposal.slot</code>.
+     * The column <code>public.protocol_params_proposal.slot</code>.
      */
     public final TableField<ProtocolParamsProposalRecord, Long> SLOT = createField(DSL.name("slot"), SQLDataType.BIGINT, this, "");
 
     /**
-     * The column <code>preprod.protocol_params_proposal.era</code>.
+     * The column <code>public.protocol_params_proposal.era</code>.
      */
     public final TableField<ProtocolParamsProposalRecord, Short> ERA = createField(DSL.name("era"), SQLDataType.SMALLINT, this, "");
 
     /**
-     * The column <code>preprod.protocol_params_proposal.block</code>.
+     * The column <code>public.protocol_params_proposal.block</code>.
      */
     public final TableField<ProtocolParamsProposalRecord, Long> BLOCK = createField(DSL.name("block"), SQLDataType.BIGINT, this, "");
 
     /**
-     * The column <code>preprod.protocol_params_proposal.block_time</code>.
+     * The column <code>public.protocol_params_proposal.block_time</code>.
      */
     public final TableField<ProtocolParamsProposalRecord, Long> BLOCK_TIME = createField(DSL.name("block_time"), SQLDataType.BIGINT, this, "");
 
     /**
-     * The column <code>preprod.protocol_params_proposal.update_datetime</code>.
+     * The column <code>public.protocol_params_proposal.update_datetime</code>.
      */
     public final TableField<ProtocolParamsProposalRecord, LocalDateTime> UPDATE_DATETIME = createField(DSL.name("update_datetime"), SQLDataType.LOCALDATETIME(6), this, "");
 
@@ -113,7 +113,7 @@ public class ProtocolParamsProposal extends TableImpl<ProtocolParamsProposalReco
     }
 
     /**
-     * Create an aliased <code>preprod.protocol_params_proposal</code> table
+     * Create an aliased <code>public.protocol_params_proposal</code> table
      * reference
      */
     public ProtocolParamsProposal(String alias) {
@@ -121,7 +121,7 @@ public class ProtocolParamsProposal extends TableImpl<ProtocolParamsProposalReco
     }
 
     /**
-     * Create an aliased <code>preprod.protocol_params_proposal</code> table
+     * Create an aliased <code>public.protocol_params_proposal</code> table
      * reference
      */
     public ProtocolParamsProposal(Name alias) {
@@ -129,7 +129,7 @@ public class ProtocolParamsProposal extends TableImpl<ProtocolParamsProposalReco
     }
 
     /**
-     * Create a <code>preprod.protocol_params_proposal</code> table reference
+     * Create a <code>public.protocol_params_proposal</code> table reference
      */
     public ProtocolParamsProposal() {
         this(DSL.name("protocol_params_proposal"), null);

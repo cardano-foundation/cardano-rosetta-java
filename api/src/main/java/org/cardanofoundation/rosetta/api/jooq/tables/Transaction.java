@@ -42,7 +42,7 @@ public class Transaction extends TableImpl<TransactionRecord> {
     private static final long serialVersionUID = 1L;
 
     /**
-     * The reference instance of <code>preprod.transaction</code>
+     * The reference instance of <code>public.transaction</code>
      */
     public static final Transaction TRANSACTION = new Transaction();
 
@@ -55,107 +55,107 @@ public class Transaction extends TableImpl<TransactionRecord> {
     }
 
     /**
-     * The column <code>preprod.transaction.tx_hash</code>.
+     * The column <code>public.transaction.tx_hash</code>.
      */
     public final TableField<TransactionRecord, String> TX_HASH = createField(DSL.name("tx_hash"), SQLDataType.VARCHAR(64).nullable(false), this, "");
 
     /**
-     * The column <code>preprod.transaction.auxiliary_datahash</code>.
+     * The column <code>public.transaction.auxiliary_datahash</code>.
      */
     public final TableField<TransactionRecord, String> AUXILIARY_DATAHASH = createField(DSL.name("auxiliary_datahash"), SQLDataType.VARCHAR(64), this, "");
 
     /**
-     * The column <code>preprod.transaction.block_hash</code>.
+     * The column <code>public.transaction.block_hash</code>.
      */
     public final TableField<TransactionRecord, String> BLOCK_HASH = createField(DSL.name("block_hash"), SQLDataType.VARCHAR(64), this, "");
 
     /**
-     * The column <code>preprod.transaction.collateral_inputs</code>.
+     * The column <code>public.transaction.collateral_inputs</code>.
      */
     public final TableField<TransactionRecord, JSONB> COLLATERAL_INPUTS = createField(DSL.name("collateral_inputs"), SQLDataType.JSONB, this, "");
 
     /**
-     * The column <code>preprod.transaction.collateral_return</code>.
+     * The column <code>public.transaction.collateral_return</code>.
      */
     public final TableField<TransactionRecord, JSONB> COLLATERAL_RETURN = createField(DSL.name("collateral_return"), SQLDataType.JSONB, this, "");
 
     /**
-     * The column <code>preprod.transaction.fee</code>.
+     * The column <code>public.transaction.fee</code>.
      */
     public final TableField<TransactionRecord, Long> FEE = createField(DSL.name("fee"), SQLDataType.BIGINT, this, "");
 
     /**
-     * The column <code>preprod.transaction.inputs</code>.
+     * The column <code>public.transaction.inputs</code>.
      */
     public final TableField<TransactionRecord, JSONB> INPUTS = createField(DSL.name("inputs"), SQLDataType.JSONB, this, "");
 
     /**
-     * The column <code>preprod.transaction.invalid</code>.
+     * The column <code>public.transaction.invalid</code>.
      */
     public final TableField<TransactionRecord, Boolean> INVALID = createField(DSL.name("invalid"), SQLDataType.BOOLEAN, this, "");
 
     /**
-     * The column <code>preprod.transaction.network_id</code>.
+     * The column <code>public.transaction.network_id</code>.
      */
     public final TableField<TransactionRecord, Short> NETWORK_ID = createField(DSL.name("network_id"), SQLDataType.SMALLINT, this, "");
 
     /**
-     * The column <code>preprod.transaction.outputs</code>.
+     * The column <code>public.transaction.outputs</code>.
      */
     public final TableField<TransactionRecord, JSONB> OUTPUTS = createField(DSL.name("outputs"), SQLDataType.JSONB, this, "");
 
     /**
-     * The column <code>preprod.transaction.reference_inputs</code>.
+     * The column <code>public.transaction.reference_inputs</code>.
      */
     public final TableField<TransactionRecord, JSONB> REFERENCE_INPUTS = createField(DSL.name("reference_inputs"), SQLDataType.JSONB, this, "");
 
     /**
-     * The column <code>preprod.transaction.required_signers</code>.
+     * The column <code>public.transaction.required_signers</code>.
      */
     public final TableField<TransactionRecord, JSONB> REQUIRED_SIGNERS = createField(DSL.name("required_signers"), SQLDataType.JSONB, this, "");
 
     /**
-     * The column <code>preprod.transaction.script_datahash</code>.
+     * The column <code>public.transaction.script_datahash</code>.
      */
     public final TableField<TransactionRecord, String> SCRIPT_DATAHASH = createField(DSL.name("script_datahash"), SQLDataType.VARCHAR(64), this, "");
 
     /**
-     * The column <code>preprod.transaction.slot</code>.
+     * The column <code>public.transaction.slot</code>.
      */
     public final TableField<TransactionRecord, Long> SLOT = createField(DSL.name("slot"), SQLDataType.BIGINT, this, "");
 
     /**
-     * The column <code>preprod.transaction.total_collateral</code>.
+     * The column <code>public.transaction.total_collateral</code>.
      */
     public final TableField<TransactionRecord, Long> TOTAL_COLLATERAL = createField(DSL.name("total_collateral"), SQLDataType.BIGINT, this, "");
 
     /**
-     * The column <code>preprod.transaction.ttl</code>.
+     * The column <code>public.transaction.ttl</code>.
      */
     public final TableField<TransactionRecord, Long> TTL = createField(DSL.name("ttl"), SQLDataType.BIGINT, this, "");
 
     /**
-     * The column <code>preprod.transaction.validity_interval_start</code>.
+     * The column <code>public.transaction.validity_interval_start</code>.
      */
     public final TableField<TransactionRecord, Long> VALIDITY_INTERVAL_START = createField(DSL.name("validity_interval_start"), SQLDataType.BIGINT, this, "");
 
     /**
-     * The column <code>preprod.transaction.collateral_return_json</code>.
+     * The column <code>public.transaction.collateral_return_json</code>.
      */
     public final TableField<TransactionRecord, JSONB> COLLATERAL_RETURN_JSON = createField(DSL.name("collateral_return_json"), SQLDataType.JSONB, this, "");
 
     /**
-     * The column <code>preprod.transaction.block</code>.
+     * The column <code>public.transaction.block</code>.
      */
     public final TableField<TransactionRecord, Long> BLOCK = createField(DSL.name("block"), SQLDataType.BIGINT, this, "");
 
     /**
-     * The column <code>preprod.transaction.block_time</code>.
+     * The column <code>public.transaction.block_time</code>.
      */
     public final TableField<TransactionRecord, Long> BLOCK_TIME = createField(DSL.name("block_time"), SQLDataType.BIGINT, this, "");
 
     /**
-     * The column <code>preprod.transaction.update_datetime</code>.
+     * The column <code>public.transaction.update_datetime</code>.
      */
     public final TableField<TransactionRecord, LocalDateTime> UPDATE_DATETIME = createField(DSL.name("update_datetime"), SQLDataType.LOCALDATETIME(6), this, "");
 
@@ -168,21 +168,21 @@ public class Transaction extends TableImpl<TransactionRecord> {
     }
 
     /**
-     * Create an aliased <code>preprod.transaction</code> table reference
+     * Create an aliased <code>public.transaction</code> table reference
      */
     public Transaction(String alias) {
         this(DSL.name(alias), TRANSACTION);
     }
 
     /**
-     * Create an aliased <code>preprod.transaction</code> table reference
+     * Create an aliased <code>public.transaction</code> table reference
      */
     public Transaction(Name alias) {
         this(alias, TRANSACTION);
     }
 
     /**
-     * Create a <code>preprod.transaction</code> table reference
+     * Create a <code>public.transaction</code> table reference
      */
     public Transaction() {
         this(DSL.name("transaction"), null);
