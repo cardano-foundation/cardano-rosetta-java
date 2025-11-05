@@ -273,45 +273,59 @@ public class TransactionRecord extends UpdatableRecordImpl<TransactionRecord> {
     }
 
     /**
+     * Setter for <code>public.transaction.tx_index</code>.
+     */
+    public void setTxIndex(Integer value) {
+        set(18, value);
+    }
+
+    /**
+     * Getter for <code>public.transaction.tx_index</code>.
+     */
+    public Integer getTxIndex() {
+        return (Integer) get(18);
+    }
+
+    /**
      * Setter for <code>public.transaction.block</code>.
      */
     public void setBlock(Long value) {
-        set(18, value);
+        set(19, value);
     }
 
     /**
      * Getter for <code>public.transaction.block</code>.
      */
     public Long getBlock() {
-        return (Long) get(18);
+        return (Long) get(19);
     }
 
     /**
      * Setter for <code>public.transaction.block_time</code>.
      */
     public void setBlockTime(Long value) {
-        set(19, value);
+        set(20, value);
     }
 
     /**
      * Getter for <code>public.transaction.block_time</code>.
      */
     public Long getBlockTime() {
-        return (Long) get(19);
+        return (Long) get(20);
     }
 
     /**
      * Setter for <code>public.transaction.update_datetime</code>.
      */
     public void setUpdateDatetime(LocalDateTime value) {
-        set(20, value);
+        set(21, value);
     }
 
     /**
      * Getter for <code>public.transaction.update_datetime</code>.
      */
     public LocalDateTime getUpdateDatetime() {
-        return (LocalDateTime) get(20);
+        return (LocalDateTime) get(21);
     }
 
     // -------------------------------------------------------------------------
@@ -337,7 +351,7 @@ public class TransactionRecord extends UpdatableRecordImpl<TransactionRecord> {
     /**
      * Create a detached, initialised TransactionRecord
      */
-    public TransactionRecord(String txHash, String auxiliaryDatahash, String blockHash, JSONB collateralInputs, JSONB collateralReturn, Long fee, JSONB inputs, Boolean invalid, Short networkId, JSONB outputs, JSONB referenceInputs, JSONB requiredSigners, String scriptDatahash, Long slot, Long totalCollateral, Long ttl, Long validityIntervalStart, JSONB collateralReturnJson, Long block, Long blockTime, LocalDateTime updateDatetime) {
+    public TransactionRecord(String txHash, String auxiliaryDatahash, String blockHash, JSONB collateralInputs, JSONB collateralReturn, Long fee, JSONB inputs, Boolean invalid, Short networkId, JSONB outputs, JSONB referenceInputs, JSONB requiredSigners, String scriptDatahash, Long slot, Long totalCollateral, Long ttl, Long validityIntervalStart, JSONB collateralReturnJson, Integer txIndex, Long block, Long blockTime, LocalDateTime updateDatetime) {
         super(Transaction.TRANSACTION);
 
         setTxHash(txHash);
@@ -358,6 +372,7 @@ public class TransactionRecord extends UpdatableRecordImpl<TransactionRecord> {
         setTtl(ttl);
         setValidityIntervalStart(validityIntervalStart);
         setCollateralReturnJson(collateralReturnJson);
+        setTxIndex(txIndex);
         setBlock(block);
         setBlockTime(blockTime);
         setUpdateDatetime(updateDatetime);
