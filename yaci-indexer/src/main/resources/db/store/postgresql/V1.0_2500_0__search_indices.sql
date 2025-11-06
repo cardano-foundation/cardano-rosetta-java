@@ -64,19 +64,6 @@ CREATE INDEX idx_transaction_hash_values_join ON transaction USING btree (tx_has
 --   - Ensures consistent transaction ordering within the same slot
 --   - Maintains deterministic pagination order using tx_index (replaces tx_hash)
 -- Performance: Essential for correct pagination - maintains transaction order by slot then tx_index
--- Note: tx_index column added in Yaci-Store 2.0.0-beta for proper within-block ordering
+-- Note: tx_index column added in Yaci-Store starting from 2.0.0 for proper within-block ordering
 -- =============================================================================
 CREATE INDEX idx_transaction_slot_desc_tx_index_desc ON transaction USING btree (slot DESC, tx_index DESC);
-
--- =============================================================================
--- Index 7: Block-Transaction Index for Within-Block Ordering
--- Used by: TxRepositoryCustomBase.findTransactionsByBlockHash (line 137)
--- Query pattern: SELECT ... FROM transaction WHERE block_hash = ? ORDER BY tx_index ASC
--- Optimizes: Block and transaction retrieval API endpoints:
---   - /block endpoint retrieving transactions for a specific block
---   - /block/transaction endpoint retrieving block with ordered transactions
---   - Ensures transactions within a block are returned in correct index order (0, 1, 2, ...)
--- Performance: Composite index on (block_hash, tx_index) provides both filtering and ordering
--- Note: tx_index column added in Yaci-Store 2.0.0-beta
--- =============================================================================
-CREATE INDEX idx_transaction_block_hash_tx_index ON transaction USING btree (block_hash, tx_index);
