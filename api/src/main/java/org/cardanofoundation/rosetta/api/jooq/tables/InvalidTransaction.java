@@ -11,7 +11,7 @@ import java.util.List;
 
 import org.cardanofoundation.rosetta.api.jooq.Indexes;
 import org.cardanofoundation.rosetta.api.jooq.Keys;
-import org.cardanofoundation.rosetta.api.jooq.Preprod;
+import org.cardanofoundation.rosetta.api.jooq.Public;
 import org.cardanofoundation.rosetta.api.jooq.tables.records.InvalidTransactionRecord;
 import org.jooq.Condition;
 import org.jooq.Field;
@@ -42,7 +42,7 @@ public class InvalidTransaction extends TableImpl<InvalidTransactionRecord> {
     private static final long serialVersionUID = 1L;
 
     /**
-     * The reference instance of <code>preprod.invalid_transaction</code>
+     * The reference instance of <code>public.invalid_transaction</code>
      */
     public static final InvalidTransaction INVALID_TRANSACTION = new InvalidTransaction();
 
@@ -55,32 +55,32 @@ public class InvalidTransaction extends TableImpl<InvalidTransactionRecord> {
     }
 
     /**
-     * The column <code>preprod.invalid_transaction.tx_hash</code>.
+     * The column <code>public.invalid_transaction.tx_hash</code>.
      */
     public final TableField<InvalidTransactionRecord, String> TX_HASH = createField(DSL.name("tx_hash"), SQLDataType.VARCHAR(64).nullable(false), this, "");
 
     /**
-     * The column <code>preprod.invalid_transaction.slot</code>.
+     * The column <code>public.invalid_transaction.slot</code>.
      */
     public final TableField<InvalidTransactionRecord, Long> SLOT = createField(DSL.name("slot"), SQLDataType.BIGINT.nullable(false), this, "");
 
     /**
-     * The column <code>preprod.invalid_transaction.block_hash</code>.
+     * The column <code>public.invalid_transaction.block_hash</code>.
      */
     public final TableField<InvalidTransactionRecord, String> BLOCK_HASH = createField(DSL.name("block_hash"), SQLDataType.VARCHAR(64), this, "");
 
     /**
-     * The column <code>preprod.invalid_transaction.transaction</code>.
+     * The column <code>public.invalid_transaction.transaction</code>.
      */
     public final TableField<InvalidTransactionRecord, JSONB> TRANSACTION = createField(DSL.name("transaction"), SQLDataType.JSONB, this, "");
 
     /**
-     * The column <code>preprod.invalid_transaction.create_datetime</code>.
+     * The column <code>public.invalid_transaction.create_datetime</code>.
      */
     public final TableField<InvalidTransactionRecord, LocalDateTime> CREATE_DATETIME = createField(DSL.name("create_datetime"), SQLDataType.LOCALDATETIME(6), this, "");
 
     /**
-     * The column <code>preprod.invalid_transaction.update_datetime</code>.
+     * The column <code>public.invalid_transaction.update_datetime</code>.
      */
     public final TableField<InvalidTransactionRecord, LocalDateTime> UPDATE_DATETIME = createField(DSL.name("update_datetime"), SQLDataType.LOCALDATETIME(6), this, "");
 
@@ -93,7 +93,7 @@ public class InvalidTransaction extends TableImpl<InvalidTransactionRecord> {
     }
 
     /**
-     * Create an aliased <code>preprod.invalid_transaction</code> table
+     * Create an aliased <code>public.invalid_transaction</code> table
      * reference
      */
     public InvalidTransaction(String alias) {
@@ -101,7 +101,7 @@ public class InvalidTransaction extends TableImpl<InvalidTransactionRecord> {
     }
 
     /**
-     * Create an aliased <code>preprod.invalid_transaction</code> table
+     * Create an aliased <code>public.invalid_transaction</code> table
      * reference
      */
     public InvalidTransaction(Name alias) {
@@ -109,7 +109,7 @@ public class InvalidTransaction extends TableImpl<InvalidTransactionRecord> {
     }
 
     /**
-     * Create a <code>preprod.invalid_transaction</code> table reference
+     * Create a <code>public.invalid_transaction</code> table reference
      */
     public InvalidTransaction() {
         this(DSL.name("invalid_transaction"), null);
@@ -117,7 +117,7 @@ public class InvalidTransaction extends TableImpl<InvalidTransactionRecord> {
 
     @Override
     public Schema getSchema() {
-        return aliased() ? null : Preprod.PREPROD;
+        return aliased() ? null : Public.PUBLIC;
     }
 
     @Override

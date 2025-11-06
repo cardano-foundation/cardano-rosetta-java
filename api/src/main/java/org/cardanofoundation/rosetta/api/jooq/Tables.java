@@ -36,117 +36,117 @@ import org.cardanofoundation.rosetta.api.jooq.tables.Withdrawal;
 public class Tables {
 
     /**
-     * The table <code>preprod.address</code>.
+     * The table <code>public.address</code>.
      */
     public static final Address ADDRESS = Address.ADDRESS;
 
     /**
-     * The table <code>preprod.address_utxo</code>.
+     * The table <code>public.address_utxo</code>.
      */
     public static final AddressUtxo ADDRESS_UTXO = AddressUtxo.ADDRESS_UTXO;
 
     /**
-     * The table <code>preprod.block</code>.
+     * The table <code>public.block</code>.
      */
     public static final Block BLOCK = Block.BLOCK;
 
     /**
-     * The table <code>preprod.cost_model</code>.
+     * The table <code>public.cost_model</code>.
      */
     public static final CostModel COST_MODEL = CostModel.COST_MODEL;
 
     /**
-     * The table <code>preprod.cursor_</code>.
+     * The table <code>public.cursor_</code>.
      */
     public static final Cursor_ CURSOR_ = Cursor_.CURSOR_;
 
     /**
-     * The table <code>preprod.delegation</code>.
+     * The table <code>public.delegation</code>.
      */
     public static final Delegation DELEGATION = Delegation.DELEGATION;
 
     /**
-     * The table <code>preprod.epoch_param</code>.
+     * The table <code>public.epoch_param</code>.
      */
     public static final EpochParam EPOCH_PARAM = EpochParam.EPOCH_PARAM;
 
     /**
-     * The table <code>preprod.era</code>.
+     * The table <code>public.era</code>.
      */
     public static final Era ERA = Era.ERA;
 
     /**
-     * The table <code>preprod.error</code>.
+     * The table <code>public.error</code>.
      */
     public static final Error ERROR = Error.ERROR;
 
     /**
-     * The table <code>preprod.error_review</code>.
+     * The table <code>public.error_review</code>.
      */
     public static final ErrorReview ERROR_REVIEW = ErrorReview.ERROR_REVIEW;
 
     /**
-     * The table <code>preprod.flyway_schema_history</code>.
+     * The table <code>public.flyway_schema_history</code>.
      */
     public static final FlywaySchemaHistory FLYWAY_SCHEMA_HISTORY = FlywaySchemaHistory.FLYWAY_SCHEMA_HISTORY;
 
     /**
-     * The table <code>preprod.invalid_transaction</code>.
+     * The table <code>public.invalid_transaction</code>.
      */
     public static final InvalidTransaction INVALID_TRANSACTION = InvalidTransaction.INVALID_TRANSACTION;
 
     /**
-     * The table <code>preprod.local_epoch_param</code>.
+     * The table <code>public.local_epoch_param</code>.
      */
     public static final LocalEpochParam LOCAL_EPOCH_PARAM = LocalEpochParam.LOCAL_EPOCH_PARAM;
 
     /**
-     * The table <code>preprod.pool_registration</code>.
+     * The table <code>public.pool_registration</code>.
      */
     public static final PoolRegistration POOL_REGISTRATION = PoolRegistration.POOL_REGISTRATION;
 
     /**
-     * The table <code>preprod.pool_retirement</code>.
+     * The table <code>public.pool_retirement</code>.
      */
     public static final PoolRetirement POOL_RETIREMENT = PoolRetirement.POOL_RETIREMENT;
 
     /**
-     * The table <code>preprod.protocol_params_proposal</code>.
+     * The table <code>public.protocol_params_proposal</code>.
      */
     public static final ProtocolParamsProposal PROTOCOL_PARAMS_PROPOSAL = ProtocolParamsProposal.PROTOCOL_PARAMS_PROPOSAL;
 
     /**
-     * The table <code>preprod.rollback</code>.
+     * The table <code>public.rollback</code>.
      */
     public static final Rollback ROLLBACK = Rollback.ROLLBACK;
 
     /**
-     * The table <code>preprod.stake_registration</code>.
+     * The table <code>public.stake_registration</code>.
      */
     public static final StakeRegistration STAKE_REGISTRATION = StakeRegistration.STAKE_REGISTRATION;
 
     /**
-     * The table <code>preprod.transaction</code>.
+     * The table <code>public.transaction</code>.
      */
     public static final Transaction TRANSACTION = Transaction.TRANSACTION;
 
     /**
-     * The table <code>preprod.transaction_size</code>.
+     * The table <code>public.transaction_size</code>.
      */
     public static final TransactionSize TRANSACTION_SIZE = TransactionSize.TRANSACTION_SIZE;
 
     /**
-     * The table <code>preprod.transaction_witness</code>.
+     * The table <code>public.transaction_witness</code>.
      */
     public static final TransactionWitness TRANSACTION_WITNESS = TransactionWitness.TRANSACTION_WITNESS;
 
     /**
-     * The table <code>preprod.tx_input</code>.
+     * The table <code>public.tx_input</code>.
      */
     public static final TxInput TX_INPUT = TxInput.TX_INPUT;
 
     /**
-     * The table <code>preprod.withdrawal</code>.
+     * The table <code>public.withdrawal</code>.
      */
     public static final Withdrawal WITHDRAWAL = Withdrawal.WITHDRAWAL;
 }

@@ -56,13 +56,14 @@ CREATE INDEX idx_invalid_transaction_hash_slot ON invalid_transaction USING btre
 CREATE INDEX idx_transaction_hash_values_join ON transaction USING btree (tx_hash);
 
 -- =============================================================================
--- Index 6: Transaction Slot-Based Ordering and Pagination
+-- Index 6: Transaction Slot and Index Ordering for Search Pagination
 -- Used by: TxRepositoryCustomBase.executeResultsQuery (line 190)
--- Query pattern: SELECT ... FROM transaction WHERE ... ORDER BY slot DESC LIMIT/OFFSET
+-- Query pattern: SELECT ... FROM transaction WHERE ... ORDER BY slot DESC, tx_index DESC LIMIT/OFFSET
 -- Optimizes: All paginated search transactions API endpoints:
---   - /search/transactions pagination with chronological ordering
---   - All search results ordered by slot descending (newest first)
---   - LIMIT/OFFSET pagination performance
--- Performance: Essential for pagination - avoids sorting large result sets
+--   - /search/transactions pagination with proper chronological and within-slot ordering
+--   - Ensures consistent transaction ordering within the same slot
+--   - Maintains deterministic pagination order using tx_index (replaces tx_hash)
+-- Performance: Essential for correct pagination - maintains transaction order by slot then tx_index
+-- Note: tx_index column added in Yaci-Store starting from 2.0.0 for proper within-block ordering
 -- =============================================================================
-CREATE INDEX idx_transaction_slot_desc_tx_hash ON transaction USING btree (slot DESC, tx_hash);
+CREATE INDEX idx_transaction_slot_desc_tx_index_desc ON transaction USING btree (slot DESC, tx_index DESC);

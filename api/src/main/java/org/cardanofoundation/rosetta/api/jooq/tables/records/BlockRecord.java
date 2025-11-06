@@ -22,364 +22,364 @@ public class BlockRecord extends UpdatableRecordImpl<BlockRecord> {
     private static final long serialVersionUID = 1L;
 
     /**
-     * Setter for <code>preprod.block.hash</code>.
+     * Setter for <code>public.block.hash</code>.
      */
     public void setHash(String value) {
         set(0, value);
     }
 
     /**
-     * Getter for <code>preprod.block.hash</code>.
+     * Getter for <code>public.block.hash</code>.
      */
     public String getHash() {
         return (String) get(0);
     }
 
     /**
-     * Setter for <code>preprod.block.number</code>.
+     * Setter for <code>public.block.number</code>.
      */
     public void setNumber(Long value) {
         set(1, value);
     }
 
     /**
-     * Getter for <code>preprod.block.number</code>.
+     * Getter for <code>public.block.number</code>.
      */
     public Long getNumber() {
         return (Long) get(1);
     }
 
     /**
-     * Setter for <code>preprod.block.body_hash</code>.
+     * Setter for <code>public.block.body_hash</code>.
      */
     public void setBodyHash(String value) {
         set(2, value);
     }
 
     /**
-     * Getter for <code>preprod.block.body_hash</code>.
+     * Getter for <code>public.block.body_hash</code>.
      */
     public String getBodyHash() {
         return (String) get(2);
     }
 
     /**
-     * Setter for <code>preprod.block.body_size</code>.
+     * Setter for <code>public.block.body_size</code>.
      */
     public void setBodySize(Integer value) {
         set(3, value);
     }
 
     /**
-     * Getter for <code>preprod.block.body_size</code>.
+     * Getter for <code>public.block.body_size</code>.
      */
     public Integer getBodySize() {
         return (Integer) get(3);
     }
 
     /**
-     * Setter for <code>preprod.block.epoch</code>.
+     * Setter for <code>public.block.epoch</code>.
      */
     public void setEpoch(Integer value) {
         set(4, value);
     }
 
     /**
-     * Getter for <code>preprod.block.epoch</code>.
+     * Getter for <code>public.block.epoch</code>.
      */
     public Integer getEpoch() {
         return (Integer) get(4);
     }
 
     /**
-     * Setter for <code>preprod.block.total_output</code>.
+     * Setter for <code>public.block.total_output</code>.
      */
     public void setTotalOutput(BigInteger value) {
         set(5, value);
     }
 
     /**
-     * Getter for <code>preprod.block.total_output</code>.
+     * Getter for <code>public.block.total_output</code>.
      */
     public BigInteger getTotalOutput() {
         return (BigInteger) get(5);
     }
 
     /**
-     * Setter for <code>preprod.block.total_fees</code>.
+     * Setter for <code>public.block.total_fees</code>.
      */
     public void setTotalFees(Long value) {
         set(6, value);
     }
 
     /**
-     * Getter for <code>preprod.block.total_fees</code>.
+     * Getter for <code>public.block.total_fees</code>.
      */
     public Long getTotalFees() {
         return (Long) get(6);
     }
 
     /**
-     * Setter for <code>preprod.block.block_time</code>.
+     * Setter for <code>public.block.block_time</code>.
      */
     public void setBlockTime(Long value) {
         set(7, value);
     }
 
     /**
-     * Getter for <code>preprod.block.block_time</code>.
+     * Getter for <code>public.block.block_time</code>.
      */
     public Long getBlockTime() {
         return (Long) get(7);
     }
 
     /**
-     * Setter for <code>preprod.block.era</code>.
+     * Setter for <code>public.block.era</code>.
      */
     public void setEra(Short value) {
         set(8, value);
     }
 
     /**
-     * Getter for <code>preprod.block.era</code>.
+     * Getter for <code>public.block.era</code>.
      */
     public Short getEra() {
         return (Short) get(8);
     }
 
     /**
-     * Setter for <code>preprod.block.issuer_vkey</code>.
+     * Setter for <code>public.block.issuer_vkey</code>.
      */
     public void setIssuerVkey(String value) {
         set(9, value);
     }
 
     /**
-     * Getter for <code>preprod.block.issuer_vkey</code>.
+     * Getter for <code>public.block.issuer_vkey</code>.
      */
     public String getIssuerVkey() {
         return (String) get(9);
     }
 
     /**
-     * Setter for <code>preprod.block.leader_vrf</code>.
+     * Setter for <code>public.block.leader_vrf</code>.
      */
     public void setLeaderVrf(JSONB value) {
         set(10, value);
     }
 
     /**
-     * Getter for <code>preprod.block.leader_vrf</code>.
+     * Getter for <code>public.block.leader_vrf</code>.
      */
     public JSONB getLeaderVrf() {
         return (JSONB) get(10);
     }
 
     /**
-     * Setter for <code>preprod.block.nonce_vrf</code>.
+     * Setter for <code>public.block.nonce_vrf</code>.
      */
     public void setNonceVrf(JSONB value) {
         set(11, value);
     }
 
     /**
-     * Getter for <code>preprod.block.nonce_vrf</code>.
+     * Getter for <code>public.block.nonce_vrf</code>.
      */
     public JSONB getNonceVrf() {
         return (JSONB) get(11);
     }
 
     /**
-     * Setter for <code>preprod.block.prev_hash</code>.
+     * Setter for <code>public.block.prev_hash</code>.
      */
     public void setPrevHash(String value) {
         set(12, value);
     }
 
     /**
-     * Getter for <code>preprod.block.prev_hash</code>.
+     * Getter for <code>public.block.prev_hash</code>.
      */
     public String getPrevHash() {
         return (String) get(12);
     }
 
     /**
-     * Setter for <code>preprod.block.protocol_version</code>.
+     * Setter for <code>public.block.protocol_version</code>.
      */
     public void setProtocolVersion(String value) {
         set(13, value);
     }
 
     /**
-     * Getter for <code>preprod.block.protocol_version</code>.
+     * Getter for <code>public.block.protocol_version</code>.
      */
     public String getProtocolVersion() {
         return (String) get(13);
     }
 
     /**
-     * Setter for <code>preprod.block.slot</code>.
+     * Setter for <code>public.block.slot</code>.
      */
     public void setSlot(Long value) {
         set(14, value);
     }
 
     /**
-     * Getter for <code>preprod.block.slot</code>.
+     * Getter for <code>public.block.slot</code>.
      */
     public Long getSlot() {
         return (Long) get(14);
     }
 
     /**
-     * Setter for <code>preprod.block.vrf_result</code>.
+     * Setter for <code>public.block.vrf_result</code>.
      */
     public void setVrfResult(JSONB value) {
         set(15, value);
     }
 
     /**
-     * Getter for <code>preprod.block.vrf_result</code>.
+     * Getter for <code>public.block.vrf_result</code>.
      */
     public JSONB getVrfResult() {
         return (JSONB) get(15);
     }
 
     /**
-     * Setter for <code>preprod.block.vrf_vkey</code>.
+     * Setter for <code>public.block.vrf_vkey</code>.
      */
     public void setVrfVkey(String value) {
         set(16, value);
     }
 
     /**
-     * Getter for <code>preprod.block.vrf_vkey</code>.
+     * Getter for <code>public.block.vrf_vkey</code>.
      */
     public String getVrfVkey() {
         return (String) get(16);
     }
 
     /**
-     * Setter for <code>preprod.block.no_of_txs</code>.
+     * Setter for <code>public.block.no_of_txs</code>.
      */
     public void setNoOfTxs(Integer value) {
         set(17, value);
     }
 
     /**
-     * Getter for <code>preprod.block.no_of_txs</code>.
+     * Getter for <code>public.block.no_of_txs</code>.
      */
     public Integer getNoOfTxs() {
         return (Integer) get(17);
     }
 
     /**
-     * Setter for <code>preprod.block.slot_leader</code>.
+     * Setter for <code>public.block.slot_leader</code>.
      */
     public void setSlotLeader(String value) {
         set(18, value);
     }
 
     /**
-     * Getter for <code>preprod.block.slot_leader</code>.
+     * Getter for <code>public.block.slot_leader</code>.
      */
     public String getSlotLeader() {
         return (String) get(18);
     }
 
     /**
-     * Setter for <code>preprod.block.epoch_slot</code>.
+     * Setter for <code>public.block.epoch_slot</code>.
      */
     public void setEpochSlot(Integer value) {
         set(19, value);
     }
 
     /**
-     * Getter for <code>preprod.block.epoch_slot</code>.
+     * Getter for <code>public.block.epoch_slot</code>.
      */
     public Integer getEpochSlot() {
         return (Integer) get(19);
     }
 
     /**
-     * Setter for <code>preprod.block.op_cert_hot_vkey</code>.
+     * Setter for <code>public.block.op_cert_hot_vkey</code>.
      */
     public void setOpCertHotVkey(String value) {
         set(20, value);
     }
 
     /**
-     * Getter for <code>preprod.block.op_cert_hot_vkey</code>.
+     * Getter for <code>public.block.op_cert_hot_vkey</code>.
      */
     public String getOpCertHotVkey() {
         return (String) get(20);
     }
 
     /**
-     * Setter for <code>preprod.block.op_cert_seq_number</code>.
+     * Setter for <code>public.block.op_cert_seq_number</code>.
      */
     public void setOpCertSeqNumber(Long value) {
         set(21, value);
     }
 
     /**
-     * Getter for <code>preprod.block.op_cert_seq_number</code>.
+     * Getter for <code>public.block.op_cert_seq_number</code>.
      */
     public Long getOpCertSeqNumber() {
         return (Long) get(21);
     }
 
     /**
-     * Setter for <code>preprod.block.op_cert_kes_period</code>.
+     * Setter for <code>public.block.op_cert_kes_period</code>.
      */
     public void setOpCertKesPeriod(Long value) {
         set(22, value);
     }
 
     /**
-     * Getter for <code>preprod.block.op_cert_kes_period</code>.
+     * Getter for <code>public.block.op_cert_kes_period</code>.
      */
     public Long getOpCertKesPeriod() {
         return (Long) get(22);
     }
 
     /**
-     * Setter for <code>preprod.block.op_cert_sigma</code>.
+     * Setter for <code>public.block.op_cert_sigma</code>.
      */
     public void setOpCertSigma(String value) {
         set(23, value);
     }
 
     /**
-     * Getter for <code>preprod.block.op_cert_sigma</code>.
+     * Getter for <code>public.block.op_cert_sigma</code>.
      */
     public String getOpCertSigma() {
         return (String) get(23);
     }
 
     /**
-     * Setter for <code>preprod.block.create_datetime</code>.
+     * Setter for <code>public.block.create_datetime</code>.
      */
     public void setCreateDatetime(LocalDateTime value) {
         set(24, value);
     }
 
     /**
-     * Getter for <code>preprod.block.create_datetime</code>.
+     * Getter for <code>public.block.create_datetime</code>.
      */
     public LocalDateTime getCreateDatetime() {
         return (LocalDateTime) get(24);
     }
 
     /**
-     * Setter for <code>preprod.block.update_datetime</code>.
+     * Setter for <code>public.block.update_datetime</code>.
      */
     public void setUpdateDatetime(LocalDateTime value) {
         set(25, value);
     }
 
     /**
-     * Getter for <code>preprod.block.update_datetime</code>.
+     * Getter for <code>public.block.update_datetime</code>.
      */
     public LocalDateTime getUpdateDatetime() {
         return (LocalDateTime) get(25);

@@ -18,56 +18,56 @@ public class EraRecord extends UpdatableRecordImpl<EraRecord> {
     private static final long serialVersionUID = 1L;
 
     /**
-     * Setter for <code>preprod.era.era</code>.
+     * Setter for <code>public.era.era</code>.
      */
     public void setEra(Integer value) {
         set(0, value);
     }
 
     /**
-     * Getter for <code>preprod.era.era</code>.
+     * Getter for <code>public.era.era</code>.
      */
     public Integer getEra() {
         return (Integer) get(0);
     }
 
     /**
-     * Setter for <code>preprod.era.start_slot</code>.
+     * Setter for <code>public.era.start_slot</code>.
      */
     public void setStartSlot(Long value) {
         set(1, value);
     }
 
     /**
-     * Getter for <code>preprod.era.start_slot</code>.
+     * Getter for <code>public.era.start_slot</code>.
      */
     public Long getStartSlot() {
         return (Long) get(1);
     }
 
     /**
-     * Setter for <code>preprod.era.block</code>.
+     * Setter for <code>public.era.block</code>.
      */
     public void setBlock(Long value) {
         set(2, value);
     }
 
     /**
-     * Getter for <code>preprod.era.block</code>.
+     * Getter for <code>public.era.block</code>.
      */
     public Long getBlock() {
         return (Long) get(2);
     }
 
     /**
-     * Setter for <code>preprod.era.block_hash</code>.
+     * Setter for <code>public.era.block_hash</code>.
      */
     public void setBlockHash(String value) {
         set(3, value);
     }
 
     /**
-     * Getter for <code>preprod.era.block_hash</code>.
+     * Getter for <code>public.era.block_hash</code>.
      */
     public String getBlockHash() {
         return (String) get(3);

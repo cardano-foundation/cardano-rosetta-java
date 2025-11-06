@@ -21,42 +21,42 @@ public class LocalEpochParamRecord extends UpdatableRecordImpl<LocalEpochParamRe
     private static final long serialVersionUID = 1L;
 
     /**
-     * Setter for <code>preprod.local_epoch_param.epoch</code>.
+     * Setter for <code>public.local_epoch_param.epoch</code>.
      */
     public void setEpoch(Integer value) {
         set(0, value);
     }
 
     /**
-     * Getter for <code>preprod.local_epoch_param.epoch</code>.
+     * Getter for <code>public.local_epoch_param.epoch</code>.
      */
     public Integer getEpoch() {
         return (Integer) get(0);
     }
 
     /**
-     * Setter for <code>preprod.local_epoch_param.params</code>.
+     * Setter for <code>public.local_epoch_param.params</code>.
      */
     public void setParams(JSONB value) {
         set(1, value);
     }
 
     /**
-     * Getter for <code>preprod.local_epoch_param.params</code>.
+     * Getter for <code>public.local_epoch_param.params</code>.
      */
     public JSONB getParams() {
         return (JSONB) get(1);
     }
 
     /**
-     * Setter for <code>preprod.local_epoch_param.update_datetime</code>.
+     * Setter for <code>public.local_epoch_param.update_datetime</code>.
      */
     public void setUpdateDatetime(LocalDateTime value) {
         set(2, value);
     }
 
     /**
-     * Getter for <code>preprod.local_epoch_param.update_datetime</code>.
+     * Getter for <code>public.local_epoch_param.update_datetime</code>.
      */
     public LocalDateTime getUpdateDatetime() {
         return (LocalDateTime) get(2);
