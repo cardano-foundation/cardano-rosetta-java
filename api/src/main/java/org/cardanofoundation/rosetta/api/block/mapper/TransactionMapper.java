@@ -47,7 +47,7 @@ public interface TransactionMapper {
   @Mapping(target = "operationIdentifier", source = "index", qualifiedByName = "OperationIdentifier")
   Operation mapPoolRetirementToOperation(PoolRetirement model, OperationStatus status, int index);
 
-  StakePoolDelegation mapDelegationEntityToDelegation(DelegationEntity entity);
+  StakePoolDelegation mapPoolDelegationEntityToDelegation(PoolDelegationEntity entity);
 
   @Mapping(target = "status", source = "status.status")
   @Mapping(target = "type", constant = Constants.OPERATION_TYPE_STAKE_DELEGATION)
@@ -55,6 +55,24 @@ public interface TransactionMapper {
   @Mapping(target = "account.address", source = "model.address")
   @Mapping(target = "metadata.poolKeyHash", source = "model.poolId")
   Operation mapStakeDelegationToOperation(StakePoolDelegation model, OperationStatus status, int index);
+
+  default DRepDelegation mapDrepVoteDelegationEntityToDRepDelegation(DrepVoteDelegationEntity entity) {
+    if (entity == null) {
+      return null;
+    }
+
+    return DRepDelegation.builder()
+            .txHash(entity.getTxHash())
+            .certIndex(entity.getCertIndex())
+            .address(entity.getAddress())
+            .drep(new DRepDelegation.DRep(
+                    entity.getDrepId(),
+                    convertDrepTypeStringToEnum(entity.getDrepType())
+            ))
+            .build();
+  }
+
+  com.bloxbean.cardano.client.transaction.spec.governance.DRepType convertDrepTypeStringToEnum(String drepType);
 
   @Mapping(target = "status", source = "status.status")
   @Mapping(target = "type", constant = Constants.OPERATION_TYPE_DREP_VOTE_DELEGATION)

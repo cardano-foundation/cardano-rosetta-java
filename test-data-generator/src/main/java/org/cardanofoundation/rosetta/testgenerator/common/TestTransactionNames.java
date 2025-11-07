@@ -14,7 +14,11 @@ public enum TestTransactionNames {
   // Transaction names for PoolTransactions
   POOL_REGISTRATION_TRANSACTION("pool_registration"),
   POOL_DELEGATION_TRANSACTION("pool_delegation"),
-  POOL_RETIREMENT_TRANSACTION("pool_retirement");
+  POOL_RETIREMENT_TRANSACTION("pool_retirement"),
+
+  // Transaction names for GovernanceTransactions
+  DREP_REGISTER("drep_register"),
+  DREP_VOTE_DELEGATION("drep_vote_delegation");
 
   private final String name;
 

@@ -47,7 +47,8 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
   private final BlockRepository blockRepository;
   private final TxRepository txRepository;
   private final StakeRegistrationRepository stakeRegistrationRepository;
-  private final DelegationRepository delegationRepository;
+  private final PoolDelegationRepository poolDelegationRepository;
+  private final DrepVoteDelegationRepository drepVoteDelegationRepository;
   private final PoolRegistrationRepository poolRegistrationRepository;
   private final PoolRetirementRepository poolRetirementRepository;
   private final WithdrawalRepository withdrawalRepository;
@@ -233,7 +234,8 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
     try (ShutdownOnFailure scope = new ShutdownOnFailure()) {
       StructuredTaskScope.Subtask<List<AddressUtxoEntity>> utxos = scope.fork(() -> addressUtxoRepository.findByTxHashIn(utxHashes));
       StructuredTaskScope.Subtask<List<StakeRegistrationEntity>> sReg = scope.fork(() -> stakeRegistrationRepository.findByTxHashIn(txHashes));
-      StructuredTaskScope.Subtask<List<DelegationEntity>> delegations = scope.fork(() -> delegationRepository.findByTxHashIn(txHashes));
+      StructuredTaskScope.Subtask<List<PoolDelegationEntity>> poolDelegations = scope.fork(() -> poolDelegationRepository.findByTxHashIn(txHashes));
+      StructuredTaskScope.Subtask<List<DrepVoteDelegationEntity>> drepDelegations = scope.fork(() -> drepVoteDelegationRepository.findByTxHashInAndCertIndex(txHashes, 0L));
       StructuredTaskScope.Subtask<List<PoolRegistrationEntity>> pReg = scope.fork(() -> poolRegistrationRepository.findByTxHashIn(txHashes));
       StructuredTaskScope.Subtask<List<PoolRetirementEntity>> pRet = scope.fork(() -> poolRetirementRepository.findByTxHashIn(txHashes));
       StructuredTaskScope.Subtask<List<WithdrawalEntity>> withdrawals = scope.fork(() -> withdrawalRepository.findByTxHashIn(txHashes));
@@ -245,7 +247,8 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
       return new TransactionInfo(
               utxos.get(),
               sReg.get(),
-              delegations.get(),
+              poolDelegations.get(),
+              drepDelegations.get(),
               pReg.get(),
               pRet.get(),
               withdrawals.get(),
@@ -293,10 +296,10 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
                     .toList());
 
     transaction.setStakePoolDelegations(
-            fetched.delegations
+            fetched.poolDelegations
                     .stream()
                     .filter(tx -> tx.getTxHash().equals(transaction.getHash()))
-                    .map(transactionMapper::mapDelegationEntityToDelegation)
+                    .map(transactionMapper::mapPoolDelegationEntityToDelegation)
                     .toList());
 
     transaction.setWithdrawals(
@@ -319,8 +322,13 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
                     .filter(tx -> tx.getTxHash().equals(transaction.getHash()))
                     .map(transactionMapper::mapEntityToPoolRetirement)
                     .toList());
-    // TODO dRep Vote Delegations
-    //transaction.setDRepDelegations(fetched.delegations
+
+    transaction.setDRepDelegations(
+            fetched.drepDelegations
+                    .stream()
+                    .filter(tx -> tx.getTxHash().equals(transaction.getHash()))
+                    .map(transactionMapper::mapDrepVoteDelegationEntityToDRepDelegation)
+                    .toList());
 
     // TODO governance votes
     //transaction.setGovernanceVotes(fetched.);
@@ -345,7 +353,8 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
 
   record TransactionInfo(List<AddressUtxoEntity> utxos,
                          List<StakeRegistrationEntity> stakeRegistrations,
-                         List<DelegationEntity> delegations,
+                         List<PoolDelegationEntity> poolDelegations,
+                         List<DrepVoteDelegationEntity> drepDelegations,
                          List<PoolRegistrationEntity> poolRegistrations,
                          List<PoolRetirementEntity> poolRetirements,
                          List<WithdrawalEntity> withdrawals,
