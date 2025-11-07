@@ -11,7 +11,7 @@ import java.util.List;
 
 import org.cardanofoundation.rosetta.api.jooq.Indexes;
 import org.cardanofoundation.rosetta.api.jooq.Keys;
-import org.cardanofoundation.rosetta.api.jooq.Preprod;
+import org.cardanofoundation.rosetta.api.jooq.Public;
 import org.cardanofoundation.rosetta.api.jooq.tables.records.StakeRegistrationRecord;
 import org.jooq.Condition;
 import org.jooq.Field;
@@ -41,7 +41,7 @@ public class StakeRegistration extends TableImpl<StakeRegistrationRecord> {
     private static final long serialVersionUID = 1L;
 
     /**
-     * The reference instance of <code>preprod.stake_registration</code>
+     * The reference instance of <code>public.stake_registration</code>
      */
     public static final StakeRegistration STAKE_REGISTRATION = new StakeRegistration();
 
@@ -54,57 +54,57 @@ public class StakeRegistration extends TableImpl<StakeRegistrationRecord> {
     }
 
     /**
-     * The column <code>preprod.stake_registration.tx_hash</code>.
+     * The column <code>public.stake_registration.tx_hash</code>.
      */
     public final TableField<StakeRegistrationRecord, String> TX_HASH = createField(DSL.name("tx_hash"), SQLDataType.VARCHAR(64).nullable(false), this, "");
 
     /**
-     * The column <code>preprod.stake_registration.cert_index</code>.
+     * The column <code>public.stake_registration.cert_index</code>.
      */
     public final TableField<StakeRegistrationRecord, Integer> CERT_INDEX = createField(DSL.name("cert_index"), SQLDataType.INTEGER.nullable(false), this, "");
 
     /**
-     * The column <code>preprod.stake_registration.credential</code>.
+     * The column <code>public.stake_registration.credential</code>.
      */
     public final TableField<StakeRegistrationRecord, String> CREDENTIAL = createField(DSL.name("credential"), SQLDataType.VARCHAR(56).nullable(false), this, "");
 
     /**
-     * The column <code>preprod.stake_registration.type</code>.
+     * The column <code>public.stake_registration.type</code>.
      */
     public final TableField<StakeRegistrationRecord, String> TYPE = createField(DSL.name("type"), SQLDataType.VARCHAR(50), this, "");
 
     /**
-     * The column <code>preprod.stake_registration.address</code>.
+     * The column <code>public.stake_registration.address</code>.
      */
     public final TableField<StakeRegistrationRecord, String> ADDRESS = createField(DSL.name("address"), SQLDataType.VARCHAR(255), this, "");
 
     /**
-     * The column <code>preprod.stake_registration.epoch</code>.
+     * The column <code>public.stake_registration.epoch</code>.
      */
     public final TableField<StakeRegistrationRecord, Integer> EPOCH = createField(DSL.name("epoch"), SQLDataType.INTEGER, this, "");
 
     /**
-     * The column <code>preprod.stake_registration.slot</code>.
+     * The column <code>public.stake_registration.slot</code>.
      */
     public final TableField<StakeRegistrationRecord, Long> SLOT = createField(DSL.name("slot"), SQLDataType.BIGINT, this, "");
 
     /**
-     * The column <code>preprod.stake_registration.block_hash</code>.
+     * The column <code>public.stake_registration.block_hash</code>.
      */
     public final TableField<StakeRegistrationRecord, String> BLOCK_HASH = createField(DSL.name("block_hash"), SQLDataType.VARCHAR(64), this, "");
 
     /**
-     * The column <code>preprod.stake_registration.block</code>.
+     * The column <code>public.stake_registration.block</code>.
      */
     public final TableField<StakeRegistrationRecord, Long> BLOCK = createField(DSL.name("block"), SQLDataType.BIGINT, this, "");
 
     /**
-     * The column <code>preprod.stake_registration.block_time</code>.
+     * The column <code>public.stake_registration.block_time</code>.
      */
     public final TableField<StakeRegistrationRecord, Long> BLOCK_TIME = createField(DSL.name("block_time"), SQLDataType.BIGINT, this, "");
 
     /**
-     * The column <code>preprod.stake_registration.update_datetime</code>.
+     * The column <code>public.stake_registration.update_datetime</code>.
      */
     public final TableField<StakeRegistrationRecord, LocalDateTime> UPDATE_DATETIME = createField(DSL.name("update_datetime"), SQLDataType.LOCALDATETIME(6), this, "");
 
@@ -117,21 +117,21 @@ public class StakeRegistration extends TableImpl<StakeRegistrationRecord> {
     }
 
     /**
-     * Create an aliased <code>preprod.stake_registration</code> table reference
+     * Create an aliased <code>public.stake_registration</code> table reference
      */
     public StakeRegistration(String alias) {
         this(DSL.name(alias), STAKE_REGISTRATION);
     }
 
     /**
-     * Create an aliased <code>preprod.stake_registration</code> table reference
+     * Create an aliased <code>public.stake_registration</code> table reference
      */
     public StakeRegistration(Name alias) {
         this(alias, STAKE_REGISTRATION);
     }
 
     /**
-     * Create a <code>preprod.stake_registration</code> table reference
+     * Create a <code>public.stake_registration</code> table reference
      */
     public StakeRegistration() {
         this(DSL.name("stake_registration"), null);
@@ -139,7 +139,7 @@ public class StakeRegistration extends TableImpl<StakeRegistrationRecord> {
 
     @Override
     public Schema getSchema() {
-        return aliased() ? null : Preprod.PREPROD;
+        return aliased() ? null : Public.PUBLIC;
     }
 
     @Override

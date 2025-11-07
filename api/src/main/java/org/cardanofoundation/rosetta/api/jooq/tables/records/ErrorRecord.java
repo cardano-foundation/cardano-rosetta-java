@@ -20,84 +20,84 @@ public class ErrorRecord extends UpdatableRecordImpl<ErrorRecord> {
     private static final long serialVersionUID = 1L;
 
     /**
-     * Setter for <code>preprod.error.id</code>.
+     * Setter for <code>public.error.id</code>.
      */
     public void setId(Integer value) {
         set(0, value);
     }
 
     /**
-     * Getter for <code>preprod.error.id</code>.
+     * Getter for <code>public.error.id</code>.
      */
     public Integer getId() {
         return (Integer) get(0);
     }
 
     /**
-     * Setter for <code>preprod.error.block</code>.
+     * Setter for <code>public.error.block</code>.
      */
     public void setBlock(Long value) {
         set(1, value);
     }
 
     /**
-     * Getter for <code>preprod.error.block</code>.
+     * Getter for <code>public.error.block</code>.
      */
     public Long getBlock() {
         return (Long) get(1);
     }
 
     /**
-     * Setter for <code>preprod.error.error_code</code>.
+     * Setter for <code>public.error.error_code</code>.
      */
     public void setErrorCode(String value) {
         set(2, value);
     }
 
     /**
-     * Getter for <code>preprod.error.error_code</code>.
+     * Getter for <code>public.error.error_code</code>.
      */
     public String getErrorCode() {
         return (String) get(2);
     }
 
     /**
-     * Setter for <code>preprod.error.reason</code>.
+     * Setter for <code>public.error.reason</code>.
      */
     public void setReason(String value) {
         set(3, value);
     }
 
     /**
-     * Getter for <code>preprod.error.reason</code>.
+     * Getter for <code>public.error.reason</code>.
      */
     public String getReason() {
         return (String) get(3);
     }
 
     /**
-     * Setter for <code>preprod.error.details</code>.
+     * Setter for <code>public.error.details</code>.
      */
     public void setDetails(String value) {
         set(4, value);
     }
 
     /**
-     * Getter for <code>preprod.error.details</code>.
+     * Getter for <code>public.error.details</code>.
      */
     public String getDetails() {
         return (String) get(4);
     }
 
     /**
-     * Setter for <code>preprod.error.update_datetime</code>.
+     * Setter for <code>public.error.update_datetime</code>.
      */
     public void setUpdateDatetime(LocalDateTime value) {
         set(5, value);
     }
 
     /**
-     * Getter for <code>preprod.error.update_datetime</code>.
+     * Getter for <code>public.error.update_datetime</code>.
      */
     public LocalDateTime getUpdateDatetime() {
         return (LocalDateTime) get(5);

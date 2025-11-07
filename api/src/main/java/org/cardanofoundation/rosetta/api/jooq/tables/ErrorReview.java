@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 import java.util.Collection;
 
 import org.cardanofoundation.rosetta.api.jooq.Keys;
-import org.cardanofoundation.rosetta.api.jooq.Preprod;
+import org.cardanofoundation.rosetta.api.jooq.Public;
 import org.cardanofoundation.rosetta.api.jooq.tables.records.ErrorReviewRecord;
 import org.jooq.Condition;
 import org.jooq.Field;
@@ -37,7 +37,7 @@ public class ErrorReview extends TableImpl<ErrorReviewRecord> {
     private static final long serialVersionUID = 1L;
 
     /**
-     * The reference instance of <code>preprod.error_review</code>
+     * The reference instance of <code>public.error_review</code>
      */
     public static final ErrorReview ERROR_REVIEW = new ErrorReview();
 
@@ -50,27 +50,27 @@ public class ErrorReview extends TableImpl<ErrorReviewRecord> {
     }
 
     /**
-     * The column <code>preprod.error_review.id</code>.
+     * The column <code>public.error_review.id</code>.
      */
     public final TableField<ErrorReviewRecord, Integer> ID = createField(DSL.name("id"), SQLDataType.INTEGER.nullable(false), this, "");
 
     /**
-     * The column <code>preprod.error_review.status</code>.
+     * The column <code>public.error_review.status</code>.
      */
     public final TableField<ErrorReviewRecord, String> STATUS = createField(DSL.name("status"), SQLDataType.VARCHAR(255).nullable(false), this, "");
 
     /**
-     * The column <code>preprod.error_review.comment</code>.
+     * The column <code>public.error_review.comment</code>.
      */
     public final TableField<ErrorReviewRecord, String> COMMENT = createField(DSL.name("comment"), SQLDataType.VARCHAR(255), this, "");
 
     /**
-     * The column <code>preprod.error_review.checked_by</code>.
+     * The column <code>public.error_review.checked_by</code>.
      */
     public final TableField<ErrorReviewRecord, String> CHECKED_BY = createField(DSL.name("checked_by"), SQLDataType.VARCHAR(255), this, "");
 
     /**
-     * The column <code>preprod.error_review.last_updated</code>.
+     * The column <code>public.error_review.last_updated</code>.
      */
     public final TableField<ErrorReviewRecord, LocalDateTime> LAST_UPDATED = createField(DSL.name("last_updated"), SQLDataType.LOCALDATETIME(6).nullable(false).defaultValue(DSL.field(DSL.raw("CURRENT_TIMESTAMP"), SQLDataType.LOCALDATETIME)), this, "");
 
@@ -83,21 +83,21 @@ public class ErrorReview extends TableImpl<ErrorReviewRecord> {
     }
 
     /**
-     * Create an aliased <code>preprod.error_review</code> table reference
+     * Create an aliased <code>public.error_review</code> table reference
      */
     public ErrorReview(String alias) {
         this(DSL.name(alias), ERROR_REVIEW);
     }
 
     /**
-     * Create an aliased <code>preprod.error_review</code> table reference
+     * Create an aliased <code>public.error_review</code> table reference
      */
     public ErrorReview(Name alias) {
         this(alias, ERROR_REVIEW);
     }
 
     /**
-     * Create a <code>preprod.error_review</code> table reference
+     * Create a <code>public.error_review</code> table reference
      */
     public ErrorReview() {
         this(DSL.name("error_review"), null);
@@ -105,7 +105,7 @@ public class ErrorReview extends TableImpl<ErrorReviewRecord> {
 
     @Override
     public Schema getSchema() {
-        return aliased() ? null : Preprod.PREPROD;
+        return aliased() ? null : Public.PUBLIC;
     }
 
     @Override

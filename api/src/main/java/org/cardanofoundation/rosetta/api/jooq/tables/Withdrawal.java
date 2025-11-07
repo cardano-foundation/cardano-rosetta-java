@@ -12,7 +12,7 @@ import java.util.List;
 
 import org.cardanofoundation.rosetta.api.jooq.Indexes;
 import org.cardanofoundation.rosetta.api.jooq.Keys;
-import org.cardanofoundation.rosetta.api.jooq.Preprod;
+import org.cardanofoundation.rosetta.api.jooq.Public;
 import org.cardanofoundation.rosetta.api.jooq.tables.records.WithdrawalRecord;
 import org.jooq.Condition;
 import org.jooq.Field;
@@ -42,7 +42,7 @@ public class Withdrawal extends TableImpl<WithdrawalRecord> {
     private static final long serialVersionUID = 1L;
 
     /**
-     * The reference instance of <code>preprod.withdrawal</code>
+     * The reference instance of <code>public.withdrawal</code>
      */
     public static final Withdrawal WITHDRAWAL = new Withdrawal();
 
@@ -55,42 +55,42 @@ public class Withdrawal extends TableImpl<WithdrawalRecord> {
     }
 
     /**
-     * The column <code>preprod.withdrawal.tx_hash</code>.
+     * The column <code>public.withdrawal.tx_hash</code>.
      */
     public final TableField<WithdrawalRecord, String> TX_HASH = createField(DSL.name("tx_hash"), SQLDataType.VARCHAR(64).nullable(false), this, "");
 
     /**
-     * The column <code>preprod.withdrawal.address</code>.
+     * The column <code>public.withdrawal.address</code>.
      */
     public final TableField<WithdrawalRecord, String> ADDRESS = createField(DSL.name("address"), SQLDataType.VARCHAR(255).nullable(false), this, "");
 
     /**
-     * The column <code>preprod.withdrawal.amount</code>.
+     * The column <code>public.withdrawal.amount</code>.
      */
     public final TableField<WithdrawalRecord, BigInteger> AMOUNT = createField(DSL.name("amount"), SQLDataType.DECIMAL_INTEGER(38), this, "");
 
     /**
-     * The column <code>preprod.withdrawal.epoch</code>.
+     * The column <code>public.withdrawal.epoch</code>.
      */
     public final TableField<WithdrawalRecord, Integer> EPOCH = createField(DSL.name("epoch"), SQLDataType.INTEGER, this, "");
 
     /**
-     * The column <code>preprod.withdrawal.slot</code>.
+     * The column <code>public.withdrawal.slot</code>.
      */
     public final TableField<WithdrawalRecord, Long> SLOT = createField(DSL.name("slot"), SQLDataType.BIGINT, this, "");
 
     /**
-     * The column <code>preprod.withdrawal.block</code>.
+     * The column <code>public.withdrawal.block</code>.
      */
     public final TableField<WithdrawalRecord, Long> BLOCK = createField(DSL.name("block"), SQLDataType.BIGINT, this, "");
 
     /**
-     * The column <code>preprod.withdrawal.block_time</code>.
+     * The column <code>public.withdrawal.block_time</code>.
      */
     public final TableField<WithdrawalRecord, Long> BLOCK_TIME = createField(DSL.name("block_time"), SQLDataType.BIGINT, this, "");
 
     /**
-     * The column <code>preprod.withdrawal.update_datetime</code>.
+     * The column <code>public.withdrawal.update_datetime</code>.
      */
     public final TableField<WithdrawalRecord, LocalDateTime> UPDATE_DATETIME = createField(DSL.name("update_datetime"), SQLDataType.LOCALDATETIME(6), this, "");
 
@@ -103,21 +103,21 @@ public class Withdrawal extends TableImpl<WithdrawalRecord> {
     }
 
     /**
-     * Create an aliased <code>preprod.withdrawal</code> table reference
+     * Create an aliased <code>public.withdrawal</code> table reference
      */
     public Withdrawal(String alias) {
         this(DSL.name(alias), WITHDRAWAL);
     }
 
     /**
-     * Create an aliased <code>preprod.withdrawal</code> table reference
+     * Create an aliased <code>public.withdrawal</code> table reference
      */
     public Withdrawal(Name alias) {
         this(alias, WITHDRAWAL);
     }
 
     /**
-     * Create a <code>preprod.withdrawal</code> table reference
+     * Create a <code>public.withdrawal</code> table reference
      */
     public Withdrawal() {
         this(DSL.name("withdrawal"), null);
@@ -125,7 +125,7 @@ public class Withdrawal extends TableImpl<WithdrawalRecord> {
 
     @Override
     public Schema getSchema() {
-        return aliased() ? null : Preprod.PREPROD;
+        return aliased() ? null : Public.PUBLIC;
     }
 
     @Override
