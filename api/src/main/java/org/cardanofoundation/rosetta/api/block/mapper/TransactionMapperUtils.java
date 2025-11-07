@@ -84,6 +84,21 @@ public class TransactionMapperUtils {
     return DRepDelegation.DRep.convertDRepFromRosetta(drep);
   }
 
+  @Named("convertDrepTypeStringToEnum")
+  public com.bloxbean.cardano.client.transaction.spec.governance.DRepType convertDrepTypeStringToEnum(@Nullable String drepType) {
+    if (drepType == null) {
+      return null;
+    }
+
+    return switch (drepType) {
+      case "ADDR_KEYHASH" -> com.bloxbean.cardano.client.transaction.spec.governance.DRepType.ADDR_KEYHASH;
+      case "SCRIPTHASH" -> com.bloxbean.cardano.client.transaction.spec.governance.DRepType.SCRIPTHASH;
+      case "ABSTAIN" -> com.bloxbean.cardano.client.transaction.spec.governance.DRepType.ABSTAIN;
+      case "NO_CONFIDENCE" -> com.bloxbean.cardano.client.transaction.spec.governance.DRepType.NO_CONFIDENCE;
+      default -> null;
+    };
+  }
+
   @Named("mapAmountsToOperationMetadataInputWithCache")
   public OperationMetadata mapToOperationMetaDataInputWithCache(List<Amt> amounts,
                                                                 @Context Map<AssetFingerprint, TokenRegistryCurrencyData> metadataMap) {
