@@ -78,6 +78,7 @@ usage: stability_test.py [-h] [--url BASE_URL] [--csv CSV_FILE]
                          [--concurrency CONCURRENCIES] [--duration TEST_DURATION]
                          [--sla SLA_THRESHOLD] [--error-threshold ERROR_THRESHOLD]
                          [--skip-header] [-v] [--cooldown COOLDOWN]
+                         [--network NETWORK]
                          [--endpoints SELECTED_ENDPOINTS] [--list-endpoints]
 
 Cardano Rosetta API Stability Testing Tool
@@ -102,6 +103,7 @@ options:
   --skip-header         Skip the header row in the CSV file (default: False)
   -v, --verbose         Enable verbose output (default: False)
   --cooldown COOLDOWN   Cooldown period in seconds between endpoint tests (default: 60)
+  --network NETWORK     Network identifier for API requests: mainnet or preprod (default: mainnet)
   --endpoints SELECTED_ENDPOINTS
                         Comma-separated list of endpoint names or paths to test (e.g. "Network Status,Block"
                         or "/account/balance,/block"). If not specified, all endpoints will be tested.
@@ -140,10 +142,22 @@ Test only specific endpoints by path:
 ./load-tests/stability_test.py --endpoints "/network/status,/block,/account/balance"
 ```
 
-Test only search/transactions endpoint with stake address data:
+Test search/transactions by hash lookup:
 
 ```bash
-./load-tests/stability_test.py --endpoints "/search/transactions" --csv load-tests/data/mainnet-data-stake-address.csv
+./load-tests/stability_test.py --endpoints "Search Transactions by Hash"
+```
+
+Test search/transactions by address (more resource-intensive):
+
+```bash
+./load-tests/stability_test.py --endpoints "Search Transactions by Address" --csv load-tests/data/mainnet-data.csv
+```
+
+Test on preprod network:
+
+```bash
+./load-tests/stability_test.py --network preprod --url http://127.0.0.1:8082 --csv data/preprod-data.csv
 ```
 
 List all available endpoints without running tests:
@@ -163,6 +177,62 @@ Test with custom SLA and error thresholds:
 ```bash
 ./load-tests/stability_test.py --sla 500 --error-threshold 0.5
 ```
+
+## Test Data
+
+### CSV Format Requirements
+
+Each CSV row must have 6 fields with specific associations:
+
+```
+address,block_index,block_hash,transaction_size,relative_ttl,transaction_hash
+```
+
+**Critical Data Associations (Implicit Rules):**
+
+1. **Block Consistency**: The `block_hash` MUST be the hash of the block at `block_index`
+2. **Transaction in Block**: The `transaction_hash` MUST exist in the specified block (`block_hash`)
+3. **Address in Transaction**: The `address` MUST be involved in the transaction (appear in operations as input/output)
+4. **Transaction Size**: The `transaction_size` MUST match the actual size of the transaction in bytes
+5. **Valid Address**: The `address` MUST have a balance and UTXO history (for account endpoints)
+6. **TTL Value**: The `relative_ttl` is used by construction/metadata endpoint (1000 is standard)
+
+These associations ensure all 8 endpoints can successfully use the same data row:
+- Network Status: No specific data needed
+- Account Balance/Coins: Requires valid address with balance
+- Block: Requires valid block_index and block_hash
+- Block Transaction: Requires transaction in specified block
+- Search by Hash: Requires valid transaction_hash
+- Search by Address: Requires address involved in transactions
+- Construction Metadata: Requires transaction_size and relative_ttl
+
+### Available Data Files
+
+The `data/` directory contains pre-validated CSV files for different networks:
+
+### Mainnet Data (`mainnet-data.csv`)
+- **Block**: 11573705
+- **Transaction**: 3a954835b69ca01ff9cf3b30ce385d5d9ef0cea502bd0f2ad156684dfbaf325a
+- **Address**: addr1qxw5ly68dml8ceg7eawa7we8pjw8j8hn74n2djt2upmnq9th42p6lrke4yj3e0xqg3sdqm6lzksa53wd2550vrpkedks4fttnm
+
+### Preprod Data (`preprod-data.csv`)
+- **Block**: 4070700
+- **Transaction**: bf540a825d5d40af7435801ce6adcac010f3f9f29ae102aee8cff8007f68c3d4
+- **Address**: addr_test1wzn5ee2qaqvly3hx7e0nk3vhm240n5muq3plhjcnvx9ppjgf62u6a
+
+All data has been validated to work with all 8 stability test endpoints, with proper associations between blocks, transactions, and addresses.
+
+## Endpoint Details
+
+### Search Transactions Endpoints
+
+The stability test includes two variants of the `/search/transactions` endpoint:
+
+1. **Search Transactions by Hash**: Queries transactions using `transaction_identifier`. This is a fast, direct lookup by transaction hash.
+
+2. **Search Transactions by Address**: Queries transactions using `account_identifier` with an address. This is more resource-intensive as it requires scanning transaction operations to find all transactions involving the specified address.
+
+Both endpoints use the same API path (`/search/transactions`) but with different query parameters, allowing independent performance testing of each query pattern.
 
 ## Output
 
