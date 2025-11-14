@@ -98,7 +98,7 @@ For transaction fields for the `size` and `scriptSize` are added to Transaction 
 }
 ```
 
-### `/block/transactions`
+### `/block/transaction`
 
 When the block requested contains transactions with multi assets operations, the token bundles associated to each operation will be returned as metadata. 
 
