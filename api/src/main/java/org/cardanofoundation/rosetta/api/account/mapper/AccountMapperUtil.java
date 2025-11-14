@@ -18,6 +18,9 @@ import javax.validation.constraints.NotNull;
 import java.math.BigInteger;
 import java.util.*;
 
+import static org.cardanofoundation.rosetta.common.util.Constants.ADA;
+import static org.cardanofoundation.rosetta.common.util.Constants.ADA_DECIMALS;
+
 @Component
 @RequiredArgsConstructor
 public class AccountMapperUtil {
@@ -76,7 +79,7 @@ public class AccountMapperUtil {
             Amt adaAsset = utxo.getAmounts().stream()
                     .filter(amt -> Constants.LOVELACE.equals(amt.getUnit()))
                     .findFirst()
-                    .orElseGet(() -> new Amt(null, Constants.ADA, BigInteger.ZERO));
+                    .orElseGet(() -> new Amt(null, ADA, BigInteger.ZERO));
 
             String coinIdentifier = "%s:%d".formatted(utxo.getTxHash(), utxo.getOutputIndex());
 
@@ -144,8 +147,8 @@ public class AccountMapperUtil {
 
     private CurrencyResponse getAdaCurrency() {
         return CurrencyResponse.builder()
-                .symbol(Constants.ADA)
-                .decimals(Constants.ADA_DECIMALS)
+                .symbol(ADA)
+                .decimals(ADA_DECIMALS)
                 .build();
     }
 
