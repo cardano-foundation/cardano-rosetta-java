@@ -3,9 +3,11 @@ package org.cardanofoundation.rosetta.common.util;
 import co.nstant.in.cbor.CborException;
 import com.bloxbean.cardano.client.address.Address;
 import com.bloxbean.cardano.client.common.model.Network;
-import com.bloxbean.cardano.client.crypto.bip32.key.HdPublicKey;
 import com.bloxbean.cardano.client.exception.CborSerializationException;
-import com.bloxbean.cardano.client.transaction.spec.*;
+import com.bloxbean.cardano.client.transaction.spec.Asset;
+import com.bloxbean.cardano.client.transaction.spec.MultiAsset;
+import com.bloxbean.cardano.client.transaction.spec.TransactionInput;
+import com.bloxbean.cardano.client.transaction.spec.TransactionOutput;
 import com.bloxbean.cardano.client.transaction.spec.cert.*;
 import com.bloxbean.cardano.client.transaction.spec.governance.DRep;
 import com.bloxbean.cardano.client.util.HexUtil;
@@ -24,31 +26,30 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static com.bloxbean.cardano.client.address.AddressType.Reward;
-import static org.cardanofoundation.rosetta.common.enumeration.OperationType.VOTE_DREP_DELEGATION;
 import static org.openapitools.client.model.CoinAction.SPENT;
 
 @Slf4j
-public class ParseConstructionUtil {
+public final class ParseConstructionUtil {
 
     private ParseConstructionUtil() {
     }
 
-  public static List<String> getOwnerAddressesFromPoolRegistrations(Network network,
-                                                                    PoolRegistration poolRegistration) {
-    List<String> poolOwners = new ArrayList<>();
-    Set<String> owners = poolRegistration.getPoolOwners();
-    if (network != null) {
-      for (String owner : owners) {
-        Address address = CardanoAddressUtils.getAddress(
-                null,
-                HexUtil.decodeHexString(owner),
-                Constants.STAKE_KEY_HASH_HEADER_KIND,
-                network,
-                Reward);
+    public static List<String> getOwnerAddressesFromPoolRegistrations(Network network,
+                                                                      PoolRegistration poolRegistration) {
+        List<String> poolOwners = new ArrayList<>();
+        Set<String> owners = poolRegistration.getPoolOwners();
+        if (network != null) {
+            for (String owner : owners) {
+                Address address = CardanoAddressUtils.getAddress(
+                        null,
+                        HexUtil.decodeHexString(owner),
+                        Constants.STAKE_KEY_HASH_HEADER_KIND,
+                        network,
+                        Reward);
 
-        poolOwners.add(address.getAddress());
-      }
-    }
+                poolOwners.add(address.getAddress());
+            }
+        }
 
         return poolOwners;
     }
@@ -195,135 +196,60 @@ public class ParseConstructionUtil {
                 .build();
     }
 
-    public static List<Operation> parseCertsToOperations(TransactionBody transactionBody,
-                                                         List<Operation> certOps,
-                                                         Network network)
-            throws CborException, CborSerializationException {
-        List<Operation> parsedOperations = new ArrayList<>();
-        List<Certificate> certs = transactionBody.getCerts();
-        int certsCount = getCertSize(certs);
-        log.info("[parseCertsToOperations] About to parse {} certs", certsCount);
-
-        for (int i = 0; i < certsCount; i++) {
-            Operation certOperation = certOps.get(i);
-
-            Certificate cert = ValidateParseUtil.validateCert(certs, i);
-
-            if (ObjectUtils.isEmpty(cert)) {
-                continue;
-            }
-
-            if (Constants.STAKING_OPERATIONS.contains(certOperation.getType())) {
-                String hex = getStakingCredentialHex(certOperation);
-                HdPublicKey hdPublicKey = new HdPublicKey();
-                hdPublicKey.setKeyData(HexUtil.decodeHexString(hex));
-                String address = CardanoAddressUtils.generateRewardAddress(network, hdPublicKey);
-
-                Operation parsedOperation = parseStakingCertToOperation(
-                        cert,
-                        certOperation.getOperationIdentifier().getIndex(),
-                        hex,
-                        certOperation.getType(),
-                        address
-                );
-
-                parsedOperation.setAccount(certOperation.getAccount());
-                parsedOperations.add(parsedOperation);
-            }
-
-            // all certificates related to pool operations
-            if (Constants.POOL_OPERATIONS.contains(certOperation.getType())) {
-                if (!ObjectUtils.isEmpty(cert)) {
-                    Operation parsedOperation = parsePoolCertToOperation(
-                            network,
-                            cert,
-                            certOperation.getOperationIdentifier().getIndex(),
-                            certOperation.getType()
-                    );
-                    parsedOperation.setAccount(certOperation.getAccount());
-                    parsedOperations.add(parsedOperation);
-                }
-            }
-
-            // extra type of certificate for vote delegation
-            if (VOTE_DREP_DELEGATION.getValue().equals(certOperation.getType())) {
-                String hex = getStakingCredentialHex(certOperation);
-                HdPublicKey hdPublicKey = new HdPublicKey();
-                hdPublicKey.setKeyData(HexUtil.decodeHexString(hex));
-                String address = CardanoAddressUtils.generateRewardAddress(network, hdPublicKey);
-
-                Operation parsedOperation = parseDRepVoteDelegation(
-                        cert,
-                        certOperation.getOperationIdentifier().getIndex(),
-                        hex,
-                        certOperation.getType(),
-                        address
-                );
-                parsedOperation.setAccount(certOperation.getAccount());
-                parsedOperations.add(parsedOperation);
-            }
-
+    public static String getStakingCredentialHex(Operation certOperation) {
+        String hex = null;
+        if (checkStakeCredential(certOperation)) {
+            hex = certOperation.getMetadata().getStakingCredential().getHexBytes();
+        }
+        if (hex == null) {
+            log.error("[parseCertsToOperations] Missing staking key");
+            throw ExceptionFactory.missingStakingKeyError();
         }
 
-        return parsedOperations;
+        return hex;
     }
 
-  private static String getStakingCredentialHex(Operation certOperation) {
-    String hex = null;
-    if (checkStakeCredential(certOperation)) {
-      hex = certOperation.getMetadata().getStakingCredential().getHexBytes();
-    }
-    if (hex == null) {
-      log.error("[parseCertsToOperations] Missing staking key");
-      throw ExceptionFactory.missingStakingKeyError();
-    }
+    // TODO split this into 3 separate parseOperations?
+    public static Operation parsePoolCertToOperation(Network network,
+                                                     Certificate cert,
+                                                     Long index,
+                                                     String type)
+            throws CborSerializationException, CborException {
 
-    return hex;
-  }
+        Operation operation = Operation.builder()
+                .operationIdentifier(new OperationIdentifier(index, null))
+                .type(type)
+                .status("")
+                .metadata(new OperationMetadata())
+                .build();
 
-  public static Operation parsePoolCertToOperation(Network network,
-                                                   Certificate cert,
-                                                   Long index,
-                                                   String type)
-          throws CborSerializationException, CborException {
-    Operation operation = Operation.builder()
-            .operationIdentifier(new OperationIdentifier(index, null))
-            .type(type)
-            .status("")
-            .metadata(new OperationMetadata())
-            .build();
+        if (type.equals(OperationType.POOL_RETIREMENT.getValue())) {
+            PoolRetirement poolRetirementCert = (PoolRetirement) cert;
+            operation.getMetadata().setEpoch((int) poolRetirementCert.getEpoch());
+        }
 
-    if (type.equals(OperationType.POOL_RETIREMENT.getValue())) {
-      PoolRetirement poolRetirementCert = (PoolRetirement) cert;
-      if (!ObjectUtils.isEmpty(poolRetirementCert)) {
-        operation.getMetadata().setEpoch((int) poolRetirementCert.getEpoch());
-      }
-    } else {
-      PoolRegistration poolRegistrationCert = null;
-      try {
-        poolRegistrationCert = (PoolRegistration) cert;
-      } catch (Exception e) {
-        log.info("Not a PoolRegistration");
-      }
-      if (!ObjectUtils.isEmpty(poolRegistrationCert)) {
         if (type.equals(OperationType.POOL_REGISTRATION.getValue())) {
-          PoolRegistrationParams poolRegistrationParams = parsePoolRegistration(network, poolRegistrationCert);
-          operation.getMetadata().setPoolRegistrationParams(poolRegistrationParams);
-        } else {
-          String parsedPoolCert = HexUtil.encodeHexString(
-                  com.bloxbean.cardano.client.common.cbor.CborSerializationUtil.serialize(
-                          poolRegistrationCert.serialize()));
+            PoolRegistration poolRegistrationCert = (PoolRegistration) cert;
 
-          operation.getMetadata().setPoolRegistrationCert(parsedPoolCert);
+            PoolRegistrationParams poolRegistrationParams = parsePoolRegistration(network, poolRegistrationCert);
+            operation.getMetadata().setPoolRegistrationParams(poolRegistrationParams);
         }
-      }
+
+        if (type.equals(OperationType.POOL_REGISTRATION_WITH_CERT.getValue())) {
+            PoolRegistration poolRegistrationCert = (PoolRegistration) cert;
+
+            String parsedPoolCert = HexUtil.encodeHexString(
+                    com.bloxbean.cardano.client.common.cbor.CborSerializationUtil.serialize(
+                            poolRegistrationCert.serialize()));
+
+            operation.getMetadata().setPoolRegistrationCert(parsedPoolCert);
+        }
+
+        return operation;
     }
 
-    return operation;
-  }
-
-    public static PoolRegistrationParams parsePoolRegistration(Network network,
-                                                               PoolRegistration poolRegistration) {
+    static PoolRegistrationParams parsePoolRegistration(Network network,
+                                                        PoolRegistration poolRegistration) {
         return new PoolRegistrationParams(
                 HexUtil.encodeHexString(poolRegistration.getVrfKeyHash()),
                 parsePoolRewardAccount(network, poolRegistration),
@@ -334,28 +260,6 @@ public class ParseConstructionUtil {
                 parsePoolMargin(poolRegistration), null,
                 parsePoolMetadata(poolRegistration)
         );
-    }
-
-    public static List<Operation> parseWithdrawalsToOperations(List<Operation> withdrawalOps,
-                                                               Integer withdrawalsCount, Network network) {
-
-        log.info("[parseWithdrawalsToOperations] About to parse {} withdrawals", withdrawalsCount);
-        List<Operation> withdrawalOperations = new ArrayList<>();
-        for (int i = 0; i < withdrawalsCount; i++) {
-            Operation withdrawalOperation = withdrawalOps.get(i);
-            String stakingCredentialHex = getStakingCredentialHex(withdrawalOperation);
-            HdPublicKey hdPublicKey = new HdPublicKey();
-            hdPublicKey.setKeyData(HexUtil.decodeHexString(stakingCredentialHex));
-            String address = CardanoAddressUtils.generateRewardAddress(network, hdPublicKey);
-            Operation parsedOperation = parseWithdrawalToOperation(
-                    withdrawalOperation.getAmount().getValue(),
-                    stakingCredentialHex,
-                    withdrawalOperation.getOperationIdentifier().getIndex(),
-                    address
-            );
-            withdrawalOperations.add(parsedOperation);
-        }
-        return withdrawalOperations;
     }
 
     public static Operation parseWithdrawalToOperation(String value, String hex, Long index,
@@ -377,7 +281,7 @@ public class ParseConstructionUtil {
                 .build();
     }
 
-    public static List<String> parsePoolOwners(Network network, PoolRegistration poolRegistration) {
+    static List<String> parsePoolOwners(Network network, PoolRegistration poolRegistration) {
         List<String> poolOwners = new ArrayList<>();
         Set<String> owners = poolRegistration.getPoolOwners();
         for (String owner : owners) {
@@ -392,25 +296,26 @@ public class ParseConstructionUtil {
         return poolOwners;
     }
 
-  public static String parsePoolRewardAccount(Network network, PoolRegistration poolRegistration) {
-    String cutRewardAccount = poolRegistration.getRewardAccount();
-    if (poolRegistration.getRewardAccount().length() == Constants.HEX_PREFIX_AND_REWARD_ACCOUNT_LENGTH) {
-      cutRewardAccount = poolRegistration.getRewardAccount().substring(2);
+    static String parsePoolRewardAccount(Network network, PoolRegistration poolRegistration) {
+        String cutRewardAccount = poolRegistration.getRewardAccount();
+        if (poolRegistration.getRewardAccount().length() == Constants.HEX_PREFIX_AND_REWARD_ACCOUNT_LENGTH) {
+            cutRewardAccount = poolRegistration.getRewardAccount().substring(2);
+        }
+
+        return CardanoAddressUtils.getAddress(
+                null,
+                HexUtil.decodeHexString(cutRewardAccount),
+                (byte) -32,
+                network,
+                com.bloxbean.cardano.client.address.AddressType.Reward).getAddress();
     }
 
-    return CardanoAddressUtils.getAddress(
-            null,
-            HexUtil.decodeHexString(cutRewardAccount),
-            (byte) -32,
-            network,
-            com.bloxbean.cardano.client.address.AddressType.Reward).getAddress();
-  }
-
-    public static PoolMetadata parsePoolMetadata(PoolRegistration poolRegistration) {
+    static PoolMetadata parsePoolMetadata(PoolRegistration poolRegistration) {
         if (poolRegistration.getPoolMetadataUrl() != null
                 || poolRegistration.getPoolMetadataHash() != null) {
             return new PoolMetadata(poolRegistration.getPoolMetadataUrl(), poolRegistration.getPoolMetadataHash());
         }
+
         return null;
     }
 
@@ -445,35 +350,35 @@ public class ParseConstructionUtil {
         }
     }
 
-  public static MultiHostName getMultiHostRelay(
-          com.bloxbean.cardano.client.transaction.spec.cert.Relay relay) {
-    if (relay instanceof MultiHostName multiHostName) {
-      return multiHostName;
+    public static MultiHostName getMultiHostRelay(
+            com.bloxbean.cardano.client.transaction.spec.cert.Relay relay) {
+        if (relay instanceof MultiHostName multiHostName) {
+            return multiHostName;
+        }
+
+        log.info("not a MultiHostName");
+        return null;
     }
 
-    log.info("not a MultiHostName");
-    return null;
-  }
+    public static SingleHostName getSingleHostName(
+            com.bloxbean.cardano.client.transaction.spec.cert.Relay relay) {
+        if (relay instanceof SingleHostName singleHostName) {
+            return singleHostName;
+        }
 
-  public static SingleHostName getSingleHostName(
-          com.bloxbean.cardano.client.transaction.spec.cert.Relay relay) {
-    if (relay instanceof SingleHostName singleHostName) {
-      return singleHostName;
+        log.info("not a SingleHostName");
+        return null;
     }
 
-    log.info("not a SingleHostName");
-    return null;
-  }
+    public static SingleHostAddr getSingleHostAddr(
+            com.bloxbean.cardano.client.transaction.spec.cert.Relay relay) {
+        if (relay instanceof SingleHostAddr singleHostAddr) {
+            return singleHostAddr;
+        }
 
-  public static SingleHostAddr getSingleHostAddr(
-          com.bloxbean.cardano.client.transaction.spec.cert.Relay relay) {
-    if (relay instanceof SingleHostAddr singleHostAddr) {
-      return singleHostAddr;
+        log.info("not a SingleHostAddr");
+        return null;
     }
-
-    log.info("not a SingleHostAddr");
-    return null;
-  }
 
     public static void addRelayToPoolRelayOfTypeMultiHost(List<Relay> poolRelays,
                                                           MultiHostName multiHostRelay) {
@@ -508,55 +413,56 @@ public class ParseConstructionUtil {
                 && certOperation.getMetadata().getStakingCredential() != null;
     }
 
-  public static Operation parseStakingCertToOperation(Certificate cert,
-                                                      Long index,
-                                                      String hash,
-                                                      String type,
-                                                      String address) {
-    Operation operation = new Operation(new OperationIdentifier(index, null), null, type, "",
-            new AccountIdentifier(address, null, null), null, null,
-            OperationMetadata.builder().stakingCredential(new PublicKey(hash, CurveType.EDWARDS25519))
-                    .build());
+    public static Operation parseStakingCertToOperation(Certificate cert,
+                                                        Long index,
+                                                        String hash,
+                                                        String type,
+                                                        String address) {
+        Operation operation = new Operation(new OperationIdentifier(index, null), null, type, "",
+                new AccountIdentifier(address, null, null), null, null,
+                OperationMetadata.builder().stakingCredential(new PublicKey(hash, CurveType.EDWARDS25519))
+                        .build());
 
-    if (cert instanceof StakeDelegation delegationCert) {
-      operation.getMetadata().setPoolKeyHash(
-              HexUtil.encodeHexString(delegationCert.getStakePoolId().getPoolKeyHash()));
+        // TODO why only StakeDelegation here , is it because there is additionally pool data there comparing to REG and DE_REG?
+        if (cert instanceof StakeDelegation delegationCert) {
+            operation.getMetadata().setPoolKeyHash(
+                    HexUtil.encodeHexString(delegationCert.getStakePoolId().getPoolKeyHash()));
+        }
+
+        return operation;
     }
 
-    return operation;
-  }
+    public static Operation parseDRepVoteDelegation(Certificate cert,
+                                                    Long index,
+                                                    String hash,
+                                                    String type,
+                                                    String address) {
+        Operation operation = new Operation(new OperationIdentifier(index, null), null, type, "",
+                new AccountIdentifier(address, null, null), null, null,
+                OperationMetadata.builder().stakingCredential(new PublicKey(hash, CurveType.EDWARDS25519))
+                        .build());
 
-  public static Operation parseDRepVoteDelegation(Certificate cert,
-                                                  Long index,
-                                                  String hash,
-                                                  String type,
-                                                  String address) {
-    Operation operation = new Operation(new OperationIdentifier(index, null), null, type, "",
-            new AccountIdentifier(address, null, null), null, null,
-            OperationMetadata.builder().stakingCredential(new PublicKey(hash, CurveType.EDWARDS25519))
-                    .build());
+        VoteDelegCert voteDelegCert = (VoteDelegCert) cert;
 
-    VoteDelegCert voteDelegCert = (VoteDelegCert) cert;
+        if (!ObjectUtils.isEmpty(voteDelegCert)) {
+            DRep drep = voteDelegCert.getDrep();
 
-    if (!ObjectUtils.isEmpty(voteDelegCert)) {
-      DRep drep = voteDelegCert.getDrep();
+            DRepTypeParams dRepTypeParams = switch (drep.getType()) {
+                case ADDR_KEYHASH -> DRepTypeParams.KEY_HASH;
+                case SCRIPTHASH -> DRepTypeParams.SCRIPT_HASH;
+                case ABSTAIN -> DRepTypeParams.ABSTAIN;
+                case NO_CONFIDENCE -> DRepTypeParams.NO_CONFIDENCE;
+            };
 
-      DRepTypeParams dRepTypeParams = switch (drep.getType()) {
-        case ADDR_KEYHASH -> DRepTypeParams.KEY_HASH;
-        case SCRIPTHASH -> DRepTypeParams.SCRIPT_HASH;
-        case ABSTAIN -> DRepTypeParams.ABSTAIN;
-        case NO_CONFIDENCE -> DRepTypeParams.NO_CONFIDENCE;
-      };
+            DRepParams dRepParams = DRepParams.builder()
+                    .type(dRepTypeParams)
+                    .id(drep.getHash())
+                    .build();
 
-      DRepParams dRepParams = DRepParams.builder()
-              .type(dRepTypeParams)
-              .id(drep.getHash())
-              .build();
+            operation.getMetadata().setDrep(dRepParams);
+        }
 
-      operation.getMetadata().setDrep(dRepParams);
+        return operation;
     }
-
-    return operation;
-  }
 
 }
