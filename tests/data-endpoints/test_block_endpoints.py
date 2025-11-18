@@ -6,7 +6,7 @@ Tests both /block and /block/transaction endpoints with behavioral assertions.
 
 import pytest
 import allure
-from conftest import get_error_message
+from conftest import get_error_message, assert_operations_ordered, assert_operations_sequential
 
 pytestmark = pytest.mark.pr
 
@@ -314,3 +314,75 @@ class TestBlockTransactionErrors:
             transaction_identifier={"hash": "invalid_hash"},
         )
         assert response.status_code == 500
+
+
+@allure.feature("Block")
+@allure.story("Operation Invariants")
+class TestBlockOperationInvariants:
+    """Operations must be ordered and sequential in all block transactions."""
+
+    def test_block_operations_ordered_by_index(self, client, network):
+        """Operations in /block response must be sorted by index."""
+        # Find block with transactions
+        search = client.search_transactions(network=network)
+        block_id = search.json()["transactions"][0]["block_identifier"]
+
+        response = client.block(network=network, block_identifier={"index": block_id["index"]})
+        assert response.status_code == 200
+
+        for tx in response.json()["block"]["transactions"]:
+            assert_operations_ordered(tx["operations"])
+
+    def test_block_operations_sequential_indices(self, client, network):
+        """Operations in /block must have sequential indices [0, 1, 2, ...]."""
+        # Find block with transactions
+        search = client.search_transactions(network=network)
+        block_id = search.json()["transactions"][0]["block_identifier"]
+
+        response = client.block(network=network, block_identifier={"index": block_id["index"]})
+        assert response.status_code == 200
+
+        for tx in response.json()["block"]["transactions"]:
+            assert_operations_sequential(tx["operations"])
+
+
+@allure.feature("Block Transaction")
+@allure.story("Operation Invariants")
+class TestBlockTransactionOperationInvariants:
+    """Operations must be ordered and sequential in /block/transaction."""
+
+    def test_block_transaction_operations_ordered_by_index(self, client, network):
+        """Operations in /block/transaction must be sorted by index."""
+        # Find transaction
+        search = client.search_transactions(network=network)
+        block_tx = search.json()["transactions"][0]
+
+        response = client.block_transaction(
+            network=network,
+            block_identifier={
+                "index": block_tx["block_identifier"]["index"],
+                "hash": block_tx["block_identifier"]["hash"]
+            },
+            transaction_identifier={"hash": block_tx["transaction"]["transaction_identifier"]["hash"]}
+        )
+        assert response.status_code == 200
+
+        assert_operations_ordered(response.json()["transaction"]["operations"])
+
+    def test_block_transaction_operations_sequential_indices(self, client, network):
+        """Operations in /block/transaction must have sequential indices."""
+        # Find transaction
+        search = client.search_transactions(network=network)
+        block_tx = search.json()["transactions"][0]
+
+        response = client.block_transaction(
+            network=network,
+            block_identifier={
+                "index": block_tx["block_identifier"]["index"],
+                "hash": block_tx["block_identifier"]["hash"]
+            },
+            transaction_identifier={"hash": block_tx["transaction"]["transaction_identifier"]["hash"]}
+        )
+        assert response.status_code == 200
+
+        assert_operations_sequential(response.json()["transaction"]["operations"])
