@@ -210,9 +210,8 @@ jobs:
           # Output test result
           echo "construction_result=${CONSTRUCTION_RESULT:-0}" >> $GITHUB_OUTPUT
 
-          # Don't fail the whole job if construction tests fail
-          # These are informational for now
-          exit 0
+          # Fail if construction tests failed
+          exit ${CONSTRUCTION_RESULT:-0}
         env:
           ROSETTA_URL: http://localhost:8082
           CARDANO_NETWORK: preprod
