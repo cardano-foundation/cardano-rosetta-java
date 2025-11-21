@@ -24,10 +24,7 @@ import org.openapitools.client.model.OperationIdentifier;
 import org.openapitools.client.model.OperationMetadata;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.cardanofoundation.rosetta.common.enumeration.OperationType.POOL_GOVERNANCE_VOTE;
 import static org.cardanofoundation.rosetta.common.enumeration.OperationType.VOTE_DREP_DELEGATION;
@@ -58,7 +55,10 @@ public class TransactionOperationParserImpl implements TransactionOperationParse
     fillOutputOperations(transactionBody, operations);
     fillCertOperations(transactionBody, extraData, network, operations);
     fillWithdrawalOperations(transactionBody, extraData, network, operations);
+    // if more voting operations are added consider to rename this to fillVotingOperations
     fillSpoVotingOperations(extraData, operations);
+
+    operations.sort(Comparator.comparingLong(op -> op.getOperationIdentifier().getIndex()));
 
     return operations;
   }

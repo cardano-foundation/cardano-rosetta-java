@@ -991,6 +991,64 @@ class TransactionOperationParserImplTest {
         assertThat(operations).isEmpty();
       }
     }
+
+    /**
+     * Tests for operation ordering/sorting behavior.
+     */
+    @Nested
+    class OperationOrdering {
+
+      @Test
+      void shouldReturnOperationsSortedByIndex()
+          throws CborException, CborDeserializationException, CborSerializationException {
+        // Create operations with non-sequential indices in extraData (index 2 before index 0)
+        Operation input1 = Operation.builder()
+            .type(OperationType.INPUT.getValue())
+            .operationIdentifier(OperationIdentifier.builder().index(2L).build())
+            .account(AccountIdentifier.builder().address("addr1").build())
+            .amount(Amount.builder().value("-1000000").currency(
+                CurrencyResponse.builder().symbol("ADA").decimals(6).build()).build())
+            .build();
+
+        Operation input2 = Operation.builder()
+            .type(OperationType.INPUT.getValue())
+            .operationIdentifier(OperationIdentifier.builder().index(0L).build())
+            .account(AccountIdentifier.builder().address("addr2").build())
+            .amount(Amount.builder().value("-2000000").currency(
+                CurrencyResponse.builder().symbol("ADA").decimals(6).build()).build())
+            .build();
+
+        Operation input3 = Operation.builder()
+            .type(OperationType.INPUT.getValue())
+            .operationIdentifier(OperationIdentifier.builder().index(1L).build())
+            .account(AccountIdentifier.builder().address("addr3").build())
+            .amount(Amount.builder().value("-3000000").currency(
+                CurrencyResponse.builder().symbol("ADA").decimals(6).build()).build())
+            .build();
+
+        // Pass operations in non-sorted order: [2, 0, 1]
+        TransactionExtraData extraData = new TransactionExtraData(List.of(input1, input2, input3));
+
+        TransactionBody transactionBody = TransactionBody.builder()
+            .inputs(List.of(new TransactionInput(), new TransactionInput(), new TransactionInput()))
+            .build();
+
+        TransactionData transactionData = new TransactionData(transactionBody, extraData);
+
+        List<Operation> operations = parser
+            .getOperationsFromTransactionData(transactionData, NetworkEnum.MAINNET.getNetwork());
+
+        // Verify operations are sorted by index (0, 1, 2)
+        assertThat(operations)
+            .extracting(op -> op.getOperationIdentifier().getIndex())
+            .isSorted();
+
+        // Verify the exact order
+        assertThat(operations.get(0).getOperationIdentifier().getIndex()).isEqualTo(0L);
+        assertThat(operations.get(1).getOperationIdentifier().getIndex()).isEqualTo(1L);
+        assertThat(operations.get(2).getOperationIdentifier().getIndex()).isEqualTo(2L);
+      }
+    }
   }
 
   // ========== Helper Methods ==========
