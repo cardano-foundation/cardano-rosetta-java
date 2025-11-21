@@ -19,7 +19,7 @@ RUN bash -c "curl --proto '=https' --tlsv1.2 -sSf https://get-ghcup.haskell.org 
 
 ENV PATH=/root/.local/bin:/root/.ghcup/bin:/root/.cabal/bin:${PATH}
 
-ARG BLST_VERSION="0.3.11"
+ARG BLST_VERSION="0.3.14"
 ARG LIBSODIUM_VERSION="dbb48cc"
 ARG SECP256K1_VERSION="ac83be33"
 ARG LMDB_VERSION="ce20108"
@@ -28,7 +28,7 @@ ARG CABAL_VERSION=${CABAL_VERSION:-3.12.1.0}
 ARG GHC_VERSION=${GHC_VERSION:-9.6.7}
 
 # Cardano node version
-ARG CARDANO_NODE_VERSION=${CARDANO_NODE_VERSION:-10.5.2}
+ARG CARDANO_NODE_VERSION=${CARDANO_NODE_VERSION:-10.5.3}
 
 # Clone config fork reposotory
 ARG CONFIG_FORK_REPO="VladislavKudrin/gnu-config-fork"
