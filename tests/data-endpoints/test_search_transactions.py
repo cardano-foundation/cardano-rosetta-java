@@ -6,7 +6,7 @@ Covers all 61 test cases from the original Postman collection.
 import os
 import pytest
 import allure
-from conftest import get_error_message
+from conftest import get_error_message, assert_operations_ordered, assert_operations_sequential
 
 
 # Network configuration from environment - works on ANY network
@@ -793,3 +793,29 @@ class TestCurrencyFiltering:
                 f"Transaction must contain asset with policyId {asset['policy_id']} "
                 f"and symbol {asset['symbol_hex']}. Found assets: {assets_in_tx}"
             )
+
+
+class TestOperationInvariants:
+    """Operations must be ordered and sequential in all transactions."""
+
+    @allure.feature("Search Transactions")
+    @allure.story("Operation Invariants")
+    def test_operations_ordered_by_index(self, client, network):
+        """Operations array must be sorted by operation_identifier.index."""
+        response = client.search_transactions(network=network, limit=10)
+        assert response.status_code == 200
+
+        for block_tx in response.json()["transactions"]:
+            operations = block_tx["transaction"]["operations"]
+            assert_operations_ordered(operations)
+
+    @allure.feature("Search Transactions")
+    @allure.story("Operation Invariants")
+    def test_operations_sequential_indices(self, client, network):
+        """Operation indices must be [0, 1, 2, ..., n-1] with no gaps."""
+        response = client.search_transactions(network=network, limit=10)
+        assert response.status_code == 200
+
+        for block_tx in response.json()["transactions"]:
+            operations = block_tx["transaction"]["operations"]
+            assert_operations_sequential(operations)

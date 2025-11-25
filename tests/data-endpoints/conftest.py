@@ -160,3 +160,16 @@ def get_error_message(error_response):
     details_message = error_response.get("details", {}).get("message", "")
     return (message + " " + details_message).strip()
 
+
+def assert_operations_ordered(operations):
+    """Operations must be sorted by operation_identifier.index."""
+    indices = [op["operation_identifier"]["index"] for op in operations]
+    assert indices == sorted(indices), f"Operations not ordered: {indices}"
+
+
+def assert_operations_sequential(operations):
+    """Operation indices must be [0, 1, 2, ..., n-1]."""
+    indices = [op["operation_identifier"]["index"] for op in operations]
+    expected = list(range(len(operations)))
+    assert indices == expected, f"Expected {expected}, got {indices}"
+
