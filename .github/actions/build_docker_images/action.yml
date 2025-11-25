@@ -29,7 +29,7 @@ secrets:
 runs:
     using: composite
     steps:
-      - name: Read versions from .env
+      - name: Read versions from .env.docker-compose
         id: envver
         shell: bash
         run: |
@@ -37,36 +37,42 @@ runs:
           PG_KEY='${{ inputs.pg_version_key }}'
           MITHRIL_KEY='${{ inputs.mithril_version_key }}'
 
-          if [[ ! -f .env ]]; then
-           echo ".env not found"
-           exit 0
+          if [[ ! -f .env.docker-compose ]]; then
+           echo ".env.docker-compose not found"
+           exit 1
           fi
 
           get_val() {
            local key="$1"
-           grep -E "^${key}=" .env | head -1 | cut -d= -f2- | tr -d '\r'
+           grep -E "^${key}=" .env.docker-compose | head -1 | cut -d= -f2- | tr -d '\r'
           }
 
           NODE_VAL="$(get_val "$NODE_KEY")"
           PG_VAL="$(get_val "$PG_KEY")"
           MITHRIL_VAL="$(get_val "$MITHRIL_KEY")"
-        
+
           if [[ -n "$NODE_VAL" ]]; then
             echo "node_version=$NODE_VAL" >> "$GITHUB_OUTPUT"
+            echo "Found $NODE_KEY=$NODE_VAL"
           else
-            echo "No value for $NODE_KEY in .env"
+            echo "ERROR: No value for $NODE_KEY in .env.docker-compose"
+            exit 1
           fi
 
           if [[ -n "$PG_VAL" ]]; then
             echo "pg_version=$PG_VAL" >> "$GITHUB_OUTPUT"
+            echo "Found $PG_KEY=$PG_VAL"
           else
-            echo "No value for $PG_KEY in .env"
+            echo "ERROR: No value for $PG_KEY in .env.docker-compose"
+            exit 1
           fi
 
           if [[ -n "$MITHRIL_VAL" ]]; then
             echo "mithril_version=$MITHRIL_VAL" >> "$GITHUB_OUTPUT"
+            echo "Found $MITHRIL_KEY=$MITHRIL_VAL"
           else
-            echo "No value for $MITHRIL_KEY in .env"
+            echo "ERROR: No value for $MITHRIL_KEY in .env.docker-compose"
+            exit 1
           fi
 
       - name: API - Build and push Docker ${{ inputs.tag }} image

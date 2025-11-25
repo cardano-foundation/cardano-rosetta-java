@@ -38,7 +38,7 @@ When spending native tokens in **input operations**, the token values in the `to
 :::info Minting and Burning Observations
 **Rosetta API only supports transferring existing native tokens through the Construction API.** Minting and burning operations cannot be initiated through Rosetta.
 
-However, when querying blockchain data through endpoints like `/block/transactions`, you may observe minting and burning transactions with these patterns:
+However, when querying blockchain data through endpoints like `/block/transaction`, you may observe minting and burning transactions with these patterns:
 - **Minting**: Token appears only in outputs with positive value (no corresponding input)
 - **Burning**: Token appears only in inputs with negative value (no corresponding output)  
 - **Partial burning**: Token in inputs (negative) and outputs (positive remainder). The burned amount is the difference
