@@ -147,6 +147,11 @@ public class Transaction extends TableImpl<TransactionRecord> {
     /**
      * The column <code>public.transaction.block</code>.
      */
+    public final TableField<TransactionRecord, Integer> TX_INDEX = createField(DSL.name("tx_index"), SQLDataType.INTEGER, this, "");
+
+    /**
+     * The column <code>public.transaction.block</code>.
+     */
     public final TableField<TransactionRecord, Long> BLOCK = createField(DSL.name("block"), SQLDataType.BIGINT, this, "");
 
     /**
