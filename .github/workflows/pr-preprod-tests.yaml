@@ -94,16 +94,23 @@ jobs:
           echo "Waiting for API to be ready..."
 
           # Wait for API to respond
+          API_STARTED=false
           for i in {1..60}; do
             if curl -sf -X POST http://localhost:8082/network/list \
               -H 'Content-Type: application/json' \
               -d '{}' > /dev/null 2>&1; then
               echo "API is responding"
+              API_STARTED=true
               break
             fi
             echo "Waiting for API to start... ($i/60)"
             sleep 10
           done
+
+          if [ "$API_STARTED" != "true" ]; then
+            echo "❌ API failed to start after 10 minutes"
+            exit 1
+          fi
 
           # Check sync status
           echo "Checking sync status..."
@@ -196,23 +203,22 @@ jobs:
           ROSETTA_URL: http://localhost:8082
           CARDANO_NETWORK: preprod
 
-      - name: Run construction API tests
-        id: construction_test
+      - name: Run golden example tests
+        id: golden_tests
         run: |
           export PATH="$HOME/.local/bin:$PATH"
 
           cd /home/integration/git/cardano-rosetta-java/tests/integration
 
-          # Run construction API snapshot tests
-          uv run test_construction_api.py \
-            -v || CONSTRUCTION_RESULT=$?
+          # Run golden example tests (construction + data endpoints)
+          uv run test_golden_examples.py \
+            -v || GOLDEN_RESULT=$?
 
           # Output test result
-          echo "construction_result=${CONSTRUCTION_RESULT:-0}" >> $GITHUB_OUTPUT
+          echo "golden_result=${GOLDEN_RESULT:-0}" >> $GITHUB_OUTPUT
 
-          # Don't fail the whole job if construction tests fail
-          # These are informational for now
-          exit 0
+          # Fail if golden example tests failed
+          exit ${GOLDEN_RESULT:-0}
         env:
           ROSETTA_URL: http://localhost:8082
           CARDANO_NETWORK: preprod
@@ -248,21 +254,38 @@ jobs:
           user_email: '41898282+github-actions[bot]@users.noreply.github.com'
 
       - name: Comment PR with results
-        if: always() && github.event_name == 'pull_request' && steps.test.outcome != 'skipped'
+        if: always() && github.event_name == 'pull_request'
         uses: actions/github-script@v6
         with:
           script: |
             const prNumber = context.issue.number;
-            const testResult = '${{ steps.test.outputs.test_result }}';
-            const emoji = testResult === '0' ? '✅' : '❌';
-            const status = testResult === '0' ? 'PASSED' : 'FAILED';
+
+            // Check if earlier steps failed (deployment, sync, etc.)
+            const testsSkipped = '${{ steps.test.outcome }}' === 'skipped';
+
+            let emoji, status;
+            if (testsSkipped) {
+              emoji = '💥';
+              status = 'DEPLOYMENT FAILED';
+            } else {
+              // Check all three test outputs
+              const smokeResult = '${{ steps.smoke_tests.outputs.smoke_result }}';
+              const testResult = '${{ steps.test.outputs.test_result }}';
+              const goldenResult = '${{ steps.golden_tests.outputs.golden_result }}';
+
+              const allPassed = smokeResult === '0' && testResult === '0' && goldenResult === '0';
+              emoji = allPassed ? '✅' : '❌';
+              status = allPassed ? 'PASSED' : 'FAILED';
+            }
 
             // Build comment body
             let comment = `## ${emoji} Preprod Tests: ${status}\n\n`;
 
-            // Add report link
-            const reportUrl = `https://cardano-foundation.github.io/cardano-rosetta-java/test-reports/pr-${prNumber}/`;
-            comment += `📊 **[View Detailed Test Report](${reportUrl})**\n\n`;
+            // Add report link (only if tests actually ran)
+            if (!testsSkipped) {
+              const reportUrl = `https://cardano-foundation.github.io/cardano-rosetta-java/test-reports/pr-${prNumber}/`;
+              comment += `📊 **[View Detailed Test Report](${reportUrl})**\n\n`;
+            }
 
             comment += `🔗 [Action Run #${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})\n\n`;
             comment += `_Tests run against preprod network with live blockchain data_`;
