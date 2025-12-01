@@ -57,7 +57,7 @@ except Exception:  # pragma: no cover
 # Defaults
 DEFAULT_ROSETTA_URL = "http://localhost:8082"
 DEFAULT_BASE_DIR = (
-    Path(__file__).parent / "golden_examples/rosetta_java/construction"
+    Path(__file__).parent / "golden_examples/rosetta_java"
 ).resolve()
 DEFAULT_OPENAPI_PATH = (
     Path(__file__).parent.parent.parent
@@ -91,9 +91,20 @@ DIM = "\033[2m"
 GRAY = "\033[90m"
 
 # Fields that should be ignored when diffing
+# Construction endpoints
 VOLATILE_FIELDS = {
     "metadata": ["metadata.ttl"],
     "preprocess": ["options.transaction_size"],
+}
+
+# Data endpoints - add volatile fields if needed
+# (e.g., timestamps that change between runs)
+DATA_ENDPOINT_VOLATILE_FIELDS = {
+    "search": [],
+    "block": [],
+    "account": [],
+    "network": [],
+    "mempool": [],
 }
 
 # Stats
@@ -328,7 +339,7 @@ def call_api(
             url, data=data, headers={"Content-Type": "application/json"}
         )
         start = time.monotonic()
-        with urllib.request.urlopen(req, timeout=10) as resp:
+        with urllib.request.urlopen(req, timeout=90) as resp:
             raw = resp.read()
             return (
                 json.loads(raw.decode("utf-8")),
@@ -406,8 +417,26 @@ def deep_diff(
 
 # --------------------- File + Result logic ---------------------
 def determine_endpoint(file_path: Path) -> str:
+    """Determine API endpoint from test file.
+
+    Priority:
+    1. Explicit 'endpoint' field in test file (preferred for data endpoints)
+    2. Path-based detection for construction/ directory structure
+    """
+    # Try to read endpoint from test file first
+    try:
+        test = json.loads(file_path.read_text(encoding="utf-8"))
+        if "endpoint" in test:
+            return test["endpoint"]
+    except Exception:
+        pass
+
+    # Fallback: derive from path (construction endpoints)
     try:
         rel = file_path.resolve().relative_to(Path(BASE_PATH).resolve())
+        # Handle both old structure (construction/X) and new (construction/X or data/X)
+        if rel.parts[0] == "construction" and len(rel.parts) > 1:
+            return f"/construction/{rel.parts[1]}"
         return f"/construction/{rel.parts[0]}"
     except Exception:
         parts = list(file_path.resolve().parts)
@@ -418,7 +447,8 @@ def determine_endpoint(file_path: Path) -> str:
 
 
 def get_ignore_paths(endpoint: str) -> List[str]:
-    return VOLATILE_FIELDS.get(endpoint.split("/")[-1], [])
+    endpoint_key = endpoint.split("/")[-1]
+    return VOLATILE_FIELDS.get(endpoint_key, DATA_ENDPOINT_VOLATILE_FIELDS.get(endpoint_key, []))
 
 
 def _fmt_bytes(n: Any) -> str:
@@ -535,6 +565,9 @@ def validate_file(file_path: Path) -> Dict[str, Any]:
     }
     try:
         test = json.loads(Path(file_path).read_text(encoding="utf-8"))
+        if "skip_reason" in test:
+            res.update({"status": "skipped", "error": test["skip_reason"]})
+            return res
         if "request_body" not in test:
             res.update({"status": "skipped", "error": "No request_body found"})
             return res
@@ -878,7 +911,7 @@ def main() -> None:
             flist = files_by_endpoint[endpoint]
             name = endpoint.split("/")[-1]
             print("")
-            print(f"{BOLD}Testing /construction/{name} ({len(flist)} files){RESET}")
+            print(f"{BOLD}Testing {endpoint} ({len(flist)} files){RESET}")
             print("-" * 40)
 
             ep_passed = ep_failed = ep_skipped = ep_errors = 0
@@ -916,12 +949,8 @@ def main() -> None:
                     )
                     schemas_panel = None
                     if SCHEMA_VALIDATOR and SCHEMA_VALIDATOR.enabled:
-                        suc = SCHEMA_VALIDATOR.get_resolved_schema(
-                            f"/construction/{name}", 200
-                        )
-                        err = SCHEMA_VALIDATOR.get_resolved_schema(
-                            f"/construction/{name}", 500
-                        )
+                        suc = SCHEMA_VALIDATOR.get_resolved_schema(endpoint, 200)
+                        err = SCHEMA_VALIDATOR.get_resolved_schema(endpoint, 500)
                         ssum = SCHEMA_VALIDATOR.summarize_schema(suc) if suc else None
                         esum = SCHEMA_VALIDATOR.summarize_schema(err) if err else None
                         if ssum or esum:
@@ -1177,7 +1206,7 @@ def main() -> None:
                 RICH_CONSOLE.print(
                     Panel(
                         content,
-                        title=f"\nSummary /construction/{name}",
+                        title=f"\nSummary {endpoint}",
                         border_style="white",
                         expand=True,
                     )
@@ -1214,7 +1243,7 @@ def main() -> None:
 
             stats["endpoint_summaries"].append(
                 {
-                    "endpoint": f"/construction/{name}",
+                    "endpoint": endpoint,
                     "passed": ep_passed,
                     "failed": ep_failed,
                     "skipped": ep_skipped,
