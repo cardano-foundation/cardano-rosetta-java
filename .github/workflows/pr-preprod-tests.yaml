@@ -24,13 +24,23 @@ jobs:
         run: |
           cd /home/integration/git/cardano-rosetta-java
 
+          # Fetch latest from remote
+          git fetch origin
+
           # Clean up any existing PR branch and switch to main first
           git checkout main || git checkout develop
-          git branch -D pr-${{ github.event.pull_request.number }} 2>/dev/null || true
+          git pull origin main || git pull origin develop
 
-          # Fetch and checkout the PR
-          git fetch origin pull/${{ github.event.pull_request.number }}/head:pr-${{ github.event.pull_request.number }}
-          git checkout pr-${{ github.event.pull_request.number }}
+          # Checkout appropriate branch based on trigger type
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            git branch -D pr-${{ github.event.pull_request.number }} 2>/dev/null || true
+            git fetch origin pull/${{ github.event.pull_request.number }}/head:pr-${{ github.event.pull_request.number }}
+            git checkout pr-${{ github.event.pull_request.number }}
+          else
+            # workflow_dispatch: checkout the selected branch and force sync with remote
+            git checkout ${{ github.ref_name }}
+            git reset --hard origin/${{ github.ref_name }}
+          fi
 
       - name: Stop current services
         run: |
