@@ -157,6 +157,9 @@ jobs:
           # Copy to tests directory
           cp .env.test tests/data-endpoints/.env
 
+      - name: Clean previous Allure results
+        run: rm -rf /home/integration/git/cardano-rosetta-java/tests/data-endpoints/allure-results/*
+
       - name: Run smoke tests (validate test data)
         id: smoke_tests
         run: |
@@ -252,6 +255,10 @@ jobs:
           keep_files: true
           user_name: 'github-actions[bot]'
           user_email: '41898282+github-actions[bot]@users.noreply.github.com'
+
+      - name: Cleanup gh-pages temp directories
+        if: always()
+        run: rm -rf ~/actions_github_pages_*
 
       - name: Comment PR with results
         if: always() && github.event_name == 'pull_request'
