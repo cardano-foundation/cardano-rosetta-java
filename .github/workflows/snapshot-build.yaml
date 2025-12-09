@@ -23,7 +23,7 @@ env:
 jobs:
   detect-network:
     name: Detect Network
-    runs-on: [preprod-snapshot-builder]
+    runs-on: [snapshot-build]
     outputs:
       network: ${{ steps.detect.outputs.network }}
       env_file: ${{ steps.detect.outputs.env_file }}
@@ -91,7 +91,7 @@ jobs:
 
   check-sync-status:
     name: Check Indexer Sync Status
-    runs-on: [preprod-snapshot-builder]
+    runs-on: [snapshot-build]
     needs: detect-network
     outputs:
       is_synced: ${{ steps.sync-check.outputs.synced }}
@@ -158,7 +158,7 @@ jobs:
 
   create-snapshot:
     name: Create Database Snapshot
-    runs-on: [preprod-snapshot-builder]
+    runs-on: [snapshot-build]
     needs: [detect-network, check-sync-status]
 
     steps:
@@ -214,7 +214,7 @@ jobs:
 
   cleanup-and-summary:
     name: Cleanup Old Snapshots
-    runs-on: [preprod-snapshot-builder]
+    runs-on: [snapshot-build]
     needs: [detect-network, create-snapshot]
     if: always()
 
