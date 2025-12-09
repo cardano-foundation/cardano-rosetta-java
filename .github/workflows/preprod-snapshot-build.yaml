@@ -15,7 +15,6 @@ on:
     - cron: '0 0 * * *'
 
 env:
-  SNAPSHOT_DIR: /opt/cardano-rosetta-java-snapshots
   COMPOSE_PROJECT_NAME: cardano-rosetta-java
   API_HOST: localhost
   API_PORT: 8082
@@ -210,46 +209,4 @@ jobs:
           else
             echo "⚠️  Could not unpause indexer"
             echo "⚠️  Please manually resume: docker unpause ${YACI_CONTAINER}"
-          fi
-
-  cleanup-and-summary:
-    name: Cleanup Old Snapshots
-    runs-on: [preprod-server-colo2]
-    needs: [detect-network, create-snapshot]
-    if: always()
-
-    steps:
-      - name: Clean up old snapshots
-        run: |
-          echo "🧹 Cleaning up snapshots older than 7 days..."
-          find ${SNAPSHOT_DIR} -type d -mtime +7 -exec rm -rf {} + 2>/dev/null || true
-
-          echo "📊 Current snapshots:"
-          du -sh ${SNAPSHOT_DIR}/*/ 2>/dev/null || echo "No snapshot directories found"
-
-      - name: Show latest snapshot
-        if: success()
-        env:
-          NETWORK: ${{ needs.detect-network.outputs.network }}
-        run: |
-          echo "✅ Snapshot workflow completed successfully!"
-          echo ""
-          echo "🌐 Network: ${NETWORK}"
-          echo ""
-          echo "📦 Latest snapshot files:"
-          LATEST_DIR=$(ls -td ${SNAPSHOT_DIR}/*/ 2>/dev/null | head -1)
-          if [ -n "$LATEST_DIR" ]; then
-            ls -lh "$LATEST_DIR" | tail -n +2
-            echo ""
-            echo "📁 Location: $LATEST_DIR"
-
-            # Show metadata if available
-            METADATA_FILE=$(ls -t "$LATEST_DIR"/*.metadata.json 2>/dev/null | head -1)
-            if [ -f "$METADATA_FILE" ]; then
-              echo ""
-              echo "📋 Snapshot metadata:"
-              cat "$METADATA_FILE"
-            fi
-          else
-            echo "⚠️  No snapshots found in ${SNAPSHOT_DIR}"
           fi
