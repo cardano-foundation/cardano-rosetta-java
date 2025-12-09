@@ -15,7 +15,7 @@ on:
     - cron: '0 0 * * *'
 
 env:
-  SNAPSHOT_DIR: /opt/cardano-rosetta-java-snapshots
+  SNAPSHOT_DIR: /home/integration/git/cardano-rosetta-java/snapshots
   COMPOSE_PROJECT_NAME: cardano-rosetta-java
   API_HOST: localhost
   API_PORT: 8082
@@ -187,7 +187,7 @@ jobs:
           echo "   Network: ${NETWORK}"
           echo "   Env File: ${ENV_FILE}"
 
-          docker compose -f docker-compose-snapshot.yaml \
+          docker-compose -f docker-compose-snapshot.yaml \
             --env-file ${ENV_FILE} \
             up db-snapshot-create
 
