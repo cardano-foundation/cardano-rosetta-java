@@ -1,19 +1,4 @@
 services:
-  # Snapshot creation service
-  # Creates a PostgreSQL dump with metadata and checksum files
-  #
-  # Usage:
-  #   docker-compose -f docker-compose-snapshot.yaml --env-file .env.docker-compose-preprod up db-snapshot-create
-  #
-  # Prerequisites:
-  #   - yaci-indexer should be paused before running
-  #   - Database should be at desired block height
-  #
-  # Output:
-  #   - snapshot_<network>_<timestamp>-block<N>.dump
-  #   - snapshot_<network>_<timestamp>-block<N>.checksum
-  #   - snapshot_<network>_<timestamp>-block<N>.metadata.json
-  #
   db-snapshot-create:
     image: cardanofoundation/cardano-rosetta-java-postgres:${PG_VERSION_TAG}
     build:
@@ -34,9 +19,6 @@ services:
       - ${SNAPSHOT_PATH:-/opt/cardano-rosetta-java-snapshots}:/snapshots
     entrypoint: ["/bin/bash", "/create-snapshot.sh"]
     restart: "no"
-    depends_on:
-      db:
-        condition: service_healthy
 
 networks:
   default:
