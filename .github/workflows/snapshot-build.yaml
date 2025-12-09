@@ -108,7 +108,7 @@ jobs:
           cd /home/integration/git/cardano-rosetta-java
 
           echo "🚀 Starting snapshot creation..."
-          docker-compose -f docker-compose-snapshot.yaml \
+          docker compose -f docker-compose-snapshot.yaml \
             --env-file .env.docker-compose-preprod \
             up db-snapshot-create
 
