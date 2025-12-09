@@ -9,30 +9,18 @@ on:
         required: false
         type: boolean
         default: false
-  
+
   # Scheduled: Daily at midnight UTC
   schedule:
     - cron: '0 0 * * *'
 
-# Permissions needed for GitHub Pages deployment and PR comments
-permissions:
-  contents: write  # Changed from 'read' to 'write' to allow pushing to gh-pages branch
-  pages: write
-  id-token: write
-  pull-requests: write
-
 env:
-  DB_HOST: localhost
-  DB_PORT: 5432
-  DB_NAME: rosetta-java
-  DB_USER: rosetta_db_admin
-  DB_SCHEMA: preprod
-  NETWORK: preprod
   SNAPSHOT_DIR: /home/integration/git/cardano-rosetta-java/snapshots
-  API_HOST: localhost
-  API_PORT: 8082
   COMPOSE_PROJECT_NAME: cardano-rosetta-java
   YACI_CONTAINER: cardano-rosetta-java-yaci-indexer-1
+  API_HOST: localhost
+  API_PORT: 8082
+  NETWORK: preprod
 
 jobs:
   check-sync-status:
@@ -40,7 +28,7 @@ jobs:
     runs-on: [preprod-snapshot-builder]
     outputs:
       is_synced: ${{ steps.sync-check.outputs.synced }}
-    
+
     steps:
       - name: Check indexer is running
         run: |
@@ -49,7 +37,7 @@ jobs:
             exit 1
           fi
           echo "✅ Indexer container is running"
-      
+
       - name: Wait for indexer to sync
         id: sync-check
         if: ${{ !inputs.skip_sync_check }}
@@ -57,7 +45,7 @@ jobs:
           echo "🔍 Checking indexer sync status..."
           MAX_ATTEMPTS=12  # Check every 5 minutes for 1 hour
           ATTEMPT=0
-          
+
           while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
             RESPONSE=$(curl -s --location "${API_HOST}:${API_PORT}/network/status" \
               --header 'Content-Type: application/json' \
@@ -68,7 +56,7 @@ jobs:
                 },
                 \"metadata\": {}
               }" 2>/dev/null || echo "{}")
-            
+
             if [ -z "$RESPONSE" ]; then
               echo "⚠️  Could not connect to API at ${API_HOST}:${API_PORT}"
               ATTEMPT=$((ATTEMPT + 1))
@@ -76,15 +64,15 @@ jobs:
               sleep 300
               continue
             fi
-            
+
             SYNCED=$(echo "$RESPONSE" | grep -o '"synced":[^,}]*' | sed 's/"synced"://' | tr -d ' ')
-            
+
             if [ "$SYNCED" = "true" ]; then
               echo "✅ Indexer is synced and at tip"
               echo "synced=true" >> $GITHUB_OUTPUT
               exit 0
             fi
-            
+
             ATTEMPT=$((ATTEMPT + 1))
             echo "⏳ Indexer not synced yet (Attempt $ATTEMPT/$MAX_ATTEMPTS)"
             if [ $ATTEMPT -lt $MAX_ATTEMPTS ]; then
@@ -92,21 +80,16 @@ jobs:
               sleep 300
             fi
           done
-          
+
           echo "❌ ERROR: Indexer not synced after 1 hour"
           echo "synced=false" >> $GITHUB_OUTPUT
           exit 1
 
-  prepare-snapshot:
-    name: Prepare Snapshot Metadata
+  create-snapshot:
+    name: Create Database Snapshot
     runs-on: [preprod-snapshot-builder]
     needs: check-sync-status
-    outputs:
-      block_number: ${{ steps.metadata.outputs.block_number }}
-      slot_number: ${{ steps.metadata.outputs.slot_number }}
-      snapshot_name: ${{ steps.metadata.outputs.snapshot_name }}
-      date_folder: ${{ steps.metadata.outputs.date_folder }}
-    
+
     steps:
       - name: Pause yaci-indexer
         id: pause-indexer
@@ -119,163 +102,18 @@ jobs:
             echo "⚠️  Could not pause indexer - continuing anyway"
             echo "paused=false" >> $GITHUB_OUTPUT
           fi
-      
-      - name: Collect database metadata
-        id: metadata
-        env:
-          PGPASSWORD: ${{ secrets.PREPROD_DB_SECRET }}
+
+      - name: Create snapshot using Docker Compose
         run: |
-          echo "📊 Collecting metadata from database..."
-          
-          BLOCK_NUMBER=$(psql -h ${DB_HOST} -p ${DB_PORT} -U ${DB_USER} -d ${DB_NAME} -t -c \
-            "SELECT COALESCE(MAX(number), 0) FROM ${DB_SCHEMA}.block;" | xargs)
-          
-          SLOT_NUMBER=$(psql -h ${DB_HOST} -p ${DB_PORT} -U ${DB_USER} -d ${DB_NAME} -t -c \
-            "SELECT COALESCE(MAX(slot), 0) FROM ${DB_SCHEMA}.block;" | xargs)
-          
-          TABLE_COUNT=$(psql -h ${DB_HOST} -p ${DB_PORT} -U ${DB_USER} -d ${DB_NAME} -t -c \
-            "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = '${DB_SCHEMA}';" | xargs)
-          
-          TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-          DATE_FOLDER=$(date +%Y-%m-%d)
-          SNAPSHOT_NAME="snapshot_${NETWORK}_${TIMESTAMP}-block${BLOCK_NUMBER}.dump"
-          
-          echo "   - Block Number: ${BLOCK_NUMBER}"
-          echo "   - Slot Number: ${SLOT_NUMBER}"
-          echo "   - Table Count: ${TABLE_COUNT}"
-          echo "   - Snapshot Name: ${SNAPSHOT_NAME}"
-          
-          echo "block_number=${BLOCK_NUMBER}" >> $GITHUB_OUTPUT
-          echo "slot_number=${SLOT_NUMBER}" >> $GITHUB_OUTPUT
-          echo "table_count=${TABLE_COUNT}" >> $GITHUB_OUTPUT
-          echo "snapshot_name=${SNAPSHOT_NAME}" >> $GITHUB_OUTPUT
-          echo "date_folder=${DATE_FOLDER}" >> $GITHUB_OUTPUT
-          echo "timestamp=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $GITHUB_OUTPUT
+          cd /home/integration/git/cardano-rosetta-java
 
+          echo "🚀 Starting snapshot creation..."
+          docker-compose -f docker-compose-snapshot.yaml \
+            --env-file .env.docker-compose-preprod \
+            up db-snapshot-create
 
-  create-dump:
-    name: Create PostgreSQL Dump
-    runs-on: [preprod-snapshot-builder]
-    needs: prepare-snapshot
-    outputs:
-      snapshot_file: ${{ steps.dump.outputs.SNAPSHOT_FILE }}
-      snapshot_size_mb: ${{ steps.dump.outputs.SNAPSHOT_SIZE_MB }}
-      dump_duration_min: ${{ steps.dump.outputs.DUMP_DURATION_MIN }}
+          echo "✅ Snapshot creation completed"
 
-    steps:
-      - name: Create database dump
-        id: dump
-        env:
-          PGPASSWORD: ${{ secrets.PREPROD_DB_SECRET }}
-          DB_SECRET: ${{ secrets.PREPROD_DB_SECRET }}
-        run: |
-          echo "🚀 Creating PostgreSQL dump..."
-
-          # Use absolute path to script on the self-hosted runner
-          SCRIPT_PATH="/home/integration/git/cardano-rosetta-java/docker/dockerfiles/postgres/create-snapshot.sh"
-
-          if [ ! -f "$SCRIPT_PATH" ]; then
-            echo "❌ ERROR: Script not found at $SCRIPT_PATH"
-            exit 1
-          fi
-
-          docker run --rm \
-            --network cardano-rosetta-java-preprod \
-            -e DB_HOST=${DB_HOST} \
-            -e DB_PORT=${DB_PORT} \
-            -e DB_NAME=${DB_NAME} \
-            -e DB_USER=${DB_USER} \
-            -e DB_SECRET=${{ secrets.PREPROD_DB_SECRET }} \
-            -e DB_SCHEMA=${DB_SCHEMA} \
-            -e NETWORK=${NETWORK} \
-            -e SNAPSHOT_DIR=${SNAPSHOT_DIR} \
-            -e GITHUB_OUTPUT=/tmp/github_output \
-            -v ${SNAPSHOT_DIR}:${SNAPSHOT_DIR} \
-            -v ${SCRIPT_PATH}:/create-snapshot.sh:ro \
-            cardanofoundation/cardano-rosetta-java-postgres:latest \
-            bash /create-snapshot.sh \
-              --block-number "${{ needs.prepare-snapshot.outputs.block_number }}" \
-              --snapshot-name "${{ needs.prepare-snapshot.outputs.snapshot_name }}"
-
-          # Verify file exists and capture metadata
-          SNAPSHOT_FILE="${SNAPSHOT_DIR}/${{ needs.prepare-snapshot.outputs.date_folder }}/${{ needs.prepare-snapshot.outputs.snapshot_name }}"
-          if [ -f "$SNAPSHOT_FILE" ]; then
-            FILE_SIZE=$(stat -c%s "$SNAPSHOT_FILE" 2>/dev/null || stat -f%z "$SNAPSHOT_FILE" 2>/dev/null)
-            SIZE_MB=$((FILE_SIZE / 1024 / 1024))
-            echo "SNAPSHOT_FILE=${SNAPSHOT_FILE}" >> $GITHUB_OUTPUT
-            echo "SNAPSHOT_SIZE_MB=${SIZE_MB}" >> $GITHUB_OUTPUT
-            echo "✅ Dump created: ${SNAPSHOT_FILE} (${SIZE_MB} MB)"
-          else
-            echo "❌ ERROR: Dump file not found"
-            exit 1
-          fi
-
-  generate-metadata:
-    name: Generate Metadata Files
-    runs-on: [preprod-snapshot-builder]
-    needs: [prepare-snapshot, create-dump]
-
-    steps:
-      - name: Generate checksum
-        run: |
-          echo "🔐 Generating SHA256 checksum..."
-          SNAPSHOT_FILE="${SNAPSHOT_DIR}/${{ needs.prepare-snapshot.outputs.date_folder }}/${{ needs.prepare-snapshot.outputs.snapshot_name }}"
-          CHECKSUM_FILE="${SNAPSHOT_FILE%.dump}.checksum"
-
-          cd "$(dirname "$SNAPSHOT_FILE")"
-          sha256sum "$(basename "$SNAPSHOT_FILE")" > "$(basename "$CHECKSUM_FILE")"
-
-          echo "✅ Checksum created: $(basename "$CHECKSUM_FILE")"
-          cat "$CHECKSUM_FILE"
-
-      - name: Generate metadata JSON
-        run: |
-          echo "📋 Generating metadata JSON..."
-          SNAPSHOT_FILE="${SNAPSHOT_DIR}/${{ needs.prepare-snapshot.outputs.date_folder }}/${{ needs.prepare-snapshot.outputs.snapshot_name }}"
-          METADATA_FILE="${SNAPSHOT_FILE%.dump}.metadata.json"
-          CHECKSUM=$(cat "${SNAPSHOT_FILE%.dump}.checksum" | awk '{print $1}')
-
-          cat > "$METADATA_FILE" << 'METADATA_EOF'
-          {
-            "snapshot": {
-              "name": "${{ needs.prepare-snapshot.outputs.snapshot_name }}",
-              "created_at": "${{ needs.prepare-snapshot.outputs.timestamp }}",
-              "format": "pg_dump custom format",
-              "size_bytes": SIZE_PLACEHOLDER,
-              "checksum_sha256": "CHECKSUM_PLACEHOLDER",
-              "compressed": true,
-              "compression_level": 9
-            },
-            "source": {
-              "network": "${NETWORK}",
-              "database": {
-                "host": "${DB_HOST}",
-                "port": ${DB_PORT},
-                "name": "${DB_NAME}",
-                "schema": "${DB_SCHEMA}",
-                "table_count": ${{ needs.prepare-snapshot.outputs.table_count }},
-                "highest_block": ${{ needs.prepare-snapshot.outputs.block_number }},
-                "highest_slot": ${{ needs.prepare-snapshot.outputs.slot_number }}
-              }
-            }
-          }
-          METADATA_EOF
-
-          # Replace placeholders
-          FILE_SIZE=$(stat -c%s "$SNAPSHOT_FILE" 2>/dev/null || stat -f%z "$SNAPSHOT_FILE" 2>/dev/null)
-          sed -i "s/SIZE_PLACEHOLDER/${FILE_SIZE}/g" "$METADATA_FILE"
-          sed -i "s/CHECKSUM_PLACEHOLDER/${CHECKSUM}/g" "$METADATA_FILE"
-
-          echo "✅ Metadata created: $(basename "$METADATA_FILE")"
-          cat "$METADATA_FILE"
-
-  cleanup-and-resume:
-    name: Cleanup and Resume Indexer
-    runs-on: [preprod-snapshot-builder]
-    needs: [prepare-snapshot, create-dump, generate-metadata]
-    if: always()
-
-    steps:
       - name: Resume yaci-indexer
         if: always()
         run: |
@@ -290,9 +128,16 @@ jobs:
             fi
           else
             echo "⚠️  Could not unpause indexer"
-            echo "Please manually resume: docker unpause ${YACI_CONTAINER}"
+            echo "⚠️  Please manually resume: docker unpause ${YACI_CONTAINER}"
           fi
 
+  cleanup-and-summary:
+    name: Cleanup Old Snapshots
+    runs-on: [preprod-snapshot-builder]
+    needs: create-snapshot
+    if: always()
+
+    steps:
       - name: Clean up old snapshots
         run: |
           echo "🧹 Cleaning up snapshots older than 7 days..."
@@ -301,16 +146,25 @@ jobs:
           echo "📊 Current snapshots:"
           du -sh ${SNAPSHOT_DIR}/*/ 2>/dev/null || echo "No snapshot directories found"
 
-      - name: Summary
+      - name: Show latest snapshot
         if: success()
         run: |
-          echo "✅ Snapshot creation completed successfully!"
+          echo "✅ Snapshot workflow completed successfully!"
           echo ""
-          echo "📦 Snapshot Details:"
-          echo "   - Name: ${{ needs.prepare-snapshot.outputs.snapshot_name }}"
-          echo "   - Block: ${{ needs.prepare-snapshot.outputs.block_number }}"
-          echo "   - Size: ${{ needs.create-dump.outputs.snapshot_size_mb }} MB"
-          echo "   - Location: ${SNAPSHOT_DIR}/${{ needs.prepare-snapshot.outputs.date_folder }}/"
-          echo ""
-          echo "📁 Files created:"
-          ls -lh "${SNAPSHOT_DIR}/${{ needs.prepare-snapshot.outputs.date_folder }}/" | tail -n +2
+          echo "📦 Latest snapshot files:"
+          LATEST_DIR=$(ls -td ${SNAPSHOT_DIR}/*/ 2>/dev/null | head -1)
+          if [ -n "$LATEST_DIR" ]; then
+            ls -lh "$LATEST_DIR" | tail -n +2
+            echo ""
+            echo "📁 Location: $LATEST_DIR"
+
+            # Show metadata if available
+            METADATA_FILE=$(ls -t "$LATEST_DIR"/*.metadata.json 2>/dev/null | head -1)
+            if [ -f "$METADATA_FILE" ]; then
+              echo ""
+              echo "📋 Snapshot metadata:"
+              cat "$METADATA_FILE"
+            fi
+          else
+            echo "⚠️  No snapshots found in ${SNAPSHOT_DIR}"
+          fi

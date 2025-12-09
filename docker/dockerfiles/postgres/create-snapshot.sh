@@ -1,36 +1,9 @@
 #!/bin/bash
 set -e
 
-# Simplified snapshot creation script - only handles pg_dump
-# GitHub Actions workflow handles: sync checking, indexer pause/resume, metadata generation
-
-# Parse command line arguments
-BLOCK_NUMBER=""
-SNAPSHOT_NAME=""
-
-while [[ $# -gt 0 ]]; do
-    case $1 in
-        --block-number)
-            BLOCK_NUMBER="$2"
-            shift 2
-            ;;
-        --snapshot-name)
-            SNAPSHOT_NAME="$2"
-            shift 2
-            ;;
-        *)
-            echo "Unknown parameter: $1"
-            exit 1
-            ;;
-    esac
-done
-
-# Validate required parameters
-if [ -z "$BLOCK_NUMBER" ] || [ -z "$SNAPSHOT_NAME" ]; then
-    echo "Error: Missing required parameters"
-    echo "Usage: $0 --block-number <number> --snapshot-name <name>"
-    exit 1
-fi
+# Simplified snapshot creation script
+# Assumes indexer is already paused by workflow
+# Queries database for block number and creates snapshot with metadata
 
 # Configuration from environment
 DB_SCHEMA=${DB_SCHEMA:-${NETWORK}}
@@ -38,7 +11,7 @@ SNAPSHOT_DIR=${SNAPSHOT_DIR:-/snapshots}
 DATE_FOLDER=$(date +%Y-%m-%d)
 NETWORK=${NETWORK:-mainnet}
 
-# Create output directory
+# Create day-wise folder structure
 SNAPSHOT_OUTPUT_DIR="${SNAPSHOT_DIR}/${DATE_FOLDER}"
 mkdir -p "${SNAPSHOT_OUTPUT_DIR}"
 
@@ -55,12 +28,37 @@ until "${PG_BIN}/pg_isready" -h ${DB_HOST} -p ${DB_PORT} -U ${DB_USER} -d ${DB_N
 done
 log "✅ Database is ready"
 
+# Collect metadata from database
+log "📊 Collecting metadata from database..."
+HIGHEST_BLOCK=$("${PG_BIN}/psql" -h ${DB_HOST} -p ${DB_PORT} -U ${DB_USER} -d ${DB_NAME} -t -c \
+    "SELECT COALESCE(MAX(number), 0) FROM ${DB_SCHEMA}.block;")
+HIGHEST_SLOT=$("${PG_BIN}/psql" -h ${DB_HOST} -p ${DB_PORT} -U ${DB_USER} -d ${DB_NAME} -t -c \
+    "SELECT COALESCE(MAX(slot), 0) FROM ${DB_SCHEMA}.block;")
+TABLE_COUNT=$("${PG_BIN}/psql" -h ${DB_HOST} -p ${DB_PORT} -U ${DB_USER} -d ${DB_NAME} -t -c \
+    "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = '${DB_SCHEMA}';")
+
+# Trim whitespace
+HIGHEST_BLOCK=$(echo $HIGHEST_BLOCK | xargs)
+HIGHEST_SLOT=$(echo $HIGHEST_SLOT | xargs)
+TABLE_COUNT=$(echo $TABLE_COUNT | xargs)
+
+log "   - Highest Block: ${HIGHEST_BLOCK}"
+log "   - Highest Slot: ${HIGHEST_SLOT}"
+log "   - Tables: ${TABLE_COUNT}"
+
+# Generate snapshot name with block number and timestamp
+TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+TIMESTAMP_ISO=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+SNAPSHOT_NAME="snapshot_${NETWORK}_${TIMESTAMP}-block${HIGHEST_BLOCK}"
+
+log "📦 Snapshot name: ${SNAPSHOT_NAME}.dump"
+
 # Create snapshot
-log "🚀 Creating snapshot: ${SNAPSHOT_NAME}"
-log "   Block Number: ${BLOCK_NUMBER}"
+log "🚀 Creating PostgreSQL dump..."
 log "   Network: ${NETWORK}"
 log "   Schema: ${DB_SCHEMA}"
-log "   Output: ${SNAPSHOT_OUTPUT_DIR}/${SNAPSHOT_NAME}"
+log "   Block: ${HIGHEST_BLOCK}"
+log "   Output: ${SNAPSHOT_OUTPUT_DIR}/${SNAPSHOT_NAME}.dump"
 log "   This may take several hours for large databases..."
 
 DUMP_START_TIME=$(date +%s)
@@ -77,32 +75,80 @@ DUMP_START_TIME=$(date +%s)
     --no-owner \
     --no-privileges \
     --verbose \
-    --file="${SNAPSHOT_OUTPUT_DIR}/${SNAPSHOT_NAME}"
+    --file="${SNAPSHOT_OUTPUT_DIR}/${SNAPSHOT_NAME}.dump"
 
 DUMP_END_TIME=$(date +%s)
 DUMP_DURATION=$((DUMP_END_TIME - DUMP_START_TIME))
 DUMP_DURATION_MIN=$((DUMP_DURATION / 60))
 
+log "✅ Dump completed in ${DUMP_DURATION_MIN} minutes"
+
 # Verify dump file was created
-if [ ! -f "${SNAPSHOT_OUTPUT_DIR}/${SNAPSHOT_NAME}" ]; then
+if [ ! -f "${SNAPSHOT_OUTPUT_DIR}/${SNAPSHOT_NAME}.dump" ]; then
     log "❌ ERROR: Dump file not created"
     exit 1
 fi
 
-FILE_SIZE=$(stat -f%z "${SNAPSHOT_OUTPUT_DIR}/${SNAPSHOT_NAME}" 2>/dev/null || stat -c%s "${SNAPSHOT_OUTPUT_DIR}/${SNAPSHOT_NAME}" 2>/dev/null)
+# Get file size (Linux stat)
+FILE_SIZE=$(stat -c%s "${SNAPSHOT_OUTPUT_DIR}/${SNAPSHOT_NAME}.dump" 2>/dev/null)
 FILE_SIZE_MB=$((FILE_SIZE / 1024 / 1024))
 
-log "✅ Snapshot created successfully"
+# Generate checksum
+log "🔐 Generating SHA256 checksum..."
+cd "${SNAPSHOT_OUTPUT_DIR}"
+sha256sum "${SNAPSHOT_NAME}.dump" > "${SNAPSHOT_NAME}.checksum"
+CHECKSUM=$(cat "${SNAPSHOT_NAME}.checksum" | awk '{print $1}')
+log "✅ Checksum: ${CHECKSUM:0:16}..."
+
+# Generate metadata JSON
+log "📝 Creating metadata file..."
+cat > "${SNAPSHOT_OUTPUT_DIR}/${SNAPSHOT_NAME}.metadata.json" <<EOF
+{
+  "snapshot": {
+    "name": "${SNAPSHOT_NAME}.dump",
+    "created_at": "${TIMESTAMP_ISO}",
+    "format": "pg_dump custom format",
+    "size_bytes": ${FILE_SIZE},
+    "size_mb": ${FILE_SIZE_MB},
+    "checksum_sha256": "${CHECKSUM}",
+    "compressed": true,
+    "compression_level": 9
+  },
+  "source": {
+    "network": "${NETWORK}",
+    "database": {
+      "host": "${DB_HOST}",
+      "port": ${DB_PORT},
+      "name": "${DB_NAME}",
+      "schema": "${DB_SCHEMA}",
+      "table_count": ${TABLE_COUNT},
+      "highest_block": ${HIGHEST_BLOCK},
+      "highest_slot": ${HIGHEST_SLOT}
+    }
+  },
+  "restore_info": {
+    "command": "pg_restore -h \${DB_HOST} -U \${DB_USER} -d \${DB_NAME} --clean --if-exists --schema=${DB_SCHEMA} ${SNAPSHOT_NAME}.dump",
+    "yaci_store_auto_resume": true,
+    "note": "Yaci-Store will automatically resume from block ${HIGHEST_BLOCK}"
+  }
+}
+EOF
+
+log "✅ Snapshot creation complete!"
+log ""
+log "📦 Files created in ${DATE_FOLDER}/:"
+log "   - ${SNAPSHOT_NAME}.dump"
+log "   - ${SNAPSHOT_NAME}.checksum"
+log "   - ${SNAPSHOT_NAME}.metadata.json"
+log ""
 log "📊 Statistics:"
-log "   - File: ${SNAPSHOT_NAME}"
-log "   - Size: ${FILE_SIZE_MB} MB"
-log "   - Duration: ${DUMP_DURATION_MIN} minutes"
-log "   - Location: ${SNAPSHOT_OUTPUT_DIR}/"
-log "   - Block: ${BLOCK_NUMBER}"
-
-# Output file path for GitHub Actions
-echo "SNAPSHOT_FILE=${SNAPSHOT_OUTPUT_DIR}/${SNAPSHOT_NAME}" >> ${GITHUB_OUTPUT:-/dev/null}
-echo "SNAPSHOT_SIZE_MB=${FILE_SIZE_MB}" >> ${GITHUB_OUTPUT:-/dev/null}
-echo "DUMP_DURATION_MIN=${DUMP_DURATION_MIN}" >> ${GITHUB_OUTPUT:-/dev/null}
-
-log "🎉 Snapshot creation completed"
+log "   - Network: ${NETWORK}"
+log "   - Schema: ${DB_SCHEMA}"
+log "   - Highest Block: ${HIGHEST_BLOCK}"
+log "   - Highest Slot: ${HIGHEST_SLOT}"
+log "   - Tables: ${TABLE_COUNT}"
+log "   - File Size: ${FILE_SIZE_MB} MB"
+log "   - Dump Duration: ${DUMP_DURATION_MIN} minutes"
+log ""
+log "📁 Full path: ${SNAPSHOT_OUTPUT_DIR}/"
+log "🎉 Done!"
