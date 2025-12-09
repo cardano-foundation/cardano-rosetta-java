@@ -1,4 +1,4 @@
-name: Preprod Snapshot Creation
+name: Cardano Snapshot Creation
 
 on:
   # Manual trigger
@@ -17,20 +17,89 @@ on:
 env:
   SNAPSHOT_DIR: /home/integration/git/cardano-rosetta-java/snapshots
   COMPOSE_PROJECT_NAME: cardano-rosetta-java
-  YACI_CONTAINER: cardano-rosetta-java-yaci-indexer-1
   API_HOST: localhost
   API_PORT: 8082
-  NETWORK: preprod
 
 jobs:
+  detect-network:
+    name: Detect Network
+    runs-on: [preprod-snapshot-builder]
+    outputs:
+      network: ${{ steps.detect.outputs.network }}
+      env_file: ${{ steps.detect.outputs.env_file }}
+      yaci_container: ${{ steps.detect.outputs.yaci_container }}
+
+    steps:
+      - name: Detect network from Docker networks
+        id: detect
+        run: |
+          echo "🔍 Detecting network from running Docker networks..."
+
+          # Find cardano-rosetta-java networks
+          NETWORKS=$(docker network ls --format '{{.Name}}' | grep '^cardano-rosetta-java-' || true)
+
+          if [ -z "$NETWORKS" ]; then
+            echo "❌ ERROR: No cardano-rosetta-java networks found"
+            echo "Available networks:"
+            docker network ls
+            exit 1
+          fi
+
+          # Extract network name (e.g., cardano-rosetta-java-preprod -> preprod)
+          NETWORK=$(echo "$NETWORKS" | head -1 | sed 's/^cardano-rosetta-java-//')
+
+          echo "✅ Detected network: ${NETWORK}"
+
+          # Determine env file based on network
+          if [ "$NETWORK" = "mainnet" ]; then
+            ENV_FILE=".env.docker-compose"
+          else
+            ENV_FILE=".env.docker-compose-${NETWORK}"
+          fi
+
+          # Verify env file exists
+          if [ ! -f "/home/integration/git/cardano-rosetta-java/${ENV_FILE}" ]; then
+            echo "❌ ERROR: Environment file not found: ${ENV_FILE}"
+            exit 1
+          fi
+
+          echo "✅ Using env file: ${ENV_FILE}"
+
+          # Set container name
+          YACI_CONTAINER="cardano-rosetta-java-yaci-indexer-1"
+
+          # Verify container is running
+          if ! docker ps --format '{{.Names}}' | grep -q "^${YACI_CONTAINER}$"; then
+            echo "❌ ERROR: Container '${YACI_CONTAINER}' is not running"
+            echo "Running containers:"
+            docker ps --format '{{.Names}}'
+            exit 1
+          fi
+
+          echo "✅ Found running container: ${YACI_CONTAINER}"
+
+          # Set outputs
+          echo "network=${NETWORK}" >> $GITHUB_OUTPUT
+          echo "env_file=${ENV_FILE}" >> $GITHUB_OUTPUT
+          echo "yaci_container=${YACI_CONTAINER}" >> $GITHUB_OUTPUT
+
+          echo ""
+          echo "📋 Configuration:"
+          echo "   Network: ${NETWORK}"
+          echo "   Env File: ${ENV_FILE}"
+          echo "   Container: ${YACI_CONTAINER}"
+
   check-sync-status:
     name: Check Indexer Sync Status
     runs-on: [preprod-snapshot-builder]
+    needs: detect-network
     outputs:
       is_synced: ${{ steps.sync-check.outputs.synced }}
 
     steps:
       - name: Check indexer is running
+        env:
+          YACI_CONTAINER: ${{ needs.detect-network.outputs.yaci_container }}
         run: |
           if ! docker ps --format '{{.Names}}' | grep -q "^${YACI_CONTAINER}$"; then
             echo "❌ ERROR: Indexer container '${YACI_CONTAINER}' is not running"
@@ -41,8 +110,10 @@ jobs:
       - name: Wait for indexer to sync
         id: sync-check
         if: ${{ !inputs.skip_sync_check }}
+        env:
+          NETWORK: ${{ needs.detect-network.outputs.network }}
         run: |
-          echo "🔍 Checking indexer sync status..."
+          echo "🔍 Checking indexer sync status for network: ${NETWORK}..."
           MAX_ATTEMPTS=12  # Check every 5 minutes for 1 hour
           ATTEMPT=0
 
@@ -88,11 +159,13 @@ jobs:
   create-snapshot:
     name: Create Database Snapshot
     runs-on: [preprod-snapshot-builder]
-    needs: check-sync-status
+    needs: [detect-network, check-sync-status]
 
     steps:
       - name: Pause yaci-indexer
         id: pause-indexer
+        env:
+          YACI_CONTAINER: ${{ needs.detect-network.outputs.yaci_container }}
         run: |
           echo "⏸️  Pausing yaci-indexer to ensure consistent snapshot..."
           if docker pause "${YACI_CONTAINER}" 2>&1; then
@@ -104,18 +177,26 @@ jobs:
           fi
 
       - name: Create snapshot using Docker Compose
+        env:
+          NETWORK: ${{ needs.detect-network.outputs.network }}
+          ENV_FILE: ${{ needs.detect-network.outputs.env_file }}
         run: |
           cd /home/integration/git/cardano-rosetta-java
 
           echo "🚀 Starting snapshot creation..."
-          docker compose -f docker-compose-snapshot.yaml \
-            --env-file .env.docker-compose-preprod \
+          echo "   Network: ${NETWORK}"
+          echo "   Env File: ${ENV_FILE}"
+
+          docker-compose -f docker-compose-snapshot.yaml \
+            --env-file ${ENV_FILE} \
             up db-snapshot-create
 
           echo "✅ Snapshot creation completed"
 
       - name: Resume yaci-indexer
         if: always()
+        env:
+          YACI_CONTAINER: ${{ needs.detect-network.outputs.yaci_container }}
         run: |
           echo "▶️  Resuming yaci-indexer..."
           if docker unpause "${YACI_CONTAINER}" 2>&1; then
@@ -134,7 +215,7 @@ jobs:
   cleanup-and-summary:
     name: Cleanup Old Snapshots
     runs-on: [preprod-snapshot-builder]
-    needs: create-snapshot
+    needs: [detect-network, create-snapshot]
     if: always()
 
     steps:
@@ -148,8 +229,12 @@ jobs:
 
       - name: Show latest snapshot
         if: success()
+        env:
+          NETWORK: ${{ needs.detect-network.outputs.network }}
         run: |
           echo "✅ Snapshot workflow completed successfully!"
+          echo ""
+          echo "🌐 Network: ${NETWORK}"
           echo ""
           echo "📦 Latest snapshot files:"
           LATEST_DIR=$(ls -td ${SNAPSHOT_DIR}/*/ 2>/dev/null | head -1)
