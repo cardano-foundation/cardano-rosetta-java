@@ -82,19 +82,6 @@ wait_for_db() {
     log "✅ PostgreSQL is ready"
 }
 
-# Check if schema exists and has data
-is_schema_empty() {
-    local table_count=$(PGPASSWORD=${DB_SECRET} psql -h ${DB_HOST} -p ${DB_PORT} -U ${DB_USER} -d ${DB_NAME} -t -c \
-        "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = '${DB_SCHEMA}';" | xargs)
-
-    if [ "$table_count" -eq 0 ]; then
-        log "Schema '${DB_SCHEMA}' is empty - restoration needed"
-        return 0
-    else
-        log_warn "Schema '${DB_SCHEMA}' has ${table_count} tables"
-        return 1
-    fi
-}
 
 # Validate snapshot file
 validate_snapshot() {
@@ -139,26 +126,6 @@ validate_snapshot() {
 restore_snapshot() {
     log "🚀 Starting snapshot restoration..."
     log "Target schema: ${DB_SCHEMA}"
-
-    # Drop existing schema if it exists (skip 'public' schema as it's owned by postgres)
-    if [ "$DB_SCHEMA" != "public" ]; then
-        log "Dropping existing schema if present..."
-        PGPASSWORD=${DB_SECRET} psql -h ${DB_HOST} -p ${DB_PORT} -U ${DB_USER} -d ${DB_NAME} -c \
-            "DROP SCHEMA IF EXISTS \"${DB_SCHEMA}\" CASCADE;" || true
-    else
-        log "Schema is 'public' - skipping schema drop (will drop individual objects)"
-        # Drop all tables in public schema instead
-        PGPASSWORD=${DB_SECRET} psql -h ${DB_HOST} -p ${DB_PORT} -U ${DB_USER} -d ${DB_NAME} <<EOF || true
-DO \$\$ DECLARE
-    r RECORD;
-BEGIN
-    FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP
-        EXECUTE 'DROP TABLE IF EXISTS public.' || quote_ident(r.tablename) || ' CASCADE';
-    END LOOP;
-END \$\$;
-EOF
-    fi
-
     log "Restoring from: $SNAPSHOT_FILE"
 
     # Restore using pg_restore
@@ -241,19 +208,20 @@ main() {
         exit 1
     fi
 
+    # Clean up old snapshot files before downloading
+    log "🧹 Cleaning up old snapshot files in ${SNAPSHOT_DIR}..."
+    rm -rf ${SNAPSHOT_DIR}/*.dump ${SNAPSHOT_DIR}/*.checksum ${SNAPSHOT_DIR}/*.metadata.json 2>/dev/null || true
+    log "✅ Old snapshots cleaned"
+
     download_snapshot || exit 1
-
-    if ! is_schema_empty; then
-        log_warn "Schema '${DB_SCHEMA}' is not empty - skipping restoration"
-        log_warn "To force restore, manually drop the schema first:"
-        log_warn "  docker exec -it db psql -U ${DB_USER} -d ${DB_NAME} -c 'DROP SCHEMA ${DB_SCHEMA} CASCADE;'"
-        log "✅ Exiting gracefully"
-        exit 0
-    fi
-
     validate_snapshot || exit 1
     restore_snapshot || exit 1
     validate_restore || exit 1
+    # Clean up downloaded snapshot files after successful restore
+    log "🧹 Cleaning up downloaded snapshot files..."
+    rm -f "$SNAPSHOT_FILE" "$SNAPSHOT_CHECKSUM_FILE" 2>/dev/null || true
+    log "✅ Downloaded snapshots cleaned"
+
 
     log "========================================="
     log "✅ Snapshot restoration completed successfully"
