@@ -89,7 +89,7 @@ services:
       timeout: 3s
       retries: 10
 
-db-snapshot-restore:
+  db-snapshot-restore:
     image: cardanofoundation/cardano-rosetta-java-postgres:${PG_VERSION_TAG}
     build:
       context: ./
@@ -115,9 +115,6 @@ db-snapshot-restore:
     depends_on:
       db:
         condition: service_healthy
-    networks:
-      - default
-
 
 volumes:
   data:

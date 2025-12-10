@@ -69,7 +69,6 @@ DUMP_START_TIME=$(date +%s)
     -U ${DB_USER} \
     -d ${DB_NAME} \
     --schema=${DB_SCHEMA} \
-    --exclude-table=${DB_SCHEMA}.flyway_schema_history \
     --format=custom \
     --compress=9 \
     --no-owner \
