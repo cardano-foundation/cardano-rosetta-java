@@ -1,240 +1,343 @@
-# Locust Load Testing for Cardano Rosetta API
+# Cardano Rosetta Load Testing Suite
 
-This directory contains a **prototype** Locust-based load testing setup for comparing against the existing Apache Bench (`ab`) stability tests.
+A comprehensive load testing suite for Cardano Rosetta API using **dimension-isolated testing** to identify specific performance bottlenecks.
 
-## 🎯 Purpose (Spike Investigation)
+## Overview
 
-This is a **spike** to evaluate whether Locust can provide better insights than Apache Bench by:
+This suite uses **dimension-isolated testing** - testing ONE variable at a time with **percentile-based thresholds** from actual data distribution.
 
-1. **Varying data per request** - avoiding database caching bias
-2. **Categorizing data** - revealing performance patterns (light/medium/heavy loads)
-3. **Tracking metrics by category** - identifying which data types are slow
-4. **Providing richer metrics** - p95/p99, real-time UI, per-endpoint breakdown
+| Question | Tool | Approach |
+|----------|------|----------|
+| "What's the max throughput for addresses with many UTXOs?" | `stability_test.py --dimension utxo_count --level p99` | Percentile stress testing |
+| "How does block age affect performance?" | `stability_test.py --dimension block_era` | Era-based testing |
+| "How does the system behave under sustained load?" | `soak_test.py` (Locust) | Long-running stability |
 
-## 🏗️ Architecture
+## Quick Start
 
-```
-tests/load-tests/
-├── pyproject.toml       # uv dependencies (locust, python-dotenv)
-├── locustfile.py        # Main load test with all 7 endpoints
-├── test_data.py         # Categorized test data (light/medium/heavy)
-└── README.md           # This file
-```
-
-## 📦 Setup
+### Prerequisites
 
 ```bash
 cd tests/load-tests
 
-# Install dependencies with uv
+# Install Python dependencies
 uv sync
 
-# Activate virtual environment
-source .venv/bin/activate
+# Install Apache Bench (for capacity testing)
+sudo apt-get install apache2-utils
 ```
 
-## 🗄️ Populate Test Data
+### Generate Test Data
 
-Before running load tests, you need to populate `test_data.py` with real preprod data.
-
-### Step 1: Port-forward the Yaci Store Database
+First, generate dimension-isolated test data from your database:
 
 ```bash
-# SSH into preview machine and forward PostgreSQL port
-ssh -L 5432:localhost:5432 preview
+# Port-forward to database first (if remote)
+ssh -L 5432:localhost:5432 your-server
+
+# Generate data for preprod
+./populate_data.py --network preprod --db-url postgresql://user:pass@localhost:5432/rosetta
+
+# Generate data for mainnet
+./populate_data.py --network mainnet --db-url postgresql://user:pass@localhost:5432/rosetta
 ```
 
-### Step 2: Configure Database Connection
+### Capacity Testing (Dimension-Isolated)
+
+Test specific dimensions to identify bottlenecks:
 
 ```bash
-# Copy example environment file
-cp .env.example .env
+# Test addresses by UTXO count at 95th percentile
+./stability_test.py --url http://localhost:8082 --dimension utxo_count --level p95 --network preprod
 
-# Edit .env with your database credentials
-# DB_HOST=localhost
-# DB_PORT=5432
-# DB_NAME=preprod
-# DB_USER=postgres
-# DB_PASSWORD=your_password
+# Test all percentile levels of a dimension
+./stability_test.py --url http://localhost:8082 --dimension utxo_count --level all --network preprod
+
+# Test block performance by era (oldest to newest)
+./stability_test.py --url http://localhost:8082 --dimension block_era --level all --network preprod
+
+# Test multiple dimensions
+./stability_test.py --url http://localhost:8082 --dimensions "utxo_count:p50,p95;block_tx_count:p90"
+
+# Test all dimensions at all levels (comprehensive)
+./stability_test.py --url http://localhost:8082 --dimension all --level all --network preprod
 ```
 
-### Step 3: Run the Population Script
+### Soak Testing (Locust-based)
+
+Test stability under sustained load:
 
 ```bash
-uv run python populate_test_data.py
+# Quick soak test (5 minutes, 10 users)
+./soak_test.py --url http://localhost:8082 --users 10 --duration 5m
+
+# Full soak test (1 hour, 50 users)
+./soak_test.py --url http://localhost:8082 --users 50 --duration 1h
+
+# Extended soak test (4 hours)
+./soak_test.py --url http://localhost:8082 --users 50 --duration 4h --network preprod
 ```
 
-This will:
-- Query Yaci Store database for diverse addresses/blocks/transactions
-- Categorize by performance characteristics (light/medium/heavy)
-- Generate `test_data.py` with real preprod data
+## Dimensions
 
-**Expected output:**
-```
-📍 Querying addresses...
-  ✓ Light addresses (1-10 UTXOs): 10
-  ✓ Medium addresses (100-1K UTXOs): 10
-  ✓ Heavy addresses (10K+ UTXOs): 10
+Each dimension is tested independently to identify specific performance bottlenecks. All numeric dimensions use **percentile levels** (p50, p75, p90, p95, p99) to target different stress levels from typical to worst-case.
 
-🧱 Querying blocks...
-  ✓ Light blocks (1-5 txs): 5
-  ✓ Heavy blocks (100+ txs): 5
+### Address Dimensions
 
-📄 Querying transactions...
-  ✓ Small transactions (<500 bytes): 10
-  ✓ Large transactions (>10KB): 10
-```
+| Dimension | Description | Endpoints | Levels |
+|-----------|-------------|-----------|--------|
+| `utxo_count` | Number of unspent UTXOs | `/account/balance`, `/account/coins` | p50, p75, p90, p95, p99 |
+| `token_count` | Number of native tokens | `/account/balance`, `/account/coins` | p50, p75, p90, p95, p99 |
+| `tx_history` | Transaction history count | `/search/transactions` | p50, p75, p90, p95, p99 |
 
-## 🚀 Usage
+### Block Dimensions
 
-### 1. Port-forward Preprod Rosetta Instance
+| Dimension | Description | Endpoints | Levels |
+|-----------|-------------|-----------|--------|
+| `block_tx_count` | Transactions in block | `/block` | p50, p75, p90, p95, p99 |
+| `block_body_size` | Block data volume | `/block` | p50, p75, p90, p95, p99 |
+| `block_era` | Block age/era | `/block` | shelley, allegra, mary, alonzo, babbage, conway |
+
+### Transaction Dimensions
+
+| Dimension | Description | Endpoints | Levels |
+|-----------|-------------|-----------|--------|
+| `tx_io_count` | Inputs + outputs count | `/block/transaction`, `/search/transactions` | p50, p75, p90, p95, p99 |
+| `tx_token_count` | Token types in transaction | `/block/transaction`, `/search/transactions` | p50, p75, p90, p95, p99 |
+| `tx_has_script` | Has Plutus script | `/block/transaction`, `/search/transactions` | true, false |
+
+### Percentile Levels
+
+| Level | Percentile | Use Case |
+|-------|------------|----------|
+| `p50` | 50th | Median/typical case |
+| `p75` | 75th | Above average |
+| `p90` | 90th | High stress |
+| `p95` | 95th | Very high stress |
+| `p99` | 99th | Extreme/worst case (heavy tail) |
+
+Percentiles are calculated using `PERCENTILE_CONT` from actual data distribution. This means:
+- **p50** targets addresses/blocks/transactions at the median
+- **p99** targets the worst 1% - the heavy tail that stress tests performance limits
+
+## CLI Reference
+
+### stability_test.py (Capacity Testing)
 
 ```bash
-# SSH into preview server and forward port 8082
-ssh -L 8082:localhost:8082 preview
+./stability_test.py [options]
 ```
 
-### 2. Run Locust
+**Dimension selection (required):**
+- `--dimension DIM` - Single dimension to test (e.g., `utxo_count`). Use `all` for all dimensions.
+- `--level LEVEL` - Level to test (e.g., `p95`, `p99`). Use `all` for all levels.
+- `--dimensions SPEC` - Multi-dimension spec: `"dim1:level1,level2;dim2:level3"`
 
-**Web UI Mode (Recommended for exploration):**
+**Core options:**
+- `--url URL` - Base URL for the Rosetta API (default: http://127.0.0.1:8082)
+- `--network NETWORK` - Network: mainnet, preprod, preview (default: mainnet)
+- `--endpoint PATH` - Specific endpoint to test (defaults to dimension-appropriate endpoints)
+- `--list-dimensions` - List available dimensions and exit
+- `--list-endpoints` - List available endpoints and exit
+
+**Search strategy options:**
+- `--search-strategy STRATEGY` - Search strategy: exponential (default), linear
+- `--max-concurrency N` - Max concurrency for exponential search (default: 2048)
+- `--concurrency LEVELS` - Comma-separated levels for linear strategy
+
+**Data rotation options:**
+- `--rotate-data` - Test with all CSV rows and aggregate results
+- `--row-duration SECONDS` - Duration per row when rotating (default: 30)
+- `--max-rows N` - Limit rows to test when rotating
+
+**SLA options:**
+- `--duration SECONDS` - Duration per concurrency level (default: 60)
+- `--sla MILLISECONDS` - SLA threshold for p95/p99 (default: 1000)
+- `--error-threshold PCT` - Error rate threshold percentage (default: 1.0)
+
+### populate_data.py (Data Generator)
+
 ```bash
-uv run locust --host=http://localhost:8082
+./populate_data.py --network NETWORK [options]
 ```
 
-Then open http://localhost:8089 in your browser to:
-- Set number of users
-- Set spawn rate
-- Monitor real-time metrics
-- View charts and breakdowns
+**Required:**
+- `--network NETWORK` - Network: mainnet, preprod, preview
 
-**Headless Mode (CI/CD friendly):**
+**Database connection:**
+- `--db-url URL` - PostgreSQL connection URL
+- Or individual params: `--db-host`, `--db-port`, `--db-name`, `--db-user`, `--db-password`
+
+**Output:**
+- `--output-dir DIR` - Output directory (default: data)
+
+### soak_test.py (Soak Testing)
+
 ```bash
-uv run locust --host=http://localhost:8082 \
-    --users 50 \
-    --spawn-rate 5 \
-    --run-time 300s \
-    --headless
+./soak_test.py --url URL [options]
 ```
 
-**Generate HTML Report:**
-```bash
-uv run locust --host=http://localhost:8082 \
-    --users 50 \
-    --spawn-rate 5 \
-    --run-time 300s \
-    --headless \
-    --html=report.html \
-    --csv=results
-```
+- `--url URL` - Base URL for the Rosetta API (required)
+- `--users N` - Number of concurrent users (default: 10)
+- `--spawn-rate N` - Users to spawn per second (default: 5)
+- `--duration DURATION` - Test duration: 30s, 5m, 1h, 2h30m (default: 5m)
+- `--network NETWORK` - Network: mainnet, preprod (default: preprod)
 
-This creates:
-- `report.html` - Interactive HTML report
-- `results_stats.csv` - Request statistics
-- `results_stats_history.csv` - Time-series data
-- `results_failures.csv` - Failure details
+## Data Files
 
-## 📊 Metrics Provided
-
-Locust provides these metrics **out of the box**:
-
-- **Response time percentiles**: p50, p66, p75, p80, p90, p95, p99
-- **Throughput**: Requests per second (RPS)
-- **Failure rate**: Count and percentage
-- **Per-endpoint breakdown**: All metrics split by endpoint
-- **Per-category breakdown**: Metrics split by data category (light/medium/heavy)
-
-### Example Output:
+After running `populate_data.py`, the following structure is created:
 
 ```
-/account/balance [light]
-  Requests: 7000
-  Failures: 0
-  Avg: 45.23ms
-  p95: 89.12ms
-  p99: 123.45ms
-
-/account/balance [heavy]
-  Requests: 1000
-  Failures: 0
-  Avg: 456.78ms
-  p95: 890.12ms
-  p99: 1234.56ms
+data/{network}/
+├── dimensions.json              # Thresholds metadata with percentile boundaries
+├── addresses/
+│   ├── utxo_count_p50.csv      # All dimensions use percentiles: p50, p75, p90, p95, p99
+│   ├── utxo_count_p75.csv
+│   ├── utxo_count_p90.csv
+│   ├── utxo_count_p95.csv
+│   ├── utxo_count_p99.csv
+│   ├── token_count_p50.csv
+│   ├── token_count_p99.csv
+│   ├── tx_history_p50.csv
+│   └── tx_history_p99.csv
+├── blocks/
+│   ├── block_tx_count_p50.csv
+│   ├── block_tx_count_p99.csv
+│   ├── block_body_size_p50.csv
+│   ├── block_body_size_p99.csv
+│   ├── block_era_shelley.csv   # Era-based (actual era names)
+│   ├── block_era_alonzo.csv
+│   └── block_era_conway.csv
+└── transactions/
+    ├── tx_io_count_p50.csv
+    ├── tx_io_count_p99.csv
+    ├── tx_token_count_p50.csv
+    ├── tx_token_count_p99.csv
+    ├── tx_has_script_true.csv  # Boolean
+    └── tx_has_script_false.csv
 ```
 
-This clearly shows that **heavy addresses (10K+ UTXOs) are ~10x slower** - something that Apache Bench's identical payloads would miss!
+### dimensions.json
 
-## 🎭 Comparison with Apache Bench
+Contains percentile thresholds with human-readable descriptions:
 
-| Feature | Apache Bench | Locust |
-|---------|-------------|---------|
-| **Data variation** | ❌ Identical payload | ✅ Categorized data |
-| **Cache bias** | ❌ Heavy caching | ✅ Avoids caching |
-| **Percentiles** | ✅ p95, p99 | ✅ p50-p99 |
-| **Real-time UI** | ❌ CLI only | ✅ Web UI |
-| **Endpoint weights** | ❌ Manual | ✅ Task decorators |
-| **Category tracking** | ❌ Not possible | ✅ Built-in |
-| **CI/CD** | ✅ Scriptable | ✅ Headless mode |
-| **Reports** | 📊 Text output | 📊 HTML + CSV |
-
-## 📝 Test Data Structure
-
-Data is organized in `test_data.py` by **categories**:
-
-```python
-ADDRESSES = {
-    "light": [...],   # 1-10 UTXOs (fast)
-    "medium": [...],  # 100-1K UTXOs (moderate)
-    "heavy": [...]    # 10K+ UTXOs (slow)
+```json
+{
+  "network": "mainnet",
+  "dimensions": {
+    "utxo_count": {
+      "description": "Address UTXO Count",
+      "unit": "UTXOs",
+      "type": "percentile",
+      "thresholds": {
+        "p50": {"min": 0, "max": 1, "display": "≤1 UTXOs"},
+        "p75": {"min": 1, "max": 2, "display": "1-2 UTXOs"},
+        "p90": {"min": 2, "max": 5, "display": "2-5 UTXOs"},
+        "p95": {"min": 5, "max": 15, "display": "5-15 UTXOs"},
+        "p99": {"min": 15, "max": 104370, "display": ">15 UTXOs"}
+      }
+    },
+    "block_era": {
+      "description": "Block Era (Age)",
+      "unit": "era",
+      "type": "era",
+      "thresholds": {
+        "shelley": {"min": 1, "max": 1, "display": "Shelley (epochs 0-3)"},
+        "alonzo": {"min": 4, "max": 4, "display": "Alonzo (epochs 6-6)"},
+        "conway": {"min": 6, "max": 6, "display": "Conway (epochs 12-162)"}
+      }
+    }
+  }
 }
-
-BLOCKS = {
-    "light": [...],   # 1-5 transactions
-    "heavy": [...]    # 100+ transactions
-}
-
-TRANSACTIONS = {
-    "small": [...],   # <500 bytes
-    "large": [...]    # >10KB
-}
 ```
 
-**Weights** control distribution:
-```python
-CATEGORY_WEIGHTS = {
-    "address_light": 0.7,   # 70% of requests
-    "address_heavy": 0.1,   # 10% of requests
-}
+## Output
+
+### Capacity Test Output
+
+```
+testresults_YYYY-MM-DD_HH-MM_VERSION_DIMENSION_SUFFIX/
+├── details_results.csv      # Per-concurrency metrics
+├── summary_results.csv      # Max concurrency per dimension/level
+├── details_results.md       # Markdown details table
+├── summary_results.md       # Markdown summary with insights
+├── ab_commands.log          # All ab commands executed
+├── stability_test.log       # Full test log
+└── *.json                   # Request payloads per endpoint
 ```
 
-## 🔧 Next Steps (TODOs)
+### Example Output
 
-- [ ] **Populate test_data.py** with actual preprod addresses/blocks/transactions
-  - Query preprod Rosetta to find addresses with varying UTXO counts
-  - Identify light vs heavy blocks
-  - Categorize transactions by size
-- [ ] **Run comparison test**: ab vs Locust with identical vs varied data
-- [ ] **Document findings**: metrics differences, insights, recommendations
-- [ ] **Decide**: Full migration? Hybrid approach? Keep current ab tests?
+```
+====================================================================================================
+ CAPACITY TEST RESULTS - DIMENSION ISOLATED
+====================================================================================================
 
-## 🎯 Success Criteria
+ADDRESS UTXO COUNT
+----------------------------------------------------------------------------------------------------
+Level    Range                     Endpoint                  Max Conc        p95        p99      Req/s
+----------------------------------------------------------------------------------------------------
+p50      ≤85 UTXOs                 /account/balance               128       23ms       31ms     450.20
+p75      85-280 UTXOs              /account/balance                64       67ms       89ms     180.50
+p90      280-847 UTXOs             /account/balance                32      156ms      234ms      78.30
+p95      847-2100 UTXOs            /account/balance                16      423ms      678ms      28.10
+p99      >2100 UTXOs               /account/balance                 4     1890ms     2450ms       3.20
 
-This spike is successful if:
+BLOCK ERA (AGE)
+----------------------------------------------------------------------------------------------------
+Level    Range                     Endpoint                  Max Conc        p95        p99      Req/s
+----------------------------------------------------------------------------------------------------
+conway   Conway (epochs 12-162)    /block                        128       34ms       45ms     380.00
+babbage  Babbage (epochs 7-11)     /block                         64       89ms      123ms     150.00
+alonzo   Alonzo (epochs 6-6)       /block                         32      234ms      345ms      60.00
+shelley  Shelley (epochs 0-3)      /block                          8      890ms     1234ms      12.00
+```
 
-1. ✅ Locust can vary data per request
-2. ✅ Metrics reveal performance degradation patterns by category
-3. ✅ p95/p99 metrics match or exceed ab capabilities
-4. ✅ CI/CD integration path is clear
-5. ⏳ Comparison shows meaningful differences vs ab
+**Insights from dimension-isolated testing:**
+- UTXO count: Performance degrades 14x from p50 to p99
+- Block era: Old era blocks (Byron/Shelley) are 26x slower than current era
+- These insights help identify specific optimization targets
 
-## 🚫 Out of Scope (for this spike)
+## Architecture
 
-- Full implementation (prototype only)
-- Grafana/monitoring integration
-- Automated CSV generation
-- Full endpoint coverage (7 endpoints is enough for spike)
+```
+tests/load-tests/
+├── stability_test.py      # Capacity testing (dimension-isolated, ab-based)
+├── soak_test.py           # Soak testing CLI (Locust wrapper)
+├── locustfile.py          # Locust test definitions
+├── populate_data.py       # Dimension-isolated data generator
+├── pyproject.toml         # Python dependencies (uv)
+├── .env.example           # Environment template
+└── data/
+    ├── {network}/
+    │   ├── dimensions.json    # Thresholds metadata
+    │   ├── addresses/         # Address dimension CSVs
+    │   ├── blocks/            # Block dimension CSVs
+    │   └── transactions/      # Transaction dimension CSVs
+    └── {network}-data.csv     # Legacy single-row data
+```
 
-## 📚 Resources
+## Troubleshooting
 
-- [Locust Documentation](https://docs.locust.io/)
-- [Task #638: Replace ab with Locust](https://github.com/cardano-foundation/cardano-rosetta-java/issues/638)
-- Existing ab tests: `../../load-tests/stability_test.py`
+### "CSV file not found" error
+
+Run `populate_data.py` first to generate dimension-isolated data:
+
+```bash
+./populate_data.py --network preprod --db-url postgresql://...
+```
+
+### "dimensions.json not found" warning
+
+The test will continue without friendly display names. Run `populate_data.py` to generate it.
+
+### High error rates during capacity test
+
+- API may be under-provisioned for that dimension/level
+- Reduce concurrency levels to find stable point
+- Check API logs for specific errors
+
+### Understanding results
+
+- **p50 results** = typical/median case performance
+- **p99 results** = worst-case performance (addresses with most UTXOs, etc.)
+- **Performance ratio** (p50 vs p99) indicates optimization potential
