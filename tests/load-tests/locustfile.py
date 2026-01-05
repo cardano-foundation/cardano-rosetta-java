@@ -25,19 +25,108 @@ Usage:
         --html=report.html
 """
 
+import os
 import random
+import csv
+import json
+from pathlib import Path
 from typing import Dict, List, Tuple
 
 from locust import HttpUser, between, events, task
+import locust.stats as locust_stats
 
-from test_data import (
-    ADDRESSES,
-    BLOCKS,
-    CATEGORY_WEIGHTS,
-    CONSTRUCTION_METADATA,
-    NETWORK,
-    TRANSACTIONS,
-)
+SCRIPT_DIR = Path(__file__).parent
+
+def load_csv(csv_file: Path) -> List[Dict]:
+    """Load CSV file, return list of dicts."""
+    with open(csv_file) as f:
+        return list(csv.DictReader(f))
+
+def load_test_data():
+    """Load all dimension/level data from dimensions.json and CSV files."""
+    network = os.environ.get('ROSETTA_NETWORK', 'mainnet')
+    data_dir = SCRIPT_DIR / 'data' / network
+
+    with open(data_dir / 'dimensions.json') as f:
+        dims = json.load(f)['dimensions']
+
+    addresses, blocks, transactions = {}, {}, {}
+    weights = {}
+
+    # Map dimension subdirs to output dicts
+    subdir_map = {'addresses': addresses, 'blocks': blocks, 'transactions': transactions}
+
+    for dim_name, dim_config in dims.items():
+        # Determine subdir based on endpoints
+        endpoints_str = str(dim_config['endpoints'])
+        if '/account/' in endpoints_str:
+            subdir = 'addresses'
+        elif '/block/transaction' in endpoints_str or '/search/transactions' in endpoints_str:
+            subdir = 'transactions'
+        else:
+            subdir = 'blocks'
+
+        target = subdir_map[subdir]
+
+        # Load CSV for each level
+        for level in dim_config['thresholds'].keys():
+            cat = f"{dim_name}_{level}"
+            csv_file = data_dir / subdir / f"{cat}.csv"
+
+            if not csv_file.exists():
+                continue
+
+            rows = load_csv(csv_file)
+
+            # Convert to format expected by tasks
+            if subdir == 'addresses':
+                target[cat] = [r['address'] for r in rows]
+            elif subdir == 'blocks':
+                target[cat] = [{'index': int(r['block_index']), 'hash': r['block_hash']} for r in rows]
+            else:  # transactions
+                target[cat] = [{'hash': r['transaction_hash'], 'block_index': int(r['block_index']),
+                                'block_hash': r['block_hash']} for r in rows]
+
+            # Uniform weights (can tune later based on real distribution)
+            prefix = {'addresses': 'address', 'blocks': 'block', 'transactions': 'tx'}[subdir]
+            weights[f"{prefix}_{cat}"] = 1.0
+
+    # Construction metadata (hardcoded - not dimension-based)
+    construction_metadata = {
+        "small_tx": [{"transaction_size": 500, "relative_ttl": 1000}],
+        "large_tx": [{"transaction_size": 15000, "relative_ttl": 3600}],
+    }
+    weights.update({"construction_small_tx": 0.7, "construction_large_tx": 0.3})
+
+    return network, addresses, blocks, transactions, weights, construction_metadata
+
+NETWORK, ADDRESSES, BLOCKS, TRANSACTIONS, CATEGORY_WEIGHTS, CONSTRUCTION_METADATA = load_test_data()
+DEFAULT_NETWORK = NETWORK
+
+
+def _log_response_time_no_bucketing(self, response_time: int) -> None:
+    """
+    Copy of StatsEntry._log_response_time but without bucketing into 10/100/1000ms bins.
+    Keeps full millisecond precision so percentiles don’t all end in 000.
+    """
+    if response_time is None:
+        self.num_none_requests += 1
+        return
+
+    self.total_response_time += response_time
+
+    if self.min_response_time is None:
+        self.min_response_time = response_time
+    else:
+        self.min_response_time = min(self.min_response_time, response_time)
+    self.max_response_time = max(self.max_response_time, response_time)
+
+    rounded_response_time = int(response_time)
+    self.response_times[rounded_response_time] += 1
+
+
+# Patch Locust to keep per-request response times at ms precision (no bucket rounding)
+locust_stats.StatsEntry._log_response_time = _log_response_time_no_bucketing
 
 
 class CategorizedDataProvider:
@@ -293,10 +382,10 @@ class RosettaUser(HttpUser):
 def on_test_start(environment, **kwargs):
     """Event handler called when test starts."""
     print("=" * 80)
-    print(f"Starting Locust load test")
+    print("Starting Locust load test")
     print(f"Target: {environment.host}")
     print(f"Network: {NETWORK}")
-    print(f"Data categories loaded:")
+    print("Data categories loaded:")
     print(f"  - Addresses: {sum(len(v) for v in ADDRESSES.values())} total")
     for cat, items in ADDRESSES.items():
         print(
@@ -319,7 +408,7 @@ def on_test_start(environment, **kwargs):
 def on_test_stop(environment, **kwargs):
     """Event handler called when test stops."""
     print("=" * 80)
-    print(f"Load test completed")
+    print("Load test completed")
     print(f"Total requests: {environment.stats.total.num_requests}")
     print(f"Total failures: {environment.stats.total.num_failures}")
     print(f"Average response time: {environment.stats.total.avg_response_time:.2f}ms")
