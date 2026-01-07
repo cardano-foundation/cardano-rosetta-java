@@ -23,252 +23,252 @@ public class PoolRegistrationRecord extends UpdatableRecordImpl<PoolRegistration
     private static final long serialVersionUID = 1L;
 
     /**
-     * Setter for <code>preprod.pool_registration.tx_hash</code>.
+     * Setter for <code>public.pool_registration.tx_hash</code>.
      */
     public void setTxHash(String value) {
         set(0, value);
     }
 
     /**
-     * Getter for <code>preprod.pool_registration.tx_hash</code>.
+     * Getter for <code>public.pool_registration.tx_hash</code>.
      */
     public String getTxHash() {
         return (String) get(0);
     }
 
     /**
-     * Setter for <code>preprod.pool_registration.cert_index</code>.
+     * Setter for <code>public.pool_registration.cert_index</code>.
      */
     public void setCertIndex(Integer value) {
         set(1, value);
     }
 
     /**
-     * Getter for <code>preprod.pool_registration.cert_index</code>.
+     * Getter for <code>public.pool_registration.cert_index</code>.
      */
     public Integer getCertIndex() {
         return (Integer) get(1);
     }
 
     /**
-     * Setter for <code>preprod.pool_registration.pool_id</code>.
+     * Setter for <code>public.pool_registration.pool_id</code>.
      */
     public void setPoolId(String value) {
         set(2, value);
     }
 
     /**
-     * Getter for <code>preprod.pool_registration.pool_id</code>.
+     * Getter for <code>public.pool_registration.pool_id</code>.
      */
     public String getPoolId() {
         return (String) get(2);
     }
 
     /**
-     * Setter for <code>preprod.pool_registration.vrf_key</code>.
+     * Setter for <code>public.pool_registration.vrf_key</code>.
      */
     public void setVrfKey(String value) {
         set(3, value);
     }
 
     /**
-     * Getter for <code>preprod.pool_registration.vrf_key</code>.
+     * Getter for <code>public.pool_registration.vrf_key</code>.
      */
     public String getVrfKey() {
         return (String) get(3);
     }
 
     /**
-     * Setter for <code>preprod.pool_registration.pledge</code>.
+     * Setter for <code>public.pool_registration.pledge</code>.
      */
     public void setPledge(BigInteger value) {
         set(4, value);
     }
 
     /**
-     * Getter for <code>preprod.pool_registration.pledge</code>.
+     * Getter for <code>public.pool_registration.pledge</code>.
      */
     public BigInteger getPledge() {
         return (BigInteger) get(4);
     }
 
     /**
-     * Setter for <code>preprod.pool_registration.cost</code>.
+     * Setter for <code>public.pool_registration.cost</code>.
      */
     public void setCost(BigInteger value) {
         set(5, value);
     }
 
     /**
-     * Getter for <code>preprod.pool_registration.cost</code>.
+     * Getter for <code>public.pool_registration.cost</code>.
      */
     public BigInteger getCost() {
         return (BigInteger) get(5);
     }
 
     /**
-     * Setter for <code>preprod.pool_registration.margin</code>.
+     * Setter for <code>public.pool_registration.margin</code>.
      */
     public void setMargin(BigDecimal value) {
         set(6, value);
     }
 
     /**
-     * Getter for <code>preprod.pool_registration.margin</code>.
+     * Getter for <code>public.pool_registration.margin</code>.
      */
     public BigDecimal getMargin() {
         return (BigDecimal) get(6);
     }
 
     /**
-     * Setter for <code>preprod.pool_registration.reward_account</code>.
+     * Setter for <code>public.pool_registration.reward_account</code>.
      */
     public void setRewardAccount(String value) {
         set(7, value);
     }
 
     /**
-     * Getter for <code>preprod.pool_registration.reward_account</code>.
+     * Getter for <code>public.pool_registration.reward_account</code>.
      */
     public String getRewardAccount() {
         return (String) get(7);
     }
 
     /**
-     * Setter for <code>preprod.pool_registration.pool_owners</code>.
+     * Setter for <code>public.pool_registration.pool_owners</code>.
      */
     public void setPoolOwners(JSONB value) {
         set(8, value);
     }
 
     /**
-     * Getter for <code>preprod.pool_registration.pool_owners</code>.
+     * Getter for <code>public.pool_registration.pool_owners</code>.
      */
     public JSONB getPoolOwners() {
         return (JSONB) get(8);
     }
 
     /**
-     * Setter for <code>preprod.pool_registration.relays</code>.
+     * Setter for <code>public.pool_registration.relays</code>.
      */
     public void setRelays(JSONB value) {
         set(9, value);
     }
 
     /**
-     * Getter for <code>preprod.pool_registration.relays</code>.
+     * Getter for <code>public.pool_registration.relays</code>.
      */
     public JSONB getRelays() {
         return (JSONB) get(9);
     }
 
     /**
-     * Setter for <code>preprod.pool_registration.metadata_url</code>.
+     * Setter for <code>public.pool_registration.metadata_url</code>.
      */
     public void setMetadataUrl(String value) {
         set(10, value);
     }
 
     /**
-     * Getter for <code>preprod.pool_registration.metadata_url</code>.
+     * Getter for <code>public.pool_registration.metadata_url</code>.
      */
     public String getMetadataUrl() {
         return (String) get(10);
     }
 
     /**
-     * Setter for <code>preprod.pool_registration.metadata_hash</code>.
+     * Setter for <code>public.pool_registration.metadata_hash</code>.
      */
     public void setMetadataHash(String value) {
         set(11, value);
     }
 
     /**
-     * Getter for <code>preprod.pool_registration.metadata_hash</code>.
+     * Getter for <code>public.pool_registration.metadata_hash</code>.
      */
     public String getMetadataHash() {
         return (String) get(11);
     }
 
     /**
-     * Setter for <code>preprod.pool_registration.epoch</code>.
+     * Setter for <code>public.pool_registration.epoch</code>.
      */
     public void setEpoch(Integer value) {
         set(12, value);
     }
 
     /**
-     * Getter for <code>preprod.pool_registration.epoch</code>.
+     * Getter for <code>public.pool_registration.epoch</code>.
      */
     public Integer getEpoch() {
         return (Integer) get(12);
     }
 
     /**
-     * Setter for <code>preprod.pool_registration.slot</code>.
+     * Setter for <code>public.pool_registration.slot</code>.
      */
     public void setSlot(Long value) {
         set(13, value);
     }
 
     /**
-     * Getter for <code>preprod.pool_registration.slot</code>.
+     * Getter for <code>public.pool_registration.slot</code>.
      */
     public Long getSlot() {
         return (Long) get(13);
     }
 
     /**
-     * Setter for <code>preprod.pool_registration.block_hash</code>.
+     * Setter for <code>public.pool_registration.block_hash</code>.
      */
     public void setBlockHash(String value) {
         set(14, value);
     }
 
     /**
-     * Getter for <code>preprod.pool_registration.block_hash</code>.
+     * Getter for <code>public.pool_registration.block_hash</code>.
      */
     public String getBlockHash() {
         return (String) get(14);
     }
 
     /**
-     * Setter for <code>preprod.pool_registration.block</code>.
+     * Setter for <code>public.pool_registration.block</code>.
      */
     public void setBlock(Long value) {
         set(15, value);
     }
 
     /**
-     * Getter for <code>preprod.pool_registration.block</code>.
+     * Getter for <code>public.pool_registration.block</code>.
      */
     public Long getBlock() {
         return (Long) get(15);
     }
 
     /**
-     * Setter for <code>preprod.pool_registration.block_time</code>.
+     * Setter for <code>public.pool_registration.block_time</code>.
      */
     public void setBlockTime(Long value) {
         set(16, value);
     }
 
     /**
-     * Getter for <code>preprod.pool_registration.block_time</code>.
+     * Getter for <code>public.pool_registration.block_time</code>.
      */
     public Long getBlockTime() {
         return (Long) get(16);
     }
 
     /**
-     * Setter for <code>preprod.pool_registration.update_datetime</code>.
+     * Setter for <code>public.pool_registration.update_datetime</code>.
      */
     public void setUpdateDatetime(LocalDateTime value) {
         set(17, value);
     }
 
     /**
-     * Getter for <code>preprod.pool_registration.update_datetime</code>.
+     * Getter for <code>public.pool_registration.update_datetime</code>.
      */
     public LocalDateTime getUpdateDatetime() {
         return (LocalDateTime) get(17);

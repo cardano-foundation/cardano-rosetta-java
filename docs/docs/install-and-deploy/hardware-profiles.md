@@ -11,7 +11,7 @@ Hardware profiles are used to configure the hardware resources for the Cardano R
 
 ## Overview
 
-Hardware profiles are implemented as environment files that are passed to Docker or Docker Compose when launching Cardano Rosetta Java services. The entrypoint script verifies these settings and configures PostgreSQL and application connection pools accordingly.
+Hardware profiles are implemented as environment files that are passed to Docker Compose when launching Cardano Rosetta Java services. The entrypoint script verifies these settings and configures PostgreSQL and application connection pools accordingly.
 
 ## Available Hardware Profiles
 
@@ -73,34 +73,29 @@ Hardware profiles define two main sets of configuration parameters:
 
 ## How to Use Hardware Profiles
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
+Hardware profiles are provided as environment files in the project root. To use a specific profile with Docker Compose:
 
-<Tabs>
-  <TabItem value="docker" label="Docker" default>
-    ```bash
-    docker run --name rosetta -v {MOUNT_PATH}:/node \
-      --env-file ./docker/.env.dockerfile \
-      --env-file ./docker/.env.docker-profile-mid-level \
-      -p 8082:8082 --shm-size=4g -d cardanofoundation/cardano-rosetta-java:latest
-    ```
-  </TabItem>
-  <TabItem value="docker-compose" label="Docker Compose">
-    ```bash
-    docker compose --env-file .env.docker-compose \
-      --env-file .env.docker-compose-profile-mid-level \
-      -f docker-compose.yaml up -d
-    ```
-  </TabItem>
-</Tabs>
+```bash
+docker compose --env-file .env.docker-compose \
+  --env-file .env.docker-compose-profile-mid-level \
+  -f docker-compose.yaml up -d
+```
+
+### Available Profile Files
+
+```
+.env.docker-compose-profile-entry-level
+.env.docker-compose-profile-mid-level
+.env.docker-compose-profile-advanced-level
+```
 
 ## Custom Hardware Profiles
 
 You can create custom hardware profiles by:
 
-1. Copying an existing profile file, e.g., `docker/.env.docker-profile-mid-level`
+1. Copying an existing profile file, e.g., `.env.docker-compose-profile-mid-level`
 2. Modifying the parameters to match your hardware
-3. Using the custom profile file when launching with Docker or Docker Compose
+3. Using the custom profile file when launching with Docker Compose
 
 When creating custom profiles, consider:
 
