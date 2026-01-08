@@ -25,14 +25,16 @@ preprod:
     stake: "stake_test1uq7jxnqdcs2lxgu2tl2s3zna4hlsm8p0ud82pdr0cszsepqgprukn"
 
   # Native assets available on preprod for testing
-  # All assets verified to have transactions as of 2025-09-30
   assets:
-    - name: "tTEURO"
-      description: "Test Euro stablecoin on preprod - 11,081 transactions"
-      symbol: "tTEURO"
-      symbol_hex: "74544555524f"  # Symbol in hexadecimal
-      decimals: 6
-      policy_id: "e68f1cea19752d1292b4be71b7f5d2b3219a15859c028f7454f66cdf"
+    - name: "tGENS"
+      description: "Genius Yield Test Token"
+      symbol: "tGENS"
+      symbol_hex: "7447454e53"  # Symbol in hexadecimal
+      decimals: 0
+      policy_id: "c6e65ba7878b2f8ea0ad39287d3e2fd256dc5c4160fc19bdf4c4d87e"
+      # Verified 2026-01-08: address holds 55,000,000 tGENS at this block
+      test_address: "addr_test1qqzdcr8caujvm4kjdv3mh90xvc3gh8k3d0et4cnja47cy74aavghhj8e4rryf0xyth5yj0yu7lcxulk6rqhwfvel7p0qa8czcz"
+      test_block: 486800
 
   # Tokens registered in metadata server (for v1.4.0 token registry tests)
   # These tokens have enriched metadata (name, ticker, description) when registry enabled
@@ -66,26 +68,71 @@ preprod:
       test_address: "addr_test1qpq4x7rrrh3pxx0w8ng3xxjkshd070zg6hmux638ej57xtakfrrt9cwl632xwcrg8mumxfz5wvphzuxnrluexy2g4z5qxz5t2c"
       test_block: 4042548  # Block containing CIP-68 logo (URL) metadata
 
-# mainnet:
-#   addresses:
-#     shelley_base: "addr1qy..."
-#     shelley_enterprise: "addr1vx..."
-#     byron: "Ae2td..."
-#     with_large_utxos: "addr1..."
-#     stake: "stake1..."
-#
-#   assets:
-#     - name: "HOSKY"
-#       description: "Popular mainnet meme token"
-#       symbol: "HOSKY"
-#       decimals: 0
-#       policy_id: "a0028f350aaabe0545fdcb56b039bfb08e4bb4d8c4d7c3c7d481c235"
-#
-#     - name: "MIN"
-#       description: "Minswap DEX token"
-#       symbol: "MIN"
-#       decimals: 0
-#       policy_id: "29d222ce763455e3d7a09a665ce554f00ac89d2e99a1a83d267170c6"
+mainnet:
+  # Test addresses on mainnet
+  # All addresses verified to have transactions as of 2026-01-06
+  addresses:
+    # Shelley base address (payment + stake) - 12,453 transactions
+    shelley_base: "addr1qyej3xr4u47c4d7t56nwjm00v9f2aqjtaam28j846k76cj5ll3w74a0dfxu09vva70d4qa564kwpesddy9g5hw7ewwhsy9lqcy"
+
+    # Shelley enterprise address (payment only, no stake) - 58 transactions
+    shelley_enterprise: "addr1vy99lmsghmup7slewvs53pqcue9sl50z08mtyzpfyerl7kch5srur"
+
+    # Whale address with lots of historical activity (for pruning comparison tests)
+    whale: "addr1qyej3xr4u47c4d7t56nwjm00v9f2aqjtaam28j846k76cj5ll3w74a0dfxu09vva70d4qa564kwpesddy9g5hw7ewwhsy9lqcy"  # Same as shelley_base
+
+    # Byron-era address (legacy format) - from block 4,000,000
+    byron: "DdzFFzCqrhsh6wfVJvyQXmsR8coyRf4UPZFbVkZRLskvHnHJmDLzuUPBDd9A3AmdX3CNq3XE1b3tZfUzubhZKTijAop2WfHagt1dKVNF"
+
+    # Address with multiple tokens - 310 transactions, holds SNEK
+    with_large_utxos: "addr1qxzm06p3mp85lvu9mm8g8tvtvhr4sh8crkqq4vxpxrvy5g4496n2ffvujnucp666sgsrelhzzcfl3uy9m82lqsgt6x0q3y08z7"
+
+    # Stake address (for stake operation tests)
+    stake: "stake1u8ad8yhknv2d6tx7jcnltmnaj9ycxl6lxr2ysyq3mgfuscgjd6pmr"
+
+  # Native assets available on mainnet for testing
+  # All assets verified to have transactions as of 2026-01-06
+  assets:
+    - name: "SNEK"
+      description: "Popular mainnet meme token"
+      symbol: "SNEK"
+      symbol_hex: "534e454b"  # Symbol in hexadecimal
+      decimals: 0
+      policy_id: "279c909f348e533da5808898f87f9a14bb2c3dfbbacccd631d927a3f"
+      # Known location where this token exists (for historical balance queries)
+      # Verified 2026-01-08: address holds 3,631,156 SNEK at this block
+      test_address: "addr1qxzm06p3mp85lvu9mm8g8tvtvhr4sh8crkqq4vxpxrvy5g4496n2ffvujnucp666sgsrelhzzcfl3uy9m82lqsgt6x0q3y08z7"
+      test_block: 12883172
+
+  # Tokens registered in metadata server (for token registry tests)
+  # These tokens have enriched metadata (name, ticker, description) when registry enabled
+  # Verified in Cardano token registry as of 2026-01-06
+  tokens_in_registry:
+    - name: "Snek"
+      ticker: "SNEK"
+      symbol_hex: "534e454b"  # Symbol in hexadecimal
+      symbol_ascii: "SNEK"
+      decimals: 0
+      policy_id: "279c909f348e533da5808898f87f9a14bb2c3dfbbacccd631d927a3f"
+      subject: "279c909f348e533da5808898f87f9a14bb2c3dfbbacccd631d927a3f534e454b"
+      description: "A meme, and a memecoin"
+      url: "https://www.snek.com/"
+      logo_format: "base64"
+      logo_value_prefix: "89504e47"  # PNG magic bytes
+      # Known location where this token exists (for historical queries)
+      test_address: "addr1qxzm06p3mp85lvu9mm8g8tvtvhr4sh8crkqq4vxpxrvy5g4496n2ffvujnucp666sgsrelhzzcfl3uy9m82lqsgt6x0q3y08z7"
+      test_block: 12875388  # Block where test_address held this token
+    - name: "HOSKY Token"
+      ticker: "HOSKY"
+      symbol_hex: "484f534b59"  # Symbol in hexadecimal
+      symbol_ascii: "HOSKY"
+      decimals: 0
+      policy_id: "a0028f350aaabe0545fdcb56b039bfb08e4bb4d8c4d7c3c7d481c235"
+      subject: "a0028f350aaabe0545fdcb56b039bfb08e4bb4d8c4d7c3c7d481c235484f534b59"
+      description: "The PREMIERE low-quality s**t coin doggo meme token, exclusively on the Cardano Ecosystem. We are THE s**t, we are NOT s**t."
+      url: "https://hosky.io"
+      logo_format: "base64"
+      logo_value_prefix: "89504e47"  # PNG magic bytes
 
 # preview:
 #   # Preview network test data
