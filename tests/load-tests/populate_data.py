@@ -187,9 +187,9 @@ class YaciStoreQuerier:
             return self._reference_block
 
         query = f"""
-        SELECT block_number as index, block_hash as hash
+        SELECT number as index, hash
         FROM {self.schema}.block
-        ORDER BY block_number DESC
+        ORDER BY number DESC
         LIMIT 1
         """
         results = self._execute_query(query, (), description="reference block (tip)")
