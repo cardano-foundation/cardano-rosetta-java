@@ -48,43 +48,44 @@ class TestNetworkDataValidity:
         )
 
     @pytest.mark.pruning_compatible
-    def test_configured_assets_have_transactions(self, client, network, network_data):
-        """Configured native assets should have transactions on the network."""
-        for asset in network_data["assets"]:
-            # Note: Do NOT add limit parameter - currency filter + limit causes timeout (#615)
-            response = client.search_transactions(
+    def test_configured_assets_exist_in_historical_balance(self, client, network, network_data):
+        """Configured native assets should exist in historical balance at test_block."""
+        assets = network_data["assets"]
+        assert len(assets) > 0, f"No assets configured for network '{network}'"
+
+        for asset in assets:
+            # Use historical balance query at a known block - much faster than search
+            test_address = asset["test_address"]
+            test_block = asset["test_block"]
+
+            response = client.account_balance(
                 network=network,
-                currency={"symbol": asset["symbol_hex"], "decimals": asset["decimals"]},
+                account_identifier={"address": test_address},
+                block_identifier={"index": test_block},
             )
-            assert response.status_code == 200
-
-            txs = response.json()["transactions"]
-            assert len(txs) > 0, (
-                f"Asset '{asset['name']}' has no transactions. "
-                f"Network may have changed or asset data is wrong - update network_test_data.yaml"
+            assert response.status_code == 200, (
+                f"Failed to query historical balance for asset '{asset['name']}' "
+                f"at block {test_block}"
             )
 
-            # Verify ALL transactions contain the filtered asset (currency filter was applied)
-            for tx in txs:
-                # Collect all currency symbols from tokenBundle across all operations
-                currencies_in_tx = []
-                for op in tx["transaction"]["operations"]:
-                    # Native assets are always in tokenBundle (they sit in UTXOs with ADA)
-                    if "metadata" in op and "tokenBundle" in op["metadata"]:
-                        for bundle in op["metadata"]["tokenBundle"]:
-                            for token in bundle.get("tokens", []):
-                                currencies_in_tx.append(token["currency"]["symbol"].lower())
+            balances = response.json()["balances"]
 
-                # Assert filtered currency is in this transaction
-                assert asset["symbol_hex"].lower() in currencies_in_tx, (
-                    f"Asset '{asset['name']}' with hex symbol {asset['symbol_hex']} not found in transaction. "
-                    f"Currency filter should return only transactions containing the filtered asset. "
-                    f"Found currencies: {currencies_in_tx}"
-                )
+            # Collect all currency symbols from balances
+            balance_symbols = {b["currency"]["symbol"].lower() for b in balances}
+
+            assert asset["symbol_hex"].lower() in balance_symbols, (
+                f"Asset '{asset['name']}' with symbol {asset['symbol_hex']} not found "
+                f"in historical balance at block {test_block}. "
+                f"Found symbols: {balance_symbols}. "
+                f"Update test_address/test_block in network_test_data.yaml."
+            )
 
     def test_asset_policy_ids_are_valid(self, client, network, network_data):
         """Asset policy IDs should be valid hex strings."""
-        for asset in network_data["assets"]:
+        assets = network_data["assets"]
+        assert len(assets) > 0, f"No assets configured for network '{network}'"
+
+        for asset in assets:
             policy_id = asset["policy_id"]
 
             # Policy ID should be 56 hex characters (28 bytes)
