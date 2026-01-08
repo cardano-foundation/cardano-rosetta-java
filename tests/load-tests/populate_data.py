@@ -133,6 +133,7 @@ class YaciStoreQuerier:
         self._percentile_cache: Dict[str, Dict] = {}
         self._power_of_10_cache: Dict[str, Dict] = {}
         self._era_cache: Optional[Dict] = None
+        self._reference_block: Optional[Dict] = None
 
     def connect(self):
         """Establish database connection."""
@@ -175,6 +176,32 @@ class YaciStoreQuerier:
     def close(self):
         if self.conn:
             self.conn.close()
+
+    def get_reference_block(self) -> Dict:
+        """Get and cache the current blockchain tip as reference block.
+
+        All data collection uses this block as the reference point to ensure
+        deterministic test results. Tests should query using this block_identifier.
+        """
+        if self._reference_block is not None:
+            return self._reference_block
+
+        query = f"""
+        SELECT block_number as index, block_hash as hash
+        FROM {self.schema}.block
+        ORDER BY block_number DESC
+        LIMIT 1
+        """
+        results = self._execute_query(query, (), description="reference block (tip)")
+        if not results:
+            raise RuntimeError("Could not get blockchain tip - database may be empty")
+
+        self._reference_block = {
+            'index': results[0]['index'],
+            'hash': results[0]['hash']
+        }
+        print(f"  Reference block: {self._reference_block['index']} ({self._reference_block['hash'][:16]}...)")
+        return self._reference_block
 
     def _execute_query(self, query: str, params: tuple, description: str = "") -> List[Dict]:
         """Execute query and return results as list of dicts."""
@@ -1129,57 +1156,143 @@ class YaciStoreQuerier:
         return self._execute_query(query, (q['min'], q['max'], TARGET_PER_LEVEL), description=f"block_era {level}")
 
     # =========================================================================
+    # Two-Phase Verified Data Retrieval
+    # =========================================================================
+    #
+    # TABLESAMPLE samples rows, not entities. When you GROUP BY address and
+    # count transactions from a 5% sample, you get ~5% of the true count.
+    # This causes addresses with 3000 txs to appear as having 150 txs.
+    #
+    # Solution: Two-phase approach
+    #   1. Use TABLESAMPLE to quickly find candidate entities (fast, inaccurate)
+    #   2. Verify each candidate with exact count query (slow but accurate)
+    #   3. Keep only those that truly belong in the bucket
+    # =========================================================================
+
+    def _get_threshold(self, dimension: str, level: str, threshold_type: str) -> Dict:
+        """Get threshold for a dimension/level, raising ValueError if not found."""
+        if threshold_type == 'power_of_10':
+            thresholds = self.get_power_of_10_thresholds(dimension)
+        elif threshold_type == 'percentile':
+            thresholds = self.get_percentile_thresholds(dimension)
+        else:
+            raise ValueError(f"Unknown threshold type: {threshold_type}")
+
+        if level not in thresholds:
+            raise ValueError(f"Unknown level '{level}' for {dimension} - valid: {list(thresholds.keys())}")
+        return thresholds[level]
+
+    def _get_verified_data(
+        self,
+        candidate_query: str,
+        candidate_params: tuple,
+        verify_query: str,
+        min_val: int,
+        max_val: float,
+        id_field: str,
+        count_field: str,
+        description: str,
+        needs_ref_block: bool = True,
+        ref_block_params: int = 2
+    ) -> List[Dict]:
+        """Get data with two-phase verification: sample candidates, then verify exact counts.
+
+        Args:
+            candidate_query: SQL query to get candidates (should use TABLESAMPLE)
+            candidate_params: Parameters for candidate query
+            verify_query: SQL query to verify exact count (%s for entity_id, then ref_block(s))
+            min_val: Minimum count for bucket (inclusive)
+            max_val: Maximum count for bucket (inclusive), use float('inf') for unbounded
+            id_field: Field name containing entity ID in candidate results
+            count_field: Field name for count in verification result
+            description: Description for logging
+            needs_ref_block: Whether verify_query needs ref_block parameter(s)
+            ref_block_params: Number of ref_block parameters (1 or 2)
+        """
+        ref_block = self.get_reference_block()
+
+        # Phase 1: Get candidates (fast, potentially inaccurate counts)
+        candidates = self._execute_query(candidate_query, candidate_params, description=f"{description} candidates")
+
+        # Phase 2: Verify each candidate
+        verified = []
+        for candidate in candidates:
+            entity_id = candidate[id_field]
+
+            try:
+                with self.conn.cursor(cursor_factory=RealDictCursor) as cur:
+                    if needs_ref_block:
+                        if ref_block_params == 2:
+                            cur.execute(verify_query, (entity_id, ref_block['index'], ref_block['index']))
+                        else:
+                            cur.execute(verify_query, (entity_id, ref_block['index']))
+                    else:
+                        cur.execute(verify_query, (entity_id,))
+                    result = cur.fetchone()
+                    exact_count = result[count_field] if result else None
+            except Exception:
+                continue
+
+            if exact_count is not None and min_val <= exact_count <= max_val:
+                candidate[count_field] = exact_count
+                candidate['reference_block_index'] = ref_block['index']
+                candidate['reference_block_hash'] = ref_block['hash']
+                verified.append(candidate)
+
+                if len(verified) >= TARGET_PER_LEVEL:
+                    break
+
+        print(f"      Verified {len(verified)}/{len(candidates)} candidates")
+        return verified
+
+    # =========================================================================
     # Power-of-10 Data Retrieval (for power-law distributions)
     # =========================================================================
 
     def get_addresses_by_utxo_count_power(self, level: str) -> List[Dict]:
-        """Get addresses at specific UTXO count power-of-10 level.
+        """Get addresses at specific UTXO count power-of-10 level."""
+        t = self._get_threshold('utxo_count', level, 'power_of_10')
 
-        Uses block column directly from address_utxo (no joins needed).
-        """
-        thresholds = self.get_power_of_10_thresholds('utxo_count')
-        if level not in thresholds:
-            raise ValueError(f"Unknown level '{level}' for utxo_count - valid levels: {list(thresholds.keys())}")
-
-        t = thresholds[level]
-        min_val, max_val = t['min'], t['max']
-
-        query = f"""
+        candidate_query = f"""
         SELECT au.owner_addr as address, COUNT(*) as utxo_count
         FROM {self.schema}.address_utxo au TABLESAMPLE SYSTEM(5)
-        WHERE au.owner_addr IS NOT NULL
-          AND au.block > 0
+        WHERE au.owner_addr IS NOT NULL AND au.block > 0
           AND NOT EXISTS (
             SELECT 1 FROM {self.schema}.tx_input ti
             WHERE ti.tx_hash = au.tx_hash AND ti.output_index = au.output_index
           )
         GROUP BY au.owner_addr
         HAVING COUNT(*) BETWEEN %s AND %s
-        ORDER BY RANDOM()
-        LIMIT %s
+        ORDER BY RANDOM() LIMIT %s
         """
-        return self._execute_query(query, (min_val, max_val, TARGET_PER_LEVEL), description=f"utxo_count {level}")
+
+        verify_query = f"""
+        SELECT COUNT(*) as utxo_count
+        FROM {self.schema}.address_utxo au
+        WHERE au.owner_addr = %s AND au.block > 0 AND au.block <= %s
+          AND NOT EXISTS (
+            SELECT 1 FROM {self.schema}.tx_input ti
+            WHERE ti.tx_hash = au.tx_hash AND ti.output_index = au.output_index
+              AND ti.spent_at_block <= %s
+          )
+        """
+
+        return self._get_verified_data(
+            candidate_query, (t['min'], t['max'], TARGET_PER_LEVEL * 5),
+            verify_query, t['min'], t['max'],
+            'address', 'utxo_count', f"utxo_count {level}"
+        )
 
     def get_addresses_by_token_count_power(self, level: str) -> List[Dict]:
-        """Get addresses at specific token count power-of-10 level.
+        """Get addresses at specific token count power-of-10 level."""
+        t = self._get_threshold('token_count', level, 'power_of_10')
 
-        Uses block column directly from address_utxo (no joins needed).
-        """
-        thresholds = self.get_power_of_10_thresholds('token_count')
-        if level not in thresholds:
-            raise ValueError(f"Unknown level '{level}' for token_count - valid levels: {list(thresholds.keys())}")
-
-        t = thresholds[level]
-        min_val, max_val = t['min'], t['max']
-
-        query = f"""
+        candidate_query = f"""
         WITH addr_tokens AS (
-            SELECT au.owner_addr,
-                   COUNT(DISTINCT (elem->>'unit')) as token_count
+            SELECT au.owner_addr, COUNT(DISTINCT (elem->>'unit')) as token_count
             FROM {self.schema}.address_utxo au TABLESAMPLE SYSTEM(5),
                  jsonb_array_elements(au.amounts) as elem
-            WHERE au.owner_addr IS NOT NULL
-              AND au.block > 0
+            WHERE au.owner_addr IS NOT NULL AND au.block > 0
               AND elem->>'unit' <> 'lovelace'
               AND NOT EXISTS (
                 SELECT 1 FROM {self.schema}.tx_input ti
@@ -1188,37 +1301,55 @@ class YaciStoreQuerier:
             GROUP BY au.owner_addr
             HAVING COUNT(DISTINCT (elem->>'unit')) > 0
         )
-        SELECT owner_addr as address, token_count
-        FROM addr_tokens
+        SELECT owner_addr as address, token_count FROM addr_tokens
         WHERE token_count BETWEEN %s AND %s
-        ORDER BY RANDOM()
-        LIMIT %s
+        ORDER BY RANDOM() LIMIT %s
         """
-        return self._execute_query(query, (min_val, max_val, TARGET_PER_LEVEL), description=f"token_count {level}")
+
+        verify_query = f"""
+        SELECT COUNT(DISTINCT (elem->>'unit')) as token_count
+        FROM {self.schema}.address_utxo au, jsonb_array_elements(au.amounts) as elem
+        WHERE au.owner_addr = %s AND au.block > 0 AND au.block <= %s
+          AND elem->>'unit' <> 'lovelace'
+          AND NOT EXISTS (
+            SELECT 1 FROM {self.schema}.tx_input ti
+            WHERE ti.tx_hash = au.tx_hash AND ti.output_index = au.output_index
+              AND ti.spent_at_block <= %s
+          )
+        """
+
+        return self._get_verified_data(
+            candidate_query, (t['min'], t['max'], TARGET_PER_LEVEL * 5),
+            verify_query, t['min'], t['max'],
+            'address', 'token_count', f"token_count {level}"
+        )
 
     def get_addresses_by_tx_history_power(self, level: str) -> List[Dict]:
-        """Get addresses at specific transaction history power-of-10 level.
+        """Get addresses at specific transaction history power-of-10 level."""
+        t = self._get_threshold('tx_history', level, 'power_of_10')
 
-        Uses block column directly from address_utxo (no joins needed).
-        """
-        thresholds = self.get_power_of_10_thresholds('tx_history')
-        if level not in thresholds:
-            raise ValueError(f"Unknown level '{level}' for tx_history - valid levels: {list(thresholds.keys())}")
-
-        t = thresholds[level]
-        min_val, max_val = t['min'], t['max']
-
-        query = f"""
+        candidate_query = f"""
         SELECT au.owner_addr as address, COUNT(DISTINCT au.tx_hash) as tx_count
         FROM {self.schema}.address_utxo au TABLESAMPLE SYSTEM(5)
-        WHERE au.owner_addr IS NOT NULL
-          AND au.block > 0
+        WHERE au.owner_addr IS NOT NULL AND au.block > 0
         GROUP BY au.owner_addr
         HAVING COUNT(DISTINCT au.tx_hash) BETWEEN %s AND %s
-        ORDER BY RANDOM()
-        LIMIT %s
+        ORDER BY RANDOM() LIMIT %s
         """
-        return self._execute_query(query, (min_val, max_val, TARGET_PER_LEVEL), description=f"tx_history {level}")
+
+        # tx_history only needs one ref_block param (no spent check)
+        verify_query = f"""
+        SELECT COUNT(DISTINCT tx_hash) as tx_count
+        FROM {self.schema}.address_utxo
+        WHERE owner_addr = %s AND block > 0 AND block <= %s
+        """
+
+        return self._get_verified_data(
+            candidate_query, (t['min'], t['max'], TARGET_PER_LEVEL * 5),
+            verify_query, t['min'], t['max'],
+            'address', 'tx_count', f"tx_history {level}",
+            needs_ref_block=True, ref_block_params=1
+        )
 
     def get_blocks_by_tx_count_power(self, level: str) -> List[Dict]:
         """Get blocks at specific transaction count power-of-10 level."""
@@ -1240,39 +1371,39 @@ class YaciStoreQuerier:
         return self._execute_query(query, (min_val, max_val, TARGET_PER_LEVEL), description=f"block_tx_count {level}")
 
     def get_transactions_by_token_count_power(self, level: str) -> List[Dict]:
-        """Get transactions at specific token count power-of-10 level.
+        """Get transactions at specific token count power-of-10 level."""
+        t = self._get_threshold('tx_token_count', level, 'power_of_10')
 
-        Uses block column directly from address_utxo (no joins needed).
-        """
-        thresholds = self.get_power_of_10_thresholds('tx_token_count')
-        if level not in thresholds:
-            raise ValueError(f"Unknown level '{level}' for tx_token_count - valid levels: {list(thresholds.keys())}")
-
-        t = thresholds[level]
-        min_val, max_val = t['min'], t['max']
-
-        query = f"""
+        candidate_query = f"""
         WITH tx_tokens AS (
-            SELECT au.tx_hash,
-                   MAX(au.block_hash) as block_hash,
-                   MAX(au.block) as block_index,
+            SELECT au.tx_hash, MAX(au.block_hash) as block_hash, MAX(au.block) as block_index,
                    COUNT(DISTINCT amt->>'unit') as token_count
             FROM {self.schema}.address_utxo au TABLESAMPLE SYSTEM(5),
                  LATERAL jsonb_array_elements(au.amounts) AS amt
-            WHERE au.amounts IS NOT NULL
-              AND au.amounts::text <> 'null'
-              AND amt->>'unit' <> 'lovelace'
-              AND au.block > 0
+            WHERE au.amounts IS NOT NULL AND au.amounts::text <> 'null'
+              AND amt->>'unit' <> 'lovelace' AND au.block > 0
             GROUP BY au.tx_hash
             HAVING COUNT(DISTINCT amt->>'unit') > 0
         )
         SELECT tx_hash as transaction_hash, block_hash, block_index, token_count
-        FROM tx_tokens
-        WHERE token_count BETWEEN %s AND %s
-        ORDER BY RANDOM()
-        LIMIT %s
+        FROM tx_tokens WHERE token_count BETWEEN %s AND %s
+        ORDER BY RANDOM() LIMIT %s
         """
-        return self._execute_query(query, (min_val, max_val, TARGET_PER_LEVEL), description=f"tx_token_count {level}")
+
+        # Transaction token count is immutable - no ref_block needed
+        verify_query = f"""
+        SELECT COUNT(DISTINCT amt->>'unit') as token_count
+        FROM {self.schema}.address_utxo au, LATERAL jsonb_array_elements(au.amounts) AS amt
+        WHERE au.tx_hash = %s AND au.amounts IS NOT NULL
+          AND au.amounts::text <> 'null' AND amt->>'unit' <> 'lovelace'
+        """
+
+        return self._get_verified_data(
+            candidate_query, (t['min'], t['max'], TARGET_PER_LEVEL * 5),
+            verify_query, t['min'], t['max'],
+            'transaction_hash', 'token_count', f"tx_token_count {level}",
+            needs_ref_block=False
+        )
 
     def get_transactions_by_io_count_power(self, level: str) -> List[Dict]:
         """Get transactions at specific I/O count power-of-10 level.
@@ -1521,45 +1652,46 @@ class YaciStoreQuerier:
         return self._execute_query(query, params, description=f"tx_io_count {level}")
 
     def get_transactions_by_token_count(self, level: str) -> List[Dict]:
-        """Get transactions at specific token count percentile level.
+        """Get transactions at specific token count percentile level."""
+        t = self._get_threshold('tx_token_count', level, 'percentile')
+        min_val = t['min']
+        max_val = t['max'] if t['max'] is not None and level != 'p99' else float('inf')
 
-        Uses block column directly from address_utxo (no joins needed).
-        """
-        thresholds = self.get_percentile_thresholds('tx_token_count')
-        if level not in thresholds:
-            raise ValueError(f"Unknown level '{level}' for tx_token_count - valid levels: {list(thresholds.keys())}")
-
-        t = thresholds[level]
-        min_val, max_val = t['min'], t['max']
-
-        if max_val is None or level == 'p99':
-            having_condition = "HAVING COUNT(DISTINCT amt->>'unit') > %s"
-            params = (min_val, TARGET_PER_LEVEL)
+        # Build candidate query with appropriate HAVING clause
+        if max_val == float('inf'):
+            having = "HAVING COUNT(DISTINCT amt->>'unit') > %s"
+            params = (min_val, TARGET_PER_LEVEL * 5)
         else:
-            having_condition = "HAVING COUNT(DISTINCT amt->>'unit') BETWEEN %s AND %s"
-            params = (min_val, max_val, TARGET_PER_LEVEL)
+            having = "HAVING COUNT(DISTINCT amt->>'unit') BETWEEN %s AND %s"
+            params = (min_val, int(max_val), TARGET_PER_LEVEL * 5)
 
-        query = f"""
+        candidate_query = f"""
         WITH tx_tokens AS (
-            SELECT au.tx_hash,
-                   MAX(au.block_hash) as block_hash,
-                   MAX(au.block) as block_index,
+            SELECT au.tx_hash, MAX(au.block_hash) as block_hash, MAX(au.block) as block_index,
                    COUNT(DISTINCT amt->>'unit') as token_count
             FROM {self.schema}.address_utxo au TABLESAMPLE SYSTEM(5),
                  LATERAL jsonb_array_elements(au.amounts) AS amt
-            WHERE au.amounts IS NOT NULL
-              AND au.amounts::text <> 'null'
-              AND amt->>'unit' <> 'lovelace'
-              AND au.block > 0  -- Exclude genesis block
-            GROUP BY au.tx_hash
-            {having_condition}
+            WHERE au.amounts IS NOT NULL AND au.amounts::text <> 'null'
+              AND amt->>'unit' <> 'lovelace' AND au.block > 0
+            GROUP BY au.tx_hash {having}
         )
         SELECT tx_hash as transaction_hash, block_hash, block_index, token_count
-        FROM tx_tokens
-        ORDER BY RANDOM()
-        LIMIT %s
+        FROM tx_tokens ORDER BY RANDOM() LIMIT %s
         """
-        return self._execute_query(query, params, description=f"tx_token_count {level}")
+
+        verify_query = f"""
+        SELECT COUNT(DISTINCT amt->>'unit') as token_count
+        FROM {self.schema}.address_utxo au, LATERAL jsonb_array_elements(au.amounts) AS amt
+        WHERE au.tx_hash = %s AND au.amounts IS NOT NULL
+          AND au.amounts::text <> 'null' AND amt->>'unit' <> 'lovelace'
+        """
+
+        return self._get_verified_data(
+            candidate_query, params, verify_query,
+            min_val, max_val,
+            'transaction_hash', 'token_count', f"tx_token_count {level}",
+            needs_ref_block=False
+        )
 
     def get_transactions_with_scripts(self) -> List[Dict]:
         """Get transactions that have Plutus scripts (excludes genesis block)."""
@@ -1618,9 +1750,16 @@ class YaciStoreQuerier:
 
 def generate_dimensions_json(querier: YaciStoreQuerier, network: str, output_dir: str):
     """Generate dimensions.json with all thresholds and metadata."""
+    # Get reference block first - all data is pinned to this block
+    ref_block = querier.get_reference_block()
+
     dimensions_data = {
         'network': network,
         'generated_at': datetime.now(tz=None).astimezone().isoformat(),
+        'reference_block': {
+            'index': ref_block['index'],
+            'hash': ref_block['hash']
+        },
         'target_per_level': TARGET_PER_LEVEL,
         'dimensions': {}
     }
@@ -1691,22 +1830,29 @@ def generate_data_files(querier: YaciStoreQuerier, network: str, output_dir: str
     for subdir in ['addresses', 'blocks', 'transactions']:
         os.makedirs(os.path.join(output_dir, subdir), exist_ok=True)
 
+    # Common columns for reference block (added by verified methods)
+    ref_cols = ['reference_block_index', 'reference_block_hash']
+
     # Mapping: dimension name -> (retrieval_method, subdir, columns)
+    # power_of_10 methods return verified data with reference block info
     dimension_handlers = {
-        # Address dimensions
+        # Address dimensions (power_of_10 uses verified two-phase retrieval)
         'utxo_count': {
             'percentile': (querier.get_addresses_by_utxo_count, 'addresses', ['address']),
-            'power_of_10': (querier.get_addresses_by_utxo_count_power, 'addresses', ['address']),
+            'power_of_10': (querier.get_addresses_by_utxo_count_power, 'addresses',
+                           ['address', 'utxo_count'] + ref_cols),
         },
         'token_count': {
             'percentile': (querier.get_addresses_by_token_count, 'addresses', ['address']),
-            'power_of_10': (querier.get_addresses_by_token_count_power, 'addresses', ['address']),
+            'power_of_10': (querier.get_addresses_by_token_count_power, 'addresses',
+                           ['address', 'token_count'] + ref_cols),
         },
         'tx_history': {
             'percentile': (querier.get_addresses_by_tx_history, 'addresses', ['address']),
-            'power_of_10': (querier.get_addresses_by_tx_history_power, 'addresses', ['address']),
+            'power_of_10': (querier.get_addresses_by_tx_history_power, 'addresses',
+                           ['address', 'tx_count'] + ref_cols),
         },
-        # Block dimensions
+        # Block dimensions (no TABLESAMPLE issues - blocks are immutable)
         'block_tx_count': {
             'percentile': (querier.get_blocks_by_tx_count, 'blocks', ['block_index', 'block_hash']),
             'power_of_10': (querier.get_blocks_by_tx_count_power, 'blocks', ['block_index', 'block_hash']),
@@ -1723,8 +1869,10 @@ def generate_data_files(querier: YaciStoreQuerier, network: str, output_dir: str
             'power_of_10': (querier.get_transactions_by_io_count_power, 'transactions', ['transaction_hash', 'block_hash', 'block_index']),
         },
         'tx_token_count': {
-            'percentile': (querier.get_transactions_by_token_count, 'transactions', ['transaction_hash', 'block_hash', 'block_index']),
-            'power_of_10': (querier.get_transactions_by_token_count_power, 'transactions', ['transaction_hash', 'block_hash', 'block_index']),
+            'percentile': (querier.get_transactions_by_token_count, 'transactions',
+                          ['transaction_hash', 'block_hash', 'block_index', 'token_count'] + ref_cols),
+            'power_of_10': (querier.get_transactions_by_token_count_power, 'transactions',
+                           ['transaction_hash', 'block_hash', 'block_index', 'token_count'] + ref_cols),
         },
         'tx_has_script': {
             'boolean': (None, 'transactions', ['transaction_hash', 'block_hash', 'block_index']),
