@@ -259,15 +259,13 @@ class YaciStoreQuerier:
     def _get_utxo_count_percentiles(self) -> Dict[str, Dict]:
         """Get percentile thresholds for address UTXO count (excludes genesis block).
 
-        Uses TABLESAMPLE for efficiency. Note: For percentile estimation only,
-        we skip the unspent filter (NOT EXISTS) for performance.
+        Note: For percentile estimation only, we skip the unspent filter (NOT EXISTS) for performance.
         """
-        # Use 0.1% sample for percentiles - fast and accurate
         # Skip NOT EXISTS for percentile estimation - significantly faster
         query = f"""
         WITH addr_utxos AS (
             SELECT au.owner_addr, COUNT(*) as cnt
-            FROM {self.schema}.address_utxo au TABLESAMPLE SYSTEM(0.1)
+            FROM {self.schema}.address_utxo au
             WHERE au.owner_addr IS NOT NULL
               AND au.block > 0  -- Exclude genesis block
             GROUP BY au.owner_addr
@@ -287,15 +285,13 @@ class YaciStoreQuerier:
     def _get_token_count_percentiles(self) -> Dict[str, Dict]:
         """Get percentile thresholds for address native token count (excludes lovelace).
 
-        Uses TABLESAMPLE for efficiency. Note: For percentile estimation only,
-        we skip the unspent filter (NOT EXISTS) for performance.
+        Note: For percentile estimation only, we skip the unspent filter (NOT EXISTS) for performance.
         """
-        # Use 0.1% sample for percentiles - fast and accurate
         # Skip NOT EXISTS for percentile estimation - significantly faster
         query = f"""
         WITH utxo_tokens AS (
             SELECT au.owner_addr, t.token->>'unit' as unit
-            FROM {self.schema}.address_utxo au TABLESAMPLE SYSTEM(0.1),
+            FROM {self.schema}.address_utxo au,
             LATERAL jsonb_array_elements(au.amounts) AS t(token)
             WHERE au.owner_addr IS NOT NULL
               AND au.block > 0  -- Exclude genesis block
@@ -319,16 +315,11 @@ class YaciStoreQuerier:
         return self._build_percentile_dict(query, 'tokens')
 
     def _get_tx_history_percentiles(self) -> Dict[str, Dict]:
-        """Get percentile thresholds for address transaction history count.
-
-        Uses TABLESAMPLE for efficiency - percentiles from 0.1% sample are
-        statistically representative for large datasets.
-        """
-        # Use 0.1% sample for percentiles - fast and accurate enough
+        """Get percentile thresholds for address transaction history count."""
         query = f"""
         WITH addr_history AS (
             SELECT owner_addr, COUNT(DISTINCT tx_hash) as cnt
-            FROM {self.schema}.address_utxo TABLESAMPLE SYSTEM(0.1)
+            FROM {self.schema}.address_utxo
             WHERE owner_addr IS NOT NULL
               AND block > 0  -- Exclude genesis block
             GROUP BY owner_addr
@@ -403,16 +394,12 @@ class YaciStoreQuerier:
         return self._build_percentile_dict(query, 'I/O')
 
     def _get_tx_token_count_percentiles(self) -> Dict[str, Dict]:
-        """Get percentile thresholds for transaction token types count.
-
-        Uses TABLESAMPLE and block column directly (no joins needed).
-        """
-        # Use 0.1% sample for percentiles
+        """Get percentile thresholds for transaction token types count."""
         query = f"""
         WITH tx_tokens AS (
             SELECT au.tx_hash,
                    COUNT(DISTINCT amt->>'unit') as cnt
-            FROM {self.schema}.address_utxo au TABLESAMPLE SYSTEM(0.1),
+            FROM {self.schema}.address_utxo au,
                  LATERAL jsonb_array_elements(au.amounts) AS amt
             WHERE au.amounts IS NOT NULL
               AND au.amounts::text <> 'null'
@@ -510,16 +497,13 @@ class YaciStoreQuerier:
     def _get_utxo_count_range(self) -> Tuple[int, int, str]:
         """Get min/max UTXO count for addresses (excludes genesis block).
 
-        Uses TABLESAMPLE for efficiency. Note: For range estimation only,
-        we skip the unspent filter (NOT EXISTS) for performance.
+        Note: For range estimation only, we skip the unspent filter (NOT EXISTS) for performance.
         The actual data retrieval queries will filter for unspent UTXOs.
         """
-        # Min is almost always 1, use 1% sample to estimate max
-        # Skip NOT EXISTS for range estimation - significantly faster
         query = f"""
         WITH addr_utxos AS (
             SELECT COUNT(*) as cnt
-            FROM {self.schema}.address_utxo au TABLESAMPLE SYSTEM(1)
+            FROM {self.schema}.address_utxo au
             WHERE au.owner_addr IS NOT NULL
               AND au.block > 0
             GROUP BY au.owner_addr
@@ -527,26 +511,21 @@ class YaciStoreQuerier:
         )
         SELECT MAX(cnt) as max_val FROM addr_utxos
         """
-        results = self._execute_query(query, (), description="utxo_count range (sampled)")
+        results = self._execute_query(query, (), description="utxo_count range")
         if not results or not results[0]['max_val']:
             raise RuntimeError("utxo_count range query returned no data - check database connection and schema")
-        # Add 20% buffer to sampled max
-        sampled_max = int(results[0]['max_val'])
-        return 1, int(sampled_max * 1.2), 'UTXOs'
+        return 1, int(results[0]['max_val']), 'UTXOs'
 
     def _get_token_count_range(self) -> Tuple[int, int, str]:
         """Get min/max token count for addresses (excludes lovelace, genesis block).
 
-        Uses TABLESAMPLE for efficiency. Note: For range estimation only,
-        we skip the unspent filter (NOT EXISTS) for performance.
+        Note: For range estimation only, we skip the unspent filter (NOT EXISTS) for performance.
         The actual data retrieval queries will filter for unspent UTXOs.
         """
-        # Min is almost always 1, use 1% sample to estimate max
-        # Skip NOT EXISTS for range estimation - significantly faster
         query = f"""
         WITH addr_tokens AS (
             SELECT COUNT(DISTINCT t.token->>'unit') as cnt
-            FROM {self.schema}.address_utxo au TABLESAMPLE SYSTEM(1),
+            FROM {self.schema}.address_utxo au,
             LATERAL jsonb_array_elements(au.amounts) AS t(token)
             WHERE au.owner_addr IS NOT NULL
               AND au.block > 0
@@ -556,28 +535,17 @@ class YaciStoreQuerier:
         )
         SELECT MAX(cnt) as max_val FROM addr_tokens
         """
-        results = self._execute_query(query, (), description="token_count range (sampled)")
+        results = self._execute_query(query, (), description="token_count range")
         if not results or not results[0]['max_val']:
             raise RuntimeError("token_count range query returned no data - check database connection and schema")
-        # Add 20% buffer to sampled max
-        sampled_max = int(results[0]['max_val'])
-        return 1, int(sampled_max * 1.2), 'tokens'
+        return 1, int(results[0]['max_val']), 'tokens'
 
     def _get_tx_history_range(self) -> Tuple[int, int, str]:
-        """Get min/max transaction history for addresses (excludes genesis block).
-
-        Uses TABLESAMPLE for efficiency on large datasets.
-        Min is almost always 1, max is estimated from a 1% sample.
-        """
-        # Min is effectively always 1 (most addresses have single tx)
-        min_val = 1
-
-        # Use TABLESAMPLE to estimate max - much faster than full scan
-        # 1% sample on 336M rows = ~3.3M rows, gives good max estimate
+        """Get min/max transaction history for addresses (excludes genesis block)."""
         query = f"""
         WITH addr_history AS (
             SELECT owner_addr, COUNT(DISTINCT tx_hash) as cnt
-            FROM {self.schema}.address_utxo TABLESAMPLE SYSTEM(1)
+            FROM {self.schema}.address_utxo
             WHERE owner_addr IS NOT NULL
               AND block > 0
             GROUP BY owner_addr
@@ -585,13 +553,10 @@ class YaciStoreQuerier:
         )
         SELECT MAX(cnt) as max_val FROM addr_history
         """
-        results = self._execute_query(query, (), description="tx_history range (sampled)")
+        results = self._execute_query(query, (), description="tx_history range")
         if not results or not results[0]['max_val']:
             raise RuntimeError("tx_history range query returned no data - check database connection and schema")
-        # Add 20% buffer to sampled max to account for outliers not in sample
-        sampled_max = int(results[0]['max_val'])
-        estimated_max = int(sampled_max * 1.2)
-        return min_val, estimated_max, 'txs'
+        return 1, int(results[0]['max_val']), 'txs'
 
     def _get_block_tx_count_range(self) -> Tuple[int, int, str]:
         """Get min/max transaction count for blocks (excludes genesis block, empty blocks)."""
@@ -606,15 +571,11 @@ class YaciStoreQuerier:
         return int(results[0]['min_val']), int(results[0]['max_val']), 'txs'
 
     def _get_tx_token_count_range(self) -> Tuple[int, int, str]:
-        """Get min/max token count for transactions (excludes lovelace, genesis block).
-
-        Uses TABLESAMPLE and block column directly (no joins needed).
-        """
-        # Use 1% sample to estimate max
+        """Get min/max token count for transactions (excludes lovelace, genesis block)."""
         query = f"""
         WITH tx_tokens AS (
             SELECT COUNT(DISTINCT amt->>'unit') as cnt
-            FROM {self.schema}.address_utxo au TABLESAMPLE SYSTEM(1),
+            FROM {self.schema}.address_utxo au,
                  LATERAL jsonb_array_elements(au.amounts) AS amt
             WHERE au.amounts IS NOT NULL
               AND au.amounts::text <> 'null'
@@ -625,18 +586,13 @@ class YaciStoreQuerier:
         )
         SELECT MAX(cnt) as max_val FROM tx_tokens
         """
-        results = self._execute_query(query, (), description="tx_token_count range (sampled)")
+        results = self._execute_query(query, (), description="tx_token_count range")
         if not results or not results[0]['max_val']:
             raise RuntimeError("tx_token_count range query returned no data - check database connection and schema")
-        # Add 20% buffer to sampled max
-        sampled_max = int(results[0]['max_val'])
-        return 1, int(sampled_max * 1.2), 'tokens'
+        return 1, int(results[0]['max_val']), 'tokens'
 
     def _get_tx_io_count_range(self) -> Tuple[int, int, str]:
-        """Get min/max I/O count for transactions (excludes genesis block).
-
-        Transaction table is small enough (~90M rows) that we don't need TABLESAMPLE.
-        """
+        """Get min/max I/O count for transactions (excludes genesis block)."""
         query = f"""
         SELECT MIN(jsonb_array_length(inputs) + jsonb_array_length(outputs)) as min_val,
                MAX(jsonb_array_length(inputs) + jsonb_array_length(outputs)) as max_val
@@ -1003,7 +959,7 @@ class YaciStoreQuerier:
 
         query = f"""
         SELECT au.owner_addr as address, COUNT(*) as utxo_count
-        FROM {self.schema}.address_utxo au TABLESAMPLE SYSTEM(5)
+        FROM {self.schema}.address_utxo au
         WHERE au.owner_addr IS NOT NULL
           AND au.block > 0  -- Exclude genesis block
           AND NOT EXISTS (
@@ -1034,7 +990,7 @@ class YaciStoreQuerier:
         WITH addr_tokens AS (
             SELECT au.owner_addr,
                    COUNT(DISTINCT (elem->>'unit')) as token_count
-            FROM {self.schema}.address_utxo au TABLESAMPLE SYSTEM(5),
+            FROM {self.schema}.address_utxo au,
                  jsonb_array_elements(au.amounts) as elem
             WHERE au.owner_addr IS NOT NULL
               AND au.block > 0  -- Exclude genesis block
@@ -1079,7 +1035,7 @@ class YaciStoreQuerier:
 
         query = f"""
         SELECT au.owner_addr as address, COUNT(DISTINCT au.tx_hash) as tx_count
-        FROM {self.schema}.address_utxo au TABLESAMPLE SYSTEM(5)
+        FROM {self.schema}.address_utxo au
         WHERE au.owner_addr IS NOT NULL
           AND au.block > 0  -- Exclude genesis block
         GROUP BY au.owner_addr
@@ -1159,14 +1115,10 @@ class YaciStoreQuerier:
     # Two-Phase Verified Data Retrieval
     # =========================================================================
     #
-    # TABLESAMPLE samples rows, not entities. When you GROUP BY address and
-    # count transactions from a 5% sample, you get ~5% of the true count.
-    # This causes addresses with 3000 txs to appear as having 150 txs.
-    #
-    # Solution: Two-phase approach
-    #   1. Use TABLESAMPLE to quickly find candidate entities (fast, inaccurate)
-    #   2. Verify each candidate with exact count query (slow but accurate)
-    #   3. Keep only those that truly belong in the bucket
+    # For power-of-10 dimensions, we use two-phase verification:
+    #   1. Find candidate entities matching the target count range
+    #   2. Verify each candidate at the reference block (for time-consistent data)
+    #   3. Keep only those that truly belong in the bucket at that block
     # =========================================================================
 
     def _get_threshold(self, dimension: str, level: str, threshold_type: str) -> Dict:
@@ -1195,10 +1147,10 @@ class YaciStoreQuerier:
         needs_ref_block: bool = True,
         ref_block_params: int = 2
     ) -> List[Dict]:
-        """Get data with two-phase verification: sample candidates, then verify exact counts.
+        """Get data with two-phase verification: find candidates, then verify at reference block.
 
         Args:
-            candidate_query: SQL query to get candidates (should use TABLESAMPLE)
+            candidate_query: SQL query to get candidates
             candidate_params: Parameters for candidate query
             verify_query: SQL query to verify exact count (%s for entity_id, then ref_block(s))
             min_val: Minimum count for bucket (inclusive)
@@ -1255,7 +1207,7 @@ class YaciStoreQuerier:
 
         candidate_query = f"""
         SELECT au.owner_addr as address, COUNT(*) as utxo_count
-        FROM {self.schema}.address_utxo au TABLESAMPLE SYSTEM(5)
+        FROM {self.schema}.address_utxo au
         WHERE au.owner_addr IS NOT NULL AND au.block > 0
           AND NOT EXISTS (
             SELECT 1 FROM {self.schema}.tx_input ti
@@ -1290,7 +1242,7 @@ class YaciStoreQuerier:
         candidate_query = f"""
         WITH addr_tokens AS (
             SELECT au.owner_addr, COUNT(DISTINCT (elem->>'unit')) as token_count
-            FROM {self.schema}.address_utxo au TABLESAMPLE SYSTEM(5),
+            FROM {self.schema}.address_utxo au,
                  jsonb_array_elements(au.amounts) as elem
             WHERE au.owner_addr IS NOT NULL AND au.block > 0
               AND elem->>'unit' <> 'lovelace'
@@ -1330,7 +1282,7 @@ class YaciStoreQuerier:
 
         candidate_query = f"""
         SELECT au.owner_addr as address, COUNT(DISTINCT au.tx_hash) as tx_count
-        FROM {self.schema}.address_utxo au TABLESAMPLE SYSTEM(5)
+        FROM {self.schema}.address_utxo au
         WHERE au.owner_addr IS NOT NULL AND au.block > 0
         GROUP BY au.owner_addr
         HAVING COUNT(DISTINCT au.tx_hash) BETWEEN %s AND %s
@@ -1378,7 +1330,7 @@ class YaciStoreQuerier:
         WITH tx_tokens AS (
             SELECT au.tx_hash, MAX(au.block_hash) as block_hash, MAX(au.block) as block_index,
                    COUNT(DISTINCT amt->>'unit') as token_count
-            FROM {self.schema}.address_utxo au TABLESAMPLE SYSTEM(5),
+            FROM {self.schema}.address_utxo au,
                  LATERAL jsonb_array_elements(au.amounts) AS amt
             WHERE au.amounts IS NOT NULL AND au.amounts::text <> 'null'
               AND amt->>'unit' <> 'lovelace' AND au.block > 0
@@ -1406,10 +1358,7 @@ class YaciStoreQuerier:
         )
 
     def get_transactions_by_io_count_power(self, level: str) -> List[Dict]:
-        """Get transactions at specific I/O count power-of-10 level.
-
-        Transaction table is small enough (~90M rows) that we don't need TABLESAMPLE.
-        """
+        """Get transactions at specific I/O count power-of-10 level."""
         thresholds = self.get_power_of_10_thresholds('tx_io_count')
         if level not in thresholds:
             raise ValueError(f"Unknown level '{level}' for tx_io_count - valid levels: {list(thresholds.keys())}")
@@ -1669,7 +1618,7 @@ class YaciStoreQuerier:
         WITH tx_tokens AS (
             SELECT au.tx_hash, MAX(au.block_hash) as block_hash, MAX(au.block) as block_index,
                    COUNT(DISTINCT amt->>'unit') as token_count
-            FROM {self.schema}.address_utxo au TABLESAMPLE SYSTEM(5),
+            FROM {self.schema}.address_utxo au,
                  LATERAL jsonb_array_elements(au.amounts) AS amt
             WHERE au.amounts IS NOT NULL AND au.amounts::text <> 'null'
               AND amt->>'unit' <> 'lovelace' AND au.block > 0
@@ -1852,7 +1801,7 @@ def generate_data_files(querier: YaciStoreQuerier, network: str, output_dir: str
             'power_of_10': (querier.get_addresses_by_tx_history_power, 'addresses',
                            ['address', 'tx_count'] + ref_cols),
         },
-        # Block dimensions (no TABLESAMPLE issues - blocks are immutable)
+        # Block dimensions (blocks are immutable, no verification needed)
         'block_tx_count': {
             'percentile': (querier.get_blocks_by_tx_count, 'blocks', ['block_index', 'block_hash']),
             'power_of_10': (querier.get_blocks_by_tx_count_power, 'blocks', ['block_index', 'block_hash']),
