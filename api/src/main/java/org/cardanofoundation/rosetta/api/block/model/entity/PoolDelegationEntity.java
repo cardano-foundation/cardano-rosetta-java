@@ -11,8 +11,8 @@ import lombok.Setter;
 @NoArgsConstructor
 @Entity
 @Table(name = "delegation")
-@IdClass(DelegationId.class)
-public class DelegationEntity {
+@IdClass(PoolDelegationId.class)
+public class PoolDelegationEntity {
 
   @Id
   @Column(name = "tx_hash")
