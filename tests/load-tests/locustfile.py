@@ -43,64 +43,49 @@ def load_csv(csv_file: Path) -> List[Dict]:
         return list(csv.DictReader(f))
 
 def load_test_data():
-    """Load all dimension/level data from dimensions.json and CSV files."""
+    """Load test data organized by endpoint from dimensions.json."""
     network = os.environ.get('ROSETTA_NETWORK', 'mainnet')
     data_dir = SCRIPT_DIR / 'data' / network
 
     with open(data_dir / 'dimensions.json') as f:
         dims = json.load(f)['dimensions']
 
-    addresses, blocks, transactions = {}, {}, {}
+    # Data organized by endpoint: {'/account/balance': {'utxo_count_1': [...], ...}}
+    endpoint_data = {}
     weights = {}
 
-    # Map dimension subdirs to output dicts
-    subdir_map = {'addresses': addresses, 'blocks': blocks, 'transactions': transactions}
+    # Row parsers by data_type
+    parsers = {
+        'addresses': lambda r: r['address'],
+        'blocks': lambda r: {'index': int(r['block_index']), 'hash': r['block_hash']},
+        'transactions': lambda r: {'hash': r['transaction_hash'], 'block_index': int(r['block_index']), 'block_hash': r['block_hash']},
+    }
 
     for dim_name, dim_config in dims.items():
-        # Determine subdir based on endpoints
-        endpoints_str = str(dim_config['endpoints'])
-        if '/account/' in endpoints_str:
-            subdir = 'addresses'
-        elif '/block/transaction' in endpoints_str or '/search/transactions' in endpoints_str:
-            subdir = 'transactions'
-        else:
-            subdir = 'blocks'
+        data_type = dim_config['data_type']
+        endpoints = dim_config['endpoints']
+        parse = parsers[data_type]
 
-        target = subdir_map[subdir]
-
-        # Load CSV for each level
         for level in dim_config['thresholds'].keys():
             cat = f"{dim_name}_{level}"
-            csv_file = data_dir / subdir / f"{cat}.csv"
-
+            csv_file = data_dir / data_type / f"{cat}.csv"
             if not csv_file.exists():
                 continue
 
-            rows = load_csv(csv_file)
+            items = [parse(r) for r in load_csv(csv_file)]
+            weights[cat] = 1.0
 
-            # Convert to format expected by tasks
-            if subdir == 'addresses':
-                target[cat] = [r['address'] for r in rows]
-            elif subdir == 'blocks':
-                target[cat] = [{'index': int(r['block_index']), 'hash': r['block_hash']} for r in rows]
-            else:  # transactions
-                target[cat] = [{'hash': r['transaction_hash'], 'block_index': int(r['block_index']),
-                                'block_hash': r['block_hash']} for r in rows]
+            for endpoint in endpoints:
+                endpoint_data.setdefault(endpoint, {})[cat] = items
 
-            # Uniform weights (can tune later based on real distribution)
-            prefix = {'addresses': 'address', 'blocks': 'block', 'transactions': 'tx'}[subdir]
-            weights[f"{prefix}_{cat}"] = 1.0
-
-    # Construction metadata (hardcoded - not dimension-based)
-    construction_metadata = {
-        "small_tx": [{"transaction_size": 500, "relative_ttl": 1000}],
-        "large_tx": [{"transaction_size": 15000, "relative_ttl": 3600}],
-    }
+    # Construction metadata (hardcoded)
+    construction_metadata = {"small_tx": [{"transaction_size": 500, "relative_ttl": 1000}],
+                             "large_tx": [{"transaction_size": 15000, "relative_ttl": 3600}]}
     weights.update({"construction_small_tx": 0.7, "construction_large_tx": 0.3})
 
-    return network, addresses, blocks, transactions, weights, construction_metadata
+    return network, endpoint_data, weights, construction_metadata
 
-NETWORK, ADDRESSES, BLOCKS, TRANSACTIONS, CATEGORY_WEIGHTS, CONSTRUCTION_METADATA = load_test_data()
+NETWORK, ENDPOINT_DATA, CATEGORY_WEIGHTS, CONSTRUCTION_METADATA = load_test_data()
 DEFAULT_NETWORK = NETWORK
 
 
@@ -216,135 +201,80 @@ class RosettaUser(HttpUser):
 
     @task(10)
     def account_balance(self):
-        """
-        Test /account/balance with CATEGORIZED addresses.
-
-        Weight: 10 (most frequent)
-        Reveals performance degradation with UTXO count:
-        - Light addresses: fast
-        - Medium addresses: moderate
-        - Heavy addresses: slow (10K+ UTXOs)
-        """
-        category, address = data_provider.get_weighted_choice(ADDRESSES, "address")
-
-        payload = {
-            "network_identifier": {"blockchain": "cardano", "network": NETWORK},
-            "account_identifier": {"address": address},
-        }
-
-        with self.client.post(
-            "/account/balance",
-            json=payload,
-            catch_response=True,
-            name=f"/account/balance [{category}]",  # Track by category
-        ) as response:
-            if response.status_code == 200:
-                response.success()
-            else:
-                response.failure(f"Status {response.status_code}")
+        """Test /account/balance with categorized addresses. Weight: 10"""
+        data = ENDPOINT_DATA.get('/account/balance', {})
+        if not data:
+            return
+        category, address = data_provider.get_weighted_choice(data, "")
+        payload = {"network_identifier": {"blockchain": "cardano", "network": NETWORK},
+                   "account_identifier": {"address": address}}
+        with self.client.post("/account/balance", json=payload, catch_response=True,
+                              name=f"/account/balance [{category}]") as response:
+            response.success() if response.status_code == 200 else response.failure(f"Status {response.status_code}")
 
     @task(8)
     def account_coins(self):
-        """
-        Test /account/coins with CATEGORIZED addresses.
-
-        Weight: 8
-        Similar to account/balance but includes mempool.
-        """
-        category, address = data_provider.get_weighted_choice(ADDRESSES, "address")
-
-        payload = {
-            "network_identifier": {"blockchain": "cardano", "network": NETWORK},
-            "account_identifier": {"address": address},
-        }
-
-        with self.client.post(
-            "/account/coins",
-            json=payload,
-            catch_response=True,
-            name=f"/account/coins [{category}]",
-        ) as response:
-            if response.status_code == 200:
-                response.success()
-            else:
-                response.failure(f"Status {response.status_code}")
+        """Test /account/coins with categorized addresses. Weight: 8"""
+        data = ENDPOINT_DATA.get('/account/coins', {})
+        if not data:
+            return
+        category, address = data_provider.get_weighted_choice(data, "")
+        payload = {"network_identifier": {"blockchain": "cardano", "network": NETWORK},
+                   "account_identifier": {"address": address}}
+        with self.client.post("/account/coins", json=payload, catch_response=True,
+                              name=f"/account/coins [{category}]") as response:
+            response.success() if response.status_code == 200 else response.failure(f"Status {response.status_code}")
 
     @task(5)
     def block(self):
-        """
-        Test /block with CATEGORIZED blocks.
-
-        Weight: 5
-        Reveals performance degradation with block size:
-        - Light blocks (1-5 txs): fast
-        - Heavy blocks (100+ txs): slow
-        """
-        category, block = data_provider.get_weighted_choice(BLOCKS, "block")
-
-        payload = {
-            "network_identifier": {"blockchain": "cardano", "network": NETWORK},
-            "block_identifier": {"index": block["index"], "hash": block["hash"]},
-        }
-
-        with self.client.post(
-            "/block", json=payload, catch_response=True, name=f"/block [{category}]"
-        ) as response:
-            if response.status_code == 200:
-                response.success()
-            else:
-                response.failure(f"Status {response.status_code}")
+        """Test /block with categorized blocks. Weight: 5"""
+        data = ENDPOINT_DATA.get('/block', {})
+        if not data:
+            return
+        category, block = data_provider.get_weighted_choice(data, "")
+        payload = {"network_identifier": {"blockchain": "cardano", "network": NETWORK},
+                   "block_identifier": {"index": block["index"], "hash": block["hash"]}}
+        with self.client.post("/block", json=payload, catch_response=True,
+                              name=f"/block [{category}]") as response:
+            response.success() if response.status_code == 200 else response.failure(f"Status {response.status_code}")
 
     @task(3)
     def block_transaction(self):
-        """
-        Test /block/transaction with CATEGORIZED transactions.
-
-        Weight: 3
-        Reveals performance with transaction complexity.
-        """
-        category, tx = data_provider.get_weighted_choice(TRANSACTIONS, "tx")
-
-        payload = {
-            "network_identifier": {"blockchain": "cardano", "network": NETWORK},
-            "block_identifier": {"index": tx["block_index"], "hash": tx["block_hash"]},
-            "transaction_identifier": {"hash": tx["hash"]},
-        }
-
-        with self.client.post(
-            "/block/transaction",
-            json=payload,
-            catch_response=True,
-            name=f"/block/transaction [{category}]",
-        ) as response:
-            if response.status_code == 200:
-                response.success()
-            else:
-                response.failure(f"Status {response.status_code}")
+        """Test /block/transaction with categorized transactions. Weight: 3"""
+        data = ENDPOINT_DATA.get('/block/transaction', {})
+        if not data:
+            return
+        category, tx = data_provider.get_weighted_choice(data, "")
+        payload = {"network_identifier": {"blockchain": "cardano", "network": NETWORK},
+                   "block_identifier": {"index": tx["block_index"], "hash": tx["block_hash"]},
+                   "transaction_identifier": {"hash": tx["hash"]}}
+        with self.client.post("/block/transaction", json=payload, catch_response=True,
+                              name=f"/block/transaction [{category}]") as response:
+            response.success() if response.status_code == 200 else response.failure(f"Status {response.status_code}")
 
     @task(5)
     def search_transactions(self):
+        """Test /search/transactions with categorized data. Weight: 5
+
+        Uses tx_history (addresses) for address-based search,
+        other dimensions (transactions) for hash-based search.
         """
-        Test /search/transactions with CATEGORIZED transactions.
+        data = ENDPOINT_DATA.get('/search/transactions', {})
+        if not data:
+            return
+        category, item = data_provider.get_weighted_choice(data, "")
 
-        Weight: 5
-        """
-        category, tx = data_provider.get_weighted_choice(TRANSACTIONS, "tx")
+        # tx_history uses address-based search, others use hash-based
+        if category.startswith('tx_history_'):
+            payload = {"network_identifier": {"blockchain": "cardano", "network": NETWORK},
+                       "account_identifier": {"address": item}}
+        else:
+            payload = {"network_identifier": {"blockchain": "cardano", "network": NETWORK},
+                       "transaction_identifier": {"hash": item["hash"]}}
 
-        payload = {
-            "network_identifier": {"blockchain": "cardano", "network": NETWORK},
-            "transaction_identifier": {"hash": tx["hash"]},
-        }
-
-        with self.client.post(
-            "/search/transactions",
-            json=payload,
-            catch_response=True,
-            name=f"/search/transactions [{category}]",
-        ) as response:
-            if response.status_code == 200:
-                response.success()
-            else:
-                response.failure(f"Status {response.status_code}")
+        with self.client.post("/search/transactions", json=payload, catch_response=True,
+                              name=f"/search/transactions [{category}]") as response:
+            response.success() if response.status_code == 200 else response.failure(f"Status {response.status_code}")
 
     @task(2)
     def construction_metadata(self):
@@ -382,25 +312,11 @@ class RosettaUser(HttpUser):
 def on_test_start(environment, **kwargs):
     """Event handler called when test starts."""
     print("=" * 80)
-    print("Starting Locust load test")
-    print(f"Target: {environment.host}")
-    print(f"Network: {NETWORK}")
-    print("Data categories loaded:")
-    print(f"  - Addresses: {sum(len(v) for v in ADDRESSES.values())} total")
-    for cat, items in ADDRESSES.items():
-        print(
-            f"    - {cat}: {len(items)} items (weight: {CATEGORY_WEIGHTS.get(f'address_{cat}', 1.0)})"
-        )
-    print(f"  - Blocks: {sum(len(v) for v in BLOCKS.values())} total")
-    for cat, items in BLOCKS.items():
-        print(
-            f"    - {cat}: {len(items)} items (weight: {CATEGORY_WEIGHTS.get(f'block_{cat}', 1.0)})"
-        )
-    print(f"  - Transactions: {sum(len(v) for v in TRANSACTIONS.values())} total")
-    for cat, items in TRANSACTIONS.items():
-        print(
-            f"    - {cat}: {len(items)} items (weight: {CATEGORY_WEIGHTS.get(f'tx_{cat}', 1.0)})"
-        )
+    print(f"Locust load test | Target: {environment.host} | Network: {NETWORK}")
+    print("Data loaded by endpoint:")
+    for endpoint, categories in sorted(ENDPOINT_DATA.items()):
+        total = sum(len(items) for items in categories.values())
+        print(f"  {endpoint}: {len(categories)} categories, {total} items")
     print("=" * 80)
 
 
