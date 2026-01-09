@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 import java.util.Collection;
 
 import org.cardanofoundation.rosetta.api.jooq.Keys;
-import org.cardanofoundation.rosetta.api.jooq.Preprod;
+import org.cardanofoundation.rosetta.api.jooq.Public;
 import org.cardanofoundation.rosetta.api.jooq.tables.records.CostModelRecord;
 import org.jooq.Condition;
 import org.jooq.Field;
@@ -38,7 +38,7 @@ public class CostModel extends TableImpl<CostModelRecord> {
     private static final long serialVersionUID = 1L;
 
     /**
-     * The reference instance of <code>preprod.cost_model</code>
+     * The reference instance of <code>public.cost_model</code>
      */
     public static final CostModel COST_MODEL = new CostModel();
 
@@ -51,32 +51,32 @@ public class CostModel extends TableImpl<CostModelRecord> {
     }
 
     /**
-     * The column <code>preprod.cost_model.hash</code>.
+     * The column <code>public.cost_model.hash</code>.
      */
     public final TableField<CostModelRecord, String> HASH = createField(DSL.name("hash"), SQLDataType.VARCHAR(64).nullable(false), this, "");
 
     /**
-     * The column <code>preprod.cost_model.costs</code>.
+     * The column <code>public.cost_model.costs</code>.
      */
     public final TableField<CostModelRecord, JSONB> COSTS = createField(DSL.name("costs"), SQLDataType.JSONB, this, "");
 
     /**
-     * The column <code>preprod.cost_model.slot</code>.
+     * The column <code>public.cost_model.slot</code>.
      */
     public final TableField<CostModelRecord, Long> SLOT = createField(DSL.name("slot"), SQLDataType.BIGINT, this, "");
 
     /**
-     * The column <code>preprod.cost_model.block</code>.
+     * The column <code>public.cost_model.block</code>.
      */
     public final TableField<CostModelRecord, Long> BLOCK = createField(DSL.name("block"), SQLDataType.BIGINT, this, "");
 
     /**
-     * The column <code>preprod.cost_model.block_time</code>.
+     * The column <code>public.cost_model.block_time</code>.
      */
     public final TableField<CostModelRecord, Long> BLOCK_TIME = createField(DSL.name("block_time"), SQLDataType.BIGINT, this, "");
 
     /**
-     * The column <code>preprod.cost_model.update_datetime</code>.
+     * The column <code>public.cost_model.update_datetime</code>.
      */
     public final TableField<CostModelRecord, LocalDateTime> UPDATE_DATETIME = createField(DSL.name("update_datetime"), SQLDataType.LOCALDATETIME(6), this, "");
 
@@ -89,21 +89,21 @@ public class CostModel extends TableImpl<CostModelRecord> {
     }
 
     /**
-     * Create an aliased <code>preprod.cost_model</code> table reference
+     * Create an aliased <code>public.cost_model</code> table reference
      */
     public CostModel(String alias) {
         this(DSL.name(alias), COST_MODEL);
     }
 
     /**
-     * Create an aliased <code>preprod.cost_model</code> table reference
+     * Create an aliased <code>public.cost_model</code> table reference
      */
     public CostModel(Name alias) {
         this(alias, COST_MODEL);
     }
 
     /**
-     * Create a <code>preprod.cost_model</code> table reference
+     * Create a <code>public.cost_model</code> table reference
      */
     public CostModel() {
         this(DSL.name("cost_model"), null);
@@ -111,7 +111,7 @@ public class CostModel extends TableImpl<CostModelRecord> {
 
     @Override
     public Schema getSchema() {
-        return aliased() ? null : Preprod.PREPROD;
+        return aliased() ? null : Public.PUBLIC;
     }
 
     @Override

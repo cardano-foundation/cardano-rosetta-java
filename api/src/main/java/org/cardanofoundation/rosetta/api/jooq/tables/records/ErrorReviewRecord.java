@@ -20,70 +20,70 @@ public class ErrorReviewRecord extends UpdatableRecordImpl<ErrorReviewRecord> {
     private static final long serialVersionUID = 1L;
 
     /**
-     * Setter for <code>preprod.error_review.id</code>.
+     * Setter for <code>public.error_review.id</code>.
      */
     public void setId(Integer value) {
         set(0, value);
     }
 
     /**
-     * Getter for <code>preprod.error_review.id</code>.
+     * Getter for <code>public.error_review.id</code>.
      */
     public Integer getId() {
         return (Integer) get(0);
     }
 
     /**
-     * Setter for <code>preprod.error_review.status</code>.
+     * Setter for <code>public.error_review.status</code>.
      */
     public void setStatus(String value) {
         set(1, value);
     }
 
     /**
-     * Getter for <code>preprod.error_review.status</code>.
+     * Getter for <code>public.error_review.status</code>.
      */
     public String getStatus() {
         return (String) get(1);
     }
 
     /**
-     * Setter for <code>preprod.error_review.comment</code>.
+     * Setter for <code>public.error_review.comment</code>.
      */
     public void setComment(String value) {
         set(2, value);
     }
 
     /**
-     * Getter for <code>preprod.error_review.comment</code>.
+     * Getter for <code>public.error_review.comment</code>.
      */
     public String getComment() {
         return (String) get(2);
     }
 
     /**
-     * Setter for <code>preprod.error_review.checked_by</code>.
+     * Setter for <code>public.error_review.checked_by</code>.
      */
     public void setCheckedBy(String value) {
         set(3, value);
     }
 
     /**
-     * Getter for <code>preprod.error_review.checked_by</code>.
+     * Getter for <code>public.error_review.checked_by</code>.
      */
     public String getCheckedBy() {
         return (String) get(3);
     }
 
     /**
-     * Setter for <code>preprod.error_review.last_updated</code>.
+     * Setter for <code>public.error_review.last_updated</code>.
      */
     public void setLastUpdated(LocalDateTime value) {
         set(4, value);
     }
 
     /**
-     * Getter for <code>preprod.error_review.last_updated</code>.
+     * Getter for <code>public.error_review.last_updated</code>.
      */
     public LocalDateTime getLastUpdated() {
         return (LocalDateTime) get(4);

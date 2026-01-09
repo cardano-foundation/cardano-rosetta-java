@@ -11,7 +11,7 @@ import java.util.List;
 
 import org.cardanofoundation.rosetta.api.jooq.Indexes;
 import org.cardanofoundation.rosetta.api.jooq.Keys;
-import org.cardanofoundation.rosetta.api.jooq.Preprod;
+import org.cardanofoundation.rosetta.api.jooq.Public;
 import org.cardanofoundation.rosetta.api.jooq.tables.records.AddressRecord;
 import org.jooq.Condition;
 import org.jooq.Field;
@@ -42,7 +42,7 @@ public class Address extends TableImpl<AddressRecord> {
     private static final long serialVersionUID = 1L;
 
     /**
-     * The reference instance of <code>preprod.address</code>
+     * The reference instance of <code>public.address</code>
      */
     public static final Address ADDRESS = new Address();
 
@@ -55,37 +55,37 @@ public class Address extends TableImpl<AddressRecord> {
     }
 
     /**
-     * The column <code>preprod.address.id</code>.
+     * The column <code>public.address.id</code>.
      */
     public final TableField<AddressRecord, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).identity(true), this, "");
 
     /**
-     * The column <code>preprod.address.address</code>.
+     * The column <code>public.address.address</code>.
      */
     public final TableField<AddressRecord, String> ADDRESS_ = createField(DSL.name("address"), SQLDataType.VARCHAR(500).nullable(false), this, "");
 
     /**
-     * The column <code>preprod.address.addr_full</code>.
+     * The column <code>public.address.addr_full</code>.
      */
     public final TableField<AddressRecord, String> ADDR_FULL = createField(DSL.name("addr_full"), SQLDataType.CLOB, this, "");
 
     /**
-     * The column <code>preprod.address.payment_credential</code>.
+     * The column <code>public.address.payment_credential</code>.
      */
     public final TableField<AddressRecord, String> PAYMENT_CREDENTIAL = createField(DSL.name("payment_credential"), SQLDataType.VARCHAR(56), this, "");
 
     /**
-     * The column <code>preprod.address.stake_address</code>.
+     * The column <code>public.address.stake_address</code>.
      */
     public final TableField<AddressRecord, String> STAKE_ADDRESS = createField(DSL.name("stake_address"), SQLDataType.VARCHAR(255), this, "");
 
     /**
-     * The column <code>preprod.address.stake_credential</code>.
+     * The column <code>public.address.stake_credential</code>.
      */
     public final TableField<AddressRecord, String> STAKE_CREDENTIAL = createField(DSL.name("stake_credential"), SQLDataType.VARCHAR(56), this, "");
 
     /**
-     * The column <code>preprod.address.update_datetime</code>.
+     * The column <code>public.address.update_datetime</code>.
      */
     public final TableField<AddressRecord, LocalDateTime> UPDATE_DATETIME = createField(DSL.name("update_datetime"), SQLDataType.LOCALDATETIME(6), this, "");
 
@@ -98,21 +98,21 @@ public class Address extends TableImpl<AddressRecord> {
     }
 
     /**
-     * Create an aliased <code>preprod.address</code> table reference
+     * Create an aliased <code>public.address</code> table reference
      */
     public Address(String alias) {
         this(DSL.name(alias), ADDRESS);
     }
 
     /**
-     * Create an aliased <code>preprod.address</code> table reference
+     * Create an aliased <code>public.address</code> table reference
      */
     public Address(Name alias) {
         this(alias, ADDRESS);
     }
 
     /**
-     * Create a <code>preprod.address</code> table reference
+     * Create a <code>public.address</code> table reference
      */
     public Address() {
         this(DSL.name("address"), null);
@@ -120,7 +120,7 @@ public class Address extends TableImpl<AddressRecord> {
 
     @Override
     public Schema getSchema() {
-        return aliased() ? null : Preprod.PREPROD;
+        return aliased() ? null : Public.PUBLIC;
     }
 
     @Override

@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 import java.util.Collection;
 
 import org.cardanofoundation.rosetta.api.jooq.Keys;
-import org.cardanofoundation.rosetta.api.jooq.Preprod;
+import org.cardanofoundation.rosetta.api.jooq.Public;
 import org.cardanofoundation.rosetta.api.jooq.tables.records.ErrorRecord;
 import org.jooq.Condition;
 import org.jooq.Field;
@@ -38,7 +38,7 @@ public class Error extends TableImpl<ErrorRecord> {
     private static final long serialVersionUID = 1L;
 
     /**
-     * The reference instance of <code>preprod.error</code>
+     * The reference instance of <code>public.error</code>
      */
     public static final Error ERROR = new Error();
 
@@ -51,32 +51,32 @@ public class Error extends TableImpl<ErrorRecord> {
     }
 
     /**
-     * The column <code>preprod.error.id</code>.
+     * The column <code>public.error.id</code>.
      */
     public final TableField<ErrorRecord, Integer> ID = createField(DSL.name("id"), SQLDataType.INTEGER.nullable(false).identity(true), this, "");
 
     /**
-     * The column <code>preprod.error.block</code>.
+     * The column <code>public.error.block</code>.
      */
     public final TableField<ErrorRecord, Long> BLOCK = createField(DSL.name("block"), SQLDataType.BIGINT, this, "");
 
     /**
-     * The column <code>preprod.error.error_code</code>.
+     * The column <code>public.error.error_code</code>.
      */
     public final TableField<ErrorRecord, String> ERROR_CODE = createField(DSL.name("error_code"), SQLDataType.VARCHAR(64).nullable(false), this, "");
 
     /**
-     * The column <code>preprod.error.reason</code>.
+     * The column <code>public.error.reason</code>.
      */
     public final TableField<ErrorRecord, String> REASON = createField(DSL.name("reason"), SQLDataType.CLOB.nullable(false), this, "");
 
     /**
-     * The column <code>preprod.error.details</code>.
+     * The column <code>public.error.details</code>.
      */
     public final TableField<ErrorRecord, String> DETAILS = createField(DSL.name("details"), SQLDataType.CLOB, this, "");
 
     /**
-     * The column <code>preprod.error.update_datetime</code>.
+     * The column <code>public.error.update_datetime</code>.
      */
     public final TableField<ErrorRecord, LocalDateTime> UPDATE_DATETIME = createField(DSL.name("update_datetime"), SQLDataType.LOCALDATETIME(6), this, "");
 
@@ -89,21 +89,21 @@ public class Error extends TableImpl<ErrorRecord> {
     }
 
     /**
-     * Create an aliased <code>preprod.error</code> table reference
+     * Create an aliased <code>public.error</code> table reference
      */
     public Error(String alias) {
         this(DSL.name(alias), ERROR);
     }
 
     /**
-     * Create an aliased <code>preprod.error</code> table reference
+     * Create an aliased <code>public.error</code> table reference
      */
     public Error(Name alias) {
         this(alias, ERROR);
     }
 
     /**
-     * Create a <code>preprod.error</code> table reference
+     * Create a <code>public.error</code> table reference
      */
     public Error() {
         this(DSL.name("error"), null);
@@ -111,7 +111,7 @@ public class Error extends TableImpl<ErrorRecord> {
 
     @Override
     public Schema getSchema() {
-        return aliased() ? null : Preprod.PREPROD;
+        return aliased() ? null : Public.PUBLIC;
     }
 
     @Override
