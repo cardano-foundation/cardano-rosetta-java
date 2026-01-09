@@ -63,62 +63,71 @@ ERA_NAMES = {
 #   'boolean'     - true/false
 #   'era'         - era names from ERA_NAMES constant (Byron, Shelley, Allegra, etc.)
 DIMENSIONS = {
-    # Address dimensions
+    # Address dimensions (data_type: addresses)
     'utxo_count': {
         'description': 'Address UTXO Count',
         'unit': 'UTXOs',
         'endpoints': ['/account/balance', '/account/coins'],
-        'type': 'power_of_10',  # R² >= 0.95 (power-law)
+        'type': 'power_of_10',
+        'data_type': 'addresses',
     },
     'token_count': {
         'description': 'Address Distinct Token Types',
         'unit': 'token types',
         'endpoints': ['/account/balance', '/account/coins'],
-        'type': 'power_of_10',  # R² >= 0.95 (power-law)
+        'type': 'power_of_10',
+        'data_type': 'addresses',
     },
     'tx_history': {
         'description': 'Address Transaction History',
         'unit': 'transactions',
         'endpoints': ['/search/transactions'],
-        'type': 'power_of_10',  # R² >= 0.95 (power-law)
+        'type': 'power_of_10',
+        'data_type': 'addresses',
     },
-    # Block dimensions
+    # Block dimensions (data_type: blocks)
     'block_tx_count': {
         'description': 'Block Transaction Count',
         'unit': 'transactions',
         'endpoints': ['/block'],
-        'type': 'percentile',  # R² = 0.89
+        'type': 'percentile',
+        'data_type': 'blocks',
     },
     'block_body_size': {
         'description': 'Block Body Size',
         'unit': 'bytes',
         'endpoints': ['/block'],
-        'type': 'percentile',  # R² = 0.61
+        'type': 'percentile',
+        'data_type': 'blocks',
     },
     'block_era': {
         'description': 'Block Era (Age)',
         'unit': 'era',
         'endpoints': ['/block'],
-        'type': 'era',  # Categorical - era names from ERA_NAMES constant
+        'type': 'era',
+        'data_type': 'blocks',
     },
-    # Transaction dimensions
+    # Transaction dimensions (data_type: transactions)
     'tx_io_count': {
         'description': 'Transaction I/O Count',
         'unit': 'inputs+outputs',
         'endpoints': ['/block/transaction', '/search/transactions'],
-        'type': 'power_of_10',  # R² >= 0.95
+        'type': 'power_of_10',
+        'data_type': 'transactions',
     },
     'tx_has_script': {
         'description': 'Transaction Has Plutus Script',
         'unit': 'boolean',
         'endpoints': ['/block/transaction', '/search/transactions'],
         'type': 'boolean',
+        'data_type': 'transactions',
     },
     'tx_token_count': {
         'description': 'Transaction Token Types',
         'unit': 'token types',
         'endpoints': ['/block/transaction', '/search/transactions'],
-        'type': 'percentile',  # R² = 0.90 (mainnet)
+        'type': 'percentile',
+        'data_type': 'transactions',
     },
 }
 
