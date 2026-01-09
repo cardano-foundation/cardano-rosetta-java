@@ -58,79 +58,9 @@ from typing import Dict, List, Tuple, Optional
 # COMMAND LINE ARGUMENTS
 ###############################################################################
 
-# Dimension definitions matching populate_data.py
-DIMENSIONS = {
-    'utxo_count': {
-        'description': 'Address UTXO Count',
-        'unit': 'UTXOs',
-        'endpoints': ['/account/balance', '/account/coins'],
-        'type': 'power_of_10',  # R² >= 0.95 (power-law)
-        'data_subdir': 'addresses',
-    },
-    'token_count': {
-        'description': 'Address Native Token Count',
-        'unit': 'tokens',
-        'endpoints': ['/account/balance', '/account/coins'],
-        'type': 'power_of_10',  # R² >= 0.95 (power-law)
-        'data_subdir': 'addresses',
-    },
-    'tx_history': {
-        'description': 'Address Transaction History',
-        'unit': 'transactions',
-        'endpoints': ['/search/transactions'],
-        'type': 'power_of_10',  # R² >= 0.95 (power-law)
-        'data_subdir': 'addresses',
-    },
-    'block_tx_count': {
-        'description': 'Block Transaction Count',
-        'unit': 'transactions',
-        'endpoints': ['/block'],
-        'type': 'power_of_10',  # R² >= 0.95 (power-law)
-        'data_subdir': 'blocks',
-    },
-    'block_body_size': {
-        'description': 'Block Body Size',
-        'unit': 'bytes',
-        'endpoints': ['/block'],
-        'type': 'percentile',  # R² = 0.76 (log-normal)
-        'data_subdir': 'blocks',
-    },
-    'block_era': {
-        'description': 'Block Era (Age)',
-        'unit': 'era',
-        'endpoints': ['/block'],
-        'type': 'era',  # Categorical - era names from database
-        'data_subdir': 'blocks',
-    },
-    'tx_io_count': {
-        'description': 'Transaction I/O Count',
-        'unit': 'inputs+outputs',
-        'endpoints': ['/block/transaction', '/search/transactions'],
-        'type': 'percentile',  # R² < 0.95 (not power-law)
-        'data_subdir': 'transactions',
-    },
-    'tx_has_script': {
-        'description': 'Transaction Has Plutus Script',
-        'unit': 'boolean',
-        'endpoints': ['/block/transaction', '/search/transactions'],
-        'type': 'boolean',
-        'data_subdir': 'transactions',
-    },
-    'tx_token_count': {
-        'description': 'Transaction Token Types',
-        'unit': 'token types',
-        'endpoints': ['/block/transaction', '/search/transactions'],
-        'type': 'power_of_10',  # R² = 0.98 (power-law)
-        'data_subdir': 'transactions',
-    },
-    'tx_has_tokens': {
-        'description': 'Transaction Has Native Tokens',
-        'unit': 'boolean',
-        'endpoints': ['/block/transaction', '/search/transactions'],
-        'type': 'boolean',
-        'data_subdir': 'transactions',
-    },
-}
+# DIMENSIONS is populated from dimensions.json in main()
+# Uses 'data_type' field for CSV subdir (addresses, blocks, transactions)
+DIMENSIONS: Dict = {}
 
 PERCENTILE_LEVELS = ['p50', 'p75', 'p90', 'p95', 'p99']
 QUARTILE_LEVELS = ['q1', 'q2', 'q3', 'q4']
@@ -343,7 +273,7 @@ def get_csv_file_path(network: str, dimension: str, level: str) -> str:
     if not dim_config:
         raise ValueError(f"Unknown dimension: {dimension}")
 
-    subdir = dim_config['data_subdir']
+    subdir = dim_config['data_type']
 
     # Boolean dimensions use "{dimension}_true.csv"
     if dim_config['type'] == 'boolean':
@@ -2247,10 +2177,20 @@ def initialize_dimension_csv_files():
 
 
 def main():
-    global OUTPUT_DIR, DIMENSIONS_METADATA
+    global OUTPUT_DIR, DIMENSIONS_METADATA, DIMENSIONS
 
     try:
-        # Handle list options first
+        # Load dimensions metadata first (required for all operations)
+        DIMENSIONS_METADATA = load_dimensions_metadata(NETWORK_ID)
+        if not DIMENSIONS_METADATA:
+            print(f"Error: dimensions.json not found for network '{NETWORK_ID}'")
+            print(f"Run: ./populate_data.py --network {NETWORK_ID} --db-url ...")
+            sys.exit(1)
+
+        # Populate DIMENSIONS from loaded metadata
+        DIMENSIONS.update(DIMENSIONS_METADATA.get('dimensions', {}))
+
+        # Handle list options
         if args.list_dimensions:
             list_dimensions()
             sys.exit(0)
@@ -2258,13 +2198,6 @@ def main():
         if args.list_endpoints:
             list_endpoints()
             sys.exit(0)
-
-        # Load dimensions metadata first (needed for level resolution)
-        DIMENSIONS_METADATA = load_dimensions_metadata(NETWORK_ID)
-        if not DIMENSIONS_METADATA:
-            print(f"Warning: dimensions.json not found for network '{NETWORK_ID}'")
-            print(f"Run: ./populate_data.py --network {NETWORK_ID} --db-url ...")
-            print("Continuing with default level names...")
 
         # Get test combinations from CLI args
         test_combinations = get_test_combinations(args)
