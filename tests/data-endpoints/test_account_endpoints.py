@@ -184,6 +184,49 @@ class TestAccountBalance:
 
 
 @allure.feature("Account")
+@allure.story("Native Asset Metadata")
+class TestNativeAssetMetadata:
+    """Validate that native assets always include required metadata fields (API contract)."""
+
+    def test_native_assets_always_have_policy_id(self, client, network, network_data):
+        """Verify policyId is always present for native assets."""
+        # Use shelley_base address which is known to have native assets
+        address = network_data["addresses"]["shelley_base"]
+
+        response = client.account_balance(
+            network=network,
+            account_identifier={"address": address}
+        )
+        assert response.status_code == 200
+
+        balances = response.json()["balances"]
+
+        # Find native assets (non-ADA balances)
+        native_assets = [b for b in balances if b["currency"]["symbol"] != "ADA"]
+
+        assert len(native_assets) > 0, (
+            "Test requires address with native assets for validation"
+        )
+
+        # Validate policyId is present for all native assets
+        for balance in native_assets:
+            currency = balance["currency"]
+            metadata = currency.get("metadata", {})
+
+            assert "policyId" in metadata, (
+                f"Native asset {currency.get('symbol')} missing required metadata.policyId field. "
+                f"This is an API contract violation - all native assets must expose policyId."
+            )
+
+            # policyId should be valid hex (56 chars = 28 bytes)
+            policy_id = metadata["policyId"]
+            assert len(policy_id) == 56, f"policyId must be 56 hex chars, got {len(policy_id)}"
+            assert all(c in "0123456789abcdef" for c in policy_id.lower()), (
+                "policyId must be valid hex string"
+            )
+
+
+@allure.feature("Account")
 @allure.story("Account Coins")
 class TestAccountCoins:
     """Test /account/coins endpoint (unspent UTXOs)."""

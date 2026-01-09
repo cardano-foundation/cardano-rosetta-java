@@ -1,0 +1,19 @@
+[project]
+name = "cardano-rosetta-load-tests"
+version = "0.1.0"
+description = "Load testing suite for Cardano Rosetta API (capacity + soak testing)"
+requires-python = ">=3.12"
+dependencies = [
+    "locust>=2.42.3",
+    "psycopg2-binary>=2.9.11",
+    "python-dotenv>=1.2.1",
+    "numpy>=1.26.0",
+    "ipykernel>=7.1.0",
+    "plotly>=5.24.0",
+    "kaleido==0.2.1",
+    "scipy>=1.14.0",
+    "nbformat>=5.10.4",
+]
+
+[project.scripts]
+soak-test = "soak_test:main"

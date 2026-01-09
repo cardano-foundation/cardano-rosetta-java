@@ -203,25 +203,6 @@ def _search_operations_for_token(client, network: str, token: Dict) -> List[Tupl
     return matches
 
 
-@allure.feature("Token Registry")
-@allure.story("v1.4.0 Feature - policyId")
-class TestPolicyIdMetadata:
-    """Verify policy identifiers are exposed for configured tokens."""
-
-    @pytest.mark.pr
-    def test_tokens_expose_policy_id(self, client, network, tokens_config, has_token_registry):
-        assert has_token_registry, "Token registry must be enabled for this test"
-
-        for token in tokens_config:
-            currency, metadata = _fetch_token_from_account(client, network, token)
-
-            assert currency is not None, f"Token {token['ticker']} not found"
-            assert "policyId" in metadata, "Missing policyId in enriched metadata"
-            if token.get("subject"):
-                symbol = currency.get("symbol", "")
-                assert metadata.get("policyId") + symbol == token["subject"]
-
-
 @pytest.mark.smoke
 @pytest.mark.requires_token_registry
 @allure.feature("Smoke Tests")

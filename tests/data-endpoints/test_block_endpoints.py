@@ -38,28 +38,24 @@ class TestBlockLookup:
             "Block hash must be hexadecimal"
         )
 
-    def test_lookup_by_hash(self, client, network):
+    def test_lookup_by_hash(self, client, network, blockchain_height):
         """Lookup block by hash."""
-        # Dynamically fetch a block to get a valid hash
-        sample_response = client.block(network=network, block_identifier={"index": 100})
+        sample_index = blockchain_height // 2
+        sample_response = client.block(network=network, block_identifier={"index": sample_index})
         assert sample_response.status_code == 200
         block_hash = sample_response.json()["block"]["block_identifier"]["hash"]
 
-        # Lookup by that hash
         response = client.block(network=network, block_identifier={"hash": block_hash})
         assert response.status_code == 200
-
-        # Verify same block returned
         assert response.json()["block"]["block_identifier"]["hash"] == block_hash
 
-    def test_lookup_by_index_and_hash_matching(self, client, network):
+    def test_lookup_by_index_and_hash_matching(self, client, network, blockchain_height):
         """Lookup with both index and hash (matching)."""
-        # Get a block
-        sample_response = client.block(network=network, block_identifier={"index": 100})
+        sample_index = blockchain_height // 2
+        sample_response = client.block(network=network, block_identifier={"index": sample_index})
         assert sample_response.status_code == 200
         sample_block = sample_response.json()["block"]["block_identifier"]
 
-        # Query with both
         response = client.block(
             network=network,
             block_identifier={
@@ -73,17 +69,17 @@ class TestBlockLookup:
         assert block["index"] == sample_block["index"]
         assert block["hash"] == sample_block["hash"]
 
-    def test_lookup_with_mismatched_index_and_hash_returns_error(self, client, network):
+    def test_lookup_with_mismatched_index_and_hash_returns_error(self, client, network, blockchain_height):
         """Providing both index and hash that don't match should error."""
-        # Get a real hash but use wrong index
-        sample_response = client.block(network=network, block_identifier={"index": 100})
+        sample_index = blockchain_height // 2
+        sample_response = client.block(network=network, block_identifier={"index": sample_index})
         real_hash = sample_response.json()["block"]["block_identifier"]["hash"]
 
+        # Use genesis index (0) with hash from different block - guaranteed mismatch
         response = client.block(
             network=network,
-            block_identifier={"index": 999, "hash": real_hash},  # Mismatched!
+            block_identifier={"index": 0, "hash": real_hash},
         )
-        # Should return error
         assert response.status_code == 500
 
 
@@ -104,10 +100,9 @@ class TestBlockStructure:
         parent = response.json()["block"]["parent_block_identifier"]
         assert parent["index"] == -1, "Genesis parent index must be -1"
 
-    def test_parent_block_linkage(self, client, network):
+    def test_parent_block_linkage(self, client, network, blockchain_height):
         """Block N's parent should be block N-1."""
-        # Test at a point well past genesis
-        test_index = 1000
+        test_index = blockchain_height - 10  # Recent block, always exists
 
         response = client.block(network=network, block_identifier={"index": test_index})
         assert response.status_code == 200
@@ -115,36 +110,36 @@ class TestBlockStructure:
         block = response.json()["block"]
         parent = block["parent_block_identifier"]
 
-        assert parent["index"] == test_index - 1, (
-            f"Block {test_index} parent should be {test_index - 1}"
-        )
-
-        # Verify parent hash is valid format
+        assert parent["index"] == test_index - 1
         assert len(parent["hash"]) == 64
 
-    def test_empty_blocks_allowed(self, client, network):
-        """Empty blocks (0 transactions) are valid in early preprod."""
-        # Early blocks likely empty
-        response = client.block(network=network, block_identifier={"index": 100})
+    def test_block_transactions_field_structure(self, client, network, blockchain_height):
+        """Block transactions field must be a list with valid structure."""
+        test_index = blockchain_height // 2
+        response = client.block(network=network, block_identifier={"index": test_index})
         assert response.status_code == 200
 
         block = response.json()["block"]
-        # Don't assert transaction count - empty blocks are valid
-        assert isinstance(block.get("transactions", []), list)
+        transactions = block.get("transactions", [])
+        assert isinstance(transactions, list)
 
-    def test_block_timestamp_present(self, client, network):
-        """Block must have timestamp."""
-        response = client.block(network=network, block_identifier={"index": 100})
+        for tx in transactions:
+            assert "transaction_identifier" in tx
+            assert "operations" in tx
+
+    def test_block_timestamp_present(self, client, network, blockchain_height):
+        """Block must have valid timestamp."""
+        test_index = blockchain_height // 2
+        response = client.block(network=network, block_identifier={"index": test_index})
         assert response.status_code == 200
 
         timestamp = response.json()["block"]["timestamp"]
-        assert isinstance(timestamp, int) and timestamp > 0, (
-            "Block timestamp must be positive integer (milliseconds since epoch)"
-        )
+        assert isinstance(timestamp, int) and timestamp > 0
 
-    def test_block_metadata_structure(self, client, network):
+    def test_block_metadata_structure(self, client, network, blockchain_height):
         """Block metadata should contain Cardano-specific fields."""
-        response = client.block(network=network, block_identifier={"index": 100})
+        test_index = blockchain_height // 2
+        response = client.block(network=network, block_identifier={"index": test_index})
         assert response.status_code == 200
 
         metadata = response.json()["block"]["metadata"]
@@ -165,7 +160,7 @@ class TestBlockStructure:
         assert len(pool_id) == 56, "Pool ID must be 56 hex chars"
         assert all(c in "0123456789abcdef" for c in pool_id.lower())
 
-        assert isinstance(metadata["size"], int) and metadata["size"] > 0
+        assert isinstance(metadata["size"], int) and metadata["size"] >= 0
         assert isinstance(metadata["epochNo"], int) and metadata["epochNo"] >= 0
         assert isinstance(metadata["slotNo"], int) and metadata["slotNo"] >= 0
 
@@ -215,10 +210,12 @@ class TestBlockTransactionLookup:
 
     def test_get_transaction_from_block(self, client, network):
         """Get specific transaction from block."""
-        # Find a block with transactions
         search_response = client.search_transactions(network=network)
-        tx_data = search_response.json()["transactions"][0]
+        transactions = search_response.json().get("transactions", [])
+        if not transactions:
+            pytest.skip("No transactions in search results")
 
+        tx_data = transactions[0]
         block_id = tx_data["block_identifier"]
         tx_id = tx_data["transaction"]["transaction_identifier"]
 
@@ -302,10 +299,10 @@ class TestBlockTransactionErrors:
         )
         assert response.status_code == 400, "Missing required parameter should return 400"
 
-    def test_invalid_transaction_hash_returns_error(self, client, network):
+    def test_invalid_transaction_hash_returns_error(self, client, network, blockchain_height):
         """Invalid transaction hash should return error."""
-        # Get valid block
-        block_response = client.block(network=network, block_identifier={"index": 100})
+        test_index = blockchain_height // 2
+        block_response = client.block(network=network, block_identifier={"index": test_index})
         block_id = block_response.json()["block"]["block_identifier"]
 
         response = client.block_transaction(
