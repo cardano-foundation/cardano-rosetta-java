@@ -18,7 +18,10 @@ public enum TestTransactionNames {
 
   // Transaction names for GovernanceTransactions
   DREP_REGISTER("drep_register"),
-  DREP_VOTE_DELEGATION("drep_vote_delegation");
+  DREP_VOTE_DELEGATION("drep_vote_delegation"),
+  GOVERNANCE_ACTION_INFO("governance_action_info"),
+  SPO_VOTE_WITH_RATIONALE("spo_vote_with_rationale"),
+  SPO_VOTE_WITHOUT_RATIONALE("spo_vote_without_rationale");
 
   private final String name;
 

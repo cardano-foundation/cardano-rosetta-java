@@ -16,6 +16,7 @@ import org.cardanofoundation.rosetta.api.block.model.entity.*;
 import org.cardanofoundation.rosetta.common.mapper.util.BaseMapper;
 import org.cardanofoundation.rosetta.common.util.Constants;
 
+import javax.annotation.Nullable;
 import java.util.Map;
 
 @Mapper(config = BaseMapper.class, uses = {TransactionMapperUtils.class})
@@ -69,6 +70,62 @@ public interface TransactionMapper {
   @Mapping(target = "account.address", source = "model.address")
   @Mapping(target = "metadata.poolKeyHash", source = "model.poolId")
   Operation mapStakeDelegationToOperation(StakePoolDelegation model, OperationStatus status, int index);
+
+  /**
+   * Maps a VotingProcedureEntity to a GovernancePoolVote domain object.
+   * Only applies to SPO votes (voter_type = STAKING_POOL_KEY_HASH).
+   *
+   * @param entity the voting procedure entity from the database
+   * @return the governance pool vote domain object
+   */
+  @Nullable
+  default GovernancePoolVote mapVotingProcedureEntityToGovernancePoolVote(@Nullable VotingProcedureEntity entity) {
+    if (entity == null) {
+      return null;
+    }
+
+    // Convert Vote enum to cardano-client Vote enum
+    com.bloxbean.cardano.client.transaction.spec.governance.Vote vote = switch (entity.getVote()) {
+      case YES -> com.bloxbean.cardano.client.transaction.spec.governance.Vote.YES;
+      case NO -> com.bloxbean.cardano.client.transaction.spec.governance.Vote.NO;
+      case ABSTAIN -> com.bloxbean.cardano.client.transaction.spec.governance.Vote.ABSTAIN;
+    };
+
+    // Build GovActionId from gov_action_tx_hash and gov_action_index
+    com.bloxbean.cardano.client.transaction.spec.governance.actions.GovActionId govActionId =
+        new com.bloxbean.cardano.client.transaction.spec.governance.actions.GovActionId(
+            entity.getGovActionTxHash(),
+            entity.getGovActionIndex()
+        );
+
+    // Build optional Anchor if anchor data exists
+    com.bloxbean.cardano.client.transaction.spec.governance.Anchor voteRationale = null;
+    if (entity.getAnchorUrl() != null && entity.getAnchorHash() != null) {
+      voteRationale = com.bloxbean.cardano.client.transaction.spec.governance.Anchor.builder()
+          .anchorUrl(entity.getAnchorUrl())
+          .anchorDataHash(com.bloxbean.cardano.client.util.HexUtil.decodeHexString(entity.getAnchorHash()))
+          .build();
+    }
+
+    // Build Voter with STAKING_POOL_KEY_HASH type
+    com.bloxbean.cardano.client.address.Credential credential =
+        com.bloxbean.cardano.client.address.Credential.fromKey(
+            com.bloxbean.cardano.client.util.HexUtil.decodeHexString(entity.getVoterHash())
+        );
+    com.bloxbean.cardano.client.transaction.spec.governance.Voter voter =
+        new com.bloxbean.cardano.client.transaction.spec.governance.Voter(
+            com.bloxbean.cardano.client.transaction.spec.governance.VoterType.STAKING_POOL_KEY_HASH,
+            credential
+        );
+
+    return GovernancePoolVote.builder()
+        .govActionId(govActionId)
+        .poolCredentialHex(entity.getVoterHash())
+        .vote(vote)
+        .voter(voter)
+        .voteRationale(voteRationale)
+        .build();
+  }
 
   @Named("convertYaciDrepType")
   default com.bloxbean.cardano.client.transaction.spec.governance.DRepType convertYaciDrepType(

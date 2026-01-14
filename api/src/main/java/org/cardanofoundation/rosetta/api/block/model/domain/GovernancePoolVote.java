@@ -49,14 +49,23 @@ public class GovernancePoolVote {
         return governanceVoteBuilder.build();
     }
 
-    public static GovVoteRationaleParams convertFromRosetta(Anchor anchor) {
+    @Nullable
+    public static GovVoteRationaleParams convertFromRosetta(@Nullable Anchor anchor) {
+        if (anchor == null) {
+            return null;
+        }
+
         return GovVoteRationaleParams.builder()
                 .url(anchor.getAnchorUrl())
                 .dataHash(encodeHexString(anchor.getAnchorDataHash()))
                 .build();
     }
 
-    public static Anchor convertToRosetta(GovVoteRationaleParams govAnchorParams) {
+    @Nullable
+    public static Anchor convertToRosetta(@Nullable GovVoteRationaleParams govAnchorParams) {
+        if (govAnchorParams == null) {
+            return null;
+        }
         return Anchor.builder()
                 .anchorUrl(govAnchorParams.getUrl())
                 .anchorDataHash(decodeHexString(govAnchorParams.getDataHash()))

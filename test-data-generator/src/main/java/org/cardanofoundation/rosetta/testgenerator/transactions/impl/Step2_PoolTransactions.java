@@ -33,13 +33,18 @@ import static org.cardanofoundation.rosetta.testgenerator.common.BaseFunctions.c
 import static org.cardanofoundation.rosetta.testgenerator.common.BaseFunctions.quickTxBuilder;
 
 @Slf4j
-public class PoolTransactions implements TransactionRunner {
+public class Step2_PoolTransactions implements TransactionRunner {
 
   private static final String BLOCK_HASH_MASSAGE = "Block hash: ";
   private Account sender1;
   private Account sender2;
 
   private String sender2Addr;
+
+  @Override
+  public int getExecutionOrder() {
+    return 2;  // Execute second (after SimpleTransactions)
+  }
 
   @Override
   public void init() {
