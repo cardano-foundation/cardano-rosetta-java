@@ -105,6 +105,7 @@ public class PoolTransactions implements TransactionRunner {
     //pool registration
     log.info("Sender1 address: {}", sender1.baseAddress());
     log.info("Sender2 address: {}", sender2.baseAddress());
+
     Tx registerPoolTx = new Tx()
             .registerStakeAddress(stakeAddr)
             .registerPool(poolRegistration)

@@ -164,7 +164,7 @@ class SearchControllerTest extends BaseSpringMvcSetup {
               .contentType(MediaType.APPLICATION_JSON)
               .content(objectMapper.writeValueAsString(request)))
           .andExpect(status().isOk())
-          .andExpect(jsonPath("$.total_count").value(20))
+          .andExpect(jsonPath("$.total_count").value(24))
           .andExpect(jsonPath("$.next_offset").doesNotExist());
     }
 
@@ -187,7 +187,7 @@ class SearchControllerTest extends BaseSpringMvcSetup {
                       .contentType(MediaType.APPLICATION_JSON)
                       .content(objectMapper.writeValueAsString(request)))
               .andExpect(status().isOk())
-              .andExpect(jsonPath("$.total_count").value(4))
+              .andExpect(jsonPath("$.total_count").value(6))
               .andExpect(jsonPath("$.next_offset").doesNotExist());
     }
   }
@@ -211,7 +211,7 @@ class SearchControllerTest extends BaseSpringMvcSetup {
               .contentType(MediaType.APPLICATION_JSON)
               .content(objectMapper.writeValueAsString(request)))
           .andExpect(status().isOk())
-          .andExpect(jsonPath("$.total_count").value(20))
+          .andExpect(jsonPath("$.total_count").value(24))
           .andExpect(jsonPath("$.next_offset").doesNotExist());
     }
 
@@ -234,7 +234,7 @@ class SearchControllerTest extends BaseSpringMvcSetup {
                       .contentType(MediaType.APPLICATION_JSON)
                       .content(objectMapper.writeValueAsString(request)))
               .andExpect(status().isOk())
-              .andExpect(jsonPath("$.total_count").value(4))
+              .andExpect(jsonPath("$.total_count").value(6))
               .andExpect(jsonPath("$.next_offset").doesNotExist());
     }
   }
@@ -260,7 +260,7 @@ class SearchControllerTest extends BaseSpringMvcSetup {
               .contentType(MediaType.APPLICATION_JSON)
               .content(objectMapper.writeValueAsString(request)))
           .andExpect(status().isOk())
-          .andExpect(jsonPath("$.total_count").value(20)) // Total across all pages
+          .andExpect(jsonPath("$.total_count").value(24)) // Total across all pages
           .andExpect(jsonPath("$.transactions").isArray())
           .andExpect(jsonPath("$.transactions.length()").value(5)) // Only 5 results on current page
           .andExpect(jsonPath("$.next_offset").value(5));
@@ -284,7 +284,7 @@ class SearchControllerTest extends BaseSpringMvcSetup {
               .contentType(MediaType.APPLICATION_JSON)
               .content(objectMapper.writeValueAsString(request)))
           .andExpect(status().isOk())
-          .andExpect(jsonPath("$.total_count").value(20)) // Same total across all pages
+          .andExpect(jsonPath("$.total_count").value(24)) // Same total across all pages
           .andExpect(jsonPath("$.transactions").isArray())
           .andExpect(jsonPath("$.transactions.length()").value(5)) // Only 5 results on current page
           .andExpect(jsonPath("$.next_offset").value(10)); // Next offset should be 5 + 5 = 10
@@ -293,14 +293,14 @@ class SearchControllerTest extends BaseSpringMvcSetup {
     @Test
     @SneakyThrows
     void shouldReturnTotalCountAcrossAllPages_LastPage() {
-      // Given - Request last page with limit 5, offset 15 (for 20 total elements)
+      // Given - Request last page with limit 5, offset 19 (for 24 total elements)
       SearchTransactionsRequest request = SearchTransactionsRequest.builder()
           .networkIdentifier(NetworkIdentifier.builder()
               .blockchain(TestConstants.TEST_BLOCKCHAIN)
               .network(TestConstants.TEST_NETWORK)
               .build())
           .limit(5L)
-          .offset(15L)
+          .offset(19L)
           .build();
 
       // When & Then
@@ -308,10 +308,10 @@ class SearchControllerTest extends BaseSpringMvcSetup {
               .contentType(MediaType.APPLICATION_JSON)
               .content(objectMapper.writeValueAsString(request)))
           .andExpect(status().isOk())
-          .andExpect(jsonPath("$.total_count").value(20)) // Same total across all pages
+          .andExpect(jsonPath("$.total_count").value(24)) // Same total across all pages
           .andExpect(jsonPath("$.transactions").isArray())
           .andExpect(jsonPath("$.transactions.length()").value(5)) // Only 5 results on current page
-          .andExpect(jsonPath("$.next_offset").doesNotExist()); // No next page since 15+5=20 (total)
+          .andExpect(jsonPath("$.next_offset").doesNotExist()); // No next page since 19+5=24 (total)
     }
 
     @Test
@@ -335,7 +335,7 @@ class SearchControllerTest extends BaseSpringMvcSetup {
               .contentType(MediaType.APPLICATION_JSON)
               .content(objectMapper.writeValueAsString(request)))
           .andExpect(status().isOk())
-          .andExpect(jsonPath("$.total_count").value(4)) // Total filtered results
+          .andExpect(jsonPath("$.total_count").value(6)) // Total filtered results
           .andExpect(jsonPath("$.transactions").isArray())
           .andExpect(jsonPath("$.transactions.length()").value(2)) // Only 2 results on current page
           .andExpect(jsonPath("$.next_offset").value(2));
@@ -344,7 +344,7 @@ class SearchControllerTest extends BaseSpringMvcSetup {
     @Test
     @SneakyThrows
     void shouldReturnTotalCountWithFilters_SecondPageWithAccountFilter() {
-      // Given - Request second page with account filter (offset 2 for 4 total elements)
+      // Given - Request second page with account filter (offset 2 for 6 total elements)
       SearchTransactionsRequest request = SearchTransactionsRequest.builder()
           .networkIdentifier(NetworkIdentifier.builder()
               .blockchain(TestConstants.TEST_BLOCKCHAIN)
@@ -362,10 +362,10 @@ class SearchControllerTest extends BaseSpringMvcSetup {
               .contentType(MediaType.APPLICATION_JSON)
               .content(objectMapper.writeValueAsString(request)))
           .andExpect(status().isOk())
-          .andExpect(jsonPath("$.total_count").value(4)) // Same total filtered results
+          .andExpect(jsonPath("$.total_count").value(6)) // Same total filtered results
           .andExpect(jsonPath("$.transactions").isArray())
           .andExpect(jsonPath("$.transactions.length()").value(2)) // Only 2 results on current page
-          .andExpect(jsonPath("$.next_offset").doesNotExist()); // No next page since 2+2=4 (total)
+          .andExpect(jsonPath("$.next_offset").value(4)); // Next page since 2+2=4 < 6 (total)
     }
 
     @Test
@@ -395,14 +395,14 @@ class SearchControllerTest extends BaseSpringMvcSetup {
               .contentType(MediaType.APPLICATION_JSON)
               .content(objectMapper.writeValueAsString(smallPageRequest)))
           .andExpect(status().isOk())
-          .andExpect(jsonPath("$.total_count").value(20))
+          .andExpect(jsonPath("$.total_count").value(24))
           .andExpect(jsonPath("$.transactions.length()").value(2));
 
       mockMvc.perform(post("/search/transactions")
               .contentType(MediaType.APPLICATION_JSON)
               .content(objectMapper.writeValueAsString(largePageRequest)))
           .andExpect(status().isOk())
-          .andExpect(jsonPath("$.total_count").value(20))
+          .andExpect(jsonPath("$.total_count").value(24))
           .andExpect(jsonPath("$.transactions.length()").value(10));
     }
   }
