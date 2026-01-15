@@ -22,7 +22,7 @@ class TestAccountBalance:
         address = network_data["addresses"]["shelley_base"]
 
         response = client.account_balance(
-            network=network, account_identifier={"address": address}
+            network_identifier={"blockchain": "cardano", "network": network}, account_identifier={"address": address}
         )
         assert response.status_code == 200
 
@@ -48,7 +48,7 @@ class TestAccountBalance:
         address = network_data["addresses"]["shelley_base"]
 
         response = client.account_balance(
-            network=network, account_identifier={"address": address}
+            network_identifier={"blockchain": "cardano", "network": network}, account_identifier={"address": address}
         )
         assert response.status_code == 200
 
@@ -71,7 +71,7 @@ class TestAccountBalance:
 
         # Get current balance
         current_response = client.account_balance(
-            network=network, account_identifier={"address": address}
+            network_identifier={"blockchain": "cardano", "network": network}, account_identifier={"address": address}
         )
         current_block = current_response.json()["block_identifier"]["index"]
         current_balance = int(current_response.json()["balances"][0]["value"])
@@ -85,7 +85,7 @@ class TestAccountBalance:
             )
 
         historical_response = client.account_balance(
-            network=network,
+            network_identifier={"blockchain": "cardano", "network": network},
             account_identifier={"address": address},
             block_identifier={"index": historical_block},
         )
@@ -111,7 +111,7 @@ class TestAccountBalance:
 
         # This SHOULD work but is known to be buggy
         response = client.account_balance(
-            network=network,
+            network_identifier={"blockchain": "cardano", "network": network},
             account_identifier={"address": stake_addr},
             block_identifier={"index": 3500000},
         )
@@ -125,7 +125,7 @@ class TestAccountBalance:
         address = network_data["addresses"]["shelley_enterprise"]
 
         response = client.account_balance(
-            network=network, account_identifier={"address": address}
+            network_identifier={"blockchain": "cardano", "network": network}, account_identifier={"address": address}
         )
         assert response.status_code == 200
 
@@ -149,7 +149,7 @@ class TestAccountBalance:
 
         # Get all balances
         all_response = client.account_balance(
-            network=network, account_identifier={"address": address}
+            network_identifier={"blockchain": "cardano", "network": network}, account_identifier={"address": address}
         )
         all_balances = all_response.json()["balances"]
 
@@ -158,7 +158,7 @@ class TestAccountBalance:
 
         # Filter to ADA only
         filtered_response = client.account_balance(
-            network=network,
+            network_identifier={"blockchain": "cardano", "network": network},
             account_identifier={"address": address},
             currencies=[{"symbol": "ADA", "decimals": 6}],
         )
@@ -178,7 +178,7 @@ class TestAccountBalance:
     def test_invalid_address_returns_error(self, client, network):
         """Invalid address format should return error."""
         response = client.account_balance(
-            network=network, account_identifier={"address": "invalid_address"}
+            network_identifier={"blockchain": "cardano", "network": network}, account_identifier={"address": "invalid_address"}
         )
         assert response.status_code == 500
 
@@ -194,8 +194,8 @@ class TestNativeAssetMetadata:
         address = network_data["addresses"]["shelley_base"]
 
         response = client.account_balance(
-            network=network,
-            account_identifier={"address": address}
+            network_identifier={"blockchain": "cardano", "network": network},
+            account_identifier={"address": address},
         )
         assert response.status_code == 200
 
@@ -236,7 +236,7 @@ class TestAccountCoins:
         address = network_data["addresses"]["shelley_base"]
 
         response = client.account_coins(
-            network=network, account_identifier={"address": address}
+            network_identifier={"blockchain": "cardano", "network": network}, account_identifier={"address": address}
         )
         assert response.status_code == 200
 
@@ -270,13 +270,13 @@ class TestAccountCoins:
 
         # Get UTXOs
         coins_response = client.account_coins(
-            network=network, account_identifier={"address": address}
+            network_identifier={"blockchain": "cardano", "network": network}, account_identifier={"address": address}
         )
         utxo_id = coins_response.json()["coins"][0]["coin_identifier"]["identifier"]
 
         # Search for this UTXO in transactions
         search_response = client.search_transactions(
-            network=network, coin_identifier={"identifier": utxo_id}
+            network_identifier={"blockchain": "cardano", "network": network}, coin_identifier={"identifier": utxo_id}
         )
         assert search_response.status_code == 200
 
@@ -294,7 +294,7 @@ class TestAccountCoins:
         address = network_data["addresses"]["shelley_base"]
 
         response = client.account_coins(
-            network=network, account_identifier={"address": address}
+            network_identifier={"blockchain": "cardano", "network": network}, account_identifier={"address": address}
         )
         assert response.status_code == 200
 
@@ -314,7 +314,7 @@ class TestAccountCoins:
         address = network_data["addresses"]["shelley_base"]
 
         response = client.account_coins(
-            network=network, account_identifier={"address": address}
+            network_identifier={"blockchain": "cardano", "network": network}, account_identifier={"address": address}
         )
         coins = response.json()["coins"]
 
@@ -324,7 +324,7 @@ class TestAccountCoins:
 
             # Search for this UTXO being spent
             search_response = client.search_transactions(
-                network=network, coin_identifier={"identifier": utxo_id}
+                network_identifier={"blockchain": "cardano", "network": network}, coin_identifier={"identifier": utxo_id}
             )
 
             # Transaction should have coin_created, not coin_spent
@@ -346,13 +346,13 @@ class TestAccountCoins:
 
         # Get all UTXOs
         all_response = client.account_coins(
-            network=network, account_identifier={"address": address}
+            network_identifier={"blockchain": "cardano", "network": network}, account_identifier={"address": address}
         )
         all_coins = all_response.json()["coins"]
 
         # Filter to ADA-only UTXOs
         filtered_response = client.account_coins(
-            network=network,
+            network_identifier={"blockchain": "cardano", "network": network},
             account_identifier={"address": address},
             currencies=[{"symbol": "ADA", "decimals": 6}],
         )
@@ -381,7 +381,9 @@ class TestAccountErrors:
 
     def test_missing_account_identifier_returns_error(self, client, network):
         """Missing account_identifier should return error for /account/balance."""
-        response = client.account_balance(network=network)
+        response = client.account_balance(
+            network_identifier={"blockchain": "cardano", "network": network},
+        )
         assert response.status_code == 400, "Missing required parameter should return 400"
 
         error = response.json()
@@ -391,7 +393,7 @@ class TestAccountErrors:
     def test_invalid_address_format_returns_error(self, client, network):
         """Invalid address format should return error."""
         response = client.account_balance(
-            network=network, account_identifier={"address": "not_an_address"}
+            network_identifier={"blockchain": "cardano", "network": network}, account_identifier={"address": "not_an_address"}
         )
         assert response.status_code == 500
 
@@ -402,7 +404,7 @@ class TestAccountErrors:
         address = network_data["addresses"]["shelley_base"]
 
         response = client.account_balance(
-            network=network,
+            network_identifier={"blockchain": "cardano", "network": network},
             account_identifier={"address": address},
             block_identifier={
                 "index": -2
