@@ -20,98 +20,98 @@ public class AddressRecord extends UpdatableRecordImpl<AddressRecord> {
     private static final long serialVersionUID = 1L;
 
     /**
-     * Setter for <code>preprod.address.id</code>.
+     * Setter for <code>public.address.id</code>.
      */
     public void setId(Long value) {
         set(0, value);
     }
 
     /**
-     * Getter for <code>preprod.address.id</code>.
+     * Getter for <code>public.address.id</code>.
      */
     public Long getId() {
         return (Long) get(0);
     }
 
     /**
-     * Setter for <code>preprod.address.address</code>.
+     * Setter for <code>public.address.address</code>.
      */
     public void setAddress(String value) {
         set(1, value);
     }
 
     /**
-     * Getter for <code>preprod.address.address</code>.
+     * Getter for <code>public.address.address</code>.
      */
     public String getAddress() {
         return (String) get(1);
     }
 
     /**
-     * Setter for <code>preprod.address.addr_full</code>.
+     * Setter for <code>public.address.addr_full</code>.
      */
     public void setAddrFull(String value) {
         set(2, value);
     }
 
     /**
-     * Getter for <code>preprod.address.addr_full</code>.
+     * Getter for <code>public.address.addr_full</code>.
      */
     public String getAddrFull() {
         return (String) get(2);
     }
 
     /**
-     * Setter for <code>preprod.address.payment_credential</code>.
+     * Setter for <code>public.address.payment_credential</code>.
      */
     public void setPaymentCredential(String value) {
         set(3, value);
     }
 
     /**
-     * Getter for <code>preprod.address.payment_credential</code>.
+     * Getter for <code>public.address.payment_credential</code>.
      */
     public String getPaymentCredential() {
         return (String) get(3);
     }
 
     /**
-     * Setter for <code>preprod.address.stake_address</code>.
+     * Setter for <code>public.address.stake_address</code>.
      */
     public void setStakeAddress(String value) {
         set(4, value);
     }
 
     /**
-     * Getter for <code>preprod.address.stake_address</code>.
+     * Getter for <code>public.address.stake_address</code>.
      */
     public String getStakeAddress() {
         return (String) get(4);
     }
 
     /**
-     * Setter for <code>preprod.address.stake_credential</code>.
+     * Setter for <code>public.address.stake_credential</code>.
      */
     public void setStakeCredential(String value) {
         set(5, value);
     }
 
     /**
-     * Getter for <code>preprod.address.stake_credential</code>.
+     * Getter for <code>public.address.stake_credential</code>.
      */
     public String getStakeCredential() {
         return (String) get(5);
     }
 
     /**
-     * Setter for <code>preprod.address.update_datetime</code>.
+     * Setter for <code>public.address.update_datetime</code>.
      */
     public void setUpdateDatetime(LocalDateTime value) {
         set(6, value);
     }
 
     /**
-     * Getter for <code>preprod.address.update_datetime</code>.
+     * Getter for <code>public.address.update_datetime</code>.
      */
     public LocalDateTime getUpdateDatetime() {
         return (LocalDateTime) get(6);

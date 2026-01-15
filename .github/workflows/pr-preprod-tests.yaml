@@ -350,7 +350,7 @@ jobs:
                 echo "Removing Flyway metadata for version: $VERSION"
                 docker exec cardano-rosetta-java-db-1 sh -c \
                   "PGPASSWORD=weakpwd#123_d psql -U rosetta_db_admin -d rosetta-java -p 5433 \
-                   -c \"DELETE FROM preprod.flyway_schema_history WHERE version LIKE '${VERSION}%';\""
+                   -c \"DELETE FROM public.flyway_schema_history WHERE version LIKE '${VERSION}%';\""
               done
 
               echo "✓ Flyway metadata cleaned - all blockchain data preserved"
@@ -358,7 +358,7 @@ jobs:
               echo "No specific migration versions detected - truncating flyway history"
               docker exec cardano-rosetta-java-db-1 sh -c \
                 "PGPASSWORD=weakpwd#123_d psql -U rosetta_db_admin -d rosetta-java -p 5433 \
-                 -c 'TRUNCATE preprod.flyway_schema_history;'"
+                 -c 'TRUNCATE public.flyway_schema_history;'"
             fi
 
             docker compose \

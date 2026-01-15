@@ -18,112 +18,112 @@ public class TxInputRecord extends UpdatableRecordImpl<TxInputRecord> {
     private static final long serialVersionUID = 1L;
 
     /**
-     * Setter for <code>preprod.tx_input.output_index</code>.
+     * Setter for <code>public.tx_input.output_index</code>.
      */
     public void setOutputIndex(Short value) {
         set(0, value);
     }
 
     /**
-     * Getter for <code>preprod.tx_input.output_index</code>.
+     * Getter for <code>public.tx_input.output_index</code>.
      */
     public Short getOutputIndex() {
         return (Short) get(0);
     }
 
     /**
-     * Setter for <code>preprod.tx_input.tx_hash</code>.
+     * Setter for <code>public.tx_input.tx_hash</code>.
      */
     public void setTxHash(String value) {
         set(1, value);
     }
 
     /**
-     * Getter for <code>preprod.tx_input.tx_hash</code>.
+     * Getter for <code>public.tx_input.tx_hash</code>.
      */
     public String getTxHash() {
         return (String) get(1);
     }
 
     /**
-     * Setter for <code>preprod.tx_input.spent_at_slot</code>.
+     * Setter for <code>public.tx_input.spent_at_slot</code>.
      */
     public void setSpentAtSlot(Long value) {
         set(2, value);
     }
 
     /**
-     * Getter for <code>preprod.tx_input.spent_at_slot</code>.
+     * Getter for <code>public.tx_input.spent_at_slot</code>.
      */
     public Long getSpentAtSlot() {
         return (Long) get(2);
     }
 
     /**
-     * Setter for <code>preprod.tx_input.spent_at_block</code>.
+     * Setter for <code>public.tx_input.spent_at_block</code>.
      */
     public void setSpentAtBlock(Long value) {
         set(3, value);
     }
 
     /**
-     * Getter for <code>preprod.tx_input.spent_at_block</code>.
+     * Getter for <code>public.tx_input.spent_at_block</code>.
      */
     public Long getSpentAtBlock() {
         return (Long) get(3);
     }
 
     /**
-     * Setter for <code>preprod.tx_input.spent_at_block_hash</code>.
+     * Setter for <code>public.tx_input.spent_at_block_hash</code>.
      */
     public void setSpentAtBlockHash(String value) {
         set(4, value);
     }
 
     /**
-     * Getter for <code>preprod.tx_input.spent_at_block_hash</code>.
+     * Getter for <code>public.tx_input.spent_at_block_hash</code>.
      */
     public String getSpentAtBlockHash() {
         return (String) get(4);
     }
 
     /**
-     * Setter for <code>preprod.tx_input.spent_block_time</code>.
+     * Setter for <code>public.tx_input.spent_block_time</code>.
      */
     public void setSpentBlockTime(Long value) {
         set(5, value);
     }
 
     /**
-     * Getter for <code>preprod.tx_input.spent_block_time</code>.
+     * Getter for <code>public.tx_input.spent_block_time</code>.
      */
     public Long getSpentBlockTime() {
         return (Long) get(5);
     }
 
     /**
-     * Setter for <code>preprod.tx_input.spent_epoch</code>.
+     * Setter for <code>public.tx_input.spent_epoch</code>.
      */
     public void setSpentEpoch(Integer value) {
         set(6, value);
     }
 
     /**
-     * Getter for <code>preprod.tx_input.spent_epoch</code>.
+     * Getter for <code>public.tx_input.spent_epoch</code>.
      */
     public Integer getSpentEpoch() {
         return (Integer) get(6);
     }
 
     /**
-     * Setter for <code>preprod.tx_input.spent_tx_hash</code>.
+     * Setter for <code>public.tx_input.spent_tx_hash</code>.
      */
     public void setSpentTxHash(String value) {
         set(7, value);
     }
 
     /**
-     * Getter for <code>preprod.tx_input.spent_tx_hash</code>.
+     * Getter for <code>public.tx_input.spent_tx_hash</code>.
      */
     public String getSpentTxHash() {
         return (String) get(7);

@@ -20,154 +20,154 @@ public class DelegationRecord extends UpdatableRecordImpl<DelegationRecord> {
     private static final long serialVersionUID = 1L;
 
     /**
-     * Setter for <code>preprod.delegation.tx_hash</code>.
+     * Setter for <code>public.delegation.tx_hash</code>.
      */
     public void setTxHash(String value) {
         set(0, value);
     }
 
     /**
-     * Getter for <code>preprod.delegation.tx_hash</code>.
+     * Getter for <code>public.delegation.tx_hash</code>.
      */
     public String getTxHash() {
         return (String) get(0);
     }
 
     /**
-     * Setter for <code>preprod.delegation.cert_index</code>.
+     * Setter for <code>public.delegation.cert_index</code>.
      */
     public void setCertIndex(Integer value) {
         set(1, value);
     }
 
     /**
-     * Getter for <code>preprod.delegation.cert_index</code>.
+     * Getter for <code>public.delegation.cert_index</code>.
      */
     public Integer getCertIndex() {
         return (Integer) get(1);
     }
 
     /**
-     * Setter for <code>preprod.delegation.credential</code>.
+     * Setter for <code>public.delegation.credential</code>.
      */
     public void setCredential(String value) {
         set(2, value);
     }
 
     /**
-     * Getter for <code>preprod.delegation.credential</code>.
+     * Getter for <code>public.delegation.credential</code>.
      */
     public String getCredential() {
         return (String) get(2);
     }
 
     /**
-     * Setter for <code>preprod.delegation.pool_id</code>.
+     * Setter for <code>public.delegation.pool_id</code>.
      */
     public void setPoolId(String value) {
         set(3, value);
     }
 
     /**
-     * Getter for <code>preprod.delegation.pool_id</code>.
+     * Getter for <code>public.delegation.pool_id</code>.
      */
     public String getPoolId() {
         return (String) get(3);
     }
 
     /**
-     * Setter for <code>preprod.delegation.address</code>.
+     * Setter for <code>public.delegation.address</code>.
      */
     public void setAddress(String value) {
         set(4, value);
     }
 
     /**
-     * Getter for <code>preprod.delegation.address</code>.
+     * Getter for <code>public.delegation.address</code>.
      */
     public String getAddress() {
         return (String) get(4);
     }
 
     /**
-     * Setter for <code>preprod.delegation.epoch</code>.
+     * Setter for <code>public.delegation.epoch</code>.
      */
     public void setEpoch(Integer value) {
         set(5, value);
     }
 
     /**
-     * Getter for <code>preprod.delegation.epoch</code>.
+     * Getter for <code>public.delegation.epoch</code>.
      */
     public Integer getEpoch() {
         return (Integer) get(5);
     }
 
     /**
-     * Setter for <code>preprod.delegation.slot</code>.
+     * Setter for <code>public.delegation.slot</code>.
      */
     public void setSlot(Long value) {
         set(6, value);
     }
 
     /**
-     * Getter for <code>preprod.delegation.slot</code>.
+     * Getter for <code>public.delegation.slot</code>.
      */
     public Long getSlot() {
         return (Long) get(6);
     }
 
     /**
-     * Setter for <code>preprod.delegation.block_hash</code>.
+     * Setter for <code>public.delegation.block_hash</code>.
      */
     public void setBlockHash(String value) {
         set(7, value);
     }
 
     /**
-     * Getter for <code>preprod.delegation.block_hash</code>.
+     * Getter for <code>public.delegation.block_hash</code>.
      */
     public String getBlockHash() {
         return (String) get(7);
     }
 
     /**
-     * Setter for <code>preprod.delegation.block</code>.
+     * Setter for <code>public.delegation.block</code>.
      */
     public void setBlock(Long value) {
         set(8, value);
     }
 
     /**
-     * Getter for <code>preprod.delegation.block</code>.
+     * Getter for <code>public.delegation.block</code>.
      */
     public Long getBlock() {
         return (Long) get(8);
     }
 
     /**
-     * Setter for <code>preprod.delegation.block_time</code>.
+     * Setter for <code>public.delegation.block_time</code>.
      */
     public void setBlockTime(Long value) {
         set(9, value);
     }
 
     /**
-     * Getter for <code>preprod.delegation.block_time</code>.
+     * Getter for <code>public.delegation.block_time</code>.
      */
     public Long getBlockTime() {
         return (Long) get(9);
     }
 
     /**
-     * Setter for <code>preprod.delegation.update_datetime</code>.
+     * Setter for <code>public.delegation.update_datetime</code>.
      */
     public void setUpdateDatetime(LocalDateTime value) {
         set(10, value);
     }
 
     /**
-     * Getter for <code>preprod.delegation.update_datetime</code>.
+     * Getter for <code>public.delegation.update_datetime</code>.
      */
     public LocalDateTime getUpdateDatetime() {
         return (LocalDateTime) get(10);
