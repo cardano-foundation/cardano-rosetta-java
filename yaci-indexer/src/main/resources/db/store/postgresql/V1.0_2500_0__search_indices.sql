@@ -7,7 +7,7 @@
 --   - JSONB @> operator queries for policy_id, asset_name, and unit matching
 -- Performance: Critical for currency searches - without this, full table scans on address_utxo
 -- =============================================================================
-CREATE INDEX idx_address_utxo_amounts_gin ON address_utxo USING gin (amounts);
+--CREATE INDEX idx_address_utxo_amounts_gin ON address_utxo USING gin (amounts);
 
 -- =============================================================================
 -- Index 2: Address-to-Transaction Hash Mapping
@@ -18,7 +18,7 @@ CREATE INDEX idx_address_utxo_amounts_gin ON address_utxo USING gin (amounts);
 --   - Address history lookups that feed into transaction search filters
 -- Performance: Enables fast owner_addr lookups with tx_hash in covering index
 -- =============================================================================
-CREATE INDEX idx_address_utxo_owner_addr_tx_hash ON address_utxo USING btree (owner_addr, tx_hash);
+--CREATE INDEX idx_address_utxo_owner_addr_tx_hash ON address_utxo USING btree (owner_addr, tx_hash);
 
 -- =============================================================================
 -- Index 3: Block Hash Lookup with Covering Data
@@ -30,7 +30,7 @@ CREATE INDEX idx_address_utxo_owner_addr_tx_hash ON address_utxo USING btree (ow
 --   - Block filtering with maxBlock parameter
 -- Performance: Covering index avoids heap lookups for number and slot
 -- =============================================================================
-CREATE INDEX idx_block_hash_covering ON block USING btree (hash) INCLUDE (number, slot);
+--CREATE INDEX idx_block_hash_covering ON block USING btree (hash) INCLUDE (number, slot);
 
 -- =============================================================================
 -- Index 4: Transaction Success/Failure Status Filtering
@@ -41,7 +41,7 @@ CREATE INDEX idx_block_hash_covering ON block USING btree (hash) INCLUDE (number
 --   - Filtering by transaction validity status
 -- Performance: Fast JOIN for success condition evaluation (lines 87-91 in TxRepositoryQueryBuilder)
 -- =============================================================================
-CREATE INDEX idx_invalid_transaction_hash_slot ON invalid_transaction USING btree (tx_hash, slot);
+--CREATE INDEX idx_invalid_transaction_hash_slot ON invalid_transaction USING btree (tx_hash, slot);
 
 -- =============================================================================
 -- Index 5: Transaction Hash Direct Lookups for VALUES Table Optimization  
@@ -53,7 +53,7 @@ CREATE INDEX idx_invalid_transaction_hash_slot ON invalid_transaction USING btre
 --   - Both direct tx hash searches and address-derived hash searches
 -- Performance: Critical for hash-based searches - optimizes VALUES table JOINs
 -- =============================================================================
-CREATE INDEX idx_transaction_hash_values_join ON transaction USING btree (tx_hash);
+--CREATE INDEX idx_transaction_hash_values_join ON transaction USING btree (tx_hash);
 
 -- =============================================================================
 -- Index 6: Transaction Slot and Index Ordering for Search Pagination
@@ -66,4 +66,4 @@ CREATE INDEX idx_transaction_hash_values_join ON transaction USING btree (tx_has
 -- Performance: Essential for correct pagination - maintains transaction order by slot then tx_index
 -- Note: tx_index column added in Yaci-Store starting from 2.0.0 for proper within-block ordering
 -- =============================================================================
-CREATE INDEX idx_transaction_slot_desc_tx_index_desc ON transaction USING btree (slot DESC, tx_index DESC);
+--CREATE INDEX idx_transaction_slot_desc_tx_index_desc ON transaction USING btree (slot DESC, tx_index DESC);
