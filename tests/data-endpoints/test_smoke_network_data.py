@@ -37,7 +37,7 @@ class TestNetworkDataValidity:
         address = network_data["addresses"][address_type]
 
         response = client.search_transactions(
-            network=network, account_identifier={"address": address}
+            network_identifier={"blockchain": "cardano", "network": network}, account_identifier={"address": address}
         )
         assert response.status_code == 200
 
@@ -59,7 +59,7 @@ class TestNetworkDataValidity:
             test_block = asset["test_block"]
 
             response = client.account_balance(
-                network=network,
+                network_identifier={"blockchain": "cardano", "network": network},
                 account_identifier={"address": test_address},
                 block_identifier={"index": test_block},
             )
@@ -107,7 +107,7 @@ class TestNetworkDataValidity:
         address = network_data["addresses"][address_type]
 
         response = client.account_balance(
-            network=network, account_identifier={"address": address}
+            network_identifier={"blockchain": "cardano", "network": network}, account_identifier={"address": address}
         )
         assert response.status_code == 200, (
             f"Address '{address_type}' ({address}) failed on /account/balance. "
@@ -127,7 +127,7 @@ class TestNetworkDataValidity:
         address = network_data["addresses"][address_type]
 
         response = client.account_coins(
-            network=network, account_identifier={"address": address}
+            network_identifier={"blockchain": "cardano", "network": network}, account_identifier={"address": address}
         )
         assert response.status_code == 200, (
             f"Address '{address_type}' ({address}) failed on /account/coins. "

@@ -73,7 +73,7 @@ def _fetch_token_from_account(client, network: str, token: Dict) -> Tuple[Dict |
     Returns: (currency, metadata) tuple, or (None, None) if token not found or request fails.
     """
     response = client.account_balance(
-        network=network,
+        network_identifier={"blockchain": "cardano", "network": network},
         account_identifier={"address": token["test_address"]},
         block_identifier={"index": token["test_block"]},
     )
@@ -125,7 +125,10 @@ def _block_operations_for_token(client, network: str, token: Dict) -> List[Tuple
     Asserts: Response is 200.
     Returns: List of (transaction, operation) tuples (may be empty if token not in block).
     """
-    response = client.block(network=network, block_identifier={"index": token["test_block"]})
+    response = client.block(
+        network_identifier={"blockchain": "cardano", "network": network},
+        block_identifier={"index": token["test_block"]},
+    )
     assert response.status_code == 200, (
         f"/block {token['test_block']} returned {response.status_code}"
     )
@@ -164,7 +167,7 @@ def _search_operations_for_token(client, network: str, token: Dict) -> List[Tupl
     # Use hex-encoded symbol in search request (canonical format in v1.4.1+)
     symbol = token["symbol_hex"]
     response = client.search_transactions(
-        network=network,
+        network_identifier={"blockchain": "cardano", "network": network},
         currency={
             "symbol": symbol,
             "decimals": token["decimals"],
