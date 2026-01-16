@@ -93,6 +93,7 @@ class LedgerBlockServiceImplTest {
             Collections.emptyList(), // stakeRegistrations
             Collections.emptyList(), // delegations
             Collections.emptyList(), // drepDelegations
+            Collections.emptyList(), // spoVotes
             Collections.emptyList(), // poolRegistrations
             Collections.emptyList(), // poolRetirements
             Collections.emptyList(), // withdrawals
@@ -117,6 +118,7 @@ class LedgerBlockServiceImplTest {
             Collections.emptyList(), // stakeRegistrations
             Collections.emptyList(), // delegations
             Collections.emptyList(), // drepDelegations
+            Collections.emptyList(), // spoVotes
             Collections.emptyList(), // poolRegistrations
             Collections.emptyList(), // poolRetirements
             Collections.emptyList(), // withdrawals
@@ -150,6 +152,7 @@ class LedgerBlockServiceImplTest {
     val transactionInfo = new LedgerBlockServiceImpl.TransactionInfo(
             Collections.emptyList(),
             stakeRegistrations,
+            Collections.emptyList(),
             Collections.emptyList(),
             Collections.emptyList(),
             Collections.emptyList(),
@@ -190,6 +193,7 @@ class LedgerBlockServiceImplTest {
             Collections.emptyList(),
             Collections.emptyList(),
             Collections.emptyList(),
+            Collections.emptyList(),
             Collections.emptyList()
     );
 
@@ -218,6 +222,7 @@ class LedgerBlockServiceImplTest {
             .thenReturn(new Withdrawal());
 
     val transactionInfo = new LedgerBlockServiceImpl.TransactionInfo(
+            Collections.emptyList(),
             Collections.emptyList(),
             Collections.emptyList(),
             Collections.emptyList(),
@@ -256,6 +261,7 @@ class LedgerBlockServiceImplTest {
             Collections.emptyList(),
             Collections.emptyList(),
             Collections.emptyList(),
+            Collections.emptyList(),
             poolRegistrations,
             Collections.emptyList(),
             Collections.emptyList(),
@@ -286,6 +292,7 @@ class LedgerBlockServiceImplTest {
             .thenReturn(new PoolRetirement());
 
     val transactionInfo = new LedgerBlockServiceImpl.TransactionInfo(
+            Collections.emptyList(),
             Collections.emptyList(),
             Collections.emptyList(),
             Collections.emptyList(),

@@ -46,6 +46,7 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
   private final StakeRegistrationRepository stakeRegistrationRepository;
   private final PoolDelegationRepository poolDelegationRepository;
   private final DrepVoteDelegationRepository drepVoteDelegationRepository;
+  private final VotingProcedureRepository votingProcedureRepository;
   private final PoolRegistrationRepository poolRegistrationRepository;
   private final PoolRetirementRepository poolRetirementRepository;
   private final WithdrawalRepository withdrawalRepository;
@@ -236,6 +237,7 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
       StructuredTaskScope.Subtask<List<PoolRetirementEntity>> pRet = scope.fork(() -> poolRetirementRepository.findByTxHashIn(txHashes));
       StructuredTaskScope.Subtask<List<WithdrawalEntity>> withdrawals = scope.fork(() -> withdrawalRepository.findByTxHashIn(txHashes));
       StructuredTaskScope.Subtask<List<DrepVoteDelegationEntity>> drepDelegations = scope.fork(() -> drepVoteDelegationRepository.findByTxHashIn(txHashes));
+      StructuredTaskScope.Subtask<List<VotingProcedureEntity>> spoVotes = scope.fork(() -> votingProcedureRepository.findByTxHashInAndVoterType(txHashes, VoterType.STAKING_POOL_KEY_HASH));
       StructuredTaskScope.Subtask<List<InvalidTransactionEntity>> invalidTxs = scope.fork(() -> invalidTransactionRepository.findByTxHashIn(txHashes));
 
       scope.joinUntil(Instant.now(clock).plusSeconds(blockTransactionApiTimeoutSecs));
@@ -246,6 +248,7 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
               sReg.get(),
               poolDelegations.get(),
               drepDelegations.get(),
+              spoVotes.get(),
               pReg.get(),
               pRet.get(),
               withdrawals.get(),
@@ -327,8 +330,13 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
                     .map(transactionMapper::mapEntityToDRepDelegation)
                     .toList());
 
-    // TODO governance votes
-    //transaction.setGovernanceVotes(fetched.);
+    // Map SPO (Stake Pool Operator) governance votes
+    transaction.setGovernancePoolVotes(
+            fetched.spoVotes
+                    .stream()
+                    .filter(vote -> vote.getTxHash().equals(transaction.getHash()))
+                    .map(transactionMapper::mapVotingProcedureEntityToGovernancePoolVote)
+                    .toList());
   }
 
   private void populateUtxo(Utxo utxo, Map<UtxoKey, AddressUtxoEntity> utxoMap) {
@@ -352,6 +360,7 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
                          List<StakeRegistrationEntity> stakeRegistrations,
                          List<PoolDelegationEntity> poolDelegations,
                          List<DrepVoteDelegationEntity> drepDelegations,
+                         List<VotingProcedureEntity> spoVotes,
                          List<PoolRegistrationEntity> poolRegistrations,
                          List<PoolRetirementEntity> poolRetirements,
                          List<WithdrawalEntity> withdrawals,

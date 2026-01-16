@@ -28,7 +28,7 @@ import java.util.Map;
 import static org.cardanofoundation.rosetta.testgenerator.common.BaseFunctions.quickTxBuilder;
 
 @Slf4j
-public class SimpleTransactions implements TransactionRunner {
+public class Step1_SimpleTransactions implements TransactionRunner {
 
   private Account sender1;
   private Account sender2;
@@ -37,6 +37,11 @@ public class SimpleTransactions implements TransactionRunner {
   private String sender2Addr;
 
   private Policy policy;
+
+  @Override
+  public int getExecutionOrder() {
+    return 1;  // Execute first
+  }
 
   @Override
   public void init() {
