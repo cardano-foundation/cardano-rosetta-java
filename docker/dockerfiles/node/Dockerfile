@@ -6,7 +6,7 @@ WORKDIR /root/src
 RUN apt update --fix-missing \
     && apt install -y --no-install-recommends \
         automake build-essential pkg-config libffi-dev libgmp-dev libssl-dev libncurses-dev libsystemd-dev zlib1g-dev make \
-        g++ tmux git jq wget libncursesw5-dev libtool autoconf liblmdb-dev curl ca-certificates \
+        g++ tmux git jq wget libncursesw5-dev libtool autoconf liblmdb-dev curl ca-certificates liblmdb-dev \
     && apt-get clean
 
 # Install ghcup
@@ -123,12 +123,16 @@ RUN mkdir -p /root/.local/bin \
     && cp -p "$(./scripts/bin-path.sh cardano-cli)" /root/.local/bin/ \
     && cp -p "$(./scripts/bin-path.sh cardano-submit-api)" /root/.local/bin/
 
+# Copy pre-built snapshot-converter binary
+COPY ./docker/dockerfiles/node/snapshot-converter /root/.local/bin/snapshot-converter
+RUN chmod +x /root/.local/bin/snapshot-converter
 
 FROM ubuntu:24.04 AS node-runner
 
 RUN apt-get update && apt-get install -y jq bc && apt-get clean
 COPY --from=cardano-builder /usr/local/lib /usr/local/lib
 COPY --from=cardano-builder /root/.local/bin/cardano-* /usr/local/bin/
+COPY --from=cardano-builder /root/.local/bin/snapshot-converter /usr/local/bin/
 COPY --from=cardano-builder /usr/local/src/cardano-node/cardano-submit-api/config/tx-submit-mainnet-config.yaml /cardano-submit-api-config/cardano-submit-api.yaml
 
 # Link libsodium library

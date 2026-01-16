@@ -13,10 +13,13 @@
   "LastKnownBlockVersion-Major": 3,
   "LastKnownBlockVersion-Minor": 1,
   "LedgerDB": {
-    "Backend": "V2InMemory",
     "NumOfDiskSnapshots": 2,
     "QueryBatchSize": 100000,
-    "SnapshotInterval": 864
+    "SnapshotInterval": 4320,
+    "Backend": "V1LMDB",
+    "FlushFrequency": 100,
+    "MapSize":        16,
+    "LiveTablesPath": "/node/db/lmdb"
   },
   "MinNodeVersion": "10.5.0",
   "PeerSharing": true,
