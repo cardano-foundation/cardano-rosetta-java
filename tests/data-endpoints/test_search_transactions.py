@@ -3,14 +3,10 @@ Test suite for /search/transactions endpoint.
 Covers all 61 test cases from the original Postman collection.
 """
 
-import os
 import pytest
 import allure
 from conftest import get_error_message
 
-
-# Network configuration from environment - works on ANY network
-NETWORK = os.environ.get("CARDANO_NETWORK", "preprod")
 
 pytestmark = pytest.mark.pr
 
@@ -20,9 +16,9 @@ class TestSanityChecks:
 
     @allure.feature("Search Transactions")
     @allure.story("Sanity Checks")
-    def test_default_pagination_returns_100_transactions(self, client, network):
+    def test_default_pagination_returns_100_transactions(self, client):
         """Default request should return exactly 100 transactions."""
-        response = client.search_transactions(network=network)
+        response = client.search_transactions()
         assert response.status_code == 200
 
         data = response.json()
@@ -30,35 +26,6 @@ class TestSanityChecks:
 
         assert len(transactions) == 100, "Must respect default limit"
         assert data["total_count"] > 100, "`total_count` must be > #returned"
-
-    @allure.feature("Search Transactions")
-    @allure.story("Sanity Checks")
-    def test_missing_network_identifier_returns_error(self, client):
-        """Missing network_identifier should return appropriate error."""
-        response = client.search_transactions(network=None)
-        # v1.3.3+ correctly returns 400 for client validation errors
-        assert response.status_code == 400
-
-        error = response.json()
-        error_message = get_error_message(error).lower()
-        assert "network" in error_message or "identifier" in error_message, (
-            "Error message should indicate missing network_identifier"
-        )
-
-    @allure.feature("Search Transactions")
-    @allure.story("Sanity Checks")
-    def test_invalid_network_returns_error_4002(self, client):
-        """Invalid network should return error code 4002."""
-        response = client.search_transactions(network="invalid_network")
-        assert response.status_code == 500
-
-        error = response.json()
-        assert error["code"] == 4002, "Error code should be 4002"
-        assert error["message"] == "Network not found", (
-            "Error message should indicate network not found"
-        )
-        assert error["retriable"] is False, "`retriable` must be false"
-
 
 class TestPaginationLimits:
     """Test pagination limit parameter."""
@@ -150,10 +117,10 @@ class TestTransactionIdentifier:
 
     @allure.feature("Search Transactions")
     @allure.story("Transaction Identifier")
-    def test_valid_transaction_hash(self, client, network):
+    def test_valid_transaction_hash(self, client):
         """Search by transaction hash returns that specific transaction."""
         # Dynamically fetch a transaction to test with
-        sample_response = client.search_transactions(network=network)
+        sample_response = client.search_transactions()
         assert sample_response.status_code == 200
         sample_tx = sample_response.json()["transactions"][0]
         tx_hash = sample_tx["transaction"]["transaction_identifier"]["hash"]
@@ -166,7 +133,7 @@ class TestTransactionIdentifier:
 
         # Search for it by hash
         response = client.search_transactions(
-            network=network, transaction_identifier={"hash": tx_hash}
+            transaction_identifier={"hash": tx_hash}
         )
         assert response.status_code == 200
 
@@ -300,7 +267,7 @@ class TestMaxBlock:
     @pytest.mark.slow
     @pytest.mark.parametrize("percentage", [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100])
     def test_max_block_filtering_at_percentage(
-        self, client, network, blockchain_height, percentage, oldest_block_identifier
+        self, client, blockchain_height, percentage, oldest_block_identifier
     ):
         """Test max_block filtering at different percentages of blockchain height."""
         max_block = int(blockchain_height * percentage / 100)
@@ -309,9 +276,7 @@ class TestMaxBlock:
         if oldest_block_identifier and max_block < oldest_block_identifier:
             pytest.skip(f"max_block {max_block} is before oldest_block_identifier {oldest_block_identifier}")
 
-        response = client.search_transactions(
-            network=network, max_block=max_block
-        )
+        response = client.search_transactions(max_block=max_block)
         assert response.status_code == 200
 
         txs = response.json()["transactions"]
@@ -635,10 +600,10 @@ class TestCurrencyFiltering:
     @allure.story("Currency Filtering")
     @pytest.mark.parametrize("symbol", ["ada", "ADA"])
     @pytest.mark.skip(reason="ADA filter test needs review due to fee ops always including ADA")
-    def test_ada_filter_case_insensitive(self, client, network, symbol):
+    def test_ada_filter_case_insensitive(self, client, symbol):
         """Filter by ada currency (case-insensitive)."""
         response = client.search_transactions(
-            network=network, currency={"symbol": symbol, "decimals": 6}
+            currency={"symbol": symbol, "decimals": 6}
         )
         assert response.status_code == 200
 
@@ -658,13 +623,12 @@ class TestCurrencyFiltering:
     @allure.feature("Search Transactions")
     @allure.story("Currency Filtering")
     @pytest.mark.pruning_compatible
-    def test_native_asset_filtering_by_ascii_symbol(self, client, network, network_data, is_pruned_instance):
+    def test_native_asset_filtering_by_ascii_symbol(self, client, network_data, is_pruned_instance):
         """Currency filter with ASCII symbols should return error (negative test for v1.4.1+)."""
         asset = network_data["assets"][0]
 
         # Search by ASCII symbol (should return error in v1.4.1+)
         response = client.search_transactions(
-            network=network,
             currency={"symbol": asset["symbol"], "decimals": asset["decimals"]},
         )
 
@@ -688,13 +652,12 @@ class TestCurrencyFiltering:
     # @pytest.mark.skip(
     #     reason="Currency filter + limit parameter causes timeout (#615)"
     # )
-    def test_currency_filter_with_limit_parameter(self, client, network, network_data):
+    def test_currency_filter_with_limit_parameter(self, client, network_data):
         """Currency filter with explicit limit should not cause timeout."""
         asset = network_data["assets"][0]
 
         # This combination causes 600s+ timeout in v1.3.3
         response = client.search_transactions(
-            network=network,
             currency={"symbol": asset["symbol_hex"], "decimals": asset["decimals"]},
             limit=1,
         )
@@ -720,7 +683,7 @@ class TestCurrencyFiltering:
     @allure.feature("Search Transactions")
     @allure.story("Currency Filtering")
     @pytest.mark.pruning_compatible
-    def test_currency_filter_with_hex_encoded_symbol(self, client, network, network_data, is_pruned_instance):
+    def test_currency_filter_with_hex_encoded_symbol(self, client, network_data, is_pruned_instance):
         """Currency filter accepts hex-encoded symbols (canonical format in v1.4.x+, issue #610 fixed)."""
         asset = network_data["assets"][0]
 
@@ -729,7 +692,6 @@ class TestCurrencyFiltering:
 
         # Search by hex-encoded symbol (supported in v1.4.x+ after #610 fix)
         response = client.search_transactions(
-            network=network,
             currency={"symbol": hex_symbol, "decimals": asset["decimals"]},
         )
         assert response.status_code == 200
@@ -757,13 +719,12 @@ class TestCurrencyFiltering:
     @allure.feature("Search Transactions")
     @allure.story("Currency Filtering")
     @pytest.mark.pruning_compatible
-    def test_native_asset_filtering_with_policy_id(self, client, network, network_data, is_pruned_instance):
+    def test_native_asset_filtering_with_policy_id(self, client, network_data, is_pruned_instance):
         """Test currency filtering with hex-encoded symbol and metadata.policyId."""
         asset = network_data["assets"][0]
 
         # Search by hex-encoded asset symbol with policyId in metadata
         response = client.search_transactions(
-            network=network,
             currency={
                 "symbol": asset["symbol_hex"],
                 "decimals": asset["decimals"],

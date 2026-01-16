@@ -31,7 +31,7 @@ class TestNetworkList:
 class TestNetworkStatus:
     @pytest.mark.pr
     def test_returns_current_network_status(self, client, network):
-        response = client.network_status(network=network)
+        response = client.network_status()
         assert response.status_code == 200
 
         data = response.json()
@@ -73,7 +73,7 @@ class TestNetworkStatus:
             retry_interval = 30
             for _ in range(max_wait_seconds // retry_interval):
                 time.sleep(retry_interval)
-                peers = client.network_status(network=network).json().get("peers", [])
+                peers = client.network_status().json().get("peers", [])
                 if peers:
                     break
 
@@ -100,7 +100,7 @@ class TestNetworkStatus:
 @allure.story("Options")
 class TestNetworkOptions:
     def test_returns_network_capabilities(self, client, network):
-        response = client.network_options(network=network)
+        response = client.network_options()
         assert response.status_code == 200
 
         data = response.json()
