@@ -15,4 +15,14 @@ public interface TransactionRunner {
    * @return a map of transaction block details
    */
   Map<String, TransactionBlockDetails> runTransactions();
+
+  /**
+   * Returns the execution order for this transaction runner.
+   * Lower numbers execute first. Default is 100.
+   *
+   * @return execution order priority
+   */
+  default int getExecutionOrder() {
+    return 100;
+  }
 }

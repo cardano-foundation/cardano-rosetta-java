@@ -1,29 +1,9 @@
 package org.cardanofoundation.rosetta.api.block.service;
 
-import java.time.Clock;
-import java.time.Instant;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.StructuredTaskScope;
-import java.util.concurrent.StructuredTaskScope.ShutdownOnFailure;
-import java.util.concurrent.TimeoutException;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import jakarta.validation.constraints.NotNull;
-import javax.annotation.PostConstruct;
-
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Slice;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
-
 import org.cardanofoundation.rosetta.api.account.mapper.AddressUtxoEntityToUtxo;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.account.model.entity.AddressUtxoEntity;
@@ -36,6 +16,23 @@ import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.model.entity.*;
 import org.cardanofoundation.rosetta.api.block.model.repository.*;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+import javax.annotation.PostConstruct;
+import java.time.Clock;
+import java.time.Instant;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.StructuredTaskScope;
+import java.util.concurrent.StructuredTaskScope.ShutdownOnFailure;
+import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 @Component
@@ -47,7 +44,9 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
   private final BlockRepository blockRepository;
   private final TxRepository txRepository;
   private final StakeRegistrationRepository stakeRegistrationRepository;
-  private final DelegationRepository delegationRepository;
+  private final PoolDelegationRepository poolDelegationRepository;
+  private final DrepVoteDelegationRepository drepVoteDelegationRepository;
+  private final VotingProcedureRepository votingProcedureRepository;
   private final PoolRegistrationRepository poolRegistrationRepository;
   private final PoolRetirementRepository poolRetirementRepository;
   private final WithdrawalRepository withdrawalRepository;
@@ -233,10 +232,12 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
     try (ShutdownOnFailure scope = new ShutdownOnFailure()) {
       StructuredTaskScope.Subtask<List<AddressUtxoEntity>> utxos = scope.fork(() -> addressUtxoRepository.findByTxHashIn(utxHashes));
       StructuredTaskScope.Subtask<List<StakeRegistrationEntity>> sReg = scope.fork(() -> stakeRegistrationRepository.findByTxHashIn(txHashes));
-      StructuredTaskScope.Subtask<List<DelegationEntity>> delegations = scope.fork(() -> delegationRepository.findByTxHashIn(txHashes));
+      StructuredTaskScope.Subtask<List<PoolDelegationEntity>> poolDelegations = scope.fork(() -> poolDelegationRepository.findByTxHashIn(txHashes));
       StructuredTaskScope.Subtask<List<PoolRegistrationEntity>> pReg = scope.fork(() -> poolRegistrationRepository.findByTxHashIn(txHashes));
       StructuredTaskScope.Subtask<List<PoolRetirementEntity>> pRet = scope.fork(() -> poolRetirementRepository.findByTxHashIn(txHashes));
       StructuredTaskScope.Subtask<List<WithdrawalEntity>> withdrawals = scope.fork(() -> withdrawalRepository.findByTxHashIn(txHashes));
+      StructuredTaskScope.Subtask<List<DrepVoteDelegationEntity>> drepDelegations = scope.fork(() -> drepVoteDelegationRepository.findByTxHashIn(txHashes));
+      StructuredTaskScope.Subtask<List<VotingProcedureEntity>> spoVotes = scope.fork(() -> votingProcedureRepository.findByTxHashInAndVoterType(txHashes, VoterType.STAKING_POOL_KEY_HASH));
       StructuredTaskScope.Subtask<List<InvalidTransactionEntity>> invalidTxs = scope.fork(() -> invalidTransactionRepository.findByTxHashIn(txHashes));
 
       scope.joinUntil(Instant.now(clock).plusSeconds(blockTransactionApiTimeoutSecs));
@@ -245,7 +246,9 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
       return new TransactionInfo(
               utxos.get(),
               sReg.get(),
-              delegations.get(),
+              poolDelegations.get(),
+              drepDelegations.get(),
+              spoVotes.get(),
               pReg.get(),
               pRet.get(),
               withdrawals.get(),
@@ -293,10 +296,10 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
                     .toList());
 
     transaction.setStakePoolDelegations(
-            fetched.delegations
+            fetched.poolDelegations
                     .stream()
                     .filter(tx -> tx.getTxHash().equals(transaction.getHash()))
-                    .map(transactionMapper::mapDelegationEntityToDelegation)
+                    .map(transactionMapper::mapPoolDelegationEntityToDelegation)
                     .toList());
 
     transaction.setWithdrawals(
@@ -319,11 +322,21 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
                     .filter(tx -> tx.getTxHash().equals(transaction.getHash()))
                     .map(transactionMapper::mapEntityToPoolRetirement)
                     .toList());
-    // TODO dRep Vote Delegations
-    //transaction.setDRepDelegations(fetched.delegations
 
-    // TODO governance votes
-    //transaction.setGovernanceVotes(fetched.);
+    transaction.setDRepDelegations(
+            fetched.drepDelegations
+                    .stream()
+                    .filter(tx -> tx.getTxHash().equals(transaction.getHash()))
+                    .map(transactionMapper::mapEntityToDRepDelegation)
+                    .toList());
+
+    // Map SPO (Stake Pool Operator) governance votes
+    transaction.setGovernancePoolVotes(
+            fetched.spoVotes
+                    .stream()
+                    .filter(vote -> vote.getTxHash().equals(transaction.getHash()))
+                    .map(transactionMapper::mapVotingProcedureEntityToGovernancePoolVote)
+                    .toList());
   }
 
   private void populateUtxo(Utxo utxo, Map<UtxoKey, AddressUtxoEntity> utxoMap) {
@@ -345,12 +358,13 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
 
   record TransactionInfo(List<AddressUtxoEntity> utxos,
                          List<StakeRegistrationEntity> stakeRegistrations,
-                         List<DelegationEntity> delegations,
+                         List<PoolDelegationEntity> poolDelegations,
+                         List<DrepVoteDelegationEntity> drepDelegations,
+                         List<VotingProcedureEntity> spoVotes,
                          List<PoolRegistrationEntity> poolRegistrations,
                          List<PoolRetirementEntity> poolRetirements,
                          List<WithdrawalEntity> withdrawals,
                          List<InvalidTransactionEntity> invalidTransactions) {
-
   }
 
   record UtxoKey(String txHash, Integer outputIndex) {

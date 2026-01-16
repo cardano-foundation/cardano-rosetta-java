@@ -33,21 +33,25 @@ cd api && mvn spring-boot:run
 mvn clean package
 ```
 
-### Docker Commands
+### Docker Compose Commands
 ```bash
-# Build from source
-docker build -t rosetta-java -f ./docker/Dockerfile .
+# Start all services (full stack)
+docker compose --env-file .env.docker-compose --env-file .env.docker-compose-profile-mid-level up -d
 
-# Run with docker-compose (full stack)
-docker-compose up -d
-
-# Run specific services
-docker-compose up -d api indexer postgres
+# Start specific services
+docker compose up -d cardano-node db
+docker compose up -d api yaci-indexer
 
 # View logs
-docker logs rosetta -f
-docker exec rosetta tail -f /logs/node.log
-docker exec rosetta tail -f /logs/indexer.log
+docker compose logs -f api
+docker compose logs -f yaci-indexer
+docker compose logs -f cardano-node
+
+# Stop all services
+docker compose down
+
+# Restart a service
+docker compose restart api
 ```
 
 ## Architecture Overview
@@ -73,7 +77,7 @@ docker exec rosetta tail -f /logs/indexer.log
 - Generated code located in `/target/generated-sources/openapi/`
 - **NEVER** manually modify controller classes - edit `api.yaml` instead
 - Controller implementations in `api/{domain}/controller/` implement generated interfaces
-- Always use @Nullable annotation in case of optional fields for function methods parameter inputs and outputs, records, DTOs, and entities
+- Always use @Nullable annotation in case of optional fields for function methods parameter inputs and outputs, records, DTOs, and entities. For Nullable use: import javax.annotation.Nullable;
 - Avoid if { return } else {} , if we already have a return statement, we can just return the value, no need for else block
 - Use @NotNull annotation everywhere where we can be sure that value will not be null, use @Nullable in case value can be null sometimes
 - Considering that we will have @NotNull and @Nullable annotations, just put nulls checks only when you actually need it, if a field / property is annotated with @NonNull, there is no need for a null check in the code
