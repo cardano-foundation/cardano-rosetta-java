@@ -38,16 +38,4 @@ class H2IndexCreationMonitorTest {
         assertThat(progress).isEmpty();
     }
 
-    @Test
-    @DisplayName("Should be consistent across multiple calls")
-    void shouldBeConsistentAcrossMultipleCalls() {
-        // When/Then - multiple calls should all return the same values
-        assertThat(monitor.isCreatingIndexes()).isFalse();
-        assertThat(monitor.isCreatingIndexes()).isFalse();
-        assertThat(monitor.isCreatingIndexes()).isFalse();
-
-        assertThat(monitor.getIndexCreationProgress()).isEmpty();
-        assertThat(monitor.getIndexCreationProgress()).isEmpty();
-        assertThat(monitor.getIndexCreationProgress()).isEmpty();
-    }
 }

@@ -202,7 +202,6 @@ class PostgreSQLIndexCreationMonitorTest {
 
             // When/Then - all errors should return empty list
             assertThat(monitor.getIndexCreationProgress()).isEmpty();
-            assertThat(monitor.getIndexCreationProgress()).isEmpty();
         }
 
         @Test

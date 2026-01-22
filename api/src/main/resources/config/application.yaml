@@ -27,16 +27,21 @@ cardano:
     middleware-version: '@revision@'
     db_indexes:
       - idx_address_utxo_amounts_gin
+      - idx_address_utxo_epoch
+      - idx_address_utxo_owner_addr
       - idx_address_utxo_owner_addr_tx_hash
+      - idx_address_utxo_owner_paykey_hash
+      - idx_address_utxo_owner_stake_addr
+      - idx_address_utxo_owner_stakekey_hash
+      - idx_address_utxo_tx_hash
       - idx_block_hash_covering
       - idx_invalid_transaction_hash_slot
-      - idx_transaction_hash_values_join
-      - idx_transaction_slot_desc_tx_index_desc
       - idx_transaction_block
       - idx_transaction_block_hash
+      - idx_transaction_hash_values_join
+      - idx_transaction_slot_desc_tx_index_desc
       - idx_withdrawal_address
       - idx_withdrawal_tx_hash
-      - idx_address_utxo_tx_hash
 
     TOPOLOGY_FILEPATH: ${TOPOLOGY_FILEPATH}
     GENESIS_SHELLEY_PATH: ${GENESIS_SHELLEY_PATH}
