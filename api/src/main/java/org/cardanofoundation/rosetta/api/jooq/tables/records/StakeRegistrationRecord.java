@@ -20,154 +20,154 @@ public class StakeRegistrationRecord extends UpdatableRecordImpl<StakeRegistrati
     private static final long serialVersionUID = 1L;
 
     /**
-     * Setter for <code>preprod.stake_registration.tx_hash</code>.
+     * Setter for <code>public.stake_registration.tx_hash</code>.
      */
     public void setTxHash(String value) {
         set(0, value);
     }
 
     /**
-     * Getter for <code>preprod.stake_registration.tx_hash</code>.
+     * Getter for <code>public.stake_registration.tx_hash</code>.
      */
     public String getTxHash() {
         return (String) get(0);
     }
 
     /**
-     * Setter for <code>preprod.stake_registration.cert_index</code>.
+     * Setter for <code>public.stake_registration.cert_index</code>.
      */
     public void setCertIndex(Integer value) {
         set(1, value);
     }
 
     /**
-     * Getter for <code>preprod.stake_registration.cert_index</code>.
+     * Getter for <code>public.stake_registration.cert_index</code>.
      */
     public Integer getCertIndex() {
         return (Integer) get(1);
     }
 
     /**
-     * Setter for <code>preprod.stake_registration.credential</code>.
+     * Setter for <code>public.stake_registration.credential</code>.
      */
     public void setCredential(String value) {
         set(2, value);
     }
 
     /**
-     * Getter for <code>preprod.stake_registration.credential</code>.
+     * Getter for <code>public.stake_registration.credential</code>.
      */
     public String getCredential() {
         return (String) get(2);
     }
 
     /**
-     * Setter for <code>preprod.stake_registration.type</code>.
+     * Setter for <code>public.stake_registration.type</code>.
      */
     public void setType(String value) {
         set(3, value);
     }
 
     /**
-     * Getter for <code>preprod.stake_registration.type</code>.
+     * Getter for <code>public.stake_registration.type</code>.
      */
     public String getType() {
         return (String) get(3);
     }
 
     /**
-     * Setter for <code>preprod.stake_registration.address</code>.
+     * Setter for <code>public.stake_registration.address</code>.
      */
     public void setAddress(String value) {
         set(4, value);
     }
 
     /**
-     * Getter for <code>preprod.stake_registration.address</code>.
+     * Getter for <code>public.stake_registration.address</code>.
      */
     public String getAddress() {
         return (String) get(4);
     }
 
     /**
-     * Setter for <code>preprod.stake_registration.epoch</code>.
+     * Setter for <code>public.stake_registration.epoch</code>.
      */
     public void setEpoch(Integer value) {
         set(5, value);
     }
 
     /**
-     * Getter for <code>preprod.stake_registration.epoch</code>.
+     * Getter for <code>public.stake_registration.epoch</code>.
      */
     public Integer getEpoch() {
         return (Integer) get(5);
     }
 
     /**
-     * Setter for <code>preprod.stake_registration.slot</code>.
+     * Setter for <code>public.stake_registration.slot</code>.
      */
     public void setSlot(Long value) {
         set(6, value);
     }
 
     /**
-     * Getter for <code>preprod.stake_registration.slot</code>.
+     * Getter for <code>public.stake_registration.slot</code>.
      */
     public Long getSlot() {
         return (Long) get(6);
     }
 
     /**
-     * Setter for <code>preprod.stake_registration.block_hash</code>.
+     * Setter for <code>public.stake_registration.block_hash</code>.
      */
     public void setBlockHash(String value) {
         set(7, value);
     }
 
     /**
-     * Getter for <code>preprod.stake_registration.block_hash</code>.
+     * Getter for <code>public.stake_registration.block_hash</code>.
      */
     public String getBlockHash() {
         return (String) get(7);
     }
 
     /**
-     * Setter for <code>preprod.stake_registration.block</code>.
+     * Setter for <code>public.stake_registration.block</code>.
      */
     public void setBlock(Long value) {
         set(8, value);
     }
 
     /**
-     * Getter for <code>preprod.stake_registration.block</code>.
+     * Getter for <code>public.stake_registration.block</code>.
      */
     public Long getBlock() {
         return (Long) get(8);
     }
 
     /**
-     * Setter for <code>preprod.stake_registration.block_time</code>.
+     * Setter for <code>public.stake_registration.block_time</code>.
      */
     public void setBlockTime(Long value) {
         set(9, value);
     }
 
     /**
-     * Getter for <code>preprod.stake_registration.block_time</code>.
+     * Getter for <code>public.stake_registration.block_time</code>.
      */
     public Long getBlockTime() {
         return (Long) get(9);
     }
 
     /**
-     * Setter for <code>preprod.stake_registration.update_datetime</code>.
+     * Setter for <code>public.stake_registration.update_datetime</code>.
      */
     public void setUpdateDatetime(LocalDateTime value) {
         set(10, value);
     }
 
     /**
-     * Getter for <code>preprod.stake_registration.update_datetime</code>.
+     * Getter for <code>public.stake_registration.update_datetime</code>.
      */
     public LocalDateTime getUpdateDatetime() {
         return (LocalDateTime) get(10);

@@ -19,112 +19,112 @@ public class TransactionWitnessRecord extends UpdatableRecordImpl<TransactionWit
     private static final long serialVersionUID = 1L;
 
     /**
-     * Setter for <code>preprod.transaction_witness.tx_hash</code>.
+     * Setter for <code>public.transaction_witness.tx_hash</code>.
      */
     public void setTxHash(String value) {
         set(0, value);
     }
 
     /**
-     * Getter for <code>preprod.transaction_witness.tx_hash</code>.
+     * Getter for <code>public.transaction_witness.tx_hash</code>.
      */
     public String getTxHash() {
         return (String) get(0);
     }
 
     /**
-     * Setter for <code>preprod.transaction_witness.idx</code>.
+     * Setter for <code>public.transaction_witness.idx</code>.
      */
     public void setIdx(Integer value) {
         set(1, value);
     }
 
     /**
-     * Getter for <code>preprod.transaction_witness.idx</code>.
+     * Getter for <code>public.transaction_witness.idx</code>.
      */
     public Integer getIdx() {
         return (Integer) get(1);
     }
 
     /**
-     * Setter for <code>preprod.transaction_witness.pub_key</code>.
+     * Setter for <code>public.transaction_witness.pub_key</code>.
      */
     public void setPubKey(String value) {
         set(2, value);
     }
 
     /**
-     * Getter for <code>preprod.transaction_witness.pub_key</code>.
+     * Getter for <code>public.transaction_witness.pub_key</code>.
      */
     public String getPubKey() {
         return (String) get(2);
     }
 
     /**
-     * Setter for <code>preprod.transaction_witness.signature</code>.
+     * Setter for <code>public.transaction_witness.signature</code>.
      */
     public void setSignature(String value) {
         set(3, value);
     }
 
     /**
-     * Getter for <code>preprod.transaction_witness.signature</code>.
+     * Getter for <code>public.transaction_witness.signature</code>.
      */
     public String getSignature() {
         return (String) get(3);
     }
 
     /**
-     * Setter for <code>preprod.transaction_witness.pub_keyhash</code>.
+     * Setter for <code>public.transaction_witness.pub_keyhash</code>.
      */
     public void setPubKeyhash(String value) {
         set(4, value);
     }
 
     /**
-     * Getter for <code>preprod.transaction_witness.pub_keyhash</code>.
+     * Getter for <code>public.transaction_witness.pub_keyhash</code>.
      */
     public String getPubKeyhash() {
         return (String) get(4);
     }
 
     /**
-     * Setter for <code>preprod.transaction_witness.type</code>.
+     * Setter for <code>public.transaction_witness.type</code>.
      */
     public void setType(String value) {
         set(5, value);
     }
 
     /**
-     * Getter for <code>preprod.transaction_witness.type</code>.
+     * Getter for <code>public.transaction_witness.type</code>.
      */
     public String getType() {
         return (String) get(5);
     }
 
     /**
-     * Setter for <code>preprod.transaction_witness.additional_data</code>.
+     * Setter for <code>public.transaction_witness.additional_data</code>.
      */
     public void setAdditionalData(JSONB value) {
         set(6, value);
     }
 
     /**
-     * Getter for <code>preprod.transaction_witness.additional_data</code>.
+     * Getter for <code>public.transaction_witness.additional_data</code>.
      */
     public JSONB getAdditionalData() {
         return (JSONB) get(6);
     }
 
     /**
-     * Setter for <code>preprod.transaction_witness.slot</code>.
+     * Setter for <code>public.transaction_witness.slot</code>.
      */
     public void setSlot(Long value) {
         set(7, value);
     }
 
     /**
-     * Getter for <code>preprod.transaction_witness.slot</code>.
+     * Getter for <code>public.transaction_witness.slot</code>.
      */
     public Long getSlot() {
         return (Long) get(7);

@@ -123,6 +123,7 @@ public abstract class TxRepositoryCustomBase implements TxRepositoryCustom {
                         TRANSACTION.OUTPUTS,
                         TRANSACTION.FEE,
                         TRANSACTION.SLOT,
+                        TRANSACTION.TX_INDEX,
                         BLOCK.HASH.as("joined_block_hash"),
                         BLOCK.NUMBER.as("joined_block_number"),
                         BLOCK.SLOT.as("joined_block_slot"),
@@ -133,6 +134,7 @@ public abstract class TxRepositoryCustomBase implements TxRepositoryCustom {
                 .leftJoin(BLOCK).on(TRANSACTION.BLOCK_HASH.eq(BLOCK.HASH))
                 .leftJoin(TRANSACTION_SIZE).on(TRANSACTION.TX_HASH.eq(TRANSACTION_SIZE.TX_HASH))
                 .where(TRANSACTION.BLOCK_HASH.eq(blockHash))
+                .orderBy(TRANSACTION.TX_INDEX.asc())
                 .fetch(queryBuilder::mapRecordToTxnEntity);
     }
 
@@ -182,12 +184,12 @@ public abstract class TxRepositoryCustomBase implements TxRepositoryCustom {
      * Ensures count and results queries use identical conditions and JOINs.
      * Currency conditions use EXISTS subqueries - no JOIN needed.
      */
-    protected List<? extends org.jooq.Record> executeResultsQuery(Condition conditions, 
-                                                                  @Nullable Boolean isSuccess, 
+    protected List<? extends org.jooq.Record> executeResultsQuery(Condition conditions,
+                                                                  @Nullable Boolean isSuccess,
                                                                   OffsetBasedPageRequest offsetBasedPageRequest) {
         return buildBaseResultsQuery(isSuccess)
                 .where(conditions)
-                .orderBy(TRANSACTION.SLOT.desc())
+                .orderBy(TRANSACTION.SLOT.desc(), TRANSACTION.TX_INDEX.desc())
                 .limit(offsetBasedPageRequest.getLimit())
                 .offset(offsetBasedPageRequest.getOffset())
                 .fetch();

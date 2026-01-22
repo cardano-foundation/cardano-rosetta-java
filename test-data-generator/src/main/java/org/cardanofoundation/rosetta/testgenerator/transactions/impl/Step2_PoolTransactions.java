@@ -33,13 +33,18 @@ import static org.cardanofoundation.rosetta.testgenerator.common.BaseFunctions.c
 import static org.cardanofoundation.rosetta.testgenerator.common.BaseFunctions.quickTxBuilder;
 
 @Slf4j
-public class PoolTransactions implements TransactionRunner {
+public class Step2_PoolTransactions implements TransactionRunner {
 
   private static final String BLOCK_HASH_MASSAGE = "Block hash: ";
   private Account sender1;
   private Account sender2;
 
   private String sender2Addr;
+
+  @Override
+  public int getExecutionOrder() {
+    return 2;  // Execute second (after SimpleTransactions)
+  }
 
   @Override
   public void init() {
@@ -105,6 +110,7 @@ public class PoolTransactions implements TransactionRunner {
     //pool registration
     log.info("Sender1 address: {}", sender1.baseAddress());
     log.info("Sender2 address: {}", sender2.baseAddress());
+
     Tx registerPoolTx = new Tx()
             .registerStakeAddress(stakeAddr)
             .registerPool(poolRegistration)
@@ -181,7 +187,8 @@ public class PoolTransactions implements TransactionRunner {
     log.info("Sender2 address: {}", sender2Addr);
 
     Tx retirePool = new Tx()
-            .retirePool(poolId, 19)
+            //.retirePool(poolId, 19)
+            .retirePool(poolId, 2)
             .from(sender2Addr);
 
     Result<String> result = quickTxBuilder.compose(retirePool)

@@ -21,280 +21,280 @@ public class AddressUtxoRecord extends UpdatableRecordImpl<AddressUtxoRecord> {
     private static final long serialVersionUID = 1L;
 
     /**
-     * Setter for <code>preprod.address_utxo.tx_hash</code>.
+     * Setter for <code>public.address_utxo.tx_hash</code>.
      */
     public void setTxHash(String value) {
         set(0, value);
     }
 
     /**
-     * Getter for <code>preprod.address_utxo.tx_hash</code>.
+     * Getter for <code>public.address_utxo.tx_hash</code>.
      */
     public String getTxHash() {
         return (String) get(0);
     }
 
     /**
-     * Setter for <code>preprod.address_utxo.output_index</code>.
+     * Setter for <code>public.address_utxo.output_index</code>.
      */
     public void setOutputIndex(Short value) {
         set(1, value);
     }
 
     /**
-     * Getter for <code>preprod.address_utxo.output_index</code>.
+     * Getter for <code>public.address_utxo.output_index</code>.
      */
     public Short getOutputIndex() {
         return (Short) get(1);
     }
 
     /**
-     * Setter for <code>preprod.address_utxo.slot</code>.
+     * Setter for <code>public.address_utxo.slot</code>.
      */
     public void setSlot(Long value) {
         set(2, value);
     }
 
     /**
-     * Getter for <code>preprod.address_utxo.slot</code>.
+     * Getter for <code>public.address_utxo.slot</code>.
      */
     public Long getSlot() {
         return (Long) get(2);
     }
 
     /**
-     * Setter for <code>preprod.address_utxo.block_hash</code>.
+     * Setter for <code>public.address_utxo.block_hash</code>.
      */
     public void setBlockHash(String value) {
         set(3, value);
     }
 
     /**
-     * Getter for <code>preprod.address_utxo.block_hash</code>.
+     * Getter for <code>public.address_utxo.block_hash</code>.
      */
     public String getBlockHash() {
         return (String) get(3);
     }
 
     /**
-     * Setter for <code>preprod.address_utxo.epoch</code>.
+     * Setter for <code>public.address_utxo.epoch</code>.
      */
     public void setEpoch(Integer value) {
         set(4, value);
     }
 
     /**
-     * Getter for <code>preprod.address_utxo.epoch</code>.
+     * Getter for <code>public.address_utxo.epoch</code>.
      */
     public Integer getEpoch() {
         return (Integer) get(4);
     }
 
     /**
-     * Setter for <code>preprod.address_utxo.lovelace_amount</code>.
+     * Setter for <code>public.address_utxo.lovelace_amount</code>.
      */
     public void setLovelaceAmount(Long value) {
         set(5, value);
     }
 
     /**
-     * Getter for <code>preprod.address_utxo.lovelace_amount</code>.
+     * Getter for <code>public.address_utxo.lovelace_amount</code>.
      */
     public Long getLovelaceAmount() {
         return (Long) get(5);
     }
 
     /**
-     * Setter for <code>preprod.address_utxo.amounts</code>.
+     * Setter for <code>public.address_utxo.amounts</code>.
      */
     public void setAmounts(JSONB value) {
         set(6, value);
     }
 
     /**
-     * Getter for <code>preprod.address_utxo.amounts</code>.
+     * Getter for <code>public.address_utxo.amounts</code>.
      */
     public JSONB getAmounts() {
         return (JSONB) get(6);
     }
 
     /**
-     * Setter for <code>preprod.address_utxo.data_hash</code>.
+     * Setter for <code>public.address_utxo.data_hash</code>.
      */
     public void setDataHash(String value) {
         set(7, value);
     }
 
     /**
-     * Getter for <code>preprod.address_utxo.data_hash</code>.
+     * Getter for <code>public.address_utxo.data_hash</code>.
      */
     public String getDataHash() {
         return (String) get(7);
     }
 
     /**
-     * Setter for <code>preprod.address_utxo.inline_datum</code>.
+     * Setter for <code>public.address_utxo.inline_datum</code>.
      */
     public void setInlineDatum(String value) {
         set(8, value);
     }
 
     /**
-     * Getter for <code>preprod.address_utxo.inline_datum</code>.
+     * Getter for <code>public.address_utxo.inline_datum</code>.
      */
     public String getInlineDatum() {
         return (String) get(8);
     }
 
     /**
-     * Setter for <code>preprod.address_utxo.owner_addr</code>.
+     * Setter for <code>public.address_utxo.owner_addr</code>.
      */
     public void setOwnerAddr(String value) {
         set(9, value);
     }
 
     /**
-     * Getter for <code>preprod.address_utxo.owner_addr</code>.
+     * Getter for <code>public.address_utxo.owner_addr</code>.
      */
     public String getOwnerAddr() {
         return (String) get(9);
     }
 
     /**
-     * Setter for <code>preprod.address_utxo.owner_addr_full</code>.
+     * Setter for <code>public.address_utxo.owner_addr_full</code>.
      */
     public void setOwnerAddrFull(String value) {
         set(10, value);
     }
 
     /**
-     * Getter for <code>preprod.address_utxo.owner_addr_full</code>.
+     * Getter for <code>public.address_utxo.owner_addr_full</code>.
      */
     public String getOwnerAddrFull() {
         return (String) get(10);
     }
 
     /**
-     * Setter for <code>preprod.address_utxo.owner_stake_addr</code>.
+     * Setter for <code>public.address_utxo.owner_stake_addr</code>.
      */
     public void setOwnerStakeAddr(String value) {
         set(11, value);
     }
 
     /**
-     * Getter for <code>preprod.address_utxo.owner_stake_addr</code>.
+     * Getter for <code>public.address_utxo.owner_stake_addr</code>.
      */
     public String getOwnerStakeAddr() {
         return (String) get(11);
     }
 
     /**
-     * Setter for <code>preprod.address_utxo.owner_payment_credential</code>.
+     * Setter for <code>public.address_utxo.owner_payment_credential</code>.
      */
     public void setOwnerPaymentCredential(String value) {
         set(12, value);
     }
 
     /**
-     * Getter for <code>preprod.address_utxo.owner_payment_credential</code>.
+     * Getter for <code>public.address_utxo.owner_payment_credential</code>.
      */
     public String getOwnerPaymentCredential() {
         return (String) get(12);
     }
 
     /**
-     * Setter for <code>preprod.address_utxo.owner_stake_credential</code>.
+     * Setter for <code>public.address_utxo.owner_stake_credential</code>.
      */
     public void setOwnerStakeCredential(String value) {
         set(13, value);
     }
 
     /**
-     * Getter for <code>preprod.address_utxo.owner_stake_credential</code>.
+     * Getter for <code>public.address_utxo.owner_stake_credential</code>.
      */
     public String getOwnerStakeCredential() {
         return (String) get(13);
     }
 
     /**
-     * Setter for <code>preprod.address_utxo.script_ref</code>.
+     * Setter for <code>public.address_utxo.script_ref</code>.
      */
     public void setScriptRef(String value) {
         set(14, value);
     }
 
     /**
-     * Getter for <code>preprod.address_utxo.script_ref</code>.
+     * Getter for <code>public.address_utxo.script_ref</code>.
      */
     public String getScriptRef() {
         return (String) get(14);
     }
 
     /**
-     * Setter for <code>preprod.address_utxo.reference_script_hash</code>.
+     * Setter for <code>public.address_utxo.reference_script_hash</code>.
      */
     public void setReferenceScriptHash(String value) {
         set(15, value);
     }
 
     /**
-     * Getter for <code>preprod.address_utxo.reference_script_hash</code>.
+     * Getter for <code>public.address_utxo.reference_script_hash</code>.
      */
     public String getReferenceScriptHash() {
         return (String) get(15);
     }
 
     /**
-     * Setter for <code>preprod.address_utxo.is_collateral_return</code>.
+     * Setter for <code>public.address_utxo.is_collateral_return</code>.
      */
     public void setIsCollateralReturn(Boolean value) {
         set(16, value);
     }
 
     /**
-     * Getter for <code>preprod.address_utxo.is_collateral_return</code>.
+     * Getter for <code>public.address_utxo.is_collateral_return</code>.
      */
     public Boolean getIsCollateralReturn() {
         return (Boolean) get(16);
     }
 
     /**
-     * Setter for <code>preprod.address_utxo.block</code>.
+     * Setter for <code>public.address_utxo.block</code>.
      */
     public void setBlock(Long value) {
         set(17, value);
     }
 
     /**
-     * Getter for <code>preprod.address_utxo.block</code>.
+     * Getter for <code>public.address_utxo.block</code>.
      */
     public Long getBlock() {
         return (Long) get(17);
     }
 
     /**
-     * Setter for <code>preprod.address_utxo.block_time</code>.
+     * Setter for <code>public.address_utxo.block_time</code>.
      */
     public void setBlockTime(Long value) {
         set(18, value);
     }
 
     /**
-     * Getter for <code>preprod.address_utxo.block_time</code>.
+     * Getter for <code>public.address_utxo.block_time</code>.
      */
     public Long getBlockTime() {
         return (Long) get(18);
     }
 
     /**
-     * Setter for <code>preprod.address_utxo.update_datetime</code>.
+     * Setter for <code>public.address_utxo.update_datetime</code>.
      */
     public void setUpdateDatetime(LocalDateTime value) {
         set(19, value);
     }
 
     /**
-     * Getter for <code>preprod.address_utxo.update_datetime</code>.
+     * Getter for <code>public.address_utxo.update_datetime</code>.
      */
     public LocalDateTime getUpdateDatetime() {
         return (LocalDateTime) get(19);

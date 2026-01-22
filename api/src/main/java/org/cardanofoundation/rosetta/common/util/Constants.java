@@ -1,9 +1,6 @@
 package org.cardanofoundation.rosetta.common.util;
 
-import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 import org.openapitools.client.model.CurveType;
-
-import java.util.List;
 
 public class Constants {
 
@@ -93,25 +90,6 @@ public class Constants {
   public static final String CHAIN_CODE_DUMMY = new String(new char[CHAIN_CODE_LENGTH]).replace(
       "\0", "0");
 
-  public static final List<String> STAKING_OPERATIONS =
-      List.of(OperationType.STAKE_DELEGATION.getValue(),
-          OperationType.STAKE_KEY_REGISTRATION.getValue(),
-          OperationType.STAKE_KEY_DEREGISTRATION.getValue(),
-          OperationType.WITHDRAWAL.getValue());
-
-  public static final List<String> POOL_OPERATIONS =
-      List.of(OperationType.POOL_RETIREMENT.getValue(),
-          OperationType.POOL_REGISTRATION.getValue(),
-          OperationType.POOL_REGISTRATION_WITH_CERT.getValue());
-
-  public static final List<String> STAKE_POOL_OPERATIONS =
-      List.of(OperationType.STAKE_DELEGATION.getValue(),
-          OperationType.STAKE_KEY_REGISTRATION.getValue(),
-          OperationType.STAKE_KEY_DEREGISTRATION.getValue(),
-          OperationType.POOL_RETIREMENT.getValue(),
-          OperationType.POOL_REGISTRATION.getValue(),
-          OperationType.POOL_REGISTRATION_WITH_CERT.getValue());
-
   public static final String OPERATION_TYPE_INPUT = "input";
   public static final String OPERATION_TYPE_OUTPUT = "output";
   public static final String OPERATION_TYPE_STAKE_KEY_REGISTRATION = "stakeKeyRegistration";
@@ -125,11 +103,6 @@ public class Constants {
   // Plomin hard fork governance related
   public static final String OPERATION_TYPE_DREP_VOTE_DELEGATION = "dRepVoteDelegation";
   public static final String OPERATION_TYPE_POOL_GOVERNANCE_VOTE = "poolGovernanceVote";
-
-  public static final List<String> GOVERNANCE_OPERATIONS = List.of(
-        OperationType.VOTE_DREP_DELEGATION.getValue(),
-        OperationType.POOL_GOVERNANCE_VOTE.getValue()
-  );
 
   public static final Integer ED_25519_KEY_SIGNATURE_BYTE_LENGTH = 64;
 
