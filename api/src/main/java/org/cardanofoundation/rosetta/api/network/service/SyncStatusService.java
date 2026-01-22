@@ -16,7 +16,7 @@ import java.util.Optional;
 
 /**
  * Service responsible for calculating sync status based on blockchain tip
- * and database index creation progress.
+ * and database index readiness (checking if required indexes are valid and ready).
  */
 @Slf4j
 @Service
@@ -39,12 +39,15 @@ public class SyncStatusService {
      * Calculates the sync status based on the latest block and current time.
      * A node is considered fully synced if:
      * 1. The latest block slot is within epsilon (allowedSlotsDelta) of the current time slot
-     * 2. AND no indexes are currently being created in the database
+     * 2. AND all required indexes exist and are valid (indisvalid=true) and ready (indisready=true)
      *
      * Sync stages:
      * - SYNCING: Node has not reached the blockchain tip yet
-     * - APPLYING_INDEXES: Node reached tip but indexes are being created
-     * - LIVE: Node is fully synced and all indexes are applied
+     * - APPLYING_INDEXES: Node reached tip but required indexes are missing, not valid, or not ready
+     * - LIVE: Node is fully synced and all required indexes are valid and ready
+     *
+     * This ensures the state machine follows: SYNCING -> APPLYING_INDEXES -> LIVE
+     * without transitioning to LIVE prematurely before indexes are applied.
      *
      * @param latestBlock the latest block from the blockchain
      * @return Optional containing SyncStatus if it can be calculated, empty otherwise
@@ -61,8 +64,8 @@ public class SyncStatusService {
                 allowedSlotsDelta
             );
 
-            // Check if indexes are being created
-            boolean indexesBeingCreated = indexCreationMonitor.isCreatingIndexes();
+            // Check if required indexes are missing, not valid, or not ready
+            boolean indexesNotReady = indexCreationMonitor.isCreatingIndexes();
 
             // Determine sync stage and synced status
             SyncStage stage;
@@ -78,30 +81,24 @@ public class SyncStatusService {
                     slotBasedOnLatestBlock,
                     Math.abs(slotBasedOnTime - slotBasedOnLatestBlock)
                 );
-            } else if (indexesBeingCreated) {
-                // Reached tip but applying indexes
+            } else if (indexesNotReady) {
+                // Reached tip but required indexes are missing, not valid, or not ready
                 stage = SyncStage.APPLYING_INDEXES;
                 isSynced = false;
                 log.info(
-                    "[SyncStatus] Stage: APPLYING_INDEXES - Node reached tip but indexes are being created. " +
+                    "[SyncStatus] Stage: APPLYING_INDEXES - Node reached tip but required indexes are not ready. " +
                     "Current slot: {}, Latest block slot: {}",
                     slotBasedOnTime,
                     slotBasedOnLatestBlock
                 );
 
-                // Log index creation progress for visibility
+                // Log index status for visibility
                 List<IndexCreationMonitor.IndexCreationProgress> progressList = indexCreationMonitor.getIndexCreationProgress();
-                progressList.forEach(progress -> {
-                    var completion = progress.getCompletionPercentage();
-                    String completionStr = completion != null
-                        ? String.format("%.2f%%", completion)
-                        : "unknown";
-                    log.info(
-                        "[SyncStatus] Index creation progress - phase: {}, completion: {}",
-                        progress.phase(),
-                        completionStr
-                    );
-                });
+                if (!progressList.isEmpty()) {
+                    progressList.forEach(progress -> {
+                        log.info("[SyncStatus] Index status: {}", progress.phase());
+                    });
+                }
             } else {
                 // Fully synced and ready
                 stage = SyncStage.LIVE;

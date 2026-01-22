@@ -50,8 +50,8 @@ class SyncStatusServiceTest {
     class CalculateSyncStatusTests {
 
         @Test
-        @DisplayName("Should return synced with LIVE stage when node reached tip and no indexes being created")
-        void shouldReturnSyncedWhenReachedTipAndNoIndexes() {
+        @DisplayName("Should return synced with LIVE stage when node reached tip and all required indexes are valid and ready")
+        void shouldReturnSyncedWhenReachedTipAndAllIndexesReady() {
             // Given
             long currentSlot = 1000L;
             long latestBlockSlot = 990L;
@@ -62,7 +62,7 @@ class SyncStatusServiceTest {
             when(offlineSlotService.getCurrentSlotBasedOnTime()).thenReturn(Optional.of(currentSlot));
             when(slotRangeChecker.isSlotWithinEpsilon(currentSlot, latestBlockSlot, ALLOWED_SLOTS_DELTA))
                 .thenReturn(true);
-            when(indexCreationMonitor.isCreatingIndexes()).thenReturn(false);
+            when(indexCreationMonitor.isCreatingIndexes()).thenReturn(false); // All indexes ready
 
             // When
             Optional<SyncStatus> result = syncStatusService.calculateSyncStatus(latestBlock);
@@ -76,8 +76,8 @@ class SyncStatusServiceTest {
         }
 
         @Test
-        @DisplayName("Should return not synced with APPLYING_INDEXES stage when node reached tip but indexes are being created")
-        void shouldReturnNotSyncedWhenReachedTipButIndexesBeingCreated() {
+        @DisplayName("Should return not synced with APPLYING_INDEXES stage when node reached tip but required indexes are not ready")
+        void shouldReturnNotSyncedWhenReachedTipButIndexesNotReady() {
             // Given
             long currentSlot = 1000L;
             long latestBlockSlot = 990L;
@@ -88,7 +88,7 @@ class SyncStatusServiceTest {
             when(offlineSlotService.getCurrentSlotBasedOnTime()).thenReturn(Optional.of(currentSlot));
             when(slotRangeChecker.isSlotWithinEpsilon(currentSlot, latestBlockSlot, ALLOWED_SLOTS_DELTA))
                 .thenReturn(true);
-            when(indexCreationMonitor.isCreatingIndexes()).thenReturn(true);
+            when(indexCreationMonitor.isCreatingIndexes()).thenReturn(true); // Indexes not ready yet
 
             // When
             Optional<SyncStatus> result = syncStatusService.calculateSyncStatus(latestBlock);
@@ -145,8 +145,8 @@ class SyncStatusServiceTest {
         }
 
         @Test
-        @DisplayName("Should return not synced with SYNCING stage when not reached tip and indexes being created")
-        void shouldReturnNotSyncedWhenNotReachedTipAndIndexesBeingCreated() {
+        @DisplayName("Should return not synced with SYNCING stage when not reached tip even if indexes are not ready")
+        void shouldReturnNotSyncedWhenNotReachedTipEvenIfIndexesNotReady() {
             // Given
             long currentSlot = 1000L;
             long latestBlockSlot = 500L; // Far behind
@@ -157,7 +157,7 @@ class SyncStatusServiceTest {
             when(offlineSlotService.getCurrentSlotBasedOnTime()).thenReturn(Optional.of(currentSlot));
             when(slotRangeChecker.isSlotWithinEpsilon(currentSlot, latestBlockSlot, ALLOWED_SLOTS_DELTA))
                 .thenReturn(false);
-            when(indexCreationMonitor.isCreatingIndexes()).thenReturn(true);
+            when(indexCreationMonitor.isCreatingIndexes()).thenReturn(true); // Indexes not ready
 
             // When
             Optional<SyncStatus> result = syncStatusService.calculateSyncStatus(latestBlock);
