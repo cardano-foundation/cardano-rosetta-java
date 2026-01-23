@@ -33,15 +33,15 @@ public class PostgreSQLIndexCreationMonitor implements IndexCreationMonitor {
 
     @PostConstruct
     public void init() {
-        List<String> requiredIndexes = rosettaIndexConfig.getDbIndexes();
+        List<String> requiredIndexNames = rosettaIndexConfig.getIndexNames();
         log.info("[IndexMonitor] Monitoring {} required indices: {}",
-            requiredIndexes != null ? requiredIndexes.size() : 0,
-            requiredIndexes);
+            requiredIndexNames.size(),
+            requiredIndexNames);
     }
 
     @Override
     public boolean isCreatingIndexes() {
-        List<String> requiredIndexes = rosettaIndexConfig.getDbIndexes();
+        List<String> requiredIndexes = rosettaIndexConfig.getIndexNames();
 
         if (requiredIndexes == null || requiredIndexes.isEmpty()) {
             log.warn("[IndexMonitor] No required indexes configured, assuming all ready");
@@ -119,7 +119,7 @@ public class PostgreSQLIndexCreationMonitor implements IndexCreationMonitor {
 
     @Override
     public List<IndexCreationProgress> getIndexCreationProgress() {
-        List<String> requiredIndexes = rosettaIndexConfig.getDbIndexes();
+        List<String> requiredIndexes = rosettaIndexConfig.getIndexNames();
 
         if (requiredIndexes == null || requiredIndexes.isEmpty()) {
             return Collections.emptyList();
