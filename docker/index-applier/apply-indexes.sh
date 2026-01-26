@@ -20,7 +20,7 @@ log() {
   echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
 }
 
-# 1. Wait for APPLYING_INDEXES state
+# 1. Wait for APPLYING_INDEXES state (or exit if already synced)
 log "Waiting for APPLYING_INDEXES state..."
 while true; do
   response=$(curl -sf "$API_URL/network/status" \
@@ -29,13 +29,20 @@ while true; do
     2>/dev/null || echo '{}')
 
   stage=$(echo "$response" | jq -r '.sync_status.stage // empty')
+  synced=$(echo "$response" | jq -r '.sync_status.synced // false')
+
+  # If already synced (LIVE), indexes are already applied - exit immediately
+  if [ "$synced" == "true" ]; then
+    log "System is already synced (stage: $stage). Indexes already applied. Exiting."
+    exit 0
+  fi
 
   if [ "$stage" == "APPLYING_INDEXES" ]; then
     log "Stage is APPLYING_INDEXES, starting index application..."
     break
   fi
 
-  log "Current stage: ${stage:-unknown}, waiting ${POLL_INTERVAL}s..."
+  log "Current stage: ${stage:-unknown}, synced: $synced, waiting ${POLL_INTERVAL}s..."
   sleep "$POLL_INTERVAL"
 done
 
