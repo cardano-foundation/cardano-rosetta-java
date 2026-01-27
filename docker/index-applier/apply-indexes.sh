@@ -14,11 +14,18 @@ POLL_INTERVAL="${POLL_INTERVAL:-60}"
 CONFIG_PATH="${CONFIG_PATH:-/config/db-indexes.yaml}"
 
 export PGPASSWORD="$DB_SECRET"
+# Use PGOPTIONS to set search_path at connection time (works with CONCURRENTLY)
+export PGOPTIONS="-c search_path=$DB_SCHEMA"
 PSQL_CONN="psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -v ON_ERROR_STOP=1"
 
 log() {
   echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
 }
+
+FAILED_COUNT=0
+
+# Log configuration for debugging
+log "Configuration: DB=$DB_USER@$DB_HOST:$DB_PORT/$DB_NAME schema=$DB_SCHEMA network=$NETWORK"
 
 # 1. Wait for APPLYING_INDEXES state (or exit if already synced)
 log "Waiting for APPLYING_INDEXES state..."
@@ -59,7 +66,8 @@ for i in $(seq 0 $((index_count - 1))); do
   is_valid=$($PSQL_CONN -t -A -c "
     SELECT indisvalid FROM pg_index i
     JOIN pg_class c ON i.indexrelid = c.oid
-    WHERE c.relname = '$name'
+    JOIN pg_namespace n ON c.relnamespace = n.oid
+    WHERE c.relname = '$name' AND n.nspname = '$DB_SCHEMA'
   " 2>/dev/null || echo "t")
 
   if [ "$is_valid" == "f" ]; then
@@ -78,8 +86,14 @@ for i in $(seq 0 $((index_count - 1))); do
   if $PSQL_CONN -c "$create_statement" 2>&1; then
     log "  OK: $name"
   else
-    log "  WARN: $name (may already exist or failed)"
+    log "  FAILED: $name"
+    FAILED_COUNT=$((FAILED_COUNT + 1))
   fi
 done
 
-log "All indexes applied. Exiting."
+if [ "$FAILED_COUNT" -gt 0 ]; then
+  log "ERROR: $FAILED_COUNT index(es) failed to create. Exiting with error."
+  exit 1
+fi
+
+log "All indexes applied successfully. Exiting."
