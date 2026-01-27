@@ -22,13 +22,19 @@ def rosetta_url():
 @pytest.fixture(scope="session")
 def network():
     """Configured Cardano network (preprod, mainnet, preview, etc)."""
-    return os.environ.get("CARDANO_NETWORK", "preprod")
+    network = os.environ.get("CARDANO_NETWORK")
+    if not network:
+        raise ValueError(
+            "CARDANO_NETWORK environment variable is required. "
+            "Set it to 'preprod', 'mainnet', 'preview', etc."
+        )
+    return network
 
 
 @pytest.fixture
-def client(rosetta_url):
-    """Rosetta API client instance."""
-    with RosettaClient(base_url=rosetta_url) as client:
+def client(rosetta_url, network):
+    """Rosetta API client instance with configured network."""
+    with RosettaClient(base_url=rosetta_url, default_network=network) as client:
         yield client
 
 
@@ -58,8 +64,8 @@ def network_status(rosetta_url, network):
 
     Cached to avoid repeated calls and used for configuration detection.
     """
-    with RosettaClient(base_url=rosetta_url) as client:
-        return client.network_status(network=network).json()
+    with RosettaClient(base_url=rosetta_url, default_network=network) as client:
+        return client.network_status().json()
 
 
 @pytest.fixture(scope="session")
