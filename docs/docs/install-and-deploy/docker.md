@@ -79,6 +79,23 @@ To speed up the initial synchronization process, you can use [Mithril](https://m
 Mithril provides cryptographically certified blockchain snapshots for multiple Cardano networks (mainnet, preprod, preview) and is integrated directly into the Docker setup. This can reduce synchronization time from days to hours.
 :::
 
+#### Index Application
+
+After initial blockchain synchronization, the `index-applier` container creates required database indexes. This process:
+- Runs automatically when sync reaches `APPLYING_INDEXES` stage
+- Takes approximately 6 hours on mainnet
+- Uses `CREATE INDEX CONCURRENTLY` to avoid blocking the indexer
+
+Monitor the sync stage via `/network/status`:
+```bash
+curl -s http://localhost:8082/network/status \
+  -H "Content-Type: application/json" \
+  -d '{"network_identifier":{"blockchain":"cardano","network":"mainnet"}}' \
+  | jq '.sync_status.stage'
+```
+
+For details on customizing indexes, see [Index Management](../advanced-configuration/index-management).
+
 ## Operation Modes
 
 For information about running in online mode (default) or offline mode (for air-gapped environments), see the [Operation Modes](../core-concepts/operation-modes) documentation.

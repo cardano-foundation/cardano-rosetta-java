@@ -37,12 +37,11 @@ import static org.cardanofoundation.rosetta.common.util.Constants.*;
 public class NetworkServiceImpl implements NetworkService {
 
   private final LedgerBlockService ledgerBlockService;
-  private final OfflineSlotService offlineSlotService;
   private final NetworkMapper networkMapper;
   private final TopologyConfigService topologyConfigService;
   private final ResourceLoader resourceLoader;
   private final GenesisDataProvider genesisDataProvider;
-  private final SlotRangeChecker slotRangeChecker;
+  private final SyncStatusService syncStatusService;
 
   @Value("${cardano.rosetta.GENESIS_SHELLEY_PATH}")
   private String genesisShelleyPath;
@@ -53,16 +52,12 @@ public class NetworkServiceImpl implements NetworkService {
   @Value("${cardano.rosetta.middleware-version}")
   private String revision;
 
-  @Value("${cardano.rosetta.SYNC_GRACE_SLOTS_COUNT:100}")
-  private int allowedSlotsDelta;
-
   @Value("${cardano.rosetta.REMOVE_SPENT_UTXOS:true}")
   private boolean isRemovalOfSpentUTxOsEnabled;
 
   @PostConstruct
   public void init() {
     log.info("NetworkServiceImpl initializing...");
-    log.info("allowedSlotsDelta: {}", allowedSlotsDelta);
     log.info("isRemovalOfSpentUTxOsEnabled: {}", isRemovalOfSpentUTxOsEnabled);
   }
 
@@ -170,23 +165,9 @@ public class NetworkServiceImpl implements NetworkService {
       networkStatusBuilder.oldestBlock(oldestBlockIdentifier);
     }
 
-    calculateSyncStatus(latestBlock).ifPresent(networkStatusBuilder::syncStatus);
+    syncStatusService.calculateSyncStatus(latestBlock).ifPresent(networkStatusBuilder::syncStatus);
 
     return networkStatusBuilder.build();
-  }
-
-  private Optional<SyncStatus> calculateSyncStatus(BlockIdentifierExtended latestBlock) {
-    return offlineSlotService.getCurrentSlotBasedOnTime().map(slotBasedOnTime -> {
-      long slotBasedOnLatestBlock = latestBlock.getSlot();
-
-      boolean isSynced = slotRangeChecker.isSlotWithinEpsilon(slotBasedOnTime, slotBasedOnLatestBlock, allowedSlotsDelta);
-
-      return SyncStatus.builder()
-              .targetIndex(slotBasedOnTime)
-              .currentIndex(slotBasedOnLatestBlock)
-              .synced(isSynced)
-              .build();
-    });
   }
 
   @Override

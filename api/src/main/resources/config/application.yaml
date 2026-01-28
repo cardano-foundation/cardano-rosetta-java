@@ -8,6 +8,9 @@ server:
 spring:
   profiles:
     active: ${API_SPRING_PROFILES_ACTIVE:online}
+  config:
+    import:
+      - classpath:config/db-indexes.yaml
   jackson:
     default-property-inclusion: NON_NULL
     serialization:
@@ -25,6 +28,7 @@ cardano:
     version:
       ${ROSETTA_VERSION}
     middleware-version: '@revision@'
+
     TOPOLOGY_FILEPATH: ${TOPOLOGY_FILEPATH}
     GENESIS_SHELLEY_PATH: ${GENESIS_SHELLEY_PATH}
     GENESIS_ALONZO_PATH: ${GENESIS_ALONZO_PATH}

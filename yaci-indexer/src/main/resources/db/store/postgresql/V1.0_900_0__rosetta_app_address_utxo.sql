@@ -1,1 +1,0 @@
-CREATE INDEX idx_address_utxo_tx_hash ON address_utxo USING btree (tx_hash);
