@@ -10,7 +10,7 @@ import java.util.List;
 
 import org.cardanofoundation.rosetta.api.jooq.Indexes;
 import org.cardanofoundation.rosetta.api.jooq.Keys;
-import org.cardanofoundation.rosetta.api.jooq.Preprod;
+import org.cardanofoundation.rosetta.api.jooq.Public;
 import org.cardanofoundation.rosetta.api.jooq.tables.records.TransactionWitnessRecord;
 import org.jooq.Condition;
 import org.jooq.Field;
@@ -41,7 +41,7 @@ public class TransactionWitness extends TableImpl<TransactionWitnessRecord> {
     private static final long serialVersionUID = 1L;
 
     /**
-     * The reference instance of <code>preprod.transaction_witness</code>
+     * The reference instance of <code>public.transaction_witness</code>
      */
     public static final TransactionWitness TRANSACTION_WITNESS = new TransactionWitness();
 
@@ -54,42 +54,42 @@ public class TransactionWitness extends TableImpl<TransactionWitnessRecord> {
     }
 
     /**
-     * The column <code>preprod.transaction_witness.tx_hash</code>.
+     * The column <code>public.transaction_witness.tx_hash</code>.
      */
     public final TableField<TransactionWitnessRecord, String> TX_HASH = createField(DSL.name("tx_hash"), SQLDataType.VARCHAR(64).nullable(false), this, "");
 
     /**
-     * The column <code>preprod.transaction_witness.idx</code>.
+     * The column <code>public.transaction_witness.idx</code>.
      */
     public final TableField<TransactionWitnessRecord, Integer> IDX = createField(DSL.name("idx"), SQLDataType.INTEGER.nullable(false), this, "");
 
     /**
-     * The column <code>preprod.transaction_witness.pub_key</code>.
+     * The column <code>public.transaction_witness.pub_key</code>.
      */
     public final TableField<TransactionWitnessRecord, String> PUB_KEY = createField(DSL.name("pub_key"), SQLDataType.VARCHAR(128), this, "");
 
     /**
-     * The column <code>preprod.transaction_witness.signature</code>.
+     * The column <code>public.transaction_witness.signature</code>.
      */
     public final TableField<TransactionWitnessRecord, String> SIGNATURE = createField(DSL.name("signature"), SQLDataType.VARCHAR(128), this, "");
 
     /**
-     * The column <code>preprod.transaction_witness.pub_keyhash</code>.
+     * The column <code>public.transaction_witness.pub_keyhash</code>.
      */
     public final TableField<TransactionWitnessRecord, String> PUB_KEYHASH = createField(DSL.name("pub_keyhash"), SQLDataType.VARCHAR(56), this, "");
 
     /**
-     * The column <code>preprod.transaction_witness.type</code>.
+     * The column <code>public.transaction_witness.type</code>.
      */
     public final TableField<TransactionWitnessRecord, String> TYPE = createField(DSL.name("type"), SQLDataType.VARCHAR(40), this, "");
 
     /**
-     * The column <code>preprod.transaction_witness.additional_data</code>.
+     * The column <code>public.transaction_witness.additional_data</code>.
      */
     public final TableField<TransactionWitnessRecord, JSONB> ADDITIONAL_DATA = createField(DSL.name("additional_data"), SQLDataType.JSONB, this, "");
 
     /**
-     * The column <code>preprod.transaction_witness.slot</code>.
+     * The column <code>public.transaction_witness.slot</code>.
      */
     public final TableField<TransactionWitnessRecord, Long> SLOT = createField(DSL.name("slot"), SQLDataType.BIGINT, this, "");
 
@@ -102,7 +102,7 @@ public class TransactionWitness extends TableImpl<TransactionWitnessRecord> {
     }
 
     /**
-     * Create an aliased <code>preprod.transaction_witness</code> table
+     * Create an aliased <code>public.transaction_witness</code> table
      * reference
      */
     public TransactionWitness(String alias) {
@@ -110,7 +110,7 @@ public class TransactionWitness extends TableImpl<TransactionWitnessRecord> {
     }
 
     /**
-     * Create an aliased <code>preprod.transaction_witness</code> table
+     * Create an aliased <code>public.transaction_witness</code> table
      * reference
      */
     public TransactionWitness(Name alias) {
@@ -118,7 +118,7 @@ public class TransactionWitness extends TableImpl<TransactionWitnessRecord> {
     }
 
     /**
-     * Create a <code>preprod.transaction_witness</code> table reference
+     * Create a <code>public.transaction_witness</code> table reference
      */
     public TransactionWitness() {
         this(DSL.name("transaction_witness"), null);
@@ -126,7 +126,7 @@ public class TransactionWitness extends TableImpl<TransactionWitnessRecord> {
 
     @Override
     public Schema getSchema() {
-        return aliased() ? null : Preprod.PREPROD;
+        return aliased() ? null : Public.PUBLIC;
     }
 
     @Override

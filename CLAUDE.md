@@ -33,21 +33,25 @@ cd api && mvn spring-boot:run
 mvn clean package
 ```
 
-### Docker Commands
+### Docker Compose Commands
 ```bash
-# Build from source
-docker build -t rosetta-java -f ./docker/Dockerfile .
+# Start all services (full stack)
+docker compose --env-file .env.docker-compose --env-file .env.docker-compose-profile-mid-level up -d
 
-# Run with docker-compose (full stack)
-docker-compose up -d
-
-# Run specific services
-docker-compose up -d api indexer postgres
+# Start specific services
+docker compose up -d cardano-node db
+docker compose up -d api yaci-indexer
 
 # View logs
-docker logs rosetta -f
-docker exec rosetta tail -f /logs/node.log
-docker exec rosetta tail -f /logs/indexer.log
+docker compose logs -f api
+docker compose logs -f yaci-indexer
+docker compose logs -f cardano-node
+
+# Stop all services
+docker compose down
+
+# Restart a service
+docker compose restart api
 ```
 
 ## Architecture Overview

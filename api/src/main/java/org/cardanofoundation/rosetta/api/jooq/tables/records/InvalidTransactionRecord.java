@@ -21,84 +21,84 @@ public class InvalidTransactionRecord extends UpdatableRecordImpl<InvalidTransac
     private static final long serialVersionUID = 1L;
 
     /**
-     * Setter for <code>preprod.invalid_transaction.tx_hash</code>.
+     * Setter for <code>public.invalid_transaction.tx_hash</code>.
      */
     public void setTxHash(String value) {
         set(0, value);
     }
 
     /**
-     * Getter for <code>preprod.invalid_transaction.tx_hash</code>.
+     * Getter for <code>public.invalid_transaction.tx_hash</code>.
      */
     public String getTxHash() {
         return (String) get(0);
     }
 
     /**
-     * Setter for <code>preprod.invalid_transaction.slot</code>.
+     * Setter for <code>public.invalid_transaction.slot</code>.
      */
     public void setSlot(Long value) {
         set(1, value);
     }
 
     /**
-     * Getter for <code>preprod.invalid_transaction.slot</code>.
+     * Getter for <code>public.invalid_transaction.slot</code>.
      */
     public Long getSlot() {
         return (Long) get(1);
     }
 
     /**
-     * Setter for <code>preprod.invalid_transaction.block_hash</code>.
+     * Setter for <code>public.invalid_transaction.block_hash</code>.
      */
     public void setBlockHash(String value) {
         set(2, value);
     }
 
     /**
-     * Getter for <code>preprod.invalid_transaction.block_hash</code>.
+     * Getter for <code>public.invalid_transaction.block_hash</code>.
      */
     public String getBlockHash() {
         return (String) get(2);
     }
 
     /**
-     * Setter for <code>preprod.invalid_transaction.transaction</code>.
+     * Setter for <code>public.invalid_transaction.transaction</code>.
      */
     public void setTransaction(JSONB value) {
         set(3, value);
     }
 
     /**
-     * Getter for <code>preprod.invalid_transaction.transaction</code>.
+     * Getter for <code>public.invalid_transaction.transaction</code>.
      */
     public JSONB getTransaction() {
         return (JSONB) get(3);
     }
 
     /**
-     * Setter for <code>preprod.invalid_transaction.create_datetime</code>.
+     * Setter for <code>public.invalid_transaction.create_datetime</code>.
      */
     public void setCreateDatetime(LocalDateTime value) {
         set(4, value);
     }
 
     /**
-     * Getter for <code>preprod.invalid_transaction.create_datetime</code>.
+     * Getter for <code>public.invalid_transaction.create_datetime</code>.
      */
     public LocalDateTime getCreateDatetime() {
         return (LocalDateTime) get(4);
     }
 
     /**
-     * Setter for <code>preprod.invalid_transaction.update_datetime</code>.
+     * Setter for <code>public.invalid_transaction.update_datetime</code>.
      */
     public void setUpdateDatetime(LocalDateTime value) {
         set(5, value);
     }
 
     /**
-     * Getter for <code>preprod.invalid_transaction.update_datetime</code>.
+     * Getter for <code>public.invalid_transaction.update_datetime</code>.
      */
     public LocalDateTime getUpdateDatetime() {
         return (LocalDateTime) get(5);

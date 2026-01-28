@@ -20,112 +20,112 @@ public class RollbackRecord extends UpdatableRecordImpl<RollbackRecord> {
     private static final long serialVersionUID = 1L;
 
     /**
-     * Setter for <code>preprod.rollback.id</code>.
+     * Setter for <code>public.rollback.id</code>.
      */
     public void setId(Long value) {
         set(0, value);
     }
 
     /**
-     * Getter for <code>preprod.rollback.id</code>.
+     * Getter for <code>public.rollback.id</code>.
      */
     public Long getId() {
         return (Long) get(0);
     }
 
     /**
-     * Setter for <code>preprod.rollback.rollback_to_block_hash</code>.
+     * Setter for <code>public.rollback.rollback_to_block_hash</code>.
      */
     public void setRollbackToBlockHash(String value) {
         set(1, value);
     }
 
     /**
-     * Getter for <code>preprod.rollback.rollback_to_block_hash</code>.
+     * Getter for <code>public.rollback.rollback_to_block_hash</code>.
      */
     public String getRollbackToBlockHash() {
         return (String) get(1);
     }
 
     /**
-     * Setter for <code>preprod.rollback.rollback_to_slot</code>.
+     * Setter for <code>public.rollback.rollback_to_slot</code>.
      */
     public void setRollbackToSlot(Long value) {
         set(2, value);
     }
 
     /**
-     * Getter for <code>preprod.rollback.rollback_to_slot</code>.
+     * Getter for <code>public.rollback.rollback_to_slot</code>.
      */
     public Long getRollbackToSlot() {
         return (Long) get(2);
     }
 
     /**
-     * Setter for <code>preprod.rollback.current_block_hash</code>.
+     * Setter for <code>public.rollback.current_block_hash</code>.
      */
     public void setCurrentBlockHash(String value) {
         set(3, value);
     }
 
     /**
-     * Getter for <code>preprod.rollback.current_block_hash</code>.
+     * Getter for <code>public.rollback.current_block_hash</code>.
      */
     public String getCurrentBlockHash() {
         return (String) get(3);
     }
 
     /**
-     * Setter for <code>preprod.rollback.current_slot</code>.
+     * Setter for <code>public.rollback.current_slot</code>.
      */
     public void setCurrentSlot(Long value) {
         set(4, value);
     }
 
     /**
-     * Getter for <code>preprod.rollback.current_slot</code>.
+     * Getter for <code>public.rollback.current_slot</code>.
      */
     public Long getCurrentSlot() {
         return (Long) get(4);
     }
 
     /**
-     * Setter for <code>preprod.rollback.current_block</code>.
+     * Setter for <code>public.rollback.current_block</code>.
      */
     public void setCurrentBlock(Long value) {
         set(5, value);
     }
 
     /**
-     * Getter for <code>preprod.rollback.current_block</code>.
+     * Getter for <code>public.rollback.current_block</code>.
      */
     public Long getCurrentBlock() {
         return (Long) get(5);
     }
 
     /**
-     * Setter for <code>preprod.rollback.create_datetime</code>.
+     * Setter for <code>public.rollback.create_datetime</code>.
      */
     public void setCreateDatetime(LocalDateTime value) {
         set(6, value);
     }
 
     /**
-     * Getter for <code>preprod.rollback.create_datetime</code>.
+     * Getter for <code>public.rollback.create_datetime</code>.
      */
     public LocalDateTime getCreateDatetime() {
         return (LocalDateTime) get(6);
     }
 
     /**
-     * Setter for <code>preprod.rollback.update_datetime</code>.
+     * Setter for <code>public.rollback.update_datetime</code>.
      */
     public void setUpdateDatetime(LocalDateTime value) {
         set(7, value);
     }
 
     /**
-     * Getter for <code>preprod.rollback.update_datetime</code>.
+     * Getter for <code>public.rollback.update_datetime</code>.
      */
     public LocalDateTime getUpdateDatetime() {
         return (LocalDateTime) get(7);

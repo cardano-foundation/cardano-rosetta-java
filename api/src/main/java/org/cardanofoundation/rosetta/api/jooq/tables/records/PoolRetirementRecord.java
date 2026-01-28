@@ -20,140 +20,140 @@ public class PoolRetirementRecord extends UpdatableRecordImpl<PoolRetirementReco
     private static final long serialVersionUID = 1L;
 
     /**
-     * Setter for <code>preprod.pool_retirement.tx_hash</code>.
+     * Setter for <code>public.pool_retirement.tx_hash</code>.
      */
     public void setTxHash(String value) {
         set(0, value);
     }
 
     /**
-     * Getter for <code>preprod.pool_retirement.tx_hash</code>.
+     * Getter for <code>public.pool_retirement.tx_hash</code>.
      */
     public String getTxHash() {
         return (String) get(0);
     }
 
     /**
-     * Setter for <code>preprod.pool_retirement.cert_index</code>.
+     * Setter for <code>public.pool_retirement.cert_index</code>.
      */
     public void setCertIndex(Integer value) {
         set(1, value);
     }
 
     /**
-     * Getter for <code>preprod.pool_retirement.cert_index</code>.
+     * Getter for <code>public.pool_retirement.cert_index</code>.
      */
     public Integer getCertIndex() {
         return (Integer) get(1);
     }
 
     /**
-     * Setter for <code>preprod.pool_retirement.pool_id</code>.
+     * Setter for <code>public.pool_retirement.pool_id</code>.
      */
     public void setPoolId(String value) {
         set(2, value);
     }
 
     /**
-     * Getter for <code>preprod.pool_retirement.pool_id</code>.
+     * Getter for <code>public.pool_retirement.pool_id</code>.
      */
     public String getPoolId() {
         return (String) get(2);
     }
 
     /**
-     * Setter for <code>preprod.pool_retirement.retirement_epoch</code>.
+     * Setter for <code>public.pool_retirement.retirement_epoch</code>.
      */
     public void setRetirementEpoch(Integer value) {
         set(3, value);
     }
 
     /**
-     * Getter for <code>preprod.pool_retirement.retirement_epoch</code>.
+     * Getter for <code>public.pool_retirement.retirement_epoch</code>.
      */
     public Integer getRetirementEpoch() {
         return (Integer) get(3);
     }
 
     /**
-     * Setter for <code>preprod.pool_retirement.epoch</code>.
+     * Setter for <code>public.pool_retirement.epoch</code>.
      */
     public void setEpoch(Integer value) {
         set(4, value);
     }
 
     /**
-     * Getter for <code>preprod.pool_retirement.epoch</code>.
+     * Getter for <code>public.pool_retirement.epoch</code>.
      */
     public Integer getEpoch() {
         return (Integer) get(4);
     }
 
     /**
-     * Setter for <code>preprod.pool_retirement.slot</code>.
+     * Setter for <code>public.pool_retirement.slot</code>.
      */
     public void setSlot(Long value) {
         set(5, value);
     }
 
     /**
-     * Getter for <code>preprod.pool_retirement.slot</code>.
+     * Getter for <code>public.pool_retirement.slot</code>.
      */
     public Long getSlot() {
         return (Long) get(5);
     }
 
     /**
-     * Setter for <code>preprod.pool_retirement.block_hash</code>.
+     * Setter for <code>public.pool_retirement.block_hash</code>.
      */
     public void setBlockHash(String value) {
         set(6, value);
     }
 
     /**
-     * Getter for <code>preprod.pool_retirement.block_hash</code>.
+     * Getter for <code>public.pool_retirement.block_hash</code>.
      */
     public String getBlockHash() {
         return (String) get(6);
     }
 
     /**
-     * Setter for <code>preprod.pool_retirement.block</code>.
+     * Setter for <code>public.pool_retirement.block</code>.
      */
     public void setBlock(Long value) {
         set(7, value);
     }
 
     /**
-     * Getter for <code>preprod.pool_retirement.block</code>.
+     * Getter for <code>public.pool_retirement.block</code>.
      */
     public Long getBlock() {
         return (Long) get(7);
     }
 
     /**
-     * Setter for <code>preprod.pool_retirement.block_time</code>.
+     * Setter for <code>public.pool_retirement.block_time</code>.
      */
     public void setBlockTime(Long value) {
         set(8, value);
     }
 
     /**
-     * Getter for <code>preprod.pool_retirement.block_time</code>.
+     * Getter for <code>public.pool_retirement.block_time</code>.
      */
     public Long getBlockTime() {
         return (Long) get(8);
     }
 
     /**
-     * Setter for <code>preprod.pool_retirement.update_datetime</code>.
+     * Setter for <code>public.pool_retirement.update_datetime</code>.
      */
     public void setUpdateDatetime(LocalDateTime value) {
         set(9, value);
     }
 
     /**
-     * Getter for <code>preprod.pool_retirement.update_datetime</code>.
+     * Getter for <code>public.pool_retirement.update_datetime</code>.
      */
     public LocalDateTime getUpdateDatetime() {
         return (LocalDateTime) get(9);
