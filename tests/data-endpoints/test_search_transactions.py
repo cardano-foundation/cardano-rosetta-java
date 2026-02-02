@@ -648,6 +648,7 @@ class TestCurrencyFiltering:
 
     @allure.feature("Search Transactions")
     @allure.story("Currency Filtering")
+    @pytest.mark.slow
     # TODO: investigate and update the ticket; seems to be working now, although response time is ~2min
     # @pytest.mark.skip(
     #     reason="Currency filter + limit parameter causes timeout (#615)"
@@ -682,6 +683,7 @@ class TestCurrencyFiltering:
 
     @allure.feature("Search Transactions")
     @allure.story("Currency Filtering")
+    @pytest.mark.slow
     @pytest.mark.pruning_compatible
     def test_currency_filter_with_hex_encoded_symbol(self, client, network_data, is_pruned_instance):
         """Currency filter accepts hex-encoded symbols (canonical format in v1.4.x+, issue #610 fixed)."""
@@ -718,6 +720,7 @@ class TestCurrencyFiltering:
 
     @allure.feature("Search Transactions")
     @allure.story("Currency Filtering")
+    @pytest.mark.slow
     @pytest.mark.pruning_compatible
     def test_native_asset_filtering_with_policy_id(self, client, network_data, is_pruned_instance):
         """Test currency filtering with hex-encoded symbol and metadata.policyId."""

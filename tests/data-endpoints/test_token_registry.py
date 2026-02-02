@@ -247,6 +247,7 @@ class TestTokenRegistryEnrichment:
                 _verify_all_metadata_fields_match(currency, metadata, token)
 
     @pytest.mark.nightly
+    @pytest.mark.slow
     @pytest.mark.requires_token_registry
     def test_enriched_metadata_in_search_results(self, client, network, tokens_config, has_token_registry):
         assert has_token_registry, "Token registry must be enabled for this test"
