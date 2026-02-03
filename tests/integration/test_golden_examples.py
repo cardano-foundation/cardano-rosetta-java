@@ -93,7 +93,7 @@ GRAY = "\033[90m"
 # Fields that should be ignored when diffing
 # Construction endpoints
 VOLATILE_FIELDS = {
-    "metadata": ["metadata.ttl"],
+    "metadata": ["metadata.ttl", "metadata.protocol_parameters.protocol"],
     "preprocess": ["options.transaction_size"],
 }
 
