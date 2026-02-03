@@ -13,6 +13,9 @@ RUN apt update && apt install -y \
   locales \
   libicu-dev \
   pkg-config \
+  curl \
+  jq \
+  yq \
   && sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen \
   && locale-gen \
   && update-locale LANG=en_US.UTF-8 \
@@ -38,7 +41,8 @@ RUN mkdir -p $PG_DATA
 VOLUME ["$PG_DATA"]
 
 COPY ./docker/dockerfiles/postgres/entrypoint.sh /sbin/entrypoint.sh
-RUN chmod +x /sbin/entrypoint.sh
+COPY ./docker/index-applier/apply-indexes.sh /sbin/apply-indexes.sh
+RUN chmod +x /sbin/entrypoint.sh /sbin/apply-indexes.sh
 
 WORKDIR /
 
