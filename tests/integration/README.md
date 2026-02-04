@@ -15,10 +15,10 @@ Run snapshot testing without schema validation - no dependencies needed:
 
 ```bash
 # Test all files with default parallel execution (10 workers)
-python3 test_construction_api.py
+python3 test_golden_examples.py
 
 # Test specific endpoint with more workers for faster execution
-python3 test_construction_api.py parse/ -j 20
+python3 test_golden_examples.py parse/ -j 20
 
 # Note: Schema validation will be skipped in this mode
 ```
@@ -31,11 +31,11 @@ For full features including OpenAPI schema validation:
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # Run the validator with full features (uv handles environment automatically)
-uv run test_construction_api.py
+uv run test_golden_examples.py
 
 # Run with specific options and increased parallelism
-uv run test_construction_api.py parse/ -v -j 15
-uv run test_construction_api.py -o results.txt -j 20
+uv run test_golden_examples.py parse/ -v -j 15
+uv run test_golden_examples.py -o results.txt -j 20
 ```
 
 That's it! The `uv run` command automatically:
@@ -63,49 +63,49 @@ That's it! The `uv run` command automatically:
 ### With uv (Full Features)
 ```bash
 # Test all files with schema validation
-uv run test_construction_api.py
+uv run test_golden_examples.py
 
 # Test specific endpoint
-uv run test_construction_api.py parse/
+uv run test_golden_examples.py parse/
 
 # Test with wildcards
-uv run test_construction_api.py "parse/native_assets/*.json"
-uv run test_construction_api.py "*/withdrawals/*.json"
+uv run test_golden_examples.py "parse/native_assets/*.json"
+uv run test_golden_examples.py "*/withdrawals/*.json"
 
 # Test specific file
-uv run test_construction_api.py parse/native_assets/multiple_assets_different_policies.json
+uv run test_golden_examples.py parse/native_assets/multiple_assets_different_policies.json
 
 # Use specific network (for CI/CD with different networks)
-uv run test_construction_api.py --network-id devkit
-uv run test_construction_api.py -n preprod
+uv run test_golden_examples.py --network-id devkit
+uv run test_golden_examples.py -n preprod
 
 # Run with increased parallelism (20 workers instead of default 10)
-uv run test_construction_api.py -j 20
+uv run test_golden_examples.py -j 20
 
 # Run single-threaded (useful for debugging)
-uv run test_construction_api.py -j 1
+uv run test_golden_examples.py -j 1
 
 # Output to file
-uv run test_construction_api.py -o results.txt
+uv run test_golden_examples.py -o results.txt
 
 # Custom API URL
-uv run test_construction_api.py -u http://localhost:8080
+uv run test_golden_examples.py -u http://localhost:8080
 
 # Verbose output
-uv run test_construction_api.py -v    # verbose prints schema details per test
+uv run test_golden_examples.py -v    # verbose prints schema details per test
 
 # Combine options for CI/CD environment
-uv run test_construction_api.py --network-id devkit -v -u http://localhost:8080 -o results.txt -j 15
+uv run test_golden_examples.py --network-id devkit -v -u http://localhost:8080 -o results.txt -j 15
 ```
 
 ### Without uv (Basic Mode)
 ```bash
 # Same commands work with python3 directly (no schema validation)
-python3 test_construction_api.py
-python3 test_construction_api.py parse/ -v
-python3 test_construction_api.py --network-id devkit  # for CI/CD with devkit network
-python3 test_construction_api.py --no-schema  # explicitly skip schema
-python3 test_construction_api.py -j 20  # parallel execution with 20 workers
+python3 test_golden_examples.py
+python3 test_golden_examples.py parse/ -v
+python3 test_golden_examples.py --network-id devkit  # for CI/CD with devkit network
+python3 test_golden_examples.py --no-schema  # explicitly skip schema
+python3 test_golden_examples.py -j 20  # parallel execution with 20 workers
 ```
 
 ## CLI Options

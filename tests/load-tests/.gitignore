@@ -1,0 +1,29 @@
+# Test results directories
+testresults*/
+
+# Environment files with credentials
+.env
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+.venv/
+
+# Locust reports
+*.html
+*_stats.csv
+*_stats_history.csv
+*_failures.csv
+*_exceptions.csv
+
+# Test data backups
+test_data.py.bak
+
+# uv lock file (regenerated)
+uv.lock
+
+# ruff cache
+.ruff_cache/

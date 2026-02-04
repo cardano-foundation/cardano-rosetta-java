@@ -117,7 +117,8 @@ class RosettaClient:
     def __init__(
         self, base_url: str = "http://localhost:8082",
         validate_schemas: bool = True,
-        relaxed_validation: bool = None
+        relaxed_validation: bool = None,
+        default_network: str = None
     ):
         """
         Initialize Rosetta client.
@@ -128,8 +129,13 @@ class RosettaClient:
             relaxed_validation: Enable relaxed schema validation (makes account address optional).
                               If None (default) and schema validation stays enabled, the setting is
                               derived from REMOVE_SPENT_UTXOS. Ignored when validate_schemas=False.
+            default_network: Default network for API calls (required).
         """
+        if default_network is None:
+            raise ValueError("default_network is required")
+
         self.base_url = base_url
+        self.default_network = default_network
         self.client = httpx.Client(timeout=httpx.Timeout(600.0))
         self.validate_schemas = validate_schemas
 
@@ -180,121 +186,119 @@ class RosettaClient:
 
         return response
 
+    def _default_network_identifier(self) -> dict:
+        """Build default network_identifier from configured network."""
+        return {"blockchain": "cardano", "network": self.default_network}
+
+    def _build_body(self, network_identifier: dict | None = None, **params) -> dict:
+        """Build request body with network_identifier and optional parameters."""
+        body = {"network_identifier": network_identifier or self._default_network_identifier()}
+        for key, value in params.items():
+            if value is not None:
+                body[key] = value
+        return body
+
     def search_transactions(
-        self, network: Optional[str] = "preprod", **kwargs
+        self,
+        network_identifier: dict | None = None,
+        limit: int | None = None,
+        offset: int | None = None,
+        max_block: int | None = None,
+        status: str | None = None,
+        success: bool | None = None,
+        type: str | None = None,
+        account_identifier: dict | None = None,
+        transaction_identifier: dict | None = None,
+        currency: dict | None = None,
+        operator: str | None = None,
+        address: str | None = None,
+        coin_identifier: dict | None = None,
     ) -> httpx.Response:
-        """
-        Search transactions endpoint.
-
-        Parameters:
-            network: Network name (preprod, mainnet, etc). Pass None to omit network_identifier.
-            **kwargs: limit, offset, max_block, status, success, type,
-                     account_identifier, transaction_identifier, currency, operator
-        """
-        if network is not None:
-            body = {"network_identifier": {"blockchain": "cardano", "network": network}}
-        else:
-            body = {}
-
-        # Add optional parameters
-        body.update({k: v for k, v in kwargs.items() if v is not None})
-
-        return self._post(
-            "/search/transactions", body, schema_name="SearchTransactionsResponse"
+        """Search transactions endpoint."""
+        body = self._build_body(
+            network_identifier=network_identifier,
+            limit=limit,
+            offset=offset,
+            max_block=max_block,
+            status=status,
+            success=success,
+            type=type,
+            account_identifier=account_identifier,
+            transaction_identifier=transaction_identifier,
+            currency=currency,
+            operator=operator,
+            address=address,
+            coin_identifier=coin_identifier,
         )
+        return self._post("/search/transactions", body, schema_name="SearchTransactionsResponse")
 
     def network_list(self) -> httpx.Response:
         """List supported networks."""
         return self._post("/network/list", {}, schema_name="NetworkListResponse")
 
-    def network_status(self, network: str = "preprod") -> httpx.Response:
+    def network_status(self, network_identifier: dict | None = None) -> httpx.Response:
         """Get network status."""
-        body = {"network_identifier": {"blockchain": "cardano", "network": network}}
+        body = self._build_body(network_identifier=network_identifier)
         return self._post("/network/status", body, schema_name="NetworkStatusResponse")
 
-    def network_options(self, network: str = "preprod") -> httpx.Response:
+    def network_options(self, network_identifier: dict | None = None) -> httpx.Response:
         """Get network options."""
-        body = {"network_identifier": {"blockchain": "cardano", "network": network}}
-        return self._post(
-            "/network/options", body, schema_name="NetworkOptionsResponse"
-        )
+        body = self._build_body(network_identifier=network_identifier)
+        return self._post("/network/options", body, schema_name="NetworkOptionsResponse")
 
-    def block(self, network: Optional[str] = "preprod", **kwargs) -> httpx.Response:
-        """
-        Get block by identifier.
-
-        Parameters:
-            network: Network name. Pass None to omit network_identifier.
-            **kwargs: block_identifier (dict with 'index' and/or 'hash')
-        """
-        if network is not None:
-            body = {"network_identifier": {"blockchain": "cardano", "network": network}}
-        else:
-            body = {}
-
-        body.update({k: v for k, v in kwargs.items() if v is not None})
+    def block(
+        self,
+        network_identifier: dict | None = None,
+        block_identifier: dict | None = None,
+    ) -> httpx.Response:
+        """Get block by identifier."""
+        body = self._build_body(network_identifier=network_identifier, block_identifier=block_identifier)
         return self._post("/block", body, schema_name="BlockResponse")
 
     def block_transaction(
-        self, network: Optional[str] = "preprod", **kwargs
+        self,
+        network_identifier: dict | None = None,
+        block_identifier: dict | None = None,
+        transaction_identifier: dict | None = None,
     ) -> httpx.Response:
-        """
-        Get transaction from specific block.
-
-        Parameters:
-            network: Network name. Pass None to omit network_identifier.
-            **kwargs: block_identifier (requires both index AND hash),
-                     transaction_identifier
-        """
-        if network is not None:
-            body = {"network_identifier": {"blockchain": "cardano", "network": network}}
-        else:
-            body = {}
-
-        body.update({k: v for k, v in kwargs.items() if v is not None})
-        return self._post(
-            "/block/transaction", body, schema_name="BlockTransactionResponse"
+        """Get transaction from specific block."""
+        body = self._build_body(
+            network_identifier=network_identifier,
+            block_identifier=block_identifier,
+            transaction_identifier=transaction_identifier,
         )
+        return self._post("/block/transaction", body, schema_name="BlockTransactionResponse")
 
     def account_balance(
-        self, network: Optional[str] = "preprod", **kwargs
+        self,
+        network_identifier: dict | None = None,
+        account_identifier: dict | None = None,
+        block_identifier: dict | None = None,
+        currencies: list | None = None,
     ) -> httpx.Response:
-        """
-        Get account balance (current or historical).
-
-        Parameters:
-            network: Network name. Pass None to omit network_identifier.
-            **kwargs: account_identifier (required),
-                     block_identifier (optional for historical queries)
-        """
-        if network is not None:
-            body = {"network_identifier": {"blockchain": "cardano", "network": network}}
-        else:
-            body = {}
-
-        body.update({k: v for k, v in kwargs.items() if v is not None})
-        return self._post(
-            "/account/balance", body, schema_name="AccountBalanceResponse"
+        """Get account balance (current or historical)."""
+        body = self._build_body(
+            network_identifier=network_identifier,
+            account_identifier=account_identifier,
+            block_identifier=block_identifier,
+            currencies=currencies,
         )
+        return self._post("/account/balance", body, schema_name="AccountBalanceResponse")
 
     def account_coins(
-        self, network: Optional[str] = "preprod", **kwargs
+        self,
+        network_identifier: dict | None = None,
+        account_identifier: dict | None = None,
+        include_mempool: bool | None = None,
+        currencies: list | None = None,
     ) -> httpx.Response:
-        """
-        Get account unspent coins (UTXOs).
-
-        Note: Returns current unspent UTXOs only (by definition).
-
-        Parameters:
-            network: Network name. Pass None to omit network_identifier.
-            **kwargs: account_identifier (required)
-        """
-        if network is not None:
-            body = {"network_identifier": {"blockchain": "cardano", "network": network}}
-        else:
-            body = {}
-
-        body.update({k: v for k, v in kwargs.items() if v is not None})
+        """Get account unspent coins (UTXOs)."""
+        body = self._build_body(
+            network_identifier=network_identifier,
+            account_identifier=account_identifier,
+            include_mempool=include_mempool,
+            currencies=currencies,
+        )
         return self._post("/account/coins", body, schema_name="AccountCoinsResponse")
 
     def __enter__(self):

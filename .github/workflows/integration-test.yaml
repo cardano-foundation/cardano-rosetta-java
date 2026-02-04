@@ -49,7 +49,7 @@ jobs:
       - name: "Run construction API tests with schema validation"
         run: |
           cd ./tests/integration
-          ~/.local/bin/uv run test_construction_api.py \
+          ~/.local/bin/uv run test_golden_examples.py \
             -u http://localhost:8082 \
             --network-id devkit \
             --openapi ../../api/src/main/resources/rosetta-specifications-1.4.15/api.yaml
