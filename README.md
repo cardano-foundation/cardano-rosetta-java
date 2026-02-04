@@ -159,10 +159,7 @@ See [Quick Start](#quick-start) above or the [installation documentation](https:
 ### Other Methods
 
 
-> [!WARNING]
-> The single Docker image deployment is deprecated. We strongly recommend using Docker Compose deployment for better modularity, resource management, and maintenance.
-
-- **Pre-built all-in-one images**: [DockerHub](https://hub.docker.com/r/cardanofoundation/cardano-rosetta-java)
+- **Pre-built Docker images**: [DockerHub](https://hub.docker.com/u/cardanofoundation)
 - **Build from source**: [Documentation](https://cardano-foundation.github.io/cardano-rosetta-java/docs/development/build)
 
 ## Configuration

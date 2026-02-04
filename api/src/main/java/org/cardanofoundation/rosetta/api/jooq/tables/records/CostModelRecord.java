@@ -21,84 +21,84 @@ public class CostModelRecord extends UpdatableRecordImpl<CostModelRecord> {
     private static final long serialVersionUID = 1L;
 
     /**
-     * Setter for <code>preprod.cost_model.hash</code>.
+     * Setter for <code>public.cost_model.hash</code>.
      */
     public void setHash(String value) {
         set(0, value);
     }
 
     /**
-     * Getter for <code>preprod.cost_model.hash</code>.
+     * Getter for <code>public.cost_model.hash</code>.
      */
     public String getHash() {
         return (String) get(0);
     }
 
     /**
-     * Setter for <code>preprod.cost_model.costs</code>.
+     * Setter for <code>public.cost_model.costs</code>.
      */
     public void setCosts(JSONB value) {
         set(1, value);
     }
 
     /**
-     * Getter for <code>preprod.cost_model.costs</code>.
+     * Getter for <code>public.cost_model.costs</code>.
      */
     public JSONB getCosts() {
         return (JSONB) get(1);
     }
 
     /**
-     * Setter for <code>preprod.cost_model.slot</code>.
+     * Setter for <code>public.cost_model.slot</code>.
      */
     public void setSlot(Long value) {
         set(2, value);
     }
 
     /**
-     * Getter for <code>preprod.cost_model.slot</code>.
+     * Getter for <code>public.cost_model.slot</code>.
      */
     public Long getSlot() {
         return (Long) get(2);
     }
 
     /**
-     * Setter for <code>preprod.cost_model.block</code>.
+     * Setter for <code>public.cost_model.block</code>.
      */
     public void setBlock(Long value) {
         set(3, value);
     }
 
     /**
-     * Getter for <code>preprod.cost_model.block</code>.
+     * Getter for <code>public.cost_model.block</code>.
      */
     public Long getBlock() {
         return (Long) get(3);
     }
 
     /**
-     * Setter for <code>preprod.cost_model.block_time</code>.
+     * Setter for <code>public.cost_model.block_time</code>.
      */
     public void setBlockTime(Long value) {
         set(4, value);
     }
 
     /**
-     * Getter for <code>preprod.cost_model.block_time</code>.
+     * Getter for <code>public.cost_model.block_time</code>.
      */
     public Long getBlockTime() {
         return (Long) get(4);
     }
 
     /**
-     * Setter for <code>preprod.cost_model.update_datetime</code>.
+     * Setter for <code>public.cost_model.update_datetime</code>.
      */
     public void setUpdateDatetime(LocalDateTime value) {
         set(5, value);
     }
 
     /**
-     * Getter for <code>preprod.cost_model.update_datetime</code>.
+     * Getter for <code>public.cost_model.update_datetime</code>.
      */
     public LocalDateTime getUpdateDatetime() {
         return (LocalDateTime) get(5);
