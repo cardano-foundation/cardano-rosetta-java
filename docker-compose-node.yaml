@@ -27,10 +27,11 @@ services:
       - CARDANO_NODE_SOCKET_PATH=${CARDANO_NODE_SOCKET_PATH}
       - CARDANO_NODE_PORT=${CARDANO_NODE_PORT}
       - CARDANO_NODE_DB=${CARDANO_NODE_DB}
+      - CARDANO_CONFIG_CONTAINER_PATH=${CARDANO_CONFIG_CONTAINER_PATH}
     volumes:
       - ${CARDANO_NODE_DIR}:${CARDANO_NODE_DIR}
       - ${CARDANO_NODE_DB}:${CARDANO_NODE_DB}
-      - ${CARDANO_CONFIG}:/config
+      - ${CARDANO_CONFIG}:${CARDANO_CONFIG_CONTAINER_PATH}
     restart: unless-stopped
     ports:
       - ${CARDANO_NODE_PORT}:${CARDANO_NODE_PORT}
@@ -53,7 +54,7 @@ services:
       - NODE_SUBMIT_API_PORT=${NODE_SUBMIT_API_PORT}
     volumes:
       - ${CARDANO_NODE_DIR}:${CARDANO_NODE_DIR}
-      - ${CARDANO_CONFIG}:/config
+      - ${CARDANO_CONFIG}:${CARDANO_CONFIG_CONTAINER_PATH}
     restart: unless-stopped
     ports:
       - ${NODE_SUBMIT_API_PORT}:${NODE_SUBMIT_API_PORT}
@@ -78,7 +79,7 @@ services:
       - SYNC=${SYNC}
     volumes:
       - ${CARDANO_NODE_DIR}:${CARDANO_NODE_DIR}
-      - ${CARDANO_CONFIG}:/config
+      - ${CARDANO_CONFIG}:${CARDANO_CONFIG_CONTAINER_PATH}
     restart: no
     entrypoint: ["/sbin/wait-for-node-sync.sh"]
     depends_on:

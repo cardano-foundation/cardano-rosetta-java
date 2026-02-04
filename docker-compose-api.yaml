@@ -1,6 +1,6 @@
 services:
   api:
-    image: cardanofoundation/cardano-rosetta-java-api:${API_DOCKER_IMAGE_TAG}
+    image: cardanofoundation/cardano-rosetta-java-api:${RELEASE_VERSION}
     build:
       context: ./
       dockerfile: ./api/Dockerfile

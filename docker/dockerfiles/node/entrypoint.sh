@@ -14,8 +14,8 @@ case "$cmd" in
       --socket-path "$CARDANO_NODE_SOCKET_PATH" \
       --port "$CARDANO_NODE_PORT" \
       --database-path "$CARDANO_NODE_DB" \
-      --config /config/config.json \
-      --topology /config/topology.json
+      --config ${CARDANO_CONFIG_CONTAINER_PATH}/config.json \
+      --topology ${CARDANO_CONFIG_CONTAINER_PATH}/topology.json
     ;;
   cardano-submit-api)
     echo "Starting Cardano submit api..."
