@@ -87,9 +87,8 @@ jobs:
         run: |
           cd /home/integration/git/cardano-rosetta-java
 
-          # Use PR-specific tags for API and indexer to force rebuild
-          export API_DOCKER_IMAGE_TAG=pr-${{ github.event.pull_request.number }}-${{ github.sha }}
-          export INDEXER_DOCKER_IMAGE_TAG=pr-${{ github.event.pull_request.number }}-${{ github.sha }}
+          # Use PR-specific tag for API and indexer to force rebuild
+          export RELEASE_VERSION=pr-${{ github.event.pull_request.number }}-${{ github.sha }}
 
           # Build and start all services
           docker compose \

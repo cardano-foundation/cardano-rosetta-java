@@ -56,24 +56,23 @@ Hardware profile files should be used **in combination** with a base `.env.docke
 | `CARDANO_NODE_DIR`                            | Cardano node base directory                                           | /node                                  | added in release 1.0.0  |
 | `CARDANO_NODE_SOCKET_PATH`                    | Cardano node socket file path                                         | /node/node.socket                      | added in release 1.0.0  |
 | `CARDANO_NODE_DB`                             | Cardano node db path                                                  | /node/db                               | added in release 1.0.0  |
-| `CARDANO_CONFIG`                              | Cardano node config path                                              | ./config/node/mainnet                  | added in release 1.0.0  |
+| `CARDANO_CONFIG`                              | Cardano node config path (host side)                                  | ./config/node/mainnet                  | added in release 1.0.0  |
+| `CARDANO_CONFIG_CONTAINER_PATH`               | Cardano node config path inside container                             | /config                                | added in release 2.0.0  |
 | `MITHRIL_VERSION`                             | Mithril client version                                                | 2524.0                                 | added in release 1.2.9  |
 | `SNAPSHOT_DIGEST`                             | Mithril snapshot digest                                               | latest                                 | added in release 1.0.0  |
 | `AGGREGATOR_ENDPOINT`                         | Mithril aggregator endpoint (uses default if not set)                 | (empty)                                | added in release 1.0.0  |
 | `GENESIS_VERIFICATION_KEY`                    | Mithril genesis verification key (uses default if not set)            | (empty)                                | added in release 1.0.0  |
 | `ANCILLARY_VERIFICATION_KEY`                  | Mithril ancillary verification key (uses default if not set)          | (empty)                                | added in release 1.2.9  |
-| `API_DOCKER_IMAGE_TAG`                        | Docker Tag for API Image                                              | main                                   | added in release 1.0.0  |
+| `RELEASE_VERSION`                             | Docker image tag for API and Indexer images                           | 2.0.0                                  | added in release 2.0.0  |
 | `API_SPRING_PROFILES_ACTIVE`                  | API spring profile                                                    | staging                                | added in release 1.0.0  |
 | `API_PORT`                                    | Rosetta API exposed port                                              | 8082                                   | added in release 1.0.0  |
 | `PRINT_EXCEPTION`                             | Print stack traces in error responses                                 | true                                   | added in release 1.0.0  |
-| `ROSETTA_VERSION`                             | Rosetta version                                                       | 1.4.13                                 | added in release 1.0.0  |
 | `TOPOLOGY_FILEPATH`                           | Topology file path                                                    | /config/topology.json                  | added in release 1.0.0  |
 | `GENESIS_SHELLEY_PATH`                        | Genesis file path                                                     | /config/shelley-genesis.json           | added in release 1.0.0  |
 | `GENESIS_BYRON_PATH`                          | Genesis file path                                                     | /config/byron-genesis.json             | added in release 1.0.0  |
 | `GENESIS_ALONZO_PATH`                         | Genesis file path                                                     | /config/alonzo-genesis.json            | added in release 1.0.0  |
 | `GENESIS_CONWAY_PATH`                         | Genesis file path                                                     | /config/conway-genesis.json            | added in release 1.0.0  |
 | `SEARCH_LIMIT`                                | Search limit used in search                                           | 100                                    | added in release 1.3.2  |
-| `INDEXER_DOCKER_IMAGE_TAG`                    | Yaci indexer Docker version                                           | main                                   | added in release 1.0.0  |
 | `REMOVE_SPENT_UTXOS`                          | If pruning should be enabled                                          | true                                   | added in release 1.0.0  |
 | `REMOVE_SPENT_UTXOS_LAST_BLOCKS_GRACE_COUNT`  | Number of safe blocks to keep in the store (~30 days)                 | 129600                                 | added in release 1.2.4  |
 | `REMOVE_SPENT_UTXOS_BATCH_SIZE`               | Batch size for UTXO removal operations                                | 3000                                   | added in release 1.4.0  |
@@ -157,5 +156,8 @@ The following environment variables were available in previous versions but are 
 | `PRUNING_SAFE_BLOCKS` | Number of recent blocks to keep spent UTXOs for (safety margin) | 2160               | available in releases 1.2.4 - 1.2.8, replaced by `REMOVE_SPENT_UTXOS_LAST_BLOCKS_GRACE_COUNT` |
 | `PRUNING_INTERVAL`    | Interval in seconds between pruning cleanup jobs                | 600                | available in releases 1.2.4 - 1.2.8, no longer configurable                                   |
 | `LIMIT`               | Search limit                                                    | 100                | available in releases 1.0.0 - 1.3.1, replaced by `SEARCH_LIMIT` in 1.3.2                      |
+| `API_DOCKER_IMAGE_TAG`| Docker tag for API image                                        | main               | available in releases 1.0.0 - 1.4.x, replaced by `RELEASE_VERSION` in 2.0.0                   |
+| `INDEXER_DOCKER_IMAGE_TAG` | Docker tag for Indexer image                               | main               | available in releases 1.0.0 - 1.4.x, replaced by `RELEASE_VERSION` in 2.0.0                   |
+| `ROSETTA_VERSION`     | Rosetta spec version (was incorrectly used for image tags)      | 1.4.13             | available in releases 1.0.0 - 1.4.x, removed in 2.0.0                                         |
 
 </div>
