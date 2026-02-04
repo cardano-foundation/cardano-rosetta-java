@@ -1,0 +1,308 @@
+{
+  "network": "mainnet",
+  "generated_at": "2025-12-18T18:16:50.384562-03:00",
+  "target_per_level": 20,
+  "dimensions": {
+    "utxo_count": {
+      "description": "Address UTXO Count",
+      "unit": "UTXOs",
+      "endpoints": [
+        "/account/balance",
+        "/account/coins"
+      ],
+      "type": "power_of_10",
+      "thresholds": {
+        "1": {
+          "min": 1,
+          "max": 9,
+          "display": "1-9 UTXOs"
+        },
+        "10": {
+          "min": 10,
+          "max": 99,
+          "display": "10-99 UTXOs"
+        },
+        "100": {
+          "min": 100,
+          "max": 999,
+          "display": "100-999 UTXOs"
+        },
+        "1000": {
+          "min": 1000,
+          "max": 9999,
+          "display": "1000-9999 UTXOs"
+        },
+        "10000": {
+          "min": 10000,
+          "max": 49813,
+          "display": "\u226510000 UTXOs"
+        }
+      }
+    },
+    "token_count": {
+      "description": "Address Distinct Token Types",
+      "unit": "token types",
+      "endpoints": [
+        "/account/balance",
+        "/account/coins"
+      ],
+      "type": "power_of_10",
+      "thresholds": {
+        "1": {
+          "min": 1,
+          "max": 9,
+          "display": "1-9 tokens"
+        },
+        "10": {
+          "min": 10,
+          "max": 99,
+          "display": "10-99 tokens"
+        },
+        "100": {
+          "min": 100,
+          "max": 999,
+          "display": "100-999 tokens"
+        },
+        "1000": {
+          "min": 1000,
+          "max": 9999,
+          "display": "1000-9999 tokens"
+        },
+        "10000": {
+          "min": 10000,
+          "max": 42556,
+          "display": "\u226510000 tokens"
+        }
+      }
+    },
+    "tx_history": {
+      "description": "Address Transaction History",
+      "unit": "transactions",
+      "endpoints": [
+        "/search/transactions"
+      ],
+      "type": "power_of_10",
+      "thresholds": {
+        "1": {
+          "min": 1,
+          "max": 9,
+          "display": "1-9 txs"
+        },
+        "10": {
+          "min": 10,
+          "max": 99,
+          "display": "10-99 txs"
+        },
+        "100": {
+          "min": 100,
+          "max": 999,
+          "display": "100-999 txs"
+        },
+        "1000": {
+          "min": 1000,
+          "max": 9999,
+          "display": "1000-9999 txs"
+        },
+        "10000": {
+          "min": 10000,
+          "max": 45897,
+          "display": "\u226510000 txs"
+        }
+      }
+    },
+    "block_tx_count": {
+      "description": "Block Transaction Count",
+      "unit": "transactions",
+      "endpoints": [
+        "/block"
+      ],
+      "type": "percentile",
+      "thresholds": {
+        "p50": {
+          "min": 0,
+          "max": 10,
+          "display": "\u226410 txs"
+        },
+        "p75": {
+          "min": 10,
+          "max": 22,
+          "display": "10-22 txs"
+        },
+        "p90": {
+          "min": 22,
+          "max": 35,
+          "display": "22-35 txs"
+        },
+        "p95": {
+          "min": 35,
+          "max": 45,
+          "display": "35-45 txs"
+        },
+        "p99": {
+          "min": 45,
+          "max": 385,
+          "display": ">45 txs"
+        }
+      }
+    },
+    "block_body_size": {
+      "description": "Block Body Size",
+      "unit": "bytes",
+      "endpoints": [
+        "/block"
+      ],
+      "type": "percentile",
+      "thresholds": {
+        "p50": {
+          "min": 0,
+          "max": 12377,
+          "display": "0B-12.1KB"
+        },
+        "p75": {
+          "min": 12377,
+          "max": 41580,
+          "display": "12.1KB-40.6KB"
+        },
+        "p90": {
+          "min": 41580,
+          "max": 78057,
+          "display": "40.6KB-76.2KB"
+        },
+        "p95": {
+          "min": 78057,
+          "max": 85871,
+          "display": "76.2KB-83.9KB"
+        },
+        "p99": {
+          "min": 85871,
+          "max": 89055,
+          "display": "83.9KB-87.0KB"
+        }
+      }
+    },
+    "block_era": {
+      "description": "Block Era (Age)",
+      "unit": "era",
+      "endpoints": [
+        "/block"
+      ],
+      "type": "era",
+      "thresholds": {
+        "byron": {
+          "min": 1,
+          "max": 1,
+          "display": "Byron (epochs 0-207)"
+        },
+        "shelley": {
+          "min": 2,
+          "max": 2,
+          "display": "Shelley (epochs 208-235)"
+        },
+        "allegra": {
+          "min": 3,
+          "max": 3,
+          "display": "Allegra (epochs 236-250)"
+        },
+        "mary": {
+          "min": 4,
+          "max": 4,
+          "display": "Mary (epochs 251-289)"
+        },
+        "alonzo": {
+          "min": 5,
+          "max": 5,
+          "display": "Alonzo (epochs 290-364)"
+        },
+        "babbage": {
+          "min": 6,
+          "max": 6,
+          "display": "Babbage (epochs 365-506)"
+        },
+        "conway": {
+          "min": 7,
+          "max": 7,
+          "display": "Conway (epochs 507-601)"
+        }
+      }
+    },
+    "tx_io_count": {
+      "description": "Transaction I/O Count",
+      "unit": "inputs+outputs",
+      "endpoints": [
+        "/block/transaction",
+        "/search/transactions"
+      ],
+      "type": "power_of_10",
+      "thresholds": {
+        "1": {
+          "min": 1,
+          "max": 9,
+          "display": "1-9 I/O"
+        },
+        "10": {
+          "min": 10,
+          "max": 99,
+          "display": "10-99 I/O"
+        },
+        "100": {
+          "min": 100,
+          "max": 451,
+          "display": "\u2265100 I/O"
+        }
+      }
+    },
+    "tx_has_script": {
+      "description": "Transaction Has Plutus Script",
+      "unit": "boolean",
+      "endpoints": [
+        "/block/transaction",
+        "/search/transactions"
+      ],
+      "type": "boolean",
+      "thresholds": {
+        "true": {
+          "display": "with script"
+        },
+        "false": {
+          "display": "without script"
+        }
+      }
+    },
+    "tx_token_count": {
+      "description": "Transaction Token Types",
+      "unit": "token types",
+      "endpoints": [
+        "/block/transaction",
+        "/search/transactions"
+      ],
+      "type": "percentile",
+      "thresholds": {
+        "p50": {
+          "min": 0,
+          "max": 2,
+          "display": "\u22642 tokens"
+        },
+        "p75": {
+          "min": 2,
+          "max": 8,
+          "display": "2-8 tokens"
+        },
+        "p90": {
+          "min": 8,
+          "max": 35,
+          "display": "8-35 tokens"
+        },
+        "p95": {
+          "min": 35,
+          "max": 79,
+          "display": "35-79 tokens"
+        },
+        "p99": {
+          "min": 79,
+          "max": 977,
+          "display": ">79 tokens"
+        }
+      }
+    }
+  }
+}

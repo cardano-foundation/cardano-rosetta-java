@@ -28,6 +28,7 @@ hs_err_pid*
 target
 settings.xml
 .env*
+!.env.example
 
 /data/
 /node/
@@ -50,8 +51,7 @@ settings.xml
 !.env.docker-compose-profile-entry-level
 !.env.docker-compose-profile-mid-level
 
-# Allow files for a single docker image
-!docker/docker-compose.yaml
+# Allow Docker Compose profile configuration files
 !docker/.env.docker-profile-entry-level
 !docker/.env.docker-profile-mid-level
 !.claude/*

@@ -5,7 +5,7 @@ spring:
   datasource:
     username: rosetta_db_service_user
     password: weakerpwd#123_d
-    url: jdbc:postgresql://172.16.1.217:5432/rosetta?currentSchema=${DB_SCHEMA:preprod}
+    url: jdbc:postgresql://172.16.1.217:5432/rosetta?currentSchema=${DB_SCHEMA:public}
   jpa:
     properties:
       hibernate:

@@ -1,0 +1,24 @@
+services:
+  index-applier:
+    image: cardanofoundation/cardano-rosetta-java-postgres:${PG_VERSION_TAG}
+    build:
+      context: ./
+      dockerfile: ./docker/dockerfiles/postgres/Dockerfile
+    environment:
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_SECRET: ${DB_SECRET}
+      DB_SCHEMA: ${DB_SCHEMA}
+      NETWORK: ${NETWORK}
+      API_URL: http://api:${API_PORT}
+    volumes:
+      - ./api/src/main/resources/config/db-indexes.yaml:/config/db-indexes.yaml:ro
+    entrypoint: ["/sbin/apply-indexes.sh"]
+    depends_on:
+      db:
+        condition: service_healthy
+      api:
+        condition: service_healthy
+    restart: on-failure

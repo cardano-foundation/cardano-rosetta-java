@@ -1,6 +1,6 @@
 services:
   yaci-indexer:
-    image: cardanofoundation/cardano-rosetta-java-indexer:${INDEXER_DOCKER_IMAGE_TAG}
+    image: cardanofoundation/cardano-rosetta-java-indexer:${RELEASE_VERSION}
     build:
       context: ./
       dockerfile: ./yaci-indexer/Dockerfile

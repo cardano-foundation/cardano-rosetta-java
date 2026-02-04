@@ -21,98 +21,98 @@ public class EpochParamRecord extends UpdatableRecordImpl<EpochParamRecord> {
     private static final long serialVersionUID = 1L;
 
     /**
-     * Setter for <code>preprod.epoch_param.epoch</code>.
+     * Setter for <code>public.epoch_param.epoch</code>.
      */
     public void setEpoch(Integer value) {
         set(0, value);
     }
 
     /**
-     * Getter for <code>preprod.epoch_param.epoch</code>.
+     * Getter for <code>public.epoch_param.epoch</code>.
      */
     public Integer getEpoch() {
         return (Integer) get(0);
     }
 
     /**
-     * Setter for <code>preprod.epoch_param.params</code>.
+     * Setter for <code>public.epoch_param.params</code>.
      */
     public void setParams(JSONB value) {
         set(1, value);
     }
 
     /**
-     * Getter for <code>preprod.epoch_param.params</code>.
+     * Getter for <code>public.epoch_param.params</code>.
      */
     public JSONB getParams() {
         return (JSONB) get(1);
     }
 
     /**
-     * Setter for <code>preprod.epoch_param.cost_model_hash</code>.
+     * Setter for <code>public.epoch_param.cost_model_hash</code>.
      */
     public void setCostModelHash(String value) {
         set(2, value);
     }
 
     /**
-     * Getter for <code>preprod.epoch_param.cost_model_hash</code>.
+     * Getter for <code>public.epoch_param.cost_model_hash</code>.
      */
     public String getCostModelHash() {
         return (String) get(2);
     }
 
     /**
-     * Setter for <code>preprod.epoch_param.slot</code>.
+     * Setter for <code>public.epoch_param.slot</code>.
      */
     public void setSlot(Long value) {
         set(3, value);
     }
 
     /**
-     * Getter for <code>preprod.epoch_param.slot</code>.
+     * Getter for <code>public.epoch_param.slot</code>.
      */
     public Long getSlot() {
         return (Long) get(3);
     }
 
     /**
-     * Setter for <code>preprod.epoch_param.block</code>.
+     * Setter for <code>public.epoch_param.block</code>.
      */
     public void setBlock(Long value) {
         set(4, value);
     }
 
     /**
-     * Getter for <code>preprod.epoch_param.block</code>.
+     * Getter for <code>public.epoch_param.block</code>.
      */
     public Long getBlock() {
         return (Long) get(4);
     }
 
     /**
-     * Setter for <code>preprod.epoch_param.block_time</code>.
+     * Setter for <code>public.epoch_param.block_time</code>.
      */
     public void setBlockTime(Long value) {
         set(5, value);
     }
 
     /**
-     * Getter for <code>preprod.epoch_param.block_time</code>.
+     * Getter for <code>public.epoch_param.block_time</code>.
      */
     public Long getBlockTime() {
         return (Long) get(5);
     }
 
     /**
-     * Setter for <code>preprod.epoch_param.update_datetime</code>.
+     * Setter for <code>public.epoch_param.update_datetime</code>.
      */
     public void setUpdateDatetime(LocalDateTime value) {
         set(6, value);
     }
 
     /**
-     * Getter for <code>preprod.epoch_param.update_datetime</code>.
+     * Getter for <code>public.epoch_param.update_datetime</code>.
      */
     public LocalDateTime getUpdateDatetime() {
         return (LocalDateTime) get(6);

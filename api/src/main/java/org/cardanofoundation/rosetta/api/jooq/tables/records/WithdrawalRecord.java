@@ -21,112 +21,112 @@ public class WithdrawalRecord extends UpdatableRecordImpl<WithdrawalRecord> {
     private static final long serialVersionUID = 1L;
 
     /**
-     * Setter for <code>preprod.withdrawal.tx_hash</code>.
+     * Setter for <code>public.withdrawal.tx_hash</code>.
      */
     public void setTxHash(String value) {
         set(0, value);
     }
 
     /**
-     * Getter for <code>preprod.withdrawal.tx_hash</code>.
+     * Getter for <code>public.withdrawal.tx_hash</code>.
      */
     public String getTxHash() {
         return (String) get(0);
     }
 
     /**
-     * Setter for <code>preprod.withdrawal.address</code>.
+     * Setter for <code>public.withdrawal.address</code>.
      */
     public void setAddress(String value) {
         set(1, value);
     }
 
     /**
-     * Getter for <code>preprod.withdrawal.address</code>.
+     * Getter for <code>public.withdrawal.address</code>.
      */
     public String getAddress() {
         return (String) get(1);
     }
 
     /**
-     * Setter for <code>preprod.withdrawal.amount</code>.
+     * Setter for <code>public.withdrawal.amount</code>.
      */
     public void setAmount(BigInteger value) {
         set(2, value);
     }
 
     /**
-     * Getter for <code>preprod.withdrawal.amount</code>.
+     * Getter for <code>public.withdrawal.amount</code>.
      */
     public BigInteger getAmount() {
         return (BigInteger) get(2);
     }
 
     /**
-     * Setter for <code>preprod.withdrawal.epoch</code>.
+     * Setter for <code>public.withdrawal.epoch</code>.
      */
     public void setEpoch(Integer value) {
         set(3, value);
     }
 
     /**
-     * Getter for <code>preprod.withdrawal.epoch</code>.
+     * Getter for <code>public.withdrawal.epoch</code>.
      */
     public Integer getEpoch() {
         return (Integer) get(3);
     }
 
     /**
-     * Setter for <code>preprod.withdrawal.slot</code>.
+     * Setter for <code>public.withdrawal.slot</code>.
      */
     public void setSlot(Long value) {
         set(4, value);
     }
 
     /**
-     * Getter for <code>preprod.withdrawal.slot</code>.
+     * Getter for <code>public.withdrawal.slot</code>.
      */
     public Long getSlot() {
         return (Long) get(4);
     }
 
     /**
-     * Setter for <code>preprod.withdrawal.block</code>.
+     * Setter for <code>public.withdrawal.block</code>.
      */
     public void setBlock(Long value) {
         set(5, value);
     }
 
     /**
-     * Getter for <code>preprod.withdrawal.block</code>.
+     * Getter for <code>public.withdrawal.block</code>.
      */
     public Long getBlock() {
         return (Long) get(5);
     }
 
     /**
-     * Setter for <code>preprod.withdrawal.block_time</code>.
+     * Setter for <code>public.withdrawal.block_time</code>.
      */
     public void setBlockTime(Long value) {
         set(6, value);
     }
 
     /**
-     * Getter for <code>preprod.withdrawal.block_time</code>.
+     * Getter for <code>public.withdrawal.block_time</code>.
      */
     public Long getBlockTime() {
         return (Long) get(6);
     }
 
     /**
-     * Setter for <code>preprod.withdrawal.update_datetime</code>.
+     * Setter for <code>public.withdrawal.update_datetime</code>.
      */
     public void setUpdateDatetime(LocalDateTime value) {
         set(7, value);
     }
 
     /**
-     * Getter for <code>preprod.withdrawal.update_datetime</code>.
+     * Getter for <code>public.withdrawal.update_datetime</code>.
      */
     public LocalDateTime getUpdateDatetime() {
         return (LocalDateTime) get(7);

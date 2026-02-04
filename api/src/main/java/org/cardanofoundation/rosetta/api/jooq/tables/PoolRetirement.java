@@ -11,7 +11,7 @@ import java.util.List;
 
 import org.cardanofoundation.rosetta.api.jooq.Indexes;
 import org.cardanofoundation.rosetta.api.jooq.Keys;
-import org.cardanofoundation.rosetta.api.jooq.Preprod;
+import org.cardanofoundation.rosetta.api.jooq.Public;
 import org.cardanofoundation.rosetta.api.jooq.tables.records.PoolRetirementRecord;
 import org.jooq.Condition;
 import org.jooq.Field;
@@ -41,7 +41,7 @@ public class PoolRetirement extends TableImpl<PoolRetirementRecord> {
     private static final long serialVersionUID = 1L;
 
     /**
-     * The reference instance of <code>preprod.pool_retirement</code>
+     * The reference instance of <code>public.pool_retirement</code>
      */
     public static final PoolRetirement POOL_RETIREMENT = new PoolRetirement();
 
@@ -54,52 +54,52 @@ public class PoolRetirement extends TableImpl<PoolRetirementRecord> {
     }
 
     /**
-     * The column <code>preprod.pool_retirement.tx_hash</code>.
+     * The column <code>public.pool_retirement.tx_hash</code>.
      */
     public final TableField<PoolRetirementRecord, String> TX_HASH = createField(DSL.name("tx_hash"), SQLDataType.VARCHAR(64).nullable(false), this, "");
 
     /**
-     * The column <code>preprod.pool_retirement.cert_index</code>.
+     * The column <code>public.pool_retirement.cert_index</code>.
      */
     public final TableField<PoolRetirementRecord, Integer> CERT_INDEX = createField(DSL.name("cert_index"), SQLDataType.INTEGER.nullable(false), this, "");
 
     /**
-     * The column <code>preprod.pool_retirement.pool_id</code>.
+     * The column <code>public.pool_retirement.pool_id</code>.
      */
     public final TableField<PoolRetirementRecord, String> POOL_ID = createField(DSL.name("pool_id"), SQLDataType.VARCHAR(56), this, "");
 
     /**
-     * The column <code>preprod.pool_retirement.retirement_epoch</code>.
+     * The column <code>public.pool_retirement.retirement_epoch</code>.
      */
     public final TableField<PoolRetirementRecord, Integer> RETIREMENT_EPOCH = createField(DSL.name("retirement_epoch"), SQLDataType.INTEGER, this, "");
 
     /**
-     * The column <code>preprod.pool_retirement.epoch</code>.
+     * The column <code>public.pool_retirement.epoch</code>.
      */
     public final TableField<PoolRetirementRecord, Integer> EPOCH = createField(DSL.name("epoch"), SQLDataType.INTEGER, this, "");
 
     /**
-     * The column <code>preprod.pool_retirement.slot</code>.
+     * The column <code>public.pool_retirement.slot</code>.
      */
     public final TableField<PoolRetirementRecord, Long> SLOT = createField(DSL.name("slot"), SQLDataType.BIGINT, this, "");
 
     /**
-     * The column <code>preprod.pool_retirement.block_hash</code>.
+     * The column <code>public.pool_retirement.block_hash</code>.
      */
     public final TableField<PoolRetirementRecord, String> BLOCK_HASH = createField(DSL.name("block_hash"), SQLDataType.VARCHAR(64), this, "");
 
     /**
-     * The column <code>preprod.pool_retirement.block</code>.
+     * The column <code>public.pool_retirement.block</code>.
      */
     public final TableField<PoolRetirementRecord, Long> BLOCK = createField(DSL.name("block"), SQLDataType.BIGINT, this, "");
 
     /**
-     * The column <code>preprod.pool_retirement.block_time</code>.
+     * The column <code>public.pool_retirement.block_time</code>.
      */
     public final TableField<PoolRetirementRecord, Long> BLOCK_TIME = createField(DSL.name("block_time"), SQLDataType.BIGINT, this, "");
 
     /**
-     * The column <code>preprod.pool_retirement.update_datetime</code>.
+     * The column <code>public.pool_retirement.update_datetime</code>.
      */
     public final TableField<PoolRetirementRecord, LocalDateTime> UPDATE_DATETIME = createField(DSL.name("update_datetime"), SQLDataType.LOCALDATETIME(6), this, "");
 
@@ -112,21 +112,21 @@ public class PoolRetirement extends TableImpl<PoolRetirementRecord> {
     }
 
     /**
-     * Create an aliased <code>preprod.pool_retirement</code> table reference
+     * Create an aliased <code>public.pool_retirement</code> table reference
      */
     public PoolRetirement(String alias) {
         this(DSL.name(alias), POOL_RETIREMENT);
     }
 
     /**
-     * Create an aliased <code>preprod.pool_retirement</code> table reference
+     * Create an aliased <code>public.pool_retirement</code> table reference
      */
     public PoolRetirement(Name alias) {
         this(alias, POOL_RETIREMENT);
     }
 
     /**
-     * Create a <code>preprod.pool_retirement</code> table reference
+     * Create a <code>public.pool_retirement</code> table reference
      */
     public PoolRetirement() {
         this(DSL.name("pool_retirement"), null);
@@ -134,7 +134,7 @@ public class PoolRetirement extends TableImpl<PoolRetirementRecord> {
 
     @Override
     public Schema getSchema() {
-        return aliased() ? null : Preprod.PREPROD;
+        return aliased() ? null : Public.PUBLIC;
     }
 
     @Override

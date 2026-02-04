@@ -11,7 +11,7 @@ import java.util.List;
 
 import org.cardanofoundation.rosetta.api.jooq.Indexes;
 import org.cardanofoundation.rosetta.api.jooq.Keys;
-import org.cardanofoundation.rosetta.api.jooq.Preprod;
+import org.cardanofoundation.rosetta.api.jooq.Public;
 import org.cardanofoundation.rosetta.api.jooq.tables.records.Cursor_Record;
 import org.jooq.Condition;
 import org.jooq.Field;
@@ -41,7 +41,7 @@ public class Cursor_ extends TableImpl<Cursor_Record> {
     private static final long serialVersionUID = 1L;
 
     /**
-     * The reference instance of <code>preprod.cursor_</code>
+     * The reference instance of <code>public.cursor_</code>
      */
     public static final Cursor_ CURSOR_ = new Cursor_();
 
@@ -54,42 +54,42 @@ public class Cursor_ extends TableImpl<Cursor_Record> {
     }
 
     /**
-     * The column <code>preprod.cursor_.id</code>.
+     * The column <code>public.cursor_.id</code>.
      */
     public final TableField<Cursor_Record, Integer> ID = createField(DSL.name("id"), SQLDataType.INTEGER.nullable(false), this, "");
 
     /**
-     * The column <code>preprod.cursor_.block_hash</code>.
+     * The column <code>public.cursor_.block_hash</code>.
      */
     public final TableField<Cursor_Record, String> BLOCK_HASH = createField(DSL.name("block_hash"), SQLDataType.VARCHAR(64).nullable(false), this, "");
 
     /**
-     * The column <code>preprod.cursor_.slot</code>.
+     * The column <code>public.cursor_.slot</code>.
      */
     public final TableField<Cursor_Record, Long> SLOT = createField(DSL.name("slot"), SQLDataType.BIGINT, this, "");
 
     /**
-     * The column <code>preprod.cursor_.block_number</code>.
+     * The column <code>public.cursor_.block_number</code>.
      */
     public final TableField<Cursor_Record, Long> BLOCK_NUMBER = createField(DSL.name("block_number"), SQLDataType.BIGINT, this, "");
 
     /**
-     * The column <code>preprod.cursor_.era</code>.
+     * The column <code>public.cursor_.era</code>.
      */
     public final TableField<Cursor_Record, Integer> ERA = createField(DSL.name("era"), SQLDataType.INTEGER, this, "");
 
     /**
-     * The column <code>preprod.cursor_.prev_block_hash</code>.
+     * The column <code>public.cursor_.prev_block_hash</code>.
      */
     public final TableField<Cursor_Record, String> PREV_BLOCK_HASH = createField(DSL.name("prev_block_hash"), SQLDataType.VARCHAR(64), this, "");
 
     /**
-     * The column <code>preprod.cursor_.create_datetime</code>.
+     * The column <code>public.cursor_.create_datetime</code>.
      */
     public final TableField<Cursor_Record, LocalDateTime> CREATE_DATETIME = createField(DSL.name("create_datetime"), SQLDataType.LOCALDATETIME(6), this, "");
 
     /**
-     * The column <code>preprod.cursor_.update_datetime</code>.
+     * The column <code>public.cursor_.update_datetime</code>.
      */
     public final TableField<Cursor_Record, LocalDateTime> UPDATE_DATETIME = createField(DSL.name("update_datetime"), SQLDataType.LOCALDATETIME(6), this, "");
 
@@ -102,21 +102,21 @@ public class Cursor_ extends TableImpl<Cursor_Record> {
     }
 
     /**
-     * Create an aliased <code>preprod.cursor_</code> table reference
+     * Create an aliased <code>public.cursor_</code> table reference
      */
     public Cursor_(String alias) {
         this(DSL.name(alias), CURSOR_);
     }
 
     /**
-     * Create an aliased <code>preprod.cursor_</code> table reference
+     * Create an aliased <code>public.cursor_</code> table reference
      */
     public Cursor_(Name alias) {
         this(alias, CURSOR_);
     }
 
     /**
-     * Create a <code>preprod.cursor_</code> table reference
+     * Create a <code>public.cursor_</code> table reference
      */
     public Cursor_() {
         this(DSL.name("cursor_"), null);
@@ -124,7 +124,7 @@ public class Cursor_ extends TableImpl<Cursor_Record> {
 
     @Override
     public Schema getSchema() {
-        return aliased() ? null : Preprod.PREPROD;
+        return aliased() ? null : Public.PUBLIC;
     }
 
     @Override

@@ -24,13 +24,23 @@ jobs:
         run: |
           cd /home/integration/git/cardano-rosetta-java
 
+          # Fetch latest from remote
+          git fetch origin
+
           # Clean up any existing PR branch and switch to main first
           git checkout main || git checkout develop
-          git branch -D pr-${{ github.event.pull_request.number }} 2>/dev/null || true
+          git pull origin main || git pull origin develop
 
-          # Fetch and checkout the PR
-          git fetch origin pull/${{ github.event.pull_request.number }}/head:pr-${{ github.event.pull_request.number }}
-          git checkout pr-${{ github.event.pull_request.number }}
+          # Checkout appropriate branch based on trigger type
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            git branch -D pr-${{ github.event.pull_request.number }} 2>/dev/null || true
+            git fetch origin pull/${{ github.event.pull_request.number }}/head:pr-${{ github.event.pull_request.number }}
+            git checkout pr-${{ github.event.pull_request.number }}
+          else
+            # workflow_dispatch: checkout the selected branch and force sync with remote
+            git checkout ${{ github.ref_name }}
+            git reset --hard origin/${{ github.ref_name }}
+          fi
 
       - name: Stop current services
         run: |
@@ -77,9 +87,8 @@ jobs:
         run: |
           cd /home/integration/git/cardano-rosetta-java
 
-          # Use PR-specific tags for API and indexer to force rebuild
-          export API_DOCKER_IMAGE_TAG=pr-${{ github.event.pull_request.number }}-${{ github.sha }}
-          export INDEXER_DOCKER_IMAGE_TAG=pr-${{ github.event.pull_request.number }}-${{ github.sha }}
+          # Use PR-specific tag for API and indexer to force rebuild
+          export RELEASE_VERSION=pr-${{ github.event.pull_request.number }}-${{ github.sha }}
 
           # Build and start all services
           docker compose \
@@ -94,16 +103,23 @@ jobs:
           echo "Waiting for API to be ready..."
 
           # Wait for API to respond
+          API_STARTED=false
           for i in {1..60}; do
             if curl -sf -X POST http://localhost:8082/network/list \
               -H 'Content-Type: application/json' \
               -d '{}' > /dev/null 2>&1; then
               echo "API is responding"
+              API_STARTED=true
               break
             fi
             echo "Waiting for API to start... ($i/60)"
             sleep 10
           done
+
+          if [ "$API_STARTED" != "true" ]; then
+            echo "❌ API failed to start after 10 minutes"
+            exit 1
+          fi
 
           # Check sync status
           echo "Checking sync status..."
@@ -149,6 +165,9 @@ jobs:
 
           # Copy to tests directory
           cp .env.test tests/data-endpoints/.env
+
+      - name: Clean previous Allure results
+        run: rm -rf /home/integration/git/cardano-rosetta-java/tests/data-endpoints/allure-results/*
 
       - name: Run smoke tests (validate test data)
         id: smoke_tests
@@ -196,23 +215,22 @@ jobs:
           ROSETTA_URL: http://localhost:8082
           CARDANO_NETWORK: preprod
 
-      - name: Run construction API tests
-        id: construction_test
+      - name: Run golden example tests
+        id: golden_tests
         run: |
           export PATH="$HOME/.local/bin:$PATH"
 
           cd /home/integration/git/cardano-rosetta-java/tests/integration
 
-          # Run construction API snapshot tests
-          uv run test_construction_api.py \
-            -v || CONSTRUCTION_RESULT=$?
+          # Run golden example tests (construction + data endpoints)
+          uv run test_golden_examples.py \
+            -v || GOLDEN_RESULT=$?
 
           # Output test result
-          echo "construction_result=${CONSTRUCTION_RESULT:-0}" >> $GITHUB_OUTPUT
+          echo "golden_result=${GOLDEN_RESULT:-0}" >> $GITHUB_OUTPUT
 
-          # Don't fail the whole job if construction tests fail
-          # These are informational for now
-          exit 0
+          # Fail if golden example tests failed
+          exit ${GOLDEN_RESULT:-0}
         env:
           ROSETTA_URL: http://localhost:8082
           CARDANO_NETWORK: preprod
@@ -247,22 +265,43 @@ jobs:
           user_name: 'github-actions[bot]'
           user_email: '41898282+github-actions[bot]@users.noreply.github.com'
 
+      - name: Cleanup gh-pages temp directories
+        if: always()
+        run: rm -rf ~/actions_github_pages_*
+
       - name: Comment PR with results
-        if: always() && github.event_name == 'pull_request' && steps.test.outcome != 'skipped'
+        if: always() && github.event_name == 'pull_request'
         uses: actions/github-script@v6
         with:
           script: |
             const prNumber = context.issue.number;
-            const testResult = '${{ steps.test.outputs.test_result }}';
-            const emoji = testResult === '0' ? '✅' : '❌';
-            const status = testResult === '0' ? 'PASSED' : 'FAILED';
+
+            // Check if earlier steps failed (deployment, sync, etc.)
+            const testsSkipped = '${{ steps.test.outcome }}' === 'skipped';
+
+            let emoji, status;
+            if (testsSkipped) {
+              emoji = '💥';
+              status = 'DEPLOYMENT FAILED';
+            } else {
+              // Check all three test outputs
+              const smokeResult = '${{ steps.smoke_tests.outputs.smoke_result }}';
+              const testResult = '${{ steps.test.outputs.test_result }}';
+              const goldenResult = '${{ steps.golden_tests.outputs.golden_result }}';
+
+              const allPassed = smokeResult === '0' && testResult === '0' && goldenResult === '0';
+              emoji = allPassed ? '✅' : '❌';
+              status = allPassed ? 'PASSED' : 'FAILED';
+            }
 
             // Build comment body
             let comment = `## ${emoji} Preprod Tests: ${status}\n\n`;
 
-            // Add report link
-            const reportUrl = `https://cardano-foundation.github.io/cardano-rosetta-java/test-reports/pr-${prNumber}/`;
-            comment += `📊 **[View Detailed Test Report](${reportUrl})**\n\n`;
+            // Add report link (only if tests actually ran)
+            if (!testsSkipped) {
+              const reportUrl = `https://cardano-foundation.github.io/cardano-rosetta-java/test-reports/pr-${prNumber}/`;
+              comment += `📊 **[View Detailed Test Report](${reportUrl})**\n\n`;
+            }
 
             comment += `🔗 [Action Run #${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})\n\n`;
             comment += `_Tests run against preprod network with live blockchain data_`;
@@ -350,7 +389,7 @@ jobs:
                 echo "Removing Flyway metadata for version: $VERSION"
                 docker exec cardano-rosetta-java-db-1 sh -c \
                   "PGPASSWORD=weakpwd#123_d psql -U rosetta_db_admin -d rosetta-java -p 5433 \
-                   -c \"DELETE FROM preprod.flyway_schema_history WHERE version LIKE '${VERSION}%';\""
+                   -c \"DELETE FROM public.flyway_schema_history WHERE version LIKE '${VERSION}%';\""
               done
 
               echo "✓ Flyway metadata cleaned - all blockchain data preserved"
@@ -358,7 +397,7 @@ jobs:
               echo "No specific migration versions detected - truncating flyway history"
               docker exec cardano-rosetta-java-db-1 sh -c \
                 "PGPASSWORD=weakpwd#123_d psql -U rosetta_db_admin -d rosetta-java -p 5433 \
-                 -c 'TRUNCATE preprod.flyway_schema_history;'"
+                 -c 'TRUNCATE public.flyway_schema_history;'"
             fi
 
             docker compose \

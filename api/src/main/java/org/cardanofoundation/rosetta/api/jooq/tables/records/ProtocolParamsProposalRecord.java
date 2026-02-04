@@ -21,140 +21,140 @@ public class ProtocolParamsProposalRecord extends UpdatableRecordImpl<ProtocolPa
     private static final long serialVersionUID = 1L;
 
     /**
-     * Setter for <code>preprod.protocol_params_proposal.tx_hash</code>.
+     * Setter for <code>public.protocol_params_proposal.tx_hash</code>.
      */
     public void setTxHash(String value) {
         set(0, value);
     }
 
     /**
-     * Getter for <code>preprod.protocol_params_proposal.tx_hash</code>.
+     * Getter for <code>public.protocol_params_proposal.tx_hash</code>.
      */
     public String getTxHash() {
         return (String) get(0);
     }
 
     /**
-     * Setter for <code>preprod.protocol_params_proposal.key_hash</code>.
+     * Setter for <code>public.protocol_params_proposal.key_hash</code>.
      */
     public void setKeyHash(String value) {
         set(1, value);
     }
 
     /**
-     * Getter for <code>preprod.protocol_params_proposal.key_hash</code>.
+     * Getter for <code>public.protocol_params_proposal.key_hash</code>.
      */
     public String getKeyHash() {
         return (String) get(1);
     }
 
     /**
-     * Setter for <code>preprod.protocol_params_proposal.params</code>.
+     * Setter for <code>public.protocol_params_proposal.params</code>.
      */
     public void setParams(JSONB value) {
         set(2, value);
     }
 
     /**
-     * Getter for <code>preprod.protocol_params_proposal.params</code>.
+     * Getter for <code>public.protocol_params_proposal.params</code>.
      */
     public JSONB getParams() {
         return (JSONB) get(2);
     }
 
     /**
-     * Setter for <code>preprod.protocol_params_proposal.target_epoch</code>.
+     * Setter for <code>public.protocol_params_proposal.target_epoch</code>.
      */
     public void setTargetEpoch(Integer value) {
         set(3, value);
     }
 
     /**
-     * Getter for <code>preprod.protocol_params_proposal.target_epoch</code>.
+     * Getter for <code>public.protocol_params_proposal.target_epoch</code>.
      */
     public Integer getTargetEpoch() {
         return (Integer) get(3);
     }
 
     /**
-     * Setter for <code>preprod.protocol_params_proposal.epoch</code>.
+     * Setter for <code>public.protocol_params_proposal.epoch</code>.
      */
     public void setEpoch(Integer value) {
         set(4, value);
     }
 
     /**
-     * Getter for <code>preprod.protocol_params_proposal.epoch</code>.
+     * Getter for <code>public.protocol_params_proposal.epoch</code>.
      */
     public Integer getEpoch() {
         return (Integer) get(4);
     }
 
     /**
-     * Setter for <code>preprod.protocol_params_proposal.slot</code>.
+     * Setter for <code>public.protocol_params_proposal.slot</code>.
      */
     public void setSlot(Long value) {
         set(5, value);
     }
 
     /**
-     * Getter for <code>preprod.protocol_params_proposal.slot</code>.
+     * Getter for <code>public.protocol_params_proposal.slot</code>.
      */
     public Long getSlot() {
         return (Long) get(5);
     }
 
     /**
-     * Setter for <code>preprod.protocol_params_proposal.era</code>.
+     * Setter for <code>public.protocol_params_proposal.era</code>.
      */
     public void setEra(Short value) {
         set(6, value);
     }
 
     /**
-     * Getter for <code>preprod.protocol_params_proposal.era</code>.
+     * Getter for <code>public.protocol_params_proposal.era</code>.
      */
     public Short getEra() {
         return (Short) get(6);
     }
 
     /**
-     * Setter for <code>preprod.protocol_params_proposal.block</code>.
+     * Setter for <code>public.protocol_params_proposal.block</code>.
      */
     public void setBlock(Long value) {
         set(7, value);
     }
 
     /**
-     * Getter for <code>preprod.protocol_params_proposal.block</code>.
+     * Getter for <code>public.protocol_params_proposal.block</code>.
      */
     public Long getBlock() {
         return (Long) get(7);
     }
 
     /**
-     * Setter for <code>preprod.protocol_params_proposal.block_time</code>.
+     * Setter for <code>public.protocol_params_proposal.block_time</code>.
      */
     public void setBlockTime(Long value) {
         set(8, value);
     }
 
     /**
-     * Getter for <code>preprod.protocol_params_proposal.block_time</code>.
+     * Getter for <code>public.protocol_params_proposal.block_time</code>.
      */
     public Long getBlockTime() {
         return (Long) get(8);
     }
 
     /**
-     * Setter for <code>preprod.protocol_params_proposal.update_datetime</code>.
+     * Setter for <code>public.protocol_params_proposal.update_datetime</code>.
      */
     public void setUpdateDatetime(LocalDateTime value) {
         set(9, value);
     }
 
     /**
-     * Getter for <code>preprod.protocol_params_proposal.update_datetime</code>.
+     * Getter for <code>public.protocol_params_proposal.update_datetime</code>.
      */
     public LocalDateTime getUpdateDatetime() {
         return (LocalDateTime) get(9);
