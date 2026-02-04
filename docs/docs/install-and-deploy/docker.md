@@ -1,5 +1,5 @@
 ---
-sidebar_position: 1
+sidebar_position: 2
 title: Getting Started with Docker Compose
 description: Guide to deploying Cardano Rosetta Java using Docker Compose
 ---

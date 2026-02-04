@@ -1,5 +1,5 @@
 ---
-sidebar_position: 3
+sidebar_position: 4
 title: Environment Variables
 description: Configuration environment variables for Cardano Rosetta Java
 ---
