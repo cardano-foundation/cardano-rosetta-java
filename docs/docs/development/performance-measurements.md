@@ -29,10 +29,8 @@ import AdvHugeAddress373kv129_pruned  from './test-results/1.2.9/advanced_profil
 import AdvHugeAddress16Mv129_pruned   from './test-results/1.2.9/advanced_profile/huge-address-1.6M-pruned.md';
 
 
-// import SingleDocker127 from './test-results/1.2.7/single-docker.md';
 import DockerCompose127 from './test-results/1.2.7/docker-compose.md';
 
-// import SingleDocker126 from './test-results/1.2.6/single-docker.md';
 import DockerCompose126 from './test-results/1.2.6/docker-compose.md';
 
 import DockerCompose120 from './test-results/1.2.0/docker-compose.md';
@@ -228,10 +226,7 @@ Maximum concurrency achieved for each modes:
 - [Release Notes](https://github.com/cardano-foundation/cardano-rosetta-java/releases/tag/1.2.7)
 
 <Tabs>
-  <!-- <TabItem value="single" label="Single Docker" default>
-    <SingleDocker127 />
-  </TabItem> -->
-  <TabItem value="compose" label="Docker Compose">
+  <TabItem value="compose" label="Docker Compose" default>
     <DockerCompose127 />
   </TabItem>
 </Tabs>
@@ -248,10 +243,7 @@ Maximum concurrency achieved for each modes:
 - [Release Notes](https://github.com/cardano-foundation/cardano-rosetta-java/releases/tag/1.2.6)
 
 <Tabs>
-  <TabItem value="single" label="Single Docker" default>
-    <SingleDocker126 />
-  </TabItem>
-  <TabItem value="compose" label="Docker Compose">
+  <TabItem value="compose" label="Docker Compose" default>
     <DockerCompose126 />
   </TabItem>
 </Tabs>
