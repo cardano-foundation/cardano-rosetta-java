@@ -1,6 +1,7 @@
 {
   "test_name": "search transactions chronological order descending",
   "description": "Verifies that /search/transactions returns transactions in descending chronological order (newest first). Block indices should be: 3685493, 3685493, 3685492, 3685492, 3685492. Within-block ordering: transactions in the same block should be in reverse tx index order (d9b6..., bc50..., 0839... for block 3685492)",
+  "network": "preprod",
   "endpoint": "/search/transactions",
   "request_body": {
     "network_identifier": {
