@@ -100,7 +100,7 @@ VOLATILE_FIELDS = {
 # Data endpoints - add volatile fields if needed
 # (e.g., timestamps that change between runs)
 DATA_ENDPOINT_VOLATILE_FIELDS = {
-    "search": [],
+    "search": ["total_count"],
     "block": [],
     "account": [],
     "network": [],

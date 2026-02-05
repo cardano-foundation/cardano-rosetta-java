@@ -1,7 +1,6 @@
 {
   "test_name": "search transactions chronological order descending",
   "description": "Verifies that /search/transactions returns transactions in descending chronological order (newest first). Block indices should be: 3685493, 3685493, 3685492, 3685492, 3685492. Within-block ordering: transactions in the same block should be in reverse tx index order (d9b6..., bc50..., 0839... for block 3685492)",
-  "skip_reason": "Within-block ordering bug not fixed yet, planned for v2.1.x (#534)",
   "endpoint": "/search/transactions",
   "request_body": {
     "network_identifier": {
@@ -30,45 +29,6 @@
               "type": "input",
               "status": "success",
               "account": {
-                "address": "addr_test1wqd2qdzhh3x280q6erdksyku6k3eknrqsmrpkjnn6hsvjegk9gghn"
-              },
-              "amount": {
-                "value": "-2000000",
-                "currency": {
-                  "symbol": "ADA",
-                  "decimals": 6
-                }
-              },
-              "coin_change": {
-                "coin_identifier": {
-                  "identifier": "e1bb21018a18b47a54ecf562d58a3d54cd01016a86a4d19b0fbed24e6883ddcc:0"
-                },
-                "coin_action": "coin_spent"
-              },
-              "metadata": {
-                "tokenBundle": [
-                  {
-                    "policyId": "657991fcca11e70169ba87ef626d2a3a5bd35faa32a5946b8689a342",
-                    "tokens": [
-                      {
-                        "value": "-1",
-                        "currency": {
-                          "symbol": "4e6f646546656564",
-                          "decimals": 0
-                        }
-                      }
-                    ]
-                  }
-                ]
-              }
-            },
-            {
-              "operation_identifier": {
-                "index": 1
-              },
-              "type": "input",
-              "status": "success",
-              "account": {
                 "address": "addr_test1vr93fxkq3jnp5w3m7gtkpasm2z729s3532jfay4n76455fszx3eq2"
               },
               "amount": {
@@ -93,7 +53,10 @@
                         "value": "-1205730",
                         "currency": {
                           "symbol": "7444524950",
-                          "decimals": 0
+                          "decimals": 0,
+                          "metadata": {
+                            "policyId": "698a6ea0ca99f315034072af31eaac6ec11fe8558d3f48e9775aab9d"
+                          }
                         }
                       }
                     ]
@@ -103,7 +66,7 @@
             },
             {
               "operation_identifier": {
-                "index": 2
+                "index": 1
               },
               "type": "input",
               "status": "success",
@@ -122,6 +85,48 @@
                   "identifier": "c2ac7bc758e2dba4e138ed9751782725c411b14a54f27f9f45d68cc348fdb92f:2"
                 },
                 "coin_action": "coin_spent"
+              }
+            },
+            {
+              "operation_identifier": {
+                "index": 2
+              },
+              "type": "input",
+              "status": "success",
+              "account": {
+                "address": "addr_test1wqd2qdzhh3x280q6erdksyku6k3eknrqsmrpkjnn6hsvjegk9gghn"
+              },
+              "amount": {
+                "value": "-2000000",
+                "currency": {
+                  "symbol": "ADA",
+                  "decimals": 6
+                }
+              },
+              "coin_change": {
+                "coin_identifier": {
+                  "identifier": "e1bb21018a18b47a54ecf562d58a3d54cd01016a86a4d19b0fbed24e6883ddcc:0"
+                },
+                "coin_action": "coin_spent"
+              },
+              "metadata": {
+                "tokenBundle": [
+                  {
+                    "policyId": "657991fcca11e70169ba87ef626d2a3a5bd35faa32a5946b8689a342",
+                    "tokens": [
+                      {
+                        "value": "-1",
+                        "currency": {
+                          "symbol": "4e6f646546656564",
+                          "decimals": 0,
+                          "metadata": {
+                            "policyId": "657991fcca11e70169ba87ef626d2a3a5bd35faa32a5946b8689a342"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
               }
             },
             {
@@ -167,7 +172,10 @@
                         "value": "1",
                         "currency": {
                           "symbol": "4e6f646546656564",
-                          "decimals": 0
+                          "decimals": 0,
+                          "metadata": {
+                            "policyId": "657991fcca11e70169ba87ef626d2a3a5bd35faa32a5946b8689a342"
+                          }
                         }
                       }
                     ]
@@ -178,6 +186,41 @@
             {
               "operation_identifier": {
                 "index": 4,
+                "network_index": 1
+              },
+              "related_operations": [
+                {
+                  "index": 0
+                },
+                {
+                  "index": 1
+                },
+                {
+                  "index": 2
+                }
+              ],
+              "type": "output",
+              "status": "success",
+              "account": {
+                "address": "addr_test1vr93fxkq3jnp5w3m7gtkpasm2z729s3532jfay4n76455fszx3eq2"
+              },
+              "amount": {
+                "value": "9000000",
+                "currency": {
+                  "symbol": "ADA",
+                  "decimals": 6
+                }
+              },
+              "coin_change": {
+                "coin_identifier": {
+                  "identifier": "8eec1abae550114cf881c5972c4cfa0a68bde41ea99a461f16777b98c9ee57e9:1"
+                },
+                "coin_action": "coin_created"
+              }
+            },
+            {
+              "operation_identifier": {
+                "index": 5,
                 "network_index": 2
               },
               "related_operations": [
@@ -218,47 +261,15 @@
                         "value": "1205730",
                         "currency": {
                           "symbol": "7444524950",
-                          "decimals": 0
+                          "decimals": 0,
+                          "metadata": {
+                            "policyId": "698a6ea0ca99f315034072af31eaac6ec11fe8558d3f48e9775aab9d"
+                          }
                         }
                       }
                     ]
                   }
                 ]
-              }
-            },
-            {
-              "operation_identifier": {
-                "index": 5,
-                "network_index": 1
-              },
-              "related_operations": [
-                {
-                  "index": 0
-                },
-                {
-                  "index": 1
-                },
-                {
-                  "index": 2
-                }
-              ],
-              "type": "output",
-              "status": "success",
-              "account": {
-                "address": "addr_test1vr93fxkq3jnp5w3m7gtkpasm2z729s3532jfay4n76455fszx3eq2"
-              },
-              "amount": {
-                "value": "9000000",
-                "currency": {
-                  "symbol": "ADA",
-                  "decimals": 6
-                }
-              },
-              "coin_change": {
-                "coin_identifier": {
-                  "identifier": "8eec1abae550114cf881c5972c4cfa0a68bde41ea99a461f16777b98c9ee57e9:1"
-                },
-                "coin_action": "coin_created"
               }
             }
           ],
@@ -303,25 +314,31 @@
               "metadata": {
                 "tokenBundle": [
                   {
-                    "policyId": "33420b5518842c1d2d2ada6fc1b49d82b62c42d822345180a20e4e5f",
-                    "tokens": [
-                      {
-                        "value": "-1",
-                        "currency": {
-                          "symbol": "4167675374617465",
-                          "decimals": 0
-                        }
-                      }
-                    ]
-                  },
-                  {
                     "policyId": "c6f192a236596e2bbaac5900d67e9700dec7c77d9da626c98e0ab2ac",
                     "tokens": [
                       {
                         "value": "-9999278068",
                         "currency": {
                           "symbol": "5061796d656e74546f6b656e",
-                          "decimals": 0
+                          "decimals": 0,
+                          "metadata": {
+                            "policyId": "c6f192a236596e2bbaac5900d67e9700dec7c77d9da626c98e0ab2ac"
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "policyId": "33420b5518842c1d2d2ada6fc1b49d82b62c42d822345180a20e4e5f",
+                    "tokens": [
+                      {
+                        "value": "-1",
+                        "currency": {
+                          "symbol": "4167675374617465",
+                          "decimals": 0,
+                          "metadata": {
+                            "policyId": "33420b5518842c1d2d2ada6fc1b49d82b62c42d822345180a20e4e5f"
+                          }
                         }
                       }
                     ]
@@ -360,7 +377,10 @@
                         "value": "-1",
                         "currency": {
                           "symbol": "4f7261636c6546656564",
-                          "decimals": 0
+                          "decimals": 0,
+                          "metadata": {
+                            "policyId": "33420b5518842c1d2d2ada6fc1b49d82b62c42d822345180a20e4e5f"
+                          }
                         }
                       }
                     ]
@@ -393,25 +413,31 @@
               "metadata": {
                 "tokenBundle": [
                   {
-                    "policyId": "33420b5518842c1d2d2ada6fc1b49d82b62c42d822345180a20e4e5f",
-                    "tokens": [
-                      {
-                        "value": "-1",
-                        "currency": {
-                          "symbol": "526577617264",
-                          "decimals": 0
-                        }
-                      }
-                    ]
-                  },
-                  {
                     "policyId": "c6f192a236596e2bbaac5900d67e9700dec7c77d9da626c98e0ab2ac",
                     "tokens": [
                       {
                         "value": "-722932",
                         "currency": {
                           "symbol": "5061796d656e74546f6b656e",
-                          "decimals": 0
+                          "decimals": 0,
+                          "metadata": {
+                            "policyId": "c6f192a236596e2bbaac5900d67e9700dec7c77d9da626c98e0ab2ac"
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "policyId": "33420b5518842c1d2d2ada6fc1b49d82b62c42d822345180a20e4e5f",
+                    "tokens": [
+                      {
+                        "value": "-1",
+                        "currency": {
+                          "symbol": "526577617264",
+                          "decimals": 0,
+                          "metadata": {
+                            "policyId": "33420b5518842c1d2d2ada6fc1b49d82b62c42d822345180a20e4e5f"
+                          }
                         }
                       }
                     ]
@@ -482,25 +508,31 @@
               "metadata": {
                 "tokenBundle": [
                   {
-                    "policyId": "33420b5518842c1d2d2ada6fc1b49d82b62c42d822345180a20e4e5f",
-                    "tokens": [
-                      {
-                        "value": "1",
-                        "currency": {
-                          "symbol": "4167675374617465",
-                          "decimals": 0
-                        }
-                      }
-                    ]
-                  },
-                  {
                     "policyId": "c6f192a236596e2bbaac5900d67e9700dec7c77d9da626c98e0ab2ac",
                     "tokens": [
                       {
                         "value": "9999277955",
                         "currency": {
                           "symbol": "5061796d656e74546f6b656e",
-                          "decimals": 0
+                          "decimals": 0,
+                          "metadata": {
+                            "policyId": "c6f192a236596e2bbaac5900d67e9700dec7c77d9da626c98e0ab2ac"
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "policyId": "33420b5518842c1d2d2ada6fc1b49d82b62c42d822345180a20e4e5f",
+                    "tokens": [
+                      {
+                        "value": "1",
+                        "currency": {
+                          "symbol": "4167675374617465",
+                          "decimals": 0,
+                          "metadata": {
+                            "policyId": "33420b5518842c1d2d2ada6fc1b49d82b62c42d822345180a20e4e5f"
+                          }
                         }
                       }
                     ]
@@ -554,7 +586,10 @@
                         "value": "1",
                         "currency": {
                           "symbol": "4f7261636c6546656564",
-                          "decimals": 0
+                          "decimals": 0,
+                          "metadata": {
+                            "policyId": "33420b5518842c1d2d2ada6fc1b49d82b62c42d822345180a20e4e5f"
+                          }
                         }
                       }
                     ]
@@ -602,25 +637,31 @@
               "metadata": {
                 "tokenBundle": [
                   {
-                    "policyId": "33420b5518842c1d2d2ada6fc1b49d82b62c42d822345180a20e4e5f",
-                    "tokens": [
-                      {
-                        "value": "1",
-                        "currency": {
-                          "symbol": "526577617264",
-                          "decimals": 0
-                        }
-                      }
-                    ]
-                  },
-                  {
                     "policyId": "c6f192a236596e2bbaac5900d67e9700dec7c77d9da626c98e0ab2ac",
                     "tokens": [
                       {
                         "value": "723045",
                         "currency": {
                           "symbol": "5061796d656e74546f6b656e",
-                          "decimals": 0
+                          "decimals": 0,
+                          "metadata": {
+                            "policyId": "c6f192a236596e2bbaac5900d67e9700dec7c77d9da626c98e0ab2ac"
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "policyId": "33420b5518842c1d2d2ada6fc1b49d82b62c42d822345180a20e4e5f",
+                    "tokens": [
+                      {
+                        "value": "1",
+                        "currency": {
+                          "symbol": "526577617264",
+                          "decimals": 0,
+                          "metadata": {
+                            "policyId": "33420b5518842c1d2d2ada6fc1b49d82b62c42d822345180a20e4e5f"
+                          }
                         }
                       }
                     ]
@@ -714,7 +755,10 @@
                         "value": "-1",
                         "currency": {
                           "symbol": "4e6f646546656564",
-                          "decimals": 0
+                          "decimals": 0,
+                          "metadata": {
+                            "policyId": "657991fcca11e70169ba87ef626d2a3a5bd35faa32a5946b8689a342"
+                          }
                         }
                       }
                     ]
@@ -811,7 +855,10 @@
                         "value": "1",
                         "currency": {
                           "symbol": "4e6f646546656564",
-                          "decimals": 0
+                          "decimals": 0,
+                          "metadata": {
+                            "policyId": "657991fcca11e70169ba87ef626d2a3a5bd35faa32a5946b8689a342"
+                          }
                         }
                       }
                     ]
@@ -937,7 +984,10 @@
                         "value": "-1",
                         "currency": {
                           "symbol": "4e6f646546656564",
-                          "decimals": 0
+                          "decimals": 0,
+                          "metadata": {
+                            "policyId": "657991fcca11e70169ba87ef626d2a3a5bd35faa32a5946b8689a342"
+                          }
                         }
                       }
                     ]
@@ -1034,7 +1084,10 @@
                         "value": "1",
                         "currency": {
                           "symbol": "4e6f646546656564",
-                          "decimals": 0
+                          "decimals": 0,
+                          "metadata": {
+                            "policyId": "657991fcca11e70169ba87ef626d2a3a5bd35faa32a5946b8689a342"
+                          }
                         }
                       }
                     ]
@@ -1160,7 +1213,10 @@
                         "value": "-1",
                         "currency": {
                           "symbol": "4e6f646546656564",
-                          "decimals": 0
+                          "decimals": 0,
+                          "metadata": {
+                            "policyId": "657991fcca11e70169ba87ef626d2a3a5bd35faa32a5946b8689a342"
+                          }
                         }
                       }
                     ]
@@ -1257,7 +1313,10 @@
                         "value": "1",
                         "currency": {
                           "symbol": "4e6f646546656564",
-                          "decimals": 0
+                          "decimals": 0,
+                          "metadata": {
+                            "policyId": "657991fcca11e70169ba87ef626d2a3a5bd35faa32a5946b8689a342"
+                          }
                         }
                       }
                     ]
@@ -1343,7 +1402,7 @@
         }
       }
     ],
-    "total_count": 4447556,
+    "total_count": 4447564,
     "next_offset": 5
   }
 }
