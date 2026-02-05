@@ -301,6 +301,22 @@ class RosettaClient:
         )
         return self._post("/account/coins", body, schema_name="AccountCoinsResponse")
 
+    @staticmethod
+    def get_error_message(error_response):
+        """
+        Extract error message from API error response.
+
+        Handles multiple error response formats:
+        - {"message": "..."}
+        - {"message": "...", "details": {"message": "..."}}
+        - {"details": {"message": "..."}}
+
+        Returns combined message from all available fields.
+        """
+        message = error_response.get("message", "")
+        details_message = error_response.get("details", {}).get("message", "")
+        return (message + " " + details_message).strip()
+
     def __enter__(self):
         return self
 

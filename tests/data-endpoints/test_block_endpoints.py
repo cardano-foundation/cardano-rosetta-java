@@ -6,7 +6,7 @@ Tests both /block and /block/transaction endpoints with behavioral assertions.
 
 import pytest
 import allure
-from conftest import get_error_message, assert_operations_ordered, assert_operations_sequential
+from client import RosettaClient
 
 pytestmark = pytest.mark.pr
 
@@ -234,7 +234,7 @@ class TestBlockErrors:
         assert response.status_code == 400, "Missing required parameter should return 400"
 
         error = response.json()
-        error_message = get_error_message(error).lower()
+        error_message = RosettaClient.get_error_message(error).lower()
         assert "block" in error_message or "identifier" in error_message
 
 
@@ -286,7 +286,7 @@ class TestBlockTransactionLookup:
         assert response.status_code == 400, "Missing required parameter should return 400"
 
         error = response.json()
-        error_message = get_error_message(error)
+        error_message = RosettaClient.get_error_message(error)
         assert "hash" in error_message.lower(), (
             "Error should indicate missing block hash"
         )
@@ -362,29 +362,29 @@ class TestBlockTransactionErrors:
 class TestBlockOperationInvariants:
     """Operations must be ordered and sequential in all block transactions."""
 
-    def test_block_operations_ordered_by_index(self, client, network):
+    def test_block_operations_ordered_by_index(self, client):
         """Operations in /block response must be sorted by index."""
-        # Find block with transactions
-        search = client.search_transactions(network=network)
+        search = client.search_transactions()
         block_id = search.json()["transactions"][0]["block_identifier"]
 
-        response = client.block(network=network, block_identifier={"index": block_id["index"]})
+        response = client.block(block_identifier={"index": block_id["index"]})
         assert response.status_code == 200
 
         for tx in response.json()["block"]["transactions"]:
-            assert_operations_ordered(tx["operations"])
+            indices = [op["operation_identifier"]["index"] for op in tx["operations"]]
+            assert indices == sorted(indices), f"Operations not ordered: {indices}"
 
-    def test_block_operations_sequential_indices(self, client, network):
+    def test_block_operations_sequential_indices(self, client):
         """Operations in /block must have sequential indices [0, 1, 2, ...]."""
-        # Find block with transactions
-        search = client.search_transactions(network=network)
+        search = client.search_transactions()
         block_id = search.json()["transactions"][0]["block_identifier"]
 
-        response = client.block(network=network, block_identifier={"index": block_id["index"]})
+        response = client.block(block_identifier={"index": block_id["index"]})
         assert response.status_code == 200
 
         for tx in response.json()["block"]["transactions"]:
-            assert_operations_sequential(tx["operations"])
+            indices = [op["operation_identifier"]["index"] for op in tx["operations"]]
+            assert indices == list(range(len(tx["operations"]))), f"Expected sequential, got {indices}"
 
 
 @allure.feature("Block Transaction")
@@ -392,14 +392,12 @@ class TestBlockOperationInvariants:
 class TestBlockTransactionOperationInvariants:
     """Operations must be ordered and sequential in /block/transaction."""
 
-    def test_block_transaction_operations_ordered_by_index(self, client, network):
+    def test_block_transaction_operations_ordered_by_index(self, client):
         """Operations in /block/transaction must be sorted by index."""
-        # Find transaction
-        search = client.search_transactions(network=network)
+        search = client.search_transactions()
         block_tx = search.json()["transactions"][0]
 
         response = client.block_transaction(
-            network=network,
             block_identifier={
                 "index": block_tx["block_identifier"]["index"],
                 "hash": block_tx["block_identifier"]["hash"]
@@ -408,16 +406,16 @@ class TestBlockTransactionOperationInvariants:
         )
         assert response.status_code == 200
 
-        assert_operations_ordered(response.json()["transaction"]["operations"])
+        ops = response.json()["transaction"]["operations"]
+        indices = [op["operation_identifier"]["index"] for op in ops]
+        assert indices == sorted(indices), f"Operations not ordered: {indices}"
 
-    def test_block_transaction_operations_sequential_indices(self, client, network):
+    def test_block_transaction_operations_sequential_indices(self, client):
         """Operations in /block/transaction must have sequential indices."""
-        # Find transaction
-        search = client.search_transactions(network=network)
+        search = client.search_transactions()
         block_tx = search.json()["transactions"][0]
 
         response = client.block_transaction(
-            network=network,
             block_identifier={
                 "index": block_tx["block_identifier"]["index"],
                 "hash": block_tx["block_identifier"]["hash"]
@@ -426,4 +424,6 @@ class TestBlockTransactionOperationInvariants:
         )
         assert response.status_code == 200
 
-        assert_operations_sequential(response.json()["transaction"]["operations"])
+        ops = response.json()["transaction"]["operations"]
+        indices = [op["operation_identifier"]["index"] for op in ops]
+        assert indices == list(range(len(ops))), f"Expected sequential, got {indices}"

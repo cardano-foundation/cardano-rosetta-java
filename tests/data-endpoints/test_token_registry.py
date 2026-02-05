@@ -30,8 +30,10 @@ def tokens_config(network_data):
 
 
 @pytest.fixture
-def token_registry_base_url():
+def token_registry_base_url(has_token_registry):
     """Validate and return token registry base URL from environment."""
+    if not has_token_registry:
+        pytest.skip("Token registry not enabled")
     assert TOKEN_REGISTRY_BASE_URL, "TOKEN_REGISTRY_BASE_URL environment variable must be set"
     return TOKEN_REGISTRY_BASE_URL.rstrip("/")
 
@@ -214,7 +216,8 @@ class TestTokenRegistryHealth:
     """Validate metadata enrichment for configured tokens using account balances."""
 
     def test_configured_tokens_have_enrichment(self, client, network, tokens_config, has_token_registry):
-        assert has_token_registry, "Token registry must be enabled for this test"
+        if not has_token_registry:
+            pytest.skip("Token registry not enabled")
 
         for token in tokens_config:
             currency, metadata = _fetch_token_from_account(client, network, token)
@@ -234,7 +237,8 @@ class TestTokenRegistryEnrichment:
     @pytest.mark.nightly
     @pytest.mark.requires_token_registry
     def test_enriched_metadata_in_block_operations(self, client, network, tokens_config, has_token_registry):
-        assert has_token_registry, "Token registry must be enabled for this test"
+        if not has_token_registry:
+            pytest.skip("Token registry not enabled")
 
         for token in tokens_config:
             matches = _block_operations_for_token(client, network, token)
@@ -250,7 +254,8 @@ class TestTokenRegistryEnrichment:
     @pytest.mark.slow
     @pytest.mark.requires_token_registry
     def test_enriched_metadata_in_search_results(self, client, network, tokens_config, has_token_registry):
-        assert has_token_registry, "Token registry must be enabled for this test"
+        if not has_token_registry:
+            pytest.skip("Token registry not enabled")
 
         for token in tokens_config:
             matches = _search_operations_for_token(client, network, token)
@@ -273,7 +278,8 @@ class TestTokenRegistryLogos:
     @pytest.mark.requires_token_registry
     @pytest.mark.requires_logo_fetch
     def test_logo_formats_match_expected_standard(self, client, network, tokens_config, has_token_registry):
-        assert has_token_registry, "Token registry must be enabled for this test"
+        if not has_token_registry:
+            pytest.skip("Token registry not enabled")
         if not TOKEN_REGISTRY_LOGO_FETCH:
             pytest.skip("TOKEN_REGISTRY_LOGO_FETCH must be true to validate logo payloads")
 
@@ -304,7 +310,8 @@ class TestTokenRegistryParity:
     @pytest.mark.weekly
     @pytest.mark.requires_token_registry
     def test_rosetta_metadata_matches_registry(self, client, network, tokens_config, token_registry_base_url, has_token_registry):
-        assert has_token_registry, "Token registry must be enabled for this test"
+        if not has_token_registry:
+            pytest.skip("Token registry not enabled")
 
         for token in tokens_config:
             currency, rosetta_metadata = _fetch_token_from_account(client, network, token)
