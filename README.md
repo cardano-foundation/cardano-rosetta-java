@@ -105,7 +105,7 @@ docker compose logs -f
 </details>
 
 <details>
-<summary><b>Mainnet</b> (48-72 hours sync time with Mithril)</summary>
+<summary><b>Mainnet</b> (ca. 37 hours sync time with Mithril)</summary>
 
 ### Prerequisites
 - Docker and Docker Compose
