@@ -19,7 +19,7 @@ class TestPeerDiscovery:
             pytest.skip("Peer discovery not enabled")
 
         # Get initial peer list
-        peers_t0 = client.network_status(network=network).json().get("peers", [])
+        peers_t0 = client.network_status().json().get("peers", [])
         assert peers_t0, "Initial peer list should not be empty"
 
         # Wait for peer discovery refresh cycle (60 min + 5 min buffer)
@@ -28,7 +28,7 @@ class TestPeerDiscovery:
         time.sleep(wait_minutes * 60)
 
         # Get peer list after refresh
-        peers_t1 = client.network_status(network=network).json().get("peers", [])
+        peers_t1 = client.network_status().json().get("peers", [])
         assert peers_t1, "Peer list after refresh should not be empty"
 
         # Verify peers changed (dynamic discovery is working)

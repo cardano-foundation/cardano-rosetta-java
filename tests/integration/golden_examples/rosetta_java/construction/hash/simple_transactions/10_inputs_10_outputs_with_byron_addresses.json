@@ -1,6 +1,7 @@
 {
   "test_name": "10 inputs → 10 outputs with byron addresses hash",
   "description": "Hash test for Payloads for 10 inputs → 10 outputs with byron addresses (skipped due to combine error)",
+  "skip_reason": "Byron address data missing, requires yaci-store upgrade and re-indexing (#585)",
   "request_body": {
     "network_identifier": {
       "blockchain": "cardano",

@@ -1,9 +1,12 @@
 ---
-sidebar_position: 1
+sidebar_position: 3
 title: Hardware Profiles
 description: Hardware profiles for Cardano Rosetta Java
 keywords: [hardware, configuration, performance, profiles, PostgreSQL]
 ---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
 
 # Hardware Profiles
 
