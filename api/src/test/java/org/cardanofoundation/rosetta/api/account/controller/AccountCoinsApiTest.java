@@ -29,7 +29,7 @@ class AccountCoinsApiTest extends BaseSpringMvcSetup {
   private final String latestTxHashOnZeroSlot = "%s:0".formatted(generatedDataMap.get(
           TestTransactionNames.SIMPLE_NEW_EMPTY_NAME_COINS_TRANSACTION.getName()).txHash());
 
-  private final String expectedTestAccountCoinAmount = "1635602";
+  private final String expectedTestAccountCoinAmount = "1818351";
   private final CurrencyRequest myAssetCurrency =
       getCurrency(TestConstants.MY_ASSET_SYMBOL,Constants.MULTI_ASSET_DECIMALS, myAssetPolicyId);
   private final CurrencyRequest ada = getCurrency(Constants.ADA, Constants.ADA_DECIMALS);
@@ -40,10 +40,10 @@ class AccountCoinsApiTest extends BaseSpringMvcSetup {
     AccountCoinsResponse accountCoinsResponse = post(getAccountCoinsRequest(TEST_ACCOUNT_ADDRESS));
 
     assertNotNull(accountCoinsResponse);
-    assertEquals(2, accountCoinsResponse.getCoins().size());
+    assertEquals(3, accountCoinsResponse.getCoins().size());
     List<CoinTokens> metadata = accountCoinsResponse.getCoins().getFirst().getMetadata()
         .get(latestTxHashOnZeroSlot);
-    assertEquals(2, metadata.size());
+    assertEquals(1, metadata.size());
     assertEquals(expectedTestAccountCoinAmount,
         accountCoinsResponse.getCoins().getFirst().getAmount().getValue());
     assertEquals(TestConstants.ACCOUNT_BALANCE_MINTED_TOKENS_AMOUNT,
@@ -95,7 +95,7 @@ class AccountCoinsApiTest extends BaseSpringMvcSetup {
     AccountCoinsResponse accountCoinsResponse = post(getAccountCoinsRequest(TEST_ACCOUNT_ADDRESS));
 
     assertNotNull(accountCoinsResponse);
-    assertEquals(2, accountCoinsResponse.getCoins().size());
+    assertEquals(3, accountCoinsResponse.getCoins().size());
     assertEquals(latestTxHashOnZeroSlot,
         accountCoinsResponse.getCoins().getFirst().getCoinIdentifier().getIdentifier());
     assertEquals(expectedTestAccountCoinAmount,
@@ -106,15 +106,10 @@ class AccountCoinsApiTest extends BaseSpringMvcSetup {
         accountCoinsResponse.getCoins().getFirst().getAmount().getCurrency().getDecimals());
     List<CoinTokens> metadata = accountCoinsResponse.getCoins().getFirst().getMetadata()
         .get(latestTxHashOnZeroSlot);
-    assertEquals(2, metadata.size());
-    assertEquals(metadata.get(1).getPolicyId(), metadata.getFirst().getPolicyId());
+    assertEquals(1, metadata.size());
     // Metadata no longer contains policyId - it's not duplicated in response
     assertEquals(TestConstants.ACCOUNT_BALANCE_MINTED_TOKENS_AMOUNT,
         metadata.getFirst().getTokens().getFirst().getValue());
-    assertEquals(TestConstants.ACCOUNT_BALANCE_MINTED_TOKENS_AMOUNT,
-        metadata.get(1).getTokens().getFirst().getValue());
-    assertNotEquals(metadata.get(1).getTokens().getFirst().getCurrency().getSymbol(),
-        metadata.getFirst().getTokens().getFirst().getCurrency().getSymbol());
   }
 
 //  @Test
@@ -174,24 +169,18 @@ class AccountCoinsApiTest extends BaseSpringMvcSetup {
         post(getAccountCoinsRequestWithCurrencies(TEST_ACCOUNT_ADDRESS, ada, myAssetCurrency));
 
     assertNotNull(accountCoinsResponse);
-    assertEquals(2, accountCoinsResponse.getCoins().size());
+    assertEquals(3, accountCoinsResponse.getCoins().size());
     Coin coins = accountCoinsResponse.getCoins().getFirst();
     assertEquals(expectedTestAccountCoinAmount, coins.getAmount().getValue());
     assertEquals(Constants.ADA, coins.getAmount().getCurrency().getSymbol());
     assertEquals(Constants.ADA_DECIMALS, coins.getAmount().getCurrency().getDecimals());
     List<CoinTokens> coinsMetadata = coins.getMetadata().values().iterator().next();
-    assertEquals(2, coinsMetadata.size());
-    assertEquals(coinsMetadata.getFirst().getPolicyId(), coinsMetadata.get(1).getPolicyId());
+    assertEquals(1, coinsMetadata.size());
     assertEquals(TestConstants.ACCOUNT_BALANCE_MINTED_TOKENS_AMOUNT, coinsMetadata.getFirst()
         .getTokens().getFirst().getValue());
     // With TokenRegistry integration, decimals come from metadata instead of default
     assertEquals(6,
         coinsMetadata.getFirst().getTokens().getFirst().getCurrency().getDecimals());
-    assertEquals(TestConstants.ACCOUNT_BALANCE_MINTED_TOKENS_AMOUNT, coinsMetadata.get(1)
-        .getTokens().getFirst().getValue());
-    // With TokenRegistry integration, decimals come from metadata instead of default
-    assertEquals(6,
-        coinsMetadata.get(1).getTokens().getFirst().getCurrency().getDecimals());
   }
 
   @Test

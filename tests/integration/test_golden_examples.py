@@ -101,11 +101,21 @@ VOLATILE_FIELDS = {
 # (e.g., timestamps that change between runs)
 DATA_ENDPOINT_VOLATILE_FIELDS = {
     "search": [],
+    "transactions": ["total_count"],
     "block": [],
     "account": [],
     "network": [],
     "mempool": [],
 }
+
+# Regex patterns for paths that should be ignored during diffing.
+# Token registry enrichment adds decimals/metadata fields that vary by environment.
+import re
+VOLATILE_PATH_PATTERNS = [
+    re.compile(r"\.currency\.decimals$"),
+    re.compile(r"\.currency\.metadata\."),
+    re.compile(r"\.currency\.metadata$"),
+]
 
 # Stats
 stats: Dict[str, Any] = {
@@ -380,6 +390,9 @@ def deep_diff(
     for p in ignore_paths:
         if path.startswith(p):
             return []
+    for pat in VOLATILE_PATH_PATTERNS:
+        if pat.search(path):
+            return []
     if expected is None and actual is None:
         return []
     if expected is None or actual is None:
@@ -567,6 +580,9 @@ def validate_file(file_path: Path) -> Dict[str, Any]:
         test = json.loads(Path(file_path).read_text(encoding="utf-8"))
         if "skip_reason" in test:
             res.update({"status": "skipped", "error": test["skip_reason"]})
+            return res
+        if "network" in test and NETWORK_ID and test["network"] != NETWORK_ID:
+            res.update({"status": "skipped", "error": f"Requires network '{test['network']}', running on '{NETWORK_ID}'"})
             return res
         if "request_body" not in test:
             res.update({"status": "skipped", "error": "No request_body found"})

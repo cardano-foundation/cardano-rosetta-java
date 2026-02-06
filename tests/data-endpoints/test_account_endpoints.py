@@ -6,7 +6,7 @@ Tests both /account/balance and /account/coins endpoints with behavioral asserti
 
 import pytest
 import allure
-from conftest import get_error_message
+from client import RosettaClient
 
 pytestmark = pytest.mark.pr
 
@@ -387,7 +387,7 @@ class TestAccountErrors:
         assert response.status_code == 400, "Missing required parameter should return 400"
 
         error = response.json()
-        error_message = get_error_message(error).lower()
+        error_message = RosettaClient.get_error_message(error).lower()
         assert "account" in error_message or "identifier" in error_message
 
     def test_invalid_address_format_returns_error(self, client, network):

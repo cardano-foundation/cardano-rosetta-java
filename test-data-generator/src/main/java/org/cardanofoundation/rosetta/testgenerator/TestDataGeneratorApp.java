@@ -40,14 +40,16 @@ public class TestDataGeneratorApp {
     Reflections reflections = new Reflections("org.cardanofoundation.rosetta.testgenerator");
     Set<Class<? extends TransactionRunner>> classes = reflections.getSubTypesOf(
         TransactionRunner.class);
-    return classes.stream().map(clazz -> {
-      try {
-        return clazz.getDeclaredConstructor().newInstance();
-      } catch (InstantiationException | IllegalAccessException | NoSuchMethodException |
-               InvocationTargetException e) {
-        throw new IllegalArgumentException("Error during creating new instance with reflection", e);
-      }
-    });
+    return classes.stream()
+        .<TransactionRunner>map(clazz -> {
+          try {
+            return clazz.getDeclaredConstructor().newInstance();
+          } catch (InstantiationException | IllegalAccessException | NoSuchMethodException |
+                   InvocationTargetException e) {
+            throw new IllegalArgumentException("Error during creating new instance with reflection", e);
+          }
+        })
+        .sorted((r1, r2) -> Integer.compare(r1.getExecutionOrder(), r2.getExecutionOrder()));
   }
 
   private static void writeToJson(Map<String, TransactionBlockDetails> generatedDataMap) {

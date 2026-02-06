@@ -73,7 +73,7 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
 
   private final LedgerBlockService ledgerBlockService;
   private final ProtocolParamService protocolParamService;
-  private final OperationService operationService;
+  private final TransactionOperationParser transactionOperationParser;
   private final RestTemplate restTemplate;
   private final OfflineSlotService offlineSlotService;
 
@@ -89,22 +89,27 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
   @Override
   public TransactionParsed parseTransaction(Network network, String transaction, boolean signed) {
     Array decodeTransaction = decodeTransaction(transaction);
+
     try {
       TransactionData convertedTr = CborArrayToTransactionData.convert(decodeTransaction, signed);
-      List<Operation> operations = operationService.getOperationsFromTransactionData(convertedTr, network);
+      List<Operation> operations = transactionOperationParser.getOperationsFromTransactionData(convertedTr, network);
       List<AccountIdentifier> accountIdentifierSigners = new ArrayList<>();
+
       if (signed) {
         log.info("[parseSignedTransaction] About to get signatures from parsed transaction");
         List<String> accumulator = convertedTr.transactionExtraData().operations().stream()
-                .map(o -> operationService.getSignerFromOperation(network, o))
+                .map(o -> transactionOperationParser.getSignerFromOperation(network, o))
                 .flatMap(List::stream)
                 .toList();
+
         accountIdentifierSigners = getUniqueAccountIdentifiers(accumulator);
       }
+
       return new TransactionParsed(operations, accountIdentifierSigners);
     } catch (CborException | CborDeserializationException | CborSerializationException error) {
       log.error("{} [parseTransaction] Cant instantiate transaction from transaction bytes",
               error.getMessage(), error);
+
       throw ExceptionFactory.invalidTransactionError();
     }
   }
@@ -624,7 +629,7 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
   private List<AccountIdentifier> getUniqueAccountIdentifiers(List<String> addresses) {
     return new HashSet<>(addresses)
             .stream()
-            .map(s -> new AccountIdentifier(s, null, null))
+            .map(address -> new AccountIdentifier(address, null, null))
             .toList();
   }
 

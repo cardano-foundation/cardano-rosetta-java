@@ -151,18 +151,4 @@ def network_data(network):
     return all_data[network]
 
 
-def get_error_message(error_response):
-    """
-    Extract error message from API error response.
-
-    Handles multiple error response formats:
-    - {"message": "..."}
-    - {"message": "...", "details": {"message": "..."}}
-    - {"details": {"message": "..."}}
-
-    Returns combined message from all available fields.
-    """
-    message = error_response.get("message", "")
-    details_message = error_response.get("details", {}).get("message", "")
-    return (message + " " + details_message).strip()
 
