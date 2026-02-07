@@ -23,6 +23,8 @@ import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.model.cardano.CertificateWithAddress;
 import org.cardanofoundation.rosetta.common.model.cardano.pool.*;
 import org.cardanofoundation.rosetta.common.model.cardano.pool.PoolRetirement;
+import javax.annotation.Nullable;
+
 import org.openapitools.client.model.*;
 
 import java.util.*;
@@ -77,8 +79,15 @@ public class ProcessConstructions {
                                                                              String address) {
         DRepParams drep = operationMetadata.getDrep();
 
-        if (drep == null || drep.getType() == null) {
+        if (drep == null) {
             throw ExceptionFactory.missingDrep();
+        }
+
+        // Infer type from CIP-129 header byte if not provided
+        if (drep.getType() == null) {
+            DRepTypeParams inferredType = inferDrepTypeFromCip129Header(drep.getId());
+            drep.setType(inferredType);
+            log.debug("[handleDrepVoteDelegation] Inferred drep.type={} from CIP-129 header byte", inferredType);
         }
 
         DRepDelegation.DRep delegationDrep = DRepDelegation.DRep.convertDRepToRosetta(drep);
@@ -146,6 +155,48 @@ public class ProcessConstructions {
                 .stakeCredential(credential)
                 .drep(dRep)
                 .build(), address));
+    }
+
+    /**
+     * Infers the DRep type from a CIP-129 header byte when drep.type is not provided.
+     * CIP-129 defines: header byte bits [7..4] = governance key type (0010 = DRep),
+     * bits [3..0] = credential type (0010 = key hash, 0011 = script hash).
+     * So 0x22 = DRep + key_hash, 0x23 = DRep + script_hash.
+     *
+     * @param drepId the DRep identifier (hex string), must be CIP-129 prefixed (29 bytes / 58 hex chars)
+     * @return the inferred DRepTypeParams
+     * @throws ApiException if the id is null/blank, not 29 bytes, or has an invalid header
+     */
+    private static DRepTypeParams inferDrepTypeFromCip129Header(@Nullable String drepId) {
+        if (drepId == null || drepId.isBlank()) {
+            log.warn("[inferDrepTypeFromCip129Header] drep.type is null and drep.id is missing");
+            throw ExceptionFactory.missingDrep();
+        }
+
+        byte[] idBytes = HexUtil.decodeHexString(drepId);
+
+        if (idBytes.length != 29) {
+            log.warn("[inferDrepTypeFromCip129Header] drep.type is required for raw {}-byte ids", idBytes.length);
+            throw ExceptionFactory.missingDrep();
+        }
+
+        byte header = idBytes[0];
+        // Validate top nibble is DRep (0x2_)
+        if ((header & 0xF0) != 0x20) {
+            log.warn("[inferDrepTypeFromCip129Header] CIP-129 header byte 0x{} is not a DRep identifier",
+                    String.format("%02x", header));
+            throw ExceptionFactory.invalidDrepType();
+        }
+
+        return switch (header) {
+            case 0x22 -> DRepTypeParams.KEY_HASH;
+            case 0x23 -> DRepTypeParams.SCRIPT_HASH;
+            default -> {
+                log.warn("[inferDrepTypeFromCip129Header] Unsupported CIP-129 credential nibble in header 0x{}",
+                        String.format("%02x", header));
+                throw ExceptionFactory.invalidDrepType();
+            }
+        };
     }
 
     private static Optional<CertificateWithAddress> handleStakeDelegation(Operation operation, OperationMetadata operationMetadata, StakeCredential credential, String address) {

@@ -16,11 +16,13 @@ import org.openapitools.client.model.NetworkIdentifier;
 import org.openapitools.client.model.Operation;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import org.cardanofoundation.rosetta.api.IntegrationTest;
 import org.cardanofoundation.rosetta.common.exception.ApiException;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class PayloadsApiTest extends IntegrationTest {
@@ -189,6 +191,30 @@ class PayloadsApiTest extends IntegrationTest {
     System.out.println("Error. Code: " + exception.getError().getCode());
 
     assertEquals(expectedErrorCode, exception.getError().getCode());
+  }
+
+  @Nested
+  class Cip129DRepTypeInference {
+
+    @Test
+    void shouldInferKeyHashType_whenCip129PrefixedIdWithoutType() throws Exception {
+      // CIP-129 prefixed id (0x22 = key_hash) with no type field: should produce same tx as explicit key_hash
+      ConstructionPayloadsRequest request = getPayloadRequest(
+          "testdata/construction/payloads/dRep_delegation-cip129_keyhash_no_type.json");
+
+      ConstructionPayloadsResponse body = constructionApiService.constructionPayloadsService(request);
+
+      assertThat(body).isNotNull();
+      assertThat(body.getUnsignedTransaction()).isNotBlank();
+    }
+
+    @Test
+    void shouldFail_whenRawIdWithoutType() throws Exception {
+      // Raw 28-byte id without type: should fail with MISSING_DREP_TYPE (5040)
+      assertConstructionPayloadsFail(
+          "testdata/construction/payloads/dRep_delegation-raw_no_type_shouldFail.json",
+          5040);
+    }
   }
 
 }

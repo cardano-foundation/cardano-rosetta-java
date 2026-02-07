@@ -4,6 +4,8 @@ import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDateTime;
 
+import org.springframework.http.HttpStatus;
+
 import static org.cardanofoundation.rosetta.common.util.RosettaConstants.RosettaErrorType;
 
 public class ExceptionFactory {
@@ -306,7 +308,7 @@ public class ExceptionFactory {
     }
 
     public static ApiException missingDRepId() {
-        return new ApiException(RosettaErrorType.MISSING_DREP_ID.toRosettaError(false));
+        return new ApiException(RosettaErrorType.MISSING_DREP_ID.toRosettaError(false), HttpStatus.BAD_REQUEST);
     }
 
     public static ApiException timeOut(String detailMessage) {
@@ -326,19 +328,19 @@ public class ExceptionFactory {
     }
 
     public static ApiException invalidDrepIdLength() {
-        return new ApiException(RosettaErrorType.INVALID_DREP_ID_LENGTH.toRosettaError(false));
+        return new ApiException(RosettaErrorType.INVALID_DREP_ID_LENGTH.toRosettaError(false), HttpStatus.BAD_REQUEST);
     }
 
     public static ApiException mismatchDrepType() {
-        return new ApiException(RosettaErrorType.MISMATCH_DREP_TYPE.toRosettaError(false));
+        return new ApiException(RosettaErrorType.MISMATCH_DREP_TYPE.toRosettaError(false), HttpStatus.BAD_REQUEST);
     }
 
     public static ApiException missingDrep() {
-        return new ApiException(RosettaErrorType.MISSING_DREP_TYPE.toRosettaError(false));
+        return new ApiException(RosettaErrorType.MISSING_DREP_TYPE.toRosettaError(false), HttpStatus.BAD_REQUEST);
     }
 
     public static ApiException invalidDrepType() {
-        return new ApiException(RosettaErrorType.INVALID_DREP_TYPE.toRosettaError(false));
+        return new ApiException(RosettaErrorType.INVALID_DREP_TYPE.toRosettaError(false), HttpStatus.BAD_REQUEST);
     }
 
     public static ApiException invalidGovernanceVote(String reasonText) {

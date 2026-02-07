@@ -1,6 +1,6 @@
 {
-  "test_name": "(-) CIP-129 key prefix without type",
-  "description": "Negative: DRep id includes CIP-129 key-hash prefix but omits required drep.type",
+  "test_name": "CIP-129 key prefix infers type",
+  "description": "Success: DRep id includes CIP-129 key-hash prefix (0x22), type is inferred as key_hash",
   "request_body": {
     "network_identifier": {
       "blockchain": "cardano",
@@ -65,12 +65,10 @@
       }
     ]
   },
-  "expected_error": {
-    "code": 5000,
-    "message": "An error occurred",
-    "retriable": false,
-    "details": {
-      "message": "An error occurred for request [ID]: [operations[2].metadata.drep.type must not be null]"
+  "expected_response": {
+    "options": {
+      "relative_ttl": 1000,
+      "transaction_size": 403
     }
   }
 }
