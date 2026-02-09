@@ -31,10 +31,7 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(ApiException.class)
   public ResponseEntity<Error> handleApiException(ApiException apiException) {
     log.error("An API exception has raised", apiException);
-    HttpStatus status = apiException.getHttpStatus() != null
-        ? apiException.getHttpStatus()
-        : HttpStatus.INTERNAL_SERVER_ERROR;
-    return new ResponseEntity<>(apiException.getError(), status);
+    return new ResponseEntity<>(apiException.getError(), HttpStatus.INTERNAL_SERVER_ERROR);
   }
 
   @ExceptionHandler(CompletionException.class)
