@@ -151,31 +151,4 @@ def network_data(network):
     return all_data[network]
 
 
-def get_error_message(error_response):
-    """
-    Extract error message from API error response.
-
-    Handles multiple error response formats:
-    - {"message": "..."}
-    - {"message": "...", "details": {"message": "..."}}
-    - {"details": {"message": "..."}}
-
-    Returns combined message from all available fields.
-    """
-    message = error_response.get("message", "")
-    details_message = error_response.get("details", {}).get("message", "")
-    return (message + " " + details_message).strip()
-
-
-def assert_operations_ordered(operations):
-    """Operations must be sorted by operation_identifier.index."""
-    indices = [op["operation_identifier"]["index"] for op in operations]
-    assert indices == sorted(indices), f"Operations not ordered: {indices}"
-
-
-def assert_operations_sequential(operations):
-    """Operation indices must be [0, 1, 2, ..., n-1]."""
-    indices = [op["operation_identifier"]["index"] for op in operations]
-    expected = list(range(len(operations)))
-    assert indices == expected, f"Expected {expected}, got {indices}"
 
