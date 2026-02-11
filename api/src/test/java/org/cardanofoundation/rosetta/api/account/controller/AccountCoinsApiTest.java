@@ -209,7 +209,7 @@ class AccountCoinsApiTest extends BaseSpringMvcSetup {
         .andExpect(jsonPath("$.code").value(4024))
         .andExpect(jsonPath("$.message").value("Invalid token name"))
         .andExpect(jsonPath("$.details.message").value("Given name is thisIsANonHexString"))
-        .andExpect(jsonPath("$.retriable").value(false));
+        .andExpect(jsonPath("$.retriable").value(true));
   }
 
   @Test
@@ -222,7 +222,7 @@ class AccountCoinsApiTest extends BaseSpringMvcSetup {
         .andExpect(jsonPath("$.code").value(4024))
         .andExpect(jsonPath("$.message").value("Invalid token name"))
         .andExpect(jsonPath("$.details.message").value("Given name is lovelace"))
-        .andExpect(jsonPath("$.retriable").value(false));
+        .andExpect(jsonPath("$.retriable").value(true));
   }
 
   @Test
@@ -242,7 +242,7 @@ class AccountCoinsApiTest extends BaseSpringMvcSetup {
         .andExpect(jsonPath("$.code").value(4024))
         .andExpect(jsonPath("$.message").value("Invalid token name"))
         .andExpect(jsonPath("$.details.message").value("Given name is " + tooLongCurrencyName))
-        .andExpect(jsonPath("$.retriable").value(false));
+        .andExpect(jsonPath("$.retriable").value(true));
   }
 
   @Test
@@ -259,7 +259,7 @@ class AccountCoinsApiTest extends BaseSpringMvcSetup {
         .andExpect(jsonPath("$.code").value(4023))
         .andExpect(jsonPath("$.message").value("Invalid policy id"))
         .andExpect(jsonPath("$.details.message").value("Given policy id is " + tooLongPolicyId))
-        .andExpect(jsonPath("$.retriable").value(false));
+        .andExpect(jsonPath("$.retriable").value(true));
   }
 
   @Test
@@ -274,7 +274,7 @@ class AccountCoinsApiTest extends BaseSpringMvcSetup {
         .andExpect(jsonPath("$.code").value(4023))
         .andExpect(jsonPath("$.message").value("Invalid policy id"))
         .andExpect(jsonPath("$.details.message").value("Given policy id is thisIsNonHexPolicyId"))
-        .andExpect(jsonPath("$.retriable").value(false));
+        .andExpect(jsonPath("$.retriable").value(true));
   }
 
 

@@ -59,18 +59,18 @@ public class YaciHttpGatewayImpl implements YaciHttpGateway {
             if (statusCode >= 200 && statusCode < 300) {
                 return objectMapper.readValue(responseBody, StakeAccountInfo.class);
             } else if (statusCode == 400) {
-                throw ExceptionFactory.gatewayError(false);
+                throw ExceptionFactory.gatewayError();
             } else if (statusCode == 500) {
-                throw ExceptionFactory.gatewayError(true);
+                throw ExceptionFactory.gatewayError();
             } else {
-                throw ExceptionFactory.gatewayError(false);
+                throw ExceptionFactory.gatewayError();
             }
         } catch (IOException | InterruptedException e) {
             log.error("Error during yaci-indexer HTTP request", e);
 
             Thread.currentThread().interrupt();
 
-            throw ExceptionFactory.gatewayError(true);
+            throw ExceptionFactory.gatewayError();
         }
     }
 
@@ -94,18 +94,18 @@ public class YaciHttpGatewayImpl implements YaciHttpGateway {
 
                 return Arrays.asList(peersArray);
             } else if (statusCode == 400) {
-                throw ExceptionFactory.gatewayError(false);
+                throw ExceptionFactory.gatewayError();
             } else if (statusCode == 500) {
-                throw ExceptionFactory.gatewayError(true);
+                throw ExceptionFactory.gatewayError();
             } else {
-                throw ExceptionFactory.gatewayError(false);
+                throw ExceptionFactory.gatewayError();
             }
         } catch (IOException | InterruptedException e) {
             log.error("Error during yaci-indexer peers HTTP request", e);
 
             Thread.currentThread().interrupt();
 
-            throw ExceptionFactory.gatewayError(true);
+            throw ExceptionFactory.gatewayError();
         }
     }
 

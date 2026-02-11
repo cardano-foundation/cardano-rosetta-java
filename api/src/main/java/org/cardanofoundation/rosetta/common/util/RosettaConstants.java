@@ -7,7 +7,6 @@ import org.openapitools.client.model.OperationStatus;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Stream;
 
 public class RosettaConstants {
 
@@ -37,20 +36,19 @@ public class RosettaConstants {
 //      "voteRegistration"
 //  );
 
-    public static final List<Error> REPEATABLE_ROSETTA_ERRORS = Stream.of(RosettaErrorType.SEND_TRANSACTION_ERROR)
-            .map(error -> error.toRosettaError(true))
+    public static final List<Error> REPEATABLE_ROSETTA_ERRORS = Arrays.stream(RosettaErrorType.values())
+            .filter(RosettaErrorType::isRetriable)
+            .map(RosettaErrorType::toRosettaError)
             .toList();
 
     public static final List<Error> NOT_REPEATABLE_ROSETTA_ERRORS = Arrays.stream(RosettaErrorType.values())
-            .map(error -> error.toRosettaError(false))
-            .filter(e -> REPEATABLE_ROSETTA_ERRORS.stream().noneMatch(r -> r.getCode() == e.getCode()))
+            .filter(e -> !e.isRetriable())
+            .map(RosettaErrorType::toRosettaError)
             .toList();
 
-    public static final List<Error> ALL_ROSETTA_ERRORS = Stream.concat(
-                    REPEATABLE_ROSETTA_ERRORS.stream(),
-                    NOT_REPEATABLE_ROSETTA_ERRORS.stream())
+    public static final List<Error> ALL_ROSETTA_ERRORS = Arrays.stream(RosettaErrorType.values())
+            .map(RosettaErrorType::toRosettaError)
             .sorted(Comparator.comparingInt(Error::getCode))
-            .distinct()
             .toList();
 
     private static OperationStatus buildOperationStatus(final String status,
@@ -188,20 +186,27 @@ public class RosettaConstants {
             return code;
         }
 
-        public Error toRosettaError(final boolean retriable) {
-            return toRosettaError(retriable, null, null);
+        public boolean isClientError() {
+            return code >= 4000 && code < 5000;
         }
 
-        public Error toRosettaError(final boolean retriable, final Details details) {
-            return toRosettaError(retriable, details, null);
+        public boolean isRetriable() {
+            return isClientError();
         }
 
-        public Error toRosettaError(final boolean retriable, final Details details,
-                                    final String description) {
+        public Error toRosettaError() {
+            return toRosettaError(null, null);
+        }
+
+        public Error toRosettaError(final Details details) {
+            return toRosettaError(details, null);
+        }
+
+        public Error toRosettaError(final Details details, final String description) {
             return Error.builder()
                     .code(code)
                     .message(message)
-                    .retriable(retriable)
+                    .retriable(isRetriable())
                     .description(description)
                     .details(details)
                     .build();

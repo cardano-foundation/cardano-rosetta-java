@@ -170,7 +170,7 @@ class AccountBalanceApiTest extends BaseSpringMvcSetup {
                     .content(objectMapper.writeValueAsString(accountBalanceRequest)))
             .andExpect(jsonPath("$.code").value(4001))
             .andExpect(jsonPath("$.message").value("Block not found"))
-            .andExpect(jsonPath("$.retriable").value(false));
+            .andExpect(jsonPath("$.retriable").value(true));
 
   }
 

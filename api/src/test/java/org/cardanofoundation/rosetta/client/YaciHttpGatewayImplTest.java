@@ -76,7 +76,7 @@ class YaciHttpGatewayImplTest {
         when(httpResponse.statusCode()).thenReturn(400);
 
         ApiException exception = assertThrows(ApiException.class, () -> yaciHttpGateway.getStakeAccountRewards(stakeAddress));
-        assertEquals(RosettaConstants.RosettaErrorType.GATEWAY_ERROR.toRosettaError(false).getCode(), exception.getError().getCode());
+        assertEquals(RosettaConstants.RosettaErrorType.GATEWAY_ERROR.toRosettaError().getCode(), exception.getError().getCode());
     }
 
     @Test
@@ -85,7 +85,7 @@ class YaciHttpGatewayImplTest {
         when(httpResponse.statusCode()).thenReturn(500);
 
         ApiException exception = assertThrows(ApiException.class, () -> yaciHttpGateway.getStakeAccountRewards(stakeAddress));
-        assertEquals(RosettaConstants.RosettaErrorType.GATEWAY_ERROR.toRosettaError(true).getCode(), exception.getError().getCode());
+        assertEquals(RosettaConstants.RosettaErrorType.GATEWAY_ERROR.toRosettaError().getCode(), exception.getError().getCode());
     }
 
     @Test
@@ -93,7 +93,7 @@ class YaciHttpGatewayImplTest {
         when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class))).thenThrow(new IOException("Network error"));
 
         ApiException exception = assertThrows(ApiException.class, () -> yaciHttpGateway.getStakeAccountRewards(stakeAddress));
-        assertEquals(RosettaConstants.RosettaErrorType.GATEWAY_ERROR.toRosettaError(false).getCode(), exception.getError().getCode());
+        assertEquals(RosettaConstants.RosettaErrorType.GATEWAY_ERROR.toRosettaError().getCode(), exception.getError().getCode());
     }
 
     @Test
@@ -101,7 +101,7 @@ class YaciHttpGatewayImplTest {
         when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class))).thenThrow(new InterruptedException("Request interrupted"));
 
         ApiException exception = assertThrows(ApiException.class, () -> yaciHttpGateway.getStakeAccountRewards(stakeAddress));
-        assertEquals(RosettaConstants.RosettaErrorType.GATEWAY_ERROR.toRosettaError(false).getCode(), exception.getError().getCode());
+        assertEquals(RosettaConstants.RosettaErrorType.GATEWAY_ERROR.toRosettaError().getCode(), exception.getError().getCode());
     }
 
     @Test
@@ -110,7 +110,7 @@ class YaciHttpGatewayImplTest {
         when(httpResponse.statusCode()).thenReturn(403);
 
         ApiException exception = assertThrows(ApiException.class, () -> yaciHttpGateway.getStakeAccountRewards(stakeAddress));
-        assertEquals(RosettaConstants.RosettaErrorType.GATEWAY_ERROR.toRosettaError(false).getCode(), exception.getError().getCode());
+        assertEquals(RosettaConstants.RosettaErrorType.GATEWAY_ERROR.toRosettaError().getCode(), exception.getError().getCode());
     }
 
     @Test
@@ -165,7 +165,7 @@ class YaciHttpGatewayImplTest {
         when(httpResponse.statusCode()).thenReturn(400);
 
         ApiException exception = assertThrows(ApiException.class, () -> yaciHttpGateway.getDiscoveredPeers());
-        assertEquals(RosettaConstants.RosettaErrorType.GATEWAY_ERROR.toRosettaError(false).getCode(), exception.getError().getCode());
+        assertEquals(RosettaConstants.RosettaErrorType.GATEWAY_ERROR.toRosettaError().getCode(), exception.getError().getCode());
     }
 
     @Test
@@ -174,7 +174,7 @@ class YaciHttpGatewayImplTest {
         when(httpResponse.statusCode()).thenReturn(500);
 
         ApiException exception = assertThrows(ApiException.class, () -> yaciHttpGateway.getDiscoveredPeers());
-        assertEquals(RosettaConstants.RosettaErrorType.GATEWAY_ERROR.toRosettaError(true).getCode(), exception.getError().getCode());
+        assertEquals(RosettaConstants.RosettaErrorType.GATEWAY_ERROR.toRosettaError().getCode(), exception.getError().getCode());
     }
 
     @Test
@@ -182,7 +182,7 @@ class YaciHttpGatewayImplTest {
         when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class))).thenThrow(new IOException("Network error"));
 
         ApiException exception = assertThrows(ApiException.class, () -> yaciHttpGateway.getDiscoveredPeers());
-        assertEquals(RosettaConstants.RosettaErrorType.GATEWAY_ERROR.toRosettaError(true).getCode(), exception.getError().getCode());
+        assertEquals(RosettaConstants.RosettaErrorType.GATEWAY_ERROR.toRosettaError().getCode(), exception.getError().getCode());
     }
 
 }

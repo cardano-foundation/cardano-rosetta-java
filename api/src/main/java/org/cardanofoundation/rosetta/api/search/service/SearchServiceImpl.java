@@ -170,7 +170,7 @@ public class SearchServiceImpl implements SearchService {
             return Operator.valueOf(operatorString.toUpperCase());
         } catch (IllegalArgumentException e) {
             String details = String.format("Unknown operator: '%s'. Supported values are: 'AND', 'OR'", operatorString);
-            throw ExceptionFactory.unspecifiedErrorNotRetriable(details);
+            throw ExceptionFactory.unspecifiedError(details);
         }
     }
 

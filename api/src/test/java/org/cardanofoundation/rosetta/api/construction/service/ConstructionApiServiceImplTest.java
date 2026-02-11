@@ -187,7 +187,7 @@ class ConstructionApiServiceImplTest {
             result.getError().getMessage());
     assertEquals(RosettaErrorType.CANT_CREATE_UNSIGNED_TRANSACTION_ERROR.getCode(),
             result.getError().getCode());
-    assertFalse(result.getError().isRetriable());
+    assertTrue(result.getError().isRetriable());
   }
 
   @Test

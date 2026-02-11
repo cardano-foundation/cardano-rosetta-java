@@ -176,7 +176,7 @@ class CardanoConstructionServiceImplTest {
         actualException.getError().getMessage());
     assertEquals(RosettaErrorType.CANT_CREATE_SIGNED_TRANSACTION_ERROR.getCode(),
         actualException.getError().getCode());
-    assertFalse(actualException.getError().isRetriable());
+    assertTrue(actualException.getError().isRetriable());
   }
 
   @Test
@@ -226,7 +226,7 @@ class CardanoConstructionServiceImplTest {
         actualException.getError().getMessage());
     assertEquals(RosettaErrorType.CANT_CREATE_UNSIGNED_TRANSACTION_ERROR.getCode(),
         actualException.getError().getCode());
-    assertFalse(actualException.getError().isRetriable());
+    assertTrue(actualException.getError().isRetriable());
   }
 
   @SuppressWarnings("java:S5778")
