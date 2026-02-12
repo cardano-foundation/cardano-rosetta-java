@@ -68,6 +68,33 @@ preprod:
       test_address: "addr_test1qpq4x7rrrh3pxx0w8ng3xxjkshd070zg6hmux638ej57xtakfrrt9cwl632xwcrg8mumxfz5wvphzuxnrluexy2g4z5qxz5t2c"
       test_block: 4042548  # Block containing CIP-68 logo (URL) metadata
 
+  # Governance test data - known transactions with governance operations
+  # All from the shelley_base test address except pool_governance_vote.no
+  governance:
+    drep_vote_delegation:
+      key_hash:
+        block: 4384711
+        tx_hash: "b50e36b2631ea5706092c1083b3b563267d36b0f0ca82b6da7ca1a093209c092"
+      script_hash:
+        block: 4384708
+        tx_hash: "50a16df23799be9b376a8b77811aed589f1afb4397092b60136700b61c860d46"
+      abstain:
+        block: 4384681
+        tx_hash: "3769bd6b03c7b841e4b8dfad97d5915932a6a9ced09f21ccd93ce98edd932bcc"
+      no_confidence:
+        block: 4384706
+        tx_hash: "28033fb936278a39187b8ae10dc8c3420ad2da6873dd26bc90f5967775c965c4"
+    pool_governance_vote:
+      "yes":
+        block: 3698490
+        tx_hash: "a8c75a21a888cdf780b4854eba91c3e34f52c773489849c61786743a12200eef"
+      "no":
+        block: 2741994
+        tx_hash: "e2eeaf57af3a400ad8e7a68e9b5bb650cd6e7b87db91144529a44d92d834e647"
+      multiple_votes:
+        block: 3712483
+        tx_hash: "1e689c1f45d95e42e24b96cfbac0351310f82028e64ca86912fe7bdfd4ec1504"
+
 mainnet:
   # Test addresses on mainnet
   # All addresses verified to have transactions as of 2026-01-06

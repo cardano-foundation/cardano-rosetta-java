@@ -1,0 +1,106 @@
+{
+  "test_name": "search_pool_governance_vote",
+  "description": "Search for a specific transaction containing a poolGovernanceVote operation with vote: no. Validates metadata.poolGovernanceVoteParams structure via /search/transactions.",
+  "network": "preprod",
+  "endpoint": "/search/transactions",
+  "request_body": {
+    "network_identifier": {
+      "blockchain": "cardano",
+      "network": "{{networkId}}"
+    },
+    "transaction_identifier": {
+      "hash": "e2eeaf57af3a400ad8e7a68e9b5bb650cd6e7b87db91144529a44d92d834e647"
+    }
+  },
+  "expected_response": {
+    "transactions": [
+      {
+        "block_identifier": {
+          "index": 2741994,
+          "hash": "180cee5109fbf9271897898c5cefcd2d16f1e901dd023ae7b79b6492c0c6c3ad"
+        },
+        "transaction": {
+          "transaction_identifier": {
+            "hash": "e2eeaf57af3a400ad8e7a68e9b5bb650cd6e7b87db91144529a44d92d834e647"
+          },
+          "operations": [
+            {
+              "operation_identifier": {
+                "index": 0
+              },
+              "type": "input",
+              "status": "success",
+              "account": {
+                "address": "addr_test1qqklaa53jvzllfwxk79z0zm9yan5vcepdzgrfhlpw2g0f9wh5jhn4d68jw2d2lcmvf5y3wnh4s2nryfj4l7n88nykc7qt8hm0u"
+              },
+              "amount": {
+                "value": "-10224072307",
+                "currency": {
+                  "symbol": "ADA",
+                  "decimals": 6
+                }
+              },
+              "coin_change": {
+                "coin_identifier": {
+                  "identifier": "6109d062f77b5659e57080c80864836caaca9364286a07a5e20e70358e84608b:0"
+                },
+                "coin_action": "coin_spent"
+              }
+            },
+            {
+              "operation_identifier": {
+                "index": 1
+              },
+              "type": "poolGovernanceVote",
+              "status": "success",
+              "metadata": {
+                "poolGovernanceVoteParams": {
+                  "governance_action_hash": "aff2909f8175ee02a8c1bf96ff516685d25bf0c6b95aac91f4dfd53a5c0867cc00",
+                  "pool_credential": {
+                    "hex_bytes": "209c6caf1fdabf53984cdcdce4e8d53f680165f33557a47c54b1dd6a",
+                    "curve_type": "edwards25519"
+                  },
+                  "vote": "no"
+                }
+              }
+            },
+            {
+              "operation_identifier": {
+                "index": 2,
+                "network_index": 0
+              },
+              "related_operations": [
+                {
+                  "index": 0
+                }
+              ],
+              "type": "output",
+              "status": "success",
+              "account": {
+                "address": "addr_test1qqklaa53jvzllfwxk79z0zm9yan5vcepdzgrfhlpw2g0f9wh5jhn4d68jw2d2lcmvf5y3wnh4s2nryfj4l7n88nykc7qt8hm0u"
+              },
+              "amount": {
+                "value": "10223890306",
+                "currency": {
+                  "symbol": "ADA",
+                  "decimals": 6
+                }
+              },
+              "coin_change": {
+                "coin_identifier": {
+                  "identifier": "e2eeaf57af3a400ad8e7a68e9b5bb650cd6e7b87db91144529a44d92d834e647:0"
+                },
+                "coin_action": "coin_created"
+              }
+            }
+          ],
+          "metadata": {
+            "size": 197,
+            "scriptSize": 0
+          }
+        }
+      }
+    ],
+    "total_count": 1
+  }
+}
