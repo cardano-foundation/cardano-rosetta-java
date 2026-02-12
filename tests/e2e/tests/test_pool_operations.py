@@ -3,9 +3,9 @@ import logging
 import os
 from typing import Dict, List
 
-from e2e_tests.test_utils.operation_builders import OperationBuilder
-from e2e_tests.rosetta_client.exceptions import ValidationError
-from e2e_tests.test_utils.validation_utils import (
+from e2e.test_utils.operation_builders import OperationBuilder
+from e2e.rosetta_client.exceptions import ValidationError
+from e2e.test_utils.validation_utils import (
     verify_address_derivation,
     verify_final_balance,
 )
@@ -96,7 +96,7 @@ def test_pool_registration(
 
         # 5. Sign and submit transaction
         # Pool registration requires three signatures: stake key (owner), payment key (UTxO), and pool cold key (certificate).
-        from e2e_tests.test_utils.signing_handler import KeyType
+        from e2e.test_utils.signing_handler import KeyType
 
         # Inspect payload order for transparency
         logger.debug(f"Pool registration payload count: {len(payloads)}")
@@ -343,7 +343,7 @@ def test_pool_governance_vote(
 
         # 5. Sign and submit transaction
         # Pool governance vote requires pool cold key signature
-        from e2e_tests.test_utils.signing_handler import KeyType
+        from e2e.test_utils.signing_handler import KeyType
 
         # Inspect payload order for transparency
         logger.debug(f"Pool governance vote payload count: {len(payloads)}")
@@ -468,7 +468,7 @@ def test_pool_retirement(
 
         # 5. Sign and submit transaction
         # Pool retirement requires payment key and pool cold key signatures
-        from e2e_tests.test_utils.signing_handler import KeyType
+        from e2e.test_utils.signing_handler import KeyType
 
         # Inspect payload order for transparency
         logger.debug(f"Pool retirement payload count: {len(payloads)}")

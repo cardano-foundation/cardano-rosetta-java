@@ -3,9 +3,9 @@ import logging
 import time
 from typing import List, Dict
 
-from e2e_tests.test_utils.operation_builders import OperationBuilder
-from e2e_tests.rosetta_client.exceptions import ValidationError, TransactionError
-from e2e_tests.test_utils.validation_utils import verify_address_derivation, verify_final_balance, extract_operations_from_details
+from e2e.test_utils.operation_builders import OperationBuilder
+from e2e.rosetta_client.exceptions import ValidationError, TransactionError
+from e2e.test_utils.validation_utils import verify_address_derivation, verify_final_balance, extract_operations_from_details
 
 # Define logger for the module
 logger = logging.getLogger(__name__)

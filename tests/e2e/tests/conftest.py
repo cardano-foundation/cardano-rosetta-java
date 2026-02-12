@@ -7,12 +7,12 @@ import _pytest.terminal # Added for hook overrides
 import re # Added for Tee class
 from dotenv import load_dotenv
 
-from e2e_tests.rosetta_client.client import RosettaClient
-from e2e_tests.wallet_utils.pycardano_wallet import PyCardanoWallet
-from e2e_tests.test_utils.transaction_orchestrator import TransactionOrchestrator
-from e2e_tests.test_utils.signing_handler import SigningHandler
-from e2e_tests.test_utils.utxo_selector import UtxoSelector
-from e2e_tests.test_utils.log_formatter import SwissDesignFormatter, Style # Import Style too
+from e2e.rosetta_client.client import RosettaClient
+from e2e.wallet_utils.pycardano_wallet import PyCardanoWallet
+from e2e.test_utils.transaction_orchestrator import TransactionOrchestrator
+from e2e.test_utils.signing_handler import SigningHandler
+from e2e.test_utils.utxo_selector import UtxoSelector
+from e2e.test_utils.log_formatter import SwissDesignFormatter, Style # Import Style too
 
 # Load environment variables
 load_dotenv()
@@ -43,7 +43,7 @@ http_logger.setLevel(logging.INFO) # Show HTTP requests at INFO level
 http_logger.propagate = True  # Ensure log messages propagate to the root handler
 
 # Ensure all logs related to rosetta client are properly tagged
-rosetta_logger = logging.getLogger("e2e_tests.rosetta_client")
+rosetta_logger = logging.getLogger("e2e.rosetta_client")
 rosetta_logger.setLevel(logging.DEBUG)
 
 # Ensure test logs are properly tagged
@@ -249,7 +249,7 @@ def pytest_sessionstart(session):
         from importlib import import_module
         
         # Import the RequestDebugger
-        request_debugger_module = import_module('e2e_tests.rosetta_client.request_debugger')
+        request_debugger_module = import_module('e2e.rosetta_client.request_debugger')
         log_dir = os.path.join(os.getcwd(), "logs")
         
         # Check if log directory exists and has log files

@@ -2,8 +2,8 @@ import time
 import logging
 from typing import List, Dict, Optional, Callable, Tuple, Union, Any
 
-from e2e_tests.rosetta_client.client import RosettaClient
-from e2e_tests.rosetta_client.exceptions import ValidationError, TransactionError
+from e2e.rosetta_client.client import RosettaClient
+from e2e.rosetta_client.exceptions import ValidationError, TransactionError
 
 logger = logging.getLogger(__name__)
 

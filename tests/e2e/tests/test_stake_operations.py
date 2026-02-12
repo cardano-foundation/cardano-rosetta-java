@@ -3,9 +3,9 @@ import logging
 import os
 from typing import Dict, List
 
-from e2e_tests.test_utils.operation_builders import OperationBuilder
-from e2e_tests.rosetta_client.exceptions import ValidationError
-from e2e_tests.test_utils.validation_utils import verify_address_derivation, verify_final_balance
+from e2e.test_utils.operation_builders import OperationBuilder
+from e2e.rosetta_client.exceptions import ValidationError
+from e2e.test_utils.validation_utils import verify_address_derivation, verify_final_balance
 
 logger = logging.getLogger(__name__)
 
