@@ -1,5 +1,5 @@
 import logging
-from typing import Dict, List, Optional, Any, Tuple
+from typing import Dict, List, Optional
 import json
 
 from .exceptions import NetworkError, ValidationError
@@ -39,7 +39,7 @@ class RosettaClient:
             error_response = None
             try:
                 error_response = err.response.json()
-            except:
+            except Exception:
                 pass
 
             logger.error(

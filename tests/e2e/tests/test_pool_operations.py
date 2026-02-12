@@ -1,7 +1,6 @@
 import pytest
 import logging
 import os
-from typing import Dict, List
 
 from e2e.test_utils.operation_builders import OperationBuilder
 from e2e.rosetta_client.exceptions import ValidationError
@@ -53,7 +52,6 @@ def test_pool_registration(
     # Generate pool keys and get pool address
     test_wallet.generate_pool_keys()
     pool_address = test_wallet.get_pool_cold_address()
-    pool_key_hex = test_wallet.get_pool_cold_verification_key_hex()
 
     # Generate pool registration parameters
     pool_registration_params = test_wallet.generate_pool_registration_params()

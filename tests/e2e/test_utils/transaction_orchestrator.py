@@ -1,6 +1,6 @@
 import time
 import logging
-from typing import List, Dict, Optional, Callable, Tuple, Union, Any
+from typing import List, Dict, Optional, Tuple
 
 from e2e.rosetta_client.client import RosettaClient
 from e2e.rosetta_client.exceptions import ValidationError, TransactionError
@@ -119,7 +119,7 @@ class TransactionOrchestrator:
             if adjusted_change < 0:
                 # Try to see if we can distribute the fee across multiple outputs if this is a same-address transaction
                 if len(output_ops) > 1:
-                    logger.debug(f"Last output insufficient for fee. Attempting fee distribution across multiple outputs")
+                    logger.debug("Last output insufficient for fee. Attempting fee distribution across multiple outputs")
                     sender_address = input_ops[0]["account"]["address"]
                     same_address_outputs = [
                         i for i, op in enumerate(final_operations) 
@@ -222,14 +222,14 @@ class TransactionOrchestrator:
                     
                 # Verify stake operations have required fields based on type
                 elif op["type"] == "stakeKeyRegistration":
-                    assert "metadata" in op, f"Stake registration operation missing metadata"
+                    assert "metadata" in op, "Stake registration operation missing metadata"
                 elif op["type"] == "stakeDelegation":
-                    assert "metadata" in op, f"Stake delegation operation missing metadata"
+                    assert "metadata" in op, "Stake delegation operation missing metadata"
                     # Verify pool ID is present in metadata
                     if "metadata" in op and "pool_key_hash" not in op["metadata"]:
-                        logger.warning(f"Stake delegation operation missing pool_key_hash in metadata")
+                        logger.warning("Stake delegation operation missing pool_key_hash in metadata")
                 elif op["type"] == "stakeKeyDeregistration":
-                    assert "metadata" in op, f"Stake deregistration operation missing metadata"
+                    assert "metadata" in op, "Stake deregistration operation missing metadata"
             
             logger.debug("Unsigned transaction operations validated successfully")
         except Exception as e:
@@ -338,14 +338,14 @@ class TransactionOrchestrator:
                     
                 # Verify stake operations have required fields based on type
                 elif op["type"] == "stakeKeyRegistration":
-                    assert "metadata" in op, f"Stake registration operation missing metadata"
+                    assert "metadata" in op, "Stake registration operation missing metadata"
                 elif op["type"] == "stakeDelegation":
-                    assert "metadata" in op, f"Stake delegation operation missing metadata"
+                    assert "metadata" in op, "Stake delegation operation missing metadata"
                     # Verify pool ID is present in metadata
                     if "metadata" in op and "pool_key_hash" not in op["metadata"]:
-                        logger.warning(f"Stake delegation operation missing pool_key_hash in metadata")
+                        logger.warning("Stake delegation operation missing pool_key_hash in metadata")
                 elif op["type"] == "stakeKeyDeregistration":
-                    assert "metadata" in op, f"Stake deregistration operation missing metadata"
+                    assert "metadata" in op, "Stake deregistration operation missing metadata"
             
             # Log operation counts for info
             for op_type, count in op_type_counts.items():
@@ -499,7 +499,7 @@ class TransactionOrchestrator:
                                 block_data["block"]["block_identifier"]["hash"] == block_identifier["hash"]):
                                 logger.debug(f"Block verification successful for block {block_identifier['index']}")
                             else:
-                                logger.warning(f"Block identifier mismatch in fetched block data")
+                                logger.warning("Block identifier mismatch in fetched block data")
                         
                         # Get full transaction details
                         tx_details = self.client.block_transaction(

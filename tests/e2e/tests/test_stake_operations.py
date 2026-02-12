@@ -1,7 +1,5 @@
 import pytest
 import logging
-import os
-from typing import Dict, List
 
 from e2e.test_utils.operation_builders import OperationBuilder
 from e2e.rosetta_client.exceptions import ValidationError

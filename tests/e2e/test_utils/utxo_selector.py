@@ -1,5 +1,5 @@
 import logging
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional
 import random
 
 from e2e.rosetta_client.client import RosettaClient

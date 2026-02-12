@@ -1,10 +1,7 @@
 import pytest
 import logging
-import time
-from typing import List, Dict
 
 from e2e.test_utils.operation_builders import OperationBuilder
-from e2e.rosetta_client.exceptions import ValidationError, TransactionError
 from e2e.test_utils.validation_utils import verify_address_derivation, verify_final_balance, extract_operations_from_details
 
 # Define logger for the module
@@ -294,7 +291,6 @@ def test_fixed_fee_transaction(
         
         # Calculate total amount needed for the transaction outputs
         # We need enough input to cover the transfer amount AND the fixed fee
-        required_input_amount = transfer_amount + fixed_fee
         # Also need enough for the change output to be >= min_output_value
         # input = transfer + fee + change >= transfer + fee + min_output
         required_input_amount_with_min_change = transfer_amount + fixed_fee + min_output_value

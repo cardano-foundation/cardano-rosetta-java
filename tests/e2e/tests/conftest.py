@@ -4,7 +4,6 @@ import logging
 import sys # Added for stdout access
 import time # Added for timing hooks
 import _pytest.terminal # Added for hook overrides
-import re # Added for Tee class
 from dotenv import load_dotenv
 
 from e2e.rosetta_client.client import RosettaClient
@@ -249,7 +248,7 @@ def pytest_sessionstart(session):
         from importlib import import_module
         
         # Import the RequestDebugger
-        request_debugger_module = import_module('e2e.rosetta_client.request_debugger')
+        import_module('e2e.rosetta_client.request_debugger')
         log_dir = os.path.join(os.getcwd(), "logs")
         
         # Check if log directory exists and has log files

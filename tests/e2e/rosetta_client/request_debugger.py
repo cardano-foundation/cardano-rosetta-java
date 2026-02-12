@@ -2,11 +2,10 @@ import time
 import logging
 import json
 import requests
-import urllib.parse
 import uuid
 import os
 import datetime
-from typing import Dict, List, Optional, Any, Tuple
+from typing import Dict, List, Any
 
 # Define colors directly here instead of importing Style to avoid circular imports
 GREEN = "\033[38;5;46m"   # Bright green
@@ -104,8 +103,7 @@ class RequestDebugger:
             
             # Get response info
             status_code = response.status_code
-            content_type = response.headers.get("Content-Type", "")
-            
+
             # Status indicator (green check for 2xx, yellow for others)
             if 200 <= status_code < 300:
                 status_indicator = f"{GREEN}✓{RESET}"
@@ -167,9 +165,9 @@ class RequestDebugger:
                     if isinstance(error_json, dict):
                         error_code = error_json.get("code")
                         error_message = error_json.get("message", "")
-                except:
+                except Exception:
                     pass
-            
+
             # Build more informative error message
             error_info = f"Status: {status_code}"
             if error_code:
@@ -248,7 +246,7 @@ class RequestDebugger:
             if "application/json" in content_type:
                 try:
                     return json.dumps(response.json(), indent=2)
-                except:
+                except Exception:
                     return response.text or "Empty or invalid JSON"
             else:
                 return response.text or "Empty response body"
