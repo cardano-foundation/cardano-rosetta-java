@@ -14,8 +14,7 @@
 Prepare and validate the e2e test wallet on a Cardano testnet.
 
 Usage:
-    uv run prepare_wallet.py status      # Quick wallet UTXO check
-    uv run prepare_wallet.py validate    # Full validation: wallet + .env values
+    uv run prepare_wallet.py check       # Full pre-flight check (UTXOs + on-chain state + .env)
     uv run prepare_wallet.py split       # Split UTXOs into 12+ ADA-only outputs
     uv run prepare_wallet.py mint        # Mint a native token (token bundle UTXO)
     uv run prepare_wallet.py lookup      # Look up governance values for .env
@@ -27,6 +26,7 @@ import sys
 import requests as http_requests
 from dotenv import load_dotenv
 from blockfrost import ApiUrls, ApiError, BlockFrostApi
+from pycardano.crypto.bech32 import encode as bech32_encode
 from pycardano import (
     Address,
     Asset,
@@ -137,10 +137,16 @@ def get_api():
 def blockfrost_get(path: str, **params):
     """Direct REST call to Blockfrost (for endpoints missing from the SDK)."""
     base = get_blockfrost_url(NETWORK)
-    url = f"{base}/{path.lstrip('/')}"
+    url = f"{base}/v0/{path.lstrip('/')}"
     r = http_requests.get(url, headers={"project_id": BLOCKFROST_KEY}, params=params, timeout=30)
     r.raise_for_status()
     return r.json()
+
+
+def drep_bech32(hex_hash: str, is_script: bool = False) -> str:
+    """Convert a raw 28-byte DRep hex hash to CIP-129 bech32 drep ID."""
+    prefix = "23" if is_script else "22"
+    return bech32_encode("drep", bytes.fromhex(prefix + hex_hash))
 
 
 def is_ada_only(utxo) -> bool:
@@ -200,70 +206,35 @@ def analyze_utxos(utxos):
 # ── Commands ────────────────────────────────────────────────────────────────
 
 
-def cmd_status():
-    """Quick wallet UTXO check."""
-    _, _, _, addr = load_wallet()
+def cmd_check():
+    """Full pre-flight check: UTXOs + on-chain state + .env governance values."""
+    _, _, stake_vk, addr = load_wallet()
     address = str(addr)
-    api = get_api()
-
-    try:
-        utxos = api.address_utxos(address, gather_pages=True)
-    except Exception as e:
-        console.print(f"[bold red]ERROR:[/] Fetching UTXOs: {e}")
-        return
-
-    ada_only, with_tokens, has_fee_utxo, total_lovelace = analyze_utxos(utxos)
-
-    table = Table(box=box.SIMPLE_HEAVY, title=f"Wallet UTXOs — [bold]{NETWORK}[/]")
-    table.add_column("UTXO", style="dim")
-    table.add_column("ADA", justify="right", style="cyan")
-    table.add_column("Tokens", justify="right")
-
-    for u in utxos:
-        units = [a.unit for a in u.amount]
-        lovelace = sum(int(a.quantity) for a in u.amount if a.unit == "lovelace")
-        token_count = len(units) - 1
-        if token_count == 0:
-            table.add_row(f"{u.tx_hash[:12]}...#{u.tx_index}", f"{lovelace/1e6:.2f}", "")
-        else:
-            table.add_row(f"{u.tx_hash[:12]}...#{u.tx_index}", f"{lovelace/1e6:.2f}", f"[yellow]+{token_count}[/]")
-
-    console.print(table)
-
-    def check(ok: bool, label: str) -> str:
-        mark = "[green]OK[/]" if ok else "[red]MISSING[/]"
-        return f"  {mark}  {label}"
-
-    console.print()
-    console.print(f"[bold]Total:[/] {total_lovelace/1e6:.2f} ADA across {len(utxos)} UTXOs")
-    console.print(check(ada_only >= MIN_ADA_ONLY_UTXOS, f"ADA-only UTXOs: {ada_only}/{MIN_ADA_ONLY_UTXOS}"))
-    console.print(check(with_tokens >= 1, f"Token UTXOs: {with_tokens}/1"))
-    console.print(check(has_fee_utxo, "Fee UTXO (>= 5 ADA)"))
-    console.print()
-
-    if ada_only >= MIN_ADA_ONLY_UTXOS and with_tokens >= 1 and has_fee_utxo:
-        console.print(Panel("[bold green]WALLET READY[/] for e2e tests", border_style="green"))
-    else:
-        hints = []
-        if ada_only < MIN_ADA_ONLY_UTXOS:
-            hints.append(f"Need {MIN_ADA_ONLY_UTXOS - ada_only} more ADA-only UTXOs → [bold]uv run prepare_wallet.py split[/]")
-        if with_tokens < 1:
-            hints.append("Need 1 token UTXO → [bold]uv run prepare_wallet.py mint[/]")
-        if not has_fee_utxo:
-            hints.append("Need 1 UTXO with >= 5 ADA")
-        console.print(Panel("\n".join(hints), title="Next steps", border_style="yellow"))
-
-
-def cmd_validate():
-    """Full validation: wallet UTXOs + .env governance values."""
-    _, _, _, addr = load_wallet()
-    address = str(addr)
+    stake_addr = str(Address(staking_part=stake_vk.hash(), network=resolve_network(NETWORK)))
     api = get_api()
     errors = []
 
-    console.print(f"\nValidating e2e requirements on [bold]{NETWORK}[/]...\n")
+    console.print(f"\n[bold]Pre-flight check[/] — [bold]{NETWORK}[/]\n")
 
-    # ── Wallet UTXO checks ──
+    # ── Helper ──
+    def row(name: str, ok: bool, detail: str):
+        status = "[green]PASS[/]" if ok else "[red]FAIL[/]"
+        check_table.add_row(name, status, detail)
+        if not ok:
+            errors.append(name)
+
+    def warn(name: str, detail: str):
+        check_table.add_row(name, "[yellow]WARN[/]", detail)
+
+    def require_env(name: str) -> str:
+        value = os.getenv(name)
+        if not value:
+            errors.append(name)
+            check_table.add_row(name, "[red]FAIL[/]", "missing from .env")
+            return ""
+        return value
+
+    # ── 1. Wallet UTXOs ──
     try:
         utxos = api.address_utxos(address, gather_pages=True)
     except ApiError as e:
@@ -274,44 +245,97 @@ def cmd_validate():
         console.print(f"[bold red]FAIL:[/] No UTXOs found for {address}")
         sys.exit(1)
 
-    ada_only_count, with_tokens_count, has_fee_utxo, _ = analyze_utxos(utxos)
+    ada_only_count, with_tokens_count, has_fee_utxo, total_lovelace = analyze_utxos(utxos)
 
-    table = Table(title="Wallet Checks", box=box.ROUNDED, show_lines=False)
-    table.add_column("Check", style="bold")
-    table.add_column("Status")
-    table.add_column("Detail", style="dim")
+    utxo_table = Table(box=box.SIMPLE_HEAVY, title="Wallet UTXOs")
+    utxo_table.add_column("UTXO", style="dim")
+    utxo_table.add_column("ADA", justify="right", style="cyan")
+    utxo_table.add_column("Tokens", justify="right")
 
-    def row(name: str, ok: bool, detail: str):
-        status = "[green]PASS[/]" if ok else "[red]FAIL[/]"
-        table.add_row(name, status, detail)
-        if not ok:
-            errors.append(name)
+    for u in utxos:
+        units = [a.unit for a in u.amount]
+        lovelace = sum(int(a.quantity) for a in u.amount if a.unit == "lovelace")
+        token_count = len(units) - 1
+        if token_count == 0:
+            utxo_table.add_row(f"{u.tx_hash[:12]}...#{u.tx_index}", f"{lovelace/1e6:.2f}", "")
+        else:
+            utxo_table.add_row(f"{u.tx_hash[:12]}...#{u.tx_index}", f"{lovelace/1e6:.2f}", f"[yellow]+{token_count}[/]")
+
+    console.print(utxo_table)
+    console.print(f"[bold]Total:[/] {total_lovelace/1e6:.2f} ADA across {len(utxos)} UTXOs\n")
+
+    # ── 2. Checks table ──
+    check_table = Table(title="Pre-flight Checks", box=box.ROUNDED, show_lines=False)
+    check_table.add_column("Check", style="bold")
+    check_table.add_column("Status")
+    check_table.add_column("Detail", style="dim")
 
     row("ADA-only UTXOs", ada_only_count >= MIN_ADA_ONLY_UTXOS, f"{ada_only_count}/{MIN_ADA_ONLY_UTXOS}")
     row("Token bundle UTXO", with_tokens_count >= 1, "found" if with_tokens_count >= 1 else "missing")
     row("Fee UTXO (>= 5 ADA)", has_fee_utxo, "found" if has_fee_utxo else "missing")
 
-    # ── .env governance value checks ──
-    def require_env(name: str) -> str:
-        value = os.getenv(name)
-        if not value:
-            errors.append(name)
-            table.add_row(name, "[red]FAIL[/]", "missing from .env")
-            return ""
-        return value
+    # ── 3. On-chain state: stake key ──
+    try:
+        acct = api.accounts(stake_addr)
+        stake_registered = acct.active
+        stake_pool = acct.pool_id
+        if stake_registered:
+            detail = f"registered, delegated to {stake_pool}" if stake_pool else "registered, not delegated"
+            warn("Stake key", detail + " (tests expect clean slate)")
+        else:
+            row("Stake key", True, "not registered (clean)")
+    except ApiError as exc:
+        if getattr(exc, "status_code", None) == 404:
+            row("Stake key", True, "not registered (clean)")
+        else:
+            warn("Stake key", f"lookup error: {exc}")
 
-    def validate_hex(name: str, value: str, min_len: int = 0):
-        if not value:
-            return
-        if not is_hex(value):
-            row(name, False, "not valid hex")
-            return
-        if len(value) % 2 != 0 or len(value) < min_len:
-            row(name, False, f"len={len(value)}, need even >= {min_len}")
-            return
-        row(name, True, f"{value[:16]}...")
+    # ── 4. On-chain state: pool from cert ──
+    pool_cert = require_env("POOL_REGISTRATION_CERT")
+    if pool_cert and is_hex(pool_cert) and len(pool_cert) >= 60:
+        # Extract pool key hash from cert CBOR (first 581c = 28-byte hash)
+        try:
+            idx = pool_cert.find("581c")
+            if idx >= 0:
+                cert_pool_hash = pool_cert[idx + 4 : idx + 4 + 56]
+                current_epoch = blockfrost_get("epochs/latest").get("epoch", 0)
+                pool_bech32 = bech32_encode("pool", bytes.fromhex(cert_pool_hash))
+                # Check if pool is in the retiring list
+                retiring_epoch = None
+                for page in range(1, 5):
+                    retiring = blockfrost_get("pools/retiring", count=100, page=page)
+                    if not retiring:
+                        break
+                    for p in retiring:
+                        if p.get("pool_id") == pool_bech32:
+                            retiring_epoch = p.get("epoch")
+                            break
+                    if retiring_epoch:
+                        break
 
-    # Pool hash — verify on-chain
+                if retiring_epoch:
+                    if current_epoch >= retiring_epoch:
+                        row("Pool from cert", True, f"{cert_pool_hash[:16]}... retired at epoch {retiring_epoch} (re-registrable)")
+                    else:
+                        warn("Pool from cert", f"{cert_pool_hash[:16]}... retiring at epoch {retiring_epoch}, current={current_epoch} (still active!)")
+                else:
+                    # Not in retiring list — check if it exists at all
+                    try:
+                        api.pool(cert_pool_hash)
+                        warn("Pool from cert", f"{cert_pool_hash[:16]}... active on-chain (not retired)")
+                    except ApiError as exc:
+                        if getattr(exc, "status_code", None) == 404:
+                            row("Pool from cert", True, "not on-chain (fresh)")
+                        else:
+                            row("Pool from cert", True, f"{len(pool_cert)} hex chars")
+            else:
+                row("POOL_REGISTRATION_CERT", True, f"{len(pool_cert)} hex chars")
+        except Exception as exc:
+            row("POOL_REGISTRATION_CERT", True, f"{len(pool_cert)} hex chars (lookup: {exc})")
+    elif pool_cert:
+        row("POOL_REGISTRATION_CERT", False, "not valid even-length hex")
+
+    # ── 5. .env governance: stake pool ──
     pool_hash = require_env("STAKE_POOL_HASH")
     if pool_hash and is_hex(pool_hash):
         try:
@@ -325,28 +349,68 @@ def cmd_validate():
     elif pool_hash:
         row("STAKE_POOL_HASH", False, "not valid hex")
 
-    validate_hex("DREP_KEY_HASH_ID", require_env("DREP_KEY_HASH_ID"), min_len=56)
-    validate_hex("DREP_SCRIPT_HASH_ID", require_env("DREP_SCRIPT_HASH_ID"), min_len=56)
-    validate_hex("POOL_GOVERNANCE_PROPOSAL_ID", require_env("POOL_GOVERNANCE_PROPOSAL_ID"), min_len=56)
+    # ── 6. .env governance: DReps ──
+    drep_key_hash = require_env("DREP_KEY_HASH_ID")
+    if drep_key_hash:
+        try:
+            drep_id = drep_bech32(drep_key_hash, is_script=False)
+            drep_info = blockfrost_get(f"governance/dreps/{drep_id}")
+            active = drep_info.get("active", False)
+            expired = drep_info.get("expired", False)
+            detail = f"{drep_key_hash[:16]}... active={active} expired={expired}"
+            row("DREP_KEY_HASH_ID", active and not expired, detail)
+        except Exception as exc:
+            row("DREP_KEY_HASH_ID", False, f"not found/error: {exc}")
 
-    pool_cert = require_env("POOL_REGISTRATION_CERT")
-    if pool_cert:
-        if is_hex(pool_cert) and len(pool_cert) % 2 == 0:
-            row("POOL_REGISTRATION_CERT", True, f"{len(pool_cert)} hex chars")
-        else:
-            row("POOL_REGISTRATION_CERT", False, "not valid even-length hex")
+    drep_script_hash = require_env("DREP_SCRIPT_HASH_ID")
+    if drep_script_hash:
+        try:
+            drep_id = drep_bech32(drep_script_hash, is_script=True)
+            drep_info = blockfrost_get(f"governance/dreps/{drep_id}")
+            active = drep_info.get("active", False)
+            expired = drep_info.get("expired", False)
+            has_script = drep_info.get("has_script", False)
+            detail = f"{drep_script_hash[:16]}... active={active} expired={expired} script={has_script}"
+            row("DREP_SCRIPT_HASH_ID", active and not expired and has_script, detail)
+        except Exception as exc:
+            row("DREP_SCRIPT_HASH_ID", False, f"not found/error: {exc}")
+
+    # ── 7. .env governance: proposal ──
+    proposal_id = require_env("POOL_GOVERNANCE_PROPOSAL_ID")
+    if proposal_id and len(proposal_id) >= 66:
+        try:
+            tx_hash = proposal_id[:64]
+            cert_index = int(proposal_id[64:], 16)
+            info = blockfrost_get(f"governance/proposals/{tx_hash}/{cert_index}")
+
+            enacted = info.get("enacted_epoch")
+            dropped = info.get("dropped_epoch")
+            expired = info.get("expired_epoch")
+            is_open = not any([enacted, dropped, expired])
+            status = "open" if is_open else f"closed(enacted={enacted} dropped={dropped} expired={expired})"
+            row("POOL_GOVERNANCE_PROPOSAL_ID", is_open, f"{proposal_id[:16]}... {status}")
+        except Exception as exc:
+            row("POOL_GOVERNANCE_PROPOSAL_ID", False, f"not found/error: {exc}")
 
     vote = os.getenv("POOL_VOTE_CHOICE", "yes")
     row("POOL_VOTE_CHOICE", vote in ("yes", "no", "abstain"), vote)
 
-    console.print(table)
+    console.print(check_table)
     console.print()
 
     if errors:
-        console.print(Panel(f"[bold red]{len(errors)} check(s) failed[/]", border_style="red"))
+        hints = []
+        if ada_only_count < MIN_ADA_ONLY_UTXOS:
+            hints.append(f"Need {MIN_ADA_ONLY_UTXOS - ada_only_count} more ADA-only UTXOs → [bold]uv run prepare_wallet.py split[/]")
+        if with_tokens_count < 1:
+            hints.append("Need 1 token UTXO → [bold]uv run prepare_wallet.py mint[/]")
+        gov_fails = [e for e in errors if e.startswith("DREP_") or e.startswith("POOL_GOVERNANCE")]
+        if gov_fails:
+            hints.append("Stale governance values → [bold]uv run prepare_wallet.py lookup[/]")
+        console.print(Panel(f"[bold red]{len(errors)} check(s) failed[/]" + ("\n" + "\n".join(hints) if hints else ""), border_style="red"))
         sys.exit(1)
     else:
-        console.print(Panel("[bold green]All requirements validated[/]", border_style="green"))
+        console.print(Panel("[bold green]All checks passed — ready for e2e tests[/]", border_style="green"))
 
 
 def cmd_split():
@@ -453,9 +517,9 @@ def cmd_lookup():
     """Look up governance values for .env using the Blockfrost REST API."""
     console.print(f"\nLooking up [bold]{NETWORK}[/] network governance data...\n")
 
-    table = Table(title="Governance Values", box=box.ROUNDED)
-    table.add_column("Variable", style="bold")
-    table.add_column("Value", style="cyan")
+    table = Table(title="Governance Values", box=box.ROUNDED, show_lines=True)
+    table.add_column("Variable", style="bold", no_wrap=True)
+    table.add_column("Value", style="cyan", overflow="fold")
 
     # 1. Stake pool
     try:
@@ -468,48 +532,69 @@ def cmd_lookup():
     except Exception as e:
         table.add_row("STAKE_POOL_HASH", f"[red]Error: {e}[/]")
 
-    # 2. DReps — use REST API + has_script field
+    # 2. DReps — newest first (order=desc), cap checks to avoid slow N+1
     try:
         key_hex, script_hex = None, None
-        for page in range(1, 10):
-            dreps = blockfrost_get("governance/dreps", count=100, page=page)
-            if not dreps:
-                break
-            for d in dreps:
-                drep_id = d.get("drep_id", "")
-                detail = blockfrost_get(f"governance/dreps/{drep_id}")
-                if not detail.get("active", False):
-                    continue
-                raw_hex = detail.get("hex", "")
-                has_script = detail.get("has_script", False)
-                # Strip credential type prefix if present (22=key, 23=script)
-                expected_prefix = "23" if has_script else "22"
-                clean_hex = raw_hex[2:] if raw_hex.startswith(expected_prefix) else raw_hex
-                if has_script and not script_hex:
-                    script_hex = clean_hex
-                elif not has_script and not key_hex:
-                    key_hex = clean_hex
-                if key_hex and script_hex:
+        checked = 0
+        max_checks = 200
+        with console.status("Searching for active DReps...") as status:
+            for page in range(1, 100):
+                dreps = blockfrost_get("governance/dreps", count=100, page=page, order="desc")
+                if not dreps:
                     break
-            if key_hex and script_hex:
-                break
+                for d in dreps:
+                    if checked >= max_checks:
+                        break
+                    checked += 1
+                    drep_id = d.get("drep_id", "")
+                    status.update(f"Checking DRep {checked}/{max_checks}...")
+                    detail = blockfrost_get(f"governance/dreps/{drep_id}")
+                    if not detail.get("active", False) or detail.get("expired", False):
+                        continue
+                    raw_hex = detail.get("hex", "")
+                    has_script = detail.get("has_script", False)
+                    # Strip credential type prefix (22=key, 23=script)
+                    expected_prefix = "23" if has_script else "22"
+                    clean_hex = raw_hex[2:] if raw_hex.startswith(expected_prefix) else raw_hex
+                    if has_script and not script_hex:
+                        script_hex = clean_hex
+                    elif not has_script and not key_hex:
+                        key_hex = clean_hex
+                    if key_hex and script_hex:
+                        break
+                if key_hex and script_hex or checked >= max_checks:
+                    break
 
-        table.add_row("DREP_KEY_HASH_ID", key_hex or "[red]Not found[/]")
-        table.add_row("DREP_SCRIPT_HASH_ID", script_hex or "[red]Not found[/]")
+        table.add_row("DREP_KEY_HASH_ID", key_hex or f"[red]Not found (checked {checked})[/]")
+        table.add_row("DREP_SCRIPT_HASH_ID", script_hex or f"[red]Not found (checked {checked})[/]")
     except Exception as e:
         table.add_row("DREP_KEY_HASH_ID", f"[red]Error: {e}[/]")
         table.add_row("DREP_SCRIPT_HASH_ID", f"[red]Error: {e}[/]")
 
-    # 3. Governance proposals
+    # 3. Governance proposals — newest first, find an open one
     try:
-        proposals = blockfrost_get("governance/proposals", count=5, page=1)
-        if proposals:
-            p = proposals[0]
-            tx_hash = p.get("tx_hash", "")
-            cert_index = p.get("cert_index", 0)
-            table.add_row("POOL_GOVERNANCE_PROPOSAL_ID", f"{tx_hash}{int(cert_index):02d}")
+        found_proposal = None
+        checked = 0
+        with console.status("Searching for open proposals...") as status:
+            for page in range(1, 10):
+                proposals = blockfrost_get("governance/proposals", count=100, page=page, order="desc")
+                if not proposals:
+                    break
+                for p in proposals:
+                    checked += 1
+                    tx_hash = p.get("tx_hash", "")
+                    cert_index = p.get("cert_index", 0)
+                    status.update(f"Checking proposal {checked}...")
+                    detail = blockfrost_get(f"governance/proposals/{tx_hash}/{cert_index}")
+                    if not any([detail.get("enacted_epoch"), detail.get("dropped_epoch"), detail.get("expired_epoch")]):
+                        found_proposal = f"{tx_hash}{int(cert_index):02d}"
+                        break
+                if found_proposal:
+                    break
+        if found_proposal:
+            table.add_row("POOL_GOVERNANCE_PROPOSAL_ID", found_proposal)
         else:
-            table.add_row("POOL_GOVERNANCE_PROPOSAL_ID", "[red]No proposals found[/]")
+            table.add_row("POOL_GOVERNANCE_PROPOSAL_ID", f"[red]No open proposals found (checked {checked})[/]")
     except Exception as e:
         table.add_row("POOL_GOVERNANCE_PROPOSAL_ID", f"[red]Error: {e}[/]")
 
@@ -523,12 +608,34 @@ def cmd_lookup():
 # ── Main ────────────────────────────────────────────────────────────────────
 
 
+def cmd_help():
+    """Show available commands."""
+    console.print("\n[bold]prepare_wallet.py[/] — e2e test wallet manager\n")
+    commands = [
+        ("check", "Full pre-flight check: UTXOs + on-chain state + .env governance"),
+        ("split", "Split a large UTXO into 12+ smaller ADA-only outputs"),
+        ("mint", "Mint a native token to create a UTXO with a token bundle"),
+        ("lookup", "Look up fresh governance values (DReps, proposals) for .env"),
+        ("help", "Show this help"),
+    ]
+    table = Table(box=box.SIMPLE, show_header=False, padding=(0, 2))
+    table.add_column(style="bold cyan")
+    table.add_column(style="dim")
+    for name, desc in commands:
+        table.add_row(name, desc)
+    console.print(table)
+    console.print("\n[dim]Usage: uv run prepare_wallet.py <command>[/]")
+    console.print("[dim]Aliases: status, validate → check[/]\n")
+
+
 COMMANDS = {
-    "status": cmd_status,
-    "validate": cmd_validate,
+    "check": cmd_check,
+    "status": cmd_check,       # alias
+    "validate": cmd_check,     # alias
     "split": cmd_split,
     "mint": cmd_mint,
     "lookup": cmd_lookup,
+    "help": cmd_help,
 }
 
 if __name__ == "__main__":
@@ -539,11 +646,11 @@ if __name__ == "__main__":
         console.print("[bold red]ERROR:[/] Set TEST_WALLET_MNEMONIC in .env")
         sys.exit(1)
 
-    cmd = sys.argv[1] if len(sys.argv) > 1 else "status"
+    cmd = sys.argv[1] if len(sys.argv) > 1 else "check"
 
     if cmd not in COMMANDS:
         console.print(f"[bold red]Unknown command:[/] {cmd}")
-        console.print(f"Usage: uv run prepare_wallet.py [{' | '.join(COMMANDS)}]")
+        cmd_help()
         sys.exit(1)
 
     COMMANDS[cmd]()
