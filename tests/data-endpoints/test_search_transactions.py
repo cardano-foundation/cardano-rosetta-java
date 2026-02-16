@@ -58,7 +58,7 @@ class TestPaginationLimits:
     def test_limit_200_returns_error(self, client):
         """Limit 200 (above max) should return error."""
         response = client.search_transactions(limit=200)
-        assert response.status_code == 500
+        assert response.status_code == 400
 
         error = response.json()
         assert error["code"] == 5053, "Should return error code 5053 for invalid limit"
@@ -633,7 +633,7 @@ class TestCurrencyFiltering:
         )
 
         # API should return error for non-hex-encoded symbols
-        assert response.status_code == 500, (
+        assert response.status_code == 400, (
             f"Expected error status code when using ASCII symbol '{asset['symbol']}'"
         )
 
