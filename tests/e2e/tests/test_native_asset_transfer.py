@@ -1,7 +1,7 @@
 import logging
 import pytest
 
-from e2e_tests.test_utils.utxo_selector import UtxoSelector
+from e2e.test_utils.utxo_selector import UtxoSelector
 
 logger = logging.getLogger(__name__)
 

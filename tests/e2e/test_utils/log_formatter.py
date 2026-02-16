@@ -1,6 +1,4 @@
 import logging
-import re
-import time
 
 # ANSI color/style constants with minimalist design principles
 class Style:

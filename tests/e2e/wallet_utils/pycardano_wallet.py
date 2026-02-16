@@ -1,28 +1,15 @@
-from typing import List, Dict, Optional, Union
+from typing import List, Dict, Optional
 from pycardano import (
     Address,
-    PaymentVerificationKey,
-    PaymentSigningKey,
     PaymentExtendedSigningKey,
     PaymentExtendedVerificationKey,
     StakeExtendedSigningKey,
     StakeExtendedVerificationKey,
     Network,
     HDWallet,
-    Transaction,
-    TransactionBody,
-    TransactionWitnessSet,
-    PlutusData,
-    Redeemer,
-    AuxiliaryData,
-    NativeScript,
-    VerificationKeyWitness,
-    Metadata,
-    StakeCredential,
     VerificationKey,
 )
 from mnemonic import Mnemonic
-import cbor2
 import logging
 
 logger = logging.getLogger(__name__)

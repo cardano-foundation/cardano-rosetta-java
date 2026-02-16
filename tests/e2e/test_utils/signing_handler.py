@@ -1,8 +1,8 @@
 import logging
-from typing import Dict, List, Optional, Any, Callable, Tuple, Union
+from typing import Dict, List, Callable
 import enum
 
-from e2e_tests.wallet_utils.pycardano_wallet import PyCardanoWallet
+from e2e.wallet_utils.pycardano_wallet import PyCardanoWallet
 
 logger = logging.getLogger(__name__)
 

@@ -1,9 +1,9 @@
 import logging
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional
 import random
 
-from e2e_tests.rosetta_client.client import RosettaClient
-from e2e_tests.rosetta_client.exceptions import ValidationError
+from e2e.rosetta_client.client import RosettaClient
+from e2e.rosetta_client.exceptions import ValidationError
 
 logger = logging.getLogger(__name__)
 

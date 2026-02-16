@@ -16,7 +16,7 @@ End-to-end testing framework for Cardano's Rosetta API implementation.
 ## Directory Structure
 
 ```
-e2e_tests/
+tests/e2e/
 ├── rosetta_client/          # Rosetta API client
 │   ├── client.py            # API endpoint mapping
 │   ├── exceptions.py        # Custom exceptions
@@ -39,7 +39,7 @@ e2e_tests/
 ### Prerequisites
 
 - Python 3.11+
-- pip
+- [uv](https://docs.astral.sh/uv/)
 - Cardano Rosetta API endpoint
 - Test wallet with funds and at least 11 ada-only UTXOs
 - For native asset tests: at least 1 UTXO containing a token bundle and at least 1 ADA-only UTXO (≥ 5 ADA recommended to cover fee)
@@ -47,15 +47,8 @@ e2e_tests/
 ### Quick Start
 
 ```bash
-cd e2e_tests
-# First create a virtual environment
-python3 -m venv .venv
-# Activate the virtual environment
-source .venv/bin/activate  # On Linux/macOS
-# OR
-.\.venv\Scripts\activate   # On Windows
-# Then install dependencies
-pip install -r requirements.txt
+cd tests/e2e
+uv sync
 ```
 
 ### Configuration

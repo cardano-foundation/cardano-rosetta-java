@@ -1,5 +1,5 @@
-from e2e_tests.rosetta_client.client import RosettaClient
-from e2e_tests.rosetta_client.exceptions import (
+from e2e.rosetta_client.client import RosettaClient
+from e2e.rosetta_client.exceptions import (
     RosettaClientError,
     NetworkError,
     ValidationError,
