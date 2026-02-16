@@ -1,0 +1,3 @@
+    assert response.status_code == 500
+    assert error.get("code") == 4006
+    assert error.get("message") == "Transaction not found"
