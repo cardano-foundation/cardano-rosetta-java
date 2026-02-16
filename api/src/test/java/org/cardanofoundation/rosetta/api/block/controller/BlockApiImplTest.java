@@ -119,7 +119,7 @@ class BlockApiImplTest extends BaseSpringMvcSetup {
     mockMvc.perform(post("/block")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(blockRequest)))
-        .andExpect(status().is5xxServerError())
+        .andExpect(status().is4xxClientError())
         .andExpect(jsonPath("$.code").value(4001))
         .andExpect(jsonPath("$.message").value("Block not found"))
         .andExpect(jsonPath("$.retriable").value(false));
@@ -157,7 +157,7 @@ class BlockApiImplTest extends BaseSpringMvcSetup {
     mockMvc.perform(post("/block/transaction")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(req)))
-        .andExpect(status().is5xxServerError())
+        .andExpect(status().is4xxClientError())
         .andExpect(jsonPath("$.code").value(4006))
         .andExpect(jsonPath("$.message").value("Transaction not found"))
         .andExpect(jsonPath("$.retriable").value(false));

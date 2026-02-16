@@ -114,8 +114,8 @@ class TestEmptyNetworkString:
         }
         response = client._post(path, body)
 
-        assert response.status_code == 500, (
-            f"{endpoint_name} should return 500 for empty network"
+        assert response.status_code == 400, (
+            f"{endpoint_name} should return 400 for empty network"
         )
 
         error = response.json()
@@ -149,8 +149,8 @@ class TestInvalidNetworkIdentifier:
         }
         response = client._post(path, body)
 
-        assert response.status_code == 500, (
-            f"{endpoint_name} should return 500 for invalid network"
+        assert response.status_code == 400, (
+            f"{endpoint_name} should return 400 for invalid network"
         )
 
         error = response.json()

@@ -162,7 +162,7 @@ class AccountApiImplementationTest extends BaseSpringMvcSetup {
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(request));
     mockMvc.perform(requestBuilder)
-        .andExpect(status().is(HttpStatus.INTERNAL_SERVER_ERROR.value()))
+        .andExpect(status().is(HttpStatus.BAD_REQUEST.value()))
         .andExpect(jsonPath("$.code").value(RosettaErrorType.INVALID_BLOCKCHAIN.getCode()))
         .andExpect(jsonPath("$.message").value(RosettaErrorType.INVALID_BLOCKCHAIN.getMessage()))
         .andReturn();
@@ -177,7 +177,7 @@ class AccountApiImplementationTest extends BaseSpringMvcSetup {
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(request));
     mockMvc.perform(requestBuilder)
-        .andExpect(status().is(HttpStatus.INTERNAL_SERVER_ERROR.value()))
+        .andExpect(status().is(HttpStatus.BAD_REQUEST.value()))
         .andExpect(jsonPath("$.code").value(RosettaErrorType.INVALID_BLOCKCHAIN.getCode()))
         .andExpect(jsonPath("$.message").value(RosettaErrorType.INVALID_BLOCKCHAIN.getMessage()))
         .andReturn();

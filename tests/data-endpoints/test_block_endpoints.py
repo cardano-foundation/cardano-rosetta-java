@@ -95,7 +95,7 @@ class TestBlockLookup:
             network_identifier={"blockchain": "cardano", "network": network},
             block_identifier={"index": 0, "hash": real_hash},
         )
-        assert response.status_code == 500
+        assert response.status_code == 400
 
 
 @allure.feature("Block")
@@ -217,14 +217,14 @@ class TestBlockErrors:
         response = client.block(
             block_identifier={"index": future_block}
         )
-        assert response.status_code == 500
+        assert response.status_code == 400
 
     def test_invalid_block_hash_returns_error(self, client, network):
         """Invalid hash format should return error."""
         response = client.block(
             block_identifier={"hash": "invalid_hash"}
         )
-        assert response.status_code == 500
+        assert response.status_code == 400
 
     def test_missing_block_identifier_returns_error(self, client, network):
         """Missing block_identifier should return error."""
@@ -320,7 +320,7 @@ class TestBlockTransactionLookup:
             block_identifier={"index": block1["index"], "hash": block1["hash"]},
             transaction_identifier={"hash": tx2_hash},
         )
-        assert response.status_code == 500
+        assert response.status_code == 400
 
         error = response.json()
         assert error.get("code") == 4006
@@ -354,7 +354,7 @@ class TestBlockTransactionErrors:
             block_identifier=block_id,
             transaction_identifier={"hash": "invalid_hash"},
         )
-        assert response.status_code == 500
+        assert response.status_code == 400
 
 
 @allure.feature("Block")
