@@ -6,7 +6,7 @@ Tests both /block and /block/transaction endpoints with behavioral assertions.
 
 import pytest
 import allure
-from conftest import get_error_message
+from client import RosettaClient
 
 pytestmark = pytest.mark.pr
 
@@ -95,7 +95,7 @@ class TestBlockLookup:
             network_identifier={"blockchain": "cardano", "network": network},
             block_identifier={"index": 0, "hash": real_hash},
         )
-        assert response.status_code == 500
+        assert response.status_code == 400
 
 
 @allure.feature("Block")
@@ -217,14 +217,14 @@ class TestBlockErrors:
         response = client.block(
             block_identifier={"index": future_block}
         )
-        assert response.status_code == 500
+        assert response.status_code == 400
 
     def test_invalid_block_hash_returns_error(self, client, network):
         """Invalid hash format should return error."""
         response = client.block(
             block_identifier={"hash": "invalid_hash"}
         )
-        assert response.status_code == 500
+        assert response.status_code == 400
 
     def test_missing_block_identifier_returns_error(self, client, network):
         """Missing block_identifier should return error."""
@@ -234,7 +234,7 @@ class TestBlockErrors:
         assert response.status_code == 400, "Missing required parameter should return 400"
 
         error = response.json()
-        error_message = get_error_message(error).lower()
+        error_message = RosettaClient.get_error_message(error).lower()
         assert "block" in error_message or "identifier" in error_message
 
 
@@ -286,7 +286,7 @@ class TestBlockTransactionLookup:
         assert response.status_code == 400, "Missing required parameter should return 400"
 
         error = response.json()
-        error_message = get_error_message(error)
+        error_message = RosettaClient.get_error_message(error)
         assert "hash" in error_message.lower(), (
             "Error should indicate missing block hash"
         )
@@ -320,7 +320,7 @@ class TestBlockTransactionLookup:
             block_identifier={"index": block1["index"], "hash": block1["hash"]},
             transaction_identifier={"hash": tx2_hash},
         )
-        assert response.status_code == 500
+        assert response.status_code == 400
 
         error = response.json()
         assert error.get("code") == 4006
@@ -354,4 +354,76 @@ class TestBlockTransactionErrors:
             block_identifier=block_id,
             transaction_identifier={"hash": "invalid_hash"},
         )
-        assert response.status_code == 500
+        assert response.status_code == 400
+
+
+@allure.feature("Block")
+@allure.story("Operation Invariants")
+class TestBlockOperationInvariants:
+    """Operations must be ordered and sequential in all block transactions."""
+
+    def test_block_operations_ordered_by_index(self, client):
+        """Operations in /block response must be sorted by index."""
+        search = client.search_transactions()
+        block_id = search.json()["transactions"][0]["block_identifier"]
+
+        response = client.block(block_identifier={"index": block_id["index"]})
+        assert response.status_code == 200
+
+        for tx in response.json()["block"]["transactions"]:
+            indices = [op["operation_identifier"]["index"] for op in tx["operations"]]
+            assert indices == sorted(indices), f"Operations not ordered: {indices}"
+
+    def test_block_operations_sequential_indices(self, client):
+        """Operations in /block must have sequential indices [0, 1, 2, ...]."""
+        search = client.search_transactions()
+        block_id = search.json()["transactions"][0]["block_identifier"]
+
+        response = client.block(block_identifier={"index": block_id["index"]})
+        assert response.status_code == 200
+
+        for tx in response.json()["block"]["transactions"]:
+            indices = [op["operation_identifier"]["index"] for op in tx["operations"]]
+            assert indices == list(range(len(tx["operations"]))), f"Expected sequential, got {indices}"
+
+
+@allure.feature("Block Transaction")
+@allure.story("Operation Invariants")
+class TestBlockTransactionOperationInvariants:
+    """Operations must be ordered and sequential in /block/transaction."""
+
+    def test_block_transaction_operations_ordered_by_index(self, client):
+        """Operations in /block/transaction must be sorted by index."""
+        search = client.search_transactions()
+        block_tx = search.json()["transactions"][0]
+
+        response = client.block_transaction(
+            block_identifier={
+                "index": block_tx["block_identifier"]["index"],
+                "hash": block_tx["block_identifier"]["hash"]
+            },
+            transaction_identifier={"hash": block_tx["transaction"]["transaction_identifier"]["hash"]}
+        )
+        assert response.status_code == 200
+
+        ops = response.json()["transaction"]["operations"]
+        indices = [op["operation_identifier"]["index"] for op in ops]
+        assert indices == sorted(indices), f"Operations not ordered: {indices}"
+
+    def test_block_transaction_operations_sequential_indices(self, client):
+        """Operations in /block/transaction must have sequential indices."""
+        search = client.search_transactions()
+        block_tx = search.json()["transactions"][0]
+
+        response = client.block_transaction(
+            block_identifier={
+                "index": block_tx["block_identifier"]["index"],
+                "hash": block_tx["block_identifier"]["hash"]
+            },
+            transaction_identifier={"hash": block_tx["transaction"]["transaction_identifier"]["hash"]}
+        )
+        assert response.status_code == 200
+
+        ops = response.json()["transaction"]["operations"]
+        indices = [op["operation_identifier"]["index"] for op in ops]
+        assert indices == list(range(len(ops))), f"Expected sequential, got {indices}"

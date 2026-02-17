@@ -1894,23 +1894,26 @@ components:
         description: |
           Delegated Representative (DRep) parameters for vote delegation.
           Supports CIP-129 format: accepts both 29-byte hashes (with prefix) and 28-byte raw hashes.
-          The type field is required for all formats.
+          When using CIP-129 prefixed ids (29 bytes), the type can be omitted and will be inferred
+          from the header byte (0x22 = key_hash, 0x23 = script_hash).
+          For raw 28-byte ids, the type field is required.
           See https://cardano-foundation.github.io/cardano-rosetta-java/docs/user-guides/drep-delegation for details.
         type: object
-        required:
-          - type
         properties:
             id:
               description: |
                 DRep identifier. For key_hash and script_hash types:
-                - Accepts 29-byte hash with CIP-129 prefix (e.g., "03" for key_hash)
-                - Accepts 28-byte raw hash without prefix
+                - Accepts 29-byte hash with CIP-129 prefix (0x22 for key_hash, 0x23 for script_hash)
+                - Accepts 28-byte raw hash without prefix (type field required)
                 - The API automatically strips the prefix if present
                 Not required for abstain and no_confidence types.
               type: string
               example: "74984fae4ca1715fa1f8759f9d871015ac87f449a85dea6cf9956da1"
             type:
-              description: Type of DRep delegation. Required for all operations.
+              description: |
+                Type of DRep delegation. Required for raw 28-byte ids and for abstain/no_confidence.
+                May be omitted when using CIP-129 prefixed ids (29 bytes), as the type is inferred
+                from the header byte. If provided with a CIP-129 prefixed id, must match the header.
               $ref: '#/components/schemas/DRepTypeParams'
     PoolRegistrationParams:
       description: PoolRegistrationParams

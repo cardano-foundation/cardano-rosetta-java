@@ -27,7 +27,7 @@ class SearchControllerIntTest extends IntegrationTest {
         .build();
 
     Slice<BlockTransaction> blockTransactions = service.searchTransaction(req, 0L, 5L);
-    assertEquals(4, blockTransactions.getNumberOfElements());
+    assertEquals(5, blockTransactions.getNumberOfElements());
   }
 
   @Test

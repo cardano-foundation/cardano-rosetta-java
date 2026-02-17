@@ -2,15 +2,93 @@
 Shared fixtures for data endpoint tests.
 """
 
+import ast
+import inspect
+import json
 import os
+import subprocess
+import textwrap
 import pytest
+import allure
 from pathlib import Path
-from dotenv import load_dotenv
+from dotenv import find_dotenv, load_dotenv
 from client import RosettaClient
 
 
-# Load .env file at module import time; explicit .env values override the parent env
-load_dotenv(Path(__file__).parent / ".env", override=True)
+# Load nearest .env walking up from this file's directory.
+# CI creates tests/data-endpoints/.env; locally falls back to repo root .env.
+load_dotenv(find_dotenv(), override=True)
+
+
+def pytest_sessionstart(session):
+    """Write Allure environment.properties at the start of the test session."""
+    allure_dir = session.config.option.allure_report_dir
+    if not allure_dir:
+        return
+
+    repo_root = Path(__file__).parent.parent.parent
+
+    def _git(cmd):
+        try:
+            return subprocess.check_output(
+                ["git", "-C", str(repo_root)] + cmd,
+                text=True, stderr=subprocess.DEVNULL,
+            ).strip()
+        except Exception:
+            return "unknown"
+
+    env = {
+        "Release.Version": _git(["describe", "--tags", "--always"]),
+        "Git.Branch": _git(["rev-parse", "--abbrev-ref", "HEAD"]),
+        "Git.Commit": _git(["rev-parse", "--short", "HEAD"]),
+        "CARDANO_NETWORK": os.environ.get("CARDANO_NETWORK", ""),
+        "ROSETTA_URL": os.environ.get("ROSETTA_URL", ""),
+        "REMOVE_SPENT_UTXOS": os.environ.get("REMOVE_SPENT_UTXOS", ""),
+        "REMOVE_SPENT_UTXOS_LAST_BLOCKS_GRACE_COUNT": os.environ.get("REMOVE_SPENT_UTXOS_LAST_BLOCKS_GRACE_COUNT", ""),
+        "TOKEN_REGISTRY_ENABLED": os.environ.get("TOKEN_REGISTRY_ENABLED", ""),
+        "TOKEN_REGISTRY_BASE_URL": os.environ.get("TOKEN_REGISTRY_BASE_URL", ""),
+        "PEER_DISCOVERY": os.environ.get("PEER_DISCOVERY", ""),
+    }
+
+    props_path = Path(allure_dir) / "environment.properties"
+    props_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(props_path, "w") as f:
+        for key, value in env.items():
+            f.write(f"{key}={value}\n")
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    """Attach request/response bodies and assertions to Allure report."""
+    outcome = yield
+    report = outcome.get_result()
+    if report.when == "call":
+        for i, (req, resp) in enumerate(getattr(item, "_recorded_responses", [])):
+            allure.attach(
+                body=json.dumps(req, indent=2, default=str),
+                name=f"Request #{i + 1} - {req.get('url', '')}",
+                attachment_type=allure.attachment_type.JSON,
+            )
+            allure.attach(
+                body=json.dumps(resp, indent=2, default=str),
+                name=f"Response #{i + 1} - HTTP {resp.get('status_code', '?')}",
+                attachment_type=allure.attachment_type.JSON,
+            )
+        try:
+            source = textwrap.dedent(inspect.getsource(item.obj))
+            lines = source.splitlines()
+            tree = ast.parse(source)
+            assert_lines = sorted({
+                node.lineno for node in ast.walk(tree) if isinstance(node, ast.Assert)
+            })
+            if assert_lines:
+                allure.attach(
+                    body="\n".join(lines[n - 1] for n in assert_lines),
+                    name="Assertions",
+                    attachment_type=allure.attachment_type.TEXT,
+                )
+        except Exception:
+            pass
 
 
 @pytest.fixture(scope="session")
@@ -32,10 +110,26 @@ def network():
 
 
 @pytest.fixture
-def client(rosetta_url, network):
+def client(rosetta_url, network, request):
     """Rosetta API client instance with configured network."""
-    with RosettaClient(base_url=rosetta_url, default_network=network) as client:
-        yield client
+    with RosettaClient(base_url=rosetta_url, default_network=network) as c:
+        original_post = c._post
+        request.node._recorded_responses = []
+
+        def _recording_post(path, body, schema_name=None):
+            response = original_post(path, body, schema_name=schema_name)
+            try:
+                response_body = response.json()
+            except Exception:
+                response_body = response.text
+            request.node._recorded_responses.append((
+                {"method": "POST", "url": f"{c.base_url}{path}", "body": body},
+                {"status_code": response.status_code, "body": response_body},
+            ))
+            return response
+
+        c._post = _recording_post
+        yield c
 
 
 @pytest.fixture(scope="module")
@@ -151,18 +245,4 @@ def network_data(network):
     return all_data[network]
 
 
-def get_error_message(error_response):
-    """
-    Extract error message from API error response.
-
-    Handles multiple error response formats:
-    - {"message": "..."}
-    - {"message": "...", "details": {"message": "..."}}
-    - {"details": {"message": "..."}}
-
-    Returns combined message from all available fields.
-    """
-    message = error_response.get("message", "")
-    details_message = error_response.get("details", {}).get("message", "")
-    return (message + " " + details_message).strip()
 

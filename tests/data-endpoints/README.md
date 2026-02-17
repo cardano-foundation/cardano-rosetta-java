@@ -43,8 +43,11 @@ uv run pytest test_block_endpoints.py -v
 
 # Run with Allure reporting
 uv run pytest --alluredir=./allure-results
-allure serve allure-results
+npx --yes allure@3.1.0 generate ./allure-results --output allure-report
+npx --yes allure@3.1.0 open ./allure-report
 ```
+
+Note: Allure 3 reporting requires Node.js >= 18.
 
 ## Environment Variables
 
@@ -162,7 +165,7 @@ pytest -m slow
 - **Pruning Detection**: Auto-adapts to pruned instances with relaxed validation
 - **Clear Test Names**: Each test function clearly describes what it tests
 - **Parameterization**: Uses pytest parametrize for test variations
-- **Allure Integration**: Beautiful HTML reports with test history
+- **Allure 3 Integration**: Beautiful HTML reports with test history
 - **Parallel Execution**: Run tests in parallel with pytest-xdist
 
 ## Quick Test

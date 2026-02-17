@@ -10,7 +10,7 @@
     </parent>
 
     <artifactId>yaci-indexer</artifactId>
-    <version>1.0.0</version>
+    <version>${revision}</version>
     <name>yaci-indexer</name>
 
     <description>yaci-indexer</description>
@@ -96,6 +96,12 @@
         <dependency>
             <groupId>com.bloxbean.cardano</groupId>
             <artifactId>yaci-store-admin-spring-boot-starter</artifactId>
+            <version>${yaci-store.version}</version>
+        </dependency>
+        <!-- Admin UI -->
+        <dependency>
+            <groupId>com.bloxbean.cardano</groupId>
+            <artifactId>yaci-store-admin-ui</artifactId>
             <version>${yaci-store.version}</version>
         </dependency>
         <!-- Used for governance data (Voltaire) -->

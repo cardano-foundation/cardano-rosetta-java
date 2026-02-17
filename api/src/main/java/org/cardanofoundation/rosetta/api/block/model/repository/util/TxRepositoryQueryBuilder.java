@@ -36,7 +36,7 @@ public class TxRepositoryQueryBuilder {
         Condition buildCurrencyCondition(Currency currency);
     }
 
-    public SelectJoinStep<Record11<String, String, JSONB, JSONB, Long, Long, String, Long, Long, Integer, Integer>> buildTransactionSelectQuery(DSLContext dsl) {
+    public SelectJoinStep<Record12<String, String, JSONB, JSONB, Long, Long, Integer, String, Long, Long, Integer, Integer>> buildTransactionSelectQuery(DSLContext dsl) {
         return dsl.select(
                 TRANSACTION.TX_HASH,
                 TRANSACTION.BLOCK_HASH,
@@ -44,6 +44,7 @@ public class TxRepositoryQueryBuilder {
                 TRANSACTION.OUTPUTS,
                 TRANSACTION.FEE,
                 TRANSACTION.SLOT,
+                TRANSACTION.TX_INDEX,
                 BLOCK.HASH.as("joined_block_hash"),
                 BLOCK.NUMBER.as("joined_block_number"),
                 BLOCK.SLOT.as("joined_block_slot"),
@@ -161,6 +162,8 @@ public class TxRepositoryQueryBuilder {
         @Nullable BigInteger fee = Optional.ofNullable(record.get(TRANSACTION.FEE))
                 .map(BigInteger::valueOf).orElse(null);
 
+        @Nullable Integer txIndex = record.get(TRANSACTION.TX_INDEX);
+
         @Nullable BlockEntity blockEntity = null;
         String blockHashFromRecord = record.get("joined_block_hash", String.class);
         if (blockHashFromRecord != null) {
@@ -178,6 +181,7 @@ public class TxRepositoryQueryBuilder {
                 .inputKeys(readUtxoKeys(inputs, txHash))
                 .outputKeys(readUtxoKeys(outputs, txHash))
                 .fee(fee)
+                .txIndex(txIndex)
                 .build();
     }
 

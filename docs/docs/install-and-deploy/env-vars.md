@@ -63,7 +63,7 @@ Hardware profile files should be used **in combination** with a base `.env.docke
 | `AGGREGATOR_ENDPOINT`                         | Mithril aggregator endpoint (uses default if not set)                 | (empty)                                | added in release 1.0.0  |
 | `GENESIS_VERIFICATION_KEY`                    | Mithril genesis verification key (uses default if not set)            | (empty)                                | added in release 1.0.0  |
 | `ANCILLARY_VERIFICATION_KEY`                  | Mithril ancillary verification key (uses default if not set)          | (empty)                                | added in release 1.2.9  |
-| `RELEASE_VERSION`                             | Docker image tag for API and Indexer images                           | 2.0.0                                  | added in release 2.0.0  |
+| `RELEASE_VERSION`                             | Docker image tag for API and Indexer images                           | 2.1.0                                  | added in release 2.0.0  |
 | `API_SPRING_PROFILES_ACTIVE`                  | API spring profile                                                    | staging                                | added in release 1.0.0  |
 | `API_PORT`                                    | Rosetta API exposed port                                              | 8082                                   | added in release 1.0.0  |
 | `PRINT_EXCEPTION`                             | Print stack traces in error responses                                 | true                                   | added in release 1.0.0  |

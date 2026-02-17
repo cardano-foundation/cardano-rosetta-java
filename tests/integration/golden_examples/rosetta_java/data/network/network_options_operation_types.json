@@ -1,0 +1,516 @@
+{
+  "test_name": "network_options_operation_types",
+  "description": "Snapshot of /network/options. Validates the full list of supported operation_types including governance types (dRepVoteDelegation, poolGovernanceVote).",
+  "network": "preprod",
+  "endpoint": "/network/options",
+  "request_body": {
+    "network_identifier": {
+      "blockchain": "cardano",
+      "network": "{{networkId}}"
+    }
+  },
+  "expected_response": {
+    "version": {
+      "rosetta_version": "1.4.13",
+      "node_version": "10.5.4",
+      "middleware_version": "2.1.0",
+      "metadata": {}
+    },
+    "allow": {
+      "operation_statuses": [
+        {
+          "status": "success",
+          "successful": true
+        },
+        {
+          "status": "invalid",
+          "successful": false
+        }
+      ],
+      "operation_types": [
+        "input",
+        "output",
+        "stakeKeyRegistration",
+        "stakeDelegation",
+        "withdrawal",
+        "stakeKeyDeregistration",
+        "poolRegistration",
+        "poolRegistrationWithCert",
+        "poolRetirement",
+        "dRepVoteDelegation",
+        "poolGovernanceVote"
+      ],
+      "errors": [
+        {
+          "code": 4000,
+          "message": "Invalid Network configuration",
+          "retriable": false
+        },
+        {
+          "code": 4001,
+          "message": "Block not found",
+          "retriable": false
+        },
+        {
+          "code": 4002,
+          "message": "Network not found",
+          "retriable": false
+        },
+        {
+          "code": 4003,
+          "message": "Networks not found",
+          "retriable": false
+        },
+        {
+          "code": 4004,
+          "message": "Invalid blockchain",
+          "retriable": false
+        },
+        {
+          "code": 4005,
+          "message": "Genesis block not found",
+          "retriable": false
+        },
+        {
+          "code": 4006,
+          "message": "Transaction not found",
+          "retriable": false
+        },
+        {
+          "code": 4007,
+          "message": "Invalid public key format",
+          "retriable": false
+        },
+        {
+          "code": 4008,
+          "message": "Public key is missing",
+          "retriable": false
+        },
+        {
+          "code": 4009,
+          "message": "Transaction outputs parameters errors in operations array",
+          "retriable": false
+        },
+        {
+          "code": 4010,
+          "message": "The transaction you are trying to build has more value in outputs than value of inputs",
+          "retriable": false
+        },
+        {
+          "code": 4011,
+          "message": "Cant create signed transaction from transaction bytes",
+          "retriable": false
+        },
+        {
+          "code": 4012,
+          "message": "Cant create unsigned transaction from transaction bytes",
+          "retriable": false
+        },
+        {
+          "code": 4013,
+          "message": "Cant deserialize transaction input from transaction body",
+          "retriable": false
+        },
+        {
+          "code": 4014,
+          "message": "Cant deserialize transaction output from transaction body",
+          "retriable": false
+        },
+        {
+          "code": 4015,
+          "message": "Provided address is invalid",
+          "retriable": false
+        },
+        {
+          "code": 4016,
+          "message": "Provided address type is invalid",
+          "retriable": false
+        },
+        {
+          "code": 4017,
+          "message": "Invalid staking key format",
+          "retriable": false
+        },
+        {
+          "code": 4018,
+          "message": "Staking key is required for this type of address",
+          "retriable": false
+        },
+        {
+          "code": 4019,
+          "message": "Provided operation type is invalid",
+          "retriable": false
+        },
+        {
+          "code": 4020,
+          "message": "Pool key hash is required to operate",
+          "retriable": false
+        },
+        {
+          "code": 4021,
+          "message": "Assets are required for output operation token bundle",
+          "retriable": false
+        },
+        {
+          "code": 4022,
+          "message": "Asset value is required for token asset",
+          "retriable": false
+        },
+        {
+          "code": 4023,
+          "message": "Invalid policy id",
+          "retriable": false
+        },
+        {
+          "code": 4024,
+          "message": "Invalid token name",
+          "retriable": false
+        },
+        {
+          "code": 4025,
+          "message": "Provided pool key hash has invalid format",
+          "retriable": false
+        },
+        {
+          "code": 4026,
+          "message": "Pool registration certificate is required for pool registration",
+          "retriable": false
+        },
+        {
+          "code": 4027,
+          "message": "Invalid pool registration certificate format",
+          "retriable": false
+        },
+        {
+          "code": 4028,
+          "message": "Invalid certificate type. Expected pool registration certificate",
+          "retriable": false
+        },
+        {
+          "code": 4029,
+          "message": "Pool registration parameters were expected",
+          "retriable": false
+        },
+        {
+          "code": 4030,
+          "message": "Pool relays are invalid",
+          "retriable": false
+        },
+        {
+          "code": 4031,
+          "message": "Pool metadata is invalid",
+          "retriable": false
+        },
+        {
+          "code": 4032,
+          "message": "Dns name expected for pool relay",
+          "retriable": false
+        },
+        {
+          "code": 4033,
+          "message": "Invalid pool relay type received",
+          "retriable": false
+        },
+        {
+          "code": 4034,
+          "message": "Invalid pool owners received",
+          "retriable": false
+        },
+        {
+          "code": 4035,
+          "message": "Invalid pool registration parameters received",
+          "retriable": false
+        },
+        {
+          "code": 4036,
+          "message": "Mandatory parameter is missing: Epoch",
+          "retriable": false
+        },
+        {
+          "code": 4037,
+          "message": "Error when sending the transaction - OutsideValidityIntervalUTxO",
+          "retriable": false
+        },
+        {
+          "code": 4038,
+          "message": "Environment configurations needed to run server were not found",
+          "retriable": false
+        },
+        {
+          "code": 4039,
+          "message": "Provided address has wrong casing, this might lead to problems with other tools",
+          "retriable": false
+        },
+        {
+          "code": 5000,
+          "message": "An error occurred",
+          "retriable": false
+        },
+        {
+          "code": 5001,
+          "message": "Not implemented",
+          "retriable": false
+        },
+        {
+          "code": 5002,
+          "message": "Address generation error",
+          "retriable": false
+        },
+        {
+          "code": 5003,
+          "message": "Parse signed transaction error",
+          "retriable": false
+        },
+        {
+          "code": 5004,
+          "message": "Cant create signed transaction probably because of unsigned transaction bytes",
+          "retriable": false
+        },
+        {
+          "code": 5005,
+          "message": "Cant build witnesses set for transaction probably because of provided signatures",
+          "retriable": false
+        },
+        {
+          "code": 5006,
+          "message": "Error when sending the transaction",
+          "retriable": true
+        },
+        {
+          "code": 5012,
+          "message": "Missing chain code",
+          "retriable": false
+        },
+        {
+          "code": 5013,
+          "message": "Invalid operation status",
+          "retriable": false
+        },
+        {
+          "code": 5014,
+          "message": "Given operation status and success state does not match",
+          "retriable": false
+        },
+        {
+          "code": 5015,
+          "message": "Transaction hash does not match to given coin identifier",
+          "retriable": false
+        },
+        {
+          "code": 5016,
+          "message": "Address and account identifier does not match",
+          "retriable": false
+        },
+        {
+          "code": 5017,
+          "message": "Coin identifier has an invalid format",
+          "retriable": false
+        },
+        {
+          "code": 5018,
+          "message": "Cant decode mempool transaction",
+          "retriable": false
+        },
+        {
+          "code": 5019,
+          "message": "Can't decode Transaction",
+          "retriable": false
+        },
+        {
+          "code": 5020,
+          "message": "Error during serialization process",
+          "retriable": false
+        },
+        {
+          "code": 5021,
+          "message": "Error during deserialization process",
+          "retriable": false
+        },
+        {
+          "code": 5022,
+          "message": "body.metadata must have required property 'ttl'",
+          "retriable": false
+        },
+        {
+          "code": 5023,
+          "message": "body.metadata must have required property 'protocol_parameters'",
+          "retriable": false
+        },
+        {
+          "code": 5024,
+          "message": "body.metadata must have required property 'coinsPerUtxoSize'",
+          "retriable": false
+        },
+        {
+          "code": 5025,
+          "message": "body.metadata must have required property 'maxTxSize'",
+          "retriable": false
+        },
+        {
+          "code": 5026,
+          "message": "body.metadata must have required property 'maxValSize'",
+          "retriable": false
+        },
+        {
+          "code": 5027,
+          "message": "body.metadata must have required property 'keyDeposit'",
+          "retriable": false
+        },
+        {
+          "code": 5028,
+          "message": "body.metadata must have required property 'maxCollateralInputs'",
+          "retriable": false
+        },
+        {
+          "code": 5029,
+          "message": "body.metadata must have required property 'minFeeCoefficient'",
+          "retriable": false
+        },
+        {
+          "code": 5030,
+          "message": "body.metadata must have required property 'minFeeConstant'",
+          "retriable": false
+        },
+        {
+          "code": 5031,
+          "message": "body.metadata must have required property 'minPoolCost'",
+          "retriable": false
+        },
+        {
+          "code": 5032,
+          "message": "body.metadata must have required property 'protocol'",
+          "retriable": false
+        },
+        {
+          "code": 5033,
+          "message": "body.metadata must have required property 'poolDeposit'",
+          "retriable": false
+        },
+        {
+          "code": 5034,
+          "message": "This operation is not supported in offline mode",
+          "retriable": false
+        },
+        {
+          "code": 5035,
+          "message": "Unable to get data from the downstream gateway",
+          "retriable": false
+        },
+        {
+          "code": 5036,
+          "message": "Time is misconfigured on the server, check system date and time, current time is before Cardano's Shelly start time, which is impossible.",
+          "retriable": false
+        },
+        {
+          "code": 5037,
+          "message": "Invalid drep type",
+          "retriable": false
+        },
+        {
+          "code": 5038,
+          "message": "Missing drep",
+          "retriable": false
+        },
+        {
+          "code": 5039,
+          "message": "Missing drep id",
+          "retriable": false
+        },
+        {
+          "code": 5040,
+          "message": "Missing drep type",
+          "retriable": false
+        },
+        {
+          "code": 5041,
+          "message": "Downstream timeout",
+          "retriable": false
+        },
+        {
+          "code": 5042,
+          "message": "Invalid block index",
+          "retriable": false
+        },
+        {
+          "code": 5043,
+          "message": "Oldest block not found",
+          "retriable": false
+        },
+        {
+          "code": 5044,
+          "message": "Withdrawal amounts cannot be negative",
+          "retriable": false
+        },
+        {
+          "code": 5045,
+          "message": "There is a mismatch in the drep id header and drep type. Drep id header type and drep type should match.",
+          "retriable": false
+        },
+        {
+          "code": 5046,
+          "message": "Invalid drep id length. Should be 28 or 29 bytes",
+          "retriable": false
+        },
+        {
+          "code": 5047,
+          "message": "Governance vote is invalid",
+          "retriable": false
+        },
+        {
+          "code": 5048,
+          "message": "Transaction inputs parameters errors in operations array",
+          "retriable": false
+        },
+        {
+          "code": 5049,
+          "message": "Cant encode extra data",
+          "retriable": false
+        },
+        {
+          "code": 5050,
+          "message": "Call method not supported",
+          "retriable": false
+        },
+        {
+          "code": 5051,
+          "message": "Call parameter missing",
+          "retriable": false
+        },
+        {
+          "code": 5052,
+          "message": "Invalid block error review status",
+          "retriable": false
+        },
+        {
+          "code": 5053,
+          "message": "Invalid limit size",
+          "retriable": false
+        },
+        {
+          "code": 5054,
+          "message": "Cannot specify both 'success' and 'status' parameters simultaneously",
+          "retriable": false
+        },
+        {
+          "code": 5055,
+          "message": "Cannot specify both 'account' and 'accountIdentifier' parameters simultaneously",
+          "retriable": false
+        },
+        {
+          "code": 5058,
+          "message": "Operation type filtering is not currently supported",
+          "retriable": false
+        },
+        {
+          "code": 5059,
+          "message": "Currency symbol must be hex-encoded",
+          "retriable": false
+        }
+      ],
+      "historical_balance_lookup": true,
+      "call_methods": [],
+      "balance_exemptions": [],
+      "mempool_coins": false
+    }
+  }
+}

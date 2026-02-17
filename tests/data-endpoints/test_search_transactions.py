@@ -5,7 +5,7 @@ Covers all 61 test cases from the original Postman collection.
 
 import pytest
 import allure
-from conftest import get_error_message
+from client import RosettaClient
 
 
 pytestmark = pytest.mark.pr
@@ -58,7 +58,7 @@ class TestPaginationLimits:
     def test_limit_200_returns_error(self, client):
         """Limit 200 (above max) should return error."""
         response = client.search_transactions(limit=200)
-        assert response.status_code == 500
+        assert response.status_code == 400
 
         error = response.json()
         assert error["code"] == 5053, "Should return error code 5053 for invalid limit"
@@ -74,7 +74,7 @@ class TestPaginationLimits:
         )
 
         error = response.json()
-        error_message = get_error_message(error).lower()
+        error_message = RosettaClient.get_error_message(error).lower()
         assert any(
             word in error_message for word in ["negative", "invalid", "limit"]
         ), f"Error should mention negative/invalid/limit, got: {error}"
@@ -106,7 +106,7 @@ class TestPaginationOffsets:
         )
 
         error = response.json()
-        error_message = get_error_message(error).lower()
+        error_message = RosettaClient.get_error_message(error).lower()
         assert any(
             word in error_message for word in ["negative", "invalid", "offset"]
         ), f"Error should mention negative/invalid/offset, got: {error}"
@@ -633,7 +633,7 @@ class TestCurrencyFiltering:
         )
 
         # API should return error for non-hex-encoded symbols
-        assert response.status_code == 500, (
+        assert response.status_code == 400, (
             f"Expected error status code when using ASCII symbol '{asset['symbol']}'"
         )
 
@@ -757,3 +757,31 @@ class TestCurrencyFiltering:
                 f"Transaction must contain asset with policyId {asset['policy_id']} "
                 f"and symbol {asset['symbol_hex']}. Found assets: {assets_in_tx}"
             )
+
+
+class TestOperationInvariants:
+    """Operations must be ordered and sequential in all transactions."""
+
+    @allure.feature("Search Transactions")
+    @allure.story("Operation Invariants")
+    def test_operations_ordered_by_index(self, client):
+        """Operations array must be sorted by operation_identifier.index."""
+        response = client.search_transactions(limit=10)
+        assert response.status_code == 200
+
+        for block_tx in response.json()["transactions"]:
+            ops = block_tx["transaction"]["operations"]
+            indices = [op["operation_identifier"]["index"] for op in ops]
+            assert indices == sorted(indices), f"Operations not ordered: {indices}"
+
+    @allure.feature("Search Transactions")
+    @allure.story("Operation Invariants")
+    def test_operations_sequential_indices(self, client):
+        """Operation indices must be [0, 1, 2, ..., n-1] with no gaps."""
+        response = client.search_transactions(limit=10)
+        assert response.status_code == 200
+
+        for block_tx in response.json()["transactions"]:
+            ops = block_tx["transaction"]["operations"]
+            indices = [op["operation_identifier"]["index"] for op in ops]
+            assert indices == list(range(len(ops))), f"Expected sequential, got {indices}"
