@@ -1,0 +1,3 @@
+    assert search_response.status_code == 200
+    assert len(txs) == 1, "Coin search should return exactly one transaction"
+    assert utxo_id.startswith(tx_hash), (
