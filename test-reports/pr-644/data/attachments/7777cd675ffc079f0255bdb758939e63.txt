@@ -1,0 +1,9 @@
+    assert response.status_code == 200
+    assert tx is not None, f"Transaction {data['tx_hash']} not found in block {data['block']}"
+    assert len(ops) >= 1, "No dRepVoteDelegation operations found"
+    assert op["status"] == "success"
+    assert op["account"]["address"].startswith("stake_")
+    assert drep["type"] == variant
+        assert "id" in drep, f"drep.id missing for type {variant}"
+        assert is_hex(drep["id"], 56), f"drep.id not valid 56-char hex: {drep['id']}"
+        assert "id" not in drep, f"drep.id should not be present for type {variant}"
