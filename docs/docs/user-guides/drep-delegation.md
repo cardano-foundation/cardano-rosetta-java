@@ -10,13 +10,19 @@ description: Documentation for Delegated Representative (DRep) voting in Cardano
 DRep delegation is only available in Cardano Rosetta Java version 1.2.4 and later.
 :::
 
-Delegated Representatives (DReps) are a key feature of Cardano's governance system introduced in [CIP-1694](https://cips.cardano.org/cip/CIP-1694). DReps allow ADA holders to delegate their voting power to trusted representatives who can vote on governance actions on their behalf, enabling broader participation in the governance process.
+A **DRep** (Delegated Representative) is an entity defined in [CIP-1694](https://cips.cardano.org/cip/CIP-1694) that can vote on your behalf in Cardano governance.
 
-## Construction API
+This guide shows how to build and read `dRepVoteDelegation` operations in Cardano Rosetta Java, including how delegation state affects reward withdrawal flows.
 
-In the request for `/construction/preprocess` and `/construction/payloads` endpoints, the operation type `dRepVoteDelegation` is used to delegate voting power to a Delegated Representative (DRep) for Cardano governance. This operation allows users to participate in Cardano's governance system without having to vote directly on every proposal.
+## What this operation does
 
-## DRep Delegation Types
+Use operation type `dRepVoteDelegation` in `/construction/preprocess` and `/construction/payloads` when you want to delegate governance voting power.
+
+At a high level, you provide:
+- a staking credential (who is delegating), and
+- DRep information (who receives the delegation, or a special delegation mode like `abstain`).
+
+## When to use each delegation mode
 
 The Cardano Rosetta Java implementation supports four different types of DRep delegations:
 
@@ -25,28 +31,38 @@ The Cardano Rosetta Java implementation supports four different types of DRep de
 3. **Key Hash** - Delegate to a specific DRep identified by a key hash
 4. **Script Hash** - Delegate to a DRep managed by a script (identified by script hash)
 
-## DRep Vote Delegation Operations
+<details>
+<summary><strong>DRep ID Format for key_hash/script_hash (CIP-129)</strong></summary>
 
-A DRep vote delegation operation requires a staking credential and the DRep information. The staking key must be registered before delegation.
+:::info
+[CIP-129](https://cips.cardano.org/cip/CIP-0129) defines a tagged id format. In practice, this means a DRep id may include a prefix byte that already tells the id kind (`key_hash` or `script_hash`).
 
-:::info CIP-129 Hash Support
-[CIP-129](https://cips.cardano.org/cip/CIP-0129) defines a tagged format for hashes where the first byte indicates the credential type (e.g., DRep key hash or script hash).
+**Accepted formats**
+- **29-byte id** with CIP-129 prefix (`0x22` key hash, `0x23` script hash)
+- **28-byte id** without prefix (raw hash)
 
-**cardano-rosetta-java now accepts both formats:**
-- **29-byte hash** (with CIP-129 prefix): The prefix will be automatically stripped internally
-- **28-byte hash** (raw, without prefix): Standard format
-
-**Important:** The `type` field is always required regardless of hash format.
+**`type` rules**
+- Prefixed id: `type` is optional (inferred from prefix). If provided, it must match the prefix.
+- Raw 28-byte id: `type` is required (`key_hash` or `script_hash`).
+- API responses use 28-byte ids with a separate `type` field.
 
 _Examples:_
-- With prefix (key hash): `"id": "22abcdef0123456789abcdef0123456789abcdef0123456789abcdef01"` (header `0x22` indicates DRep key_hash)
-- With prefix (script hash): `"id": "23abcdef0123456789abcdef0123456789abcdef0123456789abcdef01"` (header `0x23` indicates DRep script_hash)
+- With prefix (key hash): `"id": "22abcdef0123456789abcdef0123456789abcdef0123456789abcdef01"`
+- With prefix (script hash): `"id": "23abcdef0123456789abcdef0123456789abcdef0123456789abcdef01"`
 - Without prefix: `"id": "abcdef0123456789abcdef0123456789abcdef0123456789abcdef01"`
-
-Both prefixed and raw formats still require a `"type"` to be specified (`"key_hash"` or `"script_hash"`).
-
-The API automatically detects the format and handles the prefix internally. When returning data, the API maintains the 28-byte format with separate type field for consistency.
 :::
+
+</details>
+
+## Input rules
+
+A `dRepVoteDelegation` operation requires staking credential data and DRep data.
+
+- The stake key must be registered before delegation.
+- The operation includes a transaction fee but no deposit.
+- DRep delegation can be combined with other operations in a single transaction.
+
+## Construction examples
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
@@ -106,7 +122,7 @@ This option expresses no confidence in the current governance system. **No DRep 
   </TabItem>
   <TabItem value="key_hash" label="Key Hash">
 
-When delegating to a specific DRep with a key hash, you must provide the **DRep's ID** (as a 28-byte raw hash, see notice above).
+When delegating to a specific DRep with a key hash, provide the DRep id in either supported format (CIP-129 prefixed or raw 28-byte).
 
 ```json
 {
@@ -133,7 +149,7 @@ When delegating to a specific DRep with a key hash, you must provide the **DRep'
   </TabItem>
   <TabItem value="script_hash" label="Script Hash">
 
-Similar to key hash delegation, but delegating to a DRep managed by a script. This requires the **script hash as the ID** (as a 28-byte raw hash, see notice above).
+Similar to key hash delegation, but delegating to a DRep managed by a script. The id can be CIP-129 prefixed or raw 28-byte.
 
 ```json
 {
@@ -160,21 +176,15 @@ Similar to key hash delegation, but delegating to a DRep managed by a script. Th
   </TabItem>
 </Tabs>
 
-## Usage Notes
-
-1. The stake key must be registered before performing a DRep delegation.
-2. The operation includes a transaction fee but no deposit is required.
-3. DRep delegation can be combined with other operations in a single transaction.
-
-## Data API
+## Data API representation
 
 :::note
-The Data API support for DRep vote delegation is only available in version 2.X and above (currently a work in progress).
+Data API support for DRep vote delegation is available in version 2.1.0 and later.
 :::
 
 DRep vote delegation operations are also returned in `/block` and `/block/transaction` endpoints when applicable. Since a DRep delegation is included in the transaction as a certificate, every transaction that contains a DRep delegation certificate will include a corresponding DRep vote delegation operation in the API response.
 
-### Response Example
+### Response examples
 
 <Tabs groupId="drep-response-types">
   <TabItem value="abstain-response" label="Abstain" default>
@@ -279,19 +289,16 @@ DRep vote delegation operations are also returned in `/block` and `/block/transa
   </TabItem>
 </Tabs>
 
-## Staking Workflow
+## DRep Delegation Workflow
 
-A typical workflow for DRep delegation might include:
+A typical DRep delegation workflow includes:
 
-1. Register a stake key (`stakeKeyRegistration` operation)
-2. Delegate to a stake pool (`stakeDelegation` operation)
-3. Delegate to a DRep (`dRepVoteDelegation` operation)
-4. Update DRep delegation as needed with new `dRepVoteDelegation` operations
-5. Optionally deregister the stake key when done (`stakeKeyDeregistration` operation)
+1. Ensure the stake key is registered (`stakeKeyRegistration` if needed).
+2. Submit a `dRepVoteDelegation` operation with one supported delegation mode.
+3. Verify the applied delegation in Data API responses (`/block` or `/block/transaction`).
+4. Update delegation later by submitting a new `dRepVoteDelegation` operation (for example, changing DRep or setting `abstain`/`no_confidence`).
 
-## Related Cardano Improvement Proposals
+## Related CIPs
 
-The DRep delegation functionality is based on the following Cardano Improvement Proposals:
-
-- [CIP-1694](https://cips.cardano.org/cip/CIP-1694) - Introduced the concept of Delegated Representatives (DReps).
-- [CIP-0129](https://cips.cardano.org/cip/CIP-0129) - Defines Conway era serialization formats, including the DRep ID prefix handling discussed earlier.
+- [CIP-1694](https://cips.cardano.org/cip/CIP-1694): DRep governance model.
+- [CIP-0129](https://cips.cardano.org/cip/CIP-0129): prefixed hash format used by DRep ids.
