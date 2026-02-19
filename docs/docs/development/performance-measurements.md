@@ -7,6 +7,9 @@ description: Performance measurement methodologies and results
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
+import MidDockerCompose210 from './test-results/2.1.0/mid_profile/docker-compose.md';
+import MidDockerCompose200 from './test-results/2.0.0/mid_profile/docker-compose.md';
+
 import MidDockerCompose132 from './test-results/1.3.2/mid_profile/docker-compose.md';
 
 import AdvDockerCompose131_pruned  from './test-results/1.3.1/advanced_profile/docker-compose-pruned.md';
@@ -56,6 +59,48 @@ Load tests are conducted using Apache Bench (ab) with a ramp-up strategy, progre
 :::tip
 To better understand the environments in which these results were obtained, please refer to our [hardware profiles documentation](../install-and-deploy/hardware-profiles).
 :::
+
+<details>
+<summary>
+### v2.1.0 (Feb 17, 2026)
+</summary>
+- [Release Notes](https://github.com/cardano-foundation/cardano-rosetta-java/releases/tag/2.1.0)
+
+<details>
+<summary>
+ **Mid-level Hardware Profile**
+</summary>
+**Machine Specs:** 16 cores, 16 threads, 96GB RAM, 3.9TB HDD, QEMU Virtual CPU v2.5+
+<details>
+<Tabs>
+  <TabItem value="mid_docker_compose210" label="Docker Compose" default>
+    <MidDockerCompose210 />
+  </TabItem>
+</Tabs>
+</details>
+</details>
+</details>
+
+<details>
+<summary>
+### v2.0.0 (Feb 4, 2026)
+</summary>
+- [Release Notes](https://github.com/cardano-foundation/cardano-rosetta-java/releases/tag/2.0.0)
+
+<details>
+<summary>
+ **Mid-level Hardware Profile**
+</summary>
+**Machine Specs:** 16 cores, 16 threads, 96GB RAM, 3.9TB HDD, QEMU Virtual CPU v2.5+
+<details>
+<Tabs>
+  <TabItem value="mid_docker_compose200" label="Docker Compose" default>
+    <MidDockerCompose200 />
+  </TabItem>
+</Tabs>
+</details>
+</details>
+</details>
 
 <details>
 <summary>
