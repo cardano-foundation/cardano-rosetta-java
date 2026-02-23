@@ -1,0 +1,178 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ printf "%s-cardano-node" .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "cardano-node.commonLabels" . | nindent 4 }}
+    component: cardano-node
+spec:
+  replicas: 1
+  serviceName: {{ printf "%s-cardano-node-headless" .Release.Name }}
+  selector:
+    matchLabels:
+      {{- include "cardano-node.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "cardano-node.selectorLabels" . | nindent 8 }}
+        {{- include "cardano-node.commonLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ printf "%s-sa" .Release.Name }}
+      terminationGracePeriodSeconds: 60
+
+      initContainers:
+        - name: wait-for-mithril
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              {{- if .Values.global.mithril.enabled }}
+              echo "Waiting for Mithril snapshot download to complete..."
+              echo "Checking for /node/db directory with content..."
+              ATTEMPTS=0
+              MAX_ATTEMPTS=720  # 6 hours max wait (30s intervals)
+              while [ $ATTEMPTS -lt $MAX_ATTEMPTS ]; do
+                if [ -d /node/db ] && [ "$(ls -A /node/db 2>/dev/null)" ]; then
+                  echo "Mithril snapshot is ready (db size: $(du -sh /node/db 2>/dev/null | cut -f1))"
+                  exit 0
+                fi
+                ATTEMPTS=$((ATTEMPTS + 1))
+                echo "Attempt ${ATTEMPTS}/${MAX_ATTEMPTS}: snapshot not ready, waiting 30s..."
+                sleep 30
+              done
+              echo "ERROR: Mithril snapshot not ready after 6 hours"
+              exit 1
+              {{- else }}
+              echo "Mithril disabled, skipping wait"
+              exit 0
+              {{- end }}
+          volumeMounts:
+            - name: node-data
+              mountPath: /node
+
+      containers:
+        - name: cardano-node
+          image: "cardanofoundation/cardano-rosetta-java-cardano-node:{{ .Values.global.cardanoNodeVersion }}"
+          command: ["/sbin/entrypoint.sh", "cardano-node"]
+          env:
+            - name: CARDANO_NODE_SOCKET_PATH
+              value: /node/node.socket
+            - name: CARDANO_NODE_PORT
+              value: "3001"
+            - name: CARDANO_NODE_DB
+              value: /node/db
+            - name: CARDANO_CONFIG_CONTAINER_PATH
+              value: /config
+          ports:
+            - name: node-to-node
+              containerPort: 3001
+              protocol: TCP
+            - name: metrics
+              containerPort: 12798
+              protocol: TCP
+          volumeMounts:
+            - name: node-data
+              mountPath: /node
+            - name: node-config
+              mountPath: /config
+              readOnly: true
+          resources:
+            {{- $profile := (include "cardano-node.profile" .) }}
+            {{- $res := index .Values.global.profiles $profile "resources" "cardanoNode" }}
+            {{- toYaml $res | nindent 12 }}
+          livenessProbe:
+            exec:
+              command:
+                - test
+                - -S
+                - /node/node.socket
+            initialDelaySeconds: 120
+            periodSeconds: 30
+            failureThreshold: 5
+            timeoutSeconds: 5
+          startupProbe:
+            exec:
+              command:
+                - test
+                - -S
+                - /node/node.socket
+            initialDelaySeconds: 60
+            periodSeconds: 15
+            failureThreshold: 60
+            timeoutSeconds: 5
+
+        - name: socat
+          image: alpine/socat:1.7.4.4-r0
+          command:
+            - sh
+            - -c
+            - |
+              echo "Waiting for cardano-node socket at /node/node.socket..."
+              until [ -S /node/node.socket ]; do
+                echo "Socket not yet available, waiting 5s..."
+                sleep 5
+              done
+              echo "Socket found, starting socat bridge TCP:3002 -> UNIX:/node/node.socket"
+              exec socat \
+                TCP-LISTEN:3002,reuseaddr,fork \
+                UNIX-CONNECT:/node/node.socket
+          ports:
+            - name: socat-n2c
+              containerPort: 3002
+              protocol: TCP
+          volumeMounts:
+            - name: node-data
+              mountPath: /node
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "32Mi"
+            limits:
+              cpu: "200m"
+              memory: "128Mi"
+
+        - name: cardano-submit-api
+          image: "cardanofoundation/cardano-rosetta-java-cardano-node:{{ .Values.global.cardanoNodeVersion }}"
+          command: ["/sbin/entrypoint.sh", "cardano-submit-api"]
+          env:
+            - name: NETWORK
+              value: {{ .Values.global.network | quote }}
+            - name: PROTOCOL_MAGIC
+              value: {{ .Values.global.protocolMagic | toString | quote }}
+            - name: CARDANO_NODE_SOCKET_PATH
+              value: /node/node.socket
+            - name: NODE_SUBMIT_API_PORT
+              value: "8090"
+          ports:
+            - name: submit-api
+              containerPort: 8090
+              protocol: TCP
+          volumeMounts:
+            - name: node-data
+              mountPath: /node
+            - name: node-config
+              mountPath: /config
+              readOnly: true
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "1Gi"
+          readinessProbe:
+            tcpSocket:
+              port: 8090
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            failureThreshold: 10
+
+      volumes:
+        - name: node-data
+          persistentVolumeClaim:
+            claimName: {{ printf "%s-cardano-node-data" .Release.Name }}
+        - name: node-config
+          configMap:
+            name: {{ printf "%s-node-config" .Release.Name }}

@@ -1,0 +1,14 @@
+{{- if index .Values "monitoring" "enabled" }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ printf "%s-grafana-dashboards" .Release.Name }}
+  namespace: {{ include "cardano-rosetta-java.namespace" . }}
+  labels:
+    {{- include "cardano-rosetta-java.commonLabels" . | nindent 4 }}
+data:
+  rosetta-dashboards.json: |
+    {{- .Files.Get "files/grafana-dashboards/rosetta-dashboards.json" | nindent 4 }}
+  server-health-dashboard.json: |
+    {{- .Files.Get "files/grafana-dashboards/server-health-dashboard.json" | nindent 4 }}
+{{- end }}

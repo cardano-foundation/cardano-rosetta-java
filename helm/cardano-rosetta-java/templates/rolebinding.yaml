@@ -1,0 +1,15 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ .Release.Name }}-rolebinding
+  namespace: {{ include "cardano-rosetta-java.namespace" . }}
+  labels:
+    {{- include "cardano-rosetta-java.commonLabels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ .Release.Name }}-role
+subjects:
+  - kind: ServiceAccount
+    name: {{ .Release.Name }}-sa
+    namespace: {{ include "cardano-rosetta-java.namespace" . }}

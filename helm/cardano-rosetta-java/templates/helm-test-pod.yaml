@@ -1,0 +1,64 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ printf "%s-test-connection" .Release.Name }}
+  namespace: {{ include "cardano-rosetta-java.namespace" . }}
+  labels:
+    {{- include "cardano-rosetta-java.commonLabels" . | nindent 4 }}
+    component: test
+  annotations:
+    helm.sh/hook: test
+    helm.sh/hook-delete-policy: before-hook-creation
+spec:
+  restartPolicy: Never
+  containers:
+    - name: test-api-endpoints
+      image: curlimages/curl:8.5.0
+      command:
+        - sh
+        - -c
+        - |
+          set -e
+          NETWORK="{{ .Values.global.network }}"
+          API_URL="http://{{ printf "%s-rosetta-api" .Release.Name }}:8082"
+          YACI_URL="http://{{ printf "%s-yaci-indexer" .Release.Name }}:9095"
+
+          echo "=== Testing Rosetta API ==="
+
+          echo "1. Testing /network/list..."
+          curl -sf "${API_URL}/network/list" \
+            -H "Content-Type: application/json" \
+            -d '{"metadata":{}}' -X POST
+          echo ""
+          echo "PASS: /network/list"
+
+          echo "2. Testing /network/options..."
+          curl -sf "${API_URL}/network/options" \
+            -H "Content-Type: application/json" \
+            -d "{\"network_identifier\":{\"blockchain\":\"cardano\",\"network\":\"${NETWORK}\"},\"metadata\":{}}" \
+            -X POST
+          echo ""
+          echo "PASS: /network/options"
+
+          echo "3. Testing /network/status..."
+          curl -sf "${API_URL}/network/status" \
+            -H "Content-Type: application/json" \
+            -d "{\"network_identifier\":{\"blockchain\":\"cardano\",\"network\":\"${NETWORK}\"},\"metadata\":{}}" \
+            -X POST
+          echo ""
+          echo "PASS: /network/status"
+
+          echo "=== Testing Yaci Indexer ==="
+          echo "4. Testing yaci-indexer /actuator/health..."
+          curl -sf "${YACI_URL}/actuator/health"
+          echo ""
+          echo "PASS: yaci-indexer /actuator/health"
+
+          echo "=== All tests passed ==="
+      resources:
+        requests:
+          cpu: "50m"
+          memory: "32Mi"
+        limits:
+          cpu: "200m"
+          memory: "128Mi"

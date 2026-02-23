@@ -1,0 +1,14 @@
+{{- if .Values.stressTesting.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ printf "%s-load-tests" .Release.Name }}
+  namespace: {{ include "cardano-rosetta-java.namespace" . }}
+  labels:
+    {{- include "cardano-rosetta-java.commonLabels" . | nindent 4 }}
+data:
+  smoke.js: |
+    {{- .Files.Get "files/load-tests/smoke.js" | nindent 4 }}
+  load.js: |
+    {{- .Files.Get "files/load-tests/load.js" | nindent 4 }}
+{{- end }}

@@ -1,0 +1,77 @@
+## -----------------------------------------------------------------------
+## rosetta-api subchart default values
+## -----------------------------------------------------------------------
+
+## Replica count for the API deployment
+replicaCount: 1
+
+## Service configuration
+service:
+  port: 8082
+  external:
+    enabled: false
+    type: LoadBalancer
+
+## Ingress configuration
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  host: ""
+  tls: []
+
+## Environment-specific tuning parameters
+env:
+  httpConnectTimeoutSeconds: 30
+  httpRequestTimeoutSeconds: 30
+  syncGraceSlotsCount: 60
+  removeSpentUtxos: true
+  removeSpentUtxosLastBlocksGraceCount: 100
+  blockTransactionApiTimeoutSecs: 120
+  devkitEnabled: false
+  devkitUrl: ""
+  devkitPort: 0
+  tokenRegistryEnabled: false
+  tokenRegistryBaseUrl: "https://tokens.cardano.org"
+  tokenRegistryCacheTtlHours: 24
+  tokenRegistryLogoFetch: false
+  tokenRegistryRequestTimeoutSeconds: 30
+
+## Resource and DB pool profiles (inherited from parent, can be overridden)
+profiles:
+  entry:
+    resources:
+      api:
+        requests:
+          cpu: "250m"
+          memory: "1Gi"
+        limits:
+          cpu: "1"
+          memory: "2Gi"
+    db:
+      poolMin: 12
+      poolMax: 12
+  mid:
+    resources:
+      api:
+        requests:
+          cpu: "500m"
+          memory: "2Gi"
+        limits:
+          cpu: "2"
+          memory: "4Gi"
+    db:
+      poolMin: 150
+      poolMax: 150
+  advanced:
+    resources:
+      api:
+        requests:
+          cpu: "1"
+          memory: "4Gi"
+        limits:
+          cpu: "4"
+          memory: "8Gi"
+    db:
+      poolMin: 100
+      poolMax: 550

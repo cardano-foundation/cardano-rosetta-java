@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ printf "%s-db-indexes" .Release.Name }}
+  namespace: {{ include "cardano-rosetta-java.namespace" . }}
+  labels:
+    {{- include "cardano-rosetta-java.commonLabels" . | nindent 4 }}
+data:
+  db-indexes.yaml: |
+    {{- .Files.Get "files/db-indexes.yaml" | nindent 4 }}
