@@ -22,20 +22,20 @@ ingress:
 
 ## Environment-specific tuning parameters
 env:
-  httpConnectTimeoutSeconds: 30
-  httpRequestTimeoutSeconds: 30
-  syncGraceSlotsCount: 60
+  httpConnectTimeoutSeconds: 5             # matches Docker Compose default
+  httpRequestTimeoutSeconds: 5             # matches Docker Compose default
+  syncGraceSlotsCount: 100                 # matches Docker Compose default
   removeSpentUtxos: true
-  removeSpentUtxosLastBlocksGraceCount: 100
-  blockTransactionApiTimeoutSecs: 120
+  removeSpentUtxosLastBlocksGraceCount: 129600  # 30 days @ ~20s/block; matches Docker Compose default
+  blockTransactionApiTimeoutSecs: 120      # intentionally higher than Docker (5s) for K8s network latency
   devkitEnabled: false
   devkitUrl: ""
   devkitPort: 0
   tokenRegistryEnabled: false
-  tokenRegistryBaseUrl: "https://tokens.cardano.org"
-  tokenRegistryCacheTtlHours: 24
+  tokenRegistryBaseUrl: ""                 # matches Docker Compose default (disabled by default)
+  tokenRegistryCacheTtlHours: 12           # matches Docker Compose default
   tokenRegistryLogoFetch: false
-  tokenRegistryRequestTimeoutSeconds: 30
+  tokenRegistryRequestTimeoutSeconds: 2    # matches Docker Compose default
 
 ## Resource and DB pool profiles (inherited from parent, can be overridden)
 profiles:

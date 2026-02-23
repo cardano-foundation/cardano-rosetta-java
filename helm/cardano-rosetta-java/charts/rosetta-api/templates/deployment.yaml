@@ -100,6 +100,8 @@ spec:
               value: /config/alonzo-genesis.json
             - name: GENESIS_CONWAY_PATH
               value: /config/conway-genesis.json
+            - name: GENESIS_BYRON_PATH
+              value: /config/byron-genesis.json
             - name: CARDANO_NODE_SUBMIT_HOST
               value: {{ printf "%s-cardano-node" .Release.Name | quote }}
             - name: NODE_SUBMIT_API_PORT
