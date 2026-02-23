@@ -1,0 +1,32 @@
+apiVersion: v2
+name: cardano-rosetta-java
+description: Cardano Rosetta Java — Rosetta/Mesh API implementation for the Cardano blockchain
+type: application
+version: 2.0.0
+appVersion: "2.0.0"
+keywords: [cardano, rosetta, blockchain, mesh]
+home: https://github.com/cardano-foundation/cardano-rosetta-java
+maintainers:
+  - name: Cardano Foundation
+    url: https://cardanofoundation.org
+dependencies:
+  - name: cardano-node
+    version: "2.0.0"
+    repository: "file://charts/cardano-node"
+    condition: cardano-node.enabled
+  - name: postgresql
+    version: "2.0.0"
+    repository: "file://charts/postgresql"
+    condition: postgresql.enabled
+  - name: yaci-indexer
+    version: "2.0.0"
+    repository: "file://charts/yaci-indexer"
+    condition: yaci-indexer.enabled
+  - name: rosetta-api
+    version: "2.0.0"
+    repository: "file://charts/rosetta-api"
+    condition: rosetta-api.enabled
+  - name: monitoring
+    version: "2.0.0"
+    repository: "file://charts/monitoring"
+    condition: monitoring.enabled

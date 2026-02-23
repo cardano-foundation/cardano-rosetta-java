@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ printf "%s-grafana" .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "monitoring.commonLabels" . | nindent 4 }}
+    component: grafana
+spec:
+  type: ClusterIP
+  selector:
+    app: {{ printf "%s-grafana" .Release.Name }}
+  ports:
+    - name: http
+      port: {{ .Values.grafana.port }}
+      targetPort: 3000
+      protocol: TCP

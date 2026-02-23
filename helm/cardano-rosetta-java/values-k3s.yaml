@@ -1,0 +1,55 @@
+## -----------------------------------------------------------------------
+## K3s local development overrides
+## -----------------------------------------------------------------------
+global:
+  profile: entry
+
+storage:
+  cardanoNode:
+    size: 100Gi
+    storageClass: "local-path"
+  postgresql:
+    size: 50Gi
+    storageClass: "local-path"
+  prometheus:
+    size: 10Gi
+    storageClass: "local-path"
+  grafana:
+    size: 2Gi
+    storageClass: "local-path"
+
+monitoring:
+  enabled: true
+
+## Override entry profile resources for k3s (very conservative)
+profiles:
+  entry:
+    resources:
+      cardanoNode:
+        requests:
+          cpu: "1"
+          memory: "4Gi"
+        limits:
+          cpu: "2"
+          memory: "8Gi"
+      postgresql:
+        requests:
+          cpu: "1"
+          memory: "2Gi"
+        limits:
+          cpu: "2"
+          memory: "6Gi"
+      indexer:
+        requests:
+          cpu: "500m"
+          memory: "1Gi"
+        limits:
+          cpu: "1"
+          memory: "2Gi"
+      api:
+        requests:
+          cpu: "250m"
+          memory: "512Mi"
+        limits:
+          cpu: "1"
+          memory: "1Gi"

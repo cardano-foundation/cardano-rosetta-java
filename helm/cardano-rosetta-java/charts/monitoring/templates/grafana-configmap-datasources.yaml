@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ printf "%s-grafana-datasources" .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "monitoring.commonLabels" . | nindent 4 }}
+data:
+  datasource.yaml: |
+    apiVersion: 1
+    datasources:
+      - name: Prometheus
+        type: prometheus
+        access: proxy
+        url: http://{{ printf "%s-prometheus" .Release.Name }}:{{ .Values.prometheus.port }}
+        isDefault: true
+        editable: false

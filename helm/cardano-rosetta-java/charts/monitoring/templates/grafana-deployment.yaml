@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ printf "%s-grafana" .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "monitoring.commonLabels" . | nindent 4 }}
+    component: grafana
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ printf "%s-grafana" .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ printf "%s-grafana" .Release.Name }}
+        component: grafana
+    spec:
+      securityContext:
+        fsGroup: 472
+        runAsUser: 472
+      containers:
+        - name: grafana
+          image: {{ .Values.grafana.image | quote }}
+          env:
+            - name: GF_SECURITY_ADMIN_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ printf "%s-grafana-secret" .Release.Name }}
+                  key: admin-user
+            - name: GF_SECURITY_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ printf "%s-grafana-secret" .Release.Name }}
+                  key: admin-password
+            - name: GF_PATHS_PROVISIONING
+              value: /etc/grafana/provisioning
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+          volumeMounts:
+            - name: grafana-data
+              mountPath: /var/lib/grafana
+            - name: datasources
+              mountPath: /etc/grafana/provisioning/datasources
+            - name: dashboard-provider
+              mountPath: /etc/grafana/provisioning/dashboards
+            - name: dashboard-json
+              mountPath: /etc/grafana/provisioning/dashboards/json
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 3000
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            failureThreshold: 10
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 3000
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            failureThreshold: 5
+      volumes:
+        - name: grafana-data
+          persistentVolumeClaim:
+            claimName: {{ printf "%s-grafana-data" .Release.Name }}
+        - name: datasources
+          configMap:
+            name: {{ printf "%s-grafana-datasources" .Release.Name }}
+        - name: dashboard-provider
+          configMap:
+            name: {{ printf "%s-grafana-dashboard-provider" .Release.Name }}
+        - name: dashboard-json
+          configMap:
+            # Created by the parent chart (files are in parent's files/grafana-dashboards/)
+            name: {{ printf "%s-grafana-dashboards" .Release.Name }}

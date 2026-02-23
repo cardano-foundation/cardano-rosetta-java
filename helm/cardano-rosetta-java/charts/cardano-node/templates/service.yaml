@@ -1,0 +1,43 @@
+# Headless service for StatefulSet stable DNS
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ printf "%s-cardano-node-headless" .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "cardano-node.commonLabels" . | nindent 4 }}
+spec:
+  clusterIP: None
+  selector:
+    {{- include "cardano-node.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: node-to-node
+      port: 3001
+      targetPort: 3001
+---
+# ClusterIP service for inter-pod communication
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ printf "%s-cardano-node" .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "cardano-node.commonLabels" . | nindent 4 }}
+    component: cardano-node
+spec:
+  type: ClusterIP
+  selector:
+    {{- include "cardano-node.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: node-to-node
+      port: 3001
+      targetPort: 3001
+    - name: socat-n2c
+      port: 3002
+      targetPort: 3002
+    - name: submit-api
+      port: 8090
+      targetPort: 8090
+    - name: metrics
+      port: 12798
+      targetPort: 12798

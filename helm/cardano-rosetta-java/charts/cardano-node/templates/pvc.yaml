@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ printf "%s-cardano-node-data" .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "cardano-node.commonLabels" . | nindent 4 }}
+    component: cardano-node
+  annotations:
+    helm.sh/resource-policy: keep
+spec:
+  accessModes:
+    - ReadWriteOnce
+  {{- if .Values.global.storage.cardanoNode.storageClass }}
+  storageClassName: {{ .Values.global.storage.cardanoNode.storageClass | quote }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.global.storage.cardanoNode.size }}

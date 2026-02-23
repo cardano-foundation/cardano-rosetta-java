@@ -1,0 +1,44 @@
+## -----------------------------------------------------------------------
+## yaci-indexer subchart default values
+## -----------------------------------------------------------------------
+
+## Environment-specific tuning parameters
+env:
+  removeSpentUtxos: true
+  removeSpentUtxosLastBlocksGraceCount: 100
+  removeSpentUtxosBatchSize: 100
+  blockTransactionApiTimeoutSecs: 120
+  searchLimit: 5000
+  continueParsingOnError: false
+  peerDiscovery: false
+  logLevel: info
+
+## Resource profiles (inherited from parent, can be overridden)
+profiles:
+  entry:
+    resources:
+      indexer:
+        requests:
+          cpu: "500m"
+          memory: "2Gi"
+        limits:
+          cpu: "2"
+          memory: "4Gi"
+  mid:
+    resources:
+      indexer:
+        requests:
+          cpu: "1"
+          memory: "4Gi"
+        limits:
+          cpu: "4"
+          memory: "8Gi"
+  advanced:
+    resources:
+      indexer:
+        requests:
+          cpu: "2"
+          memory: "8Gi"
+        limits:
+          cpu: "8"
+          memory: "16Gi"

@@ -1,0 +1,44 @@
+{{- if .Values.stressTesting.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ printf "%s-stress-test" .Release.Name }}
+  namespace: {{ include "cardano-rosetta-java.namespace" . }}
+  labels:
+    {{- include "cardano-rosetta-java.commonLabels" . | nindent 4 }}
+    component: stress-test
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 3600
+  template:
+    metadata:
+      labels:
+        component: stress-test
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: k6
+          image: grafana/k6:0.50.0
+          args:
+            - run
+            - /scripts/{{ .Values.stressTesting.profile }}.js
+          env:
+            - name: TARGET_URL
+              value: {{ .Values.stressTesting.targetUrl | quote }}
+            - name: NETWORK
+              value: {{ .Values.global.network | quote }}
+          volumeMounts:
+            - name: load-test-scripts
+              mountPath: /scripts
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "256Mi"
+            limits:
+              cpu: "2"
+              memory: "512Mi"
+      volumes:
+        - name: load-test-scripts
+          configMap:
+            name: {{ printf "%s-load-tests" .Release.Name }}
+{{- end }}

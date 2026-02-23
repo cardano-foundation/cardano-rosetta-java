@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ printf "%s-yaci-indexer-config" .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "yaci-indexer.commonLabels" . | nindent 4 }}
+data:
+  NETWORK: {{ .Values.global.network | quote }}
