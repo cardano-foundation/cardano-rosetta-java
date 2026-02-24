@@ -11,6 +11,7 @@ data:
     datasources:
       - name: Prometheus
         type: prometheus
+        uid: DS_PROMETHEUS
         access: proxy
         url: http://{{ printf "%s-prometheus" .Release.Name }}:{{ .Values.prometheus.port }}
         isDefault: true
