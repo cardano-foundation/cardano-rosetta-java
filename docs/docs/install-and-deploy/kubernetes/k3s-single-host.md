@@ -31,15 +31,26 @@ cd cardano-rosetta-java
 # 2. Set the database password (required)
 export DB_PASSWORD="<your-secure-password>"
 
-# 3. Deploy (installs k3s automatically if missing, ~90 min for preprod sync)
-make k8s-local-up
+# 3. Build chart dependencies
+helm dependency build helm/cardano-rosetta-java
+
+# 4. Deploy
+helm upgrade --install rosetta helm/cardano-rosetta-java \
+  -f helm/cardano-rosetta-java/values.yaml \
+  -f helm/cardano-rosetta-java/values-k3s.yaml \
+  -f helm/cardano-rosetta-java/values-preprod.yaml \
+  --set global.db.password="${DB_PASSWORD}" \
+  -n cardano --create-namespace \
+  --wait --timeout 60m
 ```
 
-The setup script (`scripts/k3s-setup.sh preprod`):
-1. Installs k3s if not already present
-2. Creates the `cardano` namespace
-3. Runs `helm dependency build`
-4. Deploys with `helm upgrade --install rosetta ... --atomic --wait --wait-for-jobs`
+:::info Why not `--wait-for-jobs`?
+The `index-applier` post-install Job waits for the full blockchain to be indexed before
+it completes — this can take **6–18 hours** on mainnet. Using `--wait-for-jobs` causes
+Helm to block until that Job finishes, and `--atomic` would then roll back the entire
+release on timeout. Omit `--wait-for-jobs`; the Job runs in the background and can be
+monitored independently.
+:::
 
 ## Monitor Deployment Progress
 
@@ -47,38 +58,46 @@ The deployment goes through three phases. Use these commands to follow along:
 
 ### Phase 1 — Mithril snapshot download (~15–60 min depending on network)
 ```bash
-kubectl logs -f -l job-name=rosetta-mithril-job -n cardano
+kubectl logs -f job/rosetta-mithril -n cardano
 ```
 
 ### Phase 2 — Cardano node sync (preprod: ~30 min, mainnet: several hours)
 ```bash
-make k8s-logs-node          # cardano-node logs
+make k8s-logs-node              # cardano-node logs
 kubectl get pods -n cardano -w  # watch all pods
 ```
 
 ### Phase 3 — All pods ready
 ```bash
-make k8s-status
-# NAME                                    READY   STATUS    RESTARTS
-# rosetta-cardano-node-0                  2/2     Running   0
-# rosetta-postgresql-0                    1/1     Running   0
-# rosetta-yaci-indexer-<hash>             1/1     Running   0
-# rosetta-rosetta-api-<hash>              1/1     Running   0
+kubectl get pods -n cardano
+# NAME                                    READY   STATUS      RESTARTS
+# rosetta-cardano-node-0                  2/2     Running     0
+# rosetta-postgresql-0                    1/1     Running     0
+# rosetta-yaci-indexer-<hash>             1/1     Running     0
+# rosetta-rosetta-api-<hash>              1/1     Running     0
+# rosetta-mithril-<hash>                  0/1     Completed   0
+# rosetta-index-applier-<hash>            0/1     Completed   0   ← may still be Running
 ```
 
 ## Verify the Deployment
 
 ```bash
-# Port-forward the API
-make k8s-port-forward   # forwards localhost:8082 → rosetta-api:8082
+# Port-forward the API (accessible from local machine only)
+kubectl port-forward svc/rosetta-rosetta-api 8082:8082 -n cardano
+
+# Port-forward accessible from remote machines (e.g., your laptop connecting to a server)
+kubectl port-forward --address 0.0.0.0 svc/rosetta-rosetta-api 8082:8082 -n cardano
 
 # In a separate terminal — test a Rosetta endpoint
-curl -s http://localhost:8082/network/list \
+curl -s -X POST http://localhost:8082/network/list \
   -H 'Content-Type: application/json' \
-  -d '{}' | jq .
+  -d '{"metadata":{}}' | jq .
 
-# Run the built-in Helm test suite
-make k8s-test
+# Check sync stage
+curl -s -X POST http://localhost:8082/network/status \
+  -H 'Content-Type: application/json' \
+  -d '{"network_identifier":{"blockchain":"cardano","network":"preprod"},"metadata":{}}' \
+  | jq '{stage: .sync_status.stage, block: .current_block_identifier.index}'
 ```
 
 Expected `/network/list` response:
@@ -90,19 +109,25 @@ Expected `/network/list` response:
 }
 ```
 
+The `stage` field in `/network/status` cycles through:
+- `SYNCING` — yaci-indexer still catching up to chain tip
+- `APPLYING_INDEXES` — indexing done; building DB indexes (index-applier Job running)
+- `LIVE` — fully operational
+
 ## Mainnet Deployment
 
 ```bash
 export DB_PASSWORD="<your-secure-password>"
-./scripts/k3s-setup.sh mainnet
-```
 
-This uses the mainnet defaults in `helm/cardano-rosetta-java/values.yaml` (`mid`
-profile, 500 Gi node storage, 200 Gi PostgreSQL).
-
-To override the profile:
-```bash
-./scripts/k3s-setup.sh mainnet cardano advanced
+helm upgrade --install rosetta helm/cardano-rosetta-java \
+  -f helm/cardano-rosetta-java/values.yaml \
+  -f helm/cardano-rosetta-java/values-k3s.yaml \
+  --set global.db.password="${DB_PASSWORD}" \
+  --set global.network=mainnet \
+  --set global.protocolMagic=764824073 \
+  --set global.profile=mid \
+  -n cardano --create-namespace \
+  --wait --timeout 60m
 ```
 
 ## Common Operations
@@ -117,24 +142,60 @@ make k8s-logs-node      # cardano-node
 ### Upgrade to a new release
 ```bash
 export DB_PASSWORD="<your-password>"
-make k8s-local-up       # re-runs helm upgrade --install --atomic
+helm upgrade rosetta helm/cardano-rosetta-java \
+  -f helm/cardano-rosetta-java/values.yaml \
+  -f helm/cardano-rosetta-java/values-k3s.yaml \
+  --set global.db.password="${DB_PASSWORD}" \
+  -n cardano --wait --timeout 60m
 ```
+
+### Restart a component
+```bash
+kubectl rollout restart deployment/rosetta-rosetta-api -n cardano
+kubectl rollout restart deployment/rosetta-yaci-indexer -n cardano
+kubectl rollout restart statefulset/rosetta-postgresql -n cardano
+```
+
+### Monitor the index-applier Job
+```bash
+kubectl get job rosetta-index-applier -n cardano
+kubectl logs -f job/rosetta-index-applier -n cardano
+```
+
+## Enable Monitoring (Prometheus + Grafana)
+
+Monitoring is enabled by default (`monitoring.enabled: true` in `values.yaml`). To
+disable it, pass `--set monitoring.enabled=false`. To access Grafana and Prometheus
+after deployment:
+
+```bash
+# Local access only
+kubectl port-forward svc/rosetta-grafana 3000:3000 -n cardano &
+kubectl port-forward svc/rosetta-prometheus 9090:9090 -n cardano &
+
+# Remote access — bind to all interfaces so your browser can reach the server by IP
+kubectl port-forward --address 0.0.0.0 svc/rosetta-grafana 3000:3000 -n cardano &
+kubectl port-forward --address 0.0.0.0 svc/rosetta-prometheus 9090:9090 -n cardano &
+```
+
+Then open:
+- Grafana: `http://<server-ip>:3000` (default credentials: `admin` / `admin`)
+- Prometheus: `http://<server-ip>:9090`
+
+The **Rosetta Critical Operation Metrics** dashboard is pre-provisioned. It uses a
+K8s-specific dashboard file (`config/monitoring/dashboards/rosetta-dashboards-k8s.json`)
+that is separate from the Docker Compose dashboard to account for differences in service
+naming and Prometheus label values.
+
+:::note Grafana datasource UID
+The K8s Grafana datasource is provisioned with `uid: DS_PROMETHEUS`. The K8s dashboard
+JSON uses this literal UID (not the `${DS_PROMETHEUS}` template variable, which is only
+resolved during interactive UI import and does not work for file-provisioned dashboards).
+:::
 
 ### Run stress test (k6 smoke)
 ```bash
 make k8s-stress-test
-```
-
-### Enable monitoring (Prometheus + Grafana)
-```bash
-export DB_PASSWORD="<your-password>"
-helm upgrade rosetta helm/cardano-rosetta-java \
-  -n cardano \
-  --set global.db.password="${DB_PASSWORD}" \
-  --set monitoring.enabled=true \
-  --reuse-values
-kubectl port-forward svc/rosetta-grafana 3000:3000 -n cardano
-# Open http://localhost:3000 (admin / admin)
 ```
 
 ## Teardown
@@ -159,11 +220,16 @@ if you intentionally want to wipe all data.
 
 ## Troubleshooting
 
-| Symptom | Likely cause | Fix |
+| Symptom | Likely Cause | Fix |
 |---|---|---|
-| `cardano-node` pod stuck in `Init:0/1` | Mithril download still running | `kubectl logs -f -l job-name=rosetta-mithril-job -n cardano` |
-| `postgresql` pod stuck in `Init:0/1` | Node not fully synced | Check `cardano-node` logs; can take hours for mainnet |
-| `rosetta-api` pod `0/1 Running` (not Ready) | Indexer still catching up | `make k8s-logs-indexer`; wait for "LIVE" log message |
-| `Error: INSTALLATION FAILED: timed out` | Network slow or insufficient resources | Increase timeout: `--timeout 120m` |
-| PVC `Pending` | No suitable StorageClass | Check `kubectl get sc`; ensure `local-path` provisioner is running |
+| `cardano-node` stuck in `Init:0/1` | Mithril download still running | `kubectl logs -f job/rosetta-mithril -n cardano` |
+| `postgresql` stuck in `Init:0/1` | Node not fully synced | Check cardano-node logs; sync progress printed every ~30 s |
+| `postgresql` stuck at "0% sync progress" | Grep pattern mismatch (fixed in chart ≥ 2.0.0) | Upgrade the chart; `cardano-cli query tip` returns `"syncProgress": "100.00"` (with space) |
+| `rosetta-api` pod `0/1 Running` (not Ready) | yaci-indexer still syncing | `make k8s-logs-indexer`; wait for stage `LIVE` |
+| `helm upgrade` times out and rolls back | Stale Helm hooks or insufficient timeout | Remove `--wait-for-jobs`; use `--wait --timeout 60m` only |
+| Helm release stuck in `failed` state | Previous rollback left orphaned resources | Run `helm uninstall rosetta -n cardano --no-hooks` then redeploy |
+| PVC `Pending` | No suitable StorageClass | `kubectl get sc`; ensure `local-path` provisioner is running |
 | `ImagePullBackOff` | Rate limit or wrong image tag | Check `global.releaseVersion` in values.yaml |
+| Prometheus target DOWN for `node-exporter` | Missing Service for node-exporter DaemonSet | Chart includes `node-exporter-service.yaml` from v2.0.0+; upgrade if missing |
+| Grafana dashboard shows "No data" | `hideSeriesFrom` overrides referencing Docker Compose labels | Use `rosetta-dashboards-k8s.json` (included in chart); avoid importing Docker Compose dashboard in K8s |
+| Port-forward not accessible from remote machine | Bound to `127.0.0.1` by default | Add `--address 0.0.0.0` to `kubectl port-forward` |
