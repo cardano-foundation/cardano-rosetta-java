@@ -34,6 +34,16 @@ The order of operations is important since they are processed in a specific sequ
 3. Withdrawals
    :::
 
+## Governance Prerequisite for Reward Withdrawals
+
+:::important
+In the current governance era, withdrawing stake rewards requires the stake credential to be delegated to a DRep.
+
+For exchange flows, treat DRep delegation as a pre-check before building `withdrawal` operations.
+:::
+
+Use the [DRep Delegation guide](/docs/user-guides/drep-delegation) to build or update `dRepVoteDelegation` operations before withdrawal when needed.
+
 ## Operation Examples
 
 <Tabs>

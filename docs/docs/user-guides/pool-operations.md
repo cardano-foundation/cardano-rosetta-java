@@ -11,9 +11,9 @@ import TabItem from '@theme/TabItem';
 
 ## Overview
 
-Stake pools are a central element of Cardano's Proof of Stake system. The Rosetta API implementation supports operations for registering, updating, and retiring stake pools.
+Stake pools are a core part of Cardano's Proof of Stake system. The Rosetta API supports stake pool registration, retirement, and SPO governance voting operations.
 
-## Operation Types
+## Pool Operation Types
 
 In addition to standard transaction operations, the following operations are available for stake pool management:
 
@@ -22,13 +22,17 @@ In addition to standard transaction operations, the following operations are ava
 | `poolRegistration`         | Register a new stake pool                       |
 | `poolRegistrationWithCert` | Register a pool using a pre-created certificate |
 | `poolRetirement`           | Retire an existing stake pool                   |
-| `poolGovernanceVote`       | SPO submit governance vote                      |
+| `poolGovernanceVote`       | Submit an SPO governance vote                   |
 
-:::note
-For all pool operations, the cold key is needed to sign the payloads, so it will be passed as an address.
-:::
+## Input Rules
 
-## Pool Operations
+- For all pool operations, the cold key is required for signing and is passed as the operation `account.address`.
+- `poolRegistration` requires `poolRegistrationParams` in metadata.
+- `poolRegistrationWithCert` requires `poolRegistrationCert` (hex-encoded certificate) in metadata.
+- `poolRetirement` requires `epoch` in metadata.
+- `poolGovernanceVote` requires `poolGovernanceVoteParams`; `vote_rationale` is optional.
+
+## Construction Examples
 
 <Tabs>
   <TabItem value="standard" label="Standard Registration" default>
@@ -88,7 +92,7 @@ A pool registration operation requires `poolRegistrationParams` as metadata. The
   </TabItem>
   <TabItem value="with-cert" label="Registration With Certificate">
 
-For pool registration using a pre-created certificate, you need to include the certificate as a hex string in the `poolRegistrationCert` field.
+For registration with a pre-created certificate, include the certificate hex in `poolRegistrationCert`.
 
 ```json
 {
@@ -126,9 +130,9 @@ To retire a stake pool, you need to specify the epoch in which the pool should b
 ```
 
   </TabItem>
-    <TabItem value="Voting" label="Governance vote">
+    <TabItem value="governance-vote" label="Governance Vote">
 
-To vote for governance action, you need to specify value for `governance_action_hash`, `pool_credential`, `vote` and `vote_rationale` is an option
+To submit a governance vote, provide `governance_action_hash`, `pool_credential`, and `vote`. `vote_rationale` is optional.
 
 ```json
 {
@@ -191,9 +195,9 @@ Each segment must be a hexadecimal number between 0000 and FFFF:
 Example: 2345:0425:2ca1:0000:0000:0567:5673:23b5
 ```
 
-## Data API Examples
+## Data API Representation
 
-The Rosetta Data API returns information about pool operations in `/block` and `/block/transaction` endpoints.
+Rosetta Data API responses include pool operations in `/block` and `/block/transaction`.
 
 <Tabs>
   <TabItem value="retirement-response" label="Pool Retirement Response" default>

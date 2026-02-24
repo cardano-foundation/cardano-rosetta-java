@@ -21,18 +21,17 @@ public class GlobalExceptionHandler {
       HttpServletRequest request) {
     log.error("An error occurred during the request", exception);
 
-    Error errorResponse = RosettaErrorType.UNSPECIFIED_ERROR.toRosettaError(
+    Error errorResponse = RosettaErrorType.UNSPECIFIED_ERROR.toRosettaError(true,
         new Details("An error occurred for request " + request.getRequestId() + ": "
             + exception.getMessage()));
 
-    return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+    return new ResponseEntity<>(errorResponse, resolveHttpStatus(errorResponse));
   }
 
   @ExceptionHandler(ApiException.class)
   public ResponseEntity<Error> handleApiException(ApiException apiException) {
     log.error("An API exception has raised", apiException);
-    HttpStatus status = resolveHttpStatus(apiException.getError().getCode());
-    return new ResponseEntity<>(apiException.getError(), status);
+    return new ResponseEntity<>(apiException.getError(), resolveHttpStatus(apiException.getError()));
   }
 
   @ExceptionHandler(CompletionException.class)
@@ -40,8 +39,7 @@ public class GlobalExceptionHandler {
     Throwable cause = exception.getCause();
     if (cause instanceof ApiException apiException) {
       log.error("An API exception has raised", apiException);
-      HttpStatus status = resolveHttpStatus(apiException.getError().getCode());
-      return new ResponseEntity<>(apiException.getError(), status);
+      return new ResponseEntity<>(apiException.getError(), resolveHttpStatus(apiException.getError()));
     }
     return handleGlobalException(exception, request);
   }
@@ -55,17 +53,17 @@ public class GlobalExceptionHandler {
         .stream()
         .map(error -> error.getField() + " " + error.getDefaultMessage())
         .toList();
-    Error errorResponse = RosettaErrorType.UNSPECIFIED_ERROR.toRosettaError(
+    Error errorResponse = RosettaErrorType.UNSPECIFIED_ERROR.toRosettaError(false,
         new Details("An error occurred for request " + request.getRequestId() + ": "
             + errors));
 
-    return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    return new ResponseEntity<>(errorResponse, resolveHttpStatus(errorResponse));
   }
 
-  private static HttpStatus resolveHttpStatus(int errorCode) {
-    if (errorCode >= 4000 && errorCode < 5000) {
-      return HttpStatus.BAD_REQUEST;
+  private static HttpStatus resolveHttpStatus(Error error) {
+    if (error.isRetriable()) {
+      return HttpStatus.INTERNAL_SERVER_ERROR;
     }
-    return HttpStatus.INTERNAL_SERVER_ERROR;
+    return HttpStatus.BAD_REQUEST;
   }
 }

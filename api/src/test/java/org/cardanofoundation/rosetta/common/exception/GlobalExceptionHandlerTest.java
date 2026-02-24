@@ -19,7 +19,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.cardanofoundation.rosetta.common.util.RosettaConstants.RosettaErrorType;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -64,11 +67,11 @@ class GlobalExceptionHandlerTest {
       when(request.getRequestId()).thenReturn(TEST_ID);
       ResponseEntity<Error> result = underTest.handleGlobalException(globalException, request);
 
-      assertThat(result.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
-      assertThat(result.getBody()).isNotNull();
-      assertThat(result.getBody().getDetails().getMessage()).isEqualTo(GLOBAL_EXCEPTION_MESSAGE);
-      assertThat(result.getBody().getCode()).isEqualTo(CARDANO_ERROR_CODE);
-      assertThat(result.getBody().isRetriable()).isFalse();
+      assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, result.getStatusCode());
+      assertNotNull(result.getBody());
+      assertEquals(GLOBAL_EXCEPTION_MESSAGE, result.getBody().getDetails().getMessage());
+      assertEquals(CARDANO_ERROR_CODE, result.getBody().getCode());
+      assertTrue(result.getBody().isRetriable());
     }
   }
 
@@ -76,30 +79,30 @@ class GlobalExceptionHandlerTest {
   class HandleApiException {
 
     @Test
-    void with5xxxCode_shouldReturnInternalServerError() {
-      ApiException apiException = create5xxxApiException();
+    void withRetriableError_shouldReturnInternalServerError() {
+      ApiException apiException = createRetriableApiException();
 
       ResponseEntity<Error> result = underTest.handleApiException(apiException);
 
-      assertThat(result.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
-      assertThat(result.getBody()).isNotNull();
-      assertThat(result.getBody().getDetails().getMessage())
-          .isEqualTo(apiException.getError().getDetails().getMessage());
-      assertThat(result.getBody().getCode()).isEqualTo(apiException.getError().getCode());
-      assertThat(result.getBody().isRetriable()).isFalse();
+      assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, result.getStatusCode());
+      assertNotNull(result.getBody());
+      assertEquals(apiException.getError().getDetails().getMessage(),
+          result.getBody().getDetails().getMessage());
+      assertEquals(apiException.getError().getCode(), result.getBody().getCode());
+      assertTrue(result.getBody().isRetriable());
     }
 
     @Test
-    void with4xxxCode_shouldReturnBadRequest() {
+    void withNonRetriableError_shouldReturnBadRequest() {
       ApiException apiException = new ApiException(
-          RosettaErrorType.BLOCK_NOT_FOUND.toRosettaError());
+          RosettaErrorType.BLOCK_NOT_FOUND.toRosettaError(false));
 
       ResponseEntity<Error> result = underTest.handleApiException(apiException);
 
-      assertThat(result.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-      assertThat(result.getBody()).isNotNull();
-      assertThat(result.getBody().getCode()).isEqualTo(4001);
-      assertThat(result.getBody().isRetriable()).isTrue();
+      assertEquals(HttpStatus.BAD_REQUEST, result.getStatusCode());
+      assertNotNull(result.getBody());
+      assertEquals(4001, result.getBody().getCode());
+      assertFalse(result.getBody().isRetriable());
     }
   }
 
@@ -107,33 +110,33 @@ class GlobalExceptionHandlerTest {
   class HandleCompletionException {
 
     @Test
-    void whenAPIExceptionWrapped_shouldReturnInternalServerError() {
-      ApiException apiException = create5xxxApiException();
+    void whenRetriableAPIExceptionWrapped_shouldReturnInternalServerError() {
+      ApiException apiException = createRetriableApiException();
       CompletionException completionException = new CompletionException(apiException);
 
       ResponseEntity<Error> result = underTest.handleCompletionException(completionException,
           request);
 
-      assertThat(result.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
-      assertThat(result.getBody()).isNotNull();
-      assertThat(result.getBody().getDetails().getMessage())
-          .isEqualTo(apiException.getError().getDetails().getMessage());
-      assertThat(result.getBody().getCode()).isEqualTo(apiException.getError().getCode());
+      assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, result.getStatusCode());
+      assertNotNull(result.getBody());
+      assertEquals(apiException.getError().getDetails().getMessage(),
+          result.getBody().getDetails().getMessage());
+      assertEquals(apiException.getError().getCode(), result.getBody().getCode());
     }
 
     @Test
-    void when4xxxAPIExceptionWrapped_shouldReturnBadRequest() {
+    void whenNonRetriableAPIExceptionWrapped_shouldReturnBadRequest() {
       ApiException apiException = new ApiException(
-          RosettaErrorType.BLOCK_NOT_FOUND.toRosettaError());
+          RosettaErrorType.BLOCK_NOT_FOUND.toRosettaError(false));
       CompletionException completionException = new CompletionException(apiException);
 
       ResponseEntity<Error> result = underTest.handleCompletionException(completionException,
           request);
 
-      assertThat(result.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-      assertThat(result.getBody()).isNotNull();
-      assertThat(result.getBody().getCode()).isEqualTo(4001);
-      assertThat(result.getBody().isRetriable()).isTrue();
+      assertEquals(HttpStatus.BAD_REQUEST, result.getStatusCode());
+      assertNotNull(result.getBody());
+      assertEquals(4001, result.getBody().getCode());
+      assertFalse(result.getBody().isRetriable());
     }
 
     @Test
@@ -146,11 +149,11 @@ class GlobalExceptionHandlerTest {
       ResponseEntity<Error> result = underTest.handleCompletionException(completionException,
           request);
 
-      assertThat(result.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
-      assertThat(result.getBody()).isNotNull();
-      assertThat(result.getBody().getDetails().getMessage())
-          .isEqualTo(COMPLETION_GLOBAL_EXCEPTION_MESSAGE);
-      assertThat(result.getBody().getCode()).isEqualTo(CARDANO_ERROR_CODE);
+      assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, result.getStatusCode());
+      assertNotNull(result.getBody());
+      assertEquals(COMPLETION_GLOBAL_EXCEPTION_MESSAGE,
+          result.getBody().getDetails().getMessage());
+      assertEquals(CARDANO_ERROR_CODE, result.getBody().getCode());
     }
   }
 
@@ -168,16 +171,16 @@ class GlobalExceptionHandlerTest {
       ResponseEntity<Error> result = underTest.handleMethodArgumentNotValidException(
           methodArgumentNotValidException, request);
 
-      assertThat(result.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-      assertThat(result.getBody()).isNotNull();
-      assertThat(result.getBody().getDetails().getMessage())
-          .isEqualTo(ARGUMENT_NOT_VALID_EXCEPTION_MESSAGE);
-      assertThat(result.getBody().getCode()).isEqualTo(CARDANO_ERROR_CODE);
+      assertEquals(HttpStatus.BAD_REQUEST, result.getStatusCode());
+      assertNotNull(result.getBody());
+      assertEquals(ARGUMENT_NOT_VALID_EXCEPTION_MESSAGE,
+          result.getBody().getDetails().getMessage());
+      assertEquals(CARDANO_ERROR_CODE, result.getBody().getCode());
     }
   }
 
-  private ApiException create5xxxApiException() {
-    return new ApiException(RosettaErrorType.UNSPECIFIED_ERROR.toRosettaError(
+  private ApiException createRetriableApiException() {
+    return new ApiException(RosettaErrorType.UNSPECIFIED_ERROR.toRosettaError(true,
         new Details(API_MESSAGE)));
   }
 }

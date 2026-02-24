@@ -8,7 +8,7 @@ description: Testing methodology and procedures for releases
 
 The following steps are performed as part of the QA process for new releases:
 
-1. **E2E Testing**: Run the complete end-to-end test flow on preprod network using the [`e2e_tests`](https://github.com/cardano-foundation/cardano-rosetta-java/tree/main/e2e_tests) suite
+1. **E2E Testing**: Run the complete end-to-end test flow on preprod network using the [`e2e`](https://github.com/cardano-foundation/cardano-rosetta-java/tree/main/tests/e2e) suite
 
    - Verify all construction API flows work correctly
 

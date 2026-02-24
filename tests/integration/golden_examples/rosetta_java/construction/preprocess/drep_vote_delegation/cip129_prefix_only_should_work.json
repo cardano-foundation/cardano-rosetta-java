@@ -1,7 +1,6 @@
 {
-  "test_name": "(SKIP) CIP-129 prefix-only should infer type",
-  "description": "SKIP: CIP-129 prefix should make type field optional. Currently not supported - needs investigation",
-  "skip_reason": "CIP-129 prefix should make type field optional, not yet implemented (#657)",
+  "test_name": "CIP-129 prefix-only should infer type",
+  "description": "Success: DRep id includes CIP-129 key-hash prefix (0x22), type is inferred automatically",
   "request_body": {
     "network_identifier": {
       "blockchain": "cardano",
@@ -65,5 +64,11 @@
         }
       }
     ]
+  },
+  "expected_response": {
+    "options": {
+      "relative_ttl": 1000,
+      "transaction_size": 403
+    }
   }
 }

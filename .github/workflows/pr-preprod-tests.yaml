@@ -235,6 +235,12 @@ jobs:
           ROSETTA_URL: http://localhost:8082
           CARDANO_NETWORK: preprod
 
+      - name: Verify Node.js for Allure 3
+        if: always()
+        run: |
+          NODE_VER=$(node -p "process.versions.node.split('.')[0]" 2>/dev/null) || { echo "Node.js not found"; exit 1; }
+          [ "$NODE_VER" -ge 18 ] || { echo "Node.js >= 18 required, found v$NODE_VER"; exit 1; }
+
       - name: Generate Allure report
         if: always()
         run: |
@@ -242,14 +248,10 @@ jobs:
 
           cd /home/integration/git/cardano-rosetta-java/tests/data-endpoints
 
-          # Generate Allure HTML report
-          if command -v allure &> /dev/null; then
-            allure generate allure-results --clean -o allure-report
-            echo "Allure report generated successfully"
-          else
-            echo "Allure CLI not installed, skipping HTML report generation"
-            echo "Raw results are in allure-results directory"
-          fi
+          # Generate Allure 3 HTML report
+          rm -rf allure-report
+          npx --yes allure@3.1.0 generate ./allure-results --output allure-report
+          echo "Allure report generated successfully"
 
       - name: Deploy report to GitHub Pages
         if: |

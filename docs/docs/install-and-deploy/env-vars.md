@@ -40,17 +40,17 @@ Hardware profile files should be used **in combination** with a base `.env.docke
 | `NETWORK`                                     | Network                                                               | mainnet                                | added in release 1.0.0  |
 | `MITHRIL_SYNC`                                | Sync from Mithril snapshot                                            | true                                   | added in release 1.0.0  |
 | `PROTOCOL_MAGIC`                              | Cardano protocol magic                                                | 764824073                              | added in release 1.0.0  |
-| `PG_VERSION_TAG`                              | Postgres version tag for building from source                         | REL_14_11                              | added in release 1.2.9  |
+| `PG_VERSION_TAG`                              | Postgres version tag for building from source                         | REL_18_0                               | added in release 1.2.9  |
 | `DB_NAME`                                     | Postgres database                                                     | rosetta-java                           | added in release 1.0.0  |
 | `DB_USER`                                     | Postgres admin user                                                   | rosetta_db_admin                       | added in release 1.0.0  |
 | `DB_SECRET`                                   | Postgres admin secret                                                 | weakpwd#123_d                          | added in release 1.0.0  |
 | `DB_HOST`                                     | Postgres host                                                         | db                                     | added in release 1.0.0  |
 | `DB_PORT`                                     | Postgres port                                                         | 5432                                   | added in release 1.0.0  |
-| `DB_SCHEMA`                                   | Database schema                                                       | mainnet                                | added in release 1.0.0  |
-| `DB_PATH`                                     | Database path                                                         | data                                   | added in release 1.0.0  |
+| `DB_SCHEMA`                                   | Database schema                                                       | public                                 | added in release 1.0.0  |
+| `DB_PATH`                                     | Database path                                                         | /opt/cardano-rosetta-java/mainnet/sql_data | added in release 1.0.0  |
 | `CARDANO_NODE_HOST`                           | Cardano node host                                                     | cardano-node                           | added in release 1.0.0  |
 | `CARDANO_NODE_PORT`                           | Cardano node port                                                     | 3001                                   | added in release 1.0.0  |
-| `CARDANO_NODE_VERSION`                        | Cardano node version                                                  | 10.5.3                                 | added in release 1.0.0  |
+| `CARDANO_NODE_VERSION`                        | Cardano node version                                                  | 10.5.4                                 | added in release 1.0.0  |
 | `CARDANO_NODE_SUBMIT_HOST`                    | Cardano node submit API host                                          | cardano-submit-api                     | added in release 1.0.0  |
 | `NODE_SUBMIT_API_PORT`                        | Cardano node submit API port                                          | 8090                                   | added in release 1.0.0  |
 | `CARDANO_NODE_DIR`                            | Cardano node base directory                                           | /node                                  | added in release 1.0.0  |
@@ -58,12 +58,12 @@ Hardware profile files should be used **in combination** with a base `.env.docke
 | `CARDANO_NODE_DB`                             | Cardano node db path                                                  | /node/db                               | added in release 1.0.0  |
 | `CARDANO_CONFIG`                              | Cardano node config path (host side)                                  | ./config/node/mainnet                  | added in release 1.0.0  |
 | `CARDANO_CONFIG_CONTAINER_PATH`               | Cardano node config path inside container                             | /config                                | added in release 2.0.0  |
-| `MITHRIL_VERSION`                             | Mithril client version                                                | 2524.0                                 | added in release 1.2.9  |
+| `MITHRIL_VERSION`                             | Mithril client version                                                | 2543.1-hotfix                          | added in release 1.2.9  |
 | `SNAPSHOT_DIGEST`                             | Mithril snapshot digest                                               | latest                                 | added in release 1.0.0  |
 | `AGGREGATOR_ENDPOINT`                         | Mithril aggregator endpoint (uses default if not set)                 | (empty)                                | added in release 1.0.0  |
 | `GENESIS_VERIFICATION_KEY`                    | Mithril genesis verification key (uses default if not set)            | (empty)                                | added in release 1.0.0  |
 | `ANCILLARY_VERIFICATION_KEY`                  | Mithril ancillary verification key (uses default if not set)          | (empty)                                | added in release 1.2.9  |
-| `RELEASE_VERSION`                             | Docker image tag for API and Indexer images                           | 2.0.0                                  | added in release 2.0.0  |
+| `RELEASE_VERSION`                             | Docker image tag for API and Indexer images                           | 2.1.0                                  | added in release 2.0.0  |
 | `API_SPRING_PROFILES_ACTIVE`                  | API spring profile                                                    | staging                                | added in release 1.0.0  |
 | `API_PORT`                                    | Rosetta API exposed port                                              | 8082                                   | added in release 1.0.0  |
 | `PRINT_EXCEPTION`                             | Print stack traces in error responses                                 | true                                   | added in release 1.0.0  |
@@ -110,6 +110,10 @@ Hardware profile files should be used **in combination** with a base `.env.docke
 | `TOKEN_REGISTRY_REQUEST_TIMEOUT_SECONDS`      | Token registry request timeout in seconds                             | 2                                      | added in release 1.4.0  |
 
 </div>
+
+:::note
+`DB_PATH` default above reflects the mainnet compose profile. Preprod uses `/opt/rosetta-java-preprod/sql_data`.
+:::
 
 ## Hardware Profile Variables
 
