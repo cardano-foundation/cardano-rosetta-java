@@ -72,7 +72,7 @@ spec:
               PREV_PROGRESS=""
               while true; do
                 QUERY_RESULT=$(cardano-cli query tip ${NETWORK_ARG} 2>/dev/null || echo '{"syncProgress":"0"}')
-                SYNC_PROGRESS=$(echo "$QUERY_RESULT" | grep -o '"syncProgress":"[^"]*"' | grep -o '[0-9.]*' || echo "0")
+                SYNC_PROGRESS=$(echo "$QUERY_RESULT" | grep -o '"syncProgress": *"[^"]*"' | grep -o '[0-9.]*' || echo "0")
 
                 if [ -z "$SYNC_PROGRESS" ]; then
                   SYNC_PROGRESS="0"

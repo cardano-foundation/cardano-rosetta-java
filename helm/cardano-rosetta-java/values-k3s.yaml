@@ -3,20 +3,19 @@
 ## -----------------------------------------------------------------------
 global:
   profile: entry
-
-storage:
-  cardanoNode:
-    size: 100Gi
-    storageClass: "local-path"
-  postgresql:
-    size: 50Gi
-    storageClass: "local-path"
-  prometheus:
-    size: 10Gi
-    storageClass: "local-path"
-  grafana:
-    size: 2Gi
-    storageClass: "local-path"
+  storage:
+    cardanoNode:
+      size: 100Gi
+      storageClass: "local-path"
+    postgresql:
+      size: 50Gi
+      storageClass: "local-path"
+    prometheus:
+      size: 10Gi
+      storageClass: "local-path"
+    grafana:
+      size: 2Gi
+      storageClass: "local-path"
 
 monitoring:
   enabled: true
