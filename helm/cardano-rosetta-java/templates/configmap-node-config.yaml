@@ -23,3 +23,7 @@ data:
   checkpoints.json: |
     {{- .Files.Get (printf "files/node/%s/checkpoints.json" $network) | nindent 4 }}
   {{- end }}
+  {{- if .Files.Get (printf "files/node/%s/peer-snapshot.json" $network) }}
+  peer-snapshot.json: |
+    {{- .Files.Get (printf "files/node/%s/peer-snapshot.json" $network) | nindent 4 }}
+  {{- end }}

@@ -29,17 +29,35 @@ spec:
             - -c
             - |
               {{- if .Values.global.mithril.enabled }}
-              echo "Waiting for Mithril snapshot download to complete..."
-              echo "Checking for /node/db directory with content..."
+              MITHRIL_JOB="{{ printf "%s-mithril" .Release.Name }}"
+              NAMESPACE="{{ .Release.Namespace }}"
+              SA_TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
+              CA_CERT=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+
+              echo "Waiting for Mithril job '${MITHRIL_JOB}' to complete..."
+
               ATTEMPTS=0
               MAX_ATTEMPTS=720  # 6 hours max wait (30s intervals)
               while [ $ATTEMPTS -lt $MAX_ATTEMPTS ]; do
-                if [ -d /node/db ] && [ "$(ls -A /node/db 2>/dev/null)" ]; then
-                  echo "Mithril snapshot is ready (db size: $(du -sh /node/db 2>/dev/null | cut -f1))"
+                # Query K8s API for job completion status
+                STATUS=$(wget -q --header="Authorization: Bearer ${SA_TOKEN}" \
+                  --ca-certificate="${CA_CERT}" \
+                  -O - "https://kubernetes.default.svc/apis/batch/v1/namespaces/${NAMESPACE}/jobs/${MITHRIL_JOB}/status" 2>/dev/null)
+
+                SUCCEEDED=$(echo "$STATUS" | grep -o '"succeeded":[0-9]*' | grep -o '[0-9]*')
+                if [ "${SUCCEEDED}" = "1" ]; then
+                  echo "Mithril job completed successfully (db size: $(du -sh /node/db 2>/dev/null | cut -f1))"
                   exit 0
                 fi
+
+                FAILED=$(echo "$STATUS" | grep -o '"failed":[0-9]*' | grep -o '[0-9]*')
+                if [ -n "$FAILED" ] && [ "$FAILED" -ge 3 ]; then
+                  echo "WARNING: Mithril job failed, proceeding without snapshot (node will sync from genesis)"
+                  exit 0
+                fi
+
                 ATTEMPTS=$((ATTEMPTS + 1))
-                echo "Attempt ${ATTEMPTS}/${MAX_ATTEMPTS}: snapshot not ready, waiting 30s..."
+                echo "Attempt ${ATTEMPTS}/${MAX_ATTEMPTS}: Mithril job not complete yet, waiting 30s..."
                 sleep 30
               done
               echo "ERROR: Mithril snapshot not ready after 6 hours"

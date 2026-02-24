@@ -46,11 +46,17 @@ spec:
               fi
 
               echo "Waiting for cardano-node TCP endpoint at ${NODE_SERVICE}:${NODE_SOCAT_PORT}..."
-              until nc -z "${NODE_SERVICE}" "${NODE_SOCAT_PORT}" 2>/dev/null; do
+              until bash -c "echo > /dev/tcp/${NODE_SERVICE}/${NODE_SOCAT_PORT}" 2>/dev/null; do
                 echo "Node TCP not reachable, waiting 10s..."
                 sleep 10
               done
               echo "Node TCP is reachable, creating local UNIX socket bridge..."
+
+              # Install socat if not available
+              if ! command -v socat >/dev/null 2>&1; then
+                echo "Installing socat..."
+                apt-get update -qq && apt-get install -y -qq socat >/dev/null 2>&1
+              fi
 
               # Create reverse socat: TCP -> UNIX
               # This allows cardano-cli to use CARDANO_NODE_SOCKET_PATH
