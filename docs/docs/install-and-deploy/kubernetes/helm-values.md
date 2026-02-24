@@ -144,7 +144,7 @@ rosetta-api:
 | `postgresql.enabled` | `true` | Deploy in-cluster PostgreSQL |
 | `yaci-indexer.enabled` | `true` | Deploy the Yaci indexer |
 | `rosetta-api.enabled` | `true` | Deploy the Rosetta API |
-| `monitoring.enabled` | `false` | Deploy Prometheus + Grafana |
+| `monitoring.enabled` | `true` | Deploy Prometheus + Grafana |
 
 ---
 

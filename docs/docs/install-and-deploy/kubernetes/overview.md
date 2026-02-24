@@ -54,16 +54,28 @@ Mithril Job ──────────────────────�
     postgresql (wait-for-node-sync initContainer: cardano-cli query tip ≥ 99%)
       yaci-indexer (wait-for-postgres: pg_isready)
         rosetta-api (wait-for-postgres + wait-for-indexer)
-          index-applier Hook Job (polls /network/options)
+
+index-applier Job ────────────────────────► (Helm post-install hook, runs in background)
 ```
+
+The `index-applier` is a Helm **post-install hook** that runs as a separate Kubernetes
+Job after all main pods are ready. It waits for the API to reach `APPLYING_INDEXES` stage
+and then builds optimised database indexes. This Job can take **6–18 hours** on mainnet.
+
+:::important
+Do **not** use `--wait-for-jobs` in your `helm upgrade --install` command. That flag makes
+Helm block until the `index-applier` Job completes, which triggers a timeout and (with
+`--atomic`) rolls back the entire release. Use `--wait` only, which returns once all
+Deployments and StatefulSets are ready.
+:::
 
 **Three sync stages**
 
 | Stage | What's happening | Pods ready |
 |---|---|---|
 | `SYNCING` | Mithril download + node syncing | cardano-node only |
-| `APPLYING_INDEXES` | DB indexes being built | All pods up, API not ready |
-| `LIVE` | Full operation | All pods ready |
+| `APPLYING_INDEXES` | DB indexes being built | All pods up, API responding |
+| `LIVE` | Full operation | All pods ready, API fully functional |
 
 ## Hardware Profiles
 
@@ -102,5 +114,4 @@ See [Helm Values Reference](./helm-values) for per-component breakdown.
 
 - [K3s Single-Host Deployment](./k3s-single-host) — get running locally in minutes
 - [Helm Values Reference](./helm-values) — full configuration reference
-- [Preprod Deployment Runbook](../../../../runbooks/preprod-deployment) — detailed operator checklist
-- [Mainnet Deployment Runbook](../../../../runbooks/mainnet-deployment) — production deployment guide
+- [Deployment Runbook](../../../../runbooks/deployment) — operator checklist for preprod and mainnet
