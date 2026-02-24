@@ -1,0 +1,145 @@
+{
+  "status_code": 200,
+  "body": {
+    "transaction": {
+      "transaction_identifier": {
+        "hash": "eac9fb1ad32cc618ff59cebc891741a00f8df439077e0d8d9e047c6730a0ee49"
+      },
+      "operations": [
+        {
+          "operation_identifier": {
+            "index": 0
+          },
+          "type": "input",
+          "status": "success",
+          "account": {
+            "address": "addr_test1wqz95qxz6px489yua697jtywyawje6a7utt8qwq9nhe3dxgrd4mcf"
+          },
+          "amount": {
+            "value": "-8700000",
+            "currency": {
+              "symbol": "ADA",
+              "decimals": 6
+            }
+          },
+          "coin_change": {
+            "coin_identifier": {
+              "identifier": "617861a2d282a967ddca304c903312d69c091f01a754bb883174a8d7c234a104:2"
+            },
+            "coin_action": "coin_spent"
+          }
+        },
+        {
+          "operation_identifier": {
+            "index": 1
+          },
+          "type": "input",
+          "status": "success",
+          "account": {
+            "address": "addr_test1wqz95qxz6px489yua697jtywyawje6a7utt8qwq9nhe3dxgrd4mcf"
+          },
+          "amount": {
+            "value": "-1107823295",
+            "currency": {
+              "symbol": "ADA",
+              "decimals": 6
+            }
+          },
+          "coin_change": {
+            "coin_identifier": {
+              "identifier": "ba26b98a5b485787afc1267bece6636033d98f696f2042cc5e135bf9abbcab0e:1"
+            },
+            "coin_action": "coin_spent"
+          }
+        },
+        {
+          "operation_identifier": {
+            "index": 2,
+            "network_index": 0
+          },
+          "related_operations": [
+            {
+              "index": 0
+            },
+            {
+              "index": 1
+            }
+          ],
+          "type": "output",
+          "status": "success",
+          "account": {
+            "address": "addr_test1wzl9ce3m3y2mrwfcpr2c0qrjx33pwpuqr4j5exqct2uyq8gs7cme8"
+          },
+          "amount": {
+            "value": "10000000",
+            "currency": {
+              "symbol": "ADA",
+              "decimals": 6
+            }
+          },
+          "coin_change": {
+            "coin_identifier": {
+              "identifier": "eac9fb1ad32cc618ff59cebc891741a00f8df439077e0d8d9e047c6730a0ee49:0"
+            },
+            "coin_action": "coin_created"
+          },
+          "metadata": {
+            "tokenBundle": [
+              {
+                "policyId": "50f8eef6121fbcc5020d82b4bd6df7cb8f363dced01877cb2ba5bec2",
+                "tokens": [
+                  {
+                    "value": "1",
+                    "currency": {
+                      "symbol": "383032",
+                      "decimals": 0,
+                      "metadata": {
+                        "policyId": "50f8eef6121fbcc5020d82b4bd6df7cb8f363dced01877cb2ba5bec2"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "operation_identifier": {
+            "index": 3,
+            "network_index": 1
+          },
+          "related_operations": [
+            {
+              "index": 0
+            },
+            {
+              "index": 1
+            }
+          ],
+          "type": "output",
+          "status": "success",
+          "account": {
+            "address": "addr_test1wqz95qxz6px489yua697jtywyawje6a7utt8qwq9nhe3dxgrd4mcf"
+          },
+          "amount": {
+            "value": "1105858548",
+            "currency": {
+              "symbol": "ADA",
+              "decimals": 6
+            }
+          },
+          "coin_change": {
+            "coin_identifier": {
+              "identifier": "eac9fb1ad32cc618ff59cebc891741a00f8df439077e0d8d9e047c6730a0ee49:1"
+            },
+            "coin_action": "coin_created"
+          }
+        }
+      ],
+      "metadata": {
+        "size": 588,
+        "scriptSize": 9077
+      }
+    }
+  }
+}
