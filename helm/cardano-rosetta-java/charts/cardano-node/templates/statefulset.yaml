@@ -23,7 +23,7 @@ spec:
 
       initContainers:
         - name: wait-for-mithril
-          image: busybox:1.36
+          image: curlimages/curl:8.5.0
           command:
             - sh
             - -c
@@ -40,17 +40,17 @@ spec:
               MAX_ATTEMPTS=720  # 6 hours max wait (30s intervals)
               while [ $ATTEMPTS -lt $MAX_ATTEMPTS ]; do
                 # Query K8s API for job completion status
-                STATUS=$(wget -q --header="Authorization: Bearer ${SA_TOKEN}" \
-                  --ca-certificate="${CA_CERT}" \
-                  -O - "https://kubernetes.default.svc/apis/batch/v1/namespaces/${NAMESPACE}/jobs/${MITHRIL_JOB}/status" 2>/dev/null)
+                STATUS=$(curl -sf --cacert "${CA_CERT}" \
+                  --header "Authorization: Bearer ${SA_TOKEN}" \
+                  "https://kubernetes.default.svc/apis/batch/v1/namespaces/${NAMESPACE}/jobs/${MITHRIL_JOB}/status" 2>/dev/null)
 
-                SUCCEEDED=$(echo "$STATUS" | grep -o '"succeeded":[0-9]*' | grep -o '[0-9]*')
+                SUCCEEDED=$(echo "$STATUS" | grep -o '"succeeded": *[0-9]*' | grep -o '[0-9]*')
                 if [ "${SUCCEEDED}" = "1" ]; then
                   echo "Mithril job completed successfully (db size: $(du -sh /node/db 2>/dev/null | cut -f1))"
                   exit 0
                 fi
 
-                FAILED=$(echo "$STATUS" | grep -o '"failed":[0-9]*' | grep -o '[0-9]*')
+                FAILED=$(echo "$STATUS" | grep -o '"failed": *[0-9]*' | grep -o '[0-9]*')
                 if [ -n "$FAILED" ] && [ "$FAILED" -ge 3 ]; then
                   echo "WARNING: Mithril job failed, proceeding without snapshot (node will sync from genesis)"
                   exit 0
