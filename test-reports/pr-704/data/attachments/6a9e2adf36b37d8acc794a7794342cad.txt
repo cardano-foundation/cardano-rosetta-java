@@ -1,0 +1,6 @@
+    assert response.status_code == 200
+    assert len(balances) > 1, "Multi-asset account should have multiple balances"
+        assert "value" in balance
+        assert "currency" in balance
+        assert "symbol" in balance["currency"]
+        assert "decimals" in balance["currency"]
