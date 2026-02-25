@@ -39,7 +39,6 @@ spec:
               ATTEMPTS=0
               MAX_ATTEMPTS=720  # 6 hours max wait (30s intervals)
               while [ $ATTEMPTS -lt $MAX_ATTEMPTS ]; do
-                # Query K8s API for job completion status
                 STATUS=$(curl -sf --cacert "${CA_CERT}" \
                   --header "Authorization: Bearer ${SA_TOKEN}" \
                   "https://kubernetes.default.svc/apis/batch/v1/namespaces/${NAMESPACE}/jobs/${MITHRIL_JOB}/status" 2>/dev/null)
@@ -192,5 +191,6 @@ spec:
           persistentVolumeClaim:
             claimName: {{ printf "%s-cardano-node-data" .Release.Name }}
         - name: node-config
-          configMap:
-            name: {{ printf "%s-node-config" .Release.Name }}
+          hostPath:
+            path: {{ printf "%s/%s" (required "global.configHostPath is required" .Values.global.configHostPath) .Values.global.network }}
+            type: Directory

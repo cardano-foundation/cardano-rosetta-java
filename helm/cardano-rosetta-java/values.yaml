@@ -24,6 +24,13 @@ global:
   # Set to false for offline mode (API only, no node sync wait)
   sync: true
 
+  # REQUIRED: host directory containing network-specific config files.
+  # Template appends /<network> — e.g. /opt/cardano/config/node → /opt/cardano/config/node/mainnet
+  # Mounted read-only at /config in pods. Like Docker bind-mount: no size limits,
+  # host file changes are visible immediately without a Helm upgrade.
+  # Set in your environment values file (e.g. values-k3s.yaml).
+  configHostPath: ""
+
   ## -------------------------------------------------------------------
   ## Hardware profiles: entry / mid / advanced
   ## (nested under global so subcharts can access via .Values.global.profiles)

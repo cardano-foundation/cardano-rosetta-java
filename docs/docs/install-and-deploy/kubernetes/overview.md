@@ -50,23 +50,26 @@ Docker Compose `depends_on` chains are replaced by Kubernetes init containers:
 
 ```
 Mithril Job ──────────────────────────────► (one-shot snapshot download)
-  cardano-node (wait-for-mithril initContainer polls PVC)
+  cardano-node (wait-for-mithril initContainer polls K8s API)
     postgresql (wait-for-node-sync initContainer: cardano-cli query tip ≥ 99%)
       yaci-indexer (wait-for-postgres: pg_isready)
-        rosetta-api (wait-for-postgres + wait-for-indexer)
+        rosetta-api (wait-for-postgres + wait-for-indexer: /actuator/health)
 
 index-applier Job ────────────────────────► (Helm post-install hook, runs in background)
 ```
+
+The `cardano-node` pod runs **three containers**: the node itself, a `socat` sidecar
+(bridges the UNIX socket to TCP port 3002), and `cardano-submit-api` — so `READY` shows
+`3/3` when fully up.
 
 The `index-applier` is a Helm **post-install hook** that runs as a separate Kubernetes
 Job after all main pods are ready. It waits for the API to reach `APPLYING_INDEXES` stage
 and then builds optimised database indexes. This Job can take **6–18 hours** on mainnet.
 
 :::important
-Do **not** use `--wait-for-jobs` in your `helm upgrade --install` command. That flag makes
-Helm block until the `index-applier` Job completes, which triggers a timeout and (with
-`--atomic`) rolls back the entire release. Use `--wait` only, which returns once all
-Deployments and StatefulSets are ready.
+Use `--no-hooks` in your `helm upgrade --install` command. The `index-applier` hook is a
+long-running Job (up to 18 h on mainnet). Without `--no-hooks`, Helm blocks on the hook
+and times out. Never use `--wait-for-jobs`. Monitor the index-applier Job independently.
 :::
 
 **Three sync stages**

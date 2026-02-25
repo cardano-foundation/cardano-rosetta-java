@@ -34,22 +34,33 @@ export DB_PASSWORD="<your-secure-password>"
 # 3. Build chart dependencies
 helm dependency build helm/cardano-rosetta-java
 
-# 4. Deploy
+# 4. Pre-create the namespace (chart manages namespace via its own template)
+kubectl create namespace cardano
+kubectl label namespace cardano app.kubernetes.io/managed-by=Helm app.kubernetes.io/name=cardano-rosetta-java
+kubectl annotate namespace cardano meta.helm.sh/release-name=rosetta meta.helm.sh/release-namespace=cardano
+
+# 5. Deploy
 helm upgrade --install rosetta helm/cardano-rosetta-java \
   -f helm/cardano-rosetta-java/values.yaml \
   -f helm/cardano-rosetta-java/values-k3s.yaml \
   -f helm/cardano-rosetta-java/values-preprod.yaml \
   --set global.db.password="${DB_PASSWORD}" \
-  -n cardano --create-namespace \
-  --wait --timeout 60m
+  -n cardano \
+  --no-hooks --wait --timeout 60m
 ```
 
-:::info Why not `--wait-for-jobs`?
-The `index-applier` post-install Job waits for the full blockchain to be indexed before
-it completes — this can take **6–18 hours** on mainnet. Using `--wait-for-jobs` causes
-Helm to block until that Job finishes, and `--atomic` would then roll back the entire
-release on timeout. Omit `--wait-for-jobs`; the Job runs in the background and can be
-monitored independently.
+:::info Why `--no-hooks`?
+The `index-applier` is a Helm `post-install,post-upgrade` hook that waits for full
+blockchain indexing — this takes **1–2 hours on preprod, 6–18 hours on mainnet**.
+Using the default hook behaviour makes Helm block until completion and then timeout.
+`--no-hooks` skips hook execution so Helm returns immediately after all pods are ready.
+Run the index-applier Job manually if needed, or monitor it separately.
+:::
+
+:::info Why not `--create-namespace`?
+The chart includes its own `templates/namespace.yaml` which creates and manages the
+namespace as a Helm resource. Using `--create-namespace` alongside this template causes
+a conflict. Pre-create the namespace with the Helm ownership labels above instead.
 :::
 
 ## Monitor Deployment Progress
@@ -71,13 +82,19 @@ kubectl get pods -n cardano -w  # watch all pods
 ```bash
 kubectl get pods -n cardano
 # NAME                                    READY   STATUS      RESTARTS
-# rosetta-cardano-node-0                  2/2     Running     0
+# rosetta-cardano-node-0                  3/3     Running     0          ← node + socat + submit-api
 # rosetta-postgresql-0                    1/1     Running     0
 # rosetta-yaci-indexer-<hash>             1/1     Running     0
 # rosetta-rosetta-api-<hash>              1/1     Running     0
 # rosetta-mithril-<hash>                  0/1     Completed   0
 # rosetta-index-applier-<hash>            0/1     Completed   0   ← may still be Running
 ```
+
+:::note cardano-node shows 3/3
+The `cardano-node` pod runs three containers: the node itself, a `socat` sidecar (bridges
+the UNIX socket to TCP port 3002 for yaci-indexer), and `cardano-submit-api`. All three
+are counted in the `READY` column.
+:::
 
 ## Verify the Deployment
 
@@ -119,6 +136,11 @@ The `stage` field in `/network/status` cycles through:
 ```bash
 export DB_PASSWORD="<your-secure-password>"
 
+# Pre-create the namespace
+kubectl create namespace cardano
+kubectl label namespace cardano app.kubernetes.io/managed-by=Helm app.kubernetes.io/name=cardano-rosetta-java
+kubectl annotate namespace cardano meta.helm.sh/release-name=rosetta meta.helm.sh/release-namespace=cardano
+
 helm upgrade --install rosetta helm/cardano-rosetta-java \
   -f helm/cardano-rosetta-java/values.yaml \
   -f helm/cardano-rosetta-java/values-k3s.yaml \
@@ -126,9 +148,17 @@ helm upgrade --install rosetta helm/cardano-rosetta-java \
   --set global.network=mainnet \
   --set global.protocolMagic=764824073 \
   --set global.profile=mid \
-  -n cardano --create-namespace \
-  --wait --timeout 60m
+  -n cardano \
+  --no-hooks --wait --timeout 90m
 ```
+
+:::note Config files are mounted from the host
+`values-k3s.yaml` sets `global.configHostPath` to point to `config/node/` in the
+repository checkout. Cardano config files (genesis files, `topology.json`,
+`checkpoints.json`, etc.) are mounted directly from that host directory into the pods —
+equivalent to Docker's bind-mount. To update a config file, edit it on the host; the
+running pod sees the change immediately without a Helm upgrade.
+:::
 
 ## Common Operations
 
@@ -146,8 +176,17 @@ helm upgrade rosetta helm/cardano-rosetta-java \
   -f helm/cardano-rosetta-java/values.yaml \
   -f helm/cardano-rosetta-java/values-k3s.yaml \
   --set global.db.password="${DB_PASSWORD}" \
-  -n cardano --wait --timeout 60m
+  -n cardano --no-hooks --wait --timeout 60m
 ```
+
+:::note Repackage subcharts after template edits
+If you edit templates inside `helm/cardano-rosetta-java/charts/<subchart>/templates/`,
+you must repackage the subchart before upgrading — Helm uses the `.tgz` archive, not the
+source directory, when both exist:
+```bash
+helm package helm/cardano-rosetta-java/charts/<subchart> -d helm/cardano-rosetta-java/charts/
+```
+:::
 
 ### Restart a component
 ```bash
@@ -222,14 +261,17 @@ if you intentionally want to wipe all data.
 
 | Symptom | Likely Cause | Fix |
 |---|---|---|
+| `Error: INSTALLATION FAILED: rendered manifests contain a resource that already exists` | `--create-namespace` used with chart that manages its own namespace | Remove `--create-namespace`; pre-create namespace with Helm labels (see Quick Start) |
+| `Error: configHostPath is required` | `global.configHostPath` not set | Set it in your environment values file (e.g. `values-k3s.yaml`) pointing to your config directory |
 | `cardano-node` stuck in `Init:0/1` | Mithril download still running | `kubectl logs -f job/rosetta-mithril -n cardano` |
 | `postgresql` stuck in `Init:0/1` | Node not fully synced | Check cardano-node logs; sync progress printed every ~30 s |
 | `postgresql` stuck at "0% sync progress" | Grep pattern mismatch (fixed in chart ≥ 2.0.0) | Upgrade the chart; `cardano-cli query tip` returns `"syncProgress": "100.00"` (with space) |
 | `rosetta-api` pod `0/1 Running` (not Ready) | yaci-indexer still syncing | `make k8s-logs-indexer`; wait for stage `LIVE` |
-| `helm upgrade` times out and rolls back | Stale Helm hooks or insufficient timeout | Remove `--wait-for-jobs`; use `--wait --timeout 60m` only |
+| `helm upgrade` times out and rolls back | Stale Helm hooks or insufficient timeout | Use `--no-hooks` to skip hooks; remove `--wait-for-jobs` |
 | Helm release stuck in `failed` state | Previous rollback left orphaned resources | Run `helm uninstall rosetta -n cardano --no-hooks` then redeploy |
 | PVC `Pending` | No suitable StorageClass | `kubectl get sc`; ensure `local-path` provisioner is running |
 | `ImagePullBackOff` | Rate limit or wrong image tag | Check `global.releaseVersion` in values.yaml |
 | Prometheus target DOWN for `node-exporter` | Missing Service for node-exporter DaemonSet | Chart includes `node-exporter-service.yaml` from v2.0.0+; upgrade if missing |
 | Grafana dashboard shows "No data" | `hideSeriesFrom` overrides referencing Docker Compose labels | Use `rosetta-dashboards-k8s.json` (included in chart); avoid importing Docker Compose dashboard in K8s |
 | Port-forward not accessible from remote machine | Bound to `127.0.0.1` by default | Add `--address 0.0.0.0` to `kubectl port-forward` |
+| Template edits not taking effect after `helm upgrade` | Subchart `.tgz` takes precedence over source directory | Run `helm package charts/<subchart> -d charts/` to repackage after editing subchart templates |

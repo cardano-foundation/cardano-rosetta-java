@@ -16,11 +16,3 @@
 # OS files
 .DS_Store
 
-# Large optional node files that are not required for deployment.
-# The configmap-node-config.yaml template already guards these with
-# {{- if .Files.Get ... }} so their absence is handled gracefully.
-# Mainnet peer-snapshot and checkpoints are optimisation hints only;
-# the node falls back to topology-based discovery when absent.
-files/node/mainnet/checkpoints.json
-files/node/mainnet/peer-snapshot.json
-files/node/preview/peer-snapshot.json

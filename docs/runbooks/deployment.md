@@ -62,7 +62,30 @@ chmod 600 .env.k8s
 helm dependency build helm/cardano-rosetta-java
 ```
 
-### Step 2 — Deploy
+### Step 2 — Pre-create the namespace
+
+The chart manages the namespace via its own `templates/namespace.yaml`. Using
+`--create-namespace` alongside this template causes a resource conflict. Pre-create the
+namespace with Helm ownership labels so Helm can adopt it:
+
+```bash
+kubectl create namespace cardano
+kubectl label namespace cardano \
+  app.kubernetes.io/managed-by=Helm \
+  app.kubernetes.io/name=cardano-rosetta-java
+kubectl annotate namespace cardano \
+  meta.helm.sh/release-name=rosetta \
+  meta.helm.sh/release-namespace=cardano
+```
+
+### Step 3 — Deploy
+
+:::warning No `--wait-for-jobs`, use `--no-hooks`
+The `index-applier` post-install hook is a long-running Kubernetes Job (1–2 h on preprod,
+6–18 h on mainnet). Use `--no-hooks` to skip hook execution — Helm returns immediately
+once all Deployments and StatefulSets are ready. Monitor the index-applier Job
+separately. Never use `--wait-for-jobs` as it blocks Helm until the Job finishes.
+:::
 
 **Preprod (K3s, entry profile):**
 ```bash
@@ -73,8 +96,8 @@ helm upgrade --install rosetta helm/cardano-rosetta-java \
   --set global.protocolMagic=1 \
   --set global.profile=entry \
   --set global.db.password="${DB_PASSWORD}" \
-  -n cardano --create-namespace \
-  --wait --timeout 60m
+  -n cardano \
+  --no-hooks --wait --timeout 60m
 ```
 
 **Mainnet (K3s, mid profile):**
@@ -86,9 +109,16 @@ helm upgrade --install rosetta helm/cardano-rosetta-java \
   --set global.protocolMagic=764824073 \
   --set global.profile=mid \
   --set global.db.password="${DB_PASSWORD}" \
-  -n cardano --create-namespace \
-  --wait --timeout 60m
+  -n cardano \
+  --no-hooks --wait --timeout 90m
 ```
+
+:::note Config files on K3s (hostPath mount)
+`values-k3s.yaml` sets `global.configHostPath` pointing to `config/node/` in the
+repository. Cardano genesis files, `topology.json`, and `checkpoints.json` are mounted
+directly from the host filesystem — no ConfigMap, no size limits. To update a config
+file, edit it on the host; pods see the change immediately.
+:::
 
 **Managed Kubernetes (EKS / GKE / AKS):**
 ```bash
@@ -98,18 +128,16 @@ helm upgrade --install rosetta helm/cardano-rosetta-java \
   --set global.protocolMagic=764824073 \
   --set global.profile=mid \
   --set global.db.password="${DB_PASSWORD}" \
+  --set global.configHostPath="/opt/cardano/config/node" \
   --set global.storage.cardanoNode.storageClass="gp3" \
   --set global.storage.postgresql.storageClass="gp3" \
-  -n cardano --create-namespace \
-  --wait --timeout 60m
+  -n cardano \
+  --no-hooks --wait --timeout 90m
 ```
 
-:::warning No `--wait-for-jobs`
-The `index-applier` post-install hook is a long-running Kubernetes Job (1–2 h on preprod,
-6–18 h on mainnet). Adding `--wait-for-jobs` makes Helm block until it finishes, and
-`--atomic` then rolls back the entire release when the timeout fires. Use `--wait` only.
-The Job runs in the background and can be monitored independently.
-:::
+> For managed K8s, ensure the config directory exists on every node that may run
+> `cardano-node` and `yaci-indexer` pods, or use a DaemonSet / node provisioner to
+> populate it. Alternatively, pin pods to a specific node via `nodeSelector`.
 
 ### Option — External Database (RDS / Cloud SQL)
 
@@ -258,11 +286,11 @@ helm upgrade rosetta helm/cardano-rosetta-java \
   -f helm/cardano-rosetta-java/values-k3s.yaml \
   --set global.db.password="${DB_PASSWORD}" \
   --set global.releaseVersion="2.1.0" \
-  -n cardano --wait --timeout 60m
+  -n cardano --no-hooks --wait --timeout 60m
 ```
 
-> The `index-applier` post-upgrade hook re-runs automatically in the background if the
-> schema changed. Do **not** add `--wait-for-jobs`.
+> `--no-hooks` skips the index-applier hook. If a schema migration is needed after
+> upgrade, trigger the index-applier Job manually.
 
 ### Scale API replicas
 ```bash
@@ -396,14 +424,18 @@ helm upgrade rosetta helm/cardano-rosetta-java \
 
 | Symptom | Likely Cause | Resolution |
 |---------|-------------|------------|
+| `Error: rendered manifests contain a resource that already exists` | `--create-namespace` conflicts with chart's `templates/namespace.yaml` | Remove `--create-namespace`; pre-create namespace with Helm labels (Step 2) |
+| `Error: configHostPath is required` | `global.configHostPath` not set | Add `global.configHostPath: /path/to/config/node` in your environment values file |
+| Config file changes not visible in pod | `configHostPath` not set; using ConfigMap | Ensure `global.configHostPath` is set; hostPath mounts reflect host changes immediately |
 | Mithril Job fails | Network issue or invalid aggregator URL | `kubectl logs job/rosetta-mithril -n cardano`; delete job and redeploy |
 | `cardano-node` stuck in `Init:0/1` | Mithril still running | Wait; monitor Phase 1 |
 | `postgresql` stuck in `Init:0/1` | Node not fully synced | Check cardano-node logs for sync progress |
 | `postgresql` stuck at "0% sync progress" | grep space mismatch in chart < 2.0.0 | Upgrade chart; `cardano-cli query tip` returns `"syncProgress": "100.00"` (space after colon) |
 | `yaci-indexer` CrashLoopBackOff | DB connection issue | `kubectl get secret rosetta-db-secret -n cardano -o jsonpath='{.data.db-secret}' \| base64 -d` |
 | API returns 503 | yaci-indexer not ready | `kubectl get pods -n cardano`; wait for indexer |
-| `helm upgrade` times out and rolls back | `--wait-for-jobs` blocking on index-applier | Remove `--wait-for-jobs` from the helm command |
+| `helm upgrade` times out and rolls back | `--wait-for-jobs` blocking on index-applier | Use `--no-hooks` instead |
 | Helm release stuck in `failed` state | Previous atomic rollback left orphaned state | `helm uninstall rosetta -n cardano --no-hooks` then redeploy |
+| Template changes not applied after `helm upgrade` | Subchart `.tgz` used instead of source directory | `helm package charts/<subchart> -d charts/` to repackage edited subchart |
 | OOMKilled | Insufficient memory | Use a higher profile (`mid` or `advanced`) |
 | PVC `Pending` | No suitable StorageClass | `kubectl get sc`; ensure `local-path` provisioner is running |
 | `ImagePullBackOff` | Wrong image tag | Check `global.releaseVersion` in values |

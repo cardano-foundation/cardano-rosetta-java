@@ -24,6 +24,7 @@ These values are shared across all subcharts via `global.*`.
 | `global.mithrilVersion` | `2543.1-hotfix` | `MITHRIL_VERSION` | Mithril client image tag |
 | `global.profile` | `mid` | — | Hardware profile: `entry`, `mid`, `advanced` |
 | `global.sync` | `true` | `SYNC` | Set `false` for offline (API-only) mode |
+| `global.configHostPath` | `""` **(required)** | — | Host directory containing network-specific config files. Template appends `/<network>` to form the full path (e.g. `/opt/cardano/config/node` → `/opt/cardano/config/node/mainnet`). Mounted read-only at `/config` in pods — equivalent to Docker's bind-mount. Must be set in your environment values file (e.g. `values-k3s.yaml`). |
 
 ### Database (`global.db`)
 
