@@ -193,5 +193,6 @@ spec:
 
       volumes:
         - name: node-config
-          configMap:
-            name: {{ printf "%s-node-config" .Release.Name }}
+          hostPath:
+            path: {{ printf "%s/%s" (required "global.configHostPath is required" .Values.global.configHostPath) .Values.global.network }}
+            type: Directory
