@@ -102,6 +102,10 @@ spec:
               value: {{ .Values.env.peerDiscovery | toString | quote }}
             - name: LOG
               value: {{ .Values.env.logLevel | upper | quote }}
+            - name: SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE
+              value: {{ .Values.env.hikariMaxPoolSize | toString | quote }}
+            - name: SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE
+              value: {{ .Values.env.hikariMinIdle | toString | quote }}
           ports:
             - name: http
               containerPort: 9095

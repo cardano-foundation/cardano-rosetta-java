@@ -12,6 +12,11 @@ env:
   continueParsingOnError: true                  # matches Docker Compose default
   peerDiscovery: false
   logLevel: info
+  # HikariCP connection pool — jar default is 20, which is too small during heavy sync.
+  # All 20 slots fill up → health endpoint can't get a connection → liveness probe fails → restart.
+  # PostgreSQL max_connections=300, so 40 is safe.
+  hikariMaxPoolSize: 40
+  hikariMinIdle: 10
 
 ## Resource profiles (inherited from parent, can be overridden)
 profiles:
