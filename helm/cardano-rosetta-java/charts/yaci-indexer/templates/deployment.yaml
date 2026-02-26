@@ -1,0 +1,142 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ printf "%s-yaci-indexer" .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "yaci-indexer.commonLabels" . | nindent 4 }}
+    component: yaci-indexer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "yaci-indexer.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "yaci-indexer.selectorLabels" . | nindent 8 }}
+        {{- include "yaci-indexer.commonLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ printf "%s-sa" .Release.Name }}
+      terminationGracePeriodSeconds: 30
+
+      initContainers:
+        - name: wait-for-postgres
+          image: postgres:16-alpine
+          command:
+            - sh
+            - -c
+            - |
+              echo "Waiting for PostgreSQL at {{ printf "%s-postgresql" .Release.Name }}:{{ .Values.global.db.port }}..."
+              until pg_isready \
+                -h {{ printf "%s-postgresql" .Release.Name | quote }} \
+                -p {{ .Values.global.db.port }} \
+                -U {{ .Values.global.db.user | quote }}; do
+                echo "PostgreSQL not ready, retrying in 5s..."
+                sleep 5
+              done
+              echo "PostgreSQL is ready"
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "32Mi"
+            limits:
+              cpu: "200m"
+              memory: "128Mi"
+
+      containers:
+        - name: yaci-indexer
+          image: "cardanofoundation/cardano-rosetta-java-indexer:{{ .Values.global.releaseVersion }}"
+          env:
+            - name: NETWORK
+              value: {{ .Values.global.network | quote }}
+            # Use n2c-socat profile for TCP socket bridge (K8s compatible)
+            - name: YACI_SPRING_PROFILES
+              value: "postgres,n2c-socat"
+            - name: HOST_N2C_SOCAT_HOST
+              value: {{ printf "%s-cardano-node" .Release.Name | quote }}
+            - name: HOST_N2C_SOCAT_PORT
+              value: "3002"
+            - name: CARDANO_NODE_HOST
+              value: {{ printf "%s-cardano-node" .Release.Name | quote }}
+            - name: CARDANO_NODE_PORT
+              value: "3001"
+            - name: DB_HOST
+              value: {{ printf "%s-postgresql" .Release.Name | quote }}
+            - name: DB_PORT
+              value: {{ .Values.global.db.port | toString | quote }}
+            - name: DB_NAME
+              value: {{ .Values.global.db.name | quote }}
+            - name: DB_USER
+              value: {{ .Values.global.db.user | quote }}
+            - name: DB_SCHEMA
+              value: {{ .Values.global.db.schema | quote }}
+            - name: DB_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ printf "%s-db-secret" .Release.Name }}
+                  key: db-secret
+            - name: PROTOCOL_MAGIC
+              value: {{ .Values.global.protocolMagic | toString | quote }}
+            - name: GENESIS_SHELLEY_PATH
+              value: /config/shelley-genesis.json
+            - name: GENESIS_BYRON_PATH
+              value: /config/byron-genesis.json
+            - name: GENESIS_ALONZO_PATH
+              value: /config/alonzo-genesis.json
+            - name: GENESIS_CONWAY_PATH
+              value: /config/conway-genesis.json
+            - name: REMOVE_SPENT_UTXOS
+              value: {{ .Values.env.removeSpentUtxos | toString | quote }}
+            - name: REMOVE_SPENT_UTXOS_LAST_BLOCKS_GRACE_COUNT
+              value: {{ .Values.env.removeSpentUtxosLastBlocksGraceCount | toString | quote }}
+            - name: REMOVE_SPENT_UTXOS_BATCH_SIZE
+              value: {{ .Values.env.removeSpentUtxosBatchSize | toString | quote }}
+            - name: BLOCK_TRANSACTION_API_TIMEOUT_SECS
+              value: {{ .Values.env.blockTransactionApiTimeoutSecs | toString | quote }}
+            - name: SEARCH_LIMIT
+              value: {{ .Values.env.searchLimit | toString | quote }}
+            - name: CONTINUE_PARSING_ON_ERROR
+              value: {{ .Values.env.continueParsingOnError | toString | quote }}
+            - name: PEER_DISCOVERY
+              value: {{ .Values.env.peerDiscovery | toString | quote }}
+            - name: LOG
+              value: {{ .Values.env.logLevel | upper | quote }}
+            - name: SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE
+              value: {{ .Values.env.hikariMaxPoolSize | toString | quote }}
+            - name: SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE
+              value: {{ .Values.env.hikariMinIdle | toString | quote }}
+          ports:
+            - name: http
+              containerPort: 9095
+              protocol: TCP
+          volumeMounts:
+            - name: node-config
+              mountPath: /config
+              readOnly: true
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 9095
+            initialDelaySeconds: 60
+            periodSeconds: 15
+            failureThreshold: 15
+            timeoutSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 9095
+            initialDelaySeconds: 120
+            periodSeconds: 30
+            failureThreshold: 5
+            timeoutSeconds: 5
+          resources:
+            {{- $profile := (include "yaci-indexer.profile" .) }}
+            {{- $res := index .Values.global.profiles $profile "resources" "indexer" }}
+            {{- toYaml $res | nindent 12 }}
+
+      volumes:
+        - name: node-config
+          hostPath:
+            path: {{ printf "%s/%s" (required "global.configHostPath is required" .Values.global.configHostPath) .Values.global.network }}
+            type: Directory

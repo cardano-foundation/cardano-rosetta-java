@@ -1,0 +1,44 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ printf "%s-prometheus-config" .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "monitoring.commonLabels" . | nindent 4 }}
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+      evaluation_interval: 15s
+    scrape_configs:
+      - job_name: 'prometheus'
+        static_configs:
+          - targets: ['localhost:9090']
+
+      - job_name: 'node-exporter'
+        scrape_interval: 10s
+        static_configs:
+          - targets: ['{{ printf "%s-node-exporter" .Release.Name }}:9100']
+            labels:
+              application: 'system_metrics'
+
+      - job_name: 'postgres_exporter_and_cardano_node'
+        fallback_scrape_protocol: 'PrometheusText0.0.4'
+        static_configs:
+          - targets: ['{{ printf "%s-pg-exporter" .Release.Name }}:9187']
+            labels:
+              application: 'postgreSQL_exporter'
+          - targets: ['{{ printf "%s-cardano-node" .Release.Name }}:12798']
+            labels:
+              application: 'cardano_node'
+
+      - job_name: 'api_and_yaci_indexer'
+        metrics_path: '/actuator/prometheus'
+        scrape_interval: 10s
+        static_configs:
+          - targets: ['{{ printf "%s-yaci-indexer" .Release.Name }}:9095']
+            labels:
+              application: 'yaci_indexer'
+          - targets: ['{{ printf "%s-rosetta-api" .Release.Name }}:8082']
+            labels:
+              application: 'api'

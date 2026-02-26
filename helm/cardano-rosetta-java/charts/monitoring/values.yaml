@@ -1,0 +1,17 @@
+prometheus:
+  image: "prom/prometheus:v3.4.1"
+  retentionTime: "60d"
+  port: 9090
+
+grafana:
+  image: "grafana/grafana:12.0.1"
+  port: 3000
+  adminUser: admin
+  adminPassword: "admin"
+
+postgresqlExporter:
+  image: "prometheuscommunity/postgres-exporter"
+  port: 9187
+
+nodeExporter:
+  image: "prom/node-exporter:v1.8.2"

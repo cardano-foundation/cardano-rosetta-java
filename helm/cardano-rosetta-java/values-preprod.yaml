@@ -1,0 +1,28 @@
+## -----------------------------------------------------------------------
+## Preprod network overrides
+## -----------------------------------------------------------------------
+global:
+  network: preprod
+  protocolMagic: 1
+  profile: entry
+  mithril:
+    aggregatorEndpoint: "https://aggregator.release-preprod.api.mithril.network/aggregator"
+    genesisVerificationKey: ""
+    ancillaryVerificationKey: ""
+  storage:
+    cardanoNode:
+      size: 100Gi
+    postgresql:
+      size: 50Gi
+
+yaci-indexer:
+  env:
+    removeSpentUtxos: false
+    peerDiscovery: true
+    continueParsingOnError: false
+    logLevel: INFO
+
+rosetta-api:
+  env:
+    removeSpentUtxos: false
+    syncGraceSlotsCount: 100

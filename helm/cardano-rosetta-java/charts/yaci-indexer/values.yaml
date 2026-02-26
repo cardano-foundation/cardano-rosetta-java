@@ -1,0 +1,49 @@
+## -----------------------------------------------------------------------
+## yaci-indexer subchart default values
+## -----------------------------------------------------------------------
+
+## Environment-specific tuning parameters
+env:
+  removeSpentUtxos: true
+  removeSpentUtxosLastBlocksGraceCount: 129600  # 30 days @ ~20s/block; matches Docker Compose default
+  removeSpentUtxosBatchSize: 3000               # matches Docker Compose default
+  blockTransactionApiTimeoutSecs: 120           # intentionally higher than Docker (5s) for K8s network latency
+  searchLimit: 5000                             # intentionally higher than Docker (100) for production throughput
+  continueParsingOnError: true                  # matches Docker Compose default
+  peerDiscovery: false
+  logLevel: info
+  # HikariCP connection pool — jar default is 20, which is too small during heavy sync.
+  # All 20 slots fill up → health endpoint can't get a connection → liveness probe fails → restart.
+  # PostgreSQL max_connections=300, so 40 is safe.
+  hikariMaxPoolSize: 40
+  hikariMinIdle: 10
+
+## Resource profiles (inherited from parent, can be overridden)
+profiles:
+  entry:
+    resources:
+      indexer:
+        requests:
+          cpu: "500m"
+          memory: "2Gi"
+        limits:
+          cpu: "2"
+          memory: "4Gi"
+  mid:
+    resources:
+      indexer:
+        requests:
+          cpu: "1"
+          memory: "4Gi"
+        limits:
+          cpu: "4"
+          memory: "8Gi"
+  advanced:
+    resources:
+      indexer:
+        requests:
+          cpu: "2"
+          memory: "8Gi"
+        limits:
+          cpu: "8"
+          memory: "16Gi"

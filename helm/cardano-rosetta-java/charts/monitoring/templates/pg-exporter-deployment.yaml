@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ printf "%s-pg-exporter" .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "monitoring.commonLabels" . | nindent 4 }}
+    component: pg-exporter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ printf "%s-pg-exporter" .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ printf "%s-pg-exporter" .Release.Name }}
+        component: pg-exporter
+    spec:
+      containers:
+        - name: pg-exporter
+          image: {{ .Values.postgresqlExporter.image | quote }}
+          env:
+            - name: DATA_SOURCE_URI
+              value: {{ printf "%s-postgresql:%d/%s?sslmode=disable" .Release.Name (.Values.global.db.port | int) .Values.global.db.name | quote }}
+            - name: DATA_SOURCE_USER
+              value: {{ .Values.global.db.user | quote }}
+            - name: DATA_SOURCE_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ printf "%s-db-secret" .Release.Name }}
+                  key: db-secret
+          ports:
+            - name: metrics
+              containerPort: 9187
+              protocol: TCP
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "200m"
+              memory: "256Mi"
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: 9187
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            failureThreshold: 5

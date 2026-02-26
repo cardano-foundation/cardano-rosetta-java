@@ -1,0 +1,207 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ printf "%s-postgresql" .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "postgresql.commonLabels" . | nindent 4 }}
+    component: postgresql
+spec:
+  replicas: 1
+  serviceName: {{ printf "%s-postgresql-headless" .Release.Name }}
+  selector:
+    matchLabels:
+      {{- include "postgresql.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "postgresql.selectorLabels" . | nindent 8 }}
+        {{- include "postgresql.commonLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ printf "%s-sa" .Release.Name }}
+      terminationGracePeriodSeconds: 60
+
+      initContainers:
+        - name: wait-for-node-sync
+          image: "cardanofoundation/cardano-rosetta-java-cardano-node:{{ .Values.global.cardanoNodeVersion }}"
+          command:
+            - sh
+            - -c
+            - |
+              SYNC="{{ .Values.global.sync | toString }}"
+              NETWORK="{{ .Values.global.network }}"
+              NODE_SERVICE="{{ printf "%s-cardano-node" .Release.Name }}"
+              NODE_SOCAT_PORT="3002"
+              PROTOCOL_MAGIC="{{ .Values.global.protocolMagic }}"
+
+              if [ "${SYNC}" != "true" ]; then
+                echo "SYNC=false, skipping node sync wait"
+                exit 0
+              fi
+
+              if [ "$NETWORK" = "mainnet" ]; then
+                NETWORK_ARG="--mainnet"
+              else
+                NETWORK_ARG="--testnet-magic ${PROTOCOL_MAGIC}"
+              fi
+
+              echo "Waiting for cardano-node TCP endpoint at ${NODE_SERVICE}:${NODE_SOCAT_PORT}..."
+              until bash -c "echo > /dev/tcp/${NODE_SERVICE}/${NODE_SOCAT_PORT}" 2>/dev/null; do
+                echo "Node TCP not reachable, waiting 10s..."
+                sleep 10
+              done
+              echo "Node TCP is reachable, creating local UNIX socket bridge..."
+
+              # Install socat if not available
+              if ! command -v socat >/dev/null 2>&1; then
+                echo "Installing socat..."
+                apt-get update -qq && apt-get install -y -qq socat >/dev/null 2>&1
+              fi
+
+              # Create reverse socat: TCP -> UNIX
+              # This allows cardano-cli to use CARDANO_NODE_SOCKET_PATH
+              socat UNIX-LISTEN:/tmp/node.socket,reuseaddr,fork \
+                "TCP:${NODE_SERVICE}:${NODE_SOCAT_PORT}" &
+              SOCAT_PID=$!
+
+              # Give socat time to establish the listener
+              sleep 5
+              export CARDANO_NODE_SOCKET_PATH=/tmp/node.socket
+
+              echo "Starting sync progress monitoring..."
+              PREV_PROGRESS=""
+              while true; do
+                QUERY_RESULT=$(cardano-cli query tip ${NETWORK_ARG} 2>/dev/null || echo '{"syncProgress":"0"}')
+                SYNC_PROGRESS=$(echo "$QUERY_RESULT" | grep -o '"syncProgress": *"[^"]*"' | grep -o '[0-9.]*' || echo "0")
+
+                if [ -z "$SYNC_PROGRESS" ]; then
+                  SYNC_PROGRESS="0"
+                fi
+
+                if [ "$SYNC_PROGRESS" != "$PREV_PROGRESS" ]; then
+                  echo "Node sync progress: ${SYNC_PROGRESS}%"
+                  PREV_PROGRESS="$SYNC_PROGRESS"
+                fi
+
+                # Check if sync is complete (>= 99.9 to account for floating point)
+                SYNC_INT=$(echo "$SYNC_PROGRESS" | cut -d. -f1)
+                if [ "${SYNC_INT:-0}" -ge 99 ]; then
+                  echo "Node is fully synced (${SYNC_PROGRESS}%), proceeding with PostgreSQL startup"
+                  kill $SOCAT_PID 2>/dev/null || true
+                  exit 0
+                fi
+
+                sleep 30
+              done
+          env:
+            - name: LD_LIBRARY_PATH
+              value: /usr/local/lib
+
+      containers:
+        - name: postgresql
+          image: "cardanofoundation/cardano-rosetta-java-postgres:{{ .Values.global.pgVersionTag }}"
+          env:
+            - name: DB_USER
+              value: {{ .Values.global.db.user | quote }}
+            - name: DB_NAME
+              value: {{ .Values.global.db.name | quote }}
+            - name: DB_PORT
+              value: {{ .Values.global.db.port | toString | quote }}
+            - name: DB_SCHEMA
+              value: {{ .Values.global.db.schema | quote }}
+            - name: NETWORK
+              value: {{ .Values.global.network | quote }}
+            - name: PGPASSWORD
+              value: "postgres"
+            - name: DB_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ printf "%s-db-secret" .Release.Name }}
+                  key: db-secret
+            {{- $profile := (include "postgresql.profile" .) }}
+            {{- $db := index .Values.global.profiles $profile "db" }}
+            - name: DB_POSTGRES_MAX_CONNECTIONS
+              value: {{ $db.maxConnections | toString | quote }}
+            - name: DB_POSTGRES_SHARED_BUFFERS
+              value: {{ $db.sharedBuffers | quote }}
+            - name: DB_POSTGRES_EFFECTIVE_CACHE_SIZE
+              value: {{ $db.effectiveCacheSize | quote }}
+            - name: DB_POSTGRES_WORK_MEM
+              value: {{ $db.workMem | quote }}
+            - name: DB_POSTGRES_MAINTENANCE_WORK_MEM
+              value: {{ $db.maintenanceWorkMem | quote }}
+            - name: DB_POSTGRES_WAL_BUFFERS
+              value: {{ $db.walBuffers | quote }}
+            - name: DB_POSTGRES_CHECKPOINT_COMPLETION_TARGET
+              value: {{ $db.checkpointCompletionTarget | toString | quote }}
+            - name: DB_POSTGRES_RANDOM_PAGE_COST
+              value: {{ $db.randomPageCost | toString | quote }}
+            - name: DB_POSTGRES_EFFECTIVE_IO_CONCURRENCY
+              value: {{ $db.effectiveIoConcurrency | toString | quote }}
+            - name: DB_POSTGRES_PARALLEL_TUPLE_COST
+              value: {{ $db.parallelTupleCost | toString | quote }}
+            - name: DB_POSTGRES_PARALLEL_SETUP_COST
+              value: {{ $db.parallelSetupCost | toString | quote }}
+            - name: DB_POSTGRES_MAX_PARALLEL_WORKERS_PER_GATHER
+              value: {{ $db.maxParallelWorkersPerGather | toString | quote }}
+            - name: DB_POSTGRES_MAX_PARALLEL_WORKERS
+              value: {{ $db.maxParallelWorkers | toString | quote }}
+            - name: DB_POSTGRES_SEQ_PAGE_COST
+              value: {{ $db.seqPageCost | toString | quote }}
+            - name: DB_POSTGRES_JIT
+              value: {{ $db.jit | quote }}
+            - name: DB_POSTGRES_BGWRITER_LRU_MAXPAGES
+              value: {{ $db.bgwriterLruMaxpages | toString | quote }}
+            - name: DB_POSTGRES_BGWRITER_DELAY
+              value: {{ $db.bgwriterDelay | quote }}
+            {{- if $db.autovacuumMaxWorkers }}
+            - name: DB_POSTGRES_AUTOVACUUM_MAX_WORKERS
+              value: {{ $db.autovacuumMaxWorkers | toString | quote }}
+            {{- end }}
+          ports:
+            - name: postgres
+              containerPort: {{ .Values.global.db.port }}
+              protocol: TCP
+          volumeMounts:
+            - name: pg-data
+              mountPath: /var/lib/postgresql/data
+            - name: dshm
+              mountPath: /dev/shm
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - |
+                  PGPASSWORD="${DB_SECRET}" pg_isready \
+                    -U {{ .Values.global.db.user | quote }} \
+                    -d {{ .Values.global.db.name | quote }} \
+                    -p {{ .Values.global.db.port }} \
+                    -h localhost
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 15
+            timeoutSeconds: 5
+          livenessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - "pg_isready -U postgres -h localhost -p {{ .Values.global.db.port }}"
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            failureThreshold: 5
+            timeoutSeconds: 5
+          resources:
+            {{- $res := index .Values.global.profiles $profile "resources" "postgresql" }}
+            {{- toYaml $res | nindent 12 }}
+
+      volumes:
+        - name: pg-data
+          persistentVolumeClaim:
+            claimName: {{ printf "%s-postgresql-data" .Release.Name }}
+        # SHM emulation: replaces Docker Compose shm_size: 4g
+        - name: dshm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 4Gi

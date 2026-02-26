@@ -1,0 +1,77 @@
+## -----------------------------------------------------------------------
+## rosetta-api subchart default values
+## -----------------------------------------------------------------------
+
+## Replica count for the API deployment
+replicaCount: 1
+
+## Service configuration
+service:
+  port: 8082
+  external:
+    enabled: false
+    type: LoadBalancer
+
+## Ingress configuration
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  host: ""
+  tls: []
+
+## Environment-specific tuning parameters
+env:
+  httpConnectTimeoutSeconds: 5             # matches Docker Compose default
+  httpRequestTimeoutSeconds: 5             # matches Docker Compose default
+  syncGraceSlotsCount: 100                 # matches Docker Compose default
+  removeSpentUtxos: true
+  removeSpentUtxosLastBlocksGraceCount: 129600  # 30 days @ ~20s/block; matches Docker Compose default
+  blockTransactionApiTimeoutSecs: 120      # intentionally higher than Docker (5s) for K8s network latency
+  devkitEnabled: false
+  devkitUrl: ""
+  devkitPort: 0
+  tokenRegistryEnabled: false
+  tokenRegistryBaseUrl: ""                 # matches Docker Compose default (disabled by default)
+  tokenRegistryCacheTtlHours: 12           # matches Docker Compose default
+  tokenRegistryLogoFetch: false
+  tokenRegistryRequestTimeoutSeconds: 2    # matches Docker Compose default
+
+## Resource and DB pool profiles (inherited from parent, can be overridden)
+profiles:
+  entry:
+    resources:
+      api:
+        requests:
+          cpu: "250m"
+          memory: "1Gi"
+        limits:
+          cpu: "1"
+          memory: "2Gi"
+    db:
+      poolMin: 12
+      poolMax: 12
+  mid:
+    resources:
+      api:
+        requests:
+          cpu: "500m"
+          memory: "2Gi"
+        limits:
+          cpu: "2"
+          memory: "4Gi"
+    db:
+      poolMin: 150
+      poolMax: 150
+  advanced:
+    resources:
+      api:
+        requests:
+          cpu: "1"
+          memory: "4Gi"
+        limits:
+          cpu: "4"
+          memory: "8Gi"
+    db:
+      poolMin: 100
+      poolMax: 550

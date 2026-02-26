@@ -1,0 +1,198 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ printf "%s-rosetta-api" .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "rosetta-api.commonLabels" . | nindent 4 }}
+    component: rosetta-api
+spec:
+  replicas: {{ .Values.replicaCount | default 1 }}
+  selector:
+    matchLabels:
+      {{- include "rosetta-api.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "rosetta-api.selectorLabels" . | nindent 8 }}
+        {{- include "rosetta-api.commonLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ printf "%s-sa" .Release.Name }}
+      terminationGracePeriodSeconds: 30
+
+      initContainers:
+        - name: wait-for-postgres
+          image: postgres:16-alpine
+          command:
+            - sh
+            - -c
+            - |
+              echo "Waiting for PostgreSQL..."
+              until pg_isready \
+                -h {{ printf "%s-postgresql" .Release.Name | quote }} \
+                -p {{ .Values.global.db.port }} \
+                -U {{ .Values.global.db.user | quote }}; do
+                echo "PostgreSQL not ready, retrying in 5s..."
+                sleep 5
+              done
+              echo "PostgreSQL is ready"
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "32Mi"
+            limits:
+              cpu: "200m"
+              memory: "128Mi"
+
+        - name: wait-for-indexer
+          image: curlimages/curl:8.5.0
+          command:
+            - sh
+            - -c
+            - |
+              YACI_URL="http://{{ printf "%s-yaci-indexer" .Release.Name }}:9095"
+              echo "Waiting for yaci-indexer at ${YACI_URL}/actuator/health..."
+              until curl -sf "${YACI_URL}/actuator/health" > /dev/null 2>&1; do
+                echo "yaci-indexer not ready, retrying in 10s..."
+                sleep 10
+              done
+              echo "yaci-indexer is healthy"
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "32Mi"
+            limits:
+              cpu: "200m"
+              memory: "128Mi"
+
+      containers:
+        - name: rosetta-api
+          image: "cardanofoundation/cardano-rosetta-java-api:{{ .Values.global.releaseVersion }}"
+          env:
+            - name: NETWORK
+              value: {{ .Values.global.network | quote }}
+            - name: API_SPRING_PROFILES_ACTIVE
+              value: "online"
+            - name: API_PORT
+              value: "8082"
+            - name: DB_HOST
+              value: {{ printf "%s-postgresql" .Release.Name | quote }}
+            - name: DB_PORT
+              value: {{ .Values.global.db.port | toString | quote }}
+            - name: DB_NAME
+              value: {{ .Values.global.db.name | quote }}
+            - name: DB_USER
+              value: {{ .Values.global.db.user | quote }}
+            - name: DB_SCHEMA
+              value: {{ .Values.global.db.schema | quote }}
+            - name: DB_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ printf "%s-db-secret" .Release.Name }}
+                  key: db-secret
+            - name: CARDANO_NODE_VERSION
+              value: {{ .Values.global.cardanoNodeVersion | quote }}
+            - name: TOPOLOGY_FILEPATH
+              value: /config/topology.json
+            - name: GENESIS_SHELLEY_PATH
+              value: /config/shelley-genesis.json
+            - name: GENESIS_ALONZO_PATH
+              value: /config/alonzo-genesis.json
+            - name: GENESIS_CONWAY_PATH
+              value: /config/conway-genesis.json
+            - name: GENESIS_BYRON_PATH
+              value: /config/byron-genesis.json
+            - name: CARDANO_NODE_SUBMIT_HOST
+              value: {{ printf "%s-cardano-node" .Release.Name | quote }}
+            - name: NODE_SUBMIT_API_PORT
+              value: "8090"
+            - name: CARDANO_NODE_SOCKET_PATH
+              value: /tmp/node.socket
+            - name: YACI_HTTP_BASE_URL
+              value: {{ printf "http://%s-yaci-indexer:9095/api/v1" .Release.Name | quote }}
+            - name: HTTP_CONNECT_TIMEOUT_SECONDS
+              value: {{ .Values.env.httpConnectTimeoutSeconds | toString | quote }}
+            - name: HTTP_REQUEST_TIMEOUT_SECONDS
+              value: {{ .Values.env.httpRequestTimeoutSeconds | toString | quote }}
+            - name: SYNC_GRACE_SLOTS_COUNT
+              value: {{ .Values.env.syncGraceSlotsCount | toString | quote }}
+            - name: REMOVE_SPENT_UTXOS
+              value: {{ .Values.env.removeSpentUtxos | toString | quote }}
+            - name: REMOVE_SPENT_UTXOS_LAST_BLOCKS_GRACE_COUNT
+              value: {{ .Values.env.removeSpentUtxosLastBlocksGraceCount | toString | quote }}
+            - name: BLOCK_TRANSACTION_API_TIMEOUT_SECS
+              value: {{ .Values.env.blockTransactionApiTimeoutSecs | toString | quote }}
+            - name: DEVKIT_ENABLED
+              value: {{ .Values.env.devkitEnabled | toString | quote }}
+            - name: DEVKIT_URL
+              value: {{ .Values.env.devkitUrl | quote }}
+            - name: DEVKIT_PORT
+              value: {{ .Values.env.devkitPort | toString | quote }}
+            - name: TOKEN_REGISTRY_ENABLED
+              value: {{ .Values.env.tokenRegistryEnabled | toString | quote }}
+            - name: TOKEN_REGISTRY_BASE_URL
+              value: {{ .Values.env.tokenRegistryBaseUrl | quote }}
+            - name: TOKEN_REGISTRY_CACHE_TTL_HOURS
+              value: {{ .Values.env.tokenRegistryCacheTtlHours | toString | quote }}
+            - name: TOKEN_REGISTRY_LOGO_FETCH
+              value: {{ .Values.env.tokenRegistryLogoFetch | toString | quote }}
+            - name: TOKEN_REGISTRY_REQUEST_TIMEOUT_SECONDS
+              value: {{ .Values.env.tokenRegistryRequestTimeoutSeconds | toString | quote }}
+            {{- $profile := (include "rosetta-api.profile" .) }}
+            {{- $db := index .Values.global.profiles $profile "db" }}
+            - name: API_DB_POOL_MIN_COUNT
+              value: {{ $db.poolMin | toString | quote }}
+            - name: API_DB_POOL_MAX_COUNT
+              value: {{ $db.poolMax | toString | quote }}
+            - name: API_DB_POOL_MAX_LIFETIME_MS
+              value: "2000000"
+            - name: API_DB_POOL_CONNECTION_TIMEOUT_MS
+              value: "100000"
+            - name: API_DB_KEEP_ALIVE_MS
+              value: "60000"
+            - name: API_DB_LEAK_CONNECTIONS_WARNING_MS
+              value: "60000"
+            - name: API_DB_SHOW_SQL
+              value: "false"
+            - name: API_DB_MONITOR_PERFORMANCE
+              value: "false"
+          ports:
+            - name: http
+              containerPort: 8082
+              protocol: TCP
+          volumeMounts:
+            - name: node-config
+              mountPath: /config
+              readOnly: true
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - |
+                  curl --fail --silent \
+                    http://localhost:8082/network/options \
+                    -H 'Content-Type: application/json' \
+                    --data "{\"network_identifier\":{\"blockchain\":\"cardano\",\"network\":\"{{ .Values.global.network }}\"},\"metadata\":{}}" \
+                    -X POST > /dev/null 2>&1
+            initialDelaySeconds: 60
+            periodSeconds: 15
+            failureThreshold: 40
+            timeoutSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8082
+            initialDelaySeconds: 120
+            periodSeconds: 30
+            failureThreshold: 5
+            timeoutSeconds: 5
+          resources:
+            {{- $res := index .Values.global.profiles $profile "resources" "api" }}
+            {{- toYaml $res | nindent 12 }}
+
+      volumes:
+        - name: node-config
+          hostPath:
+            path: {{ printf "%s/%s" (required "global.configHostPath is required" .Values.global.configHostPath) .Values.global.network }}
+            type: Directory

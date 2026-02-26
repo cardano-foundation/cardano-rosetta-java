@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ printf "%s-prometheus" .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "monitoring.commonLabels" . | nindent 4 }}
+    component: prometheus
+spec:
+  type: ClusterIP
+  selector:
+    app: {{ printf "%s-prometheus" .Release.Name }}
+  ports:
+    - name: http
+      port: {{ .Values.prometheus.port }}
+      targetPort: 9090
+      protocol: TCP
