@@ -5,12 +5,22 @@
 #   ./scripts/k3s-setup.sh [preprod|mainnet] [namespace]
 #
 # Environment variables:
-#   DB_PASSWORD   PostgreSQL password (default: weakpwd#123_d for local dev)
+#   DB_PASSWORD   PostgreSQL password (required for production; defaults to weak dev password)
 #   KUBECONFIG    Path to kubeconfig (auto-detected from k3s if not set)
+#
+# Notes:
+#   - Always deploys with --no-hooks. Run the index-applier manually when the
+#     indexer reaches chain tip (see docs/runbooks/deployment.md).
+#   - Subcharts must be pre-packaged before first run:
+#       helm package helm/cardano-rosetta-java/charts/<name> -d helm/cardano-rosetta-java/charts/
+#     Or package all at once:
+#       for d in helm/cardano-rosetta-java/charts/*/; do
+#         helm package "$d" -d helm/cardano-rosetta-java/charts/
+#       done
 
 set -euo pipefail
 
-PROFILE="${1:-preprod}"
+NETWORK="${1:-preprod}"
 NAMESPACE="${2:-cardano}"
 RELEASE_NAME="rosetta"
 CHART_DIR="./helm/cardano-rosetta-java"
@@ -23,22 +33,20 @@ warn()  { echo -e "${YELLOW}[WARN]${NC}  $*"; }
 error() { echo -e "${RED}[ERROR]${NC} $*" >&2; exit 1; }
 step()  { echo -e "\n${CYAN}▶ $*${NC}"; }
 
-# ── Validate profile ────────────────────────────────────────────────────────
-case "$PROFILE" in
-  preprod|mainnet) info "Profile: ${PROFILE}" ;;
-  *) error "Unknown profile '${PROFILE}'. Expected: preprod | mainnet" ;;
-esac
-
-# ── Build values file list ──────────────────────────────────────────────────
-BASE_VALUES="-f ${CHART_DIR}/values.yaml"
-case "$PROFILE" in
+# ── Validate network ─────────────────────────────────────────────────────────
+case "$NETWORK" in
   preprod)
+    PROTOCOL_MAGIC=1
     PROFILE_VALUES="-f ${CHART_DIR}/values-preprod.yaml -f ${CHART_DIR}/values-k3s.yaml"
     ;;
   mainnet)
+    PROTOCOL_MAGIC=764824073
     PROFILE_VALUES="-f ${CHART_DIR}/values-k3s.yaml"
     ;;
+  *) error "Unknown network '${NETWORK}'. Expected: preprod | mainnet" ;;
 esac
+
+info "Network: ${NETWORK} (protocolMagic=${PROTOCOL_MAGIC})"
 
 # ── Install k3s if not present ──────────────────────────────────────────────
 step "Checking k3s / kubectl availability"
@@ -73,73 +81,86 @@ fi
 # ── Prerequisites ───────────────────────────────────────────────────────────
 step "Verifying prerequisites"
 for cmd in kubectl helm; do
-  if command -v "$cmd" &>/dev/null; then
-    info "  ✓ ${cmd} $(${cmd} version --short 2>/dev/null | head -1)"
-  else
-    error "${cmd} is required but not installed. See: https://helm.sh/docs/intro/install/"
-  fi
+  command -v "$cmd" &>/dev/null || error "${cmd} is required but not installed."
 done
 
-# Helm v3 check
-HELM_MAJOR=$(helm version --short 2>/dev/null | grep -oP 'v\K[0-9]+' | head -1 || echo 0)
+HELM_MAJOR=$(helm version --template '{{.Version}}' 2>/dev/null | grep -oP 'v\K[0-9]+' | head -1 || echo 0)
 [ "${HELM_MAJOR:-0}" -ge 3 ] || error "Helm v3 or higher is required"
+info "  ✓ kubectl $(kubectl version --client -o yaml 2>/dev/null | grep 'gitVersion' | head -1 | awk '{print $2}')"
+info "  ✓ helm $(helm version --short 2>/dev/null | head -1)"
 
-# Verify cluster connectivity
 kubectl cluster-info &>/dev/null || error "Cannot connect to Kubernetes cluster. Check KUBECONFIG."
 info "  ✓ Cluster is reachable"
 
 # ── Namespace ───────────────────────────────────────────────────────────────
-step "Creating namespace '${NAMESPACE}'"
-kubectl create namespace "${NAMESPACE}" --dry-run=client -o yaml | kubectl apply -f -
-info "Namespace '${NAMESPACE}' ready"
-
-# ── Helm dependency build ───────────────────────────────────────────────────
-step "Building Helm chart dependencies"
-helm dependency build "${CHART_DIR}"
+# NOTE: Do NOT use --create-namespace — the chart has templates/namespace.yaml
+# which creates it with the correct Helm ownership labels.
+step "Ensuring namespace '${NAMESPACE}' exists"
+if kubectl get namespace "${NAMESPACE}" &>/dev/null 2>&1; then
+  info "Namespace '${NAMESPACE}' already exists"
+else
+  info "Pre-creating namespace '${NAMESPACE}' with Helm ownership labels..."
+  kubectl create namespace "${NAMESPACE}"
+  kubectl label namespace "${NAMESPACE}" \
+    "app.kubernetes.io/managed-by=Helm"
+  kubectl annotate namespace "${NAMESPACE}" \
+    "meta.helm.sh/release-name=${RELEASE_NAME}" \
+    "meta.helm.sh/release-namespace=${NAMESPACE}"
+  info "Namespace '${NAMESPACE}' created"
+fi
 
 # ── Lint ────────────────────────────────────────────────────────────────────
 step "Linting Helm chart"
-helm lint "${CHART_DIR}" \
-  ${BASE_VALUES} \
+LINT_OUT=$(helm lint "${CHART_DIR}" \
+  -f "${CHART_DIR}/values.yaml" \
   ${PROFILE_VALUES} \
-  --set global.db.password="${DB_PASSWORD}" \
-  --quiet && info "Lint passed"
+  --set global.network="${NETWORK}" \
+  --set global.protocolMagic="${PROTOCOL_MAGIC}" \
+  "--set=global.db.password=${DB_PASSWORD}" \
+  --quiet 2>&1 || true)
+echo "${LINT_OUT}" | grep -v "walk.go" || true
+echo "${LINT_OUT}" | grep -q "ERROR" && error "Helm lint failed" || info "Lint passed"
 
 # ── Deploy ──────────────────────────────────────────────────────────────────
-step "Deploying '${RELEASE_NAME}' (profile: ${PROFILE})"
-warn "First-time deployment takes 30–90 minutes:"
+step "Deploying '${RELEASE_NAME}' (network: ${NETWORK})"
+warn "Deployment notes:"
 warn "  • Mithril snapshot download: 1–4 hours (preprod: ~30 min)"
-warn "  • Node sync to tip: 10–30 minutes"
-warn "  • APPLYING_INDEXES stage: ~6 hours on mainnet"
+warn "  • Node sync to tip: 10–60 minutes after Mithril"
+warn "  • Index-applier NOT started (--no-hooks). Run manually when synced."
+warn "    See: docs/runbooks/deployment.md"
 echo ""
 
+# IMPORTANT: --no-hooks prevents the index-applier from running during deploy.
+# The index-applier must be triggered separately once the indexer reaches chain tip.
+# See: docs/runbooks/deployment.md for the manual index-applier workflow.
 helm upgrade --install "${RELEASE_NAME}" "${CHART_DIR}" \
   --namespace "${NAMESPACE}" \
-  --create-namespace \
-  ${BASE_VALUES} \
+  -f "${CHART_DIR}/values.yaml" \
   ${PROFILE_VALUES} \
-  --set global.db.password="${DB_PASSWORD}" \
-  --timeout 90m \
-  --wait \
-  --wait-for-jobs \
-  --atomic
+  --set global.network="${NETWORK}" \
+  --set global.protocolMagic="${PROTOCOL_MAGIC}" \
+  "--set=global.db.password=${DB_PASSWORD}" \
+  --no-hooks \
+  2>&1 | grep -v "walk.go"
 
 # ── Success ─────────────────────────────────────────────────────────────────
 echo ""
 info "════════════════════════════════════════════════"
-info "  Deployment successful!"
+info "  Deployment submitted!"
 info "════════════════════════════════════════════════"
 echo ""
-info "Useful commands:"
-echo "  make k8s-status             # pod status"
-echo "  make k8s-logs-node          # cardano-node logs"
-echo "  make k8s-logs-indexer       # yaci-indexer logs"
-echo "  make k8s-logs-api           # rosetta-api logs"
-echo "  make k8s-port-forward       # forward API to localhost:8082"
-echo "  make k8s-test               # run Helm tests"
+info "Monitor sync progress:"
+echo "  export KUBECONFIG=${KUBECONFIG:-/etc/rancher/k3s/k3s.yaml}"
+echo "  kubectl get pods -n ${NAMESPACE}"
+echo "  kubectl logs -f statefulset/rosetta-cardano-node -c cardano-node -n ${NAMESPACE}"
+echo "  kubectl logs -f deployment/rosetta-yaci-indexer -n ${NAMESPACE}"
 echo ""
-info "Check sync status (after port-forward):"
-echo "  curl -s http://localhost:8082/network/status \\"
-echo "    -H 'Content-Type: application/json' \\"
-echo "    -d '{\"network_identifier\":{\"blockchain\":\"cardano\",\"network\":\"${PROFILE}\"}}' \\"
-echo "    -X POST | jq '.sync_status'"
+info "When indexer reaches chain tip, apply DB indexes:"
+echo "  helm upgrade ${RELEASE_NAME} ${CHART_DIR} \\"
+echo "    --namespace ${NAMESPACE} \\"
+echo "    -f ${CHART_DIR}/values.yaml \\"
+echo "    ${PROFILE_VALUES} \\"
+echo "    --set global.network=${NETWORK} \\"
+echo "    --set global.protocolMagic=${PROTOCOL_MAGIC} \\"
+echo "    \"--set=global.db.password=\${DB_PASSWORD}\""
+echo "    # (without --no-hooks — lets index-applier run)"
