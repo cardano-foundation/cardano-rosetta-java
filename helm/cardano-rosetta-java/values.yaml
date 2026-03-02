@@ -217,7 +217,11 @@ global:
     enabled: true
     sync: true
     snapshotDigest: "latest"
-    aggregatorEndpoint: "https://aggregator.release-mainnet.api.mithril.network/aggregator"
+    # aggregatorEndpoint, genesisVerificationKey, ancillaryVerificationKey are intentionally
+    # left empty. The entrypoint resolves all three automatically from NETWORK
+    # (mainnet / preprod / preview) — identical to Docker Compose behaviour.
+    # Override only for air-gapped environments or custom aggregators.
+    aggregatorEndpoint: ""
     genesisVerificationKey: ""
     ancillaryVerificationKey: ""
 

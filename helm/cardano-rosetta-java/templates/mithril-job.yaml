@@ -45,12 +45,20 @@ spec:
               value: {{ .Values.global.mithril.sync | toString | quote }}
             - name: SNAPSHOT_DIGEST
               value: {{ .Values.global.mithril.snapshotDigest | quote }}
+            {{- if .Values.global.mithril.aggregatorEndpoint }}
             - name: AGGREGATOR_ENDPOINT
               value: {{ .Values.global.mithril.aggregatorEndpoint | quote }}
+            {{- end }}
+            {{- if .Values.global.mithril.genesisVerificationKey }}
             - name: GENESIS_VERIFICATION_KEY
               value: {{ .Values.global.mithril.genesisVerificationKey | quote }}
+            {{- end }}
+            {{- if .Values.global.mithril.ancillaryVerificationKey }}
             - name: ANCILLARY_VERIFICATION_KEY
               value: {{ .Values.global.mithril.ancillaryVerificationKey | quote }}
+            {{- end }}
+            # If any of the above are not set, the entrypoint resolves them automatically
+            # from NETWORK (mainnet / preprod / preview) — identical to Docker Compose behaviour
           volumeMounts:
             - name: node-data
               mountPath: /node
