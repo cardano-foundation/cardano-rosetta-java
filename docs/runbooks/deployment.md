@@ -36,37 +36,61 @@ This runbook covers deploying and operating **Cardano Rosetta Java** on Kubernet
 - `kubectl` >= 1.28
 - `helm` >= 3.12
 - `jq` (for status checks)
-- K3s (auto-installed) or a managed K8s cluster (EKS, GKE, AKS)
+- K3s (auto-installed by setup script) or a managed K8s cluster (EKS, GKE, AKS)
 
 ### Network
 - Outbound TCP 3001 — cardano-node peer-to-peer (N2N)
-- Outbound HTTPS — Mithril snapshot download
+- Outbound HTTPS — Mithril snapshot download + genesis key fetch from GitHub
 - Inbound TCP 8082 — Rosetta API (if exposing externally)
 
 ---
 
 ## Deployment
 
-### Step 1 — Clone and configure
+### Option A — Automated (recommended for K3s)
+
+Use the setup script. It handles namespace creation, lint, and deploy automatically:
 
 ```bash
 git clone https://github.com/cardano-foundation/cardano-rosetta-java.git
 cd cardano-rosetta-java
 
-# Generate a strong password (save it — you'll need it for upgrades)
+# Save password (needed for all future upgrades)
 export DB_PASSWORD="$(openssl rand -base64 32)"
 echo "DB_PASSWORD=${DB_PASSWORD}" > .env.k8s
 chmod 600 .env.k8s
 
-# Build chart dependencies
-helm dependency build helm/cardano-rosetta-java
+# Deploy preprod
+DB_PASSWORD="${DB_PASSWORD}" ./scripts/k3s-setup.sh preprod
+
+# Deploy mainnet
+DB_PASSWORD="${DB_PASSWORD}" ./scripts/k3s-setup.sh mainnet
 ```
 
-### Step 2 — Pre-create the namespace
+The script auto-detects `configHostPath` from the current directory (`$(pwd)/config/node`)
+so it works on any server regardless of the repo checkout path.
 
-The chart manages the namespace via its own `templates/namespace.yaml`. Using
-`--create-namespace` alongside this template causes a resource conflict. Pre-create the
-namespace with Helm ownership labels so Helm can adopt it:
+---
+
+### Option B — Manual step-by-step
+
+#### Step 1 — Clone and configure
+
+```bash
+git clone https://github.com/cardano-foundation/cardano-rosetta-java.git
+cd cardano-rosetta-java
+
+# Save password (needed for all future upgrades)
+export DB_PASSWORD="$(openssl rand -base64 32)"
+echo "DB_PASSWORD=${DB_PASSWORD}" > .env.k8s
+chmod 600 .env.k8s
+```
+
+#### Step 2 — Pre-create the namespace
+
+> **Do NOT use `--create-namespace`** — the chart has `templates/namespace.yaml` which
+> creates the namespace with Helm ownership labels. Using `--create-namespace` causes a
+> resource conflict.
 
 ```bash
 kubectl create namespace cardano
@@ -78,47 +102,71 @@ kubectl annotate namespace cardano \
   meta.helm.sh/release-namespace=cardano
 ```
 
-### Step 3 — Deploy
+> On re-deploy (namespace already exists), skip this step.
 
-:::warning No `--wait-for-jobs`, use `--no-hooks`
-The `index-applier` post-install hook is a long-running Kubernetes Job (1–2 h on preprod,
-6–18 h on mainnet). Use `--no-hooks` to skip hook execution — Helm returns immediately
-once all Deployments and StatefulSets are ready. Monitor the index-applier Job
-separately. Never use `--wait-for-jobs` as it blocks Helm until the Job finishes.
-:::
+#### Step 3 — Package subcharts
+
+Subcharts are pre-packaged as `.tgz` files in `charts/`. After editing any subchart
+template, repackage it before deploying:
+
+```bash
+# Repackage a single subchart after editing its templates
+helm package helm/cardano-rosetta-java/charts/yaci-indexer \
+  -d helm/cardano-rosetta-java/charts/
+
+# Repackage all subcharts at once
+for d in helm/cardano-rosetta-java/charts/*/; do
+  helm package "$d" -d helm/cardano-rosetta-java/charts/
+done
+```
+
+> Helm uses the `.tgz` file when both source directory and tarball exist. Always repackage
+> after template edits, otherwise changes will not be applied.
+
+#### Step 4 — Deploy
+
+> **Always use `--no-hooks`**. The `index-applier` post-install hook waits for the
+> indexer to reach chain tip before applying DB indexes — this takes hours. Using
+> `--no-hooks` lets Helm return immediately. Trigger the index-applier manually
+> after the indexer syncs (see [Phase 6](#phase-6--index-applier)).
+>
+> **Never use `--wait` or `--wait-for-jobs`** — the deployment takes hours (Mithril
+> download + node sync + indexer sync). Helm would time out and roll back.
 
 **Preprod (K3s, entry profile):**
 ```bash
+export DB_PASSWORD=$(grep DB_PASSWORD .env.k8s | cut -d= -f2-)
+export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+
 helm upgrade --install rosetta helm/cardano-rosetta-java \
   -f helm/cardano-rosetta-java/values.yaml \
+  -f helm/cardano-rosetta-java/values-preprod.yaml \
   -f helm/cardano-rosetta-java/values-k3s.yaml \
   --set global.network=preprod \
   --set global.protocolMagic=1 \
   --set global.profile=entry \
-  --set global.db.password="${DB_PASSWORD}" \
+  --set global.configHostPath=$(pwd)/config/node \
+  "--set=global.db.password=${DB_PASSWORD}" \
   -n cardano \
-  --no-hooks --wait --timeout 60m
+  --no-hooks 2>&1 | grep -v "walk.go"
 ```
 
 **Mainnet (K3s, mid profile):**
 ```bash
+export DB_PASSWORD=$(grep DB_PASSWORD .env.k8s | cut -d= -f2-)
+export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+
 helm upgrade --install rosetta helm/cardano-rosetta-java \
   -f helm/cardano-rosetta-java/values.yaml \
   -f helm/cardano-rosetta-java/values-k3s.yaml \
   --set global.network=mainnet \
   --set global.protocolMagic=764824073 \
   --set global.profile=mid \
-  --set global.db.password="${DB_PASSWORD}" \
+  --set global.configHostPath=$(pwd)/config/node \
+  "--set=global.db.password=${DB_PASSWORD}" \
   -n cardano \
-  --no-hooks --wait --timeout 90m
+  --no-hooks 2>&1 | grep -v "walk.go"
 ```
-
-:::note Config files on K3s (hostPath mount)
-`values-k3s.yaml` sets `global.configHostPath` pointing to `config/node/` in the
-repository. Cardano genesis files, `topology.json`, and `checkpoints.json` are mounted
-directly from the host filesystem — no ConfigMap, no size limits. To update a config
-file, edit it on the host; pods see the change immediately.
-:::
 
 **Managed Kubernetes (EKS / GKE / AKS):**
 ```bash
@@ -127,33 +175,16 @@ helm upgrade --install rosetta helm/cardano-rosetta-java \
   --set global.network=mainnet \
   --set global.protocolMagic=764824073 \
   --set global.profile=mid \
-  --set global.db.password="${DB_PASSWORD}" \
-  --set global.configHostPath="/opt/cardano/config/node" \
+  "--set=global.db.password=${DB_PASSWORD}" \
+  --set global.configHostPath="$(pwd)/config/node" \
   --set global.storage.cardanoNode.storageClass="gp3" \
   --set global.storage.postgresql.storageClass="gp3" \
   -n cardano \
-  --no-hooks --wait --timeout 90m
+  --no-hooks 2>&1 | grep -v "walk.go"
 ```
 
 > For managed K8s, ensure the config directory exists on every node that may run
-> `cardano-node` and `yaci-indexer` pods, or use a DaemonSet / node provisioner to
-> populate it. Alternatively, pin pods to a specific node via `nodeSelector`.
-
-### Option — External Database (RDS / Cloud SQL)
-
-```bash
-helm upgrade --install rosetta helm/cardano-rosetta-java \
-  -f helm/cardano-rosetta-java/values.yaml \
-  --set postgresql.enabled=false \
-  --set global.db.host="my-rds-endpoint.us-east-1.rds.amazonaws.com" \
-  --set global.db.password="${DB_PASSWORD}" \
-  --set global.profile=mid \
-  -n cardano --create-namespace \
-  --wait --timeout 60m
-```
-
-> Pre-create the database and user on the external instance matching `global.db.name`
-> (`rosetta-java`) and `global.db.user` (`rosetta_db_admin`).
+> `cardano-node` and `yaci-indexer` pods, or pin pods to a specific node via `nodeSelector`.
 
 ---
 
@@ -174,15 +205,31 @@ helm upgrade --install rosetta helm/cardano-rosetta-java \
 
 ### Phase 1 — Mithril Snapshot Download
 
-Mithril downloads a verified snapshot of the blockchain, skipping a full chain replay.
-The `cardano-node` pod waits in `wait-for-mithril` initContainer until complete.
+Mithril downloads a verified snapshot of the blockchain. The Mithril Job fetches the
+aggregator endpoint and verification keys automatically from GitHub based on `NETWORK`
+(same behaviour as Docker Compose — no manual key configuration required).
+
+The `cardano-node` pod stays in `Init:0/1` (`wait-for-mithril`) until the Job completes.
 
 ```bash
+# Watch job progress
 kubectl logs -f job/rosetta-mithril -n cardano
-kubectl get job rosetta-mithril -n cardano
+
+# Check job status
+kubectl get job rosetta-mithril -n cardano -o jsonpath='{.status}'
 ```
 
+> **Reinstall note:** The Mithril Job has `helm.sh/resource-policy: keep` — it survives
+> `helm uninstall`. On reinstall, delete it first if it already exists:
+> ```bash
+> kubectl delete job rosetta-mithril -n cardano --ignore-not-found
+> ```
+
 ### Phase 2 — Cardano Node Sync
+
+After Mithril completes, `cardano-node` starts and syncs remaining blocks to tip.
+After a machine reboot, the node re-validates all ImmutableDB chunks (~90 min for mainnet)
+before the startup probe passes — this is normal.
 
 ```bash
 kubectl logs -f statefulset/rosetta-cardano-node -c cardano-node -n cardano
@@ -191,34 +238,34 @@ kubectl get pods -n cardano -w
 
 ### Phase 3 — PostgreSQL Startup
 
-PostgreSQL starts after the node reaches 99%+ sync. Its initContainer polls
-`cardano-cli query tip` via the socat bridge.
+PostgreSQL starts only after the node reaches ≥99% sync. Its `wait-for-node-sync`
+initContainer polls `cardano-cli query tip` via the socat bridge inside the cardano-node pod.
 
 ```bash
+kubectl logs rosetta-postgresql-0 -n cardano -c wait-for-node-sync
 kubectl logs -f statefulset/rosetta-postgresql -n cardano
 ```
-
-:::note syncProgress format
-`cardano-cli query tip` returns `"syncProgress": "100.00"` (space after colon).
-The initContainer grep pattern handles this correctly from chart v2.0.0+.
-:::
 
 ### Phase 4 — yaci-Indexer Syncing
 
 ```bash
 kubectl logs -f deployment/rosetta-yaci-indexer -n cardano
+# Look for: Block No: XXXXXXX , Era: Babbage/Conway
 ```
+
+Occasional `Connection reset` + immediate reconnect in logs is normal — it's the socat
+TCP bridge timing out on idle and Yaci reconnecting in milliseconds.
 
 ### Phase 5 — Rosetta API
 
 ```bash
-# Port-forward (local)
+# Port-forward (local access)
 kubectl port-forward svc/rosetta-rosetta-api 8082:8082 -n cardano
 
 # Port-forward (remote machine access)
 kubectl port-forward --address 0.0.0.0 svc/rosetta-rosetta-api 8082:8082 -n cardano &
 
-# Check sync stage (use preprod or mainnet as appropriate)
+# Check sync stage
 curl -s -X POST http://localhost:8082/network/status \
   -H "Content-Type: application/json" \
   -d '{"network_identifier":{"blockchain":"cardano","network":"preprod"},"metadata":{}}' \
@@ -227,13 +274,29 @@ curl -s -X POST http://localhost:8082/network/status \
 
 Stages:
 - `SYNCING` — yaci-indexer still catching up
-- `APPLYING_INDEXES` — indexing done; building DB indexes (index-applier Job running)
+- `APPLYING_INDEXES` — indexer reached tip; index-applier Job should now be triggered
 - `LIVE` — fully operational
 
-### Phase 6 — Index Applier (background Job)
+### Phase 6 — Index Applier
+
+The index-applier Job is **not run automatically** (we use `--no-hooks`). Trigger it
+manually once the API reports `APPLYING_INDEXES`:
 
 ```bash
-kubectl get jobs -n cardano
+# Trigger index-applier by upgrading without --no-hooks
+export DB_PASSWORD=$(grep DB_PASSWORD .env.k8s | cut -d= -f2-)
+
+helm upgrade rosetta helm/cardano-rosetta-java \
+  -f helm/cardano-rosetta-java/values.yaml \
+  -f helm/cardano-rosetta-java/values-k3s.yaml \
+  --set global.network=mainnet \          # or preprod
+  --set global.protocolMagic=764824073 \  # or 1 for preprod
+  --set global.configHostPath=$(pwd)/config/node \
+  "--set=global.db.password=${DB_PASSWORD}" \
+  -n cardano
+  # NOTE: no --no-hooks this time
+
+# Monitor progress
 kubectl logs -f job/rosetta-index-applier -n cardano
 ```
 
@@ -245,7 +308,10 @@ kubectl logs -f job/rosetta-index-applier -n cardano
 # All pods Running or Completed
 kubectl get pods -n cardano
 
-# API stage
+# Resource usage
+kubectl top pods -n cardano
+
+# API live check
 curl -s -X POST http://localhost:8082/network/status \
   -H "Content-Type: application/json" \
   -d '{"network_identifier":{"blockchain":"cardano","network":"preprod"},"metadata":{}}' \
@@ -259,21 +325,20 @@ curl -s -X POST http://localhost:8082/network/status \
 
 ### View logs
 ```bash
-kubectl logs -f deployment/rosetta-rosetta-api -n cardano    # Rosetta API
-kubectl logs -f deployment/rosetta-yaci-indexer -n cardano   # yaci-indexer
-kubectl logs -f statefulset/rosetta-cardano-node -n cardano  # Cardano node
-kubectl logs -f statefulset/rosetta-postgresql -n cardano    # PostgreSQL
+kubectl logs -f deployment/rosetta-rosetta-api -n cardano             # Rosetta API
+kubectl logs -f deployment/rosetta-yaci-indexer -n cardano            # yaci-indexer
+kubectl logs -f statefulset/rosetta-cardano-node -c cardano-node -n cardano  # Cardano node
+kubectl logs -f statefulset/rosetta-postgresql -n cardano             # PostgreSQL
 ```
 
-### Port-forward all services
-
+### Port-forward services
 ```bash
 # Local access only
 kubectl port-forward svc/rosetta-rosetta-api 8082:8082 -n cardano &
 kubectl port-forward svc/rosetta-grafana     3000:3000 -n cardano &
 kubectl port-forward svc/rosetta-prometheus  9090:9090 -n cardano &
 
-# Remote access — bind to all interfaces (access by server IP from another machine)
+# Remote access — bind to all interfaces
 kubectl port-forward --address 0.0.0.0 svc/rosetta-rosetta-api 8082:8082 -n cardano &
 kubectl port-forward --address 0.0.0.0 svc/rosetta-grafana     3000:3000 -n cardano &
 kubectl port-forward --address 0.0.0.0 svc/rosetta-prometheus  9090:9090 -n cardano &
@@ -281,20 +346,17 @@ kubectl port-forward --address 0.0.0.0 svc/rosetta-prometheus  9090:9090 -n card
 
 ### Upgrade to a new release
 ```bash
+export DB_PASSWORD=$(grep DB_PASSWORD .env.k8s | cut -d= -f2-)
+
 helm upgrade rosetta helm/cardano-rosetta-java \
   -f helm/cardano-rosetta-java/values.yaml \
   -f helm/cardano-rosetta-java/values-k3s.yaml \
-  --set global.db.password="${DB_PASSWORD}" \
+  --set global.network=mainnet \
+  --set global.protocolMagic=764824073 \
+  --set global.configHostPath=$(pwd)/config/node \
+  "--set=global.db.password=${DB_PASSWORD}" \
   --set global.releaseVersion="2.1.0" \
-  -n cardano --no-hooks --wait --timeout 60m
-```
-
-> `--no-hooks` skips the index-applier hook. If a schema migration is needed after
-> upgrade, trigger the index-applier Job manually.
-
-### Scale API replicas
-```bash
-kubectl scale deployment rosetta-rosetta-api --replicas=2 -n cardano
+  -n cardano --no-hooks 2>&1 | grep -v "walk.go"
 ```
 
 ### Restart a component
@@ -304,10 +366,9 @@ kubectl rollout restart deployment/rosetta-yaci-indexer -n cardano
 kubectl rollout restart statefulset/rosetta-cardano-node -n cardano
 ```
 
-### Monitor index-applier Job
+### Scale API replicas
 ```bash
-kubectl get job rosetta-index-applier -n cardano
-kubectl logs -f job/rosetta-index-applier -n cardano
+kubectl scale deployment rosetta-rosetta-api --replicas=2 -n cardano
 ```
 
 ### Teardown (preserve blockchain data)
@@ -320,6 +381,7 @@ helm uninstall rosetta -n cardano --no-hooks
 ```bash
 helm uninstall rosetta -n cardano --no-hooks
 kubectl delete pvc --all -n cardano
+kubectl delete job rosetta-mithril -n cardano --ignore-not-found
 ```
 
 ---
@@ -329,32 +391,57 @@ kubectl delete pvc --all -n cardano
 - [ ] **Rotate DB password** — never use the default. Use `openssl rand -base64 32`.
 - [ ] **Restrict API access** — use a LoadBalancer security group or Ingress with allowlisted IPs.
 - [ ] **Disable debug endpoints** — ensure `PRINT_EXCEPTION=false` in production.
-- [ ] **Mithril keys** — set `global.mithril.genesisVerificationKey` and `ancillaryVerificationKey` for mainnet verification.
 - [ ] **Secrets management** — use Sealed Secrets or Vault instead of `--set global.db.password`.
 - [ ] **Network Policy** — restrict pod-to-pod traffic.
 - [ ] **Token Registry** — review `rosetta-api.env.tokenRegistryEnabled`; requires outbound internet.
 
-### Example NetworkPolicy (restrict API ingress)
+---
 
-```yaml
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: allow-rosetta-api-ingress
-  namespace: cardano
-spec:
-  podSelector:
-    matchLabels:
-      component: rosetta-api
-  policyTypes:
-    - Ingress
-  ingress:
-    - from:
-        - ipBlock:
-            cidr: 10.0.0.0/8   # internal only
-      ports:
-        - port: 8082
-```
+## Troubleshooting
+
+| Symptom | Likely Cause | Resolution |
+|---------|-------------|------------|
+| `Error: cannot patch ... Job is invalid: spec.template: field is immutable` | Stale Mithril Job from previous install | `kubectl delete job rosetta-mithril -n cardano` then redeploy |
+| `Error: configHostPath is required` | `global.configHostPath` not set | Add `--set global.configHostPath=$(pwd)/config/node` |
+| `cardano-node` stuck in `Init:0/1` | Mithril Job not succeeded yet | `kubectl logs -f job/rosetta-mithril -n cardano` |
+| `postgresql` stuck in `Init:0/1` | Node not fully synced | Check cardano-node logs for sync progress |
+| `rosetta-api` stuck with `FailedMount` | `configHostPath` directory missing on host | Verify `$(pwd)/config/node/<network>/` exists on the server |
+| Mithril: `signature error: Verification equation was not satisfied` | Empty verification key passed as env var | Upgrade chart ≥ 2.0.0 — keys are now auto-fetched by entrypoint |
+| `yaci-indexer` CrashLoopBackOff (HikariCP timeout) | DB connection pool exhausted | Increase `hikariMaxPoolSize` in values (default 40) |
+| `yaci-indexer` two pods simultaneously | Normal rolling update behaviour | Wait — old pod terminates once new one is ready |
+| `helm upgrade` fails on Job immutability | Mithril Job already exists | `kubectl delete job rosetta-mithril -n cardano` |
+| Template changes not applied after `helm upgrade` | Subchart `.tgz` used instead of edited source | `helm package charts/<subchart> -d charts/` to repackage |
+| OOMKilled | Insufficient memory | Use a higher profile (`mid` or `advanced`) |
+| PVC `Pending` | No suitable StorageClass | `kubectl get sc`; ensure `local-path` provisioner is running |
+| `ImagePullBackOff` | Wrong image tag | Check `global.releaseVersion` in values |
+| Port-forward not reachable from remote | Bound to 127.0.0.1 | Add `--address 0.0.0.0` to `kubectl port-forward` |
+| cardano-node restart loop after reboot | Startup probe too short for ImmutableDB validation | `startupProbe.failureThreshold: 720` (3 hours); force-delete pod if StatefulSet update is blocked |
+| pg-exporter `0/1` not ready | Missing `pg_monitor` role | `kubectl exec rosetta-postgresql-0 -n cardano -- psql -U postgres -c "GRANT pg_monitor TO rosetta_db_admin;"` |
+
+---
+
+## Resource Usage
+
+### Preprod — entry profile
+
+| Component | CPU req/limit | RAM req/limit | Storage |
+|-----------|-------------|--------------|---------|
+| cardano-node + sidecars | 1 / 2 CPU | 4 / 8 Gi | 100 Gi |
+| postgresql | 1 / 2 CPU | 2 / 6 Gi | 50 Gi |
+| yaci-indexer | 500m / 1 CPU | 1 / 2 Gi | — |
+| rosetta-api | 250m / 1 CPU | 512Mi / 1 Gi | — |
+| monitoring | 350m / 1.7 CPU | 832Mi / 2.5 Gi | 12 Gi |
+
+### Mainnet — mid profile
+
+| Component | CPU req/limit | RAM req/limit | Storage |
+|-----------|-------------|--------------|---------|
+| cardano-node + sidecars | 2 / 8 CPU | 12 / 24 Gi | 500 Gi |
+| postgresql | 2 / 8 CPU | 16 / 32 Gi | 200 Gi |
+| yaci-indexer | 1 / 4 CPU | 4 / 8 Gi | — |
+| rosetta-api | 500m / 2 CPU | 2 / 4 Gi | — |
+| monitoring | 350m / 1.7 CPU | 832Mi / 2.5 Gi | 60 Gi |
+| **Total** | **~6 / 24 CPU** | **~35 / 70 Gi** | **760 Gi** |
 
 ---
 
@@ -413,57 +500,13 @@ kubectl delete job rosetta-mithril -n cardano --ignore-not-found
 kubectl delete pvc rosetta-cardano-node-data -n cardano
 
 # 2. Re-deploy (triggers fresh Mithril download)
+export DB_PASSWORD=$(grep DB_PASSWORD .env.k8s | cut -d= -f2-)
 helm upgrade rosetta helm/cardano-rosetta-java \
-  --reuse-values --set global.db.password="${DB_PASSWORD}" \
-  -n cardano --wait --timeout 60m
+  -f helm/cardano-rosetta-java/values.yaml \
+  -f helm/cardano-rosetta-java/values-k3s.yaml \
+  --set global.network=mainnet \
+  --set global.protocolMagic=764824073 \
+  --set global.configHostPath=$(pwd)/config/node \
+  "--set=global.db.password=${DB_PASSWORD}" \
+  -n cardano --no-hooks 2>&1 | grep -v "walk.go"
 ```
-
----
-
-## Troubleshooting
-
-| Symptom | Likely Cause | Resolution |
-|---------|-------------|------------|
-| `Error: rendered manifests contain a resource that already exists` | `--create-namespace` conflicts with chart's `templates/namespace.yaml` | Remove `--create-namespace`; pre-create namespace with Helm labels (Step 2) |
-| `Error: configHostPath is required` | `global.configHostPath` not set | Add `global.configHostPath: /path/to/config/node` in your environment values file |
-| Config file changes not visible in pod | `configHostPath` not set; using ConfigMap | Ensure `global.configHostPath` is set; hostPath mounts reflect host changes immediately |
-| Mithril Job fails | Network issue or invalid aggregator URL | `kubectl logs job/rosetta-mithril -n cardano`; delete job and redeploy |
-| `cardano-node` stuck in `Init:0/1` | Mithril still running | Wait; monitor Phase 1 |
-| `postgresql` stuck in `Init:0/1` | Node not fully synced | Check cardano-node logs for sync progress |
-| `postgresql` stuck at "0% sync progress" | grep space mismatch in chart < 2.0.0 | Upgrade chart; `cardano-cli query tip` returns `"syncProgress": "100.00"` (space after colon) |
-| `yaci-indexer` CrashLoopBackOff | DB connection issue | `kubectl get secret rosetta-db-secret -n cardano -o jsonpath='{.data.db-secret}' \| base64 -d` |
-| API returns 503 | yaci-indexer not ready | `kubectl get pods -n cardano`; wait for indexer |
-| `helm upgrade` times out and rolls back | `--wait-for-jobs` blocking on index-applier | Use `--no-hooks` instead |
-| Helm release stuck in `failed` state | Previous atomic rollback left orphaned state | `helm uninstall rosetta -n cardano --no-hooks` then redeploy |
-| Template changes not applied after `helm upgrade` | Subchart `.tgz` used instead of source directory | `helm package charts/<subchart> -d charts/` to repackage edited subchart |
-| OOMKilled | Insufficient memory | Use a higher profile (`mid` or `advanced`) |
-| PVC `Pending` | No suitable StorageClass | `kubectl get sc`; ensure `local-path` provisioner is running |
-| `ImagePullBackOff` | Wrong image tag | Check `global.releaseVersion` in values |
-| Port-forward not reachable from remote | Bound to 127.0.0.1 | Add `--address 0.0.0.0` to `kubectl port-forward` |
-| Prometheus node-exporter target DOWN | Missing Service for DaemonSet | Upgrade chart ≥ 2.0.0 |
-| Grafana dashboard "No data" on node metrics | `hideSeriesFrom` overrides with Docker labels | Chart uses `rosetta-dashboards-k8s.json`; ensure it's the provisioned file |
-
----
-
-## Resource Usage
-
-### Preprod — entry profile
-
-| Component | CPU req/limit | RAM req/limit | Storage |
-|-----------|-------------|--------------|---------|
-| cardano-node + sidecars | 1 / 4 CPU | 6 / 12 Gi | 100 Gi |
-| postgresql | 1 / 4 CPU | 6 / 12 Gi | 50 Gi |
-| yaci-indexer | 500m / 2 CPU | 2 / 4 Gi | — |
-| rosetta-api | 250m / 1 CPU | 1 / 2 Gi | — |
-| monitoring | 350m / 1.7 CPU | 832Mi / 2.5 Gi | 12 Gi |
-
-### Mainnet — mid profile
-
-| Component | CPU req/limit | RAM req/limit | Storage |
-|-----------|-------------|--------------|---------|
-| cardano-node + sidecars | 2 / 8 CPU | 12 / 24 Gi | 500 Gi |
-| postgresql | 2 / 8 CPU | 12 / 24 Gi | 200 Gi |
-| yaci-indexer | 1 / 4 CPU | 4 / 8 Gi | — |
-| rosetta-api | 500m / 2 CPU | 2 / 4 Gi | — |
-| monitoring | 350m / 1.7 CPU | 832Mi / 2.5 Gi | 60 Gi |
-| **Total** | **~6 / 24 CPU** | **~31 / 63 Gi** | **760 Gi** |
