@@ -1,8 +1,8 @@
-# Deployment Runbook
-
-This runbook covers deploying and operating **Cardano Rosetta Java** on Kubernetes
-(K3s single-host or managed cluster) for both **preprod** and **mainnet**.
-
+---
+sidebar_position: 2
+title: Deployment Runbook
+description: This runbook covers deploying and operating **Cardano Rosetta Java** on Kubernetes (K3s single-host or managed cluster) for both **preprod** and **mainnet**.
+---
 ---
 
 ## Network Quick Reference

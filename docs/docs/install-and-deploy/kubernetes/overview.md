@@ -10,17 +10,6 @@ Cardano Rosetta Java ships official [Helm charts](https://helm.sh/) for Kubernet
 deployment. The charts support a **K3s single-host baseline** (for local testing and
 small production deployments) and any **managed Kubernetes cluster** (EKS, GKE, AKS).
 
-## When to Use Kubernetes Instead of Docker Compose
-
-| Requirement | Docker Compose | Kubernetes (Helm) |
-|---|---|---|
-| Local development / quick start | ✅ Recommended | Possible via K3s |
-| Single-host production | Possible | ✅ K3s |
-| Multi-node / HA production | Not supported | ✅ Managed K8s |
-| Resource isolation & limits | No | ✅ Pod resource profiles |
-| Rolling upgrades with zero downtime | No | ✅ Deployment strategy |
-| Observability (Prometheus + Grafana) | Manual | ✅ Included subchart |
-
 ## Architecture
 
 The deployment consists of **5 Helm subcharts** plus orchestration resources in the
@@ -97,7 +86,7 @@ See [Helm Values Reference](./helm-values) for per-component breakdown.
 ### Software
 - **Helm** v3.14+ (`helm version`)
 - **kubectl** configured for your cluster
-- **k3s** v1.28+ (for single-host deployments, installed automatically by the setup script)
+- **K3s** v1.28+ or any managed Kubernetes cluster (EKS, GKE, AKS)
 
 ### Access
 - A `DB_PASSWORD` for PostgreSQL (min 16 characters recommended for production)
