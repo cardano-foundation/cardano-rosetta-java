@@ -40,25 +40,26 @@ Docker Compose `depends_on` chains are replaced by Kubernetes init containers:
 ```
 Mithril Job ──────────────────────────────► (one-shot snapshot download)
   cardano-node (wait-for-mithril initContainer polls K8s API)
-    postgresql (wait-for-node-sync initContainer: cardano-cli query tip ≥ 99%)
+    postgresql (wait-for-node-sync initContainer: /sbin/wait-for-node-sync.sh ≥ 100%)
       yaci-indexer (wait-for-postgres: pg_isready)
         rosetta-api (wait-for-postgres + wait-for-indexer: /actuator/health)
-
-index-applier Job ────────────────────────► (Helm post-install hook, runs in background)
+          index-applier Job ──────────────► (plain Job, runs automatically with the release)
 ```
 
 The `cardano-node` pod runs **three containers**: the node itself, a `socat` sidecar
 (bridges the UNIX socket to TCP port 3002), and `cardano-submit-api` — so `READY` shows
 `3/3` when fully up.
 
-The `index-applier` is a Helm **post-install hook** that runs as a separate Kubernetes
-Job after all main pods are ready. It waits for the API to reach `APPLYING_INDEXES` stage
-and then builds optimised database indexes. This Job can take **6–18 hours** on mainnet.
+The `index-applier` is a plain Kubernetes Job that runs automatically with the release
+(default `indexApplier.mode: automatic`). It waits for the Rosetta API to become
+responsive, then builds optimised database indexes. This Job can take **6–18 hours** on
+mainnet. It is cleaned up automatically after 24 hours via `ttlSecondsAfterFinished`.
 
-:::important
-Use `--no-hooks` in your `helm upgrade --install` command. The `index-applier` hook is a
-long-running Job (up to 18 h on mainnet). Without `--no-hooks`, Helm blocks on the hook
-and times out. Never use `--wait-for-jobs`. Monitor the index-applier Job independently.
+:::note
+The `index-applier` runs as a plain Job by default — no `--no-hooks` flag is needed.
+Operators who prefer explicit, operator-triggered index building can switch to legacy hook
+mode with `--set indexApplier.mode=hook`. In hook mode, monitor the Job independently and
+never use `--wait-for-jobs`.
 :::
 
 **Three sync stages**

@@ -17,9 +17,9 @@ These values are shared across all subcharts via `global.*`.
 |-------|---------|--------------------------|-------------|
 | `global.namespace` | `cardano` | — | Kubernetes namespace |
 | `global.network` | `mainnet` | `NETWORK` | Blockchain network: `mainnet`, `preprod`, `preview` |
-| `global.protocolMagic` | `764824073` | `PROTOCOL_MAGIC` | Cardano protocol magic number |
-| `global.releaseVersion` | `2.0.0` | `RELEASE_VERSION` | Docker image tag for API and indexer |
-| `global.cardanoNodeVersion` | `10.5.3` | `CARDANO_NODE_VERSION` | Cardano node image tag |
+| `global.protocolMagic` | `"764824073"` | `PROTOCOL_MAGIC` | Cardano protocol magic number (always a quoted string to prevent scientific notation) |
+| `global.releaseVersion` | `"2.1.0"` | `RELEASE_VERSION` | Docker image tag for API and indexer |
+| `global.cardanoNodeVersion` | `"10.5.4"` | `CARDANO_NODE_VERSION` | Cardano node image tag |
 | `global.pgVersionTag` | `REL_18_0` | `PG_VERSION_TAG` | PostgreSQL image tag |
 | `global.mithrilVersion` | `2543.1-hotfix` | `MITHRIL_VERSION` | Mithril client image tag |
 | `global.profile` | `mid` | — | Hardware profile: `entry`, `mid`, `advanced` |
@@ -96,10 +96,10 @@ Set `global.profile` to one of: `entry`, `mid`, `advanced`.
 | `yaci-indexer.env.removeSpentUtxosLastBlocksGraceCount` | `129600` | `REMOVE_SPENT_UTXOS_LAST_BLOCKS_GRACE_COUNT` | Blocks to retain (~30 days) |
 | `yaci-indexer.env.removeSpentUtxosBatchSize` | `3000` | `REMOVE_SPENT_UTXOS_BATCH_SIZE` | Pruning batch size |
 | `yaci-indexer.env.blockTransactionApiTimeoutSecs` | `120` | `BLOCK_TRANSACTION_API_TIMEOUT_SECS` | Timeout for block/tx API calls |
-| `yaci-indexer.env.searchLimit` | `5000` | `SEARCH_LIMIT` | Maximum search results |
+| `yaci-indexer.env.searchLimit` | `100` | `SEARCH_LIMIT` | Maximum search results |
 | `yaci-indexer.env.continueParsingOnError` | `true` | `CONTINUE_PARSING_ON_ERROR` | Continue syncing on parse errors |
 | `yaci-indexer.env.peerDiscovery` | `false` | `PEER_DISCOVERY` | Enable peer discovery |
-| `yaci-indexer.env.logLevel` | `info` | `LOG` | Log level: `info`, `debug`, `error` |
+| `yaci-indexer.env.logLevel` | `error` | `LOG` | Log level: `error`, `info`, `debug` |
 
 ---
 
@@ -134,6 +134,22 @@ rosetta-api:
         hosts:
           - rosetta.example.com
 ```
+
+---
+
+## Index Applier
+
+| Value | Default | Description |
+|-------|---------|-------------|
+| `indexApplier.enabled` | `true` | Deploy the index-applier Job |
+| `indexApplier.mode` | `automatic` | `automatic`: plain Job (GitOps-friendly, no hooks). `hook`: legacy Helm post-install/post-upgrade hook. |
+| `indexApplier.pollInterval` | `60` | Seconds between API readiness polls |
+
+In `automatic` mode the Job runs as part of the release (compatible with ArgoCD and `--no-hooks`). The Job is
+cleaned up 24 hours after completion via `ttlSecondsAfterFinished`.
+
+In `hook` mode the Job is a Helm post-install/post-upgrade hook. Monitor it independently and never use
+`--wait-for-jobs` as it can run for up to 18 hours on mainnet.
 
 ---
 
@@ -181,7 +197,7 @@ helm upgrade --install rosetta helm/cardano-rosetta-java \
 # values-preprod.yaml (already included in the chart)
 global:
   network: preprod
-  protocolMagic: 1
+  protocolMagic: "1"
   profile: entry
   storage:
     cardanoNode:
