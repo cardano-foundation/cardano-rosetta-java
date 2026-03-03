@@ -7,13 +7,19 @@ metadata:
   labels:
     {{- include "cardano-rosetta-java.commonLabels" . | nindent 4 }}
     component: index-applier
+  {{- if eq (default "automatic" .Values.indexApplier.mode) "hook" }}
   annotations:
     helm.sh/hook: post-install,post-upgrade
     helm.sh/hook-weight: "10"
     helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+  {{- end }}
 spec:
   backoffLimit: 5
   activeDeadlineSeconds: 86400
+  {{- if ne (default "automatic" .Values.indexApplier.mode) "hook" }}
+  # Auto-cleanup after 24h so future helm upgrades can recreate the Job without conflicts.
+  ttlSecondsAfterFinished: 86400
+  {{- end }}
   template:
     metadata:
       labels:

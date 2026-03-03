@@ -28,21 +28,12 @@ spec:
             - sh
             - -c
             - |
-              SYNC="{{ .Values.global.sync | toString }}"
-              NETWORK="{{ .Values.global.network }}"
               NODE_SERVICE="{{ printf "%s-cardano-node" .Release.Name }}"
               NODE_SOCAT_PORT="3002"
-              PROTOCOL_MAGIC="{{ .Values.global.protocolMagic }}"
 
               if [ "${SYNC}" != "true" ]; then
                 echo "SYNC=false, skipping node sync wait"
                 exit 0
-              fi
-
-              if [ "$NETWORK" = "mainnet" ]; then
-                NETWORK_ARG="--mainnet"
-              else
-                NETWORK_ARG="--testnet-magic ${PROTOCOL_MAGIC}"
               fi
 
               echo "Waiting for cardano-node TCP endpoint at ${NODE_SERVICE}:${NODE_SOCAT_PORT}..."
@@ -58,8 +49,7 @@ spec:
                 apt-get update -qq && apt-get install -y -qq socat >/dev/null 2>&1
               fi
 
-              # Create reverse socat: TCP -> UNIX
-              # This allows cardano-cli to use CARDANO_NODE_SOCKET_PATH
+              # Create reverse socat: TCP -> UNIX socket so cardano-cli can use CARDANO_NODE_SOCKET_PATH
               socat UNIX-LISTEN:/tmp/node.socket,reuseaddr,fork \
                 "TCP:${NODE_SERVICE}:${NODE_SOCAT_PORT}" &
               SOCAT_PID=$!
@@ -68,34 +58,29 @@ spec:
               sleep 5
               export CARDANO_NODE_SOCKET_PATH=/tmp/node.socket
 
-              echo "Starting sync progress monitoring..."
-              PREV_PROGRESS=""
-              while true; do
-                QUERY_RESULT=$(cardano-cli query tip ${NETWORK_ARG} 2>/dev/null || echo '{"syncProgress":"0"}')
-                SYNC_PROGRESS=$(echo "$QUERY_RESULT" | grep -o '"syncProgress": *"[^"]*"' | grep -o '[0-9.]*' || echo "0")
+              # Delegate to the canonical sync-wait script from the node image
+              /sbin/wait-for-node-sync.sh
 
-                if [ -z "$SYNC_PROGRESS" ]; then
-                  SYNC_PROGRESS="0"
-                fi
-
-                if [ "$SYNC_PROGRESS" != "$PREV_PROGRESS" ]; then
-                  echo "Node sync progress: ${SYNC_PROGRESS}%"
-                  PREV_PROGRESS="$SYNC_PROGRESS"
-                fi
-
-                # Check if sync is complete (>= 99.9 to account for floating point)
-                SYNC_INT=$(echo "$SYNC_PROGRESS" | cut -d. -f1)
-                if [ "${SYNC_INT:-0}" -ge 99 ]; then
-                  echo "Node is fully synced (${SYNC_PROGRESS}%), proceeding with PostgreSQL startup"
-                  kill $SOCAT_PID 2>/dev/null || true
-                  exit 0
-                fi
-
-                sleep 30
-              done
+              kill $SOCAT_PID 2>/dev/null || true
           env:
             - name: LD_LIBRARY_PATH
               value: /usr/local/lib
+            - name: SYNC
+              value: {{ .Values.global.sync | toString | quote }}
+            - name: NETWORK
+              value: {{ .Values.global.network | quote }}
+            - name: PROTOCOL_MAGIC
+              value: {{ .Values.global.protocolMagic | toString | quote }}
+            - name: GENESIS_SHELLEY_PATH
+              value: /config/shelley-genesis.json
+            - name: GENESIS_BYRON_PATH
+              value: /config/byron-genesis.json
+          {{- if .Values.global.sync }}
+          volumeMounts:
+            - name: node-config
+              mountPath: /config
+              readOnly: true
+          {{- end }}
 
       containers:
         - name: postgresql
@@ -205,3 +190,10 @@ spec:
           emptyDir:
             medium: Memory
             sizeLimit: 4Gi
+        {{- if .Values.global.sync }}
+        # Genesis config files needed by wait-for-node-sync.sh
+        - name: node-config
+          hostPath:
+            path: {{ printf "%s/%s" (required "global.configHostPath is required" .Values.global.configHostPath) .Values.global.network }}
+            type: Directory
+        {{- end }}

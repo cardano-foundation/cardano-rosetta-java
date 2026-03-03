@@ -3,7 +3,7 @@
 ## -----------------------------------------------------------------------
 global:
   network: preprod
-  protocolMagic: 1
+  protocolMagic: "1"
   profile: entry
   storage:
     cardanoNode:
@@ -22,3 +22,5 @@ rosetta-api:
   env:
     removeSpentUtxos: false
     syncGraceSlotsCount: 100
+    tokenRegistryLogoFetch: true       # DC preprod: TOKEN_REGISTRY_LOGO_FETCH=true
+    tokenRegistryCacheTtlHours: 1      # DC preprod: TOKEN_REGISTRY_CACHE_TTL_HOURS=1

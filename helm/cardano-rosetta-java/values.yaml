@@ -4,9 +4,9 @@
 global:
   namespace: cardano
   network: mainnet
-  protocolMagic: 764824073
-  releaseVersion: "2.0.0"
-  cardanoNodeVersion: "10.5.3"
+  protocolMagic: "764824073"
+  releaseVersion: "2.1.0"
+  cardanoNodeVersion: "10.5.4"
   pgVersionTag: "REL_18_0"
   mithrilVersion: "2543.1-hotfix"
   profile: mid
@@ -226,10 +226,15 @@ global:
     ancillaryVerificationKey: ""
 
 ## -----------------------------------------------------------------------
-## Index applier job (post-install hook)
+## Index applier job
 ## -----------------------------------------------------------------------
 indexApplier:
   enabled: true
+  # "automatic" (default): plain Job — runs with the release without needing helm hooks.
+  #   Compatible with GitOps/ArgoCD (no --no-hooks needed).
+  #   The job is auto-cleaned after 24h via ttlSecondsAfterFinished.
+  # "hook": legacy helm post-install/post-upgrade hook (use for operator-controlled rollouts).
+  mode: automatic
   pollInterval: 60
 
 ## -----------------------------------------------------------------------
