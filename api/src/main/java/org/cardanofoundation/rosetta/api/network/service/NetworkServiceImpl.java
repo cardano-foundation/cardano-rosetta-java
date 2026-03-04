@@ -8,6 +8,7 @@ import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.cardanofoundation.rosetta.api.call.service.CallService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
@@ -42,6 +43,7 @@ public class NetworkServiceImpl implements NetworkService {
   private final ResourceLoader resourceLoader;
   private final GenesisDataProvider genesisDataProvider;
   private final SyncStatusService syncStatusService;
+  private final CallService callService;
 
   @Value("${cardano.rosetta.GENESIS_SHELLEY_PATH}")
   private String genesisShelleyPath;
@@ -81,28 +83,26 @@ public class NetworkServiceImpl implements NetworkService {
     List<OperationStatus> operationStatuses = List.of(success, invalid);
 
     return NetworkOptionsResponse.builder()
-            .version(new Version().nodeVersion(cardanoNodeVersion)
-                    .rosettaVersion(rosettaVersion)
-                    .middlewareVersion(revision)
-                    .metadata(new LinkedHashMap<>()))
-            .allow(new Allow().operationStatuses(operationStatuses)
-                    .operationTypes(
-                            Arrays.stream(OperationType.values()).map(OperationType::getValue).toList())
-                    .errors(RosettaConstants.ALL_ROSETTA_ERRORS.stream()
-                            .map(error ->
-                                    new Error()
-                                            .code(error.getCode())
-                                            .message(error.getMessage())
-                                            .retriable(error.isRetriable())
-                                            .description(error.getDescription())
-                                            .details(error.getDetails())
-                            )
-                            .sorted(Comparator.comparingInt(Error::getCode))
-                            .toList())
-                    .historicalBalanceLookup(true)
-                    .callMethods(new ArrayList<>())
-                    .mempoolCoins(false))
-            .build();
+        .version(new Version().nodeVersion(cardanoNodeVersion)
+            .rosettaVersion(rosettaVersion)
+            .middlewareVersion(revision)
+            .metadata(new LinkedHashMap<>()))
+        .allow(new Allow().operationStatuses(operationStatuses)
+            .operationTypes(
+                Arrays.stream(OperationType.values()).map(OperationType::getValue).toList())
+            .errors(RosettaConstants.ALL_ROSETTA_ERRORS.stream()
+                .map(error -> new Error()
+                    .code(error.getCode())
+                    .message(error.getMessage())
+                    .retriable(error.isRetriable())
+                    .description(error.getDescription())
+                    .details(error.getDetails()))
+                .sorted(Comparator.comparingInt(Error::getCode))
+                .toList())
+            .historicalBalanceLookup(true)
+            .callMethods(callService.getSupportedMethods())
+            .mempoolCoins(false))
+        .build();
   }
 
   private String getRosettaVersion() {

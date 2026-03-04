@@ -53,4 +53,22 @@ class DeriveApiTest extends IntegrationTest {
 
   }
 
+  @Test
+  void deriveAddressTestWithCustomAddressType() throws IOException {
+    ConstructionDeriveRequest deriveRequest = getDeriveRequest(
+        "testdata/construction/derive/derive_request.json");
+
+    // Test Invalid address type
+    deriveRequest.getMetadata().setAddressType("InvalidType");
+    ApiException exception = assertThrows(ApiException.class,
+        () -> constructionApiService.constructionDeriveService(deriveRequest));
+    assertEquals(5032, exception.getError().getCode());
+    assertEquals("Invalid Address Type", exception.getError().getMessage());
+
+    // Test Empty address type defaults to Enterprise
+    deriveRequest.getMetadata().setAddressType("");
+    ConstructionDeriveResponse response = constructionApiService.constructionDeriveService(deriveRequest);
+    String expectedAddress = "addr_test1vza5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7c6mzywr";
+    assertEquals(expectedAddress, response.getAccountIdentifier().getAddress());
+  }
 }
