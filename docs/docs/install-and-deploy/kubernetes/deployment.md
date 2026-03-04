@@ -36,7 +36,7 @@ description: This runbook covers deploying and operating **Cardano Rosetta Java*
 - `kubectl` >= 1.28
 - `helm` >= 3.12
 - `jq` (for status checks)
-- K3s (auto-installed by setup script) or a managed K8s cluster (EKS, GKE, AKS)
+- K3s or a managed K8s cluster (EKS, GKE, AKS)
 
 ### Network
 - Outbound TCP 3001 — cardano-node peer-to-peer (N2N)
@@ -47,32 +47,7 @@ description: This runbook covers deploying and operating **Cardano Rosetta Java*
 
 ## Deployment
 
-### Option A — Automated (recommended for K3s)
-
-Use the setup script. It handles namespace creation, lint, and deploy automatically:
-
-```bash
-git clone https://github.com/cardano-foundation/cardano-rosetta-java.git
-cd cardano-rosetta-java
-
-# Save password (needed for all future upgrades)
-export DB_PASSWORD="$(openssl rand -base64 32)"
-echo "DB_PASSWORD=${DB_PASSWORD}" > .env.k8s
-chmod 600 .env.k8s
-
-# Deploy preprod
-DB_PASSWORD="${DB_PASSWORD}" ./scripts/k3s-setup.sh preprod
-
-# Deploy mainnet
-DB_PASSWORD="${DB_PASSWORD}" ./scripts/k3s-setup.sh mainnet
-```
-
-The script auto-detects `configHostPath` from the current directory (`$(pwd)/config/node`)
-so it works on any server regardless of the repo checkout path.
-
----
-
-### Option B — Manual step-by-step
+### Deployment steps
 
 #### Step 1 — Clone and configure
 
@@ -104,34 +79,14 @@ kubectl annotate namespace cardano \
 
 > On re-deploy (namespace already exists), skip this step.
 
-#### Step 3 — Package subcharts
+#### Step 3 — Deploy
 
-Subcharts are pre-packaged as `.tgz` files in `charts/`. After editing any subchart
-template, repackage it before deploying:
-
-```bash
-# Repackage a single subchart after editing its templates
-helm package helm/cardano-rosetta-java/charts/yaci-indexer \
-  -d helm/cardano-rosetta-java/charts/
-
-# Repackage all subcharts at once
-for d in helm/cardano-rosetta-java/charts/*/; do
-  helm package "$d" -d helm/cardano-rosetta-java/charts/
-done
-```
-
-> Helm uses the `.tgz` file when both source directory and tarball exist. Always repackage
-> after template edits, otherwise changes will not be applied.
-
-#### Step 4 — Deploy
-
-> **Always use `--no-hooks`**. The `index-applier` post-install hook waits for the
-> indexer to reach chain tip before applying DB indexes — this takes hours. Using
-> `--no-hooks` lets Helm return immediately. Trigger the index-applier manually
-> after the indexer syncs (see [Phase 6](#phase-6--index-applier)).
->
 > **Never use `--wait` or `--wait-for-jobs`** — the deployment takes hours (Mithril
 > download + node sync + indexer sync). Helm would time out and roll back.
+
+The `index-applier` Job runs automatically as part of the release (default
+`indexApplier.mode: automatic`). It waits for the Rosetta API to become ready, then
+builds DB indexes in the background. No second `helm upgrade` is needed.
 
 **Preprod (K3s, entry profile):**
 ```bash
@@ -143,12 +98,11 @@ helm upgrade --install rosetta helm/cardano-rosetta-java \
   -f helm/cardano-rosetta-java/values-preprod.yaml \
   -f helm/cardano-rosetta-java/values-k3s.yaml \
   --set global.network=preprod \
-  --set global.protocolMagic=1 \
+  "--set=global.protocolMagic=1" \
   --set global.profile=entry \
   --set global.configHostPath=$(pwd)/config/node \
   "--set=global.db.password=${DB_PASSWORD}" \
-  -n cardano \
-  --no-hooks 2>&1 | grep -v "walk.go"
+  -n cardano 2>&1 | grep -v "walk.go"
 ```
 
 **Mainnet (K3s, mid profile):**
@@ -160,12 +114,11 @@ helm upgrade --install rosetta helm/cardano-rosetta-java \
   -f helm/cardano-rosetta-java/values.yaml \
   -f helm/cardano-rosetta-java/values-k3s.yaml \
   --set global.network=mainnet \
-  --set global.protocolMagic=764824073 \
+  "--set=global.protocolMagic=764824073" \
   --set global.profile=mid \
   --set global.configHostPath=$(pwd)/config/node \
   "--set=global.db.password=${DB_PASSWORD}" \
-  -n cardano \
-  --no-hooks 2>&1 | grep -v "walk.go"
+  -n cardano 2>&1 | grep -v "walk.go"
 ```
 
 **Managed Kubernetes (EKS / GKE / AKS):**
@@ -173,14 +126,13 @@ helm upgrade --install rosetta helm/cardano-rosetta-java \
 helm upgrade --install rosetta helm/cardano-rosetta-java \
   -f helm/cardano-rosetta-java/values.yaml \
   --set global.network=mainnet \
-  --set global.protocolMagic=764824073 \
+  "--set=global.protocolMagic=764824073" \
   --set global.profile=mid \
   "--set=global.db.password=${DB_PASSWORD}" \
   --set global.configHostPath="$(pwd)/config/node" \
   --set global.storage.cardanoNode.storageClass="gp3" \
   --set global.storage.postgresql.storageClass="gp3" \
-  -n cardano \
-  --no-hooks 2>&1 | grep -v "walk.go"
+  -n cardano 2>&1 | grep -v "walk.go"
 ```
 
 > For managed K8s, ensure the config directory exists on every node that may run
@@ -279,26 +231,21 @@ Stages:
 
 ### Phase 6 — Index Applier
 
-The index-applier Job is **not run automatically** (we use `--no-hooks`). Trigger it
-manually once the API reports `APPLYING_INDEXES`:
+The index-applier Job is deployed automatically as part of the release
+(`indexApplier.mode: automatic` default). It waits for the Rosetta API to respond, then
+builds optimised database indexes. This Job takes **1–2 hours on preprod** and **~6 hours
+on mainnet**. The Job is auto-cleaned up 24 hours after completion.
 
 ```bash
-# Trigger index-applier by upgrading without --no-hooks
-export DB_PASSWORD=$(grep DB_PASSWORD .env.k8s | cut -d= -f2-)
-
-helm upgrade rosetta helm/cardano-rosetta-java \
-  -f helm/cardano-rosetta-java/values.yaml \
-  -f helm/cardano-rosetta-java/values-k3s.yaml \
-  --set global.network=mainnet \          # or preprod
-  --set global.protocolMagic=764824073 \  # or 1 for preprod
-  --set global.configHostPath=$(pwd)/config/node \
-  "--set=global.db.password=${DB_PASSWORD}" \
-  -n cardano
-  # NOTE: no --no-hooks this time
-
 # Monitor progress
 kubectl logs -f job/rosetta-index-applier -n cardano
 ```
+
+:::note
+Operators who prefer explicit, operator-triggered indexing can use `indexApplier.mode: hook`
+and trigger with a standard `helm upgrade` (without additional flags). See
+[Helm Values Reference](./helm-values#index-applier) for details.
+:::
 
 ---
 
@@ -352,11 +299,11 @@ helm upgrade rosetta helm/cardano-rosetta-java \
   -f helm/cardano-rosetta-java/values.yaml \
   -f helm/cardano-rosetta-java/values-k3s.yaml \
   --set global.network=mainnet \
-  --set global.protocolMagic=764824073 \
+  "--set=global.protocolMagic=764824073" \
   --set global.configHostPath=$(pwd)/config/node \
   "--set=global.db.password=${DB_PASSWORD}" \
   --set global.releaseVersion="2.1.0" \
-  -n cardano --no-hooks 2>&1 | grep -v "walk.go"
+  -n cardano 2>&1 | grep -v "walk.go"
 ```
 
 ### Restart a component
@@ -410,7 +357,6 @@ kubectl delete job rosetta-mithril -n cardano --ignore-not-found
 | `yaci-indexer` CrashLoopBackOff (HikariCP timeout) | DB connection pool exhausted | Increase `hikariMaxPoolSize` in values (default 40) |
 | `yaci-indexer` two pods simultaneously | Normal rolling update behaviour | Wait — old pod terminates once new one is ready |
 | `helm upgrade` fails on Job immutability | Mithril Job already exists | `kubectl delete job rosetta-mithril -n cardano` |
-| Template changes not applied after `helm upgrade` | Subchart `.tgz` used instead of edited source | `helm package charts/<subchart> -d charts/` to repackage |
 | OOMKilled | Insufficient memory | Use a higher profile (`mid` or `advanced`) |
 | PVC `Pending` | No suitable StorageClass | `kubectl get sc`; ensure `local-path` provisioner is running |
 | `ImagePullBackOff` | Wrong image tag | Check `global.releaseVersion` in values |
@@ -452,7 +398,7 @@ kubectl delete job rosetta-mithril -n cardano --ignore-not-found
 global:
   profile: mid
   network: mainnet
-  protocolMagic: 764824073
+  protocolMagic: "764824073"
 
 rosetta-api:
   env:
@@ -505,8 +451,8 @@ helm upgrade rosetta helm/cardano-rosetta-java \
   -f helm/cardano-rosetta-java/values.yaml \
   -f helm/cardano-rosetta-java/values-k3s.yaml \
   --set global.network=mainnet \
-  --set global.protocolMagic=764824073 \
+  "--set=global.protocolMagic=764824073" \
   --set global.configHostPath=$(pwd)/config/node \
   "--set=global.db.password=${DB_PASSWORD}" \
-  -n cardano --no-hooks 2>&1 | grep -v "walk.go"
+  -n cardano 2>&1 | grep -v "walk.go"
 ```

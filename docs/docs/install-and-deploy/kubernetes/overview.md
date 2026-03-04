@@ -7,8 +7,8 @@ description: Kubernetes deployment overview — when to use it, architecture, an
 # Kubernetes Deployment Overview
 
 Cardano Rosetta Java ships official [Helm charts](https://helm.sh/) for Kubernetes
-deployment. The charts support a **K3s single-host baseline** (for local testing and
-small production deployments) and any **managed Kubernetes cluster** (EKS, GKE, AKS).
+deployment. The charts support both **single-host K3s** deployments and any **managed
+Kubernetes cluster** (EKS, GKE, AKS).
 
 ## Architecture
 
@@ -105,6 +105,5 @@ See [Helm Values Reference](./helm-values) for per-component breakdown.
 
 ## Next Steps
 
-- [K3s Single-Host Deployment](./k3s-single-host) — get running locally in minutes
+- [Deployment Runbook](./deployment) — step-by-step deploy for preprod and mainnet
 - [Helm Values Reference](./helm-values) — full configuration reference
-- [Deployment Runbook](../../../../runbooks/deployment) — operator checklist for preprod and mainnet
