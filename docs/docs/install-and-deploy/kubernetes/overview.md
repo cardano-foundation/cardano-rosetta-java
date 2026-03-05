@@ -66,9 +66,9 @@ never use `--wait-for-jobs`.
 
 | Stage | What's happening | Pods ready |
 |---|---|---|
-| `SYNCING` | Mithril download + node syncing | cardano-node only |
-| `APPLYING_INDEXES` | DB indexes being built | All pods up, API responding |
-| `LIVE` | Full operation | All pods ready, API fully functional |
+| `SYNCING` | yaci-indexer catching up to chain tip | All pods up, API responding |
+| `APPLYING_INDEXES` | Indexer reached tip, DB indexes being built | All pods up, API responding |
+| `LIVE` | Fully synced, all indexes valid | All pods ready, API fully functional |
 
 ## Hardware Profiles
 
