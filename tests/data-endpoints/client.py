@@ -246,6 +246,18 @@ class RosettaClient:
         body = self._build_body(network_identifier=network_identifier)
         return self._post("/network/options", body, schema_name="NetworkOptionsResponse")
 
+    def call(
+        self,
+        method: str,
+        parameters: dict | None = None,
+        network_identifier: dict | None = None,
+    ) -> httpx.Response:
+        """Call a supported method on the /call endpoint."""
+        body = self._build_body(network_identifier=network_identifier)
+        body["method"] = method
+        body["parameters"] = parameters or {}
+        return self._post("/call", body, schema_name="CallResponse")
+
     def block(
         self,
         network_identifier: dict | None = None,

@@ -144,4 +144,24 @@ class TestNetworkOptions:
 
         assert isinstance(allow.get("historical_balance_lookup"), bool)
 
+        call_methods = allow.get("call_methods", [])
+        assert isinstance(call_methods, list), "call_methods must be a list"
+        assert call_methods, "call_methods must not be empty when /call is supported"
+
+    @pytest.mark.pr
+    def test_call_methods_are_recognized(self, client, network):
+        """Every method listed in call_methods must be recognized by /call."""
+        options = client.network_options().json()
+        call_methods = options.get("allow", {}).get("call_methods", [])
+
+        assert call_methods, "call_methods must not be empty when /call is supported"
+
+        for method in call_methods:
+            response = client.call(method=method)
+            if response.status_code != 200:
+                error = response.json()
+                assert error.get("code") != 5050, (
+                    f"Method '{method}' advertised in call_methods but /call returns 'not supported'"
+                )
+
     # Error handling tests moved to test_error_handling.py
