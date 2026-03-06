@@ -1,0 +1,7 @@
+    assert response.status_code == 200
+    assert len(txs) >= 1, f"Transaction {data['tx_hash']} not found via /search/transactions"
+    assert len(ops) >= 1, "No dRepVoteDelegation operations found in search result"
+    assert op["status"] == "success"
+    assert drep["type"] == variant
+        assert is_hex(drep["id"], 56), f"drep.id not valid 56-char hex: {drep['id']}"
+        assert "id" not in drep, f"drep.id should not be present for type {variant}"
