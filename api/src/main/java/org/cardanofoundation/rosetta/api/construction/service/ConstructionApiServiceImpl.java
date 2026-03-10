@@ -63,9 +63,13 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
     }
 
     // Default address type is enterprise
-    AddressType addressType =
-            metadata.getAddressType() != null ? AddressType.findByValue(metadata.getAddressType())
-                    : null;
+    AddressType addressType = null;
+    if (metadata.getAddressType() != null && !metadata.getAddressType().trim().isEmpty()) {
+       addressType = AddressType.findByValue(metadata.getAddressType());
+       if (addressType == null) {
+               throw ExceptionFactory.invalidAddressTypeError();
+       }
+    }
     addressType = addressType != null ? addressType : AddressType.ENTERPRISE;
 
     PublicKey stakingCredential = null;
