@@ -5,6 +5,7 @@ import org.openapitools.client.model.CallRequest;
 import org.openapitools.client.model.CallResponse;
 
 import javax.annotation.Nullable;
+import java.util.List;
 import java.util.Map;
 
 public interface CallService {
@@ -23,5 +24,10 @@ public interface CallService {
      * Mark all parse error blocks for a specific block number as checked
      */
     CallResponse markParseErrorBlockChecked(Map<String, Object> params);
+
+    /**
+     * Get a list of supported method names for the /call endpoint
+     */
+    List<String> getSupportedMethods();
 
 }

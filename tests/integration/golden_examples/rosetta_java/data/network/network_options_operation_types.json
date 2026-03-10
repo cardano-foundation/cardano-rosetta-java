@@ -508,7 +508,10 @@
         }
       ],
       "historical_balance_lookup": true,
-      "call_methods": [],
+      "call_methods": [
+        "get_parse_error_blocks",
+        "mark_parse_error_block_checked"
+      ],
       "balance_exemptions": [],
       "mempool_coins": false
     }
