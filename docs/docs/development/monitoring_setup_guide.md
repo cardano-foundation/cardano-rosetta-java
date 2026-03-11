@@ -1,7 +1,7 @@
 # Monitoring Setup Guide
 
-This guide explains how to run the monitoring stack (Prometheus + Grafana) for both
-**Docker Compose** and **Kubernetes (Helm)** deployments.
+This guide explains how to set up monitoring for both **Docker Compose** (bundled stack)
+and **Kubernetes** (integration with existing Prometheus/Grafana) deployments.
 
 ---
 
@@ -59,38 +59,41 @@ and loads automatically when Grafana starts.
 
 ## Kubernetes (Helm)
 
-### Enable Monitoring
+### Architecture
 
-Monitoring is enabled by default (`monitoring.enabled: true` in `values.yaml`). To
-disable it for a specific environment, pass `--set monitoring.enabled=false` or override
-in your values file:
+The Helm chart does **not** deploy Prometheus or Grafana. Production clusters are expected
+to provide their own monitoring stack — typically
+[kube-prometheus-stack](https://prometheus-community.github.io/helm-charts/).
+
+The chart provides integration artifacts:
+
+- **ServiceMonitor** resources (one per service) for automatic Prometheus Operator discovery
+- **Grafana dashboard ConfigMaps** with the `grafana_dashboard: "1"` label for sidecar import
+- **postgres-exporter** as an optional deployment alongside PostgreSQL
+
+### Enable Integration
 
 ```yaml
-monitoring:
-  enabled: false
-```
+serviceMonitor:
+  enabled: true
+  releaseLabel: prometheus   # must match your kube-prometheus-stack release name
 
-The monitoring subchart deploys:
-- **Prometheus** — scrapes metrics from all stack components
-- **Grafana** — pre-provisioned with the Rosetta dashboard
-- **postgresql-exporter** — PostgreSQL metrics
-- **node-exporter** — host-level metrics (CPU, memory, disk, network)
-
-### Access Services
-
-The monitoring services use `ClusterIP` (not accessible from outside the cluster by
-default). Use `kubectl port-forward` to reach them:
-
-**Local machine only** (port-forward binds to `127.0.0.1`):
-```bash
-kubectl port-forward svc/rosetta-grafana    3000:3000 -n cardano &
-kubectl port-forward svc/rosetta-prometheus 9090:9090 -n cardano &
+pgExporter:
+  enabled: true              # deploys postgres-exporter alongside PostgreSQL
 ```
 
 ### Grafana Dashboard
 
-The **Rosetta Critical Operation Metrics** dashboard is automatically provisioned from
-`config/monitoring/dashboards/rosetta-dashboards-k8s.json`.
+The **Rosetta Critical Operation Metrics** dashboard is shipped as a ConfigMap
+(`rosetta-grafana-dashboards`). When `serviceMonitor.enabled: true`, the ConfigMap is
+created with the `grafana_dashboard: "1"` label, which the Grafana sidecar from
+kube-prometheus-stack automatically discovers and imports.
+
+To manually import:
+```bash
+kubectl get configmap rosetta-grafana-dashboards -n cardano -o jsonpath='{.data.rosetta-dashboards\.json}' > dashboard.json
+# Import dashboard.json via Grafana UI → Dashboards → Import
+```
 
 This is a **separate file** from the Docker Compose dashboard (`rosetta-dashboards.json`)
 because the two environments differ in:
@@ -105,35 +108,21 @@ because the two environments differ in:
 overrides baked into the Docker Compose dashboard reference Docker-specific service names
 and will hide all K8s metrics.
 
-### Verify Prometheus Targets
+### Verify ServiceMonitor Targets
 
-All targets should be `UP`:
+Once ServiceMonitors are created, verify Prometheus is scraping all targets:
 
 ```bash
-# Via Prometheus API
+# List ServiceMonitors
+kubectl get servicemonitors -n cardano
+
+# Check via Prometheus API (port-forward your existing Prometheus first)
 curl -s http://localhost:9090/api/v1/targets | \
   python3 -c "import json,sys; [print(t['health'], t['labels'].get('instance')) for t in json.load(sys.stdin)['data']['activeTargets']]"
 
-# Expected — 6 targets all UP:
+# Expected — 4 targets all UP:
 # up  rosetta-rosetta-api:8082
 # up  rosetta-yaci-indexer:9095
 # up  rosetta-cardano-node:12798
 # up  rosetta-pg-exporter:9187
-# up  rosetta-node-exporter:9100
-# up  localhost:9090
-```
-
-### Reload Grafana Dashboards After ConfigMap Update
-
-If you update the Grafana dashboard ConfigMap, the pod's mounted volume takes ~1–2 minutes
-to sync. After the volume syncs, trigger a provisioning reload:
-
-```bash
-# Check if volume has synced (count should match expected occurrences)
-GRAFANA_POD=$(kubectl get pod -n cardano -l app=rosetta-grafana -o jsonpath='{.items[0].metadata.name}')
-kubectl exec $GRAFANA_POD -n cardano -- \
-  grep -c 'DS_PROMETHEUS' /etc/grafana/provisioning/dashboards/json/rosetta-dashboards.json
-
-# Reload provisioned dashboards (no pod restart needed)
-curl -s -u admin:admin -X POST http://localhost:3000/api/admin/provisioning/dashboards/reload
 ```

@@ -1,0 +1,72 @@
+{{- if .Values.pgExporter.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ printf "%s-pg-exporter" .Release.Name }}
+  namespace: {{ include "cardano-rosetta-java.namespace" . }}
+  labels:
+    {{- include "cardano-rosetta-java.commonLabels" . | nindent 4 }}
+    component: pg-exporter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ printf "%s-pg-exporter" .Release.Name }}
+      component: pg-exporter
+  template:
+    metadata:
+      labels:
+        app: {{ printf "%s-pg-exporter" .Release.Name }}
+        component: pg-exporter
+    spec:
+      containers:
+        - name: pg-exporter
+          image: {{ .Values.pgExporter.image | quote }}
+          env:
+            - name: DATA_SOURCE_URI
+              value: {{ printf "%s-postgresql:%d/%s?sslmode=disable" .Release.Name (.Values.global.db.port | int) .Values.global.db.name | quote }}
+            - name: DATA_SOURCE_USER
+              value: {{ .Values.global.db.user | quote }}
+            - name: DATA_SOURCE_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "cardano-rosetta-java.dbSecretName" . }}
+                  key: db-secret
+          ports:
+            - name: metrics
+              containerPort: 9187
+              protocol: TCP
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "200m"
+              memory: "256Mi"
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: 9187
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            failureThreshold: 5
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ printf "%s-pg-exporter" .Release.Name }}
+  namespace: {{ include "cardano-rosetta-java.namespace" . }}
+  labels:
+    {{- include "cardano-rosetta-java.commonLabels" . | nindent 4 }}
+    component: pg-exporter
+spec:
+  type: ClusterIP
+  selector:
+    app: {{ printf "%s-pg-exporter" .Release.Name }}
+    component: pg-exporter
+  ports:
+    - name: metrics
+      port: 9187
+      targetPort: 9187
+      protocol: TCP
+{{- end }}

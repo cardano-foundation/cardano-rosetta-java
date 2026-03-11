@@ -282,13 +282,9 @@ kubectl logs -f statefulset/rosetta-postgresql -n cardano             # PostgreS
 ```bash
 # Local access only
 kubectl port-forward svc/rosetta-rosetta-api 8082:8082 -n cardano &
-kubectl port-forward svc/rosetta-grafana     3000:3000 -n cardano &
-kubectl port-forward svc/rosetta-prometheus  9090:9090 -n cardano &
 
 # Remote access — bind to all interfaces
 kubectl port-forward --address 0.0.0.0 svc/rosetta-rosetta-api 8082:8082 -n cardano &
-kubectl port-forward --address 0.0.0.0 svc/rosetta-grafana     3000:3000 -n cardano &
-kubectl port-forward --address 0.0.0.0 svc/rosetta-prometheus  9090:9090 -n cardano &
 ```
 
 ### Upgrade to a new release
@@ -376,7 +372,6 @@ kubectl delete job rosetta-mithril -n cardano --ignore-not-found
 | postgresql | 1 / 2 CPU | 2 / 6 Gi | 50 Gi |
 | yaci-indexer | 500m / 1 CPU | 1 / 2 Gi | — |
 | rosetta-api | 250m / 1 CPU | 512Mi / 1 Gi | — |
-| monitoring | 350m / 1.7 CPU | 832Mi / 2.5 Gi | 12 Gi |
 
 ### Mainnet — mid profile
 
@@ -386,8 +381,7 @@ kubectl delete job rosetta-mithril -n cardano --ignore-not-found
 | postgresql | 2 / 8 CPU | 16 / 32 Gi | 200 Gi |
 | yaci-indexer | 1 / 4 CPU | 4 / 8 Gi | — |
 | rosetta-api | 500m / 2 CPU | 2 / 4 Gi | — |
-| monitoring | 350m / 1.7 CPU | 832Mi / 2.5 Gi | 60 Gi |
-| **Total** | **~6 / 24 CPU** | **~35 / 70 Gi** | **760 Gi** |
+| **Total** | **~5.5 / 22 CPU** | **~34 / 68 Gi** | **700 Gi** |
 
 ---
 
@@ -419,10 +413,27 @@ rosetta-api:
       - hosts: [rosetta.example.com]
         secretName: rosetta-tls
 
-monitoring:
+## Monitoring
+
+This chart does not ship its own Prometheus or Grafana. Production K8s clusters typically
+already run [kube-prometheus-stack](https://prometheus-community.github.io/helm-charts/).
+
+To integrate with an existing Prometheus Operator, enable ServiceMonitors:
+
+```yaml
+serviceMonitor:
   enabled: true
-  grafana:
-    adminPassword: "<strong-password>"
+  releaseLabel: prometheus   # must match your kube-prometheus-stack release name
+
+pgExporter:
+  enabled: true              # deploys postgres-exporter alongside PostgreSQL
+```
+
+Grafana dashboard ConfigMaps are created automatically when `serviceMonitor.enabled: true`.
+Import them via the Grafana sidecar or manually from:
+```
+kubectl get configmap rosetta-grafana-dashboards -n cardano -o yaml
+```
 ```
 
 ---

@@ -1,10 +1,11 @@
+{{- if (index .Values.global "pgExporter" (dict)).enabled | default false }}
 apiVersion: v1
 kind: Service
 metadata:
   name: {{ printf "%s-pg-exporter" .Release.Name }}
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "monitoring.commonLabels" . | nindent 4 }}
+    {{- include "postgresql.commonLabels" . | nindent 4 }}
     component: pg-exporter
 spec:
   type: ClusterIP
@@ -12,6 +13,7 @@ spec:
     app: {{ printf "%s-pg-exporter" .Release.Name }}
   ports:
     - name: metrics
-      port: {{ .Values.postgresqlExporter.port }}
+      port: 9187
       targetPort: 9187
       protocol: TCP
+{{- end }}

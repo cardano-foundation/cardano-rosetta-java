@@ -12,7 +12,7 @@ Kubernetes cluster** (EKS, GKE, AKS).
 
 ## Architecture
 
-The deployment consists of **5 Helm subcharts** plus orchestration resources in the
+The deployment consists of **4 Helm subcharts** plus orchestration resources in the
 parent chart:
 
 ```
@@ -20,9 +20,13 @@ Parent chart: cardano-rosetta-java
 ├── cardano-node          StatefulSet — Cardano blockchain node + socat sidecar
 ├── postgresql            StatefulSet — PostgreSQL with blockchain-tuned configuration
 ├── yaci-indexer          Deployment  — Blockchain data indexer (Yaci Store)
-├── rosetta-api           Deployment  — Rosetta HTTP API
-└── monitoring            Deployment  — Prometheus + Grafana (disabled by default)
+└── rosetta-api           Deployment  — Rosetta HTTP API
 ```
+
+Monitoring (Prometheus, Grafana) is **not included** — production clusters should use
+[kube-prometheus-stack](https://prometheus-community.github.io/helm-charts/). The chart
+provides optional `ServiceMonitor` resources and Grafana dashboard ConfigMaps for
+integration. See [Helm Values Reference](./helm-values#monitoring-integration).
 
 ### Key Architectural Differences from Docker Compose
 

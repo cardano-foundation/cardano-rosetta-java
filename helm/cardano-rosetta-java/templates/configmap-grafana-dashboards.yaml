@@ -1,4 +1,4 @@
-{{- if index .Values "monitoring" "enabled" }}
+{{- if .Values.serviceMonitor.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -6,6 +6,7 @@ metadata:
   namespace: {{ include "cardano-rosetta-java.namespace" . }}
   labels:
     {{- include "cardano-rosetta-java.commonLabels" . | nindent 4 }}
+    grafana_dashboard: "1"
 data:
   rosetta-dashboards.json: |
     {{- .Files.Get "files/grafana-dashboards/rosetta-dashboards.json" | nindent 4 }}

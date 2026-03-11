@@ -1,10 +1,11 @@
+{{- if (index .Values.global "pgExporter" (dict)).enabled | default false }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ printf "%s-pg-exporter" .Release.Name }}
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "monitoring.commonLabels" . | nindent 4 }}
+    {{- include "postgresql.commonLabels" . | nindent 4 }}
     component: pg-exporter
 spec:
   replicas: 1
@@ -19,7 +20,7 @@ spec:
     spec:
       containers:
         - name: pg-exporter
-          image: {{ .Values.postgresqlExporter.image | quote }}
+          image: {{ (index .Values.global "pgExporter" (dict)).image | default "prometheuscommunity/postgres-exporter" | quote }}
           env:
             - name: DATA_SOURCE_URI
               value: {{ printf "%s-postgresql:%d/%s?sslmode=disable" .Release.Name (.Values.global.db.port | int) .Values.global.db.name | quote }}
@@ -48,3 +49,4 @@ spec:
             initialDelaySeconds: 10
             periodSeconds: 15
             failureThreshold: 5
+{{- end }}

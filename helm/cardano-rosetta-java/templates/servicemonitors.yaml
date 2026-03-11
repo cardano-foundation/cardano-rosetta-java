@@ -1,0 +1,72 @@
+{{- if .Values.serviceMonitor.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ printf "%s-cardano-node" .Release.Name }}
+  namespace: {{ include "cardano-rosetta-java.namespace" . }}
+  labels:
+    {{- include "cardano-rosetta-java.commonLabels" . | nindent 4 }}
+    release: {{ .Values.serviceMonitor.releaseLabel | default "prometheus" }}
+spec:
+  selector:
+    matchLabels:
+      component: cardano-node
+  endpoints:
+    - port: metrics
+      interval: 15s
+      path: /metrics
+      fallbackScrapeProtocol: PrometheusText0.0.4
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ printf "%s-yaci-indexer" .Release.Name }}
+  namespace: {{ include "cardano-rosetta-java.namespace" . }}
+  labels:
+    {{- include "cardano-rosetta-java.commonLabels" . | nindent 4 }}
+    release: {{ .Values.serviceMonitor.releaseLabel | default "prometheus" }}
+spec:
+  selector:
+    matchLabels:
+      component: yaci-indexer
+  endpoints:
+    - port: http
+      interval: 10s
+      path: /actuator/prometheus
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ printf "%s-rosetta-api" .Release.Name }}
+  namespace: {{ include "cardano-rosetta-java.namespace" . }}
+  labels:
+    {{- include "cardano-rosetta-java.commonLabels" . | nindent 4 }}
+    release: {{ .Values.serviceMonitor.releaseLabel | default "prometheus" }}
+spec:
+  selector:
+    matchLabels:
+      component: rosetta-api
+  endpoints:
+    - port: http
+      interval: 10s
+      path: /actuator/prometheus
+---
+{{- if .Values.pgExporter.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ printf "%s-pg-exporter" .Release.Name }}
+  namespace: {{ include "cardano-rosetta-java.namespace" . }}
+  labels:
+    {{- include "cardano-rosetta-java.commonLabels" . | nindent 4 }}
+    release: {{ .Values.serviceMonitor.releaseLabel | default "prometheus" }}
+spec:
+  selector:
+    matchLabels:
+      component: pg-exporter
+  endpoints:
+    - port: metrics
+      interval: 15s
+      path: /metrics
+{{- end }}
+{{- end }}

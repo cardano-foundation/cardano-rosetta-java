@@ -55,8 +55,6 @@ These values are shared across all subcharts via `global.*`.
 | `global.storage.cardanoNode.storageClass` | `""` | — | StorageClass name. Empty = cluster default |
 | `global.storage.postgresql.size` | `200Gi` | `DB_PATH` volume | PVC size for PostgreSQL data |
 | `global.storage.postgresql.storageClass` | `""` | — | StorageClass name. Empty = cluster default |
-| `global.storage.prometheus.size` | `50Gi` | — | PVC size for Prometheus data |
-| `global.storage.grafana.size` | `10Gi` | — | PVC size for Grafana data |
 
 ---
 
@@ -161,7 +159,25 @@ In `hook` mode the Job is a Helm post-install/post-upgrade hook. Monitor it inde
 | `postgresql.enabled` | `true` | Deploy in-cluster PostgreSQL |
 | `yaci-indexer.enabled` | `true` | Deploy the Yaci indexer |
 | `rosetta-api.enabled` | `true` | Deploy the Rosetta API |
-| `monitoring.enabled` | `true` | Deploy Prometheus + Grafana |
+
+---
+
+## Monitoring Integration {#monitoring-integration}
+
+This chart does **not** deploy Prometheus or Grafana. Use
+[kube-prometheus-stack](https://prometheus-community.github.io/helm-charts/) or your
+cluster's existing monitoring solution.
+
+| Value | Default | Description |
+|-------|---------|-------------|
+| `serviceMonitor.enabled` | `false` | Create `ServiceMonitor` resources for Prometheus Operator discovery |
+| `serviceMonitor.releaseLabel` | `prometheus` | `release` label on ServiceMonitors — must match your kube-prometheus-stack release |
+| `pgExporter.enabled` | `false` | Deploy `postgres-exporter` sidecar alongside PostgreSQL |
+| `pgExporter.image` | `prometheuscommunity/postgres-exporter` | postgres-exporter image |
+
+When `serviceMonitor.enabled: true`, four ServiceMonitors are created (cardano-node,
+yaci-indexer, rosetta-api, pg-exporter) and Grafana dashboard ConfigMaps are emitted
+with the `grafana_dashboard: "1"` label for automatic sidecar import.
 
 ---
 

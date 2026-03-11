@@ -13,15 +13,6 @@ global:
     postgresql:
       size: 50Gi
       storageClass: "local-path"
-    prometheus:
-      size: 10Gi
-      storageClass: "local-path"
-    grafana:
-      size: 2Gi
-      storageClass: "local-path"
-
-monitoring:
-  enabled: true
 
 ## Override entry profile resources for k3s (very conservative)
 profiles:
