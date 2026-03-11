@@ -247,19 +247,23 @@ cardano-node:
 
 postgresql:
   enabled: true
+  ## PostgreSQL exporter — deploys alongside PostgreSQL for metrics scraping
+  pgExporter:
+    enabled: false
+    image: "prometheuscommunity/postgres-exporter"
+    resources:
+      requests:
+        cpu: "50m"
+        memory: "64Mi"
+      limits:
+        cpu: "200m"
+        memory: "256Mi"
 
 yaci-indexer:
   enabled: true
 
 rosetta-api:
   enabled: true
-
-## -----------------------------------------------------------------------
-## PostgreSQL exporter (sidecar for external Prometheus)
-## -----------------------------------------------------------------------
-pgExporter:
-  enabled: false
-  image: "prometheuscommunity/postgres-exporter"
 
 ## -----------------------------------------------------------------------
 ## ServiceMonitor for Prometheus Operator (kube-prometheus-stack)

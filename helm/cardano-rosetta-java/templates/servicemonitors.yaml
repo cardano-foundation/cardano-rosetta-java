@@ -51,7 +51,7 @@ spec:
       interval: 10s
       path: /actuator/prometheus
 ---
-{{- if .Values.pgExporter.enabled }}
+{{- if .Values.postgresql.pgExporter.enabled }}
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
