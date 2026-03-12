@@ -15,7 +15,7 @@ metadata:
   {{- end }}
 spec:
   backoffLimit: 5
-  activeDeadlineSeconds: 86400
+  activeDeadlineSeconds: 259200
   {{- if ne (default "automatic" .Values.indexApplier.mode) "hook" }}
   # Auto-cleanup after 24h so future helm upgrades can recreate the Job without conflicts.
   ttlSecondsAfterFinished: 86400
