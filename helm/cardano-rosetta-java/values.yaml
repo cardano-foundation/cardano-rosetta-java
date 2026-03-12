@@ -80,6 +80,27 @@ global:
           limits:
             cpu: "1"
             memory: "2Gi"
+        mithril:
+          requests:
+            cpu: "250m"
+            memory: "256Mi"
+          limits:
+            cpu: "1"
+            memory: "1Gi"
+        submitApi:
+          requests:
+            cpu: "100m"
+            memory: "256Mi"
+          limits:
+            cpu: "500m"
+            memory: "1Gi"
+        indexApplier:
+          requests:
+            cpu: "100m"
+            memory: "256Mi"
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
       db:
         poolMin: 12
         poolMax: 12
@@ -131,6 +152,27 @@ global:
           limits:
             cpu: "2"
             memory: "4Gi"
+        mithril:
+          requests:
+            cpu: "500m"
+            memory: "512Mi"
+          limits:
+            cpu: "2"
+            memory: "2Gi"
+        submitApi:
+          requests:
+            cpu: "100m"
+            memory: "256Mi"
+          limits:
+            cpu: "500m"
+            memory: "1Gi"
+        indexApplier:
+          requests:
+            cpu: "100m"
+            memory: "256Mi"
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
       db:
         poolMin: 150
         poolMax: 150
@@ -183,6 +225,27 @@ global:
           limits:
             cpu: "4"
             memory: "8Gi"
+        mithril:
+          requests:
+            cpu: "1"
+            memory: "1Gi"
+          limits:
+            cpu: "4"
+            memory: "4Gi"
+        submitApi:
+          requests:
+            cpu: "250m"
+            memory: "512Mi"
+          limits:
+            cpu: "1"
+            memory: "2Gi"
+        indexApplier:
+          requests:
+            cpu: "250m"
+            memory: "512Mi"
+          limits:
+            cpu: "1"
+            memory: "1Gi"
       db:
         poolMin: 100
         poolMax: 550

@@ -57,12 +57,9 @@ spec:
             - name: node-data
               mountPath: /node
           resources:
-            requests:
-              cpu: "500m"
-              memory: "512Mi"
-            limits:
-              cpu: "2"
-              memory: "2Gi"
+            {{- $profile := (include "cardano-rosetta-java.profile" .) }}
+            {{- $res := index .Values.global.profiles $profile "resources" "mithril" }}
+            {{- toYaml $res | nindent 12 }}
       volumes:
         - name: node-data
           persistentVolumeClaim:

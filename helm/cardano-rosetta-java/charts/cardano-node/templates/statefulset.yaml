@@ -143,12 +143,7 @@ spec:
             - name: node-data
               mountPath: /node
           resources:
-            requests:
-              cpu: "50m"
-              memory: "32Mi"
-            limits:
-              cpu: "200m"
-              memory: "128Mi"
+            {{- toYaml .Values.global.initContainerResources | nindent 12 }}
 
         - name: cardano-submit-api
           image: "cardanofoundation/cardano-rosetta-java-cardano-node:{{ .Values.global.cardanoNodeVersion }}"
@@ -173,12 +168,9 @@ spec:
               mountPath: /config
               readOnly: true
           resources:
-            requests:
-              cpu: "100m"
-              memory: "256Mi"
-            limits:
-              cpu: "500m"
-              memory: "1Gi"
+            {{- $profile := (include "cardano-node.profile" .) }}
+            {{- $res := index .Values.global.profiles $profile "resources" "submitApi" }}
+            {{- toYaml $res | nindent 12 }}
           readinessProbe:
             tcpSocket:
               port: 8090
