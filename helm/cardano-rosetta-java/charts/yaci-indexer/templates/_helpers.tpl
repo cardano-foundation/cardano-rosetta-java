@@ -1,5 +1,9 @@
 {{- define "yaci-indexer.fullname" -}}
-{{- printf "%s-yaci-indexer" .Release.Name }}
+{{- printf "%s-yaci-indexer" .Release.Name | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{- define "yaci-indexer.saName" -}}
+{{- printf "%s-sa" .Release.Name | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{- define "yaci-indexer.commonLabels" -}}
@@ -10,7 +14,7 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
 
 {{- define "yaci-indexer.selectorLabels" -}}
-app: {{ printf "%s-yaci-indexer" .Release.Name }}
+app: {{ include "yaci-indexer.fullname" . }}
 component: yaci-indexer
 {{- end }}
 

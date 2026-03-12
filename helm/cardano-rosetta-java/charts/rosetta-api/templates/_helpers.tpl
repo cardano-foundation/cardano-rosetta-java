@@ -1,5 +1,9 @@
 {{- define "rosetta-api.fullname" -}}
-{{- printf "%s-rosetta-api" .Release.Name }}
+{{- printf "%s-rosetta-api" .Release.Name | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{- define "rosetta-api.saName" -}}
+{{- printf "%s-sa" .Release.Name | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{- define "rosetta-api.commonLabels" -}}
@@ -10,7 +14,7 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
 
 {{- define "rosetta-api.selectorLabels" -}}
-app: {{ printf "%s-rosetta-api" .Release.Name }}
+app: {{ include "rosetta-api.fullname" . }}
 component: rosetta-api
 {{- end }}
 

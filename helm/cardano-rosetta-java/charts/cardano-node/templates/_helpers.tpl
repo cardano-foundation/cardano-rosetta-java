@@ -1,5 +1,17 @@
 {{- define "cardano-node.fullname" -}}
-{{- printf "%s-cardano-node" .Release.Name }}
+{{- printf "%s-cardano-node" .Release.Name | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{- define "cardano-node.headlessName" -}}
+{{- printf "%s-cardano-node-headless" .Release.Name | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{- define "cardano-node.pvcName" -}}
+{{- printf "%s-cardano-node-data" .Release.Name | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{- define "cardano-node.saName" -}}
+{{- printf "%s-sa" .Release.Name | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{- define "cardano-node.commonLabels" -}}
@@ -10,12 +22,8 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
 
 {{- define "cardano-node.selectorLabels" -}}
-app: {{ printf "%s-cardano-node" .Release.Name }}
+app: {{ include "cardano-node.fullname" . }}
 component: cardano-node
-{{- end }}
-
-{{- define "cardano-node.dbSecretName" -}}
-{{- printf "%s-db-secret" .Release.Name }}
 {{- end }}
 
 {{- define "cardano-node.profile" -}}
