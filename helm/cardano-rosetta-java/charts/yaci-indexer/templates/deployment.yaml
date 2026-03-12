@@ -44,6 +44,28 @@ spec:
               cpu: "200m"
               memory: "128Mi"
 
+        - name: wait-for-node-tcp
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              NODE_SERVICE="{{ printf "%s-cardano-node" .Release.Name }}"
+              NODE_SOCAT_PORT="3002"
+              echo "Waiting for cardano-node socat bridge at ${NODE_SERVICE}:${NODE_SOCAT_PORT}..."
+              until nc -z "${NODE_SERVICE}" "${NODE_SOCAT_PORT}" 2>/dev/null; do
+                echo "Node TCP not reachable yet, waiting 10s..."
+                sleep 10
+              done
+              echo "cardano-node socat bridge is reachable, starting yaci-indexer"
+          resources:
+            requests:
+              cpu: "10m"
+              memory: "16Mi"
+            limits:
+              cpu: "50m"
+              memory: "32Mi"
+
       containers:
         - name: yaci-indexer
           image: "cardanofoundation/cardano-rosetta-java-indexer:{{ .Values.global.releaseVersion }}"

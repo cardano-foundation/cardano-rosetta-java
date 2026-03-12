@@ -40,10 +40,13 @@ Docker Compose `depends_on` chains are replaced by Kubernetes init containers:
 ```
 Mithril Job ──────────────────────────────► (one-shot snapshot download)
   cardano-node (wait-for-mithril initContainer polls K8s API)
-    postgresql (wait-for-node-sync initContainer: /sbin/wait-for-node-sync.sh ≥ 100%)
-      yaci-indexer (wait-for-postgres: pg_isready)
-        rosetta-api (wait-for-postgres + wait-for-indexer: /actuator/health)
-          index-applier Job ──────────────► (plain Job, runs automatically with the release)
+    │
+    ├─ postgresql starts immediately (no node dependency — it's just a database)
+    │
+    └─ yaci-indexer (wait-for-postgres: pg_isready
+                     wait-for-node-tcp: nc cardano-node:3002)
+         rosetta-api (wait-for-postgres + wait-for-indexer: /actuator/health)
+           index-applier Job ──────────────► (plain Job, runs automatically with the release)
 ```
 
 The `cardano-node` pod runs **three containers**: the node itself, a `socat` sidecar

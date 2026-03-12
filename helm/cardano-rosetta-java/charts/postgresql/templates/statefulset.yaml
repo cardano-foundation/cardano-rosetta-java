@@ -21,67 +21,6 @@ spec:
       serviceAccountName: {{ printf "%s-sa" .Release.Name }}
       terminationGracePeriodSeconds: 60
 
-      initContainers:
-        - name: wait-for-node-sync
-          image: "cardanofoundation/cardano-rosetta-java-cardano-node:{{ .Values.global.cardanoNodeVersion }}"
-          command:
-            - sh
-            - -c
-            - |
-              NODE_SERVICE="{{ printf "%s-cardano-node" .Release.Name }}"
-              NODE_SOCAT_PORT="3002"
-
-              if [ "${SYNC}" != "true" ]; then
-                echo "SYNC=false, skipping node sync wait"
-                exit 0
-              fi
-
-              echo "Waiting for cardano-node TCP endpoint at ${NODE_SERVICE}:${NODE_SOCAT_PORT}..."
-              until bash -c "echo > /dev/tcp/${NODE_SERVICE}/${NODE_SOCAT_PORT}" 2>/dev/null; do
-                echo "Node TCP not reachable, waiting 10s..."
-                sleep 10
-              done
-              echo "Node TCP is reachable, creating local UNIX socket bridge..."
-
-              # Install socat if not available
-              if ! command -v socat >/dev/null 2>&1; then
-                echo "Installing socat..."
-                apt-get update -qq && apt-get install -y -qq socat >/dev/null 2>&1
-              fi
-
-              # Create reverse socat: TCP -> UNIX socket so cardano-cli can use CARDANO_NODE_SOCKET_PATH
-              socat UNIX-LISTEN:/tmp/node.socket,reuseaddr,fork \
-                "TCP:${NODE_SERVICE}:${NODE_SOCAT_PORT}" &
-              SOCAT_PID=$!
-
-              # Give socat time to establish the listener
-              sleep 5
-              export CARDANO_NODE_SOCKET_PATH=/tmp/node.socket
-
-              # Delegate to the canonical sync-wait script from the node image
-              /sbin/wait-for-node-sync.sh
-
-              kill $SOCAT_PID 2>/dev/null || true
-          env:
-            - name: LD_LIBRARY_PATH
-              value: /usr/local/lib
-            - name: SYNC
-              value: {{ .Values.global.sync | toString | quote }}
-            - name: NETWORK
-              value: {{ .Values.global.network | quote }}
-            - name: PROTOCOL_MAGIC
-              value: {{ .Values.global.protocolMagic | toString | quote }}
-            - name: GENESIS_SHELLEY_PATH
-              value: /config/shelley-genesis.json
-            - name: GENESIS_BYRON_PATH
-              value: /config/byron-genesis.json
-          {{- if .Values.global.sync }}
-          volumeMounts:
-            - name: node-config
-              mountPath: /config
-              readOnly: true
-          {{- end }}
-
       containers:
         - name: postgresql
           image: "cardanofoundation/cardano-rosetta-java-postgres:{{ .Values.global.pgVersionTag }}"
@@ -190,10 +129,3 @@ spec:
           emptyDir:
             medium: Memory
             sizeLimit: 4Gi
-        {{- if .Values.global.sync }}
-        # Genesis config files needed by wait-for-node-sync.sh
-        - name: node-config
-          hostPath:
-            path: {{ printf "%s/%s" (required "global.configHostPath is required" .Values.global.configHostPath) .Values.global.network }}
-            type: Directory
-        {{- end }}
