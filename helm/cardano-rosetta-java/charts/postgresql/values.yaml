@@ -1,14 +1,2 @@
 service:
   port: 5432
-
-## PostgreSQL exporter — deploys alongside PostgreSQL for metrics scraping
-pgExporter:
-  enabled: false
-  image: "prometheuscommunity/postgres-exporter"
-  resources:
-    requests:
-      cpu: "50m"
-      memory: "64Mi"
-    limits:
-      cpu: "200m"
-      memory: "256Mi"
