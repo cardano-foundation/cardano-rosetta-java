@@ -283,13 +283,9 @@ kubectl logs -f statefulset/rosetta-postgresql -n cardano             # PostgreS
 ```bash
 # Local access only
 kubectl port-forward svc/rosetta-rosetta-api 8082:8082 -n cardano &
-kubectl port-forward svc/rosetta-grafana     3000:3000 -n cardano &
-kubectl port-forward svc/rosetta-prometheus  9090:9090 -n cardano &
 
 # Remote access — bind to all interfaces
 kubectl port-forward --address 0.0.0.0 svc/rosetta-rosetta-api 8082:8082 -n cardano &
-kubectl port-forward --address 0.0.0.0 svc/rosetta-grafana     3000:3000 -n cardano &
-kubectl port-forward --address 0.0.0.0 svc/rosetta-prometheus  9090:9090 -n cardano &
 ```
 
 ### Upgrade to a new release
@@ -364,7 +360,6 @@ kubectl delete job rosetta-mithril -n cardano --ignore-not-found
 | `ImagePullBackOff` | Wrong image tag | Check `global.releaseVersion` in values |
 | Port-forward not reachable from remote | Bound to 127.0.0.1 | Add `--address 0.0.0.0` to `kubectl port-forward` |
 | cardano-node restart loop after reboot | Startup probe too short for ImmutableDB validation | `startupProbe.failureThreshold: 720` (3 hours); force-delete pod if StatefulSet update is blocked |
-| pg-exporter `0/1` not ready | Missing `pg_monitor` role | `kubectl exec rosetta-postgresql-0 -n cardano -- psql -U postgres -c "GRANT pg_monitor TO rosetta_db_admin;"` |
 
 ---
 
@@ -378,7 +373,6 @@ kubectl delete job rosetta-mithril -n cardano --ignore-not-found
 | postgresql | 1 / 2 CPU | 2 / 6 Gi | 50 Gi |
 | yaci-indexer | 500m / 1 CPU | 1 / 2 Gi | — |
 | rosetta-api | 250m / 1 CPU | 512Mi / 1 Gi | — |
-| monitoring | 350m / 1.7 CPU | 832Mi / 2.5 Gi | 12 Gi |
 
 ### Mainnet — mid profile
 
@@ -388,8 +382,7 @@ kubectl delete job rosetta-mithril -n cardano --ignore-not-found
 | postgresql | 2 / 8 CPU | 16 / 32 Gi | 200 Gi |
 | yaci-indexer | 1 / 4 CPU | 4 / 8 Gi | — |
 | rosetta-api | 500m / 2 CPU | 2 / 4 Gi | — |
-| monitoring | 350m / 1.7 CPU | 832Mi / 2.5 Gi | 60 Gi |
-| **Total** | **~6 / 24 CPU** | **~35 / 70 Gi** | **760 Gi** |
+| **Total** | **~5.5 / 22 CPU** | **~34 / 68 Gi** | **700 Gi** |
 
 ---
 
@@ -420,11 +413,6 @@ rosetta-api:
     tls:
       - hosts: [rosetta.example.com]
         secretName: rosetta-tls
-
-monitoring:
-  enabled: true
-  grafana:
-    adminPassword: "<strong-password>"
 ```
 
 ---

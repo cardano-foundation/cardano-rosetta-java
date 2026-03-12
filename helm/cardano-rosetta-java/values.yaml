@@ -279,12 +279,6 @@ global:
     postgresql:
       size: 200Gi
       storageClass: ""
-    prometheus:
-      size: 50Gi
-      storageClass: ""
-    grafana:
-      size: 10Gi
-      storageClass: ""
 
   ## -------------------------------------------------------------------
   ## Mithril snapshot download
@@ -330,12 +324,9 @@ cardano-node:
 
 postgresql:
   enabled: true
-
 yaci-indexer:
   enabled: true
 
 rosetta-api:
   enabled: true
 
-monitoring:
-  enabled: true
