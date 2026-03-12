@@ -40,7 +40,7 @@ spec:
             - name: DB_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: {{ printf "%s-db-secret" .Release.Name }}
+                  name: {{ .Values.global.db.existingSecret | default (printf "%s-db-secret" .Release.Name) }}
                   key: db-secret
             {{- $profile := (include "postgresql.profile" .) }}
             {{- $db := index .Values.global.profiles $profile "db" }}

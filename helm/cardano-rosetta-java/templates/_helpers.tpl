@@ -39,9 +39,10 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 
 {{/*
 Name of the Kubernetes Secret that holds the database password.
+If global.db.existingSecret is set, use that; otherwise use the chart-managed secret.
 */}}
 {{- define "cardano-rosetta-java.dbSecretName" -}}
-{{- printf "%s-db-secret" .Release.Name }}
+{{- .Values.global.db.existingSecret | default (printf "%s-db-secret" .Release.Name) }}
 {{- end }}
 
 {{/*

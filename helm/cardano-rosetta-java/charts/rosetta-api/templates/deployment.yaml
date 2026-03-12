@@ -88,7 +88,7 @@ spec:
             - name: DB_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: {{ printf "%s-db-secret" .Release.Name }}
+                  name: {{ .Values.global.db.existingSecret | default (printf "%s-db-secret" .Release.Name) }}
                   key: db-secret
             - name: CARDANO_NODE_VERSION
               value: {{ .Values.global.cardanoNodeVersion | quote }}

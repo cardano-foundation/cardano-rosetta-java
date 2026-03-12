@@ -16,6 +16,10 @@ global:
     user: "rosetta_db_admin"
     # password is required — pass via --set global.db.password=<value> or a sealed secret
     password: ""
+    # existingSecret: if set, skip creating the Secret and use this existing secret name instead.
+    # The secret must contain a key named "db-secret" with the database password.
+    # Useful with Sealed Secrets, External Secrets Operator, or Vault.
+    existingSecret: ""
     schema: "public"
     port: 5432
     # host: leave empty to use the in-cluster postgresql service automatically

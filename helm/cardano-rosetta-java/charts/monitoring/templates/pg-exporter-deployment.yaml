@@ -28,7 +28,7 @@ spec:
             - name: DATA_SOURCE_PASS
               valueFrom:
                 secretKeyRef:
-                  name: {{ printf "%s-db-secret" .Release.Name }}
+                  name: {{ .Values.global.db.existingSecret | default (printf "%s-db-secret" .Release.Name) }}
                   key: db-secret
           ports:
             - name: metrics
