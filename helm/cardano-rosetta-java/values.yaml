@@ -28,6 +28,16 @@ global:
   # Set to false for offline mode (API only, no node sync wait)
   sync: true
 
+  # Resource requests/limits for all init containers (wait-for-* sidecars).
+  # Tune down if nodes are resource-constrained.
+  initContainerResources:
+    requests:
+      cpu: "50m"
+      memory: "32Mi"
+    limits:
+      cpu: "200m"
+      memory: "128Mi"
+
   # REQUIRED: host directory containing network-specific config files.
   # Template appends /<network> — e.g. /opt/cardano/config/node → /opt/cardano/config/node/mainnet
   # Mounted read-only at /config in pods. Like Docker bind-mount: no size limits,
