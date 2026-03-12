@@ -4,8 +4,9 @@
 global:
   profile: entry
   # Mount config files directly from host (Docker-like bind-mount).
-  # Template appends /<network> — full path becomes /home/sotatek/.../config/node/mainnet
-  configHostPath: /home/sotatek/cardano/cardano-rosetta-java/config/node
+  # Template appends /<network> — full path becomes <configHostPath>/<network>
+  # Example: configHostPath: /home/<user>/cardano/cardano-rosetta-java/config/node
+  configHostPath: ""
   storage:
     cardanoNode:
       size: 100Gi
@@ -20,38 +21,38 @@ global:
       size: 2Gi
       storageClass: "local-path"
 
+  ## Override entry profile resources for k3s (very conservative)
+  profiles:
+    entry:
+      resources:
+        cardanoNode:
+          requests:
+            cpu: "1"
+            memory: "4Gi"
+          limits:
+            cpu: "2"
+            memory: "8Gi"
+        postgresql:
+          requests:
+            cpu: "1"
+            memory: "2Gi"
+          limits:
+            cpu: "2"
+            memory: "6Gi"
+        indexer:
+          requests:
+            cpu: "500m"
+            memory: "1Gi"
+          limits:
+            cpu: "1"
+            memory: "2Gi"
+        api:
+          requests:
+            cpu: "250m"
+            memory: "512Mi"
+          limits:
+            cpu: "1"
+            memory: "1Gi"
+
 monitoring:
   enabled: true
-
-## Override entry profile resources for k3s (very conservative)
-profiles:
-  entry:
-    resources:
-      cardanoNode:
-        requests:
-          cpu: "1"
-          memory: "4Gi"
-        limits:
-          cpu: "2"
-          memory: "8Gi"
-      postgresql:
-        requests:
-          cpu: "1"
-          memory: "2Gi"
-        limits:
-          cpu: "2"
-          memory: "6Gi"
-      indexer:
-        requests:
-          cpu: "500m"
-          memory: "1Gi"
-        limits:
-          cpu: "1"
-          memory: "2Gi"
-      api:
-        requests:
-          cpu: "250m"
-          memory: "512Mi"
-        limits:
-          cpu: "1"
-          memory: "1Gi"
