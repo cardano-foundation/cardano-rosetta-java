@@ -23,10 +23,7 @@ Parent chart: cardano-rosetta-java
 └── rosetta-api           Deployment  — Rosetta HTTP API
 ```
 
-Monitoring (Prometheus, Grafana) is **not included** — production clusters should use
-[kube-prometheus-stack](https://prometheus-community.github.io/helm-charts/). The chart
-provides optional `ServiceMonitor` resources and Grafana dashboard ConfigMaps for
-integration. See [Helm Values Reference](./helm-values#monitoring-integration).
+Monitoring (Prometheus, Grafana) is **not included** — production clusters should bring their own monitoring solution.
 
 ### Key Architectural Differences from Docker Compose
 

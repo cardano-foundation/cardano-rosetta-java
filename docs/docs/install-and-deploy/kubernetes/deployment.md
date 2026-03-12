@@ -358,7 +358,6 @@ kubectl delete job rosetta-mithril -n cardano --ignore-not-found
 | `ImagePullBackOff` | Wrong image tag | Check `global.releaseVersion` in values |
 | Port-forward not reachable from remote | Bound to 127.0.0.1 | Add `--address 0.0.0.0` to `kubectl port-forward` |
 | cardano-node restart loop after reboot | Startup probe too short for ImmutableDB validation | `startupProbe.failureThreshold: 720` (3 hours); force-delete pod if StatefulSet update is blocked |
-| pg-exporter `0/1` not ready | Missing `pg_monitor` role | `kubectl exec rosetta-postgresql-0 -n cardano -- psql -U postgres -c "GRANT pg_monitor TO rosetta_db_admin;"` |
 
 ---
 
@@ -412,28 +411,6 @@ rosetta-api:
     tls:
       - hosts: [rosetta.example.com]
         secretName: rosetta-tls
-
-## Monitoring
-
-This chart does not ship its own Prometheus or Grafana. Production K8s clusters typically
-already run [kube-prometheus-stack](https://prometheus-community.github.io/helm-charts/).
-
-To integrate with an existing Prometheus Operator, enable ServiceMonitors:
-
-```yaml
-serviceMonitor:
-  enabled: true
-  releaseLabel: prometheus   # must match your kube-prometheus-stack release name
-
-pgExporter:
-  enabled: true              # deploys postgres-exporter alongside PostgreSQL
-```
-
-Grafana dashboard ConfigMaps are created automatically when `serviceMonitor.enabled: true`.
-Import them via the Grafana sidecar or manually from:
-```
-kubectl get configmap rosetta-grafana-dashboards -n cardano -o yaml
-```
 ```
 
 ---
