@@ -2,8 +2,8 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ printf "%s-stress-test" .Release.Name }}
-  namespace: {{ include "cardano-rosetta-java.namespace" . }}
+  name: {{ include "cardano-rosetta-java.stressTestName" . }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "cardano-rosetta-java.commonLabels" . | nindent 4 }}
     component: stress-test
@@ -40,5 +40,5 @@ spec:
       volumes:
         - name: load-test-scripts
           configMap:
-            name: {{ printf "%s-load-tests" .Release.Name }}
+            name: {{ include "cardano-rosetta-java.loadTestsName" . }}
 {{- end }}

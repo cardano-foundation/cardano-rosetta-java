@@ -2,8 +2,8 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ printf "%s-mithril" .Release.Name }}
-  namespace: {{ include "cardano-rosetta-java.namespace" . }}
+  name: {{ include "cardano-rosetta-java.mithrilJobName" . }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "cardano-rosetta-java.commonLabels" . | nindent 4 }}
     component: mithril
@@ -15,11 +15,11 @@ spec:
   template:
     metadata:
       labels:
-        app: {{ printf "%s-mithril" .Release.Name }}
+        app: {{ include "cardano-rosetta-java.mithrilJobName" . }}
         component: mithril
     spec:
       restartPolicy: OnFailure
-      serviceAccountName: {{ printf "%s-sa" .Release.Name }}
+      serviceAccountName: {{ include "cardano-rosetta-java.saName" . }}
       initContainers:
         - name: check-existing-db
           image: busybox:1.36
@@ -35,6 +35,8 @@ spec:
           volumeMounts:
             - name: node-data
               mountPath: /node
+          resources:
+            {{- toYaml .Values.global.initContainerResources | nindent 12 }}
       containers:
         - name: mithril
           image: "cardanofoundation/cardano-rosetta-java-mithril:{{ .Values.global.mithrilVersion }}"
@@ -64,5 +66,5 @@ spec:
       volumes:
         - name: node-data
           persistentVolumeClaim:
-            claimName: {{ printf "%s-cardano-node-data" .Release.Name }}
+            claimName: {{ printf "%s-cardano-node-data" .Release.Name | trunc 63 | trimSuffix "-" }}
 {{- end }}

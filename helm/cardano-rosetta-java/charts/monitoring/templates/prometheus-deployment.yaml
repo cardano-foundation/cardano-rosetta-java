@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ printf "%s-prometheus" .Release.Name }}
+  name: {{ include "monitoring.prometheusName" . }}
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "monitoring.commonLabels" . | nindent 4 }}
@@ -10,11 +10,11 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app: {{ printf "%s-prometheus" .Release.Name }}
+      app: {{ include "monitoring.prometheusName" . }}
   template:
     metadata:
       labels:
-        app: {{ printf "%s-prometheus" .Release.Name }}
+        app: {{ include "monitoring.prometheusName" . }}
         component: prometheus
     spec:
       securityContext:
@@ -64,7 +64,7 @@ spec:
       volumes:
         - name: config
           configMap:
-            name: {{ printf "%s-prometheus-config" .Release.Name }}
+            name: {{ printf "%s-prometheus-config" .Release.Name | trunc 63 | trimSuffix "-" }}
         - name: data
           persistentVolumeClaim:
-            claimName: {{ printf "%s-prometheus-data" .Release.Name }}
+            claimName: {{ printf "%s-prometheus-data" .Release.Name | trunc 63 | trimSuffix "-" }}

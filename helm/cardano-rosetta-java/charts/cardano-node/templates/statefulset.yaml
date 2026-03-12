@@ -1,14 +1,14 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{ printf "%s-cardano-node" .Release.Name }}
+  name: {{ include "cardano-node.fullname" . }}
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "cardano-node.commonLabels" . | nindent 4 }}
     component: cardano-node
 spec:
   replicas: 1
-  serviceName: {{ printf "%s-cardano-node-headless" .Release.Name }}
+  serviceName: {{ include "cardano-node.headlessName" . }}
   selector:
     matchLabels:
       {{- include "cardano-node.selectorLabels" . | nindent 6 }}
@@ -18,7 +18,7 @@ spec:
         {{- include "cardano-node.selectorLabels" . | nindent 8 }}
         {{- include "cardano-node.commonLabels" . | nindent 8 }}
     spec:
-      serviceAccountName: {{ printf "%s-sa" .Release.Name }}
+      serviceAccountName: {{ include "cardano-node.saName" . }}
       terminationGracePeriodSeconds: 60
 
       initContainers:
@@ -29,7 +29,7 @@ spec:
             - -c
             - |
               {{- if .Values.global.mithril.enabled }}
-              MITHRIL_JOB="{{ printf "%s-mithril" .Release.Name }}"
+              MITHRIL_JOB="{{ printf "%s-mithril" .Release.Name | trunc 63 | trimSuffix "-" }}"
               NAMESPACE="{{ .Release.Namespace }}"
               SA_TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
               CA_CERT=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
@@ -189,7 +189,7 @@ spec:
       volumes:
         - name: node-data
           persistentVolumeClaim:
-            claimName: {{ printf "%s-cardano-node-data" .Release.Name }}
+            claimName: {{ include "cardano-node.pvcName" . }}
         - name: node-config
           hostPath:
             path: {{ printf "%s/%s" (required "global.configHostPath is required" .Values.global.configHostPath) .Values.global.network }}

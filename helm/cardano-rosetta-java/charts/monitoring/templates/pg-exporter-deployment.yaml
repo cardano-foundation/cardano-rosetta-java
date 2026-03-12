@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ printf "%s-pg-exporter" .Release.Name }}
+  name: {{ include "monitoring.pgExporterName" . }}
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "monitoring.commonLabels" . | nindent 4 }}
@@ -10,11 +10,11 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app: {{ printf "%s-pg-exporter" .Release.Name }}
+      app: {{ include "monitoring.pgExporterName" . }}
   template:
     metadata:
       labels:
-        app: {{ printf "%s-pg-exporter" .Release.Name }}
+        app: {{ include "monitoring.pgExporterName" . }}
         component: pg-exporter
     spec:
       containers:
@@ -22,13 +22,13 @@ spec:
           image: {{ .Values.postgresqlExporter.image | quote }}
           env:
             - name: DATA_SOURCE_URI
-              value: {{ printf "%s-postgresql:%d/%s?sslmode=disable" .Release.Name (.Values.global.db.port | int) .Values.global.db.name | quote }}
+              value: {{ printf "%s-postgresql:%d/%s?sslmode=disable" (.Release.Name | trunc 45 | trimSuffix "-") (.Values.global.db.port | int) .Values.global.db.name | quote }}
             - name: DATA_SOURCE_USER
               value: {{ .Values.global.db.user | quote }}
             - name: DATA_SOURCE_PASS
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.global.db.existingSecret | default (printf "%s-db-secret" .Release.Name) }}
+                  name: {{ .Values.global.db.existingSecret | default (printf "%s-db-secret" .Release.Name | trunc 63 | trimSuffix "-") }}
                   key: db-secret
           ports:
             - name: metrics

@@ -1,14 +1,14 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{ printf "%s-postgresql" .Release.Name }}
+  name: {{ include "postgresql.fullname" . }}
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "postgresql.commonLabels" . | nindent 4 }}
     component: postgresql
 spec:
   replicas: 1
-  serviceName: {{ printf "%s-postgresql-headless" .Release.Name }}
+  serviceName: {{ include "postgresql.headlessName" . }}
   selector:
     matchLabels:
       {{- include "postgresql.selectorLabels" . | nindent 6 }}
@@ -18,7 +18,7 @@ spec:
         {{- include "postgresql.selectorLabels" . | nindent 8 }}
         {{- include "postgresql.commonLabels" . | nindent 8 }}
     spec:
-      serviceAccountName: {{ printf "%s-sa" .Release.Name }}
+      serviceAccountName: {{ include "postgresql.saName" . }}
       terminationGracePeriodSeconds: 60
 
       containers:
@@ -40,7 +40,7 @@ spec:
             - name: DB_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.global.db.existingSecret | default (printf "%s-db-secret" .Release.Name) }}
+                  name: {{ .Values.global.db.existingSecret | default (printf "%s-db-secret" .Release.Name | trunc 63 | trimSuffix "-") }}
                   key: db-secret
             {{- $profile := (include "postgresql.profile" .) }}
             {{- $db := index .Values.global.profiles $profile "db" }}
@@ -123,7 +123,7 @@ spec:
       volumes:
         - name: pg-data
           persistentVolumeClaim:
-            claimName: {{ printf "%s-postgresql-data" .Release.Name }}
+            claimName: {{ include "postgresql.pvcName" . }}
         # SHM emulation: replaces Docker Compose shm_size: 4g
         - name: dshm
           emptyDir:

@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: {{ printf "%s-node-exporter" .Release.Name }}
+  name: {{ include "monitoring.nodeExporterName" . }}
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "monitoring.commonLabels" . | nindent 4 }}
@@ -9,11 +9,11 @@ metadata:
 spec:
   selector:
     matchLabels:
-      app: {{ printf "%s-node-exporter" .Release.Name }}
+      app: {{ include "monitoring.nodeExporterName" . }}
   template:
     metadata:
       labels:
-        app: {{ printf "%s-node-exporter" .Release.Name }}
+        app: {{ include "monitoring.nodeExporterName" . }}
         component: node-exporter
     spec:
       hostPID: true

@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ printf "%s-grafana" .Release.Name }}
+  name: {{ include "monitoring.grafanaName" . }}
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "monitoring.commonLabels" . | nindent 4 }}
@@ -10,11 +10,11 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app: {{ printf "%s-grafana" .Release.Name }}
+      app: {{ include "monitoring.grafanaName" . }}
   template:
     metadata:
       labels:
-        app: {{ printf "%s-grafana" .Release.Name }}
+        app: {{ include "monitoring.grafanaName" . }}
         component: grafana
     spec:
       securityContext:
@@ -27,12 +27,12 @@ spec:
             - name: GF_SECURITY_ADMIN_USER
               valueFrom:
                 secretKeyRef:
-                  name: {{ printf "%s-grafana-secret" .Release.Name }}
+                  name: {{ printf "%s-grafana-secret" .Release.Name | trunc 63 | trimSuffix "-" }}
                   key: admin-user
             - name: GF_SECURITY_ADMIN_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ printf "%s-grafana-secret" .Release.Name }}
+                  name: {{ printf "%s-grafana-secret" .Release.Name | trunc 63 | trimSuffix "-" }}
                   key: admin-password
             - name: GF_PATHS_PROVISIONING
               value: /etc/grafana/provisioning
@@ -73,14 +73,13 @@ spec:
       volumes:
         - name: grafana-data
           persistentVolumeClaim:
-            claimName: {{ printf "%s-grafana-data" .Release.Name }}
+            claimName: {{ printf "%s-grafana-data" .Release.Name | trunc 63 | trimSuffix "-" }}
         - name: datasources
           configMap:
-            name: {{ printf "%s-grafana-datasources" .Release.Name }}
+            name: {{ printf "%s-grafana-datasources" .Release.Name | trunc 63 | trimSuffix "-" }}
         - name: dashboard-provider
           configMap:
-            name: {{ printf "%s-grafana-dashboard-provider" .Release.Name }}
+            name: {{ printf "%s-grafana-dashboard-provider" .Release.Name | trunc 63 | trimSuffix "-" }}
         - name: dashboard-json
           configMap:
-            # Created by the parent chart (files are in parent's files/grafana-dashboards/)
-            name: {{ printf "%s-grafana-dashboards" .Release.Name }}
+            name: {{ printf "%s-grafana-dashboards" .Release.Name | trunc 63 | trimSuffix "-" }}
