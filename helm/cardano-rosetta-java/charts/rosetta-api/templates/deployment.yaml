@@ -165,16 +165,9 @@ spec:
               mountPath: /config
               readOnly: true
           readinessProbe:
-            exec:
-              command:
-                - sh
-                - -c
-                - |
-                  curl --fail --silent \
-                    http://localhost:8082/network/options \
-                    -H 'Content-Type: application/json' \
-                    --data "{\"network_identifier\":{\"blockchain\":\"cardano\",\"network\":\"{{ .Values.global.network }}\"},\"metadata\":{}}" \
-                    -X POST > /dev/null 2>&1
+            httpGet:
+              path: /actuator/health
+              port: 8082
             initialDelaySeconds: 60
             periodSeconds: 15
             failureThreshold: 40
