@@ -3,7 +3,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: {{ printf "%s-index-applier" .Release.Name }}
-  namespace: {{ include "cardano-rosetta-java.namespace" . }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "cardano-rosetta-java.commonLabels" . | nindent 4 }}
     component: index-applier
