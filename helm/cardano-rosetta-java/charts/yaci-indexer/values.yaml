@@ -12,11 +12,17 @@ env:
   continueParsingOnError: true                  # matches Docker Compose default
   peerDiscovery: false
   logLevel: error                               # matches Docker Compose default (LOG=ERROR)
-  # HikariCP connection pool — jar default is 20, which is too small during heavy sync.
-  # All 20 slots fill up → health endpoint can't get a connection → liveness probe fails → restart.
-  # PostgreSQL max_connections=300, so 40 is safe.
-  hikariMaxPoolSize: 40
-  hikariMinIdle: 10
+  # HikariCP connection pool tuning — matches Docker Compose INDEXER_DB_* variables.
+  # Jar default pool size is 20, which is too small during heavy sync.
+  # All slots fill up → health endpoint can't get a connection → liveness probe fails → restart.
+  indexerDbPoolMinCount: 10                     # INDEXER_DB_POOL_MIN_COUNT
+  indexerDbPoolMaxCount: 40                     # INDEXER_DB_POOL_MAX_COUNT
+  indexerDbPoolMaxLifetimeMs: "2000000"         # INDEXER_DB_POOL_MAX_LIFETIME_MS
+  indexerDbPoolConnectionTimeoutMs: 100000      # INDEXER_DB_POOL_CONNECTION_TIMEOUT_MS
+  indexerDbKeepAliveMs: 60000                   # INDEXER_DB_KEEP_ALIVE_MS
+  indexerDbLeakConnectionsWarningMs: 60000      # INDEXER_DB_LEAK_CONNECTIONS_WARNING_MS
+  indexerDbMonitorPerformance: false            # INDEXER_DB_MONITOR_PERFORMANCE
+  indexerDbShowSql: false                       # INDEXER_DB_SHOW_SQL
 
 ## Resource profiles (inherited from parent, can be overridden)
 profiles:

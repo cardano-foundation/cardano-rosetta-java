@@ -104,6 +104,9 @@ global:
       db:
         poolMin: 12
         poolMax: 12
+        indexerDb:
+          poolMinCount: 12
+          poolMaxCount: 12
         maxConnections: 120
         sharedBuffers: "1GB"
         effectiveCacheSize: "2GB"
@@ -176,6 +179,9 @@ global:
       db:
         poolMin: 150
         poolMax: 150
+        indexerDb:
+          poolMinCount: 50
+          poolMaxCount: 50
         maxConnections: 300
         sharedBuffers: "4GB"
         effectiveCacheSize: "8GB"
@@ -249,6 +255,9 @@ global:
       db:
         poolMin: 100
         poolMax: 550
+        indexerDb:
+          poolMinCount: 50
+          poolMaxCount: 150
         maxConnections: 600
         sharedBuffers: "32GB"
         effectiveCacheSize: "32GB"

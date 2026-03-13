@@ -114,10 +114,24 @@ spec:
               value: {{ .Values.env.peerDiscovery | toString | quote }}
             - name: LOG
               value: {{ .Values.env.logLevel | upper | quote }}
-            - name: SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE
-              value: {{ .Values.env.hikariMaxPoolSize | toString | quote }}
-            - name: SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE
-              value: {{ .Values.env.hikariMinIdle | toString | quote }}
+            {{- $profile := include "yaci-indexer.profile" . }}
+            {{- $indexerDb := index .Values.global.profiles $profile "db" "indexerDb" }}
+            - name: INDEXER_DB_POOL_MIN_COUNT
+              value: {{ $indexerDb.poolMinCount | default .Values.env.indexerDbPoolMinCount | toString | quote }}
+            - name: INDEXER_DB_POOL_MAX_COUNT
+              value: {{ $indexerDb.poolMaxCount | default .Values.env.indexerDbPoolMaxCount | toString | quote }}
+            - name: INDEXER_DB_POOL_MAX_LIFETIME_MS
+              value: {{ .Values.env.indexerDbPoolMaxLifetimeMs | toString | quote }}
+            - name: INDEXER_DB_POOL_CONNECTION_TIMEOUT_MS
+              value: {{ .Values.env.indexerDbPoolConnectionTimeoutMs | toString | quote }}
+            - name: INDEXER_DB_KEEP_ALIVE_MS
+              value: {{ .Values.env.indexerDbKeepAliveMs | toString | quote }}
+            - name: INDEXER_DB_LEAK_CONNECTIONS_WARNING_MS
+              value: {{ .Values.env.indexerDbLeakConnectionsWarningMs | toString | quote }}
+            - name: INDEXER_DB_MONITOR_PERFORMANCE
+              value: {{ .Values.env.indexerDbMonitorPerformance | toString | quote }}
+            - name: INDEXER_DB_SHOW_SQL
+              value: {{ .Values.env.indexerDbShowSql | toString | quote }}
           ports:
             - name: http
               containerPort: 9095
