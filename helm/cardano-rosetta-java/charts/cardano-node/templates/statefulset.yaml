@@ -117,7 +117,7 @@ spec:
                 - /node/node.socket
             initialDelaySeconds: 60
             periodSeconds: 15
-            failureThreshold: {{ (((.Values.node).startupProbe).failureThreshold) | default 720 }}
+            failureThreshold: {{ (((.Values.node).startupProbe).failureThreshold) | default 1920 }}
             timeoutSeconds: 5
 
         - name: socat
