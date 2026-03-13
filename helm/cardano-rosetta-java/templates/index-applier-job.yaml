@@ -3,7 +3,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: {{ printf "%s-index-applier" .Release.Name }}
-  namespace: {{ include "cardano-rosetta-java.namespace" . }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "cardano-rosetta-java.commonLabels" . | nindent 4 }}
     component: index-applier
@@ -46,12 +46,7 @@ spec:
               done
               echo "API is healthy"
           resources:
-            requests:
-              cpu: "50m"
-              memory: "32Mi"
-            limits:
-              cpu: "200m"
-              memory: "128Mi"
+            {{- toYaml .Values.global.initContainerResources | nindent 12 }}
       containers:
         - name: index-applier
           image: "cardanofoundation/cardano-rosetta-java-postgres:{{ .Values.global.pgVersionTag }}"
@@ -83,12 +78,9 @@ spec:
               mountPath: /config/db-indexes.yaml
               subPath: db-indexes.yaml
           resources:
-            requests:
-              cpu: "100m"
-              memory: "256Mi"
-            limits:
-              cpu: "500m"
-              memory: "512Mi"
+            {{- $profile := (include "cardano-rosetta-java.profile" .) }}
+            {{- $res := index .Values.global.profiles $profile "resources" "indexApplier" }}
+            {{- toYaml $res | nindent 12 }}
       volumes:
         - name: db-indexes
           configMap:

@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ printf "%s-rosetta-api" .Release.Name }}
+  name: {{ include "rosetta-api.fullname" . }}
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "rosetta-api.commonLabels" . | nindent 4 }}
@@ -17,7 +17,7 @@ spec:
         {{- include "rosetta-api.selectorLabels" . | nindent 8 }}
         {{- include "rosetta-api.commonLabels" . | nindent 8 }}
     spec:
-      serviceAccountName: {{ printf "%s-sa" .Release.Name }}
+      serviceAccountName: {{ include "rosetta-api.saName" . }}
       terminationGracePeriodSeconds: 30
 
       initContainers:
@@ -29,7 +29,7 @@ spec:
             - |
               echo "Waiting for PostgreSQL..."
               until pg_isready \
-                -h {{ printf "%s-postgresql" .Release.Name | quote }} \
+                -h {{ printf "%s-postgresql" .Release.Name | trunc 63 | trimSuffix "-" | quote }} \
                 -p {{ .Values.global.db.port }} \
                 -U {{ .Values.global.db.user | quote }}; do
                 echo "PostgreSQL not ready, retrying in 5s..."
@@ -37,12 +37,7 @@ spec:
               done
               echo "PostgreSQL is ready"
           resources:
-            requests:
-              cpu: "50m"
-              memory: "32Mi"
-            limits:
-              cpu: "200m"
-              memory: "128Mi"
+            {{- toYaml .Values.global.initContainerResources | nindent 12 }}
 
         - name: wait-for-indexer
           image: curlimages/curl:8.5.0
@@ -50,7 +45,7 @@ spec:
             - sh
             - -c
             - |
-              YACI_URL="http://{{ printf "%s-yaci-indexer" .Release.Name }}:9095"
+              YACI_URL="http://{{ printf "%s-yaci-indexer" .Release.Name | trunc 63 | trimSuffix "-" }}:9095"
               echo "Waiting for yaci-indexer at ${YACI_URL}/actuator/health..."
               until curl -sf "${YACI_URL}/actuator/health" > /dev/null 2>&1; do
                 echo "yaci-indexer not ready, retrying in 10s..."
@@ -58,12 +53,7 @@ spec:
               done
               echo "yaci-indexer is healthy"
           resources:
-            requests:
-              cpu: "50m"
-              memory: "32Mi"
-            limits:
-              cpu: "200m"
-              memory: "128Mi"
+            {{- toYaml .Values.global.initContainerResources | nindent 12 }}
 
       containers:
         - name: rosetta-api
@@ -76,7 +66,7 @@ spec:
             - name: API_PORT
               value: "8082"
             - name: DB_HOST
-              value: {{ printf "%s-postgresql" .Release.Name | quote }}
+              value: {{ printf "%s-postgresql" .Release.Name | trunc 63 | trimSuffix "-" | quote }}
             - name: DB_PORT
               value: {{ .Values.global.db.port | toString | quote }}
             - name: DB_NAME
@@ -88,7 +78,7 @@ spec:
             - name: DB_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: {{ printf "%s-db-secret" .Release.Name }}
+                  name: {{ .Values.global.db.existingSecret | default (printf "%s-db-secret" .Release.Name | trunc 63 | trimSuffix "-") }}
                   key: db-secret
             - name: CARDANO_NODE_VERSION
               value: {{ .Values.global.cardanoNodeVersion | quote }}
@@ -103,13 +93,13 @@ spec:
             - name: GENESIS_BYRON_PATH
               value: /config/byron-genesis.json
             - name: CARDANO_NODE_SUBMIT_HOST
-              value: {{ printf "%s-cardano-node" .Release.Name | quote }}
+              value: {{ printf "%s-cardano-node" .Release.Name | trunc 63 | trimSuffix "-" | quote }}
             - name: NODE_SUBMIT_API_PORT
               value: "8090"
             - name: CARDANO_NODE_SOCKET_PATH
               value: /tmp/node.socket
             - name: YACI_HTTP_BASE_URL
-              value: {{ printf "http://%s-yaci-indexer:9095/api/v1" .Release.Name | quote }}
+              value: {{ printf "http://%s-yaci-indexer:9095/api/v1" (.Release.Name | trunc 45 | trimSuffix "-") | quote }}
             - name: HTTP_CONNECT_TIMEOUT_SECONDS
               value: {{ .Values.env.httpConnectTimeoutSeconds | toString | quote }}
             - name: HTTP_REQUEST_TIMEOUT_SECONDS
@@ -165,16 +155,9 @@ spec:
               mountPath: /config
               readOnly: true
           readinessProbe:
-            exec:
-              command:
-                - sh
-                - -c
-                - |
-                  curl --fail --silent \
-                    http://localhost:8082/network/options \
-                    -H 'Content-Type: application/json' \
-                    --data "{\"network_identifier\":{\"blockchain\":\"cardano\",\"network\":\"{{ .Values.global.network }}\"},\"metadata\":{}}" \
-                    -X POST > /dev/null 2>&1
+            httpGet:
+              path: /actuator/health
+              port: 8082
             initialDelaySeconds: 60
             periodSeconds: 15
             failureThreshold: 40

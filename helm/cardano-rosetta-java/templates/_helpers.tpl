@@ -2,14 +2,7 @@
 Expand the full name of the chart using the release name.
 */}}
 {{- define "cardano-rosetta-java.fullname" -}}
-{{- printf "%s" .Release.Name | trunc 63 | trimSuffix "-" }}
-{{- end }}
-
-{{/*
-Determine the target namespace.
-*/}}
-{{- define "cardano-rosetta-java.namespace" -}}
-{{- .Values.global.namespace | default "cardano" }}
+{{- .Release.Name | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
@@ -38,10 +31,18 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
+ServiceAccount name used by all pods in this release.
+*/}}
+{{- define "cardano-rosetta-java.saName" -}}
+{{- printf "%s-sa" .Release.Name | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{/*
 Name of the Kubernetes Secret that holds the database password.
+If global.db.existingSecret is set, use that; otherwise use the chart-managed secret.
 */}}
 {{- define "cardano-rosetta-java.dbSecretName" -}}
-{{- printf "%s-db-secret" .Release.Name }}
+{{- .Values.global.db.existingSecret | default (printf "%s-db-secret" .Release.Name | trunc 63 | trimSuffix "-") }}
 {{- end }}
 
 {{/*
@@ -52,29 +53,57 @@ use it; otherwise fall back to the in-cluster PostgreSQL service name.
 {{- if .Values.global.db.host -}}
 {{- .Values.global.db.host -}}
 {{- else -}}
-{{- printf "%s-postgresql" .Release.Name -}}
+{{- printf "%s-postgresql" .Release.Name | trunc 63 | trimSuffix "-" -}}
 {{- end }}
 {{- end }}
 
 {{/*
-Service name for the cardano-node subchart.
+Mithril job name.
+*/}}
+{{- define "cardano-rosetta-java.mithrilJobName" -}}
+{{- printf "%s-mithril" .Release.Name | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{/*
+Index-applier job name.
+*/}}
+{{- define "cardano-rosetta-java.indexApplierName" -}}
+{{- printf "%s-index-applier" .Release.Name | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{/*
+DB indexes ConfigMap name.
+*/}}
+{{- define "cardano-rosetta-java.dbIndexesName" -}}
+{{- printf "%s-db-indexes" .Release.Name | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{/*
+Load-tests ConfigMap name.
+*/}}
+{{- define "cardano-rosetta-java.loadTestsName" -}}
+{{- printf "%s-load-tests" .Release.Name | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{/*
+Stress-test job name.
+*/}}
+{{- define "cardano-rosetta-java.stressTestName" -}}
+{{- printf "%s-stress-test" .Release.Name | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{/*
+Cardano-node service name (used cross-chart).
 */}}
 {{- define "cardano-rosetta-java.nodeServiceName" -}}
-{{- printf "%s-cardano-node" .Release.Name }}
+{{- printf "%s-cardano-node" .Release.Name | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
-Service name for the yaci-indexer subchart.
+Yaci-indexer service name (used cross-chart).
 */}}
 {{- define "cardano-rosetta-java.yaciServiceName" -}}
-{{- printf "%s-yaci-indexer" .Release.Name }}
-{{- end }}
-
-{{/*
-ConfigMap name for node configuration files.
-*/}}
-{{- define "cardano-rosetta-java.nodeConfigMapName" -}}
-{{- printf "%s-node-config" .Release.Name }}
+{{- printf "%s-yaci-indexer" .Release.Name | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*

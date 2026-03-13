@@ -8,9 +8,7 @@ replicaCount: 1
 ## Service configuration
 service:
   port: 8082
-  external:
-    enabled: false
-    type: LoadBalancer
+  type: ClusterIP   # ClusterIP | NodePort | LoadBalancer
 
 ## Ingress configuration
 ingress:

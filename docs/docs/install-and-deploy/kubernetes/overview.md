@@ -12,7 +12,7 @@ Kubernetes cluster** (EKS, GKE, AKS).
 
 ## Architecture
 
-The deployment consists of **5 Helm subcharts** plus orchestration resources in the
+The deployment consists of **4 Helm subcharts** plus orchestration resources in the
 parent chart:
 
 ```
@@ -20,9 +20,10 @@ Parent chart: cardano-rosetta-java
 ├── cardano-node          StatefulSet — Cardano blockchain node + socat sidecar
 ├── postgresql            StatefulSet — PostgreSQL with blockchain-tuned configuration
 ├── yaci-indexer          Deployment  — Blockchain data indexer (Yaci Store)
-├── rosetta-api           Deployment  — Rosetta HTTP API
-└── monitoring            Deployment  — Prometheus + Grafana (disabled by default)
+└── rosetta-api           Deployment  — Rosetta HTTP API
 ```
+
+Monitoring (Prometheus, Grafana) is **not included** — production clusters should bring their own monitoring solution.
 
 ### Key Architectural Differences from Docker Compose
 
@@ -40,10 +41,13 @@ Docker Compose `depends_on` chains are replaced by Kubernetes init containers:
 ```
 Mithril Job ──────────────────────────────► (one-shot snapshot download)
   cardano-node (wait-for-mithril initContainer polls K8s API)
-    postgresql (wait-for-node-sync initContainer: /sbin/wait-for-node-sync.sh ≥ 100%)
-      yaci-indexer (wait-for-postgres: pg_isready)
-        rosetta-api (wait-for-postgres + wait-for-indexer: /actuator/health)
-          index-applier Job ──────────────► (plain Job, runs automatically with the release)
+    │
+    ├─ postgresql starts immediately (no node dependency — it's just a database)
+    │
+    └─ yaci-indexer (wait-for-postgres: pg_isready
+                     wait-for-node-tcp: nc cardano-node:3002)
+         rosetta-api (wait-for-postgres + wait-for-indexer: /actuator/health)
+           index-applier Job ──────────────► (plain Job, runs automatically with the release)
 ```
 
 The `cardano-node` pod runs **three containers**: the node itself, a `socat` sidecar

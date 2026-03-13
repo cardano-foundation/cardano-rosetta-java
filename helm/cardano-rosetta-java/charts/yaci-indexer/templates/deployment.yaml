@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ printf "%s-yaci-indexer" .Release.Name }}
+  name: {{ include "yaci-indexer.fullname" . }}
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "yaci-indexer.commonLabels" . | nindent 4 }}
@@ -17,7 +17,7 @@ spec:
         {{- include "yaci-indexer.selectorLabels" . | nindent 8 }}
         {{- include "yaci-indexer.commonLabels" . | nindent 8 }}
     spec:
-      serviceAccountName: {{ printf "%s-sa" .Release.Name }}
+      serviceAccountName: {{ include "yaci-indexer.saName" . }}
       terminationGracePeriodSeconds: 30
 
       initContainers:
@@ -27,9 +27,9 @@ spec:
             - sh
             - -c
             - |
-              echo "Waiting for PostgreSQL at {{ printf "%s-postgresql" .Release.Name }}:{{ .Values.global.db.port }}..."
+              echo "Waiting for PostgreSQL at {{ printf "%s-postgresql" .Release.Name | trunc 63 | trimSuffix "-" }}:{{ .Values.global.db.port }}..."
               until pg_isready \
-                -h {{ printf "%s-postgresql" .Release.Name | quote }} \
+                -h {{ printf "%s-postgresql" .Release.Name | trunc 63 | trimSuffix "-" | quote }} \
                 -p {{ .Values.global.db.port }} \
                 -U {{ .Values.global.db.user | quote }}; do
                 echo "PostgreSQL not ready, retrying in 5s..."
@@ -37,12 +37,24 @@ spec:
               done
               echo "PostgreSQL is ready"
           resources:
-            requests:
-              cpu: "50m"
-              memory: "32Mi"
-            limits:
-              cpu: "200m"
-              memory: "128Mi"
+            {{- toYaml .Values.global.initContainerResources | nindent 12 }}
+
+        - name: wait-for-node-tcp
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              NODE_SERVICE="{{ printf "%s-cardano-node" .Release.Name | trunc 63 | trimSuffix "-" }}"
+              NODE_SOCAT_PORT="3002"
+              echo "Waiting for cardano-node socat bridge at ${NODE_SERVICE}:${NODE_SOCAT_PORT}..."
+              until nc -z "${NODE_SERVICE}" "${NODE_SOCAT_PORT}" 2>/dev/null; do
+                echo "Node TCP not reachable yet, waiting 10s..."
+                sleep 10
+              done
+              echo "cardano-node socat bridge is reachable, starting yaci-indexer"
+          resources:
+            {{- toYaml .Values.global.initContainerResources | nindent 12 }}
 
       containers:
         - name: yaci-indexer
@@ -54,15 +66,15 @@ spec:
             - name: YACI_SPRING_PROFILES
               value: "postgres,n2c-socat"
             - name: HOST_N2C_SOCAT_HOST
-              value: {{ printf "%s-cardano-node" .Release.Name | quote }}
+              value: {{ printf "%s-cardano-node" .Release.Name | trunc 63 | trimSuffix "-" | quote }}
             - name: HOST_N2C_SOCAT_PORT
               value: "3002"
             - name: CARDANO_NODE_HOST
-              value: {{ printf "%s-cardano-node" .Release.Name | quote }}
+              value: {{ printf "%s-cardano-node" .Release.Name | trunc 63 | trimSuffix "-" | quote }}
             - name: CARDANO_NODE_PORT
               value: "3001"
             - name: DB_HOST
-              value: {{ printf "%s-postgresql" .Release.Name | quote }}
+              value: {{ printf "%s-postgresql" .Release.Name | trunc 63 | trimSuffix "-" | quote }}
             - name: DB_PORT
               value: {{ .Values.global.db.port | toString | quote }}
             - name: DB_NAME
@@ -74,7 +86,7 @@ spec:
             - name: DB_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: {{ printf "%s-db-secret" .Release.Name }}
+                  name: {{ .Values.global.db.existingSecret | default (printf "%s-db-secret" .Release.Name | trunc 63 | trimSuffix "-") }}
                   key: db-secret
             - name: PROTOCOL_MAGIC
               value: {{ .Values.global.protocolMagic | toString | quote }}
@@ -102,10 +114,24 @@ spec:
               value: {{ .Values.env.peerDiscovery | toString | quote }}
             - name: LOG
               value: {{ .Values.env.logLevel | upper | quote }}
-            - name: SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE
-              value: {{ .Values.env.hikariMaxPoolSize | toString | quote }}
-            - name: SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE
-              value: {{ .Values.env.hikariMinIdle | toString | quote }}
+            {{- $profile := include "yaci-indexer.profile" . }}
+            {{- $indexerDb := index .Values.global.profiles $profile "db" "indexerDb" }}
+            - name: INDEXER_DB_POOL_MIN_COUNT
+              value: {{ $indexerDb.poolMinCount | default .Values.env.indexerDbPoolMinCount | toString | quote }}
+            - name: INDEXER_DB_POOL_MAX_COUNT
+              value: {{ $indexerDb.poolMaxCount | default .Values.env.indexerDbPoolMaxCount | toString | quote }}
+            - name: INDEXER_DB_POOL_MAX_LIFETIME_MS
+              value: {{ .Values.env.indexerDbPoolMaxLifetimeMs | toString | quote }}
+            - name: INDEXER_DB_POOL_CONNECTION_TIMEOUT_MS
+              value: {{ .Values.env.indexerDbPoolConnectionTimeoutMs | toString | quote }}
+            - name: INDEXER_DB_KEEP_ALIVE_MS
+              value: {{ .Values.env.indexerDbKeepAliveMs | toString | quote }}
+            - name: INDEXER_DB_LEAK_CONNECTIONS_WARNING_MS
+              value: {{ .Values.env.indexerDbLeakConnectionsWarningMs | toString | quote }}
+            - name: INDEXER_DB_MONITOR_PERFORMANCE
+              value: {{ .Values.env.indexerDbMonitorPerformance | toString | quote }}
+            - name: INDEXER_DB_SHOW_SQL
+              value: {{ .Values.env.indexerDbShowSql | toString | quote }}
           ports:
             - name: http
               containerPort: 9095

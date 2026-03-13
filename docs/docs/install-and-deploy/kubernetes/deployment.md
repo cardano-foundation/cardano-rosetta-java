@@ -190,11 +190,12 @@ kubectl get pods -n cardano -w
 
 ### Phase 3 — PostgreSQL Startup
 
-PostgreSQL starts only after the node reaches ≥99% sync. Its `wait-for-node-sync`
-initContainer polls `cardano-cli query tip` via the socat bridge inside the cardano-node pod.
+PostgreSQL starts as soon as its PVC is available — it has no dependency on cardano-node.
+While the node is syncing, PostgreSQL initialises its data directory and schema migrations
+run immediately. This means yaci-indexer can begin connecting and indexing as soon as the
+node's socat bridge (TCP port 3002) is reachable, without waiting hours for full sync.
 
 ```bash
-kubectl logs rosetta-postgresql-0 -n cardano -c wait-for-node-sync
 kubectl logs -f statefulset/rosetta-postgresql -n cardano
 ```
 
@@ -282,13 +283,9 @@ kubectl logs -f statefulset/rosetta-postgresql -n cardano             # PostgreS
 ```bash
 # Local access only
 kubectl port-forward svc/rosetta-rosetta-api 8082:8082 -n cardano &
-kubectl port-forward svc/rosetta-grafana     3000:3000 -n cardano &
-kubectl port-forward svc/rosetta-prometheus  9090:9090 -n cardano &
 
 # Remote access — bind to all interfaces
 kubectl port-forward --address 0.0.0.0 svc/rosetta-rosetta-api 8082:8082 -n cardano &
-kubectl port-forward --address 0.0.0.0 svc/rosetta-grafana     3000:3000 -n cardano &
-kubectl port-forward --address 0.0.0.0 svc/rosetta-prometheus  9090:9090 -n cardano &
 ```
 
 ### Upgrade to a new release
@@ -351,7 +348,8 @@ kubectl delete job rosetta-mithril -n cardano --ignore-not-found
 | `Error: cannot patch ... Job is invalid: spec.template: field is immutable` | Stale Mithril Job from previous install | `kubectl delete job rosetta-mithril -n cardano` then redeploy |
 | `Error: configHostPath is required` | `global.configHostPath` not set | Add `--set global.configHostPath=$(pwd)/config/node` |
 | `cardano-node` stuck in `Init:0/1` | Mithril Job not succeeded yet | `kubectl logs -f job/rosetta-mithril -n cardano` |
-| `postgresql` stuck in `Init:0/1` | Node not fully synced | Check cardano-node logs for sync progress |
+| `postgresql` stuck in `Init:0/1` | PVC not bound | `kubectl get pvc -n cardano`; check StorageClass |
+| `yaci-indexer` stuck in `Init:1/2` | cardano-node socat bridge not up yet | `kubectl logs <yaci-pod> -c wait-for-node-tcp -n cardano` |
 | `rosetta-api` stuck with `FailedMount` | `configHostPath` directory missing on host | Verify `$(pwd)/config/node/<network>/` exists on the server |
 | Mithril: `signature error: Verification equation was not satisfied` | Empty verification key passed as env var | Upgrade chart ≥ 2.0.0 — keys are now auto-fetched by entrypoint |
 | `yaci-indexer` CrashLoopBackOff (HikariCP timeout) | DB connection pool exhausted | Increase `hikariMaxPoolSize` in values (default 40) |
@@ -362,7 +360,6 @@ kubectl delete job rosetta-mithril -n cardano --ignore-not-found
 | `ImagePullBackOff` | Wrong image tag | Check `global.releaseVersion` in values |
 | Port-forward not reachable from remote | Bound to 127.0.0.1 | Add `--address 0.0.0.0` to `kubectl port-forward` |
 | cardano-node restart loop after reboot | Startup probe too short for ImmutableDB validation | `startupProbe.failureThreshold: 720` (3 hours); force-delete pod if StatefulSet update is blocked |
-| pg-exporter `0/1` not ready | Missing `pg_monitor` role | `kubectl exec rosetta-postgresql-0 -n cardano -- psql -U postgres -c "GRANT pg_monitor TO rosetta_db_admin;"` |
 
 ---
 
@@ -376,7 +373,6 @@ kubectl delete job rosetta-mithril -n cardano --ignore-not-found
 | postgresql | 1 / 2 CPU | 2 / 6 Gi | 50 Gi |
 | yaci-indexer | 500m / 1 CPU | 1 / 2 Gi | — |
 | rosetta-api | 250m / 1 CPU | 512Mi / 1 Gi | — |
-| monitoring | 350m / 1.7 CPU | 832Mi / 2.5 Gi | 12 Gi |
 
 ### Mainnet — mid profile
 
@@ -386,8 +382,7 @@ kubectl delete job rosetta-mithril -n cardano --ignore-not-found
 | postgresql | 2 / 8 CPU | 16 / 32 Gi | 200 Gi |
 | yaci-indexer | 1 / 4 CPU | 4 / 8 Gi | — |
 | rosetta-api | 500m / 2 CPU | 2 / 4 Gi | — |
-| monitoring | 350m / 1.7 CPU | 832Mi / 2.5 Gi | 60 Gi |
-| **Total** | **~6 / 24 CPU** | **~35 / 70 Gi** | **760 Gi** |
+| **Total** | **~5.5 / 22 CPU** | **~34 / 68 Gi** | **700 Gi** |
 
 ---
 
@@ -418,11 +413,6 @@ rosetta-api:
     tls:
       - hosts: [rosetta.example.com]
         secretName: rosetta-tls
-
-monitoring:
-  enabled: true
-  grafana:
-    adminPassword: "<strong-password>"
 ```
 
 ---

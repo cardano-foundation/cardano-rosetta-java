@@ -16,6 +16,10 @@ global:
     user: "rosetta_db_admin"
     # password is required — pass via --set global.db.password=<value> or a sealed secret
     password: ""
+    # existingSecret: if set, skip creating the Secret and use this existing secret name instead.
+    # The secret must contain a key named "db-secret" with the database password.
+    # Useful with Sealed Secrets, External Secrets Operator, or Vault.
+    existingSecret: ""
     schema: "public"
     port: 5432
     # host: leave empty to use the in-cluster postgresql service automatically
@@ -23,6 +27,16 @@ global:
 
   # Set to false for offline mode (API only, no node sync wait)
   sync: true
+
+  # Resource requests/limits for all init containers (wait-for-* sidecars).
+  # Tune down if nodes are resource-constrained.
+  initContainerResources:
+    requests:
+      cpu: "50m"
+      memory: "32Mi"
+    limits:
+      cpu: "200m"
+      memory: "128Mi"
 
   # REQUIRED: host directory containing network-specific config files.
   # Template appends /<network> — e.g. /opt/cardano/config/node → /opt/cardano/config/node/mainnet
@@ -66,9 +80,33 @@ global:
           limits:
             cpu: "1"
             memory: "2Gi"
+        mithril:
+          requests:
+            cpu: "250m"
+            memory: "256Mi"
+          limits:
+            cpu: "1"
+            memory: "1Gi"
+        submitApi:
+          requests:
+            cpu: "100m"
+            memory: "256Mi"
+          limits:
+            cpu: "500m"
+            memory: "1Gi"
+        indexApplier:
+          requests:
+            cpu: "100m"
+            memory: "256Mi"
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
       db:
         poolMin: 12
         poolMax: 12
+        indexerDb:
+          poolMinCount: 12
+          poolMaxCount: 12
         maxConnections: 120
         sharedBuffers: "1GB"
         effectiveCacheSize: "2GB"
@@ -117,9 +155,33 @@ global:
           limits:
             cpu: "2"
             memory: "4Gi"
+        mithril:
+          requests:
+            cpu: "500m"
+            memory: "512Mi"
+          limits:
+            cpu: "2"
+            memory: "2Gi"
+        submitApi:
+          requests:
+            cpu: "100m"
+            memory: "256Mi"
+          limits:
+            cpu: "500m"
+            memory: "1Gi"
+        indexApplier:
+          requests:
+            cpu: "100m"
+            memory: "256Mi"
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
       db:
         poolMin: 150
         poolMax: 150
+        indexerDb:
+          poolMinCount: 50
+          poolMaxCount: 50
         maxConnections: 300
         sharedBuffers: "4GB"
         effectiveCacheSize: "8GB"
@@ -169,9 +231,33 @@ global:
           limits:
             cpu: "4"
             memory: "8Gi"
+        mithril:
+          requests:
+            cpu: "1"
+            memory: "1Gi"
+          limits:
+            cpu: "4"
+            memory: "4Gi"
+        submitApi:
+          requests:
+            cpu: "250m"
+            memory: "512Mi"
+          limits:
+            cpu: "1"
+            memory: "2Gi"
+        indexApplier:
+          requests:
+            cpu: "250m"
+            memory: "512Mi"
+          limits:
+            cpu: "1"
+            memory: "1Gi"
       db:
         poolMin: 100
         poolMax: 550
+        indexerDb:
+          poolMinCount: 50
+          poolMaxCount: 150
         maxConnections: 600
         sharedBuffers: "32GB"
         effectiveCacheSize: "32GB"
@@ -201,12 +287,6 @@ global:
       storageClass: ""
     postgresql:
       size: 200Gi
-      storageClass: ""
-    prometheus:
-      size: 50Gi
-      storageClass: ""
-    grafana:
-      size: 10Gi
       storageClass: ""
 
   ## -------------------------------------------------------------------
@@ -253,12 +333,9 @@ cardano-node:
 
 postgresql:
   enabled: true
-
 yaci-indexer:
   enabled: true
 
 rosetta-api:
   enabled: true
 
-monitoring:
-  enabled: true

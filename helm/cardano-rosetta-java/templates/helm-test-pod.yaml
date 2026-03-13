@@ -1,8 +1,8 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: {{ printf "%s-test-connection" .Release.Name }}
-  namespace: {{ include "cardano-rosetta-java.namespace" . }}
+  name: {{ printf "%s-test-connection" .Release.Name | trunc 63 | trimSuffix "-" }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "cardano-rosetta-java.commonLabels" . | nindent 4 }}
     component: test
@@ -20,8 +20,8 @@ spec:
         - |
           set -e
           NETWORK="{{ .Values.global.network }}"
-          API_URL="http://{{ printf "%s-rosetta-api" .Release.Name }}:8082"
-          YACI_URL="http://{{ printf "%s-yaci-indexer" .Release.Name }}:9095"
+          API_URL="http://{{ include "cardano-rosetta-java.yaciServiceName" . | replace "yaci-indexer" "rosetta-api" }}:8082"
+          YACI_URL="http://{{ include "cardano-rosetta-java.yaciServiceName" . }}:9095"
 
           echo "=== Testing Rosetta API ==="
 
@@ -56,9 +56,4 @@ spec:
 
           echo "=== All tests passed ==="
       resources:
-        requests:
-          cpu: "50m"
-          memory: "32Mi"
-        limits:
-          cpu: "200m"
-          memory: "128Mi"
+        {{- toYaml .Values.global.initContainerResources | nindent 8 }}

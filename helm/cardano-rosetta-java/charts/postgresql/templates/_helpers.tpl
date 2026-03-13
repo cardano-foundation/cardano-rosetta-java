@@ -1,5 +1,17 @@
 {{- define "postgresql.fullname" -}}
-{{- printf "%s-postgresql" .Release.Name }}
+{{- printf "%s-postgresql" .Release.Name | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{- define "postgresql.headlessName" -}}
+{{- printf "%s-postgresql-headless" .Release.Name | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{- define "postgresql.pvcName" -}}
+{{- printf "%s-postgresql-data" .Release.Name | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{- define "postgresql.saName" -}}
+{{- printf "%s-sa" .Release.Name | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{- define "postgresql.commonLabels" -}}
@@ -9,7 +21,7 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
 
 {{- define "postgresql.selectorLabels" -}}
-app: {{ printf "%s-postgresql" .Release.Name }}
+app: {{ include "postgresql.fullname" . }}
 component: postgresql
 {{- end }}
 
