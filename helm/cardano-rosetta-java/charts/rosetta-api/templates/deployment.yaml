@@ -156,7 +156,7 @@ spec:
               readOnly: true
           readinessProbe:
             httpGet:
-              path: /actuator/health
+              path: /actuator/health/readiness
               port: 8082
             initialDelaySeconds: 60
             periodSeconds: 15
@@ -164,7 +164,7 @@ spec:
             timeoutSeconds: 10
           livenessProbe:
             httpGet:
-              path: /actuator/health
+              path: /actuator/health/liveness
               port: 8082
             initialDelaySeconds: 120
             periodSeconds: 30

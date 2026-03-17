@@ -109,6 +109,37 @@ spec:
             periodSeconds: 30
             failureThreshold: 5
             timeoutSeconds: 5
+          readinessProbe:
+            exec:
+              command:
+                - /bin/bash
+                - -c
+                - |
+                  NETWORK="{{ .Values.global.network }}"
+                  if [ "$NETWORK" = "mainnet" ]; then
+                    MAGIC_ARGS="--mainnet"
+                  elif [ "$NETWORK" = "preprod" ]; then
+                    MAGIC_ARGS="--testnet-magic 1"
+                  elif [ "$NETWORK" = "preview" ]; then
+                    MAGIC_ARGS="--testnet-magic 2"
+                  else
+                    MAGIC_ARGS="--testnet-magic {{ .Values.global.protocolMagic | default 1 }}"
+                  fi
+                  
+                  TIP=$(cardano-cli query tip $MAGIC_ARGS --socket-path /node/node.socket 2>/dev/null)
+                  if [ $? -ne 0 ]; then exit 1; fi
+                  
+                  SYNC=$(echo $TIP | grep -o '"syncProgress":"[^"]*"' | cut -d'"' -f4)
+                  if [ "$(echo "$SYNC > 99.00" | bc)" -eq 1 ]; then
+                    exit 0
+                  else
+                    echo "Syncing: $SYNC%"
+                    exit 1
+                  fi
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            failureThreshold: 10
+            timeoutSeconds: 10
           startupProbe:
             exec:
               command:

@@ -36,6 +36,12 @@ services:
       - ${CARDANO_NODE_DIR}:${CARDANO_NODE_DIR}
     ports:
       - ${YACI_INDEXER_PORT}:9095
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:9095/actuator/health/readiness || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 60s
     restart: always
     depends_on:
       db:

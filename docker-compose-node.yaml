@@ -35,6 +35,11 @@ services:
     restart: unless-stopped
     ports:
       - ${CARDANO_NODE_PORT}:${CARDANO_NODE_PORT}
+    healthcheck:
+      test: [ "CMD-SHELL", "nc -z localhost ${CARDANO_NODE_PORT} || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     entrypoint: ["/sbin/entrypoint.sh", "cardano-node"]
     depends_on:
       mithril:
@@ -58,6 +63,11 @@ services:
     restart: unless-stopped
     ports:
       - ${NODE_SUBMIT_API_PORT}:${NODE_SUBMIT_API_PORT}
+    healthcheck:
+      test: [ "CMD-SHELL", "nc -z localhost ${NODE_SUBMIT_API_PORT} || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     entrypoint: ["/sbin/entrypoint.sh", "cardano-submit-api"]
     depends_on:
       mithril:

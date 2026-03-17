@@ -64,7 +64,7 @@ services:
       yaci-indexer:
         condition: service_started
     healthcheck:
-      test: [ "CMD-SHELL", "curl --fail http://localhost:${API_PORT}/network/options -H 'Content-Type: application/json' --data '{\"network_identifier\": {\"blockchain\": \"cardano\",\"network\": \"${NETWORK}\"},\"metadata\": {}}' -X POST" ]
+      test: [ "CMD-SHELL", "curl -f http://localhost:${API_PORT}/actuator/health/readiness || exit 1" ]
       interval: 10s
       retries: 40
       start_period: 60s

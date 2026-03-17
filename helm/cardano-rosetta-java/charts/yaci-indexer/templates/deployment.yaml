@@ -142,7 +142,7 @@ spec:
               readOnly: true
           readinessProbe:
             httpGet:
-              path: /actuator/health
+              path: /actuator/health/readiness
               port: 9095
             initialDelaySeconds: 60
             periodSeconds: 15
@@ -150,7 +150,7 @@ spec:
             timeoutSeconds: 5
           livenessProbe:
             httpGet:
-              path: /actuator/health
+              path: /actuator/health/liveness
               port: 9095
             initialDelaySeconds: 120
             periodSeconds: 30
