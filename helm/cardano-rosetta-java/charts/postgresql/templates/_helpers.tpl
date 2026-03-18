@@ -10,10 +10,6 @@
 {{- printf "%s-postgresql-data" .Release.Name | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
-{{- define "postgresql.saName" -}}
-{{- printf "%s-sa" .Release.Name | trunc 63 | trimSuffix "-" }}
-{{- end }}
-
 {{- define "postgresql.commonLabels" -}}
 app.kubernetes.io/name: postgresql
 app.kubernetes.io/instance: {{ .Release.Name }}

@@ -16,7 +16,6 @@ spec:
         {{- include "yaci-indexer.selectorLabels" . | nindent 8 }}
         {{- include "yaci-indexer.commonLabels" . | nindent 8 }}
     spec:
-      serviceAccountName: {{ include "yaci-indexer.saName" . }}
       terminationGracePeriodSeconds: 30
 
       initContainers:

@@ -2,10 +2,6 @@
 {{- printf "%s-rosetta-api" .Release.Name | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
-{{- define "rosetta-api.saName" -}}
-{{- printf "%s-sa" .Release.Name | trunc 63 | trimSuffix "-" }}
-{{- end }}
-
 {{- define "rosetta-api.commonLabels" -}}
 app.kubernetes.io/name: rosetta-api
 app.kubernetes.io/instance: {{ .Release.Name }}

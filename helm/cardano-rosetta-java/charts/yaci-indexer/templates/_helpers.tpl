@@ -2,10 +2,6 @@
 {{- printf "%s-yaci-indexer" .Release.Name | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
-{{- define "yaci-indexer.saName" -}}
-{{- printf "%s-sa" .Release.Name | trunc 63 | trimSuffix "-" }}
-{{- end }}
-
 {{- define "yaci-indexer.commonLabels" -}}
 app.kubernetes.io/name: yaci-indexer
 app.kubernetes.io/instance: {{ .Release.Name }}

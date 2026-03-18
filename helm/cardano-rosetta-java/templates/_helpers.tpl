@@ -31,13 +31,6 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
-ServiceAccount name used by all pods in this release.
-*/}}
-{{- define "cardano-rosetta-java.saName" -}}
-{{- printf "%s-sa" .Release.Name | trunc 63 | trimSuffix "-" }}
-{{- end }}
-
-{{/*
 Name of the Kubernetes Secret that holds the database password.
 If global.db.existingSecret is set, use that; otherwise use the chart-managed secret.
 */}}
@@ -55,13 +48,6 @@ use it; otherwise fall back to the in-cluster PostgreSQL service name.
 {{- else -}}
 {{- printf "%s-postgresql" .Release.Name | trunc 63 | trimSuffix "-" -}}
 {{- end }}
-{{- end }}
-
-{{/*
-Mithril job name.
-*/}}
-{{- define "cardano-rosetta-java.mithrilJobName" -}}
-{{- printf "%s-mithril" .Release.Name | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
@@ -83,13 +69,6 @@ Load-tests ConfigMap name.
 */}}
 {{- define "cardano-rosetta-java.loadTestsName" -}}
 {{- printf "%s-load-tests" .Release.Name | trunc 63 | trimSuffix "-" }}
-{{- end }}
-
-{{/*
-Stress-test job name.
-*/}}
-{{- define "cardano-rosetta-java.stressTestName" -}}
-{{- printf "%s-stress-test" .Release.Name | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
@@ -125,20 +104,6 @@ PostgreSQL PVC name.
 */}}
 {{- define "cardano-rosetta-java.pgDataPvcName" -}}
 {{- printf "%s-postgresql-data" .Release.Name | trunc 63 | trimSuffix "-" }}
-{{- end }}
-
-{{/*
-Role name.
-*/}}
-{{- define "cardano-rosetta-java.roleName" -}}
-{{- printf "%s-role" .Release.Name | trunc 63 | trimSuffix "-" }}
-{{- end }}
-
-{{/*
-RoleBinding name.
-*/}}
-{{- define "cardano-rosetta-java.rolebindingName" -}}
-{{- printf "%s-rolebinding" .Release.Name | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*

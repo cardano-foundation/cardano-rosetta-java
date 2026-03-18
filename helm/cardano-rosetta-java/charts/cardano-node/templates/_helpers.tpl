@@ -10,10 +10,6 @@
 {{- printf "%s-cardano-node-data" .Release.Name | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
-{{- define "cardano-node.saName" -}}
-{{- printf "%s-sa" .Release.Name | trunc 63 | trimSuffix "-" }}
-{{- end }}
-
 {{- define "cardano-node.commonLabels" -}}
 app.kubernetes.io/name: cardano-node
 app.kubernetes.io/instance: {{ .Release.Name }}

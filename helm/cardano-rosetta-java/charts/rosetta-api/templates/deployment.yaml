@@ -16,7 +16,6 @@ spec:
         {{- include "rosetta-api.selectorLabels" . | nindent 8 }}
         {{- include "rosetta-api.commonLabels" . | nindent 8 }}
     spec:
-      serviceAccountName: {{ include "rosetta-api.saName" . }}
       terminationGracePeriodSeconds: 30
 
       initContainers:

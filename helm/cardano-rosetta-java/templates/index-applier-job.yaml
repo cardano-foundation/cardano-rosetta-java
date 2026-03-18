@@ -25,7 +25,6 @@ spec:
         component: index-applier
     spec:
       restartPolicy: OnFailure
-      serviceAccountName: {{ include "cardano-rosetta-java.saName" . }}
       initContainers:
         - name: wait-for-api
           image: curlimages/curl:8.5.0

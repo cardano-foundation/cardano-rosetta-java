@@ -17,56 +17,43 @@ spec:
         {{- include "cardano-node.selectorLabels" . | nindent 8 }}
         {{- include "cardano-node.commonLabels" . | nindent 8 }}
     spec:
-      serviceAccountName: {{ include "cardano-node.saName" . }}
       terminationGracePeriodSeconds: 60
 
+      {{- if .Values.global.mithril.enabled }}
       initContainers:
-        - name: wait-for-mithril
-          image: curlimages/curl:8.5.0
+        - name: mithril-download
+          image: "cardanofoundation/cardano-rosetta-java-mithril:{{ .Values.global.mithrilVersion }}"
           command:
             - sh
             - -c
             - |
-              {{- if .Values.global.mithril.enabled }}
-              MITHRIL_JOB="{{ include "cardano-rosetta-java.mithrilJobName" . }}"
-              NAMESPACE="{{ .Release.Namespace }}"
-              SA_TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
-              CA_CERT=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
-
-              echo "Waiting for Mithril job '${MITHRIL_JOB}' to complete..."
-
-              ATTEMPTS=0
-              MAX_ATTEMPTS=720  # 6 hours max wait (30s intervals)
-              while [ $ATTEMPTS -lt $MAX_ATTEMPTS ]; do
-                STATUS=$(curl -sf --cacert "${CA_CERT}" \
-                  --header "Authorization: Bearer ${SA_TOKEN}" \
-                  "https://kubernetes.default.svc/apis/batch/v1/namespaces/${NAMESPACE}/jobs/${MITHRIL_JOB}/status" 2>/dev/null)
-
-                SUCCEEDED=$(echo "$STATUS" | grep -o '"succeeded": *[0-9]*' | grep -o '[0-9]*')
-                if [ "${SUCCEEDED}" = "1" ]; then
-                  echo "Mithril job completed successfully (db size: $(du -sh /node/db 2>/dev/null | cut -f1))"
-                  exit 0
-                fi
-
-                FAILED=$(echo "$STATUS" | grep -o '"failed": *[0-9]*' | grep -o '[0-9]*')
-                if [ -n "$FAILED" ] && [ "$FAILED" -ge 3 ]; then
-                  echo "WARNING: Mithril job failed, proceeding without snapshot (node will sync from genesis)"
-                  exit 0
-                fi
-
-                ATTEMPTS=$((ATTEMPTS + 1))
-                echo "Attempt ${ATTEMPTS}/${MAX_ATTEMPTS}: Mithril job not complete yet, waiting 30s..."
-                sleep 30
-              done
-              echo "ERROR: Mithril snapshot not ready after 6 hours"
-              exit 1
-              {{- else }}
-              echo "Mithril disabled, skipping wait"
-              exit 0
-              {{- end }}
+              if [ -d /node/db ] && [ "$(ls -A /node/db 2>/dev/null)" ]; then
+                echo "Node DB already exists ($(du -sh /node/db 2>/dev/null | cut -f1)), skipping Mithril download"
+                exit 0
+              fi
+              echo "No existing node DB found, starting Mithril download..."
+              exec /sbin/entrypoint.sh
+          env:
+            - name: NETWORK
+              value: {{ .Values.global.network | quote }}
+            - name: MITHRIL_SYNC
+              value: {{ .Values.global.mithril.sync | toString | quote }}
+            - name: SNAPSHOT_DIGEST
+              value: {{ .Values.global.mithril.snapshotDigest | quote }}
+            - name: AGGREGATOR_ENDPOINT
+              value: {{ .Values.global.mithril.aggregatorEndpoint | quote }}
+            - name: GENESIS_VERIFICATION_KEY
+              value: {{ .Values.global.mithril.genesisVerificationKey | quote }}
+            - name: ANCILLARY_VERIFICATION_KEY
+              value: {{ .Values.global.mithril.ancillaryVerificationKey | quote }}
           volumeMounts:
             - name: node-data
               mountPath: /node
+          resources:
+            {{- $profile := (include "cardano-node.profile" .) }}
+            {{- $res := index .Values.global.profiles $profile "resources" "mithril" }}
+            {{- toYaml $res | nindent 12 }}
+      {{- end }}
 
       containers:
         - name: cardano-node

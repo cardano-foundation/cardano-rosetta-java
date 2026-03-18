@@ -17,7 +17,6 @@ spec:
         {{- include "postgresql.selectorLabels" . | nindent 8 }}
         {{- include "postgresql.commonLabels" . | nindent 8 }}
     spec:
-      serviceAccountName: {{ include "postgresql.saName" . }}
       terminationGracePeriodSeconds: 60
 
       containers:
