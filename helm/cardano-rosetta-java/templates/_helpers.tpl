@@ -93,20 +93,6 @@ Rosetta API service/deployment name.
 {{- end }}
 
 {{/*
-Cardano node PVC name.
-*/}}
-{{- define "cardano-rosetta-java.nodeDataPvcName" -}}
-{{- printf "%s-cardano-node-data" .Release.Name | trunc 63 | trimSuffix "-" }}
-{{- end }}
-
-{{/*
-PostgreSQL PVC name.
-*/}}
-{{- define "cardano-rosetta-java.pgDataPvcName" -}}
-{{- printf "%s-postgresql-data" .Release.Name | trunc 63 | trimSuffix "-" }}
-{{- end }}
-
-{{/*
 Helm test pod name.
 */}}
 {{- define "cardano-rosetta-java.testConnectionName" -}}

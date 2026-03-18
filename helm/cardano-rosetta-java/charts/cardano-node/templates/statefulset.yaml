@@ -165,10 +165,22 @@ spec:
             failureThreshold: 10
 
       volumes:
-        - name: node-data
-          persistentVolumeClaim:
-            claimName: {{ include "cardano-node.pvcName" . }}
         - name: node-config
           hostPath:
             path: {{ printf "%s/%s" (required "global.configHostPath is required" .Values.global.configHostPath) .Values.global.network }}
             type: Directory
+  volumeClaimTemplates:
+    - metadata:
+        name: node-data
+        labels:
+          {{- include "cardano-node.commonLabels" . | nindent 10 }}
+          component: cardano-node
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        {{- if .Values.global.storage.cardanoNode.storageClass }}
+        storageClassName: {{ .Values.global.storage.cardanoNode.storageClass | quote }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.global.storage.cardanoNode.size }}

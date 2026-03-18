@@ -119,11 +119,23 @@ spec:
             {{- toYaml $res | nindent 12 }}
 
       volumes:
-        - name: pg-data
-          persistentVolumeClaim:
-            claimName: {{ include "postgresql.pvcName" . }}
         # SHM emulation: replaces Docker Compose shm_size: 4g
         - name: dshm
           emptyDir:
             medium: Memory
             sizeLimit: 4Gi
+  volumeClaimTemplates:
+    - metadata:
+        name: pg-data
+        labels:
+          {{- include "postgresql.commonLabels" . | nindent 10 }}
+          component: postgresql
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        {{- if .Values.global.storage.postgresql.storageClass }}
+        storageClassName: {{ .Values.global.storage.postgresql.storageClass | quote }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.global.storage.postgresql.size }}
