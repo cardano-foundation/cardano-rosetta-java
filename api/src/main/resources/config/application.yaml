@@ -75,6 +75,9 @@ management:
     health:
       probes:
         enabled: true
+      group:
+        readiness:
+          include: readinessState,syncStatus
   endpoints:
     web:
       exposure:
