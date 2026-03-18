@@ -27,9 +27,9 @@ spec:
             - sh
             - -c
             - |
-              echo "Waiting for PostgreSQL at {{ printf "%s-postgresql" .Release.Name | trunc 63 | trimSuffix "-" }}:{{ .Values.global.db.port }}..."
+              echo "Waiting for PostgreSQL at {{ include "cardano-rosetta-java.dbHost" . }}:{{ .Values.global.db.port }}..."
               until pg_isready \
-                -h {{ printf "%s-postgresql" .Release.Name | trunc 63 | trimSuffix "-" | quote }} \
+                -h {{ include "cardano-rosetta-java.dbHost" . | quote }} \
                 -p {{ .Values.global.db.port }} \
                 -U {{ .Values.global.db.user | quote }}; do
                 echo "PostgreSQL not ready, retrying in 5s..."
@@ -45,7 +45,7 @@ spec:
             - sh
             - -c
             - |
-              NODE_SERVICE="{{ printf "%s-cardano-node" .Release.Name | trunc 63 | trimSuffix "-" }}"
+              NODE_SERVICE="{{ include "cardano-rosetta-java.nodeServiceName" . }}"
               NODE_SOCAT_PORT="3002"
               echo "Waiting for cardano-node socat bridge at ${NODE_SERVICE}:${NODE_SOCAT_PORT}..."
               until nc -z "${NODE_SERVICE}" "${NODE_SOCAT_PORT}" 2>/dev/null; do
@@ -66,15 +66,15 @@ spec:
             - name: YACI_SPRING_PROFILES
               value: "postgres,n2c-socat"
             - name: HOST_N2C_SOCAT_HOST
-              value: {{ printf "%s-cardano-node" .Release.Name | trunc 63 | trimSuffix "-" | quote }}
+              value: {{ include "cardano-rosetta-java.nodeServiceName" . | quote }}
             - name: HOST_N2C_SOCAT_PORT
               value: "3002"
             - name: CARDANO_NODE_HOST
-              value: {{ printf "%s-cardano-node" .Release.Name | trunc 63 | trimSuffix "-" | quote }}
+              value: {{ include "cardano-rosetta-java.nodeServiceName" . | quote }}
             - name: CARDANO_NODE_PORT
               value: "3001"
             - name: DB_HOST
-              value: {{ printf "%s-postgresql" .Release.Name | trunc 63 | trimSuffix "-" | quote }}
+              value: {{ include "cardano-rosetta-java.dbHost" . | quote }}
             - name: DB_PORT
               value: {{ .Values.global.db.port | toString | quote }}
             - name: DB_NAME
@@ -86,7 +86,7 @@ spec:
             - name: DB_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.global.db.existingSecret | default (printf "%s-db-secret" .Release.Name | trunc 63 | trimSuffix "-") }}
+                  name: {{ include "cardano-rosetta-java.dbSecretName" . }}
                   key: db-secret
             - name: PROTOCOL_MAGIC
               value: {{ .Values.global.protocolMagic | toString | quote }}

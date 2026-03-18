@@ -40,7 +40,7 @@ spec:
             - name: DB_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.global.db.existingSecret | default (printf "%s-db-secret" .Release.Name | trunc 63 | trimSuffix "-") }}
+                  name: {{ include "cardano-rosetta-java.dbSecretName" . }}
                   key: db-secret
             {{- $profile := (include "postgresql.profile" .) }}
             {{- $db := index .Values.global.profiles $profile "db" }}

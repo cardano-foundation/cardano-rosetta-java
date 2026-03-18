@@ -2,7 +2,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ printf "%s-rosetta-api" .Release.Name }}
+  name: {{ include "rosetta-api.fullname" . }}
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "rosetta-api.commonLabels" . | nindent 4 }}
@@ -28,7 +28,7 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: {{ printf "%s-rosetta-api" .Release.Name }}
+                name: {{ include "rosetta-api.fullname" . }}
                 port:
                   number: {{ .Values.service.port }}
 {{- end }}

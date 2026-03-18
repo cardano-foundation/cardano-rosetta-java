@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ printf "%s-cardano-node-data" .Release.Name }}
+  name: {{ include "cardano-node.pvcName" . }}
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "cardano-node.commonLabels" . | nindent 4 }}

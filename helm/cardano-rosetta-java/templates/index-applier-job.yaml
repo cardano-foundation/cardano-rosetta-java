@@ -2,7 +2,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ printf "%s-index-applier" .Release.Name }}
+  name: {{ include "cardano-rosetta-java.indexApplierName" . }}
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "cardano-rosetta-java.commonLabels" . | nindent 4 }}
@@ -26,7 +26,7 @@ spec:
         component: index-applier
     spec:
       restartPolicy: OnFailure
-      serviceAccountName: {{ printf "%s-sa" .Release.Name }}
+      serviceAccountName: {{ include "cardano-rosetta-java.saName" . }}
       initContainers:
         - name: wait-for-api
           image: curlimages/curl:8.5.0
@@ -34,7 +34,7 @@ spec:
             - sh
             - -c
             - |
-              API_URL="http://{{ printf "%s-rosetta-api" .Release.Name }}:8082"
+              API_URL="http://{{ include "cardano-rosetta-java.rosettaApiName" . }}:8082"
               NETWORK="{{ .Values.global.network }}"
               echo "Waiting for Rosetta API at ${API_URL}..."
               until curl -sf "${API_URL}/network/options" \
@@ -70,7 +70,7 @@ spec:
             - name: NETWORK
               value: {{ .Values.global.network | quote }}
             - name: API_URL
-              value: "http://{{ printf "%s-rosetta-api" .Release.Name }}:8082"
+              value: "http://{{ include "cardano-rosetta-java.rosettaApiName" . }}:8082"
             - name: POLL_INTERVAL
               value: {{ .Values.indexApplier.pollInterval | toString | quote }}
           volumeMounts:
@@ -84,5 +84,5 @@ spec:
       volumes:
         - name: db-indexes
           configMap:
-            name: {{ printf "%s-db-indexes" .Release.Name }}
+            name: {{ include "cardano-rosetta-java.dbIndexesName" . }}
 {{- end }}

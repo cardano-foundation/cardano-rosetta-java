@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ printf "%s-postgresql-data" .Release.Name }}
+  name: {{ include "postgresql.pvcName" . }}
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "postgresql.commonLabels" . | nindent 4 }}

@@ -63,5 +63,5 @@ spec:
       volumes:
         - name: node-data
           persistentVolumeClaim:
-            claimName: {{ printf "%s-cardano-node-data" .Release.Name | trunc 63 | trimSuffix "-" }}
+            claimName: {{ include "cardano-rosetta-java.nodeDataPvcName" . }}
 {{- end }}

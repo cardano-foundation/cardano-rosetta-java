@@ -29,7 +29,7 @@ spec:
             - |
               echo "Waiting for PostgreSQL..."
               until pg_isready \
-                -h {{ printf "%s-postgresql" .Release.Name | trunc 63 | trimSuffix "-" | quote }} \
+                -h {{ include "cardano-rosetta-java.dbHost" . | quote }} \
                 -p {{ .Values.global.db.port }} \
                 -U {{ .Values.global.db.user | quote }}; do
                 echo "PostgreSQL not ready, retrying in 5s..."
@@ -45,7 +45,7 @@ spec:
             - sh
             - -c
             - |
-              YACI_URL="http://{{ printf "%s-yaci-indexer" .Release.Name | trunc 63 | trimSuffix "-" }}:9095"
+              YACI_URL="http://{{ include "cardano-rosetta-java.yaciServiceName" . }}:9095"
               echo "Waiting for yaci-indexer at ${YACI_URL}/actuator/health..."
               until curl -sf "${YACI_URL}/actuator/health" > /dev/null 2>&1; do
                 echo "yaci-indexer not ready, retrying in 10s..."
@@ -66,7 +66,7 @@ spec:
             - name: API_PORT
               value: "8082"
             - name: DB_HOST
-              value: {{ printf "%s-postgresql" .Release.Name | trunc 63 | trimSuffix "-" | quote }}
+              value: {{ include "cardano-rosetta-java.dbHost" . | quote }}
             - name: DB_PORT
               value: {{ .Values.global.db.port | toString | quote }}
             - name: DB_NAME
@@ -78,7 +78,7 @@ spec:
             - name: DB_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.global.db.existingSecret | default (printf "%s-db-secret" .Release.Name | trunc 63 | trimSuffix "-") }}
+                  name: {{ include "cardano-rosetta-java.dbSecretName" . }}
                   key: db-secret
             - name: CARDANO_NODE_VERSION
               value: {{ .Values.global.cardanoNodeVersion | quote }}
@@ -93,13 +93,13 @@ spec:
             - name: GENESIS_BYRON_PATH
               value: /config/byron-genesis.json
             - name: CARDANO_NODE_SUBMIT_HOST
-              value: {{ printf "%s-cardano-node" .Release.Name | trunc 63 | trimSuffix "-" | quote }}
+              value: {{ include "cardano-rosetta-java.nodeServiceName" . | quote }}
             - name: NODE_SUBMIT_API_PORT
               value: "8090"
             - name: CARDANO_NODE_SOCKET_PATH
               value: /tmp/node.socket
             - name: YACI_HTTP_BASE_URL
-              value: {{ printf "http://%s-yaci-indexer:9095/api/v1" (.Release.Name | trunc 45 | trimSuffix "-") | quote }}
+              value: {{ printf "http://%s:9095/api/v1" (include "cardano-rosetta-java.yaciServiceName" .) | quote }}
             - name: HTTP_CONNECT_TIMEOUT_SECONDS
               value: {{ .Values.env.httpConnectTimeoutSeconds | toString | quote }}
             - name: HTTP_REQUEST_TIMEOUT_SECONDS

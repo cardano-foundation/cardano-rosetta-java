@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ printf "%s-load-tests" .Release.Name }}
+  name: {{ include "cardano-rosetta-java.loadTestsName" . }}
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "cardano-rosetta-java.commonLabels" . | nindent 4 }}

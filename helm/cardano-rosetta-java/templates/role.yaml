@@ -1,7 +1,7 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: {{ printf "%s-role" .Release.Name | trunc 63 | trimSuffix "-" }}
+  name: {{ include "cardano-rosetta-java.roleName" . }}
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "cardano-rosetta-java.commonLabels" . | nindent 4 }}

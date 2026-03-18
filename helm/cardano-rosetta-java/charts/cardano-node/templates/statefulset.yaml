@@ -29,7 +29,7 @@ spec:
             - -c
             - |
               {{- if .Values.global.mithril.enabled }}
-              MITHRIL_JOB="{{ printf "%s-mithril" .Release.Name | trunc 63 | trimSuffix "-" }}"
+              MITHRIL_JOB="{{ include "cardano-rosetta-java.mithrilJobName" . }}"
               NAMESPACE="{{ .Release.Namespace }}"
               SA_TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
               CA_CERT=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
