@@ -2,7 +2,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "rosetta-api.fullname" . }}
-  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "rosetta-api.commonLabels" . | nindent 4 }}
     component: rosetta-api

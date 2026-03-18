@@ -2,7 +2,6 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: {{ include "cardano-node.fullname" . }}
-  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "cardano-node.commonLabels" . | nindent 4 }}
     component: cardano-node

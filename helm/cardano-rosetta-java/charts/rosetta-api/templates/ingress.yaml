@@ -3,7 +3,6 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: {{ include "rosetta-api.fullname" . }}
-  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "rosetta-api.commonLabels" . | nindent 4 }}
   {{- with .Values.ingress.annotations }}

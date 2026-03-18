@@ -2,7 +2,6 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: {{ include "postgresql.fullname" . }}
-  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "postgresql.commonLabels" . | nindent 4 }}
     component: postgresql
