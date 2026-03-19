@@ -28,23 +28,21 @@ spec:
       restartPolicy: OnFailure
       serviceAccountName: {{ printf "%s-sa" .Release.Name }}
       initContainers:
-        - name: wait-for-api
-          image: curlimages/curl:8.5.0
+        - name: wait-for-postgres
+          image: postgres:16-alpine
           command:
             - sh
             - -c
             - |
-              API_URL="http://{{ printf "%s-rosetta-api" .Release.Name }}:8082"
-              NETWORK="{{ .Values.global.network }}"
-              echo "Waiting for Rosetta API at ${API_URL}..."
-              until curl -sf "${API_URL}/network/options" \
-                -H "Content-Type: application/json" \
-                -d "{\"network_identifier\":{\"blockchain\":\"cardano\",\"network\":\"${NETWORK}\"},\"metadata\":{}}" \
-                -X POST > /dev/null 2>&1; do
-                echo "API not ready, retrying in 30s..."
-                sleep 30
+              echo "Waiting for PostgreSQL..."
+              until pg_isready \
+                -h {{ include "cardano-rosetta-java.dbHost" . | quote }} \
+                -p {{ .Values.global.db.port }} \
+                -U {{ .Values.global.db.user | quote }}; do
+                echo "PostgreSQL not ready, retrying in 5s..."
+                sleep 5
               done
-              echo "API is healthy"
+              echo "PostgreSQL is ready"
           resources:
             {{- toYaml .Values.global.initContainerResources | nindent 12 }}
       containers:
