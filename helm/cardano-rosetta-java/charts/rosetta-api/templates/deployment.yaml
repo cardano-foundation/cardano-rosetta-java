@@ -93,7 +93,7 @@ spec:
             - name: GENESIS_BYRON_PATH
               value: /config/byron-genesis.json
             - name: CARDANO_NODE_SUBMIT_HOST
-              value: {{ printf "%s-cardano-node" .Release.Name | trunc 63 | trimSuffix "-" | quote }}
+              value: {{ printf "%s-cardano-node-headless" .Release.Name | trunc 63 | trimSuffix "-" | quote }}
             - name: NODE_SUBMIT_API_PORT
               value: "8090"
             - name: CARDANO_NODE_SOCKET_PATH

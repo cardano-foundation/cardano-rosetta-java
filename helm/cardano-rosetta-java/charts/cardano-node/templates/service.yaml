@@ -19,6 +19,9 @@ spec:
     - name: socat-n2c
       port: 3002
       targetPort: 3002
+    - name: submit-api
+      port: 8090
+      targetPort: 8090
 ---
 # ClusterIP service for inter-pod communication
 apiVersion: v1

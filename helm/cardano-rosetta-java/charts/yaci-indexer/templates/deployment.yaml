@@ -68,11 +68,11 @@ spec:
             - name: YACI_SPRING_PROFILES
               value: "postgres,n2c-socat"
             - name: HOST_N2C_SOCAT_HOST
-              value: {{ printf "%s-cardano-node" .Release.Name | trunc 63 | trimSuffix "-" | quote }}
+              value: {{ printf "%s-cardano-node-headless" .Release.Name | trunc 63 | trimSuffix "-" | quote }}
             - name: HOST_N2C_SOCAT_PORT
               value: "3002"
             - name: CARDANO_NODE_HOST
-              value: {{ printf "%s-cardano-node" .Release.Name | trunc 63 | trimSuffix "-" | quote }}
+              value: {{ printf "%s-cardano-node-headless" .Release.Name | trunc 63 | trimSuffix "-" | quote }}
             - name: CARDANO_NODE_PORT
               value: "3001"
             - name: DB_HOST
