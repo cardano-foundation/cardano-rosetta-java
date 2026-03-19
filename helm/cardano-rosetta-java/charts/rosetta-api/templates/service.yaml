@@ -1,3 +1,24 @@
+# Headless service for internal access (reachable even when pod is Not Ready)
+# Used by index-applier to poll sync status during index creation
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "rosetta-api.fullname" . }}-internal
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "rosetta-api.commonLabels" . | nindent 4 }}
+spec:
+  clusterIP: None
+  publishNotReadyAddresses: true
+  selector:
+    {{- include "rosetta-api.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: http
+      port: 8082
+      targetPort: 8082
+      protocol: TCP
+---
+# ClusterIP service for production traffic (only routes to Ready pods)
 apiVersion: v1
 kind: Service
 metadata:

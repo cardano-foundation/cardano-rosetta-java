@@ -68,7 +68,7 @@ spec:
             - name: NETWORK
               value: {{ .Values.global.network | quote }}
             - name: API_URL
-              value: "http://{{ printf "%s-rosetta-api" .Release.Name }}:8082"
+              value: "http://{{ printf "%s-rosetta-api-internal" .Release.Name }}:8082"
             - name: POLL_INTERVAL
               value: {{ .Values.indexApplier.pollInterval | toString | quote }}
           volumeMounts:
