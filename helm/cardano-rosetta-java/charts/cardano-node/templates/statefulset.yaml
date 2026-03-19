@@ -130,6 +130,10 @@ spec:
                   if [ $? -ne 0 ]; then exit 1; fi
                   
                   SYNC=$(echo $TIP | grep -o '"syncProgress":"[^"]*"' | cut -d'"' -f4)
+                  if [ -z "$SYNC" ]; then
+                    echo "syncProgress not available yet"
+                    exit 1
+                  fi
                   if [ "$(echo "$SYNC > 99.00" | bc)" -eq 1 ]; then
                     exit 0
                   else

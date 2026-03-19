@@ -45,7 +45,9 @@ spec:
             - sh
             - -c
             - |
-              NODE_SERVICE="{{ printf "%s-cardano-node" .Release.Name | trunc 63 | trimSuffix "-" }}"
+              # Use headless service (publishNotReadyAddresses: true) so we can connect
+              # to socat even while cardano-node readiness probe is still failing during sync
+              NODE_SERVICE="{{ printf "%s-cardano-node-headless" .Release.Name | trunc 63 | trimSuffix "-" }}"
               NODE_SOCAT_PORT="3002"
               echo "Waiting for cardano-node socat bridge at ${NODE_SERVICE}:${NODE_SOCAT_PORT}..."
               until nc -z "${NODE_SERVICE}" "${NODE_SOCAT_PORT}" 2>/dev/null; do
