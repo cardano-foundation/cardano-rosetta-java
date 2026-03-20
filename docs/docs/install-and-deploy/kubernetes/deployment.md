@@ -63,18 +63,8 @@ chmod 600 .env.k8s
 
 #### Step 2 — Pre-create the namespace
 
-> **Do NOT use `--create-namespace`** — the chart has `templates/namespace.yaml` which
-> creates the namespace with Helm ownership labels. Using `--create-namespace` causes a
-> resource conflict.
-
 ```bash
 kubectl create namespace cardano
-kubectl label namespace cardano \
-  app.kubernetes.io/managed-by=Helm \
-  app.kubernetes.io/name=cardano-rosetta-java
-kubectl annotate namespace cardano \
-  meta.helm.sh/release-name=rosetta \
-  meta.helm.sh/release-namespace=cardano
 ```
 
 > On re-deploy (namespace already exists), skip this step.
@@ -97,10 +87,7 @@ helm upgrade --install rosetta helm/cardano-rosetta-java \
   -f helm/cardano-rosetta-java/values.yaml \
   -f helm/cardano-rosetta-java/values-preprod.yaml \
   -f helm/cardano-rosetta-java/values-k3s.yaml \
-  --set global.network=preprod \
-  "--set=global.protocolMagic=1" \
   --set global.profile=entry \
-  --set global.configHostPath=$(pwd)/config/node \
   "--set=global.db.password=${DB_PASSWORD}" \
   -n cardano 2>&1 | grep -v "walk.go"
 ```
@@ -113,10 +100,7 @@ export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
 helm upgrade --install rosetta helm/cardano-rosetta-java \
   -f helm/cardano-rosetta-java/values.yaml \
   -f helm/cardano-rosetta-java/values-k3s.yaml \
-  --set global.network=mainnet \
-  "--set=global.protocolMagic=764824073" \
   --set global.profile=mid \
-  --set global.configHostPath=$(pwd)/config/node \
   "--set=global.db.password=${DB_PASSWORD}" \
   -n cardano 2>&1 | grep -v "walk.go"
 ```
@@ -129,14 +113,10 @@ helm upgrade --install rosetta helm/cardano-rosetta-java \
   "--set=global.protocolMagic=764824073" \
   --set global.profile=mid \
   "--set=global.db.password=${DB_PASSWORD}" \
-  --set global.configHostPath="$(pwd)/config/node" \
   --set global.storage.cardanoNode.storageClass="gp3" \
   --set global.storage.postgresql.storageClass="gp3" \
   -n cardano 2>&1 | grep -v "walk.go"
 ```
-
-> For managed K8s, ensure the config directory exists on every node that may run
-> `cardano-node` and `yaci-indexer` pods, or pin pods to a specific node via `nodeSelector`.
 
 ---
 
@@ -157,25 +137,17 @@ helm upgrade --install rosetta helm/cardano-rosetta-java \
 
 ### Phase 1 — Mithril Snapshot Download
 
-Mithril downloads a verified snapshot of the blockchain. The Mithril Job fetches the
-aggregator endpoint and verification keys automatically from GitHub based on `NETWORK`
-(same behaviour as Docker Compose — no manual key configuration required).
+Mithril runs as an init container (`mithril-download`) inside the `cardano-node` pod.
+It fetches the aggregator endpoint and verification keys automatically from GitHub based
+on `NETWORK` (same behaviour as Docker Compose — no manual key configuration required).
+If a node DB already exists on the PVC, the download is skipped automatically.
 
-The `cardano-node` pod stays in `Init:0/1` (`wait-for-mithril`) until the Job completes.
+The `cardano-node` pod stays in `Init:0/1` until the init container completes.
 
 ```bash
-# Watch job progress
-kubectl logs -f job/rosetta-mithril -n cardano
-
-# Check job status
-kubectl get job rosetta-mithril -n cardano -o jsonpath='{.status}'
+# Watch download progress
+kubectl logs -f rosetta-cardano-node-0 -c mithril-download -n cardano
 ```
-
-> **Reinstall note:** The Mithril Job has `helm.sh/resource-policy: keep` — it survives
-> `helm uninstall`. On reinstall, delete it first if it already exists:
-> ```bash
-> kubectl delete job rosetta-mithril -n cardano --ignore-not-found
-> ```
 
 ### Phase 2 — Cardano Node Sync
 
@@ -295,9 +267,6 @@ export DB_PASSWORD=$(grep DB_PASSWORD .env.k8s | cut -d= -f2-)
 helm upgrade rosetta helm/cardano-rosetta-java \
   -f helm/cardano-rosetta-java/values.yaml \
   -f helm/cardano-rosetta-java/values-k3s.yaml \
-  --set global.network=mainnet \
-  "--set=global.protocolMagic=764824073" \
-  --set global.configHostPath=$(pwd)/config/node \
   "--set=global.db.password=${DB_PASSWORD}" \
   --set global.releaseVersion="2.1.0" \
   -n cardano 2>&1 | grep -v "walk.go"
@@ -318,14 +287,13 @@ kubectl scale deployment rosetta-rosetta-api --replicas=2 -n cardano
 ### Teardown (preserve blockchain data)
 ```bash
 helm uninstall rosetta -n cardano --no-hooks
-# PVCs survive by default (helm.sh/resource-policy: keep)
+# StatefulSet volumeClaimTemplates PVCs persist — delete manually if needed
 ```
 
 ### Full reset (delete all data — IRREVERSIBLE)
 ```bash
 helm uninstall rosetta -n cardano --no-hooks
 kubectl delete pvc --all -n cardano
-kubectl delete job rosetta-mithril -n cardano --ignore-not-found
 ```
 
 ---
@@ -345,16 +313,13 @@ kubectl delete job rosetta-mithril -n cardano --ignore-not-found
 
 | Symptom | Likely Cause | Resolution |
 |---------|-------------|------------|
-| `Error: cannot patch ... Job is invalid: spec.template: field is immutable` | Stale Mithril Job from previous install | `kubectl delete job rosetta-mithril -n cardano` then redeploy |
-| `Error: configHostPath is required` | `global.configHostPath` not set | Add `--set global.configHostPath=$(pwd)/config/node` |
-| `cardano-node` stuck in `Init:0/1` | Mithril Job not succeeded yet | `kubectl logs -f job/rosetta-mithril -n cardano` |
+| `cardano-node` stuck in `Init:0/1` | Mithril download still running | `kubectl logs rosetta-cardano-node-0 -c mithril-download -n cardano` |
 | `postgresql` stuck in `Init:0/1` | PVC not bound | `kubectl get pvc -n cardano`; check StorageClass |
-| `yaci-indexer` stuck in `Init:1/2` | cardano-node socat bridge not up yet | `kubectl logs <yaci-pod> -c wait-for-node-tcp -n cardano` |
-| `rosetta-api` stuck with `FailedMount` | `configHostPath` directory missing on host | Verify `$(pwd)/config/node/<network>/` exists on the server |
+| `yaci-indexer` stuck in `Init:1/3` | cardano-node socat bridge not up yet | `kubectl logs <yaci-pod> -c wait-for-node-tcp -n cardano` |
+| `yaci-indexer` or `rosetta-api` stuck in `Init:2/3` | `copy-node-config` init container failed | `kubectl logs <pod> -c copy-node-config -n cardano` |
 | Mithril: `signature error: Verification equation was not satisfied` | Empty verification key passed as env var | Upgrade chart ≥ 2.0.0 — keys are now auto-fetched by entrypoint |
 | `yaci-indexer` CrashLoopBackOff (HikariCP timeout) | DB connection pool exhausted | Increase `hikariMaxPoolSize` in values (default 40) |
 | `yaci-indexer` two pods simultaneously | Normal rolling update behaviour | Wait — old pod terminates once new one is ready |
-| `helm upgrade` fails on Job immutability | Mithril Job already exists | `kubectl delete job rosetta-mithril -n cardano` |
 | OOMKilled | Insufficient memory | Use a higher profile (`mid` or `advanced`) |
 | PVC `Pending` | No suitable StorageClass | `kubectl get sc`; ensure `local-path` provisioner is running |
 | `ImagePullBackOff` | Wrong image tag | Check `global.releaseVersion` in values |
@@ -431,18 +396,14 @@ kubectl get pvc -n cardano
 ### Re-sync from Mithril (if node DB is corrupt)
 
 ```bash
-# 1. Delete the existing Mithril Job and node PVC
-kubectl delete job rosetta-mithril -n cardano --ignore-not-found
-kubectl delete pvc rosetta-cardano-node-data -n cardano
+# 1. Delete the node data PVC (triggers fresh Mithril download on next deploy)
+kubectl delete pvc node-data-rosetta-cardano-node-0 -n cardano
 
-# 2. Re-deploy (triggers fresh Mithril download)
+# 2. Re-deploy (mithril-download init container runs automatically)
 export DB_PASSWORD=$(grep DB_PASSWORD .env.k8s | cut -d= -f2-)
 helm upgrade rosetta helm/cardano-rosetta-java \
   -f helm/cardano-rosetta-java/values.yaml \
   -f helm/cardano-rosetta-java/values-k3s.yaml \
-  --set global.network=mainnet \
-  "--set=global.protocolMagic=764824073" \
-  --set global.configHostPath=$(pwd)/config/node \
   "--set=global.db.password=${DB_PASSWORD}" \
   -n cardano 2>&1 | grep -v "walk.go"
 ```

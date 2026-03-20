@@ -15,7 +15,6 @@ These values are shared across all subcharts via `global.*`.
 
 | Value | Default | Docker Compose equivalent | Description |
 |-------|---------|--------------------------|-------------|
-| `global.namespace` | `cardano` | — | Kubernetes namespace |
 | `global.network` | `mainnet` | `NETWORK` | Blockchain network: `mainnet`, `preprod`, `preview` |
 | `global.protocolMagic` | `"764824073"` | `PROTOCOL_MAGIC` | Cardano protocol magic number (always a quoted string to prevent scientific notation) |
 | `global.releaseVersion` | `"2.1.0"` | `RELEASE_VERSION` | Docker image tag for API and indexer |
@@ -24,7 +23,6 @@ These values are shared across all subcharts via `global.*`.
 | `global.mithrilVersion` | `2543.1-hotfix` | `MITHRIL_VERSION` | Mithril client image tag |
 | `global.profile` | `mid` | — | Hardware profile: `entry`, `mid`, `advanced` |
 | `global.sync` | `true` | `SYNC` | Set `false` for offline (API-only) mode |
-| `global.configHostPath` | `""` **(required)** | — | Host directory containing network-specific config files. Template appends `/<network>` to form the full path (e.g. `/opt/cardano/config/node` → `/opt/cardano/config/node/mainnet`). Mounted read-only at `/config` in pods — equivalent to Docker's bind-mount. Must be set in your environment values file (e.g. `values-k3s.yaml`). |
 
 ### Database (`global.db`)
 
@@ -219,5 +217,5 @@ helm upgrade --install rosetta helm/cardano-rosetta-java \
   -f helm/cardano-rosetta-java/values-k3s.yaml \
   -f helm/cardano-rosetta-java/values-preprod.yaml \
   --set global.db.password="${DB_PASSWORD}" \
-  -n cardano --create-namespace
+  -n cardano
 ```

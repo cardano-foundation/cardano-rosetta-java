@@ -39,14 +39,16 @@ mounts. In Kubernetes, pods cannot share UNIX sockets. A `socat` sidecar inside 
 Docker Compose `depends_on` chains are replaced by Kubernetes init containers:
 
 ```
-Mithril Job ──────────────────────────────► (one-shot snapshot download)
-  cardano-node (wait-for-mithril initContainer polls K8s API)
+cardano-node (init: mithril-download → cardano-node starts)
     │
     ├─ postgresql starts immediately (no node dependency — it's just a database)
     │
     └─ yaci-indexer (wait-for-postgres: pg_isready
-                     wait-for-node-tcp: nc cardano-node:3002)
-         rosetta-api (wait-for-postgres + wait-for-indexer: /actuator/health)
+                     wait-for-node-tcp: nc cardano-node:3002
+                     copy-node-config: copies configs from node image)
+         rosetta-api (wait-for-postgres
+                      wait-for-indexer: /actuator/health
+                      copy-node-config: copies configs from node image)
            index-applier Job ──────────────► (plain Job, runs automatically with the release)
 ```
 
