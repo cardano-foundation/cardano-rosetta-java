@@ -3,10 +3,6 @@
 ## -----------------------------------------------------------------------
 global:
   profile: entry
-  # Mount config files directly from host (Docker-like bind-mount).
-  # Template appends /<network> — full path becomes <configHostPath>/<network>
-  # Example: configHostPath: /home/<user>/cardano/cardano-rosetta-java/config/node
-  configHostPath: ""
   storage:
     cardanoNode:
       size: 100Gi

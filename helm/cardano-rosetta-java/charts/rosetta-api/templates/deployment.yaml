@@ -53,6 +53,15 @@ spec:
           resources:
             {{- toYaml .Values.global.initContainerResources | nindent 12 }}
 
+        - name: copy-node-config
+          image: "cardanofoundation/cardano-rosetta-java-cardano-node:{{ .Values.global.cardanoNodeVersion }}"
+          command: ["sh", "-c", "cp -a /config/{{ .Values.global.network }}/. /shared-config/"]
+          volumeMounts:
+            - name: node-config
+              mountPath: /shared-config
+          resources:
+            {{- toYaml .Values.global.initContainerResources | nindent 12 }}
+
       containers:
         - name: rosetta-api
           image: "cardanofoundation/cardano-rosetta-java-api:{{ .Values.global.releaseVersion }}"
@@ -174,6 +183,4 @@ spec:
 
       volumes:
         - name: node-config
-          hostPath:
-            path: {{ printf "%s/%s" (required "global.configHostPath is required" .Values.global.configHostPath) .Values.global.network }}
-            type: Directory
+          emptyDir: {}

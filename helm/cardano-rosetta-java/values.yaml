@@ -5,7 +5,7 @@ global:
   network: mainnet
   protocolMagic: "764824073"
   releaseVersion: "2.1.0"
-  cardanoNodeVersion: "10.5.4"
+  cardanoNodeVersion: "10.5.4-config"
   pgVersionTag: "REL_18_0"
   mithrilVersion: "2543.1-hotfix"
   profile: mid
@@ -37,12 +37,6 @@ global:
       cpu: "200m"
       memory: "128Mi"
 
-  # REQUIRED: host directory containing network-specific config files.
-  # Template appends /<network> — e.g. /opt/cardano/config/node → /opt/cardano/config/node/mainnet
-  # Mounted read-only at /config in pods. Like Docker bind-mount: no size limits,
-  # host file changes are visible immediately without a Helm upgrade.
-  # Set in your environment values file (e.g. values-k3s.yaml).
-  configHostPath: ""
 
   ## -------------------------------------------------------------------
   ## Hardware profiles: entry / mid / advanced
