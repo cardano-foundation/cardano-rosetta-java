@@ -1,0 +1,334 @@
+## -----------------------------------------------------------------------
+## Global configuration shared across all subcharts
+## -----------------------------------------------------------------------
+global:
+  network: mainnet
+  protocolMagic: "764824073"
+  releaseVersion: "2.1.0"
+  cardanoNodeVersion: "10.5.4-config"
+  pgVersionTag: "REL_18_0"
+  mithrilVersion: "2543.1-hotfix"
+  profile: mid
+
+  db:
+    name: "rosetta-java"
+    user: "rosetta_db_admin"
+    # password is required — pass via --set global.db.password=<value> or a sealed secret
+    password: ""
+    # existingSecret: if set, skip creating the Secret and use this existing secret name instead.
+    # The secret must contain a key named "db-secret" with the database password.
+    # Useful with Sealed Secrets, External Secrets Operator, or Vault.
+    existingSecret: ""
+    schema: "public"
+    port: 5432
+    # host: leave empty to use the in-cluster postgresql service automatically
+    host: ""
+
+  # Set to false for offline mode (API only, no node sync wait)
+  sync: true
+
+  # Resource requests/limits for all init containers (wait-for-* sidecars).
+  # Tune down if nodes are resource-constrained.
+  initContainerResources:
+    requests:
+      cpu: "50m"
+      memory: "32Mi"
+    limits:
+      cpu: "200m"
+      memory: "128Mi"
+
+
+  ## -------------------------------------------------------------------
+  ## Hardware profiles: entry / mid / advanced
+  ## (nested under global so subcharts can access via .Values.global.profiles)
+  ## -------------------------------------------------------------------
+  profiles:
+    entry:
+      resources:
+        cardanoNode:
+          requests:
+            cpu: "1"
+            memory: "6Gi"
+          limits:
+            cpu: "4"
+            memory: "12Gi"
+        postgresql:
+          requests:
+            cpu: "1"
+            memory: "6Gi"
+          limits:
+            cpu: "4"
+            memory: "12Gi"
+        indexer:
+          requests:
+            cpu: "500m"
+            memory: "2Gi"
+          limits:
+            cpu: "2"
+            memory: "4Gi"
+        api:
+          requests:
+            cpu: "250m"
+            memory: "1Gi"
+          limits:
+            cpu: "1"
+            memory: "2Gi"
+        mithril:
+          requests:
+            cpu: "250m"
+            memory: "256Mi"
+          limits:
+            cpu: "1"
+            memory: "1Gi"
+        submitApi:
+          requests:
+            cpu: "100m"
+            memory: "256Mi"
+          limits:
+            cpu: "500m"
+            memory: "1Gi"
+        indexApplier:
+          requests:
+            cpu: "100m"
+            memory: "256Mi"
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+      db:
+        poolMin: 12
+        poolMax: 12
+        indexerDb:
+          poolMinCount: 12
+          poolMaxCount: 12
+        maxConnections: 120
+        sharedBuffers: "1GB"
+        effectiveCacheSize: "2GB"
+        workMem: "16MB"
+        maintenanceWorkMem: "128MB"
+        walBuffers: "16MB"
+        checkpointCompletionTarget: "0.7"
+        randomPageCost: "3.0"
+        effectiveIoConcurrency: 1
+        parallelTupleCost: "0.1"
+        parallelSetupCost: "1000"
+        maxParallelWorkersPerGather: 2
+        maxParallelWorkers: 4
+        seqPageCost: "1.0"
+        jit: "off"
+        bgwriterLruMaxpages: 50
+        bgwriterDelay: "500ms"
+
+    mid:
+      resources:
+        cardanoNode:
+          requests:
+            cpu: "2"
+            memory: "12Gi"
+          limits:
+            cpu: "8"
+            memory: "24Gi"
+        postgresql:
+          requests:
+            cpu: "2"
+            memory: "12Gi"
+          limits:
+            cpu: "8"
+            memory: "24Gi"
+        indexer:
+          requests:
+            cpu: "1"
+            memory: "4Gi"
+          limits:
+            cpu: "4"
+            memory: "8Gi"
+        api:
+          requests:
+            cpu: "500m"
+            memory: "2Gi"
+          limits:
+            cpu: "2"
+            memory: "4Gi"
+        mithril:
+          requests:
+            cpu: "500m"
+            memory: "512Mi"
+          limits:
+            cpu: "2"
+            memory: "2Gi"
+        submitApi:
+          requests:
+            cpu: "100m"
+            memory: "256Mi"
+          limits:
+            cpu: "500m"
+            memory: "1Gi"
+        indexApplier:
+          requests:
+            cpu: "100m"
+            memory: "256Mi"
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+      db:
+        poolMin: 150
+        poolMax: 150
+        indexerDb:
+          poolMinCount: 50
+          poolMaxCount: 50
+        maxConnections: 300
+        sharedBuffers: "4GB"
+        effectiveCacheSize: "8GB"
+        workMem: "64MB"
+        maintenanceWorkMem: "512MB"
+        walBuffers: "512MB"
+        checkpointCompletionTarget: "0.7"
+        randomPageCost: "1.3"
+        effectiveIoConcurrency: 2
+        parallelTupleCost: "0.05"
+        parallelSetupCost: "500"
+        maxParallelWorkersPerGather: 4
+        maxParallelWorkers: 8
+        seqPageCost: "1.0"
+        jit: "off"
+        bgwriterLruMaxpages: 200
+        bgwriterDelay: "200ms"
+        autovacuumMaxWorkers: 5
+
+    advanced:
+      resources:
+        cardanoNode:
+          requests:
+            cpu: "4"
+            memory: "24Gi"
+          limits:
+            cpu: "16"
+            memory: "48Gi"
+        postgresql:
+          requests:
+            cpu: "4"
+            memory: "24Gi"
+          limits:
+            cpu: "16"
+            memory: "48Gi"
+        indexer:
+          requests:
+            cpu: "2"
+            memory: "8Gi"
+          limits:
+            cpu: "8"
+            memory: "16Gi"
+        api:
+          requests:
+            cpu: "1"
+            memory: "4Gi"
+          limits:
+            cpu: "4"
+            memory: "8Gi"
+        mithril:
+          requests:
+            cpu: "1"
+            memory: "1Gi"
+          limits:
+            cpu: "4"
+            memory: "4Gi"
+        submitApi:
+          requests:
+            cpu: "250m"
+            memory: "512Mi"
+          limits:
+            cpu: "1"
+            memory: "2Gi"
+        indexApplier:
+          requests:
+            cpu: "250m"
+            memory: "512Mi"
+          limits:
+            cpu: "1"
+            memory: "1Gi"
+      db:
+        poolMin: 100
+        poolMax: 550
+        indexerDb:
+          poolMinCount: 50
+          poolMaxCount: 150
+        maxConnections: 600
+        sharedBuffers: "32GB"
+        effectiveCacheSize: "32GB"
+        workMem: "96MB"
+        maintenanceWorkMem: "2GB"
+        walBuffers: "512MB"
+        checkpointCompletionTarget: "0.9"
+        randomPageCost: "1.2"
+        effectiveIoConcurrency: 200
+        parallelTupleCost: "0.03"
+        parallelSetupCost: "300"
+        maxParallelWorkersPerGather: 8
+        maxParallelWorkers: 16
+        seqPageCost: "0.5"
+        jit: "off"
+        bgwriterLruMaxpages: 300
+        bgwriterDelay: "200ms"
+        autovacuumMaxWorkers: 5
+
+  ## -------------------------------------------------------------------
+  ## Storage configuration
+  ## (nested under global so subcharts can access via .Values.global.storage)
+  ## -------------------------------------------------------------------
+  storage:
+    cardanoNode:
+      size: 500Gi
+      storageClass: ""
+    postgresql:
+      size: 200Gi
+      storageClass: ""
+
+  ## -------------------------------------------------------------------
+  ## Mithril snapshot download
+  ## (nested under global so subcharts can access via .Values.global.mithril)
+  ## -------------------------------------------------------------------
+  mithril:
+    enabled: true
+    sync: true
+    snapshotDigest: "latest"
+    # aggregatorEndpoint, genesisVerificationKey, ancillaryVerificationKey are intentionally
+    # left empty. The entrypoint resolves all three automatically from NETWORK
+    # (mainnet / preprod / preview) — identical to Docker Compose behaviour.
+    # Override only for air-gapped environments or custom aggregators.
+    aggregatorEndpoint: ""
+    genesisVerificationKey: ""
+    ancillaryVerificationKey: ""
+
+## -----------------------------------------------------------------------
+## Index applier job
+## -----------------------------------------------------------------------
+indexApplier:
+  enabled: true
+  # "automatic" (default): plain Job — runs with the release without needing helm hooks.
+  #   Compatible with GitOps/ArgoCD (no --no-hooks needed).
+  #   The job is auto-cleaned after 24h via ttlSecondsAfterFinished.
+  # "hook": legacy helm post-install/post-upgrade hook (use for operator-controlled rollouts).
+  mode: automatic
+  pollInterval: 60
+
+## -----------------------------------------------------------------------
+## Stress testing with k6
+## -----------------------------------------------------------------------
+stressTesting:
+  enabled: false
+  profile: smoke
+  targetUrl: "http://rosetta-rosetta-api:8082"
+
+## -----------------------------------------------------------------------
+## Subchart toggles
+## -----------------------------------------------------------------------
+cardano-node:
+  enabled: true
+
+postgresql:
+  enabled: true
+yaci-indexer:
+  enabled: true
+
+rosetta-api:
+  enabled: true
+

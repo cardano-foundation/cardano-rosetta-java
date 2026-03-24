@@ -131,6 +131,9 @@ create_database_and_user() {
     sudo -u postgres "$PG_BIN/psql" -U postgres -p "$DB_PORT" -d "$DB_NAME" -c "GRANT ALL ON ALL TABLES IN SCHEMA public TO \"$DB_USER\";" > /dev/null
     sudo -u postgres "$PG_BIN/psql" -U postgres -p "$DB_PORT" -d "$DB_NAME" -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO \"$DB_USER\";" > /dev/null
 
+    # Grant pg_monitor role so pg_exporter can access WAL/system stats (pg_ls_waldir etc.)
+    sudo -u postgres "$PG_BIN/psql" -U postgres -p "$DB_PORT" -c "GRANT pg_monitor TO \"$DB_USER\";" > /dev/null
+
     echo "User configured"
 }
 
