@@ -8,6 +8,7 @@ import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.cardanofoundation.rosetta.api.call.service.CallService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
@@ -42,6 +43,7 @@ public class NetworkServiceImpl implements NetworkService {
   private final ResourceLoader resourceLoader;
   private final GenesisDataProvider genesisDataProvider;
   private final SyncStatusService syncStatusService;
+  private final CallService callService;
 
   @Value("${cardano.rosetta.GENESIS_SHELLEY_PATH}")
   private String genesisShelleyPath;
@@ -100,7 +102,7 @@ public class NetworkServiceImpl implements NetworkService {
                             .sorted(Comparator.comparingInt(Error::getCode))
                             .toList())
                     .historicalBalanceLookup(true)
-                    .callMethods(new ArrayList<>())
+                    .callMethods(callService.getSupportedMethods())
                     .mempoolCoins(false))
             .build();
   }

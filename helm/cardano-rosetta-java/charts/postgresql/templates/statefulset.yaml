@@ -1,0 +1,141 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "postgresql.fullname" . }}
+  labels:
+    {{- include "postgresql.commonLabels" . | nindent 4 }}
+    component: postgresql
+spec:
+  replicas: 1
+  serviceName: {{ include "postgresql.headlessName" . }}
+  selector:
+    matchLabels:
+      {{- include "postgresql.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "postgresql.selectorLabels" . | nindent 8 }}
+        {{- include "postgresql.commonLabels" . | nindent 8 }}
+    spec:
+      terminationGracePeriodSeconds: 60
+
+      containers:
+        - name: postgresql
+          image: "cardanofoundation/cardano-rosetta-java-postgres:{{ .Values.global.pgVersionTag }}"
+          env:
+            - name: DB_USER
+              value: {{ .Values.global.db.user | quote }}
+            - name: DB_NAME
+              value: {{ .Values.global.db.name | quote }}
+            - name: DB_PORT
+              value: {{ .Values.global.db.port | toString | quote }}
+            - name: DB_SCHEMA
+              value: {{ .Values.global.db.schema | quote }}
+            - name: NETWORK
+              value: {{ .Values.global.network | quote }}
+            - name: PGPASSWORD
+              value: "postgres"
+            - name: DB_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "cardano-rosetta-java.dbSecretName" . }}
+                  key: db-secret
+            {{- $profile := (include "postgresql.profile" .) }}
+            {{- $db := index .Values.global.profiles $profile "db" }}
+            - name: DB_POSTGRES_MAX_CONNECTIONS
+              value: {{ $db.maxConnections | toString | quote }}
+            - name: DB_POSTGRES_SHARED_BUFFERS
+              value: {{ $db.sharedBuffers | quote }}
+            - name: DB_POSTGRES_EFFECTIVE_CACHE_SIZE
+              value: {{ $db.effectiveCacheSize | quote }}
+            - name: DB_POSTGRES_WORK_MEM
+              value: {{ $db.workMem | quote }}
+            - name: DB_POSTGRES_MAINTENANCE_WORK_MEM
+              value: {{ $db.maintenanceWorkMem | quote }}
+            - name: DB_POSTGRES_WAL_BUFFERS
+              value: {{ $db.walBuffers | quote }}
+            - name: DB_POSTGRES_CHECKPOINT_COMPLETION_TARGET
+              value: {{ $db.checkpointCompletionTarget | toString | quote }}
+            - name: DB_POSTGRES_RANDOM_PAGE_COST
+              value: {{ $db.randomPageCost | toString | quote }}
+            - name: DB_POSTGRES_EFFECTIVE_IO_CONCURRENCY
+              value: {{ $db.effectiveIoConcurrency | toString | quote }}
+            - name: DB_POSTGRES_PARALLEL_TUPLE_COST
+              value: {{ $db.parallelTupleCost | toString | quote }}
+            - name: DB_POSTGRES_PARALLEL_SETUP_COST
+              value: {{ $db.parallelSetupCost | toString | quote }}
+            - name: DB_POSTGRES_MAX_PARALLEL_WORKERS_PER_GATHER
+              value: {{ $db.maxParallelWorkersPerGather | toString | quote }}
+            - name: DB_POSTGRES_MAX_PARALLEL_WORKERS
+              value: {{ $db.maxParallelWorkers | toString | quote }}
+            - name: DB_POSTGRES_SEQ_PAGE_COST
+              value: {{ $db.seqPageCost | toString | quote }}
+            - name: DB_POSTGRES_JIT
+              value: {{ $db.jit | quote }}
+            - name: DB_POSTGRES_BGWRITER_LRU_MAXPAGES
+              value: {{ $db.bgwriterLruMaxpages | toString | quote }}
+            - name: DB_POSTGRES_BGWRITER_DELAY
+              value: {{ $db.bgwriterDelay | quote }}
+            {{- if $db.autovacuumMaxWorkers }}
+            - name: DB_POSTGRES_AUTOVACUUM_MAX_WORKERS
+              value: {{ $db.autovacuumMaxWorkers | toString | quote }}
+            {{- end }}
+          ports:
+            - name: postgres
+              containerPort: {{ .Values.global.db.port }}
+              protocol: TCP
+          volumeMounts:
+            - name: pg-data
+              mountPath: /var/lib/postgresql/data
+            - name: dshm
+              mountPath: /dev/shm
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - |
+                  PGPASSWORD="${DB_SECRET}" pg_isready \
+                    -U {{ .Values.global.db.user | quote }} \
+                    -d {{ .Values.global.db.name | quote }} \
+                    -p {{ .Values.global.db.port }} \
+                    -h localhost
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 15
+            timeoutSeconds: 5
+          livenessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - "pg_isready -U postgres -h localhost -p {{ .Values.global.db.port }}"
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            failureThreshold: 5
+            timeoutSeconds: 5
+          resources:
+            {{- $res := index .Values.global.profiles $profile "resources" "postgresql" }}
+            {{- toYaml $res | nindent 12 }}
+
+      volumes:
+        # SHM emulation: replaces Docker Compose shm_size: 4g
+        - name: dshm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 4Gi
+  volumeClaimTemplates:
+    - metadata:
+        name: pg-data
+        labels:
+          {{- include "postgresql.commonLabels" . | nindent 10 }}
+          component: postgresql
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        {{- if .Values.global.storage.postgresql.storageClass }}
+        storageClassName: {{ .Values.global.storage.postgresql.storageClass | quote }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.global.storage.postgresql.size }}

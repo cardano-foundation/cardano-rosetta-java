@@ -1,66 +1,56 @@
-# Monitoring setup guide
+# Monitoring Setup Guide
 
-This guide explains :
-- How to run the monitoring stack using Docker Compose 
-- Configure Prometheus as a data source in Grafa GUI. 
-- Import a Grafana dashboard from a JSON file.
+This guide explains how to set up monitoring for **Docker Compose** deployments.
 
 ---
 
-## 📦 1. Prerequisites
+## Docker Compose
 
-- The monitoring containers are used as services in rossetta-java so they are declared in the file  `docker-compose.yaml`. By default, monitoring is enabled. You can disable it by commenting out the following line in your:
+### Prerequisites
 
-  ```yaml
-  include:
-    - docker-compose-indexer.yaml
-    - docker-compose-node.yaml
-    - docker-compose-api.yaml
-    - docker-compose-monitor.yaml  # uncomment this line if you want to disable monitoring
-  ```
+The monitoring containers are declared in `docker-compose-monitor.yaml`. By default,
+monitoring is enabled. To disable it, comment out the relevant line:
 
-- The following variables in `.env.docker-compose` must be set to appropriate values ​​and avoid port conflicts with other running services:
+```yaml
+include:
+  - docker-compose-indexer.yaml
+  - docker-compose-node.yaml
+  - docker-compose-api.yaml
+  - docker-compose-monitor.yaml  # comment this line to disable monitoring
+```
 
-  ```dotenv
-  ## Monitoring port variables
-  PROMETHEUS_PORT=9090
-  GRAFANA_PORT=3000
-  POSTGRESQL_EXPORTER_PORT=9187
-  ```
+Set monitoring ports in `.env.docker-compose`:
 
----
+```dotenv
+## Monitoring port variables
+PROMETHEUS_PORT=9090
+GRAFANA_PORT=3000
+POSTGRESQL_EXPORTER_PORT=9187
+```
 
-## 🚀 2. Start the Monitoring containers
-Since `docker-compose-monitor.yaml` is included in the main `docker-compose.yaml`, the monitoring containers will automatically start when you bring up the Rosetta-java docker compose. These containers include:
+### Start Monitoring
 
-- `prometheus`: the backend metrics collector
-- `grafana`: the dashboard visualizer
-- `postgresql-exporter`: collects PostgreSQL metrics and exposes them to Prometheus
+Since `docker-compose-monitor.yaml` is included in the main `docker-compose.yaml`, the
+monitoring containers start automatically. These include:
 
-You can verify services are running with:
+- `prometheus` — metrics collector
+- `grafana` — dashboard visualizer
+- `postgresql-exporter` — PostgreSQL metrics exporter
 
 ```bash
 docker compose ps
 ```
----
 
-## 🌐 3. Access Grafana
-
-Once services are running, open your browser and go to:
+### Access Grafana (Docker Compose)
 
 ```
 http://localhost:<GRAFANA_PORT>
 ```
 
-Replace `<GRAFANA_PORT>` with the actual port defined in your `.env` file (default: `3000`).
+Default credentials: **admin** / **admin** (you will be prompted to change on first login).
 
-**Default login credentials:**
+Navigate to: **Dashboards → Rosetta-java-dashboards → Rosetta Critical Operation Metrics**
 
-- **Username**: `admin`
-- **Password**: `admin` (you'll be prompted to change this)
+The dashboard is pre-provisioned from `config/monitoring/dashboards/rosetta-dashboards.json`
+and loads automatically when Grafana starts.
 
-After logging in, go to the Grafana menu → Dashboards → Rossetta-java-dashboards folder → Rosetta Critical Operation Metrics.
-
-
-> **Note:** The dashboard is preloaded when the Grafana container is started, so no manual import is necessary.
----

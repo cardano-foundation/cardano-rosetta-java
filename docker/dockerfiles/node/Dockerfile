@@ -154,6 +154,14 @@ ENV PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH
 
 RUN mkdir /logs
 
+# Bake network config files (genesis, topology, etc.) into the image.
+# This avoids hostPath / ConfigMap mounts in Kubernetes and ensures configs
+# are versioned with the image.  Update by rebuilding the image.
+COPY ./config/node/mainnet /config/mainnet
+COPY ./config/node/preprod /config/preprod
+COPY ./config/node/preview /config/preview
+COPY ./config/node/devkit  /config/devkit
+
 COPY ./docker/dockerfiles/node/wait-for-node-sync.sh /sbin/wait-for-node-sync.sh
 RUN chmod +x /sbin/wait-for-node-sync.sh
 

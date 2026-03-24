@@ -9,6 +9,7 @@ import org.openapitools.client.model.ConstructionDeriveRequest;
 import org.openapitools.client.model.ConstructionDeriveResponse;
 import org.openapitools.client.model.NetworkIdentifier;
 
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import org.cardanofoundation.rosetta.api.IntegrationTest;
@@ -29,28 +30,44 @@ class DeriveApiTest extends IntegrationTest {
     return request;
   }
 
-  @Test
-  void deriveAddressTest() throws IOException {
-    ConstructionDeriveRequest deriveRequest = getDeriveRequest(
-        "testdata/construction/derive/derive_request.json");
-    ConstructionDeriveResponse constructionDeriveResponse = constructionApiService.constructionDeriveService(
-        deriveRequest);
+  @Nested
+  class DeriveAddressTest {
+    @Test
+    void shouldReturnCorrectAddress() throws IOException {
+      ConstructionDeriveRequest deriveRequest = getDeriveRequest(
+          "testdata/construction/derive/derive_request.json");
+      ConstructionDeriveResponse constructionDeriveResponse = constructionApiService.constructionDeriveService(
+          deriveRequest);
 
-    String address = "addr_test1vza5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7c6mzywr";
-    assertEquals(address, constructionDeriveResponse.getAccountIdentifier().getAddress());
+      String address = "addr_test1vza5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7c6mzywr";
+      assertEquals(address, constructionDeriveResponse.getAccountIdentifier().getAddress());
+    }
   }
 
-  @Test
-  void deriveAddressTestWithInvalidNetworkConfigurationTest() throws IOException {
-    ConstructionDeriveRequest deriveRequest = getDeriveRequest(
-            "testdata/construction/derive/derive_request.json");
-    deriveRequest.setNetworkIdentifier(new NetworkIdentifier());
-    ApiException exception  = assertThrows(ApiException. class,
-            () -> constructionApiService.constructionDeriveService(
-            deriveRequest));
-    assertEquals(4000, exception.getError().getCode());
-    assertEquals("Invalid Network configuration", exception.getError().getMessage());
+  @Nested
+  class InvalidNetworkConfigurationTest {
 
+    @Test
+    void shouldThrowException() throws IOException {
+      ConstructionDeriveRequest deriveRequest = getDeriveRequest(
+          "testdata/construction/derive/derive_request.json");
+      deriveRequest.setNetworkIdentifier(new NetworkIdentifier());
+
+      assertThrows(ApiException.class,
+          () -> constructionApiService.constructionDeriveService(deriveRequest));
+    }
+
+    @Test
+    void shouldHaveCorrectErrorCodeAndMessage() throws IOException {
+      ConstructionDeriveRequest deriveRequest = getDeriveRequest(
+          "testdata/construction/derive/derive_request.json");
+      deriveRequest.setNetworkIdentifier(new NetworkIdentifier());
+
+      ApiException exception = assertThrows(ApiException.class,
+          () -> constructionApiService.constructionDeriveService(deriveRequest));
+
+      assertEquals(4000, exception.getError().getCode());
+      assertEquals("Invalid Network configuration", exception.getError().getMessage());
+    }
   }
-
 }

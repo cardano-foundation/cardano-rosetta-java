@@ -15,6 +15,7 @@ import org.openapitools.client.model.NetworkOptionsResponse;
 import org.openapitools.client.model.NetworkRequest;
 import org.openapitools.client.model.NetworkStatusResponse;
 
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import org.cardanofoundation.rosetta.EntityGenerator;
@@ -32,74 +33,9 @@ class NetworkServiceImplTest extends IntegrationTest {
   @Autowired
   private NetworkService networkService;
 
-  @Test
-  void verifyCorrectNetworkTest() {
-    // void function, no exception expected
-    networkService.verifyNetworkRequest(
-        createNetworkIdentifier(Constants.CARDANO_BLOCKCHAIN, Constants.DEVKIT));
-  }
-
-  @Test
-  void verifyWrongNetworkTest() {
-    NetworkIdentifier wrongNetworkIdentifier = createNetworkIdentifier(Constants.CARDANO_BLOCKCHAIN,
-        Constants.MAINNET);
-    ApiException apiException = assertThrows(ApiException.class,
-        () -> networkService.verifyNetworkRequest(wrongNetworkIdentifier));
-    assertEquals(RosettaErrorType.NETWORK_NOT_FOUND.getMessage(),
-        apiException.getError().getMessage());
-    assertEquals(RosettaErrorType.NETWORK_NOT_FOUND.getCode(), apiException.getError().getCode());
-  }
-
-  @Test
-  void verifyWrongBlockchainTest() {
-    NetworkIdentifier wrongBlockchain = createNetworkIdentifier("Wrong Blockchain",
-        Constants.DEVKIT);
-    ApiException apiException = assertThrows(ApiException.class,
-        () -> networkService.verifyNetworkRequest(wrongBlockchain));
-    assertEquals(RosettaErrorType.INVALID_BLOCKCHAIN.getMessage(),
-        apiException.getError().getMessage());
-    assertEquals(RosettaErrorType.INVALID_BLOCKCHAIN.getCode(), apiException.getError().getCode());
-  }
-
-  @Test
-  void networkOptionTest() throws IOException {
-    //given
-    NetworkRequest networkRequest = getNetworkRequest();
-    //when
-    NetworkOptionsResponse networkOptions = networkService.getNetworkOptions(networkRequest);
-
-    //then
-    assertNotNull(networkOptions);
-    assertEquals(getErrors(), networkOptions.getAllow().getErrors());
-  }
-
-  @Test
-  void networkStatusTest() throws IOException {
-    //given
-    NetworkRequest networkRequest = getNetworkRequest();
-    //when
-    NetworkStatusResponse networkStatus = networkService.getNetworkStatus(networkRequest);
-    //then
-    assertNotNull(networkStatus);
-    assertEquals(0, networkStatus.getGenesisBlockIdentifier().getIndex());
-    assertEquals("Genesis",
-            networkStatus.getGenesisBlockIdentifier().getHash());
-
-  }
-
-  @Test
-  void networkListTest() {
-    //given
-    MetadataRequest metadataRequest = EntityGenerator.givenMetadataRequest();
-    //when
-    NetworkListResponse networkList = networkService.getNetworkList(metadataRequest);
-    //then
-    assertNotNull(networkList);
-  }
-
   private NetworkRequest getNetworkRequest() throws IOException {
     File file = new File(this.getClass().getClassLoader()
-            .getResource("testdata/networkIdentifier.json").getFile());
+        .getResource("testdata/networkIdentifier.json").getFile());
     ObjectMapper mapper = new ObjectMapper();
 
     return mapper.readValue(file, NetworkRequest.class);
@@ -107,10 +43,11 @@ class NetworkServiceImplTest extends IntegrationTest {
 
   private List<Error> getErrors() throws IOException {
     File file = new File(this.getClass().getClassLoader()
-            .getResource("testdata/errors.json").getFile());
+        .getResource("testdata/errors.json").getFile());
     ObjectMapper mapper = new ObjectMapper();
 
-    return mapper.readValue(file, new TypeReference<>() {});
+    return mapper.readValue(file, new TypeReference<>() {
+    });
   }
 
   private NetworkIdentifier createNetworkIdentifier(String blockchain, String network) {
@@ -120,4 +57,135 @@ class NetworkServiceImplTest extends IntegrationTest {
         .build();
   }
 
+  @Nested
+  class VerifyNetworkRequestTest {
+
+    @Test
+    void shouldNotThrowExceptionForCorrectNetwork() {
+      // void function, no exception expected
+      networkService.verifyNetworkRequest(
+          createNetworkIdentifier(Constants.CARDANO_BLOCKCHAIN, Constants.DEVKIT));
+    }
+
+    @Nested
+    class WrongNetworkTest {
+      @Test
+      void shouldThrowApiException() {
+        NetworkIdentifier wrongNetworkIdentifier = createNetworkIdentifier(Constants.CARDANO_BLOCKCHAIN,
+            Constants.MAINNET);
+        assertThrows(ApiException.class,
+            () -> networkService.verifyNetworkRequest(wrongNetworkIdentifier));
+      }
+
+      @Test
+      void shouldHaveCorrectErrorCodeAndMessage() {
+        NetworkIdentifier wrongNetworkIdentifier = createNetworkIdentifier(Constants.CARDANO_BLOCKCHAIN,
+            Constants.MAINNET);
+        ApiException apiException = assertThrows(ApiException.class,
+            () -> networkService.verifyNetworkRequest(wrongNetworkIdentifier));
+
+        assertEquals(RosettaErrorType.NETWORK_NOT_FOUND.getMessage(),
+            apiException.getError().getMessage());
+        assertEquals(RosettaErrorType.NETWORK_NOT_FOUND.getCode(), apiException.getError().getCode());
+      }
+    }
+
+    @Nested
+    class WrongBlockchainTest {
+      @Test
+      void shouldThrowApiException() {
+        NetworkIdentifier wrongBlockchain = createNetworkIdentifier("Wrong Blockchain",
+            Constants.DEVKIT);
+        assertThrows(ApiException.class,
+            () -> networkService.verifyNetworkRequest(wrongBlockchain));
+      }
+
+      @Test
+      void shouldHaveCorrectErrorCodeAndMessage() {
+        NetworkIdentifier wrongBlockchain = createNetworkIdentifier("Wrong Blockchain",
+            Constants.DEVKIT);
+        ApiException apiException = assertThrows(ApiException.class,
+            () -> networkService.verifyNetworkRequest(wrongBlockchain));
+
+        assertEquals(RosettaErrorType.INVALID_BLOCKCHAIN.getMessage(),
+            apiException.getError().getMessage());
+        assertEquals(RosettaErrorType.INVALID_BLOCKCHAIN.getCode(), apiException.getError().getCode());
+      }
+    }
+  }
+
+  @Nested
+  class NetworkOptionsTest {
+
+    @Test
+    void shouldReturnNetworkOptions() throws IOException {
+      // given
+      NetworkRequest networkRequest = getNetworkRequest();
+      // when
+      NetworkOptionsResponse networkOptions = networkService.getNetworkOptions(networkRequest);
+      // then
+      assertNotNull(networkOptions);
+    }
+
+    @Test
+    void shouldHaveCorrectErrors() throws IOException {
+      // given
+      NetworkRequest networkRequest = getNetworkRequest();
+      // when
+      NetworkOptionsResponse networkOptions = networkService.getNetworkOptions(networkRequest);
+      // then
+      assertEquals(getErrors(), networkOptions.getAllow().getErrors());
+    }
+
+    @Test
+    void shouldHaveCorrectCallMethods() throws IOException {
+      // given
+      NetworkRequest networkRequest = getNetworkRequest();
+      // when
+      NetworkOptionsResponse networkOptions = networkService.getNetworkOptions(networkRequest);
+      // then
+      assertEquals(2, networkOptions.getAllow().getCallMethods().size());
+      assertEquals("get_parse_error_blocks", networkOptions.getAllow().getCallMethods().get(0));
+      assertEquals("mark_parse_error_block_checked", networkOptions.getAllow().getCallMethods().get(1));
+    }
+  }
+
+  @Nested
+  class NetworkStatusTest {
+
+    @Test
+    void shouldReturnNetworkStatus() throws IOException {
+      // given
+      NetworkRequest networkRequest = getNetworkRequest();
+      // when
+      NetworkStatusResponse networkStatus = networkService.getNetworkStatus(networkRequest);
+      // then
+      assertNotNull(networkStatus);
+    }
+
+    @Test
+    void shouldHaveCorrectGenesisBlock() throws IOException {
+      // given
+      NetworkRequest networkRequest = getNetworkRequest();
+      // when
+      NetworkStatusResponse networkStatus = networkService.getNetworkStatus(networkRequest);
+      // then
+      assertEquals(0, networkStatus.getGenesisBlockIdentifier().getIndex());
+      assertEquals("Genesis", networkStatus.getGenesisBlockIdentifier().getHash());
+    }
+  }
+
+  @Nested
+  class NetworkListTest {
+
+    @Test
+    void shouldReturnNetworkList() {
+      // given
+      MetadataRequest metadataRequest = EntityGenerator.givenMetadataRequest();
+      // when
+      NetworkListResponse networkList = networkService.getNetworkList(metadataRequest);
+      // then
+      assertNotNull(networkList);
+    }
+  }
 }

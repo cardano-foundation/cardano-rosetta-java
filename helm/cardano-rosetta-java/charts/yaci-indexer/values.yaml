@@ -1,0 +1,55 @@
+## -----------------------------------------------------------------------
+## yaci-indexer subchart default values
+## -----------------------------------------------------------------------
+
+## Environment-specific tuning parameters
+env:
+  removeSpentUtxos: true
+  removeSpentUtxosLastBlocksGraceCount: 129600  # 30 days @ ~20s/block; matches Docker Compose default
+  removeSpentUtxosBatchSize: 3000               # matches Docker Compose default
+  blockTransactionApiTimeoutSecs: 120           # intentionally higher than Docker (5s) for K8s network latency
+  searchLimit: 100                              # matches Docker Compose default
+  continueParsingOnError: true                  # matches Docker Compose default
+  peerDiscovery: false
+  logLevel: error                               # matches Docker Compose default (LOG=ERROR)
+  # HikariCP connection pool tuning — matches Docker Compose INDEXER_DB_* variables.
+  # Jar default pool size is 20, which is too small during heavy sync.
+  # All slots fill up → health endpoint can't get a connection → liveness probe fails → restart.
+  indexerDbPoolMinCount: 10                     # INDEXER_DB_POOL_MIN_COUNT
+  indexerDbPoolMaxCount: 40                     # INDEXER_DB_POOL_MAX_COUNT
+  indexerDbPoolMaxLifetimeMs: "2000000"         # INDEXER_DB_POOL_MAX_LIFETIME_MS
+  indexerDbPoolConnectionTimeoutMs: 100000      # INDEXER_DB_POOL_CONNECTION_TIMEOUT_MS
+  indexerDbKeepAliveMs: 60000                   # INDEXER_DB_KEEP_ALIVE_MS
+  indexerDbLeakConnectionsWarningMs: 60000      # INDEXER_DB_LEAK_CONNECTIONS_WARNING_MS
+  indexerDbMonitorPerformance: false            # INDEXER_DB_MONITOR_PERFORMANCE
+  indexerDbShowSql: false                       # INDEXER_DB_SHOW_SQL
+
+## Resource profiles (inherited from parent, can be overridden)
+profiles:
+  entry:
+    resources:
+      indexer:
+        requests:
+          cpu: "500m"
+          memory: "2Gi"
+        limits:
+          cpu: "2"
+          memory: "4Gi"
+  mid:
+    resources:
+      indexer:
+        requests:
+          cpu: "1"
+          memory: "4Gi"
+        limits:
+          cpu: "4"
+          memory: "8Gi"
+  advanced:
+    resources:
+      indexer:
+        requests:
+          cpu: "2"
+          memory: "8Gi"
+        limits:
+          cpu: "8"
+          memory: "16Gi"

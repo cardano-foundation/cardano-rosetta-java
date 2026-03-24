@@ -1,0 +1,86 @@
+{{- if .Values.indexApplier.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "cardano-rosetta-java.indexApplierName" . }}
+  labels:
+    {{- include "cardano-rosetta-java.commonLabels" . | nindent 4 }}
+    component: index-applier
+  {{- if eq (default "automatic" .Values.indexApplier.mode) "hook" }}
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-weight: "10"
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+  {{- end }}
+spec:
+  backoffLimit: 5
+  activeDeadlineSeconds: 259200
+  {{- if ne (default "automatic" .Values.indexApplier.mode) "hook" }}
+  # Auto-cleanup after 24h so future helm upgrades can recreate the Job without conflicts.
+  ttlSecondsAfterFinished: 86400
+  {{- end }}
+  template:
+    metadata:
+      labels:
+        component: index-applier
+    spec:
+      restartPolicy: OnFailure
+      initContainers:
+        - name: wait-for-api
+          image: curlimages/curl:8.5.0
+          command:
+            - sh
+            - -c
+            - |
+              API_URL="http://{{ include "cardano-rosetta-java.rosettaApiName" . }}:8082"
+              NETWORK="{{ .Values.global.network }}"
+              echo "Waiting for Rosetta API at ${API_URL}..."
+              until curl -sf "${API_URL}/network/options" \
+                -H "Content-Type: application/json" \
+                -d "{\"network_identifier\":{\"blockchain\":\"cardano\",\"network\":\"${NETWORK}\"},\"metadata\":{}}" \
+                -X POST > /dev/null 2>&1; do
+                echo "API not ready, retrying in 30s..."
+                sleep 30
+              done
+              echo "API is healthy"
+          resources:
+            {{- toYaml .Values.global.initContainerResources | nindent 12 }}
+      containers:
+        - name: index-applier
+          image: "cardanofoundation/cardano-rosetta-java-postgres:{{ .Values.global.pgVersionTag }}"
+          command: ["/sbin/apply-indexes.sh"]
+          env:
+            - name: DB_HOST
+              value: {{ include "cardano-rosetta-java.dbHost" . | quote }}
+            - name: DB_PORT
+              value: {{ .Values.global.db.port | toString | quote }}
+            - name: DB_NAME
+              value: {{ .Values.global.db.name | quote }}
+            - name: DB_USER
+              value: {{ .Values.global.db.user | quote }}
+            - name: DB_SCHEMA
+              value: {{ .Values.global.db.schema | quote }}
+            - name: DB_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "cardano-rosetta-java.dbSecretName" . }}
+                  key: db-secret
+            - name: NETWORK
+              value: {{ .Values.global.network | quote }}
+            - name: API_URL
+              value: "http://{{ include "cardano-rosetta-java.rosettaApiName" . }}:8082"
+            - name: POLL_INTERVAL
+              value: {{ .Values.indexApplier.pollInterval | toString | quote }}
+          volumeMounts:
+            - name: db-indexes
+              mountPath: /config/db-indexes.yaml
+              subPath: db-indexes.yaml
+          resources:
+            {{- $profile := (include "cardano-rosetta-java.profile" .) }}
+            {{- $res := index .Values.global.profiles $profile "resources" "indexApplier" }}
+            {{- toYaml $res | nindent 12 }}
+      volumes:
+        - name: db-indexes
+          configMap:
+            name: {{ include "cardano-rosetta-java.dbIndexesName" . }}
+{{- end }}

@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "postgresql.headlessName" . }}
+  labels:
+    {{- include "postgresql.commonLabels" . | nindent 4 }}
+spec:
+  clusterIP: None
+  selector:
+    {{- include "postgresql.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: postgres
+      port: {{ .Values.global.db.port }}
+      targetPort: {{ .Values.global.db.port }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "postgresql.fullname" . }}
+  labels:
+    {{- include "postgresql.commonLabels" . | nindent 4 }}
+    component: postgresql
+spec:
+  type: ClusterIP
+  selector:
+    {{- include "postgresql.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: postgres
+      port: {{ .Values.global.db.port }}
+      targetPort: {{ .Values.global.db.port }}
+      protocol: TCP

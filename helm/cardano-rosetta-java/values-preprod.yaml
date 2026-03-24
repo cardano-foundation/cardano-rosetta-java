@@ -1,0 +1,28 @@
+## -----------------------------------------------------------------------
+## Preprod network overrides
+## -----------------------------------------------------------------------
+global:
+  network: preprod
+  protocolMagic: "1"
+  profile: entry
+  storage:
+    cardanoNode:
+      size: 100Gi
+    postgresql:
+      size: 50Gi
+
+yaci-indexer:
+  env:
+    removeSpentUtxos: false
+    peerDiscovery: true
+    continueParsingOnError: false
+    logLevel: INFO
+
+rosetta-api:
+  env:
+    removeSpentUtxos: false
+    syncGraceSlotsCount: 100
+    tokenRegistryEnabled: true                                    # DC preprod: TOKEN_REGISTRY_ENABLED=true
+    tokenRegistryBaseUrl: "https://preprod.tokens.cardano.org/api" # DC preprod: TOKEN_REGISTRY_BASE_URL
+    tokenRegistryLogoFetch: true                                   # DC preprod: TOKEN_REGISTRY_LOGO_FETCH=true
+    tokenRegistryCacheTtlHours: 1                                  # DC preprod: TOKEN_REGISTRY_CACHE_TTL_HOURS=1

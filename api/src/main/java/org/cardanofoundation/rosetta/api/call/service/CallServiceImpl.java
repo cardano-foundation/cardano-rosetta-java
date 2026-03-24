@@ -29,6 +29,11 @@ public class CallServiceImpl implements CallService {
     private final BlockParsingErrorReviewService blockParsingErrorReviewService;
 
     @Override
+    public List<String> getSupportedMethods() {
+        return List.of(METHOD_GET_PARSE_ERROR_BLOCKS, METHOD_MARK_PARSE_ERROR_BLOCK_CHECKED);
+    }
+
+    @Override
     public CallResponse processCallRequest(CallRequest callRequest) {
         String method = callRequest.getMethod();
 
