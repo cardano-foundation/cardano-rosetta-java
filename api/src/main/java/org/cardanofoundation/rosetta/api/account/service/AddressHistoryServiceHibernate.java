@@ -42,7 +42,7 @@ public class AddressHistoryServiceHibernate implements AddressHistoryService {
     public List<String> findCompleteTransactionHistoryByAddress(String address) {
         log.debug("Finding complete transaction history for address: {} using Hibernate with parallel fork-join", address);
 
-        try (var scope = StructuredTaskScope.open(
+        try (StructuredTaskScope<Object, Void> scope = StructuredTaskScope.open(
                 StructuredTaskScope.Joiner.awaitAllSuccessfulOrThrow(),
                 cf -> cf.withTimeout(Duration.ofSeconds(addressHistoryApiTimeoutSecs)))) {
 

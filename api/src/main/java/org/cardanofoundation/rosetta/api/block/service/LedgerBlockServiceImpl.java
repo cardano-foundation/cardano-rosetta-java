@@ -224,7 +224,7 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
             .map(Utxo::getTxHash)
             .toList();
 
-    try (var scope = StructuredTaskScope.open(
+    try (StructuredTaskScope<Object, Void> scope = StructuredTaskScope.open(
             StructuredTaskScope.Joiner.awaitAllSuccessfulOrThrow(),
             cf -> cf.withTimeout(Duration.ofSeconds(blockTransactionApiTimeoutSecs)))) {
 
