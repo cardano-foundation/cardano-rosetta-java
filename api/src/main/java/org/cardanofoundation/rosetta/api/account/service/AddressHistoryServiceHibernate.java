@@ -9,15 +9,11 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Clock;
-import java.time.Instant;
+import java.time.Duration;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.StructuredTaskScope;
-import java.util.concurrent.StructuredTaskScope.ShutdownOnFailure;
-import java.util.concurrent.TimeoutException;
 
 /**
  * Hibernate-based implementation of AddressHistoryService.
@@ -33,7 +29,6 @@ import java.util.concurrent.TimeoutException;
 public class AddressHistoryServiceHibernate implements AddressHistoryService {
 
     private final AddressUtxoRepository addressUtxoRepository;
-    private final Clock clock;
 
     private int addressHistoryApiTimeoutSecs = 5 * 60;
 
@@ -47,15 +42,17 @@ public class AddressHistoryServiceHibernate implements AddressHistoryService {
     public List<String> findCompleteTransactionHistoryByAddress(String address) {
         log.debug("Finding complete transaction history for address: {} using Hibernate with parallel fork-join", address);
 
-        try (ShutdownOnFailure scope = new ShutdownOnFailure()) {
-            StructuredTaskScope.Subtask<List<String>> outputTransactions = scope.fork(() -> 
+        try (var scope = StructuredTaskScope.open(
+                StructuredTaskScope.Joiner.awaitAllSuccessfulOrThrow(),
+                cf -> cf.withTimeout(Duration.ofSeconds(addressHistoryApiTimeoutSecs)))) {
+
+            StructuredTaskScope.Subtask<List<String>> outputTransactions = scope.fork(() ->
                     addressUtxoRepository.findOutputTransactionsByAddress(address));
 
             StructuredTaskScope.Subtask<List<String>> inputTransactions = scope.fork(() ->
                     addressUtxoRepository.findInputTransactionsByAddress(address));
 
-            scope.joinUntil(Instant.now(clock).plusSeconds(addressHistoryApiTimeoutSecs));
-            scope.throwIfFailed();
+            scope.join();
 
             // Use LinkedHashSet to preserve order while removing duplicates
             Set<String> allTransactions = new LinkedHashSet<>();
@@ -63,16 +60,13 @@ public class AddressHistoryServiceHibernate implements AddressHistoryService {
             allTransactions.addAll(inputTransactions.get());
 
             return List.copyOf(allTransactions);
-        } catch (ExecutionException e) {
+        } catch (StructuredTaskScope.FailedException e) {
             log.error("Error fetching address transaction history", e);
             throw ExceptionFactory.unspecifiedError("Error fetching address transaction history, msg:%s".formatted(e.getMessage()));
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             log.error("Error fetching address transaction history", e);
             throw ExceptionFactory.unspecifiedError("Error fetching address transaction history, msg:%s".formatted(e.getMessage()));
-        } catch (TimeoutException e) {
-            log.error("Timeout fetching address transaction history", e);
-            throw ExceptionFactory.timeOut("timeout while fetching address transaction history from db.");
         }
     }
 

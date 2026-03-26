@@ -5,7 +5,7 @@
 [![Build](https://img.shields.io/github/actions/workflow/status/cardano-foundation/cardano-rosetta-java/feature-mvn-build.yaml?label=build)](https://github.com/cardano-foundation/cardano-rosetta-java/actions/workflows/feature-mvn-build.yaml)
 [![Tests](https://img.shields.io/github/actions/workflow/status/cardano-foundation/cardano-rosetta-java/integration-test.yaml?label=integration)](https://github.com/cardano-foundation/cardano-rosetta-java/actions/workflows/integration-test.yaml)
 [![Latest Release](https://img.shields.io/github/v/release/cardano-foundation/cardano-rosetta-java)](https://github.com/cardano-foundation/cardano-rosetta-java/releases/latest)
-[![Java](https://img.shields.io/badge/Java-24-blue)](https://openjdk.org/projects/jdk/24/)
+[![Java](https://img.shields.io/badge/Java-25-blue)](https://openjdk.org/projects/jdk/25/)
 [![Mesh API](https://img.shields.io/badge/Mesh%20API-1.4.15-blue)](https://docs.cdp.coinbase.com/mesh/docs/welcome)
 [![License](https://img.shields.io:/github/license/cardano-foundation/cardano-rosetta-java)](https://github.com/cardano-foundation/cardano-rosetta-java/blob/master/LICENSE)
 
