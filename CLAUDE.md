@@ -62,7 +62,7 @@ docker compose restart api
 - **`test-data-generator/`** - Testing utility for transaction test data
 
 ### Key Technologies
-- **Java 24** with preview features
+- **Java 25** with preview features
 - **Spring Boot 3.5.0** with Spring Security and Web
 - **Maven** multi-module build
 - **OpenAPI 3.0** code generation from `/api/src/main/resources/rosetta-specifications-1.4.15/api.yaml`
