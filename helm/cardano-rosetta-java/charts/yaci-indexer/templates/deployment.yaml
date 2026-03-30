@@ -37,25 +37,49 @@ spec:
           resources:
             {{- toYaml .Values.global.initContainerResources | nindent 12 }}
 
-        - name: wait-for-node-tcp
-          image: busybox:1.36
+        - name: wait-for-node-sync
+          image: {{ .Values.global.cardanoNodeImage | default (printf "cardanofoundation/cardano-rosetta-java-cardano-node:%s" .Values.global.cardanoNodeVersion) | quote }}
           command:
-            - sh
+            - /bin/bash
             - -c
             - |
               NODE_SERVICE="{{ include "cardano-rosetta-java.nodeServiceName" . }}"
               NODE_SOCAT_PORT="3002"
-              echo "Waiting for cardano-node socat bridge at ${NODE_SERVICE}:${NODE_SOCAT_PORT}..."
-              until nc -z "${NODE_SERVICE}" "${NODE_SOCAT_PORT}" 2>/dev/null; do
-                echo "Node TCP not reachable yet, waiting 10s..."
-                sleep 10
+              SOCKET_PATH="/tmp/node.socket"
+              PROTOCOL_MAGIC="{{ .Values.global.protocolMagic }}"
+              NETWORK="{{ .Values.global.network }}"
+
+              echo "Setting up local socat relay: TCP ${NODE_SERVICE}:${NODE_SOCAT_PORT} -> UNIX ${SOCKET_PATH}"
+              socat UNIX-LISTEN:${SOCKET_PATH},fork TCP:${NODE_SERVICE}:${NODE_SOCAT_PORT} &
+              SOCAT_PID=$!
+
+              # Wait for socat relay socket to appear
+              until [ -S "${SOCKET_PATH}" ]; do
+                echo "Waiting for socat relay to start..."
+                sleep 2
               done
-              echo "cardano-node socat bridge is reachable, starting yaci-indexer"
+
+              echo "Waiting for cardano-node to reach tip (syncProgress >= 99.9%)..."
+              while true; do
+                if [ "${NETWORK}" = "mainnet" ]; then
+                  TIP=$(CARDANO_NODE_SOCKET_PATH=${SOCKET_PATH} cardano-cli query tip --mainnet 2>/dev/null)
+                else
+                  TIP=$(CARDANO_NODE_SOCKET_PATH=${SOCKET_PATH} cardano-cli query tip --testnet-magic ${PROTOCOL_MAGIC} 2>/dev/null)
+                fi
+                PROGRESS=$(echo "${TIP}" | grep -o '"syncProgress": *"[^"]*"' | grep -o '[0-9.]*')
+                if awk -v p="${PROGRESS:-0}" 'BEGIN { exit (p+0 >= 99.9) ? 0 : 1 }'; then
+                  echo "cardano-node is at tip (syncProgress=${PROGRESS}%), proceeding"
+                  kill ${SOCAT_PID} 2>/dev/null
+                  exit 0
+                fi
+                echo "Node syncing: ${PROGRESS:-unknown}%, waiting 30s..."
+                sleep 30
+              done
           resources:
             {{- toYaml .Values.global.initContainerResources | nindent 12 }}
 
         - name: copy-node-config
-          image: "cardanofoundation/cardano-rosetta-java-cardano-node:{{ .Values.global.cardanoNodeVersion }}"
+          image: {{ .Values.global.cardanoNodeImage | default (printf "cardanofoundation/cardano-rosetta-java-cardano-node:%s" .Values.global.cardanoNodeVersion) | quote }}
           command: ["sh", "-c", "cp -a /config/{{ .Values.global.network }}/. /shared-config/"]
           volumeMounts:
             - name: node-config
@@ -65,7 +89,8 @@ spec:
 
       containers:
         - name: yaci-indexer
-          image: "cardanofoundation/cardano-rosetta-java-indexer:{{ .Values.global.releaseVersion }}"
+          image: {{ .Values.global.indexerImage | default (printf "cardanofoundation/cardano-rosetta-java-indexer:%s" .Values.global.releaseVersion) | quote }}
+          imagePullPolicy: {{ if .Values.global.indexerImage }}Always{{ else }}IfNotPresent{{ end }}
           env:
             - name: NETWORK
               value: {{ .Values.global.network | quote }}
@@ -147,21 +172,29 @@ spec:
             - name: node-config
               mountPath: /config
               readOnly: true
+          startupProbe:
+            httpGet:
+              path: /actuator/health/startup
+              port: 9095
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 360
+            timeoutSeconds: 5
           readinessProbe:
             httpGet:
-              path: /actuator/health
+              path: /actuator/health/readiness
               port: 9095
-            initialDelaySeconds: 60
-            periodSeconds: 15
-            failureThreshold: 15
+            initialDelaySeconds: 10
+            periodSeconds: 30
+            failureThreshold: 14400
             timeoutSeconds: 5
           livenessProbe:
             httpGet:
-              path: /actuator/health
+              path: /actuator/health/liveness
               port: 9095
-            initialDelaySeconds: 120
+            initialDelaySeconds: 10
             periodSeconds: 30
-            failureThreshold: 5
+            failureThreshold: 30
             timeoutSeconds: 5
           resources:
             {{- $profile := (include "yaci-indexer.profile" .) }}
