@@ -28,6 +28,8 @@ services:
       - CARDANO_NODE_PORT=${CARDANO_NODE_PORT}
       - CARDANO_NODE_DB=${CARDANO_NODE_DB}
       - CARDANO_CONFIG_CONTAINER_PATH=${CARDANO_CONFIG_CONTAINER_PATH}
+      - NETWORK=${NETWORK}
+      - PROTOCOL_MAGIC=${PROTOCOL_MAGIC}
     volumes:
       - ${CARDANO_NODE_DIR}:${CARDANO_NODE_DIR}
       - ${CARDANO_NODE_DB}:${CARDANO_NODE_DB}
@@ -36,6 +38,12 @@ services:
     ports:
       - ${CARDANO_NODE_PORT}:${CARDANO_NODE_PORT}
     entrypoint: ["/sbin/entrypoint.sh", "cardano-node"]
+    healthcheck:
+      test: [ "CMD-SHELL", "if [ \"$$NETWORK\" = \"mainnet\" ]; then TIP=$$(cardano-cli query tip --mainnet); else TIP=$$(cardano-cli query tip --testnet-magic $$PROTOCOL_MAGIC); fi; PROGRESS=$$(echo \"$$TIP\" | grep -o '\"syncProgress\": *\"[^\"]*\"' | grep -o '[0-9.]*'); awk -v p=\"$${PROGRESS:-0}\" 'BEGIN { exit (p+0 >= 99.9) ? 0 : 1 }'" ]
+      interval: 30s
+      retries: 720
+      start_period: 120s
+      timeout: 10s
     depends_on:
       mithril:
         condition: service_completed_successfully
@@ -59,6 +67,12 @@ services:
     ports:
       - ${NODE_SUBMIT_API_PORT}:${NODE_SUBMIT_API_PORT}
     entrypoint: ["/sbin/entrypoint.sh", "cardano-submit-api"]
+    healthcheck:
+      test: [ "CMD-SHELL", "bash -c 'echo > /dev/tcp/localhost/${NODE_SUBMIT_API_PORT}' 2>/dev/null" ]
+      interval: 15s
+      retries: 10
+      start_period: 30s
+      timeout: 5s
     depends_on:
       mithril:
         condition: service_completed_successfully
