@@ -26,28 +26,24 @@ spec:
     spec:
       restartPolicy: OnFailure
       initContainers:
-        - name: wait-for-api
+        - name: wait-for-indexer-synced
           image: curlimages/curl:8.5.0
           command:
             - sh
             - -c
             - |
-              API_URL="http://{{ include "cardano-rosetta-java.rosettaApiName" . }}:8082"
-              NETWORK="{{ .Values.global.network }}"
-              echo "Waiting for Rosetta API at ${API_URL}..."
-              until curl -sf "${API_URL}/network/options" \
-                -H "Content-Type: application/json" \
-                -d "{\"network_identifier\":{\"blockchain\":\"cardano\",\"network\":\"${NETWORK}\"},\"metadata\":{}}" \
-                -X POST > /dev/null 2>&1; do
-                echo "API not ready, retrying in 30s..."
+              YACI_URL="http://{{ include "cardano-rosetta-java.yaciServiceName" . }}:9095"
+              echo "Waiting for yaci-indexer to be fully synced at ${YACI_URL}..."
+              until curl -sf "${YACI_URL}/actuator/health/readiness" > /dev/null 2>&1; do
+                echo "yaci-indexer not synced yet, retrying in 30s..."
                 sleep 30
               done
-              echo "API is healthy"
+              echo "yaci-indexer is synced, index-applier can proceed"
           resources:
             {{- toYaml .Values.global.initContainerResources | nindent 12 }}
       containers:
         - name: index-applier
-          image: "cardanofoundation/cardano-rosetta-java-postgres:{{ .Values.global.pgVersionTag }}"
+          image: {{ .Values.global.indexApplierImage | default (printf "cardanofoundation/cardano-rosetta-java-postgres:%s" .Values.global.pgVersionTag) | quote }}
           command: ["/sbin/apply-indexes.sh"]
           env:
             - name: DB_HOST
@@ -65,12 +61,8 @@ spec:
                 secretKeyRef:
                   name: {{ include "cardano-rosetta-java.dbSecretName" . }}
                   key: db-secret
-            - name: NETWORK
-              value: {{ .Values.global.network | quote }}
-            - name: API_URL
-              value: "http://{{ include "cardano-rosetta-java.rosettaApiName" . }}:8082"
-            - name: POLL_INTERVAL
-              value: {{ .Values.indexApplier.pollInterval | toString | quote }}
+            - name: YACI_URL
+              value: "http://{{ include "cardano-rosetta-java.yaciServiceName" . }}:9095"
           volumeMounts:
             - name: db-indexes
               mountPath: /config/db-indexes.yaml
