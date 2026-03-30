@@ -57,8 +57,8 @@ The `cardano-node` pod runs **three containers**: the node itself, a `socat` sid
 `3/3` when fully up.
 
 The `index-applier` is a plain Kubernetes Job that runs automatically with the release
-(default `indexApplier.mode: automatic`). It waits for the Rosetta API to become
-responsive, then builds optimised database indexes. This Job can take **6–18 hours** on
+(default `indexApplier.mode: automatic`). It waits for yaci-indexer readiness, then
+builds optimised database indexes directly in PostgreSQL. This Job can take **6–18 hours** on
 mainnet. It is cleaned up automatically after 24 hours via `ttlSecondsAfterFinished`.
 
 :::note
