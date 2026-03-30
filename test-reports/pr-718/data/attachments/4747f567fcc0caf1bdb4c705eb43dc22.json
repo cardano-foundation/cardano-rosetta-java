@@ -1,0 +1,103 @@
+{
+  "status_code": 200,
+  "body": {
+    "transactions": [
+      {
+        "block_identifier": {
+          "index": 4559426,
+          "hash": "7b626912f420967d32c9f8332718bdbec0341232b191245dcdb787b4fa5425a5"
+        },
+        "transaction": {
+          "transaction_identifier": {
+            "hash": "118f7dfc2eeeda76e52d262970738a2d51e8924e2481f2f0550e4cb328610728"
+          },
+          "operations": [
+            {
+              "operation_identifier": {
+                "index": 0
+              },
+              "type": "input",
+              "status": "success",
+              "account": {
+                "address": "addr_test1qpmcexfsrwy6saj53rc8u9969syssaadfugs0ewa6tn2463n44lk2n0l6vwgyzrc4at3j4uahqgvaznwhru396kzskeqfwk77c"
+              },
+              "amount": {
+                "value": "-1000000",
+                "currency": {
+                  "symbol": "ADA",
+                  "decimals": 6
+                }
+              },
+              "coin_change": {
+                "coin_identifier": {
+                  "identifier": "59b2e1edfa547f349a225b3c7d2fef321dc09a0c7f2c728fa847637a65da9ec0:0"
+                },
+                "coin_action": "coin_spent"
+              }
+            },
+            {
+              "operation_identifier": {
+                "index": 1
+              },
+              "type": "input",
+              "status": "success",
+              "account": {
+                "address": "addr_test1qpmcexfsrwy6saj53rc8u9969syssaadfugs0ewa6tn2463n44lk2n0l6vwgyzrc4at3j4uahqgvaznwhru396kzskeqfwk77c"
+              },
+              "amount": {
+                "value": "-1000000",
+                "currency": {
+                  "symbol": "ADA",
+                  "decimals": 6
+                }
+              },
+              "coin_change": {
+                "coin_identifier": {
+                  "identifier": "972278459297f934ac0fb05c93eedf20d8003d6214029360697365f652f3adfb:0"
+                },
+                "coin_action": "coin_spent"
+              }
+            },
+            {
+              "operation_identifier": {
+                "index": 2,
+                "network_index": 0
+              },
+              "related_operations": [
+                {
+                  "index": 0
+                },
+                {
+                  "index": 1
+                }
+              ],
+              "type": "output",
+              "status": "success",
+              "account": {
+                "address": "addr_test1qpmcexfsrwy6saj53rc8u9969syssaadfugs0ewa6tn2463n44lk2n0l6vwgyzrc4at3j4uahqgvaznwhru396kzskeqfwk77c"
+              },
+              "amount": {
+                "value": "1000000",
+                "currency": {
+                  "symbol": "ADA",
+                  "decimals": 6
+                }
+              },
+              "coin_change": {
+                "coin_identifier": {
+                  "identifier": "118f7dfc2eeeda76e52d262970738a2d51e8924e2481f2f0550e4cb328610728:0"
+                },
+                "coin_action": "coin_created"
+              }
+            }
+          ],
+          "metadata": {
+            "size": 158,
+            "scriptSize": 0
+          }
+        }
+      }
+    ],
+    "total_count": 1
+  }
+}
