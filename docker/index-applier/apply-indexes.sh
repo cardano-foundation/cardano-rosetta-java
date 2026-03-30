@@ -1,16 +1,17 @@
 #!/bin/bash
 set -euo pipefail
 
-# Environment variables (with defaults)
+# Shared Docker/Kubernetes index-applier entrypoint.
+# Waits for yaci-indexer readiness, then applies indexes directly in PostgreSQL.
+
 DB_HOST="${DB_HOST:-localhost}"
 DB_PORT="${DB_PORT:-5432}"
 DB_NAME="${DB_NAME:-rosetta-java}"
 DB_USER="${DB_USER:-rosetta_db_admin}"
 DB_SECRET="${DB_SECRET:-}"
 DB_SCHEMA="${DB_SCHEMA:-public}"
-NETWORK="${NETWORK:-mainnet}"
-API_URL="${API_URL:-http://localhost:8082}"
-POLL_INTERVAL="${POLL_INTERVAL:-60}"
+YACI_URL="${YACI_URL:-http://localhost:9095}"
+YACI_WAIT_INTERVAL_SECONDS="${YACI_WAIT_INTERVAL_SECONDS:-30}"
 CONFIG_PATH="${CONFIG_PATH:-/config/db-indexes.yaml}"
 
 export PGPASSWORD="$DB_SECRET"
@@ -24,41 +25,45 @@ log() {
 
 FAILED_COUNT=0
 
-# Log configuration for debugging
-log "Configuration: DB=$DB_USER@$DB_HOST:$DB_PORT/$DB_NAME schema=$DB_SCHEMA network=$NETWORK"
+log "Configuration: DB=$DB_USER@$DB_HOST:$DB_PORT/$DB_NAME schema=$DB_SCHEMA yaci=$YACI_URL"
 
-# 1. Wait for APPLYING_INDEXES state (or exit if already synced)
-log "Waiting for APPLYING_INDEXES state..."
-while true; do
-  response=$(curl -sf "$API_URL/network/status" \
-    -H "Content-Type: application/json" \
-    -d "{\"network_identifier\":{\"blockchain\":\"cardano\",\"network\":\"$NETWORK\"}}" \
-    2>/dev/null || echo '{}')
-
-  stage=$(echo "$response" | jq -r '.sync_status.stage // empty')
-  synced=$(echo "$response" | jq -r '.sync_status.synced // false')
-
-  # If already synced (LIVE), indexes are already applied - exit immediately
-  if [ "$synced" == "true" ]; then
-    log "System is already synced (stage: $stage). Indexes already applied. Exiting."
-    exit 0
-  fi
-
-  if [ "$stage" == "APPLYING_INDEXES" ]; then
-    log "Stage is APPLYING_INDEXES, starting index application..."
-    break
-  fi
-
-  log "Current stage: ${stage:-unknown}, synced: $synced, waiting ${POLL_INTERVAL}s..."
-  sleep "$POLL_INTERVAL"
+# 1. Wait for yaci-indexer readiness (synced to tip)
+log "Waiting for yaci-indexer readiness at ${YACI_URL}/actuator/health/readiness ..."
+until curl -sf "${YACI_URL}/actuator/health/readiness" >/dev/null 2>&1; do
+  log "yaci-indexer not ready yet, retrying in ${YACI_WAIT_INTERVAL_SECONDS}s..."
+  sleep "$YACI_WAIT_INTERVAL_SECONDS"
 done
+log "yaci-indexer readiness is UP. Proceeding with index checks."
 
 # 2. Get index definitions from YAML
-log "Reading index definitions from $CONFIG_PATH..."
+log "Reading index definitions from ${CONFIG_PATH}..."
 index_count=$(yq -r '.cardano.rosetta.db_indexes | length' "$CONFIG_PATH")
 log "Found $index_count indexes to process"
 
-# 3. Cleanup invalid indexes
+# 3. Exit early if all indexes already exist and are valid
+all_valid=true
+for i in $(seq 0 $((index_count - 1))); do
+  name=$(yq -r ".cardano.rosetta.db_indexes[$i].name" "$CONFIG_PATH")
+
+  is_valid=$($PSQL_CONN -t -A -c "
+    SELECT indisvalid FROM pg_index i
+    JOIN pg_class c ON i.indexrelid = c.oid
+    JOIN pg_namespace n ON c.relnamespace = n.oid
+    WHERE c.relname = '$name' AND n.nspname = '$DB_SCHEMA'
+  " 2>/dev/null || echo "")
+
+  if [ "$is_valid" != "t" ]; then
+    all_valid=false
+    break
+  fi
+done
+
+if [ "$all_valid" = "true" ]; then
+  log "All indexes already exist and are valid. Exiting."
+  exit 0
+fi
+
+# 4. Cleanup invalid indexes
 log "Checking for invalid indexes..."
 for i in $(seq 0 $((index_count - 1))); do
   name=$(yq -r ".cardano.rosetta.db_indexes[$i].name" "$CONFIG_PATH")
@@ -76,7 +81,7 @@ for i in $(seq 0 $((index_count - 1))); do
   fi
 done
 
-# 4. Apply indexes
+# 5. Apply indexes
 log "Applying indexes..."
 for i in $(seq 0 $((index_count - 1))); do
   name=$(yq -r ".cardano.rosetta.db_indexes[$i].name" "$CONFIG_PATH")

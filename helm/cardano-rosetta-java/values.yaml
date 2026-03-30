@@ -308,7 +308,6 @@ indexApplier:
   #   The job is auto-cleaned after 24h via ttlSecondsAfterFinished.
   # "hook": legacy helm post-install/post-upgrade hook (use for operator-controlled rollouts).
   mode: automatic
-  pollInterval: 60
 
 ## -----------------------------------------------------------------------
 ## Stress testing with k6
@@ -331,4 +330,3 @@ yaci-indexer:
 
 rosetta-api:
   enabled: true
-
