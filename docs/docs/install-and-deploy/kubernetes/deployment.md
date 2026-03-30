@@ -75,7 +75,7 @@ kubectl create namespace cardano
 > download + node sync + indexer sync). Helm would time out and roll back.
 
 The `index-applier` Job runs automatically as part of the release (default
-`indexApplier.mode: automatic`). It waits for the Rosetta API to become ready, then
+`indexApplier.mode: automatic`). It waits for yaci-indexer readiness, then
 builds DB indexes in the background. No second `helm upgrade` is needed.
 
 **Preprod (K3s, entry profile):**
@@ -205,7 +205,7 @@ Stages:
 ### Phase 6 — Index Applier
 
 The index-applier Job is deployed automatically as part of the release
-(`indexApplier.mode: automatic` default). It waits for the Rosetta API to respond, then
+(`indexApplier.mode: automatic` default). It waits for yaci-indexer readiness, then
 builds optimised database indexes. This Job takes **1–2 hours on preprod** and **~6 hours
 on mainnet**. The Job is auto-cleaned up 24 hours after completion.
 
@@ -318,7 +318,7 @@ kubectl delete pvc --all -n cardano
 | `yaci-indexer` stuck in `Init:1/3` | cardano-node socat bridge not up yet | `kubectl logs <yaci-pod> -c wait-for-node-tcp -n cardano` |
 | `yaci-indexer` or `rosetta-api` stuck in `Init:2/3` | `copy-node-config` init container failed | `kubectl logs <pod> -c copy-node-config -n cardano` |
 | Mithril: `signature error: Verification equation was not satisfied` | Empty verification key passed as env var | Upgrade chart ≥ 2.0.0 — keys are now auto-fetched by entrypoint |
-| `yaci-indexer` CrashLoopBackOff (HikariCP timeout) | DB connection pool exhausted | Increase `hikariMaxPoolSize` in values (default 40) |
+| `yaci-indexer` CrashLoopBackOff (HikariCP timeout) | DB connection pool exhausted | Increase `yaci-indexer.env.indexerDbPoolMaxCount` (default 40), and tune profile DB pool limits if needed |
 | `yaci-indexer` two pods simultaneously | Normal rolling update behaviour | Wait — old pod terminates once new one is ready |
 | OOMKilled | Insufficient memory | Use a higher profile (`mid` or `advanced`) |
 | PVC `Pending` | No suitable StorageClass | `kubectl get sc`; ensure `local-path` provisioner is running |

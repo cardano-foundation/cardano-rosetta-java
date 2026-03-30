@@ -139,7 +139,6 @@ rosetta-api:
 |-------|---------|-------------|
 | `indexApplier.enabled` | `true` | Deploy the index-applier Job |
 | `indexApplier.mode` | `automatic` | `automatic`: plain Job (GitOps-friendly, no hooks). `hook`: legacy Helm post-install/post-upgrade hook. |
-| `indexApplier.pollInterval` | `60` | Seconds between API readiness polls |
 
 In `automatic` mode the Job runs as part of the release (compatible with ArgoCD and `--no-hooks`). The Job is
 cleaned up 24 hours after completion via `ttlSecondsAfterFinished`.
