@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.regex.Pattern;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,21 +26,18 @@ import org.cardanofoundation.rosetta.client.model.domain.StakeAccountInfo;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.util.CardanoAddressUtils;
 import org.cardanofoundation.rosetta.common.util.Constants;
+import org.cardanofoundation.rosetta.common.validation.PolicyIdValidator;
+import org.cardanofoundation.rosetta.common.validation.TokenNameValidator;
 
 import static org.cardanofoundation.rosetta.common.exception.ExceptionFactory.invalidPolicyIdError;
 import static org.cardanofoundation.rosetta.common.exception.ExceptionFactory.invalidTokenNameError;
 import static org.cardanofoundation.rosetta.common.util.CardanoAddressUtils.isStakeAddress;
-import static org.cardanofoundation.rosetta.common.util.Formatters.isEmptyHexString;
+
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class AccountServiceImpl implements AccountService {
-
-  private static final Pattern TOKEN_NAME_VALIDATION = Pattern.compile(
-          "^[0-9a-fA-F]{0," + Constants.ASSET_NAME_LENGTH + "}$");
-  private static final Pattern POLICY_ID_VALIDATION = Pattern.compile(
-          "^[0-9a-fA-F]{" + Constants.POLICY_ID_LENGTH + "}$");
 
   private final LedgerAccountService ledgerAccountService;
   private final LedgerBlockService ledgerBlockService;
@@ -146,23 +142,15 @@ public class AccountServiceImpl implements AccountService {
     for (CurrencyRequest currency : currencies) {
       String symbol = currency.getSymbol();
       CurrencyMetadataRequest metadata = currency.getMetadata();
-      if (!isTokenNameValid(symbol)) {
+      if (!TokenNameValidator.isValid(symbol)) {
         throw invalidTokenNameError("Given name is " + symbol);
       }
       if (!symbol.equals(Constants.ADA)
-              && (metadata == null || !isPolicyIdValid(String.valueOf(metadata.getPolicyId())))) {
+              && (metadata == null || !PolicyIdValidator.isValid(String.valueOf(metadata.getPolicyId())))) {
         String policyId = metadata == null ? null : metadata.getPolicyId();
         throw invalidPolicyIdError("Given policy id is " + policyId);
       }
     }
-  }
-
-  private boolean isTokenNameValid(String name) {
-    return TOKEN_NAME_VALIDATION.matcher(name).matches() || isEmptyHexString(name);
-  }
-
-  private boolean isPolicyIdValid(String policyId) {
-    return POLICY_ID_VALIDATION.matcher(policyId).matches();
   }
 
   private List<CurrencyRequest> filterRequestedCurrencies(List<CurrencyRequest> currencies) {

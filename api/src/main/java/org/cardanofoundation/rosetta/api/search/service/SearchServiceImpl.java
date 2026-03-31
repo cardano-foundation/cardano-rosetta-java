@@ -12,7 +12,7 @@ import org.cardanofoundation.rosetta.api.common.service.TokenRegistryService;
 import org.cardanofoundation.rosetta.api.search.model.Operator;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.util.Constants;
-import org.cardanofoundation.rosetta.common.util.HexUtils;
+import org.cardanofoundation.rosetta.common.validation.PolicyIdValidator;
 import org.openapitools.client.model.*;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
@@ -22,7 +22,6 @@ import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.regex.Pattern;
 
 import static org.cardanofoundation.rosetta.common.util.HexUtils.isHexString;
 
@@ -31,8 +30,6 @@ import static org.cardanofoundation.rosetta.common.util.HexUtils.isHexString;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class SearchServiceImpl implements SearchService {
-
-    private static final Pattern POLICY_ID_VALIDATION = Pattern.compile(Constants.POLICY_ID_VALIDATION);
 
     private final BlockMapper blockMapper;
     private final LedgerSearchService ledgerSearchService;
@@ -183,7 +180,7 @@ public class SearchServiceImpl implements SearchService {
     }
 
     private void validatePolicyId(@Nullable String policyId) {
-        if (policyId != null && !POLICY_ID_VALIDATION.matcher(policyId).matches()) {
+        if (policyId != null && !PolicyIdValidator.isValid(policyId)) {
             throw ExceptionFactory.invalidPolicyIdError("Given policy id is " + policyId);
         }
     }

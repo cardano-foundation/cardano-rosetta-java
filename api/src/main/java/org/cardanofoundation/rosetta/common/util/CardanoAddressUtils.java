@@ -24,6 +24,8 @@ import org.apache.commons.validator.routines.InetAddressValidator;
 import org.cardanofoundation.rosetta.common.enumeration.EraAddressType;
 import org.cardanofoundation.rosetta.common.enumeration.StakeAddressPrefix;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
+import org.cardanofoundation.rosetta.common.validation.PolicyIdValidator;
+import org.cardanofoundation.rosetta.common.validation.TokenNameValidator;
 import org.openapitools.client.model.PublicKey;
 import org.openapitools.client.model.Relay;
 
@@ -180,11 +182,11 @@ public class CardanoAddressUtils {
   }
 
   public static Boolean isPolicyIdValid(String policyId) {
-    return policyId.matches(Constants.POLICY_ID_VALIDATION);
+    return PolicyIdValidator.isValid(policyId);
   }
 
   public static Boolean isTokenNameValid(String name) {
-    return name.matches(Constants.TOKEN_NAME_VALIDATION) || isEmptyHexString(name);
+    return TokenNameValidator.isValid(name);
   }
 
   public static Boolean isEmptyHexString(String toCheck) {
