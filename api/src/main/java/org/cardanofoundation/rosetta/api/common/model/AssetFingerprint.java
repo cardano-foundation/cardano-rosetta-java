@@ -4,10 +4,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.cardanofoundation.rosetta.common.util.Constants;
+import org.cardanofoundation.rosetta.common.validation.PolicyIdValidator;
 
 import javax.annotation.Nullable;
-
-import static org.cardanofoundation.rosetta.common.util.HexUtils.isHexString;
 
 @Data
 @AllArgsConstructor
@@ -55,7 +54,7 @@ public class AssetFingerprint {
         }
 
         // Validate that subject is valid hex
-        if (!isHexString(subject)) {
+        if (!PolicyIdValidator.isHexOnly(subject)) {
             throw new IllegalArgumentException("subject is not a hex string");
         }
 

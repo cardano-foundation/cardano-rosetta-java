@@ -23,8 +23,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
-import static org.cardanofoundation.rosetta.common.util.HexUtils.isHexString;
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -196,7 +194,7 @@ public class SearchServiceImpl implements SearchService {
         }
 
         // For native assets, symbol must be hex-encoded
-        if (!isHexString(symbol)) {
+        if (!PolicyIdValidator.isHexOnly(symbol)) {
             throw ExceptionFactory.currencySymbolNotHex(symbol);
         }
     }
