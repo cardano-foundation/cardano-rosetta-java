@@ -17,6 +17,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import static org.cardanofoundation.rosetta.api.jooq.Tables.*;
 
@@ -33,41 +34,57 @@ public abstract class TxRepositoryCustomBase implements TxRepositoryCustom {
      * Base class for currency condition builders that handles common logic.
      */
     protected abstract static class BaseCurrencyConditionBuilder implements TxRepositoryQueryBuilder.CurrencyConditionBuilder {
-        
+
+        private static final Pattern HEX_PATTERN = Pattern.compile("^[0-9a-fA-F]*$");
+
+        /**
+         * Validates that a value contains only hexadecimal characters.
+         * Defense-in-depth: input should already be validated at the service layer,
+         * but this ensures only safe values reach query construction.
+         */
+        private static String requireHex(String value, String fieldName) {
+            String trimmed = value.trim();
+            if (!HEX_PATTERN.matcher(trimmed).matches()) {
+                throw new IllegalArgumentException(
+                        fieldName + " must contain only hex characters, got: " + trimmed);
+            }
+            return trimmed;
+        }
+
         @Override
         public final Condition buildCurrencyCondition(Currency currency) {
             String policyId = currency.getPolicyId();
             String symbol = currency.getSymbol();
 
             if (policyId != null && !policyId.trim().isEmpty()) {
-                String escapedPolicyId = policyId.trim().replace("\"", "\\\"");
+                String validatedPolicyId = requireHex(policyId, "policyId");
 
                 if (symbol != null && !symbol.trim().isEmpty() &&
                         !"lovelace".equalsIgnoreCase(symbol) && !"ada".equalsIgnoreCase(symbol)) {
-                    String escapedSymbol = symbol.trim().replace("\"", "\\\"");
-                    return buildPolicyIdAndSymbolCondition(escapedPolicyId, escapedSymbol);
+                    String validatedSymbol = requireHex(symbol, "symbol");
+                    return buildPolicyIdAndSymbolCondition(validatedPolicyId, validatedSymbol);
                 }
 
-                return buildPolicyIdOnlyCondition(escapedPolicyId);
+                return buildPolicyIdOnlyCondition(validatedPolicyId);
             }
 
             if (symbol != null && !symbol.trim().isEmpty()) {
                 if ("lovelace".equalsIgnoreCase(symbol) || "ada".equalsIgnoreCase(symbol)) {
                     return buildLovelaceCondition();
                 } else {
-                    String escapedSymbol = symbol.trim().replace("\"", "\\\"");
-                    return buildSymbolOnlyCondition(escapedSymbol);
+                    String validatedSymbol = requireHex(symbol, "symbol");
+                    return buildSymbolOnlyCondition(validatedSymbol);
                 }
             }
 
             return DSL.falseCondition();
         }
-        
+
         // Template methods for database-specific implementations
-        protected abstract Condition buildPolicyIdAndSymbolCondition(String escapedPolicyId, String escapedSymbol);
-        protected abstract Condition buildPolicyIdOnlyCondition(String escapedPolicyId);
+        protected abstract Condition buildPolicyIdAndSymbolCondition(String validatedPolicyId, String validatedSymbol);
+        protected abstract Condition buildPolicyIdOnlyCondition(String validatedPolicyId);
         protected abstract Condition buildLovelaceCondition();
-        protected abstract Condition buildSymbolOnlyCondition(String escapedSymbol);
+        protected abstract Condition buildSymbolOnlyCondition(String validatedSymbol);
     }
     
     /**

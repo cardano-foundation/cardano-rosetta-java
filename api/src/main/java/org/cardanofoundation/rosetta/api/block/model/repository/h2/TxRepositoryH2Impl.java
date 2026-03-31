@@ -157,18 +157,18 @@ public class TxRepositoryH2Impl extends TxRepositoryCustomBase implements TxRepo
     private static class H2CurrencyConditionBuilder extends BaseCurrencyConditionBuilder {
 
         @Override
-        protected Condition buildPolicyIdAndSymbolCondition(String escapedPolicyId, String escapedSymbol) {
+        protected Condition buildPolicyIdAndSymbolCondition(String validatedPolicyId, String validatedSymbol) {
             // Search for unit field containing policyId+symbol (hex-encoded)
             // unit = policyId + symbol where symbol is hex-encoded asset name
-            String expectedUnit = escapedPolicyId + escapedSymbol;
+            String expectedUnit = validatedPolicyId + validatedSymbol;
             return DSL.condition("EXISTS (SELECT 1 FROM address_utxo au WHERE au.tx_hash = transaction.tx_hash " +
                     "AND au.amounts LIKE '%\"unit\":\"" + expectedUnit + "\"%')");
         }
 
         @Override
-        protected Condition buildPolicyIdOnlyCondition(String escapedPolicyId) {
+        protected Condition buildPolicyIdOnlyCondition(String validatedPolicyId) {
             return DSL.condition("EXISTS (SELECT 1 FROM address_utxo au WHERE au.tx_hash = transaction.tx_hash " +
-                    "AND au.amounts LIKE '%\"policy_id\":\"" + escapedPolicyId + "\"%')");
+                    "AND au.amounts LIKE '%\"policy_id\":\"" + validatedPolicyId + "\"%')");
         }
 
         @Override
@@ -178,12 +178,12 @@ public class TxRepositoryH2Impl extends TxRepositoryCustomBase implements TxRepo
         }
 
         @Override
-        protected Condition buildSymbolOnlyCondition(String escapedSymbol) {
+        protected Condition buildSymbolOnlyCondition(String validatedSymbol) {
             // Search for unit field containing the hex-encoded symbol
             // Since unit = policyId + symbol, the unit will contain the symbol substring
             // We need to exclude lovelace since it's a special case
             return DSL.condition("EXISTS (SELECT 1 FROM address_utxo au WHERE au.tx_hash = transaction.tx_hash " +
-                    "AND au.amounts LIKE '%\"unit\":\"%"  + escapedSymbol + "\"%' " +
+                    "AND au.amounts LIKE '%\"unit\":\"%"  + validatedSymbol + "\"%' " +
                     "AND au.amounts NOT LIKE '%\"unit\":\"lovelace\"%')");
         }
     }

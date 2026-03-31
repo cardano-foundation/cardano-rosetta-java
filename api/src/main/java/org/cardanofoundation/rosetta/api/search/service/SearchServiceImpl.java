@@ -22,6 +22,7 @@ import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 
 import static org.cardanofoundation.rosetta.common.util.HexUtils.isHexString;
 
@@ -30,6 +31,8 @@ import static org.cardanofoundation.rosetta.common.util.HexUtils.isHexString;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class SearchServiceImpl implements SearchService {
+
+    private static final Pattern POLICY_ID_VALIDATION = Pattern.compile(Constants.POLICY_ID_VALIDATION);
 
     private final BlockMapper blockMapper;
     private final LedgerSearchService ledgerSearchService;
@@ -65,10 +68,15 @@ public class SearchServiceImpl implements SearchService {
                 .map(c -> {
                     validateCurrencySymbolIsHex(c); // Validate that currency symbol is hex-encoded (for native assets)
 
+                    @Nullable String policyId = Optional.ofNullable(c.getMetadata())
+                            .map(CurrencyMetadataRequest::getPolicyId)
+                            .orElse(null);
+                    validatePolicyId(policyId);
+
                     return org.cardanofoundation.rosetta.api.search.model.Currency.builder()
                             .symbol(c.getSymbol())
                             .decimals(c.getDecimals())
-                            .policyId(Optional.ofNullable(c.getMetadata()).map(CurrencyMetadataRequest::getPolicyId).orElse(null))
+                            .policyId(policyId)
                             .build();
                 })
                 .orElse(null);
@@ -171,6 +179,12 @@ public class SearchServiceImpl implements SearchService {
         } catch (IllegalArgumentException e) {
             String details = String.format("Unknown operator: '%s'. Supported values are: 'AND', 'OR'", operatorString);
             throw ExceptionFactory.unspecifiedErrorNotRetriable(details);
+        }
+    }
+
+    private void validatePolicyId(@Nullable String policyId) {
+        if (policyId != null && !POLICY_ID_VALIDATION.matcher(policyId).matches()) {
+            throw ExceptionFactory.invalidPolicyIdError("Given policy id is " + policyId);
         }
     }
 
