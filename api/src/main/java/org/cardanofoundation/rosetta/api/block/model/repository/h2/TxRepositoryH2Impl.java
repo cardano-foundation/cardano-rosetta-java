@@ -158,17 +158,20 @@ public class TxRepositoryH2Impl extends TxRepositoryCustomBase implements TxRepo
 
         @Override
         protected Condition buildPolicyIdAndSymbolCondition(String validatedPolicyId, String validatedSymbol) {
-            // Search for unit field containing policyId+symbol (hex-encoded)
             // unit = policyId + symbol where symbol is hex-encoded asset name
             String expectedUnit = validatedPolicyId + validatedSymbol;
-            return DSL.condition("EXISTS (SELECT 1 FROM address_utxo au WHERE au.tx_hash = transaction.tx_hash " +
-                    "AND au.amounts LIKE '%\"unit\":\"" + expectedUnit + "\"%')");
+            return DSL.condition(
+                    "EXISTS (SELECT 1 FROM address_utxo au WHERE au.tx_hash = transaction.tx_hash " +
+                    "AND au.amounts LIKE ?)",
+                    DSL.val("%\"unit\":\"" + expectedUnit + "\"%"));
         }
 
         @Override
         protected Condition buildPolicyIdOnlyCondition(String validatedPolicyId) {
-            return DSL.condition("EXISTS (SELECT 1 FROM address_utxo au WHERE au.tx_hash = transaction.tx_hash " +
-                    "AND au.amounts LIKE '%\"policy_id\":\"" + validatedPolicyId + "\"%')");
+            return DSL.condition(
+                    "EXISTS (SELECT 1 FROM address_utxo au WHERE au.tx_hash = transaction.tx_hash " +
+                    "AND au.amounts LIKE ?)",
+                    DSL.val("%\"policy_id\":\"" + validatedPolicyId + "\"%"));
         }
 
         @Override
@@ -182,9 +185,11 @@ public class TxRepositoryH2Impl extends TxRepositoryCustomBase implements TxRepo
             // Search for unit field containing the hex-encoded symbol
             // Since unit = policyId + symbol, the unit will contain the symbol substring
             // We need to exclude lovelace since it's a special case
-            return DSL.condition("EXISTS (SELECT 1 FROM address_utxo au WHERE au.tx_hash = transaction.tx_hash " +
-                    "AND au.amounts LIKE '%\"unit\":\"%"  + validatedSymbol + "\"%' " +
-                    "AND au.amounts NOT LIKE '%\"unit\":\"lovelace\"%')");
+            return DSL.condition(
+                    "EXISTS (SELECT 1 FROM address_utxo au WHERE au.tx_hash = transaction.tx_hash " +
+                    "AND au.amounts LIKE ? " +
+                    "AND au.amounts NOT LIKE '%\"unit\":\"lovelace\"%')",
+                    DSL.val("%\"unit\":\"%" + validatedSymbol + "\"%"));
         }
     }
 

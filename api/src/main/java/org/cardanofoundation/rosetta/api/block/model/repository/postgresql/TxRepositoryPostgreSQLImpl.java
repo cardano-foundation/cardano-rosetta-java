@@ -196,17 +196,20 @@ public class TxRepositoryPostgreSQLImpl extends TxRepositoryCustomBase implement
 
         @Override
         protected Condition buildPolicyIdAndSymbolCondition(String validatedPolicyId, String validatedSymbol) {
-            // Search for unit field containing policyId+symbol (hex-encoded)
             // unit = policyId + symbol where symbol is hex-encoded asset name
             String expectedUnit = validatedPolicyId + validatedSymbol;
-            return DSL.condition("EXISTS (SELECT 1 FROM address_utxo au WHERE au.tx_hash = transaction.tx_hash " +
-                    "AND au.amounts::jsonb @> '[{\"unit\": \"" + expectedUnit + "\"}]')");
+            return DSL.condition(
+                    "EXISTS (SELECT 1 FROM address_utxo au WHERE au.tx_hash = transaction.tx_hash " +
+                    "AND au.amounts::jsonb @> jsonb_build_array(jsonb_build_object('unit', ?)))",
+                    DSL.val(expectedUnit));
         }
 
         @Override
         protected Condition buildPolicyIdOnlyCondition(String validatedPolicyId) {
-            return DSL.condition("EXISTS (SELECT 1 FROM address_utxo au WHERE au.tx_hash = transaction.tx_hash " +
-                    "AND au.amounts::jsonb @> '[{\"policy_id\": \"" + validatedPolicyId + "\"}]')");
+            return DSL.condition(
+                    "EXISTS (SELECT 1 FROM address_utxo au WHERE au.tx_hash = transaction.tx_hash " +
+                    "AND au.amounts::jsonb @> jsonb_build_array(jsonb_build_object('policy_id', ?)))",
+                    DSL.val(validatedPolicyId));
         }
 
         @Override
@@ -219,12 +222,13 @@ public class TxRepositoryPostgreSQLImpl extends TxRepositoryCustomBase implement
         protected Condition buildSymbolOnlyCondition(String validatedSymbol) {
             // Search for unit field ending with the hex-encoded symbol
             // Since unit = policyId + symbol, we look for units that end with the symbol
-            // Using jsonb_array_elements to iterate through amounts array and check each unit
-            return DSL.condition("EXISTS (SELECT 1 FROM address_utxo au, " +
+            return DSL.condition(
+                    "EXISTS (SELECT 1 FROM address_utxo au, " +
                     "jsonb_array_elements(au.amounts::jsonb) AS amt " +
                     "WHERE au.tx_hash = transaction.tx_hash " +
-                    "AND amt->>'unit' LIKE '%" + validatedSymbol + "' " +
-                    "AND amt->>'unit' != 'lovelace')");
+                    "AND amt->>'unit' LIKE ? " +
+                    "AND amt->>'unit' != 'lovelace')",
+                    DSL.val("%" + validatedSymbol));
         }
     }
 
