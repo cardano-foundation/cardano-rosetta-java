@@ -635,6 +635,194 @@ class SearchServiceImplTest {
     }
 
     @Nested
+    class PolicyIdValidationTests {
+
+        @Test
+        void shouldRejectPolicyId_withUnsanitizedInput() {
+            // Given - unsanitized input via policyId
+            CurrencyMetadataRequest metadata = CurrencyMetadataRequest.builder()
+                    .policyId("'}]') OR 1=1 --")
+                    .build();
+            CurrencyRequest currency = CurrencyRequest.builder()
+                    .symbol("ADA")
+                    .metadata(metadata)
+                    .build();
+
+            SearchTransactionsRequest request = SearchTransactionsRequest.builder()
+                    .networkIdentifier(networkIdentifier)
+                    .currency(currency)
+                    .build();
+
+            // When & Then
+            assertThatThrownBy(() -> searchService.searchTransaction(request, 0L, 10L))
+                    .isInstanceOf(ApiException.class)
+                    .extracting("error.message")
+                    .isEqualTo("Invalid policy id");
+
+            verifyNoInteractions(ledgerSearchService);
+        }
+
+        @Test
+        void shouldRejectPolicyId_tooShort() {
+            // Given - policyId with fewer than 56 hex characters
+            CurrencyMetadataRequest metadata = CurrencyMetadataRequest.builder()
+                    .policyId("abcdef1234")
+                    .build();
+            CurrencyRequest currency = CurrencyRequest.builder()
+                    .symbol("ADA")
+                    .metadata(metadata)
+                    .build();
+
+            SearchTransactionsRequest request = SearchTransactionsRequest.builder()
+                    .networkIdentifier(networkIdentifier)
+                    .currency(currency)
+                    .build();
+
+            // When & Then
+            assertThatThrownBy(() -> searchService.searchTransaction(request, 0L, 10L))
+                    .isInstanceOf(ApiException.class)
+                    .extracting("error.message")
+                    .isEqualTo("Invalid policy id");
+
+            verifyNoInteractions(ledgerSearchService);
+        }
+
+        @Test
+        void shouldRejectPolicyId_tooLong() {
+            // Given - policyId with more than 56 hex characters
+            String tooLongPolicyId = "a".repeat(57);
+            CurrencyMetadataRequest metadata = CurrencyMetadataRequest.builder()
+                    .policyId(tooLongPolicyId)
+                    .build();
+            CurrencyRequest currency = CurrencyRequest.builder()
+                    .symbol("ADA")
+                    .metadata(metadata)
+                    .build();
+
+            SearchTransactionsRequest request = SearchTransactionsRequest.builder()
+                    .networkIdentifier(networkIdentifier)
+                    .currency(currency)
+                    .build();
+
+            // When & Then
+            assertThatThrownBy(() -> searchService.searchTransaction(request, 0L, 10L))
+                    .isInstanceOf(ApiException.class)
+                    .extracting("error.message")
+                    .isEqualTo("Invalid policy id");
+
+            verifyNoInteractions(ledgerSearchService);
+        }
+
+        @Test
+        void shouldRejectPolicyId_nonHexCharacters() {
+            // Given - policyId with non-hex characters
+            CurrencyMetadataRequest metadata = CurrencyMetadataRequest.builder()
+                    .policyId("thisIsNotHexAndIsExactly56CharsLongForTestingPurposesXX")
+                    .build();
+            CurrencyRequest currency = CurrencyRequest.builder()
+                    .symbol("ADA")
+                    .metadata(metadata)
+                    .build();
+
+            SearchTransactionsRequest request = SearchTransactionsRequest.builder()
+                    .networkIdentifier(networkIdentifier)
+                    .currency(currency)
+                    .build();
+
+            // When & Then
+            assertThatThrownBy(() -> searchService.searchTransaction(request, 0L, 10L))
+                    .isInstanceOf(ApiException.class)
+                    .extracting("error.message")
+                    .isEqualTo("Invalid policy id");
+
+            verifyNoInteractions(ledgerSearchService);
+        }
+
+        @Test
+        void shouldRejectPolicyId_withSpecialCharacters() {
+            // Given - policyId with special characters
+            CurrencyMetadataRequest metadata = CurrencyMetadataRequest.builder()
+                    .policyId("'; DROP TABLE transaction; --")
+                    .build();
+            CurrencyRequest currency = CurrencyRequest.builder()
+                    .symbol("ADA")
+                    .metadata(metadata)
+                    .build();
+
+            SearchTransactionsRequest request = SearchTransactionsRequest.builder()
+                    .networkIdentifier(networkIdentifier)
+                    .currency(currency)
+                    .build();
+
+            // When & Then
+            assertThatThrownBy(() -> searchService.searchTransaction(request, 0L, 10L))
+                    .isInstanceOf(ApiException.class)
+                    .extracting("error.message")
+                    .isEqualTo("Invalid policy id");
+
+            verifyNoInteractions(ledgerSearchService);
+        }
+
+        @Test
+        void shouldAcceptValidPolicyId() {
+            // Given - valid 56-char hex policyId
+            String validPolicyId = "d97e36383ae494e72b736ace04080f2953934626376ee06cf84adeb4";
+            CurrencyMetadataRequest metadata = CurrencyMetadataRequest.builder()
+                    .policyId(validPolicyId)
+                    .build();
+            CurrencyRequest currency = CurrencyRequest.builder()
+                    .symbol("000de1404469616d6f6e64")
+                    .metadata(metadata)
+                    .build();
+
+            SearchTransactionsRequest request = SearchTransactionsRequest.builder()
+                    .networkIdentifier(networkIdentifier)
+                    .currency(currency)
+                    .build();
+
+            Page<BlockTx> emptyPage = new PageImpl<>(List.of());
+            when(ledgerSearchService.searchTransaction(
+                    any(), any(), any(), any(), any(), any(), any(), any(), any(), anyLong(), anyLong()
+            )).thenReturn(emptyPage);
+
+            // When
+            Page<BlockTransaction> result = searchService.searchTransaction(request, 0L, 10L);
+
+            // Then - should not throw, valid policyId passes validation
+            assertThat(result).isNotNull();
+            verify(ledgerSearchService).searchTransaction(
+                    any(), any(), any(), any(),
+                    argThat(c -> c != null && validPolicyId.equals(c.getPolicyId())),
+                    any(), any(), any(), any(), anyLong(), anyLong()
+            );
+        }
+
+        @Test
+        void shouldAcceptNullPolicyId() {
+            // Given - no metadata means no policyId
+            CurrencyRequest currency = CurrencyRequest.builder()
+                    .symbol("ADA")
+                    .build();
+
+            SearchTransactionsRequest request = SearchTransactionsRequest.builder()
+                    .networkIdentifier(networkIdentifier)
+                    .currency(currency)
+                    .build();
+
+            Page<BlockTx> emptyPage = new PageImpl<>(List.of());
+            when(ledgerSearchService.searchTransaction(
+                    any(), any(), any(), any(), any(), any(), any(), any(), any(), anyLong(), anyLong()
+            )).thenReturn(emptyPage);
+
+            // When
+            Page<BlockTransaction> result = searchService.searchTransaction(request, 0L, 10L);
+
+            // Then - null policyId should be accepted
+            assertThat(result).isNotNull();
+        }
+    }
+
+    @Nested
     class ValidateAndNormalizeSuccessStatusTests {
 
         @Test
