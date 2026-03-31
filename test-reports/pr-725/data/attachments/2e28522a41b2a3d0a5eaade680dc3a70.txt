@@ -1,0 +1,17 @@
+    assert response.status_code == 200
+    assert isinstance(current_index, int) and current_index >= 0
+    assert isinstance(current_hash, str) and len(current_hash) == 64
+    assert isinstance(timestamp, int) and timestamp > 0
+    assert genesis_index == 0
+    assert isinstance(genesis_hash, str) and len(genesis_hash) == 64
+    assert current_index >= genesis_index
+    assert isinstance(sync_status, dict), "sync_status must be present"
+    assert sync_status.get("synced") is True, "Node must report synced"
+    assert isinstance(sync_current, int), (
+    assert isinstance(sync_target, int), "sync_status.target_index must be integer"
+    assert sync_current >= current_index, "sync progress cannot trail current block"
+    assert sync_current <= sync_target, "sync progress cannot exceed target"
+    assert isinstance(peers, list), "Peers must be a list"
+    assert peers, "Peers list empty after 5 minutes (peer discovery initial delay)"
+        assert isinstance(peer_id, str) and ":" in peer_id, (
+        assert isinstance(metadata, dict) and metadata.get("type") in {
