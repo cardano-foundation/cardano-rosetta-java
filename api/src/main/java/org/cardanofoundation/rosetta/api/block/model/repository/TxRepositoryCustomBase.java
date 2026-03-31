@@ -5,7 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.api.block.model.entity.TxnEntity;
 import org.cardanofoundation.rosetta.api.block.model.repository.util.TxRepositoryQueryBuilder;
 import org.cardanofoundation.rosetta.api.search.model.Currency;
-import org.cardanofoundation.rosetta.common.validation.PolicyIdValidator;
+import org.cardanofoundation.rosetta.common.util.HexUtils;
+import org.cardanofoundation.rosetta.common.validation.SymbolValidator;
 import org.cardanofoundation.rosetta.common.spring.OffsetBasedPageRequest;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
@@ -35,29 +36,54 @@ public abstract class TxRepositoryCustomBase implements TxRepositoryCustom {
      */
     protected abstract static class BaseCurrencyConditionBuilder implements TxRepositoryQueryBuilder.CurrencyConditionBuilder {
 
+        /**
+         * Defense-in-depth: validates policyId is hex using HexUtils directly
+         * since PolicyIdValidator.isValid() enforces length which is too strict here.
+         */
+        private static String requireHex(String value, String fieldName) {
+            String trimmed = value.trim();
+            if (!HexUtils.isHexString(trimmed)) {
+                throw new IllegalArgumentException(
+                        fieldName + " must contain only hex characters, got: " + trimmed);
+            }
+            return trimmed;
+        }
+
+        /**
+         * Defense-in-depth: validates symbol using SymbolValidator.
+         */
+        private static String requireValidSymbol(String symbol) {
+            String trimmed = symbol.trim();
+            if (!SymbolValidator.isValid(trimmed)) {
+                throw new IllegalArgumentException(
+                        "symbol must be a valid hex-encoded asset name, got: " + trimmed);
+            }
+            return trimmed;
+        }
+
         @Override
         public final Condition buildCurrencyCondition(Currency currency) {
             String policyId = currency.getPolicyId();
             String symbol = currency.getSymbol();
 
             if (policyId != null && !policyId.trim().isEmpty()) {
-                String validatedPolicyId = PolicyIdValidator.requireHexOnly(policyId, "policyId");
+                String trimmedPolicyId = requireHex(policyId, "policyId");
 
                 if (symbol != null && !symbol.trim().isEmpty() &&
                         !"lovelace".equalsIgnoreCase(symbol) && !"ada".equalsIgnoreCase(symbol)) {
-                    String validatedSymbol = PolicyIdValidator.requireHexOnly(symbol, "symbol");
-                    return buildPolicyIdAndSymbolCondition(validatedPolicyId, validatedSymbol);
+                    String trimmedSymbol = requireValidSymbol(symbol);
+                    return buildPolicyIdAndSymbolCondition(trimmedPolicyId, trimmedSymbol);
                 }
 
-                return buildPolicyIdOnlyCondition(validatedPolicyId);
+                return buildPolicyIdOnlyCondition(trimmedPolicyId);
             }
 
             if (symbol != null && !symbol.trim().isEmpty()) {
                 if ("lovelace".equalsIgnoreCase(symbol) || "ada".equalsIgnoreCase(symbol)) {
                     return buildLovelaceCondition();
                 } else {
-                    String validatedSymbol = PolicyIdValidator.requireHexOnly(symbol, "symbol");
-                    return buildSymbolOnlyCondition(validatedSymbol);
+                    String trimmedSymbol = requireValidSymbol(symbol);
+                    return buildSymbolOnlyCondition(trimmedSymbol);
                 }
             }
 

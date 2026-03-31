@@ -150,7 +150,7 @@ class BaseCurrencyConditionBuilderTest {
             // When & Then
             assertThatThrownBy(() -> builder.buildCurrencyCondition(currency))
                     .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("symbol must contain only hex characters");
+                    .hasMessageContaining("symbol must be a valid hex-encoded asset name");
         }
 
         @Test
@@ -165,7 +165,7 @@ class BaseCurrencyConditionBuilderTest {
             // When & Then
             assertThatThrownBy(() -> builder.buildCurrencyCondition(currency))
                     .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("symbol must contain only hex characters");
+                    .hasMessageContaining("symbol must be a valid hex-encoded asset name");
         }
 
         @Test
