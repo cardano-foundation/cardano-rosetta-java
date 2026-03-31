@@ -13,6 +13,7 @@ import org.cardanofoundation.rosetta.api.search.model.Operator;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.util.Constants;
 import org.cardanofoundation.rosetta.common.validation.PolicyIdValidator;
+import org.cardanofoundation.rosetta.common.validation.SymbolValidator;
 import org.openapitools.client.model.*;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
@@ -194,7 +195,7 @@ public class SearchServiceImpl implements SearchService {
         }
 
         // For native assets, symbol must be hex-encoded
-        if (!PolicyIdValidator.isHexOnly(symbol)) {
+        if (!SymbolValidator.isValid(symbol)) {
             throw ExceptionFactory.currencySymbolNotHex(symbol);
         }
     }
