@@ -1,5 +1,6 @@
 package org.cardanofoundation.rosetta.common.validation;
 
+import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.util.Constants;
 import org.cardanofoundation.rosetta.common.util.HexUtils;
 
@@ -34,5 +35,17 @@ public final class TokenNameValidator {
             return true;
         }
         return name.length() <= Constants.ASSET_NAME_LENGTH && HexUtils.isHexString(name);
+    }
+
+    /**
+     * Validates that the given token name is valid.
+     *
+     * @param name the token name to validate
+     * @throws org.cardanofoundation.rosetta.common.exception.ApiException if invalid
+     */
+    public static void validate(@Nullable String name) {
+        if (!isValid(name)) {
+            throw ExceptionFactory.invalidTokenNameError("Given name is " + name);
+        }
     }
 }
