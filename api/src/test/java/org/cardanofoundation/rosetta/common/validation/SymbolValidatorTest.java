@@ -1,9 +1,12 @@
 package org.cardanofoundation.rosetta.common.validation;
 
+import org.cardanofoundation.rosetta.common.exception.ApiException;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 
 class SymbolValidatorTest {
 
@@ -58,6 +61,42 @@ class SymbolValidatorTest {
         @Test
         void shouldRejectSqlPayload() {
             assertThat(SymbolValidator.isValid("' OR 1=1 --")).isFalse();
+        }
+    }
+
+    @Nested
+    class ValidateTests {
+
+        @Test
+        void shouldAcceptNull() {
+            assertThatNoException().isThrownBy(() -> SymbolValidator.validate(null));
+        }
+
+        @Test
+        void shouldAcceptLovelace() {
+            assertThatNoException().isThrownBy(() -> SymbolValidator.validate("lovelace"));
+        }
+
+        @Test
+        void shouldAcceptAda() {
+            assertThatNoException().isThrownBy(() -> SymbolValidator.validate("ADA"));
+        }
+
+        @Test
+        void shouldAcceptValidHexSymbol() {
+            assertThatNoException().isThrownBy(() -> SymbolValidator.validate("000de1404469616d6f6e64"));
+        }
+
+        @Test
+        void shouldThrowForNonHexSymbol() {
+            assertThatThrownBy(() -> SymbolValidator.validate("Diamond"))
+                    .isInstanceOf(ApiException.class);
+        }
+
+        @Test
+        void shouldThrowForSqlPayload() {
+            assertThatThrownBy(() -> SymbolValidator.validate("' OR 1=1 --"))
+                    .isInstanceOf(ApiException.class);
         }
     }
 }

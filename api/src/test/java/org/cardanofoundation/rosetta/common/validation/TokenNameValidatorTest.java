@@ -1,9 +1,12 @@
 package org.cardanofoundation.rosetta.common.validation;
 
+import org.cardanofoundation.rosetta.common.exception.ApiException;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 
 class TokenNameValidatorTest {
 
@@ -73,6 +76,34 @@ class TokenNameValidatorTest {
         void shouldAcceptCIP68Prefix() {
             // CIP-68 asset with binary prefix
             assertThat(TokenNameValidator.isValid("000643b04469616d6f6e64")).isTrue();
+        }
+    }
+
+    @Nested
+    class ValidateTests {
+
+        @Test
+        void shouldAcceptValidTokenName() {
+            assertThatNoException().isThrownBy(() -> TokenNameValidator.validate("000de1404469616d6f6e64"));
+        }
+
+        @Test
+        void shouldAcceptEmptyHexString() {
+            assertThatNoException().isThrownBy(() -> TokenNameValidator.validate("\\x"));
+        }
+
+        @Test
+        void shouldThrowForNull() {
+            assertThatThrownBy(() -> TokenNameValidator.validate(null))
+                    .isInstanceOf(ApiException.class)
+                    .extracting("error.message")
+                    .isEqualTo("Invalid token name");
+        }
+
+        @Test
+        void shouldThrowForNonHex() {
+            assertThatThrownBy(() -> TokenNameValidator.validate("Diamond"))
+                    .isInstanceOf(ApiException.class);
         }
     }
 }

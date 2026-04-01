@@ -1,5 +1,7 @@
 package org.cardanofoundation.rosetta.common.validation;
 
+import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
+import org.cardanofoundation.rosetta.common.util.Constants;
 import org.cardanofoundation.rosetta.common.util.HexUtils;
 
 import javax.annotation.Nullable;
@@ -22,5 +24,24 @@ public final class SymbolValidator {
      */
     public static boolean isValid(@Nullable String symbol) {
         return symbol != null && !symbol.isEmpty() && HexUtils.isHexString(symbol);
+    }
+
+    /**
+     * Validates that a currency symbol is hex-encoded for native assets.
+     * ADA and lovelace symbols are skipped (not hex-encoded).
+     * Null symbols are accepted.
+     *
+     * @param symbol the currency symbol to validate, may be null
+     * @throws org.cardanofoundation.rosetta.common.exception.ApiException if non-ADA symbol is not valid hex
+     */
+    public static void validate(@Nullable String symbol) {
+        if (symbol == null
+                || Constants.LOVELACE.equalsIgnoreCase(symbol)
+                || Constants.ADA.equals(symbol)) {
+            return;
+        }
+        if (!isValid(symbol)) {
+            throw ExceptionFactory.currencySymbolNotHex(symbol);
+        }
     }
 }

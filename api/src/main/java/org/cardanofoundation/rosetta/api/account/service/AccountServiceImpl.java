@@ -29,8 +29,6 @@ import org.cardanofoundation.rosetta.common.util.Constants;
 import org.cardanofoundation.rosetta.common.validation.PolicyIdValidator;
 import org.cardanofoundation.rosetta.common.validation.TokenNameValidator;
 
-import static org.cardanofoundation.rosetta.common.exception.ExceptionFactory.invalidPolicyIdError;
-import static org.cardanofoundation.rosetta.common.exception.ExceptionFactory.invalidTokenNameError;
 import static org.cardanofoundation.rosetta.common.util.CardanoAddressUtils.isStakeAddress;
 
 
@@ -142,13 +140,11 @@ public class AccountServiceImpl implements AccountService {
     for (CurrencyRequest currency : currencies) {
       String symbol = currency.getSymbol();
       CurrencyMetadataRequest metadata = currency.getMetadata();
-      if (!TokenNameValidator.isValid(symbol)) {
-        throw invalidTokenNameError("Given name is " + symbol);
-      }
+      TokenNameValidator.validate(symbol);
       if (!symbol.equals(Constants.ADA)
               && (metadata == null || !PolicyIdValidator.isValid(String.valueOf(metadata.getPolicyId())))) {
         String policyId = metadata == null ? null : metadata.getPolicyId();
-        throw invalidPolicyIdError("Given policy id is " + policyId);
+        throw ExceptionFactory.invalidPolicyIdError("Given policy id is " + policyId);
       }
     }
   }

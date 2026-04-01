@@ -1,9 +1,11 @@
 package org.cardanofoundation.rosetta.common.validation;
 
+import org.cardanofoundation.rosetta.common.exception.ApiException;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class PolicyIdValidatorTest {
 
@@ -65,6 +67,34 @@ class PolicyIdValidatorTest {
         @Test
         void shouldReject55Chars() {
             assertThat(PolicyIdValidator.isValid("a".repeat(55))).isFalse();
+        }
+    }
+
+    @Nested
+    class ValidateTests {
+
+        @Test
+        void shouldAcceptNull() {
+            PolicyIdValidator.validate(null);
+        }
+
+        @Test
+        void shouldAcceptValidPolicyId() {
+            PolicyIdValidator.validate(VALID_POLICY_ID);
+        }
+
+        @Test
+        void shouldThrowForInvalidPolicyId() {
+            assertThatThrownBy(() -> PolicyIdValidator.validate("not-valid"))
+                    .isInstanceOf(ApiException.class)
+                    .extracting("error.message")
+                    .isEqualTo("Invalid policy id");
+        }
+
+        @Test
+        void shouldThrowForSqlInjectionPayload() {
+            assertThatThrownBy(() -> PolicyIdValidator.validate("'}]') OR 1=1 --"))
+                    .isInstanceOf(ApiException.class);
         }
     }
 }

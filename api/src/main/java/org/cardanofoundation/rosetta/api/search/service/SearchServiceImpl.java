@@ -11,7 +11,6 @@ import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
 import org.cardanofoundation.rosetta.api.common.service.TokenRegistryService;
 import org.cardanofoundation.rosetta.api.search.model.Operator;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
-import org.cardanofoundation.rosetta.common.util.Constants;
 import org.cardanofoundation.rosetta.common.validation.PolicyIdValidator;
 import org.cardanofoundation.rosetta.common.validation.SymbolValidator;
 import org.openapitools.client.model.*;
@@ -62,12 +61,12 @@ public class SearchServiceImpl implements SearchService {
         // Extract currency for filtering (policy ID or asset identifier)
         @Nullable org.cardanofoundation.rosetta.api.search.model.Currency currency = Optional.ofNullable(searchTransactionsRequest.getCurrency())
                 .map(c -> {
-                    validateCurrencySymbolIsHex(c); // Validate that currency symbol is hex-encoded (for native assets)
+                    SymbolValidator.validate(c.getSymbol());
 
                     @Nullable String policyId = Optional.ofNullable(c.getMetadata())
                             .map(CurrencyMetadataRequest::getPolicyId)
                             .orElse(null);
-                    validatePolicyId(policyId);
+                    PolicyIdValidator.validate(policyId);
 
                     return org.cardanofoundation.rosetta.api.search.model.Currency.builder()
                             .symbol(c.getSymbol())
@@ -175,28 +174,6 @@ public class SearchServiceImpl implements SearchService {
         } catch (IllegalArgumentException e) {
             String details = String.format("Unknown operator: '%s'. Supported values are: 'AND', 'OR'", operatorString);
             throw ExceptionFactory.unspecifiedErrorNotRetriable(details);
-        }
-    }
-
-    private void validatePolicyId(@Nullable String policyId) {
-        if (policyId != null && !PolicyIdValidator.isValid(policyId)) {
-            throw ExceptionFactory.invalidPolicyIdError("Given policy id is " + policyId);
-        }
-    }
-
-    private void validateCurrencySymbolIsHex(CurrencyRequest currencyRequest) {
-        String symbol = currencyRequest.getSymbol();
-
-        // Skip validation for ADA (lovelace) as it doesn't have a symbol
-        if (symbol == null
-                || Constants.LOVELACE.equalsIgnoreCase(symbol)
-                || Constants.ADA.equals(symbol)) {
-            return;
-        }
-
-        // For native assets, symbol must be hex-encoded
-        if (!SymbolValidator.isValid(symbol)) {
-            throw ExceptionFactory.currencySymbolNotHex(symbol);
         }
     }
 
