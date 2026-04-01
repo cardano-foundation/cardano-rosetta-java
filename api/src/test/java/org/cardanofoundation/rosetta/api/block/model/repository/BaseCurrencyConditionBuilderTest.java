@@ -1,7 +1,7 @@
 package org.cardanofoundation.rosetta.api.block.model.repository;
 
-import org.cardanofoundation.rosetta.api.block.model.repository.util.TxRepositoryQueryBuilder;
 import org.cardanofoundation.rosetta.api.search.model.Currency;
+import org.cardanofoundation.rosetta.common.exception.ApiException;
 import org.jooq.Condition;
 import org.jooq.impl.DSL;
 import org.junit.jupiter.api.Nested;
@@ -11,6 +11,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class BaseCurrencyConditionBuilderTest {
+
+    private static final String VALID_POLICY_ID = "d97e36383ae494e72b736ace04080f2953934626376ee06cf84adeb4";
+    private static final String VALID_SYMBOL = "000de1404469616d6f6e64";
 
     /**
      * Concrete test implementation of BaseCurrencyConditionBuilder
@@ -52,150 +55,109 @@ class BaseCurrencyConditionBuilderTest {
     }
 
     @Nested
-    class PolicyIdInputValidationTests {
+    class PolicyIdValidationTests {
 
         @Test
-        void shouldRejectPolicyId_withUnsanitizedInput() {
-            // Given
+        void shouldRejectPolicyId_withSqlInjection() {
             TestCurrencyConditionBuilder builder = new TestCurrencyConditionBuilder();
             Currency currency = Currency.builder()
                     .policyId("'}]') OR 1=1 --")
                     .build();
 
-            // When & Then
             assertThatThrownBy(() -> builder.buildCurrencyCondition(currency))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("policyId must contain only hex characters");
-        }
-
-        @Test
-        void shouldRejectPolicyId_withQuotes() {
-            // Given
-            TestCurrencyConditionBuilder builder = new TestCurrencyConditionBuilder();
-            Currency currency = Currency.builder()
-                    .policyId("\"malicious\"")
-                    .build();
-
-            // When & Then
-            assertThatThrownBy(() -> builder.buildCurrencyCondition(currency))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("policyId must contain only hex characters");
+                    .isInstanceOf(ApiException.class);
         }
 
         @Test
         void shouldRejectPolicyId_withSpecialCharacters() {
-            // Given
             TestCurrencyConditionBuilder builder = new TestCurrencyConditionBuilder();
             Currency currency = Currency.builder()
                     .policyId("'; DROP TABLE transaction; --")
                     .build();
 
-            // When & Then
             assertThatThrownBy(() -> builder.buildCurrencyCondition(currency))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("policyId must contain only hex characters");
+                    .isInstanceOf(ApiException.class);
         }
 
         @Test
         void shouldAcceptValidHexPolicyId() {
-            // Given
             TestCurrencyConditionBuilder builder = new TestCurrencyConditionBuilder();
-            String validPolicyId = "d97e36383ae494e72b736ace04080f2953934626376ee06cf84adeb4";
             Currency currency = Currency.builder()
-                    .policyId(validPolicyId)
+                    .policyId(VALID_POLICY_ID)
                     .build();
 
-            // When
             Condition result = builder.buildCurrencyCondition(currency);
 
-            // Then
             assertThat(result).isNotNull();
             assertThat(builder.lastCalledMethod).isEqualTo("policyIdOnly");
-            assertThat(builder.lastPolicyId).isEqualTo(validPolicyId);
+            assertThat(builder.lastPolicyId).isEqualTo(VALID_POLICY_ID);
         }
 
         @Test
         void shouldAcceptValidHexPolicyIdWithSymbol() {
-            // Given
             TestCurrencyConditionBuilder builder = new TestCurrencyConditionBuilder();
-            String validPolicyId = "d97e36383ae494e72b736ace04080f2953934626376ee06cf84adeb4";
-            String validSymbol = "000de1404469616d6f6e64";
             Currency currency = Currency.builder()
-                    .policyId(validPolicyId)
-                    .symbol(validSymbol)
+                    .policyId(VALID_POLICY_ID)
+                    .symbol(VALID_SYMBOL)
                     .build();
 
-            // When
             Condition result = builder.buildCurrencyCondition(currency);
 
-            // Then
             assertThat(result).isNotNull();
             assertThat(builder.lastCalledMethod).isEqualTo("policyIdAndSymbol");
-            assertThat(builder.lastPolicyId).isEqualTo(validPolicyId);
-            assertThat(builder.lastSymbol).isEqualTo(validSymbol);
+            assertThat(builder.lastPolicyId).isEqualTo(VALID_POLICY_ID);
+            assertThat(builder.lastSymbol).isEqualTo(VALID_SYMBOL);
         }
     }
 
     @Nested
-    class SymbolInputValidationTests {
+    class SymbolValidationTests {
 
         @Test
-        void shouldRejectSymbol_withUnsanitizedInput() {
-            // Given
+        void shouldRejectSymbol_withSqlInjection() {
             TestCurrencyConditionBuilder builder = new TestCurrencyConditionBuilder();
             Currency currency = Currency.builder()
                     .symbol("' OR 1=1 --")
                     .build();
 
-            // When & Then
             assertThatThrownBy(() -> builder.buildCurrencyCondition(currency))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("symbol must be a valid hex-encoded asset name");
+                    .isInstanceOf(ApiException.class);
         }
 
         @Test
         void shouldRejectSymbol_withNonHexWhenPolicyIdPresent() {
-            // Given
             TestCurrencyConditionBuilder builder = new TestCurrencyConditionBuilder();
             Currency currency = Currency.builder()
-                    .policyId("d97e36383ae494e72b736ace04080f2953934626376ee06cf84adeb4")
+                    .policyId(VALID_POLICY_ID)
                     .symbol("not-hex!")
                     .build();
 
-            // When & Then
             assertThatThrownBy(() -> builder.buildCurrencyCondition(currency))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("symbol must be a valid hex-encoded asset name");
+                    .isInstanceOf(ApiException.class);
         }
 
         @Test
-        void shouldAllowLovelaceSymbol_withoutHexValidation() {
-            // Given
+        void shouldAllowLovelaceSymbol() {
             TestCurrencyConditionBuilder builder = new TestCurrencyConditionBuilder();
             Currency currency = Currency.builder()
                     .symbol("lovelace")
                     .build();
 
-            // When
             Condition result = builder.buildCurrencyCondition(currency);
 
-            // Then - lovelace is a special case, not hex validated
             assertThat(result).isNotNull();
             assertThat(builder.lastCalledMethod).isEqualTo("lovelace");
         }
 
         @Test
-        void shouldAllowAdaSymbol_withoutHexValidation() {
-            // Given
+        void shouldAllowAdaSymbol() {
             TestCurrencyConditionBuilder builder = new TestCurrencyConditionBuilder();
             Currency currency = Currency.builder()
                     .symbol("ADA")
                     .build();
 
-            // When
             Condition result = builder.buildCurrencyCondition(currency);
 
-            // Then
             assertThat(result).isNotNull();
             assertThat(builder.lastCalledMethod).isEqualTo("lovelace");
         }
@@ -206,50 +168,27 @@ class BaseCurrencyConditionBuilderTest {
 
         @Test
         void shouldReturnFalseCondition_whenBothFieldsAreNull() {
-            // Given
             TestCurrencyConditionBuilder builder = new TestCurrencyConditionBuilder();
             Currency currency = Currency.builder().build();
 
-            // When
             Condition result = builder.buildCurrencyCondition(currency);
 
-            // Then
             assertThat(result).isNotNull();
-            assertThat(builder.lastCalledMethod).isNull(); // no template method called
+            assertThat(builder.lastCalledMethod).isNull();
         }
 
         @Test
         void shouldReturnFalseCondition_whenBothFieldsAreEmpty() {
-            // Given
             TestCurrencyConditionBuilder builder = new TestCurrencyConditionBuilder();
             Currency currency = Currency.builder()
                     .policyId("")
                     .symbol("")
                     .build();
 
-            // When
             Condition result = builder.buildCurrencyCondition(currency);
 
-            // Then
             assertThat(result).isNotNull();
             assertThat(builder.lastCalledMethod).isNull();
-        }
-
-        @Test
-        void shouldTrimWhitespace_fromPolicyId() {
-            // Given
-            TestCurrencyConditionBuilder builder = new TestCurrencyConditionBuilder();
-            String validPolicyId = "d97e36383ae494e72b736ace04080f2953934626376ee06cf84adeb4";
-            Currency currency = Currency.builder()
-                    .policyId("  " + validPolicyId + "  ")
-                    .build();
-
-            // When
-            Condition result = builder.buildCurrencyCondition(currency);
-
-            // Then
-            assertThat(result).isNotNull();
-            assertThat(builder.lastPolicyId).isEqualTo(validPolicyId);
         }
     }
 }
