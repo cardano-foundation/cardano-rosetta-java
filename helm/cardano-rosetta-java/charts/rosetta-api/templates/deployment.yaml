@@ -37,24 +37,8 @@ spec:
           resources:
             {{- toYaml .Values.global.initContainerResources | nindent 12 }}
 
-        - name: wait-for-indexer
-          image: curlimages/curl:8.5.0
-          command:
-            - sh
-            - -c
-            - |
-              YACI_URL="http://{{ include "cardano-rosetta-java.yaciServiceName" . }}:9095"
-              echo "Waiting for yaci-indexer at ${YACI_URL}/actuator/health/readiness..."
-              until curl -sf "${YACI_URL}/actuator/health/readiness" > /dev/null 2>&1; do
-                echo "yaci-indexer not ready, retrying in 10s..."
-                sleep 10
-              done
-              echo "yaci-indexer is healthy"
-          resources:
-            {{- toYaml .Values.global.initContainerResources | nindent 12 }}
-
         - name: copy-node-config
-          image: "cardanofoundation/cardano-rosetta-java-cardano-node:{{ .Values.global.cardanoNodeVersion }}"
+          image: {{ .Values.global.cardanoNodeImage | default (printf "cardanofoundation/cardano-rosetta-java-cardano-node:%s" .Values.global.cardanoNodeVersion) | quote }}
           command: ["sh", "-c", "cp -a /config/{{ .Values.global.network }}/. /shared-config/"]
           volumeMounts:
             - name: node-config
