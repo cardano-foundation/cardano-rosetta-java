@@ -93,11 +93,8 @@ class TokenNameValidatorTest {
         }
 
         @Test
-        void shouldThrowForNull() {
-            assertThatThrownBy(() -> TokenNameValidator.validate(null))
-                    .isInstanceOf(ApiException.class)
-                    .extracting("error.message")
-                    .isEqualTo("Invalid token name");
+        void shouldAcceptNull() {
+            assertThatNoException().isThrownBy(() -> TokenNameValidator.validate(null));
         }
 
         @Test

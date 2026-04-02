@@ -1038,47 +1038,59 @@ class SearchServiceImplTest {
         }
 
         @Test
-        void shouldThrowException_whenIdentifierIsBlank() {
+        void shouldThrowApiException_whenIdentifierIsBlank() {
             // Given
             CoinIdentifier coinId = CoinIdentifier.builder().identifier("   ").build();
             var function = SearchServiceImpl.extractUTxOFromCoinIdentifier();
 
-            // When & Then - Blank string will be treated as non-empty by ObjectUtils but will fail parsing
+            // When & Then - Blank string will be treated as non-empty by ObjectUtils but has no colon
             assertThatThrownBy(() -> function.apply(coinId))
-                    .isInstanceOf(ArrayIndexOutOfBoundsException.class);
+                    .isInstanceOf(ApiException.class)
+                    .extracting("error.details.message")
+                    .asString()
+                    .contains("Invalid coin identifier format");
         }
 
         @Test
-        void shouldThrowException_whenIdentifierHasInvalidFormat() {
+        void shouldThrowApiException_whenIdentifierHasNoColon() {
             // Given
             CoinIdentifier coinId = CoinIdentifier.builder().identifier("invalidformat").build();
             var function = SearchServiceImpl.extractUTxOFromCoinIdentifier();
 
             // When & Then
             assertThatThrownBy(() -> function.apply(coinId))
-                    .isInstanceOf(ArrayIndexOutOfBoundsException.class);
+                    .isInstanceOf(ApiException.class)
+                    .extracting("error.details.message")
+                    .asString()
+                    .contains("Invalid coin identifier format");
         }
 
         @Test
-        void shouldThrowException_whenIdentifierHasNonNumericIndex() {
+        void shouldThrowApiException_whenIdentifierHasNonNumericIndex() {
             // Given
             CoinIdentifier coinId = CoinIdentifier.builder().identifier("tx123:abc").build();
             var function = SearchServiceImpl.extractUTxOFromCoinIdentifier();
 
             // When & Then
             assertThatThrownBy(() -> function.apply(coinId))
-                    .isInstanceOf(NumberFormatException.class);
+                    .isInstanceOf(ApiException.class)
+                    .extracting("error.details.message")
+                    .asString()
+                    .contains("Invalid coin identifier output index");
         }
 
         @Test
-        void shouldHandleMultipleColons_takingFirstAsDelimiter() {
+        void shouldThrowApiException_whenMultipleColonsWithNonNumericSecondPart() {
             // Given
             CoinIdentifier coinId = CoinIdentifier.builder().identifier("tx:hash:123:456").build();
             var function = SearchServiceImpl.extractUTxOFromCoinIdentifier();
 
-            // When & Then - This should throw NumberFormatException because "hash" is not a number
+            // When & Then - "hash" is not a number
             assertThatThrownBy(() -> function.apply(coinId))
-                    .isInstanceOf(NumberFormatException.class);
+                    .isInstanceOf(ApiException.class)
+                    .extracting("error.details.message")
+                    .asString()
+                    .contains("Invalid coin identifier output index");
         }
     }
 

@@ -140,6 +140,9 @@ public class AccountServiceImpl implements AccountService {
     for (CurrencyRequest currency : currencies) {
       String symbol = currency.getSymbol();
       CurrencyMetadataRequest metadata = currency.getMetadata();
+      if (symbol == null) {
+        throw ExceptionFactory.invalidTokenNameError("Given name is null");
+      }
       TokenNameValidator.validate(symbol);
       if (!symbol.equals(Constants.ADA)
               && (metadata == null || !PolicyIdValidator.isValid(String.valueOf(metadata.getPolicyId())))) {
