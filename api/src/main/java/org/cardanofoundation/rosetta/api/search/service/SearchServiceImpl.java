@@ -114,12 +114,21 @@ public class SearchServiceImpl implements SearchService {
     static Function<CoinIdentifier, Optional<UtxoKey>> extractUTxOFromCoinIdentifier() {
         return coinIdentifier -> {
             if (ObjectUtils.isNotEmpty(coinIdentifier.getIdentifier())) {
-                String[] split = coinIdentifier.getIdentifier().split(":");
+                String[] parts = coinIdentifier.getIdentifier().split(":");
+                if (parts.length < 2) {
+                    throw ExceptionFactory.unspecifiedErrorNotRetriable(
+                            "Invalid coin identifier format: expected 'txHash:outputIndex', got: "
+                                    + coinIdentifier.getIdentifier());
+                }
 
-                String txHash_ = split[0];
-                int outputIndex_ = Integer.parseInt(split[1]);
-
-                return Optional.of(new UtxoKey(txHash_, outputIndex_));
+                String txHash = parts[0];
+                try {
+                    int outputIndex = Integer.parseInt(parts[1]);
+                    return Optional.of(new UtxoKey(txHash, outputIndex));
+                } catch (NumberFormatException e) {
+                    throw ExceptionFactory.unspecifiedErrorNotRetriable(
+                            "Invalid coin identifier output index: expected a number, got: " + parts[1]);
+                }
             }
 
             return Optional.empty();

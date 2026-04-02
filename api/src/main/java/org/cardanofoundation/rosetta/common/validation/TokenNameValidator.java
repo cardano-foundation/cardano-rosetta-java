@@ -38,13 +38,15 @@ public final class TokenNameValidator {
     }
 
     /**
-     * Validates that the given token name is valid.
+     * Validates that the given token name is valid, if present.
+     * Null values are accepted (no token name provided). Non-null values must be
+     * valid hex-encoded names up to {@value Constants#ASSET_NAME_LENGTH} characters.
      *
-     * @param name the token name to validate
-     * @throws org.cardanofoundation.rosetta.common.exception.ApiException if invalid
+     * @param name the token name to validate, may be null
+     * @throws org.cardanofoundation.rosetta.common.exception.ApiException if non-null and invalid
      */
     public static void validate(@Nullable String name) {
-        if (!isValid(name)) {
+        if (name != null && !isValid(name)) {
             throw ExceptionFactory.invalidTokenNameError("Given name is " + name);
         }
     }
