@@ -61,8 +61,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      yaci-indexer:
-        condition: service_healthy
     healthcheck:
       test: [ "CMD-SHELL", "curl -sf http://localhost:${API_PORT}/actuator/health/startup || exit 1" ]
       interval: 10s
