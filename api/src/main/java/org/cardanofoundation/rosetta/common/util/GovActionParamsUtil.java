@@ -6,8 +6,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.common.exception.ApiException;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 
-import java.util.regex.Pattern;
-
 @Slf4j
 public class GovActionParamsUtil {
 
@@ -15,8 +13,6 @@ public class GovActionParamsUtil {
     private static final int INDEX_LENGTH = 2;
     private static final int TOTAL_LENGTH = TX_HASH_LENGTH + INDEX_LENGTH;
     private static final int MAX_INDEX_DECIMAL = 99;
-    
-    private static final Pattern HEX_PATTERN = Pattern.compile("^[0-9a-fA-F]+$");
     
     @Getter
     public static class ParsedGovActionParams {
@@ -64,7 +60,7 @@ public class GovActionParamsUtil {
         }
 
         // Check if it's all hex characters
-        if (!HEX_PATTERN.matcher(trimmed).matches()) {
+        if (!HexUtils.isHexString(trimmed)) {
             log.error("[parseAndValidate] Governance action contains non-hex characters: {}", trimmed);
 
             throw ExceptionFactory.invalidGovernanceVote(

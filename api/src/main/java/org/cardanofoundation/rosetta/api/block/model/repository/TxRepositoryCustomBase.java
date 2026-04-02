@@ -6,6 +6,8 @@ import org.cardanofoundation.rosetta.api.block.model.entity.TxnEntity;
 import org.cardanofoundation.rosetta.api.block.model.repository.util.TxRepositoryQueryBuilder;
 import org.cardanofoundation.rosetta.api.search.model.Currency;
 import org.cardanofoundation.rosetta.common.spring.OffsetBasedPageRequest;
+import org.cardanofoundation.rosetta.common.validation.PolicyIdValidator;
+import org.cardanofoundation.rosetta.common.validation.SymbolValidator;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.SelectJoinStep;
@@ -14,7 +16,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -33,41 +34,42 @@ public abstract class TxRepositoryCustomBase implements TxRepositoryCustom {
      * Base class for currency condition builders that handles common logic.
      */
     protected abstract static class BaseCurrencyConditionBuilder implements TxRepositoryQueryBuilder.CurrencyConditionBuilder {
-        
+
         @Override
         public final Condition buildCurrencyCondition(Currency currency) {
             String policyId = currency.getPolicyId();
             String symbol = currency.getSymbol();
 
             if (policyId != null && !policyId.trim().isEmpty()) {
-                String escapedPolicyId = policyId.trim().replace("\"", "\\\"");
+                PolicyIdValidator.validate(policyId.trim());
+                String trimmedPolicyId = policyId.trim();
 
                 if (symbol != null && !symbol.trim().isEmpty() &&
                         !"lovelace".equalsIgnoreCase(symbol) && !"ada".equalsIgnoreCase(symbol)) {
-                    String escapedSymbol = symbol.trim().replace("\"", "\\\"");
-                    return buildPolicyIdAndSymbolCondition(escapedPolicyId, escapedSymbol);
+                    SymbolValidator.validate(symbol.trim());
+                    return buildPolicyIdAndSymbolCondition(trimmedPolicyId, symbol.trim());
                 }
 
-                return buildPolicyIdOnlyCondition(escapedPolicyId);
+                return buildPolicyIdOnlyCondition(trimmedPolicyId);
             }
 
             if (symbol != null && !symbol.trim().isEmpty()) {
                 if ("lovelace".equalsIgnoreCase(symbol) || "ada".equalsIgnoreCase(symbol)) {
                     return buildLovelaceCondition();
                 } else {
-                    String escapedSymbol = symbol.trim().replace("\"", "\\\"");
-                    return buildSymbolOnlyCondition(escapedSymbol);
+                    SymbolValidator.validate(symbol.trim());
+                    return buildSymbolOnlyCondition(symbol.trim());
                 }
             }
 
             return DSL.falseCondition();
         }
-        
+
         // Template methods for database-specific implementations
-        protected abstract Condition buildPolicyIdAndSymbolCondition(String escapedPolicyId, String escapedSymbol);
-        protected abstract Condition buildPolicyIdOnlyCondition(String escapedPolicyId);
+        protected abstract Condition buildPolicyIdAndSymbolCondition(String validatedPolicyId, String validatedSymbol);
+        protected abstract Condition buildPolicyIdOnlyCondition(String validatedPolicyId);
         protected abstract Condition buildLovelaceCondition();
-        protected abstract Condition buildSymbolOnlyCondition(String escapedSymbol);
+        protected abstract Condition buildSymbolOnlyCondition(String validatedSymbol);
     }
     
     /**
