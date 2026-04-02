@@ -301,13 +301,13 @@ class TestAddressValidation:
 class TestCoinIdentifierValidation:
     """Validate that /search/transactions handles malformed coin identifiers."""
 
-    @pytest.mark.skip(reason="Bug: coin_identifier without ':' causes ArrayIndexOutOfBoundsException (no ticket yet)")
     def test_search_malformed_coin_identifier_no_separator(self, client):
-        """coin_identifier without ':' separator should return 400 with structured error."""
+        """coin_identifier without ':' separator should return 500 with unspecified error (not retriable)."""
         response = client.search_transactions(
             coin_identifier={"identifier": "no_colon_here"}
         )
 
         assert response.status_code == 400
         error = response.json()
-        assert "code" in error
+        assert error["code"] == 5000
+        assert error["retriable"] is False
