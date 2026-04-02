@@ -58,6 +58,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      cardano-sync-waiter:
+        condition: service_completed_successfully
 
   db:
     image: cardanofoundation/cardano-rosetta-java-postgres:${PG_VERSION_TAG}
@@ -102,9 +104,7 @@ services:
       interval: 10s
       timeout: 3s
       retries: 10
-    depends_on:
-      cardano-sync-waiter:
-        condition: service_completed_successfully
+    depends_on: {}
 
 volumes:
   data:
