@@ -126,7 +126,7 @@ RUN mkdir -p /root/.local/bin \
 
 FROM ubuntu:24.04 AS node-runner
 
-RUN apt-get update && apt-get install -y jq bc && apt-get clean
+RUN apt-get update && apt-get install -y jq bc socat && apt-get clean
 COPY --from=cardano-builder /usr/local/lib /usr/local/lib
 COPY --from=cardano-builder /root/.local/bin/cardano-* /usr/local/bin/
 COPY --from=cardano-builder /usr/local/src/cardano-node/cardano-submit-api/config/tx-submit-mainnet-config.yaml /cardano-submit-api-config/cardano-submit-api.yaml

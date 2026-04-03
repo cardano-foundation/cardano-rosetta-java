@@ -75,3 +75,20 @@ management:
     web:
       exposure:
         include: health,info,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: always
+      group:
+        startup:
+          include: db
+        liveness:
+          include: livenessState
+        readiness:
+          include: readinessState,db
+  health:
+    livenessState:
+      enabled: true
+    readinessState:
+      enabled: true

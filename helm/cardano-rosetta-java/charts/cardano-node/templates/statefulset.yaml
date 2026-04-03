@@ -22,7 +22,7 @@ spec:
       {{- if .Values.global.mithril.enabled }}
       initContainers:
         - name: mithril-download
-          image: "cardanofoundation/cardano-rosetta-java-mithril:{{ .Values.global.mithrilVersion }}"
+          image: {{ .Values.global.mithrilImage | default (printf "cardanofoundation/cardano-rosetta-java-mithril:%s" .Values.global.mithrilVersion) | quote }}
           command:
             - sh
             - -c
@@ -57,7 +57,7 @@ spec:
 
       containers:
         - name: cardano-node
-          image: "cardanofoundation/cardano-rosetta-java-cardano-node:{{ .Values.global.cardanoNodeVersion }}"
+          image: {{ .Values.global.cardanoNodeImage | default (printf "cardanofoundation/cardano-rosetta-java-cardano-node:%s" .Values.global.cardanoNodeVersion) | quote }}
           command: ["/sbin/entrypoint.sh", "cardano-node"]
           env:
             - name: CARDANO_NODE_SOCKET_PATH
@@ -68,6 +68,10 @@ spec:
               value: /node/db
             - name: CARDANO_CONFIG_CONTAINER_PATH
               value: /config/{{ .Values.global.network }}
+            - name: NETWORK
+              value: {{ .Values.global.network | quote }}
+            - name: PROTOCOL_MAGIC
+              value: {{ .Values.global.protocolMagic | toString | quote }}
           ports:
             - name: node-to-node
               containerPort: 3001
@@ -85,13 +89,20 @@ spec:
           livenessProbe:
             exec:
               command:
-                - test
-                - -S
-                - /node/node.socket
+                - /bin/bash
+                - -c
+                - |
+                  if [ "$NETWORK" = "mainnet" ]; then
+                    TIP=$(cardano-cli query tip --mainnet)
+                  else
+                    TIP=$(cardano-cli query tip --testnet-magic ${PROTOCOL_MAGIC})
+                  fi
+                  PROGRESS=$(echo "$TIP" | grep -o '"syncProgress": *"[^"]*"' | grep -o '[0-9.]*')
+                  awk -v p="$PROGRESS" 'BEGIN { exit (p+0 >= 99.9) ? 0 : 1 }'
             initialDelaySeconds: 120
             periodSeconds: 30
-            failureThreshold: 5
-            timeoutSeconds: 5
+            failureThreshold: 30
+            timeoutSeconds: 10
           startupProbe:
             exec:
               command:
@@ -102,6 +113,23 @@ spec:
             periodSeconds: 15
             failureThreshold: {{ (((.Values.node).startupProbe).failureThreshold) | default 1920 }}
             timeoutSeconds: 5
+          readinessProbe:
+            exec:
+              command:
+                - /bin/bash
+                - -c
+                - |
+                  if [ "$NETWORK" = "mainnet" ]; then
+                    TIP=$(cardano-cli query tip --mainnet)
+                  else
+                    TIP=$(cardano-cli query tip --testnet-magic ${PROTOCOL_MAGIC})
+                  fi
+                  PROGRESS=$(echo "$TIP" | grep -o '"syncProgress": *"[^"]*"' | grep -o '[0-9.]*')
+                  awk -v p="$PROGRESS" 'BEGIN { exit (p+0 >= 99.9) ? 0 : 1 }'
+            initialDelaySeconds: 120
+            periodSeconds: 30
+            failureThreshold: 14400
+            timeoutSeconds: 10
 
         - name: socat
           image: alpine/socat:1.7.4.4-r0
@@ -117,7 +145,7 @@ spec:
               echo "Socket found, starting socat bridge TCP:3002 -> UNIX:/node/node.socket"
               exec socat \
                 TCP-LISTEN:3002,reuseaddr,fork \
-                UNIX-CONNECT:/node/node.socket
+                UNIX-CONNECT:/node/node.socket,retry=5,interval=1
           ports:
             - name: socat-n2c
               containerPort: 3002
@@ -125,11 +153,35 @@ spec:
           volumeMounts:
             - name: node-data
               mountPath: /node
+          startupProbe:
+            exec:
+              command:
+                - test
+                - -S
+                - /node/node.socket
+            initialDelaySeconds: 60
+            periodSeconds: 15
+            failureThreshold: {{ (((.Values.node).startupProbe).failureThreshold) | default 1920 }}
+            timeoutSeconds: 5
+          livenessProbe:
+            tcpSocket:
+              port: 3002
+            initialDelaySeconds: 10
+            periodSeconds: 30
+            failureThreshold: 5
+            timeoutSeconds: 5
+          readinessProbe:
+            tcpSocket:
+              port: 3002
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            failureThreshold: 10
+            timeoutSeconds: 5
           resources:
             {{- toYaml .Values.global.initContainerResources | nindent 12 }}
 
         - name: cardano-submit-api
-          image: "cardanofoundation/cardano-rosetta-java-cardano-node:{{ .Values.global.cardanoNodeVersion }}"
+          image: {{ .Values.global.cardanoNodeImage | default (printf "cardanofoundation/cardano-rosetta-java-cardano-node:%s" .Values.global.cardanoNodeVersion) | quote }}
           command: ["/sbin/entrypoint.sh", "cardano-submit-api"]
           env:
             - name: NETWORK
@@ -151,10 +203,20 @@ spec:
             {{- $profile := (include "cardano-node.profile" .) }}
             {{- $res := index .Values.global.profiles $profile "resources" "submitApi" }}
             {{- toYaml $res | nindent 12 }}
+          startupProbe:
+            exec:
+              command:
+                - test
+                - -S
+                - /node/node.socket
+            initialDelaySeconds: 60
+            periodSeconds: 15
+            failureThreshold: {{ (((.Values.node).startupProbe).failureThreshold) | default 1920 }}
+            timeoutSeconds: 5
           readinessProbe:
             tcpSocket:
               port: 8090
-            initialDelaySeconds: 30
+            initialDelaySeconds: 10
             periodSeconds: 15
             failureThreshold: 10
 
