@@ -37,6 +37,33 @@ spec:
           resources:
             {{- toYaml .Values.global.initContainerResources | nindent 12 }}
 
+        - name: wait-for-schema
+          image: postgres:16-alpine
+          env:
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "cardano-rosetta-java.dbSecretName" . }}
+                  key: db-secret
+          command:
+            - sh
+            - -c
+            - |
+              echo "Waiting for DB schema (table 'block') to exist..."
+              until psql \
+                -h {{ include "cardano-rosetta-java.dbHost" . | quote }} \
+                -p {{ .Values.global.db.port }} \
+                -U {{ .Values.global.db.user | quote }} \
+                -d {{ .Values.global.db.name | quote }} \
+                -c "SELECT 1 FROM information_schema.tables WHERE table_schema='{{ .Values.global.db.schema }}' AND table_name='block'" \
+                | grep -q 1; do
+                echo "Schema not ready, retrying in 10s..."
+                sleep 10
+              done
+              echo "Schema is ready"
+          resources:
+            {{- toYaml .Values.global.initContainerResources | nindent 12 }}
+
         - name: copy-node-config
           image: {{ .Values.global.cardanoNodeImage | default (printf "cardanofoundation/cardano-rosetta-java-cardano-node:%s" .Values.global.cardanoNodeVersion) | quote }}
           command: ["sh", "-c", "cp -a /config/{{ .Values.global.network }}/. /shared-config/"]
