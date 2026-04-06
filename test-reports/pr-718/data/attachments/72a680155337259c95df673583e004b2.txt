@@ -1,5 +1,0 @@
-    assert len(all_balances) > 1, "Test address should have multiple balances"
-    assert filtered_response.status_code == 200
-    assert len(filtered_balances) == 1, "currencies filter should return only ADA"
-    assert filtered_balances[0]["currency"]["symbol"] == "ADA"
-    assert len(filtered_balances) < len(all_balances), (
