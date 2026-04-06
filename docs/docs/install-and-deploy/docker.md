@@ -82,16 +82,13 @@ Mithril provides cryptographically certified blockchain snapshots for multiple C
 #### Index Application
 
 After initial blockchain synchronization, the `index-applier` container creates required database indexes. This process:
-- Runs automatically when sync reaches `APPLYING_INDEXES` stage
+- Runs automatically after yaci-indexer readiness is `UP` (`/actuator/health/readiness`)
 - Takes approximately 6 hours on mainnet
 - Uses `CREATE INDEX CONCURRENTLY` to avoid blocking the indexer
 
-Monitor the sync stage via `/network/status`:
+Monitor yaci-indexer readiness:
 ```bash
-curl -s http://localhost:8082/network/status \
-  -H "Content-Type: application/json" \
-  -d '{"network_identifier":{"blockchain":"cardano","network":"mainnet"}}' \
-  | jq '.sync_status.stage'
+curl -s http://localhost:9095/actuator/health/readiness | jq
 ```
 
 For details on customizing indexes, see [Index Management](../advanced-configuration/index-management).
