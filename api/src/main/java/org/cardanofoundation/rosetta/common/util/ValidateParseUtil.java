@@ -11,6 +11,8 @@ import com.bloxbean.cardano.client.util.HexUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
+import org.cardanofoundation.rosetta.common.validation.PolicyIdValidator;
+import org.cardanofoundation.rosetta.common.validation.TokenNameValidator;
 import org.cardanofoundation.rosetta.common.model.cardano.pool.PoolRegistationParametersReturn;
 import org.cardanofoundation.rosetta.common.model.cardano.pool.PoolRegistrationCertReturn;
 import org.openapitools.client.model.*;
@@ -126,18 +128,15 @@ public class ValidateParseUtil {
     }
 
     public static void validateCheckKey(String policyId) {
-        boolean checkKey = CardanoAddressUtils.isPolicyIdValid(policyId);
-
-        if (!checkKey) {
+        if (!PolicyIdValidator.isValid(policyId)) {
             log.error("[validateAndParseTokenBundle] PolicyId {} is not valid", policyId);
             throw ExceptionFactory.transactionOutputsParametersMissingError("PolicyId " + policyId + " is not valid");
         }
     }
 
     public static void validateTokenName(String tokenName) {
-        boolean checkTokenName = CardanoAddressUtils.isTokenNameValid(tokenName);
-        if (!checkTokenName) {
-            log.error("validateAndParseTokenBundle] Token name {} is not valid", tokenName);
+        if (!TokenNameValidator.isValid(tokenName)) {
+            log.error("[validateAndParseTokenBundle] Token name {} is not valid", tokenName);
             throw ExceptionFactory.transactionOutputsParametersMissingError("Token name " + tokenName + " is not valid");
         }
     }
