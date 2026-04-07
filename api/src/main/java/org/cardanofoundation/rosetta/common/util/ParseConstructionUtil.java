@@ -22,8 +22,10 @@ import org.openapitools.client.model.Relay;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 import static com.bloxbean.cardano.client.address.AddressType.Reward;
 import static org.openapitools.client.model.CoinAction.SPENT;
@@ -116,20 +118,23 @@ public final class ParseConstructionUtil {
 
     public static OperationMetadata parseTokenBundle(TransactionOutput output) {
         List<MultiAsset> multiAssets = output.getValue().getMultiAssets();
-        List<TokenBundleItem> tokenBundle = new ArrayList<>();
 
-        if (!ObjectUtils.isEmpty(multiAssets)) {
-            log.info("[parseTokenBundle] About to parse {} multiAssets from token bundle",
-                    multiAssets.size());
-
-            tokenBundle = multiAssets.stream()
-                    .map(key -> parseTokenAsset(multiAssets, key.getPolicyId()))
-                    .sorted(Comparator.comparing(TokenBundleItem::getPolicyId))
-                    .toList();
+        if (ObjectUtils.isEmpty(multiAssets)) {
+            return null;
         }
 
-        return !ObjectUtils.isEmpty(multiAssets) ? OperationMetadata.builder().tokenBundle(tokenBundle)
-                .build() : null;
+        log.info("[parseTokenBundle] About to parse {} multiAssets from token bundle",
+                multiAssets.size());
+
+        Map<String, List<MultiAsset>> byPolicy = multiAssets.stream()
+                .collect(Collectors.groupingBy(MultiAsset::getPolicyId));
+
+        List<TokenBundleItem> tokenBundle = byPolicy.entrySet().stream()
+                .map(entry -> parseTokenAsset(entry.getValue(), entry.getKey()))
+                .sorted(Comparator.comparing(TokenBundleItem::getPolicyId))
+                .toList();
+
+        return OperationMetadata.builder().tokenBundle(tokenBundle).build();
     }
 
     public static TokenBundleItem parseTokenAsset(List<MultiAsset> multiAssets, String policyId) {
