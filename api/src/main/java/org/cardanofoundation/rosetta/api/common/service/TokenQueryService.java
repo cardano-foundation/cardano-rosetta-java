@@ -18,6 +18,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.StructuredTaskScope;
 import java.util.stream.Collectors;
 
 /**
@@ -73,15 +74,32 @@ public class TokenQueryService {
      */
     public Map<String, TokenRegistryCurrencyData> queryMetadataBatch(List<String> subjects,
                                                                       Map<String, String> subjectToPolicyId) {
-        // Batch CIP-26
-        Map<String, TokenMetadataEntity> cip26Map = tokenMetadataRepository.findAllBySubjectIn(subjects).stream()
-                .collect(Collectors.toMap(TokenMetadataEntity::getSubject, m -> m));
+        // Fork CIP-26 metadata and logo queries in parallel
+        Map<String, TokenMetadataEntity> cip26Map;
+        Map<String, String> cip26Logos;
 
-        Map<String, String> cip26Logos = logoEnabled
-                ? tokenLogoRepository.findAllBySubjectIn(subjects).stream()
-                    .filter(l -> l.getLogo() != null)
-                    .collect(Collectors.toMap(TokenLogoEntity::getSubject, TokenLogoEntity::getLogo))
-                : Map.of();
+        try (StructuredTaskScope.ShutdownOnFailure scope = new StructuredTaskScope.ShutdownOnFailure()) {
+            StructuredTaskScope.Subtask<Map<String, TokenMetadataEntity>> metadataTask = scope.fork(() ->
+                    tokenMetadataRepository.findAllBySubjectIn(subjects).stream()
+                            .collect(Collectors.toMap(TokenMetadataEntity::getSubject, m -> m)));
+
+            StructuredTaskScope.Subtask<Map<String, String>> logoTask = scope.fork(() ->
+                    logoEnabled
+                            ? tokenLogoRepository.findAllBySubjectIn(subjects).stream()
+                                .filter(l -> l.getLogo() != null)
+                                .collect(Collectors.toMap(TokenLogoEntity::getSubject, TokenLogoEntity::getLogo))
+                            : Map.<String, String>of());
+
+            scope.join().throwIfFailed();
+
+            cip26Map = metadataTask.get();
+            cip26Logos = logoTask.get();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Token metadata batch query interrupted", e);
+        } catch (Exception e) {
+            throw new RuntimeException("Token metadata batch query failed", e);
+        }
 
         return subjects.stream().collect(Collectors.toMap(
                 subject -> subject,
