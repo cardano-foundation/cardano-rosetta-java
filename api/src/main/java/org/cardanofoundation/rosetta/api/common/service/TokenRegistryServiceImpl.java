@@ -10,20 +10,12 @@ import org.cardanofoundation.rosetta.api.common.model.AssetFingerprint;
 import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
 import org.cardanofoundation.rosetta.common.util.Constants;
 
-import com.bloxbean.cardano.yaci.store.extensions.assetstore.cip26.storage.Cip26StorageReader;
-import com.bloxbean.cardano.yaci.store.extensions.assetstore.cip26.storage.impl.model.TokenMetadata;
-import com.bloxbean.cardano.yaci.store.extensions.assetstore.cip68.model.FungibleTokenMetadata;
-import com.bloxbean.cardano.yaci.store.extensions.assetstore.cip68.storage.Cip68StorageReader;
-
 import lombok.NonNull;
 
 import org.openapitools.client.model.*;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
-import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -35,11 +27,7 @@ import static org.cardanofoundation.rosetta.common.util.Constants.LOVELACE;
 @Slf4j
 public class TokenRegistryServiceImpl implements TokenRegistryService {
 
-    private final Cip26StorageReader cip26StorageReader;
-    private final Cip68StorageReader cip68StorageReader;
-
-    @Value("${cardano.rosetta.TOKEN_REGISTRY_LOGO_FETCH:false}")
-    private boolean logoEnabled;
+    private final TokenQueryService tokenQueryService;
 
     @Override
     public Map<AssetFingerprint, TokenRegistryCurrencyData> getTokenMetadataBatch(@NotNull Set<AssetFingerprint> assetFingerprints) {
@@ -51,76 +39,18 @@ public class TokenRegistryServiceImpl implements TokenRegistryService {
                 .map(AssetFingerprint::toSubject)
                 .toList();
 
-        // Batch CIP-26 lookup
-        Map<String, TokenMetadata> cip26Map = cip26StorageReader.findBySubjects(subjects).stream()
-                .collect(Collectors.toMap(TokenMetadata::getSubject, m -> m));
+        Map<String, String> subjectToPolicyId = assetFingerprints.stream()
+                .collect(Collectors.toMap(AssetFingerprint::toSubject, AssetFingerprint::getPolicyId, (a, b) -> a));
 
-        // Batch CIP-26 logos (only if enabled)
-        Map<String, String> cip26Logos = logoEnabled
-                ? cip26StorageReader.findLogosBySubjects(subjects)
-                : Map.of();
+        Map<String, TokenRegistryCurrencyData> metadataBySubject = tokenQueryService.queryMetadataBatch(subjects, subjectToPolicyId);
 
         Map<AssetFingerprint, TokenRegistryCurrencyData> result = new HashMap<>();
-
         for (AssetFingerprint assetFingerprint : assetFingerprints) {
-            String subject = assetFingerprint.toSubject();
-
-            TokenRegistryCurrencyData.TokenRegistryCurrencyDataBuilder builder = TokenRegistryCurrencyData.builder()
-                    .policyId(assetFingerprint.getPolicyId())
-                    .subject(subject);
-
-            // Start with CIP-26 as base
-            TokenMetadata cip26 = cip26Map.get(subject);
-            if (cip26 != null) {
-                applyCip26(builder, cip26, cip26Logos.get(subject));
-            }
-
-            // CIP-68 overrides (higher priority)
-            Optional<FungibleTokenMetadata> cip68 = cip68StorageReader.findBySubject(subject);
-            if (cip68.isPresent()) {
-                applyCip68(builder, cip68.get());
-            }
-
-            result.put(assetFingerprint, builder.build());
+            result.put(assetFingerprint, metadataBySubject.getOrDefault(
+                    assetFingerprint.toSubject(),
+                    TokenRegistryCurrencyData.builder().policyId(assetFingerprint.getPolicyId()).build()));
         }
-
         return result;
-    }
-
-    private void applyCip26(TokenRegistryCurrencyData.TokenRegistryCurrencyDataBuilder builder,
-                            @NotNull TokenMetadata cip26,
-                            @Nullable String logo) {
-        builder.name(cip26.getName());
-        builder.description(cip26.getDescription());
-        Optional.ofNullable(cip26.getTicker()).ifPresent(builder::ticker);
-        Optional.ofNullable(cip26.getUrl()).ifPresent(builder::url);
-        builder.decimals(cip26.getDecimals() != null ? cip26.getDecimals().intValue() : 0);
-
-        if (logoEnabled && logo != null) {
-            builder.logo(TokenRegistryCurrencyData.LogoData.builder()
-                    .format(TokenRegistryCurrencyData.LogoFormat.BASE64)
-                    .value(logo)
-                    .build());
-        }
-    }
-
-    private void applyCip68(TokenRegistryCurrencyData.TokenRegistryCurrencyDataBuilder builder,
-                            @NotNull FungibleTokenMetadata cip68) {
-        Optional.ofNullable(cip68.name()).ifPresent(builder::name);
-        Optional.ofNullable(cip68.description()).ifPresent(builder::description);
-        Optional.ofNullable(cip68.ticker()).ifPresent(builder::ticker);
-        Optional.ofNullable(cip68.url()).ifPresent(builder::url);
-        Optional.ofNullable(cip68.version()).ifPresent(v -> builder.version(BigDecimal.valueOf(v)));
-        if (cip68.decimals() != null) {
-            builder.decimals(cip68.decimals().intValue());
-        }
-
-        if (logoEnabled && cip68.logo() != null) {
-            builder.logo(TokenRegistryCurrencyData.LogoData.builder()
-                    .format(TokenRegistryCurrencyData.LogoFormat.URL)
-                    .value(cip68.logo())
-                    .build());
-        }
     }
 
     @Override
