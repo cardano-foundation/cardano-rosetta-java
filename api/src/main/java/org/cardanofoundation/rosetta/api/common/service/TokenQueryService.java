@@ -70,7 +70,27 @@ public class TokenQueryService {
                 .map(AssetFingerprint::toSubject)
                 .toList();
 
-        // Fork CIP-26 metadata and logo queries in parallel
+        // Fork CIP-26 metadata and logo queries in parallel via structured concurrency.
+        //
+        // IMPORTANT — known caveat: Spring's @Transactional context is stored in a ThreadLocal
+        // (TransactionSynchronizationManager). When we fork to virtual threads inside a
+        // StructuredTaskScope, that thread-local state is NOT propagated. Each repository call
+        // executed inside a fork therefore opens its OWN transaction and consumes its OWN
+        // connection-pool slot — the class-level @Transactional(readOnly = true) on this service
+        // does not apply to the forked work.
+        //
+        // Why we accept this: both queries are read-only point lookups against indexed columns,
+        // and the underlying CIP-26 data (ft_offchain_metadata / ft_offchain_logo) is written
+        // only during periodic offchain sync from the Cardano token registry git repo — i.e.
+        // very rarely. The theoretical risk of read skew (metadata query sees state at time T,
+        // logo query sees state at T+1 after a concurrent sync flushes rows) is negligible for
+        // token metadata: a logo appearing or disappearing between two microsecond-apart queries
+        // is harmless, and any such inconsistency self-heals on the next API call.
+        //
+        // When to revisit: if the connection pool is saturated, or if a future change introduces
+        // frequent writes to these tables, drop the scope and chain the calls sequentially on the
+        // transaction thread — a ~5-line diff that restores the outer readOnly transaction at the
+        // cost of serializing the two queries.
         Map<String, TokenMetadataEntity> cip26Map;
         Map<String, String> cip26Logos;
 
