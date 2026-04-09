@@ -65,11 +65,12 @@ public class YaciHttpGatewayImpl implements YaciHttpGateway {
             } else {
                 throw ExceptionFactory.gatewayError(false);
             }
-        } catch (IOException | InterruptedException e) {
+        } catch (InterruptedException e) {
             log.error("Error during yaci-indexer HTTP request", e);
-
             Thread.currentThread().interrupt();
-
+            throw ExceptionFactory.gatewayError(true);
+        } catch (IOException e) {
+            log.error("Error during yaci-indexer HTTP request", e);
             throw ExceptionFactory.gatewayError(true);
         }
     }
@@ -100,11 +101,12 @@ public class YaciHttpGatewayImpl implements YaciHttpGateway {
             } else {
                 throw ExceptionFactory.gatewayError(false);
             }
-        } catch (IOException | InterruptedException e) {
+        } catch (InterruptedException e) {
             log.error("Error during yaci-indexer peers HTTP request", e);
-
             Thread.currentThread().interrupt();
-
+            throw ExceptionFactory.gatewayError(true);
+        } catch (IOException e) {
+            log.error("Error during yaci-indexer peers HTTP request", e);
             throw ExceptionFactory.gatewayError(true);
         }
     }
