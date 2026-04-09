@@ -74,11 +74,6 @@
         <sonar.coverage.exclusions>${test.exclusions}</sonar.coverage.exclusions>
     </properties>
     <repositories>
-        <!-- Temporary: local file-based repo for pre-release assets-ext jars. Remove once published to Maven Central. -->
-        <repository>
-            <id>project-local</id>
-            <url>file://${project.basedir}/libs</url>
-        </repository>
         <repository>
             <id>central</id>
             <url>https://repo1.maven.org/maven2/</url>
