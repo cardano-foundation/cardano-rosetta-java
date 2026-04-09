@@ -45,27 +45,6 @@ public class TokenQueryService {
     private boolean logoEnabled;
 
     /**
-     * Query merged token metadata for a single subject.
-     * CIP-68 values take priority over CIP-26 where both exist.
-     *
-     * @param subject the token subject (policyId + assetName hex)
-     * @return merged currency data (always present, may have null fields if no metadata found)
-     */
-    public TokenRegistryCurrencyData queryMetadata(String subject, String policyId) {
-        TokenRegistryCurrencyData.TokenRegistryCurrencyDataBuilder builder = TokenRegistryCurrencyData.builder()
-                .policyId(policyId)
-                .subject(subject);
-
-        // CIP-26 as base layer
-        tokenMetadataRepository.findById(subject).ifPresent(cip26 -> applyCip26(builder, cip26, subject));
-
-        // CIP-68 overrides (higher priority)
-        findCip68ReferenceNft(subject).ifPresent(cip68 -> applyCip68(builder, cip68));
-
-        return builder.build();
-    }
-
-    /**
      * Batch query merged token metadata for multiple subjects.
      * CIP-26 lookups are batched; CIP-68 is per-subject (label-filtered query).
      *
@@ -143,15 +122,6 @@ public class TokenQueryService {
 
         return metadataReferenceNftRepository
                 .findFirstByPolicyIdAndAssetNameAndLabelOrderBySlotDesc(policyId, refNftAssetName, CIP68_LABEL_FT);
-    }
-
-    private void applyCip26(TokenRegistryCurrencyData.TokenRegistryCurrencyDataBuilder builder,
-                            TokenMetadataEntity cip26, String subject) {
-        applyCip26Fields(builder, cip26);
-        if (logoEnabled) {
-            tokenLogoRepository.findById(subject)
-                    .ifPresent(logo -> applyCip26Logo(builder, logo.getLogo()));
-        }
     }
 
     private void applyCip26Fields(TokenRegistryCurrencyData.TokenRegistryCurrencyDataBuilder builder,
