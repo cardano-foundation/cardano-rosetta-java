@@ -7,6 +7,7 @@ import org.cardanofoundation.rosetta.api.common.model.entity.MetadataReferenceNf
 import org.cardanofoundation.rosetta.api.common.model.entity.TokenLogoEntity;
 import org.cardanofoundation.rosetta.api.common.model.entity.TokenMetadataEntity;
 import org.cardanofoundation.rosetta.api.common.model.repository.MetadataReferenceNftRepository;
+import org.cardanofoundation.rosetta.api.common.model.repository.MetadataReferenceNftRepositoryCustom.PolicyAssetPair;
 import org.cardanofoundation.rosetta.api.common.model.repository.TokenLogoRepository;
 import org.cardanofoundation.rosetta.api.common.model.repository.TokenMetadataRepository;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,12 +16,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.StructuredTaskScope;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -48,7 +51,12 @@ public class TokenQueryService {
 
     /**
      * Batch query merged token metadata for multiple asset fingerprints.
-     * CIP-26 lookups are batched; CIP-68 is per-subject (label-filtered query).
+     * Issues a constant number of DB queries regardless of batch size:
+     * <ul>
+     *   <li>1 for CIP-26 metadata (always)</li>
+     *   <li>1 for CIP-26 logos (only if {@code TOKEN_REGISTRY_LOGO_FETCH=true})</li>
+     *   <li>1 for CIP-68 reference NFTs (only if the batch contains CIP-68 fungible tokens)</li>
+     * </ul>
      *
      * @param fingerprints asset fingerprints (policyId + symbol hex)
      * @return map of asset fingerprint -> merged currency data
@@ -89,6 +97,26 @@ public class TokenQueryService {
             throw new RuntimeException("Token metadata batch query failed", e);
         }
 
+        // Batch CIP-68 lookup: collect all fungible token candidates in one pass,
+        // then fire a single window-function query against metadata_reference_nft.
+        Map<AssetFingerprint, String> refNftKeyByFingerprint = new HashMap<>();
+        List<PolicyAssetPair> cip68Pairs = new ArrayList<>();
+        for (AssetFingerprint fingerprint : fingerprints) {
+            String refNftAssetName = toCip68ReferenceNftAssetName(fingerprint.getSymbol());
+            if (refNftAssetName != null) {
+                cip68Pairs.add(new PolicyAssetPair(fingerprint.getPolicyId(), refNftAssetName));
+                refNftKeyByFingerprint.put(fingerprint, fingerprint.getPolicyId() + refNftAssetName);
+            }
+        }
+
+        Map<String, MetadataReferenceNftEntity> cip68Map = cip68Pairs.isEmpty()
+                ? Map.of()
+                : metadataReferenceNftRepository.findLatestByPolicyAssetPairs(cip68Pairs, CIP68_LABEL_FT).stream()
+                        .collect(Collectors.toMap(
+                                e -> e.getPolicyId() + e.getAssetName(),
+                                Function.identity()));
+
+        // Merge CIP-26 base + CIP-68 overrides per fingerprint
         Map<AssetFingerprint, TokenRegistryCurrencyData> result = new HashMap<>();
         for (AssetFingerprint fingerprint : fingerprints) {
             String subject = fingerprint.toSubject();
@@ -106,8 +134,14 @@ public class TokenQueryService {
                 }
             }
 
-            // CIP-68 overrides (higher priority)
-            findCip68ReferenceNft(fingerprint).ifPresent(cip68 -> applyCip68(builder, cip68));
+            // CIP-68 overrides (higher priority) — O(1) lookup in the prefetched map
+            String refNftKey = refNftKeyByFingerprint.get(fingerprint);
+            if (refNftKey != null) {
+                MetadataReferenceNftEntity cip68 = cip68Map.get(refNftKey);
+                if (cip68 != null) {
+                    applyCip68(builder, cip68);
+                }
+            }
 
             result.put(fingerprint, builder.build());
         }
@@ -115,23 +149,17 @@ public class TokenQueryService {
     }
 
     /**
-     * Looks up the CIP-68 reference NFT metadata for a fungible token fingerprint.
-     * Converts the fungible token symbol prefix ({@code 0014df10}) to the reference NFT
-     * prefix ({@code 000643b0}) and fetches the latest entry by slot.
-     * Returns empty if the symbol is not a CIP-68 fungible token.
+     * Converts a fungible token symbol (starting with prefix {@code 0014df10}) into its
+     * corresponding CIP-68 reference NFT asset name (prefix {@code 000643b0}).
+     * Returns {@code null} if the symbol is not a CIP-68 fungible token.
      */
-    private Optional<MetadataReferenceNftEntity> findCip68ReferenceNft(AssetFingerprint fingerprint) {
-        String symbol = fingerprint.getSymbol();
+    @Nullable
+    private static String toCip68ReferenceNftAssetName(String symbol) {
         if (symbol.length() <= CIP68_FUNGIBLE_TOKEN_PREFIX.length()
                 || !symbol.startsWith(CIP68_FUNGIBLE_TOKEN_PREFIX)) {
-            return Optional.empty();
+            return null;
         }
-
-        String refNftAssetName = CIP68_REFERENCE_TOKEN_PREFIX
-                + symbol.substring(CIP68_FUNGIBLE_TOKEN_PREFIX.length());
-
-        return metadataReferenceNftRepository
-                .findFirstByPolicyIdAndAssetNameAndLabelOrderBySlotDesc(fingerprint.getPolicyId(), refNftAssetName, CIP68_LABEL_FT);
+        return CIP68_REFERENCE_TOKEN_PREFIX + symbol.substring(CIP68_FUNGIBLE_TOKEN_PREFIX.length());
     }
 
     private void applyCip26Fields(TokenRegistryCurrencyData.TokenRegistryCurrencyDataBuilder builder,
