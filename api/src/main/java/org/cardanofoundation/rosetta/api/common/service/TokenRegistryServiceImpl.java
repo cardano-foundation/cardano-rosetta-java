@@ -34,23 +34,7 @@ public class TokenRegistryServiceImpl implements TokenRegistryService {
         if (assetFingerprints.isEmpty()) {
             return Map.of();
         }
-
-        List<String> subjects = assetFingerprints.stream()
-                .map(AssetFingerprint::toSubject)
-                .toList();
-
-        Map<String, String> subjectToPolicyId = assetFingerprints.stream()
-                .collect(Collectors.toMap(AssetFingerprint::toSubject, AssetFingerprint::getPolicyId, (a, b) -> a));
-
-        Map<String, TokenRegistryCurrencyData> metadataBySubject = tokenQueryService.queryMetadataBatch(subjects, subjectToPolicyId);
-
-        Map<AssetFingerprint, TokenRegistryCurrencyData> result = new HashMap<>();
-        for (AssetFingerprint assetFingerprint : assetFingerprints) {
-            result.put(assetFingerprint, metadataBySubject.getOrDefault(
-                    assetFingerprint.toSubject(),
-                    TokenRegistryCurrencyData.builder().policyId(assetFingerprint.getPolicyId()).build()));
-        }
-        return result;
+        return tokenQueryService.queryMetadataBatch(assetFingerprints);
     }
 
     @Override

@@ -1,6 +1,7 @@
 package org.cardanofoundation.rosetta.api.common.service;
 
 import lombok.RequiredArgsConstructor;
+import org.cardanofoundation.rosetta.api.common.model.AssetFingerprint;
 import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
 import org.cardanofoundation.rosetta.api.common.model.entity.MetadataReferenceNftEntity;
 import org.cardanofoundation.rosetta.api.common.model.entity.TokenLogoEntity;
@@ -8,13 +9,14 @@ import org.cardanofoundation.rosetta.api.common.model.entity.TokenMetadataEntity
 import org.cardanofoundation.rosetta.api.common.model.repository.MetadataReferenceNftRepository;
 import org.cardanofoundation.rosetta.api.common.model.repository.TokenLogoRepository;
 import org.cardanofoundation.rosetta.api.common.model.repository.TokenMetadataRepository;
-import org.cardanofoundation.rosetta.common.util.Constants;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
 import java.math.BigDecimal;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -45,14 +47,21 @@ public class TokenQueryService {
     private boolean logoEnabled;
 
     /**
-     * Batch query merged token metadata for multiple subjects.
+     * Batch query merged token metadata for multiple asset fingerprints.
      * CIP-26 lookups are batched; CIP-68 is per-subject (label-filtered query).
      *
-     * @param subjects list of token subjects (policyId + assetName hex)
-     * @return map of subject -> merged currency data
+     * @param fingerprints asset fingerprints (policyId + symbol hex)
+     * @return map of asset fingerprint -> merged currency data
      */
-    public Map<String, TokenRegistryCurrencyData> queryMetadataBatch(List<String> subjects,
-                                                                      Map<String, String> subjectToPolicyId) {
+    public Map<AssetFingerprint, TokenRegistryCurrencyData> queryMetadataBatch(Collection<AssetFingerprint> fingerprints) {
+        if (fingerprints.isEmpty()) {
+            return Map.of();
+        }
+
+        List<String> subjects = fingerprints.stream()
+                .map(AssetFingerprint::toSubject)
+                .toList();
+
         // Fork CIP-26 metadata and logo queries in parallel
         Map<String, TokenMetadataEntity> cip26Map;
         Map<String, String> cip26Logos;
@@ -80,48 +89,49 @@ public class TokenQueryService {
             throw new RuntimeException("Token metadata batch query failed", e);
         }
 
-        return subjects.stream().collect(Collectors.toMap(
-                subject -> subject,
-                subject -> {
-                    String policyId = subjectToPolicyId.get(subject);
-                    TokenRegistryCurrencyData.TokenRegistryCurrencyDataBuilder builder = TokenRegistryCurrencyData.builder()
-                            .policyId(policyId)
-                            .subject(subject);
+        Map<AssetFingerprint, TokenRegistryCurrencyData> result = new HashMap<>();
+        for (AssetFingerprint fingerprint : fingerprints) {
+            String subject = fingerprint.toSubject();
 
-                    // CIP-26 base
-                    TokenMetadataEntity cip26 = cip26Map.get(subject);
-                    if (cip26 != null) {
-                        applyCip26Fields(builder, cip26);
-                        if (logoEnabled) {
-                            applyCip26Logo(builder, cip26Logos.get(subject));
-                        }
-                    }
+            TokenRegistryCurrencyData.TokenRegistryCurrencyDataBuilder builder = TokenRegistryCurrencyData.builder()
+                    .policyId(fingerprint.getPolicyId())
+                    .subject(subject);
 
-                    // CIP-68 overrides
-                    findCip68ReferenceNft(subject).ifPresent(cip68 -> applyCip68(builder, cip68));
+            // CIP-26 base
+            TokenMetadataEntity cip26 = cip26Map.get(subject);
+            if (cip26 != null) {
+                applyCip26Fields(builder, cip26);
+                if (logoEnabled) {
+                    applyCip26Logo(builder, cip26Logos.get(subject));
+                }
+            }
 
-                    return builder.build();
-                }));
+            // CIP-68 overrides (higher priority)
+            findCip68ReferenceNft(fingerprint).ifPresent(cip68 -> applyCip68(builder, cip68));
+
+            result.put(fingerprint, builder.build());
+        }
+        return result;
     }
 
-    private Optional<MetadataReferenceNftEntity> findCip68ReferenceNft(String subject) {
-        if (subject.length() <= Constants.POLICY_ID_LENGTH) {
-            return Optional.empty();
-        }
-
-        String policyId = subject.substring(0, Constants.POLICY_ID_LENGTH);
-        String assetName = subject.substring(Constants.POLICY_ID_LENGTH);
-
-        if (assetName.length() <= CIP68_FUNGIBLE_TOKEN_PREFIX.length()
-                || !assetName.startsWith(CIP68_FUNGIBLE_TOKEN_PREFIX)) {
+    /**
+     * Looks up the CIP-68 reference NFT metadata for a fungible token fingerprint.
+     * Converts the fungible token symbol prefix ({@code 0014df10}) to the reference NFT
+     * prefix ({@code 000643b0}) and fetches the latest entry by slot.
+     * Returns empty if the symbol is not a CIP-68 fungible token.
+     */
+    private Optional<MetadataReferenceNftEntity> findCip68ReferenceNft(AssetFingerprint fingerprint) {
+        String symbol = fingerprint.getSymbol();
+        if (symbol.length() <= CIP68_FUNGIBLE_TOKEN_PREFIX.length()
+                || !symbol.startsWith(CIP68_FUNGIBLE_TOKEN_PREFIX)) {
             return Optional.empty();
         }
 
         String refNftAssetName = CIP68_REFERENCE_TOKEN_PREFIX
-                + assetName.substring(CIP68_FUNGIBLE_TOKEN_PREFIX.length());
+                + symbol.substring(CIP68_FUNGIBLE_TOKEN_PREFIX.length());
 
         return metadataReferenceNftRepository
-                .findFirstByPolicyIdAndAssetNameAndLabelOrderBySlotDesc(policyId, refNftAssetName, CIP68_LABEL_FT);
+                .findFirstByPolicyIdAndAssetNameAndLabelOrderBySlotDesc(fingerprint.getPolicyId(), refNftAssetName, CIP68_LABEL_FT);
     }
 
     private void applyCip26Fields(TokenRegistryCurrencyData.TokenRegistryCurrencyDataBuilder builder,
@@ -130,7 +140,10 @@ public class TokenQueryService {
         builder.description(cip26.getDescription());
         Optional.ofNullable(cip26.getTicker()).ifPresent(builder::ticker);
         Optional.ofNullable(cip26.getUrl()).ifPresent(builder::url);
-        builder.decimals(cip26.getDecimals() != null ? cip26.getDecimals().intValue() : 0);
+        // Leave decimals null if CIP-26 doesn't provide it; downstream mappers apply the default.
+        if (cip26.getDecimals() != null) {
+            builder.decimals(cip26.getDecimals().intValue());
+        }
     }
 
     private void applyCip26Logo(TokenRegistryCurrencyData.TokenRegistryCurrencyDataBuilder builder,
@@ -155,9 +168,23 @@ public class TokenQueryService {
         }
         if (logoEnabled && cip68.getLogo() != null) {
             builder.logo(TokenRegistryCurrencyData.LogoData.builder()
-                    .format(TokenRegistryCurrencyData.LogoFormat.URL)
+                    .format(detectLogoFormat(cip68.getLogo()))
                     .value(cip68.getLogo())
                     .build());
         }
+    }
+
+    /**
+     * Detects whether a CIP-68 logo string is a URL or base64-encoded image.
+     * URLs are identified by known schemes; everything else is treated as base64.
+     * Note: {@code data:} URIs are treated as base64 since consumers decode them, not fetch them.
+     */
+    private static TokenRegistryCurrencyData.LogoFormat detectLogoFormat(String logo) {
+        String lower = logo.toLowerCase();
+        if (lower.startsWith("http://") || lower.startsWith("https://")
+                || lower.startsWith("ipfs://") || lower.startsWith("ar://")) {
+            return TokenRegistryCurrencyData.LogoFormat.URL;
+        }
+        return TokenRegistryCurrencyData.LogoFormat.BASE64;
     }
 }

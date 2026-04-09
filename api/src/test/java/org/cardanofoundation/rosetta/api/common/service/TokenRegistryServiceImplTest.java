@@ -59,32 +59,14 @@ class TokenRegistryServiceImplTest {
 
             TokenRegistryCurrencyData data = TokenRegistryCurrencyData.builder()
                     .policyId(POLICY_ID).subject(SUBJECT).name("Test Token").decimals(6).build();
-            when(tokenQueryService.queryMetadataBatch(anyList(), anyMap()))
-                    .thenReturn(Map.of(SUBJECT, data));
+            when(tokenQueryService.queryMetadataBatch(anyCollection()))
+                    .thenReturn(Map.of(asset, data));
 
             Map<AssetFingerprint, TokenRegistryCurrencyData> result =
                     tokenRegistryService.getTokenMetadataBatch(Set.of(asset));
 
-            assertThat(result).hasSize(1);
-            assertThat(result.get(asset).getName()).isEqualTo("Test Token");
-            assertThat(result.get(asset).getDecimals()).isEqualTo(6);
-            verify(tokenQueryService).queryMetadataBatch(anyList(), anyMap());
-        }
-
-        @Test
-        @DisplayName("Should return fallback when subject not in query results")
-        void shouldReturnFallbackWhenMissing() {
-            AssetFingerprint asset = AssetFingerprint.of(POLICY_ID, ASSET_SYMBOL_HEX);
-
-            when(tokenQueryService.queryMetadataBatch(anyList(), anyMap()))
-                    .thenReturn(Map.of());
-
-            Map<AssetFingerprint, TokenRegistryCurrencyData> result =
-                    tokenRegistryService.getTokenMetadataBatch(Set.of(asset));
-
-            assertThat(result).hasSize(1);
-            assertThat(result.get(asset).getPolicyId()).isEqualTo(POLICY_ID);
-            assertThat(result.get(asset).getName()).isNull();
+            assertThat(result).containsEntry(asset, data);
+            verify(tokenQueryService).queryMetadataBatch(Set.of(asset));
         }
     }
 
