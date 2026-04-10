@@ -170,7 +170,8 @@ public class RosettaConstants {
                 "Cannot specify both 'account' and 'accountIdentifier' parameters simultaneously", 5055),
         // gap in the error codes is because we removed some errors of issues that we resolved
         OPERATION_TYPE_SEARCH_NOT_SUPPORTED("Operation type filtering is not currently supported", 5058),
-        CURRENCY_SYMBOL_NOT_HEX("Currency symbol must be hex-encoded", 5059);
+        CURRENCY_SYMBOL_NOT_HEX("Currency symbol must be hex-encoded", 5059),
+        OUTPUT_MIN_ADA_VALUE_NOT_MET("Output ADA value is below the minimum UTxO requirement", 5060);
 
         final String message;
         final int code;

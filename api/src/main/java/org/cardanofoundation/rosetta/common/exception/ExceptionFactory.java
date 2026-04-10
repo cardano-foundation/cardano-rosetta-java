@@ -2,6 +2,7 @@ package org.cardanofoundation.rosetta.common.exception;
 
 import jakarta.validation.constraints.NotNull;
 
+import java.math.BigInteger;
 import java.time.LocalDateTime;
 
 import static org.cardanofoundation.rosetta.common.util.RosettaConstants.RosettaErrorType;
@@ -392,6 +393,14 @@ public class ExceptionFactory {
     public static ApiException currencySymbolNotHex(String symbol) {
         return new ApiException(RosettaErrorType.CURRENCY_SYMBOL_NOT_HEX.toRosettaError(false,
                 Details.builder().message("Currency symbol must be hex-encoded, but got: '" + symbol + "'").build()));
+    }
+
+    public static ApiException outputMinAdaValueNotMet(int outputIndex, BigInteger actual, BigInteger minimum) {
+        return new ApiException(RosettaErrorType.OUTPUT_MIN_ADA_VALUE_NOT_MET.toRosettaError(false,
+                Details.builder()
+                        .message("Output at index %d has %s lovelace but requires at least %s lovelace"
+                                .formatted(outputIndex, actual, minimum))
+                        .build()));
     }
 
 }
