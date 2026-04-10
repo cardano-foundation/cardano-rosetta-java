@@ -6,7 +6,6 @@ import org.cardanofoundation.rosetta.api.common.model.entity.MetadataReferenceNf
 import org.cardanofoundation.rosetta.api.common.model.entity.TokenLogoEntity;
 import org.cardanofoundation.rosetta.api.common.model.entity.TokenMetadataEntity;
 import org.cardanofoundation.rosetta.api.common.model.repository.MetadataReferenceNftRepository;
-import org.cardanofoundation.rosetta.api.common.model.repository.MetadataReferenceNftRepositoryCustom.PolicyAssetPair;
 import org.cardanofoundation.rosetta.api.common.model.repository.TokenLogoRepository;
 import org.cardanofoundation.rosetta.api.common.model.repository.TokenMetadataRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,6 +19,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -109,7 +109,7 @@ class TokenQueryServiceTest {
             MetadataReferenceNftEntity cip68 = MetadataReferenceNftEntity.builder()
                     .policyId(POLICY_ID).assetName(CIP68_REF_NFT_ASSET).slot(500L).label(333)
                     .name("iUSD").description("Stablecoin").ticker("iUSD").decimals(6L).version(1L).build();
-            when(metadataReferenceNftRepository.findLatestByPolicyAssetPairs(anyList(), eq(333)))
+            when(metadataReferenceNftRepository.findLatestByConcatenatedKeys(anyCollection(), eq(333)))
                     .thenReturn(List.of(cip68));
 
             TokenRegistryCurrencyData result = querySingle(POLICY_ID, CIP68_FT_ASSET);
@@ -132,7 +132,7 @@ class TokenQueryServiceTest {
             MetadataReferenceNftEntity cip68 = MetadataReferenceNftEntity.builder()
                     .policyId(POLICY_ID).assetName(CIP68_REF_NFT_ASSET).slot(500L).label(333)
                     .name("New Name").description("New Desc").ticker("NEW").decimals(8L).version(2L).build();
-            when(metadataReferenceNftRepository.findLatestByPolicyAssetPairs(anyList(), eq(333)))
+            when(metadataReferenceNftRepository.findLatestByConcatenatedKeys(anyCollection(), eq(333)))
                     .thenReturn(List.of(cip68));
 
             TokenRegistryCurrencyData result = querySingle(POLICY_ID, CIP68_FT_ASSET);
@@ -156,7 +156,7 @@ class TokenQueryServiceTest {
             MetadataReferenceNftEntity cip68 = MetadataReferenceNftEntity.builder()
                     .policyId(POLICY_ID).assetName(CIP68_REF_NFT_ASSET).slot(500L).label(333)
                     .name("CIP68 Name").description(null).ticker(null).decimals(8L).build();
-            when(metadataReferenceNftRepository.findLatestByPolicyAssetPairs(anyList(), eq(333)))
+            when(metadataReferenceNftRepository.findLatestByConcatenatedKeys(anyCollection(), eq(333)))
                     .thenReturn(List.of(cip68));
 
             TokenRegistryCurrencyData result = querySingle(POLICY_ID, CIP68_FT_ASSET);
@@ -222,15 +222,15 @@ class TokenQueryServiceTest {
         void shouldConvertFungibleToReferencePrefix() {
             String hexName = "aabbccdd";
             when(tokenMetadataRepository.findAllBySubjectIn(anyList())).thenReturn(List.of());
-            when(metadataReferenceNftRepository.findLatestByPolicyAssetPairs(anyList(), eq(333)))
+            when(metadataReferenceNftRepository.findLatestByConcatenatedKeys(anyCollection(), eq(333)))
                     .thenReturn(List.of());
 
             querySingle(POLICY_ID, "0014df10" + hexName);
 
             @SuppressWarnings("unchecked")
-            ArgumentCaptor<List<PolicyAssetPair>> captor = ArgumentCaptor.forClass(List.class);
-            verify(metadataReferenceNftRepository).findLatestByPolicyAssetPairs(captor.capture(), eq(333));
-            assertThat(captor.getValue()).containsExactly(new PolicyAssetPair(POLICY_ID, "000643b0" + hexName));
+            ArgumentCaptor<Collection<String>> captor = ArgumentCaptor.forClass(Collection.class);
+            verify(metadataReferenceNftRepository).findLatestByConcatenatedKeys(captor.capture(), eq(333));
+            assertThat(captor.getValue()).containsExactly(POLICY_ID + "000643b0" + hexName);
         }
 
         @Test
@@ -293,7 +293,7 @@ class TokenQueryServiceTest {
             MetadataReferenceNftEntity cip68 = MetadataReferenceNftEntity.builder()
                     .policyId(POLICY_ID).assetName(CIP68_REF_NFT_ASSET).slot(500L).label(333)
                     .name("Token").description("Desc").logo("ipfs://QmHash").build();
-            when(metadataReferenceNftRepository.findLatestByPolicyAssetPairs(anyList(), eq(333)))
+            when(metadataReferenceNftRepository.findLatestByConcatenatedKeys(anyCollection(), eq(333)))
                     .thenReturn(List.of(cip68));
 
             TokenRegistryCurrencyData result = querySingle(POLICY_ID, CIP68_FT_ASSET);
@@ -314,7 +314,7 @@ class TokenQueryServiceTest {
             MetadataReferenceNftEntity cip68 = MetadataReferenceNftEntity.builder()
                     .policyId(POLICY_ID).assetName(CIP68_REF_NFT_ASSET).slot(500L).label(333)
                     .name("Token").description("Desc").logo("https://example.com/logo.png").build();
-            when(metadataReferenceNftRepository.findLatestByPolicyAssetPairs(anyList(), eq(333)))
+            when(metadataReferenceNftRepository.findLatestByConcatenatedKeys(anyCollection(), eq(333)))
                     .thenReturn(List.of(cip68));
 
             TokenRegistryCurrencyData result = querySingle(POLICY_ID, CIP68_FT_ASSET);
@@ -333,7 +333,7 @@ class TokenQueryServiceTest {
             MetadataReferenceNftEntity cip68 = MetadataReferenceNftEntity.builder()
                     .policyId(POLICY_ID).assetName(CIP68_REF_NFT_ASSET).slot(500L).label(333)
                     .name("Token").description("Desc").logo("ar://tx-id").build();
-            when(metadataReferenceNftRepository.findLatestByPolicyAssetPairs(anyList(), eq(333)))
+            when(metadataReferenceNftRepository.findLatestByConcatenatedKeys(anyCollection(), eq(333)))
                     .thenReturn(List.of(cip68));
 
             TokenRegistryCurrencyData result = querySingle(POLICY_ID, CIP68_FT_ASSET);
@@ -352,7 +352,7 @@ class TokenQueryServiceTest {
             MetadataReferenceNftEntity cip68 = MetadataReferenceNftEntity.builder()
                     .policyId(POLICY_ID).assetName(CIP68_REF_NFT_ASSET).slot(500L).label(333)
                     .name("Token").description("Desc").logo("iVBORw0KGgoAAAANSUhEUg==").build();
-            when(metadataReferenceNftRepository.findLatestByPolicyAssetPairs(anyList(), eq(333)))
+            when(metadataReferenceNftRepository.findLatestByConcatenatedKeys(anyCollection(), eq(333)))
                     .thenReturn(List.of(cip68));
 
             TokenRegistryCurrencyData result = querySingle(POLICY_ID, CIP68_FT_ASSET);
@@ -372,7 +372,7 @@ class TokenQueryServiceTest {
             MetadataReferenceNftEntity cip68 = MetadataReferenceNftEntity.builder()
                     .policyId(POLICY_ID).assetName(CIP68_REF_NFT_ASSET).slot(500L).label(333)
                     .name("Token").description("Desc").logo("data:image/png;base64,iVBORw0KGgo=").build();
-            when(metadataReferenceNftRepository.findLatestByPolicyAssetPairs(anyList(), eq(333)))
+            when(metadataReferenceNftRepository.findLatestByConcatenatedKeys(anyCollection(), eq(333)))
                     .thenReturn(List.of(cip68));
 
             TokenRegistryCurrencyData result = querySingle(POLICY_ID, CIP68_FT_ASSET);
@@ -395,7 +395,7 @@ class TokenQueryServiceTest {
             MetadataReferenceNftEntity cip68 = MetadataReferenceNftEntity.builder()
                     .policyId(POLICY_ID).assetName(CIP68_REF_NFT_ASSET).slot(500L).label(333)
                     .name("Token").description("Desc").logo("ipfs://Override").build();
-            when(metadataReferenceNftRepository.findLatestByPolicyAssetPairs(anyList(), eq(333)))
+            when(metadataReferenceNftRepository.findLatestByConcatenatedKeys(anyCollection(), eq(333)))
                     .thenReturn(List.of(cip68));
 
             TokenRegistryCurrencyData result = querySingle(POLICY_ID, CIP68_FT_ASSET);
@@ -414,7 +414,7 @@ class TokenQueryServiceTest {
             MetadataReferenceNftEntity cip68 = MetadataReferenceNftEntity.builder()
                     .policyId(POLICY_ID).assetName(CIP68_REF_NFT_ASSET).slot(500L).label(333)
                     .name("Token").description("Desc").logo("ipfs://QmHash").build();
-            when(metadataReferenceNftRepository.findLatestByPolicyAssetPairs(anyList(), eq(333)))
+            when(metadataReferenceNftRepository.findLatestByConcatenatedKeys(anyCollection(), eq(333)))
                     .thenReturn(List.of(cip68));
 
             TokenRegistryCurrencyData result = querySingle(POLICY_ID, CIP68_FT_ASSET);
@@ -526,7 +526,7 @@ class TokenQueryServiceTest {
             MetadataReferenceNftEntity cip68 = MetadataReferenceNftEntity.builder()
                     .policyId(POLICY_ID).assetName(CIP68_REF_NFT_ASSET).slot(100L).label(333)
                     .name("CIP68").description("New").decimals(6L).build();
-            when(metadataReferenceNftRepository.findLatestByPolicyAssetPairs(anyList(), eq(333)))
+            when(metadataReferenceNftRepository.findLatestByConcatenatedKeys(anyCollection(), eq(333)))
                     .thenReturn(List.of(cip68));
 
             Map<AssetFingerprint, TokenRegistryCurrencyData> result = tokenQueryService.queryMetadataBatch(List.of(fp));

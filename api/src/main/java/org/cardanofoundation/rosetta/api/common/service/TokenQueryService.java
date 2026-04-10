@@ -7,7 +7,6 @@ import org.cardanofoundation.rosetta.api.common.model.entity.MetadataReferenceNf
 import org.cardanofoundation.rosetta.api.common.model.entity.TokenLogoEntity;
 import org.cardanofoundation.rosetta.api.common.model.entity.TokenMetadataEntity;
 import org.cardanofoundation.rosetta.api.common.model.repository.MetadataReferenceNftRepository;
-import org.cardanofoundation.rosetta.api.common.model.repository.MetadataReferenceNftRepositoryCustom.PolicyAssetPair;
 import org.cardanofoundation.rosetta.api.common.model.repository.TokenLogoRepository;
 import org.cardanofoundation.rosetta.api.common.model.repository.TokenMetadataRepository;
 import org.springframework.beans.factory.annotation.Value;
@@ -117,21 +116,25 @@ public class TokenQueryService {
             throw new RuntimeException("Token metadata batch query failed", e);
         }
 
-        // Batch CIP-68 lookup: collect all fungible token candidates in one pass,
-        // then fire a single window-function query against metadata_reference_nft.
+        // Batch CIP-68 lookup: collect all fungible token candidates as concatenated
+        // (policy_id || reference-NFT asset name) keys in one pass, then fire a single
+        // window-function query against metadata_reference_nft. Policy IDs are fixed
+        // 56-char hex so the concatenation is unambiguous. Mirrors the upstream
+        // yaci-store-assets-ext findLatestByConcatenatedKeys query shape.
         Map<AssetFingerprint, String> refNftKeyByFingerprint = new HashMap<>();
-        List<PolicyAssetPair> cip68Pairs = new ArrayList<>();
+        List<String> cip68ConcatenatedKeys = new ArrayList<>();
         for (AssetFingerprint fingerprint : fingerprints) {
             String refNftAssetName = toCip68ReferenceNftAssetName(fingerprint.getSymbol());
             if (refNftAssetName != null) {
-                cip68Pairs.add(new PolicyAssetPair(fingerprint.getPolicyId(), refNftAssetName));
-                refNftKeyByFingerprint.put(fingerprint, fingerprint.getPolicyId() + refNftAssetName);
+                String concatenatedKey = fingerprint.getPolicyId() + refNftAssetName;
+                cip68ConcatenatedKeys.add(concatenatedKey);
+                refNftKeyByFingerprint.put(fingerprint, concatenatedKey);
             }
         }
 
-        Map<String, MetadataReferenceNftEntity> cip68Map = cip68Pairs.isEmpty()
+        Map<String, MetadataReferenceNftEntity> cip68Map = cip68ConcatenatedKeys.isEmpty()
                 ? Map.of()
-                : metadataReferenceNftRepository.findLatestByPolicyAssetPairs(cip68Pairs, CIP68_LABEL_FT).stream()
+                : metadataReferenceNftRepository.findLatestByConcatenatedKeys(cip68ConcatenatedKeys, CIP68_LABEL_FT).stream()
                         .collect(Collectors.toMap(
                                 e -> e.getPolicyId() + e.getAssetName(),
                                 Function.identity()));
