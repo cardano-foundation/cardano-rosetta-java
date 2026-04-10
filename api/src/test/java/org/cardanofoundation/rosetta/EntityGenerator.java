@@ -146,6 +146,14 @@ public class EntityGenerator {
                                 .build())
                         .build()))
                 .networkIdentifier(newNetworkId())
+                .metadata(ConstructionPayloadsRequestMetadata.builder()
+                        .ttl(1000)
+                        .protocolParameters(ProtocolParameters.builder()
+                                .coinsPerUtxoSize("4310")
+                                .keyDeposit("2000000")
+                                .poolDeposit("500000000")
+                                .build())
+                        .build())
                 .build();
     }
 
