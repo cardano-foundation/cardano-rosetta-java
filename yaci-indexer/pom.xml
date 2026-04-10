@@ -18,7 +18,7 @@
 
     <properties>
         <java.version>24</java.version>
-        <yaci-store.version>2.0.0</yaci-store.version>
+        <yaci-store.version>2.1.0-pre4-d358232-SNAPSHOT</yaci-store.version>
         <sonar.exclusions>src/main/java/org/cardanofoundation/rosetta/yaciindexer/stores/txsize/model/*</sonar.exclusions>
 <!--        <version.spotless-maven-plugin>2.43.0</version.spotless-maven-plugin>-->
     </properties>
@@ -120,12 +120,12 @@
         <dependency>
             <groupId>com.bloxbean.cardano</groupId>
             <artifactId>yaci-store-assets-ext-spring-boot-starter</artifactId>
-            <version>2.1.0-pre4-d358232-SNAPSHOT</version>
+            <version>${yaci-store.version}</version>
         </dependency>
         <dependency>
             <groupId>com.bloxbean.cardano</groupId>
             <artifactId>yaci-store-assets-ext</artifactId>
-            <version>2.1.0-pre4-d358232-SNAPSHOT</version>
+            <version>${yaci-store.version}</version>
         </dependency>
         <dependency>
             <groupId>io.hypersistence</groupId>

@@ -1,9 +1,9 @@
 package org.cardanofoundation.rosetta.yaciindexer.health;
 
-import com.bloxbean.cardano.yaci.store.adminui.dto.SyncStatusDto;
-import com.bloxbean.cardano.yaci.store.adminui.service.SyncStatusService;
 import com.bloxbean.cardano.yaci.store.common.domain.HealthStatus;
+import com.bloxbean.cardano.yaci.store.common.domain.SyncStatus;
 import com.bloxbean.cardano.yaci.store.core.service.HealthService;
+import com.bloxbean.cardano.yaci.store.core.service.SyncStatusService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
@@ -28,7 +28,7 @@ import org.springframework.stereotype.Component;
  *
  * <p>Health states:
  * <ul>
- *   <li><b>UP</b> — connection alive, no error, and {@link SyncStatusDto#isSynced()} is true</li>
+ *   <li><b>UP</b> — connection alive, no error, and {@link SyncStatus#synced()} is true</li>
  *   <li><b>DOWN</b> — connection lost, sync error, or still catching up to tip</li>
  *   <li><b>OUT_OF_SERVICE</b> — scheduled to stop</li>
  * </ul>
@@ -62,13 +62,13 @@ public class YaciSyncHealthIndicator implements HealthIndicator {
                     .build();
         }
 
-        SyncStatusDto syncStatus = syncStatusService.getSyncStatus();
+        SyncStatus syncStatus = syncStatusService.getSyncStatus();
 
-        builder.withDetail("indexedSlot", syncStatus.getSlot())
-               .withDetail("networkSlot", syncStatus.getNetworkSlot())
-               .withDetail("syncPercentage", syncStatus.getSyncPercentage());
+        builder.withDetail("indexedSlot", syncStatus.slot())
+               .withDetail("networkSlot", syncStatus.networkSlot())
+               .withDetail("syncPercentage", syncStatus.syncPercentage());
 
-        if (!syncStatus.isSynced()) {
+        if (!syncStatus.synced()) {
             return builder.down()
                     .withDetail("syncStatus", "Syncing")
                     .build();
