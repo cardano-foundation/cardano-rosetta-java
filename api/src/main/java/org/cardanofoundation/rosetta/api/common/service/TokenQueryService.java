@@ -1,6 +1,7 @@
 package org.cardanofoundation.rosetta.api.common.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.api.common.model.AssetFingerprint;
 import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
 import org.cardanofoundation.rosetta.api.common.model.entity.MetadataReferenceNftEntity;
@@ -35,6 +36,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
+@Slf4j
 public class TokenQueryService {
 
     private static final String CIP68_FUNGIBLE_TOKEN_PREFIX = "0014df10";
@@ -69,60 +71,75 @@ public class TokenQueryService {
                 .map(AssetFingerprint::toSubject)
                 .toList();
 
-        // Fork CIP-26 metadata and logo queries in parallel via structured concurrency.
-        //
-        // IMPORTANT — known caveat: Spring's @Transactional context is stored in a ThreadLocal
-        // (TransactionSynchronizationManager). When we fork to virtual threads inside a
-        // StructuredTaskScope, that thread-local state is NOT propagated. Each repository call
-        // executed inside a fork therefore opens its OWN transaction and consumes its OWN
-        // connection-pool slot — the class-level @Transactional(readOnly = true) on this service
-        // does not apply to the forked work.
-        //
-        // Why we accept this: both queries are read-only point lookups against indexed columns,
-        // and the underlying CIP-26 data (ft_offchain_metadata / ft_offchain_logo) is written
-        // only during periodic offchain sync from the Cardano token registry git repo — i.e.
-        // very rarely. The theoretical risk of read skew (metadata query sees state at time T,
-        // logo query sees state at T+1 after a concurrent sync flushes rows) is negligible for
-        // token metadata: a logo appearing or disappearing between two microsecond-apart queries
-        // is harmless, and any such inconsistency self-heals on the next API call.
-        //
-        // When to revisit: if the connection pool is saturated, or if a future change introduces
-        // frequent writes to these tables, drop the scope and chain the calls sequentially on the
-        // transaction thread — a ~5-line diff that restores the outer readOnly transaction at the
-        // cost of serializing the two queries.
-        Map<String, TokenMetadataEntity> cip26Map;
-        Map<String, String> cip26Logos;
+        Cip26Batch cip26 = fetchCip26InParallel(subjects);
+        Cip68Batch cip68 = fetchCip68(fingerprints);
 
+        Map<AssetFingerprint, TokenRegistryCurrencyData> result = new HashMap<>();
+        for (AssetFingerprint fingerprint : fingerprints) {
+            result.put(fingerprint, mergeMetadata(fingerprint, cip26, cip68));
+        }
+
+        log.debug("Resolved metadata for {} fingerprint(s): {} CIP-26 match(es), {} CIP-68 match(es)",
+                fingerprints.size(), cip26.metadata().size(), cip68.entitiesByRefNftKey().size());
+        return result;
+    }
+
+    /**
+     * Runs the CIP-26 metadata and logo batch queries in parallel via structured concurrency.
+     *
+     * @implNote Spring's {@code @Transactional} context is stored in a ThreadLocal
+     * ({@code TransactionSynchronizationManager}). When we fork to virtual threads inside a
+     * {@link StructuredTaskScope}, that thread-local state is NOT propagated — each repository
+     * call executed inside a fork opens its OWN transaction and consumes its OWN connection-pool
+     * slot. The class-level {@code @Transactional(readOnly = true)} does not apply to the forked
+     * work.
+     * <p>
+     * <b>Why we accept this:</b> both queries are read-only point lookups against indexed
+     * columns, and the underlying CIP-26 data ({@code ft_offchain_metadata} /
+     * {@code ft_offchain_logo}) is written only during periodic offchain sync from the Cardano
+     * token registry git repo — i.e. very rarely. The theoretical risk of read skew is
+     * negligible for token metadata: a logo appearing or disappearing between two
+     * microsecond-apart queries is harmless and self-heals on the next API call.
+     * <p>
+     * <b>When to revisit:</b> if the connection pool is saturated, or if a future change
+     * introduces frequent writes to these tables, drop the scope and chain the calls
+     * sequentially on the transaction thread — a ~5-line diff that restores the outer
+     * {@code readOnly} transaction at the cost of serializing the two queries.
+     */
+    private Cip26Batch fetchCip26InParallel(List<String> subjects) {
         try (StructuredTaskScope.ShutdownOnFailure scope = new StructuredTaskScope.ShutdownOnFailure()) {
             StructuredTaskScope.Subtask<Map<String, TokenMetadataEntity>> metadataTask = scope.fork(() ->
                     tokenMetadataRepository.findAllBySubjectIn(subjects).stream()
-                            .collect(Collectors.toMap(TokenMetadataEntity::getSubject, m -> m)));
+                            .collect(Collectors.toMap(TokenMetadataEntity::getSubject, Function.identity())));
 
             StructuredTaskScope.Subtask<Map<String, String>> logoTask = scope.fork(() ->
                     logoEnabled
                             ? tokenLogoRepository.findAllBySubjectIn(subjects).stream()
                                 .filter(l -> l.getLogo() != null)
                                 .collect(Collectors.toMap(TokenLogoEntity::getSubject, TokenLogoEntity::getLogo))
-                            : Map.<String, String>of());
+                            : Map.of());
 
             scope.join().throwIfFailed();
 
-            cip26Map = metadataTask.get();
-            cip26Logos = logoTask.get();
+            return new Cip26Batch(metadataTask.get(), logoTask.get());
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new RuntimeException("Token metadata batch query interrupted", e);
         } catch (Exception e) {
             throw new RuntimeException("Token metadata batch query failed", e);
         }
+    }
 
-        // Batch CIP-68 lookup: collect all fungible token candidates as concatenated
-        // (policy_id || reference-NFT asset name) keys in one pass, then fire a single
-        // window-function query against metadata_reference_nft. Policy IDs are fixed
-        // 56-char hex so the concatenation is unambiguous. Mirrors the upstream
-        // yaci-store-assets-ext findLatestByConcatenatedKeys query shape.
+    /**
+     * Collects CIP-68 fungible-token candidates from the input fingerprints, issues a single
+     * window-function query against {@code metadata_reference_nft}, and returns both the
+     * result map (keyed by reference-NFT concat key) and a reverse lookup from fingerprint
+     * to concat key so the merge phase can resolve entries in O(1).
+     */
+    private Cip68Batch fetchCip68(Collection<AssetFingerprint> fingerprints) {
         Map<AssetFingerprint, String> refNftKeyByFingerprint = new HashMap<>();
         List<String> cip68ConcatenatedKeys = new ArrayList<>();
+
         for (AssetFingerprint fingerprint : fingerprints) {
             String refNftAssetName = toCip68ReferenceNftAssetName(fingerprint.getSymbol());
             if (refNftAssetName != null) {
@@ -132,43 +149,42 @@ public class TokenQueryService {
             }
         }
 
-        Map<String, MetadataReferenceNftEntity> cip68Map = cip68ConcatenatedKeys.isEmpty()
+        Map<String, MetadataReferenceNftEntity> entitiesByRefNftKey = cip68ConcatenatedKeys.isEmpty()
                 ? Map.of()
                 : metadataReferenceNftRepository.findLatestByConcatenatedKeys(cip68ConcatenatedKeys, CIP68_LABEL_FT).stream()
                         .collect(Collectors.toMap(
                                 e -> e.getPolicyId() + e.getAssetName(),
                                 Function.identity()));
 
-        // Merge CIP-26 base + CIP-68 overrides per fingerprint
-        Map<AssetFingerprint, TokenRegistryCurrencyData> result = new HashMap<>();
-        for (AssetFingerprint fingerprint : fingerprints) {
-            String subject = fingerprint.toSubject();
+        return new Cip68Batch(entitiesByRefNftKey, refNftKeyByFingerprint);
+    }
 
-            TokenRegistryCurrencyData.TokenRegistryCurrencyDataBuilder builder = TokenRegistryCurrencyData.builder()
-                    .policyId(fingerprint.getPolicyId())
-                    .subject(subject);
+    /**
+     * Builds the merged currency data for a single fingerprint from the pre-fetched batches.
+     * CIP-68 fields take priority over CIP-26 where both are populated.
+     */
+    private TokenRegistryCurrencyData mergeMetadata(AssetFingerprint fingerprint,
+                                                    Cip26Batch cip26,
+                                                    Cip68Batch cip68) {
+        String subject = fingerprint.toSubject();
 
-            // CIP-26 base
-            TokenMetadataEntity cip26 = cip26Map.get(subject);
-            if (cip26 != null) {
-                applyCip26Fields(builder, cip26);
-                if (logoEnabled) {
-                    applyCip26Logo(builder, cip26Logos.get(subject));
-                }
-            }
+        TokenRegistryCurrencyData.TokenRegistryCurrencyDataBuilder builder = TokenRegistryCurrencyData.builder()
+                .policyId(fingerprint.getPolicyId())
+                .subject(subject);
 
-            // CIP-68 overrides (higher priority) — O(1) lookup in the prefetched map
-            String refNftKey = refNftKeyByFingerprint.get(fingerprint);
-            if (refNftKey != null) {
-                MetadataReferenceNftEntity cip68 = cip68Map.get(refNftKey);
-                if (cip68 != null) {
-                    applyCip68(builder, cip68);
-                }
-            }
-
-            result.put(fingerprint, builder.build());
+        // CIP-26 base
+        TokenMetadataEntity cip26Entity = cip26.metadata().get(subject);
+        if (cip26Entity != null) {
+            applyCip26(builder, cip26Entity, cip26.logos().get(subject));
         }
-        return result;
+
+        // CIP-68 overrides (higher priority)
+        MetadataReferenceNftEntity cip68Entity = cip68.findFor(fingerprint);
+        if (cip68Entity != null) {
+            applyCip68(builder, cip68Entity);
+        }
+
+        return builder.build();
     }
 
     /**
@@ -182,24 +198,25 @@ public class TokenQueryService {
                 || !symbol.startsWith(CIP68_FUNGIBLE_TOKEN_PREFIX)) {
             return null;
         }
+
         return CIP68_REFERENCE_TOKEN_PREFIX + symbol.substring(CIP68_FUNGIBLE_TOKEN_PREFIX.length());
     }
 
-    private void applyCip26Fields(TokenRegistryCurrencyData.TokenRegistryCurrencyDataBuilder builder,
-                                   TokenMetadataEntity cip26) {
+    /**
+     * Applies CIP-26 fields (and optionally logo) to the builder. Leaves decimals null if the
+     * source does not provide it; downstream mappers apply the default of 0.
+     */
+    private void applyCip26(TokenRegistryCurrencyData.TokenRegistryCurrencyDataBuilder builder,
+                            TokenMetadataEntity cip26,
+                            @Nullable String logo) {
         builder.name(cip26.getName());
         builder.description(cip26.getDescription());
         Optional.ofNullable(cip26.getTicker()).ifPresent(builder::ticker);
         Optional.ofNullable(cip26.getUrl()).ifPresent(builder::url);
-        // Leave decimals null if CIP-26 doesn't provide it; downstream mappers apply the default.
         if (cip26.getDecimals() != null) {
             builder.decimals(cip26.getDecimals().intValue());
         }
-    }
-
-    private void applyCip26Logo(TokenRegistryCurrencyData.TokenRegistryCurrencyDataBuilder builder,
-                                @Nullable String logo) {
-        if (logo != null) {
+        if (logoEnabled && logo != null) {
             builder.logo(TokenRegistryCurrencyData.LogoData.builder()
                     .format(TokenRegistryCurrencyData.LogoFormat.BASE64)
                     .value(logo)
@@ -207,6 +224,10 @@ public class TokenQueryService {
         }
     }
 
+    /**
+     * Applies CIP-68 fields (and optionally logo) to the builder. Unlike CIP-26, CIP-68 logos
+     * may be stored as URLs or base64 blobs — the format is detected from the value.
+     */
     private void applyCip68(TokenRegistryCurrencyData.TokenRegistryCurrencyDataBuilder builder,
                             MetadataReferenceNftEntity cip68) {
         Optional.ofNullable(cip68.getName()).ifPresent(builder::name);
@@ -214,9 +235,11 @@ public class TokenQueryService {
         Optional.ofNullable(cip68.getTicker()).ifPresent(builder::ticker);
         Optional.ofNullable(cip68.getUrl()).ifPresent(builder::url);
         Optional.ofNullable(cip68.getVersion()).ifPresent(v -> builder.version(BigDecimal.valueOf(v)));
+
         if (cip68.getDecimals() != null) {
             builder.decimals(cip68.getDecimals().intValue());
         }
+
         if (logoEnabled && cip68.getLogo() != null) {
             builder.logo(TokenRegistryCurrencyData.LogoData.builder()
                     .format(detectLogoFormat(cip68.getLogo()))
@@ -236,6 +259,30 @@ public class TokenQueryService {
                 || lower.startsWith("ipfs://") || lower.startsWith("ar://")) {
             return TokenRegistryCurrencyData.LogoFormat.URL;
         }
+
         return TokenRegistryCurrencyData.LogoFormat.BASE64;
     }
+
+    /**
+     * CIP-26 batch-fetch result. Holds the metadata rows keyed by subject and the optional
+     * logo map (empty when {@code TOKEN_REGISTRY_LOGO_FETCH=false}).
+     */
+    private record Cip26Batch(Map<String, TokenMetadataEntity> metadata, Map<String, String> logos) {}
+
+    /**
+     * CIP-68 batch-fetch result. Holds the reference-NFT rows keyed by their concat key
+     * ({@code policy_id || asset_name}) plus a reverse lookup from fingerprint to concat key
+     * so callers can resolve entries in O(1) without re-parsing subject prefixes.
+     */
+    private record Cip68Batch(
+            Map<String, MetadataReferenceNftEntity> entitiesByRefNftKey,
+            Map<AssetFingerprint, String> refNftKeyByFingerprint) {
+
+        @Nullable
+        MetadataReferenceNftEntity findFor(AssetFingerprint fingerprint) {
+            String key = refNftKeyByFingerprint.get(fingerprint);
+            return key == null ? null : entitiesByRefNftKey.get(key);
+        }
+    }
+
 }
