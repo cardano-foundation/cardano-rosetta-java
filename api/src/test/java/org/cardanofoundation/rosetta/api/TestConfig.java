@@ -2,13 +2,13 @@ package org.cardanofoundation.rosetta.api;
 
 import java.time.Clock;
 import java.util.Collection;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.cardanofoundation.rosetta.api.common.model.AssetFingerprint;
 import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
 import org.cardanofoundation.rosetta.api.common.service.TokenQueryService;
 
+import org.cardanofoundation.rosetta.api.common.service.TokenQueryServiceImpl;
 import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,7 +30,7 @@ public class TestConfig {
     @Bean
     @Primary
     public TokenQueryService tokenQueryService() {
-        TokenQueryService mock = Mockito.mock(TokenQueryService.class);
+        TokenQueryServiceImpl mock = Mockito.mock(TokenQueryServiceImpl.class);
 
         when(mock.queryMetadataBatch(anyCollection())).thenAnswer(invocation -> {
             Collection<AssetFingerprint> fingerprints = invocation.getArgument(0);

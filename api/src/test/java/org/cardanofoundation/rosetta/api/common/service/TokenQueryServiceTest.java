@@ -22,7 +22,6 @@ import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
@@ -41,7 +40,7 @@ class TokenQueryServiceTest {
     @Mock
     private MetadataReferenceNftRepository metadataReferenceNftRepository;
 
-    private TokenQueryService tokenQueryService;
+    private TokenQueryServiceImpl tokenQueryService;
 
     // 56-char hex policy ID
     private static final String POLICY_ID = "a0b1c2d3e4f5a0b1c2d3e4f5a0b1c2d3e4f5a0b1c2d3e4f5a0b1c2d3";
@@ -55,7 +54,7 @@ class TokenQueryServiceTest {
 
     @BeforeEach
     void setUp() {
-        tokenQueryService = new TokenQueryService(tokenMetadataRepository, tokenLogoRepository, metadataReferenceNftRepository);
+        tokenQueryService = new TokenQueryServiceImpl(tokenMetadataRepository, tokenLogoRepository, metadataReferenceNftRepository);
         ReflectionTestUtils.setField(tokenQueryService, "logoEnabled", false);
     }
 
@@ -71,7 +70,7 @@ class TokenQueryServiceTest {
     class SingleSubjectMergeTests {
 
         @Test
-        @DisplayName("Should return empty metadata when nothing found")
+        @DisplayName("Should return empty metadata with default decimals when nothing found")
         void shouldReturnEmptyWhenNothingFound() {
             when(tokenMetadataRepository.findAllBySubjectIn(anyList())).thenReturn(List.of());
 
@@ -81,7 +80,7 @@ class TokenQueryServiceTest {
             assertThat(result.getSubject()).isEqualTo(SUBJECT);
             assertThat(result.getName()).isNull();
             assertThat(result.getDescription()).isNull();
-            assertThat(result.getDecimals()).isNull();
+            assertThat(result.getDecimals()).isEqualTo(0); // default when neither CIP-26 nor CIP-68 provides it
         }
 
         @Test
@@ -171,15 +170,15 @@ class TokenQueryServiceTest {
         }
 
         @Test
-        @DisplayName("Should leave decimals null when CIP-26 has null decimals (downstream mapper applies default)")
-        void shouldLeaveNullDecimalsAsNull() {
+        @DisplayName("Should default decimals to 0 when CIP-26 has null decimals and no CIP-68 data")
+        void shouldDefaultDecimalsToZeroWhenBothStandardsLackIt() {
             TokenMetadataEntity cip26 = TokenMetadataEntity.builder()
                     .subject(SUBJECT).name("Token").description("Desc").decimals(null).build();
             when(tokenMetadataRepository.findAllBySubjectIn(anyList())).thenReturn(List.of(cip26));
 
             TokenRegistryCurrencyData result = querySingle(POLICY_ID, ASSET_HEX);
 
-            assertThat(result.getDecimals()).isNull();
+            assertThat(result.getDecimals()).isEqualTo(0);
         }
     }
 

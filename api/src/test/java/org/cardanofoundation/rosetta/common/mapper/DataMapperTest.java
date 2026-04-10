@@ -65,6 +65,7 @@ class DataMapperTest {
             TokenRegistryCurrencyData metadata = TokenRegistryCurrencyData.builder()
                     .policyId("abc123")
                     .name("Token")
+                    .decimals(0)
                     .logo(TokenRegistryCurrencyData.LogoData.builder()
                             .format(TokenRegistryCurrencyData.LogoFormat.BASE64)
                             .value("iVBORw0KGgo=")
@@ -83,6 +84,7 @@ class DataMapperTest {
             TokenRegistryCurrencyData metadata = TokenRegistryCurrencyData.builder()
                     .policyId("abc123")
                     .name("Token")
+                    .decimals(0)
                     .logo(TokenRegistryCurrencyData.LogoData.builder()
                             .format(TokenRegistryCurrencyData.LogoFormat.URL)
                             .value("ipfs://QmHash")
@@ -112,6 +114,7 @@ class DataMapperTest {
         void shouldPassVersionThrough() {
             TokenRegistryCurrencyData metadata = TokenRegistryCurrencyData.builder()
                     .policyId("abc")
+                    .decimals(0)
                     .version(BigDecimal.valueOf(3))
                     .build();
 

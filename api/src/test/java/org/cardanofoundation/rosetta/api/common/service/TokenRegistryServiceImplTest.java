@@ -28,7 +28,7 @@ import static org.mockito.Mockito.*;
 class TokenRegistryServiceImplTest {
 
     @Mock
-    private TokenQueryService tokenQueryService;
+    private TokenQueryServiceImpl tokenQueryService;
 
     private TokenRegistryServiceImpl tokenRegistryService;
 

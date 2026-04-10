@@ -59,9 +59,10 @@ class TokenRegistryMapperTest {
         }
 
         @Test
-        @DisplayName("Should handle all null fields")
-        void shouldHandleAllNullFields() {
-            TokenRegistryCurrencyData data = TokenRegistryCurrencyData.builder().build();
+        @DisplayName("Should handle all nullable fields being null")
+        void shouldHandleAllNullableFieldsNull() {
+            // decimals is non-null by contract — seed with the default value that TokenQueryService uses
+            TokenRegistryCurrencyData data = TokenRegistryCurrencyData.builder().decimals(0).build();
 
             CurrencyMetadataResponse result = mapper.toCurrencyMetadataResponse(data);
 
@@ -167,6 +168,7 @@ class TokenRegistryMapperTest {
             TokenRegistryCurrencyData data = TokenRegistryCurrencyData.builder()
                     .policyId("abc")
                     .name("Token")
+                    .decimals(0)
                     .logo(TokenRegistryCurrencyData.LogoData.builder()
                             .format(TokenRegistryCurrencyData.LogoFormat.BASE64)
                             .value("base64png")
@@ -186,6 +188,7 @@ class TokenRegistryMapperTest {
             TokenRegistryCurrencyData data = TokenRegistryCurrencyData.builder()
                     .policyId("abc")
                     .name("Token")
+                    .decimals(0)
                     .logo(TokenRegistryCurrencyData.LogoData.builder()
                             .format(TokenRegistryCurrencyData.LogoFormat.URL)
                             .value("https://example.com/logo.png")
@@ -205,6 +208,7 @@ class TokenRegistryMapperTest {
             TokenRegistryCurrencyData data = TokenRegistryCurrencyData.builder()
                     .policyId("abc")
                     .name("Token")
+                    .decimals(0)
                     .build();
 
             CurrencyMetadataResponse result = mapper.toCurrencyMetadataResponse(data);

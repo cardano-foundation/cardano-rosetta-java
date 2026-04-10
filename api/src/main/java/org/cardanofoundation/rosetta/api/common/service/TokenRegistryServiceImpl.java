@@ -27,13 +27,14 @@ import static org.cardanofoundation.rosetta.common.util.Constants.LOVELACE;
 @Slf4j
 public class TokenRegistryServiceImpl implements TokenRegistryService {
 
-    private final TokenQueryService tokenQueryService;
+    private final TokenQueryServiceImpl tokenQueryService;
 
     @Override
     public Map<AssetFingerprint, TokenRegistryCurrencyData> getTokenMetadataBatch(@NotNull Set<AssetFingerprint> assetFingerprints) {
         if (assetFingerprints.isEmpty()) {
             return Map.of();
         }
+
         return tokenQueryService.queryMetadataBatch(assetFingerprints);
     }
 
@@ -193,6 +194,8 @@ public class TokenRegistryServiceImpl implements TokenRegistryService {
         if (assetFingerprints.isEmpty()) {
             return Collections.emptyMap();
         }
+
         return getTokenMetadataBatch(assetFingerprints);
     }
+
 }
