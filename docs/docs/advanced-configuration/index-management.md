@@ -22,11 +22,14 @@ The `/network/status` endpoint now reports three distinct stages:
 
 ## Automatic Index Application
 
-The index-applier container:
-1. Waits for sync to reach `APPLYING_INDEXES` stage
+The index-applier container/job:
+1. Waits for yaci-indexer readiness (`/actuator/health/readiness`)
 2. Detects and removes invalid indexes (from failed operations)
 3. Creates all required indexes using `CREATE INDEX CONCURRENTLY`
-4. Exits when complete (Rosetta transitions to `LIVE`)
+4. Exits when complete (Rosetta then transitions from `APPLYING_INDEXES` to `LIVE`)
+
+`APPLYING_INDEXES` is derived by the API from PostgreSQL state (`pg_index` validity/readiness),
+not used as the trigger for index creation.
 
 **Performance:** Index creation takes approximately 6 hours on mainnet.
 
@@ -63,11 +66,17 @@ The index-applier runs as a one-shot container. If you add indexes to an already
 Check index creation progress:
 
 ```bash
-# View index-applier logs
+# View index-applier logs (Docker Compose)
 docker compose logs -f index-applier
 
 # Check PostgreSQL index creation progress
 docker compose exec db psql -U rosetta_db_admin -d rosetta-java -c "
   SELECT phase, blocks_done, blocks_total
   FROM pg_stat_progress_create_index"
+```
+
+For Kubernetes:
+
+```bash
+kubectl logs -f job/<release>-index-applier -n <namespace>
 ```

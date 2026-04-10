@@ -44,12 +44,13 @@ cardano-node (init: mithril-download → cardano-node starts)
     ├─ postgresql starts immediately (no node dependency — it's just a database)
     │
     └─ yaci-indexer (wait-for-postgres: pg_isready
-                     wait-for-node-tcp: nc cardano-node:3002
+                     wait-for-node-sync: cardano-cli query tip via socat bridge
                      copy-node-config: copies configs from node image)
          rosetta-api (wait-for-postgres
-                      wait-for-indexer: /actuator/health
+                      wait-for-schema: polls information_schema for table `block`
                       copy-node-config: copies configs from node image)
-           index-applier Job ──────────────► (plain Job, runs automatically with the release)
+           index-applier Job (wait-for-indexer-synced) ──────────────►
+             (plain Job, runs automatically with the release)
 ```
 
 The `cardano-node` pod runs **three containers**: the node itself, a `socat` sidecar
@@ -72,9 +73,13 @@ never use `--wait-for-jobs`.
 
 | Stage | What's happening | Pods ready |
 |---|---|---|
-| `SYNCING` | yaci-indexer catching up to chain tip | All pods up, API responding |
-| `APPLYING_INDEXES` | Indexer reached tip, DB indexes being built | All pods up, API responding |
+| `SYNCING` | Node and/or yaci-indexer are still catching up; on a fresh DB the API may still be waiting for schema creation | API Service not ready |
+| `APPLYING_INDEXES` | yaci-indexer reached tip, index-applier is building DB indexes | API pod may be running, but readiness still blocks Service traffic |
 | `LIVE` | Fully synced, all indexes valid | All pods ready, API fully functional |
+
+On a fresh deployment, `rosetta-api` no longer waits on yaci-indexer readiness directly, but it
+does wait for the database schema to exist. Because yaci-indexer creates that schema, the API pod
+can remain in init until after node sync has completed and yaci-indexer has started its migrations.
 
 ## Hardware Profiles
 

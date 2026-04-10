@@ -163,20 +163,31 @@ kubectl get pods -n cardano -w
 ### Phase 3 — PostgreSQL Startup
 
 PostgreSQL starts as soon as its PVC is available — it has no dependency on cardano-node.
-While the node is syncing, PostgreSQL initialises its data directory and schema migrations
-run immediately. This means yaci-indexer can begin connecting and indexing as soon as the
-node's socat bridge (TCP port 3002) is reachable, without waiting hours for full sync.
+While the node is syncing, PostgreSQL initialises its data directory and waits for clients.
+The blockchain schema is **not** created by PostgreSQL itself; it is created later by
+yaci-indexer when that service starts. On a fresh deployment, `rosetta-api` stays in its
+`wait-for-schema` init container until that schema exists.
 
 ```bash
 kubectl logs -f statefulset/rosetta-postgresql -n cardano
 ```
 
-### Phase 4 — yaci-Indexer Syncing
+### Phase 4 — yaci-Indexer Start and Sync
 
 ```bash
 kubectl logs -f deployment/rosetta-yaci-indexer -n cardano
 # Look for: Block No: XXXXXXX , Era: Babbage/Conway
 ```
+
+The yaci-indexer pod does **not** start ingesting blocks as soon as PostgreSQL is available.
+Its init sequence is:
+
+1. `wait-for-postgres`
+2. `wait-for-node-sync` (waits for cardano-node `syncProgress >= 99.9%`)
+3. `copy-node-config`
+
+Once that completes, yaci-indexer starts, runs Flyway migrations to create the schema, and
+then begins catch-up/indexing.
 
 Occasional `Connection reset` + immediate reconnect in logs is normal — it's the socat
 TCP bridge timing out on idle and Yaci reconnecting in milliseconds.
@@ -184,11 +195,11 @@ TCP bridge timing out on idle and Yaci reconnecting in milliseconds.
 ### Phase 5 — Rosetta API
 
 ```bash
-# Port-forward (local access)
-kubectl port-forward svc/rosetta-rosetta-api 8082:8082 -n cardano
+# Port-forward directly to the deployment while the API is NotReady
+kubectl port-forward deployment/rosetta-rosetta-api 8082:8082 -n cardano
 
 # Port-forward (remote machine access)
-kubectl port-forward --address 0.0.0.0 svc/rosetta-rosetta-api 8082:8082 -n cardano &
+kubectl port-forward --address 0.0.0.0 deployment/rosetta-rosetta-api 8082:8082 -n cardano &
 
 # Check sync stage
 curl -s -X POST http://localhost:8082/network/status \
@@ -196,6 +207,16 @@ curl -s -X POST http://localhost:8082/network/status \
   -d '{"network_identifier":{"blockchain":"cardano","network":"preprod"},"metadata":{}}' \
   | jq '{stage: .sync_status.stage, block: .current_block_identifier.index}'
 ```
+
+On a fresh database, the `rosetta-api` pod waits for:
+
+1. `wait-for-postgres`
+2. `wait-for-schema`
+3. `copy-node-config`
+
+That means the API process usually starts only after yaci-indexer has created the schema.
+After the process starts, Kubernetes readiness still remains `False` until `/network/status`
+reports `LIVE`, so the Service does not route traffic during `SYNCING` or `APPLYING_INDEXES`.
 
 Stages:
 - `SYNCING` — yaci-indexer still catching up
@@ -253,7 +274,7 @@ kubectl logs -f statefulset/rosetta-postgresql -n cardano             # PostgreS
 
 ### Port-forward services
 ```bash
-# Local access only
+# Local access only (use this once the API is `Ready` / `LIVE`)
 kubectl port-forward svc/rosetta-rosetta-api 8082:8082 -n cardano &
 
 # Remote access — bind to all interfaces
@@ -315,8 +336,10 @@ kubectl delete pvc --all -n cardano
 |---------|-------------|------------|
 | `cardano-node` stuck in `Init:0/1` | Mithril download still running | `kubectl logs rosetta-cardano-node-0 -c mithril-download -n cardano` |
 | `postgresql` stuck in `Init:0/1` | PVC not bound | `kubectl get pvc -n cardano`; check StorageClass |
-| `yaci-indexer` stuck in `Init:1/3` | cardano-node socat bridge not up yet | `kubectl logs <yaci-pod> -c wait-for-node-tcp -n cardano` |
-| `yaci-indexer` or `rosetta-api` stuck in `Init:2/3` | `copy-node-config` init container failed | `kubectl logs <pod> -c copy-node-config -n cardano` |
+| `yaci-indexer` stuck in `Init:1/3` | cardano-node has not reached tip yet | `kubectl logs <yaci-pod> -c wait-for-node-sync -n cardano` |
+| `yaci-indexer` stuck in `Init:2/3` | `copy-node-config` init container failed | `kubectl logs <yaci-pod> -c copy-node-config -n cardano` |
+| `rosetta-api` stuck in `Init:1/3` | DB schema not created yet | `kubectl logs <api-pod> -c wait-for-schema -n cardano` and check yaci-indexer startup |
+| `rosetta-api` stuck in `Init:2/3` | `copy-node-config` init container failed | `kubectl logs <api-pod> -c copy-node-config -n cardano` |
 | Mithril: `signature error: Verification equation was not satisfied` | Empty verification key passed as env var | Upgrade chart ≥ 2.0.0 — keys are now auto-fetched by entrypoint |
 | `yaci-indexer` CrashLoopBackOff (HikariCP timeout) | DB connection pool exhausted | Increase `yaci-indexer.env.indexerDbPoolMaxCount` (default 40), and tune profile DB pool limits if needed |
 | `yaci-indexer` two pods simultaneously | Normal rolling update behaviour | Wait — old pod terminates once new one is ready |

@@ -17,7 +17,7 @@ The boot sequence solves three problems:
 
 1. **Blockchain sync is slow**: Syncing from genesis takes days. `mithril` downloads verified snapshots, reducing this to hours.
 
-2. **Ingesting data into a moving target is wasteful**: `yaci-indexer` parses blocks and ingests them into PostgreSQL. If it starts while the node is still syncing, it processes incomplete data. `cardano-sync-waiter` blocks until the node catches up.
+2. **Ingesting data into a moving target is wasteful**: `yaci-indexer` parses blocks and ingests them into PostgreSQL. If it starts while the node is still syncing, it processes incomplete data. The deployment therefore uses a **node sync gate** before yaci-indexer starts. In Docker Compose this is the `cardano-sync-waiter` service; in Helm this is the `wait-for-node-sync` init container.
 
 3. **Indexes slow initial sync**: Maintaining PostgreSQL indexes while ingesting data is expensive. `index-applier` creates them after ingestion completes.
 
@@ -32,9 +32,10 @@ These services are required to run Rosetta Java. One-shot services run once duri
 | mithril | Downloads verified blockchain snapshots | - | One-shot: skips if `/node/db` exists |
 | cardano-node | Validates and relays blocks | 3001 | Persistent |
 | cardano-submit-api | Transaction submission endpoint | 8090 | Persistent |
-| cardano-sync-waiter | Blocks until node is synced | - | One-shot: exits when synced |
+| node sync gate | Blocks yaci-indexer until node is synced | - | One-shot: `cardano-sync-waiter` (Docker Compose) or `wait-for-node-sync` init container (Helm) |
 | db | PostgreSQL database for blockchain data | 5432 | Persistent |
 | yaci-indexer | Parses blocks into database tables | 9095 | Persistent |
+| api schema gate | Waits for the blockchain schema to exist on fresh databases | - | One-shot: `wait-for-schema` init container (Helm) |
 | api | Rosetta/Mesh API endpoints | 8082 | Persistent |
 | index-applier | Adds query optimization after data ingestion | - | One-shot **(New in v2.0)** |
 
@@ -62,7 +63,7 @@ flowchart TD
     subgraph s2[Node Synchronization]
         N["cardano-node"]
         SA["cardano-submit-api"]
-        SW{{"cardano-sync-waiter"}}
+        SW{{"node sync gate"}}
     end
 
     subgraph s3[Data Layer]
@@ -71,6 +72,7 @@ flowchart TD
     end
 
     subgraph s4[API Layer]
+        SG{{"api schema gate"}}
         R["api"]
         IA(["index-applier"])
     end
@@ -80,13 +82,15 @@ flowchart TD
     end
 
     M -->|"snapshot ready"| N & SA
-    N -->|"node running"| SW
-    SW -->|"node synced"| DB
+    N -->|"node synced"| SW
     DB -->|"db healthy"| Y
-    DB -->|"db healthy"| R
-    Y -->|"service started"| R
-    R -->|"ingestion complete"| IA
+    SW -->|"node synced"| Y
+    DB -->|"db healthy"| SG
+    Y -->|"schema created"| SG
+    SG -->|"schema ready"| R
+    Y -->|"readiness UP"| IA
     IA -->|"indexes applied"| LIVE
+    R -->|"readiness gated by syncStatus"| LIVE
 ```
 
 #### Monitoring Stack
@@ -127,7 +131,7 @@ stateDiagram-v2
 ```
 
 - **SYNCING**: Data in PostgreSQL is behind the blockchain tip. This occurs during initial sync, or when the node or indexer falls behind. Queries may return incomplete data.
-- **APPLYING_INDEXES**: Data ingestion is complete. `index-applier` is creating database indexes using `CREATE INDEX CONCURRENTLY`. The API responds but queries may be slow until indexes are ready (~6 hours on mainnet).
+- **APPLYING_INDEXES**: Data ingestion is complete. `index-applier` is creating database indexes using `CREATE INDEX CONCURRENTLY`. The API process may already be running, but in Kubernetes the Service still withholds traffic until readiness reaches `LIVE`.
 - **LIVE**: All data is ingested and all indexes are valid and ready. The system is fully operational for production queries.
 
 <Tabs>
