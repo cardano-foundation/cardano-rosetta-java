@@ -1,7 +1,6 @@
 package org.cardanofoundation.rosetta.api.common.model.entity;
 
 import jakarta.persistence.*;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -26,14 +25,15 @@ public class MetadataReferenceNftEntity {
     private String policyId;
 
     @Id
-    @Column(name = "asset_name", length = 255)
+    @Column(name = "asset_name")
     private String assetName;
 
     @Id
     private Long slot;
 
     @Column(name = "label")
-    private Integer label;
+    @Builder.Default
+    private Integer label = 333;
 
     @Nullable
     private String name;
@@ -57,4 +57,5 @@ public class MetadataReferenceNftEntity {
 
     @Nullable
     private Long version;
+
 }
