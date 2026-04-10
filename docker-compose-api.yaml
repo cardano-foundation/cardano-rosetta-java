@@ -4,6 +4,8 @@ services:
     build:
       context: ./
       dockerfile: ./api/Dockerfile
+      additional_contexts:
+        host-m2: ${HOST_M2:-${HOME}/.m2/repository}
     ports:
       - ${API_PORT}:${API_PORT}
     environment:
