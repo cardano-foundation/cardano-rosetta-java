@@ -19,6 +19,8 @@ import org.cardanofoundation.rosetta.common.model.cardano.network.RelayType;
 import org.openapitools.client.model.*;
 import org.openapitools.client.model.Relay;
 
+import javax.annotation.Nullable;
+
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -116,7 +118,7 @@ public final class ParseConstructionUtil {
                 .toList();
     }
 
-    public static OperationMetadata parseTokenBundle(TransactionOutput output) {
+    public static @Nullable OperationMetadata parseTokenBundle(TransactionOutput output) {
         List<MultiAsset> multiAssets = output.getValue().getMultiAssets();
 
         if (ObjectUtils.isEmpty(multiAssets)) {
