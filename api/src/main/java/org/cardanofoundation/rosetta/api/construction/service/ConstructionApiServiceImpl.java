@@ -186,9 +186,10 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
 
     ProcessOperations processOperations = cardanoConstructionService.convertRosettaOperations(network, operations);
 
-    BigInteger coinsPerUtxoSize = new BigInteger(
-            constructionPayloadsRequest.getMetadata().getProtocolParameters().getCoinsPerUtxoSize()
-    );
+    BigInteger coinsPerUtxoSize = BigInteger.ZERO;
+    if (metadata != null && metadata.getProtocolParameters() != null && metadata.getProtocolParameters().getCoinsPerUtxoSize() != null) {
+        coinsPerUtxoSize = new BigInteger(metadata.getProtocolParameters().getCoinsPerUtxoSize());
+    }
 
     List<TransactionOutput> outputs = processOperations.getTransactionOutputs();
     for (int i = 0; i < outputs.size(); i++) {
