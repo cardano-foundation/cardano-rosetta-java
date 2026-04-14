@@ -171,7 +171,7 @@ public class RosettaConstants {
         // gap in the error codes is because we removed some errors of issues that we resolved
         OPERATION_TYPE_SEARCH_NOT_SUPPORTED("Operation type filtering is not currently supported", 5058),
         CURRENCY_SYMBOL_NOT_HEX("Currency symbol must be hex-encoded", 5059),
-        UTXO_VALUE_SIZE_EXCEEDS_MAX("UTxO value byte size exceeds the allowed max_val_size protocol parameter", 5060);
+        UTXO_VALUE_SIZE_EXCEEDS_MAX("UTxO value byte size exceeds the allowed max_val_size protocol parameter", 5061);
 
         final String message;
         final int code;
