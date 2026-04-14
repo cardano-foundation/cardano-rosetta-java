@@ -1,0 +1,12 @@
+    assert response.status_code == 200
+    assert version.get("rosetta_version")
+    assert version.get("node_version")
+    assert version.get("middleware_version")
+    assert statuses
+    assert any(status.get("successful") for status in statuses)
+    assert set(operation_types) == set(expected_operation_types)
+    assert errors, "Errors list must not be empty"
+        assert isinstance(error.get("code"), int), "Error code must be integer"
+        assert isinstance(error.get("retriable"), bool), "Retriable must be boolean"
+        assert error.get("message"), "Error message must exist and be non-empty"
+    assert isinstance(allow.get("historical_balance_lookup"), bool)
