@@ -363,8 +363,7 @@ global:
 rosetta-api:
   env:
     tokenRegistryEnabled: true
-    tokenRegistryBaseUrl: "https://tokens.cardano.org/api"
-    tokenRegistryCacheTtlHours: 12
+    tokenRegistryLogoFetch: false
     removeSpentUtxos: true
     removeSpentUtxosLastBlocksGraceCount: 129600
 

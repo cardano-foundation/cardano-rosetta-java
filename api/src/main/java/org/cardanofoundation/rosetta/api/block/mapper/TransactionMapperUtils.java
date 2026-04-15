@@ -22,6 +22,7 @@ import org.openapitools.client.model.*;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Nullable;
+import javax.validation.constraints.NotNull;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
@@ -226,9 +227,14 @@ public class TransactionMapperUtils {
     return dataMapper.mapAmount(
             dataMapper.mapValue(amount.getQuantity().toString(), spent),
             symbol,
-            metadata.getDecimals(),
+            getDecimalsWithFallback(metadata),
             metadata
     );
+  }
+
+  private static int getDecimalsWithFallback(@NotNull TokenRegistryCurrencyData metadata) {
+    return Optional.ofNullable(metadata.getDecimals())
+            .orElse(0);
   }
 
 }

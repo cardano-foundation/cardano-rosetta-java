@@ -47,12 +47,22 @@ public class TokenQueryServiceImpl implements TokenQueryService {
     private final TokenLogoRepository tokenLogoRepository;
     private final MetadataReferenceNftRepository metadataReferenceNftRepository;
 
+    @Value("${cardano.rosetta.TOKEN_REGISTRY_ENABLED:false}")
+    private boolean enabled;
+
     @Value("${cardano.rosetta.TOKEN_REGISTRY_LOGO_FETCH:false}")
     private boolean logoEnabled;
 
     /**
      * Batch query merged token metadata for multiple asset fingerprints.
-     * Issues a constant number of DB queries regardless of batch size:
+     * <p>
+     * When {@code TOKEN_REGISTRY_ENABLED=false} (the default), this method short-circuits and
+     * returns a fallback entry ({@code policyId} + {@code subject} + {@code decimals=0}) for
+     * every fingerprint without issuing any DB queries. This lets operators opt out of
+     * serving token-registry metadata entirely — for example, when the indexer is running
+     * without the assets-ext stores populated.
+     * <p>
+     * When enabled, issues a constant number of DB queries regardless of batch size:
      * <ul>
      *   <li>1 for CIP-26 metadata (always)</li>
      *   <li>1 for CIP-26 logos (only if {@code TOKEN_REGISTRY_LOGO_FETCH=true})</li>
@@ -66,6 +76,15 @@ public class TokenQueryServiceImpl implements TokenQueryService {
     public Map<AssetFingerprint, TokenRegistryCurrencyData> queryMetadataBatch(Collection<AssetFingerprint> fingerprints) {
         if (fingerprints.isEmpty()) {
             return Map.of();
+        }
+
+        if (!enabled) {
+            log.debug("Token registry disabled, returning fallback metadata for {} fingerprint(s)", fingerprints.size());
+            Map<AssetFingerprint, TokenRegistryCurrencyData> fallback = new HashMap<>();
+            for (AssetFingerprint fingerprint : fingerprints) {
+                fallback.put(fingerprint, buildFallback(fingerprint));
+            }
+            return fallback;
         }
 
         List<String> subjects = fingerprints.stream()
@@ -83,6 +102,18 @@ public class TokenQueryServiceImpl implements TokenQueryService {
         log.debug("Resolved metadata for {} fingerprint(s): {} CIP-26 match(es), {} CIP-68 match(es)",
                 fingerprints.size(), cip26.metadata().size(), cip68.entitiesByRefNftKey().size());
         return result;
+    }
+
+    /**
+     * Builds the zero-data fallback entry: only {@code policyId} populated, every other field
+     * (including {@code subject} and {@code decimals}) left {@code null}. Used both when the
+     * registry is disabled globally and when a fingerprint has no matching CIP-26 / CIP-68
+     * row. Callers requiring a numeric decimal value must apply their own default.
+     */
+    private static TokenRegistryCurrencyData buildFallback(AssetFingerprint fingerprint) {
+        return TokenRegistryCurrencyData.builder()
+                .policyId(fingerprint.getPolicyId())
+                .build();
     }
 
     /**
@@ -162,32 +193,33 @@ public class TokenQueryServiceImpl implements TokenQueryService {
 
     /**
      * Builds the merged currency data for a single fingerprint from the pre-fetched batches.
-     * CIP-68 fields take priority over CIP-26 where both are populated.
-     * <p>
-     * {@code decimals} defaults to {@code 0} — the canonical value for tokens that do not
-     * advertise a decimal count — and is overridden only when CIP-26 or CIP-68 provides an
-     * explicit value. This makes {@link TokenRegistryCurrencyData#getDecimals()} non-null for
-     * every token the service returns, so downstream mappers can treat the field as a
-     * guaranteed {@code int}.
+     * CIP-68 fields take priority over CIP-26 where both are populated. If neither batch
+     * contains an entry for this fingerprint, returns the {@link #buildFallback} shape
+     * (only {@code policyId} set); otherwise populates {@code subject} plus the per-standard
+     * fields. {@code decimals} is left {@code null} when neither standard provides a value —
+     * callers that need a numeric default apply it themselves.
      */
     private TokenRegistryCurrencyData mergeMetadata(AssetFingerprint fingerprint,
                                                     Cip26Batch cip26,
                                                     Cip68Batch cip68) {
         String subject = fingerprint.toSubject();
+        TokenMetadataEntity cip26Entity = cip26.metadata().get(subject);
+        MetadataReferenceNftEntity cip68Entity = cip68.findFor(fingerprint);
+
+        if (cip26Entity == null && cip68Entity == null) {
+            return buildFallback(fingerprint);
+        }
 
         TokenRegistryCurrencyData.TokenRegistryCurrencyDataBuilder builder = TokenRegistryCurrencyData.builder()
                 .policyId(fingerprint.getPolicyId())
-                .subject(subject)
-                .decimals(0); // default; overridden below if CIP-26 or CIP-68 has an explicit value
+                .subject(subject);
 
         // CIP-26 base
-        TokenMetadataEntity cip26Entity = cip26.metadata().get(subject);
         if (cip26Entity != null) {
             applyCip26(builder, cip26Entity, cip26.logos().get(subject));
         }
 
         // CIP-68 overrides (higher priority)
-        MetadataReferenceNftEntity cip68Entity = cip68.findFor(fingerprint);
         if (cip68Entity != null) {
             applyCip68(builder, cip68Entity);
         }

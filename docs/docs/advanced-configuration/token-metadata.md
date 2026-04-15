@@ -1,55 +1,57 @@
 ---
 sidebar_position: 4
 title: Enabling Token Metadata
-description: Configure token registry integration for native asset metadata
+description: Configure native asset metadata enrichment (CIP-26 and CIP-68)
 ---
 
 # Enabling Token Metadata
 
 ## Overview
 
-Cardano native tokens (also called multi-assets) can have associated metadata that provides human-readable information such as token names, tickers, descriptions, and logos. This metadata helps exchanges display accurate token information to users and improves the overall user experience when working with Cardano native assets.
+Cardano native tokens (multi-assets) can have associated metadata that provides human-readable information such as names, tickers, descriptions, decimal precision, and logos. Exposing this metadata in API responses helps exchanges and wallets display accurate token information instead of raw hex-encoded policy IDs.
 
-Cardano Rosetta Java supports integration with the **Cardano Token Metadata Registry**, which provides a unified API for retrieving token metadata from two complementary standards:
+Cardano Rosetta Java merges metadata from two complementary sources:
 
-- **CIP-26**: Off-chain metadata registry for static token information
-- **CIP-68**: On-chain metadata standard for dynamic token information
+- **CIP-26** — the off-chain token metadata registry maintained on the [Cardano Foundation GitHub repository](https://github.com/cardano-foundation/cardano-token-registry). Used for static information about fungible tokens.
+- **CIP-68** — an on-chain metadata standard where a reference NFT (prefix `000643b0`) holds the metadata for its sibling fungible token (prefix `0014df10`).
 
 ### Why Exchanges Need This
 
-Without token metadata integration, native assets in API responses appear only as hex-encoded policy IDs and asset names. With the token registry enabled:
+Without metadata enrichment, native tokens in API responses appear only as hex-encoded policy IDs and asset names. With enrichment enabled:
 
-- **User Experience**: Display readable token names instead of hex strings
-- **Accurate Information**: Show correct decimals, tickers, and descriptions for tokens
-- **Trust**: Present verified token metadata from the official Cardano registry
-- **Compliance**: Provide proper token identification for regulatory requirements
+- **User experience** — readable token names instead of hex strings
+- **Accurate information** — correct decimals, tickers, and descriptions
+- **Trust** — verified metadata from the official Cardano registry
+- **Compliance** — proper token identification for regulatory requirements
 
 ### What This Integration Provides
 
-When enabled, the following endpoints will include enriched metadata for native tokens in their `currency` objects:
+When enabled, the following endpoints include enriched metadata in their `currency` objects:
 
-- `/block` - Block retrieval with transaction details
-- `/block/transaction` - Individual transaction details
-- `/account/balance` - Account balance information
-- `/account/coins` - UTXO details for accounts
-- `/search/transactions` - Transaction search results
+- `/block` — block retrieval with transaction details
+- `/block/transaction` — individual transaction details
+- `/account/balance` — account balance information
+- `/account/coins` — UTXO details for accounts
+- `/search/transactions` — transaction search results
 
 #### Metadata Fields Added
 
-The integration adds the following optional fields to the `currency.metadata` object:
-
 | Field | Description | Example |
 |-------|-------------|---------|
-| `subject` | Base16-encoded combination of policyId + assetName | `"5dac8536...4e4d4b52"` |
+| `subject` | Base16-encoded `policyId + assetName` | `"5dac8536…4e4d4b52"` |
 | `name` | Human-readable token name | `"MKT coin"` |
-| `description` | Token description | `"Utility Token for..."` |
+| `description` | Token description | `"Utility token for …"` |
 | `ticker` | Token ticker/symbol | `"MKT"` |
 | `url` | Project website URL | `"https://example.com"` |
 | `decimals` | Number of decimal places | `6` |
+| `logo` | Logo payload — base64 (CIP-26) or URL (CIP-68); returned only when `TOKEN_REGISTRY_LOGO_FETCH=true` | `{ "format": "url", "value": "ipfs://…" }` |
+| `version` | CIP-68 metadata version | `1` |
+
+When both standards describe the same token, **CIP-68 takes priority** field-by-field — any field left unset in CIP-68 falls back to the CIP-26 value.
 
 #### Before and After Examples
 
-**Before** (without token metadata):
+**Before** (enrichment disabled):
 ```json
 {
   "currency": {
@@ -62,7 +64,7 @@ The integration adds the following optional fields to the `currency.metadata` ob
 }
 ```
 
-**After** (with token metadata enabled):
+**After** (enrichment enabled):
 ```json
 {
   "currency": {
@@ -81,169 +83,74 @@ The integration adds the following optional fields to the `currency.metadata` ob
 ```
 
 :::note Optional Metadata
-All metadata fields are optional. If a token has not been registered in the Cardano Token Registry, only the basic `policyId` will be present. Missing metadata does not indicate an error - many tokens simply don't have registered metadata.
+All metadata fields are optional. If a token has no CIP-26 registry entry and no CIP-68 reference NFT, only `policyId` is returned. Missing metadata is normal — many tokens are simply unregistered.
 :::
 
-## Installation Steps
+## Architecture
 
-### Step 1: Clone the Token Metadata Registry
+Metadata enrichment is fully database-backed — there is no runtime HTTP call to any external registry from the API hot path.
 
-Clone the official Cardano Foundation token metadata registry repository:
-
-```bash
-git clone https://github.com/cardano-foundation/cf-token-metadata-registry.git
-cd cf-token-metadata-registry
+```
+┌─────────────────────┐     ┌──────────────────────┐     ┌──────────────────┐
+│ Cardano token       │     │ On-chain             │     │ Cardano          │
+│ registry (GitHub)   │     │ reference NFTs       │     │ blockchain       │
+│  CIP-26 metadata    │     │  (CIP-68 datums)     │     │                  │
+└──────────┬──────────┘     └──────────┬───────────┘     └────────┬─────────┘
+           │                           │                          │
+           │  periodic sync            │  indexed as blocks        │
+           ▼                           ▼  are processed            ▼
+     ┌──────────────────────────────────────────────────────────────────┐
+     │  yaci-indexer (yaci-store assets-ext module, always on)          │
+     │   - ft_offchain_metadata   (CIP-26 fields)                       │
+     │   - ft_offchain_logo       (CIP-26 logos)                        │
+     │   - metadata_reference_nft (CIP-68 reference NFT datums)         │
+     └────────────────────────────────┬─────────────────────────────────┘
+                                      │
+                                      ▼
+                            ┌─────────────────────┐
+                            │ Rosetta API         │
+                            │ (TokenQueryService) │
+                            │ reads DB at request │
+                            │ time, merges CIP-68 │
+                            │ over CIP-26         │
+                            └─────────────────────┘
 ```
 
-Check out the latest release tag:
+**Key properties:**
+- The `yaci-store-assets-ext` module runs inside the `yaci-indexer` and populates the three tables above. It is **always enabled** in the bundled `yaci-indexer` — you do not need to install or configure a separate service.
+- Initial CIP-26 sync from GitHub typically takes a few minutes after the indexer starts. CIP-68 data is indexed continuously as blocks are processed.
+- The Rosetta API reads these tables in a constant number of batched queries per request (one CIP-26 metadata query, optionally one CIP-26 logo query, and one CIP-68 query only if the request contains CIP-68 fungible tokens).
+
+## Enabling Token Metadata
+
+Enrichment is controlled entirely from the API side with two environment variables.
+
+### Step 1: Update the Rosetta API environment
+
+Edit your environment file (e.g. `.env.docker-compose`, `.env.docker-compose-preprod`, or your Kubernetes values file):
 
 ```bash
-# List available tags
-git tag -l
+# Enable metadata enrichment in API responses (default: false)
+TOKEN_REGISTRY_ENABLED=true
 
-# Checkout the latest stable release (replace with actual latest version)
-git checkout tags/v1.x.x  # Use the latest version from the tag list
+# Optionally include logos in responses. Logos can be large (base64-encoded
+# PNGs for CIP-26) and significantly increase payload size, so this is off
+# by default. Enable only if your downstream consumer needs them.
+TOKEN_REGISTRY_LOGO_FETCH=false
 ```
 
-### Step 2: Configure Ports
-
-Since Cardano Rosetta Java uses PostgreSQL on port 5432, configure the token registry to use different ports to avoid conflicts.
-
-Edit the `.env` file:
-
-```bash
-# Open the .env file
-nano .env  # or use your preferred editor
-```
-
-Modify the port configuration:
-
-```bash
-# Database Port - Change from default 5432 to avoid conflict
-# This line:
-# DB_PORT='5432'
-
-# To:
-DB_PORT='5434'
-
-# Ensure DB_URL uses the internal port (5432 inside the container):
-DB_URL=jdbc:postgresql://db:5432/cf_token_metadata_registry
-
-# API Port - Change if port 8080 is already in use
-# Default:
-# API_LOCAL_BIND_PORT='8080'
-
-# If you need a different port (e.g., if 8080 is in use):
-API_LOCAL_BIND_PORT='8088'
-```
-
-### Step 3: Start the Token Registry
-
-Start the token metadata registry service using Docker Compose:
-
-```bash
-docker compose up -d
-```
-
-This will:
-- Start a PostgreSQL database container for token metadata
-- Start the token registry API container
-- Begin syncing token metadata from the Cardano blockchain. 
-- Synchronize the official token registry from GitHub
-
-:::tip Initial Sync Time
-The first sync can take 10-12 hours as the service indexes on-chain metadata and downloads the GitHub registry. Monitor progress with `docker compose logs -f api`.
+:::note Only these two flags
+The legacy `TOKEN_REGISTRY_BASE_URL`, `TOKEN_REGISTRY_CACHE_TTL_HOURS`, and `TOKEN_REGISTRY_REQUEST_TIMEOUT_SECONDS` variables are **no longer used** — the API no longer calls a remote registry at request time. If they are still set in your environment, they are simply ignored and can be removed.
 :::
 
-### Step 4: Verify Registry Health
-
-Wait for the token registry to complete its initial sync and become healthy:
+### Step 2: Restart the Rosetta API
 
 ```bash
-# Check service health (use your configured API_LOCAL_BIND_PORT)
-curl http://localhost:8080/health
-```
-
-Expected response when ready:
-```json
-{"synced":true,"syncStatus":"Sync done"}
-```
-
-You can also check the logs to monitor sync progress:
-
-```bash
-# View logs
-docker compose logs -f api
-
-# The service is ready when you see:
-# "Started TokenMetadataRegistryApplication"
-```
-
-### Step 5: Get the Gateway IP Address
-
-To allow Cardano Rosetta Java to communicate with the token registry, you need the Docker gateway IP address.
-
-Run this command to get the gateway IP for the token registry API container:
-
-```bash
-docker inspect cf-token-metadata-registry-api-1 --format '{{range .NetworkSettings.Networks}}{{.Gateway}} {{end}}'
-```
-
-This will output something like:
-```
-172.20.0.1
-```
-
-### Step 6: Configure Rosetta API
-
-Navigate to your Cardano Rosetta Java directory and edit the `.env.docker-compose` file:
-
-```bash
-cd /path/to/cardano-rosetta-java
-nano .env.docker-compose
-```
-
-Add or update the following environment variables:
-
-```bash
-# Enable token registry integration
-TOKEN_REGISTRY_ENABLED=true
-
-# Set the base URL using the gateway IP from Step 5
-# Replace <gateway-ip> with the actual IP from the previous step
-TOKEN_REGISTRY_BASE_URL=http://<gateway-ip>:8080/api
-
-# Optional: Configure cache TTL (in hours)
-TOKEN_REGISTRY_CACHE_TTL_HOURS=12
-
-# Optional: Disable logo fetching to reduce response size
-TOKEN_REGISTRY_LOGO_FETCH=false
-
-# Optional: Set request timeout (in seconds)
-TOKEN_REGISTRY_REQUEST_TIMEOUT_SECONDS=2
-```
-
-Example configuration:
-```bash
-TOKEN_REGISTRY_ENABLED=true
-TOKEN_REGISTRY_BASE_URL=http://172.20.0.1:8080/api
-TOKEN_REGISTRY_CACHE_TTL_HOURS=12
-TOKEN_REGISTRY_LOGO_FETCH=false
-TOKEN_REGISTRY_REQUEST_TIMEOUT_SECONDS=2
-```
-
-### Step 7: Restart Rosetta API
-
-Apply the configuration changes by restarting the Rosetta API service:
-
-```bash
-# Stop the API
 docker compose --env-file .env.docker-compose \
   --env-file .env.docker-compose-profile-mid-level \
   -f docker-compose.yaml \
   down api
 
-# Start the API with new configuration
 docker compose --env-file .env.docker-compose \
   --env-file .env.docker-compose-profile-mid-level \
   -f docker-compose.yaml \
@@ -251,116 +158,88 @@ docker compose --env-file .env.docker-compose \
 ```
 
 :::tip Hardware Profiles
-The command above uses the `mid-level` profile. Adjust the profile file (`entry-level`, `mid-level`, or `advanced-level`) based on your deployment configuration. See [Hardware Profiles](../install-and-deploy/hardware-profiles) for details.
+Adjust the profile file (`entry-level`, `mid-level`, or `advanced-level`) to match your deployment. See [Hardware Profiles](../install-and-deploy/hardware-profiles) for details.
 :::
 
-### Step 8: Verify Integration
+The `yaci-indexer` does not need to be restarted — it is already indexing the assets-ext tables regardless of whether the API is configured to read from them.
 
-Test that the token metadata integration is working correctly:
+### Step 3: Verify Enrichment
 
-```bash
-# Check API startup logs
-docker logs cardano-rosetta-java-api-1 | grep TokenRegistry
-```
-
-You should see a line like:
-```
-TokenRegistryHttpGatewayImpl initialized with enabled: true, batchEndpointUrl: http://172.20.0.1:8080/api/v2/subjects/query
-```
-
-To verify metadata is being returned in API responses, query a block containing native tokens:
+Query a block that is known to contain native tokens and inspect a `currency.metadata` object:
 
 ```bash
 curl -X POST http://localhost:8082/block \
   -H "Content-Type: application/json" \
   -d '{
-    "network_identifier": {
-      "blockchain": "cardano",
-      "network": "mainnet"
-    },
-    "block_identifier": {
-      "index": 10000259
-    }
-  }' | jq '.block.transactions[].operations[] | select(.metadata.tokenBundle) | .metadata.tokenBundle[].tokens[0].currency.metadata'
+    "network_identifier": { "blockchain": "cardano", "network": "mainnet" },
+    "block_identifier":   { "index": 10000259 }
+  }' | jq '.block.transactions[].operations[]
+           | select(.metadata.tokenBundle)
+           | .metadata.tokenBundle[].tokens[0].currency.metadata'
 ```
 
-You should see metadata fields populated with token information for the tokens:
+For a registered token you should see something like:
+
 ```json
 {
-  "policyId": "5dac8536653edc12f6f5e1045d8164b9f59998d3bdc300fc92843489",
-  "subject": "5dac8536653edc12f6f5e1045d8164b9f59998d3bdc300fc928434894e4d4b52",
-  "name": "NMKR",
+  "policyId":    "5dac8536653edc12f6f5e1045d8164b9f59998d3bdc300fc92843489",
+  "subject":     "5dac8536653edc12f6f5e1045d8164b9f59998d3bdc300fc928434894e4d4b52",
+  "name":        "NMKR",
   "description": "Utility Token for Tokenization & NFT Infrastructure by NMKR",
-  "ticker": "NMKR",
-  "url": "https://nmkr.io"
+  "ticker":      "NMKR",
+  "url":         "https://nmkr.io"
 }
 ```
 
-:::tip Testing Multiple Endpoints
-You can test token metadata on other endpoints like `/account/balance`, `/account/coins`, and `/search/transactions`. All endpoints that return `currency` objects will include the enriched metadata.
+:::tip Testing Other Endpoints
+All endpoints that return `currency` objects (`/account/balance`, `/account/coins`, `/search/transactions`, `/block/transaction`) will include the same enriched metadata.
 :::
 
-## Troubleshooting 
+## Troubleshooting
 
-### Rosetta API Not Fetching Metadata
+### API Responses Don't Include Metadata
 
-**Symptom**: API responses don't include token metadata
+**Symptom:** `currency.metadata` contains only `policyId`.
 
-**Solutions**:
+**Check 1 — Flag is on:**
+```bash
+docker exec cardano-rosetta-java-api-1 \
+  env | grep TOKEN_REGISTRY_ENABLED
+```
+Expected: `TOKEN_REGISTRY_ENABLED=true`. If `false` or unset, update the env file and restart the API.
 
-1. **Verify registry is healthy**:
-   ```bash
-   curl http://localhost:8080/health
-   ```
+**Check 2 — The token is actually registered:**
+Tokens with no CIP-26 registry entry and no CIP-68 reference NFT will correctly return only `policyId`. Pick a well-known registered token (for example NMKR or HOSKY on mainnet) to confirm enrichment works end-to-end before investigating a specific unregistered token.
 
-2. **Check API logs for connection errors**:
-   ```bash
-   docker logs cardano-rosetta-java-api-1 | grep -i "token registry"
-   ```
+**Check 3 — Indexer has finished its initial CIP-26 sync:**
+```bash
+docker exec cardano-rosetta-java-db-1 \
+  psql -U "$DB_USER" -d "$DB_NAME" -c "SELECT COUNT(*) FROM ft_offchain_metadata;"
+```
+On a freshly-started indexer this may be `0` for a few minutes while the assets-ext module downloads and processes the GitHub registry snapshot. Wait for a non-zero count before assuming enrichment is broken.
 
-3. **Verify gateway IP is correct**:
-   ```bash
-   # Re-check the gateway IP
-   docker inspect cf-token-metadata-registry-api-1 \
-     --format '{{range .NetworkSettings.Networks}}{{.Gateway}} {{end}}'
+### Logos Are Missing
 
-   # Ensure it matches TOKEN_REGISTRY_BASE_URL in .env.docker-compose
-   ```
+**Symptom:** `currency.metadata.logo` is never populated.
 
-4. **Test registry connectivity from API container**:
-   ```bash
-   docker exec cardano-rosetta-java-api-1 \
-     curl -s http://<gateway-ip>:8080/health
-   ```
+- Confirm `TOKEN_REGISTRY_LOGO_FETCH=true` is set on the API and the API has been restarted.
+- For CIP-26 tokens, also verify the logo table has rows:
+  ```bash
+  docker exec cardano-rosetta-java-db-1 \
+    psql -U "$DB_USER" -d "$DB_NAME" -c "SELECT COUNT(*) FROM ft_offchain_logo WHERE logo IS NOT NULL;"
+  ```
+- For CIP-68 tokens, the logo value is taken directly from the on-chain reference NFT datum and will be `null` whenever the issuer didn't include one.
 
-### Slow API Response Times
+### Slower Responses After Enabling
 
-**Symptom**: API requests are slower after enabling token metadata
+The extra DB queries are batched (1–3 round trips per API request, independent of batch size) and hit indexed columns, so the overhead is typically small. If you see a meaningful regression:
 
-**Solutions**:
-
-1. **Verify Docker connectivity** between Rosetta API and token registry:
-   ```bash
-   # Test connectivity from API container to registry
-   docker exec cardano-rosetta-java-api-1 \
-     curl -s -w "\nTime: %{time_total}s\n" \
-     http://<gateway-ip>:8080/health
-
-   # Should respond quickly (< 1 second)
-   ```
-
-2. **Increase cache TTL** to reduce registry API calls:
-   ```bash
-   TOKEN_REGISTRY_CACHE_TTL_HOURS=24
-   ```
-
-3. **Disable logo fetching** if not needed:
-   ```bash
-   TOKEN_REGISTRY_LOGO_FETCH=false
-   ```
+- Disable logo fetching (`TOKEN_REGISTRY_LOGO_FETCH=false`) — it saves one query and avoids shipping base64 blobs over the wire.
+- Check the indexer's PostgreSQL is healthy (`pg_stat_activity`, `pg_stat_statements`) — a struggling indexer DB also slows the API's metadata lookups.
 
 ## Further Reading
 
-- [Cardano Token Registry CIP-26](https://developers.cardano.org/docs/native-tokens/token-registry/cardano-token-registry-cip26)
-- [Cardano Token Registry CIP-68](https://developers.cardano.org/docs/native-tokens/token-registry/cardano-token-registry-cip68)
-- [Token Registry Server Documentation](https://developers.cardano.org/docs/native-tokens/token-registry/cardano-token-registry-server)
+- [CIP-26 — Cardano Off-Chain Metadata](https://cips.cardano.org/cip/CIP-0026)
+- [CIP-68 — On-Chain Datum Metadata Standard](https://cips.cardano.org/cip/CIP-0068)
+- [Cardano Token Registry (GitHub)](https://github.com/cardano-foundation/cardano-token-registry)
+- [yaci-store assets-ext module](https://github.com/bloxbean/yaci-store)

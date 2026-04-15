@@ -112,10 +112,7 @@ Set `global.profile` to one of: `entry`, `mid`, `advanced`.
 | `rosetta-api.env.blockTransactionApiTimeoutSecs` | `120` | `BLOCK_TRANSACTION_API_TIMEOUT_SECS` | Timeout for block queries |
 | `rosetta-api.env.devkitEnabled` | `false` | `DEVKIT_ENABLED` | Enable DevKit integration |
 | `rosetta-api.env.tokenRegistryEnabled` | `false` | `TOKEN_REGISTRY_ENABLED` | Enable Cardano token registry |
-| `rosetta-api.env.tokenRegistryBaseUrl` | `""` | `TOKEN_REGISTRY_BASE_URL` | Token registry URL (leave empty = disabled) |
-| `rosetta-api.env.tokenRegistryCacheTtlHours` | `12` | `TOKEN_REGISTRY_CACHE_TTL_HOURS` | Token metadata cache TTL |
 | `rosetta-api.env.tokenRegistryLogoFetch` | `false` | `TOKEN_REGISTRY_LOGO_FETCH` | Fetch token logos (bandwidth-intensive) |
-| `rosetta-api.env.tokenRegistryRequestTimeoutSeconds` | `2` | `TOKEN_REGISTRY_REQUEST_TIMEOUT_SECONDS` | Token registry request timeout |
 
 ### Ingress
 

@@ -104,10 +104,7 @@ Hardware profile files should be used **in combination** with a base `.env.docke
 | `POSTGRESQL_EXPORTER_PORT`                    | PostgreSQL exporter port for Prometheus                               | 9187                                   | added in release 1.3.0  |
 | `PEER_DISCOVERY`                              | Enable peer discovery job for automatic peer refreshing               | false                                  | added in release 1.3.2  |
 | `TOKEN_REGISTRY_ENABLED`                      | Enable token registry integration for native token metadata           | false                                  | added in release 1.4.0  |
-| `TOKEN_REGISTRY_BASE_URL`                     | Base URL for the token registry API                                   | (empty)                                | added in release 1.4.0  |
-| `TOKEN_REGISTRY_CACHE_TTL_HOURS`              | Cache TTL for token metadata in hours                                 | 12                                     | added in release 1.4.0  |
 | `TOKEN_REGISTRY_LOGO_FETCH`                   | Enable fetching token logos from registry (increases response size)   | false                                  | added in release 1.4.0  |
-| `TOKEN_REGISTRY_REQUEST_TIMEOUT_SECONDS`      | Token registry request timeout in seconds                             | 2                                      | added in release 1.4.0  |
 
 </div>
 

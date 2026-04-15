@@ -17,14 +17,15 @@ import java.util.Map;
  *   <li>Merging values with CIP-68 taking priority over CIP-26 (first non-null wins)</li>
  *   <li>Handling the CIP-68 fungible → reference NFT prefix conversion
  *       ({@code 0014df10} → {@code 000643b0}) transparently</li>
- *   <li>Guaranteeing that {@link TokenRegistryCurrencyData#getDecimals()} is non-null
- *       for every returned entry — defaulting to {@code 0} when neither standard
- *       provides an explicit value — so downstream mappers can treat it as a plain
- *       {@code int}</li>
  * </ul>
  * The returned map always contains an entry for every input fingerprint; tokens with no
- * metadata get a fallback entry populated only with {@code policyId}, {@code subject} and
- * the default {@code decimals = 0}.
+ * metadata get a fallback entry populated only with {@code policyId} — all other fields,
+ * including {@code subject} and {@code decimals}, are {@code null}. Callers that need a
+ * numeric decimal value must apply their own default.
+ * <p>
+ * Gated by {@code cardano.rosetta.TOKEN_REGISTRY_ENABLED} (default {@code false}). When the
+ * flag is off, implementations MUST return the same fallback shape for every fingerprint
+ * without hitting the database.
  */
 public interface TokenQueryService {
 

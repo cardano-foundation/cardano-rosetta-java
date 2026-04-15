@@ -5,7 +5,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.math.BigDecimal;
 
@@ -43,12 +42,7 @@ public class TokenRegistryCurrencyData {
     @Nullable
     private BigDecimal version;
 
-    /**
-     * Number of decimal places for the token. Always populated — {@code TokenQueryService}
-     * seeds this to {@code 0} when neither CIP-26 nor CIP-68 provides an explicit value, so
-     * downstream consumers can treat it as a guaranteed {@code int}.
-     */
-    @Nonnull
+    @Nullable
     private Integer decimals;
 
     /**
