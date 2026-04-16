@@ -7,6 +7,12 @@ FROM scratch AS host-m2
 FROM ubuntu:24.04 AS build-common
 WORKDIR /build
 
+# Harden apt against transient Ubuntu-mirror hiccups (mirror sync in progress,
+# flaky DNS, stale CDN edges). Retry a few times, bump the read timeout, and
+# disable HTTP caching so a stale index doesn't get re-served.
+RUN printf 'Acquire::Retries "5";\nAcquire::http::Timeout "30";\nAcquire::https::Timeout "30";\nAcquire::http::No-Cache "true";\n' \
+        > /etc/apt/apt.conf.d/99-retries
+
 RUN apt update --fix-missing \
     && apt install -y --no-install-recommends maven curl \
     && apt clean

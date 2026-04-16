@@ -2,6 +2,12 @@ FROM ubuntu:24.04 AS cardano-builder
 
 WORKDIR /root/src
 
+# Harden apt against transient Ubuntu-mirror hiccups (mirror sync in progress,
+# flaky DNS, stale CDN edges). Retry a few times, bump the read timeout, and
+# disable HTTP caching so a stale index doesn't get re-served.
+RUN printf 'Acquire::Retries "5";\nAcquire::http::Timeout "30";\nAcquire::https::Timeout "30";\nAcquire::http::No-Cache "true";\n' \
+        > /etc/apt/apt.conf.d/99-retries
+
 # Install dependencies
 RUN apt update --fix-missing \
     && apt install -y --no-install-recommends \
@@ -126,7 +132,9 @@ RUN mkdir -p /root/.local/bin \
 
 FROM ubuntu:24.04 AS node-runner
 
-RUN apt-get update && apt-get install -y jq bc socat && apt-get clean
+RUN printf 'Acquire::Retries "5";\nAcquire::http::Timeout "30";\nAcquire::https::Timeout "30";\nAcquire::http::No-Cache "true";\n' \
+        > /etc/apt/apt.conf.d/99-retries \
+    && apt-get update && apt-get install -y jq bc socat && apt-get clean
 COPY --from=cardano-builder /usr/local/lib /usr/local/lib
 COPY --from=cardano-builder /root/.local/bin/cardano-* /usr/local/bin/
 COPY --from=cardano-builder /usr/local/src/cardano-node/cardano-submit-api/config/tx-submit-mainnet-config.yaml /cardano-submit-api-config/cardano-submit-api.yaml
