@@ -61,7 +61,8 @@ class TokenRegistryMapperTest {
         @Test
         @DisplayName("Should handle all nullable fields being null")
         void shouldHandleAllNullableFieldsNull() {
-            TokenRegistryCurrencyData data = TokenRegistryCurrencyData.builder().build();
+            // decimals is @Nonnull by contract — seed with the default TokenQueryService uses
+            TokenRegistryCurrencyData data = TokenRegistryCurrencyData.builder().decimals(0).build();
 
             CurrencyMetadataResponse result = mapper.toCurrencyMetadataResponse(data);
 

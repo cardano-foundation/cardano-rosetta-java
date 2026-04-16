@@ -111,8 +111,8 @@ Set `global.profile` to one of: `entry`, `mid`, `advanced`.
 | `rosetta-api.env.removeSpentUtxosLastBlocksGraceCount` | `129600` | `REMOVE_SPENT_UTXOS_LAST_BLOCKS_GRACE_COUNT` | Must match yaci-indexer setting |
 | `rosetta-api.env.blockTransactionApiTimeoutSecs` | `120` | `BLOCK_TRANSACTION_API_TIMEOUT_SECS` | Timeout for block queries |
 | `rosetta-api.env.devkitEnabled` | `false` | `DEVKIT_ENABLED` | Enable DevKit integration |
-| `rosetta-api.env.tokenRegistryEnabled` | `false` | `TOKEN_REGISTRY_ENABLED` | Enable Cardano token registry |
-| `rosetta-api.env.tokenRegistryLogoFetch` | `false` | `TOKEN_REGISTRY_LOGO_FETCH` | Fetch token logos (bandwidth-intensive) |
+| `rosetta-api.env.tokenRegistryEnabled` | `false` | `TOKEN_REGISTRY_ENABLED` | Expose CIP-26/CIP-68 enrichment in `currency.metadata`. Does NOT affect `currency.decimals` — decimals is always resolved regardless. |
+| `rosetta-api.env.tokenRegistryLogoFetch` | `false` | `TOKEN_REGISTRY_LOGO_FETCH` | Include logos in enrichment (bandwidth-intensive). Requires `tokenRegistryEnabled=true`. |
 
 ### Ingress
 

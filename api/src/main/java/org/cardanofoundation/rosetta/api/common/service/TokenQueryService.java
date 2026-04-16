@@ -10,6 +10,14 @@ import java.util.Map;
  * Read-only access to merged token metadata from the yaci-store assets-ext tables
  * ({@code ft_offchain_metadata}, {@code ft_offchain_logo}, {@code metadata_reference_nft}).
  * <p>
+ * This service runs unconditionally — it is <em>not</em> gated by {@code TOKEN_REGISTRY_ENABLED}.
+ * Its primary job on every request is to resolve the correct {@code decimals} for each
+ * fingerprint, because {@code Currency.decimals} is a mandatory cross-chain field in
+ * Rosetta and must always be accurate. Whether the remaining enrichment fields
+ * ({@code subject}, {@code name}, {@code description}, {@code ticker}, {@code url},
+ * {@code logo}, {@code version}) are exposed on the wire is a separate concern handled
+ * downstream in the serialization layer.
+ * <p>
  * Implementations are responsible for:
  * <ul>
  *   <li>Reading CIP-26 (offchain token registry) and CIP-68 (on-chain reference NFT) rows
@@ -17,15 +25,13 @@ import java.util.Map;
  *   <li>Merging values with CIP-68 taking priority over CIP-26 (first non-null wins)</li>
  *   <li>Handling the CIP-68 fungible → reference NFT prefix conversion
  *       ({@code 0014df10} → {@code 000643b0}) transparently</li>
+ *   <li>Guaranteeing that {@link TokenRegistryCurrencyData#getDecimals()} is non-null for
+ *       every returned entry — defaulting to {@code 0} when neither standard provides an
+ *       explicit value — so downstream mappers can treat the field as a guaranteed
+ *       {@code int}</li>
  * </ul>
  * The returned map always contains an entry for every input fingerprint; tokens with no
- * metadata get a fallback entry populated only with {@code policyId} — all other fields,
- * including {@code subject} and {@code decimals}, are {@code null}. Callers that need a
- * numeric decimal value must apply their own default.
- * <p>
- * Gated by {@code cardano.rosetta.TOKEN_REGISTRY_ENABLED} (default {@code false}). When the
- * flag is off, implementations MUST return the same fallback shape for every fingerprint
- * without hitting the database.
+ * metadata still get an entry with {@code policyId}, {@code subject}, and {@code decimals = 0}.
  */
 public interface TokenQueryService {
 

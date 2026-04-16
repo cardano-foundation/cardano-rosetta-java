@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.openapitools.client.model.Amount;
 import org.openapitools.client.model.LogoType;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
 
@@ -23,6 +24,8 @@ class DataMapperTest {
     void setUp() {
         TokenRegistryMapper tokenRegistryMapper = new TokenRegistryMapperImpl();
         dataMapper = new DataMapper(tokenRegistryMapper);
+        // enrichment-on is the default for these tests; the flag-off behavior is covered in TokenRegistryEnabledFlagTests
+        ReflectionTestUtils.setField(dataMapper, "tokenRegistryEnabled", true);
     }
 
     @Nested
@@ -138,6 +141,78 @@ class DataMapperTest {
         @DisplayName("Should return value as-is when not spent")
         void shouldReturnAsIsWhenNotSpent() {
             assertThat(dataMapper.mapValue("1000000", false)).isEqualTo("1000000");
+        }
+    }
+
+    @Nested
+    @DisplayName("TOKEN_REGISTRY_ENABLED flag")
+    class TokenRegistryEnabledFlagTests {
+
+        private TokenRegistryCurrencyData fullMetadata() {
+            return TokenRegistryCurrencyData.builder()
+                    .policyId("abc123")
+                    .subject("abc123deadbeef")
+                    .name("HOSKY")
+                    .description("Dog token")
+                    .ticker("HOSKY")
+                    .url("https://hosky.io")
+                    .decimals(6)
+                    .version(BigDecimal.valueOf(1))
+                    .logo(TokenRegistryCurrencyData.LogoData.builder()
+                            .format(TokenRegistryCurrencyData.LogoFormat.BASE64)
+                            .value("iVBORw0KGgo=")
+                            .build())
+                    .build();
+        }
+
+        @Test
+        @DisplayName("Should expose only policyId in metadata when flag is disabled, but decimals still flow to Currency.decimals")
+        void shouldExposeOnlyPolicyIdWhenDisabled() {
+            ReflectionTestUtils.setField(dataMapper, "tokenRegistryEnabled", false);
+
+            Amount result = dataMapper.mapAmount("100", "deadbeef", 6, fullMetadata());
+
+            // decimals always on the wire
+            assertThat(result.getCurrency().getDecimals()).isEqualTo(6);
+
+            // metadata carries ONLY policyId
+            assertThat(result.getCurrency().getMetadata()).isNotNull();
+            assertThat(result.getCurrency().getMetadata().getPolicyId()).isEqualTo("abc123");
+            assertThat(result.getCurrency().getMetadata().getSubject()).isNull();
+            assertThat(result.getCurrency().getMetadata().getName()).isNull();
+            assertThat(result.getCurrency().getMetadata().getDescription()).isNull();
+            assertThat(result.getCurrency().getMetadata().getTicker()).isNull();
+            assertThat(result.getCurrency().getMetadata().getUrl()).isNull();
+            assertThat(result.getCurrency().getMetadata().getLogo()).isNull();
+            assertThat(result.getCurrency().getMetadata().getVersion()).isNull();
+        }
+
+        @Test
+        @DisplayName("Should expose the full enrichment set when flag is enabled")
+        void shouldExposeFullEnrichmentWhenEnabled() {
+            ReflectionTestUtils.setField(dataMapper, "tokenRegistryEnabled", true);
+
+            Amount result = dataMapper.mapAmount("100", "deadbeef", 6, fullMetadata());
+
+            assertThat(result.getCurrency().getMetadata()).isNotNull();
+            assertThat(result.getCurrency().getMetadata().getPolicyId()).isEqualTo("abc123");
+            assertThat(result.getCurrency().getMetadata().getSubject()).isEqualTo("abc123deadbeef");
+            assertThat(result.getCurrency().getMetadata().getName()).isEqualTo("HOSKY");
+            assertThat(result.getCurrency().getMetadata().getDescription()).isEqualTo("Dog token");
+            assertThat(result.getCurrency().getMetadata().getTicker()).isEqualTo("HOSKY");
+            assertThat(result.getCurrency().getMetadata().getUrl()).isEqualTo("https://hosky.io");
+            assertThat(result.getCurrency().getMetadata().getLogo()).isNotNull();
+            assertThat(result.getCurrency().getMetadata().getVersion()).isEqualTo(BigDecimal.valueOf(1));
+        }
+
+        @Test
+        @DisplayName("Should still return null metadata when input metadata is null regardless of flag")
+        void shouldReturnNullMetadataWhenInputIsNull() {
+            ReflectionTestUtils.setField(dataMapper, "tokenRegistryEnabled", false);
+            assertThat(dataMapper.mapAmount("100", "deadbeef", 6, null).getCurrency().getMetadata()).isNull();
+
+            ReflectionTestUtils.setField(dataMapper, "tokenRegistryEnabled", true);
+            assertThat(dataMapper.mapAmount("100", "deadbeef", 6, null).getCurrency().getMetadata()).isNull();
         }
     }
 }

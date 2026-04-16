@@ -55,7 +55,6 @@ class TokenQueryServiceTest {
     @BeforeEach
     void setUp() {
         tokenQueryService = new TokenQueryServiceImpl(tokenMetadataRepository, tokenLogoRepository, metadataReferenceNftRepository);
-        ReflectionTestUtils.setField(tokenQueryService, "enabled", true);
         ReflectionTestUtils.setField(tokenQueryService, "logoEnabled", false);
     }
 
@@ -71,17 +70,17 @@ class TokenQueryServiceTest {
     class SingleSubjectMergeTests {
 
         @Test
-        @DisplayName("Should return policyId-only fallback with null decimals/subject when nothing found")
-        void shouldReturnEmptyWhenNothingFound() {
+        @DisplayName("Should return identity fields with default decimals=0 when no CIP-26/CIP-68 row exists")
+        void shouldReturnIdentityFieldsWhenNothingFound() {
             when(tokenMetadataRepository.findAllBySubjectIn(anyList())).thenReturn(List.of());
 
             TokenRegistryCurrencyData result = querySingle(POLICY_ID, ASSET_HEX);
 
             assertThat(result.getPolicyId()).isEqualTo(POLICY_ID);
-            assertThat(result.getSubject()).isNull();
+            assertThat(result.getSubject()).isEqualTo(SUBJECT);
             assertThat(result.getName()).isNull();
             assertThat(result.getDescription()).isNull();
-            assertThat(result.getDecimals()).isNull();
+            assertThat(result.getDecimals()).isEqualTo(0);
         }
 
         @Test
@@ -171,15 +170,15 @@ class TokenQueryServiceTest {
         }
 
         @Test
-        @DisplayName("Should leave decimals null when CIP-26 has null decimals and no CIP-68 data")
-        void shouldLeaveDecimalsNullWhenBothStandardsLackIt() {
+        @DisplayName("Should default decimals to 0 when CIP-26 has null decimals and no CIP-68 data")
+        void shouldDefaultDecimalsToZeroWhenBothStandardsLackIt() {
             TokenMetadataEntity cip26 = TokenMetadataEntity.builder()
                     .subject(SUBJECT).name("Token").description("Desc").decimals(null).build();
             when(tokenMetadataRepository.findAllBySubjectIn(anyList())).thenReturn(List.of(cip26));
 
             TokenRegistryCurrencyData result = querySingle(POLICY_ID, ASSET_HEX);
 
-            assertThat(result.getDecimals()).isNull();
+            assertThat(result.getDecimals()).isEqualTo(0);
         }
     }
 
@@ -553,45 +552,4 @@ class TokenQueryServiceTest {
         }
     }
 
-    @Nested
-    @DisplayName("TOKEN_REGISTRY_ENABLED flag")
-    class RegistryEnabledFlagTests {
-
-        @Test
-        @DisplayName("Should return fallback entries for every fingerprint when disabled, without hitting the DB")
-        void shouldShortCircuitWithFallbackWhenDisabled() {
-            ReflectionTestUtils.setField(tokenQueryService, "enabled", false);
-
-            AssetFingerprint fp1 = AssetFingerprint.of(POLICY_ID, ASSET_HEX);
-            AssetFingerprint fp2 = AssetFingerprint.of(POLICY_ID, CIP68_FT_ASSET);
-
-            Map<AssetFingerprint, TokenRegistryCurrencyData> result = tokenQueryService.queryMetadataBatch(List.of(fp1, fp2));
-
-            assertThat(result).hasSize(2);
-            assertThat(result.get(fp1)).satisfies(data -> {
-                assertThat(data.getPolicyId()).isEqualTo(POLICY_ID);
-                assertThat(data.getSubject()).isNull();
-                assertThat(data.getDecimals()).isNull();
-                assertThat(data.getName()).isNull();
-                assertThat(data.getDescription()).isNull();
-                assertThat(data.getLogo()).isNull();
-            });
-            assertThat(result.get(fp2)).satisfies(data -> {
-                assertThat(data.getPolicyId()).isEqualTo(POLICY_ID);
-                assertThat(data.getSubject()).isNull();
-                assertThat(data.getDecimals()).isNull();
-            });
-
-            verifyNoInteractions(tokenMetadataRepository, tokenLogoRepository, metadataReferenceNftRepository);
-        }
-
-        @Test
-        @DisplayName("Should return empty map for empty input even when disabled")
-        void shouldReturnEmptyMapForEmptyInputWhenDisabled() {
-            ReflectionTestUtils.setField(tokenQueryService, "enabled", false);
-
-            assertThat(tokenQueryService.queryMetadataBatch(List.of())).isEmpty();
-            verifyNoInteractions(tokenMetadataRepository, tokenLogoRepository, metadataReferenceNftRepository);
-        }
-    }
 }
