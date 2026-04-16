@@ -4,6 +4,12 @@ SHELL ["/bin/bash", "-c"]
 
 WORKDIR /root/src
 
+# Harden apt against transient Ubuntu-mirror hiccups (mirror sync in progress,
+# flaky DNS, stale CDN edges). Retry a few times, bump the read timeout, and
+# disable HTTP caching so a stale index doesn't get re-served.
+RUN printf 'Acquire::Retries "5";\nAcquire::http::Timeout "30";\nAcquire::https::Timeout "30";\nAcquire::http::No-Cache "true";\n' \
+        > /etc/apt/apt.conf.d/99-retries
+
 RUN apt update --fix-missing \
     && apt install -y --no-install-recommends curl ca-certificates \
     && apt-get clean
@@ -31,7 +37,9 @@ RUN git clone https://github.com/input-output-hk/mithril.git \
 FROM ubuntu:24.04 AS mithril-runner
 
 COPY --from=cardano-builder /root/.local/bin/mithril-client /usr/local/bin
-RUN apt update --fix-missing \
+RUN printf 'Acquire::Retries "5";\nAcquire::http::Timeout "30";\nAcquire::https::Timeout "30";\nAcquire::http::No-Cache "true";\n' \
+        > /etc/apt/apt.conf.d/99-retries \
+    && apt update --fix-missing \
     && apt install -y wget
 COPY ./docker/dockerfiles/mithril/entrypoint.sh /sbin/entrypoint.sh
 RUN chmod +x /sbin/entrypoint.sh
