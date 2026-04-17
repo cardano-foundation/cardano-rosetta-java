@@ -6,6 +6,7 @@ import jakarta.persistence.Table;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -18,11 +19,13 @@ import javax.annotation.Nullable;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity
 @Table(name = "ft_offchain_metadata")
 public class TokenMetadataEntity {
 
     @Id
+    @EqualsAndHashCode.Include
     private String subject;
 
     @Nullable

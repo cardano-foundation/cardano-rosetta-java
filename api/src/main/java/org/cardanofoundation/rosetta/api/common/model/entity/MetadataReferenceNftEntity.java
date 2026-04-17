@@ -3,6 +3,7 @@ package org.cardanofoundation.rosetta.api.common.model.entity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -15,20 +16,24 @@ import javax.annotation.Nullable;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity
 @Table(name = "metadata_reference_nft")
 @IdClass(MetadataReferenceNftId.class)
 public class MetadataReferenceNftEntity {
 
     @Id
+    @EqualsAndHashCode.Include
     @Column(name = "policy_id", length = 56)
     private String policyId;
 
     @Id
+    @EqualsAndHashCode.Include
     @Column(name = "asset_name")
     private String assetName;
 
     @Id
+    @EqualsAndHashCode.Include
     private Long slot;
 
     @Column(name = "label")
