@@ -27,7 +27,7 @@ public class SyncStatusService {
     private final SlotRangeChecker slotRangeChecker;
     private final IndexCreationMonitor indexCreationMonitor;
 
-    @Value("${cardano.rosetta.SYNC_GRACE_SLOTS_COUNT:100}")
+    @Value("${cardano.rosetta.SYNC_GRACE_SLOTS_COUNT:200}")
     private int allowedSlotsDelta;
 
     @PostConstruct

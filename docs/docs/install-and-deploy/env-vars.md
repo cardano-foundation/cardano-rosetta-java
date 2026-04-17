@@ -87,7 +87,7 @@ Hardware profile files should be used **in combination** with a base `.env.docke
 | `LOG_FILE_MAX_SIZE`                           | Maximum size per log file                                             | 10MB                                   | added in release 1.0.0  |
 | `LOG_FILE_MAX_HISTORY`                        | Number of log files to retain                                         | 10                                     | added in release 1.0.0  |
 | `SYNC`                                        | Enable online mode (DB/indexer start after node reaches tip)          | true                                   | added in release 1.2.0  |
-| `SYNC_GRACE_SLOTS_COUNT`                      | Grace period in slots for sync status                                 | 100                                    | added in release 1.2.9  |
+| `SYNC_GRACE_SLOTS_COUNT`                      | Grace period in slots for sync status                                 | 200                                    | added in release 1.2.9  |
 | `YACI_HTTP_BASE_URL`                          | Yaci Indexer's URL                                                    | http://yaci-indexer:9095/api/v1        | added in release 1.2.1  |
 | `YACI_INDEXER_PORT`                           | Yaci Indexer's port                                                   | 9095                                   | added in release 1.2.1  |
 | `HTTP_CONNECT_TIMEOUT_SECONDS`                | Yaci connection timeout in seconds                                    | 5                                      | added in release 1.2.1  |
