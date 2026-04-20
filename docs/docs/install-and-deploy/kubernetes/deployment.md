@@ -268,7 +268,7 @@ helm upgrade rosetta helm/cardano-rosetta-java \
   -f helm/cardano-rosetta-java/values.yaml \
   -f helm/cardano-rosetta-java/values-k3s.yaml \
   "--set=global.db.password=${DB_PASSWORD}" \
-  --set global.releaseVersion="2.1.1" \
+  --set global.releaseVersion="2.1.2" \
   -n cardano 2>&1 | grep -v "walk.go"
 ```
 
