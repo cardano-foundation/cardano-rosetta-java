@@ -9,6 +9,9 @@ import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.stereotype.Component;
 
+import org.cardanofoundation.rosetta.yaciindexer.indexmanagement.RosettaIndexLifecycleService;
+import org.cardanofoundation.rosetta.yaciindexer.indexmanagement.IndexLifecycleState;
+
 /**
  * Liveness and readiness health indicator for the Yaci Indexer.
  *
@@ -39,6 +42,7 @@ public class YaciSyncHealthIndicator implements HealthIndicator {
 
     private final HealthService healthService;
     private final SyncStatusService syncStatusService;
+    private final RosettaIndexLifecycleService rosettaIndexLifecycleService;
 
     @Override
     public Health health() {
@@ -71,6 +75,15 @@ public class YaciSyncHealthIndicator implements HealthIndicator {
         if (!syncStatus.synced()) {
             return builder.down()
                     .withDetail("syncStatus", "Syncing")
+                    .build();
+        }
+
+        IndexLifecycleState indexState = rosettaIndexLifecycleService.getState();
+        builder.withDetail("indexLifecycleState", indexState);
+
+        if (indexState != IndexLifecycleState.READY) {
+            return builder.down()
+                    .withDetail("syncStatus", "Applying Indexes")
                     .build();
         }
 

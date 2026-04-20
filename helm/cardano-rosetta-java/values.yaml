@@ -302,7 +302,7 @@ global:
 ## Index applier job
 ## -----------------------------------------------------------------------
 indexApplier:
-  enabled: true
+  enabled: false
   # "automatic" (default): plain Job — runs with the release without needing helm hooks.
   #   Compatible with GitOps/ArgoCD (no --no-hooks needed).
   #   The job is auto-cleaned after 24h via ttlSecondsAfterFinished.

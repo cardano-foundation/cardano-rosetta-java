@@ -50,7 +50,7 @@ services:
       - ${YACI_INDEXER_PORT}:9095
     restart: always
     healthcheck:
-      test: [ "CMD-SHELL", "curl -sf http://localhost:9095/actuator/health/startup || exit 1" ]
+      test: [ "CMD-SHELL", "curl -sf http://localhost:9095/actuator/health/readiness || exit 1" ]
       interval: 10s
       retries: 360
       start_period: 30s
