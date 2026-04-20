@@ -106,7 +106,7 @@ Set `global.profile` to one of: `entry`, `mid`, `advanced`.
 | `rosetta-api.replicaCount` | `1` | — | Number of API replicas |
 | `rosetta-api.env.httpConnectTimeoutSeconds` | `5` | `HTTP_CONNECT_TIMEOUT_SECONDS` | HTTP client connect timeout |
 | `rosetta-api.env.httpRequestTimeoutSeconds` | `5` | `HTTP_REQUEST_TIMEOUT_SECONDS` | HTTP client request timeout |
-| `rosetta-api.env.syncGraceSlotsCount` | `100` | `SYNC_GRACE_SLOTS_COUNT` | Slots behind tip before reporting out-of-sync |
+| `rosetta-api.env.syncGraceSlotsCount` | `200` | `SYNC_GRACE_SLOTS_COUNT` | Slots behind tip before reporting out-of-sync |
 | `rosetta-api.env.removeSpentUtxos` | `true` | `REMOVE_SPENT_UTXOS` | Must match yaci-indexer setting |
 | `rosetta-api.env.removeSpentUtxosLastBlocksGraceCount` | `129600` | `REMOVE_SPENT_UTXOS_LAST_BLOCKS_GRACE_COUNT` | Must match yaci-indexer setting |
 | `rosetta-api.env.blockTransactionApiTimeoutSecs` | `120` | `BLOCK_TRANSACTION_API_TIMEOUT_SECS` | Timeout for block queries |
