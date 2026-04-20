@@ -14,6 +14,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.Status;
 
+import org.cardanofoundation.rosetta.yaciindexer.indexmanagement.IndexLifecycleState;
+import org.cardanofoundation.rosetta.yaciindexer.indexmanagement.RosettaIndexLifecycleService;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
@@ -25,6 +28,9 @@ class YaciSyncHealthIndicatorTest {
 
     @Mock
     private SyncStatusService syncStatusService;
+
+    @Mock
+    private RosettaIndexLifecycleService rosettaIndexLifecycleService;
 
     @InjectMocks
     private YaciSyncHealthIndicator indicator;
@@ -73,6 +79,7 @@ class YaciSyncHealthIndicatorTest {
             when(healthService.getHealthStatus())
                     .thenReturn(buildStatus(true, false, true, 5_000L));
             when(syncStatusService.getSyncStatus()).thenReturn(syncedStatus());
+            when(rosettaIndexLifecycleService.getState()).thenReturn(IndexLifecycleState.READY);
 
             Health health = indicator.health();
 
@@ -85,6 +92,7 @@ class YaciSyncHealthIndicatorTest {
             when(healthService.getHealthStatus())
                     .thenReturn(buildStatus(true, false, true, 5_000L));
             when(syncStatusService.getSyncStatus()).thenReturn(syncedStatus());
+            when(rosettaIndexLifecycleService.getState()).thenReturn(IndexLifecycleState.READY);
 
             Health health = indicator.health();
 
@@ -227,6 +235,55 @@ class YaciSyncHealthIndicatorTest {
 
             assertThat(health.getDetails())
                     .containsEntry("syncStatus", "Scheduled to stop");
+        }
+    }
+
+    @Nested
+    @DisplayName("When synced but indexes are not ready")
+    class WhenSyncedButIndexesNotReady {
+
+        @Test
+        @DisplayName("health() returns DOWN when index state is APPLYING")
+        void returnsDownWhenApplying() {
+            when(healthService.getHealthStatus())
+                    .thenReturn(buildStatus(true, false, true, 5_000L));
+            when(syncStatusService.getSyncStatus()).thenReturn(syncedStatus());
+            when(rosettaIndexLifecycleService.getState()).thenReturn(IndexLifecycleState.APPLYING);
+
+            Health health = indicator.health();
+
+            assertThat(health.getStatus()).isEqualTo(Status.DOWN);
+            assertThat(health.getDetails())
+                    .containsEntry("syncStatus", "Applying Indexes")
+                    .containsEntry("indexLifecycleState", IndexLifecycleState.APPLYING);
+        }
+
+        @Test
+        @DisplayName("health() returns DOWN when index state is PENDING")
+        void returnsDownWhenPending() {
+            when(healthService.getHealthStatus())
+                    .thenReturn(buildStatus(true, false, true, 5_000L));
+            when(syncStatusService.getSyncStatus()).thenReturn(syncedStatus());
+            when(rosettaIndexLifecycleService.getState()).thenReturn(IndexLifecycleState.PENDING);
+
+            Health health = indicator.health();
+
+            assertThat(health.getStatus()).isEqualTo(Status.DOWN);
+        }
+
+        @Test
+        @DisplayName("health() returns DOWN when index state is FAILED")
+        void returnsDownWhenFailed() {
+            when(healthService.getHealthStatus())
+                    .thenReturn(buildStatus(true, false, true, 5_000L));
+            when(syncStatusService.getSyncStatus()).thenReturn(syncedStatus());
+            when(rosettaIndexLifecycleService.getState()).thenReturn(IndexLifecycleState.FAILED);
+
+            Health health = indicator.health();
+
+            assertThat(health.getStatus()).isEqualTo(Status.DOWN);
+            assertThat(health.getDetails())
+                    .containsEntry("indexLifecycleState", IndexLifecycleState.FAILED);
         }
     }
 }
