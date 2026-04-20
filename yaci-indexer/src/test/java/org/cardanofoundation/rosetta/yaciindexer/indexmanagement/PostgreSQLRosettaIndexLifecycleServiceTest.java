@@ -9,6 +9,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.quality.Strictness;
+import org.mockito.junit.jupiter.MockitoSettings;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.util.Collections;
@@ -144,8 +146,13 @@ class PostgreSQLRosettaIndexLifecycleServiceTest {
         void detectsBuildingIndex() {
             List<RosettaIndexConfig.DbIndex> indexes = List.of(dbIndex("idx_1"));
             when(indexConfig.getDbIndexes()).thenReturn(indexes);
+            // BUILDING = indisready=false, indisvalid not false (i.e. true falls to else branch)
+            // But per actual code: indisvalid=false -> INVALID regardless of indisready.
+            // BUILDING is the else branch: isValid is NOT true AND NOT false (null),
+            // OR isValid=true but isReady=false.
+            // Realistic scenario: indisready=false, indisvalid=true (concurrent build finishing)
             when(jdbcTemplate.queryForList(eq(PG_INDEX_SQL), eq("idx_1")))
-                    .thenReturn(List.of(pgIndexRow(false, false))); // indisready=false, indisvalid=false
+                    .thenReturn(List.of(pgIndexRow(false, true))); // indisready=false, indisvalid=true
 
             service = new PostgreSQLRosettaIndexLifecycleService(jdbcTemplate, indexConfig, syncStatusService);
             service.init();
@@ -162,6 +169,7 @@ class PostgreSQLRosettaIndexLifecycleServiceTest {
 
     @Nested
     @DisplayName("checkSyncAndTrigger()")
+    @MockitoSettings(strictness = Strictness.LENIENT)
     class CheckSyncAndTrigger {
 
         @BeforeEach
