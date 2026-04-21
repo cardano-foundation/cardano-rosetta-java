@@ -7,6 +7,7 @@ RUN apt update --fix-missing \
     && apt install -y --no-install-recommends \
         automake build-essential pkg-config libffi-dev libgmp-dev libssl-dev libncurses-dev libsystemd-dev zlib1g-dev make \
         g++ tmux git jq wget libncursesw5-dev libtool autoconf liblmdb-dev curl ca-certificates \
+        liburing-dev libsnappy-dev protobuf-compiler \
     && apt-get clean
 
 # Install ghcup
@@ -23,7 +24,7 @@ ARG LMDB_VERSION="ce20108"
 ARG CABAL_VERSION=${CABAL_VERSION:-3.12.1.0}
 ARG GHC_VERSION=${GHC_VERSION:-9.6.7}
 
-ARG CARDANO_NODE_VERSION=${CARDANO_NODE_VERSION:-10.5.3}
+ARG CARDANO_NODE_VERSION=${CARDANO_NODE_VERSION:-10.7.1}
 
 RUN bash -c "ghcup install cabal ${CABAL_VERSION}"
 RUN bash -c "ghcup set cabal ${CABAL_VERSION}"
@@ -114,9 +115,7 @@ RUN git clone https://github.com/intersectmbo/cardano-node.git \
 WORKDIR /usr/local/src/cardano-node
 
 RUN bash -c "cabal update"
-RUN bash -c "cabal build all"
-RUN bash -c "cabal build cardano-cli"
-RUN bash -c "cabal build cardano-submit-api"
+RUN bash -c "cabal build cardano-node cardano-cli cardano-submit-api"
 
 RUN mkdir -p /root/.local/bin \
     && cp -p "$(./scripts/bin-path.sh cardano-node)" /root/.local/bin/ \
@@ -126,10 +125,10 @@ RUN mkdir -p /root/.local/bin \
 
 FROM ubuntu:24.04 AS node-runner
 
-RUN apt-get update && apt-get install -y jq bc && apt-get clean
+RUN apt-get update && apt-get install -y jq bc liburing2 libsnappy1v5 && apt-get clean
 COPY --from=cardano-builder /usr/local/lib /usr/local/lib
 COPY --from=cardano-builder /root/.local/bin/cardano-* /usr/local/bin/
-COPY --from=cardano-builder /usr/local/src/cardano-node/cardano-submit-api/config/tx-submit-mainnet-config.yaml /cardano-submit-api-config/cardano-submit-api.yaml
+COPY ./docker/dockerfiles/node/tx-submit-config.yaml /cardano-submit-api-config/cardano-submit-api.yaml
 
 # Link libsodium library
 COPY --from=cardano-builder --chown=root:root /usr/local/lib/libsodium.so /usr/local/lib

@@ -1,0 +1,10 @@
+EnableLogMetrics: False
+EnableLogging: True
+
+TraceOptions:
+  "":
+    backends:
+      - EKGBackend
+      - "Stdout HumanFormatColoured"
+    detail: DNormal
+    severity: Info
