@@ -2,17 +2,17 @@ package org.cardanofoundation.rosetta.yaciindexer.indexmanagement;
 
 import com.bloxbean.cardano.yaci.store.adminui.dto.SyncStatusDto;
 import com.bloxbean.cardano.yaci.store.adminui.service.SyncStatusService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.quality.Strictness;
-import org.mockito.junit.jupiter.MockitoSettings;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.Statement;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +29,15 @@ class PostgreSQLRosettaIndexLifecycleServiceTest {
     private JdbcTemplate jdbcTemplate;
 
     @Mock
+    private DataSource dataSource;
+
+    @Mock
+    private Connection connection;
+
+    @Mock
+    private Statement statement;
+
+    @Mock
     private RosettaIndexConfig indexConfig;
 
     @Mock
@@ -36,10 +45,12 @@ class PostgreSQLRosettaIndexLifecycleServiceTest {
 
     private PostgreSQLRosettaIndexLifecycleService service;
 
+    // Updated to match the new schema-filtered SQL (Issue #4)
     private static final String PG_INDEX_SQL =
-            "SELECT indisready, indisvalid FROM pg_index i " +
+            "SELECT i.indisready, i.indisvalid FROM pg_index i " +
             "JOIN pg_class c ON c.oid = i.indexrelid " +
-            "WHERE c.relname = ?";
+            "JOIN pg_namespace n ON n.oid = c.relnamespace " +
+            "WHERE c.relname = ? AND n.nspname = current_schema()";
 
     // ---------------------------------------------------------------------------
     // Helpers
@@ -62,6 +73,22 @@ class PostgreSQLRosettaIndexLifecycleServiceTest {
         assertEquals(expected, service.getState(), "Timed out waiting for state " + expected);
     }
 
+    /**
+     * Sets up the DataSource mock chain so that executeWithAutoCommit() works in tests.
+     * Must be called before triggerIndexing() in any test that expects index creation.
+     * Uses lenient() because the index executor runs asynchronously — Mockito's strict
+     * stubbing check may fire before the background thread consumes these stubs.
+     */
+    private void setupDataSourceMock() throws Exception {
+        lenient().when(dataSource.getConnection()).thenReturn(connection);
+        lenient().when(connection.createStatement()).thenReturn(statement);
+    }
+
+    private PostgreSQLRosettaIndexLifecycleService createService() {
+        when(jdbcTemplate.getDataSource()).thenReturn(dataSource);
+        return new PostgreSQLRosettaIndexLifecycleService(jdbcTemplate, indexConfig, syncStatusService);
+    }
+
     // ---------------------------------------------------------------------------
     // Init Tests
     // ---------------------------------------------------------------------------
@@ -75,7 +102,7 @@ class PostgreSQLRosettaIndexLifecycleServiceTest {
         void readyWhenNoIndexes() {
             when(indexConfig.getDbIndexes()).thenReturn(null);
 
-            service = new PostgreSQLRosettaIndexLifecycleService(jdbcTemplate, indexConfig, syncStatusService);
+            service = createService();
             service.init();
 
             assertEquals(IndexLifecycleState.READY, service.getState());
@@ -86,7 +113,7 @@ class PostgreSQLRosettaIndexLifecycleServiceTest {
         void readyWhenEmptyList() {
             when(indexConfig.getDbIndexes()).thenReturn(Collections.emptyList());
 
-            service = new PostgreSQLRosettaIndexLifecycleService(jdbcTemplate, indexConfig, syncStatusService);
+            service = createService();
             service.init();
 
             assertEquals(IndexLifecycleState.READY, service.getState());
@@ -102,7 +129,7 @@ class PostgreSQLRosettaIndexLifecycleServiceTest {
             when(jdbcTemplate.queryForList(eq(PG_INDEX_SQL), eq("idx_2")))
                     .thenReturn(List.of(pgIndexRow(true, true)));
 
-            service = new PostgreSQLRosettaIndexLifecycleService(jdbcTemplate, indexConfig, syncStatusService);
+            service = createService();
             service.init();
 
             assertEquals(IndexLifecycleState.READY, service.getState());
@@ -119,7 +146,7 @@ class PostgreSQLRosettaIndexLifecycleServiceTest {
             when(jdbcTemplate.queryForList(eq(PG_INDEX_SQL), eq("idx_2")))
                     .thenReturn(Collections.emptyList()); // MISSING
 
-            service = new PostgreSQLRosettaIndexLifecycleService(jdbcTemplate, indexConfig, syncStatusService);
+            service = createService();
             service.init();
 
             assertEquals(IndexLifecycleState.PENDING, service.getState());
@@ -133,7 +160,7 @@ class PostgreSQLRosettaIndexLifecycleServiceTest {
             when(jdbcTemplate.queryForList(eq(PG_INDEX_SQL), eq("idx_1")))
                     .thenReturn(List.of(pgIndexRow(true, false))); // indisvalid=false
 
-            service = new PostgreSQLRosettaIndexLifecycleService(jdbcTemplate, indexConfig, syncStatusService);
+            service = createService();
             service.init();
 
             assertEquals(IndexLifecycleState.PENDING, service.getState());
@@ -146,15 +173,11 @@ class PostgreSQLRosettaIndexLifecycleServiceTest {
         void detectsBuildingIndex() {
             List<RosettaIndexConfig.DbIndex> indexes = List.of(dbIndex("idx_1"));
             when(indexConfig.getDbIndexes()).thenReturn(indexes);
-            // BUILDING = indisready=false, indisvalid not false (i.e. true falls to else branch)
-            // But per actual code: indisvalid=false -> INVALID regardless of indisready.
-            // BUILDING is the else branch: isValid is NOT true AND NOT false (null),
-            // OR isValid=true but isReady=false.
-            // Realistic scenario: indisready=false, indisvalid=true (concurrent build finishing)
+            // BUILDING: indisready=false, indisvalid=true (concurrent build finishing)
             when(jdbcTemplate.queryForList(eq(PG_INDEX_SQL), eq("idx_1")))
-                    .thenReturn(List.of(pgIndexRow(false, true))); // indisready=false, indisvalid=true
+                    .thenReturn(List.of(pgIndexRow(false, true)));
 
-            service = new PostgreSQLRosettaIndexLifecycleService(jdbcTemplate, indexConfig, syncStatusService);
+            service = createService();
             service.init();
 
             assertEquals(IndexLifecycleState.PENDING, service.getState());
@@ -165,27 +188,25 @@ class PostgreSQLRosettaIndexLifecycleServiceTest {
 
     // ---------------------------------------------------------------------------
     // checkSyncAndTrigger Tests
+    // Issue #14: Removed @MockitoSettings(strictness = LENIENT) — each test now
+    // sets up only the stubs it needs.
     // ---------------------------------------------------------------------------
 
     @Nested
     @DisplayName("checkSyncAndTrigger()")
-    @MockitoSettings(strictness = Strictness.LENIENT)
     class CheckSyncAndTrigger {
 
-        @BeforeEach
-        void setUp() {
+        @Test
+        @DisplayName("should not trigger when sync is not complete")
+        void doesNotTriggerWhenNotSynced() {
             List<RosettaIndexConfig.DbIndex> indexes = List.of(dbIndex("idx_1"));
             when(indexConfig.getDbIndexes()).thenReturn(indexes);
             when(jdbcTemplate.queryForList(eq(PG_INDEX_SQL), eq("idx_1")))
                     .thenReturn(Collections.emptyList());
 
-            service = new PostgreSQLRosettaIndexLifecycleService(jdbcTemplate, indexConfig, syncStatusService);
+            service = createService();
             service.init();
-        }
 
-        @Test
-        @DisplayName("should not trigger when sync is not complete")
-        void doesNotTriggerWhenNotSynced() {
             SyncStatusDto dto = SyncStatusDto.builder().synced(false).build();
             when(syncStatusService.getSyncStatus()).thenReturn(dto);
 
@@ -196,19 +217,38 @@ class PostgreSQLRosettaIndexLifecycleServiceTest {
 
         @Test
         @DisplayName("should trigger indexing when sync is complete")
-        void triggersWhenSynced() {
+        void triggersWhenSynced() throws Exception {
+            List<RosettaIndexConfig.DbIndex> indexes = List.of(dbIndex("idx_1"));
+            when(indexConfig.getDbIndexes()).thenReturn(indexes);
+            when(jdbcTemplate.queryForList(eq(PG_INDEX_SQL), eq("idx_1")))
+                    .thenReturn(Collections.emptyList());
+
+            service = createService();
+            service.init();
+
             SyncStatusDto dto = SyncStatusDto.builder().synced(true).build();
             when(syncStatusService.getSyncStatus()).thenReturn(dto);
 
-            // After trigger, queryIndexState will be called again during indexing thread
-            when(jdbcTemplate.queryForList(eq(PG_INDEX_SQL), eq("idx_1")))
-                    .thenReturn(Collections.emptyList())   // MISSING check in triggerIndexing
-                    .thenReturn(List.of(pgIndexRow(true, true))); // Final check
+            setupDataSourceMock();
 
             service.checkSyncAndTrigger();
 
             // State should transition from PENDING to APPLYING (at minimum)
             assertNotEquals(IndexLifecycleState.PENDING, service.getState());
+        }
+
+        @Test
+        @DisplayName("should skip check when state is READY")
+        void skipsWhenReady() {
+            when(indexConfig.getDbIndexes()).thenReturn(null);
+
+            service = createService();
+            service.init(); // Sets READY because no indexes
+
+            service.checkSyncAndTrigger();
+
+            // syncStatusService should never be called
+            verifyNoInteractions(syncStatusService);
         }
     }
 
@@ -222,7 +262,7 @@ class PostgreSQLRosettaIndexLifecycleServiceTest {
 
         @Test
         @DisplayName("should create missing indexes and transition to READY")
-        void createsIndexesAndBecomesReady() throws InterruptedException {
+        void createsIndexesAndBecomesReady() throws Exception {
             List<RosettaIndexConfig.DbIndex> indexes = List.of(dbIndex("idx_1"), dbIndex("idx_2"));
             when(indexConfig.getDbIndexes()).thenReturn(indexes);
 
@@ -232,17 +272,17 @@ class PostgreSQLRosettaIndexLifecycleServiceTest {
             when(jdbcTemplate.queryForList(eq(PG_INDEX_SQL), eq("idx_2")))
                     .thenReturn(Collections.emptyList());
 
-            service = new PostgreSQLRosettaIndexLifecycleService(jdbcTemplate, indexConfig, syncStatusService);
+            service = createService();
             service.init();
             assertEquals(IndexLifecycleState.PENDING, service.getState());
 
-            // During triggerIndexing: MISSING -> execute CREATE -> final check READY
+            // During triggerIndexing: MISSING -> executeWithAutoCommit -> READY
             when(jdbcTemplate.queryForList(eq(PG_INDEX_SQL), eq("idx_1")))
-                    .thenReturn(Collections.emptyList())            // check in loop
-                    .thenReturn(List.of(pgIndexRow(true, true)));   // final check
+                    .thenReturn(Collections.emptyList());
             when(jdbcTemplate.queryForList(eq(PG_INDEX_SQL), eq("idx_2")))
-                    .thenReturn(Collections.emptyList())            // check in loop
-                    .thenReturn(List.of(pgIndexRow(true, true)));   // final check
+                    .thenReturn(Collections.emptyList());
+
+            setupDataSourceMock();
 
             service.triggerIndexing();
             waitForState(IndexLifecycleState.READY, 5000);
@@ -253,7 +293,7 @@ class PostgreSQLRosettaIndexLifecycleServiceTest {
 
         @Test
         @DisplayName("should drop INVALID index before rebuilding")
-        void dropsInvalidIndexBeforeRebuild() throws InterruptedException {
+        void dropsInvalidIndexBeforeRebuild() throws Exception {
             List<RosettaIndexConfig.DbIndex> indexes = List.of(dbIndex("idx_bad"));
             when(indexConfig.getDbIndexes()).thenReturn(indexes);
 
@@ -261,14 +301,15 @@ class PostgreSQLRosettaIndexLifecycleServiceTest {
             when(jdbcTemplate.queryForList(eq(PG_INDEX_SQL), eq("idx_bad")))
                     .thenReturn(List.of(pgIndexRow(true, false)));
 
-            service = new PostgreSQLRosettaIndexLifecycleService(jdbcTemplate, indexConfig, syncStatusService);
+            service = createService();
             service.init();
             assertEquals(IndexLifecycleState.PENDING, service.getState());
 
-            // During triggerIndexing: INVALID -> DROP -> MISSING -> CREATE -> final check READY
+            // During triggerIndexing: INVALID -> DROP -> MISSING -> CREATE -> READY
             when(jdbcTemplate.queryForList(eq(PG_INDEX_SQL), eq("idx_bad")))
-                    .thenReturn(List.of(pgIndexRow(true, false)))   // check in loop: INVALID
-                    .thenReturn(List.of(pgIndexRow(true, true)));   // final check
+                    .thenReturn(List.of(pgIndexRow(true, false)));
+
+            setupDataSourceMock();
 
             service.triggerIndexing();
             waitForState(IndexLifecycleState.READY, 5000);
@@ -277,9 +318,37 @@ class PostgreSQLRosettaIndexLifecycleServiceTest {
             assertEquals(IndexLifecycleState.READY, service.getState());
         }
 
+        // Issue #2: Test that BUILDING state (from prior JVM crash) is treated like INVALID
+        @Test
+        @DisplayName("should drop BUILDING index (from prior crash) before rebuilding")
+        void dropsBuildingIndexBeforeRebuild() throws Exception {
+            List<RosettaIndexConfig.DbIndex> indexes = List.of(dbIndex("idx_stale"));
+            when(indexConfig.getDbIndexes()).thenReturn(indexes);
+
+            // init: BUILDING (indisready=false, indisvalid=true)
+            when(jdbcTemplate.queryForList(eq(PG_INDEX_SQL), eq("idx_stale")))
+                    .thenReturn(List.of(pgIndexRow(false, true)));
+
+            service = createService();
+            service.init();
+            assertEquals(IndexLifecycleState.PENDING, service.getState());
+
+            // During triggerIndexing: BUILDING -> DROP -> MISSING -> CREATE -> READY
+            when(jdbcTemplate.queryForList(eq(PG_INDEX_SQL), eq("idx_stale")))
+                    .thenReturn(List.of(pgIndexRow(false, true)));
+
+            setupDataSourceMock();
+
+            service.triggerIndexing();
+            waitForState(IndexLifecycleState.READY, 5000);
+
+            verify(jdbcTemplate).execute("DROP INDEX IF EXISTS idx_stale");
+            assertEquals(IndexLifecycleState.READY, service.getState());
+        }
+
         @Test
         @DisplayName("should transition to FAILED when index creation throws exception")
-        void failsOnCreateException() throws InterruptedException {
+        void failsOnCreateException() throws Exception {
             List<RosettaIndexConfig.DbIndex> indexes = List.of(dbIndex("idx_fail"));
             when(indexConfig.getDbIndexes()).thenReturn(indexes);
 
@@ -287,14 +356,15 @@ class PostgreSQLRosettaIndexLifecycleServiceTest {
             when(jdbcTemplate.queryForList(eq(PG_INDEX_SQL), eq("idx_fail")))
                     .thenReturn(Collections.emptyList());
 
-            service = new PostgreSQLRosettaIndexLifecycleService(jdbcTemplate, indexConfig, syncStatusService);
+            service = createService();
             service.init();
 
-            // During triggerIndexing: MISSING -> execute throws
+            // During triggerIndexing: MISSING -> executeWithAutoCommit throws
             when(jdbcTemplate.queryForList(eq(PG_INDEX_SQL), eq("idx_fail")))
                     .thenReturn(Collections.emptyList());
-            doThrow(new RuntimeException("Out of disk space"))
-                    .when(jdbcTemplate).execute(anyString());
+
+            setupDataSourceMock();
+            when(statement.execute(anyString())).thenThrow(new RuntimeException("Out of disk space"));
 
             service.triggerIndexing();
             waitForState(IndexLifecycleState.FAILED, 5000);
@@ -304,7 +374,7 @@ class PostgreSQLRosettaIndexLifecycleServiceTest {
 
         @Test
         @DisplayName("should skip already READY indexes during indexing")
-        void skipsReadyIndexes() throws InterruptedException {
+        void skipsReadyIndexes() throws Exception {
             List<RosettaIndexConfig.DbIndex> indexes = List.of(dbIndex("idx_ok"), dbIndex("idx_new"));
             when(indexConfig.getDbIndexes()).thenReturn(indexes);
 
@@ -314,7 +384,7 @@ class PostgreSQLRosettaIndexLifecycleServiceTest {
             when(jdbcTemplate.queryForList(eq(PG_INDEX_SQL), eq("idx_new")))
                     .thenReturn(Collections.emptyList());
 
-            service = new PostgreSQLRosettaIndexLifecycleService(jdbcTemplate, indexConfig, syncStatusService);
+            service = createService();
             service.init();
             assertEquals(IndexLifecycleState.PENDING, service.getState());
 
@@ -322,27 +392,29 @@ class PostgreSQLRosettaIndexLifecycleServiceTest {
             when(jdbcTemplate.queryForList(eq(PG_INDEX_SQL), eq("idx_ok")))
                     .thenReturn(List.of(pgIndexRow(true, true)));   // check in loop: READY, skip
             when(jdbcTemplate.queryForList(eq(PG_INDEX_SQL), eq("idx_new")))
-                    .thenReturn(Collections.emptyList())            // check in loop: MISSING
-                    .thenReturn(List.of(pgIndexRow(true, true)));   // final check
+                    .thenReturn(Collections.emptyList());           // check in loop: MISSING
+
+            setupDataSourceMock();
 
             service.triggerIndexing();
             waitForState(IndexLifecycleState.READY, 5000);
 
-            // Only idx_new's CREATE should have been executed
-            verify(jdbcTemplate, times(1)).execute(anyString());
+            // Only idx_new's CREATE should have been executed via raw connection
+            verify(statement, times(1)).execute(anyString());
         }
 
         @Test
         @DisplayName("should not trigger twice (compareAndSet guard)")
-        void doesNotTriggerTwice() {
+        void doesNotTriggerTwice() throws Exception {
             List<RosettaIndexConfig.DbIndex> indexes = List.of(dbIndex("idx_1"));
             when(indexConfig.getDbIndexes()).thenReturn(indexes);
             when(jdbcTemplate.queryForList(eq(PG_INDEX_SQL), eq("idx_1")))
-                    .thenReturn(Collections.emptyList())
-                    .thenReturn(List.of(pgIndexRow(true, true)));
+                    .thenReturn(Collections.emptyList());
 
-            service = new PostgreSQLRosettaIndexLifecycleService(jdbcTemplate, indexConfig, syncStatusService);
+            service = createService();
             service.init();
+
+            setupDataSourceMock();
 
             service.triggerIndexing(); // first call: PENDING -> APPLYING
             service.triggerIndexing(); // second call: should be no-op

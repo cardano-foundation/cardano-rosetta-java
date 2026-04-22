@@ -32,7 +32,7 @@ class RosettaIndexStallIndicatorTest {
             Health health = indicator.health();
 
             assertEquals(Status.UP, health.getStatus());
-            assertEquals(IndexLifecycleState.PENDING, health.getDetails().get("indexLifecycleState"));
+            assertEquals("PENDING", health.getDetails().get("indexLifecycleState"));
         }
 
         @Test

@@ -53,5 +53,32 @@ class RosettaIndexesEndpointTest {
             assertEquals(1, snapshot.totalMissing());
             assertEquals(1, snapshot.totalFailed());
         }
+
+        @Test
+        void shouldReturnCorrectProgressSnapshotWhenAllReady() {
+            // Arrange — SC-004: all indexes pre-exist
+            Instant lastProgress = Instant.now();
+            when(lifecycleService.getState()).thenReturn(IndexLifecycleState.READY);
+            when(lifecycleService.getLastProgressAt()).thenReturn(lastProgress);
+
+            List<IndexItemStatus> statuses = List.of(
+                    new IndexItemStatus("idx_1", IndexItemState.READY, null),
+                    new IndexItemStatus("idx_2", IndexItemState.READY, null),
+                    new IndexItemStatus("idx_3", IndexItemState.READY, null)
+            );
+            when(lifecycleService.getIndexStatus()).thenReturn(statuses);
+
+            // Act
+            RosettaIndexProgressSnapshot snapshot = endpoint.getRosettaIndexProgress();
+
+            // Assert
+            assertEquals(IndexLifecycleState.READY, snapshot.overallState());
+            assertEquals(statuses, snapshot.indexes());
+            assertEquals(lastProgress, snapshot.lastProgressAt());
+            assertEquals(3, snapshot.totalRequired());
+            assertEquals(3, snapshot.totalReady());
+            assertEquals(0, snapshot.totalMissing());
+            assertEquals(0, snapshot.totalFailed());
+        }
     }
 }

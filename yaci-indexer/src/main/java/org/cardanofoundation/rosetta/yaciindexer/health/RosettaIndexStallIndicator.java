@@ -28,18 +28,18 @@ public class RosettaIndexStallIndicator implements HealthIndicator {
         Instant lastProgress = lifecycleService.getLastProgressAt();
 
         if (state != IndexLifecycleState.APPLYING) {
-            return Health.up().withDetail("indexLifecycleState", state).build();
+            return Health.up().withDetail("indexLifecycleState", state.name()).build();
         }
 
         if (lastProgress == null) {
-            return Health.up().withDetail("indexLifecycleState", state).withDetail("status", "Starting").build();
+            return Health.up().withDetail("indexLifecycleState", state.name()).withDetail("status", "Starting").build();
         }
 
         long minutesSinceLastProgress = Duration.between(lastProgress, Instant.now()).toMinutes();
 
         if (minutesSinceLastProgress >= stallTimeoutMinutes) {
             return Health.down()
-                    .withDetail("indexLifecycleState", state)
+                    .withDetail("indexLifecycleState", state.name())
                     .withDetail("error", "Index creation stalled")
                     .withDetail("minutesSinceLastProgress", minutesSinceLastProgress)
                     .withDetail("stallTimeoutMinutes", stallTimeoutMinutes)
@@ -47,7 +47,7 @@ public class RosettaIndexStallIndicator implements HealthIndicator {
         }
 
         return Health.up()
-                .withDetail("indexLifecycleState", state)
+                .withDetail("indexLifecycleState", state.name())
                 .withDetail("minutesSinceLastProgress", minutesSinceLastProgress)
                 .build();
     }

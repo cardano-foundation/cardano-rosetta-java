@@ -1,10 +1,9 @@
 package org.cardanofoundation.rosetta.yaciindexer.indexmanagement;
 
-import jakarta.annotation.Nullable;
-import jakarta.validation.constraints.NotNull;
+import javax.annotation.Nullable;
 
 public record IndexItemStatus(
-    @NotNull String name,
-    @NotNull IndexItemState state,
+    String name,
+    IndexItemState state,
     @Nullable String errorMessage
 ) {}

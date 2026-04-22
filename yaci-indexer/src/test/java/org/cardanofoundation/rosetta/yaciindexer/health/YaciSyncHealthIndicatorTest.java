@@ -255,7 +255,7 @@ class YaciSyncHealthIndicatorTest {
             assertThat(health.getStatus()).isEqualTo(Status.DOWN);
             assertThat(health.getDetails())
                     .containsEntry("syncStatus", "Applying Indexes")
-                    .containsEntry("indexLifecycleState", IndexLifecycleState.APPLYING);
+                    .containsEntry("indexLifecycleState", IndexLifecycleState.APPLYING.name());
         }
 
         @Test
@@ -283,7 +283,7 @@ class YaciSyncHealthIndicatorTest {
 
             assertThat(health.getStatus()).isEqualTo(Status.DOWN);
             assertThat(health.getDetails())
-                    .containsEntry("indexLifecycleState", IndexLifecycleState.FAILED);
+                    .containsEntry("indexLifecycleState", IndexLifecycleState.FAILED.name());
         }
     }
 }

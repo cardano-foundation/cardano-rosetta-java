@@ -52,7 +52,7 @@ services:
     healthcheck:
       test: [ "CMD-SHELL", "curl -sf http://localhost:9095/actuator/health/readiness || exit 1" ]
       interval: 10s
-      retries: 360
+      retries: 1080
       start_period: 30s
       timeout: 5s
     depends_on:

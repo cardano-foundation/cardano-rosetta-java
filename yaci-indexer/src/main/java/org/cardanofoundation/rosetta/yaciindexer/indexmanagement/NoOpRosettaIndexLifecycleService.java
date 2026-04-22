@@ -23,7 +23,7 @@ public class NoOpRosettaIndexLifecycleService implements RosettaIndexLifecycleSe
 
     @Override
     public Instant getLastProgressAt() {
-        return Instant.now();
+        return Instant.EPOCH;
     }
 
     @Override
