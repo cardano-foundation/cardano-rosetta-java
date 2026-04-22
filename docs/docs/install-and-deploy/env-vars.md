@@ -50,7 +50,7 @@ Hardware profile files should be used **in combination** with a base `.env.docke
 | `DB_PATH`                                     | Database path                                                         | /opt/cardano-rosetta-java/mainnet/sql_data | added in release 1.0.0  |
 | `CARDANO_NODE_HOST`                           | Cardano node host                                                     | cardano-node                           | added in release 1.0.0  |
 | `CARDANO_NODE_PORT`                           | Cardano node port                                                     | 3001                                   | added in release 1.0.0  |
-| `CARDANO_NODE_VERSION`                        | Cardano node version                                                  | 10.5.4                                 | added in release 1.0.0  |
+| `CARDANO_NODE_VERSION`                        | Cardano node version                                                  | 10.7.1                                 | added in release 1.0.0  |
 | `CARDANO_NODE_SUBMIT_HOST`                    | Cardano node submit API host                                          | cardano-submit-api                     | added in release 1.0.0  |
 | `NODE_SUBMIT_API_PORT`                        | Cardano node submit API port                                          | 8090                                   | added in release 1.0.0  |
 | `CARDANO_NODE_DIR`                            | Cardano node base directory                                           | /node                                  | added in release 1.0.0  |
@@ -63,7 +63,7 @@ Hardware profile files should be used **in combination** with a base `.env.docke
 | `AGGREGATOR_ENDPOINT`                         | Mithril aggregator endpoint (uses default if not set)                 | (empty)                                | added in release 1.0.0  |
 | `GENESIS_VERIFICATION_KEY`                    | Mithril genesis verification key (uses default if not set)            | (empty)                                | added in release 1.0.0  |
 | `ANCILLARY_VERIFICATION_KEY`                  | Mithril ancillary verification key (uses default if not set)          | (empty)                                | added in release 1.2.9  |
-| `RELEASE_VERSION`                             | Docker image tag for API and Indexer images                           | 2.1.2                                  | added in release 2.0.0  |
+| `RELEASE_VERSION`                             | Docker image tag for API and Indexer images                           | 2.2.0                                  | added in release 2.0.0  |
 | `API_SPRING_PROFILES_ACTIVE`                  | API spring profile                                                    | staging                                | added in release 1.0.0  |
 | `API_PORT`                                    | Rosetta API exposed port                                              | 8082                                   | added in release 1.0.0  |
 | `PRINT_EXCEPTION`                             | Print stack traces in error responses                                 | true                                   | added in release 1.0.0  |
