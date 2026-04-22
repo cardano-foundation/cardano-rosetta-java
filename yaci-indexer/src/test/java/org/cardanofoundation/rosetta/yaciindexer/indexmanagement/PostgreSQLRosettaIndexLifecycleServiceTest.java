@@ -86,6 +86,7 @@ class PostgreSQLRosettaIndexLifecycleServiceTest {
 
     private PostgreSQLRosettaIndexLifecycleService createService() {
         when(jdbcTemplate.getDataSource()).thenReturn(dataSource);
+        when(jdbcTemplate.queryForObject("SELECT current_schema()", String.class)).thenReturn("public");
         return new PostgreSQLRosettaIndexLifecycleService(jdbcTemplate, indexConfig, syncStatusService);
     }
 
@@ -314,7 +315,7 @@ class PostgreSQLRosettaIndexLifecycleServiceTest {
             service.triggerIndexing();
             waitForState(IndexLifecycleState.READY, 5000);
 
-            verify(jdbcTemplate).execute("DROP INDEX IF EXISTS idx_bad");
+            verify(jdbcTemplate).execute("DROP INDEX IF EXISTS public.idx_bad");
             assertEquals(IndexLifecycleState.READY, service.getState());
         }
 
@@ -342,7 +343,7 @@ class PostgreSQLRosettaIndexLifecycleServiceTest {
             service.triggerIndexing();
             waitForState(IndexLifecycleState.READY, 5000);
 
-            verify(jdbcTemplate).execute("DROP INDEX IF EXISTS idx_stale");
+            verify(jdbcTemplate).execute("DROP INDEX IF EXISTS public.idx_stale");
             assertEquals(IndexLifecycleState.READY, service.getState());
         }
 
@@ -370,6 +371,39 @@ class PostgreSQLRosettaIndexLifecycleServiceTest {
             waitForState(IndexLifecycleState.FAILED, 5000);
 
             assertEquals(IndexLifecycleState.FAILED, service.getState());
+        }
+
+        @Test
+        @DisplayName("should continue building remaining indexes when one fails (Tier 1.1)")
+        void continuesAfterSingleFailure() throws Exception {
+            List<RosettaIndexConfig.DbIndex> indexes = List.of(
+                    dbIndex("idx_fail"), dbIndex("idx_ok"));
+            when(indexConfig.getDbIndexes()).thenReturn(indexes);
+
+            when(jdbcTemplate.queryForList(eq(PG_INDEX_SQL), eq("idx_fail")))
+                    .thenReturn(Collections.emptyList());
+            when(jdbcTemplate.queryForList(eq(PG_INDEX_SQL), eq("idx_ok")))
+                    .thenReturn(Collections.emptyList());
+
+            service = createService();
+            service.init();
+
+            setupDataSourceMock();
+            // First statement call (idx_fail) throws; second (idx_ok) succeeds
+            when(statement.execute(anyString()))
+                    .thenThrow(new RuntimeException("disk full"))
+                    .thenReturn(false);
+
+            service.triggerIndexing();
+            waitForState(IndexLifecycleState.FAILED, 5000);
+
+            // Overall state is FAILED because one index failed
+            assertEquals(IndexLifecycleState.FAILED, service.getState());
+
+            // Both CREATE INDEX calls were attempted — idx_ok was not skipped when idx_fail threw.
+            // (getIndexStatus() re-queries live pg_index which the mock can't reflect mid-test,
+            // so we verify at the JDBC level instead.)
+            verify(statement, times(2)).execute(anyString());
         }
 
         @Test

@@ -49,7 +49,8 @@ public class PostgreSQLRosettaIndexLifecycleService implements RosettaIndexLifec
     private final RosettaIndexConfig indexConfig;
     private final SyncStatusService syncStatusService;
 
-    // Issue #6: Use a managed single-thread executor instead of raw Thread
+    private String currentSchema;
+
     private final ExecutorService indexExecutor = Executors.newSingleThreadExecutor(r -> {
         Thread t = new Thread(r, "RosettaIndexBuilder");
         t.setDaemon(true);
@@ -60,7 +61,6 @@ public class PostgreSQLRosettaIndexLifecycleService implements RosettaIndexLifec
     private final Map<String, IndexItemStatus> itemStatusMap = new ConcurrentHashMap<>();
     private final AtomicReference<Instant> lastProgressAt = new AtomicReference<>(null);
 
-    // Issue #4: SQL with schema filter to avoid cross-schema matches
     private static final String PG_INDEX_STATE_SQL =
             "SELECT i.indisready, i.indisvalid FROM pg_index i " +
             "JOIN pg_class c ON c.oid = i.indexrelid " +
@@ -79,6 +79,9 @@ public class PostgreSQLRosettaIndexLifecycleService implements RosettaIndexLifec
 
     @PostConstruct
     public void init() {
+        String schema = jdbcTemplate.queryForObject("SELECT current_schema()", String.class);
+        this.currentSchema = (schema != null) ? schema : "public";
+
         if (indexConfig.getDbIndexes() == null || indexConfig.getDbIndexes().isEmpty()) {
             state.set(IndexLifecycleState.READY);
             return;
@@ -105,7 +108,6 @@ public class PostgreSQLRosettaIndexLifecycleService implements RosettaIndexLifec
         return state.get();
     }
 
-    // Issue #3: Re-query pg_index for live status on each call instead of returning stale in-memory data
     @Override
     public List<IndexItemStatus> getIndexStatus() {
         if (indexConfig.getDbIndexes() == null || indexConfig.getDbIndexes().isEmpty()) {
@@ -130,7 +132,6 @@ public class PostgreSQLRosettaIndexLifecycleService implements RosettaIndexLifec
         return lastProgressAt.get();
     }
 
-    // Issue #7: Short-circuit with trace log for terminal states to reduce noise
     @Scheduled(fixedDelay = 30000)
     public void checkSyncAndTrigger() {
         IndexLifecycleState currentState = state.get();
@@ -153,46 +154,51 @@ public class PostgreSQLRosettaIndexLifecycleService implements RosettaIndexLifec
 
         lastProgressAt.set(Instant.now());
 
-        // Issue #6: Use managed executor instead of raw Thread
         indexExecutor.submit(this::executeIndexCreation);
     }
 
     private void executeIndexCreation() {
         try {
+            int failedCount = 0;
             for (RosettaIndexConfig.DbIndex dbIndex : indexConfig.getDbIndexes()) {
-                IndexItemState currentState = queryIndexState(dbIndex.name());
+                // Re-query pg_index per index so that any future retry path (e.g. manual re-trigger)
+                // always detects and drops invalid/building rows before re-attempting — never rely on
+                // cached state from a previous run.
+                IndexItemState currentItemState = queryIndexState(dbIndex.name());
 
-                // Issue #2: Treat BUILDING (from prior JVM crash) the same as INVALID — drop and rebuild
-                if (currentState == IndexItemState.INVALID || currentState == IndexItemState.BUILDING) {
-                    log.info("Index {} is {}. Dropping before rebuild.", dbIndex.name(), currentState);
-                    jdbcTemplate.execute("DROP INDEX IF EXISTS " + dbIndex.name());
-                    currentState = IndexItemState.MISSING;
+                // Treat BUILDING (from prior JVM crash) the same as INVALID — drop and rebuild.
+                // Schema-qualified drop (Tier 1.3) avoids matching wrong index in multi-schema DBs.
+                if (currentItemState == IndexItemState.INVALID || currentItemState == IndexItemState.BUILDING) {
+                    log.info("Index {} is {}. Dropping before rebuild.", dbIndex.name(), currentItemState);
+                    jdbcTemplate.execute("DROP INDEX IF EXISTS " + currentSchema + "." + dbIndex.name());
+                    currentItemState = IndexItemState.MISSING;
                 }
 
-                if (currentState == IndexItemState.MISSING) {
+                if (currentItemState == IndexItemState.MISSING) {
                     log.info("Building index: {}", dbIndex.name());
                     updateItemState(dbIndex.name(), IndexItemState.BUILDING, null);
 
                     try {
-                        // Issue #1: Use raw connection with explicit autoCommit=true
-                        // CREATE INDEX CONCURRENTLY cannot run inside a transaction block
                         executeWithAutoCommit(dbIndex.command());
                         updateItemState(dbIndex.name(), IndexItemState.READY, null);
                         log.info("Successfully built index: {}", dbIndex.name());
                     } catch (Exception e) {
                         log.error("Failed to build index: {}", dbIndex.name(), e);
                         updateItemState(dbIndex.name(), IndexItemState.FAILED, e.getMessage());
-                        state.set(IndexLifecycleState.FAILED);
-                        return;
+                        failedCount++;
+                        // Continue — remaining indexes are independent of this failure.
                     }
                 }
                 lastProgressAt.set(Instant.now());
             }
 
-            // Issue #13: Removed redundant final pg_index re-query.
-            // If execute() returned without exception, the index is READY.
-            state.set(IndexLifecycleState.READY);
-            log.info("All rosetta indexes are READY.");
+            if (failedCount == 0) {
+                state.set(IndexLifecycleState.READY);
+                log.info("All rosetta indexes are READY.");
+            } else {
+                state.set(IndexLifecycleState.FAILED);
+                log.warn("{} rosetta index(es) failed. See per-index status via /actuator/rosetta-indexes.", failedCount);
+            }
 
         } catch (Exception e) {
             log.error("Unexpected error during index creation", e);
@@ -201,10 +207,8 @@ public class PostgreSQLRosettaIndexLifecycleService implements RosettaIndexLifec
     }
 
     /**
-     * Issue #1: Execute SQL using a raw JDBC connection with explicit {@code autoCommit=true}.
-     * This is required because {@code CREATE INDEX CONCURRENTLY} cannot run inside a transaction block.
-     * Spring's {@link JdbcTemplate#execute(String)} may inherit a transactional context that wraps
-     * the call in a transaction, causing PostgreSQL to reject the command.
+     * Execute SQL using a raw JDBC connection with explicit {@code autoCommit=true}.
+     * Required because {@code CREATE INDEX CONCURRENTLY} cannot run inside a transaction block.
      */
     private void executeWithAutoCommit(String sql) {
         try (Connection conn = dataSource.getConnection()) {
@@ -220,7 +224,6 @@ public class PostgreSQLRosettaIndexLifecycleService implements RosettaIndexLifec
         }
     }
 
-    // Issue #4: Query with schema filter to avoid cross-schema matches
     private IndexItemState queryIndexState(String indexName) {
         List<Map<String, Object>> results = jdbcTemplate.queryForList(PG_INDEX_STATE_SQL, indexName);
 
