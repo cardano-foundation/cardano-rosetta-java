@@ -11,14 +11,13 @@ services:
       DB_USER: ${DB_USER}
       DB_SECRET: ${DB_SECRET}
       DB_SCHEMA: ${DB_SCHEMA}
-      NETWORK: ${NETWORK}
-      API_URL: http://api:${API_PORT}
+      YACI_URL: http://yaci-indexer:9095
     volumes:
       - ./api/src/main/resources/config/db-indexes.yaml:/config/db-indexes.yaml:ro
     entrypoint: ["/sbin/apply-indexes.sh"]
     depends_on:
       db:
         condition: service_healthy
-      api:
+      yaci-indexer:
         condition: service_healthy
     restart: on-failure

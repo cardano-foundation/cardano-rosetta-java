@@ -63,7 +63,7 @@ Hardware profile files should be used **in combination** with a base `.env.docke
 | `AGGREGATOR_ENDPOINT`                         | Mithril aggregator endpoint (uses default if not set)                 | (empty)                                | added in release 1.0.0  |
 | `GENESIS_VERIFICATION_KEY`                    | Mithril genesis verification key (uses default if not set)            | (empty)                                | added in release 1.0.0  |
 | `ANCILLARY_VERIFICATION_KEY`                  | Mithril ancillary verification key (uses default if not set)          | (empty)                                | added in release 1.2.9  |
-| `RELEASE_VERSION`                             | Docker image tag for API and Indexer images                           | 2.1.0                                  | added in release 2.0.0  |
+| `RELEASE_VERSION`                             | Docker image tag for API and Indexer images                           | 2.1.2                                  | added in release 2.0.0  |
 | `API_SPRING_PROFILES_ACTIVE`                  | API spring profile                                                    | staging                                | added in release 1.0.0  |
 | `API_PORT`                                    | Rosetta API exposed port                                              | 8082                                   | added in release 1.0.0  |
 | `PRINT_EXCEPTION`                             | Print stack traces in error responses                                 | true                                   | added in release 1.0.0  |
@@ -87,7 +87,7 @@ Hardware profile files should be used **in combination** with a base `.env.docke
 | `LOG_FILE_MAX_SIZE`                           | Maximum size per log file                                             | 10MB                                   | added in release 1.0.0  |
 | `LOG_FILE_MAX_HISTORY`                        | Number of log files to retain                                         | 10                                     | added in release 1.0.0  |
 | `SYNC`                                        | Enable online mode (DB/indexer start after node reaches tip)          | true                                   | added in release 1.2.0  |
-| `SYNC_GRACE_SLOTS_COUNT`                      | Grace period in slots for sync status                                 | 100                                    | added in release 1.2.9  |
+| `SYNC_GRACE_SLOTS_COUNT`                      | Grace period in slots for sync status                                 | 200                                    | added in release 1.2.9  |
 | `YACI_HTTP_BASE_URL`                          | Yaci Indexer's URL                                                    | http://yaci-indexer:9095/api/v1        | added in release 1.2.1  |
 | `YACI_INDEXER_PORT`                           | Yaci Indexer's port                                                   | 9095                                   | added in release 1.2.1  |
 | `HTTP_CONNECT_TIMEOUT_SECONDS`                | Yaci connection timeout in seconds                                    | 5                                      | added in release 1.2.1  |

@@ -37,24 +37,35 @@ spec:
           resources:
             {{- toYaml .Values.global.initContainerResources | nindent 12 }}
 
-        - name: wait-for-indexer
-          image: curlimages/curl:8.5.0
+        - name: wait-for-schema
+          image: postgres:16-alpine
+          env:
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "cardano-rosetta-java.dbSecretName" . }}
+                  key: db-secret
           command:
             - sh
             - -c
             - |
-              YACI_URL="http://{{ include "cardano-rosetta-java.yaciServiceName" . }}:9095"
-              echo "Waiting for yaci-indexer at ${YACI_URL}/actuator/health..."
-              until curl -sf "${YACI_URL}/actuator/health" > /dev/null 2>&1; do
-                echo "yaci-indexer not ready, retrying in 10s..."
+              echo "Waiting for DB schema (table 'block') to exist..."
+              until psql \
+                -h {{ include "cardano-rosetta-java.dbHost" . | quote }} \
+                -p {{ .Values.global.db.port }} \
+                -U {{ .Values.global.db.user | quote }} \
+                -d {{ .Values.global.db.name | quote }} \
+                -c "SELECT 1 FROM information_schema.tables WHERE table_schema='{{ .Values.global.db.schema }}' AND table_name='block'" \
+                | grep -q 1; do
+                echo "Schema not ready, retrying in 10s..."
                 sleep 10
               done
-              echo "yaci-indexer is healthy"
+              echo "Schema is ready"
           resources:
             {{- toYaml .Values.global.initContainerResources | nindent 12 }}
 
         - name: copy-node-config
-          image: "cardanofoundation/cardano-rosetta-java-cardano-node:{{ .Values.global.cardanoNodeVersion }}"
+          image: {{ .Values.global.cardanoNodeImage | default (printf "cardanofoundation/cardano-rosetta-java-cardano-node:%s" .Values.global.cardanoNodeVersion) | quote }}
           command: ["sh", "-c", "cp -a /config/{{ .Values.global.network }}/. /shared-config/"]
           volumeMounts:
             - name: node-config
@@ -64,7 +75,8 @@ spec:
 
       containers:
         - name: rosetta-api
-          image: "cardanofoundation/cardano-rosetta-java-api:{{ .Values.global.releaseVersion }}"
+          image: {{ .Values.global.apiImage | default (printf "cardanofoundation/cardano-rosetta-java-api:%s" .Values.global.releaseVersion) | quote }}
+          imagePullPolicy: {{ if .Values.global.apiImage }}Always{{ else }}IfNotPresent{{ end }}
           env:
             - name: NETWORK
               value: {{ .Values.global.network | quote }}
@@ -161,21 +173,29 @@ spec:
             - name: node-config
               mountPath: /config
               readOnly: true
+          startupProbe:
+            httpGet:
+              path: /actuator/health/startup
+              port: 8082
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 180
+            timeoutSeconds: 5
           readinessProbe:
             httpGet:
-              path: /actuator/health
+              path: /actuator/health/readiness
               port: 8082
-            initialDelaySeconds: 60
-            periodSeconds: 15
-            failureThreshold: 40
+            initialDelaySeconds: 10
+            periodSeconds: 30
+            failureThreshold: 14400
             timeoutSeconds: 10
           livenessProbe:
             httpGet:
-              path: /actuator/health
+              path: /actuator/health/liveness
               port: 8082
-            initialDelaySeconds: 120
+            initialDelaySeconds: 10
             periodSeconds: 30
-            failureThreshold: 5
+            failureThreshold: 10
             timeoutSeconds: 5
           resources:
             {{- $res := index .Values.global.profiles $profile "resources" "api" }}

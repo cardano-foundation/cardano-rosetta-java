@@ -43,8 +43,9 @@ public class YaciHttpGatewayImpl implements YaciHttpGateway {
 
     @Override
     public StakeAccountInfo getStakeAccountRewards(String stakeAddress) {
+        String url = yaciBaseUrl + "/rosetta/account/by-stake-address/" + stakeAddress;
         var getStakeAccountDetailsHttpRequest = HttpRequest.newBuilder()
-                .uri(URI.create(yaciBaseUrl + "/rosetta/account/by-stake-address/" + stakeAddress))
+                .uri(URI.create(url))
                 .GET()
                 .timeout(Duration.ofSeconds(httpRequestTimeoutSeconds))
                 .header("Content-Type", "application/json")
@@ -59,25 +60,33 @@ public class YaciHttpGatewayImpl implements YaciHttpGateway {
             if (statusCode >= 200 && statusCode < 300) {
                 return objectMapper.readValue(responseBody, StakeAccountInfo.class);
             } else if (statusCode == 400) {
+                log.error("gatewayError, http status code: 400, url: {}, body: {}", url, responseBody);
+
                 throw ExceptionFactory.gatewayError(false);
             } else if (statusCode == 500) {
+                log.error("gatewayError, http status code: 500, url: {}, body: {}", url, responseBody);
+
                 throw ExceptionFactory.gatewayError(true);
             } else {
+                log.error("gatewayError, http status code: {}, url: {}, body: {}", statusCode, url, responseBody);
+
                 throw ExceptionFactory.gatewayError(false);
             }
-        } catch (IOException | InterruptedException e) {
-            log.error("Error during yaci-indexer HTTP request", e);
-
+        } catch (InterruptedException e) {
+            log.error("Error during yaci-indexer HTTP request, url: {}", url, e);
             Thread.currentThread().interrupt();
-
+            throw ExceptionFactory.gatewayError(true);
+        } catch (IOException e) {
+            log.error("Error during yaci-indexer HTTP request, url: {}", url, e);
             throw ExceptionFactory.gatewayError(true);
         }
     }
 
     @Override
     public List<DiscoveredPeer> getDiscoveredPeers() {
+        String url = yaciBaseUrl + "/rosetta/peers";
         var getDiscoveredPeersHttpRequest = HttpRequest.newBuilder()
-                .uri(URI.create(yaciBaseUrl + "/rosetta/peers"))
+                .uri(URI.create(url))
                 .GET()
                 .timeout(Duration.ofSeconds(httpRequestTimeoutSeconds))
                 .header("Content-Type", "application/json")
@@ -94,17 +103,24 @@ public class YaciHttpGatewayImpl implements YaciHttpGateway {
 
                 return Arrays.asList(peersArray);
             } else if (statusCode == 400) {
+                log.error("gatewayError, http status code: 400, url: {}, body: {}", url, responseBody);
+
                 throw ExceptionFactory.gatewayError(false);
             } else if (statusCode == 500) {
+                log.error("gatewayError, http status code: 500, url: {}, body: {}", url, responseBody);
+
                 throw ExceptionFactory.gatewayError(true);
             } else {
+                log.error("gatewayError, http status code: {}, url: {}, body: {}", statusCode, url, responseBody);
+
                 throw ExceptionFactory.gatewayError(false);
             }
-        } catch (IOException | InterruptedException e) {
-            log.error("Error during yaci-indexer peers HTTP request", e);
-
+        } catch (InterruptedException e) {
+            log.error("Error during yaci-indexer peers HTTP request, url: {}", url, e);
             Thread.currentThread().interrupt();
-
+            throw ExceptionFactory.gatewayError(true);
+        } catch (IOException e) {
+            log.error("Error during yaci-indexer peers HTTP request, url: {}", url, e);
             throw ExceptionFactory.gatewayError(true);
         }
     }

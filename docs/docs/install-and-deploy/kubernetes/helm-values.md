@@ -17,7 +17,7 @@ These values are shared across all subcharts via `global.*`.
 |-------|---------|--------------------------|-------------|
 | `global.network` | `mainnet` | `NETWORK` | Blockchain network: `mainnet`, `preprod`, `preview` |
 | `global.protocolMagic` | `"764824073"` | `PROTOCOL_MAGIC` | Cardano protocol magic number (always a quoted string to prevent scientific notation) |
-| `global.releaseVersion` | `"2.1.0"` | `RELEASE_VERSION` | Docker image tag for API and indexer |
+| `global.releaseVersion` | `"2.1.2"` | `RELEASE_VERSION` | Docker image tag for API and indexer |
 | `global.cardanoNodeVersion` | `"10.5.4"` | `CARDANO_NODE_VERSION` | Cardano node image tag |
 | `global.pgVersionTag` | `REL_18_0` | `PG_VERSION_TAG` | PostgreSQL image tag |
 | `global.mithrilVersion` | `2543.1-hotfix` | `MITHRIL_VERSION` | Mithril client image tag |
@@ -106,7 +106,7 @@ Set `global.profile` to one of: `entry`, `mid`, `advanced`.
 | `rosetta-api.replicaCount` | `1` | — | Number of API replicas |
 | `rosetta-api.env.httpConnectTimeoutSeconds` | `5` | `HTTP_CONNECT_TIMEOUT_SECONDS` | HTTP client connect timeout |
 | `rosetta-api.env.httpRequestTimeoutSeconds` | `5` | `HTTP_REQUEST_TIMEOUT_SECONDS` | HTTP client request timeout |
-| `rosetta-api.env.syncGraceSlotsCount` | `100` | `SYNC_GRACE_SLOTS_COUNT` | Slots behind tip before reporting out-of-sync |
+| `rosetta-api.env.syncGraceSlotsCount` | `200` | `SYNC_GRACE_SLOTS_COUNT` | Slots behind tip before reporting out-of-sync |
 | `rosetta-api.env.removeSpentUtxos` | `true` | `REMOVE_SPENT_UTXOS` | Must match yaci-indexer setting |
 | `rosetta-api.env.removeSpentUtxosLastBlocksGraceCount` | `129600` | `REMOVE_SPENT_UTXOS_LAST_BLOCKS_GRACE_COUNT` | Must match yaci-indexer setting |
 | `rosetta-api.env.blockTransactionApiTimeoutSecs` | `120` | `BLOCK_TRANSACTION_API_TIMEOUT_SECS` | Timeout for block queries |
@@ -139,7 +139,6 @@ rosetta-api:
 |-------|---------|-------------|
 | `indexApplier.enabled` | `true` | Deploy the index-applier Job |
 | `indexApplier.mode` | `automatic` | `automatic`: plain Job (GitOps-friendly, no hooks). `hook`: legacy Helm post-install/post-upgrade hook. |
-| `indexApplier.pollInterval` | `60` | Seconds between API readiness polls |
 
 In `automatic` mode the Job runs as part of the release (compatible with ArgoCD and `--no-hooks`). The Job is
 cleaned up 24 hours after completion via `ttlSecondsAfterFinished`.
