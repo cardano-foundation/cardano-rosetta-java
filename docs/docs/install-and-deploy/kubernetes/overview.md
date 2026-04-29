@@ -49,24 +49,14 @@ cardano-node (init: mithril-download → cardano-node starts)
          rosetta-api (wait-for-postgres
                       wait-for-indexer: /actuator/health
                       copy-node-config: copies configs from node image)
-           index-applier Job ──────────────► (plain Job, runs automatically with the release)
 ```
 
 The `cardano-node` pod runs **three containers**: the node itself, a `socat` sidecar
 (bridges the UNIX socket to TCP port 3002), and `cardano-submit-api` — so `READY` shows
 `3/3` when fully up.
 
-The `index-applier` is a plain Kubernetes Job that runs automatically with the release
-(default `indexApplier.mode: automatic`). It waits for yaci-indexer readiness, then
-builds optimised database indexes directly in PostgreSQL. This Job can take **6–18 hours** on
-mainnet. It is cleaned up automatically after 24 hours via `ttlSecondsAfterFinished`.
-
-:::note
-The `index-applier` runs as a plain Job by default — no `--no-hooks` flag is needed.
-Operators who prefer explicit, operator-triggered index building can switch to legacy hook
-mode with `--set indexApplier.mode=hook`. In hook mode, monitor the Job independently and
-never use `--wait-for-jobs`.
-:::
+Index creation is handled natively by `yaci-indexer` after sync reaches tip. Monitor
+progress at `http://<yaci-indexer>:9095/actuator/rosetta-indexes`.
 
 **Three sync stages**
 
