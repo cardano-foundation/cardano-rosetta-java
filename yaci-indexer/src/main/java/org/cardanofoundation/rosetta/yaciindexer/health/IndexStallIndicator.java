@@ -1,7 +1,7 @@
 package org.cardanofoundation.rosetta.yaciindexer.health;
 
-import org.cardanofoundation.rosetta.yaciindexer.indexmanagement.IndexLifecycleState;
-import org.cardanofoundation.rosetta.yaciindexer.indexmanagement.RosettaIndexLifecycleService;
+import org.cardanofoundation.rosetta.yaciindexer.indexes.IndexLifecycleState;
+import org.cardanofoundation.rosetta.yaciindexer.indexes.IndexService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
@@ -10,22 +10,22 @@ import org.springframework.stereotype.Component;
 import java.time.Duration;
 import java.time.Instant;
 
-@Component("rosettaIndexStall")
-public class RosettaIndexStallIndicator implements HealthIndicator {
+@Component("indexStall")
+public class IndexStallIndicator implements HealthIndicator {
 
-    private final RosettaIndexLifecycleService lifecycleService;
+    private final IndexService indexService;
     private final int stallTimeoutMinutes;
 
-    public RosettaIndexStallIndicator(RosettaIndexLifecycleService lifecycleService,
+    public IndexStallIndicator(IndexService indexService,
                                       @Value("${cardano.rosetta.index.stall-timeout-minutes:15}") int stallTimeoutMinutes) {
-        this.lifecycleService = lifecycleService;
+        this.indexService = indexService;
         this.stallTimeoutMinutes = stallTimeoutMinutes;
     }
 
     @Override
     public Health health() {
-        IndexLifecycleState state = lifecycleService.getState();
-        Instant lastProgress = lifecycleService.getLastProgressAt();
+        IndexLifecycleState state = indexService.getState();
+        Instant lastProgress = indexService.getLastProgressAt();
 
         if (state != IndexLifecycleState.APPLYING) {
             return Health.up().withDetail("indexLifecycleState", state.name()).build();

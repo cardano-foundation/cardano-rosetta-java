@@ -27,7 +27,7 @@ import org.cardanofoundation.rosetta.yaciindexer.config.ConfigurationH2;
     @ComponentScan("org.cardanofoundation.rosetta.yaciindexer.stores.txsize"),
     @ComponentScan("org.cardanofoundation.rosetta.yaciindexer.resource"),
     @ComponentScan("org.cardanofoundation.rosetta.yaciindexer.health"),
-    @ComponentScan("org.cardanofoundation.rosetta.yaciindexer.indexmanagement")
+    @ComponentScan("org.cardanofoundation.rosetta.yaciindexer.indexes")
 })
 public class YaciIndexerApplication {
 

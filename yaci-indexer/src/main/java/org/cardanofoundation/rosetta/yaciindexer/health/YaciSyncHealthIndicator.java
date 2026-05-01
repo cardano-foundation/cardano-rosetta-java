@@ -9,8 +9,8 @@ import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.stereotype.Component;
 
-import org.cardanofoundation.rosetta.yaciindexer.indexmanagement.RosettaIndexLifecycleService;
-import org.cardanofoundation.rosetta.yaciindexer.indexmanagement.IndexLifecycleState;
+import org.cardanofoundation.rosetta.yaciindexer.indexes.IndexService;
+import org.cardanofoundation.rosetta.yaciindexer.indexes.IndexLifecycleState;
 
 /**
  * Readiness health indicator for the Yaci Indexer.
@@ -19,12 +19,12 @@ import org.cardanofoundation.rosetta.yaciindexer.indexmanagement.IndexLifecycleS
  * group via {@code application.properties}:
  * <pre>
  *   management.endpoint.health.group.startup.include=db,yaciConnection
- *   management.endpoint.health.group.liveness.include=livenessState,yaciConnection,rosettaIndexStall
+ *   management.endpoint.health.group.liveness.include=livenessState,yaciConnection,indexStall
  *   management.endpoint.health.group.readiness.include=readinessState,db,yaciSync
  * </pre>
  *
  * <p>The readiness probe uses a long failure threshold (5 days) to accommodate initial sync
- * and index creation. Liveness stall detection is handled by {@link RosettaIndexStallIndicator}.
+ * and index creation. Liveness stall detection is handled by {@link IndexStallIndicator}.
  *
  * <p>Health states:
  * <ul>
@@ -42,7 +42,7 @@ public class YaciSyncHealthIndicator implements HealthIndicator {
 
     private final HealthService healthService;
     private final SyncStatusService syncStatusService;
-    private final RosettaIndexLifecycleService rosettaIndexLifecycleService;
+    private final IndexService indexService;
 
     @Override
     public Health health() {
@@ -78,7 +78,7 @@ public class YaciSyncHealthIndicator implements HealthIndicator {
                     .build();
         }
 
-        IndexLifecycleState indexState = rosettaIndexLifecycleService.getState();
+        IndexLifecycleState indexState = indexService.getState();
         builder.withDetail("indexLifecycleState", indexState.name());
 
         if (indexState != IndexLifecycleState.READY) {

@@ -1,4 +1,4 @@
-package org.cardanofoundation.rosetta.yaciindexer.indexmanagement;
+package org.cardanofoundation.rosetta.yaciindexer.indexes;
 
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
@@ -9,7 +9,7 @@ import java.util.List;
 
 @Service
 @Profile({"h2", "test-integration"})
-public class NoOpRosettaIndexLifecycleService implements RosettaIndexLifecycleService {
+public class NoOpIndexService implements IndexService {
 
     @Override
     public IndexLifecycleState getState() {
@@ -28,6 +28,6 @@ public class NoOpRosettaIndexLifecycleService implements RosettaIndexLifecycleSe
 
     @Override
     public void triggerIndexing() {
-        // NO-OP for H2
+        // NO-OP for H2 and test-integration
     }
 }

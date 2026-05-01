@@ -1,7 +1,7 @@
 package org.cardanofoundation.rosetta.yaciindexer.health;
 
-import org.cardanofoundation.rosetta.yaciindexer.indexmanagement.IndexLifecycleState;
-import org.cardanofoundation.rosetta.yaciindexer.indexmanagement.RosettaIndexLifecycleService;
+import org.cardanofoundation.rosetta.yaciindexer.indexes.IndexLifecycleState;
+import org.cardanofoundation.rosetta.yaciindexer.indexes.IndexService;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,9 +17,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class RosettaIndexStallIndicatorTest {
+class IndexStallIndicatorTest {
 
-    private final RosettaIndexLifecycleService lifecycleService = mock(RosettaIndexLifecycleService.class);
+    private final IndexService lifecycleService = mock(IndexService.class);
 
     @Nested
     class WhenStateIsNotApplying {
@@ -27,7 +27,7 @@ class RosettaIndexStallIndicatorTest {
         @Test
         void shouldReturnUpWhenPending() {
             when(lifecycleService.getState()).thenReturn(IndexLifecycleState.PENDING);
-            RosettaIndexStallIndicator indicator = new RosettaIndexStallIndicator(lifecycleService, 15);
+            IndexStallIndicator indicator = new IndexStallIndicator(lifecycleService, 15);
 
             Health health = indicator.health();
 
@@ -38,7 +38,7 @@ class RosettaIndexStallIndicatorTest {
         @Test
         void shouldReturnUpWhenReady() {
             when(lifecycleService.getState()).thenReturn(IndexLifecycleState.READY);
-            RosettaIndexStallIndicator indicator = new RosettaIndexStallIndicator(lifecycleService, 15);
+            IndexStallIndicator indicator = new IndexStallIndicator(lifecycleService, 15);
 
             Health health = indicator.health();
 
@@ -48,7 +48,7 @@ class RosettaIndexStallIndicatorTest {
         @Test
         void shouldReturnUpWhenFailed() {
             when(lifecycleService.getState()).thenReturn(IndexLifecycleState.FAILED);
-            RosettaIndexStallIndicator indicator = new RosettaIndexStallIndicator(lifecycleService, 15);
+            IndexStallIndicator indicator = new IndexStallIndicator(lifecycleService, 15);
 
             Health health = indicator.health();
 
@@ -63,7 +63,7 @@ class RosettaIndexStallIndicatorTest {
         void shouldReturnUpWhenLastProgressIsNull() {
             when(lifecycleService.getState()).thenReturn(IndexLifecycleState.APPLYING);
             when(lifecycleService.getLastProgressAt()).thenReturn(null);
-            RosettaIndexStallIndicator indicator = new RosettaIndexStallIndicator(lifecycleService, 15);
+            IndexStallIndicator indicator = new IndexStallIndicator(lifecycleService, 15);
 
             Health health = indicator.health();
 
@@ -75,7 +75,7 @@ class RosettaIndexStallIndicatorTest {
         void shouldReturnUpWhenProgressIsRecent() {
             when(lifecycleService.getState()).thenReturn(IndexLifecycleState.APPLYING);
             when(lifecycleService.getLastProgressAt()).thenReturn(Instant.now().minus(5, ChronoUnit.MINUTES));
-            RosettaIndexStallIndicator indicator = new RosettaIndexStallIndicator(lifecycleService, 15);
+            IndexStallIndicator indicator = new IndexStallIndicator(lifecycleService, 15);
 
             Health health = indicator.health();
 
@@ -86,7 +86,7 @@ class RosettaIndexStallIndicatorTest {
         void shouldReturnDownWhenStalled() {
             when(lifecycleService.getState()).thenReturn(IndexLifecycleState.APPLYING);
             when(lifecycleService.getLastProgressAt()).thenReturn(Instant.now().minus(20, ChronoUnit.MINUTES));
-            RosettaIndexStallIndicator indicator = new RosettaIndexStallIndicator(lifecycleService, 15);
+            IndexStallIndicator indicator = new IndexStallIndicator(lifecycleService, 15);
 
             Health health = indicator.health();
 
@@ -99,7 +99,7 @@ class RosettaIndexStallIndicatorTest {
         void shouldReturnDownWhenExactlyAtTimeout() {
             when(lifecycleService.getState()).thenReturn(IndexLifecycleState.APPLYING);
             when(lifecycleService.getLastProgressAt()).thenReturn(Instant.now().minus(15, ChronoUnit.MINUTES));
-            RosettaIndexStallIndicator indicator = new RosettaIndexStallIndicator(lifecycleService, 15);
+            IndexStallIndicator indicator = new IndexStallIndicator(lifecycleService, 15);
 
             Health health = indicator.health();
 

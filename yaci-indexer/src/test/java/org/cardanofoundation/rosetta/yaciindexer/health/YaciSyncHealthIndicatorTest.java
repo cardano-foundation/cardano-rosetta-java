@@ -14,8 +14,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.Status;
 
-import org.cardanofoundation.rosetta.yaciindexer.indexmanagement.IndexLifecycleState;
-import org.cardanofoundation.rosetta.yaciindexer.indexmanagement.RosettaIndexLifecycleService;
+import org.cardanofoundation.rosetta.yaciindexer.indexes.IndexLifecycleState;
+import org.cardanofoundation.rosetta.yaciindexer.indexes.IndexService;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
@@ -30,7 +30,7 @@ class YaciSyncHealthIndicatorTest {
     private SyncStatusService syncStatusService;
 
     @Mock
-    private RosettaIndexLifecycleService rosettaIndexLifecycleService;
+    private IndexService indexService;
 
     @InjectMocks
     private YaciSyncHealthIndicator indicator;
@@ -79,7 +79,7 @@ class YaciSyncHealthIndicatorTest {
             when(healthService.getHealthStatus())
                     .thenReturn(buildStatus(true, false, true, 5_000L));
             when(syncStatusService.getSyncStatus()).thenReturn(syncedStatus());
-            when(rosettaIndexLifecycleService.getState()).thenReturn(IndexLifecycleState.READY);
+            when(indexService.getState()).thenReturn(IndexLifecycleState.READY);
 
             Health health = indicator.health();
 
@@ -92,7 +92,7 @@ class YaciSyncHealthIndicatorTest {
             when(healthService.getHealthStatus())
                     .thenReturn(buildStatus(true, false, true, 5_000L));
             when(syncStatusService.getSyncStatus()).thenReturn(syncedStatus());
-            when(rosettaIndexLifecycleService.getState()).thenReturn(IndexLifecycleState.READY);
+            when(indexService.getState()).thenReturn(IndexLifecycleState.READY);
 
             Health health = indicator.health();
 
@@ -248,7 +248,7 @@ class YaciSyncHealthIndicatorTest {
             when(healthService.getHealthStatus())
                     .thenReturn(buildStatus(true, false, true, 5_000L));
             when(syncStatusService.getSyncStatus()).thenReturn(syncedStatus());
-            when(rosettaIndexLifecycleService.getState()).thenReturn(IndexLifecycleState.APPLYING);
+            when(indexService.getState()).thenReturn(IndexLifecycleState.APPLYING);
 
             Health health = indicator.health();
 
@@ -264,7 +264,7 @@ class YaciSyncHealthIndicatorTest {
             when(healthService.getHealthStatus())
                     .thenReturn(buildStatus(true, false, true, 5_000L));
             when(syncStatusService.getSyncStatus()).thenReturn(syncedStatus());
-            when(rosettaIndexLifecycleService.getState()).thenReturn(IndexLifecycleState.PENDING);
+            when(indexService.getState()).thenReturn(IndexLifecycleState.PENDING);
 
             Health health = indicator.health();
 
@@ -277,7 +277,7 @@ class YaciSyncHealthIndicatorTest {
             when(healthService.getHealthStatus())
                     .thenReturn(buildStatus(true, false, true, 5_000L));
             when(syncStatusService.getSyncStatus()).thenReturn(syncedStatus());
-            when(rosettaIndexLifecycleService.getState()).thenReturn(IndexLifecycleState.FAILED);
+            when(indexService.getState()).thenReturn(IndexLifecycleState.FAILED);
 
             Health health = indicator.health();
 
