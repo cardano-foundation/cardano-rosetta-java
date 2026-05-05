@@ -325,6 +325,7 @@ kubectl delete pvc --all -n cardano
 | `ImagePullBackOff` | Wrong image tag | Check `global.releaseVersion` in values |
 | Port-forward not reachable from remote | Bound to 127.0.0.1 | Add `--address 0.0.0.0` to `kubectl port-forward` |
 | cardano-node restart loop after reboot | Startup probe too short for ImmutableDB validation | `startupProbe.failureThreshold: 720` (3 hours); force-delete pod if StatefulSet update is blocked |
+| API stuck at `APPLYING_INDEXES`, never reaches `LIVE` | index-applier Job killed by `activeDeadlineSeconds: 259200` (72h) | Delete the failed Job (`kubectl delete job rosetta-index-applier -n cardano`) and re-run `helm upgrade` |
 
 ---
 

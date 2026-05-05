@@ -30,6 +30,12 @@ The index-applier container:
 
 **Performance:** Index creation takes approximately 6 hours on mainnet.
 
+:::note
+
+On Kubernetes, the index-applier Job has a 72-hour deadline (`activeDeadlineSeconds: 259200`). See the [Deployment Runbook](/docs/install-and-deploy/kubernetes/deployment#troubleshooting) if the API stays stuck at `APPLYING_INDEXES`.
+
+:::
+
 ## Customizing Indexes
 
 To add custom indexes for your use case:
