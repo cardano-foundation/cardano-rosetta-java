@@ -18,7 +18,7 @@ These values are shared across all subcharts via `global.*`.
 | `global.network` | `mainnet` | `NETWORK` | Blockchain network: `mainnet`, `preprod`, `preview` |
 | `global.protocolMagic` | `"764824073"` | `PROTOCOL_MAGIC` | Cardano protocol magic number (always a quoted string to prevent scientific notation) |
 | `global.releaseVersion` | `"2.2.0"` | `RELEASE_VERSION` | Docker image tag for API and indexer |
-| `global.cardanoNodeVersion` | `"10.7.1"` | `CARDANO_NODE_VERSION` | Cardano node image tag |
+| `global.cardanoNodeVersion` | `"11.0.0"` | `CARDANO_NODE_VERSION` | Cardano node image tag |
 | `global.pgVersionTag` | `REL_18_0` | `PG_VERSION_TAG` | PostgreSQL image tag |
 | `global.mithrilVersion` | `2543.1-hotfix` | `MITHRIL_VERSION` | Mithril client image tag |
 | `global.profile` | `mid` | — | Hardware profile: `entry`, `mid`, `advanced` |
