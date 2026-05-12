@@ -18,7 +18,6 @@
     "QueryBatchSize": 100000,
     "SnapshotInterval": 864
   },
-  "MinNodeVersion": "11.0.0",
   "PeerSharing": true,
   "Protocol": "Cardano",
   "RequiresNetworkMagic": "RequiresMagic",
@@ -68,7 +67,7 @@
   "TracingVerbosity": "NormalVerbosity",
   "TurnOnLogMetrics": true,
   "TurnOnLogging": true,
-  "UseTraceDispatcher": false,
+  "UseTraceDispatcher": true,
   "defaultBackends": [
     "KatipBK"
   ],
@@ -114,5 +113,20 @@
       "scName": "stdout",
       "scRotation": null
     }
-  ]
+  ],
+  "Options": {
+    "mapBackends": {
+      "cardano.node.metrics": [
+        "EKGViewBK"
+      ],
+      "cardano.node.resources": [
+        "EKGViewBK"
+      ]
+    },
+    "mapSubtrace": {
+      "cardano.node.metrics": {
+        "subtrace": "Neutral"
+      }
+    }
+  }
 }
