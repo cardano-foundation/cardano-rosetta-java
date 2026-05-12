@@ -22,7 +22,7 @@ ingress:
 env:
   httpConnectTimeoutSeconds: 5             # matches Docker Compose default
   httpRequestTimeoutSeconds: 5             # matches Docker Compose default
-  syncGraceSlotsCount: 100                 # matches Docker Compose default
+  syncGraceSlotsCount: 200                 # matches Docker Compose default
   removeSpentUtxos: true
   removeSpentUtxosLastBlocksGraceCount: 129600  # 30 days @ ~20s/block; matches Docker Compose default
   blockTransactionApiTimeoutSecs: 120      # intentionally higher than Docker (5s) for K8s network latency
