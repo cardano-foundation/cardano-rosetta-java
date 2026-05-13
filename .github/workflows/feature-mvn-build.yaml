@@ -21,7 +21,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: 'corretto'
-          java-version: 24
+          java-version: 25
           cache: maven
 
       - name: Build project

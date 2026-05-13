@@ -103,11 +103,8 @@ Hardware profile files should be used **in combination** with a base `.env.docke
 | `GRAFANA_PORT`                                | Grafana dashboard port                                                | 3000                                   | added in release 1.3.0  |
 | `POSTGRESQL_EXPORTER_PORT`                    | PostgreSQL exporter port for Prometheus                               | 9187                                   | added in release 1.3.0  |
 | `PEER_DISCOVERY`                              | Enable peer discovery job for automatic peer refreshing               | false                                  | added in release 1.3.2  |
-| `TOKEN_REGISTRY_ENABLED`                      | Enable token registry integration for native token metadata           | false                                  | added in release 1.4.0  |
-| `TOKEN_REGISTRY_BASE_URL`                     | Base URL for the token registry API                                   | (empty)                                | added in release 1.4.0  |
-| `TOKEN_REGISTRY_CACHE_TTL_HOURS`              | Cache TTL for token metadata in hours                                 | 12                                     | added in release 1.4.0  |
-| `TOKEN_REGISTRY_LOGO_FETCH`                   | Enable fetching token logos from registry (increases response size)   | false                                  | added in release 1.4.0  |
-| `TOKEN_REGISTRY_REQUEST_TIMEOUT_SECONDS`      | Token registry request timeout in seconds                             | 2                                      | added in release 1.4.0  |
+| `TOKEN_REGISTRY_ENABLED`                      | Expose CIP-26/CIP-68 enrichment fields (subject, name, ticker, url, description, logo, version) in `currency.metadata`. Does NOT affect `currency.decimals`, which is always resolved from the registry regardless. | false                                  | added in release 1.4.0  |
+| `TOKEN_REGISTRY_LOGO_FETCH`                   | Include logos in enrichment output (significantly increases response size). Only takes effect when `TOKEN_REGISTRY_ENABLED=true`. | false                                  | added in release 1.4.0  |
 
 </div>
 

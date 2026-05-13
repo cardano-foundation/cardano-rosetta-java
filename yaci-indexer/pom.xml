@@ -17,8 +17,8 @@
     <packaging>jar</packaging>
 
     <properties>
-        <java.version>24</java.version>
-        <yaci-store.version>2.0.0</yaci-store.version>
+        <yaci-store.version>2.1.0-pre4-ca14bd5-SNAPSHOT</yaci-store.version>
+        <java.version>25</java.version>
         <sonar.exclusions>src/main/java/org/cardanofoundation/rosetta/yaciindexer/stores/txsize/model/*</sonar.exclusions>
 <!--        <version.spotless-maven-plugin>2.43.0</version.spotless-maven-plugin>-->
     </properties>
@@ -116,6 +116,17 @@
             <artifactId>yaci-store-epoch-spring-boot-starter</artifactId>
             <version>${yaci-store.version}</version>
         </dependency>
+        <!-- Assets extension (CIP-26, CIP-68, CIP-113) - resolved from local ~/.m2 until released -->
+        <dependency>
+            <groupId>com.bloxbean.cardano</groupId>
+            <artifactId>yaci-store-assets-ext-spring-boot-starter</artifactId>
+            <version>${yaci-store.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.bloxbean.cardano</groupId>
+            <artifactId>yaci-store-assets-ext</artifactId>
+            <version>${yaci-store.version}</version>
+        </dependency>
         <dependency>
             <groupId>io.hypersistence</groupId>
             <artifactId>hypersistence-utils-hibernate-63</artifactId>
@@ -148,7 +159,7 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>${version.maven-compiler-plugin}</version>
                 <configuration>
-                    <release>24</release>
+                    <release>25</release>
                     <annotationProcessorPaths>
                         <path>
                             <groupId>org.projectlombok</groupId>

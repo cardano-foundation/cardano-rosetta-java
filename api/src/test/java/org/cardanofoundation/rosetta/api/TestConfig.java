@@ -1,22 +1,20 @@
 package org.cardanofoundation.rosetta.api;
 
 import java.time.Clock;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.Collection;
+import java.util.stream.Collectors;
 
-import org.cardanofoundation.rosetta.client.TokenRegistryHttpGateway;
-import org.cardanofoundation.rosetta.client.model.domain.TokenMetadata;
-import org.cardanofoundation.rosetta.client.model.domain.TokenProperty;
-import org.cardanofoundation.rosetta.client.model.domain.TokenPropertyNumber;
-import org.cardanofoundation.rosetta.client.model.domain.TokenSubject;
+import org.cardanofoundation.rosetta.api.common.model.AssetFingerprint;
+import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
+import org.cardanofoundation.rosetta.api.common.service.TokenQueryService;
+
+import org.cardanofoundation.rosetta.api.common.service.TokenQueryServiceImpl;
 import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
-import static org.mockito.ArgumentMatchers.anySet;
+import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.Mockito.when;
 
 
@@ -31,36 +29,24 @@ public class TestConfig {
 
     @Bean
     @Primary
-    public TokenRegistryHttpGateway tokenRegistryHttpGateway() {
-        TokenRegistryHttpGateway mock = Mockito.mock(TokenRegistryHttpGateway.class);
-        
-        // Create a default response with all mandatory fields populated
-        when(mock.getTokenMetadataBatch(anySet())).thenAnswer(invocation -> {
-            Set<String> subjects = invocation.getArgument(0);
-            Map<String, Optional<TokenSubject>> result = new HashMap<>();
-            
-            for (String subject : subjects) {
-                // Create a TokenSubject with all mandatory fields
-                TokenSubject tokenSubject = new TokenSubject();
-                tokenSubject.setSubject(subject);
-                
-                TokenMetadata metadata = new TokenMetadata();
-                // Set mandatory fields with mock values
-                metadata.setName(TokenProperty.builder().value("TestToken").source("test").build());
-                metadata.setDescription(TokenProperty.builder().value("Test token description").source("test").build());
-                
-                // Set optional fields
-                metadata.setTicker(TokenProperty.builder().value("TST").source("test").build());
-                metadata.setUrl(TokenProperty.builder().value("https://example.com").source("test").build());
-                metadata.setDecimals(TokenPropertyNumber.builder().value(6L).source("test").build());
-                
-                tokenSubject.setMetadata(metadata);
-                result.put(subject, Optional.of(tokenSubject));
-            }
-            
-            return result;
+    public TokenQueryService tokenQueryService() {
+        TokenQueryServiceImpl mock = Mockito.mock(TokenQueryServiceImpl.class);
+
+        when(mock.queryMetadataBatch(anyCollection())).thenAnswer(invocation -> {
+            Collection<AssetFingerprint> fingerprints = invocation.getArgument(0);
+            return fingerprints.stream().collect(Collectors.toMap(
+                    fp -> fp,
+                    fp -> TokenRegistryCurrencyData.builder()
+                            .policyId(fp.getPolicyId())
+                            .subject(fp.toSubject())
+                            .name("TestToken")
+                            .description("Test token description")
+                            .ticker("TST")
+                            .url("https://example.com")
+                            .decimals(6)
+                            .build()));
         });
-        
+
         return mock;
     }
 
