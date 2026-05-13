@@ -8,6 +8,7 @@ These tests validate:
 * Rosetta metadata matches the upstream metadata server (weekly parity check)
 """
 
+import base64
 import os
 from functools import lru_cache
 from typing import Dict, List, Tuple
@@ -342,9 +343,18 @@ class TestTokenRegistryParity:
             if TOKEN_REGISTRY_LOGO_FETCH:
                 if registry_logo:
                     assert isinstance(rosetta_logo, dict), "Rosetta logo metadata missing or not a dict"
-                    assert rosetta_logo.get("value") == registry_logo, (
+                    # Rosetta normalises CIP-26 logos from hex (as stored in the registry) to
+                    # standard base64 before returning them to callers. Convert the registry's
+                    # raw hex value to base64 before comparing so the parity check is meaningful.
+                    expected_logo = registry_logo
+                    if token.get("logo_format") == "base64" and isinstance(registry_logo, str):
+                        try:
+                            expected_logo = base64.b64encode(bytes.fromhex(registry_logo)).decode()
+                        except ValueError:
+                            pass  # Not valid hex — compare as-is
+                    assert rosetta_logo.get("value") == expected_logo, (
                         f"Logo value mismatch between Rosetta and registry for {token['ticker']}: "
-                        f"rosetta={rosetta_logo.get('value')[:50]}..., registry={registry_logo[:50] if isinstance(registry_logo, str) else registry_logo}..."
+                        f"rosetta={rosetta_logo.get('value')[:50]}..., registry={expected_logo[:50] if isinstance(expected_logo, str) else expected_logo}..."
                     )
                 else:
                     assert rosetta_logo is None or rosetta_logo == {}, (
