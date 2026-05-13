@@ -1,6 +1,6 @@
 ---
-name: regenerate-testdata-db
-description: "Regenerate the H2 test fixture testData/devkit.db.mv.db and testData/testdata.json end-to-end, then fix any test assertions that drift because of the new fixture. Use when the user asks to 'regenerate testdata', 'regenerate testdata db', 'refresh test data', 'rebuild devkit.db', or when CI fails with errors like 'Table CIP26_METADATA not found' / 'Table FT_OFFCHAIN_METADATA not found' that indicate the committed fixture is stale relative to the current yaci-store schema."
+name: cardano-rosetta-java-regenerate-testdata-db
+description: "Regenerate cardano-rosetta-java's H2 test fixture testData/devkit.db.mv.db and testData/testdata.json end-to-end, then fix any test assertions that drift because of the new fixture. Use when the user asks to 'regenerate testdata', 'regenerate testdata db', 'refresh test data', 'rebuild devkit.db', or when CI fails with errors like 'Table CIP26_METADATA not found' / 'Table FT_OFFCHAIN_METADATA not found' that indicate the committed fixture is stale relative to the current yaci-store schema."
 ---
 
 # Regenerate testData DB
@@ -22,7 +22,7 @@ If any are missing, stop and tell the user — do not try to install them.
 ### 1. Run the orchestration script
 
 ```bash
-.claude/skills/regenerate-testdata-db/regen-devkit-db.sh
+.claude/skills/cardano-rosetta-java-regenerate-testdata-db/regen-devkit-db.sh
 ```
 
 The script handles everything: pre-cleans `~/.yaci-cli/local-clusters/`, starts yaci-cli with `topup_addresses` + `yaci_store_enabled=true`, waits for the BlockFrost API on `:8080` to index past the topup, builds rosetta with `mvn -pl test-data-generator,yaci-indexer -am install -DskipTests`, runs the indexer against the devnet (writes to `testData/devkit.db`), runs `TestDataGeneratorApp`, cleanly shuts the indexer, applies the genesis-block SQL workaround, and verifies `cip26_metadata` + `cip68_metadata` are present.
