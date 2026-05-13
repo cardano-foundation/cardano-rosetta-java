@@ -5,10 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.api.common.model.AssetFingerprint;
 import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
 import org.cardanofoundation.rosetta.api.common.model.entity.MetadataReferenceNftEntity;
-import org.cardanofoundation.rosetta.api.common.model.entity.TokenLogoEntity;
 import org.cardanofoundation.rosetta.api.common.model.entity.TokenMetadataEntity;
 import org.cardanofoundation.rosetta.api.common.model.repository.MetadataReferenceNftRepository;
-import org.cardanofoundation.rosetta.api.common.model.repository.TokenLogoRepository;
 import org.cardanofoundation.rosetta.api.common.model.repository.TokenMetadataRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -22,7 +20,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.StructuredTaskScope;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -41,12 +38,17 @@ public class TokenQueryServiceImpl implements TokenQueryService {
 
     private static final String CIP68_FUNGIBLE_TOKEN_PREFIX = "0014df10";
     private static final String CIP68_REFERENCE_TOKEN_PREFIX = "000643b0";
-    private static final int CIP68_LABEL_FT = 333;
 
     private final TokenMetadataRepository tokenMetadataRepository;
-    private final TokenLogoRepository tokenLogoRepository;
     private final MetadataReferenceNftRepository metadataReferenceNftRepository;
 
+    /**
+     * Controls whether the {@code logo} field is exposed on the wire. With the V2 assets-ext
+     * schema the logo lives on the CIP-26 row itself, so the value is always read from the
+     * database — but base64 PNGs can run to ~87 KB, and many deployments don't want to ship
+     * that on every response. Keeping the flag preserves the existing operational lever for
+     * controlling response size; the only thing it no longer does is save a separate DB query.
+     */
     @Value("${cardano.rosetta.TOKEN_REGISTRY_LOGO_FETCH:false}")
     private boolean logoEnabled;
 
@@ -61,8 +63,7 @@ public class TokenQueryServiceImpl implements TokenQueryService {
      * <p>
      * Issues a constant number of DB queries regardless of batch size:
      * <ul>
-     *   <li>1 for CIP-26 metadata (always)</li>
-     *   <li>1 for CIP-26 logos (only if {@code TOKEN_REGISTRY_LOGO_FETCH=true})</li>
+     *   <li>1 for CIP-26 metadata (with logo embedded on the same row)</li>
      *   <li>1 for CIP-68 reference NFTs (only if the batch contains CIP-68 fungible tokens)</li>
      * </ul>
      *
@@ -80,7 +81,8 @@ public class TokenQueryServiceImpl implements TokenQueryService {
                 .map(AssetFingerprint::toSubject)
                 .toList();
 
-        Cip26Batch cip26 = fetchCip26InParallel(subjects);
+        Map<String, TokenMetadataEntity> cip26 = tokenMetadataRepository.findAllBySubjectIn(subjects).stream()
+                .collect(Collectors.toMap(TokenMetadataEntity::getSubject, Function.identity()));
         Cip68Batch cip68 = fetchCip68(fingerprints);
 
         Map<AssetFingerprint, TokenRegistryCurrencyData> result = new HashMap<>();
@@ -89,61 +91,15 @@ public class TokenQueryServiceImpl implements TokenQueryService {
         }
 
         log.debug("Resolved metadata for {} fingerprint(s): {} CIP-26 match(es), {} CIP-68 match(es)",
-                fingerprints.size(), cip26.metadata().size(), cip68.entitiesByRefNftKey().size());
+                fingerprints.size(), cip26.size(), cip68.entitiesByRefNftKey().size());
         return result;
     }
 
     /**
-     * Runs the CIP-26 metadata and logo batch queries in parallel via structured concurrency.
-     *
-     * @implNote Spring's {@code @Transactional} context is stored in a ThreadLocal
-     * ({@code TransactionSynchronizationManager}). When we fork to virtual threads inside a
-     * {@link StructuredTaskScope}, that thread-local state is NOT propagated — each repository
-     * call executed inside a fork opens its OWN transaction and consumes its OWN connection-pool
-     * slot. The class-level {@code @Transactional(readOnly = true)} does not apply to the forked
-     * work.
-     * <p>
-     * <b>Why we accept this:</b> both queries are read-only point lookups against indexed
-     * columns, and the underlying CIP-26 data ({@code ft_offchain_metadata} /
-     * {@code ft_offchain_logo}) is written only during periodic offchain sync from the Cardano
-     * token registry git repo — i.e. very rarely. The theoretical risk of read skew is
-     * negligible for token metadata: a logo appearing or disappearing between two
-     * microsecond-apart queries is harmless and self-heals on the next API call.
-     * <p>
-     * <b>When to revisit:</b> if the connection pool is saturated, or if a future change
-     * introduces frequent writes to these tables, drop the scope and chain the calls
-     * sequentially on the transaction thread — a ~5-line diff that restores the outer
-     * {@code readOnly} transaction at the cost of serializing the two queries.
-     */
-    private Cip26Batch fetchCip26InParallel(List<String> subjects) {
-        try (StructuredTaskScope.ShutdownOnFailure scope = new StructuredTaskScope.ShutdownOnFailure()) {
-            StructuredTaskScope.Subtask<Map<String, TokenMetadataEntity>> metadataTask = scope.fork(() ->
-                    tokenMetadataRepository.findAllBySubjectIn(subjects).stream()
-                            .collect(Collectors.toMap(TokenMetadataEntity::getSubject, Function.identity())));
-
-            StructuredTaskScope.Subtask<Map<String, String>> logoTask = scope.fork(() ->
-                    logoEnabled
-                            ? tokenLogoRepository.findAllBySubjectIn(subjects).stream()
-                                .filter(l -> l.getLogo() != null)
-                                .collect(Collectors.toMap(TokenLogoEntity::getSubject, TokenLogoEntity::getLogo))
-                            : Map.of());
-
-            scope.join().throwIfFailed();
-
-            return new Cip26Batch(metadataTask.get(), logoTask.get());
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new RuntimeException("Token metadata batch query interrupted", e);
-        } catch (Exception e) {
-            throw new RuntimeException("Token metadata batch query failed", e);
-        }
-    }
-
-    /**
      * Collects CIP-68 fungible-token candidates from the input fingerprints, issues a single
-     * window-function query against {@code metadata_reference_nft}, and returns both the
-     * result map (keyed by reference-NFT concat key) and a reverse lookup from fingerprint
-     * to concat key so the merge phase can resolve entries in O(1).
+     * window-function query against {@code cip68_metadata}, and returns both the result map
+     * (keyed by reference-NFT concat key) and a reverse lookup from fingerprint to concat key
+     * so the merge phase can resolve entries in O(1).
      */
     private Cip68Batch fetchCip68(Collection<AssetFingerprint> fingerprints) {
         Map<AssetFingerprint, String> refNftKeyByFingerprint = new HashMap<>();
@@ -160,7 +116,7 @@ public class TokenQueryServiceImpl implements TokenQueryService {
 
         Map<String, MetadataReferenceNftEntity> entitiesByRefNftKey = cip68ConcatenatedKeys.isEmpty()
                 ? Map.of()
-                : metadataReferenceNftRepository.findLatestByConcatenatedKeys(cip68ConcatenatedKeys, CIP68_LABEL_FT).stream()
+                : metadataReferenceNftRepository.findLatestByConcatenatedKeys(cip68ConcatenatedKeys).stream()
                         .collect(Collectors.toMap(
                                 e -> e.getPolicyId() + e.getAssetName(),
                                 Function.identity()));
@@ -184,7 +140,7 @@ public class TokenQueryServiceImpl implements TokenQueryService {
      * subject} on the wire based on {@code TOKEN_REGISTRY_ENABLED}.)
      */
     private TokenRegistryCurrencyData mergeMetadata(AssetFingerprint fingerprint,
-                                                    Cip26Batch cip26,
+                                                    Map<String, TokenMetadataEntity> cip26,
                                                     Cip68Batch cip68) {
         String subject = fingerprint.toSubject();
 
@@ -194,9 +150,9 @@ public class TokenQueryServiceImpl implements TokenQueryService {
                 .decimals(0); // default; overridden below if CIP-26 or CIP-68 has an explicit value
 
         // CIP-26 base
-        TokenMetadataEntity cip26Entity = cip26.metadata().get(subject);
+        TokenMetadataEntity cip26Entity = cip26.get(subject);
         if (cip26Entity != null) {
-            applyCip26(builder, cip26Entity, cip26.logos().get(subject));
+            applyCip26(builder, cip26Entity);
         }
 
         // CIP-68 overrides (higher priority)
@@ -229,8 +185,7 @@ public class TokenQueryServiceImpl implements TokenQueryService {
      * otherwise.
      */
     private void applyCip26(TokenRegistryCurrencyData.TokenRegistryCurrencyDataBuilder builder,
-                            TokenMetadataEntity cip26,
-                            @Nullable String logo) {
+                            TokenMetadataEntity cip26) {
         builder.name(cip26.getName());
         builder.description(cip26.getDescription());
         Optional.ofNullable(cip26.getTicker()).ifPresent(builder::ticker);
@@ -239,10 +194,10 @@ public class TokenQueryServiceImpl implements TokenQueryService {
         if (cip26.getDecimals() != null) {
             builder.decimals(Math.toIntExact(cip26.getDecimals()));
         }
-        if (logoEnabled && logo != null) {
+        if (logoEnabled && cip26.getLogo() != null) {
             builder.logo(TokenRegistryCurrencyData.LogoData.builder()
                     .format(TokenRegistryCurrencyData.LogoFormat.BASE64)
-                    .value(logo)
+                    .value(cip26.getLogo())
                     .build());
         }
     }
@@ -285,12 +240,6 @@ public class TokenQueryServiceImpl implements TokenQueryService {
 
         return TokenRegistryCurrencyData.LogoFormat.BASE64;
     }
-
-    /**
-     * CIP-26 batch-fetch result. Holds the metadata rows keyed by subject and the optional
-     * logo map (empty when {@code TOKEN_REGISTRY_LOGO_FETCH=false}).
-     */
-    private record Cip26Batch(Map<String, TokenMetadataEntity> metadata, Map<String, String> logos) {}
 
     /**
      * CIP-68 batch-fetch result. Holds the reference-NFT rows keyed by their concat key

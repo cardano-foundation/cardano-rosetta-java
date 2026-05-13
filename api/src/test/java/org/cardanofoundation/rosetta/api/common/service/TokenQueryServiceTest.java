@@ -3,10 +3,8 @@ package org.cardanofoundation.rosetta.api.common.service;
 import org.cardanofoundation.rosetta.api.common.model.AssetFingerprint;
 import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
 import org.cardanofoundation.rosetta.api.common.model.entity.MetadataReferenceNftEntity;
-import org.cardanofoundation.rosetta.api.common.model.entity.TokenLogoEntity;
 import org.cardanofoundation.rosetta.api.common.model.entity.TokenMetadataEntity;
 import org.cardanofoundation.rosetta.api.common.model.repository.MetadataReferenceNftRepository;
-import org.cardanofoundation.rosetta.api.common.model.repository.TokenLogoRepository;
 import org.cardanofoundation.rosetta.api.common.model.repository.TokenMetadataRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -35,9 +33,6 @@ class TokenQueryServiceTest {
     private TokenMetadataRepository tokenMetadataRepository;
 
     @Mock
-    private TokenLogoRepository tokenLogoRepository;
-
-    @Mock
     private MetadataReferenceNftRepository metadataReferenceNftRepository;
 
     private TokenQueryServiceImpl tokenQueryService;
@@ -54,7 +49,7 @@ class TokenQueryServiceTest {
 
     @BeforeEach
     void setUp() {
-        tokenQueryService = new TokenQueryServiceImpl(tokenMetadataRepository, tokenLogoRepository, metadataReferenceNftRepository);
+        tokenQueryService = new TokenQueryServiceImpl(tokenMetadataRepository, metadataReferenceNftRepository);
         ReflectionTestUtils.setField(tokenQueryService, "logoEnabled", false);
     }
 
@@ -108,7 +103,7 @@ class TokenQueryServiceTest {
             MetadataReferenceNftEntity cip68 = MetadataReferenceNftEntity.builder()
                     .policyId(POLICY_ID).assetName(CIP68_REF_NFT_ASSET).slot(500L).label(333)
                     .name("iUSD").description("Stablecoin").ticker("iUSD").decimals(6L).version(1L).build();
-            when(metadataReferenceNftRepository.findLatestByConcatenatedKeys(anyCollection(), eq(333)))
+            when(metadataReferenceNftRepository.findLatestByConcatenatedKeys(anyCollection()))
                     .thenReturn(List.of(cip68));
 
             TokenRegistryCurrencyData result = querySingle(POLICY_ID, CIP68_FT_ASSET);
@@ -131,7 +126,7 @@ class TokenQueryServiceTest {
             MetadataReferenceNftEntity cip68 = MetadataReferenceNftEntity.builder()
                     .policyId(POLICY_ID).assetName(CIP68_REF_NFT_ASSET).slot(500L).label(333)
                     .name("New Name").description("New Desc").ticker("NEW").decimals(8L).version(2L).build();
-            when(metadataReferenceNftRepository.findLatestByConcatenatedKeys(anyCollection(), eq(333)))
+            when(metadataReferenceNftRepository.findLatestByConcatenatedKeys(anyCollection()))
                     .thenReturn(List.of(cip68));
 
             TokenRegistryCurrencyData result = querySingle(POLICY_ID, CIP68_FT_ASSET);
@@ -155,7 +150,7 @@ class TokenQueryServiceTest {
             MetadataReferenceNftEntity cip68 = MetadataReferenceNftEntity.builder()
                     .policyId(POLICY_ID).assetName(CIP68_REF_NFT_ASSET).slot(500L).label(333)
                     .name("CIP68 Name").description(null).ticker(null).decimals(8L).build();
-            when(metadataReferenceNftRepository.findLatestByConcatenatedKeys(anyCollection(), eq(333)))
+            when(metadataReferenceNftRepository.findLatestByConcatenatedKeys(anyCollection()))
                     .thenReturn(List.of(cip68));
 
             TokenRegistryCurrencyData result = querySingle(POLICY_ID, CIP68_FT_ASSET);
@@ -221,14 +216,14 @@ class TokenQueryServiceTest {
         void shouldConvertFungibleToReferencePrefix() {
             String hexName = "aabbccdd";
             when(tokenMetadataRepository.findAllBySubjectIn(anyList())).thenReturn(List.of());
-            when(metadataReferenceNftRepository.findLatestByConcatenatedKeys(anyCollection(), eq(333)))
+            when(metadataReferenceNftRepository.findLatestByConcatenatedKeys(anyCollection()))
                     .thenReturn(List.of());
 
             querySingle(POLICY_ID, "0014df10" + hexName);
 
             @SuppressWarnings("unchecked")
             ArgumentCaptor<Collection<String>> captor = ArgumentCaptor.forClass(Collection.class);
-            verify(metadataReferenceNftRepository).findLatestByConcatenatedKeys(captor.capture(), eq(333));
+            verify(metadataReferenceNftRepository).findLatestByConcatenatedKeys(captor.capture());
             assertThat(captor.getValue()).containsExactly(POLICY_ID + "000643b0" + hexName);
         }
 
@@ -248,31 +243,27 @@ class TokenQueryServiceTest {
     class LogoTests {
 
         @Test
-        @DisplayName("Should not fetch logo when logoEnabled is false")
-        void shouldNotFetchLogoWhenDisabled() {
+        @DisplayName("Should not include logo when logoEnabled is false")
+        void shouldNotIncludeLogoWhenDisabled() {
             ReflectionTestUtils.setField(tokenQueryService, "logoEnabled", false);
 
             TokenMetadataEntity cip26 = TokenMetadataEntity.builder()
-                    .subject(SUBJECT).name("Token").description("Desc").build();
+                    .subject(SUBJECT).name("Token").description("Desc").logo("iVBORw0KGgo=").build();
             when(tokenMetadataRepository.findAllBySubjectIn(anyList())).thenReturn(List.of(cip26));
 
             TokenRegistryCurrencyData result = querySingle(POLICY_ID, ASSET_HEX);
 
             assertThat(result.getLogo()).isNull();
-            verifyNoInteractions(tokenLogoRepository);
         }
 
         @Test
-        @DisplayName("Should fetch and include CIP-26 BASE64 logo when enabled")
+        @DisplayName("Should include CIP-26 BASE64 logo when enabled (logo is on cip26_metadata row)")
         void shouldIncludeCip26LogoWhenEnabled() {
             ReflectionTestUtils.setField(tokenQueryService, "logoEnabled", true);
 
             TokenMetadataEntity cip26 = TokenMetadataEntity.builder()
-                    .subject(SUBJECT).name("Token").description("Desc").build();
+                    .subject(SUBJECT).name("Token").description("Desc").logo("iVBORw0KGgo=").build();
             when(tokenMetadataRepository.findAllBySubjectIn(anyList())).thenReturn(List.of(cip26));
-
-            TokenLogoEntity logo = TokenLogoEntity.builder().subject(SUBJECT).logo("iVBORw0KGgo=").build();
-            when(tokenLogoRepository.findAllBySubjectIn(anyList())).thenReturn(List.of(logo));
 
             TokenRegistryCurrencyData result = querySingle(POLICY_ID, ASSET_HEX);
 
@@ -287,12 +278,11 @@ class TokenQueryServiceTest {
             ReflectionTestUtils.setField(tokenQueryService, "logoEnabled", true);
 
             when(tokenMetadataRepository.findAllBySubjectIn(anyList())).thenReturn(List.of());
-            when(tokenLogoRepository.findAllBySubjectIn(anyList())).thenReturn(List.of());
 
             MetadataReferenceNftEntity cip68 = MetadataReferenceNftEntity.builder()
                     .policyId(POLICY_ID).assetName(CIP68_REF_NFT_ASSET).slot(500L).label(333)
                     .name("Token").description("Desc").logo("ipfs://QmHash").build();
-            when(metadataReferenceNftRepository.findLatestByConcatenatedKeys(anyCollection(), eq(333)))
+            when(metadataReferenceNftRepository.findLatestByConcatenatedKeys(anyCollection()))
                     .thenReturn(List.of(cip68));
 
             TokenRegistryCurrencyData result = querySingle(POLICY_ID, CIP68_FT_ASSET);
@@ -308,12 +298,11 @@ class TokenQueryServiceTest {
             ReflectionTestUtils.setField(tokenQueryService, "logoEnabled", true);
 
             when(tokenMetadataRepository.findAllBySubjectIn(anyList())).thenReturn(List.of());
-            when(tokenLogoRepository.findAllBySubjectIn(anyList())).thenReturn(List.of());
 
             MetadataReferenceNftEntity cip68 = MetadataReferenceNftEntity.builder()
                     .policyId(POLICY_ID).assetName(CIP68_REF_NFT_ASSET).slot(500L).label(333)
                     .name("Token").description("Desc").logo("https://example.com/logo.png").build();
-            when(metadataReferenceNftRepository.findLatestByConcatenatedKeys(anyCollection(), eq(333)))
+            when(metadataReferenceNftRepository.findLatestByConcatenatedKeys(anyCollection()))
                     .thenReturn(List.of(cip68));
 
             TokenRegistryCurrencyData result = querySingle(POLICY_ID, CIP68_FT_ASSET);
@@ -327,12 +316,11 @@ class TokenQueryServiceTest {
             ReflectionTestUtils.setField(tokenQueryService, "logoEnabled", true);
 
             when(tokenMetadataRepository.findAllBySubjectIn(anyList())).thenReturn(List.of());
-            when(tokenLogoRepository.findAllBySubjectIn(anyList())).thenReturn(List.of());
 
             MetadataReferenceNftEntity cip68 = MetadataReferenceNftEntity.builder()
                     .policyId(POLICY_ID).assetName(CIP68_REF_NFT_ASSET).slot(500L).label(333)
                     .name("Token").description("Desc").logo("ar://tx-id").build();
-            when(metadataReferenceNftRepository.findLatestByConcatenatedKeys(anyCollection(), eq(333)))
+            when(metadataReferenceNftRepository.findLatestByConcatenatedKeys(anyCollection()))
                     .thenReturn(List.of(cip68));
 
             TokenRegistryCurrencyData result = querySingle(POLICY_ID, CIP68_FT_ASSET);
@@ -346,12 +334,11 @@ class TokenQueryServiceTest {
             ReflectionTestUtils.setField(tokenQueryService, "logoEnabled", true);
 
             when(tokenMetadataRepository.findAllBySubjectIn(anyList())).thenReturn(List.of());
-            when(tokenLogoRepository.findAllBySubjectIn(anyList())).thenReturn(List.of());
 
             MetadataReferenceNftEntity cip68 = MetadataReferenceNftEntity.builder()
                     .policyId(POLICY_ID).assetName(CIP68_REF_NFT_ASSET).slot(500L).label(333)
                     .name("Token").description("Desc").logo("iVBORw0KGgoAAAANSUhEUg==").build();
-            when(metadataReferenceNftRepository.findLatestByConcatenatedKeys(anyCollection(), eq(333)))
+            when(metadataReferenceNftRepository.findLatestByConcatenatedKeys(anyCollection()))
                     .thenReturn(List.of(cip68));
 
             TokenRegistryCurrencyData result = querySingle(POLICY_ID, CIP68_FT_ASSET);
@@ -366,12 +353,11 @@ class TokenQueryServiceTest {
             ReflectionTestUtils.setField(tokenQueryService, "logoEnabled", true);
 
             when(tokenMetadataRepository.findAllBySubjectIn(anyList())).thenReturn(List.of());
-            when(tokenLogoRepository.findAllBySubjectIn(anyList())).thenReturn(List.of());
 
             MetadataReferenceNftEntity cip68 = MetadataReferenceNftEntity.builder()
                     .policyId(POLICY_ID).assetName(CIP68_REF_NFT_ASSET).slot(500L).label(333)
                     .name("Token").description("Desc").logo("data:image/png;base64,iVBORw0KGgo=").build();
-            when(metadataReferenceNftRepository.findLatestByConcatenatedKeys(anyCollection(), eq(333)))
+            when(metadataReferenceNftRepository.findLatestByConcatenatedKeys(anyCollection()))
                     .thenReturn(List.of(cip68));
 
             TokenRegistryCurrencyData result = querySingle(POLICY_ID, CIP68_FT_ASSET);
@@ -385,16 +371,13 @@ class TokenQueryServiceTest {
             ReflectionTestUtils.setField(tokenQueryService, "logoEnabled", true);
 
             TokenMetadataEntity cip26 = TokenMetadataEntity.builder()
-                    .subject(CIP68_SUBJECT).name("Token").description("Desc").build();
+                    .subject(CIP68_SUBJECT).name("Token").description("Desc").logo("base64data").build();
             when(tokenMetadataRepository.findAllBySubjectIn(anyList())).thenReturn(List.of(cip26));
-
-            TokenLogoEntity cip26Logo = TokenLogoEntity.builder().subject(CIP68_SUBJECT).logo("base64data").build();
-            when(tokenLogoRepository.findAllBySubjectIn(anyList())).thenReturn(List.of(cip26Logo));
 
             MetadataReferenceNftEntity cip68 = MetadataReferenceNftEntity.builder()
                     .policyId(POLICY_ID).assetName(CIP68_REF_NFT_ASSET).slot(500L).label(333)
                     .name("Token").description("Desc").logo("ipfs://Override").build();
-            when(metadataReferenceNftRepository.findLatestByConcatenatedKeys(anyCollection(), eq(333)))
+            when(metadataReferenceNftRepository.findLatestByConcatenatedKeys(anyCollection()))
                     .thenReturn(List.of(cip68));
 
             TokenRegistryCurrencyData result = querySingle(POLICY_ID, CIP68_FT_ASSET);
@@ -413,7 +396,7 @@ class TokenQueryServiceTest {
             MetadataReferenceNftEntity cip68 = MetadataReferenceNftEntity.builder()
                     .policyId(POLICY_ID).assetName(CIP68_REF_NFT_ASSET).slot(500L).label(333)
                     .name("Token").description("Desc").logo("ipfs://QmHash").build();
-            when(metadataReferenceNftRepository.findLatestByConcatenatedKeys(anyCollection(), eq(333)))
+            when(metadataReferenceNftRepository.findLatestByConcatenatedKeys(anyCollection()))
                     .thenReturn(List.of(cip68));
 
             TokenRegistryCurrencyData result = querySingle(POLICY_ID, CIP68_FT_ASSET);
@@ -427,9 +410,8 @@ class TokenQueryServiceTest {
             ReflectionTestUtils.setField(tokenQueryService, "logoEnabled", true);
 
             TokenMetadataEntity cip26 = TokenMetadataEntity.builder()
-                    .subject(SUBJECT).name("Token").description("Desc").build();
+                    .subject(SUBJECT).name("Token").description("Desc").logo(null).build();
             when(tokenMetadataRepository.findAllBySubjectIn(anyList())).thenReturn(List.of(cip26));
-            when(tokenLogoRepository.findAllBySubjectIn(anyList())).thenReturn(List.of());
 
             TokenRegistryCurrencyData result = querySingle(POLICY_ID, ASSET_HEX);
 
@@ -477,40 +459,38 @@ class TokenQueryServiceTest {
         @DisplayName("Should return empty map when fingerprints list is empty")
         void shouldReturnEmptyMapWhenEmpty() {
             assertThat(tokenQueryService.queryMetadataBatch(List.of())).isEmpty();
-            verifyNoInteractions(tokenMetadataRepository, tokenLogoRepository, metadataReferenceNftRepository);
+            verifyNoInteractions(tokenMetadataRepository, metadataReferenceNftRepository);
         }
 
         @Test
-        @DisplayName("Should batch fetch logos when logoEnabled is true")
-        void shouldBatchFetchLogosWhenEnabled() {
+        @DisplayName("Should expose logo from CIP-26 row when logoEnabled is true")
+        void shouldExposeLogoWhenEnabled() {
             ReflectionTestUtils.setField(tokenQueryService, "logoEnabled", true);
 
             AssetFingerprint fp = AssetFingerprint.of(POLICY_ID, ASSET_HEX);
-            TokenMetadataEntity e1 = TokenMetadataEntity.builder().subject(SUBJECT).name("T").description("D").build();
+            TokenMetadataEntity e1 = TokenMetadataEntity.builder()
+                    .subject(SUBJECT).name("T").description("D").logo("base64img").build();
             when(tokenMetadataRepository.findAllBySubjectIn(anyList())).thenReturn(List.of(e1));
-
-            TokenLogoEntity logo = TokenLogoEntity.builder().subject(SUBJECT).logo("base64img").build();
-            when(tokenLogoRepository.findAllBySubjectIn(anyList())).thenReturn(List.of(logo));
 
             Map<AssetFingerprint, TokenRegistryCurrencyData> result = tokenQueryService.queryMetadataBatch(List.of(fp));
 
             assertThat(result.get(fp).getLogo()).isNotNull();
             assertThat(result.get(fp).getLogo().getValue()).isEqualTo("base64img");
-            verify(tokenLogoRepository).findAllBySubjectIn(anyList());
         }
 
         @Test
-        @DisplayName("Should not fetch logos when logoEnabled is false")
-        void shouldNotFetchLogosWhenDisabled() {
+        @DisplayName("Should not expose logo when logoEnabled is false even when present in DB")
+        void shouldNotExposeLogoWhenDisabled() {
             ReflectionTestUtils.setField(tokenQueryService, "logoEnabled", false);
 
             AssetFingerprint fp = AssetFingerprint.of(POLICY_ID, ASSET_HEX);
-            TokenMetadataEntity e1 = TokenMetadataEntity.builder().subject(SUBJECT).name("T").description("D").build();
+            TokenMetadataEntity e1 = TokenMetadataEntity.builder()
+                    .subject(SUBJECT).name("T").description("D").logo("base64img").build();
             when(tokenMetadataRepository.findAllBySubjectIn(anyList())).thenReturn(List.of(e1));
 
-            tokenQueryService.queryMetadataBatch(List.of(fp));
+            Map<AssetFingerprint, TokenRegistryCurrencyData> result = tokenQueryService.queryMetadataBatch(List.of(fp));
 
-            verifyNoInteractions(tokenLogoRepository);
+            assertThat(result.get(fp).getLogo()).isNull();
         }
 
         @Test
@@ -525,30 +505,13 @@ class TokenQueryServiceTest {
             MetadataReferenceNftEntity cip68 = MetadataReferenceNftEntity.builder()
                     .policyId(POLICY_ID).assetName(CIP68_REF_NFT_ASSET).slot(100L).label(333)
                     .name("CIP68").description("New").decimals(6L).build();
-            when(metadataReferenceNftRepository.findLatestByConcatenatedKeys(anyCollection(), eq(333)))
+            when(metadataReferenceNftRepository.findLatestByConcatenatedKeys(anyCollection()))
                     .thenReturn(List.of(cip68));
 
             Map<AssetFingerprint, TokenRegistryCurrencyData> result = tokenQueryService.queryMetadataBatch(List.of(fp));
 
             assertThat(result.get(fp).getName()).isEqualTo("CIP68");
             assertThat(result.get(fp).getDecimals()).isEqualTo(6);
-        }
-
-        @Test
-        @DisplayName("Should filter out null logos from batch result")
-        void shouldFilterNullLogosInBatch() {
-            ReflectionTestUtils.setField(tokenQueryService, "logoEnabled", true);
-
-            AssetFingerprint fp = AssetFingerprint.of(POLICY_ID, ASSET_HEX);
-            TokenMetadataEntity e1 = TokenMetadataEntity.builder().subject(SUBJECT).name("T").description("D").build();
-            when(tokenMetadataRepository.findAllBySubjectIn(anyList())).thenReturn(List.of(e1));
-
-            TokenLogoEntity logoWithNull = TokenLogoEntity.builder().subject(SUBJECT).logo(null).build();
-            when(tokenLogoRepository.findAllBySubjectIn(anyList())).thenReturn(List.of(logoWithNull));
-
-            Map<AssetFingerprint, TokenRegistryCurrencyData> result = tokenQueryService.queryMetadataBatch(List.of(fp));
-
-            assertThat(result.get(fp).getLogo()).isNull();
         }
     }
 

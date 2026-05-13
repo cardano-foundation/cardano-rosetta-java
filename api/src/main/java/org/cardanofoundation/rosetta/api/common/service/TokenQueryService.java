@@ -8,7 +8,7 @@ import java.util.Map;
 
 /**
  * Read-only access to merged token metadata from the yaci-store assets-ext tables
- * ({@code ft_offchain_metadata}, {@code ft_offchain_logo}, {@code metadata_reference_nft}).
+ * ({@code cip26_metadata} and {@code cip68_metadata}).
  * <p>
  * This service runs unconditionally — it is <em>not</em> gated by {@code TOKEN_REGISTRY_ENABLED}.
  * Its primary job on every request is to resolve the correct {@code decimals} for each

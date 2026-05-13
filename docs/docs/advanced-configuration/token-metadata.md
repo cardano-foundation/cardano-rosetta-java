@@ -136,9 +136,8 @@ Metadata enrichment is fully database-backed — there is no runtime HTTP call t
            ▼                           ▼  are processed            ▼
      ┌──────────────────────────────────────────────────────────────────┐
      │  yaci-indexer (yaci-store assets-ext module, always on)          │
-     │   - ft_offchain_metadata   (CIP-26 fields, incl. decimals)       │
-     │   - ft_offchain_logo       (CIP-26 logos)                        │
-     │   - metadata_reference_nft (CIP-68 reference NFT datums)         │
+     │   - cip26_metadata  (CIP-26 fields incl. decimals and logo)      │
+     │   - cip68_metadata  (CIP-68 reference NFT datums)                │
      └────────────────────────────────┬─────────────────────────────────┘
                                       │
                                       ▼
@@ -151,9 +150,9 @@ Metadata enrichment is fully database-backed — there is no runtime HTTP call t
 ```
 
 **Key properties:**
-- The `yaci-store-assets-ext` module runs inside the `yaci-indexer` and populates the three tables above. It is **always enabled** in the bundled `yaci-indexer` — you do not need to install or configure a separate service.
+- The `yaci-store-assets-ext` module runs inside the `yaci-indexer` and populates the two tables above. It is **always enabled** in the bundled `yaci-indexer` — you do not need to install or configure a separate service.
 - Initial CIP-26 sync from GitHub typically takes a few minutes after the indexer starts. CIP-68 data is indexed continuously as blocks are processed.
-- The Rosetta API reads these tables in a constant number of batched queries per request (one CIP-26 metadata query, optionally one CIP-26 logo query, and one CIP-68 query only if the request contains CIP-68 fungible tokens).
+- The Rosetta API reads these tables in a constant number of batched queries per request (one CIP-26 metadata query — logo is on the same row — and one CIP-68 query only if the request contains CIP-68 fungible tokens).
 - The flag only controls serialization; it does not skip DB reads. Decimals must be resolved correctly even when the flag is off.
 
 ## Enabling Token Metadata
@@ -255,10 +254,10 @@ All endpoints that return `currency` objects (`/account/balance`, `/account/coin
 
 **Symptom:** `currency.decimals` is `0` for a token that should have a non-zero value.
 
-- Confirm the token has a CIP-26 entry: `SELECT decimals FROM ft_offchain_metadata WHERE subject = '<policyId||assetName>'`.
+- Confirm the token has a CIP-26 entry: `SELECT decimals FROM cip26_metadata WHERE subject = '<policyId||assetName>'`.
 - If the row is missing, the assets-ext module hasn't synced that subject yet. Initial GitHub sync takes a few minutes after indexer startup.
 - If the row exists but `decimals` is `null`, the token issuer did not register a decimal count — `0` is the correct fallback in that case.
-- For CIP-68 fungible tokens, check `metadata_reference_nft` with the `000643b0` prefix in `asset_name` — the reference NFT holds the decimals.
+- For CIP-68 fungible tokens, check `cip68_metadata` with the `000643b0` prefix in `asset_name` — the reference NFT holds the decimals.
 
 ### Enrichment fields are missing (metadata only has `policyId`)
 
@@ -276,7 +275,7 @@ Expected: `TOKEN_REGISTRY_ENABLED=true`. If `false` or unset, update the env fil
 **Check 3 — the indexer has finished its initial CIP-26 sync:**
 ```bash
 docker exec cardano-rosetta-java-db-1 \
-  psql -U "$DB_USER" -d "$DB_NAME" -c "SELECT COUNT(*) FROM ft_offchain_metadata;"
+  psql -U "$DB_USER" -d "$DB_NAME" -c "SELECT COUNT(*) FROM cip26_metadata;"
 ```
 On a freshly-started indexer this may be `0` for a few minutes.
 
@@ -285,10 +284,10 @@ On a freshly-started indexer this may be `0` for a few minutes.
 **Symptom:** `currency.metadata.logo` is never populated.
 
 - Confirm both flags are set: `TOKEN_REGISTRY_ENABLED=true` **and** `TOKEN_REGISTRY_LOGO_FETCH=true`, then restart the API.
-- For CIP-26 tokens, verify the logo table has rows:
+- For CIP-26 tokens, verify the `logo` column has values (logo lives on the `cip26_metadata` row in the V2 schema — there is no separate logo table):
   ```bash
   docker exec cardano-rosetta-java-db-1 \
-    psql -U "$DB_USER" -d "$DB_NAME" -c "SELECT COUNT(*) FROM ft_offchain_logo WHERE logo IS NOT NULL;"
+    psql -U "$DB_USER" -d "$DB_NAME" -c "SELECT COUNT(*) FROM cip26_metadata WHERE logo IS NOT NULL;"
   ```
 - For CIP-68 tokens, the logo value is taken directly from the on-chain reference NFT datum and will be `null` whenever the issuer didn't include one.
 
@@ -296,7 +295,7 @@ On a freshly-started indexer this may be `0` for a few minutes.
 
 The DB lookups run either way — turning the flag on only affects serialization, not query volume. So the latency impact of the flag itself should be negligible. If responses slow down after turning enrichment on:
 
-- Disable logo fetching (`TOKEN_REGISTRY_LOGO_FETCH=false`) — it saves one DB query and avoids shipping base64 blobs over the wire. This is the biggest contributor to response size.
+- Disable logo fetching (`TOKEN_REGISTRY_LOGO_FETCH=false`) — the logo column is still read from the database (it lives on the `cip26_metadata` row), but the flag suppresses it from the wire. PostgreSQL TOAST keeps the logo off main heap pages so the scan-time cost is negligible; the saving is bandwidth, which is the biggest contributor to response size.
 - Check the indexer's PostgreSQL is healthy (`pg_stat_activity`, `pg_stat_statements`) — a struggling indexer DB also slows the API's metadata lookups.
 
 ## Further Reading
