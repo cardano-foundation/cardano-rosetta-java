@@ -8,14 +8,14 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import javax.sql.DataSource;
+import org.springframework.beans.factory.annotation.Value;
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.Statement;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -45,9 +45,17 @@ import java.util.concurrent.atomic.AtomicReference;
 public class PgIndexService implements IndexService {
 
     private final JdbcTemplate jdbcTemplate;
-    private final DataSource dataSource;
     private final IndexCatalog indexConfig;
     private final SyncStatusService syncStatusService;
+
+    @Value("${spring.datasource.url}")
+    private String dbUrl;
+
+    @Value("${spring.datasource.username}")
+    private String dbUser;
+
+    @Value("${spring.datasource.password}")
+    private String dbPassword;
 
     private String currentSchema;
 
@@ -68,11 +76,9 @@ public class PgIndexService implements IndexService {
             "WHERE c.relname = ? AND n.nspname = current_schema()";
 
     public PgIndexService(JdbcTemplate jdbcTemplate,
-                                                   IndexCatalog indexConfig,
-                                                   SyncStatusService syncStatusService) {
+                          IndexCatalog indexConfig,
+                          SyncStatusService syncStatusService) {
         this.jdbcTemplate = jdbcTemplate;
-        this.dataSource = Objects.requireNonNull(jdbcTemplate.getDataSource(),
-                "JdbcTemplate must have a non-null DataSource");
         this.indexConfig = indexConfig;
         this.syncStatusService = syncStatusService;
     }
@@ -211,13 +217,11 @@ public class PgIndexService implements IndexService {
      * Required because {@code CREATE INDEX CONCURRENTLY} cannot run inside a transaction block.
      */
     private void executeWithAutoCommit(String sql) {
-        try (Connection conn = dataSource.getConnection()) {
-            boolean originalAutoCommit = conn.getAutoCommit();
+        try (Connection conn = DriverManager.getConnection(dbUrl, dbUser, dbPassword)) {
             conn.setAutoCommit(true);
             try (Statement stmt = conn.createStatement()) {
+                stmt.setQueryTimeout(0); // Infinite timeout for long-running index creations
                 stmt.execute(sql);
-            } finally {
-                conn.setAutoCommit(originalAutoCommit);
             }
         } catch (Exception e) {
             throw new RuntimeException("Failed to execute SQL with autoCommit: " + sql, e);
