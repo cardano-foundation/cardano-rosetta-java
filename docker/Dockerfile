@@ -36,7 +36,7 @@ ARG CONFIG_FORK_REPO="VladislavKudrin/gnu-config-fork"
 ARG CONFIG_FORK_BRANCH="master"
 
 # Mithril version
-ARG MITHRIL_VERSION=${MITHRIL_VERSION:-2537.0}
+ARG MITHRIL_VERSION=${MITHRIL_VERSION:-2617.0}
 
 RUN bash -c "ghcup install cabal ${CABAL_VERSION}"
 RUN bash -c "ghcup set cabal ${CABAL_VERSION}"
