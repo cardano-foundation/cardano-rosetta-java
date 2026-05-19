@@ -22,7 +22,7 @@ download_mithril_snapshot() {
     esac
     echo "Listing content of /node dir:"
     ls -la /node
-    mithril-client cardano-db download latest --include-ancillary --ancillary-verification-key $ANCILLARY_VERIFICATION_KEY --download-dir /node --allow-override &
+    mithril-client cardano-db download latest --include-ancillary --ancillary-verification-key $ANCILLARY_VERIFICATION_KEY --download-dir /node &
     MITHRIL_PID=$!
     wait $MITHRIL_PID
     echo "Done downloading Mithril Snapshot"
