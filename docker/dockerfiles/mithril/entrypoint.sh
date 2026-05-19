@@ -30,7 +30,9 @@ download_mithril_snapshot() {
     # would clobber an already-synced (and possibly ahead) node DB. The marker
     # is written by THIS script after a successful download, so its presence
     # means "this v2-aware entrypoint already restored here". It is a provenance
-    # flag, not a snapshot-format probe.
+    # flag, not a snapshot-format probe. /node is a bind mount
+    # (${CARDANO_NODE_DIR}:/node in docker-compose-node.yaml) so the marker
+    # persists across restarts.
     MITHRIL_V2_MARKER="/node/.mithril-v2.done"
     OVERRIDE=""
     if [ -n "$(ls -A /node 2>/dev/null)" ] && [ ! -f "$MITHRIL_V2_MARKER" ]; then
