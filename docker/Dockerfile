@@ -9,6 +9,7 @@ RUN apt update --fix-missing \
     && apt install -y --no-install-recommends \
     automake build-essential pkg-config libffi-dev libgmp-dev libssl-dev libncurses-dev libsystemd-dev zlib1g-dev make \
     g++ tmux git jq wget libncursesw5-dev libtool autoconf liblmdb-dev curl ca-certificates pkg-config \
+    liburing-dev libsnappy-dev protobuf-compiler \
     && apt-get clean
 
 WORKDIR /root/src
@@ -28,7 +29,7 @@ ARG CABAL_VERSION=${CABAL_VERSION:-3.12.1.0}
 ARG GHC_VERSION=${GHC_VERSION:-9.6.7}
 
 # Cardano node version
-ARG CARDANO_NODE_VERSION=${CARDANO_NODE_VERSION:-10.5.3}
+ARG CARDANO_NODE_VERSION=${CARDANO_NODE_VERSION:-11.0.1}
 
 # Clone config fork reposotory
 ARG CONFIG_FORK_REPO="VladislavKudrin/gnu-config-fork"
@@ -140,6 +141,7 @@ RUN git clone https://github.com/intersectmbo/cardano-node.git \
 WORKDIR /usr/local/src/cardano-node
 
 RUN bash -c "cabal update"
+ENV LANG=C.UTF-8
 RUN bash -c "cabal build all"
 RUN bash -c "cabal build cardano-cli"
 RUN bash -c "cabal build cardano-submit-api"
@@ -214,6 +216,7 @@ RUN git clone --branch $PG_VERSION_TAG https://github.com/postgres/postgres.git 
 FROM ubuntu:24.04
 
 RUN apt update && apt install -y --no-install-recommends jq bc sudo curl  wget ca-certificates \
+  liburing2 libsnappy1v5 \
   libreadline-dev \
   sudo \
   locales \
@@ -228,7 +231,7 @@ WORKDIR /
 COPY --from=cardano-builder /usr/local/lib /usr/local/lib
 COPY --from=cardano-builder /root/.local/bin/cardano-* /usr/local/bin/
 COPY --from=cardano-builder /root/.local/bin/mithril-client /usr/local/bin/
-COPY --from=cardano-builder /usr/local/src/cardano-node/cardano-submit-api/config/tx-submit-mainnet-config.yaml /cardano-submit-api-config/cardano-submit-api.yaml
+COPY ./docker/dockerfiles/node/tx-submit-config.yaml /cardano-submit-api-config/cardano-submit-api.yaml
 ENV NODE_DATA="/node/db"
 RUN mkdir -p $NODE_DATA
 

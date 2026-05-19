@@ -24,7 +24,7 @@ ARG LMDB_VERSION="ce20108"
 ARG CABAL_VERSION=${CABAL_VERSION:-3.12.1.0}
 ARG GHC_VERSION=${GHC_VERSION:-9.6.7}
 
-ARG CARDANO_NODE_VERSION=${CARDANO_NODE_VERSION:-11.0.0}
+ARG CARDANO_NODE_VERSION=${CARDANO_NODE_VERSION:-11.0.1}
 
 RUN bash -c "ghcup install cabal ${CABAL_VERSION}"
 RUN bash -c "ghcup set cabal ${CABAL_VERSION}"
@@ -115,7 +115,10 @@ RUN git clone https://github.com/intersectmbo/cardano-node.git \
 WORKDIR /usr/local/src/cardano-node
 
 RUN bash -c "cabal update"
-RUN bash -c "cabal build cardano-node cardano-cli cardano-submit-api"
+ENV LANG=C.UTF-8
+RUN bash -c "cabal build all"
+RUN bash -c "cabal build cardano-cli"
+RUN bash -c "cabal build cardano-submit-api"
 
 RUN mkdir -p /root/.local/bin \
     && cp -p "$(./scripts/bin-path.sh cardano-node)" /root/.local/bin/ \
