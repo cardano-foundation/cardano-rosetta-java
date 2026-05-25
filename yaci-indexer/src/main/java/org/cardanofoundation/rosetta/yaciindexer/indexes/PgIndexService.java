@@ -216,11 +216,19 @@ public class PgIndexService implements IndexService {
      * Execute SQL using a raw JDBC connection with explicit {@code autoCommit=true}.
      * Required because {@code CREATE INDEX CONCURRENTLY} cannot run inside a transaction block.
      */
+    Connection getConnection() throws java.sql.SQLException {
+        String urlWithKeepAlive = dbUrl;
+        if (urlWithKeepAlive != null && !urlWithKeepAlive.contains("tcpKeepAlive")) {
+            urlWithKeepAlive += urlWithKeepAlive.contains("?") ? "&tcpKeepAlive=true" : "?tcpKeepAlive=true";
+        }
+        return DriverManager.getConnection(urlWithKeepAlive, dbUser, dbPassword);
+    }
+
     private void executeWithAutoCommit(String sql) {
-        try (Connection conn = DriverManager.getConnection(dbUrl, dbUser, dbPassword)) {
+        try (Connection conn = getConnection()) {
             conn.setAutoCommit(true);
             try (Statement stmt = conn.createStatement()) {
-                stmt.setQueryTimeout(0); // Infinite timeout for long-running index creations
+                stmt.setQueryTimeout(21600); // 6-hour timeout for long-running index creations
                 stmt.execute(sql);
             }
         } catch (Exception e) {

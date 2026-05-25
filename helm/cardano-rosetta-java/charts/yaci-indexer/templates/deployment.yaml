@@ -146,6 +146,8 @@ spec:
               value: {{ .Values.env.peerDiscovery | toString | quote }}
             - name: LOG
               value: {{ .Values.env.logLevel | upper | quote }}
+            - name: INDEX_STALL_TIMEOUT_MINUTES
+              value: {{ .Values.env.indexStallTimeoutMinutes | toString | quote }}
             {{- $profile := include "yaci-indexer.profile" . }}
             {{- $indexerDb := index .Values.global.profiles $profile "db" "indexerDb" }}
             - name: INDEXER_DB_POOL_MIN_COUNT

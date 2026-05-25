@@ -12,6 +12,7 @@ env:
   continueParsingOnError: true                  # matches Docker Compose default
   peerDiscovery: false
   logLevel: error                               # matches Docker Compose default (LOG=ERROR)
+  indexStallTimeoutMinutes: 360                 # 6 hours in minutes to prevent restarts during long builds
   # HikariCP connection pool tuning — matches Docker Compose INDEXER_DB_* variables.
   # Jar default pool size is 20, which is too small during heavy sync.
   # All slots fill up → health endpoint can't get a connection → liveness probe fails → restart.

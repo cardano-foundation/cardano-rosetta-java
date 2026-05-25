@@ -10,7 +10,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.Statement;
 import java.util.Collections;
@@ -28,8 +27,6 @@ class PgIndexServiceTest {
     @Mock
     private JdbcTemplate jdbcTemplate;
 
-    @Mock
-    private DataSource dataSource;
 
     @Mock
     private Connection connection;
@@ -80,14 +77,17 @@ class PgIndexServiceTest {
      * stubbing check may fire before the background thread consumes these stubs.
      */
     private void setupDataSourceMock() throws Exception {
-        lenient().when(dataSource.getConnection()).thenReturn(connection);
         lenient().when(connection.createStatement()).thenReturn(statement);
     }
 
     private PgIndexService createService() {
-        when(jdbcTemplate.getDataSource()).thenReturn(dataSource);
         when(jdbcTemplate.queryForObject("SELECT current_schema()", String.class)).thenReturn("public");
-        return new PgIndexService(jdbcTemplate, indexConfig, syncStatusService);
+        return new PgIndexService(jdbcTemplate, indexConfig, syncStatusService) {
+            @Override
+            Connection getConnection() throws java.sql.SQLException {
+                return connection;
+            }
+        };
     }
 
     // ---------------------------------------------------------------------------
