@@ -46,7 +46,16 @@ public class YaciSyncHealthIndicator implements HealthIndicator {
 
     @Override
     public Health health() {
-        HealthStatus status = healthService.getHealthStatus();
+        HealthStatus status;
+        try {
+            status = healthService.getHealthStatus();
+        } catch (NullPointerException e) {
+            return new Health.Builder()
+                    .down()
+                    .withDetail("syncStatus", "Initializing")
+                    .withDetail("error", "Block fetcher is not initialized yet")
+                    .build();
+        }
 
         Health.Builder builder = new Health.Builder()
                 .withDetail("connectionAlive", status.isConnectionAlive())
