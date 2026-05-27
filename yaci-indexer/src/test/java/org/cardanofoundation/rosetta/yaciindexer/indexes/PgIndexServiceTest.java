@@ -456,5 +456,38 @@ class PgIndexServiceTest {
             // No exception, state machine is safe
             assertNotEquals(IndexLifecycleState.PENDING, service.getState());
         }
+
+        @Test
+        @DisplayName("should re-trigger from FAILED state on next sync cycle and reach READY")
+        void failedLifecycleStateRetriggersOnNextSyncCycle() throws Exception {
+            List<IndexCatalog.DbIndex> indexes = List.of(dbIndex("idx_retry"));
+            when(indexConfig.getDbIndexes()).thenReturn(indexes);
+            when(jdbcTemplate.queryForList(eq(PG_INDEX_SQL), eq("idx_retry")))
+                    .thenReturn(Collections.emptyList());
+
+            service = createService();
+            service.init();
+
+            // Fail on first call (permanent), succeed on second (after re-trigger)
+            setupDataSourceMock();
+            when(statement.execute(anyString()))
+                    .thenThrow(new RuntimeException("disk full"))
+                    .thenReturn(false);
+
+            when(jdbcTemplate.queryForList(eq(PG_INDEX_SQL), eq("idx_retry")))
+                    .thenReturn(Collections.emptyList());
+
+            service.triggerIndexing();
+            waitForState(IndexLifecycleState.FAILED, 5000);
+            assertEquals(IndexLifecycleState.FAILED, service.getState());
+
+            SyncStatusDto dto = SyncStatusDto.builder().synced(true).build();
+            when(syncStatusService.getSyncStatus()).thenReturn(dto);
+
+            service.checkSyncAndTrigger();
+
+            waitForState(IndexLifecycleState.READY, 5000);
+            assertEquals(IndexLifecycleState.READY, service.getState());
+        }
     }
 }

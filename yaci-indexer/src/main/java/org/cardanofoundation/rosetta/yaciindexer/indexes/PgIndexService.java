@@ -141,7 +141,7 @@ public class PgIndexService implements IndexService {
     @Scheduled(fixedDelay = 30000)
     public void checkSyncAndTrigger() {
         IndexLifecycleState currentState = state.get();
-        if (currentState != IndexLifecycleState.PENDING) {
+        if (currentState != IndexLifecycleState.PENDING && currentState != IndexLifecycleState.FAILED) {
             log.trace("Skipping sync check — lifecycle already in terminal state: {}", currentState);
             return;
         }
@@ -154,7 +154,8 @@ public class PgIndexService implements IndexService {
 
     @Override
     public void triggerIndexing() {
-        if (!state.compareAndSet(IndexLifecycleState.PENDING, IndexLifecycleState.APPLYING)) {
+        if (!state.compareAndSet(IndexLifecycleState.PENDING, IndexLifecycleState.APPLYING)
+                && !state.compareAndSet(IndexLifecycleState.FAILED, IndexLifecycleState.APPLYING)) {
             return;
         }
 
