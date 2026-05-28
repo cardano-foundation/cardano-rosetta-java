@@ -1,6 +1,6 @@
 package org.cardanofoundation.rosetta.yaciindexer.indexes;
 
-import com.bloxbean.cardano.yaci.store.adminui.service.SyncStatusService;
+import com.bloxbean.cardano.yaci.store.core.service.SyncStatusService;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
@@ -146,7 +146,7 @@ public class PgIndexService implements IndexService {
             return;
         }
 
-        if (syncStatusService.getSyncStatus().isSynced()) {
+        if (syncStatusService.getSyncStatus().synced()) {
             log.info("Node reached tip. Triggering rosetta index creation.");
             triggerIndexing();
         }

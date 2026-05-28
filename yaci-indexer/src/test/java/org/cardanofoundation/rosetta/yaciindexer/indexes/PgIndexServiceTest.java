@@ -1,7 +1,7 @@
 package org.cardanofoundation.rosetta.yaciindexer.indexes;
 
-import com.bloxbean.cardano.yaci.store.adminui.dto.SyncStatusDto;
-import com.bloxbean.cardano.yaci.store.adminui.service.SyncStatusService;
+import com.bloxbean.cardano.yaci.store.common.domain.SyncStatus;
+import com.bloxbean.cardano.yaci.store.core.service.SyncStatusService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -208,7 +208,7 @@ class PgIndexServiceTest {
             service = createService();
             service.init();
 
-            SyncStatusDto dto = SyncStatusDto.builder().synced(false).build();
+            SyncStatus dto = SyncStatus.builder().synced(false).build();
             when(syncStatusService.getSyncStatus()).thenReturn(dto);
 
             service.checkSyncAndTrigger();
@@ -227,7 +227,7 @@ class PgIndexServiceTest {
             service = createService();
             service.init();
 
-            SyncStatusDto dto = SyncStatusDto.builder().synced(true).build();
+            SyncStatus dto = SyncStatus.builder().synced(true).build();
             when(syncStatusService.getSyncStatus()).thenReturn(dto);
 
             setupDataSourceMock();
@@ -481,7 +481,7 @@ class PgIndexServiceTest {
             waitForState(IndexLifecycleState.FAILED, 5000);
             assertEquals(IndexLifecycleState.FAILED, service.getState());
 
-            SyncStatusDto dto = SyncStatusDto.builder().synced(true).build();
+            SyncStatus dto = SyncStatus.builder().synced(true).build();
             when(syncStatusService.getSyncStatus()).thenReturn(dto);
 
             service.checkSyncAndTrigger();
