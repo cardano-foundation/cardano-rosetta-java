@@ -1,0 +1,102 @@
+{
+  "test_name": "(-) native asset output below min ADA",
+  "description": "Negative test: an output carrying a native asset (token bundle) has only 100,000 lovelace for the ADA portion. Native-asset outputs serialise to more bytes than pure-ADA outputs and therefore have a higher minUTxO threshold (typically 1,310,316+ lovelace with coinsPerUtxoSize=4310). Expects error 5060 (OUTPUT_MIN_ADA_VALUE_NOT_MET).",
+  "request_body": {
+    "network_identifier": {
+      "blockchain": "cardano",
+      "network": "{{networkId}}"
+    },
+    "operations": [
+      {
+        "operation_identifier": {
+          "index": 0
+        },
+        "type": "input",
+        "account": {
+          "address": "addr_test1qz8swh9a7tga0u62lxs6dvnkmpxd0dyeeqx27csh6ywx7qplrv4wtdpvnh6wffzch0uakzhh7uwyvd4asda3zzay0qpqcplwh0"
+        },
+        "amount": {
+          "value": "-5000000",
+          "currency": {
+            "symbol": "ADA",
+            "decimals": 6
+          }
+        },
+        "coin_change": {
+          "coin_identifier": {
+            "identifier": "2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f:0"
+          },
+          "coin_action": "coin_spent"
+        },
+        "metadata": {
+          "tokenBundle": [
+            {
+              "policyId": "849e6eb84653626eb800bb2fcfe95c4d5ba9f8f3061d9973614be234",
+              "tokens": [
+                {
+                  "value": "500",
+                  "currency": {
+                    "symbol": "457175696e65486f727365303034303130",
+                    "decimals": 0
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "operation_identifier": {
+          "index": 1
+        },
+        "type": "output",
+        "account": {
+          "address": "addr_test1qrtdh7587yz5m2w504sjhqnrfml5fpcuxu24fj8xwvk48artcrahhulmvvsnmwqk2k3nmrz20sw8uj7htlpnlutk0p9sjfnd3n"
+        },
+        "amount": {
+          "value": "100000",
+          "currency": {
+            "symbol": "ADA",
+            "decimals": 6
+          }
+        },
+        "metadata": {
+          "tokenBundle": [
+            {
+              "policyId": "849e6eb84653626eb800bb2fcfe95c4d5ba9f8f3061d9973614be234",
+              "tokens": [
+                {
+                  "value": "500",
+                  "currency": {
+                    "symbol": "457175696e65486f727365303034303130",
+                    "decimals": 0
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ],
+    "metadata": {
+      "ttl": 100454463,
+      "protocol_parameters": {
+        "coinsPerUtxoSize": "4310",
+        "maxTxSize": 16384,
+        "maxValSize": 5000,
+        "keyDeposit": "2000000",
+        "maxCollateralInputs": 3,
+        "minFeeCoefficient": 44,
+        "minFeeConstant": 155381,
+        "minPoolCost": "170000000",
+        "poolDeposit": "500000000",
+        "protocol": 10
+      }
+    }
+  },
+  "expected_error": {
+    "code": 5060,
+    "message": "Output ADA value is below the minimum UTxO requirement",
+    "description": "This should fail because the native-asset output has only 100,000 lovelace which is below the higher minUTxO threshold required for outputs that contain native assets"
+  }
+}
