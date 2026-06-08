@@ -1,0 +1,103 @@
+{
+  "test_name": "(-) pool registration output below min ADA",
+  "description": "Negative test: pool registration transaction where the change output has only 1,000 lovelace — well below the minimum UTxO requirement. Expects error 5060 (OUTPUT_MIN_ADA_VALUE_NOT_MET). Verifies that the minAda guard is applied even when pool registration certificates are present.",
+  "request_body": {
+    "network_identifier": {
+      "blockchain": "cardano",
+      "network": "{{networkId}}"
+    },
+    "operations": [
+      {
+        "operation_identifier": {
+          "index": 0,
+          "network_index": 0
+        },
+        "type": "input",
+        "status": "success",
+        "account": {
+          "address": "addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx"
+        },
+        "amount": {
+          "value": "-90000000000",
+          "currency": {
+            "symbol": "ADA",
+            "decimals": 6
+          }
+        },
+        "coin_change": {
+          "coin_identifier": {
+            "identifier": "2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f:1"
+          },
+          "coin_action": "coin_spent"
+        }
+      },
+      {
+        "operation_identifier": {
+          "index": 1
+        },
+        "related_operations": [
+          {
+            "index": 0
+          }
+        ],
+        "type": "output",
+        "status": "success",
+        "account": {
+          "address": "addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx"
+        },
+        "amount": {
+          "value": "1000",
+          "currency": {
+            "symbol": "ADA",
+            "decimals": 6
+          }
+        }
+      },
+      {
+        "operation_identifier": {
+          "index": 2
+        },
+        "type": "poolRegistration",
+        "account": {
+          "address": "addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx"
+        },
+        "metadata": {
+          "poolRegistrationParams": {
+            "vrfKeyHash": "8dd154228946bd12967c12bedb1cb6038b78f8b84a1760b1a788fa72a4af3db0",
+            "rewardAddress": "stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7ca9k44a",
+            "pledge": "500000000",
+            "cost": "340000000",
+            "poolOwners": [
+              "stake1uxjk8czt7sxvmyqxsg3lysjkxsnhfqlj6ynyg8wnrq7djvgls00v7"
+            ],
+            "relays": [],
+            "margin": {
+              "numerator": "1",
+              "denominator": "10"
+            }
+          }
+        }
+      }
+    ],
+    "metadata": {
+      "ttl": 100452981,
+      "protocol_parameters": {
+        "coinsPerUtxoSize": "4310",
+        "maxTxSize": 16384,
+        "maxValSize": 5000,
+        "keyDeposit": "2000000",
+        "maxCollateralInputs": 3,
+        "minFeeCoefficient": 44,
+        "minFeeConstant": 155381,
+        "minPoolCost": "170000000",
+        "poolDeposit": "500000000",
+        "protocol": 10
+      }
+    }
+  },
+  "expected_error": {
+    "code": 5060,
+    "message": "Output ADA value is below the minimum UTxO requirement",
+    "description": "This should fail because the change output has only 1,000 lovelace which is below the minimum UTxO value, even though the pool registration certificate is valid"
+  }
+}
