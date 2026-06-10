@@ -8,7 +8,7 @@ description: Understanding and customizing database index creation
 
 ## Overview
 
-Starting from v2.1, Rosetta manages the required database indexes natively inside `yaci-indexer`. After blockchain sync reaches tip, the indexer automatically creates all required indexes without any external sidecar container.
+Starting from v2.3.0, Rosetta manages the required database indexes natively inside `yaci-indexer`. After blockchain sync reaches tip, the indexer automatically creates all required indexes without any external sidecar container.
 
 ## Sync Stages
 
