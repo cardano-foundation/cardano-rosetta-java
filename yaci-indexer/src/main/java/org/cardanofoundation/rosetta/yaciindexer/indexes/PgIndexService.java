@@ -282,7 +282,7 @@ public class PgIndexService implements IndexService {
         try (Connection conn = getConnection()) {
             conn.setAutoCommit(true);
             try (Statement stmt = conn.createStatement()) {
-                stmt.setQueryTimeout(21600); // 6-hour timeout for long-running index creations
+                stmt.setQueryTimeout(queryTimeoutSeconds);
                 stmt.execute(sql);
             }
         } catch (Exception e) {

@@ -294,6 +294,26 @@ class PgIndexServiceTest {
         }
 
         @Test
+        @DisplayName("should use configured query timeout for index statements")
+        void usesConfiguredQueryTimeout() throws Exception {
+            List<IndexCatalog.DbIndex> indexes = List.of(dbIndex("idx_1"));
+            when(indexConfig.getDbIndexes()).thenReturn(indexes);
+            when(jdbcTemplate.queryForList(eq(PG_INDEX_SQL), eq("idx_1")))
+                    .thenReturn(Collections.emptyList());
+
+            service = createService();
+            service.init();
+            ReflectionTestUtils.setField(service, "queryTimeoutSeconds", 123);
+
+            setupDataSourceMock();
+
+            service.triggerIndexing();
+            waitForState(IndexLifecycleState.READY, 5000);
+
+            verify(statement).setQueryTimeout(123);
+        }
+
+        @Test
         @DisplayName("should drop INVALID index before rebuilding")
         void dropsInvalidIndexBeforeRebuild() throws Exception {
             List<IndexCatalog.DbIndex> indexes = List.of(dbIndex("idx_bad"));
