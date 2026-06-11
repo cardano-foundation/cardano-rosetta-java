@@ -623,6 +623,23 @@ class TestCurrencyFiltering:
     @allure.feature("Search Transactions")
     @allure.story("Currency Filtering")
     @pytest.mark.pruning_compatible
+    @pytest.mark.parametrize("symbol", ["lovelace", "LOVELACE", "Lovelace"])
+    def test_lovelace_currency_symbol_rejected(self, client, symbol):
+        """lovelace is the internal unit, not a Rosetta currency symbol."""
+        response = client.search_transactions(
+            currency={"symbol": symbol, "decimals": 6}
+        )
+
+        assert response.status_code == 400
+        error_data = response.json()
+        assert error_data["code"] == 4024
+        assert error_data["message"] == "Invalid token name"
+        assert error_data["retriable"] is False
+        assert error_data.get("details", {}).get("message") == symbol
+
+    @allure.feature("Search Transactions")
+    @allure.story("Currency Filtering")
+    @pytest.mark.pruning_compatible
     def test_native_asset_filtering_by_ascii_symbol(self, client, network_data, is_pruned_instance):
         """Currency filter with ASCII symbols should return error (negative test for v1.4.1+)."""
         asset = network_data["assets"][0]
