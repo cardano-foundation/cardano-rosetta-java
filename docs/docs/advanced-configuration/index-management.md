@@ -31,6 +31,22 @@ The `yaci-indexer` manages indexes through the following states:
 
 **Performance:** Index creation takes approximately 6 hours on mainnet.
 
+## Failure Retries and Timeouts
+
+If an index build fails, the per-index state is reported as `FAILED` at `/actuator/rosetta-indexes`.
+`yaci-indexer` retries failed index creation with a configurable delay and retry cap:
+
+| Environment Variable | Default | Description |
+|----------------------|---------|-------------|
+| `INDEX_FAILED_RETRY_MAX_ATTEMPTS` | `3` | Maximum retry attempts after an index build enters `FAILED` |
+| `INDEX_FAILED_RETRY_DELAY_MINUTES` | `30` | Delay before retrying `FAILED -> APPLYING` |
+| `INDEX_QUERY_TIMEOUT_SECONDS` | `21600` | JDBC statement timeout for each `CREATE/DROP INDEX CONCURRENTLY` statement |
+| `INDEX_STALL_TIMEOUT_MINUTES` | `360` | Liveness stall timeout while an index build is `APPLYING` |
+
+Keep `INDEX_STALL_TIMEOUT_MINUTES` greater than the longest expected single index build.
+For mainnet, keep both the stall timeout and query timeout high enough for the largest GIN index build.
+If retries are exhausted, fix the underlying database issue (for example permissions or disk space) and restart `yaci-indexer` or redeploy to begin a fresh retry cycle.
+
 ## Monitoring Index Creation
 
 Check index creation progress via the actuator endpoint:
