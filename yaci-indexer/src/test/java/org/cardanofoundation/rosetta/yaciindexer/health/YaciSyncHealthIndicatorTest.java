@@ -1,9 +1,9 @@
 package org.cardanofoundation.rosetta.yaciindexer.health;
 
-import com.bloxbean.cardano.yaci.store.adminui.dto.SyncStatusDto;
-import com.bloxbean.cardano.yaci.store.adminui.service.SyncStatusService;
 import com.bloxbean.cardano.yaci.store.common.domain.HealthStatus;
+import com.bloxbean.cardano.yaci.store.common.domain.SyncStatus;
 import com.bloxbean.cardano.yaci.store.core.service.HealthService;
+import com.bloxbean.cardano.yaci.store.core.service.SyncStatusService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -43,8 +43,8 @@ class YaciSyncHealthIndicatorTest {
                 .build();
     }
 
-    private SyncStatusDto syncedStatus() {
-        return SyncStatusDto.builder()
+    private SyncStatus syncedStatus() {
+        return SyncStatus.builder()
                 .synced(true)
                 .slot(118_000_000L)
                 .networkSlot(118_000_000L)
@@ -52,8 +52,8 @@ class YaciSyncHealthIndicatorTest {
                 .build();
     }
 
-    private SyncStatusDto syncingStatus() {
-        return SyncStatusDto.builder()
+    private SyncStatus syncingStatus() {
+        return SyncStatus.builder()
                 .synced(false)
                 .slot(50_000_000L)
                 .networkSlot(118_000_000L)
