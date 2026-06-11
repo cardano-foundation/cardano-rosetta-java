@@ -123,10 +123,18 @@ public class PgIndexService implements IndexService {
         List<IndexItemStatus> liveStatuses = new ArrayList<>();
         for (IndexCatalog.DbIndex dbIndex : indexConfig.getDbIndexes()) {
             IndexItemState liveState = queryIndexState(dbIndex.name());
-            // Preserve error messages from the in-memory map
             IndexItemStatus cached = itemStatusMap.get(dbIndex.name());
-            String errorMessage = (cached != null) ? cached.errorMessage() : null;
-            IndexItemStatus liveStatus = new IndexItemStatus(dbIndex.name(), liveState, errorMessage);
+            IndexItemStatus liveStatus;
+
+            if (cached != null
+                    && cached.state() == IndexItemState.FAILED
+                    && liveState != IndexItemState.READY) {
+                liveStatus = cached;
+            } else {
+                String errorMessage = (cached != null && liveState != IndexItemState.READY) ? cached.errorMessage() : null;
+                liveStatus = new IndexItemStatus(dbIndex.name(), liveState, errorMessage);
+            }
+
             itemStatusMap.put(dbIndex.name(), liveStatus);
             liveStatuses.add(liveStatus);
         }

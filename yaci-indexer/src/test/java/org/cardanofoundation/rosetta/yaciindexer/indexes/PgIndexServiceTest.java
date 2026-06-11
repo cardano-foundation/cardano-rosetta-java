@@ -374,6 +374,29 @@ class PgIndexServiceTest {
         }
 
         @Test
+        @DisplayName("should preserve FAILED item state when live index is still not ready")
+        void preservesFailedItemStateWhenLiveIndexIsNotReady() throws Exception {
+            List<IndexCatalog.DbIndex> indexes = List.of(dbIndex("idx_fail"));
+            when(indexConfig.getDbIndexes()).thenReturn(indexes);
+            when(jdbcTemplate.queryForList(eq(PG_INDEX_SQL), eq("idx_fail")))
+                    .thenReturn(Collections.emptyList());
+
+            service = createService();
+            service.init();
+
+            setupDataSourceMock();
+            when(statement.execute(anyString())).thenThrow(new RuntimeException("permission denied"));
+
+            service.triggerIndexing();
+            waitForState(IndexLifecycleState.FAILED, 5000);
+
+            IndexItemStatus status = service.getIndexStatus().get(0);
+
+            assertEquals(IndexItemState.FAILED, status.state());
+            assertNotNull(status.errorMessage());
+        }
+
+        @Test
         @DisplayName("should continue building remaining indexes when one fails (Tier 1.1)")
         void continuesAfterSingleFailure() throws Exception {
             List<IndexCatalog.DbIndex> indexes = List.of(
