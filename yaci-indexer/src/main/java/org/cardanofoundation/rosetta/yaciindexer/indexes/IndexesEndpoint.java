@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 import lombok.RequiredArgsConstructor;
 
 @Component
-@Endpoint(id = "rosetta-indexes")
+@Endpoint(id = "rosettaIndexes")
 @RequiredArgsConstructor
 public class IndexesEndpoint {
 

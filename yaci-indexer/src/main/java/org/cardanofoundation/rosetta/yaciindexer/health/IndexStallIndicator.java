@@ -17,7 +17,7 @@ public class IndexStallIndicator implements HealthIndicator {
     private final int stallTimeoutMinutes;
 
     public IndexStallIndicator(IndexService indexService,
-                                      @Value("${cardano.rosetta.index.stall-timeout-minutes:15}") int stallTimeoutMinutes) {
+            @Value("${cardano.rosetta.index.stall-timeout-minutes:15}") int stallTimeoutMinutes) {
         this.indexService = indexService;
         this.stallTimeoutMinutes = stallTimeoutMinutes;
     }

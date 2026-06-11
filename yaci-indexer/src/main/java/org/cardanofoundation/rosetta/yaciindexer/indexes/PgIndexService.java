@@ -2,6 +2,8 @@ package org.cardanofoundation.rosetta.yaciindexer.indexes;
 
 import com.bloxbean.cardano.yaci.store.core.service.SyncStatusService;
 import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -43,6 +45,7 @@ import java.util.concurrent.atomic.AtomicReference;
 @Service
 @Profile("!h2 & !test-integration")
 @Slf4j
+@RequiredArgsConstructor
 public class PgIndexService implements IndexService {
 
     private final JdbcTemplate jdbcTemplate;
@@ -87,14 +90,6 @@ public class PgIndexService implements IndexService {
             "JOIN pg_namespace n ON n.oid = c.relnamespace " +
             "WHERE c.relname = ? AND n.nspname = current_schema()";
 
-    public PgIndexService(JdbcTemplate jdbcTemplate,
-                          IndexCatalog indexConfig,
-                          SyncStatusService syncStatusService) {
-        this.jdbcTemplate = jdbcTemplate;
-        this.indexConfig = indexConfig;
-        this.syncStatusService = syncStatusService;
-    }
-
     @PostConstruct
     public void init() {
         String schema = jdbcTemplate.queryForObject("SELECT current_schema()", String.class);
@@ -119,6 +114,11 @@ public class PgIndexService implements IndexService {
         } else {
             state.set(IndexLifecycleState.PENDING);
         }
+    }
+
+    @PreDestroy
+    public void shutdown() {
+        indexExecutor.shutdownNow();
     }
 
     @Override

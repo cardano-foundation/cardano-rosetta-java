@@ -30,8 +30,9 @@ import org.cardanofoundation.rosetta.yaciindexer.indexes.IndexLifecycleState;
  * <ul>
  *   <li><b>UP</b> — connection alive, synced to tip, and all Rosetta indexes are READY</li>
  *   <li><b>DOWN (Syncing)</b> — connection alive but still catching up to tip</li>
- *   <li><b>DOWN (Applying Indexes)</b> — synced to tip but index lifecycle is not READY
- *       (PENDING, APPLYING, or FAILED)</li>
+ *   <li><b>DOWN (Awaiting index creation)</b> — synced to tip but index lifecycle is PENDING</li>
+ *   <li><b>DOWN (Applying Indexes)</b> — synced to tip but index lifecycle is APPLYING</li>
+ *   <li><b>DOWN (Index creation failed)</b> — synced to tip but index lifecycle is FAILED</li>
  *   <li><b>DOWN (Connection)</b> — connection lost or sync error</li>
  *   <li><b>OUT_OF_SERVICE</b> — scheduled to stop</li>
  * </ul>
@@ -91,8 +92,15 @@ public class YaciSyncHealthIndicator implements HealthIndicator {
         builder.withDetail("indexLifecycleState", indexState.name());
 
         if (indexState != IndexLifecycleState.READY) {
+            String indexSyncStatus = switch (indexState) {
+                case PENDING -> "Awaiting index creation";
+                case APPLYING -> "Applying Indexes";
+                case FAILED -> "Index creation failed - see /actuator/rosetta-indexes";
+                case READY -> "Synced";
+            };
+
             return builder.down()
-                    .withDetail("syncStatus", "Applying Indexes")
+                    .withDetail("syncStatus", indexSyncStatus)
                     .build();
         }
 

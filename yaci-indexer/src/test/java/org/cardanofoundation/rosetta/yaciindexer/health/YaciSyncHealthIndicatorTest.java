@@ -269,6 +269,9 @@ class YaciSyncHealthIndicatorTest {
             Health health = indicator.health();
 
             assertThat(health.getStatus()).isEqualTo(Status.DOWN);
+            assertThat(health.getDetails())
+                    .containsEntry("syncStatus", "Awaiting index creation")
+                    .containsEntry("indexLifecycleState", IndexLifecycleState.PENDING.name());
         }
 
         @Test
@@ -283,6 +286,7 @@ class YaciSyncHealthIndicatorTest {
 
             assertThat(health.getStatus()).isEqualTo(Status.DOWN);
             assertThat(health.getDetails())
+                    .containsEntry("syncStatus", "Index creation failed - see /actuator/rosetta-indexes")
                     .containsEntry("indexLifecycleState", IndexLifecycleState.FAILED.name());
         }
     }
