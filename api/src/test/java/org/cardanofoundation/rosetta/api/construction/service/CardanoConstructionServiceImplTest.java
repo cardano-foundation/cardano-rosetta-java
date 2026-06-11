@@ -1,6 +1,10 @@
 package org.cardanofoundation.rosetta.api.construction.service;
 
 import co.nstant.in.cbor.CborException;
+import com.bloxbean.cardano.client.transaction.spec.Asset;
+import com.bloxbean.cardano.client.transaction.spec.MultiAsset;
+import com.bloxbean.cardano.client.transaction.spec.TransactionOutput;
+import com.bloxbean.cardano.client.transaction.spec.Value;
 import com.bloxbean.cardano.client.util.HexUtil;
 import com.bloxbean.cardano.yaci.core.exception.CborRuntimeException;
 import com.bloxbean.cardano.yaci.core.util.CborSerializationUtil;
@@ -18,6 +22,7 @@ import org.cardanofoundation.rosetta.common.util.Constants;
 import org.cardanofoundation.rosetta.common.util.RosettaConstants.RosettaErrorType;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
@@ -33,6 +38,7 @@ import org.springframework.web.client.RestTemplate;
 import java.math.BigInteger;
 import java.time.Clock;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -484,6 +490,57 @@ class CardanoConstructionServiceImplTest {
     headers.add(Constants.CONTENT_TYPE_HEADER_KEY, Constants.CBOR_CONTENT_TYPE);
 
     return headers;
+  }
+
+  @Nested
+  class ValidateOutputsValueSizeTest {
+
+    private static final String TEST_ADDRESS =
+            "addr_test1qza5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7amgrc6v3au3rqm66mn3kuwke340kfxga82tl7kh2nke8aslzyvu5";
+
+    @Test
+    void whenWithinLimit_shouldNotThrow() {
+      TransactionOutput output = new TransactionOutput(TEST_ADDRESS,
+              Value.builder().coin(BigInteger.valueOf(2000000)).build());
+
+      assertDoesNotThrow(() -> cardanoService.validateOutputsValueSize(List.of(output), 5000));
+    }
+
+    @Test
+    void whenExceedsLimit_shouldThrow() {
+      // Build a large multi-asset value to exceed a small maxValSize
+      List<MultiAsset> multiAssets = new ArrayList<>();
+      for (int i = 0; i < 50; i++) {
+        List<Asset> assets = new ArrayList<>();
+        for (int j = 0; j < 10; j++) {
+          assets.add(new Asset("token" + i + "_" + j, BigInteger.valueOf(1000)));
+        }
+        multiAssets.add(new MultiAsset(String.format("%056x", i), assets));
+      }
+      Value value = Value.builder()
+              .coin(BigInteger.valueOf(2000000))
+              .multiAssets(multiAssets)
+              .build();
+      TransactionOutput output = new TransactionOutput(TEST_ADDRESS, value);
+
+      ApiException exception = assertThrows(ApiException.class,
+              () -> cardanoService.validateOutputsValueSize(List.of(output), 100));
+
+      assertEquals(RosettaErrorType.UTXO_VALUE_SIZE_EXCEEDS_MAX.getCode(), exception.getError().getCode());
+    }
+
+    @Test
+    void whenMaxValSizeIsZero_shouldSkipValidation() {
+      TransactionOutput output = new TransactionOutput(TEST_ADDRESS,
+              Value.builder().coin(BigInteger.valueOf(2000000)).build());
+
+      assertDoesNotThrow(() -> cardanoService.validateOutputsValueSize(List.of(output), 0));
+    }
+
+    @Test
+    void whenEmptyOutputs_shouldNotThrow() {
+      assertDoesNotThrow(() -> cardanoService.validateOutputsValueSize(List.of(), 5000));
+    }
   }
 
 }

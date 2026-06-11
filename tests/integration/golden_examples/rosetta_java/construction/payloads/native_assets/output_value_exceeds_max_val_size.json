@@ -1,0 +1,101 @@
+{
+  "test_name": "(-) output value exceeds max_val_size",
+  "description": "Negative test: output carries a token bundle, but maxValSize is set to 10 in protocol parameters. Should trigger error 5061.",
+  "request_body": {
+    "network_identifier": {
+      "blockchain": "cardano",
+      "network": "{{networkId}}"
+    },
+    "operations": [
+      {
+        "operation_identifier": {
+          "index": 0
+        },
+        "type": "input",
+        "account": {
+          "address": "addr_test1qz8swh9a7tga0u62lxs6dvnkmpxd0dyeeqx27csh6ywx7qplrv4wtdpvnh6wffzch0uakzhh7uwyvd4asda3zzay0qpqcplwh0"
+        },
+        "amount": {
+          "value": "-2000000",
+          "currency": {
+            "symbol": "ADA",
+            "decimals": 6
+          }
+        },
+        "coin_change": {
+          "coin_identifier": {
+            "identifier": "2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f:0"
+          },
+          "coin_action": "coin_spent"
+        },
+        "metadata": {
+          "tokenBundle": [
+            {
+              "policyId": "849e6eb84653626eb800bb2fcfe95c4d5ba9f8f3061d9973614be234",
+              "tokens": [
+                {
+                  "value": "1000",
+                  "currency": {
+                    "symbol": "457175696e65486f727365303034303130",
+                    "decimals": 0
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "operation_identifier": {
+          "index": 1
+        },
+        "type": "output",
+        "account": {
+          "address": "addr_test1qz8swh9a7tga0u62lxs6dvnkmpxd0dyeeqx27csh6ywx7qplrv4wtdpvnh6wffzch0uakzhh7uwyvd4asda3zzay0qpqcplwh0"
+        },
+        "amount": {
+          "value": "1632079",
+          "currency": {
+            "symbol": "ADA",
+            "decimals": 6
+          }
+        },
+        "metadata": {
+          "tokenBundle": [
+            {
+              "policyId": "849e6eb84653626eb800bb2fcfe95c4d5ba9f8f3061d9973614be234",
+              "tokens": [
+                {
+                  "value": "1000",
+                  "currency": {
+                    "symbol": "457175696e65486f727365303034303130",
+                    "decimals": 0
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ],
+    "metadata": {
+      "ttl": 100454354,
+      "protocol_parameters": {
+        "coinsPerUtxoSize": "4310",
+        "maxTxSize": 16384,
+        "maxValSize": 10,
+        "keyDeposit": "2000000",
+        "maxCollateralInputs": 3,
+        "minFeeCoefficient": 44,
+        "minFeeConstant": 155381,
+        "minPoolCost": "170000000",
+        "poolDeposit": "500000000",
+        "protocol": 10
+      }
+    }
+  },
+  "expected_error": {
+    "code": 5061,
+    "message": "UTxO value byte size exceeds the allowed max_val_size protocol parameter"
+  }
+}
