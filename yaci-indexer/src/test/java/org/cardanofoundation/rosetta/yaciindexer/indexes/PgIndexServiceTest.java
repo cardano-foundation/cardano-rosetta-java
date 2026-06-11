@@ -316,7 +316,9 @@ class PgIndexServiceTest {
             service.triggerIndexing();
             waitForState(IndexLifecycleState.READY, 5000);
 
-            verify(jdbcTemplate).execute("DROP INDEX IF EXISTS public.idx_bad");
+            verify(jdbcTemplate, never()).execute(anyString());
+            verify(statement).execute("DROP INDEX CONCURRENTLY IF EXISTS public.idx_bad");
+            verify(statement).execute("CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_bad ON test_table (col)");
             assertEquals(IndexLifecycleState.READY, service.getState());
         }
 
@@ -344,7 +346,9 @@ class PgIndexServiceTest {
             service.triggerIndexing();
             waitForState(IndexLifecycleState.READY, 5000);
 
-            verify(jdbcTemplate).execute("DROP INDEX IF EXISTS public.idx_stale");
+            verify(jdbcTemplate, never()).execute(anyString());
+            verify(statement).execute("DROP INDEX CONCURRENTLY IF EXISTS public.idx_stale");
+            verify(statement).execute("CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_stale ON test_table (col)");
             assertEquals(IndexLifecycleState.READY, service.getState());
         }
 

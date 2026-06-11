@@ -226,7 +226,7 @@ public class PgIndexService implements IndexService {
                 // Schema-qualified drop (Tier 1.3) avoids matching wrong index in multi-schema DBs.
                 if (currentItemState == IndexItemState.INVALID || currentItemState == IndexItemState.BUILDING) {
                     log.info("Index {} is {}. Dropping before rebuild.", dbIndex.name(), currentItemState);
-                    jdbcTemplate.execute("DROP INDEX IF EXISTS " + currentSchema + "." + dbIndex.name());
+                    executeWithAutoCommit("DROP INDEX CONCURRENTLY IF EXISTS " + currentSchema + "." + dbIndex.name());
                     currentItemState = IndexItemState.MISSING;
                 }
 
