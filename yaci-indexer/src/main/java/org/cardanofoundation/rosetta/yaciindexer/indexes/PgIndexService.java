@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Value;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.Statement;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -57,6 +58,15 @@ public class PgIndexService implements IndexService {
     @Value("${spring.datasource.password}")
     private String dbPassword;
 
+    @Value("${cardano.rosetta.index.failed-retry-max-attempts:3}")
+    private int failedRetryMaxAttempts = 3;
+
+    @Value("${cardano.rosetta.index.failed-retry-delay-minutes:30}")
+    private int failedRetryDelayMinutes = 30;
+
+    @Value("${cardano.rosetta.index.query-timeout-seconds:21600}")
+    private int queryTimeoutSeconds = 21600;
+
     private String currentSchema;
 
     private final ExecutorService indexExecutor = Executors.newSingleThreadExecutor(r -> {
@@ -68,6 +78,8 @@ public class PgIndexService implements IndexService {
     private final AtomicReference<IndexLifecycleState> state = new AtomicReference<>(IndexLifecycleState.PENDING);
     private final Map<String, IndexItemStatus> itemStatusMap = new ConcurrentHashMap<>();
     private final AtomicReference<Instant> lastProgressAt = new AtomicReference<>(null);
+    private final AtomicReference<Integer> failedRetryAttempts = new AtomicReference<>(0);
+    private final AtomicReference<Instant> nextFailedRetryAt = new AtomicReference<>(null);
 
     private static final String PG_INDEX_STATE_SQL =
             "SELECT i.indisready, i.indisvalid FROM pg_index i " +
@@ -162,14 +174,43 @@ public class PgIndexService implements IndexService {
 
     @Override
     public void triggerIndexing() {
-        if (!state.compareAndSet(IndexLifecycleState.PENDING, IndexLifecycleState.APPLYING)
-                && !state.compareAndSet(IndexLifecycleState.FAILED, IndexLifecycleState.APPLYING)) {
+        IndexLifecycleState currentState = state.get();
+        if (currentState != IndexLifecycleState.PENDING && currentState != IndexLifecycleState.FAILED) {
             return;
+        }
+
+        if (currentState == IndexLifecycleState.FAILED && !canRetryFailedState()) {
+            return;
+        }
+
+        if (!state.compareAndSet(currentState, IndexLifecycleState.APPLYING)) {
+            return;
+        }
+
+        if (currentState == IndexLifecycleState.FAILED) {
+            int attempt = failedRetryAttempts.updateAndGet(attempts -> attempts + 1);
+            log.info("Retrying rosetta index creation after failure. Attempt {}/{}.", attempt, failedRetryMaxAttempts);
         }
 
         lastProgressAt.set(Instant.now());
 
         indexExecutor.submit(this::executeIndexCreation);
+    }
+
+    private boolean canRetryFailedState() {
+        if (failedRetryAttempts.get() >= failedRetryMaxAttempts) {
+            log.warn("Skipping rosetta index retry. Retry cap reached: {}/{}.",
+                    failedRetryAttempts.get(), failedRetryMaxAttempts);
+            return false;
+        }
+
+        Instant nextRetry = nextFailedRetryAt.get();
+        if (nextRetry != null && Instant.now().isBefore(nextRetry)) {
+            log.info("Skipping rosetta index retry. Next retry is scheduled at {}.", nextRetry);
+            return false;
+        }
+
+        return true;
     }
 
     private void executeIndexCreation() {
@@ -209,15 +250,19 @@ public class PgIndexService implements IndexService {
 
             if (failedCount == 0) {
                 state.set(IndexLifecycleState.READY);
+                failedRetryAttempts.set(0);
+                nextFailedRetryAt.set(null);
                 log.info("All rosetta indexes are READY.");
             } else {
                 state.set(IndexLifecycleState.FAILED);
+                nextFailedRetryAt.set(Instant.now().plus(Duration.ofMinutes(failedRetryDelayMinutes)));
                 log.warn("{} rosetta index(es) failed. See per-index status via /actuator/rosetta-indexes.", failedCount);
             }
 
         } catch (Exception e) {
             log.error("Unexpected error during index creation", e);
             state.set(IndexLifecycleState.FAILED);
+            nextFailedRetryAt.set(Instant.now().plus(Duration.ofMinutes(failedRetryDelayMinutes)));
         }
     }
 

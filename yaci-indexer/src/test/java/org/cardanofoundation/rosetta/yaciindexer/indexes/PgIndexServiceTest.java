@@ -9,6 +9,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.sql.Connection;
 import java.sql.Statement;
@@ -490,6 +491,7 @@ class PgIndexServiceTest {
 
             service = createService();
             service.init();
+            ReflectionTestUtils.setField(service, "failedRetryDelayMinutes", 0);
 
             // Fail on first call (permanent), succeed on second (after re-trigger)
             setupDataSourceMock();
@@ -511,6 +513,63 @@ class PgIndexServiceTest {
 
             waitForState(IndexLifecycleState.READY, 5000);
             assertEquals(IndexLifecycleState.READY, service.getState());
+        }
+
+        @Test
+        @DisplayName("should not retry FAILED state before retry delay elapses")
+        void failedLifecycleStateDoesNotRetryBeforeDelay() throws Exception {
+            List<IndexCatalog.DbIndex> indexes = List.of(dbIndex("idx_retry"));
+            when(indexConfig.getDbIndexes()).thenReturn(indexes);
+            when(jdbcTemplate.queryForList(eq(PG_INDEX_SQL), eq("idx_retry")))
+                    .thenReturn(Collections.emptyList());
+
+            service = createService();
+            service.init();
+            ReflectionTestUtils.setField(service, "failedRetryDelayMinutes", 30);
+
+            setupDataSourceMock();
+            when(statement.execute(anyString())).thenThrow(new RuntimeException("disk full"));
+
+            service.triggerIndexing();
+            waitForState(IndexLifecycleState.FAILED, 5000);
+
+            SyncStatus dto = SyncStatus.builder().synced(true).build();
+            when(syncStatusService.getSyncStatus()).thenReturn(dto);
+
+            service.checkSyncAndTrigger();
+            Thread.sleep(100);
+
+            assertEquals(IndexLifecycleState.FAILED, service.getState());
+            verify(statement, times(1)).execute(anyString());
+        }
+
+        @Test
+        @DisplayName("should stop retrying FAILED state after retry cap")
+        void failedLifecycleStateStopsRetryingAfterRetryCap() throws Exception {
+            List<IndexCatalog.DbIndex> indexes = List.of(dbIndex("idx_retry"));
+            when(indexConfig.getDbIndexes()).thenReturn(indexes);
+            when(jdbcTemplate.queryForList(eq(PG_INDEX_SQL), eq("idx_retry")))
+                    .thenReturn(Collections.emptyList());
+
+            service = createService();
+            service.init();
+            ReflectionTestUtils.setField(service, "failedRetryDelayMinutes", 0);
+            ReflectionTestUtils.setField(service, "failedRetryMaxAttempts", 0);
+
+            setupDataSourceMock();
+            when(statement.execute(anyString())).thenThrow(new RuntimeException("disk full"));
+
+            service.triggerIndexing();
+            waitForState(IndexLifecycleState.FAILED, 5000);
+
+            SyncStatus dto = SyncStatus.builder().synced(true).build();
+            when(syncStatusService.getSyncStatus()).thenReturn(dto);
+
+            service.checkSyncAndTrigger();
+            Thread.sleep(100);
+
+            assertEquals(IndexLifecycleState.FAILED, service.getState());
+            verify(statement, times(1)).execute(anyString());
         }
     }
 }
