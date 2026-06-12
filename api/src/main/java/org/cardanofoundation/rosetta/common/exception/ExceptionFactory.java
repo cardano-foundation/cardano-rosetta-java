@@ -403,4 +403,10 @@ public class ExceptionFactory {
                         .build()));
     }
 
+    public static ApiException utxoValueSizeExceedsMax(long actualSize, long maxValSize) {
+        String message = "Output value byte size %d exceeds max allowed size %d".formatted(actualSize, maxValSize);
+        return new ApiException(RosettaErrorType.UTXO_VALUE_SIZE_EXCEEDS_MAX.toRosettaError(false,
+                Details.builder().message(message).build()));
+    }
+
 }

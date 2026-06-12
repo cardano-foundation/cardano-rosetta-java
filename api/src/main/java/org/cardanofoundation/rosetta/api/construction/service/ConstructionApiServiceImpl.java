@@ -185,7 +185,6 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
     );
 
     ProcessOperations processOperations = cardanoConstructionService.convertRosettaOperations(network, operations);
-
     BigInteger coinsPerUtxoSize = BigInteger.ZERO;
     if (metadata != null && metadata.getProtocolParameters() != null && metadata.getProtocolParameters().getCoinsPerUtxoSize() != null) {
         coinsPerUtxoSize = new BigInteger(metadata.getProtocolParameters().getCoinsPerUtxoSize());
@@ -200,6 +199,12 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
             throw ExceptionFactory.outputMinAdaValueNotMet(i, actualAda, minAda);
         }
     }
+
+    long maxValSize = metadata != null && metadata.getProtocolParameters() != null
+            && metadata.getProtocolParameters().getMaxValSize() != null
+            ? metadata.getProtocolParameters().getMaxValSize() : 0L;
+    cardanoConstructionService.validateOutputsValueSize(
+            processOperations.getTransactionOutputs(), maxValSize);
 
     double refundsSum = processOperations.getStakeKeyDeRegistrationsCount() * Long.parseLong(
             depositParameters.getKeyDeposit());
