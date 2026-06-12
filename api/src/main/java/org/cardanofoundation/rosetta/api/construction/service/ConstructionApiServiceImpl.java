@@ -183,6 +183,12 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
 
     ProcessOperations processOperations = cardanoConstructionService.convertRosettaOperations(network, operations);
 
+    long maxValSize = metadata != null && metadata.getProtocolParameters() != null
+            && metadata.getProtocolParameters().getMaxValSize() != null
+            ? metadata.getProtocolParameters().getMaxValSize() : 0L;
+    cardanoConstructionService.validateOutputsValueSize(
+            processOperations.getTransactionOutputs(), maxValSize);
+
     double refundsSum = processOperations.getStakeKeyDeRegistrationsCount() * Long.parseLong(
             depositParameters.getKeyDeposit());
 
