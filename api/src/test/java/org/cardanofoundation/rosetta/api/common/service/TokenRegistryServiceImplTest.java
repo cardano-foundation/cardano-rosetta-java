@@ -24,6 +24,8 @@ import static org.cardanofoundation.rosetta.common.util.Constants.LOVELACE;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.Base64;
+import java.util.HexFormat;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
@@ -163,9 +165,10 @@ class TokenRegistryServiceImplTest {
             assertThat(metadata.getDecimals()).isEqualTo(6);
             assertThat(metadata.getVersion()).isEqualTo(BigDecimal.valueOf(1L));
 
+            String expectedBase64 = Base64.getEncoder().encodeToString(HexFormat.of().parseHex("89504e47"));
             assertThat(metadata.getLogo()).isNotNull();
             assertThat(metadata.getLogo().getFormat()).isEqualTo(TokenRegistryCurrencyData.LogoFormat.BASE64);
-            assertThat(metadata.getLogo().getValue()).isEqualTo("base64logo");
+            assertThat(metadata.getLogo().getValue()).isEqualTo(expectedBase64);
         }
 
         @Test
@@ -241,13 +244,16 @@ class TokenRegistryServiceImplTest {
     class LogoConversionTests {
 
         @Test
-        @DisplayName("Should convert CIP_26 logo to BASE64 format")
+        @DisplayName("Should convert CIP_26 logo hex value to base64")
         void shouldConvertCip26LogoToBase64() {
             // given
             AssetFingerprint assetFingerprint = createAsset(POLICY_ID, ASSET_SYMBOL_HEX);
             Set<AssetFingerprint> assetFingerprints = Set.of(assetFingerprint);
 
-            TokenSubject tokenSubject = createTokenSubjectWithLogo("CIP_26", "hexdata123");
+            String hexLogo = "89504e47";
+            String expectedBase64 = Base64.getEncoder().encodeToString(HexFormat.of().parseHex(hexLogo));
+
+            TokenSubject tokenSubject = createTokenSubjectWithLogo("CIP_26", hexLogo);
             when(tokenRegistryHttpGateway.getTokenMetadataBatch(anySet()))
                 .thenReturn(Map.of(SUBJECT, Optional.of(tokenSubject)));
 
@@ -258,7 +264,7 @@ class TokenRegistryServiceImplTest {
             TokenRegistryCurrencyData metadata = result.get(assetFingerprint);
             assertThat(metadata.getLogo()).isNotNull();
             assertThat(metadata.getLogo().getFormat()).isEqualTo(TokenRegistryCurrencyData.LogoFormat.BASE64);
-            assertThat(metadata.getLogo().getValue()).isEqualTo("hexdata123");
+            assertThat(metadata.getLogo().getValue()).isEqualTo(expectedBase64);
         }
 
         @Test
@@ -283,13 +289,16 @@ class TokenRegistryServiceImplTest {
         }
 
         @Test
-        @DisplayName("Should handle case insensitive CIP standards")
+        @DisplayName("Should handle case insensitive CIP standards and convert hex to base64")
         void shouldHandleCaseInsensitiveCipStandards() {
             // given
             AssetFingerprint assetFingerprint = createAsset(POLICY_ID, ASSET_SYMBOL_HEX);
             Set<AssetFingerprint> assetFingerprints = Set.of(assetFingerprint);
 
-            TokenSubject tokenSubject = createTokenSubjectWithLogo("cip_26", "data");
+            String hexLogo = "6461";
+            String expectedBase64 = Base64.getEncoder().encodeToString(HexFormat.of().parseHex(hexLogo));
+
+            TokenSubject tokenSubject = createTokenSubjectWithLogo("cip_26", hexLogo);
             when(tokenRegistryHttpGateway.getTokenMetadataBatch(anySet()))
                 .thenReturn(Map.of(SUBJECT, Optional.of(tokenSubject)));
 
@@ -299,6 +308,7 @@ class TokenRegistryServiceImplTest {
             // then
             TokenRegistryCurrencyData metadata = result.get(assetFingerprint);
             assertThat(metadata.getLogo().getFormat()).isEqualTo(TokenRegistryCurrencyData.LogoFormat.BASE64);
+            assertThat(metadata.getLogo().getValue()).isEqualTo(expectedBase64);
         }
 
         @Test
@@ -364,6 +374,66 @@ class TokenRegistryServiceImplTest {
             assertThat(metadata.getLogo()).isNotNull();
             assertThat(metadata.getLogo().getFormat()).isEqualTo(TokenRegistryCurrencyData.LogoFormat.BASE64);
             assertThat(metadata.getLogo().getValue()).isNull();
+        }
+
+        @Test
+        @DisplayName("Should return null logo when CIP_26 hex value is malformed (odd length)")
+        void shouldReturnNullLogoForMalformedHex() {
+            // given
+            AssetFingerprint assetFingerprint = createAsset(POLICY_ID, ASSET_SYMBOL_HEX);
+            Set<AssetFingerprint> assetFingerprints = Set.of(assetFingerprint);
+
+            TokenSubject tokenSubject = createTokenSubjectWithLogo("CIP_26", "89504e4");
+            when(tokenRegistryHttpGateway.getTokenMetadataBatch(anySet()))
+                .thenReturn(Map.of(SUBJECT, Optional.of(tokenSubject)));
+
+            // when
+            Map<AssetFingerprint, TokenRegistryCurrencyData> result = tokenRegistryService.getTokenMetadataBatch(assetFingerprints);
+
+            // then
+            TokenRegistryCurrencyData metadata = result.get(assetFingerprint);
+            assertThat(metadata.getLogo()).isNull();
+        }
+
+        @Test
+        @DisplayName("Should return null logo when CIP_26 value is empty string")
+        void shouldReturnNullLogoForEmptyHexValue() {
+            // given
+            AssetFingerprint assetFingerprint = createAsset(POLICY_ID, ASSET_SYMBOL_HEX);
+            Set<AssetFingerprint> assetFingerprints = Set.of(assetFingerprint);
+
+            TokenSubject tokenSubject = createTokenSubjectWithLogo("CIP_26", "");
+            when(tokenRegistryHttpGateway.getTokenMetadataBatch(anySet()))
+                .thenReturn(Map.of(SUBJECT, Optional.of(tokenSubject)));
+
+            // when
+            Map<AssetFingerprint, TokenRegistryCurrencyData> result = tokenRegistryService.getTokenMetadataBatch(assetFingerprints);
+
+            // then
+            TokenRegistryCurrencyData metadata = result.get(assetFingerprint);
+            assertThat(metadata.getLogo()).isNull();
+        }
+
+        @Test
+        @DisplayName("Should not convert CIP_68 URL logo value (regression guard)")
+        void shouldNotConvertCip68UrlLogo() {
+            // given
+            AssetFingerprint assetFingerprint = createAsset(POLICY_ID, ASSET_SYMBOL_HEX);
+            Set<AssetFingerprint> assetFingerprints = Set.of(assetFingerprint);
+
+            String url = "https://example.com/logo.png";
+            TokenSubject tokenSubject = createTokenSubjectWithLogo("CIP_68", url);
+            when(tokenRegistryHttpGateway.getTokenMetadataBatch(anySet()))
+                .thenReturn(Map.of(SUBJECT, Optional.of(tokenSubject)));
+
+            // when
+            Map<AssetFingerprint, TokenRegistryCurrencyData> result = tokenRegistryService.getTokenMetadataBatch(assetFingerprints);
+
+            // then
+            TokenRegistryCurrencyData metadata = result.get(assetFingerprint);
+            assertThat(metadata.getLogo()).isNotNull();
+            assertThat(metadata.getLogo().getFormat()).isEqualTo(TokenRegistryCurrencyData.LogoFormat.URL);
+            assertThat(metadata.getLogo().getValue()).isEqualTo(url);
         }
 
     }
@@ -939,7 +1009,7 @@ class TokenRegistryServiceImplTest {
         when(tokenMetadata.getUrl()).thenReturn(url);
         
         TokenProperty logo = mock(TokenProperty.class);
-        when(logo.getValue()).thenReturn("base64logo");
+        when(logo.getValue()).thenReturn("89504e47");
         when(logo.getSource()).thenReturn("CIP_26");
         when(tokenMetadata.getLogo()).thenReturn(logo);
         
