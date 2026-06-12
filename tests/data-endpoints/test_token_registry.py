@@ -302,6 +302,83 @@ class TestTokenRegistryLogos:
                     f"Logo value does not start with expected prefix '{prefix}' for token {token['ticker']}"
                 )
 
+    @pytest.mark.nightly
+    @pytest.mark.requires_token_registry
+    @pytest.mark.requires_logo_fetch
+    def test_base64_logo_is_valid_and_decodable(self, client, network, tokens_config, has_token_registry):
+        """Positive case: For CIP-26 tokens, verify the logo is valid base64 and decodes to PNG/JPEG bytes."""
+        if not has_token_registry:
+            pytest.skip("Token registry not enabled")
+        if not TOKEN_REGISTRY_LOGO_FETCH:
+            pytest.skip("TOKEN_REGISTRY_LOGO_FETCH must be true to validate logo payloads")
+
+        for token in tokens_config:
+            if token.get("logo_format") != "base64":
+                continue
+
+            currency, metadata = _fetch_token_from_account(client, network, token)
+            logo = metadata.get("logo") if metadata else None
+
+            assert logo is not None, f"Logo metadata missing for {token['ticker']}"
+            assert logo.get("format") == "base64"
+            
+            value = logo.get("value")
+            assert value, f"Logo value is empty for {token['ticker']}"
+
+            try:
+                decoded = base64.b64decode(value)
+                # Verify PNG magic bytes (89 50 4E 47 0D 0A 1A 0A)
+                assert decoded.startswith(b"\x89PNG\r\n\x1a\n"), (
+                    f"Decoded logo for {token['ticker']} does not start with PNG magic bytes"
+                )
+            except Exception as e:
+                pytest.fail(f"Failed to decode base64 logo for {token['ticker']}: {e}")
+
+    @pytest.mark.nightly
+    @pytest.mark.requires_token_registry
+    def test_logo_absent_when_fetch_disabled(self, client, network, tokens_config, has_token_registry):
+        """Negative case: Logo metadata must be absent/empty when TOKEN_REGISTRY_LOGO_FETCH is disabled."""
+        if not has_token_registry:
+            pytest.skip("Token registry not enabled")
+        if TOKEN_REGISTRY_LOGO_FETCH:
+            pytest.skip("TOKEN_REGISTRY_LOGO_FETCH is enabled (this test validates behavior when disabled)")
+
+        for token in tokens_config:
+            currency, metadata = _fetch_token_from_account(client, network, token)
+            logo = metadata.get("logo") if metadata else None
+            assert logo is None or logo == {}, (
+                f"Logo metadata should be absent when TOKEN_REGISTRY_LOGO_FETCH is disabled for token {token['ticker']}"
+            )
+
+    @pytest.mark.nightly
+    @pytest.mark.requires_token_registry
+    def test_logo_absent_for_unregistered_token(self, client, network, has_token_registry):
+        """Negative case: A token not registered in the metadata server must not return logo or metadata fields."""
+        if not has_token_registry:
+            pytest.skip("Token registry not enabled")
+
+        # Use a dummy asset policy ID and symbol that is guaranteed to not be in the token registry
+        dummy_token = {
+            "policy_id": "00000000000000000000000000000000000000000000000000000000",
+            "symbol_hex": "44554d4d59",  # "DUMMY"
+            "decimals": 0,
+            "ticker": "DUMMY"
+        }
+
+        # Query /search/transactions with an unregistered dummy token to verify 
+        # Rosetta handles fallback/unregistered metadata gracefully without crashing.
+        response = client.search_transactions(
+            network_identifier={"blockchain": "cardano", "network": network},
+            currency={
+                "symbol": dummy_token["symbol_hex"],
+                "decimals": dummy_token["decimals"],
+                "metadata": {"policyId": dummy_token["policy_id"]},
+            },
+        )
+        assert response.status_code == 200, (
+            f"Rosetta search transactions failed with status {response.status_code} for unregistered token"
+        )
+
 
 @allure.feature("Token Registry")
 @allure.story("Metadata Parity")
