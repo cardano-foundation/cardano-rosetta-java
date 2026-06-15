@@ -12,6 +12,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProcessOperations;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
+import org.cardanofoundation.rosetta.common.util.MinAdaCalculator;
+import com.bloxbean.cardano.client.transaction.spec.TransactionOutput;
 import org.cardanofoundation.rosetta.api.construction.enumeration.AddressType;
 import org.cardanofoundation.rosetta.api.construction.mapper.ConstructionMapper;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
@@ -28,6 +30,7 @@ import org.openapitools.client.model.*;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -182,6 +185,20 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
     );
 
     ProcessOperations processOperations = cardanoConstructionService.convertRosettaOperations(network, operations);
+    BigInteger coinsPerUtxoSize = BigInteger.ZERO;
+    if (metadata != null && metadata.getProtocolParameters() != null && metadata.getProtocolParameters().getCoinsPerUtxoSize() != null) {
+        coinsPerUtxoSize = new BigInteger(metadata.getProtocolParameters().getCoinsPerUtxoSize());
+    }
+
+    List<TransactionOutput> outputs = processOperations.getTransactionOutputs();
+    for (int i = 0; i < outputs.size(); i++) {
+        TransactionOutput output = outputs.get(i);
+        BigInteger minAda = MinAdaCalculator.calculateMinAda(output, coinsPerUtxoSize);
+        BigInteger actualAda = output.getValue().getCoin();
+        if (actualAda.compareTo(minAda) < 0) {
+            throw ExceptionFactory.outputMinAdaValueNotMet(i, actualAda, minAda);
+        }
+    }
 
     long maxValSize = metadata != null && metadata.getProtocolParameters() != null
             && metadata.getProtocolParameters().getMaxValSize() != null

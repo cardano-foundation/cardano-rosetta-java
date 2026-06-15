@@ -2,6 +2,7 @@ package org.cardanofoundation.rosetta.api.common.service;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.api.account.model.domain.AddressBalance;
 import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
@@ -26,6 +27,7 @@ import java.util.stream.Collectors;
 import static org.cardanofoundation.rosetta.common.util.Constants.ADA;
 import static org.cardanofoundation.rosetta.common.util.Constants.LOVELACE;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class TokenRegistryServiceImpl implements TokenRegistryService {
@@ -284,9 +286,17 @@ public class TokenRegistryServiceImpl implements TokenRegistryService {
         String source = logoProperty.getSource();
         String value = logoProperty.getValue();
 
+        TokenRegistryCurrencyData.LogoFormat format = getLogoFormat(source);
+        String encodedValue = encodeLogoValue(format, value);
+
+        if (encodedValue == null && value != null
+                && format == TokenRegistryCurrencyData.LogoFormat.BASE64) {
+            return null;
+        }
+
         return TokenRegistryCurrencyData.LogoData.builder()
-                .format(getLogoFormat(source))
-                .value(value)
+                .format(format)
+                .value(encodedValue)
                 .build();
     }
 
@@ -297,6 +307,25 @@ public class TokenRegistryServiceImpl implements TokenRegistryService {
             case "cip_68" -> TokenRegistryCurrencyData.LogoFormat.URL;
             default -> null;
         };
+    }
+
+    @Nullable
+    private String encodeLogoValue(
+            @Nullable TokenRegistryCurrencyData.LogoFormat format,
+            @Nullable String value) {
+        if (format != TokenRegistryCurrencyData.LogoFormat.BASE64) {
+            return value;
+        }
+        if (value == null || value.isEmpty()) {
+            return null;
+        }
+        try {
+            byte[] bytes = HexFormat.of().parseHex(value);
+            return Base64.getEncoder().encodeToString(bytes);
+        } catch (IllegalArgumentException e) {
+            log.warn("Malformed hex logo value (length={}), skipping logo", value.length());
+            return null;
+        }
     }
 
     private TokenRegistryCurrencyData createFallbackMetadata(String policyId) {
