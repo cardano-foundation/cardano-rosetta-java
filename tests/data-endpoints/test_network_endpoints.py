@@ -171,7 +171,7 @@ class TestNetworkOptions:
         errors = options.get("allow", {}).get("errors", [])
         indexer_not_ready_err = next((e for e in errors if e.get("code") == 5056), None)
         assert indexer_not_ready_err is not None, "Error 5056 (INDEXER_NOT_READY) should be in network options"
-        assert indexer_not_ready_err.get("message") == "Indexer is still syncing"
+        assert indexer_not_ready_err.get("message") == "This endpoint is unavailable until the indexer data is ready. When /network/status returns \"stage\": \"LIVE\", this endpoint is ready for use."
         assert indexer_not_ready_err.get("retriable") is True
 
     # Error handling tests moved to test_error_handling.py
