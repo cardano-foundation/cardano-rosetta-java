@@ -297,6 +297,10 @@ public class ExceptionFactory {
         return new ApiException(RosettaErrorType.NOT_SUPPORTED_IN_OFFLINE_MODE.toRosettaError(false));
     }
 
+    public static ApiException indexerNotReady() {
+        return new ApiException(RosettaErrorType.INDEXER_NOT_READY.toRosettaError(true));
+    }
+
     public static ApiException gatewayError(boolean retriable) {
         return new ApiException(RosettaErrorType.GATEWAY_ERROR.toRosettaError(retriable));
     }

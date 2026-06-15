@@ -25,6 +25,7 @@ import org.cardanofoundation.rosetta.api.block.service.LedgerBlockService;
 import org.cardanofoundation.rosetta.api.network.mapper.NetworkMapper;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.common.enumeration.OperationTypeStatus;
+import org.cardanofoundation.rosetta.common.enumeration.SyncStage;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.time.OfflineSlotService;
 import org.cardanofoundation.rosetta.common.util.Constants;
@@ -181,6 +182,16 @@ public class NetworkServiceImpl implements NetworkService {
       if (!verifyNetwork(networkIdentifier.getNetwork())) {
         throw ExceptionFactory.networkNotFoundError();
       }
+    }
+  }
+
+  @Override
+  public void verifySyncStatus() {
+    BlockIdentifierExtended latestBlock = ledgerBlockService.findLatestBlockIdentifier();
+    SyncStatus syncStatus = syncStatusService.calculateSyncStatus(latestBlock)
+        .orElseThrow(ExceptionFactory::indexerNotReady);
+    if (!SyncStage.LIVE.getValue().equals(syncStatus.getStage())) {
+      throw ExceptionFactory.indexerNotReady();
     }
   }
 

@@ -37,7 +37,9 @@ public class RosettaConstants {
 //      "voteRegistration"
 //  );
 
-    public static final List<Error> REPEATABLE_ROSETTA_ERRORS = Stream.of(RosettaErrorType.SEND_TRANSACTION_ERROR)
+    public static final List<Error> REPEATABLE_ROSETTA_ERRORS = Stream.of(
+                    RosettaErrorType.SEND_TRANSACTION_ERROR,
+                    RosettaErrorType.INDEXER_NOT_READY)
             .map(error -> error.toRosettaError(true))
             .toList();
 
@@ -168,6 +170,7 @@ public class RosettaConstants {
         BOTH_SUCCESS_AND_STATUS_PROVIDED("Cannot specify both 'success' and 'status' parameters simultaneously", 5054),
         BOTH_ACCOUNT_AND_ACCOUNT_IDENTIFIER_PROVIDED(
                 "Cannot specify both 'account' and 'accountIdentifier' parameters simultaneously", 5055),
+        INDEXER_NOT_READY("Indexer is still syncing", 5056),
         // gap in the error codes is because we removed some errors of issues that we resolved
         OPERATION_TYPE_SEARCH_NOT_SUPPORTED("Operation type filtering is not currently supported", 5058),
         CURRENCY_SYMBOL_NOT_HEX("Currency symbol must be hex-encoded", 5059),

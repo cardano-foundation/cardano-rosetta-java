@@ -39,6 +39,7 @@ public class SearchApiImpl implements SearchApi {
     if (offlineMode) {
       throw ExceptionFactory.notSupportedInOfflineMode();
     }
+    networkService.verifySyncStatus();
 
     networkService.verifyNetworkRequest(searchTransactionsRequest.getNetworkIdentifier());
 
