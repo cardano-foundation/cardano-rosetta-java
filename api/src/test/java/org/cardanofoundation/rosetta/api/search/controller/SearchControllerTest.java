@@ -56,6 +56,21 @@ class SearchControllerTest extends BaseSpringMvcSetup {
   }
 
   @Nested
+  class SyncStatusValidationTests {
+
+    @Test
+    void shouldThrowExceptionWhenIndexerIsSyncing() {
+      // Given
+      SearchTransactionsRequest request = new SearchTransactionsRequest();
+      Mockito.doThrow(ExceptionFactory.indexerNotReady()).when(networkService).verifySyncStatus();
+
+      // When & Then
+      assertThrows(ExceptionFactory.indexerNotReady().getClass(), 
+          () -> searchApi.searchTransactions(request));
+    }
+  }
+
+  @Nested
   class NetworkValidationTests {
 
     @Test

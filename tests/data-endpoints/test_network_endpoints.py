@@ -164,4 +164,14 @@ class TestNetworkOptions:
                     f"Method '{method}' advertised in call_methods but /call returns 'not supported'"
                 )
 
+    @pytest.mark.pr
+    def test_indexer_not_ready_error_in_options(self, client, network):
+        """Validate that INDEXER_NOT_READY error (5056) is advertised in /network/options."""
+        options = client.network_options().json()
+        errors = options.get("allow", {}).get("errors", [])
+        indexer_not_ready_err = next((e for e in errors if e.get("code") == 5056), None)
+        assert indexer_not_ready_err is not None, "Error 5056 (INDEXER_NOT_READY) should be in network options"
+        assert indexer_not_ready_err.get("message") == "Indexer is still syncing"
+        assert indexer_not_ready_err.get("retriable") is True
+
     # Error handling tests moved to test_error_handling.py
