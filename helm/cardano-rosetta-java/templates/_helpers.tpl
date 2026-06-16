@@ -51,20 +51,6 @@ use it; otherwise fall back to the in-cluster PostgreSQL service name.
 {{- end }}
 
 {{/*
-Index-applier job name.
-*/}}
-{{- define "cardano-rosetta-java.indexApplierName" -}}
-{{- printf "%s-index-applier" .Release.Name | trunc 63 | trimSuffix "-" }}
-{{- end }}
-
-{{/*
-DB indexes ConfigMap name.
-*/}}
-{{- define "cardano-rosetta-java.dbIndexesName" -}}
-{{- printf "%s-db-indexes" .Release.Name | trunc 63 | trimSuffix "-" }}
-{{- end }}
-
-{{/*
 Load-tests ConfigMap name.
 */}}
 {{- define "cardano-rosetta-java.loadTestsName" -}}

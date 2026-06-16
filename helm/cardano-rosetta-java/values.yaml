@@ -87,13 +87,6 @@ global:
           limits:
             cpu: "500m"
             memory: "1Gi"
-        indexApplier:
-          requests:
-            cpu: "100m"
-            memory: "256Mi"
-          limits:
-            cpu: "500m"
-            memory: "512Mi"
       db:
         poolMin: 12
         poolMax: 12
@@ -162,13 +155,6 @@ global:
           limits:
             cpu: "500m"
             memory: "1Gi"
-        indexApplier:
-          requests:
-            cpu: "100m"
-            memory: "256Mi"
-          limits:
-            cpu: "500m"
-            memory: "512Mi"
       db:
         poolMin: 150
         poolMax: 150
@@ -238,13 +224,6 @@ global:
           limits:
             cpu: "1"
             memory: "2Gi"
-        indexApplier:
-          requests:
-            cpu: "250m"
-            memory: "512Mi"
-          limits:
-            cpu: "1"
-            memory: "1Gi"
       db:
         poolMin: 100
         poolMax: 550
@@ -297,17 +276,6 @@ global:
     aggregatorEndpoint: ""
     genesisVerificationKey: ""
     ancillaryVerificationKey: ""
-
-## -----------------------------------------------------------------------
-## Index applier job
-## -----------------------------------------------------------------------
-indexApplier:
-  enabled: true
-  # "automatic" (default): plain Job — runs with the release without needing helm hooks.
-  #   Compatible with GitOps/ArgoCD (no --no-hooks needed).
-  #   The job is auto-cleaned after 24h via ttlSecondsAfterFinished.
-  # "hook": legacy helm post-install/post-upgrade hook (use for operator-controlled rollouts).
-  mode: automatic
 
 ## -----------------------------------------------------------------------
 ## Stress testing with k6
