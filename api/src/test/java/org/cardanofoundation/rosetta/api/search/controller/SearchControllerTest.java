@@ -14,6 +14,9 @@ import org.openapitools.client.model.SearchTransactionsRequest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Nested;
 
+import org.cardanofoundation.rosetta.api.search.mapper.SearchMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.cardanofoundation.rosetta.api.BaseSpringMvcSetup;
 import org.cardanofoundation.rosetta.api.network.service.NetworkService;
 import org.cardanofoundation.rosetta.api.search.service.SearchService;
@@ -31,14 +34,21 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 class SearchControllerTest extends BaseSpringMvcSetup {
 
-  @Mock
+  @Autowired
   private SearchService service;
 
-  @Mock
+  @MockitoBean
   private NetworkService networkService;
 
-  @InjectMocks
+  @Autowired
+  private SearchMapper searchMapper;
+
   private SearchApiImpl searchApi;
+
+  @org.junit.jupiter.api.BeforeEach
+  void setUp() {
+    searchApi = new SearchApiImpl(networkService, service, searchMapper);
+  }
 
   @Nested
   class ConfigurationValidationTests {
@@ -78,8 +88,6 @@ class SearchControllerTest extends BaseSpringMvcSetup {
     void shouldReturn4xxWhenNetworkIdentifierIsMissing() {
       // Given
       SearchTransactionsRequest request = new SearchTransactionsRequest();
-      Mockito.when(service.searchTransaction(any(), any(), any())).thenReturn(Page.empty());
-
       // When & Then
       mockMvc.perform(post("/search/transactions")
               .contentType(MediaType.APPLICATION_JSON)

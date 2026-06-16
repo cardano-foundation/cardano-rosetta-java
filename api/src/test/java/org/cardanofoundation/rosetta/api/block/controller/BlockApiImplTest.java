@@ -52,8 +52,12 @@ class BlockApiImplTest extends BaseSpringMvcSetup {
   @Mock
   private ProtocolParams protocolParams;
 
-  @InjectMocks
   private BlockApiImpl blockApi;
+
+  @org.junit.jupiter.api.BeforeEach
+  void setUp() {
+    blockApi = new BlockApiImpl(blockService, networkService, tokenRegistryService, blockMapper);
+  }
 
   @Test
   void blockInvalidIndex() {

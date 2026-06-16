@@ -6,12 +6,14 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.openapitools.client.model.*;
 
 import org.junit.jupiter.api.Test;
 
 import org.cardanofoundation.rosetta.api.BaseSpringMvcSetup;
+import org.cardanofoundation.rosetta.api.network.service.NetworkService;
 import org.cardanofoundation.rosetta.common.util.Constants;
 import org.cardanofoundation.rosetta.testgenerator.common.TestConstants;
 import org.cardanofoundation.rosetta.testgenerator.common.TestTransactionNames;
@@ -34,6 +36,9 @@ class AccountCoinsApiTest extends BaseSpringMvcSetup {
       getCurrency(TestConstants.MY_ASSET_SYMBOL,Constants.MULTI_ASSET_DECIMALS, myAssetPolicyId);
   private final CurrencyRequest ada = getCurrency(Constants.ADA, Constants.ADA_DECIMALS);
   private final CurrencyRequest lovelace = getCurrency(Constants.LOVELACE, Constants.MULTI_ASSET_DECIMALS);
+
+  @MockitoBean
+  private NetworkService networkService;
 
   @Test
   void accountCoins2Ada_Test() {
