@@ -39,9 +39,8 @@ public class SearchApiImpl implements SearchApi {
     if (offlineMode) {
       throw ExceptionFactory.notSupportedInOfflineMode();
     }
-    networkService.verifySyncStatus();
-
     networkService.verifyNetworkRequest(searchTransactionsRequest.getNetworkIdentifier());
+    networkService.verifySyncStatus();
 
     Long limit = Optional.ofNullable(searchTransactionsRequest.getLimit())
             .orElse(LIMIT);

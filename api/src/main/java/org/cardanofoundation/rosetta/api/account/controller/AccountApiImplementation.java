@@ -34,8 +34,8 @@ public class AccountApiImplementation implements AccountApi {
     if (offlineMode) {
       throw ExceptionFactory.notSupportedInOfflineMode();
     }
-    networkService.verifySyncStatus();
     networkService.verifyNetworkRequest(accountBalanceRequest.getNetworkIdentifier());
+    networkService.verifySyncStatus();
 
     return ResponseEntity.ok(accountService.getAccountBalance(accountBalanceRequest));
   }
@@ -46,8 +46,8 @@ public class AccountApiImplementation implements AccountApi {
     if (offlineMode) {
       throw ExceptionFactory.notSupportedInOfflineMode();
     }
-    networkService.verifySyncStatus();
     networkService.verifyNetworkRequest(accountCoinsRequest.getNetworkIdentifier());
+    networkService.verifySyncStatus();
 
     return ResponseEntity.ok(accountService.getAccountCoins(accountCoinsRequest));
   }
