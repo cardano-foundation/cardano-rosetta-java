@@ -20,4 +20,6 @@ public interface NetworkService {
 
     void verifyNetworkRequest(final NetworkIdentifier networkRequest);
 
+    void verifySyncStatus();
+
 }

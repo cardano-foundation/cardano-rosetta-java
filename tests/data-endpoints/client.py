@@ -3,6 +3,7 @@ Rosetta API client with schema validation.
 """
 
 import os
+import time
 import httpx
 import yaml
 from pathlib import Path
@@ -138,6 +139,12 @@ class RosettaClient:
         self.default_network = default_network
         self.client = httpx.Client(timeout=httpx.Timeout(600.0))
         self.validate_schemas = validate_schemas
+        self.indexer_not_ready_retry_attempts = int(
+            os.environ.get("ROSETTA_INDEXER_NOT_READY_RETRY_ATTEMPTS", "6")
+        )
+        self.indexer_not_ready_retry_delay_seconds = float(
+            os.environ.get("ROSETTA_INDEXER_NOT_READY_RETRY_DELAY_SECONDS", "5")
+        )
 
         # Read pruning config from environment instead of API detection
         if relaxed_validation is None and validate_schemas:
@@ -152,11 +159,19 @@ class RosettaClient:
         self, path: str, body: Dict[str, Any], schema_name: Optional[str] = None
     ) -> httpx.Response:
         """POST request with schema validation."""
-        response = self.client.post(
-            f"{self.base_url}{path}",
-            json=body,
-            headers={"Content-Type": "application/json"},
-        )
+        response = None
+        for attempt in range(self.indexer_not_ready_retry_attempts + 1):
+            response = self.client.post(
+                f"{self.base_url}{path}",
+                json=body,
+                headers={"Content-Type": "application/json"},
+            )
+
+            if not self._is_retriable_indexer_not_ready(response):
+                break
+
+            if attempt < self.indexer_not_ready_retry_attempts:
+                time.sleep(self.indexer_not_ready_retry_delay_seconds)
 
         if self.validate_schemas and schema_name and self.validator:
             try:
@@ -185,6 +200,19 @@ class RosettaClient:
                 pass  # Not JSON or can't parse
 
         return response
+
+    @staticmethod
+    def _is_retriable_indexer_not_ready(response: httpx.Response) -> bool:
+        try:
+            error_data = response.json()
+        except ValueError:
+            return False
+
+        return (
+            response.status_code != 200
+            and error_data.get("code") == 5056
+            and error_data.get("retriable") is True
+        )
 
     def _default_network_identifier(self) -> dict:
         """Build default network_identifier from configured network."""
