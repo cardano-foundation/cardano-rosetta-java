@@ -22,7 +22,7 @@ These values are shared across all subcharts via `global.*`.
 | `global.pgVersionTag` | `REL_18_0` | `PG_VERSION_TAG` | PostgreSQL image tag |
 | `global.mithrilVersion` | `2617.0` | `MITHRIL_VERSION` | Mithril client image tag |
 | `global.profile` | `mid` | — | Hardware profile: `entry`, `mid`, `advanced` |
-| `global.sync` | `true` | `SYNC` | Set `false` for offline (API-only) mode |
+| `global.sync` | `true` | `SYNC` | Reserved for future Helm offline-mode support. The current chart templates do not consume this value. |
 
 ### Database (`global.db`)
 
@@ -31,6 +31,7 @@ These values are shared across all subcharts via `global.*`.
 | `global.db.name` | `rosetta-java` | `DB_NAME` | PostgreSQL database name |
 | `global.db.user` | `rosetta_db_admin` | `DB_USER` | PostgreSQL user |
 | `global.db.password` | `""` **(required)** | `DB_SECRET` | PostgreSQL password — pass via `--set` or Sealed Secret |
+| `global.db.existingSecret` | `""` | — | Use an existing Secret instead of creating one. The Secret must contain key `db-secret`. |
 | `global.db.schema` | `public` | `DB_SCHEMA` | PostgreSQL schema |
 | `global.db.port` | `5432` | `DB_PORT` | PostgreSQL port |
 | `global.db.host` | `""` | `DB_HOST` | Override to use external PostgreSQL. Empty = use in-cluster service |
@@ -40,6 +41,7 @@ These values are shared across all subcharts via `global.*`.
 | Value | Default | Docker Compose equivalent | Description |
 |-------|---------|--------------------------|-------------|
 | `global.mithril.enabled` | `true` | `MITHRIL_SYNC` | Download Mithril snapshot on first install |
+| `global.mithril.sync` | `true` | `MITHRIL_SYNC` | Passed through to the Mithril entrypoint when the init container runs |
 | `global.mithril.snapshotDigest` | `latest` | `SNAPSHOT_DIGEST` | Specific snapshot digest or `latest` |
 | `global.mithril.aggregatorEndpoint` | `""` | `AGGREGATOR_ENDPOINT` | Custom aggregator URL. Empty = use network default |
 | `global.mithril.genesisVerificationKey` | `""` | `GENESIS_VERIFICATION_KEY` | Custom genesis verification key |
@@ -145,6 +147,15 @@ cleaned up 24 hours after completion via `ttlSecondsAfterFinished`.
 
 In `hook` mode the Job is a Helm post-install/post-upgrade hook. Monitor it independently and never use
 `--wait-for-jobs` as it can run for up to 18 hours on mainnet.
+
+---
+
+## Current Helm Startup Notes
+
+- `yaci-indexer` waits for PostgreSQL and for `cardano-node` to reach tip before the main container starts.
+- `rosetta-api` waits for PostgreSQL and then for the database schema to exist (`wait-for-schema`), rather than waiting on yaci-indexer readiness directly.
+- `rosetta-api` readiness is still gated by `syncStatus`, so Kubernetes Service traffic is blocked until `/network/status` reports `LIVE`.
+- Offline/API-only mode is supported by the application, but the stock Helm chart does not currently provide a first-class offline deployment path.
 
 ---
 

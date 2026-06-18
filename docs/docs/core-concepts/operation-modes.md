@@ -59,5 +59,12 @@ docker compose --env-file .env.docker-compose \
   -f docker-compose-offline.yaml up -d
 ```
 
+##### Helm status
+
+The stock Helm chart does not currently provide a first-class offline/API-only deployment path.
+Its templates still assume the online stack (`cardano-node`, `yaci-indexer`, PostgreSQL, and the
+online API profile). Use Docker Compose offline mode or custom chart overrides if you need an
+air-gapped Helm deployment.
+
   </TabItem>
 </Tabs>
