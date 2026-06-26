@@ -1,0 +1,3 @@
+    assert indexer_not_ready_err is not None, "Error 5056 (INDEXER_NOT_READY) should be in network options"
+    assert indexer_not_ready_err.get("message") == "This endpoint is unavailable until the indexer data is ready. When /network/status returns \"stage\": \"LIVE\", this endpoint is ready for use."
+    assert indexer_not_ready_err.get("retriable") is True
