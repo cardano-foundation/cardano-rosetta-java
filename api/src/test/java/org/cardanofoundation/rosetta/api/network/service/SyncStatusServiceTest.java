@@ -17,7 +17,11 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyLong;
+import org.cardanofoundation.rosetta.api.block.service.LedgerBlockService;
+
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.times;
 
 @ExtendWith(MockitoExtension.class)
 class SyncStatusServiceTest {
@@ -31,6 +35,9 @@ class SyncStatusServiceTest {
     @Mock
     private IndexCreationMonitor indexCreationMonitor;
 
+    @Mock
+    private LedgerBlockService ledgerBlockService;
+
     private SyncStatusService syncStatusService;
 
     private static final int ALLOWED_SLOTS_DELTA = 100;
@@ -40,7 +47,8 @@ class SyncStatusServiceTest {
         syncStatusService = new SyncStatusService(
             offlineSlotService,
             slotRangeChecker,
-            indexCreationMonitor
+            indexCreationMonitor,
+            ledgerBlockService
         );
         ReflectionTestUtils.setField(syncStatusService, "allowedSlotsDelta", ALLOWED_SLOTS_DELTA);
     }
@@ -184,6 +192,38 @@ class SyncStatusServiceTest {
             assertThat(result.get().getStage()).isEqualTo(SyncStage.SYNCING.getValue());
             assertThat(result.get().getTargetIndex()).isEqualTo(currentSlot);
             assertThat(result.get().getCurrentIndex()).isEqualTo(latestBlockSlot);
+        }
+    }
+
+    @Nested
+    @DisplayName("getSyncStatus tests")
+    class GetSyncStatusTests {
+
+        @Test
+        @DisplayName("Should query latest block and calculate sync status successfully")
+        void shouldQueryLatestBlockAndCalculateSyncStatus() {
+            // Given
+            long currentSlot = 1000L;
+            long latestBlockSlot = 990L;
+            BlockIdentifierExtended latestBlock = BlockIdentifierExtended.builder()
+                .slot(latestBlockSlot)
+                .build();
+
+            when(ledgerBlockService.findLatestBlockIdentifier()).thenReturn(latestBlock);
+            when(offlineSlotService.getCurrentSlotBasedOnTime()).thenReturn(Optional.of(currentSlot));
+            when(slotRangeChecker.isSlotWithinEpsilon(currentSlot, latestBlockSlot, ALLOWED_SLOTS_DELTA))
+                .thenReturn(true);
+            when(indexCreationMonitor.isCreatingIndexes()).thenReturn(false);
+
+            // When
+            Optional<SyncStatus> resultOpt = syncStatusService.getSyncStatus();
+
+            // Then
+            assertThat(resultOpt).isPresent();
+            SyncStatus result = resultOpt.get();
+            assertThat(result.getSynced()).isTrue();
+            assertThat(result.getStage()).isEqualTo(SyncStage.LIVE.getValue());
+            verify(ledgerBlockService, times(1)).findLatestBlockIdentifier();
         }
     }
 }

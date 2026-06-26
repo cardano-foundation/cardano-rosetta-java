@@ -9,6 +9,12 @@ import org.openapitools.client.model.SyncStatus;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import org.cardanofoundation.rosetta.api.block.service.LedgerBlockService;
+import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.scheduling.annotation.Scheduled;
+
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
 import java.util.List;
@@ -26,6 +32,7 @@ public class SyncStatusService {
     private final OfflineSlotService offlineSlotService;
     private final SlotRangeChecker slotRangeChecker;
     private final IndexCreationMonitor indexCreationMonitor;
+    private final LedgerBlockService ledgerBlockService;
 
     @Value("${cardano.rosetta.SYNC_GRACE_SLOTS_COUNT:200}")
     private int allowedSlotsDelta;
@@ -136,5 +143,28 @@ public class SyncStatusService {
                 .stage(stage.getValue())
                 .build();
         });
+    }
+
+    /**
+     * Gets the sync status of the indexer. This is cached for 5 seconds to prevent
+     * redundant database checks on every request.
+     *
+     * @return an Optional containing the SyncStatus of the indexer if available, empty otherwise
+     */
+    @Cacheable(value = "syncStatusCache", unless = "#result == null")
+    public Optional<SyncStatus> getSyncStatus() {
+        log.info("[SyncStatusService] Cache miss - querying sync status from DB");
+        BlockIdentifierExtended latestBlock = ledgerBlockService.findLatestBlockIdentifier();
+        return calculateSyncStatus(latestBlock);
+    }
+
+    /**
+     * Periodically evicts all sync status entries from the cache.
+     * The rate is configurable via properties, defaulting to 5 seconds.
+     */
+    @Scheduled(fixedRateString = "${cardano.rosetta.sync-status-cache-ttl-ms:5000}")
+    @CacheEvict(value = "syncStatusCache", allEntries = true)
+    public void evictSyncStatusCache() {
+        log.trace("[SyncStatusService] Evicting syncStatusCache");
     }
 }

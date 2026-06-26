@@ -1,7 +1,9 @@
 package org.cardanofoundation.rosetta.api.network.service;
 
 import lombok.RequiredArgsConstructor;
-import org.cardanofoundation.rosetta.api.block.service.LedgerBlockService;
+import java.util.Optional;
+import org.openapitools.client.model.SyncStatus;
+
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.stereotype.Component;
@@ -35,13 +37,19 @@ import javax.annotation.Nullable;
 public class SyncStatusHealthIndicator implements HealthIndicator {
 
     private final SyncStatusService syncStatusService;
-    private final LedgerBlockService ledgerBlockService;
+
 
     @Override
     @Nullable
     public Health health() {
-        var latestBlock = ledgerBlockService.findLatestBlockIdentifier();
-        var syncStatusOpt = syncStatusService.calculateSyncStatus(latestBlock);
+        Optional<SyncStatus> syncStatusOpt;
+        try {
+            syncStatusOpt = syncStatusService.getSyncStatus();
+        } catch (Exception e) {
+            return Health.outOfService()
+                    .withDetail("reason", "Sync status cannot be determined — " + e.getMessage())
+                    .build();
+        }
 
         if (syncStatusOpt == null || syncStatusOpt.isEmpty()) {
             return Health.outOfService()
