@@ -1,0 +1,3 @@
+    assert response.status_code == 400
+    assert error["code"] == 5000
+    assert error["retriable"] is False

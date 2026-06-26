@@ -1,0 +1,17 @@
+{
+  "method": "POST",
+  "url": "http://localhost:8082/block/transaction",
+  "body": {
+    "network_identifier": {
+      "blockchain": "cardano",
+      "network": "preprod"
+    },
+    "block_identifier": {
+      "index": 2433245,
+      "hash": "54a241ed02188efbd91886f74a684e75d937c162b453da288d6c18fcd64fdb85"
+    },
+    "transaction_identifier": {
+      "hash": "invalid_hash"
+    }
+  }
+}
